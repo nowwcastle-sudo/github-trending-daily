@@ -1,5 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
 import {
+  initializeAppCheck,
+  ReCaptchaEnterpriseProvider,
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app-check.js";
+import {
   getAuth,
   GoogleAuthProvider,
   onAuthStateChanged,
@@ -74,6 +78,14 @@ function authErrorMessage(error) {
   return messages[error?.code] || "Google 로그인에 실패했어요. 잠시 후 다시 시도해 주세요.";
 }
 
+function validateFirebaseConfig(config) {
+  if (config?.projectId !== "github-trending-nowwcastle") throw new Error("unexpected Firebase project");
+  if (typeof config.appCheckSiteKey !== "string" || !config.appCheckSiteKey.trim()) {
+    throw new Error("missing App Check site key");
+  }
+  return config;
+}
+
 async function bootstrap() {
   if (!globalThis.Favorites || !globalThis.FavoriteSync || !globalThis.favoriteController || !globalThis.applyFavoriteState) {
     throw new Error("favorite synchronization is unavailable");
@@ -81,10 +93,13 @@ async function bootstrap() {
 
   const response = await fetch(new URL("firebase-config.json", import.meta.url), { cache: "no-store" });
   if (!response.ok) throw new Error("Firebase configuration is unavailable");
-  const config = await response.json();
-  if (config?.projectId !== "github-trending-nowwcastle") throw new Error("unexpected Firebase project");
+  const config = validateFirebaseConfig(await response.json());
 
   const app = initializeApp(config);
+  initializeAppCheck(app, {
+    provider: new ReCaptchaEnterpriseProvider(config.appCheckSiteKey),
+    isTokenAutoRefreshEnabled: true,
+  });
   const auth = getAuth(app);
   const db = getFirestore(app);
   const provider = new GoogleAuthProvider();

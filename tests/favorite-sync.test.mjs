@@ -510,7 +510,7 @@ async function loadFirebaseClientForTest() {
     .replace(/import\s*\{[\s\S]*?\}\s*from\s*"https:\/\/www\.gstatic\.com\/firebasejs\/12\.17\.1\/[^\"]+";\s*/g, "")
     .replace(/import\.meta\.url/g, '""')
     .replace(/bootstrap\(\)\.catch\([\s\S]*$/m, "")
-    + "\nglobalThis.__client = { createCloudAdapter, authErrorMessage };";
+    + "\nglobalThis.__client = { createCloudAdapter, authErrorMessage, validateFirebaseConfig };";
   const context = {
     Favorites: globalThis.Favorites,
     FavoriteSync,
@@ -520,6 +520,55 @@ async function loadFirebaseClientForTest() {
   vm.runInNewContext(runnable, context);
   return { source, ...context.__client };
 }
+
+test("App Check uses the pinned Enterprise provider before Firebase services", async () => {
+  const { source, validateFirebaseConfig } = await loadFirebaseClientForTest();
+  const config = JSON.parse(await readFile(new URL("../firebase-config.json", import.meta.url), "utf8"));
+  assert.match(source, /https:\/\/www\.gstatic\.com\/firebasejs\/12\.17\.1\/firebase-app-check\.js/);
+  assert.match(source, /new ReCaptchaEnterpriseProvider\(config\.appCheckSiteKey\)/);
+  assert.match(source, /isTokenAutoRefreshEnabled:\s*true/);
+  const appIndex = source.indexOf("initializeApp(config)");
+  const appCheckIndex = source.indexOf("initializeAppCheck(app");
+  assert.ok(appIndex >= 0 && appIndex < appCheckIndex);
+  assert.ok(appCheckIndex < source.indexOf("getAuth(app)"));
+  assert.ok(appCheckIndex < source.indexOf("getFirestore(app)"));
+  assert.equal(validateFirebaseConfig(config), config);
+  assert.throws(() => validateFirebaseConfig({ ...config, appCheckSiteKey: "" }), /App Check site key/);
+  assert.throws(() => validateFirebaseConfig({ ...config, appCheckSiteKey: 123 }), /App Check site key/);
+});
+
+test("an App Check initialization failure stays on the existing guest controller", async () => {
+  const source = await readFile(new URL("../firebase-client.js", import.meta.url), "utf8");
+  const runnable = source
+    .replace(/import\s*\{[\s\S]*?\}\s*from\s*"https:\/\/www\.gstatic\.com\/firebasejs\/12\.17\.1\/[^"]+";\s*/g, "")
+    .replace(/import\.meta\.url/g, '""');
+  const elements = {
+    syncStatus: { textContent: "" },
+    loginBtn: { hidden: false },
+    logoutBtn: { hidden: false },
+  };
+  let applied;
+  const context = {
+    Favorites: globalThis.Favorites,
+    FavoriteSync,
+    favoriteController: { favorites: () => ["guest/one"] },
+    applyFavoriteState: state => { applied = state; },
+    fetch: async () => ({ ok: true, json: async () => ({ projectId: "github-trending-nowwcastle", appCheckSiteKey: "public-site-key" }) }),
+    URL: class {},
+    document: { getElementById: id => elements[id] },
+    initializeApp: config => ({ config }),
+    initializeAppCheck() { throw new Error("App Check unavailable"); },
+    ReCaptchaEnterpriseProvider: class {},
+    globalThis: null,
+  };
+  context.globalThis = context;
+  vm.runInNewContext(runnable, context);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(elements.syncStatus.textContent, "Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다.");
+  assert.equal(elements.loginBtn.hidden, true);
+  assert.equal(elements.logoutBtn.hidden, true);
+  assert.deepEqual(JSON.parse(JSON.stringify(applied)), { favorites: ["guest/one"], busy: false });
+});
 
 test("Firebase client uses pinned official modules and the required page script order", async () => {
   const { source } = await loadFirebaseClientForTest();
