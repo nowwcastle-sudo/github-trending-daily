@@ -116,7 +116,7 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
   border:1px solid var(--tip-border);border-radius:16px;box-shadow:var(--shadow-pop);
   padding:18px 20px;transition:opacity .16s ease;
 }
-#tipLayer.on{opacity:1}
+#tipLayer.on{opacity:1;pointer-events:auto}
 @media(hover:none){#tipLayer{display:none}}
 /* 웹(≥900px): 목록을 왼쪽으로 밀고 오른쪽 고정 영역에 툴팁 */
 @media(min-width:900px){
@@ -184,79 +184,10 @@ footer a{color:var(--text-2)}
 .sparkhist{margin-top:10px}
 .sparkhist svg{display:block;width:100%}
 .histnote{font-size:11px;color:var(--text-3);margin-top:3px}
+.starhist-img{width:100%;max-width:220px;height:auto;border-radius:8px;background:rgba(128,128,128,.08)}
+html[data-theme="dark"] .starhist-img{filter:invert(.92) hue-rotate(180deg)}
 </style>
-.favbtn{margin-left:auto;flex-shrink:0;background:none;border:none;color:var(--text-3);
-  font-size:20px;cursor:pointer;padding:4px 6px;border-radius:8px;line-height:1;
-  transition:transform .15s ease,color .15s}
-.favbtn:hover{background:var(--seg-bg);transform:scale(1.15)}
-.favbtn.on{color:var(--hot)}
-.seg button.fav-filter[aria-pressed="true"]{color:var(--hot)}
 
-/* README side viewer */
-#readmePanel{position:fixed;top:0;right:-560px;width:min(560px,92vw);height:100vh;z-index:300;
-  background:var(--tip-bg);backdrop-filter:blur(28px) saturate(180%);
-  border-left:1px solid var(--tip-border);box-shadow:var(--shadow-pop);
-  transition:right .3s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column}
-#readmePanel.open{right:0}
-#readmePanel .rp-head{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--hairline)}
-#readmePanel .rp-head h3{flex:1;font-size:17px}
-#readmePanel .rp-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-2);padding:4px 8px;border-radius:8px}
-#readmePanel .rp-close:hover{background:var(--seg-bg)}
-#readmeBody{flex:1;overflow-y:auto;padding:20px 24px;font-size:14.5px;line-height:1.65}
-#readmeBody h1{font-size:24px;margin:18px 0 10px}#readmeBody h2{font-size:19px;margin:16px 0 8px}
-#readmeBody h3{font-size:16px;margin:14px 0 6px}
-#readmeBody p{margin:8px 0}#readmeBody ul,#readmeBody ol{margin:8px 0;padding-left:22px}
-#readmeBody code{background:var(--seg-bg);padding:1.5px 5px;border-radius:5px;font-size:.9em}
-#readmeBody pre{background:var(--seg-bg);padding:12px;border-radius:10px;overflow-x:auto;margin:10px 0}
-#readmeBody pre code{background:none;padding:0}
-#readmeBody a{color:var(--accent)}
-#readmeBody img{max-width:100%}
-.rdbtn{background:none;border:1px solid var(--border);color:var(--text-2);font:inherit;font-size:12.5px;
-  padding:4px 10px;border-radius:8px;cursor:pointer;flex-shrink:0}
-.rdbtn:hover{border-color:var(--accent);color:var(--accent)}
-#readmeScrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:290;opacity:0;pointer-events:none;transition:opacity .25s}
-#readmeScrim.on{opacity:1;pointer-events:auto}
-/* star history sparkline */
-.sparkhist{margin-top:10px}
-.sparkhist svg{display:block;width:100%}
-.histnote{font-size:11px;color:var(--text-3);margin-top:3px}
-</style>
-.favbtn{margin-left:auto;flex-shrink:0;background:none;border:none;color:var(--text-3);
-  font-size:20px;cursor:pointer;padding:4px 6px;border-radius:8px;line-height:1;
-  transition:transform .15s ease,color .15s}
-.favbtn:hover{background:var(--seg-bg);transform:scale(1.15)}
-.favbtn.on{color:var(--hot)}
-.seg button.fav-filter[aria-pressed="true"]{color:var(--hot)}
-
-/* README side viewer */
-#readmePanel{position:fixed;top:0;right:-560px;width:min(560px,92vw);height:100vh;z-index:300;
-  background:var(--tip-bg);backdrop-filter:blur(28px) saturate(180%);
-  border-left:1px solid var(--tip-border);box-shadow:var(--shadow-pop);
-  transition:right .3s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column}
-#readmePanel.open{right:0}
-#readmePanel .rp-head{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--hairline)}
-#readmePanel .rp-head h3{flex:1;font-size:17px}
-#readmePanel .rp-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-2);padding:4px 8px;border-radius:8px}
-#readmePanel .rp-close:hover{background:var(--seg-bg)}
-#readmeBody{flex:1;overflow-y:auto;padding:20px 24px;font-size:14.5px;line-height:1.65}
-#readmeBody h1{font-size:24px;margin:18px 0 10px}#readmeBody h2{font-size:19px;margin:16px 0 8px}
-#readmeBody h3{font-size:16px;margin:14px 0 6px}
-#readmeBody p{margin:8px 0}#readmeBody ul,#readmeBody ol{margin:8px 0;padding-left:22px}
-#readmeBody code{background:var(--seg-bg);padding:1.5px 5px;border-radius:5px;font-size:.9em}
-#readmeBody pre{background:var(--seg-bg);padding:12px;border-radius:10px;overflow-x:auto;margin:10px 0}
-#readmeBody pre code{background:none;padding:0}
-#readmeBody a{color:var(--accent)}
-#readmeBody img{max-width:100%}
-.rdbtn{background:none;border:1px solid var(--border);color:var(--text-2);font:inherit;font-size:12.5px;
-  padding:4px 10px;border-radius:8px;cursor:pointer;flex-shrink:0}
-.rdbtn:hover{border-color:var(--accent);color:var(--accent)}
-#readmeScrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:290;opacity:0;pointer-events:none;transition:opacity .25s}
-#readmeScrim.on{opacity:1;pointer-events:auto}
-/* star history sparkline */
-.sparkhist{margin-top:10px}
-.sparkhist svg{display:block;width:100%}
-.histnote{font-size:11px;color:var(--text-3);margin-top:3px}
-</style>
 </head>
 <body>
 <div class="wrap">
@@ -440,11 +371,11 @@ function sparkline(hist,w,h){
     <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/></svg>`;
 }
 function renderHist(){
-  const H=window.STAR_HISTORY||[];
   document.querySelectorAll(".sparkhist[data-slug]").forEach(el=>{
-    const h=H.find(x=>x.slug===el.dataset.slug);
-    el.innerHTML=h?sparkline(h.hist,120,28)+`<p class="histnote">📈 ${h.hist.length}일 스냅샷</p>`
-                  :`<p class="histnote">📈 스타 히스토리는 매일 수집되며 곧 그래프가 채워져요</p>`;
+    const s=el.dataset.slug;
+    el.innerHTML=`<img class="starhist-img" loading="lazy" alt="star history"
+      src="https://api.star-history.com/svg?repos=${s}&type=Date"
+      onerror="this.closest('.sparkhist').innerHTML='<p class=histnote>📈 히스토리를 불러올 수 없어요</p>'">`;
   });
 }
 
@@ -519,8 +450,14 @@ list.addEventListener("focusin",e=>{
 list.addEventListener("focusout",()=>{
   hideTimer=setTimeout(()=>tipLayer.classList.remove("on"),120);
 });
-list.addEventListener("mouseleave",()=>{hideTimer=setTimeout(()=>tipLayer.classList.remove("on"),120)});
+list.addEventListener("mouseleave",e=>{
+  // 카드 → 툴팁으로 이동하는 경우 유지
+  const toTip=e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest("#tipLayer");
+  if(toTip)return;
+  hideTimer=setTimeout(()=>tipLayer.classList.remove("on"),120);
+});
 tipLayer.addEventListener("mouseenter",()=>clearTimeout(hideTimer));
+tipLayer.addEventListener("mouseleave",()=>{hideTimer=setTimeout(()=>tipLayer.classList.remove("on"),150)});
 tipLayer.addEventListener("click",e=>{
   const b=e.target.closest(".js-readme");if(!b)return;
   e.preventDefault();
