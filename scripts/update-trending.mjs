@@ -379,7 +379,25 @@ function parsePageRepos(page) {
 
 function assertCompleteSummary(repo, statsDate) {
   const slug = normalizeSlug(repo?.slug ?? "");
+  if (repo.slug !== slug) throw new Error(`Published ${slug} must use a normalized slug`);
   if (repo._stats_date !== statsDate) throw new Error(`Published ${slug} has the wrong stats date`);
+  const counts = [repo?.stars, repo?.forks, repo?.issues, repo?.contributors];
+  if (
+    typeof repo?.name !== "string"
+    || !repo.name.trim()
+    || typeof repo.desc !== "string"
+    || typeof repo.lang !== "string"
+    || typeof repo.color !== "string"
+    || counts.some(value => !Number.isSafeInteger(value) || value < 0)
+  ) {
+    throw new Error(`Published ${slug} must have a valid UI schema`);
+  }
+  const gains = Object.values(PERIODS)
+    .map(({ field }) => repo[field])
+    .filter(value => value !== undefined);
+  if (!gains.length || gains.some(value => !Number.isSafeInteger(value) || value < 0)) {
+    throw new Error(`Published ${slug} must have at least one valid period gain`);
+  }
   const complete = [
     ...SUMMARY_FIELDS.map(field => repo?.summary?.[field]),
     ...SUMMARY_FIELDS.map(field => repo?.detail?.[field]),
@@ -387,6 +405,15 @@ function assertCompleteSummary(repo, statsDate) {
   ].every(value => typeof value === "string" && value.trim());
   if (!complete) throw new Error(`Published ${slug} must have a complete summary and detail`);
   return slug;
+}
+
+function assertUniqueCacheKeys(cache) {
+  const seen = new Set();
+  for (const slug of Object.keys(cache)) {
+    const key = slug.toLowerCase();
+    if (seen.has(key)) throw new Error(`Duplicate summary cache key: ${slug}`);
+    seen.add(key);
+  }
 }
 
 function inlineJson(value) {
@@ -399,8 +426,10 @@ function inlineJson(value) {
 function validateSnapshotPair(page, summaryCacheText, statsDate) {
   assertValidDate(statsDate);
   const repos = parsePageRepos(page);
+  if (repos.length < 10 || repos.length > 75) throw new Error("Final snapshot must contain 10-75 repositories");
   const cache = JSON.parse(summaryCacheText);
   if (!cache || Array.isArray(cache) || typeof cache !== "object") throw new Error("Summary cache must be an object");
+  assertUniqueCacheKeys(cache);
   const cachedBySlug = new Map(Object.entries(cache).map(([slug, value]) => [slug.toLowerCase(), value]));
   const seen = new Set();
   for (const repo of repos) {
@@ -423,10 +452,12 @@ function validateSnapshotPair(page, summaryCacheText, statsDate) {
 
 export function createPageSnapshot({ page, summaryCache, repos, statsDate }) {
   if (typeof page !== "string" || !Array.isArray(repos)) throw new Error("Page and repositories are required");
+  if (repos.length < 10 || repos.length > 75) throw new Error("Final snapshot must contain 10-75 repositories");
   assertValidDate(statsDate);
   if (!summaryCache || Array.isArray(summaryCache) || typeof summaryCache !== "object") {
     throw new Error("Summary cache must be an object");
   }
+  assertUniqueCacheKeys(summaryCache);
 
   const nextCache = { ...summaryCache };
   const cacheKeys = new Map(Object.keys(nextCache).map(slug => [slug.toLowerCase(), slug]));

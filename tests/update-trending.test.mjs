@@ -430,8 +430,73 @@ function publishableRepo(index, statsDate = "2026-08-23") {
   };
 }
 
+const publishableRepos = (count = 10, statsDate = "2026-08-23") => (
+  Array.from({ length: count }, (_, index) => publishableRepo(index, statsDate))
+);
+
+test("final snapshot rejects invalid collection sizes and incomplete UI fields", () => {
+  for (const count of [9, 76]) {
+    assert.throws(
+      () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: publishableRepos(count), statsDate: "2026-08-23" }),
+      /10-75 repositories/i,
+    );
+  }
+
+  const encodedSlug = publishableRepos();
+  encodedSlug[0].slug = "owner%2Frepo-0";
+  assert.throws(
+    () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: encodedSlug, statsDate: "2026-08-23" }),
+    /normalized slug/i,
+  );
+
+  const missingField = publishableRepos();
+  delete missingField[0].desc;
+  assert.throws(
+    () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: missingField, statsDate: "2026-08-23" }),
+    /valid UI schema/i,
+  );
+
+  const emptyName = publishableRepos();
+  emptyName[0].name = "";
+  assert.throws(
+    () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: emptyName, statsDate: "2026-08-23" }),
+    /valid UI schema/i,
+  );
+
+  for (const invalid of [-1, 1.5]) {
+    const invalidNumber = publishableRepos();
+    invalidNumber[0].contributors = invalid;
+    assert.throws(
+      () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: invalidNumber, statsDate: "2026-08-23" }),
+      /valid UI schema/i,
+    );
+  }
+
+  const noPeriodGain = publishableRepos();
+  delete noPeriodGain[0].stars_daily;
+  assert.throws(
+    () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: noPeriodGain, statsDate: "2026-08-23" }),
+    /period gain/i,
+  );
+});
+
+test("summary cache rejects case-insensitive duplicate keys during snapshot creation", () => {
+  assert.throws(
+    () => createPageSnapshot({
+      page: markedPage,
+      summaryCache: {
+        "Owner/Repo": cachedSummary(0),
+        "owner/repo": cachedSummary(1),
+      },
+      repos: publishableRepos(),
+      statsDate: "2026-08-23",
+    }),
+    /duplicate summary cache key/i,
+  );
+});
+
 test("page snapshot changes only marked regions and persists complete new summaries", () => {
-  const repos = [publishableRepo(0)];
+  const repos = publishableRepos();
   const snapshot = createPageSnapshot({
     page: markedPage,
     summaryCache: { "existing/repo": cachedSummary(9) },
@@ -452,13 +517,13 @@ test("page snapshot changes only marked regions and persists complete new summar
 });
 
 test("page snapshot cannot terminate the inline script through repository metadata", () => {
-  const repo = publishableRepo(0);
-  repo.desc = "</script><script>alert('xss')</script>";
+  const repos = publishableRepos();
+  repos[0].desc = "</script><script>alert('xss')</script>";
 
   const snapshot = createPageSnapshot({
     page: markedPage,
     summaryCache: {},
-    repos: [repo],
+    repos,
     statsDate: "2026-08-23",
   });
   const generated = snapshot.page.match(/\/\/ GENERATED:TRENDING-REPOS:START([\s\S]*?)\/\/ GENERATED:TRENDING-REPOS:END/)[1];
@@ -468,22 +533,22 @@ test("page snapshot cannot terminate the inline script through repository metada
 });
 
 test("page snapshot rejects duplicate markers, invalid dates, and incomplete published summaries", () => {
-  const incomplete = publishableRepo(0);
-  incomplete.detail.stars_note = "";
+  const incomplete = publishableRepos();
+  incomplete[0].detail.stars_note = "";
 
   assert.throws(
-    () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: [incomplete], statsDate: "2026-08-23" }),
+    () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: incomplete, statsDate: "2026-08-23" }),
     /complete summary/i,
   );
   assert.throws(
-    () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: [publishableRepo(0)], statsDate: "2026-02-30" }),
+    () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: publishableRepos(), statsDate: "2026-02-30" }),
     /valid YYYY-MM-DD/,
   );
   assert.throws(
     () => createPageSnapshot({
       page: `${markedPage}\n// GENERATED:TRENDING-REPOS:START\n// GENERATED:TRENDING-REPOS:END`,
       summaryCache: {},
-      repos: [publishableRepo(0)],
+      repos: publishableRepos(),
       statsDate: "2026-08-23",
     }),
     /exactly one.*REPOS/i,
@@ -504,7 +569,7 @@ test("atomic installer restores both tracked files when the second replacement f
   const snapshot = createPageSnapshot({
     page: markedPage,
     summaryCache: {},
-    repos: [publishableRepo(0)],
+    repos: publishableRepos(),
     statsDate: "2026-08-23",
   });
   const { rename } = await import("node:fs/promises");
@@ -530,6 +595,35 @@ test("atomic installer restores both tracked files when the second replacement f
     snapshot.summaryCacheText,
   ]);
   assert.equal(await installPageSnapshot({ pagePath, cachePath, ...snapshot }), false);
+});
+
+test("prepared snapshot validation rejects case-insensitive duplicate summary-cache keys", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "trending-cache-duplicate-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const pagePath = join(directory, "index.html");
+  const cachePath = join(directory, "data", "repo-summaries.json");
+  await mkdir(join(directory, "data"));
+  await Promise.all([writeFile(pagePath, markedPage), writeFile(cachePath, "{}\n")]);
+  const original = await Promise.all([readFile(pagePath), readFile(cachePath)]);
+  const snapshot = createPageSnapshot({
+    page: markedPage,
+    summaryCache: {},
+    repos: publishableRepos(),
+    statsDate: "2026-08-23",
+  });
+  const duplicate = JSON.parse(snapshot.summaryCacheText);
+  duplicate["Owner/Repo-0"] = duplicate["owner/repo-0"];
+
+  await assert.rejects(
+    installPageSnapshot({
+      pagePath,
+      cachePath,
+      page: snapshot.page,
+      summaryCacheText: `${JSON.stringify(duplicate, null, 2)}\n`,
+    }),
+    /duplicate summary cache key/i,
+  );
+  assert.deepEqual(await Promise.all([readFile(pagePath), readFile(cachePath)]), original);
 });
 
 test("Asia/Seoul date is deterministic across the UTC day boundary", () => {
