@@ -252,19 +252,44 @@ export async function updateCache({
   const responses = new Map();
   const failed = [];
   for (const repo of repos) {
+    let failure = null;
+    let response;
     try {
       const [owner, name] = repo.slug.split("/");
-      const response = await fetchImpl(
+      response = await fetchImpl(
         `https://api.ossinsight.io/v1/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/stargazers/history`,
       );
-      if (!response?.ok) throw new Error(`HTTP ${response?.status ?? "unknown"}`);
-      const body = await response.json();
-      if (!Array.isArray(body?.data?.rows)) throw new Error("missing data.rows");
-      responses.set(repo.slug, body.data.rows);
-    } catch (error) {
+    } catch {
+      failure = "request failed";
+    }
+    if (!failure && !response?.ok) {
+      failure = Number.isInteger(response?.status) && response.status >= 100 && response.status <= 599
+        ? `HTTP ${response.status}`
+        : "request failed";
+    }
+    let body;
+    if (!failure) {
+      try {
+        body = await response.json();
+      } catch {
+        failure = "invalid JSON";
+      }
+    }
+    if (!failure) {
+      const rows = body?.data?.rows;
+      try {
+        if (!Array.isArray(rows) || (rows.length > 0 && normalizeEstimatedRows(rows).length === 0)) {
+          failure = "invalid data.rows";
+        }
+      } catch {
+        failure = "invalid data.rows";
+      }
+      if (!failure) responses.set(repo.slug, rows);
+    }
+    if (failure) {
       failed.push(repo.slug);
       responses.set(repo.slug, null);
-      log(`${repo.slug}: ${error instanceof Error ? error.message : "request failed"}`);
+      log(`${repo.slug}: ${failure}`);
     }
   }
   const next = buildCache(repos, prior, responses, date);
@@ -284,8 +309,8 @@ async function main() {
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
-  main().catch(error => {
-    console.error(`Star history update failed: ${error instanceof Error ? error.message : "unknown error"}`);
+  main().catch(() => {
+    console.error("Star history update failed");
     process.exitCode = 1;
   });
 }

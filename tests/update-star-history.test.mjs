@@ -293,6 +293,81 @@ test("updateCache treats missing data.rows as a partial failure and preserves es
   assert.deepEqual(saved.repositories[0].estimated, [{ date: "2026-07-01", stars: 9 }]);
 });
 
+test("updateCache preserves estimates when non-empty rows contain no valid points", async t => {
+  const current = repos();
+  const paths = await temporaryFiles(current);
+  t.after(() => rm(paths.directory, { recursive: true, force: true }));
+  await writeFile(paths.cachePath, `${JSON.stringify({
+    version: 1,
+    generatedAt: "2026-08-21",
+    repositories: current.map(repo => ({
+      slug: repo.slug,
+      estimated: [{ date: "2026-07-01", stars: repo.stars - 1 }],
+      observed: [],
+    })),
+  }, null, 2)}\n`, "utf8");
+  const responses = responseMap(current, new Map([
+    [current[0].slug.toLowerCase(), {
+      ok: true,
+      json: async () => ({ data: { rows: [{ date: "invalid", stargazers: "not-a-number" }] } }),
+    }],
+    [current[1].slug.toLowerCase(), {
+      ok: true,
+      json: async () => ({ data: { rows: [
+        { date: "invalid", stargazers: "not-a-number" },
+        { date: "2026-08-01", stargazers: "20" },
+      ] } }),
+    }],
+  ]));
+  const logs = [];
+
+  const result = await updateCache({
+    ...paths,
+    date: "2026-08-22",
+    fetchImpl: async url => responses.get(slugFromUrl(url)),
+    log: message => logs.push(message),
+  });
+
+  assert.deepEqual(result.failed, [current[0].slug]);
+  assert.deepEqual(logs, [`${current[0].slug}: invalid data.rows`]);
+  const saved = JSON.parse(await readFile(paths.cachePath, "utf8"));
+  assert.deepEqual(saved.repositories[0].estimated, [{ date: "2026-07-01", stars: 9 }]);
+  assert.deepEqual(saved.repositories[1].estimated, [{ date: "2026-08-01", stars: 20 }]);
+});
+
+test("updateCache never logs messages thrown by fetch or JSON parsing", async t => {
+  const current = repos();
+  const paths = await temporaryFiles(current);
+  t.after(() => rm(paths.directory, { recursive: true, force: true }));
+  const fetchSecret = "FETCH_SECRET_SENTINEL";
+  const jsonSecret = "JSON_SECRET_SENTINEL";
+  const statusSecret = "STATUS_SECRET_SENTINEL";
+  const logs = [];
+
+  const result = await updateCache({
+    ...paths,
+    date: "2026-08-22",
+    fetchImpl: async url => {
+      const slug = slugFromUrl(url);
+      if (slug === current[0].slug.toLowerCase()) throw new Error(fetchSecret);
+      if (slug === current[1].slug.toLowerCase()) {
+        return { ok: true, json: async () => { throw new Error(jsonSecret); } };
+      }
+      if (slug === current[2].slug.toLowerCase()) return { ok: false, status: statusSecret };
+      return { ok: true, json: async () => ({ data: { rows: [] } }) };
+    },
+    log: message => logs.push(message),
+  });
+
+  assert.deepEqual(result.failed, [current[0].slug, current[1].slug, current[2].slug]);
+  assert.deepEqual(logs, [
+    `${current[0].slug}: request failed`,
+    `${current[1].slug}: invalid JSON`,
+    `${current[2].slug}: request failed`,
+  ]);
+  assert.doesNotMatch(logs.join("\n"), new RegExp(`${fetchSecret}|${jsonSecret}|${statusSecret}`));
+});
+
 test("updateCache distinguishes a successful empty history from a failed request", async t => {
   const current = repos();
   const paths = await temporaryFiles(current);
