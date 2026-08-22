@@ -120,7 +120,7 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 @media(hover:none){#tipLayer{display:none}}
 /* 웹(≥900px): 목록을 왼쪽으로 밀고 오른쪽 고정 영역에 툴팁 */
 @media(min-width:900px){
-  .wrap{max-width:780px;margin-left:max(24px,calc(50vw - 640px))}
+  .wrap{max-width:780px;margin:0 auto}
   #tipLayer{width:560px;max-height:82vh;overflow-y:auto}
 }
 #tipLayer h3{font-size:20px;letter-spacing:-.01em;margin-bottom:2px}
@@ -157,7 +157,7 @@ footer a{color:var(--text-2)}
 .seg button.fav-filter[aria-pressed="true"]{color:var(--hot)}
 
 /* README side viewer */
-#readmePanel{position:fixed;top:0;right:-560px;width:min(560px,92vw);height:100vh;z-index:300;
+#readmePanel{position:fixed;top:0;right:-100vw;width:min(1200px,92vw);height:100vh;z-index:300;
   background:var(--tip-bg);backdrop-filter:blur(28px) saturate(180%);
   border-left:1px solid var(--tip-border);box-shadow:var(--shadow-pop);
   transition:right .3s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column}
@@ -166,9 +166,9 @@ footer a{color:var(--text-2)}
 #readmePanel .rp-head h3{flex:1;font-size:17px}
 #readmePanel .rp-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-2);padding:4px 8px;border-radius:8px}
 #readmePanel .rp-close:hover{background:var(--seg-bg)}
-#readmeBody{flex:1;overflow-y:auto;padding:20px 24px;font-size:14.5px;line-height:1.65}
-#readmeBody h1{font-size:24px;margin:18px 0 10px}#readmeBody h2{font-size:19px;margin:16px 0 8px}
-#readmeBody h3{font-size:16px;margin:14px 0 6px}
+#readmeBody{flex:1;overflow-y:auto;padding:28px 36px;font-size:18px;line-height:1.75}
+#readmeBody h1{font-size:34px;margin:22px 0 12px}#readmeBody h2{font-size:27px;margin:20px 0 10px}
+#readmeBody h3{font-size:22px;margin:16px 0 8px}
 #readmeBody p{margin:8px 0}#readmeBody ul,#readmeBody ol{margin:8px 0;padding-left:22px}
 #readmeBody code{background:var(--seg-bg);padding:1.5px 5px;border-radius:5px;font-size:.9em}
 #readmeBody pre{background:var(--seg-bg);padding:12px;border-radius:10px;overflow-x:auto;margin:10px 0}
@@ -184,6 +184,19 @@ footer a{color:var(--text-2)}
 .sparkhist{margin-top:10px}
 .sparkhist svg{display:block;width:100%}
 .histnote{font-size:11px;color:var(--text-3);margin-top:3px}
+/* Reading mode: list shifts left + dims, panel is the focus */
+.wrap.reading{transform:translateX(-140px) scale(.96);opacity:.4;transition:transform .38s cubic-bezier(.32,.72,0,1),opacity .38s ease}
+.wrap{transition:transform .38s cubic-bezier(.32,.72,0,1),opacity .38s ease}
+#readmePanel{background:rgba(255,255,255,.97);color:#111}
+html[data-theme="dark"] #readmePanel{background:rgba(60,56,54,.98);color:#fbf1c7}
+#readmePanel .rp-head h3{font-size:21px}
+.rp-tabs{display:inline-flex;background:var(--seg-bg);border-radius:9px;padding:2px;gap:2px}
+.rp-tabs button{border:none;background:none;font:inherit;font-size:13px;font-weight:600;color:var(--text-2);
+  padding:5px 14px;border-radius:7px;cursor:pointer}
+.rp-tabs button[aria-pressed="true"]{background:#fff;color:#111;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+html[data-theme="dark"] .rp-tabs button[aria-pressed="true"]{background:#83a598;color:#282828}
+@media(prefers-reduced-motion:reduce){.wrap{transition:none}}
+
 .starhist-img{width:100%;max-width:220px;height:auto;border-radius:8px;background:rgba(128,128,128,.08)}
 html[data-theme="dark"] .starhist-img{filter:invert(.92) hue-rotate(180deg)}
 </style>
@@ -225,7 +238,9 @@ html[data-theme="dark"] .starhist-img{filter:invert(.92) hue-rotate(180deg)}
 
 <div id="readmeScrim"></div>
 <div id="readmePanel" aria-hidden="true">
-  <div class="rp-head"><h3 id="rpTitle">README</h3><button class="rdbtn" id="rpOpenGithub" target="_blank">GitHub ↗</button><button class="rp-close" id="rpClose" aria-label="닫기">✕</button></div>
+  <div class="rp-head"><h3 id="rpTitle">README</h3>
+    <div class="rp-tabs"><button id="tabOrig" aria-pressed="true">원문</button><button id="tabKo" aria-pressed="false">🇰🇷 한국어</button></div>
+    <button class="rdbtn" id="rpOpenGithub" target="_blank">GitHub ↗</button><button class="rp-close" id="rpClose" aria-label="닫기">✕</button></div>
   <div id="readmeBody">불러오는 중…</div>
 </div>
 <div id="tipLayer" role="tooltip" aria-hidden="true"></div>
@@ -265,7 +280,8 @@ function moveThumb(){
   thumb.style.transform=`translateX(${b.offsetLeft-2.5}px)`;
 }
 function setPeriod(p){
-  period=p;
+  period=p; favOnly=false;
+  document.getElementById("favOnlyBtn").setAttribute("aria-pressed","false");
   seg.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.period===p));
   moveThumb(); render();
 }
@@ -381,24 +397,46 @@ function renderHist(){
 
 /* README 사이드뷰어 */
 const panel=document.getElementById("readmePanel"),scrim=document.getElementById("readmeScrim");
-function closeReadme(){panel.classList.remove("open");scrim.classList.remove("on")}
+function closeReadme(){panel.classList.remove("open");scrim.classList.remove("on");document.querySelector(".wrap").classList.remove("reading")}
 document.getElementById("rpClose").addEventListener("click",closeReadme);
 scrim.addEventListener("click",closeReadme);
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeReadme()});
+let curSlug=null,curName="",origHTML=null,koHTML=null;
 async function openReadme(slug,name){
   document.getElementById("rpTitle").textContent=name;
   document.getElementById("rpOpenGithub").onclick=()=>window.open("https://github.com/"+slug,"_blank");
   const body=document.getElementById("readmeBody");
   body.innerHTML="불러오는 중…";panel.classList.add("open");scrim.classList.add("on");
+  document.querySelector(".wrap").classList.add("reading");
+  curSlug=slug;curName=name;origHTML=null;koHTML=null;
+  setTab("orig");
   try{
     const res=await fetch(`https://raw.githubusercontent.com/${slug}/HEAD/README.md`);
     if(!res.ok)throw new Error(res.status);
-    const md=await res.text();
-    body.innerHTML=DOMPurify.sanitize(marked.parse(md,{breaks:true}));
+    origHTML=DOMPurify.sanitize(marked.parse(await res.text(),{breaks:true}));
+    if(document.querySelector(".rp-tabs [aria-pressed=true]").id==="tabOrig")body.innerHTML=origHTML;
   }catch(err){
     body.innerHTML=`<p>README를 불러올 수 없어요. (${esc(String(err.message||err))})</p><p><a href="https://github.com/${slug}" target="_blank" rel="noopener" style="color:var(--accent)">GitHub에서 직접 보기 ↗</a></p>`;
+    return;
+  }
+  // 한국어 번역 로드 (캐시된 번역 파일)
+  fetch(`translations/${slug.replace("/","__")}.json`).then(r=>r.ok?r.json():Promise.reject()).then(t=>{
+    koHTML=DOMPurify.sanitize(marked.parse(t.html,{breaks:true}));
+    if(document.querySelector(".rp-tabs [aria-pressed=true]").id==="tabKo")body.innerHTML=koHTML;
+  }).catch(()=>{});
+}
+function setTab(which){
+  document.getElementById("tabOrig").setAttribute("aria-pressed",which==="orig");
+  document.getElementById("tabKo").setAttribute("aria-pressed",which==="ko");
+  const body=document.getElementById("readmeBody");
+  if(which==="orig"){if(origHTML)body.innerHTML=origHTML;}
+  else{
+    if(koHTML)body.innerHTML=koHTML;
+    else body.innerHTML=`<p>${curName}의 한국어 번역을 준비 중이에요. 조금 뒤 다시 시도해주세요.</p>`;
   }
 }
+document.getElementById("tabOrig").addEventListener("click",()=>setTab("orig"));
+document.getElementById("tabKo").addEventListener("click",()=>setTab("ko"));
 
 /* 제목 클릭 → 처음 화면으로 초기화 */
 document.getElementById("resetBtn").addEventListener("click",()=>{
