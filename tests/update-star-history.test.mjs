@@ -454,3 +454,43 @@ test("updateCache rejects malformed cache JSON and unsafe cache schema", async t
   }), "utf8");
   await assert.rejects(updateCache({ ...paths, date: "2026-08-22", fetchImpl }), /cache/i);
 });
+
+test("workflow has exact recovery triggers, least privilege, and safe publication gates", async () => {
+  const workflow = await readFile(".github/workflows/update-star-history.yml", "utf8");
+  const onBlock = /^on:\n([ \t].*\n?)+/m.exec(workflow)?.[0] ?? "";
+  const permissionsBlock = /^permissions:\n([ \t].*\n?)+/m.exec(workflow)?.[0] ?? "";
+  const concurrencyBlock = /^concurrency:\n([ \t].*\n?)+/m.exec(workflow)?.[0] ?? "";
+
+  assert.match(onBlock, /^on:\n  schedule:\n    - cron: "47 18 \* \* \*"\n  workflow_dispatch:\s*$/);
+  assert.doesNotMatch(onBlock, /^  push:/m);
+  assert.match(permissionsBlock, /^permissions:\n  contents: write\s*$/);
+  assert.match(concurrencyBlock, /^concurrency:\n  group: update-star-history\n  cancel-in-progress: false\s*$/);
+
+  for (const fragment of [
+    "ref: main",
+    'node-version: "24"',
+    "npm test",
+    "node scripts/update-star-history.mjs",
+    "StarHistory.normalizeCache",
+    "git diff --check -- star-history.json",
+    "if git diff --quiet -- star-history.json; then exit 0; fi",
+    "git add -- star-history.json",
+    "git grep --cached -qE",
+    "git commit -m \"chore: update star history cache\"",
+    "git push origin HEAD:main",
+  ]) assert.match(workflow, new RegExp(fragment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+
+  const ordered = [
+    "npm test",
+    "node scripts/update-star-history.mjs",
+    "StarHistory.normalizeCache",
+    "git diff --check -- star-history.json",
+    "if git diff --quiet -- star-history.json; then exit 0; fi",
+    "git add -- star-history.json",
+    "git grep --cached -qE",
+    "git commit -m \"chore: update star history cache\"",
+    "git push origin HEAD:main",
+  ].map(fragment => workflow.indexOf(fragment));
+  assert.ok(ordered.every((position, index) => position >= 0 && (index === 0 || ordered[index - 1] < position)));
+  assert.doesNotMatch(workflow, /pull-requests:\s*write|actions:\s*write|git add (?:\.|-A|--all)/);
+});

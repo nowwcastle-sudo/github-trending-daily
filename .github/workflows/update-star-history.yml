@@ -1,0 +1,50 @@
+name: Update star history
+
+on:
+  schedule:
+    - cron: "47 18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-star-history
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Test before refresh
+        run: npm test
+      - name: Refresh cache
+        run: node scripts/update-star-history.mjs
+      - name: Validate generated cache
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFile } from "node:fs/promises";
+          await import("./star-history.js");
+          globalThis.StarHistory.normalizeCache(JSON.parse(await readFile("star-history.json", "utf8")));
+          NODE
+          git diff --check -- star-history.json
+      - name: Commit changed cache
+        shell: bash
+        run: |
+          if git diff --quiet -- star-history.json; then exit 0; fi
+          git add -- star-history.json
+          if git grep --cached -qE '(gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- star-history.json; then
+            echo "::error::Potential secret detected in star-history.json"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: update star history cache"
+          git push origin HEAD:main
