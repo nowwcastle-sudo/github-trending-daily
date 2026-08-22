@@ -28,9 +28,9 @@
 
 ## Task 3: Generate an atomic page snapshot and freshness marker
 
-**Files:** `index.html`, `scripts/update-trending.mjs`, `tests/update-trending.test.mjs`.
+**Files:** `index.html`, `data/repo-summaries.json`, `scripts/update-trending.mjs`, `tests/update-trending.test.mjs`.
 
-**Acceptance:** Explicit markers bound `REPOS` and the Asia/Seoul update date; only marked regions change; every published slug has a complete summary; temporary output is installed only after validation; `--check` performs a no-write live validation; failure leaves tracked files byte-identical.
+**Acceptance:** Explicit markers bound `REPOS` and the Asia/Seoul update date; only marked regions change; every published slug has a complete summary; new validated summaries are durably added to the summary cache; temporary outputs are installed only after all validation succeeds; `--check` performs a no-write live validation; failure leaves tracked files byte-identical.
 
 **Steps:** Add failing bounded-replacement/atomicity/completeness/date tests; add markers and generator; run fixture generation, full tests, and live `--check`; inspect diff; run `ponytail full`; secret-scan and commit.
 
