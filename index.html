@@ -17,15 +17,19 @@
   --tip-bg:rgba(250,250,252,.92); --tip-border:rgba(0,0,0,.08);
 }
 html[data-theme="dark"]{
-  --bg:#000; --bg-elev:rgba(28,28,30,.72); --card:rgba(28,28,30,.65);
-  --text:#f5f5f7; --text-2:#a1a1a6; --text-3:#636366;
-  --border:rgba(255,255,255,.12); --hairline:rgba(255,255,255,.08);
-  --accent:#0a84ff; --accent-soft:rgba(10,132,255,.16);
-  --hot:#ff9f0a; --hot-soft:rgba(255,159,10,.14);
-  --seg-bg:rgba(118,118,128,.24); --seg-thumb:#5a5a5e; --seg-text:#fff;
+  /* gruvbox dark palette */
+  --bg:#282828; --bg-elev:rgba(60,56,54,.72); --card:rgba(50,48,47,.85);
+  --text:#fbf1c7; --text-2:#bdae93; --text-3:#928374;
+  --border:rgba(235,219,178,.16); --hairline:rgba(235,219,178,.10);
+  --accent:#83a598; --accent-soft:rgba(131,165,152,.18);
+  --hot:#fe8019; --hot-soft:rgba(254,128,25,.15);
+  --seg-bg:rgba(60,56,54,.6); --seg-thumb:#504945; --seg-text:#fbf1c7;
   --shadow-card:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
   --shadow-pop:0 4px 12px rgba(0,0,0,.5),0 24px 70px rgba(0,0,0,.6);
-  --tip-bg:rgba(40,40,43,.94); --tip-border:rgba(255,255,255,.14);
+  --tip-bg:rgba(60,56,54,.96); --tip-border:rgba(235,219,178,.20);
+}
+html[data-theme="light"]{
+  --bg:#f9f5d7;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -108,21 +112,31 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .stars{font-size:19px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .slabel{font-size:11px;color:var(--text-3);letter-spacing:.02em}
 
-/* ── Tooltip (rich popover) ─────────── */
+/* ── Tooltip (rich popover, smart placement) ── */
 .tip{
-  position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%) translateY(6px) scale(.97);
-  width:min(420px,86vw);z-index:80;pointer-events:none;
+  position:absolute;left:50%;z-index:80;pointer-events:none;
+  width:min(420px,86vw);
   background:var(--tip-bg);backdrop-filter:blur(28px) saturate(180%);
   border:1px solid var(--tip-border);border-radius:16px;box-shadow:var(--shadow-pop);
   padding:18px 20px;opacity:0;
-  transition:opacity .18s ease,transform .22s cubic-bezier(.32,.72,0,1);
 }
-.card:hover .tip,.card:focus-within .tip{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+/* 기본: 위쪽 */
+.tip{bottom:calc(100% + 10px);transform:translateX(-50%) translateY(6px) scale(.97)}
+.tip.tip-below{bottom:auto;top:calc(100% + 10px);transform:translateX(-50%) translateY(-6px) scale(.97)}
+.tip.tip-side{left:calc(100% - 40px);top:-10px;bottom:auto;transform:translateY(0) translateX(6px) scale(.97)}
+.card:hover .tip,.card:focus-within .tip{opacity:1;
+  transform:translateX(-50%) translateY(0) scale(1)}
+.card:hover .tip.tip-side,.card:focus-within .tip.tip-side{transform:translateX(0) translateY(0) scale(1)}
+.card:hover .tip.tip-side,.card:focus-within .tip.tip-side{transform:translateX(0) translateY(0) scale(1)}
 @media(hover:none){.tip{display:none}}
 .tip::after{content:"";position:absolute;top:100%;left:50%;margin-left:-8px;
   border:8px solid transparent;border-top-color:var(--tip-border)}
 .tip::before{content:"";position:absolute;top:100%;left:50%;margin-left:-7px;z-index:1;
   border:7px solid transparent;border-top-color:var(--tip-bg)}
+.tip-below::after,.tip-below::before{top:auto;bottom:100%}
+.tip-below::after{border-top-color:transparent;border-bottom-color:var(--tip-border)}
+.tip-below::before{border-top-color:transparent;border-bottom-color:var(--tip-bg)}
+.tip-side::after,.tip-side::before{display:none}
 .tip h3{font-size:15px;letter-spacing:-.01em;margin-bottom:2px}
 .tip .tsub{font-size:12px;color:var(--text-3);margin-bottom:12px}
 .trow{padding:9px 0;border-top:1px solid var(--hairline)}
@@ -240,9 +254,8 @@ function render(){
   const key=period==="daily"?"stars_daily":period==="weekly"?"stars_weekly":"stars_monthly";
   let items=REPOS.filter(r=>(r.name+r.desc+r.lang).toLowerCase().includes(q)&&(!L||r.lang===L));
   if(period==="all"){
-    // 전체 보기: 기간 합계(일+주+월) 기준 정렬, 모든 저장소 표시
-    items.sort((a,b)=>((b.stars_daily||0)+(b.stars_weekly||0)+(b.stars_monthly||0))
-                     -((a.stars_daily||0)+(a.stars_weekly||0)+(a.stars_monthly||0)));
+    // 전체 보기: 총 스타 수 기준 정렬, 모든 저장소 표시
+    items.sort((a,b)=>b.stars-a.stars);
   }else{
     // 해당 기간 트렌딩에 오른 저장소를 앞에, 나머지는 뒤에 두고 모두 표시
     const SENT=1e12;
@@ -261,7 +274,9 @@ function render(){
         <p class="cdesc">${esc(r.desc)}</p>
         <div class="cmeta">
           ${r.lang?`<span><i class="dot" style="background:${r.color}"></i>${esc(r.lang)}</span>`:""}
-          <span>⑂ ${fmt(r.forks)}</span>
+          <span>⑂ ${fmt(r.forks)} forks</span>
+          <span>👥 ${fmt(r.contributors||0)} 기여자</span>
+          <span>◎ ${fmt(r.issues||0)} issues</span>
           <span class="today">★ +${fmt(r[key]||0)} <span style="color:var(--text-3);font-weight:400">${unit}</span></span>
         </div>
         <div class="spark"><i style="width:${Math.max(4,(r[key]||0)/maxT*100)}%"></i></div>
@@ -271,6 +286,32 @@ function render(){
   }).join("");
 }
 ["q","lang"].forEach(id=>document.getElementById(id).addEventListener("input",render));
+
+/* 스마트 툴팁 위치: 카드 위치에 따라 위/아래/옆 배치 결정 */
+function placeTips(){
+  const vh=innerHeight,vw=innerWidth;
+  document.querySelectorAll(".card").forEach(card=>{
+    const tip=card.querySelector(".tip");if(!tip)return;
+    const rect=card.getBoundingClientRect();
+    const tipH=tip.offsetHeight||360,tipW=Math.min(420,vw*.86);
+    tip.classList.remove("tip-below","tip-side");
+    const spaceAbove=rect.top,spaceBelow=vh-rect.bottom;
+    if(spaceAbove>tipH+30){/* 위쪽 충분 → 기본(위) */}
+    else if(spaceBelow>tipH+30){tip.classList.add("tip-below")}
+    else if(vw-rect.right>tipW+24){tip.classList.add("tip-side")}
+    else if(rect.left>tipW+24){tip.classList.add("tip-side");tip.style.left="auto";tip.style.right="calc(100% - 40px)"}
+    else{/* 둘 다 부족하면 더 넓은 쪽 선택 */
+      if(spaceBelow>spaceAbove)tip.classList.add("tip-below");
+      tip.style.maxHeight=(Math.max(spaceAbove,spaceBelow)-20)+"px";
+      tip.style.overflowY="auto";
+    }
+    if(!tip.classList.contains("tip-side")){tip.style.left="50%";tip.style.right="auto"}
+  });
+}
+list.addEventListener("mouseover",e=>{
+  const card=e.target.closest(".card");if(!card)return;
+  placeTips();
+});
 
 /* 제목 클릭 → 처음 화면으로 초기화 */
 document.getElementById("resetBtn").addEventListener("click",()=>{
