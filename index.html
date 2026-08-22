@@ -273,7 +273,6 @@ html[data-theme="dark"] .rp-tabs button[aria-pressed="true"]{background:#83a598;
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
 <script src="favorites.js"></script>
 <script src="favorite-sync.js"></script>
-<script type="module" src="firebase-client.js"></script>
 <!-- Star trend disclosure: GH Archive 기반 과거 추정 · 현재 총 스타는 GitHub 기준 -->
 <script src="star-history.js"></script>
 <script>
@@ -565,6 +564,17 @@ window.addEventListener("resize",()=>tipLayer.classList.remove("on"));
 
 
 requestAnimationFrame(()=>{moveThumb();render()});
+</script>
+<script type="module">
+import("./firebase-client.js").catch(()=>{
+  const status=document.getElementById("syncStatus");
+  const login=document.getElementById("loginBtn");
+  const logout=document.getElementById("logoutBtn");
+  status.textContent="Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다.";
+  login.hidden=true;
+  logout.hidden=true;
+  globalThis.applyFavoriteState({favorites:globalThis.favoriteController.favorites(),busy:false});
+});
 </script>
 </body>
 </html>

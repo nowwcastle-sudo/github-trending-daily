@@ -529,7 +529,18 @@ test("Firebase client uses pinned official modules and the required page script 
   }
   assert.match(source, /\brunTransaction\b/);
   assert.ok(html.indexOf('<script src="favorites.js"></script>') < html.indexOf('<script src="favorite-sync.js"></script>'));
-  assert.ok(html.indexOf('<script src="favorite-sync.js"></script>') < html.indexOf('<script type="module" src="firebase-client.js"></script>'));
+  assert.ok(html.indexOf('<script src="favorite-sync.js"></script>') < html.indexOf('import("./firebase-client.js").catch'));
+  assert.doesNotMatch(html, /<script type="module" src="firebase-client\.js"><\/script>/);
+});
+
+test("a Firebase module dependency failure activates guest fallback outside the failed module", async () => {
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const boundary = html.match(/<script type="module">([\s\S]*?import\("\.\/firebase-client\.js"\)\.catch[\s\S]*?)<\/script>/)?.[1] || "";
+  assert.match(boundary, /status\.textContent="Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다\."/);
+  assert.match(boundary, /login\.hidden=true/);
+  assert.match(boundary, /logout\.hidden=true/);
+  assert.match(boundary, /globalThis\.applyFavoriteState\(\{favorites:globalThis\.favoriteController\.favorites\(\),busy:false\}\)/);
+  assert.ok(html.indexOf("globalThis.favoriteController=guestController") < html.indexOf('import("./firebase-client.js").catch'));
 });
 
 test("Firebase first import unions against the transaction's latest exact-case document", async () => {
