@@ -92,6 +92,8 @@ test("primary and recovery workflows have exact safe scheduling and runtime cont
   assert.match(recovery, /^concurrency:\n  group: daily-refresh\n  cancel-in-progress: false\s*$/m);
   assert.match(workflow, /node-version: "24"/);
   assert.match(workflow, /python-version: "3\.13"/);
+  assert.match(workflow, /node-version: "24"[\s\S]*?run: npm ci[\s\S]*?run: npm test/);
+  assert.match(recovery, /node-version: "24"[\s\S]*?run: npm ci[\s\S]*?run: npm test/);
   assert.deepEqual([...workflow.matchAll(/secrets\.([A-Za-z0-9_]+)/g)].map(match => match[1]), ["GITHUB_TOKEN"]);
   assert.doesNotMatch(workflow, /continue-on-error|force(?:-with-lease)?|rebase|git push[^\n]*--force|pull-requests:\s*write|actions:\s*write/);
 });
@@ -99,6 +101,7 @@ test("primary and recovery workflows have exact safe scheduling and runtime cont
 test("tests and complete validation surround the exact production order", async () => {
   const workflow = await readFile(workflowPath, "utf8");
   const fragments = [
+    "npm ci",
     "npm test",
     "node scripts/update-trending.mjs",
     "python scripts/record_star_observations.py",

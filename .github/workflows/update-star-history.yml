@@ -22,6 +22,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
+      - name: Install dependencies
+        run: npm ci
       - name: Test before refresh
         run: npm test
       - name: Refresh cache
