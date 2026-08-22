@@ -1,10 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
   buildCache,
   extractRepos,
   mergeRepository,
   normalizeEstimatedRows,
+  seoulDate,
+  updateCache,
 } from "../scripts/update-star-history.mjs";
 
 const markedPage = repos => `<!doctype html>
@@ -19,6 +24,30 @@ const repos = (count = 10) => Array.from({ length: count }, (_, index) => ({
   stars: index + 10,
   ignored: true,
 }));
+
+async function temporaryFiles(current = repos()) {
+  const directory = await mkdtemp(join(tmpdir(), "star-history-test-"));
+  const htmlPath = join(directory, "index.html");
+  const cachePath = join(directory, "star-history.json");
+  await writeFile(htmlPath, markedPage(current), "utf8");
+  return { directory, htmlPath, cachePath };
+}
+
+function responseMap(current, overrides = new Map()) {
+  return new Map(current.map(repo => [
+    repo.slug.toLowerCase(),
+    overrides.get(repo.slug.toLowerCase()) ?? {
+      ok: true,
+      json: async () => ({ data: { rows: [] } }),
+    },
+  ]));
+}
+
+function slugFromUrl(url) {
+  const [, encoded] = new URL(url).pathname.split("/repos/");
+  const [owner, name] = encoded.split("/stargazers/")[0].split("/");
+  return `${decodeURIComponent(owner)}/${decodeURIComponent(name)}`.toLowerCase();
+}
 
 test("extractRepos reads the one generated region and returns only current identity fields", () => {
   assert.deepEqual(extractRepos(markedPage(repos())), repos().map(({ slug, stars }) => ({ slug, stars })));
@@ -192,4 +221,161 @@ test("buildCache rejects invalid dates and ambiguous case-insensitive cache iden
     }, responses, "2026-08-22"),
     /duplicate.*cache/i,
   );
+});
+
+test("seoulDate changes at 15:00 UTC", () => {
+  assert.equal(seoulDate(new Date("2026-08-21T14:59:59.999Z")), "2026-08-21");
+  assert.equal(seoulDate(new Date("2026-08-21T15:00:00.000Z")), "2026-08-22");
+});
+
+test("updateCache keeps a failed repository, prunes stale slugs, and reports changed", async t => {
+  const current = repos();
+  const paths = await temporaryFiles(current);
+  t.after(() => rm(paths.directory, { recursive: true, force: true }));
+  await writeFile(paths.cachePath, `${JSON.stringify({
+    version: 1,
+    generatedAt: "2026-08-21",
+    repositories: [
+      { slug: current[1].slug, estimated: [{ date: "2026-07-01", stars: 8 }], observed: [] },
+      { slug: "stale/repo", estimated: [], observed: [] },
+    ],
+  }, null, 2)}\n`, "utf8");
+  const responses = responseMap(current, new Map([
+    [current[0].slug.toLowerCase(), {
+      ok: true,
+      json: async () => ({ data: { rows: [{ date: "2026-08-01", stargazers: "9" }] } }),
+    }],
+    [current[1].slug.toLowerCase(), { ok: false, status: 503 }],
+  ]));
+
+  const result = await updateCache({
+    htmlPath: paths.htmlPath,
+    cachePath: paths.cachePath,
+    date: "2026-08-22",
+    fetchImpl: async url => responses.get(slugFromUrl(url)),
+    log: () => {},
+  });
+
+  assert.equal(result.changed, true);
+  assert.deepEqual(result.failed, [current[1].slug]);
+  const saved = JSON.parse(await readFile(paths.cachePath, "utf8"));
+  assert.deepEqual(saved.repositories.map(item => item.slug), current.map(repo => repo.slug));
+  assert.deepEqual(saved.repositories[0].estimated, [{ date: "2026-08-01", stars: 9 }]);
+  assert.deepEqual(saved.repositories[1].estimated, [{ date: "2026-07-01", stars: 8 }]);
+});
+
+test("updateCache treats missing data.rows as a partial failure and preserves estimates", async t => {
+  const current = repos();
+  const paths = await temporaryFiles(current);
+  t.after(() => rm(paths.directory, { recursive: true, force: true }));
+  await writeFile(paths.cachePath, `${JSON.stringify({
+    version: 1,
+    generatedAt: "2026-08-21",
+    repositories: current.map(repo => ({
+      slug: repo.slug,
+      estimated: [{ date: "2026-07-01", stars: repo.stars - 1 }],
+      observed: [],
+    })),
+  }, null, 2)}\n`, "utf8");
+  const responses = responseMap(current, new Map([
+    [current[0].slug.toLowerCase(), { ok: true, json: async () => ({ data: {} }) }],
+  ]));
+
+  const result = await updateCache({
+    ...paths,
+    date: "2026-08-22",
+    fetchImpl: async url => responses.get(slugFromUrl(url)),
+    log: () => {},
+  });
+
+  assert.deepEqual(result.failed, [current[0].slug]);
+  const saved = JSON.parse(await readFile(paths.cachePath, "utf8"));
+  assert.deepEqual(saved.repositories[0].estimated, [{ date: "2026-07-01", stars: 9 }]);
+});
+
+test("updateCache distinguishes a successful empty history from a failed request", async t => {
+  const current = repos();
+  const paths = await temporaryFiles(current);
+  t.after(() => rm(paths.directory, { recursive: true, force: true }));
+  await writeFile(paths.cachePath, `${JSON.stringify({
+    version: 1,
+    generatedAt: "2026-08-21",
+    repositories: current.map(repo => ({
+      slug: repo.slug,
+      estimated: [{ date: "2026-07-01", stars: repo.stars - 1 }],
+      observed: [],
+    })),
+  }, null, 2)}\n`, "utf8");
+  const responses = responseMap(current);
+
+  await updateCache({
+    ...paths,
+    date: "2026-08-22",
+    fetchImpl: async url => responses.get(slugFromUrl(url)),
+    log: () => {},
+  });
+
+  const saved = JSON.parse(await readFile(paths.cachePath, "utf8"));
+  assert.ok(saved.repositories.every(entry => entry.estimated.length === 0));
+});
+
+test("updateCache creates a missing cache and fetches repositories sequentially", async t => {
+  const current = repos();
+  const paths = await temporaryFiles(current);
+  t.after(() => rm(paths.directory, { recursive: true, force: true }));
+  let active = 0;
+  let maximumActive = 0;
+
+  const result = await updateCache({
+    ...paths,
+    date: "2026-08-22",
+    fetchImpl: async () => {
+      active += 1;
+      maximumActive = Math.max(maximumActive, active);
+      await new Promise(resolve => setImmediate(resolve));
+      active -= 1;
+      return { ok: true, json: async () => ({ data: { rows: [] } }) };
+    },
+    log: () => {},
+  });
+
+  assert.equal(result.changed, true);
+  assert.equal(maximumActive, 1);
+  assert.match(await readFile(paths.cachePath, "utf8"), /\n$/);
+  assert.deepEqual(await readdir(paths.directory), ["index.html", "star-history.json"]);
+});
+
+test("updateCache does not rewrite a byte-identical repository payload", async t => {
+  const current = repos();
+  const paths = await temporaryFiles(current);
+  t.after(() => rm(paths.directory, { recursive: true, force: true }));
+  const responses = responseMap(current);
+  const options = {
+    ...paths,
+    date: "2026-08-22",
+    fetchImpl: async url => responses.get(slugFromUrl(url)),
+    log: () => {},
+  };
+  await updateCache(options);
+  const before = await readFile(paths.cachePath, "utf8");
+
+  const result = await updateCache(options);
+
+  assert.equal(result.changed, false);
+  assert.equal(await readFile(paths.cachePath, "utf8"), before);
+});
+
+test("updateCache rejects malformed cache JSON and unsafe cache schema", async t => {
+  const paths = await temporaryFiles();
+  t.after(() => rm(paths.directory, { recursive: true, force: true }));
+  const fetchImpl = async () => assert.fail("unsafe cache must fail before network access");
+  await writeFile(paths.cachePath, "{broken", "utf8");
+  await assert.rejects(updateCache({ ...paths, date: "2026-08-22", fetchImpl }), /JSON|cache/i);
+
+  await writeFile(paths.cachePath, JSON.stringify({
+    version: 1,
+    generatedAt: "2026-08-21",
+    repositories: [{ slug: "owner/repo", estimated: [{ date: "bad", stars: 1 }], observed: [] }],
+  }), "utf8");
+  await assert.rejects(updateCache({ ...paths, date: "2026-08-22", fetchImpl }), /cache/i);
 });

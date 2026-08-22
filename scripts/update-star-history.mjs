@@ -1,8 +1,18 @@
+import { randomUUID } from "node:crypto";
+import { readFile, rename, rm, writeFile } from "node:fs/promises";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
 const REPOS_START = "// GENERATED:TRENDING-REPOS:START";
 const REPOS_END = "// GENERATED:TRENDING-REPOS:END";
 const REPO_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const MAX_ESTIMATED_POINTS = 500;
 const MAX_OBSERVED_POINTS = 730;
+const SEOUL_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  timeZone: "Asia/Seoul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
 
 function markerRegion(value) {
   const starts = value.split(REPOS_START).length - 1;
@@ -56,6 +66,23 @@ function validateRepos(repos) {
 
 function validPoint(value) {
   return validDate(value?.date) && Number.isSafeInteger(value?.stars) && value.stars >= 0;
+}
+
+function exactKeys(value, expected) {
+  return value
+    && typeof value === "object"
+    && !Array.isArray(value)
+    && Object.keys(value).sort().join("\0") === [...expected].sort().join("\0");
+}
+
+function validOrderedPoints(points, maximum) {
+  return Array.isArray(points)
+    && points.length <= maximum
+    && points.every((point, index) => (
+      exactKeys(point, ["date", "stars"])
+      && validPoint(point)
+      && (index === 0 || points[index - 1].date < point.date)
+    ));
 }
 
 function normalizePoints(points, maximum) {
@@ -149,4 +176,116 @@ export function buildCache(repoValues, priorCache, responses, date) {
       );
     }),
   };
+}
+
+export function seoulDate(now = new Date()) {
+  if (!(now instanceof Date) || Number.isNaN(now.getTime())) throw new Error("invalid current date");
+  const parts = Object.fromEntries(
+    SEOUL_DATE_FORMATTER.formatToParts(now).map(({ type, value }) => [type, value]),
+  );
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+function validateCache(cache) {
+  if (!exactKeys(cache, ["version", "generatedAt", "repositories"]) || cache.version !== 1) {
+    throw new Error("invalid star history cache schema");
+  }
+  if (!validDate(cache.generatedAt) || !Array.isArray(cache.repositories) || cache.repositories.length > 75) {
+    throw new Error("invalid star history cache schema");
+  }
+  const seen = new Set();
+  for (const entry of cache.repositories) {
+    if (
+      !exactKeys(entry, ["slug", "estimated", "observed"])
+      || typeof entry.slug !== "string"
+      || !REPO_RE.test(entry.slug)
+      || !validOrderedPoints(entry.estimated, MAX_ESTIMATED_POINTS)
+      || !validOrderedPoints(entry.observed, MAX_OBSERVED_POINTS)
+    ) {
+      throw new Error("invalid star history cache schema");
+    }
+    const key = entry.slug.toLowerCase();
+    if (seen.has(key)) throw new Error("invalid star history cache schema");
+    seen.add(key);
+  }
+  return cache;
+}
+
+async function readCache(cachePath) {
+  let source;
+  try {
+    source = await readFile(cachePath, "utf8");
+  } catch (error) {
+    if (error?.code === "ENOENT") return { version: 1, repositories: [] };
+    throw error;
+  }
+  try {
+    return validateCache(JSON.parse(source));
+  } catch (error) {
+    throw new Error(`invalid star history cache: ${error.message}`);
+  }
+}
+
+function sameRepositories(left, right) {
+  return JSON.stringify(left?.repositories) === JSON.stringify(right.repositories);
+}
+
+async function atomicWriteJson(cachePath, value) {
+  const temporaryPath = `${cachePath}.${process.pid}.${randomUUID()}.tmp`;
+  try {
+    await writeFile(temporaryPath, `${JSON.stringify(value, null, 2)}\n`, { encoding: "utf8", flag: "wx" });
+    await rename(temporaryPath, cachePath);
+  } finally {
+    await rm(temporaryPath, { force: true });
+  }
+}
+
+export async function updateCache({
+  htmlPath,
+  cachePath,
+  fetchImpl = fetch,
+  date,
+  log = console.warn,
+}) {
+  const repos = extractRepos(await readFile(htmlPath, "utf8"));
+  const prior = await readCache(cachePath);
+  const responses = new Map();
+  const failed = [];
+  for (const repo of repos) {
+    try {
+      const [owner, name] = repo.slug.split("/");
+      const response = await fetchImpl(
+        `https://api.ossinsight.io/v1/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/stargazers/history`,
+      );
+      if (!response?.ok) throw new Error(`HTTP ${response?.status ?? "unknown"}`);
+      const body = await response.json();
+      if (!Array.isArray(body?.data?.rows)) throw new Error("missing data.rows");
+      responses.set(repo.slug, body.data.rows);
+    } catch (error) {
+      failed.push(repo.slug);
+      responses.set(repo.slug, null);
+      log(`${repo.slug}: ${error instanceof Error ? error.message : "request failed"}`);
+    }
+  }
+  const next = buildCache(repos, prior, responses, date);
+  if (sameRepositories(prior, next)) return { changed: false, failed };
+  await atomicWriteJson(cachePath, next);
+  return { changed: true, failed };
+}
+
+async function main() {
+  const htmlPath = fileURLToPath(new URL("../index.html", import.meta.url));
+  const cachePath = fileURLToPath(new URL("../star-history.json", import.meta.url));
+  const result = await updateCache({ htmlPath, cachePath, date: seoulDate() });
+  const failures = result.failed.length
+    ? `; failures=${result.failed.length}: ${result.failed.join(", ")}`
+    : "; failures=0";
+  console.log(`Star history cache ${result.changed ? "updated" : "unchanged"}${failures}`);
+}
+
+if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
+  main().catch(error => {
+    console.error(`Star history update failed: ${error instanceof Error ? error.message : "unknown error"}`);
+    process.exitCode = 1;
+  });
 }
