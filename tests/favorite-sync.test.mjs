@@ -503,3 +503,133 @@ test("classic browser and CommonJS execution expose the same controller factory"
   vm.runInNewContext(source, commonjs);
   assert.equal(typeof commonjs.module.exports.createController, "function");
 });
+
+async function loadFirebaseClientForTest() {
+  const source = await readFile(new URL("../firebase-client.js", import.meta.url), "utf8");
+  const runnable = source
+    .replace(/import\s*\{[\s\S]*?\}\s*from\s*"https:\/\/www\.gstatic\.com\/firebasejs\/12\.17\.1\/[^\"]+";\s*/g, "")
+    .replace(/import\.meta\.url/g, '""')
+    .replace(/bootstrap\(\)\.catch\([\s\S]*$/m, "")
+    + "\nglobalThis.__client = { createCloudAdapter, authErrorMessage };";
+  const context = {
+    Favorites: globalThis.Favorites,
+    FavoriteSync,
+    globalThis: null,
+  };
+  context.globalThis = context;
+  vm.runInNewContext(runnable, context);
+  return { source, ...context.__client };
+}
+
+test("Firebase client uses pinned official modules and the required page script order", async () => {
+  const { source } = await loadFirebaseClientForTest();
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  for (const module of ["firebase-app.js", "firebase-auth.js", "firebase-firestore.js"]) {
+    assert.match(source, new RegExp(`https://www\\.gstatic\\.com/firebasejs/12\\.17\\.1/${module.replace(".", "\\.")}`));
+  }
+  assert.match(source, /\brunTransaction\b/);
+  assert.ok(html.indexOf('<script src="favorites.js"></script>') < html.indexOf('<script src="favorite-sync.js"></script>'));
+  assert.ok(html.indexOf('<script src="favorite-sync.js"></script>') < html.indexOf('<script type="module" src="firebase-client.js"></script>'));
+});
+
+test("Firebase first import unions against the transaction's latest exact-case document", async () => {
+  const { createCloudAdapter } = await loadFirebaseClientForTest();
+  let remote = ["Remote/Keep", "Remote/Remove"];
+  let committed;
+  let attempts = 0;
+  const timestamp = {};
+  const transaction = {
+    async get() { return { exists: () => true, data: () => ({ favorites: remote }) }; },
+    set(_reference, value) { committed = value; },
+  };
+  const sdk = {
+    doc: (_db, collection, uid) => `${collection}/${uid}`,
+    runTransaction: async (_db, update) => {
+      attempts += 1;
+      await update(transaction);
+      remote = ["Remote/Keep", "remote/keep", "Remote/Added"];
+      attempts += 1;
+      return update(transaction);
+    },
+    serverTimestamp: () => timestamp,
+  };
+  const cloud = createCloudAdapter("db", sdk);
+
+  const result = await cloud.importUnion("alice", ["Guest/One", "Remote/Keep"]);
+  assert.equal(attempts, 2);
+  assert.deepEqual(Array.from(result), ["Guest/One", "Remote/Keep", "remote/keep", "Remote/Added"]);
+  assert.deepEqual(Array.from(committed.favorites), Array.from(result));
+  assert.equal(committed.updatedAt, timestamp);
+});
+
+test("Firebase transaction rejects an over-limit import before writing", async () => {
+  const { createCloudAdapter } = await loadFirebaseClientForTest();
+  let writes = 0;
+  const sdk = {
+    doc: () => "users/alice",
+    runTransaction: (_db, update) => update({
+      get: async () => ({
+        exists: () => true,
+        data: () => ({ favorites: Array.from({ length: 500 }, (_, index) => `remote/r${index}`) }),
+      }),
+      set() { writes += 1; },
+    }),
+    serverTimestamp: () => ({}),
+  };
+  const cloud = createCloudAdapter("db", sdk);
+
+  await assert.rejects(cloud.importUnion("alice", ["guest/one"]), /500/);
+  assert.equal(writes, 0);
+});
+
+test("Firebase add and remove use only atomic merge writes", async () => {
+  const { createCloudAdapter } = await loadFirebaseClientForTest();
+  const calls = [];
+  const sdk = {
+    arrayUnion: slug => ["union", slug],
+    arrayRemove: slug => ["remove", slug],
+    doc: (_db, collection, uid) => `${collection}/${uid}`,
+    serverTimestamp: () => "timestamp",
+    setDoc: (...args) => { calls.push(args); },
+  };
+  const cloud = createCloudAdapter("db", sdk);
+
+  await cloud.add("alice", "Owner/Repo");
+  await cloud.remove("alice", "Owner/Repo");
+  assert.deepEqual(JSON.parse(JSON.stringify(calls)), [
+    ["users/alice", { favorites: ["union", "Owner/Repo"], updatedAt: "timestamp" }, { merge: true }],
+    ["users/alice", { favorites: ["remove", "Owner/Repo"], updatedAt: "timestamp" }, { merge: true }],
+  ]);
+});
+
+test("auth errors map to safe Korean messages without raw details", async () => {
+  const { authErrorMessage } = await loadFirebaseClientForTest();
+  const expected = new Map([
+    ["auth/popup-blocked", "팝업"],
+    ["auth/popup-closed-by-user", "취소"],
+    ["auth/cancelled-popup-request", "로그인 창"],
+    ["auth/network-request-failed", "네트워크"],
+    ["auth/unauthorized-domain", "사이트 주소"],
+  ]);
+  for (const [code, word] of expected) {
+    const message = authErrorMessage({ code, message: "SECRET_TOKEN_VALUE" });
+    assert.match(message, new RegExp(word));
+    assert.doesNotMatch(message, /SECRET_TOKEN_VALUE/);
+  }
+  assert.doesNotMatch(authErrorMessage({ message: "SECRET_TOKEN_VALUE" }), /SECRET_TOKEN_VALUE/);
+});
+
+test("account controls are accessible and favorites route only through the controller", async () => {
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  assert.match(html, /id="syncStatus"[^>]*role="status"[^>]*aria-live="polite"/);
+  assert.match(html, /id="loginBtn"[^>]*type="button"/);
+  assert.match(html, /id="logoutBtn"[^>]*type="button"[^>]*hidden/);
+  assert.match(html, /\.account-btn:focus-visible\s*\{[^}]*outline/);
+  assert.match(html, /\.favbtn:disabled\s*\{[^}]*cursor:wait[^}]*opacity:\.55/);
+  assert.match(html, /favoriteBusy\?" disabled":""/);
+  assert.match(html, /Favorites\.migrateLegacyFavs\(storage\)/);
+  assert.match(html, /globalThis\.applyFavoriteState\s*=/);
+  assert.match(html, /await globalThis\.favoriteController\.toggle\(btn\.dataset\.slug\)/);
+  const clickHandler = html.match(/\/\* 즐겨찾기 \*\/[\s\S]*?document\.getElementById\("favOnlyBtn"\)/)?.[0] || "";
+  assert.doesNotMatch(clickHandler, /toggleFav\(/);
+});

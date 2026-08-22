@@ -49,6 +49,17 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 }
 .theme-toggle:hover{border-color:var(--text-3)}
 .theme-toggle:active{transform:scale(.94)}
+.header-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.account-controls{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.sync-status{color:var(--text-2);font-size:12.5px;line-height:1.35}
+.account-btn{
+  border:1px solid var(--border);border-radius:9px;background:var(--bg-elev);color:var(--text);
+  padding:7px 11px;font:inherit;font-size:12.5px;cursor:pointer
+}
+.account-btn:hover{border-color:var(--accent);color:var(--accent)}
+.account-btn:disabled{cursor:wait;opacity:.55}
+.account-btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.theme-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 
 /* ── Controls (segmented + search) ──── */
 .controls{position:sticky;top:0;z-index:50;padding:14px 0;margin-bottom:8px;
@@ -147,6 +158,8 @@ footer a{color:var(--text-2)}
   .wrap{padding:32px 16px 72px}
   .cstat{display:none}.rank{width:20px}
   .controls{position:static}
+  .header-actions{width:100%;justify-content:flex-start}
+  .account-controls{justify-content:flex-start}
 }
 
 .favbtn{margin-left:auto;flex-shrink:0;background:none;border:none;color:var(--text-3);
@@ -154,6 +167,7 @@ footer a{color:var(--text-2)}
   transition:transform .15s ease,color .15s}
 .favbtn:hover{background:var(--seg-bg);transform:scale(1.15)}
 .favbtn.on{color:var(--hot)}
+.favbtn:disabled{cursor:wait;opacity:.55}
 .seg button.fav-filter[aria-pressed="true"]{color:var(--hot)}
 
 /* README side viewer */
@@ -210,7 +224,14 @@ html[data-theme="dark"] .rp-tabs button[aria-pressed="true"]{background:#83a598;
     <h1 id="resetBtn" style="cursor:pointer" title="클릭하면 처음 화면으로 초기화됩니다">GitHub Trending</h1>
     <p class="sub">인사이트 요약이 담긴 오늘의 트렌딩 저장소 — 카드에 마우스를 올려보세요</p>
   </div>
-  <button class="theme-toggle" id="themeBtn" aria-label="테마 전환"></button>
+  <div class="header-actions">
+    <div class="account-controls">
+      <p id="syncStatus" class="sync-status" role="status" aria-live="polite">즐겨찾기: 이 브라우저</p>
+      <button id="loginBtn" class="account-btn" type="button">Google로 로그인</button>
+      <button id="logoutBtn" class="account-btn" type="button" hidden>로그아웃</button>
+    </div>
+    <button class="theme-toggle" id="themeBtn" aria-label="테마 전환"></button>
+  </div>
 </header>
 
 <div class="controls">
@@ -251,6 +272,8 @@ html[data-theme="dark"] .rp-tabs button[aria-pressed="true"]{background:#83a598;
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
 <script src="favorites.js"></script>
+<script src="favorite-sync.js"></script>
+<script type="module" src="firebase-client.js"></script>
 <!-- Star trend disclosure: GH Archive 기반 과거 추정 · 현재 총 스타는 GitHub 기준 -->
 <script src="star-history.js"></script>
 <script>
@@ -260,7 +283,22 @@ const REPOS = [{"slug":"mattpocock/skills","name":"mattpocock / skills","desc":"
 let period="all";
 let favOnly=false;
 const storage=localStorage;
-let favSet=new Set(parseFavs(storage));
+let guestFavorites=[];
+try{guestFavorites=Favorites.migrateLegacyFavs(storage)}catch{}
+let favSet=new Set(guestFavorites),favoriteBusy=false;
+globalThis.applyFavoriteState=({favorites,busy})=>{
+  favSet=new Set(Favorites.normalizeFavs(favorites));
+  favoriteBusy=Boolean(busy);
+  render();
+  document.querySelectorAll(".favbtn").forEach(button=>{button.disabled=favoriteBusy});
+};
+const guestController=FavoriteSync.createController({
+  storage,cloud:{},
+  onState:favorites=>globalThis.applyFavoriteState({favorites,busy:favoriteBusy}),
+  onBusy:busy=>globalThis.applyFavoriteState({favorites:[...favSet],busy}),
+  onMessage:message=>{document.getElementById("syncStatus").textContent=message},
+});
+globalThis.favoriteController=guestController;
 
 /* theme */
 const btn=document.getElementById("themeBtn");
@@ -352,7 +390,7 @@ function render(){
     const unit=viewPeriod==="all"?"최근":viewPeriod==="daily"?"오늘":viewPeriod==="weekly"?"이번 주":"이번 달";
     const faved=favSet.has(r.slug);
     return `<a class="card" tabindex="0" data-idx="${REPOS.indexOf(r)}" href="https://github.com/${r.slug}" target="_blank" rel="noopener">
-      <button class="favbtn${faved?" on":""}" data-slug="${r.slug}" title="즐겨찾기">${faved?"★":"☆"}</button>
+      <button class="favbtn${faved?" on":""}" data-slug="${r.slug}" title="즐겨찾기"${favoriteBusy?" disabled":""}>${faved?"★":"☆"}</button>
       <div class="rank">${i+1}</div>
       <div class="cbody">
         <div class="cname">${esc(r.name)}${gainOf(r)>=1000?`<span class="badge">HOT</span>`:""}</div>
@@ -374,13 +412,10 @@ function render(){
 }
 
 /* 즐겨찾기 */
-list.addEventListener("click",e=>{
+list.addEventListener("click",async e=>{
   const btn=e.target.closest(".favbtn");if(!btn)return;
   e.preventDefault();e.stopPropagation();
-  const now=toggleFav(storage,btn.dataset.slug);
-  btn.classList.toggle("on",now);btn.textContent=now?"★":"☆";
-  if(now)favSet.add(btn.dataset.slug);else favSet.delete(btn.dataset.slug);
-  if(favOnly&&!now)render();
+  try{await globalThis.favoriteController.toggle(btn.dataset.slug)}catch{}
 });
 document.getElementById("favOnlyBtn").addEventListener("click",()=>{
   favOnly=!favOnly;
