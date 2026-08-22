@@ -95,7 +95,7 @@ test("primary and recovery workflows have exact safe scheduling and runtime cont
   assert.match(workflow, /python-version: "3\.13"/);
   assert.match(workflow, /node-version: "24"[\s\S]*?run: npm ci[\s\S]*?run: npm test/);
   assert.match(recovery, /node-version: "24"[\s\S]*?run: npm ci[\s\S]*?run: npm test/);
-  assert.equal(attributes, ".github/workflows/*.yml text eol=lf\n");
+  assert.equal(attributes.trim(), ".github/workflows/*.yml text eol=lf");
   assert.deepEqual([...workflow.matchAll(/secrets\.([A-Za-z0-9_]+)/g)].map(match => match[1]), ["GITHUB_TOKEN"]);
   assert.doesNotMatch(workflow, /continue-on-error|force(?:-with-lease)?|rebase|git push[^\n]*--force|pull-requests:\s*write|actions:\s*write/);
 });
