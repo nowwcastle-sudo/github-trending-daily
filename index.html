@@ -193,7 +193,6 @@ function setTheme(t){
   document.documentElement.dataset.theme=t;
   localStorage.setItem("gh-theme",t);
   btn.textContent=ICONS[t];
-  moveThumb();
 }
 btn.addEventListener("click",()=>setTheme(document.documentElement.dataset.theme==="dark"?"light":"dark"));
 setTheme(localStorage.getItem("gh-theme") || (matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
