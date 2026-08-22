@@ -1,6 +1,6 @@
 # 스타 히스토리 복구 및 Google 즐겨찾기 동기화 설계
 
-- 상태: 사용자 검토 대기
+- 상태: 사용자 승인 완료 (2026-08-22)
 - 작성일: 2026-08-22
 - 대상: `nowwcastle-sudo/github-trending-daily`
 - 구현 원칙: `ponytail full` — 현재 정적 GitHub Pages 구조와 기존 렌더링을 유지하고, 보안·데이터 손실 방지·접근성은 단순화하지 않는다.
