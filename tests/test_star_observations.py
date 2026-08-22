@@ -1,17 +1,26 @@
+import hashlib
 import json
 import sqlite3
+import subprocess
+import sys
 import tempfile
 import unittest
 from contextlib import closing
 from pathlib import Path
 
 from scripts.record_star_observations import (
+    DEFAULT_DATABASE,
+    DEFAULT_PAGE,
+    REPOSITORY_ROOT,
     RepositoryObservation,
     StarObservation,
     parse_legacy_star_history,
     parse_repositories,
     record_observations,
 )
+
+
+SCRIPT = REPOSITORY_ROOT / "scripts" / "record_star_observations.py"
 
 
 def ui_repo(index, *, slug=None, date="2026-08-22", stars=None):
@@ -362,6 +371,111 @@ class ObservationDatabaseTests(unittest.TestCase):
         invalid[0] = RepositoryObservation("owner/repo-0", "2026-02-30", 100)
         with self.assertRaises(ValueError):
             record_observations(self.database, invalid, [])
+        self.assertEqual(self.database.read_bytes(), before)
+
+
+class ObservationCliTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.root = Path(self.temporary.name)
+        self.page = self.root / "page with spaces.html"
+        self.database = self.root / "nested data" / "observations.sqlite"
+        self.page.write_text(
+            repo_page([ui_repo(index) for index in range(10)])
+            + legacy_page([
+                {"slug": "owner/repo-0", "hist": [{"d": "2026-08-21", "s": 90}]},
+                {"slug": "gone/orphan", "hist": [{"d": "2026-08-20", "s": 3}]},
+            ]),
+            encoding="utf-8",
+        )
+
+    def tearDown(self):
+        self.temporary.cleanup()
+
+    def run_cli(self, page=None, database=None):
+        return subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPT),
+                "--page",
+                str(page or self.page),
+                "--database",
+                str(database or self.database),
+            ],
+            cwd=self.root,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+
+    def test_defaults_are_repo_relative_and_cli_creates_nested_database(self):
+        self.assertEqual(DEFAULT_PAGE, REPOSITORY_ROOT / "index.html")
+        self.assertEqual(DEFAULT_DATABASE, REPOSITORY_ROOT / "data" / "star-observations.sqlite")
+
+        result = self.run_cli()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            result.stdout.strip(),
+            "rest_inserted=10 legacy_inserted=2 github_rest=10 legacy_inline=2 observations=12 integrity=ok",
+        )
+        with closing(sqlite3.connect(self.database)) as connection:
+            self.assertEqual(connection.execute("PRAGMA user_version").fetchone(), (1,))
+        for suffix in ("-journal", "-wal", "-shm"):
+            self.assertFalse(Path(f"{self.database}{suffix}").exists())
+
+    def test_invalid_page_exits_nonzero_without_creating_or_touching_database(self):
+        invalid_page = self.root / "invalid.html"
+        invalid_page.write_text("not a generated page", encoding="utf-8")
+
+        missing_result = self.run_cli(invalid_page)
+
+        self.assertNotEqual(missing_result.returncode, 0)
+        self.assertFalse(self.database.exists())
+
+        self.assertEqual(self.run_cli().returncode, 0)
+        before = self.database.read_bytes()
+
+        existing_result = self.run_cli(invalid_page)
+
+        self.assertNotEqual(existing_result.returncode, 0)
+        self.assertEqual(self.database.read_bytes(), before)
+
+    def test_second_run_is_row_and_sha_idempotent(self):
+        first = self.run_cli()
+        self.assertEqual(first.returncode, 0, first.stderr)
+        before_sha = hashlib.sha256(self.database.read_bytes()).hexdigest()
+        with closing(sqlite3.connect(self.database)) as connection:
+            before_rows = connection.execute(
+                "SELECT id, slug, observed_date, stars_total, stars_delta, source "
+                "FROM star_observations ORDER BY id"
+            ).fetchall()
+
+        second = self.run_cli()
+
+        self.assertEqual(second.returncode, 0, second.stderr)
+        self.assertIn("rest_inserted=0 legacy_inserted=0", second.stdout)
+        self.assertEqual(hashlib.sha256(self.database.read_bytes()).hexdigest(), before_sha)
+        with closing(sqlite3.connect(self.database)) as connection:
+            self.assertEqual(
+                connection.execute(
+                    "SELECT id, slug, observed_date, stars_total, stars_delta, source "
+                    "FROM star_observations ORDER BY id"
+                ).fetchall(),
+                before_rows,
+            )
+
+    def test_unknown_existing_schema_exits_nonzero_and_preserves_database(self):
+        self.database.parent.mkdir(parents=True)
+        with closing(sqlite3.connect(self.database)) as connection:
+            connection.execute("CREATE TABLE keep_me(value TEXT)")
+            connection.execute("INSERT INTO keep_me VALUES ('kept')")
+            connection.commit()
+        before = self.database.read_bytes()
+
+        result = self.run_cli()
+
+        self.assertNotEqual(result.returncode, 0)
         self.assertEqual(self.database.read_bytes(), before)
 
 

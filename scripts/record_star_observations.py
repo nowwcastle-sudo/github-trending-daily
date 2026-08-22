@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import re
 import sqlite3
+import sys
 from contextlib import closing
 from dataclasses import dataclass
 from datetime import date
@@ -21,6 +23,9 @@ SUMMARY_FIELDS = ("goal", "usage", "pros", "cons", "fit")
 PERIOD_FIELDS = ("stars_daily", "stars_weekly", "stars_monthly")
 MAX_SAFE_INTEGER = 9_007_199_254_740_991
 SCHEMA_VERSION = 1
+REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_PAGE = REPOSITORY_ROOT / "index.html"
+DEFAULT_DATABASE = REPOSITORY_ROOT / "data" / "star-observations.sqlite"
 
 
 @dataclass(frozen=True)
@@ -315,6 +320,8 @@ def _upsert_repository(connection: sqlite3.Connection, slug: str, seen_date: str
         ON CONFLICT(slug) DO UPDATE SET
             first_seen = MIN(repositories.first_seen, excluded.first_seen),
             last_seen = MAX(repositories.last_seen, excluded.last_seen)
+        WHERE excluded.first_seen < repositories.first_seen
+           OR excluded.last_seen > repositories.last_seen
         """,
         (slug, seen_date, seen_date),
     )
@@ -414,3 +421,42 @@ def record_observations(
         connection.close()
         if not existed and not succeeded:
             _remove_new_database(path)
+
+
+def _database_counts(path: Path):
+    with closing(sqlite3.connect(path)) as connection:
+        counts = dict(
+            connection.execute(
+                "SELECT source, COUNT(*) FROM star_observations GROUP BY source"
+            ).fetchall()
+        )
+        observations = connection.execute("SELECT COUNT(*) FROM star_observations").fetchone()[0]
+        integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
+    return counts, observations, integrity
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description="Append star observations from the generated page")
+    parser.add_argument("--page", type=Path, default=DEFAULT_PAGE)
+    parser.add_argument("--database", type=Path, default=DEFAULT_DATABASE)
+    args = parser.parse_args(argv)
+    try:
+        page = args.page.read_text(encoding="utf-8")
+        repositories = parse_repositories(page)
+        legacy = parse_legacy_star_history(page)
+        args.database.parent.mkdir(parents=True, exist_ok=True)
+        result = record_observations(args.database, repositories, legacy)
+        counts, observations, integrity = _database_counts(args.database)
+    except (OSError, UnicodeError, ValueError, sqlite3.Error) as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 1
+    print(
+        f"rest_inserted={result.rest_inserted} legacy_inserted={result.legacy_inserted} "
+        f"github_rest={counts.get('github_rest', 0)} legacy_inline={counts.get('legacy_inline', 0)} "
+        f"observations={observations} integrity={integrity}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
