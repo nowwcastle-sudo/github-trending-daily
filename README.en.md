@@ -6,7 +6,7 @@ This dashboard collects GitHub Trending repositories daily and adds Korean summa
 
 ## How to Use
 
-Use the site to browse all, daily, weekly, or monthly results, filter by programming language, or search for a repository. Hover over a card to see the project's goals, usage, strengths, and limitations. You can also open the full README and save favorites. Favorites are currently stored in the browser you are using.
+GitHub Actions refreshes the data automatically every day at 03:17 Asia/Seoul. Use the site to browse all, daily, weekly, or monthly results, filter by programming language, or search for a repository. Hover over a card to see the project's goals, usage, strengths, and limitations. You can also open the full README and save favorites. Favorites are currently stored in the browser you are using.
 
 ## Site Address
 

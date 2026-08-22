@@ -464,7 +464,7 @@ test("workflow has exact recovery triggers, least privilege, and safe publicatio
   assert.match(onBlock, /^on:\n  schedule:\n    - cron: "47 18 \* \* \*"\n  workflow_dispatch:\s*$/);
   assert.doesNotMatch(onBlock, /^  push:/m);
   assert.match(permissionsBlock, /^permissions:\n  contents: write\s*$/);
-  assert.match(concurrencyBlock, /^concurrency:\n  group: update-star-history\n  cancel-in-progress: false\s*$/);
+  assert.match(concurrencyBlock, /^concurrency:\n  group: daily-refresh\n  cancel-in-progress: false\s*$/);
 
   for (const fragment of [
     "ref: main",

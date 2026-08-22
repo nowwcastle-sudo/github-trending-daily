@@ -150,12 +150,14 @@ def parse_repositories(page: str) -> list[RepositoryObservation]:
 
 
 def parse_legacy_star_history(page: str) -> list[StarObservation]:
-    """Parse every valid point from the single legacy inline STAR_HISTORY constant."""
+    """Parse the optional single legacy inline STAR_HISTORY constant."""
     if not isinstance(page, str):
         raise ValueError("STAR_HISTORY page must be text")
     declarations = list(re.finditer(r"(?m)^const STAR_HISTORY=", page))
-    if len(declarations) != 1:
-        raise ValueError("Expected exactly one STAR_HISTORY declaration")
+    if not declarations:
+        return []
+    if len(declarations) > 1:
+        raise ValueError("Expected at most one STAR_HISTORY declaration")
     start = declarations[0].end()
     try:
         entries, end = json.JSONDecoder(parse_constant=_json_error).raw_decode(page, start)

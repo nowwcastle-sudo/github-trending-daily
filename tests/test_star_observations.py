@@ -106,6 +106,9 @@ class RepositoryParserTests(unittest.TestCase):
 
 
 class LegacyParserTests(unittest.TestCase):
+    def test_accepts_post_migration_page_without_legacy_declaration(self):
+        self.assertEqual(parse_legacy_star_history("no legacy constant remains\n"), [])
+
     def test_preserves_all_valid_points_including_orphan_repositories(self):
         page = legacy_page([
             {"slug": "owner/repo-0", "hist": [{"d": "2026-08-20", "s": 90}]},
