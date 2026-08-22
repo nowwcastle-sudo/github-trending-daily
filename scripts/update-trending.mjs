@@ -95,3 +95,220 @@ export function mergeTrendingPeriods(periods) {
   }
   return merged;
 }
+
+class RequestLimitError extends Error {}
+
+const defaultSleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+
+function githubPath(slug, suffix = "") {
+  return `/repos/${slug.split("/").map(encodeURIComponent).join("/")}${suffix}`;
+}
+
+function retryDelay(response, attempt) {
+  const header = response?.headers?.get("retry-after");
+  const retryAfter = header === null ? NaN : Number(header);
+  if (Number.isFinite(retryAfter) && retryAfter >= 0) return Math.min(retryAfter * 1000, 2000);
+  return 250 * (2 ** attempt);
+}
+
+function shouldRetry(response) {
+  if (response.status === 403 && response.headers.get("x-ratelimit-remaining") === "0") return false;
+  return response.status === 408 || response.status === 429 || response.status >= 500;
+}
+
+function contributorCount(response, contributors) {
+  const last = response.headers.get("link")
+    ?.split(",")
+    .find(link => /rel="last"/.test(link))
+    ?.match(/<([^>]+)>/)?.[1];
+  if (!last) return contributors.length;
+  const page = Number(new URL(last).searchParams.get("page"));
+  return Number.isSafeInteger(page) && page >= contributors.length ? page : contributors.length;
+}
+
+function assertRepoMetadata(value, slug) {
+  const counts = [value?.stargazers_count, value?.forks_count, value?.open_issues_count];
+  if (
+    typeof value?.full_name !== "string"
+    || value.full_name.toLowerCase() !== slug.toLowerCase()
+    || (value.description !== null && typeof value.description !== "string")
+    || (value.language !== null && typeof value.language !== "string")
+    || counts.some(count => !Number.isSafeInteger(count) || count < 0)
+  ) {
+    throw new Error(`Invalid GitHub metadata for ${slug}`);
+  }
+}
+
+function readmeIntroduction(readme) {
+  if (typeof readme !== "string") return "";
+  return readme
+    .split(/\r?\n\s*\r?\n/)
+    .map(paragraph => paragraph
+      .replace(/```[\s\S]*?```/g, "")
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+      .replace(/<[^>]+>/g, "")
+      .replace(/^#+\s*/gm, "")
+      .replace(/\s+/g, " ")
+      .trim())
+    .find(Boolean) ?? "";
+}
+
+function trendNote(repo) {
+  const labels = [
+    ["stars_daily", "오늘"],
+    ["stars_weekly", "이번 주"],
+    ["stars_monthly", "이번 달"],
+  ];
+  return labels
+    .filter(([field]) => Number.isSafeInteger(repo[field]))
+    .map(([field, label]) => `${label} ${repo[field].toLocaleString("ko-KR")}개`)
+    .join(", ");
+}
+
+function periodGains(repo) {
+  return Object.fromEntries(Object.values(PERIODS)
+    .map(({ field }) => [field, repo[field]])
+    .filter(([, value]) => Number.isSafeInteger(value) && value >= 0));
+}
+
+function koreanFallback(repo, metadata, readme) {
+  const source = metadata.description?.trim() || readmeIntroduction(readme) || `${repo.slug} 공개 저장소`;
+  const language = metadata.language ? `${metadata.language} 기반 ` : "";
+  const gains = trendNote(repo);
+  const goal = `${source} GitHub에 공개된 ${language}저장소다.`;
+  const usage = "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.";
+  const pros = `${gains}의 스타 증가가 공개 Trending 데이터에서 확인됐다.`;
+  const cons = "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.";
+  const fit = `${metadata.language || "오픈소스"} 저장소를 탐색하려는 사용자에게 참고 자료가 된다.`;
+  return {
+    summary: { goal, usage, pros, cons, fit },
+    detail: { goal, usage, pros, cons, fit, stars_note: `${gains}의 스타 증가가 확인됐다.` },
+  };
+}
+
+export async function enrichTrendingRepositories(discovered, {
+  fetchImpl = globalThis.fetch,
+  sleep = defaultSleep,
+  token = "",
+  summaryCache = {},
+  previousRepos = [],
+  statsDate,
+  maxRequests = 250,
+  maxAttempts = 3,
+  minPublished = 10,
+  minCoverage = 0.8,
+} = {}) {
+  if (!Array.isArray(discovered) || discovered.length < 10 || discovered.length > 75) {
+    throw new Error("Discovered repositories must contain 10-75 entries");
+  }
+  if (typeof fetchImpl !== "function" || typeof sleep !== "function") throw new Error("fetchImpl and sleep must be functions");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(statsDate ?? "")) throw new Error("statsDate must use YYYY-MM-DD");
+  if (!Number.isSafeInteger(maxRequests) || maxRequests < 1) throw new Error("maxRequests must be a positive integer");
+  if (!Number.isSafeInteger(maxAttempts) || maxAttempts < 1 || maxAttempts > 5) throw new Error("maxAttempts must be between 1 and 5");
+  if (!Number.isSafeInteger(minPublished) || minPublished < 1) throw new Error("minPublished must be a positive integer");
+  if (typeof minCoverage !== "number" || minCoverage <= 0 || minCoverage > 1) throw new Error("minCoverage must be between 0 and 1");
+
+  let requestCount = 0;
+  const request = async (path, { accept = "application/vnd.github+json", text = false } = {}) => {
+    let lastError;
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      if (requestCount >= maxRequests) throw new RequestLimitError(`GitHub request limit ${maxRequests} exceeded`);
+      requestCount += 1;
+      let response;
+      try {
+        response = await fetchImpl(`https://api.github.com${path}`, {
+          headers: {
+            Accept: accept,
+            Authorization: `Bearer ${token}`,
+            "X-GitHub-Api-Version": "2022-11-28",
+          },
+        });
+      } catch (error) {
+        lastError = error;
+        if (attempt + 1 < maxAttempts) {
+          await sleep(250 * (2 ** attempt));
+          continue;
+        }
+        throw new Error(`GitHub request failed for ${path}`);
+      }
+      if (response.ok) return { response, value: text ? await response.text() : await response.json() };
+      lastError = new Error(`GitHub request returned ${response.status} for ${path}`);
+      if (!shouldRetry(response) || attempt + 1 >= maxAttempts) throw lastError;
+      await sleep(retryDelay(response, attempt));
+    }
+    throw lastError;
+  };
+
+  const summaries = new Map(Object.entries(summaryCache).map(([slug, value]) => [slug.toLowerCase(), value]));
+  const previous = new Map(previousRepos.map(repo => [String(repo.slug).toLowerCase(), repo]));
+  const repos = [];
+
+  for (const discoveredRepo of discovered) {
+    const slug = normalizeSlug(discoveredRepo?.slug ?? "");
+    const key = slug.toLowerCase();
+    const prior = previous.get(key);
+    let metadata;
+    let contributors;
+    try {
+      ({ value: metadata } = await request(githubPath(slug)));
+      assertRepoMetadata(metadata, slug);
+      const result = await request(`${githubPath(slug, "/contributors")}?anon=1&per_page=1`);
+      if (!Array.isArray(result.value)) throw new Error(`Invalid GitHub contributors for ${slug}`);
+      contributors = contributorCount(result.response, result.value);
+    } catch (error) {
+      if (error instanceof RequestLimitError) throw error;
+      if (!prior) continue;
+      const retained = { ...prior };
+      for (const { field } of Object.values(PERIODS)) delete retained[field];
+      const cached = summaries.get(key);
+      repos.push({
+        ...retained,
+        slug,
+        ...periodGains(discoveredRepo),
+        ...(cached ? { summary: cached.summary, detail: cached.detail } : {}),
+        _stats_date: statsDate,
+      });
+      continue;
+    }
+
+    let cached = summaries.get(key);
+    if (!cached) {
+      let readme = "";
+      try {
+        ({ value: readme } = await request(githubPath(slug, "/readme"), {
+          accept: "application/vnd.github.raw+json",
+          text: true,
+        }));
+      } catch (error) {
+        if (error instanceof RequestLimitError) throw error;
+      }
+      cached = koreanFallback({ ...discoveredRepo, slug }, metadata, readme);
+    }
+
+    const [owner, name] = slug.split("/");
+    repos.push({
+      slug,
+      name: `${owner} / ${name}`,
+      desc: metadata.description ?? "",
+      lang: metadata.language ?? "",
+      stars: metadata.stargazers_count,
+      forks: metadata.forks_count,
+      ...periodGains(discoveredRepo),
+      color: prior?.lang === metadata.language && prior.color ? prior.color : "#8b949e",
+      summary: cached.summary,
+      detail: cached.detail,
+      issues: metadata.open_issues_count,
+      contributors,
+      _stats_date: statsDate,
+    });
+  }
+
+  const coverage = repos.length / discovered.length;
+  if (repos.length < minPublished) {
+    throw new Error(`Published repository count ${repos.length} is below ${minPublished}`);
+  }
+  if (coverage < minCoverage) {
+    throw new Error(`Metadata coverage ${Math.round(coverage * 100)}% is below ${Math.round(minCoverage * 100)}%`);
+  }
+  return { repos, requestCount };
+}
