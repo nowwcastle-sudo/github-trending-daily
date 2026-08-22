@@ -6,6 +6,17 @@ import vm from "node:vm";
 await import("../star-history.js");
 const StarHistory = globalThis.StarHistory;
 
+const validRepository = () => ({
+  slug: "a/one",
+  estimated: [{ date: "2026-08-01", stars: 8 }],
+  observed: [{ date: "2026-08-22", stars: 10 }],
+});
+const validCache = () => ({
+  version: 1,
+  generatedAt: "2026-08-22",
+  repositories: [validRepository()],
+});
+
 test("displayPoints combines estimates with exact observations by date", () => {
   assert.deepEqual(StarHistory.displayPoints({
     estimated: [
@@ -42,26 +53,67 @@ test("historyHtml uses fixed copy and never interpolates the slug", () => {
 });
 
 test("normalizeCache rejects unsupported versions and malformed repository entries", () => {
-  assert.throws(() => StarHistory.normalizeCache({ version: 2, repositories: [] }), /version/);
+  assert.throws(() => StarHistory.normalizeCache({
+    version: 2,
+    generatedAt: "2026-08-22",
+    repositories: [],
+  }), /version|schema/);
   assert.throws(() => StarHistory.normalizeCache({
     version: 1,
+    generatedAt: "2026-08-22",
     repositories: [{ slug: "bad", estimated: [], observed: [] }],
-  }), /slug/);
+  }), /slug|schema/);
   assert.throws(() => StarHistory.normalizeCache({
     version: 1,
+    generatedAt: "2026-08-22",
     repositories: [
       { slug: "a/one", estimated: [], observed: [] },
       { slug: "A/ONE", estimated: [], observed: [] },
     ],
-  }), /duplicate/);
+  }), /duplicate|schema/);
   assert.throws(() => StarHistory.normalizeCache({
     version: 1,
+    generatedAt: "2026-08-22",
     repositories: [{
       slug: "a/one",
       estimated: [{ date: "2026-02-30", stars: 1 }],
       observed: [],
     }],
-  }), /date/);
+  }), /date|schema/);
+});
+
+test("normalizeCache requires exact top-level keys and a real generated date", () => {
+  const missingGeneratedAt = validCache();
+  delete missingGeneratedAt.generatedAt;
+
+  assert.throws(() => StarHistory.normalizeCache(missingGeneratedAt), /schema/);
+  assert.throws(() => StarHistory.normalizeCache({ ...validCache(), generatedAt: "2026-02-30" }), /schema/);
+  assert.throws(() => StarHistory.normalizeCache({ ...validCache(), extra: true }), /schema/);
+});
+
+test("normalizeCache requires exact repository and point keys", () => {
+  const missingRepositoryKey = validCache();
+  delete missingRepositoryKey.repositories[0].observed;
+  const extraRepositoryKey = validCache();
+  extraRepositoryKey.repositories[0].extra = true;
+  const missingPointKey = validCache();
+  delete missingPointKey.repositories[0].estimated[0].stars;
+  const extraPointKey = validCache();
+  extraPointKey.repositories[0].estimated[0].extra = true;
+
+  for (const value of [missingRepositoryKey, extraRepositoryKey, missingPointKey, extraPointKey]) {
+    assert.throws(() => StarHistory.normalizeCache(value), /schema/);
+  }
+});
+
+test("normalizeCache rejects duplicate and unsorted point dates", () => {
+  const duplicate = validCache();
+  duplicate.repositories[0].estimated.push({ date: "2026-08-01", stars: 9 });
+  const unsorted = validCache();
+  unsorted.repositories[0].estimated.unshift({ date: "2026-08-02", stars: 9 });
+
+  assert.throws(() => StarHistory.normalizeCache(duplicate), /schema/);
+  assert.throws(() => StarHistory.normalizeCache(unsorted), /schema/);
 });
 
 test("load fetches once and returns a normalized map", async () => {
@@ -73,6 +125,7 @@ test("load fetches once and returns a normalized map", async () => {
       ok: true,
       json: async () => ({
         version: 1,
+        generatedAt: "2026-08-22",
         repositories: [{
           slug: "a/one",
           estimated: [],

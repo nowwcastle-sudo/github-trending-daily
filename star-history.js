@@ -25,30 +25,52 @@
       && point.stars >= 0;
   }
 
-  function copyPoints(points, maximum) {
-    if (!Array.isArray(points) || points.length > maximum) throw new Error("invalid points");
-    if (!points.every(validPoint)) throw new Error("invalid point date or stars");
-    return points.map(({ date, stars }) => ({ date, stars }));
+  function exactKeys(value, expected) {
+    return value
+      && typeof value === "object"
+      && !Array.isArray(value)
+      && Object.keys(value).sort().join("\0") === [...expected].sort().join("\0");
+  }
+
+  function validOrderedPoints(points, maximum) {
+    return Array.isArray(points)
+      && points.length <= maximum
+      && points.every((point, index) => (
+        exactKeys(point, ["date", "stars"])
+        && validPoint(point)
+        && (index === 0 || points[index - 1].date < point.date)
+      ));
   }
 
   function normalizeCache(value) {
-    if (!value || value.version !== 1) throw new Error("unsupported version");
-    if (!Array.isArray(value.repositories) || value.repositories.length > 75) {
-      throw new Error("invalid repositories");
+    if (
+      !exactKeys(value, ["version", "generatedAt", "repositories"])
+      || value.version !== 1
+      || !validDate(value.generatedAt)
+      || !Array.isArray(value.repositories)
+      || value.repositories.length > 75
+    ) {
+      throw new Error("invalid cache schema");
     }
     const seen = new Set();
     const result = new Map();
     for (const entry of value.repositories) {
-      if (typeof entry?.slug !== "string" || entry.slug.length > 201 || !REPO_RE.test(entry.slug)) {
-        throw new Error("invalid slug");
+      if (
+        !exactKeys(entry, ["slug", "estimated", "observed"])
+        || typeof entry.slug !== "string"
+        || !REPO_RE.test(entry.slug)
+        || !validOrderedPoints(entry.estimated, 500)
+        || !validOrderedPoints(entry.observed, 730)
+      ) {
+        throw new Error("invalid cache schema");
       }
       const key = entry.slug.toLowerCase();
-      if (seen.has(key)) throw new Error("duplicate slug");
+      if (seen.has(key)) throw new Error("invalid cache schema");
       seen.add(key);
       result.set(entry.slug, {
         slug: entry.slug,
-        estimated: copyPoints(entry.estimated, 500),
-        observed: copyPoints(entry.observed, 730),
+        estimated: entry.estimated.map(({ date, stars }) => ({ date, stars })),
+        observed: entry.observed.map(({ date, stars }) => ({ date, stars })),
       });
     }
     return result;
