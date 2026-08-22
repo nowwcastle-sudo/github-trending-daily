@@ -13,6 +13,10 @@ import {
   runTrendingUpdate,
   seoulDate,
 } from "../scripts/update-trending.mjs";
+import {
+  extractRepos as extractStarRepos,
+  updateCache as updateStarHistoryCache,
+} from "../scripts/update-star-history.mjs";
 
 const fixture = name => readFile(new URL(`fixtures/${name}`, import.meta.url), "utf8");
 
@@ -670,4 +674,115 @@ test("check mode fetches all three Trending pages and REST data without writing 
   assert.equal(result.changed, true);
   assert.deepEqual(requests.filter(request => request.url.startsWith("https://github.com/trending")).map(request => request.url), Object.keys(trending));
   assert.deepEqual(await Promise.all([readFile(pagePath), readFile(cachePath)]), before);
+});
+
+test("daily update gives star history the exact finalized repositories and isolates unavailable history", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "daily-integrated-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const pagePath = join(directory, "index.html");
+  const cachePath = join(directory, "data", "repo-summaries.json");
+  const starCachePath = join(directory, "star-history.json");
+  await mkdir(join(directory, "data"));
+  const summaryCache = Object.fromEntries(discoveredRepos().map((repo, index) => [repo.slug, cachedSummary(index)]));
+  await Promise.all([
+    writeFile(pagePath, markedPage),
+    writeFile(cachePath, `${JSON.stringify(summaryCache, null, 2)}\n`),
+    writeFile(starCachePath, `${JSON.stringify({
+      version: 1,
+      generatedAt: "2026-08-22",
+      repositories: [
+        { slug: "Alpha/one", estimated: [{ date: "2026-07-01", stars: 50 }], observed: [] },
+        { slug: "stale/orphan", estimated: [], observed: [] },
+      ],
+    }, null, 2)}\n`),
+  ]);
+  const trending = Object.fromEntries(await Promise.all(["daily", "weekly", "monthly"].map(async period => [
+    `https://github.com/trending?since=${period}`,
+    await fixture(`trending-${period}.html`),
+  ])));
+  const rest = successfulGithubFetch();
+  const starRequests = [];
+
+  const result = await runTrendingUpdate({
+    pagePath,
+    cachePath,
+    fetchImpl: async (url, options) => trending[url] ? jsonResponse(200, trending[url]) : rest(url, options),
+    now: new Date("2026-08-22T15:00:00Z"),
+  });
+  const starHistory = await updateStarHistoryCache({
+    htmlPath: pagePath,
+    cachePath: starCachePath,
+    fetchImpl: async url => {
+      starRequests.push(url);
+      return starRequests.length === 1
+        ? jsonResponse(503, {})
+        : jsonResponse(200, { data: { rows: [] } });
+    },
+    log: () => {},
+    date: result.statsDate,
+  });
+
+  const pageSlugs = extractStarRepos(await readFile(pagePath, "utf8")).map(repo => repo.slug);
+  const starCache = JSON.parse(await readFile(starCachePath, "utf8"));
+  const starSlugs = starCache.repositories.map(repo => repo.slug);
+  assert.deepEqual(starSlugs, result.repos.map(repo => repo.slug));
+  assert.deepEqual(starSlugs, pageSlugs);
+  assert.equal(starRequests.length, result.repos.length);
+  assert.deepEqual(starHistory.failed, [result.repos[0].slug]);
+  assert.deepEqual(starCache.repositories[0].estimated, [{ date: "2026-07-01", stars: 50 }]);
+  assert.deepEqual(starCache.repositories[0].observed, [{ date: "2026-08-23", stars: 100 }]);
+});
+
+test("failed Trending generation leaves every last-good file byte-identical and never starts star history", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "daily-integrated-failure-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const pagePath = join(directory, "index.html");
+  const cachePath = join(directory, "data", "repo-summaries.json");
+  const starCachePath = join(directory, "star-history.json");
+  await mkdir(join(directory, "data"));
+  const summaryCache = Object.fromEntries(discoveredRepos().map((repo, index) => [repo.slug, cachedSummary(index)]));
+  await Promise.all([
+    writeFile(pagePath, markedPage),
+    writeFile(cachePath, `${JSON.stringify(summaryCache, null, 2)}\n`),
+    writeFile(starCachePath, '{"version":1,"generatedAt":"2026-08-22","repositories":[]}\n'),
+  ]);
+  const before = await Promise.all([pagePath, cachePath, starCachePath].map(path => readFile(path)));
+  const [malformed, weekly, monthly] = await Promise.all([
+    fixture("trending-malformed.html"),
+    fixture("trending-weekly.html"),
+    fixture("trending-monthly.html"),
+  ]);
+  const pages = {
+    "https://github.com/trending?since=daily": malformed,
+    "https://github.com/trending?since=weekly": weekly,
+    "https://github.com/trending?since=monthly": monthly,
+  };
+  let starUpdates = 0;
+  let starRequests = 0;
+
+  const update = async () => {
+    const trending = await runTrendingUpdate({
+      pagePath,
+      cachePath,
+      fetchImpl: async url => jsonResponse(200, pages[url]),
+      now: new Date("2026-08-22T15:00:00Z"),
+    });
+    starUpdates += 1;
+    await updateStarHistoryCache({
+      htmlPath: pagePath,
+      cachePath: starCachePath,
+      date: trending.statsDate,
+      fetchImpl: async () => {
+        starRequests += 1;
+        return jsonResponse(200, { data: { rows: [] } });
+      },
+      log: () => {},
+    });
+  };
+
+  await assert.rejects(update(), /no Trending repositories/);
+
+  assert.equal(starUpdates, 0);
+  assert.equal(starRequests, 0);
+  assert.deepEqual(await Promise.all([pagePath, cachePath, starCachePath].map(path => readFile(path))), before);
 });
