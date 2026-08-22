@@ -51,10 +51,6 @@ test("extractRepos fails closed on marker, shape, size, and identity violations"
 });
 
 test("normalizeEstimatedRows sorts, deduplicates, caps, and ignores malformed rows without coercion", () => {
-  const capped = Array.from({ length: 501 }, (_, index) => ({
-    date: new Date(Date.UTC(2020, 0, index + 1)).toISOString().slice(0, 10),
-    stargazers: index,
-  }));
   const points = normalizeEstimatedRows([
     { date: "2026-08-01", stargazers: "12" },
     { date: "2026-07-01", stargazers: 10 },
@@ -69,8 +65,41 @@ test("normalizeEstimatedRows sorts, deduplicates, caps, and ignores malformed ro
     { date: "2026-07-01", stars: 10 },
     { date: "2026-08-01", stars: 13 },
   ]);
-  assert.equal(normalizeEstimatedRows(capped).length, 500);
   assert.throws(() => normalizeEstimatedRows(null), /array/i);
+});
+
+test("normalizeEstimatedRows keeps the newest 500 valid dates without mutating input", () => {
+  const rows = Array.from({ length: 501 }, (_, index) => ({
+    date: new Date(Date.UTC(2020, 0, index + 1)).toISOString().slice(0, 10),
+    stargazers: index,
+  }));
+  const before = structuredClone(rows);
+
+  const points = normalizeEstimatedRows(rows);
+
+  assert.equal(points.length, 500);
+  assert.equal(points[0].date, rows[1].date);
+  assert.equal(points.at(-1).date, rows.at(-1).date);
+  assert.deepEqual(rows, before);
+});
+
+test("normalizeEstimatedRows does not let early invalid or duplicate rows consume the cap", () => {
+  const later = Array.from({ length: 500 }, (_, index) => ({
+    date: new Date(Date.UTC(2021, 0, index + 1)).toISOString().slice(0, 10),
+    stargazers: index + 10,
+  }));
+  const rows = [
+    { date: "invalid", stargazers: 1 },
+    { date: "2020-01-01", stargazers: 1 },
+    { date: "2020-01-01", stargazers: 2 },
+    ...later,
+  ];
+
+  const points = normalizeEstimatedRows(rows);
+
+  assert.equal(points.length, 500);
+  assert.equal(points[0].date, later[0].date);
+  assert.deepEqual(points.at(-1), { date: later.at(-1).date, stars: later.at(-1).stargazers });
 });
 
 test("mergeRepository preserves failed estimates and records today's exact observation", () => {

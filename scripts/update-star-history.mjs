@@ -86,13 +86,15 @@ export function extractRepos(html) {
 export function normalizeEstimatedRows(rows) {
   if (!Array.isArray(rows)) throw new Error("OSS Insight rows must be an array");
   const byDate = new Map();
-  for (const row of rows.slice(0, MAX_ESTIMATED_POINTS)) {
+  for (const row of rows) {
     const stars = parseStars(row?.stargazers);
     if (validDate(row?.date) && stars !== null) {
       byDate.set(row.date, { date: row.date, stars });
     }
   }
-  return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+  return [...byDate.values()]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-MAX_ESTIMATED_POINTS);
 }
 
 export function mergeRepository(repoValue, prior, rows, date) {
