@@ -476,6 +476,7 @@ test("workflow has exact recovery triggers, least privilege, and safe publicatio
     "if git diff --quiet -- star-history.json; then exit 0; fi",
     "git add -- star-history.json",
     "git grep --cached -qE",
+    "scan_status=$?",
     "git commit -m \"chore: update star history cache\"",
     "git push origin HEAD:main",
   ]) assert.match(workflow, new RegExp(fragment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
@@ -488,6 +489,7 @@ test("workflow has exact recovery triggers, least privilege, and safe publicatio
     "if git diff --quiet -- star-history.json; then exit 0; fi",
     "git add -- star-history.json",
     "git grep --cached -qE",
+    "scan_status=$?",
     "git commit -m \"chore: update star history cache\"",
     "git push origin HEAD:main",
   ].map(fragment => workflow.indexOf(fragment));

@@ -43,6 +43,12 @@ jobs:
           if git grep --cached -qE '(gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- star-history.json; then
             echo "::error::Potential secret detected in star-history.json"
             exit 1
+          else
+            scan_status=$?
+            if [ "$scan_status" -ne 1 ]; then
+              echo "::error::Secret scan failed"
+              exit 1
+            fi
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
