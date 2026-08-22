@@ -28,7 +28,7 @@
 - Create `star-history.js`: browser/cache normalization, point selection, SVG rendering, status copy, and CommonJS exports for Node tests.
 - Create `tests/star-history.test.mjs`: browser helper tests without a DOM dependency.
 - Create `star-history.json`: generated version-1 cache for the 46 current repositories.
-- Create `.github/workflows/update-star-history.yml`: scheduled, push-triggered, and manual cache refresh.
+- Create `.github/workflows/update-star-history.yml`: scheduled recovery and manual cache refresh. The primary publisher is the atomic daily workflow in `2026-08-22-daily-trending-refresh.md`.
 - Modify `index.html`: remove the inline historical snapshot and remote Star History image; load `star-history.js` and render the static cache.
 
 ## Primary References
@@ -425,7 +425,7 @@ git add star-history.js tests/star-history.test.mjs index.html
 git commit -m "fix: render cached star trends without restricted API"
 ```
 
-### Task 4: Automate the daily refresh
+### Task 4: Automate the star-history recovery refresh
 
 **Files:**
 - Create: `.github/workflows/update-star-history.yml`
@@ -433,21 +433,19 @@ git commit -m "fix: render cached star trends without restricted API"
 
 **Interfaces:**
 - Consumes: `main`, `index.html`, and the updater CLI.
-- Produces: one daily or manual cache update commit; no commit and exit 0 when repository data is unchanged.
+- Produces: one recovery or manual cache update commit; no commit and exit 0 when repository data is unchanged.
 
 - [ ] **Step 1: Add a failing workflow contract test**
 
 Add this Node test:
 
 ```js
-test("workflow has the exact triggers, least privilege, and no-change gate", async () => {
+test("workflow has the exact recovery triggers, least privilege, and no-change gate", async () => {
   const workflow = await readFile(".github/workflows/update-star-history.yml", "utf8");
   for (const fragment of [
     "schedule:",
-    'cron: "30 18 * * *"',
+    'cron: "47 18 * * *"',
     "workflow_dispatch:",
-    "paths:",
-    "- index.html",
     "contents: write",
     "concurrency:",
     "node scripts/update-star-history.mjs",
@@ -472,12 +470,8 @@ Expected: FAIL with `ENOENT` for `.github/workflows/update-star-history.yml`.
 name: Update star history
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - index.html
   schedule:
-    - cron: "30 18 * * *"
+    - cron: "47 18 * * *"
   workflow_dispatch:
 
 permissions:
