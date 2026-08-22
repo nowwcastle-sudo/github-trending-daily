@@ -1,0 +1,65 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GitHub Trending — 오늘</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0d1117;color:#e6edf3;padding:32px 20px;min-height:100vh}
+.wrap{max-width:900px;margin:auto}
+h1{font-size:26px;margin-bottom:4px} h1 span{color:#58a6ff}
+.sub{color:#8b949e;font-size:14px;margin-bottom:24px}
+.controls{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+input,select{background:#161b22;border:1px solid #30363d;color:#e6edf3;border-radius:8px;padding:9px 14px;font-size:14px;outline:none}
+input:focus,select:focus{border-color:#58a6ff}
+input{flex:1;min-width:220px}
+.card{display:flex;background:#161b22;border:1px solid #30363d;border-radius:12px;padding:18px;margin-bottom:12px;cursor:pointer;transition:.15s;text-decoration:none;color:inherit}
+.card:hover{border-color:#58a6ff;transform:translateY(-2px);box-shadow:0 6px 18px rgba(88,166,255,.12)}
+.rank{font-size:22px;font-weight:700;color:#58a6ff;width:42px;flex-shrink:0;padding-top:2px}
+.body{flex:1;min-width:0}
+.name{font-weight:600;font-size:16px;color:#58a6ff}
+.desc{color:#8b949e;font-size:13.5px;margin:5px 0 10px;line-height:1.45}
+.meta{display:flex;gap:16px;align-items:center;font-size:12.5px;color:#8b949e;flex-wrap:wrap}
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:-1px}
+.today{color:#f0883e;font-weight:600}
+.stats{text-align:right;flex-shrink:0;margin-left:14px}
+.stars{font-size:19px;font-weight:700} .forks{font-size:12px;color:#8b949e}
+.empty{text-align:center;color:#8b949e;padding:40px;display:none}
+.bar{height:5px;border-radius:3px;background:#21262d;margin-top:9px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#f0883e,#ffa657)}
+</style></head><body><div class="wrap">
+<h1>🐙 GitHub Trending <span>· 오늘</span></h1>
+<p class="sub">2026-08-22 기준 · 카드를 클릭하면 저장소로 이동해요</p>
+<div class="controls">
+<input id="q" placeholder="🔍 이름·설명 검색...">
+<select id="lang"><option value="">전체 언어</option></select>
+<select id="sort">
+<option value="today">오늘 ⭐ 많은 순</option>
+<option value="stars">총 ⭐ 많은 순</option>
+<option value="name">이름순</option>
+</select>
+</div>
+<div id="list"></div><p class="empty" id="empty">결과가 없어요 🥲</p></div>
+<script>
+const DATA=[{"name": "mattpocock/skills", "desc": "Skills for Real Engineers. Straight from my .agents directory.", "lang": "Shell", "stars": 224484, "forks": 19298, "today": 1894, "color": "#89e051"}, {"name": "harry0703/MoneyPrinterTurbo", "desc": "AI로 주제/키워드 하나로 HD 숏폼 영상 자동 생성", "lang": "Python", "stars": 112017, "forks": 16966, "today": 2221, "color": "#3572A5"}, {"name": "obra/superpowers", "desc": "Agentic skills framework & software dev methodology", "lang": "Shell", "stars": 274542, "forks": 24574, "today": 557, "color": "#89e051"}, {"name": "santifer/career-ops", "desc": "AI 구직 도구: 포털 스캔·루브릭 평가·이력서 맞춤", "lang": "JavaScript", "stars": 66090, "forks": 12774, "today": 198, "color": "#f1e05a"}, {"name": "volcengine/OpenViking", "desc": "AI 에이전트용 자가진화 컨텍스트 DB — 메모리·RAG·스킬 통합", "lang": "Python", "stars": 30641, "forks": 2369, "today": 804, "color": "#3572A5"}, {"name": "mukul975/Anthropic-Cybersecurity-Skills", "desc": "817개 사이버보안 스킬, MITRE ATT&CK 등 6개 프레임워크 매핑", "lang": "Python", "stars": 30122, "forks": 3575, "today": 766, "color": "#3572A5"}, {"name": "jundot/omlx", "desc": "Apple Silicon용 LLM 추론 서버 — 연속 배칭·SSD 캐시, macOS 메뉴바", "lang": "Python", "stars": 19956, "forks": 1700, "today": 472, "color": "#3572A5"}, {"name": "akitaonrails/ai-memory", "desc": "코딩 에이전트 CLI용 장기 메모리 · 벤더 간 핸드오프 지원", "lang": "Rust", "stars": 3315, "forks": 272, "today": 606, "color": "#dea584"}, {"name": "nautechsystems/nautilus_trader", "desc": "프로덕션급 Rust 네이티브 트레이딩 엔진", "lang": "Rust", "stars": 26588, "forks": 3430, "today": 80, "color": "#dea584"}, {"name": "immich-app/immich", "desc": "고성능 셀프호스팅 사진·영상 관리 솔루션", "lang": "TypeScript", "stars": 112067, "forks": 6642, "today": 128, "color": "#3178c6"}, {"name": "amadeusprotocol/node", "desc": "", "lang": "Rust", "stars": 4871, "forks": 89, "today": 1397, "color": "#dea584"}, {"name": "genlayerlabs/genlayer-project-boilerplate", "desc": "", "lang": "TypeScript", "stars": 16273, "forks": 812, "today": 430, "color": "#3178c6"}, {"name": "chaitanyagiri/munder-difflin", "desc": "로컬 멀티 에이전트 하네스", "lang": "TypeScript", "stars": 2881, "forks": 335, "today": 795, "color": "#3178c6"}, {"name": "marceloprates/prettymaps", "desc": "OpenStreetMap 데이터로 예쁜 지도 그리기", "lang": "Python", "stars": 13385, "forks": 666, "today": 63, "color": "#3572A5"}];
+const list=document.getElementById('list'),empty=document.getElementById('empty');
+const sel=document.getElementById('lang');
+[...new Set(DATA.map(d=>d.lang))].sort().forEach(l=>sel.insertAdjacentHTML('beforeend',`<option>${l}</option>`));
+const fmt=n=>n>=100000?(n/1000).toFixed(0)+'k':n>=1000?(n/1000).toFixed(1)+'k':n;
+const maxT=Math.max(...DATA.map(d=>d.today));
+function render(){
+ const q=document.getElementById('q').value.toLowerCase(),L=sel.value,s=document.getElementById('sort').value;
+ let items=DATA.filter(d=>(d.name+d.desc+d.lang).toLowerCase().includes(q)&&( !L||d.lang===L));
+ items.sort((a,b)=> s==='stars'?b.stars-a.stars : s==='name'?a.name.localeCompare(b.name) : b.today-a.today);
+ empty.style.display=items.length?'none':'block';
+ list.innerHTML=items.map((d,i)=>`<a class="card" href="https://github.com/${d.name}" target="_blank">
+ <div class="rank">${i+1}</div>
+ <div class="body">
+  <div class="name">${d.name}</div>
+  <div class="desc">${d.desc||'(설명 없음)'}</div>
+  <div class="meta"><span><i class="dot" style="background:${d.color}"></i>${d.lang}</span><span>⑂ ${fmt(d.forks)}</span><span class="today">⭐ +${fmt(d.today)} today</span></div>
+  <div class="bar"><i style="width:${Math.max(3,d.today/maxT*100)}%"></i></div>
+ </div>
+ <div class="stats"><div class="stars">★ ${fmt(d.stars)}</div><div class="forks">total stars</div></div></a>`).join('');
+}
+['q','lang','sort'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+render();
+</script></body></html>
