@@ -224,7 +224,7 @@ test("retries transient failures with bounded exponential backoff", async () => 
   const summaryCache = Object.fromEntries(discovered.map((repo, index) => [repo.slug, cachedSummary(index)]));
   const sleeps = [];
   const failures = new Map([["/repos/owner/repo-0", [
-    jsonResponse(429, { message: "secondary rate limit" }, { "retry-after": "1" }),
+    jsonResponse(403, { message: "secondary rate limit" }, { "retry-after": "120" }),
     jsonResponse(502, { message: "temporary" }),
   ]]]);
 
@@ -237,7 +237,45 @@ test("retries transient failures with bounded exponential backoff", async () => 
   });
 
   assert.equal(requestCount, 22);
-  assert.deepEqual(sleeps, [1000, 500]);
+  assert.deepEqual(sleeps, [120000, 500]);
+});
+
+test("fails closed when Retry-After exceeds the explicit maximum", async () => {
+  const discovered = discoveredRepos();
+  const summaryCache = Object.fromEntries(discovered.map((repo, index) => [repo.slug, cachedSummary(index)]));
+  const sleeps = [];
+  const requests = [];
+  const failures = new Map([["/repos/owner/repo-0", [
+    jsonResponse(403, { message: "secondary rate limit" }, { "retry-after": "301" }),
+  ]]]);
+
+  await assert.rejects(
+    enrichTrendingRepositories(discovered, {
+      fetchImpl: successfulGithubFetch({ failures, requests }),
+      sleep: milliseconds => { sleeps.push(milliseconds); },
+      token: "token",
+      summaryCache,
+      statsDate: "2026-08-23",
+      maxRetryDelay: 300000,
+    }),
+    /Retry delay 301000ms exceeds maximum 300000ms/,
+  );
+  assert.equal(requests.length, 1);
+  assert.deepEqual(sleeps, []);
+});
+
+test("omits Authorization when no token is configured", async () => {
+  const discovered = discoveredRepos();
+  const summaryCache = Object.fromEntries(discovered.map((repo, index) => [repo.slug, cachedSummary(index)]));
+  const requests = [];
+
+  await enrichTrendingRepositories(discovered, {
+    fetchImpl: successfulGithubFetch({ requests }),
+    summaryCache,
+    statsDate: "2026-08-23",
+  });
+
+  assert.ok(requests.every(request => !("Authorization" in request.options.headers)));
 });
 
 test("retains known metadata after rate limit and omits an unresolved new repository", async () => {

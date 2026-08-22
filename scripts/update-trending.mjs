@@ -97,6 +97,7 @@ export function mergeTrendingPeriods(periods) {
 }
 
 class RequestLimitError extends Error {}
+class RetryDelayError extends Error {}
 
 const defaultSleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 
@@ -104,15 +105,22 @@ function githubPath(slug, suffix = "") {
   return `/repos/${slug.split("/").map(encodeURIComponent).join("/")}${suffix}`;
 }
 
-function retryDelay(response, attempt) {
+function boundedDelay(milliseconds, maximum) {
+  if (!Number.isSafeInteger(milliseconds) || milliseconds > maximum) {
+    throw new RetryDelayError(`Retry delay ${milliseconds}ms exceeds maximum ${maximum}ms`);
+  }
+  return milliseconds;
+}
+
+function retryDelay(response, attempt, maximum) {
   const header = response?.headers?.get("retry-after");
-  const retryAfter = header === null ? NaN : Number(header);
-  if (Number.isFinite(retryAfter) && retryAfter >= 0) return Math.min(retryAfter * 1000, 2000);
-  return 250 * (2 ** attempt);
+  return boundedDelay(header !== null && /^\d+$/.test(header)
+    ? Number(header) * 1000
+    : 250 * (2 ** attempt), maximum);
 }
 
 function shouldRetry(response) {
-  if (response.status === 403 && response.headers.get("x-ratelimit-remaining") === "0") return false;
+  if (response.status === 403) return /^\d+$/.test(response.headers.get("retry-after") ?? "");
   return response.status === 408 || response.status === 429 || response.status >= 500;
 }
 
@@ -195,6 +203,7 @@ export async function enrichTrendingRepositories(discovered, {
   statsDate,
   maxRequests = 250,
   maxAttempts = 3,
+  maxRetryDelay = 300000,
   minPublished = 10,
   minCoverage = 0.8,
 } = {}) {
@@ -205,6 +214,7 @@ export async function enrichTrendingRepositories(discovered, {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(statsDate ?? "")) throw new Error("statsDate must use YYYY-MM-DD");
   if (!Number.isSafeInteger(maxRequests) || maxRequests < 1) throw new Error("maxRequests must be a positive integer");
   if (!Number.isSafeInteger(maxAttempts) || maxAttempts < 1 || maxAttempts > 5) throw new Error("maxAttempts must be between 1 and 5");
+  if (!Number.isSafeInteger(maxRetryDelay) || maxRetryDelay < 0) throw new Error("maxRetryDelay must be a non-negative integer");
   if (!Number.isSafeInteger(minPublished) || minPublished < 1) throw new Error("minPublished must be a positive integer");
   if (typeof minCoverage !== "number" || minCoverage <= 0 || minCoverage > 1) throw new Error("minCoverage must be between 0 and 1");
 
@@ -219,14 +229,14 @@ export async function enrichTrendingRepositories(discovered, {
         response = await fetchImpl(`https://api.github.com${path}`, {
           headers: {
             Accept: accept,
-            Authorization: `Bearer ${token}`,
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
             "X-GitHub-Api-Version": "2022-11-28",
           },
         });
       } catch (error) {
         lastError = error;
         if (attempt + 1 < maxAttempts) {
-          await sleep(250 * (2 ** attempt));
+          await sleep(boundedDelay(250 * (2 ** attempt), maxRetryDelay));
           continue;
         }
         throw new Error(`GitHub request failed for ${path}`);
@@ -234,7 +244,7 @@ export async function enrichTrendingRepositories(discovered, {
       if (response.ok) return { response, value: text ? await response.text() : await response.json() };
       lastError = new Error(`GitHub request returned ${response.status} for ${path}`);
       if (!shouldRetry(response) || attempt + 1 >= maxAttempts) throw lastError;
-      await sleep(retryDelay(response, attempt));
+      await sleep(retryDelay(response, attempt, maxRetryDelay));
     }
     throw lastError;
   };
@@ -256,7 +266,7 @@ export async function enrichTrendingRepositories(discovered, {
       if (!Array.isArray(result.value)) throw new Error(`Invalid GitHub contributors for ${slug}`);
       contributors = contributorCount(result.response, result.value);
     } catch (error) {
-      if (error instanceof RequestLimitError) throw error;
+      if (error instanceof RequestLimitError || error instanceof RetryDelayError) throw error;
       if (!prior) continue;
       const retained = { ...prior };
       for (const { field } of Object.values(PERIODS)) delete retained[field];
@@ -280,7 +290,7 @@ export async function enrichTrendingRepositories(discovered, {
           text: true,
         }));
       } catch (error) {
-        if (error instanceof RequestLimitError) throw error;
+        if (error instanceof RequestLimitError || error instanceof RetryDelayError) throw error;
       }
       cached = koreanFallback({ ...discoveredRepo, slug }, metadata, readme);
     }
