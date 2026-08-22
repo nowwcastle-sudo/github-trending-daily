@@ -55,6 +55,28 @@ test("migrateLegacyFavs copies valid values once without overwriting guest chang
   assert.deepEqual(Favorites.migrateLegacyFavs(storage), ["b/two"]);
 });
 
+test("migrateLegacyFavs returns an unsaved empty guest state when the existence probe is denied", () => {
+  let writes = 0;
+  const denied = new Error("storage denied");
+  denied.name = "SecurityError";
+  const storage = {
+    getItem() { throw denied; },
+    setItem() { writes += 1; },
+  };
+
+  assert.deepEqual(Favorites.migrateLegacyFavs(storage), []);
+  assert.equal(writes, 0);
+});
+
+test("migrateLegacyFavs does not hide a failed guest write", () => {
+  const storage = {
+    getItem(key) { return key === "gh-favs-guest" ? null : '["a/one"]'; },
+    setItem() { throw new Error("quota exceeded"); },
+  };
+
+  assert.throws(() => Favorites.migrateLegacyFavs(storage), /quota exceeded/);
+});
+
 test("parseFavs remains bound to the legacy key", () => {
   const storage = memoryStorage({
     "gh-favs": '["a/one","bad","a/one"]',

@@ -33,7 +33,10 @@
   }
 
   function migrateLegacyFavs(storage) {
-    if (storage.getItem('gh-favs-guest') !== null) return readFavs(storage, 'gh-favs-guest');
+    let hasGuest;
+    try { hasGuest = storage.getItem('gh-favs-guest') !== null; }
+    catch { return []; }
+    if (hasGuest) return readFavs(storage, 'gh-favs-guest');
     return writeFavs(storage, 'gh-favs-guest', readFavs(storage, 'gh-favs'));
   }
 
