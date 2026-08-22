@@ -1,11 +1,17 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 
 import {
+  createPageSnapshot,
   enrichTrendingRepositories,
+  installPageSnapshot,
   mergeTrendingPeriods,
   parseTrendingHtml,
+  runTrendingUpdate,
+  seoulDate,
 } from "../scripts/update-trending.mjs";
 
 const fixture = name => readFile(new URL(`fixtures/${name}`, import.meta.url), "utf8");
@@ -121,7 +127,7 @@ test("seeded cache preserves every summary currently published in the page", asy
     readFile(new URL("../index.html", import.meta.url), "utf8"),
     readFile(new URL("../data/repo-summaries.json", import.meta.url), "utf8"),
   ]);
-  const repos = JSON.parse(page.match(/const REPOS = (\[[^\n]+\]);\r?\nlet period=/)?.[1] ?? "null");
+  const repos = JSON.parse(page.match(/\/\/ GENERATED:TRENDING-REPOS:START\r?\nconst REPOS = (\[[^\n]+\]);\r?\n\/\/ GENERATED:TRENDING-REPOS:END/)?.[1] ?? "null");
   const cache = JSON.parse(cacheText);
 
   assert.equal(repos.length, 46);
@@ -390,4 +396,184 @@ test("terminal errors do not include the authorization token", async () => {
 
   assert.match(message, /Published repository count|Metadata coverage/);
   assert.doesNotMatch(message, /super-secret-token/);
+});
+
+const markedPage = `<!doctype html>
+<footer>
+<!-- GENERATED:TRENDING-DATE:START -->
+<time id="lastUpdated" datetime="2026-08-22">2026-08-22 (Asia/Seoul)</time>
+<!-- GENERATED:TRENDING-DATE:END -->
+</footer>
+<script>
+const untouched = "keep me";
+// GENERATED:TRENDING-REPOS:START
+const REPOS = [];
+// GENERATED:TRENDING-REPOS:END
+</script>`;
+
+function publishableRepo(index, statsDate = "2026-08-23") {
+  const cached = cachedSummary(index);
+  return {
+    slug: `owner/repo-${index}`,
+    name: `owner / repo-${index}`,
+    desc: `Description ${index}`,
+    lang: "JavaScript",
+    stars: 100 + index,
+    forks: 20,
+    stars_daily: index + 1,
+    color: "#f1e05a",
+    summary: cached.summary,
+    detail: cached.detail,
+    issues: 3,
+    contributors: 2,
+    _stats_date: statsDate,
+  };
+}
+
+test("page snapshot changes only marked regions and persists complete new summaries", () => {
+  const repos = [publishableRepo(0)];
+  const snapshot = createPageSnapshot({
+    page: markedPage,
+    summaryCache: { "existing/repo": cachedSummary(9) },
+    repos,
+    statsDate: "2026-08-23",
+  });
+
+  const outsideMarkers = value => value
+    .replace(/\/\/ GENERATED:TRENDING-REPOS:START[\s\S]*?\/\/ GENERATED:TRENDING-REPOS:END/, "REPOS")
+    .replace(/<!-- GENERATED:TRENDING-DATE:START -->[\s\S]*?<!-- GENERATED:TRENDING-DATE:END -->/, "DATE");
+  assert.equal(outsideMarkers(snapshot.page), outsideMarkers(markedPage));
+  assert.match(snapshot.page, /const REPOS = \[\{"slug":"owner\/repo-0"/);
+  assert.match(snapshot.page, /datetime="2026-08-23">2026-08-23 \(Asia\/Seoul\)/);
+  assert.deepEqual(JSON.parse(snapshot.summaryCacheText)[repos[0].slug], {
+    summary: repos[0].summary,
+    detail: repos[0].detail,
+  });
+});
+
+test("page snapshot cannot terminate the inline script through repository metadata", () => {
+  const repo = publishableRepo(0);
+  repo.desc = "</script><script>alert('xss')</script>";
+
+  const snapshot = createPageSnapshot({
+    page: markedPage,
+    summaryCache: {},
+    repos: [repo],
+    statsDate: "2026-08-23",
+  });
+  const generated = snapshot.page.match(/\/\/ GENERATED:TRENDING-REPOS:START([\s\S]*?)\/\/ GENERATED:TRENDING-REPOS:END/)[1];
+
+  assert.doesNotMatch(generated, /<\/script>/i);
+  assert.match(generated, /\\u003c\/script\\u003e/);
+});
+
+test("page snapshot rejects duplicate markers, invalid dates, and incomplete published summaries", () => {
+  const incomplete = publishableRepo(0);
+  incomplete.detail.stars_note = "";
+
+  assert.throws(
+    () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: [incomplete], statsDate: "2026-08-23" }),
+    /complete summary/i,
+  );
+  assert.throws(
+    () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: [publishableRepo(0)], statsDate: "2026-02-30" }),
+    /valid YYYY-MM-DD/,
+  );
+  assert.throws(
+    () => createPageSnapshot({
+      page: `${markedPage}\n// GENERATED:TRENDING-REPOS:START\n// GENERATED:TRENDING-REPOS:END`,
+      summaryCache: {},
+      repos: [publishableRepo(0)],
+      statsDate: "2026-08-23",
+    }),
+    /exactly one.*REPOS/i,
+  );
+});
+
+test("atomic installer restores both tracked files when the second replacement fails", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "trending-atomic-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const pagePath = join(directory, "index.html");
+  const cachePath = join(directory, "data", "repo-summaries.json");
+  await mkdir(join(directory, "data"));
+  await Promise.all([
+    writeFile(pagePath, markedPage),
+    writeFile(cachePath, "{}\n"),
+  ]);
+  const original = await Promise.all([readFile(pagePath), readFile(cachePath)]);
+  const snapshot = createPageSnapshot({
+    page: markedPage,
+    summaryCache: {},
+    repos: [publishableRepo(0)],
+    statsDate: "2026-08-23",
+  });
+  const { rename } = await import("node:fs/promises");
+
+  await assert.rejects(
+    installPageSnapshot({
+      pagePath,
+      cachePath,
+      ...snapshot,
+      renameImpl: async (from, to) => {
+        if (from.includes(".pending-") && to === cachePath) throw new Error("simulated second install failure");
+        await rename(from, to);
+      },
+    }),
+    /simulated second install failure/,
+  );
+  const after = await Promise.all([readFile(pagePath), readFile(cachePath)]);
+  assert.deepEqual(after, original);
+
+  assert.equal(await installPageSnapshot({ pagePath, cachePath, ...snapshot }), true);
+  assert.deepEqual(await Promise.all([readFile(pagePath, "utf8"), readFile(cachePath, "utf8")]), [
+    snapshot.page,
+    snapshot.summaryCacheText,
+  ]);
+  assert.equal(await installPageSnapshot({ pagePath, cachePath, ...snapshot }), false);
+});
+
+test("Asia/Seoul date is deterministic across the UTC day boundary", () => {
+  assert.equal(seoulDate(new Date("2026-08-22T14:59:59Z")), "2026-08-22");
+  assert.equal(seoulDate(new Date("2026-08-22T15:00:00Z")), "2026-08-23");
+});
+
+test("check mode fetches all three Trending pages and REST data without writing tracked files", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "trending-check-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const pagePath = join(directory, "index.html");
+  const cachePath = join(directory, "data", "repo-summaries.json");
+  await mkdir(join(directory, "data"));
+  const summaryCache = Object.fromEntries(discoveredRepos().map((repo, index) => [repo.slug, cachedSummary(index)]));
+  await Promise.all([
+    writeFile(pagePath, markedPage),
+    writeFile(cachePath, `${JSON.stringify(summaryCache, null, 2)}\n`),
+  ]);
+  const before = await Promise.all([readFile(pagePath), readFile(cachePath)]);
+  const trending = Object.fromEntries(await Promise.all(["daily", "weekly", "monthly"].map(async period => [
+    `https://github.com/trending?since=${period}`,
+    await fixture(`trending-${period}.html`),
+  ])));
+  const requests = [];
+  const rest = successfulGithubFetch({ requests });
+  const fetchImpl = async (url, options) => {
+    if (trending[url]) {
+      requests.push({ url, options });
+      return jsonResponse(200, trending[url]);
+    }
+    return rest(url, options);
+  };
+
+  const result = await runTrendingUpdate({
+    check: true,
+    pagePath,
+    cachePath,
+    fetchImpl,
+    token: "check-token-never-print",
+    now: new Date("2026-08-22T15:00:00Z"),
+  });
+
+  assert.equal(result.repos.length, 10);
+  assert.equal(result.changed, true);
+  assert.deepEqual(requests.filter(request => request.url.startsWith("https://github.com/trending")).map(request => request.url), Object.keys(trending));
+  assert.deepEqual(await Promise.all([readFile(pagePath), readFile(cachePath)]), before);
 });

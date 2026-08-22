@@ -1,3 +1,12 @@
+import { randomUUID } from "node:crypto";
+import {
+  readFile,
+  rename,
+  rm,
+  writeFile,
+} from "node:fs/promises";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
 const PERIODS = {
   daily: { field: "stars_daily", label: "today" },
   weekly: { field: "stars_weekly", label: "this week" },
@@ -321,4 +330,260 @@ export async function enrichTrendingRepositories(discovered, {
     throw new Error(`Metadata coverage ${Math.round(coverage * 100)}% is below ${Math.round(minCoverage * 100)}%`);
   }
   return { repos, requestCount };
+}
+
+const REPOS_START = "// GENERATED:TRENDING-REPOS:START";
+const REPOS_END = "// GENERATED:TRENDING-REPOS:END";
+const DATE_START = "<!-- GENERATED:TRENDING-DATE:START -->";
+const DATE_END = "<!-- GENERATED:TRENDING-DATE:END -->";
+const SUMMARY_FIELDS = ["goal", "usage", "pros", "cons", "fit"];
+
+function assertValidDate(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value ?? "");
+  const date = match && new Date(`${value}T00:00:00Z`);
+  if (
+    !match
+    || Number.isNaN(date.getTime())
+    || date.getUTCFullYear() !== Number(match[1])
+    || date.getUTCMonth() + 1 !== Number(match[2])
+    || date.getUTCDate() !== Number(match[3])
+  ) {
+    throw new Error("statsDate must be a valid YYYY-MM-DD date");
+  }
+}
+
+function markedRegion(value, start, end, name) {
+  const starts = value.split(start).length - 1;
+  const ends = value.split(end).length - 1;
+  if (starts !== 1 || ends !== 1) throw new Error(`Expected exactly one ${name} marker pair`);
+  const from = value.indexOf(start);
+  const to = value.indexOf(end, from + start.length);
+  if (to < from) throw new Error(`Invalid ${name} marker order`);
+  return { from, to: to + end.length, bodyFrom: from + start.length, bodyTo: to };
+}
+
+function replaceMarkedRegion(value, start, end, name, body) {
+  const region = markedRegion(value, start, end, name);
+  return `${value.slice(0, region.bodyFrom)}\n${body}\n${value.slice(region.bodyTo)}`;
+}
+
+function parsePageRepos(page) {
+  const region = markedRegion(page, REPOS_START, REPOS_END, "REPOS");
+  const body = page.slice(region.bodyFrom, region.bodyTo).trim();
+  const match = /^const REPOS = (\[[\s\S]*\]);$/.exec(body);
+  if (!match) throw new Error("Generated REPOS region is malformed");
+  const repos = JSON.parse(match[1]);
+  if (!Array.isArray(repos)) throw new Error("Generated REPOS value must be an array");
+  return repos;
+}
+
+function assertCompleteSummary(repo, statsDate) {
+  const slug = normalizeSlug(repo?.slug ?? "");
+  if (repo._stats_date !== statsDate) throw new Error(`Published ${slug} has the wrong stats date`);
+  const complete = [
+    ...SUMMARY_FIELDS.map(field => repo?.summary?.[field]),
+    ...SUMMARY_FIELDS.map(field => repo?.detail?.[field]),
+    repo?.detail?.stars_note,
+  ].every(value => typeof value === "string" && value.trim());
+  if (!complete) throw new Error(`Published ${slug} must have a complete summary and detail`);
+  return slug;
+}
+
+function inlineJson(value) {
+  return JSON.stringify(value)
+    .replaceAll("&", "\\u0026")
+    .replaceAll("<", "\\u003c")
+    .replaceAll(">", "\\u003e");
+}
+
+function validateSnapshotPair(page, summaryCacheText, statsDate) {
+  assertValidDate(statsDate);
+  const repos = parsePageRepos(page);
+  const cache = JSON.parse(summaryCacheText);
+  if (!cache || Array.isArray(cache) || typeof cache !== "object") throw new Error("Summary cache must be an object");
+  const cachedBySlug = new Map(Object.entries(cache).map(([slug, value]) => [slug.toLowerCase(), value]));
+  const seen = new Set();
+  for (const repo of repos) {
+    const slug = assertCompleteSummary(repo, statsDate);
+    const key = slug.toLowerCase();
+    if (seen.has(key)) throw new Error(`Duplicate published repository: ${slug}`);
+    seen.add(key);
+    const cached = cachedBySlug.get(key);
+    if (!cached || JSON.stringify(cached.summary) !== JSON.stringify(repo.summary) || JSON.stringify(cached.detail) !== JSON.stringify(repo.detail)) {
+      throw new Error(`Summary cache does not match published ${slug}`);
+    }
+  }
+  const dateRegion = markedRegion(page, DATE_START, DATE_END, "date");
+  const dateBody = page.slice(dateRegion.bodyFrom, dateRegion.bodyTo).trim();
+  if (dateBody !== `<time id="lastUpdated" datetime="${statsDate}">${statsDate} (Asia/Seoul)</time>`) {
+    throw new Error("Generated update date is malformed");
+  }
+  return repos;
+}
+
+export function createPageSnapshot({ page, summaryCache, repos, statsDate }) {
+  if (typeof page !== "string" || !Array.isArray(repos)) throw new Error("Page and repositories are required");
+  assertValidDate(statsDate);
+  if (!summaryCache || Array.isArray(summaryCache) || typeof summaryCache !== "object") {
+    throw new Error("Summary cache must be an object");
+  }
+
+  const nextCache = { ...summaryCache };
+  const cacheKeys = new Map(Object.keys(nextCache).map(slug => [slug.toLowerCase(), slug]));
+  const seen = new Set();
+  for (const repo of repos) {
+    const slug = assertCompleteSummary(repo, statsDate);
+    const key = slug.toLowerCase();
+    if (seen.has(key)) throw new Error(`Duplicate published repository: ${slug}`);
+    seen.add(key);
+    const cacheKey = cacheKeys.get(key) ?? slug;
+    nextCache[cacheKey] = { summary: repo.summary, detail: repo.detail };
+    cacheKeys.set(key, cacheKey);
+  }
+
+  let nextPage = replaceMarkedRegion(page, REPOS_START, REPOS_END, "REPOS", `const REPOS = ${inlineJson(repos)};`);
+  nextPage = replaceMarkedRegion(
+    nextPage,
+    DATE_START,
+    DATE_END,
+    "date",
+    `<time id="lastUpdated" datetime="${statsDate}">${statsDate} (Asia/Seoul)</time>`,
+  );
+  const summaryCacheText = `${JSON.stringify(nextCache, null, 2)}\n`;
+  validateSnapshotPair(nextPage, summaryCacheText, statsDate);
+  return { page: nextPage, summaryCacheText };
+}
+
+async function cleanup(paths) {
+  await Promise.all(paths.map(path => rm(path, { force: true }).catch(() => {})));
+}
+
+export async function installPageSnapshot({
+  pagePath,
+  cachePath,
+  page,
+  summaryCacheText,
+  renameImpl = rename,
+}) {
+  const originals = await Promise.all([readFile(pagePath), readFile(cachePath)]);
+  if (originals[0].equals(Buffer.from(page)) && originals[1].equals(Buffer.from(summaryCacheText))) return false;
+
+  const suffix = `${process.pid}-${randomUUID()}`;
+  const pagePending = `${pagePath}.pending-${suffix}`;
+  const cachePending = `${cachePath}.pending-${suffix}`;
+  const pageBackup = `${pagePath}.backup-${suffix}`;
+  const cacheBackup = `${cachePath}.backup-${suffix}`;
+  const temporary = [pagePending, cachePending, pageBackup, cacheBackup];
+  let pageBacked = false;
+  let cacheBacked = false;
+  let pageInstalled = false;
+  let cacheInstalled = false;
+
+  try {
+    await Promise.all([
+      writeFile(pagePending, page),
+      writeFile(cachePending, summaryCacheText),
+    ]);
+    const prepared = await Promise.all([readFile(pagePending, "utf8"), readFile(cachePending, "utf8")]);
+    const statsDate = parsePageRepos(prepared[0])[0]?._stats_date;
+    validateSnapshotPair(prepared[0], prepared[1], statsDate);
+
+    await renameImpl(pagePath, pageBackup);
+    pageBacked = true;
+    await renameImpl(cachePath, cacheBackup);
+    cacheBacked = true;
+    await renameImpl(pagePending, pagePath);
+    pageInstalled = true;
+    await renameImpl(cachePending, cachePath);
+    cacheInstalled = true;
+    await cleanup([pageBackup, cacheBackup]);
+    return true;
+  } catch (error) {
+    const rollbackErrors = [];
+    if (pageInstalled) await rm(pagePath, { force: true }).catch(rollbackError => rollbackErrors.push(rollbackError));
+    if (cacheInstalled) await rm(cachePath, { force: true }).catch(rollbackError => rollbackErrors.push(rollbackError));
+    if (pageBacked) await rename(pageBackup, pagePath).catch(rollbackError => rollbackErrors.push(rollbackError));
+    if (cacheBacked) await rename(cacheBackup, cachePath).catch(rollbackError => rollbackErrors.push(rollbackError));
+    await cleanup(temporary);
+    if (rollbackErrors.length) throw new AggregateError([error, ...rollbackErrors], "Snapshot installation and rollback failed");
+    throw error;
+  }
+}
+
+export function seoulDate(now = new Date()) {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now).map(({ type, value }) => [type, value]));
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+async function fetchTrendingPage(period, { fetchImpl, sleep, maxAttempts = 3, maxRetryDelay = 300000 }) {
+  const url = `https://github.com/trending?since=${period}`;
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    let response;
+    try {
+      response = await fetchImpl(url, { headers: { Accept: "text/html" } });
+    } catch {
+      if (attempt + 1 >= maxAttempts) throw new Error(`Trending request failed for ${period}`);
+      await sleep(boundedDelay(250 * (2 ** attempt), maxRetryDelay));
+      continue;
+    }
+    if (response.ok) return response.text();
+    if (!shouldRetry(response) || attempt + 1 >= maxAttempts) {
+      throw new Error(`Trending request returned ${response.status} for ${period}`);
+    }
+    await sleep(retryDelay(response, attempt, maxRetryDelay));
+  }
+  throw new Error(`Trending request failed for ${period}`);
+}
+
+export async function runTrendingUpdate({
+  check = false,
+  pagePath,
+  cachePath,
+  fetchImpl = globalThis.fetch,
+  sleep = defaultSleep,
+  token = "",
+  now = new Date(),
+} = {}) {
+  if (!pagePath || !cachePath) throw new Error("pagePath and cachePath are required");
+  const [page, cacheText] = await Promise.all([readFile(pagePath, "utf8"), readFile(cachePath, "utf8")]);
+  const summaryCache = JSON.parse(cacheText);
+  const previousRepos = parsePageRepos(page);
+  const periods = Object.fromEntries(await Promise.all(Object.keys(PERIODS).map(async period => [
+    period,
+    parseTrendingHtml(await fetchTrendingPage(period, { fetchImpl, sleep }), period),
+  ])));
+  const discovered = mergeTrendingPeriods(periods);
+  const statsDate = seoulDate(now);
+  const { repos, requestCount } = await enrichTrendingRepositories(discovered, {
+    fetchImpl,
+    sleep,
+    token,
+    summaryCache,
+    previousRepos,
+    statsDate,
+  });
+  const snapshot = createPageSnapshot({ page, summaryCache, repos, statsDate });
+  const changed = page !== snapshot.page || cacheText !== snapshot.summaryCacheText;
+  if (!check && changed) await installPageSnapshot({ pagePath, cachePath, ...snapshot });
+  return { changed, repos, requestCount, statsDate };
+}
+
+if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
+  const args = process.argv.slice(2);
+  if (args.some(arg => arg !== "--check") || args.filter(arg => arg === "--check").length > 1) {
+    throw new Error("Usage: node scripts/update-trending.mjs [--check]");
+  }
+  const check = args.includes("--check");
+  const result = await runTrendingUpdate({
+    check,
+    pagePath: fileURLToPath(new URL("../index.html", import.meta.url)),
+    cachePath: fileURLToPath(new URL("../data/repo-summaries.json", import.meta.url)),
+    token: process.env.GITHUB_TOKEN ?? "",
+  });
+  console.log(`${check ? "Validated" : result.changed ? "Updated" : "Unchanged"}: ${result.repos.length} repositories for ${result.statsDate} (Asia/Seoul)`);
 }
