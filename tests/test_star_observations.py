@@ -152,8 +152,8 @@ class ObservationDatabaseTests(unittest.TestCase):
             {
                 "slug": "OWNER/repo-0",
                 "hist": [
-                    {"d": "2026-08-20", "s": 110},
                     {"d": "2026-08-21", "s": 90},
+                    {"d": "2026-08-20", "s": 110},
                 ],
             },
             {"slug": "gone/orphan", "hist": [{"d": "2026-08-19", "s": 3}]},
@@ -240,22 +240,99 @@ class ObservationDatabaseTests(unittest.TestCase):
 
         self.assertEqual(self.rows("SELECT COUNT(*) FROM star_observations"), [(10,)])
 
-    def test_insert_failure_rolls_back_the_whole_run(self):
+    def test_backfill_rejection_rolls_back_the_whole_run(self):
         record_observations(self.database, parsed_repositories(), [])
         with closing(sqlite3.connect(self.database)) as connection:
             connection.execute(
-                "CREATE TRIGGER fail_repo_1 BEFORE INSERT ON star_observations "
-                "WHEN NEW.slug = 'owner/repo-1' COLLATE NOCASE "
-                "BEGIN SELECT RAISE(ABORT, 'injected failure'); END"
+                "INSERT INTO star_observations(slug, observed_date, stars_total, stars_delta, source) "
+                "VALUES ('owner/repo-1', '2026-08-24', 103, 2, 'github_rest')"
+            )
+            connection.execute(
+                "UPDATE repositories SET last_seen = '2026-08-24' WHERE slug = 'owner/repo-1'"
             )
             connection.commit()
+        before_observations = self.rows(
+            "SELECT slug, observed_date, stars_total, stars_delta, source FROM star_observations ORDER BY id"
+        )
+        before_repositories = self.rows(
+            "SELECT slug, first_seen, last_seen FROM repositories ORDER BY slug"
+        )
 
-        with self.assertRaises(sqlite3.IntegrityError):
+        with self.assertRaises(ValueError):
             record_observations(self.database, parsed_repositories("2026-08-23"), [])
 
         self.assertEqual(
-            self.rows("SELECT COUNT(*) FROM star_observations WHERE observed_date = '2026-08-23'"),
-            [(0,)],
+            self.rows(
+                "SELECT slug, observed_date, stars_total, stars_delta, source FROM star_observations ORDER BY id"
+            ),
+            before_observations,
+        )
+        self.assertEqual(
+            self.rows("SELECT slug, first_seen, last_seen FROM repositories ORDER BY slug"),
+            before_repositories,
+        )
+
+    def test_schema_fingerprint_rejects_counterfeit_protection_trigger_before_writes(self):
+        record_observations(self.database, parsed_repositories(), [])
+        with closing(sqlite3.connect(self.database)) as connection:
+            connection.execute("DROP TRIGGER star_observations_no_update")
+            connection.execute(
+                "CREATE TRIGGER star_observations_no_update BEFORE UPDATE ON star_observations "
+                "BEGIN SELECT 1; END"
+            )
+            connection.commit()
+        before = self.rows("SELECT * FROM star_observations ORDER BY id")
+
+        with self.assertRaises(ValueError):
+            record_observations(self.database, parsed_repositories("2026-08-23"), [])
+
+        self.assertEqual(self.rows("SELECT * FROM star_observations ORDER BY id"), before)
+
+    def test_schema_fingerprint_rejects_extra_user_object_before_writes(self):
+        record_observations(self.database, parsed_repositories(), [])
+        with closing(sqlite3.connect(self.database)) as connection:
+            connection.execute(
+                "CREATE TRIGGER unexpected_after_insert AFTER INSERT ON star_observations "
+                "BEGIN SELECT 1; END"
+            )
+            connection.commit()
+        before = self.rows("SELECT * FROM star_observations ORDER BY id")
+
+        with self.assertRaises(ValueError):
+            record_observations(self.database, parsed_repositories("2026-08-23"), [])
+
+        self.assertEqual(self.rows("SELECT * FROM star_observations ORDER BY id"), before)
+
+    def test_insert_or_replace_cannot_overwrite_an_observation_by_key_or_id(self):
+        record_observations(self.database, parsed_repositories(), [])
+        original = self.rows(
+            "SELECT id, slug, observed_date, stars_total, stars_delta, source "
+            "FROM star_observations WHERE slug = 'owner/repo-0'"
+        )[0]
+        row_id, slug, observed_date, stars_total, stars_delta, source = original
+
+        with closing(sqlite3.connect(self.database)) as connection:
+            connection.execute("PRAGMA recursive_triggers = OFF")
+            with self.assertRaises(sqlite3.IntegrityError):
+                connection.execute(
+                    "INSERT OR REPLACE INTO star_observations"
+                    "(slug, observed_date, stars_total, stars_delta, source) VALUES (?, ?, ?, ?, ?)",
+                    (slug.upper(), observed_date, 999, stars_delta, source),
+                )
+            with self.assertRaises(sqlite3.IntegrityError):
+                connection.execute(
+                    "INSERT OR REPLACE INTO star_observations"
+                    "(id, slug, observed_date, stars_total, stars_delta, source) VALUES (?, ?, ?, ?, ?, ?)",
+                    (row_id, slug, "2026-08-30", 999, 899, source),
+                )
+
+        self.assertEqual(
+            self.rows(
+                "SELECT id, slug, observed_date, stars_total, stars_delta, source "
+                "FROM star_observations WHERE id = ?",
+                (row_id,),
+            ),
+            [(row_id, slug, observed_date, stars_total, stars_delta, source)],
         )
 
     def test_refuses_existing_zero_or_unknown_schema_without_recreating(self):

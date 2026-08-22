@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sqlite3
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import date
+from functools import lru_cache
 from pathlib import Path
 from typing import Sequence
 
@@ -216,29 +219,55 @@ BEFORE DELETE ON star_observations
 BEGIN
     SELECT RAISE(ABORT, 'star observations are append-only');
 END""",
+    """CREATE TRIGGER star_observations_no_replace
+BEFORE INSERT ON star_observations
+WHEN EXISTS (
+    SELECT 1 FROM star_observations
+    WHERE id = NEW.id
+       OR (slug = NEW.slug COLLATE NOCASE AND observed_date = NEW.observed_date AND source = NEW.source)
+)
+BEGIN
+    SELECT RAISE(ABORT, 'star observation conflicts are immutable');
+END""",
 )
 
 
-EXPECTED_OBJECTS = {
-    ("table", "schema_meta"),
-    ("table", "repositories"),
-    ("table", "star_observations"),
-    ("index", "idx_star_observations_date"),
-    ("index", "idx_star_observations_slug_date"),
-    ("trigger", "star_observations_no_update"),
-    ("trigger", "star_observations_no_delete"),
-}
+def _schema_rows(connection: sqlite3.Connection):
+    return connection.execute(
+        """
+        SELECT type, name, sql FROM sqlite_schema
+        WHERE name NOT LIKE 'sqlite\\_%' ESCAPE '\\'
+        ORDER BY type, name
+        """
+    ).fetchall()
+
+
+def _schema_fingerprint(rows) -> str:
+    normalized = [
+        (object_type, name, re.sub(r"\s+", " ", definition.strip()).lower())
+        for object_type, name, definition in rows
+    ]
+    return hashlib.sha256(json.dumps(normalized, separators=(",", ":")).encode()).hexdigest()
+
+
+@lru_cache(maxsize=1)
+def _canonical_schema():
+    with closing(sqlite3.connect(":memory:")) as connection:
+        for statement in SCHEMA_STATEMENTS:
+            connection.execute(statement)
+        rows = _schema_rows(connection)
+    return {(object_type, name) for object_type, name, _ in rows}, _schema_fingerprint(rows)
 
 
 def _validate_schema(connection: sqlite3.Connection):
     version = connection.execute("PRAGMA user_version").fetchone()[0]
     if version != SCHEMA_VERSION:
         raise ValueError(f"Unsupported existing database schema version: {version}")
-    objects = set(connection.execute(
-        "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'"
-    ))
-    if not EXPECTED_OBJECTS <= objects:
-        raise ValueError("Existing schema v1 is incomplete")
+    rows = _schema_rows(connection)
+    objects = {(object_type, name) for object_type, name, _ in rows}
+    expected_objects, expected_fingerprint = _canonical_schema()
+    if objects != expected_objects or _schema_fingerprint(rows) != expected_fingerprint:
+        raise ValueError("Existing schema v1 does not match the canonical definition")
     if connection.execute("SELECT schema_version, creation_policy FROM schema_meta").fetchall() != [(1, "append_only")]:
         raise ValueError("Existing schema v1 metadata is invalid")
 
@@ -300,6 +329,13 @@ def _append_observation(connection: sqlite3.Connection, observation: StarObserva
         (canonical_slug, observation.observed_date, observation.source),
     ).fetchone():
         return 0
+    if connection.execute(
+        "SELECT 1 FROM star_observations WHERE slug = ? COLLATE NOCASE AND source = ? AND observed_date > ?",
+        (canonical_slug, observation.source, observation.observed_date),
+    ).fetchone():
+        raise ValueError(
+            f"Cannot append {observation.source} observation before a later date for {canonical_slug}"
+        )
     prior = connection.execute(
         """
         SELECT stars_total FROM star_observations
