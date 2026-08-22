@@ -21,6 +21,13 @@
     return normalized;
   }
 
+  function readAll(storage, key) {
+    const stored = storage.getItem(key);
+    if (stored === null) return [];
+    try { return validUnique(JSON.parse(stored)); }
+    catch { return []; }
+  }
+
   function createController({ storage, cloud, onState = () => {}, onBusy = () => {}, onMessage = () => {} }) {
     let current = Favorites.readFavs(storage, 'gh-favs-guest');
     let uid = null;
@@ -29,6 +36,12 @@
     let revision = 0;
     let unsubscribe = null;
     let disposed = false;
+    let writeTail = Promise.resolve();
+
+    function notify(callback, ...args) {
+      try { callback(...args); }
+      catch { /* UI callbacks cannot change synchronization state. */ }
+    }
 
     function isCurrent(capturedGeneration, capturedUid) {
       return !disposed && generation === capturedGeneration && uid === capturedUid;
@@ -37,12 +50,12 @@
     function setCurrent(values) {
       current = checked(values);
       revision += 1;
-      onState([...current]);
+      notify(onState, [...current]);
     }
 
     function setBusy(value) {
       busy = value;
-      onBusy(value);
+      notify(onBusy, value);
     }
 
     function stopWatching() {
@@ -50,7 +63,7 @@
       const stop = unsubscribe;
       unsubscribe = null;
       try { stop(); }
-      catch { onMessage('이전 즐겨찾기 구독을 정리하지 못했어요.', 'error'); }
+      catch { notify(onMessage, '이전 즐겨찾기 구독을 정리하지 못했어요.', 'error'); }
     }
 
     function writeCache(accountUid, values) {
@@ -67,18 +80,18 @@
             setCurrent(normalized);
             writeCache(capturedUid, normalized);
           } catch {
-            onMessage('동기화된 즐겨찾기 데이터가 올바르지 않아요.', 'error');
+            notify(onMessage, '동기화된 즐겨찾기 데이터가 올바르지 않아요.', 'error');
           }
         }, () => {
           if (isCurrent(capturedGeneration, capturedUid)) {
-            onMessage('즐겨찾기 실시간 동기화가 중단되었어요.', 'error');
+            notify(onMessage, '즐겨찾기 실시간 동기화가 중단되었어요.', 'error');
           }
         });
         if (isCurrent(capturedGeneration, capturedUid) && typeof stop === 'function') unsubscribe = stop;
         else if (typeof stop === 'function') stop();
       } catch {
         if (isCurrent(capturedGeneration, capturedUid)) {
-          onMessage('즐겨찾기 실시간 동기화를 시작하지 못했어요.', 'error');
+          notify(onMessage, '즐겨찾기 실시간 동기화를 시작하지 못했어요.', 'error');
         }
       }
     }
@@ -90,6 +103,7 @@
 
       generation += 1;
       const capturedGeneration = generation;
+      writeTail = Promise.resolve();
       stopWatching();
       uid = nextUid;
 
@@ -105,29 +119,24 @@
       try {
         const imported = storage.getItem(`gh-favs-imported:${capturedUid}`) === '1';
 
-        let remote;
-        try {
-          remote = checked(await cloud.read(capturedUid));
-        } catch (error) {
-          if (!isCurrent(capturedGeneration, capturedUid)) return;
-          if (!imported) throw error;
-          const cached = Favorites.readFavs(storage, `gh-favs-cache:${capturedUid}`);
-          setCurrent(cached);
-          watch(capturedGeneration, capturedUid);
-          onMessage('클라우드를 읽지 못해 이 계정의 마지막 저장 상태를 표시해요.', 'error');
-          return;
-        }
-        if (!isCurrent(capturedGeneration, capturedUid)) return;
-
-        let accepted = remote;
+        let accepted;
         if (!imported) {
-          accepted = checked([
-            ...Favorites.readFavs(storage, 'gh-favs-guest'),
-            ...remote,
-          ]);
-          await cloud.replace(capturedUid, accepted);
+          const guest = checked(readAll(storage, 'gh-favs-guest'));
+          // Contract: importUnion applies this union to the latest server state atomically.
+          accepted = checked(await cloud.importUnion(capturedUid, guest));
           if (!isCurrent(capturedGeneration, capturedUid)) return;
           storage.setItem(`gh-favs-imported:${capturedUid}`, '1');
+        } else {
+          try {
+            accepted = checked(await cloud.read(capturedUid));
+          } catch (error) {
+            if (!isCurrent(capturedGeneration, capturedUid)) return;
+            const cached = Favorites.readFavs(storage, `gh-favs-cache:${capturedUid}`);
+            setCurrent(cached);
+            watch(capturedGeneration, capturedUid);
+            notify(onMessage, '클라우드를 읽지 못해 이 계정의 마지막 저장 상태를 표시해요.', 'error');
+            return;
+          }
         }
         if (!isCurrent(capturedGeneration, capturedUid)) return;
         setCurrent(accepted);
@@ -138,9 +147,10 @@
       }
     }
 
-    async function toggle(slug) {
-      if (disposed) throw new Error('favorite synchronization is disposed');
-      if (!Favorites.isValidSlug(slug)) throw new Error('invalid favorite slug');
+    async function applyToggle(slug, capturedGeneration, capturedUid) {
+      if (capturedUid && !isCurrent(capturedGeneration, capturedUid)) {
+        throw new Error('favorite account changed');
+      }
       if (busy) throw new Error('favorites are still synchronizing');
       const before = [...current];
       const adding = !before.includes(slug);
@@ -148,19 +158,17 @@
       setCurrent(adding ? [...before, slug] : before.filter(value => value !== slug));
       const optimisticRevision = revision;
 
-      if (!uid) {
+      if (!capturedUid) {
         try {
           Favorites.writeFavs(storage, 'gh-favs-guest', current);
           return adding;
         } catch (error) {
           if (revision === optimisticRevision) setCurrent(before);
-          onMessage('즐겨찾기를 저장하지 못해 이전 상태로 되돌렸어요.', 'error');
+          notify(onMessage, '즐겨찾기를 저장하지 못해 이전 상태로 되돌렸어요.', 'error');
           throw error;
         }
       }
 
-      const capturedGeneration = generation;
-      const capturedUid = uid;
       try {
         await (adding ? cloud.add(capturedUid, slug) : cloud.remove(capturedUid, slug));
         if (isCurrent(capturedGeneration, capturedUid)) writeCache(capturedUid, current);
@@ -168,16 +176,30 @@
       } catch (error) {
         if (isCurrent(capturedGeneration, capturedUid)) {
           if (revision === optimisticRevision) setCurrent(before);
-          onMessage('즐겨찾기를 동기화하지 못해 이전 상태로 되돌렸어요.', 'error');
+          notify(onMessage, '즐겨찾기를 동기화하지 못해 이전 상태로 되돌렸어요.', 'error');
         }
         throw error;
       }
+    }
+
+    async function toggle(slug) {
+      if (disposed) throw new Error('favorite synchronization is disposed');
+      if (!Favorites.isValidSlug(slug)) throw new Error('invalid favorite slug');
+      if (busy) throw new Error('favorites are still synchronizing');
+      if (!uid) return applyToggle(slug, generation, null);
+
+      const capturedGeneration = generation;
+      const capturedUid = uid;
+      const operation = writeTail.then(() => applyToggle(slug, capturedGeneration, capturedUid));
+      writeTail = operation.catch(() => {});
+      return operation;
     }
 
     function dispose() {
       if (disposed) return;
       disposed = true;
       generation += 1;
+      writeTail = Promise.resolve();
       uid = null;
       busy = false;
       stopWatching();

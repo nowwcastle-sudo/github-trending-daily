@@ -44,11 +44,14 @@ function fakeCloud(seed = {}) {
       if (failures.has("read")) { const error = failures.get("read"); failures.delete("read"); throw error; }
       return docs.get(uid) || [];
     },
-    async replace(uid, values) {
-      calls.push(["replace", uid, [...values]]);
-      if (pending.has("replace")) { const wait = pending.get("replace"); pending.delete("replace"); await wait.promise; }
-      if (failures.has("replace")) { const error = failures.get("replace"); failures.delete("replace"); throw error; }
-      docs.set(uid, [...values]);
+    async importUnion(uid, guestFavorites) {
+      calls.push(["importUnion", uid, [...guestFavorites]]);
+      if (pending.has("importUnion")) { const wait = pending.get("importUnion"); pending.delete("importUnion"); await wait.promise; }
+      if (failures.has("importUnion")) { const error = failures.get("importUnion"); failures.delete("importUnion"); throw error; }
+      const merged = [...new Set([...guestFavorites, ...(docs.get(uid) || [])])];
+      if (merged.length > 500) throw new Error("favorites cannot exceed 500");
+      docs.set(uid, merged);
+      return [...merged];
     },
     async add(uid, slug) {
       calls.push(["add", uid, slug]);
@@ -100,13 +103,14 @@ test("first login unions guest and cloud once, then cloud deletion stays deleted
   await controller.setUser(null);
   await controller.setUser({ uid: "alice" });
   assert.deepEqual(controller.favorites(), ["b/two"]);
-  assert.equal(cloud.calls.filter(([method]) => method === "replace").length, 1);
+  assert.equal(cloud.calls.filter(([method]) => method === "importUnion").length, 1);
+  assert.equal(cloud.calls.some(([method]) => method === "read"), true);
 });
 
 test("failed first import does not set the imported marker", async () => {
   const storage = memoryStorage({ "gh-favs-guest": '["a/one"]' });
   const cloud = fakeCloud();
-  cloud.failNext("replace");
+  cloud.failNext("importUnion");
   const controller = FavoriteSync.createController(controllerOptions(storage, cloud));
 
   await assert.rejects(controller.setUser({ uid: "alice" }), /denied/);
@@ -123,7 +127,37 @@ test("first import refuses an over-limit case-sensitive union without overwritin
   await assert.rejects(controller.setUser({ uid: "alice" }), /500/);
   assert.deepEqual(cloud.docs.get("alice"), remote);
   assert.equal(storage.getItem("gh-favs-imported:alice"), null);
+  assert.equal(cloud.calls.filter(([method]) => method === "importUnion").length, 1);
+});
+
+test("501 raw unique guest favorites reject before any cloud import or marker write", async () => {
+  const guest = Array.from({ length: 501 }, (_, index) => `guest/r${index}`);
+  const storage = memoryStorage({ "gh-favs-guest": JSON.stringify(guest) });
+  const cloud = fakeCloud({ alice: ["cloud/one"] });
+  const controller = FavoriteSync.createController(controllerOptions(storage, cloud));
+
+  await assert.rejects(controller.setUser({ uid: "alice" }), /500/);
+  assert.deepEqual(cloud.calls, []);
+  assert.deepEqual(cloud.docs.get("alice"), ["cloud/one"]);
+  assert.equal(storage.getItem("gh-favs-imported:alice"), null);
+});
+
+test("atomic first import preserves a concurrent remote add and removal", async () => {
+  const storage = memoryStorage({ "gh-favs-guest": '["guest/one"]' });
+  const cloud = fakeCloud({ alice: ["remote/keep", "remote/remove"] });
+  const wait = cloud.deferNext("importUnion");
+  const controller = FavoriteSync.createController(controllerOptions(storage, cloud));
+  const login = controller.setUser({ uid: "alice" });
+  await Promise.resolve();
+
+  cloud.docs.set("alice", ["remote/keep", "remote/add"]);
+  wait.resolve();
+  await login;
+  assert.deepEqual(controller.favorites(), ["guest/one", "remote/keep", "remote/add"]);
+  assert.deepEqual(cloud.docs.get("alice"), ["guest/one", "remote/keep", "remote/add"]);
+  assert.equal(cloud.calls.some(([method]) => method === "read"), false);
   assert.equal(cloud.calls.some(([method]) => method === "replace"), false);
+  assert.equal(storage.getItem("gh-favs-imported:alice"), "1");
 });
 
 test("logout restores guest favorites without copying account values", async () => {
@@ -136,7 +170,7 @@ test("logout restores guest favorites without copying account values", async () 
   assert.equal(controller.mode(), "guest");
   assert.deepEqual(controller.favorites(), ["guest/only"]);
   assert.equal(storage.getItem("gh-favs-guest"), '["guest/only"]');
-  assert.equal(cloud.calls.filter(([method]) => ["add", "remove", "replace"].includes(method)).length, 0);
+  assert.equal(cloud.calls.filter(([method]) => ["add", "remove", "importUnion"].includes(method)).length, 0);
 });
 
 test("account switch unsubscribes first and ignores late callbacks from the old UID", async () => {
@@ -168,7 +202,7 @@ test("imported read failure displays only its account cache and performs no writ
   await controller.setUser({ uid: "alice" });
   assert.deepEqual(controller.favorites(), ["cache/one"]);
   assert.equal(controller.mode(), "account");
-  assert.equal(cloud.calls.some(([method]) => ["replace", "add", "remove"].includes(method)), false);
+  assert.equal(cloud.calls.some(([method]) => ["importUnion", "add", "remove"].includes(method)), false);
   assert.equal(messages.length, 1);
 });
 
@@ -230,8 +264,28 @@ test("a denied write cannot roll back a newer accepted snapshot", async () => {
   assert.deepEqual(controller.favorites(), ["remote/newer"]);
 });
 
-test("account changes while read, replace, or write is pending cannot publish stale state", async () => {
-  const storage = memoryStorage({ "gh-favs-guest": '["guest/one"]', "gh-favs-imported:bob": "1" });
+test("serialized account toggles keep a later successful slug when the first distinct slug fails", async () => {
+  const storage = memoryStorage({ "gh-favs-imported:alice": "1" });
+  const cloud = fakeCloud({ alice: [] });
+  const controller = FavoriteSync.createController(controllerOptions(storage, cloud));
+  await controller.setUser({ uid: "alice" });
+  const wait = cloud.deferNext("add");
+  cloud.failNext("add");
+
+  const failed = assert.rejects(controller.toggle("failed/one"), /denied/);
+  const succeeded = controller.toggle("saved/two");
+  await Promise.resolve();
+  assert.deepEqual(cloud.calls.filter(([method]) => method === "add"), [["add", "alice", "failed/one"]]);
+  wait.resolve();
+  await failed;
+  assert.equal(await succeeded, true);
+  assert.deepEqual(controller.favorites(), ["saved/two"]);
+  assert.deepEqual(cloud.docs.get("alice"), ["saved/two"]);
+  assert.equal(storage.getItem("gh-favs-cache:alice"), '["saved/two"]');
+});
+
+test("account changes while read, atomic import, or write is pending cannot publish stale state", async () => {
+  const storage = memoryStorage({ "gh-favs-guest": '["guest/one"]', "gh-favs-imported:alice": "1", "gh-favs-imported:bob": "1" });
   const cloud = fakeCloud({ bob: ["bob/one"] });
   const controller = FavoriteSync.createController(controllerOptions(storage, cloud));
 
@@ -244,22 +298,40 @@ test("account changes while read, replace, or write is pending cannot publish st
   assert.equal(cloud.watchers.has("alice"), false);
 
   await controller.setUser(null);
-  const replaceWait = cloud.deferNext("replace");
-  const replaceLogin = controller.setUser({ uid: "carol" });
+  const importWait = cloud.deferNext("importUnion");
+  const importLogin = controller.setUser({ uid: "carol" });
   await Promise.resolve();
   await controller.setUser({ uid: "bob" });
-  replaceWait.resolve();
-  await replaceLogin;
+  importWait.resolve();
+  await importLogin;
   assert.equal(storage.getItem("gh-favs-imported:carol"), null);
   assert.deepEqual(controller.favorites(), ["bob/one"]);
 
   const addWait = cloud.deferNext("add");
   const write = controller.toggle("bob/two");
+  await Promise.resolve();
   await controller.setUser(null);
   cloud.failNext("add");
   addWait.resolve();
   await assert.rejects(write, /denied/);
   assert.deepEqual(controller.favorites(), ["guest/one"]);
+});
+
+test("overlapping same-UID logins accept only the newest generation", async () => {
+  const storage = memoryStorage({ "gh-favs-imported:alice": "1" });
+  const cloud = fakeCloud({ alice: ["alice/new"] });
+  const wait = cloud.deferNext("read");
+  const states = [];
+  const controller = FavoriteSync.createController(controllerOptions(storage, cloud, states));
+  const oldLogin = controller.setUser({ uid: "alice" });
+  const newLogin = controller.setUser({ uid: "alice" });
+  await newLogin;
+  wait.resolve(["alice/old"]);
+  await oldLogin;
+
+  assert.deepEqual(controller.favorites(), ["alice/new"]);
+  assert.deepEqual(states.at(-1), ["alice/new"]);
+  assert.equal(cloud.calls.filter(([method]) => method === "watch").length, 1);
 });
 
 test("logout and dispose unsubscribe exactly once and reject late callbacks", async () => {
@@ -351,6 +423,42 @@ test("account cache write denial does not turn a successful cloud operation into
   assert.deepEqual(controller.favorites(), ["a/one", "b/two"]);
 });
 
+test("throwing callbacks cannot strand busy state or misclassify valid snapshots", async () => {
+  const storage = memoryStorage({ "gh-favs-imported:alice": "1" });
+  const cloud = fakeCloud({ alice: ["alice/one"] });
+  const messages = [];
+  const controller = FavoriteSync.createController({
+    storage,
+    cloud,
+    onBusy() { throw new Error("busy callback"); },
+    onState() { throw new Error("state callback"); },
+    onMessage: (...args) => messages.push(args),
+  });
+
+  await controller.setUser({ uid: "alice" });
+  assert.equal(await controller.toggle("alice/two"), true);
+  cloud.emit("alice", ["alice/one", "alice/two", "alice/three"]);
+  assert.deepEqual(controller.favorites(), ["alice/one", "alice/two", "alice/three"]);
+  assert.deepEqual(messages, []);
+});
+
+test("throwing message callbacks do not escape watcher errors or block later snapshots", async () => {
+  const storage = memoryStorage({ "gh-favs-imported:alice": "1" });
+  const cloud = fakeCloud({ alice: [] });
+  const controller = FavoriteSync.createController({
+    storage,
+    cloud,
+    onState() {},
+    onBusy() {},
+    onMessage() { throw new Error("message callback"); },
+  });
+  await controller.setUser({ uid: "alice" });
+
+  assert.doesNotThrow(() => cloud.emitError("alice"));
+  assert.doesNotThrow(() => cloud.emit("alice", ["alice/after"]));
+  assert.deepEqual(controller.favorites(), ["alice/after"]);
+});
+
 test("import marker read denial fails closed before any cloud access", async () => {
   const cloud = fakeCloud({ alice: ["cloud/one"] });
   const storage = {
@@ -366,7 +474,7 @@ test("import marker read denial fails closed before any cloud access", async () 
   assert.deepEqual(cloud.calls, []);
 });
 
-test("import marker write denial is reported after replace and never claims completion", async () => {
+test("import marker write denial is reported after atomic import and never claims completion", async () => {
   const values = new Map([["gh-favs-guest", '["guest/one"]']]);
   const storage = {
     getItem: key => values.get(key) ?? null,
