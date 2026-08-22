@@ -134,13 +134,13 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 #tipLayer{
   position:fixed;z-index:200;pointer-events:none;opacity:0;transform:translate3d(0,6px,0) scale(.985);
   width:min(420px,86vw);
+  max-height:calc(100dvh - 16px);overflow-y:auto;overscroll-behavior:contain;
   background:var(--tip-bg);backdrop-filter:blur(28px) saturate(180%);
   border:1px solid var(--tip-border);border-radius:16px;box-shadow:var(--shadow-pop);
   padding:18px 20px;transform-origin:top left;
   transition:opacity .18s ease-out,transform .24s cubic-bezier(.16,1,.3,1);
 }
 #tipLayer.on{opacity:1;transform:translate3d(0,0,0) scale(1);pointer-events:auto}
-@media(hover:none){#tipLayer{display:none}}
 /* 웹(≥900px): 목록을 왼쪽으로 밀고 오른쪽 고정 영역에 툴팁 */
 @media(min-width:900px){
   .wrap{max-width:780px;margin:0 auto}
@@ -157,6 +157,12 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .tlist{margin:2px 0 0;padding-left:16px;font-size:15.5px;line-height:1.55;color:var(--text)}
 .tlist li{margin-bottom:3px}
 #tipLayer .rdbtn{pointer-events:auto}
+.tip-tabs{display:flex;gap:2px;padding:2px;margin-bottom:8px;background:var(--seg-bg);border-radius:9px}
+.tip-tabs button{flex:1;border:0;background:none;color:var(--text-2);font:inherit;font-size:12.5px;font-weight:650;
+  padding:6px 10px;border-radius:7px;cursor:pointer;transition:background-color .16s ease,color .16s ease,box-shadow .16s ease}
+.tip-tabs button[aria-pressed="true"]{background:var(--card-bg);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.tip-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.tip-actions .rdbtn{display:inline-flex;align-items:center;text-decoration:none}
 
 /* ── Footer / empty ─────────────────── */
 .empty{text-align:center;color:var(--text-2);padding:64px 0;display:none;font-size:15px}
@@ -247,7 +253,7 @@ html[data-theme="dark"] .rp-tabs button[aria-pressed="true"]{background:#83a598;
 <header>
   <div>
     <h1 id="resetBtn" style="cursor:pointer" title="클릭하면 처음 화면으로 초기화됩니다">GitHub Trending</h1>
-    <p class="sub">인사이트 요약이 담긴 오늘의 트렌딩 저장소 — 카드에 마우스를 올려보세요</p>
+    <p class="sub">인사이트 요약이 담긴 오늘의 트렌딩 저장소 — 카드를 가리키거나 탭해보세요</p>
   </div>
   <div class="header-actions">
     <div class="account-controls">
@@ -293,7 +299,7 @@ html[data-theme="dark"] .rp-tabs button[aria-pressed="true"]{background:#83a598;
     <button class="rdbtn" id="rpOpenGithub">GitHub ↗</button><button class="rp-close" id="rpClose" aria-label="닫기">✕</button></div>
   <div id="readmeBody">불러오는 중…</div>
 </div>
-<div id="tipLayer" role="tooltip" aria-hidden="true"></div>
+<div id="tipLayer" role="dialog" aria-label="저장소 요약" aria-hidden="true"></div>
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
 <script src="favorites.js"></script>
@@ -384,14 +390,7 @@ function tipHTML(r,detailed){
     <div class="trow"><span class="tlabel">📈 트렌드 한 줄 평</span><p>${esc(r.detail.stars_note||"")}</p></div>
     <p class="thint"><button class="rdbtn js-readme" data-slug="${r.slug}" data-name="${esc(r.name)}">📖 README 전체 보기</button></p>`;
   }
-  return `
-    <h3>${esc(r.name)}</h3><p class="tsub">${fmt(r.stars)} ★ · ${esc(r.lang)}</p>
-    <div class="trow"><span class="tlabel">🎯 목표</span><p>${esc(s.goal)}</p></div>
-    <div class="trow"><span class="tlabel">🛠 실행 방법</span><p>${esc(s.usage)}</p></div>
-    <div class="trow"><span class="tlabel">👍 장점</span><p>${esc(s.pros)}</p></div>
-    <div class="trow"><span class="tlabel">👎 단점·주의점</span><p>${esc(s.cons)}</p></div>
-    <div class="trow"><span class="tlabel">💡 어울리는 상황</span><p>${esc(s.fit)}</p></div>
-    <p class="thint">클릭하면 GitHub 저장소로 이동합니다 ↗</p>`;
+  return UiMotion.mobileTooltipHtml(r);
 }
 
 /* render */
@@ -442,9 +441,23 @@ function render(){
 
 /* 즐겨찾기 */
 list.addEventListener("click",async e=>{
-  const btn=e.target.closest(".favbtn");if(!btn)return;
-  e.preventDefault();e.stopPropagation();
-  try{await globalThis.favoriteController.toggle(btn.dataset.slug)}catch{}
+  const btn=e.target.closest(".favbtn");
+  if(btn){
+    e.preventDefault();e.stopPropagation();
+    try{await globalThis.favoriteController.toggle(btn.dataset.slug)}catch{}
+    return;
+  }
+  const card=e.target.closest(".card");
+  if(!card||!touchLayout())return;
+  const action=UiMotion.touchCardAction({
+    activeIndex:activeTipIndex,
+    cardIndex:+card.dataset.idx,
+    tooltipOpen:tipLayer.classList.contains("on"),
+  });
+  if(action==="show"){
+    e.preventDefault();
+    showTip(card);
+  }
 });
 document.getElementById("favOnlyBtn").addEventListener("click",()=>{
   favOnly=!favOnly;
@@ -551,15 +564,17 @@ document.getElementById("resetBtn").addEventListener("click",()=>{
 /* 플로팅 툴팁: body 직속 레이어, 카드에 절대 가려지지 않음 */
 const tipLayer=document.getElementById("tipLayer");
 let hideTimer=null,activeTipIndex=null;
+function touchLayout(){return matchMedia("(hover: none), (pointer: coarse)").matches}
 function showTip(card){
   clearTimeout(hideTimer);
   const idx=+card.dataset.idx,r=REPOS[idx];
   if(!r||!r.summary)return;
   if(activeTipIndex===idx&&tipLayer.classList.contains("on")){positionTip(card);return}
   activeTipIndex=idx;
-  tipLayer.innerHTML=tipHTML(r,innerWidth>=900);
+  tipLayer.innerHTML=tipHTML(r,innerWidth>=900&&!touchLayout());
   positionTip(card);
   tipLayer.classList.add("on");
+  tipLayer.setAttribute("aria-hidden","false");
 }
 function positionTip(card){
   const rect=card.getBoundingClientRect();
@@ -572,11 +587,13 @@ function positionTip(card){
   tipLayer.style.left=position.x+"px";tipLayer.style.top=position.y+"px";
 }
 list.addEventListener("mouseover",e=>{
+  if(touchLayout())return;
   const card=e.target.closest(".card");if(!card)return;
   if(e.relatedTarget&&card.contains(e.relatedTarget))return;
   showTip(card);
 });
 list.addEventListener("focusin",e=>{
+  if(touchLayout())return;
   const card=e.target.closest(".card");if(!card)return;
   showTip(card);
 });
@@ -592,15 +609,30 @@ list.addEventListener("mouseleave",e=>{
 tipLayer.addEventListener("mouseenter",()=>clearTimeout(hideTimer));
 tipLayer.addEventListener("mouseleave",()=>{hideTimer=setTimeout(hideTip,150)});
 tipLayer.addEventListener("click",e=>{
+  const lang=e.target.closest(".js-tip-lang");
+  if(lang){
+    e.preventDefault();
+    const next=lang.dataset.tipLang;
+    tipLayer.querySelectorAll(".js-tip-lang").forEach(b=>b.setAttribute("aria-pressed",b.dataset.tipLang===next));
+    tipLayer.querySelectorAll("[data-tip-panel]").forEach(panel=>panel.hidden=panel.dataset.tipPanel!==next);
+    const card=document.querySelector(`.card[data-idx="${activeTipIndex}"]`);
+    if(card)positionTip(card);
+    return;
+  }
   const b=e.target.closest(".js-readme");if(!b)return;
   e.preventDefault();
   openReadme(b.dataset.slug,b.dataset.name);
 });
 window.addEventListener("scroll",()=>{
-  const card=document.querySelector(".card:hover");
+  const card=activeTipIndex===null?null:document.querySelector(`.card[data-idx="${activeTipIndex}"]`);
   if(card&&tipLayer.classList.contains("on"))positionTip(card);
 },{passive:true});
-function hideTip(){tipLayer.classList.remove("on");activeTipIndex=null}
+function hideTip(){tipLayer.classList.remove("on");tipLayer.setAttribute("aria-hidden","true");activeTipIndex=null}
+document.addEventListener("click",e=>{
+  if(!touchLayout()||!tipLayer.classList.contains("on"))return;
+  if(e.target.closest("#tipLayer")||e.target.closest(".card"))return;
+  hideTip();
+});
 window.addEventListener("resize",hideTip);
 
 

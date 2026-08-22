@@ -31,5 +31,66 @@
     };
   }
 
-  return { tooltipPosition };
+  function touchCardAction({ activeIndex, cardIndex, tooltipOpen }) {
+    return tooltipOpen && activeIndex === cardIndex ? "navigate" : "show";
+  }
+
+  function mobileSummary(repo, locale) {
+    if (locale === "ko") return repo.summary;
+    const gain = Number.isFinite(repo.stars_daily)
+      ? { count: repo.stars_daily, period: "today's" }
+      : Number.isFinite(repo.stars_weekly)
+        ? { count: repo.stars_weekly, period: "this week's" }
+        : { count: repo.stars_monthly || 0, period: "this month's" };
+    const language = repo.lang || "open-source";
+    const description = repo.desc?.trim() || "";
+    const letters = description.match(/\p{L}/gu) || [];
+    const latinLetters = description.match(/[A-Za-z]/g) || [];
+    const goal = letters.length > 0 && latinLetters.length / letters.length >= .8
+      ? description
+      : `${repo.name} is a public ${language} repository on GitHub.`;
+    return {
+      goal,
+      usage: "Check the repository README for setup and usage instructions.",
+      pros: `It gained ${gain.count.toLocaleString("en-US")} stars in ${gain.period} public GitHub Trending data.`,
+      cons: "This summary uses the public description and GitHub metadata; check the README for full details and limitations.",
+      fit: `Useful for people exploring ${language} repositories.`,
+    };
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function shortNumber(value) {
+    return value >= 10000 ? `${(value / 1000).toFixed(0)}k`
+      : value >= 1000 ? `${(value / 1000).toFixed(1)}k`
+        : String(value);
+  }
+
+  function mobileTooltipHtml(repo) {
+    const ko = mobileSummary(repo, "ko");
+    const en = mobileSummary(repo, "en");
+    const rows = (summary, labels) => ["goal", "usage", "pros", "cons", "fit"]
+      .map((key, index) => `<div class="trow"><span class="tlabel">${labels[index]}</span><p>${escapeHtml(summary[key])}</p></div>`)
+      .join("");
+    return `
+    <h3>${escapeHtml(repo.name)}</h3><p class="tsub">${shortNumber(repo.stars)} ★ · ${escapeHtml(repo.lang)}</p>
+    <div class="tip-tabs" role="group" aria-label="요약 언어">
+      <button type="button" class="js-tip-lang" data-tip-lang="ko" aria-pressed="true">한국어</button>
+      <button type="button" class="js-tip-lang" data-tip-lang="en" aria-pressed="false">English</button>
+    </div>
+    <div data-tip-panel="ko">${rows(ko, ["🎯 목표", "🛠 실행 방법", "👍 장점", "👎 단점·주의점", "💡 어울리는 상황"])}</div>
+    <div data-tip-panel="en" hidden lang="en">${rows(en, ["🎯 Goal", "🛠 How to use", "👍 Strengths", "👎 Cautions", "💡 Best for"])}</div>
+    <p class="thint tip-actions">
+      <button type="button" class="rdbtn js-readme" data-slug="${escapeHtml(repo.slug)}" data-name="${escapeHtml(repo.name)}">📖 README 전체 보기</button>
+      <a class="rdbtn" href="https://github.com/${escapeHtml(repo.slug)}" target="_blank" rel="noopener">저장소 열기 ↗</a>
+    </p>`;
+  }
+
+  return { tooltipPosition, touchCardAction, mobileSummary, mobileTooltipHtml };
 });
