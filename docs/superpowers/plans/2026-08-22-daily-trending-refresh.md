@@ -48,7 +48,7 @@
 
 **Files:** `.github/workflows/daily-refresh.yml`, `.github/workflows/update-star-history.yml`, `tests/daily-refresh-workflow.test.mjs`, `README.md`, `README.en.md`.
 
-**Acceptance:** Primary cron is `17 18 * * *` UTC with 03:17 Seoul documented; manual dispatch, non-cancelling concurrency, pinned Node, and `contents: write` exist; tests run before generation, Trending before star history, validation after both, and commit/push only on a real diff; core uses only `secrets.GITHUB_TOKEN`; no force-push/rebase/unbounded retry exists; star-only workflow is later recovery/manual; both READMEs retain only meaning, usage, and site-address sections.
+**Acceptance:** Primary cron is `17 18 * * *` UTC with 03:17 Seoul documented; manual dispatch, non-cancelling concurrency, pinned Node and Python, and `contents: write` exist; tests run before generation, Trending before append-only SQLite observation recording, observation recording before star history, validation after all three, and commit/push only on a real diff; core uses only `secrets.GITHUB_TOKEN`; no force-push/rebase/unbounded retry exists; star-only workflow is later recovery/manual; both READMEs retain only meaning, usage, and site-address sections.
 
 **Steps:** Add a failing workflow contract; add the minimal primary/recovery workflows; run contract/full tests; run `ponytail full`; secret-scan and commit.
 
