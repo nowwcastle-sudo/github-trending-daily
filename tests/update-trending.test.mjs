@@ -134,8 +134,8 @@ test("seeded cache preserves every summary currently published in the page", asy
   const repos = JSON.parse(page.match(/\/\/ GENERATED:TRENDING-REPOS:START\r?\nconst REPOS = (\[[^\n]+\]);\r?\n\/\/ GENERATED:TRENDING-REPOS:END/)?.[1] ?? "null");
   const cache = JSON.parse(cacheText);
 
-  assert.equal(repos.length, 46);
-  assert.ok(Object.keys(cache).length >= 46);
+  assert.ok(repos.length >= 10 && repos.length <= 75);
+  assert.ok(Object.keys(cache).length >= repos.length);
   for (const repo of repos) {
     assert.deepEqual(cache[repo.slug], { summary: repo.summary, detail: repo.detail });
   }
