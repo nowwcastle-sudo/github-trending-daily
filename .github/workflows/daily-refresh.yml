@@ -58,18 +58,18 @@ jobs:
           import sqlite3
           from pathlib import Path
           from scripts.record_star_observations import (
-              _validate_schema,
               parse_legacy_star_history,
               parse_repositories,
+              validate_canonical_legacy_baseline,
           )
 
           page = Path("index.html").read_text(encoding="utf-8")
           repositories = parse_repositories(page)
           parse_legacy_star_history(page)
           database = Path("data/star-observations.sqlite")
+          validate_canonical_legacy_baseline(database)
           with sqlite3.connect(database) as connection:
               connection.execute("PRAGMA foreign_keys = ON")
-              _validate_schema(connection)
               assert connection.execute("PRAGMA integrity_check").fetchone() == ("ok",)
               assert connection.execute("PRAGMA foreign_key_check").fetchall() == []
               for repository in repositories:

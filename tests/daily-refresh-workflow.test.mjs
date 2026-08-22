@@ -104,7 +104,7 @@ test("tests and complete validation surround the exact production order", async 
     "python scripts/record_star_observations.py",
     "node scripts/update-star-history.mjs",
     "StarHistory.normalizeCache",
-    "_validate_schema",
+    "validate_canonical_legacy_baseline",
     "PRAGMA integrity_check",
     "PRAGMA foreign_key_check",
     "star-observations.sqlite-journal",
@@ -146,6 +146,29 @@ test("generation shell stops after an upstream failure", async t => {
 
   assert.equal(result.status, 17);
   assert.equal(await readFile(join(directory, "commands.log"), "utf8"), "node:scripts/update-trending.mjs\n");
+});
+
+test("recovery validation shell stops before diff and publication after Node failure", async t => {
+  const recovery = await readFile(recoveryPath, "utf8");
+  assert.match(stepScript(recovery, "Validate generated cache"), /^set -euo pipefail\n/);
+  assert.ok(recovery.indexOf("Validate generated cache") < recovery.indexOf("Commit changed cache"));
+  assert.doesNotMatch(recovery, /continue-on-error/);
+  const directory = await mkdtemp(join(tmpdir(), "star-recovery-validation-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  await mkdir(join(directory, "bin"));
+  await writeFile(join(directory, "validate.sh"), `${stepScript(recovery, "Validate generated cache")}\n`);
+  await writeFile(join(directory, "bin", "node"), "#!/usr/bin/env bash\necho node >> commands.log\nexit 23\n");
+  await writeFile(join(directory, "bin", "git"), "#!/usr/bin/env bash\necho git >> commands.log\n");
+  await chmod(join(directory, "bin", "node"), 0o755);
+  await chmod(join(directory, "bin", "git"), 0o755);
+
+  const result = run(bashPath(), ["validate.sh"], {
+    cwd: directory,
+    env: { ...process.env, PATH: `${join(directory, "bin")}${delimiter}${process.env.PATH}` },
+  });
+
+  assert.equal(result.status, 23);
+  assert.equal(await readFile(join(directory, "commands.log"), "utf8"), "node\n");
 });
 
 test("publication shell handles no-change and commits only an exact DB-only change", async t => {

@@ -9,6 +9,7 @@ from contextlib import closing
 from pathlib import Path
 
 from scripts.record_star_observations import (
+    CANONICAL_LEGACY_FINGERPRINT,
     DEFAULT_DATABASE,
     DEFAULT_PAGE,
     REPOSITORY_ROOT,
@@ -17,6 +18,7 @@ from scripts.record_star_observations import (
     parse_legacy_star_history,
     parse_repositories,
     record_observations,
+    validate_canonical_legacy_baseline,
 )
 
 
@@ -376,6 +378,20 @@ class ObservationDatabaseTests(unittest.TestCase):
             record_observations(self.database, invalid, [])
         self.assertEqual(self.database.read_bytes(), before)
 
+    def test_required_canonical_baseline_is_rechecked_before_recording(self):
+        record_observations(self.database, parsed_repositories(), [])
+        before = self.database.read_bytes()
+
+        with self.assertRaises(ValueError):
+            record_observations(
+                self.database,
+                parsed_repositories("2026-08-23"),
+                [],
+                require_canonical_legacy=True,
+            )
+
+        self.assertEqual(self.database.read_bytes(), before)
+
 
 class ObservationCliTests(unittest.TestCase):
     def setUp(self):
@@ -480,6 +496,73 @@ class ObservationCliTests(unittest.TestCase):
 
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(self.database.read_bytes(), before)
+
+    def test_zero_legacy_page_requires_and_preserves_the_canonical_baseline(self):
+        page = self.root / "post migration.html"
+        page.write_bytes(DEFAULT_PAGE.read_bytes())
+
+        missing = self.run_cli(page)
+
+        self.assertNotEqual(missing.returncode, 0)
+        self.assertFalse(self.database.exists())
+
+        self.database.parent.mkdir(parents=True)
+        self.database.write_bytes(DEFAULT_DATABASE.read_bytes())
+        before = self.database.read_bytes()
+
+        canonical = self.run_cli(page)
+
+        self.assertEqual(canonical.returncode, 0, canonical.stderr)
+        self.assertIn("rest_inserted=0 legacy_inserted=0", canonical.stdout)
+        self.assertEqual(self.database.read_bytes(), before)
+
+    def test_zero_legacy_page_rejects_schema_valid_replacement_without_touching_it(self):
+        page = self.root / "post migration.html"
+        page.write_text(repo_page([ui_repo(index) for index in range(10)]), encoding="utf-8")
+
+        for mutation in ("empty", "altered", "deleted"):
+            with self.subTest(mutation=mutation):
+                database = self.root / f"{mutation}.sqlite"
+                database.write_bytes(DEFAULT_DATABASE.read_bytes())
+                with closing(sqlite3.connect(database)) as connection:
+                    if mutation == "altered":
+                        trigger = connection.execute(
+                            "SELECT sql FROM sqlite_schema WHERE name = 'star_observations_no_update'"
+                        ).fetchone()[0]
+                        connection.execute("DROP TRIGGER star_observations_no_update")
+                        connection.execute(
+                            "UPDATE star_observations SET stars_total = stars_total + 1 "
+                            "WHERE id = (SELECT id FROM star_observations WHERE source = 'legacy_inline' LIMIT 1)"
+                        )
+                        connection.execute(trigger)
+                    else:
+                        trigger = connection.execute(
+                            "SELECT sql FROM sqlite_schema WHERE name = 'star_observations_no_delete'"
+                        ).fetchone()[0]
+                        connection.execute("DROP TRIGGER star_observations_no_delete")
+                        if mutation == "empty":
+                            connection.execute("DELETE FROM star_observations WHERE source = 'legacy_inline'")
+                        else:
+                            connection.execute(
+                                "DELETE FROM star_observations WHERE id = "
+                                "(SELECT id FROM star_observations WHERE source = 'legacy_inline' LIMIT 1)"
+                            )
+                        connection.execute(trigger)
+                    connection.commit()
+                before = database.read_bytes()
+
+                result = self.run_cli(page, database)
+
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(database.read_bytes(), before)
+
+    def test_canonical_legacy_fingerprint_locks_every_migrated_row(self):
+        expected = "233800ae235f5f63033940f61743c41df0349f8b983692dede0df79f4202949f"
+        self.assertEqual(CANONICAL_LEGACY_FINGERPRINT, expected)
+        self.assertEqual(
+            validate_canonical_legacy_baseline(DEFAULT_DATABASE),
+            expected,
+        )
 
 
 if __name__ == "__main__":

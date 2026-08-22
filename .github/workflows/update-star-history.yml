@@ -29,6 +29,7 @@ jobs:
       - name: Validate generated cache
         shell: bash
         run: |
+          set -euo pipefail
           node --input-type=module <<'NODE'
           import { readFile } from "node:fs/promises";
           await import("./star-history.js");

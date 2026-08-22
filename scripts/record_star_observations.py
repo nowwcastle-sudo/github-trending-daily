@@ -23,6 +23,8 @@ SUMMARY_FIELDS = ("goal", "usage", "pros", "cons", "fit")
 PERIOD_FIELDS = ("stars_daily", "stars_weekly", "stars_monthly")
 MAX_SAFE_INTEGER = 9_007_199_254_740_991
 SCHEMA_VERSION = 1
+CANONICAL_LEGACY_COUNT = 60
+CANONICAL_LEGACY_FINGERPRINT = "233800ae235f5f63033940f61743c41df0349f8b983692dede0df79f4202949f"
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PAGE = REPOSITORY_ROOT / "index.html"
 DEFAULT_DATABASE = REPOSITORY_ROOT / "data" / "star-observations.sqlite"
@@ -279,6 +281,31 @@ def _validate_schema(connection: sqlite3.Connection):
         raise ValueError("Existing schema v1 metadata is invalid")
 
 
+def _validate_canonical_legacy_connection(connection: sqlite3.Connection) -> str:
+    rows = connection.execute(
+        "SELECT slug, observed_date, stars_total, stars_delta, source FROM star_observations "
+        "WHERE source = 'legacy_inline' "
+        "ORDER BY slug COLLATE NOCASE, observed_date"
+    ).fetchall()
+    # Canonical encoding: compact UTF-8 JSON array of the sorted five-column rows, no trailing newline.
+    payload = json.dumps(rows, separators=(",", ":")).encode("utf-8")
+    fingerprint = hashlib.sha256(payload).hexdigest()
+    if len(rows) != CANONICAL_LEGACY_COUNT or fingerprint != CANONICAL_LEGACY_FINGERPRINT:
+        raise ValueError("Canonical migrated legacy observations are missing or altered")
+    return fingerprint
+
+
+def validate_canonical_legacy_baseline(database_path: str | Path) -> str:
+    """Read-only validation of every canonical migrated legacy row."""
+    path = Path(database_path)
+    if not path.is_file():
+        raise ValueError("Canonical star observation database is required after legacy migration")
+    uri = f"{path.resolve().as_uri()}?mode=ro"
+    with closing(sqlite3.connect(uri, uri=True)) as connection:
+        _validate_schema(connection)
+        return _validate_canonical_legacy_connection(connection)
+
+
 def _validate_repository_inputs(repositories: Sequence[RepositoryObservation]):
     if not isinstance(repositories, Sequence) or isinstance(repositories, (str, bytes)) or not 10 <= len(repositories) <= 75:
         raise ValueError("repositories must contain 10-75 observations")
@@ -370,18 +397,24 @@ def record_observations(
     database_path: str | Path,
     repositories: Sequence[RepositoryObservation],
     legacy_observations: Sequence[StarObservation],
+    *,
+    require_canonical_legacy: bool = False,
 ) -> RecordResult:
     """Append one complete run atomically; existing observation rows never change."""
     _validate_repository_inputs(repositories)
     _validate_legacy_inputs(legacy_observations)
     path = Path(database_path)
     existed = path.exists()
+    if require_canonical_legacy and not existed:
+        raise ValueError("Canonical star observation database is required after legacy migration")
     connection = sqlite3.connect(path)
     succeeded = False
     try:
         connection.execute("PRAGMA foreign_keys = ON")
         if existed:
             _validate_schema(connection)
+            if require_canonical_legacy:
+                _validate_canonical_legacy_connection(connection)
         journal_mode = connection.execute("PRAGMA journal_mode = DELETE").fetchone()[0]
         if journal_mode.lower() != "delete":
             raise sqlite3.DatabaseError(f"Could not set DELETE journal mode: {journal_mode}")
@@ -446,8 +479,16 @@ def main(argv=None) -> int:
         page = args.page.read_text(encoding="utf-8")
         repositories = parse_repositories(page)
         legacy = parse_legacy_star_history(page)
+        require_canonical_legacy = not legacy
+        if require_canonical_legacy:
+            validate_canonical_legacy_baseline(args.database)
         args.database.parent.mkdir(parents=True, exist_ok=True)
-        result = record_observations(args.database, repositories, legacy)
+        result = record_observations(
+            args.database,
+            repositories,
+            legacy,
+            require_canonical_legacy=require_canonical_legacy,
+        )
         counts, observations, integrity = _database_counts(args.database)
     except (OSError, UnicodeError, ValueError, sqlite3.Error) as error:
         print(f"error: {error}", file=sys.stderr)
