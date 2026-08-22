@@ -293,7 +293,11 @@ function setPeriod(p){
   seg.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.period===p));
   moveThumb(); render();
 }
-seg.addEventListener("click",e=>{const b=e.target.closest("button");if(b)setPeriod(b.dataset.period)});
+seg.addEventListener("click",e=>{
+  const b=e.target.closest("button");
+  const next=Favorites.periodFromButton(b);
+  if(next)setPeriod(next);
+});
 window.addEventListener("resize",moveThumb);
 
 /* helpers */
