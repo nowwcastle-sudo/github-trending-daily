@@ -510,7 +510,7 @@ async function loadFirebaseClientForTest() {
     .replace(/import\s*\{[\s\S]*?\}\s*from\s*"https:\/\/www\.gstatic\.com\/firebasejs\/12\.17\.1\/[^\"]+";\s*/g, "")
     .replace(/import\.meta\.url/g, '""')
     .replace(/bootstrap\(\)\.catch\([\s\S]*$/m, "")
-    + "\nglobalThis.__client = { createCloudAdapter, authErrorMessage, validateFirebaseConfig };";
+    + "\nglobalThis.__client = { createCloudAdapter, authErrorMessage, validateFirebaseConfig, syncModeLabel: typeof syncModeLabel === 'function' ? syncModeLabel : undefined };";
   const context = {
     Favorites: globalThis.Favorites,
     FavoriteSync,
@@ -564,7 +564,7 @@ test("an App Check initialization failure stays on the existing guest controller
   context.globalThis = context;
   vm.runInNewContext(runnable, context);
   await new Promise(resolve => setImmediate(resolve));
-  assert.equal(elements.syncStatus.textContent, "Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다.");
+  assert.equal(elements.syncStatus.textContent, "브라우저 동기화");
   assert.equal(elements.loginBtn.hidden, true);
   assert.equal(elements.logoutBtn.hidden, true);
   assert.deepEqual(JSON.parse(JSON.stringify(applied)), { favorites: ["guest/one"], busy: false });
@@ -585,7 +585,7 @@ test("Firebase client uses pinned official modules and the required page script 
 test("a Firebase module dependency failure activates guest fallback outside the failed module", async () => {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const boundary = html.match(/<script type="module">([\s\S]*?import\("\.\/firebase-client\.js"\)\.catch[\s\S]*?)<\/script>/)?.[1] || "";
-  assert.match(boundary, /status\.textContent="Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다\."/);
+  assert.match(boundary, /status\.textContent="브라우저 동기화"/);
   assert.match(boundary, /login\.hidden=true/);
   assert.match(boundary, /logout\.hidden=true/);
   assert.match(boundary, /globalThis\.applyFavoriteState\(\{favorites:globalThis\.favoriteController\.favorites\(\),busy:false\}\)/);
@@ -677,6 +677,27 @@ test("auth errors map to safe Korean messages without raw details", async () => 
     assert.doesNotMatch(message, /SECRET_TOKEN_VALUE/);
   }
   assert.doesNotMatch(authErrorMessage({ message: "SECRET_TOKEN_VALUE" }), /SECRET_TOKEN_VALUE/);
+});
+
+test("sync mode exposes only the browser and Google account labels", async () => {
+  const { syncModeLabel } = await loadFirebaseClientForTest();
+  assert.equal(typeof syncModeLabel, "function");
+  assert.equal(syncModeLabel(null), "브라우저 동기화");
+  assert.equal(syncModeLabel({ uid: "alice" }), "구글 계정 동기화");
+});
+
+test("an authenticated synchronization failure retains the account mode label", async () => {
+  const source = await readFile(new URL("../firebase-client.js", import.meta.url), "utf8");
+  const authHandler = source.match(/const stopAuth = onAuthStateChanged[\s\S]*?login\.addEventListener/m)?.[0] || "";
+
+  assert.match(authHandler, /catch\s*\{[\s\S]*?setSyncStatus\(status, user, "즐겨찾기 동기화를 시작하지 못했어요/);
+});
+
+test("guest fallback details remain accessible without replacing the visible sync mode", async () => {
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(html, /status\.setAttribute\("aria-label",`브라우저 동기화\. \$\{message\}`\)/);
+  assert.match(html, /status\.setAttribute\("aria-label","브라우저 동기화\. Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다\."\)/);
 });
 
 test("account controls are accessible and favorites route only through the controller", async () => {

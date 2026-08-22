@@ -78,6 +78,18 @@ function authErrorMessage(error) {
   return messages[error?.code] || "Google 로그인에 실패했어요. 잠시 후 다시 시도해 주세요.";
 }
 
+function syncModeLabel(user) {
+  return user ? "구글 계정 동기화" : "브라우저 동기화";
+}
+
+function setSyncStatus(element, user, detail = "", tone = "normal") {
+  const label = syncModeLabel(user);
+  element.textContent = label;
+  element.title = detail || label;
+  element.setAttribute?.("aria-label", detail ? `${label}. ${detail}` : label);
+  if (element.dataset) element.dataset.tone = tone;
+}
+
 function validateFirebaseConfig(config) {
   if (config?.projectId !== "github-trending-nowwcastle") throw new Error("unexpected Firebase project");
   if (typeof config.appCheckSiteKey !== "string" || !config.appCheckSiteKey.trim()) {
@@ -128,7 +140,7 @@ async function bootstrap() {
       busy = value;
       globalThis.applyFavoriteState({ favorites: controller.favorites(), busy });
     },
-    onMessage: message => { status.textContent = message; },
+    onMessage: message => { setSyncStatus(status, auth.currentUser, message, "notice"); },
   });
 
   const previous = globalThis.favoriteController;
@@ -144,12 +156,10 @@ async function bootstrap() {
     try {
       await controller.setUser(user ? { uid: user.uid } : null);
       if (capturedGeneration !== authGeneration) return;
-      status.textContent = user
-        ? `즐겨찾기: ${user.displayName || "Google 계정"}과 동기화`
-        : "즐겨찾기: 이 브라우저";
+      setSyncStatus(status, user);
     } catch {
       if (capturedGeneration === authGeneration) {
-        status.textContent = "즐겨찾기 동기화를 시작하지 못했어요. 다시 로그인해 주세요.";
+        setSyncStatus(status, user, "즐겨찾기 동기화를 시작하지 못했어요. 다시 로그인해 주세요.", "error");
       }
     } finally {
       if (capturedGeneration === authGeneration) {
@@ -161,12 +171,14 @@ async function bootstrap() {
 
   login.addEventListener("click", async () => {
     login.disabled = true;
-    status.textContent = "Google 로그인 창을 여는 중이에요.";
+    login.textContent = "로그인 중…";
+    setSyncStatus(status, null, "Google 로그인 창을 여는 중이에요.", "notice");
     try {
       await signInWithPopup(auth, provider);
     } catch (error) {
-      status.textContent = authErrorMessage(error);
+      setSyncStatus(status, null, authErrorMessage(error), "error");
     } finally {
+      login.textContent = "Google로 로그인";
       if (!auth.currentUser) login.disabled = false;
     }
   });
@@ -176,7 +188,7 @@ async function bootstrap() {
     try {
       await signOut(auth);
     } catch {
-      status.textContent = "로그아웃하지 못했어요. 잠시 후 다시 시도해 주세요.";
+      setSyncStatus(status, auth.currentUser, "로그아웃하지 못했어요. 잠시 후 다시 시도해 주세요.", "error");
       logout.disabled = false;
     }
   });
@@ -192,7 +204,7 @@ function keepGuestMode() {
   const status = document.getElementById("syncStatus");
   const login = document.getElementById("loginBtn");
   const logout = document.getElementById("logoutBtn");
-  status.textContent = "Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다.";
+  setSyncStatus(status, null, "Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다.", "error");
   login.hidden = true;
   logout.hidden = true;
   globalThis.applyFavoriteState({ favorites: globalThis.favoriteController.favorites(), busy: false });
