@@ -13,7 +13,7 @@ function periodConfig(period) {
 function normalizeSlug(path) {
   let decoded;
   try {
-    decoded = decodeURIComponent(path).replace(/^\/+|\/+$/g, "");
+    decoded = decodeURIComponent(path);
   } catch {
     throw new Error(`Invalid repository path: ${path}`);
   }
@@ -38,9 +38,9 @@ export function parseTrendingHtml(html, period) {
     if (!path) throw new Error("Invalid Trending repository link");
     const slug = normalizeSlug(path[1] ?? path[2]);
 
-    const gainPattern = new RegExp(`([\\d,]+)\\s+stars?\\s+${label.replaceAll(" ", "\\s+")}`, "i");
+    const gainPattern = new RegExp(`^([\\d,]+)\\s+stars?\\s+${label.replaceAll(" ", "\\s+")}$`, "i");
     const gains = [...body.matchAll(/<span\b[^>]*>([\s\S]*?)<\/span>/gi)]
-      .map(([, content]) => content.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").match(gainPattern))
+      .map(([, content]) => content.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().match(gainPattern))
       .filter(Boolean);
     const rawGain = gains.length === 1 ? gains[0][1] : "";
     const value = /^(?:0|[1-9]\d*|[1-9]\d{0,2}(?:,\d{3})+)$/.test(rawGain)

@@ -70,6 +70,18 @@ test("fails closed on malformed, duplicate, and invalid-gain pages", async () =>
     () => parseTrendingHtml(daily.replace("<span>1,234 stars today</span>", "<p>123 stars today in docs</p><span>many stars today</span>"), "daily"),
     /invalid daily star gain/i,
   );
+  assert.throws(
+    () => parseTrendingHtml(daily.replace('href="/Alpha/one"', 'href="//evil.com/repo"'), "daily"),
+    /invalid repository path/i,
+  );
+  assert.throws(
+    () => parseTrendingHtml(daily.replace('href="/Alpha/one"', 'href="/Owner/repo/"'), "daily"),
+    /invalid repository path/i,
+  );
+  assert.throws(
+    () => parseTrendingHtml(daily.replace("1,234 stars today", "1,234 stars today in docs"), "daily"),
+    /invalid daily star gain/i,
+  );
 });
 
 test("fails closed when a page or union violates size gates", async () => {
