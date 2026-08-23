@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ELI5 — GitHub Trending Daily 검토 결과</title>
+<style>
+:root{--bg:#fdf6e3;--ink:#3c3836;--accent:#fe8019;--good:#98971a;--warn:#d79921;--bad:#cc241d;--card:#fbf1c7}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:40px 20px;line-height:1.6}
+.wrap{max-width:860px;margin:auto}
+h1{text-align:center;font-size:34px;letter-spacing:-.02em;margin-bottom:8px}
+.sub{text-align:center;color:#7c6f64;margin-bottom:40px;font-size:17px}
+.emoji-hero{text-align:center;font-size:64px;margin-bottom:16px}
+.story{background:var(--card);border-radius:20px;padding:28px 32px;margin-bottom:22px;box-shadow:0 2px 10px rgba(60,56,54,.08);border-left:8px solid var(--accent)}
+.story h2{font-size:23px;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.story .icon{font-size:34px}
+.story p{font-size:17.5px;margin-bottom:10px}
+.story p:last-child{margin-bottom:0}
+.good{border-color:var(--good)}.bad{border-color:var(--bad)}.warn{border-color:var(--warn)}
+.verdict{display:inline-block;padding:4px 14px;border-radius:99px;font-weight:700;font-size:15px;margin-left:6px}
+.v-good{background:#b8bb26;color:#3c3836}.v-warn{background:#fabd2f}.v-bad{background:#fb4934;color:#fff}
+.big-num{font-size:52px;text-align:center;font-weight:800;display:block;margin-bottom:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin:26px 0}
+.g-card{background:var(--card);border-radius:16px;padding:22px;text-align:center;border-top:6px solid var(--accent)}
+.g-card .em{font-size:44px}
+.g-card h3{margin:10px 0 6px;font-size:18px}
+.g-card p{font-size:14.5px;color:#665c54}
+.arrow{ text-align:center;font-size:30px;margin:4px 0;color:var(--text-3)}
+.final{background:linear-gradient(135deg,#3c3836,#504945);color:#fbf1c7;border-radius:24px;padding:36px;text-align:center}
+.final h2{font-size:26px;margin-bottom:18px}
+.steps{display:flex;flex-direction:column;gap:14px;max-width:520px;margin:auto;text-align:left}
+.step{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.08);padding:14px 18px;border-radius:14px}
+.step .n{font-size:26px;font-weight:800;color:#fe8019;min-width:36px}
+footer{text-align:center;color:#a89984;font-size:13px;margin-top:36px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>🐙 우리 사이트, 괜찮은가?</h1>
+<p class="sub">GitHub Trending Daily 점검 결과 — 아주 쉽게 풀어쓴 버전</p>
+
+<div class="emoji-hero">🔍</div>
+
+<div class="story good">
+  <h2><span class="icon">💪</span> 좋은 소리부터 <span class="verdict v-good">기본 탄탄</span></h2>
+  <p>우리 사이트는 이미 <b>방어 잘 되는 집</b>이에요. 잠금장치(Firestore 규칙), 현관 도어락(App Check), 오염 감지 센서(fail-closed 검증)까지 붙어 있거든요.</p>
+  <p>그런데… <b>집이 커졌는데 울타리는 그대로</b>예요. 🏠→🏰</p>
+</div>
+
+<div class="story bad">
+  <h2><span class="icon">🚪</span> 열린 문 3개 <span class="verdict v-bad">고치기 전에 위험</span></h2>
+  <p>1️⃣ <b>남의 JS를 그냥 먹어요.</b> CDN 스크립트에 신분증(SRI)도 없고, 출입 명단(CSP)도 없어요. 나쁜 놈이 끼어들면 사용자의 즐겨찾기를 마음대로 바꿀 수 있어요.</p>
+  <p>2️⃣ <b>자물쇠가 실패해도 조용히 무시돼요.</b> Firebase 연결이 깨져도 에러 없이 그냥 열린 채로 둬요(보안 기능 꺼짐).</p>
+  <p>3️⃣ <b>두 군데 글자 검문 누락</b> — 언어·색상 값이 몸통 검사 없이 화면에 바로 들어가요.</p>
+</div>
+
+<div class="story warn">
+  <h2><span class="icon">😴</span> 제일 큰 문제는 보안이 아니에요 <span class="verdict v-warn">숨은 위험</span></h2>
+  <p>이 사이트의 심장은 <b>"한국어 요약"</b>인데, 이걸 만드는 기계(자동화)가 <b>없어요</b>. 매일 사람이 손으로 돌리고 있어요.</p>
+  <p>만약 2주만 손을 놓으면? 새 카드들이 전부 "저장소 문서 참조."라는 텅 빈 말만 남아요. 🫧</p>
+  <p>그리고 파이프라인이 삐걱거려도 <b>아무한테도 알림이 안 와요.</b> 조용히 오래된 데이터를 계속 보여주죠.</p>
+</div>
+
+<h2 style="text-align:center;margin:34px 0 6px">🤔 그래서 뭘 고치라고?</h2>
+<p style="text-align:center;color:#7c6f64;margin-bottom:18px">실험 3명(보안 해커 / 회의적 기획자 / 인수할 엔지니어)이 다 같이 골랐어요</p>
+
+<div class="grid">
+  <div class="g-card"><span class="em">🔔</span><h3>부서지면 외치기</h3><p>파이프라인이 실패하면 자동으로 issue+알림. 반나절이면 끝!</p></div>
+  <div class="g-card"><span class="em">🔐</span><h3>문에 신분증 달기</h3><p>CDN 스크립트에 SRI+CSP. 누가 변조 못 하게.</p></div>
+  <div class="g-card"><span class="em">🧹</span><h3>CI로 매일 청소</h3><p>테스트를 배포 관문에 연결. rules 테스트도 포함!</p></div>
+  <div class="g-card"><span class="em">📦</span><h3>데이터 분리 보관</h3><p>index.html에서 REPOS 빼내 JSON으로. 단, 안전 확인 후 천천히.</p></div>
+  <div class="g-card"><span class="em">🔥</span><h3>저비용 배지 3종</h3><p>"3일 연속!", "↑12위 상승" — DB에 데이터 있어서 공짜.</p></div>
+  <div class="g-card"><span class="em">📖</span><h3>설명서 쓰기</h3><p>운영자가 사라져도 누군가 이어받을 RUNBOOK.</p></div>
+</div>
+
+<div class="final">
+  <h2>🚫 하지 말 것 (더 중요!)</h2>
+  <div class="steps">
+    <div class="step"><span class="n">✋</span><span><b>repo 비교 화면</b> — 혼자 쓰는 데 필요 없어요</span></div>
+    <div class="step"><span class="n">✋</span><span><b>즐겨찾기 대시보드</b> — 사용자가 운영자뿐이에요</span></div>
+    <div class="step"><span class="n">✋</span><span><b>RSS/XML 피드</b> — 구독자 0명인 관리 비용</span></div>
+    <div class="step"><span class="n">✋</span><span><b>ES modules 대개편</b> — 지금 잘 되는 걸 함부로! 롤백 사고 교훈</span></div>
+  </div>
+  <p style="margin-top:18px;font-size:15px;opacity:.8">💡 원칙: <b>보안은 진짜로, 기능은 아껴서.</b></p>
+</div>
+
+<footer>GitHub Trending Daily · 기능제안검토서 ELI5판 · understand-anything 분석 + REDTEAM×3 기반</footer>
+</div>
+</body>
+</html>
