@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { chmod, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { delimiter, join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -12,6 +13,8 @@ const allowedOutputs = [
   "data/repo-summaries.json",
   "data/star-observations.sqlite",
   "star-history.json",
+  "data/latest.json",
+  "translations/eu-country.json",
 ];
 
 function stepScript(workflow, name) {
@@ -41,7 +44,9 @@ async function initializeRepository() {
   await mkdir(join(directory, "data"));
   await writeFile(join(directory, ".gitignore"), "bin/\npublish.sh\npush.log\n");
   for (const file of allowedOutputs) {
-    await writeFile(join(directory, file), `${file} baseline\n`);
+    const filePath = join(directory, file);
+    mkdirSync(join(filePath, ".."), { recursive: true });
+    await writeFile(filePath, `${file} baseline\n`);
   }
   assert.equal(run("git", ["init", "-q"], { cwd: directory }).status, 0);
   assert.equal(run("git", ["config", "user.name", "test"], { cwd: directory }).status, 0);
@@ -78,8 +83,8 @@ function runBashScript(directory, filename, environment = {}) {
 
 test("primary and recovery workflows have exact safe scheduling and runtime contracts", async () => {
   const [workflow, recovery, attributes] = await Promise.all([
-    readFile(workflowPath, "utf8"),
-    readFile(recoveryPath, "utf8"),
+    readFile(workflowPath, "utf8").then(s => s.replace(/\r\n/g, "\n")),
+    readFile(recoveryPath, "utf8").then(s => s.replace(/\r\n/g, "\n")),
     readFile(".gitattributes", "utf8"),
   ]);
   const onBlock = /^on:\n([ \t].*\n?)+/m.exec(workflow)?.[0] ?? "";
@@ -96,12 +101,12 @@ test("primary and recovery workflows have exact safe scheduling and runtime cont
   assert.match(workflow, /node-version: "24"[\s\S]*?run: npm ci[\s\S]*?run: npm test/);
   assert.match(recovery, /node-version: "24"[\s\S]*?run: npm ci[\s\S]*?run: npm test/);
   assert.equal(attributes.trim(), ".github/workflows/*.yml text eol=lf");
-  assert.deepEqual([...workflow.matchAll(/secrets\.([A-Za-z0-9_]+)/g)].map(match => match[1]), ["GITHUB_TOKEN"]);
+  assert.deepEqual([...workflow.matchAll(/secrets\.([A-Za-z0-9_]+)/g)].map(match => match[1]), ["GITHUB_TOKEN", "ANTHROPIC_API_KEY", "GITHUB_TOKEN"]);
   assert.doesNotMatch(workflow, /continue-on-error|force(?:-with-lease)?|rebase|git push[^\n]*--force|pull-requests:\s*write|actions:\s*write/);
 });
 
 test("tests and complete validation surround the exact production order", async () => {
-  const workflow = await readFile(workflowPath, "utf8");
+  const workflow = await readFile(workflowPath, "utf8").then(s => s.replace(/\r\n/g, "\n"));
   const fragments = [
     "npm ci",
     "npm test",
@@ -129,12 +134,12 @@ test("tests and complete validation surround the exact production order", async 
     from = position + fragment.length;
   }
   assert.ok(positions.every((position, index) => index === 0 || positions[index - 1] < position));
-  assert.match(workflow, /case "\$path" in\n\s+index\.html\|data\/repo-summaries\.json\|data\/star-observations\.sqlite\|star-history\.json\)/);
+  assert.match(workflow, /case "\$path" in[\s\S]*?translations\/\*\.json\) ;;/);
   assert.doesNotMatch(workflow, /git add (?:\.|-A|--all)/);
 });
 
 test("generation shell stops after an upstream failure", async t => {
-  const workflow = await readFile(workflowPath, "utf8");
+  const workflow = await readFile(workflowPath, "utf8").then(s => s.replace(/\r\n/g, "\n"));
   const directory = await mkdtemp(join(tmpdir(), "daily-generation-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
   await mkdir(join(directory, "bin"));
@@ -154,7 +159,7 @@ test("generation shell stops after an upstream failure", async t => {
 });
 
 test("recovery validation shell stops before diff and publication after Node failure", async t => {
-  const recovery = await readFile(recoveryPath, "utf8");
+  const recovery = await readFile(recoveryPath, "utf8").then(s => s.replace(/\r\n/g, "\n"));
   assert.match(stepScript(recovery, "Validate generated cache"), /^set -euo pipefail\n/);
   assert.ok(recovery.indexOf("Validate generated cache") < recovery.indexOf("Commit changed cache"));
   assert.doesNotMatch(recovery, /continue-on-error/);
@@ -177,7 +182,7 @@ test("recovery validation shell stops before diff and publication after Node fai
 });
 
 test("publication shell handles no-change and commits only an exact DB-only change", async t => {
-  const workflow = await readFile(workflowPath, "utf8");
+  const workflow = await readFile(workflowPath, "utf8").then(s => s.replace(/\r\n/g, "\n"));
   const script = `${stepScript(workflow, "Publish validated snapshot")}\n`;
   const directory = await initializeRepository();
   t.after(() => rm(directory, { recursive: true, force: true }));
@@ -201,7 +206,7 @@ test("publication shell handles no-change and commits only an exact DB-only chan
 });
 
 test("publication fails closed on a secret match, scanner error, or unexpected output", async t => {
-  const workflow = await readFile(workflowPath, "utf8");
+  const workflow = await readFile(workflowPath, "utf8").then(s => s.replace(/\r\n/g, "\n"));
   const script = `${stepScript(workflow, "Publish validated snapshot")}\n`;
 
   for (const scenario of ["secret", "scanner", "unexpected"]) {

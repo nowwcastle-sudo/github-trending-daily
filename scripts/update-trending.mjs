@@ -304,9 +304,17 @@ export async function enrichTrendingRepositories(discovered, {
       cached = koreanFallback({ ...discoveredRepo, slug }, metadata, readme);
     }
 
+    let latestReleaseDate = null;
+    try {
+      const release = await request(githubPath(slug, "/releases/latest"));
+      if (release.value?.published_at) latestReleaseDate = String(release.value.published_at).slice(0, 10);
+    } catch { /* releases 없는 repo는 정상 */ }
+
     const [owner, name] = slug.split("/");
     repos.push({
       slug,
+      pushed_at: typeof metadata.pushed_at === "string" ? metadata.pushed_at.slice(0, 10) : null,
+      latest_release: latestReleaseDate,
       name: `${owner} / ${name}`,
       desc: metadata.description ?? "",
       lang: metadata.language ?? "",
@@ -318,6 +326,7 @@ export async function enrichTrendingRepositories(discovered, {
       detail: cached.detail,
       issues: metadata.open_issues_count,
       contributors,
+      pushed_at: typeof metadata.pushed_at === "string" ? metadata.pushed_at.slice(0, 10) : null,
       _stats_date: statsDate,
     });
   }

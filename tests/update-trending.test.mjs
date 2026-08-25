@@ -206,7 +206,7 @@ test("enriches REST metadata and reuses cached summaries without modification", 
     statsDate: "2026-08-23",
   });
 
-  assert.equal(requestCount, 20);
+  assert.equal(requestCount, 30);
   assert.equal(repos.length, 10);
   assert.equal(repos[0].summary, summaryCache[discovered[0].slug].summary);
   assert.equal(repos[0].detail, summaryCache[discovered[0].slug].detail);
@@ -223,6 +223,8 @@ test("enriches REST metadata and reuses cached summaries without modification", 
     detail: summaryCache[discovered[0].slug].detail,
     issues: 3,
     contributors: 2,
+    pushed_at: null,
+    latest_release: null,
     _stats_date: "2026-08-23",
   });
   assert.ok(requests.every(request => request.options.headers.Authorization === "Bearer test-token-never-print"));
@@ -246,7 +248,7 @@ test("retries transient failures with bounded exponential backoff", async () => 
     statsDate: "2026-08-23",
   });
 
-  assert.equal(requestCount, 22);
+  assert.equal(requestCount, 32);
   assert.deepEqual(sleeps, [120000, 500]);
 });
 
@@ -340,7 +342,7 @@ test("creates a fact-only Korean fallback for new repositories", async () => {
     statsDate: "2026-08-23",
   });
 
-  assert.equal(requestCount, 30);
+  assert.equal(requestCount, 40);
   assert.match(repos[0].summary.goal, /Description for owner\/repo-0/);
   assert.match(repos[0].summary.pros, /오늘 1개/);
   assert.match(repos[0].summary.cons, /README 원문 확인/);

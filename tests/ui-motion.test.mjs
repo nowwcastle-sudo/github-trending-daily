@@ -25,7 +25,7 @@ test("tooltip placement uses its measured width before choosing the right rail",
       viewport: { width: 1440, height: 1000 },
       tooltip: { width: 560, height: 820 },
     }))),
-    { x: 347, y: 8 },
+    { x: 864, y: 12 },
   );
 });
 
@@ -39,7 +39,7 @@ test("tooltip placement uses the right rail when the measured box fits", async (
       viewport: { width: 1600, height: 900 },
       tooltip: { width: 560, height: 500 },
     }))),
-    { x: 918, y: 50 },
+    { x: 1024, y: 50 },
   );
 });
 

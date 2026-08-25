@@ -29,6 +29,12 @@ jobs:
         run: npm ci
       - name: Test before refresh
         run: npm test
+      - name: Generate summaries & Korean translations
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/generate-translations.mjs
       - name: Generate complete daily snapshot
         shell: bash
         env:
@@ -97,13 +103,14 @@ jobs:
           while IFS= read -r path; do
             [ -z "$path" ] && continue
             case "$path" in
-              index.html|data/repo-summaries.json|data/star-observations.sqlite|star-history.json) ;;
+              index.html|data/repo-summaries.json|data/star-observations.sqlite|star-history.json|data/latest.json) ;;
+              translations/*.json) ;;
               *) echo "::error::Unexpected generated output"; exit 1 ;;
             esac
           done <<< "$changed_paths"
-          git add -- index.html data/repo-summaries.json data/star-observations.sqlite star-history.json
+          git add -- index.html data/repo-summaries.json data/star-observations.sqlite star-history.json data/latest.json translations/
           set +e
-          git diff --cached --quiet -- index.html data/repo-summaries.json data/star-observations.sqlite star-history.json
+          git diff --cached --quiet -- index.html data/repo-summaries.json data/star-observations.sqlite star-history.json data/latest.json translations/
           diff_status=$?
           set -e
           case "$diff_status" in

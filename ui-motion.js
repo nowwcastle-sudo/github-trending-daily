@@ -11,11 +11,11 @@
 
   function tooltipPosition({ card, viewport, tooltip }) {
     const rightRailX = card.right + 18;
-    if (viewport.width >= 900 && rightRailX + tooltip.width <= viewport.width - 8) {
-      return {
-        x: rightRailX,
-        y: clamp(card.top + card.height / 2 - tooltip.height / 2, 12, viewport.height - tooltip.height - 12),
-      };
+    if (viewport.width >= 900) {
+      // 항상 우측 배치. 공간 부족 시 문서가 .wrap을 좌측으로 밀어 공간 확보(CSS transition으로 부드럽게).
+      const x = Math.max(8, viewport.width - tooltip.width - 16);
+      const y = clamp(card.top + card.height / 2 - tooltip.height / 2, 12, viewport.height - tooltip.height - 12);
+      return { x, y };
     }
 
     let y;
