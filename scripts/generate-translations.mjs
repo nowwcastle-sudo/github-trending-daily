@@ -1,13 +1,13 @@
 // generate-translations.mjs — Detect new trending repos and produce Korean
 // summaries + README translations via the Anthropic API. Idempotent: repos that
-// already have a translations/<slug>.json are skipped unless their README SHA changed.
+// already have a translations/<slug>.json are skipped.
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createPageSnapshot, installPageSnapshot } from "./update-trending.mjs";
 
 const REPO_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
-const SLUG_FILE_RE = /^[A-Za-z0-9_.-]+__[A-Za-z0-9_.-]+\.json$/;
 const MAX_README_BYTES = 512 * 1024; // 512 KiB cap per README
 const MAX_TRANSLATIONS_PER_RUN = 20; // cost guard
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
@@ -32,7 +32,7 @@ export function extractReposFromIndex(html) {
   throw new Error("REPOS array not terminated");
 }
 
-export function findPending(repos, translationsDir, shaMap = {}) {
+export function findPending(repos, translationsDir) {
   const pending = [];
   for (const repo of repos) {
     const slug = String(repo.slug || "");
@@ -40,8 +40,6 @@ export function findPending(repos, translationsDir, shaMap = {}) {
     const file = path.join(translationsDir, slugToFile(slug));
     if (!existsSync(file)) {
       pending.push({ slug, reason: "missing" });
-    } else if (shaMap[slug] && repo.readmeSha && shaMap[slug] !== repo.readmeSha) {
-      pending.push({ slug, reason: "readme-changed" });
     }
   }
   return pending;
@@ -95,8 +93,7 @@ export async function callAnthropic(apiKey, prompt, fetchImpl = globalThis.fetch
     }),
   });
   if (!response.ok) {
-    const body = await response.text().catch(() => "");
-    throw new Error(`Anthropic API ${response.status}: ${body.slice(0, 200)}`);
+    throw new Error(`Anthropic API request failed (${response.status})`);
   }
   const data = await response.json();
   const text = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
@@ -133,7 +130,9 @@ async function main() {
   const translationsDir = path.join(projectRoot, "translations");
   await mkdir(translationsDir, { recursive: true });
 
-  const indexHtml = await readFile(path.join(projectRoot, "index.html"), "utf8");
+  const pagePath = path.join(projectRoot, "index.html");
+  const cachePath = path.join(projectRoot, "data", "repo-summaries.json");
+  const indexHtml = await readFile(pagePath, "utf8");
   const repos = extractReposFromIndex(indexHtml);
   const pending = findPending(repos, translationsDir).slice(0, MAX_TRANSLATIONS_PER_RUN);
 
@@ -143,9 +142,11 @@ async function main() {
   }
   console.log(`${pending.length} repo(s) need translation (capped at ${MAX_TRANSLATIONS_PER_RUN}).`);
 
-  const shaPath = path.join(projectRoot, "data", "translation-sha.json");
-  const shaMap = existsSync(shaPath) ? JSON.parse(await readFile(shaPath, "utf8")) : {};
+  const summaryCache = JSON.parse(await readFile(cachePath, "utf8"));
   const failures = [];
+  const completed = [];
+  let enrichedHtml = indexHtml;
+  let enrichedCache = summaryCache;
 
   for (const { slug } of pending) {
     try {
@@ -153,18 +154,13 @@ async function main() {
       const text = await callAnthropic(apiKey, buildPrompt(markdown));
       const parsed = parseModelResponse(text);
 
-      await writeFile(
-        path.join(translationsDir, slugToFile(slug)),
-        JSON.stringify({ html: parsed.translated_markdown }, null, 2),
-        "utf8",
-      );
-
-      // enrich index.html REPOS entry with summary/detail
-      const enriched = enrichReposEntry(indexHtmlCache ?? indexHtml, slug, toFirestoreSummary(parsed));
-      indexHtmlCache = enriched.html;
-      await writeFile(path.join(projectRoot, "index.html"), enriched.html, "utf8");
-
-      shaMap[slug] = parsed.detail ? `done-${new Date().toISOString().slice(0, 10)}` : "done";
+      const enriched = enrichReposEntry(enrichedHtml, slug, toFirestoreSummary(parsed));
+      enrichedHtml = enriched.html;
+      enrichedCache = enrichSummaryCache(enrichedCache, slug, parsed);
+      completed.push({
+        path: path.join(translationsDir, slugToFile(slug)),
+        text: `${JSON.stringify({ html: parsed.translated_markdown }, null, 2)}\n`,
+      });
       console.log(`✓ ${slug}`);
     } catch (error) {
       failures.push({ slug, error: String(error.message || error) });
@@ -172,19 +168,28 @@ async function main() {
     }
   }
 
-  await writeFile(shaPath, JSON.stringify(shaMap, null, 2), "utf8");
+  if (completed.length > 0) {
+    const enrichedRepos = extractReposFromIndex(enrichedHtml);
+    const dates = new Set(enrichedRepos.map(repo => repo._stats_date));
+    if (dates.size !== 1) throw new Error("translated repositories must share one stats date");
+    const snapshot = createPageSnapshot({
+      page: indexHtml,
+      summaryCache: enrichedCache,
+      repos: enrichedRepos,
+      statsDate: [...dates][0],
+    });
+    await installPageSnapshot({ pagePath, cachePath, ...snapshot });
+    for (const output of completed) await writeFile(output.path, output.text, "utf8");
+  }
 
   if (failures.length > 0) {
     console.error(`\n${failures.length} failure(s):`);
     for (const f of failures) console.error(`  ${f.slug}: ${f.error}`);
-    process.exitCode = 2;
+    console.error("Deterministic summaries remain available for failed repositories.");
   } else {
     console.log(`Done. ${pending.length - failures.length}/${pending.length} translated.`);
   }
 }
-
-// in-memory cache so we don't rewrite the file twice in one run
-let indexHtmlCache = null;
 
 export function enrichReposEntry(html, slug, summaryDetail) {
   const start = html.indexOf("const REPOS = ");
@@ -206,6 +211,16 @@ export function enrichReposEntry(html, slug, summaryDetail) {
   entry.detail = summaryDetail.detail;
   // preserve everything after the closing bracket (e.g. ";" and the rest of the script)
   return { html: html.slice(0, open) + JSON.stringify(repos, null, 0) + html.slice(close + 1), updated: true };
+}
+
+export function enrichSummaryCache(cache, slug, parsed) {
+  if (!cache || Array.isArray(cache) || typeof cache !== "object") throw new Error("summary cache must be an object");
+  const existing = Object.keys(cache).find(key => key.toLowerCase() === slug.toLowerCase());
+  const key = existing ?? slug;
+  return {
+    ...cache,
+    [key]: toFirestoreSummary(parsed),
+  };
 }
 
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1].replace(/\\/g, "/")}`).href) {

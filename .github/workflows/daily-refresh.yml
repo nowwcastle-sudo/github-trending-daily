@@ -2,7 +2,7 @@ name: Daily trending refresh
 
 on:
   schedule:
-    - cron: "7 */2 * * *"
+    - cron: "17 18 * * *"
   workflow_dispatch:
 
 permissions:
@@ -16,33 +16,30 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: main
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "24"
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.13"
       - name: Install dependencies
         run: npm ci
       - name: Test before refresh
         run: npm test
-      - name: Generate summaries & Korean translations
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: node scripts/generate-translations.mjs
       - name: Generate complete daily snapshot
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           set -euo pipefail
           node scripts/update-trending.mjs
+          node scripts/generate-translations.mjs
           python scripts/record_star_observations.py
+          node scripts/update-latest-feed.mjs
           node scripts/update-star-history.mjs
       - name: Validate complete daily snapshot
         shell: bash
@@ -94,7 +91,7 @@ jobs:
               assert not sidecar.exists(), f"SQLite sidecar remains: {sidecar.name}"
           PY
           npm test
-          git diff --check -- index.html data/repo-summaries.json data/star-observations.sqlite star-history.json
+          git diff --check -- index.html data/repo-summaries.json data/star-observations.sqlite star-history.json data/latest.json translations/
       - name: Publish validated snapshot
         shell: bash
         run: |
@@ -119,7 +116,7 @@ jobs:
             *) echo "::error::Generated diff check failed"; exit 1 ;;
           esac
           set +e
-          git grep --cached -qE '(gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- index.html data/repo-summaries.json data/star-observations.sqlite star-history.json
+          git grep --cached -qE '(gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- index.html data/repo-summaries.json data/star-observations.sqlite star-history.json data/latest.json translations/
           scan_status=$?
           set -e
           case "$scan_status" in

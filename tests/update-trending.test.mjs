@@ -484,6 +484,13 @@ test("final snapshot rejects invalid collection sizes and incomplete UI fields",
     () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: noPeriodGain, statsDate: "2026-08-23" }),
     /period gain/i,
   );
+
+  const unsafeColor = publishableRepos();
+  unsafeColor[0].color = "red;position:fixed";
+  assert.throws(
+    () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: unsafeColor, statsDate: "2026-08-23" }),
+    /valid UI schema/i,
+  );
 });
 
 test("summary cache rejects case-insensitive duplicate keys during snapshot creation", () => {

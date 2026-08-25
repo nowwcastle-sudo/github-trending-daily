@@ -10,6 +10,7 @@ import {
   buildPrompt,
   parseModelResponse,
   enrichReposEntry,
+  enrichSummaryCache,
 } from "../scripts/generate-translations.mjs";
 
 test("slugToFile converts slash to double underscore", () => {
@@ -54,4 +55,15 @@ test("enrichReposEntry updates summary/detail preserving trailing code", () => {
   const updated = JSON.parse(out.slice(out.indexOf("["), out.indexOf("]") + 1));
   assert.equal(updated[0].summary.goal, "g");
   assert.ok(out.includes("console.log(x);"), "trailing code preserved");
+});
+
+test("enrichSummaryCache updates the existing case-preserving key", () => {
+  const cache = { "A/One": { summary: { goal: "old" }, detail: { goal: "old" } } };
+  const parsed = {
+    summary: { goal: "g", usage: "u", pros: "p", cons: "c", fit: "f" },
+    detail: { goal: "g", usage: "u", pros: "p", cons: "c", fit: "f", stars_note: "n" },
+  };
+  const next = enrichSummaryCache(cache, "a/one", parsed);
+  assert.deepEqual(Object.keys(next), ["A/One"]);
+  assert.equal(next["A/One"].summary.goal, "g");
 });

@@ -91,17 +91,23 @@ test("primary and recovery workflows have exact safe scheduling and runtime cont
   const permissionsBlock = /^permissions:\n([ \t].*\n?)+/m.exec(workflow)?.[0] ?? "";
   const concurrencyBlock = /^concurrency:\n([ \t].*\n?)+/m.exec(workflow)?.[0] ?? "";
 
-  assert.match(onBlock, /^on:\n  schedule:\n    - cron: "7 \*\/2 \* \* \*"\n  workflow_dispatch:\s*$/);
+  assert.match(onBlock, /^on:\n  schedule:\n    - cron: "17 18 \* \* \*"\n  workflow_dispatch:\s*$/);
   assert.doesNotMatch(onBlock, /^  push:/m);
   assert.match(permissionsBlock, /^permissions:\n  contents: write\s*$/);
   assert.match(concurrencyBlock, /^concurrency:\n  group: daily-refresh\n  cancel-in-progress: false\s*$/);
   assert.match(recovery, /^concurrency:\n  group: daily-refresh\n  cancel-in-progress: false\s*$/m);
   assert.match(workflow, /node-version: "24"/);
   assert.match(workflow, /python-version: "3\.13"/);
+  for (const source of [workflow, recovery]) {
+    assert.doesNotMatch(source, /uses:\s+actions\/(?:checkout|setup-node|setup-python)@v\d/);
+    for (const match of source.matchAll(/uses:\s+actions\/(?:checkout|setup-node|setup-python)@([^\s#]+)/g)) {
+      assert.match(match[1], /^[0-9a-f]{40}$/);
+    }
+  }
   assert.match(workflow, /node-version: "24"[\s\S]*?run: npm ci[\s\S]*?run: npm test/);
   assert.match(recovery, /node-version: "24"[\s\S]*?run: npm ci[\s\S]*?run: npm test/);
   assert.equal(attributes.trim(), ".github/workflows/*.yml text eol=lf");
-  assert.deepEqual([...workflow.matchAll(/secrets\.([A-Za-z0-9_]+)/g)].map(match => match[1]), ["GITHUB_TOKEN", "ANTHROPIC_API_KEY", "GITHUB_TOKEN"]);
+  assert.deepEqual([...workflow.matchAll(/secrets\.([A-Za-z0-9_]+)/g)].map(match => match[1]), ["GITHUB_TOKEN", "ANTHROPIC_API_KEY"]);
   assert.doesNotMatch(workflow, /continue-on-error|force(?:-with-lease)?|rebase|git push[^\n]*--force|pull-requests:\s*write|actions:\s*write/);
 });
 
@@ -111,7 +117,9 @@ test("tests and complete validation surround the exact production order", async 
     "npm ci",
     "npm test",
     "node scripts/update-trending.mjs",
+    "node scripts/generate-translations.mjs",
     "python scripts/record_star_observations.py",
+    "node scripts/update-latest-feed.mjs",
     "node scripts/update-star-history.mjs",
     "StarHistory.normalizeCache",
     "validate_canonical_legacy_baseline",

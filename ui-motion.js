@@ -78,7 +78,7 @@
       .map((key, index) => `<div class="trow"><span class="tlabel">${labels[index]}</span><p>${escapeHtml(summary[key])}</p></div>`)
       .join("");
     return `
-    <h3>${escapeHtml(repo.name)}</h3><p class="tsub">${shortNumber(repo.stars)} ★ · ${escapeHtml(repo.lang)}</p>
+    <h2>${escapeHtml(repo.name)}</h2><p class="tsub">${shortNumber(repo.stars)} ★ · ${escapeHtml(repo.lang)}</p>
     ${rows(ko, ["🎯 목표", "🛠 실행 방법", "👍 장점", "👎 단점·주의점", "💡 어울리는 상황"])}
     <p class="thint tip-actions">
       <button type="button" class="rdbtn js-readme" data-slug="${escapeHtml(repo.slug)}" data-name="${escapeHtml(repo.name)}">📖 README 전체 보기</button>

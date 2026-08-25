@@ -313,7 +313,6 @@ export async function enrichTrendingRepositories(discovered, {
     const [owner, name] = slug.split("/");
     repos.push({
       slug,
-      pushed_at: typeof metadata.pushed_at === "string" ? metadata.pushed_at.slice(0, 10) : null,
       latest_release: latestReleaseDate,
       name: `${owner} / ${name}`,
       desc: metadata.description ?? "",
@@ -376,7 +375,7 @@ function replaceMarkedRegion(value, start, end, name, body) {
   return `${value.slice(0, region.bodyFrom)}\n${body}\n${value.slice(region.bodyTo)}`;
 }
 
-function parsePageRepos(page) {
+export function parsePageRepos(page) {
   const region = markedRegion(page, REPOS_START, REPOS_END, "REPOS");
   const body = page.slice(region.bodyFrom, region.bodyTo).trim();
   const match = /^const REPOS = (\[[\s\S]*\]);$/.exec(body);
@@ -397,6 +396,7 @@ function assertCompleteSummary(repo, statsDate) {
     || typeof repo.desc !== "string"
     || typeof repo.lang !== "string"
     || typeof repo.color !== "string"
+    || !/^#[0-9a-f]{6}$/i.test(repo.color)
     || counts.some(value => !Number.isSafeInteger(value) || value < 0)
   ) {
     throw new Error(`Published ${slug} must have a valid UI schema`);
@@ -627,64 +627,4 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
   });
   console.log(`${check ? "Validated" : result.changed ? "Updated" : "Unchanged"}: ${result.repos.length} repositories for ${result.statsDate} (Asia/Seoul)`);
 
-  if (!check) {
-    // Streak & rank-change from star observation history (SQLite)
-    let signals = {};
-    try {
-      const { DatabaseSync: Database } = await import("node:sqlite");
-      const db = new Database(fileURLToPath(new URL("../data/star-observations.sqlite", import.meta.url)), { readOnly: true });
-      const rows = db.prepare("SELECT slug, observed_date, stars_total FROM star_observations ORDER BY slug, observed_date").all();
-      db.close();
-      const bySlug = new Map();
-      for (const row of rows) {
-        const list = bySlug.get(row.slug) ?? [];
-        const last = list[list.length - 1];
-        if (!last || last.date !== row.observed_date) list.push({ date: row.observed_date, stars: row.stars_total });
-        else last.stars = Math.max(last.stars, row.stars_total);
-        bySlug.set(row.slug, list);
-      }
-      for (const [slug, history] of bySlug) {
-        // streak: consecutive calendar days ending at the latest observation
-        let streak = 0;
-        const dates = history.map((h) => h.date);
-        for (let i = dates.length - 1; i >= 0; i--) {
-          const prev = i > 0 ? dates[i - 1] : null;
-          if (!prev) { streak = 1; break; }
-          const gap = (new Date(dates[i]) - new Date(prev)) / 86400000;
-          if (gap === 1) streak++;
-          else break;
-        }
-        const rankNow = history[history.length - 1].stars;
-        const rankPrev = history.length > 1 ? history[history.length - 2].stars : null;
-        signals[slug] = {
-          streakDays: streak,
-          starsChange: rankPrev === null ? null : rankNow - rankPrev,
-        };
-      }
-    } catch (error) {
-      console.error(`signal computation skipped: ${error.message}`);
-    }
-
-    // JSON feed — machine-readable snapshot for external consumers
-    const feedDir = fileURLToPath(new URL("../data/", import.meta.url));
-    const { mkdir } = await import("node:fs/promises");
-    await mkdir(feedDir, { recursive: true });
-    const feed = {
-      generatedAt: new Date().toISOString(),
-      statsDate: result.statsDate,
-      count: result.repos.length,
-      repos: result.repos.map(({ slug, name, desc, lang, stars, forks, issues, contributors,
-        stars_daily, stars_weekly, stars_monthly, summary }) => ({
-        slug, name, desc, lang, stars, forks, issues, contributors,
-        gains: { daily: stars_daily ?? null, weekly: stars_weekly ?? null, monthly: stars_monthly ?? null },
-        signal: signals[slug] ?? null,
-        summary,
-      })),
-    };
-    const feedPath = fileURLToPath(new URL("../data/latest.json", import.meta.url));
-    const tmpFeed = `${feedPath}.tmp`;
-    await writeFile(tmpFeed, JSON.stringify(feed, null, 2), "utf8");
-    await rename(tmpFeed, feedPath);
-    console.log(`JSON feed written: data/latest.json (${feed.count} repos)`);
-  }
 }
