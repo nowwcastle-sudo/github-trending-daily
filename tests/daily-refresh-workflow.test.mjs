@@ -86,7 +86,7 @@ test("primary and recovery workflows have exact safe scheduling and runtime cont
   const permissionsBlock = /^permissions:\n([ \t].*\n?)+/m.exec(workflow)?.[0] ?? "";
   const concurrencyBlock = /^concurrency:\n([ \t].*\n?)+/m.exec(workflow)?.[0] ?? "";
 
-  assert.match(onBlock, /^on:\n  schedule:\n    - cron: "17 18 \* \* \*"\n  workflow_dispatch:\s*$/);
+  assert.match(onBlock, /^on:\n  schedule:\n    - cron: "7 \*\/2 \* \* \*"\n  workflow_dispatch:\s*$/);
   assert.doesNotMatch(onBlock, /^  push:/m);
   assert.match(permissionsBlock, /^permissions:\n  contents: write\s*$/);
   assert.match(concurrencyBlock, /^concurrency:\n  group: daily-refresh\n  cancel-in-progress: false\s*$/);
