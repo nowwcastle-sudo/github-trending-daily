@@ -1,0 +1,2018 @@
+{
+ "meta": {
+  "generatedAt": "2026-08-24T01:07:09.285411",
+  "project": "GitHub Trending Daily",
+  "version": "1.0"
+ },
+ "nodes": [
+  {
+   "id": "wf-daily-refresh",
+   "type": "config",
+   "path": ".github/workflows/daily-refresh.yml",
+   "name": "Daily trending refresh",
+   "summary": "매일 cron(17 18 UTC, 서울 03:17)과 workflow_dispatch로 실행되는 메인 갱신 워크플로우. Node 24/Python 3.13 환경에서 update-trending.mjs → record_star_observations.py → update-star-history.mjs를 순차 실행해 완전한 일일 스냅샷을 생성한다.",
+   "tags": [
+    "GitHub Actions",
+    "cron",
+    "스냅샷 생성",
+    "검증 파이프라인"
+   ],
+   "complexity": "high"
+  },
+  {
+   "id": "wf-daily-validate",
+   "type": "function",
+   "path": ".github/workflows/daily-refresh.yml",
+   "name": "Validate complete daily snapshot step",
+   "summary": "생성된 스냅샷을 이중 검증하는 단계. Node 쪽에서 extractRepos와 StarHistory.normalizeCache의 slug 집합 일치를 assert하고, Python 쪽에서 SQLite integrity_check, foreign_key_check, 관측 행 존재, sidecar 파일 부재를 확인한 뒤 npm test를 재실행한다.",
+   "tags": [
+    "검증",
+    "SQLite integrity",
+    "assert",
+    "fail-closed"
+   ],
+   "complexity": "high"
+  },
+  {
+   "id": "wf-daily-publish",
+   "type": "function",
+   "path": ".github/workflows/daily-refresh.yml",
+   "name": "Publish validated snapshot step",
+   "summary": "변경된 파일이 허용 목록(index.html, repo-summaries.json, star-observations.sqlite, star-history.json)에 정확히 속하는지 확인하고, 예상 외 산출물이 있으면 실패시킨 뒤 해당 파일만 git add·commit·push한다.",
+   "tags": [
+    "원자적 배포",
+    "allowlist",
+    "git commit"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "wf-star-history-update",
+   "type": "config",
+   "path": ".github/workflows/update-star-history.yml",
+   "name": "Update star history",
+   "summary": "매일 cron(47 18 UTC)으로 star-history 캐시만 별도 갱신하는 보조 워크플로우. npm test 후 update-star-history.mjs를 실행하고 normalizeCache로 캐시 유효성을 재검증한다.",
+   "tags": [
+    "GitHub Actions",
+    "캐시 갱신",
+    "star history"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "wf-secret-scan-commit",
+   "type": "function",
+   "path": ".github/workflows/update-star-history.yml",
+   "name": "Secret scan & commit step",
+   "summary": "star-history.json에 실제 변경이 있을 때만 커밋하며, ghp_/github_pat_/AIza/개인키 등 시크릿 패턴을 git grep으로 스캔해 발견 시 배포를 차단한다. 통과하면 github-actions[bot]으로 main에 push한다.",
+   "tags": [
+    "secret scanning",
+    "조건부 커밋",
+    "bot push"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "readme-md",
+   "type": "docs",
+   "path": "README.md",
+   "name": "README (한국어)",
+   "summary": "프로젝트의 목적(매일 GitHub Trending 수집 + 한국어 요약 대시보드), 사용 방법(기간·언어 필터, 검색, 카드 호버 인사이트, README 보기, 즐겨찾기 및 Google 로그인 동기화)과 GitHub Pages 사이트 주소를 안내한다.",
+   "tags": [
+    "문서",
+    "한국어",
+    "사용 안내"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "readme-en",
+   "type": "docs",
+   "path": "README.en.md",
+   "name": "README (English)",
+   "summary": "README.md의 영문판으로, 프로젝트 존재 이유와 사용법(03:17 KST 자동 갱신, 기간/언어 필터, 즐겨찾기 및 Google 계정 동기화)과 배포 주소를 설명한다.",
+   "tags": [
+    "docs",
+    "English",
+    "사용 안내"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "firebase-config-json",
+   "type": "config",
+   "path": "firebase-config.json",
+   "name": "Firebase Web 설정",
+   "summary": "Firebase 프로젝트(github-trending-nowwcastle)의 Web 앱 식별 정보 — projectId, appId, apiKey, authDomain, App Check site key 등을 담은 공개 설정 파일. 클라이언트가 Google OAuth/Firestore에 접속할 때 사용된다.",
+   "tags": [
+    "Firebase",
+    "설정",
+    "App Check"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "firebase-json",
+   "type": "config",
+   "path": "firebase.json",
+   "name": "Firebase CLI 설정",
+   "summary": "Firestore Security Rules 위치(firestore.rules)와 Firestore 에뮬레이터(포트 8080, UI 비활성, singleProjectMode)를 정의해 rules 테스트(test:rules) 환경을 제공한다.",
+   "tags": [
+    "Firebase",
+    "emulator",
+    "firestore.rules"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "index-html",
+   "type": "file",
+   "path": "index.html",
+   "name": "대시보드 단일 페이지 (HTML/CSS/JS)",
+   "summary": "서비스의 핵심 UI. REPOS 데이터를 기반으로 전체·일간·주간·월간 기간 선택, 언어 필터, 검색, 즐겨찾기 토글, 스타 히스토리 SVG 스파크라인(renderHist), 카드 호버 툴팁, README 패널(openReadme — marked+DOMPurify로 원문/한국어 번역 탭 렌더링), 다크/라이트 테마(setTheme)를 구현한다. 하단 module script는 firebase-client.js를 동적 import하고 실패 시 브라우저 로컬 동기화 모드로 폴백한다.",
+   "tags": [
+    "SPA",
+    "vanilla JS",
+    "즐겨찾기 UI",
+    "README 뷰어",
+    "SVG 차트",
+    "테마"
+   ],
+   "complexity": "high"
+  },
+  {
+   "id": "render-fn",
+   "type": "function",
+   "path": "index.html",
+   "name": "render()",
+   "summary": "핵심 렌더 함수. 검색어·언어·기간(stars_daily/weekly/monthly)으로 REPOS를 필터·정렬하고 favOnly 모드에서 즐겨찾기만 남긴 뒤, 카드 HTML(랭킹, HOT 배지, 포크/기여자/이슈 메타, 게인 바)을 생성한다. 마지막에 renderHist()를 호출해 히스토리 그래프를 채운다.",
+   "tags": [
+    "렌더링",
+    "필터링",
+    "정렬",
+    "템플릿 리터럴"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "openreadme-fn",
+   "type": "function",
+   "path": "index.html",
+   "name": "openReadme(slug,name)",
+   "summary": "README 사이드 패널을 열고 raw.githubusercontent.com에서 README.md를 fetch해 marked 파싱 + DOMPurify sanitize로 렌더링한다. 이어서 translations/<slug>.json 캐시에서 한국어 번역을 로드해 원문/번역 탭을 제공하며, 실패 시 GitHub 링크 폴백을 보여준다.",
+   "tags": [
+    "fetch",
+    "marked",
+    "DOMPurify",
+    "한국어 번역",
+    "탭 UI"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "package-json",
+   "type": "config",
+   "path": "package.json",
+   "name": "package.json",
+   "summary": "ES module 프로젝트 선언과 테스트 스크립트를 정의한다. test는 node --test와 Python unittest를 함께 실행하고, test:rules는 Firebase 에뮬레이터에서 Firestore 규칙 테스트를, test:all은 전부 실행한다. devDependencies로 firebase SDK/firebase-tools/@firebase/rules-unit-testing을 고정 버전으로 사용한다.",
+   "tags": [
+    "npm scripts",
+    "node:test",
+    "unittest",
+    "Firebase"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "star-history-json",
+   "type": "config",
+   "path": "star-history.json",
+   "name": "Star History 캐시",
+   "summary": "버전 1 스키마({version, generatedAt, repositories})의 정적 데이터 캐시. 저장소별로 estimated(월별 추정 스타수)와 observed(실측 스타수) 포인트 배열을 담아 브라우저가 한 번만 로드해 SVG 추세선을 그리게 한다. 워크플로우가 매일 갱신·커밋한다.",
+   "tags": [
+    "JSON 캐시",
+    "star history",
+    "데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "plan-daily-refresh",
+   "type": "docs",
+   "path": "docs/superpowers/plans/2026-08-22-daily-trending-refresh.md",
+   "name": "Daily Trending Refresh 구현 계획",
+   "summary": "Trending 목록·메타데이터·한국어 요약·스타 히스토리를 매일 갱신하되 실패 시 마지막 정상 사이트를 보존하는 구현 계획. 의존성 없는 Node updater가 Trending 페이지 3개를 파싱해 union(daily→weekly→monthly)을 만들고 REST로 enrich하며, index.html의 마커 영역을 원자적으로 재작성한다. 파서 시딩, enrich/fallback, 원자적 스냅샷 등 태스크별 수용 기준을 정의한다.",
+   "tags": [
+    "구현 계획",
+    "원자적 갱신",
+    "한국어 요약 캐시",
+    "fail-safe"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "plan-google-sync",
+   "type": "docs",
+   "path": "docs/superpowers/plans/2026-08-22-google-favorites-sync.md",
+   "name": "Google Favorites Sync 구현 계획",
+   "summary": "Google 로그인과 계정 단위 즐겨찾기 동기화를 추가하면서 게스트(브라우저 로컬) 모드를 유지하는 상세 구현 계획. Firebase Auth(Google OAuth) + Firestore users/{uid} 문서(favorites 최대 500개 allowlist), favorites.js 개편, DOM 없는 favorite-sync.js 상태 머신, firebase-client.js 어댑터, Firestore Rules 및 에뮬레이터 테스트, legacy import/union 1회 마이그레이션 전략과 시크릿 금지 제약을 규정한다.",
+   "tags": [
+    "구현 계획",
+    "Firebase Auth",
+    "Firestore",
+    "OAuth",
+    "마이그레이션",
+    "보안 제약"
+   ],
+   "complexity": "high"
+  },
+  {
+   "id": "plan-star-history-cache",
+   "type": "docs",
+   "path": "docs/superpowers/plans/2026-08-22-star-history-cache.md",
+   "name": "Star History Cache 구현 계획",
+   "summary": "제한된 Star History 이미지를 대체해 일일 생성되는 정적 JSON 캐시와 인라인 SVG 추세선을 도입하는 계획. Node 내장 스크립트(update-star-history.mjs)가 index.html에서 저장소 목록을 추출하고 OSS Insight를 순차 fetch해 estimated/observed를 병합·검증하며, 캐시 스키마(v1, 최대 500 estimated/730 observed 포인트), no-change skip, 실패 시 기존 캐시 보존 규칙을 정한다.",
+   "tags": [
+    "구현 계획",
+    "OSS Insight",
+    "JSON 캐시",
+    "SVG",
+    "검증 규칙"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "plan-star-observation-db",
+   "type": "docs",
+   "path": "docs/superpowers/plans/2026-08-22-star-observation-database.md",
+   "name": "Star Observation Database 구현 계획",
+   "summary": "legacy·exact 스타 관측값을 append-only SQLite DB(data/star-observations.sqlite)에 보존하는 계획. 파이썬 표준 라이브러리(sqlite3/unittest)로 스키마 v1, 멱등 legacy import, 트랜잭션 append, source-local delta 계산, integrity 검증을 구현하며 브라우저 렌더링에는 영향을 주지 않는다.",
+   "tags": [
+    "구현 계획",
+    "SQLite",
+    "append-only",
+    "Python",
+    "관측 데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "record-star-observations-ref",
+   "type": "file",
+   "path": "scripts/record_star_observations.py",
+   "name": "record_star_observations.py (참조)",
+   "summary": "계획 문서들이 지목하는 Python 수집기로, legacy STAR_HISTORY를 멱등하게 임포트하고 REST 관측값을 트랜잭션으로 append하며 무결성을 검증한다. daily-refresh 워크플로우와 검증 단계에서 호출된다.",
+   "tags": [
+    "Python",
+    "SQLite",
+    "참조 노드"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "update-star-history-ref",
+   "type": "file",
+   "path": "scripts/update-star-history.mjs",
+   "name": "update-star-history.mjs (참조)",
+   "summary": "star-history-cache 계획이 정의하는 Node 캐시 생성기로, extractRepos·검증·병합·no-change 비교·CLI 엔트리를 담당한다. 두 워크플로우 모두에서 실행된다.",
+   "tags": [
+    "Node",
+    "캐시 생성",
+    "참조 노드"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "update-trending-ref",
+   "type": "file",
+   "path": "scripts/update-trending.mjs",
+   "name": "update-trending.mjs (참조)",
+   "summary": "daily-refresh 계획의 핵심 updater로, Trending 파싱·REST enrich·한국어 요약 캐시 재사용·fallback 생성·index.html 마커 영역 원자적 재작성을 수행한다.",
+   "tags": [
+    "Node",
+    "Trending 파서",
+    "참조 노드"
+   ],
+   "complexity": "high"
+  },
+  {
+   "id": "spec-daily-refresh",
+   "type": "doc",
+   "path": "docs/superpowers/specs/2026-08-22-daily-trending-refresh-design.md",
+   "name": "Daily GitHub Trending Refresh Design",
+   "summary": "매일 GitHub Trending(일간·주간·월간)을 수집해 REST 메타데이터와 한국어 요약을 유지·갱신하고 원자적으로 배포하는 파이프라인 설계서. Trending HTML 구조 불변성 검사, 저장소 수 범위 게이트(10~75개), 지수 백오프 재시도 등 fail-closed 안전장치를 규정한다. 실패 시 마지막 정상 페이지를 보존하는 last-good-output 전략과 Copilot 요약 enrichment의 선택적 사용·제거 조건도 다룬다.",
+   "tags": [
+    "design-doc",
+    "github-actions",
+    "scraping",
+    "korean-summary",
+    "fail-closed"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "spec-star-history-fav-sync",
+   "type": "doc",
+   "path": "docs/superpowers/specs/2026-08-22-star-history-google-auth-design.md",
+   "name": "스타 히스토리 복구 및 Google 즐겨찾기 동기화 설계",
+   "summary": "깨진 star-history.com SVG를 OSS Insight API 기반 star-history.json + 인라인 스파크라인으로 대체하고, localStorage 즐겨찾기를 Firebase Auth(Google OAuth)·Firestore users/{uid}로 기기 간 동기화하는 설계서(한글). GitHub stargazers API 제한 원인 분석, Supabase/Auth.js 제외 사유, 즐겨찾기 버튼 이벤트 버그 수정 등 대안 검토와 뒤집는 조건을 상세히 기록했다.",
+   "tags": [
+    "design-doc",
+    "firebase",
+    "google-oauth",
+    "firestore",
+    "oss-insight",
+    "star-history",
+    "favorites"
+   ],
+   "complexity": "high"
+  },
+  {
+   "id": "spec-star-observation-db",
+   "type": "doc",
+   "path": "docs/superpowers/specs/2026-08-22-star-observation-database-design.md",
+   "name": "Append-only Star Observation Database Design",
+   "summary": "정확한 일별 스타 총계·증감을 data/star-observations.sqlite(SQLite, 표준 라이브러리만 사용)에 append-only로 축적하는 수집 전용 DB 설계서. 식별자는 (slug NOCASE, observed_date, source)이며 재실행은 no-op, 기존 행 갱신·삭제 금지를 원칙으로 한다. legacy_inline(STAR_HISTORY)과 github_rest 소스를 분리 보존하고 브라우저 코드는 이 DB를 읽지 않는 경계를 명시한다.",
+   "tags": [
+    "design-doc",
+    "sqlite",
+    "append-only",
+    "star-history",
+    "data-collection"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "fx-daily",
+   "type": "test-fixture",
+   "path": "tests/fixtures/trending-daily.html",
+   "name": "trending-daily.html",
+   "summary": "GitHub Trending 일간 페이지의 최소 모형 fixture. Box-row article 5개에 repo 링크와 'N stars today' 형식의 별 증가수를 담아 정상 파싱 경로를 검증한다.",
+   "tags": [
+    "fixture",
+    "html",
+    "parser-test"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "fx-weekly",
+   "type": "test-fixture",
+   "path": "tests/fixtures/trending-weekly.html",
+   "name": "trending-weekly.html",
+   "summary": "주간 Trending 페이지 모형. 실제 GitHub 마크업처럼 속성 순서·따옴표·클래스 조합이 다른 변형 행(data-view-component, compact 클래스)을 포함해 파서의 구조적 유연성을 검증한다.",
+   "tags": [
+    "fixture",
+    "html",
+    "markup-variance"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "fx-monthly",
+   "type": "test-fixture",
+   "path": "tests/fixtures/trending-monthly.html",
+   "name": "trending-monthly.html",
+   "summary": "월간 Trending 페이지 모형. 5개 저장소와 'stars this month' 표기를 담아 기간별 파싱 및 일간 목록과의 union 병합 시나리오를 지원한다.",
+   "tags": [
+    "fixture",
+    "html",
+    "period"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "fx-duplicates",
+   "type": "test-fixture",
+   "path": "tests/fixtures/trending-duplicates.html",
+   "name": "trending-duplicates.html",
+   "summary": "대소문자만 다른 중복 slug(/Alpha/one vs /alpha/ONE)을 포함한 fixture. slug 정규화 후 중복 제거 로직이 정확히 하나만 남기는지 확인한다.",
+   "tags": [
+    "fixture",
+    "dedup",
+    "normalization"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "fx-invalid-gain",
+   "type": "test-fixture",
+   "path": "tests/fixtures/trending-invalid-gain.html",
+   "name": "trending-invalid-gain.html",
+   "summary": "'many stars today'처럼 숫자가 아닌 증가값을 포함한 fixture. 잘못된 gain 레코드를 거부(reject)하는 파서의 방어 동작을 검증한다.",
+   "tags": [
+    "fixture",
+    "invalid-input"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "fx-malformed",
+   "type": "test-fixture",
+   "path": "tests/fixtures/trending-malformed.html",
+   "name": "trending-malformed.html",
+   "summary": "Trending 행이 전혀 없는 깨진 페이지 모형. 구조 불변성 위반 시 파이프라인이 fail-closed로 실행을 중단하고 기존 산출물을 보존하는지 확인한다.",
+   "tags": [
+    "fixture",
+    "fail-closed",
+    "structural-invariant"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "pipeline-translations",
+   "type": "data-group",
+   "path": "translations/*.json",
+   "name": "번역 원문 데이터 집합",
+   "summary": "Trending에 오른 20개 저장소의 README 원문을 repo당 JSON 1개(키: html)로 보관하는 데이터 디렉터리. 모든 파일이 {'html': string} 단일 키 구조로 완전히 일관되어 프론트엔드/워커가 균질하게 소비할 수 있다. 한국어 요약 캐시(repo-summaries.json)와 별개의 원문 보존 계층이다.",
+   "tags": [
+    "data",
+    "translations",
+    "consistent-schema"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-1jehuang__jcode",
+   "type": "data",
+   "path": "translations/1jehuang__jcode.json",
+   "name": "jcode",
+   "summary": "1jehuang 조직의 'jcode' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "1jehuang"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-AlexsJones__llmfit",
+   "type": "data",
+   "path": "translations/AlexsJones__llmfit.json",
+   "name": "llmfit",
+   "summary": "AlexsJones 조직의 'llmfit' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "alexsjones"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-AprilNEA__OpenLogi",
+   "type": "data",
+   "path": "translations/AprilNEA__OpenLogi.json",
+   "name": "OpenLogi",
+   "summary": "AprilNEA 조직의 'OpenLogi' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "aprilnea"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-NVIDIA-NeMo__Switchyard",
+   "type": "data",
+   "path": "translations/NVIDIA-NeMo__Switchyard.json",
+   "name": "Switchyard",
+   "summary": "NVIDIA-NeMo 조직의 'Switchyard' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "nvidia-nemo"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-PostHog__posthog",
+   "type": "data",
+   "path": "translations/PostHog__posthog.json",
+   "name": "PostHog",
+   "summary": "PostHog 조직의 'PostHog' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "posthog"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-TencentCloud__TencentDB-Agent-Memory",
+   "type": "data",
+   "path": "translations/TencentCloud__TencentDB-Agent-Memory.json",
+   "name": "TencentDB-Agent-Memory",
+   "summary": "TencentCloud 조직의 'TencentDB-Agent-Memory' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "tencentcloud"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-TryGhost__Ghost",
+   "type": "data",
+   "path": "translations/TryGhost__Ghost.json",
+   "name": "Ghost",
+   "summary": "TryGhost 조직의 'Ghost' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "tryghost"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-affaan-m__ECC",
+   "type": "data",
+   "path": "translations/affaan-m__ECC.json",
+   "name": "ECC",
+   "summary": "affaan-m 조직의 'ECC' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "affaan-m"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-akitaonrails__ai-memory",
+   "type": "data",
+   "path": "translations/akitaonrails__ai-memory.json",
+   "name": "ai-memory",
+   "summary": "akitaonrails 조직의 'ai-memory' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "akitaonrails"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-apache__maka",
+   "type": "data",
+   "path": "translations/apache__maka.json",
+   "name": "maka (apache)",
+   "summary": "apache 조직의 'maka (apache)' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "apache"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-ayghri__i-have-adhd",
+   "type": "data",
+   "path": "translations/ayghri__i-have-adhd.json",
+   "name": "i-have-adhd",
+   "summary": "ayghri 조직의 'i-have-adhd' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "ayghri"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-basecamp__omarchy",
+   "type": "data",
+   "path": "translations/basecamp__omarchy.json",
+   "name": "Omarchy",
+   "summary": "basecamp 조직의 'Omarchy' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "basecamp"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-block__buzz",
+   "type": "data",
+   "path": "translations/block__buzz.json",
+   "name": "buzz",
+   "summary": "block 조직의 'buzz' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "block"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-bojieli__ai-agent-book",
+   "type": "data",
+   "path": "translations/bojieli__ai-agent-book.json",
+   "name": "AI Agent Book",
+   "summary": "bojieli 조직의 'AI Agent Book' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "bojieli"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-cactus-compute__needle",
+   "type": "data",
+   "path": "translations/cactus-compute__needle.json",
+   "name": "needle",
+   "summary": "cactus-compute 조직의 'needle' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "cactus-compute"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-cathrynlavery__diagram-design",
+   "type": "data",
+   "path": "translations/cathrynlavery__diagram-design.json",
+   "name": "diagram-design",
+   "summary": "cathrynlavery 조직의 'diagram-design' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "cathrynlavery"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-citrolabs__ego-lite",
+   "type": "data",
+   "path": "translations/citrolabs__ego-lite.json",
+   "name": "ego-lite",
+   "summary": "citrolabs 조직의 'ego-lite' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "citrolabs"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-cordiverse__cordis",
+   "type": "data",
+   "path": "translations/cordiverse__cordis.json",
+   "name": "cordis",
+   "summary": "cordiverse 조직의 'cordis' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "cordiverse"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-cursor__plugins",
+   "type": "data",
+   "path": "translations/cursor__plugins.json",
+   "name": "cursor plugins",
+   "summary": "cursor 조직의 'cursor plugins' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "cursor"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "tr-diegosouzapw__OmniRoute",
+   "type": "data",
+   "path": "translations/diegosouzapw__OmniRoute.json",
+   "name": "OmniRoute",
+   "summary": "diegosouzapw 조직의 'OmniRoute' 저장소 README 원문을 담은 번역 소스 데이터 파일. 단일 키 'html'에 README 마크다운/HTML 문자열 하나만 저장하며, 배치 내 20개 파일 모두 동일한 키 구조를 유지한다. 파이프라인이 이 원문을 LLM 번역·한국어 요약 생성의 입력으로 사용한다.",
+   "tags": [
+    "translations-data",
+    "readme-source",
+    "single-key-json",
+    "diegosouzapw"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/different-ai__openwork.json",
+   "type": "data",
+   "path": "translations/different-ai__openwork.json",
+   "name": "different-ai__openwork",
+   "summary": "GitHub 저장소 different-ai/openwork의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/earendil-works__pi.json",
+   "type": "data",
+   "path": "translations/earendil-works__pi.json",
+   "name": "earendil-works__pi",
+   "summary": "GitHub 저장소 earendil-works/pi의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/elder-plinius__OBLITERATUS.json",
+   "type": "data",
+   "path": "translations/elder-plinius__OBLITERATUS.json",
+   "name": "elder-plinius__OBLITERATUS",
+   "summary": "GitHub 저장소 elder-plinius/OBLITERATUS의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/harry0703__MoneyPrinterTurbo.json",
+   "type": "data",
+   "path": "translations/harry0703__MoneyPrinterTurbo.json",
+   "name": "harry0703__MoneyPrinterTurbo",
+   "summary": "GitHub 저장소 harry0703/MoneyPrinterTurbo의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/jundot__omlx.json",
+   "type": "data",
+   "path": "translations/jundot__omlx.json",
+   "name": "jundot__omlx",
+   "summary": "GitHub 저장소 jundot/omlx의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/lyogavin__airllm.json",
+   "type": "data",
+   "path": "translations/lyogavin__airllm.json",
+   "name": "lyogavin__airllm",
+   "summary": "GitHub 저장소 lyogavin/airllm의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/mahlernim__google-timeline-visualizer.json",
+   "type": "data",
+   "path": "translations/mahlernim__google-timeline-visualizer.json",
+   "name": "mahlernim__google-timeline-visualizer",
+   "summary": "GitHub 저장소 mahlernim/google-timeline-visualizer의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/mattpocock__skills.json",
+   "type": "data",
+   "path": "translations/mattpocock__skills.json",
+   "name": "mattpocock__skills",
+   "summary": "GitHub 저장소 mattpocock/skills의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/megadose__holehe.json",
+   "type": "data",
+   "path": "translations/megadose__holehe.json",
+   "name": "megadose__holehe",
+   "summary": "GitHub 저장소 megadose/holehe의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/microsoft__AI-For-Beginners.json",
+   "type": "data",
+   "path": "translations/microsoft__AI-For-Beginners.json",
+   "name": "microsoft__AI-For-Beginners",
+   "summary": "GitHub 저장소 microsoft/AI-For-Beginners의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/microsoft__TypeScript.json",
+   "type": "data",
+   "path": "translations/microsoft__TypeScript.json",
+   "name": "microsoft__TypeScript",
+   "summary": "GitHub 저장소 microsoft/TypeScript의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/microsoft__onnxruntime.json",
+   "type": "data",
+   "path": "translations/microsoft__onnxruntime.json",
+   "name": "microsoft__onnxruntime",
+   "summary": "GitHub 저장소 microsoft/onnxruntime의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/modular__modular.json",
+   "type": "data",
+   "path": "translations/modular__modular.json",
+   "name": "modular__modular",
+   "summary": "GitHub 저장소 modular/modular의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/obra__superpowers.json",
+   "type": "data",
+   "path": "translations/obra__superpowers.json",
+   "name": "obra__superpowers",
+   "summary": "GitHub 저장소 obra/superpowers의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/opengeos__GeoLibre.json",
+   "type": "data",
+   "path": "translations/opengeos__GeoLibre.json",
+   "name": "opengeos__GeoLibre",
+   "summary": "GitHub 저장소 opengeos/GeoLibre의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/permissionlesstech__bitchat.json",
+   "type": "data",
+   "path": "translations/permissionlesstech__bitchat.json",
+   "name": "permissionlesstech__bitchat",
+   "summary": "GitHub 저장소 permissionlesstech/bitchat의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/pingdotgg__t3code.json",
+   "type": "data",
+   "path": "translations/pingdotgg__t3code.json",
+   "name": "pingdotgg__t3code",
+   "summary": "GitHub 저장소 pingdotgg/t3code의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/protocolbuffers__protobuf.json",
+   "type": "data",
+   "path": "translations/protocolbuffers__protobuf.json",
+   "name": "protocolbuffers__protobuf",
+   "summary": "GitHub 저장소 protocolbuffers/protobuf의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/public-apis__public-apis.json",
+   "type": "data",
+   "path": "translations/public-apis__public-apis.json",
+   "name": "public-apis__public-apis",
+   "summary": "GitHub 저장소 public-apis/public-apis의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/ruvnet__ruflo.json",
+   "type": "data",
+   "path": "translations/ruvnet__ruflo.json",
+   "name": "ruvnet__ruflo",
+   "summary": "GitHub 저장소 ruvnet/ruflo의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/santifer__career-ops.json",
+   "type": "data",
+   "path": "translations/santifer__career-ops.json",
+   "name": "santifer__career-ops",
+   "summary": "GitHub 저장소 santifer/career-ops의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/semantica-agi__semantica.json",
+   "type": "data",
+   "path": "translations/semantica-agi__semantica.json",
+   "name": "semantica-agi__semantica",
+   "summary": "GitHub 저장소 semantica-agi/semantica의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/unslothai__unsloth.json",
+   "type": "data",
+   "path": "translations/unslothai__unsloth.json",
+   "name": "unslothai__unsloth",
+   "summary": "GitHub 저장소 unslothai/unsloth의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/virgiliojr94__book-to-skill.json",
+   "type": "data",
+   "path": "translations/virgiliojr94__book-to-skill.json",
+   "name": "virgiliojr94__book-to-skill",
+   "summary": "GitHub 저장소 virgiliojr94/book-to-skill의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/volcengine__OpenViking.json",
+   "type": "data",
+   "path": "translations/volcengine__OpenViking.json",
+   "name": "volcengine__OpenViking",
+   "summary": "GitHub 저장소 volcengine/OpenViking의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "translations/zhaoxuya520__reverse-skill.json",
+   "type": "data",
+   "path": "translations/zhaoxuya520__reverse-skill.json",
+   "name": "zhaoxuya520__reverse-skill",
+   "summary": "GitHub 저장소 zhaoxuya520/reverse-skill의 README를 한국어로 번역한 정적 데이터 파일이다. 개요·설치·사용법 등이 마크다운 텍스트(html 키)로 담겨 있다. UI의 'README 전체 보기' 모달이나 요약 카드가 이 번역본을 로드해 렌더링한다.",
+   "tags": [
+    "translations",
+    "json",
+    "한국어번역",
+    "readme",
+    "정적데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": ".firebaserc",
+   "type": "config",
+   "path": ".firebaserc",
+   "name": ".firebaserc",
+   "summary": "Firebase CLI 프로젝트 설정 파일로, 기본 프로젝트가 github-trending-nowwcastle로 지정되어 있다. 배포·규칙 배포 시 대상 프로젝트를 결정한다.",
+   "tags": [
+    "firebase",
+    "설정"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": ".gitattributes",
+   "type": "config",
+   "path": ".gitattributes",
+   "name": ".gitattributes",
+   "summary": "Git 속성 파일로 .github/workflows/*.yml에 LF 줄바꿈을 강제한다. 워크플로 파일이 OS마다 CRLF로 변환되는 문제를 방지한다.",
+   "tags": [
+    "git",
+    "줄바꿈"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "data/repo-summaries.json",
+   "type": "data",
+   "path": "data/repo-summaries.json",
+   "name": "repo-summaries.json",
+   "summary": "슬러그별 한국어 5항목 요약(goal/usage/pros/cons/fit)을 모아둔 마스터 데이터. update-trending.mjs 파이프라인이 생성·갱신하며 프런트엔드 카드와 모바일 툴팁이 이를 읽어 렌더링한다.",
+   "tags": [
+    "json",
+    "한국어요약",
+    "핵심데이터"
+   ],
+   "complexity": "low"
+  },
+  {
+   "id": "data/star-observations.sqlite",
+   "type": "data",
+   "path": "data/star-observations.sqlite",
+   "name": "star-observations.sqlite",
+   "summary": "스타 관측 이력 SQLite DB(schema v1). repositories(67행)·star_observations(150행) 테이블에 슬러그별 관측일·총스타·증분·소스를 기록하며 record_star_observations.py가 append 전용으로 관리한다.",
+   "tags": [
+    "sqlite",
+    "스타이력",
+    "시계열데이터"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "favorites.js",
+   "type": "module",
+   "path": "favorites.js",
+   "name": "favorites.js",
+   "summary": "localStorage 기반 즐겨찾기 코어 유틸(UMD로 Node/브라우저 양쪽 지원). 슬러그 정규식 검증(201자 제한), 중복 제거, 최대 500개 제한 정규화, 게스트 키(gh-favs-guest) 읽기·쓰기·토글·레거시 마이그레이션을 담당한다.",
+   "tags": [
+    "즐겨찾기",
+    "localStorage",
+    "UMD",
+    "핵심코드"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "favorite-sync.js",
+   "type": "module",
+   "path": "favorite-sync.js",
+   "name": "favorite-sync.js",
+   "summary": "게스트/계정 모드 즐겨찾기 동기화 컨트롤러. generation 캡처로 계정 전환 경쟁 상태를 차단하고, 클라우드 실시간 watch 구독, uid별 import 플래그·오프라인 캐시, 낙관적 토글과 실패 롤백, writeTail 직렬화로 쓰기 순서를 보장한다.",
+   "tags": [
+    "동기화",
+    "낙관적업데이트",
+    "경쟁상태처리",
+    "Firebase",
+    "핵심코드"
+   ],
+   "complexity": "high"
+  },
+  {
+   "id": "firebase-client.js",
+   "type": "module",
+   "path": "firebase-client.js",
+   "name": "firebase-client.js",
+   "summary": "Firebase 부트스트랩 ES 모듈. firebase-config.json 검증(projectId 고정·App Check 키 필수) 후 App Check(reCAPTCHA Enterprise), Google OAuth 팝업 로그인, Firestore users/<uid> 어댑터(read/importUnion/add/remove/watch)를 구성해 FavoriteSync 컨트롤러에 연결한다. 초기화 실패 시 게스트 모드로 폴백하며 한글 오류 메시지를 제공한다.",
+   "tags": [
+    "firebase",
+    "google-oauth",
+    "firestore",
+    "app-check",
+    "핵심코드"
+   ],
+   "complexity": "high"
+  },
+  {
+   "id": "firestore.rules",
+   "type": "config",
+   "path": "firestore.rules",
+   "name": "firestore.rules",
+   "summary": "Firestore 보안 규칙. users/{uid} 문서는 소유자만 읽기·쓰기 가능(list 차단)하며 favorites는 500개 이하·중복 없는 리스트, updatedAt은 서버 시간 일치 등 문서 스키마를 강제한다.",
+   "tags": [
+    "보안",
+    "firestore",
+    "규칙"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "star-history.js",
+   "type": "module",
+   "path": "star-history.js",
+   "name": "star-history.js",
+   "summary": "스타 히스토리 프런트엔드 모듈(UMD). 엄격한 캐시 스키마 검증(version/generatedAt/repositories, 날짜·포인트·중복 검사), estimated+observed 관측점 병합, SVG sparkline 생성과 한글 히스토리 HTML 렌더링, fetch 로딩을 담당한다.",
+   "tags": [
+    "svg",
+    "sparkline",
+    "스타추이",
+    "스키마검증",
+    "핵심코드"
+   ],
+   "complexity": "high"
+  },
+  {
+   "id": "scripts/update-trending.mjs",
+   "type": "script",
+   "path": "scripts/update-trending.mjs",
+   "name": "update-trending.mjs",
+   "summary": "GitHub Trending HTML을 파싱해 daily/weekly/monthly 데이터를 수집하는 Node 자동화 스크립트. Box-row 기반 파서, 슬러그 검증, 기간 병합, 한국어 요약 인리치먼트 후 원자적 rename으로 정적 페이지 데이터를 갱신한다.",
+   "tags": [
+    "node",
+    "크롤링",
+    "파이프라인",
+    "자동화"
+   ],
+   "complexity": "high"
+  },
+  {
+   "id": "scripts/update-star-history.mjs",
+   "type": "script",
+   "path": "scripts/update-star-history.mjs",
+   "name": "update-star-history.mjs",
+   "summary": "스타 히스토리 캐시를 갱신하는 Node 스크립트. GENERATED:TRENDING-REPOS 마커에서 슬러그를 추출하고 estimated(GH Archive 추정, ≤500포인트)/observed(SQLite 관측, ≤730포인트) 시계열을 병합해 KST 날짜 기준 캐시를 원자적으로 재생성한다.",
+   "tags": [
+    "node",
+    "스타히스토리",
+    "시계열",
+    "파이프라인"
+   ],
+   "complexity": "high"
+  },
+  {
+   "id": "scripts/record_star_observations.py",
+   "type": "script",
+   "path": "scripts/record_star_observations.py",
+   "name": "record_star_observations.py",
+   "summary": "공개 GitHub 스타 관측값을 schema v1 SQLite에 append하는 Python CLI. index.html의 JSON 상수에서 RepositoryObservation을 파싱하고(legacy 지문 fingerprint 검증 포함), 해시 id로 중복 삽입을 방지하며 repositories first_seen/last_seen을 갱신한다.",
+   "tags": [
+    "python",
+    "sqlite",
+    "스타관측",
+    "데이터수집"
+   ],
+   "complexity": "high"
+  },
+  {
+   "id": "ui-motion.js",
+   "type": "module",
+   "path": "ui-motion.js",
+   "name": "ui-motion.js",
+   "summary": "모바일 툴팁 UX 헬퍼(UMD). 카드/뷰포트 크기에 따른 툴팁 위치 계산, 터치 첫 탭=툴팁·두 번째 탭=이동 판정, ko/en 탭이 있는 모바일 요약 툴팁 HTML 생성(HTML 이스케이프 포함)을 담당한다.",
+   "tags": [
+    "ui",
+    "모바일",
+    "툴팁",
+    "xss방어",
+    "핵심코드"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "tests/favorites.test.mjs",
+   "type": "test",
+   "path": "tests/favorites.test.mjs",
+   "name": "favorites.test.mjs",
+   "summary": "favorites.js 단위 테스트(node:test+vm). 메모리 storage 스텁으로 슬러그 검증·정규화·500개 제한·토글·레거시 마이그레이션을 검증한다.",
+   "tags": [
+    "test",
+    "단위테스트"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "tests/favorite-sync.test.mjs",
+   "type": "test",
+   "path": "tests/favorite-sync.test.mjs",
+   "name": "favorite-sync.test.mjs",
+   "summary": "favorite-sync.js 최대 규모 테스트(33KB). 가짜 cloud/storage로 계정 전환, importUnion 1회 실행, 구독 해제, 낙관적 롤백, 쓰기 직렬화, dispose 등 경쟁 상태 시나리오를 폭넓게 검증한다.",
+   "tags": [
+    "test",
+    "동기화",
+    "경쟁상태"
+   ],
+   "complexity": "high"
+  },
+  {
+   "id": "tests/firestore.rules.test.mjs",
+   "type": "test",
+   "path": "tests/firestore.rules.test.mjs",
+   "name": "firestore.rules.test.mjs",
+   "summary": "@firebase/rules-unit-testing으로 firestore.rules를 에뮬레이터에서 검증. 소유자 외 접근 차단, 500개 초과·중복 favorites 거부, updatedAt 불일치 거부를 확인한다.",
+   "tags": [
+    "test",
+    "보안",
+    "firestore"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "tests/star-history.test.mjs",
+   "type": "test",
+   "path": "tests/star-history.test.mjs",
+   "name": "star-history.test.mjs",
+   "summary": "star-history.js 단위 테스트. 캐시 스키마 검증 실패 케이스, estimated/observed 병합 표시점, sparkline SVG 좌표, HTML 렌더링 분기를 검증한다.",
+   "tags": [
+    "test",
+    "svg",
+    "스키마검증"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "tests/ui-motion.test.mjs",
+   "type": "test",
+   "path": "tests/ui-motion.test.mjs",
+   "name": "ui-motion.test.mjs",
+   "summary": "ui-motion.js 단위 테스트. 툴팁 위치 계산, 터치 카드 액션 판정, 모바일 요약·툴팁 HTML 생성(XSS 이스케이프 포함)을 검증한다.",
+   "tags": [
+    "test",
+    "ui",
+    "모바일"
+   ],
+   "complexity": "medium"
+  },
+  {
+   "id": "tests/update-trending.test.mjs",
+   "type": "test",
+   "path": "tests/update-trending.test.mjs",
+   "name": "update-trending.test.mjs",
+   "summary": "update-trending.mjs 통합 테스트(29KB). Trending HTML 파싱, 기간 병합, 요약 인리치먼트, 페이지 스냅샷 설치·원자적 쓰기를 임시 디렉터리에서 검증한다.",
+   "tags": [
+    "test",
+    "파이프라인",
+    "통합테스트"
+   ],
+   "complexity": "high"
+  },
+  {
+   "id": "tests/update-star-history.test.mjs",
+   "type": "test",
+   "path": "tests/update-star-history.test.mjs",
+   "name": "update-star-history.test.mjs",
+   "summary": "update-star-history.mjs 테스트. extractRepos, seoulDate, mergeRepository, normalizeEstimatedRows, buildCache/updateCache의 캐시 재생성 로직을 검증한다.",
+   "tags": [
+    "test",
+    "시계열",
+    "캐시"
+   ],
+   "complexity": "high"
+  },
+  {
+   "id": "tests/test_star_observations.py",
+   "type": "test",
+   "path": "tests/test_star_observations.py",
+   "name": "test_star_observations.py",
+   "summary": "record_star_observations.py unittest 스위트. JSON 파싱 검증, legacy 지문 fingerprint, 중복 방지, DB 스키마/카운트 증가를 서브프로세스·tempfile로 검증한다.",
+   "tags": [
+    "test",
+    "python",
+    "sqlite"
+   ],
+   "complexity": "high"
+  },
+  {
+   "id": "tests/daily-refresh-workflow.test.mjs",
+   "type": "test",
+   "path": "tests/daily-refresh-workflow.test.mjs",
+   "name": "daily-refresh-workflow.test.mjs",
+   "summary": ".github/workflows/daily-refresh.yml 워크플로 메타 테스트. spawnSync로 실제 스크립트 실행 경로와 워크플로 정의 일치 여부를 확인한다.",
+   "tags": [
+    "test",
+    "ci",
+    "github-actions"
+   ],
+   "complexity": "medium"
+  }
+ ],
+ "edges": [
+  {
+   "from": "wf-daily-refresh",
+   "to": "scripts/update-trending.mjs",
+   "type": "calls"
+  },
+  {
+   "from": "wf-daily-refresh",
+   "to": "scripts/record_star_observations.py",
+   "type": "calls"
+  },
+  {
+   "from": "wf-daily-refresh",
+   "to": "scripts/update-star-history.mjs",
+   "type": "calls"
+  },
+  {
+   "from": "wf-daily-refresh",
+   "to": "index.html",
+   "type": "related"
+  },
+  {
+   "from": "wf-daily-refresh",
+   "to": "data/repo-summaries.json",
+   "type": "related"
+  },
+  {
+   "from": "wf-daily-refresh",
+   "to": "data/star-observations.sqlite",
+   "type": "related"
+  },
+  {
+   "from": "wf-daily-validate",
+   "to": "scripts/update-star-history.mjs",
+   "type": "calls"
+  },
+  {
+   "from": "wf-daily-validate",
+   "to": "scripts/record_star_observations.py",
+   "type": "calls"
+  },
+  {
+   "from": "wf-daily-validate",
+   "to": "star-history.js",
+   "type": "imports"
+  },
+  {
+   "from": "wf-daily-validate",
+   "to": "star-history.json",
+   "type": "related"
+  },
+  {
+   "from": "wf-daily-validate",
+   "to": "index.html",
+   "type": "related"
+  },
+  {
+   "from": "wf-daily-publish",
+   "to": "index.html",
+   "type": "related"
+  },
+  {
+   "from": "wf-daily-publish",
+   "to": "star-history.json",
+   "type": "related"
+  },
+  {
+   "from": "wf-star-history-update",
+   "to": "scripts/update-star-history.mjs",
+   "type": "calls"
+  },
+  {
+   "from": "wf-star-history-update",
+   "to": "star-history.js",
+   "type": "imports"
+  },
+  {
+   "from": "wf-star-history-update",
+   "to": "star-history.json",
+   "type": "related"
+  },
+  {
+   "from": "wf-secret-scan-commit",
+   "to": "star-history.json",
+   "type": "related"
+  },
+  {
+   "from": "wf-daily-refresh",
+   "to": "package.json",
+   "type": "configures"
+  },
+  {
+   "from": "readme-en",
+   "to": "readme-md",
+   "type": "related"
+  },
+  {
+   "from": "firebase-config-json",
+   "to": "firebase-client.js",
+   "type": "configures"
+  },
+  {
+   "from": "firebase-json",
+   "to": "firebase-config-json",
+   "type": "related"
+  },
+  {
+   "from": "index-html",
+   "to": "favorites.js",
+   "type": "imports"
+  },
+  {
+   "from": "index-html",
+   "to": "favorite-sync.js",
+   "type": "imports"
+  },
+  {
+   "from": "index-html",
+   "to": "ui-motion.js",
+   "type": "imports"
+  },
+  {
+   "from": "index-html",
+   "to": "star-history.js",
+   "type": "imports"
+  },
+  {
+   "from": "index-html",
+   "to": "firebase-client.js",
+   "type": "calls"
+  },
+  {
+   "from": "index-html",
+   "to": "translations",
+   "type": "calls"
+  },
+  {
+   "from": "render-fn",
+   "to": "star-history.js",
+   "type": "calls"
+  },
+  {
+   "from": "openreadme-fn",
+   "to": "index-html",
+   "type": "related"
+  },
+  {
+   "from": "index-html",
+   "to": "REPOS",
+   "type": "related"
+  },
+  {
+   "from": "package-json",
+   "to": "tests/firestore.rules.test.mjs",
+   "type": "tests"
+  },
+  {
+   "from": "star-history-json",
+   "to": "star-history.js",
+   "type": "related"
+  },
+  {
+   "from": "star-history-json",
+   "to": "index-html",
+   "type": "related"
+  },
+  {
+   "from": "readme-md",
+   "to": "index-html",
+   "type": "related"
+  },
+  {
+   "from": "plan-google-sync",
+   "to": "favorites.js",
+   "type": "related"
+  },
+  {
+   "from": "plan-google-sync",
+   "to": "favorite-sync.js",
+   "type": "related"
+  },
+  {
+   "from": "plan-google-sync",
+   "to": "firebase-client.js",
+   "type": "related"
+  },
+  {
+   "from": "plan-google-sync",
+   "to": "tests/favorite-sync.test.mjs",
+   "type": "tests"
+  },
+  {
+   "from": "plan-google-sync",
+   "to": "tests/favorites.test.mjs",
+   "type": "tests"
+  },
+  {
+   "from": "plan-star-history-cache",
+   "to": "update-star-history-ref",
+   "type": "related"
+  },
+  {
+   "from": "plan-star-history-cache",
+   "to": "star-history.json",
+   "type": "related"
+  },
+  {
+   "from": "plan-star-history-cache",
+   "to": "index.html",
+   "type": "related"
+  },
+  {
+   "from": "plan-star-observation-db",
+   "to": "record-star-observations-ref",
+   "type": "related"
+  },
+  {
+   "from": "plan-star-observation-db",
+   "to": "update-trending-ref",
+   "type": "related"
+  },
+  {
+   "from": "plan-daily-refresh",
+   "to": "update-trending-ref",
+   "type": "related"
+  },
+  {
+   "from": "plan-daily-refresh",
+   "to": "record-star-observations-ref",
+   "type": "related"
+  },
+  {
+   "from": "plan-daily-refresh",
+   "to": "index.html",
+   "type": "related"
+  },
+  {
+   "from": "plan-daily-refresh",
+   "to": "data/repo-summaries.json",
+   "type": "related"
+  },
+  {
+   "from": "plan-star-observation-db",
+   "to": "data/star-observations.sqlite",
+   "type": "related"
+  },
+  {
+   "from": "plan-daily-refresh",
+   "to": "plan-star-history-cache",
+   "type": "related"
+  },
+  {
+   "from": "plan-star-observation-db",
+   "to": "plan-daily-refresh",
+   "type": "related"
+  },
+  {
+   "from": "spec-star-history-fav-sync",
+   "to": "spec-star-observation-db",
+   "type": "precedes"
+  },
+  {
+   "from": "spec-star-observation-db",
+   "to": "spec-daily-refresh",
+   "type": "extends"
+  },
+  {
+   "from": "spec-star-history-fav-sync",
+   "to": "spec-daily-refresh",
+   "type": "references"
+  },
+  {
+   "from": "fx-daily",
+   "to": "fx-weekly",
+   "type": "pairs-with"
+  },
+  {
+   "from": "fx-daily",
+   "to": "fx-monthly",
+   "type": "pairs-with"
+  },
+  {
+   "from": "fx-duplicates",
+   "to": "fx-daily",
+   "type": "variants"
+  },
+  {
+   "from": "fx-invalid-gain",
+   "to": "fx-daily",
+   "type": "variants"
+  },
+  {
+   "from": "fx-malformed",
+   "to": "fx-daily",
+   "type": "negative-case"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-1jehuang__jcode",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-AlexsJones__llmfit",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-AprilNEA__OpenLogi",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-NVIDIA-NeMo__Switchyard",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-PostHog__posthog",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-TencentCloud__TencentDB-Agent-Memory",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-TryGhost__Ghost",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-affaan-m__ECC",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-akitaonrails__ai-memory",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-apache__maka",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-ayghri__i-have-adhd",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-basecamp__omarchy",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-block__buzz",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-bojieli__ai-agent-book",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-cactus-compute__needle",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-cathrynlavery__diagram-design",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-citrolabs__ego-lite",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-cordiverse__cordis",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-cursor__plugins",
+   "type": "consumes"
+  },
+  {
+   "from": "pipeline-translations",
+   "to": "tr-diegosouzapw__OmniRoute",
+   "type": "consumes"
+  },
+  {
+   "from": "translations/different-ai__openwork.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/earendil-works__pi.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/elder-plinius__OBLITERATUS.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/harry0703__MoneyPrinterTurbo.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/jundot__omlx.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/lyogavin__airllm.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/mahlernim__google-timeline-visualizer.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/mattpocock__skills.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/megadose__holehe.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/microsoft__AI-For-Beginners.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/microsoft__TypeScript.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/microsoft__onnxruntime.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/modular__modular.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/obra__superpowers.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/opengeos__GeoLibre.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/permissionlesstech__bitchat.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/pingdotgg__t3code.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/protocolbuffers__protobuf.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/public-apis__public-apis.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/ruvnet__ruflo.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/santifer__career-ops.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/semantica-agi__semantica.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/unslothai__unsloth.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/virgiliojr94__book-to-skill.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/volcengine__OpenViking.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "translations/zhaoxuya520__reverse-skill.json",
+   "to": "ui:readme-modal",
+   "type": "consumed_by"
+  },
+  {
+   "from": "favorites.js",
+   "to": "favorite-sync.js",
+   "type": "imported_by"
+  },
+  {
+   "from": "favorite-sync.js",
+   "to": "firebase-client.js",
+   "type": "configured_by"
+  },
+  {
+   "from": "firebase-client.js",
+   "to": "firestore.rules",
+   "type": "enforced_by"
+  },
+  {
+   "from": "firebase-client.js",
+   "to": ".firebaserc",
+   "type": "deploys_to"
+  },
+  {
+   "from": "star-history.js",
+   "to": "scripts/update-star-history.mjs",
+   "type": "consumes_output_of"
+  },
+  {
+   "from": "scripts/update-star-history.mjs",
+   "to": "scripts/update-trending.mjs",
+   "type": "reads_repos_from"
+  },
+  {
+   "from": "scripts/update-star-history.mjs",
+   "to": "data/star-observations.sqlite",
+   "type": "reads"
+  },
+  {
+   "from": "scripts/record_star_observations.py",
+   "to": "data/star-observations.sqlite",
+   "type": "writes"
+  },
+  {
+   "from": "scripts/update-trending.mjs",
+   "to": "data/repo-summaries.json",
+   "type": "generates"
+  },
+  {
+   "from": "tests/favorites.test.mjs",
+   "to": "favorites.js",
+   "type": "tests"
+  },
+  {
+   "from": "tests/favorite-sync.test.mjs",
+   "to": "favorite-sync.js",
+   "type": "tests"
+  },
+  {
+   "from": "tests/firestore.rules.test.mjs",
+   "to": "firestore.rules",
+   "type": "tests"
+  },
+  {
+   "from": "tests/star-history.test.mjs",
+   "to": "star-history.js",
+   "type": "tests"
+  },
+  {
+   "from": "tests/ui-motion.test.mjs",
+   "to": "ui-motion.js",
+   "type": "tests"
+  },
+  {
+   "from": "tests/update-trending.test.mjs",
+   "to": "scripts/update-trending.mjs",
+   "type": "tests"
+  },
+  {
+   "from": "tests/update-star-history.test.mjs",
+   "to": "scripts/update-star-history.mjs",
+   "type": "tests"
+  },
+  {
+   "from": "tests/test_star_observations.py",
+   "to": "scripts/record_star_observations.py",
+   "type": "tests"
+  },
+  {
+   "from": "tests/daily-refresh-workflow.test.mjs",
+   "to": "scripts/update-trending.mjs",
+   "type": "validates_workflow_for"
+  }
+ ]
+}

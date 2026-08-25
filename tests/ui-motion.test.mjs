@@ -110,7 +110,7 @@ test("English mobile summary does not relabel a non-English description as Engli
   assert.equal(summary.goal, "owner / project is a public TypeScript repository on GitHub.");
 });
 
-test("mobile tooltip renders both summary languages and keeps README and repository actions", async () => {
+test("mobile tooltip renders Korean summary and keeps README and repository actions", async () => {
   const UiMotion = await loadUiMotion();
   assert.equal(typeof UiMotion.mobileTooltipHtml, "function");
   const html = UiMotion.mobileTooltipHtml({
@@ -129,12 +129,10 @@ test("mobile tooltip renders both summary languages and keeps README and reposit
     },
   });
 
-  assert.match(html, /data-tip-lang="ko"[^>]*aria-pressed="true"/);
-  assert.match(html, /data-tip-lang="en"[^>]*aria-pressed="false"/);
-  assert.match(html, /data-tip-panel="ko"/);
-  assert.match(html, /data-tip-panel="en"[^>]*hidden/);
+  // ko/en tabs were moved to the README side panel (2026-08 approved spec)
+  assert.doesNotMatch(html, /data-tip-lang/);
+  assert.doesNotMatch(html, /data-tip-panel/);
   assert.match(html, /한국어 목표/);
-  assert.match(html, /A useful developer tool\./);
   assert.match(html, /class="rdbtn js-readme"[^>]*data-slug="owner\/project"/);
   assert.match(html, /href="https:\/\/github\.com\/owner\/project"/);
 });
