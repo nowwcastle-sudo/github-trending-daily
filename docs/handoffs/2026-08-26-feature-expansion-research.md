@@ -4,8 +4,9 @@
 - 저장소: `https://github.com/nowwcastle-sudo/github-trending-daily`
 - 배포 페이지: `https://nowwcastle-sudo.github.io/github-trending-daily/`
 - 로컬 작업 경로: `C:\Users\nasca\AppData\Local\Temp\gh-trending-page`
-- 인계 기준 커밋: `cb025779c28db70a6c0cd3501061de4efbcf070b`
-- 현재 상태: `main == origin/main`, clean working tree
+- 기능 수리 검증 기준 커밋: `cb025779c28db70a6c0cd3501061de4efbcf070b`
+- 핸드오프 문서 도입 커밋: `448358f708323e4f66de40defd8bbb5538768d80`
+- 상태 주의: 2시간 자동 갱신이 `main`을 계속 전진시킨다. 새 세션은 아래 명령으로 실제 HEAD와 원격 상태를 다시 확인한다.
 
 ## 다음 세션이 먼저 답할 질문
 
@@ -150,7 +151,7 @@ GitHub Trending Daily가 사용자에게 더 편하고 더 유용한 정보를 �
 
 - 구현 커밋: `7a362ba` — 로그인·레이아웃·모션·2시간 갱신·배지·번역 게이트
 - 마이그레이션 보완 커밋: `1a4187b` — 역사적 번역 source 기준선 생성
-- 최신 배포 데이터 커밋: `cb02577`
+- 인계 중 확인한 최신 자동 갱신 스냅샷: `2869e98` — 2시간 자동화로 계속 바뀔 수 있다.
 - 마지막 전체 로컬 검증: Node 154개 중 145 통과·9 rules 분리·0 실패, Python 23 통과
 - Firestore Rules 별도 검증: 9/9 통과
 - 실제 자동 갱신 실행: `https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/32929150069`
