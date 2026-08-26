@@ -30,12 +30,14 @@ It is designed to help you judge more than total popularity: how quickly a proje
 - **Information-dense repository cards** — Shows total stars, period gains, forks, issues, contributors, recent commits, and releases together.
 - **Momentum signals** — Displays star history, consecutive Trending days, change since the previous observation, and HOT badges.
 - **Period views** — Switches among all, daily, weekly, and monthly results in one control.
+- **Selectable sorting** — Keeps the original Trending order by default, or sorts by selected-period star gain, total stars, latest push, or latest release. Missing values stay last and ties keep their original order.
 - **Search and language filtering** — Searches repository text and narrows results by programming language.
 - **Multi-select field tags** — Combines AI and machine learning, web and app development, developer tools, data and databases, DevOps and infrastructure, security and privacy, and other fields.
 - **Independent form and technology tags** — Combines Agent, MCP, Plugin and Skill, IDE and coding tools, Library and SDK, Framework, and CLI and Automation independently from fields.
 - **Exclude-AI toggle** — Removes AI-related repositories at once to surface projects from other fields.
-- **Shareable URL state** — Preserves period, favorites view, query, language, field and form tags, and AI exclusion in the address and restores them through browser history.
+- **Shareable URL state** — Preserves period, sorting, favorites view, query, language, field and form tags, and AI exclusion in the address and restores them through browser history. Browser-local hidden choices are not included in the URL.
 - **Responsive summaries and README viewer** — Uses a conditional desktop tooltip and a first-tap mobile summary, with original and cached Korean README views.
+- **Per-browser Not interested** — Hides a repository from the desktop tooltip or mobile summary, with immediate undo and individual or full recovery in the sidebar. Hiding a repository leaves its favorites intact.
 - **Local and account favorites** — Stores signed-out favorites in the current browser and synchronizes them across devices and browsers after Google sign-in.
 - **Sidebar-first discovery** — Opens the overlay sidebar from the left-edge Explore icon and shows recent and next refresh times at the top. Press it again, click outside, or press Escape to close it.
 - **Accessible responsive UI** — Supports light and dark themes, keyboard focus, 44 px mobile touch targets, reduced motion, and reduced transparency.
@@ -49,10 +51,10 @@ It is designed to help you judge more than total popularity: how quickly a proje
 
 1. Open the [production site](https://nowwcastle-sudo.github.io/github-trending-daily/).
 2. Choose all, daily, weekly, or monthly at the top, or search repository names and descriptions.
-3. Press the left-edge **탐색 (Explore) icon** to combine favorites view, programming language, field, form and technology, and AI-exclusion conditions. Choices use OR within one group and AND between different groups.
-4. Hover over a card on desktop, or tap it once on mobile, to inspect the project's goal, usage, strengths, and limitations.
+3. Press the left-edge **탐색 (Explore) icon** to combine sorting, favorites view, programming language, field, form and technology, and AI-exclusion conditions. Choices use OR within one group and AND between different groups.
+4. Hover over a card on desktop, or tap it once on mobile, to inspect the project's goal, usage, strengths, and limitations. Choose **Not interested**, or focus the card and press Delete, to hide it in the current browser; restore it from the undo notice or sidebar.
 5. Use the star button to save a favorite. Signed-out favorites stay in the current browser; Google sign-in synchronizes them to the same account.
-6. Copy the address after filtering to share the same discovery state.
+6. Copy the address after sorting or filtering to share the same discovery state. Hidden choices are not shared.
 
 ## Refresh and data
 

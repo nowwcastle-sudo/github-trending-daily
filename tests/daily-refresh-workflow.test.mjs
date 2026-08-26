@@ -264,6 +264,12 @@ test("paired READMEs publish the approved production-first information architect
   assert.match(english, /left-edge[^\n]*recent and next refresh times/i);
   assert.match(korean, /다시 누르거나 바깥을 클릭하거나 Escape/);
   assert.match(english, /press it again, click outside, or press Escape/i);
+  assert.match(korean, /Trending 원래 순서[\s\S]*최근 릴리스/);
+  assert.match(english, /original Trending order[\s\S]*latest release/i);
+  assert.match(korean, /관심 없음[\s\S]*즐겨찾기[\s\S]*유지/);
+  assert.match(english, /not interested[\s\S]*favorites?[\s\S]*intact/i);
+  assert.match(korean, /숨김 선택은 URL에 포함되지/);
+  assert.match(english, /hidden choices? (?:are|is) not included in the URL/i);
   const featureCount = value => (value.match(/^[-] \*\*/gm) ?? []).length;
   assert.equal(featureCount(korean), featureCount(english), "feature and roadmap bullets stay 1:1");
   assert.ok(featureCount(korean) >= 10);
