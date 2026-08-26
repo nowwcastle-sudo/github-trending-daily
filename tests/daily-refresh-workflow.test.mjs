@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { chmod, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdtemp, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { delimiter, join } from "node:path";
@@ -243,13 +243,27 @@ test("publication fails closed on a secret match, scanner error, or unexpected o
   }
 });
 
-test("READMEs retain only the three requested sections and document the Seoul refresh", async () => {
-  for (const file of ["README.md", "README.en.md"]) {
-    const value = await readFile(file, "utf8");
-    const headings = [...value.matchAll(/^## (.+)$/gm)].map(match => match[1]);
-    assert.equal(headings.length, 3, `${file} must keep exactly three content sections`);
+test("paired READMEs publish the approved production-first information architecture", async () => {
+  const korean = await readFile("README.md", "utf8");
+  const english = await readFile("README.en.md", "utf8");
+  const headingSets = [
+    ["지금 만나보세요", "실제 화면", "만든 배경", "현재 기능", "추가 예정 기능", "사용 방법", "갱신과 데이터"],
+    ["Open it now", "Production screenshots", "Why it exists", "Current features", "Roadmap", "How to use", "Refresh and data"],
+  ];
+  for (const [value, headings, file] of [[korean, headingSets[0], "README.md"], [english, headingSets[1], "README.en.md"]]) {
+    assert.deepEqual([...value.matchAll(/^## (.+)$/gm)].map(match => match[1]), headings, `${file} section order`);
+    assert.match(value, /https:\/\/nowwcastle-sudo\.github\.io\/github-trending-daily\//);
+    assert.match(value, /docs\/screenshots\/production-desktop\.png/);
+    assert.match(value, /docs\/screenshots\/production-mobile-sidebar\.png/);
     assert.match(value, /(?:2시간|two hours)/i);
     assert.match(value, /07/);
     assert.match(value, /(?:Asia\/Seoul|서울|Seoul)/);
+    assert.match(value, /(?:README hash|README 해시)/i);
+  }
+  const featureCount = value => (value.match(/^[-] \*\*/gm) ?? []).length;
+  assert.equal(featureCount(korean), featureCount(english), "feature and roadmap bullets stay 1:1");
+  assert.ok(featureCount(korean) >= 10);
+  for (const file of ["docs/screenshots/production-desktop.png", "docs/screenshots/production-mobile-sidebar.png"]) {
+    assert.ok((await stat(file)).size > 10_000, `${file} must be a real screenshot asset`);
   }
 });
