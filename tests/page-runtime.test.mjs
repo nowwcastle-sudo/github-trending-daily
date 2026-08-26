@@ -157,6 +157,17 @@ test("filter state is restored from and written to the URL", () => {
   assert.match(page, /RepoFilters\.matchesRepo\(r,/);
 });
 
+test("membership history is loaded before semantic badges and recent exits are rendered", () => {
+  assert.match(page, /<script src="membership-history\.js"><\/script>/);
+  assert.match(page, /MembershipHistory\.load\("data\/membership-status\.json",fetch\)/);
+  assert.match(page, /MEMBERSHIP_STATUS\.get\(r\.slug\.toLowerCase\(\)\)/);
+  assert.match(page, />신규<\/span>/);
+  assert.match(page, />재진입<\/span>/);
+  assert.match(page, /id="recentExitsSection"[^>]*hidden/);
+  assert.match(page, /id="recentExitsList"/);
+  assert.match(page, /recentExitsList[\s\S]*?https:\/\/github\.com\//);
+});
+
 test("sorting is shareable, stable, and keeps the selected period in favorites", () => {
   assert.match(page, /<select class="langsel" id="sortSelect" aria-label="저장소 정렬"/);
   assert.match(page, /<option value="trending">Trending 원래 순서<\/option>/);
