@@ -8,6 +8,7 @@
   --bg:#f5f5f7; --bg-elev:rgba(255,255,255,.72); --card:rgba(255,255,255,.85);
   --text:#1d1d1f; --text-2:#6e6e73; --text-3:#6e6e73;
   --border:rgba(0,0,0,.08); --hairline:rgba(0,0,0,.06);
+  --surface-border:rgba(0,0,0,.14); --surface-border-strong:rgba(0,0,0,.24);
   --accent:#0071e3; --accent-soft:rgba(0,113,227,.10);
   --hot:#a83200; --hot-soft:rgba(168,50,0,.12);
   --seg-bg:rgba(120,120,128,.12); --seg-thumb:#ffffff; --seg-text:#1d1d1f;
@@ -21,6 +22,7 @@ html[data-theme="dark"]{
   --bg:#282828; --bg-elev:rgba(60,56,54,.72); --card:rgba(50,48,47,.85);
   --text:#fbf1c7; --text-2:#bdae93; --text-3:#a89984;
   --border:rgba(235,219,178,.16); --hairline:rgba(235,219,178,.10);
+  --surface-border:var(--hairline); --surface-border-strong:var(--border);
   --accent:#83a598; --accent-soft:rgba(131,165,152,.18);
   --hot:#ff9e3d; --hot-soft:rgba(254,128,25,.15);
   --seg-bg:rgba(60,56,54,.6); --seg-thumb:#504945; --seg-text:#fbf1c7;
@@ -42,8 +44,9 @@ body{
 .wrap{max-width:1020px;margin:0 auto;padding:48px 24px 96px}
 
 /* ── Header ─────────────────────────── */
-header{display:grid;grid-template-columns:minmax(300px,1fr) minmax(0,420px);align-items:start;gap:16px;margin-bottom:8px}
+header{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:16px;margin-bottom:8px}
 h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-height:1.1;white-space:nowrap}
+.title-box{padding:16px 18px;border:1px solid var(--surface-border);border-radius:16px;background:var(--bg-elev);backdrop-filter:blur(20px) saturate(180%)}
 .title-reset{border:0;background:none;color:inherit;padding:0;font:inherit;letter-spacing:inherit;cursor:pointer}
 .title-reset:focus-visible{outline:3px solid var(--accent);outline-offset:4px;border-radius:5px}
 .sub{color:var(--text-2);font-size:15px;margin-top:6px;letter-spacing:.01em}
@@ -172,13 +175,14 @@ body.overlay-open{overflow:hidden}
 .card{
   position:relative;display:flex;gap:16px;text-decoration:none;color:inherit;
   background:var(--card);backdrop-filter:blur(20px) saturate(180%);
-  border:1px solid var(--hairline);border-radius:16px;padding:18px 20px;margin-bottom:12px;
+  border:1px solid var(--surface-border);border-radius:16px;padding:18px 20px;margin-bottom:12px;
   box-shadow:var(--shadow-card);
   transition:transform .22s cubic-bezier(.32,.72,0,1),box-shadow .22s,border-color .22s;
   cursor:pointer;
 }
-.card:hover{transform:translateY(-2px);border-color:var(--border);
+.card:hover{transform:translateY(-2px);border-color:var(--surface-border-strong);
   box-shadow:0 2px 4px rgba(0,0,0,.05),0 14px 40px rgba(0,0,0,.10)}
+.card:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-color:var(--surface-border-strong)}
 .card:active{transform:translateY(0) scale(.995)}
 .repo-link{color:inherit;text-decoration:none}
 .repo-link:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:4px}
@@ -383,7 +387,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 <div id="sidebarScrim"></div>
 <main class="wrap">
 <header>
-  <div>
+  <div class="title-box">
     <h1><button class="title-reset" id="resetBtn" type="button" title="클릭하면 처음 화면으로 초기화됩니다">GitHub Trending</button></h1>
     <p class="sub">인사이트 요약이 담긴 오늘의 트렌딩 저장소 — 카드를 가리키거나 탭해보세요</p>
   </div>

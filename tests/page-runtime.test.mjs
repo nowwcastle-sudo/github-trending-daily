@@ -112,6 +112,18 @@ test("light and dark semantic colors use the reviewed contrast palette", () => {
   assert.match(page, /\.rankchg\{[^}]*color:#5f6000/);
 });
 
+test("light surfaces use semantic borders while dark and interaction states stay explicit", () => {
+  assert.match(page, /--surface-border:rgba\(0,0,0,\.14\)/);
+  assert.match(page, /--surface-border-strong:rgba\(0,0,0,\.24\)/);
+  assert.match(page, /html\[data-theme="dark"\]\{[\s\S]*?--surface-border:var\(--hairline\); --surface-border-strong:var\(--border\)/);
+  assert.match(page, /\.title-box\{[^}]*border:1px solid var\(--surface-border\)/);
+  assert.match(page, /<div class="title-box">\s*<h1><button class="title-reset"/);
+  assert.match(page, /header\{[^}]*grid-template-columns:minmax\(0,1fr\) auto/);
+  assert.match(page, /\.card\{[\s\S]*?border:1px solid var\(--surface-border\)/);
+  assert.match(page, /\.card:hover\{[^}]*border-color:var\(--surface-border-strong\)/);
+  assert.match(page, /\.card:focus-visible\{[^}]*outline:3px solid var\(--accent\)[^}]*border-color:var\(--surface-border-strong\)/);
+});
+
 test("cards do not nest favorite buttons inside a full-card anchor", () => {
   assert.match(page, /return `<article class="card"/);
   assert.match(page, /<button type="button" class="favbtn/);
