@@ -30,6 +30,7 @@ GitHub Trending은 새로운 프로젝트를 발견하기에는 좋지만, 저�
 - **정보 밀도 높은 저장소 카드** — 총 스타, 기간 증가량, 포크, 이슈, 기여자, 최근 커밋·릴리스를 함께 보여줍니다.
 - **변화 신호** — 스타 히스토리, 연속 Trending 일수, 직전 관측 대비 변화, HOT 배지로 상승 흐름을 표시합니다.
 - **Atom 구독** — [feed.xml](https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml)은 현재 전체 Trending 저장소를, [changes.xml](https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml)은 baseline 이후 신규·재진입 사건 최근 100개를 최신순으로 제공합니다.
+- **현재 보기 내보내기** — 사이드바에서 **CSV 다운로드**, **JSON 다운로드**, **현재 링크 복사**를 선택합니다. 검색·필터·숨김·즐겨찾기·정렬을 적용한 뒤 화면에 보이는 저장소와 순서를 그대로 사용하며 계정 정보나 숨김·즐겨찾기 전체 목록은 포함하지 않습니다.
 - **기간 보기** — 전체·일간·주간·월간 결과를 한 번에 전환합니다.
 - **선택 가능한 정렬** — 기본 Trending 원래 순서를 유지하거나 선택 기간 스타 증가, 총 스타, 최근 푸시, 최근 릴리스 순으로 정렬합니다. 값이 없는 저장소는 뒤에 표시되고 동률은 원래 순서를 유지합니다.
 - **검색과 언어 필터** — 저장소 텍스트를 검색하고 프로그래밍 언어로 좁힙니다.
@@ -56,10 +57,13 @@ GitHub Trending은 새로운 프로젝트를 발견하기에는 좋지만, 저�
 4. 데스크톱에서는 카드에 마우스를 올리고, 모바일에서는 카드를 한 번 탭해 프로젝트 목표·사용법·장단점을 확인합니다. **관심 없음**을 누르거나 키보드로 카드에 초점을 둔 뒤 Delete를 누르면 현재 브라우저에서 숨겨지며, 알림의 되돌리기나 사이드바에서 복구할 수 있습니다.
 5. 별 버튼으로 즐겨찾기를 저장합니다. 로그인하지 않으면 현재 브라우저에, Google로 로그인하면 같은 계정에 동기화됩니다.
 6. 정렬이나 필터를 적용한 주소를 복사하면 같은 탐색 조건을 공유할 수 있습니다. 숨김 선택은 공유되지 않습니다.
-7. 모든 현재 저장소는 `feed.xml`, membership 변화만 보려면 `changes.xml`을 Atom 리더에 등록합니다.
+7. 사이드바의 **CSV 다운로드**, **JSON 다운로드**, **현재 링크 복사**로 현재 화면의 저장소 순서나 공개 가능한 탐색 조건을 내보냅니다.
+8. 모든 현재 저장소는 `feed.xml`, membership 변화만 보려면 `changes.xml`을 Atom 리더에 등록합니다.
 
 ## 갱신과 데이터
 
 GitHub Actions가 서울(Asia/Seoul) 기준 홀수 시각의 07분에 실행되어 약 2시간마다 데이터를 갱신합니다. GitHub Trending 페이지와 GitHub REST API의 공개 저장소 메타데이터·Topics를 사용하며, 현재 총 스타는 GitHub 기준이고 과거 스타 히스토리는 GH Archive 기반 추정치가 섞일 수 있습니다.
 
 README 한국어 번역은 새 저장소이거나 **README 해시**가 바뀐 경우에만 유료 번역 대기열에 들어가도록 비용 게이트를 둡니다. 사이트는 GitHub Pages에서 정적으로 제공되며, 개인화 추천이나 사용자 API 키를 현재 페이지에 노출하지 않습니다.
+
+CSV는 한국어 Excel 호환성을 위해 **UTF-8 BOM**을 포함하며 고정 열은 `slug, name, description, language, topics, stars, forks, issues, contributors, period_gain, pushed_at, latest_release, membership_status` 순서입니다. comma·quote·줄바꿈은 CSV quoting으로 보존하고 수식처럼 실행될 수 있는 문자열은 앞 apostrophe로 방어합니다.

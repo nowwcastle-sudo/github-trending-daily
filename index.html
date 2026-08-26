@@ -141,6 +141,18 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .recent-exit-link{display:flex;align-items:center;min-height:44px;color:var(--text-2);font-size:12px;line-height:1.35;text-decoration:none;overflow-wrap:anywhere}
 .recent-exit-link:hover{color:var(--accent)}
 .recent-exit-link:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+.export-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px}
+.export-actions button{
+  min-width:0;min-height:44px;border:1px solid var(--border);border-radius:10px;background:var(--control-solid);color:var(--text);
+  padding:8px 9px;font:inherit;font-size:12px;font-weight:650;cursor:pointer;transition:border-color .16s ease,color .16s ease,transform .1s ease-out;
+}
+.export-actions button:last-child{grid-column:1/-1}
+.export-actions button:hover{border-color:var(--accent);color:var(--accent)}
+.export-actions button:active{transform:scale(.98)}
+.export-actions button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.export-status{min-height:18px;color:var(--text-2);font-size:11.5px;line-height:1.45}
+.export-status[data-tone="success"]{color:var(--accent-selected)}
+.export-status[data-tone="error"]{color:var(--hot)}
 .filter-group{display:grid;grid-template-columns:1fr;gap:7px}
 .filter-chip{
   min-height:44px;border:1px solid var(--border);border-radius:10px;background:var(--control-solid);color:var(--text-2);
@@ -416,6 +428,16 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     </select>
     <p class="sidebar-note">값이 없는 저장소는 뒤에 표시됩니다.</p>
   </section>
+  <section class="sidebar-section" aria-labelledby="exportTitle">
+    <h3 id="exportTitle">현재 보기 내보내기</h3>
+    <p class="sidebar-note">화면에 보이는 순서와 저장소만 공개 필드로 저장합니다.</p>
+    <div class="export-actions">
+      <button id="exportCsvBtn" type="button">CSV 다운로드</button>
+      <button id="exportJsonBtn" type="button">JSON 다운로드</button>
+      <button id="copyViewUrlBtn" type="button">현재 링크 복사</button>
+    </div>
+    <p class="export-status" id="exportStatus" role="status" aria-live="polite" aria-atomic="true">내보낼 형식을 선택하세요.</p>
+  </section>
   <section class="sidebar-section" id="recentExitsSection" aria-labelledby="recentExitsTitle" hidden>
     <h3 id="recentExitsTitle">최근 이탈</h3>
     <p class="sidebar-note">직전 확정 목록에는 있었지만 현재 목록에는 없는 저장소입니다.</p>
@@ -524,6 +546,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 <script src="repo-filters.js"></script>
 <script src="refresh-schedule.js"></script>
 <script src="membership-history.js"></script>
+<script src="current-view-export.js"></script>
 <!-- Star trend disclosure: GH Archive 기반 과거 추정 · 현재 총 스타는 GitHub 기준 -->
 <script src="star-history.js"></script>
 <script>
@@ -532,6 +555,7 @@ const REPOS = [{"slug":"freestylefly/awesome-gpt-image-2","latest_release":null,
 // GENERATED:TRENDING-REPOS:END
 const SIGNALS=new Map();
 const MEMBERSHIP_STATUS=new Map();
+let currentVisibleRepos=[];
 const LANGUAGES=[...new Set(REPOS.map(r=>r.lang).filter(Boolean))].sort();
 let filterState=RepoFilters.parseState(location.search,LANGUAGES);
 let period=filterState.period;
@@ -746,6 +770,7 @@ function render(){
   const matchedCount=items.length;
   items=HiddenRepos.filterRepos(items,hiddenSet);
   items=RepoFilters.sortRepos(items,filterState.sort,viewPeriod);
+  currentVisibleRepos=items;
   const hiddenOnly=!items.length&&matchedCount>0;
   empty.style.display=items.length?"none":"grid";
   document.getElementById("emptyText").textContent=hiddenOnly?"현재 조건의 저장소를 모두 숨겼어요.":"조건에 맞는 저장소가 없어요.";
@@ -855,6 +880,40 @@ document.getElementById("emptyManageHiddenBtn").addEventListener("click",()=>{
   openSidebar();requestAnimationFrame(()=>document.querySelector(".hidden-restore")?.focus());
 });
 window.addEventListener("popstate",()=>applyFilterState(RepoFilters.parseState(location.search,LANGUAGES)));
+
+function currentExportState(){return {...filterState,period,favOnly}}
+function currentExportUrl(){return CurrentViewExport.buildSourceUrl(location,currentExportState(),RepoFilters.serializeState)}
+function currentExportModel(){
+  const state=currentExportState();
+  return CurrentViewExport.buildModel({
+    repositories:currentVisibleRepos,
+    state,
+    sourceUrl:CurrentViewExport.buildSourceUrl(location,state,RepoFilters.serializeState),
+    exportedAt:new Date().toISOString(),
+    membershipStatus:MEMBERSHIP_STATUS,
+    gainOf:r=>UiMotion.periodGain(r,period),
+  });
+}
+function setExportStatus(message,tone=""){
+  const status=document.getElementById("exportStatus");status.textContent=message;status.dataset.tone=tone;
+}
+function downloadCurrentView(type){
+  try{
+    const model=currentExportModel();
+    CurrentViewExport.downloadText({
+      text:type==="csv"?CurrentViewExport.toCsv(model):CurrentViewExport.toJson(model),
+      filename:CurrentViewExport.fileName(type,model.exportedAt),
+      mimeType:type==="csv"?"text/csv;charset=utf-8":"application/json;charset=utf-8",
+    });
+    setExportStatus(`${model.resultCount}개 저장소 ${type.toUpperCase()} 다운로드를 시작했습니다.`,"success");
+  }catch{setExportStatus("현재 보기를 파일로 만들지 못했습니다. 잠시 후 다시 시도하세요.","error")}
+}
+document.getElementById("exportCsvBtn").addEventListener("click",()=>downloadCurrentView("csv"));
+document.getElementById("exportJsonBtn").addEventListener("click",()=>downloadCurrentView("json"));
+document.getElementById("copyViewUrlBtn").addEventListener("click",async()=>{
+  try{await CurrentViewExport.copyText(currentExportUrl());setExportStatus("현재 보기 링크를 복사했습니다.","success")}
+  catch{setExportStatus("클립보드에 링크를 복사하지 못했습니다.","error")}
+});
 
 let historyBySlug=null,historyLoadError=false;
 const historyReady=StarHistory.load("star-history.json",fetch)

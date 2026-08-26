@@ -176,6 +176,24 @@ test("the page head advertises both exact Atom subscription endpoints", () => {
   ]);
 });
 
+test("current-view export uses the exact rendered array and keeps private state out", () => {
+  assert.match(page, /<script src="current-view-export\.js"><\/script>/);
+  assert.match(page, /id="exportCsvBtn"[^>]*>CSV 다운로드<\/button>/);
+  assert.match(page, /id="exportJsonBtn"[^>]*>JSON 다운로드<\/button>/);
+  assert.match(page, /id="copyViewUrlBtn"[^>]*>현재 링크 복사<\/button>/);
+  assert.match(page, /id="exportStatus"[^>]*role="status"[^>]*aria-live="polite"/);
+  assert.match(page, /\.export-actions button\{[^}]*min-height:44px/);
+  const sort = page.indexOf("items=RepoFilters.sortRepos(items,filterState.sort,viewPeriod)");
+  const assignment = page.indexOf("currentVisibleRepos=items");
+  const cards = page.indexOf("list.innerHTML=items.map");
+  assert.ok(sort >= 0 && sort < assignment && assignment < cards);
+  assert.match(page, /CurrentViewExport\.buildModel\(\{[\s\S]*?repositories:currentVisibleRepos[\s\S]*?membershipStatus:MEMBERSHIP_STATUS[\s\S]*?gainOf:r=>UiMotion\.periodGain\(r,period\)/);
+  assert.match(page, /CurrentViewExport\.buildSourceUrl\(location,[\s\S]*?RepoFilters\.serializeState\)/);
+  assert.match(page, /CurrentViewExport\.downloadText\(/);
+  assert.match(page, /CurrentViewExport\.copyText\(/);
+  assert.doesNotMatch(page, /buildModel\(\{[\s\S]{0,500}(?:hiddenSet|favSet|guestFavorites|localStorage)/);
+});
+
 test("sorting is shareable, stable, and keeps the selected period in favorites", () => {
   assert.match(page, /<select class="langsel" id="sortSelect" aria-label="저장소 정렬"/);
   assert.match(page, /<option value="trending">Trending 원래 순서<\/option>/);

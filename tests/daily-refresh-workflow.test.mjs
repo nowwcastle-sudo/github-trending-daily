@@ -284,6 +284,12 @@ test("paired READMEs publish the approved production-first information architect
   }
   assert.match(korean, /feed\.xml[^\n]*현재 전체[\s\S]*changes\.xml[^\n]*신규[^\n]*재진입/);
   assert.match(english, /feed\.xml[^\n]*current[\s\S]*changes\.xml[^\n]*new[^\n]*reentered/i);
+  assert.match(korean, /CSV 다운로드[\s\S]*JSON 다운로드[\s\S]*현재 링크 복사/);
+  assert.match(english, /CSV download[\s\S]*JSON download[\s\S]*copy the current link/i);
+  for (const value of [korean, english]) {
+    assert.match(value, /UTF-8 BOM/);
+    assert.match(value, /slug[^\n]*name[^\n]*description[^\n]*membership_status/i);
+  }
   const featureCount = value => (value.match(/^[-] \*\*/gm) ?? []).length;
   assert.equal(featureCount(korean), featureCount(english), "feature and roadmap bullets stay 1:1");
   assert.ok(featureCount(korean) >= 10);

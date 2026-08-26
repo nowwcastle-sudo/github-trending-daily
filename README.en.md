@@ -30,6 +30,7 @@ It is designed to help you judge more than total popularity: how quickly a proje
 - **Information-dense repository cards** — Shows total stars, period gains, forks, issues, contributors, recent commits, and releases together.
 - **Momentum signals** — Displays star history, consecutive Trending days, change since the previous observation, and HOT badges.
 - **Atom subscriptions** — [feed.xml](https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml) provides the current complete Trending list, while [changes.xml](https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml) provides the newest 100 new and reentered events after the baseline.
+- **Current-view export** — Choose **CSV download**, **JSON download**, or **Copy the current link** in the sidebar. The export uses the repositories and order visible after search, filters, hidden choices, favorites, and sorting, without including account data or the complete hidden and favorite lists.
 - **Period views** — Switches among all, daily, weekly, and monthly results in one control.
 - **Selectable sorting** — Keeps the original Trending order by default, or sorts by selected-period star gain, total stars, latest push, or latest release. Missing values stay last and ties keep their original order.
 - **Search and language filtering** — Searches repository text and narrows results by programming language.
@@ -56,10 +57,13 @@ It is designed to help you judge more than total popularity: how quickly a proje
 4. Hover over a card on desktop, or tap it once on mobile, to inspect the project's goal, usage, strengths, and limitations. Choose **Not interested**, or focus the card and press Delete, to hide it in the current browser; restore it from the undo notice or sidebar.
 5. Use the star button to save a favorite. Signed-out favorites stay in the current browser; Google sign-in synchronizes them to the same account.
 6. Copy the address after sorting or filtering to share the same discovery state. Hidden choices are not shared.
-7. Add `feed.xml` to an Atom reader for every current repository, or `changes.xml` for membership changes only.
+7. Use **CSV download**, **JSON download**, or **Copy the current link** in the sidebar to export the current repository order or public discovery state.
+8. Add `feed.xml` to an Atom reader for every current repository, or `changes.xml` for membership changes only.
 
 ## Refresh and data
 
 GitHub Actions runs at minute 07 of each odd-numbered hour in Asia/Seoul, refreshing the data about every two hours. The pipeline uses GitHub Trending pages and public repository metadata and Topics from the GitHub REST API. Current total stars come from GitHub, while historical star charts may include GH Archive-based estimates.
 
 A cost gate sends a repository to the paid Korean translation queue only when it is new or its **README hash** has changed. The site is served statically through GitHub Pages and does not expose a personalization model or user API key in the current page.
+
+CSV includes a **UTF-8 BOM** for Korean Excel compatibility and uses the fixed columns `slug, name, description, language, topics, stars, forks, issues, contributors, period_gain, pushed_at, latest_release, membership_status`. Commas, quotes, and line breaks use CSV quoting, and formula-like strings are prefixed with an apostrophe.
