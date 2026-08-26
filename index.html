@@ -57,8 +57,6 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .theme-toggle:active{transform:scale(.94)}
 .header-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;justify-content:end;gap:10px}
 .header-buttons{display:flex;align-items:center;justify-content:flex-end;gap:8px}
-.last-updated{grid-column:1/-1;font-weight:700;font-size:13.5px;color:var(--text-2);text-align:right;line-height:1.7}
-.last-updated p{margin:0}
 .account-controls{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 .sync-status{
   max-width:300px;color:var(--text-2);font-size:12.5px;line-height:1.35;
@@ -92,6 +90,8 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .filter-sidebar.open{transform:translate3d(0,0,0);opacity:1}
 .sidebar-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .sidebar-head h2{font-size:19px;letter-spacing:-.015em}
+.sidebar-refresh{display:grid;gap:3px;padding:12px 14px;border:1px solid var(--hairline);border-radius:12px;background:var(--bg-elev);color:var(--text-2);font-size:12px;font-weight:650;line-height:1.45;font-variant-numeric:tabular-nums}
+.sidebar-refresh p{margin:0}
 .sidebar-close{width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:var(--text-2);cursor:pointer;display:flex;align-items:center;justify-content:center}
 .sidebar-close:hover{background:var(--seg-bg);color:var(--text)}
 .sidebar-close:active{transform:scale(.96)}
@@ -257,7 +257,6 @@ footer a{color:var(--text-2)}
   .header-actions{width:100%}
   .header-buttons{justify-content:flex-start}
   .account-controls{justify-content:flex-start}
-  .last-updated{text-align:left;white-space:normal}
 }
 @media(max-width:560px){
   .wrap{padding:32px 16px 72px}
@@ -345,6 +344,10 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
   </div>
+  <section id="refreshStatus" class="sidebar-refresh" role="status" aria-live="polite" aria-atomic="true">
+    <p id="luLast">최근 갱신 시각 : 불러오는 중…</p>
+    <p id="luNext">다음 갱신 시각 : —</p>
+  </section>
   <section class="sidebar-section" aria-labelledby="accountTitle">
     <h3 id="accountTitle">계정과 동기화</h3>
     <div class="account-controls">
@@ -392,10 +395,6 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
       </button>
     </div>
     <button class="theme-toggle" id="themeBtn" aria-label="테마 전환"></button>
-    <div id="refreshStatus" class="last-updated">
-      <p id="luLast">최근 갱신 시각 : 불러오는 중…</p>
-      <p id="luNext">다음 갱신 시각 : —</p>
-    </div>
   </div>
 </header>
 

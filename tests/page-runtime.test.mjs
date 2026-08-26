@@ -22,18 +22,19 @@ test("repository signals are initialized before rendering and refreshed from the
 test("tooltip cleanup and refresh status contain no merged JavaScript tokens", () => {
   assert.doesNotMatch(page, /nulldocument/);
   assert.match(page, /activeTipIndex=null;listStage\.style\.transform=""/);
-  assert.match(page, /id="refreshStatus" class="last-updated"/);
+  assert.match(page, /id="refreshStatus" class="sidebar-refresh"/);
 });
 
-test("the refresh status gets a full header row on desktop and mobile", () => {
-  assert.match(page, /header\{[^}]*display:grid[^}]*grid-template-columns:minmax\(300px,1fr\) minmax\(0,420px\)/);
-  assert.match(page, /h1\{[^}]*white-space:nowrap/);
-  assert.match(page, /\.header-actions\{[^}]*display:grid[^}]*grid-template-columns:minmax\(0,1fr\) auto/);
-  assert.match(page, /\.last-updated\{[^}]*grid-column:1\/-1/);
-  assert.match(page, /@media\(max-width:700px\)\{[\s\S]*?header\{[^}]*grid-template-columns:1fr/);
-  const baseStatus = page.indexOf(".last-updated{grid-column:1/-1");
-  const mobileStatus = page.indexOf(".last-updated{text-align:left;white-space:normal}");
-  assert.ok(baseStatus >= 0 && mobileStatus > baseStatus, "mobile wrapping must override the base status rule");
+test("the refresh status appears once at the top of the sidebar and not in main", () => {
+  assert.equal([...page.matchAll(/id="refreshStatus"/g)].length, 1);
+  assert.match(page, /id="refreshStatus" class="sidebar-refresh" role="status" aria-live="polite" aria-atomic="true"/);
+  const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<div id="sidebarScrim"/)?.[0] ?? "";
+  const statusIndex = sidebar.indexOf('id="refreshStatus"');
+  const accountIndex = sidebar.indexOf('id="accountTitle"');
+  assert.ok(statusIndex >= 0 && statusIndex < accountIndex, "refresh status must precede the account section");
+  const main = page.match(/<main class="wrap">([\s\S]*?)<\/main>/)?.[1] ?? "";
+  assert.doesNotMatch(main, /id="refreshStatus"/);
+  assert.match(page, /\.sidebar-refresh\{[^}]*font-variant-numeric:tabular-nums/);
 });
 
 test("refresh copy and calculation follow the approved two-hour schedule", () => {
