@@ -120,6 +120,7 @@
     <p class="thint tip-actions">
       <button type="button" class="rdbtn js-readme" data-slug="${escapeHtml(repo.slug)}" data-name="${escapeHtml(repo.name)}">📖 README 전체 보기</button>
       <a class="rdbtn" href="https://github.com/${escapeHtml(repo.slug)}" target="_blank" rel="noopener">저장소 열기 ↗</a>
+      <button type="button" class="rdbtn js-hide-repo" data-slug="${escapeHtml(repo.slug)}">관심 없음</button>
     </p>`;
   }
 

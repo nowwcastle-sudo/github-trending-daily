@@ -89,6 +89,44 @@ test("responsive sidebar owns account, favorites, and discovery filters", () => 
   assert.match(page, /trapFocus\(sidebar,event\)/);
 });
 
+test("browser-local hidden repositories have tooltip actions, undo, and sidebar recovery", () => {
+  assert.match(page, /<script src="favorites\.js"><\/script>\s*<script src="hidden-repos\.js"><\/script>/);
+  assert.match(page, /class="rdbtn js-hide-repo"[^>]*data-slug="\$\{r\.slug\}"[^>]*>관심 없음<\/button>/);
+  assert.match(page, /id="hiddenRepoSection"[^>]*hidden/);
+  assert.match(page, /id="hiddenRepoList"/);
+  assert.match(page, /id="restoreAllHiddenBtn"/);
+  assert.match(page, /id="hiddenNotice"[^>]*aria-live="polite"[^>]*hidden/);
+  assert.match(page, /id="undoHideBtn"/);
+  assert.match(page, /HiddenRepos\.hide\(storage,slug\)/);
+  assert.match(page, /HiddenRepos\.restore\(storage,slug\)/);
+  assert.match(page, /HiddenRepos\.restoreAll\(storage\)/);
+  assert.match(page, /\.tip-actions \.rdbtn\{[^}]*min-height:44px/);
+});
+
+test("keyboard users can hide the focused card without a permanent card icon", () => {
+  assert.match(page, /id="cardKeyboardHint" class="sr-only"/);
+  assert.match(page, /aria-describedby="cardKeyboardHint" aria-keyshortcuts="Delete"/);
+  assert.match(page, /if\(e\.key==="Delete"&&e\.target===card\)/);
+  assert.match(page, /hideRepository\(REPOS\[\+card\.dataset\.idx\]\.slug,true\)/);
+});
+
+test("undo clears its notice before focus returns to the restored card", () => {
+  const restoreFlow = page.match(/function restoreRepository[\s\S]*?function tipHTML/)?.[0] ?? "";
+  assert.match(restoreFlow, /if\(focusCard\)dismissHiddenNotice\(\);else showHiddenNotice/);
+  assert.match(restoreFlow, /document\.querySelector\(`\.card\[data-idx=/);
+});
+
+test("hidden repositories are removed after favorites without entering URL state", () => {
+  const renderFlow = page.match(/function render\(\)\{[\s\S]*?\/\* 즐겨찾기 \*\//)?.[0] ?? "";
+  assert.match(renderFlow, /if\(favOnly\)items=items\.filter\(r=>favSet\.has\(r\.slug\)\)/);
+  assert.match(renderFlow, /const matchedCount=items\.length;\s*items=HiddenRepos\.filterRepos\(items,hiddenSet\)/);
+  assert.match(renderFlow, /hiddenOnly=!items\.length&&matchedCount>0/);
+  assert.match(renderFlow, /현재 조건의 저장소를 모두 숨겼어요/);
+  assert.match(renderFlow, /emptyManageHiddenBtn/);
+  const urlFlow = page.match(/function syncUrl[\s\S]*?function toggleFilter/)?.[0] ?? "";
+  assert.doesNotMatch(urlFlow, /hidden|slug/i);
+});
+
 test("the explore edge tab stays attached, reachable, and outside the inert page", () => {
   const sidebarIndex = page.indexOf('id="filterSidebar"');
   const navIndex = page.indexOf('id="navToggle"');

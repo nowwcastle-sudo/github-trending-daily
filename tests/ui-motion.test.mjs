@@ -175,6 +175,7 @@ test("mobile tooltip renders Korean summary and keeps README and repository acti
   assert.match(html, /한국어 목표/);
   assert.match(html, /class="rdbtn js-readme"[^>]*data-slug="owner\/project"/);
   assert.match(html, /href="https:\/\/github\.com\/owner\/project"/);
+  assert.match(html, /class="rdbtn js-hide-repo"[^>]*data-slug="owner\/project"[^>]*>관심 없음<\/button>/);
 });
 
 test("a pending Korean tab updates when its translation resolves without forcing a tab switch", async () => {
