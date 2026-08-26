@@ -14,6 +14,8 @@ const allowedOutputs = [
   "data/star-observations.sqlite",
   "data/trending-membership.sqlite",
   "data/membership-status.json",
+  "feed.xml",
+  "changes.xml",
   "star-history.json",
   "data/latest.json",
   "data/translation-sources.json",
@@ -124,16 +126,18 @@ test("tests and complete validation surround the exact production order", async 
     "python scripts/record_star_observations.py",
     "node scripts/update-latest-feed.mjs",
     "python scripts/record_trending_membership.py",
+    "python scripts/generate_atom_feeds.py",
     "node scripts/update-star-history.mjs",
     "StarHistory.normalizeCache",
     "validate_canonical_legacy_baseline",
     "validate_membership_publication",
+    "validate_atom_publication",
     "PRAGMA integrity_check",
     "PRAGMA foreign_key_check",
     "star-observations.sqlite-journal",
     "npm test",
     "git diff --check --",
-    "git add -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json star-history.json",
+    "git add -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json feed.xml changes.xml star-history.json",
     "git grep --cached -qE",
     "git commit -m \"chore: refresh trending snapshot\"",
     "git push origin HEAD:main",
@@ -274,6 +278,12 @@ test("paired READMEs publish the approved production-first information architect
   assert.match(english, /not interested[\s\S]*favorites?[\s\S]*intact/i);
   assert.match(korean, /숨김 선택은 URL에 포함되지/);
   assert.match(english, /hidden choices? (?:are|is) not included in the URL/i);
+  for (const value of [korean, english]) {
+    assert.match(value, /https:\/\/nowwcastle-sudo\.github\.io\/github-trending-daily\/feed\.xml/);
+    assert.match(value, /https:\/\/nowwcastle-sudo\.github\.io\/github-trending-daily\/changes\.xml/);
+  }
+  assert.match(korean, /feed\.xml[^\n]*현재 전체[\s\S]*changes\.xml[^\n]*신규[^\n]*재진입/);
+  assert.match(english, /feed\.xml[^\n]*current[\s\S]*changes\.xml[^\n]*new[^\n]*reentered/i);
   const featureCount = value => (value.match(/^[-] \*\*/gm) ?? []).length;
   assert.equal(featureCount(korean), featureCount(english), "feature and roadmap bullets stay 1:1");
   assert.ok(featureCount(korean) >= 10);

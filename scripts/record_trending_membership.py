@@ -521,6 +521,38 @@ def validate_membership_publication(database_path: str | Path, status_path: str 
     return actual
 
 
+def membership_change_events(database_path: str | Path, limit: int = 100):
+    """Return recent public new/reentered events, newest snapshot first."""
+    if type(limit) is not int or not 1 <= limit <= 100:
+        raise ValueError("Membership event limit must be 1-100")
+    database_path = Path(database_path)
+    if not database_path.is_file():
+        raise ValueError("Membership database is required")
+    for sidecar in _sidecars(database_path):
+        if sidecar.exists():
+            raise ValueError(f"Membership SQLite sidecar remains: {sidecar.name}")
+    events = []
+    with closing(sqlite3.connect(f"{database_path.resolve().as_uri()}?mode=ro", uri=True)) as connection:
+        _validate_health(connection)
+        rows = connection.execute(
+            "SELECT id FROM snapshots WHERE is_baseline = 0 ORDER BY id DESC"
+        ).fetchall()
+        for (snapshot_id,) in rows:
+            status = _status_from_connection(connection, snapshot_id)
+            for item in status["current"]:
+                if item["status"] not in {"new", "reentered"}:
+                    continue
+                events.append({
+                    "slug": item["slug"],
+                    "status": item["status"],
+                    "generatedAt": status["generatedAt"],
+                    "statsDate": status["statsDate"],
+                })
+                if len(events) == limit:
+                    return events
+    return events
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Append a finalized Trending membership snapshot")
     parser.add_argument("--page", type=Path, default=DEFAULT_PAGE)

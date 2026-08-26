@@ -29,6 +29,7 @@ It is designed to help you judge more than total popularity: how quickly a proje
 - **Two-hour automatic refresh** — Collects daily, weekly, and monthly GitHub Trending samples on a Seoul-time schedule.
 - **Information-dense repository cards** — Shows total stars, period gains, forks, issues, contributors, recent commits, and releases together.
 - **Momentum signals** — Displays star history, consecutive Trending days, change since the previous observation, and HOT badges.
+- **Atom subscriptions** — [feed.xml](https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml) provides the current complete Trending list, while [changes.xml](https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml) provides the newest 100 new and reentered events after the baseline.
 - **Period views** — Switches among all, daily, weekly, and monthly results in one control.
 - **Selectable sorting** — Keeps the original Trending order by default, or sorts by selected-period star gain, total stars, latest push, or latest release. Missing values stay last and ties keep their original order.
 - **Search and language filtering** — Searches repository text and narrows results by programming language.
@@ -55,6 +56,7 @@ It is designed to help you judge more than total popularity: how quickly a proje
 4. Hover over a card on desktop, or tap it once on mobile, to inspect the project's goal, usage, strengths, and limitations. Choose **Not interested**, or focus the card and press Delete, to hide it in the current browser; restore it from the undo notice or sidebar.
 5. Use the star button to save a favorite. Signed-out favorites stay in the current browser; Google sign-in synchronizes them to the same account.
 6. Copy the address after sorting or filtering to share the same discovery state. Hidden choices are not shared.
+7. Add `feed.xml` to an Atom reader for every current repository, or `changes.xml` for membership changes only.
 
 ## Refresh and data
 

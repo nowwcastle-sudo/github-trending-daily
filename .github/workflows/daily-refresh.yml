@@ -41,6 +41,7 @@ jobs:
           python scripts/record_star_observations.py
           node scripts/update-latest-feed.mjs
           python scripts/record_trending_membership.py
+          python scripts/generate_atom_feeds.py
           node scripts/update-star-history.mjs
       - name: Validate complete trending snapshot
         shell: bash
@@ -70,8 +71,10 @@ jobs:
               validate_canonical_legacy_baseline,
           )
           from scripts.record_trending_membership import validate_membership_publication
+          from scripts.generate_atom_feeds import validate_atom_publication
 
           page = Path("index.html").read_text(encoding="utf-8")
+          latest = json.loads(Path("data/latest.json").read_text(encoding="utf-8"))
           repositories = parse_repositories(page)
           parse_legacy_star_history(page)
           database = Path("data/star-observations.sqlite")
@@ -80,7 +83,15 @@ jobs:
               Path("data/trending-membership.sqlite"),
               Path("data/membership-status.json"),
               page,
-              json.loads(Path("data/latest.json").read_text(encoding="utf-8")),
+              latest,
+          )
+          validate_atom_publication(
+              page,
+              latest,
+              Path("data/trending-membership.sqlite"),
+              Path("feed.xml"),
+              Path("changes.xml"),
+              Path("data/membership-status.json"),
           )
           with sqlite3.connect(database) as connection:
               connection.execute("PRAGMA foreign_keys = ON")
@@ -106,7 +117,7 @@ jobs:
               assert not sidecar.exists(), f"SQLite sidecar remains: {sidecar.name}"
           PY
           npm test
-          git diff --check -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json star-history.json data/latest.json data/translation-sources.json translations/
+          git diff --check -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json feed.xml changes.xml star-history.json data/latest.json data/translation-sources.json translations/
       - name: Publish validated snapshot
         shell: bash
         run: |
@@ -115,14 +126,14 @@ jobs:
           while IFS= read -r path; do
             [ -z "$path" ] && continue
             case "$path" in
-              index.html|data/repo-summaries.json|data/star-observations.sqlite|data/trending-membership.sqlite|data/membership-status.json|star-history.json|data/latest.json|data/translation-sources.json) ;;
+              index.html|data/repo-summaries.json|data/star-observations.sqlite|data/trending-membership.sqlite|data/membership-status.json|feed.xml|changes.xml|star-history.json|data/latest.json|data/translation-sources.json) ;;
               translations/*.json) ;;
               *) echo "::error::Unexpected generated output"; exit 1 ;;
             esac
           done <<< "$changed_paths"
-          git add -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json star-history.json data/latest.json data/translation-sources.json translations/
+          git add -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json feed.xml changes.xml star-history.json data/latest.json data/translation-sources.json translations/
           set +e
-          git diff --cached --quiet -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json star-history.json data/latest.json data/translation-sources.json translations/
+          git diff --cached --quiet -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json feed.xml changes.xml star-history.json data/latest.json data/translation-sources.json translations/
           diff_status=$?
           set -e
           case "$diff_status" in
@@ -131,7 +142,7 @@ jobs:
             *) echo "::error::Generated diff check failed"; exit 1 ;;
           esac
           set +e
-          git grep --cached -qE '(gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json star-history.json data/latest.json data/translation-sources.json translations/
+          git grep --cached -qE '(gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json feed.xml changes.xml star-history.json data/latest.json data/translation-sources.json translations/
           scan_status=$?
           set -e
           case "$scan_status" in

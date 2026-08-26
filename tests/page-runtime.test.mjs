@@ -168,6 +168,14 @@ test("membership history is loaded before semantic badges and recent exits are r
   assert.match(page, /recentExitsList[\s\S]*?https:\/\/github\.com\//);
 });
 
+test("the page head advertises both exact Atom subscription endpoints", () => {
+  const alternates = [...page.matchAll(/<link rel="alternate" type="application\/atom\+xml" title="([^"]+)" href="([^"]+)">/g)];
+  assert.deepEqual(alternates.map(match => match.slice(1)), [
+    ["GitHub Trending Daily — 현재 전체", "https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml"],
+    ["GitHub Trending Daily — 신규·재진입", "https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml"],
+  ]);
+});
+
 test("sorting is shareable, stable, and keeps the selected period in favorites", () => {
   assert.match(page, /<select class="langsel" id="sortSelect" aria-label="저장소 정렬"/);
   assert.match(page, /<option value="trending">Trending 원래 순서<\/option>/);
