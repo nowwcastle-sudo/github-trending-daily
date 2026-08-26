@@ -1,0 +1,112 @@
+(function (root, factory) {
+  const api = factory();
+  if (typeof module === "object" && module.exports) module.exports = api;
+  root.RepoFilters = api;
+})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+  "use strict";
+
+  const FIELD_DEFINITIONS = [
+    ["ai-ml", "AI·머신러닝", /\b(ai|artificial[- ]intelligence|machine[- ]learning|deep[- ]learning|llms?|gpt|claude|codex|agents?|agentic|rag|inference|neural|generative[- ]ai|computer[- ]vision|nlp)\b/i],
+    ["web-app", "웹·앱 개발", /\b(web|frontend|react|vue|svelte|next\.?js|mobile|android|ios|browser|webapp)\b/i],
+    ["dev-tools", "개발 도구", /\b(developer[- ]tools?|devtools?|coding|programming|compiler|sdk|ide|cli|automation|api|mcp|plugins?)\b/i],
+    ["data", "데이터·DB", /\b(data|database|sql|analytics|warehouse|vector[- ]database|data[- ]engineering)\b/i],
+    ["devops", "DevOps·인프라", /\b(devops|cloud|kubernetes|k8s|docker|infrastructure|ci[- /]?cd|observability|deployment)\b/i],
+    ["security", "보안·프라이버시", /\b(security|privacy|pentest|osint|vulnerabilit(?:y|ies)|authentication|authorization|password|secrets?)\b/i],
+    ["productivity", "앱·생산성", /\b(productivity|project[- ]management|note[- ]taking|knowledge[- ]management|job[- ]search|workflow|crm|finance|media|desktop[- ]app)\b/i],
+    ["systems", "시스템·하드웨어", /\b(linux|operating[- ]system|kernel|embedded|hardware|robotics?|on[- ]device|wearables?|smart[- ]home)\b/i],
+    ["learning", "학습·자료", /\b(awesome|learn|learning|tutorial|course|book|beginners?|curriculum|resources?)\b/i],
+  ];
+  const FORM_DEFINITIONS = [
+    ["agent", "Agent", /\b(agents?|agentic)\b/i],
+    ["mcp", "MCP", /\bmcp\b/i],
+    ["plugin-skill", "Plugin·Skill", /\b(plugins?|skills?)\b/i],
+    ["ide", "IDE·코딩 도구", /\b(ide|code[- ]editor|coding[- ]environment)\b/i],
+    ["library", "Library·SDK", /\b(library|libraries|sdk|toolkit|package)\b/i],
+    ["framework", "Framework", /\bframeworks?\b/i],
+    ["cli", "CLI·Automation", /\b(cli|command[- ]line|automation|workflow)\b/i],
+  ];
+  const FIELD_IDS = new Set([...FIELD_DEFINITIONS.map(([id]) => id), "unclassified"]);
+  const FORM_IDS = new Set(FORM_DEFINITIONS.map(([id]) => id));
+  const PERIODS = new Set(["all", "daily", "weekly", "monthly"]);
+
+  function sourceText(repo) {
+    return [
+      repo?.slug,
+      repo?.name,
+      repo?.desc,
+      repo?.lang,
+      ...(Array.isArray(repo?.topics) ? repo.topics : []),
+      repo?.summary?.goal,
+      repo?.summary?.fit,
+    ].filter(value => typeof value === "string").join(" ").toLowerCase();
+  }
+
+  function classifyRepo(repo) {
+    const text = sourceText(repo);
+    const fields = FIELD_DEFINITIONS.filter(([, , pattern]) => pattern.test(text)).map(([id]) => id);
+    const forms = FORM_DEFINITIONS.filter(([, , pattern]) => pattern.test(text)).map(([id]) => id);
+    return { fields: fields.length ? fields : ["unclassified"], forms };
+  }
+
+  function normalizedList(value, allowed) {
+    if (!Array.isArray(value)) return [];
+    return [...new Set(value.filter(item => typeof item === "string" && allowed.has(item)))];
+  }
+
+  function defaultState() {
+    return { period: "all", favOnly: false, q: "", lang: "", fields: [], forms: [], excludeAi: false };
+  }
+
+  function parseState(search, languages = []) {
+    const state = defaultState();
+    const params = new URLSearchParams(typeof search === "string" ? search : "");
+    const period = params.get("period");
+    if (PERIODS.has(period)) state.period = period;
+    state.favOnly = params.get("view") === "favorites";
+    const q = params.get("q") ?? "";
+    state.q = q.length <= 120 ? q : "";
+    const lang = params.get("lang") ?? "";
+    state.lang = languages.includes(lang) ? lang : "";
+    state.fields = normalizedList((params.get("field") ?? "").split(","), FIELD_IDS);
+    state.forms = normalizedList((params.get("tag") ?? "").split(","), FORM_IDS);
+    state.excludeAi = params.get("exclude") === "ai";
+    return state;
+  }
+
+  function serializeState(value) {
+    const state = { ...defaultState(), ...value };
+    const params = new URLSearchParams();
+    if (PERIODS.has(state.period) && state.period !== "all") params.set("period", state.period);
+    if (state.favOnly) params.set("view", "favorites");
+    if (typeof state.lang === "string" && state.lang) params.set("lang", state.lang);
+    const fields = normalizedList(state.fields, FIELD_IDS);
+    const forms = normalizedList(state.forms, FORM_IDS);
+    if (fields.length) params.set("field", fields.join(","));
+    if (forms.length) params.set("tag", forms.join(","));
+    if (state.excludeAi) params.set("exclude", "ai");
+    if (typeof state.q === "string" && state.q && state.q.length <= 120) params.set("q", state.q);
+    const query = params.toString();
+    return query ? `?${query}` : "";
+  }
+
+  function matchesRepo(repo, value = {}) {
+    const state = { ...defaultState(), ...value };
+    const classification = classifyRepo(repo);
+    if (state.excludeAi && classification.fields.includes("ai-ml")) return false;
+    if (state.fields?.length && !state.fields.some(id => classification.fields.includes(id))) return false;
+    if (state.forms?.length && !state.forms.some(id => classification.forms.includes(id))) return false;
+    if (state.lang && repo?.lang !== state.lang) return false;
+    if (state.q && !sourceText(repo).includes(state.q.toLowerCase())) return false;
+    return true;
+  }
+
+  return {
+    fields: [...FIELD_DEFINITIONS.map(([id, label]) => ({ id, label })), { id: "unclassified", label: "미분류" }],
+    forms: FORM_DEFINITIONS.map(([id, label]) => ({ id, label })),
+    classifyRepo,
+    defaultState,
+    parseState,
+    serializeState,
+    matchesRepo,
+  };
+});

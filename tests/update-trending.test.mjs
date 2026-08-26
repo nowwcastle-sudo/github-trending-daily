@@ -187,6 +187,7 @@ function successfulGithubFetch({ failures = new Map(), requests = [] } = {}) {
       full_name: slug,
       description: `Description for ${slug}`,
       language: "JavaScript",
+      topics: ["developer-tools", "automation"],
       stargazers_count: 100,
       forks_count: 20,
       open_issues_count: 3,
@@ -215,6 +216,7 @@ test("enriches REST metadata and reuses cached summaries without modification", 
     name: "owner / repo-0",
     desc: "Description for owner/repo-0",
     lang: "JavaScript",
+    topics: ["developer-tools", "automation"],
     stars: 100,
     forks: 20,
     stars_daily: 1,
@@ -424,6 +426,7 @@ function publishableRepo(index, statsDate = "2026-08-23") {
     name: `owner / repo-${index}`,
     desc: `Description ${index}`,
     lang: "JavaScript",
+    topics: ["developer-tools"],
     stars: 100 + index,
     forks: 20,
     stars_daily: index + 1,
@@ -489,6 +492,13 @@ test("final snapshot rejects invalid collection sizes and incomplete UI fields",
   unsafeColor[0].color = "red;position:fixed";
   assert.throws(
     () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: unsafeColor, statsDate: "2026-08-23" }),
+    /valid UI schema/i,
+  );
+
+  const unsafeTopics = publishableRepos();
+  unsafeTopics[0].topics = ["safe", "<script>"];
+  assert.throws(
+    () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: unsafeTopics, statsDate: "2026-08-23" }),
     /valid UI schema/i,
   );
 });

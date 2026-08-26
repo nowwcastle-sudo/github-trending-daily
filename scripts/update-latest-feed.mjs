@@ -57,9 +57,9 @@ export function buildLatestFeed({ repos, statsDate, generatedAt, signals }) {
     generatedAt,
     statsDate,
     count: repos.length,
-    repos: repos.map(({ slug, name, desc, lang, stars, forks, issues, contributors,
+    repos: repos.map(({ slug, name, desc, lang, topics, stars, forks, issues, contributors,
       stars_daily, stars_weekly, stars_monthly, summary }) => ({
-      slug, name, desc, lang, stars, forks, issues, contributors,
+      slug, name, desc, lang, topics, stars, forks, issues, contributors,
       gains: { daily: stars_daily ?? null, weekly: stars_weekly ?? null, monthly: stars_monthly ?? null },
       signal: signals.get(slug.toLowerCase()) ?? null,
       summary,

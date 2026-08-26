@@ -62,11 +62,37 @@ test("landmarks, form controls, and hidden panels retain accessible boundaries",
   assert.match(main, /<footer>/);
   assert.match(page, /<select class="langsel" id="lang" aria-label="프로그래밍 언어"/);
   assert.match(page, /<input class="search" id="q" aria-label="저장소 검색"/);
-  assert.match(page, /id="readmePanel" aria-hidden="true" inert/);
+  assert.match(page, /id="readmePanel"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-hidden="true" inert/);
   assert.match(page, /id="tipLayer"[^>]*aria-hidden="true" inert/);
   assert.match(page, /panel\.inert=false[\s\S]*?panel\.setAttribute\("aria-hidden","false"\)/);
   assert.match(page, /panel\.setAttribute\("aria-hidden","true"\);\s*panel\.inert=true/);
   assert.doesNotMatch(page, /#tipLayer h3|<h3>\$\{esc\(r\.name\)\}<\/h3>/);
+});
+
+test("responsive sidebar owns account, favorites, and discovery filters", () => {
+  assert.match(page, /<script src="repo-filters\.js"><\/script>/);
+  assert.match(page, /id="navToggle"[^>]*aria-controls="filterSidebar"[^>]*aria-expanded="false"/);
+  assert.match(page, /<div[^>]*id="filterSidebar"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-label="탐색 사이드바"[^>]*inert/);
+  const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<div id="sidebarScrim"/)?.[0] ?? "";
+  assert.match(sidebar, /id="syncStatus"/);
+  assert.match(sidebar, /id="loginBtn"/);
+  assert.match(sidebar, /id="favOnlyBtn"/);
+  assert.match(sidebar, /id="lang"/);
+  assert.match(sidebar, /id="fieldFilters"/);
+  assert.match(sidebar, /id="formFilters"/);
+  assert.match(sidebar, /id="excludeAi"/);
+  assert.match(page, /id="sidebarScrim"/);
+  assert.match(page, /\.filter-sidebar\{[\s\S]*?transform:translate3d\(-105%,0,0\)/);
+  assert.match(page, /\.filter-sidebar\.open\{transform:translate3d\(0,0,0\)/);
+  assert.match(page, /pageMain\.inert=true/);
+  assert.match(page, /trapFocus\(sidebar,event\)/);
+});
+
+test("filter state is restored from and written to the URL", () => {
+  assert.match(page, /RepoFilters\.parseState\(location\.search/);
+  assert.match(page, /history\.(?:pushState|replaceState)\(/);
+  assert.match(page, /addEventListener\("popstate"/);
+  assert.match(page, /RepoFilters\.matchesRepo\(r,/);
 });
 
 test("desktop tooltip motion keeps layout geometry stable", () => {

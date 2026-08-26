@@ -145,11 +145,14 @@ function contributorCount(response, contributors) {
 
 function assertRepoMetadata(value, slug) {
   const counts = [value?.stargazers_count, value?.forks_count, value?.open_issues_count];
+  const topics = value?.topics;
   if (
     typeof value?.full_name !== "string"
     || value.full_name.toLowerCase() !== slug.toLowerCase()
     || (value.description !== null && typeof value.description !== "string")
     || (value.language !== null && typeof value.language !== "string")
+    || !Array.isArray(topics)
+    || topics.some(topic => typeof topic !== "string" || !/^[a-z0-9][a-z0-9-]{0,49}$/.test(topic))
     || counts.some(count => !Number.isSafeInteger(count) || count < 0)
   ) {
     throw new Error(`Invalid GitHub metadata for ${slug}`);
@@ -283,6 +286,7 @@ export async function enrichTrendingRepositories(discovered, {
       repos.push({
         ...retained,
         slug,
+        topics: Array.isArray(retained.topics) ? retained.topics : [],
         ...periodGains(discoveredRepo),
         ...(cached ? { summary: cached.summary, detail: cached.detail } : {}),
         _stats_date: statsDate,
@@ -317,6 +321,7 @@ export async function enrichTrendingRepositories(discovered, {
       name: `${owner} / ${name}`,
       desc: metadata.description ?? "",
       lang: metadata.language ?? "",
+      topics: metadata.topics,
       stars: metadata.stargazers_count,
       forks: metadata.forks_count,
       ...periodGains(discoveredRepo),
@@ -395,6 +400,8 @@ function assertCompleteSummary(repo, statsDate) {
     || !repo.name.trim()
     || typeof repo.desc !== "string"
     || typeof repo.lang !== "string"
+    || !Array.isArray(repo.topics)
+    || repo.topics.some(topic => typeof topic !== "string" || !/^[a-z0-9][a-z0-9-]{0,49}$/.test(topic))
     || typeof repo.color !== "string"
     || !/^#[0-9a-f]{6}$/i.test(repo.color)
     || counts.some(value => !Number.isSafeInteger(value) || value < 0)

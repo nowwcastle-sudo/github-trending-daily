@@ -32,6 +32,7 @@ test("computeSignals resets at a calendar gap and merges same-day sources by max
 test("buildLatestFeed keeps the public schema and attaches current signals", () => {
   const repos = [{
     slug: "a/one", name: "a / one", desc: "d", lang: "JavaScript",
+    topics: ["developer-tools", "automation"],
     stars: 21, forks: 2, issues: 3, contributors: 4, stars_daily: 5,
     summary: { goal: "g", usage: "u", pros: "p", cons: "c", fit: "f" },
   }];
@@ -44,6 +45,7 @@ test("buildLatestFeed keeps the public schema and attaches current signals", () 
   assert.equal(feed.count, 1);
   assert.deepEqual(feed.repos[0].gains, { daily: 5, weekly: null, monthly: null });
   assert.deepEqual(feed.repos[0].signal, { streakDays: 2, starsChange: 6 });
+  assert.deepEqual(feed.repos[0].topics, ["developer-tools", "automation"]);
 });
 
 test("writeLatestFeed atomically writes one newline-terminated JSON document", async () => {
