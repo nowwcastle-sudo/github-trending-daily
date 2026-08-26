@@ -8,6 +8,7 @@ import {
   extractReposFromIndex,
   hashReadme,
   planTranslations,
+  findUntrackedTranslationSources,
   buildPrompt,
   parseModelResponse,
   enrichReposEntry,
@@ -69,6 +70,27 @@ test("an unchanged README creates an empty paid translation queue", () => {
   );
 
   assert.equal(plan.pending.length, 0, "no item may reach callAnthropic");
+});
+
+test("historical translations receive a free source baseline before they can return", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "ua-history-baseline-"));
+  for (const slug of ["active/repo", "history/repo", "tracked/repo"]) {
+    writeFileSync(path.join(dir, slugToFile(slug)), "{}");
+  }
+  const candidates = findUntrackedTranslationSources(
+    {
+      "active/repo": {},
+      "history/repo": {},
+      "tracked/repo": {},
+      "missing/file": {},
+      "bad-slug": {},
+    },
+    dir,
+    { "tracked/repo": hashReadme("# Already tracked") },
+    [{ slug: "active/repo" }],
+  );
+
+  assert.deepEqual(candidates.map(({ slug }) => slug), ["history/repo"]);
 });
 
 test("buildPrompt embeds README and requests JSON-only output", () => {

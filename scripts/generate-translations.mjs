@@ -77,6 +77,23 @@ export function planTranslations(repos, translationsDir, sources, readmes) {
   return { pending, baselines };
 }
 
+export function findUntrackedTranslationSources(summaryCache, translationsDir, sources, activeRepos) {
+  if (!summaryCache || Array.isArray(summaryCache) || typeof summaryCache !== "object") {
+    throw new Error("summary cache must be an object");
+  }
+  const active = new Set(activeRepos
+    .map(repo => String(repo.slug || "").toLowerCase())
+    .filter(slug => REPO_RE.test(slug)));
+  const candidates = [];
+  for (const slug of Object.keys(summaryCache)) {
+    const normalized = slug.toLowerCase();
+    if (!REPO_RE.test(slug) || active.has(normalized) || sources[normalized]) continue;
+    if (!existsSync(path.join(translationsDir, slugToFile(slug)))) continue;
+    candidates.push({ slug });
+  }
+  return candidates;
+}
+
 async function loadTranslationSources(file) {
   try {
     return normalizeTranslationSources(JSON.parse(await readFile(file, "utf8")));
@@ -195,6 +212,7 @@ async function main() {
   const indexHtml = await readFile(pagePath, "utf8");
   const repos = extractReposFromIndex(indexHtml);
   const sources = await loadTranslationSources(sourcesPath);
+  const summaryCache = JSON.parse(await readFile(cachePath, "utf8"));
   const readmes = new Map();
   const failures = [];
   for (const repo of repos) {
@@ -206,10 +224,26 @@ async function main() {
       failures.push({ slug, error: String(error.message || error) });
     }
   }
-  const plan = planTranslations(repos, translationsDir, sources, readmes);
+  const historicalSources = findUntrackedTranslationSources(
+    summaryCache,
+    translationsDir,
+    sources,
+    repos,
+  );
+  for (const { slug } of historicalSources) {
+    try {
+      readmes.set(slug, await fetchReadme(slug, githubToken));
+    } catch (error) {
+      failures.push({ slug, error: String(error.message || error) });
+    }
+  }
+  const plan = planTranslations([...repos, ...historicalSources], translationsDir, sources, readmes);
   const pending = plan.pending.slice(0, MAX_TRANSLATIONS_PER_RUN);
   const nextSources = { ...sources };
   for (const { slug, readmeHash } of plan.baselines) nextSources[slug.toLowerCase()] = readmeHash;
+  if (plan.baselines.length > 0) {
+    console.log(`${plan.baselines.length} existing translation source baseline(s) recorded without LLM.`);
+  }
 
   if (pending.length === 0) {
     console.log("No new translations needed.");
@@ -222,7 +256,6 @@ async function main() {
     console.log(`${pending.length} repo(s) need translation: ${missing} new, ${changed} README changed (cap ${MAX_TRANSLATIONS_PER_RUN}).`);
   }
 
-  const summaryCache = JSON.parse(await readFile(cachePath, "utf8"));
   const completed = [];
   let enrichedHtml = indexHtml;
   let enrichedCache = summaryCache;
