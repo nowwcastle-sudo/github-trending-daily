@@ -37,6 +37,7 @@ It is designed to help you judge more than total popularity: how quickly a proje
 - **Shareable URL state** — Preserves period, favorites view, query, language, field and form tags, and AI exclusion in the address and restores them through browser history.
 - **Responsive summaries and README viewer** — Uses a conditional desktop tooltip and a first-tap mobile summary, with original and cached Korean README views.
 - **Local and account favorites** — Stores signed-out favorites in the current browser and synchronizes them across devices and browsers after Google sign-in.
+- **Sidebar-first discovery** — Opens the overlay sidebar from the left-edge Explore icon and shows recent and next refresh times at the top. Press it again, click outside, or press Escape to close it.
 - **Accessible responsive UI** — Supports light and dark themes, keyboard focus, 44 px mobile touch targets, reduced motion, and reduced transparency.
 
 ## Roadmap
@@ -48,7 +49,7 @@ It is designed to help you judge more than total popularity: how quickly a proje
 
 1. Open the [production site](https://nowwcastle-sudo.github.io/github-trending-daily/).
 2. Choose all, daily, weekly, or monthly at the top, or search repository names and descriptions.
-3. Open **탐색 (Explore)** to combine favorites view, programming language, field, form and technology, and AI-exclusion conditions. Choices use OR within one group and AND between different groups.
+3. Press the left-edge **탐색 (Explore) icon** to combine favorites view, programming language, field, form and technology, and AI-exclusion conditions. Choices use OR within one group and AND between different groups.
 4. Hover over a card on desktop, or tap it once on mobile, to inspect the project's goal, usage, strengths, and limitations.
 5. Use the star button to save a favorite. Signed-out favorites stay in the current browser; Google sign-in synchronizes them to the same account.
 6. Copy the address after filtering to share the same discovery state.

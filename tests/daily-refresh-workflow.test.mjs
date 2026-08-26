@@ -260,6 +260,10 @@ test("paired READMEs publish the approved production-first information architect
     assert.match(value, /(?:Asia\/Seoul|서울|Seoul)/);
     assert.match(value, /(?:README hash|README 해시)/i);
   }
+  assert.match(korean, /왼쪽 가장자리[^\n]*최근·다음 갱신 시각/);
+  assert.match(english, /left-edge[^\n]*recent and next refresh times/i);
+  assert.match(korean, /다시 누르거나 바깥을 클릭하거나 Escape/);
+  assert.match(english, /press it again, click outside, or press Escape/i);
   const featureCount = value => (value.match(/^[-] \*\*/gm) ?? []).length;
   assert.equal(featureCount(korean), featureCount(english), "feature and roadmap bullets stay 1:1");
   assert.ok(featureCount(korean) >= 10);
