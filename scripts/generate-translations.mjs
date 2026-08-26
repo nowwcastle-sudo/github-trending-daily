@@ -1,7 +1,7 @@
-// generate-translations.mjs — Detect new trending repos and produce Korean
-// summaries + README translations via the Anthropic API. Idempotent: repos that
-// already have a translations/<slug>.json are skipped.
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+// generate-translations.mjs — Translate only new repositories or repositories
+// whose README content changed since the last successful translation.
+import { createHash } from "node:crypto";
+import { readFile, writeFile, mkdir, rename, rm } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,6 +12,7 @@ const MAX_README_BYTES = 512 * 1024; // 512 KiB cap per README
 const MAX_TRANSLATIONS_PER_RUN = 20; // cost guard
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-haiku-4-5";
+const TRANSLATION_SOURCES_VERSION = 1;
 
 export function slugToFile(slug) {
   return `${slug.replace(/\//g, "__")}.json`;
@@ -32,17 +33,75 @@ export function extractReposFromIndex(html) {
   throw new Error("REPOS array not terminated");
 }
 
-export function findPending(repos, translationsDir) {
+export function hashReadme(markdown) {
+  return createHash("sha256").update(markdown, "utf8").digest("hex");
+}
+
+export function normalizeTranslationSources(value) {
+  if (!value || Array.isArray(value) || value.version !== TRANSLATION_SOURCES_VERSION
+      || !value.sources || Array.isArray(value.sources) || typeof value.sources !== "object") {
+    throw new Error("translation sources must use schema version 1");
+  }
+  const normalized = {};
+  for (const [slug, readmeHash] of Object.entries(value.sources)) {
+    const key = slug.toLowerCase();
+    if (!REPO_RE.test(slug) || key in normalized || !/^[a-f0-9]{64}$/.test(readmeHash)) {
+      throw new Error("translation sources contain an invalid entry");
+    }
+    normalized[key] = readmeHash;
+  }
+  return normalized;
+}
+
+export function planTranslations(repos, translationsDir, sources, readmes) {
   const pending = [];
+  const baselines = [];
   for (const repo of repos) {
     const slug = String(repo.slug || "");
     if (!REPO_RE.test(slug)) continue;
+    const markdown = readmes.get(slug);
+    if (typeof markdown !== "string") continue;
+    const readmeHash = hashReadme(markdown);
     const file = path.join(translationsDir, slugToFile(slug));
     if (!existsSync(file)) {
-      pending.push({ slug, reason: "missing" });
+      pending.push({ slug, reason: "missing", markdown, readmeHash });
+      continue;
+    }
+    const previousHash = sources[slug.toLowerCase()];
+    if (!previousHash) {
+      baselines.push({ slug, readmeHash });
+    } else if (previousHash !== readmeHash) {
+      pending.push({ slug, reason: "readme-changed", markdown, readmeHash });
     }
   }
-  return pending;
+  return { pending, baselines };
+}
+
+async function loadTranslationSources(file) {
+  try {
+    return normalizeTranslationSources(JSON.parse(await readFile(file, "utf8")));
+  } catch (error) {
+    if (error?.code === "ENOENT") return {};
+    throw error;
+  }
+}
+
+async function writeTranslationSources(file, sources) {
+  const next = `${JSON.stringify({ version: TRANSLATION_SOURCES_VERSION, sources }, null, 2)}\n`;
+  try {
+    if (await readFile(file, "utf8") === next) return false;
+  } catch (error) {
+    if (error?.code !== "ENOENT") throw error;
+  }
+  const temporary = `${file}.tmp-${process.pid}`;
+  await mkdir(path.dirname(file), { recursive: true });
+  try {
+    await writeFile(temporary, next, "utf8");
+    await rename(temporary, file);
+  } finally {
+    await rm(temporary, { force: true });
+  }
+  return true;
 }
 
 export function buildPrompt(readmeMarkdown) {
@@ -132,25 +191,44 @@ async function main() {
 
   const pagePath = path.join(projectRoot, "index.html");
   const cachePath = path.join(projectRoot, "data", "repo-summaries.json");
+  const sourcesPath = path.join(projectRoot, "data", "translation-sources.json");
   const indexHtml = await readFile(pagePath, "utf8");
   const repos = extractReposFromIndex(indexHtml);
-  const pending = findPending(repos, translationsDir).slice(0, MAX_TRANSLATIONS_PER_RUN);
+  const sources = await loadTranslationSources(sourcesPath);
+  const readmes = new Map();
+  const failures = [];
+  for (const repo of repos) {
+    const slug = String(repo.slug || "");
+    if (!REPO_RE.test(slug)) continue;
+    try {
+      readmes.set(slug, await fetchReadme(slug, githubToken));
+    } catch (error) {
+      failures.push({ slug, error: String(error.message || error) });
+    }
+  }
+  const plan = planTranslations(repos, translationsDir, sources, readmes);
+  const pending = plan.pending.slice(0, MAX_TRANSLATIONS_PER_RUN);
+  const nextSources = { ...sources };
+  for (const { slug, readmeHash } of plan.baselines) nextSources[slug.toLowerCase()] = readmeHash;
 
   if (pending.length === 0) {
     console.log("No new translations needed.");
-    return;
+    await writeTranslationSources(sourcesPath, nextSources);
+    if (failures.length === 0) return;
   }
-  console.log(`${pending.length} repo(s) need translation (capped at ${MAX_TRANSLATIONS_PER_RUN}).`);
+  if (pending.length > 0) {
+    const changed = pending.filter(item => item.reason === "readme-changed").length;
+    const missing = pending.length - changed;
+    console.log(`${pending.length} repo(s) need translation: ${missing} new, ${changed} README changed (cap ${MAX_TRANSLATIONS_PER_RUN}).`);
+  }
 
   const summaryCache = JSON.parse(await readFile(cachePath, "utf8"));
-  const failures = [];
   const completed = [];
   let enrichedHtml = indexHtml;
   let enrichedCache = summaryCache;
 
-  for (const { slug } of pending) {
+  for (const { slug, markdown, readmeHash } of pending) {
     try {
-      const markdown = await fetchReadme(slug, githubToken);
       const text = await callAnthropic(apiKey, buildPrompt(markdown));
       const parsed = parseModelResponse(text);
 
@@ -160,6 +238,8 @@ async function main() {
       completed.push({
         path: path.join(translationsDir, slugToFile(slug)),
         text: `${JSON.stringify({ html: parsed.translated_markdown }, null, 2)}\n`,
+        slug,
+        readmeHash,
       });
       console.log(`✓ ${slug}`);
     } catch (error) {
@@ -179,8 +259,12 @@ async function main() {
       statsDate: [...dates][0],
     });
     await installPageSnapshot({ pagePath, cachePath, ...snapshot });
-    for (const output of completed) await writeFile(output.path, output.text, "utf8");
+    for (const output of completed) {
+      await writeFile(output.path, output.text, "utf8");
+      nextSources[output.slug.toLowerCase()] = output.readmeHash;
+    }
   }
+  await writeTranslationSources(sourcesPath, nextSources);
 
   if (failures.length > 0) {
     console.error(`\n${failures.length} failure(s):`);

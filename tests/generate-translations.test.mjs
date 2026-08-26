@@ -6,7 +6,8 @@ import path from "node:path";
 import {
   slugToFile,
   extractReposFromIndex,
-  findPending,
+  hashReadme,
+  planTranslations,
   buildPrompt,
   parseModelResponse,
   enrichReposEntry,
@@ -24,12 +25,50 @@ test("extractReposFromIndex parses REPOS array with nested brackets", () => {
   assert.deepEqual(repos[0].meta.x, [1, 2]);
 });
 
-test("findPending flags only repos without translation files", () => {
+test("translation planning charges only for new or README-changed repositories", () => {
   const dir = mkdtempSync(path.join(tmpdir(), "ua-test-"));
-  writeFileSync(path.join(dir, "exists__ok.json"), "{}");
-  const repos = [{ slug: "exists/ok" }, { slug: "missing/repo" }, { slug: "bad-slug" }];
-  const pending = findPending(repos, dir);
-  assert.deepEqual(pending.map((p) => p.slug), ["missing/repo"]);
+  for (const slug of ["exists/ok", "changed/repo", "baseline/only"]) {
+    writeFileSync(path.join(dir, slugToFile(slug)), "{}");
+  }
+  const repos = [
+    { slug: "exists/ok" },
+    { slug: "changed/repo" },
+    { slug: "baseline/only" },
+    { slug: "missing/repo" },
+    { slug: "bad-slug" },
+  ];
+  const readmes = new Map([
+    ["exists/ok", "# Stable"],
+    ["changed/repo", "# Changed"],
+    ["baseline/only", "# Existing translation without a source baseline"],
+    ["missing/repo", "# New"],
+  ]);
+  const sources = {
+    "exists/ok": hashReadme("# Stable"),
+    "changed/repo": hashReadme("# Old"),
+  };
+
+  const plan = planTranslations(repos, dir, sources, readmes);
+  assert.deepEqual(plan.pending.map(({ slug, reason }) => ({ slug, reason })), [
+    { slug: "changed/repo", reason: "readme-changed" },
+    { slug: "missing/repo", reason: "missing" },
+  ]);
+  assert.deepEqual(plan.baselines.map(({ slug }) => slug), ["baseline/only"]);
+  assert.equal(plan.pending.some(({ slug }) => slug === "exists/ok"), false);
+});
+
+test("an unchanged README creates an empty paid translation queue", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "ua-cost-gate-"));
+  writeFileSync(path.join(dir, slugToFile("exists/ok")), "{}");
+  const markdown = "# Stable";
+  const plan = planTranslations(
+    [{ slug: "exists/ok" }],
+    dir,
+    { "exists/ok": hashReadme(markdown) },
+    new Map([["exists/ok", markdown]]),
+  );
+
+  assert.equal(plan.pending.length, 0, "no item may reach callAnthropic");
 });
 
 test("buildPrompt embeds README and requests JSON-only output", () => {

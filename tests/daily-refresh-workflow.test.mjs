@@ -14,6 +14,7 @@ const allowedOutputs = [
   "data/star-observations.sqlite",
   "star-history.json",
   "data/latest.json",
+  "data/translation-sources.json",
   "translations/eu-country.json",
 ];
 
@@ -91,7 +92,7 @@ test("primary and recovery workflows have exact safe scheduling and runtime cont
   const permissionsBlock = /^permissions:\n([ \t].*\n?)+/m.exec(workflow)?.[0] ?? "";
   const concurrencyBlock = /^concurrency:\n([ \t].*\n?)+/m.exec(workflow)?.[0] ?? "";
 
-  assert.match(onBlock, /^on:\n  schedule:\n    - cron: "17 18 \* \* \*"\n  workflow_dispatch:\s*$/);
+  assert.match(onBlock, /^on:\n  schedule:\n    - cron: "7 \*\/2 \* \* \*"\n  workflow_dispatch:\s*$/);
   assert.doesNotMatch(onBlock, /^  push:/m);
   assert.match(permissionsBlock, /^permissions:\n  contents: write\s*$/);
   assert.match(concurrencyBlock, /^concurrency:\n  group: daily-refresh\n  cancel-in-progress: false\s*$/);
@@ -130,7 +131,7 @@ test("tests and complete validation surround the exact production order", async 
     "git diff --check --",
     "git add -- index.html data/repo-summaries.json data/star-observations.sqlite star-history.json",
     "git grep --cached -qE",
-    "git commit -m \"chore: refresh daily trending snapshot\"",
+    "git commit -m \"chore: refresh trending snapshot\"",
     "git push origin HEAD:main",
   ];
   const positions = [];
@@ -151,7 +152,7 @@ test("generation shell stops after an upstream failure", async t => {
   const directory = await mkdtemp(join(tmpdir(), "daily-generation-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
   await mkdir(join(directory, "bin"));
-  await writeFile(join(directory, "generate.sh"), `${stepScript(workflow, "Generate complete daily snapshot")}\n`);
+  await writeFile(join(directory, "generate.sh"), `${stepScript(workflow, "Generate complete trending snapshot")}\n`);
   await writeFile(join(directory, "bin", "node"), "#!/usr/bin/env bash\necho node:$* >> commands.log\nexit 17\n");
   await writeFile(join(directory, "bin", "python"), "#!/usr/bin/env bash\necho python:$* >> commands.log\n");
   await chmod(join(directory, "bin", "node"), 0o755);
@@ -247,7 +248,8 @@ test("READMEs retain only the three requested sections and document the Seoul re
     const value = await readFile(file, "utf8");
     const headings = [...value.matchAll(/^## (.+)$/gm)].map(match => match[1]);
     assert.equal(headings.length, 3, `${file} must keep exactly three content sections`);
-    assert.match(value, /03:17/);
+    assert.match(value, /(?:2시간|two hours)/i);
+    assert.match(value, /07/);
     assert.match(value, /(?:Asia\/Seoul|서울|Seoul)/);
   }
 });

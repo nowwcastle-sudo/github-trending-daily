@@ -21,20 +21,26 @@ test("repository signals are initialized before rendering and refreshed from the
 
 test("tooltip cleanup and refresh status contain no merged JavaScript tokens", () => {
   assert.doesNotMatch(page, /nulldocument/);
-  assert.match(page, /activeTipIndex=null;document\.querySelector\("\.wrap"\)/);
+  assert.match(page, /activeTipIndex=null;listStage\.style\.transform=""/);
   assert.match(page, /id="refreshStatus" class="last-updated"/);
 });
 
 test("the refresh status gets a full header row on desktop and mobile", () => {
-  assert.match(page, /\.header-actions\{[^}]*display:grid[^}]*grid-template-columns:auto auto/);
+  assert.match(page, /header\{[^}]*display:grid[^}]*grid-template-columns:minmax\(300px,1fr\) minmax\(0,420px\)/);
+  assert.match(page, /h1\{[^}]*white-space:nowrap/);
+  assert.match(page, /\.header-actions\{[^}]*display:grid[^}]*grid-template-columns:minmax\(0,1fr\) auto/);
   assert.match(page, /\.last-updated\{[^}]*grid-column:1\/-1/);
-  assert.match(page, /@media\(max-width:560px\)\{[\s\S]*?\.header-actions\{[^}]*grid-template-columns:minmax\(0,1fr\) auto/);
+  assert.match(page, /@media\(max-width:700px\)\{[\s\S]*?header\{[^}]*grid-template-columns:1fr/);
+  const baseStatus = page.indexOf(".last-updated{grid-column:1/-1");
+  const mobileStatus = page.indexOf(".last-updated{text-align:left;white-space:normal}");
+  assert.ok(baseStatus >= 0 && mobileStatus > baseStatus, "mobile wrapping must override the base status rule");
 });
 
-test("refresh copy and calculation follow the approved daily 03:17 Seoul schedule", () => {
-  assert.match(page, /next\.setUTCHours\(18,17,0,0\)/);
-  assert.match(page, /매일 03:17 갱신/);
-  assert.doesNotMatch(page, /2시간마다 갱신|lastMs\+2\*3600\*1000/);
+test("refresh copy and calculation follow the approved two-hour schedule", () => {
+  assert.match(page, /<script src="refresh-schedule\.js"><\/script>/);
+  assert.match(page, /RefreshSchedule\.nextRefreshTime\(Date\.now\(\)\)/);
+  assert.match(page, /2시간마다 · 서울 기준 홀수 시 07분/);
+  assert.doesNotMatch(page, /매일 03:17 갱신|setUTCHours\(18,17/);
 });
 
 test("third-party browser scripts use exact versions and SHA-384 integrity", () => {
@@ -51,6 +57,8 @@ test("landmarks, form controls, and hidden panels retain accessible boundaries",
   assert.match(page, /<main class="wrap">[\s\S]*?<\/main>/);
   const main = page.match(/<main class="wrap">([\s\S]*?)<\/main>/)?.[1] ?? "";
   assert.match(main, /<div class="list" id="list"><\/div>/);
+  assert.match(main, /class="signal-guide"[^>]*aria-label="배지 안내"/);
+  assert.match(main, /class="list-stage" id="listStage"/);
   assert.match(main, /<footer>/);
   assert.match(page, /<select class="langsel" id="lang" aria-label="프로그래밍 언어"/);
   assert.match(page, /<input class="search" id="q" aria-label="저장소 검색"/);
@@ -59,6 +67,14 @@ test("landmarks, form controls, and hidden panels retain accessible boundaries",
   assert.match(page, /panel\.inert=false[\s\S]*?panel\.setAttribute\("aria-hidden","false"\)/);
   assert.match(page, /panel\.setAttribute\("aria-hidden","true"\);\s*panel\.inert=true/);
   assert.doesNotMatch(page, /#tipLayer h3|<h3>\$\{esc\(r\.name\)\}<\/h3>/);
+});
+
+test("desktop tooltip motion keeps layout geometry stable", () => {
+  assert.doesNotMatch(page, /\.wrap\.tip-open|transition:margin/);
+  assert.match(page, /\.list-stage\{[^}]*transition:transform/);
+  assert.match(page, /@media\(min-width:1100px\) and \(max-width:1399px\)/);
+  assert.match(page, /UiMotion\.tooltipLayout/);
+  assert.match(page, /position\.mode==="rail"&&position\.shift<0/);
 });
 
 test("light and dark semantic colors use the reviewed contrast palette", () => {

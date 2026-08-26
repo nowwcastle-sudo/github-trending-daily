@@ -74,6 +74,7 @@ function authErrorMessage(error) {
     "auth/cancelled-popup-request": "이미 Google 로그인 창을 여는 중이에요.",
     "auth/network-request-failed": "네트워크 문제로 Google 로그인에 실패했어요.",
     "auth/unauthorized-domain": "이 사이트 주소에서는 Google 로그인을 사용할 수 없어요.",
+    "auth/internal-error": "Google 로그인 설정을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
   };
   return messages[error?.code] || "Google 로그인에 실패했어요. 잠시 후 다시 시도해 주세요.";
 }
@@ -84,7 +85,7 @@ function syncModeLabel(user) {
 
 function setSyncStatus(element, user, detail = "", tone = "normal") {
   const label = syncModeLabel(user);
-  element.textContent = label;
+  element.textContent = detail && tone !== "normal" ? detail : label;
   element.title = detail || label;
   element.setAttribute?.("aria-label", detail ? `${label}. ${detail}` : label);
   if (element.dataset) element.dataset.tone = tone;
@@ -92,6 +93,7 @@ function setSyncStatus(element, user, detail = "", tone = "normal") {
 
 function validateFirebaseConfig(config) {
   if (config?.projectId !== "github-trending-nowwcastle") throw new Error("unexpected Firebase project");
+  if (config?.authDomain !== "github-trending-nowwcastle.firebaseapp.com") throw new Error("unexpected Firebase auth domain");
   if (typeof config.appCheckSiteKey !== "string" || !config.appCheckSiteKey.trim()) {
     throw new Error("missing App Check site key");
   }

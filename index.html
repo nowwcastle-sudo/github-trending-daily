@@ -35,13 +35,15 @@ body{
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;
   background:var(--bg);color:var(--text);min-height:100vh;
   font-optical-sizing:auto;-webkit-font-smoothing:antialiased;
-  transition:background .45s ease,color .45s ease;
+  caret-color:var(--accent);transition:background .45s ease,color .45s ease;
 }
+::selection{background:var(--accent-soft);color:var(--text)}
+*{scrollbar-color:var(--text-3) transparent;scrollbar-width:thin}
 .wrap{max-width:1020px;margin:0 auto;padding:48px 24px 96px}
 
 /* ── Header ─────────────────────────── */
-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:8px}
-h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-height:1.1}
+header{display:grid;grid-template-columns:minmax(300px,1fr) minmax(0,420px);align-items:start;gap:16px;margin-bottom:8px}
+h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-height:1.1;white-space:nowrap}
 .sub{color:var(--text-2);font-size:15px;margin-top:6px;letter-spacing:.01em}
 .theme-toggle{
   flex-shrink:0;width:44px;height:44px;border-radius:50%;border:1px solid var(--border);
@@ -51,10 +53,12 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 }
 .theme-toggle:hover{border-color:var(--text-3)}
 .theme-toggle:active{transform:scale(.94)}
-.header-actions{display:grid;grid-template-columns:auto auto;align-items:center;justify-content:end;gap:10px}
-.account-controls{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:nowrap}
+.header-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;justify-content:end;gap:10px}
+.last-updated{grid-column:1/-1;font-weight:700;font-size:13.5px;color:var(--text-2);text-align:right;line-height:1.7;white-space:nowrap}
+.last-updated p{margin:0}
+.account-controls{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 .sync-status{
-  color:var(--text-2);font-size:12.5px;line-height:1.35;white-space:nowrap;
+  max-width:300px;color:var(--text-2);font-size:12.5px;line-height:1.35;
   border:1px solid var(--border);border-radius:9px;background:var(--control-solid);padding:7px 11px;
   transition:border-color .18s ease,color .18s ease,background-color .18s ease;
 }
@@ -99,8 +103,16 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 }
 .langsel option{background:var(--control-solid);color:var(--text)}
 .langsel:focus{border-color:var(--accent);box-shadow:0 0 0 3.5px var(--accent-soft)}
+.signal-guide{display:flex;align-items:flex-start;gap:14px;padding:10px 2px 8px;margin-top:4px;
+  border-bottom:1px solid var(--hairline);color:var(--text-2);font-size:12.5px;line-height:1.45}
+.signal-guide>strong{flex-shrink:0;color:var(--text);font-size:12.5px;padding-top:2px}
+.signal-guide dl{display:flex;align-items:center;gap:10px 18px;flex-wrap:wrap}
+.signal-guide dl>div{display:flex;align-items:center;gap:7px}
+.signal-guide dt{flex-shrink:0}.signal-guide dd{margin:0}
+.signal-guide .badge,.signal-guide .rankchg{display:inline-block;white-space:nowrap}
 
 /* ── Cards ──────────────────────────── */
+.list-stage{transform:translate3d(0,0,0);transition:transform .3s cubic-bezier(.32,.72,0,1)}
 .list{margin-top:18px}
 .card{
   position:relative;display:flex;gap:16px;text-decoration:none;color:inherit;
@@ -143,9 +155,15 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
   transition:opacity .18s ease-out,transform .24s cubic-bezier(.16,1,.3,1);
 }
 #tipLayer.on{opacity:1;transform:translate3d(0,0,0) scale(1);pointer-events:auto}
-/* 웹(≥900px): 목록을 왼쪽으로 밀고 오른쪽 고정 영역에 툴팁 */
+/* 넓은 화면은 측정된 여백이 부족한 경우에만 목록을 transform으로 이동한다. */
 @media(min-width:900px){
   .wrap{max-width:780px;margin:0 auto}
+}
+@media(min-width:1100px) and (max-width:1399px){
+  .wrap{max-width:680px}
+  #tipLayer{width:400px;max-height:82vh;overflow-y:auto}
+}
+@media(min-width:1400px){
   #tipLayer{width:560px;max-height:82vh;overflow-y:auto}
 }
 #tipLayer h2{font-size:20px;letter-spacing:-.01em;margin-bottom:2px}
@@ -171,15 +189,20 @@ footer a{color:var(--text-2)}
   html{scroll-behavior:auto}
   *,*::before,*::after{transition-duration:.01ms!important;animation:none!important}
 }
+@media(max-width:700px){
+  header{grid-template-columns:1fr}
+  .header-actions{width:100%}
+  .account-controls{justify-content:flex-start}
+  .last-updated{text-align:left;white-space:normal}
+}
 @media(max-width:560px){
   .wrap{padding:32px 16px 72px}
   .cstat{display:none}.rank{width:20px}
   .controls{position:static}
-  .header-actions{width:100%;grid-template-columns:minmax(0,1fr) auto;justify-content:stretch}
-  .account-controls{justify-content:flex-start}
-  .last-updated{text-align:left;white-space:normal}
-  header{flex-direction:column}
   .seg button{padding-inline:8px;font-size:12.5px}
+  .signal-guide{display:block;padding-top:8px}
+  .signal-guide>strong{display:block;margin-bottom:7px}
+  .signal-guide dl{display:grid;gap:7px}
 }
 
 .favbtn{position:absolute;right:12px;top:10px;background:none;border:none;color:var(--text-3);
@@ -242,20 +265,11 @@ html[data-theme="dark"] .rp-tabs button[aria-pressed="true"]{background:#83a598;
   #readmeBody{padding:22px 18px;font-size:16px}
   .wrap.reading{transform:none}
 }
-@media(prefers-reduced-motion:reduce){.wrap{transition:none}}
-
-
-.last-updated{grid-column:1/-1;font-weight:700;font-size:13.5px;color:var(--text-2);text-align:right;line-height:1.7;white-space:nowrap}
-.last-updated p{margin:0}
+@media(prefers-reduced-motion:reduce){.wrap,.list-stage{transition:none}}
 
 .rankchg{font-size:12.5px;font-weight:700;color:#5f6000;background:rgba(152,151,26,.15);padding:2px 8px;border-radius:99px}
 html[data-theme="dark"] .rankchg{color:#b8bb26}
 
-/* 툴팁 활성 시 목록을 좌측으로 밀어 우측 툴팁 공간 확보 (웹 전용, 부드러운 전환) */
-@media(min-width:900px){
-  .wrap.tip-open{margin-left:24px;margin-right:min(560px,44vw);transition:margin .35s cubic-bezier(.32,.72,0,1)}
-  .wrap{transition:margin .35s cubic-bezier(.32,.72,0,1)}
-}
 </style>
 
 </head>
@@ -295,8 +309,19 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
   </div>
 </div>
 
-<div class="list" id="list"></div>
-<p class="empty" id="empty">조건에 맞는 저장소가 없어요.</p>
+<aside class="signal-guide" aria-label="배지 안내">
+  <strong>배지 안내</strong>
+  <dl>
+    <div><dt><span class="badge">🔥 N일 연속</span></dt><dd>연속된 날짜에 Trending에서 관측</dd></div>
+    <div><dt><span class="rankchg">↑/↓ N</span></dt><dd>직전 관측일 대비 총 스타 변화</dd></div>
+    <div><dt><span class="badge">HOT</span></dt><dd>선택 기간 스타 증가 1,000 이상</dd></div>
+  </dl>
+</aside>
+
+<div class="list-stage" id="listStage">
+  <div class="list" id="list"></div>
+  <p class="empty" id="empty">조건에 맞는 저장소가 없어요.</p>
+</div>
 
 <footer>
   GitHub Trending 기준 · 요약은 README 기반 AI 분석입니다<br>
@@ -320,6 +345,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 <script src="favorites.js"></script>
 <script src="favorite-sync.js"></script>
 <script src="ui-motion.js"></script>
+<script src="refresh-schedule.js"></script>
 <!-- Star trend disclosure: GH Archive 기반 과거 추정 · 현재 총 스타는 GitHub 기준 -->
 <script src="star-history.js"></script>
 <script>
@@ -415,10 +441,7 @@ function render(){
   const q=document.getElementById("q").value.toLowerCase(),L=langSel.value;
   const key=period==="daily"?"stars_daily":period==="weekly"?"stars_weekly":"stars_monthly";
   const viewPeriod=favOnly?"daily":period;
-  const vkey=viewPeriod==="daily"?"stars_daily":viewPeriod==="weekly"?"stars_weekly":"stars_monthly";
-  const gainOf=r=>viewPeriod==="all"
-    ?(r.stars_daily||0)+(r.stars_weekly||0)+(r.stars_monthly||0)
-    :(r[vkey]||0);
+  const gainOf=r=>UiMotion.periodGain(r,viewPeriod);
   let items=REPOS.filter(r=>(r.name+r.desc+r.lang).toLowerCase().includes(q)&&(!L||r.lang===L));
   if(favOnly)items=items.filter(r=>favSet.has(r.slug));
   if(period==="all"){
@@ -434,11 +457,12 @@ function render(){
     const unit=viewPeriod==="all"?"최근":viewPeriod==="daily"?"오늘":viewPeriod==="weekly"?"이번 주":"이번 달";
     const faved=favSet.has(r.slug);
     const signal=SIGNALS.get(r.slug);
+    const badges=UiMotion.badgeModel(r,signal,viewPeriod);
     return `<article class="card" tabindex="0" data-idx="${REPOS.indexOf(r)}" data-href="https://github.com/${r.slug}" aria-label="${esc(r.name)} 저장소">
       <button type="button" class="favbtn${faved?" on":""}" data-slug="${r.slug}" title="즐겨찾기" aria-label="${faved?"즐겨찾기 해제":"즐겨찾기 추가"}" aria-pressed="${faved}"${favoriteBusy?" disabled":""}>${faved?"★":"☆"}</button>
       <div class="rank">${i+1}</div>
       <div class="cbody">
-        <div class="cname"><a class="repo-link" href="https://github.com/${r.slug}" target="_blank" rel="noopener">${esc(r.name)}</a>${(signal?.streakDays??0)>=2?`<span class="badge">🔥 ${signal.streakDays}일 연속</span>`:""}${(()=>{const c=signal?.starsChange;return (typeof c==="number"&&Math.abs(c)>=100)?`<span class="rankchg">${c>0?"↑":"↓"}${fmt(Math.abs(c))}</span>`:""})()}${gainOf(r)>=1000?`<span class="badge">HOT</span>`:""}</div>
+        <div class="cname"><a class="repo-link" href="https://github.com/${r.slug}" target="_blank" rel="noopener">${esc(r.name)}</a>${badges.streakDays?`<span class="badge" title="연속된 날짜에 Trending에서 관측">🔥 ${badges.streakDays}일 연속</span>`:""}${badges.starsChange!==null?`<span class="rankchg" title="직전 관측일 대비 총 스타 변화">${badges.starsChange>0?"↑":"↓"}${fmt(Math.abs(badges.starsChange))}</span>`:""}${badges.hot?`<span class="badge" title="선택 기간 스타 증가 1,000 이상">HOT</span>`:""}</div>
         <p class="cdesc">${esc(r.desc)}</p>
         <div class="cmeta">
           ${r.lang?`<span><i class="dot" style="background:${r.color}"></i>${esc(r.lang)}</span>`:""}
@@ -592,17 +616,22 @@ document.getElementById("resetBtn").addEventListener("click",()=>{
 });
 
 /* 플로팅 툴팁: body 직속 레이어, 카드에 절대 가려지지 않음 */
-const tipLayer=document.getElementById("tipLayer");
+const tipLayer=document.getElementById("tipLayer"),listStage=document.getElementById("listStage");
 let hideTimer=null,activeTipIndex=null;
 function touchLayout(){return matchMedia("(hover: none), (pointer: coarse)").matches}
+function railLayout(){return innerWidth>=1100&&!touchLayout()}
+function currentListShift(){
+  const value=getComputedStyle(listStage).transform;
+  if(!value||value==="none")return 0;
+  return new DOMMatrixReadOnly(value).m41;
+}
 function showTip(card){
-  if(innerWidth>=900)document.querySelector(".wrap").classList.add("tip-open");
   clearTimeout(hideTimer);
   const idx=+card.dataset.idx,r=REPOS[idx];
   if(!r||!r.summary)return;
   if(activeTipIndex===idx&&tipLayer.classList.contains("on")){positionTip(card);return}
   activeTipIndex=idx;
-  tipLayer.innerHTML=tipHTML(r,innerWidth>=900&&!touchLayout());
+  tipLayer.innerHTML=tipHTML(r,railLayout());
   positionTip(card);
   tipLayer.classList.add("on");
   tipLayer.inert=false;
@@ -610,12 +639,20 @@ function showTip(card){
 }
 function positionTip(card){
   const rect=card.getBoundingClientRect();
+  const currentShift=currentListShift();
+  const naturalCard={
+    left:rect.left-currentShift,right:rect.right-currentShift,top:rect.top,bottom:rect.bottom,
+    width:rect.width,height:rect.height,
+  };
+  tipLayer.style.maxHeight="";
   const measured=tipLayer.getBoundingClientRect();
-  const position=UiMotion.tooltipPosition({
-    card:rect,
+  const position=UiMotion.tooltipLayout({
+    card:naturalCard,
     viewport:{width:innerWidth,height:innerHeight},
     tooltip:{width:tipLayer.offsetWidth||measured.width,height:tipLayer.offsetHeight||measured.height||360},
   });
+  listStage.style.transform=position.shift?`translate3d(${position.shift}px,0,0)`:"";
+  tipLayer.style.maxHeight=position.mode==="rail"&&position.shift<0?Math.max(120,innerHeight-position.y-12)+"px":"";
   tipLayer.style.left=position.x+"px";tipLayer.style.top=position.y+"px";
 }
 list.addEventListener("mouseover",e=>{
@@ -650,7 +687,7 @@ window.addEventListener("scroll",()=>{
   const card=activeTipIndex===null?null:document.querySelector(`.card[data-idx="${activeTipIndex}"]`);
   if(card&&tipLayer.classList.contains("on"))positionTip(card);
 },{passive:true});
-function hideTip(){tipLayer.classList.remove("on");tipLayer.setAttribute("aria-hidden","true");tipLayer.inert=true;activeTipIndex=null;document.querySelector(".wrap").classList.remove("tip-open");}
+function hideTip(){tipLayer.classList.remove("on");tipLayer.setAttribute("aria-hidden","true");tipLayer.inert=true;activeTipIndex=null;listStage.style.transform="";}
 document.addEventListener("click",e=>{
   if(!touchLayout()||!tipLayer.classList.contains("on"))return;
   if(e.target.closest("#tipLayer")||e.target.closest(".card"))return;
@@ -664,16 +701,10 @@ requestAnimationFrame(()=>{moveThumb();render()});
 (function(){
   const box=document.getElementById("refreshStatus");if(!box)return;
   const fmt=new Intl.DateTimeFormat("ko-KR",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false});
-  function nextRefresh(lastMs){
-    const next=new Date(lastMs);
-    next.setUTCHours(18,17,0,0);
-    if(next.getTime()<=lastMs)next.setUTCDate(next.getUTCDate()+1);
-    return next;
-  }
   function renderRefreshStatus(lastMs){
-    const next=nextRefresh(lastMs);
+    const next=RefreshSchedule.nextRefreshTime(Date.now());
     document.getElementById("luLast").textContent="최근 갱신 시각 : "+fmt.format(new Date(lastMs));
-    document.getElementById("luNext").textContent="다음 갱신 시각 : "+fmt.format(next)+" (매일 03:17 갱신)";
+    document.getElementById("luNext").textContent="다음 갱신 시각 : "+fmt.format(next)+" (2시간마다 · 서울 기준 홀수 시 07분)";
   }
   fetch("data/latest.json",{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject()).then(f=>{
     SIGNALS.clear();
@@ -684,11 +715,11 @@ requestAnimationFrame(()=>{moveThumb();render()});
     renderRefreshStatus(new Date(f.generatedAt).getTime());
     render();
   }).catch(()=>{
-    // 폴백: 현재 스냅샷의 서울 03:17 시각을 사용한다.
     let latest=null;
     for(const r of REPOS){const d=r._stats_date;if(d&&(!latest||d>latest))latest=d;}
-    const ms=latest?new Date(latest+"T03:17:00+09:00").getTime():Date.now();
-    renderRefreshStatus(ms);
+    document.getElementById("luLast").textContent="최근 갱신 날짜 : "+(latest||"확인할 수 없음");
+    const next=RefreshSchedule.nextRefreshTime(Date.now());
+    document.getElementById("luNext").textContent="다음 갱신 시각 : "+fmt.format(next)+" (2시간마다 · 서울 기준 홀수 시 07분)";
   });
 })();
 </script>
@@ -697,7 +728,7 @@ import("./firebase-client.js").catch(()=>{
   const status=document.getElementById("syncStatus");
   const login=document.getElementById("loginBtn");
   const logout=document.getElementById("logoutBtn");
-  status.textContent="브라우저 동기화";
+  status.textContent="Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다.";
   status.title="Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다.";
   status.setAttribute("aria-label","브라우저 동기화. Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다.");
   status.dataset.tone="error";

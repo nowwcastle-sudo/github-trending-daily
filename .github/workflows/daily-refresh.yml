@@ -1,8 +1,8 @@
-name: Daily trending refresh
+name: Trending refresh (2 hours)
 
 on:
   schedule:
-    - cron: "17 18 * * *"
+    - cron: "7 */2 * * *"
   workflow_dispatch:
 
 permissions:
@@ -29,7 +29,7 @@ jobs:
         run: npm ci
       - name: Test before refresh
         run: npm test
-      - name: Generate complete daily snapshot
+      - name: Generate complete trending snapshot
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -41,7 +41,7 @@ jobs:
           python scripts/record_star_observations.py
           node scripts/update-latest-feed.mjs
           node scripts/update-star-history.mjs
-      - name: Validate complete daily snapshot
+      - name: Validate complete trending snapshot
         shell: bash
         run: |
           set -euo pipefail
@@ -91,7 +91,7 @@ jobs:
               assert not sidecar.exists(), f"SQLite sidecar remains: {sidecar.name}"
           PY
           npm test
-          git diff --check -- index.html data/repo-summaries.json data/star-observations.sqlite star-history.json data/latest.json translations/
+          git diff --check -- index.html data/repo-summaries.json data/star-observations.sqlite star-history.json data/latest.json data/translation-sources.json translations/
       - name: Publish validated snapshot
         shell: bash
         run: |
@@ -100,14 +100,14 @@ jobs:
           while IFS= read -r path; do
             [ -z "$path" ] && continue
             case "$path" in
-              index.html|data/repo-summaries.json|data/star-observations.sqlite|star-history.json|data/latest.json) ;;
+              index.html|data/repo-summaries.json|data/star-observations.sqlite|star-history.json|data/latest.json|data/translation-sources.json) ;;
               translations/*.json) ;;
               *) echo "::error::Unexpected generated output"; exit 1 ;;
             esac
           done <<< "$changed_paths"
-          git add -- index.html data/repo-summaries.json data/star-observations.sqlite star-history.json data/latest.json translations/
+          git add -- index.html data/repo-summaries.json data/star-observations.sqlite star-history.json data/latest.json data/translation-sources.json translations/
           set +e
-          git diff --cached --quiet -- index.html data/repo-summaries.json data/star-observations.sqlite star-history.json data/latest.json translations/
+          git diff --cached --quiet -- index.html data/repo-summaries.json data/star-observations.sqlite star-history.json data/latest.json data/translation-sources.json translations/
           diff_status=$?
           set -e
           case "$diff_status" in
@@ -116,7 +116,7 @@ jobs:
             *) echo "::error::Generated diff check failed"; exit 1 ;;
           esac
           set +e
-          git grep --cached -qE '(gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- index.html data/repo-summaries.json data/star-observations.sqlite star-history.json data/latest.json translations/
+          git grep --cached -qE '(gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- index.html data/repo-summaries.json data/star-observations.sqlite star-history.json data/latest.json data/translation-sources.json translations/
           scan_status=$?
           set -e
           case "$scan_status" in
@@ -126,5 +126,5 @@ jobs:
           esac
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore: refresh daily trending snapshot"
+          git commit -m "chore: refresh trending snapshot"
           git push origin HEAD:main
