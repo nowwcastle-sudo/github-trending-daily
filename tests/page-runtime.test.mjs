@@ -74,7 +74,7 @@ test("responsive sidebar owns account, favorites, and discovery filters", () => 
   assert.match(page, /<script src="repo-filters\.js"><\/script>/);
   assert.match(page, /id="navToggle"[^>]*aria-controls="filterSidebar"[^>]*aria-expanded="false"/);
   assert.match(page, /<div[^>]*id="filterSidebar"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-label="탐색 사이드바"[^>]*inert/);
-  const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<div id="sidebarScrim"/)?.[0] ?? "";
+  const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<button class="nav-toggle edge-tab"/)?.[0] ?? "";
   assert.match(sidebar, /id="syncStatus"/);
   assert.match(sidebar, /id="loginBtn"/);
   assert.match(sidebar, /id="favOnlyBtn"/);
@@ -87,6 +87,29 @@ test("responsive sidebar owns account, favorites, and discovery filters", () => 
   assert.match(page, /\.filter-sidebar\.open\{transform:translate3d\(0,0,0\)/);
   assert.match(page, /pageMain\.inert=true/);
   assert.match(page, /trapFocus\(sidebar,event\)/);
+});
+
+test("the explore edge tab stays attached, reachable, and outside the inert page", () => {
+  const sidebarIndex = page.indexOf('id="filterSidebar"');
+  const navIndex = page.indexOf('id="navToggle"');
+  const scrimIndex = page.indexOf('id="sidebarScrim"');
+  const mainIndex = page.indexOf('<main class="wrap">');
+  assert.ok(sidebarIndex >= 0 && sidebarIndex < navIndex && navIndex < scrimIndex && scrimIndex < mainIndex);
+  const main = page.match(/<main class="wrap">([\s\S]*?)<\/main>/)?.[1] ?? "";
+  assert.doesNotMatch(main, /id="navToggle"/);
+  assert.match(page, /class="nav-toggle edge-tab" id="navToggle"[^>]*aria-label="탐색 사이드바 열기"[^>]*aria-controls="filterSidebar"[^>]*aria-expanded="false"/);
+  assert.match(page, /id="navToggle"[\s\S]*?<path d="M4 7h16M7 12h10M10 17h4"\/>/);
+  assert.match(page, /--sidebar-width:min\(360px,calc\(100vw - 44px\)\)/);
+  assert.match(page, /\.filter-sidebar\{[\s\S]*?width:var\(--sidebar-width\)/);
+  assert.match(page, /\.nav-toggle\{[^}]*position:fixed[^}]*z-index:330[^}]*left:0[^}]*top:max\(160px,calc\(env\(safe-area-inset-top\) \+ 68px\)\)[^}]*width:44px[^}]*height:48px/);
+  assert.match(page, /\.nav-toggle\{[^}]*background:var\(--tip-bg\)[^}]*transition:transform \.3s cubic-bezier\(\.32,\.72,0,1\),opacity \.2s ease-out/);
+  assert.match(page, /\.filter-sidebar\.open~\.nav-toggle\{transform:translate3d\(calc\(var\(--sidebar-width\) - 1px\),0,0\)/);
+  assert.match(page, /navToggle\.setAttribute\("aria-label","탐색 사이드바 닫기"\)/);
+  assert.match(page, /navToggle\.setAttribute\("aria-label","탐색 사이드바 열기"\)/);
+  assert.match(page, /navToggle\.addEventListener\("click",\(\)=>sidebar\.classList\.contains\("open"\)\?closeSidebar\(\):openSidebar\(\)\)/);
+  assert.match(page, /if\(readme\.classList\.contains\("open"\)\)closeReadme\(false\);\s*hideTip\(\)/);
+  assert.match(page, /if\(restoreFocus&&sidebarTrigger instanceof HTMLElement\)sidebarTrigger\.focus\(\)/);
+  assert.match(page, /@media\(prefers-reduced-motion:reduce\)\{[\s\S]*?transition-duration:\.01ms!important/);
 });
 
 test("filter state is restored from and written to the URL", () => {
@@ -110,6 +133,14 @@ test("light and dark semantic colors use the reviewed contrast palette", () => {
   assert.match(page, /--hot:#ff9e3d/);
   assert.match(page, /--text-3:#a89984/);
   assert.match(page, /\.rankchg\{[^}]*color:#5f6000/);
+});
+
+test("selected discovery controls use an accessible semantic accent text token", () => {
+  assert.match(page, /--accent-selected:#005fc7/);
+  assert.match(page, /html\[data-theme="dark"\]\{[\s\S]*?--accent-selected:#a7c7bd/);
+  assert.match(page, /\.filter-count\{[^}]*color:var\(--accent-selected\)/);
+  assert.match(page, /\.sidebar-nav button\[aria-pressed="true"\]\{[^}]*color:var\(--accent-selected\)/);
+  assert.match(page, /\.sidebar-note\{[^}]*color:var\(--text-2\)/);
 });
 
 test("light surfaces use semantic borders while dark and interaction states stay explicit", () => {
