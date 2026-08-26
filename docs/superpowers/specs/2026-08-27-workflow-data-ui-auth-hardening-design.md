@@ -1,6 +1,6 @@
 # GitHub Trending 워크플로·데이터·UI·로그인 안정화 설계
 
-- 상태: 대화 설계 승인 완료, 문서 검토 대기
+- 상태: 사용자 승인 완료, 구현 계획 작성
 - 작성일: 2026-08-27
 - 대상 저장소: `nowwcastle-sudo/github-trending-daily`
 - 설계 기준 SHA: `214e21d9ecf414f993f4516030d3513da657385b`
