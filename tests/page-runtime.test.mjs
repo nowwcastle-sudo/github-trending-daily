@@ -157,6 +157,22 @@ test("filter state is restored from and written to the URL", () => {
   assert.match(page, /RepoFilters\.matchesRepo\(r,/);
 });
 
+test("sorting is shareable, stable, and keeps the selected period in favorites", () => {
+  assert.match(page, /<select class="langsel" id="sortSelect" aria-label="저장소 정렬"/);
+  assert.match(page, /<option value="trending">Trending 원래 순서<\/option>/);
+  assert.match(page, /<option value="gain">선택 기간 스타 증가<\/option>/);
+  assert.match(page, /<option value="stars">총 스타<\/option>/);
+  assert.match(page, /<option value="pushed">최근 푸시<\/option>/);
+  assert.match(page, /<option value="release">최근 릴리스<\/option>/);
+  assert.match(page, /\.langsel\{[^}]*min-height:44px/);
+  assert.match(page, /gainOption\.disabled=period==="all"/);
+  assert.match(page, /const viewPeriod=period;/);
+  assert.doesNotMatch(page, /const viewPeriod=favOnly\?"daily":period/);
+  assert.match(page, /items=RepoFilters\.sortRepos\(items,filterState\.sort,viewPeriod\)/);
+  assert.match(page, /sortSel\.addEventListener\("change"/);
+  assert.match(page, /period:p,sort:nextSort,favOnly:false/);
+});
+
 test("desktop tooltip motion keeps layout geometry stable", () => {
   assert.doesNotMatch(page, /\.wrap\.tip-open|transition:margin/);
   assert.match(page, /\.list-stage\{[^}]*transition:transform/);

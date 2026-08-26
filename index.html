@@ -177,7 +177,7 @@ body.overlay-open{overflow:hidden}
 .search:focus{border-color:var(--accent);box-shadow:0 0 0 3.5px var(--accent-soft)}
 .langsel{
   background:var(--control-solid);border:1px solid var(--border);
-  border-radius:10px;padding:9px 12px;font:inherit;font-size:13.5px;color:var(--text);outline:none;cursor:pointer;
+  min-height:44px;border-radius:10px;padding:9px 12px;font:inherit;font-size:13.5px;color:var(--text);outline:none;cursor:pointer;
   transition:border-color .18s ease,box-shadow .18s ease;
 }
 .langsel option{background:var(--control-solid);color:var(--text)}
@@ -397,6 +397,17 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <button id="allReposBtn" type="button" aria-pressed="true">전체 저장소</button>
     <button id="favOnlyBtn" type="button" aria-pressed="false">즐겨찾기</button>
   </nav>
+  <section class="sidebar-section" aria-labelledby="sortTitle">
+    <h3 id="sortTitle">정렬</h3>
+    <select class="langsel" id="sortSelect" aria-label="저장소 정렬">
+      <option value="trending">Trending 원래 순서</option>
+      <option value="gain">선택 기간 스타 증가</option>
+      <option value="stars">총 스타</option>
+      <option value="pushed">최근 푸시</option>
+      <option value="release">최근 릴리스</option>
+    </select>
+    <p class="sidebar-note">값이 없는 저장소는 뒤에 표시됩니다.</p>
+  </section>
   <section class="sidebar-section" id="hiddenRepoSection" aria-labelledby="hiddenRepoTitle" hidden>
     <h3 id="hiddenRepoTitle">숨긴 저장소 관리</h3>
     <p class="sidebar-note" id="hiddenRepoCount"></p>
@@ -546,7 +557,7 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change",e=>{
 });
 
 /* language filter options */
-const langSel=document.getElementById("lang");
+const langSel=document.getElementById("lang"),sortSel=document.getElementById("sortSelect");
 LANGUAGES.forEach(l=>langSel.insertAdjacentHTML("beforeend",`<option>${l}</option>`));
 
 /* discovery sidebar + shareable URL state */
@@ -612,6 +623,8 @@ function activeDiscoveryCount(){
 function updateFilterUi(){
   document.getElementById("q").value=filterState.q;
   langSel.value=filterState.lang;
+  sortSel.value=filterState.sort;
+  const gainOption=sortSel.querySelector('[value="gain"]');gainOption.disabled=period==="all";
   document.getElementById("excludeAi").checked=filterState.excludeAi;
   document.querySelectorAll("[data-filter-id]").forEach(button=>{
     const key=button.closest("#fieldFilters")?"fields":"forms";
@@ -636,7 +649,8 @@ function moveThumb(){
   thumb.style.transform=`translateX(${b.offsetLeft-2.5}px)`;
 }
 function setPeriod(p){
-  period=p;favOnly=false;filterState={...filterState,period:p,favOnly:false};
+  const nextSort=p==="all"&&filterState.sort==="gain"?"trending":filterState.sort;
+  period=p;favOnly=false;filterState={...filterState,period:p,sort:nextSort,favOnly:false};
   updateFilterUi();moveThumb();syncUrl();render();
 }
 seg.addEventListener("click",e=>{
@@ -703,27 +717,21 @@ function tipHTML(r,detailed){
 /* render */
 const list=document.getElementById("list"),empty=document.getElementById("empty");
 function render(){
-  const key=period==="daily"?"stars_daily":period==="weekly"?"stars_weekly":"stars_monthly";
-  const viewPeriod=favOnly?"daily":period;
+  const viewPeriod=period;
   const gainOf=r=>UiMotion.periodGain(r,viewPeriod);
   let items=REPOS.filter(r=>RepoFilters.matchesRepo(r,filterState));
   if(favOnly)items=items.filter(r=>favSet.has(r.slug));
   const matchedCount=items.length;
   items=HiddenRepos.filterRepos(items,hiddenSet);
-  if(period==="all"){
-    // 전체 보기: 총 스타 수 기준 정렬
-    items.sort((a,b)=>b.stars-a.stars);
-  }else{
-    // 해당 기간 트렌딩 저장소 우선, 나머지는 뒤에
-    items.sort((a,b)=>((b[key]!==undefined?b[key]:-1)-(a[key]!==undefined?a[key]:-1))||(b.stars-a.stars));
-  }
+  items=RepoFilters.sortRepos(items,filterState.sort,viewPeriod);
   const hiddenOnly=!items.length&&matchedCount>0;
   empty.style.display=items.length?"none":"grid";
   document.getElementById("emptyText").textContent=hiddenOnly?"현재 조건의 저장소를 모두 숨겼어요.":"조건에 맞는 저장소가 없어요.";
   document.getElementById("emptyResetBtn").hidden=hiddenOnly;
   document.getElementById("emptyManageHiddenBtn").hidden=!hiddenOnly;
   const activeCount=activeDiscoveryCount();
-  document.getElementById("filterSummary").textContent=`${items.length}개 저장소${activeCount?` · 탐색 필터 ${activeCount}개`:""}${favOnly?" · 즐겨찾기 보기":""}${hiddenSet.size?` · 숨김 ${hiddenSet.size}개`:""}`;
+  const sortLabel=RepoFilters.sorts.find(option=>option.id===filterState.sort)?.label||RepoFilters.sorts[0].label;
+  document.getElementById("filterSummary").textContent=`${items.length}개 저장소 · ${sortLabel}${activeCount?` · 탐색 필터 ${activeCount}개`:""}${favOnly?" · 즐겨찾기 보기":""}${hiddenSet.size?` · 숨김 ${hiddenSet.size}개`:""}`;
   updateHiddenManager();
   const maxT=Math.max(...items.map(gainOf),1);
   list.innerHTML=items.map((r,i)=>{
@@ -798,6 +806,10 @@ document.getElementById("q").addEventListener("input",event=>{
 });
 langSel.addEventListener("change",()=>{
   filterState={...filterState,lang:langSel.value};updateFilterUi();syncUrl();render();
+});
+sortSel.addEventListener("change",()=>{
+  const sort=period==="all"&&sortSel.value==="gain"?"trending":sortSel.value;
+  filterState={...filterState,sort};updateFilterUi();syncUrl();render();
 });
 document.getElementById("excludeAi").addEventListener("change",event=>{
   filterState={...filterState,excludeAi:event.target.checked};updateFilterUi();syncUrl();render();

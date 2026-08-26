@@ -77,6 +77,7 @@ test("URL state round-trips known values and drops unknown or oversized input", 
 
   assert.deepEqual(JSON.parse(JSON.stringify(parsed)), {
     period: "weekly",
+    sort: "trending",
     favOnly: true,
     q: "agent",
     lang: "Python",
@@ -90,6 +91,64 @@ test("URL state round-trips known values and drops unknown or oversized input", 
   );
   assert.deepEqual(
     JSON.parse(JSON.stringify(RepoFilters.parseState(`?period=yearly&lang=Ruby&q=${"x".repeat(300)}`, ["Python"]))),
-    { period: "all", favOnly: false, q: "", lang: "", fields: [], forms: [], excludeAi: false },
+    { period: "all", sort: "trending", favOnly: false, q: "", lang: "", fields: [], forms: [], excludeAi: false },
   );
+});
+
+test("URL sorting is whitelisted, omits the default, and rejects gain for all periods", async () => {
+  const RepoFilters = await loadRepoFilters();
+
+  assert.equal(RepoFilters.parseState("?period=weekly&sort=gain").sort, "gain");
+  assert.equal(RepoFilters.serializeState({ period: "weekly", sort: "gain" }), "?period=weekly&sort=gain");
+  assert.equal(RepoFilters.serializeState({ period: "weekly", sort: "trending" }), "?period=weekly");
+  assert.equal(RepoFilters.parseState("?sort=stars").sort, "stars");
+  assert.equal(RepoFilters.parseState("?sort=unknown").sort, "trending");
+  assert.equal(RepoFilters.parseState("?period=all&sort=gain").sort, "trending");
+  assert.equal(RepoFilters.serializeState({ period: "all", sort: "gain" }), "");
+});
+
+test("sorting keeps Trending order by default and uses original order to break ties", async () => {
+  const RepoFilters = await loadRepoFilters();
+  const repos = [
+    { slug: "owner/first", stars: 10, pushed_at: "2026-08-20", latest_release: null },
+    { slug: "owner/second", stars: 30, pushed_at: null, latest_release: "2026-08-21" },
+    { slug: "owner/third", stars: 30, pushed_at: "2026-08-25", latest_release: "invalid" },
+    { slug: "owner/fourth", stars: null, pushed_at: "invalid", latest_release: "2026-08-24" },
+  ];
+
+  assert.deepEqual(RepoFilters.sortRepos(repos, "trending", "daily").map(repo => repo.slug), [
+    "owner/first", "owner/second", "owner/third", "owner/fourth",
+  ]);
+  assert.deepEqual(RepoFilters.sortRepos(repos, "stars", "daily").map(repo => repo.slug), [
+    "owner/second", "owner/third", "owner/first", "owner/fourth",
+  ]);
+  assert.deepEqual(RepoFilters.sortRepos(repos, "pushed", "daily").map(repo => repo.slug), [
+    "owner/third", "owner/first", "owner/second", "owner/fourth",
+  ]);
+  assert.deepEqual(RepoFilters.sortRepos(repos, "release", "daily").map(repo => repo.slug), [
+    "owner/fourth", "owner/second", "owner/first", "owner/third",
+  ]);
+  assert.equal(repos[0].slug, "owner/first");
+});
+
+test("gain sorting follows the selected period and is unavailable for all periods", async () => {
+  const RepoFilters = await loadRepoFilters();
+  const repos = [
+    { slug: "owner/first", stars_daily: 5, stars_weekly: 50, stars_monthly: null },
+    { slug: "owner/second", stars_daily: 20, stars_weekly: 10, stars_monthly: 100 },
+    { slug: "owner/third", stars_daily: null, stars_weekly: 50, stars_monthly: 30 },
+  ];
+
+  assert.deepEqual(RepoFilters.sortRepos(repos, "gain", "daily").map(repo => repo.slug), [
+    "owner/second", "owner/first", "owner/third",
+  ]);
+  assert.deepEqual(RepoFilters.sortRepos(repos, "gain", "weekly").map(repo => repo.slug), [
+    "owner/first", "owner/third", "owner/second",
+  ]);
+  assert.deepEqual(RepoFilters.sortRepos(repos, "gain", "monthly").map(repo => repo.slug), [
+    "owner/second", "owner/third", "owner/first",
+  ]);
+  assert.deepEqual(RepoFilters.sortRepos(repos, "gain", "all").map(repo => repo.slug), [
+    "owner/first", "owner/second", "owner/third",
+  ]);
 });
