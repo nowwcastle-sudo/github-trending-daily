@@ -596,19 +596,19 @@
   },
   "diegosouzapw/OmniRoute": {
     "summary": {
-      "goal": "OmniRoute는 LLM 트래픽 멀티 프로바이더 라우팅 게이트웨이다.",
-      "usage": "Docker 또는 npm으로 실행 후 API 키 설정.",
-      "pros": "폴백·비용 최적화 라우팅",
-      "cons": "초기 프로젝트",
-      "fit": "멀티 LLM 사용자"
+      "goal": "356개 AI provider를 하나의 endpoint로 통합하고, 자동 fallback, 토큰 압축(15–95%), 무료 티어(월 ~1.51B token)를 제공하는 오픈소스 AI 게이트웨이",
+      "usage": "1) `npm install -g omniroute` 설치 2) localhost:20128에서 대시보드에 free provider 연결 3) 모든 coding tool(Claude Code, Cursor, Cline 등)의 base URL을 http://localhost:20128/v1로 설정하면 즉시 작동",
+      "pros": "✅ 설정 없음 (zero-config) · ✅ 90+ 무료 티어 내장 · ✅ 19가지 smart routing · ✅ 12-engine 토큰 압축 · ✅ 프라이빗(로컬우선, AES암호화) · ✅ 35+ CLI/agent 호환 · ✅ Desktop/Termux/PWA 지원 · ✅ MIT 오픈소스",
+      "cons": "⚠️ 초기 setup 후 provider 연결 필요 · ⚠️ local machine 리소스 소비 · ⚠️ 일부 provider는 signup 필요 · ⚠️ 대규모 팀 배포 시 운영 학습곡선",
+      "fit": "👥 개발자, 프로그래머, AI tool 사용자 · 💰 API 비용 절감 필요시 · 🔧 여러 AI 서비스 통합 필요시 · 🏠 로컬/자체호스팅 선호시 · 🤖 Claude Code, Cursor, Cline 등 coding agent 사용자"
     },
     "detail": {
-      "goal": "OmniRoute는 LLM 트래픽 멀티 프로바이더 라우팅 게이트웨이다.",
-      "usage": "Docker 또는 npm으로 실행 후 API 키 설정.",
-      "pros": "폴백·비용 최적화 라우팅",
-      "cons": "초기 프로젝트",
-      "fit": "멀티 LLM 사용자",
-      "stars_note": "LLM 게이트웨이 수요로 성장"
+      "goal": "OmniRoute는 356개의 AI provider(OpenAI, Anthropic, Gemini, DeepSeek, Mistral 등)를 하나의 local gateway endpoint로 통합하는 무료 오픈소스 프로젝트입니다. 자동 provider fallback, 지능형 routing(19가지 전략), 토큰 압축(최대 95%), 그리고 월 약 1.51B개의 무료 토큰을 제공합니다. Claude Code, Codex, Cursor, Cline 같은 coding agent와 완벽하게 호환되며, 모든 설정이 zero-config로 작동합니다.",
+      "usage": "설치: `npm install -g omniroute` 또는 `docker run diegosouzapw/omniroute`. 실행: `omniroute` (자동으로 localhost:20128 시작). 설정: 대시보드에서 Kiro AI나 OpenCode Free 같은 무료 provider 연결. 사용: 모든 coding tool의 API endpoint를 http://localhost:20128/v1로 설정하고 model을 'auto'로 하면 즉시 작동. CLI: `omniroute run claude/codex/cline --model auto`, `omniroute chat` (TUI), `omniroute configure` (대화식 setup).",
+      "pros": "✅ **Zero-config**: 설정 파일 불필요, 기본값으로 즉시 작동 · ✅ **대규모 무료 지원**: 90+ provider가 무료 티어, 56개 provider는 영구 무료, 월 ~1.51B token · ✅ **지능형 routing**: priority, weighted, cost-optimized, fusion, pipeline 등 19가지 전략으로 자동 최적화 · ✅ **토큰 절감**: RTK+Caveman 조합으로 78–95% 압축, mixed workload에서 평균 89% · ✅ **프라이빗/로컬우선**: AES-256-GCM 암호화, hosted hop 없음, self-hosted 가능 · ✅ **광범위 호환성**: Claude Code, Cursor, Cline, Aider, Goose 등 35+ CLI/agent 통합, OpenAI-compatible · ✅ **다양한 배포**: npm, Docker, Desktop(Electron), Termux(Android), PWA · ✅ **완전한 resilience**: 3층 circuit breaker/cooldown/lockout로 자동 복구 · ✅ **110개 MCP tool**: Claude Desktop, Cursor와 native 연동 · ✅ **오픈소스**: MIT 라이선스, 600+ contributor, 상업 라이선스 제약 없음",
+      "cons": "⚠️ **Provider 초기 setup**: 무료지만 free provider를 먼저 대시보드에서 연결해야 함 · ⚠️ **로컬 리소스**: machine에서 24/7 실행 필요, 메모리(coding agent 시 8–12GB) · ⚠️ **Provider 신뢰도**: free tier는 rate limit, quota reset 시간 변동 · ⚠️ **학습곡선**: 19가지 routing strategy, 12-engine compression, MCP/A2A protocol 이해 필요 · ⚠️ **일부 provider signup**: Kiro AI 등 일부 무료 provider는 회원가입 필요 · ⚠️ **대규모 팀 배포**: 원격 mode(scoped token) 있지만 enterprise-grade 지원 제한 · ⚠️ **한국 UI**: 43개 언어 지원하지만 한국어 localization은 커뮤니티 기반",
+      "fit": "🎯 **개발자/프로그래머**: Claude Code, Cursor, Cline 같은 coding agent를 무료로 운영하려는 사람 · 💰 **API 비용 절감**: 여러 AI service의 API 비용이 부담인 스타트업, indie developer · 🔧 **다중 AI 서비스 통합**: Claude, GPT, Gemini 등 여러 provider를 한 곳에서 관리하려는 팀 · 🏠 **로컬/자체호스팅 선호**: 데이터 privacy 중시, 클라우드 의존 최소화 원하는 조직 · 🤖 **Coding agent 헤비유저**: long context, multi-turn conversation이 많은 AI tool 사용자 · 📊 **라우팅/최적화**: request마다 다른 provider를 동적으로 선택해야 하는 고급 사용자 · 🌍 **오픈소스 선호**: proprietary gateway(OpenRouter) 대신 MIT 라이선스 원하는 팀",
+      "stars_note": "GitHub: 26,161+ stars (v3.8.50 기준, 2026-08-24). 원본 fork인 9router(26K+), CLIProxyAPI(48K+)에 비해 TypeScript 풀 리라이트, 356 provider, 12-engine compression, MCP 110 tool 등으로 크게 확장. 주요 contributor: backryun(190 PR), oyi77(180 PR), rdself(145 PR). 43개 언어 지원, 600+ normalized Git identities, 3,025 external PR from 535 contributors."
     }
   },
   "microsoft/AI-For-Beginners": {
