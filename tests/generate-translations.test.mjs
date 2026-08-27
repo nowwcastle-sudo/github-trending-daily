@@ -376,24 +376,36 @@ test("reference near-match remains prose-bound and must fully translate", async 
 });
 
 const TECHNICAL_NAME_CONTEXTS = [
-  ["npm", "initial", "npm provides a reliable package manager for automation teams.", "npm은 자동화 팀에 신뢰할 수 있는 패키지 관리자를 제공합니다."],
-  ["npm", "embedded", "Install npm packages for reliable automation teams.", "신뢰할 수 있는 자동화 팀을 위해 npm 패키지를 설치합니다."],
-  ["pytest", "initial", "pytest provides reliable testing for automation teams.", "pytest는 자동화 팀에 신뢰할 수 있는 테스트를 제공합니다."],
-  ["pytest", "embedded", "Run pytest for reliable testing on every change.", "변경할 때마다 신뢰할 수 있는 테스트를 위해 pytest를 실행합니다."],
-  ["scikit-learn", "initial", "scikit-learn provides reliable models for automation teams.", "scikit-learn은 자동화 팀에 신뢰할 수 있는 모델을 제공합니다."],
-  ["scikit-learn", "embedded", "Train reliable models with scikit-learn for automation teams.", "자동화 팀을 위해 scikit-learn으로 신뢰할 수 있는 모델을 학습합니다."],
-  ["Node.js", "initial", "Node.js provides a reliable runtime for automation teams.", "Node.js는 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다."],
-  ["Node.js", "embedded", "Build automation services with Node.js for development teams.", "개발 팀을 위해 Node.js로 자동화 서비스를 빌드합니다."],
-  ["Python", "initial", "Python provides a reliable runtime for automation teams.", "Python은 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다."],
-  ["Python", "embedded", "Install Python for reliable automation on developer workstations.", "개발자 워크스테이션에 신뢰할 수 있는 자동화를 위해 Python을 설치합니다."],
-  ["Docker", "initial", "Docker provides a reliable runtime for automation teams.", "Docker는 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다."],
-  ["Docker", "embedded", "Build containers with Docker for reliable automation teams.", "신뢰할 수 있는 자동화 팀을 위해 Docker로 컨테이너를 빌드합니다."],
-  ["Linux", "initial", "Linux provides a reliable runtime for automation teams.", "Linux는 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다."],
-  ["Linux", "embedded", "Deploy services on Linux for reliable automation teams.", "신뢰할 수 있는 자동화 팀을 위해 Linux에 서비스를 배포합니다."],
-  ["Kubernetes", "initial", "Kubernetes provides reliable orchestration for automation teams.", "Kubernetes는 자동화 팀에 신뢰할 수 있는 오케스트레이션을 제공합니다."],
-  ["Kubernetes", "embedded", "Orchestrate services with Kubernetes for reliable automation teams.", "신뢰할 수 있는 자동화 팀을 위해 Kubernetes로 서비스를 오케스트레이션합니다."],
-  ["Silver Falcon", "initial", "Silver Falcon provides a reliable platform for automation teams.", "Silver Falcon은 자동화 팀에 신뢰할 수 있는 플랫폼을 제공합니다."],
-  ["Silver Falcon", "embedded", "Connect services to Silver Falcon for reliable deployments.", "신뢰할 수 있는 배포를 위해 서비스를 Silver Falcon에 연결합니다."],
+  ["npm", "엔피엠", "initial", "npm provides a reliable package manager for automation teams.", "엔피엠(npm)은 자동화 팀에 신뢰할 수 있는 패키지 관리자를 제공합니다."],
+  ["npm", "엔피엠", "embedded", "Install npm packages for reliable automation teams.", "신뢰할 수 있는 자동화 팀을 위해 엔피엠(npm) 패키지를 설치합니다."],
+  ["pytest", "파이테스트", "initial", "pytest provides reliable testing for automation teams.", "파이테스트(pytest)는 자동화 팀에 신뢰할 수 있는 테스트를 제공합니다."],
+  ["pytest", "파이테스트", "embedded", "Run pytest for reliable testing on every change.", "변경할 때마다 신뢰할 수 있는 테스트를 위해 파이테스트(pytest)를 실행합니다."],
+  ["scikit-learn", "사이킷런", "initial", "scikit-learn provides reliable models for automation teams.", "사이킷런(scikit-learn)은 자동화 팀에 신뢰할 수 있는 모델을 제공합니다."],
+  ["scikit-learn", "사이킷런", "embedded", "Train reliable models with scikit-learn for automation teams.", "자동화 팀을 위해 사이킷런(scikit-learn)으로 신뢰할 수 있는 모델을 학습합니다."],
+  ["Node.js", "노드제이에스", "initial", "Node.js provides a reliable runtime for automation teams.", "노드제이에스(Node.js)는 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다."],
+  ["Node.js", "노드제이에스", "embedded", "Build automation services with Node.js for development teams.", "개발 팀을 위해 노드제이에스(Node.js)로 자동화 서비스를 빌드합니다."],
+  ["Python", "파이썬", "initial", "Python provides a reliable runtime for automation teams.", "파이썬(Python)은 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다."],
+  ["Python", "파이썬", "embedded", "Install Python for reliable automation on developer workstations.", "개발자 워크스테이션에 신뢰할 수 있는 자동화를 위해 파이썬(Python)을 설치합니다."],
+  ["Docker", "도커", "initial", "Docker provides a reliable runtime for automation teams.", "도커(Docker)는 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다."],
+  ["Docker", "도커", "embedded", "Build containers with Docker for reliable automation teams.", "신뢰할 수 있는 자동화 팀을 위해 도커(Docker)로 컨테이너를 빌드합니다."],
+  ["Linux", "리눅스", "initial", "Linux provides a reliable runtime for automation teams.", "리눅스(Linux)는 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다."],
+  ["Linux", "리눅스", "embedded", "Deploy services on Linux for reliable automation teams.", "신뢰할 수 있는 자동화 팀을 위해 리눅스(Linux)에 서비스를 배포합니다."],
+  ["Kubernetes", "쿠버네티스", "initial", "Kubernetes provides reliable orchestration for automation teams.", "쿠버네티스(Kubernetes)는 자동화 팀에 신뢰할 수 있는 오케스트레이션을 제공합니다."],
+  ["Kubernetes", "쿠버네티스", "embedded", "Orchestrate services with Kubernetes for reliable automation teams.", "신뢰할 수 있는 자동화 팀을 위해 쿠버네티스(Kubernetes)로 서비스를 오케스트레이션합니다."],
+  ["Silver Falcon", "실버 팰컨", "initial", "Silver Falcon provides a reliable platform for automation teams.", "실버 팰컨(Silver Falcon)은 자동화 팀에 신뢰할 수 있는 플랫폼을 제공합니다."],
+  ["Silver Falcon", "실버 팰컨", "embedded", "Connect services to Silver Falcon for reliable deployments.", "신뢰할 수 있는 배포를 위해 서비스를 실버 팰컨(Silver Falcon)에 연결합니다."],
+];
+
+const TECHNICAL_NAME_GRAMMAR_CONTEXTS = [
+  ["Python", "파이썬", "A Python library provides reliable automation for development teams.", "파이썬(Python) 라이브러리는 개발 팀에 신뢰할 수 있는 자동화를 제공합니다."],
+  ["pytest", "파이테스트", "Use pytest plugins for reliable testing on every change.", "변경할 때마다 신뢰할 수 있는 테스트를 위해 파이테스트(pytest) 플러그인을 사용합니다."],
+  ["Docker", "도커", "A Docker image provides reliable automation for development teams.", "도커(Docker) 이미지는 개발 팀에 신뢰할 수 있는 자동화를 제공합니다."],
+  ["Kubernetes", "쿠버네티스", "Kubernetes operators provide reliable automation for development teams.", "쿠버네티스(Kubernetes) 오퍼레이터는 개발 팀에 신뢰할 수 있는 자동화를 제공합니다."],
+  ["Node.js", "노드제이에스", "Node.js applications provide reliable automation for development teams.", "노드제이에스(Node.js) 애플리케이션은 개발 팀에 신뢰할 수 있는 자동화를 제공합니다."],
+  ["Silver Falcon", "실버 팰컨", "A Silver Falcon client provides reliable automation for development teams.", "실버 팰컨(Silver Falcon) 클라이언트는 개발 팀에 신뢰할 수 있는 자동화를 제공합니다."],
+  ["Python", "파이썬", "This project is powered by Python for reliable automation teams.", "이 프로젝트는 신뢰할 수 있는 자동화 팀을 위해 파이썬(Python)을 기반으로 작동합니다."],
+  ["pytest", "파이테스트", "Choose pytest for reliable testing on every change.", "변경할 때마다 신뢰할 수 있는 테스트를 위해 파이테스트(pytest)를 선택합니다."],
+  ["Node.js", "노드제이에스", "Node.js powers reliable applications for development teams.", "노드제이에스(Node.js)는 개발 팀을 위한 신뢰할 수 있는 애플리케이션을 구동합니다."],
 ];
 
 function canonicalEvidence(term) {
@@ -401,7 +413,7 @@ function canonicalEvidence(term) {
 }
 
 test("validated repo-name or language evidence preserves technical names in complete Korean", async () => {
-  for (const [term, context, source, korean] of TECHNICAL_NAME_CONTEXTS) {
+  for (const [term, _gloss, context, source, korean] of TECHNICAL_NAME_CONTEXTS) {
     assert.equal(
       await callMarkdownTranslation({ ...item, ...canonicalEvidence(term), markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, korean))),
       korean,
@@ -410,8 +422,67 @@ test("validated repo-name or language evidence preserves technical names in comp
   }
 });
 
+test("bilingual wrappers preserve verified terms independent of English grammar role", async () => {
+  for (const [term, _gloss, source, korean] of TECHNICAL_NAME_GRAMMAR_CONTEXTS) {
+    assert.equal(
+      await callMarkdownTranslation({ ...item, ...canonicalEvidence(term), markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, korean))),
+      korean,
+      source,
+    );
+  }
+});
+
+test("translation prompt requires Korean glosses before retained original terms", async () => {
+  const source = "Python provides a reliable runtime for automation teams.";
+  const korean = "파이썬(Python)은 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다.";
+  let prompt = "";
+  await callMarkdownTranslation({ ...item, slug: "owner/Python", markdown: source }, "x", async (_url, init) => {
+    prompt = JSON.parse(init.body).messages[0].content;
+    return translationReplyFromRequest(init, value => value.replace(source, korean));
+  });
+  assert.match(prompt, /Korean gloss\/transliteration immediately followed by `\(Original\)`/);
+  assert.match(prompt, /otherwise translate or transliterate it fully/i);
+  assert.match(prompt, /<verified_terms>\["Python"\]<\/verified_terms>/);
+  assert.match(prompt, /Only exact source occurrences listed in <verified_terms>/);
+});
+
+test("plain verified terms reject even when metadata and source occurrences match", async () => {
+  for (const [term, gloss, context, source, korean] of TECHNICAL_NAME_CONTEXTS) {
+    const plain = korean.replace(`${gloss}(${term})`, term);
+    await assert.rejects(
+      callMarkdownTranslation({ ...item, ...canonicalEvidence(term), markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, plain))),
+      /source|retains|ASCII|translated prose/i,
+      `${term} ${context}`,
+    );
+  }
+  for (const [term, gloss, source, korean] of TECHNICAL_NAME_GRAMMAR_CONTEXTS) {
+    const plain = korean.replace(`${gloss}(${term})`, term);
+    await assert.rejects(
+      callMarkdownTranslation({ ...item, ...canonicalEvidence(term), markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, plain))),
+      /source|retains|ASCII|translated prose/i,
+      source,
+    );
+  }
+});
+
+test("bilingual wrappers require immediate Hangul and an exact inner candidate", async () => {
+  const source = "Python provides a reliable runtime for automation teams.";
+  for (const korean of [
+    "파이썬 (Python)은 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다.",
+    "파이썬(Python runtime)은 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다.",
+    "Python(파이썬)은 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다.",
+    "파이썬(pythonista)은 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다.",
+  ]) {
+    await assert.rejects(
+      callMarkdownTranslation({ ...item, slug: "owner/Python", markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, korean))),
+      /source|retains|ASCII|translated prose/i,
+      korean,
+    );
+  }
+});
+
 test("the same technical names reject without source-derived evidence", async () => {
-  for (const [term, context, source, korean] of TECHNICAL_NAME_CONTEXTS) {
+  for (const [term, _gloss, context, source, korean] of TECHNICAL_NAME_CONTEXTS) {
     await assert.rejects(
       callMarkdownTranslation({ ...item, slug: "owner/repo", lang: "Rust", markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, korean))),
       /evidence|source|retains|ASCII|translated prose/i,
@@ -448,7 +519,7 @@ test("identifier grammar keeps dotted technical names inside one clause", async 
     "Node.js provides a reliable runtime for automation teams.",
     "It supports offline development workflows.",
   ]);
-  const korean = "Node.js는 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다. 오프라인 개발 워크플로를 지원합니다.";
+  const korean = "노드제이에스(Node.js)는 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다. 오프라인 개발 워크플로를 지원합니다.";
   assert.equal(
     await callMarkdownTranslation({ ...item, slug: "owner/Node.js", markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, korean))),
     korean,
@@ -496,9 +567,36 @@ test("matching metadata does not authorize adjective, verb, or generic prose use
   }
 });
 
+test("plain strong-shaped verb and adjective candidates reject together", async () => {
+  const outcomes = await Promise.allSettled([
+    ["owner/Node.js", "Node.js powers reliable automation for development teams.", "Node.js 자동화가 개발 팀을 안정적으로 지원합니다."],
+    ["owner/power-ful", "power-ful tools provide reliable automation for development teams.", "power-ful 도구는 개발 팀에 신뢰할 수 있는 자동화를 제공합니다."],
+  ].map(([slug, source, korean]) => callMarkdownTranslation(
+    { ...item, slug, markdown: source },
+    "x",
+    async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, korean)),
+  )));
+  assert.deepEqual(outcomes.map(result => result.status), ["rejected", "rejected"]);
+  for (const result of outcomes) assert.match(result.reason.message, /source|retains|ASCII|translated prose/i);
+});
+
+test("generic canonical candidates pass only in exact bilingual wrappers", async () => {
+  for (const [facts, source, korean] of [
+    [{ slug: "owner/plugins" }, "The plugins are useful for reliable automation teams.", "플러그인(plugins)은 신뢰할 수 있는 자동화 팀에 유용합니다."],
+    [{ slug: "owner/repo", lang: "Go" }, "Go to the dashboard for reliable automation teams.", "고(Go)를 선택해 신뢰할 수 있는 자동화 팀용 대시보드로 이동합니다."],
+    [{ slug: "owner/powerful" }, "Powerful tools provide reliable automation for development teams.", "파워풀(Powerful) 도구는 개발 팀에 신뢰할 수 있는 자동화를 제공합니다."],
+  ]) {
+    assert.equal(
+      await callMarkdownTranslation({ ...item, ...facts, markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, korean))),
+      korean,
+      source,
+    );
+  }
+});
+
 test("topics, code, links, and absent metadata terms do not authorize visible prose", async () => {
   const prose = "npm provides reliable package management for automation teams.";
-  const korean = "npm은 자동화 팀에 신뢰할 수 있는 패키지 관리를 제공합니다.";
+  const korean = "엔피엠(npm)은 자동화 팀에 신뢰할 수 있는 패키지 관리를 제공합니다.";
   await assert.rejects(
     callMarkdownTranslation({ ...item, slug: "owner/repo", lang: "Rust", topics: ["npm"], markdown: prose }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(prose, korean))),
     /evidence|source|retains|ASCII|translated prose/i,
@@ -522,7 +620,16 @@ test("topics, code, links, and absent metadata terms do not authorize visible pr
   await assert.rejects(
     callMarkdownTranslation({ ...item, slug: "owner/npm", markdown: noTermSource }, "x", async (_url, init) => translationReplyFromRequest(
       init,
-      value => value.replace(noTermSource, "이 프로젝트는 npm으로 개발 팀에 신뢰할 수 있는 자동화를 제공합니다."),
+      value => value.replace(noTermSource, "이 프로젝트는 엔피엠(npm)으로 개발 팀에 신뢰할 수 있는 자동화를 제공합니다."),
+    )),
+    /evidence|source|retains|ASCII|translated prose/i,
+  );
+
+  const unknownSource = "Use widgets for reliable automation on every change.";
+  await assert.rejects(
+    callMarkdownTranslation({ ...item, slug: "owner/repo", markdown: unknownSource }, "x", async (_url, init) => translationReplyFromRequest(
+      init,
+      value => value.replace(unknownSource, "변경할 때마다 신뢰할 수 있는 자동화를 위해 위젯(widgets)을 사용합니다."),
     )),
     /evidence|source|retains|ASCII|translated prose/i,
   );
@@ -537,13 +644,13 @@ test("verified terms cannot move between prose clauses or match substrings", asy
       init,
       value => value
         .replace(first, "자동화 팀에 신뢰할 수 있는 패키지 관리를 제공합니다.")
-        .replace(second, "Docker와 npm은 개발 팀에 신뢰할 수 있는 컨테이너를 제공합니다."),
+        .replace(second, "도커(Docker)와 엔피엠(npm)은 개발 팀에 신뢰할 수 있는 컨테이너를 제공합니다."),
     )),
     /evidence|source|retains|occurrence|translated prose/i,
   );
   for (const [facts, sourceText, translated] of [
-    [{ slug: "owner/Python" }, "pythonista provides reliable automation for development teams.", "Python은 개발 팀에 신뢰할 수 있는 자동화를 제공합니다."],
-    [{ slug: "owner/Node.js" }, "Node.jsx provides reliable automation for development teams.", "Node.js는 개발 팀에 신뢰할 수 있는 자동화를 제공합니다."],
+    [{ slug: "owner/Python" }, "pythonista provides reliable automation for development teams.", "파이썬(Python)은 개발 팀에 신뢰할 수 있는 자동화를 제공합니다."],
+    [{ slug: "owner/Node.js" }, "Node.jsx provides reliable automation for development teams.", "노드제이에스(Node.js)는 개발 팀에 신뢰할 수 있는 자동화를 제공합니다."],
   ]) {
     await assert.rejects(
       callMarkdownTranslation({ ...item, ...facts, markdown: sourceText }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(sourceText, translated))),
@@ -554,10 +661,10 @@ test("verified terms cannot move between prose clauses or match substrings", asy
 
 test("validated language evidence supports exact punctuated and multiword names", async () => {
   for (const [language, koreanName] of [
-    ["C#", "C#은"],
-    ["C++", "C++은"],
-    ["Objective-C", "Objective-C는"],
-    ["Jupyter Notebook", "Jupyter Notebook은"],
+    ["C#", "씨샵(C#)은"],
+    ["C++", "씨플러스플러스(C++)는"],
+    ["Objective-C", "오브젝티브씨(Objective-C)는"],
+    ["Jupyter Notebook", "주피터 노트북(Jupyter Notebook)은"],
   ]) {
     const source = `${language} provides reliable tools for automation teams.`;
     const korean = `${koreanName} 자동화 팀에 신뢰할 수 있는 도구를 제공합니다.`;
@@ -588,8 +695,8 @@ test("technical-name occurrence cap ignores code and URL counts and rejects visi
   const source = `\`Python\`\n\n[docs](https://example.com/Python)\n\n${prose}`;
   for (const count of [2, 3, 4, 5, 6, 7, 8]) {
     const occurrences = Array.from({ length: count }, (_value, index) => index === count - 1
-      ? "Python은"
-      : `${index % 2 ? "PYTHON" : "python"},`).join(" ");
+      ? "파이썬(Python)은"
+      : `${index % 2 ? "파이썬(PYTHON)" : "파이썬(python)"},`).join(" ");
     const korean = `${occurrences} 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다.`;
     await assert.rejects(
       callMarkdownTranslation({ ...item, slug: "owner/Python", markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(prose, korean))),
@@ -832,7 +939,7 @@ test("planning reuses only independently matching schema-v2 provenance", () => {
 
 test("reuse validation applies the same item-specific verified-term evidence", () => {
   const markdown = "Python provides a reliable runtime for automation teams.";
-  const translated = "Python은 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다.";
+  const translated = "파이썬(Python)은 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다.";
   const contentSha = hashReadme(markdown);
   const source = {
     blob_sha: item.readme_blob_sha,
