@@ -395,18 +395,145 @@ function protectLinkDestinations(value, protect) {
   return output;
 }
 
-function transformReferenceDestinations(value, transform) {
-  const nextLine = /^([ \t]{0,3}\[[^\]\n]+\]:[ \t]*\n[ \t]{1,3})(<[^>\n]+>|[^\s\n]+)(.*)$/gm;
-  const sameLine = /^([ \t]{0,3}\[[^\]\n]+\]:[ \t]*)(<[^>\n]+>|[^\s\n]+)(.*)$/gm;
-  return value
-    .replace(nextLine, (_match, prefix, destination, suffix) => `${prefix}${transform(destination)}${suffix}`)
-    .replace(sameLine, (_match, prefix, destination, suffix) => `${prefix}${transform(destination)}${suffix}`);
+function referenceSourceLines(value) {
+  const lines = [];
+  let start = 0;
+  while (start < value.length) {
+    const newline = value.indexOf("\n", start);
+    const rawEnd = newline < 0 ? value.length : newline + 1;
+    let contentEnd = newline < 0 ? value.length : newline;
+    if (contentEnd > start && value[contentEnd - 1] === "\r") contentEnd -= 1;
+    lines.push({ start, contentEnd, rawEnd, text: value.slice(start, contentEnd) });
+    start = rawEnd;
+  }
+  return lines;
 }
 
-function transformReferenceDefinitionLines(value, transform) {
-  const nextLine = /^[ \t]{0,3}\[[^\]\n]+\]:[ \t]*\n[ \t]{1,3}(?:<[^>\n]+>|[^\s\n]+)(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/gm;
-  const sameLine = /^[ \t]{0,3}\[[^\]\n]+\]:[ \t]*(?:<[^>\n]+>|[^\s\n]+)(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/gm;
-  return value.replace(nextLine, definition => transform(definition)).replace(sameLine, definition => transform(definition));
+function referenceLabelEnd(value) {
+  const indent = value.match(/^ {0,3}/)?.[0].length ?? 0;
+  if (value[indent] !== "[") return -1;
+  let index = indent + 1;
+  let content = 0;
+  while (index < value.length) {
+    if (value[index] === "\\") {
+      if (index + 1 >= value.length) return -1;
+      content += 1;
+      index += 2;
+      continue;
+    }
+    if (value[index] === "[") return -1;
+    if (value[index] === "]") return content > 0 && value[index + 1] === ":" ? index + 2 : -1;
+    content += 1;
+    index += 1;
+  }
+  return -1;
+}
+
+function referenceDestination(value, start) {
+  if (start >= value.length) return null;
+  if (value[start] === "<") {
+    let index = start + 1;
+    while (index < value.length) {
+      if (value[index] === "\\" && index + 1 < value.length) { index += 2; continue; }
+      if (value[index] === ">") return index === start + 1 ? null : { start, end: index + 1, raw: value.slice(start, index + 1) };
+      if (value[index] === "<" || value.charCodeAt(index) < 0x20) return null;
+      index += 1;
+    }
+    return null;
+  }
+  let index = start;
+  let depth = 0;
+  while (index < value.length && !/[ \t]/.test(value[index])) {
+    const character = value[index];
+    if (character === "\\") {
+      if (index + 1 >= value.length) return null;
+      index += 2;
+      continue;
+    }
+    if (character === "(") depth += 1;
+    else if (character === ")") {
+      if (depth === 0) return null;
+      depth -= 1;
+    } else if (character === "<" || character === ">" || character === '"' || character === "'") return null;
+    index += 1;
+  }
+  return index > start && depth === 0 ? { start, end: index, raw: value.slice(start, index) } : null;
+}
+
+function referenceTitle(value, start) {
+  const opener = value[start];
+  const closer = opener === "(" ? ")" : opener;
+  if (opener !== '"' && opener !== "'" && opener !== "(") return null;
+  let index = start + 1;
+  while (index < value.length) {
+    if (value[index] === "\\") {
+      if (index + 1 >= value.length) return null;
+      index += 2;
+      continue;
+    }
+    if (value[index] === closer) return { start, end: index + 1, raw: value.slice(start, index + 1) };
+    index += 1;
+  }
+  return null;
+}
+
+export function parseReferenceDefinitions(value) {
+  if (typeof value !== "string") throw new Error("Reference definition source must be text");
+  const lines = referenceSourceLines(value);
+  const definitions = [];
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+    const line = lines[lineIndex];
+    const labelEnd = referenceLabelEnd(line.text);
+    if (labelEnd < 0) continue;
+    let cursor = labelEnd;
+    while (cursor < line.text.length && /[ \t]/.test(line.text[cursor])) cursor += 1;
+    const destination = referenceDestination(line.text, cursor);
+    if (!destination) continue;
+    cursor = destination.end;
+    const separatorStart = cursor;
+    while (cursor < line.text.length && /[ \t]/.test(line.text[cursor])) cursor += 1;
+    let title = null;
+    let end = line.contentEnd;
+    let form = "one-line";
+    if (cursor < line.text.length) {
+      if (cursor === separatorStart) continue;
+      title = referenceTitle(line.text, cursor);
+      if (!title || line.text.slice(title.end).trim()) continue;
+    } else if (lineIndex + 1 < lines.length) {
+      const continuation = lines[lineIndex + 1];
+      const indent = continuation.text.match(/^ {1,3}(?=[^ ])/);
+      if (indent) {
+        const candidate = referenceTitle(continuation.text, indent[0].length);
+        if (candidate && !continuation.text.slice(candidate.end).trim()) {
+          title = { ...candidate, raw: continuation.text.slice(candidate.start, candidate.end) };
+          end = continuation.contentEnd;
+          form = "title-continuation";
+          lineIndex += 1;
+        }
+      }
+    }
+    definitions.push({
+      start: line.start,
+      end,
+      raw: value.slice(line.start, end),
+      form,
+      label: line.text.slice(0, labelEnd - 1),
+      destination: destination.raw,
+      title: title?.raw ?? null,
+    });
+  }
+  return definitions;
+}
+
+function transformReferenceDefinitions(value, transform) {
+  let output = "";
+  let cursor = 0;
+  for (const definition of parseReferenceDefinitions(value)) {
+    output += value.slice(cursor, definition.start);
+    output += transform(definition.raw, definition);
+    cursor = definition.end;
+  }
+  return output + value.slice(cursor);
 }
 
 function transformAutolinks(value, transform) {
@@ -418,9 +545,9 @@ function protectMarkdown(markdown) {
   const sentinel = sentinelProtector(markdown);
   const protectedBlocks = parseAtomicBlocks(markdown).map(block => {
     if (block.type === "fence" || block.type === "raw_html") return { ...block, text: sentinel.protect(block.text) };
-    const inline = transformInlineCodes(block.text, value => sentinel.protect(value));
-    const references = transformReferenceDefinitionLines(inline, sentinel.protect);
-    const links = protectLinkDestinations(references, sentinel.protect);
+    const references = transformReferenceDefinitions(block.text, value => sentinel.protect(value));
+    const inline = transformInlineCodes(references, value => sentinel.protect(value));
+    const links = protectLinkDestinations(inline, sentinel.protect);
     return { ...block, text: transformAutolinks(links, sentinel.protect) };
   });
   return { markdown: protectedBlocks.map(block => block.text).join(""), ...sentinel };
@@ -471,17 +598,22 @@ function linkDestinations(markdown) {
     destinations.push(value);
     return value;
   };
-  const references = transformReferenceDestinations(markdown, collect);
-  const links = protectLinkDestinations(references, collect);
-  transformAutolinks(links, collect);
+  for (const block of parseAtomicBlocks(markdown)) {
+    if (block.type === "fence" || block.type === "raw_html") continue;
+    for (const definition of parseReferenceDefinitions(block.text)) destinations.push(definition.destination);
+    const references = transformReferenceDefinitions(block.text, () => " ");
+    const links = protectLinkDestinations(references, collect);
+    transformAutolinks(links, collect);
+  }
   return destinations;
 }
 
 function inlineCodes(markdown) {
   const values = [];
   for (const block of parseAtomicBlocks(markdown)) {
-    if (block.type === "fence") continue;
-    transformInlineCodes(block.text, value => {
+    if (block.type === "fence" || block.type === "raw_html") continue;
+    const references = transformReferenceDefinitions(block.text, () => " ");
+    transformInlineCodes(references, value => {
       values.push(value);
       return value;
     });
@@ -504,7 +636,8 @@ function fenceFingerprint(text) {
 
 export function fingerprintMarkdown(value) {
   const markdown = normalizedMarkdown(value);
-  const blocks = parseAtomicBlocks(markdown).map(block => {
+  const atomicBlocks = parseAtomicBlocks(markdown);
+  const blocks = atomicBlocks.map(block => {
     if (block.type === "heading") return { type: "heading", level: lineText(block.text).match(/^ {0,3}(#{1,6})/)?.[1].length };
     if (block.type === "list") {
       const lines = markdownLines(block.text).map(lineText);
@@ -536,6 +669,9 @@ export function fingerprintMarkdown(value) {
     fenced_code: parseAtomicBlocks(markdown).filter(block => block.type === "fence").map(block => block.text),
     inline_code: inlineCodes(markdown),
     link_destinations: linkDestinations(markdown),
+    reference_definitions: atomicBlocks
+      .filter(block => block.type !== "fence" && block.type !== "raw_html")
+      .flatMap(block => parseReferenceDefinitions(block.text).map(definition => ({ form: definition.form, raw: definition.raw }))),
     sentinel_ids: [...markdown.matchAll(/⟦GH_TRANSLATE_[A-F0-9]{16}_\d{6}⟧/g)].map(match => match[0]),
   };
 }
@@ -543,9 +679,8 @@ export function fingerprintMarkdown(value) {
 function stripMarkdownProse(block) {
   if (block.type === "blank" || block.type === "fence") return "";
   let value = block.text;
+  value = transformReferenceDefinitions(value, () => " ");
   value = transformInlineCodes(value, () => " ");
-  value = transformReferenceDefinitionLines(value, () => " ");
-  value = transformReferenceDestinations(value, () => "");
   value = protectLinkDestinations(value, () => "");
   value = transformAutolinks(value, () => "");
   value = value.replace(/⟦GH_TRANSLATE_[A-F0-9]{16}_\d{6}⟧/g, " ");
@@ -606,7 +741,11 @@ function isTranslatableProse(value) {
 
 function isIdentifierOnlyProse(value) {
   const tokens = value.match(/[A-Za-z][A-Za-z0-9_.+-]*/g) ?? [];
-  return tokens.length > 0 && tokens.every(token => /[A-Z]/.test(token.slice(1)) || /^[A-Z0-9_.+-]+$/.test(token));
+  return tokens.length > 0 && tokens.every(isIdentifierToken);
+}
+
+function isIdentifierToken(token) {
+  return /[A-Z]/.test(token.slice(1)) || /^[A-Z0-9_.+-]+$/.test(token);
 }
 
 function editDistanceRatio(left, right) {
@@ -642,6 +781,12 @@ function assertTranslatedSegment(original, translated, applicable = isTranslatab
     if (afterAscii > Math.max(12, Math.floor(beforeAscii * 0.65))) {
       throw new Error("Translated prose does not meaningfully reduce source ASCII");
     }
+    const sourceWordsLower = new Set((original.match(/[A-Za-z]+/g) ?? [])
+      .filter(token => token.length >= 4 && !isIdentifierToken(token))
+      .map(token => token.toLowerCase()));
+    const retainedSourceWord = (translated.match(/[A-Za-z]+/g) ?? [])
+      .some(token => sourceWordsLower.has(token.toLowerCase()));
+    if (retainedSourceWord) throw new Error("Translated prose retains a source word");
     const sourceWords = original.match(/[A-Za-z]+/g) ?? [];
     const translatedHangulSyllables = (translated.match(/[가-힣]/g) ?? []).length;
     const minimumCoverage = Math.min(18, sourceWords.length);

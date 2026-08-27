@@ -16,6 +16,7 @@ import {
   hashReadme,
   installEnrichmentSet,
   locateReposRegion,
+  parseReferenceDefinitions,
   planEnrichment,
   runEnrichment,
   replaceReposArray,
@@ -292,6 +293,47 @@ test("reference definitions and autolink destinations are byte-protected", async
   assert.match(translated, /<https:\/\/example\.com\/original>/);
   assert.match(translated, /<team@example\.com>/);
   assert.match(translated, /\[docs\]: https:\/\/example\.com\/reference "Reference title"/);
+});
+
+test("shared reference parser byte-protects exact supported definition forms", async () => {
+  const definitions = [
+    { value: "[docs]: https://example.com/reference \"Reference `code` title\"", form: "one-line" },
+    { value: "[quote]: https://example.com/reference \"Reference \\\"quoted\\\" title\"", form: "one-line" },
+    { value: "[paren]: https://example.com/reference (Reference \\) parenthesis title)", form: "one-line" },
+    { value: "[continued]: https://example.com/reference\n  \"Indented `code` title\"", form: "title-continuation" },
+    { value: "[do\\]cs]: https://example.com/reference 'Escaped label title'", form: "one-line" },
+  ];
+  for (const definition of definitions) {
+    const parsed = parseReferenceDefinitions(definition.value);
+    assert.equal(parsed.length, 1, definition.value);
+    assert.deepEqual(
+      { start: parsed[0].start, end: parsed[0].end, raw: parsed[0].raw, form: parsed[0].form },
+      { start: 0, end: definition.value.length, raw: definition.value, form: definition.form },
+      definition.value,
+    );
+    const translated = await callMarkdownTranslation({ ...item, markdown: definition.value }, "x", async (_url, init) => {
+      assert.equal(JSON.parse(init.body).messages[0].content.includes("example.com/reference"), false, definition.value);
+      return translationReplyFromRequest(init, source => source);
+    });
+    assert.equal(translated, definition.value, definition.value);
+  }
+});
+
+test("reference near-match remains prose-bound and must fully translate", async () => {
+  const source = "[Note]: This is ordinary prose that should be translated for readers.";
+  assert.deepEqual(parseReferenceDefinitions(source), []);
+  await assert.rejects(
+    callMarkdownTranslation({ ...item, markdown: source }, "x", async (_url, init) => translationReplyFromRequest(
+      init,
+      value => value.replace(source, "안내: This 독자를 위해 번역해야 하는 일반적인 산문입니다."),
+    )),
+    /ASCII|source|unchanged|retains|translated prose/i,
+  );
+  const korean = "안내: 독자를 위해 번역해야 하는 일반적인 안내 문장입니다.";
+  assert.equal(
+    await callMarkdownTranslation({ ...item, markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, korean))),
+    korean,
+  );
 });
 
 test("URI autolinks protect FTP and non-HTTP scheme bytes", async () => {
