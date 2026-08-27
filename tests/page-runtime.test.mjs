@@ -56,6 +56,7 @@ test("README tabs consume only Markdown tied to immutable repository metadata", 
   assert.match(page, /readme_path/);
   assert.match(page, /readme_blob_sha/);
   assert.match(page, /default_branch_head_sha/);
+  assert.match(page, /commitSha:repo\.default_branch_head_sha/);
   assert.match(page, /https:\/\/api\.github\.com\/repos\/\$\{slug\}\/contents\/\$\{encodeReadmePath\(metadata\.path\)\}\?ref=\$\{metadata\.defaultBranchHeadSha\}/);
   assert.match(page, /payload\.sha!==metadata\.blobSha/);
   assert.match(page, /ReadmeMarkdown\.render\(markdown,metadata\.rendererSource\)/);

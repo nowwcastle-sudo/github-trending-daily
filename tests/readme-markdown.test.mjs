@@ -6,6 +6,7 @@ import vm from "node:vm";
 const source = {
   repositoryUrl: "https://github.com/owner/repo",
   blobSha: "a".repeat(40),
+  commitSha: "b".repeat(40),
 };
 
 async function loadRenderer() {
@@ -18,7 +19,7 @@ async function loadRenderer() {
 test("raw HTML and dangerous URL schemes never survive rendering", async () => {
   const ReadmeMarkdown = await loadRenderer();
   const html = ReadmeMarkdown.render('<img src=x onerror=alert(1)>\n[x](javascript:alert(1))', source);
-  assert.doesNotMatch(html, /<img|javascript:/i);
+  assert.doesNotMatch(html, /<img|onerror|javascript:/i);
   assert.match(html, /&lt;img/);
 });
 
@@ -27,7 +28,8 @@ test("code, headings, lists and safe relative links preserve content", async () 
   const html = ReadmeMarkdown.render('# 제목\n- 항목\n`<script>`\n[문서](docs/a.md)', source);
   assert.match(html, /<h1>제목<\/h1>/);
   assert.match(html, /&lt;script&gt;/);
-  assert.match(html, /github\.com\/owner\/repo\/blob\/[a-f0-9]{40}\/docs\/a\.md/);
+  assert.match(html, /github\.com\/owner\/repo\/blob\/b{40}\/docs\/a\.md/);
+  assert.doesNotMatch(html, /blob\/a{40}/);
 });
 
 test("escaped raw HTML and code preserve their exact text", async () => {
@@ -40,6 +42,23 @@ test("escaped raw HTML and code preserve their exact text", async () => {
 test("safe relative images use immutable raw-content URLs", async () => {
   const ReadmeMarkdown = await loadRenderer();
   const html = ReadmeMarkdown.render('![로고](docs/logo.png)', source);
-  assert.match(html, /<img src="https:\/\/raw\.githubusercontent\.com\/owner\/repo\/[a-f0-9]{40}\/docs\/logo\.png" alt="로고">/);
-  assert.doesNotMatch(html, /github\.com\/owner\/repo\/blob\/[a-f0-9]{40}\/docs\/logo\.png/);
+  assert.match(html, /<img src="https:\/\/raw\.githubusercontent\.com\/owner\/repo\/b{40}\/docs\/logo\.png" alt="로고">/);
+  assert.doesNotMatch(html, /repo\/a{40}\/docs\/logo\.png/);
+});
+
+test("raw HTML is neutralized without changing escaped code", async () => {
+  const ReadmeMarkdown = await loadRenderer();
+  const html = ReadmeMarkdown.render('<img src=x onerror=alert(1)>\n`<button onclick="save()">`', source);
+  assert.doesNotMatch(html, /<img|onerror|javascript:/i);
+  assert.match(html, /<code>&lt;button onclick=&quot;save\(\)&quot;&gt;<\/code>/);
+});
+
+test("relative URLs fail closed without a valid commit SHA", async () => {
+  const ReadmeMarkdown = await loadRenderer();
+  for (const commitSha of ["invalid", undefined]) {
+    const html = ReadmeMarkdown.render('[문서](docs/a.md)\n![로고](docs/logo.png)', { ...source, commitSha });
+    assert.doesNotMatch(html, /<a |<img /);
+    assert.match(html, /문서/);
+    assert.match(html, /로고/);
+  }
 });

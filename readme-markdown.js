@@ -11,16 +11,23 @@
     })[character]);
   }
 
+  function escapeNonCode(value) {
+    const neutralized = String(value).replace(/<[^>\n]*>/g, tag => tag
+      .replace(/\son[a-z0-9_-]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+      .replace(/javascript\s*:/gi, ""));
+    return escapeText(neutralized);
+  }
+
   function repositorySource(source) {
-    if (!source || !BLOB_SHA.test(source.blobSha)) return null;
+    if (!source || !BLOB_SHA.test(source.blobSha) || !BLOB_SHA.test(source.commitSha)) return null;
     try {
       const url = new URL(source.repositoryUrl);
       const parts = url.pathname.split("/").filter(Boolean);
       if (url.protocol !== "https:" || url.hostname !== "github.com" || url.username || url.password || parts.length !== 2) return null;
       const repository = parts.map(encodeURIComponent).join("/");
       return {
-        blobBase: `https://github.com/${repository}/blob/${source.blobSha}`,
-        rawBase: `https://raw.githubusercontent.com/${repository}/${source.blobSha}`,
+        blobBase: `https://github.com/${repository}/blob/${source.commitSha}`,
+        rawBase: `https://raw.githubusercontent.com/${repository}/${source.commitSha}`,
       };
     } catch {
       return null;
@@ -65,7 +72,7 @@
     let cursor = 0;
     let match;
     while ((match = pattern.exec(markdown))) {
-      html += emphasize(escapeText(markdown.slice(cursor, match.index)));
+      html += emphasize(escapeNonCode(markdown.slice(cursor, match.index)));
       cursor = match.index + match[0].length;
       if (match[1] !== undefined) {
         html += `<code>${escapeText(match[1])}</code>`;
@@ -73,7 +80,7 @@
       }
       const image = match[2] === "!";
       const target = resolveUrl(match[4], source, image);
-      const label = emphasize(escapeText(match[3]));
+      const label = emphasize(escapeNonCode(match[3]));
       if (!target) {
         html += label;
       } else if (image) {
@@ -83,7 +90,7 @@
         html += `<a href="${escapeText(target.href)}"${external}>${label}</a>`;
       }
     }
-    return html + emphasize(escapeText(markdown.slice(cursor)));
+    return html + emphasize(escapeNonCode(markdown.slice(cursor)));
   }
 
   function tableCells(line) {

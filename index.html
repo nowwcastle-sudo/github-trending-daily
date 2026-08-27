@@ -957,7 +957,7 @@ function readmeMetadata(repo){
   if(!repo||typeof repo.readme_path!=="string"||typeof repo.readme_blob_sha!=="string"||typeof repo.readme_content_sha256!=="string"||typeof repo.default_branch_head_sha!=="string")return null;
   const path=repo.readme_path;
   if(!path||path.startsWith("/")||path.split("/").some(part=>!part||part==="."||part==="..")||!READ_ME_SHA.test(repo.readme_blob_sha)||!READ_ME_SHA.test(repo.default_branch_head_sha)||!READ_ME_HASH.test(repo.readme_content_sha256))return null;
-  return {path,blobSha:repo.readme_blob_sha,contentSha256:repo.readme_content_sha256,defaultBranchHeadSha:repo.default_branch_head_sha,rendererSource:{repositoryUrl:`https://github.com/${repo.slug}`,blobSha:repo.readme_blob_sha}};
+  return {path,blobSha:repo.readme_blob_sha,contentSha256:repo.readme_content_sha256,defaultBranchHeadSha:repo.default_branch_head_sha,rendererSource:{repositoryUrl:`https://github.com/${repo.slug}`,blobSha:repo.readme_blob_sha,commitSha:repo.default_branch_head_sha}};
 }
 function encodeReadmePath(path){return path.split("/").map(encodeURIComponent).join("/")}
 function decodeReadmeMarkdown(payload,metadata){
