@@ -44,14 +44,25 @@ test("refresh copy and calculation follow the approved two-hour schedule", () =>
   assert.doesNotMatch(page, /매일 03:17 갱신|setUTCHours\(18,17/);
 });
 
-test("third-party browser scripts use exact versions and SHA-384 integrity", () => {
+test("README rendering does not load third-party HTML parsers", () => {
   const externalScripts = [...page.matchAll(/<script\s+src="(https:[^"]+)"([^>]*)><\/script>/g)];
-  assert.equal(externalScripts.length, 2);
-  for (const [, url, attributes] of externalScripts) {
-    assert.match(url, /@\d+\.\d+\.\d+\//);
-    assert.match(attributes, /\sintegrity="sha384-[A-Za-z0-9+/=]+"/);
-    assert.match(attributes, /\scrossorigin="anonymous"/);
-  }
+  assert.equal(externalScripts.length, 0);
+});
+
+test("README tabs consume only Markdown tied to immutable repository metadata", () => {
+  assert.match(page, /<script src="readme-markdown\.js"><\/script>/);
+  assert.match(page, /function readmeMetadata\(repo\)/);
+  assert.match(page, /readme_path/);
+  assert.match(page, /readme_blob_sha/);
+  assert.match(page, /default_branch_head_sha/);
+  assert.match(page, /https:\/\/api\.github\.com\/repos\/\$\{slug\}\/contents\/\$\{encodeReadmePath\(metadata\.path\)\}\?ref=\$\{metadata\.defaultBranchHeadSha\}/);
+  assert.match(page, /payload\.sha!==metadata\.blobSha/);
+  assert.match(page, /ReadmeMarkdown\.render\(markdown,metadata\.rendererSource\)/);
+  assert.match(page, /t\.markdown/);
+  assert.match(page, /t\.source\.blob_sha===metadata\.blobSha/);
+  assert.doesNotMatch(page, /t\.html/);
+  assert.doesNotMatch(page, /raw\.githubusercontent\.com/);
+  assert.doesNotMatch(page, /HEAD\/README\.md/);
 });
 
 test("landmarks, form controls, and hidden panels retain accessible boundaries", () => {

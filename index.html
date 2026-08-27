@@ -537,8 +537,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
   <div id="readmeBody">불러오는 중…</div>
 </div>
 <div id="tipLayer" role="dialog" aria-label="저장소 요약" aria-hidden="true" inert></div>
-<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.14/dist/purify.min.js" integrity="sha384-46dPGH1XlTmj7bc50bqLjTdORXs/3EP2QpA/6EWbelYWOY9VGp+87RT61S3Mcslb" crossorigin="anonymous"></script>
+<script src="readme-markdown.js"></script>
 <script src="favorites.js"></script>
 <script src="hidden-repos.js"></script>
 <script src="favorite-sync.js"></script>
@@ -953,9 +952,27 @@ document.getElementById("rpClose").addEventListener("click",closeReadme);
 scrim.addEventListener("click",closeReadme);
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeReadme()});
 panel.addEventListener("keydown",event=>trapFocus(panel,event));
+const READ_ME_SHA=/^[a-f0-9]{40}$/i,READ_ME_HASH=/^[a-f0-9]{64}$/i;
+function readmeMetadata(repo){
+  if(!repo||typeof repo.readme_path!=="string"||typeof repo.readme_blob_sha!=="string"||typeof repo.readme_content_sha256!=="string"||typeof repo.default_branch_head_sha!=="string")return null;
+  const path=repo.readme_path;
+  if(!path||path.startsWith("/")||path.split("/").some(part=>!part||part==="."||part==="..")||!READ_ME_SHA.test(repo.readme_blob_sha)||!READ_ME_SHA.test(repo.default_branch_head_sha)||!READ_ME_HASH.test(repo.readme_content_sha256))return null;
+  return {path,blobSha:repo.readme_blob_sha,contentSha256:repo.readme_content_sha256,defaultBranchHeadSha:repo.default_branch_head_sha,rendererSource:{repositoryUrl:`https://github.com/${repo.slug}`,blobSha:repo.readme_blob_sha}};
+}
+function encodeReadmePath(path){return path.split("/").map(encodeURIComponent).join("/")}
+function decodeReadmeMarkdown(payload,metadata){
+  if(!payload||payload.sha!==metadata.blobSha||payload.path!==metadata.path||payload.encoding!=="base64"||typeof payload.content!=="string")throw new Error("README source verification failed");
+  const base64=payload.content.replace(/\r?\n/g,"");
+  if(!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(base64))throw new Error("README source verification failed");
+  try{return new TextDecoder("utf-8",{fatal:true}).decode(Uint8Array.from(atob(base64),character=>character.charCodeAt(0)))}
+  catch{throw new Error("README source verification failed")}
+}
+function validTranslation(t,metadata){
+  return t&&typeof t.markdown==="string"&&t.markdown.trim()&&t.source&&t.source.schema_version===2&&t.source.translation_applicable===true&&t.source.blob_sha===metadata.blobSha&&t.source.content_sha256===metadata.contentSha256;
+}
 let curSlug=null,curName="",origHTML=null,koHTML=null,koState="idle";
 async function openReadme(slug,name){
-  const repoIndex=REPOS.findIndex(repo=>repo.slug===slug);
+  const repoIndex=REPOS.findIndex(repo=>repo.slug===slug),metadata=readmeMetadata(REPOS[repoIndex]);
   readmeTrigger=document.querySelector(`.card[data-idx="${repoIndex}"]`)||document.activeElement;
   closeSidebar(false);hideTip();
   document.getElementById("rpTitle").textContent=name;
@@ -966,20 +983,23 @@ async function openReadme(slug,name){
   setReadmeBody("불러오는 중…",true);panel.inert=false;panel.classList.add("open");panel.setAttribute("aria-hidden","false");scrim.classList.add("on");
   pageMain.classList.add("reading");pageMain.inert=true;document.body.classList.add("overlay-open");document.getElementById("rpClose").focus();
   try{
-    const res=await fetch(`https://raw.githubusercontent.com/${slug}/HEAD/README.md`);
+    if(!metadata)throw new Error("README metadata is unavailable");
+    const res=await fetch(`https://api.github.com/repos/${slug}/contents/${encodeReadmePath(metadata.path)}?ref=${metadata.defaultBranchHeadSha}`);
     if(!res.ok)throw new Error(res.status);
-    const _orig=DOMPurify.sanitize(marked.parse(await res.text()));
+    const markdown=decodeReadmeMarkdown(await res.json(),metadata);
+    const _orig=ReadmeMarkdown.render(markdown,metadata.rendererSource);
     if(slug!==curSlug)return;
     origHTML=_orig;
     if(document.querySelector(".rp-tabs [aria-pressed=true]").id==="tabOrig")setReadmeBody(origHTML);
-  }catch(err){
-    setReadmeBody(`<p>README를 불러올 수 없어요. (${esc(String(err.message||err))})</p><p><a href="https://github.com/${slug}" target="_blank" rel="noopener" style="color:var(--accent)">GitHub에서 직접 보기 ↗</a></p>`);
+  }catch{
+    setReadmeBody(`<p>README를 확인할 수 없어요.</p><p><a href="https://github.com/${slug}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">GitHub에서 직접 보기 ↗</a></p>`);
     return;
   }
   // 한국어 번역 로드 (캐시된 번역 파일)
   koState="loading";
   fetch(`translations/${slug.replace("/","__")}.json`).then(r=>r.ok?r.json():Promise.reject()).then(t=>{
-    const _ko=DOMPurify.sanitize(marked.parse(t.html));
+    if(!validTranslation(t,metadata))throw new Error("Invalid translation source");
+    const _ko=ReadmeMarkdown.render(t.markdown,metadata.rendererSource);
     if(slug!==curSlug)return;
     koHTML=_ko;koState="ok";
     if(document.querySelector(".rp-tabs [aria-pressed=true]").id==="tabKo")
