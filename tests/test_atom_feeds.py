@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import subprocess
@@ -31,7 +32,7 @@ def page_and_latest(slugs, generated_at, *, description="A public repository"):
         {
             "slug": slug,
             "name": slug.split("/", 1)[1],
-            "description": description if index == 0 else f"Description {index}",
+            "desc": description if index == 0 else f"Description {index}",
             "language": "Python",
             "topics": ["testing"],
             "_stats_date": stats_date,
@@ -45,17 +46,28 @@ def page_and_latest(slugs, generated_at, *, description="A public repository"):
     )
     latest = {
         "generatedAt": generated_at,
+        "snapshotId": (
+            f"{generated_at.replace('-', '').replace(':', '').replace('.', '').replace('T', '').replace('Z', '')[:14]}-"
+            f"{hashlib.sha256(f'{generated_at}|run-context-v1'.encode()).hexdigest()[:16]}"
+        ),
         "statsDate": stats_date,
         "count": len(repos),
         "repos": [
             {
                 "slug": repo["slug"],
                 "name": repo["name"],
-                "description": repo["description"],
-                "language": repo["language"],
+                "description": repo["desc"],
+                "lang": repo["language"],
                 "topics": repo["topics"],
+                "stars": 1,
+                "forks": 2,
+                "issues": 3,
+                "contributors": 4,
+                "gains": {"daily": 1, "weekly": None, "monthly": None},
+                "signal": None,
+                "summary": {"goal": "g", "usage": "u", "pros": "p", "cons": "c", "fit": "f"},
             }
-            for repo in reversed(repos)
+            for repo in repos
         ],
     }
     return page, latest
@@ -106,6 +118,9 @@ class AtomFeedTests(unittest.TestCase):
         self.assertEqual(changes_root.tag, f"{{{ATOM_NAMESPACE}}}feed")
         self.assertEqual(current_root.findtext("atom:id", namespaces=ATOM), f"{SITE_URL}feed.xml")
         self.assertEqual(current_root.findtext("atom:updated", namespaces=ATOM), generated_at)
+        snapshot_category = current_root.find("atom:category", ATOM)
+        self.assertEqual(snapshot_category.get("scheme"), f"{SITE_URL}snapshot")
+        self.assertEqual(snapshot_category.get("term"), latest["snapshotId"])
         self.assertIsNotNone(current_root.find("atom:author/atom:name", ATOM))
         self.assertEqual(len(entries(self.feed)), 10)
         self.assertEqual(entries(self.changes), [])
@@ -197,6 +212,16 @@ class AtomFeedTests(unittest.TestCase):
         bad_latest = {**latest, "generatedAt": "2026-08-26 10:07:00Z"}
         with self.assertRaises(ValueError):
             self.generate(page, bad_latest)
+        with self.assertRaises(ValueError):
+            self.generate(page, {**latest, "unexpected": True})
+        with self.assertRaises(ValueError):
+            self.generate(page, {**latest, "snapshotId": "20260826100700-0123456789abcdef"})
+        with self.assertRaises(ValueError):
+            self.generate(page, {**latest, "repos": list(reversed(latest["repos"]))})
+        missing_description = {**latest, "repos": [dict(repo) for repo in latest["repos"]]}
+        del missing_description["repos"][0]["description"]
+        with self.assertRaises(ValueError):
+            self.generate(page, missing_description)
         with self.assertRaises(ValueError):
             self.generate(page.replace("owner/repo-0", "invalid", 1), latest)
 

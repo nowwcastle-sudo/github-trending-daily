@@ -8,6 +8,7 @@ import { readRunContext, validateRunContext } from "./run-context.mjs";
 
 const REPO_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const SNAPSHOT_ID_RE = /^\d{14}-[a-f0-9]{16}$/;
 
 function dayNumber(value) {
   if (!DATE_RE.test(value)) throw new Error(`invalid observation date: ${String(value)}`);
@@ -49,22 +50,30 @@ export function computeSignals(rows) {
   return signals;
 }
 
-export function buildLatestFeed({ repos, statsDate, generatedAt, signals }) {
+export function buildLatestFeed({ repos, snapshotId, statsDate, generatedAt, signals }) {
   if (!Array.isArray(repos) || !repos.length) throw new Error("repositories are required");
+  if (!SNAPSHOT_ID_RE.test(snapshotId)) throw new Error("snapshotId must be a valid run snapshot id");
   if (!DATE_RE.test(statsDate)) throw new Error("statsDate must be YYYY-MM-DD");
   if (!Number.isFinite(Date.parse(generatedAt))) throw new Error("generatedAt must be an ISO timestamp");
   if (!(signals instanceof Map)) throw new Error("signals must be a Map");
+  if (snapshotId.slice(0, 14) !== generatedAt.replace(/\D/g, "").slice(0, 14)) {
+    throw new Error("snapshotId must match generatedAt");
+  }
   return {
+    snapshotId,
     generatedAt,
     statsDate,
     count: repos.length,
     repos: repos.map(({ slug, name, desc, lang, topics, stars, forks, issues, contributors,
-      stars_daily, stars_weekly, stars_monthly, summary }) => ({
-      slug, name, desc, lang, topics, stars, forks, issues, contributors,
-      gains: { daily: stars_daily ?? null, weekly: stars_weekly ?? null, monthly: stars_monthly ?? null },
-      signal: signals.get(slug.toLowerCase()) ?? null,
-      summary,
-    })),
+      stars_daily, stars_weekly, stars_monthly, summary }) => {
+      if (typeof desc !== "string" || !desc.trim()) throw new Error(`repository description is required: ${slug}`);
+      return {
+        slug, name, description: desc, lang, topics, stars, forks, issues, contributors,
+        gains: { daily: stars_daily ?? null, weekly: stars_weekly ?? null, monthly: stars_monthly ?? null },
+        signal: signals.get(slug.toLowerCase()) ?? null,
+        summary,
+      };
+    }),
   };
 }
 
@@ -72,12 +81,7 @@ export async function writeLatestFeed(path, feed) {
   await mkdir(dirname(path), { recursive: true });
   try {
     const prior = JSON.parse(await readFile(path, "utf8"));
-    const comparable = value => {
-      const copy = { ...value };
-      delete copy.generatedAt;
-      return JSON.stringify(copy);
-    };
-    if (comparable(prior) === comparable(feed)) return false;
+    if (JSON.stringify(prior) === JSON.stringify(feed)) return false;
   } catch {
     // A missing or malformed prior feed is replaced by the validated snapshot.
   }
@@ -116,6 +120,7 @@ export async function updateLatestFeed({ context }) {
   const signals = computeSignals(rows);
   const feed = buildLatestFeed({
     repos,
+    snapshotId: context.snapshotId,
     statsDate: context.statsDateKst,
     generatedAt: context.observedAtUtc,
     signals,

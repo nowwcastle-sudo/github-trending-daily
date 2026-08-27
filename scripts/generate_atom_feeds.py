@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
+import re
 import sys
 import uuid
 import xml.etree.ElementTree as ET
@@ -17,6 +19,7 @@ try:
         DEFAULT_PAGE,
         DEFAULT_STATUS,
         _load_json,
+        _marked_repositories,
         _timestamp,
         load_finalized_snapshot,
         membership_change_events,
@@ -31,6 +34,7 @@ except ModuleNotFoundError as error:
         DEFAULT_PAGE,
         DEFAULT_STATUS,
         _load_json,
+        _marked_repositories,
         _timestamp,
         load_finalized_snapshot,
         membership_change_events,
@@ -40,6 +44,7 @@ except ModuleNotFoundError as error:
 
 ATOM_NAMESPACE = "http://www.w3.org/2005/Atom"
 SITE_URL = "https://nowwcastle-sudo.github.io/github-trending-daily/"
+SNAPSHOT_SCHEME = f"{SITE_URL}snapshot"
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FEED = REPOSITORY_ROOT / "feed.xml"
 DEFAULT_CHANGES = REPOSITORY_ROOT / "changes.xml"
@@ -57,13 +62,62 @@ def _child(parent, name, text=None, **attributes):
     return element
 
 
-def _feed(feed_id: str, title: str, updated: str, self_url: str):
+def _snapshot_id(value, generated_at):
+    if not isinstance(value, str) or not re.fullmatch(r"\d{14}-[a-f0-9]{16}", value):
+        raise ValueError("Latest feed snapshotId is invalid")
+    expected = hashlib.sha256(f"{generated_at}|run-context-v1".encode("utf-8")).hexdigest()[:16]
+    timestamp = generated_at.replace("-", "").replace(":", "").replace(".", "").replace("T", "").replace("Z", "")
+    if value != f"{timestamp[:14]}-{expected}":
+        raise ValueError("Latest feed snapshotId does not match generatedAt")
+    return value
+
+
+def _latest_membership_projection(latest):
+    return {key: latest[key] for key in ("generatedAt", "statsDate", "count", "repos")}
+
+
+def _validate_latest_contract(page, latest):
+    if not isinstance(latest, dict) or set(latest) != {"snapshotId", "generatedAt", "statsDate", "count", "repos"}:
+        raise ValueError("Latest feed has an invalid top-level schema")
+    generated_at = latest.get("generatedAt")
+    _timestamp(generated_at)
+    snapshot_id = _snapshot_id(latest.get("snapshotId"), generated_at)
+    page_repositories = _marked_repositories(page)
+    repositories = latest.get("repos")
+    if not isinstance(page_repositories, list) or not isinstance(repositories, list):
+        raise ValueError("Page and latest feed repositories must be lists")
+    if latest.get("count") != len(page_repositories) or len(repositories) != len(page_repositories):
+        raise ValueError("Page and latest feed counts do not match")
+    required_repository_fields = {
+        "slug", "name", "description", "lang", "topics", "stars", "forks", "issues", "contributors",
+        "gains", "signal", "summary",
+    }
+    for page_repository, repository in zip(page_repositories, repositories):
+        if not isinstance(page_repository, dict) or not isinstance(repository, dict):
+            raise ValueError("Page and latest feed repository metadata is invalid")
+        if set(repository) != required_repository_fields:
+            raise ValueError("Latest feed repository schema is invalid")
+        slug = repository.get("slug")
+        description = repository.get("description")
+        if (
+            not isinstance(slug, str)
+            or not isinstance(description, str)
+            or not description.strip()
+            or page_repository.get("slug") != slug
+            or page_repository.get("desc") != description
+        ):
+            raise ValueError("Page and latest feed repository identity does not match")
+    return snapshot_id
+
+
+def _feed(feed_id: str, title: str, updated: str, self_url: str, snapshot_id: str):
     root = ET.Element(_atom("feed"))
     _child(root, "id", feed_id)
     _child(root, "title", title)
     _child(root, "updated", updated)
     author = _child(root, "author")
     _child(author, "name", "GitHub Trending Daily")
+    _child(root, "category", scheme=SNAPSHOT_SCHEME, term=snapshot_id)
     _child(root, "link", rel="self", type="application/atom+xml", href=self_url)
     _child(root, "link", rel="alternate", type="text/html", href=SITE_URL)
     return root
@@ -87,10 +141,8 @@ def _latest_repositories(latest, ordered_slugs):
         if repository is None:
             raise ValueError("Latest feed is missing repository metadata")
         description = repository.get("description")
-        if description is None:
-            description = ""
-        if not isinstance(description, str):
-            raise ValueError("Repository description must be text or null")
+        if not isinstance(description, str) or not description.strip():
+            raise ValueError("Repository description must be nonempty text")
         ordered.append((slug, description))
     return ordered
 
@@ -101,6 +153,7 @@ def _current_document(snapshot, latest):
         "GitHub Trending Daily — 현재 전체",
         snapshot.generated_at,
         f"{SITE_URL}feed.xml",
+        latest["snapshotId"],
     )
     for slug, description in _latest_repositories(latest, snapshot.slugs):
         entry = _child(root, "entry")
@@ -118,12 +171,13 @@ def _change_id(event):
     return f"{SITE_URL}changes.xml#{quote(identity, safe='')}"
 
 
-def _changes_document(snapshot, events):
+def _changes_document(snapshot, events, snapshot_id):
     root = _feed(
         f"{SITE_URL}changes.xml",
         "GitHub Trending Daily — 신규·재진입",
         snapshot.generated_at,
         f"{SITE_URL}changes.xml",
+        snapshot_id,
     )
     labels = {"new": "신규", "reentered": "재진입"}
     summaries = {
@@ -180,7 +234,7 @@ def _parse_document(path: Path):
     return root
 
 
-def _validate_feed_header(root, expected_id, expected_title, expected_updated, expected_self):
+def _validate_feed_header(root, expected_id, expected_title, expected_updated, expected_self, snapshot_id):
     if _one_text(root, "id") != expected_id or _one_text(root, "title") != expected_title:
         raise ValueError("Atom feed identity is invalid")
     if _one_text(root, "updated") != expected_updated:
@@ -189,6 +243,9 @@ def _validate_feed_header(root, expected_id, expected_title, expected_updated, e
     names = root.findall(f"{_atom('author')}/{_atom('name')}")
     if len(names) != 1 or names[0].text != "GitHub Trending Daily":
         raise ValueError("Atom feed author is invalid")
+    categories = root.findall(_atom("category"))
+    if len(categories) != 1 or categories[0].get("scheme") != SNAPSHOT_SCHEME or categories[0].get("term") != snapshot_id:
+        raise ValueError("Atom feed snapshot identity is invalid")
     links = {(link.get("rel"), link.get("type"), link.get("href")) for link in root.findall(_atom("link"))}
     if links != {
         ("self", "application/atom+xml", expected_self),
@@ -198,12 +255,14 @@ def _validate_feed_header(root, expected_id, expected_title, expected_updated, e
 
 
 def _validate_documents(snapshot, latest, events, feed_root, changes_root):
+    snapshot_id = latest["snapshotId"]
     _validate_feed_header(
         feed_root,
         f"{SITE_URL}feed.xml",
         "GitHub Trending Daily — 현재 전체",
         snapshot.generated_at,
         f"{SITE_URL}feed.xml",
+        snapshot_id,
     )
     _validate_feed_header(
         changes_root,
@@ -211,6 +270,7 @@ def _validate_documents(snapshot, latest, events, feed_root, changes_root):
         "GitHub Trending Daily — 신규·재진입",
         snapshot.generated_at,
         f"{SITE_URL}changes.xml",
+        snapshot_id,
     )
     current_entries = feed_root.findall(_atom("entry"))
     if not 10 <= len(current_entries) <= 75 or len(current_entries) != len(snapshot.slugs):
@@ -308,11 +368,13 @@ def generate_atom_feeds(
     feed_path = Path(feed_path)
     changes_path = Path(changes_path)
     status_path = Path(status_path) if status_path is not None else database_path.with_name("membership-status.json")
-    validate_membership_publication(database_path, status_path, page, latest)
-    snapshot = load_finalized_snapshot(page, latest)
+    snapshot_id = _validate_latest_contract(page, latest)
+    membership_latest = _latest_membership_projection(latest)
+    validate_membership_publication(database_path, status_path, page, membership_latest)
+    snapshot = load_finalized_snapshot(page, membership_latest)
     events = membership_change_events(database_path)
     feed_root = _current_document(snapshot, latest)
-    changes_root = _changes_document(snapshot, events)
+    changes_root = _changes_document(snapshot, events, snapshot_id)
     _validate_documents(snapshot, latest, events, feed_root, changes_root)
     feed_bytes = _document_bytes(feed_root)
     changes_bytes = _document_bytes(changes_root)
@@ -347,8 +409,10 @@ def validate_atom_publication(
 ):
     database_path = Path(database_path)
     status_path = Path(status_path) if status_path is not None else database_path.with_name("membership-status.json")
-    validate_membership_publication(database_path, status_path, page, latest)
-    snapshot = load_finalized_snapshot(page, latest)
+    _validate_latest_contract(page, latest)
+    membership_latest = _latest_membership_projection(latest)
+    validate_membership_publication(database_path, status_path, page, membership_latest)
+    snapshot = load_finalized_snapshot(page, membership_latest)
     events = membership_change_events(database_path)
     return _validate_documents(
         snapshot,
