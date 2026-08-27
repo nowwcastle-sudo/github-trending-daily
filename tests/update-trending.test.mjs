@@ -13,6 +13,7 @@ import {
   fetchRepositoryFacts,
   installPageSnapshot,
   mergeTrendingPeriods,
+  parsePageRepos,
   parseTrendingHtml,
   runTrendingUpdate,
 } from "../scripts/update-trending.mjs";
@@ -89,6 +90,44 @@ test("repository facts expose the complete allowlist and no private fields", asy
   assert.equal("permissions" in facts, false);
 });
 
+test("repository provenance hash is exact and independent of Trending language color", async () => {
+  const baseSource = {
+    rank_daily: 1,
+    gain_daily: 20,
+    rank_weekly: 2,
+    gain_weekly: 30,
+    rank_monthly: 3,
+    gain_monthly: 40,
+  };
+  const first = await fetchRepositoryFacts("owner/repo-0", {
+    fetchImpl: canonicalGithubFetch(),
+    source: {
+      ...baseSource,
+      languageColor: "#111111",
+      languageColors: { daily: "#111111", weekly: "#222222", monthly: "#333333" },
+    },
+  });
+  const second = await fetchRepositoryFacts("owner/repo-0", {
+    fetchImpl: canonicalGithubFetch(),
+    source: {
+      ...baseSource,
+      languageColor: "#abcdef",
+      languageColors: { daily: "#abcdef", weekly: "#222222", monthly: "#333333" },
+    },
+  });
+
+  assert.equal(first.provenance.repository.fact_sha256, "f349aac21efe70d2cf6a22826ab9145759c7d94d785e935ddc84565e6fdf8717");
+  assert.equal(second.provenance.repository.fact_sha256, first.provenance.repository.fact_sha256);
+  assert.deepEqual(first.provenance.trending.language_color_selection, {
+    rule: "daily_then_weekly_then_monthly",
+    selected_period: "daily",
+    value: "#111111",
+  });
+  assert.equal(first.provenance.trending.daily.language_color, "#111111");
+  assert.equal(first.provenance.trending.weekly.language_color, "#222222");
+  assert.equal(first.provenance.trending.monthly.language_color, "#333333");
+});
+
 test("parses normalized slugs and the period's star gain", async () => {
   const daily = parseTrendingHtml(await fixture("trending-daily.html"), "daily");
   const weekly = parseTrendingHtml(await fixture("trending-weekly.html"), "weekly");
@@ -132,6 +171,7 @@ test("merges in daily, unseen weekly, then unseen monthly order", async () => {
     rank_monthly: 1,
     gain_monthly: 12345,
     languageColor: null,
+    languageColors: { daily: null, weekly: null, monthly: null },
   });
 });
 
@@ -144,6 +184,27 @@ test("preserves the observed Trending language color and leaves missing color nu
 
   assert.equal(parsed[0].languageColor, "#f1e05a");
   assert.equal(parsed[1].languageColor, null);
+});
+
+test("merge keeps each period color and selects daily before weekly before monthly", async () => {
+  const periods = Object.fromEntries(await Promise.all(
+    ["daily", "weekly", "monthly"].map(async period => [
+      period,
+      parseTrendingHtml(await fixture(`trending-${period}.html`), period),
+    ]),
+  ));
+  periods.daily[0].languageColor = "#111111";
+  periods.weekly[0].languageColor = "#222222";
+  periods.monthly[0].languageColor = "#333333";
+
+  const merged = mergeTrendingPeriods(periods);
+
+  assert.equal(merged[0].languageColor, "#111111");
+  assert.deepEqual(merged[0].languageColors, {
+    daily: "#111111",
+    weekly: "#222222",
+    monthly: "#333333",
+  });
 });
 
 test("fails closed on malformed, duplicate, and invalid-gain pages", async () => {
@@ -275,7 +336,7 @@ function successfulGithubFetch({ failures = new Map(), requests = [] } = {}) {
     const failure = failures.get(path)?.shift();
     if (failure) return failure;
     if (path.endsWith("/contributors")) {
-      return jsonResponse(200, [{ login: "one" }], { link: '<https://api.github.com/repositories/1/contributors?per_page=1&page=2>; rel="last"' });
+      return jsonResponse(200, [{ login: "one" }], { link: '<https://api.github.com/repositories/1/contributors?anon=1&per_page=1&page=2>; rel="last"' });
     }
     if (path.endsWith("/readme")) return jsonResponse(200, {
       path: "docs/README.rst",
@@ -283,6 +344,7 @@ function successfulGithubFetch({ failures = new Map(), requests = [] } = {}) {
       encoding: "base64",
       content: Buffer.from("# Repo\n\nCanonical readme.").toString("base64"),
     });
+    if (path.endsWith("/releases/latest")) return jsonResponse(200, { published_at: "2026-08-21T09:08:07Z" });
     if (path.includes("/commits/")) return jsonResponse(200, { sha: "b".repeat(40) });
     const slug = path.slice("/repos/".length);
     return jsonResponse(200, {
@@ -318,7 +380,7 @@ test("enriches every repository from canonical GitHub sources", async () => {
     token: "test-token-never-print",
   });
 
-  assert.equal(repos.requestCount, 40);
+  assert.equal(repos.requestCount, 50);
   assert.equal(repos.length, 10);
   assert.equal(repos[0].slug, "owner/repo-0");
   assert.equal(repos[0].display_rank, 1);
@@ -336,6 +398,47 @@ test("enriches every repository from canonical GitHub sources", async () => {
   assert.ok(requests.every(request => request.options.signal instanceof AbortSignal));
 });
 
+test("default request budget completes 75 repositories and custom caps fail before collection", async () => {
+  const requests = [];
+  const repos = await enrichTrendingRepositories(discoveredRepos(75), {
+    fetchImpl: successfulGithubFetch({ requests }),
+  });
+
+  assert.equal(repos.length, 75);
+  assert.equal(repos.requestCount, 375);
+  assert.equal(requests.length, 375);
+
+  const blockedRequests = [];
+  await assert.rejects(
+    enrichTrendingRepositories(discoveredRepos(75), {
+      fetchImpl: successfulGithubFetch({ requests: blockedRequests }),
+      maxAttempts: 1,
+      maxRequests: 374,
+    }),
+    /request budget 374.*requires at least 375/i,
+  );
+  assert.equal(blockedRequests.length, 0);
+});
+
+test("worst-case successful retries stay within the preflighted request cap", async () => {
+  const attempts = new Map();
+  const rest = successfulGithubFetch();
+  const repos = await enrichTrendingRepositories(discoveredRepos(), {
+    maxRequests: 150,
+    fetchImpl: async (url, options) => {
+      const count = (attempts.get(url) ?? 0) + 1;
+      attempts.set(url, count);
+      if (count < 3) return jsonResponse(503, { message: "temporary" });
+      return rest(url, options);
+    },
+    sleep: async () => {},
+  });
+
+  assert.equal(repos.requestCount, 150);
+  assert.equal(attempts.size, 50);
+  assert.ok([...attempts.values()].every(value => value === 3));
+});
+
 test("retries only timeout, 429, and 5xx with the bounded 2s/8s schedule", async () => {
   const discovered = discoveredRepos();
   const sleeps = [];
@@ -350,7 +453,7 @@ test("retries only timeout, 429, and 5xx with the bounded 2s/8s schedule", async
     token: "token",
   });
 
-  assert.equal(repos.requestCount, 42);
+  assert.equal(repos.requestCount, 52);
   assert.deepEqual(sleeps, [120000, 8000]);
 
   await assert.rejects(
@@ -379,7 +482,7 @@ test("retries a timeout after 2s and caps attempts at three", async () => {
   });
 
   assert.deepEqual(sleeps, [2000]);
-  assert.equal(repos.requestCount, 41);
+  assert.equal(repos.requestCount, 51);
   await assert.rejects(
     enrichTrendingRepositories(discoveredRepos(), {
       fetchImpl: successfulGithubFetch(),
@@ -404,14 +507,104 @@ test("canonical README rejects mutable or oversized metadata and retries transie
   }
 
   const sleeps = [];
+  let attempts = 0;
   await assert.rejects(
     fetchCanonicalReadme("Owner/Repo", {
-      fetchImpl: async () => jsonResponse(503, { message: "temporary" }),
+      fetchImpl: async () => {
+        attempts += 1;
+        return jsonResponse(503, { message: "temporary" });
+      },
       sleep: milliseconds => { sleeps.push(milliseconds); },
     }),
     /GitHub request returned 503/,
   );
+  assert.equal(attempts, 3);
   assert.deepEqual(sleeps, [2000, 8000]);
+});
+
+test("canonical README accepts exactly 512 KiB and rejects invalid UTF-8", async () => {
+  const exact = Buffer.alloc(512 * 1024, 0x61);
+  const accepted = await fetchCanonicalReadme("Owner/Repo", {
+    fetchImpl: async () => jsonResponse(200, {
+      path: "README.md",
+      sha: "a".repeat(40),
+      encoding: "base64",
+      content: exact.toString("base64"),
+    }),
+  });
+  assert.equal(Buffer.byteLength(accepted.markdown), 512 * 1024);
+
+  await assert.rejects(
+    fetchCanonicalReadme("Owner/Repo", {
+      fetchImpl: async () => jsonResponse(200, {
+        path: "README.md",
+        sha: "a".repeat(40),
+        encoding: "base64",
+        content: Buffer.from([0xc3, 0x28]).toString("base64"),
+      }),
+    }),
+    /valid UTF-8/,
+  );
+});
+
+test("every GitHub request creates an exact 30 second timeout signal", async t => {
+  const timeouts = [];
+  const timeout = AbortSignal.timeout;
+  t.mock.method(AbortSignal, "timeout", milliseconds => {
+    timeouts.push(milliseconds);
+    return timeout(milliseconds);
+  });
+
+  await fetchRepositoryFacts("Owner/Repo", { fetchImpl: canonicalGithubFetch() });
+
+  assert.deepEqual(timeouts, [30_000, 30_000, 30_000, 30_000]);
+});
+
+test("contributors use exact Link pagination and malformed pagination fails closed", async () => {
+  const exactRest = successfulGithubFetch();
+  const exact = await fetchRepositoryFacts("Owner/Repo", {
+    fetchImpl: async (url, options) => new URL(url).pathname.endsWith("/contributors")
+      ? jsonResponse(200, [{ login: "one" }], { link: '<https://api.github.com/repositories/1/contributors?anon=1&per_page=1&page=37>; rel="last"' })
+      : exactRest(url, options),
+  });
+  assert.equal(exact.contributors, 37);
+
+  for (const link of [
+    '<https://api.github.com/repositories/1/contributors?per_page=1&page=oops>; rel="last"',
+    '<https://api.github.com/repositories/1/contributors?per_page=100&page=2>; rel="last"',
+    '<https://example.com/repositories/1/contributors?per_page=1&page=2>; rel="last"',
+    '<https://api.github.com/repositories/1/contributors?per_page=1&page=2>; rel="next"',
+    '<https://api.github.com/repositories/1/contributors?per_page=1&page=2>; rel="last"',
+    '<https://api.github.com/repositories/1/contributors?anon=1&per_page=1&page=2&page=3>; rel="last"',
+  ]) {
+    const rest = successfulGithubFetch();
+    await assert.rejects(
+      fetchRepositoryFacts("Owner/Repo", {
+        fetchImpl: async (url, options) => new URL(url).pathname.endsWith("/contributors")
+          ? jsonResponse(200, [{ login: "one" }], { link })
+          : rest(url, options),
+      }),
+      /Invalid GitHub contributors/,
+    );
+  }
+});
+
+test("default branch commit path encodes slash and Unicode", async () => {
+  const requests = [];
+  const rest = successfulGithubFetch({ requests });
+  await fetchRepositoryFacts("Owner/Repo", {
+    fetchImpl: async (url, options) => {
+      const response = await rest(url, options);
+      if (new URL(url).pathname === "/repos/Owner/Repo") {
+        const body = await response.json();
+        body.default_branch = "feature/ümlaut";
+        return jsonResponse(200, body);
+      }
+      return response;
+    },
+  });
+
+  assert.ok(requests.some(request => request.url.endsWith("/commits/feature%2F%C3%BCmlaut")));
 });
 
 test("fails closed when Retry-After exceeds the explicit maximum", async () => {
@@ -474,12 +667,55 @@ test("README absence is explicit and never persists the decoded body", async () 
     fetchImpl: successfulGithubFetch({ failures }),
   });
 
-  assert.equal(repos.requestCount, 40);
+  assert.equal(repos.requestCount, 50);
   assert.equal(repos[0].readme_status, "absent");
   assert.equal(repos[0].readme_path, null);
   assert.equal(repos[0].readme_blob_sha, null);
   assert.equal(repos[0].readme_content_sha256, null);
   assert.equal("markdown" in repos[0], false);
+});
+
+test("latest release uses a validated side map with explicit absence and fail-closed errors", async () => {
+  const present = await enrichTrendingRepositories(discoveredRepos(), {
+    fetchImpl: successfulGithubFetch(),
+  });
+  assert.equal("latest_release" in present[0], false);
+  assert.equal(present.latestReleases.get("owner/repo-0"), "2026-08-21");
+
+  const absent = await enrichTrendingRepositories(discoveredRepos(), {
+    fetchImpl: successfulGithubFetch({
+      failures: new Map([["/repos/owner/repo-0/releases/latest", [jsonResponse(404, { message: "not found" })]]]),
+    }),
+  });
+  assert.equal(absent.latestReleases.get("owner/repo-0"), null);
+
+  const invalidRest = successfulGithubFetch();
+  await assert.rejects(
+    enrichTrendingRepositories(discoveredRepos(), {
+      fetchImpl: async (url, options) => new URL(url).pathname.endsWith("/releases/latest")
+        ? jsonResponse(200, { published_at: "2026-02-30T00:00:00Z" })
+        : invalidRest(url, options),
+    }),
+    error => error.message === "GitHub metadata unavailable for owner/repo-0"
+      && error.cause?.message === "Invalid latest GitHub release for owner/repo-0",
+  );
+
+  let attempts = 0;
+  const transientRest = successfulGithubFetch();
+  await assert.rejects(
+    enrichTrendingRepositories(discoveredRepos(), {
+      fetchImpl: async (url, options) => {
+        if (new URL(url).pathname.endsWith("/releases/latest")) {
+          attempts += 1;
+          return jsonResponse(503, { message: "temporary" });
+        }
+        return transientRest(url, options);
+      },
+      sleep: async () => {},
+    }),
+    /GitHub metadata unavailable/,
+  );
+  assert.equal(attempts, 3);
 });
 
 test("fails request-count and canonical-value gates instead of publishing partial facts", async () => {
@@ -490,7 +726,7 @@ test("fails request-count and canonical-value gates instead of publishing partia
       token: "token",
       maxRequests: 5,
     }),
-    /GitHub request limit 5 exceeded/,
+    /GitHub request budget 5 requires at least 150/,
   );
 
   const invalid = successfulGithubFetch();
@@ -879,10 +1115,12 @@ test("daily update gives star history the exact finalized repositories and isola
   });
 
   const pageSlugs = extractStarRepos(await readFile(pagePath, "utf8")).map(repo => repo.slug);
+  const published = parsePageRepos(await readFile(pagePath, "utf8"));
   const starCache = JSON.parse(await readFile(starCachePath, "utf8"));
   const starSlugs = starCache.repositories.map(repo => repo.slug);
   assert.deepEqual(starSlugs, result.repos.map(repo => repo.slug));
   assert.deepEqual(starSlugs, pageSlugs);
+  assert.equal(published[0].latest_release, "2026-08-21");
   assert.equal(starRequests.length, result.repos.length);
   assert.deepEqual(starHistory.failed, [result.repos[0].slug]);
   assert.deepEqual(starCache.repositories[0].estimated, [{ date: "2026-07-01", stars: 50 }]);

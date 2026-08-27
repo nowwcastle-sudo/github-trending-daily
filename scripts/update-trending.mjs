@@ -112,6 +112,7 @@ export function mergeTrendingPeriods(periods) {
       if (existing) {
         existing[rankKey] = sourceRank;
         existing[gainKey] = gain;
+        existing.languageColors[period] = languageColor?.toLowerCase() ?? null;
         if (existing.languageColor === null && languageColor !== null) existing.languageColor = languageColor.toLowerCase();
       }
       else {
@@ -120,6 +121,7 @@ export function mergeTrendingPeriods(periods) {
           [rankKey]: sourceRank,
           [gainKey]: gain,
           languageColor: languageColor?.toLowerCase() ?? null,
+          languageColors: { [period]: languageColor?.toLowerCase() ?? null },
         };
         bySlug.set(key, added);
         merged.push(added);
@@ -137,6 +139,9 @@ class RequestLimitError extends Error {}
 class RetryDelayError extends Error {}
 
 const defaultSleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+const GITHUB_REQUESTS_PER_REPOSITORY = 5;
+const DEFAULT_MAX_ATTEMPTS = 3;
+const DEFAULT_MAX_REQUESTS = 75 * GITHUB_REQUESTS_PER_REPOSITORY * DEFAULT_MAX_ATTEMPTS;
 const TAG_RULE_VERSION = 1;
 const FIELD_RULES = [
   ["ai-ml", /\b(ai|artificial[- ]intelligence|machine[- ]learning|deep[- ]learning|llms?|gpt|claude|codex|agents?|agentic|rag|inference|neural|generative[- ]ai|computer[- ]vision|nlp)\b/i],
@@ -206,8 +211,8 @@ function createGitHubClient({
   fetchImpl = globalThis.fetch,
   sleep = defaultSleep,
   token = "",
-  maxRequests = 250,
-  maxAttempts = 3,
+  maxRequests = DEFAULT_MAX_REQUESTS,
+  maxAttempts = DEFAULT_MAX_ATTEMPTS,
   maxRetryDelay = 300000,
 } = {}) {
   if (typeof fetchImpl !== "function" || typeof sleep !== "function") throw new Error("fetchImpl and sleep must be functions");
@@ -255,14 +260,43 @@ async function requireGitHubJson(response, path) {
   }
 }
 
-function contributorCount(response, contributors) {
-  const last = response.headers.get("link")
-    ?.split(",")
-    .find(link => /rel="last"/.test(link))
-    ?.match(/<([^>]+)>/)?.[1];
-  if (!last) return contributors.length;
-  const page = Number(new URL(last).searchParams.get("page"));
-  return Number.isSafeInteger(page) && page >= contributors.length ? page : contributors.length;
+function contributorCount(response, contributors, slug) {
+  if (contributors.length > 1) throw new Error(`Invalid GitHub contributors for ${slug}`);
+  const header = response.headers.get("link");
+  if (header === null) return contributors.length;
+  const links = header.split(",").map(value => {
+    const match = /^\s*<([^>]+)>\s*;\s*rel="([a-z]+)"\s*$/.exec(value);
+    if (!match) throw new Error(`Invalid GitHub contributors for ${slug}`);
+    return { target: match[1], relation: match[2] };
+  });
+  const lastLinks = links.filter(link => link.relation === "last");
+  if (lastLinks.length !== 1) throw new Error(`Invalid GitHub contributors for ${slug}`);
+  let last;
+  try {
+    last = new URL(lastLinks[0].target);
+  } catch {
+    throw new Error(`Invalid GitHub contributors for ${slug}`);
+  }
+  const pageValues = last.searchParams.getAll("page");
+  const perPageValues = last.searchParams.getAll("per_page");
+  const anonValues = last.searchParams.getAll("anon");
+  const pageValue = pageValues[0];
+  const page = pageValue !== null && /^\d+$/.test(pageValue) ? Number(pageValue) : NaN;
+  if (
+    last.protocol !== "https:"
+    || last.hostname !== "api.github.com"
+    || !last.pathname.endsWith("/contributors")
+    || pageValues.length !== 1
+    || perPageValues.length !== 1
+    || perPageValues[0] !== "1"
+    || anonValues.length !== 1
+    || anonValues[0] !== "1"
+    || !Number.isSafeInteger(page)
+    || page < Math.max(1, contributors.length)
+  ) {
+    throw new Error(`Invalid GitHub contributors for ${slug}`);
+  }
+  return page;
 }
 
 function validTimestamp(value, nullable = false) {
@@ -382,7 +416,7 @@ export async function fetchRepositoryFacts(slug, options = {}) {
   const contributorsResponse = await client.request(contributorsPath);
   const contributorValues = await requireGitHubJson(contributorsResponse, contributorsPath);
   if (!Array.isArray(contributorValues)) throw new Error(`Invalid GitHub contributors for ${normalizedSlug}`);
-  const contributors = contributorCount(contributorsResponse, contributorValues);
+  const contributors = contributorCount(contributorsResponse, contributorValues, normalizedSlug);
   if (!Number.isSafeInteger(contributors) || contributors < 0) throw new Error(`Invalid GitHub contributors for ${normalizedSlug}`);
 
   const headPath = githubPath(normalizedSlug, `/commits/${encodeURIComponent(metadata.default_branch)}`);
@@ -403,25 +437,29 @@ export async function fetchRepositoryFacts(slug, options = {}) {
     gain_weekly: nullableGain(source.gain_weekly, "weekly gain"),
     gain_monthly: nullableGain(source.gain_monthly, "monthly gain"),
   };
-  const languageColor = source.languageColor ?? null;
-  if (languageColor !== null && (typeof languageColor !== "string" || !/^#[0-9a-f]{6}$/i.test(languageColor))) {
-    throw new Error(`Invalid language color for ${normalizedSlug}`);
-  }
+  const languageColors = Object.fromEntries(["daily", "weekly", "monthly"].map(period => {
+    const value = source.languageColors?.[period]
+      ?? (period === "daily" && source.languageColors === undefined ? source.languageColor : null)
+      ?? null;
+    if (value !== null && (typeof value !== "string" || !/^#[0-9a-f]{6}$/i.test(value))) {
+      throw new Error(`Invalid language color for ${normalizedSlug}`);
+    }
+    return [period, value?.toLowerCase() ?? null];
+  }));
+  const selectedColorPeriod = ["daily", "weekly", "monthly"].find(period => languageColors[period] !== null) ?? null;
+  const languageColor = selectedColorPeriod === null ? null : languageColors[selectedColorPeriod];
   const displayRank = options.displayRank ?? null;
   if (displayRank !== null && (!Number.isSafeInteger(displayRank) || displayRank < 1)) {
     throw new Error(`Invalid display rank for ${normalizedSlug}`);
   }
 
-  const repositoryFacts = {
+  const repositorySourceFacts = {
     archived: metadata.archived,
-    contributors,
     created_at: metadata.created_at,
     default_branch: metadata.default_branch,
-    default_branch_head_sha: head.sha,
     description: metadata.description,
     forks: metadata.forks_count,
     is_fork: metadata.fork,
-    language_color: languageColor?.toLowerCase() ?? null,
     license_spdx: metadata.license?.spdx_id ?? null,
     open_issues_and_pull_requests: metadata.open_issues_count,
     primary_language: metadata.language,
@@ -430,6 +468,12 @@ export async function fetchRepositoryFacts(slug, options = {}) {
     subscribers: metadata.subscribers_count,
     topics: [...metadata.topics],
     updated_at: metadata.updated_at,
+  };
+  const repositoryFacts = {
+    ...repositorySourceFacts,
+    contributors,
+    default_branch_head_sha: head.sha,
+    language_color: languageColor,
   };
   const display = { display_rank: displayRank, display_slug: `${owner} / ${name}` };
   const tags = classifyRepository({ slug: normalizedSlug, ...display, ...repositoryFacts });
@@ -442,8 +486,7 @@ export async function fetchRepositoryFacts(slug, options = {}) {
   const provenance = {
     repository: {
       api_path: repositoryPath,
-      fact_sha256: canonicalHash(Object.fromEntries(Object.entries(repositoryFacts)
-        .filter(([key]) => key !== "contributors" && key !== "default_branch_head_sha"))),
+      fact_sha256: canonicalHash(repositorySourceFacts),
     },
     contributors: {
       api_path: contributorsPath,
@@ -461,12 +504,24 @@ export async function fetchRepositoryFacts(slug, options = {}) {
       blob_sha: readme.blobSha,
       content_sha256: readme.contentSha256,
     },
-    trending: Object.fromEntries(["daily", "weekly", "monthly"].map(period => [period, {
-      source_path: `/trending?since=${period}`,
-      rank: ranks[`rank_${period}`],
-      gain: gains[`gain_${period}`],
-      fact_sha256: canonicalHash({ rank: ranks[`rank_${period}`], gain: gains[`gain_${period}`] }),
-    }])),
+    trending: {
+      ...Object.fromEntries(["daily", "weekly", "monthly"].map(period => [period, {
+        source_path: `/trending?since=${period}`,
+        rank: ranks[`rank_${period}`],
+        gain: gains[`gain_${period}`],
+        language_color: languageColors[period],
+        fact_sha256: canonicalHash({
+          rank: ranks[`rank_${period}`],
+          gain: gains[`gain_${period}`],
+          language_color: languageColors[period],
+        }),
+      }])),
+      language_color_selection: {
+        rule: "daily_then_weekly_then_monthly",
+        selected_period: selectedColorPeriod,
+        value: languageColor,
+      },
+    },
   };
 
   return {
@@ -505,6 +560,15 @@ export async function fetchRepositoryFacts(slug, options = {}) {
     topics: repositoryFacts.topics,
     updated_at: repositoryFacts.updated_at,
   };
+}
+
+async function fetchLatestRelease(slug, { client }) {
+  const apiPath = githubPath(slug, "/releases/latest");
+  const response = await client.request(apiPath);
+  if (response.status === 404) return null;
+  const value = await requireGitHubJson(response, apiPath);
+  if (!validTimestamp(value?.published_at)) throw new Error(`Invalid latest GitHub release for ${slug}`);
+  return value.published_at.slice(0, 10);
 }
 
 function readmeIntroduction(readme) {
@@ -552,15 +616,20 @@ export async function enrichTrendingRepositories(discovered, {
   fetchImpl = globalThis.fetch,
   sleep = defaultSleep,
   token = "",
-  maxRequests = 250,
-  maxAttempts = 3,
+  maxRequests = DEFAULT_MAX_REQUESTS,
+  maxAttempts = DEFAULT_MAX_ATTEMPTS,
   maxRetryDelay = 300000,
 } = {}) {
   if (!Array.isArray(discovered) || discovered.length < 10 || discovered.length > 75) {
     throw new Error("Discovered repositories must contain 10-75 entries");
   }
   const client = createGitHubClient({ fetchImpl, sleep, token, maxRequests, maxAttempts, maxRetryDelay });
+  const requiredRequests = discovered.length * GITHUB_REQUESTS_PER_REPOSITORY * maxAttempts;
+  if (maxRequests < requiredRequests) {
+    throw new RequestLimitError(`GitHub request budget ${maxRequests} requires at least ${requiredRequests} for ${discovered.length} repositories`);
+  }
   const repos = [];
+  const latestReleases = new Map();
   const seen = new Set();
   for (const [index, discoveredRepo] of discovered.entries()) {
     const slug = normalizeSlug(discoveredRepo?.slug ?? "");
@@ -568,21 +637,24 @@ export async function enrichTrendingRepositories(discovered, {
     if (seen.has(key)) throw new Error(`Duplicate discovered repository: ${slug}`);
     seen.add(key);
     try {
-      repos.push(await fetchRepositoryFacts(slug, {
+      const facts = await fetchRepositoryFacts(slug, {
         client,
         source: discoveredRepo,
         displayRank: index + 1,
-      }));
+      });
+      latestReleases.set(key, await fetchLatestRelease(slug, { client }));
+      repos.push(facts);
     } catch (error) {
       if (error instanceof RequestLimitError || error instanceof RetryDelayError) throw error;
       throw new Error(`GitHub metadata unavailable for ${slug}`, { cause: error });
     }
   }
   Object.defineProperty(repos, "requestCount", { value: client.requestCount, enumerable: false });
+  Object.defineProperty(repos, "latestReleases", { value: latestReleases, enumerable: false });
   return repos;
 }
 
-function renderRepositoryFacts(facts, summaryCache, statsDate) {
+function renderRepositoryFacts(facts, summaryCache, statsDate, latestReleases) {
   const summaries = new Map(Object.entries(summaryCache).map(([slug, value]) => [slug.toLowerCase(), value]));
   return facts.map(fact => {
     const gains = Object.fromEntries(["daily", "weekly", "monthly"]
@@ -595,7 +667,7 @@ function renderRepositoryFacts(facts, summaryCache, statsDate) {
     );
     return {
       slug: fact.slug,
-      latest_release: null,
+      latest_release: latestReleases.get(fact.slug.toLowerCase()) ?? null,
       name: fact.display_slug,
       desc: fact.description ?? "",
       lang: fact.primary_language ?? "",
@@ -875,7 +947,7 @@ export async function runTrendingUpdate({
     token,
   });
   const requestCount = repos.requestCount;
-  const publishedRepos = renderRepositoryFacts(repos, summaryCache, statsDate);
+  const publishedRepos = renderRepositoryFacts(repos, summaryCache, statsDate, repos.latestReleases);
   const snapshot = createPageSnapshot({ page, summaryCache, repos: publishedRepos, statsDate });
   const changed = page !== snapshot.page || cacheText !== snapshot.summaryCacheText;
   if (!check && changed) await installPageSnapshot({ pagePath, cachePath, ...snapshot });
