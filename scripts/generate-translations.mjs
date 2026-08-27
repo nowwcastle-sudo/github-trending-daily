@@ -830,14 +830,6 @@ function isBilingualWrapper(value, tokens, start, length, term) {
   return /[가-힣]/u.test(value[first.start - 2] ?? "");
 }
 
-function isUnknownBilingualToken(value, token) {
-  const open = value.lastIndexOf("(", token.start);
-  if (open < 1 || value[open - 1] === undefined || !/[가-힣]/u.test(value[open - 1])) return false;
-  const close = value.indexOf(")", token.end);
-  if (close < 0 || value.slice(open + 1, close).includes("(") || value.slice(token.end, close).includes(")")) return false;
-  return true;
-}
-
 function retainedSourceAnalysis(original, translated, verifiedTerms = []) {
   const source = identifierTokens(original);
   const output = identifierTokens(translated);
@@ -862,13 +854,8 @@ function retainedSourceAnalysis(original, translated, verifiedTerms = []) {
       for (let offset = 0; offset < pattern.length; offset += 1) claimedOutput.add(start + offset);
     }
   }
-  if (output.some((token, index) => !exemptOutput.has(index) && isUnknownBilingualToken(translated, token))) {
-    return { rejected: true, allowedNameAscii: 0 };
-  }
   const remainingOutput = output.filter((_token, index) => !exemptOutput.has(index));
-  const outputWords = new Set(remainingOutput.map(token => token.lower));
-  const retained = source.filter(token => outputWords.has(token.lower));
-  if (retained.length) return { rejected: true, allowedNameAscii: 0 };
+  if (remainingOutput.length) return { rejected: true, allowedNameAscii: 0 };
   const allowedNameAscii = output.reduce((total, token, index) => total
     + (exemptOutput.has(index) ? (token.raw.match(/[A-Za-z]/g) ?? []).length : 0), 0);
   return { rejected: false, allowedNameAscii };

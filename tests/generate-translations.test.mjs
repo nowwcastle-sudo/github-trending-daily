@@ -481,6 +481,36 @@ test("bilingual wrappers require immediate Hangul and an exact inner candidate",
   }
 });
 
+test("source-absent visible ASCII rejects around a verified bilingual wrapper", async () => {
+  const source = "Python provides a reliable runtime for automation teams.";
+  for (const [position, korean] of [
+    ["before", "banana 파이썬(Python)은 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다."],
+    ["adjacent before", "FOOBAR파이썬(Python)은 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다."],
+    ["punctuated after", "파이썬(Python), AI는 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다."],
+    ["Hangul-adjacent after", "파이썬(Python)은 abcdefghijkl를 자동화 팀에 신뢰할 수 있는 런타임으로 제공합니다."],
+  ]) {
+    await assert.rejects(
+      callMarkdownTranslation({ ...item, slug: "owner/Python", markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, korean))),
+      /ASCII|source|retains|translated prose/i,
+      position,
+    );
+  }
+});
+
+test("code and link-destination ASCII remain structural beside a bilingual wrapper", async () => {
+  const prose = "Python provides a reliable runtime for automation teams.";
+  const source = `\`banana\`\n\n[docs](https://example.com/foobar)\n\n${prose}`;
+  const koreanProse = "파이썬(Python)은 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다.";
+  const expected = `\`banana\`\n\n[문서](https://example.com/foobar)\n\n${koreanProse}`;
+  assert.equal(
+    await callMarkdownTranslation({ ...item, slug: "owner/Python", markdown: source }, "x", async (_url, init) => translationReplyFromRequest(
+      init,
+      value => value.replace("docs", "문서").replace(prose, koreanProse),
+    )),
+    expected,
+  );
+});
+
 test("the same technical names reject without source-derived evidence", async () => {
   for (const [term, _gloss, context, source, korean] of TECHNICAL_NAME_CONTEXTS) {
     await assert.rejects(
@@ -978,6 +1008,32 @@ test("reuse validation applies the same item-specific verified-term evidence", (
   assert.equal(validation.valid, false);
   assert.equal(validation.counts.stale, 1);
   assert.deepEqual(planEnrichment([plainRepo], plainCache, plainSources).map(value => value.slug), [plainRepo.slug]);
+});
+
+test("reuse validation marks source-absent visible ASCII stale", () => {
+  const markdown = "Python provides a reliable runtime for automation teams.";
+  const translated = "banana 파이썬(Python)은 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다.";
+  const contentSha = hashReadme(markdown);
+  const source = {
+    blob_sha: item.readme_blob_sha,
+    content_sha256: contentSha,
+    model: MODEL,
+    schema_version: 2,
+    translation_applicable: true,
+  };
+  const repo = {
+    ...item,
+    slug: "owner/Python",
+    markdown,
+    readme_content_sha256: contentSha,
+    translated_markdown: translated,
+  };
+  const cache = { [repo.slug]: { content, source } };
+  const sources = { version: 2, sources: { [repo.slug]: source } };
+  const validation = validateActiveEnrichment([repo], { [repo.slug]: translated }, cache, sources);
+  assert.equal(validation.valid, false);
+  assert.equal(validation.counts.stale, 1);
+  assert.deepEqual(planEnrichment([repo], cache, sources).map(value => value.slug), [repo.slug]);
 });
 
 test("planning queues placeholder summaries and corrupt reusable translations", () => {
