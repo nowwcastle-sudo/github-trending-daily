@@ -17,11 +17,14 @@ import {
   installEnrichmentSet,
   locateReposRegion,
   parseReferenceDefinitions,
+  parseTranslationPayload,
   planEnrichment,
+  readTranslation,
   runEnrichment,
   replaceReposArray,
   splitMarkdownAtHeadings,
   validateActiveEnrichment,
+  validatedPreparedTranslations,
 } from "../scripts/generate-translations.mjs";
 
 const MODEL = "claude-haiku-4-5";
@@ -41,6 +44,20 @@ const item = {
   readme_content_sha256: hashReadme(markdown),
 };
 const other = { ...item, slug: "other/repo", readme_blob_sha: "b".repeat(40) };
+
+function sourceFor(repo = item, translationApplicable = true) {
+  return {
+    blob_sha: repo.readme_blob_sha,
+    content_sha256: repo.readme_content_sha256,
+    model: MODEL,
+    schema_version: 2,
+    translation_applicable: translationApplicable,
+  };
+}
+
+function translationPayload(repo, translated, translationApplicable = true) {
+  return { markdown: translated, source: sourceFor(repo, translationApplicable) };
+}
 
 function response(status, body, contentType = "application/json; charset=utf-8") {
   return {
@@ -1000,15 +1017,40 @@ test("successful enrichment returns an all-or-nothing schema-v2 set", async () =
 });
 
 test("planning reuses only independently matching schema-v2 provenance", () => {
-  const source = {
-    blob_sha: item.readme_blob_sha, content_sha256: item.readme_content_sha256,
-    model: MODEL, schema_version: 2, translation_applicable: true,
-  };
-  const repos = [{ ...item, translated_markdown: "# 한국어 제목\n\n이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.\n" }];
+  const source = sourceFor();
+  const translated = "# 한국어 제목\n\n이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.\n";
+  const repos = [{ ...item, translation_payload: translationPayload(item, translated) }];
   assert.deepEqual(planEnrichment(repos, { [item.slug]: { content, source } }, { version: 2, sources: { [item.slug]: source } }), []);
   const stale = { ...source, blob_sha: "f".repeat(40) };
   assert.deepEqual(planEnrichment(repos, { [item.slug]: { content, source } }, { version: 2, sources: { [item.slug]: stale } }).map(value => value.slug), [item.slug]);
+  const staleEmbedded = [{ ...item, translation_payload: { markdown: translated, source: stale } }];
+  assert.deepEqual(planEnrichment(staleEmbedded, { [item.slug]: { content, source } }, { version: 2, sources: { [item.slug]: source } }).map(value => value.slug), [item.slug]);
   assert.deepEqual(planEnrichment(repos, { [item.slug]: { summary: content, detail: content } }, { version: 2, sources: { [item.slug]: source } }).map(value => value.slug), [item.slug]);
+});
+
+test("translation files use only the exact markdown and self-contained source envelope", async () => {
+  const root = mkdtempSync(path.join(tmpdir(), "translation-envelope-"));
+  const file = path.join(root, "owner__repo.json");
+  const translated = "# 한국어 제목\n\n이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.\n";
+  const payload = translationPayload(item, translated);
+  try {
+    writeFileSync(file, `${JSON.stringify(payload)}\n`);
+    assert.deepEqual(await readTranslation(file), payload);
+    assert.deepEqual(parseTranslationPayload(payload), payload);
+
+    for (const invalid of [
+      { html: translated },
+      { ...payload, unexpected: true },
+      { markdown: translated },
+      { markdown: translated, source: { ...payload.source, model: "other" } },
+    ]) {
+      writeFileSync(file, `${JSON.stringify(invalid)}\n`);
+      assert.equal(await readTranslation(file), null);
+      assert.equal(parseTranslationPayload(invalid), null);
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test("reuse validation applies the same item-specific verified-term evidence", () => {
@@ -1028,7 +1070,7 @@ test("reuse validation applies the same item-specific verified-term evidence", (
     lang: "Rust",
     markdown,
     readme_content_sha256: contentSha,
-    translated_markdown: translated,
+    translation_payload: translationPayload({ ...item, readme_content_sha256: contentSha }, translated),
   };
   const evidencedCache = { [evidencedRepo.slug]: { content, source } };
   const evidencedSources = { version: 2, sources: { [evidencedRepo.slug]: source } };
@@ -1070,7 +1112,7 @@ test("reuse validation marks source-absent visible ASCII stale", () => {
     slug: "owner/Python",
     markdown,
     readme_content_sha256: contentSha,
-    translated_markdown: translated,
+    translation_payload: translationPayload({ ...item, readme_content_sha256: contentSha }, translated),
   };
   const cache = { [repo.slug]: { content, source } };
   const sources = { version: 2, sources: { [repo.slug]: source } };
@@ -1101,14 +1143,14 @@ test("reuse validation applies exact raw whitespace to multiword wrappers", () =
   const sources = { version: 2, sources: { [repo.slug]: source } };
   const exact = "주피터 노트북(Jupyter Notebook)은 자동화 팀에 신뢰할 수 있는 도구를 제공합니다.";
   assert.equal(validateActiveEnrichment([repo], { [repo.slug]: exact }, cache, sources).valid, true);
-  assert.deepEqual(planEnrichment([{ ...repo, translated_markdown: exact }], cache, sources), []);
+  assert.deepEqual(planEnrichment([{ ...repo, translation_payload: translationPayload(repo, exact) }], cache, sources), []);
 
   for (const inner of ["Jupyter  Notebook", "Jupyter\tNotebook", "Jupyter\u00a0Notebook", "Jupyter **Notebook**"]) {
     const translated = `주피터 노트북(${inner})은 자동화 팀에 신뢰할 수 있는 도구를 제공합니다.`;
     const validation = validateActiveEnrichment([repo], { [repo.slug]: translated }, cache, sources);
     assert.equal(validation.valid, false, inner);
     assert.equal(validation.counts.stale, 1, inner);
-    assert.deepEqual(planEnrichment([{ ...repo, translated_markdown: translated }], cache, sources).map(value => value.slug), [repo.slug], inner);
+    assert.deepEqual(planEnrichment([{ ...repo, translation_payload: translationPayload(repo, translated) }], cache, sources).map(value => value.slug), [repo.slug], inner);
   }
 });
 
@@ -1125,10 +1167,13 @@ test("planning queues placeholder summaries and corrupt reusable translations", 
     "## 한국어 제목\n\n이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.\n",
   ];
   for (const translated_markdown of corrupt) {
-    assert.deepEqual(planEnrichment([{ ...item, translated_markdown }], cache, sources).map(value => value.slug), [item.slug]);
+    assert.deepEqual(planEnrichment([{ ...item, translation_payload: translationPayload(item, translated_markdown) }], cache, sources).map(value => value.slug), [item.slug]);
   }
   const placeholder = { [item.slug]: { content: { ...content, goal: "TODO placeholder" }, source } };
-  assert.deepEqual(planEnrichment([{ ...item, translated_markdown: "# 한국어 제목\n\n이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.\n" }], placeholder, sources).map(value => value.slug), [item.slug]);
+  assert.deepEqual(planEnrichment([{
+    ...item,
+    translation_payload: translationPayload(item, "# 한국어 제목\n\n이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.\n"),
+  }], placeholder, sources).map(value => value.slug), [item.slug]);
 });
 
 function injectedFs(fail) {
@@ -1238,7 +1283,7 @@ test("prepared output set contains and rereads every active translation, includi
     translationsDir,
     page: "page-next\n",
     cache: {},
-    sources: { version: 2, sources: {} },
+    sources: { version: 2, sources: { "owner/reused": sourceFor(), "owner/repaired": sourceFor() } },
     translations: { "owner/reused": "재사용", "owner/repaired": "수리됨" },
   });
   assert.equal(outputs.length, 5);
@@ -1252,6 +1297,42 @@ test("prepared output set contains and rereads every active translation, includi
   });
   assert.equal(injected.calls.readFile, outputs.length);
   assert.deepEqual([...verified.keys()].sort(), outputs.map(output => output.path).sort());
+  const translationOutputs = outputs.filter(output => output.path.includes("translations"));
+  assert.deepEqual(JSON.parse(translationOutputs[0].text), {
+    markdown: "재사용",
+    source: sourceFor(),
+  });
+});
+
+test("prepared translation reread rejects an obsolete or unexpected envelope before install", async () => {
+  const fixture = transactionFixture();
+  const translationsDir = path.join(fixture.root, "translations");
+  const outputs = buildEnrichmentOutputs({
+    pagePath: path.join(fixture.root, "index.html"),
+    cachePath: path.join(fixture.root, "data", "repo-summaries.json"),
+    sourcesPath: path.join(fixture.root, "data", "translation-sources.json"),
+    translationsDir,
+    page: "page-next\n",
+    cache: {},
+    sources: { version: 2, sources: { [item.slug]: sourceFor() } },
+    translations: { [item.slug]: "번역" },
+  });
+  const translationOutput = outputs.find(output => output.path.endsWith("owner__repo.json"));
+  translationOutput.text = `${JSON.stringify({ html: "번역" })}\n`;
+  await assert.rejects(
+    installEnrichmentSet(outputs, {
+      suffix: "invalid-envelope",
+      verify: async ({ contents }) => {
+        validatedPreparedTranslations(
+          contents,
+          translationsDir,
+          { [item.slug]: "번역" },
+          { version: 2, sources: { [item.slug]: sourceFor() } },
+        );
+      },
+    }),
+    error => error instanceof AggregateError && /exact envelope/i.test(error.errors[0]?.message),
+  );
 });
 
 test("shared REPOS locator and replacement handle bracket-like escaped JSON without remnants", () => {
@@ -1311,7 +1392,13 @@ function writeCoverageRoot(kind) {
   if (kind === "compact") cache[item.slug] = { summary: content, detail: content };
   if (kind === "placeholder") cache[item.slug].content = { ...content, goal: "TODO placeholder" };
   if (kind === "stale") sources.sources[item.slug] = { ...source, blob_sha: "f".repeat(40) };
-  if (kind !== "missing") writeFileSync(path.join(root, "translations", "owner__repo.json"), `${JSON.stringify({ html: "# 한국어 제목\n\n한국어 본문입니다." })}\n`);
+  if (kind !== "missing") {
+    let payload = translationPayload(item, "# 한국어 제목\n\n한국어 본문입니다.");
+    if (kind === "legacy") payload = { html: payload.markdown };
+    if (kind === "embedded-stale") payload = { ...payload, source: { ...payload.source, blob_sha: "e".repeat(40) } };
+    if (kind === "envelope-extra") payload = { ...payload, unexpected: true };
+    writeFileSync(path.join(root, "translations", "owner__repo.json"), kind === "malformed" ? "{not-json\n" : `${JSON.stringify(payload)}\n`);
+  }
   writeFileSync(path.join(root, "index.html"), `// GENERATED:TRENDING-REPOS:START\nconst REPOS = ${JSON.stringify([repo])};\n// GENERATED:TRENDING-REPOS:END\n`);
   writeFileSync(path.join(root, "data", "repo-summaries.json"), `${JSON.stringify(cache)}\n`);
   writeFileSync(path.join(root, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`);
@@ -1322,8 +1409,8 @@ function runCoverageCli(root) {
   return spawnSync(process.execPath, [path.resolve("scripts/validate-enrichment-coverage.mjs"), "--root", root, "--json-counts"], { encoding: "utf8" });
 }
 
-test("coverage CLI rejects compact, placeholder, stale provenance, and missing translations", () => {
-  for (const fixture of ["compact", "placeholder", "stale", "missing"]) {
+test("coverage CLI rejects invalid enrichment and non-exact translation envelopes", () => {
+  for (const fixture of ["compact", "placeholder", "stale", "missing", "legacy", "embedded-stale", "envelope-extra", "malformed"]) {
     assert.notEqual(runCoverageCli(writeCoverageRoot(fixture)).status, 0, fixture);
   }
   const valid = runCoverageCli(writeCoverageRoot("valid"));

@@ -962,8 +962,18 @@ function canonicalSource(item, applicable) {
   };
 }
 
-function sameSource(left, right) {
+export function sameSource(left, right) {
   return validSource(left) && validSource(right) && JSON.stringify(left) === JSON.stringify(right);
+}
+
+export function parseTranslationPayload(value) {
+  if (!value || Array.isArray(value) || typeof value !== "object"
+      || Object.keys(value).sort().join(",") !== "markdown,source"
+      || typeof value.markdown !== "string" || !value.markdown.trim()
+      || !validSource(value.source)) {
+    return null;
+  }
+  return value;
 }
 
 function detailedSummary(value) {
@@ -1016,9 +1026,18 @@ export function planEnrichment(repos, summaryCache, translationSources) {
     if (hashReadme(markdown) !== repo.readme_content_sha256) throw new Error(`README content hash mismatch for ${slug}`);
     const cacheEntry = cache.get(key)?.entry;
     const sourceEntry = sources.get(key)?.entry;
+    const translationPayload = parseTranslationPayload(repo.translation_payload);
+    const currentSource = validSource(sourceEntry)
+      ? canonicalSource(repo, sourceEntry.translation_applicable)
+      : null;
+    const reusableMarkdown = translationPayload
+      && sameSource(translationPayload.source, sourceEntry)
+      && sameSource(translationPayload.source, currentSource)
+      ? translationPayload.markdown
+      : null;
     const reusable = validateActiveEnrichment(
       [{ ...repo, markdown }],
-      { [slug]: repo.translated_markdown },
+      { [slug]: reusableMarkdown },
       { [slug]: cacheEntry },
       { version: ENRICHMENT_SCHEMA_VERSION, sources: { [slug]: sourceEntry } },
     ).valid;
@@ -1533,26 +1552,48 @@ export async function installEnrichmentSet(outputs, options = {}) {
   }
 }
 
-async function readTranslation(file) {
+export async function readTranslation(file) {
   try {
     const value = JSON.parse(await readFile(file, "utf8"));
-    return typeof value?.html === "string" ? value.html : null;
+    return parseTranslationPayload(value);
   } catch (error) {
-    if (error?.code === "ENOENT") return null;
+    if (error?.code === "ENOENT" || error instanceof SyntaxError) return null;
     throw error;
   }
 }
 
 export function buildEnrichmentOutputs({ pagePath, cachePath, sourcesPath, translationsDir, page, cache, sources, translations }) {
+  const sourceEntries = caseInsensitiveMap(normalizeSourcesDocument(sources).sources);
   return [
     { path: pagePath, text: page },
     { path: cachePath, text: `${JSON.stringify(cache, null, 2)}\n` },
     { path: sourcesPath, text: `${JSON.stringify(sources, null, 2)}\n` },
-    ...Object.entries(translations).map(([slug, translated]) => ({
-      path: path.join(translationsDir, slugToFile(slug)),
-      text: `${JSON.stringify({ html: translated }, null, 2)}\n`,
-    })),
+    ...Object.entries(translations).map(([slug, translated]) => {
+      const payload = parseTranslationPayload({
+        markdown: translated,
+        source: sourceEntries.get(slug.toLowerCase())?.entry,
+      });
+      if (!payload) throw new Error(`Translation output source is invalid for ${slug}`);
+      return {
+        path: path.join(translationsDir, slugToFile(slug)),
+        text: `${JSON.stringify(payload, null, 2)}\n`,
+      };
+    }),
   ];
+}
+
+export function validatedPreparedTranslations(contents, translationsDir, translations, sources) {
+  const sourceEntries = caseInsensitiveMap(normalizeSourcesDocument(sources).sources);
+  const preparedTranslations = {};
+  for (const [slug] of Object.entries(translations)) {
+    const file = path.join(translationsDir, slugToFile(slug));
+    const value = parseTranslationPayload(JSON.parse(contents.get(file)));
+    if (!value || !sameSource(value.source, sourceEntries.get(slug.toLowerCase())?.entry)) {
+      throw new Error("Prepared translation does not match its exact envelope");
+    }
+    preparedTranslations[slug] = value.markdown;
+  }
+  return preparedTranslations;
 }
 
 async function main() {
@@ -1582,7 +1623,7 @@ async function main() {
       markdown: readme.markdown,
       readme_blob_sha: readme.blobSha,
       readme_content_sha256: readme.contentSha256,
-      translated_markdown: await readTranslation(path.join(translationsDir, slugToFile(repo.slug))),
+      translation_payload: await readTranslation(path.join(translationsDir, slugToFile(repo.slug))),
     });
   }
   const pending = planEnrichment(repos, summaryCache, translationSources);
@@ -1604,7 +1645,7 @@ async function main() {
   };
   const nextTranslations = Object.fromEntries(await Promise.all(repos.map(async repo => [
     repo.slug,
-    completed.translations[repo.slug] ?? repo.translated_markdown,
+    completed.translations[repo.slug] ?? repo.translation_payload?.markdown,
   ])));
   const validation = validateActiveEnrichment(repos, nextTranslations, nextCache, nextSources);
   if (!validation.valid) throw new Error(`Enrichment coverage mismatch: ${JSON.stringify(validation.counts)}`);
@@ -1625,20 +1666,18 @@ async function main() {
       if (!canonical) throw new Error("Prepared page contains an unknown active repository");
       return { ...repo, markdown: canonical.markdown, readme_blob_sha: canonical.readme_blob_sha, readme_content_sha256: canonical.readme_content_sha256 };
     });
-    const preparedTranslations = {};
-    for (const [slug] of Object.entries(nextTranslations)) {
-      const file = path.join(translationsDir, slugToFile(slug));
-      const value = JSON.parse(contents.get(file));
-      if (!value || Object.keys(value).join(",") !== "html" || typeof value.html !== "string") {
-        throw new Error("Prepared translation does not match its exact envelope");
-      }
-      preparedTranslations[slug] = value.html;
-    }
+    const parsedPreparedSources = JSON.parse(preparedSources);
+    const preparedTranslations = validatedPreparedTranslations(
+      contents,
+      translationsDir,
+      nextTranslations,
+      parsedPreparedSources,
+    );
     const preparedValidation = validateActiveEnrichment(
       preparedRepos,
       preparedTranslations,
       JSON.parse(preparedCache),
-      JSON.parse(preparedSources),
+      parsedPreparedSources,
     );
     if (!preparedValidation.valid) throw new Error(`Prepared enrichment coverage mismatch: ${JSON.stringify(preparedValidation.counts)}`);
   } });

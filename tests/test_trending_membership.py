@@ -11,6 +11,7 @@ from unittest import mock
 from scripts.record_trending_membership import (
     MembershipSnapshot,
     load_finalized_snapshot,
+    main,
     record_membership,
     validate_membership_publication,
 )
@@ -20,14 +21,27 @@ def snapshot(generated_at, slugs, *, stats_date="2026-08-26"):
     return MembershipSnapshot(generated_at, stats_date, tuple(slugs))
 
 
+def run_snapshot_id(generated_at):
+    timestamp = generated_at.replace("-", "").replace(":", "").replace(".", "").replace("T", "").replace("Z", "")
+    digest = hashlib.sha256(f"{generated_at}|run-context-v1".encode()).hexdigest()[:16]
+    return f"{timestamp[:14]}-{digest}"
+
+
 def page_and_latest(slugs, *, generated_at="2026-08-26T10:07:00.000Z", stats_date="2026-08-26"):
-    repos = [{"slug": slug, "_stats_date": stats_date} for slug in slugs]
+    snapshot_id = run_snapshot_id(generated_at)
+    repos = [{
+        "slug": slug,
+        "_snapshot_id": snapshot_id,
+        "_generated_at": generated_at,
+        "_stats_date": stats_date,
+    } for slug in slugs]
     page = (
         "before\n// GENERATED:TRENDING-REPOS:START\n"
         f"const REPOS = {json.dumps(repos)};\n"
         "// GENERATED:TRENDING-REPOS:END\nafter\n"
     )
     latest = {
+        "snapshotId": snapshot_id,
         "generatedAt": generated_at,
         "statsDate": stats_date,
         "count": len(slugs),
@@ -179,20 +193,51 @@ class MembershipHistoryTests(unittest.TestCase):
                 self.assertFalse(self.database.exists())
                 self.assertFalse(self.status.exists())
 
-    def test_page_and_latest_must_match_before_recording(self):
+    def test_page_and_latest_use_one_exact_live_run_identity(self):
         page, latest = page_and_latest(self.slugs)
         loaded = load_finalized_snapshot(page, latest)
+        self.assertEqual(loaded.generated_at, latest["generatedAt"])
+        self.assertEqual(loaded.stats_date, latest["statsDate"])
         self.assertEqual(loaded.slugs, tuple(self.slugs))
 
+    def test_invalid_page_and_latest_identity_fail_before_touching_membership_outputs(self):
+        page, latest = page_and_latest(self.slugs)
+        alternate_snapshot = f"{latest['snapshotId'][:15]}{'0' * 16}"
+        first_snapshot = page.index(latest["snapshotId"])
+        second_snapshot = page.index(latest["snapshotId"], first_snapshot + len(latest["snapshotId"]))
+        mixed_page = page[:second_snapshot] + alternate_snapshot + page[second_snapshot + len(latest["snapshotId"]):]
+        mismatched_snapshot_page = page.replace(latest["snapshotId"], alternate_snapshot)
+        mismatched_time_page = page.replace(latest["generatedAt"], "2026-08-26T10:07:00.999Z")
         cases = [
+            (page, {key: value for key, value in latest.items() if key != "snapshotId"}),
+            (page, {**latest, "unexpected": True}),
+            (page, {**latest, "snapshotId": "invalid"}),
+            (page, {**latest, "snapshotId": run_snapshot_id("2026-08-26T12:07:00.000Z")}),
+            (mixed_page, latest),
+            (mismatched_snapshot_page, latest),
+            (mismatched_time_page, latest),
             (page, {**latest, "count": 11}),
             (page, {**latest, "statsDate": "2026-08-25"}),
             (page, {**latest, "repos": [{"slug": slug} for slug in self.slugs[:-1]] + [{"slug": "other/project"}]}),
         ]
-        for bad_page, bad_latest in cases:
-            with self.subTest(latest=bad_latest):
+        self.database.write_bytes(b"last-good-database")
+        self.status.write_bytes(b"last-good-status")
+        page_path = self.root / "index.html"
+        latest_path = self.root / "latest.json"
+        for index, (bad_page, bad_latest) in enumerate(cases):
+            with self.subTest(index=index):
                 with self.assertRaises(ValueError):
                     load_finalized_snapshot(bad_page, bad_latest)
+                page_path.write_text(bad_page, encoding="utf-8")
+                latest_path.write_text(json.dumps(bad_latest), encoding="utf-8")
+                self.assertEqual(main([
+                    "--page", str(page_path),
+                    "--latest", str(latest_path),
+                    "--database", str(self.database),
+                    "--status", str(self.status),
+                ]), 1)
+                self.assertEqual(self.database.read_bytes(), b"last-good-database")
+                self.assertEqual(self.status.read_bytes(), b"last-good-status")
 
     def test_schema_and_append_only_triggers_are_verified(self):
         record_membership(self.database, self.status, snapshot("2026-08-26T10:07:00.000Z", self.slugs))

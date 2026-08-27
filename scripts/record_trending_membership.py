@@ -22,6 +22,7 @@ REPOS_START = "// GENERATED:TRENDING-REPOS:START"
 REPOS_END = "// GENERATED:TRENDING-REPOS:END"
 REPO_PATTERN = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 TIMESTAMP_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")
+SNAPSHOT_ID_PATTERN = re.compile(r"^\d{14}-[a-f0-9]{16}$")
 SCHEMA_VERSION = 1
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PAGE = REPOSITORY_ROOT / "index.html"
@@ -76,6 +77,19 @@ def _timestamp(value: str) -> datetime:
     return parsed
 
 
+def _snapshot_id(value, generated_at, *, verify_digest=True) -> str:
+    if not isinstance(value, str) or not SNAPSHOT_ID_PATTERN.fullmatch(value):
+        raise ValueError("snapshotId must be a valid run snapshot id")
+    timestamp = generated_at.replace("-", "").replace(":", "").replace(".", "").replace("T", "").replace("Z", "")
+    if value[:14] != timestamp[:14]:
+        raise ValueError("snapshotId must match generatedAt")
+    if verify_digest:
+        digest = hashlib.sha256(f"{generated_at}|run-context-v1".encode("utf-8")).hexdigest()[:16]
+        if value != f"{timestamp[:14]}-{digest}":
+            raise ValueError("snapshotId must match the run context")
+    return value
+
+
 def _slug(value) -> str:
     if not isinstance(value, str) or len(value) > 201 or not REPO_PATTERN.fullmatch(value):
         raise ValueError(f"Invalid repository slug: {value!r}")
@@ -126,21 +140,32 @@ def load_finalized_snapshot(page: str, latest) -> MembershipSnapshot:
     if not isinstance(repos, list) or not 10 <= len(repos) <= 75:
         raise ValueError("REPOS must contain 10-75 repositories")
     page_slugs = []
-    page_dates = set()
+    page_identity = None
     for repo in repos:
         if not isinstance(repo, dict):
             raise ValueError("Every REPOS item must be an object")
         page_slugs.append(_slug(repo.get("slug")))
-        page_dates.add(repo.get("_stats_date"))
+        identity = (repo.get("_snapshot_id"), repo.get("_generated_at"), repo.get("_stats_date"))
+        if page_identity is None:
+            page_identity = identity
+        elif identity != page_identity:
+            raise ValueError("REPOS must use one exact run identity")
     page_slugs = _validate_slugs(page_slugs)
-    if len(page_dates) != 1 or not _valid_date(next(iter(page_dates))):
+    page_snapshot_id, page_generated_at, stats_date = page_identity
+    _timestamp(page_generated_at)
+    _snapshot_id(page_snapshot_id, page_generated_at, verify_digest=False)
+    if not _valid_date(stats_date):
         raise ValueError("REPOS must use one valid _stats_date")
-    stats_date = next(iter(page_dates))
 
-    if not isinstance(latest, dict) or set(latest) != {"generatedAt", "statsDate", "count", "repos"}:
+    if not isinstance(latest, dict) or set(latest) != {"snapshotId", "generatedAt", "statsDate", "count", "repos"}:
         raise ValueError("Latest feed has an invalid top-level schema")
     generated_at = latest.get("generatedAt")
     _timestamp(generated_at)
+    snapshot_id = _snapshot_id(latest.get("snapshotId"), generated_at)
+    if page_snapshot_id != snapshot_id:
+        raise ValueError("Page and latest feed snapshotId do not match")
+    if page_generated_at != generated_at:
+        raise ValueError("Page and latest feed generatedAt do not match")
     if latest.get("statsDate") != stats_date:
         raise ValueError("Page and latest feed statsDate do not match")
     if type(latest.get("count")) is not int or latest["count"] != len(page_slugs):

@@ -73,10 +73,6 @@ def _snapshot_id(value, generated_at):
     return value
 
 
-def _latest_membership_projection(latest):
-    return {key: latest[key] for key in ("generatedAt", "statsDate", "count", "repos")}
-
-
 def _validate_latest_contract(page, latest):
     if not isinstance(latest, dict) or set(latest) != {"snapshotId", "generatedAt", "statsDate", "count", "repos"}:
         raise ValueError("Latest feed has an invalid top-level schema")
@@ -380,9 +376,8 @@ def generate_atom_feeds(
     changes_path = Path(changes_path)
     status_path = Path(status_path) if status_path is not None else database_path.with_name("membership-status.json")
     snapshot_id = _validate_latest_contract(page, latest)
-    membership_latest = _latest_membership_projection(latest)
-    validate_membership_publication(database_path, status_path, page, membership_latest)
-    snapshot = load_finalized_snapshot(page, membership_latest)
+    validate_membership_publication(database_path, status_path, page, latest)
+    snapshot = load_finalized_snapshot(page, latest)
     events = membership_change_events(database_path)
     feed_root = _current_document(snapshot, latest)
     changes_root = _changes_document(snapshot, events, snapshot_id, latest["statsDate"])
@@ -421,9 +416,8 @@ def validate_atom_publication(
     database_path = Path(database_path)
     status_path = Path(status_path) if status_path is not None else database_path.with_name("membership-status.json")
     _validate_latest_contract(page, latest)
-    membership_latest = _latest_membership_projection(latest)
-    validate_membership_publication(database_path, status_path, page, membership_latest)
-    snapshot = load_finalized_snapshot(page, membership_latest)
+    validate_membership_publication(database_path, status_path, page, latest)
+    snapshot = load_finalized_snapshot(page, latest)
     events = membership_change_events(database_path)
     return _validate_documents(
         snapshot,

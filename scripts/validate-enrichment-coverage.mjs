@@ -4,6 +4,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
   extractReposFromIndex,
+  parseTranslationPayload,
+  sameSource,
   slugToFile,
   validateActiveEnrichment,
 } from "./generate-translations.mjs";
@@ -33,19 +35,25 @@ export async function validateEnrichmentRoot(root) {
     readdir(path.join(root, "translations"), { withFileTypes: true }),
   ]);
   const active = extractReposFromIndex(page);
+  const sources = JSON.parse(sourcesText);
   const wanted = new Set(active.map(repo => slugToFile(repo.slug).toLowerCase()));
   const translations = {};
   for (const file of files) {
     if (!file.isFile() || !wanted.has(file.name.toLowerCase())) continue;
-    const value = JSON.parse(await readFile(path.join(root, "translations", file.name), "utf8"));
+    const value = parseTranslationPayload(JSON.parse(await readFile(path.join(root, "translations", file.name), "utf8")));
     const repo = active.find(candidate => slugToFile(candidate.slug).toLowerCase() === file.name.toLowerCase());
-    if (repo && typeof value?.html === "string") translations[repo.slug] = value.html;
+    const source = Object.entries(sources?.sources ?? {})
+      .find(([slug]) => slug.toLowerCase() === repo?.slug.toLowerCase())?.[1];
+    if (!repo || !value || !sameSource(value.source, source)) {
+      throw new Error("Translation does not match its exact source envelope");
+    }
+    translations[repo.slug] = value.markdown;
   }
   return validateActiveEnrichment(
     active,
     translations,
     JSON.parse(cacheText),
-    JSON.parse(sourcesText),
+    sources,
   );
 }
 

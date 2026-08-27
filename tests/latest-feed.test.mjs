@@ -15,6 +15,7 @@ import { createRunContext } from "../scripts/run-context.mjs";
 
 const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
 const atomScript = join(repositoryRoot, "scripts", "generate_atom_feeds.py");
+const membershipScript = join(repositoryRoot, "scripts", "record_trending_membership.py");
 const python = process.env.PYTHON ?? "python";
 
 function runPython(args) {
@@ -48,15 +49,14 @@ function pageFixture(repos, identity = {}) {
   ].join("\n");
 }
 
-function initializeMembership({ database, status, generatedAt, statsDate, slugs }) {
-  const code = [
-    "from scripts.record_trending_membership import MembershipSnapshot, record_membership",
-    "from pathlib import Path",
-    "import json, sys",
-    "payload = json.loads(sys.argv[1])",
-    "record_membership(Path(payload['database']), Path(payload['status']), MembershipSnapshot(payload['generatedAt'], payload['statsDate'], tuple(payload['slugs'])))",
-  ].join("\n");
-  return runPython(["-c", code, JSON.stringify({ database, status, generatedAt, statsDate, slugs })]);
+function initializeMembership({ page, latest, database, status }) {
+  return runPython([
+    membershipScript,
+    "--page", page,
+    "--latest", latest,
+    "--database", database,
+    "--status", status,
+  ]);
 }
 
 function atomSummaries(path) {
@@ -139,11 +139,10 @@ test("real latest JSON produces Atom summaries from the live producer contract",
       writeFile(latestPath, `${JSON.stringify(latest)}\n`, "utf8"),
     ]);
     const membership = initializeMembership({
+      page,
+      latest: latestPath,
       database,
       status,
-      generatedAt: latest.generatedAt,
-      statsDate: latest.statsDate,
-      slugs: repos.map(repo => repo.slug),
     });
     assert.equal(membership.status, 0, membership.stderr);
     const result = runPython([
@@ -168,7 +167,7 @@ test("real latest JSON produces Atom summaries from the live producer contract",
   }
 });
 
-test("real Atom CLI rejects a page from a different run before writing XML", async () => {
+test("cross-run page and latest fail before membership or Atom publication", async () => {
   const directory = await mkdtemp(join(tmpdir(), "latest-atom-cross-run-"));
   try {
     const repos = integrationRepos();
@@ -195,23 +194,14 @@ test("real Atom CLI rejects a page from a different run before writing XML", asy
       writeFile(latestPath, `${JSON.stringify(latest)}\n`, "utf8"),
     ]);
     const membership = initializeMembership({
+      page,
+      latest: latestPath,
       database,
       status,
-      generatedAt: latest.generatedAt,
-      statsDate: latest.statsDate,
-      slugs: repos.map(repo => repo.slug),
     });
-    assert.equal(membership.status, 0, membership.stderr);
-    const result = runPython([
-      atomScript,
-      "--page", page,
-      "--latest", latestPath,
-      "--database", database,
-      "--status", status,
-      "--feed", feed,
-      "--changes", changes,
-    ]);
-    assert.notEqual(result.status, 0);
+    assert.notEqual(membership.status, 0);
+    await assert.rejects(readFile(database));
+    await assert.rejects(readFile(status));
     await assert.rejects(readFile(feed));
     await assert.rejects(readFile(changes));
   } finally {

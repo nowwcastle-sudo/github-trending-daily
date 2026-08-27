@@ -325,6 +325,5 @@ class AtomFeedTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.strip(), "atom_changed=true")
 
-
 if __name__ == "__main__":
     unittest.main()
