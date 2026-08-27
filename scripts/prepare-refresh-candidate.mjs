@@ -1,7 +1,10 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { lstat, mkdir, readdir, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { lstat, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+
+import { extractReposFromIndex, slugToFile } from "./generate-translations.mjs";
 
 const SHA_RE = /^[a-f0-9]{40}$/;
 export const MUTABLE_GENERATED_PATHS = Object.freeze([
@@ -17,12 +20,92 @@ export const MUTABLE_GENERATED_PATHS = Object.freeze([
   "star-history.json",
   "translations",
 ]);
+const FULL_FILE_GENERATED_PATHS = MUTABLE_GENERATED_PATHS.filter(value => value !== "index.html" && value !== "translations");
+const PAGE_REGIONS = Object.freeze([
+  ["<!-- GENERATED:TRENDING-DATE:START -->", "<!-- GENERATED:TRENDING-DATE:END -->"],
+  ["// GENERATED:TRENDING-REPOS:START", "// GENERATED:TRENDING-REPOS:END"],
+]);
+
+function regionBounds(value, start, end) {
+  const firstStart = value.indexOf(start);
+  const firstEnd = value.indexOf(end, firstStart + start.length);
+  if (firstStart < 0 || firstEnd < 0 || value.indexOf(start, firstStart + 1) >= 0 || value.indexOf(end, firstEnd + 1) >= 0 || firstEnd < firstStart) {
+    throw new Error("index.html generated markers are missing, duplicated, or out of order");
+  }
+  return [firstStart, firstEnd + end.length];
+}
+
+function decodeHtml(bytes) {
+  try { return new TextDecoder("utf-8", { fatal: true }).decode(bytes); } catch { throw new Error("index.html is not valid UTF-8"); }
+}
+
+export function hydrateCompositeIndex(currentBytes, productionBytes) {
+  let result = decodeHtml(currentBytes);
+  const production = decodeHtml(productionBytes);
+  for (const [start, end] of PAGE_REGIONS) {
+    const [currentStart, currentEnd] = regionBounds(result, start, end);
+    const [productionStart, productionEnd] = regionBounds(production, start, end);
+    result = `${result.slice(0, currentStart)}${production.slice(productionStart, productionEnd)}${result.slice(currentEnd)}`;
+  }
+  return Buffer.from(result, "utf8");
+}
+
+function withoutGeneratedPageRegions(bytes) {
+  let value = decodeHtml(bytes);
+  for (const [start, end] of PAGE_REGIONS) {
+    const [regionStart, regionEnd] = regionBounds(value, start, end);
+    value = `${value.slice(0, regionStart)}${start}\n<GENERATED>\n${end}${value.slice(regionEnd)}`;
+  }
+  return value;
+}
+
+function approvedGeneratedFile(relative) {
+  return FULL_FILE_GENERATED_PATHS.includes(relative) || /^translations\/[^/]+\.json$/.test(relative);
+}
+
+async function fileMap(root) {
+  const files = new Map();
+  async function visit(directory, relative = "") {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const child = relative ? `${relative}/${entry.name}` : entry.name;
+      const target = path.join(directory, entry.name);
+      const info = await lstat(target);
+      if (info.isSymbolicLink() || (!info.isFile() && !info.isDirectory())) throw new Error(`unexpected candidate residue: ${child}`);
+      if (info.isDirectory()) await visit(target, child);
+      else files.set(child, await readFile(target));
+    }
+  }
+  await visit(path.resolve(root));
+  return files;
+}
+
+export async function verifyCandidateMutations({ baselineRoot, candidateRoot }) {
+  const [baseline, candidate] = await Promise.all([fileMap(baselineRoot), fileMap(candidateRoot)]);
+  const paths = new Set([...baseline.keys(), ...candidate.keys()]);
+  for (const relative of paths) {
+    if (approvedGeneratedFile(relative)) continue;
+    const before = baseline.get(relative);
+    const after = candidate.get(relative);
+    if (!before || !after) throw new Error(`unexpected non-generated candidate residue: ${relative}`);
+    if (relative === "index.html") {
+      if (withoutGeneratedPageRegions(before) !== withoutGeneratedPageRegions(after)) throw new Error("non-generated index.html bytes changed");
+    } else if (createHash("sha256").update(before).digest("hex") !== createHash("sha256").update(after).digest("hex")) {
+      throw new Error(`non-generated candidate bytes changed: ${relative}`);
+    }
+  }
+  const activeTranslations = extractReposFromIndex(decodeHtml(candidate.get("index.html") ?? Buffer.alloc(0)))
+    .map(repo => `translations/${slugToFile(repo.slug)}`).sort();
+  const actualTranslations = [...candidate.keys()].filter(relative => relative.startsWith("translations/")).sort();
+  if (actualTranslations.join("\0") !== activeTranslations.join("\0")) throw new Error("unexpected or missing translation residue");
+  return { files: candidate.size };
+}
 
 function git(root, args, options = {}) {
   try {
     return execFileSync("git", ["-C", root, ...args], {
       encoding: options.encoding ?? "utf8",
       maxBuffer: 128 * 1024 * 1024,
+      timeout: 30_000,
       stdio: ["ignore", "pipe", "pipe"],
     });
   } catch (error) {
@@ -98,14 +181,17 @@ export async function prepareRefreshCandidate({ checkoutRoot, outDir, lastGoodSh
 
   await mkdir(output, { recursive: false });
   const archive = git(checkout, ["archive", "--format=tar", originalSha], { encoding: "buffer" });
-  const extracted = spawnSync("tar", ["-x", "-f", "-", "-C", output], { input: archive, encoding: "buffer", maxBuffer: 128 * 1024 * 1024 });
+  const extracted = spawnSync("tar", ["-x", "-f", "-", "-C", output], { input: archive, encoding: "buffer", maxBuffer: 128 * 1024 * 1024, timeout: 30_000 });
   if (extracted.error || extracted.status !== 0) throw new Error(extracted.stderr?.toString().trim() || "candidate archive extraction failed");
   // Windows tar can apply checkout-style newline conversion. Reinstall each tracked
   // blob from Git so the candidate is byte-for-byte the committed tree.
   for (const entry of originalEntries) await writeBlob(checkout, originalSha, entry.path, output);
 
-  for (const generated of MUTABLE_GENERATED_PATHS) await rm(safePath(output, generated), { recursive: true, force: true });
-  for (const entry of productionEntries) await writeBlob(checkout, lastGoodSha, entry.path, output);
+  for (const generated of MUTABLE_GENERATED_PATHS.filter(value => value !== "index.html")) await rm(safePath(output, generated), { recursive: true, force: true });
+  for (const entry of productionEntries) if (entry.path !== "index.html") await writeBlob(checkout, lastGoodSha, entry.path, output);
+  const currentIndex = git(checkout, ["show", `${originalSha}:index.html`], { encoding: "buffer" });
+  const productionIndex = git(checkout, ["show", `${lastGoodSha}:index.html`], { encoding: "buffer" });
+  await writeFile(safePath(output, "index.html"), hydrateCompositeIndex(currentIndex, productionIndex));
   await rejectLinksAndForbidden(output);
 
   const actual = [];
@@ -118,7 +204,7 @@ export async function prepareRefreshCandidate({ checkoutRoot, outDir, lastGoodSh
   }
   await list(output);
   const expected = new Set(originalEntries.map(entry => entry.path));
-  for (const generated of MUTABLE_GENERATED_PATHS) {
+  for (const generated of MUTABLE_GENERATED_PATHS.filter(value => value !== "index.html")) {
     for (const file of [...expected]) if (file === generated || file.startsWith(`${generated}/`)) expected.delete(file);
   }
   for (const entry of productionEntries) expected.add(entry.path);
@@ -134,12 +220,17 @@ function parseArgs(argv) {
     if (Object.hasOwn(values, key)) throw new Error("invalid arguments");
     values[key] = argv[index + 1];
   }
-  if (Object.keys(values).sort().join("\0") !== ["checkout", "last-good-sha", "out"].sort().join("\0")) throw new Error("invalid arguments");
+  const shape = Object.keys(values).sort().join("\0");
+  if (shape !== ["checkout", "last-good-sha", "out"].sort().join("\0") && shape !== ["candidate", "verify-generated"].sort().join("\0")) throw new Error("invalid arguments");
   return values;
 }
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
+  if (args["verify-generated"]) {
+    console.log(JSON.stringify(await verifyCandidateMutations({ baselineRoot: args["verify-generated"], candidateRoot: args.candidate })));
+    return;
+  }
   const result = await prepareRefreshCandidate({ checkoutRoot: args.checkout, outDir: args.out, lastGoodSha: args["last-good-sha"] });
   console.log(JSON.stringify(result));
 }

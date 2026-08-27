@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import http from "node:http";
 import { spawnSync } from "node:child_process";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
@@ -13,14 +14,37 @@ import {
   buildPagesArtifact,
   expectedVersion1Paths,
 } from "../scripts/build-pages-artifact.mjs";
-import { prepareRefreshCandidate } from "../scripts/prepare-refresh-candidate.mjs";
-import { probeArtifactDirectory } from "../scripts/probe-production.mjs";
+import { prepareRefreshCandidate, verifyCandidateMutations } from "../scripts/prepare-refresh-candidate.mjs";
+import { probeArtifactDirectory, probeProduction } from "../scripts/probe-production.mjs";
 import { createRunContext } from "../scripts/run-context.mjs";
 import { buildLatestFeed } from "../scripts/update-latest-feed.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const sourceSha = "a".repeat(40);
 const snapshotId = "20260826100700-0123456789abcdef";
+
+async function serveArtifact(root, { mimeOverride = {}, redirect = null } = {}) {
+  const mime = { ".html": "text/html; charset=utf-8", ".js": "application/javascript; charset=utf-8", ".json": "application/json; charset=utf-8", ".xml": "application/xml; charset=utf-8", ".md": "text/markdown; charset=utf-8" };
+  const server = http.createServer(async (request, response) => {
+    const relative = decodeURIComponent(new URL(request.url, "http://127.0.0.1").pathname).replace(/^\/+/, "");
+    if (relative === redirect) { response.writeHead(302, { location: "/index.html" }); response.end(); return; }
+    try {
+      const bytes = await readFile(join(root, ...relative.split("/")));
+      response.writeHead(200, { "content-type": mimeOverride[relative] ?? mime[extname(relative)] ?? "application/octet-stream", "content-length": bytes.length });
+      response.end(bytes);
+    } catch { response.writeHead(404); response.end(); }
+  });
+  await new Promise((resolve, reject) => { server.once("error", reject); server.listen(0, "127.0.0.1", resolve); });
+  return { baseUrl: `http://127.0.0.1:${server.address().port}/`, close: () => new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve())) };
+}
+
+async function rewriteArtifactFile(artifact, relative, bytes) {
+  await writeFile(join(artifact, ...relative.split("/")), bytes);
+  const manifestPath = join(artifact, "deployment-manifest.json");
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  manifest.files[relative] = createHash("sha256").update(bytes).digest("hex");
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+}
 
 async function writeTree(directory, paths) {
   for (const path of paths) {
@@ -100,6 +124,8 @@ test("builder hashes only the exact allowlist and exact translation envelope", a
     buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "bad"), sourceSha, snapshotId }),
     /translation envelope/i,
   );
+  await writeFile(join(source, "data", "translation-sources.json"), `{"version":2,"version":2,"sources":{}}\n`);
+  await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "duplicate-source"), sourceSha, snapshotId }), /duplicate key/i);
 });
 
 test("candidate preparation uses current committed code and production generated state", async t => {
@@ -111,21 +137,50 @@ test("candidate preparation uses current committed code and production generated
   assert.equal(run(["init", "-q"]).status, 0);
   run(["config", "user.name", "test"]); run(["config", "user.email", "test@example.invalid"]);
   await mkdir(join(directory, "data"));
+  const productionPage = ["production shell", "<!-- GENERATED:TRENDING-DATE:START -->", "production date", "<!-- GENERATED:TRENDING-DATE:END -->", "// GENERATED:TRENDING-REPOS:START", "const REPOS = [];", "// GENERATED:TRENDING-REPOS:END", "production footer"].join("\n");
   await writeFile(join(directory, "code.js"), "old code\n");
+  await writeFile(join(directory, "index.html"), `${productionPage}\n`);
   await writeFile(join(directory, "data", "latest.json"), "production data\n");
-  run(["add", "--", "code.js", "data/latest.json"]); run(["commit", "-qm", "production"]);
+  run(["add", "--", "code.js", "index.html", "data/latest.json"]); run(["commit", "-qm", "production"]);
   const productionSha = run(["rev-parse", "HEAD"]).stdout.trim();
   const productionData = run(["show", `${productionSha}:data/latest.json`]).stdout;
   await writeFile(join(directory, "code.js"), "current code\n");
+  const currentPage = ["current shell", "<!-- GENERATED:TRENDING-DATE:START -->", "failed current date", "<!-- GENERATED:TRENDING-DATE:END -->", "// GENERATED:TRENDING-REPOS:START", "const REPOS = [{\"slug\":\"failed/current\"}];", "// GENERATED:TRENDING-REPOS:END", "current footer"].join("\n");
+  await writeFile(join(directory, "index.html"), `${currentPage}\n`);
   await writeFile(join(directory, "data", "latest.json"), "failed main-only data\n");
-  run(["add", "--", "code.js", "data/latest.json"]); run(["commit", "-qm", "current"]);
+  run(["add", "--", "code.js", "index.html", "data/latest.json"]); run(["commit", "-qm", "current"]);
   const checkoutSha = run(["rev-parse", "HEAD"]).stdout.trim();
   const currentCode = run(["show", `${checkoutSha}:code.js`]).stdout;
   const out = join(outer, "candidate");
   await prepareRefreshCandidate({ checkoutRoot: directory, outDir: out, lastGoodSha: productionSha });
   assert.equal(await readFile(join(out, "code.js"), "utf8"), currentCode);
   assert.equal(await readFile(join(out, "data", "latest.json"), "utf8"), productionData);
+  assert.equal(await readFile(join(out, "index.html"), "utf8"), ["current shell", "<!-- GENERATED:TRENDING-DATE:START -->", "production date", "<!-- GENERATED:TRENDING-DATE:END -->", "// GENERATED:TRENDING-REPOS:START", "const REPOS = [];", "// GENERATED:TRENDING-REPOS:END", "current footer", ""].join("\n"));
   assert.equal(run(["rev-parse", "HEAD"]).stdout.trim(), checkoutSha);
+});
+
+test("post-generation boundary rejects base-code mutations and sidecar residue", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "candidate-mutation-boundary-"));
+  const baseline = join(directory, "baseline");
+  const candidate = join(directory, "candidate");
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  await mkdir(baseline); await mkdir(candidate);
+  const page = ["shell", "<!-- GENERATED:TRENDING-DATE:START -->", "date", "<!-- GENERATED:TRENDING-DATE:END -->", "// GENERATED:TRENDING-REPOS:START", "const REPOS = [];", "// GENERATED:TRENDING-REPOS:END", "footer", ""].join("\n");
+  for (const root of [baseline, candidate]) {
+    await mkdir(join(root, "data"));
+    await writeFile(join(root, "index.html"), page);
+    await writeFile(join(root, "app.js"), "current code\n");
+    await writeFile(join(root, "data", "latest.json"), "old generated\n");
+  }
+  await writeFile(join(candidate, "data", "latest.json"), "new generated\n");
+  await verifyCandidateMutations({ baselineRoot: baseline, candidateRoot: candidate });
+  const cli = spawnSync(process.execPath, [join(root, "scripts", "prepare-refresh-candidate.mjs"), "--verify-generated", baseline, "--candidate", candidate], { encoding: "utf8" });
+  assert.equal(cli.status, 0, cli.stderr);
+  await writeFile(join(candidate, "app.js"), "mutated base code\n");
+  await assert.rejects(verifyCandidateMutations({ baselineRoot: baseline, candidateRoot: candidate }), /non-generated.*app\.js/i);
+  await writeFile(join(candidate, "app.js"), "current code\n");
+  await writeFile(join(candidate, "data", "trending-membership.sqlite-wal"), "sidecar\n");
+  await assert.rejects(verifyCandidateMutations({ baselineRoot: baseline, candidateRoot: candidate }), /residue|sidecar|unexpected/i);
 });
 
 test("a version-0 recovery manifest produces the next candidate without bootstrap input", async t => {
@@ -140,7 +195,7 @@ test("a version-0 recovery manifest produces the next candidate without bootstra
   run(["config", "user.name", "test"]); run(["config", "user.email", "test@example.invalid"]);
   await mkdir(join(checkout, "data"));
   await mkdir(join(checkout, "readmes"));
-  await writeFile(join(checkout, "index.html"), '<html>\nconst REPOS = [{"slug":"owner/legacy"}];\n</html>\n');
+  await writeFile(join(checkout, "index.html"), '<html>\n<!-- GENERATED:TRENDING-DATE:START -->\nlegacy date\n<!-- GENERATED:TRENDING-DATE:END -->\n// GENERATED:TRENDING-REPOS:START\nconst REPOS = [{"slug":"owner/legacy"}];\n// GENERATED:TRENDING-REPOS:END\n</html>\n');
   await writeFile(join(checkout, "data", "latest.json"), "verified legacy data\n");
   await writeFile(join(checkout, "readmes", "owner__legacy.md"), "# Legacy\n");
   assert.equal(run(["add", "--", "index.html", "data/latest.json", "readmes/owner__legacy.md"]).status, 0);
@@ -189,13 +244,23 @@ test("real membership then Atom CLIs share one injected candidate identity befor
   assert.equal((feed.match(/<entry>/g) ?? []).length, 10);
   assert.ok([...feed.matchAll(/<summary type="text">([^<]+)<\/summary>/g)].every(match => match[1].trim()));
 
-  const sources = { version: 2, sources: { "owner/repo-0": sourceEntry(true) } };
+  const sources = { version: 2, sources: Object.fromEntries(repos.map((repo, index) => [repo.slug, sourceEntry(index === 0)])) };
+  const summaries = Object.fromEntries(repos.map(repo => [repo.slug, {
+    content: { goal: "goal", usage: "usage", pros: "pros", cons: "cons", fit: "fit" },
+    source: sources.sources[repo.slug],
+  }]));
   await mkdir(join(directory, "data"), { recursive: true });
   await writeFile(join(directory, "data", "latest.json"), `${JSON.stringify(latest)}\n`);
   await writeFile(join(directory, "data", "membership-status.json"), await readFile(join(directory, "membership.json")));
+  await writeFile(join(directory, "data", "repo-summaries.json"), `${JSON.stringify(summaries)}\n`);
   await writeFile(join(directory, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`);
   await mkdir(join(directory, "translations"));
-  await writeFile(join(directory, "translations", "owner__repo-0.json"), `${JSON.stringify({ markdown: "# 저장소 0", source: sources.sources["owner/repo-0"] })}\n`);
+  for (const [index, repo] of repos.entries()) {
+    await writeFile(join(directory, "translations", `owner__repo-${index}.json`), `${JSON.stringify({ markdown: index === 0 ? "# 저장소 0" : "```text\nN/A\n```", source: sources.sources[repo.slug] })}\n`);
+  }
+  const coverage = spawnSync(process.execPath, [join(root, "scripts", "validate-enrichment-coverage.mjs"), "--root", directory, "--json-counts"], { encoding: "utf8" });
+  assert.equal(coverage.status, 0, coverage.stderr);
+  assert.deepEqual(JSON.parse(coverage.stdout), { repository: 10, valid: 10, compact: 0, placeholder: 0, applicable: 1, "N/A": 9, missing: 0, stale: 0 });
   for (const relative of VERSION_1_BASE_PATHS) {
     const target = join(directory, ...relative.split("/"));
     try { await readFile(target); } catch {
@@ -218,6 +283,34 @@ test("real membership then Atom CLIs share one injected candidate identity befor
     probeArtifactDirectory({ artifactDir: artifact, sourceSha: "f".repeat(40), snapshotId: context.snapshotId, gitRoot: directory }),
     /manifest identity mismatch/i,
   );
+
+  const wrongMime = await serveArtifact(artifact, { mimeOverride: { "current-view-export.js": "text/plain; charset=utf-8" } });
+  try { await assert.rejects(probeProduction({ baseUrl: wrongMime.baseUrl, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /MIME/i); } finally { await wrongMime.close(); }
+  const redirected = await serveArtifact(artifact, { redirect: "index.html" });
+  try { await assert.rejects(probeProduction({ baseUrl: redirected.baseUrl, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /redirect|fetch/i); } finally { await redirected.close(); }
+
+  const originalMembership = await readFile(join(artifact, "data", "membership-status.json"));
+  const staleMembership = JSON.parse(originalMembership);
+  staleMembership.generatedAt = "2026-08-26T09:07:00.000Z";
+  await rewriteArtifactFile(artifact, "data/membership-status.json", Buffer.from(`${JSON.stringify(staleMembership)}\n`));
+  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /membership run identity/i);
+  await rewriteArtifactFile(artifact, "data/membership-status.json", originalMembership);
+  const shortMembership = JSON.parse(originalMembership);
+  shortMembership.current.pop();
+  await rewriteArtifactFile(artifact, "data/membership-status.json", Buffer.from(`${JSON.stringify(shortMembership)}\n`));
+  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /active repository count|identity mismatch/i);
+  await rewriteArtifactFile(artifact, "data/membership-status.json", originalMembership);
+
+  const originalFeed = await readFile(join(artifact, "feed.xml"));
+  const corruptFeed = Buffer.from(originalFeed.toString("utf8").replace(context.snapshotId, "20260826120700-fedcba9876543210"));
+  await rewriteArtifactFile(artifact, "feed.xml", corruptFeed);
+  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /Atom run identity/i);
+  await rewriteArtifactFile(artifact, "feed.xml", originalFeed);
+  const originalChanges = await readFile(join(artifact, "changes.xml"));
+  const invalidChange = `<entry><id>https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml#bad</id><title>owner/repo-0 신규</title><updated>${context.observedAtUtc}</updated><link rel="alternate" type="text/html" href="https://github.com/owner/repo-0" /><category term="stayed" /><summary type="text">bad</summary></entry>`;
+  await rewriteArtifactFile(artifact, "changes.xml", Buffer.from(originalChanges.toString("utf8").replace("</feed>", `${invalidChange}</feed>`)));
+  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /change Atom category/i);
+  await rewriteArtifactFile(artifact, "changes.xml", originalChanges);
   await assert.rejects(
     probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: "20260826120700-fedcba9876543210", gitRoot: directory }),
     /manifest identity mismatch/i,

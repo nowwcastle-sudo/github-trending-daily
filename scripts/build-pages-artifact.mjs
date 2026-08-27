@@ -10,6 +10,71 @@ const SHA256_RE = /^[a-f0-9]{64}$/;
 const SNAPSHOT_RE = /^[0-9]{14}-[a-f0-9]{16}$/;
 const SOURCE_KEYS = ["blob_sha", "content_sha256", "model", "schema_version", "translation_applicable"];
 
+export function parseJsonStrict(input, label = "JSON", maxBytes = 16 * 1024 * 1024) {
+  const bytes = Buffer.isBuffer(input) ? input : Buffer.from(input);
+  if (bytes.length === 0 || bytes.length > maxBytes) throw new Error(`${label} size is invalid`);
+  let text;
+  try { text = new TextDecoder("utf-8", { fatal: true }).decode(bytes); } catch { throw new Error(`${label} is not valid UTF-8`); }
+  let index = 0;
+  const whitespace = () => { while ([" ", "\t", "\r", "\n"].includes(text[index])) index += 1; };
+  const string = () => {
+    if (text[index] !== '"') throw new Error(`${label} is invalid`);
+    const start = index++;
+    while (index < text.length) {
+      if (text[index] === "\\") { index += 2; continue; }
+      if (text[index] === '"') {
+        index += 1;
+        try { return JSON.parse(text.slice(start, index)); } catch { throw new Error(`${label} is invalid`); }
+      }
+      if (text.charCodeAt(index) < 0x20) throw new Error(`${label} is invalid`);
+      index += 1;
+    }
+    throw new Error(`${label} is invalid`);
+  };
+  const value = () => {
+    whitespace();
+    if (text[index] === "{") {
+      index += 1; whitespace();
+      const result = {};
+      const keys = new Set();
+      if (text[index] === "}") { index += 1; return result; }
+      while (true) {
+        whitespace(); const key = string();
+        if (keys.has(key)) throw new Error(`${label} contains a duplicate key`);
+        keys.add(key); whitespace();
+        if (text[index++] !== ":") throw new Error(`${label} is invalid`);
+        Object.defineProperty(result, key, { value: value(), enumerable: true, configurable: true, writable: true });
+        whitespace();
+        if (text[index] === "}") { index += 1; return result; }
+        if (text[index++] !== ",") throw new Error(`${label} is invalid`);
+      }
+    }
+    if (text[index] === "[") {
+      index += 1; whitespace();
+      const result = [];
+      if (text[index] === "]") { index += 1; return result; }
+      while (true) {
+        result.push(value()); whitespace();
+        if (text[index] === "]") { index += 1; return result; }
+        if (text[index++] !== ",") throw new Error(`${label} is invalid`);
+      }
+    }
+    if (text[index] === '"') return string();
+    for (const [literal, parsed] of [["true", true], ["false", false], ["null", null]]) {
+      if (text.startsWith(literal, index)) { index += literal.length; return parsed; }
+    }
+    const number = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/.exec(text.slice(index))?.[0];
+    if (!number) throw new Error(`${label} is invalid`);
+    index += number.length;
+    const parsed = Number(number);
+    if (!Number.isFinite(parsed)) throw new Error(`${label} is invalid`);
+    return parsed;
+  };
+  const result = value(); whitespace();
+  if (index !== text.length) throw new Error(`${label} is invalid`);
+  return result;
+}
+
 export const VERSION_1_BASE_PATHS = Object.freeze([
   "changes.xml",
   "current-view-export.js",
@@ -121,16 +186,17 @@ function hash(bytes) {
 
 export function validateDeploymentManifest(value, { version = 1 } = {}) {
   const keys = version === 1 ? ["version", "sourceSha", "snapshotId", "files"] : ["version", "legacyBootstrap", "sourceSha", "snapshotId", "files"];
-  if (!exactKeys(value, keys) || value.version !== version || !SHA_RE.test(value.sourceSha) || !value.files || typeof value.files !== "object" || Array.isArray(value.files)) {
+  if (!exactKeys(value, keys) || value.version !== version || typeof value.sourceSha !== "string" || !SHA_RE.test(value.sourceSha) || !value.files || typeof value.files !== "object" || Array.isArray(value.files)) {
     throw new Error("invalid deployment manifest");
   }
   if (version === 1) {
-    if (!SNAPSHOT_RE.test(value.snapshotId)) throw new Error("invalid deployment manifest");
+    if (typeof value.snapshotId !== "string" || !SNAPSHOT_RE.test(value.snapshotId)) throw new Error("invalid deployment manifest");
   } else if (value.legacyBootstrap !== true || value.snapshotId !== null) {
     throw new Error("invalid deployment manifest");
   }
   const paths = Object.keys(value.files);
-  if (paths.length === 0 || paths.some(file => !SHA256_RE.test(value.files[file]))) throw new Error("invalid deployment manifest");
+  if (paths.length === 0 || paths.length > 100 || new Set(paths.map(file => file.toLowerCase())).size !== paths.length
+      || paths.some(file => typeof value.files[file] !== "string" || !SHA256_RE.test(value.files[file]))) throw new Error("invalid deployment manifest");
   for (const file of paths) safeTarget("/artifact-root", file);
   return value;
 }
@@ -154,8 +220,8 @@ async function installArtifact({ sourceRoot, outDir, paths, manifest }) {
 export async function buildPagesArtifact({ sourceRoot, outDir, sourceSha, snapshotId }) {
   if (!SHA_RE.test(sourceSha) || !SNAPSHOT_RE.test(snapshotId)) throw new Error("invalid artifact identity");
   const [latest, sources] = await Promise.all([
-    readFile(path.join(sourceRoot, "data", "latest.json"), "utf8").then(JSON.parse),
-    readFile(path.join(sourceRoot, "data", "translation-sources.json"), "utf8").then(JSON.parse),
+    readFile(path.join(sourceRoot, "data", "latest.json")).then(bytes => parseJsonStrict(bytes, "latest JSON")),
+    readFile(path.join(sourceRoot, "data", "translation-sources.json")).then(bytes => parseJsonStrict(bytes, "translation sources")),
   ]);
   const paths = expectedVersion1Paths(latest, sources);
   const sourcesBySlug = normalizeSources(sources);
@@ -163,7 +229,7 @@ export async function buildPagesArtifact({ sourceRoot, outDir, sourceSha, snapsh
     const source = sourcesBySlug.get(repo.slug.toLowerCase())?.source;
     if (source?.translation_applicable !== true) continue;
     const file = `translations/${slugToFile(repo.slug)}`;
-    const payload = JSON.parse((await readRegularFile(sourceRoot, file)).toString("utf8"));
+    const payload = parseJsonStrict(await readRegularFile(sourceRoot, file), "translation envelope");
     if (!exactKeys(payload, ["markdown", "source"]) || typeof payload.markdown !== "string" || !payload.markdown.trim() || !equalJson(payload.source, source)) {
       throw new Error(`invalid translation envelope: ${repo.slug}`);
     }

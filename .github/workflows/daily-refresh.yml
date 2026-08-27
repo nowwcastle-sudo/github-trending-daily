@@ -67,7 +67,9 @@ jobs:
           elif [ "$HTTP_STATUS" = "200" ]; then
             eval "$(node --input-type=module - "$MANIFEST_FILE" <<'NODE'
           import { readFileSync } from "node:fs";
-          const value = JSON.parse(readFileSync(process.argv[2], "utf8"));
+          import { parseJsonStrict, validateDeploymentManifest } from "./scripts/build-pages-artifact.mjs";
+          const parsed = parseJsonStrict(readFileSync(process.argv[2]), "production deployment manifest", 1024 * 1024);
+          const value = validateDeploymentManifest(parsed, { version: parsed?.version });
           if (value?.version === 0 && value.legacyBootstrap === true && /^[a-f0-9]{40}$/.test(value.sourceSha) && value.snapshotId === null) {
             console.log(`HYDRATION_SOURCE_SHA=${value.sourceSha}`);
             console.log("PARENT_SOURCE_SHA=");
@@ -126,6 +128,7 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/prepare-refresh-candidate.mjs --checkout "$GITHUB_WORKSPACE" --out "${RUNNER_TEMP}/candidate" --last-good-sha "$HYDRATION_SOURCE_SHA"
+          cp -a "${RUNNER_TEMP}/candidate" "${RUNNER_TEMP}/candidate-baseline"
       - name: Create one run context
         id: context
         shell: bash
@@ -167,9 +170,10 @@ jobs:
           set -euo pipefail
           CANDIDATE="${RUNNER_TEMP}/candidate"
           cd "$CANDIDATE"
-          node scripts/validate-enrichment-coverage.mjs --root "$CANDIDATE"
+          node scripts/validate-enrichment-coverage.mjs --root "$CANDIDATE" --json-counts
           python scripts/record_trending_membership.py --validate-only
           python scripts/generate_atom_feeds.py --validate-only
+          node scripts/prepare-refresh-candidate.mjs --verify-generated "${RUNNER_TEMP}/candidate-baseline" --candidate "$CANDIDATE"
           node --input-type=module <<'NODE'
           import assert from "node:assert/strict";
           import { readFile } from "node:fs/promises";
@@ -236,7 +240,10 @@ jobs:
           SNAPSHOT_ID: ${{ steps.context.outputs.snapshot_id }}
         run: |
           set -euo pipefail
-          node scripts/build-pages-artifact.mjs --source "${RUNNER_TEMP}/candidate" --out "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID"
+          PAGES_SOURCE="${RUNNER_TEMP}/pages-source"
+          mkdir "$PAGES_SOURCE"
+          git archive --format=tar "$SOURCE_SHA" | tar -x -C "$PAGES_SOURCE"
+          node scripts/build-pages-artifact.mjs --source "$PAGES_SOURCE" --out "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID"
           node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID"
       - name: Upload recovery artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

@@ -15,8 +15,9 @@ test("schedule and manual dispatch share one fail-closed candidate build path", 
   assert.doesNotMatch(workflow, /^  (?:push|pull_request):/m);
   assert.doesNotMatch(workflow, /continue-on-error|force(?:-with-lease)?|git push[^\n]*--force/);
   assert.match(workflow, /timeout-minutes: 90/);
-  assert.equal((workflow.match(/scripts\/prepare-refresh-candidate\.mjs/g) ?? []).length, 1);
+  assert.equal((workflow.match(/scripts\/prepare-refresh-candidate\.mjs --checkout/g) ?? []).length, 1);
   assert.match(workflow, /RUN_CONTEXT_JSON/);
+  assert.match(workflow, /node scripts\/validate-enrichment-coverage\.mjs --root "\$CANDIDATE" --json-counts/);
   assert.doesNotMatch(workflow, /snapshotId[^\n]*sed|date \+/);
   assert.match(workflow, /\$\{RUNNER_TEMP\}\/candidate/);
 });
@@ -63,6 +64,8 @@ test("publication hydrates from verified production, probes locally, then publis
   const candidateArtifactStep = workflow.slice(workflow.indexOf("Build and locally probe candidate Pages artifact"), workflow.indexOf("Upload recovery artifact"));
   assert.match(candidateArtifactStep, /scripts\/build-pages-artifact\.mjs[\s\S]*scripts\/probe-production\.mjs --artifact-dir/);
   assert.ok(workflow.indexOf("Build and locally probe candidate Pages artifact") < workflow.indexOf("actions/upload-pages-artifact"));
+  assert.match(candidateArtifactStep, /git archive --format=tar "\$SOURCE_SHA"/);
+  assert.doesNotMatch(candidateArtifactStep, /--source "\$\{RUNNER_TEMP\}\/candidate"/);
   assert.match(workflow, /github-pages-recovery-\$\{\{ github\.run_id \}\}/);
   assert.match(workflow, /github-pages-candidate-\$\{\{ github\.run_id \}\}/);
   assert.match(workflow, /recovery_source_sha: \$\{\{ steps\.state\.outputs\.hydration_source_sha \}\}/);
