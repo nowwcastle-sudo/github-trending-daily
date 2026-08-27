@@ -720,7 +720,7 @@ function allProseSegments(markdown) {
     .map(stripMarkdownProse);
 }
 
-const IDENTIFIER_TOKEN_SOURCE = String.raw`[A-Za-z][A-Za-z0-9]*(?:[._+-][A-Za-z0-9]+)*(?:\+{1,2})?`;
+const IDENTIFIER_TOKEN_SOURCE = String.raw`[A-Za-z][A-Za-z0-9]*(?:[._+-][A-Za-z0-9]+)*(?:\+{1,2}|#)?`;
 
 function identifierTokens(value) {
   return [...value.matchAll(new RegExp(IDENTIFIER_TOKEN_SOURCE, "g"))]
@@ -767,7 +767,7 @@ function proseBindings(markdown) {
         index: bindings.length,
         input_sha256: hashReadme(sourceText),
         source_text: sourceText,
-        applicable: parentApplicable && !isIdentifierOnlyProse(sourceText),
+        applicable: parentApplicable,
       });
     }
   }
@@ -779,47 +779,33 @@ export function extractTranslatableProse(markdown) {
 }
 
 function isTranslatableProse(value) {
-  if ((value.match(/[A-Za-z]/g) ?? []).length < 20) return false;
-  return !isIdentifierOnlyProse(value);
+  const asciiLetters = (value.match(/[A-Za-z]/g) ?? []).length;
+  return asciiLetters >= 20 || (asciiLetters > 0 && identifierTokens(value).length > 0
+    && value.replace(new RegExp(IDENTIFIER_TOKEN_SOURCE, "g"), "").trim() === "");
 }
 
-function isIdentifierOnlyProse(value) {
+function exactPreservedTerm(value) {
+  if (typeof value !== "string" || value !== value.trim() || value.length < 2 || value.length > 80) return null;
   const tokens = identifierTokens(value);
-  return tokens.length > 0 && tokens.every(token => isIdentifierToken(token.raw));
+  if (!tokens.length || tokens.length > 5) return null;
+  if (tokens[0].start !== 0 || tokens.at(-1).end !== value.length) return null;
+  if (!tokens.slice(1).every((token, index) => /^ +$/.test(value.slice(tokens[index].end, token.start)))) return null;
+  return value;
 }
 
-function isIdentifierToken(token) {
-  return /[A-Z]/.test(token.slice(1)) || /^[A-Z0-9_.+-]+$/.test(token) || /[._+-]|\d/.test(token);
-}
-
-const COMMON_RETAINED_PROSE_WORDS = new Set([
-  "a", "an", "and", "are", "as", "at", "be", "been", "being", "but", "by", "can", "command",
-  "create", "developers", "for", "from", "guide", "he", "her", "here", "hers", "him", "his", "if",
-  "in", "install", "is", "it", "its", "may", "must", "of", "on", "operators", "or", "ordinary", "our",
-  "package", "project", "provide", "provides", "read", "reliable", "run", "service", "she", "should", "that",
-  "the", "their", "them", "then", "there", "these", "they", "this", "those", "to", "use", "users", "was",
-  "we", "were", "with", "without", "would", "you", "your",
-]);
-
-const NAME_SUBJECT_PREDICATES = new Set([
-  "are", "creates", "enables", "helps", "is", "offers", "provides", "runs", "supports", "uses",
-]);
-
-const NAME_CONTEXT_BOUNDARIES = new Set([
-  "and", "are", "as", "at", "by", "can", "creates", "enables", "for", "from", "helps", "in",
-  "is", "may", "must", "of", "offers", "on", "or", "provides", "runs", "should", "supports",
-  "that", "to", "uses", "was", "were", "which", "with", "without", "would",
-]);
-
-const KOREAN_NAME_PARTICLE = String.raw`(?:에게서|으로써|으로서|께서|에서|에게|한테|부터|까지|처럼|보다|으로|이랑|은|는|이|가|을|를|의|에|와|과|로|랑|도|만)`;
-const KOREAN_NAME_BOUNDARY = String.raw`(?=$|[^가-힣])`;
-const DIRECT_KOREAN_NAME_ATTACHMENT_RE = new RegExp(`^${KOREAN_NAME_PARTICLE}${KOREAN_NAME_BOUNDARY}`, "u");
-const INCORPORATED_KOREAN_NAME_ATTACHMENT_RE = new RegExp(`^\\s+[가-힣]{1,24}?${KOREAN_NAME_PARTICLE}${KOREAN_NAME_BOUNDARY}`, "u");
-
-function strongIdentifierShape(token) {
-  return /[._+-]|\d/.test(token)
-    || (/[a-z]/.test(token) && /[A-Z]/.test(token.slice(1)))
-    || /^[A-Z]{2,5}$/.test(token);
+function verifiedTermsFromItem(item) {
+  const terms = new Map();
+  const add = value => {
+    const term = exactPreservedTerm(value);
+    if (term) terms.set(term.toLowerCase(), term);
+  };
+  if (!REPO_RE.test(item?.slug ?? "")) throw new Error("Canonical repository slug is invalid");
+  add(item.slug.slice(item.slug.indexOf("/") + 1));
+  if (item.lang !== undefined && item.lang !== null && item.lang !== "") {
+    if (!exactPreservedTerm(item.lang)) throw new Error("Canonical repository language is invalid");
+    add(item.lang);
+  }
+  return [...terms.values()].sort((left, right) => right.length - left.length || left.localeCompare(right));
 }
 
 function tokenSequenceStarts(tokens, pattern, value) {
@@ -836,117 +822,88 @@ function tokenSequenceStarts(tokens, pattern, value) {
   return starts;
 }
 
-function koreanNameAttachment(value, end) {
-  const tail = value.slice(end);
-  if (DIRECT_KOREAN_NAME_ATTACHMENT_RE.test(tail)) return "particle";
-  if (INCORPORATED_KOREAN_NAME_ATTACHMENT_RE.test(tail)) return "incorporated";
+const VERIFIED_TERM_PREDICATES = new Set([
+  "are", "creates", "enables", "helps", "is", "offers", "provides", "runs", "supports", "uses",
+]);
+const VERIFIED_TERM_LEADERS = new Set([
+  "build", "connect", "deploy", "install", "on", "orchestrate", "run", "to", "train", "use", "using", "with",
+]);
+const VERIFIED_TERM_BOUNDARIES = new Set([
+  "and", "are", "as", "at", "by", "for", "from", "in", "is", "of", "on", "or", "provides", "to", "with",
+]);
+const KOREAN_TERM_PARTICLE = String.raw`(?:에게서|으로써|으로서|께서|에서|에게|한테|부터|까지|처럼|보다|으로|이랑|은|는|이|가|을|를|의|에|와|과|로|랑|도|만)`;
+const DIRECT_KOREAN_TERM_RE = new RegExp(`^${KOREAN_TERM_PARTICLE}(?=$|[^가-힣])`, "u");
+const INCORPORATED_KOREAN_TERM_RE = new RegExp(`^\\s+[가-힣]{1,24}?${KOREAN_TERM_PARTICLE}(?=$|[^가-힣])`, "u");
+
+function strongIdentifierShape(term) {
+  return /[._+#-]|\d/.test(term)
+    || (/[a-z]/.test(term) && /[A-Z]/.test(term.slice(1)))
+    || /^[A-Z]{2,5}$/.test(term);
+}
+
+function koreanTermRole(value, tokens, start, length) {
+  const tail = value.slice(tokens[start + length - 1].end);
+  if (DIRECT_KOREAN_TERM_RE.test(tail)) return "noun";
+  if (INCORPORATED_KOREAN_TERM_RE.test(tail)) return "modifier";
   return null;
 }
 
-function sourceNameEndsAtBoundary(original, source, start, length) {
-  const last = source[start + length - 1];
-  const next = source[start + length];
-  if (!next) return true;
-  const gap = original.slice(last.end, next.start);
-  if (/[^\s]/.test(gap)) return true;
-  return NAME_CONTEXT_BOUNDARIES.has(next.lower);
+function sourceTermRole(value, tokens, start, length, term) {
+  const first = tokens[start];
+  const last = tokens[start + length - 1];
+  const previous = tokens[start - 1];
+  const next = tokens[start + length];
+  const before = value.slice(0, first.start);
+  const clauseStart = Math.max(before.lastIndexOf("."), before.lastIndexOf("!"), before.lastIndexOf("?"), before.lastIndexOf(";"), before.lastIndexOf(":")) + 1;
+  const prefix = value.slice(clauseStart, first.start).trim();
+  const gapAfter = next ? value.slice(last.end, next.start) : "";
+  const nextIsBoundary = !next || /[^\s]/.test(gapAfter) || VERIFIED_TERM_BOUNDARIES.has(next.lower)
+    || VERIFIED_TERM_PREDICATES.has(next.lower);
+  if (strongIdentifierShape(term)) return nextIsBoundary ? "noun" : "modifier";
+  if (length === 1 && /(?:ful|ive|ous|able|ible|less)$/i.test(first.raw) && !nextIsBoundary) return null;
+  if (!prefix && next?.lower === "to") return null;
+  if (!nextIsBoundary) {
+    return length === 1 && first.raw === first.lower && previous?.lower === "install" && next?.lower === "packages"
+      ? "modifier"
+      : null;
+  }
+  if (!prefix) return next && VERIFIED_TERM_PREDICATES.has(next.lower) ? "noun" : null;
+  return previous && VERIFIED_TERM_LEADERS.has(previous.lower) ? "noun" : null;
 }
 
-function embeddedNameEvidence(original, source, translated, output, start, pattern) {
-  if (pattern.some(lower => COMMON_RETAINED_PROSE_WORDS.has(lower))) return false;
-  const sourceTokens = source.slice(start, start + pattern.length);
-  const single = sourceTokens.length === 1;
-  const plainLowercase = single && sourceTokens[0].raw === sourceTokens[0].lower;
-  const plainTitleCase = single && /^[A-Z][a-z0-9]*$/.test(sourceTokens[0].raw);
-  const titleCasePhrase = sourceTokens.length > 1
-    && sourceTokens.every(token => /^[A-Z][a-z0-9]*$/.test(token.raw));
-  if (!plainLowercase && !plainTitleCase && !titleCasePhrase) return false;
-  const sourceBoundary = sourceNameEndsAtBoundary(original, source, start, pattern.length);
-  for (const outputStart of tokenSequenceStarts(output, pattern, translated)) {
-    const outputEnd = output[outputStart + pattern.length - 1].end;
-    const attachment = koreanNameAttachment(translated, outputEnd);
-    if (!attachment) continue;
-    if (sourceBoundary || (plainLowercase && attachment === "incorporated")) return true;
-  }
-  return false;
-}
-
-function retainedNamePatterns(original, source, translated, output) {
-  const patterns = new Map();
-  const add = tokens => patterns.set(tokens.map(token => token.lower).join("\0"), tokens.map(token => token.lower));
-  for (const token of source) {
-    if (strongIdentifierShape(token.raw)) add([token]);
-  }
-  const predicateIndex = source.findIndex(token => NAME_SUBJECT_PREDICATES.has(token.lower));
-  if (predicateIndex > 0 && !original.slice(0, source[0].start).trim()) {
-    const subject = source.slice(0, predicateIndex);
-    const singleName = subject.length === 1
-      && !COMMON_RETAINED_PROSE_WORDS.has(subject[0].lower)
-      && !/^[A-Z]{2,}$/.test(subject[0].raw);
-    const phraseName = subject.length > 1
-      && subject.every(token => /^[A-Z][a-z0-9]*$/.test(token.raw) && !COMMON_RETAINED_PROSE_WORDS.has(token.lower));
-    if (singleName || phraseName) add(subject);
-  }
-  for (let start = 0; start < source.length; start += 1) {
-    const candidates = [[source[start]]];
-    if (/^[A-Z][a-z0-9]*$/.test(source[start].raw) && !COMMON_RETAINED_PROSE_WORDS.has(source[start].lower)) {
-      const phrase = [source[start]];
-      for (let end = start + 1; end < source.length; end += 1) {
-        const previous = source[end - 1];
-        const current = source[end];
-        if (!/^[A-Z][a-z0-9]*$/.test(current.raw)
-          || COMMON_RETAINED_PROSE_WORDS.has(current.lower)
-          || !/^\s+$/.test(original.slice(previous.end, current.start))) break;
-        phrase.push(current);
-        candidates.push([...phrase]);
-      }
-    }
-    for (const candidate of candidates) {
-      const pattern = candidate.map(token => token.lower);
-      if (embeddedNameEvidence(original, source, translated, output, start, pattern)) add(candidate);
-    }
-  }
-  return [...patterns.values()];
-}
-
-function retainedSourceAnalysis(original, translated) {
+function retainedSourceAnalysis(original, translated, verifiedTerms = []) {
   const source = identifierTokens(original);
   const output = identifierTokens(translated);
   const exemptOutput = new Set();
-  for (const pattern of retainedNamePatterns(original, source, translated, output)) {
-    const sourceStarts = tokenSequenceStarts(source, pattern, original);
-    const outputStarts = tokenSequenceStarts(output, pattern, translated);
-    if (outputStarts.length > sourceStarts.length) return { rejected: true, allowedNameAscii: 0 };
-    for (const start of outputStarts) {
+  const claimedSource = new Set();
+  const claimedOutput = new Set();
+  for (const term of verifiedTerms) {
+    const pattern = identifierTokens(term).map(token => token.lower);
+    const sourceStarts = tokenSequenceStarts(source, pattern, original)
+      .filter(start => pattern.every((_token, offset) => !claimedSource.has(start + offset)));
+    const outputStarts = tokenSequenceStarts(output, pattern, translated)
+      .filter(start => pattern.every((_token, offset) => !claimedOutput.has(start + offset)));
+    const sourceRoles = sourceStarts.map(start => sourceTermRole(original, source, start, pattern.length, term));
+    const outputRoles = outputStarts.map(start => koreanTermRole(translated, output, start, pattern.length));
+    for (const role of ["noun", "modifier"]) {
+      if (outputRoles.filter(value => value === role).length > sourceRoles.filter(value => value === role).length) {
+        return { rejected: true, allowedNameAscii: 0 };
+      }
+    }
+    if (outputStarts.length && outputRoles.some(role => !role)) return { rejected: true, allowedNameAscii: 0 };
+    for (const start of sourceStarts) {
+      for (let offset = 0; offset < pattern.length; offset += 1) claimedSource.add(start + offset);
+    }
+    for (const [index, start] of outputStarts.entries()) {
+      if (!outputRoles[index]) continue;
       for (let offset = 0; offset < pattern.length; offset += 1) exemptOutput.add(start + offset);
+      for (let offset = 0; offset < pattern.length; offset += 1) claimedOutput.add(start + offset);
     }
   }
   const remainingOutput = output.filter((_token, index) => !exemptOutput.has(index));
   const outputWords = new Set(remainingOutput.map(token => token.lower));
   const retained = source.filter(token => outputWords.has(token.lower));
-  if (retained.some(token => COMMON_RETAINED_PROSE_WORDS.has(token.lower) || token.raw === token.lower || token.raw.length >= 4)) {
-    return { rejected: true, allowedNameAscii: 0 };
-  }
-
-  let longest = 0;
-  let previous = new Array(remainingOutput.length + 1).fill(0);
-  for (let sourceIndex = 0; sourceIndex < source.length; sourceIndex += 1) {
-    const current = new Array(remainingOutput.length + 1).fill(0);
-    for (let outputIndex = 0; outputIndex < remainingOutput.length; outputIndex += 1) {
-      if (source[sourceIndex].lower !== remainingOutput[outputIndex].lower) continue;
-      current[outputIndex + 1] = previous[outputIndex] + 1;
-      if (current[outputIndex + 1] > longest) {
-        longest = current[outputIndex + 1];
-      }
-    }
-    previous = current;
-  }
-  if (longest >= 2) {
-    return { rejected: true, allowedNameAscii: 0 };
-  }
-  if (retained.length >= 3 || retained.length / Math.max(source.length, 1) >= 0.35) {
-    return { rejected: true, allowedNameAscii: 0 };
-  }
+  if (retained.length) return { rejected: true, allowedNameAscii: 0 };
   const allowedNameAscii = output.reduce((total, token, index) => total
     + (exemptOutput.has(index) ? (token.raw.match(/[A-Za-z]/g) ?? []).length : 0), 0);
   return { rejected: false, allowedNameAscii };
@@ -970,25 +927,31 @@ function editDistanceRatio(left, right) {
   return previous.at(-1) / Math.max(before.length, after.length, 1);
 }
 
-function assertTranslatedSegment(original, translated, applicable = isTranslatableProse(original)) {
+function withoutStructuralSentinels(value) {
+  return value.replace(/⟦GH_TRANSLATE_[A-F0-9]{16}_\d{6}⟧/g, " ");
+}
+
+function assertTranslatedSegment(original, translated, applicable = isTranslatableProse(original), verifiedTerms = []) {
   if (applicable) {
     const normalize = value => value.normalize("NFKC").toLowerCase().replace(/\s+/g, " ").trim();
-    const normalizedOriginal = normalize(original);
-    const normalizedTranslated = normalize(translated);
+    const validationOriginal = withoutStructuralSentinels(original);
+    const validationTranslated = withoutStructuralSentinels(translated);
+    const normalizedOriginal = normalize(validationOriginal);
+    const normalizedTranslated = normalize(validationTranslated);
     if (normalizedTranslated.includes(normalizedOriginal)) throw new Error("Translatable prose is unchanged or retains the source");
     if (!/[가-힣]/.test(translated)) throw new Error("Translated prose does not contain Hangul");
     if (editDistanceRatio(normalizedOriginal, normalizedTranslated) < 0.3) {
       throw new Error("Translated prose edit distance is not material");
     }
-    const beforeAscii = (original.match(/[A-Za-z]/g) ?? []).length;
-    const afterAscii = (translated.match(/[A-Za-z]/g) ?? []).length;
-    const retained = retainedSourceAnalysis(original, translated);
+    const beforeAscii = (validationOriginal.match(/[A-Za-z]/g) ?? []).length;
+    const afterAscii = (validationTranslated.match(/[A-Za-z]/g) ?? []).length;
+    const retained = retainedSourceAnalysis(validationOriginal, validationTranslated, verifiedTerms);
     if (retained.rejected) throw new Error("Translated prose retains meaningful source prose");
     if (afterAscii - retained.allowedNameAscii > Math.max(12, Math.floor(beforeAscii * 0.65))) {
       throw new Error("Translated prose does not meaningfully reduce source ASCII");
     }
-    const sourceWords = identifierTokens(original);
-    const translatedHangulSyllables = (translated.match(/[가-힣]/g) ?? []).length;
+    const sourceWords = identifierTokens(validationOriginal);
+    const translatedHangulSyllables = (validationTranslated.match(/[가-힣]/g) ?? []).length;
     const minimumCoverage = Math.min(18, sourceWords.length);
     if (sourceWords.length >= 8 && translatedHangulSyllables < minimumCoverage) {
       throw new Error("Translated prose omits a long source sentence");
@@ -996,12 +959,12 @@ function assertTranslatedSegment(original, translated, applicable = isTranslatab
   }
 }
 
-function assertProseTranslation(before, after) {
+function assertProseTranslation(before, after, verifiedTerms = []) {
   const beforeSegments = proseBindings(before);
   const afterSegments = extractTranslationClauses(after);
   if (beforeSegments.length !== afterSegments.length) throw new Error("Markdown prose clause count changed");
   for (let index = 0; index < beforeSegments.length; index += 1) {
-    assertTranslatedSegment(beforeSegments[index].source_text, afterSegments[index], beforeSegments[index].applicable);
+    assertTranslatedSegment(beforeSegments[index].source_text, afterSegments[index], beforeSegments[index].applicable, verifiedTerms);
   }
 }
 
@@ -1252,14 +1215,16 @@ function prepareTranslation(item) {
   const markdown = normalizedMarkdown(item.markdown);
   if (!markdown.trim()) throw new Error("README Markdown is empty");
   packAtomicBlocks(parseAtomicBlocks(markdown), CHUNK_BYTES);
+  const verifiedTerms = verifiedTermsFromItem(item);
   const sentinel = protectMarkdown(markdown);
   const chunks = packAtomicBlocks(parseAtomicBlocks(sentinel.markdown), CHUNK_BYTES).map((chunk, index) => ({
     index,
     markdown: chunk,
     sha256: hashReadme(chunk),
     segmentBindings: proseBindings(chunk),
+    verifiedTerms,
   }));
-  return { markdown, sentinel, chunks };
+  return { markdown, sentinel, chunks, verifiedTerms };
 }
 
 async function callTranslationChunk(chunk, apiKey, fetchImpl, options) {
@@ -1299,7 +1264,7 @@ async function callTranslationChunk(chunk, apiKey, fetchImpl, options) {
       throw new Error("Markdown translation segment envelope is missing, duplicated, or reordered");
     }
     if (splitProseClauses(actual.translated_text).length !== 1) throw new Error("Markdown translation segment contains extra prose");
-    assertTranslatedSegment(expected.source_text, actual.translated_text, expected.applicable);
+    assertTranslatedSegment(expected.source_text, actual.translated_text, expected.applicable, chunk.verifiedTerms);
   }
   const outputProse = normalizedEchoValue(allProseSegments(parsed.translated_markdown).join(" "));
   const boundProse = normalizedEchoValue(parsed.segment_bindings.map(binding => binding.translated_text).join(" "));
@@ -1323,7 +1288,7 @@ export async function callMarkdownTranslation(item, apiKey, fetchImpl = globalTh
   const restored = restoreSentinels(translated.join(""), prepared.sentinel);
   if (utf8Bytes(restored) > MAX_TRANSLATION_OUTPUT) throw new Error("Markdown translation exceeds 1 MiB output cap");
   if (JSON.stringify(fingerprintMarkdown(restored)) !== JSON.stringify(before)) throw new Error("Markdown structural fingerprint changed");
-  assertProseTranslation(prepared.markdown, restored);
+  assertProseTranslation(prepared.markdown, restored, prepared.verifiedTerms);
   return restored;
 }
 
@@ -1444,7 +1409,7 @@ export function validateActiveEnrichment(activeRepos, translations, summaryCache
         continue;
       }
       try {
-        assertProseTranslation(original, translation);
+        assertProseTranslation(original, translation, verifiedTermsFromItem(repo));
       } catch {
         counts.stale += 1;
         continue;
