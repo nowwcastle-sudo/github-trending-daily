@@ -6,25 +6,28 @@
   const BLOB_SHA = /^[a-f0-9]{40}$/i;
 
   function escapeText(value) {
-    const withoutEventAttributes = String(value).replace(/(<[^>\n]*?)\son[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "$1");
-    return withoutEventAttributes.replace(/[&<>"']/g, character => ({
+    return String(value).replace(/[&<>"']/g, character => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
     })[character]);
   }
 
-  function repositoryBase(source) {
+  function repositorySource(source) {
     if (!source || !BLOB_SHA.test(source.blobSha)) return null;
     try {
       const url = new URL(source.repositoryUrl);
       const parts = url.pathname.split("/").filter(Boolean);
       if (url.protocol !== "https:" || url.hostname !== "github.com" || url.username || url.password || parts.length !== 2) return null;
-      return `https://github.com/${parts.map(encodeURIComponent).join("/")}/blob/${source.blobSha}`;
+      const repository = parts.map(encodeURIComponent).join("/");
+      return {
+        blobBase: `https://github.com/${repository}/blob/${source.blobSha}`,
+        rawBase: `https://raw.githubusercontent.com/${repository}/${source.blobSha}`,
+      };
     } catch {
       return null;
     }
   }
 
-  function resolveUrl(value, source) {
+  function resolveUrl(value, source, preferRaw = false) {
     const raw = String(value || "").trim();
     if (!raw || CONTROL.test(raw) || raw.startsWith("//") || raw.includes("\\")) return null;
     if (/^https?:/i.test(raw)) {
@@ -37,8 +40,8 @@
       }
     }
     if (/^[a-z][a-z0-9+.-]*:/i.test(raw) || raw.startsWith("/") || raw.startsWith("#")) return null;
-    const base = repositoryBase(source);
-    if (!base) return null;
+    const bases = repositorySource(source);
+    if (!bases) return null;
     const [pathAndQuery, fragment = ""] = raw.split("#", 2);
     const [path, query = ""] = pathAndQuery.split("?", 2);
     const segments = path.split("/");
@@ -46,7 +49,7 @@
     const encodedPath = segments.map(encodeURIComponent).join("/");
     const encodedQuery = query ? `?${encodeURI(query)}` : "";
     const encodedFragment = fragment ? `#${encodeURI(fragment)}` : "";
-    return { href: `${base}/${encodedPath}${encodedQuery}${encodedFragment}`, external: false };
+    return { href: `${preferRaw ? bases.rawBase : bases.blobBase}/${encodedPath}${encodedQuery}${encodedFragment}`, external: false };
   }
 
   function emphasize(value) {
@@ -68,11 +71,12 @@
         html += `<code>${escapeText(match[1])}</code>`;
         continue;
       }
-      const target = resolveUrl(match[4], source);
+      const image = match[2] === "!";
+      const target = resolveUrl(match[4], source, image);
       const label = emphasize(escapeText(match[3]));
       if (!target) {
         html += label;
-      } else if (match[2] === "!") {
+      } else if (image) {
         html += `<img src="${escapeText(target.href)}" alt="${escapeText(match[3])}">`;
       } else {
         const external = target.external ? ' target="_blank" rel="noopener noreferrer"' : "";

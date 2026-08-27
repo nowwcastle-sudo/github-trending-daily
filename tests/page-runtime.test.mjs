@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import vm from "node:vm";
 
 const page = await readFile(new URL("../index.html", import.meta.url), "utf8");
 
@@ -63,6 +64,49 @@ test("README tabs consume only Markdown tied to immutable repository metadata", 
   assert.doesNotMatch(page, /t\.html/);
   assert.doesNotMatch(page, /raw\.githubusercontent\.com/);
   assert.doesNotMatch(page, /HEAD\/README\.md/);
+});
+
+test("README runtime refuses a mismatched immutable Contents response without using HEAD", async () => {
+  const start = page.indexOf('const panel=document.getElementById("readmePanel")');
+  const end = page.indexOf("/* 제목·빈 결과 버튼");
+  assert.ok(start >= 0 && end > start, "README runtime fixture must isolate the panel code");
+  const nodes = new Map();
+  const node = () => ({
+    attributes: new Map(), classList: { add() {}, remove() {}, contains() { return false; } },
+    addEventListener() {}, animate() {}, focus() {}, setAttribute(name, value) { this.attributes.set(name, value); },
+    innerHTML: "", textContent: "", inert: true, onclick: null,
+  });
+  const getNode = id => {
+    if (!nodes.has(id)) nodes.set(id, node());
+    return nodes.get(id);
+  };
+  const requested = [];
+  const rendered = [];
+  const expectedSha = "a".repeat(40);
+  const context = {
+    globalThis: { __README_RUNTIME_TEST__: true },
+    REPOS: [{ slug: "owner/repo", readme_path: "README.md", readme_blob_sha: expectedSha, readme_content_sha256: "c".repeat(64), default_branch_head_sha: expectedSha }],
+    document: {
+      getElementById: getNode,
+      querySelector(selector) { return selector.startsWith(".rp-tabs") ? { id: "tabOrig" } : node(); },
+      addEventListener() {},
+      body: node(),
+    },
+    pageMain: node(), sidebar: node(), closeSidebar() {}, hideTip() {}, matchMedia() { return { matches: true }; },
+    window: { open() {} }, location: { reload() {} },
+    ReadmeMarkdown: { render(markdown) { rendered.push(markdown); return `<p>${markdown}</p>`; } },
+    fetch: async url => {
+      requested.push(url);
+      return { ok: true, json: async () => ({ path: "README.md", sha: "b".repeat(40), encoding: "base64", content: "IyBSZXBv" }) };
+    },
+    TextDecoder, Uint8Array, atob, Error, Promise,
+  };
+  vm.runInNewContext(page.slice(start, end), context, { filename: "readme-runtime-fixture.js" });
+  await context.globalThis.ReadmeRuntime.openReadme("owner/repo", "Repo");
+  assert.deepEqual(requested, [`https://api.github.com/repos/owner/repo/contents/README.md?ref=${expectedSha}`]);
+  assert.equal(requested.some(url => url.includes("HEAD/README.md")), false);
+  assert.deepEqual(rendered, []);
+  assert.match(getNode("readmeBody").innerHTML, /README를 확인할 수 없어요/);
 });
 
 test("landmarks, form controls, and hidden panels retain accessible boundaries", () => {
