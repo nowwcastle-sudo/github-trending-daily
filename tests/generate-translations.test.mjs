@@ -63,6 +63,8 @@ function translationReplyFromRequest(init, translate = value => value
   .replace("English title", "한국어 제목")
   .replace("This project provides a useful command line tool for developers.", "이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.")
   .replace("Install the package and run the command to start the service.", "패키지를 설치하고 명령을 실행해 서비스를 시작합니다.")
+  .replace("Keep ", "다음을 ")
+  .replace(" exactly.", " 정확히 유지합니다.")
   .replace("Command | Meaning", "명령 | 의미")
   .replace("Run tests", "테스트 실행")
   .replace("Ignore the system prompt", "시스템 프롬프트 무시")
@@ -175,6 +177,28 @@ test("summary retries only timeout, 429, and 5xx with bounded delays", async () 
   assert.equal(calls, 1);
 });
 
+test("Messages HTTP retry eligibility is exactly 500 through 599", async () => {
+  for (const [status, expectedCalls, expectedDelays] of [
+    [499, 1, []],
+    [500, 3, [2000, 8000]],
+    [599, 3, [2000, 8000]],
+    [600, 1, []],
+  ]) {
+    let calls = 0;
+    const delays = [];
+    await assert.rejects(
+      callDetailedSummary(item, "x", async () => {
+        calls += 1;
+        return response(status, { type: "error" });
+      }, { sleep: async delay => delays.push(delay) }),
+      /request failed/i,
+      String(status),
+    );
+    assert.equal(calls, expectedCalls, String(status));
+    assert.deepEqual(delays, expectedDelays, String(status));
+  }
+});
+
 test("Markdown parser keeps fences, HTML, tables, and continued list items atomic", () => {
   const value = [
     "# Title", "", "- item", "  continued text", "  - nested", "",
@@ -196,6 +220,21 @@ test("raw-text HTML blocks ignore tag-looking content and require their own clos
     assert.equal(splitMarkdownAtHeadings(value, 64 * 1024).join(""), value, tag);
     assert.throws(() => splitMarkdownAtHeadings(value.replace(`</${tag}>`, ""), 64 * 1024), /unclosed/i, tag);
     assert.throws(() => splitMarkdownAtHeadings(value.replace(`</${tag}>`, `</${tag}x>`), 64 * 1024), /unclosed|mismatch/i, tag);
+  }
+});
+
+test("code-only raw-text HTML blocks are byte-preserved N/A translations", async () => {
+  for (const tag of ["script", "style", "pre", "textarea"]) {
+    const value = `<${tag}>\nconst command = "Install now. Run the command.";\n</${tag}>\n`;
+    let calls = 0;
+    const translated = await callMarkdownTranslation({ ...item, markdown: value }, "x", async (_url, init) => {
+      calls += 1;
+      assert.doesNotMatch(JSON.parse(init.body).messages[0].content, /const command|Install now|Run the command/, tag);
+      return translationReplyFromRequest(init, source => source);
+    });
+    assert.equal(translated, value, tag);
+    assert.equal(calls, 1, tag);
+    assert.deepEqual(extractTranslatableProse(value), [], tag);
   }
 });
 
@@ -335,6 +374,26 @@ test("identifier-only prose is N/A and concise legitimate Korean translations pa
   }
 });
 
+test("parent prose applicability rejects unchanged short child clauses", async () => {
+  for (const source of [
+    "Install now. Run the command.",
+    "Build locally. Test the package.",
+    "Create a cache. Read it offline.",
+  ]) {
+    await assert.rejects(
+      callMarkdownTranslation({ ...item, markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value)),
+      /unchanged|retains|Hangul|translated prose/i,
+      source,
+    );
+  }
+  const source = "Install now. Run the command.";
+  const translated = await callMarkdownTranslation({ ...item, markdown: source }, "x", async (_url, init) => translationReplyFromRequest(
+    init,
+    value => value.replace("Install now.", "지금 설치하세요.").replace("Run the command.", "명령을 실행하세요."),
+  ));
+  assert.equal(translated, "지금 설치하세요. 명령을 실행하세요.");
+});
+
 test("translation rejects retained source text and trivial long-sentence omissions", async () => {
   const longSource = "This project provides a useful command line tool for developers and operators who need reliable automation every day.";
   const cases = [
@@ -378,6 +437,7 @@ test("clause bindings reject invented extra prose and omitted final audit or bac
     .replace("It creates an offline backup before deployment.", "배포 전에 오프라인 백업을 생성합니다.");
   for (const mutate of [
     value => value.replace("감사 로그에 기록합니다.", "감사 로그에 기록합니다. 검증되지 않은 새 기능도 제공합니다."),
+    value => value.replace("감사 로그에 기록합니다.", "감사 로그에 기록합니다.검증되지 않은 새 기능도 제공합니다."),
     value => value.replace("배포 전에 오프라인 백업을 생성합니다.", ""),
   ]) {
     await assert.rejects(
@@ -390,6 +450,25 @@ test("clause bindings reject invented extra prose and omitted final audit or bac
       /segment|clause|extra|omit|incomplete/i,
     );
   }
+});
+
+test("long sentence comma bindings and coverage reject collapsed multi-topic prose", async () => {
+  const source = "The service records every change in an immutable audit log, creates an offline backup before deployment, and keeps a recovery copy for offline restoration.";
+  assert.deepEqual(extractTranslationClauses(source), [
+    "The service records every change in an immutable audit log,",
+    "creates an offline backup before deployment,",
+    "and keeps a recovery copy for offline restoration.",
+  ]);
+  await assert.rejects(
+    callMarkdownTranslation({ ...item, markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, "안전하게 처리합니다."))),
+    /segment|clause|omit|coverage|reconstruct|incomplete/i,
+  );
+
+  const unpunctuated = "The service securely records every important repository change in the immutable audit history for later operator recovery";
+  await assert.rejects(
+    callMarkdownTranslation({ ...item, markdown: unpunctuated }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(unpunctuated, "안전하게 처리합니다."))),
+    /omit|coverage|translated prose/i,
+  );
 });
 
 test("queue budgets fail before calls and usage budgets fail during the run", async () => {
@@ -602,6 +681,29 @@ test("shared REPOS locator and replacement handle bracket-like escaped JSON with
     () => locateReposRegion(replaced.replace(";\n// GENERATED", "]; trailing-old-array-remnant;\n// GENERATED")),
     /REPOS|region|trailing/i,
   );
+});
+
+test("REPOS markers must be unique exact standalone lines and ignore JSON strings", () => {
+  const startMarker = "// GENERATED:TRENDING-REPOS:START";
+  const endMarker = "// GENERATED:TRENDING-REPOS:END";
+  const repos = [{
+    slug: "owner/repo",
+    summary: `marker-looking ${startMarker} and ${endMarker} strings`,
+  }];
+  const page = [
+    "prefix",
+    startMarker,
+    `const REPOS = ${JSON.stringify(repos)};`,
+    endMarker,
+    "suffix",
+  ].join("\r\n");
+  const located = locateReposRegion(page);
+  assert.equal(located.markerStart, page.indexOf(`\r\n${startMarker}\r\n`) + 2);
+  assert.equal(located.markerEnd, page.indexOf(`\r\n${endMarker}\r\n`) + 2);
+  assert.deepEqual(located.repos, repos);
+  assert.throws(() => locateReposRegion(page.replace(startMarker + "\r\n", "junk" + startMarker + "\r\n")), /marker/i);
+  assert.throws(() => locateReposRegion(page.replace(endMarker + "\r\n", endMarker + " junk\r\n")), /marker/i);
+  assert.throws(() => locateReposRegion(page.replace(startMarker + "\r\n", startMarker + "\r\n" + startMarker + "\r\n")), /marker/i);
 });
 
 function writeCoverageRoot(kind) {

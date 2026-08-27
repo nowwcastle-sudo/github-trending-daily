@@ -36,13 +36,17 @@ export function slugToFile(slug) {
 
 export function locateReposRegion(html) {
   if (typeof html !== "string") throw new Error("REPOS page must be text");
-  const markerStart = html.indexOf(REPOS_REGION_START);
-  const markerEnd = html.indexOf(REPOS_REGION_END);
-  if (markerStart < 0 || markerEnd < 0 || markerEnd <= markerStart
-      || html.indexOf(REPOS_REGION_START, markerStart + REPOS_REGION_START.length) >= 0
-      || html.indexOf(REPOS_REGION_END, markerEnd + REPOS_REGION_END.length) >= 0) {
+  const markerOffsets = marker => {
+    const escaped = marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return [...html.matchAll(new RegExp(`^${escaped}\\r?$`, "gm"))].map(match => match.index);
+  };
+  const starts = markerOffsets(REPOS_REGION_START);
+  const ends = markerOffsets(REPOS_REGION_END);
+  if (starts.length !== 1 || ends.length !== 1 || ends[0] <= starts[0]) {
     throw new Error("REPOS generated region markers are missing or duplicated");
   }
+  const markerStart = starts[0];
+  const markerEnd = ends[0];
   const bodyStart = markerStart + REPOS_REGION_START.length;
   const statementStart = bodyStart + (html.slice(bodyStart, markerEnd).match(/^\s*/)?.[0].length ?? 0);
   const declaration = "const REPOS = ";
@@ -255,7 +259,7 @@ function parseAtomicBlocks(value) {
         if (stack.length) throw new Error("HTML block contains an unclosed nested block");
       }
       if (html.kind !== "raw") assertClosedHtmlConstructs(lines.slice(index, end).join(""));
-      take("html", end);
+      take(html.kind === "raw" ? "raw_html" : "html", end);
       continue;
     }
     if (index + 1 < lines.length && current.includes("|") && tableDelimiter(lineText(lines[index + 1]))) {
@@ -399,6 +403,12 @@ function transformReferenceDestinations(value, transform) {
     .replace(sameLine, (_match, prefix, destination, suffix) => `${prefix}${transform(destination)}${suffix}`);
 }
 
+function transformReferenceDefinitionLines(value, transform) {
+  const nextLine = /^[ \t]{0,3}\[[^\]\n]+\]:[ \t]*\n[ \t]{1,3}(?:<[^>\n]+>|[^\s\n]+)(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/gm;
+  const sameLine = /^[ \t]{0,3}\[[^\]\n]+\]:[ \t]*(?:<[^>\n]+>|[^\s\n]+)(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/gm;
+  return value.replace(nextLine, definition => transform(definition)).replace(sameLine, definition => transform(definition));
+}
+
 function transformAutolinks(value, transform) {
   const autolink = /<[A-Za-z][A-Za-z0-9+.-]{1,31}:[^<>\x00-\x20]*>|<[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}>/g;
   return value.replace(autolink, destination => transform(destination));
@@ -407,9 +417,9 @@ function transformAutolinks(value, transform) {
 function protectMarkdown(markdown) {
   const sentinel = sentinelProtector(markdown);
   const protectedBlocks = parseAtomicBlocks(markdown).map(block => {
-    if (block.type === "fence") return { ...block, text: sentinel.protect(block.text) };
+    if (block.type === "fence" || block.type === "raw_html") return { ...block, text: sentinel.protect(block.text) };
     const inline = transformInlineCodes(block.text, value => sentinel.protect(value));
-    const references = transformReferenceDestinations(inline, sentinel.protect);
+    const references = transformReferenceDefinitionLines(inline, sentinel.protect);
     const links = protectLinkDestinations(references, sentinel.protect);
     return { ...block, text: transformAutolinks(links, sentinel.protect) };
   });
@@ -534,6 +544,7 @@ function stripMarkdownProse(block) {
   if (block.type === "blank" || block.type === "fence") return "";
   let value = block.text;
   value = transformInlineCodes(value, () => " ");
+  value = transformReferenceDefinitionLines(value, () => " ");
   value = transformReferenceDestinations(value, () => "");
   value = protectLinkDestinations(value, () => "");
   value = transformAutolinks(value, () => "");
@@ -548,12 +559,18 @@ function stripMarkdownProse(block) {
 
 function allProseSegments(markdown) {
   return parseAtomicBlocks(markdown)
-    .filter(block => block.type !== "blank" && block.type !== "fence")
+    .filter(block => block.type !== "blank" && block.type !== "fence" && block.type !== "raw_html")
     .map(stripMarkdownProse);
 }
 
 function splitProseClauses(value) {
-  return value.split(/(?<=[.!?。！？;；:：])\s+/)
+  return value.split(/(?<=[.!?。！？;；:：])(?:\s+|(?=\S))/u)
+    .flatMap(clause => {
+      const words = clause.match(/[A-Za-z]+/g) ?? [];
+      return words.length >= 12
+        ? clause.split(/(?<=[,，])(?:\s+|(?=\S))/u)
+        : [clause];
+    })
     .map(clause => clause.trim())
     .filter(Boolean);
 }
@@ -563,8 +580,19 @@ export function extractTranslationClauses(markdown) {
 }
 
 function proseBindings(markdown) {
-  return extractTranslationClauses(markdown)
-    .map((sourceText, index) => ({ index, input_sha256: hashReadme(sourceText), source_text: sourceText }));
+  const bindings = [];
+  for (const parent of allProseSegments(markdown)) {
+    const parentApplicable = isTranslatableProse(parent);
+    for (const sourceText of splitProseClauses(parent)) {
+      bindings.push({
+        index: bindings.length,
+        input_sha256: hashReadme(sourceText),
+        source_text: sourceText,
+        applicable: parentApplicable && !isIdentifierOnlyProse(sourceText),
+      });
+    }
+  }
+  return bindings;
 }
 
 export function extractTranslatableProse(markdown) {
@@ -573,9 +601,12 @@ export function extractTranslatableProse(markdown) {
 
 function isTranslatableProse(value) {
   if ((value.match(/[A-Za-z]/g) ?? []).length < 20) return false;
+  return !isIdentifierOnlyProse(value);
+}
+
+function isIdentifierOnlyProse(value) {
   const tokens = value.match(/[A-Za-z][A-Za-z0-9_.+-]*/g) ?? [];
-  const identifierOnly = tokens.length > 0 && tokens.every(token => /[A-Z]/.test(token.slice(1)) || /^[A-Z0-9_.+-]+$/.test(token));
-  return !identifierOnly;
+  return tokens.length > 0 && tokens.every(token => /[A-Z]/.test(token.slice(1)) || /^[A-Z0-9_.+-]+$/.test(token));
 }
 
 function editDistanceRatio(left, right) {
@@ -596,8 +627,8 @@ function editDistanceRatio(left, right) {
   return previous.at(-1) / Math.max(before.length, after.length, 1);
 }
 
-function assertTranslatedSegment(original, translated) {
-  if (isTranslatableProse(original)) {
+function assertTranslatedSegment(original, translated, applicable = isTranslatableProse(original)) {
+  if (applicable) {
     const normalize = value => value.normalize("NFKC").toLowerCase().replace(/\s+/g, " ").trim();
     const normalizedOriginal = normalize(original);
     const normalizedTranslated = normalize(translated);
@@ -613,18 +644,19 @@ function assertTranslatedSegment(original, translated) {
     }
     const sourceWords = original.match(/[A-Za-z]+/g) ?? [];
     const translatedHangulSyllables = (translated.match(/[가-힣]/g) ?? []).length;
-    if (sourceWords.length >= 8 && translatedHangulSyllables < 4) {
+    const minimumCoverage = Math.min(18, sourceWords.length);
+    if (sourceWords.length >= 8 && translatedHangulSyllables < minimumCoverage) {
       throw new Error("Translated prose omits a long source sentence");
     }
   }
 }
 
 function assertProseTranslation(before, after) {
-  const beforeSegments = extractTranslationClauses(before);
+  const beforeSegments = proseBindings(before);
   const afterSegments = extractTranslationClauses(after);
   if (beforeSegments.length !== afterSegments.length) throw new Error("Markdown prose clause count changed");
   for (let index = 0; index < beforeSegments.length; index += 1) {
-    assertTranslatedSegment(beforeSegments[index], afterSegments[index]);
+    assertTranslatedSegment(beforeSegments[index].source_text, afterSegments[index], beforeSegments[index].applicable);
   }
 }
 
@@ -798,7 +830,7 @@ async function requestMessages({ apiKey, body, fetchImpl, options = {}, prompt }
       throw new Error("Anthropic Messages request failed");
     }
     if (!response?.ok) {
-      if (attempt < 2 && (response?.status === 429 || response?.status >= 500)) {
+      if (attempt < 2 && (response?.status === 429 || (response?.status >= 500 && response.status <= 599))) {
         await sleep(RETRY_DELAYS[attempt]);
         continue;
       }
@@ -922,7 +954,7 @@ async function callTranslationChunk(chunk, apiKey, fetchImpl, options) {
       throw new Error("Markdown translation segment envelope is missing, duplicated, or reordered");
     }
     if (splitProseClauses(actual.translated_text).length !== 1) throw new Error("Markdown translation segment contains extra prose");
-    assertTranslatedSegment(expected.source_text, actual.translated_text);
+    assertTranslatedSegment(expected.source_text, actual.translated_text, expected.applicable);
   }
   const outputProse = normalizedEchoValue(allProseSegments(parsed.translated_markdown).join(" "));
   const boundProse = normalizedEchoValue(parsed.segment_bindings.map(binding => binding.translated_text).join(" "));
