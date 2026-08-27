@@ -54,7 +54,7 @@ jobs:
           set -euo pipefail
           ORIGINAL_SHA="$(git rev-parse HEAD)"
           MANIFEST_FILE="${RUNNER_TEMP}/production-manifest.json"
-          HTTP_STATUS="$(curl --silent --show-error --location --output "$MANIFEST_FILE" --write-out '%{http_code}' "${PRODUCTION_BASE_URL}deployment-manifest.json?preflight=${GITHUB_RUN_ID}")"
+          HTTP_STATUS="$(curl --silent --show-error --connect-timeout 5 --max-time 15 --max-filesize 1048576 --output "$MANIFEST_FILE" --write-out '%{http_code}' "${PRODUCTION_BASE_URL}deployment-manifest.json?preflight=${GITHUB_RUN_ID}")"
           if [ "$HTTP_STATUS" = "404" ]; then
             echo "404 preflight: manifest 404 requires the approved bootstrap source SHA"
             [[ "$BOOTSTRAP_SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo "::error::bootstrap-source-sha is required for manifest 404"; exit 1; }

@@ -71,6 +71,7 @@ async function fileMap(root) {
       const target = path.join(directory, entry.name);
       const info = await lstat(target);
       if (info.isSymbolicLink() || (!info.isFile() && !info.isDirectory())) throw new Error(`unexpected candidate residue: ${child}`);
+      if (info.isFile() && info.nlink !== 1) throw new Error(`candidate hardlink rejected: ${child}`);
       if (info.isDirectory()) await visit(target, child);
       else files.set(child, await readFile(target));
     }
@@ -145,6 +146,7 @@ async function rejectLinksAndForbidden(root) {
       const child = path.join(directory, entry.name);
       const info = await lstat(child);
       if (info.isSymbolicLink()) throw new Error(`candidate symlink rejected: ${childRelative}`);
+      if (info.isFile() && info.nlink !== 1) throw new Error(`candidate hardlink rejected: ${childRelative}`);
       if (info.isDirectory()) await visit(child, childRelative);
       else if (!info.isFile()) throw new Error(`candidate non-file rejected: ${childRelative}`);
     }

@@ -132,6 +132,24 @@ function normalizeLatest(value) {
   return value;
 }
 
+export function parseEmbeddedRepos(pageValue, label = "page REPOS") {
+  const page = Buffer.isBuffer(pageValue) ? new TextDecoder("utf-8", { fatal: true }).decode(pageValue) : pageValue;
+  if (typeof page !== "string") throw new Error(`${label} is invalid`);
+  const matches = [...page.matchAll(/(?:^|\n)const REPOS = (\[[^\n]+\]);/g)];
+  if (matches.length !== 1) throw new Error(`${label} region is invalid`);
+  const repos = parseJsonStrict(Buffer.from(matches[0][1]), label);
+  if (!Array.isArray(repos) || repos.length === 0 || repos.length > 75) throw new Error(`${label} array is invalid`);
+  const seen = new Set();
+  for (const repo of repos) {
+    if (!repo || typeof repo !== "object" || Array.isArray(repo) || typeof repo.slug !== "string"
+        || !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo.slug)) throw new Error(`${label} row shape is invalid`);
+    const folded = repo.slug.toLowerCase();
+    if (seen.has(folded)) throw new Error(`${label} contains a case-fold duplicate identity`);
+    seen.add(folded);
+  }
+  return repos;
+}
+
 function normalizeSources(value) {
   if (!exactKeys(value, ["version", "sources"]) || value.version !== 2 || !value.sources || typeof value.sources !== "object" || Array.isArray(value.sources)) {
     throw new Error("invalid translation sources");
@@ -224,6 +242,10 @@ export async function buildPagesArtifact({ sourceRoot, outDir, sourceSha, snapsh
     readFile(path.join(sourceRoot, "data", "translation-sources.json")).then(bytes => parseJsonStrict(bytes, "translation sources")),
   ]);
   const paths = expectedVersion1Paths(latest, sources);
+  const pageRepos = parseEmbeddedRepos(await readFile(path.join(sourceRoot, "index.html")), "version-1 page REPOS");
+  if (pageRepos.map(repo => repo.slug.toLowerCase()).sort().join("\0") !== latest.repos.map(repo => repo.slug.toLowerCase()).sort().join("\0")) {
+    throw new Error("version-1 page REPOS identity does not match latest");
+  }
   const sourcesBySlug = normalizeSources(sources);
   for (const repo of latest.repos) {
     const source = sourcesBySlug.get(repo.slug.toLowerCase())?.source;
@@ -237,14 +259,6 @@ export async function buildPagesArtifact({ sourceRoot, outDir, sourceSha, snapsh
   return installArtifact({ sourceRoot, outDir, paths, manifest: { version: 1, sourceSha, snapshotId } });
 }
 
-function activeLegacySlugs(page) {
-  const match = /(?:^|\n)const REPOS = (\[[^\n]+\]);/.exec(page);
-  if (!match) throw new Error("invalid legacy page repository data");
-  const repos = JSON.parse(match[1]);
-  if (!Array.isArray(repos)) throw new Error("invalid legacy page repository data");
-  return repos.map(repo => repo?.slug).filter(slug => typeof slug === "string");
-}
-
 export async function buildLegacyRecoveryArtifact({ sourceRoot, outDir, sourceSha }) {
   if (!SHA_RE.test(sourceSha)) throw new Error("invalid artifact identity");
   const page = await readFile(path.join(sourceRoot, "index.html"), "utf8");
@@ -254,7 +268,7 @@ export async function buildLegacyRecoveryArtifact({ sourceRoot, outDir, sourceSh
       if (error?.code !== "ENOENT") throw error;
     }
   }
-  const readmes = activeLegacySlugs(page).map(slug => `readmes/${slug.replaceAll("/", "__")}.md`);
+  const readmes = parseEmbeddedRepos(page, "legacy page REPOS").map(repo => `readmes/${repo.slug.replaceAll("/", "__")}.md`);
   return installArtifact({
     sourceRoot,
     outDir,

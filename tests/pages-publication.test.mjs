@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import http from "node:http";
 import { spawnSync } from "node:child_process";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { link, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -110,13 +110,15 @@ test("builder hashes only the exact allowlist and exact translation envelope", a
   const sources = { version: 2, sources: { "owner/one": sourceEntry(true) } };
   await writeFile(join(source, "data", "latest.json"), `${JSON.stringify(latest)}\n`);
   await writeFile(join(source, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`);
+  const validPage = `<script>\nconst REPOS = [${JSON.stringify({ slug: "owner/one" })}];\n</script>\n`;
+  await writeFile(join(source, "index.html"), validPage);
   await mkdir(join(source, "translations"));
   await writeFile(join(source, "translations", "owner__one.json"), `${JSON.stringify({ markdown: "# One", source: sources.sources["owner/one"] })}\n`);
   await writeFile(join(source, "data", "private.sqlite"), "private");
 
   const manifest = await buildPagesArtifact({ sourceRoot: source, outDir: out, sourceSha, snapshotId });
   assert.deepEqual(Object.keys(manifest.files), expectedVersion1Paths(latest, sources));
-  assert.equal(manifest.files["index.html"], createHash("sha256").update("index.html\n").digest("hex"));
+  assert.equal(manifest.files["index.html"], createHash("sha256").update(validPage).digest("hex"));
   await assert.rejects(readFile(join(out, "data", "private.sqlite")));
 
   await writeFile(join(source, "translations", "owner__one.json"), `${JSON.stringify({ html: "legacy", source: sources.sources["owner/one"] })}\n`);
@@ -126,6 +128,12 @@ test("builder hashes only the exact allowlist and exact translation envelope", a
   );
   await writeFile(join(source, "data", "translation-sources.json"), `{"version":2,"version":2,"sources":{}}\n`);
   await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "duplicate-source"), sourceSha, snapshotId }), /duplicate key/i);
+  await writeFile(join(source, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`);
+  await writeFile(join(source, "translations", "owner__one.json"), `${JSON.stringify({ markdown: "# One", source: sources.sources["owner/one"] })}\n`);
+  await writeFile(join(source, "index.html"), '<script>\nconst REPOS = [{"slug":"owner/one","slug":"owner/one"}];\n</script>\n');
+  await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "duplicate-page-json"), sourceSha, snapshotId }), /duplicate key/i);
+  await writeFile(join(source, "index.html"), '<script>\nconst REPOS = [{"slug":"Owner/One"},{"slug":"owner/one"}];\n</script>\n');
+  await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "case-fold-page"), sourceSha, snapshotId }), /duplicate|case-fold|identity/i);
 });
 
 test("candidate preparation uses current committed code and production generated state", async t => {
@@ -181,6 +189,9 @@ test("post-generation boundary rejects base-code mutations and sidecar residue",
   await writeFile(join(candidate, "app.js"), "current code\n");
   await writeFile(join(candidate, "data", "trending-membership.sqlite-wal"), "sidecar\n");
   await assert.rejects(verifyCandidateMutations({ baselineRoot: baseline, candidateRoot: candidate }), /residue|sidecar|unexpected/i);
+  await rm(join(candidate, "data", "trending-membership.sqlite-wal"));
+  await link(join(candidate, "app.js"), join(candidate, "app-hardlink.js"));
+  await assert.rejects(verifyCandidateMutations({ baselineRoot: baseline, candidateRoot: candidate }), /candidate hardlink rejected/i);
 });
 
 test("a version-0 recovery manifest produces the next candidate without bootstrap input", async t => {
@@ -203,6 +214,11 @@ test("a version-0 recovery manifest produces the next candidate without bootstra
   const legacySourceSha = run(["rev-parse", "HEAD"]).stdout.trim();
   const recovery = await buildLegacyRecoveryArtifact({ sourceRoot: checkout, outDir: recoveryArtifact, sourceSha: legacySourceSha });
   assert.deepEqual({ version: recovery.version, sourceSha: recovery.sourceSha, snapshotId: recovery.snapshotId }, { version: 0, sourceSha: legacySourceSha, snapshotId: null });
+  await writeFile(join(checkout, "index.html"), '<html>\nconst REPOS = [{"slug":"owner/legacy","slug":"owner/legacy"}];\n</html>\n');
+  await assert.rejects(buildLegacyRecoveryArtifact({ sourceRoot: checkout, outDir: join(outer, "duplicate-legacy"), sourceSha: legacySourceSha }), /duplicate key/i);
+  await writeFile(join(checkout, "index.html"), '<html>\nconst REPOS = [{"slug":"Owner/Legacy"},{"slug":"owner/legacy"}];\n</html>\n');
+  await assert.rejects(buildLegacyRecoveryArtifact({ sourceRoot: checkout, outDir: join(outer, "case-fold-legacy"), sourceSha: legacySourceSha }), /duplicate|case-fold|identity/i);
+  await writeFile(join(checkout, "index.html"), '<html>\n<!-- GENERATED:TRENDING-DATE:START -->\nlegacy date\n<!-- GENERATED:TRENDING-DATE:END -->\n// GENERATED:TRENDING-REPOS:START\nconst REPOS = [{"slug":"owner/legacy"}];\n// GENERATED:TRENDING-REPOS:END\n</html>\n');
 
   await mkdir(join(checkout, "scripts"));
   await writeFile(join(checkout, "scripts", "new-refresh-code.js"), "export const current = true;\n");
@@ -310,6 +326,37 @@ test("real membership then Atom CLIs share one injected candidate identity befor
   const invalidChange = `<entry><id>https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml#bad</id><title>owner/repo-0 신규</title><updated>${context.observedAtUtc}</updated><link rel="alternate" type="text/html" href="https://github.com/owner/repo-0" /><category term="stayed" /><summary type="text">bad</summary></entry>`;
   await rewriteArtifactFile(artifact, "changes.xml", Buffer.from(originalChanges.toString("utf8").replace("</feed>", `${invalidChange}</feed>`)));
   await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /change Atom category/i);
+  await rewriteArtifactFile(artifact, "changes.xml", originalChanges);
+
+  const exactMembership = JSON.parse(originalMembership);
+  exactMembership.baseline = false;
+  exactMembership.current = exactMembership.current.map((row, index) => ({ ...row, status: index === 0 ? "new" : index === 1 ? "reentered" : "stayed" }));
+  const changeEntry = (slug, status) => {
+    const updated = context.observedAtUtc;
+    const id = `https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml#${encodeURIComponent(`${updated}|${status}|${slug.toLowerCase()}`)}`;
+    return `<entry><id>${id}</id><title>${slug} ${status === "new" ? "신규" : "재진입"}</title><updated>${updated}</updated><link rel="alternate" type="text/html" href="https://github.com/${slug}" /><category term="${status}" /><summary type="text">change</summary></entry>`;
+  };
+  const exactEntries = [changeEntry("owner/repo-0", "new"), changeEntry("owner/repo-1", "reentered")];
+  const exactChanges = Buffer.from(originalChanges.toString("utf8").replace("</feed>", `${exactEntries.join("")}</feed>`));
+  await rewriteArtifactFile(artifact, "data/membership-status.json", Buffer.from(`${JSON.stringify(exactMembership)}\n`));
+  await rewriteArtifactFile(artifact, "changes.xml", exactChanges);
+  await probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory });
+
+  const substituted = Buffer.from(originalChanges.toString("utf8").replace("</feed>", `${changeEntry("owner/repo-2", "new")}${changeEntry("owner/repo-1", "reentered")}</feed>`));
+  await rewriteArtifactFile(artifact, "changes.xml", substituted);
+  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /change.*membership|multiset|identity/i);
+  const duplicated = Buffer.from(originalChanges.toString("utf8").replace("</feed>", `${exactEntries[0]}${exactEntries[0]}</feed>`));
+  await rewriteArtifactFile(artifact, "changes.xml", duplicated);
+  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /duplicate|provenance|change.*membership|multiset/i);
+  const badUrl = Buffer.from(originalChanges.toString("utf8").replace("</feed>", `${exactEntries[0].replace("https://github.com/owner/repo-0", "https://github.com/owner/repo-0/extra")}${exactEntries[1]}</feed>`));
+  await rewriteArtifactFile(artifact, "changes.xml", badUrl);
+  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /change.*provenance|URL|identity/i);
+  const overlap = structuredClone(exactMembership);
+  overlap.exited.push({ slug: "OWNER/REPO-0", lastSeenAt: context.observedAtUtc, exitedAt: context.observedAtUtc });
+  await rewriteArtifactFile(artifact, "data/membership-status.json", Buffer.from(`${JSON.stringify(overlap)}\n`));
+  await rewriteArtifactFile(artifact, "changes.xml", exactChanges);
+  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /exited.*overlap|disjoint|duplicate/i);
+  await rewriteArtifactFile(artifact, "data/membership-status.json", originalMembership);
   await rewriteArtifactFile(artifact, "changes.xml", originalChanges);
   await assert.rejects(
     probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: "20260826120700-fedcba9876543210", gitRoot: directory }),

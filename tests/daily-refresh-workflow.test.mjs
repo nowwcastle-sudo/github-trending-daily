@@ -18,6 +18,11 @@ test("schedule and manual dispatch share one fail-closed candidate build path", 
   assert.equal((workflow.match(/scripts\/prepare-refresh-candidate\.mjs --checkout/g) ?? []).length, 1);
   assert.match(workflow, /RUN_CONTEXT_JSON/);
   assert.match(workflow, /node scripts\/validate-enrichment-coverage\.mjs --root "\$CANDIDATE" --json-counts/);
+  const manifestFetch = workflow.match(/HTTP_STATUS="\$\(curl ([^\n]+)\)"/)?.[1] ?? "";
+  assert.match(manifestFetch, /--connect-timeout 5/);
+  assert.match(manifestFetch, /--max-time 15/);
+  assert.match(manifestFetch, /--max-filesize 1048576/);
+  assert.doesNotMatch(manifestFetch, /--location|-L(?:\s|$)/);
   assert.doesNotMatch(workflow, /snapshotId[^\n]*sed|date \+/);
   assert.match(workflow, /\$\{RUNNER_TEMP\}\/candidate/);
 });

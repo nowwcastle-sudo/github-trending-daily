@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 
 import { parseJsonStrict, validateDeploymentManifest } from "./build-pages-artifact.mjs";
-import { downloadCandidateManifest } from "./dispatch-refresh.mjs";
+import { downloadCandidateManifest, validRunStatusConclusion } from "./dispatch-refresh.mjs";
 import { probeProduction } from "./probe-production.mjs";
 
 const SHA_RE = /^[a-f0-9]{40}$/;
@@ -26,25 +26,32 @@ export function resolveEffectiveReceipt({ expected, production, laterReceipts, i
   if (!production || !SHA_RE.test(production.sourceSha) || !SNAPSHOT_RE.test(production.snapshotId) || !SHA256_RE.test(production.manifestSha256)) {
     throw new Error("invalid production receipt");
   }
-  if (expected && sameProvenance(expected, production)) {
-    return { expectedRunId: expected.runId, effectiveRunId: expected.runId, receipt: expected };
+  let receipt;
+  if (expected && sameProvenance(expected, production)) receipt = expected;
+  else {
+    if (expected && !isAncestor(expected.sourceSha, production.sourceSha)) throw new Error("production replacement is not a fast-forward");
+    receipt = selectMatchingReceipt(production, laterReceipts);
   }
-  if (expected && !isAncestor(expected.sourceSha, production.sourceSha)) throw new Error("production replacement is not a fast-forward");
-  const receipt = selectMatchingReceipt(production, laterReceipts);
   if (receipt.sourceSha !== originMain) throw new Error("effective production source does not equal origin/main");
   return { expectedRunId: expected?.runId ?? null, effectiveRunId: receipt.runId, receipt };
 }
 
-function command(binary, args) {
+function boundedTimeout(deadline, cap, label) {
+  const remaining = deadline - Date.now();
+  if (!Number.isFinite(remaining) || remaining <= 0) throw new Error(`${label} deadline exceeded`);
+  return Math.max(1, Math.min(cap, Math.ceil(remaining)));
+}
+
+function command(binary, args, { deadline = Date.now() + 30_000, timeout = 30_000, encoding = "utf8", maxBuffer = 64 * 1024 * 1024 } = {}) {
   try {
-    return execFileSync(binary, args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, timeout: 30_000, stdio: ["ignore", "pipe", "pipe"] });
+    return execFileSync(binary, args, { encoding, maxBuffer, timeout: boundedTimeout(deadline, timeout, `${binary} command`), stdio: ["ignore", "pipe", "pipe"] });
   } catch (error) {
     throw new Error(error?.stderr?.toString().trim() || `${binary} command failed`);
   }
 }
 
-function gh(args) { return command(process.env.GH_BIN || "gh", process.env.GH_SCRIPT ? [process.env.GH_SCRIPT, ...args] : args); }
-function git(args) { return command(process.env.GIT_BIN || "git", args).trim(); }
+function gh(args, options) { return command(process.env.GH_BIN || "gh", process.env.GH_SCRIPT ? [process.env.GH_SCRIPT, ...args] : args, options); }
+function git(args, options) { return command(process.env.GIT_BIN || "git", process.env.GIT_SCRIPT ? [process.env.GIT_SCRIPT, ...args] : args, options).trim(); }
 
 function canonicalTimestamp(value) {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(value) && Number.isFinite(Date.parse(value));
@@ -66,7 +73,7 @@ export function validateWorkflowRun(run, expectedRunId, { requireDispatchEvent =
   }
   for (const job of run.jobs) {
     if (!job || typeof job !== "object" || !Number.isSafeInteger(job.databaseId) || job.databaseId <= 0 || typeof job.name !== "string"
-        || job.status !== "completed" || !["success", "failure", "cancelled", "skipped"].includes(job.conclusion)) throw new Error("invalid workflow job schema");
+        || !validRunStatusConclusion(job.status, job.conclusion)) throw new Error("invalid workflow job schema");
   }
   for (const name of ["Deploy candidate Pages artifact", "Probe production candidate"]) {
     const matches = run.jobs.filter(job => job.name === name && job.conclusion === "success");
@@ -91,11 +98,11 @@ export function assertSourceBoundToRunHead(headSha, sourceSha, gitFn = git) {
 
 async function receiptForRun(runId, { requireSuccessfulChain = true, requireDispatchEvent = false, deadline = Date.now() + 300_000 } = {}) {
   if (Date.now() >= deadline) throw new Error("refresh receipt verification deadline exceeded");
-  const run = parseJsonStrict(Buffer.from(gh(["run", "view", String(runId), "--json", "databaseId,headSha,event,status,conclusion,createdAt,url,jobs"])), "GitHub workflow run", 4 * 1024 * 1024);
+  const run = parseJsonStrict(Buffer.from(gh(["run", "view", String(runId), "--json", "databaseId,headSha,event,status,conclusion,createdAt,url,jobs"], { deadline })), "GitHub workflow run", 4 * 1024 * 1024);
   if (requireSuccessfulChain) validateWorkflowRun(run, runId, { requireDispatchEvent });
-  const bytes = downloadCandidateManifest(Number(runId));
+  const bytes = downloadCandidateManifest(Number(runId), { deadline });
   const manifest = validateDeploymentManifest(parseJsonStrict(bytes, "deployment manifest", 1024 * 1024));
-  assertSourceBoundToRunHead(run.headSha, manifest.sourceSha);
+  assertSourceBoundToRunHead(run.headSha, manifest.sourceSha, args => git(args, { deadline }));
   return {
     runId: Number(runId),
     headSha: run.headSha,
@@ -106,9 +113,9 @@ async function receiptForRun(runId, { requireSuccessfulChain = true, requireDisp
   };
 }
 
-async function productionReceipt(baseUrl) {
+async function productionReceipt(baseUrl, { deadline = Date.now() + 300_000 } = {}) {
   const url = new URL("deployment-manifest.json", baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`);
-  const response = await fetch(url, { redirect: "error", cache: "no-store", signal: AbortSignal.timeout(15_000) });
+  const response = await fetch(url, { redirect: "error", cache: "no-store", signal: AbortSignal.timeout(boundedTimeout(deadline, 15_000, "production manifest fetch")) });
   if (response.status !== 200) throw new Error(`production manifest HTTP ${response.status}`);
   const declared = Number(response.headers.get("content-length"));
   if (Number.isFinite(declared) && declared > 1024 * 1024) throw new Error("production manifest body is too large");
@@ -123,33 +130,33 @@ async function productionReceipt(baseUrl) {
   return { sourceSha: manifest.sourceSha, snapshotId: manifest.snapshotId, manifestSha256: createHash("sha256").update(bytes).digest("hex") };
 }
 
-function listSuccessfulRuns() {
-  const runs = parseJsonStrict(Buffer.from(gh(["run", "list", "--workflow", "daily-refresh.yml", "--limit", "100", "--json", "databaseId,headSha,event,status,conclusion,createdAt,url"])), "GitHub workflow run list", 4 * 1024 * 1024);
+function listSuccessfulRuns({ deadline = Date.now() + 300_000 } = {}) {
+  const runs = parseJsonStrict(Buffer.from(gh(["run", "list", "--workflow", "daily-refresh.yml", "--limit", "100", "--json", "databaseId,headSha,event,status,conclusion,createdAt,url"], { deadline })), "GitHub workflow run list", 4 * 1024 * 1024);
   if (!Array.isArray(runs) || runs.length > 100) throw new Error("invalid bounded workflow run list");
   for (const run of runs) {
     if (!Number.isSafeInteger(run?.databaseId) || run.databaseId <= 0 || !SHA_RE.test(run.headSha) || !["workflow_dispatch", "schedule"].includes(run.event)
-        || !["queued", "in_progress", "completed", "requested", "waiting", "pending"].includes(run.status)
-        || ![null, "success", "failure", "cancelled", "skipped", "timed_out", "action_required", "neutral", "stale"].includes(run.conclusion)
+        || !validRunStatusConclusion(run.status, run.conclusion)
         || !canonicalTimestamp(run.createdAt) || !githubRunUrl(run.url)) throw new Error("invalid bounded workflow run row");
   }
   return runs.filter(run => run.status === "completed" && run.conclusion === "success" && ["workflow_dispatch", "schedule"].includes(run.event));
 }
 
-function isAncestor(left, right) {
-  try { command(process.env.GIT_BIN || "git", ["merge-base", "--is-ancestor", left, right]); return true; } catch { return false; }
+function isAncestor(left, right, { deadline = Date.now() + 300_000 } = {}) {
+  try { git(["merge-base", "--is-ancestor", left, right], { deadline }); return true; } catch { return false; }
 }
 
 export async function verifyRefreshChain({ baseUrl, currentProduction = false, expectedRunId = null, expectedSourceSha = null, expectedSnapshotId = null, expectedManifestSha256 = null }, dependencies = {}) {
-  const deadline = Date.now() + 300_000;
+  const timeoutMs = Number(dependencies.timeoutMs ?? process.env.VERIFY_TIMEOUT_MS ?? 300_000);
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0 || timeoutMs > 300_000) throw new Error("invalid refresh verification timeout");
+  const deadline = Date.now() + timeoutMs;
   const getProduction = dependencies.productionReceipt ?? productionReceipt;
   const getReceipt = dependencies.receiptForRun ?? receiptForRun;
   const getRuns = dependencies.listSuccessfulRuns ?? listSuccessfulRuns;
-  const fetchOrigin = dependencies.fetchOrigin ?? (() => git(["fetch", "origin", "main"]));
-  const getOriginMain = dependencies.originMain ?? (() => git(["rev-parse", "refs/remotes/origin/main"]));
-  const ancestor = dependencies.isAncestor ?? isAncestor;
+  const fetchOrigin = dependencies.fetchOrigin ?? (({ deadline: value }) => git(["fetch", "origin", "main"], { deadline: value }));
+  const getOriginMain = dependencies.originMain ?? (({ deadline: value }) => git(["rev-parse", "refs/remotes/origin/main"], { deadline: value }));
+  const ancestor = dependencies.isAncestor ?? ((left, right) => isAncestor(left, right, { deadline }));
   const probe = dependencies.probeProduction ?? probeProduction;
-  fetchOrigin();
-  const production = await getProduction(baseUrl);
+  const production = await getProduction(baseUrl, { deadline });
   let expected = null;
   let expectedCreatedAt = null;
   if (!currentProduction) {
@@ -165,7 +172,7 @@ export async function verifyRefreshChain({ baseUrl, currentProduction = false, e
 
   let laterReceipts = [];
   if (!expected || !sameProvenance(expected, production)) {
-    const candidates = getRuns().filter(run => !expected || (
+    const candidates = getRuns({ deadline }).filter(run => !expected || (
       run.databaseId !== expected.runId
       && typeof run.createdAt === "string"
       && typeof expectedCreatedAt === "string"
@@ -183,9 +190,12 @@ export async function verifyRefreshChain({ baseUrl, currentProduction = false, e
     }
   }
   if (Date.now() >= deadline) throw new Error("refresh chain verification deadline exceeded");
-  const originMain = getOriginMain();
+  fetchOrigin({ deadline });
+  if (Date.now() >= deadline) throw new Error("refresh chain verification deadline exceeded");
+  const originMain = getOriginMain({ deadline });
   const resolved = resolveEffectiveReceipt({ expected, production, laterReceipts, isAncestor: ancestor, originMain });
-  await probe({ baseUrl, sourceSha: resolved.receipt.sourceSha, snapshotId: resolved.receipt.snapshotId });
+  await probe({ baseUrl, sourceSha: resolved.receipt.sourceSha, snapshotId: resolved.receipt.snapshotId, deadline });
+  if (Date.now() >= deadline) throw new Error("refresh chain verification deadline exceeded");
   return { expectedRunId: resolved.expectedRunId, effectiveRunId: resolved.effectiveRunId, sourceSha: resolved.receipt.sourceSha, snapshotId: resolved.receipt.snapshotId, manifestSha256: resolved.receipt.manifestSha256 };
 }
 

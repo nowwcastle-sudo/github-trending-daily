@@ -9,6 +9,7 @@ import { pathToFileURL } from "node:url";
 import {
   LEGACY_BASE_PATHS,
   expectedVersion1Paths,
+  parseEmbeddedRepos,
   parseJsonStrict,
   validateDeploymentManifest,
 } from "./build-pages-artifact.mjs";
@@ -16,14 +17,20 @@ import { slugToFile } from "./generate-translations.mjs";
 
 const SHA_RE = /^[a-f0-9]{40}$/;
 const SNAPSHOT_RE = /^[0-9]{14}-[a-f0-9]{16}$/;
+const SLUG_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 
 function hash(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
-function gitBytes(sha, relative, gitRoot = process.cwd()) {
+function gitBytes(sha, relative, gitRoot = process.cwd(), deadline = Date.now() + 30_000) {
   try {
-    return execFileSync(process.env.GIT_BIN || "git", ["-C", gitRoot, "show", `${sha}:${relative}`], { encoding: null, maxBuffer: 64 * 1024 * 1024, timeout: 30_000, stdio: ["ignore", "pipe", "pipe"] });
+    const remaining = deadline - Date.now();
+    if (!Number.isFinite(remaining) || remaining <= 0) throw new Error("production probe deadline exceeded");
+    const args = ["-C", gitRoot, "show", `${sha}:${relative}`];
+    return execFileSync(process.env.GIT_BIN || "git", process.env.GIT_SCRIPT ? [process.env.GIT_SCRIPT, ...args] : args, {
+      encoding: null, maxBuffer: 64 * 1024 * 1024, timeout: Math.max(1, Math.min(30_000, Math.ceil(remaining))), stdio: ["ignore", "pipe", "pipe"],
+    });
   } catch (error) {
     const failure = new Error(`Git tree path unavailable: ${relative}`);
     failure.code = error.status;
@@ -32,11 +39,7 @@ function gitBytes(sha, relative, gitRoot = process.cwd()) {
 }
 
 function activeReposFromPage(page) {
-  const matches = [...page.matchAll(/(?:^|\n)const REPOS = (\[[^\n]+\]);/g)];
-  if (matches.length !== 1) throw new Error("invalid page repository region");
-  const repos = JSON.parse(matches[0][1]);
-  if (!Array.isArray(repos)) throw new Error("invalid page repository region");
-  return repos;
+  return parseEmbeddedRepos(page, "published page REPOS");
 }
 
 function exactKeys(value, keys) {
@@ -147,21 +150,26 @@ function validateChangesAtom(xml, latest) {
   validateAtomHeader(xml, { kind: "changes", generatedAt: latest.generatedAt, snapshotId: latest.snapshotId, statsDate: latest.statsDate });
   const entries = atomEntries(xml);
   const ids = new Set();
+  const identities = new Set();
+  const normalized = [];
   for (const entry of entries) {
     const id = oneMatch(entry, /<id>([^<]+)<\/id>/g, "change Atom id");
     const title = oneMatch(entry, /<title>([^<]+)<\/title>/g, "change Atom title");
     const updated = oneMatch(entry, /<updated>([^<]+)<\/updated>/g, "change Atom timestamp");
     const link = oneMatch(entry, /<link rel="alternate" type="text\/html" href="([^"]+)" \/>/g, "change Atom link");
     const status = oneMatch(entry, /<category term="(new|reentered)" \/>/g, "change Atom category");
-    const slug = link.replace(/^https:\/\/github\.com\//, "");
+    const slug = /^https:\/\/github\.com\/([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)$/.exec(link)?.[1];
     if (ids.has(id) || !canonicalUtc(updated) || Date.parse(updated) > Date.parse(latest.generatedAt)
+        || !slug || identities.has(`${slug.toLowerCase()}\0${status}`)
         || title !== `${slug} ${status === "new" ? "신규" : "재진입"}`
         || id !== `https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml#${encodeURIComponent(`${updated}|${status}|${slug.toLowerCase()}`)}`) {
       throw new Error("change Atom entry provenance mismatch");
     }
     ids.add(id);
+    identities.add(`${slug.toLowerCase()}\0${status}`);
+    normalized.push({ slug: slug.toLowerCase(), status });
   }
-  return entries;
+  return normalized;
 }
 
 function normalizeSlugList(values) {
@@ -181,7 +189,7 @@ async function verifyVersion1Payload({ baseUrl, manifest, manifestBytes, gitRoot
   const page = bodies.get("index.html").toString("utf8");
   const latest = parseJsonStrict(bodies.get("data/latest.json"), "latest JSON");
   const membership = parseJsonStrict(bodies.get("data/membership-status.json"), "membership JSON");
-  const sources = parseJsonStrict(gitBytes(manifest.sourceSha, "data/translation-sources.json", gitRoot), "translation sources");
+  const sources = parseJsonStrict(gitBytes(manifest.sourceSha, "data/translation-sources.json", gitRoot, deadline), "translation sources");
   const expectedPaths = expectedVersion1Paths(latest, sources);
   if (Object.keys(manifest.files).sort().join("\0") !== expectedPaths.join("\0")) throw new Error("manifest contains missing or stale extra artifact paths");
   if (!exactKeys(latest, ["snapshotId", "generatedAt", "statsDate", "count", "repos"]) || latest.snapshotId !== manifest.snapshotId
@@ -194,9 +202,24 @@ async function verifyVersion1Payload({ baseUrl, manifest, manifestBytes, gitRoot
       || membership.generatedAt !== latest.generatedAt || membership.statsDate !== latest.statsDate || typeof membership.baseline !== "boolean"
       || !Array.isArray(membership.current) || !Array.isArray(membership.exited)) throw new Error("membership run identity mismatch");
   const allowedStatuses = membership.baseline ? ["baseline"] : ["new", "reentered", "stayed"];
-  for (const item of membership.current) if (!exactKeys(item, ["slug", "status"]) || !allowedStatuses.includes(item.status)) throw new Error("invalid current membership entry");
-  for (const item of membership.exited) if (!exactKeys(item, ["slug", "lastSeenAt", "exitedAt"]) || !canonicalUtc(item.lastSeenAt)
-      || Date.parse(item.lastSeenAt) > Date.parse(latest.generatedAt) || item.exitedAt !== latest.generatedAt) throw new Error("invalid exited membership entry");
+  const currentIdentities = new Set();
+  for (const item of membership.current) {
+    const folded = item?.slug?.toLowerCase();
+    if (!exactKeys(item, ["slug", "status"]) || !SLUG_RE.test(item.slug) || !allowedStatuses.includes(item.status) || currentIdentities.has(folded)) {
+      throw new Error("invalid or duplicate current membership entry");
+    }
+    currentIdentities.add(folded);
+  }
+  const exitedIdentities = new Set();
+  for (const item of membership.exited) {
+    const folded = item?.slug?.toLowerCase();
+    if (!exactKeys(item, ["slug", "lastSeenAt", "exitedAt"]) || !SLUG_RE.test(item.slug) || exitedIdentities.has(folded)
+        || currentIdentities.has(folded) || !canonicalUtc(item.lastSeenAt)
+        || Date.parse(item.lastSeenAt) > Date.parse(latest.generatedAt) || item.exitedAt !== latest.generatedAt) {
+      throw new Error("invalid, duplicate, or overlapping exited membership entry");
+    }
+    exitedIdentities.add(folded);
+  }
   const membershipSlugs = membership.current.map(repo => repo.slug);
   const currentEntries = validateCurrentAtom(bodies.get("feed.xml").toString("utf8"), latest);
   const feedSlugs = atomSlugs(bodies.get("feed.xml").toString("utf8"));
@@ -205,8 +228,11 @@ async function verifyVersion1Payload({ baseUrl, manifest, manifestBytes, gitRoot
     if (normalizeSlugList(slugs).join("\0") !== expectedSlugs.join("\0")) throw new Error(`${label} active repository count/identity mismatch`);
   }
   const changes = validateChangesAtom(bodies.get("changes.xml").toString("utf8"), latest);
-  const expectedChanges = membership.current.filter(repo => repo.status === "new" || repo.status === "reentered").length;
-  if (changes.length !== expectedChanges) throw new Error("applicable change count mismatch");
+  const expectedChanges = membership.current
+    .filter(repo => repo.status === "new" || repo.status === "reentered")
+    .map(repo => ({ slug: repo.slug.toLowerCase(), status: repo.status }));
+  const identity = rows => rows.map(row => `${row.slug}\0${row.status}`).sort().join("\n");
+  if (identity(changes) !== identity(expectedChanges)) throw new Error("change Atom and membership exact multiset mismatch");
 
   const sourcesByLower = new Map(Object.entries(sources.sources).map(([slug, source]) => [slug.toLowerCase(), source]));
   for (const slug of latestSlugs) {
@@ -221,29 +247,29 @@ async function verifyVersion1Payload({ baseUrl, manifest, manifestBytes, gitRoot
   return { sourceSha: manifest.sourceSha, snapshotId: manifest.snapshotId, manifestSha256: hash(manifestBytes), files: Object.keys(manifest.files).length };
 }
 
-function legacyPaths(sha, gitRoot) {
-  const page = gitBytes(sha, "index.html", gitRoot).toString("utf8");
+function legacyPaths(sha, gitRoot, deadline) {
+  const page = gitBytes(sha, "index.html", gitRoot, deadline).toString("utf8");
   const paths = [];
   for (const relative of LEGACY_BASE_PATHS) {
-    try { gitBytes(sha, relative, gitRoot); paths.push(relative); } catch { /* paths introduced later are absent */ }
+    try { gitBytes(sha, relative, gitRoot, deadline); paths.push(relative); } catch { /* paths introduced later are absent */ }
   }
   for (const repo of activeReposFromPage(page)) paths.push(`readmes/${repo.slug.replaceAll("/", "__")}.md`);
   return paths.sort();
 }
 
 async function verifyLegacy({ baseUrl, sourceSha, manifest = null, gitRoot, deadline }) {
-  const paths = legacyPaths(sourceSha, gitRoot);
+  const paths = legacyPaths(sourceSha, gitRoot, deadline);
   if (manifest && Object.keys(manifest.files).sort().join("\0") !== paths.join("\0")) throw new Error("legacy manifest allowlist mismatch");
   for (const relative of paths) {
-    const expected = gitBytes(sourceSha, relative, gitRoot);
+    const expected = gitBytes(sourceSha, relative, gitRoot, deadline);
     const { bytes } = await fetchBytes(withProbe(baseUrl, relative, null), { deadline });
     if (hash(bytes) !== hash(expected) || (manifest && manifest.files[relative] !== hash(expected))) throw new Error(`legacy file mismatch: ${relative}`);
   }
   return { sourceSha, snapshotId: null, files: paths.length };
 }
 
-export async function probeProduction({ baseUrl, sourceSha = null, snapshotId = null, bootstrapPreflightSha = null, legacyRecoverySha = null, gitRoot = process.cwd() }) {
-  const deadline = Date.now() + 120_000;
+export async function probeProduction({ baseUrl, sourceSha = null, snapshotId = null, bootstrapPreflightSha = null, legacyRecoverySha = null, gitRoot = process.cwd(), deadline = Date.now() + 120_000 }) {
+  if (!Number.isFinite(deadline) || deadline <= Date.now()) throw new Error("production probe deadline exceeded");
   const manifestUrl = withProbe(baseUrl, "deployment-manifest.json", snapshotId);
   if (bootstrapPreflightSha) {
     if (!SHA_RE.test(bootstrapPreflightSha)) throw new Error("invalid bootstrap preflight SHA");

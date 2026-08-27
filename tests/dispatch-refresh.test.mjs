@@ -84,7 +84,7 @@ function tar(entries, { nonzeroTrailer = false } = {}) {
   return Buffer.concat([...blocks, trailer]);
 }
 
-function zip(entries) {
+function zip(entries, { mutateLocalHeader = null } = {}) {
   const locals = [];
   const centrals = [];
   let offset = 0;
@@ -95,6 +95,7 @@ function zip(entries) {
     const local = Buffer.alloc(30);
     local.writeUInt32LE(0x04034b50, 0); local.writeUInt16LE(20, 4); local.writeUInt16LE(0x800, 6);
     local.writeUInt32LE(crc, 14); local.writeUInt32LE(payload.length, 18); local.writeUInt32LE(payload.length, 22); local.writeUInt16LE(nameBytes.length, 26);
+    if (mutateLocalHeader) mutateLocalHeader(local);
     locals.push(local, nameBytes, payload);
     const central = Buffer.alloc(46);
     central.writeUInt32LE(0x02014b50, 0); central.writeUInt16LE(0x0314, 4); central.writeUInt16LE(20, 6); central.writeUInt16LE(0x800, 8);
@@ -122,6 +123,14 @@ test("raw artifact reader binds one outer ZIP to one exact root manifest and fil
   assert.throws(() => readCandidateManifestFromArchive(archive({ extraTar: [{ name: "sidecar.tmp", body: "x" }] }).bytes), /unexpected/i);
   assert.throws(() => readCandidateManifestFromArchive(archive({ nonzeroTrailer: true }).bytes), /trailing|terminator/i);
   assert.throws(() => readCandidateManifestFromArchive(archive({ extraZip: [["extra", Buffer.from("x")]] }).bytes), /exactly one/i);
+  assert.throws(() => readCandidateManifestFromArchive(zip([["artifact.tar", tar([
+    { name: "deployment-manifest.json", body: valid.manifest },
+    { name: "index.html", body: "<html></html>\n" },
+  ])]], { mutateLocalHeader: local => local.writeUInt32LE(1, 18) })), /local.*size|ZIP local/i);
+  assert.throws(() => readCandidateManifestFromArchive(archive({ extraTar: [{ name: "unused/", type: "5" }] }).bytes), /directory|prefix/i);
+  assert.throws(() => readCandidateManifestFromArchive(archive({ extraTar: [{ name: "./", type: "5" }, { name: ".", type: "5" }] }).bytes), /duplicate/i);
+  assert.throws(() => readCandidateManifestFromArchive(archive({ extraTar: [{ name: "data", body: "x" }, { name: "data/child", body: "y" }] }).bytes), /conflict/i);
+  assert.throws(() => readCandidateManifestFromArchive(archive({ extraTar: [{ name: "data/", type: "5", body: "x" }] }).bytes), /directory.*size/i);
   const duplicate = Buffer.from(`{"version":1,"version":1,"sourceSha":"${"b".repeat(40)}","snapshotId":"20260826100700-0123456789abcdef","files":{}}`);
   assert.throws(() => readCandidateManifestFromArchive(archive({ manifestBytes: duplicate }).bytes), /duplicate key/i);
 });
@@ -140,7 +149,11 @@ test("dispatch CLI assembles fake Git, gh run selection, raw archive, and exact 
 const args = process.argv.slice(2);
 if (args[0] === "run" && args[1] === "list") {
   const count = Number(readFileSync(process.env.COUNT_PATH, "utf8")); writeFileSync(process.env.COUNT_PATH, String(count + 1));
-  process.stdout.write(JSON.stringify(count === 0 ? [] : [{databaseId:11,headSha:"${sha}",event:"workflow_dispatch",status:"completed",conclusion:"success",createdAt:"2026-08-26T10:07:00Z",url:"https://github.com/owner/repo/actions/runs/11"}]));
+  const pending = [
+    {databaseId:8,headSha:"${sha}",event:"workflow_dispatch",status:"queued",conclusion:null,createdAt:"2026-08-26T10:05:00Z",url:"https://github.com/owner/repo/actions/runs/8"},
+    {databaseId:9,headSha:"${sha}",event:"workflow_dispatch",status:"in_progress",conclusion:"",createdAt:"2026-08-26T10:06:00Z",url:"https://github.com/owner/repo/actions/runs/9"}
+  ];
+  process.stdout.write(JSON.stringify(count === 0 ? pending : [...pending,{databaseId:11,headSha:"${sha}",event:"workflow_dispatch",status:"completed",conclusion:"success",createdAt:"2026-08-26T10:07:00Z",url:"https://github.com/owner/repo/actions/runs/11"}]));
 } else if (args[0] === "workflow" && args[1] === "run") process.stdout.write("ok");
 else if (args[0] === "run" && args[1] === "watch") process.stdout.write("ok");
 else if (args[0] === "api" && args[1].includes("/runs/11/artifacts")) process.stdout.write(JSON.stringify({total_count:1,artifacts:[{id:77,name:"github-pages-candidate-11",expired:false,size_in_bytes:${raw.bytes.length}}]}));
@@ -163,4 +176,26 @@ else process.exit(92);
   assert.equal(receipt.headSha, sha);
   assert.equal(receipt.sourceSha, "b".repeat(40));
   assert.equal(await readFile(countPath, "utf8"), "2");
+});
+
+test("dispatch polling gives nested run listing only the shared remaining budget", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "dispatch-deadline-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const countPath = join(directory, "count");
+  const completedPath = join(directory, "completed");
+  const ghScript = join(directory, "fake-gh.mjs");
+  const gitScript = join(directory, "fake-git.mjs");
+  await writeFile(countPath, "0");
+  await writeFile(ghScript, `import { readFileSync,writeFileSync } from "node:fs"; const args=process.argv.slice(2);
+if(args[0]==="run"&&args[1]==="list"){const count=Number(readFileSync(process.env.COUNT_PATH,"utf8"));writeFileSync(process.env.COUNT_PATH,String(count+1));if(count>0){Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,2000);writeFileSync(process.env.COMPLETED_PATH,"completed");}process.stdout.write("[]");}
+else if(args[0]==="workflow"&&args[1]==="run") process.stdout.write("ok"); else process.exit(91);`);
+  await writeFile(gitScript, `const args=process.argv.slice(2);if(args[0]==="fetch")process.exit(0);if(args[0]==="rev-parse")process.stdout.write("${sha}\\n");else process.exit(92);`);
+  const executed = spawnSync(process.execPath, [fileURLToPath(new URL("../scripts/dispatch-refresh.mjs", import.meta.url))], {
+    encoding: "utf8",
+    env: { ...process.env, GH_BIN: process.execPath, GH_SCRIPT: ghScript, GIT_BIN: process.execPath, GIT_SCRIPT: gitScript, COUNT_PATH: countPath, COMPLETED_PATH: completedPath,
+      DISPATCH_TIMEOUT_MS: "100", DISPATCH_POLL_INTERVAL_MS: "0", DISPATCH_OVERALL_TIMEOUT_MS: "5000" },
+  });
+  assert.notEqual(executed.status, 0);
+  await assert.rejects(readFile(completedPath), "the nested run list must be killed before its delayed completion");
+  assert.match(executed.stderr, /deadline|command failed/i);
 });

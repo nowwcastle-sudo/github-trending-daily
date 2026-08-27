@@ -10,6 +10,8 @@ const SHA_RE = /^[a-f0-9]{40}$/;
 const SHA256_RE = /^[a-f0-9]{64}$/;
 const SNAPSHOT_RE = /^[0-9]{14}-[a-f0-9]{16}$/;
 const RECEIPT_KEYS = ["runId", "headSha", "sourceSha", "snapshotId", "manifestSha256", "url"];
+const RUN_STATUSES = ["queued", "in_progress", "completed", "requested", "waiting", "pending"];
+const TERMINAL_CONCLUSIONS = ["success", "failure", "cancelled", "skipped", "timed_out", "action_required", "neutral", "stale"];
 const sleep = delay => new Promise(resolve => setTimeout(resolve, delay));
 
 function exactKeys(value, keys) {
@@ -39,9 +41,23 @@ export function selectNewDispatchRun(beforeRuns, afterRuns, expectedHeadSha) {
   return matches[0];
 }
 
+export function validRunStatusConclusion(status, conclusion) {
+  if (!RUN_STATUSES.includes(status)) return false;
+  return status === "completed" ? TERMINAL_CONCLUSIONS.includes(conclusion) : conclusion === null || conclusion === "";
+}
+
+function boundedTimeout(deadline, cap, label) {
+  const remaining = deadline - Date.now();
+  if (!Number.isFinite(remaining) || remaining <= 0) throw new Error(`${label} deadline exceeded`);
+  return Math.max(1, Math.min(cap, Math.ceil(remaining)));
+}
+
 function command(binary, args, options = {}) {
   try {
-    return execFileSync(binary, args, { encoding: options.encoding ?? "utf8", maxBuffer: options.maxBuffer ?? 64 * 1024 * 1024, timeout: options.timeout ?? 30_000, stdio: ["ignore", "pipe", "pipe"] });
+    const timeout = options.deadline === undefined
+      ? options.timeout ?? 30_000
+      : boundedTimeout(options.deadline, options.timeout ?? 30_000, `${binary} command`);
+    return execFileSync(binary, args, { encoding: options.encoding ?? "utf8", maxBuffer: options.maxBuffer ?? 64 * 1024 * 1024, timeout, stdio: ["ignore", "pipe", "pipe"] });
   } catch (error) {
     throw new Error(error?.stderr?.toString().trim() || `${binary} command failed`);
   }
@@ -51,19 +67,18 @@ function gh(args, options) {
   return command(process.env.GH_BIN || "gh", process.env.GH_SCRIPT ? [process.env.GH_SCRIPT, ...args] : args, options);
 }
 
-function git(args) {
-  return command(process.env.GIT_BIN || "git", process.env.GIT_SCRIPT ? [process.env.GIT_SCRIPT, ...args] : args).trim();
+function git(args, options) {
+  return command(process.env.GIT_BIN || "git", process.env.GIT_SCRIPT ? [process.env.GIT_SCRIPT, ...args] : args, options).trim();
 }
 
-function listRuns() {
-  const value = parseJsonStrict(Buffer.from(gh(["run", "list", "--workflow", "daily-refresh.yml", "--event", "workflow_dispatch", "--limit", "100", "--json", "databaseId,headSha,event,status,conclusion,createdAt,url"])), "GitHub workflow run list", 4 * 1024 * 1024);
+function listRuns(deadline) {
+  const value = parseJsonStrict(Buffer.from(gh(["run", "list", "--workflow", "daily-refresh.yml", "--event", "workflow_dispatch", "--limit", "100", "--json", "databaseId,headSha,event,status,conclusion,createdAt,url"], { deadline })), "GitHub workflow run list", 4 * 1024 * 1024);
   if (!Array.isArray(value) || value.length > 100) throw new Error("invalid workflow run list");
   for (const run of value) {
     let url;
     try { url = new URL(run?.url); } catch { throw new Error("invalid workflow run row"); }
     if (!Number.isSafeInteger(run?.databaseId) || run.databaseId <= 0 || !SHA_RE.test(run.headSha) || run.event !== "workflow_dispatch"
-        || !["queued", "in_progress", "completed", "requested", "waiting", "pending"].includes(run.status)
-        || ![null, "success", "failure", "cancelled", "skipped", "timed_out", "action_required", "neutral", "stale"].includes(run.conclusion)
+        || !validRunStatusConclusion(run.status, run.conclusion)
         || typeof run.createdAt !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(run.createdAt) || !Number.isFinite(Date.parse(run.createdAt))
         || url.protocol !== "https:" || url.hostname !== "github.com" || !/^\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/actions\/runs\/[1-9]\d*$/.test(url.pathname)) throw new Error("invalid workflow run row");
   }
@@ -125,6 +140,9 @@ function pagesTarFromZip(bytes) {
     throw new Error("invalid artifact ZIP entry");
   }
   if (bytes.readUInt32LE(0) !== 0x04034b50 || bytes.readUInt16LE(6) !== flags || bytes.readUInt16LE(8) !== method) throw new Error("invalid artifact ZIP local header");
+  const localCrc = bytes.readUInt32LE(14);
+  const localCompressedSize = bytes.readUInt32LE(18);
+  const localSize = bytes.readUInt32LE(22);
   const localNameLength = bytes.readUInt16LE(26);
   const localExtraLength = bytes.readUInt16LE(28);
   const localName = bytes.subarray(30, 30 + localNameLength).toString("utf8");
@@ -133,6 +151,9 @@ function pagesTarFromZip(bytes) {
   if (localExtraLength > 4096 || localName !== name || dataEnd > centralOffset) throw new Error("invalid artifact ZIP local entry");
   const descriptor = bytes.subarray(dataEnd, centralOffset);
   if ((flags & 0x8) === 0 ? descriptor.length !== 0 : ![12, 16].includes(descriptor.length)) throw new Error("invalid artifact ZIP data descriptor");
+  if ((flags & 0x8) === 0 && (localCrc !== expectedCrc || localCompressedSize !== compressedSize || localSize !== size)) {
+    throw new Error("artifact ZIP local checksum or size differs from central directory");
+  }
   if (flags & 0x8) {
     const start = descriptor.length === 16 ? 4 : 0;
     if ((descriptor.length === 16 && descriptor.readUInt32LE(0) !== 0x08074b50) || descriptor.readUInt32LE(start) !== expectedCrc
@@ -149,7 +170,9 @@ function filesFromTar(bytes) {
   let offset = 0;
   let zeroBlocks = 0;
   const files = new Map();
+  const directories = new Set();
   const names = new Set();
+  const records = new Map();
   while (offset + 512 <= bytes.length) {
     const header = bytes.subarray(offset, offset + 512);
     if (header.every(byte => byte === 0)) {
@@ -173,18 +196,28 @@ function filesFromTar(bytes) {
     if (!Number.isSafeInteger(size) || size < 0 || bodyEnd > bytes.length) throw new Error("truncated candidate artifact tar");
     if (type === "1" || type === "2") throw new Error("artifact link rejected");
     if (type !== "0" && type !== "5") throw new Error("unsupported candidate artifact tar entry");
+    if (type === "5" && size !== 0) throw new Error("artifact directory size must be zero");
     const folded = name.toLowerCase();
-    if (!rootDirectory && names.has(folded)) throw new Error("case-fold duplicate artifact entry");
-    if (!rootDirectory) names.add(folded);
+    if (names.has(folded)) throw new Error("case-fold duplicate artifact entry");
+    names.add(folded);
+    if (!rootDirectory) {
+      const parts = folded.split("/");
+      for (let index = 1; index < parts.length; index += 1) {
+        if (records.get(parts.slice(0, index).join("/")) === "file") throw new Error("artifact directory/file conflict");
+      }
+      if (type === "0" && [...records.keys()].some(existing => existing.startsWith(`${folded}/`))) throw new Error("artifact directory/file conflict");
+      records.set(folded, type === "0" ? "file" : "directory");
+    }
     if (type === "0") files.set(name, Buffer.from(bytes.subarray(bodyStart, bodyEnd)));
+    else directories.add(name);
     offset = bodyStart + Math.ceil(size / 512) * 512;
   }
   if (zeroBlocks !== 2 || bytes.subarray(offset).some(byte => byte !== 0)) throw new Error("candidate artifact tar has nonzero trailing data");
-  return files;
+  return { files, directories };
 }
 
 export function readCandidateManifestFromArchive(zipBytes) {
-  const files = filesFromTar(pagesTarFromZip(zipBytes));
+  const { files, directories } = filesFromTar(pagesTarFromZip(zipBytes));
   const manifestBytes = files.get("deployment-manifest.json");
   if (!manifestBytes || [...files.keys()].some(name => name.toLowerCase() === "deployment-manifest.json" && name !== "deployment-manifest.json")) {
     throw new Error("artifact must contain exactly one root deployment-manifest.json");
@@ -192,25 +225,31 @@ export function readCandidateManifestFromArchive(zipBytes) {
   const manifest = validateDeploymentManifest(parseJsonStrict(manifestBytes, "deployment manifest", 1024 * 1024));
   const expected = ["deployment-manifest.json", ...Object.keys(manifest.files)].sort();
   if ([...files.keys()].sort().join("\0") !== expected.join("\0")) throw new Error("artifact contains missing or unexpected files");
+  const permittedDirectories = new Set(["."]);
+  for (const relative of expected) {
+    const parts = relative.split("/");
+    for (let index = 1; index < parts.length; index += 1) permittedDirectories.add(parts.slice(0, index).join("/"));
+  }
+  for (const directory of directories) if (!permittedDirectories.has(directory)) throw new Error("artifact directory is not an exact permitted prefix");
   for (const [name, expectedHash] of Object.entries(manifest.files)) {
     if (createHash("sha256").update(files.get(name)).digest("hex") !== expectedHash) throw new Error(`artifact file hash mismatch: ${name}`);
   }
   return manifestBytes;
 }
 
-function repositorySlug() {
+function repositorySlug(deadline) {
   const configured = process.env.GITHUB_REPOSITORY;
   if (configured && /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(configured)) return configured;
-  const remote = git(["remote", "get-url", "origin"]);
+  const remote = git(["remote", "get-url", "origin"], { deadline });
   const match = /github\.com(?::|\/)([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+?)(?:\.git)?$/.exec(remote);
   if (!match) throw new Error("origin is not a canonical GitHub repository URL");
   return match[1];
 }
 
-export function downloadCandidateManifest(runId) {
+export function downloadCandidateManifest(runId, { deadline = Date.now() + 90_000 } = {}) {
   if (!Number.isSafeInteger(Number(runId)) || Number(runId) <= 0) throw new Error("invalid artifact run id");
-  const repository = repositorySlug();
-  const listBytes = gh(["api", `repos/${repository}/actions/runs/${runId}/artifacts?per_page=100`], { encoding: "buffer", maxBuffer: 4 * 1024 * 1024, timeout: 30_000 });
+  const repository = repositorySlug(deadline);
+  const listBytes = gh(["api", `repos/${repository}/actions/runs/${runId}/artifacts?per_page=100`], { encoding: "buffer", maxBuffer: 4 * 1024 * 1024, timeout: 30_000, deadline });
   const response = parseJsonStrict(listBytes, "GitHub artifact list", 4 * 1024 * 1024);
   if (!response || typeof response !== "object" || !Number.isSafeInteger(response.total_count) || response.total_count < 0 || !Array.isArray(response.artifacts)
       || response.artifacts.length > 100 || response.total_count !== response.artifacts.length) {
@@ -228,7 +267,7 @@ export function downloadCandidateManifest(runId) {
       || artifact.size_in_bytes <= 0 || artifact.size_in_bytes > 128 * 1024 * 1024) {
     throw new Error("invalid candidate artifact metadata");
   }
-  const zipBytes = gh(["api", `repos/${repository}/actions/artifacts/${artifact.id}/zip`], { encoding: "buffer", maxBuffer: 128 * 1024 * 1024, timeout: 60_000 });
+  const zipBytes = gh(["api", `repos/${repository}/actions/artifacts/${artifact.id}/zip`], { encoding: "buffer", maxBuffer: 128 * 1024 * 1024, timeout: 60_000, deadline });
   return readCandidateManifestFromArchive(zipBytes);
 }
 
@@ -236,19 +275,22 @@ export async function dispatchRefresh({ wait = false, bootstrapSourceSha = null 
   if (bootstrapSourceSha !== null && !SHA_RE.test(bootstrapSourceSha)) throw new Error("invalid bootstrap source SHA");
   const timeoutMs = Number(process.env.DISPATCH_TIMEOUT_MS ?? 60_000);
   const intervalMs = Number(process.env.DISPATCH_POLL_INTERVAL_MS ?? 2_000);
+  const overallTimeoutMs = Number(process.env.DISPATCH_OVERALL_TIMEOUT_MS ?? 95 * 60_000);
   if (!Number.isFinite(timeoutMs) || timeoutMs <= 0 || timeoutMs > 60_000 || !Number.isFinite(intervalMs) || intervalMs < 0 || intervalMs > 5_000) throw new Error("invalid dispatch polling configuration");
-  const before = listRuns();
-  git(["fetch", "origin", "main"]);
-  const expectedHeadSha = git(["rev-parse", "refs/remotes/origin/main"]);
+  if (!Number.isFinite(overallTimeoutMs) || overallTimeoutMs <= 0 || overallTimeoutMs > 95 * 60_000) throw new Error("invalid dispatch overall timeout");
+  const operationDeadline = Date.now() + overallTimeoutMs;
+  const before = listRuns(operationDeadline);
+  git(["fetch", "origin", "main"], { deadline: operationDeadline });
+  const expectedHeadSha = git(["rev-parse", "refs/remotes/origin/main"], { deadline: operationDeadline });
   if (!SHA_RE.test(expectedHeadSha)) throw new Error("origin/main is not a 40-hex commit");
   const dispatchArgs = ["workflow", "run", "daily-refresh.yml", "--ref", "main"];
   if (bootstrapSourceSha) dispatchArgs.push("-f", `bootstrap-source-sha=${bootstrapSourceSha}`);
-  gh(dispatchArgs);
+  gh(dispatchArgs, { deadline: operationDeadline });
 
-  const deadline = Date.now() + timeoutMs;
+  const deadline = Math.min(operationDeadline, Date.now() + timeoutMs);
   let selected;
   do {
-    const after = listRuns();
+    const after = listRuns(deadline);
     const oldIds = new Set(before.map(run => run.databaseId));
     const matches = after.filter(run => !oldIds.has(run.databaseId) && run.event === "workflow_dispatch" && run.headSha === expectedHeadSha);
     if (matches.length > 1) throw new Error("multiple matching new workflow-dispatch runs");
@@ -259,8 +301,8 @@ export async function dispatchRefresh({ wait = false, bootstrapSourceSha = null 
   if (!selected) throw new Error("zero matching new workflow-dispatch runs after 60 seconds");
   if (!wait) return { runId: selected.databaseId, headSha: expectedHeadSha, url: selected.url };
 
-  gh(["run", "watch", String(selected.databaseId), "--exit-status"], { timeout: 95 * 60_000 });
-  const manifestBytes = downloadCandidateManifest(selected.databaseId);
+  gh(["run", "watch", String(selected.databaseId), "--exit-status"], { timeout: 95 * 60_000, deadline: operationDeadline });
+  const manifestBytes = downloadCandidateManifest(selected.databaseId, { deadline: operationDeadline });
   const manifest = validateDeploymentManifest(parseJsonStrict(manifestBytes, "deployment manifest", 1024 * 1024));
   return validateDispatchReceipt({
     runId: selected.databaseId,
