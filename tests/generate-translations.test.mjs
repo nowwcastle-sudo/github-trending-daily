@@ -319,6 +319,45 @@ test("shared reference parser byte-protects exact supported definition forms", a
   }
 });
 
+test("shared reference parser protects continuation destinations and titles", async () => {
+  const definitions = [
+    { value: "[docs]:\n  https://example.com/reference", form: "destination-continuation" },
+    { value: "[docs]:\n  https://example.com/reference\n  \"Continued `code` title\"", form: "destination-title-continuation" },
+  ];
+  for (const definition of definitions) {
+    const parsed = parseReferenceDefinitions(definition.value);
+    assert.equal(parsed.length, 1, definition.value);
+    assert.deepEqual(
+      { start: parsed[0].start, end: parsed[0].end, raw: parsed[0].raw, form: parsed[0].form, destination: parsed[0].destination },
+      { start: 0, end: definition.value.length, raw: definition.value, form: definition.form, destination: "https://example.com/reference" },
+    );
+    const fingerprint = fingerprintMarkdown(definition.value);
+    assert.deepEqual(fingerprint.link_destinations, ["https://example.com/reference"]);
+    assert.deepEqual(fingerprint.reference_definitions, [{ form: definition.form, raw: definition.value }]);
+    const translated = await callMarkdownTranslation({ ...item, markdown: definition.value }, "x", async (_url, init) => {
+      assert.equal(JSON.parse(init.body).messages[0].content.includes("example.com/reference"), false);
+      return translationReplyFromRequest(init, source => source);
+    });
+    assert.equal(translated, definition.value);
+  }
+
+  await assert.rejects(
+    callMarkdownTranslation({ ...item, markdown: definitions[0].value }, "x", async (_url, init) => {
+      const envelope = await translationReplyFromRequest(init, source => source).json();
+      const parsed = JSON.parse(envelope.content[0].text);
+      parsed.translated_markdown = parsed.translated_markdown.replace(/⟦GH_TRANSLATE_[A-F0-9]{16}_\d{6}⟧/, "https://evil.invalid/reference");
+      return message(JSON.stringify(parsed));
+    }),
+    /sentinel|destination|fingerprint|reconstruct|prose/i,
+  );
+
+  const unsupported = "[docs]:\n    https://example.com/reference";
+  assert.throws(() => parseReferenceDefinitions(unsupported), /unsupported|continuation|definition/i);
+  let calls = 0;
+  await assert.rejects(callMarkdownTranslation({ ...item, markdown: unsupported }, "x", async () => { calls += 1; }), /unsupported|continuation|definition/i);
+  assert.equal(calls, 0);
+});
+
 test("reference near-match remains prose-bound and must fully translate", async () => {
   const source = "[Note]: This is ordinary prose that should be translated for readers.";
   assert.deepEqual(parseReferenceDefinitions(source), []);
@@ -333,6 +372,44 @@ test("reference near-match remains prose-bound and must fully translate", async 
   assert.equal(
     await callMarkdownTranslation({ ...item, markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, korean))),
     korean,
+  );
+});
+
+test("retained-source guard allows technical names but rejects English prose", async () => {
+  for (const [source, korean] of [
+    ["Python provides a reliable runtime for automation teams.", "Python은 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다."],
+    ["Docker provides a reliable runtime for automation teams.", "Docker는 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다."],
+    ["Linux provides a reliable runtime for automation teams.", "Linux는 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다."],
+    ["Kubernetes provides reliable orchestration for automation teams.", "Kubernetes는 자동화 팀에 신뢰할 수 있는 오케스트레이션을 제공합니다."],
+    ["Silver Falcon provides a reliable platform for automation teams.", "Silver Falcon은 자동화 팀에 신뢰할 수 있는 플랫폼을 제공합니다."],
+  ]) {
+    assert.equal(
+      await callMarkdownTranslation({ ...item, markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, korean))),
+      korean,
+      source,
+    );
+  }
+
+  const source = "This ordinary guide provides a reliable runtime for automation teams.";
+  for (const translated of [
+    "This 안내서는 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다.",
+    "ordinary 안내서는 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다.",
+    "이 안내서는 reliable runtime for automation teams를 제공합니다.",
+  ]) {
+    await assert.rejects(
+      callMarkdownTranslation({ ...item, markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, translated))),
+      /source|retains|ASCII|coverage|translated prose/i,
+      translated,
+    );
+  }
+
+  const pythonSource = "Python provides a reliable runtime for automation teams.";
+  await assert.rejects(
+    callMarkdownTranslation({ ...item, markdown: pythonSource }, "x", async (_url, init) => translationReplyFromRequest(
+      init,
+      value => value.replace(pythonSource, `${"Python ".repeat(20)}은 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다.`),
+    )),
+    /ASCII|ratio|translated prose/i,
   );
 });
 

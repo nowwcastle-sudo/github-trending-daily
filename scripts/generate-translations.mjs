@@ -487,18 +487,40 @@ export function parseReferenceDefinitions(value) {
     if (labelEnd < 0) continue;
     let cursor = labelEnd;
     while (cursor < line.text.length && /[ \t]/.test(line.text[cursor])) cursor += 1;
-    const destination = referenceDestination(line.text, cursor);
+    let destinationLine = line;
+    let destination = referenceDestination(destinationLine.text, cursor);
+    let form = "one-line";
+    let end = line.contentEnd;
+    let destinationContinued = false;
+    if (!destination && cursor === line.text.length && lineIndex + 1 < lines.length) {
+      const continuation = lines[lineIndex + 1];
+      const indent = continuation.text.match(/^ {1,3}(?=[^ ])/);
+      if (!indent) {
+        const candidate = continuation.text.trimStart();
+        if (referenceDestination(candidate, 0)) throw new Error("Reference definition has an unsupported destination continuation");
+        continue;
+      }
+      cursor = indent[0].length;
+      destination = referenceDestination(continuation.text, cursor);
+      if (!destination) continue;
+      destinationLine = continuation;
+      destinationContinued = true;
+      form = "destination-continuation";
+      end = continuation.contentEnd;
+      lineIndex += 1;
+    }
     if (!destination) continue;
     cursor = destination.end;
     const separatorStart = cursor;
-    while (cursor < line.text.length && /[ \t]/.test(line.text[cursor])) cursor += 1;
+    while (cursor < destinationLine.text.length && /[ \t]/.test(destinationLine.text[cursor])) cursor += 1;
     let title = null;
-    let end = line.contentEnd;
-    let form = "one-line";
-    if (cursor < line.text.length) {
+    if (cursor < destinationLine.text.length) {
       if (cursor === separatorStart) continue;
-      title = referenceTitle(line.text, cursor);
-      if (!title || line.text.slice(title.end).trim()) continue;
+      title = referenceTitle(destinationLine.text, cursor);
+      if (!title || destinationLine.text.slice(title.end).trim()) {
+        if (destinationContinued) throw new Error("Reference definition has an unsupported destination continuation");
+        continue;
+      }
     } else if (lineIndex + 1 < lines.length) {
       const continuation = lines[lineIndex + 1];
       const indent = continuation.text.match(/^ {1,3}(?=[^ ])/);
@@ -507,7 +529,7 @@ export function parseReferenceDefinitions(value) {
         if (candidate && !continuation.text.slice(candidate.end).trim()) {
           title = { ...candidate, raw: continuation.text.slice(candidate.start, candidate.end) };
           end = continuation.contentEnd;
-          form = "title-continuation";
+          form = destinationContinued ? "destination-title-continuation" : "title-continuation";
           lineIndex += 1;
         }
       }
@@ -748,6 +770,63 @@ function isIdentifierToken(token) {
   return /[A-Z]/.test(token.slice(1)) || /^[A-Z0-9_.+-]+$/.test(token);
 }
 
+const COMMON_RETAINED_PROSE_WORDS = new Set([
+  "a", "an", "and", "are", "as", "at", "be", "been", "being", "but", "by", "can", "command",
+  "create", "developers", "for", "from", "guide", "he", "her", "here", "hers", "him", "his", "if",
+  "in", "install", "is", "it", "its", "may", "must", "of", "on", "operators", "or", "ordinary", "our",
+  "package", "project", "provide", "provides", "read", "reliable", "run", "service", "she", "should", "that",
+  "the", "their", "them", "then", "there", "these", "they", "this", "those", "to", "use", "users", "was",
+  "we", "were", "with", "without", "would", "you", "your",
+]);
+
+function retainedSourceAnalysis(original, translated) {
+  const source = (original.match(/[A-Za-z]+/g) ?? []).map(raw => ({ raw, lower: raw.toLowerCase() }));
+  const output = (translated.match(/[A-Za-z]+/g) ?? []).map(raw => ({ raw, lower: raw.toLowerCase() }));
+  const outputWords = new Set(output.map(token => token.lower));
+  const retained = source.filter(token => outputWords.has(token.lower));
+  const allowedName = token => !COMMON_RETAINED_PROSE_WORDS.has(token.lower)
+    && (isIdentifierToken(token.raw) || /^[A-Z][A-Za-z0-9-]*$/.test(token.raw));
+  if (retained.some(token => COMMON_RETAINED_PROSE_WORDS.has(token.lower) || token.raw === token.lower)) {
+    return { rejected: true, allowedNameAscii: 0 };
+  }
+
+  let longest = 0;
+  let longestSourceEnd = -1;
+  let previous = new Array(output.length + 1).fill(0);
+  for (let sourceIndex = 0; sourceIndex < source.length; sourceIndex += 1) {
+    const current = new Array(output.length + 1).fill(0);
+    for (let outputIndex = 0; outputIndex < output.length; outputIndex += 1) {
+      if (source[sourceIndex].lower !== output[outputIndex].lower) continue;
+      current[outputIndex + 1] = previous[outputIndex] + 1;
+      if (current[outputIndex + 1] > longest) {
+        longest = current[outputIndex + 1];
+        longestSourceEnd = sourceIndex;
+      }
+    }
+    previous = current;
+  }
+  if (longest >= 2) {
+    const span = source.slice(longestSourceEnd - longest + 1, longestSourceEnd + 1);
+    if (!span.every(allowedName)) return { rejected: true, allowedNameAscii: 0 };
+  }
+  if ((retained.length >= 3 || retained.length / Math.max(source.length, 1) >= 0.35)
+      && !retained.every(allowedName)) {
+    return { rejected: true, allowedNameAscii: 0 };
+  }
+  const allowedNameCounts = new Map();
+  for (const token of retained.filter(allowedName)) {
+    allowedNameCounts.set(token.lower, (allowedNameCounts.get(token.lower) ?? 0) + 1);
+  }
+  let allowedNameAscii = 0;
+  for (const token of output) {
+    const remaining = allowedNameCounts.get(token.lower) ?? 0;
+    if (remaining < 1) continue;
+    allowedNameAscii += token.raw.length;
+    allowedNameCounts.set(token.lower, remaining - 1);
+  }
+  return { rejected: false, allowedNameAscii };
+}
+
 function editDistanceRatio(left, right) {
   const before = [...left.slice(0, 1024)];
   const after = [...right.slice(0, 1024)];
@@ -778,15 +857,11 @@ function assertTranslatedSegment(original, translated, applicable = isTranslatab
     }
     const beforeAscii = (original.match(/[A-Za-z]/g) ?? []).length;
     const afterAscii = (translated.match(/[A-Za-z]/g) ?? []).length;
-    if (afterAscii > Math.max(12, Math.floor(beforeAscii * 0.65))) {
+    const retained = retainedSourceAnalysis(original, translated);
+    if (retained.rejected) throw new Error("Translated prose retains meaningful source prose");
+    if (afterAscii - retained.allowedNameAscii > Math.max(12, Math.floor(beforeAscii * 0.65))) {
       throw new Error("Translated prose does not meaningfully reduce source ASCII");
     }
-    const sourceWordsLower = new Set((original.match(/[A-Za-z]+/g) ?? [])
-      .filter(token => token.length >= 4 && !isIdentifierToken(token))
-      .map(token => token.toLowerCase()));
-    const retainedSourceWord = (translated.match(/[A-Za-z]+/g) ?? [])
-      .some(token => sourceWordsLower.has(token.toLowerCase()));
-    if (retainedSourceWord) throw new Error("Translated prose retains a source word");
     const sourceWords = original.match(/[A-Za-z]+/g) ?? [];
     const translatedHangulSyllables = (translated.match(/[가-힣]/g) ?? []).length;
     const minimumCoverage = Math.min(18, sourceWords.length);
