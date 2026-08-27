@@ -26,7 +26,7 @@ const later = {
 
 test("exact expected production keeps the expected receipt", () => {
   assert.deepEqual(resolveEffectiveReceipt({ expected, production: expected, laterReceipts: [], isAncestor: () => true, originMain: expected.sourceSha }), { expectedRunId: 20, effectiveRunId: 20, receipt: expected });
-  assert.throws(() => resolveEffectiveReceipt({ expected, production: expected, laterReceipts: [], isAncestor: () => true, originMain: "f".repeat(40) }), /origin\/main/i);
+  assert.deepEqual(resolveEffectiveReceipt({ expected, production: expected, laterReceipts: [], isAncestor: () => true, originMain: "f".repeat(40) }), { expectedRunId: 20, effectiveRunId: 20, receipt: expected });
 });
 
 test("one later fast-forward receipt may replace the expected receipt", () => {
@@ -53,7 +53,7 @@ test("workflow receipt requires exact run identity and exact deploy/probe jobs",
     jobs: [
       { databaseId: 1, name: "Deploy candidate Pages artifact", status: "completed", conclusion: "success" },
       { databaseId: 2, name: "Probe production candidate", status: "completed", conclusion: "success" },
-      { databaseId: 3, name: "Queued unrelated job", status: "queued", conclusion: "" },
+      { databaseId: 3, name: "Skipped unrelated job", status: "completed", conclusion: "skipped" },
     ],
   };
   assert.equal(validateWorkflowRun(run, 20, { requireDispatchEvent: true }), run);
@@ -61,7 +61,8 @@ test("workflow receipt requires exact run identity and exact deploy/probe jobs",
   assert.throws(() => validateWorkflowRun({ ...run, jobs: run.jobs.map(job => ({ ...job, name: `renamed ${job.name}` })) }, 20), /exact successful job/i);
   assert.throws(() => validateWorkflowRun({ ...run, event: "schedule" }, 20, { requireDispatchEvent: true }), /invalid/i);
   assert.throws(() => validateWorkflowRun({ ...run, url: "https://example.test/actions/runs/20" }, 20), /invalid/i);
-  assert.throws(() => validateWorkflowRun({ ...run, jobs: run.jobs.map(job => job.databaseId === 3 ? { ...job, conclusion: "success" } : job) }, 20), /job schema/i);
+  assert.throws(() => validateWorkflowRun({ ...run, jobs: [...run.jobs, { databaseId: 4, name: "Queued unrelated job", status: "queued", conclusion: "" }] }, 20), /job schema/i);
+  assert.throws(() => validateWorkflowRun({ ...run, jobs: run.jobs.map(job => job.databaseId === 3 ? { ...job, status: "queued", conclusion: "success" } : job) }, 20), /job schema/i);
   assert.throws(() => validateWorkflowRun({ ...run, jobs: run.jobs.map(job => job.databaseId === 3 ? { ...job, status: "completed", conclusion: null } : job) }, 20), /job schema/i);
 });
 
@@ -99,17 +100,22 @@ test("assembled verifyRefreshChain binds expected, later run, origin and final p
   }), /origin\/main/i);
 });
 
-test("receipt discovery cannot reuse an origin ref fetched before a concurrent advance", async () => {
-  let remote = expected.sourceSha;
-  let cached = expected.sourceSha;
+test("later receipt discovery cannot reuse an origin ref fetched before a concurrent advance", async () => {
+  let remote = later.sourceSha;
+  let cached = later.sourceSha;
   const expectedWithTime = { ...expected, headSha: expected.sourceSha, createdAt: "2026-08-26T10:07:00Z" };
+  const laterWithTime = { ...later, headSha: later.sourceSha, createdAt: "2026-08-26T12:07:00Z" };
   await assert.rejects(verifyRefreshChain({
     baseUrl: "https://example.invalid/", expectedRunId: expected.runId, expectedSourceSha: expected.sourceSha,
     expectedSnapshotId: expected.snapshotId, expectedManifestSha256: expected.manifestSha256,
   }, {
-    productionReceipt: async () => { remote = later.sourceSha; return expected; },
-    receiptForRun: async () => expectedWithTime,
-    listSuccessfulRuns: () => [],
+    productionReceipt: async () => later,
+    receiptForRun: async runId => {
+      if (runId === expected.runId) return expectedWithTime;
+      remote = "f".repeat(40);
+      return laterWithTime;
+    },
+    listSuccessfulRuns: () => [{ databaseId: later.runId, createdAt: laterWithTime.createdAt }],
     fetchOrigin: () => { cached = remote; },
     originMain: () => cached,
     isAncestor: () => true,
@@ -316,8 +322,16 @@ test("verifier CLI assembles fake GitHub, fake Git, raw artifacts, fresh origin 
   assert.equal(JSON.parse(currentResult.stdout).effectiveRunId, 21);
 
   const advanced = await runVerifier(expectedDir, { artifact: expectedArtifact, runs: pending, views: { 20: run20 }, artifactByRun: { 20: expectedArtifact }, originAfter: later.sourceSha });
-  assert.notEqual(advanced.status, 0);
-  assert.match(advanced.stderr, /origin\/main/i);
+  assert.equal(advanced.status, 0, advanced.stderr);
+  assert.equal(JSON.parse(advanced.stdout).effectiveRunId, 20);
+
+  const laterAdvanced = await runVerifier(productionDir, { artifact: productionArtifact, expectedArtifact, runs: [...pending, run21], views: { 20: run20, 21: run21 }, artifactByRun: { 20: expectedArtifact, 21: productionArtifact }, originAfter: "f".repeat(40) });
+  assert.notEqual(laterAdvanced.status, 0);
+  assert.match(laterAdvanced.stderr, /origin\/main/i);
+
+  const currentAdvanced = await runVerifier(productionDir, { artifact: productionArtifact, currentProduction: true, runs: [...pending, run21], views: { 21: run21 }, artifactByRun: { 21: productionArtifact }, originAfter: "f".repeat(40) });
+  assert.notEqual(currentAdvanced.status, 0);
+  assert.match(currentAdvanced.stderr, /origin\/main/i);
 
   const zero = await runVerifier(productionDir, { artifact: productionArtifact, currentProduction: true, runs: pending, views: {}, artifactByRun: {} });
   assert.notEqual(zero.status, 0);

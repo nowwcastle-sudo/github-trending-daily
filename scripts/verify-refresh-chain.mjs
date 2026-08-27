@@ -26,13 +26,14 @@ export function resolveEffectiveReceipt({ expected, production, laterReceipts, i
   if (!production || !SHA_RE.test(production.sourceSha) || !SNAPSHOT_RE.test(production.snapshotId) || !SHA256_RE.test(production.manifestSha256)) {
     throw new Error("invalid production receipt");
   }
+  const exactExpected = Boolean(expected && sameProvenance(expected, production));
   let receipt;
-  if (expected && sameProvenance(expected, production)) receipt = expected;
+  if (exactExpected) receipt = expected;
   else {
     if (expected && !isAncestor(expected.sourceSha, production.sourceSha)) throw new Error("production replacement is not a fast-forward");
     receipt = selectMatchingReceipt(production, laterReceipts);
   }
-  if (receipt.sourceSha !== originMain) throw new Error("effective production source does not equal origin/main");
+  if (!exactExpected && receipt.sourceSha !== originMain) throw new Error("effective production source does not equal origin/main");
   return { expectedRunId: expected?.runId ?? null, effectiveRunId: receipt.runId, receipt };
 }
 
@@ -73,7 +74,7 @@ export function validateWorkflowRun(run, expectedRunId, { requireDispatchEvent =
   }
   for (const job of run.jobs) {
     if (!job || typeof job !== "object" || !Number.isSafeInteger(job.databaseId) || job.databaseId <= 0 || typeof job.name !== "string"
-        || !validRunStatusConclusion(job.status, job.conclusion)) throw new Error("invalid workflow job schema");
+        || job.status !== "completed" || !validRunStatusConclusion(job.status, job.conclusion)) throw new Error("invalid workflow job schema");
   }
   for (const name of ["Deploy candidate Pages artifact", "Probe production candidate"]) {
     const matches = run.jobs.filter(job => job.name === name && job.conclusion === "success");

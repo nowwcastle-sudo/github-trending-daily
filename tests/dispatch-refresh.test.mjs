@@ -149,6 +149,7 @@ test("dispatch CLI assembles fake Git, gh run selection, raw archive, and exact 
 const args = process.argv.slice(2);
 if (args[0] === "run" && args[1] === "list") {
   const count = Number(readFileSync(process.env.COUNT_PATH, "utf8")); writeFileSync(process.env.COUNT_PATH, String(count + 1));
+  if (count === 1) await new Promise(resolve => setTimeout(resolve, 1_250));
   const pending = [
     {databaseId:8,headSha:"${sha}",event:"workflow_dispatch",status:"queued",conclusion:null,createdAt:"2026-08-26T10:05:00Z",url:"https://github.com/owner/repo/actions/runs/8"},
     {databaseId:9,headSha:"${sha}",event:"workflow_dispatch",status:"in_progress",conclusion:"",createdAt:"2026-08-26T10:06:00Z",url:"https://github.com/owner/repo/actions/runs/9"}
@@ -168,7 +169,7 @@ else process.exit(92);
 `);
   const executed = spawnSync(process.execPath, [fileURLToPath(new URL("../scripts/dispatch-refresh.mjs", import.meta.url)), "--wait"], {
     encoding: "utf8",
-    env: { ...process.env, GH_BIN: process.execPath, GH_SCRIPT: ghScript, GIT_BIN: process.execPath, GIT_SCRIPT: gitScript, COUNT_PATH: countPath, ZIP_PATH: zipPath, GITHUB_REPOSITORY: "owner/repo", DISPATCH_TIMEOUT_MS: "1000", DISPATCH_POLL_INTERVAL_MS: "0" },
+    env: { ...process.env, GH_BIN: process.execPath, GH_SCRIPT: ghScript, GIT_BIN: process.execPath, GIT_SCRIPT: gitScript, COUNT_PATH: countPath, ZIP_PATH: zipPath, GITHUB_REPOSITORY: "owner/repo", DISPATCH_TIMEOUT_MS: "60000", DISPATCH_POLL_INTERVAL_MS: "0" },
   });
   assert.equal(executed.status, 0, executed.stderr);
   const receipt = JSON.parse(executed.stdout);
