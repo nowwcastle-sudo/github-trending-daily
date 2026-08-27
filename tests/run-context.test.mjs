@@ -30,6 +30,27 @@ test("readRunContext validates injected JSON and creates one local context when 
   assert.throws(() => readRunContext({ RUN_CONTEXT_JSON: "not json" }), /run context/i);
 });
 
+test("valid injected context does not construct a wall-clock Date", () => {
+  const context = createRunContext(new Date("2026-08-26T15:00:00.000Z"));
+  const OriginalDate = globalThis.Date;
+  let zeroArgumentCalls = 0;
+  let explicitArgumentCalls = 0;
+  globalThis.Date = class TrackingDate extends OriginalDate {
+    constructor(...args) {
+      if (args.length === 0) zeroArgumentCalls += 1;
+      else explicitArgumentCalls += 1;
+      super(...args);
+    }
+  };
+  try {
+    assert.deepEqual(readRunContext({ RUN_CONTEXT_JSON: JSON.stringify(context) }), context);
+  } finally {
+    globalThis.Date = OriginalDate;
+  }
+  assert.equal(zeroArgumentCalls, 0);
+  assert.ok(explicitArgumentCalls > 0);
+});
+
 test("CLI generators receive the one run context instead of reading a fresh clock", async () => {
   const sources = await Promise.all([
     "scripts/update-trending.mjs",

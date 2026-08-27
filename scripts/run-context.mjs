@@ -81,9 +81,9 @@ export function createRunContext(now = new Date(), parent = { snapshotId: null, 
   });
 }
 
-export function readRunContext(env = process.env, now = new Date()) {
+export function readRunContext(env = process.env, now) {
   const encoded = env?.RUN_CONTEXT_JSON;
-  if (encoded === undefined) return createRunContext(now);
+  if (encoded === undefined) return createRunContext(now ?? new Date());
   if (typeof encoded !== "string") throw new Error("invalid run context");
   try {
     return validateRunContext(JSON.parse(encoded));
