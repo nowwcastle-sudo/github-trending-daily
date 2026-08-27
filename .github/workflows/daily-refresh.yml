@@ -4,21 +4,37 @@ on:
   schedule:
     - cron: "7 */2 * * *"
   workflow_dispatch:
+    inputs:
+      bootstrap-source-sha:
+        description: Verified legacy production Git SHA; accepted only while the manifest is 404
+        required: false
+        type: string
 
-permissions:
-  contents: write
+permissions: {}
 
 concurrency:
   group: daily-refresh
   cancel-in-progress: false
 
+env:
+  PRODUCTION_BASE_URL: https://nowwcastle-sudo.github.io/github-trending-daily/
+
 jobs:
-  refresh:
+  build:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    outputs:
+      source_sha: ${{ steps.publish.outputs.source_sha }}
+      snapshot_id: ${{ steps.context.outputs.snapshot_id }}
+      recovery_version: ${{ steps.state.outputs.recovery_version }}
+      recovery_source_sha: ${{ steps.state.outputs.hydration_source_sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
+          fetch-depth: 0
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24"
@@ -29,13 +45,115 @@ jobs:
         run: npm ci
       - name: Test before refresh
         run: npm test
-      - name: Generate complete trending snapshot
+      - name: Resolve verified production state
+        id: state
+        shell: bash
+        env:
+          BOOTSTRAP_SOURCE_SHA: ${{ inputs['bootstrap-source-sha'] }}
+        run: |
+          set -euo pipefail
+          ORIGINAL_SHA="$(git rev-parse HEAD)"
+          MANIFEST_FILE="${RUNNER_TEMP}/production-manifest.json"
+          HTTP_STATUS="$(curl --silent --show-error --location --output "$MANIFEST_FILE" --write-out '%{http_code}' "${PRODUCTION_BASE_URL}deployment-manifest.json?preflight=${GITHUB_RUN_ID}")"
+          if [ "$HTTP_STATUS" = "404" ]; then
+            echo "404 preflight: manifest 404 requires the approved bootstrap source SHA"
+            [[ "$BOOTSTRAP_SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo "::error::bootstrap-source-sha is required for manifest 404"; exit 1; }
+            git cat-file -e "${BOOTSTRAP_SOURCE_SHA}^{commit}"
+            node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --bootstrap-preflight-sha "$BOOTSTRAP_SOURCE_SHA"
+            HYDRATION_SOURCE_SHA="$BOOTSTRAP_SOURCE_SHA"
+            PARENT_SOURCE_SHA=""
+            PARENT_SNAPSHOT_ID=""
+            RECOVERY_VERSION="0"
+          elif [ "$HTTP_STATUS" = "200" ]; then
+            eval "$(node --input-type=module - "$MANIFEST_FILE" <<'NODE'
+          import { readFileSync } from "node:fs";
+          const value = JSON.parse(readFileSync(process.argv[2], "utf8"));
+          if (value?.version === 0 && value.legacyBootstrap === true && /^[a-f0-9]{40}$/.test(value.sourceSha) && value.snapshotId === null) {
+            console.log(`HYDRATION_SOURCE_SHA=${value.sourceSha}`);
+            console.log("PARENT_SOURCE_SHA=");
+            console.log("PARENT_SNAPSHOT_ID=");
+            console.log("RECOVERY_VERSION=0");
+          } else if (value?.version === 1 && /^[a-f0-9]{40}$/.test(value.sourceSha) && /^[0-9]{14}-[a-f0-9]{16}$/.test(value.snapshotId)) {
+            console.log(`HYDRATION_SOURCE_SHA=${value.sourceSha}`);
+            console.log(`PARENT_SOURCE_SHA=${value.sourceSha}`);
+            console.log(`PARENT_SNAPSHOT_ID=${value.snapshotId}`);
+            console.log("RECOVERY_VERSION=1");
+          } else {
+            process.exit(1);
+          }
+          NODE
+          )"
+            if [ "$RECOVERY_VERSION" = "0" ]; then
+              node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --legacy-recovery-sha "$HYDRATION_SOURCE_SHA"
+            else
+              node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --source-sha "$HYDRATION_SOURCE_SHA" --snapshot-id "$PARENT_SNAPSHOT_ID"
+            fi
+          else
+            echo "::error::production manifest request returned HTTP ${HTTP_STATUS}"
+            exit 1
+          fi
+          git merge-base --is-ancestor "$HYDRATION_SOURCE_SHA" "$ORIGINAL_SHA"
+          {
+            echo "original_sha=$ORIGINAL_SHA"
+            echo "hydration_source_sha=$HYDRATION_SOURCE_SHA"
+            echo "parent_source_sha=$PARENT_SOURCE_SHA"
+            echo "parent_snapshot_id=$PARENT_SNAPSHOT_ID"
+            echo "recovery_version=$RECOVERY_VERSION"
+          } >> "$GITHUB_OUTPUT"
+      - name: Preserve recovery artifact
+        shell: bash
+        env:
+          HYDRATION_SOURCE_SHA: ${{ steps.state.outputs.hydration_source_sha }}
+          PARENT_SNAPSHOT_ID: ${{ steps.state.outputs.parent_snapshot_id }}
+          RECOVERY_VERSION: ${{ steps.state.outputs.recovery_version }}
+        run: |
+          set -euo pipefail
+          RECOVERY_SOURCE="${RUNNER_TEMP}/recovery-source"
+          RECOVERY_ARTIFACT="${RUNNER_TEMP}/recovery-artifact"
+          mkdir "$RECOVERY_SOURCE"
+          git archive --format=tar "$HYDRATION_SOURCE_SHA" | tar -x -C "$RECOVERY_SOURCE"
+          if [ "$RECOVERY_VERSION" = "1" ]; then
+            node scripts/build-pages-artifact.mjs --source "$RECOVERY_SOURCE" --out "$RECOVERY_ARTIFACT" --source-sha "$HYDRATION_SOURCE_SHA" --snapshot-id "$PARENT_SNAPSHOT_ID"
+            node scripts/probe-production.mjs --artifact-dir "$RECOVERY_ARTIFACT" --source-sha "$HYDRATION_SOURCE_SHA" --snapshot-id "$PARENT_SNAPSHOT_ID"
+          else
+            node scripts/build-pages-artifact.mjs --source "$RECOVERY_SOURCE" --out "$RECOVERY_ARTIFACT" --source-sha "$HYDRATION_SOURCE_SHA" --mode legacy
+            node scripts/probe-production.mjs --artifact-dir "$RECOVERY_ARTIFACT" --legacy-recovery-sha "$HYDRATION_SOURCE_SHA"
+          fi
+      - name: Prepare isolated candidate
+        shell: bash
+        env:
+          HYDRATION_SOURCE_SHA: ${{ steps.state.outputs.hydration_source_sha }}
+        run: |
+          set -euo pipefail
+          node scripts/prepare-refresh-candidate.mjs --checkout "$GITHUB_WORKSPACE" --out "${RUNNER_TEMP}/candidate" --last-good-sha "$HYDRATION_SOURCE_SHA"
+      - name: Create one run context
+        id: context
+        shell: bash
+        env:
+          PARENT_SOURCE_SHA: ${{ steps.state.outputs.parent_source_sha }}
+          PARENT_SNAPSHOT_ID: ${{ steps.state.outputs.parent_snapshot_id }}
+        run: |
+          set -euo pipefail
+          RUN_CONTEXT_JSON="$(node --input-type=module <<'NODE'
+          import { createRunContext } from "./scripts/run-context.mjs";
+          const parent = process.env.PARENT_SOURCE_SHA
+            ? { sourceSha: process.env.PARENT_SOURCE_SHA, snapshotId: process.env.PARENT_SNAPSHOT_ID }
+            : { sourceSha: null, snapshotId: null };
+          console.log(JSON.stringify(createRunContext(new Date(), parent)));
+          NODE
+          )"
+          SNAPSHOT_ID="$(node -e 'process.stdout.write(JSON.parse(process.argv[1]).snapshotId)' "$RUN_CONTEXT_JSON")"
+          echo "RUN_CONTEXT_JSON=$RUN_CONTEXT_JSON" >> "$GITHUB_ENV"
+          echo "snapshot_id=$SNAPSHOT_ID" >> "$GITHUB_OUTPUT"
+      - name: Generate candidate snapshot
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           set -euo pipefail
+          CANDIDATE="${RUNNER_TEMP}/candidate"
+          cd "$CANDIDATE"
           node scripts/update-trending.mjs
           node scripts/generate-translations.mjs
           python scripts/record_star_observations.py
@@ -43,114 +161,161 @@ jobs:
           python scripts/record_trending_membership.py
           python scripts/generate_atom_feeds.py
           node scripts/update-star-history.mjs
-      - name: Validate complete trending snapshot
+      - name: Validate candidate snapshot
         shell: bash
         run: |
           set -euo pipefail
+          CANDIDATE="${RUNNER_TEMP}/candidate"
+          cd "$CANDIDATE"
+          node scripts/validate-enrichment-coverage.mjs --root "$CANDIDATE"
+          python scripts/record_trending_membership.py --validate-only
+          python scripts/generate_atom_feeds.py --validate-only
           node --input-type=module <<'NODE'
           import assert from "node:assert/strict";
           import { readFile } from "node:fs/promises";
           import { extractRepos } from "./scripts/update-star-history.mjs";
           await import("./star-history.js");
           const repos = extractRepos(await readFile("index.html", "utf8"));
-          const cache = globalThis.StarHistory.normalizeCache(
-            JSON.parse(await readFile("star-history.json", "utf8")),
-          );
-          assert.deepEqual(
-            [...cache.keys()].map(slug => slug.toLowerCase()).sort(),
-            repos.map(repo => repo.slug.toLowerCase()).sort(),
-          );
+          const cache = globalThis.StarHistory.normalizeCache(JSON.parse(await readFile("star-history.json", "utf8")));
+          assert.deepEqual([...cache.keys()].map(value => value.toLowerCase()).sort(), repos.map(repo => repo.slug.toLowerCase()).sort());
           NODE
-          python - <<'PY'
-          import sqlite3
-          import json
-          from pathlib import Path
-          from scripts.record_star_observations import (
-              parse_legacy_star_history,
-              parse_repositories,
-              validate_canonical_legacy_baseline,
-          )
-          from scripts.record_trending_membership import validate_membership_publication
-          from scripts.generate_atom_feeds import validate_atom_publication
+          git diff --check --no-index /dev/null data/latest.json || [ "$?" = "1" ]
+      - name: Publish generated commit
+        id: publish
+        shell: bash
+        env:
+          ORIGINAL_SHA: ${{ steps.state.outputs.original_sha }}
+        run: |
+          set -euo pipefail
+          CANDIDATE="${RUNNER_TEMP}/candidate"
+          cp "$CANDIDATE/index.html" index.html
+          cp "$CANDIDATE/data/repo-summaries.json" data/repo-summaries.json
+          cp "$CANDIDATE/data/star-observations.sqlite" data/star-observations.sqlite
+          cp "$CANDIDATE/data/trending-membership.sqlite" data/trending-membership.sqlite
+          cp "$CANDIDATE/data/membership-status.json" data/membership-status.json
+          cp "$CANDIDATE/data/latest.json" data/latest.json
+          cp "$CANDIDATE/data/translation-sources.json" data/translation-sources.json
+          cp "$CANDIDATE/feed.xml" feed.xml
+          cp "$CANDIDATE/changes.xml" changes.xml
+          cp "$CANDIDATE/star-history.json" star-history.json
+          rsync --archive --delete "$CANDIDATE/translations/" translations/
+          changed_paths="$({ git diff --name-only && git ls-files --others --exclude-standard; } | sort -u)"
+          while IFS= read -r changed_path; do
+            [ -z "$changed_path" ] && continue
+            case "$changed_path" in
+              index.html|data/repo-summaries.json|data/star-observations.sqlite|data/trending-membership.sqlite|data/membership-status.json|data/latest.json|data/translation-sources.json|feed.xml|changes.xml|star-history.json|translations/*.json) ;;
+              *) echo "::error::Unexpected generated output: $changed_path"; exit 1 ;;
+            esac
+          done <<< "$changed_paths"
+          git fetch origin main
+          [ "$ORIGINAL_SHA" = "$(git rev-parse refs/remotes/origin/main)" ] || { echo "::error::origin/main advanced during refresh"; exit 1; }
+          git add -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json data/latest.json data/translation-sources.json feed.xml changes.xml star-history.json translations/
+          if git diff --cached --quiet; then
+            SOURCE_SHA="$ORIGINAL_SHA"
+          else
+            set +e
+            git grep --cached -qE '(gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json data/latest.json data/translation-sources.json feed.xml changes.xml star-history.json translations/
+            SCAN_STATUS=$?
+            set -e
+            case "$SCAN_STATUS" in
+              0) echo "::error::Potential secret detected in generated outputs"; exit 1 ;;
+              1) ;;
+              *) echo "::error::Secret scan failed"; exit 1 ;;
+            esac
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "chore: refresh trending snapshot"
+            SOURCE_SHA="$(git rev-parse HEAD)"
+            git push origin HEAD:main
+          fi
+          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+      - name: Build and locally probe candidate Pages artifact
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ steps.publish.outputs.source_sha }}
+          SNAPSHOT_ID: ${{ steps.context.outputs.snapshot_id }}
+        run: |
+          set -euo pipefail
+          node scripts/build-pages-artifact.mjs --source "${RUNNER_TEMP}/candidate" --out "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID"
+          node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID"
+      - name: Upload recovery artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          name: github-pages-recovery-${{ github.run_id }}
+          path: ${{ runner.temp }}/recovery-artifact
+          retention-days: 2
+      - name: Upload candidate Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          name: github-pages-candidate-${{ github.run_id }}
+          path: ${{ runner.temp }}/pages-artifact
 
-          page = Path("index.html").read_text(encoding="utf-8")
-          latest = json.loads(Path("data/latest.json").read_text(encoding="utf-8"))
-          repositories = parse_repositories(page)
-          parse_legacy_star_history(page)
-          database = Path("data/star-observations.sqlite")
-          validate_canonical_legacy_baseline(database)
-          validate_membership_publication(
-              Path("data/trending-membership.sqlite"),
-              Path("data/membership-status.json"),
-              page,
-              latest,
-          )
-          validate_atom_publication(
-              page,
-              latest,
-              Path("data/trending-membership.sqlite"),
-              Path("feed.xml"),
-              Path("changes.xml"),
-              Path("data/membership-status.json"),
-          )
-          with sqlite3.connect(database) as connection:
-              connection.execute("PRAGMA foreign_keys = ON")
-              assert connection.execute("PRAGMA integrity_check").fetchone() == ("ok",)
-              assert connection.execute("PRAGMA foreign_key_check").fetchall() == []
-              for repository in repositories:
-                  assert connection.execute(
-                      "SELECT 1 FROM star_observations "
-                      "WHERE slug = ? COLLATE NOCASE AND observed_date = ? AND source = 'github_rest'",
-                      (repository.slug, repository.observed_date),
-                  ).fetchone() == (1,)
-          for sidecar in (
-              Path("data/star-observations.sqlite-journal"),
-              Path("data/star-observations.sqlite-wal"),
-              Path("data/star-observations.sqlite-shm"),
-          ):
-              assert not sidecar.exists(), f"SQLite sidecar remains: {sidecar.name}"
-          for sidecar in (
-              Path("data/trending-membership.sqlite-journal"),
-              Path("data/trending-membership.sqlite-wal"),
-              Path("data/trending-membership.sqlite-shm"),
-          ):
-              assert not sidecar.exists(), f"SQLite sidecar remains: {sidecar.name}"
-          PY
-          npm test
-          git diff --check -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json feed.xml changes.xml star-history.json data/latest.json data/translation-sources.json translations/
-      - name: Publish validated snapshot
+  deploy:
+    name: Deploy candidate Pages artifact
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+        with:
+          artifact_name: github-pages-candidate-${{ github.run_id }}
+
+  verify:
+    name: Probe production candidate
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - name: Probe production candidate
+        run: node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --source-sha "${{ needs.build.outputs.source_sha }}" --snapshot-id "${{ needs.build.outputs.snapshot_id }}"
+
+  recovery:
+    name: Recover prior Pages artifact
+    needs: [build, deploy, verify]
+    if: ${{ always() && needs.verify.result == 'failure' && needs.deploy.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - id: recovery-deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+        with:
+          artifact_name: github-pages-recovery-${{ github.run_id }}
+      - name: Verify recovered production
         shell: bash
         run: |
           set -euo pipefail
-          changed_paths="$({ git diff --name-only && git ls-files --others --exclude-standard; } | sort -u)"
-          while IFS= read -r path; do
-            [ -z "$path" ] && continue
-            case "$path" in
-              index.html|data/repo-summaries.json|data/star-observations.sqlite|data/trending-membership.sqlite|data/membership-status.json|feed.xml|changes.xml|star-history.json|data/latest.json|data/translation-sources.json) ;;
-              translations/*.json) ;;
-              *) echo "::error::Unexpected generated output"; exit 1 ;;
-            esac
-          done <<< "$changed_paths"
-          git add -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json feed.xml changes.xml star-history.json data/latest.json data/translation-sources.json translations/
-          set +e
-          git diff --cached --quiet -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json feed.xml changes.xml star-history.json data/latest.json data/translation-sources.json translations/
-          diff_status=$?
-          set -e
-          case "$diff_status" in
-            0) exit 0 ;;
-            1) ;;
-            *) echo "::error::Generated diff check failed"; exit 1 ;;
-          esac
-          set +e
-          git grep --cached -qE '(gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json feed.xml changes.xml star-history.json data/latest.json data/translation-sources.json translations/
-          scan_status=$?
-          set -e
-          case "$scan_status" in
-            0) echo "::error::Potential secret detected in generated outputs"; exit 1 ;;
-            1) ;;
-            *) echo "::error::Secret scan failed"; exit 1 ;;
-          esac
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore: refresh trending snapshot"
-          git push origin HEAD:main
+          if [ "${{ needs.build.outputs.recovery_version }}" = "0" ]; then
+            node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --legacy-recovery-sha "${{ needs.build.outputs.recovery_source_sha }}"
+          else
+            RECOVERY_SNAPSHOT_ID="$(git show "${{ needs.build.outputs.recovery_source_sha }}:data/latest.json" | node -e 'let input=""; process.stdin.on("data", chunk => input += chunk); process.stdin.on("end", () => process.stdout.write(JSON.parse(input).snapshotId))')"
+            node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --source-sha "${{ needs.build.outputs.recovery_source_sha }}" --snapshot-id "$RECOVERY_SNAPSHOT_ID"
+          fi
