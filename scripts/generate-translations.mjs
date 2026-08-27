@@ -805,21 +805,73 @@ const NAME_SUBJECT_PREDICATES = new Set([
   "are", "creates", "enables", "helps", "is", "offers", "provides", "runs", "supports", "uses",
 ]);
 
+const NAME_CONTEXT_BOUNDARIES = new Set([
+  "and", "are", "as", "at", "by", "can", "creates", "enables", "for", "from", "helps", "in",
+  "is", "may", "must", "of", "offers", "on", "or", "provides", "runs", "should", "supports",
+  "that", "to", "uses", "was", "were", "which", "with", "without", "would",
+]);
+
+const KOREAN_NAME_PARTICLE = String.raw`(?:에게서|으로써|으로서|께서|에서|에게|한테|부터|까지|처럼|보다|으로|이랑|은|는|이|가|을|를|의|에|와|과|로|랑|도|만)`;
+const KOREAN_NAME_BOUNDARY = String.raw`(?=$|[^가-힣])`;
+const DIRECT_KOREAN_NAME_ATTACHMENT_RE = new RegExp(`^${KOREAN_NAME_PARTICLE}${KOREAN_NAME_BOUNDARY}`, "u");
+const INCORPORATED_KOREAN_NAME_ATTACHMENT_RE = new RegExp(`^\\s+[가-힣]{1,24}?${KOREAN_NAME_PARTICLE}${KOREAN_NAME_BOUNDARY}`, "u");
+
 function strongIdentifierShape(token) {
   return /[._+-]|\d/.test(token)
     || (/[a-z]/.test(token) && /[A-Z]/.test(token.slice(1)))
     || /^[A-Z]{2,5}$/.test(token);
 }
 
-function tokenSequenceStarts(tokens, pattern) {
+function tokenSequenceStarts(tokens, pattern, value) {
   const starts = [];
   for (let start = 0; start <= tokens.length - pattern.length; start += 1) {
-    if (pattern.every((lower, offset) => tokens[start + offset].lower === lower)) starts.push(start);
+    if (!pattern.every((lower, offset) => tokens[start + offset].lower === lower)) continue;
+    const bounded = pattern.slice(1).every((_lower, offset) => {
+      const previous = tokens[start + offset];
+      const current = tokens[start + offset + 1];
+      return /^\s+$/.test(value.slice(previous.end, current.start));
+    });
+    if (bounded) starts.push(start);
   }
   return starts;
 }
 
-function retainedNamePatterns(original, source) {
+function koreanNameAttachment(value, end) {
+  const tail = value.slice(end);
+  if (DIRECT_KOREAN_NAME_ATTACHMENT_RE.test(tail)) return "particle";
+  if (INCORPORATED_KOREAN_NAME_ATTACHMENT_RE.test(tail)) return "incorporated";
+  return null;
+}
+
+function sourceNameEndsAtBoundary(original, source, start, length) {
+  const last = source[start + length - 1];
+  const next = source[start + length];
+  if (!next) return true;
+  const gap = original.slice(last.end, next.start);
+  if (/[^\s]/.test(gap)) return true;
+  return NAME_CONTEXT_BOUNDARIES.has(next.lower);
+}
+
+function embeddedNameEvidence(original, source, translated, output, start, pattern) {
+  if (pattern.some(lower => COMMON_RETAINED_PROSE_WORDS.has(lower))) return false;
+  const sourceTokens = source.slice(start, start + pattern.length);
+  const single = sourceTokens.length === 1;
+  const plainLowercase = single && sourceTokens[0].raw === sourceTokens[0].lower;
+  const plainTitleCase = single && /^[A-Z][a-z0-9]*$/.test(sourceTokens[0].raw);
+  const titleCasePhrase = sourceTokens.length > 1
+    && sourceTokens.every(token => /^[A-Z][a-z0-9]*$/.test(token.raw));
+  if (!plainLowercase && !plainTitleCase && !titleCasePhrase) return false;
+  const sourceBoundary = sourceNameEndsAtBoundary(original, source, start, pattern.length);
+  for (const outputStart of tokenSequenceStarts(output, pattern, translated)) {
+    const outputEnd = output[outputStart + pattern.length - 1].end;
+    const attachment = koreanNameAttachment(translated, outputEnd);
+    if (!attachment) continue;
+    if (sourceBoundary || (plainLowercase && attachment === "incorporated")) return true;
+  }
+  return false;
+}
+
+function retainedNamePatterns(original, source, translated, output) {
   const patterns = new Map();
   const add = tokens => patterns.set(tokens.map(token => token.lower).join("\0"), tokens.map(token => token.lower));
   for (const token of source) {
@@ -835,6 +887,25 @@ function retainedNamePatterns(original, source) {
       && subject.every(token => /^[A-Z][a-z0-9]*$/.test(token.raw) && !COMMON_RETAINED_PROSE_WORDS.has(token.lower));
     if (singleName || phraseName) add(subject);
   }
+  for (let start = 0; start < source.length; start += 1) {
+    const candidates = [[source[start]]];
+    if (/^[A-Z][a-z0-9]*$/.test(source[start].raw) && !COMMON_RETAINED_PROSE_WORDS.has(source[start].lower)) {
+      const phrase = [source[start]];
+      for (let end = start + 1; end < source.length; end += 1) {
+        const previous = source[end - 1];
+        const current = source[end];
+        if (!/^[A-Z][a-z0-9]*$/.test(current.raw)
+          || COMMON_RETAINED_PROSE_WORDS.has(current.lower)
+          || !/^\s+$/.test(original.slice(previous.end, current.start))) break;
+        phrase.push(current);
+        candidates.push([...phrase]);
+      }
+    }
+    for (const candidate of candidates) {
+      const pattern = candidate.map(token => token.lower);
+      if (embeddedNameEvidence(original, source, translated, output, start, pattern)) add(candidate);
+    }
+  }
   return [...patterns.values()];
 }
 
@@ -842,9 +913,9 @@ function retainedSourceAnalysis(original, translated) {
   const source = identifierTokens(original);
   const output = identifierTokens(translated);
   const exemptOutput = new Set();
-  for (const pattern of retainedNamePatterns(original, source)) {
-    const sourceStarts = tokenSequenceStarts(source, pattern);
-    const outputStarts = tokenSequenceStarts(output, pattern);
+  for (const pattern of retainedNamePatterns(original, source, translated, output)) {
+    const sourceStarts = tokenSequenceStarts(source, pattern, original);
+    const outputStarts = tokenSequenceStarts(output, pattern, translated);
     if (outputStarts.length > sourceStarts.length) return { rejected: true, allowedNameAscii: 0 };
     for (const start of outputStarts) {
       for (let offset = 0; offset < pattern.length; offset += 1) exemptOutput.add(start + offset);
