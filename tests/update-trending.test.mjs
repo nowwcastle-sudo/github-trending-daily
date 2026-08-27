@@ -9,6 +9,8 @@ import { createRunContext } from "../scripts/run-context.mjs";
 import {
   createPageSnapshot,
   enrichTrendingRepositories,
+  fetchCanonicalReadme,
+  fetchRepositoryFacts,
   installPageSnapshot,
   mergeTrendingPeriods,
   parseTrendingHtml,
@@ -21,12 +23,88 @@ import {
 
 const fixture = name => readFile(new URL(`fixtures/${name}`, import.meta.url), "utf8");
 
+test("canonical README uses API path and immutable blob SHA", async () => {
+  const readme = JSON.parse(await fixture("github-readme.json"));
+  const requests = [];
+  const result = await fetchCanonicalReadme("Owner/Repo", {
+    fetchImpl: async (url, options) => {
+      requests.push({ url, options });
+      return jsonResponse(200, readme);
+    },
+  });
+
+  assert.equal(result.path, "docs/README.rst");
+  assert.equal(result.blobSha, "a".repeat(40));
+  assert.equal(result.status, "present");
+  assert.equal(result.markdown, "# Repo\n\nCanonical readme.");
+  assert.match(result.contentSha256, /^[a-f0-9]{64}$/);
+  assert.equal(requests[0].url, "https://api.github.com/repos/Owner/Repo/readme");
+  assert.equal(requests[0].options.headers.Accept, "application/vnd.github+json");
+  assert.ok(requests[0].options.signal instanceof AbortSignal);
+});
+
+test("README 404 is absence but repository 500 cannot reuse stale metadata", async () => {
+  const absent = await fetchCanonicalReadme("Owner/NoReadme", {
+    fetchImpl: async () => jsonResponse(404, { message: "not found" }),
+  });
+  assert.deepEqual(absent, {
+    status: "absent",
+    path: null,
+    blobSha: null,
+    markdown: null,
+    contentSha256: null,
+  });
+
+  const discovered = discoveredRepos();
+  const prior = discovered.map((repo, index) => ({
+    ...repo,
+    stars: 999 + index,
+    description: "stale metadata",
+  }));
+  await assert.rejects(
+    enrichTrendingRepositories(discovered, {
+      fetchImpl: async () => jsonResponse(500, { message: "temporary" }),
+      sleep: async () => {},
+      previousRepos: prior,
+      statsDate: "2026-08-23",
+    }),
+    /GitHub metadata/,
+  );
+});
+
+test("repository facts expose the complete allowlist and no private fields", async () => {
+  const expectedRepositoryFactKeys = [
+    "archived", "contributors", "created_at", "default_branch", "default_branch_head_sha",
+    "description", "display_rank", "display_slug", "field_tags", "forks", "form_tags",
+    "gain_daily", "gain_monthly", "gain_weekly", "is_fork", "language_color",
+    "license_spdx", "open_issues_and_pull_requests", "primary_language", "provenance", "readme_blob_sha",
+    "readme_content_sha256", "readme_path", "readme_status",
+    "pushed_at", "rank_daily", "rank_monthly", "rank_weekly", "slug", "stars",
+    "subscribers", "tag_rule_version", "topics", "updated_at",
+  ].sort();
+  const facts = await fetchRepositoryFacts("Owner/Repo", { fetchImpl: canonicalGithubFetch() });
+
+  assert.deepEqual(Object.keys(facts).sort(), expectedRepositoryFactKeys);
+  assert.equal("owner" in facts, false);
+  assert.equal("permissions" in facts, false);
+});
+
 test("parses normalized slugs and the period's star gain", async () => {
   const daily = parseTrendingHtml(await fixture("trending-daily.html"), "daily");
   const weekly = parseTrendingHtml(await fixture("trending-weekly.html"), "weekly");
 
-  assert.deepEqual(daily[0], { slug: "Alpha/one", stars_daily: 1234 });
-  assert.deepEqual(weekly[0], { slug: "alpha/one", stars_weekly: 8765 });
+  assert.deepEqual(daily[0], {
+    slug: "Alpha/one",
+    stars_daily: 1234,
+    sourceRank: 1,
+    languageColor: null,
+  });
+  assert.deepEqual(weekly[0], {
+    slug: "alpha/one",
+    stars_weekly: 8765,
+    sourceRank: 1,
+    languageColor: null,
+  });
   assert.equal(daily.length, 5);
   assert.equal(weekly.length, 5);
 });
@@ -47,10 +125,25 @@ test("merges in daily, unseen weekly, then unseen monthly order", async () => {
   ]);
   assert.deepEqual(merged[0], {
     slug: "Alpha/one",
-    stars_daily: 1234,
-    stars_weekly: 8765,
-    stars_monthly: 12345,
+    rank_daily: 1,
+    gain_daily: 1234,
+    rank_weekly: 1,
+    gain_weekly: 8765,
+    rank_monthly: 1,
+    gain_monthly: 12345,
+    languageColor: null,
   });
+});
+
+test("preserves the observed Trending language color and leaves missing color null", async () => {
+  const html = (await fixture("trending-daily.html")).replace(
+    "<span>1,234 stars today</span>",
+    '<span itemprop="programmingLanguage"><span style="background-color: #F1E05A" class="repo-language-color"></span>JavaScript</span><span>1,234 stars today</span>',
+  );
+  const parsed = parseTrendingHtml(html, "daily");
+
+  assert.equal(parsed[0].languageColor, "#f1e05a");
+  assert.equal(parsed[1].languageColor, null);
 });
 
 test("fails closed on malformed, duplicate, and invalid-gain pages", async () => {
@@ -152,7 +245,9 @@ const jsonResponse = (status, body, headers = {}) => ({
 
 const discoveredRepos = (count = 10) => Array.from({ length: count }, (_, index) => ({
   slug: `owner/repo-${index}`,
-  stars_daily: index + 1,
+  rank_daily: index + 1,
+  gain_daily: index + 1,
+  languageColor: null,
 }));
 
 const cachedSummary = index => ({
@@ -182,7 +277,13 @@ function successfulGithubFetch({ failures = new Map(), requests = [] } = {}) {
     if (path.endsWith("/contributors")) {
       return jsonResponse(200, [{ login: "one" }], { link: '<https://api.github.com/repositories/1/contributors?per_page=1&page=2>; rel="last"' });
     }
-    if (path.endsWith("/readme")) return jsonResponse(200, "README introduction.");
+    if (path.endsWith("/readme")) return jsonResponse(200, {
+      path: "docs/README.rst",
+      sha: "a".repeat(40),
+      encoding: "base64",
+      content: Buffer.from("# Repo\n\nCanonical readme.").toString("base64"),
+    });
+    if (path.includes("/commits/")) return jsonResponse(200, { sha: "b".repeat(40) });
     const slug = path.slice("/repos/".length);
     return jsonResponse(200, {
       full_name: slug,
@@ -192,76 +293,133 @@ function successfulGithubFetch({ failures = new Map(), requests = [] } = {}) {
       stargazers_count: 100,
       forks_count: 20,
       open_issues_count: 3,
+      subscribers_count: 7,
+      archived: false,
+      fork: false,
+      default_branch: "main",
+      created_at: "2020-01-02T03:04:05Z",
+      updated_at: "2026-08-22T11:22:33Z",
+      pushed_at: "2026-08-22T10:20:30Z",
+      license: { spdx_id: "MIT" },
+      owner: { login: slug.split("/")[0] },
+      permissions: { admin: true },
     });
   };
 }
 
-test("enriches REST metadata and reuses cached summaries without modification", async () => {
+const canonicalGithubFetch = options => successfulGithubFetch(options);
+
+test("enriches every repository from canonical GitHub sources", async () => {
   const discovered = discoveredRepos();
-  const summaryCache = Object.fromEntries(discovered.map((repo, index) => [repo.slug, cachedSummary(index)]));
   const requests = [];
 
-  const { repos, requestCount } = await enrichTrendingRepositories(discovered, {
+  const repos = await enrichTrendingRepositories(discovered, {
     fetchImpl: successfulGithubFetch({ requests }),
     token: "test-token-never-print",
-    summaryCache,
-    statsDate: "2026-08-23",
   });
 
-  assert.equal(requestCount, 30);
+  assert.equal(repos.requestCount, 40);
   assert.equal(repos.length, 10);
-  assert.equal(repos[0].summary, summaryCache[discovered[0].slug].summary);
-  assert.equal(repos[0].detail, summaryCache[discovered[0].slug].detail);
-  assert.deepEqual(repos[0], {
-    slug: "owner/repo-0",
-    name: "owner / repo-0",
-    desc: "Description for owner/repo-0",
-    lang: "JavaScript",
-    topics: ["developer-tools", "automation"],
-    stars: 100,
-    forks: 20,
-    stars_daily: 1,
-    color: "#8b949e",
-    summary: summaryCache[discovered[0].slug].summary,
-    detail: summaryCache[discovered[0].slug].detail,
-    issues: 3,
-    contributors: 2,
-    pushed_at: null,
-    latest_release: null,
-    _stats_date: "2026-08-23",
-  });
+  assert.equal(repos[0].slug, "owner/repo-0");
+  assert.equal(repos[0].display_rank, 1);
+  assert.equal(repos[0].rank_daily, 1);
+  assert.equal(repos[0].gain_daily, 1);
+  assert.equal(repos[0].language_color, null);
+  assert.equal(repos[0].open_issues_and_pull_requests, 3);
+  assert.equal(repos[0].subscribers, 7);
+  assert.equal(repos[0].default_branch_head_sha, "b".repeat(40));
+  assert.equal(repos[0].readme_blob_sha, "a".repeat(40));
+  assert.match(repos[0].provenance.repository.fact_sha256, /^[a-f0-9]{64}$/);
+  assert.equal(repos[0].provenance.readme.blob_api_path, `/repos/owner/repo-0/git/blobs/${"a".repeat(40)}`);
+  assert.equal(requests.some(request => /raw\.githubusercontent\.com|\/HEAD\//.test(request.url)), false);
   assert.ok(requests.every(request => request.options.headers.Authorization === "Bearer test-token-never-print"));
-  assert.equal(requests.some(request => request.url.endsWith("/readme")), false);
+  assert.ok(requests.every(request => request.options.signal instanceof AbortSignal));
 });
 
-test("retries transient failures with bounded exponential backoff", async () => {
+test("retries only timeout, 429, and 5xx with the bounded 2s/8s schedule", async () => {
   const discovered = discoveredRepos();
-  const summaryCache = Object.fromEntries(discovered.map((repo, index) => [repo.slug, cachedSummary(index)]));
   const sleeps = [];
   const failures = new Map([["/repos/owner/repo-0", [
-    jsonResponse(403, { message: "secondary rate limit" }, { "retry-after": "120" }),
+    jsonResponse(429, { message: "secondary rate limit" }, { "retry-after": "120" }),
     jsonResponse(502, { message: "temporary" }),
   ]]]);
 
-  const { requestCount } = await enrichTrendingRepositories(discovered, {
+  const repos = await enrichTrendingRepositories(discovered, {
     fetchImpl: successfulGithubFetch({ failures }),
     sleep: milliseconds => { sleeps.push(milliseconds); },
     token: "token",
-    summaryCache,
-    statsDate: "2026-08-23",
   });
 
-  assert.equal(requestCount, 32);
-  assert.deepEqual(sleeps, [120000, 500]);
+  assert.equal(repos.requestCount, 42);
+  assert.deepEqual(sleeps, [120000, 8000]);
+
+  await assert.rejects(
+    enrichTrendingRepositories(discovered, {
+      fetchImpl: successfulGithubFetch({ failures: new Map([["/repos/owner/repo-0", [jsonResponse(403, {})]]]) }),
+      sleep: async () => assert.fail("403 must not retry"),
+    }),
+    /GitHub metadata/,
+  );
+});
+
+test("retries a timeout after 2s and caps attempts at three", async () => {
+  const sleeps = [];
+  const requests = [];
+  const rest = successfulGithubFetch({ requests });
+  let timedOut = false;
+  const repos = await enrichTrendingRepositories(discoveredRepos(), {
+    fetchImpl: async (url, options) => {
+      if (!timedOut) {
+        timedOut = true;
+        throw Object.assign(new Error("timed out"), { name: "TimeoutError" });
+      }
+      return rest(url, options);
+    },
+    sleep: milliseconds => { sleeps.push(milliseconds); },
+  });
+
+  assert.deepEqual(sleeps, [2000]);
+  assert.equal(repos.requestCount, 41);
+  await assert.rejects(
+    enrichTrendingRepositories(discoveredRepos(), {
+      fetchImpl: successfulGithubFetch(),
+      maxAttempts: 4,
+    }),
+    /maxAttempts must be between 1 and 3/,
+  );
+});
+
+test("canonical README rejects mutable or oversized metadata and retries transient failure", async () => {
+  const invalidValues = [
+    { path: "README.md", sha: "short", encoding: "base64", content: "YQ==" },
+    { path: "README.md", sha: "a".repeat(40), encoding: "utf-8", content: "text" },
+    { path: "README.md", sha: "a".repeat(40), encoding: "base64", content: "not base64" },
+    { path: "README.md", sha: "a".repeat(40), encoding: "base64", content: Buffer.alloc(512 * 1024 + 1).toString("base64") },
+  ];
+  for (const value of invalidValues) {
+    await assert.rejects(
+      fetchCanonicalReadme("Owner/Repo", { fetchImpl: async () => jsonResponse(200, value) }),
+      /Invalid canonical README metadata/,
+    );
+  }
+
+  const sleeps = [];
+  await assert.rejects(
+    fetchCanonicalReadme("Owner/Repo", {
+      fetchImpl: async () => jsonResponse(503, { message: "temporary" }),
+      sleep: milliseconds => { sleeps.push(milliseconds); },
+    }),
+    /GitHub request returned 503/,
+  );
+  assert.deepEqual(sleeps, [2000, 8000]);
 });
 
 test("fails closed when Retry-After exceeds the explicit maximum", async () => {
   const discovered = discoveredRepos();
-  const summaryCache = Object.fromEntries(discovered.map((repo, index) => [repo.slug, cachedSummary(index)]));
   const sleeps = [];
   const requests = [];
   const failures = new Map([["/repos/owner/repo-0", [
-    jsonResponse(403, { message: "secondary rate limit" }, { "retry-after": "301" }),
+    jsonResponse(429, { message: "secondary rate limit" }, { "retry-after": "301" }),
   ]]]);
 
   await assert.rejects(
@@ -269,8 +427,6 @@ test("fails closed when Retry-After exceeds the explicit maximum", async () => {
       fetchImpl: successfulGithubFetch({ failures, requests }),
       sleep: milliseconds => { sleeps.push(milliseconds); },
       token: "token",
-      summaryCache,
-      statsDate: "2026-08-23",
       maxRetryDelay: 300000,
     }),
     /Retry delay 301000ms exceeds maximum 300000ms/,
@@ -281,129 +437,107 @@ test("fails closed when Retry-After exceeds the explicit maximum", async () => {
 
 test("omits Authorization when no token is configured", async () => {
   const discovered = discoveredRepos();
-  const summaryCache = Object.fromEntries(discovered.map((repo, index) => [repo.slug, cachedSummary(index)]));
   const requests = [];
 
   await enrichTrendingRepositories(discovered, {
     fetchImpl: successfulGithubFetch({ requests }),
-    summaryCache,
-    statsDate: "2026-08-23",
   });
 
   assert.ok(requests.every(request => !("Authorization" in request.options.headers)));
 });
 
-test("retains known metadata after rate limit and omits an unresolved new repository", async () => {
+test("repository terminal failures reject the whole enrichment without stale relabeling", async () => {
   const discovered = discoveredRepos();
-  const summaryCache = Object.fromEntries(discovered.map((repo, index) => [repo.slug, cachedSummary(index)]));
   const requests = [];
-  const failures = new Map([
-    ["/repos/owner/repo-0", [jsonResponse(403, { message: "rate limited" }, { "x-ratelimit-remaining": "0" })]],
-    ["/repos/owner/repo-1", [jsonResponse(404, { message: "not found" })]],
-  ]);
+  const failures = new Map([["/repos/owner/repo-0", [jsonResponse(404, { message: "not found" })]]]);
   const previousRepos = [{
     slug: "owner/repo-0",
-    name: "owner / repo-0",
-    desc: "Previous description",
-    lang: "Rust",
+    description: "Previous description",
     stars: 90,
-    forks: 9,
-    stars_weekly: 999,
-    color: "#dea584",
-    summary: summaryCache[discovered[0].slug].summary,
-    detail: summaryCache[discovered[0].slug].detail,
-    issues: 2,
-    contributors: 7,
-    _stats_date: "2026-08-22",
   }];
-
-  const { repos } = await enrichTrendingRepositories(discovered, {
-    fetchImpl: successfulGithubFetch({ failures, requests }),
-    token: "token",
-    summaryCache,
-    previousRepos,
-    statsDate: "2026-08-23",
-    minPublished: 5,
-  });
-
-  assert.equal(repos.length, 9);
-  assert.equal(repos.some(repo => repo.slug === "owner/repo-1"), false);
-  assert.equal(repos[0].desc, "Previous description");
-  assert.equal(repos[0].stars_daily, 1);
-  assert.equal("stars_weekly" in repos[0], false);
-  assert.equal(repos[0].summary, summaryCache[discovered[0].slug].summary);
-  assert.equal(repos[0]._stats_date, "2026-08-23");
-  assert.equal(requests.filter(request => request.url.includes("repo-0")).length, 1);
-});
-
-test("creates a fact-only Korean fallback for new repositories", async () => {
-  const discovered = discoveredRepos();
-  const { repos, requestCount } = await enrichTrendingRepositories(discovered, {
-    fetchImpl: successfulGithubFetch(),
-    token: "token",
-    summaryCache: {},
-    statsDate: "2026-08-23",
-  });
-
-  assert.equal(requestCount, 40);
-  assert.match(repos[0].summary.goal, /Description for owner\/repo-0/);
-  assert.match(repos[0].summary.pros, /오늘 1개/);
-  assert.match(repos[0].summary.cons, /README 원문 확인/);
-  assert.match(repos[0].summary.fit, /JavaScript/);
-  assert.match(repos[0].detail.stars_note, /오늘 1개/);
-  for (const repo of repos) {
-    assert.deepEqual(Object.keys(repo.summary), ["goal", "usage", "pros", "cons", "fit"]);
-    assert.deepEqual(Object.keys(repo.detail), ["goal", "usage", "pros", "cons", "fit", "stars_note"]);
-  }
-});
-
-test("fails final coverage and request-count gates instead of publishing partial data", async () => {
-  const discovered = discoveredRepos();
-  const summaryCache = Object.fromEntries(discovered.map((repo, index) => [repo.slug, cachedSummary(index)]));
-  const missing = new Map(discovered.slice(0, 3).map(repo => [
-    `/repos/${repo.slug}`,
-    [jsonResponse(404, { message: "not found" })],
-  ]));
 
   await assert.rejects(
     enrichTrendingRepositories(discovered, {
-      fetchImpl: successfulGithubFetch({ failures: missing }),
+      fetchImpl: successfulGithubFetch({ failures, requests }),
       token: "token",
-      summaryCache,
-      statsDate: "2026-08-23",
-      minPublished: 5,
+      previousRepos,
     }),
-    /metadata coverage 70% is below 80%/i,
+    /GitHub metadata unavailable for owner\/repo-0/,
   );
+  assert.equal(requests.filter(request => request.url.includes("repo-0")).length, 1);
+});
+
+test("README absence is explicit and never persists the decoded body", async () => {
+  const discovered = discoveredRepos();
+  const failures = new Map([["/repos/owner/repo-0/readme", [jsonResponse(404, { message: "not found" })]]]);
+  const repos = await enrichTrendingRepositories(discovered, {
+    fetchImpl: successfulGithubFetch({ failures }),
+  });
+
+  assert.equal(repos.requestCount, 40);
+  assert.equal(repos[0].readme_status, "absent");
+  assert.equal(repos[0].readme_path, null);
+  assert.equal(repos[0].readme_blob_sha, null);
+  assert.equal(repos[0].readme_content_sha256, null);
+  assert.equal("markdown" in repos[0], false);
+});
+
+test("fails request-count and canonical-value gates instead of publishing partial facts", async () => {
+  const discovered = discoveredRepos();
   await assert.rejects(
     enrichTrendingRepositories(discovered, {
       fetchImpl: successfulGithubFetch(),
       token: "token",
-      summaryCache,
-      statsDate: "2026-08-23",
       maxRequests: 5,
     }),
     /GitHub request limit 5 exceeded/,
+  );
+
+  const invalid = successfulGithubFetch();
+  await assert.rejects(
+    fetchRepositoryFacts("owner/repo-0", {
+      fetchImpl: async (url, options) => {
+        const response = await invalid(url, options);
+        if (new URL(url).pathname === "/repos/owner/repo-0") {
+          const body = await response.json();
+          body.subscribers_count = -1;
+          return jsonResponse(200, body);
+        }
+        return response;
+      },
+    }),
+    /Invalid GitHub metadata/,
+  );
+  await assert.rejects(
+    fetchRepositoryFacts("owner/repo-0", {
+      fetchImpl: async (url, options) => {
+        const response = await invalid(url, options);
+        if (new URL(url).pathname === "/repos/owner/repo-0") {
+          const body = await response.json();
+          body.created_at = "2026-02-30T03:04:05Z";
+          return jsonResponse(200, body);
+        }
+        return response;
+      },
+    }),
+    /Invalid GitHub metadata/,
   );
 });
 
 test("terminal errors do not include the authorization token", async () => {
   const discovered = discoveredRepos();
-  const summaryCache = Object.fromEntries(discovered.map((repo, index) => [repo.slug, cachedSummary(index)]));
   let message = "";
 
   try {
     await enrichTrendingRepositories(discovered, {
       fetchImpl: async () => jsonResponse(401, { message: "bad credentials" }),
       token: "super-secret-token",
-      summaryCache,
-      statsDate: "2026-08-23",
     });
   } catch (error) {
     message = error.message;
   }
 
-  assert.match(message, /Published repository count|Metadata coverage/);
+  assert.match(message, /GitHub metadata unavailable/);
   assert.doesNotMatch(message, /super-secret-token/);
 });
 
@@ -694,6 +828,7 @@ test("check mode fetches all three Trending pages and REST data without writing 
   assert.equal(result.changed, true);
   assert.equal(result.statsDate, "2026-08-23");
   assert.deepEqual(requests.filter(request => request.url.startsWith("https://github.com/trending")).map(request => request.url), Object.keys(trending));
+  assert.ok(requests.every(request => request.options.signal instanceof AbortSignal));
   assert.deepEqual(await Promise.all([readFile(pagePath), readFile(cachePath)]), before);
 });
 

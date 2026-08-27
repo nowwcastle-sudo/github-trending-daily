@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import {
   readFile,
   rename,
@@ -62,7 +62,16 @@ export function parseTrendingHtml(html, period) {
     const key = slug.toLowerCase();
     if (seen.has(key)) throw new Error(`Duplicate repository in ${period} Trending: ${slug}`);
     seen.add(key);
-    repos.push({ slug, [field]: value });
+    const languageColorTag = [...body.matchAll(/<span\b([^>]*)>/gi)]
+      .map(([, tagAttributes]) => tagAttributes)
+      .find(tagAttributes => /\bclass\s*=\s*(?:"[^"]*\brepo-language-color\b[^"]*"|'[^']*\brepo-language-color\b[^']*')/i.test(tagAttributes));
+    const languageColor = languageColorTag?.match(/\bstyle\s*=\s*(?:"[^"]*background-color\s*:\s*(#[0-9a-f]{6})[^"]*"|'[^']*background-color\s*:\s*(#[0-9a-f]{6})[^']*')/i);
+    repos.push({
+      slug,
+      [field]: value,
+      sourceRank: repos.length + 1,
+      languageColor: (languageColor?.[1] ?? languageColor?.[2] ?? null)?.toLowerCase() ?? null,
+    });
   }
 
   if (!repos.length) throw new Error("Trending page contains no Trending repositories");
@@ -77,24 +86,41 @@ export function mergeTrendingPeriods(periods) {
   for (const period of Object.keys(PERIODS)) {
     const repos = periods?.[period];
     const { field } = PERIODS[period];
+    const gainKey = `gain_${period}`;
+    const rankKey = `rank_${period}`;
     if (!Array.isArray(repos) || repos.length < 5) {
       throw new Error(`Trending ${period} expected at least 5 repositories`);
     }
 
     const seen = new Set();
-    for (const repo of repos) {
+    for (const [index, repo] of repos.entries()) {
       const slug = normalizeSlug(repo?.slug ?? "");
       const gain = repo?.[field];
       if (!Number.isSafeInteger(gain) || gain < 0) throw new Error(`Invalid ${period} star gain for ${slug}`);
+      const sourceRank = repo?.sourceRank ?? index + 1;
+      if (sourceRank !== index + 1) throw new Error(`Invalid ${period} source rank for ${slug}`);
+      const languageColor = repo?.languageColor ?? null;
+      if (languageColor !== null && (typeof languageColor !== "string" || !/^#[0-9a-f]{6}$/i.test(languageColor))) {
+        throw new Error(`Invalid ${period} language color for ${slug}`);
+      }
 
       const key = slug.toLowerCase();
       if (seen.has(key)) throw new Error(`Duplicate repository in ${period} Trending: ${slug}`);
       seen.add(key);
 
       const existing = bySlug.get(key);
-      if (existing) existing[field] = gain;
+      if (existing) {
+        existing[rankKey] = sourceRank;
+        existing[gainKey] = gain;
+        if (existing.languageColor === null && languageColor !== null) existing.languageColor = languageColor.toLowerCase();
+      }
       else {
-        const added = { slug, [field]: gain };
+        const added = {
+          slug,
+          [rankKey]: sourceRank,
+          [gainKey]: gain,
+          languageColor: languageColor?.toLowerCase() ?? null,
+        };
         bySlug.set(key, added);
         merged.push(added);
       }
@@ -111,6 +137,27 @@ class RequestLimitError extends Error {}
 class RetryDelayError extends Error {}
 
 const defaultSleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+const TAG_RULE_VERSION = 1;
+const FIELD_RULES = [
+  ["ai-ml", /\b(ai|artificial[- ]intelligence|machine[- ]learning|deep[- ]learning|llms?|gpt|claude|codex|agents?|agentic|rag|inference|neural|generative[- ]ai|computer[- ]vision|nlp)\b/i],
+  ["web-app", /\b(web|frontend|react|vue|svelte|next\.?js|mobile|android|ios|browser|webapp)\b/i],
+  ["dev-tools", /\b(developer[- ]tools?|devtools?|coding|programming|compiler|sdk|ide|cli|automation|api|mcp|plugins?)\b/i],
+  ["data", /\b(data|database|sql|analytics|warehouse|vector[- ]database|data[- ]engineering)\b/i],
+  ["devops", /\b(devops|cloud|kubernetes|k8s|docker|infrastructure|ci[- /]?cd|observability|deployment)\b/i],
+  ["security", /\b(security|privacy|pentest|osint|vulnerabilit(?:y|ies)|authentication|authorization|password|secrets?)\b/i],
+  ["productivity", /\b(productivity|project[- ]management|note[- ]taking|knowledge[- ]management|job[- ]search|workflow|crm|finance|media|desktop[- ]app)\b/i],
+  ["systems", /\b(linux|operating[- ]system|kernel|embedded|hardware|robotics?|on[- ]device|wearables?|smart[- ]home)\b/i],
+  ["learning", /\b(awesome|learn|learning|tutorial|course|book|beginners?|curriculum|resources?)\b/i],
+];
+const FORM_RULES = [
+  ["agent", /\b(agents?|agentic)\b/i],
+  ["mcp", /\bmcp\b/i],
+  ["plugin-skill", /\b(plugins?|skills?)\b/i],
+  ["ide", /\b(ide|code[- ]editor|coding[- ]environment)\b/i],
+  ["library", /\b(library|libraries|sdk|toolkit|package)\b/i],
+  ["framework", /\bframeworks?\b/i],
+  ["cli", /\b(cli|command[- ]line|automation|workflow)\b/i],
+];
 
 function githubPath(slug, suffix = "") {
   return `/repos/${slug.split("/").map(encodeURIComponent).join("/")}${suffix}`;
@@ -124,15 +171,88 @@ function boundedDelay(milliseconds, maximum) {
 }
 
 function retryDelay(response, attempt, maximum) {
+  const scheduled = [2000, 8000][attempt];
+  if (scheduled === undefined) throw new RetryDelayError(`Retry attempt ${attempt + 1} is outside the bounded schedule`);
   const header = response?.headers?.get("retry-after");
-  return boundedDelay(header !== null && /^\d+$/.test(header)
-    ? Number(header) * 1000
-    : 250 * (2 ** attempt), maximum);
+  const requested = header !== null && /^\d+$/.test(header) ? Number(header) * 1000 : 0;
+  return boundedDelay(Math.max(scheduled, requested), maximum);
 }
 
 function shouldRetry(response) {
-  if (response.status === 403) return /^\d+$/.test(response.headers.get("retry-after") ?? "");
-  return response.status === 408 || response.status === 429 || response.status >= 500;
+  return response.status === 429 || response.status >= 500;
+}
+
+function isTimeout(error) {
+  return error?.name === "TimeoutError" || error?.name === "AbortError";
+}
+
+function sha256(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function canonicalHash(value) {
+  return sha256(Buffer.from(stableJson(value), "utf8"));
+}
+
+function createGitHubClient({
+  fetchImpl = globalThis.fetch,
+  sleep = defaultSleep,
+  token = "",
+  maxRequests = 250,
+  maxAttempts = 3,
+  maxRetryDelay = 300000,
+} = {}) {
+  if (typeof fetchImpl !== "function" || typeof sleep !== "function") throw new Error("fetchImpl and sleep must be functions");
+  if (!Number.isSafeInteger(maxRequests) || maxRequests < 1) throw new Error("maxRequests must be a positive integer");
+  if (!Number.isSafeInteger(maxAttempts) || maxAttempts < 1 || maxAttempts > 3) throw new Error("maxAttempts must be between 1 and 3");
+  if (!Number.isSafeInteger(maxRetryDelay) || maxRetryDelay < 0) throw new Error("maxRetryDelay must be a non-negative integer");
+
+  let requestCount = 0;
+  return {
+    get requestCount() { return requestCount; },
+    async request(path) {
+      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+        if (requestCount >= maxRequests) throw new RequestLimitError(`GitHub request limit ${maxRequests} exceeded`);
+        requestCount += 1;
+        let response;
+        try {
+          response = await fetchImpl(`https://api.github.com${path}`, {
+            headers: {
+              Accept: "application/vnd.github+json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              "X-GitHub-Api-Version": "2022-11-28",
+            },
+            signal: AbortSignal.timeout(30_000),
+          });
+        } catch (error) {
+          if (!isTimeout(error)) throw new Error(`GitHub request failed for ${path}`, { cause: error });
+          if (attempt + 1 >= maxAttempts) throw new Error(`GitHub request timed out for ${path}`);
+          await sleep(boundedDelay([2000, 8000][attempt], maxRetryDelay));
+          continue;
+        }
+        if (!shouldRetry(response) || attempt + 1 >= maxAttempts) return response;
+        await sleep(retryDelay(response, attempt, maxRetryDelay));
+      }
+      throw new Error(`GitHub request failed for ${path}`);
+    },
+  };
+}
+
+async function requireGitHubJson(response, path) {
+  if (!response?.ok) throw new Error(`GitHub request returned ${response?.status} for ${path}`);
+  try {
+    return await response.json();
+  } catch (error) {
+    throw new Error(`Invalid GitHub JSON for ${path}`, { cause: error });
+  }
 }
 
 function contributorCount(response, contributors) {
@@ -145,20 +265,246 @@ function contributorCount(response, contributors) {
   return Number.isSafeInteger(page) && page >= contributors.length ? page : contributors.length;
 }
 
+function validTimestamp(value, nullable = false) {
+  if (nullable && value === null) return true;
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(value)) return false;
+  const date = new Date(value);
+  return !Number.isNaN(date.getTime()) && date.toISOString() === value.replace(/Z$/, ".000Z");
+}
+
 function assertRepoMetadata(value, slug) {
-  const counts = [value?.stargazers_count, value?.forks_count, value?.open_issues_count];
+  const counts = [value?.stargazers_count, value?.forks_count, value?.open_issues_count, value?.subscribers_count];
   const topics = value?.topics;
   if (
     typeof value?.full_name !== "string"
     || value.full_name.toLowerCase() !== slug.toLowerCase()
     || (value.description !== null && typeof value.description !== "string")
     || (value.language !== null && typeof value.language !== "string")
+    || typeof value.archived !== "boolean"
+    || typeof value.fork !== "boolean"
+    || typeof value.default_branch !== "string"
+    || !value.default_branch
+    || /[\u0000-\u001f\u007f]/.test(value.default_branch)
+    || !validTimestamp(value.created_at)
+    || !validTimestamp(value.updated_at)
+    || !validTimestamp(value.pushed_at, true)
+    || (value.license !== null && (typeof value.license !== "object" || typeof value.license.spdx_id !== "string" || !value.license.spdx_id))
     || !Array.isArray(topics)
     || topics.some(topic => typeof topic !== "string" || !/^[a-z0-9][a-z0-9-]{0,49}$/.test(topic))
     || counts.some(count => !Number.isSafeInteger(count) || count < 0)
   ) {
     throw new Error(`Invalid GitHub metadata for ${slug}`);
   }
+}
+
+function decodeBoundedBase64(value, maximumBytes) {
+  if (typeof value !== "string") throw new Error("README content must be base64 text");
+  const normalized = value.replace(/[\r\n\t ]/g, "");
+  if (!normalized || normalized.length % 4 !== 0 || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(normalized)) {
+    throw new Error("README content is not canonical base64");
+  }
+  const bytes = Buffer.from(normalized, "base64");
+  if (bytes.length > maximumBytes) throw new Error(`README content exceeds ${maximumBytes} bytes`);
+  return bytes;
+}
+
+function decodeUtf8Strict(bytes) {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch (error) {
+    throw new Error("README content is not valid UTF-8", { cause: error });
+  }
+}
+
+function classifyRepository({ slug, display_slug, description, primary_language, topics }) {
+  const text = [slug, display_slug, description, primary_language, ...topics].filter(value => typeof value === "string").join(" ");
+  const field_tags = FIELD_RULES.filter(([, pattern]) => pattern.test(text)).map(([id]) => id);
+  const form_tags = FORM_RULES.filter(([, pattern]) => pattern.test(text)).map(([id]) => id);
+  return { field_tags: field_tags.length ? field_tags : ["unclassified"], form_tags };
+}
+
+export async function fetchCanonicalReadme(slug, options = {}) {
+  const normalizedSlug = normalizeSlug(slug);
+  const client = options.client ?? createGitHubClient(options);
+  const apiPath = githubPath(normalizedSlug, "/readme");
+  const response = await client.request(apiPath);
+  if (response.status === 404) {
+    return { status: "absent", path: null, blobSha: null, markdown: null, contentSha256: null };
+  }
+  const value = await requireGitHubJson(response, apiPath);
+  if (
+    value?.encoding !== "base64"
+    || typeof value.path !== "string"
+    || !value.path
+    || value.path.startsWith("/")
+    || value.path.includes("\0")
+    || typeof value.content !== "string"
+    || !/^[a-f0-9]{40}$/.test(value.sha ?? "")
+  ) {
+    throw new Error(`Invalid canonical README metadata for ${normalizedSlug}`);
+  }
+  let bytes;
+  try {
+    bytes = decodeBoundedBase64(value.content, 512 * 1024);
+  } catch (error) {
+    throw new Error(`Invalid canonical README metadata for ${normalizedSlug}`, { cause: error });
+  }
+  return {
+    status: "present",
+    path: value.path,
+    blobSha: value.sha,
+    markdown: decodeUtf8Strict(bytes),
+    contentSha256: sha256(bytes),
+  };
+}
+
+function nullableOrdinal(value, name) {
+  if (value === undefined || value === null) return null;
+  if (!Number.isSafeInteger(value) || value < 1) throw new Error(`Invalid ${name}`);
+  return value;
+}
+
+function nullableGain(value, name) {
+  if (value === undefined || value === null) return null;
+  if (!Number.isSafeInteger(value) || value < 0) throw new Error(`Invalid ${name}`);
+  return value;
+}
+
+export async function fetchRepositoryFacts(slug, options = {}) {
+  const normalizedSlug = normalizeSlug(slug);
+  const client = options.client ?? createGitHubClient(options);
+  const repositoryPath = githubPath(normalizedSlug);
+  const repositoryResponse = await client.request(repositoryPath);
+  const metadata = await requireGitHubJson(repositoryResponse, repositoryPath);
+  assertRepoMetadata(metadata, normalizedSlug);
+
+  const contributorsPath = `${githubPath(normalizedSlug, "/contributors")}?anon=1&per_page=1`;
+  const contributorsResponse = await client.request(contributorsPath);
+  const contributorValues = await requireGitHubJson(contributorsResponse, contributorsPath);
+  if (!Array.isArray(contributorValues)) throw new Error(`Invalid GitHub contributors for ${normalizedSlug}`);
+  const contributors = contributorCount(contributorsResponse, contributorValues);
+  if (!Number.isSafeInteger(contributors) || contributors < 0) throw new Error(`Invalid GitHub contributors for ${normalizedSlug}`);
+
+  const headPath = githubPath(normalizedSlug, `/commits/${encodeURIComponent(metadata.default_branch)}`);
+  const headResponse = await client.request(headPath);
+  const head = await requireGitHubJson(headResponse, headPath);
+  if (!/^[a-f0-9]{40}$/.test(head?.sha ?? "")) throw new Error(`Invalid default branch HEAD for ${normalizedSlug}`);
+
+  const readme = await fetchCanonicalReadme(normalizedSlug, { ...options, client });
+  const [owner, name] = normalizedSlug.split("/");
+  const source = options.source ?? {};
+  const ranks = {
+    rank_daily: nullableOrdinal(source.rank_daily, "daily source rank"),
+    rank_weekly: nullableOrdinal(source.rank_weekly, "weekly source rank"),
+    rank_monthly: nullableOrdinal(source.rank_monthly, "monthly source rank"),
+  };
+  const gains = {
+    gain_daily: nullableGain(source.gain_daily, "daily gain"),
+    gain_weekly: nullableGain(source.gain_weekly, "weekly gain"),
+    gain_monthly: nullableGain(source.gain_monthly, "monthly gain"),
+  };
+  const languageColor = source.languageColor ?? null;
+  if (languageColor !== null && (typeof languageColor !== "string" || !/^#[0-9a-f]{6}$/i.test(languageColor))) {
+    throw new Error(`Invalid language color for ${normalizedSlug}`);
+  }
+  const displayRank = options.displayRank ?? null;
+  if (displayRank !== null && (!Number.isSafeInteger(displayRank) || displayRank < 1)) {
+    throw new Error(`Invalid display rank for ${normalizedSlug}`);
+  }
+
+  const repositoryFacts = {
+    archived: metadata.archived,
+    contributors,
+    created_at: metadata.created_at,
+    default_branch: metadata.default_branch,
+    default_branch_head_sha: head.sha,
+    description: metadata.description,
+    forks: metadata.forks_count,
+    is_fork: metadata.fork,
+    language_color: languageColor?.toLowerCase() ?? null,
+    license_spdx: metadata.license?.spdx_id ?? null,
+    open_issues_and_pull_requests: metadata.open_issues_count,
+    primary_language: metadata.language,
+    pushed_at: metadata.pushed_at,
+    stars: metadata.stargazers_count,
+    subscribers: metadata.subscribers_count,
+    topics: [...metadata.topics],
+    updated_at: metadata.updated_at,
+  };
+  const display = { display_rank: displayRank, display_slug: `${owner} / ${name}` };
+  const tags = classifyRepository({ slug: normalizedSlug, ...display, ...repositoryFacts });
+  const readmeFacts = {
+    readme_blob_sha: readme.blobSha,
+    readme_content_sha256: readme.contentSha256,
+    readme_path: readme.path,
+    readme_status: readme.status,
+  };
+  const provenance = {
+    repository: {
+      api_path: repositoryPath,
+      fact_sha256: canonicalHash(Object.fromEntries(Object.entries(repositoryFacts)
+        .filter(([key]) => key !== "contributors" && key !== "default_branch_head_sha"))),
+    },
+    contributors: {
+      api_path: contributorsPath,
+      fact_sha256: canonicalHash({ contributors }),
+    },
+    default_branch_head: {
+      api_path: headPath,
+      fact_sha256: canonicalHash({ sha: head.sha }),
+    },
+    readme: {
+      api_path: githubPath(normalizedSlug, "/readme"),
+      blob_api_path: readme.blobSha === null ? null : githubPath(normalizedSlug, `/git/blobs/${readme.blobSha}`),
+      status: readme.status,
+      path: readme.path,
+      blob_sha: readme.blobSha,
+      content_sha256: readme.contentSha256,
+    },
+    trending: Object.fromEntries(["daily", "weekly", "monthly"].map(period => [period, {
+      source_path: `/trending?since=${period}`,
+      rank: ranks[`rank_${period}`],
+      gain: gains[`gain_${period}`],
+      fact_sha256: canonicalHash({ rank: ranks[`rank_${period}`], gain: gains[`gain_${period}`] }),
+    }])),
+  };
+
+  return {
+    archived: repositoryFacts.archived,
+    contributors: repositoryFacts.contributors,
+    created_at: repositoryFacts.created_at,
+    default_branch: repositoryFacts.default_branch,
+    default_branch_head_sha: repositoryFacts.default_branch_head_sha,
+    description: repositoryFacts.description,
+    display_rank: display.display_rank,
+    display_slug: display.display_slug,
+    field_tags: tags.field_tags,
+    forks: repositoryFacts.forks,
+    form_tags: tags.form_tags,
+    gain_daily: gains.gain_daily,
+    gain_monthly: gains.gain_monthly,
+    gain_weekly: gains.gain_weekly,
+    is_fork: repositoryFacts.is_fork,
+    language_color: repositoryFacts.language_color,
+    license_spdx: repositoryFacts.license_spdx,
+    open_issues_and_pull_requests: repositoryFacts.open_issues_and_pull_requests,
+    primary_language: repositoryFacts.primary_language,
+    provenance,
+    readme_blob_sha: readmeFacts.readme_blob_sha,
+    readme_content_sha256: readmeFacts.readme_content_sha256,
+    readme_path: readmeFacts.readme_path,
+    readme_status: readmeFacts.readme_status,
+    pushed_at: repositoryFacts.pushed_at,
+    rank_daily: ranks.rank_daily,
+    rank_monthly: ranks.rank_monthly,
+    rank_weekly: ranks.rank_weekly,
+    slug: normalizedSlug,
+    stars: repositoryFacts.stars,
+    subscribers: repositoryFacts.subscribers,
+    tag_rule_version: TAG_RULE_VERSION,
+    topics: repositoryFacts.topics,
+    updated_at: repositoryFacts.updated_at,
+  };
 }
 
 function readmeIntroduction(readme) {
@@ -187,12 +533,6 @@ function trendNote(repo) {
     .join(", ");
 }
 
-function periodGains(repo) {
-  return Object.fromEntries(Object.values(PERIODS)
-    .map(({ field }) => [field, repo[field]])
-    .filter(([, value]) => Number.isSafeInteger(value) && value >= 0));
-}
-
 function koreanFallback(repo, metadata, readme) {
   const source = metadata.description?.trim() || readmeIntroduction(readme) || `${repo.slug} 공개 저장소`;
   const language = metadata.language ? `${metadata.language} 기반 ` : "";
@@ -212,139 +552,66 @@ export async function enrichTrendingRepositories(discovered, {
   fetchImpl = globalThis.fetch,
   sleep = defaultSleep,
   token = "",
-  summaryCache = {},
-  previousRepos = [],
-  statsDate,
   maxRequests = 250,
   maxAttempts = 3,
   maxRetryDelay = 300000,
-  minPublished = 10,
-  minCoverage = 0.8,
 } = {}) {
   if (!Array.isArray(discovered) || discovered.length < 10 || discovered.length > 75) {
     throw new Error("Discovered repositories must contain 10-75 entries");
   }
-  if (typeof fetchImpl !== "function" || typeof sleep !== "function") throw new Error("fetchImpl and sleep must be functions");
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(statsDate ?? "")) throw new Error("statsDate must use YYYY-MM-DD");
-  if (!Number.isSafeInteger(maxRequests) || maxRequests < 1) throw new Error("maxRequests must be a positive integer");
-  if (!Number.isSafeInteger(maxAttempts) || maxAttempts < 1 || maxAttempts > 5) throw new Error("maxAttempts must be between 1 and 5");
-  if (!Number.isSafeInteger(maxRetryDelay) || maxRetryDelay < 0) throw new Error("maxRetryDelay must be a non-negative integer");
-  if (!Number.isSafeInteger(minPublished) || minPublished < 1) throw new Error("minPublished must be a positive integer");
-  if (typeof minCoverage !== "number" || minCoverage <= 0 || minCoverage > 1) throw new Error("minCoverage must be between 0 and 1");
-
-  let requestCount = 0;
-  const request = async (path, { accept = "application/vnd.github+json", text = false } = {}) => {
-    let lastError;
-    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-      if (requestCount >= maxRequests) throw new RequestLimitError(`GitHub request limit ${maxRequests} exceeded`);
-      requestCount += 1;
-      let response;
-      try {
-        response = await fetchImpl(`https://api.github.com${path}`, {
-          headers: {
-            Accept: accept,
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            "X-GitHub-Api-Version": "2022-11-28",
-          },
-        });
-      } catch (error) {
-        lastError = error;
-        if (attempt + 1 < maxAttempts) {
-          await sleep(boundedDelay(250 * (2 ** attempt), maxRetryDelay));
-          continue;
-        }
-        throw new Error(`GitHub request failed for ${path}`);
-      }
-      if (response.ok) return { response, value: text ? await response.text() : await response.json() };
-      lastError = new Error(`GitHub request returned ${response.status} for ${path}`);
-      if (!shouldRetry(response) || attempt + 1 >= maxAttempts) throw lastError;
-      await sleep(retryDelay(response, attempt, maxRetryDelay));
-    }
-    throw lastError;
-  };
-
-  const summaries = new Map(Object.entries(summaryCache).map(([slug, value]) => [slug.toLowerCase(), value]));
-  const previous = new Map(previousRepos.map(repo => [String(repo.slug).toLowerCase(), repo]));
+  const client = createGitHubClient({ fetchImpl, sleep, token, maxRequests, maxAttempts, maxRetryDelay });
   const repos = [];
-
-  for (const discoveredRepo of discovered) {
+  const seen = new Set();
+  for (const [index, discoveredRepo] of discovered.entries()) {
     const slug = normalizeSlug(discoveredRepo?.slug ?? "");
     const key = slug.toLowerCase();
-    const prior = previous.get(key);
-    let metadata;
-    let contributors;
+    if (seen.has(key)) throw new Error(`Duplicate discovered repository: ${slug}`);
+    seen.add(key);
     try {
-      ({ value: metadata } = await request(githubPath(slug)));
-      assertRepoMetadata(metadata, slug);
-      const result = await request(`${githubPath(slug, "/contributors")}?anon=1&per_page=1`);
-      if (!Array.isArray(result.value)) throw new Error(`Invalid GitHub contributors for ${slug}`);
-      contributors = contributorCount(result.response, result.value);
+      repos.push(await fetchRepositoryFacts(slug, {
+        client,
+        source: discoveredRepo,
+        displayRank: index + 1,
+      }));
     } catch (error) {
       if (error instanceof RequestLimitError || error instanceof RetryDelayError) throw error;
-      if (!prior) continue;
-      const retained = { ...prior };
-      for (const { field } of Object.values(PERIODS)) delete retained[field];
-      const cached = summaries.get(key);
-      repos.push({
-        ...retained,
-        slug,
-        topics: Array.isArray(retained.topics) ? retained.topics : [],
-        ...periodGains(discoveredRepo),
-        ...(cached ? { summary: cached.summary, detail: cached.detail } : {}),
-        _stats_date: statsDate,
-      });
-      continue;
+      throw new Error(`GitHub metadata unavailable for ${slug}`, { cause: error });
     }
+  }
+  Object.defineProperty(repos, "requestCount", { value: client.requestCount, enumerable: false });
+  return repos;
+}
 
-    let cached = summaries.get(key);
-    if (!cached) {
-      let readme = "";
-      try {
-        ({ value: readme } = await request(githubPath(slug, "/readme"), {
-          accept: "application/vnd.github.raw+json",
-          text: true,
-        }));
-      } catch (error) {
-        if (error instanceof RequestLimitError || error instanceof RetryDelayError) throw error;
-      }
-      cached = koreanFallback({ ...discoveredRepo, slug }, metadata, readme);
-    }
-
-    let latestReleaseDate = null;
-    try {
-      const release = await request(githubPath(slug, "/releases/latest"));
-      if (release.value?.published_at) latestReleaseDate = String(release.value.published_at).slice(0, 10);
-    } catch { /* releases 없는 repo는 정상 */ }
-
-    const [owner, name] = slug.split("/");
-    repos.push({
-      slug,
-      latest_release: latestReleaseDate,
-      name: `${owner} / ${name}`,
-      desc: metadata.description ?? "",
-      lang: metadata.language ?? "",
-      topics: metadata.topics,
-      stars: metadata.stargazers_count,
-      forks: metadata.forks_count,
-      ...periodGains(discoveredRepo),
-      color: prior?.lang === metadata.language && prior.color ? prior.color : "#8b949e",
+function renderRepositoryFacts(facts, summaryCache, statsDate) {
+  const summaries = new Map(Object.entries(summaryCache).map(([slug, value]) => [slug.toLowerCase(), value]));
+  return facts.map(fact => {
+    const gains = Object.fromEntries(["daily", "weekly", "monthly"]
+      .map(period => [`stars_${period}`, fact[`gain_${period}`]])
+      .filter(([, value]) => value !== null));
+    const cached = summaries.get(fact.slug.toLowerCase()) ?? koreanFallback(
+      { slug: fact.slug, ...gains },
+      { description: fact.description, language: fact.primary_language },
+      "",
+    );
+    return {
+      slug: fact.slug,
+      latest_release: null,
+      name: fact.display_slug,
+      desc: fact.description ?? "",
+      lang: fact.primary_language ?? "",
+      topics: fact.topics,
+      stars: fact.stars,
+      forks: fact.forks,
+      ...gains,
+      color: fact.language_color ?? "#8b949e",
       summary: cached.summary,
       detail: cached.detail,
-      issues: metadata.open_issues_count,
-      contributors,
-      pushed_at: typeof metadata.pushed_at === "string" ? metadata.pushed_at.slice(0, 10) : null,
+      issues: fact.open_issues_and_pull_requests,
+      contributors: fact.contributors,
+      pushed_at: fact.pushed_at?.slice(0, 10) ?? null,
       _stats_date: statsDate,
-    });
-  }
-
-  const coverage = repos.length / discovered.length;
-  if (repos.length < minPublished) {
-    throw new Error(`Published repository count ${repos.length} is below ${minPublished}`);
-  }
-  if (coverage < minCoverage) {
-    throw new Error(`Metadata coverage ${Math.round(coverage * 100)}% is below ${Math.round(minCoverage * 100)}%`);
-  }
-  return { repos, requestCount };
+    };
+  });
 }
 
 const REPOS_START = "// GENERATED:TRENDING-REPOS:START";
@@ -561,13 +828,17 @@ export async function installPageSnapshot({
 
 async function fetchTrendingPage(period, { fetchImpl, sleep, maxAttempts = 3, maxRetryDelay = 300000 }) {
   const url = `https://github.com/trending?since=${period}`;
+  if (!Number.isSafeInteger(maxAttempts) || maxAttempts < 1 || maxAttempts > 3) throw new Error("maxAttempts must be between 1 and 3");
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     let response;
     try {
-      response = await fetchImpl(url, { headers: { Accept: "text/html" } });
-    } catch {
-      if (attempt + 1 >= maxAttempts) throw new Error(`Trending request failed for ${period}`);
-      await sleep(boundedDelay(250 * (2 ** attempt), maxRetryDelay));
+      response = await fetchImpl(url, {
+        headers: { Accept: "text/html" },
+        signal: AbortSignal.timeout(30_000),
+      });
+    } catch (error) {
+      if (!isTimeout(error) || attempt + 1 >= maxAttempts) throw new Error(`Trending request failed for ${period}`);
+      await sleep(boundedDelay([2000, 8000][attempt], maxRetryDelay));
       continue;
     }
     if (response.ok) return response.text();
@@ -592,22 +863,20 @@ export async function runTrendingUpdate({
   validateRunContext(context);
   const [page, cacheText] = await Promise.all([readFile(pagePath, "utf8"), readFile(cachePath, "utf8")]);
   const summaryCache = JSON.parse(cacheText);
-  const previousRepos = parsePageRepos(page);
   const periods = Object.fromEntries(await Promise.all(Object.keys(PERIODS).map(async period => [
     period,
     parseTrendingHtml(await fetchTrendingPage(period, { fetchImpl, sleep }), period),
   ])));
   const discovered = mergeTrendingPeriods(periods);
   const statsDate = context.statsDateKst;
-  const { repos, requestCount } = await enrichTrendingRepositories(discovered, {
+  const repos = await enrichTrendingRepositories(discovered, {
     fetchImpl,
     sleep,
     token,
-    summaryCache,
-    previousRepos,
-    statsDate,
   });
-  const snapshot = createPageSnapshot({ page, summaryCache, repos, statsDate });
+  const requestCount = repos.requestCount;
+  const publishedRepos = renderRepositoryFacts(repos, summaryCache, statsDate);
+  const snapshot = createPageSnapshot({ page, summaryCache, repos: publishedRepos, statsDate });
   const changed = page !== snapshot.page || cacheText !== snapshot.summaryCacheText;
   if (!check && changed) await installPageSnapshot({ pagePath, cachePath, ...snapshot });
   return { changed, repos, requestCount, statsDate, snapshotId: context.snapshotId };
