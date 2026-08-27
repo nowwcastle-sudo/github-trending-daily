@@ -1,16 +1,19 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 
 import {
+  buildEnrichmentOutputs,
   callDetailedSummary,
   callMarkdownTranslation,
   extractTranslatableProse,
   fingerprintMarkdown,
   hashReadme,
+  installEnrichmentSet,
   planEnrichment,
   runEnrichment,
   splitMarkdownAtHeadings,
@@ -63,11 +66,14 @@ function translationReplyFromRequest(init, translate = value => value
   .replace("HTML body", "HTML 본문")) {
   const body = JSON.parse(init.body);
   const prompt = body.messages[0].content;
+  const segments = prompt.match(/<segments>([^\n]+)<\/segments>/);
+  assert.ok(segments, "translation request contains segment bindings");
   const match = prompt.match(/<chunk index="(\d+)" sha256="([a-f0-9]{64})">\n([\s\S]*)\n<\/chunk>$/);
   assert.ok(match, "translation request contains the indexed, hashed chunk");
   return message(JSON.stringify({
     chunk_index: Number(match[1]),
     input_sha256: match[2],
+    segment_bindings: JSON.parse(segments[1]),
     translated_markdown: translate(match[3]),
   }));
 }
@@ -121,6 +127,23 @@ test("non-JSON envelopes, prompt echoes, and unchanged translatable prose fail c
   );
 });
 
+test("decoded summary fields reject normalized multiline prompt and README echoes", async () => {
+  await assert.rejects(
+    callDetailedSummary(item, "x", async (_url, init) => message(JSON.stringify({
+      ...content,
+      goal: JSON.parse(init.body).messages[0].content.replaceAll("\n", "   "),
+    }))),
+    /echo/i,
+  );
+  await assert.rejects(
+    callDetailedSummary(item, "x", async () => message(JSON.stringify({
+      ...content,
+      usage: item.markdown.replaceAll("\n", " \t "),
+    }))),
+    /echo/i,
+  );
+});
+
 test("summary retries only timeout, 429, and 5xx with bounded delays", async () => {
   const delays = [];
   let calls = 0;
@@ -170,6 +193,41 @@ test("translation preserves structural sentinels for instruction-like README con
   assert.deepEqual(fingerprintMarkdown(translated), fingerprintMarkdown(value));
 });
 
+test("reference definitions and autolink destinations are byte-protected", async () => {
+  const value = [
+    "# English title",
+    "",
+    "This project provides a useful command line tool for developers.",
+    "",
+    "Read [the documentation][docs], visit <https://example.com/original>, or email <team@example.com>.",
+    "[docs]: https://example.com/reference \"Reference title\"",
+    "",
+  ].join("\n");
+  await assert.rejects(
+    callMarkdownTranslation({ ...item, markdown: value }, "x", async (_url, init) => translationReplyFromRequest(
+      init,
+      source => source
+        .replace("English title", "한국어 제목")
+        .replace("This project provides a useful command line tool for developers.", "이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.")
+        .replace("Read [the documentation][docs], visit", "문서를 읽고 방문하거나")
+        .replace(", or email", ", 이메일을 보내세요")
+        .replace(/⟦GH_TRANSLATE_[A-F0-9]{16}_\d{6}⟧/, "https://evil.invalid/reference"),
+    )),
+    /sentinel|destination|fingerprint/i,
+  );
+  const translated = await callMarkdownTranslation({ ...item, markdown: value }, "x", async (_url, init) => translationReplyFromRequest(
+    init,
+    source => source
+      .replace("English title", "한국어 제목")
+      .replace("This project provides a useful command line tool for developers.", "이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.")
+      .replace("Read [the documentation][docs], visit", "문서를 읽고 방문하거나")
+      .replace(", or email", ", 이메일을 보내세요"),
+  ));
+  assert.match(translated, /<https:\/\/example\.com\/original>/);
+  assert.match(translated, /<team@example\.com>/);
+  assert.match(translated, /\[docs\]: https:\/\/example\.com\/reference "Reference title"/);
+});
+
 test("oversized atomic blocks fail before any API call", async () => {
   let calls = 0;
   const oversized = { ...item, markdown: `# Title\n\n${"a".repeat(64 * 1024)}\n` };
@@ -180,11 +238,69 @@ test("oversized atomic blocks fail before any API call", async () => {
   assert.equal(calls, 0);
 });
 
+test("unclosed fenced code and HTML blocks fail before any API call", async () => {
+  const malformed = [
+    "```js\nconst value = 1;\n",
+    "~~~text\nnever closed\n",
+    "<!-- unclosed comment\n",
+    "<![CDATA[unclosed declaration\n",
+    "<details>\n<? unclosed instruction\n</details>\n",
+    "<details>\n<!BROKEN declaration\n</details>\n",
+    "<details>\n<div>\nbody\n</div>\n",
+    "<details>\n<div>\nbody\n</details>\n",
+  ];
+  for (const value of malformed) {
+    let calls = 0;
+    await assert.rejects(
+      callMarkdownTranslation({ ...item, markdown: value }, "x", async () => { calls += 1; }),
+      /unclosed|complete|mismatch/i,
+    );
+    assert.equal(calls, 0, value.slice(0, 20));
+  }
+});
+
 test("code-only Markdown is N/A for prose-change checks", async () => {
   const value = "```js\nconst value = 'English stays exact';\n```\n";
   assert.deepEqual(extractTranslatableProse(value), []);
   const translated = await callMarkdownTranslation({ ...item, markdown: value }, "x", async (_url, init) => translationReplyFromRequest(init, source => source));
   assert.equal(translated, value);
+});
+
+test("translation rejects source retention, severe contraction, tail loss, and excessive expansion", async () => {
+  const longSource = "This project provides a useful command line tool for developers and operators who need reliable automation every day.";
+  const cases = [
+    `${longSource} 가`,
+    `${longSource} 새로 지어낸 한국어 설명입니다.`,
+    "한국어",
+    "이 프로젝트는 개발자에게 유용한 명령줄 도구입니다.",
+    "이 프로젝트는 개발자와 운영자가 매일 신뢰할 수 있는 자동화를 사용할 수 있도록 유용한 명령줄 도구를 제공합니다. ".repeat(12),
+  ];
+  for (const translatedProse of cases) {
+    const source = `# English title\n\n${longSource}\n`;
+    await assert.rejects(
+      callMarkdownTranslation({ ...item, markdown: source }, "x", async (_url, init) => translationReplyFromRequest(
+        init,
+        value => value.replace("English title", "한국어 제목").replace(longSource, translatedProse),
+      )),
+      /unchanged|retained|reduction|ratio|contract|expand|segment/i,
+      translatedProse.slice(0, 40),
+    );
+  }
+});
+
+test("translation chunk rejects missing and reordered indexed segment hashes", async () => {
+  const source = `${markdown}\nInstall the package and run the command to start the service.\n`;
+  for (const mutate of [bindings => bindings.slice(1), bindings => [...bindings].reverse()]) {
+    await assert.rejects(
+      callMarkdownTranslation({ ...item, markdown: source }, "x", async (_url, init) => {
+        const base = await translationReplyFromRequest(init).json();
+        const parsed = JSON.parse(base.content[0].text);
+        parsed.segment_bindings = mutate(parsed.segment_bindings);
+        return message(JSON.stringify(parsed));
+      }),
+      /envelope|reordered|segment/i,
+    );
+  }
 });
 
 test("queue budgets fail before calls and usage budgets fail during the run", async () => {
@@ -230,11 +346,153 @@ test("planning reuses only independently matching schema-v2 provenance", () => {
     blob_sha: item.readme_blob_sha, content_sha256: item.readme_content_sha256,
     model: MODEL, schema_version: 2, translation_applicable: true,
   };
-  const repos = [{ ...item, translated_markdown: "# 한국어 제목\n\n한국어 본문입니다.\n" }];
+  const repos = [{ ...item, translated_markdown: "# 한국어 제목\n\n이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.\n" }];
   assert.deepEqual(planEnrichment(repos, { [item.slug]: { content, source } }, { version: 2, sources: { [item.slug]: source } }), []);
   const stale = { ...source, blob_sha: "f".repeat(40) };
   assert.deepEqual(planEnrichment(repos, { [item.slug]: { content, source } }, { version: 2, sources: { [item.slug]: stale } }).map(value => value.slug), [item.slug]);
   assert.deepEqual(planEnrichment(repos, { [item.slug]: { summary: content, detail: content } }, { version: 2, sources: { [item.slug]: source } }).map(value => value.slug), [item.slug]);
+});
+
+test("planning queues placeholder summaries and corrupt reusable translations", () => {
+  const source = {
+    blob_sha: item.readme_blob_sha, content_sha256: item.readme_content_sha256,
+    model: MODEL, schema_version: 2, translation_applicable: true,
+  };
+  const cache = { [item.slug]: { content, source } };
+  const sources = { version: 2, sources: { [item.slug]: source } };
+  const corrupt = [
+    markdown,
+    "# 한국어 제목\n\n한국어\n",
+    "## 한국어 제목\n\n이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.\n",
+  ];
+  for (const translated_markdown of corrupt) {
+    assert.deepEqual(planEnrichment([{ ...item, translated_markdown }], cache, sources).map(value => value.slug), [item.slug]);
+  }
+  const placeholder = { [item.slug]: { content: { ...content, goal: "TODO placeholder" }, source } };
+  assert.deepEqual(planEnrichment([{ ...item, translated_markdown: "# 한국어 제목\n\n이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.\n" }], placeholder, sources).map(value => value.slug), [item.slug]);
+});
+
+function injectedFs(fail) {
+  const calls = { mkdir: 0, writeFile: 0, readFile: 0, rename: 0, rm: 0 };
+  const wrap = (name, operation) => async (...args) => {
+    calls[name] += 1;
+    if (fail(name, calls[name], args)) throw Object.assign(new Error(`injected ${name} ${calls[name]}`), { code: "EIO" });
+    return operation(...args);
+  };
+  return {
+    calls,
+    fs: {
+      mkdir: wrap("mkdir", mkdir),
+      writeFile: wrap("writeFile", writeFile),
+      readFile: wrap("readFile", readFile),
+      rename: wrap("rename", rename),
+      rm: wrap("rm", rm),
+      exists: async target => existsSync(target),
+    },
+  };
+}
+
+function transactionFixture() {
+  const root = mkdtempSync(path.join(tmpdir(), "enrichment-transaction-"));
+  const first = path.join(root, "first.json");
+  const second = path.join(root, "second.json");
+  writeFileSync(first, "first-last-good\n");
+  writeFileSync(second, "second-last-good\n");
+  return {
+    root, first, second,
+    outputs: [{ path: first, text: "first-next\n" }, { path: second, text: "second-next\n" }],
+  };
+}
+
+test("atomic installer reports prepare, verify, backup, install, and cleanup failures", async () => {
+  const phases = [
+    ["write", (name, count) => name === "writeFile" && count === 2],
+    ["read", (name, count) => name === "readFile" && count === 2],
+    ["backup", (name, count) => name === "rename" && count === 2],
+    ["install", (name, count) => name === "rename" && count === 4],
+    ["cleanup", (name, count) => name === "rm" && count === 1],
+  ];
+  for (const [phase, fail] of phases) {
+    const fixture = transactionFixture();
+    const injected = injectedFs(fail);
+    await assert.rejects(
+      installEnrichmentSet(fixture.outputs, { fs: injected.fs, suffix: phase }),
+      AggregateError,
+      phase,
+    );
+    const first = readFileSync(fixture.first, "utf8");
+    const second = readFileSync(fixture.second, "utf8");
+    if (phase === "cleanup") {
+      assert.deepEqual([first, second], ["first-next\n", "second-next\n"]);
+      assert.ok(readdirSync(fixture.root).some(file => file.includes(".backup-cleanup")));
+    } else {
+      assert.deepEqual([first, second], ["first-last-good\n", "second-last-good\n"], phase);
+    }
+  }
+});
+
+test("atomic installer retains recovery artifacts and reports rollback uncertainty", async () => {
+  for (const rollbackFailure of ["remove", "restore"]) {
+    const fixture = transactionFixture();
+    let installFailed = false;
+    const injected = injectedFs((name, count, args) => {
+      if (name === "rename" && count === 4) { installFailed = true; return true; }
+      if (!installFailed) return false;
+      if (rollbackFailure === "remove" && name === "rm" && args[0] === fixture.first) return true;
+      return rollbackFailure === "restore" && name === "rename" && String(args[0]).includes(".backup-");
+    });
+    let caught;
+    try {
+      await installEnrichmentSet(fixture.outputs, { fs: injected.fs, suffix: rollbackFailure });
+    } catch (error) {
+      caught = error;
+    }
+    assert.ok(caught instanceof AggregateError, rollbackFailure);
+    assert.ok(caught.errors.length >= 2, rollbackFailure);
+    assert.ok(readdirSync(fixture.root).some(file => file.includes(`.backup-${rollbackFailure}`)), rollbackFailure);
+  }
+});
+
+test("atomic installer reports pending cleanup failure and retains the artifact", async () => {
+  const fixture = transactionFixture();
+  const injected = injectedFs((name, count) => (name === "writeFile" && count === 2) || (name === "rm" && count === 1));
+  let caught;
+  try {
+    await installEnrichmentSet(fixture.outputs, { fs: injected.fs, suffix: "pending-cleanup" });
+  } catch (error) {
+    caught = error;
+  }
+  assert.ok(caught instanceof AggregateError);
+  assert.equal(caught.errors.length, 2);
+  assert.match(caught.message, /recovery artifacts were retained/i);
+  assert.ok(readdirSync(fixture.root).some(file => file.includes(".pending-pending-cleanup")));
+  assert.deepEqual([readFileSync(fixture.first, "utf8"), readFileSync(fixture.second, "utf8")], ["first-last-good\n", "second-last-good\n"]);
+});
+
+test("prepared output set contains and rereads every active translation, including reuse", async () => {
+  const fixture = transactionFixture();
+  const translationsDir = path.join(fixture.root, "translations");
+  const outputs = buildEnrichmentOutputs({
+    pagePath: path.join(fixture.root, "index.html"),
+    cachePath: path.join(fixture.root, "data", "repo-summaries.json"),
+    sourcesPath: path.join(fixture.root, "data", "translation-sources.json"),
+    translationsDir,
+    page: "page-next\n",
+    cache: {},
+    sources: { version: 2, sources: {} },
+    translations: { "owner/reused": "재사용", "owner/repaired": "수리됨" },
+  });
+  assert.equal(outputs.length, 5);
+  assert.ok(outputs.some(output => output.path.endsWith("owner__reused.json")));
+  const injected = injectedFs(() => false);
+  let verified;
+  await installEnrichmentSet(outputs, {
+    fs: injected.fs,
+    suffix: "all-active",
+    verify: async ({ contents }) => { verified = new Map(contents); },
+  });
+  assert.equal(injected.calls.readFile, outputs.length);
+  assert.deepEqual([...verified.keys()].sort(), outputs.map(output => output.path).sort());
 });
 
 function writeCoverageRoot(kind) {
