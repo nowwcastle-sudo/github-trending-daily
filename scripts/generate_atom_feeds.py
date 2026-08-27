@@ -45,6 +45,7 @@ except ModuleNotFoundError as error:
 ATOM_NAMESPACE = "http://www.w3.org/2005/Atom"
 SITE_URL = "https://nowwcastle-sudo.github.io/github-trending-daily/"
 SNAPSHOT_SCHEME = f"{SITE_URL}snapshot"
+STATS_DATE_SCHEME = f"{SITE_URL}stats-date"
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FEED = REPOSITORY_ROOT / "feed.xml"
 DEFAULT_CHANGES = REPOSITORY_ROOT / "changes.xml"
@@ -105,12 +106,15 @@ def _validate_latest_contract(page, latest):
             or not description.strip()
             or page_repository.get("slug") != slug
             or page_repository.get("desc") != description
+            or page_repository.get("_snapshot_id") != snapshot_id
+            or page_repository.get("_generated_at") != generated_at
+            or page_repository.get("_stats_date") != latest.get("statsDate")
         ):
             raise ValueError("Page and latest feed repository identity does not match")
     return snapshot_id
 
 
-def _feed(feed_id: str, title: str, updated: str, self_url: str, snapshot_id: str):
+def _feed(feed_id: str, title: str, updated: str, self_url: str, snapshot_id: str, stats_date: str):
     root = ET.Element(_atom("feed"))
     _child(root, "id", feed_id)
     _child(root, "title", title)
@@ -118,6 +122,7 @@ def _feed(feed_id: str, title: str, updated: str, self_url: str, snapshot_id: st
     author = _child(root, "author")
     _child(author, "name", "GitHub Trending Daily")
     _child(root, "category", scheme=SNAPSHOT_SCHEME, term=snapshot_id)
+    _child(root, "category", scheme=STATS_DATE_SCHEME, term=stats_date)
     _child(root, "link", rel="self", type="application/atom+xml", href=self_url)
     _child(root, "link", rel="alternate", type="text/html", href=SITE_URL)
     return root
@@ -154,6 +159,7 @@ def _current_document(snapshot, latest):
         snapshot.generated_at,
         f"{SITE_URL}feed.xml",
         latest["snapshotId"],
+        latest["statsDate"],
     )
     for slug, description in _latest_repositories(latest, snapshot.slugs):
         entry = _child(root, "entry")
@@ -171,13 +177,14 @@ def _change_id(event):
     return f"{SITE_URL}changes.xml#{quote(identity, safe='')}"
 
 
-def _changes_document(snapshot, events, snapshot_id):
+def _changes_document(snapshot, events, snapshot_id, stats_date):
     root = _feed(
         f"{SITE_URL}changes.xml",
         "GitHub Trending Daily — 신규·재진입",
         snapshot.generated_at,
         f"{SITE_URL}changes.xml",
         snapshot_id,
+        stats_date,
     )
     labels = {"new": "신규", "reentered": "재진입"}
     summaries = {
@@ -234,7 +241,7 @@ def _parse_document(path: Path):
     return root
 
 
-def _validate_feed_header(root, expected_id, expected_title, expected_updated, expected_self, snapshot_id):
+def _validate_feed_header(root, expected_id, expected_title, expected_updated, expected_self, snapshot_id, stats_date):
     if _one_text(root, "id") != expected_id or _one_text(root, "title") != expected_title:
         raise ValueError("Atom feed identity is invalid")
     if _one_text(root, "updated") != expected_updated:
@@ -244,8 +251,9 @@ def _validate_feed_header(root, expected_id, expected_title, expected_updated, e
     if len(names) != 1 or names[0].text != "GitHub Trending Daily":
         raise ValueError("Atom feed author is invalid")
     categories = root.findall(_atom("category"))
-    if len(categories) != 1 or categories[0].get("scheme") != SNAPSHOT_SCHEME or categories[0].get("term") != snapshot_id:
-        raise ValueError("Atom feed snapshot identity is invalid")
+    expected_categories = {(SNAPSHOT_SCHEME, snapshot_id), (STATS_DATE_SCHEME, stats_date)}
+    if len(categories) != 2 or {(category.get("scheme"), category.get("term")) for category in categories} != expected_categories:
+        raise ValueError("Atom feed run identity is invalid")
     links = {(link.get("rel"), link.get("type"), link.get("href")) for link in root.findall(_atom("link"))}
     if links != {
         ("self", "application/atom+xml", expected_self),
@@ -256,6 +264,7 @@ def _validate_feed_header(root, expected_id, expected_title, expected_updated, e
 
 def _validate_documents(snapshot, latest, events, feed_root, changes_root):
     snapshot_id = latest["snapshotId"]
+    stats_date = latest["statsDate"]
     _validate_feed_header(
         feed_root,
         f"{SITE_URL}feed.xml",
@@ -263,6 +272,7 @@ def _validate_documents(snapshot, latest, events, feed_root, changes_root):
         snapshot.generated_at,
         f"{SITE_URL}feed.xml",
         snapshot_id,
+        stats_date,
     )
     _validate_feed_header(
         changes_root,
@@ -271,6 +281,7 @@ def _validate_documents(snapshot, latest, events, feed_root, changes_root):
         snapshot.generated_at,
         f"{SITE_URL}changes.xml",
         snapshot_id,
+        stats_date,
     )
     current_entries = feed_root.findall(_atom("entry"))
     if not 10 <= len(current_entries) <= 75 or len(current_entries) != len(snapshot.slugs):
@@ -374,7 +385,7 @@ def generate_atom_feeds(
     snapshot = load_finalized_snapshot(page, membership_latest)
     events = membership_change_events(database_path)
     feed_root = _current_document(snapshot, latest)
-    changes_root = _changes_document(snapshot, events, snapshot_id)
+    changes_root = _changes_document(snapshot, events, snapshot_id, latest["statsDate"])
     _validate_documents(snapshot, latest, events, feed_root, changes_root)
     feed_bytes = _document_bytes(feed_root)
     changes_bytes = _document_bytes(changes_root)

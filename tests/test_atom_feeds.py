@@ -28,6 +28,10 @@ ATOM = {"atom": ATOM_NAMESPACE}
 
 def page_and_latest(slugs, generated_at, *, description="A public repository"):
     stats_date = "2026-08-26"
+    snapshot_id = (
+        f"{generated_at.replace('-', '').replace(':', '').replace('.', '').replace('T', '').replace('Z', '')[:14]}-"
+        f"{hashlib.sha256(f'{generated_at}|run-context-v1'.encode()).hexdigest()[:16]}"
+    )
     repos = [
         {
             "slug": slug,
@@ -35,6 +39,8 @@ def page_and_latest(slugs, generated_at, *, description="A public repository"):
             "desc": description if index == 0 else f"Description {index}",
             "language": "Python",
             "topics": ["testing"],
+            "_snapshot_id": snapshot_id,
+            "_generated_at": generated_at,
             "_stats_date": stats_date,
         }
         for index, slug in enumerate(slugs)
@@ -46,10 +52,7 @@ def page_and_latest(slugs, generated_at, *, description="A public repository"):
     )
     latest = {
         "generatedAt": generated_at,
-        "snapshotId": (
-            f"{generated_at.replace('-', '').replace(':', '').replace('.', '').replace('T', '').replace('Z', '')[:14]}-"
-            f"{hashlib.sha256(f'{generated_at}|run-context-v1'.encode()).hexdigest()[:16]}"
-        ),
+        "snapshotId": snapshot_id,
         "statsDate": stats_date,
         "count": len(repos),
         "repos": [
@@ -118,9 +121,15 @@ class AtomFeedTests(unittest.TestCase):
         self.assertEqual(changes_root.tag, f"{{{ATOM_NAMESPACE}}}feed")
         self.assertEqual(current_root.findtext("atom:id", namespaces=ATOM), f"{SITE_URL}feed.xml")
         self.assertEqual(current_root.findtext("atom:updated", namespaces=ATOM), generated_at)
-        snapshot_category = current_root.find("atom:category", ATOM)
-        self.assertEqual(snapshot_category.get("scheme"), f"{SITE_URL}snapshot")
-        self.assertEqual(snapshot_category.get("term"), latest["snapshotId"])
+        expected_root_categories = {
+            (f"{SITE_URL}snapshot", latest["snapshotId"]),
+            (f"{SITE_URL}stats-date", latest["statsDate"]),
+        }
+        for root in (current_root, changes_root):
+            self.assertEqual(
+                {(category.get("scheme"), category.get("term")) for category in root.findall("atom:category", ATOM)},
+                expected_root_categories,
+            )
         self.assertIsNotNone(current_root.find("atom:author/atom:name", ATOM))
         self.assertEqual(len(entries(self.feed)), 10)
         self.assertEqual(entries(self.changes), [])
@@ -216,6 +225,9 @@ class AtomFeedTests(unittest.TestCase):
             self.generate(page, {**latest, "unexpected": True})
         with self.assertRaises(ValueError):
             self.generate(page, {**latest, "snapshotId": "20260826100700-0123456789abcdef"})
+        cross_run_page = page.replace(latest["snapshotId"], "20260826120700-0123456789abcdef")
+        with self.assertRaises(ValueError):
+            self.generate(cross_run_page, latest)
         with self.assertRaises(ValueError):
             self.generate(page, {**latest, "repos": list(reversed(latest["repos"]))})
         missing_description = {**latest, "repos": [dict(repo) for repo in latest["repos"]]}
@@ -226,6 +238,29 @@ class AtomFeedTests(unittest.TestCase):
             self.generate(page.replace("owner/repo-0", "invalid", 1), latest)
 
         self.generate(page, latest)
+        for replacement in ("wrong-date", None, "duplicate"):
+            tree = ET.parse(self.feed)
+            root = tree.getroot()
+            stats_categories = [
+                category for category in root.findall("atom:category", ATOM)
+                if category.get("scheme") == f"{SITE_URL}stats-date"
+            ]
+            if replacement is None:
+                root.remove(stats_categories[0])
+            elif replacement == "duplicate":
+                ET.SubElement(
+                    root,
+                    f"{{{ATOM_NAMESPACE}}}category",
+                    scheme=f"{SITE_URL}stats-date",
+                    term=latest["statsDate"],
+                )
+            else:
+                stats_categories[0].set("term", replacement)
+            tree.write(self.feed, encoding="utf-8", xml_declaration=True)
+            with self.assertRaises(ValueError):
+                validate_atom_publication(page, latest, self.database, self.feed, self.changes)
+            self.generate(page, latest)
+
         tree = ET.parse(self.feed)
         feed_entries = tree.getroot().findall("atom:entry", ATOM)
         feed_entries[1].find("atom:id", ATOM).text = feed_entries[0].findtext("atom:id", namespaces=ATOM)

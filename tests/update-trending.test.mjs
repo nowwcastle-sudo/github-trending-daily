@@ -824,6 +824,8 @@ const REPOS = [];
 // GENERATED:TRENDING-REPOS:END
 </script>`;
 
+const pageContext = createRunContext(new Date("2026-08-22T15:00:00.000Z"));
+
 function publishableRepo(index, statsDate = "2026-08-23") {
   const cached = cachedSummary(index);
   return {
@@ -840,6 +842,8 @@ function publishableRepo(index, statsDate = "2026-08-23") {
     detail: cached.detail,
     issues: 3,
     contributors: 2,
+    _snapshot_id: pageContext.snapshotId,
+    _generated_at: pageContext.observedAtUtc,
     _stats_date: statsDate,
   };
 }
@@ -1112,6 +1116,22 @@ test("check mode fetches all three Trending pages and REST data without writing 
   assert.deepEqual(await Promise.all([readFile(pagePath), readFile(cachePath)]), before);
 });
 
+test("page snapshots require one complete run-context identity triple", () => {
+  const missingIdentity = publishableRepos();
+  delete missingIdentity[0]._snapshot_id;
+  assert.throws(
+    () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: missingIdentity, statsDate: "2026-08-23" }),
+    /run context identity/i,
+  );
+
+  const mixedIdentity = publishableRepos();
+  mixedIdentity[1]._generated_at = "2026-08-22T15:01:00.000Z";
+  assert.throws(
+    () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: mixedIdentity, statsDate: "2026-08-23" }),
+    /run context identity/i,
+  );
+});
+
 test("daily update gives star history the exact finalized repositories and isolates unavailable history", async t => {
   const directory = await mkdtemp(join(tmpdir(), "daily-integrated-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
@@ -1139,11 +1159,12 @@ test("daily update gives star history the exact finalized repositories and isola
   const rest = successfulGithubFetch();
   const starRequests = [];
 
+  const context = createRunContext(new Date("2026-08-22T15:00:00Z"));
   const result = await runTrendingUpdate({
     pagePath,
     cachePath,
     fetchImpl: async (url, options) => trending[url] ? jsonResponse(200, trending[url]) : rest(url, options),
-    context: createRunContext(new Date("2026-08-22T15:00:00Z")),
+    context,
   });
   const starHistory = await updateStarHistoryCache({
     htmlPath: pagePath,
@@ -1165,6 +1186,11 @@ test("daily update gives star history the exact finalized repositories and isola
   assert.deepEqual(starSlugs, result.repos.map(repo => repo.slug));
   assert.deepEqual(starSlugs, pageSlugs);
   assert.equal(published[0].latest_release, "2026-08-21");
+  assert.ok(published.every(repo => (
+    repo._snapshot_id === context.snapshotId
+    && repo._generated_at === context.observedAtUtc
+    && repo._stats_date === context.statsDateKst
+  )));
   assert.equal(starRequests.length, result.repos.length);
   assert.deepEqual(starHistory.failed, [result.repos[0].slug]);
   assert.deepEqual(starCache.repositories[0].estimated, [{ date: "2026-07-01", stars: 50 }]);

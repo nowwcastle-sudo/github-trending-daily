@@ -38,11 +38,11 @@ function integrationRepos() {
   }));
 }
 
-function pageFixture(repos) {
+function pageFixture(repos, identity = {}) {
   return [
     "before",
     "// GENERATED:TRENDING-REPOS:START",
-    `const REPOS = ${JSON.stringify(repos.map(({ slug, desc, _stats_date }) => ({ slug, desc, _stats_date })))};`,
+    `const REPOS = ${JSON.stringify(repos.map(({ slug, desc, _stats_date }) => ({ slug, desc, _stats_date, ...identity })))};`,
     "// GENERATED:TRENDING-REPOS:END",
     "after",
   ].join("\n");
@@ -132,7 +132,10 @@ test("real latest JSON produces Atom summaries from the live producer contract",
     const feed = join(directory, "feed.xml");
     const changes = join(directory, "changes.xml");
     await Promise.all([
-      writeFile(page, pageFixture(repos), "utf8"),
+      writeFile(page, pageFixture(repos, {
+        _snapshot_id: context.snapshotId,
+        _generated_at: context.observedAtUtc,
+      }), "utf8"),
       writeFile(latestPath, `${JSON.stringify(latest)}\n`, "utf8"),
     ]);
     const membership = initializeMembership({
@@ -160,6 +163,57 @@ test("real latest JSON produces Atom summaries from the live producer contract",
     const summaries = atomSummaries(feed);
     assert.deepEqual(summaries, latest.repos.map(repo => repo.description));
     assert.ok(summaries.every(Boolean));
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("real Atom CLI rejects a page from a different run before writing XML", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "latest-atom-cross-run-"));
+  try {
+    const repos = integrationRepos();
+    const latestContext = createRunContext(new Date("2026-08-26T10:07:00.000Z"));
+    const pageContext = createRunContext(new Date("2026-08-26T12:07:00.000Z"));
+    const latest = buildLatestFeed({
+      repos,
+      snapshotId: latestContext.snapshotId,
+      statsDate: latestContext.statsDateKst,
+      generatedAt: latestContext.observedAtUtc,
+      signals: new Map(),
+    });
+    const page = join(directory, "index.html");
+    const latestPath = join(directory, "latest.json");
+    const database = join(directory, "trending-membership.sqlite");
+    const status = join(directory, "membership-status.json");
+    const feed = join(directory, "feed.xml");
+    const changes = join(directory, "changes.xml");
+    await Promise.all([
+      writeFile(page, pageFixture(repos, {
+        _snapshot_id: pageContext.snapshotId,
+        _generated_at: pageContext.observedAtUtc,
+      }), "utf8"),
+      writeFile(latestPath, `${JSON.stringify(latest)}\n`, "utf8"),
+    ]);
+    const membership = initializeMembership({
+      database,
+      status,
+      generatedAt: latest.generatedAt,
+      statsDate: latest.statsDate,
+      slugs: repos.map(repo => repo.slug),
+    });
+    assert.equal(membership.status, 0, membership.stderr);
+    const result = runPython([
+      atomScript,
+      "--page", page,
+      "--latest", latestPath,
+      "--database", database,
+      "--status", status,
+      "--feed", feed,
+      "--changes", changes,
+    ]);
+    assert.notEqual(result.status, 0);
+    await assert.rejects(readFile(feed));
+    await assert.rejects(readFile(changes));
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

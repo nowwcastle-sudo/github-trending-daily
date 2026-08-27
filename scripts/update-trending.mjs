@@ -692,7 +692,8 @@ function reusableSummaryEntry(value, fact) {
     && source.schema_version === ENRICHMENT_SCHEMA_VERSION;
 }
 
-function renderRepositoryFacts(facts, summaryCache, statsDate, latestReleases) {
+function renderRepositoryFacts(facts, summaryCache, context, latestReleases) {
+  const { snapshotId, observedAtUtc: generatedAt, statsDateKst: statsDate } = context;
   const summaries = new Map(Object.entries(summaryCache).map(([slug, value]) => [slug.toLowerCase(), value]));
   return facts.map(fact => {
     const gains = Object.fromEntries(["daily", "weekly", "monthly"]
@@ -722,6 +723,8 @@ function renderRepositoryFacts(facts, summaryCache, statsDate, latestReleases) {
       issues: fact.open_issues_and_pull_requests,
       contributors: fact.contributors,
       pushed_at: fact.pushed_at?.slice(0, 10) ?? null,
+      _snapshot_id: snapshotId,
+      _generated_at: generatedAt,
       _stats_date: statsDate,
     };
   });
@@ -771,10 +774,32 @@ export function parsePageRepos(page) {
   return repos;
 }
 
-function assertCompleteSummary(repo, statsDate) {
+function pageRunIdentity(repos) {
+  const first = repos[0];
+  const snapshotId = first?._snapshot_id;
+  const generatedAt = first?._generated_at;
+  const statsDate = first?._stats_date;
+  if (
+    typeof snapshotId !== "string"
+    || !/^\d{14}-[a-f0-9]{16}$/.test(snapshotId)
+    || typeof generatedAt !== "string"
+    || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(generatedAt)
+    || new Date(generatedAt).toISOString() !== generatedAt
+    || snapshotId.slice(0, 14) !== generatedAt.replace(/\D/g, "").slice(0, 14)
+  ) {
+    throw new Error("Published repositories must share a valid run context identity");
+  }
+  return { snapshotId, generatedAt, statsDate };
+}
+
+function assertCompleteSummary(repo, { snapshotId, generatedAt, statsDate }) {
   const slug = normalizeSlug(repo?.slug ?? "");
   if (repo.slug !== slug) throw new Error(`Published ${slug} must use a normalized slug`);
-  if (repo._stats_date !== statsDate) throw new Error(`Published ${slug} has the wrong stats date`);
+  if (
+    repo._snapshot_id !== snapshotId
+    || repo._generated_at !== generatedAt
+    || repo._stats_date !== statsDate
+  ) throw new Error(`Published ${slug} has the wrong run context identity`);
   const counts = [repo?.stars, repo?.forks, repo?.issues, repo?.contributors];
   if (
     typeof repo?.name !== "string"
@@ -824,13 +849,15 @@ function validateSnapshotPair(page, summaryCacheText, statsDate) {
   assertValidDate(statsDate);
   const repos = parsePageRepos(page);
   if (repos.length < 10 || repos.length > 75) throw new Error("Final snapshot must contain 10-75 repositories");
+  const identity = pageRunIdentity(repos);
+  if (identity.statsDate !== statsDate) throw new Error("Published repositories have the wrong stats date");
   const cache = JSON.parse(summaryCacheText);
   if (!cache || Array.isArray(cache) || typeof cache !== "object") throw new Error("Summary cache must be an object");
   assertUniqueCacheKeys(cache);
   const cachedBySlug = new Map(Object.entries(cache).map(([slug, value]) => [slug.toLowerCase(), value]));
   const seen = new Set();
   for (const repo of repos) {
-    const slug = assertCompleteSummary(repo, statsDate);
+    const slug = assertCompleteSummary(repo, identity);
     const key = slug.toLowerCase();
     if (seen.has(key)) throw new Error(`Duplicate published repository: ${slug}`);
     seen.add(key);
@@ -859,9 +886,11 @@ export function createPageSnapshot({ page, summaryCache, repos, statsDate }) {
 
   const nextCache = { ...summaryCache };
   const cacheKeys = new Map(Object.keys(nextCache).map(slug => [slug.toLowerCase(), slug]));
+  const identity = pageRunIdentity(repos);
+  if (identity.statsDate !== statsDate) throw new Error("Published repositories have the wrong stats date");
   const seen = new Set();
   for (const repo of repos) {
-    const slug = assertCompleteSummary(repo, statsDate);
+    const slug = assertCompleteSummary(repo, identity);
     const key = slug.toLowerCase();
     if (seen.has(key)) throw new Error(`Duplicate published repository: ${slug}`);
     seen.add(key);
@@ -998,7 +1027,7 @@ export async function runTrendingUpdate({
     token,
   });
   const requestCount = repos.requestCount;
-  const publishedRepos = renderRepositoryFacts(repos, summaryCache, statsDate, repos.latestReleases);
+  const publishedRepos = renderRepositoryFacts(repos, summaryCache, context, repos.latestReleases);
   const snapshot = createPageSnapshot({ page, summaryCache, repos: publishedRepos, statsDate });
   const changed = page !== snapshot.page || cacheText !== snapshot.summaryCacheText;
   if (!check && changed) await installPageSnapshot({ pagePath, cachePath, ...snapshot });
