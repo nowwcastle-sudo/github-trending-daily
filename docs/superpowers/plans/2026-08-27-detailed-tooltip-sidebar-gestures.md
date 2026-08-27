@@ -22,6 +22,16 @@
 - reduced motion에서는 translation animation을 제거한다.
 - 모든 Commit step은 명시된 `git add` 다음, `git commit` 전에 Transactional Refresh plan의 Common Commit Gate를 실행한다.
 
+## Approved Plan 3 Addendum — 2026-08-28
+
+These four owner-approved additions are required Plan 3 inputs. Before implementation, run the named brainstorming and grilling design passes, then apply `impeccable` and `apple-design`; do not use `frontend-design`. Expand the items into RED tests and minimal implementation steps without weakening the existing sidebar, accessibility, URL-state, or motion contracts.
+
+- Add a `신규 저장소만` checkbox immediately beside `AI 분야 제외`. Its exact filter meaning is membership status `new`; `reentered`, `stayed`, and unknown/unavailable membership are not new. Include the public filter in the existing shareable URL-state whitelist and preserve the current fail-closed input-size/value gates.
+- Add three badge groups to each repository card: every stored `형태` tag, every stored `분야·기술` tag, and one `AI` badge only when the stored classification says the repository is AI-related. Do not invent tags from display prose, collapse a multi-tag repository to one value, or expose private/local state. Design and browser-test wrapping, density, contrast, screen-reader labeling, and 390/720/1200/1440px overflow before accepting the layout.
+- Add a fixed bottom-right scroll-to-top control. It must have an accessible Korean name, keyboard activation, safe-area/sidebar/scrim awareness, no card or export overlap, deterministic visibility, and smooth scrolling only when reduced motion is not requested.
+- Remove the title box border and separate surface color so its background exactly uses the page background token in light and dark modes. Preserve title hierarchy, spacing, contrast, and focus/landmark semantics; do not remove the title itself.
+- Add actual-browser validation for the new filter, all multi-badge combinations, long Korean/English labels, the scroll-to-top control, light/dark, keyboard, touch, reduced motion, and horizontal overflow. Each requirement receives a deliberate mutation before the Plan 3 production gate.
+
 ---
 
 ## File Structure
