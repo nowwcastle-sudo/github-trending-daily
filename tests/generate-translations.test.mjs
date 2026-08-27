@@ -481,6 +481,50 @@ test("bilingual wrappers require immediate Hangul and an exact inner candidate",
   }
 });
 
+test("multiword bilingual wrappers require exact raw candidate whitespace", async () => {
+  const source = "Jupyter Notebook provides reliable tools for automation teams.";
+  const exact = "주피터 노트북(Jupyter Notebook)은 자동화 팀에 신뢰할 수 있는 도구를 제공합니다.";
+  const emphasized = "**주피터 노트북(Jupyter Notebook)**은 자동화 팀에 신뢰할 수 있는 도구를 제공합니다.";
+  for (const korean of [exact, emphasized]) {
+    assert.equal(
+      await callMarkdownTranslation({ ...item, lang: "Jupyter Notebook", markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, korean))),
+      korean,
+    );
+  }
+  for (const [shape, inner] of [
+    ["double space", "Jupyter  Notebook"],
+    ["triple space", "Jupyter   Notebook"],
+    ["tab", "Jupyter\tNotebook"],
+    ["newline", "Jupyter\nNotebook"],
+    ["NBSP", "Jupyter\u00a0Notebook"],
+    ["EM SPACE", "Jupyter\u2003Notebook"],
+    ["leading", " Jupyter Notebook"],
+    ["trailing", "Jupyter Notebook "],
+    ["inner emphasis", "Jupyter **Notebook**"],
+  ]) {
+    const korean = `주피터 노트북(${inner})은 자동화 팀에 신뢰할 수 있는 도구를 제공합니다.`;
+    await assert.rejects(
+      callMarkdownTranslation({ ...item, lang: "Jupyter Notebook", markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, korean))),
+      /whitespace|source|retains|ASCII|translated prose/i,
+      shape,
+    );
+  }
+
+  const overlapSource = "Silver Falcon provides a reliable platform for automation teams.";
+  const overlapExact = "실버 팰컨(Silver Falcon)은 자동화 팀에 신뢰할 수 있는 플랫폼을 제공합니다.";
+  assert.equal(
+    await callMarkdownTranslation({ ...item, slug: "owner/Falcon", lang: "Silver Falcon", markdown: overlapSource }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(overlapSource, overlapExact))),
+    overlapExact,
+  );
+  await assert.rejects(
+    callMarkdownTranslation({ ...item, slug: "owner/Falcon", lang: "Silver Falcon", markdown: overlapSource }, "x", async (_url, init) => translationReplyFromRequest(
+      init,
+      value => value.replace(overlapSource, "실버 팰컨(Silver  Falcon)은 자동화 팀에 신뢰할 수 있는 플랫폼을 제공합니다."),
+    )),
+    /whitespace|source|retains|ASCII|translated prose/i,
+  );
+});
+
 test("source-absent visible ASCII rejects around a verified bilingual wrapper", async () => {
   const source = "Python provides a reliable runtime for automation teams.";
   for (const [position, korean] of [
@@ -1034,6 +1078,38 @@ test("reuse validation marks source-absent visible ASCII stale", () => {
   assert.equal(validation.valid, false);
   assert.equal(validation.counts.stale, 1);
   assert.deepEqual(planEnrichment([repo], cache, sources).map(value => value.slug), [repo.slug]);
+});
+
+test("reuse validation applies exact raw whitespace to multiword wrappers", () => {
+  const markdown = "Jupyter Notebook provides reliable tools for automation teams.";
+  const contentSha = hashReadme(markdown);
+  const source = {
+    blob_sha: item.readme_blob_sha,
+    content_sha256: contentSha,
+    model: MODEL,
+    schema_version: 2,
+    translation_applicable: true,
+  };
+  const repo = {
+    ...item,
+    slug: "owner/repo",
+    lang: "Jupyter Notebook",
+    markdown,
+    readme_content_sha256: contentSha,
+  };
+  const cache = { [repo.slug]: { content, source } };
+  const sources = { version: 2, sources: { [repo.slug]: source } };
+  const exact = "주피터 노트북(Jupyter Notebook)은 자동화 팀에 신뢰할 수 있는 도구를 제공합니다.";
+  assert.equal(validateActiveEnrichment([repo], { [repo.slug]: exact }, cache, sources).valid, true);
+  assert.deepEqual(planEnrichment([{ ...repo, translated_markdown: exact }], cache, sources), []);
+
+  for (const inner of ["Jupyter  Notebook", "Jupyter\tNotebook", "Jupyter\u00a0Notebook", "Jupyter **Notebook**"]) {
+    const translated = `주피터 노트북(${inner})은 자동화 팀에 신뢰할 수 있는 도구를 제공합니다.`;
+    const validation = validateActiveEnrichment([repo], { [repo.slug]: translated }, cache, sources);
+    assert.equal(validation.valid, false, inner);
+    assert.equal(validation.counts.stale, 1, inner);
+    assert.deepEqual(planEnrichment([{ ...repo, translated_markdown: translated }], cache, sources).map(value => value.slug), [repo.slug], inner);
+  }
 });
 
 test("planning queues placeholder summaries and corrupt reusable translations", () => {

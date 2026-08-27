@@ -698,7 +698,7 @@ export function fingerprintMarkdown(value) {
   };
 }
 
-function stripMarkdownProse(block) {
+function stripRawMarkdownProse(block) {
   if (block.type === "blank" || block.type === "fence") return "";
   let value = block.text;
   value = transformReferenceDefinitions(value, () => " ");
@@ -711,13 +711,24 @@ function stripMarkdownProse(block) {
   value = value.replace(/^ {0,3}(?:[-+*]|\d+[.)])\s+/gm, "");
   value = value.replace(/^\s*\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)+\|?\s*$/gm, "");
   value = value.replace(/\|/g, " ");
-  return value.replace(/[*_~>\[\]]/g, " ").replace(/\s+/g, " ").trim();
+  return value.replace(/[*_~>\[\]]/g, " ");
+}
+
+function stripMarkdownProse(block) {
+  return stripRawMarkdownProse(block).replace(/\s+/g, " ").trim();
 }
 
 function allProseSegments(markdown) {
   return parseAtomicBlocks(markdown)
     .filter(block => block.type !== "blank" && block.type !== "fence" && block.type !== "raw_html")
     .map(stripMarkdownProse);
+}
+
+function rawVisibleProse(markdown) {
+  return parseAtomicBlocks(markdown)
+    .filter(block => block.type !== "blank" && block.type !== "fence" && block.type !== "raw_html")
+    .map(stripRawMarkdownProse)
+    .join("\0");
 }
 
 const IDENTIFIER_TOKEN_SOURCE = String.raw`[A-Za-z][A-Za-z0-9]*(?:[._+-][A-Za-z0-9]+)*(?:\+{1,2}|#)?`;
@@ -830,7 +841,7 @@ function isBilingualWrapper(value, tokens, start, length, term) {
   return /[가-힣]/u.test(value[first.start - 2] ?? "");
 }
 
-function retainedSourceAnalysis(original, translated, verifiedTerms = []) {
+function retainedSourceAnalysis(original, translated, verifiedTerms = [], rejectRemainingOutput = true) {
   const source = identifierTokens(original);
   const output = identifierTokens(translated);
   const exemptOutput = new Set();
@@ -855,7 +866,7 @@ function retainedSourceAnalysis(original, translated, verifiedTerms = []) {
     }
   }
   const remainingOutput = output.filter((_token, index) => !exemptOutput.has(index));
-  if (remainingOutput.length) return { rejected: true, allowedNameAscii: 0 };
+  if (rejectRemainingOutput && remainingOutput.length) return { rejected: true, allowedNameAscii: 0 };
   const allowedNameAscii = output.reduce((total, token, index) => total
     + (exemptOutput.has(index) ? (token.raw.match(/[A-Za-z]/g) ?? []).length : 0), 0);
   return { rejected: false, allowedNameAscii };
@@ -911,7 +922,13 @@ function assertTranslatedSegment(original, translated, applicable = isTranslatab
   }
 }
 
+function assertRawProseTranslation(before, after, verifiedTerms) {
+  const retained = retainedSourceAnalysis(rawVisibleProse(before), rawVisibleProse(after), verifiedTerms, false);
+  if (retained.rejected) throw new Error("Translated prose changes exact retained-name bytes or retains visible ASCII");
+}
+
 function assertProseTranslation(before, after, verifiedTerms = []) {
+  assertRawProseTranslation(before, after, verifiedTerms);
   const beforeSegments = proseBindings(before);
   const afterSegments = extractTranslationClauses(after);
   if (beforeSegments.length !== afterSegments.length) throw new Error("Markdown prose clause count changed");
@@ -1209,6 +1226,7 @@ async function callTranslationChunk(chunk, apiKey, fetchImpl, options) {
       || typeof parsed.translated_markdown !== "string" || !parsed.translated_markdown.trim()) {
     throw new Error("Markdown translation chunk envelope is missing, duplicated, or reordered");
   }
+  assertRawProseTranslation(chunk.markdown, parsed.translated_markdown, chunk.verifiedTerms);
   for (let index = 0; index < chunk.segmentBindings.length; index += 1) {
     const expected = chunk.segmentBindings[index];
     const actual = parsed.segment_bindings[index];
