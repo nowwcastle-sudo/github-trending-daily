@@ -22,6 +22,20 @@ import { buildLatestFeed } from "../scripts/update-latest-feed.mjs";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const sourceSha = "a".repeat(40);
 const snapshotId = "20260826100700-0123456789abcdef";
+const LEGACY_PROBE_POSITIVE_PATHS = Object.freeze([
+  "data/latest.json",
+  "index.html",
+  "readmes/owner__both.md",
+  "readmes/owner__readme-only.md",
+  "translations/owner__both.json",
+  "translations/owner__translation-only.json",
+]);
+const LEGACY_PROBE_MISSING_PATHS = Object.freeze([
+  "readmes/owner__neither.md",
+  "readmes/owner__translation-only.md",
+  "translations/owner__neither.json",
+  "translations/owner__readme-only.json",
+]);
 
 async function serveArtifact(root, { mimeOverride = {}, redirect = null, requests = null } = {}) {
   const mime = { ".html": "text/html; charset=utf-8", ".js": "application/javascript; charset=utf-8", ".json": "application/json; charset=utf-8", ".xml": "application/xml; charset=utf-8", ".md": "text/markdown; charset=utf-8" };
@@ -40,11 +54,15 @@ async function serveArtifact(root, { mimeOverride = {}, redirect = null, request
   return { baseUrl: `http://127.0.0.1:${server.address().port}/`, close: () => new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve())) };
 }
 
-function oneLegacyProbeToken(requests) {
+function exactLegacyProbeToken(requests) {
   assert.ok(requests.some(url => url.pathname.endsWith("/deployment-manifest.json")));
   const tokens = requests.map(url => url.searchParams.get("probe"));
   assert.ok(tokens.every(token => /^[a-f0-9-]{36}$/.test(token ?? "")));
   assert.equal(new Set(tokens).size, 1);
+  assert.deepEqual(
+    requests.map(url => decodeURIComponent(url.pathname).replace(/^\/+/, "")).sort(),
+    ["deployment-manifest.json", ...LEGACY_PROBE_POSITIVE_PATHS, ...LEGACY_PROBE_MISSING_PATHS].sort(),
+  );
   return tokens[0];
 }
 
@@ -256,7 +274,7 @@ test("a version-0 recovery manifest produces the next candidate without bootstra
   let recoveryProbeToken;
   try {
     await probeProduction({ baseUrl: recoveryServer.baseUrl, legacyRecoverySha: legacySourceSha, gitRoot: checkout });
-    recoveryProbeToken = oneLegacyProbeToken(recoveryRequests);
+    recoveryProbeToken = exactLegacyProbeToken(recoveryRequests);
   } finally {
     await recoveryServer.close();
   }
@@ -271,7 +289,7 @@ test("a version-0 recovery manifest produces the next candidate without bootstra
   const bootstrap = await serveArtifact(checkout, { requests: bootstrapRequests });
   try {
     await probeProduction({ baseUrl: bootstrap.baseUrl, bootstrapPreflightSha: legacySourceSha, gitRoot: checkout });
-    const bootstrapProbeToken = oneLegacyProbeToken(bootstrapRequests);
+    const bootstrapProbeToken = exactLegacyProbeToken(bootstrapRequests);
     assert.notEqual(bootstrapProbeToken, recoveryProbeToken);
     await writeFile(join(checkout, "readmes", "owner__neither.md"), "# Stale missing README\n");
     await assert.rejects(
