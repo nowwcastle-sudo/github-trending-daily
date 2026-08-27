@@ -4,6 +4,7 @@ import { dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { parsePageRepos } from "./update-trending.mjs";
+import { readRunContext, validateRunContext } from "./run-context.mjs";
 
 const REPO_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -90,13 +91,16 @@ export async function writeLatestFeed(path, feed) {
   return true;
 }
 
-async function main() {
+export async function updateLatestFeed({ context }) {
+  validateRunContext(context);
   const pagePath = fileURLToPath(new URL("../index.html", import.meta.url));
   const feedPath = fileURLToPath(new URL("../data/latest.json", import.meta.url));
   const databasePath = fileURLToPath(new URL("../data/star-observations.sqlite", import.meta.url));
   const repos = parsePageRepos(await readFile(pagePath, "utf8"));
   const dates = new Set(repos.map(repo => repo._stats_date));
-  if (dates.size !== 1) throw new Error("published repositories must share one stats date");
+  if (dates.size !== 1 || !dates.has(context.statsDateKst)) {
+    throw new Error("published repositories must share the run context stats date");
+  }
 
   const { DatabaseSync } = await import("node:sqlite");
   const database = new DatabaseSync(databasePath, { readOnly: true });
@@ -112,8 +116,8 @@ async function main() {
   const signals = computeSignals(rows);
   const feed = buildLatestFeed({
     repos,
-    statsDate: [...dates][0],
-    generatedAt: new Date().toISOString(),
+    statsDate: context.statsDateKst,
+    generatedAt: context.observedAtUtc,
     signals,
   });
   const changed = await writeLatestFeed(feedPath, feed);
@@ -121,7 +125,7 @@ async function main() {
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
-  main().catch(error => {
+  updateLatestFeed({ context: readRunContext(process.env) }).catch(error => {
     console.error(error.message);
     process.exitCode = 1;
   });

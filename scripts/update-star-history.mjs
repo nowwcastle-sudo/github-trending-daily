@@ -2,18 +2,13 @@ import { randomUUID } from "node:crypto";
 import { readFile, rename, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { readRunContext, validateRunContext } from "./run-context.mjs";
+
 const REPOS_START = "// GENERATED:TRENDING-REPOS:START";
 const REPOS_END = "// GENERATED:TRENDING-REPOS:END";
 const REPO_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const MAX_ESTIMATED_POINTS = 500;
 const MAX_OBSERVED_POINTS = 730;
-const SEOUL_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
-  timeZone: "Asia/Seoul",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-});
-
 function markerRegion(value) {
   const starts = value.split(REPOS_START).length - 1;
   const ends = value.split(REPOS_END).length - 1;
@@ -178,14 +173,6 @@ export function buildCache(repoValues, priorCache, responses, date) {
   };
 }
 
-export function seoulDate(now = new Date()) {
-  if (!(now instanceof Date) || Number.isNaN(now.getTime())) throw new Error("invalid current date");
-  const parts = Object.fromEntries(
-    SEOUL_DATE_FORMATTER.formatToParts(now).map(({ type, value }) => [type, value]),
-  );
-  return `${parts.year}-${parts.month}-${parts.day}`;
-}
-
 function validateCache(cache) {
   if (!exactKeys(cache, ["version", "generatedAt", "repositories"]) || cache.version !== 1) {
     throw new Error("invalid star history cache schema");
@@ -298,10 +285,11 @@ export async function updateCache({
   return { changed: true, failed };
 }
 
-async function main() {
+export async function updateStarHistory({ context }) {
+  validateRunContext(context);
   const htmlPath = fileURLToPath(new URL("../index.html", import.meta.url));
   const cachePath = fileURLToPath(new URL("../star-history.json", import.meta.url));
-  const result = await updateCache({ htmlPath, cachePath, date: seoulDate() });
+  const result = await updateCache({ htmlPath, cachePath, date: context.statsDateKst });
   const failures = result.failed.length
     ? `; failures=${result.failed.length}: ${result.failed.join(", ")}`
     : "; failures=0";
@@ -309,7 +297,7 @@ async function main() {
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
-  main().catch(() => {
+  updateStarHistory({ context: readRunContext(process.env) }).catch(() => {
     console.error("Star history update failed");
     process.exitCode = 1;
   });

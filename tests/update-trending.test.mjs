@@ -4,6 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
+import { createRunContext } from "../scripts/run-context.mjs";
+
 import {
   createPageSnapshot,
   enrichTrendingRepositories,
@@ -11,7 +13,6 @@ import {
   mergeTrendingPeriods,
   parseTrendingHtml,
   runTrendingUpdate,
-  seoulDate,
 } from "../scripts/update-trending.mjs";
 import {
   extractRepos as extractStarRepos,
@@ -649,9 +650,9 @@ test("prepared snapshot validation rejects case-insensitive duplicate summary-ca
   assert.deepEqual(await Promise.all([readFile(pagePath), readFile(cachePath)]), original);
 });
 
-test("Asia/Seoul date is deterministic across the UTC day boundary", () => {
-  assert.equal(seoulDate(new Date("2026-08-22T14:59:59Z")), "2026-08-22");
-  assert.equal(seoulDate(new Date("2026-08-22T15:00:00Z")), "2026-08-23");
+test("Trending update takes its date from the supplied run context", () => {
+  assert.equal(createRunContext(new Date("2026-08-22T14:59:59Z")).statsDateKst, "2026-08-22");
+  assert.equal(createRunContext(new Date("2026-08-22T15:00:00Z")).statsDateKst, "2026-08-23");
 });
 
 test("check mode fetches all three Trending pages and REST data without writing tracked files", async t => {
@@ -686,11 +687,12 @@ test("check mode fetches all three Trending pages and REST data without writing 
     cachePath,
     fetchImpl,
     token: "check-token-never-print",
-    now: new Date("2026-08-22T15:00:00Z"),
+    context: createRunContext(new Date("2026-08-22T15:00:00Z")),
   });
 
   assert.equal(result.repos.length, 10);
   assert.equal(result.changed, true);
+  assert.equal(result.statsDate, "2026-08-23");
   assert.deepEqual(requests.filter(request => request.url.startsWith("https://github.com/trending")).map(request => request.url), Object.keys(trending));
   assert.deepEqual(await Promise.all([readFile(pagePath), readFile(cachePath)]), before);
 });
@@ -726,7 +728,7 @@ test("daily update gives star history the exact finalized repositories and isola
     pagePath,
     cachePath,
     fetchImpl: async (url, options) => trending[url] ? jsonResponse(200, trending[url]) : rest(url, options),
-    now: new Date("2026-08-22T15:00:00Z"),
+    context: createRunContext(new Date("2026-08-22T15:00:00Z")),
   });
   const starHistory = await updateStarHistoryCache({
     htmlPath: pagePath,
@@ -784,7 +786,7 @@ test("failed Trending generation leaves every last-good file byte-identical and 
       pagePath,
       cachePath,
       fetchImpl: async url => jsonResponse(200, pages[url]),
-      now: new Date("2026-08-22T15:00:00Z"),
+      context: createRunContext(new Date("2026-08-22T15:00:00Z")),
     });
     starUpdates += 1;
     await updateStarHistoryCache({

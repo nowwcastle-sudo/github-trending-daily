@@ -7,6 +7,8 @@ import {
 } from "node:fs/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { readRunContext, validateRunContext } from "./run-context.mjs";
+
 const PERIODS = {
   daily: { field: "stars_daily", label: "today" },
   weekly: { field: "stars_weekly", label: "this week" },
@@ -557,16 +559,6 @@ export async function installPageSnapshot({
   }
 }
 
-export function seoulDate(now = new Date()) {
-  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(now).map(({ type, value }) => [type, value]));
-  return `${parts.year}-${parts.month}-${parts.day}`;
-}
-
 async function fetchTrendingPage(period, { fetchImpl, sleep, maxAttempts = 3, maxRetryDelay = 300000 }) {
   const url = `https://github.com/trending?since=${period}`;
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
@@ -594,9 +586,10 @@ export async function runTrendingUpdate({
   fetchImpl = globalThis.fetch,
   sleep = defaultSleep,
   token = "",
-  now = new Date(),
+  context,
 } = {}) {
   if (!pagePath || !cachePath) throw new Error("pagePath and cachePath are required");
+  validateRunContext(context);
   const [page, cacheText] = await Promise.all([readFile(pagePath, "utf8"), readFile(cachePath, "utf8")]);
   const summaryCache = JSON.parse(cacheText);
   const previousRepos = parsePageRepos(page);
@@ -605,7 +598,7 @@ export async function runTrendingUpdate({
     parseTrendingHtml(await fetchTrendingPage(period, { fetchImpl, sleep }), period),
   ])));
   const discovered = mergeTrendingPeriods(periods);
-  const statsDate = seoulDate(now);
+  const statsDate = context.statsDateKst;
   const { repos, requestCount } = await enrichTrendingRepositories(discovered, {
     fetchImpl,
     sleep,
@@ -617,7 +610,7 @@ export async function runTrendingUpdate({
   const snapshot = createPageSnapshot({ page, summaryCache, repos, statsDate });
   const changed = page !== snapshot.page || cacheText !== snapshot.summaryCacheText;
   if (!check && changed) await installPageSnapshot({ pagePath, cachePath, ...snapshot });
-  return { changed, repos, requestCount, statsDate };
+  return { changed, repos, requestCount, statsDate, snapshotId: context.snapshotId };
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
@@ -631,6 +624,7 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
     pagePath: fileURLToPath(new URL("../index.html", import.meta.url)),
     cachePath: fileURLToPath(new URL("../data/repo-summaries.json", import.meta.url)),
     token: process.env.GITHUB_TOKEN ?? "",
+    context: readRunContext(process.env),
   });
   console.log(`${check ? "Validated" : result.changed ? "Updated" : "Unchanged"}: ${result.repos.length} repositories for ${result.statsDate} (Asia/Seoul)`);
 

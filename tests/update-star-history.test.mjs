@@ -8,7 +8,6 @@ import {
   extractRepos,
   mergeRepository,
   normalizeEstimatedRows,
-  seoulDate,
   updateCache,
 } from "../scripts/update-star-history.mjs";
 
@@ -221,11 +220,6 @@ test("buildCache rejects invalid dates and ambiguous case-insensitive cache iden
     }, responses, "2026-08-22"),
     /duplicate.*cache/i,
   );
-});
-
-test("seoulDate changes at 15:00 UTC", () => {
-  assert.equal(seoulDate(new Date("2026-08-21T14:59:59.999Z")), "2026-08-21");
-  assert.equal(seoulDate(new Date("2026-08-21T15:00:00.000Z")), "2026-08-22");
 });
 
 test("updateCache keeps a failed repository, prunes stale slugs, and reports changed", async t => {
