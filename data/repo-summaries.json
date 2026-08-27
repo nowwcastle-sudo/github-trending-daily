@@ -137,19 +137,19 @@
   },
   "cursor/plugins": {
     "summary": {
-      "goal": "Cursor의 공식 플러그인 모음으로, 개발자 도구·SaaS 연동(GitHub, Gmail, Playwright 등)·에이전트 워크플로 플러그인을 표준 매니페스트 구조로 제공한다.",
-      "usage": "각 플러그인은 저장소 루트의 독립 디렉터리(`.cursor-plugin/plugin.json`)로, Cursor 플러그인 마켓플레이스에서 설치하거나 `create-plugin`으로 새 플러그인을 스캐폴딩해 기여할 수 있다.",
-      "pros": "공식 유지보수, 다양한 SaaS/개발 도구 통합, 에이전트 오케스트레이션·PR 리뷰 등 실용적 워크플로 다수, 플러그인 개발 가이드 겸용",
-      "cons": "Cursor 전용으로 다른 에이전트에는 비호환, 품질·성숙도가 플러그인별로 상이, 서드파티 연동은 각 서비스 인증 필요",
-      "fit": "Cursor를 메인 코딩 에이전트로 쓰면서 워크플로 자동화·SaaS 연동을 확장하고 싶은 팀과, 플러그인 개발자에게 유용하다."
+      "goal": "개발자 도구, 프레임워크, SaaS 제품을 위한 공식 Cursor plugin 마켓플레이스 제공",
+      "usage": "각 plugin 디렉토리에서 해당 도구/서비스와 통합하기 위해 SKILL.md, rules, MCP server 정의 등을 활용",
+      "pros": "60개 이상의 다양한 plugin으로 광범위한 개발/생산성 도구 커버, 명확한 구조와 manifest, 오픈소스 (MIT)",
+      "cons": "대규모 목록으로 인한 복잡성, 각 plugin의 별도 관리 필요",
+      "fit": "Cursor를 사용하는 개발자 및 팀이 자주 사용하는 SaaS/개발 도구와 연동하고자 할 때"
     },
     "detail": {
-      "goal": "Cursor 코딩 에이전트용 공식 플러그인 모음집(멀티 플러그인 마켓플레이스)이다. GitHub·Playwright 같은 SaaS 연동부터 PR 리뷰 캔버스, 오케스트레이션, 코드 감사 등 에이전트 워크플로우 확장 스킬들을 묶어 배포한다. 각 플러그인은 skills/rules/MCP 정의를 담은 독립 디렉터리로 구성된다.",
-      "usage": "Cursor의 플러그인/마켓플레이스에서 원하는 플러그인을 설치하면 된다. 저장소 구조(.cursor-plugin/plugin.json 매니페스트)를 따라 자체 플러그인을 만들 때 create-plugin 스캐폴더와 cursor-sdk(Typescript SDK)를 활용할 수 있다. 전체 MIT 라이선스로 오픈되어 있다.",
-      "pros": "공식(Cursor) 제작 플러그인이라 신뢰성·호환성 높음; Gmail·Salesforce·Playwright 등 30개 이상 실용 연동; 오케스트레이션·PR 리뷰 등 에이전트 워크플로우 개선 스킬 풍부; 플러그인 제작용 SDK와 스캐폴더 제공; MIT 오픈소스",
-      "cons": "Cursor 환경 전용이라 다른 에이전트에선 활용도 낮음; 서드파티 SaaS 연동은 해당 서비스 계정/API 권한 필요; 플러그인 품질이 제각각일 수 있음; Cursor 구독·업데이트 주기에 종속",
-      "fit": "Cursor를 주력 IDE로 쓰면서 에이전트에 이메일·CRM·브라우저 자동화 등 실무 도구를 붙이고 싶은 팀에 적합하다. 플러그인 개발자에게도 레퍼런스 구조로 유용하다.",
-      "stars_note": "공식 플러그인 마켓플레이스 공개 소식으로 Cursor 사용자 커뮤니티에서 빠르게 주목받는 중이다."
+      "goal": "Cursor IDE를 위한 공식 plugin 마켓플레이스를 제공하여 개발자 도구(GitHub, Playwright), 생산성 앱(Gmail, Google Drive), CRM/마케팅 플랫폼(Salesforce, HubSpot), 회의 플랫폼(Zoom, Fathom) 등 다양한 SaaS와 agent 기반 작업 자동화 기능을 통합",
+      "usage": "저장소 루트의 `.cursor-plugin/marketplace.json`에서 전체 plugin 목록 확인, 각 plugin 디렉토리의 `.cursor-plugin/plugin.json`에서 manifest 조회, `skills/` 폴더의 SKILL.md로 agent 기능, `rules/`의 .mdc 파일로 Cursor 규칙, `mcp.json`으로 MCP server 설정 확인 및 활용",
+      "pros": "60개 이상의 풍부한 plugin으로 개발/비즈니스 도구의 광범위한 커버리지 제공, Utilities/Developer Tools/Productivity/Integrations로 명확히 분류, 각 plugin의 독립적인 구조로 모듈화, MIT 라이선스로 자유로운 사용 가능, agent 친화적 기능 (CLI 패턴, 병렬 처리, 오케스트레이션) 지원",
+      "cons": "60개 이상의 plugin으로 인한 높은 복잡도, 각 plugin별 개별 관리/업데이트 필요, 제3자 서비스 의존성으로 인한 OAuth/API 연동 복잡성, 모든 plugin이 동일한 개발 수준인지 불명확",
+      "fit": "Cursor 기반 AI 개발 환경을 구축하는 개발팀, 개발/생산성/비즈니스 도구들을 자동화하고 싶은 기업, agent 기반 워크플로우를 구현하는 팀에 최적화",
+      "stars_note": "GitHub 공식 저장소로 Cursor의 확장 생태계 중심. 다수의 일반 plugin(기본 Developer Tools 카테고리)과 제3자 SaaS 통합(salesforce, hubspot 등)으로 구성"
     }
   },
   "modular/modular": {
@@ -953,19 +953,19 @@
   },
   "Alishahryar1/free-claude-code": {
     "summary": {
-      "goal": "Use Claude Code, Codex, Pi, and OpenCode for free (1.3B+ free tokens) from your terminal, app, IDE, or phone like OpenClaw (voice supported + ToS friendly) GitHub에 공개된 Python 기반 저장소다.",
-      "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-      "pros": "오늘 1,040개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-      "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-      "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
+      "goal": "여러 AI 제공자의 무료 모델을 하나의 인터페이스에서 통합하여 사용하고, 10개의 coding agent(Claude Code, Codex, Cline 등)를 지원하는 오픈소스 프로젝트",
+      "usage": "설치 후 fcc-server 시작 → Admin UI에서 제공자 API 키 설정 → 원하는 coding agent 명령어(fcc-claude, fcc-cline 등) 실행 → VS Code, JetBrains 등 에디터 또는 Discord/Telegram과 통합",
+      "pros": "50개 무료 제공자, 매달 13억 개 토큰 제공; 제공자 장애 시 자동 failover; 터미널 출력 토큰 90% 절감; 음성 입력 지원; IDE, 메신저 등 다양한 플랫폼 지원; 로컬 모델 호환",
+      "cons": "무료 티어 가용성이 제공자에 따라 변동 가능; 초기 설정 및 API 키 관리가 복잡할 수 있음; 각 제공자별 설정 방식이 다름; 일부 기능은 특정 환경에서만 지원",
+      "fit": "코딩 작업에 AI를 활용하되 비용을 최소화하고 싶은 개발자; 여러 AI 모델을 실험해보고 싶은 사람; 로컬 환경에서 코딩 에이전트를 실행하고 싶은 사용자"
     },
     "detail": {
-      "goal": "Use Claude Code, Codex, Pi, and OpenCode for free (1.3B+ free tokens) from your terminal, app, IDE, or phone like OpenClaw (voice supported + ToS friendly) GitHub에 공개된 Python 기반 저장소다.",
-      "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-      "pros": "오늘 1,040개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-      "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-      "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다.",
-      "stars_note": "오늘 1,040개의 스타 증가가 확인됐다."
+      "goal": "Free Claude Code(FCC)는 Anthropic과 무관한 독립적인 오픈소스 프로젝트로, 50개 이상의 ToS 준수 AI 제공자(NVIDIA NIM, OpenRouter, Groq, DeepSeek 등)에서 매달 13억 개 이상의 무료 토큰을 활용할 수 있게 통합합니다. Claude Code, Codex, Pi, Cline, Hermes, Aider 등 10개의 coding agent를 하나의 모델 카탈로그로 지원하며, 계정 위험 없이 다양한 모델을 검색·관리할 수 있습니다.",
+      "usage": "1) 설치: macOS/Linux에서는 `curl` 스크립트, Windows에서는 PowerShell 스크립트 실행 → 2) 시작: fcc-server 실행 후 Admin UI 접근 → 3) 설정: NVIDIA NIM 등 원하는 제공자의 API 키 입력 및 모델 선택 → 4) 에이전트 실행: fcc-claude, fcc-cline 등 명령어 또는 VS Code/JetBrains/Discord/Telegram 연동 → 5) 필요시 음성 입력, RTK 필터, Fallback 모델 설정 추가 구성 가능",
+      "pros": "① 다양성: 50개의 제공자와 호환되며 유료/무료/로컬 모델을 모두 지원; ② 경제성: 매달 13억 개 이상의 무료 토큰 제공; ③ 안정성: 한 제공자 장애 시 자동으로 다음 모델로 재시도; ④ 효율성: 터미널 출력 토큰을 최대 90% 절감; ⑤ 접근성: 터미널, IDE, 메신저, 휴대폰 등 다양한 플랫폼 지원; ⑥ 사용성: 음성 입력, 스트리밍 응답, 도구 사용, 이미지 전송 지원; ⑦ 개발자 친화성: Python 기반, 오픈소스, 커스터마이징 가능",
+      "cons": "① 복잡성: 50개 제공자의 API 키를 각각 관리해야 하고 설정 방식이 제각각; ② 불안정성: 무료 티어 가용성과 한도가 제공자에 따라 변동 가능; ③ 학습곡선: 초기 설정, provider 선택, agent 연동에 상당한 시간 필요; ④ 의존성: 다수의 외부 프로젝트(Whisper, RTK 등)에 의존; ⑤ 보안 고려: 많은 API 키를 로컬 저장해야 함",
+      "fit": "코딩 작업에 AI 기능을 적극 활용하면서도 API 비용을 최소화하고 싶은 개발자; Claude/Grok/Qwen 등 여러 모델을 자유롭게 비교·실험하고 싶은 사람; 자체 서버에서 로컬 코딩 에이전트를 운영하고 싶은 엔지니어; VS Code, JetBrains, Aider 등 다양한 도구를 활용하는 팀",
+      "stars_note": "GitHub 저장소 조회 권한 없음. 프로젝트의 성숙도나 커뮤니티 활성도를 별도로 확인 권장. MIT 라이선스로 상업적 사용 가능하며, 아키텍처 및 확장 가이드 문서가 제공됨."
     }
   },
   "tinyhumansai/openhuman": {
