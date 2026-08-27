@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import http from "node:http";
 import { spawnSync } from "node:child_process";
-import { link, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { link, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,10 +23,12 @@ const root = fileURLToPath(new URL("..", import.meta.url));
 const sourceSha = "a".repeat(40);
 const snapshotId = "20260826100700-0123456789abcdef";
 
-async function serveArtifact(root, { mimeOverride = {}, redirect = null } = {}) {
+async function serveArtifact(root, { mimeOverride = {}, redirect = null, requests = null } = {}) {
   const mime = { ".html": "text/html; charset=utf-8", ".js": "application/javascript; charset=utf-8", ".json": "application/json; charset=utf-8", ".xml": "application/xml; charset=utf-8", ".md": "text/markdown; charset=utf-8" };
   const server = http.createServer(async (request, response) => {
-    const relative = decodeURIComponent(new URL(request.url, "http://127.0.0.1").pathname).replace(/^\/+/, "");
+    const requestUrl = new URL(request.url, "http://127.0.0.1");
+    requests?.push(requestUrl);
+    const relative = decodeURIComponent(requestUrl.pathname).replace(/^\/+/, "");
     if (relative === redirect) { response.writeHead(302, { location: "/index.html" }); response.end(); return; }
     try {
       const bytes = await readFile(join(root, ...relative.split("/")));
@@ -36,6 +38,14 @@ async function serveArtifact(root, { mimeOverride = {}, redirect = null } = {}) 
   });
   await new Promise((resolve, reject) => { server.once("error", reject); server.listen(0, "127.0.0.1", resolve); });
   return { baseUrl: `http://127.0.0.1:${server.address().port}/`, close: () => new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve())) };
+}
+
+function oneLegacyProbeToken(requests) {
+  assert.ok(requests.some(url => url.pathname.endsWith("/deployment-manifest.json")));
+  const tokens = requests.map(url => url.searchParams.get("probe"));
+  assert.ok(tokens.every(token => /^[a-f0-9-]{36}$/.test(token ?? "")));
+  assert.equal(new Set(tokens).size, 1);
+  return tokens[0];
 }
 
 async function rewriteArtifactFile(artifact, relative, bytes) {
@@ -206,14 +216,109 @@ test("a version-0 recovery manifest produces the next candidate without bootstra
   run(["config", "user.name", "test"]); run(["config", "user.email", "test@example.invalid"]);
   await mkdir(join(checkout, "data"));
   await mkdir(join(checkout, "readmes"));
-  await writeFile(join(checkout, "index.html"), '<html>\n<!-- GENERATED:TRENDING-DATE:START -->\nlegacy date\n<!-- GENERATED:TRENDING-DATE:END -->\n// GENERATED:TRENDING-REPOS:START\nconst REPOS = [{"slug":"owner/legacy"}];\n// GENERATED:TRENDING-REPOS:END\n</html>\n');
+  await mkdir(join(checkout, "translations"));
+  await writeFile(join(checkout, "index.html"), '<html>\n<!-- GENERATED:TRENDING-DATE:START -->\nlegacy date\n<!-- GENERATED:TRENDING-DATE:END -->\n// GENERATED:TRENDING-REPOS:START\nconst REPOS = [{"slug":"owner/both"},{"slug":"owner/readme-only"},{"slug":"owner/translation-only"},{"slug":"owner/neither"}];\n// GENERATED:TRENDING-REPOS:END\n</html>\n');
   await writeFile(join(checkout, "data", "latest.json"), "verified legacy data\n");
-  await writeFile(join(checkout, "readmes", "owner__legacy.md"), "# Legacy\n");
-  assert.equal(run(["add", "--", "index.html", "data/latest.json", "readmes/owner__legacy.md"]).status, 0);
+  await writeFile(join(checkout, "readmes", "owner__both.md"), "# Both\n");
+  await writeFile(join(checkout, "readmes", "owner__readme-only.md"), "# README only\n");
+  await writeFile(join(checkout, "readmes", "old__inactive.md"), "# Inactive\n");
+  await writeFile(join(checkout, "translations", "owner__both.json"), '{"html":"<h1>Both</h1>"}\n');
+  await writeFile(join(checkout, "translations", "owner__translation-only.json"), '{"html":"<h1>Translation only</h1>"}\n');
+  await writeFile(join(checkout, "translations", "old__inactive.json"), '{"html":"<h1>Inactive</h1>"}\n');
+  assert.equal(run(["add", "--", "index.html", "data/latest.json", "readmes/owner__both.md", "readmes/owner__readme-only.md", "readmes/old__inactive.md", "translations/owner__both.json", "translations/owner__translation-only.json", "translations/old__inactive.json"]).status, 0);
   assert.equal(run(["commit", "-qm", "verified legacy production"]).status, 0);
   const legacySourceSha = run(["rev-parse", "HEAD"]).stdout.trim();
   const recovery = await buildLegacyRecoveryArtifact({ sourceRoot: checkout, outDir: recoveryArtifact, sourceSha: legacySourceSha });
   assert.deepEqual({ version: recovery.version, sourceSha: recovery.sourceSha, snapshotId: recovery.snapshotId }, { version: 0, sourceSha: legacySourceSha, snapshotId: null });
+  assert.deepEqual(Object.keys(recovery.files), [
+    "data/latest.json",
+    "index.html",
+    "readmes/owner__both.md",
+    "readmes/owner__readme-only.md",
+    "translations/owner__both.json",
+    "translations/owner__translation-only.json",
+  ]);
+  await probeArtifactDirectory({ artifactDir: recoveryArtifact, legacyRecoverySha: legacySourceSha, gitRoot: checkout });
+  const originalLegacyManifest = await readFile(join(recoveryArtifact, "deployment-manifest.json"));
+  const inactiveReadme = await readFile(join(checkout, "readmes", "old__inactive.md"));
+  const extraLegacyManifest = JSON.parse(originalLegacyManifest);
+  extraLegacyManifest.files["readmes/old__inactive.md"] = createHash("sha256").update(inactiveReadme).digest("hex");
+  await writeFile(join(recoveryArtifact, "readmes", "old__inactive.md"), inactiveReadme);
+  await writeFile(join(recoveryArtifact, "deployment-manifest.json"), `${JSON.stringify(extraLegacyManifest, null, 2)}\n`);
+  await assert.rejects(
+    probeArtifactDirectory({ artifactDir: recoveryArtifact, legacyRecoverySha: legacySourceSha, gitRoot: checkout }),
+    /manifest allowlist mismatch/i,
+  );
+  await writeFile(join(recoveryArtifact, "deployment-manifest.json"), originalLegacyManifest);
+  await rm(join(recoveryArtifact, "readmes", "old__inactive.md"));
+  const recoveryRequests = [];
+  const recoveryServer = await serveArtifact(recoveryArtifact, { requests: recoveryRequests });
+  let recoveryProbeToken;
+  try {
+    await probeProduction({ baseUrl: recoveryServer.baseUrl, legacyRecoverySha: legacySourceSha, gitRoot: checkout });
+    recoveryProbeToken = oneLegacyProbeToken(recoveryRequests);
+  } finally {
+    await recoveryServer.close();
+  }
+  const originalPresentReadme = await readFile(join(recoveryArtifact, "readmes", "owner__both.md"));
+  await writeFile(join(recoveryArtifact, "readmes", "owner__both.md"), "# Altered\n");
+  await assert.rejects(
+    probeArtifactDirectory({ artifactDir: recoveryArtifact, legacyRecoverySha: legacySourceSha, gitRoot: checkout }),
+    /legacy file mismatch/i,
+  );
+  await writeFile(join(recoveryArtifact, "readmes", "owner__both.md"), originalPresentReadme);
+  const bootstrapRequests = [];
+  const bootstrap = await serveArtifact(checkout, { requests: bootstrapRequests });
+  try {
+    await probeProduction({ baseUrl: bootstrap.baseUrl, bootstrapPreflightSha: legacySourceSha, gitRoot: checkout });
+    const bootstrapProbeToken = oneLegacyProbeToken(bootstrapRequests);
+    assert.notEqual(bootstrapProbeToken, recoveryProbeToken);
+    await writeFile(join(checkout, "readmes", "owner__neither.md"), "# Stale missing README\n");
+    await assert.rejects(
+      probeProduction({ baseUrl: bootstrap.baseUrl, bootstrapPreflightSha: legacySourceSha, gitRoot: checkout }),
+      /owner__neither|status|404/i,
+    );
+    await rm(join(checkout, "readmes", "owner__neither.md"));
+    await writeFile(join(checkout, "translations", "owner__neither.json"), '{"html":"stale"}\n');
+    await assert.rejects(
+      probeProduction({ baseUrl: bootstrap.baseUrl, bootstrapPreflightSha: legacySourceSha, gitRoot: checkout }),
+      /owner__neither|status|404/i,
+    );
+  } finally {
+    await rm(join(checkout, "readmes", "owner__neither.md"), { force: true });
+    await rm(join(checkout, "translations", "owner__neither.json"), { force: true });
+    await bootstrap.close();
+  }
+  await writeFile(join(recoveryArtifact, "readmes", "owner__neither.md"), "# Stale missing README\n");
+  await assert.rejects(
+    probeArtifactDirectory({ artifactDir: recoveryArtifact, legacyRecoverySha: legacySourceSha, gitRoot: checkout }),
+    /owner__neither|status|404/i,
+  );
+  await rm(join(recoveryArtifact, "readmes", "owner__neither.md"));
+  await writeFile(join(recoveryArtifact, "translations", "owner__neither.json"), '{"html":"stale"}\n');
+  await assert.rejects(
+    probeArtifactDirectory({ artifactDir: recoveryArtifact, legacyRecoverySha: legacySourceSha, gitRoot: checkout }),
+    /owner__neither|status|404/i,
+  );
+  await rm(join(recoveryArtifact, "translations", "owner__neither.json"));
+
+  await writeFile(join(checkout, "translations", "owner__readme-only.json"), '{"html":"present"}\n');
+  await writeFile(join(checkout, "readmes", "owner__translation-only.md"), "# Present README\n");
+  await writeFile(join(checkout, "readmes", "owner__neither.md"), "# Present README\n");
+  await writeFile(join(checkout, "translations", "owner__neither.json"), '{"html":"present"}\n');
+  assert.equal(run(["add", "--", "readmes/owner__translation-only.md", "readmes/owner__neither.md", "translations/owner__readme-only.json", "translations/owner__neither.json"]).status, 0);
+  assert.equal(run(["commit", "-qm", "all active caches present"]).status, 0);
+  const allPresentSha = run(["rev-parse", "HEAD"]).stdout.trim();
+  const allPresentArtifact = join(outer, "all-present-artifact");
+  await buildLegacyRecoveryArtifact({ sourceRoot: checkout, outDir: allPresentArtifact, sourceSha: allPresentSha });
+  await probeArtifactDirectory({ artifactDir: allPresentArtifact, legacyRecoverySha: allPresentSha, gitRoot: checkout });
+  const allPresentManifest = JSON.parse(await readFile(join(allPresentArtifact, "deployment-manifest.json"), "utf8"));
+  assert.ok(Object.hasOwn(allPresentManifest.files, "readmes/owner__translation-only.md"));
+  assert.ok(Object.hasOwn(allPresentManifest.files, "translations/owner__readme-only.json"));
+  assert.ok(Object.hasOwn(allPresentManifest.files, "readmes/owner__neither.md"));
+  assert.ok(Object.hasOwn(allPresentManifest.files, "translations/owner__neither.json"));
+  assert.ok(!Object.hasOwn(allPresentManifest.files, "readmes/old__inactive.md"));
+  assert.ok(!Object.hasOwn(allPresentManifest.files, "translations/old__inactive.json"));
   await writeFile(join(checkout, "index.html"), '<html>\nconst REPOS = [{"slug":"owner/legacy","slug":"owner/legacy"}];\n</html>\n');
   await assert.rejects(buildLegacyRecoveryArtifact({ sourceRoot: checkout, outDir: join(outer, "duplicate-legacy"), sourceSha: legacySourceSha }), /duplicate key/i);
   await writeFile(join(checkout, "index.html"), '<html>\nconst REPOS = [{"slug":"Owner/Legacy"},{"slug":"owner/legacy"}];\n</html>\n');
@@ -233,6 +338,145 @@ test("a version-0 recovery manifest produces the next candidate without bootstra
   const context = createRunContext(new Date("2026-08-26T10:07:00.000Z"), { sourceSha: null, snapshotId: null });
   assert.equal(context.parentSourceSha, null);
   assert.equal(context.parentSnapshotId, null);
+});
+
+test("legacy recovery rejects noncanonical, nested, and linked README materialization", async t => {
+  const outer = await mkdtemp(join(tmpdir(), "legacy-readme-materialization-"));
+  const source = join(outer, "source");
+  const readmes = join(source, "readmes");
+  t.after(() => rm(outer, { recursive: true, force: true }));
+  await mkdir(readmes, { recursive: true });
+  await writeFile(join(source, "index.html"), '<script>\nconst REPOS = [{"slug":"owner/repo"}];\n</script>\n');
+
+  await writeFile(join(readmes, "Owner__Repo.md"), "wrong exact case\n");
+  await assert.rejects(
+    buildLegacyRecoveryArtifact({ sourceRoot: source, outDir: join(outer, "wrong-case"), sourceSha }),
+    /exact-case/i,
+  );
+  await rm(join(readmes, "Owner__Repo.md"));
+
+  await writeFile(join(source, "index.html"), '<script>\nconst REPOS = [{"slug":"a__/b"},{"slug":"a/__b"}];\n</script>\n');
+  await assert.rejects(
+    buildLegacyRecoveryArtifact({ sourceRoot: source, outDir: join(outer, "encoded-collision"), sourceSha }),
+    /duplicate|case-fold/i,
+  );
+  await writeFile(join(source, "index.html"), '<script>\nconst REPOS = [{"slug":"owner/repo"}];\n</script>\n');
+
+  await writeFile(join(readmes, "README.md"), "not canonical\n");
+  await assert.rejects(
+    buildLegacyRecoveryArtifact({ sourceRoot: source, outDir: join(outer, "noncanonical"), sourceSha }),
+    /canonical/i,
+  );
+  await rm(join(readmes, "README.md"));
+
+  await mkdir(join(readmes, "nested"));
+  await assert.rejects(
+    buildLegacyRecoveryArtifact({ sourceRoot: source, outDir: join(outer, "nested"), sourceSha }),
+    /regular file|nested/i,
+  );
+  await rm(join(readmes, "nested"), { recursive: true });
+
+  const linked = join(outer, "linked-readmes");
+  await mkdir(linked);
+  await rm(readmes, { recursive: true });
+  await symlink(linked, readmes, "junction");
+  await assert.rejects(
+    buildLegacyRecoveryArtifact({ sourceRoot: source, outDir: join(outer, "linked"), sourceSha }),
+    /regular directory|symlink/i,
+  );
+});
+
+test("bootstrap probe rejects malformed or unsafe fake Git README trees", async t => {
+  const outer = await mkdtemp(join(tmpdir(), "legacy-fake-git-"));
+  const web = join(outer, "web");
+  const fakeGit = join(outer, "fake-git.mjs");
+  t.after(() => rm(outer, { recursive: true, force: true }));
+  const previousGitBin = process.env.GIT_BIN;
+  const previousGitScript = process.env.GIT_SCRIPT;
+  const previousTreeCase = process.env.FAKE_TREE_CASE;
+  t.after(() => {
+    if (previousGitBin === undefined) delete process.env.GIT_BIN; else process.env.GIT_BIN = previousGitBin;
+    if (previousGitScript === undefined) delete process.env.GIT_SCRIPT; else process.env.GIT_SCRIPT = previousGitScript;
+    if (previousTreeCase === undefined) delete process.env.FAKE_TREE_CASE; else process.env.FAKE_TREE_CASE = previousTreeCase;
+  });
+  await mkdir(web);
+  const page = '<script>\nconst REPOS = [{"slug":"owner/missing"}];\n</script>\n';
+  await writeFile(join(web, "index.html"), page);
+  await writeFile(fakeGit, String.raw`
+const args = process.argv.slice(2);
+const command = args[2];
+if (command === "show") {
+  const relative = args[3]?.split(":").slice(1).join(":");
+  if (relative === "index.html") process.stdout.write(${JSON.stringify(page)});
+  else process.exitCode = 2;
+} else if (command === "ls-tree") {
+  const oid = "b".repeat(40);
+  const record = (mode, path) => mode + " blob " + oid + "\t" + path + "\0";
+  const requested = args.includes("readmes") ? "readmes" : args.includes("translations") ? "translations" : "base";
+  if (requested === "base") {
+    if (process.env.FAKE_TREE_CASE === "base-error") process.exit(2);
+    if (process.env.FAKE_TREE_CASE === "base-malformed") process.stdout.write("malformed");
+    else process.stdout.write(Buffer.from(record("100644", "index.html"), "utf8"));
+    process.exit(0);
+  }
+  if (process.env.FAKE_TREE_CASE === "readmes-error" && requested === "readmes") process.exit(2);
+  if (process.env.FAKE_TREE_CASE === "translation-error" && requested === "translations") process.exit(2);
+  const translation = process.env.FAKE_TREE_CASE?.startsWith("translation-");
+  const treeCase = process.env.FAKE_TREE_CASE?.replace(/^translation-/, "");
+  if ((requested === "translations") !== translation) process.exit(0);
+  const directory = translation ? "translations" : "readmes";
+  const extension = translation ? ".json" : ".md";
+  const canonical = directory + "/owner__repo" + extension;
+  const fixtures = {
+    malformed: "100644 blob " + oid + "\t" + canonical,
+    symlink: record("120000", canonical),
+    nonblob: "040000 tree " + oid + "\t" + directory + "/owner__repo" + extension + "\0",
+    nested: record("100644", directory + "/nested/owner__repo" + extension),
+    noncanonical: record("100644", directory + "/README.txt"),
+    wrongcase: record("100644", directory + "/Owner__Missing" + extension),
+    duplicate: record("100644", canonical) + record("100644", canonical),
+    casefold: record("100644", directory + "/Owner__Repo" + extension) + record("100644", canonical),
+  };
+  process.stdout.write(Buffer.from(fixtures[treeCase] ?? "", "utf8"));
+} else {
+  process.exitCode = 2;
+}
+`);
+  process.env.GIT_BIN = process.execPath;
+  process.env.GIT_SCRIPT = fakeGit;
+  const server = await serveArtifact(web);
+  try {
+    for (const [treeCase, pattern] of [
+      ["base-error", /legacy base listing unavailable/i],
+      ["base-malformed", /malformed.*ls-tree/i],
+      ["readmes-error", /readmes listing unavailable/i],
+      ["translation-error", /translations listing unavailable/i],
+      ["malformed", /malformed.*ls-tree/i],
+      ["symlink", /symlink/i],
+      ["nonblob", /regular file/i],
+      ["nested", /canonical/i],
+      ["noncanonical", /canonical/i],
+      ["wrongcase", /exact-case/i],
+      ["duplicate", /duplicate|case-fold/i],
+      ["casefold", /duplicate|case-fold/i],
+      ["translation-malformed", /malformed.*ls-tree/i],
+      ["translation-symlink", /symlink/i],
+      ["translation-nonblob", /regular file/i],
+      ["translation-nested", /canonical/i],
+      ["translation-noncanonical", /canonical/i],
+      ["translation-wrongcase", /exact-case/i],
+      ["translation-duplicate", /duplicate|case-fold/i],
+      ["translation-casefold", /duplicate|case-fold/i],
+    ]) {
+      process.env.FAKE_TREE_CASE = treeCase;
+      await assert.rejects(
+        probeProduction({ baseUrl: server.baseUrl, bootstrapPreflightSha: sourceSha, gitRoot: outer }),
+        pattern,
+      );
+    }
+  } finally {
+    await server.close();
+  }
 });
 
 test("real membership then Atom CLIs share one injected candidate identity before artifact construction", async t => {

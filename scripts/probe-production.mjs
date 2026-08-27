@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { createReadStream } from "node:fs";
 import { lstat } from "node:fs/promises";
@@ -36,6 +36,66 @@ function gitBytes(sha, relative, gitRoot = process.cwd(), deadline = Date.now() 
     failure.code = error.status;
     throw failure;
   }
+}
+
+function gitTreeRows(sha, pathspec, label, gitRoot = process.cwd(), deadline = Date.now() + 30_000) {
+  let output;
+  try {
+    const remaining = deadline - Date.now();
+    if (!Number.isFinite(remaining) || remaining <= 0) throw new Error("production probe deadline exceeded");
+    const args = ["-C", gitRoot, "ls-tree", "-r", "-z", "--full-tree", sha, "--", ...pathspec];
+    output = execFileSync(process.env.GIT_BIN || "git", process.env.GIT_SCRIPT ? [process.env.GIT_SCRIPT, ...args] : args, {
+      encoding: null, maxBuffer: 16 * 1024 * 1024, timeout: Math.max(1, Math.min(30_000, Math.ceil(remaining))), stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (error) {
+    if (error?.message === "production probe deadline exceeded") throw error;
+    throw new Error(`Git tree ${label} listing unavailable`);
+  }
+  if (output.length === 0) return [];
+  if (output.at(-1) !== 0) throw new Error("malformed Git ls-tree output");
+  let text;
+  try { text = new TextDecoder("utf-8", { fatal: true }).decode(output.subarray(0, -1)); } catch { throw new Error("malformed Git ls-tree output"); }
+  const rows = [];
+  for (const row of text.split("\0")) {
+    const match = /^([0-7]{6}) (blob|tree) ([a-f0-9]{40})\t(.+)$/.exec(row);
+    if (!match) throw new Error("malformed Git ls-tree output");
+    const [, mode, type, , relative] = match;
+    rows.push({ mode, type, relative });
+  }
+  return rows;
+}
+
+function gitTrackedLegacyBasePaths(sha, gitRoot, deadline) {
+  const allowed = new Set(LEGACY_BASE_PATHS);
+  const paths = [];
+  for (const { mode, type, relative } of gitTreeRows(sha, LEGACY_BASE_PATHS, "legacy base", gitRoot, deadline)) {
+    if (!allowed.has(relative)) throw new Error(`legacy base path is not canonical: ${relative}`);
+    if (mode === "120000") throw new Error(`legacy base symlink rejected: ${relative}`);
+    if ((mode !== "100644" && mode !== "100755") || type !== "blob") throw new Error(`legacy base is not a regular file: ${relative}`);
+    paths.push(relative);
+  }
+  if (new Set(paths).size !== paths.length || new Set(paths.map(value => value.toLowerCase())).size !== paths.length) {
+    throw new Error("legacy base contains a duplicate or case-fold path");
+  }
+  return paths.sort();
+}
+
+function gitTrackedLegacyCachePaths(sha, directory, extension, gitRoot = process.cwd(), deadline = Date.now() + 30_000) {
+  const paths = [];
+  const folded = new Set();
+  for (const { mode, type, relative } of gitTreeRows(sha, [directory], directory, gitRoot, deadline)) {
+    if (mode === "120000") throw new Error(`legacy cache symlink rejected: ${relative}`);
+    if ((mode !== "100644" && mode !== "100755") || type !== "blob") throw new Error(`legacy cache is not a regular file: ${relative}`);
+    const expected = directory === "readmes"
+      ? /^readmes\/[A-Za-z0-9_.-]+__[A-Za-z0-9_.-]+\.md$/
+      : /^translations\/[A-Za-z0-9_.-]+__[A-Za-z0-9_.-]+\.json$/;
+    if (!expected.test(relative) || !relative.endsWith(extension)) throw new Error(`legacy cache path is not canonical: ${relative}`);
+    const key = relative.toLowerCase();
+    if (folded.has(key)) throw new Error(`legacy cache has a duplicate case-fold path: ${relative}`);
+    folded.add(key);
+    paths.push(relative);
+  }
+  return paths.sort();
 }
 
 function activeReposFromPage(page) {
@@ -247,34 +307,54 @@ async function verifyVersion1Payload({ baseUrl, manifest, manifestBytes, gitRoot
   return { sourceSha: manifest.sourceSha, snapshotId: manifest.snapshotId, manifestSha256: hash(manifestBytes), files: Object.keys(manifest.files).length };
 }
 
-function legacyPaths(sha, gitRoot, deadline) {
+function legacyContract(sha, gitRoot, deadline) {
   const page = gitBytes(sha, "index.html", gitRoot, deadline).toString("utf8");
-  const paths = [];
-  for (const relative of LEGACY_BASE_PATHS) {
-    try { gitBytes(sha, relative, gitRoot, deadline); paths.push(relative); } catch { /* paths introduced later are absent */ }
+  const paths = gitTrackedLegacyBasePaths(sha, gitRoot, deadline);
+  const repos = activeReposFromPage(page);
+  const desired = [
+    ...repos.map(repo => `readmes/${repo.slug.replaceAll("/", "__")}.md`),
+    ...repos.map(repo => `translations/${repo.slug.replaceAll("/", "__")}.json`),
+  ];
+  if (new Set(desired).size !== desired.length || new Set(desired.map(value => value.toLowerCase())).size !== desired.length) {
+    throw new Error("active legacy cache paths contain a duplicate or case-fold identity");
   }
-  for (const repo of activeReposFromPage(page)) paths.push(`readmes/${repo.slug.replaceAll("/", "__")}.md`);
-  return paths.sort();
+  const trackedCaches = [
+    ...gitTrackedLegacyCachePaths(sha, "readmes", ".md", gitRoot, deadline),
+    ...gitTrackedLegacyCachePaths(sha, "translations", ".json", gitRoot, deadline),
+  ];
+  const tracked = new Set(trackedCaches);
+  const trackedFolded = new Map(trackedCaches.map(value => [value.toLowerCase(), value]));
+  const missingActiveCaches = [];
+  for (const relative of desired) {
+    if (tracked.has(relative)) paths.push(relative);
+    else if (trackedFolded.has(relative.toLowerCase())) throw new Error(`legacy cache exact-case identity mismatch: ${relative}`);
+    else missingActiveCaches.push(relative);
+  }
+  return { paths: paths.sort(), missingActiveCaches: missingActiveCaches.sort() };
 }
 
-async function verifyLegacy({ baseUrl, sourceSha, manifest = null, gitRoot, deadline }) {
-  const paths = legacyPaths(sourceSha, gitRoot, deadline);
+async function verifyLegacy({ baseUrl, sourceSha, manifest = null, gitRoot, deadline, probeToken }) {
+  const { paths, missingActiveCaches } = legacyContract(sourceSha, gitRoot, deadline);
   if (manifest && Object.keys(manifest.files).sort().join("\0") !== paths.join("\0")) throw new Error("legacy manifest allowlist mismatch");
   for (const relative of paths) {
     const expected = gitBytes(sourceSha, relative, gitRoot, deadline);
-    const { bytes } = await fetchBytes(withProbe(baseUrl, relative, null), { deadline });
+    const { bytes } = await fetchBytes(withProbe(baseUrl, relative, probeToken), { deadline });
     if (hash(bytes) !== hash(expected) || (manifest && manifest.files[relative] !== hash(expected))) throw new Error(`legacy file mismatch: ${relative}`);
+  }
+  for (const relative of missingActiveCaches) {
+    await fetchBytes(withProbe(baseUrl, relative, probeToken), { expectedStatus: 404, deadline });
   }
   return { sourceSha, snapshotId: null, files: paths.length };
 }
 
 export async function probeProduction({ baseUrl, sourceSha = null, snapshotId = null, bootstrapPreflightSha = null, legacyRecoverySha = null, gitRoot = process.cwd(), deadline = Date.now() + 120_000 }) {
   if (!Number.isFinite(deadline) || deadline <= Date.now()) throw new Error("production probe deadline exceeded");
-  const manifestUrl = withProbe(baseUrl, "deployment-manifest.json", snapshotId);
+  const legacyProbeToken = bootstrapPreflightSha || legacyRecoverySha ? randomUUID() : null;
+  const manifestUrl = withProbe(baseUrl, "deployment-manifest.json", legacyProbeToken ?? snapshotId);
   if (bootstrapPreflightSha) {
     if (!SHA_RE.test(bootstrapPreflightSha)) throw new Error("invalid bootstrap preflight SHA");
     await fetchBytes(manifestUrl, { expectedStatus: 404, deadline });
-    return verifyLegacy({ baseUrl, sourceSha: bootstrapPreflightSha, gitRoot, deadline });
+    return verifyLegacy({ baseUrl, sourceSha: bootstrapPreflightSha, gitRoot, deadline, probeToken: legacyProbeToken });
   }
   const { bytes: manifestBytes } = await fetchBytes(manifestUrl, { deadline });
   const parsed = parseJsonStrict(manifestBytes, "deployment manifest", 1024 * 1024);
@@ -282,7 +362,7 @@ export async function probeProduction({ baseUrl, sourceSha = null, snapshotId = 
     if (!SHA_RE.test(legacyRecoverySha)) throw new Error("invalid legacy recovery SHA");
     const manifest = validateDeploymentManifest(parsed, { version: 0 });
     if (manifest.sourceSha !== legacyRecoverySha) throw new Error("legacy source SHA mismatch");
-    return verifyLegacy({ baseUrl, sourceSha: legacyRecoverySha, manifest, gitRoot, deadline });
+    return verifyLegacy({ baseUrl, sourceSha: legacyRecoverySha, manifest, gitRoot, deadline, probeToken: legacyProbeToken });
   }
   if (!SHA_RE.test(sourceSha) || !SNAPSHOT_RE.test(snapshotId)) throw new Error("invalid production probe identity");
   const manifest = validateDeploymentManifest(parsed);

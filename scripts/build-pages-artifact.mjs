@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { copyFile, lstat, mkdir, readFile, realpath, writeFile } from "node:fs/promises";
+import { copyFile, lstat, mkdir, readFile, readdir, realpath, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -191,11 +191,53 @@ function safeTarget(root, relative) {
 
 async function readRegularFile(root, relative) {
   const target = safeTarget(root, relative);
-  const [realRoot, realTarget] = await Promise.all([realpath(root), realpath(target)]);
-  if (!realTarget.startsWith(`${realRoot}${path.sep}`)) throw new Error(`artifact path escape: ${relative}`);
   const info = await lstat(target);
   if (!info.isFile() || info.isSymbolicLink()) throw new Error(`artifact input is not a regular file: ${relative}`);
+  const [realRoot, realTarget] = await Promise.all([realpath(root), realpath(target)]);
+  if (!realTarget.startsWith(`${realRoot}${path.sep}`)) throw new Error(`artifact path escape: ${relative}`);
   return readFile(target);
+}
+
+function assertUniqueArtifactPaths(paths, label = "artifact") {
+  if (new Set(paths).size !== paths.length) throw new Error(`${label} contains a duplicate path`);
+  if (new Set(paths.map(value => value.toLowerCase())).size !== paths.length) throw new Error(`${label} contains a duplicate case-fold path`);
+}
+
+async function materializedLegacyCachePaths(sourceRoot, directory, extension) {
+  const cacheRoot = path.join(sourceRoot, directory);
+  let rootInfo;
+  try { rootInfo = await lstat(cacheRoot); } catch (error) {
+    if (error?.code === "ENOENT") return [];
+    throw error;
+  }
+  if (!rootInfo.isDirectory() || rootInfo.isSymbolicLink()) throw new Error(`legacy ${directory} path is not a regular directory`);
+  const paths = [];
+  for (const entry of await readdir(cacheRoot, { withFileTypes: true })) {
+    const relative = `${directory}/${entry.name}`;
+    const info = await lstat(path.join(cacheRoot, entry.name));
+    if (!info.isFile() || info.isSymbolicLink()) throw new Error(`legacy cache is not a regular file: ${relative}`);
+    const escaped = extension.replace(".", "\\.");
+    if (!new RegExp(`^[A-Za-z0-9_.-]+__[A-Za-z0-9_.-]+${escaped}$`).test(entry.name)) throw new Error(`legacy cache path is not canonical: ${relative}`);
+    paths.push(relative);
+  }
+  assertUniqueArtifactPaths(paths, `legacy ${directory}`);
+  return paths.sort();
+}
+
+function activeLegacyCachePaths(repos, directory, extension) {
+  const paths = repos.map(repo => `${directory}/${repo.slug.replaceAll("/", "__")}${extension}`);
+  assertUniqueArtifactPaths(paths, `active legacy ${directory}`);
+  return paths.sort();
+}
+
+function activeTrackedIntersection(active, tracked, label) {
+  const exact = new Set(tracked);
+  const folded = new Map(tracked.map(value => [value.toLowerCase(), value]));
+  return active.filter(relative => {
+    if (exact.has(relative)) return true;
+    if (folded.has(relative.toLowerCase())) throw new Error(`${label} exact-case identity mismatch: ${relative}`);
+    return false;
+  });
 }
 
 function hash(bytes) {
@@ -220,6 +262,7 @@ export function validateDeploymentManifest(value, { version = 1 } = {}) {
 }
 
 async function installArtifact({ sourceRoot, outDir, paths, manifest }) {
+  assertUniqueArtifactPaths(paths);
   await mkdir(outDir, { recursive: false });
   const files = {};
   for (const relative of [...paths].sort()) {
@@ -268,11 +311,19 @@ export async function buildLegacyRecoveryArtifact({ sourceRoot, outDir, sourceSh
       if (error?.code !== "ENOENT") throw error;
     }
   }
-  const readmes = parseEmbeddedRepos(page, "legacy page REPOS").map(repo => `readmes/${repo.slug.replaceAll("/", "__")}.md`);
+  const repos = parseEmbeddedRepos(page, "legacy page REPOS");
+  const activeReadmes = activeLegacyCachePaths(repos, "readmes", ".md");
+  const activeTranslations = activeLegacyCachePaths(repos, "translations", ".json");
+  const [trackedReadmes, trackedTranslations] = await Promise.all([
+    materializedLegacyCachePaths(sourceRoot, "readmes", ".md"),
+    materializedLegacyCachePaths(sourceRoot, "translations", ".json"),
+  ]);
+  const readmes = activeTrackedIntersection(activeReadmes, trackedReadmes, "legacy README");
+  const translations = activeTrackedIntersection(activeTranslations, trackedTranslations, "legacy translation");
   return installArtifact({
     sourceRoot,
     outDir,
-    paths: [...base, ...readmes],
+    paths: [...base, ...readmes, ...translations],
     manifest: { version: 0, legacyBootstrap: true, sourceSha, snapshotId: null },
   });
 }
