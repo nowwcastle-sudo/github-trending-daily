@@ -14,6 +14,9 @@ const PERIODS = {
   weekly: { field: "stars_weekly", label: "this week" },
   monthly: { field: "stars_monthly", label: "this month" },
 };
+const ENRICHMENT_MODEL = "claude-haiku-4-5";
+const ENRICHMENT_SCHEMA_VERSION = 2;
+const SUMMARY_FIELDS = ["goal", "usage", "pros", "cons", "fit"];
 
 function periodConfig(period) {
   const config = PERIODS[period];
@@ -608,7 +611,12 @@ function koreanFallback(repo, metadata, readme) {
   const fit = `${metadata.language || "오픈소스"} 저장소를 탐색하려는 사용자에게 참고 자료가 된다.`;
   return {
     summary: { goal, usage, pros, cons, fit },
-    detail: { goal, usage, pros, cons, fit, stars_note: `${gains}의 스타 증가가 확인됐다.` },
+    detail: { goal, usage, pros, cons, fit, stars_note: buildTrendNote({
+      gain_daily: repo.stars_daily,
+      gain_weekly: repo.stars_weekly,
+      gain_monthly: repo.stars_monthly,
+      membership_status: repo.membership_status,
+    }) },
   };
 }
 
@@ -654,17 +662,50 @@ export async function enrichTrendingRepositories(discovered, {
   return repos;
 }
 
+export function buildTrendNote(repo) {
+  const gains = [
+    ["일간", repo.gain_daily],
+    ["주간", repo.gain_weekly],
+    ["월간", repo.gain_monthly],
+  ].filter(([, value]) => Number.isInteger(value));
+  const movement = gains
+    .map(([label, value]) => `${label} +${value.toLocaleString("ko-KR")}`)
+    .join(" · ");
+  return [movement, repo.membership_status === "reentered" ? "재진입" : null]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+function validDetailedContent(value) {
+  return value && !Array.isArray(value) && typeof value === "object"
+    && Object.keys(value).length === SUMMARY_FIELDS.length
+    && SUMMARY_FIELDS.every(field => typeof value[field] === "string" && value[field].trim());
+}
+
+function reusableSummaryEntry(value, fact) {
+  const source = value?.source;
+  return validDetailedContent(value?.content)
+    && source && !Array.isArray(source) && typeof source === "object"
+    && source.blob_sha === fact.readme_blob_sha
+    && source.content_sha256 === fact.readme_content_sha256
+    && source.model === ENRICHMENT_MODEL
+    && source.schema_version === ENRICHMENT_SCHEMA_VERSION;
+}
+
 function renderRepositoryFacts(facts, summaryCache, statsDate, latestReleases) {
   const summaries = new Map(Object.entries(summaryCache).map(([slug, value]) => [slug.toLowerCase(), value]));
   return facts.map(fact => {
     const gains = Object.fromEntries(["daily", "weekly", "monthly"]
       .map(period => [`stars_${period}`, fact[`gain_${period}`]])
       .filter(([, value]) => value !== null));
-    const cached = summaries.get(fact.slug.toLowerCase()) ?? koreanFallback(
-      { slug: fact.slug, ...gains },
+    const cached = summaries.get(fact.slug.toLowerCase());
+    const fallback = koreanFallback(
+      { slug: fact.slug, ...gains, membership_status: fact.membership_status },
       { description: fact.description, language: fact.primary_language },
       "",
     );
+    const content = reusableSummaryEntry(cached, fact) ? cached.content : fallback.detail;
+    const starsNote = buildTrendNote(fact);
     return {
       slug: fact.slug,
       latest_release: latestReleases.get(fact.slug.toLowerCase()) ?? null,
@@ -676,8 +717,8 @@ function renderRepositoryFacts(facts, summaryCache, statsDate, latestReleases) {
       forks: fact.forks,
       ...gains,
       color: fact.language_color ?? "#8b949e",
-      summary: cached.summary,
-      detail: cached.detail,
+      summary: Object.fromEntries(SUMMARY_FIELDS.map(field => [field, content[field]])),
+      detail: { ...Object.fromEntries(SUMMARY_FIELDS.map(field => [field, content[field]])), stars_note: starsNote },
       issues: fact.open_issues_and_pull_requests,
       contributors: fact.contributors,
       pushed_at: fact.pushed_at?.slice(0, 10) ?? null,
@@ -690,7 +731,6 @@ const REPOS_START = "// GENERATED:TRENDING-REPOS:START";
 const REPOS_END = "// GENERATED:TRENDING-REPOS:END";
 const DATE_START = "<!-- GENERATED:TRENDING-DATE:START -->";
 const DATE_END = "<!-- GENERATED:TRENDING-DATE:END -->";
-const SUMMARY_FIELDS = ["goal", "usage", "pros", "cons", "fit"];
 
 function assertValidDate(value) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value ?? "");
@@ -795,7 +835,8 @@ function validateSnapshotPair(page, summaryCacheText, statsDate) {
     if (seen.has(key)) throw new Error(`Duplicate published repository: ${slug}`);
     seen.add(key);
     const cached = cachedBySlug.get(key);
-    if (!cached || JSON.stringify(cached.summary) !== JSON.stringify(repo.summary) || JSON.stringify(cached.detail) !== JSON.stringify(repo.detail)) {
+    const detail = Object.fromEntries(SUMMARY_FIELDS.map(field => [field, repo.detail[field]]));
+    if (!cached || JSON.stringify(cached.content) !== JSON.stringify(detail) || !cached.source || typeof cached.source !== "object") {
       throw new Error(`Summary cache does not match published ${slug}`);
     }
   }
@@ -825,7 +866,17 @@ export function createPageSnapshot({ page, summaryCache, repos, statsDate }) {
     if (seen.has(key)) throw new Error(`Duplicate published repository: ${slug}`);
     seen.add(key);
     const cacheKey = cacheKeys.get(key) ?? slug;
-    nextCache[cacheKey] = { summary: repo.summary, detail: repo.detail };
+    const source = nextCache[cacheKey]?.source ?? {
+      blob_sha: null,
+      content_sha256: null,
+      model: null,
+      schema_version: ENRICHMENT_SCHEMA_VERSION,
+      translation_applicable: null,
+    };
+    nextCache[cacheKey] = {
+      content: Object.fromEntries(SUMMARY_FIELDS.map(field => [field, repo.detail[field]])),
+      source,
+    };
     cacheKeys.set(key, cacheKey);
   }
 
