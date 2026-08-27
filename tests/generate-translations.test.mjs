@@ -413,6 +413,63 @@ test("retained-source guard allows technical names but rejects English prose", a
   );
 });
 
+test("identifier grammar keeps dotted technical names inside one clause", async () => {
+  const source = "Node.js provides a reliable runtime for automation teams. It supports offline development workflows.";
+  assert.deepEqual(extractTranslationClauses(source), [
+    "Node.js provides a reliable runtime for automation teams.",
+    "It supports offline development workflows.",
+  ]);
+  const korean = "Node.js는 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다. 오프라인 개발 워크플로를 지원합니다.";
+  assert.equal(
+    await callMarkdownTranslation({ ...item, markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, korean))),
+    korean,
+  );
+});
+
+test("retained lowercase and punctuated technical names pass in complete Korean", async () => {
+  for (const [source, korean] of [
+    ["npm provides a reliable package manager for automation teams.", "npm은 자동화 팀에 신뢰할 수 있는 패키지 관리자를 제공합니다."],
+    ["pytest provides reliable testing for automation teams.", "pytest는 자동화 팀에 신뢰할 수 있는 테스트를 제공합니다."],
+    ["scikit-learn provides reliable models for automation teams.", "scikit-learn은 자동화 팀에 신뢰할 수 있는 모델을 제공합니다."],
+    ["Node.js provides a reliable runtime for automation teams.", "Node.js는 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다."],
+  ]) {
+    assert.equal(
+      await callMarkdownTranslation({ ...item, markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, korean))),
+      korean,
+      source,
+    );
+  }
+});
+
+test("technical-name evidence rejects retained emphasized adjectives", async () => {
+  for (const [source, korean] of [
+    ["Powerful tools provide reliable automation for development teams.", "Powerful 도구는 개발 팀에 신뢰할 수 있는 자동화를 제공합니다."],
+    ["Amazing features provide reliable automation for development teams.", "Amazing 기능은 개발 팀에 신뢰할 수 있는 자동화를 제공합니다."],
+    ["IMPORTANT notice provides reliable guidance for development teams.", "IMPORTANT 공지는 개발 팀에 신뢰할 수 있는 지침을 제공합니다."],
+  ]) {
+    await assert.rejects(
+      callMarkdownTranslation({ ...item, markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, korean))),
+      /source|retains|ASCII|translated prose/i,
+      source,
+    );
+  }
+});
+
+test("technical-name occurrence cap counts case-insensitive particles and punctuation", async () => {
+  const source = "Python provides a reliable runtime for automation teams.";
+  for (const count of [2, 3, 4, 5, 6, 7, 8]) {
+    const occurrences = Array.from({ length: count }, (_value, index) => index === count - 1
+      ? "Python은"
+      : `${index % 2 ? "PYTHON" : "python"},`).join(" ");
+    const korean = `${occurrences} 자동화 팀에 신뢰할 수 있는 런타임을 제공합니다.`;
+    await assert.rejects(
+      callMarkdownTranslation({ ...item, markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, korean))),
+      /source|occurrence|retains|ASCII|translated prose/i,
+      `${count} occurrences`,
+    );
+  }
+});
+
 test("URI autolinks protect FTP and non-HTTP scheme bytes", async () => {
   const value = "# English title\n\nDownload from <ftp://files.example.com/archive.zip> or inspect <git+ssh://git@example.com/owner/repo>.\n";
   const translate = source => source

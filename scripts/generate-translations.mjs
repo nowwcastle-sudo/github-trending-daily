@@ -720,14 +720,36 @@ function allProseSegments(markdown) {
     .map(stripMarkdownProse);
 }
 
+const IDENTIFIER_TOKEN_SOURCE = String.raw`[A-Za-z][A-Za-z0-9]*(?:[._+-][A-Za-z0-9]+)*(?:\+{1,2})?`;
+
+function identifierTokens(value) {
+  return [...value.matchAll(new RegExp(IDENTIFIER_TOKEN_SOURCE, "g"))]
+    .map(match => ({ raw: match[0], lower: match[0].toLowerCase(), start: match.index, end: match.index + match[0].length }));
+}
+
 function splitProseClauses(value) {
-  return value.split(/(?<=[.!?。！？;；:：])(?:\s+|(?=\S))/u)
-    .flatMap(clause => {
-      const words = clause.match(/[A-Za-z]+/g) ?? [];
-      return words.length >= 12
-        ? clause.split(/(?<=[,，])(?:\s+|(?=\S))/u)
-        : [clause];
-    })
+  const protectedPeriods = new Set();
+  for (const token of identifierTokens(value)) {
+    for (let index = token.start + 1; index < token.end - 1; index += 1) {
+      if (value[index] === ".") protectedPeriods.add(index);
+    }
+  }
+  const sentencePunctuation = new Set([".", "!", "?", "。", "！", "？", ";", "；", ":", "："]);
+  const sentences = [];
+  let start = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    if (!sentencePunctuation.has(value[index]) || protectedPeriods.has(index)) continue;
+    if (index + 1 < value.length && sentencePunctuation.has(value[index + 1])) continue;
+    sentences.push(value.slice(start, index + 1));
+    start = index + 1;
+  }
+  sentences.push(value.slice(start));
+  return sentences.flatMap(clause => {
+    const words = identifierTokens(clause);
+    return words.length >= 12
+      ? clause.split(/(?<=[,，])(?:\s+|(?=\S))/u)
+      : [clause];
+  })
     .map(clause => clause.trim())
     .filter(Boolean);
 }
@@ -762,12 +784,12 @@ function isTranslatableProse(value) {
 }
 
 function isIdentifierOnlyProse(value) {
-  const tokens = value.match(/[A-Za-z][A-Za-z0-9_.+-]*/g) ?? [];
-  return tokens.length > 0 && tokens.every(isIdentifierToken);
+  const tokens = identifierTokens(value);
+  return tokens.length > 0 && tokens.every(token => isIdentifierToken(token.raw));
 }
 
 function isIdentifierToken(token) {
-  return /[A-Z]/.test(token.slice(1)) || /^[A-Z0-9_.+-]+$/.test(token);
+  return /[A-Z]/.test(token.slice(1)) || /^[A-Z0-9_.+-]+$/.test(token) || /[._+-]|\d/.test(token);
 }
 
 const COMMON_RETAINED_PROSE_WORDS = new Set([
@@ -779,51 +801,83 @@ const COMMON_RETAINED_PROSE_WORDS = new Set([
   "we", "were", "with", "without", "would", "you", "your",
 ]);
 
+const NAME_SUBJECT_PREDICATES = new Set([
+  "are", "creates", "enables", "helps", "is", "offers", "provides", "runs", "supports", "uses",
+]);
+
+function strongIdentifierShape(token) {
+  return /[._+-]|\d/.test(token)
+    || (/[a-z]/.test(token) && /[A-Z]/.test(token.slice(1)))
+    || /^[A-Z]{2,5}$/.test(token);
+}
+
+function tokenSequenceStarts(tokens, pattern) {
+  const starts = [];
+  for (let start = 0; start <= tokens.length - pattern.length; start += 1) {
+    if (pattern.every((lower, offset) => tokens[start + offset].lower === lower)) starts.push(start);
+  }
+  return starts;
+}
+
+function retainedNamePatterns(original, source) {
+  const patterns = new Map();
+  const add = tokens => patterns.set(tokens.map(token => token.lower).join("\0"), tokens.map(token => token.lower));
+  for (const token of source) {
+    if (strongIdentifierShape(token.raw)) add([token]);
+  }
+  const predicateIndex = source.findIndex(token => NAME_SUBJECT_PREDICATES.has(token.lower));
+  if (predicateIndex > 0 && !original.slice(0, source[0].start).trim()) {
+    const subject = source.slice(0, predicateIndex);
+    const singleName = subject.length === 1
+      && !COMMON_RETAINED_PROSE_WORDS.has(subject[0].lower)
+      && !/^[A-Z]{2,}$/.test(subject[0].raw);
+    const phraseName = subject.length > 1
+      && subject.every(token => /^[A-Z][a-z0-9]*$/.test(token.raw) && !COMMON_RETAINED_PROSE_WORDS.has(token.lower));
+    if (singleName || phraseName) add(subject);
+  }
+  return [...patterns.values()];
+}
+
 function retainedSourceAnalysis(original, translated) {
-  const source = (original.match(/[A-Za-z]+/g) ?? []).map(raw => ({ raw, lower: raw.toLowerCase() }));
-  const output = (translated.match(/[A-Za-z]+/g) ?? []).map(raw => ({ raw, lower: raw.toLowerCase() }));
-  const outputWords = new Set(output.map(token => token.lower));
+  const source = identifierTokens(original);
+  const output = identifierTokens(translated);
+  const exemptOutput = new Set();
+  for (const pattern of retainedNamePatterns(original, source)) {
+    const sourceStarts = tokenSequenceStarts(source, pattern);
+    const outputStarts = tokenSequenceStarts(output, pattern);
+    if (outputStarts.length > sourceStarts.length) return { rejected: true, allowedNameAscii: 0 };
+    for (const start of outputStarts) {
+      for (let offset = 0; offset < pattern.length; offset += 1) exemptOutput.add(start + offset);
+    }
+  }
+  const remainingOutput = output.filter((_token, index) => !exemptOutput.has(index));
+  const outputWords = new Set(remainingOutput.map(token => token.lower));
   const retained = source.filter(token => outputWords.has(token.lower));
-  const allowedName = token => !COMMON_RETAINED_PROSE_WORDS.has(token.lower)
-    && (isIdentifierToken(token.raw) || /^[A-Z][A-Za-z0-9-]*$/.test(token.raw));
-  if (retained.some(token => COMMON_RETAINED_PROSE_WORDS.has(token.lower) || token.raw === token.lower)) {
+  if (retained.some(token => COMMON_RETAINED_PROSE_WORDS.has(token.lower) || token.raw === token.lower || token.raw.length >= 4)) {
     return { rejected: true, allowedNameAscii: 0 };
   }
 
   let longest = 0;
-  let longestSourceEnd = -1;
-  let previous = new Array(output.length + 1).fill(0);
+  let previous = new Array(remainingOutput.length + 1).fill(0);
   for (let sourceIndex = 0; sourceIndex < source.length; sourceIndex += 1) {
-    const current = new Array(output.length + 1).fill(0);
-    for (let outputIndex = 0; outputIndex < output.length; outputIndex += 1) {
-      if (source[sourceIndex].lower !== output[outputIndex].lower) continue;
+    const current = new Array(remainingOutput.length + 1).fill(0);
+    for (let outputIndex = 0; outputIndex < remainingOutput.length; outputIndex += 1) {
+      if (source[sourceIndex].lower !== remainingOutput[outputIndex].lower) continue;
       current[outputIndex + 1] = previous[outputIndex] + 1;
       if (current[outputIndex + 1] > longest) {
         longest = current[outputIndex + 1];
-        longestSourceEnd = sourceIndex;
       }
     }
     previous = current;
   }
   if (longest >= 2) {
-    const span = source.slice(longestSourceEnd - longest + 1, longestSourceEnd + 1);
-    if (!span.every(allowedName)) return { rejected: true, allowedNameAscii: 0 };
-  }
-  if ((retained.length >= 3 || retained.length / Math.max(source.length, 1) >= 0.35)
-      && !retained.every(allowedName)) {
     return { rejected: true, allowedNameAscii: 0 };
   }
-  const allowedNameCounts = new Map();
-  for (const token of retained.filter(allowedName)) {
-    allowedNameCounts.set(token.lower, (allowedNameCounts.get(token.lower) ?? 0) + 1);
+  if (retained.length >= 3 || retained.length / Math.max(source.length, 1) >= 0.35) {
+    return { rejected: true, allowedNameAscii: 0 };
   }
-  let allowedNameAscii = 0;
-  for (const token of output) {
-    const remaining = allowedNameCounts.get(token.lower) ?? 0;
-    if (remaining < 1) continue;
-    allowedNameAscii += token.raw.length;
-    allowedNameCounts.set(token.lower, remaining - 1);
-  }
+  const allowedNameAscii = output.reduce((total, token, index) => total
+    + (exemptOutput.has(index) ? (token.raw.match(/[A-Za-z]/g) ?? []).length : 0), 0);
   return { rejected: false, allowedNameAscii };
 }
 
@@ -862,7 +916,7 @@ function assertTranslatedSegment(original, translated, applicable = isTranslatab
     if (afterAscii - retained.allowedNameAscii > Math.max(12, Math.floor(beforeAscii * 0.65))) {
       throw new Error("Translated prose does not meaningfully reduce source ASCII");
     }
-    const sourceWords = original.match(/[A-Za-z]+/g) ?? [];
+    const sourceWords = identifierTokens(original);
     const translatedHangulSyllables = (translated.match(/[가-힣]/g) ?? []).length;
     const minimumCoverage = Math.min(18, sourceWords.length);
     if (sourceWords.length >= 8 && translatedHangulSyllables < minimumCoverage) {
