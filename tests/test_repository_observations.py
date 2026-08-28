@@ -346,6 +346,21 @@ def writer_payload(*, snapshot_id, utc, kst, stats_date, run_kind, parent_snapsh
     profile_digest = canonical_hash(profile_value)
     source = {"kind": "metadata_only", "slug": "owner/repo", "profile_sha256": profile_digest,
               "model": "test-model", "schema_version": 2, "translation_applicable": False}
+    provenance = {
+        "repository": {"api_path": "/repos/owner/repo", "fact_sha256": sha256("1")},
+        "contributors": {"api_path": "/repos/owner/repo/contributors", "fact_sha256": sha256("2")},
+        "default_branch_head": {"api_path": "/repos/owner/repo/commits/main", "fact_sha256": sha256("3")},
+        "readme": {
+            "api_path": "/repos/owner/repo/readme", "blob_api_path": None,
+            "status": "absent", "path": None, "blob_sha": None, "content_sha256": None,
+        },
+        "trending": {
+            "daily": {"source_path": "/trending?since=daily", "rank": 1, "gain": 0, "language_color": "#112233", "fact_sha256": sha256("4")},
+            "weekly": {"source_path": "/trending?since=weekly", "rank": None, "gain": None, "language_color": None, "fact_sha256": sha256("5")},
+            "monthly": {"source_path": "/trending?since=monthly", "rank": None, "gain": None, "language_color": None, "fact_sha256": sha256("6")},
+            "language_color_selection": {"rule": "daily_then_weekly_then_monthly", "selected_period": "daily", "value": "#112233"},
+        },
+    }
     return {
         "snapshotId": snapshot_id, "observedAtUtc": utc, "observedAtKst": kst,
         "statsDate": stats_date, "runKind": run_kind, "parentSnapshotId": parent_snapshot_id,
@@ -355,16 +370,18 @@ def writer_payload(*, snapshot_id, utc, kst, stats_date, run_kind, parent_snapsh
             "source": source,
         }}},
         "repositories": [{
-            "slug": "owner/repo", "displaySlug": "owner/repo", "topics": [],
+            "slug": "owner/repo", "displaySlug": "owner/repo", "description": None,
+            "primaryLanguage": None, "topics": [], "licenseSpdx": None,
+            "archived": False, "isFork": False,
             "fieldTags": ["unclassified"], "formTags": [], "tagRuleVersion": 1,
-            "defaultBranch": "main", "createdAt": utc, "displayRank": 1,
+            "defaultBranch": "main", "defaultBranchHeadSha": sha1(),
+            "createdAt": utc, "displayRank": 1,
             "rankDaily": 1, "gainDaily": 0, "rankWeekly": None, "gainWeekly": None,
-            "rankMonthly": None, "gainMonthly": None, "languageColorDaily": "#112233",
-            "languageColorWeekly": None, "languageColorMonthly": None,
-            "selectedLanguageColor": "#112233", "selectedLanguageColorSourcePeriod": "daily",
+            "rankMonthly": None, "gainMonthly": None, "languageColor": "#112233",
             "stars": 1, "forks": 0, "watchersCount": 2, "subscribers": 3,
             "openIssuesAndPullRequests": 4, "contributors": 5, "updatedAt": utc,
-            "pushedAt": None, "translationStatus": "not_applicable:no_readme",
+            "pushedAt": None, "readmeStatus": "absent", "readmePath": None,
+            "readmeBlobSha": None, "readmeContentSha256": None, "provenance": provenance,
         }],
     }
 
@@ -428,6 +445,45 @@ def writer_legacy_baselines(directory):
     public.write_text(json.dumps({"repositories": []}), encoding="utf-8")
     paths = {"legacy_star_observations": str(star), "legacy_trending_membership": str(membership), "legacy_public_star_history": str(public)}
     return paths, measure_legacy_baseline_receipt(paths)
+
+
+def writer_cli_case(directory, *, candidate_name="candidate.sqlite", state_name="readme-state.json"):
+    root = Path(directory)
+    paths, receipt = writer_legacy_baselines(directory)
+    payload = writer_payload(
+        snapshot_id="20260828010101-aaaaaaaaaaaaaaaa",
+        utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00",
+        stats_date="2026-08-28", run_kind="migration_baseline",
+    )
+    events = writer_events(head=sha1(), transition="baseline")
+    bind_writer_inputs(payload, events)
+    index = payload.pop("enrichmentIndex")
+    inputs = {
+        "snapshot": root / "snapshot.json", "events": root / "events.json",
+        "index": root / "index.json", "evidence": root / "evidence.json",
+    }
+    inputs["snapshot"].write_text(json.dumps(payload), encoding="utf-8")
+    inputs["events"].write_text(json.dumps(events), encoding="utf-8")
+    inputs["index"].write_text(json.dumps(index), encoding="utf-8")
+    inputs["evidence"].write_text(json.dumps({
+        "version": 1, "parent_database": {"missing": True},
+        "legacy_baseline_receipt": receipt,
+    }), encoding="utf-8")
+    candidate = root / candidate_name
+    state = root / state_name
+    arguments = [
+        "--parent-database", str(root / "missing-parent.sqlite"),
+        "--candidate-database", str(candidate),
+        "--snapshot", str(inputs["snapshot"]),
+        "--events", str(inputs["events"]),
+        "--enrichment-index", str(inputs["index"]),
+        "--parent-evidence", str(inputs["evidence"]),
+        "--legacy-star-database", paths["legacy_star_observations"],
+        "--legacy-membership-database", paths["legacy_trending_membership"],
+        "--legacy-public-star-history", paths["legacy_public_star_history"],
+        "--readme-state", str(state),
+    ]
+    return arguments, candidate, state
 
 
 class RepositoryObservationTests(unittest.TestCase):
@@ -1053,7 +1109,7 @@ class RepositoryObservationTests(unittest.TestCase):
                 canonical_hash({"content": content, "source": source}),
             ))
             self.assertEqual(verify_core_snapshot(connection, 1), result.core_payload_sha256)
-        self.assertEqual(result.core_payload_sha256, "15fd4291cefd49fb7697e7bd8425e20b1abfb3c06f1b65a8f2805b69e562a482")
+        self.assertEqual(result.core_payload_sha256, "3c59c689aa1c72d728d8c58d70d878bfc84351e21f08f82c24e575232114a72e")
 
     def test_reused_profile_and_release_rows_are_part_of_refresh_core_hash(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
@@ -1155,8 +1211,13 @@ class RepositoryObservationTests(unittest.TestCase):
                     "slug": "other/repo", "displaySlug": "other/repo", "displayRank": 2,
                     "rankDaily": 2, "readmePath": "README.md",
                     "readmeBlobSha": sha1(other_blob), "readmeContentSha256": sha256(other_content),
-                    "translationStatus": "applicable",
+                    "readmeStatus": "present",
                 })
+                repository["provenance"]["readme"].update({
+                    "status": "present", "path": "README.md", "blob_sha": sha1(other_blob),
+                    "content_sha256": sha256(other_content),
+                })
+                repository["provenance"]["trending"]["daily"]["rank"] = 2
                 value["repositories"].append(repository)
                 source = {
                     "kind": "readme", "slug": "other/repo", "path": "README.md",
@@ -1194,6 +1255,7 @@ class RepositoryObservationTests(unittest.TestCase):
         state = {}
         first_id = "20260828010101-aaaaaaaaaaaaaaaa"
         first = payload(first_id, "2026-08-28T01:01:01.001Z", "2026-08-28T10:01:01.001+09:00", "migration_baseline", None, True)
+        first["repositories"][1]["defaultBranchHeadSha"] = sha1("b")
         first["legacyBaselines"], first["legacyBaselineReceipt"] = paths, receipt
         record_writer_snapshot(
             candidate,
@@ -1212,11 +1274,16 @@ class RepositoryObservationTests(unittest.TestCase):
             events(["owner/repo"], {"owner/repo": "unchanged"}), state,
         )
         third = payload("20260828050101-cccccccccccccccc", "2026-08-28T05:01:01.001Z", "2026-08-28T14:01:01.001+09:00", "refresh", second_id, True, "d", "e")
+        third["repositories"][1]["defaultBranchHeadSha"] = sha1("d")
         with self.assertRaisesRegex(ValueError, "existing repository cannot use baseline"):
             record_writer_snapshot(
                 candidate,
                 json.loads(json.dumps(third)),
-                events(["owner/repo", "other/repo"], {"owner/repo": "unchanged", "other/repo": "baseline"}),
+                events(
+                    ["owner/repo", "other/repo"],
+                    {"owner/repo": "unchanged", "other/repo": "baseline"},
+                    {"other/repo": sha1("d")},
+                ),
                 state,
             )
         commit = {
@@ -1455,6 +1522,31 @@ class RepositoryObservationTests(unittest.TestCase):
         with closing(sqlite3.connect(candidate)) as connection:
             self.assertEqual(connection.execute("SELECT COUNT(*) FROM snapshot_runs").fetchone(), (1,))
 
+    def test_legacy_sources_are_remeasured_inside_transaction_immediately_before_commit(self):
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        candidate = Path(self.temporary.name) / "legacy-final-remeasure.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing.sqlite", candidate, None)
+        payload = writer_payload(
+            snapshot_id="20260828010101-aaaaaaaaaaaaaaaa",
+            utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00",
+            stats_date="2026-08-28", run_kind="migration_baseline",
+        )
+        payload["legacyBaselines"], payload["legacyBaselineReceipt"] = paths, receipt
+        original = ledger._project_commit_rows
+
+        def mutate_after_projection(*args, **kwargs):
+            rows = original(*args, **kwargs)
+            Path(paths["legacy_public_star_history"]).write_text(json.dumps({
+                "repositories": [{"slug": "owner/repo", "observed": [], "estimated": []}],
+            }), encoding="utf-8")
+            return rows
+
+        with mock.patch.object(ledger, "_project_commit_rows", side_effect=mutate_after_projection):
+            with self.assertRaisesRegex(ValueError, "legacy baseline source changed before commit"):
+                record_writer_snapshot(candidate, payload, writer_events(head=sha1(), transition="baseline"), {})
+        with closing(sqlite3.connect(candidate)) as connection:
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM snapshot_runs").fetchone(), (0,))
+
     def test_fast_forward_commit_chain_must_reach_previous_head(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
         candidate = Path(self.temporary.name) / "commit-gap.sqlite"
@@ -1474,6 +1566,7 @@ class RepositoryObservationTests(unittest.TestCase):
             stats_date="2026-08-28", run_kind="refresh", parent_snapshot_id=first_id,
         )
         second["legacyBaselines"], second["legacyBaselineReceipt"] = paths, receipt
+        second["repositories"][0]["defaultBranchHeadSha"] = sha1("b")
         events = writer_events(head=sha1("b"), transition="fast_forward")
         events["commits"] = [{
             "slug": "owner/repo", "sha": sha1("b"), "firstObservedOrdinal": 1,
@@ -1512,6 +1605,7 @@ class RepositoryObservationTests(unittest.TestCase):
             stats_date="2026-08-28", run_kind="refresh", parent_snapshot_id=first_id,
         )
         second["legacyBaselines"], second["legacyBaselineReceipt"] = paths, receipt
+        second["repositories"][0]["defaultBranchHeadSha"] = sha1("b")
         events = writer_events(head=sha1("b"), transition="fast_forward")
         events["commits"] = [
             {
@@ -1758,6 +1852,90 @@ class RepositoryObservationTests(unittest.TestCase):
             evidence_path.write_text(json.dumps(envelope), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "parent evidence envelope fields are not the exact allowlist"):
                 ledger.main(arguments(evidence_path, root / f"cli-candidate-{label}.sqlite"))
+
+    def test_cli_rejects_resolved_path_aliases_and_tracked_readme_state(self):
+        arguments, _, state = writer_cli_case(
+            self.temporary.name, candidate_name="same-path.json", state_name="same-path.json",
+        )
+        with self.assertRaisesRegex(ValueError, "CLI paths must not alias"):
+            ledger.main(arguments)
+        self.assertFalse(state.exists())
+
+        args = mock.Mock()
+        root = Path(ledger.__file__).resolve().parents[1]
+        unique = [Path(self.temporary.name) / f"input-{index}" for index in range(9)]
+        (
+            args.parent_database, args.candidate_database, args.snapshot, args.events,
+            args.enrichment_index, args.parent_evidence, args.legacy_star_database,
+            args.legacy_membership_database, args.legacy_public_star_history,
+        ) = map(str, unique)
+        args.readme_state = str(root / "data" / "readme-state.json")
+        with self.assertRaisesRegex(ValueError, "tracked readme state"):
+            ledger._validate_cli_paths(args)
+
+    def test_cli_state_write_is_atomic_and_removes_new_candidate_on_failure(self):
+        arguments, candidate, state = writer_cli_case(self.temporary.name)
+        original_state = b"{}\n"
+        state.write_bytes(original_state)
+        with mock.patch.object(ledger, "_write_state_atomically", create=True, side_effect=OSError("private path")):
+            with self.assertRaisesRegex(ValueError, "README state candidate write failed"):
+                ledger.main(arguments)
+        self.assertEqual(state.read_bytes(), original_state)
+        self.assertFalse(candidate.exists())
+        for suffix in ("-journal", "-wal", "-shm"):
+            self.assertFalse(Path(f"{candidate}{suffix}").exists())
+
+    def test_repository_fact_requires_one_exact_collector_or_camel_shape(self):
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        mutations = (
+            ("extra", lambda fact: fact.update({"attackerBody": "must not be ignored"}), "exact allowlist"),
+            ("missing", lambda fact: fact.pop("topics"), "exact allowlist"),
+            ("mixed", lambda fact: fact.update({"default_branch": fact.pop("defaultBranch")}), "exact allowlist"),
+            ("bool", lambda fact: fact.update({"archived": 0}), "archived must be a boolean"),
+            ("provenance", lambda fact: fact["provenance"]["repository"].update({"body": "must not be ignored"}), "provenance fields"),
+        )
+        for label, mutate, message in mutations:
+            candidate = Path(self.temporary.name) / f"fact-{label}.sqlite"
+            prepare_candidate_database(Path(self.temporary.name) / f"missing-{label}.sqlite", candidate, None)
+            payload = writer_payload(
+                snapshot_id="20260828010101-aaaaaaaaaaaaaaaa",
+                utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00",
+                stats_date="2026-08-28", run_kind="migration_baseline",
+            )
+            payload["legacyBaselines"], payload["legacyBaselineReceipt"] = paths, receipt
+            mutate(payload["repositories"][0])
+            with self.assertRaisesRegex(ValueError, message):
+                record_writer_snapshot(candidate, payload, writer_events(head=sha1(), transition="baseline"), {})
+
+    def test_repository_fact_accepts_the_exact_task2_snake_shape(self):
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        candidate = Path(self.temporary.name) / "collector-snake.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing.sqlite", candidate, None)
+        payload = writer_payload(
+            snapshot_id="20260828010101-aaaaaaaaaaaaaaaa",
+            utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00",
+            stats_date="2026-08-28", run_kind="migration_baseline",
+        )
+        camel_to_snake = {
+            "createdAt": "created_at", "defaultBranch": "default_branch",
+            "defaultBranchHeadSha": "default_branch_head_sha", "displayRank": "display_rank",
+            "displaySlug": "display_slug", "fieldTags": "field_tags", "formTags": "form_tags",
+            "gainDaily": "gain_daily", "gainMonthly": "gain_monthly", "gainWeekly": "gain_weekly",
+            "isFork": "is_fork", "languageColor": "language_color", "licenseSpdx": "license_spdx",
+            "openIssuesAndPullRequests": "open_issues_and_pull_requests", "primaryLanguage": "primary_language",
+            "readmeBlobSha": "readme_blob_sha", "readmeContentSha256": "readme_content_sha256",
+            "readmePath": "readme_path", "readmeStatus": "readme_status", "pushedAt": "pushed_at",
+            "rankDaily": "rank_daily", "rankMonthly": "rank_monthly", "rankWeekly": "rank_weekly",
+            "tagRuleVersion": "tag_rule_version", "updatedAt": "updated_at", "watchersCount": "watchers_count",
+        }
+        fact = payload["repositories"][0]
+        payload["repositories"] = [{camel_to_snake.get(key, key): value for key, value in fact.items()}]
+        payload["repositories"][0]["display_slug"] = "owner / repo"
+        payload["legacyBaselines"], payload["legacyBaselineReceipt"] = paths, receipt
+        result = record_writer_snapshot(candidate, payload, writer_events(head=sha1(), transition="baseline"), {})
+        with closing(sqlite3.connect(candidate)) as connection:
+            self.assertEqual(connection.execute("SELECT display_slug FROM repository_profiles").fetchone(), ("owner/repo",))
+            self.assertEqual(verify_core_snapshot(connection, 1), result.core_payload_sha256)
 
     def test_cli_requires_every_candidate_and_frozen_source_input(self):
         result = subprocess.run(

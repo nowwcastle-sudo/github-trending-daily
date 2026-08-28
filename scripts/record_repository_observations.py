@@ -9,10 +9,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import sqlite3
 import argparse
 import shutil
+import tempfile
 from urllib.parse import unquote, urlsplit
 from contextlib import closing
 from dataclasses import dataclass
@@ -928,12 +930,126 @@ def _sha_text(value: Any, length: int, label: str) -> str:
     return value
 
 
+_REPOSITORY_FACT_SNAKE_KEYS = {
+    "archived", "contributors", "created_at", "default_branch", "default_branch_head_sha",
+    "description", "display_rank", "display_slug", "field_tags", "forks", "form_tags",
+    "gain_daily", "gain_monthly", "gain_weekly", "is_fork", "language_color",
+    "license_spdx", "open_issues_and_pull_requests", "primary_language", "provenance",
+    "pushed_at", "rank_daily", "rank_monthly", "rank_weekly", "readme_blob_sha",
+    "readme_content_sha256", "readme_path", "readme_status", "slug", "stars",
+    "subscribers", "tag_rule_version", "topics", "updated_at", "watchers_count",
+}
+_REPOSITORY_FACT_CAMEL_NAMES = {
+    "created_at": "createdAt", "default_branch": "defaultBranch",
+    "default_branch_head_sha": "defaultBranchHeadSha", "display_rank": "displayRank",
+    "display_slug": "displaySlug", "field_tags": "fieldTags", "form_tags": "formTags",
+    "gain_daily": "gainDaily", "gain_monthly": "gainMonthly", "gain_weekly": "gainWeekly",
+    "is_fork": "isFork", "language_color": "languageColor", "license_spdx": "licenseSpdx",
+    "open_issues_and_pull_requests": "openIssuesAndPullRequests", "primary_language": "primaryLanguage",
+    "pushed_at": "pushedAt", "rank_daily": "rankDaily", "rank_monthly": "rankMonthly",
+    "rank_weekly": "rankWeekly", "readme_blob_sha": "readmeBlobSha",
+    "readme_content_sha256": "readmeContentSha256", "readme_path": "readmePath",
+    "readme_status": "readmeStatus", "tag_rule_version": "tagRuleVersion",
+    "updated_at": "updatedAt", "watchers_count": "watchersCount",
+}
+_REPOSITORY_FACT_CAMEL_KEYS = {
+    _REPOSITORY_FACT_CAMEL_NAMES.get(key, key) for key in _REPOSITORY_FACT_SNAKE_KEYS
+}
+
+
+def _repository_fact_colors(repository: dict[str, Any]) -> tuple[Any, Any, Any, Any, Any]:
+    provenance = repository["provenance"]
+    if not isinstance(provenance, dict) or set(provenance) != {
+        "repository", "contributors", "default_branch_head", "readme", "trending"
+    }:
+        raise ValueError("repository provenance fields are not the exact allowlist")
+    for name in ("repository", "contributors", "default_branch_head"):
+        entry = provenance[name]
+        if not isinstance(entry, dict) or set(entry) != {"api_path", "fact_sha256"}:
+            raise ValueError("repository provenance fields are not the exact allowlist")
+        if not isinstance(entry["api_path"], str):
+            raise ValueError("repository provenance API path is invalid")
+        _sha_text(entry["fact_sha256"], 64, "repository provenance fact SHA")
+    readme = provenance["readme"]
+    if not isinstance(readme, dict) or set(readme) != {
+        "api_path", "blob_api_path", "status", "path", "blob_sha", "content_sha256"
+    }:
+        raise ValueError("repository provenance fields are not the exact allowlist")
+    trending = provenance["trending"]
+    if not isinstance(trending, dict) or set(trending) != {
+        "daily", "weekly", "monthly", "language_color_selection"
+    }:
+        raise ValueError("repository provenance fields are not the exact allowlist")
+    colors = []
+    for period in ("daily", "weekly", "monthly"):
+        entry = trending[period]
+        if not isinstance(entry, dict) or set(entry) != {
+            "source_path", "rank", "gain", "language_color", "fact_sha256"
+        }:
+            raise ValueError("repository provenance fields are not the exact allowlist")
+        if entry["rank"] != _value(repository, f"rank_{period}", f"rank{period.title()}") or entry["gain"] != _value(repository, f"gain_{period}", f"gain{period.title()}"):
+            raise ValueError("repository provenance trending values do not match facts")
+        _sha_text(entry["fact_sha256"], 64, "repository provenance fact SHA")
+        colors.append(entry["language_color"])
+    selection = trending["language_color_selection"]
+    if not isinstance(selection, dict) or set(selection) != {"rule", "selected_period", "value"}:
+        raise ValueError("repository provenance fields are not the exact allowlist")
+    selected = _value(repository, "language_color", "languageColor")
+    if selection["rule"] != "daily_then_weekly_then_monthly" or selection["value"] != selected:
+        raise ValueError("repository provenance color selection does not match facts")
+    readme_values = (
+        _value(repository, "readme_status", "readmeStatus"),
+        _value(repository, "readme_path", "readmePath"),
+        _value(repository, "readme_blob_sha", "readmeBlobSha"),
+        _value(repository, "readme_content_sha256", "readmeContentSha256"),
+    )
+    if (readme["status"], readme["path"], readme["blob_sha"], readme["content_sha256"]) != readme_values:
+        raise ValueError("repository provenance README values do not match facts")
+    return colors[0], colors[1], colors[2], selected, selection["selected_period"]
+
+
+def _validate_repository_fact(repository: Any) -> None:
+    if not isinstance(repository, dict) or set(repository) not in (
+        _REPOSITORY_FACT_SNAKE_KEYS, _REPOSITORY_FACT_CAMEL_KEYS
+    ):
+        raise ValueError("repository fact fields are not the exact allowlist")
+    if type(repository["archived"]) is not bool:
+        raise ValueError("repository archived must be a boolean")
+    if type(_value(repository, "is_fork", "isFork")) is not bool:
+        raise ValueError("repository is_fork must be a boolean")
+    for field, camel in (("topics", "topics"), ("field_tags", "fieldTags"), ("form_tags", "formTags")):
+        value = _value(repository, field, camel)
+        if not isinstance(value, list):
+            raise ValueError(f"repository {field} must be an array")
+    tag_version = _value(repository, "tag_rule_version", "tagRuleVersion")
+    if isinstance(tag_version, bool) or not isinstance(tag_version, int):
+        raise ValueError("repository tag rule version must be an integer")
+    branch = _value(repository, "default_branch", "defaultBranch")
+    if not isinstance(branch, str) or not branch:
+        raise ValueError("repository default branch is invalid")
+    _sha_text(_value(repository, "default_branch_head_sha", "defaultBranchHeadSha"), 40, "repository default branch HEAD")
+    status = _value(repository, "readme_status", "readmeStatus")
+    readme_path = _value(repository, "readme_path", "readmePath")
+    readme_blob = _value(repository, "readme_blob_sha", "readmeBlobSha")
+    readme_content = _value(repository, "readme_content_sha256", "readmeContentSha256")
+    if status not in ("present", "absent") or (status == "absent") != (readme_path is None and readme_blob is None and readme_content is None):
+        raise ValueError("repository README identity is invalid")
+    if status == "present":
+        if not isinstance(readme_path, str) or not readme_path:
+            raise ValueError("repository README identity is invalid")
+        _sha_text(readme_blob, 40, "repository README blob SHA")
+        _sha_text(readme_content, 64, "repository README content SHA")
+    _repository_fact_colors(repository)
+
+
 def _profile_row(repository: dict[str, Any], captured_seq: int, profile_id: int) -> dict[str, Any]:
     display_slug = _value(repository, "display_slug", "displaySlug", "slug")
+    if isinstance(display_slug, str):
+        display_slug = re.sub(r"\s*/\s*", "/", display_slug)
     slug = _slug_value(_value(repository, "slug"))
-    topics = _value(repository, "topics", default=[])
-    fields = _value(repository, "field_tags", "fieldTags", default=["unclassified"])
-    forms = _value(repository, "form_tags", "formTags", default=[])
+    topics = _value(repository, "topics")
+    fields = _value(repository, "field_tags", "fieldTags")
+    forms = _value(repository, "form_tags", "formTags")
     profile = {
         "profile_id": profile_id, "slug": slug, "display_slug": display_slug,
         "captured_snapshot_seq": captured_seq,
@@ -941,13 +1057,13 @@ def _profile_row(repository: dict[str, Any], captured_seq: int, profile_id: int)
         "primary_language": _value(repository, "primary_language", "primaryLanguage", "language"),
         "topics_json": _json_array(topics, "topics"),
         "license_spdx": _value(repository, "license_spdx", "licenseSpdx"),
-        "archived": int(bool(_value(repository, "archived", default=False))),
-        "is_fork": int(bool(_value(repository, "is_fork", "isFork", "fork", default=False))),
-        "default_branch": _value(repository, "default_branch", "defaultBranch", default="main"),
+        "archived": int(_value(repository, "archived")),
+        "is_fork": int(_value(repository, "is_fork", "isFork")),
+        "default_branch": _value(repository, "default_branch", "defaultBranch"),
         "created_at": _value(repository, "created_at", "createdAt"),
         "field_tags_json": _json_array(fields, "field tags"),
         "form_tags_json": _json_array(forms, "form tags"),
-        "tag_rule_version": _value(repository, "tag_rule_version", "tagRuleVersion", default=1),
+        "tag_rule_version": _value(repository, "tag_rule_version", "tagRuleVersion"),
     }
     profile["profile_sha256"] = _digest({
         "slug": profile["slug"], "display_slug": profile["display_slug"], "description": profile["description"],
@@ -1041,7 +1157,14 @@ def _enrichment_hashes(repository: dict[str, Any], profile: dict[str, Any], inde
     summary_content = _digest(content)
     summary_envelope = _digest({"content": content, "source": source})
     translation = _value(entry, "translation")
-    status = _value(repository, "translation_status", "translationStatus")
+    if readme_path is None:
+        status = "not_applicable:no_readme"
+    elif isinstance(translation, dict):
+        status = "applicable"
+    elif source.get("translation_applicable") is False:
+        status = "not_applicable:no_prose"
+    else:
+        raise ValueError("translation status is invalid")
     if status == "applicable":
         if not isinstance(translation, dict) or translation.get("source") != source or not isinstance(_value(translation, "markdown", "translated_markdown"), str):
             raise ValueError("applicable translation must bind to exact summary source")
@@ -1724,8 +1847,7 @@ def record_core_snapshot(candidate_database_path: str | Path, snapshot_payload: 
             normalized: list[tuple[dict[str, Any], dict[str, Any], tuple[str, str, str, str, str | None, str | None]]] = []
             seen = set()
             for repository in repositories:
-                if not isinstance(repository, dict):
-                    raise ValueError("repository fact is invalid")
+                _validate_repository_fact(repository)
                 slug = _slug_value(_value(repository, "slug"))
                 if slug in seen:
                     raise ValueError("snapshot has duplicate repository slug")
@@ -1775,6 +1897,8 @@ def record_core_snapshot(candidate_database_path: str | Path, snapshot_payload: 
                     raise ValueError(f"event heads missing {slug}")
                 if head["branch"] != profile["default_branch"]:
                     raise ValueError("head branch does not match repository profile")
+                if _value(repository, "default_branch_head_sha", "defaultBranchHeadSha") != _value(head, "head_sha", "headSha"):
+                    raise ValueError("repository HEAD does not match event head")
                 releases, release_items, latest_release = _release_rows(event_payload, slug, seq)
                 for release in releases:
                     existing_release = connection.execute(
@@ -1798,6 +1922,7 @@ def record_core_snapshot(candidate_database_path: str | Path, snapshot_payload: 
                 if not isinstance(estimate_rows, list):
                     raise ValueError("OSS estimate rows are invalid")
                 estimate_payload = _value(estimate, "source_payload_sha256", "sourcePayloadSha256")
+                colors = _repository_fact_colors(repository)
                 previous_head = None if slug not in previous_heads else previous_heads[slug][1]
                 stated_previous_head = _value(
                     repository,
@@ -1811,8 +1936,8 @@ def record_core_snapshot(candidate_database_path: str | Path, snapshot_payload: 
                     "snapshot_seq": seq, "slug": slug, "profile_id": profile["profile_id"], "display_rank": _value(repository, "display_rank", "displayRank"),
                     "rank_daily": _value(repository, "rank_daily", "rankDaily"), "rank_weekly": _value(repository, "rank_weekly", "rankWeekly"), "rank_monthly": _value(repository, "rank_monthly", "rankMonthly"),
                     "gain_daily": _value(repository, "gain_daily", "gainDaily"), "gain_weekly": _value(repository, "gain_weekly", "gainWeekly"), "gain_monthly": _value(repository, "gain_monthly", "gainMonthly"),
-                    "language_color_daily": _value(repository, "language_color_daily", "languageColorDaily"), "language_color_weekly": _value(repository, "language_color_weekly", "languageColorWeekly"), "language_color_monthly": _value(repository, "language_color_monthly", "languageColorMonthly"),
-                    "selected_language_color": _value(repository, "selected_language_color", "selectedLanguageColor"), "selected_language_color_source_period": _value(repository, "selected_language_color_source_period", "selectedLanguageColorSourcePeriod"),
+                    "language_color_daily": colors[0], "language_color_weekly": colors[1], "language_color_monthly": colors[2],
+                    "selected_language_color": colors[3], "selected_language_color_source_period": colors[4],
                     "stars": _value(repository, "stars"), "forks": _value(repository, "forks"), "watchers_count": _value(repository, "watchers_count", "watchersCount"), "subscribers": _value(repository, "subscribers"), "open_issues_and_pull_requests": _value(repository, "open_issues_and_pull_requests", "openIssuesAndPullRequests"), "contributors": _value(repository, "contributors"),
                     "updated_at": _value(repository, "updated_at", "updatedAt"), "pushed_at": _value(repository, "pushed_at", "pushedAt"), "default_branch_head_sha": _value(head, "head_sha", "headSha"), "previous_default_branch_head_sha": stated_previous_head, "head_transition": _value(head, "transition"),
                     "readme_status": "absent" if readme_path is None else "present", "readme_path": readme_path, "readme_blob_sha": readme_blob, "readme_content_sha256": readme_content, "membership_status": membership,
@@ -1880,6 +2005,10 @@ def record_core_snapshot(candidate_database_path: str | Path, snapshot_payload: 
             validate_schema(connection)
             if parent_rows is not None:
                 _assert_parent_rows_preserved(connection, parent_rows)
+            if measure_legacy_baseline_receipt(baselines) != _value(
+                snapshot_payload, "legacy_baseline_receipt", "legacyBaselineReceipt"
+            ):
+                raise ValueError("legacy baseline source changed before commit")
             connection.commit()
         except Exception:
             connection.rollback()
@@ -1897,6 +2026,49 @@ def _load_json_file(path: str | Path, label: str) -> Any:
         raise ValueError(f"{label} must be readable JSON") from error
 
 
+def _validate_cli_paths(args: argparse.Namespace) -> None:
+    names = (
+        "parent_database", "candidate_database", "snapshot", "events",
+        "enrichment_index", "parent_evidence", "legacy_star_database",
+        "legacy_membership_database", "legacy_public_star_history", "readme_state",
+    )
+    paths = {name: Path(getattr(args, name)).resolve(strict=False) for name in names}
+    tracked_state = Path(__file__).resolve().parents[1] / "data" / "readme-state.json"
+    if paths["readme_state"] == tracked_state.resolve(strict=False) or (
+        paths["readme_state"].exists() and tracked_state.exists()
+        and os.path.samefile(paths["readme_state"], tracked_state)
+    ):
+        raise ValueError("CLI may not write the tracked readme state")
+    seen: dict[Path, str] = {}
+    for name, path in paths.items():
+        if path in seen:
+            raise ValueError("CLI paths must not alias")
+        if path.exists() and any(other.exists() and os.path.samefile(path, other) for other in seen):
+            raise ValueError("CLI paths must not alias")
+        seen[path] = name
+    if paths["candidate_database"].parent != paths["readme_state"].parent:
+        raise ValueError("candidate database and README state must share one candidate directory")
+
+
+def _write_state_atomically(path: Path, state: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="") as handle:
+            json.dump(state, handle, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _remove_candidate_database(path: Path) -> None:
+    for target in (path, *(Path(f"{path}{suffix}") for suffix in ("-journal", "-wal", "-shm"))):
+        target.unlink(missing_ok=True)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Append one exact repository-observation candidate snapshot")
     parser.add_argument("--parent-database", required=True)
@@ -1910,6 +2082,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--legacy-public-star-history", required=True)
     parser.add_argument("--readme-state", required=True)
     args = parser.parse_args(argv)
+    _validate_cli_paths(args)
     snapshot = _load_json_file(args.snapshot, "snapshot")
     events = _load_json_file(args.events, "events")
     index = _load_json_file(args.enrichment_index, "enrichment index")
@@ -1927,8 +2100,11 @@ def main(argv: list[str] | None = None) -> int:
     snapshot["legacy_baselines"] = legacy
     candidate = prepare_candidate_database(args.parent_database, args.candidate_database, evidence, legacy)
     result = record_core_snapshot(candidate, snapshot, events, state)
-    state_path.parent.mkdir(parents=True, exist_ok=True)
-    state_path.write_text(json.dumps(state, ensure_ascii=False, sort_keys=True, separators=(",", ":")), encoding="utf-8")
+    try:
+        _write_state_atomically(state_path, state)
+    except Exception as error:
+        _remove_candidate_database(candidate)
+        raise ValueError("README state candidate write failed") from error
     print(json.dumps({"snapshot_seq": result.snapshot_seq, "core_payload_sha256": result.core_payload_sha256, "inserted": result.inserted, "reused": result.reused}, separators=(",", ":")))
     return 0
 
