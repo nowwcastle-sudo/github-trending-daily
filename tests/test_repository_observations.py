@@ -5,6 +5,7 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+import traceback
 import unittest
 from contextlib import closing
 from datetime import datetime, timezone
@@ -45,6 +46,7 @@ EXPECTED_TABLES = {
     "artifact_hashes",
 }
 PINNED_SCHEMA_FINGERPRINT = "2d6af4ad04f09869aa44b71ac1bc7444f8c29b714c97f429e2f6b18957340644"
+PINNED_LEGACY_PUBLIC_SCHEMA_FINGERPRINT = "7bdac6a47ac3eee9a5a17835ceba4309da232de0e2eaf0e40f57faf27c21e7cf"
 
 
 def sha256(value="a"):
@@ -434,6 +436,10 @@ def record_writer_snapshot(candidate, payload, events, state):
     return record_core_snapshot(candidate, payload, bind_writer_inputs(payload, events), state)
 
 
+def write_legacy_public(path, payload):
+    Path(path).write_bytes((json.dumps(payload, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+
+
 def writer_legacy_baselines(directory):
     star = Path(directory) / "legacy-star.sqlite"
     membership = Path(directory) / "legacy-membership.sqlite"
@@ -442,7 +448,7 @@ def writer_legacy_baselines(directory):
         connection.execute("CREATE TABLE star_observations(id INTEGER PRIMARY KEY, slug TEXT, observed_date TEXT, stars_total INTEGER, stars_delta INTEGER, source TEXT)")
     with closing(sqlite3.connect(membership)) as connection:
         connection.execute("CREATE TABLE snapshot_members(snapshot_id INTEGER, ordinal INTEGER, slug TEXT)")
-    public.write_text(json.dumps({"repositories": []}), encoding="utf-8")
+    write_legacy_public(public, {"version": 1, "generatedAt": "2026-08-28", "repositories": []})
     paths = {"legacy_star_observations": str(star), "legacy_trending_membership": str(membership), "legacy_public_star_history": str(public)}
     return paths, measure_legacy_baseline_receipt(paths)
 
@@ -493,6 +499,238 @@ class RepositoryObservationTests(unittest.TestCase):
 
     def tearDown(self):
         self.temporary.cleanup()
+
+    def test_legacy_public_v1_preserves_source_case_and_uses_casefold_receipt_order(self):
+        paths, _ = writer_legacy_baselines(self.temporary.name)
+        repositories = [
+            {
+                "slug": "Zed/Repo",
+                "estimated": [{"date": "2026-08-27", "stars": 7}],
+                "observed": [{"date": "2026-08-28", "stars": 8}],
+            },
+            {
+                "slug": "Alpha/Repo",
+                "estimated": [],
+                "observed": [{"date": "2026-08-26", "stars": 3}],
+            },
+        ]
+        public_path = Path(paths["legacy_public_star_history"])
+        write_legacy_public(public_path, {
+            "version": 1,
+            "generatedAt": "2026-08-28",
+            "repositories": repositories,
+        })
+        original_bytes = public_path.read_bytes()
+
+        receipt = measure_legacy_baseline_receipt(paths)
+        public_receipt = receipt["sources"]["legacy_public_star_history"]
+        self.assertEqual(public_path.read_bytes(), original_bytes)
+        self.assertEqual(public_receipt["logical_row_count"], 2)
+        self.assertEqual(
+            public_receipt["schema_fingerprint_sha256"],
+            PINNED_LEGACY_PUBLIC_SCHEMA_FINGERPRINT,
+        )
+        self.assertEqual(
+            public_receipt["logical_rows_sha256"],
+            "0024c04cbe8f9a3ace8513d6530e3decbc1b338e570807dc6c25537fc1f6a1a0",
+        )
+        self.assertEqual(public_receipt["last_logical_key_json"], '"zed/repo"')
+
+        projected = ledger.project_legacy_baselines(paths, receipt, 1)
+        self.assertEqual(
+            [row["slug"] for row in projected["historical_star_observations"]],
+            ["zed/repo", "alpha/repo"],
+        )
+        self.assertEqual(
+            json.loads(public_path.read_text(encoding="utf-8"))["repositories"],
+            repositories,
+        )
+
+    def test_legacy_public_v1_rejects_obsolete_duplicate_unsafe_and_nonordered_data(self):
+        paths, _ = writer_legacy_baselines(self.temporary.name)
+        public_path = Path(paths["legacy_public_star_history"])
+        invalid_payloads = {
+            "obsolete": {"repositories": []},
+            "noninteger version": {"version": 1.0, "generatedAt": "2026-08-28", "repositories": []},
+            "casefold duplicate": {
+                "version": 1,
+                "generatedAt": "2026-08-28",
+                "repositories": [
+                    {"slug": "Owner/Repo", "estimated": [], "observed": []},
+                    {"slug": "owner/repo", "estimated": [], "observed": []},
+                ],
+            },
+            "unsafe integer": {
+                "version": 1,
+                "generatedAt": "2026-08-28",
+                "repositories": [{
+                    "slug": "Owner/Repo",
+                    "estimated": [],
+                    "observed": [{"date": "2026-08-28", "stars": 9_007_199_254_740_992}],
+                }],
+            },
+            "nonordered dates": {
+                "version": 1,
+                "generatedAt": "2026-08-28",
+                "repositories": [{
+                    "slug": "Owner/Repo",
+                    "estimated": [],
+                    "observed": [
+                        {"date": "2026-08-28", "stars": 2},
+                        {"date": "2026-08-27", "stars": 1},
+                    ],
+                }],
+            },
+            "point field": {
+                "version": 1,
+                "generatedAt": "2026-08-28",
+                "repositories": [{
+                    "slug": "Owner/Repo",
+                    "estimated": [],
+                    "observed": [{"date": "2026-08-28", "stars": 1, "delta": 1}],
+                }],
+            },
+            "repository field order": {
+                "version": 1,
+                "generatedAt": "2026-08-28",
+                "repositories": [{
+                    "slug": "Owner/Repo",
+                    "observed": [],
+                    "estimated": [],
+                }],
+            },
+        }
+        for label, payload in invalid_payloads.items():
+            with self.subTest(label=label):
+                write_legacy_public(public_path, payload)
+                with self.assertRaises(ValueError):
+                    measure_legacy_baseline_receipt(paths)
+
+    def test_legacy_public_v1_requires_pretty_two_space_lf_bytes(self):
+        paths, _ = writer_legacy_baselines(self.temporary.name)
+        public_path = Path(paths["legacy_public_star_history"])
+        public_path.write_text(
+            json.dumps({"version": 1, "generatedAt": "2026-08-28", "repositories": []}),
+            encoding="utf-8",
+        )
+        with self.assertRaisesRegex(ValueError, "canonical pretty-2 LF"):
+            measure_legacy_baseline_receipt(paths)
+
+    def test_strict_json_loader_rejects_duplicate_keys_constants_and_hides_content(self):
+        samples = {
+            "top duplicate": '{"SENSITIVE_VALUE":1,"SENSITIVE_VALUE":2}',
+            "nested duplicate": '{"outer":{"SENSITIVE_VALUE":1,"SENSITIVE_VALUE":2}}',
+            "nan": '{"value":NaN,"SENSITIVE_VALUE":1}',
+            "infinity": '{"value":Infinity,"SENSITIVE_VALUE":1}',
+        }
+        for label, contents in samples.items():
+            with self.subTest(label=label):
+                path = Path(self.temporary.name) / f"{label}.json"
+                path.write_text(contents, encoding="utf-8")
+                with self.assertRaises(ValueError) as caught:
+                    ledger._load_json_file(path, "candidate input")
+                rendered = "".join(traceback.format_exception(caught.exception))
+                self.assertNotIn("SENSITIVE_VALUE", str(caught.exception))
+                self.assertNotIn("SENSITIVE_VALUE", rendered)
+                self.assertNotIn(str(path), str(caught.exception))
+                self.assertNotIn(str(path), rendered)
+
+        paths, _ = writer_legacy_baselines(self.temporary.name)
+        public_path = Path(paths["legacy_public_star_history"])
+        public_path.write_text(
+            '{"version":1,"generatedAt":"2026-08-28","repositories":['
+            '{"slug":"Owner/Repo","estimated":[],"observed":['
+            '{"date":"2026-08-28","stars":1,"stars":1}]}]}',
+            encoding="utf-8",
+        )
+        with self.assertRaises(ValueError) as caught:
+            measure_legacy_baseline_receipt(paths)
+        self.assertNotIn("Owner/Repo", "".join(traceback.format_exception(caught.exception)))
+
+    def test_every_recorder_cli_json_input_uses_the_strict_loader(self):
+        for option in ("--snapshot", "--events", "--enrichment-index", "--parent-evidence", "--readme-state"):
+            with self.subTest(option=option):
+                root = Path(self.temporary.name) / option.removeprefix("--")
+                root.mkdir()
+                arguments, candidate, _ = writer_cli_case(root)
+                target = Path(arguments[arguments.index(option) + 1])
+                target.write_text('{"outer":{"SENSITIVE_VALUE":1,"SENSITIVE_VALUE":2}}', encoding="utf-8")
+                with self.assertRaises(ValueError) as caught:
+                    ledger.main(arguments)
+                rendered = "".join(traceback.format_exception(caught.exception))
+                self.assertNotIn("SENSITIVE_VALUE", rendered)
+                self.assertNotIn(str(target), rendered)
+                self.assertFalse(candidate.exists())
+
+    def test_sqlite_receipt_hashes_pk_ordered_rows_but_last_value_is_only_the_key(self):
+        paths, _ = writer_legacy_baselines(self.temporary.name)
+        star_path = Path(paths["legacy_star_observations"])
+        with closing(sqlite3.connect(star_path)) as connection:
+            connection.execute(
+                "INSERT INTO star_observations VALUES (2, 'owner/repo', '2026-08-28', 2, 1, 'github_rest')"
+            )
+            connection.execute(
+                "INSERT INTO star_observations VALUES (1, 'owner/repo', '2026-08-27', 1, NULL, 'github_rest')"
+            )
+            connection.commit()
+
+        receipt = measure_legacy_baseline_receipt(paths)["sources"]["legacy_star_observations"]
+        self.assertEqual(receipt["logical_row_count"], 2)
+        self.assertEqual(
+            receipt["logical_rows_sha256"],
+            "bfb0e815ca0554c48bdfdfc0e2ec4cf57951e438cf26fedc801d705490983e20",
+        )
+        self.assertEqual(
+            receipt["last_logical_key_json"],
+            '{"key":[2],"table":"star_observations"}',
+        )
+
+    def test_baseline_receipt_creator_is_create_new_canonical_and_remeasures_sources(self):
+        paths, expected = writer_legacy_baselines(self.temporary.name)
+        output = Path(self.temporary.name) / "legacy-observation-baseline.json"
+        created = ledger.create_legacy_baseline_receipt(paths, output)
+        self.assertEqual(created, expected)
+        self.assertEqual(
+            output.read_bytes(),
+            (json.dumps(expected, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
+        )
+        self.assertEqual(ledger._load_json_file(output, "baseline receipt"), expected)
+
+        original = output.read_bytes()
+        output.write_bytes(original + b"SENSITIVE_VALUE")
+        with self.assertRaises(ValueError) as caught:
+            ledger.create_legacy_baseline_receipt(paths, output)
+        self.assertNotIn("SENSITIVE_VALUE", "".join(traceback.format_exception(caught.exception)))
+        self.assertEqual(output.read_bytes(), original + b"SENSITIVE_VALUE")
+
+        failed_output = Path(self.temporary.name) / "changed-during-measure.json"
+        changed = json.loads(json.dumps(expected))
+        changed["sources"]["legacy_public_star_history"]["byte_size"] += 1
+        with mock.patch.object(
+            ledger,
+            "measure_legacy_baseline_receipt",
+            side_effect=(expected, changed),
+        ):
+            with self.assertRaises(ValueError) as caught:
+                ledger.create_legacy_baseline_receipt(paths, failed_output)
+        self.assertNotIn(str(failed_output), "".join(traceback.format_exception(caught.exception)))
+        self.assertFalse(failed_output.exists())
+
+    def test_baseline_receipt_cli_uses_explicit_sources_and_create_new_output(self):
+        paths, expected = writer_legacy_baselines(self.temporary.name)
+        output = Path(self.temporary.name) / "cli-baseline-receipt.json"
+        arguments = [
+            "create-baseline-receipt",
+            "--legacy-star-database", paths["legacy_star_observations"],
+            "--legacy-membership-database", paths["legacy_trending_membership"],
+            "--legacy-public-star-history", paths["legacy_public_star_history"],
+            "--output", str(output),
+        ]
+        with mock.patch("sys.stdout"):
+            self.assertEqual(ledger.main(arguments), 0)
+        self.assertEqual(ledger._load_json_file(output, "baseline receipt"), expected)
+        with self.assertRaisesRegex(ValueError, "already exists"):
+            ledger.main(arguments)
 
     def test_schema_has_exact_tables_and_rejects_update_delete(self):
         create_database(self.database)
@@ -1068,7 +1306,7 @@ class RepositoryObservationTests(unittest.TestCase):
 
     def test_reviewed_receipt_imports_nested_public_history_and_mismatch_rolls_back_baseline(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
-        Path(paths["legacy_public_star_history"]).write_text(json.dumps({"repositories": [{"slug": "owner/repo", "observed": [{"date": "2026-08-20", "stars": 3}], "estimated": [{"date": "2026-08-21", "stars": 4}]}]}), encoding="utf-8")
+        write_legacy_public(paths["legacy_public_star_history"], {"version": 1, "generatedAt": "2026-08-28", "repositories": [{"slug": "owner/repo", "estimated": [{"date": "2026-08-21", "stars": 4}], "observed": [{"date": "2026-08-20", "stars": 3}]}]})
         receipt = measure_legacy_baseline_receipt(paths)
         candidate = Path(self.temporary.name) / "receipt.sqlite"
         prepare_candidate_database(Path(self.temporary.name) / "missing.sqlite", candidate, None)
@@ -1098,13 +1336,15 @@ class RepositoryObservationTests(unittest.TestCase):
                 "INSERT INTO star_observations VALUES (1, 'owner/repo', '2026-08-19', 2, 1, 'github_rest')"
             )
             connection.commit()
-        Path(paths["legacy_public_star_history"]).write_text(json.dumps({
+        write_legacy_public(paths["legacy_public_star_history"], {
+            "version": 1,
+            "generatedAt": "2026-08-28",
             "repositories": [{
                 "slug": "owner/repo",
-                "observed": [{"date": "2026-08-20", "stars": 3}],
                 "estimated": [{"date": "2026-08-21", "stars": 4}],
+                "observed": [{"date": "2026-08-20", "stars": 3}],
             }],
-        }), encoding="utf-8")
+        })
         receipt = measure_legacy_baseline_receipt(paths)
         candidate = Path(self.temporary.name) / "pinned-core.sqlite"
         prepare_candidate_database(Path(self.temporary.name) / "missing.sqlite", candidate, None)
@@ -1142,7 +1382,7 @@ class RepositoryObservationTests(unittest.TestCase):
                 canonical_hash({"content": content, "source": source}),
             ))
             self.assertEqual(verify_core_snapshot(connection, 1), result.core_payload_sha256)
-        self.assertEqual(result.core_payload_sha256, "fa605e0fd81d94aaf2e7737f270359e5776ad760669f65299611903d2a91814e")
+        self.assertEqual(result.core_payload_sha256, "52f47d7f3b0cd553ae2d70c15f0e659fd94d55b956bb9b359f7b07777a90d75f")
 
     def test_reused_profile_and_release_rows_are_part_of_refresh_core_hash(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
@@ -1522,9 +1762,11 @@ class RepositoryObservationTests(unittest.TestCase):
         with mock.patch.object(Path, "is_symlink", return_value=True):
             with self.assertRaisesRegex(ValueError, "source is missing"):
                 measure_legacy_baseline_receipt(paths)
-        Path(paths["legacy_public_star_history"]).write_text(json.dumps({
-            "repositories": [{"slug": "owner/repo", "observed": [{"date": "2026-02-30", "stars": 1}], "estimated": []}],
-        }), encoding="utf-8")
+        write_legacy_public(paths["legacy_public_star_history"], {
+            "version": 1,
+            "generatedAt": "2026-08-28",
+            "repositories": [{"slug": "owner/repo", "estimated": [], "observed": [{"date": "2026-02-30", "stars": 1}]}],
+        })
         with self.assertRaisesRegex(ValueError, "exact date"):
             measure_legacy_baseline_receipt(paths)
 
@@ -1541,9 +1783,11 @@ class RepositoryObservationTests(unittest.TestCase):
         )
         first["legacyBaselines"], first["legacyBaselineReceipt"] = paths, receipt
         record_writer_snapshot(candidate, first, writer_events(head=sha1(), transition="baseline"), state)
-        Path(paths["legacy_public_star_history"]).write_text(json.dumps({
-            "repositories": [{"slug": "owner/repo", "observed": [], "estimated": []}],
-        }), encoding="utf-8")
+        write_legacy_public(paths["legacy_public_star_history"], {
+            "version": 1,
+            "generatedAt": "2026-08-28",
+            "repositories": [{"slug": "owner/repo", "estimated": [], "observed": []}],
+        })
         second = writer_payload(
             snapshot_id="20260828030101-bbbbbbbbbbbbbbbb",
             utc="2026-08-28T03:01:01.001Z", kst="2026-08-28T12:01:01.001+09:00",
@@ -1569,9 +1813,11 @@ class RepositoryObservationTests(unittest.TestCase):
 
         def mutate_after_projection(*args, **kwargs):
             rows = original(*args, **kwargs)
-            Path(paths["legacy_public_star_history"]).write_text(json.dumps({
-                "repositories": [{"slug": "owner/repo", "observed": [], "estimated": []}],
-            }), encoding="utf-8")
+            write_legacy_public(paths["legacy_public_star_history"], {
+                "version": 1,
+                "generatedAt": "2026-08-28",
+                "repositories": [{"slug": "owner/repo", "estimated": [], "observed": []}],
+            })
             return rows
 
         with mock.patch.object(ledger, "_project_commit_rows", side_effect=mutate_after_projection):

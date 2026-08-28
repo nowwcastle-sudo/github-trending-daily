@@ -14,6 +14,7 @@ import re
 import sqlite3
 import argparse
 import shutil
+import sys
 import tempfile
 from urllib.parse import unquote, urlsplit
 from contextlib import closing
@@ -725,6 +726,30 @@ LEGACY_BASELINE_PATHS = {
     "legacy_star_observations": "data/star-observations.sqlite",
     "legacy_trending_membership": "data/trending-membership.sqlite",
     "legacy_public_star_history": "data/legacy-public-star-history.json",
+}
+
+LEGACY_PUBLIC_STAR_HISTORY_SCHEMA = {
+    "format": "legacy-public-star-history-v1",
+    "top_level": {
+        "keys": ["version", "generatedAt", "repositories"],
+        "version": {"type": "integer", "const": 1},
+        "generatedAt": {"type": "string", "format": "YYYY-MM-DD"},
+        "repositories": {"type": "array", "source_order": "preserved"},
+    },
+    "repository": {
+        "keys": ["slug", "estimated", "observed"],
+        "slug": {
+            "type": "string",
+            "format": "ASCII owner/name display casing",
+            "identity": "casefold unique",
+        },
+        "logical_receipt_order": "casefold slug ascending",
+    },
+    "point_series": {
+        "keys": ["date", "stars"],
+        "date": {"type": "string", "format": "YYYY-MM-DD", "order": "ascending unique"},
+        "stars": {"type": "integer", "minimum": 0, "maximum": 9_007_199_254_740_991},
+    },
 }
 
 
@@ -1576,13 +1601,16 @@ def _legacy_logical_rows(path: Path) -> tuple[str, int, str, str | None]:
             raise ValueError("legacy baseline SQLite integrity check failed")
         tables = [row[0] for row in connection.execute("SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name")]
         logical = []
+        last_key = None
         for table in tables:
             columns = _columns(connection, table)
-            primary = [row[1] for row in connection.execute(f"PRAGMA table_info({table})") if row[5]] or list(columns)
+            table_info = connection.execute(f"PRAGMA table_info({table})").fetchall()
+            primary = [row[1] for row in sorted(table_info, key=lambda row: row[5]) if row[5]] or list(columns)
             for row in connection.execute(f"SELECT * FROM {table} ORDER BY {', '.join(primary)}"):
                 logical.append({"table": table, "row": dict(zip(columns, row))})
+                last_key = {"table": table, "key": [row[columns.index(column)] for column in primary]}
         schema = _fingerprint_rows(_schema_rows(connection))
-    last = None if not logical else _canonical_bytes(logical[-1]).decode("utf-8")
+    last = None if last_key is None else _canonical_bytes(last_key).decode("utf-8")
     return schema, len(logical), _digest(logical), last
 
 
@@ -1591,23 +1619,31 @@ def _legacy_date(value: Any, label: str) -> str:
         raise ValueError(f"{label} must be an exact date")
     try:
         parsed = datetime.strptime(value, "%Y-%m-%d")
-    except ValueError as error:
-        raise ValueError(f"{label} must be an exact date") from error
+    except ValueError:
+        raise ValueError(f"{label} must be an exact date") from None
     if parsed.strftime("%Y-%m-%d") != value:
         raise ValueError(f"{label} must be an exact date")
     return value
 
 
 def _validate_legacy_public_payload(payload: Any) -> list[dict[str, Any]]:
-    if not isinstance(payload, dict) or set(payload) != {"repositories"} or not isinstance(payload["repositories"], list):
-        raise ValueError("legacy public star history must use repositories envelope")
+    if (
+        not isinstance(payload, dict)
+        or list(payload) != ["version", "generatedAt", "repositories"]
+        or isinstance(payload["version"], bool)
+        or not isinstance(payload["version"], int)
+        or payload["version"] != 1
+        or not isinstance(payload["repositories"], list)
+    ):
+        raise ValueError("legacy public star history must use the exact version 1 envelope")
+    _legacy_date(payload["generatedAt"], "legacy public generatedAt")
     seen_slugs: set[str] = set()
     for repository in payload["repositories"]:
-        if not isinstance(repository, dict) or set(repository) != {"slug", "observed", "estimated"}:
+        if not isinstance(repository, dict) or list(repository) != ["slug", "estimated", "observed"]:
             raise ValueError("legacy public repository history is invalid")
         slug = _slug_value(repository["slug"])
-        if repository["slug"] != slug or slug in seen_slugs:
-            raise ValueError("legacy public repository slug is duplicate or noncanonical")
+        if slug in seen_slugs:
+            raise ValueError("legacy public repository slug is duplicate by canonical identity")
         seen_slugs.add(slug)
         for series_name in ("observed", "estimated"):
             series = repository[series_name]
@@ -1616,11 +1652,16 @@ def _validate_legacy_public_payload(payload: Any) -> list[dict[str, Any]]:
             seen_dates: set[str] = set()
             previous_date = ""
             for point in series:
-                if not isinstance(point, dict) or set(point) != {"date", "stars"}:
+                if not isinstance(point, dict) or list(point) != ["date", "stars"]:
                     raise ValueError(f"legacy {series_name} point is invalid")
                 date = _legacy_date(point["date"], f"legacy {series_name} date")
                 stars = point["stars"]
-                if isinstance(stars, bool) or not isinstance(stars, int) or stars < 0:
+                if (
+                    isinstance(stars, bool)
+                    or not isinstance(stars, int)
+                    or stars < 0
+                    or stars > 9_007_199_254_740_991
+                ):
                     raise ValueError(f"legacy {series_name} stars is invalid")
                 if date in seen_dates or date <= previous_date:
                     raise ValueError(f"legacy {series_name} dates must be ascending unique")
@@ -1694,10 +1735,20 @@ def measure_legacy_baseline_receipt(baselines: dict[str, str | Path]) -> dict[st
                     raise ValueError("legacy baseline SQLite source has a pending sidecar")
         if name == "legacy_public_star_history":
             payload = _load_json_file(path, "legacy public star history")
-            logical = _validate_legacy_public_payload(payload)
-            schema_fingerprint = _digest({"format": "legacy-public-star-history-v1", "top_level_keys": ["repositories"]})
+            repositories = _validate_legacy_public_payload(payload)
+            canonical_public_bytes = (
+                json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+            ).encode("utf-8")
+            try:
+                public_bytes = path.read_bytes()
+            except OSError:
+                raise ValueError("legacy public star history bytes are unreadable") from None
+            if public_bytes != canonical_public_bytes:
+                raise ValueError("legacy public star history must use canonical pretty-2 LF bytes")
+            logical = sorted(repositories, key=lambda repository: _slug_value(repository["slug"]))
+            schema_fingerprint = _digest(LEGACY_PUBLIC_STAR_HISTORY_SCHEMA)
             count, logical_hash = len(logical), _digest(logical)
-            last = None if not logical else _canonical_bytes(logical[-1]).decode("utf-8")
+            last = None if not logical else _canonical_bytes(_slug_value(logical[-1]["slug"])).decode("utf-8")
         else:
             schema_fingerprint, count, logical_hash, last = _legacy_logical_rows(path)
             if name == "legacy_trending_membership":
@@ -1711,6 +1762,36 @@ def measure_legacy_baseline_receipt(baselines: dict[str, str | Path]) -> dict[st
             "last_logical_key_json": last,
         }
     return {"version": 1, "sources": sources}
+
+
+def create_legacy_baseline_receipt(
+    baselines: dict[str, str | Path],
+    output_path: str | Path,
+) -> dict[str, Any]:
+    """Create and independently verify one reviewed receipt without overwrite."""
+    output = Path(output_path)
+    created = False
+    try:
+        receipt = measure_legacy_baseline_receipt(baselines)
+        serialized = (json.dumps(receipt, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+        descriptor = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        created = True
+        with os.fdopen(descriptor, "wb") as handle:
+            handle.write(serialized)
+            handle.flush()
+            os.fsync(handle.fileno())
+        reread = _load_json_file(output, "legacy baseline receipt")
+        if reread != receipt or output.read_bytes() != serialized:
+            raise ValueError("legacy baseline receipt canonical readback failed")
+        if measure_legacy_baseline_receipt(baselines) != receipt:
+            raise ValueError("legacy baseline source changed during receipt creation")
+        return receipt
+    except FileExistsError:
+        raise ValueError("legacy baseline receipt output already exists") from None
+    except Exception:
+        if created:
+            output.unlink(missing_ok=True)
+        raise ValueError("legacy baseline receipt creation failed") from None
 
 
 def project_legacy_baselines(baselines: dict[str, Any], receipt: dict[str, Any], seq: int) -> dict[str, list[dict[str, Any]]]:
@@ -2019,11 +2100,26 @@ def record_core_snapshot(candidate_database_path: str | Path, snapshot_payload: 
 
 
 def _load_json_file(path: str | Path, label: str) -> Any:
+    def reject_duplicate_keys(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("duplicate JSON key")
+            result[key] = value
+        return result
+
+    def reject_constant(_value):
+        raise ValueError("non-JSON numeric constant")
+
     try:
         with Path(path).open("r", encoding="utf-8") as handle:
-            return json.load(handle)
-    except (OSError, json.JSONDecodeError) as error:
-        raise ValueError(f"{label} must be readable JSON") from error
+            return json.load(
+                handle,
+                object_pairs_hook=reject_duplicate_keys,
+                parse_constant=reject_constant,
+            )
+    except (OSError, json.JSONDecodeError, ValueError):
+        raise ValueError(f"{label} must be readable strict JSON") from None
 
 
 def _validate_cli_paths(args: argparse.Namespace) -> None:
@@ -2070,6 +2166,24 @@ def _remove_candidate_database(path: Path) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
+    actual_argv = list(sys.argv[1:] if argv is None else argv)
+    if actual_argv[:1] == ["create-baseline-receipt"]:
+        baseline_parser = argparse.ArgumentParser(description="Create one verified immutable legacy baseline receipt")
+        baseline_parser.add_argument("--legacy-star-database", required=True)
+        baseline_parser.add_argument("--legacy-membership-database", required=True)
+        baseline_parser.add_argument("--legacy-public-star-history", required=True)
+        baseline_parser.add_argument("--output", required=True)
+        baseline_args = baseline_parser.parse_args(actual_argv[1:])
+        create_legacy_baseline_receipt(
+            {
+                "legacy_star_observations": baseline_args.legacy_star_database,
+                "legacy_trending_membership": baseline_args.legacy_membership_database,
+                "legacy_public_star_history": baseline_args.legacy_public_star_history,
+            },
+            baseline_args.output,
+        )
+        print(json.dumps({"created": True, "version": 1}, separators=(",", ":")))
+        return 0
     parser = argparse.ArgumentParser(description="Append one exact repository-observation candidate snapshot")
     parser.add_argument("--parent-database", required=True)
     parser.add_argument("--candidate-database", required=True)
@@ -2081,7 +2195,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--legacy-membership-database", required=True)
     parser.add_argument("--legacy-public-star-history", required=True)
     parser.add_argument("--readme-state", required=True)
-    args = parser.parse_args(argv)
+    args = parser.parse_args(actual_argv)
     _validate_cli_paths(args)
     snapshot = _load_json_file(args.snapshot, "snapshot")
     events = _load_json_file(args.events, "events")
