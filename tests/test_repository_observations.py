@@ -58,7 +58,7 @@ def baseline_run(connection, *, snapshot_id="20260828010101-aaaaaaaaaaaaaaaa", u
     )
 
 
-def profile(connection, *, slug="owner/repo", display_slug="owner/repo", topics="[]", fields='["unclassified"]', forms="[]"):
+def profile(connection, *, profile_id=1, slug="owner/repo", display_slug="owner/repo", topics="[]", fields='["unclassified"]', forms="[]"):
     digest = hashlib.sha256(json.dumps({
         "slug": slug, "display_slug": display_slug, "description": None,
         "primary_language": None, "topics": json.loads(topics), "license_spdx": None,
@@ -68,9 +68,25 @@ def profile(connection, *, slug="owner/repo", display_slug="owner/repo", topics=
     }, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     connection.execute(
         """INSERT INTO repository_profiles VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        (1, slug, display_slug, 1, None, None, topics, None, 0, 0, "main",
+        (profile_id, slug, display_slug, 1, None, None, topics, None, 0, 0, "main",
          "2026-08-28T01:01:01.001Z", fields, forms, 1, digest),
     )
+
+
+def refresh_run(connection, *, seq, snapshot_id, parent_seq, parent_id, parent_chain, utc):
+    core = sha256(chr(97 + seq))
+    chain = canonical_hash({"schema_fingerprint_sha256": PINNED_SCHEMA_FINGERPRINT, "parent_chain_sha256": parent_chain, "core_payload_sha256": core, "snapshot_id": snapshot_id, "snapshot_seq": seq})
+    kst = f"2026-08-28T10:01:01.{seq:03d}+09:00"
+    connection.execute("INSERT INTO snapshot_runs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (seq, snapshot_id, "refresh", utc, kst, "2026-08-28", parent_seq, parent_id, sha1(chr(97 + seq)), sha256(chr(97 + seq)), core, parent_chain, chain, 1))
+    return chain
+
+
+def copy_item(connection, snapshot_seq, slug="owner/repo", **changes):
+    columns = [row[1] for row in connection.execute("PRAGMA table_info(snapshot_items)")]
+    source = dict(zip(columns, connection.execute("SELECT * FROM snapshot_items WHERE snapshot_seq = 1 AND slug = ?", (slug,)).fetchone()))
+    source["snapshot_seq"] = snapshot_seq
+    source.update(changes)
+    connection.execute(f"INSERT INTO snapshot_items VALUES ({','.join('?' for _ in columns)})", [source[name] for name in columns])
 
 
 def complete_fixture(connection, *, display_slug="owner/repo", applicable=False):
@@ -275,6 +291,75 @@ class RepositoryObservationTests(unittest.TestCase):
                 _validate_populated_rows(connection)
             connection.execute("ROLLBACK TO release_hash_probe")
             connection.execute("RELEASE release_hash_probe")
+
+    def test_multi_repo_rank_gaps_and_two_release_ordinals_are_permanent(self):
+        create_database(self.database)
+        with closing(sqlite3.connect(self.database)) as connection:
+            complete_fixture(connection)
+            profile(connection, profile_id=2, slug="owner/two", display_slug="Owner/Two")
+            original = dict(zip([row[1] for row in connection.execute("PRAGMA table_info(snapshot_items)")], connection.execute("SELECT * FROM snapshot_items").fetchone()))
+            original.update({"slug": "owner/two", "profile_id": 2, "display_rank": 2, "rank_daily": 2, "gain_daily": 1})
+            connection.execute(f"INSERT INTO snapshot_items VALUES ({','.join('?' for _ in original)})", list(original.values()))
+            releases = []
+            for release_id in (1, 2):
+                value = {"slug": "owner/repo", "release_id": release_id, "tag_name": f"v{release_id}", "name": None, "target_commitish": "main", "draft": False, "prerelease": False, "created_at": "2026-08-28T01:01:01.001Z", "published_at": None, "html_url": f"https://github.com/owner/repo/releases/tag/v{release_id}"}
+                digest = canonical_hash(value)
+                releases.append((release_id, digest))
+                connection.execute("INSERT INTO release_versions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (value["slug"], release_id, digest, 1, value["tag_name"], None, "main", 0, 0, value["created_at"], None, value["html_url"]))
+                connection.execute("INSERT INTO snapshot_release_items VALUES (?, ?, ?, ?, ?)", (1, "owner/repo", release_id, digest, release_id - 1))
+            connection.execute("DROP TRIGGER snapshot_items_reject_update")
+            connection.execute("UPDATE snapshot_items SET release_count = 2, release_inventory_sha256 = ?, latest_release_id = 2 WHERE slug = 'owner/repo'", (canonical_hash([{"release_id": release_id, "metadata_sha256": digest} for release_id, digest in releases]),))
+            _validate_populated_rows(connection)
+            for statement, label in (("UPDATE snapshot_items SET display_rank = 3 WHERE slug = 'owner/two'", "display ranks"), ("UPDATE snapshot_items SET rank_daily = 3 WHERE slug = 'owner/two'", "rank_daily"), ("UPDATE snapshot_release_items SET release_ordinal = 2 WHERE release_id = 2", "release ordinals")):
+                connection.execute("SAVEPOINT multi_probe")
+                if "snapshot_items" not in statement:
+                    connection.execute("DROP TRIGGER snapshot_release_items_reject_update")
+                connection.execute(statement)
+                with self.assertRaisesRegex(ValueError, label):
+                    _validate_populated_rows(connection)
+                connection.execute("ROLLBACK TO multi_probe")
+                connection.execute("RELEASE multi_probe")
+
+    def test_three_snapshot_chain_and_insight_deltas_are_permanent(self):
+        create_database(self.database)
+        with closing(sqlite3.connect(self.database)) as connection:
+            complete_fixture(connection)
+            first = connection.execute("SELECT snapshot_id, chain_sha256 FROM snapshot_runs WHERE snapshot_seq = 1").fetchone()
+            second_id = "20260828010102-bbbbbbbbbbbbbbbb"
+            second_chain = refresh_run(connection, seq=2, snapshot_id=second_id, parent_seq=1, parent_id=first[0], parent_chain=first[1], utc="2026-08-28T01:01:01.002Z")
+            third_id = "20260828010103-cccccccccccccccc"
+            refresh_run(connection, seq=3, snapshot_id=third_id, parent_seq=2, parent_id=second_id, parent_chain=second_chain, utc="2026-08-28T01:01:01.003Z")
+            copy_item(connection, 2, stars=2, display_rank=1, rank_daily=1, gain_daily=1, updated_at="2026-08-28T01:01:01.002Z")
+            copy_item(connection, 3, stars=5, display_rank=1, rank_daily=None, gain_daily=None, rank_weekly=1, gain_weekly=1, updated_at="2026-08-28T01:01:01.003Z")
+            insight = {"snapshot_seq": 2, "slug": "owner/repo", "previous_observed_snapshot_seq": 1, "observation_gap_milliseconds": 1, "stars_delta_since_previous_observation": 1, "display_rank_delta": 0, "rank_daily_delta": 0, "rank_weekly_delta": None, "rank_monthly_delta": None, "insight_rule_version": "repository-insight-v1"}
+            connection.execute("INSERT INTO repository_insights VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (*insight.values(), canonical_hash(insight)))
+            insight3 = {"snapshot_seq": 3, "slug": "owner/repo", "previous_observed_snapshot_seq": 2, "observation_gap_milliseconds": 1, "stars_delta_since_previous_observation": 3, "display_rank_delta": 0, "rank_daily_delta": None, "rank_weekly_delta": None, "rank_monthly_delta": None, "insight_rule_version": "repository-insight-v1"}
+            connection.execute("INSERT INTO repository_insights VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (*insight3.values(), canonical_hash(insight3)))
+            _validate_populated_rows(connection)
+            connection.execute("SAVEPOINT insight_probe")
+            connection.execute("DROP TRIGGER repository_insights_reject_update")
+            wrong = {**insight3, "previous_observed_snapshot_seq": 1}
+            connection.execute("UPDATE repository_insights SET previous_observed_snapshot_seq = 1, insight_sha256 = ? WHERE snapshot_seq = 3", (canonical_hash(wrong),))
+            with self.assertRaisesRegex(ValueError, "actual prior"):
+                _validate_populated_rows(connection)
+            connection.execute("ROLLBACK TO insight_probe")
+            connection.execute("RELEASE insight_probe")
+
+    def test_all_persisted_calendar_fields_reject_impossible_values(self):
+        create_database(self.database)
+        with closing(sqlite3.connect(self.database)) as connection:
+            complete_fixture(connection)
+            release = {"slug": "owner/repo", "release_id": 8, "tag_name": "v8", "name": None, "target_commitish": "main", "draft": False, "prerelease": False, "created_at": "2026-08-28T01:01:01.001Z", "published_at": None, "html_url": "https://github.com/owner/repo/releases/tag/v8"}
+            connection.execute("INSERT INTO release_versions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (release["slug"], 8, canonical_hash(release), 1, "v8", None, "main", 0, 0, release["created_at"], None, release["html_url"]))
+            for table, column in (("snapshot_items", "updated_at"), ("snapshot_items", "pushed_at"), ("release_versions", "created_at"), ("historical_star_estimates", "estimate_date"), ("historical_star_observations", "observation_date"), ("commit_events", "authored_at"), ("commit_events", "committed_at")):
+                connection.execute("SAVEPOINT calendar_probe")
+                connection.execute(f"DROP TRIGGER {table}_reject_update")
+                value = "9999-99-99" if column in ("estimate_date", "observation_date") else "9999-99-99T99:99:99.999Z"
+                connection.execute(f"UPDATE {table} SET {column} = ?", (value,))
+                with self.assertRaises(ValueError):
+                    _validate_populated_rows(connection)
+                connection.execute("ROLLBACK TO calendar_probe")
+                connection.execute("RELEASE calendar_probe")
 
     def test_complete_cross_table_fixture_and_actual_immutable_triggers(self):
         create_database(self.database)
