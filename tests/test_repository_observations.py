@@ -44,7 +44,7 @@ EXPECTED_TABLES = {
     "repository_insights",
     "artifact_hashes",
 }
-PINNED_SCHEMA_FINGERPRINT = "eeca4901db9b5f0940cf3379baa59397c589a8d6bac4f415b2b0ad728f91767d"
+PINNED_SCHEMA_FINGERPRINT = "2d6af4ad04f09869aa44b71ac1bc7444f8c29b714c97f429e2f6b18957340644"
 
 
 def sha256(value="a"):
@@ -573,6 +573,39 @@ class RepositoryObservationTests(unittest.TestCase):
                     validate_schema(connection)
                 connection.execute("ROLLBACK TO profile_probe")
                 connection.execute("RELEASE profile_probe")
+
+    def test_profile_slug_constraints_accept_hyphens_and_reject_other_characters(self):
+        create_database(self.database)
+        with closing(sqlite3.connect(self.database)) as connection:
+            connection.execute("PRAGMA foreign_keys = ON")
+            baseline_run(connection)
+            profile(
+                connection,
+                slug="owner-name/repo-0",
+                display_slug="Owner-Name/Repo-0",
+            )
+            self.assertEqual(
+                connection.execute(
+                    "SELECT slug, display_slug FROM repository_profiles"
+                ).fetchone(),
+                ("owner-name/repo-0", "Owner-Name/Repo-0"),
+            )
+            validate_schema(connection)
+
+            for slug, display_slug in (
+                ("owner name/repo", "owner name/repo"),
+                ("owner/repo@0", "owner/repo@0"),
+                ("owner/repo\\0", "owner/repo\\0"),
+                ("owner/repo", "Owner/Repo+0"),
+            ):
+                with self.subTest(slug=slug, display_slug=display_slug):
+                    with self.assertRaises(sqlite3.IntegrityError):
+                        profile(
+                            connection,
+                            profile_id=2,
+                            slug=slug,
+                            display_slug=display_slug,
+                        )
 
     def test_snapshot_run_requires_real_matching_utc_kst_calendar_values_and_unique_utc(self):
         create_database(self.database)
@@ -1109,7 +1142,7 @@ class RepositoryObservationTests(unittest.TestCase):
                 canonical_hash({"content": content, "source": source}),
             ))
             self.assertEqual(verify_core_snapshot(connection, 1), result.core_payload_sha256)
-        self.assertEqual(result.core_payload_sha256, "3c59c689aa1c72d728d8c58d70d878bfc84351e21f08f82c24e575232114a72e")
+        self.assertEqual(result.core_payload_sha256, "fa605e0fd81d94aaf2e7737f270359e5776ad760669f65299611903d2a91814e")
 
     def test_reused_profile_and_release_rows_are_part_of_refresh_core_hash(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)

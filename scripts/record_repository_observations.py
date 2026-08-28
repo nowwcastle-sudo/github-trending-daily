@@ -30,8 +30,8 @@ EMPTY_RELEASE_INVENTORY_SHA256 = hashlib.sha256(b"[]").hexdigest()
 
 _SHA1 = "length({0}) = 40 AND {0} = lower({0}) AND {0} NOT GLOB '*[^0-9a-f]*'"
 _SHA256 = "length({0}) = 64 AND {0} = lower({0}) AND {0} NOT GLOB '*[^0-9a-f]*'"
-_SLUG = "instr({0}, '/') > 1 AND instr(substr({0}, instr({0}, '/') + 1), '/') = 0 AND substr({0}, instr({0}, '/') + 1) <> '' AND {0} NOT GLOB '*[^a-z0-9_.-/]*' AND {0} = lower({0})"
-_DISPLAY_SLUG = "instr({0}, '/') > 1 AND instr(substr({0}, instr({0}, '/') + 1), '/') = 0 AND substr({0}, instr({0}, '/') + 1) <> '' AND {0} NOT GLOB '*[^A-Za-z0-9_.-/]*'"
+_SLUG = "instr({0}, '/') > 1 AND instr(substr({0}, instr({0}, '/') + 1), '/') = 0 AND substr({0}, instr({0}, '/') + 1) <> '' AND {0} NOT GLOB '*[^a-z0-9_./-]*' AND {0} = lower({0})"
+_DISPLAY_SLUG = "instr({0}, '/') > 1 AND instr(substr({0}, instr({0}, '/') + 1), '/') = 0 AND substr({0}, instr({0}, '/') + 1) <> '' AND {0} NOT GLOB '*[^A-Za-z0-9_./-]*'"
 _COLOR = "{0} GLOB '#[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'"
 _UTC = "{0} GLOB '????-??-??T??:??:??.???Z'"
 _KST = "{0} GLOB '????-??-??T??:??:??.???+09:00'"
