@@ -1795,6 +1795,27 @@ class RepositoryObservationTests(unittest.TestCase):
                 with closing(sqlite3.connect(candidate)) as connection:
                     self.assertEqual(connection.execute("SELECT COUNT(*) FROM snapshot_runs").fetchone(), (0,))
 
+    def test_production_manifest_sha_aliases_must_be_exclusive(self):
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        for index, alias_value in enumerate((sha256("b"), sha256())):
+            with self.subTest(alias_value=alias_value):
+                candidate = Path(self.temporary.name) / f"manifest-alias-{index}.sqlite"
+                prepare_candidate_database(Path(self.temporary.name) / f"missing-alias-{index}.sqlite", candidate, None)
+                payload = writer_payload(
+                    snapshot_id=f"20260828030{index + 1}01-{'ab'[index] * 16}",
+                    utc=f"2026-08-28T03:0{index + 1}:01.001Z",
+                    kst=f"2026-08-28T12:0{index + 1}:01.001+09:00",
+                    stats_date="2026-08-28", run_kind="migration_baseline",
+                )
+                payload["input_manifest_sha256"] = alias_value
+                payload["legacyBaselines"], payload["legacyBaselineReceipt"] = paths, receipt
+                with self.assertRaisesRegex(ValueError, "production manifest SHA aliases"):
+                    record_writer_snapshot(
+                        candidate, payload, writer_events(head=sha1(), transition="baseline"), {},
+                    )
+                with closing(sqlite3.connect(candidate)) as connection:
+                    self.assertEqual(connection.execute("SELECT COUNT(*) FROM snapshot_runs").fetchone(), (0,))
+
     def test_cross_input_bindings_reject_event_and_enrichment_drift(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
         for mutation, message in (

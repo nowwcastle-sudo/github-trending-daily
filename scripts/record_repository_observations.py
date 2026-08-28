@@ -939,6 +939,13 @@ def _value(mapping: dict[str, Any], *names: str, default=None):
     return default
 
 
+def _exclusive_value(mapping: dict[str, Any], *names: str, label: str):
+    present = [name for name in names if name in mapping]
+    if len(present) != 1:
+        raise ValueError(f"{label} aliases must contain exactly one field")
+    return mapping[present[0]]
+
+
 def _slug_value(value: str) -> str:
     if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", value):
         raise ValueError("repository slug is invalid")
@@ -1116,7 +1123,11 @@ def _enrichment_entry(index: Any, slug: str) -> dict[str, Any]:
 
 def _validate_production_manifest_evidence(snapshot: dict[str, Any], source_sha: Any) -> None:
     status = snapshot.get("productionManifestStatus")
-    manifest_sha = _value(snapshot, "input_manifest_sha256", "inputManifestSha256", "manifestSha256")
+    manifest_sha = _exclusive_value(
+        snapshot,
+        "input_manifest_sha256", "inputManifestSha256", "manifestSha256",
+        label="production manifest SHA",
+    )
     explicit_source_present = "explicitBootstrapSourceSha" in snapshot
     if status in {"verified_v0", "verified_v1"}:
         if explicit_source_present:
@@ -1389,7 +1400,7 @@ def _run_identity(snapshot: dict[str, Any], seq: int, parent: tuple[int, str, st
         parent_seq, parent_id, parent_chain = parent
         if _value(snapshot, "parent_snapshot_id", "parentSnapshotId") != parent_id:
             raise ValueError("refresh parent snapshot id must equal last parent")
-    return {"snapshot_seq": seq, "snapshot_id": snapshot_id, "run_kind": kind, "observed_at_utc": utc, "observed_at_kst": kst, "stats_date_kst": stats, "parent_snapshot_seq": parent_seq, "parent_snapshot_id": parent_id, "input_source_sha": _value(snapshot, "input_source_sha", "inputSourceSha", "sourceSha"), "input_manifest_sha256": _value(snapshot, "input_manifest_sha256", "inputManifestSha256", "manifestSha256"), "core_payload_sha256": core, "parent_chain_sha256": parent_chain, "chain_sha256": "0" * 64, "repository_count": len(_value(snapshot, "repositories", "repos", default=[]))}
+    return {"snapshot_seq": seq, "snapshot_id": snapshot_id, "run_kind": kind, "observed_at_utc": utc, "observed_at_kst": kst, "stats_date_kst": stats, "parent_snapshot_seq": parent_seq, "parent_snapshot_id": parent_id, "input_source_sha": _value(snapshot, "input_source_sha", "inputSourceSha", "sourceSha"), "input_manifest_sha256": _exclusive_value(snapshot, "input_manifest_sha256", "inputManifestSha256", "manifestSha256", label="production manifest SHA"), "core_payload_sha256": core, "parent_chain_sha256": parent_chain, "chain_sha256": "0" * 64, "repository_count": len(_value(snapshot, "repositories", "repos", default=[]))}
 
 
 def _readme_identity(value: Any, label: str) -> dict[str, Any]:
