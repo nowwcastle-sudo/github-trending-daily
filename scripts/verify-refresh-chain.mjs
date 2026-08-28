@@ -84,12 +84,16 @@ export function validateWorkflowRun(run, expectedRunId, { requireDispatchEvent =
 }
 
 function approvedGeneratedCommitPath(relative) {
-  return ["index.html", "data/repo-summaries.json", "data/star-observations.sqlite", "data/trending-membership.sqlite", "data/membership-status.json", "data/latest.json", "data/translation-sources.json", "feed.xml", "changes.xml", "star-history.json"].includes(relative)
+  return ["index.html", "data/repo-summaries.json", "data/repository-observations.sqlite", "data/readme-state.json", "data/membership-status.json", "data/latest.json", "data/translation-sources.json", "feed.xml", "changes.xml", "star-history.json"].includes(relative)
     || /^translations\/[^/]+\.json$/.test(relative);
 }
 
-export function assertSourceBoundToRunHead(headSha, sourceSha, gitFn = git) {
-  if (sourceSha === headSha) return true;
+export function assertSourceBoundToRunHead(headSha, sourceSha, gitFn = git, { version = 1 } = {}) {
+  if (![0, 1].includes(version)) throw new Error("artifact version is invalid");
+  if (sourceSha === headSha) {
+    if (version === 1) throw new Error("version-1 artifact source requires one generated child");
+    return true;
+  }
   const parents = gitFn(["show", "-s", "--format=%P", sourceSha]).split(/\s+/).filter(Boolean);
   if (parents.length !== 1 || parents[0] !== headSha) throw new Error("artifact source is not the run head or its one direct generated commit");
   const paths = gitFn(["diff-tree", "--no-commit-id", "--name-only", "-r", sourceSha]).split(/\r?\n/).filter(Boolean);
@@ -103,7 +107,7 @@ async function receiptForRun(runId, { requireSuccessfulChain = true, requireDisp
   if (requireSuccessfulChain) validateWorkflowRun(run, runId, { requireDispatchEvent });
   const bytes = downloadCandidateManifest(Number(runId), { deadline });
   const manifest = validateDeploymentManifest(parseJsonStrict(bytes, "deployment manifest", 1024 * 1024));
-  assertSourceBoundToRunHead(run.headSha, manifest.sourceSha, args => git(args, { deadline }));
+  assertSourceBoundToRunHead(run.headSha, manifest.sourceSha, args => git(args, { deadline }), { version: manifest.version });
   return {
     runId: Number(runId),
     headSha: run.headSha,

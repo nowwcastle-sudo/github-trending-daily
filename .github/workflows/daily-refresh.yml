@@ -3,12 +3,7 @@ name: Trending refresh (2 hours)
 on:
   schedule:
     - cron: "7 */2 * * *"
-  workflow_dispatch:
-    inputs:
-      bootstrap-source-sha:
-        description: Verified legacy production Git SHA; accepted only while the manifest is 404
-        required: false
-        type: string
+  workflow_dispatch: {}
 
 permissions: {}
 
@@ -18,11 +13,13 @@ concurrency:
 
 env:
   PRODUCTION_BASE_URL: https://nowwcastle-sudo.github.io/github-trending-daily/
+  MANUAL_BOOTSTRAP_GATE: bootstrap_v0_pending_approval
 
 jobs:
   build:
+    if: ${{ (github.event_name == 'schedule' && vars.GH_TRENDING_REFRESH_SCHEDULE == 'enabled') || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     permissions:
       contents: write
     outputs:
@@ -31,13 +28,20 @@ jobs:
       recovery_version: ${{ steps.state.outputs.recovery_version }}
       recovery_source_sha: ${{ steps.state.outputs.hydration_source_sha }}
     steps:
-      - name: Anchor refresh job deadline
+      - name: Anchor immutable refresh clock and gates
         shell: bash
         run: |
           set -euo pipefail
-          JOB_STARTED_MS="${EPOCHREALTIME/./}"
-          JOB_STARTED_MS="${JOB_STARTED_MS:0:13}"
-          echo "ENRICHMENT_DEADLINE_EPOCH_MS=$(( 10#$JOB_STARTED_MS + 4200000 ))" >> "$GITHUB_ENV"
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$MANUAL_BOOTSTRAP_GATE" = "bootstrap_v0_pending_approval" ]; then
+            echo "::error::Manual bootstrap remains pending explicit approval"
+            exit 1
+          fi
+          REFRESH_ORIGIN_EPOCH_MS="$(printf '%s' "$EPOCHREALTIME" | tr -d '.' | cut -c1-13)"
+          echo "REFRESH_ORIGIN_EPOCH_MS=$REFRESH_ORIGIN_EPOCH_MS" >> "$GITHUB_ENV"
+          echo "EVENT_ORIGIN_EPOCH_MS=$REFRESH_ORIGIN_EPOCH_MS" >> "$GITHUB_ENV"
+          echo "REFRESH_HARD_DEADLINE_EPOCH_MS=$(( 10#$REFRESH_ORIGIN_EPOCH_MS + 6900000 ))" >> "$GITHUB_ENV"
+          echo "REFRESH_EVENT_DEADLINE_EPOCH_MS=$(( 10#$REFRESH_ORIGIN_EPOCH_MS + 900000 ))" >> "$GITHUB_ENV"
+          echo "REFRESH_TEARDOWN_CUSHION_MS=300000" >> "$GITHUB_ENV"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
@@ -55,166 +59,180 @@ jobs:
       - name: Resolve verified production state
         id: state
         shell: bash
-        env:
-          BOOTSTRAP_SOURCE_SHA: ${{ inputs['bootstrap-source-sha'] }}
         run: |
           set -euo pipefail
           ORIGINAL_SHA="$(git rev-parse HEAD)"
+          git fetch origin main
+          [ "$ORIGINAL_SHA" = "$(git rev-parse refs/remotes/origin/main)" ] || { echo "::error::checkout is not exact origin/main"; exit 1; }
           MANIFEST_FILE="${RUNNER_TEMP}/production-manifest.json"
           HTTP_STATUS="$(curl --silent --show-error --connect-timeout 5 --max-time 15 --max-filesize 1048576 --output "$MANIFEST_FILE" --write-out '%{http_code}' "${PRODUCTION_BASE_URL}deployment-manifest.json?preflight=${GITHUB_RUN_ID}")"
-          if [ "$HTTP_STATUS" = "404" ]; then
-            echo "404 preflight: manifest 404 requires the approved bootstrap source SHA"
-            [[ "$BOOTSTRAP_SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo "::error::bootstrap-source-sha is required for manifest 404"; exit 1; }
-            git cat-file -e "${BOOTSTRAP_SOURCE_SHA}^{commit}"
-            node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --bootstrap-preflight-sha "$BOOTSTRAP_SOURCE_SHA"
-            HYDRATION_SOURCE_SHA="$BOOTSTRAP_SOURCE_SHA"
-            PARENT_SOURCE_SHA=""
-            PARENT_SNAPSHOT_ID=""
-            RECOVERY_VERSION="0"
-          elif [ "$HTTP_STATUS" = "200" ]; then
-            eval "$(node --input-type=module - "$MANIFEST_FILE" <<'NODE'
-          import { readFileSync } from "node:fs";
-          import { parseJsonStrict, validateDeploymentManifest } from "./scripts/build-pages-artifact.mjs";
-          const parsed = parseJsonStrict(readFileSync(process.argv[2]), "production deployment manifest", 1024 * 1024);
-          const value = validateDeploymentManifest(parsed, { version: parsed?.version });
-          if (value?.version === 0 && value.legacyBootstrap === true && /^[a-f0-9]{40}$/.test(value.sourceSha) && value.snapshotId === null) {
-            console.log(`HYDRATION_SOURCE_SHA=${value.sourceSha}`);
-            console.log("PARENT_SOURCE_SHA=");
-            console.log("PARENT_SNAPSHOT_ID=");
-            console.log("RECOVERY_VERSION=0");
-          } else if (value?.version === 1 && /^[a-f0-9]{40}$/.test(value.sourceSha) && /^[0-9]{14}-[a-f0-9]{16}$/.test(value.snapshotId)) {
-            console.log(`HYDRATION_SOURCE_SHA=${value.sourceSha}`);
-            console.log(`PARENT_SOURCE_SHA=${value.sourceSha}`);
-            console.log(`PARENT_SNAPSHOT_ID=${value.snapshotId}`);
-            console.log("RECOVERY_VERSION=1");
-          } else {
-            process.exit(1);
-          }
-          NODE
-          )"
-            if [ "$RECOVERY_VERSION" = "0" ]; then
-              node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --legacy-recovery-sha "$HYDRATION_SOURCE_SHA"
-            else
-              node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --source-sha "$HYDRATION_SOURCE_SHA" --snapshot-id "$PARENT_SNAPSHOT_ID"
-            fi
-          else
-            echo "::error::production manifest request returned HTTP ${HTTP_STATUS}"
-            exit 1
-          fi
-          if [ "$RECOVERY_VERSION" = "0" ]; then
-            [[ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]] || { echo "::error::legacy bootstrap requires workflow_dispatch"; exit 1; }
-            [[ "$BOOTSTRAP_SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo "::error::legacy bootstrap requires the manual source SHA"; exit 1; }
-            [ "$BOOTSTRAP_SOURCE_SHA" = "$HYDRATION_SOURCE_SHA" ] || { echo "::error::legacy bootstrap source SHA mismatch"; exit 1; }
-          else
-            [ -z "$BOOTSTRAP_SOURCE_SHA" ] || { echo "::error::bootstrap-source-sha is invalid after version-1 publication"; exit 1; }
-          fi
+          [ "$HTTP_STATUS" = "200" ] || { echo "::error::production manifest must be an approved v0 or v1 document"; exit 1; }
+          MANIFEST_SHA256="$(sha256sum "$MANIFEST_FILE" | cut -d' ' -f1)"
+          export ORIGINAL_SHA MANIFEST_SHA256
+          node --input-type=module -e 'import { appendFileSync, readFileSync } from "node:fs"; import { parseJsonStrict, validateDeploymentManifest } from "./scripts/build-pages-artifact.mjs"; const value=validateDeploymentManifest(parseJsonStrict(readFileSync(process.argv[1]),"production deployment manifest",1024*1024)); if (![0,1].includes(value.version)) throw new Error("unsupported production manifest"); appendFileSync(process.env.GITHUB_OUTPUT,`hydration_source_sha=${value.sourceSha}\nproduction_version=${value.version}\nparent_snapshot_id=${value.snapshotId ?? ""}\nrecovery_version=0\noriginal_sha=${process.env.ORIGINAL_SHA}\n`); appendFileSync(process.env.GITHUB_ENV,`HYDRATION_SOURCE_SHA=${value.sourceSha}\nPRODUCTION_MANIFEST_STATUS=verified_v${value.version}\nPRODUCTION_MANIFEST_SHA256=${process.env.MANIFEST_SHA256}\nPRODUCTION_VERSION=${value.version}\nPARENT_SNAPSHOT_ID=${value.snapshotId ?? ""}\nINPUT_SOURCE_SHA=${process.env.ORIGINAL_SHA}\n`);' "$MANIFEST_FILE"
+          HYDRATION_SOURCE_SHA="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; import { parseJsonStrict, validateDeploymentManifest } from "./scripts/build-pages-artifact.mjs"; process.stdout.write(validateDeploymentManifest(parseJsonStrict(readFileSync(process.argv[1]),"production deployment manifest",1024*1024)).sourceSha);' "$MANIFEST_FILE")"
+          PRODUCTION_VERSION="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; import { parseJsonStrict, validateDeploymentManifest } from "./scripts/build-pages-artifact.mjs"; process.stdout.write(String(validateDeploymentManifest(parseJsonStrict(readFileSync(process.argv[1]),"production deployment manifest",1024*1024)).version));' "$MANIFEST_FILE")"
+          git cat-file -e "${HYDRATION_SOURCE_SHA}^{commit}"
           git merge-base --is-ancestor "$HYDRATION_SOURCE_SHA" "$ORIGINAL_SHA"
-          {
-            echo "original_sha=$ORIGINAL_SHA"
-            echo "hydration_source_sha=$HYDRATION_SOURCE_SHA"
-            echo "parent_source_sha=$PARENT_SOURCE_SHA"
-            echo "parent_snapshot_id=$PARENT_SNAPSHOT_ID"
-            echo "recovery_version=$RECOVERY_VERSION"
-          } >> "$GITHUB_OUTPUT"
-      - name: Preserve recovery artifact
+          if [ "$PRODUCTION_VERSION" = "0" ]; then
+            [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] || { echo "::error::migration baseline requires the approved manual gate"; exit 1; }
+            if git cat-file -e "$HYDRATION_SOURCE_SHA:data/repository-observations.sqlite" 2>/dev/null; then
+              echo "::error::v0 production cannot carry the canonical repository database"
+              exit 1
+            fi
+            echo "ENRICHMENT_BUDGET_MODE=$MANUAL_BOOTSTRAP_GATE" >> "$GITHUB_ENV"
+            echo "VERIFIED_RECOVERY_VERSION=0" >> "$GITHUB_ENV"
+            echo "VERIFIED_BOOTSTRAP_SOURCE_SHA=$HYDRATION_SOURCE_SHA" >> "$GITHUB_ENV"
+            echo "MANUAL_BOOTSTRAP_SOURCE_SHA=$HYDRATION_SOURCE_SHA" >> "$GITHUB_ENV"
+            node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --legacy-recovery-sha "$HYDRATION_SOURCE_SHA"
+          else
+            git cat-file -e "$HYDRATION_SOURCE_SHA:data/repository-observations.sqlite"
+            PARENT_SNAPSHOT_ID="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; import { parseJsonStrict, validateDeploymentManifest } from "./scripts/build-pages-artifact.mjs"; process.stdout.write(validateDeploymentManifest(parseJsonStrict(readFileSync(process.argv[1]),"production deployment manifest",1024*1024)).snapshotId ?? "");' "$MANIFEST_FILE")"
+            [ -n "$PARENT_SNAPSHOT_ID" ]
+            echo "ENRICHMENT_BUDGET_MODE=normal" >> "$GITHUB_ENV"
+            echo "VERIFIED_RECOVERY_VERSION=1" >> "$GITHUB_ENV"
+            echo "VERIFIED_BOOTSTRAP_SOURCE_SHA=$HYDRATION_SOURCE_SHA" >> "$GITHUB_ENV"
+            node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --source-sha "$HYDRATION_SOURCE_SHA" --snapshot-id "$PARENT_SNAPSHOT_ID"
+          fi
+      - name: Build verified recovery artifact
         shell: bash
         env:
           HYDRATION_SOURCE_SHA: ${{ steps.state.outputs.hydration_source_sha }}
-          PARENT_SNAPSHOT_ID: ${{ steps.state.outputs.parent_snapshot_id }}
-          RECOVERY_VERSION: ${{ steps.state.outputs.recovery_version }}
         run: |
           set -euo pipefail
           RECOVERY_SOURCE="${RUNNER_TEMP}/recovery-source"
-          RECOVERY_ARTIFACT="${RUNNER_TEMP}/recovery-artifact"
           mkdir "$RECOVERY_SOURCE"
           git archive --format=tar "$HYDRATION_SOURCE_SHA" | tar -x -C "$RECOVERY_SOURCE"
-          if [ "$RECOVERY_VERSION" = "1" ]; then
-            node scripts/build-pages-artifact.mjs --source "$RECOVERY_SOURCE" --out "$RECOVERY_ARTIFACT" --source-sha "$HYDRATION_SOURCE_SHA" --snapshot-id "$PARENT_SNAPSHOT_ID"
-            node scripts/probe-production.mjs --artifact-dir "$RECOVERY_ARTIFACT" --source-sha "$HYDRATION_SOURCE_SHA" --snapshot-id "$PARENT_SNAPSHOT_ID"
-          else
-            node scripts/build-pages-artifact.mjs --source "$RECOVERY_SOURCE" --out "$RECOVERY_ARTIFACT" --source-sha "$HYDRATION_SOURCE_SHA" --mode legacy
-            node scripts/probe-production.mjs --artifact-dir "$RECOVERY_ARTIFACT" --legacy-recovery-sha "$HYDRATION_SOURCE_SHA"
-          fi
-      - name: Prepare isolated candidate
+          node scripts/build-pages-artifact.mjs --mode legacy --source "$RECOVERY_SOURCE" --out "${RUNNER_TEMP}/recovery-artifact" --source-sha "$HYDRATION_SOURCE_SHA"
+          node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/recovery-artifact" --legacy-recovery-sha "$HYDRATION_SOURCE_SHA"
+      - name: Prepare isolated refresh candidate
         shell: bash
         env:
           HYDRATION_SOURCE_SHA: ${{ steps.state.outputs.hydration_source_sha }}
         run: |
           set -euo pipefail
-          node scripts/prepare-refresh-candidate.mjs --checkout "$GITHUB_WORKSPACE" --out "${RUNNER_TEMP}/candidate" --last-good-sha "$HYDRATION_SOURCE_SHA"
+          node scripts/prepare-refresh-candidate.mjs --checkout "$GITHUB_WORKSPACE" --last-good-sha "$HYDRATION_SOURCE_SHA" --out "${RUNNER_TEMP}/candidate"
           cp -a "${RUNNER_TEMP}/candidate" "${RUNNER_TEMP}/candidate-baseline"
-      - name: Create one run context
+          rm -f "${RUNNER_TEMP}/candidate/data/repository-observations.sqlite" "${RUNNER_TEMP}/candidate/data/repository-observations.sqlite-journal" "${RUNNER_TEMP}/candidate/data/repository-observations.sqlite-shm" "${RUNNER_TEMP}/candidate/data/repository-observations.sqlite-wal"
+      - name: Freeze one run context and parent evidence
         id: context
         shell: bash
         env:
-          PARENT_SOURCE_SHA: ${{ steps.state.outputs.parent_source_sha }}
+          HYDRATION_SOURCE_SHA: ${{ steps.state.outputs.hydration_source_sha }}
+          PRODUCTION_VERSION: ${{ steps.state.outputs.production_version }}
           PARENT_SNAPSHOT_ID: ${{ steps.state.outputs.parent_snapshot_id }}
         run: |
           set -euo pipefail
-          RUN_CONTEXT_JSON="$(node --input-type=module <<'NODE'
-          import { createRunContext } from "./scripts/run-context.mjs";
-          const parent = process.env.PARENT_SOURCE_SHA
-            ? { sourceSha: process.env.PARENT_SOURCE_SHA, snapshotId: process.env.PARENT_SNAPSHOT_ID }
-            : { sourceSha: null, snapshotId: null };
-          console.log(JSON.stringify(createRunContext(new Date(), parent)));
-          NODE
-          )"
-          SNAPSHOT_ID="$(node -e 'process.stdout.write(JSON.parse(process.argv[1]).snapshotId)' "$RUN_CONTEXT_JSON")"
-          echo "RUN_CONTEXT_JSON=$RUN_CONTEXT_JSON" >> "$GITHUB_ENV"
-          echo "snapshot_id=$SNAPSHOT_ID" >> "$GITHUB_OUTPUT"
-      - name: Generate candidate snapshot
+          PARENT_DATABASE="${RUNNER_TEMP}/parent-repository-observations.sqlite"
+          if [ "$PRODUCTION_VERSION" = "1" ]; then
+            git show "$HYDRATION_SOURCE_SHA:data/repository-observations.sqlite" > "$PARENT_DATABASE"
+            EXPECTED_PARENT="$PARENT_SNAPSHOT_ID"
+          else
+            rm -f "$PARENT_DATABASE"
+            EXPECTED_PARENT=none
+          fi
+          node --input-type=module -e 'import { appendFileSync, writeFileSync } from "node:fs"; import { createRunContext } from "./scripts/run-context.mjs"; const parent=process.env.PRODUCTION_VERSION === "1" ? {snapshotId:process.env.PARENT_SNAPSHOT_ID,sourceSha:process.env.HYDRATION_SOURCE_SHA} : {snapshotId:null,sourceSha:null}; const context=createRunContext(new Date(Number(process.env.REFRESH_ORIGIN_EPOCH_MS)),parent); const encoded=JSON.stringify(context); writeFileSync(process.argv[1],encoded); appendFileSync(process.env.GITHUB_ENV,`RUN_CONTEXT_JSON=${encoded}\n`); appendFileSync(process.env.GITHUB_OUTPUT,`snapshot_id=${context.snapshotId}\n`);' "${RUNNER_TEMP}/run-context.json"
+          python scripts/derive_repository_artifacts.py export-parent-inputs --parent-database "$PARENT_DATABASE" --baseline-receipt data/legacy-observation-baseline.json --expected-parent-snapshot "$EXPECTED_PARENT" --parent-evidence-out "${RUNNER_TEMP}/parent-evidence.json" --prior-heads-out "${RUNNER_TEMP}/prior-heads.json"
+          echo "PARENT_DATABASE=$PARENT_DATABASE" >> "$GITHUB_ENV"
+      - name: Collect frozen repository facts
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          ENRICHMENT_BUDGET_MODE: ${{ steps.state.outputs.recovery_version == '0' && 'bootstrap_v0_pending_approval' || 'normal' }}
-          VERIFIED_RECOVERY_VERSION: ${{ steps.state.outputs.recovery_version }}
-          VERIFIED_BOOTSTRAP_SOURCE_SHA: ${{ steps.state.outputs.recovery_source_sha }}
-          MANUAL_BOOTSTRAP_SOURCE_SHA: ${{ inputs['bootstrap-source-sha'] }}
-          HYDRATION_SOURCE_SHA: ${{ steps.state.outputs.hydration_source_sha }}
         run: |
           set -euo pipefail
-          CANDIDATE="${RUNNER_TEMP}/candidate"
-          cd "$CANDIDATE"
-          node scripts/update-trending.mjs
-          node scripts/generate-translations.mjs
-          python scripts/record_star_observations.py
-          node scripts/update-latest-feed.mjs
-          python scripts/record_trending_membership.py
-          python scripts/generate_atom_feeds.py
-          node scripts/update-star-history.mjs
-      - name: Validate candidate snapshot
+          node scripts/update-trending.mjs --facts-out "${RUNNER_TEMP}/repository-facts.json" --budget-state "${RUNNER_TEMP}/event-budget.json"
+      - name: Collect complete repository events
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          node scripts/collect-repository-events.mjs --facts "${RUNNER_TEMP}/repository-facts.json" --events-out "${RUNNER_TEMP}/repository-events.json" --budget-state "${RUNNER_TEMP}/event-budget.json" --prior-heads "${RUNNER_TEMP}/prior-heads.json"
+          NOW_MS="$(printf '%s' "$EPOCHREALTIME" | tr -d '.' | cut -c1-13)"
+          SUCCESS_PLUS=$(( 10#$NOW_MS + 4200000 ))
+          HARD_MINUS=$(( REFRESH_HARD_DEADLINE_EPOCH_MS - 1800000 ))
+          if [ "$SUCCESS_PLUS" -lt "$HARD_MINUS" ]; then ENRICHMENT_DEADLINE="$SUCCESS_PLUS"; else ENRICHMENT_DEADLINE="$HARD_MINUS"; fi
+          [ "$ENRICHMENT_DEADLINE" -gt "$NOW_MS" ] || { echo "::error::no enrichment budget remains"; exit 1; }
+          echo "REFRESH_ENRICHMENT_DEADLINE_EPOCH_MS=$ENRICHMENT_DEADLINE" >> "$GITHUB_ENV"
+          echo "ENRICHMENT_DEADLINE_EPOCH_MS=$ENRICHMENT_DEADLINE" >> "$GITHUB_ENV"
+      - name: Generate bound enrichment
+        shell: bash
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          set -euo pipefail
+          node scripts/generate-translations.mjs --facts "${RUNNER_TEMP}/repository-facts.json" --events "${RUNNER_TEMP}/repository-events.json" --enrichment-index-out "${RUNNER_TEMP}/enrichment-index.json" --output-root "${RUNNER_TEMP}/candidate"
+      - name: Record core repository snapshot
         shell: bash
         run: |
           set -euo pipefail
           CANDIDATE="${RUNNER_TEMP}/candidate"
-          cd "$CANDIDATE"
+          node scripts/update-trending.mjs --render-facts "${RUNNER_TEMP}/repository-facts.json" --events "${RUNNER_TEMP}/repository-events.json" --enrichment-index "${RUNNER_TEMP}/enrichment-index.json" --page-template "$CANDIDATE/index.html" --page-out "${RUNNER_TEMP}/rendered-index.html" --cache-out "${RUNNER_TEMP}/rendered-repo-summaries.json" --snapshot-out "${RUNNER_TEMP}/recorder-snapshot.json"
+          python scripts/record_repository_observations.py --parent-database "$PARENT_DATABASE" --candidate-database "$CANDIDATE/data/repository-observations.sqlite" --snapshot "${RUNNER_TEMP}/recorder-snapshot.json" --events "${RUNNER_TEMP}/repository-events.json" --enrichment-index "${RUNNER_TEMP}/enrichment-index.json" --parent-evidence "${RUNNER_TEMP}/parent-evidence.json" --legacy-star-database data/star-observations.sqlite --legacy-membership-database data/trending-membership.sqlite --legacy-public-star-history data/legacy-public-star-history.json --readme-state "$CANDIDATE/data/readme-state.json"
+      - name: Derive and render public artifacts
+        shell: bash
+        env:
+          SNAPSHOT_ID: ${{ steps.context.outputs.snapshot_id }}
+        run: |
+          set -euo pipefail
+          CANDIDATE="${RUNNER_TEMP}/candidate"
+          cp "${RUNNER_TEMP}/rendered-index.html" "$CANDIDATE/index.html"
+          cp "${RUNNER_TEMP}/rendered-repo-summaries.json" "$CANDIDATE/data/repo-summaries.json"
+          python scripts/derive_repository_artifacts.py derive --database "$CANDIDATE/data/repository-observations.sqlite" --legacy-membership-database data/trending-membership.sqlite --enrichment-index "${RUNNER_TEMP}/enrichment-index.json" --snapshot-id "$SNAPSHOT_ID" --snapshot-export-out "${RUNNER_TEMP}/repository-snapshot-export.json" --membership-status-out "$CANDIDATE/data/membership-status.json" --star-history-out "${RUNNER_TEMP}/derived-star-history.json" --insights-out "${RUNNER_TEMP}/repository-insights.json"
+          node scripts/update-latest-feed.mjs --snapshot-export "${RUNNER_TEMP}/repository-snapshot-export.json" --latest "$CANDIDATE/data/latest.json"
+          python scripts/generate_atom_feeds.py --page "$CANDIDATE/index.html" --latest "$CANDIDATE/data/latest.json" --database "$CANDIDATE/data/repository-observations.sqlite" --legacy-membership-database data/trending-membership.sqlite --feed "$CANDIDATE/feed.xml" --changes "$CANDIDATE/changes.xml"
+          node scripts/update-star-history.mjs --input "${RUNNER_TEMP}/derived-star-history.json" --out "$CANDIDATE/star-history.json"
+      - name: Finalize repository derivatives
+        shell: bash
+        env:
+          SNAPSHOT_ID: ${{ steps.context.outputs.snapshot_id }}
+        run: |
+          set -euo pipefail
+          python scripts/derive_repository_artifacts.py finalize --database "${RUNNER_TEMP}/candidate/data/repository-observations.sqlite" --snapshot-id "$SNAPSHOT_ID" --insights "${RUNNER_TEMP}/repository-insights.json" --candidate-root "${RUNNER_TEMP}/candidate"
+      - name: Validate whole candidate
+        shell: bash
+        env:
+          SNAPSHOT_ID: ${{ steps.context.outputs.snapshot_id }}
+        run: |
+          set -euo pipefail
+          CANDIDATE="${RUNNER_TEMP}/candidate"
+          python scripts/derive_repository_artifacts.py verify-pages --database "$CANDIDATE/data/repository-observations.sqlite" --snapshot-id "$SNAPSHOT_ID" --candidate-root "$CANDIDATE" --contract-out "${RUNNER_TEMP}/candidate-artifact-contract.json"
           node scripts/validate-enrichment-coverage.mjs --root "$CANDIDATE" --json-counts
-          python scripts/record_trending_membership.py --validate-only
-          python scripts/generate_atom_feeds.py --validate-only
+          python scripts/generate_atom_feeds.py --page "$CANDIDATE/index.html" --latest "$CANDIDATE/data/latest.json" --database "$CANDIDATE/data/repository-observations.sqlite" --legacy-membership-database data/trending-membership.sqlite --feed "$CANDIDATE/feed.xml" --changes "$CANDIDATE/changes.xml" --validate-only
           node scripts/prepare-refresh-candidate.mjs --verify-generated "${RUNNER_TEMP}/candidate-baseline" --candidate "$CANDIDATE"
-          node --input-type=module <<'NODE'
-          import assert from "node:assert/strict";
-          import { readFile } from "node:fs/promises";
-          import { extractRepos } from "./scripts/update-star-history.mjs";
-          await import("./star-history.js");
-          const repos = extractRepos(await readFile("index.html", "utf8"));
-          const cache = globalThis.StarHistory.normalizeCache(JSON.parse(await readFile("star-history.json", "utf8")));
-          assert.deepEqual([...cache.keys()].map(value => value.toLowerCase()).sort(), repos.map(repo => repo.slug.toLowerCase()).sort());
-          NODE
-          git diff --check --no-index /dev/null data/latest.json || [ "$?" = "1" ]
-      - name: Publish generated commit
+      - name: Build and probe validated candidate
+        shell: bash
+        env:
+          SNAPSHOT_ID: ${{ steps.context.outputs.snapshot_id }}
+        run: |
+          set -euo pipefail
+          PROOF_ROOT="${RUNNER_TEMP}/candidate-proof"
+          cp -a "${RUNNER_TEMP}/candidate" "$PROOF_ROOT"
+          git -C "$PROOF_ROOT" init -q
+          git -C "$PROOF_ROOT" config user.name candidate-proof
+          git -C "$PROOF_ROOT" config user.email candidate-proof@example.invalid
+          git -C "$PROOF_ROOT" add --all
+          git -C "$PROOF_ROOT" commit -qm "candidate proof"
+          PROOF_SHA="$(git -C "$PROOF_ROOT" rev-parse HEAD)"
+          node scripts/build-pages-artifact.mjs --source "$PROOF_ROOT" --out "${RUNNER_TEMP}/validated-pages-artifact" --source-sha "$PROOF_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "${RUNNER_TEMP}/candidate-artifact-contract.json"
+          (cd "$PROOF_ROOT" && node "$GITHUB_WORKSPACE/scripts/probe-production.mjs" --artifact-dir "${RUNNER_TEMP}/validated-pages-artifact" --source-sha "$PROOF_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "${RUNNER_TEMP}/candidate-artifact-contract.json")
+      - name: Promote and scan staged candidate
         id: publish
         shell: bash
         env:
           ORIGINAL_SHA: ${{ steps.state.outputs.original_sha }}
+          SNAPSHOT_ID: ${{ steps.context.outputs.snapshot_id }}
         run: |
           set -euo pipefail
           CANDIDATE="${RUNNER_TEMP}/candidate"
+          NOW_MS="$(printf '%s' "$EPOCHREALTIME" | tr -d '.' | cut -c1-13)"
+          [ "$NOW_MS" -lt "$(( REFRESH_HARD_DEADLINE_EPOCH_MS - REFRESH_TEARDOWN_CUSHION_MS ))" ] || { echo "::error::refresh teardown cushion reached"; exit 1; }
+          git fetch origin main
+          [ "$ORIGINAL_SHA" = "$(git rev-parse refs/remotes/origin/main)" ] || { echo "::error::origin/main advanced during refresh"; exit 1; }
           cp "$CANDIDATE/index.html" index.html
           cp "$CANDIDATE/data/repo-summaries.json" data/repo-summaries.json
-          cp "$CANDIDATE/data/star-observations.sqlite" data/star-observations.sqlite
-          cp "$CANDIDATE/data/trending-membership.sqlite" data/trending-membership.sqlite
+          cp "$CANDIDATE/data/repository-observations.sqlite" data/repository-observations.sqlite
+          cp "$CANDIDATE/data/readme-state.json" data/readme-state.json
           cp "$CANDIDATE/data/membership-status.json" data/membership-status.json
           cp "$CANDIDATE/data/latest.json" data/latest.json
           cp "$CANDIDATE/data/translation-sources.json" data/translation-sources.json
@@ -226,33 +244,44 @@ jobs:
           while IFS= read -r changed_path; do
             [ -z "$changed_path" ] && continue
             case "$changed_path" in
-              index.html|data/repo-summaries.json|data/star-observations.sqlite|data/trending-membership.sqlite|data/membership-status.json|data/latest.json|data/translation-sources.json|feed.xml|changes.xml|star-history.json|translations/*.json) ;;
+              index.html|data/repo-summaries.json|data/repository-observations.sqlite|data/readme-state.json|data/membership-status.json|data/latest.json|data/translation-sources.json|feed.xml|changes.xml|star-history.json|translations/*.json) ;;
               *) echo "::error::Unexpected generated output: $changed_path"; exit 1 ;;
             esac
           done <<< "$changed_paths"
+          git add -- index.html data/repo-summaries.json data/repository-observations.sqlite data/readme-state.json data/membership-status.json data/latest.json data/translation-sources.json feed.xml changes.xml star-history.json translations/
+          if git diff --cached --quiet; then
+            echo "::error::version-1 refresh requires one nonempty generated child"
+            exit 1
+          fi
+          STAGED_DATABASE="$(mktemp "${RUNNER_TEMP}/staged-repository-observations.XXXXXX.sqlite")"
+          trap 'rm -f "$STAGED_DATABASE"' EXIT
+          git show :data/repository-observations.sqlite > "$STAGED_DATABASE"
+          python scripts/scan_repository_observations.py --database "$STAGED_DATABASE" --expect-snapshot "$SNAPSHOT_ID"
+          set +e
+          git grep --cached -qE '(sk-ant-[[:alnum:]_-]{20,}|gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- index.html data/repo-summaries.json data/readme-state.json data/membership-status.json data/latest.json data/translation-sources.json feed.xml changes.xml star-history.json translations/
+          SCAN_STATUS=$?
+          set -e
+          case "$SCAN_STATUS" in
+            0) echo "::error::Potential secret detected in generated text outputs"; exit 1 ;;
+            1) ;;
+            *) echo "::error::Staged text secret scan failed"; exit 1 ;;
+          esac
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: refresh trending snapshot"
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          [ "$SOURCE_SHA" != "$ORIGINAL_SHA" ]
+          [ "$(git rev-parse "${SOURCE_SHA}^")" = "$ORIGINAL_SHA" ]
           git fetch origin main
           [ "$ORIGINAL_SHA" = "$(git rev-parse refs/remotes/origin/main)" ] || { echo "::error::origin/main advanced during refresh"; exit 1; }
-          git add -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json data/latest.json data/translation-sources.json feed.xml changes.xml star-history.json translations/
-          if git diff --cached --quiet; then
-            SOURCE_SHA="$ORIGINAL_SHA"
-          else
-            set +e
-            git grep --cached -qE '(gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- index.html data/repo-summaries.json data/star-observations.sqlite data/trending-membership.sqlite data/membership-status.json data/latest.json data/translation-sources.json feed.xml changes.xml star-history.json translations/
-            SCAN_STATUS=$?
-            set -e
-            case "$SCAN_STATUS" in
-              0) echo "::error::Potential secret detected in generated outputs"; exit 1 ;;
-              1) ;;
-              *) echo "::error::Secret scan failed"; exit 1 ;;
-            esac
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "chore: refresh trending snapshot"
-            SOURCE_SHA="$(git rev-parse HEAD)"
-            git push origin HEAD:main
-          fi
+          git push origin HEAD:main
           echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
-      - name: Build and locally probe candidate Pages artifact
+      - name: Publish generated child commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          [ "${{ steps.publish.outputs.source_sha }}" = "$(git rev-parse HEAD)" ]
+      - name: Build and locally probe committed Pages artifact
         shell: bash
         env:
           SOURCE_SHA: ${{ steps.publish.outputs.source_sha }}
@@ -262,8 +291,9 @@ jobs:
           PAGES_SOURCE="${RUNNER_TEMP}/pages-source"
           mkdir "$PAGES_SOURCE"
           git archive --format=tar "$SOURCE_SHA" | tar -x -C "$PAGES_SOURCE"
-          node scripts/build-pages-artifact.mjs --source "$PAGES_SOURCE" --out "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID"
-          node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID"
+          python scripts/derive_repository_artifacts.py export-contract --database "$PAGES_SOURCE/data/repository-observations.sqlite" --snapshot-id "$SNAPSHOT_ID" --contract-out "${RUNNER_TEMP}/committed-artifact-contract.json"
+          node scripts/build-pages-artifact.mjs --source "$PAGES_SOURCE" --out "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "${RUNNER_TEMP}/committed-artifact-contract.json"
+          node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "${RUNNER_TEMP}/committed-artifact-contract.json"
       - name: Upload recovery artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
@@ -280,7 +310,7 @@ jobs:
     name: Deploy candidate Pages artifact
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     permissions:
       pages: write
       id-token: write
@@ -297,7 +327,7 @@ jobs:
     name: Probe production candidate
     needs: [build, deploy]
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     permissions:
       contents: read
     steps:
@@ -308,15 +338,23 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24"
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
       - name: Probe production candidate
-        run: node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --source-sha "${{ needs.build.outputs.source_sha }}" --snapshot-id "${{ needs.build.outputs.snapshot_id }}"
+        shell: bash
+        run: |
+          set -euo pipefail
+          CONTRACT="${RUNNER_TEMP}/production-artifact-contract.json"
+          python scripts/derive_repository_artifacts.py export-contract --database data/repository-observations.sqlite --snapshot-id "${{ needs.build.outputs.snapshot_id }}" --contract-out "$CONTRACT"
+          node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --source-sha "${{ needs.build.outputs.source_sha }}" --snapshot-id "${{ needs.build.outputs.snapshot_id }}" --artifact-contract "$CONTRACT"
 
   recovery:
     name: Recover prior Pages artifact
     needs: [build, deploy, verify]
     if: ${{ always() && needs.verify.result == 'failure' && needs.deploy.result == 'success' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     permissions:
       contents: read
       pages: write
@@ -336,12 +374,4 @@ jobs:
         with:
           artifact_name: github-pages-recovery-${{ github.run_id }}
       - name: Verify recovered production
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ "${{ needs.build.outputs.recovery_version }}" = "0" ]; then
-            node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --legacy-recovery-sha "${{ needs.build.outputs.recovery_source_sha }}"
-          else
-            RECOVERY_SNAPSHOT_ID="$(git show "${{ needs.build.outputs.recovery_source_sha }}:data/latest.json" | node -e 'let input=""; process.stdin.on("data", chunk => input += chunk); process.stdin.on("end", () => process.stdout.write(JSON.parse(input).snapshotId))')"
-            node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --source-sha "${{ needs.build.outputs.recovery_source_sha }}" --snapshot-id "$RECOVERY_SNAPSHOT_ID"
-          fi
+        run: node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --legacy-recovery-sha "${{ needs.build.outputs.recovery_source_sha }}"

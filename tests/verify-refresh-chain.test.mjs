@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import http from "node:http";
@@ -66,13 +66,17 @@ test("workflow receipt requires exact run identity and exact deploy/probe jobs",
   assert.throws(() => validateWorkflowRun({ ...run, jobs: run.jobs.map(job => job.databaseId === 3 ? { ...job, status: "completed", conclusion: null } : job) }, 20), /job schema/i);
 });
 
-test("artifact source is the run head or exactly one permitted generated child", () => {
+test("v1 requires one permitted generated child while v0 recovery preserves run-head reuse", () => {
   const head = "a".repeat(40);
   const child = "b".repeat(40);
-  assert.equal(assertSourceBoundToRunHead(head, head, () => assert.fail("Git must not run")), true);
-  assert.equal(assertSourceBoundToRunHead(head, child, args => args[0] === "show" ? head : "data/latest.json\nindex.html"), true);
+  assert.throws(() => assertSourceBoundToRunHead(head, head, () => assert.fail("Git must not run")), /generated child/i);
+  assert.equal(assertSourceBoundToRunHead(head, head, () => assert.fail("Git must not run"), { version: 0 }), true);
+  assert.equal(assertSourceBoundToRunHead(head, child, args => args[0] === "show" ? head : "data/latest.json\ndata/readme-state.json\ndata/repository-observations.sqlite\nindex.html"), true);
   assert.throws(() => assertSourceBoundToRunHead(head, child, args => args[0] === "show" ? "c".repeat(40) : "data/latest.json"), /direct generated/i);
   assert.throws(() => assertSourceBoundToRunHead(head, child, args => args[0] === "show" ? head : "repo-filters.js"), /non-generated/i);
+  assert.throws(() => assertSourceBoundToRunHead(head, child, args => args[0] === "show" ? head : "data/star-observations.sqlite"), /non-generated/i);
+  assert.throws(() => assertSourceBoundToRunHead(head, child, args => args[0] === "show" ? head : "data/trending-membership.sqlite"), /non-generated/i);
+  assert.throws(() => assertSourceBoundToRunHead(head, child, args => args[0] === "show" ? head : "data/legacy-public-star-history.json"), /non-generated/i);
 });
 
 test("assembled verifyRefreshChain binds expected, later run, origin and final probe", async () => {
@@ -251,6 +255,30 @@ async function runVerifier(directory, { artifact, expectedArtifact = artifact, r
   const statePath = join(directory, "origin-state");
   const sourcesPath = join(directory, "translation-sources.json");
   const configPath = join(directory, "gh-config.json");
+  const databasePath = join(directory, "data", "repository-observations.sqlite");
+  const database = spawnSync(process.env.PYTHON ?? "python", ["-c", [
+    "import sqlite3, sys",
+    "from pathlib import Path",
+    "from scripts.derive_repository_artifacts import derive_repository_insights, finalize_snapshot_derivatives, hash_pages_artifacts",
+    "from scripts.record_repository_observations import PAGES_BASE_ARTIFACT_PATHS, prepare_candidate_database",
+    "from tests.test_repository_observations import record_writer_snapshot, sha1, writer_events, writer_legacy_baselines, writer_payload",
+    "root, snapshot_id = Path(sys.argv[1]), sys.argv[2]",
+    "database = root / 'data' / 'repository-observations.sqlite'",
+    "database.exists() and sys.exit(0)",
+    "legacy_root = root / 'legacy-fixture'",
+    "legacy_root.mkdir(exist_ok=True)",
+    "paths, receipt = writer_legacy_baselines(legacy_root)",
+    "payload = writer_payload(snapshot_id=snapshot_id, utc='2026-08-26T10:07:00.000Z', kst='2026-08-26T19:07:00.000+09:00', stats_date='2026-08-26', run_kind='migration_baseline')",
+    "payload['legacy_baseline_receipt'] = receipt",
+    "payload['legacy_baselines'] = paths",
+    "prepare_candidate_database(root / 'missing-parent.sqlite', database, {'missing': True}, paths)",
+    "record_writer_snapshot(database, payload, writer_events(head=sha1(), transition='baseline'), {})",
+    "connection = sqlite3.connect(database)",
+    "insights = derive_repository_insights(connection, 1)",
+    "connection.close()",
+    "finalize_snapshot_derivatives(database, snapshot_id, insights, hash_pages_artifacts(root, PAGES_BASE_ARTIFACT_PATHS))",
+  ].join("; "), directory, artifact.snapshotId], { cwd: fileURLToPath(new URL("..", import.meta.url)), encoding: "utf8" });
+  if (database.status !== 0) throw new Error(database.stderr);
   await writeFile(statePath, originBefore);
   await writeFile(sourcesPath, artifact.sourcesBytes);
   const configuredArtifacts = {};
@@ -258,6 +286,7 @@ async function runVerifier(directory, { artifact, expectedArtifact = artifact, r
     const zipPath = join(directory, `artifact-${runId}.zip`);
     await writeFile(zipPath, value.archive);
     configuredArtifacts[runId] = { id: Number(runId) + 1000, zipPath, size: value.archive.length };
+    if (!Object.hasOwn(parentBySource, value.sourceSha) && views[runId]) parentBySource[value.sourceSha] = views[runId].headSha;
   }
   await writeFile(configPath, JSON.stringify({ runs, views, artifacts: configuredArtifacts }));
   await writeFile(ghScript, `import { readFileSync } from "node:fs";
@@ -273,7 +302,8 @@ else if(args[0]==="rev-parse") process.stdout.write(readFileSync(process.env.ORI
 else if(args[0]==="merge-base") process.exit(process.env.ANCESTOR==="false"?1:0);
 else if(args[0]==="show"&&args[1]==="-s") { const map=JSON.parse(process.env.PARENT_BY_SOURCE); process.stdout.write((map[args.at(-1)]??"")+"\\n"); }
 else if(args[0]==="diff-tree") { const map=JSON.parse(process.env.DIFF_BY_SOURCE); process.stdout.write((map[args.at(-1)]??"data/latest.json")+"\\n"); }
-else if(args[0]==="show"&&args.at(-1).endsWith(":data/translation-sources.json")) process.stdout.write(readFileSync(process.env.SOURCES_PATH));
+  else if(args[0]==="show"&&args.at(-1).endsWith(":data/translation-sources.json")) process.stdout.write(readFileSync(process.env.SOURCES_PATH));
+  else if(args[0]==="show"&&args.at(-1).endsWith(":data/repository-observations.sqlite")) process.stdout.write(readFileSync(process.env.DATABASE_PATH));
 else process.exit(92);`);
   const server = await startArtifactServer(directory, serverOptions);
   const script = fileURLToPath(new URL("../scripts/verify-refresh-chain.mjs", import.meta.url));
@@ -283,7 +313,7 @@ else process.exit(92);`);
   ];
   const child = spawn(process.execPath, [script, ...args], {
     env: { ...process.env, GH_BIN: process.execPath, GH_SCRIPT: ghScript, GIT_BIN: process.execPath, GIT_SCRIPT: gitScript, GITHUB_REPOSITORY: "owner/repo",
-      GH_CONFIG: configPath, ORIGIN_STATE: statePath, ORIGIN_AFTER: originAfter, SOURCES_PATH: sourcesPath,
+      GH_CONFIG: configPath, ORIGIN_STATE: statePath, ORIGIN_AFTER: originAfter, SOURCES_PATH: sourcesPath, DATABASE_PATH: databasePath,
       PARENT_BY_SOURCE: JSON.stringify(parentBySource), DIFF_BY_SOURCE: JSON.stringify(diffBySource), VERIFY_TIMEOUT_MS: String(timeoutMs) },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -302,8 +332,8 @@ test("verifier CLI assembles fake GitHub, fake Git, raw artifacts, fresh origin 
   await mkdir(expectedDir); await mkdir(productionDir);
   const expectedArtifact = await makeArtifact(expectedDir, expected.sourceSha, expected.snapshotId);
   const productionArtifact = await makeArtifact(productionDir, later.sourceSha, later.snapshotId);
-  const run20 = successfulRun(20, expected.sourceSha, "2026-08-26T10:07:00Z");
-  const run21 = successfulRun(21, later.sourceSha, "2026-08-26T12:07:00Z", "schedule");
+  const run20 = successfulRun(20, "1".repeat(40), "2026-08-26T10:07:00Z");
+  const run21 = successfulRun(21, "2".repeat(40), "2026-08-26T12:07:00Z", "schedule");
   const pending = [
     { databaseId: 18, headSha: expected.sourceSha, event: "schedule", status: "queued", conclusion: null, createdAt: "2026-08-26T11:00:00Z", url: "https://github.com/owner/repo/actions/runs/18" },
     { databaseId: 19, headSha: later.sourceSha, event: "schedule", status: "in_progress", conclusion: "", createdAt: "2026-08-26T11:30:00Z", url: "https://github.com/owner/repo/actions/runs/19" },
@@ -336,7 +366,7 @@ test("verifier CLI assembles fake GitHub, fake Git, raw artifacts, fresh origin 
   const zero = await runVerifier(productionDir, { artifact: productionArtifact, currentProduction: true, runs: pending, views: {}, artifactByRun: {} });
   assert.notEqual(zero.status, 0);
   assert.match(zero.stderr, /exactly one/i);
-  const run22 = successfulRun(22, later.sourceSha, "2026-08-26T13:07:00Z", "schedule");
+  const run22 = successfulRun(22, "2".repeat(40), "2026-08-26T13:07:00Z", "schedule");
   const two = await runVerifier(productionDir, { artifact: productionArtifact, currentProduction: true, runs: [run21, run22], views: { 21: run21, 22: run22 }, artifactByRun: { 21: productionArtifact, 22: productionArtifact } });
   assert.notEqual(two.status, 0);
   assert.match(two.stderr, /exactly one/i);

@@ -12,11 +12,14 @@ from unittest.mock import patch
 from scripts.derive_repository_artifacts import (
     _utc_milliseconds,
     derive_daily_star_series,
+    derive_candidate_artifacts,
     derive_membership_timeline,
     derive_repository_insights,
     derive_star_history,
+    export_parent_inputs,
     finalize_snapshot_derivatives,
     hash_pages_artifacts,
+    verify_pages_artifacts,
 )
 from scripts.record_repository_observations import (
     PAGES_BASE_ARTIFACT_PATHS,
@@ -49,7 +52,14 @@ def insert_run(connection, seq, utc, stats_date, repository_count=1):
     snapshot_id = f"{instant.strftime('%Y%m%d%H%M%S')}-{seq:016x}"
     parent = connection.execute("SELECT snapshot_id,chain_sha256 FROM snapshot_runs WHERE snapshot_seq=?", (seq - 1,)).fetchone() if seq > 1 else None
     core = hashlib.sha256(f"core-{seq}".encode()).hexdigest()
-    chain = hashlib.sha256(f"chain-{seq}".encode()).hexdigest()
+    schema = connection.execute("SELECT schema_fingerprint_sha256 FROM schema_meta").fetchone()[0]
+    chain = digest({
+        "schema_fingerprint_sha256": schema,
+        "parent_chain_sha256": None if parent is None else parent[1],
+        "core_payload_sha256": core,
+        "snapshot_id": snapshot_id,
+        "snapshot_seq": seq,
+    })
     connection.execute(
         "INSERT INTO snapshot_runs VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         (seq, snapshot_id, "migration_baseline" if seq == 1 else "refresh", utc, kst, stats_date,
@@ -75,7 +85,7 @@ def insert_profile(connection, profile_id, slug, display_slug=None):
 
 
 def insert_item(connection, seq, slug, profile_id, *, stars, display_rank=1, daily=1,
-                weekly=None, monthly=None, status="stayed"):
+                weekly=None, monthly=None, status="stayed", head="a" * 40):
     columns = [row[1] for row in connection.execute("PRAGMA table_info(snapshot_items)")]
     row = {
         "snapshot_seq": seq, "slug": slug, "profile_id": profile_id, "display_rank": display_rank,
@@ -86,7 +96,7 @@ def insert_item(connection, seq, slug, profile_id, *, stars, display_rank=1, dai
         "selected_language_color_source_period": "daily", "stars": stars, "forks": 0,
         "watchers_count": 0, "subscribers": 0, "open_issues_and_pull_requests": 0, "contributors": 0,
         "updated_at": connection.execute("SELECT observed_at_utc FROM snapshot_runs WHERE snapshot_seq=?", (seq,)).fetchone()[0],
-        "pushed_at": None, "default_branch_head_sha": "a" * 40,
+        "pushed_at": None, "default_branch_head_sha": head,
         "previous_default_branch_head_sha": None, "head_transition": "baseline", "readme_status": "absent",
         "readme_path": None, "readme_blob_sha": None, "readme_content_sha256": None,
         "membership_status": "baseline_present" if seq == 1 else status, "release_count": 0,
@@ -128,22 +138,97 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
 
     def test_required_derivation_interfaces_exist(self):
         from scripts.derive_repository_artifacts import (
+            derive_candidate_artifacts,
             derive_daily_star_series,
             derive_membership_timeline,
             derive_repository_insights,
             derive_star_history,
+            export_parent_inputs,
             finalize_snapshot_derivatives,
             hash_pages_artifacts,
+            verify_pages_artifacts,
         )
 
         self.assertTrue(all(callable(value) for value in (
             derive_repository_insights,
+            derive_candidate_artifacts,
             derive_daily_star_series,
             derive_membership_timeline,
             derive_star_history,
             hash_pages_artifacts,
+            export_parent_inputs,
+            verify_pages_artifacts,
             finalize_snapshot_derivatives,
         )))
+
+    def test_missing_parent_export_is_content_free_and_bound_to_baseline_receipt(self):
+        receipt = {"version": 1, "sources": {}}
+        evidence_path = self.root / "parent-evidence.json"
+        heads_path = self.root / "prior-heads.json"
+        result = export_parent_inputs(
+            self.root / "missing-parent.sqlite",
+            receipt,
+            None,
+            evidence_path,
+            heads_path,
+        )
+        self.assertEqual(result, {"parent_snapshot_id": None, "head_count": 0})
+        self.assertEqual(json.loads(evidence_path.read_text(encoding="utf-8")), {
+            "version": 1,
+            "parent_database": {"missing": True},
+            "legacy_baseline_receipt": receipt,
+        })
+        self.assertEqual(json.loads(heads_path.read_text(encoding="utf-8")), {
+            "version": 1,
+            "snapshotId": None,
+            "scope": "all_historical",
+            "parentDatabaseSha256": None,
+            "snapshotSeq": None,
+            "headCount": 0,
+            "headsSha256": digest({}),
+            "heads": {},
+        })
+
+    def test_parent_export_includes_last_head_for_every_historical_slug(self):
+        database = self.root / "parent.sqlite"
+        create_database(database)
+        with closing(sqlite3.connect(database)) as connection:
+            connection.execute("PRAGMA foreign_keys=ON")
+            insert_run(connection, 1, "2026-08-28T00:00:00.000Z", "2026-08-28", repository_count=2)
+            parent_snapshot_id = insert_run(
+                connection,
+                2,
+                "2026-08-28T02:00:00.000Z",
+                "2026-08-28",
+                repository_count=1,
+            )
+            insert_profile(connection, 1, "owner/a")
+            insert_profile(connection, 2, "owner/b")
+            insert_item(connection, 1, "owner/a", 1, stars=1, display_rank=1, daily=1, head="a" * 40)
+            insert_item(connection, 1, "owner/b", 2, stars=2, display_rank=2, daily=2, head="b" * 40)
+            insert_item(connection, 2, "owner/a", 1, stars=3, display_rank=1, daily=1, head="c" * 40)
+            connection.commit()
+
+        evidence_path = self.root / "parent-evidence.json"
+        heads_path = self.root / "prior-heads.json"
+        export_parent_inputs(database, {"version": 1, "sources": {}}, parent_snapshot_id, evidence_path, heads_path)
+        payload = json.loads(heads_path.read_text(encoding="utf-8"))
+        expected_heads = {
+            "owner/a": {"branch": "main", "headSha": "c" * 40},
+            "owner/b": {"branch": "main", "headSha": "b" * 40},
+        }
+        self.assertEqual(payload, {
+            "version": 1,
+            "snapshotId": parent_snapshot_id,
+            "scope": "all_historical",
+            "parentDatabaseSha256": _file_sha256(database),
+            "snapshotSeq": 2,
+            "headCount": 2,
+            "headsSha256": digest(expected_heads),
+            "heads": expected_heads,
+        })
+        self.assertIn("owner/b", payload["heads"])
+        self.assertNotIn("owner/c", payload["heads"])
 
     def assert_sanitized_failure(self, action, expected_message, forbidden):
         try:
@@ -412,6 +497,18 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
         result = finalize_snapshot_derivatives(database, snapshot_id, insights, hashes)
         self.assertTrue(result.changed)
         self.assertFalse(finalize_snapshot_derivatives(database, snapshot_id, insights, hashes).changed)
+        contract = verify_pages_artifacts(database, snapshot_id, candidate_root)
+        self.assertEqual(contract["snapshotId"], snapshot_id)
+        self.assertEqual(
+            [row["artifact_path"] for row in contract["artifacts"]],
+            sorted(PAGES_BASE_ARTIFACT_PATHS),
+        )
+        contract_target = candidate_root.joinpath(*PAGES_BASE_ARTIFACT_PATHS[0].split("/"))
+        contract_bytes = contract_target.read_bytes()
+        contract_target.write_bytes(b"contract mutation")
+        with self.assertRaisesRegex(ValueError, "contract"):
+            verify_pages_artifacts(database, snapshot_id, candidate_root)
+        contract_target.write_bytes(contract_bytes)
         with closing(sqlite3.connect(database)) as connection:
             core = connection.execute("SELECT core_payload_sha256,chain_sha256 FROM snapshot_runs").fetchone()
             self.assertEqual(connection.execute("SELECT COUNT(*) FROM repository_insights").fetchone(), (1,))

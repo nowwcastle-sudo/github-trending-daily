@@ -244,6 +244,34 @@ function hash(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
+function validateArtifactContract(value, snapshotId, paths) {
+  if (!exactKeys(value, ["version", "snapshotId", "artifacts"]) || value.version !== 1
+      || value.snapshotId !== snapshotId || !Array.isArray(value.artifacts)) {
+    throw new Error("invalid finalized artifact contract");
+  }
+  const expected = [...paths].sort();
+  const actual = [];
+  for (const row of value.artifacts) {
+    if (!exactKeys(row, ["artifact_path", "sha256", "byte_size"]) || typeof row.artifact_path !== "string"
+        || !SHA256_RE.test(row.sha256) || !Number.isSafeInteger(row.byte_size) || row.byte_size < 0) {
+      throw new Error("invalid finalized artifact contract");
+    }
+    safeTarget("/artifact-root", row.artifact_path);
+    actual.push(row.artifact_path);
+  }
+  if (actual.join("\0") !== expected.join("\0")) throw new Error("finalized artifact path set does not match Pages allowlist");
+  return value.artifacts;
+}
+
+async function verifyArtifactContract(sourceRoot, snapshotId, paths, contract) {
+  const rows = validateArtifactContract(contract, snapshotId, paths);
+  for (const row of rows) {
+    const bytes = await readRegularFile(sourceRoot, row.artifact_path);
+    if (hash(bytes) !== row.sha256) throw new Error(`finalized artifact hash does not match: ${row.artifact_path}`);
+    if (bytes.length !== row.byte_size) throw new Error(`finalized artifact size does not match: ${row.artifact_path}`);
+  }
+}
+
 export function validateDeploymentManifest(value, { version = 1 } = {}) {
   const keys = version === 1 ? ["version", "sourceSha", "snapshotId", "files"] : ["version", "legacyBootstrap", "sourceSha", "snapshotId", "files"];
   if (!exactKeys(value, keys) || value.version !== version || typeof value.sourceSha !== "string" || !SHA_RE.test(value.sourceSha) || !value.files || typeof value.files !== "object" || Array.isArray(value.files)) {
@@ -278,7 +306,7 @@ async function installArtifact({ sourceRoot, outDir, paths, manifest }) {
   return value;
 }
 
-export async function buildPagesArtifact({ sourceRoot, outDir, sourceSha, snapshotId }) {
+export async function buildPagesArtifact({ sourceRoot, outDir, sourceSha, snapshotId, artifactContract }) {
   if (!SHA_RE.test(sourceSha) || !SNAPSHOT_RE.test(snapshotId)) throw new Error("invalid artifact identity");
   const [latest, sources] = await Promise.all([
     readFile(path.join(sourceRoot, "data", "latest.json")).then(bytes => parseJsonStrict(bytes, "latest JSON")),
@@ -299,6 +327,7 @@ export async function buildPagesArtifact({ sourceRoot, outDir, sourceSha, snapsh
       throw new Error(`invalid translation envelope: ${repo.slug}`);
     }
   }
+  await verifyArtifactContract(sourceRoot, snapshotId, paths, artifactContract);
   return installArtifact({ sourceRoot, outDir, paths, manifest: { version: 1, sourceSha, snapshotId } });
 }
 
@@ -340,7 +369,7 @@ function parseArgs(argv) {
   }
   const expected = values.mode === "legacy"
     ? ["mode", "out", "source", "source-sha"]
-    : ["out", "snapshot-id", "source", "source-sha"];
+    : ["artifact-contract", "out", "snapshot-id", "source", "source-sha"];
   if (values.mode && values.mode !== "legacy") throw new Error("invalid arguments");
   if (Object.keys(values).sort().join("\0") !== expected.sort().join("\0") || expected.some(key => !values[key])) throw new Error("invalid arguments");
   return values;
@@ -350,7 +379,13 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   const manifest = args.mode === "legacy"
     ? await buildLegacyRecoveryArtifact({ sourceRoot: path.resolve(args.source), outDir: path.resolve(args.out), sourceSha: args["source-sha"] })
-    : await buildPagesArtifact({ sourceRoot: path.resolve(args.source), outDir: path.resolve(args.out), sourceSha: args["source-sha"], snapshotId: args["snapshot-id"] });
+    : await buildPagesArtifact({
+      sourceRoot: path.resolve(args.source),
+      outDir: path.resolve(args.out),
+      sourceSha: args["source-sha"],
+      snapshotId: args["snapshot-id"],
+      artifactContract: parseJsonStrict(await readFile(path.resolve(args["artifact-contract"])), "finalized artifact contract"),
+    });
   console.log(JSON.stringify(manifest));
 }
 

@@ -31,6 +31,13 @@ DEFAULT_DATABASE = REPOSITORY_ROOT / "data" / "trending-membership.sqlite"
 DEFAULT_STATUS = REPOSITORY_ROOT / "data" / "membership-status.json"
 
 
+def _reject_canonical_writer_target(database_path: str | Path):
+    requested = Path(database_path).resolve(strict=False)
+    canonical = DEFAULT_DATABASE.resolve(strict=False)
+    if os.path.normcase(str(requested)) == os.path.normcase(str(canonical)):
+        raise ValueError("Legacy writer may not target the canonical legacy membership database")
+
+
 @dataclass(frozen=True)
 class MembershipSnapshot:
     generated_at: str
@@ -429,6 +436,7 @@ def _replace_status(status_path: Path, value):
 
 def record_membership(database_path: str | Path, status_path: str | Path, snapshot: MembershipSnapshot) -> RecordMembershipResult:
     """Append one snapshot through a staged database and publish its derived status pair."""
+    _reject_canonical_writer_target(database_path)
     value = _validated_snapshot(snapshot)
     database_path = Path(database_path)
     status_path = Path(status_path)

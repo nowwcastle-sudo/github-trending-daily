@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import sqlite3
 import sys
@@ -28,6 +29,13 @@ CANONICAL_LEGACY_FINGERPRINT = "233800ae235f5f63033940f61743c41df0349f8b983692de
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PAGE = REPOSITORY_ROOT / "index.html"
 DEFAULT_DATABASE = REPOSITORY_ROOT / "data" / "star-observations.sqlite"
+
+
+def _reject_canonical_writer_target(database_path: str | Path):
+    requested = Path(database_path).resolve(strict=False)
+    canonical = DEFAULT_DATABASE.resolve(strict=False)
+    if os.path.normcase(str(requested)) == os.path.normcase(str(canonical)):
+        raise ValueError("Legacy writer may not target the canonical legacy star database")
 
 
 @dataclass(frozen=True)
@@ -401,6 +409,7 @@ def record_observations(
     require_canonical_legacy: bool = False,
 ) -> RecordResult:
     """Append one complete run atomically; existing observation rows never change."""
+    _reject_canonical_writer_target(database_path)
     _validate_repository_inputs(repositories)
     _validate_legacy_inputs(legacy_observations)
     path = Path(database_path)

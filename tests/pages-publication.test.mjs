@@ -17,7 +17,9 @@ import {
 import { prepareRefreshCandidate, verifyCandidateMutations } from "../scripts/prepare-refresh-candidate.mjs";
 import { probeArtifactDirectory, probeProduction } from "../scripts/probe-production.mjs";
 import { createRunContext } from "../scripts/run-context.mjs";
+import { bindFrozenEventEnvelope, hashCanonicalJson } from "../scripts/collect-repository-events.mjs";
 import { buildLatestFeed } from "../scripts/update-latest-feed.mjs";
+import { buildFrozenFactsEnvelope, renderFrozenCandidate } from "../scripts/update-trending.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const sourceSha = "a".repeat(40);
@@ -99,6 +101,75 @@ function sourceEntry(applicable = true) {
   };
 }
 
+function frozenRepository(context, index) {
+  const slug = `owner/repo-${index}`;
+  const profile = {
+    slug,
+    display_slug: slug,
+    description: null,
+    primary_language: null,
+    topics: [],
+    license_spdx: null,
+    archived: false,
+    is_fork: false,
+    default_branch: "main",
+    created_at: context.observedAtUtc,
+    field_tags: ["unclassified"],
+    form_tags: [],
+    tag_rule_version: 1,
+  };
+  const factSha = createHash("sha256").update(`fact-${index}`).digest("hex");
+  return {
+    ...profile,
+    default_branch_head_sha: (index + 1).toString(16).padStart(40, "0"),
+    display_rank: index + 1,
+    rank_daily: index + 1,
+    gain_daily: index,
+    rank_weekly: null,
+    gain_weekly: null,
+    rank_monthly: null,
+    gain_monthly: null,
+    language_color: "#112233",
+    stars: index + 1,
+    forks: index,
+    watchers_count: index + 1,
+    subscribers: index,
+    open_issues_and_pull_requests: index,
+    contributors: index + 1,
+    updated_at: context.observedAtUtc,
+    pushed_at: null,
+    readme_status: "absent",
+    readme_path: null,
+    readme_blob_sha: null,
+    readme_content_sha256: null,
+    provenance: {
+      repository: { api_path: `/repos/${slug}`, fact_sha256: factSha },
+      contributors: { api_path: `/repos/${slug}/contributors`, fact_sha256: factSha },
+      default_branch_head: { api_path: `/repos/${slug}/commits/main`, fact_sha256: factSha },
+      readme: { api_path: `/repos/${slug}/readme`, blob_api_path: null, status: "absent", path: null, blob_sha: null, content_sha256: null },
+      trending: {
+        daily: { source_path: "/trending?since=daily", rank: index + 1, gain: index, language_color: "#112233", fact_sha256: factSha },
+        weekly: { source_path: "/trending?since=weekly", rank: null, gain: null, language_color: null, fact_sha256: factSha },
+        monthly: { source_path: "/trending?since=monthly", rank: null, gain: null, language_color: null, fact_sha256: factSha },
+        language_color_selection: { rule: "daily_then_weekly_then_monthly", selected_period: "daily", value: "#112233" },
+      },
+    },
+  };
+}
+
+async function artifactContract(source, latest, sources, identity = snapshotId) {
+  const artifacts = [];
+  for (const artifact_path of expectedVersion1Paths(latest, sources)) {
+    const bytes = await readFile(join(source, ...artifact_path.split("/")));
+    artifacts.push({
+      artifact_path,
+      sha256: createHash("sha256").update(bytes).digest("hex"),
+      byte_size: bytes.length,
+    });
+  }
+  return { version: 1, snapshotId: identity, artifacts };
+}
+
 test("version-1 artifact path set is exact and derived from active applicable translations", () => {
   assert.deepEqual(VERSION_1_BASE_PATHS, [
     "changes.xml",
@@ -134,6 +205,163 @@ test("version-1 artifact path set is exact and derived from active applicable tr
   assert.ok(!VERSION_1_BASE_PATHS.includes("data/translation-sources.json"));
 });
 
+test("frozen manifest evidence survives the actual render to recorder boundary", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "render-record-boundary-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const context = createRunContext(new Date("2026-08-29T00:07:00.000Z"));
+  const repositories = Array.from({ length: 10 }, (_, index) => frozenRepository(context, index));
+  const productionManifestSha256 = "f".repeat(64);
+  const facts = buildFrozenFactsEnvelope({
+    context,
+    inputSourceSha: "c".repeat(40),
+    productionManifestStatus: "verified_v0",
+    productionManifestSha256,
+    repositories,
+    readmes: Object.fromEntries(repositories.map(repository => [repository.slug, {
+      path: null, blobSha: null, contentSha256: null, markdown: null,
+    }])),
+    trendingSourceSha256: {
+      daily: "1".repeat(64), weekly: "2".repeat(64), monthly: "3".repeat(64),
+    },
+    budgetReceipt: {
+      logicalRequests: 43,
+      httpAttempts: 43,
+      originEpochMs: Date.parse(context.observedAtUtc),
+      eventDeadlineEpochMs: Date.parse(context.observedAtUtc) + 15 * 60_000,
+    },
+  });
+  const events = bindFrozenEventEnvelope(facts, {
+    heads: repositories.map(repository => ({
+      slug: repository.slug,
+      branch: repository.default_branch,
+      headSha: repository.default_branch_head_sha,
+      transition: "baseline",
+    })),
+    releases: [],
+    latestReleaseIds: Object.fromEntries(repositories.map(repository => [repository.slug, null])),
+    commits: [],
+    estimates: repositories.map(repository => ({
+      slug: repository.slug,
+      rows: [],
+      sourcePayloadSha256: "d".repeat(64),
+      publicRows: [],
+    })),
+    budgetReceipt: { ...facts.budgetReceipt, logicalRequests: 83, httpAttempts: 83 },
+  });
+  const enrichmentIndex = {
+    version: 1,
+    snapshotId: facts.snapshotId,
+    activeSetSha256: facts.activeSetSha256,
+    factsSha256: facts.factsSha256,
+    eventsSha256: events.completeSetSha256,
+    repositories: Object.fromEntries(repositories.map(repository => {
+      const source = {
+        kind: "metadata_only",
+        slug: repository.slug,
+        profile_sha256: hashCanonicalJson({
+          slug: repository.slug,
+          display_slug: repository.display_slug,
+          description: repository.description,
+          primary_language: repository.primary_language,
+          topics: repository.topics,
+          license_spdx: repository.license_spdx,
+          archived: repository.archived,
+          is_fork: repository.is_fork,
+          default_branch: repository.default_branch,
+          created_at: repository.created_at,
+          field_tags: repository.field_tags,
+          form_tags: repository.form_tags,
+          tag_rule_version: repository.tag_rule_version,
+        }),
+        model: "claude-haiku-4-5",
+        schema_version: 2,
+        translation_applicable: false,
+      };
+      return [repository.slug, {
+        summary: {
+          content: { goal: "goal", usage: "usage", pros: "pros", cons: "cons", fit: "fit" },
+          source,
+        },
+      }];
+    })),
+  };
+  const factsPath = join(directory, "facts.json");
+  const eventsPath = join(directory, "events.json");
+  const enrichmentPath = join(directory, "enrichment.json");
+  const snapshotPath = join(directory, "recorder-snapshot.json");
+  const candidateRoot = join(directory, "candidate");
+  const candidateData = join(candidateRoot, "data");
+  await mkdir(candidateData, { recursive: true });
+  await Promise.all([
+    writeFile(factsPath, `${JSON.stringify(facts)}\n`),
+    writeFile(eventsPath, `${JSON.stringify(events)}\n`),
+    writeFile(enrichmentPath, `${JSON.stringify(enrichmentIndex)}\n`),
+  ]);
+  await renderFrozenCandidate({
+    factsPath,
+    eventsPath,
+    enrichmentIndexPath: enrichmentPath,
+    pageTemplatePath: join(root, "index.html"),
+    pageOut: join(candidateRoot, "index.html"),
+    cacheOut: join(candidateData, "repo-summaries.json"),
+    snapshotOut: snapshotPath,
+  });
+  const renderedSnapshot = JSON.parse(await readFile(snapshotPath, "utf8"));
+  assert.equal(renderedSnapshot.productionManifestStatus, "verified_v0");
+  assert.equal(renderedSnapshot.inputManifestSha256, productionManifestSha256);
+
+  const python = process.env.PYTHON ?? "python";
+  const legacyPublic = join(directory, "legacy-public.json");
+  const baselineReceipt = join(directory, "baseline-receipt.json");
+  const parentEvidence = join(directory, "parent-evidence.json");
+  const priorHeads = join(directory, "prior-heads.json");
+  const missingParent = join(directory, "missing-parent.sqlite");
+  const legacyStar = join(root, "data", "star-observations.sqlite");
+  const legacyMembership = join(root, "data", "trending-membership.sqlite");
+  await writeFile(legacyPublic, `${JSON.stringify({ version: 1, generatedAt: "2026-08-29", repositories: [] }, null, 2)}\n`);
+  const receipt = spawnSync(python, [
+    join(root, "scripts", "record_repository_observations.py"), "create-baseline-receipt",
+    "--legacy-star-database", legacyStar,
+    "--legacy-membership-database", legacyMembership,
+    "--legacy-public-star-history", legacyPublic,
+    "--output", baselineReceipt,
+  ], { cwd: root, encoding: "utf8" });
+  assert.equal(receipt.status, 0, receipt.stderr);
+  const exported = spawnSync(python, [
+    join(root, "scripts", "derive_repository_artifacts.py"), "export-parent-inputs",
+    "--parent-database", missingParent,
+    "--baseline-receipt", baselineReceipt,
+    "--expected-parent-snapshot", "none",
+    "--parent-evidence-out", parentEvidence,
+    "--prior-heads-out", priorHeads,
+  ], { cwd: root, encoding: "utf8" });
+  assert.equal(exported.status, 0, exported.stderr);
+  const recorded = spawnSync(python, [
+    join(root, "scripts", "record_repository_observations.py"),
+    "--parent-database", missingParent,
+    "--candidate-database", join(candidateData, "repository-observations.sqlite"),
+    "--snapshot", snapshotPath,
+    "--events", eventsPath,
+    "--enrichment-index", enrichmentPath,
+    "--parent-evidence", parentEvidence,
+    "--legacy-star-database", legacyStar,
+    "--legacy-membership-database", legacyMembership,
+    "--legacy-public-star-history", legacyPublic,
+    "--readme-state", join(candidateData, "readme-state.json"),
+  ], { cwd: root, encoding: "utf8" });
+  assert.equal(recorded.status, 0, recorded.stderr);
+  const inspected = spawnSync(python, ["-c", [
+    "import json, sqlite3, sys",
+    "from scripts.record_repository_observations import validate_schema",
+    "connection=sqlite3.connect(sys.argv[1])",
+    "validate_schema(connection)",
+    "row=connection.execute('SELECT input_source_sha,input_manifest_sha256,repository_count FROM snapshot_runs').fetchone()",
+    "print(json.dumps(row,separators=(',',':')))",
+  ].join(";"), join(candidateData, "repository-observations.sqlite")], { cwd: root, encoding: "utf8" });
+  assert.equal(inspected.status, 0, inspected.stderr);
+  assert.deepEqual(JSON.parse(inspected.stdout), [facts.inputSourceSha, productionManifestSha256, 10]);
+});
+
 test("builder hashes only the exact allowlist and exact translation envelope", async t => {
   const directory = await mkdtemp(join(tmpdir(), "pages-builder-"));
   const source = join(directory, "source");
@@ -151,24 +379,55 @@ test("builder hashes only the exact allowlist and exact translation envelope", a
   await writeFile(join(source, "translations", "owner__one.json"), `${JSON.stringify({ markdown: "# One", source: sources.sources["owner/one"] })}\n`);
   await writeFile(join(source, "data", "private.sqlite"), "private");
 
-  const manifest = await buildPagesArtifact({ sourceRoot: source, outDir: out, sourceSha, snapshotId });
+  const contract = await artifactContract(source, latest, sources);
+  const manifest = await buildPagesArtifact({ sourceRoot: source, outDir: out, sourceSha, snapshotId, artifactContract: contract });
   assert.deepEqual(Object.keys(manifest.files), expectedVersion1Paths(latest, sources));
   assert.equal(manifest.files["index.html"], createHash("sha256").update(validPage).digest("hex"));
   await assert.rejects(readFile(join(out, "data", "private.sqlite")));
 
   await writeFile(join(source, "translations", "owner__one.json"), `${JSON.stringify({ html: "legacy", source: sources.sources["owner/one"] })}\n`);
   await assert.rejects(
-    buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "bad"), sourceSha, snapshotId }),
+    buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "bad"), sourceSha, snapshotId, artifactContract: contract }),
     /translation envelope/i,
   );
   await writeFile(join(source, "data", "translation-sources.json"), `{"version":2,"version":2,"sources":{}}\n`);
-  await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "duplicate-source"), sourceSha, snapshotId }), /duplicate key/i);
+  await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "duplicate-source"), sourceSha, snapshotId, artifactContract: contract }), /duplicate key/i);
   await writeFile(join(source, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`);
   await writeFile(join(source, "translations", "owner__one.json"), `${JSON.stringify({ markdown: "# One", source: sources.sources["owner/one"] })}\n`);
   await writeFile(join(source, "index.html"), '<script>\nconst REPOS = [{"slug":"owner/one","slug":"owner/one"}];\n</script>\n');
-  await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "duplicate-page-json"), sourceSha, snapshotId }), /duplicate key/i);
+  await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "duplicate-page-json"), sourceSha, snapshotId, artifactContract: contract }), /duplicate key/i);
   await writeFile(join(source, "index.html"), '<script>\nconst REPOS = [{"slug":"Owner/One"},{"slug":"owner/one"}];\n</script>\n');
-  await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "case-fold-page"), sourceSha, snapshotId }), /duplicate|case-fold|identity/i);
+  await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "case-fold-page"), sourceSha, snapshotId, artifactContract: contract }), /duplicate|case-fold|identity/i);
+});
+
+test("builder requires exact DB artifact path hash and size equality", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "pages-artifact-contract-"));
+  const source = join(directory, "source");
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  await mkdir(source);
+  await writeTree(source, VERSION_1_BASE_PATHS);
+  const latest = { snapshotId, repos: [{ slug: "owner/one" }] };
+  const sources = { version: 2, sources: { "owner/one": sourceEntry(false) } };
+  await writeFile(join(source, "data", "latest.json"), `${JSON.stringify(latest)}\n`);
+  await writeFile(join(source, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`);
+  await writeFile(join(source, "index.html"), '<script>\nconst REPOS = [{"slug":"owner/one"}];\n</script>\n');
+  const contract = await artifactContract(source, latest, sources);
+
+  const missing = structuredClone(contract);
+  missing.artifacts.pop();
+  await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "missing"), sourceSha, snapshotId, artifactContract: missing }), /artifact.*path/i);
+
+  const changedHash = structuredClone(contract);
+  changedHash.artifacts[0].sha256 = "0".repeat(64);
+  await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "hash"), sourceSha, snapshotId, artifactContract: changedHash }), /artifact.*hash/i);
+
+  const changedSize = structuredClone(contract);
+  changedSize.artifacts[0].byte_size += 1;
+  await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "size"), sourceSha, snapshotId, artifactContract: changedSize }), /artifact.*size/i);
+
+  const extra = structuredClone(contract);
+  extra.artifacts.push({ artifact_path: "data/repository-observations.sqlite", sha256: "0".repeat(64), byte_size: 1 });
+  await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "extra"), sourceSha, snapshotId, artifactContract: extra }), /artifact.*path/i);
 });
 
 test("candidate preparation uses current committed code and production generated state", async t => {
@@ -508,10 +767,11 @@ if (command === "show") {
   }
 });
 
-test("real membership then Atom CLIs share one injected candidate identity before artifact construction", async t => {
+test("frozen membership and repository ledger produce one candidate Atom identity before artifact construction", async t => {
   const directory = await mkdtemp(join(tmpdir(), "candidate-chain-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
-  const context = createRunContext(new Date("2026-08-26T10:07:00.000Z"));
+  const context = createRunContext(new Date("2026-08-29T10:07:00.000Z"));
+  const legacyDatabase = join(root, "data", "trending-membership.sqlite");
   const repos = Array.from({ length: 10 }, (_, index) => ({
     slug: `owner/repo-${index}`, name: `owner / repo-${index}`, desc: `Description ${index}`,
     lang: "JavaScript", topics: ["testing"], stars: index, forks: index, issues: index,
@@ -519,16 +779,63 @@ test("real membership then Atom CLIs share one injected candidate identity befor
     summary: { goal: "g", usage: "u", pros: "p", cons: "c", fit: "f" },
     _stats_date: context.statsDateKst,
   }));
-  const latest = buildLatestFeed({ repos, snapshotId: context.snapshotId, statsDate: context.statsDateKst, generatedAt: context.observedAtUtc, signals: new Map() });
-  const pageRepos = repos.map(repo => ({ slug: repo.slug, desc: repo.desc, _stats_date: context.statsDateKst, _snapshot_id: context.snapshotId, _generated_at: context.observedAtUtc }));
-  const page = ["<html>", "// GENERATED:TRENDING-REPOS:START", `const REPOS = ${JSON.stringify(pageRepos)};`, "// GENERATED:TRENDING-REPOS:END", "</html>"].join("\n");
+  const snapshotExport = {
+    version: 1,
+    snapshotId: context.snapshotId,
+    generatedAt: context.observedAtUtc,
+    statsDate: context.statsDateKst,
+    repositories: repos.map(repo => ({
+      slug: repo.slug,
+      name: repo.name,
+      description: repo.desc,
+      lang: repo.lang,
+      topics: repo.topics,
+      stars: repo.stars,
+      forks: repo.forks,
+      issues: repo.issues,
+      contributors: repo.contributors,
+      gains: { daily: repo.stars_daily, weekly: null, monthly: null },
+      signal: null,
+      summary: repo.summary,
+      tag_rule_version: 1,
+      field_tags: ["dev-tools"],
+      form_tags: ["library"],
+    })),
+  };
+  const latest = buildLatestFeed(snapshotExport);
+  const pageFor = identity => ["<html>", "// GENERATED:TRENDING-REPOS:START", `const REPOS = ${JSON.stringify(repos.map(repo => ({ slug: repo.slug, desc: repo.desc, tag_rule_version: 1, field_tags: ["dev-tools"], form_tags: ["library"], _stats_date: identity.statsDateKst, _snapshot_id: identity.snapshotId, _generated_at: identity.observedAtUtc })))};`, "// GENERATED:TRENDING-REPOS:END", "</html>"].join("\n");
+  const page = pageFor(context);
   await writeFile(join(directory, "index.html"), page);
   await writeFile(join(directory, "latest.json"), `${JSON.stringify(latest)}\n`);
   const environment = { ...process.env, RUN_CONTEXT_JSON: JSON.stringify(context) };
-  const membership = spawnSync(process.env.PYTHON ?? "python", [join(root, "scripts", "record_trending_membership.py"), "--page", join(directory, "index.html"), "--latest", join(directory, "latest.json"), "--database", join(directory, "membership.sqlite"), "--status", join(directory, "membership.json")], { encoding: "utf8", env: environment });
-  assert.equal(membership.status, 0, membership.stderr);
-  const atom = spawnSync(process.env.PYTHON ?? "python", [join(root, "scripts", "generate_atom_feeds.py"), "--page", join(directory, "index.html"), "--latest", join(directory, "latest.json"), "--database", join(directory, "membership.sqlite"), "--status", join(directory, "membership.json"), "--feed", join(directory, "feed.xml"), "--changes", join(directory, "changes.xml")], { encoding: "utf8", env: environment });
+  const repositoryDatabase = join(directory, "repository-observations.sqlite");
+  const fixture = spawnSync(process.env.PYTHON ?? "python", ["-c", [
+    "import hashlib, json, sqlite3, sys",
+    "from pathlib import Path",
+    "from scripts.record_repository_observations import _file_sha256, _legacy_logical_rows, create_database",
+    "from tests.test_repository_artifacts import insert_item, insert_profile",
+    "database, snapshot_id, legacy = Path(sys.argv[1]), sys.argv[2], Path(sys.argv[3])",
+    "create_database(database)",
+    "connection = sqlite3.connect(database)",
+    "connection.execute('PRAGMA foreign_keys=ON')",
+    "core = 'c' * 64",
+    "schema = connection.execute('SELECT schema_fingerprint_sha256 FROM schema_meta').fetchone()[0]",
+    "chain = hashlib.sha256(json.dumps({'schema_fingerprint_sha256': schema, 'parent_chain_sha256': None, 'core_payload_sha256': core, 'snapshot_id': snapshot_id, 'snapshot_seq': 1}, sort_keys=True, separators=(',', ':')).encode()).hexdigest()",
+    "connection.execute('INSERT INTO snapshot_runs VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', (1, snapshot_id, 'migration_baseline', '2026-08-29T10:07:00.000Z', '2026-08-29T19:07:00.000+09:00', '2026-08-29', None, None, 'a' * 40, 'b' * 64, core, None, chain, 10))",
+    "[insert_profile(connection, index + 1, f'owner/repo-{index}') for index in range(10)]",
+    "[insert_item(connection, 1, f'owner/repo-{index}', index + 1, stars=index, display_rank=index + 1, daily=index + 1) for index in range(10)]",
+    "schema_fingerprint, logical_count, logical_hash, last_key = _legacy_logical_rows(legacy)",
+    "connection.execute('INSERT INTO baseline_sources VALUES (?,?,?,?,?,?,?,?,?)', ('legacy_trending_membership', 'data/trending-membership.sqlite', legacy.stat().st_size, _file_sha256(legacy), schema_fingerprint, logical_count, logical_hash, last_key, 1))",
+    "legacy_connection = sqlite3.connect(legacy)",
+    "[connection.execute('INSERT OR IGNORE INTO baseline_membership_slugs VALUES (?,?,?)', (slug.lower(), 'legacy_trending_membership', 1)) for slug, in legacy_connection.execute('SELECT DISTINCT slug FROM snapshot_members ORDER BY slug')]",
+    "legacy_connection.close()",
+    "connection.commit()",
+    "connection.close()",
+  ].join("; "), repositoryDatabase, context.snapshotId, legacyDatabase], { cwd: root, encoding: "utf8" });
+  assert.equal(fixture.status, 0, fixture.stderr);
+  const atom = spawnSync(process.env.PYTHON ?? "python", [join(root, "scripts", "generate_atom_feeds.py"), "--page", join(directory, "index.html"), "--latest", join(directory, "latest.json"), "--database", repositoryDatabase, "--legacy-membership-database", legacyDatabase, "--feed", join(directory, "feed.xml"), "--changes", join(directory, "changes.xml")], { encoding: "utf8", env: environment });
   assert.equal(atom.status, 0, atom.stderr);
+  await writeFile(join(directory, "membership.json"), `${JSON.stringify({ schemaVersion: 1, generatedAt: context.observedAtUtc, statsDate: context.statsDateKst, baseline: true, current: repos.map(repo => ({ slug: repo.slug, status: "baseline" })), exited: [] })}\n`);
   const feed = await readFile(join(directory, "feed.xml"), "utf8");
   assert.equal((feed.match(/<entry>/g) ?? []).length, 10);
   assert.ok([...feed.matchAll(/<summary type="text">([^<]+)<\/summary>/g)].every(match => match[1].trim()));
@@ -564,41 +871,42 @@ test("real membership then Atom CLIs share one injected candidate identity befor
   assert.equal(git(["commit", "-qm", "candidate fixture"]).status, 0);
   const committedSourceSha = git(["rev-parse", "HEAD"]).stdout.trim();
   const artifact = join(directory, "artifact");
-  await buildPagesArtifact({ sourceRoot: directory, outDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId });
-  const probed = await probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory });
+  const contract = await artifactContract(directory, latest, sources, context.snapshotId);
+  await buildPagesArtifact({ sourceRoot: directory, outDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: contract });
+  const probed = await probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: contract, gitRoot: directory });
   assert.equal(probed.sourceSha, committedSourceSha);
   assert.equal(probed.snapshotId, context.snapshotId);
   await assert.rejects(
-    probeArtifactDirectory({ artifactDir: artifact, sourceSha: "f".repeat(40), snapshotId: context.snapshotId, gitRoot: directory }),
+    probeArtifactDirectory({ artifactDir: artifact, sourceSha: "f".repeat(40), snapshotId: context.snapshotId, artifactContract: contract, gitRoot: directory }),
     /manifest identity mismatch/i,
   );
 
   const wrongMime = await serveArtifact(artifact, { mimeOverride: { "current-view-export.js": "text/plain; charset=utf-8" } });
-  try { await assert.rejects(probeProduction({ baseUrl: wrongMime.baseUrl, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /MIME/i); } finally { await wrongMime.close(); }
+  try { await assert.rejects(probeProduction({ baseUrl: wrongMime.baseUrl, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: contract, gitRoot: directory }), /MIME/i); } finally { await wrongMime.close(); }
   const redirected = await serveArtifact(artifact, { redirect: "index.html" });
-  try { await assert.rejects(probeProduction({ baseUrl: redirected.baseUrl, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /redirect|fetch/i); } finally { await redirected.close(); }
+  try { await assert.rejects(probeProduction({ baseUrl: redirected.baseUrl, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: contract, gitRoot: directory }), /redirect|fetch/i); } finally { await redirected.close(); }
 
   const originalMembership = await readFile(join(artifact, "data", "membership-status.json"));
   const staleMembership = JSON.parse(originalMembership);
   staleMembership.generatedAt = "2026-08-26T09:07:00.000Z";
   await rewriteArtifactFile(artifact, "data/membership-status.json", Buffer.from(`${JSON.stringify(staleMembership)}\n`));
-  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /membership run identity/i);
+  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: contract, gitRoot: directory }), /artifact hash|membership run identity/i);
   await rewriteArtifactFile(artifact, "data/membership-status.json", originalMembership);
   const shortMembership = JSON.parse(originalMembership);
   shortMembership.current.pop();
   await rewriteArtifactFile(artifact, "data/membership-status.json", Buffer.from(`${JSON.stringify(shortMembership)}\n`));
-  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /active repository count|identity mismatch/i);
+  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: contract, gitRoot: directory }), /artifact hash|active repository count|identity mismatch/i);
   await rewriteArtifactFile(artifact, "data/membership-status.json", originalMembership);
 
   const originalFeed = await readFile(join(artifact, "feed.xml"));
   const corruptFeed = Buffer.from(originalFeed.toString("utf8").replace(context.snapshotId, "20260826120700-fedcba9876543210"));
   await rewriteArtifactFile(artifact, "feed.xml", corruptFeed);
-  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /Atom run identity/i);
+  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: contract, gitRoot: directory }), /artifact hash|Atom run identity/i);
   await rewriteArtifactFile(artifact, "feed.xml", originalFeed);
   const originalChanges = await readFile(join(artifact, "changes.xml"));
   const invalidChange = `<entry><id>https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml#bad</id><title>owner/repo-0 신규</title><updated>${context.observedAtUtc}</updated><link rel="alternate" type="text/html" href="https://github.com/owner/repo-0" /><category term="stayed" /><summary type="text">bad</summary></entry>`;
   await rewriteArtifactFile(artifact, "changes.xml", Buffer.from(originalChanges.toString("utf8").replace("</feed>", `${invalidChange}</feed>`)));
-  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /change Atom category/i);
+  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: contract, gitRoot: directory }), /artifact hash|change Atom category/i);
   await rewriteArtifactFile(artifact, "changes.xml", originalChanges);
 
   const exactMembership = JSON.parse(originalMembership);
@@ -613,26 +921,27 @@ test("real membership then Atom CLIs share one injected candidate identity befor
   const exactChanges = Buffer.from(originalChanges.toString("utf8").replace("</feed>", `${exactEntries.join("")}</feed>`));
   await rewriteArtifactFile(artifact, "data/membership-status.json", Buffer.from(`${JSON.stringify(exactMembership)}\n`));
   await rewriteArtifactFile(artifact, "changes.xml", exactChanges);
-  await probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory });
+  const restoredContract = await artifactContract(artifact, latest, sources, context.snapshotId);
+  await probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: restoredContract, gitRoot: directory });
 
   const substituted = Buffer.from(originalChanges.toString("utf8").replace("</feed>", `${changeEntry("owner/repo-2", "new")}${changeEntry("owner/repo-1", "reentered")}</feed>`));
   await rewriteArtifactFile(artifact, "changes.xml", substituted);
-  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /change.*membership|multiset|identity/i);
+  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: restoredContract, gitRoot: directory }), /artifact hash|change.*membership|multiset|identity/i);
   const duplicated = Buffer.from(originalChanges.toString("utf8").replace("</feed>", `${exactEntries[0]}${exactEntries[0]}</feed>`));
   await rewriteArtifactFile(artifact, "changes.xml", duplicated);
-  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /duplicate|provenance|change.*membership|multiset/i);
+  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: restoredContract, gitRoot: directory }), /artifact hash|duplicate|provenance|change.*membership|multiset/i);
   const badUrl = Buffer.from(originalChanges.toString("utf8").replace("</feed>", `${exactEntries[0].replace("https://github.com/owner/repo-0", "https://github.com/owner/repo-0/extra")}${exactEntries[1]}</feed>`));
   await rewriteArtifactFile(artifact, "changes.xml", badUrl);
-  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /change.*provenance|URL|identity/i);
+  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: restoredContract, gitRoot: directory }), /artifact hash|change.*provenance|URL|identity/i);
   const overlap = structuredClone(exactMembership);
   overlap.exited.push({ slug: "OWNER/REPO-0", lastSeenAt: context.observedAtUtc, exitedAt: context.observedAtUtc });
   await rewriteArtifactFile(artifact, "data/membership-status.json", Buffer.from(`${JSON.stringify(overlap)}\n`));
   await rewriteArtifactFile(artifact, "changes.xml", exactChanges);
-  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, gitRoot: directory }), /exited.*overlap|disjoint|duplicate/i);
+  await assert.rejects(probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: restoredContract, gitRoot: directory }), /artifact hash|exited.*overlap|disjoint|duplicate/i);
   await rewriteArtifactFile(artifact, "data/membership-status.json", originalMembership);
   await rewriteArtifactFile(artifact, "changes.xml", originalChanges);
   await assert.rejects(
-    probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: "20260826120700-fedcba9876543210", gitRoot: directory }),
+    probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: "20260826120700-fedcba9876543210", artifactContract: restoredContract, gitRoot: directory }),
     /manifest identity mismatch/i,
   );
 });

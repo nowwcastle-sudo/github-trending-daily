@@ -1,10 +1,11 @@
 import { createHash, randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { createReadStream } from "node:fs";
-import { lstat } from "node:fs/promises";
+import { lstat, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import http from "node:http";
+import { tmpdir } from "node:os";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
   LEGACY_BASE_PATHS,
@@ -21,6 +22,46 @@ const SLUG_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 
 function hash(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
+}
+
+async function artifactContractFromGit(sourceSha, snapshotId, gitRoot, deadline) {
+  const temporary = await mkdtemp(path.join(tmpdir(), "repository-artifact-contract-"));
+  try {
+    const database = path.join(temporary, "repository-observations.sqlite");
+    const contract = path.join(temporary, "artifact-contract.json");
+    await writeFile(database, gitBytes(sourceSha, "data/repository-observations.sqlite", gitRoot, deadline));
+    const remaining = deadline - Date.now();
+    if (!Number.isFinite(remaining) || remaining <= 0) throw new Error("production probe deadline exceeded");
+    const script = fileURLToPath(new URL("./derive_repository_artifacts.py", import.meta.url));
+    try {
+      execFileSync(process.env.PYTHON_BIN || "python", [script, "export-contract", "--database", database, "--snapshot-id", snapshotId, "--contract-out", contract], {
+        encoding: "utf8", maxBuffer: 1024 * 1024, timeout: Math.max(1, Math.min(30_000, Math.ceil(remaining))), stdio: ["ignore", "pipe", "pipe"],
+      });
+    } catch {
+      throw new Error("Git repository observation artifact contract is invalid");
+    }
+    return parseJsonStrict(await readFile(contract), "Git repository observation artifact contract", 16 * 1024 * 1024);
+  } finally {
+    await rm(temporary, { recursive: true, force: true });
+  }
+}
+
+function validateArtifactContract(contract, snapshotId, expectedPaths, bodies) {
+  if (!exactKeys(contract, ["version", "snapshotId", "artifacts"]) || contract.version !== 1
+      || contract.snapshotId !== snapshotId || !Array.isArray(contract.artifacts)) {
+    throw new Error("invalid repository observation artifact contract");
+  }
+  const rows = contract.artifacts;
+  if (rows.map(row => row?.artifact_path).join("\0") !== expectedPaths.join("\0")) {
+    throw new Error("repository observation artifact path set does not match Pages");
+  }
+  for (const row of rows) {
+    if (!exactKeys(row, ["artifact_path", "sha256", "byte_size"]) || !/^[a-f0-9]{64}$/.test(row.sha256)
+        || !Number.isSafeInteger(row.byte_size) || row.byte_size < 0) throw new Error("invalid repository observation artifact contract");
+    const bytes = bodies.get(row.artifact_path);
+    if (!bytes || hash(bytes) !== row.sha256) throw new Error(`repository observation artifact hash mismatch: ${row.artifact_path}`);
+    if (bytes.length !== row.byte_size) throw new Error(`repository observation artifact size mismatch: ${row.artifact_path}`);
+  }
 }
 
 function gitBytes(sha, relative, gitRoot = process.cwd(), deadline = Date.now() + 30_000) {
@@ -219,15 +260,16 @@ function validateChangesAtom(xml, latest) {
     const link = oneMatch(entry, /<link rel="alternate" type="text\/html" href="([^"]+)" \/>/g, "change Atom link");
     const status = oneMatch(entry, /<category term="(new|reentered)" \/>/g, "change Atom category");
     const slug = /^https:\/\/github\.com\/([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)$/.exec(link)?.[1];
+    const eventIdentity = `${updated}\0${slug?.toLowerCase()}\0${status}`;
     if (ids.has(id) || !canonicalUtc(updated) || Date.parse(updated) > Date.parse(latest.generatedAt)
-        || !slug || identities.has(`${slug.toLowerCase()}\0${status}`)
+        || !slug || identities.has(eventIdentity)
         || title !== `${slug} ${status === "new" ? "신규" : "재진입"}`
         || id !== `https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml#${encodeURIComponent(`${updated}|${status}|${slug.toLowerCase()}`)}`) {
       throw new Error("change Atom entry provenance mismatch");
     }
     ids.add(id);
-    identities.add(`${slug.toLowerCase()}\0${status}`);
-    normalized.push({ slug: slug.toLowerCase(), status });
+    identities.add(eventIdentity);
+    normalized.push({ slug: slug.toLowerCase(), status, updated });
   }
   return normalized;
 }
@@ -236,7 +278,7 @@ function normalizeSlugList(values) {
   return values.map(value => value.toLowerCase()).sort();
 }
 
-async function verifyVersion1Payload({ baseUrl, manifest, manifestBytes, gitRoot, deadline }) {
+async function verifyVersion1Payload({ baseUrl, manifest, manifestBytes, gitRoot, deadline, artifactContract }) {
   const bodies = new Map();
   for (const [relative, expectedHash] of Object.entries(manifest.files)) {
     const { bytes, contentType } = await fetchBytes(withProbe(baseUrl, relative, manifest.snapshotId), { deadline });
@@ -252,6 +294,8 @@ async function verifyVersion1Payload({ baseUrl, manifest, manifestBytes, gitRoot
   const sources = parseJsonStrict(gitBytes(manifest.sourceSha, "data/translation-sources.json", gitRoot, deadline), "translation sources");
   const expectedPaths = expectedVersion1Paths(latest, sources);
   if (Object.keys(manifest.files).sort().join("\0") !== expectedPaths.join("\0")) throw new Error("manifest contains missing or stale extra artifact paths");
+  const contract = artifactContract ?? await artifactContractFromGit(manifest.sourceSha, manifest.snapshotId, gitRoot, deadline);
+  validateArtifactContract(contract, manifest.snapshotId, expectedPaths, bodies);
   if (!exactKeys(latest, ["snapshotId", "generatedAt", "statsDate", "count", "repos"]) || latest.snapshotId !== manifest.snapshotId
       || !canonicalUtc(latest.generatedAt) || !/^\d{4}-\d{2}-\d{2}$/.test(latest.statsDate) || latest.count !== latest.repos?.length) throw new Error("latest identity/count mismatch");
   const pageRepos = activeReposFromPage(page);
@@ -287,7 +331,8 @@ async function verifyVersion1Payload({ baseUrl, manifest, manifestBytes, gitRoot
   for (const [label, slugs] of [["page", pageSlugs], ["membership", membershipSlugs], ["feed", feedSlugs]]) {
     if (normalizeSlugList(slugs).join("\0") !== expectedSlugs.join("\0")) throw new Error(`${label} active repository count/identity mismatch`);
   }
-  const changes = validateChangesAtom(bodies.get("changes.xml").toString("utf8"), latest);
+  const changes = validateChangesAtom(bodies.get("changes.xml").toString("utf8"), latest)
+    .filter(change => change.updated === latest.generatedAt);
   const expectedChanges = membership.current
     .filter(repo => repo.status === "new" || repo.status === "reentered")
     .map(repo => ({ slug: repo.slug.toLowerCase(), status: repo.status }));
@@ -347,7 +392,7 @@ async function verifyLegacy({ baseUrl, sourceSha, manifest = null, gitRoot, dead
   return { sourceSha, snapshotId: null, files: paths.length };
 }
 
-export async function probeProduction({ baseUrl, sourceSha = null, snapshotId = null, bootstrapPreflightSha = null, legacyRecoverySha = null, gitRoot = process.cwd(), deadline = Date.now() + 120_000 }) {
+export async function probeProduction({ baseUrl, sourceSha = null, snapshotId = null, bootstrapPreflightSha = null, legacyRecoverySha = null, artifactContract = null, gitRoot = process.cwd(), deadline = Date.now() + 120_000 }) {
   if (!Number.isFinite(deadline) || deadline <= Date.now()) throw new Error("production probe deadline exceeded");
   const legacyProbeToken = bootstrapPreflightSha || legacyRecoverySha ? randomUUID() : null;
   const manifestUrl = withProbe(baseUrl, "deployment-manifest.json", legacyProbeToken ?? snapshotId);
@@ -367,7 +412,7 @@ export async function probeProduction({ baseUrl, sourceSha = null, snapshotId = 
   if (!SHA_RE.test(sourceSha) || !SNAPSHOT_RE.test(snapshotId)) throw new Error("invalid production probe identity");
   const manifest = validateDeploymentManifest(parsed);
   if (manifest.sourceSha !== sourceSha || manifest.snapshotId !== snapshotId) throw new Error("production manifest identity mismatch");
-  return verifyVersion1Payload({ baseUrl, manifest, manifestBytes, gitRoot, deadline });
+  return verifyVersion1Payload({ baseUrl, manifest, manifestBytes, gitRoot, deadline, artifactContract });
 }
 
 function contentType(file) {
@@ -379,7 +424,7 @@ function contentType(file) {
   return "application/octet-stream";
 }
 
-export async function probeArtifactDirectory({ artifactDir, sourceSha = null, snapshotId = null, legacyRecoverySha = null, gitRoot = process.cwd() }) {
+export async function probeArtifactDirectory({ artifactDir, sourceSha = null, snapshotId = null, legacyRecoverySha = null, artifactContract = null, gitRoot = process.cwd() }) {
   const root = path.resolve(artifactDir);
   const server = http.createServer(async (request, response) => {
     try {
@@ -399,7 +444,7 @@ export async function probeArtifactDirectory({ artifactDir, sourceSha = null, sn
   await new Promise((resolve, reject) => { server.once("error", reject); server.listen(0, "127.0.0.1", resolve); });
   try {
     const address = server.address();
-    return await probeProduction({ baseUrl: `http://127.0.0.1:${address.port}/`, sourceSha, snapshotId, legacyRecoverySha, gitRoot });
+    return await probeProduction({ baseUrl: `http://127.0.0.1:${address.port}/`, sourceSha, snapshotId, legacyRecoverySha, artifactContract, gitRoot });
   } finally {
     await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   }
@@ -420,6 +465,8 @@ function parseArgs(argv) {
     ["base-url", "bootstrap-preflight-sha"],
     ["base-url", "legacy-recovery-sha"],
     ["base-url", "snapshot-id", "source-sha"],
+    ["artifact-contract", "artifact-dir", "snapshot-id", "source-sha"],
+    ["artifact-contract", "base-url", "snapshot-id", "source-sha"],
   ].map(keys => keys.sort().join("\0"));
   if (!validShapes.includes(actual) || Object.values(values).some(value => !value)) throw new Error("invalid arguments");
   return values;
@@ -427,9 +474,10 @@ function parseArgs(argv) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const options = { sourceSha: args["source-sha"], snapshotId: args["snapshot-id"], bootstrapPreflightSha: args["bootstrap-preflight-sha"], legacyRecoverySha: args["legacy-recovery-sha"] };
+  const artifactContract = args["artifact-contract"] ? parseJsonStrict(await readFile(path.resolve(args["artifact-contract"])), "artifact contract", 16 * 1024 * 1024) : null;
+  const options = { sourceSha: args["source-sha"], snapshotId: args["snapshot-id"], bootstrapPreflightSha: args["bootstrap-preflight-sha"], legacyRecoverySha: args["legacy-recovery-sha"], artifactContract };
   const result = args["artifact-dir"]
-    ? await probeArtifactDirectory({ artifactDir: args["artifact-dir"], sourceSha: options.sourceSha, snapshotId: options.snapshotId, legacyRecoverySha: options.legacyRecoverySha })
+    ? await probeArtifactDirectory({ artifactDir: args["artifact-dir"], sourceSha: options.sourceSha, snapshotId: options.snapshotId, legacyRecoverySha: options.legacyRecoverySha, artifactContract })
     : await probeProduction({ baseUrl: args["base-url"], ...options });
   console.log(JSON.stringify(result));
 }

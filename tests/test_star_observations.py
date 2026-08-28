@@ -7,6 +7,7 @@ import tempfile
 import unittest
 from contextlib import closing
 from pathlib import Path
+from unittest.mock import patch
 
 from scripts.record_star_observations import (
     CANONICAL_LEGACY_FINGERPRINT,
@@ -78,6 +79,14 @@ def parsed_repositories(date="2026-08-22", *, first_stars=100):
 
 
 class RepositoryParserTests(unittest.TestCase):
+    def test_legacy_writer_rejects_resolved_canonical_database_alias(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            canonical = Path(temporary) / "data" / "star-observations.sqlite"
+            alias = canonical.parent / "." / canonical.name
+            with patch("scripts.record_star_observations.DEFAULT_DATABASE", canonical):
+                with self.assertRaisesRegex(ValueError, "canonical legacy star database"):
+                    record_observations(alias, parsed_repositories(), [])
+
     def test_parses_exact_marked_full_ui_snapshot(self):
         parsed = parsed_repositories()
 

@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest import mock
 
 from scripts.record_trending_membership import (
+    DEFAULT_DATABASE,
     MembershipSnapshot,
     load_finalized_snapshot,
     main,
@@ -63,6 +64,17 @@ class MembershipHistoryTests(unittest.TestCase):
 
     def read_status(self):
         return json.loads(self.status.read_text(encoding="utf-8"))
+
+    def test_legacy_writer_rejects_resolved_canonical_database_alias(self):
+        canonical = self.root / "canonical" / "trending-membership.sqlite"
+        alias = canonical.parent / "." / canonical.name
+        with mock.patch("scripts.record_trending_membership.DEFAULT_DATABASE", canonical):
+            with self.assertRaisesRegex(ValueError, "canonical legacy membership database"):
+                record_membership(
+                    alias,
+                    self.status,
+                    snapshot("2026-08-26T10:07:00.000Z", self.slugs),
+                )
 
     def rows(self, query, parameters=()):
         with closing(sqlite3.connect(self.database)) as connection:

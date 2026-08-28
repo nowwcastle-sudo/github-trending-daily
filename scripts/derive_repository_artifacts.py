@@ -2,23 +2,40 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
 import re
 import sqlite3
+import sys
+import tempfile
 from contextlib import closing
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
-from scripts.record_repository_observations import (
-    PAGES_BASE_ARTIFACT_PATHS,
-    _file_sha256,
-    _legacy_logical_rows,
-    validate_schema,
-)
+try:
+    from scripts.record_repository_observations import (
+        PAGES_BASE_ARTIFACT_PATHS,
+        _file_sha256,
+        _legacy_logical_rows,
+        parent_database_evidence,
+        validate_schema,
+        verify_core_snapshot,
+    )
+except ModuleNotFoundError as error:
+    if error.name not in {"scripts", "scripts.record_repository_observations"}:
+        raise
+    from record_repository_observations import (
+        PAGES_BASE_ARTIFACT_PATHS,
+        _file_sha256,
+        _legacy_logical_rows,
+        parent_database_evidence,
+        validate_schema,
+        verify_core_snapshot,
+    )
 
 
 INSIGHT_RULE_VERSION = "repository-insight-v1"
@@ -583,3 +600,413 @@ def finalize_snapshot_derivatives(
     except sqlite3.Error:
         raise ValueError("candidate database finalization failed") from None
     return FinalizeResult(changed, snapshot_seq, len(insights), len(artifact_hashes))
+
+
+def _strict_json_bytes(payload: bytes, label: str) -> Any:
+    if not payload or len(payload) > 64 * 1024 * 1024:
+        raise ValueError(f"{label} size is invalid")
+    try:
+        text = payload.decode("utf-8", errors="strict")
+
+        def pairs(values):
+            result = {}
+            for key, value in values:
+                if key in result:
+                    raise ValueError("duplicate key")
+                result[key] = value
+            return result
+
+        return json.loads(
+            text,
+            object_pairs_hook=pairs,
+            parse_constant=lambda _value: (_ for _ in ()).throw(ValueError("non-JSON constant")),
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
+        raise ValueError(f"{label} is not strict JSON") from None
+
+
+def _load_json_path(path: str | Path, label: str) -> Any:
+    target = Path(path)
+    try:
+        if not target.is_file() or target.is_symlink():
+            raise OSError
+        before = target.stat()
+        payload = target.read_bytes()
+        after = target.stat()
+    except OSError:
+        raise ValueError(f"{label} is unavailable") from None
+    identity = lambda value: (value.st_dev, value.st_ino, value.st_size, value.st_mtime_ns)
+    if identity(before) != identity(after) or len(payload) != after.st_size:
+        raise ValueError(f"{label} changed while reading")
+    return _strict_json_bytes(payload, label)
+
+
+def _outside_checkout(path: Path) -> None:
+    checkout = Path(__file__).resolve().parents[1]
+    requested = path.resolve(strict=False)
+    if os.path.commonpath((str(checkout), str(requested))) == str(checkout):
+        raise ValueError("derivation output must be outside the checkout")
+
+
+def _write_json_atomic(path: str | Path, value: Any) -> None:
+    target = Path(path)
+    _outside_checkout(target)
+    if target.is_symlink():
+        raise ValueError("derivation output path is unsafe")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{target.name}.", suffix=".tmp", dir=target.parent)
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
+            json.dump(value, handle, ensure_ascii=False, indent=2)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, target)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _snapshot_sequence(connection: sqlite3.Connection, snapshot_id: str, *, require_latest: bool = False) -> int:
+    if not isinstance(snapshot_id, str):
+        raise ValueError("snapshot identity is invalid")
+    row = connection.execute("SELECT snapshot_seq FROM snapshot_runs WHERE snapshot_id=?", (snapshot_id,)).fetchone()
+    if row is None:
+        raise ValueError("snapshot identity is absent")
+    if require_latest:
+        latest = connection.execute("SELECT MAX(snapshot_seq) FROM snapshot_runs").fetchone()[0]
+        if row[0] != latest:
+            raise ValueError("snapshot is not the latest candidate")
+    return row[0]
+
+
+def export_parent_inputs(
+    parent_database_path: str | Path,
+    legacy_baseline_receipt: dict[str, Any],
+    expected_parent_snapshot_id: str | None,
+    parent_evidence_output: str | Path,
+    prior_heads_output: str | Path,
+) -> dict[str, Any]:
+    """Export exact recorder evidence and commit-continuity heads without repository content."""
+    if not isinstance(legacy_baseline_receipt, dict):
+        raise ValueError("legacy baseline receipt is invalid")
+    parent = Path(parent_database_path)
+    if parent.exists():
+        evidence = parent_database_evidence(parent)
+        if expected_parent_snapshot_id is None or evidence["last_snapshot_id"] != expected_parent_snapshot_id:
+            raise ValueError("parent snapshot identity does not match production")
+        with closing(sqlite3.connect(parent.as_uri() + "?mode=ro", uri=True)) as connection:
+            validate_schema(connection)
+            rows = connection.execute(
+                """SELECT i.slug,p.default_branch,i.default_branch_head_sha
+                   FROM snapshot_items i JOIN repository_profiles p
+                   ON p.profile_id=i.profile_id AND p.slug=i.slug
+                   WHERE i.snapshot_seq=(
+                       SELECT MAX(previous.snapshot_seq)
+                       FROM snapshot_items previous
+                       WHERE previous.slug=i.slug AND previous.snapshot_seq<=?
+                   )
+                   ORDER BY i.slug""",
+                (evidence["last_snapshot_seq"],),
+            ).fetchall()
+        heads = {slug: {"branch": branch, "headSha": head} for slug, branch, head in rows}
+        snapshot_id = evidence["last_snapshot_id"]
+        parent_database_sha256 = evidence["file_sha256"]
+        snapshot_seq = evidence["last_snapshot_seq"]
+    else:
+        if expected_parent_snapshot_id is not None:
+            raise ValueError("production parent database is missing")
+        evidence = {"missing": True}
+        heads = {}
+        snapshot_id = None
+        parent_database_sha256 = None
+        snapshot_seq = None
+    _write_json_atomic(parent_evidence_output, {
+        "version": 1,
+        "parent_database": evidence,
+        "legacy_baseline_receipt": legacy_baseline_receipt,
+    })
+    _write_json_atomic(prior_heads_output, {
+        "version": 1,
+        "snapshotId": snapshot_id,
+        "scope": "all_historical",
+        "parentDatabaseSha256": parent_database_sha256,
+        "snapshotSeq": snapshot_seq,
+        "headCount": len(heads),
+        "headsSha256": _digest(heads),
+        "heads": heads,
+    })
+    return {"parent_snapshot_id": snapshot_id, "head_count": len(heads)}
+
+
+def _summary_content(index: dict[str, Any], item: dict[str, Any]) -> dict[str, str]:
+    repositories = index.get("repositories")
+    entry = repositories.get(item["slug"]) if isinstance(repositories, dict) else None
+    summary = entry.get("summary") if isinstance(entry, dict) else None
+    content = summary.get("content") if isinstance(summary, dict) else None
+    source = summary.get("source") if isinstance(summary, dict) else None
+    if not isinstance(content, dict) or set(content) != {"goal", "usage", "pros", "cons", "fit"} or any(
+        not isinstance(value, str) or not value.strip() for value in content.values()
+    ) or not isinstance(source, dict):
+        raise ValueError("enrichment summary is invalid")
+    if (
+        _digest(source) != item["summary_source_sha256"]
+        or _digest(content) != item["summary_content_sha256"]
+        or _digest({"content": content, "source": source}) != item["summary_envelope_sha256"]
+    ):
+        raise ValueError("enrichment summary does not match the recorded snapshot")
+    return content
+
+
+def _json_array(value: str, label: str) -> list[Any]:
+    parsed = _strict_json_bytes(value.encode("utf-8"), label)
+    if not isinstance(parsed, list):
+        raise ValueError(f"{label} is invalid")
+    return parsed
+
+
+def derive_candidate_artifacts(
+    database_path: str | Path,
+    legacy_membership_path: str | Path,
+    enrichment_index: dict[str, Any],
+    snapshot_id: str,
+) -> dict[str, Any]:
+    """Derive every candidate public JSON input from one exact core snapshot."""
+    database = Path(database_path)
+    if not database.is_file() or database.is_symlink():
+        raise ValueError("candidate database is unavailable")
+    for suffix in ("-journal", "-wal", "-shm"):
+        if Path(f"{database}{suffix}").exists():
+            raise ValueError("candidate database has a pending SQLite sidecar")
+    with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)) as connection:
+        connection.execute("PRAGMA foreign_keys=ON")
+        validate_schema(connection)
+        snapshot_seq = _snapshot_sequence(connection, snapshot_id, require_latest=True)
+        target = _target_run(connection, snapshot_seq)
+        items = []
+        item_columns = _columns(connection, "snapshot_items")
+        for raw in connection.execute("SELECT * FROM snapshot_items WHERE snapshot_seq=? ORDER BY display_rank", (snapshot_seq,)):
+            item = dict(zip(item_columns, raw))
+            profile_columns = _columns(connection, "repository_profiles")
+            profile_raw = connection.execute("SELECT * FROM repository_profiles WHERE profile_id=? AND slug=?", (item["profile_id"], item["slug"])).fetchone()
+            if profile_raw is None:
+                raise ValueError("repository profile is absent")
+            profile = dict(zip(profile_columns, profile_raw))
+            summary = _summary_content(enrichment_index, item)
+            items.append({
+                "slug": profile["display_slug"],
+                "name": profile["display_slug"].replace("/", " / ", 1),
+                "description": profile["description"] or "",
+                "lang": profile["primary_language"],
+                "topics": _json_array(profile["topics_json"], "repository topics"),
+                "stars": item["stars"],
+                "forks": item["forks"],
+                "issues": item["open_issues_and_pull_requests"],
+                "contributors": item["contributors"],
+                "gains": {"daily": item["gain_daily"], "weekly": item["gain_weekly"], "monthly": item["gain_monthly"]},
+                "signal": None,
+                "summary": summary,
+                "tag_rule_version": profile["tag_rule_version"],
+                "field_tags": _json_array(profile["field_tags_json"], "repository field tags"),
+                "form_tags": _json_array(profile["form_tags_json"], "repository form tags"),
+            })
+        if len(items) != target["repository_count"]:
+            raise ValueError("snapshot export count is inconsistent")
+        insights = derive_repository_insights(connection, snapshot_seq)
+        daily = derive_daily_star_series(connection, snapshot_seq)
+        membership = derive_membership_timeline(connection, legacy_membership_path, snapshot_seq)
+        stars = derive_star_history(connection, snapshot_seq)
+    status = {
+        "schemaVersion": 1,
+        "generatedAt": target["observed_at_utc"],
+        "statsDate": target["stats_date_kst"],
+        "baseline": target["run_kind"] == "migration_baseline",
+        "current": [
+            {"slug": row["displaySlug"], "status": "baseline" if row["status"] == "baseline_present" else row["status"]}
+            for row in membership["current"]
+        ],
+        "exited": [
+            {"slug": row["displaySlug"], "lastSeenAt": row["lastSeenAt"], "exitedAt": row["exitedAt"]}
+            for row in membership["exited"]
+        ],
+    }
+    return {
+        "snapshot_export": {
+            "version": 1,
+            "snapshotId": target["snapshot_id"],
+            "generatedAt": target["observed_at_utc"],
+            "statsDate": target["stats_date_kst"],
+            "repositories": items,
+        },
+        "membership_status": status,
+        "star_history": stars,
+        "insights": {"version": 1, "snapshotId": target["snapshot_id"], "insights": insights},
+        "daily_star_series": daily,
+    }
+
+
+def verify_pages_artifacts(database_path: str | Path, snapshot_id: str, candidate_root: str | Path) -> dict[str, Any]:
+    """Verify finalized DB rows equal the complete Pages path/hash/size contract."""
+    database = Path(database_path)
+    root = Path(candidate_root)
+    try:
+        if database.resolve(strict=True) != root.resolve(strict=True) / "data" / "repository-observations.sqlite":
+            raise ValueError("candidate database layout is invalid")
+    except OSError:
+        raise ValueError("candidate database is unavailable") from None
+    for suffix in ("-journal", "-wal", "-shm"):
+        if Path(f"{database}{suffix}").exists():
+            raise ValueError("candidate database has a pending SQLite sidecar")
+    with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)) as connection:
+        connection.execute("PRAGMA foreign_keys=ON")
+        validate_schema(connection)
+        if connection.execute("PRAGMA foreign_key_check").fetchone() is not None or connection.execute("PRAGMA integrity_check").fetchone() != ("ok",):
+            raise ValueError("candidate database integrity check failed")
+        snapshot_seq = _snapshot_sequence(connection, snapshot_id, require_latest=True)
+        for seq, in connection.execute("SELECT snapshot_seq FROM snapshot_runs ORDER BY snapshot_seq"):
+            verify_core_snapshot(connection, seq)
+        run_count = connection.execute("SELECT repository_count FROM snapshot_runs WHERE snapshot_seq=?", (snapshot_seq,)).fetchone()[0]
+        item_count = connection.execute("SELECT COUNT(*) FROM snapshot_items WHERE snapshot_seq=?", (snapshot_seq,)).fetchone()[0]
+        if run_count != item_count:
+            raise ValueError("candidate repository count is inconsistent")
+        expected_paths = _expected_artifact_paths(connection, snapshot_seq)
+        columns = _columns(connection, "artifact_hashes")
+        stored = [dict(zip(columns, row)) for row in connection.execute(
+            "SELECT * FROM artifact_hashes WHERE snapshot_seq=? ORDER BY artifact_path", (snapshot_seq,)
+        )]
+    expected_rows = [{"snapshot_seq": snapshot_seq, **row} for row in hash_pages_artifacts(root, expected_paths)]
+    if stored != expected_rows:
+        raise ValueError("finalized Pages artifact contract does not match candidate bytes")
+    return {
+        "version": 1,
+        "snapshotId": snapshot_id,
+        "artifacts": [
+            {"artifact_path": row["artifact_path"], "sha256": row["sha256"], "byte_size": row["byte_size"]}
+            for row in stored
+        ],
+    }
+
+
+def read_finalized_artifact_contract(database_path: str | Path, snapshot_id: str) -> dict[str, Any]:
+    """Read and validate the finalized Pages contract from a closed Git DB blob."""
+    database = Path(database_path)
+    if not database.is_file() or database.is_symlink():
+        raise ValueError("repository observation database is unavailable")
+    for suffix in ("-journal", "-wal", "-shm"):
+        if Path(f"{database}{suffix}").exists():
+            raise ValueError("repository observation database has a pending SQLite sidecar")
+    with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)) as connection:
+        connection.execute("PRAGMA foreign_keys=ON")
+        validate_schema(connection)
+        if connection.execute("PRAGMA foreign_key_check").fetchone() is not None or connection.execute("PRAGMA integrity_check").fetchone() != ("ok",):
+            raise ValueError("repository observation database integrity check failed")
+        snapshot_seq = _snapshot_sequence(connection, snapshot_id, require_latest=True)
+        for seq, in connection.execute("SELECT snapshot_seq FROM snapshot_runs ORDER BY snapshot_seq"):
+            verify_core_snapshot(connection, seq)
+        expected_paths = _expected_artifact_paths(connection, snapshot_seq)
+        rows = [
+            {"artifact_path": row[0], "sha256": row[1], "byte_size": row[2]}
+            for row in connection.execute(
+                "SELECT artifact_path,sha256,byte_size FROM artifact_hashes WHERE snapshot_seq=? ORDER BY artifact_path",
+                (snapshot_seq,),
+            )
+        ]
+    if [row["artifact_path"] for row in rows] != expected_paths:
+        raise ValueError("finalized artifact path set is incomplete")
+    return {"version": 1, "snapshotId": snapshot_id, "artifacts": rows}
+
+
+def _derive_cli(args: argparse.Namespace) -> dict[str, Any]:
+    index = _load_json_path(args.enrichment_index, "enrichment index")
+    derived = derive_candidate_artifacts(args.database, args.legacy_membership_database, index, args.snapshot_id)
+    _write_json_atomic(args.snapshot_export_out, derived["snapshot_export"])
+    _write_json_atomic(args.membership_status_out, derived["membership_status"])
+    _write_json_atomic(args.star_history_out, derived["star_history"])
+    _write_json_atomic(args.insights_out, derived["insights"])
+    return {"snapshot_id": args.snapshot_id, "repository_count": len(derived["snapshot_export"]["repositories"])}
+
+
+def _finalize_cli(args: argparse.Namespace) -> dict[str, Any]:
+    envelope = _load_json_path(args.insights, "insight derivation")
+    if not isinstance(envelope, dict) or set(envelope) != {"version", "snapshotId", "insights"} or envelope["version"] != 1 or envelope["snapshotId"] != args.snapshot_id:
+        raise ValueError("insight derivation envelope is invalid")
+    database = Path(args.database)
+    with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)) as connection:
+        validate_schema(connection)
+        seq = _snapshot_sequence(connection, args.snapshot_id, require_latest=True)
+        paths = _expected_artifact_paths(connection, seq)
+    hashes = hash_pages_artifacts(args.candidate_root, paths)
+    result = finalize_snapshot_derivatives(database, args.snapshot_id, envelope["insights"], hashes)
+    if not result.changed:
+        raise ValueError("snapshot derivatives were already finalized")
+    return {"snapshot_seq": result.snapshot_seq, "insight_count": result.insight_count, "artifact_count": result.artifact_count}
+
+
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Derive and finalize repository observation artifacts")
+    commands = parser.add_subparsers(dest="command", required=True)
+    parent = commands.add_parser("export-parent-inputs")
+    parent.add_argument("--parent-database", required=True)
+    parent.add_argument("--baseline-receipt", required=True)
+    parent.add_argument("--expected-parent-snapshot", required=True)
+    parent.add_argument("--parent-evidence-out", required=True)
+    parent.add_argument("--prior-heads-out", required=True)
+    derive = commands.add_parser("derive")
+    derive.add_argument("--database", required=True)
+    derive.add_argument("--legacy-membership-database", required=True)
+    derive.add_argument("--enrichment-index", required=True)
+    derive.add_argument("--snapshot-id", required=True)
+    derive.add_argument("--snapshot-export-out", required=True)
+    derive.add_argument("--membership-status-out", required=True)
+    derive.add_argument("--star-history-out", required=True)
+    derive.add_argument("--insights-out", required=True)
+    finalize = commands.add_parser("finalize")
+    finalize.add_argument("--database", required=True)
+    finalize.add_argument("--snapshot-id", required=True)
+    finalize.add_argument("--insights", required=True)
+    finalize.add_argument("--candidate-root", required=True)
+    verify = commands.add_parser("verify-pages")
+    verify.add_argument("--database", required=True)
+    verify.add_argument("--snapshot-id", required=True)
+    verify.add_argument("--candidate-root", required=True)
+    verify.add_argument("--contract-out", required=True)
+    export_contract = commands.add_parser("export-contract")
+    export_contract.add_argument("--database", required=True)
+    export_contract.add_argument("--snapshot-id", required=True)
+    export_contract.add_argument("--contract-out", required=True)
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = _parser().parse_args(sys.argv[1:] if argv is None else argv)
+    if args.command == "export-parent-inputs":
+        receipt = _load_json_path(args.baseline_receipt, "legacy baseline receipt")
+        result = export_parent_inputs(
+            args.parent_database,
+            receipt,
+            None if args.expected_parent_snapshot == "none" else args.expected_parent_snapshot,
+            args.parent_evidence_out,
+            args.prior_heads_out,
+        )
+    elif args.command == "derive":
+        result = _derive_cli(args)
+    elif args.command == "finalize":
+        result = _finalize_cli(args)
+    elif args.command == "verify-pages":
+        contract = verify_pages_artifacts(args.database, args.snapshot_id, args.candidate_root)
+        _write_json_atomic(args.contract_out, contract)
+        result = {"snapshot_id": args.snapshot_id, "artifact_count": len(contract["artifacts"])}
+    else:
+        contract = read_finalized_artifact_contract(args.database, args.snapshot_id)
+        _write_json_atomic(args.contract_out, contract)
+        result = {"snapshot_id": args.snapshot_id, "artifact_count": len(contract["artifacts"])}
+    print(json.dumps(result, separators=(",", ":")))
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except ValueError as error:
+        print(str(error), file=sys.stderr)
+        raise SystemExit(1) from None
