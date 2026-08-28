@@ -9,6 +9,7 @@ import { createRunContext } from "../scripts/run-context.mjs";
 
 import {
   buildTrendNote,
+  collectTrendingFactsAndEvents,
   createPageSnapshot,
   enrichTrendingRepositories,
   fetchCanonicalReadme,
@@ -389,6 +390,36 @@ function successfulGithubFetch({ failures = new Map(), requests = [] } = {}) {
 }
 
 const canonicalGithubFetch = options => successfulGithubFetch(options);
+
+test("transactional boundary completes facts and events before paid enrichment", async () => {
+  const rest = successfulGithubFetch();
+  const fetchImpl = async (url, options) => {
+    const parsed = new URL(url);
+    if (parsed.hostname === "api.ossinsight.io") {
+      return new Response(JSON.stringify({
+        type: "sql_endpoint",
+        data: {
+          columns: [{ col: "date", data_type: "VARCHAR", nullable: true }, { col: "stargazers", data_type: "DECIMAL", nullable: true }],
+          result: { code: 200, message: "ok", start_ms: 0, end_ms: 1, latency: "1ms", row_count: 0, row_affect: 0, limit: 0 },
+          rows: [],
+        },
+      }), { status: 200, headers: { "content-type": "application/json" } });
+    }
+    if (parsed.pathname.endsWith("/releases/latest")) {
+      return jsonResponse(200, { id: 1, tag_name: "v1", name: "v1", target_commitish: "main", draft: false, prerelease: false, created_at: "2026-08-21T09:08:07Z", published_at: "2026-08-21T09:08:07Z", html_url: "https://github.com/owner/repo/releases/tag/v1" });
+    }
+    if (parsed.pathname.endsWith("/releases")) {
+      if (options.headers?.["If-None-Match"]) return { ok: false, status: 304, headers: { get: name => name === "etag" ? '"release"' : null } };
+      return jsonResponse(200, [{ id: 1, tag_name: "v1", name: "v1", target_commitish: "main", draft: false, prerelease: false, created_at: "2026-08-21T09:08:07Z", published_at: "2026-08-21T09:08:07Z", html_url: "https://github.com/owner/repo/releases/tag/v1" }], { etag: '"release"' });
+    }
+    if (parsed.pathname.endsWith("/commits")) return jsonResponse(200, []);
+    return rest(url, options);
+  };
+  const result = await collectTrendingFactsAndEvents(discoveredRepos(), { factOptions: { fetchImpl }, eventOptions: { fetchImpl } });
+  assert.equal(result.facts.length, 10);
+  assert.equal(result.events.releases.length, 10);
+  assert.equal(result.events.estimates.every(value => value.rows.length === 0), true);
+});
 
 test("enriches every repository from canonical GitHub sources", async () => {
   const discovered = discoveredRepos();

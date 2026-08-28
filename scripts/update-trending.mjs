@@ -8,6 +8,7 @@ import {
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { readRunContext, validateRunContext } from "./run-context.mjs";
+import { collectRepositoryEvents } from "./collect-repository-events.mjs";
 
 const PERIODS = {
   daily: { field: "stars_daily", label: "today" },
@@ -660,6 +661,19 @@ export async function enrichTrendingRepositories(discovered, {
   Object.defineProperty(repos, "requestCount", { value: client.requestCount, enumerable: false });
   Object.defineProperty(repos, "latestReleases", { value: latestReleases, enumerable: false });
   return repos;
+}
+
+// The transactional workflow uses this boundary after canonical facts and
+// before paid LLM enrichment. Keeping it separate from the legacy page updater
+// keeps the existing local/check command side-effect free until Task 6 owns
+// candidate promotion wiring.
+export async function collectTrendingFactsAndEvents(discovered, {
+  factOptions = {},
+  eventOptions = {},
+} = {}) {
+  const facts = await enrichTrendingRepositories(discovered, factOptions);
+  const events = await collectRepositoryEvents(facts, eventOptions);
+  return { facts, events };
 }
 
 export function buildTrendNote(repo) {
