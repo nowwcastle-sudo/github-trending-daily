@@ -843,6 +843,38 @@ def parent_database_evidence(database_path: str | Path) -> dict[str, Any]:
     return {"byte_size": path.stat().st_size, "file_sha256": _file_sha256(path), "last_snapshot_seq": latest[0], "last_snapshot_id": latest[1], "last_chain_sha256": latest[2], "tables": tables}
 
 
+def measure_historical_heads(database_path: str | Path, expected_snapshot_seq: int | None = None) -> tuple[dict[str, Any], dict[str, dict[str, str]]]:
+    """Measure the complete last-observed HEAD map for every historical slug."""
+    path = Path(database_path)
+    if not path.is_file():
+        raise ValueError("parent database is missing")
+    for suffix in ("-journal", "-wal", "-shm"):
+        if Path(f"{path}{suffix}").exists():
+            raise ValueError("parent database has a pending SQLite sidecar")
+    with closing(sqlite3.connect(path.as_uri() + "?mode=ro", uri=True)) as connection:
+        connection.execute("PRAGMA foreign_keys = ON")
+        validate_schema(connection)
+        if connection.execute("PRAGMA integrity_check").fetchone() != ("ok",) or connection.execute("PRAGMA foreign_key_check").fetchone() is not None:
+            raise ValueError("parent database integrity check failed")
+        latest = connection.execute("SELECT MAX(snapshot_seq) FROM snapshot_runs").fetchone()[0]
+        if latest is None or (expected_snapshot_seq is not None and latest != expected_snapshot_seq):
+            raise ValueError("parent historical head snapshot mismatch")
+        rows = connection.execute(
+            """SELECT i.slug,p.default_branch,i.default_branch_head_sha
+               FROM snapshot_items i JOIN repository_profiles p
+               ON p.profile_id=i.profile_id AND p.slug=i.slug
+               WHERE i.snapshot_seq=(
+                   SELECT MAX(previous.snapshot_seq)
+                   FROM snapshot_items previous
+                   WHERE previous.slug=i.slug AND previous.snapshot_seq<=?
+               )
+               ORDER BY i.slug""",
+            (latest,),
+        ).fetchall()
+    heads = {slug: {"branch": branch, "headSha": head} for slug, branch, head in rows}
+    return {"scope": "all_historical", "head_count": len(heads), "heads_sha256": _digest(heads)}, heads
+
+
 def _require_parent_evidence(actual: dict[str, Any], expected: dict[str, Any]) -> None:
     aliases = {"size": "byte_size", "sha256": "file_sha256", "lastSnapshotSeq": "last_snapshot_seq", "lastSnapshotId": "last_snapshot_id", "lastChainSha256": "last_chain_sha256"}
     expected = {aliases.get(key, key): value for key, value in expected.items()}
@@ -863,9 +895,9 @@ def _require_parent_evidence(actual: dict[str, Any], expected: dict[str, Any]) -
             raise ValueError(f"parent database row digest mismatch: {table}")
 
 
-def _parse_parent_evidence_envelope(value: Any) -> tuple[dict[str, Any] | None, dict[str, Any]]:
+def _parse_parent_evidence_envelope(value: Any) -> tuple[dict[str, Any] | None, dict[str, Any], dict[str, Any], str]:
     """Separate the reviewed parent identity from the legacy cutover receipt."""
-    required = {"version", "parent_database", "legacy_baseline_receipt"}
+    required = {"version", "parent_database", "production_source_sha", "historical_heads", "legacy_baseline_receipt"}
     if not isinstance(value, dict) or set(value) != required or value["version"] != 1:
         raise ValueError("parent evidence envelope fields are not the exact allowlist")
     parent = value["parent_database"]
@@ -888,10 +920,32 @@ def _parse_parent_evidence_envelope(value: Any) -> tuple[dict[str, Any] | None, 
             if any(not isinstance(row, dict) or set(row) != {"key", "row_sha256"} for row in evidence["rows"]):
                 raise ValueError(f"parent database row evidence is invalid: {table}")
         parent_evidence = parent
+    historical_heads = value["historical_heads"]
+    if (not isinstance(historical_heads, dict)
+            or set(historical_heads) != {"scope", "head_count", "heads_sha256"}
+            or historical_heads["scope"] != "all_historical"
+            or isinstance(historical_heads["head_count"], bool)
+            or not isinstance(historical_heads["head_count"], int)
+            or historical_heads["head_count"] < 0
+            or not isinstance(historical_heads["heads_sha256"], str)
+            or re.fullmatch(r"[a-f0-9]{64}", historical_heads["heads_sha256"]) is None):
+        raise ValueError("historical head evidence is invalid")
+    production_source_sha = value["production_source_sha"]
+    if not isinstance(production_source_sha, str) or re.fullmatch(r"[a-f0-9]{40}", production_source_sha) is None:
+        raise ValueError("parent evidence production source SHA is invalid")
     receipt = value["legacy_baseline_receipt"]
     if not isinstance(receipt, dict):
         raise ValueError("legacy baseline receipt must be an object")
-    return parent_evidence, receipt
+    return parent_evidence, receipt, historical_heads, production_source_sha
+
+
+def _require_historical_head_evidence(parent_database_path: str | Path, expected: dict[str, Any]) -> None:
+    path = Path(parent_database_path)
+    actual = measure_historical_heads(path)[0] if path.exists() else {
+        "scope": "all_historical", "head_count": 0, "heads_sha256": _digest({}),
+    }
+    if actual != expected:
+        raise ValueError("historical head evidence mismatch")
 
 
 def _assert_parent_rows_preserved(connection: sqlite3.Connection, evidence: dict[str, Any]) -> None:
@@ -1121,7 +1175,7 @@ def _enrichment_entry(index: Any, slug: str) -> dict[str, Any]:
     return entry
 
 
-def _validate_production_manifest_evidence(snapshot: dict[str, Any], source_sha: Any) -> None:
+def _validate_production_manifest_evidence(snapshot: dict[str, Any], source_sha: Any, hydration_source_sha: Any) -> None:
     status = snapshot.get("productionManifestStatus")
     manifest_sha = _exclusive_value(
         snapshot,
@@ -1135,7 +1189,7 @@ def _validate_production_manifest_evidence(snapshot: dict[str, Any], source_sha:
         _sha_text(manifest_sha, 64, "production manifest SHA")
         return
     if status == "verified_404":
-        if manifest_sha is not None or not explicit_source_present or snapshot["explicitBootstrapSourceSha"] != source_sha:
+        if manifest_sha is not None or not explicit_source_present or snapshot["explicitBootstrapSourceSha"] != hydration_source_sha:
             raise ValueError("production manifest evidence is invalid")
         return
     raise ValueError("production manifest evidence is invalid")
@@ -1146,6 +1200,8 @@ def _validate_cross_input_bindings(snapshot: dict[str, Any], events: dict[str, A
         raise ValueError("enrichment index binding envelope is invalid")
     snapshot_id = _value(snapshot, "snapshot_id", "snapshotId")
     source_sha = _value(snapshot, "input_source_sha", "inputSourceSha", "sourceSha")
+    hydration_source_sha = _exclusive_value(snapshot, "hydration_source_sha", "hydrationSourceSha", label="hydration source SHA")
+    _sha_text(hydration_source_sha, 40, "hydration source SHA")
     slugs = [_slug_value(_value(repository, "slug")) for repository in repositories]
     if len(set(slugs)) != len(slugs):
         raise ValueError("snapshot has duplicate repository slug")
@@ -1173,7 +1229,7 @@ def _validate_cross_input_bindings(snapshot: dict[str, Any], events: dict[str, A
     }
     if declared != expected:
         raise ValueError("snapshot input hash bindings are invalid")
-    _validate_production_manifest_evidence(snapshot, source_sha)
+    _validate_production_manifest_evidence(snapshot, source_sha, hydration_source_sha)
 
 
 def _enrichment_hashes(repository: dict[str, Any], profile: dict[str, Any], index: Any) -> tuple[str, str, str, str, str | None, str | None]:
@@ -2232,11 +2288,15 @@ def main(argv: list[str] | None = None) -> int:
     events = _load_json_file(args.events, "events")
     index = _load_json_file(args.enrichment_index, "enrichment index")
     evidence_envelope = _load_json_file(args.parent_evidence, "parent evidence")
-    evidence, legacy_receipt = _parse_parent_evidence_envelope(evidence_envelope)
+    evidence, legacy_receipt, historical_heads, production_source_sha = _parse_parent_evidence_envelope(evidence_envelope)
+    _require_historical_head_evidence(args.parent_database, historical_heads)
     state_path = Path(args.readme_state)
     state = _load_json_file(state_path, "README state") if state_path.exists() else {}
     if not isinstance(snapshot, dict):
         raise ValueError("snapshot must be an object")
+    hydration_source_sha = _exclusive_value(snapshot, "hydration_source_sha", "hydrationSourceSha", label="hydration source SHA")
+    if hydration_source_sha != production_source_sha:
+        raise ValueError("snapshot hydration source does not match parent evidence")
     snapshot["enrichment_index"] = index
     if "legacy_baseline_receipt" in snapshot or "legacyBaselineReceipt" in snapshot:
         raise ValueError("snapshot must not duplicate the reviewed legacy baseline receipt")

@@ -289,6 +289,24 @@ export function validateDeploymentManifest(value, { version = 1 } = {}) {
   return value;
 }
 
+export function inspectProductionState({ httpStatus, manifestBytes, fallbackSourceSha }) {
+  if (!SHA_RE.test(fallbackSourceSha ?? "")) throw new Error("invalid fallback source SHA");
+  if (httpStatus === "404") {
+    return { manifestStatus: "verified_404", manifestSha256: null, version: 0, sourceSha: fallbackSourceSha, snapshotId: null };
+  }
+  if (httpStatus !== "200") throw new Error("production manifest HTTP status is invalid");
+  const parsed = parseJsonStrict(manifestBytes, "production deployment manifest", 1024 * 1024);
+  if (!Number.isInteger(parsed?.version) || ![0, 1].includes(parsed.version)) throw new Error("production manifest version is invalid");
+  const manifest = validateDeploymentManifest(parsed, { version: parsed.version });
+  return {
+    manifestStatus: `verified_v${manifest.version}`,
+    manifestSha256: hash(Buffer.isBuffer(manifestBytes) ? manifestBytes : Buffer.from(manifestBytes)),
+    version: manifest.version,
+    sourceSha: manifest.sourceSha,
+    snapshotId: manifest.snapshotId,
+  };
+}
+
 async function installArtifact({ sourceRoot, outDir, paths, manifest }) {
   assertUniqueArtifactPaths(paths);
   await mkdir(outDir, { recursive: false });
@@ -367,7 +385,9 @@ function parseArgs(argv) {
     if (Object.hasOwn(values, key)) throw new Error("invalid arguments");
     values[key] = value;
   }
-  const expected = values.mode === "legacy"
+  const expected = values["inspect-manifest"] !== undefined
+    ? ["fallback-source-sha", "http-status", "inspect-manifest"]
+    : values.mode === "legacy"
     ? ["mode", "out", "source", "source-sha"]
     : ["artifact-contract", "out", "snapshot-id", "source", "source-sha"];
   if (values.mode && values.mode !== "legacy") throw new Error("invalid arguments");
@@ -377,6 +397,15 @@ function parseArgs(argv) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
+  if (args["inspect-manifest"] !== undefined) {
+    const state = inspectProductionState({
+      httpStatus: args["http-status"],
+      manifestBytes: await readFile(path.resolve(args["inspect-manifest"])),
+      fallbackSourceSha: args["fallback-source-sha"],
+    });
+    console.log(JSON.stringify(state));
+    return;
+  }
   const manifest = args.mode === "legacy"
     ? await buildLegacyRecoveryArtifact({ sourceRoot: path.resolve(args.source), outDir: path.resolve(args.out), sourceSha: args["source-sha"] })
     : await buildPagesArtifact({

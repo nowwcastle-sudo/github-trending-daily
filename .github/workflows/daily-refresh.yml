@@ -27,6 +27,7 @@ jobs:
       snapshot_id: ${{ steps.context.outputs.snapshot_id }}
       recovery_version: ${{ steps.state.outputs.recovery_version }}
       recovery_source_sha: ${{ steps.state.outputs.hydration_source_sha }}
+      recovery_snapshot_id: ${{ steps.state.outputs.parent_snapshot_id }}
     steps:
       - name: Anchor immutable refresh clock and gates
         shell: bash
@@ -66,12 +67,13 @@ jobs:
           [ "$ORIGINAL_SHA" = "$(git rev-parse refs/remotes/origin/main)" ] || { echo "::error::checkout is not exact origin/main"; exit 1; }
           MANIFEST_FILE="${RUNNER_TEMP}/production-manifest.json"
           HTTP_STATUS="$(curl --silent --show-error --connect-timeout 5 --max-time 15 --max-filesize 1048576 --output "$MANIFEST_FILE" --write-out '%{http_code}' "${PRODUCTION_BASE_URL}deployment-manifest.json?preflight=${GITHUB_RUN_ID}")"
-          [ "$HTTP_STATUS" = "200" ] || { echo "::error::production manifest must be an approved v0 or v1 document"; exit 1; }
-          MANIFEST_SHA256="$(sha256sum "$MANIFEST_FILE" | cut -d' ' -f1)"
-          export ORIGINAL_SHA MANIFEST_SHA256
-          node --input-type=module -e 'import { appendFileSync, readFileSync } from "node:fs"; import { parseJsonStrict, validateDeploymentManifest } from "./scripts/build-pages-artifact.mjs"; const value=validateDeploymentManifest(parseJsonStrict(readFileSync(process.argv[1]),"production deployment manifest",1024*1024)); if (![0,1].includes(value.version)) throw new Error("unsupported production manifest"); appendFileSync(process.env.GITHUB_OUTPUT,`hydration_source_sha=${value.sourceSha}\nproduction_version=${value.version}\nparent_snapshot_id=${value.snapshotId ?? ""}\nrecovery_version=0\noriginal_sha=${process.env.ORIGINAL_SHA}\n`); appendFileSync(process.env.GITHUB_ENV,`HYDRATION_SOURCE_SHA=${value.sourceSha}\nPRODUCTION_MANIFEST_STATUS=verified_v${value.version}\nPRODUCTION_MANIFEST_SHA256=${process.env.MANIFEST_SHA256}\nPRODUCTION_VERSION=${value.version}\nPARENT_SNAPSHOT_ID=${value.snapshotId ?? ""}\nINPUT_SOURCE_SHA=${process.env.ORIGINAL_SHA}\n`);' "$MANIFEST_FILE"
-          HYDRATION_SOURCE_SHA="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; import { parseJsonStrict, validateDeploymentManifest } from "./scripts/build-pages-artifact.mjs"; process.stdout.write(validateDeploymentManifest(parseJsonStrict(readFileSync(process.argv[1]),"production deployment manifest",1024*1024)).sourceSha);' "$MANIFEST_FILE")"
-          PRODUCTION_VERSION="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; import { parseJsonStrict, validateDeploymentManifest } from "./scripts/build-pages-artifact.mjs"; process.stdout.write(String(validateDeploymentManifest(parseJsonStrict(readFileSync(process.argv[1]),"production deployment manifest",1024*1024)).version));' "$MANIFEST_FILE")"
+          STATE_FILE="${RUNNER_TEMP}/production-state.json"
+          node scripts/build-pages-artifact.mjs --inspect-manifest "$MANIFEST_FILE" --http-status "$HTTP_STATUS" --fallback-source-sha "$ORIGINAL_SHA" > "$STATE_FILE"
+          export ORIGINAL_SHA STATE_FILE
+          node --input-type=module -e 'import { appendFileSync, readFileSync } from "node:fs"; import { parseJsonStrict } from "./scripts/build-pages-artifact.mjs"; const value=parseJsonStrict(readFileSync(process.env.STATE_FILE),"verified production state",1024*1024); const keys=["manifestSha256","manifestStatus","snapshotId","sourceSha","version"]; if(Object.keys(value).sort().join("\\0")!==keys.sort().join("\\0")) throw new Error("invalid production state"); appendFileSync(process.env.GITHUB_OUTPUT,`hydration_source_sha=${value.sourceSha}\nproduction_version=${value.version}\nparent_snapshot_id=${value.snapshotId ?? ""}\nrecovery_version=${value.version}\noriginal_sha=${process.env.ORIGINAL_SHA}\n`); appendFileSync(process.env.GITHUB_ENV,`HYDRATION_SOURCE_SHA=${value.sourceSha}\nPRODUCTION_MANIFEST_STATUS=${value.manifestStatus}\nPRODUCTION_MANIFEST_SHA256=${value.manifestSha256 ?? ""}\nPRODUCTION_VERSION=${value.version}\nPARENT_SNAPSHOT_ID=${value.snapshotId ?? ""}\nINPUT_SOURCE_SHA=${process.env.ORIGINAL_SHA}\n`);'
+          HYDRATION_SOURCE_SHA="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(value.sourceSha);' "$STATE_FILE")"
+          PRODUCTION_VERSION="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(String(value.version));' "$STATE_FILE")"
+          PRODUCTION_MANIFEST_STATUS="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(value.manifestStatus);' "$STATE_FILE")"
           git cat-file -e "${HYDRATION_SOURCE_SHA}^{commit}"
           git merge-base --is-ancestor "$HYDRATION_SOURCE_SHA" "$ORIGINAL_SHA"
           if [ "$PRODUCTION_VERSION" = "0" ]; then
@@ -84,10 +86,17 @@ jobs:
             echo "VERIFIED_RECOVERY_VERSION=0" >> "$GITHUB_ENV"
             echo "VERIFIED_BOOTSTRAP_SOURCE_SHA=$HYDRATION_SOURCE_SHA" >> "$GITHUB_ENV"
             echo "MANUAL_BOOTSTRAP_SOURCE_SHA=$HYDRATION_SOURCE_SHA" >> "$GITHUB_ENV"
-            node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --legacy-recovery-sha "$HYDRATION_SOURCE_SHA"
+            if [ "$PRODUCTION_MANIFEST_STATUS" = "verified_404" ]; then
+              node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --bootstrap-preflight-sha "$HYDRATION_SOURCE_SHA"
+            elif [ "$PRODUCTION_MANIFEST_STATUS" = "verified_v0" ]; then
+              node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --legacy-recovery-sha "$HYDRATION_SOURCE_SHA"
+            else
+              echo "::error::invalid migration manifest evidence"
+              exit 1
+            fi
           else
             git cat-file -e "$HYDRATION_SOURCE_SHA:data/repository-observations.sqlite"
-            PARENT_SNAPSHOT_ID="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; import { parseJsonStrict, validateDeploymentManifest } from "./scripts/build-pages-artifact.mjs"; process.stdout.write(validateDeploymentManifest(parseJsonStrict(readFileSync(process.argv[1]),"production deployment manifest",1024*1024)).snapshotId ?? "");' "$MANIFEST_FILE")"
+            PARENT_SNAPSHOT_ID="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(value.snapshotId ?? "");' "$STATE_FILE")"
             [ -n "$PARENT_SNAPSHOT_ID" ]
             echo "ENRICHMENT_BUDGET_MODE=normal" >> "$GITHUB_ENV"
             echo "VERIFIED_RECOVERY_VERSION=1" >> "$GITHUB_ENV"
@@ -98,13 +107,22 @@ jobs:
         shell: bash
         env:
           HYDRATION_SOURCE_SHA: ${{ steps.state.outputs.hydration_source_sha }}
+          PRODUCTION_VERSION: ${{ steps.state.outputs.production_version }}
+          PARENT_SNAPSHOT_ID: ${{ steps.state.outputs.parent_snapshot_id }}
         run: |
           set -euo pipefail
           RECOVERY_SOURCE="${RUNNER_TEMP}/recovery-source"
           mkdir "$RECOVERY_SOURCE"
           git archive --format=tar "$HYDRATION_SOURCE_SHA" | tar -x -C "$RECOVERY_SOURCE"
-          node scripts/build-pages-artifact.mjs --mode legacy --source "$RECOVERY_SOURCE" --out "${RUNNER_TEMP}/recovery-artifact" --source-sha "$HYDRATION_SOURCE_SHA"
-          node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/recovery-artifact" --legacy-recovery-sha "$HYDRATION_SOURCE_SHA"
+          if [ "$PRODUCTION_VERSION" = "0" ]; then
+            node scripts/build-pages-artifact.mjs --mode legacy --source "$RECOVERY_SOURCE" --out "${RUNNER_TEMP}/recovery-artifact" --source-sha "$HYDRATION_SOURCE_SHA"
+            node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/recovery-artifact" --legacy-recovery-sha "$HYDRATION_SOURCE_SHA"
+          else
+            RECOVERY_CONTRACT="${RUNNER_TEMP}/recovery-artifact-contract.json"
+            python scripts/derive_repository_artifacts.py export-contract --database "$RECOVERY_SOURCE/data/repository-observations.sqlite" --snapshot-id "$PARENT_SNAPSHOT_ID" --contract-out "$RECOVERY_CONTRACT"
+            node scripts/build-pages-artifact.mjs --source "$RECOVERY_SOURCE" --out "${RUNNER_TEMP}/recovery-artifact" --source-sha "$HYDRATION_SOURCE_SHA" --snapshot-id "$PARENT_SNAPSHOT_ID" --artifact-contract "$RECOVERY_CONTRACT"
+            node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/recovery-artifact" --source-sha "$HYDRATION_SOURCE_SHA" --snapshot-id "$PARENT_SNAPSHOT_ID" --artifact-contract "$RECOVERY_CONTRACT"
+          fi
       - name: Prepare isolated refresh candidate
         shell: bash
         env:
@@ -132,7 +150,7 @@ jobs:
             EXPECTED_PARENT=none
           fi
           node --input-type=module -e 'import { appendFileSync, writeFileSync } from "node:fs"; import { createRunContext } from "./scripts/run-context.mjs"; const parent=process.env.PRODUCTION_VERSION === "1" ? {snapshotId:process.env.PARENT_SNAPSHOT_ID,sourceSha:process.env.HYDRATION_SOURCE_SHA} : {snapshotId:null,sourceSha:null}; const context=createRunContext(new Date(Number(process.env.REFRESH_ORIGIN_EPOCH_MS)),parent); const encoded=JSON.stringify(context); writeFileSync(process.argv[1],encoded); appendFileSync(process.env.GITHUB_ENV,`RUN_CONTEXT_JSON=${encoded}\n`); appendFileSync(process.env.GITHUB_OUTPUT,`snapshot_id=${context.snapshotId}\n`);' "${RUNNER_TEMP}/run-context.json"
-          python scripts/derive_repository_artifacts.py export-parent-inputs --parent-database "$PARENT_DATABASE" --baseline-receipt data/legacy-observation-baseline.json --expected-parent-snapshot "$EXPECTED_PARENT" --parent-evidence-out "${RUNNER_TEMP}/parent-evidence.json" --prior-heads-out "${RUNNER_TEMP}/prior-heads.json"
+          python scripts/derive_repository_artifacts.py export-parent-inputs --parent-database "$PARENT_DATABASE" --baseline-receipt data/legacy-observation-baseline.json --expected-parent-snapshot "$EXPECTED_PARENT" --production-source-sha "$HYDRATION_SOURCE_SHA" --parent-evidence-out "${RUNNER_TEMP}/parent-evidence.json" --prior-heads-out "${RUNNER_TEMP}/prior-heads.json"
           echo "PARENT_DATABASE=$PARENT_DATABASE" >> "$GITHUB_ENV"
       - name: Collect frozen repository facts
         shell: bash
@@ -147,7 +165,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          node scripts/collect-repository-events.mjs --facts "${RUNNER_TEMP}/repository-facts.json" --events-out "${RUNNER_TEMP}/repository-events.json" --budget-state "${RUNNER_TEMP}/event-budget.json" --prior-heads "${RUNNER_TEMP}/prior-heads.json"
+          node scripts/collect-repository-events.mjs --facts "${RUNNER_TEMP}/repository-facts.json" --events-out "${RUNNER_TEMP}/repository-events.json" --budget-state "${RUNNER_TEMP}/event-budget.json" --prior-heads "${RUNNER_TEMP}/prior-heads.json" --parent-evidence "${RUNNER_TEMP}/parent-evidence.json" --parent-database "$PARENT_DATABASE"
           NOW_MS="$(printf '%s' "$EPOCHREALTIME" | tr -d '.' | cut -c1-13)"
           SUCCESS_PLUS=$(( 10#$NOW_MS + 4200000 ))
           HARD_MINUS=$(( REFRESH_HARD_DEADLINE_EPOCH_MS - 1800000 ))
@@ -229,6 +247,9 @@ jobs:
           [ "$NOW_MS" -lt "$(( REFRESH_HARD_DEADLINE_EPOCH_MS - REFRESH_TEARDOWN_CUSHION_MS ))" ] || { echo "::error::refresh teardown cushion reached"; exit 1; }
           git fetch origin main
           [ "$ORIGINAL_SHA" = "$(git rev-parse refs/remotes/origin/main)" ] || { echo "::error::origin/main advanced during refresh"; exit 1; }
+          [ "$ORIGINAL_SHA" = "$(git rev-parse HEAD)" ] || { echo "::error::checkout HEAD changed during candidate work"; exit 1; }
+          git diff --quiet -- || { echo "::error::tracked checkout bytes changed during candidate work"; exit 1; }
+          git diff --cached --quiet -- || { echo "::error::checkout index changed during candidate work"; exit 1; }
           cp "$CANDIDATE/index.html" index.html
           cp "$CANDIDATE/data/repo-summaries.json" data/repo-summaries.json
           cp "$CANDIDATE/data/repository-observations.sqlite" data/repository-observations.sqlite
@@ -266,6 +287,7 @@ jobs:
             1) ;;
             *) echo "::error::Staged text secret scan failed"; exit 1 ;;
           esac
+          git diff --cached --check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "chore: refresh trending snapshot"
@@ -374,4 +396,15 @@ jobs:
         with:
           artifact_name: github-pages-recovery-${{ github.run_id }}
       - name: Verify recovered production
-        run: node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --legacy-recovery-sha "${{ needs.build.outputs.recovery_source_sha }}"
+        shell: bash
+        env:
+          RECOVERY_VERSION: ${{ needs.build.outputs.recovery_version }}
+          RECOVERY_SOURCE_SHA: ${{ needs.build.outputs.recovery_source_sha }}
+          RECOVERY_SNAPSHOT_ID: ${{ needs.build.outputs.recovery_snapshot_id }}
+        run: |
+          set -euo pipefail
+          if [ "$RECOVERY_VERSION" = "0" ]; then
+            node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --legacy-recovery-sha "$RECOVERY_SOURCE_SHA"
+          else
+            node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --source-sha "$RECOVERY_SOURCE_SHA" --snapshot-id "$RECOVERY_SNAPSHOT_ID"
+          fi

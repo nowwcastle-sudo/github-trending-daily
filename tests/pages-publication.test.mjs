@@ -13,6 +13,7 @@ import {
   buildLegacyRecoveryArtifact,
   buildPagesArtifact,
   expectedVersion1Paths,
+  inspectProductionState,
 } from "../scripts/build-pages-artifact.mjs";
 import { prepareRefreshCandidate, verifyCandidateMutations } from "../scripts/prepare-refresh-candidate.mjs";
 import { probeArtifactDirectory, probeProduction } from "../scripts/probe-production.mjs";
@@ -38,6 +39,36 @@ const LEGACY_PROBE_MISSING_PATHS = Object.freeze([
   "translations/owner__neither.json",
   "translations/owner__readme-only.json",
 ]);
+
+test("production state inspection validates v0 v1 explicitly and preserves verified 404", () => {
+  const fileHash = "b".repeat(64);
+  const v0Bytes = Buffer.from(JSON.stringify({ version: 0, legacyBootstrap: true, sourceSha, snapshotId: null, files: { "index.html": fileHash } }));
+  const v1Bytes = Buffer.from(JSON.stringify({ version: 1, sourceSha, snapshotId, files: { "index.html": fileHash } }));
+  assert.deepEqual(inspectProductionState({ httpStatus: "200", manifestBytes: v0Bytes, fallbackSourceSha: "f".repeat(40) }), {
+    manifestStatus: "verified_v0",
+    manifestSha256: createHash("sha256").update(v0Bytes).digest("hex"),
+    version: 0,
+    sourceSha,
+    snapshotId: null,
+  });
+  assert.deepEqual(inspectProductionState({ httpStatus: "200", manifestBytes: v1Bytes, fallbackSourceSha: "f".repeat(40) }), {
+    manifestStatus: "verified_v1",
+    manifestSha256: createHash("sha256").update(v1Bytes).digest("hex"),
+    version: 1,
+    sourceSha,
+    snapshotId,
+  });
+  assert.deepEqual(inspectProductionState({ httpStatus: "404", manifestBytes: Buffer.from("not trusted"), fallbackSourceSha: sourceSha }), {
+    manifestStatus: "verified_404",
+    manifestSha256: null,
+    version: 0,
+    sourceSha,
+    snapshotId: null,
+  });
+  const malformedV0 = Buffer.from(JSON.stringify({ version: 0, sourceSha, snapshotId: null, files: { "index.html": fileHash } }));
+  assert.throws(() => inspectProductionState({ httpStatus: "200", manifestBytes: malformedV0, fallbackSourceSha: sourceSha }), /invalid|version/i);
+  assert.throws(() => inspectProductionState({ httpStatus: "500", manifestBytes: Buffer.alloc(0), fallbackSourceSha: sourceSha }), /status/i);
+});
 
 async function serveArtifact(root, { mimeOverride = {}, redirect = null, requests = null, requestHeaders = null } = {}) {
   const mime = { ".html": "text/html; charset=utf-8", ".js": "application/javascript; charset=utf-8", ".json": "application/json; charset=utf-8", ".xml": "application/xml; charset=utf-8", ".md": "text/markdown; charset=utf-8" };
@@ -214,6 +245,7 @@ test("frozen manifest evidence survives the actual render to recorder boundary",
   const facts = buildFrozenFactsEnvelope({
     context,
     inputSourceSha: "c".repeat(40),
+    hydrationSourceSha: "b".repeat(40),
     productionManifestStatus: "verified_v0",
     productionManifestSha256,
     repositories,
@@ -309,6 +341,7 @@ test("frozen manifest evidence survives the actual render to recorder boundary",
   const renderedSnapshot = JSON.parse(await readFile(snapshotPath, "utf8"));
   assert.equal(renderedSnapshot.productionManifestStatus, "verified_v0");
   assert.equal(renderedSnapshot.inputManifestSha256, productionManifestSha256);
+  assert.equal(renderedSnapshot.hydrationSourceSha, facts.hydrationSourceSha);
 
   const python = process.env.PYTHON ?? "python";
   const legacyPublic = join(directory, "legacy-public.json");
@@ -332,6 +365,7 @@ test("frozen manifest evidence survives the actual render to recorder boundary",
     "--parent-database", missingParent,
     "--baseline-receipt", baselineReceipt,
     "--expected-parent-snapshot", "none",
+    "--production-source-sha", facts.hydrationSourceSha,
     "--parent-evidence-out", parentEvidence,
     "--prior-heads-out", priorHeads,
   ], { cwd: root, encoding: "utf8" });
@@ -808,10 +842,12 @@ test("frozen membership and repository ledger produce one candidate Atom identit
   await writeFile(join(directory, "index.html"), page);
   await writeFile(join(directory, "latest.json"), `${JSON.stringify(latest)}\n`);
   const environment = { ...process.env, RUN_CONTEXT_JSON: JSON.stringify(context) };
-  const repositoryDatabase = join(directory, "repository-observations.sqlite");
+  await mkdir(join(directory, "data"), { recursive: true });
+  const repositoryDatabase = join(directory, "data", "repository-observations.sqlite");
   const fixture = spawnSync(process.env.PYTHON ?? "python", ["-c", [
     "import hashlib, json, sqlite3, sys",
     "from pathlib import Path",
+    "import scripts.record_repository_observations as ledger",
     "from scripts.record_repository_observations import _file_sha256, _legacy_logical_rows, create_database",
     "from tests.test_repository_artifacts import insert_item, insert_profile",
     "database, snapshot_id, legacy = Path(sys.argv[1]), sys.argv[2], Path(sys.argv[3])",
@@ -823,12 +859,24 @@ test("frozen membership and repository ledger produce one candidate Atom identit
     "chain = hashlib.sha256(json.dumps({'schema_fingerprint_sha256': schema, 'parent_chain_sha256': None, 'core_payload_sha256': core, 'snapshot_id': snapshot_id, 'snapshot_seq': 1}, sort_keys=True, separators=(',', ':')).encode()).hexdigest()",
     "connection.execute('INSERT INTO snapshot_runs VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', (1, snapshot_id, 'migration_baseline', '2026-08-29T10:07:00.000Z', '2026-08-29T19:07:00.000+09:00', '2026-08-29', None, None, 'a' * 40, 'b' * 64, core, None, chain, 10))",
     "[insert_profile(connection, index + 1, f'owner/repo-{index}') for index in range(10)]",
-    "[insert_item(connection, 1, f'owner/repo-{index}', index + 1, stars=index, display_rank=index + 1, daily=index + 1) for index in range(10)]",
+    "[insert_item(connection, 1, f'owner/repo-{index}', index + 1, stars=index, display_rank=index + 1, daily=index + 1, translation_applicable=index == 0) for index in range(10)]",
     "schema_fingerprint, logical_count, logical_hash, last_key = _legacy_logical_rows(legacy)",
     "connection.execute('INSERT INTO baseline_sources VALUES (?,?,?,?,?,?,?,?,?)', ('legacy_trending_membership', 'data/trending-membership.sqlite', legacy.stat().st_size, _file_sha256(legacy), schema_fingerprint, logical_count, logical_hash, last_key, 1))",
     "legacy_connection = sqlite3.connect(legacy)",
     "[connection.execute('INSERT OR IGNORE INTO baseline_membership_slugs VALUES (?,?,?)', (slug.lower(), 'legacy_trending_membership', 1)) for slug, in legacy_connection.execute('SELECT DISTINCT slug FROM snapshot_members ORDER BY slug')]",
     "legacy_connection.close()",
+    "captured = []",
+    "real_digest = ledger._digest",
+    "ledger._digest = lambda value: (captured.append(value), core)[1]",
+    "ledger.verify_core_snapshot(connection, 1)",
+    "ledger._digest = real_digest",
+    "core = real_digest(captured[0])",
+    "chain = hashlib.sha256(json.dumps({'schema_fingerprint_sha256': schema, 'parent_chain_sha256': None, 'core_payload_sha256': core, 'snapshot_id': snapshot_id, 'snapshot_seq': 1}, sort_keys=True, separators=(',', ':')).encode()).hexdigest()",
+    "update_guard = connection.execute(\"SELECT sql FROM sqlite_master WHERE type='trigger' AND name='snapshot_runs_reject_update'\").fetchone()[0]",
+    "connection.execute('DROP TRIGGER snapshot_runs_reject_update')",
+    "connection.execute('UPDATE snapshot_runs SET core_payload_sha256=?, chain_sha256=? WHERE snapshot_seq=1', (core, chain))",
+    "connection.execute(update_guard)",
+    "ledger.verify_core_snapshot(connection, 1)",
     "connection.commit()",
     "connection.close()",
   ].join("; "), repositoryDatabase, context.snapshotId, legacyDatabase], { cwd: root, encoding: "utf8" });
@@ -864,6 +912,20 @@ test("frozen membership and repository ledger produce one candidate Atom identit
       await writeFile(target, relative.endsWith(".json") ? "{}\n" : `${relative}\n`);
     }
   }
+  const finalized = spawnSync(process.env.PYTHON ?? "python", ["-c", [
+    "import sqlite3, sys",
+    "from contextlib import closing",
+    "from pathlib import Path",
+    "from scripts.derive_repository_artifacts import _expected_artifact_paths, derive_repository_insights, finalize_snapshot_derivatives, hash_pages_artifacts",
+    "database, candidate_root, snapshot_id = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3]",
+    "connection = sqlite3.connect(database.as_uri() + '?mode=ro', uri=True)",
+    "snapshot_seq = connection.execute('SELECT snapshot_seq FROM snapshot_runs WHERE snapshot_id=?', (snapshot_id,)).fetchone()[0]",
+    "insights = derive_repository_insights(connection, snapshot_seq)",
+    "paths = _expected_artifact_paths(connection, snapshot_seq)",
+    "connection.close()",
+    "finalize_snapshot_derivatives(database, snapshot_id, insights, hash_pages_artifacts(candidate_root, paths))",
+  ].join("; "), repositoryDatabase, directory, context.snapshotId], { cwd: root, encoding: "utf8" });
+  assert.equal(finalized.status, 0, finalized.stderr);
   const git = args => spawnSync("git", args, { cwd: directory, encoding: "utf8" });
   assert.equal(git(["init", "-q"]).status, 0);
   git(["config", "user.name", "test"]); git(["config", "user.email", "test@example.invalid"]);
@@ -872,10 +934,30 @@ test("frozen membership and repository ledger produce one candidate Atom identit
   const committedSourceSha = git(["rev-parse", "HEAD"]).stdout.trim();
   const artifact = join(directory, "artifact");
   const contract = await artifactContract(directory, latest, sources, context.snapshotId);
-  await buildPagesArtifact({ sourceRoot: directory, outDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: contract });
+  const originalManifest = await buildPagesArtifact({ sourceRoot: directory, outDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: contract });
   const probed = await probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: contract, gitRoot: directory });
   assert.equal(probed.sourceSha, committedSourceSha);
   assert.equal(probed.snapshotId, context.snapshotId);
+
+  const recoveryCheckout = join(directory, "recovery-checkout");
+  const recoveryArtifact = join(directory, "recovery-v1-artifact");
+  const recoveryContractPath = join(directory, "recovery-v1-contract.json");
+  assert.equal(spawnSync("git", ["-c", "core.autocrlf=false", "clone", "-q", directory, recoveryCheckout], { encoding: "utf8" }).status, 0);
+  const exportedRecoveryContract = spawnSync(process.env.PYTHON ?? "python", [
+    join(root, "scripts", "derive_repository_artifacts.py"), "export-contract",
+    "--database", join(recoveryCheckout, "data", "repository-observations.sqlite"),
+    "--snapshot-id", context.snapshotId,
+    "--contract-out", recoveryContractPath,
+  ], { cwd: root, encoding: "utf8" });
+  assert.equal(exportedRecoveryContract.status, 0, exportedRecoveryContract.stderr);
+  const recoveryContract = JSON.parse(await readFile(recoveryContractPath, "utf8"));
+  const recoveryManifest = await buildPagesArtifact({ sourceRoot: recoveryCheckout, outDir: recoveryArtifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: recoveryContract });
+  assert.deepEqual(recoveryManifest, originalManifest);
+  await probeArtifactDirectory({ artifactDir: recoveryArtifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: recoveryContract, gitRoot: recoveryCheckout });
+  await assert.rejects(
+    probeArtifactDirectory({ artifactDir: recoveryArtifact, legacyRecoverySha: committedSourceSha, gitRoot: recoveryCheckout }),
+    /manifest|legacy/i,
+  );
   await assert.rejects(
     probeArtifactDirectory({ artifactDir: artifact, sourceSha: "f".repeat(40), snapshotId: context.snapshotId, artifactContract: contract, gitRoot: directory }),
     /manifest identity mismatch/i,

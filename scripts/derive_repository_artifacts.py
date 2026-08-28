@@ -21,6 +21,7 @@ try:
         PAGES_BASE_ARTIFACT_PATHS,
         _file_sha256,
         _legacy_logical_rows,
+        measure_historical_heads,
         parent_database_evidence,
         validate_schema,
         verify_core_snapshot,
@@ -32,6 +33,7 @@ except ModuleNotFoundError as error:
         PAGES_BASE_ARTIFACT_PATHS,
         _file_sha256,
         _legacy_logical_rows,
+        measure_historical_heads,
         parent_database_evidence,
         validate_schema,
         verify_core_snapshot,
@@ -684,32 +686,21 @@ def export_parent_inputs(
     parent_database_path: str | Path,
     legacy_baseline_receipt: dict[str, Any],
     expected_parent_snapshot_id: str | None,
+    production_source_sha: str,
     parent_evidence_output: str | Path,
     prior_heads_output: str | Path,
 ) -> dict[str, Any]:
     """Export exact recorder evidence and commit-continuity heads without repository content."""
     if not isinstance(legacy_baseline_receipt, dict):
         raise ValueError("legacy baseline receipt is invalid")
+    if not isinstance(production_source_sha, str) or re.fullmatch(r"[a-f0-9]{40}", production_source_sha) is None:
+        raise ValueError("production source SHA is invalid")
     parent = Path(parent_database_path)
     if parent.exists():
         evidence = parent_database_evidence(parent)
         if expected_parent_snapshot_id is None or evidence["last_snapshot_id"] != expected_parent_snapshot_id:
             raise ValueError("parent snapshot identity does not match production")
-        with closing(sqlite3.connect(parent.as_uri() + "?mode=ro", uri=True)) as connection:
-            validate_schema(connection)
-            rows = connection.execute(
-                """SELECT i.slug,p.default_branch,i.default_branch_head_sha
-                   FROM snapshot_items i JOIN repository_profiles p
-                   ON p.profile_id=i.profile_id AND p.slug=i.slug
-                   WHERE i.snapshot_seq=(
-                       SELECT MAX(previous.snapshot_seq)
-                       FROM snapshot_items previous
-                       WHERE previous.slug=i.slug AND previous.snapshot_seq<=?
-                   )
-                   ORDER BY i.slug""",
-                (evidence["last_snapshot_seq"],),
-            ).fetchall()
-        heads = {slug: {"branch": branch, "headSha": head} for slug, branch, head in rows}
+        historical_heads, heads = measure_historical_heads(parent, evidence["last_snapshot_seq"])
         snapshot_id = evidence["last_snapshot_id"]
         parent_database_sha256 = evidence["file_sha256"]
         snapshot_seq = evidence["last_snapshot_seq"]
@@ -718,12 +709,15 @@ def export_parent_inputs(
             raise ValueError("production parent database is missing")
         evidence = {"missing": True}
         heads = {}
+        historical_heads = {"scope": "all_historical", "head_count": 0, "heads_sha256": _digest({})}
         snapshot_id = None
         parent_database_sha256 = None
         snapshot_seq = None
     _write_json_atomic(parent_evidence_output, {
         "version": 1,
         "parent_database": evidence,
+        "production_source_sha": production_source_sha,
+        "historical_heads": historical_heads,
         "legacy_baseline_receipt": legacy_baseline_receipt,
     })
     _write_json_atomic(prior_heads_output, {
@@ -949,6 +943,7 @@ def _parser() -> argparse.ArgumentParser:
     parent.add_argument("--parent-database", required=True)
     parent.add_argument("--baseline-receipt", required=True)
     parent.add_argument("--expected-parent-snapshot", required=True)
+    parent.add_argument("--production-source-sha", required=True)
     parent.add_argument("--parent-evidence-out", required=True)
     parent.add_argument("--prior-heads-out", required=True)
     derive = commands.add_parser("derive")
@@ -985,6 +980,7 @@ def main(argv: list[str] | None = None) -> int:
             args.parent_database,
             receipt,
             None if args.expected_parent_snapshot == "none" else args.expected_parent_snapshot,
+            args.production_source_sha,
             args.parent_evidence_out,
             args.prior_heads_out,
         )

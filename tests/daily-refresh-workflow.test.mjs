@@ -70,10 +70,11 @@ test("frozen facts events and enrichment precede core recording and publication"
     "Build and locally probe committed Pages artifact",
   ]);
   assert.match(workflow, /update-trending\.mjs --facts-out/);
-  assert.match(workflow, /collect-repository-events\.mjs --facts[\s\S]*--prior-heads/);
+  assert.match(workflow, /derive_repository_artifacts\.py export-parent-inputs[\s\S]*--production-source-sha "\$HYDRATION_SOURCE_SHA"/);
+  assert.match(workflow, /collect-repository-events\.mjs --facts[\s\S]*--prior-heads[\s\S]*--parent-evidence[\s\S]*--parent-database/);
   assert.match(workflow, /generate-translations\.mjs --facts[\s\S]*--events[\s\S]*--enrichment-index-out[\s\S]*--output-root/);
   assert.match(workflow, /ENRICHMENT_BUDGET_MODE=normal[\s\S]*VERIFIED_RECOVERY_VERSION=1[\s\S]*VERIFIED_BOOTSTRAP_SOURCE_SHA=\$HYDRATION_SOURCE_SHA/);
-  assert.match(workflow, /PRODUCTION_MANIFEST_STATUS=verified_v\$\{value\.version\}[\s\S]*PRODUCTION_MANIFEST_SHA256=\$\{process\.env\.MANIFEST_SHA256\}/);
+  assert.match(workflow, /PRODUCTION_MANIFEST_STATUS=\$\{value\.manifestStatus\}[\s\S]*PRODUCTION_MANIFEST_SHA256=\$\{value\.manifestSha256 \?\? ""\}/);
   assert.match(workflow, /update-trending\.mjs --render-facts[\s\S]*--snapshot-out/);
   assert.match(workflow, /record_repository_observations\.py[\s\S]*--parent-database[\s\S]*--candidate-database[\s\S]*--snapshot[\s\S]*--events[\s\S]*--enrichment-index[\s\S]*--readme-state/);
   assert.doesNotMatch(workflow, /record_star_observations\.py|record_trending_membership\.py/);
@@ -99,6 +100,9 @@ test("candidate finalizes before checkout promotion and staged SQLite scanning",
   }
   assert.match(workflow.slice(finalization, validation), /derive_repository_artifacts\.py finalize/);
   assert.match(workflow.slice(validation, promotion), /verify-pages/);
+  assert.match(workflow.slice(promotion, add), /git diff --quiet --[\s\S]*git diff --cached --quiet --/);
+  assert.match(workflow.slice(promotion, add), /\[ "\$ORIGINAL_SHA" = "\$\(git rev-parse HEAD\)" \]/);
+  assert.match(workflow.slice(scanner, commit), /git diff --cached --check/);
   assert.doesNotMatch(workflow, /git add (?:\.|-A|--all)(?:\s|$)/);
   assert.match(workflow, /if git diff --cached --quiet; then[\s\S]*exit 1/);
 });
@@ -133,6 +137,40 @@ test("Pages jobs retain pinned least privilege and recovery", async () => {
   assert.match(workflow, /actions\/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9/);
   assert.match(workflow, /actions\/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128/);
   assert.match(workflow, /needs\.verify\.result == 'failure'/);
+});
+
+test("recovery preserves the verified production manifest version and identity", async () => {
+  const workflow = await workflowText();
+  assert.match(workflow, /recovery_snapshot_id: \$\{\{ steps\.state\.outputs\.parent_snapshot_id \}\}/);
+  assert.match(workflow, /recovery_version=\$\{value\.version\}/);
+  assert.doesNotMatch(workflow, /recovery_version=0/);
+
+  const buildStart = workflow.indexOf("- name: Build verified recovery artifact");
+  const buildEnd = workflow.indexOf("- name: Prepare isolated refresh candidate", buildStart);
+  const recoveryBuild = workflow.slice(buildStart, buildEnd);
+  assert.match(recoveryBuild, /if \[ "\$PRODUCTION_VERSION" = "0" \]; then/);
+  assert.match(recoveryBuild, /--mode legacy[\s\S]*--legacy-recovery-sha/);
+  assert.match(recoveryBuild, /else[\s\S]*derive_repository_artifacts\.py export-contract[\s\S]*--snapshot-id "\$PARENT_SNAPSHOT_ID"/);
+  assert.match(recoveryBuild, /build-pages-artifact\.mjs --source[\s\S]*--snapshot-id "\$PARENT_SNAPSHOT_ID"[\s\S]*--artifact-contract "\$RECOVERY_CONTRACT"/);
+  assert.match(recoveryBuild, /probe-production\.mjs --artifact-dir[\s\S]*--source-sha "\$HYDRATION_SOURCE_SHA"[\s\S]*--snapshot-id "\$PARENT_SNAPSHOT_ID"[\s\S]*--artifact-contract "\$RECOVERY_CONTRACT"/);
+
+  const verifyStart = workflow.indexOf("- name: Verify recovered production");
+  const recoveryVerify = workflow.slice(verifyStart);
+  assert.match(recoveryVerify, /if \[ "\$RECOVERY_VERSION" = "0" \]; then/);
+  assert.match(recoveryVerify, /--legacy-recovery-sha "\$RECOVERY_SOURCE_SHA"/);
+  assert.match(recoveryVerify, /else[\s\S]*--source-sha "\$RECOVERY_SOURCE_SHA"[\s\S]*--snapshot-id "\$RECOVERY_SNAPSHOT_ID"/);
+});
+
+test("production preflight distinguishes strict v0 v1 and verified 404", async () => {
+  const workflow = await workflowText();
+  const stateStart = workflow.indexOf("- name: Resolve verified production state");
+  const stateEnd = workflow.indexOf("- name: Build verified recovery artifact", stateStart);
+  const state = workflow.slice(stateStart, stateEnd);
+  assert.match(state, /build-pages-artifact\.mjs --inspect-manifest "\$MANIFEST_FILE" --http-status "\$HTTP_STATUS" --fallback-source-sha "\$ORIGINAL_SHA"/);
+  assert.match(state, /PRODUCTION_MANIFEST_STATUS/);
+  assert.match(state, /verified_404[\s\S]*--bootstrap-preflight-sha/);
+  assert.match(state, /verified_v0[\s\S]*--legacy-recovery-sha/);
+  assert.doesNotMatch(state, /\[ "\$HTTP_STATUS" = "200" \] \|\|/);
 });
 
 test("the separate legacy writer workflow is removed", async () => {

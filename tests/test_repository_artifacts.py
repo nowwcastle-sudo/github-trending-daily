@@ -85,7 +85,8 @@ def insert_profile(connection, profile_id, slug, display_slug=None):
 
 
 def insert_item(connection, seq, slug, profile_id, *, stars, display_rank=1, daily=1,
-                weekly=None, monthly=None, status="stayed", head="a" * 40):
+                weekly=None, monthly=None, status="stayed", head="a" * 40,
+                translation_applicable=False):
     columns = [row[1] for row in connection.execute("PRAGMA table_info(snapshot_items)")]
     row = {
         "snapshot_seq": seq, "slug": slug, "profile_id": profile_id, "display_rank": display_rank,
@@ -97,15 +98,19 @@ def insert_item(connection, seq, slug, profile_id, *, stars, display_rank=1, dai
         "watchers_count": 0, "subscribers": 0, "open_issues_and_pull_requests": 0, "contributors": 0,
         "updated_at": connection.execute("SELECT observed_at_utc FROM snapshot_runs WHERE snapshot_seq=?", (seq,)).fetchone()[0],
         "pushed_at": None, "default_branch_head_sha": head,
-        "previous_default_branch_head_sha": None, "head_transition": "baseline", "readme_status": "absent",
-        "readme_path": None, "readme_blob_sha": None, "readme_content_sha256": None,
+        "previous_default_branch_head_sha": None, "head_transition": "baseline",
+        "readme_status": "present" if translation_applicable else "absent",
+        "readme_path": "README.md" if translation_applicable else None,
+        "readme_blob_sha": "b" * 40 if translation_applicable else None,
+        "readme_content_sha256": "c" * 64 if translation_applicable else None,
         "membership_status": "baseline_present" if seq == 1 else status, "release_count": 0,
         "release_inventory_sha256": hashlib.sha256(b"[]").hexdigest(), "latest_release_id": None,
         "estimate_collection_status": "complete_empty", "estimate_source_payload_sha256": "c" * 64,
         "estimate_point_count": 0, "summary_source_sha256": "d" * 64,
         "summary_content_sha256": "e" * 64, "summary_envelope_sha256": "f" * 64,
-        "translation_status": "not_applicable:no_readme", "translation_source_sha256": None,
-        "translation_envelope_sha256": None,
+        "translation_status": "applicable" if translation_applicable else "not_applicable:no_readme",
+        "translation_source_sha256": "1" * 64 if translation_applicable else None,
+        "translation_envelope_sha256": "2" * 64 if translation_applicable else None,
     }
     connection.execute(
         f"INSERT INTO snapshot_items ({','.join(columns)}) VALUES ({','.join('?' for _ in columns)})",
@@ -169,6 +174,7 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
             self.root / "missing-parent.sqlite",
             receipt,
             None,
+            "a" * 40,
             evidence_path,
             heads_path,
         )
@@ -176,6 +182,8 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
         self.assertEqual(json.loads(evidence_path.read_text(encoding="utf-8")), {
             "version": 1,
             "parent_database": {"missing": True},
+            "production_source_sha": "a" * 40,
+            "historical_heads": {"scope": "all_historical", "head_count": 0, "heads_sha256": digest({})},
             "legacy_baseline_receipt": receipt,
         })
         self.assertEqual(json.loads(heads_path.read_text(encoding="utf-8")), {
@@ -211,8 +219,9 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
 
         evidence_path = self.root / "parent-evidence.json"
         heads_path = self.root / "prior-heads.json"
-        export_parent_inputs(database, {"version": 1, "sources": {}}, parent_snapshot_id, evidence_path, heads_path)
+        export_parent_inputs(database, {"version": 1, "sources": {}}, parent_snapshot_id, "b" * 40, evidence_path, heads_path)
         payload = json.loads(heads_path.read_text(encoding="utf-8"))
+        evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
         expected_heads = {
             "owner/a": {"branch": "main", "headSha": "c" * 40},
             "owner/b": {"branch": "main", "headSha": "b" * 40},
@@ -229,6 +238,12 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
         })
         self.assertIn("owner/b", payload["heads"])
         self.assertNotIn("owner/c", payload["heads"])
+        self.assertEqual(evidence["historical_heads"], {
+            "scope": "all_historical",
+            "head_count": 2,
+            "heads_sha256": digest(expected_heads),
+        })
+        self.assertEqual(evidence["production_source_sha"], "b" * 40)
 
     def assert_sanitized_failure(self, action, expected_message, forbidden):
         try:

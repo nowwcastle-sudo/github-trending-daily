@@ -62,6 +62,11 @@ def canonical_hash(value):
     return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
 
+def historical_heads_receipt(heads=None):
+    heads = {} if heads is None else heads
+    return {"scope": "all_historical", "head_count": len(heads), "heads_sha256": canonical_hash(heads)}
+
+
 def baseline_run(connection, *, snapshot_id="20260828010101-aaaaaaaaaaaaaaaa", utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00"):
     core = sha256("b")
     chain = canonical_hash({"schema_fingerprint_sha256": PINNED_SCHEMA_FINGERPRINT, "parent_chain_sha256": None, "core_payload_sha256": core, "snapshot_id": snapshot_id, "snapshot_seq": 1})
@@ -368,6 +373,7 @@ def writer_payload(*, snapshot_id, utc, kst, stats_date, run_kind, parent_snapsh
         "snapshotId": snapshot_id, "observedAtUtc": utc, "observedAtKst": kst,
         "statsDate": stats_date, "runKind": run_kind, "parentSnapshotId": parent_snapshot_id,
         "inputSourceSha": sha1(), "inputManifestSha256": sha256(),
+        "hydrationSourceSha": sha1(),
         "productionManifestStatus": "verified_v1",
         "enrichmentIndex": {"owner/repo": {"summary": {
             "content": {"goal": "g", "usage": "u", "pros": "p", "cons": "c", "fit": "f"},
@@ -470,6 +476,8 @@ def writer_cli_case(directory, *, candidate_name="candidate.sqlite", state_name=
     inputs["index"].write_text(json.dumps(index), encoding="utf-8")
     inputs["evidence"].write_text(json.dumps({
         "version": 1, "parent_database": {"missing": True},
+        "production_source_sha": payload["hydrationSourceSha"],
+        "historical_heads": historical_heads_receipt(),
         "legacy_baseline_receipt": receipt,
     }), encoding="utf-8")
     candidate = root / candidate_name
@@ -2239,6 +2247,8 @@ class RepositoryObservationTests(unittest.TestCase):
         files["evidence"].write_text(json.dumps({
             "version": 1,
             "parent_database": {"missing": True},
+            "production_source_sha": payload["hydrationSourceSha"],
+            "historical_heads": historical_heads_receipt(),
             "legacy_baseline_receipt": receipt,
         }), encoding="utf-8")
 
@@ -2274,6 +2284,8 @@ class RepositoryObservationTests(unittest.TestCase):
         files["evidence"].write_text(json.dumps({
             "version": 1,
             "parent_database": parent_database_evidence(first_candidate),
+            "production_source_sha": second["hydrationSourceSha"],
+            "historical_heads": ledger.measure_historical_heads(first_candidate)[0],
             "legacy_baseline_receipt": receipt,
         }), encoding="utf-8")
         refresh_candidate = root / "cli-refresh-candidate.sqlite"
@@ -2281,9 +2293,21 @@ class RepositoryObservationTests(unittest.TestCase):
             self.assertEqual(ledger.main(arguments(files["evidence"], refresh_candidate, first_candidate)), 0)
         with closing(sqlite3.connect(refresh_candidate)) as connection:
             self.assertEqual(connection.execute("SELECT COUNT(*) FROM snapshot_runs").fetchone(), (2,))
+        stale_heads = json.loads(files["evidence"].read_text(encoding="utf-8"))
+        stale_heads["historical_heads"]["heads_sha256"] = "0" * 64
+        stale_path = root / "cli-evidence-stale-heads.json"
+        stale_path.write_text(json.dumps(stale_heads), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "historical head evidence mismatch"):
+            ledger.main(arguments(stale_path, root / "cli-candidate-stale-heads.sqlite", first_candidate))
+        wrong_source = json.loads(files["evidence"].read_text(encoding="utf-8"))
+        wrong_source["production_source_sha"] = sha1("f")
+        wrong_source_path = root / "cli-evidence-wrong-production-source.json"
+        wrong_source_path.write_text(json.dumps(wrong_source), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "hydration source does not match parent evidence"):
+            ledger.main(arguments(wrong_source_path, root / "cli-candidate-wrong-production-source.sqlite", first_candidate))
         for label, envelope in (
             ("alias", {"version": 1, "parentEvidence": {"missing": True}, "legacy_baseline_receipt": receipt}),
-            ("extra", {"version": 1, "parent_database": {"missing": True}, "legacy_baseline_receipt": receipt, "receipt": receipt}),
+            ("extra", {"version": 1, "parent_database": {"missing": True}, "production_source_sha": sha1(), "historical_heads": historical_heads_receipt(), "legacy_baseline_receipt": receipt, "receipt": receipt}),
         ):
             evidence_path = root / f"cli-evidence-{label}.json"
             evidence_path.write_text(json.dumps(envelope), encoding="utf-8")
