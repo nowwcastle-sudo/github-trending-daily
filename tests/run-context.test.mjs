@@ -12,8 +12,11 @@ test("one context remains on the same KST date after wall clock midnight", () =>
   const parent = { snapshotId: "20260826120700-0123456789abcdef", sourceSha: "a".repeat(40) };
   const context = createRunContext(new Date("2026-08-26T14:59:59.900Z"), parent);
   assert.equal(context.statsDateKst, "2026-08-26");
+  assert.equal(context.observedAtKst, "2026-08-26T23:59:59.900+09:00");
   assert.equal(validateRunContext(context).snapshotId, context.snapshotId);
   assert.equal(context.parentSourceSha, parent.sourceSha);
+  assert.throws(() => validateRunContext({ ...context, observedAtKst: "2026-08-26T23:59:59+09:00" }));
+  assert.throws(() => validateRunContext({ ...context, observedAtKst: "2026-08-26T23:59:59.901+09:00" }));
 });
 
 test("context rejects a mismatched KST date and malformed snapshot id", () => {

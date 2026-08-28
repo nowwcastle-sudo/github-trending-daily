@@ -7,7 +7,7 @@ const KST = new Intl.DateTimeFormat("en-CA", {
 const SNAPSHOT_ID_RE = /^[0-9]{14}-[a-f0-9]{16}$/;
 const SOURCE_SHA_RE = /^[a-f0-9]{40}$/;
 const UTC_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
-const KST_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+09:00$/;
+const KST_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+09:00$/;
 
 function kstParts(now) {
   return Object.fromEntries(KST.formatToParts(now)
@@ -18,10 +18,6 @@ function kstParts(now) {
 function kstDate(now) {
   const parts = kstParts(now);
   return `${parts.year}-${parts.month}-${parts.day}`;
-}
-
-function sameSecond(left, right) {
-  return Math.trunc(left.getTime() / 1000) === Math.trunc(right.getTime() / 1000);
 }
 
 export function validateRunContext(value) {
@@ -50,7 +46,7 @@ export function validateRunContext(value) {
     Number.isNaN(observedAtUtc.valueOf())
     || Number.isNaN(observedAtKst.valueOf())
     || observedAtUtc.toISOString() !== value.observedAtUtc
-    || !sameSecond(observedAtUtc, observedAtKst)
+    || observedAtUtc.getTime() !== observedAtKst.getTime()
     || kstDate(observedAtUtc) !== value.statsDateKst
     || value.observedAtKst.slice(0, 10) !== value.statsDateKst
   ) throw new Error("invalid run context");
@@ -69,7 +65,8 @@ export function createRunContext(now = new Date(), parent = { snapshotId: null, 
   const parts = kstParts(now);
   const observedAtUtc = now.toISOString();
   const statsDateKst = `${parts.year}-${parts.month}-${parts.day}`;
-  const observedAtKst = `${statsDateKst}T${parts.hour}:${parts.minute}:${parts.second}+09:00`;
+  const milliseconds = String(now.getUTCMilliseconds()).padStart(3, "0");
+  const observedAtKst = `${statsDateKst}T${parts.hour}:${parts.minute}:${parts.second}.${milliseconds}+09:00`;
   const digest = createHash("sha256").update(`${observedAtUtc}|run-context-v1`).digest("hex").slice(0, 16);
   return validateRunContext({
     observedAtUtc,
