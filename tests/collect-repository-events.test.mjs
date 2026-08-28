@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { existsSync } from "node:fs";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -13,6 +14,7 @@ import {
   bindFrozenEventEnvelope,
   hashCanonicalJson,
   runFrozenEventCollection,
+  verifyFrozenParentInputs,
   validatePriorHeadsPayload,
   validateOssInsightResponse,
 } from "../scripts/collect-repository-events.mjs";
@@ -144,6 +146,8 @@ test("event envelope serializes latest-release ids and binds the exact frozen fa
     inputSourceSha: "c".repeat(40),
     hydrationSourceSha: "b".repeat(40),
     activeSetSha256: hashCanonicalJson(["owner/repo"]),
+    sourceSetSha256: "d".repeat(64),
+    runContextSha256: "e".repeat(64),
     factsSha256: null,
     repositories: [repo],
   };
@@ -157,6 +161,8 @@ test("event envelope serializes latest-release ids and binds the exact frozen fa
   assert.equal(envelope.snapshotId, facts.snapshotId);
   assert.equal(envelope.activeSetSha256, facts.activeSetSha256);
   assert.equal(envelope.factsSha256, facts.factsSha256);
+  assert.equal(envelope.sourceSetSha256, facts.sourceSetSha256);
+  assert.equal(envelope.runContextSha256, facts.runContextSha256);
   assert.match(envelope.completeSetSha256, /^[a-f0-9]{64}$/);
   assert.equal(JSON.parse(JSON.stringify(envelope)).latestReleaseIds["owner/repo"], 1);
 });
@@ -210,8 +216,8 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
   };
   const inputSourceSha = "c".repeat(40);
   const hydrationSourceSha = "b".repeat(40);
-  const productionManifestStatus = "verified_v1";
-  const productionManifestSha256 = "f".repeat(64);
+  const productionManifestStatus = "verified_404";
+  const productionManifestSha256 = null;
   const trendingSourceSha256 = { daily: "1".repeat(64), weekly: "2".repeat(64), monthly: "3".repeat(64) };
   const facts = {
     version: 1,
@@ -252,7 +258,11 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
     writeFile(priorHeadsPath, `${JSON.stringify(prior)}\n`),
     writeFile(parentEvidencePath, `${JSON.stringify(parentEvidence(prior))}\n`),
   ]);
+  assert.equal(verifyFrozenParentInputs({ parentDatabasePath, parentEvidencePath, priorHeadsPath }), true);
 
+  let verifierCalls = 0;
+  let eventFetches = 0;
+  const network = successfulFetch();
   const events = await runFrozenEventCollection({
     factsPath,
     eventsOut,
@@ -260,14 +270,37 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
     priorHeadsPath,
     parentEvidencePath,
     parentDatabasePath,
-    fetchImpl: successfulFetch(),
+    verifyParentInputs: async () => {
+      verifierCalls += 1;
+      assert.equal(eventFetches, 0);
+    },
+    fetchImpl: async (...args) => {
+      eventFetches += 1;
+      return network(...args);
+    },
     now: () => origin,
   });
   assert.equal(events.snapshotId, facts.snapshotId);
+  assert.equal(verifierCalls, 1);
   assert.equal(events.releases.length, 20);
   assert.deepEqual(events.latestReleaseIds, Object.fromEntries(repositories.map(value => [value.slug, 1])));
   assert.equal(events.budgetReceipt.logicalRequests, 93);
   assert.deepEqual(JSON.parse(await readFile(eventsOut, "utf8")), events);
+
+  let evidenceSwapFetches = 0;
+  await assert.rejects(runFrozenEventCollection({
+    factsPath,
+    eventsOut: join(directory, "evidence-swapped-events.json"),
+    budgetStatePath,
+    priorHeadsPath,
+    parentEvidencePath,
+    parentDatabasePath,
+    verifyParentInputs: async () => writeFile(priorHeadsPath, `${JSON.stringify(prior)} \n`),
+    fetchImpl: async () => { evidenceSwapFetches += 1; throw new Error("event fetch must not run"); },
+    now: () => origin,
+  }), /parent|evidence|changed/i);
+  assert.equal(evidenceSwapFetches, 0);
+  await writeFile(priorHeadsPath, `${JSON.stringify(prior)}\n`);
 
   await writeFile(parentDatabasePath, "unexpected parent bytes");
   let hostileFetches = 0;
@@ -282,6 +315,55 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
     now: () => origin,
   }), /parent|database|evidence/i);
   assert.equal(hostileFetches, 0);
+
+  const createdDuringCollection = join(directory, "created-during-collection.sqlite");
+  await writeFile(budgetStatePath, `${JSON.stringify({
+    version: 1,
+    ...facts.budgetReceipt,
+    lastObservedEpochMs: origin,
+  })}\n`);
+  let swapFetches = 0;
+  const swappedEventsOut = join(directory, "swapped-events.json");
+  await assert.rejects(runFrozenEventCollection({
+    factsPath,
+    eventsOut: swappedEventsOut,
+    budgetStatePath,
+    priorHeadsPath,
+    parentEvidencePath,
+    parentDatabasePath: createdDuringCollection,
+    verifyParentInputs: async () => {},
+    fetchImpl: async (...args) => {
+      swapFetches += 1;
+      if (swapFetches === 1) await writeFile(createdDuringCollection, "swapped parent bytes");
+      return network(...args);
+    },
+    now: () => origin,
+  }), /parent|database|changed/i);
+  assert.equal(swapFetches > 0, true);
+  assert.equal(existsSync(swappedEventsOut), false);
+});
+
+test("parent verifier failures retain no subprocess content", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "parent-verifier-content-free-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const sentinel = "UPSTREAM_PARENT_SENTINEL";
+  const verifierScriptPath = join(directory, "hostile-verifier.mjs");
+  await writeFile(verifierScriptPath, `process.stderr.write(${JSON.stringify(sentinel)}); process.exit(1);\n`);
+  assert.throws(() => verifyFrozenParentInputs({
+    parentDatabasePath: join(directory, "parent.sqlite"),
+    parentEvidencePath: join(directory, "parent.json"),
+    priorHeadsPath: join(directory, "heads.json"),
+    python: process.execPath,
+    verifierScriptPath,
+  }), error => {
+    const rendered = inspect(error, { showHidden: true });
+    assert.equal(rendered.includes(sentinel), false);
+    assert.equal(String(error).includes(sentinel), false);
+    assert.equal(error.stack.includes(sentinel), false);
+    assert.equal(Object.hasOwn(error, "stdout"), false);
+    assert.equal(Object.hasOwn(error, "stderr"), false);
+    return /parent input verification failed/i.test(error.message);
+  });
 });
 
 test("all-historical prior heads distinguish stayed, reentered, and never-observed active repositories", () => {

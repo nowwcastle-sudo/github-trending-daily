@@ -441,7 +441,11 @@ function successfulGithubFetch({ failures = new Map(), requests = [] } = {}) {
 const canonicalGithubFetch = options => successfulGithubFetch(options);
 
 test("frozen facts bind the exact run source, active set, and README bodies without rendering", async () => {
-  const context = createRunContext(new Date("2026-08-29T00:07:00.000Z"));
+  const parent = createRunContext(new Date("2026-08-28T22:07:00.000Z"));
+  const context = createRunContext(new Date("2026-08-29T00:07:00.000Z"), {
+    snapshotId: parent.snapshotId,
+    sourceSha: "c".repeat(40),
+  });
   const collected = await enrichTrendingRepositories(discoveredRepos(), {
     fetchImpl: successfulGithubFetch(),
     includeLatestRelease: false,
@@ -520,6 +524,20 @@ test("frozen facts manifest evidence is compatible with the run lineage", async 
     ...base, context: parentless, productionManifestStatus: "verified_v0", productionManifestSha256: "f".repeat(64),
   }));
   assert.throws(() => buildFrozenFactsEnvelope({
+    ...base, context: parentless, productionManifestStatus: "verified_v1", productionManifestSha256: "f".repeat(64),
+  }), /manifest|lineage/i);
+  assert.doesNotThrow(() => buildFrozenFactsEnvelope({
+    ...base,
+    context: refresh,
+    productionManifestStatus: "verified_v1",
+    productionManifestSha256: "f".repeat(64),
+    budgetReceipt: {
+      ...base.budgetReceipt,
+      originEpochMs: Date.parse(refresh.observedAtUtc),
+      eventDeadlineEpochMs: Date.parse(refresh.observedAtUtc) + 15 * 60_000,
+    },
+  }));
+  assert.throws(() => buildFrozenFactsEnvelope({
     ...base, context: refresh, productionManifestStatus: "verified_404", productionManifestSha256: null,
   }), /manifest|lineage/i);
   assert.throws(() => buildFrozenFactsEnvelope({
@@ -591,8 +609,8 @@ test("facts-only collection writes explicit temp outputs and leaves tracked publ
     context,
     inputSourceSha: "c".repeat(40),
     hydrationSourceSha: "c".repeat(40),
-    productionManifestStatus: "verified_v1",
-    productionManifestSha256: "f".repeat(64),
+    productionManifestStatus: "verified_404",
+    productionManifestSha256: null,
     eventOriginEpochMs: Date.parse(context.observedAtUtc),
     now: () => Date.parse(context.observedAtUtc),
     fetchImpl: async (url, options) => {
@@ -657,6 +675,8 @@ test("render-only consumes exact frozen bindings with zero fetches and emits a r
     snapshotId: facts.snapshotId,
     activeSetSha256: facts.activeSetSha256,
     factsSha256: facts.factsSha256,
+    sourceSetSha256: facts.sourceSetSha256,
+    runContextSha256: facts.runContextSha256,
     eventsSha256: events.completeSetSha256,
     repositories: Object.fromEntries(repositories.map((repository, index) => {
       const source = {
@@ -709,6 +729,8 @@ test("render-only consumes exact frozen bindings with zero fetches and emits a r
   assert.equal(snapshot.productionManifestStatus, "verified_v1");
   assert.equal(snapshot.inputManifestSha256, "f".repeat(64));
   assert.equal(snapshot.hydrationSourceSha, facts.hydrationSourceSha);
+  assert.equal(snapshot.sourceSetSha256, facts.sourceSetSha256);
+  assert.equal(snapshot.runContextSha256, facts.runContextSha256);
   assert.equal(snapshot.enrichmentIndexSha256, hashCanonicalJson(enrichmentIndex));
   assert.equal(snapshot.repositories.length, 10);
   assert.equal(JSON.stringify(snapshot).includes(markdown), false);
@@ -726,6 +748,18 @@ test("render-only consumes exact frozen bindings with zero fetches and emits a r
     cacheOut: join(directory, "hostile", "data", "repo-summaries.json"),
     snapshotOut: join(directory, "hostile-snapshot.json"),
   }), /enrichment|summary|identity/i);
+
+  await writeFile(indexPath, `${JSON.stringify(enrichmentIndex)}\n`);
+  await writeFile(eventsPath, `${JSON.stringify({ ...events, sourceSetSha256: "0".repeat(64) })}\n`);
+  await assert.rejects(renderFrozenCandidate({
+    factsPath,
+    eventsPath,
+    enrichmentIndexPath: indexPath,
+    pageTemplatePath: templatePath,
+    pageOut: join(directory, "cross-source", "index.html"),
+    cacheOut: join(directory, "cross-source", "data", "repo-summaries.json"),
+    snapshotOut: join(directory, "cross-source-snapshot.json"),
+  }), /event|binding|source/i);
 });
 
 test("transactional boundary completes facts and events before paid enrichment", async () => {

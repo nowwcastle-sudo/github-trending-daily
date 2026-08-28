@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { buildTrendNote, fetchCanonicalReadme } from "./update-trending.mjs";
-import { hashCanonicalJson, validateFrozenFactsPayload } from "./collect-repository-events.mjs";
+import { hashCanonicalJson, validateFrozenFactsPayload, verifyFrozenParentInputs } from "./collect-repository-events.mjs";
 import { parseJsonStrict } from "./build-pages-artifact.mjs";
 import { validateRunContext } from "./run-context.mjs";
 
@@ -140,6 +140,8 @@ function validateFrozenPolicyBinding(facts, context) {
   const manifestSha = context?.productionManifestSha256 ?? null;
   if (context?.inputSourceSha !== facts.inputSourceSha
       || context?.hydrationSourceSha !== facts.hydrationSourceSha
+      || context?.sourceSetSha256 !== facts.sourceSetSha256
+      || context?.runContextSha256 !== facts.runContextSha256
       || status !== facts.productionManifestStatus || manifestSha !== facts.productionManifestSha256) {
     throw budgetPolicyFailure("BUDGET_POLICY_INVALID", "Frozen enrichment manifest policy proof is mismatched");
   }
@@ -2641,11 +2643,12 @@ export function validatedPreparedTranslations(contents, translationsDir, transla
 }
 
 function validateFrozenEvents(facts, value) {
-  const binding = new Set(["version", "snapshotId", "activeSetSha256", "factsSha256", "completeSetSha256"]);
+  const binding = new Set(["version", "snapshotId", "activeSetSha256", "factsSha256", "sourceSetSha256", "runContextSha256", "completeSetSha256"]);
   const required = ["heads", "releases", "latestReleaseIds", "commits", "estimates", "budgetReceipt"];
   if (!value || Array.isArray(value) || typeof value !== "object"
       || value.version !== 1 || value.snapshotId !== facts.snapshotId
       || value.activeSetSha256 !== facts.activeSetSha256 || value.factsSha256 !== facts.factsSha256
+      || value.sourceSetSha256 !== facts.sourceSetSha256 || value.runContextSha256 !== facts.runContextSha256
       || !SHA256_RE.test(value.completeSetSha256 ?? "")
       || required.some(key => !Object.hasOwn(value, key))
       || Object.keys(value).some(key => !binding.has(key) && !required.includes(key))) {
@@ -2713,13 +2716,21 @@ export async function runFrozenEnrichmentPipeline({
   now = Date.now,
   frameIdFactory,
   beforeFinalValidation = async () => {},
+  parentEvidencePath,
+  priorHeadsPath,
+  parentDatabasePath,
+  verifyParentInputs = verifyFrozenParentInputs,
 } = {}) {
   const factsFile = frozenPath(factsPath, "Frozen facts", { output: true });
   const eventsFile = frozenPath(eventsPath, "Frozen events", { output: true });
   const indexFile = frozenPath(explicitIndexOut ?? indexPath, "Enrichment index output", { output: true });
   const candidateRoot = frozenPath(outputRoot, "Enrichment output root", { output: true });
+  const parentEvidenceFile = frozenPath(parentEvidencePath, "Parent evidence");
+  const priorHeadsFile = frozenPath(priorHeadsPath, "Prior heads");
+  const parentDatabaseFile = frozenPath(parentDatabasePath, "Parent database");
   const inputRoot = path.resolve(sourceRoot);
-  if (new Set([factsFile, eventsFile, indexFile, candidateRoot]).size !== 4 || indexFile.startsWith(`${candidateRoot}${path.sep}`) === false && indexFile === candidateRoot) {
+  if (new Set([factsFile, eventsFile, indexFile, candidateRoot, parentEvidenceFile, priorHeadsFile, parentDatabaseFile]).size !== 7
+      || indexFile.startsWith(`${candidateRoot}${path.sep}`) === false && indexFile === candidateRoot) {
     throw new Error("Frozen enrichment paths must not alias");
   }
   if (existsSync(indexFile) || existsSync(candidateRoot)) throw new Error("Frozen enrichment outputs must not already exist");
@@ -2769,6 +2780,13 @@ export async function runFrozenEnrichmentPipeline({
   const finalFacts = validateFrozenFactsPayload(parseJsonStrict(finalFactsBytes, "frozen facts", 64 * 1024 * 1024));
   const finalEvents = validateFrozenEvents(finalFacts, parseJsonStrict(finalEventsBytes, "frozen events", 64 * 1024 * 1024));
   if (finalEvents.completeSetSha256 !== events.completeSetSha256) throw new Error("Frozen event binding changed after planning");
+  validateFrozenPolicyBinding(finalFacts, policyContext);
+  if (typeof verifyParentInputs !== "function") throw new Error("Frozen parent verifier is invalid");
+  await verifyParentInputs({
+    parentDatabasePath: parentDatabaseFile,
+    parentEvidencePath: parentEvidenceFile,
+    priorHeadsPath: priorHeadsFile,
+  });
   const completed = pending.length ? await runEnrichment({
     apiKey,
     items: pending,
@@ -2811,6 +2829,8 @@ export async function runFrozenEnrichmentPipeline({
     snapshotId: facts.snapshotId,
     activeSetSha256: facts.activeSetSha256,
     factsSha256: facts.factsSha256,
+    sourceSetSha256: facts.sourceSetSha256,
+    runContextSha256: facts.runContextSha256,
     eventsSha256: events.completeSetSha256,
     repositories: repositoryIndex,
   };
@@ -2828,7 +2848,7 @@ export async function runFrozenEnrichmentPipeline({
 }
 
 function frozenCliArgs(argv) {
-  const allowed = new Set(["--facts", "--events", "--enrichment-index-out", "--output-root"]);
+  const allowed = new Set(["--facts", "--events", "--enrichment-index-out", "--output-root", "--parent-evidence", "--prior-heads", "--parent-database"]);
   const values = {};
   for (let index = 0; index < argv.length; index += 2) {
     const key = argv[index];
@@ -2858,6 +2878,8 @@ async function runFrozenEnrichmentCli(argv) {
     verifiedBootstrapSourceSha: process.env.VERIFIED_BOOTSTRAP_SOURCE_SHA ?? "",
     manualBootstrapSourceSha: process.env.MANUAL_BOOTSTRAP_SOURCE_SHA ?? "",
     hydrationSourceSha: process.env.HYDRATION_SOURCE_SHA ?? "",
+    sourceSetSha256: process.env.FROZEN_SOURCE_SET_SHA256 ?? "",
+    runContextSha256: process.env.FROZEN_RUN_CONTEXT_SHA256 ?? "",
     productionManifestStatus: process.env.PRODUCTION_MANIFEST_STATUS ?? "",
     productionManifestSha256: process.env.PRODUCTION_MANIFEST_SHA256 ?? null,
     numericOverrides,
@@ -2867,6 +2889,9 @@ async function runFrozenEnrichmentCli(argv) {
     eventsPath: args["--events"],
     enrichmentIndexOut: args["--enrichment-index-out"],
     outputRoot: args["--output-root"],
+    parentEvidencePath: args["--parent-evidence"],
+    priorHeadsPath: args["--prior-heads"],
+    parentDatabasePath: args["--parent-database"],
     apiKey: process.env.ANTHROPIC_API_KEY ?? "",
     policyContext,
     deadline,

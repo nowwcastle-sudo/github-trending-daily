@@ -432,7 +432,7 @@ export async function fetchCanonicalReadme(slug, options = {}) {
 
 function validateProductionManifestLineage(context, status, sha) {
   const parentless = context.parentSnapshotId === null;
-  if ((status === "verified_404" || status === "verified_v0") && !parentless) {
+  if ((status === "verified_v1") === parentless) {
     throw new Error("Frozen production manifest lineage is invalid");
   }
   if (status === "verified_404" ? sha !== null : !/^[a-f0-9]{64}$/.test(sha ?? "")) {
@@ -1333,11 +1333,13 @@ export async function collectFrozenFacts({
 }
 
 function validateFrozenRenderEvents(facts, events) {
-  const bindingKeys = new Set(["version", "snapshotId", "activeSetSha256", "factsSha256", "completeSetSha256"]);
+  const bindingKeys = new Set(["version", "snapshotId", "activeSetSha256", "factsSha256", "sourceSetSha256", "runContextSha256", "completeSetSha256"]);
   const contentKeys = ["heads", "releases", "latestReleaseIds", "commits", "estimates", "budgetReceipt"];
   if (!events || Array.isArray(events) || typeof events !== "object" || events.version !== 1
       || events.snapshotId !== facts.snapshotId || events.activeSetSha256 !== facts.activeSetSha256
-      || events.factsSha256 !== facts.factsSha256 || !/^[a-f0-9]{64}$/.test(events.completeSetSha256 ?? "")
+      || events.factsSha256 !== facts.factsSha256
+      || events.sourceSetSha256 !== facts.sourceSetSha256 || events.runContextSha256 !== facts.runContextSha256
+      || !/^[a-f0-9]{64}$/.test(events.completeSetSha256 ?? "")
       || contentKeys.some(key => !Object.hasOwn(events, key))
       || Object.keys(events).some(key => !bindingKeys.has(key) && !contentKeys.includes(key))) {
     throw new Error("Frozen render event binding is invalid");
@@ -1348,11 +1350,13 @@ function validateFrozenRenderEvents(facts, events) {
 }
 
 function validateFrozenEnrichmentIndex(facts, events, index) {
-  const expectedKeys = ["version", "snapshotId", "activeSetSha256", "factsSha256", "eventsSha256", "repositories"];
+  const expectedKeys = ["version", "snapshotId", "activeSetSha256", "factsSha256", "sourceSetSha256", "runContextSha256", "eventsSha256", "repositories"];
   if (!index || Array.isArray(index) || typeof index !== "object"
       || Object.keys(index).sort().join("\0") !== expectedKeys.sort().join("\0") || index.version !== 1
       || index.snapshotId !== facts.snapshotId || index.activeSetSha256 !== facts.activeSetSha256
-      || index.factsSha256 !== facts.factsSha256 || index.eventsSha256 !== events.completeSetSha256
+      || index.factsSha256 !== facts.factsSha256
+      || index.sourceSetSha256 !== facts.sourceSetSha256 || index.runContextSha256 !== facts.runContextSha256
+      || index.eventsSha256 !== events.completeSetSha256
       || !index.repositories || Array.isArray(index.repositories) || typeof index.repositories !== "object") {
     throw new Error("Frozen render enrichment binding is invalid");
   }
@@ -1467,6 +1471,8 @@ export async function renderFrozenCandidate({
     parentSnapshotId: facts.parentSnapshotId,
     inputSourceSha: facts.inputSourceSha,
     hydrationSourceSha: facts.hydrationSourceSha,
+    sourceSetSha256: facts.sourceSetSha256,
+    runContextSha256: facts.runContextSha256,
     inputManifestSha256: facts.productionManifestSha256,
     productionManifestStatus: facts.productionManifestStatus,
     activeSetSha256: facts.activeSetSha256,

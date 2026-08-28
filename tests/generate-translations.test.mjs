@@ -197,6 +197,9 @@ function frozenPipelineFixture(root) {
   const factsPath = path.join(root, "facts.json");
   const eventsPath = path.join(root, "events.json");
   const indexPath = path.join(root, "enrichment-index.json");
+  const parentEvidencePath = path.join(root, "parent-evidence.json");
+  const priorHeadsPath = path.join(root, "prior-heads.json");
+  const parentDatabasePath = path.join(root, "parent.sqlite");
   mkdirSync(path.join(sourceRoot, "data"), { recursive: true });
   mkdirSync(path.join(sourceRoot, "translations"), { recursive: true });
   writeFileSync(path.join(sourceRoot, "data", "repo-summaries.json"), "{}\n");
@@ -226,16 +229,16 @@ function frozenPipelineFixture(root) {
     contentSha256: repository.readme_content_sha256,
     markdown,
   }]));
+  const inputSourceSha = "c".repeat(40);
+  const hydrationSourceSha = "b".repeat(40);
   const context = {
     observedAtUtc: "2026-08-29T00:07:00.000Z",
     observedAtKst: "2026-08-29T09:07:00+09:00",
     statsDateKst: "2026-08-29",
     snapshotId: "20260829000700-aaaaaaaaaaaaaaaa",
-    parentSnapshotId: null,
-    parentSourceSha: null,
+    parentSnapshotId: "20260828220700-bbbbbbbbbbbbbbbb",
+    parentSourceSha: hydrationSourceSha,
   };
-  const inputSourceSha = "c".repeat(40);
-  const hydrationSourceSha = "b".repeat(40);
   const productionManifestStatus = "verified_v1";
   const productionManifestSha256 = "f".repeat(64);
   const trendingSourceSha256 = { daily: "1".repeat(64), weekly: "2".repeat(64), monthly: "3".repeat(64) };
@@ -246,7 +249,7 @@ function frozenPipelineFixture(root) {
     observedAtUtc: context.observedAtUtc,
     observedAtKst: context.observedAtKst,
     statsDate: context.statsDateKst,
-    parentSnapshotId: null,
+    parentSnapshotId: context.parentSnapshotId,
     inputSourceSha,
     hydrationSourceSha,
     productionManifestStatus,
@@ -281,6 +284,8 @@ function frozenPipelineFixture(root) {
     snapshotId: facts.snapshotId,
     activeSetSha256: facts.activeSetSha256,
     factsSha256: facts.factsSha256,
+    sourceSetSha256: facts.sourceSetSha256,
+    runContextSha256: facts.runContextSha256,
     completeSetSha256: hashCanonicalJson(eventContent),
   };
   writeFileSync(factsPath, `${JSON.stringify(facts)}\n`);
@@ -289,12 +294,19 @@ function frozenPipelineFixture(root) {
     mode: "normal",
     inputSourceSha,
     hydrationSourceSha,
+    sourceSetSha256: facts.sourceSetSha256,
+    runContextSha256: facts.runContextSha256,
     recoveryVersion: "1",
     verifiedBootstrapSourceSha: hydrationSourceSha,
     productionManifestStatus,
     productionManifestSha256,
   };
-  return { sourceRoot, outputRoot, factsPath, eventsPath, indexPath, facts, events, policyContext };
+  return {
+    sourceRoot, outputRoot, factsPath, eventsPath, indexPath,
+    parentEvidencePath, priorHeadsPath, parentDatabasePath,
+    verifyParentInputs: async () => {},
+    facts, events, policyContext,
+  };
 }
 
 test("frozen enrichment gives a same-run new repository a detailed summary and eligible Korean README", async t => {
@@ -302,11 +314,16 @@ test("frozen enrichment gives a same-run new repository a detailed summary and e
   t.after(() => rm(root, { recursive: true, force: true }));
   const fixture = frozenPipelineFixture(root);
   let calls = 0;
+  let verifierCalls = 0;
   const urls = [];
   const result = await runFrozenEnrichmentPipeline({
     ...fixture,
     apiKey: "test-only",
     deadline: Date.now() + 10 * 60_000,
+    verifyParentInputs: async () => {
+      verifierCalls += 1;
+      assert.equal(calls, 0);
+    },
     fetchImpl: async (url, init) => {
       calls += 1;
       urls.push(url);
@@ -316,11 +333,14 @@ test("frozen enrichment gives a same-run new repository a detailed summary and e
   });
   const index = JSON.parse(readFileSync(fixture.indexPath, "utf8"));
   assert.equal(result.repositories, 10);
+  assert.equal(verifierCalls, 1);
   assert.equal(calls, 10);
   assert.deepEqual(new Set(urls), new Set(["https://api.anthropic.com/v1/messages"]));
   assert.deepEqual(index.repositories["owner/repo-0"].summary.content, content);
   assert.match(index.repositories["owner/repo-0"].translation.markdown, /한국어 제목/);
   assert.equal(index.factsSha256, fixture.facts.factsSha256);
+  assert.equal(index.sourceSetSha256, fixture.facts.sourceSetSha256);
+  assert.equal(index.runContextSha256, fixture.facts.runContextSha256);
   assert.equal(index.eventsSha256, fixture.events.completeSetSha256);
   assert.equal(existsSync(path.join(fixture.outputRoot, "translations", "owner__repo-0.json")), true);
 });
@@ -329,6 +349,7 @@ test("frozen enrichment rejects cross-source and cross-mode policy proof before 
   const root = mkdtempSync(path.join(tmpdir(), "frozen-policy-binding-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   const cases = [
+    fixture => ({ ...fixture.policyContext, sourceSetSha256: "0".repeat(64) }),
     fixture => ({
       mode: "normal",
       inputSourceSha: fixture.facts.inputSourceSha,
@@ -365,6 +386,90 @@ test("frozen enrichment rejects cross-source and cross-mode policy proof before 
     assert.equal(existsSync(fixture.outputRoot), false);
     assert.equal(existsSync(fixture.indexPath), false);
   }
+});
+
+test("frozen enrichment rejects cross-hydration event reuse before Anthropic or output", async t => {
+  const root = mkdtempSync(path.join(tmpdir(), "frozen-cross-hydration-event-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const fixture = frozenPipelineFixture(root);
+  const hydrationSourceSha = "d".repeat(40);
+  const runContext = {
+    observedAtUtc: fixture.facts.observedAtUtc,
+    observedAtKst: fixture.facts.observedAtKst,
+    statsDateKst: fixture.facts.statsDate,
+    snapshotId: fixture.facts.snapshotId,
+    parentSnapshotId: fixture.facts.parentSnapshotId,
+    parentSourceSha: fixture.facts.parentSnapshotId === null ? null : hydrationSourceSha,
+  };
+  fixture.facts.hydrationSourceSha = hydrationSourceSha;
+  fixture.facts.runContextSha256 = hashCanonicalJson(runContext);
+  fixture.facts.sourceSetSha256 = hashCanonicalJson({
+    input_source_sha: fixture.facts.inputSourceSha,
+    hydration_source_sha: hydrationSourceSha,
+    production_manifest_status: fixture.facts.productionManifestStatus,
+    production_manifest_sha256: fixture.facts.productionManifestSha256,
+    run_context_sha256: fixture.facts.runContextSha256,
+    trending_source_sha256: fixture.facts.trendingSourceSha256,
+  });
+  writeFileSync(fixture.factsPath, `${JSON.stringify(fixture.facts)}\n`);
+  let calls = 0;
+  await assert.rejects(runFrozenEnrichmentPipeline({
+    ...fixture,
+    policyContext: {
+      ...fixture.policyContext,
+      hydrationSourceSha,
+      verifiedBootstrapSourceSha: hydrationSourceSha,
+      sourceSetSha256: fixture.facts.sourceSetSha256,
+      runContextSha256: fixture.facts.runContextSha256,
+    },
+    apiKey: "test-only",
+    deadline: Date.now() + 10 * 60_000,
+    fetchImpl: async (_url, init) => { calls += 1; return translationReplyFromRequest(init); },
+    sleep: async () => {},
+  }), /event|binding|source|context/i);
+  assert.equal(calls, 0);
+  assert.equal(existsSync(fixture.indexPath), false);
+  assert.equal(existsSync(fixture.outputRoot), false);
+});
+
+test("parentless verified-v1 facts fail before the first Anthropic request", async t => {
+  const root = mkdtempSync(path.join(tmpdir(), "frozen-parentless-v1-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const fixture = frozenPipelineFixture(root);
+  fixture.facts.parentSnapshotId = null;
+  fixture.facts.runContextSha256 = hashCanonicalJson({
+    observedAtUtc: fixture.facts.observedAtUtc,
+    observedAtKst: fixture.facts.observedAtKst,
+    statsDateKst: fixture.facts.statsDate,
+    snapshotId: fixture.facts.snapshotId,
+    parentSnapshotId: null,
+    parentSourceSha: null,
+  });
+  fixture.facts.sourceSetSha256 = hashCanonicalJson({
+    input_source_sha: fixture.facts.inputSourceSha,
+    hydration_source_sha: fixture.facts.hydrationSourceSha,
+    production_manifest_status: fixture.facts.productionManifestStatus,
+    production_manifest_sha256: fixture.facts.productionManifestSha256,
+    run_context_sha256: fixture.facts.runContextSha256,
+    trending_source_sha256: fixture.facts.trendingSourceSha256,
+  });
+  fixture.events.sourceSetSha256 = fixture.facts.sourceSetSha256;
+  fixture.events.runContextSha256 = fixture.facts.runContextSha256;
+  fixture.policyContext.sourceSetSha256 = fixture.facts.sourceSetSha256;
+  fixture.policyContext.runContextSha256 = fixture.facts.runContextSha256;
+  writeFileSync(fixture.factsPath, `${JSON.stringify(fixture.facts)}\n`);
+  writeFileSync(fixture.eventsPath, `${JSON.stringify(fixture.events)}\n`);
+  let calls = 0;
+  await assert.rejects(runFrozenEnrichmentPipeline({
+    ...fixture,
+    apiKey: "test-only",
+    deadline: Date.now() + 10 * 60_000,
+    fetchImpl: async (_url, init) => { calls += 1; return translationReplyFromRequest(init); },
+    sleep: async () => {},
+  }), /manifest|lineage|facts/i);
+  assert.equal(calls, 0);
+  assert.equal(existsSync(fixture.indexPath), false);
+  assert.equal(existsSync(fixture.outputRoot), false);
 });
 
 test("frozen enrichment summarizes a repository without README from exact metadata and does not translate it", async t => {
@@ -441,10 +546,19 @@ test("facts or events changed after planning abort before the first Anthropic re
     apiKey: "test-only",
     deadline: Date.now() + 10 * 60_000,
     beforeFinalValidation: async () => {
-      const binding = new Set(["version", "snapshotId", "activeSetSha256", "factsSha256", "completeSetSha256"]);
+      const binding = new Set(["version", "snapshotId", "activeSetSha256", "factsSha256", "sourceSetSha256", "runContextSha256", "completeSetSha256"]);
       const content = Object.fromEntries(Object.entries(fixture.events).filter(([key]) => !binding.has(key)));
       content.budgetReceipt = { ...content.budgetReceipt, logicalRequests: content.budgetReceipt.logicalRequests + 1 };
-      const changed = { ...content, version: 1, snapshotId: fixture.events.snapshotId, activeSetSha256: fixture.events.activeSetSha256, factsSha256: fixture.events.factsSha256, completeSetSha256: hashCanonicalJson(content) };
+      const changed = {
+        ...content,
+        version: 1,
+        snapshotId: fixture.events.snapshotId,
+        activeSetSha256: fixture.events.activeSetSha256,
+        factsSha256: fixture.events.factsSha256,
+        sourceSetSha256: fixture.events.sourceSetSha256,
+        runContextSha256: fixture.events.runContextSha256,
+        completeSetSha256: hashCanonicalJson(content),
+      };
       writeFileSync(fixture.eventsPath, `${JSON.stringify(changed)}\n`);
     },
     fetchImpl: async () => { calls += 1; return message(validSummaryJson); },

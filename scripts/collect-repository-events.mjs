@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -546,6 +547,8 @@ export function bindFrozenEventEnvelope(facts, collected) {
       || !/^[a-f0-9]{40}$/.test(facts.inputSourceSha ?? "")
       || !/^[a-f0-9]{40}$/.test(facts.hydrationSourceSha ?? "")
       || !/^[a-f0-9]{64}$/.test(facts.activeSetSha256 ?? "")
+      || !/^[a-f0-9]{64}$/.test(facts.sourceSetSha256 ?? "")
+      || !/^[a-f0-9]{64}$/.test(facts.runContextSha256 ?? "")
       || !/^[a-f0-9]{64}$/.test(facts.factsSha256 ?? "")) {
     throw new Error("Frozen facts binding is invalid");
   }
@@ -583,6 +586,8 @@ export function bindFrozenEventEnvelope(facts, collected) {
     snapshotId: facts.snapshotId,
     activeSetSha256: facts.activeSetSha256,
     factsSha256: facts.factsSha256,
+    sourceSetSha256: facts.sourceSetSha256,
+    runContextSha256: facts.runContextSha256,
     completeSetSha256: canonicalHash(content),
   };
 }
@@ -611,7 +616,7 @@ export function validateFrozenFactsPayload(value) {
       || (value.productionManifestStatus === "verified_404"
         ? value.productionManifestSha256 !== null
         : !/^[a-f0-9]{64}$/.test(value.productionManifestSha256 ?? ""))
-      || (value.parentSnapshotId !== null && value.productionManifestStatus !== "verified_v1")
+      || ((value.productionManifestStatus === "verified_v1") === (value.parentSnapshotId === null))
       || !/^[a-f0-9]{64}$/.test(value.runContextSha256 ?? "")
       || !/^[a-f0-9]{64}$/.test(value.sourceSetSha256 ?? "")
       || !/^[a-f0-9]{64}$/.test(value.activeSetSha256 ?? "")
@@ -690,6 +695,43 @@ function writeNewEventJson(target, value) {
   }
 }
 
+export function verifyFrozenParentInputs({
+  parentDatabasePath,
+  parentEvidencePath,
+  priorHeadsPath,
+  python = process.env.PYTHON ?? "python",
+  verifierScriptPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "derive_repository_artifacts.py"),
+} = {}) {
+  const result = spawnSync(python, [
+    verifierScriptPath,
+    "verify-parent-inputs",
+    "--parent-database", parentDatabasePath,
+    "--parent-evidence", parentEvidencePath,
+    "--prior-heads", priorHeadsPath,
+  ], {
+    cwd: path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."),
+    encoding: "utf8",
+    windowsHide: true,
+    timeout: 120_000,
+    maxBuffer: 64 * 1024,
+  });
+  if (result.error || result.status !== 0 || !/^\{"verified":true,"version":1\}\r?\n$/.test(result.stdout ?? "")) {
+    throw new Error("Frozen parent input verification failed");
+  }
+  return true;
+}
+
+function parentDatabaseSha256(target) {
+  if (!existsSync(target)) return null;
+  try { return createHash("sha256").update(readFileSync(target)).digest("hex"); } catch {
+    throw new Error("Frozen parent database is unavailable");
+  }
+}
+
+function frozenFileUnchanged(target, expected) {
+  try { return expected.equals(readFileSync(target)); } catch { return false; }
+}
+
 export async function runFrozenEventCollection({
   factsPath,
   eventsOut,
@@ -701,6 +743,7 @@ export async function runFrozenEventCollection({
   sleep = defaultSleep,
   now = Date.now,
   token = "",
+  verifyParentInputs = verifyFrozenParentInputs,
 } = {}) {
   const resolved = [
     assertOutsideCheckout(factsPath, "Frozen facts"),
@@ -712,12 +755,27 @@ export async function runFrozenEventCollection({
   ];
   if (new Set(resolved).size !== resolved.length) throw new Error("Frozen event CLI paths must not alias");
   const facts = validateFrozenFactsPayload(parseJsonStrict(readFileSync(resolved[0]), "frozen facts", 64 * 1024 * 1024));
-  const priorPayload = parseJsonStrict(readFileSync(resolved[3]), "prior heads", 16 * 1024 * 1024);
-  const parentEvidence = parseJsonStrict(readFileSync(resolved[4]), "parent evidence", 64 * 1024 * 1024);
+  const priorBytes = readFileSync(resolved[3]);
+  const parentEvidenceBytes = readFileSync(resolved[4]);
+  const priorPayload = parseJsonStrict(priorBytes, "prior heads", 16 * 1024 * 1024);
+  const parentEvidence = parseJsonStrict(parentEvidenceBytes, "parent evidence", 64 * 1024 * 1024);
   const previous = validatePriorHeadsPayload(facts, priorPayload, {
     parentEvidence,
     parentDatabasePath: resolved[5],
   });
+  if (typeof verifyParentInputs !== "function") throw new Error("Frozen parent verifier is invalid");
+  const parentDatabaseBefore = parentDatabaseSha256(resolved[5]);
+  await verifyParentInputs({
+    parentDatabasePath: resolved[5],
+    parentEvidencePath: resolved[4],
+    priorHeadsPath: resolved[3],
+  });
+  if (parentDatabaseSha256(resolved[5]) !== parentDatabaseBefore) {
+    throw new Error("Frozen parent database changed during verification");
+  }
+  if (!frozenFileUnchanged(resolved[3], priorBytes) || !frozenFileUnchanged(resolved[4], parentEvidenceBytes)) {
+    throw new Error("Frozen parent evidence changed during verification");
+  }
   const collectionContext = createPersistentEventCollectionContext({ statePath: resolved[2], now, create: false });
   if (stableJson(collectionContext.budget.receipt()) !== stableJson(facts.budgetReceipt)) {
     throw new Error("Persisted event budget does not continue the frozen facts receipt");
@@ -729,6 +787,12 @@ export async function runFrozenEventCollection({
     collectionContext,
     token,
   });
+  if (parentDatabaseSha256(resolved[5]) !== parentDatabaseBefore) {
+    throw new Error("Frozen parent database changed during event collection");
+  }
+  if (!frozenFileUnchanged(resolved[3], priorBytes) || !frozenFileUnchanged(resolved[4], parentEvidenceBytes)) {
+    throw new Error("Frozen parent evidence changed during event collection");
+  }
   const envelope = bindFrozenEventEnvelope(facts, collected);
   writeNewEventJson(resolved[1], envelope);
   return envelope;
