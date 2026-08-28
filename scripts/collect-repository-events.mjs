@@ -41,41 +41,39 @@ const repoPath = slug => `/repos/${slug.split("/").map(encodeURIComponent).join(
 // errors deliberately keep only an allowlisted operation label and status.
 const eventError = message => new Error(message);
 
-export class EventBudget {
-  constructor({ now = Date.now, originEpochMs } = {}) {
-    if (typeof now !== "function") throw new Error("Event clock must be a function");
-    this.now = now;
-    this.originEpochMs = originEpochMs ?? now();
-    if (!Number.isSafeInteger(this.originEpochMs)) throw new Error("Event origin must be an integer epoch");
-    this.deadlineEpochMs = this.originEpochMs + EVENT_LIMITS.eventWindowMs;
-    this.logical = 0;
-    this.attempts = 0;
-    this.lastNow = this.originEpochMs;
-  }
-
-  remaining() {
-    const current = this.now();
-    if (!Number.isSafeInteger(current) || current < this.lastNow) throw new Error("Event clock regressed");
-    this.lastNow = current;
-    return this.deadlineEpochMs - current;
-  }
-  admitLogical() {
-    if (this.logical >= EVENT_LIMITS.maxLogicalRequests) throw new Error("Event logical request cap exceeded");
-    this.logical += 1;
-  }
-  admitAttempt() {
-    if (this.attempts >= EVENT_LIMITS.maxAttempts) throw new Error("Event HTTP attempt cap exceeded");
-    if (this.remaining() < EVENT_LIMITS.requestTimeoutMs + EVENT_LIMITS.eventAdmissionReserveMs) {
+function createEventBudget({ now = Date.now, originEpochMs } = {}) {
+  if (typeof now !== "function") throw new Error("Event clock must be a function");
+  const origin = originEpochMs ?? now();
+  if (!Number.isSafeInteger(origin)) throw new Error("Event origin must be an integer epoch");
+  const deadline = origin + EVENT_LIMITS.eventWindowMs;
+  let logical = 0;
+  let attempts = 0;
+  let lastNow = origin;
+  const remaining = () => {
+    const current = now();
+    if (!Number.isSafeInteger(current) || current < lastNow) throw new Error("Event clock regressed");
+    lastNow = current;
+    return deadline - current;
+  };
+  return Object.freeze({
+    admitLogical() {
+      if (logical >= EVENT_LIMITS.maxLogicalRequests) throw new Error("Event logical request cap exceeded");
+      logical += 1;
+    },
+    admitAttempt() {
+      if (attempts >= EVENT_LIMITS.maxAttempts) throw new Error("Event HTTP attempt cap exceeded");
+      if (remaining() < EVENT_LIMITS.requestTimeoutMs + EVENT_LIMITS.eventAdmissionReserveMs) {
       throw new Error("Event deadline has insufficient request reserve");
-    }
-    this.attempts += 1;
-  }
-  admitSleep(delay) {
-    if (this.remaining() < delay + EVENT_LIMITS.requestTimeoutMs + EVENT_LIMITS.eventAdmissionReserveMs) {
-      throw new Error("Event deadline has insufficient retry reserve");
-    }
-  }
-  receipt() { return Object.freeze({ logicalRequests: this.logical, httpAttempts: this.attempts, originEpochMs: this.originEpochMs, eventDeadlineEpochMs: this.deadlineEpochMs }); }
+      }
+      attempts += 1;
+    },
+    admitSleep(delay) {
+      if (remaining() < delay + EVENT_LIMITS.requestTimeoutMs + EVENT_LIMITS.eventAdmissionReserveMs) {
+        throw new Error("Event deadline has insufficient retry reserve");
+      }
+    },
+    receipt() { return Object.freeze({ logicalRequests: logical, httpAttempts: attempts, originEpochMs: origin, eventDeadlineEpochMs: deadline }); },
+  });
 }
 
 // The workflow creates this once before checkout. Task 1's canonical-fact
@@ -83,7 +81,7 @@ export class EventBudget {
 // deadline or numeric cap override.
 export function createEventCollectionContext({ originEpochMs, now = Date.now } = {}) {
   if (!Number.isSafeInteger(originEpochMs)) throw new Error("Event collection origin must be an integer epoch");
-  const context = Object.freeze({ budget: new EventBudget({ originEpochMs, now }) });
+  const context = Object.freeze({ budget: createEventBudget({ originEpochMs, now }) });
   collectionContexts.add(context);
   return context;
 }
@@ -95,6 +93,9 @@ function retryableError(error) { return error?.name === "AbortError" || error?.n
 function retryDelay(_response, attempt) {
   return EVENT_LIMITS.retryDelaysMs[attempt];
 }
+
+const STRONG_ETAG = /^"(?:[\x21\x23-\x7e\x80-\xff])*"$/;
+const WEAK_ETAG = /^W\/"(?:[\x21\x23-\x7e\x80-\xff])*"$/;
 
 async function request(url, { fetchImpl, sleep, budget, headers = {}, allow304 = false }) {
   budget.admitLogical();
@@ -149,7 +150,7 @@ function releaseRecord(slug, value) {
     published_at: value.published_at === null ? null : new Date(value.published_at).toISOString(),
     html_url: value.html_url,
   };
-  return { slug: canonicalSlug, ...Object.fromEntries(allowed.map(key => [key, record[key]])), metadata_sha256: canonicalHash(record) };
+  return { slug: canonicalSlug, ...Object.fromEntries(allowed.map(key => [key, record[key]])), metadata_sha256: canonicalHash({ slug: canonicalSlug, ...record }) };
 }
 
 function releaseNext(link, slug, page) {
@@ -188,7 +189,8 @@ async function collectReleaseInventory(slug, context) {
       seenIds.add(record.release_id);
     }
     const etag = response.headers.get("etag");
-    pages.push({ url, etag: etag && !/^W\//i.test(etag) ? etag : null, canonicalBody: stableJson(value), next, records });
+    if (etag !== null && !STRONG_ETAG.test(etag) && !WEAK_ETAG.test(etag)) throw new Error(`Invalid release ETag for ${slug}`);
+    pages.push({ url, etag: etag !== null && STRONG_ETAG.test(etag) ? etag : null, canonicalBody: stableJson(value), next, records });
     if (next === null) break;
     url = next;
   }
@@ -263,6 +265,7 @@ async function collectCommits(repo, previous, context) {
     const url = `https://api.github.com${repoPath(slug)}/commits?sha=${encodeURIComponent(branch)}&per_page=100&page=${page}`;
     const values = await json(await request(url, context), `commit inventory for ${slug}`);
     if (!Array.isArray(values)) throw new Error(`Invalid commit inventory for ${slug}`);
+    if (page === 1 && !values.length) throw new Error(`Contradictory empty commit page for ${slug}`);
     for (const value of values) {
       const record = commitRecord(slug, branch, value, records.length + 1);
       // GitHub commit pages can overlap while a branch advances.  The current
@@ -337,7 +340,7 @@ export async function collectRepositoryEvents(repositories, {
   if (collectionContext !== null && (!isEventCollectionContext(collectionContext) || originEpochMs !== undefined || now !== Date.now)) {
     throw new Error("Event collection context rejects numeric or clock overrides");
   }
-  const budget = collectionContext?.budget ?? new EventBudget({ now, originEpochMs });
+  const budget = collectionContext?.budget ?? createEventBudget({ now, originEpochMs });
   const context = { fetchImpl, sleep, budget };
   const releases = [];
   const latestReleaseIds = new Map();

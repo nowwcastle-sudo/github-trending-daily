@@ -4,6 +4,7 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { inspect } from "node:util";
 
 import { createRunContext } from "../scripts/run-context.mjs";
 import { createEventCollectionContext } from "../scripts/collect-repository-events.mjs";
@@ -453,6 +454,25 @@ test("transactional facts reject numeric request-budget overrides", async () => 
   );
 });
 
+test("canonical fact failures never retain upstream error content in error chains", async () => {
+  const marker = "FACT-RESPONSE-SENTINEL-DO-NOT-LOG";
+  let caught;
+  try {
+    await enrichTrendingRepositories(discoveredRepos(), {
+      fetchImpl: async () => ({ ok: true, status: 200, headers: { get: () => null }, json: async () => { throw new Error(marker); } }),
+    });
+  } catch (error) { caught = error; }
+  assert.ok(caught);
+  for (let current = caught; current; current = current.cause) {
+    assert.doesNotMatch(current.message, new RegExp(marker));
+    assert.doesNotMatch(current.stack ?? "", new RegExp(marker));
+  }
+  assert.doesNotMatch(String(caught), new RegExp(marker));
+  assert.doesNotMatch(inspect(caught, { depth: null }), new RegExp(marker));
+  assert.doesNotMatch(JSON.stringify(caught), new RegExp(marker));
+  assert.equal(caught.cause, undefined);
+});
+
 test("enriches every repository from canonical GitHub sources", async () => {
   const discovered = discoveredRepos();
   const requests = [];
@@ -795,7 +815,7 @@ test("latest release uses a validated side map with explicit absence and fail-cl
         : invalidRest(url, options),
     }),
     error => error.message === "GitHub metadata unavailable for owner/repo-0"
-      && error.cause?.message === "Invalid latest GitHub release for owner/repo-0",
+      && error.cause === undefined,
   );
 
   let attempts = 0;

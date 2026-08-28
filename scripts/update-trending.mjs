@@ -248,7 +248,7 @@ function createGitHubClient({
             signal: AbortSignal.timeout(30_000),
           });
         } catch (error) {
-          if (!isTimeout(error)) throw new Error(`GitHub request failed for ${path}`, { cause: error });
+          if (!isTimeout(error)) throw new Error(`GitHub request failed for ${path}`);
           if (attempt + 1 >= maxAttempts) throw new Error(`GitHub request timed out for ${path}`);
           const delay = collectionBudget ? [2000, 8000][attempt] : boundedDelay([2000, 8000][attempt], maxRetryDelay);
           collectionBudget?.admitSleep(delay);
@@ -269,8 +269,8 @@ async function requireGitHubJson(response, path) {
   if (!response?.ok) throw new Error(`GitHub request returned ${response?.status} for ${path}`);
   try {
     return await response.json();
-  } catch (error) {
-    throw new Error(`Invalid GitHub JSON for ${path}`, { cause: error });
+  } catch {
+    throw new Error(`Invalid GitHub JSON for ${path}`);
   }
 }
 
@@ -359,8 +359,8 @@ function decodeBoundedBase64(value, maximumBytes) {
 function decodeUtf8Strict(bytes) {
   try {
     return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-  } catch (error) {
-    throw new Error("README content is not valid UTF-8", { cause: error });
+  } catch {
+    throw new Error("README content is not valid UTF-8");
   }
 }
 
@@ -394,8 +394,8 @@ export async function fetchCanonicalReadme(slug, options = {}) {
   let bytes;
   try {
     bytes = decodeBoundedBase64(value.content, 512 * 1024);
-  } catch (error) {
-    throw new Error(`Invalid canonical README metadata for ${normalizedSlug}`, { cause: error });
+  } catch {
+    throw new Error(`Invalid canonical README metadata for ${normalizedSlug}`);
   }
   return {
     status: "present",
@@ -668,7 +668,7 @@ export async function enrichTrendingRepositories(discovered, {
       repos.push(facts);
     } catch (error) {
       if (error instanceof RequestLimitError || error instanceof RetryDelayError) throw error;
-      throw new Error(`GitHub metadata unavailable for ${slug}`, { cause: error });
+      throw new Error(`GitHub metadata unavailable for ${slug}`);
     }
   }
   Object.defineProperty(repos, "requestCount", { value: client.requestCount, enumerable: false });

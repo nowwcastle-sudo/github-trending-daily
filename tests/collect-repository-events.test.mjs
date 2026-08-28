@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
 
 import {
@@ -194,6 +195,20 @@ test("release records normalize the DB identity and weak ETags require byte-equi
   assert.deepEqual(Object.keys(identity.releases[0]).sort(), ["created_at", "draft", "html_url", "metadata_sha256", "name", "prerelease", "published_at", "release_id", "slug", "tag_name", "target_commitish"]);
   assert.equal(identity.releases[0].slug, "owner/repo");
   assert.equal(identity.releases[0].created_at, "2026-08-27T00:00:00.000Z");
+  const value = identity.releases[0];
+  const preimage = {
+    created_at: value.created_at,
+    draft: value.draft,
+    html_url: value.html_url,
+    name: value.name,
+    prerelease: value.prerelease,
+    published_at: value.published_at,
+    release_id: value.release_id,
+    slug: value.slug,
+    tag_name: value.tag_name,
+    target_commitish: value.target_commitish,
+  };
+  assert.equal(value.metadata_sha256, createHash("sha256").update(JSON.stringify(preimage)).digest("hex"));
 });
 
 test("unquoted Link, a page-one HEAD race, and upstream sentinels fail closed without content leakage", async () => {
@@ -239,6 +254,35 @@ test("shared context rejects deadline overrides and a regressing clock", async (
   const readings = [origin + 1, origin];
   const clock = createEventCollectionContext({ originEpochMs: origin, now: () => readings.shift() });
   await assert.rejects(collectRepositoryEvents([repo], { fetchImpl: successfulFetch(), collectionContext: clock }), /clock regressed/);
+});
+
+test("collection budget exposes capability methods but no mutable deadline, counter, or clock state", async () => {
+  const context = createEventCollectionContext({ originEpochMs: 1_700_000_000_000, now: () => 1_700_000_000_000 });
+  const budget = context.budget;
+  assert.deepEqual(Object.keys(budget).sort(), ["admitAttempt", "admitLogical", "admitSleep", "receipt"]);
+  for (const key of ["deadlineEpochMs", "logical", "attempts", "lastNow", "now"]) {
+    assert.equal(key in budget, false);
+    assert.throws(() => { budget[key] = 0; }, /read only|extensible|object/i);
+  }
+  const before = budget.receipt();
+  await collectRepositoryEvents([repo], { fetchImpl: successfulFetch(), collectionContext: context });
+  const after = budget.receipt();
+  assert.equal(after.logicalRequests - before.logicalRequests, 4);
+  assert.equal(after.eventDeadlineEpochMs, before.eventDeadlineEpochMs);
+});
+
+test("malformed release ETags fail closed and an empty changed-head page is contradictory evidence", async () => {
+  await assert.rejects(collectRepositoryEvents([repo], {
+    fetchImpl: async (url, options) => new URL(url).pathname.endsWith("/releases")
+      ? response(200, [], { etag: "not-an-entity-tag" })
+      : successfulFetch()(url, options),
+  }), /Invalid release ETag/);
+  await assert.rejects(collectRepositoryEvents([{ ...repo, default_branch_head_sha: sha("c") }], {
+    previous: { "owner/repo": { branch: "main", headSha: sha("a") } },
+    fetchImpl: async (url, options) => new URL(url).pathname.endsWith("/commits")
+      ? response(200, [])
+      : successfulFetch()(url, options),
+  }), /Contradictory empty commit page/);
 });
 
 test("75-repository worst-case pagination fails at the shared logical cap rather than truncating", async () => {
