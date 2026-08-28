@@ -26,6 +26,20 @@ test("tooltip cleanup and refresh status contain no merged JavaScript tokens", (
   assert.match(page, /id="refreshStatus" class="sidebar-refresh"/);
 });
 
+test("tooltip runtime has one detailed content path", () => {
+  assert.match(page, /function tipHTML\(r\)/);
+  assert.match(page, /const s=r\.summary/);
+  assert.match(page, /tipLayer\.innerHTML=tipHTML\(r\)/);
+  assert.doesNotMatch(page, /tipHTML\(r,detailed\)|r\.detail|mobile summary/i);
+  assert.doesNotMatch(page, /UiMotion\.mobileTooltipHtml/);
+  for (const field of ["goal", "usage", "pros", "cons", "fit", "stars_note"]) {
+    assert.match(page, new RegExp(`esc\\(s\\.${field}\\)`));
+  }
+  for (const label of ["프로젝트 목표", "실행 방법", "장점", "단점·주의점", "어울리는 상황", "트렌드 한 줄 평"]) {
+    assert.match(page, new RegExp(label));
+  }
+});
+
 test("the refresh status appears once at the top of the sidebar and not in main", () => {
   assert.equal([...page.matchAll(/id="refreshStatus"/g)].length, 1);
   assert.match(page, /id="refreshStatus" class="sidebar-refresh" role="status" aria-live="polite" aria-atomic="true"/);
@@ -308,4 +322,11 @@ test("cards do not nest favorite buttons inside a full-card anchor", () => {
   assert.match(page, /<a class="repo-link"[^>]*target="_blank" rel="noopener">/);
   assert.doesNotMatch(page, /return `<a class="card"/);
   assert.match(page, /list\.addEventListener\("keydown"/);
+});
+
+test("touch cards preserve controls and navigate only on the same card's second tap", () => {
+  const handler = page.match(/list\.addEventListener\("click",async e=>\{[\s\S]*?\n\}\);/)?.[0] ?? "";
+  assert.match(handler, /if\(e\.target\.closest\("\.favbtn,\.js-readme,\.js-hide-repo,button,a"\)\)return/);
+  assert.match(handler, /UiMotion\.touchCardAction\(\{[\s\S]*?activeIndex:activeTipIndex,[\s\S]*?cardIndex:\+card\.dataset\.idx,[\s\S]*?tooltipOpen:tipLayer\.classList\.contains\("on"\)/);
+  assert.match(handler, /if\(action==="show"\)\{[\s\S]*?showTip\(card\)[\s\S]*?\}else\{[\s\S]*?window\.open\(card\.dataset\.href,"_blank","noopener"\)/);
 });

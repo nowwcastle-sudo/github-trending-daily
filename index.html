@@ -274,8 +274,6 @@ body.overlay-open{overflow:hidden}
   text-transform:uppercase;margin-bottom:3px}
 .trow p{font-size:15.5px;line-height:1.55;color:var(--text)}
 .thint{font-size:11.5px;color:var(--text-3);text-align:center;margin-top:12px}
-.tlist{margin:2px 0 0;padding-left:16px;font-size:15.5px;line-height:1.55;color:var(--text)}
-.tlist li{margin-bottom:3px}
 #tipLayer .rdbtn{pointer-events:auto}
 .tip-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
 .tip-actions .rdbtn{display:inline-flex;align-items:center;min-height:44px;text-decoration:none}
@@ -742,21 +740,17 @@ function restoreRepository(slug,{focusCard=false,focusManager=false}={}){
     });
   }catch{showHiddenNotice("숨김 목록을 저장할 수 없어 화면을 변경하지 않았습니다.",{tone:"error"})}
 }
-function tipHTML(r,detailed){
+function tipHTML(r){
   const s=r.summary;if(!s)return "";
-  if(detailed&&r.detail){
-    const list=t=>t.split(";").map(x=>`<li>${esc(x.trim())}</li>`).join("");
-    return `
-    <h2>${esc(r.name)}</h2><p class="tsub">${fmt(r.stars)} ★ · ⑂ ${fmt(r.forks)} · 👥 ${fmt(r.contributors||0)} 기여자 · ◎ ${fmt(r.issues||0)} issues · ${esc(r.lang)}</p>
-    <div class="trow"><span class="tlabel">🎯 프로젝트 목표</span><p>${esc(r.detail.goal)}</p></div>
-    <div class="trow"><span class="tlabel">🛠 실행 방법</span><p>${esc(r.detail.usage)}</p></div>
-    <div class="trow"><span class="tlabel">👍 장점</span><ul class="tlist">${list(r.detail.pros)}</ul></div>
-    <div class="trow"><span class="tlabel">👎 단점·주의점</span><ul class="tlist">${list(r.detail.cons)}</ul></div>
-    <div class="trow"><span class="tlabel">💡 어울리는 상황</span><p>${esc(r.detail.fit)}</p></div>
-    <div class="trow"><span class="tlabel">📈 트렌드 한 줄 평</span><p>${esc(r.detail.stars_note||"")}</p></div>
-    <p class="thint tip-actions"><button class="rdbtn js-readme" data-slug="${r.slug}" data-name="${esc(r.name)}">📖 README 전체 보기</button><button type="button" class="rdbtn js-hide-repo" data-slug="${r.slug}">관심 없음</button></p>`;
-  }
-  return UiMotion.mobileTooltipHtml(r);
+  return `
+  <h2>${esc(r.name)}</h2><p class="tsub">${fmt(r.stars)} ★ · ⑂ ${fmt(r.forks)} · 👥 ${fmt(r.contributors||0)} 기여자 · ◎ ${fmt(r.issues||0)} issues · ${esc(r.lang)}</p>
+  <div class="trow"><span class="tlabel">🎯 프로젝트 목표</span><p>${esc(s.goal)}</p></div>
+  <div class="trow"><span class="tlabel">🛠 실행 방법</span><p>${esc(s.usage)}</p></div>
+  <div class="trow"><span class="tlabel">👍 장점</span><p>${esc(s.pros)}</p></div>
+  <div class="trow"><span class="tlabel">👎 단점·주의점</span><p>${esc(s.cons)}</p></div>
+  <div class="trow"><span class="tlabel">💡 어울리는 상황</span><p>${esc(s.fit)}</p></div>
+  <div class="trow"><span class="tlabel">📈 트렌드 한 줄 평</span><p>${esc(s.stars_note)}</p></div>
+  <p class="thint tip-actions"><button type="button" class="rdbtn js-readme" data-slug="${r.slug}" data-name="${esc(r.name)}">📖 README 전체 보기</button><button type="button" class="rdbtn js-hide-repo" data-slug="${r.slug}">관심 없음</button></p>`;
 }
 
 /* render */
@@ -819,10 +813,11 @@ list.addEventListener("click",async e=>{
     try{await globalThis.favoriteController.toggle(btn.dataset.slug)}catch{}
     return;
   }
+  if(e.target.closest(".favbtn,.js-readme,.js-hide-repo,button,a"))return;
   const card=e.target.closest(".card");
   if(!card)return;
   if(!touchLayout()){
-    if(!e.target.closest(".repo-link"))window.open(card.dataset.href,"_blank","noopener");
+    window.open(card.dataset.href,"_blank","noopener");
     return;
   }
   const action=UiMotion.touchCardAction({
@@ -833,7 +828,7 @@ list.addEventListener("click",async e=>{
   if(action==="show"){
     e.preventDefault();
     showTip(card);
-  }else if(!e.target.closest(".repo-link")){
+  }else{
     window.open(card.dataset.href,"_blank","noopener");
   }
 });
@@ -1053,7 +1048,7 @@ function showTip(card){
   if(!r||!r.summary)return;
   if(activeTipIndex===idx&&tipLayer.classList.contains("on")){positionTip(card);return}
   activeTipIndex=idx;
-  tipLayer.innerHTML=tipHTML(r,railLayout());
+  tipLayer.innerHTML=tipHTML(r);
   positionTip(card);
   tipLayer.classList.add("on");
   tipLayer.inert=false;

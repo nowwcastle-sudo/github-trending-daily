@@ -104,78 +104,10 @@ test("a touch card opens its summary before the same card is allowed to navigate
   }), "show");
 });
 
-test("mobile summary offers Korean source fields and a concise English version", async () => {
+test("tooltip content has no viewport-specific formatter API", async () => {
   const UiMotion = await loadUiMotion();
-  assert.equal(typeof UiMotion.mobileSummary, "function");
-  const repo = {
-    name: "owner / project",
-    desc: "A useful developer tool.",
-    lang: "TypeScript",
-    stars_daily: 42,
-    summary: {
-      goal: "한국어 목표",
-      usage: "한국어 사용법",
-      pros: "한국어 장점",
-      cons: "한국어 주의점",
-      fit: "한국어 추천 대상",
-    },
-  };
-
-  assert.deepEqual(
-    JSON.parse(JSON.stringify(UiMotion.mobileSummary(repo, "ko"))),
-    repo.summary,
-  );
-  assert.deepEqual(
-    JSON.parse(JSON.stringify(UiMotion.mobileSummary(repo, "en"))),
-    {
-      goal: "A useful developer tool.",
-      usage: "Check the repository README for setup and usage instructions.",
-      pros: "It gained 42 stars in today's public GitHub Trending data.",
-      cons: "This summary uses the public description and GitHub metadata; check the README for full details and limitations.",
-      fit: "Useful for people exploring TypeScript repositories.",
-    },
-  );
-});
-
-test("English mobile summary does not relabel a non-English description as English", async () => {
-  const UiMotion = await loadUiMotion();
-  const summary = UiMotion.mobileSummary({
-    name: "owner / project",
-    desc: "개발자를 위한 유용한 도구",
-    lang: "TypeScript",
-    stars_daily: 7,
-    summary: { goal: "한국어 목표" },
-  }, "en");
-
-  assert.equal(summary.goal, "owner / project is a public TypeScript repository on GitHub.");
-});
-
-test("mobile tooltip renders Korean summary and keeps README and repository actions", async () => {
-  const UiMotion = await loadUiMotion();
-  assert.equal(typeof UiMotion.mobileTooltipHtml, "function");
-  const html = UiMotion.mobileTooltipHtml({
-    slug: "owner/project",
-    name: "owner / project",
-    desc: "A useful developer tool.",
-    lang: "TypeScript",
-    stars: 1234,
-    stars_daily: 42,
-    summary: {
-      goal: "한국어 목표",
-      usage: "한국어 사용법",
-      pros: "한국어 장점",
-      cons: "한국어 주의점",
-      fit: "한국어 추천 대상",
-    },
-  });
-
-  // ko/en tabs were moved to the README side panel (2026-08 approved spec)
-  assert.doesNotMatch(html, /data-tip-lang/);
-  assert.doesNotMatch(html, /data-tip-panel/);
-  assert.match(html, /한국어 목표/);
-  assert.match(html, /class="rdbtn js-readme"[^>]*data-slug="owner\/project"/);
-  assert.match(html, /href="https:\/\/github\.com\/owner\/project"/);
-  assert.match(html, /class="rdbtn js-hide-repo"[^>]*data-slug="owner\/project"[^>]*>관심 없음<\/button>/);
+  assert.equal(UiMotion.mobileSummary, undefined);
+  assert.equal(UiMotion.mobileTooltipHtml, undefined);
 });
 
 test("a pending Korean tab updates when its translation resolves without forcing a tab switch", async () => {
