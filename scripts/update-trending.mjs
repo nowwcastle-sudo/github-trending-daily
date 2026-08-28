@@ -719,6 +719,7 @@ export async function enrichTrendingRepositories(discovered, {
 export function buildFrozenFactsEnvelope({
   context,
   inputSourceSha,
+  hydrationSourceSha,
   productionManifestStatus,
   productionManifestSha256,
   repositories,
@@ -728,10 +729,14 @@ export function buildFrozenFactsEnvelope({
 }) {
   validateRunContext(context);
   if (!/^[a-f0-9]{40}$/.test(inputSourceSha ?? "")) throw new Error("Frozen facts source SHA is invalid");
+  if (!/^[a-f0-9]{40}$/.test(hydrationSourceSha ?? "")) throw new Error("Frozen facts hydration source SHA is invalid");
   if (!["verified_v0", "verified_v1", "verified_404"].includes(productionManifestStatus)) {
     throw new Error("Frozen production manifest evidence is invalid");
   }
   validateProductionManifestLineage(context, productionManifestStatus, productionManifestSha256);
+  if (context.parentSnapshotId !== null && context.parentSourceSha !== hydrationSourceSha) {
+    throw new Error("Frozen facts hydration source does not match run lineage");
+  }
   if (!Array.isArray(repositories) || repositories.length < 10 || repositories.length > 75) {
     throw new Error("Frozen facts require 10-75 repositories");
   }
@@ -779,6 +784,7 @@ export function buildFrozenFactsEnvelope({
   const runContextSha256 = canonicalHash(context);
   const sourceSetSha256 = canonicalHash({
     input_source_sha: inputSourceSha,
+    hydration_source_sha: hydrationSourceSha,
     production_manifest_status: productionManifestStatus,
     production_manifest_sha256: productionManifestSha256,
     run_context_sha256: runContextSha256,
@@ -792,6 +798,7 @@ export function buildFrozenFactsEnvelope({
     statsDate: context.statsDateKst,
     parentSnapshotId: context.parentSnapshotId,
     inputSourceSha,
+    hydrationSourceSha,
     productionManifestStatus,
     productionManifestSha256,
     runContextSha256,
@@ -1250,6 +1257,7 @@ export async function collectFrozenFacts({
   budgetStatePath,
   context,
   inputSourceSha,
+  hydrationSourceSha,
   productionManifestStatus,
   productionManifestSha256,
   eventOriginEpochMs,
@@ -1260,10 +1268,14 @@ export async function collectFrozenFacts({
 } = {}) {
   validateRunContext(context);
   if (!/^[a-f0-9]{40}$/.test(inputSourceSha ?? "")) throw new Error("Frozen facts source SHA is invalid");
+  if (!/^[a-f0-9]{40}$/.test(hydrationSourceSha ?? "")) throw new Error("Frozen facts hydration source SHA is invalid");
   if (!["verified_v0", "verified_v1", "verified_404"].includes(productionManifestStatus)) {
     throw new Error("Frozen production manifest evidence is invalid");
   }
   validateProductionManifestLineage(context, productionManifestStatus, productionManifestSha256);
+  if (context.parentSnapshotId !== null && context.parentSourceSha !== hydrationSourceSha) {
+    throw new Error("Frozen facts hydration source does not match run lineage");
+  }
   const outputPath = assertTempOutput(factsOut, "Frozen facts output");
   const statePath = assertTempOutput(budgetStatePath, "Event budget state");
   if (outputPath === statePath) throw new Error("Frozen facts and event budget paths must not alias");
@@ -1307,6 +1319,7 @@ export async function collectFrozenFacts({
   const payload = buildFrozenFactsEnvelope({
     context,
     inputSourceSha,
+    hydrationSourceSha,
     productionManifestStatus,
     productionManifestSha256,
     repositories,
@@ -1428,8 +1441,9 @@ export async function renderFrozenCandidate({
     statsDateKst: facts.statsDate,
     snapshotId: facts.snapshotId,
     parentSnapshotId: facts.parentSnapshotId,
-    parentSourceSha: facts.parentSnapshotId === null ? null : facts.inputSourceSha,
+    parentSourceSha: facts.parentSnapshotId === null ? null : facts.hydrationSourceSha,
   });
+  if (canonicalHash(context) !== facts.runContextSha256) throw new Error("Frozen render run context is mismatched");
   const summaryCache = Object.fromEntries(facts.repositories.map(repository => [
     repository.slug,
     index.repositories[repository.slug.toLowerCase()].summary,
@@ -1452,6 +1466,7 @@ export async function renderFrozenCandidate({
     runKind,
     parentSnapshotId: facts.parentSnapshotId,
     inputSourceSha: facts.inputSourceSha,
+    hydrationSourceSha: facts.hydrationSourceSha,
     inputManifestSha256: facts.productionManifestSha256,
     productionManifestStatus: facts.productionManifestStatus,
     activeSetSha256: facts.activeSetSha256,
@@ -1459,7 +1474,7 @@ export async function renderFrozenCandidate({
     eventsSha256: events.completeSetSha256,
     enrichmentIndexSha256,
     ...(facts.productionManifestStatus === "verified_404" ? {
-      explicitBootstrapSourceSha: facts.inputSourceSha,
+      explicitBootstrapSourceSha: facts.hydrationSourceSha,
     } : {}),
     repositories: facts.repositories,
   };
@@ -1544,6 +1559,7 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
       budgetStatePath: values["--budget-state"],
       context: readRunContext(process.env),
       inputSourceSha: process.env.INPUT_SOURCE_SHA ?? "",
+      hydrationSourceSha: process.env.HYDRATION_SOURCE_SHA ?? "",
       productionManifestStatus: process.env.PRODUCTION_MANIFEST_STATUS ?? "",
       productionManifestSha256: process.env.PRODUCTION_MANIFEST_STATUS === "verified_404"
         ? null

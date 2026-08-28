@@ -139,13 +139,15 @@ function validateFrozenPolicyBinding(facts, context) {
   const status = context?.productionManifestStatus;
   const manifestSha = context?.productionManifestSha256 ?? null;
   if (context?.inputSourceSha !== facts.inputSourceSha
+      || context?.hydrationSourceSha !== facts.hydrationSourceSha
       || status !== facts.productionManifestStatus || manifestSha !== facts.productionManifestSha256) {
     throw budgetPolicyFailure("BUDGET_POLICY_INVALID", "Frozen enrichment manifest policy proof is mismatched");
   }
   if (context.mode === "normal") {
     if (facts.productionManifestStatus !== "verified_v1"
-        || context.manualBootstrapSourceSha
-        || context.recoveryVersion && context.recoveryVersion !== "1") {
+        || context.recoveryVersion !== "1"
+        || context.verifiedBootstrapSourceSha !== facts.hydrationSourceSha
+        || context.manualBootstrapSourceSha) {
       throw budgetPolicyFailure("BUDGET_POLICY_INVALID", "Frozen enrichment normal policy proof is invalid");
     }
     return;

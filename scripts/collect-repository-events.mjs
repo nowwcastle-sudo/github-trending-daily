@@ -217,10 +217,16 @@ async function json(response, label) {
 function githubHtmlUrl(value, errorMessage, expectedPath) {
   let url;
   try { url = new URL(value); } catch { throw new Error(errorMessage); }
+  const actualParts = url.pathname.split("/");
+  const expectedParts = expectedPath.split("/");
+  const exactRepositoryPath = actualParts.length === expectedParts.length
+    && actualParts.every((part, index) => (index === 1 || index === 2)
+      ? part.toLowerCase() === expectedParts[index].toLowerCase()
+      : part === expectedParts[index]);
   if (typeof value !== "string" || !value.startsWith("https://github.com/")
       || url.protocol !== "https:" || url.hostname !== "github.com" || url.host !== "github.com"
       || url.username || url.password || url.port || url.search || url.hash
-      || url.pathname !== expectedPath) throw new Error(errorMessage);
+      || !exactRepositoryPath) throw new Error(errorMessage);
 }
 
 function releaseRecord(slug, value) {
@@ -465,9 +471,10 @@ export async function collectRepositoryEvents(repositories, {
   return Object.freeze({ releases: Object.freeze(releases), latestReleaseIds, commits: Object.freeze(commits), heads: Object.freeze(heads), estimates: Object.freeze(estimates), budgetReceipt: budget.receipt() });
 }
 
-export function validatePriorHeadsPayload(facts, payload) {
+export function validatePriorHeadsPayload(facts, payload, { parentEvidence, parentDatabasePath = null } = {}) {
   const keys = ["version", "snapshotId", "scope", "parentDatabaseSha256", "snapshotSeq", "headCount", "headsSha256", "heads"];
-  if (!facts || !Array.isArray(facts.repositories) || !payload || !exactKeys(payload, keys)
+  if (!facts || !Array.isArray(facts.repositories) || !/^[a-f0-9]{40}$/.test(facts.hydrationSourceSha ?? "")
+      || !payload || !exactKeys(payload, keys)
       || payload.version !== 1 || payload.snapshotId !== facts.parentSnapshotId || payload.scope !== "all_historical"
       || !payload.heads || Array.isArray(payload.heads) || typeof payload.heads !== "object") {
     throw new Error("Prior head payload is invalid");
@@ -480,13 +487,45 @@ export function validatePriorHeadsPayload(facts, payload) {
       || headKeys.join("\0") !== [...headKeys].sort().join("\0")) {
     throw new Error("Prior head payload receipt is invalid");
   }
+  if (!parentEvidence || !exactKeys(parentEvidence, ["version", "parent_database", "production_source_sha", "historical_heads", "legacy_baseline_receipt"])
+      || parentEvidence.version !== 1 || !parentEvidence.legacy_baseline_receipt
+      || Array.isArray(parentEvidence.legacy_baseline_receipt) || typeof parentEvidence.legacy_baseline_receipt !== "object"
+      || parentEvidence.production_source_sha !== facts.hydrationSourceSha) {
+    throw new Error("Prior head parent evidence is invalid");
+  }
+  const historicalEvidence = parentEvidence.historical_heads;
+  if (!exactKeys(historicalEvidence, ["scope", "head_count", "heads_sha256"])
+      || historicalEvidence.scope !== "all_historical"
+      || historicalEvidence.head_count !== payload.headCount
+      || historicalEvidence.heads_sha256 !== payload.headsSha256) {
+    throw new Error("Prior head historical evidence is mismatched");
+  }
   if (facts.parentSnapshotId === null) {
     if (payload.parentDatabaseSha256 !== null || payload.snapshotSeq !== null || headKeys.length !== 0) {
       throw new Error("Migration prior head payload is invalid");
     }
+    if (!exactKeys(parentEvidence.parent_database, ["missing"]) || parentEvidence.parent_database.missing !== true
+        || (parentDatabasePath !== null && existsSync(parentDatabasePath))) {
+      throw new Error("Migration prior head parent evidence is invalid");
+    }
   } else if (!/^[a-f0-9]{64}$/.test(payload.parentDatabaseSha256 ?? "")
       || !Number.isSafeInteger(payload.snapshotSeq) || payload.snapshotSeq < 1) {
     throw new Error("Refresh prior head provenance is invalid");
+  } else {
+    const databaseEvidence = parentEvidence.parent_database;
+    if (!databaseEvidence || Array.isArray(databaseEvidence) || typeof databaseEvidence !== "object"
+        || databaseEvidence.file_sha256 !== payload.parentDatabaseSha256
+        || databaseEvidence.last_snapshot_seq !== payload.snapshotSeq
+        || databaseEvidence.last_snapshot_id !== payload.snapshotId) {
+      throw new Error("Refresh prior head parent evidence is mismatched");
+    }
+    if (parentDatabasePath !== null) {
+      let actualSha256;
+      try { actualSha256 = createHash("sha256").update(readFileSync(parentDatabasePath)).digest("hex"); } catch {
+        throw new Error("Refresh prior head parent database is unavailable");
+      }
+      if (actualSha256 !== payload.parentDatabaseSha256) throw new Error("Refresh prior head parent database is mismatched");
+    }
   }
   const historical = {};
   for (const slug of headKeys) {
@@ -505,6 +544,7 @@ export function bindFrozenEventEnvelope(facts, collected) {
   if (!facts || facts.version !== 1 || !Array.isArray(facts.repositories)
       || !/^[0-9]{14}-[a-f0-9]{16}$/.test(facts.snapshotId ?? "")
       || !/^[a-f0-9]{40}$/.test(facts.inputSourceSha ?? "")
+      || !/^[a-f0-9]{40}$/.test(facts.hydrationSourceSha ?? "")
       || !/^[a-f0-9]{64}$/.test(facts.activeSetSha256 ?? "")
       || !/^[a-f0-9]{64}$/.test(facts.factsSha256 ?? "")) {
     throw new Error("Frozen facts binding is invalid");
@@ -549,7 +589,7 @@ export function bindFrozenEventEnvelope(facts, collected) {
 
 const FROZEN_FACT_KEYS = [
   "version", "snapshotId", "observedAtUtc", "observedAtKst", "statsDate", "parentSnapshotId",
-  "inputSourceSha", "productionManifestStatus", "productionManifestSha256",
+  "inputSourceSha", "hydrationSourceSha", "productionManifestStatus", "productionManifestSha256",
   "runContextSha256", "trendingSourceSha256", "sourceSetSha256",
   "activeSetSha256", "factsSha256", "repositories", "readmes", "budgetReceipt",
 ];
@@ -566,6 +606,7 @@ export function validateFrozenFactsPayload(value) {
   if (!exactKeys(value, FROZEN_FACT_KEYS) || value.version !== 1
       || !/^[0-9]{14}-[a-f0-9]{16}$/.test(value.snapshotId ?? "")
       || !/^[a-f0-9]{40}$/.test(value.inputSourceSha ?? "")
+      || !/^[a-f0-9]{40}$/.test(value.hydrationSourceSha ?? "")
       || !["verified_v0", "verified_v1", "verified_404"].includes(value.productionManifestStatus)
       || (value.productionManifestStatus === "verified_404"
         ? value.productionManifestSha256 !== null
@@ -588,11 +629,12 @@ export function validateFrozenFactsPayload(value) {
     statsDateKst: value.statsDate,
     snapshotId: value.snapshotId,
     parentSnapshotId: value.parentSnapshotId,
-    parentSourceSha: value.parentSnapshotId === null ? null : value.inputSourceSha,
+    parentSourceSha: value.parentSnapshotId === null ? null : value.hydrationSourceSha,
   };
   if (value.runContextSha256 !== canonicalHash(runContext)) throw new Error("Frozen run context hash is invalid");
   if (value.sourceSetSha256 !== canonicalHash({
     input_source_sha: value.inputSourceSha,
+    hydration_source_sha: value.hydrationSourceSha,
     production_manifest_status: value.productionManifestStatus,
     production_manifest_sha256: value.productionManifestSha256,
     run_context_sha256: value.runContextSha256,
@@ -653,6 +695,8 @@ export async function runFrozenEventCollection({
   eventsOut,
   budgetStatePath,
   priorHeadsPath,
+  parentEvidencePath,
+  parentDatabasePath,
   fetchImpl = globalThis.fetch,
   sleep = defaultSleep,
   now = Date.now,
@@ -663,11 +707,17 @@ export async function runFrozenEventCollection({
     assertOutsideCheckout(eventsOut, "Event output"),
     assertOutsideCheckout(budgetStatePath, "Event budget state"),
     assertOutsideCheckout(priorHeadsPath, "Prior heads"),
+    assertOutsideCheckout(parentEvidencePath, "Parent evidence"),
+    assertOutsideCheckout(parentDatabasePath, "Parent database"),
   ];
   if (new Set(resolved).size !== resolved.length) throw new Error("Frozen event CLI paths must not alias");
   const facts = validateFrozenFactsPayload(parseJsonStrict(readFileSync(resolved[0]), "frozen facts", 64 * 1024 * 1024));
   const priorPayload = parseJsonStrict(readFileSync(resolved[3]), "prior heads", 16 * 1024 * 1024);
-  const previous = validatePriorHeadsPayload(facts, priorPayload);
+  const parentEvidence = parseJsonStrict(readFileSync(resolved[4]), "parent evidence", 64 * 1024 * 1024);
+  const previous = validatePriorHeadsPayload(facts, priorPayload, {
+    parentEvidence,
+    parentDatabasePath: resolved[5],
+  });
   const collectionContext = createPersistentEventCollectionContext({ statePath: resolved[2], now, create: false });
   if (stableJson(collectionContext.budget.receipt()) !== stableJson(facts.budgetReceipt)) {
     throw new Error("Persisted event budget does not continue the frozen facts receipt");
@@ -685,7 +735,7 @@ export async function runFrozenEventCollection({
 }
 
 function parseEventCliArgs(argv) {
-  const allowed = new Set(["--facts", "--events-out", "--budget-state", "--prior-heads"]);
+  const allowed = new Set(["--facts", "--events-out", "--budget-state", "--prior-heads", "--parent-evidence", "--parent-database"]);
   const values = {};
   for (let index = 0; index < argv.length; index += 2) {
     const key = argv[index];
@@ -706,6 +756,8 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
     eventsOut: args["--events-out"],
     budgetStatePath: args["--budget-state"],
     priorHeadsPath: args["--prior-heads"],
+    parentEvidencePath: args["--parent-evidence"],
+    parentDatabasePath: args["--parent-database"],
     token: process.env.GITHUB_TOKEN ?? "",
   });
   console.log(JSON.stringify({ version: result.version, snapshotId: result.snapshotId, completeSetSha256: result.completeSetSha256 }));

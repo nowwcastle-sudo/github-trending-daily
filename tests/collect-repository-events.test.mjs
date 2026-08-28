@@ -104,6 +104,29 @@ function priorReceipt({ snapshotId = null, parentDatabaseSha256 = null, snapshot
   };
 }
 
+function parentEvidence(receipt, productionSourceSha = "b".repeat(40)) {
+  return {
+    version: 1,
+    parent_database: receipt.parentDatabaseSha256 === null
+      ? { missing: true }
+      : {
+        byte_size: 1,
+        file_sha256: receipt.parentDatabaseSha256,
+        last_snapshot_seq: receipt.snapshotSeq,
+        last_snapshot_id: receipt.snapshotId,
+        last_chain_sha256: "f".repeat(64),
+        tables: {},
+      },
+    production_source_sha: productionSourceSha,
+    historical_heads: {
+      scope: receipt.scope,
+      head_count: receipt.headCount,
+      heads_sha256: receipt.headsSha256,
+    },
+    legacy_baseline_receipt: {},
+  };
+}
+
 test("release baseline follows all pages and excludes bodies/assets", async () => {
   const events = await collectRepositoryEvents([repo], { fetchImpl: successfulFetch({ releasePages: [[release(1)], [release(2)]] }) });
   assert.deepEqual(events.releases.map(value => value.release_id), [1, 2]);
@@ -119,6 +142,7 @@ test("event envelope serializes latest-release ids and binds the exact frozen fa
     snapshotId: "20260829000700-aaaaaaaaaaaaaaaa",
     parentSnapshotId: null,
     inputSourceSha: "c".repeat(40),
+    hydrationSourceSha: "b".repeat(40),
     activeSetSha256: hashCanonicalJson(["owner/repo"]),
     factsSha256: null,
     repositories: [repo],
@@ -185,6 +209,7 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
     parentSourceSha: null,
   };
   const inputSourceSha = "c".repeat(40);
+  const hydrationSourceSha = "b".repeat(40);
   const productionManifestStatus = "verified_v1";
   const productionManifestSha256 = "f".repeat(64);
   const trendingSourceSha256 = { daily: "1".repeat(64), weekly: "2".repeat(64), monthly: "3".repeat(64) };
@@ -196,6 +221,7 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
     statsDate: runContext.statsDateKst,
     parentSnapshotId: null,
     inputSourceSha,
+    hydrationSourceSha,
     productionManifestStatus,
     productionManifestSha256,
     runContextSha256: hashCanonicalJson(runContext),
@@ -209,6 +235,7 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
   };
   facts.sourceSetSha256 = hashCanonicalJson({
     input_source_sha: inputSourceSha,
+    hydration_source_sha: hydrationSourceSha,
     production_manifest_status: productionManifestStatus,
     production_manifest_sha256: productionManifestSha256,
     run_context_sha256: facts.runContextSha256,
@@ -217,9 +244,13 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
   const factsPath = join(directory, "facts.json");
   const eventsOut = join(directory, "events.json");
   const priorHeadsPath = join(directory, "prior-heads.json");
+  const parentEvidencePath = join(directory, "parent-evidence.json");
+  const parentDatabasePath = join(directory, "missing-parent.sqlite");
+  const prior = priorReceipt();
   await Promise.all([
     writeFile(factsPath, `${JSON.stringify(facts)}\n`),
-    writeFile(priorHeadsPath, `${JSON.stringify(priorReceipt())}\n`),
+    writeFile(priorHeadsPath, `${JSON.stringify(prior)}\n`),
+    writeFile(parentEvidencePath, `${JSON.stringify(parentEvidence(prior))}\n`),
   ]);
 
   const events = await runFrozenEventCollection({
@@ -227,6 +258,8 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
     eventsOut,
     budgetStatePath,
     priorHeadsPath,
+    parentEvidencePath,
+    parentDatabasePath,
     fetchImpl: successfulFetch(),
     now: () => origin,
   });
@@ -235,12 +268,27 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
   assert.deepEqual(events.latestReleaseIds, Object.fromEntries(repositories.map(value => [value.slug, 1])));
   assert.equal(events.budgetReceipt.logicalRequests, 93);
   assert.deepEqual(JSON.parse(await readFile(eventsOut, "utf8")), events);
+
+  await writeFile(parentDatabasePath, "unexpected parent bytes");
+  let hostileFetches = 0;
+  await assert.rejects(runFrozenEventCollection({
+    factsPath,
+    eventsOut: join(directory, "rejected-events.json"),
+    budgetStatePath,
+    priorHeadsPath,
+    parentEvidencePath,
+    parentDatabasePath,
+    fetchImpl: async () => { hostileFetches += 1; throw new Error("event fetch must not run"); },
+    now: () => origin,
+  }), /parent|database|evidence/i);
+  assert.equal(hostileFetches, 0);
 });
 
 test("all-historical prior heads distinguish stayed, reentered, and never-observed active repositories", () => {
   const parentSnapshotId = "20260828000700-bbbbbbbbbbbbbbbb";
   const facts = {
     parentSnapshotId,
+    hydrationSourceSha: "b".repeat(40),
     repositories: [repo, { ...repo, slug: "owner/new", default_branch_head_sha: sha("c") }],
   };
   const heads = {
@@ -253,30 +301,70 @@ test("all-historical prior heads distinguish stayed, reentered, and never-observ
     snapshotSeq: 7,
     heads,
   });
-  assert.deepEqual(validatePriorHeadsPayload(facts, receipt), {
+  assert.deepEqual(validatePriorHeadsPayload(facts, receipt, { parentEvidence: parentEvidence(receipt) }), {
     "owner/repo": { branch: "main", headSha: "a".repeat(40) },
   });
-  assert.throws(() => validatePriorHeadsPayload(facts, { ...receipt, scope: "parent_snapshot" }), /prior head/i);
-  assert.throws(() => validatePriorHeadsPayload(facts, { ...receipt, headsSha256: "f".repeat(64) }), /prior head/i);
-  assert.throws(() => validatePriorHeadsPayload(facts, { ...receipt, headCount: 1 }), /prior head/i);
-  assert.deepEqual(validatePriorHeadsPayload({ parentSnapshotId: null, repositories: [repo] }, priorReceipt()), {});
+  assert.throws(() => validatePriorHeadsPayload(facts, { ...receipt, scope: "parent_snapshot" }, { parentEvidence: parentEvidence(receipt) }), /prior head/i);
+  assert.throws(() => validatePriorHeadsPayload(facts, { ...receipt, headsSha256: "f".repeat(64) }, { parentEvidence: parentEvidence(receipt) }), /prior head/i);
+  assert.throws(() => validatePriorHeadsPayload(facts, { ...receipt, headCount: 1 }, { parentEvidence: parentEvidence(receipt) }), /prior head/i);
+  const partialHeads = { "owner/repo": heads["owner/repo"] };
+  const selfRehashedPartial = priorReceipt({
+    snapshotId: parentSnapshotId,
+    parentDatabaseSha256: receipt.parentDatabaseSha256,
+    snapshotSeq: receipt.snapshotSeq,
+    heads: partialHeads,
+  });
+  assert.throws(() => validatePriorHeadsPayload(facts, selfRehashedPartial, {
+    parentEvidence: parentEvidence(receipt),
+  }), /evidence|historical|prior head/i);
+  assert.throws(() => validatePriorHeadsPayload(facts, receipt, {
+    parentEvidence: parentEvidence(receipt, "d".repeat(40)),
+  }), /evidence|source|prior head/i);
+  const missing = priorReceipt();
+  assert.deepEqual(validatePriorHeadsPayload({ parentSnapshotId: null, hydrationSourceSha: "b".repeat(40), repositories: [repo] }, missing, {
+    parentEvidence: parentEvidence(missing),
+  }), {});
 });
 
 test("complete historical proof keeps stayed continuity and baselines a same-run new repository", async () => {
   const parentSnapshotId = "20260828000700-bbbbbbbbbbbbbbbb";
   const repositories = [repo, { ...repo, slug: "owner/new", default_branch_head_sha: sha("c") }];
   const heads = { "owner/repo": { branch: "main", headSha: sha("b") } };
-  const previous = validatePriorHeadsPayload({ parentSnapshotId, repositories }, priorReceipt({
+  const receipt = priorReceipt({
     snapshotId: parentSnapshotId,
     parentDatabaseSha256: "e".repeat(64),
     snapshotSeq: 7,
     heads,
-  }));
+  });
+  const previous = validatePriorHeadsPayload({ parentSnapshotId, hydrationSourceSha: "b".repeat(40), repositories }, receipt, {
+    parentEvidence: parentEvidence(receipt),
+  });
   const events = await collectRepositoryEvents(repositories, { previous, fetchImpl: successfulFetch() });
   assert.deepEqual(events.heads.map(value => [value.slug, value.transition]), [
     ["owner/repo", "unchanged"],
     ["owner/new", "baseline"],
   ]);
+});
+
+test("prior continuity rejects a parent database byte swap before event collection", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "prior-parent-swap-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const parentDatabasePath = join(directory, "parent.sqlite");
+  const trustedBytes = Buffer.from("trusted parent database fixture");
+  const parentDatabaseSha256 = createHash("sha256").update(trustedBytes).digest("hex");
+  await writeFile(parentDatabasePath, trustedBytes);
+  const snapshotId = "20260828000700-bbbbbbbbbbbbbbbb";
+  const receipt = priorReceipt({
+    snapshotId,
+    parentDatabaseSha256,
+    snapshotSeq: 7,
+    heads: { "owner/repo": { branch: "main", headSha: sha("a") } },
+  });
+  await writeFile(parentDatabasePath, "swapped parent database fixture");
+  assert.throws(() => validatePriorHeadsPayload({ parentSnapshotId: snapshotId, hydrationSourceSha: "b".repeat(40), repositories: [repo] }, receipt, {
+    parentEvidence: parentEvidence(receipt),
+    parentDatabasePath,
+  }), /database|evidence|prior head/i);
 });
 
 test("page twenty without next completes, but a next link fails instead of truncating", async () => {
@@ -458,6 +546,7 @@ test("release identities and same-origin pagination reject every hostile URL com
     "https://github.com/owner/repo/releases/tag/v1#fragment",
     "https://github.com/owner/repo/releases/tag/v1/suffix",
     "https://github.com/owner/repo/releases/tag/wrong-tag",
+    "https://github.com/OWNER/REPO/releases/tag/V1",
   ];
   for (const htmlUrl of releaseUrls) {
     await assert.rejects(collectRepositoryEvents([repo], {
@@ -522,6 +611,32 @@ test("release tag identity uses one deterministic encodeURIComponent path segmen
     },
   });
   assert.equal(events.releases[0].html_url, `https://github.com/owner/repo/releases/tag/${encoded}`);
+});
+
+test("GitHub HTML URLs compare only owner and repository path casing loosely", async () => {
+  const prior = sha("a");
+  const current = sha("b");
+  const tagged = { ...release(1), html_url: "https://github.com/OWNER/REPO/releases/tag/v1" };
+  const committed = { ...commit(current, [prior]), html_url: `https://github.com/Owner/Repo/commit/${current}` };
+  const fetchImpl = async (url, options = {}) => {
+    const value = new URL(url);
+    if (value.hostname === "api.ossinsight.io") return response(200, oss([{ date: "2026-08-26", stargazers: "12" }]));
+    if (value.pathname.endsWith("/releases/latest")) return response(200, tagged);
+    if (value.pathname.endsWith("/releases")) {
+      if (options.headers?.["If-None-Match"]) return new Response(null, { status: 304, headers: { etag: '"release"' } });
+      return response(200, [tagged], { etag: '"release"' });
+    }
+    if (value.pathname.endsWith("/commits")) return response(200, [committed, commit(prior)]);
+    if (value.pathname.includes("/compare/")) return response(200, { status: "ahead" });
+    if (value.pathname.endsWith("/git/ref/heads/main")) return response(200, { object: { sha: current } });
+    throw new Error(`unexpected ${url}`);
+  };
+  const events = await collectRepositoryEvents([repo], {
+    previous: { "owner/repo": { branch: "main", headSha: prior } },
+    fetchImpl,
+  });
+  assert.equal(events.releases[0].html_url, tagged.html_url);
+  assert.equal(events.commits[0].htmlUrl, committed.html_url);
 });
 
 test("unquoted Link, a page-one HEAD race, and upstream sentinels fail closed without content leakage", async () => {

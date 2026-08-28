@@ -459,6 +459,7 @@ test("frozen facts bind the exact run source, active set, and README bodies with
   const payload = buildFrozenFactsEnvelope({
     context,
     inputSourceSha: "c".repeat(40),
+    hydrationSourceSha: "c".repeat(40),
     productionManifestStatus: "verified_v1",
     productionManifestSha256: "f".repeat(64),
     repositories,
@@ -504,7 +505,7 @@ test("frozen facts manifest evidence is compatible with the run lineage", async 
     markdown,
   }]));
   const base = {
-    inputSourceSha: "c".repeat(40), repositories, readmes,
+    inputSourceSha: "c".repeat(40), hydrationSourceSha: "c".repeat(40), repositories, readmes,
     trendingSourceSha256: { daily: "1".repeat(64), weekly: "2".repeat(64), monthly: "3".repeat(64) },
     budgetReceipt: {
       logicalRequests: 53, httpAttempts: 53,
@@ -524,6 +525,47 @@ test("frozen facts manifest evidence is compatible with the run lineage", async 
   assert.throws(() => buildFrozenFactsEnvelope({
     ...base, context: refresh, productionManifestStatus: "verified_v0", productionManifestSha256: "f".repeat(64),
   }), /manifest|lineage/i);
+});
+
+test("refresh facts keep the production hydration source distinct from the input checkout", async () => {
+  const parentless = createRunContext(new Date("2026-08-29T00:07:00.000Z"));
+  const hydrationSourceSha = "b".repeat(40);
+  const inputSourceSha = "c".repeat(40);
+  const context = createRunContext(new Date("2026-08-29T02:07:00.000Z"), {
+    snapshotId: parentless.snapshotId,
+    sourceSha: hydrationSourceSha,
+  });
+  const repositories = await enrichTrendingRepositories(discoveredRepos(), {
+    fetchImpl: successfulGithubFetch(), includeLatestRelease: false,
+  });
+  const markdown = "# Repo\n\nCanonical readme.";
+  const options = {
+    context,
+    inputSourceSha,
+    hydrationSourceSha,
+    productionManifestStatus: "verified_v1",
+    productionManifestSha256: "f".repeat(64),
+    repositories,
+    readmes: Object.fromEntries(repositories.map(repository => [repository.slug, {
+      path: repository.readme_path,
+      blobSha: repository.readme_blob_sha,
+      contentSha256: repository.readme_content_sha256,
+      markdown,
+    }])),
+    trendingSourceSha256: { daily: "1".repeat(64), weekly: "2".repeat(64), monthly: "3".repeat(64) },
+    budgetReceipt: {
+      logicalRequests: 53, httpAttempts: 53,
+      originEpochMs: Date.parse(context.observedAtUtc),
+      eventDeadlineEpochMs: Date.parse(context.observedAtUtc) + 15 * 60_000,
+    },
+  };
+  const payload = buildFrozenFactsEnvelope(options);
+  assert.equal(payload.inputSourceSha, inputSourceSha);
+  assert.equal(payload.hydrationSourceSha, hydrationSourceSha);
+  assert.throws(() => buildFrozenFactsEnvelope({
+    ...options,
+    hydrationSourceSha: "d".repeat(40),
+  }), /hydration|source|lineage/i);
 });
 
 test("facts-only collection writes explicit temp outputs and leaves tracked publication bytes untouched", async t => {
@@ -548,6 +590,7 @@ test("facts-only collection writes explicit temp outputs and leaves tracked publ
     budgetStatePath,
     context,
     inputSourceSha: "c".repeat(40),
+    hydrationSourceSha: "c".repeat(40),
     productionManifestStatus: "verified_v1",
     productionManifestSha256: "f".repeat(64),
     eventOriginEpochMs: Date.parse(context.observedAtUtc),
@@ -574,7 +617,12 @@ test("facts-only collection writes explicit temp outputs and leaves tracked publ
 test("render-only consumes exact frozen bindings with zero fetches and emits a recorder snapshot", async t => {
   const directory = await mkdtemp(join(tmpdir(), "frozen-render-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
-  const context = createRunContext(new Date("2026-08-29T00:07:00.000Z"));
+  const parent = createRunContext(new Date("2026-08-29T00:07:00.000Z"));
+  const hydrationSourceSha = "b".repeat(40);
+  const context = createRunContext(new Date("2026-08-29T02:07:00.000Z"), {
+    snapshotId: parent.snapshotId,
+    sourceSha: hydrationSourceSha,
+  });
   const repositories = await enrichTrendingRepositories(discoveredRepos(), {
     fetchImpl: successfulGithubFetch(), includeLatestRelease: false,
   });
@@ -582,6 +630,7 @@ test("render-only consumes exact frozen bindings with zero fetches and emits a r
   const facts = buildFrozenFactsEnvelope({
     context,
     inputSourceSha: "c".repeat(40),
+    hydrationSourceSha,
     productionManifestStatus: "verified_v1",
     productionManifestSha256: "f".repeat(64),
     repositories,
@@ -655,9 +704,11 @@ test("render-only consumes exact frozen bindings with zero fetches and emits a r
   assert.deepEqual(published[0].form_tags, repositories[0].form_tags);
   assert.equal(published[0].tag_rule_version, 1);
   assert.equal(published[0].latest_release, "2026-08-28");
-  assert.equal(snapshot.runKind, "migration_baseline");
+  assert.equal(snapshot.runKind, "refresh");
+  assert.equal(snapshot.parentSnapshotId, parent.snapshotId);
   assert.equal(snapshot.productionManifestStatus, "verified_v1");
   assert.equal(snapshot.inputManifestSha256, "f".repeat(64));
+  assert.equal(snapshot.hydrationSourceSha, facts.hydrationSourceSha);
   assert.equal(snapshot.enrichmentIndexSha256, hashCanonicalJson(enrichmentIndex));
   assert.equal(snapshot.repositories.length, 10);
   assert.equal(JSON.stringify(snapshot).includes(markdown), false);

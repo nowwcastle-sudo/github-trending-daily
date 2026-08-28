@@ -235,6 +235,7 @@ function frozenPipelineFixture(root) {
     parentSourceSha: null,
   };
   const inputSourceSha = "c".repeat(40);
+  const hydrationSourceSha = "b".repeat(40);
   const productionManifestStatus = "verified_v1";
   const productionManifestSha256 = "f".repeat(64);
   const trendingSourceSha256 = { daily: "1".repeat(64), weekly: "2".repeat(64), monthly: "3".repeat(64) };
@@ -247,12 +248,14 @@ function frozenPipelineFixture(root) {
     statsDate: context.statsDateKst,
     parentSnapshotId: null,
     inputSourceSha,
+    hydrationSourceSha,
     productionManifestStatus,
     productionManifestSha256,
     runContextSha256,
     trendingSourceSha256,
     sourceSetSha256: hashCanonicalJson({
       input_source_sha: inputSourceSha,
+      hydration_source_sha: hydrationSourceSha,
       production_manifest_status: productionManifestStatus,
       production_manifest_sha256: productionManifestSha256,
       run_context_sha256: runContextSha256,
@@ -285,6 +288,9 @@ function frozenPipelineFixture(root) {
   const policyContext = {
     mode: "normal",
     inputSourceSha,
+    hydrationSourceSha,
+    recoveryVersion: "1",
+    verifiedBootstrapSourceSha: hydrationSourceSha,
     productionManifestStatus,
     productionManifestSha256,
   };
@@ -325,7 +331,7 @@ test("frozen enrichment rejects cross-source and cross-mode policy proof before 
   const cases = [
     fixture => ({
       mode: "normal",
-      inputSourceSha: "d".repeat(40),
+      inputSourceSha: fixture.facts.inputSourceSha,
       eventName: "schedule",
       recoveryVersion: "1",
       verifiedBootstrapSourceSha: "d".repeat(40),
