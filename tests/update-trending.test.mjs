@@ -7,10 +7,16 @@ import test from "node:test";
 import { inspect } from "node:util";
 
 import { createRunContext } from "../scripts/run-context.mjs";
-import { createEventCollectionContext } from "../scripts/collect-repository-events.mjs";
+import {
+  bindFrozenEventEnvelope,
+  createEventCollectionContext,
+  hashCanonicalJson,
+} from "../scripts/collect-repository-events.mjs";
 
 import {
   buildTrendNote,
+  buildFrozenFactsEnvelope,
+  collectFrozenFacts,
   collectTrendingFactsAndEvents,
   createPageSnapshot,
   enrichTrendingRepositories,
@@ -20,12 +26,9 @@ import {
   mergeTrendingPeriods,
   parsePageRepos,
   parseTrendingHtml,
+  renderFrozenCandidate,
   runTrendingUpdate,
 } from "../scripts/update-trending.mjs";
-import {
-  extractRepos as extractStarRepos,
-  updateCache as updateStarHistoryCache,
-} from "../scripts/update-star-history.mjs";
 
 const fixture = name => readFile(new URL(`fixtures/${name}`, import.meta.url), "utf8");
 
@@ -48,7 +51,6 @@ test("canonical README uses API path and immutable blob SHA", async () => {
   assert.equal(requests[0].options.headers.Accept, "application/vnd.github+json");
   assert.ok(requests[0].options.signal instanceof AbortSignal);
 });
-
 test("README 404 is absence but repository 500 cannot reuse stale metadata", async () => {
   const absent = await fetchCanonicalReadme("Owner/NoReadme", {
     fetchImpl: async () => jsonResponse(404, { message: "not found" }),
@@ -412,6 +414,204 @@ function successfulGithubFetch({ failures = new Map(), requests = [] } = {}) {
 
 const canonicalGithubFetch = options => successfulGithubFetch(options);
 
+test("frozen facts bind the exact run source, active set, and README bodies without rendering", async () => {
+  const context = createRunContext(new Date("2026-08-29T00:07:00.000Z"));
+  const collected = await enrichTrendingRepositories(discoveredRepos(), {
+    fetchImpl: successfulGithubFetch(),
+    includeLatestRelease: false,
+    includeReadmeBody: true,
+  });
+  const markdown = "# Repo\n\nCanonical readme.";
+  assert.equal(collected.every(repository => repository.readme_markdown === markdown), true);
+  const repositories = collected.map(({ readme_markdown, ...repository }) => repository);
+  const readmes = Object.fromEntries(repositories.map(repository => [repository.slug.toLowerCase(), {
+    path: repository.readme_path,
+    blobSha: repository.readme_blob_sha,
+    contentSha256: repository.readme_content_sha256,
+    markdown,
+  }]));
+  const payload = buildFrozenFactsEnvelope({
+    context,
+    inputSourceSha: "c".repeat(40),
+    productionManifestStatus: "verified_v1",
+    productionManifestSha256: "f".repeat(64),
+    repositories,
+    readmes,
+    trendingSourceSha256: {
+      daily: "1".repeat(64), weekly: "2".repeat(64), monthly: "3".repeat(64),
+    },
+    budgetReceipt: {
+      logicalRequests: 43,
+      httpAttempts: 43,
+      originEpochMs: Date.parse(context.observedAtUtc),
+      eventDeadlineEpochMs: Date.parse(context.observedAtUtc) + 15 * 60_000,
+    },
+  });
+
+  assert.equal(payload.version, 1);
+  assert.equal(payload.snapshotId, context.snapshotId);
+  assert.equal(payload.inputSourceSha, "c".repeat(40));
+  assert.equal(payload.productionManifestStatus, "verified_v1");
+  assert.equal(payload.productionManifestSha256, "f".repeat(64));
+  assert.match(payload.activeSetSha256, /^[a-f0-9]{64}$/);
+  assert.match(payload.factsSha256, /^[a-f0-9]{64}$/);
+  assert.equal(payload.repositories.length, 10);
+  assert.equal(payload.readmes["owner/repo-0"].markdown, markdown);
+  assert.equal("summary" in payload.repositories[0], false);
+  assert.equal("events" in payload, false);
+});
+
+test("facts-only collection writes explicit temp outputs and leaves tracked publication bytes untouched", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "frozen-facts-cli-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const factsOut = join(directory, "facts.json");
+  const budgetStatePath = join(directory, "budget.json");
+  const context = createRunContext(new Date("2026-08-29T00:07:00.000Z"));
+  const root = new URL("../", import.meta.url);
+  const trackedPaths = [new URL("index.html", root), new URL("data/repo-summaries.json", root)];
+  const before = await Promise.all(trackedPaths.map(file => readFile(file)));
+  const labels = { daily: "today", weekly: "this week", monthly: "this month" };
+  const trending = period => Array.from({ length: 10 }, (_, index) => `
+    <article class="Box-row">
+      <h2><a href="/owner/repo-${index}">owner / repo-${index}</a></h2>
+      <span>${index + 1} stars ${labels[period]}</span>
+    </article>`).join("\n");
+  const rest = successfulGithubFetch();
+  let anthropicFetches = 0;
+  const payload = await collectFrozenFacts({
+    factsOut,
+    budgetStatePath,
+    context,
+    inputSourceSha: "c".repeat(40),
+    productionManifestStatus: "verified_v1",
+    productionManifestSha256: "f".repeat(64),
+    eventOriginEpochMs: Date.parse(context.observedAtUtc),
+    now: () => Date.parse(context.observedAtUtc),
+    fetchImpl: async (url, options) => {
+      const parsed = new URL(url);
+      if (parsed.hostname === "github.com" && parsed.pathname === "/trending") {
+        return new Response(trending(parsed.searchParams.get("since")), { status: 200 });
+      }
+      if (parsed.hostname === "api.anthropic.com") anthropicFetches += 1;
+      return rest(url, options);
+    },
+  });
+
+  const after = await Promise.all(trackedPaths.map(file => readFile(file)));
+  assert.equal(anthropicFetches, 0);
+  assert.equal(payload.repositories.length, 10);
+  assert.equal(payload.readmes["owner/repo-0"].markdown, "# Repo\n\nCanonical readme.");
+  assert.equal(payload.budgetReceipt.logicalRequests, 43);
+  assert.deepEqual(after, before);
+  assert.deepEqual(JSON.parse(await readFile(factsOut, "utf8")), payload);
+});
+
+test("render-only consumes exact frozen bindings with zero fetches and emits a recorder snapshot", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "frozen-render-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const context = createRunContext(new Date("2026-08-29T00:07:00.000Z"));
+  const repositories = await enrichTrendingRepositories(discoveredRepos(), {
+    fetchImpl: successfulGithubFetch(), includeLatestRelease: false,
+  });
+  const markdown = "# Repo\n\nCanonical readme.";
+  const facts = buildFrozenFactsEnvelope({
+    context,
+    inputSourceSha: "c".repeat(40),
+    productionManifestStatus: "verified_v1",
+    productionManifestSha256: "f".repeat(64),
+    repositories,
+    readmes: Object.fromEntries(repositories.map(repository => [repository.slug, {
+      path: repository.readme_path,
+      blobSha: repository.readme_blob_sha,
+      contentSha256: repository.readme_content_sha256,
+      markdown,
+    }])),
+    trendingSourceSha256: { daily: "1".repeat(64), weekly: "2".repeat(64), monthly: "3".repeat(64) },
+    budgetReceipt: { logicalRequests: 43, httpAttempts: 43, originEpochMs: Date.parse(context.observedAtUtc), eventDeadlineEpochMs: Date.parse(context.observedAtUtc) + 15 * 60_000 },
+  });
+  const collected = {
+    heads: repositories.map(repository => ({ slug: repository.slug, branch: repository.default_branch, headSha: repository.default_branch_head_sha, transition: "baseline" })),
+    releases: repositories.map((repository, index) => ({ slug: repository.slug, release_id: index + 1, published_at: "2026-08-28T00:00:00.000Z" })),
+    latestReleaseIds: Object.fromEntries(repositories.map((repository, index) => [repository.slug, index + 1])),
+    commits: [],
+    estimates: repositories.map(repository => ({ slug: repository.slug, rows: [], sourcePayloadSha256: "d".repeat(64), publicRows: [] })),
+    budgetReceipt: { ...facts.budgetReceipt, logicalRequests: 83, httpAttempts: 83 },
+  };
+  const events = bindFrozenEventEnvelope(facts, collected);
+  const enrichmentIndex = {
+    version: 1,
+    snapshotId: facts.snapshotId,
+    activeSetSha256: facts.activeSetSha256,
+    factsSha256: facts.factsSha256,
+    eventsSha256: events.completeSetSha256,
+    repositories: Object.fromEntries(repositories.map((repository, index) => {
+      const source = {
+        kind: "readme",
+        slug: repository.slug,
+        path: repository.readme_path,
+        blob_sha: repository.readme_blob_sha,
+        content_sha256: repository.readme_content_sha256,
+        model: "claude-haiku-4-5",
+        schema_version: 2,
+        translation_applicable: true,
+      };
+      return [repository.slug, {
+        summary: { ...cachedEntry(index), source },
+        translation: { markdown: "# 저장소\n\n정확한 번역입니다.", source },
+      }];
+    })),
+  };
+  const factsPath = join(directory, "facts.json");
+  const eventsPath = join(directory, "events.json");
+  const indexPath = join(directory, "index.json");
+  const templatePath = join(directory, "template.html");
+  const pageOut = join(directory, "candidate", "index.html");
+  const cacheOut = join(directory, "candidate", "data", "repo-summaries.json");
+  const snapshotOut = join(directory, "snapshot.json");
+  await Promise.all([
+    writeFile(factsPath, `${JSON.stringify(facts)}\n`),
+    writeFile(eventsPath, `${JSON.stringify(events)}\n`),
+    writeFile(indexPath, `${JSON.stringify(enrichmentIndex)}\n`),
+    writeFile(templatePath, markedPage),
+  ]);
+  let fetches = 0;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => { fetches += 1; throw new Error("render must not fetch"); };
+  try {
+    await renderFrozenCandidate({ factsPath, eventsPath, enrichmentIndexPath: indexPath, pageTemplatePath: templatePath, pageOut, cacheOut, snapshotOut });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+  const published = parsePageRepos(await readFile(pageOut, "utf8"));
+  const snapshot = JSON.parse(await readFile(snapshotOut, "utf8"));
+  assert.equal(fetches, 0);
+  assert.equal(published.length, 10);
+  assert.deepEqual(published[0].field_tags, repositories[0].field_tags);
+  assert.deepEqual(published[0].form_tags, repositories[0].form_tags);
+  assert.equal(published[0].tag_rule_version, 1);
+  assert.equal(published[0].latest_release, "2026-08-28");
+  assert.equal(snapshot.runKind, "migration_baseline");
+  assert.equal(snapshot.productionManifestStatus, "verified_v1");
+  assert.equal(snapshot.inputManifestSha256, "f".repeat(64));
+  assert.equal(snapshot.enrichmentIndexSha256, hashCanonicalJson(enrichmentIndex));
+  assert.equal(snapshot.repositories.length, 10);
+  assert.equal(JSON.stringify(snapshot).includes(markdown), false);
+
+  const hostile = structuredClone(enrichmentIndex);
+  hostile.repositories[repositories[0].slug].summary.source.path = "docs/OTHER.md";
+  hostile.repositories[repositories[0].slug].translation.source.path = "docs/OTHER.md";
+  await writeFile(indexPath, `${JSON.stringify(hostile)}\n`);
+  await assert.rejects(renderFrozenCandidate({
+    factsPath,
+    eventsPath,
+    enrichmentIndexPath: indexPath,
+    pageTemplatePath: templatePath,
+    pageOut: join(directory, "hostile", "index.html"),
+    cacheOut: join(directory, "hostile", "data", "repo-summaries.json"),
+    snapshotOut: join(directory, "hostile-snapshot.json"),
+  }), /enrichment|summary|identity/i);
+});
+
 test("transactional boundary completes facts and events before paid enrichment", async () => {
   const rest = successfulGithubFetch();
   const fetchImpl = async (url, options) => {
@@ -427,11 +627,13 @@ test("transactional boundary completes facts and events before paid enrichment",
       }), { status: 200, headers: { "content-type": "application/json" } });
     }
     if (parsed.pathname.endsWith("/releases/latest")) {
-      return jsonResponse(200, { id: 1, tag_name: "v1", name: "v1", target_commitish: "main", draft: false, prerelease: false, created_at: "2026-08-21T09:08:07Z", published_at: "2026-08-21T09:08:07Z", html_url: "https://github.com/owner/repo/releases/tag/v1" });
+      const slug = parsed.pathname.slice("/repos/".length, -"/releases/latest".length);
+      return jsonResponse(200, { id: 1, tag_name: "v1", name: "v1", target_commitish: "main", draft: false, prerelease: false, created_at: "2026-08-21T09:08:07Z", published_at: "2026-08-21T09:08:07Z", html_url: `https://github.com/${slug}/releases/tag/v1` });
     }
     if (parsed.pathname.endsWith("/releases")) {
       if (options.headers?.["If-None-Match"]) return { ok: false, status: 304, headers: { get: name => name === "etag" ? '"release"' : null } };
-      return jsonResponse(200, [{ id: 1, tag_name: "v1", name: "v1", target_commitish: "main", draft: false, prerelease: false, created_at: "2026-08-21T09:08:07Z", published_at: "2026-08-21T09:08:07Z", html_url: "https://github.com/owner/repo/releases/tag/v1" }], { etag: '"release"' });
+      const slug = parsed.pathname.slice("/repos/".length, -"/releases".length);
+      return jsonResponse(200, [{ id: 1, tag_name: "v1", name: "v1", target_commitish: "main", draft: false, prerelease: false, created_at: "2026-08-21T09:08:07Z", published_at: "2026-08-21T09:08:07Z", html_url: `https://github.com/${slug}/releases/tag/v1` }], { etag: '"release"' });
     }
     if (parsed.pathname.endsWith("/commits")) return jsonResponse(200, []);
     return rest(url, options);
@@ -1214,123 +1416,4 @@ test("page snapshots require one complete run-context identity triple", () => {
     () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: mixedIdentity, statsDate: "2026-08-23" }),
     /run context identity/i,
   );
-});
-
-test("daily update gives star history the exact finalized repositories and isolates unavailable history", async t => {
-  const directory = await mkdtemp(join(tmpdir(), "daily-integrated-"));
-  t.after(() => rm(directory, { recursive: true, force: true }));
-  const pagePath = join(directory, "index.html");
-  const cachePath = join(directory, "data", "repo-summaries.json");
-  const starCachePath = join(directory, "star-history.json");
-  await mkdir(join(directory, "data"));
-  const summaryCache = Object.fromEntries(discoveredRepos().map((repo, index) => [repo.slug, cachedEntry(index)]));
-  await Promise.all([
-    writeFile(pagePath, markedPage),
-    writeFile(cachePath, `${JSON.stringify(summaryCache, null, 2)}\n`),
-    writeFile(starCachePath, `${JSON.stringify({
-      version: 1,
-      generatedAt: "2026-08-22",
-      repositories: [
-        { slug: "Alpha/one", estimated: [{ date: "2026-07-01", stars: 50 }], observed: [] },
-        { slug: "stale/orphan", estimated: [], observed: [] },
-      ],
-    }, null, 2)}\n`),
-  ]);
-  const trending = Object.fromEntries(await Promise.all(["daily", "weekly", "monthly"].map(async period => [
-    `https://github.com/trending?since=${period}`,
-    await fixture(`trending-${period}.html`),
-  ])));
-  const rest = successfulGithubFetch();
-  const starRequests = [];
-
-  const context = createRunContext(new Date("2026-08-22T15:00:00Z"));
-  const result = await runTrendingUpdate({
-    pagePath,
-    cachePath,
-    fetchImpl: async (url, options) => trending[url] ? jsonResponse(200, trending[url]) : rest(url, options),
-    context,
-  });
-  const starHistory = await updateStarHistoryCache({
-    htmlPath: pagePath,
-    cachePath: starCachePath,
-    fetchImpl: async url => {
-      starRequests.push(url);
-      return starRequests.length === 1
-        ? jsonResponse(503, {})
-        : jsonResponse(200, { data: { rows: [] } });
-    },
-    log: () => {},
-    date: result.statsDate,
-  });
-
-  const pageSlugs = extractStarRepos(await readFile(pagePath, "utf8")).map(repo => repo.slug);
-  const published = parsePageRepos(await readFile(pagePath, "utf8"));
-  const starCache = JSON.parse(await readFile(starCachePath, "utf8"));
-  const starSlugs = starCache.repositories.map(repo => repo.slug);
-  assert.deepEqual(starSlugs, result.repos.map(repo => repo.slug));
-  assert.deepEqual(starSlugs, pageSlugs);
-  assert.equal(published[0].latest_release, "2026-08-21");
-  assert.ok(published.every(repo => (
-    repo._snapshot_id === context.snapshotId
-    && repo._generated_at === context.observedAtUtc
-    && repo._stats_date === context.statsDateKst
-  )));
-  assert.equal(starRequests.length, result.repos.length);
-  assert.deepEqual(starHistory.failed, [result.repos[0].slug]);
-  assert.deepEqual(starCache.repositories[0].estimated, [{ date: "2026-07-01", stars: 50 }]);
-  assert.deepEqual(starCache.repositories[0].observed, [{ date: "2026-08-23", stars: 100 }]);
-});
-
-test("failed Trending generation leaves every last-good file byte-identical and never starts star history", async t => {
-  const directory = await mkdtemp(join(tmpdir(), "daily-integrated-failure-"));
-  t.after(() => rm(directory, { recursive: true, force: true }));
-  const pagePath = join(directory, "index.html");
-  const cachePath = join(directory, "data", "repo-summaries.json");
-  const starCachePath = join(directory, "star-history.json");
-  await mkdir(join(directory, "data"));
-  const summaryCache = Object.fromEntries(discoveredRepos().map((repo, index) => [repo.slug, cachedEntry(index)]));
-  await Promise.all([
-    writeFile(pagePath, markedPage),
-    writeFile(cachePath, `${JSON.stringify(summaryCache, null, 2)}\n`),
-    writeFile(starCachePath, '{"version":1,"generatedAt":"2026-08-22","repositories":[]}\n'),
-  ]);
-  const before = await Promise.all([pagePath, cachePath, starCachePath].map(path => readFile(path)));
-  const [malformed, weekly, monthly] = await Promise.all([
-    fixture("trending-malformed.html"),
-    fixture("trending-weekly.html"),
-    fixture("trending-monthly.html"),
-  ]);
-  const pages = {
-    "https://github.com/trending?since=daily": malformed,
-    "https://github.com/trending?since=weekly": weekly,
-    "https://github.com/trending?since=monthly": monthly,
-  };
-  let starUpdates = 0;
-  let starRequests = 0;
-
-  const update = async () => {
-    const trending = await runTrendingUpdate({
-      pagePath,
-      cachePath,
-      fetchImpl: async url => jsonResponse(200, pages[url]),
-      context: createRunContext(new Date("2026-08-22T15:00:00Z")),
-    });
-    starUpdates += 1;
-    await updateStarHistoryCache({
-      htmlPath: pagePath,
-      cachePath: starCachePath,
-      date: trending.statsDate,
-      fetchImpl: async () => {
-        starRequests += 1;
-        return jsonResponse(200, { data: { rows: [] } });
-      },
-      log: () => {},
-    });
-  };
-
-  await assert.rejects(update(), /no Trending repositories/);
-
-  assert.equal(starUpdates, 0);
-  assert.equal(starRequests, 0);
-  assert.deepEqual(await Promise.all([pagePath, cachePath, starCachePath].map(path => readFile(path))), before);
 });

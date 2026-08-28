@@ -1,4 +1,9 @@
 import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+import { parseJsonStrict } from "./build-pages-artifact.mjs";
 
 export const EVENT_LIMITS = Object.freeze({
   maxRepositories: 75,
@@ -29,7 +34,8 @@ const stableJson = value => {
   if (value && typeof value === "object") return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
   return JSON.stringify(value);
 };
-const canonicalHash = value => createHash("sha256").update(stableJson(value)).digest("hex");
+export const hashCanonicalJson = value => createHash("sha256").update(stableJson(value)).digest("hex");
+const canonicalHash = hashCanonicalJson;
 const exactKeys = (value, keys) => value && !Array.isArray(value) && Object.keys(value).sort().join("\0") === [...keys].sort().join("\0");
 const validTime = (value, nullable = false) => nullable && value === null || (typeof value === "string" && ISO.test(value) && new Date(value).toISOString() === value.replace(/Z$/, ".000Z"));
 const normalizeSlug = slug => {
@@ -41,24 +47,39 @@ const repoPath = slug => `/repos/${slug.split("/").map(encodeURIComponent).join(
 // errors deliberately keep only an allowlisted operation label and status.
 const eventError = message => new Error(message);
 
-function createEventBudget({ now = Date.now, originEpochMs } = {}) {
+function createEventBudget({ now = Date.now, originEpochMs, initialState = null, onUpdate = () => {} } = {}) {
   if (typeof now !== "function") throw new Error("Event clock must be a function");
-  const origin = originEpochMs ?? now();
+  const origin = initialState?.originEpochMs ?? originEpochMs ?? now();
   if (!Number.isSafeInteger(origin)) throw new Error("Event origin must be an integer epoch");
   const deadline = origin + EVENT_LIMITS.eventWindowMs;
-  let logical = 0;
-  let attempts = 0;
-  let lastNow = origin;
+  let logical = initialState?.logicalRequests ?? 0;
+  let attempts = initialState?.httpAttempts ?? 0;
+  let lastNow = initialState?.lastObservedEpochMs ?? origin;
+  if (![logical, attempts, lastNow].every(Number.isSafeInteger) || logical < 0 || attempts < 0 || lastNow < origin
+      || initialState && initialState.eventDeadlineEpochMs !== deadline) {
+    throw new Error("Persisted event budget is invalid");
+  }
+  const state = () => ({
+    version: 1,
+    originEpochMs: origin,
+    eventDeadlineEpochMs: deadline,
+    logicalRequests: logical,
+    httpAttempts: attempts,
+    lastObservedEpochMs: lastNow,
+  });
+  const persist = () => onUpdate(state());
   const remaining = () => {
     const current = now();
     if (!Number.isSafeInteger(current) || current < lastNow) throw new Error("Event clock regressed");
     lastNow = current;
+    persist();
     return deadline - current;
   };
   return Object.freeze({
     admitLogical() {
       if (logical >= EVENT_LIMITS.maxLogicalRequests) throw new Error("Event logical request cap exceeded");
       logical += 1;
+      persist();
     },
     admitAttempt() {
       if (attempts >= EVENT_LIMITS.maxAttempts) throw new Error("Event HTTP attempt cap exceeded");
@@ -66,6 +87,7 @@ function createEventBudget({ now = Date.now, originEpochMs } = {}) {
       throw new Error("Event deadline has insufficient request reserve");
       }
       attempts += 1;
+      persist();
     },
     admitSleep(delay) {
       if (remaining() < delay + EVENT_LIMITS.requestTimeoutMs + EVENT_LIMITS.eventAdmissionReserveMs) {
@@ -87,6 +109,62 @@ export function createEventCollectionContext({ originEpochMs, now = Date.now } =
 }
 
 export const isEventCollectionContext = value => collectionContexts.has(value);
+
+function validateBudgetState(value) {
+  if (!exactKeys(value, ["version", "originEpochMs", "eventDeadlineEpochMs", "logicalRequests", "httpAttempts", "lastObservedEpochMs"])
+      || value.version !== 1
+      || [value.originEpochMs, value.eventDeadlineEpochMs, value.logicalRequests, value.httpAttempts, value.lastObservedEpochMs]
+        .some(number => !Number.isSafeInteger(number) || number < 0)
+      || value.eventDeadlineEpochMs !== value.originEpochMs + EVENT_LIMITS.eventWindowMs
+      || value.lastObservedEpochMs < value.originEpochMs
+      || value.logicalRequests > EVENT_LIMITS.maxLogicalRequests
+      || value.httpAttempts > EVENT_LIMITS.maxAttempts) {
+    throw new Error("Persisted event budget is invalid");
+  }
+  return value;
+}
+
+function persistBudgetState(statePath, value) {
+  const target = path.resolve(statePath);
+  mkdirSync(path.dirname(target), { recursive: true });
+  const pending = `${target}.${process.pid}.tmp`;
+  try {
+    writeFileSync(pending, `${JSON.stringify(validateBudgetState(value))}\n`, { encoding: "utf8", flag: "wx" });
+    renameSync(pending, target);
+  } finally {
+    rmSync(pending, { force: true });
+  }
+}
+
+export function createPersistentEventCollectionContext({ statePath, originEpochMs, now = Date.now, create = false } = {}) {
+  if (typeof statePath !== "string" || !statePath) throw new Error("Persisted event budget path is required");
+  const exists = existsSync(statePath);
+  if (create === exists) throw new Error(create ? "Persisted event budget already exists" : "Persisted event budget is missing");
+  let initialState = null;
+  if (exists) {
+    initialState = validateBudgetState(parseJsonStrict(readFileSync(statePath), "event budget state", 64 * 1024));
+    if (originEpochMs !== undefined && originEpochMs !== initialState.originEpochMs) throw new Error("Persisted event budget origin changed");
+  } else if (!Number.isSafeInteger(originEpochMs)) {
+    throw new Error("Persisted event budget origin is required");
+  }
+  const budget = createEventBudget({
+    now,
+    originEpochMs,
+    initialState,
+    onUpdate: value => persistBudgetState(statePath, value),
+  });
+  if (!exists) persistBudgetState(statePath, {
+    version: 1,
+    originEpochMs,
+    eventDeadlineEpochMs: originEpochMs + EVENT_LIMITS.eventWindowMs,
+    logicalRequests: 0,
+    httpAttempts: 0,
+    lastObservedEpochMs: originEpochMs,
+  });
+  const context = Object.freeze({ budget });
+  collectionContexts.add(context);
+  return context;
+}
 
 function retryableStatus(status) { return status === 429 || status >= 500; }
 function retryableError(error) { return error?.name === "AbortError" || error?.name === "TimeoutError"; }
@@ -130,10 +208,13 @@ async function json(response, label) {
   try { return await response.json(); } catch { throw new Error(`Invalid JSON for ${label}`); }
 }
 
-function githubHtmlUrl(value, errorMessage) {
+function githubHtmlUrl(value, errorMessage, expectedPathPrefix) {
   let url;
   try { url = new URL(value); } catch { throw new Error(errorMessage); }
-  if (url.protocol !== "https:" || url.hostname !== "github.com") throw new Error(errorMessage);
+  if (typeof value !== "string" || !value.startsWith("https://github.com/")
+      || url.protocol !== "https:" || url.hostname !== "github.com" || url.host !== "github.com"
+      || url.username || url.password || url.port || url.search || url.hash
+      || !url.pathname.startsWith(expectedPathPrefix)) throw new Error(errorMessage);
 }
 
 function releaseRecord(slug, value) {
@@ -143,7 +224,7 @@ function releaseRecord(slug, value) {
     || ["tag_name", "target_commitish", "html_url"].some(key => typeof value[key] !== "string")
     || (value.name !== null && typeof value.name !== "string") || typeof value.draft !== "boolean" || typeof value.prerelease !== "boolean"
     || !validTime(value.created_at) || !validTime(value.published_at, true)) throw new Error(`Invalid release for ${slug}`);
-  githubHtmlUrl(value.html_url, `Invalid release for ${slug}`);
+  githubHtmlUrl(value.html_url, `Invalid release for ${slug}`, `/${canonicalSlug}/releases/`);
   const record = {
     release_id: value.id,
     tag_name: value.tag_name,
@@ -169,8 +250,10 @@ function releaseNext(link, slug, page) {
   let value;
   try { value = new URL(matches[0][1]); } catch { throw new Error(`Invalid release Link for ${slug}`); }
   const expected = repoPath(slug) + "/releases";
-  if (value.protocol !== "https:" || value.hostname !== "api.github.com" || value.pathname !== expected
+  if (!matches[0][1].startsWith("https://api.github.com/")
+    || value.protocol !== "https:" || value.hostname !== "api.github.com" || value.host !== "api.github.com" || value.pathname !== expected
     || value.port !== "" || value.hash
+    || value.username || value.password
     || value.searchParams.getAll("per_page").join() !== "100" || value.searchParams.getAll("page").length !== 1
     || Number(value.searchParams.get("page")) !== page + 1 || [...value.searchParams.keys()].some(key => key !== "per_page" && key !== "page")) {
     throw new Error(`Invalid release Link for ${slug}`);
@@ -183,7 +266,7 @@ async function collectReleaseInventory(slug, context) {
   let url = `https://api.github.com${repoPath(slug)}/releases?per_page=100&page=1`;
   const seenIds = new Set();
   for (let page = 1; page <= EVENT_LIMITS.maxReleasePages; page += 1) {
-    const response = await request(url, context);
+    const response = await request(url, { ...context, headers: context.githubHeaders });
     const value = await json(response, `release inventory for ${slug}`);
     if (!Array.isArray(value)) throw new Error(`Invalid release inventory for ${slug}`);
     const next = releaseNext(response.headers.get("link"), slug, page);
@@ -201,7 +284,7 @@ async function collectReleaseInventory(slug, context) {
   }
   // A strong ETag must yield 304; otherwise exact canonical body and Link identity must match.
   for (const [index, first] of pages.entries()) {
-    const headers = first.etag ? { "If-None-Match": first.etag } : {};
+    const headers = { ...context.githubHeaders, ...(first.etag ? { "If-None-Match": first.etag } : {}) };
     const response = await request(first.url, { ...context, headers, allow304: Boolean(first.etag) });
     if (first.etag && response.status !== 304) throw new Error(`Release ETag revalidation changed for ${slug} page ${index + 1}`);
     if (response.status === 304) continue;
@@ -214,7 +297,7 @@ async function collectReleaseInventory(slug, context) {
 
 async function latestRelease(slug, inventory, context) {
   const url = `https://api.github.com${repoPath(slug)}/releases/latest`;
-  const response = await request(url, context);
+  const response = await request(url, { ...context, headers: context.githubHeaders });
   if (response.status === 404) return null;
   const record = releaseRecord(slug, await json(response, `latest release for ${slug}`));
   const existing = inventory.flatMap(page => page.records).find(value => value.release_id === record.release_id);
@@ -237,16 +320,16 @@ function commitRecord(slug, branch, value, ordinal) {
     || !validTime(value?.commit?.author?.date) || !validTime(value?.commit?.committer?.date)
     || (value.author !== null && (typeof value.author !== "object" || (value.author.login !== undefined && typeof value.author.login !== "string")))
     || typeof value.html_url !== "string") throw new Error(`Invalid commit for ${slug}`);
-  githubHtmlUrl(value.html_url, `Invalid commit for ${slug}`);
+  githubHtmlUrl(value.html_url, `Invalid commit for ${slug}`, `/${normalizeSlug(slug).toLowerCase()}/commit/`);
   return { slug, sha, firstObservedOrdinal: ordinal, branch, authoredAt: value.commit.author.date, committedAt: value.commit.committer.date, authorLogin: value.author?.login ?? null, parentShas: parents.map(parent => parent.sha), htmlUrl: value.html_url };
 }
 
 async function diagnoseContinuity(slug, branch, priorHead, currentHead, context) {
   const base = `https://api.github.com${repoPath(slug)}`;
-  const compare = await request(`${base}/compare/${priorHead}...${currentHead}`, context);
+  const compare = await request(`${base}/compare/${priorHead}...${currentHead}`, { ...context, headers: context.githubHeaders });
   const result = await json(compare, `commit continuity for ${slug}`);
   if (!result || typeof result !== "object" || !["ahead", "behind", "diverged", "identical"].includes(result.status)) throw new Error(`Ambiguous commit continuity for ${slug}`);
-  const ref = await request(`${base}/git/ref/heads/${encodeURIComponent(branch)}`, context);
+  const ref = await request(`${base}/git/ref/heads/${encodeURIComponent(branch)}`, { ...context, headers: context.githubHeaders });
   const head = await json(ref, `branch continuity for ${slug}`);
   if (!head?.object || !SHA.test(head.object.sha ?? "") || head.object.sha !== currentHead) throw new Error(`Ambiguous commit continuity for ${slug}`);
   if (result.status === "behind" || result.status === "diverged") return "history_rewritten";
@@ -267,7 +350,7 @@ async function collectCommits(repo, previous, context) {
   let found = false;
   for (let page = 1; page <= EVENT_LIMITS.maxCommitPages && !found; page += 1) {
     const url = `https://api.github.com${repoPath(slug)}/commits?sha=${encodeURIComponent(branch)}&per_page=100&page=${page}`;
-    const values = await json(await request(url, context), `commit inventory for ${slug}`);
+    const values = await json(await request(url, { ...context, headers: context.githubHeaders }), `commit inventory for ${slug}`);
     if (!Array.isArray(values)) throw new Error(`Invalid commit inventory for ${slug}`);
     if (page === 1 && !values.length) throw new Error(`Contradictory empty commit page for ${slug}`);
     for (const value of values) {
@@ -338,6 +421,7 @@ export async function collectRepositoryEvents(repositories, {
   collectionContext = null,
   now = Date.now,
   originEpochMs,
+  token = "",
 } = {}) {
   if (!Array.isArray(repositories) || repositories.length < 1 || repositories.length > EVENT_LIMITS.maxRepositories) throw new Error(`Repository events require 1-${EVENT_LIMITS.maxRepositories} repositories`);
   if (typeof fetchImpl !== "function" || typeof sleep !== "function") throw new Error("fetchImpl and sleep must be functions");
@@ -345,9 +429,15 @@ export async function collectRepositoryEvents(repositories, {
     throw new Error("Event collection context rejects numeric or clock overrides");
   }
   const budget = collectionContext?.budget ?? createEventBudget({ now, originEpochMs });
-  const context = { fetchImpl, sleep, budget };
+  if (typeof token !== "string" || /[\r\n]/.test(token)) throw new Error("GitHub event token is invalid");
+  const githubHeaders = {
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+  const context = { fetchImpl, sleep, budget, githubHeaders };
   const releases = [];
-  const latestReleaseIds = new Map();
+  const latestReleaseIds = {};
   const commits = [];
   const heads = [];
   const estimates = [];
@@ -359,11 +449,247 @@ export async function collectRepositoryEvents(repositories, {
     const pages = await collectReleaseInventory(slug, context);
     const inventory = pages.flatMap(page => page.records);
     releases.push(...inventory);
-    latestReleaseIds.set(slug.toLowerCase(), await latestRelease(slug, pages, context));
+    latestReleaseIds[slug.toLowerCase()] = await latestRelease(slug, pages, context);
     const commitEvents = await collectCommits(repository, previous, context);
     heads.push(commitEvents.head);
     commits.push(...commitEvents.commits);
     estimates.push(await collectOss(slug, context));
   }
   return Object.freeze({ releases: Object.freeze(releases), latestReleaseIds, commits: Object.freeze(commits), heads: Object.freeze(heads), estimates: Object.freeze(estimates), budgetReceipt: budget.receipt() });
+}
+
+export function validatePriorHeadsPayload(facts, payload) {
+  if (!facts || !Array.isArray(facts.repositories) || !payload || !exactKeys(payload, ["version", "snapshotId", "heads"])
+      || payload.version !== 1 || payload.snapshotId !== facts.parentSnapshotId
+      || !payload.heads || Array.isArray(payload.heads) || typeof payload.heads !== "object") {
+    throw new Error("Prior head payload is invalid");
+  }
+  const active = facts.repositories.map(repository => normalizeSlug(repository?.slug).toLowerCase());
+  if (new Set(active).size !== active.length) throw new Error("Prior head payload has duplicate active repositories");
+  if (facts.parentSnapshotId === null) {
+    if (Object.keys(payload.heads).length !== 0) throw new Error("Migration baseline must not contain prior heads");
+    return {};
+  }
+  if (Object.keys(payload.heads).length !== active.length || active.some(slug => !Object.hasOwn(payload.heads, slug))) {
+    throw new Error("Refresh prior head set is incomplete");
+  }
+  const normalized = {};
+  for (const slug of active) {
+    const value = payload.heads[slug];
+    if (!exactKeys(value, ["branch", "headSha"]) || typeof value.branch !== "string" || !value.branch
+        || /[\u0000-\u001f\u007f]/.test(value.branch) || !SHA.test(value.headSha ?? "")) {
+      throw new Error("Refresh prior head is invalid");
+    }
+    normalized[slug] = { branch: value.branch, headSha: value.headSha };
+  }
+  return normalized;
+}
+
+export function bindFrozenEventEnvelope(facts, collected) {
+  if (!facts || facts.version !== 1 || !Array.isArray(facts.repositories)
+      || !/^[0-9]{14}-[a-f0-9]{16}$/.test(facts.snapshotId ?? "")
+      || !/^[a-f0-9]{40}$/.test(facts.inputSourceSha ?? "")
+      || !/^[a-f0-9]{64}$/.test(facts.activeSetSha256 ?? "")
+      || !/^[a-f0-9]{64}$/.test(facts.factsSha256 ?? "")) {
+    throw new Error("Frozen facts binding is invalid");
+  }
+  const slugs = facts.repositories.map(repository => normalizeSlug(repository?.slug).toLowerCase());
+  if (new Set(slugs).size !== slugs.length
+      || facts.activeSetSha256 !== canonicalHash([...slugs].sort())
+      || facts.factsSha256 !== canonicalHash({
+        snapshot_id: facts.snapshotId,
+        input_source_sha: facts.inputSourceSha,
+        repositories: facts.repositories,
+      })) {
+    throw new Error("Frozen facts hash binding is invalid");
+  }
+  if (!collected || !Array.isArray(collected.heads) || !Array.isArray(collected.releases)
+      || !Array.isArray(collected.commits) || !Array.isArray(collected.estimates)
+      || !collected.latestReleaseIds || Array.isArray(collected.latestReleaseIds)
+      || typeof collected.latestReleaseIds !== "object") {
+    throw new Error("Collected event set is invalid");
+  }
+  if (Object.keys(collected.latestReleaseIds).length !== slugs.length
+      || slugs.some(slug => !Object.hasOwn(collected.latestReleaseIds, slug))) {
+    throw new Error("Collected latest-release set is incomplete");
+  }
+  const content = {
+    heads: collected.heads,
+    releases: collected.releases,
+    latestReleaseIds: collected.latestReleaseIds,
+    commits: collected.commits,
+    estimates: collected.estimates,
+    budgetReceipt: collected.budgetReceipt,
+  };
+  return {
+    ...content,
+    version: 1,
+    snapshotId: facts.snapshotId,
+    activeSetSha256: facts.activeSetSha256,
+    factsSha256: facts.factsSha256,
+    completeSetSha256: canonicalHash(content),
+  };
+}
+
+const FROZEN_FACT_KEYS = [
+  "version", "snapshotId", "observedAtUtc", "observedAtKst", "statsDate", "parentSnapshotId",
+  "inputSourceSha", "productionManifestStatus", "productionManifestSha256",
+  "runContextSha256", "trendingSourceSha256", "sourceSetSha256",
+  "activeSetSha256", "factsSha256", "repositories", "readmes", "budgetReceipt",
+];
+
+function validBudgetReceipt(value) {
+  return exactKeys(value, ["logicalRequests", "httpAttempts", "originEpochMs", "eventDeadlineEpochMs"])
+    && Object.values(value).every(number => Number.isSafeInteger(number) && number >= 0)
+    && value.eventDeadlineEpochMs === value.originEpochMs + EVENT_LIMITS.eventWindowMs
+    && value.logicalRequests <= EVENT_LIMITS.maxLogicalRequests
+    && value.httpAttempts <= EVENT_LIMITS.maxAttempts;
+}
+
+export function validateFrozenFactsPayload(value) {
+  if (!exactKeys(value, FROZEN_FACT_KEYS) || value.version !== 1
+      || !/^[0-9]{14}-[a-f0-9]{16}$/.test(value.snapshotId ?? "")
+      || !/^[a-f0-9]{40}$/.test(value.inputSourceSha ?? "")
+      || !["verified_v0", "verified_v1", "verified_404"].includes(value.productionManifestStatus)
+      || (value.productionManifestStatus === "verified_404"
+        ? value.productionManifestSha256 !== null
+        : !/^[a-f0-9]{64}$/.test(value.productionManifestSha256 ?? ""))
+      || !/^[a-f0-9]{64}$/.test(value.runContextSha256 ?? "")
+      || !/^[a-f0-9]{64}$/.test(value.sourceSetSha256 ?? "")
+      || !/^[a-f0-9]{64}$/.test(value.activeSetSha256 ?? "")
+      || !/^[a-f0-9]{64}$/.test(value.factsSha256 ?? "")
+      || !Array.isArray(value.repositories) || value.repositories.length < 10 || value.repositories.length > EVENT_LIMITS.maxRepositories
+      || !value.readmes || Array.isArray(value.readmes) || typeof value.readmes !== "object"
+      || !validBudgetReceipt(value.budgetReceipt)
+      || !exactKeys(value.trendingSourceSha256, ["daily", "weekly", "monthly"])
+      || Object.values(value.trendingSourceSha256).some(hash => !/^[a-f0-9]{64}$/.test(hash))) {
+    throw new Error("Frozen facts envelope is invalid");
+  }
+  const runContext = {
+    observedAtUtc: value.observedAtUtc,
+    observedAtKst: value.observedAtKst,
+    statsDateKst: value.statsDate,
+    snapshotId: value.snapshotId,
+    parentSnapshotId: value.parentSnapshotId,
+    parentSourceSha: value.parentSnapshotId === null ? null : value.inputSourceSha,
+  };
+  if (value.runContextSha256 !== canonicalHash(runContext)) throw new Error("Frozen run context hash is invalid");
+  if (value.sourceSetSha256 !== canonicalHash({
+    input_source_sha: value.inputSourceSha,
+    production_manifest_status: value.productionManifestStatus,
+    production_manifest_sha256: value.productionManifestSha256,
+    run_context_sha256: value.runContextSha256,
+    trending_source_sha256: value.trendingSourceSha256,
+  })) throw new Error("Frozen source-set hash is invalid");
+  const slugs = value.repositories.map(repository => normalizeSlug(repository?.slug).toLowerCase());
+  if (new Set(slugs).size !== slugs.length || value.activeSetSha256 !== canonicalHash([...slugs].sort())
+      || value.factsSha256 !== canonicalHash({
+        snapshot_id: value.snapshotId,
+        input_source_sha: value.inputSourceSha,
+        repositories: value.repositories,
+      })) throw new Error("Frozen facts hash binding is invalid");
+  if (Object.keys(value.readmes).length !== slugs.length || slugs.some(slug => !Object.hasOwn(value.readmes, slug))) {
+    throw new Error("Frozen README set is incomplete");
+  }
+  for (const [index, slug] of slugs.entries()) {
+    const repository = value.repositories[index];
+    const readme = value.readmes[slug];
+    if (!exactKeys(readme, ["path", "blobSha", "contentSha256", "markdown"])) throw new Error("Frozen README envelope is invalid");
+    if (repository.readme_status === "absent") {
+      if ([readme.path, readme.blobSha, readme.contentSha256, readme.markdown].some(item => item !== null)) throw new Error("Frozen README absence is invalid");
+    } else if (repository.readme_status !== "present" || readme.path !== repository.readme_path
+        || readme.blobSha !== repository.readme_blob_sha || readme.contentSha256 !== repository.readme_content_sha256
+        || typeof readme.markdown !== "string"
+        || createHash("sha256").update(Buffer.from(readme.markdown, "utf8")).digest("hex") !== readme.contentSha256) {
+      throw new Error("Frozen README identity is invalid");
+    }
+  }
+  return value;
+}
+
+function assertOutsideCheckout(target, label) {
+  if (typeof target !== "string" || !target) throw new Error(`${label} path is required`);
+  const resolved = path.resolve(target);
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+  const relative = path.relative(root, resolved);
+  if (relative === "" || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative))) {
+    throw new Error(`${label} must be outside the tracked checkout`);
+  }
+  return resolved;
+}
+
+function writeNewEventJson(target, value) {
+  const resolved = assertOutsideCheckout(target, "Event output");
+  if (existsSync(resolved)) throw new Error("Event output already exists");
+  mkdirSync(path.dirname(resolved), { recursive: true });
+  const pending = `${resolved}.${process.pid}.tmp`;
+  try {
+    writeFileSync(pending, `${JSON.stringify(value)}\n`, { encoding: "utf8", flag: "wx" });
+    renameSync(pending, resolved);
+  } finally {
+    rmSync(pending, { force: true });
+  }
+}
+
+export async function runFrozenEventCollection({
+  factsPath,
+  eventsOut,
+  budgetStatePath,
+  priorHeadsPath,
+  fetchImpl = globalThis.fetch,
+  sleep = defaultSleep,
+  now = Date.now,
+  token = "",
+} = {}) {
+  const resolved = [
+    assertOutsideCheckout(factsPath, "Frozen facts"),
+    assertOutsideCheckout(eventsOut, "Event output"),
+    assertOutsideCheckout(budgetStatePath, "Event budget state"),
+    assertOutsideCheckout(priorHeadsPath, "Prior heads"),
+  ];
+  if (new Set(resolved).size !== resolved.length) throw new Error("Frozen event CLI paths must not alias");
+  const facts = validateFrozenFactsPayload(parseJsonStrict(readFileSync(resolved[0]), "frozen facts", 64 * 1024 * 1024));
+  const priorPayload = parseJsonStrict(readFileSync(resolved[3]), "prior heads", 16 * 1024 * 1024);
+  const previous = validatePriorHeadsPayload(facts, priorPayload);
+  const collectionContext = createPersistentEventCollectionContext({ statePath: resolved[2], now, create: false });
+  if (stableJson(collectionContext.budget.receipt()) !== stableJson(facts.budgetReceipt)) {
+    throw new Error("Persisted event budget does not continue the frozen facts receipt");
+  }
+  const collected = await collectRepositoryEvents(facts.repositories, {
+    previous,
+    fetchImpl,
+    sleep,
+    collectionContext,
+    token,
+  });
+  const envelope = bindFrozenEventEnvelope(facts, collected);
+  writeNewEventJson(resolved[1], envelope);
+  return envelope;
+}
+
+function parseEventCliArgs(argv) {
+  const allowed = new Set(["--facts", "--events-out", "--budget-state", "--prior-heads"]);
+  const values = {};
+  for (let index = 0; index < argv.length; index += 2) {
+    const key = argv[index];
+    const value = argv[index + 1];
+    if (!allowed.has(key) || !value || Object.hasOwn(values, key)) throw new Error("Invalid frozen event CLI arguments");
+    values[key] = value;
+  }
+  if (Object.keys(values).length !== allowed.size) throw new Error("Invalid frozen event CLI arguments");
+  return values;
+}
+
+if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
+  const args = parseEventCliArgs(process.argv.slice(2));
+  const numericOverrides = Object.keys(process.env).filter(name => /^EVENT_.*(?:CAP|LIMIT|TIMEOUT|DEADLINE|ATTEMPTS|RETRIES)$/i.test(name));
+  if (numericOverrides.length) throw new Error("Event numeric overrides are forbidden");
+  const result = await runFrozenEventCollection({
+    factsPath: args["--facts"],
+    eventsOut: args["--events-out"],
+    budgetStatePath: args["--budget-state"],
+    priorHeadsPath: args["--prior-heads"],
+    token: process.env.GITHUB_TOKEN ?? "",
+  });
+  console.log(JSON.stringify({ version: result.version, snapshotId: result.snapshotId, completeSetSha256: result.completeSetSha256 }));
 }

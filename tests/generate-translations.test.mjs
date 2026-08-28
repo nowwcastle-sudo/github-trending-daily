@@ -25,12 +25,14 @@ import {
   planEnrichment,
   readTranslation,
   runEnrichment,
+  runFrozenEnrichmentPipeline,
   replaceReposArray,
   resolveEnrichmentBudgetPolicy,
   splitMarkdownAtHeadings,
   validateActiveEnrichment,
   validatedPreparedTranslations,
 } from "../scripts/generate-translations.mjs";
+import { hashCanonicalJson } from "../scripts/collect-repository-events.mjs";
 
 const MODEL = "claude-haiku-4-5";
 const content = {
@@ -188,6 +190,246 @@ function translationReplyFromRequest(init, translate = value => value
   if (input.kind === "combined") envelope.summary = content;
   return message(JSON.stringify(envelope));
 }
+
+function frozenPipelineFixture(root) {
+  const sourceRoot = path.join(root, "source");
+  const outputRoot = path.join(root, "output");
+  const factsPath = path.join(root, "facts.json");
+  const eventsPath = path.join(root, "events.json");
+  const indexPath = path.join(root, "enrichment-index.json");
+  mkdirSync(path.join(sourceRoot, "data"), { recursive: true });
+  mkdirSync(path.join(sourceRoot, "translations"), { recursive: true });
+  writeFileSync(path.join(sourceRoot, "data", "repo-summaries.json"), "{}\n");
+  writeFileSync(path.join(sourceRoot, "data", "translation-sources.json"), '{"version":2,"sources":{}}\n');
+  const repositories = Array.from({ length: 10 }, (_, index) => ({
+    slug: `owner/repo-${index}`,
+    display_slug: `owner/repo-${index}`,
+    description: `Repository ${index}`,
+    primary_language: "JavaScript",
+    topics: ["developer-tools"],
+    license_spdx: "MIT",
+    archived: false,
+    is_fork: false,
+    default_branch: "main",
+    created_at: "2020-01-02T03:04:05Z",
+    field_tags: ["development"],
+    form_tags: ["library"],
+    tag_rule_version: 1,
+    readme_status: "present",
+    readme_path: "README.md",
+    readme_blob_sha: index.toString(16).padStart(40, "a").slice(-40),
+    readme_content_sha256: hashReadme(markdown),
+  }));
+  const readmes = Object.fromEntries(repositories.map(repository => [repository.slug, {
+    path: repository.readme_path,
+    blobSha: repository.readme_blob_sha,
+    contentSha256: repository.readme_content_sha256,
+    markdown,
+  }]));
+  const context = {
+    observedAtUtc: "2026-08-29T00:07:00.000Z",
+    observedAtKst: "2026-08-29T09:07:00+09:00",
+    statsDateKst: "2026-08-29",
+    snapshotId: "20260829000700-aaaaaaaaaaaaaaaa",
+    parentSnapshotId: null,
+    parentSourceSha: null,
+  };
+  const inputSourceSha = "c".repeat(40);
+  const productionManifestStatus = "verified_v1";
+  const productionManifestSha256 = "f".repeat(64);
+  const trendingSourceSha256 = { daily: "1".repeat(64), weekly: "2".repeat(64), monthly: "3".repeat(64) };
+  const runContextSha256 = hashCanonicalJson(context);
+  const facts = {
+    version: 1,
+    snapshotId: context.snapshotId,
+    observedAtUtc: context.observedAtUtc,
+    observedAtKst: context.observedAtKst,
+    statsDate: context.statsDateKst,
+    parentSnapshotId: null,
+    inputSourceSha,
+    productionManifestStatus,
+    productionManifestSha256,
+    runContextSha256,
+    trendingSourceSha256,
+    sourceSetSha256: hashCanonicalJson({
+      input_source_sha: inputSourceSha,
+      production_manifest_status: productionManifestStatus,
+      production_manifest_sha256: productionManifestSha256,
+      run_context_sha256: runContextSha256,
+      trending_source_sha256: trendingSourceSha256,
+    }),
+    activeSetSha256: hashCanonicalJson(repositories.map(repository => repository.slug).sort()),
+    factsSha256: hashCanonicalJson({ snapshot_id: context.snapshotId, input_source_sha: inputSourceSha, repositories }),
+    repositories,
+    readmes,
+    budgetReceipt: { logicalRequests: 43, httpAttempts: 43, originEpochMs: Date.parse(context.observedAtUtc), eventDeadlineEpochMs: Date.parse(context.observedAtUtc) + 15 * 60_000 },
+  };
+  const eventContent = {
+    heads: repositories.map(repository => ({ slug: repository.slug, branch: "main", headSha: "b".repeat(40), transition: "baseline" })),
+    releases: [],
+    latestReleaseIds: Object.fromEntries(repositories.map(repository => [repository.slug, null])),
+    commits: [],
+    estimates: repositories.map(repository => ({ slug: repository.slug, rows: [], sourcePayloadSha256: "d".repeat(64), publicRows: [] })),
+    budgetReceipt: { ...facts.budgetReceipt, logicalRequests: 83, httpAttempts: 83 },
+  };
+  const events = {
+    ...eventContent,
+    version: 1,
+    snapshotId: facts.snapshotId,
+    activeSetSha256: facts.activeSetSha256,
+    factsSha256: facts.factsSha256,
+    completeSetSha256: hashCanonicalJson(eventContent),
+  };
+  writeFileSync(factsPath, `${JSON.stringify(facts)}\n`);
+  writeFileSync(eventsPath, `${JSON.stringify(events)}\n`);
+  return { sourceRoot, outputRoot, factsPath, eventsPath, indexPath, facts, events };
+}
+
+test("frozen enrichment gives a same-run new repository a detailed summary and eligible Korean README", async t => {
+  const root = mkdtempSync(path.join(tmpdir(), "frozen-enrichment-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const fixture = frozenPipelineFixture(root);
+  let calls = 0;
+  const urls = [];
+  const result = await runFrozenEnrichmentPipeline({
+    ...fixture,
+    apiKey: "test-only",
+    deadline: Date.now() + 10 * 60_000,
+    fetchImpl: async (url, init) => {
+      calls += 1;
+      urls.push(url);
+      return translationReplyFromRequest(init);
+    },
+    sleep: async () => {},
+  });
+  const index = JSON.parse(readFileSync(fixture.indexPath, "utf8"));
+  assert.equal(result.repositories, 10);
+  assert.equal(calls, 10);
+  assert.deepEqual(new Set(urls), new Set(["https://api.anthropic.com/v1/messages"]));
+  assert.deepEqual(index.repositories["owner/repo-0"].summary.content, content);
+  assert.match(index.repositories["owner/repo-0"].translation.markdown, /한국어 제목/);
+  assert.equal(index.factsSha256, fixture.facts.factsSha256);
+  assert.equal(index.eventsSha256, fixture.events.completeSetSha256);
+  assert.equal(existsSync(path.join(fixture.outputRoot, "translations", "owner__repo-0.json")), true);
+});
+
+test("frozen enrichment summarizes a repository without README from exact metadata and does not translate it", async t => {
+  const root = mkdtempSync(path.join(tmpdir(), "frozen-enrichment-metadata-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const fixture = frozenPipelineFixture(root);
+  const repository = fixture.facts.repositories[0];
+  Object.assign(repository, {
+    readme_status: "absent",
+    readme_path: null,
+    readme_blob_sha: null,
+    readme_content_sha256: null,
+  });
+  fixture.facts.readmes[repository.slug] = { path: null, blobSha: null, contentSha256: null, markdown: null };
+  fixture.facts.factsSha256 = hashCanonicalJson({
+    snapshot_id: fixture.facts.snapshotId,
+    input_source_sha: fixture.facts.inputSourceSha,
+    repositories: fixture.facts.repositories,
+  });
+  fixture.events.factsSha256 = fixture.facts.factsSha256;
+  writeFileSync(fixture.factsPath, `${JSON.stringify(fixture.facts)}\n`);
+  writeFileSync(fixture.eventsPath, `${JSON.stringify(fixture.events)}\n`);
+
+  let calls = 0;
+  await runFrozenEnrichmentPipeline({
+    ...fixture,
+    apiKey: "test-only",
+    deadline: Date.now() + 10 * 60_000,
+    fetchImpl: async (_url, init) => {
+      calls += 1;
+      const body = JSON.parse(init.body);
+      const prompt = body.messages[0].content;
+      return prompt.includes('"kind":"summary"') ? message(validSummaryJson) : translationReplyFromRequest(init);
+    },
+    sleep: async () => {},
+  });
+
+  const index = JSON.parse(readFileSync(fixture.indexPath, "utf8"));
+  const entry = index.repositories[repository.slug];
+  assert.equal(calls, 10);
+  assert.deepEqual(entry.summary.source, {
+    kind: "metadata_only",
+    slug: repository.slug,
+    profile_sha256: hashCanonicalJson({
+      slug: repository.slug,
+      display_slug: repository.display_slug,
+      description: repository.description,
+      primary_language: repository.primary_language,
+      topics: repository.topics,
+      license_spdx: repository.license_spdx,
+      archived: repository.archived,
+      is_fork: repository.is_fork,
+      default_branch: repository.default_branch,
+      created_at: repository.created_at,
+      field_tags: repository.field_tags,
+      form_tags: repository.form_tags,
+      tag_rule_version: repository.tag_rule_version,
+    }),
+    model: MODEL,
+    schema_version: 2,
+    translation_applicable: false,
+  });
+  assert.equal(Object.hasOwn(entry, "translation"), false);
+  assert.equal(existsSync(path.join(fixture.outputRoot, "translations", "owner__repo-0.json")), false);
+});
+
+test("facts or events changed after planning abort before the first Anthropic request", async t => {
+  const root = mkdtempSync(path.join(tmpdir(), "frozen-enrichment-drift-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const fixture = frozenPipelineFixture(root);
+  let calls = 0;
+  await assert.rejects(runFrozenEnrichmentPipeline({
+    ...fixture,
+    apiKey: "test-only",
+    deadline: Date.now() + 10 * 60_000,
+    beforeFinalValidation: async () => {
+      const binding = new Set(["version", "snapshotId", "activeSetSha256", "factsSha256", "completeSetSha256"]);
+      const content = Object.fromEntries(Object.entries(fixture.events).filter(([key]) => !binding.has(key)));
+      content.budgetReceipt = { ...content.budgetReceipt, logicalRequests: content.budgetReceipt.logicalRequests + 1 };
+      const changed = { ...content, version: 1, snapshotId: fixture.events.snapshotId, activeSetSha256: fixture.events.activeSetSha256, factsSha256: fixture.events.factsSha256, completeSetSha256: hashCanonicalJson(content) };
+      writeFileSync(fixture.eventsPath, `${JSON.stringify(changed)}\n`);
+    },
+    fetchImpl: async () => { calls += 1; return message(validSummaryJson); },
+    sleep: async () => {},
+  }), /changed|binding|hash/i);
+  assert.equal(calls, 0);
+  assert.equal(existsSync(fixture.indexPath), false);
+  assert.equal(existsSync(fixture.outputRoot), false);
+});
+
+test("frozen enrichment never refetches a README whose temp body mismatches its immutable identity", async t => {
+  const root = mkdtempSync(path.join(tmpdir(), "frozen-enrichment-readme-mismatch-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const fixture = frozenPipelineFixture(root);
+  fixture.facts.readmes["owner/repo-0"].markdown += "\nchanged after facts capture";
+  writeFileSync(fixture.factsPath, `${JSON.stringify(fixture.facts)}\n`);
+  let calls = 0;
+  await assert.rejects(runFrozenEnrichmentPipeline({
+    ...fixture,
+    apiKey: "test-only",
+    deadline: Date.now() + 10 * 60_000,
+    fetchImpl: async () => { calls += 1; return message(validSummaryJson); },
+    sleep: async () => {},
+  }), /README.*(?:identity|hash)/i);
+  assert.equal(calls, 0);
+  assert.equal(existsSync(fixture.indexPath), false);
+  assert.equal(existsSync(fixture.outputRoot), false);
+});
+
+test("frozen enrichment source boundary cannot rediscover the active set or README", () => {
+  const source = readFileSync(path.resolve("scripts/generate-translations.mjs"), "utf8");
+  const start = source.indexOf("export async function runFrozenEnrichmentPipeline");
+  const end = source.indexOf("function frozenCliArgs", start);
+  assert.ok(start >= 0 && end > start);
+  const frozen = source.slice(start, end);
+  assert.match(frozen, /facts\.repositories\.map/);
+  assert.doesNotMatch(frozen, /extractReposFromIndex|fetchCanonicalReadme|index\.html/);
+  assert.ok(frozen.indexOf("validateFrozenEvents") < frozen.indexOf("runEnrichment"));
+});
 
 test("summary request uses output_config JSON schema and accepts only end_turn", async () => {
   const calls = [];

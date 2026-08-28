@@ -1,14 +1,23 @@
 import { createHash, randomUUID } from "node:crypto";
 import {
   readFile,
+  mkdir,
   rename,
   rm,
   writeFile,
 } from "node:fs/promises";
+import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { readRunContext, validateRunContext } from "./run-context.mjs";
-import { collectRepositoryEvents, isEventCollectionContext } from "./collect-repository-events.mjs";
+import {
+  collectRepositoryEvents,
+  createPersistentEventCollectionContext,
+  hashCanonicalJson,
+  isEventCollectionContext,
+  validateFrozenFactsPayload,
+} from "./collect-repository-events.mjs";
+import { parseJsonStrict } from "./build-pages-artifact.mjs";
 
 const PERIODS = {
   daily: { field: "stars_daily", label: "today" },
@@ -539,7 +548,7 @@ export async function fetchRepositoryFacts(slug, options = {}) {
     },
   };
 
-  return {
+  const result = {
     archived: repositoryFacts.archived,
     contributors: repositoryFacts.contributors,
     created_at: repositoryFacts.created_at,
@@ -576,6 +585,8 @@ export async function fetchRepositoryFacts(slug, options = {}) {
     updated_at: repositoryFacts.updated_at,
     watchers_count: repositoryFacts.watchers_count,
   };
+  if (options.includeReadmeBody === true) result.readme_markdown = readme.markdown;
+  return result;
 }
 
 async function fetchLatestRelease(slug, { client }) {
@@ -641,12 +652,15 @@ export async function enrichTrendingRepositories(discovered, {
   maxAttempts = DEFAULT_MAX_ATTEMPTS,
   maxRetryDelay = 300000,
   collectionBudget = null,
+  includeLatestRelease = true,
+  includeReadmeBody = false,
 } = {}) {
   if (!Array.isArray(discovered) || discovered.length < 10 || discovered.length > 75) {
     throw new Error("Discovered repositories must contain 10-75 entries");
   }
   const client = createGitHubClient({ fetchImpl, sleep, token, maxRequests, maxAttempts, maxRetryDelay, collectionBudget });
-  const requiredRequests = discovered.length * GITHUB_REQUESTS_PER_REPOSITORY * maxAttempts;
+  const requestsPerRepository = includeLatestRelease ? GITHUB_REQUESTS_PER_REPOSITORY : GITHUB_REQUESTS_PER_REPOSITORY - 1;
+  const requiredRequests = discovered.length * requestsPerRepository * maxAttempts;
   if (maxRequests < requiredRequests) {
     throw new RequestLimitError(`GitHub request budget ${maxRequests} requires at least ${requiredRequests} for ${discovered.length} repositories`);
   }
@@ -663,8 +677,9 @@ export async function enrichTrendingRepositories(discovered, {
         client,
         source: discoveredRepo,
         displayRank: index + 1,
+        includeReadmeBody,
       });
-      latestReleases.set(key, await fetchLatestRelease(slug, { client }));
+      if (includeLatestRelease) latestReleases.set(key, await fetchLatestRelease(slug, { client }));
       repos.push(facts);
     } catch (error) {
       if (error instanceof RequestLimitError || error instanceof RetryDelayError) throw error;
@@ -674,6 +689,101 @@ export async function enrichTrendingRepositories(discovered, {
   Object.defineProperty(repos, "requestCount", { value: client.requestCount, enumerable: false });
   Object.defineProperty(repos, "latestReleases", { value: latestReleases, enumerable: false });
   return repos;
+}
+
+export function buildFrozenFactsEnvelope({
+  context,
+  inputSourceSha,
+  productionManifestStatus,
+  productionManifestSha256,
+  repositories,
+  readmes,
+  trendingSourceSha256,
+  budgetReceipt,
+}) {
+  validateRunContext(context);
+  if (!/^[a-f0-9]{40}$/.test(inputSourceSha ?? "")) throw new Error("Frozen facts source SHA is invalid");
+  if (!["verified_v0", "verified_v1", "verified_404"].includes(productionManifestStatus)
+      || (productionManifestStatus === "verified_404"
+        ? productionManifestSha256 !== null
+        : !/^[a-f0-9]{64}$/.test(productionManifestSha256 ?? ""))) {
+    throw new Error("Frozen production manifest evidence is invalid");
+  }
+  if (!Array.isArray(repositories) || repositories.length < 10 || repositories.length > 75) {
+    throw new Error("Frozen facts require 10-75 repositories");
+  }
+  if (!readmes || Array.isArray(readmes) || typeof readmes !== "object") throw new Error("Frozen README set is invalid");
+  if (!trendingSourceSha256 || Object.keys(trendingSourceSha256).sort().join("\0") !== Object.keys(PERIODS).sort().join("\0")
+      || Object.values(trendingSourceSha256).some(value => !/^[a-f0-9]{64}$/.test(value))) {
+    throw new Error("Frozen Trending source hashes are invalid");
+  }
+  if (!budgetReceipt || Object.keys(budgetReceipt).sort().join("\0") !== ["eventDeadlineEpochMs", "httpAttempts", "logicalRequests", "originEpochMs"].sort().join("\0")
+      || Object.values(budgetReceipt).some(value => !Number.isSafeInteger(value) || value < 0)
+      || budgetReceipt.eventDeadlineEpochMs !== budgetReceipt.originEpochMs + 15 * 60_000) {
+    throw new Error("Frozen facts budget receipt is invalid");
+  }
+  const activeSlugs = [];
+  const seen = new Set();
+  for (const repository of repositories) {
+    const slug = normalizeSlug(repository?.slug ?? "");
+    const key = slug.toLowerCase();
+    if (seen.has(key)) throw new Error("Frozen facts contain a duplicate repository");
+    seen.add(key);
+    activeSlugs.push(key);
+    const readme = readmes[key];
+    if (!readme || Array.isArray(readme) || typeof readme !== "object"
+        || Object.keys(readme).sort().join("\0") !== ["blobSha", "contentSha256", "markdown", "path"].sort().join("\0")) {
+      throw new Error("Frozen README set does not match active repositories");
+    }
+    const absent = repository.readme_status === "absent";
+    if (absent) {
+      if (readme.path !== null || readme.blobSha !== null || readme.contentSha256 !== null || readme.markdown !== null) {
+        throw new Error("Frozen README absence identity is invalid");
+      }
+    } else if (repository.readme_status !== "present"
+        || readme.path !== repository.readme_path
+        || readme.blobSha !== repository.readme_blob_sha
+        || readme.contentSha256 !== repository.readme_content_sha256
+        || typeof readme.markdown !== "string"
+        || sha256(Buffer.from(readme.markdown, "utf8")) !== readme.contentSha256) {
+      throw new Error("Frozen README identity does not match canonical facts");
+    }
+  }
+  if (Object.keys(readmes).length !== seen.size || Object.keys(readmes).some(slug => !seen.has(slug))) {
+    throw new Error("Frozen README set does not match active repositories");
+  }
+  activeSlugs.sort();
+  const runContextSha256 = canonicalHash(context);
+  const sourceSetSha256 = canonicalHash({
+    input_source_sha: inputSourceSha,
+    production_manifest_status: productionManifestStatus,
+    production_manifest_sha256: productionManifestSha256,
+    run_context_sha256: runContextSha256,
+    trending_source_sha256: trendingSourceSha256,
+  });
+  return {
+    version: 1,
+    snapshotId: context.snapshotId,
+    observedAtUtc: context.observedAtUtc,
+    observedAtKst: context.observedAtKst,
+    statsDate: context.statsDateKst,
+    parentSnapshotId: context.parentSnapshotId,
+    inputSourceSha,
+    productionManifestStatus,
+    productionManifestSha256,
+    runContextSha256,
+    trendingSourceSha256: { ...trendingSourceSha256 },
+    sourceSetSha256,
+    activeSetSha256: canonicalHash(activeSlugs),
+    factsSha256: canonicalHash({
+      snapshot_id: context.snapshotId,
+      input_source_sha: inputSourceSha,
+      repositories,
+    }),
+    repositories,
+    readmes,
+    budgetReceipt: { ...budgetReceipt },
+  };
 }
 
 // The transactional workflow uses this boundary after canonical facts and
@@ -714,10 +824,44 @@ function validDetailedContent(value) {
     && SUMMARY_FIELDS.every(field => typeof value[field] === "string" && value[field].trim());
 }
 
+function exactObjectKeys(value, keys) {
+  return Object.keys(value).sort().join("\0") === [...keys].sort().join("\0");
+}
+
+function frozenSourceMatchesFact(source, fact) {
+  if (!source || Array.isArray(source) || typeof source !== "object"
+      || source.model !== ENRICHMENT_MODEL || source.schema_version !== ENRICHMENT_SCHEMA_VERSION
+      || source.slug !== fact.slug.toLowerCase() || typeof source.translation_applicable !== "boolean") return false;
+  if (fact.readme_status === "present") {
+    return exactObjectKeys(source, ["kind", "slug", "path", "blob_sha", "content_sha256", "model", "schema_version", "translation_applicable"])
+      && source.kind === "readme" && source.path === fact.readme_path
+      && source.blob_sha === fact.readme_blob_sha && source.content_sha256 === fact.readme_content_sha256;
+  }
+  if (fact.readme_status !== "absent" || source.translation_applicable !== false
+      || !exactObjectKeys(source, ["kind", "slug", "profile_sha256", "model", "schema_version", "translation_applicable"])) return false;
+  const profile = {
+    slug: fact.slug.toLowerCase(),
+    display_slug: fact.display_slug.replace(/\s*\/\s*/g, "/"),
+    description: fact.description,
+    primary_language: fact.primary_language,
+    topics: fact.topics,
+    license_spdx: fact.license_spdx,
+    archived: fact.archived,
+    is_fork: fact.is_fork,
+    default_branch: fact.default_branch,
+    created_at: fact.created_at,
+    field_tags: fact.field_tags,
+    form_tags: fact.form_tags,
+    tag_rule_version: fact.tag_rule_version,
+  };
+  return source.kind === "metadata_only" && source.profile_sha256 === hashCanonicalJson(profile);
+}
+
 function reusableSummaryEntry(value, fact) {
   const source = value?.source;
-  return validDetailedContent(value?.content)
-    && source && !Array.isArray(source) && typeof source === "object"
+  if (!validDetailedContent(value?.content) || !source || Array.isArray(source) || typeof source !== "object") return false;
+  if (source.kind !== undefined) return frozenSourceMatchesFact(source, fact);
+  return source
     && source.blob_sha === fact.readme_blob_sha
     && source.content_sha256 === fact.readme_content_sha256
     && source.model === ENRICHMENT_MODEL
@@ -746,6 +890,12 @@ function renderRepositoryFacts(facts, summaryCache, context, latestReleases) {
       desc: fact.description ?? "",
       lang: fact.primary_language ?? "",
       topics: fact.topics,
+      rank_daily: fact.rank_daily,
+      rank_weekly: fact.rank_weekly,
+      rank_monthly: fact.rank_monthly,
+      tag_rule_version: fact.tag_rule_version,
+      field_tags: [...fact.field_tags],
+      form_tags: [...fact.form_tags],
       stars: fact.stars,
       forks: fact.forks,
       ...gains,
@@ -1010,10 +1160,12 @@ export async function installPageSnapshot({
   }
 }
 
-async function fetchTrendingPage(period, { fetchImpl, sleep, maxAttempts = 3, maxRetryDelay = 300000 }) {
+async function fetchTrendingPage(period, { fetchImpl, sleep, maxAttempts = 3, maxRetryDelay = 300000, collectionBudget = null }) {
   const url = `https://github.com/trending?since=${period}`;
   if (!Number.isSafeInteger(maxAttempts) || maxAttempts < 1 || maxAttempts > 3) throw new Error("maxAttempts must be between 1 and 3");
+  collectionBudget?.admitLogical();
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    collectionBudget?.admitAttempt();
     let response;
     try {
       response = await fetchImpl(url, {
@@ -1022,16 +1174,272 @@ async function fetchTrendingPage(period, { fetchImpl, sleep, maxAttempts = 3, ma
       });
     } catch (error) {
       if (!isTimeout(error) || attempt + 1 >= maxAttempts) throw new Error(`Trending request failed for ${period}`);
-      await sleep(boundedDelay([2000, 8000][attempt], maxRetryDelay));
+      const delay = collectionBudget ? [2000, 8000][attempt] : boundedDelay([2000, 8000][attempt], maxRetryDelay);
+      collectionBudget?.admitSleep(delay);
+      await sleep(delay);
       continue;
     }
     if (response.ok) return response.text();
     if (!shouldRetry(response) || attempt + 1 >= maxAttempts) {
       throw new Error(`Trending request returned ${response.status} for ${period}`);
     }
-    await sleep(retryDelay(response, attempt, maxRetryDelay));
+    const delay = collectionBudget ? [2000, 8000][attempt] : retryDelay(response, attempt, maxRetryDelay);
+    collectionBudget?.admitSleep(delay);
+    await sleep(delay);
   }
   throw new Error(`Trending request failed for ${period}`);
+}
+
+function repositoryRoot() {
+  return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+}
+
+function assertTempOutput(target, label) {
+  if (typeof target !== "string" || !target) throw new Error(`${label} path is required`);
+  const resolved = path.resolve(target);
+  const relative = path.relative(repositoryRoot(), resolved);
+  if (relative === "" || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative))) {
+    throw new Error(`${label} must be outside the tracked checkout`);
+  }
+  return resolved;
+}
+
+async function writeNewJson(target, value) {
+  const resolved = assertTempOutput(target, "Frozen facts output");
+  try {
+    await readFile(resolved);
+    throw new Error("Frozen facts output already exists");
+  } catch (error) {
+    if (error?.code !== "ENOENT") throw error;
+  }
+  await mkdir(path.dirname(resolved), { recursive: true });
+  const pending = `${resolved}.${process.pid}-${randomUUID()}.tmp`;
+  try {
+    await writeFile(pending, `${JSON.stringify(value)}\n`, { encoding: "utf8", flag: "wx" });
+    await rename(pending, resolved);
+  } finally {
+    await rm(pending, { force: true });
+  }
+}
+
+export async function collectFrozenFacts({
+  factsOut,
+  budgetStatePath,
+  context,
+  inputSourceSha,
+  productionManifestStatus,
+  productionManifestSha256,
+  eventOriginEpochMs,
+  fetchImpl = globalThis.fetch,
+  sleep = defaultSleep,
+  token = "",
+  now = Date.now,
+} = {}) {
+  validateRunContext(context);
+  const outputPath = assertTempOutput(factsOut, "Frozen facts output");
+  const statePath = assertTempOutput(budgetStatePath, "Event budget state");
+  if (outputPath === statePath) throw new Error("Frozen facts and event budget paths must not alias");
+  const collectionContext = createPersistentEventCollectionContext({
+    statePath,
+    originEpochMs: eventOriginEpochMs,
+    now,
+    create: true,
+  });
+  const sourceBodies = {};
+  const periods = {};
+  for (const period of Object.keys(PERIODS)) {
+    const html = await fetchTrendingPage(period, {
+      fetchImpl,
+      sleep,
+      collectionBudget: collectionContext.budget,
+    });
+    sourceBodies[period] = html;
+    periods[period] = parseTrendingHtml(html, period);
+  }
+  const discovered = mergeTrendingPeriods(periods);
+  const collected = await enrichTrendingRepositories(discovered, {
+    fetchImpl,
+    sleep,
+    token,
+    collectionBudget: collectionContext.budget,
+    includeLatestRelease: false,
+    includeReadmeBody: true,
+  });
+  const readmes = {};
+  const repositories = collected.map(value => {
+    const { readme_markdown: markdown, ...repository } = value;
+    readmes[repository.slug.toLowerCase()] = {
+      path: repository.readme_path,
+      blobSha: repository.readme_blob_sha,
+      contentSha256: repository.readme_content_sha256,
+      markdown: markdown ?? null,
+    };
+    return repository;
+  });
+  const payload = buildFrozenFactsEnvelope({
+    context,
+    inputSourceSha,
+    productionManifestStatus,
+    productionManifestSha256,
+    repositories,
+    readmes,
+    trendingSourceSha256: Object.fromEntries(Object.entries(sourceBodies)
+      .map(([period, html]) => [period, sha256(Buffer.from(html, "utf8"))])),
+    budgetReceipt: collectionContext.budget.receipt(),
+  });
+  await writeNewJson(outputPath, payload);
+  return payload;
+}
+
+function validateFrozenRenderEvents(facts, events) {
+  const bindingKeys = new Set(["version", "snapshotId", "activeSetSha256", "factsSha256", "completeSetSha256"]);
+  const contentKeys = ["heads", "releases", "latestReleaseIds", "commits", "estimates", "budgetReceipt"];
+  if (!events || Array.isArray(events) || typeof events !== "object" || events.version !== 1
+      || events.snapshotId !== facts.snapshotId || events.activeSetSha256 !== facts.activeSetSha256
+      || events.factsSha256 !== facts.factsSha256 || !/^[a-f0-9]{64}$/.test(events.completeSetSha256 ?? "")
+      || contentKeys.some(key => !Object.hasOwn(events, key))
+      || Object.keys(events).some(key => !bindingKeys.has(key) && !contentKeys.includes(key))) {
+    throw new Error("Frozen render event binding is invalid");
+  }
+  const content = Object.fromEntries(Object.entries(events).filter(([key]) => !bindingKeys.has(key)));
+  if (hashCanonicalJson(content) !== events.completeSetSha256) throw new Error("Frozen render event hash is invalid");
+  return events;
+}
+
+function validateFrozenEnrichmentIndex(facts, events, index) {
+  const expectedKeys = ["version", "snapshotId", "activeSetSha256", "factsSha256", "eventsSha256", "repositories"];
+  if (!index || Array.isArray(index) || typeof index !== "object"
+      || Object.keys(index).sort().join("\0") !== expectedKeys.sort().join("\0") || index.version !== 1
+      || index.snapshotId !== facts.snapshotId || index.activeSetSha256 !== facts.activeSetSha256
+      || index.factsSha256 !== facts.factsSha256 || index.eventsSha256 !== events.completeSetSha256
+      || !index.repositories || Array.isArray(index.repositories) || typeof index.repositories !== "object") {
+    throw new Error("Frozen render enrichment binding is invalid");
+  }
+  const slugs = facts.repositories.map(repository => repository.slug.toLowerCase());
+  if (Object.keys(index.repositories).length !== slugs.length || slugs.some(slug => !Object.hasOwn(index.repositories, slug))) {
+    throw new Error("Frozen render enrichment active set is incomplete");
+  }
+  for (const [position, slug] of slugs.entries()) {
+    const entry = index.repositories[slug];
+    if (!entry || Array.isArray(entry) || typeof entry !== "object" || !["summary", "summary\0translation"].includes(Object.keys(entry).sort().join("\0"))
+        || !reusableSummaryEntry(entry.summary, facts.repositories[position])) {
+      throw new Error("Frozen render detailed summary is invalid");
+    }
+    const source = entry.summary.source;
+    if (source.translation_applicable) {
+      if (!entry.translation || Array.isArray(entry.translation) || typeof entry.translation !== "object"
+          || !exactObjectKeys(entry.translation, ["markdown", "source"])
+          || typeof entry.translation.markdown !== "string" || !entry.translation.markdown.trim()
+          || JSON.stringify(entry.translation.source) !== JSON.stringify(source)) {
+        throw new Error("Frozen render translation identity is invalid");
+      }
+    } else if (Object.hasOwn(entry, "translation")) {
+      throw new Error("Frozen render translation is not applicable");
+    }
+  }
+  return index;
+}
+
+function latestReleaseDates(facts, events) {
+  const releases = new Map();
+  for (const release of events.releases) {
+    const slug = normalizeSlug(release?.slug ?? "").toLowerCase();
+    if (!Number.isSafeInteger(release.release_id) || release.release_id < 1
+        || (release.published_at !== null && (typeof release.published_at !== "string" || Number.isNaN(new Date(release.published_at).getTime())))) {
+      throw new Error("Frozen render release identity is invalid");
+    }
+    const key = `${slug}\0${release.release_id}`;
+    if (releases.has(key)) throw new Error("Frozen render release identity is duplicated");
+    releases.set(key, release);
+  }
+  const result = new Map();
+  const expected = facts.repositories.map(repository => repository.slug.toLowerCase());
+  if (!events.latestReleaseIds || Array.isArray(events.latestReleaseIds) || typeof events.latestReleaseIds !== "object"
+      || Object.keys(events.latestReleaseIds).length !== expected.length || expected.some(slug => !Object.hasOwn(events.latestReleaseIds, slug))) {
+    throw new Error("Frozen render latest release set is incomplete");
+  }
+  for (const slug of expected) {
+    const id = events.latestReleaseIds[slug];
+    if (id === null) result.set(slug, null);
+    else {
+      const release = releases.get(`${slug}\0${id}`);
+      if (!release) throw new Error("Frozen render latest release is absent from inventory");
+      result.set(slug, release.published_at?.slice(0, 10) ?? null);
+    }
+  }
+  return result;
+}
+
+export async function renderFrozenCandidate({
+  factsPath,
+  eventsPath,
+  enrichmentIndexPath,
+  pageTemplatePath,
+  pageOut,
+  cacheOut,
+  snapshotOut,
+} = {}) {
+  const outputs = [
+    assertTempOutput(pageOut, "Rendered page output"),
+    assertTempOutput(cacheOut, "Rendered cache output"),
+    assertTempOutput(snapshotOut, "Recorder snapshot output"),
+  ];
+  if (new Set(outputs).size !== outputs.length) throw new Error("Frozen render outputs must not alias");
+  if (outputs.some(target => target === path.resolve(factsPath ?? "") || target === path.resolve(eventsPath ?? "") || target === path.resolve(enrichmentIndexPath ?? "") || target === path.resolve(pageTemplatePath ?? ""))) {
+    throw new Error("Frozen render input and output paths must not alias");
+  }
+  const [factsBytes, eventsBytes, indexBytes, template] = await Promise.all([
+    readFile(factsPath), readFile(eventsPath), readFile(enrichmentIndexPath), readFile(pageTemplatePath, "utf8"),
+  ]);
+  const facts = validateFrozenFactsPayload(parseJsonStrict(factsBytes, "frozen facts", 64 * 1024 * 1024));
+  const events = validateFrozenRenderEvents(facts, parseJsonStrict(eventsBytes, "frozen events", 64 * 1024 * 1024));
+  const index = validateFrozenEnrichmentIndex(facts, events, parseJsonStrict(indexBytes, "enrichment index", 64 * 1024 * 1024));
+  const context = validateRunContext({
+    observedAtUtc: facts.observedAtUtc,
+    observedAtKst: facts.observedAtKst,
+    statsDateKst: facts.statsDate,
+    snapshotId: facts.snapshotId,
+    parentSnapshotId: facts.parentSnapshotId,
+    parentSourceSha: facts.parentSnapshotId === null ? null : facts.inputSourceSha,
+  });
+  const summaryCache = Object.fromEntries(facts.repositories.map(repository => [
+    repository.slug,
+    index.repositories[repository.slug.toLowerCase()].summary,
+  ]));
+  const latestReleases = latestReleaseDates(facts, events);
+  const published = renderRepositoryFacts(facts.repositories, summaryCache, context, latestReleases);
+  const pageSnapshot = createPageSnapshot({
+    page: template,
+    summaryCache,
+    repos: published,
+    statsDate: facts.statsDate,
+  });
+  const enrichmentIndexSha256 = hashCanonicalJson(index);
+  const runKind = facts.parentSnapshotId === null ? "migration_baseline" : "refresh";
+  const recorderSnapshot = {
+    snapshotId: facts.snapshotId,
+    observedAtUtc: facts.observedAtUtc,
+    observedAtKst: facts.observedAtKst,
+    statsDate: facts.statsDate,
+    runKind,
+    parentSnapshotId: facts.parentSnapshotId,
+    inputSourceSha: facts.inputSourceSha,
+    inputManifestSha256: facts.productionManifestSha256,
+    productionManifestStatus: facts.productionManifestStatus,
+    activeSetSha256: facts.activeSetSha256,
+    factsSha256: facts.factsSha256,
+    eventsSha256: events.completeSetSha256,
+    enrichmentIndexSha256,
+    ...(facts.productionManifestStatus === "verified_404" ? {
+      explicitBootstrapSourceSha: facts.inputSourceSha,
+    } : {}),
+    repositories: facts.repositories,
+  };
+  await Promise.all([mkdir(path.dirname(outputs[0]), { recursive: true }), mkdir(path.dirname(outputs[1]), { recursive: true })]);
+  await Promise.all([writeFile(outputs[0], template, { flag: "wx" }), writeFile(outputs[1], "{}\n", { flag: "wx" })]);
+  await installPageSnapshot({ pagePath: outputs[0], cachePath: outputs[1], ...pageSnapshot });
+  await writeNewJson(outputs[2], recorderSnapshot);
+  return { repositories: published.length, snapshotId: facts.snapshotId, recorderSnapshot };
 }
 
 export async function runTrendingUpdate({
@@ -1068,17 +1476,67 @@ export async function runTrendingUpdate({
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
   const args = process.argv.slice(2);
-  if (args.some(arg => arg !== "--check") || args.filter(arg => arg === "--check").length > 1) {
-    throw new Error("Usage: node scripts/update-trending.mjs [--check]");
+  if (args.includes("--render-facts")) {
+    const allowed = new Set(["--render-facts", "--events", "--enrichment-index", "--page-template", "--page-out", "--cache-out", "--snapshot-out"]);
+    const values = {};
+    for (let index = 0; index < args.length; index += 2) {
+      const key = args[index];
+      const value = args[index + 1];
+      if (!allowed.has(key) || !value || Object.hasOwn(values, key)) throw new Error("Invalid frozen render CLI arguments");
+      values[key] = value;
+    }
+    if (Object.keys(values).length !== allowed.size) throw new Error("Invalid frozen render CLI arguments");
+    const result = await renderFrozenCandidate({
+      factsPath: values["--render-facts"],
+      eventsPath: values["--events"],
+      enrichmentIndexPath: values["--enrichment-index"],
+      pageTemplatePath: values["--page-template"],
+      pageOut: values["--page-out"],
+      cacheOut: values["--cache-out"],
+      snapshotOut: values["--snapshot-out"],
+    });
+    console.log(JSON.stringify({ snapshotId: result.snapshotId, repositories: result.repositories }));
+  } else if (args.includes("--facts-out")) {
+    const values = {};
+    for (let index = 0; index < args.length; index += 2) {
+      const key = args[index];
+      const value = args[index + 1];
+      if (!["--facts-out", "--budget-state"].includes(key) || !value || Object.hasOwn(values, key)) {
+        throw new Error("Usage: node scripts/update-trending.mjs --facts-out FILE --budget-state FILE");
+      }
+      values[key] = value;
+    }
+    if (Object.keys(values).length !== 2) throw new Error("Usage: node scripts/update-trending.mjs --facts-out FILE --budget-state FILE");
+    const originText = process.env.EVENT_ORIGIN_EPOCH_MS ?? "";
+    if (!/^[1-9]\d*$/.test(originText) || !Number.isSafeInteger(Number(originText))) throw new Error("Event origin is invalid");
+    const numericOverrides = Object.keys(process.env).filter(name => /^EVENT_.*(?:CAP|LIMIT|TIMEOUT|DEADLINE|ATTEMPTS|RETRIES)$/i.test(name));
+    if (numericOverrides.length) throw new Error("Event numeric overrides are forbidden");
+    const result = await collectFrozenFacts({
+      factsOut: values["--facts-out"],
+      budgetStatePath: values["--budget-state"],
+      context: readRunContext(process.env),
+      inputSourceSha: process.env.INPUT_SOURCE_SHA ?? "",
+      productionManifestStatus: process.env.PRODUCTION_MANIFEST_STATUS ?? "",
+      productionManifestSha256: process.env.PRODUCTION_MANIFEST_STATUS === "verified_404"
+        ? null
+        : process.env.PRODUCTION_MANIFEST_SHA256 ?? "",
+      eventOriginEpochMs: Number(originText),
+      token: process.env.GITHUB_TOKEN ?? "",
+    });
+    console.log(JSON.stringify({ version: result.version, snapshotId: result.snapshotId, repositories: result.repositories.length, factsSha256: result.factsSha256 }));
+  } else {
+    if (args.some(arg => arg !== "--check") || args.filter(arg => arg === "--check").length > 1) {
+      throw new Error("Usage: node scripts/update-trending.mjs [--check]");
+    }
+    const check = args.includes("--check");
+    const result = await runTrendingUpdate({
+      check,
+      pagePath: fileURLToPath(new URL("../index.html", import.meta.url)),
+      cachePath: fileURLToPath(new URL("../data/repo-summaries.json", import.meta.url)),
+      token: process.env.GITHUB_TOKEN ?? "",
+      context: readRunContext(process.env),
+    });
+    console.log(`${check ? "Validated" : result.changed ? "Updated" : "Unchanged"}: ${result.repos.length} repositories for ${result.statsDate} (Asia/Seoul)`);
   }
-  const check = args.includes("--check");
-  const result = await runTrendingUpdate({
-    check,
-    pagePath: fileURLToPath(new URL("../index.html", import.meta.url)),
-    cachePath: fileURLToPath(new URL("../data/repo-summaries.json", import.meta.url)),
-    token: process.env.GITHUB_TOKEN ?? "",
-    context: readRunContext(process.env),
-  });
-  console.log(`${check ? "Validated" : result.changed ? "Updated" : "Unchanged"}: ${result.repos.length} repositories for ${result.statsDate} (Asia/Seoul)`);
 
 }
