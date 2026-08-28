@@ -1,304 +1,114 @@
-import { randomUUID } from "node:crypto";
-import { readFile, rename, rm, writeFile } from "node:fs/promises";
+import { open, readFile, rename, rm } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { randomUUID } from "node:crypto";
 
-import { readRunContext, validateRunContext } from "./run-context.mjs";
+import { parseJsonStrict } from "./build-pages-artifact.mjs";
 
-const REPOS_START = "// GENERATED:TRENDING-REPOS:START";
-const REPOS_END = "// GENERATED:TRENDING-REPOS:END";
 const REPO_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
-const MAX_ESTIMATED_POINTS = 500;
-const MAX_OBSERVED_POINTS = 730;
-function markerRegion(value) {
-  const starts = value.split(REPOS_START).length - 1;
-  const ends = value.split(REPOS_END).length - 1;
-  if (starts !== 1 || ends !== 1) throw new Error("Expected exactly one REPOS marker pair");
-  const from = value.indexOf(REPOS_START) + REPOS_START.length;
-  const to = value.indexOf(REPOS_END, from);
-  if (to < from) throw new Error("Invalid REPOS marker order");
-  return value.slice(from, to).trim();
-}
-
-function validDate(value) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value ?? "");
-  const date = match && new Date(`${value}T00:00:00Z`);
-  return Boolean(
-    match
-    && !Number.isNaN(date.getTime())
-    && date.getUTCFullYear() === Number(match[1])
-    && date.getUTCMonth() + 1 === Number(match[2])
-    && date.getUTCDate() === Number(match[3]),
-  );
-}
-
-function assertDate(value) {
-  if (!validDate(value)) throw new Error(`invalid cache date: ${String(value)}`);
-}
-
-function validateRepo(repo) {
-  if (typeof repo?.slug !== "string" || !REPO_RE.test(repo.slug)) {
-    throw new Error(`invalid slug: ${String(repo?.slug)}`);
-  }
-  if (!Number.isSafeInteger(repo.stars) || repo.stars < 0) {
-    throw new Error(`invalid stars: ${repo.slug}`);
-  }
-  return { slug: repo.slug, stars: repo.stars };
-}
-
-function validateRepos(repos) {
-  if (!Array.isArray(repos) || repos.length < 10 || repos.length > 75) {
-    throw new Error("REPOS must contain 10-75 repositories");
-  }
-  const seen = new Set();
-  return repos.map(value => {
-    const repo = validateRepo(value);
-    const key = repo.slug.toLowerCase();
-    if (seen.has(key)) throw new Error(`duplicate slug: ${repo.slug}`);
-    seen.add(key);
-    return repo;
-  });
-}
-
-function validPoint(value) {
-  return validDate(value?.date) && Number.isSafeInteger(value?.stars) && value.stars >= 0;
-}
+const TRACKED_OUTPUT = fileURLToPath(new URL("../star-history.json", import.meta.url));
 
 function exactKeys(value, expected) {
-  return value
-    && typeof value === "object"
-    && !Array.isArray(value)
+  return value && typeof value === "object" && !Array.isArray(value)
     && Object.keys(value).sort().join("\0") === [...expected].sort().join("\0");
 }
 
-function validOrderedPoints(points, maximum) {
-  return Array.isArray(points)
-    && points.length <= maximum
-    && points.every((point, index) => (
-      exactKeys(point, ["date", "stars"])
-      && validPoint(point)
-      && (index === 0 || points[index - 1].date < point.date)
-    ));
+function validDate(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || "");
+  const parsed = match && new Date(`${value}T00:00:00Z`);
+  return Boolean(match && !Number.isNaN(parsed.getTime())
+    && parsed.getUTCFullYear() === Number(match[1])
+    && parsed.getUTCMonth() + 1 === Number(match[2])
+    && parsed.getUTCDate() === Number(match[3]));
 }
 
-function normalizePoints(points, maximum) {
-  if (!Array.isArray(points)) return [];
-  const byDate = new Map();
-  for (const point of points) {
-    if (validPoint(point)) byDate.set(point.date, { date: point.date, stars: point.stars });
-  }
-  return [...byDate.values()]
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .slice(-maximum);
-}
-
-function parseStars(value) {
-  if (Number.isSafeInteger(value) && value >= 0) return value;
-  if (typeof value !== "string" || !/^(?:0|[1-9]\d*)$/.test(value)) return null;
-  const parsed = Number(value);
-  return Number.isSafeInteger(parsed) ? parsed : null;
-}
-
-export function extractRepos(html) {
-  if (typeof html !== "string") throw new Error("REPOS page must be text");
-  const match = /^const REPOS = (\[[\s\S]*\]);$/.exec(markerRegion(html));
-  if (!match) throw new Error("Generated REPOS region is malformed");
-  return validateRepos(JSON.parse(match[1]));
-}
-
-export function normalizeEstimatedRows(rows) {
-  if (!Array.isArray(rows)) throw new Error("OSS Insight rows must be an array");
-  const byDate = new Map();
-  for (const row of rows) {
-    const stars = parseStars(row?.stargazers);
-    if (validDate(row?.date) && stars !== null) {
-      byDate.set(row.date, { date: row.date, stars });
+function validatePoints(points, maximum) {
+  if (!Array.isArray(points) || points.length > maximum) throw new Error("star history points are invalid");
+  return points.map((point, index) => {
+    if (!exactKeys(point, ["date", "stars"]) || !validDate(point.date)
+        || !Number.isSafeInteger(point.stars) || point.stars < 0
+        || (index > 0 && points[index - 1].date >= point.date)) {
+      throw new Error("star history points are invalid");
     }
-  }
-  return [...byDate.values()]
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .slice(-MAX_ESTIMATED_POINTS);
+    return { date: point.date, stars: point.stars };
+  });
 }
 
-export function mergeRepository(repoValue, prior, rows, date) {
-  const repo = validateRepo(repoValue);
-  assertDate(date);
-  const estimated = rows === null
-    ? normalizePoints(prior?.estimated, MAX_ESTIMATED_POINTS)
-    : normalizeEstimatedRows(rows);
-  const observed = normalizePoints([
-    ...(Array.isArray(prior?.observed) ? prior.observed : []),
-    { date, stars: repo.stars },
-  ], MAX_OBSERVED_POINTS);
-  return { slug: repo.slug, estimated, observed };
-}
-
-function keyedEntries(entries, label) {
-  const keyed = new Map();
-  for (const [slug, value] of entries) {
-    if (typeof slug !== "string" || !REPO_RE.test(slug)) throw new Error(`invalid ${label} slug: ${String(slug)}`);
-    const key = slug.toLowerCase();
-    if (keyed.has(key)) throw new Error(`duplicate ${label} slug: ${slug}`);
-    keyed.set(key, value);
-  }
-  return keyed;
-}
-
-export function buildCache(repoValues, priorCache, responses, date) {
-  assertDate(date);
-  const repos = validateRepos(repoValues);
-  if (!(responses instanceof Map)) throw new Error("responses must be a Map");
-  if (
-    priorCache !== null
-    && priorCache !== undefined
-    && (priorCache?.version !== 1 || !Array.isArray(priorCache.repositories))
-  ) {
-    throw new Error("prior cache must use version 1");
-  }
-
-  const priorEntries = (priorCache?.repositories ?? []).map(entry => [entry?.slug, entry]);
-  const priorBySlug = keyedEntries(priorEntries, "cache");
-  const responsesBySlug = keyedEntries(responses.entries(), "response");
-  return {
-    version: 1,
-    generatedAt: date,
-    repositories: repos.map(repo => {
-      const key = repo.slug.toLowerCase();
-      return mergeRepository(
-        repo,
-        priorBySlug.get(key),
-        responsesBySlug.has(key) ? responsesBySlug.get(key) : null,
-        date,
-      );
-    }),
-  };
-}
-
-function validateCache(cache) {
-  if (!exactKeys(cache, ["version", "generatedAt", "repositories"]) || cache.version !== 1) {
-    throw new Error("invalid star history cache schema");
-  }
-  if (!validDate(cache.generatedAt) || !Array.isArray(cache.repositories) || cache.repositories.length > 75) {
-    throw new Error("invalid star history cache schema");
+export function validateStarHistoryPayload(value) {
+  if (!exactKeys(value, ["version", "generatedAt", "repositories"])
+      || value.version !== 1 || !validDate(value.generatedAt)
+      || !Array.isArray(value.repositories) || value.repositories.length > 75) {
+    throw new Error("star history payload is invalid");
   }
   const seen = new Set();
-  for (const entry of cache.repositories) {
-    if (
-      !exactKeys(entry, ["slug", "estimated", "observed"])
-      || typeof entry.slug !== "string"
-      || !REPO_RE.test(entry.slug)
-      || !validOrderedPoints(entry.estimated, MAX_ESTIMATED_POINTS)
-      || !validOrderedPoints(entry.observed, MAX_OBSERVED_POINTS)
-    ) {
-      throw new Error("invalid star history cache schema");
+  const repositories = value.repositories.map(repository => {
+    if (!exactKeys(repository, ["slug", "estimated", "observed"])
+        || typeof repository.slug !== "string" || !REPO_RE.test(repository.slug)) {
+      throw new Error("star history repository is invalid");
     }
-    const key = entry.slug.toLowerCase();
-    if (seen.has(key)) throw new Error("invalid star history cache schema");
-    seen.add(key);
-  }
-  return cache;
+    const folded = repository.slug.toLowerCase();
+    if (seen.has(folded)) throw new Error("star history repository identity is duplicated");
+    seen.add(folded);
+    return {
+      slug: repository.slug,
+      estimated: validatePoints(repository.estimated, 500),
+      observed: validatePoints(repository.observed, 730),
+    };
+  });
+  return { version: 1, generatedAt: value.generatedAt, repositories };
 }
 
-async function readCache(cachePath) {
-  let source;
+async function atomicWrite(outputPath, bytes) {
+  const pending = `${outputPath}.pending-${randomUUID()}`;
+  let handle;
   try {
-    source = await readFile(cachePath, "utf8");
-  } catch (error) {
-    if (error?.code === "ENOENT") return { version: 1, repositories: [] };
-    throw error;
-  }
-  try {
-    return validateCache(JSON.parse(source));
-  } catch (error) {
-    throw new Error(`invalid star history cache: ${error.message}`);
-  }
-}
-
-function sameRepositories(left, right) {
-  return JSON.stringify(left?.repositories) === JSON.stringify(right.repositories);
-}
-
-async function atomicWriteJson(cachePath, value) {
-  const temporaryPath = `${cachePath}.${process.pid}.${randomUUID()}.tmp`;
-  try {
-    await writeFile(temporaryPath, `${JSON.stringify(value, null, 2)}\n`, { encoding: "utf8", flag: "wx" });
-    await rename(temporaryPath, cachePath);
+    handle = await open(pending, "wx");
+    await handle.writeFile(bytes);
+    await handle.sync();
+    await handle.close();
+    handle = undefined;
+    await rename(pending, outputPath);
   } finally {
-    await rm(temporaryPath, { force: true });
+    if (handle) await handle.close().catch(() => {});
+    await rm(pending, { force: true }).catch(() => {});
   }
 }
 
-export async function updateCache({
-  htmlPath,
-  cachePath,
-  fetchImpl = fetch,
-  date,
-  log = console.warn,
-}) {
-  const repos = extractRepos(await readFile(htmlPath, "utf8"));
-  const prior = await readCache(cachePath);
-  const responses = new Map();
-  const failed = [];
-  for (const repo of repos) {
-    let failure = null;
-    let response;
-    try {
-      const [owner, name] = repo.slug.split("/");
-      response = await fetchImpl(
-        `https://api.ossinsight.io/v1/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/stargazers/history`,
-      );
-    } catch {
-      failure = "request failed";
-    }
-    if (!failure && !response?.ok) {
-      failure = Number.isInteger(response?.status) && response.status >= 100 && response.status <= 599
-        ? `HTTP ${response.status}`
-        : "request failed";
-    }
-    let body;
-    if (!failure) {
-      try {
-        body = await response.json();
-      } catch {
-        failure = "invalid JSON";
-      }
-    }
-    if (!failure) {
-      const rows = body?.data?.rows;
-      try {
-        if (!Array.isArray(rows) || (rows.length > 0 && normalizeEstimatedRows(rows).length === 0)) {
-          failure = "invalid data.rows";
-        }
-      } catch {
-        failure = "invalid data.rows";
-      }
-      if (!failure) responses.set(repo.slug, rows);
-    }
-    if (failure) {
-      failed.push(repo.slug);
-      responses.set(repo.slug, null);
-      log(`${repo.slug}: ${failure}`);
-    }
+export async function writeDerivedStarHistory(payload, outputPath) {
+  if (typeof outputPath !== "string" || !outputPath || resolve(outputPath) === resolve(TRACKED_OUTPUT)) {
+    throw new Error("star history output must be a candidate path");
   }
-  const next = buildCache(repos, prior, responses, date);
-  if (sameRepositories(prior, next)) return { changed: false, failed };
-  await atomicWriteJson(cachePath, next);
-  return { changed: true, failed };
+  const value = validateStarHistoryPayload(payload);
+  const bytes = Buffer.from(`${JSON.stringify(value, null, 2)}\n`);
+  await atomicWrite(resolve(outputPath), bytes);
+  return { byteSize: bytes.length };
 }
 
-export async function updateStarHistory({ context }) {
-  validateRunContext(context);
-  const htmlPath = fileURLToPath(new URL("../index.html", import.meta.url));
-  const cachePath = fileURLToPath(new URL("../star-history.json", import.meta.url));
-  const result = await updateCache({ htmlPath, cachePath, date: context.statsDateKst });
-  const failures = result.failed.length
-    ? `; failures=${result.failed.length}: ${result.failed.join(", ")}`
-    : "; failures=0";
-  console.log(`Star history cache ${result.changed ? "updated" : "unchanged"}${failures}`);
+function parseArgs(argv) {
+  if (argv.length !== 4 || argv[0] !== "--input" || argv[2] !== "--out" || !argv[1] || !argv[3]) {
+    throw new Error("invalid arguments");
+  }
+  return { input: resolve(argv[1]), output: resolve(argv[3]) };
+}
+
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  if (args.input === args.output || dirname(args.output) === dirname(TRACKED_OUTPUT)) {
+    throw new Error("star history output must be a candidate path");
+  }
+  let payload;
+  try {
+    payload = parseJsonStrict(await readFile(args.input), "derived star history JSON");
+  } catch {
+    throw new Error("derived star history input is invalid");
+  }
+  const result = await writeDerivedStarHistory(payload, args.output);
+  console.log(JSON.stringify(result));
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
-  updateStarHistory({ context: readRunContext(process.env) }).catch(() => {
-    console.error("Star history update failed");
+  main().catch(() => {
+    console.error("Star history candidate write failed");
     process.exitCode = 1;
   });
 }
