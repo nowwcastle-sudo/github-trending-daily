@@ -109,11 +109,11 @@ legacy DB는 새 DB의 baseline provenance로 연결하고 과거를 다시 쓰�
 ```text
 prepare context
   → collect Trending sources
-  → collect GitHub facts
+  → collect and validate canonical GitHub facts, releases and prospective commits
   → enrich summaries and translations
-  → validate candidate facts
+  → validate the complete fact/event/enrichment set
   → append candidate observation DB
-  → derive page, JSON, Atom and statistics
+  → derive page, JSON, Atom and statistics from the DB snapshot joined to the exact validated enrichment set
   → run full verification
   → fetch and compare origin/main
   → install, commit and push exact candidate
@@ -123,7 +123,7 @@ prepare context
 
 어느 단계에서든 실패하면 이후 단계를 실행하지 않는다. concurrency group은 하나이며 `cancel-in-progress: false`로 직렬화한다. push 직전 `git fetch origin main` 후 실행 기준 이후 원격이 전진했으면 merge·rebase하지 않고 실패한다. 다음 실행이 새 기준선에서 다시 수집한다.
 
-운영 schedule은 현재 승인된 `cron: 7 */2 * * *`를 유지한다. UI는 이 cron 표현이나 `서울 기준 홀수 시 07분`을 노출하지 않고 production snapshot을 기준으로 계산한 다음 갱신 시각만 보여 준다. `workflow_dispatch`도 schedule과 같은 entry point와 gate를 사용한다.
+운영 schedule은 현재 승인된 `cron: 7 */2 * * *`를 유지한다. UI는 이 cron 표현이나 `서울 기준 홀수 시 07분`을 노출하지 않고 production snapshot을 기준으로 계산한 다음 갱신 시각만 보여 준다. Scheduled entry는 repository variable `GH_TRENDING_REFRESH_SCHEDULE`가 정확히 `enabled`일 때만 RunContext 생성과 외부 fetch로 진입한다. 변수 부재, `hold`, 대소문자·공백·부분·숫자 등 그 밖의 값은 외부 fetch·commit 0으로 종료한다. `workflow_dispatch`는 이 변수를 우회하거나 입력으로 변경하지 않으며 별도의 immutable bootstrap identity/policy gate를 사용하되 이후 transactional build 경로는 공유한다. 최종 acceptance의 유일한 실행 주체인 security-production Task 5는 activation 전에 이 변수를 `hold`로 설정·readback하고, 단일 manual run·browser·login·post-production security·OFA 증거가 모두 끝난 뒤에만 `enabled`로 되돌려 readback한다. 실패·중단 시에는 `hold`를 유지하고 변경 시각과 값을 비밀값 없는 외부 receipt에 기록한다.
 
 ### 5.2 수집 순서
 
@@ -132,8 +132,8 @@ prepare context
 3. daily → weekly → monthly 순서의 안정적인 합집합을 만든다.
 4. 합집합의 모든 slug에 대해 GitHub repository metadata를 수집한다.
 5. canonical `/repos/{owner}/{repo}/readme` 응답으로 실제 README path와 blob SHA를 얻고, 그 blob을 명시적으로 읽는다.
-6. releases baseline/변경과 default-branch commit gap을 수집한다.
-7. 모든 current displayed field의 freshness와 provenance를 검증한 뒤에만 LLM 단계로 넘어간다.
+6. 전체 release inventory, 공식 `/releases/latest` identity와 default-branch prospective commit gap을 수집·검증한다.
+7. 모든 current displayed field와 event inventory의 freshness·provenance·request budget을 검증한 뒤에만 유료 LLM 단계로 넘어간다. release/commit cap·continuity·deadline 실패는 Anthropic fetch 0이어야 한다.
 
 README `404`는 repository가 존재하고 canonical README가 실제로 없을 때만 `no_readme`로 분류한다. repository REST `500`, timeout, rate limit, malformed response, README가 있어야 하는데 가져오지 못한 상태는 실행 실패다. Release 목록 200 + 빈 배열은 정상적인 `no_releases`다.
 
@@ -159,7 +159,7 @@ README 번역은 Markdown을 입력과 출력으로 사용한다. heading, list,
 
 두 호출 모두 다음 gate를 통과해야 한다.
 
-- 요청별 60초 timeout과 90분 build job의 첫 shell step에서 고정하는 70분 enrichment absolute deadline
+- 요청별 60초 timeout과 build 첫 executable step의 immutable job origin에서 계산한 최대 70분 enrichment absolute deadline
 - HTTP status와 response content type 검증
 - bounded retry와 backoff
 - Anthropic `stop_reason == end_turn`
@@ -177,7 +177,7 @@ LLM 대상은 새 repository, canonical README blob SHA가 바뀐 repository, pr
 
 2026-08-28 첫 production bootstrap run `33121119785`는 현재 canonical README가 31,475 bytes인 저장소를 처리하다 non-streaming Anthropic status 없는 fetch 예외로 끝났다. 약 204초의 경과는 60초 timeout 세 번과 bounded retry delay에 부합하지만 기존 로그는 정확한 request kind를 남기지 않았다. README 전체 크기는 진단 맥락이며 실제 request admission은 post-sentinel atomic block과 packed request bytes로 판정한다. candidate 검증·commit·deploy는 시작되지 않아 production은 보존됐다. 이 실측 때문에 timeout만 늘리지 않고 token-safe repacking, unresolved input 회계, content-free 실패 감사, build-job anchored enrichment deadline을 publication 선행조건으로 추가한다. SSE streaming은 작은 bounded chunk에서도 같은 timeout이 재현될 때 별도 설계한다.
 
-같은 날 current-main plan-only 재측정은 active/pending 41, logical calls 81, worst-case per-call attempts 243, canonical README 1,430,903 bytes, first-attempt output allocation 965,180 tokens이었다. Normal policy의 250,000 output ceiling으로는 실제 usage가 allocation의 25.9% 미만이어야만 완주하므로 운영 gate는 NO-GO다. Normal은 input/output `1,000,000/250,000`, retry margin 12를 유지한다. Verified version-0 manual bootstrap은 별도의 immutable `bootstrap_v0_approved` policy로만 활성화하고, workflow 기본값은 모든 구현 plan과 최종 보안·기능 검증이 끝날 때까지 `bootstrap_v0_pending_approval`로 유지한다. Pending mode는 Anthropic fetch 0으로 실패해야 한다. Bootstrap identity는 `workflow_dispatch`, canonical manual SHA, verified recovery version 0, verified/manual/hydration SHA 일치가 모두 성립해야 하며 schedule·version 1·부분 설정·숫자형 cap override는 거부한다.
+같은 날 current-main plan-only 재측정은 active/pending 41, logical calls 81, worst-case per-call attempts 243, canonical README 1,430,903 bytes, first-attempt output allocation 965,180 tokens이었다. Normal policy의 250,000 output ceiling으로는 실제 usage가 allocation의 25.9% 미만이어야만 완주하므로 운영 gate는 NO-GO다. Normal은 input/output `1,000,000/250,000`, retry margin 12를 유지한다. Verified version-0 manual bootstrap은 별도의 immutable `bootstrap_v0_approved` policy로만 활성화하고, workflow 기본값은 모든 구현 plan과 최종 보안·기능 검증이 끝날 때까지 `bootstrap_v0_pending_approval`로 유지한다. Pending mode는 Anthropic fetch 0으로 실패해야 한다. Bootstrap identity는 두 manual case만 허용한다: production manifest 404에서는 explicit input이 verified Pages build/hydration SHA와 같고, valid recovery v0 manifest에서는 input 없이 manifest `sourceSha`가 canonical manual/hydration SHA와 같다. 둘 다 `workflow_dispatch`와 approved immutable policy가 필요하다. Schedule+recovery v0, 부분 설정, 숫자형 cap override, 기존 v0/v1 manifest와 함께 온 bootstrap input, v1에 approved mode를 강제하는 경우는 거부한다. Verified recovery v1은 bootstrap policy가 아니라 normal policy를 선택하며, schedule은 별도의 exact `enabled` hold gate까지 통과해야 한다.
 
 응답 번역 본문 중복 제거와 exact execution plan 구현 뒤 같은 41개 current-main active set을 GitHub canonical README로 다시 측정했다. Anthropic fetch는 0이었다. first-attempt input reservation은 `8,133,863`, output allocation은 `965,180`; 큰 12개 retry margin은 input `3,260,464`, output `191,540`; required total은 input `11,394,327`, output `1,156,720`이었다. 측정 receipt는 verified legacy source SHA, run-context snapshot, source-set hash와 결합되고 repository·README·prompt·body를 출력하지 않는다. 승인된 fixed bootstrap cap은 측정값을 자동 반영하지 않고 각각 올림한 input `11,500,000`, output `1,200,000`이며 runtime 변경이 불가능하다. Haiku 4.5 공식 단가의 보수식으로 최대 `$17.50`이며 실제 예상 청구액이 아니라 body-byte 기반 input reservation과 output allocation의 fail-closed ceiling이다. 81개 first attempt와 최대 12개 additional attempt가 모두 60초 timeout을 쓰면 70분 enrichment deadline을 넘으므로, provider가 극단적으로 느리면 비용 일부가 발생해도 publication은 0일 수 있다. 사용자는 모든 구현 plan 뒤 최초 workflow를 agent가 직접 한 번 실행해 production까지 검증하도록 지시했다. Workflow의 pending mode 해제와 실제 1회 실행은 최종 적대적 리뷰·staged 검증 뒤에만 하며, 실패 시 자동 재실행하지 않는다.
 
@@ -199,14 +199,19 @@ README가 없는 repository는 public metadata를 입력으로 같은 상세 sch
     },
     "source": {
       "kind": "readme",
+      "slug": "owner/repo",
+      "path": "README.md",
       "blob_sha": "...",
       "content_sha256": "...",
       "model": "...",
-      "schema_version": 2
+      "schema_version": 2,
+      "translation_applicable": true
     }
   }
 }
 ```
+
+README가 없는 summary의 source union은 정확히 `{ "kind":"metadata_only", "slug":"owner/repo", "profile_sha256":"...", "model":"...", "schema_version":2, "translation_applicable":false }`다. README source와 metadata-only source의 key를 섞거나 생략하면 invalid다.
 
 기존 cache의 `detail`이 품질·source 계약을 충족하면 canonical content 후보로 사용할 수 있지만 compact `summary` 필드는 전부 삭제한다. placeholder, deterministic fallback, compact/detail 동일, source hash 없음, 필수 상세 필드 부족 항목은 invalid로 표시한다. 활성 repository는 모두 유효한 detailed summary가 있어야 게시할 수 있다. 비활성 cache 항목은 재진입할 때 publication 전에 같은 검사를 받는다.
 
@@ -216,13 +221,19 @@ README가 없는 repository는 public metadata를 입력으로 같은 상세 sch
 {
   "markdown": "# translated README",
   "source": {
+    "kind": "readme",
+    "slug": "owner/repo",
+    "path": "README.md",
     "blob_sha": "...",
     "content_sha256": "...",
     "model": "...",
-    "schema_version": 2
+    "schema_version": 2,
+    "translation_applicable": true
   }
 }
 ```
+
+`data/translation-sources.json`의 slug source는 해당 translation file의 `source` object와 canonical byte/hash까지 같아야 한다. Metadata-only와 README-present no-prose repository에는 translation file/source entry가 없다. 전자는 `not_applicable:no_readme`, 후자는 readme summary source의 `translation_applicable:false`와 `not_applicable:no_prose` status를 가진다.
 
 browser는 raw HTML을 먼저 escape하고 heading, paragraph, list, blockquote, table, fenced/inline code, link, image의 필요한 Markdown subset만 deterministic하게 렌더링한다. `script`, `style`, `iframe`, embedded SVG, event attribute와 `javascript:`·위험한 `data:` URL은 생성할 수 없다. 상대 link는 source repository와 blob SHA에 고정해 해석하고 외부 link에는 안전한 `rel`을 붙인다. code는 항상 text로 취급한다.
 
@@ -266,79 +277,146 @@ custom Pages artifact는 site allowlist로 만든다. HTML, CSS/JS, public JSON,
 - daily·weekly·monthly source ordinal과 period gain
 - final display rank
 - membership state와 transition
-- stars, forks, watchers/subscribers
+- stars, forks, GitHub `watchers_count`, subscribers
 - GitHub의 `open_issues_count`를 의미 그대로 저장한 `open_issues_and_pull_requests`
 - contributor count
 - description, topics, license, archived, fork 여부
-- primary language와 language color
+- primary language, daily·weekly·monthly source language color, selected language color와 선택 source period
 - field tags와 form tags 및 tag-rule version
 - created, updated, pushed 시각
 - default branch와 관측된 HEAD SHA
 - canonical README path, blob SHA, content SHA256의 변경 이벤트
 - public release metadata versions
 - 향후 default-branch commit events
+- 기존 OSS Insight historical star estimate와 exact GitHub 관측의 분리된 provenance
+- canonical detailed summary·translation envelope를 연결하는 source/content hash identity
 
-language color는 Trending HTML에서 관측한 색을 우선 보존한다. source에 색이 없으면 versioned local language-color map을 사용할 수 있지만, 둘 다 없을 때는 DB에 `null`을 기록한다. UI의 neutral gray fallback을 실제 수집 색으로 저장하지 않는다.
+daily·weekly·monthly에서 관측한 language color는 각각 보존한다. selected color는 daily → weekly → monthly의 첫 non-null source와 그 period를 함께 기록한다. v1에는 local language-color map을 넣지 않는다. 세 source 모두 색이 없으면 selected color와 source period를 모두 DB `null`로 기록하고 UI만 neutral gray fallback을 렌더한다. 이 fallback은 수집 데이터가 아니다.
 
 파생 insight는 다음을 포함한다.
 
-- 2시간 stars delta
-- daily closing stars와 daily delta
+- 이전 성공 관측 이후 stars delta와 실제 관측 간격
+- KST 일별 마지막 성공 관측 stars와 daily delta (`provisional`/`finalized` 구분)
 - 7일·30일 velocity와 acceleration
 - source period rank timeline
 - final display rank timeline
-- new·reentered·maintained·exited timeline
+- new·reentered·stayed·exited timeline
 - release timeline
 - commit timeline
 - repository profile change timeline
 
 ### 6.2 저장하지 않는 값
 
-- README body
+- original README body (published Korean translation envelope은 기존 public JSON 정본에 유지)
 - release body와 asset 목록
-- commit patch, changed files, 전체 message, 이메일
+- commit patch, changed files, message/subject, 이메일
 - 사용자 UID·인증 토큰·즐겨찾기·숨김 목록·export history
 - workflow secret 또는 request header
 
-README 비교를 위해 `data/readme-state.json`에는 slug별 현재·직전 blob SHA, content SHA256, 관측시각만 rolling state로 둔다. DB의 `readme_change_events`에는 old/new hash와 change time만 추가한다.
+README 비교를 위해 `data/readme-state.json`에는 slug별 현재·직전 path, immutable blob SHA, content SHA256, 관측시각만 rolling state로 둔다. Original source README body는 tracked file, JSON, SQLite 어디에도 영구 저장하지 않는다. Published Korean translated Markdown은 기존 translation envelope에 유지한다. 변경 대조가 필요할 때 직전 blob SHA를 GitHub immutable blob endpoint에서 run temp로 다시 읽고 사용 후 폐기한다. 이 방식은 working tree와 Git history에 과거 original README body가 누적되는 것을 피하며, repository가 삭제되거나 public blob 접근이 사라지면 과거 본문 대조가 불가능하다는 한계를 명시한다. DB의 `readme_change_events`에는 old/new identity와 change time만 추가한다.
 
 ### 6.3 신규 SQLite schema
 
-`data/repository-observations.sqlite`는 다음 append-only table을 가진다.
+`data/repository-observations.sqlite`는 다음 14개 append-only table을 가진다.
 
 | table | 책임 |
 |---|---|
+| `schema_meta` | schema version·append-only policy singleton |
+| `baseline_sources` | cutover 시 frozen legacy DB의 file/schema/logical-row identity |
+| `baseline_membership_slugs` | legacy membership에서 한 번이라도 관측된 slug identity; 과거 snapshot backfill 아님 |
 | `snapshot_runs` | 성공 run의 시각, KST 날짜, parent, input/output hash |
 | `repository_profiles` | metadata가 바뀔 때만 추가되는 profile version |
-| `snapshot_items` | snapshot별 slug, 세 source rank, display rank, 정확한 counts와 membership |
+| `snapshot_items` | snapshot별 slug, 세 source rank, display rank, 정확한 counts·색·HEAD·membership·release inventory proof |
 | `release_versions` | release id/tag의 public metadata version |
+| `snapshot_release_items` | snapshot별 완주된 release inventory의 ordinal과 version reference |
+| `historical_star_estimates` | OSS Insight에서 얻은 날짜별 estimate version; exact GitHub 관측과 source 분리 |
+| `historical_star_observations` | cutover 전 공개 observed series와 legacy exact DB rows를 source별로 손실 없이 보존 |
 | `commit_events` | baseline 이후 관측한 default-branch commit |
 | `readme_change_events` | README hash와 blob 변화, 본문 없음 |
-| `repository_insights` | snapshot에서 결정적으로 계산한 delta·velocity·rank 변화 |
-| `artifact_hashes` | snapshot과 public artifact SHA256 연결 |
+| `repository_insights` | 이전 관측 reference·실제 gap·stars/rank delta; 일별 종가·velocity는 raw snapshot에서 파생 |
+| `artifact_hashes` | snapshot과 public Pages artifact SHA256 연결; DB 자신과 manifest 제외 |
 
-핵심 키는 `snapshot_id`, canonical lowercase slug, GitHub release id, commit SHA다. repository 표시 casing은 별도 field로 보존하되 identity 비교에는 lowercase slug를 쓴다.
+핵심 키는 `snapshot_seq`/`snapshot_id`, canonical lowercase slug, GitHub release id, commit SHA다. repository 표시 casing은 별도 field로 보존하되 identity 비교에는 lowercase slug를 쓴다. Original README/translation 본문과 detailed summary 본문은 observation DB에 넣지 않는다. 기존 검증된 JSON/translation envelope를 콘텐츠 정본으로 유지하고, `snapshot_items`가 summary source/content/envelope SHA256와 translation source/envelope SHA256·적용 상태를 결합한다. 따라서 public render의 정확한 입력은 **DB snapshot + 그 hash에 일치하는 validated enrichment set**이다.
+
+#### 6.3.1 schema v1 exact matrix
+
+모든 table은 `STRICT`다. 아래 표는 DDL-equivalent exact matrix다. `IPK`는 `INTEGER PRIMARY KEY`, `I!`/`I?`는 `INTEGER NOT NULL`/nullable `INTEGER`, `T!`/`T?`는 `TEXT NOT NULL`/nullable `TEXT`다. 어떤 column에도 `DEFAULT`나 `COLLATE` clause가 없으므로 text 비교는 SQLite 기본 BINARY이고, 아래에 없는 column은 허용하지 않는다. 모든 FK는 `ON UPDATE RESTRICT ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED`다.
+
+| table | exact typed columns | exact key·reference·check |
+|---|---|---|
+| `schema_meta` | `schema_version IPK`, `creation_policy T!`, `schema_fingerprint_sha256 T!` | singleton `schema_version=1`; policy exact `append_only`; SHA256 check |
+| `baseline_sources` | `source_name T!`, `repo_relative_path T!`, `byte_size I!`, `file_sha256 T!`, `schema_fingerprint_sha256 T!`, `logical_row_count I!`, `logical_rows_sha256 T!`, `last_logical_key_json T?`, `cutover_snapshot_seq I!` | PK `source_name`; unique `(source_name,cutover_snapshot_seq)`; enum `legacy_star_observations|legacy_trending_membership|legacy_public_star_history`; unique path; FK cutover run; size/count ≥0; `last_logical_key_json IS NULL` iff count=0 |
+| `baseline_membership_slugs` | `slug T!`, `source_name T!`, `cutover_snapshot_seq I!` | PK lowercase `slug`; `source_name='legacy_trending_membership'`; composite FK `(source_name,cutover_snapshot_seq)` to baseline source plus FK cutover run |
+| `snapshot_runs` | `snapshot_seq IPK`, `snapshot_id T!`, `run_kind T!`, `observed_at_utc T!`, `observed_at_kst T!`, `stats_date_kst T!`, `parent_snapshot_seq I?`, `parent_snapshot_id T?`, `input_source_sha T!`, `input_manifest_sha256 T?`, `core_payload_sha256 T!`, `parent_chain_sha256 T?`, `chain_sha256 T!`, `repository_count I!` | unique id, UTC time, chain, `(snapshot_seq,snapshot_id)`, and nullable parent pair; composite parent FK; `migration_baseline` requires seq=1 and all three parent fields null, `refresh` requires all three parent fields nonnull; manifest hash is null iff the verified production manifest response was 404 and the explicit bootstrap source was used, otherwise it is the exact validated v0/v1 manifest bytes SHA256; snapshot-id/ISO/KST-date exact format; count 1..75; seq=parent+1 validator |
+| `repository_profiles` | `profile_id IPK`, `slug T!`, `display_slug T!`, `captured_snapshot_seq I!`, `description T?`, `primary_language T?`, `topics_json T!`, `license_spdx T?`, `archived I!`, `is_fork I!`, `default_branch T!`, `created_at T!`, `field_tags_json T!`, `form_tags_json T!`, `tag_rule_version I!`, `profile_sha256 T!` | unique `(slug,profile_sha256)` and `(profile_id,slug)`; FK captured run; booleans 0/1; tag rule version >0; canonical JSON/tag checks; no AI-specific column |
+| `snapshot_items` | `snapshot_seq I!`, `slug T!`, `profile_id I!`, `display_rank I!`, `rank_daily I?`, `rank_weekly I?`, `rank_monthly I?`, `gain_daily I?`, `gain_weekly I?`, `gain_monthly I?`, `language_color_daily T?`, `language_color_weekly T?`, `language_color_monthly T?`, `selected_language_color T?`, `selected_language_color_source_period T?`, `stars I!`, `forks I!`, `watchers_count I!`, `subscribers I!`, `open_issues_and_pull_requests I!`, `contributors I!`, `updated_at T!`, `pushed_at T?`, `default_branch_head_sha T!`, `previous_default_branch_head_sha T?`, `head_transition T!`, `readme_status T!`, `readme_path T?`, `readme_blob_sha T?`, `readme_content_sha256 T?`, `membership_status T!`, `release_count I!`, `release_inventory_sha256 T!`, `latest_release_id I?`, `estimate_collection_status T!`, `estimate_source_payload_sha256 T!`, `estimate_point_count I!`, `summary_source_sha256 T!`, `summary_content_sha256 T!`, `summary_envelope_sha256 T!`, `translation_status T!`, `translation_source_sha256 T?`, `translation_envelope_sha256 T?` | PK `(snapshot_seq,slug)`; FKs run and `(profile_id,slug)`; unique `(snapshot_seq,display_rank)`; rank/gain, color, HEAD, README/enrichment, release and estimate cross-checks below; nonnegative counts; `pushed_at` null or exact UTC; exact enums below |
+| `release_versions` | `slug T!`, `release_id I!`, `metadata_sha256 T!`, `first_observed_snapshot_seq I!`, `tag_name T!`, `name T?`, `target_commitish T!`, `draft I!`, `prerelease I!`, `created_at T!`, `published_at T?`, `html_url T!` | PK `(slug,release_id,metadata_sha256)`; FK first-observed run; release id >0; booleans 0/1; no body/assets |
+| `snapshot_release_items` | `snapshot_seq I!`, `slug T!`, `release_id I!`, `metadata_sha256 T!`, `release_ordinal I!` | PK `(snapshot_seq,slug,release_id)`; unique `(snapshot_seq,slug,release_ordinal)`; FK snapshot item and exact release version; ordinal ≥0, contiguous validator |
+| `historical_star_estimates` | `source T!`, `slug T!`, `estimate_date T!`, `is_present I!`, `stars I?`, `point_sha256 T!`, `source_payload_sha256 T!`, `first_observed_snapshot_seq I!` | PK `(source,slug,estimate_date,first_observed_snapshot_seq)`; enum `legacy_star_history_cache|ossinsight_api`; FK first-observed run; boolean; present requires stars ≥0, tombstone requires stars null; date/hash checks; new API row for new/value-change/removal/reappearance |
+| `historical_star_observations` | `source T!`, `legacy_row_id I?`, `slug T!`, `observation_date T!`, `stars I!`, `stars_delta I?`, `legacy_source T?`, `source_row_sha256 T!`, `first_observed_snapshot_seq I!` | PK `(source,slug,observation_date,source_row_sha256)`; unique `(source,legacy_row_id)`; enum `legacy_public_star_history|legacy_star_observations_db`; FK first-observed run; stars ≥0; exact source-specific checks/preimages below |
+| `commit_events` | `slug T!`, `commit_sha T!`, `first_observed_snapshot_seq I!`, `first_observed_ordinal I!`, `branch_name T!`, `authored_at T!`, `committed_at T!`, `author_login T?`, `parent_shas_json T!`, `html_url T!` | PK `(slug,commit_sha)`; unique `(first_observed_snapshot_seq,slug,first_observed_ordinal)`; FK first-observed run; ordinal ≥0; no subject/message/name/email/files/patch |
+| `readme_change_events` | `snapshot_seq I!`, `slug T!`, `old_path T?`, `new_path T?`, `old_blob_sha T?`, `new_blob_sha T?`, `old_content_sha256 T?`, `new_content_sha256 T?`, `change_kind T!` | PK `(snapshot_seq,slug)`; FK snapshot item; enum `baseline|added|changed|removed`; exact tuple/null transition checks below |
+| `repository_insights` | `snapshot_seq I!`, `slug T!`, `previous_observed_snapshot_seq I?`, `observation_gap_milliseconds I?`, `stars_delta_since_previous_observation I?`, `display_rank_delta I?`, `rank_daily_delta I?`, `rank_weekly_delta I?`, `rank_monthly_delta I?`, `insight_rule_version T!`, `insight_sha256 T!` | PK `(snapshot_seq,slug)`; FK current item and nullable `(previous_observed_snapshot_seq,slug)`; exact rule version `repository-insight-v1`; first observation has all previous/gap/deltas null, later has positive exact millisecond gap and deltas below |
+| `artifact_hashes` | `snapshot_seq I!`, `artifact_path T!`, `sha256 T!`, `byte_size I!` | PK `(snapshot_seq,artifact_path)`; FK run; size ≥0; normalized exact Pages allowlist; rejects DB/readme-state/legacy receipt/manifest |
+
+Common checks are exact. Canonical slug matches lowercase ASCII `^[a-z0-9_.-]+/[a-z0-9_.-]+$`; snapshot id matches `^[0-9]{14}-[a-f0-9]{16}$`; UTC/KST/date strings are respectively exact `YYYY-MM-DDTHH:MM:SS.sssZ`, the same instant with `+09:00`, and its `YYYY-MM-DD`. SHA-1/SHA256 checks are described below. Every rank is null or ≥1, each source rank and gain are both null or both nonnull, and at least one source rank exists. Display rank is ≥1 and all source/display ranks are separately gapless. Colors are null or lowercase `#[0-9a-f]{6}`. Selected color/source are both null only when all three source colors are null; otherwise they equal the first nonnull daily→weekly→monthly color and source enum `daily|weekly|monthly`. Head transition enum is `baseline|unchanged|fast_forward|branch_changed|history_rewritten`; baseline alone has previous HEAD null, every other value requires it nonnull, and `unchanged` requires equal HEADs while transitions require the validated relationship. Membership enum is `baseline_present|new|reentered|stayed`.
+
+README/enrichment checks are bidirectional. `readme_status='present'` requires path/blob/content all nonnull and either (a) `translation_status='applicable'` with both translation hashes nonnull and source `translation_applicable=true`, or (b) a locally proven zero-translatable-prose document with `translation_status='not_applicable:no_prose'`, both hashes null and source `translation_applicable=false`. `readme_status='absent'` requires all three README identity fields null, `translation_status='not_applicable:no_readme'`, both translation hashes null and metadata source `translation_applicable=false`. No-prose validation is deterministic from the same Markdown segment extractor; LLM judgment cannot mark it. All snapshot items, including metadata-only summaries, require all three detailed-summary hashes nonnull. `baseline` README events have old tuple null and new tuple matching status; `added`, `removed`, and `changed` require respectively null→nonnull, nonnull→null, and two nonnull unequal identity tuples. Release count is ≥0 and equals the contiguous inventory length. `release_inventory_sha256` hashes the no-LF canonical JSON array ordered by `release_ordinal`, with each element exact `{release_id,metadata_sha256}`; the empty inventory hash is SHA256 of ASCII `[]`. Latest id is null or present in that exact inventory. Estimate collection status is exact `complete_nonempty|complete_empty`, point count is 0..10,000, `complete_empty` iff count=0, and payload hash always names the validated full response; failure has no successful snapshot row.
+
+Enrichment hash preimages are fixed canonical UTF-8 JSON with sorted object keys and compact separators. For README present, the source object is `{kind:"readme",slug,path,blob_sha,content_sha256,model,schema_version,translation_applicable}`; for README absent it is `{kind:"metadata_only",slug,profile_sha256,model,schema_version,translation_applicable:false}`. `summary_source_sha256` hashes that source object without newline. `summary_content_sha256` hashes the exact validated `{goal,usage,pros,cons,fit}` object without newline. `summary_envelope_sha256` hashes the exact tracked `{content:<that object>,source:<that object>}` entry canonical bytes without newline. For applicable translation, `translation_source_sha256` hashes the same README source object and `translation_envelope_sha256` hashes exact tracked `{markdown:<validated translated Markdown>,source:<that object>}` canonical bytes plus one trailing LF. `data/translation-sources.json` must carry the byte-equivalent source object. No rendered HTML enters the envelope or DB preimage. The enrichment index binds each preimage to snapshot id and active-set SHA256; recorder recomputes every hash rather than trusting supplied digest text.
+
+`profile_sha256` is SHA256 of canonical `{slug,display_slug,description,primary_language,topics,license_spdx,archived,is_fork,default_branch,created_at,field_tags,form_tags,tag_rule_version}` using parsed arrays/booleans/integers, not the database JSON text or mutable snapshot counts/times. It excludes `profile_id`, `captured_snapshot_seq` and itself. The recorder and independent validator recompute it; metadata-only summary source must name exactly this hash, so tag-rule or public metadata drift invalidates stale enrichment.
+
+Legacy exact-observation rows also have exact preimages. `legacy_public_star_history` requires `legacy_row_id`, `stars_delta`, and `legacy_source` all null; `source_row_sha256` is SHA256 of canonical `{source,slug,observation_date,stars}`. `legacy_star_observations_db` requires positive `legacy_row_id`, `legacy_source` exact `legacy_inline|github_rest`, nullable integer `stars_delta`, and hashes canonical `{source,legacy_row_id,slug,observation_date,stars,stars_delta,legacy_source}`. The recorder recomputes these hashes from the frozen source and the independent validator proves 168 public rows and every 325 DB row map one-for-one for the reviewed fixture; conflicts remain separate rows.
+
+SHA-1은 length 40, SHA256은 length 64이며 둘 다 `value = lower(value)`와 `value NOT GLOB '*[^0-9a-f]*'`을 동시에 강제한다. `topics_json`은 Unicode code-point lexical order의 중복 없는 string array, parent SHA는 API parent order의 중복 없는 lowercase array, field/form tag는 definition order의 known-id 중복 없는 array다. `field_tags_json`의 `unclassified`는 다른 field와 공존하지 않고 `form_tags_json=[]`는 허용한다. AI truth는 exact `ai-ml` membership뿐이며 `is_ai`, `ai_tag`, `ai_related` column은 schema fingerprint가 거부한다. 모든 JSON은 UTF-8, sorted object keys, compact separators, newline 없음으로 canonicalize한 뒤 hash한다.
+
+Exact indexes는 `idx_snapshot_runs_stats_date_seq(stats_date_kst,snapshot_seq)`, `idx_repository_profiles_slug_captured_seq(slug,captured_snapshot_seq)`, `idx_snapshot_items_slug_seq(slug,snapshot_seq)`, `idx_snapshot_items_seq_membership(snapshot_seq,membership_status)`, source별 nullable rank partial unique 3개, `idx_release_versions_slug_release_first(slug,release_id,first_observed_snapshot_seq)`, `idx_snapshot_release_items_slug_seq(slug,snapshot_seq)`, `idx_historical_star_estimates_slug_date_first(slug,estimate_date,first_observed_snapshot_seq)`, `idx_historical_star_observations_slug_date_source(slug,observation_date,source)`, `idx_commit_events_slug_committed_sha(slug,committed_at,commit_sha)`, `idx_readme_change_events_slug_seq(slug,snapshot_seq)`, `idx_repository_insights_slug_seq(slug,snapshot_seq)`다. Source/display ranks의 gapless `1..N`, release count/hash/latest id, enrichment hash join, artifact set equality는 transaction validator가 검증한다.
+
+모든 immutable table에는 UPDATE·DELETE 거부 trigger와 natural-key conflicting INSERT 거부가 있다. Writer는 먼저 existing row를 읽고 canonical-equivalent면 새 INSERT 없이 재사용하며 한 field라도 다르면 실패한다. `INSERT OR REPLACE`와 `INSERT OR IGNORE`는 source/test가 거부한다. 같은 snapshot id와 core/artifact/enrichment hash가 모두 같을 때만 verified no-op이고 하나라도 다르면 실패한다. 다른 snapshot id는 visible data가 같아도 append한다.
+
+`core_payload_sha256`는 자기 자신과 이후 파생되는 `repository_insights`/`artifact_hashes`만 제외한다. Preimage는 schema fingerprint, hash field를 제외한 `snapshot_runs` input identity, 그리고 그 snapshot이 새로 추가하거나 exact natural key로 참조한 `baseline_sources`, `baseline_membership_slugs`, `repository_profiles`, `snapshot_items`(모든 enrichment hash 포함), `release_versions`, `snapshot_release_items`, `historical_star_estimates`, `historical_star_observations`, `commit_events`, `readme_change_events`의 전체 logical rows를 table name→natural-key 순으로 canonical JSON 배열화한 object다. Migration baseline은 세 baseline source와 모든 imported static rows를 포함하고, refresh는 이번 snapshot이 참조한 기존 profile/release version도 그 실제 canonical row로 포함한다. `parent_chain_sha256`는 정확히 parent run의 `chain_sha256`; `chain_sha256`는 canonical `{schema_fingerprint_sha256,parent_chain_sha256,core_payload_sha256,snapshot_id,snapshot_seq}` SHA256다. Candidate writer와 독립 verifier가 같은 preimage를 각각 재계산한다.
 
 ### 6.4 release·commit 수집 경계
 
-release는 최초 baseline에서 public release metadata를 page 끝까지 수집한다. 저장 항목은 id, tag, name, target, draft/prerelease, created/published time, HTML URL, metadata hash다. 이후 동일 release id의 metadata hash가 바뀌면 새 version row를 추가한다.
+release는 최초 baseline과 이후 모든 성공 snapshot에서 public release metadata를 page 끝까지 수집한다. 저장 항목은 id, tag, name, target, draft/prerelease, created/published time, HTML URL, metadata hash다. `metadata_sha256` hashes the no-LF canonical `{slug,release_id,tag_name,name,target_commitish,draft,prerelease,created_at,published_at,html_url}` using normalized DB values; it excludes first-observed sequence and itself. body·assets는 collector allowlist에 들어오지 않는다. `Link rel=next`의 HTTPS origin/path/query와 page 단조 증가를 검증하고 release id 중복·20-page cap 초과는 truncate하지 않고 실패한다. 첫 pass의 방문 page URL·ETag·ordered id/metadata-hash·next identity를 모두 보존하고, 모든 page를 같은 URL로 conditional revalidation한다. 강한 ETag가 있으면 304를 요구하고, 없으면 두 번째 full body의 identity를 요구한다. page 1만 같은 중간-page mutation도 실패한다. REST pagination이 완전한 point-in-time snapshot을 보장하지 않는 한계는 남는다.
 
-commit은 과거 전체를 backfill하지 않는다. 첫 snapshot의 default branch HEAD를 baseline으로 기록하고 이후 관측 사이의 commit을 overlap pagination으로 수집해 SHA로 dedupe한다. parent 연결이 직전 HEAD와 이어지지 않으면 force-push, branch change, API gap을 구분해 명시적으로 기록하거나 실행을 실패시키며 commit 누락을 정상으로 처리하지 않는다.
+공식 `/releases/latest`를 별도로 읽어 nullable `latest_release_id`로 snapshot에 연결하고, non-null이면 완주한 inventory에 같은 id/version이 있어야 한다. 공식 404는 stable release 없음이며 prerelease-only inventory와 구분한다. `snapshot_items.release_count`와 ordered inventory SHA256가 `snapshot_release_items` row count/ordinal/hash와 일치해야 하므로 정상 0건과 누락을 구분한다. 동일 release id의 metadata hash가 바뀌면 새 version row를 추가하며 A→B→A는 세 snapshot inventory가 원래 두 version을 참조한다.
+
+commit은 과거 전체를 backfill하지 않는다. 첫 관측의 default branch HEAD를 `baseline`으로 기록하고 HEAD가 같으면 `unchanged`, 이후 관측 사이의 commit을 overlap pagination으로 수집해 SHA로 dedupe한다. 저장값은 SHA, first-observed ordinal, branch, authored/committed time, nullable public author login, parent SHA array, HTML URL뿐이며 message/subject·name/email·files·patch는 저장하지 않는다. parent 연결이 직전 HEAD와 이어지지 않으면 allowlisted compare/ref endpoint의 exact status mapping으로 force-push, branch change, API gap을 구분해 명시적으로 기록하거나 실행을 실패시키며 commit 누락을 정상으로 처리하지 않는다.
+
+event collection은 repository 최대 75, release repository별 20 page의 2-pass 검증, commit repository별 20 page, continuity compare/ref 최대 2 logical request를 허용한다. run 전체는 canonical fact와 OSS Insight 요청을 포함해 logical request 3,600, 실제 HTTP attempt 4,500을 넘지 않는다. retry는 timeout·429·5xx에만 최대 3 attempts, 2s/8s bounded delay이며 모든 attempt가 4,500에 포함된다. request timeout은 30초다. 숫자형 runtime override는 금지한다.
+
+Build job의 `timeout-minutes`는 120이지만 내부 절대 clock은 첫 executable step에서 한 번 고정한다. 그 step이 checkout보다 먼저 `JOB_BUDGET_ORIGIN_EPOCH_MS`와 `JOB_HARD_DEADLINE_EPOCH_MS = origin + 115분`을 기록하여 runner/job 시작 overhead용 5분을 남긴다. Checkout, setup, canonical facts와 events는 모두 절대 `EVENT_DEADLINE = origin + 15분` 안에 끝나야 한다. Enrichment deadline은 event 성공 순간 한 번 `min(event_success + 70분, hard_deadline - 30분)`으로 고정한다. 따라서 DB/검증/commit에는 내부 hard deadline 전 최소 30분이 남고 workflow timeout까지 추가 5분 teardown cushion이 있다. 모든 request/retry/sleep admission은 같은 monotonic-derived remaining budget을 사용한다. Event request admission reserve는 exact 5초이며, 30초 attempt는 최소 35초가 남을 때만 시작하고 retry sleep은 delay+35초가 남을 때만 허용한다. LLM reserve는 exact 30초이며, 60초 attempt는 최소 90초가 남을 때만 시작하고 retry sleep은 delay+90초가 남을 때만 허용한다. cap/deadline 초과는 partial inventory를 게시하지 않으며 event 단계면 LLM fetch 0으로 실패한다. Tests freeze the clock and prove late checkout, transition overhead, retry delay and clock-wall changes cannot reset a phase deadline. 2026-08-28 read-only GraphQL preflight에서 current 41 repos는 release 70 pages total, max 10 pages/1,000 releases, 1-page 초과 8 repos였다.
+
+OSS Insight는 active repository의 전체 반환 series를 매 성공 후보에서 다시 검증한다. API `source_payload_sha256`는 그 repository/run의 validated full response canonical bytes provenance이고 row identity가 아니다. Baseline `legacy_star_history_cache`의 모든 row는 immutable `data/legacy-public-star-history.json` exact file bytes의 SHA256을 `source_payload_sha256`로 사용하며, 이 값은 `baseline_sources.source_name='legacy_public_star_history'`의 `file_sha256`와 반드시 같다. 각 date version의 `point_sha256`는 canonical `{slug,date,is_present,stars}` hash다. Baseline `star-history.json.estimated`는 `legacy_star_history_cache`, `is_present=1`; 이후 API는 `ossinsight_api`다. API source별로 target snapshot 이전의 가장 큰 `first_observed_snapshot_seq`를 date별 previous version으로 본다. 새 date/value change는 present row, prior-present date가 full response에서 사라지면 `is_present=0,stars=null` tombstone, 재등장은 present row를 append한다. 값이 A→B→removed→A면 네 sequence가 남는다. Target display는 date별 latest API version이 present일 때만 사용하고, latest API tombstone이면 그 date를 생략하며, API version이 한 번도 없을 때만 legacy cache row를 사용한다. Exact GitHub observations와는 결합·대체하지 않는다. Tests replace one legacy row's payload hash with its per-repository series hash and must reject it.
+
+OSS endpoint는 exact `GET https://api.ossinsight.io/v1/repos/{owner}/{repo}/stargazers/history`이며 owner/repo path segment는 validated ASCII slug를 `encodeURIComponent`로 각각 인코딩한다. Query, redirect, 다른 origin/path는 거부한다. `Accept: application/json`, status 200, JSON-compatible content type, body ≤2 MiB를 요구한다. Top-level keys는 exact `data,type` with `type='sql_endpoint'`; `data` keys are exact `columns,result,rows`. `columns` is exactly the two ordered objects `{col:'date',data_type:'VARCHAR',nullable:true}` and `{col:'stargazers',data_type:'DECIMAL',nullable:true}`. `result` keys are exact `code,message,start_ms,end_ms,latency,row_count,row_affect,limit`; require code 200, message string, nonnegative numeric start/end with end≥start, latency string, row_count equal rows length, row_affect 0, and integer limit≥row_count. Every row keys are exact `date,stargazers`; despite upstream nullable/DECIMAL metadata, successful stored values are only a nonnegative JavaScript safe integer number or an ASCII string matching exact `^(0|[1-9][0-9]*)$` whose parsed value is also ≤`Number.MAX_SAFE_INTEGER`. Both forms normalize to the same INTEGER before point hashing/storage. Fractional, signed, whitespace-padded, leading-zero, exponent, unsafe-range and null values fail rather than round/coerce. Normalized stored rows are unique ascending date maximum 10,000. Public chart payload만 latest 500 estimates로 제한하고 DB의 유효 과거 points는 자르지 않는다. 10,001개 이상, duplicate/conflicting date, unknown key, malformed columns/result/row는 slice/coerce하지 않고 실패한다. OSS도 30초 timeout, 최대 3 attempts, 2s/8s delay, global logical/attempt/absolute event deadline을 공유한다. 어느 active repository든 terminal failure면 prior estimate를 stale carry-forward해 성공시키지 않고 전체 candidate를 LLM fetch 0으로 중단한다. 따라서 successful snapshot의 `estimate_collection_status`/payload hash/count가 정상 0건과 미수집을 구분한다. 2026-08-28 read-only current-set preflight는 41/41 status 200, exact envelope shape 41/41, total 643 rows, per-repo max 126, response max 5,807 bytes였고 paid/API secret 사용은 0이었다.
+
+Cutover exact-observation display precedence도 고정한다. `data/legacy-public-star-history.json`은 cutover 직전 `star-history.json`의 immutable canonical copy다. 그 `observed` 168-point series는 cutover 전 primary public series로 의미상 동일하게 유지한다. `data/star-observations.sqlite`의 모든 exact rows는 별도 `legacy_star_observations_db` provenance로 보존하고 충돌을 덮지 않지만, 기존 public point가 없는 날짜의 auxiliary/internal series로만 노출한다. Cutover 이후 primary exact series는 target snapshot까지 finalized된 KST daily close이며, 같은 date에서는 post-cutover finalized close가 legacy public point보다 우선한다; provisional current-day point는 별도 provisional marker라 finalized legacy point를 과거 값으로 덮지 않는다. Estimate series는 항상 별도다.
+
+`data/trending-membership.sqlite`의 hash-pinned 7 legacy snapshots와 287 member rows는 새 DB로 fabricated backfill하지 않는다. Membership/rank history deriver는 매번 `baseline_sources` identity와 frozen DB의 schema/logical hash를 재검증한 뒤 legacy `(generated_at,stats_date,ordinal,slug,slug_set_sha256)` timeline을 provenance `legacy_snapshot`으로 새 DB timeline 앞에 union한다. 첫 legacy snapshot은 `legacy_observed`로 표시하고 consecutive legacy rows에서 계산 가능한 stay/entry/exit만 legacy transition으로 표시한다. Cutover `migration_baseline`의 current rows는 모두 `baseline_present`이며 boundary를 new/reentered/exit로 추측하지 않는다. `membership-status.json`, membership-history UI input and historical Atom derivation preserve the exact 7/287 identities and ordinals; future new-DB events follow after that boundary.
+
+### 6.4.1 daily close와 velocity
+
+2시간 원시 `snapshot_items`가 정본이다. `(slug, stats_date_kst)`별 가장 큰 snapshot sequence를 그 날짜의 마지막 성공 관측으로 파생한다. 더 늦은 KST 날짜의 성공 snapshot이 하나라도 있을 때만 이전 날짜를 `finalized`로 표시하고 현재 날짜는 `provisional`이다. repository가 중간에 이탈한 날짜의 값은 자정 값이 아니라 그날 마지막 관측값임을 표시한다.
+
+`velocity_7d(D) = (close(D) - close(D-7)) / 7`, `velocity_30d(D) = (close(D) - close(D-30)) / 30`이다. `acceleration_7d(D) = velocity_7d(D) - ((close(D-7)-close(D-14))/7)`, `acceleration_30d(D) = velocity_30d(D) - ((close(D-30)-close(D-60))/30)`이다. 각 식의 모든 endpoint가 exact finalized date여야 하며 하나라도 없으면 null이고 가장 가까운 날짜로 보간하지 않는다. `stars_delta_since_previous_observation = current.stars - previous.stars`. `observation_gap_milliseconds` is the exact difference between parsed UTC instants; gap이 정확히 `7,200,000`일 때만 UI가 이를 2시간 변화로 표현한다. `display_rank_delta = previous.display_rank - current.display_rank`, so positive means improvement. Each source rank delta uses the same previous-minus-current sign only when both ranks are nonnull; otherwise that source delta is null. First observation has previous reference, gap and all deltas null. `insight_rule_version` is exact `repository-insight-v1`; `insight_sha256` hashes no-LF canonical `{snapshot_seq,slug,previous_observed_snapshot_seq,observation_gap_milliseconds,stars_delta_since_previous_observation,display_rank_delta,rank_daily_delta,rank_weekly_delta,rank_monthly_delta,insight_rule_version}` and excludes itself.
 
 ### 6.5 append-only와 전체 파일 교체 방어
 
 SQLite trigger로 UPDATE/DELETE를 거부하는 것 외에 다음 검증을 적용한다.
 
-1. last-good DB의 SHA256, size, last snapshot sequence를 읽는다.
+1. last-good DB의 외부 SHA256, size, last snapshot sequence와 table별 PK순 canonical row count/hash를 읽는다.
 2. runner temp에 복제한다.
 3. 새 snapshot을 transaction으로 추가한다.
 4. `PRAGMA foreign_key_check`, `integrity_check`를 실행한다.
-5. 부모 DB의 page/row prefix가 후보에 그대로 존재하는지 비교한다.
-6. `parent_snapshot_id`와 snapshot hash chain을 검증한다.
+5. parent DB의 모든 table natural key와 canonical row hash를 PK순으로 열거하고, candidate에서 같은 key를 직접 재조회해 count/hash와 각 row가 완전히 같은지 비교한다. static baseline table도 제외하지 않는다. SQLite byte/page prefix나 table별로 다른 sequence selector는 검증 근거로 사용하지 않는다.
+6. 새 snapshot sequence가 parent+1인지, 같은 parent의 child가 하나뿐인지, `parent_snapshot_id`와 snapshot hash chain이 일치하는지 검증한다.
 7. 후보 row count와 expected repository count를 대조한다.
 8. 검증된 후보만 tracked DB로 승격한다.
 
-과거 DB 복사본으로 파일 전체를 교체해 최신 history가 사라지는 경우도 parent hash와 sequence 불일치로 차단한다.
+과거 DB 복사본으로 파일 전체를 교체해 최신 history가 사라지는 경우도 parent file identity, logical-row prefix와 sequence 불일치로 차단한다. DB를 닫고 sidecar 부재를 확인한 뒤 계산한 최종 DB SHA256/size는 DB 내부가 아니라 외부 workflow receipt에만 기록한다. `artifact_hashes`에는 public Pages allowlist만 들어가며 `data/repository-observations.sqlite`와 deploy manifest 자체는 절대 넣지 않는다.
 
 ## 7. UI와 interaction 설계
 
@@ -502,7 +580,7 @@ Firestore sync 실패와 auth session 실패는 분리한다. 계정 sync가 잠
 
 ## 9. 보안 설계
 
-Codex Security는 구현과 production 배포가 끝난 정확한 immutable commit SHA를 대상으로 한다.
+Codex Security는 Plans 1~4 구현과 전체 로컬 기능 검증이 끝난 정확한 immutable candidate commit SHA를 대상으로 한다. 차단 finding을 모두 수정·재검증한 뒤에만 workflow를 활성화하고 단 한 번의 production 실행·Pages 검증으로 넘어간다.
 
 ### 9.1 보호 자산과 신뢰 경계
 
@@ -603,7 +681,7 @@ Critical·High는 완료를 차단한다. auth isolation, secret, publication in
 - release가 없는 repository와 release가 많은 repository
 - fallback/placeholder였던 summary
 - 동일 repository가 여러 Trending period에 있는 경우
-- new, reentered, maintained, exited 상태
+- new, reentered, stayed, exited 상태
 
 ## 12. 최종 acceptance matrix
 
@@ -635,7 +713,7 @@ push 직전마다 `git fetch`와 remote diff를 다시 확인한다. bot 갱신�
 
 ## 14. 문서와 종료 조건
 
-최종 구현과 production 증거가 확보된 뒤 README 한국어·영어를 실제 동작과 동기화한다. OFA에는 `D:\OFA\OFA\00_원천` 아래 실제 결과와 바뀐 결정만 기록하며 더청춘 vault와 OFA 파생 `wiki`에는 쓰지 않는다.
+최종 구현과 로컬 acceptance가 확보되면 README 한국어·영어를 실제 구현 계약과 동기화하고 그 docs-inclusive SHA를 다시 보안 scan한 뒤 최초 production workflow를 실행한다. production 뒤 새 tracked edit·commit·push는 만들지 않는다. 검증된 bot child를 가져오는 `git fetch`와 `git merge --ff-only` local synchronization만 허용하며, OFA에는 `D:\OFA\OFA\00_원천` 아래 실제 run 결과와 바뀐 결정을 기록한다. 더청춘 vault와 OFA 파생 `wiki`에는 쓰지 않는다.
 
 다음을 모두 만족해야 완료다.
 
@@ -659,7 +737,7 @@ push 직전마다 `git fetch`와 remote diff를 다시 확인한다. bot 갱신�
 - silent fallback보다 last-good을 지키는 fail-closed publication
 - legacy DB 변경보다 신규 exact 2-hour observation DB
 - summary/detail 이중 계약보다 canonical detailed summary 하나
-- README body archive보다 rolling hash와 change event
+- README body archive보다 current/previous immutable identity와 body 없는 change event
 - 암묵적 Firebase default보다 명시적 local persistence
 - legacy Pages trigger보다 동일 workflow의 explicit deploy와 production readback
 - summary와 translation의 freshness·재사용은 독립적으로 유지하되, 둘 다 필요한 경우 16,000-token 계산 상한 안의 첫 translation chunk만 detailed summary와 결합

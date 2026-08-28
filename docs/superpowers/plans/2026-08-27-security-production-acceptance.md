@@ -4,7 +4,7 @@
 
 **Goal:** 완성된 immutable SHA를 Codex Security로 검토·수정·재검증하고, 모든 workflow·data·UI·auth 기능이 production에서 같은 snapshot으로 정상 작동함을 증명한다.
 
-**Architecture:** security scan artifact는 system temp에 두고 source-backed threat model → deep scan → validation/attack path → finding fix/verify → diff/full rescan 순으로 진행한다. 그 뒤 자동 test, real workflow, Pages manifest, browser matrix, paired README와 OFA 기록을 하나의 최종 evidence set으로 묶는다.
+**Architecture:** security scan artifact는 system temp에 두고 source-backed threat model → deep scan → validation/attack path → finding fix/verify → diff/full rescan 순으로 진행한다. 자동 test와 paired README까지 final candidate SHA에 포함해 다시 scan한 뒤에만 workflow를 활성화하고 한 번 dispatch한다. 그 exact Pages manifest, browser matrix와 OFA 기록을 최종 evidence set으로 묶으며 production 뒤 새 tracked edit·commit·push는 만들지 않는다. 검증된 bot child의 fetch와 ff-only local synchronization만 허용한다.
 
 **Tech Stack:** Codex Security skills, Git/GitHub CLI, Node/Python/Firebase emulators, GitHub Actions/Pages, actual browser automation and manual Google consent.
 
@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Plans 1-4가 각각 production에서 통과한 뒤 시작한다.
+- Plans 1-4가 각각 local/full-test/mutation/browser/emulator/push 검증을 통과하고 workflow가 `bootstrap_v0_pending_approval`일 때 시작한다. 이번 plan의 Task 5가 최초 production 갱신이다.
 - scan target은 시작 시 clean `HEAD == origin/main`인 immutable 40-hex SHA다.
 - threat hypothesis와 validated finding을 구분한다.
 - Critical/High와 auth isolation·secret·publication integrity·history loss 관련 Medium은 완료를 차단한다.
@@ -30,7 +30,7 @@
 - Modify only when validated findings require it: finding-owned source/test files.
 - Modify `README.md`, `README.en.md`: final actual workflow/data/UI/auth behavior.
 - Modify `tests/daily-refresh-workflow.test.mjs`: paired README exact claims.
-- Update `docs/screenshots/*.png` only if Plan 3 did not already commit exact production captures.
+- Do not update tracked screenshots after dispatch. Capture final production screenshots/evidence in system temp so the deployed SHA remains the final Git SHA.
 - Create/update OFA actual-result notes only after production evidence is complete.
 
 ### Task 1: Freeze the security target and build a source-backed threat model
@@ -49,12 +49,12 @@ Run in PowerShell:
 ```powershell
 git fetch origin main
 git status --short --branch
-$productionReceipt = node scripts/verify-refresh-chain.mjs --current-production --base-url https://nowwcastle-sudo.github.io/github-trending-daily/ | ConvertFrom-Json
-if (-not $productionReceipt.effectiveRunId -or -not $productionReceipt.sourceSha -or -not $productionReceipt.snapshotId -or -not $productionReceipt.manifestSha256) { throw 'Current production has no unique verified receipt' }
-$securitySha = $productionReceipt.sourceSha
+$securitySha = git rev-parse HEAD
 $remoteSha = git rev-parse origin/main
-if ((git rev-parse HEAD) -ne $securitySha -or $securitySha -ne $remoteSha) { throw 'Security target is not clean deployed origin/main' }
+if ($securitySha -ne $remoteSha) { throw 'Security target is not clean origin/main' }
 if ($securitySha -notmatch '^[0-9a-f]{40}$') { throw 'Invalid security SHA' }
+if ((Select-String -LiteralPath '.github/workflows/daily-refresh.yml' -SimpleMatch 'bootstrap_v0_pending_approval').Count -ne 1) { throw 'Security target is not pending-safe' }
+if ((Select-String -LiteralPath '.github/workflows/daily-refresh.yml' -SimpleMatch 'bootstrap_v0_approved').Count -ne 0) { throw 'Security target was activated before scan' }
 $scanId = "${securitySha}_$((Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ'))"
 $scanRoot = Join-Path $env:TEMP "codex-security-scans\gh-trending-page\$scanId"
 New-Item -ItemType Directory -Path $scanRoot -Force | Out-Null
@@ -144,13 +144,13 @@ Use `codex-security:verify-fix` against the original finding and `codex-security
 
 Stage only finding-owned source/test files and run the staged secret scanner. Set `$findingId` to the canonical finding id produced by Task 2, require `$findingId -match '^[A-Za-z0-9._-]+$'`, then commit with `git commit -m "security: block $findingId attack path"`. Repeat Tasks 3.2-3.6 for each additional validated finding.
 
-- [ ] **Step 7: Publish and deploy all isolated fixes**
+- [ ] **Step 7: Push all isolated fixes while dispatch remains disabled**
 
-After all finding commits, run `npm test`, `npm run test:rules` when available, and the Common Commit Gate. Fetch origin, display the exact local log/diff, require fast-forward eligibility, push, then dispatch with `scripts/dispatch-refresh.mjs --wait`. Verify its immutable receipt with `scripts/verify-refresh-chain.mjs`, prove any bot commit changes only the approved generated paths, and fast-forward locally. Require clean `HEAD == origin/main` at the verified production source SHA. A failed dispatch/deploy/probe returns to the owning finding; it is not a scannable completion state.
+After all finding commits, run `npm test`, `npm run test:rules` when available, and the Common Commit Gate. Fetch origin, display the exact local log/diff, require fast-forward eligibility, push and require clean `HEAD == origin/main`. Reassert exact pending/approved string counts. Do not dispatch, deploy or spend LLM budget here.
 
-- [ ] **Step 8: Full rescan the new deployed immutable SHA**
+- [ ] **Step 8: Full rescan the new pushed immutable SHA**
 
-At that new clean production SHA, repeat Task 1 target freeze and Task 2 repository-wide scan. Do not reuse a threat model whose Repository/Version footer does not match unless the scan workflow explicitly creates a per-scan copy and updates evidence. Repeat Tasks 3.1-3.8 until no blocking finding remains.
+At that new clean `HEAD == origin/main` SHA, repeat Task 1 target freeze and Task 2 repository-wide scan. Do not reuse a threat model whose Repository/Version footer does not match unless the scan workflow explicitly creates a per-scan copy and updates evidence. Repeat Tasks 3.1-3.8 until no blocking finding remains, always with pending workflow state.
 
 ### Task 4: Execute the complete automated acceptance matrix
 
@@ -176,15 +176,21 @@ Run the context, LLM, Markdown XSS, latest/Atom integration, observation DB, art
 
 - [ ] **Step 3: Inspect the current real-data distribution**
 
-Run read-only scripts that report counts/hashes only: current repository count; summary valid/invalid; translation applicable/N/A/mismatch; snapshot count; snapshot item count; release versions; commit events; README change events; null language colors; placeholder/fallback; compact fields; SQLite integrity/foreign keys/sidecars. Inspect representative records without private/auth data.
+Run the exact offline two-snapshot candidate rehearsal and read-only scripts that report counts/hashes only: current repository count; summary valid/invalid; translation applicable/N/A/mismatch; snapshot/item count; release versions/inventories/latest ids; OSS estimates versus exact observations; commit events; README change events; null source/selected colors; watcher/subscriber separation; canonical tags; placeholder/fallback; compact fields; SQLite integrity/foreign keys/sidecars. Inspect representative records without private/auth data. Production DB is not expected to exist yet.
 
 - [ ] **Step 4: Cross-check public artifacts**
 
-Assert page/latest/membership/feed/star-history use one snapshot id, repository counts and order match where their contracts require it, Atom summaries are nonempty, CSV/JSON export fields exclude private state, and README bodies do not occur in the analytical DB.
+Assert the locally built candidate page/latest/membership/feed/star-history use one snapshot id, repository counts and order match where required, DB `artifact_hashes` exactly equals the Pages allowlist/hash set, Atom summaries are nonempty, CSV/JSON/share URL exclude private state, and original README bodies do not occur in the analytical DB or tracked cache.
 
 - [ ] **Step 5: Re-run deliberate mutations**
 
 Execute the documented mutations for LLM swallowed failure, Atom field drift, midnight clock, stale metadata, DB truncation, Pages SHA mismatch, Markdown XSS, unrestricted mobile swipe, BFCache dispose, persistence order and Rules UID equality. Restore each mutation immediately and require clean source afterward.
+
+- [ ] **Step 6: Synchronize paired README before activation and rescan that commit**
+
+Write RED assertions for paired Korean/English claims, then update both READMEs from locally proven implementation behavior: transactional 2-hour refresh; facts/events before paid LLM; canonical detailed tooltip; hover rail/mobile edge swipe; explicit local auth persistence; exact observations plus separately labeled OSS Insight estimates; release/full-inventory and prospective commit boundaries; original README body temp-only; translated Markdown retained in Pages JSON; CSV/JSON/share privacy; explicit Pages deploy/probe. Commit subject/message/name/email/files/patch are all absent—do not repeat the superseded “subject first line” claim. Keep section order and feature counts 1:1.
+
+Run `npm test`, stage only both READMEs and their exact tests, secret-scan and commit `docs: document verified refresh and persistence behavior`. Fetch/push without dispatch, require clean `HEAD == origin/main` and pending workflow state, then repeat Tasks 1–2 for this exact docs-inclusive candidate SHA. Only a full scan with zero blocking findings may proceed to Task 5.
 
 ### Task 5: Run real workflow, Pages and browser production acceptance
 
@@ -193,97 +199,95 @@ Execute the documented mutations for LLM swallowed failure, Atom field drift, mi
 
 **Interfaces:**
 - Produces one Actions run id, bot commit SHA, Pages deployment and production manifest evidence.
+- This is the one and only paid/manual dispatch authorized for this completion. It creates one production `migration_baseline`; Plan 2's offline two-snapshot rehearsal proves later `refresh` behavior.
 
 - [ ] **Step 1: Fetch immediately before dispatch**
+
+Set `$holdAuditOriginUtc` from the local clock before the first Actions query. Enumerate all `daily-refresh.yml` schedule runs currently queued/in-progress and retain their run ids as `$preHoldIncompleteRunIds`; do not infer safety from an empty list without also checking the API exit and pagination. Then set/read back hold:
 
 ```powershell
 git fetch origin main
 if ((git rev-parse HEAD) -ne (git rev-parse origin/main)) { throw 'Local main is not current' }
 if (git status --porcelain) { throw 'Worktree is not clean' }
+gh variable set GH_TRENDING_REFRESH_SCHEDULE --body hold --repo nowwcastle-sudo/github-trending-daily
+$scheduleHold = (gh variable get GH_TRENDING_REFRESH_SCHEDULE --repo nowwcastle-sudo/github-trending-daily).Trim()
+if ($scheduleHold -ne 'hold') { throw 'Scheduled refresh hold readback failed' }
 ```
 
-- [ ] **Step 2: Dispatch and capture the exact run id**
+Immediately after hold readback, enumerate again and form the immutable audit set as the union of `$preHoldIncompleteRunIds` plus every schedule run created at or after `$holdAuditOriginUtc`. Drain that set before freezing any source/manifest/plan-only identity. A run created after hold must be exact guard-skipped with zero RunContext, GitHub/OSS/Anthropic fetch, commit, artifact, publisher and deploy work. A pre-hold incomplete run that had already passed the enabled gate may not be treated as skipped: wait for it, require a successful independently verified normal-maintenance receipt and resulting source/production consistency, then restart Step 1 from a fresh audit origin while hold remains set. Any failed, ambiguous, unverified or still-running pre-hold run stops acceptance. This closes the query/set race; no activation or paid dispatch may overlap a pre-hold run.
+
+Only after the drained/restarted audit set is clean, fetch origin again, require a clean fast-forward-equal checkout, reprobe the production manifest, and rerun the final `--plan-only` bootstrap receipt with Anthropic fetch 0. Remeasure source/snapshot and the fixed `11,500,000` input / `1,200,000` output caps, and stop on any drift/excess. Restate immediately that `$17.50` is a conservative maximum allocation, not an expected bill, and that an extremely slow provider can consume part of it while publication remains 0. Apply the separately tested minimal `bootstrap_v0_approved` activation commit, full tests, staged scanner, source-backed threat-model delta and `codex-security:security-diff-scan`; independently validate any candidate finding. Fetch/push only with zero blocking finding and bind the dispatch to that exact remote SHA. Do not dispatch from the activation step and do not raise caps. Preserve a system-temp audit receipt containing only repository, variable name, `hold`, UTC timestamp and activation SHA; never include secret values. Missing, differently cased, padded, partial or numeric schedule values must already have failed the workflow tests with RunContext/external fetch/commit all at zero. Any failure from this point leaves the variable at `hold` until a new explicit recovery decision.
+
+- [ ] **Step 2: Resolve the bootstrap parent, dispatch once and capture the exact run id**
 
 ```powershell
-$dispatch = node scripts/dispatch-refresh.mjs --wait | ConvertFrom-Json
+$manifestUrl = 'https://nowwcastle-sudo.github.io/github-trending-daily/deployment-manifest.json'
+$manifestStatus = (curl.exe -sS -o NUL -w '%{http_code}' "${manifestUrl}?probe=$([guid]::NewGuid())").Trim()
+if ($LASTEXITCODE -ne 0) { throw 'Production manifest status request failed' }
+if ($manifestStatus -eq '404') {
+  $pagesBuild = gh api 'repos/nowwcastle-sudo/github-trending-daily/pages/builds/latest' | ConvertFrom-Json
+  $bootstrapSourceSha = $pagesBuild.commit
+  if ($pagesBuild.status -ne 'built' -or $bootstrapSourceSha -notmatch '^[0-9a-f]{40}$') { throw 'Invalid last successful Pages build' }
+  git merge-base --is-ancestor $bootstrapSourceSha origin/main
+  if ($LASTEXITCODE -ne 0) { throw 'Pages bootstrap is not an origin/main ancestor' }
+  node scripts/probe-production.mjs --base-url https://nowwcastle-sudo.github.io/github-trending-daily/ --bootstrap-preflight-sha $bootstrapSourceSha
+  if ($LASTEXITCODE -ne 0) { throw 'Bootstrap production does not match Pages build' }
+  $dispatch = node scripts/dispatch-refresh.mjs --wait --bootstrap-source-sha $bootstrapSourceSha | ConvertFrom-Json
+} elseif ($manifestStatus -eq '200') {
+  $dispatch = node scripts/dispatch-refresh.mjs --wait | ConvertFrom-Json
+} else {
+  throw "Unexpected production manifest status $manifestStatus"
+}
 if (-not $dispatch.runId -or -not $dispatch.sourceSha -or -not $dispatch.snapshotId -or -not $dispatch.manifestSha256) { throw 'Acceptance dispatch returned an incomplete receipt' }
 ```
 
+This command is executed exactly once. Any nonzero workflow/deploy/probe result preserves its receipt and stops; it is not followed by a second manual dispatch without a new explicit user decision.
+
 - [ ] **Step 3: Bind bot commit, Pages and manifest**
 
-Fetch origin after success and run `scripts/verify-refresh-chain.mjs` with all four immutable receipt fields. Require the expected/effective run evidence, manifest file hashes, successful deploy/probe, and `origin/main == verified.sourceSha`. Prove `HEAD..origin/main` is a fast-forward containing only the approved generated-path regex, then `git merge --ff-only origin/main` and require a clean equal readback. If a queued schedule already advanced production, retain both exact receipts and the verifier's fast-forward proof; do not silently bind acceptance to the newest branch value.
+Fetch origin after success and run `scripts/verify-refresh-chain.mjs` with all four immutable receipt fields. Require `effectiveRunId == expectedRunId == $dispatch.runId`, manifest file hashes, successful deploy/probe, and `origin/main == verified.sourceSha`. Prove `HEAD..origin/main` is a fast-forward containing only the approved generated-path regex, then `git merge --ff-only origin/main` and require a clean equal readback. Re-enumerate the Step 1 audit set plus every scheduled workflow run created since its final fresh `$holdAuditOriginUtc`. Before release, wait for any queued/in-progress schedule run to complete or stop acceptance. Every post-hold completed run must prove its exact schedule guard skipped the build before RunContext, GitHub/OSS/Anthropic fetch, commit, artifact, publisher and deploy work; those counts are all zero. Zero held runs is allowed but not required. Any post-hold schedule run that passes the guard or begins external/publication work, or any unaccounted pre-hold incomplete run, is a breach and stops acceptance without rebinding to a newer branch value.
+
+SQLite is intentionally absent from Pages. Materialize `data/repository-observations.sqlite` from the exact `verified.sourceSha` Git blob (equivalent to `git show $verified.sourceSha:data/repository-observations.sqlite`) into a new system-temp file, hash-bind it to that source commit, inspect read-only, and delete it in `finally`. Require exact schema fingerprint, 14 tables, one and only one `migration_baseline`, zero fabricated production `refresh`, current item count/order equal page/latest/feed contracts, all first memberships `baseline_present`, frozen legacy membership/public-star/exact-star identities and public timeline equivalence, release inventory counts/hashes/latest ids valid, OSS complete receipts/versions, summary/translation provenance joins exact, `artifact_hashes` equal Pages files, integrity/foreign-key checks clean and no sidecars.
 
 - [ ] **Step 4: Execute actual browser matrix**
 
 At 390, 720, 1200, 1440px verify filters, period/language/field/form/sort, favorites, hidden/undo/restore, membership badges/recent exits, CSV/JSON/share URL, detailed tooltip, README Korean/source tabs, desktop hover/modal sidebar, mobile edge swipe/close/second tap, light/dark/reduced motion, keyboard focus/Escape and no console/network error.
 
+Capture production screenshots and the matrix receipt only in system temp. Do not create a post-dispatch screenshot commit.
+
 - [ ] **Step 5: Reconfirm login persistence**
 
-Use the already-authorized user interaction from Plan 4 if the same production SHA/session is available; otherwise ask the user only for account selection/consent and repeat refresh/new-tab/browser-restart/BFCache/cross-tab logout/guest separation. Record no identity data.
+Ask the user only for account selection/consent, then repeat refresh/new-tab/browser-restart/BFCache/cross-tab logout/guest separation at the exact production SHA. Record no identity data. Local/emulator Plan 4 evidence is not a substitute for this production matrix.
 
 - [ ] **Step 6: Verify external failure paths without damaging production**
 
 Use fixtures/local candidate runs for missing Anthropic key, truncated output, GitHub 500/429, README 404, Pages manifest mismatch, App Check initialization failure, Firebase persistence/storage denial, clipboard denial, recovery deploy that keeps the overall workflow red, and a version-0 next-run retry. Do not intentionally corrupt main or production.
 
-### Task 6: Synchronize documentation and OFA actual results
+- [ ] **Step 7: Read-only full security scan of the exact deployed bot commit**
+
+Freeze `verified.sourceSha` and rerun Tasks 1–2 against that exact source, including generated HTML/JSON/translation inputs now present. Do not mutate source during this scan. Zero blocking findings is required for Task 5 success. If a blocking finding appears, preserve it and stop without an automatic fix push or second dispatch; remediation requires a new explicit user decision because the authorized one-run boundary has been consumed.
+
+### Task 6: Record actual results outside Git, read back and stop
 
 **Files:**
-- Modify: `README.md`
-- Modify: `README.en.md`
-- Modify: `tests/daily-refresh-workflow.test.mjs`
-- Create/update only under: `D:\OFA\OFA\00_원천\10_클로드작업기록\` and, because decisions changed, `D:\OFA\OFA\00_원천\47_의사결정기록\`.
+- Create/update only under: `D:\OFA\OFA\00_원천\10_클로드작업기록\` and `D:\OFA\OFA\00_원천\47_의사결정기록\`.
+- After the verified bot child fast-forward, no new tracked edit, commit or push is allowed. Read-only inspection plus `git fetch` and the one verified `git merge --ff-only` synchronization in Task 5 are the only permitted Git mutations after dispatch.
 
 **Interfaces:**
-- Paired README section order and feature bullet count remain 1:1.
+- Produces clean `HEAD == origin/main == verified.sourceSha`, OFA actual-result records and final evidence report.
 
-- [ ] **Step 1: Write README RED assertions**
+- [ ] **Step 1: Update OFA from actual results only**
 
-Update paired README tests to require transactional 2-hour refresh, canonical detailed tooltip, hover rail/mobile edge swipe, explicit local login persistence, exact observation data, explicit Pages deploy/probe, and removal of `홀수 시각의 07분`/click-only sidebar/compact mobile claims.
+Read the three governing OFA sources named by the handoff, then create/update exactly `D:\OFA\OFA\00_원천\10_클로드작업기록\2026-08-27_GitHub_Trending_워크플로·데이터·UI·로그인지속_구현결과.md` and `D:\OFA\OFA\00_원천\47_의사결정기록\2026-08-27_GitHub_Trending_원자적게시·관측원장·로그인지속_결정.md` using local templates/tag rules. Record the deployed SHA, expected/effective workflow and Pages run ids, measured tests, pre-dispatch security result scope, production checks, changed decisions, rejected alternatives and reversal conditions. Do not write to 더청춘 or OFA `wiki`.
 
-- [ ] **Step 2: Run RED and update Korean README**
+- [ ] **Step 2: Restore the natural schedule only after every acceptance record is complete**
 
-Run `node --test tests/daily-refresh-workflow.test.mjs`; then edit only claims proven by production evidence. The paired assertions must require these exact semantics in both languages: original README bodies exist only in per-run temporary processing and are not stored in the analytical DB, archive, or repository cache; published Korean translated Markdown is retained in the Pages artifact; commit history starts prospectively from the observed default-branch head and stores only future commits; commit subject is the first line capped at 500 characters and excludes full message/email/patch/files; releases exclude body/assets. Also state public data sources, auth persistence limitations, and export privacy boundary.
+Require the manual run, Pages probe, browser matrix, production login persistence, external failure fixtures, exact deployed-source security scan, and OFA readback all green. Re-enumerate the final Step 1 audit set plus every schedule run created since its fresh hold audit origin and apply Task 5 Step 3's exact audit: no unaccounted pre-hold run exists, none may remain queued/in-progress, and every post-hold completed run must be guard-skipped with zero RunContext, external fetch, commit, artifact, publisher and deploy work. Then set `GH_TRENDING_REFRESH_SCHEDULE` to exact lowercase `enabled`, immediately read it back, and append only repository, variable name, `enabled`, UTC timestamp and verified source SHA to the system-temp/OFA audit receipt. Do not use a workflow input or Git commit to release the schedule. Failure before this step leaves `hold`; failure to read back exact `enabled` is not completion. A later natural run after this release is normal maintenance and is not part of the one paid/manual acceptance dispatch.
 
-- [ ] **Step 3: Mirror English README 1:1**
+- [ ] **Step 3: Re-read final state and produce the scoped report**
 
-Keep headings, feature/roadmap bullet counts, workflow/data semantics, links, CSV columns and limitations aligned. Do not add a claim in only one language.
+Run `git fetch origin main` and require clean `HEAD == origin/main == verified.sourceSha` at the acceptance readback point; this fetch may update Git metadata but may not introduce a new tracked edit, commit or push. Confirm the retained Task 5 receipt names that exact SHA/snapshot and the schedule receipt is exact `enabled`. Re-run only non-mutating production probes and status reads. Report baseline/final SHA, commits, test counts and exit codes, Rules execution, Actions/Pages ids, production snapshot/hash result, browser matrix, login persistence, Codex Security findings/coverage/open questions, collected data tables/counts, README/OFA paths and any nonblocking uncertainty. If a legitimate natural schedule finishes after the release before this readback, retain its separate receipt and verify it independently rather than claiming the manual baseline SHA is still current.
 
-- [ ] **Step 4: Test and commit README pair**
+- [ ] **Step 4: Stop**
 
-Run `npm test`, stage both READMEs/test, secret-scan, and commit `docs: document verified refresh and persistence behavior`.
-
-### Task 7: Final push, readback and stop
-
-**Files:**
-- All verified commits from security/docs only.
-
-**Interfaces:**
-- Produces clean `HEAD == origin/main` and final evidence report.
-
-- [ ] **Step 1: Final staged secret scan and remote race check**
-
-Run `git diff --cached --check`, the repository's staged secret pattern, `git fetch origin main`, and verify origin is an ancestor of HEAD. If origin advanced, inspect the exact remote diff and do not force/rebase/history-rewrite.
-
-- [ ] **Step 2: Push documentation and dispatch the explicit final deployment**
-
-Push main, fetch, and require the pushed docs SHA equals `origin/main`. Because Pages `build_type` is `workflow`, invoke `scripts/dispatch-refresh.mjs --wait`; do not wait for an implicit branch build. Require its complete immutable receipt.
-
-- [ ] **Step 3: Verify the final receipt and fast-forward the bot commit**
-
-Run `scripts/verify-refresh-chain.mjs` with the final dispatch receipt, require its exact Pages deploy/probe, inspect `HEAD..origin/main`, allow only the approved generated paths, and fast-forward with `git merge --ff-only origin/main`. Repeat the compact production smoke test for page/latest/feed/auth controls and require clean `HEAD == origin/main == verified.sourceSha`.
-
-- [ ] **Step 4: Run the final repository-wide security scan at the deployed SHA**
-
-Freeze the new exact deployed SHA and perform Task 1 plus the full Task 2 Codex Security scan again, including README/workflow/generated runtime changes since the prior scan. A diff-only scan is not sufficient. If a blocking finding appears, return to Task 3 and repeat publish/deploy/final scan. Once this final scan passes, make no further source, worktree, index, commit, or remote repository writes; later `git fetch` readback may update only remote-tracking refs.
-
-- [ ] **Step 5: Update OFA from actual results only**
-
-Read the three governing OFA sources named by the handoff, then create/update exactly `D:\OFA\OFA\00_원천\10_클로드작업기록\2026-08-27_GitHub_Trending_워크플로·데이터·UI·로그인지속_구현결과.md` and `D:\OFA\OFA\00_원천\47_의사결정기록\2026-08-27_GitHub_Trending_원자적게시·관측원장·로그인지속_결정.md` using the local templates/tag rules. Record the final deployed SHA, expected/effective workflow and Pages run ids, measured tests, final security result scope, production checks, changed decisions, rejected alternatives and reversal conditions. Do not write to 더청춘 or OFA `wiki`.
-
-- [ ] **Step 6: Re-read final state and produce the scoped report**
-
-Run read-only `git fetch origin main`, require clean `HEAD == origin/main`, and confirm the production receipt still names that SHA/snapshot. Report baseline/final SHA, commits, test counts and exit codes, Rules execution, Actions/Pages ids, production snapshot/hash result, browser matrix, login persistence, Codex Security findings/coverage/open questions, collected data tables/counts, README/OFA paths and any nonblocking uncertainty.
-
-- [ ] **Step 7: Stop**
-
-Do not start L1-L5, M1 follow-ons, or choose an expansion candidate. Ask whether the user wants to end the session; only after explicit consent perform the configured session retrospective.
+Do not dispatch a second workflow, create a post-production documentation/screenshot commit, start L1-L5 or M1 follow-ons, or choose an expansion candidate. Ask whether the user wants to end the session; only after explicit consent perform the configured session retrospective.

@@ -6,13 +6,13 @@
 
 **Architecture:** 기존 `getAuth(app)`과 `FavoriteSync`를 유지하면서 `browserLocalPersistence` 완료를 auth observer와 popup보다 앞에 둔다. 작은 `auth-lifecycle.js`가 pagehide/pageshow의 persisted 상태를 관리하고 Firebase module은 UI와 controller를 idempotent하게 복원한다.
 
-**Tech Stack:** Firebase browser modules 12.17.1, vanilla JavaScript, Firestore emulator, Node test runner, actual Google OAuth production validation.
+**Tech Stack:** Firebase browser modules 12.17.1, vanilla JavaScript, Firestore emulator, Node test runner, local lifecycle/browser validation plus final-plan Google OAuth production validation.
 
 **Spec:** `docs/superpowers/specs/2026-08-27-workflow-data-ui-auth-hardening-design.md`
 
 ## Global Constraints
 
-- Plan 3 production UI 검증이 끝난 뒤 시작한다.
+- Plan 3 local browser·mutation·push 검증이 끝나고 workflow가 여전히 `bootstrap_v0_pending_approval`일 때 시작한다. 실제 Google OAuth production 검증은 최종 단일 dispatch 뒤 acceptance plan에서 수행한다.
 - 로그인 persistence는 `browserLocalPersistence`; session/memory로 조용히 낮추지 않는다.
 - persistence 완료 전 auth observer·Google popup·login enable을 허용하지 않는다.
 - persistence 실패는 guest controller를 유지하고 명확한 한국어 상태를 표시한다.
@@ -204,21 +204,22 @@ git commit -m "test: prove restored login keeps favorite isolation"
 
 If `favorite-sync.js` is unchanged, omit it from `git add`.
 
-### Task 4: Production login persistence acceptance
+### Task 4: Local persistence gate and pending-safe push
 
 **Files:**
 - No source change unless a reproduced defect requires returning to Tasks 1-3.
 
 **Interfaces:**
-- Consumes the production SHA deployed after Tasks 1-3.
+- Consumes the exact locally tested auth commit after Tasks 1-3.
+- Produces clean `HEAD == origin/main` while `bootstrap_v0_pending_approval` remains exact.
 
 - [ ] **Step 1: Full pre-push gates**
 
 Run `npm test`, `npm run test:rules`, and `git diff --check`. Require a clean worktree after the verified auth commits, confirm that the per-commit staged secret scans passed, fetch origin, display `git log --oneline origin/main..HEAD` and `git diff --stat origin/main..HEAD`, and verify fast-forward push eligibility. Stop unless any remote advance is a verified refresh-bot-only fast-forward.
 
-- [ ] **Step 2: Push and verify Pages**
+- [ ] **Step 2: Push without dispatching Pages**
 
-Push the verified auth commits, explicitly dispatch the refresh/deploy workflow, and probe its exact bot SHA/snapshot:
+Push the verified auth commits and prove the workflow is still unable to make a paid request or production change:
 
 ```powershell
 git fetch origin main
@@ -228,33 +229,24 @@ git diff --stat origin/main..HEAD
 git merge-base --is-ancestor origin/main HEAD
 if ($LASTEXITCODE -ne 0) { throw 'origin/main is not an ancestor of the auth commits' }
 git push origin main
-$dispatch = node scripts/dispatch-refresh.mjs --wait | ConvertFrom-Json
-if (-not $dispatch.runId -or -not $dispatch.sourceSha -or -not $dispatch.snapshotId -or -not $dispatch.manifestSha256) { throw 'Auth dispatch returned an incomplete receipt' }
 git fetch origin main
-$verified = node scripts/verify-refresh-chain.mjs --expected-run-id $dispatch.runId --expected-source-sha $dispatch.sourceSha --expected-snapshot-id $dispatch.snapshotId --expected-manifest-sha256 $dispatch.manifestSha256 --base-url https://nowwcastle-sudo.github.io/github-trending-daily/ | ConvertFrom-Json
-if (-not $verified.effectiveRunId) { throw 'Auth production chain verification failed' }
-if ((git rev-parse origin/main) -ne $verified.sourceSha) { throw 'Auth origin/main does not match verified production' }
-git merge-base --is-ancestor HEAD origin/main
-if ($LASTEXITCODE -ne 0) { throw 'Auth refresh bot commit is not a fast-forward' }
-$allowedBotPath = '^(index\.html|data/(latest\.json|membership-status\.json|repo-summaries\.json|translation-sources\.json|repository-observations\.sqlite|readme-state\.json)|translations/[^/]+\.json|feed\.xml|changes\.xml|star-history\.json)$'
-$unexpectedBotPaths = @(git diff --name-only HEAD..origin/main | Where-Object { $_ -notmatch $allowedBotPath })
-if ($unexpectedBotPaths.Count) { throw "Unexpected auth bot paths: $($unexpectedBotPaths -join ', ')" }
-git merge --ff-only origin/main
-if ((git rev-parse HEAD) -ne (git rev-parse origin/main) -or (git status --porcelain)) { throw 'Auth fast-forward readback failed' }
+if ((git rev-parse HEAD) -ne (git rev-parse origin/main)) { throw 'Auth push readback failed' }
+if ((Select-String -LiteralPath '.github/workflows/daily-refresh.yml' -SimpleMatch 'bootstrap_v0_pending_approval').Count -ne 1) { throw 'Workflow is not still pending approval' }
+if ((Select-String -LiteralPath '.github/workflows/daily-refresh.yml' -SimpleMatch 'bootstrap_v0_approved').Count -ne 0) { throw 'Workflow was activated during auth work' }
 ```
 
-- [ ] **Step 3: Prepare the production browser**
+- [ ] **Step 3: Prepare the local browser and emulator**
 
-Open `https://nowwcastle-sudo.github.io/github-trending-daily/` in the user's normal browser profile. Confirm no console error and that login status is ready. The user performs the Google account selection/consent once.
+Serve the exact candidate locally and run the Firestore Auth/Rules harness. Confirm no console error, persistence setup precedes observer/popup enable, storage-denial shows guest fallback, and lifecycle hooks are ready. Do not add localhost to Firebase production authorized domains merely for this test and do not request account consent here.
 
-- [ ] **Step 4: Execute the persistence matrix**
+- [ ] **Step 4: Execute the local lifecycle/isolation matrix**
 
-Verify in order: login and favorite; refresh; duplicate tab; close the tab and reopen; close the browser and reopen; navigate away/back (BFCache); sign out in one of two tabs; verify the other tab returns to guest; reload after signout; verify guest/account favorites separation.
+With the existing auth/emulator test harness and actual browser lifecycle events, verify restored-user bootstrap, refresh, duplicate tab, BFCache away/back, cross-tab signout signal, guest/account favorites separation, storage denial and sync failure. The real Google account/browser restart cases are reserved for final production acceptance because only the authorized production origin can prove them.
 
 - [ ] **Step 5: Record exact outcomes without credentials**
 
-Record browser/version, production SHA, each pass/fail, visible sync label and console error count. Do not record email, UID, token, storage value, or profile details.
+Record browser/version, candidate SHA, each pass/fail, visible sync label and console error count. Do not record email, UID, token, storage value, or profile details.
 
 - [ ] **Step 6: Stop before security scan on any failure**
 
-If a real path fails, reproduce it with a RED test and return to the owning task. Do not claim persistence from SDK defaults or component tests alone.
+If a local path fails, reproduce it with a RED test and return to the owning task. Do not claim real Google login persistence from SDK defaults, emulator behavior or component tests; that claim remains pending until the final production matrix.
