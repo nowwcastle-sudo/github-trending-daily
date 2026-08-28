@@ -51,15 +51,18 @@ test("valid injected context does not construct a wall-clock Date", () => {
   assert.ok(explicitArgumentCalls > 0);
 });
 
-test("CLI generators receive the one run context instead of reading a fresh clock", async () => {
-  const sources = await Promise.all([
+test("the collector owns the run clock and derivative CLIs require explicit artifacts", async () => {
+  const [collector, latest, starHistory] = await Promise.all([
     "scripts/update-trending.mjs",
     "scripts/update-latest-feed.mjs",
     "scripts/update-star-history.mjs",
   ].map(path => readFile(path, "utf8")));
 
-  for (const source of sources) {
-    assert.match(source, /readRunContext\(process\.env\)/);
+  assert.match(collector, /readRunContext\(process\.env\)/);
+  for (const source of [latest, starHistory]) {
+    assert.doesNotMatch(source, /readRunContext\(process\.env\)/);
     assert.doesNotMatch(source, /seoulDate\(new Date\(\)\)/);
   }
+  assert.match(latest, /--snapshot-export/);
+  assert.match(starHistory, /--input/);
 });
