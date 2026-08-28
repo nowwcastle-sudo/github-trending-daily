@@ -60,8 +60,8 @@ def _target_run(connection: sqlite3.Connection, snapshot_seq: int) -> dict[str, 
 def _utc_milliseconds(value: str) -> int:
     try:
         parsed = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
-    except (TypeError, ValueError) as error:
-        raise ValueError("snapshot time is invalid") from error
+    except (TypeError, ValueError):
+        raise ValueError("snapshot time is invalid") from None
     if parsed.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z" != value:
         raise ValueError("snapshot time is not an exact millisecond")
     return (((parsed.toordinal() * 24 + parsed.hour) * 60 + parsed.minute) * 60 + parsed.second) * 1000 + parsed.microsecond // 1000
@@ -463,8 +463,8 @@ def _artifact_bytes(root: Path, relative: str) -> bytes:
         before = target.stat()
         payload = target.read_bytes()
         after = target.stat()
-    except OSError as error:
-        raise ValueError("artifact file is unavailable") from error
+    except OSError:
+        raise ValueError("artifact file is unavailable") from None
     identity_before = (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns)
     identity_after = (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns)
     if identity_before != identity_after or len(payload) != after.st_size:
@@ -514,8 +514,8 @@ def finalize_snapshot_derivatives(
     try:
         database_real = database.resolve(strict=True)
         root_real = candidate_root.resolve(strict=True)
-    except OSError as error:
-        raise ValueError("candidate database is unavailable") from error
+    except OSError:
+        raise ValueError("candidate database is unavailable") from None
     if database.is_symlink() or database_real != root_real / "data" / "repository-observations.sqlite":
         raise ValueError("candidate database layout is invalid")
     insight_keys = {
@@ -526,57 +526,60 @@ def finalize_snapshot_derivatives(
     artifact_keys = {"artifact_path", "sha256", "byte_size"}
     _exact_rows(insights, insight_keys, "insight")
     _exact_rows(artifact_hashes, artifact_keys, "artifact")
-    with closing(sqlite3.connect(database)) as connection:
-        connection.execute("PRAGMA foreign_keys=ON")
-        connection.execute("PRAGMA journal_mode=DELETE")
-        connection.execute("PRAGMA synchronous=FULL")
-        validate_schema(connection)
-        target = connection.execute("SELECT snapshot_seq,core_payload_sha256,chain_sha256 FROM snapshot_runs WHERE snapshot_id=?", (snapshot_id,)).fetchone()
-        if target is None:
-            raise ValueError("target snapshot identity is absent")
-        snapshot_seq, core_before, chain_before = target
-        expected_insights = derive_repository_insights(connection, snapshot_seq)
-        if insights != expected_insights:
-            raise ValueError("insight derivation does not match the target")
-        expected_paths = _expected_artifact_paths(connection, snapshot_seq)
-        if [row["artifact_path"] for row in artifact_hashes] != expected_paths:
-            raise ValueError("artifact derivation does not match the target")
-        connection.execute("BEGIN IMMEDIATE")
-        try:
-            remeasured = hash_pages_artifacts(candidate_root, expected_paths)
-            if artifact_hashes != remeasured:
-                raise ValueError("artifact bytes changed before finalization")
-            existing_insights = [dict(zip(_columns(connection, "repository_insights"), row)) for row in connection.execute(
-                "SELECT * FROM repository_insights WHERE snapshot_seq=? ORDER BY slug", (snapshot_seq,)
-            )]
-            existing_artifacts = [dict(zip(_columns(connection, "artifact_hashes"), row)) for row in connection.execute(
-                "SELECT * FROM artifact_hashes WHERE snapshot_seq=? ORDER BY artifact_path", (snapshot_seq,)
-            )]
-            artifact_db_rows = [{"snapshot_seq": snapshot_seq, **row} for row in artifact_hashes]
-            if existing_insights or existing_artifacts:
-                if existing_insights != insights or existing_artifacts != artifact_db_rows:
-                    raise ValueError("existing derivative rows conflict")
-                changed = False
-            else:
-                for row in insights:
-                    connection.execute(
-                        "INSERT INTO repository_insights VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-                        tuple(row[column] for column in _columns(connection, "repository_insights")),
-                    )
-                for row in artifact_db_rows:
-                    connection.execute(
-                        "INSERT INTO artifact_hashes VALUES (?,?,?,?)",
-                        tuple(row[column] for column in _columns(connection, "artifact_hashes")),
-                    )
-                changed = True
+    try:
+        with closing(sqlite3.connect(database)) as connection:
+            connection.execute("PRAGMA foreign_keys=ON")
+            connection.execute("PRAGMA journal_mode=DELETE")
+            connection.execute("PRAGMA synchronous=FULL")
             validate_schema(connection)
-            if connection.execute("PRAGMA foreign_key_check").fetchone() is not None or connection.execute("PRAGMA integrity_check").fetchone() != ("ok",):
-                raise ValueError("finalized database integrity check failed")
-            after = connection.execute("SELECT core_payload_sha256,chain_sha256 FROM snapshot_runs WHERE snapshot_seq=?", (snapshot_seq,)).fetchone()
-            if after != (core_before, chain_before):
-                raise ValueError("snapshot core identity changed during finalization")
-            connection.commit()
-        except Exception:
-            connection.rollback()
-            raise
+            target = connection.execute("SELECT snapshot_seq,core_payload_sha256,chain_sha256 FROM snapshot_runs WHERE snapshot_id=?", (snapshot_id,)).fetchone()
+            if target is None:
+                raise ValueError("target snapshot identity is absent")
+            snapshot_seq, core_before, chain_before = target
+            expected_insights = derive_repository_insights(connection, snapshot_seq)
+            if insights != expected_insights:
+                raise ValueError("insight derivation does not match the target")
+            expected_paths = _expected_artifact_paths(connection, snapshot_seq)
+            if [row["artifact_path"] for row in artifact_hashes] != expected_paths:
+                raise ValueError("artifact derivation does not match the target")
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                remeasured = hash_pages_artifacts(candidate_root, expected_paths)
+                if artifact_hashes != remeasured:
+                    raise ValueError("artifact bytes changed before finalization")
+                existing_insights = [dict(zip(_columns(connection, "repository_insights"), row)) for row in connection.execute(
+                    "SELECT * FROM repository_insights WHERE snapshot_seq=? ORDER BY slug", (snapshot_seq,)
+                )]
+                existing_artifacts = [dict(zip(_columns(connection, "artifact_hashes"), row)) for row in connection.execute(
+                    "SELECT * FROM artifact_hashes WHERE snapshot_seq=? ORDER BY artifact_path", (snapshot_seq,)
+                )]
+                artifact_db_rows = [{"snapshot_seq": snapshot_seq, **row} for row in artifact_hashes]
+                if existing_insights or existing_artifacts:
+                    if existing_insights != insights or existing_artifacts != artifact_db_rows:
+                        raise ValueError("existing derivative rows conflict")
+                    changed = False
+                else:
+                    for row in insights:
+                        connection.execute(
+                            "INSERT INTO repository_insights VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                            tuple(row[column] for column in _columns(connection, "repository_insights")),
+                        )
+                    for row in artifact_db_rows:
+                        connection.execute(
+                            "INSERT INTO artifact_hashes VALUES (?,?,?,?)",
+                            tuple(row[column] for column in _columns(connection, "artifact_hashes")),
+                        )
+                    changed = True
+                validate_schema(connection)
+                if connection.execute("PRAGMA foreign_key_check").fetchone() is not None or connection.execute("PRAGMA integrity_check").fetchone() != ("ok",):
+                    raise ValueError("finalized database integrity check failed")
+                after = connection.execute("SELECT core_payload_sha256,chain_sha256 FROM snapshot_runs WHERE snapshot_seq=?", (snapshot_seq,)).fetchone()
+                if after != (core_before, chain_before):
+                    raise ValueError("snapshot core identity changed during finalization")
+                connection.commit()
+            except Exception:
+                connection.rollback()
+                raise
+    except sqlite3.Error:
+        raise ValueError("candidate database finalization failed") from None
     return FinalizeResult(changed, snapshot_seq, len(insights), len(artifact_hashes))

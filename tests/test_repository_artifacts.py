@@ -2,12 +2,15 @@ import hashlib
 import json
 import sqlite3
 import tempfile
+import traceback
 import unittest
 from contextlib import closing
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 from scripts.derive_repository_artifacts import (
+    _utc_milliseconds,
     derive_daily_star_series,
     derive_membership_timeline,
     derive_repository_insights,
@@ -141,6 +144,62 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
             hash_pages_artifacts,
             finalize_snapshot_derivatives,
         )))
+
+    def assert_sanitized_failure(self, action, expected_message, forbidden):
+        try:
+            action()
+        except Exception as error:
+            rendered = "".join(traceback.format_exception(error))
+            self.assertEqual(str(error), expected_message)
+            for value in forbidden:
+                self.assertNotIn(value, str(error))
+                self.assertNotIn(value, rendered)
+        else:
+            self.fail("expected a sanitized failure")
+
+    def test_failures_do_not_expose_hostile_values_or_absolute_paths(self):
+        sentinel = "HOSTILE_DB_VALUE_97d3"
+        absolute_root = str(self.root.resolve())
+        forbidden = (sentinel, absolute_root)
+
+        self.assert_sanitized_failure(
+            lambda: _utc_milliseconds(f"{sentinel}:{absolute_root}"),
+            "snapshot time is invalid",
+            forbidden,
+        )
+
+        missing_root = self.root / sentinel / "missing-candidate"
+        missing_root.mkdir(parents=True)
+        self.assert_sanitized_failure(
+            lambda: hash_pages_artifacts(missing_root, PAGES_BASE_ARTIFACT_PATHS),
+            "artifact file is unavailable",
+            forbidden,
+        )
+
+        readable_root = self.root / sentinel / "read-candidate"
+        for relative in PAGES_BASE_ARTIFACT_PATHS:
+            target = readable_root.joinpath(*relative.split("/"))
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(relative.encode())
+        with patch.object(Path, "read_bytes", side_effect=OSError(f"{sentinel}:{absolute_root}")):
+            self.assert_sanitized_failure(
+                lambda: hash_pages_artifacts(readable_root, PAGES_BASE_ARTIFACT_PATHS),
+                "artifact file is unavailable",
+                forbidden,
+            )
+
+        database = self.root / sentinel / "candidate" / "data" / "repository-observations.sqlite"
+        database.parent.mkdir(parents=True)
+        database.write_bytes(b"candidate")
+        with patch(
+            "scripts.derive_repository_artifacts.sqlite3.connect",
+            side_effect=sqlite3.DatabaseError(f"{sentinel}:{absolute_root}"),
+        ):
+            self.assert_sanitized_failure(
+                lambda: finalize_snapshot_derivatives(database, "snapshot", [], []),
+                "candidate database finalization failed",
+                forbidden,
+            )
 
     def test_insights_preserve_fractional_milliseconds_gap_rank_signs_and_nulls(self):
         database = self.root / "ledger.sqlite"

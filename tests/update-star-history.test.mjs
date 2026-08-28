@@ -59,3 +59,16 @@ test("writer never reads HTML, prior cache, or network and refuses the tracked o
   assert.deepEqual(JSON.parse(await readFile(join(root, "star-history.json"), "utf8")), value);
   await assert.rejects(writeDerivedStarHistory(value, resolve("star-history.json")), /candidate/i);
 });
+
+test("writer failures do not expose hostile values or absolute candidate paths", async t => {
+  const root = await mkdtemp(join(tmpdir(), "derived-star-history-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const sentinel = "HOSTILE_OUTPUT_VALUE_97d3";
+  const outputPath = join(root, sentinel, "missing", "star-history.json");
+  const error = await writeDerivedStarHistory(payload(1), outputPath).catch(value => value);
+  assert.equal(error.message, "star history candidate write failed");
+  for (const value of [sentinel, root]) {
+    assert.equal(error.message.includes(value), false);
+    assert.equal(error.stack.includes(value), false);
+  }
+});

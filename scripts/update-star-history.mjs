@@ -80,7 +80,11 @@ export async function writeDerivedStarHistory(payload, outputPath) {
   }
   const value = validateStarHistoryPayload(payload);
   const bytes = Buffer.from(`${JSON.stringify(value, null, 2)}\n`);
-  await atomicWrite(resolve(outputPath), bytes);
+  try {
+    await atomicWrite(resolve(outputPath), bytes);
+  } catch {
+    throw new Error("star history candidate write failed");
+  }
   return { byteSize: bytes.length };
 }
 
