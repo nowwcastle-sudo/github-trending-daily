@@ -97,7 +97,7 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 /* ── Discovery sidebar ─────────────── */
 .filter-sidebar{
   position:fixed;z-index:320;display:flex;flex-direction:column;gap:20px;top:0;bottom:0;left:0;
-  width:var(--sidebar-width);max-height:none;padding:calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;
+  width:var(--sidebar-width);height:100vh;height:100dvh;max-height:none;padding:calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;
   background:var(--tip-bg);backdrop-filter:blur(28px) saturate(180%);
   border:1px solid var(--tip-border);border-radius:0 18px 18px 0;box-shadow:var(--shadow-pop);
   color:var(--text);transform:translate3d(-105%,0,0);opacity:.85;
@@ -105,6 +105,13 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 }
 .filter-sidebar.open{transform:translate3d(0,0,0);opacity:1}
 .filter-sidebar.open~.nav-toggle{transform:translate3d(calc(var(--sidebar-width) - 1px),0,0);opacity:1;box-shadow:none}
+@media(hover:hover) and (pointer:fine){
+  .nav-toggle{
+    top:0;bottom:0;width:44px;height:100vh;height:100dvh;border-radius:0;
+    background:var(--accent-soft);color:var(--accent-selected);box-shadow:none;
+  }
+  .nav-toggle:hover,.nav-toggle:focus-visible{background:var(--accent);color:#fff}
+}
 .sidebar-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .sidebar-head h2{font-size:19px;letter-spacing:-.015em}
 .sidebar-refresh{display:grid;gap:3px;padding:12px 14px;border:1px solid var(--hairline);border-radius:12px;background:var(--bg-elev);color:var(--text-2);font-size:12px;font-weight:650;line-height:1.45;font-variant-numeric:tabular-nums}
@@ -391,7 +398,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 
 </head>
 <body>
-<div class="filter-sidebar" id="filterSidebar" role="dialog" aria-modal="true" aria-label="탐색 사이드바" aria-hidden="true" inert>
+<div class="filter-sidebar" id="filterSidebar" role="dialog" aria-label="탐색 사이드바" aria-hidden="true" inert>
   <div class="sidebar-head">
     <h2>대시보드 메뉴</h2>
     <button class="sidebar-close" id="sidebarClose" type="button" aria-label="탐색 사이드바 닫기">
@@ -605,7 +612,8 @@ LANGUAGES.forEach(l=>langSel.insertAdjacentHTML("beforeend",`<option>${l}</optio
 /* discovery sidebar + shareable URL state */
 const sidebar=document.getElementById("filterSidebar"),sidebarScrim=document.getElementById("sidebarScrim"),pageMain=document.querySelector(".wrap");
 const navToggle=document.getElementById("navToggle"),sidebarClose=document.getElementById("sidebarClose");
-let sidebarTrigger=null;
+const sidebarHoverMedia=matchMedia("(hover:hover) and (pointer:fine)");
+let sidebarTrigger=null,sidebarHoverTimer=null,railPointerInside=false,sidebarPointerInside=false;
 function focusableIn(container){
   return [...container.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>!el.hidden&&!el.closest("[hidden]"));
 }
@@ -616,26 +624,71 @@ function trapFocus(container,event){
   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
 }
+function clearSidebarHoverTimer(){
+  clearTimeout(sidebarHoverTimer);sidebarHoverTimer=null;
+}
 function closeSidebar(restoreFocus=true){
-  if(!sidebar.classList.contains("open"))return;
+  const mode=sidebar.dataset.openMode;if(!mode)return;
+  clearSidebarHoverTimer();
   sidebar.classList.remove("open");sidebar.setAttribute("aria-hidden","true");sidebar.inert=true;
-  sidebarScrim.classList.remove("on");navToggle.setAttribute("aria-expanded","false");navToggle.setAttribute("aria-label","탐색 사이드바 열기");pageMain.inert=false;
-  if(!document.getElementById("readmePanel").classList.contains("open"))document.body.classList.remove("overlay-open");
-  if(restoreFocus&&sidebarTrigger instanceof HTMLElement)sidebarTrigger.focus();
+  sidebar.removeAttribute("aria-modal");navToggle.setAttribute("aria-expanded","false");navToggle.setAttribute("aria-label","탐색 사이드바 열기");
+  delete sidebar.dataset.openMode;
+  if(mode==="modal"){
+    sidebarScrim.classList.remove("on");pageMain.inert=false;
+    if(!document.getElementById("readmePanel").classList.contains("open"))document.body.classList.remove("overlay-open");
+    if(restoreFocus&&sidebarTrigger instanceof HTMLElement)sidebarTrigger.focus();
+  }
 }
-function openSidebar(){
+function openSidebar(mode,trigger){
+  const currentMode=sidebar.dataset.openMode;
+  if(currentMode==="modal"||currentMode===mode)return;
+  if(mode==="hover"&&document.getElementById("tipLayer").matches(":focus-within"))return;
   const readme=document.getElementById("readmePanel");
+  if(mode==="hover"&&readme.classList.contains("open"))return;
   if(readme.classList.contains("open"))closeReadme(false);
-  hideTip();sidebarTrigger=document.activeElement;
+  hideTip();clearSidebarHoverTimer();
   sidebar.inert=false;sidebar.classList.add("open");sidebar.setAttribute("aria-hidden","false");
-  sidebarScrim.classList.add("on");navToggle.setAttribute("aria-expanded","true");navToggle.setAttribute("aria-label","탐색 사이드바 닫기");pageMain.inert=true;
-  document.body.classList.add("overlay-open");sidebarClose.focus();
+  sidebar.dataset.openMode=mode;navToggle.setAttribute("aria-expanded","true");
+  if(mode==="modal"){
+    sidebarTrigger=trigger instanceof HTMLElement?trigger:document.activeElement;
+    sidebar.setAttribute("aria-modal","true");sidebarScrim.classList.add("on");navToggle.setAttribute("aria-label","탐색 사이드바 닫기");pageMain.inert=true;
+    document.body.classList.add("overlay-open");sidebarClose.focus();
+  }else{
+    sidebar.removeAttribute("aria-modal");navToggle.setAttribute("aria-label","탐색 사이드바 고정");
+  }
 }
-navToggle.addEventListener("click",()=>sidebar.classList.contains("open")?closeSidebar():openSidebar());
-sidebarClose.addEventListener("click",()=>closeSidebar());
+function scheduleSidebarHoverClose(){
+  clearSidebarHoverTimer();
+  if(sidebar.dataset.openMode!=="hover")return;
+  sidebarHoverTimer=setTimeout(()=>{
+    sidebarHoverTimer=null;
+    if(!railPointerInside&&!sidebarPointerInside&&!sidebar.matches(":focus-within")&&!navToggle.matches(":focus"))closeSidebar(false);
+  },180);
+}
+function activateSidebar(event){
+  if(sidebar.dataset.openMode==="modal")closeSidebar();
+  else openSidebar(UiMotion.sidebarMode({hoverCapable:sidebarHoverMedia.matches,trigger:event.detail===0?"keyboard":"click"}),event.currentTarget);
+}
+navToggle.addEventListener("pointerenter",()=>{
+  if(!sidebarHoverMedia.matches)return;
+  railPointerInside=true;clearSidebarHoverTimer();
+  openSidebar(UiMotion.sidebarMode({hoverCapable:sidebarHoverMedia.matches,trigger:"pointer"}),navToggle);
+});
+navToggle.addEventListener("pointerleave",()=>{railPointerInside=false;scheduleSidebarHoverClose()});
+sidebar.addEventListener("pointerenter",()=>{if(sidebarHoverMedia.matches){sidebarPointerInside=true;clearSidebarHoverTimer()}});
+sidebar.addEventListener("pointerleave",()=>{sidebarPointerInside=false;scheduleSidebarHoverClose()});
+sidebar.addEventListener("focusin",clearSidebarHoverTimer);
+navToggle.addEventListener("focusin",clearSidebarHoverTimer);
+sidebar.addEventListener("focusout",()=>setTimeout(scheduleSidebarHoverClose,0));
+navToggle.addEventListener("focusout",()=>setTimeout(scheduleSidebarHoverClose,0));
+navToggle.addEventListener("click",activateSidebar);
+sidebarClose.addEventListener("click",()=>{
+  if(sidebar.dataset.openMode==="hover")navToggle.focus();
+  closeSidebar();
+});
 sidebarScrim.addEventListener("click",()=>closeSidebar());
-sidebar.addEventListener("keydown",event=>trapFocus(sidebar,event));
-document.addEventListener("keydown",event=>{if(event.key==="Escape"&&sidebar.classList.contains("open"))closeSidebar()});
+sidebar.addEventListener("keydown",event=>{if(sidebar.dataset.openMode==="modal")trapFocus(sidebar,event)});
+document.addEventListener("keydown",event=>{if(event.key==="Escape"&&sidebar.dataset.openMode==="modal")closeSidebar()});
 
 function syncUrl(mode="push"){
   const next=RepoFilters.serializeState({...filterState,period,favOnly});
@@ -874,8 +927,8 @@ document.getElementById("restoreAllHiddenBtn").addEventListener("click",()=>{
 });
 document.getElementById("undoHideBtn").addEventListener("click",()=>{if(lastHiddenSlug)restoreRepository(lastHiddenSlug,{focusCard:true})});
 document.getElementById("dismissHiddenNoticeBtn").addEventListener("click",dismissHiddenNotice);
-document.getElementById("emptyManageHiddenBtn").addEventListener("click",()=>{
-  openSidebar();requestAnimationFrame(()=>document.querySelector(".hidden-restore")?.focus());
+document.getElementById("emptyManageHiddenBtn").addEventListener("click",event=>{
+  openSidebar("modal",event.currentTarget);requestAnimationFrame(()=>document.querySelector(".hidden-restore")?.focus());
 });
 window.addEventListener("popstate",()=>applyFilterState(RepoFilters.parseState(location.search,LANGUAGES)));
 
@@ -1047,6 +1100,10 @@ function currentListShift(){
   return new DOMMatrixReadOnly(value).m41;
 }
 function showTip(card){
+  if(sidebar.dataset.openMode==="hover"){
+    if(sidebar.matches(":focus-within")||navToggle.matches(":focus"))return;
+    closeSidebar(false);
+  }
   clearTimeout(hideTimer);
   const idx=+card.dataset.idx,r=REPOS[idx];
   if(!r||!r.summary)return;

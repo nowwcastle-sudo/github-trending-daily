@@ -5,6 +5,171 @@ import vm from "node:vm";
 
 const page = await readFile(new URL("../index.html", import.meta.url), "utf8");
 
+function sidebarHarness({ hoverCapable = true } = {}) {
+  const start = page.indexOf('const sidebar=document.getElementById("filterSidebar")');
+  const end = page.indexOf("\nfunction syncUrl", start);
+  const showTipStart = page.indexOf("function showTip(card){");
+  const showTipEnd = page.indexOf("\nfunction positionTip", showTipStart);
+  assert.ok(start >= 0 && end > start, "sidebar runtime fixture must be isolated");
+  assert.ok(showTipStart >= 0 && showTipEnd > showTipStart, "tooltip runtime fixture must be isolated");
+
+  class ClassList {
+    constructor() { this.values = new Set(); }
+    add(...values) { values.forEach(value => this.values.add(value)); }
+    remove(...values) { values.forEach(value => this.values.delete(value)); }
+    contains(value) { return this.values.has(value); }
+  }
+
+  const trace = [];
+  let documentRef;
+  class FakeHTMLElement {
+    constructor(id) {
+      this.id = id;
+      this.attributes = new Map();
+      this.classList = new ClassList();
+      this.dataset = {};
+      this._inert = false;
+      this.listeners = new Map();
+      this.focusCount = 0;
+      this.focusWithin = false;
+    }
+    set inert(value) { this._inert = value; trace.push(`${this.id}:inert:${value}`); }
+    get inert() { return this._inert; }
+    addEventListener(type, listener) {
+      if (!this.listeners.has(type)) this.listeners.set(type, []);
+      this.listeners.get(type).push(listener);
+    }
+    dispatch(type, properties = {}) {
+      const event = {
+        type,
+        target: this,
+        currentTarget: this,
+        defaultPrevented: false,
+        preventDefault() { this.defaultPrevented = true; },
+        ...properties,
+      };
+      for (const listener of this.listeners.get(type) || []) listener(event);
+      return event;
+    }
+    setAttribute(name, value) { this.attributes.set(name, String(value)); trace.push(`${this.id}:${name}:${value}`); }
+    getAttribute(name) { return this.attributes.get(name) ?? null; }
+    removeAttribute(name) { this.attributes.delete(name); }
+    matches(selector) {
+      if (selector === ":focus-within") return this.focusWithin;
+      if (selector === ":focus") return documentRef.activeElement === this;
+      return false;
+    }
+    contains(node) { return node === this; }
+    querySelectorAll() { return []; }
+    focus() {
+      documentRef.activeElement = this;
+      this.focusWithin = true;
+      this.focusCount += 1;
+      trace.push(`${this.id}:focus`);
+    }
+  }
+
+  const nodes = new Map([
+    ["filterSidebar", new FakeHTMLElement("filterSidebar")],
+    ["sidebarScrim", new FakeHTMLElement("sidebarScrim")],
+    ["navToggle", new FakeHTMLElement("navToggle")],
+    ["sidebarClose", new FakeHTMLElement("sidebarClose")],
+    ["readmePanel", new FakeHTMLElement("readmePanel")],
+    ["tipLayer", new FakeHTMLElement("tipLayer")],
+  ]);
+  const pageMain = new FakeHTMLElement("pageMain");
+  const outside = new FakeHTMLElement("outside");
+  const body = new FakeHTMLElement("body");
+  const documentListeners = new Map();
+  documentRef = {
+    activeElement: outside,
+    body,
+    getElementById(id) { return nodes.get(id); },
+    querySelector(selector) { return selector === ".wrap" ? pageMain : null; },
+    addEventListener(type, listener) {
+      if (!documentListeners.has(type)) documentListeners.set(type, []);
+      documentListeners.get(type).push(listener);
+    },
+  };
+
+  let now = 0;
+  let timerId = 0;
+  const timers = new Map();
+  function setTimer(callback, delay = 0) {
+    const id = ++timerId;
+    timers.set(id, { callback, at: now + delay });
+    return id;
+  }
+  function advance(milliseconds) {
+    const target = now + milliseconds;
+    while (true) {
+      const due = [...timers.entries()]
+        .filter(([, timer]) => timer.at <= target)
+        .sort((left, right) => left[1].at - right[1].at)[0];
+      if (!due) break;
+      const [id, timer] = due;
+      timers.delete(id);
+      now = timer.at;
+      timer.callback();
+    }
+    now = target;
+  }
+
+  const calls = { closeReadme: 0, hideTip: 0 };
+  const context = {
+    document: documentRef,
+    HTMLElement: FakeHTMLElement,
+    UiMotion: {
+      sidebarMode({ hoverCapable: capable, trigger }) {
+        return capable && trigger === "pointer" ? "hover" : "modal";
+      },
+    },
+    matchMedia() { return { matches: hoverCapable }; },
+    closeReadme() { calls.closeReadme += 1; nodes.get("readmePanel").classList.remove("open"); },
+    hideTip() {
+      calls.hideTip += 1;
+      const tipLayer = nodes.get("tipLayer");
+      tipLayer.classList.remove("on");
+      tipLayer.setAttribute("aria-hidden", "true");
+      tipLayer.inert = true;
+    },
+    setTimeout: setTimer,
+    clearTimeout(id) { timers.delete(id); },
+  };
+  context.globalThis = context;
+  context.__repos = [{ summary: { goal: "goal" } }];
+  context.__tipLayer = nodes.get("tipLayer");
+  context.__positionCount = 0;
+  vm.createContext(context);
+  vm.runInContext(page.slice(start, end), context, { filename: "sidebar-runtime-fixture.js" });
+  vm.runInContext(`
+    const REPOS=globalThis.__repos,tipLayer=globalThis.__tipLayer;
+    let activeTipIndex=null,hideTimer=null;
+    function tipHTML(){return "tooltip"}
+    function positionTip(){globalThis.__positionCount+=1}
+    ${page.slice(showTipStart, showTipEnd)}
+    globalThis.__showTip=showTip;
+  `, context, { filename: "tooltip-runtime-fixture.js" });
+
+  return {
+    sidebar: nodes.get("filterSidebar"),
+    scrim: nodes.get("sidebarScrim"),
+    toggle: nodes.get("navToggle"),
+    close: nodes.get("sidebarClose"),
+    readme: nodes.get("readmePanel"),
+    tipLayer: nodes.get("tipLayer"),
+    pageMain,
+    body,
+    outside,
+    document: documentRef,
+    calls,
+    trace,
+    advance,
+    showTip(card = { dataset: { idx: "0" } }) { context.__showTip(card); },
+    positionCount() { return context.__positionCount; },
+  };
+}
+
 test("the generated page has unique element ids", () => {
   const ids = [...page.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
   const duplicates = [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
@@ -177,10 +342,146 @@ test("landmarks, form controls, and hidden panels retain accessible boundaries",
   assert.doesNotMatch(page, /#tipLayer h3|<h3>\$\{esc\(r\.name\)\}<\/h3>/);
 });
 
+test("fine pointers expose a full-height rail without changing coarse-pointer layout", () => {
+  assert.match(page, /\.filter-sidebar\{[\s\S]*?height:100vh;height:100dvh[\s\S]*?transform:translate3d\(-105%,0,0\)/);
+  const finePointer = page.match(/@media\(hover:hover\) and \(pointer:fine\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.match(finePointer, /\.nav-toggle\{[^}]*top:0[^}]*bottom:0[^}]*width:44px[^}]*height:100vh[^}]*height:100dvh[^}]*border-radius:0/);
+  assert.match(finePointer, /\.nav-toggle:hover,\.nav-toggle:focus-visible\{[^}]*background:var\(--accent\)[^}]*color:#fff/);
+});
+
+test("hover-open sidebar stays passive and exposes non-modal dialog semantics", () => {
+  const harness = sidebarHarness();
+  harness.toggle.dispatch("pointerenter");
+
+  assert.equal(harness.sidebar.dataset.openMode, "hover");
+  assert.equal(harness.sidebar.classList.contains("open"), true);
+  assert.equal(harness.sidebar.getAttribute("aria-hidden"), "false");
+  assert.equal(harness.sidebar.getAttribute("aria-modal"), null);
+  assert.equal(harness.pageMain.inert, false);
+  assert.equal(harness.scrim.classList.contains("on"), false);
+  assert.equal(harness.body.classList.contains("overlay-open"), false);
+  assert.equal(harness.close.focusCount, 0);
+  assert.equal(harness.calls.hideTip, 1);
+});
+
+test("README modal blocks incidental hover and yields to explicit sidebar activation", () => {
+  const harness = sidebarHarness();
+  harness.readme.classList.add("open");
+  harness.toggle.dispatch("pointerenter");
+  assert.equal(harness.sidebar.dataset.openMode, undefined);
+  assert.equal(harness.calls.closeReadme, 0);
+
+  harness.toggle.dispatch("click");
+  assert.equal(harness.calls.closeReadme, 1);
+  assert.equal(harness.readme.classList.contains("open"), false);
+  assert.equal(harness.sidebar.dataset.openMode, "modal");
+});
+
+test("hover close waits while focus remains inside the sidebar", () => {
+  const harness = sidebarHarness();
+  harness.toggle.dispatch("pointerenter");
+  harness.sidebar.dispatch("pointerenter");
+  harness.sidebar.focusWithin = true;
+  harness.sidebar.dispatch("focusin");
+  harness.toggle.dispatch("pointerleave");
+  harness.sidebar.dispatch("pointerleave");
+  harness.advance(180);
+  assert.equal(harness.sidebar.dataset.openMode, "hover");
+
+  harness.sidebar.focusWithin = false;
+  harness.document.activeElement = harness.outside;
+  harness.sidebar.dispatch("focusout", { relatedTarget: harness.outside });
+  harness.advance(0);
+  harness.advance(180);
+  assert.equal(harness.sidebar.dataset.openMode, undefined);
+  assert.equal(harness.sidebar.classList.contains("open"), false);
+});
+
+test("click and keyboard activation upgrade hover-open sidebar exactly once", () => {
+  for (const activation of ["click", "keyboard"]) {
+    const harness = sidebarHarness();
+    harness.toggle.dispatch("pointerenter");
+    harness.toggle.dispatch("click", { detail: activation === "keyboard" ? 0 : 1 });
+
+    assert.equal(harness.sidebar.dataset.openMode, "modal", `${activation} must upgrade to modal`);
+    assert.equal(harness.sidebar.getAttribute("aria-modal"), "true");
+    assert.equal(harness.pageMain.inert, true);
+    assert.equal(harness.scrim.classList.contains("on"), true);
+    assert.equal(harness.body.classList.contains("overlay-open"), true);
+    assert.equal(harness.close.focusCount, 1, `${activation} must apply modal focus exactly once`);
+    assert.equal(harness.toggle.listeners.get("keydown")?.length ?? 0, 0, "native button click must be the only activation path");
+  }
+});
+
+test("tooltip opening closes a passive sidebar before showing its overlay", () => {
+  const showTipFlow = page.match(/function showTip\(card\)\{[\s\S]*?function positionTip/)?.[0] ?? "";
+  assert.match(showTipFlow, /if\(sidebar\.dataset\.openMode==="hover"\)\{[\s\S]*?closeSidebar\(false\)/);
+  assert.ok(showTipFlow.indexOf('closeSidebar(false)') < showTipFlow.indexOf('tipLayer.classList.add("on")'));
+});
+
+test("tooltip does not inert a focused hover sidebar or its focused rail", () => {
+  for (const focusOwner of ["sidebar", "rail"]) {
+    const harness = sidebarHarness();
+    harness.toggle.dispatch("pointerenter");
+    if (focusOwner === "sidebar") {
+      harness.sidebar.focusWithin = true;
+      harness.document.activeElement = harness.close;
+    } else {
+      harness.toggle.focus();
+    }
+
+    harness.showTip();
+    assert.equal(harness.sidebar.dataset.openMode, "hover", `${focusOwner} focus must retain hover mode`);
+    assert.equal(harness.sidebar.inert, false);
+    assert.equal(harness.tipLayer.classList.contains("on"), false);
+    assert.equal(harness.positionCount(), 0);
+  }
+});
+
+test("incidental rail hover preserves a focused tooltip but modal activation closes it", () => {
+  const harness = sidebarHarness();
+  harness.tipLayer.classList.add("on");
+  harness.tipLayer.inert = false;
+  harness.tipLayer.focusWithin = true;
+  harness.document.activeElement = harness.tipLayer;
+
+  harness.toggle.dispatch("pointerenter");
+  assert.equal(harness.sidebar.dataset.openMode, undefined);
+  assert.equal(harness.tipLayer.classList.contains("on"), true);
+  assert.equal(harness.tipLayer.inert, false);
+  assert.equal(harness.calls.hideTip, 0);
+
+  harness.toggle.dispatch("click", { detail: 1 });
+  assert.equal(harness.sidebar.dataset.openMode, "modal");
+  assert.equal(harness.tipLayer.classList.contains("on"), false);
+  assert.equal(harness.tipLayer.inert, true);
+  assert.equal(harness.calls.hideTip, 1);
+});
+
+test("hover close button restores rail focus before hiding and inerting the sidebar", () => {
+  const harness = sidebarHarness();
+  harness.toggle.dispatch("pointerenter");
+  harness.sidebar.focusWithin = true;
+  harness.close.focus();
+  harness.trace.length = 0;
+
+  harness.close.dispatch("click");
+  const focusIndex = harness.trace.indexOf("navToggle:focus");
+  const hiddenIndex = harness.trace.indexOf("filterSidebar:aria-hidden:true");
+  const inertIndex = harness.trace.indexOf("filterSidebar:inert:true");
+  assert.ok(focusIndex >= 0 && focusIndex < hiddenIndex && focusIndex < inertIndex);
+  assert.equal(harness.document.activeElement, harness.toggle);
+  assert.equal(harness.sidebar.dataset.openMode, undefined);
+});
+
 test("responsive sidebar owns account, favorites, and discovery filters", () => {
   assert.match(page, /<script src="repo-filters\.js"><\/script>/);
   assert.match(page, /id="navToggle"[^>]*aria-controls="filterSidebar"[^>]*aria-expanded="false"/);
-  assert.match(page, /<div[^>]*id="filterSidebar"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-label="탐색 사이드바"[^>]*inert/);
+  const sidebarTag = page.match(/<div[^>]*id="filterSidebar"[^>]*>/)?.[0] ?? "";
+  assert.match(sidebarTag, /role="dialog"/);
+  assert.match(sidebarTag, /aria-label="탐색 사이드바"/);
+  assert.match(sidebarTag, /aria-hidden="true" inert/);
+  assert.doesNotMatch(sidebarTag, /aria-modal=/);
   const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<button class="nav-toggle edge-tab"/)?.[0] ?? "";
   assert.match(sidebar, /id="syncStatus"/);
   assert.match(sidebar, /id="loginBtn"/);
@@ -192,8 +493,8 @@ test("responsive sidebar owns account, favorites, and discovery filters", () => 
   assert.match(page, /id="sidebarScrim"/);
   assert.match(page, /\.filter-sidebar\{[\s\S]*?transform:translate3d\(-105%,0,0\)/);
   assert.match(page, /\.filter-sidebar\.open\{transform:translate3d\(0,0,0\)/);
-  assert.match(page, /pageMain\.inert=true/);
-  assert.match(page, /trapFocus\(sidebar,event\)/);
+  assert.match(page, /if\(mode==="modal"\)[\s\S]*?pageMain\.inert=true/);
+  assert.match(page, /if\(sidebar\.dataset\.openMode==="modal"\)trapFocus\(sidebar,event\)/);
 });
 
 test("browser-local hidden repositories have tooltip actions, undo, and sidebar recovery", () => {
@@ -246,13 +547,15 @@ test("the explore edge tab stays attached, reachable, and outside the inert page
   assert.match(page, /id="navToggle"[\s\S]*?<path d="M4 7h16M7 12h10M10 17h4"\/>/);
   assert.match(page, /--sidebar-width:min\(360px,calc\(100vw - 44px\)\)/);
   assert.match(page, /\.filter-sidebar\{[\s\S]*?width:var\(--sidebar-width\)/);
-  assert.match(page, /\.nav-toggle\{[^}]*position:fixed[^}]*z-index:330[^}]*left:0[^}]*top:max\(160px,calc\(env\(safe-area-inset-top\) \+ 68px\)\)[^}]*width:44px[^}]*height:48px/);
   assert.match(page, /\.nav-toggle\{[^}]*background:var\(--tip-bg\)[^}]*transition:transform \.3s cubic-bezier\(\.32,\.72,0,1\),opacity \.2s ease-out/);
   assert.match(page, /\.filter-sidebar\.open~\.nav-toggle\{transform:translate3d\(calc\(var\(--sidebar-width\) - 1px\),0,0\)/);
   assert.match(page, /navToggle\.setAttribute\("aria-label","탐색 사이드바 닫기"\)/);
   assert.match(page, /navToggle\.setAttribute\("aria-label","탐색 사이드바 열기"\)/);
-  assert.match(page, /navToggle\.addEventListener\("click",\(\)=>sidebar\.classList\.contains\("open"\)\?closeSidebar\(\):openSidebar\(\)\)/);
-  assert.match(page, /if\(readme\.classList\.contains\("open"\)\)closeReadme\(false\);\s*hideTip\(\)/);
+  assert.match(page, /navToggle\.addEventListener\("pointerenter"/);
+  assert.match(page, /navToggle\.addEventListener\("click",activateSidebar\)/);
+  assert.doesNotMatch(page, /navToggle\.addEventListener\("keydown"/);
+  assert.match(page, /trigger:event\.detail===0\?"keyboard":"click"/);
+  assert.match(page, /if\(readme\.classList\.contains\("open"\)\)[\s\S]*?closeReadme\(false\)/);
   assert.match(page, /if\(restoreFocus&&sidebarTrigger instanceof HTMLElement\)sidebarTrigger\.focus\(\)/);
   assert.match(page, /@media\(prefers-reduced-motion:reduce\)\{[\s\S]*?transition-duration:\.01ms!important/);
 });

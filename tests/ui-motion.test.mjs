@@ -110,6 +110,14 @@ test("tooltip content has no viewport-specific formatter API", async () => {
   assert.equal(UiMotion.mobileTooltipHtml, undefined);
 });
 
+test("sidebar mode separates passive hover from modal activation", async () => {
+  const UiMotion = await loadUiMotion();
+  assert.equal(typeof UiMotion.sidebarMode, "function");
+  assert.equal(UiMotion.sidebarMode({ hoverCapable: true, trigger: "pointer" }), "hover");
+  assert.equal(UiMotion.sidebarMode({ hoverCapable: true, trigger: "keyboard" }), "modal");
+  assert.equal(UiMotion.sidebarMode({ hoverCapable: false, trigger: "pointer" }), "modal");
+});
+
 test("a pending Korean tab updates when its translation resolves without forcing a tab switch", async () => {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const translationHandler = html.match(/fetch\(`translations\/[\s\S]*?\.catch\(\(\)=>\{/m)?.[0] || "";

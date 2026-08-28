@@ -72,5 +72,9 @@
     return tooltipOpen && activeIndex === cardIndex ? "navigate" : "show";
   }
 
-  return { tooltipLayout, periodGain, badgeModel, touchCardAction };
+  function sidebarMode({ hoverCapable, trigger }) {
+    return hoverCapable && trigger === "pointer" ? "hover" : "modal";
+  }
+
+  return { tooltipLayout, periodGain, badgeModel, touchCardAction, sidebarMode };
 });
