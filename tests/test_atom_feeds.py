@@ -225,6 +225,19 @@ class AtomFeedTests(unittest.TestCase):
             {"current": 10, "changes": 10},
         )
 
+    def test_empty_description_uses_detailed_goal_and_nonempty_description_is_trimmed(self):
+        latest = copy.deepcopy(self.latest)
+        detailed_goal = "A detailed repository goal for Atom readers"
+        latest["repos"][0]["description"] = ""
+        latest["repos"][0]["summary"]["goal"] = detailed_goal
+        latest["repos"][1]["description"] = "  A detailed GitHub description  "
+        page = page_payload(latest)
+        self.assertTrue(generate_atom_feeds_from_timeline(page, latest, self.timeline, self.feed, self.changes))
+        summaries = [entry.findtext("atom:summary", namespaces=ATOM) for entry in entries(self.feed)]
+        self.assertEqual(summaries[0], detailed_goal)
+        self.assertEqual(summaries[1], "A detailed GitHub description")
+        self.assertEqual(tuple_entries(self.changes), LEGACY_TUPLES)
+
     def test_database_events_sort_ahead_of_legacy_and_one_final_cap_is_applied(self):
         value = copy.deepcopy(self.timeline)
         previous_time = "2026-08-28T16:20:00.000Z"

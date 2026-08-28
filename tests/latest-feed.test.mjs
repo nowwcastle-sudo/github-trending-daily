@@ -77,6 +77,23 @@ test("snapshot export becomes latest without losing existing fields or exact tag
   assert.deepEqual(latest.repos[0].form_tags, ["agent", "cli"]);
 });
 
+test("an empty normalized GitHub description is preserved with its detailed summary", () => {
+  const detailedGoal = "A detailed repository goal for Atom readers";
+  const exported = snapshot({
+    repositories: [repository({
+      description: "",
+      summary: { goal: detailedGoal, usage: "u", pros: "p", cons: "c", fit: "f" },
+    })],
+  });
+  const latest = buildLatestFeed(exported);
+  assert.equal(latest.repos[0].description, "");
+  assert.equal(latest.repos[0].summary.goal, detailedGoal);
+  assert.throws(
+    () => validateSnapshotExport(snapshot({ repositories: [repository({ description: null })] })),
+    /snapshot export is invalid/,
+  );
+});
+
 test("snapshot export rejects missing extra duplicate unknown unordered and drifted tags", () => {
   const invalid = [
     { ...snapshot(), repositories: [repository({ field_tags: undefined })] },

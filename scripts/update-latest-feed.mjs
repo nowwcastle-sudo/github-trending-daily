@@ -95,7 +95,7 @@ function validateOrderedTags(value, allowed, { field = false } = {}) {
 function validateRepository(value) {
   if (!exactKeys(value, REPOSITORY_KEYS) || !SLUG_RE.test(value.slug)) fail();
   if (typeof value.name !== "string" || !value.name.trim() || value.name.length > 300) fail();
-  if (typeof value.description !== "string" || !value.description.trim() || value.description.length > 10_000) fail();
+  if (typeof value.description !== "string" || value.description.length > 10_000) fail();
   if (!(value.lang === null || (typeof value.lang === "string" && value.lang.length <= 200))) fail();
   if (!Array.isArray(value.topics) || value.topics.some(topic => typeof topic !== "string")
     || new Set(value.topics).size !== value.topics.length

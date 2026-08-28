@@ -155,7 +155,7 @@ def _validate_repository(repository):
     _slug(repository["slug"])
     if not isinstance(repository["name"], str) or not repository["name"].strip():
         raise _input_error()
-    if not isinstance(repository["description"], str) or not repository["description"].strip():
+    if not isinstance(repository["description"], str) or len(repository["description"]) > 10_000:
         raise _input_error()
     if repository["lang"] is not None and not isinstance(repository["lang"], str):
         raise _input_error()
@@ -412,6 +412,10 @@ def _latest_by_slug(latest):
     return {repository["slug"].lower(): repository for repository in latest["repos"]}
 
 
+def _current_summary(repository):
+    return repository["description"].strip() or repository["summary"]["goal"]
+
+
 def _current_document(latest, timeline):
     root = _feed(f"{SITE_URL}feed.xml", "GitHub Trending Daily — 현재 전체", latest["generatedAt"], latest["snapshotId"], latest["statsDate"])
     repositories = _latest_by_slug(latest)
@@ -427,7 +431,7 @@ def _current_document(latest, timeline):
         _child(entry, "title", member["displaySlug"])
         _child(entry, "updated", latest["generatedAt"])
         _child(entry, "link", rel="alternate", type="text/html", href=repository_url)
-        _child(entry, "summary", repository["description"], type="text")
+        _child(entry, "summary", _current_summary(repository), type="text")
     return root
 
 
@@ -521,7 +525,7 @@ def _validate_documents(latest, timeline, events, feed_root, changes_root):
         ):
             raise _input_error()
         summaries = entry.findall(_atom("summary"))
-        if len(summaries) != 1 or summaries[0].get("type") != "text" or (summaries[0].text or "") != repository["description"]:
+        if len(summaries) != 1 or summaries[0].get("type") != "text" or (summaries[0].text or "") != _current_summary(repository):
             raise _input_error()
     if len(current_ids) != len(set(current_ids)):
         raise _input_error()
