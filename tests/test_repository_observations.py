@@ -1174,14 +1174,15 @@ class RepositoryObservationTests(unittest.TestCase):
             value["legacyBaselines"], value["legacyBaselineReceipt"] = paths, receipt
             return value
 
-        def events(active, transitions):
+        def events(active, transitions, heads=None, commits=None):
+            heads = heads or {}
             return {
                 "heads": [
-                    {"slug": slug, "branch": "main", "headSha": sha1(), "transition": transitions[slug]}
+                    {"slug": slug, "branch": "main", "headSha": heads.get(slug, sha1()), "transition": transitions[slug]}
                     for slug in active
                 ],
                 "releases": [], "latestReleaseIds": {slug: None for slug in active},
-                "commits": [],
+                "commits": commits or [],
                 "estimates": [
                     {"slug": slug, "rows": [], "sourcePayloadSha256": sha256("b"), "publicRows": []}
                     for slug in active
@@ -1194,17 +1195,47 @@ class RepositoryObservationTests(unittest.TestCase):
         first_id = "20260828010101-aaaaaaaaaaaaaaaa"
         first = payload(first_id, "2026-08-28T01:01:01.001Z", "2026-08-28T10:01:01.001+09:00", "migration_baseline", None, True)
         first["legacyBaselines"], first["legacyBaselineReceipt"] = paths, receipt
-        record_writer_snapshot(candidate, first, events(["owner/repo", "other/repo"], {"owner/repo": "baseline", "other/repo": "baseline"}), state)
+        record_writer_snapshot(
+            candidate,
+            first,
+            events(
+                ["owner/repo", "other/repo"],
+                {"owner/repo": "baseline", "other/repo": "baseline"},
+                {"other/repo": sha1("b")},
+            ),
+            state,
+        )
         second_id = "20260828030101-bbbbbbbbbbbbbbbb"
         record_writer_snapshot(
             candidate,
             payload(second_id, "2026-08-28T03:01:01.001Z", "2026-08-28T12:01:01.001+09:00", "refresh", first_id, False),
             events(["owner/repo"], {"owner/repo": "unchanged"}), state,
         )
+        third = payload("20260828050101-cccccccccccccccc", "2026-08-28T05:01:01.001Z", "2026-08-28T14:01:01.001+09:00", "refresh", second_id, True, "d", "e")
+        with self.assertRaisesRegex(ValueError, "existing repository cannot use baseline"):
+            record_writer_snapshot(
+                candidate,
+                json.loads(json.dumps(third)),
+                events(["owner/repo", "other/repo"], {"owner/repo": "unchanged", "other/repo": "baseline"}),
+                state,
+            )
+        commit = {
+            "slug": "other/repo", "sha": sha1("d"), "firstObservedOrdinal": 1,
+            "branch": "main", "authoredAt": "2026-08-28T04:01:01.001Z",
+            "committedAt": "2026-08-28T04:01:01.001Z", "authorLogin": "other",
+            "parentShas": [sha1("b")],
+            "htmlUrl": f"https://github.com/other/repo/commit/{sha1('d')}",
+        }
         record_writer_snapshot(
             candidate,
-            payload("20260828050101-cccccccccccccccc", "2026-08-28T05:01:01.001Z", "2026-08-28T14:01:01.001+09:00", "refresh", second_id, True, "d", "e"),
-            events(["owner/repo", "other/repo"], {"owner/repo": "unchanged", "other/repo": "baseline"}), state,
+            third,
+            events(
+                ["owner/repo", "other/repo"],
+                {"owner/repo": "unchanged", "other/repo": "fast_forward"},
+                {"other/repo": sha1("d")},
+                [commit],
+            ),
+            state,
         )
         with closing(sqlite3.connect(candidate)) as connection:
             self.assertEqual(
@@ -1214,6 +1245,10 @@ class RepositoryObservationTests(unittest.TestCase):
             self.assertEqual(
                 connection.execute("SELECT change_kind, old_blob_sha, new_blob_sha FROM readme_change_events WHERE snapshot_seq=3 AND slug='other/repo'").fetchone(),
                 ("changed", sha1("b"), sha1("d")),
+            )
+            self.assertEqual(
+                connection.execute("SELECT previous_default_branch_head_sha, head_transition FROM snapshot_items WHERE snapshot_seq=3 AND slug='other/repo'").fetchone(),
+                (sha1("b"), "fast_forward"),
             )
         self.assertEqual(state["other/repo"]["previous"]["blob_sha"], sha1("b"))
         self.assertEqual(state["other/repo"]["current"]["blob_sha"], sha1("d"))
@@ -1458,6 +1493,110 @@ class RepositoryObservationTests(unittest.TestCase):
             )
             self.assertEqual(verify_core_snapshot(connection, 2), result.core_payload_sha256)
 
+    def test_fast_forward_rejects_supplied_commit_outside_current_to_prior_graph(self):
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        candidate = Path(self.temporary.name) / "commit-side-branch.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing.sqlite", candidate, None)
+        state = {}
+        first_id = "20260828010101-aaaaaaaaaaaaaaaa"
+        first = writer_payload(
+            snapshot_id=first_id, utc="2026-08-28T01:01:01.001Z",
+            kst="2026-08-28T10:01:01.001+09:00", stats_date="2026-08-28",
+            run_kind="migration_baseline",
+        )
+        first["legacyBaselines"], first["legacyBaselineReceipt"] = paths, receipt
+        record_writer_snapshot(candidate, first, writer_events(head=sha1("a"), transition="baseline"), state)
+        second = writer_payload(
+            snapshot_id="20260828030101-bbbbbbbbbbbbbbbb",
+            utc="2026-08-28T03:01:01.001Z", kst="2026-08-28T12:01:01.001+09:00",
+            stats_date="2026-08-28", run_kind="refresh", parent_snapshot_id=first_id,
+        )
+        second["legacyBaselines"], second["legacyBaselineReceipt"] = paths, receipt
+        events = writer_events(head=sha1("b"), transition="fast_forward")
+        events["commits"] = [
+            {
+                "slug": "owner/repo", "sha": sha1("b"), "firstObservedOrdinal": 1,
+                "branch": "main", "authoredAt": "2026-08-28T02:01:01.001Z",
+                "committedAt": "2026-08-28T02:01:01.001Z", "authorLogin": "owner",
+                "parentShas": [sha1("a")],
+                "htmlUrl": f"https://github.com/owner/repo/commit/{sha1('b')}",
+            },
+            {
+                "slug": "owner/repo", "sha": sha1("c"), "firstObservedOrdinal": 2,
+                "branch": "main", "authoredAt": "2026-08-28T01:31:01.001Z",
+                "committedAt": "2026-08-28T01:31:01.001Z", "authorLogin": "owner",
+                "parentShas": [sha1("d")],
+                "htmlUrl": f"https://github.com/owner/repo/commit/{sha1('c')}",
+            },
+        ]
+        with self.assertRaisesRegex(ValueError, "outside current-to-previous graph"):
+            record_writer_snapshot(candidate, second, events, state)
+        with closing(sqlite3.connect(candidate)) as connection:
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM snapshot_runs").fetchone(), (1,))
+
+    def test_refresh_core_references_frozen_baseline_rows(self):
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        candidate = Path(self.temporary.name) / "refresh-core-baselines.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing.sqlite", candidate, None)
+        state = {}
+        first_id = "20260828010101-aaaaaaaaaaaaaaaa"
+        first = writer_payload(
+            snapshot_id=first_id, utc="2026-08-28T01:01:01.001Z",
+            kst="2026-08-28T10:01:01.001+09:00", stats_date="2026-08-28",
+            run_kind="migration_baseline",
+        )
+        first["legacyBaselines"], first["legacyBaselineReceipt"] = paths, receipt
+        record_writer_snapshot(candidate, first, writer_events(head=sha1(), transition="baseline"), state)
+        second = writer_payload(
+            snapshot_id="20260828030101-bbbbbbbbbbbbbbbb",
+            utc="2026-08-28T03:01:01.001Z", kst="2026-08-28T12:01:01.001+09:00",
+            stats_date="2026-08-28", run_kind="refresh", parent_snapshot_id=first_id,
+        )
+        second["legacyBaselines"], second["legacyBaselineReceipt"] = paths, receipt
+        record_writer_snapshot(candidate, second, writer_events(head=sha1(), transition="unchanged"), state)
+        with closing(sqlite3.connect(candidate)) as connection:
+            trigger = connection.execute(
+                "SELECT sql FROM sqlite_schema WHERE type='trigger' AND name='baseline_sources_reject_update'"
+            ).fetchone()[0]
+            connection.execute("DROP TRIGGER baseline_sources_reject_update")
+            connection.execute("UPDATE baseline_sources SET byte_size=byte_size+1 WHERE source_name='legacy_public_star_history'")
+            connection.execute(trigger)
+            connection.commit()
+            with self.assertRaisesRegex(ValueError, "core payload hash preimage mismatch for snapshot 2"):
+                verify_core_snapshot(connection, 2)
+
+    def test_candidate_copy_rejects_parent_append_after_reviewed_evidence(self):
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        parent = Path(self.temporary.name) / "racing-parent.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing.sqlite", parent, None)
+        state = {}
+        first_id = "20260828010101-aaaaaaaaaaaaaaaa"
+        first = writer_payload(
+            snapshot_id=first_id, utc="2026-08-28T01:01:01.001Z",
+            kst="2026-08-28T10:01:01.001+09:00", stats_date="2026-08-28",
+            run_kind="migration_baseline",
+        )
+        first["legacyBaselines"], first["legacyBaselineReceipt"] = paths, receipt
+        record_writer_snapshot(parent, first, writer_events(head=sha1(), transition="baseline"), state)
+        reviewed = parent_database_evidence(parent)
+        second = writer_payload(
+            snapshot_id="20260828030101-bbbbbbbbbbbbbbbb",
+            utc="2026-08-28T03:01:01.001Z", kst="2026-08-28T12:01:01.001+09:00",
+            stats_date="2026-08-28", run_kind="refresh", parent_snapshot_id=first_id,
+        )
+        second["legacyBaselines"], second["legacyBaselineReceipt"] = paths, receipt
+        original_copy = shutil.copy2
+
+        def append_then_copy(source, destination):
+            record_writer_snapshot(parent, second, writer_events(head=sha1(), transition="unchanged"), state)
+            return original_copy(source, destination)
+
+        candidate = Path(self.temporary.name) / "racing-candidate.sqlite"
+        with mock.patch.object(ledger.shutil, "copy2", side_effect=append_then_copy):
+            with self.assertRaisesRegex(ValueError, "parent database evidence mismatch"):
+                prepare_candidate_database(parent, candidate, reviewed)
+        self.assertFalse(candidate.exists())
+
     def test_independent_core_verifier_detects_post_write_row_mutation(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
         candidate = Path(self.temporary.name) / "core-verifier.sqlite"
@@ -1497,6 +1636,128 @@ class RepositoryObservationTests(unittest.TestCase):
         changed = json.loads(json.dumps(payload)); changed["repositories"][0]["stars"] = 99
         with self.assertRaisesRegex(ValueError, "conflicting core payload"):
             record_writer_snapshot(candidate, changed, events, state)
+
+    def test_same_snapshot_replay_verifies_stored_core_before_noop(self):
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        candidate = Path(self.temporary.name) / "corrupt-replay.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing.sqlite", candidate, None)
+        payload = writer_payload(
+            snapshot_id="20260828010101-aaaaaaaaaaaaaaaa",
+            utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00",
+            stats_date="2026-08-28", run_kind="migration_baseline",
+        )
+        payload["legacyBaselines"], payload["legacyBaselineReceipt"] = paths, receipt
+        events = writer_events(head=sha1(), transition="baseline")
+        state = {}
+        record_writer_snapshot(candidate, payload, events, state)
+        with closing(sqlite3.connect(candidate)) as connection:
+            trigger = connection.execute(
+                "SELECT sql FROM sqlite_schema WHERE type='trigger' AND name='snapshot_items_reject_update'"
+            ).fetchone()[0]
+            connection.execute("DROP TRIGGER snapshot_items_reject_update")
+            connection.execute("UPDATE snapshot_items SET stars=stars+1 WHERE snapshot_seq=1")
+            connection.execute(trigger)
+            connection.commit()
+        with self.assertRaisesRegex(ValueError, "core payload hash preimage mismatch for snapshot 1"):
+            record_writer_snapshot(candidate, payload, events, state)
+
+    def test_non_latest_snapshot_id_replay_fails_closed(self):
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        candidate = Path(self.temporary.name) / "old-replay.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing.sqlite", candidate, None)
+        first_id = "20260828010101-aaaaaaaaaaaaaaaa"
+        first = writer_payload(
+            snapshot_id=first_id, utc="2026-08-28T01:01:01.001Z",
+            kst="2026-08-28T10:01:01.001+09:00", stats_date="2026-08-28",
+            run_kind="migration_baseline",
+        )
+        first["legacyBaselines"], first["legacyBaselineReceipt"] = paths, receipt
+        state = {}
+        record_writer_snapshot(candidate, first, writer_events(head=sha1(), transition="baseline"), state)
+        first_state = json.loads(json.dumps(state))
+        second = writer_payload(
+            snapshot_id="20260828030101-bbbbbbbbbbbbbbbb",
+            utc="2026-08-28T03:01:01.001Z", kst="2026-08-28T12:01:01.001+09:00",
+            stats_date="2026-08-28", run_kind="refresh", parent_snapshot_id=first_id,
+        )
+        second["legacyBaselines"], second["legacyBaselineReceipt"] = paths, receipt
+        record_writer_snapshot(candidate, second, writer_events(head=sha1(), transition="unchanged"), state)
+        with self.assertRaisesRegex(ValueError, "replay must be the current latest snapshot"):
+            record_writer_snapshot(candidate, first, writer_events(head=sha1(), transition="baseline"), first_state)
+
+    def test_cli_parent_evidence_envelope_carries_reviewed_legacy_receipt(self):
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        payload = writer_payload(
+            snapshot_id="20260828010101-aaaaaaaaaaaaaaaa",
+            utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00",
+            stats_date="2026-08-28", run_kind="migration_baseline",
+        )
+        events = writer_events(head=sha1(), transition="baseline")
+        bind_writer_inputs(payload, events)
+        index = payload.pop("enrichmentIndex")
+        root = Path(self.temporary.name)
+        files = {
+            "snapshot": root / "cli-snapshot.json",
+            "events": root / "cli-events.json",
+            "index": root / "cli-index.json",
+            "evidence": root / "cli-evidence.json",
+        }
+        files["snapshot"].write_text(json.dumps(payload), encoding="utf-8")
+        files["events"].write_text(json.dumps(events), encoding="utf-8")
+        files["index"].write_text(json.dumps(index), encoding="utf-8")
+        files["evidence"].write_text(json.dumps({
+            "version": 1,
+            "parent_database": {"missing": True},
+            "legacy_baseline_receipt": receipt,
+        }), encoding="utf-8")
+
+        def arguments(evidence_path, candidate, parent=None):
+            return [
+                "--parent-database", str(parent or root / "missing-parent.sqlite"),
+                "--candidate-database", str(candidate),
+                "--snapshot", str(files["snapshot"]),
+                "--events", str(files["events"]),
+                "--enrichment-index", str(files["index"]),
+                "--parent-evidence", str(evidence_path),
+                "--legacy-star-database", paths["legacy_star_observations"],
+                "--legacy-membership-database", paths["legacy_trending_membership"],
+                "--legacy-public-star-history", paths["legacy_public_star_history"],
+                "--readme-state", str(root / "cli-readme-state.json"),
+            ]
+
+        first_candidate = root / "cli-candidate.sqlite"
+        with mock.patch("sys.stdout"):
+            self.assertEqual(ledger.main(arguments(files["evidence"], first_candidate)), 0)
+        second = writer_payload(
+            snapshot_id="20260828030101-bbbbbbbbbbbbbbbb",
+            utc="2026-08-28T03:01:01.001Z", kst="2026-08-28T12:01:01.001+09:00",
+            stats_date="2026-08-28", run_kind="refresh",
+            parent_snapshot_id="20260828010101-aaaaaaaaaaaaaaaa",
+        )
+        second_events = writer_events(head=sha1(), transition="unchanged")
+        bind_writer_inputs(second, second_events)
+        second_index = second.pop("enrichmentIndex")
+        files["snapshot"].write_text(json.dumps(second), encoding="utf-8")
+        files["events"].write_text(json.dumps(second_events), encoding="utf-8")
+        files["index"].write_text(json.dumps(second_index), encoding="utf-8")
+        files["evidence"].write_text(json.dumps({
+            "version": 1,
+            "parent_database": parent_database_evidence(first_candidate),
+            "legacy_baseline_receipt": receipt,
+        }), encoding="utf-8")
+        refresh_candidate = root / "cli-refresh-candidate.sqlite"
+        with mock.patch("sys.stdout"):
+            self.assertEqual(ledger.main(arguments(files["evidence"], refresh_candidate, first_candidate)), 0)
+        with closing(sqlite3.connect(refresh_candidate)) as connection:
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM snapshot_runs").fetchone(), (2,))
+        for label, envelope in (
+            ("alias", {"version": 1, "parentEvidence": {"missing": True}, "legacy_baseline_receipt": receipt}),
+            ("extra", {"version": 1, "parent_database": {"missing": True}, "legacy_baseline_receipt": receipt, "receipt": receipt}),
+        ):
+            evidence_path = root / f"cli-evidence-{label}.json"
+            evidence_path.write_text(json.dumps(envelope), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "parent evidence envelope fields are not the exact allowlist"):
+                ledger.main(arguments(evidence_path, root / f"cli-candidate-{label}.sqlite"))
 
     def test_cli_requires_every_candidate_and_frozen_source_input(self):
         result = subprocess.run(

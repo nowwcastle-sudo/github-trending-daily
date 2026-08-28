@@ -834,6 +834,37 @@ def _require_parent_evidence(actual: dict[str, Any], expected: dict[str, Any]) -
             raise ValueError(f"parent database row digest mismatch: {table}")
 
 
+def _parse_parent_evidence_envelope(value: Any) -> tuple[dict[str, Any] | None, dict[str, Any]]:
+    """Separate the reviewed parent identity from the legacy cutover receipt."""
+    required = {"version", "parent_database", "legacy_baseline_receipt"}
+    if not isinstance(value, dict) or set(value) != required or value["version"] != 1:
+        raise ValueError("parent evidence envelope fields are not the exact allowlist")
+    parent = value["parent_database"]
+    if parent == {"missing": True}:
+        parent_evidence = parent
+    else:
+        parent_keys = {
+            "byte_size", "file_sha256", "last_snapshot_seq", "last_snapshot_id",
+            "last_chain_sha256", "tables",
+        }
+        if not isinstance(parent, dict) or set(parent) != parent_keys:
+            raise ValueError("parent database evidence fields are not the exact allowlist")
+        tables = parent["tables"]
+        if not isinstance(tables, dict) or set(tables) != set(_NATURAL_KEYS):
+            raise ValueError("parent database table evidence fields are not the exact allowlist")
+        for table in _NATURAL_KEYS:
+            evidence = tables[table]
+            if not isinstance(evidence, dict) or set(evidence) != {"count", "logical_rows_sha256", "rows"} or not isinstance(evidence["rows"], list):
+                raise ValueError(f"parent database table evidence is invalid: {table}")
+            if any(not isinstance(row, dict) or set(row) != {"key", "row_sha256"} for row in evidence["rows"]):
+                raise ValueError(f"parent database row evidence is invalid: {table}")
+        parent_evidence = parent
+    receipt = value["legacy_baseline_receipt"]
+    if not isinstance(receipt, dict):
+        raise ValueError("legacy baseline receipt must be an object")
+    return parent_evidence, receipt
+
+
 def _assert_parent_rows_preserved(connection: sqlite3.Connection, evidence: dict[str, Any]) -> None:
     for table in _NATURAL_KEYS:
         lookup = {tuple(row["key"]): row["row_sha256"] for row in _table_row_evidence(connection, table)["rows"]}
@@ -857,6 +888,8 @@ def prepare_candidate_database(parent_database_path: str | Path, candidate_datab
         _require_parent_evidence(actual, parent_evidence)
         shutil.copy2(parent, candidate)
         try:
+            copied = parent_database_evidence(candidate)
+            _require_parent_evidence(copied, actual)
             with closing(_connect_candidate(candidate)) as connection:
                 validate_schema(connection)
                 _assert_parent_rows_preserved(connection, actual)
@@ -1067,12 +1100,16 @@ def verify_core_snapshot(connection: sqlite3.Connection, snapshot_seq: int) -> s
     items = [dict(zip(_columns(connection, "snapshot_items"), row)) for row in connection.execute("SELECT * FROM snapshot_items WHERE snapshot_seq=? ORDER BY snapshot_seq,slug", (snapshot_seq,))]
     releases = [dict(zip(_columns(connection, "release_versions"), row)) for row in connection.execute("SELECT DISTINCT v.* FROM release_versions v JOIN snapshot_release_items i ON (i.slug,i.release_id,i.metadata_sha256)=(v.slug,v.release_id,v.metadata_sha256) WHERE i.snapshot_seq=? ORDER BY v.slug,v.release_id,v.metadata_sha256", (snapshot_seq,))]
     release_items = [dict(zip(_columns(connection, "snapshot_release_items"), row)) for row in connection.execute("SELECT * FROM snapshot_release_items WHERE snapshot_seq=? ORDER BY snapshot_seq,slug,release_id", (snapshot_seq,))]
-    estimates = [dict(zip(_columns(connection, "historical_star_estimates"), row)) for row in connection.execute("SELECT * FROM historical_star_estimates WHERE first_observed_snapshot_seq=? ORDER BY source,slug,estimate_date,first_observed_snapshot_seq", (snapshot_seq,))]
+    cutover = connection.execute(
+        "SELECT MIN(cutover_snapshot_seq) FROM baseline_sources WHERE cutover_snapshot_seq <= ?",
+        (snapshot_seq,),
+    ).fetchone()[0]
+    estimates = [dict(zip(_columns(connection, "historical_star_estimates"), row)) for row in connection.execute("SELECT * FROM historical_star_estimates WHERE first_observed_snapshot_seq=? OR (source='legacy_star_history_cache' AND first_observed_snapshot_seq=?) ORDER BY source,slug,estimate_date,first_observed_snapshot_seq", (snapshot_seq, cutover))]
     commits = [dict(zip(_columns(connection, "commit_events"), row)) for row in connection.execute("SELECT * FROM commit_events WHERE first_observed_snapshot_seq=? ORDER BY slug,commit_sha", (snapshot_seq,))]
     readmes = [dict(zip(_columns(connection, "readme_change_events"), row)) for row in connection.execute("SELECT * FROM readme_change_events WHERE snapshot_seq=? ORDER BY snapshot_seq,slug", (snapshot_seq,))]
-    baselines = [dict(zip(_columns(connection, "baseline_sources"), row)) for row in connection.execute("SELECT * FROM baseline_sources WHERE cutover_snapshot_seq=? ORDER BY source_name", (snapshot_seq,))]
-    membership = [dict(zip(_columns(connection, "baseline_membership_slugs"), row)) for row in connection.execute("SELECT * FROM baseline_membership_slugs WHERE cutover_snapshot_seq=? ORDER BY slug", (snapshot_seq,))]
-    observations = [dict(zip(_columns(connection, "historical_star_observations"), row)) for row in connection.execute("SELECT * FROM historical_star_observations WHERE first_observed_snapshot_seq=? ORDER BY source,slug,observation_date,source_row_sha256", (snapshot_seq,))]
+    baselines = [dict(zip(_columns(connection, "baseline_sources"), row)) for row in connection.execute("SELECT * FROM baseline_sources WHERE cutover_snapshot_seq=? ORDER BY source_name", (cutover,))]
+    membership = [dict(zip(_columns(connection, "baseline_membership_slugs"), row)) for row in connection.execute("SELECT * FROM baseline_membership_slugs WHERE cutover_snapshot_seq=? ORDER BY slug", (cutover,))]
+    observations = [dict(zip(_columns(connection, "historical_star_observations"), row)) for row in connection.execute("SELECT * FROM historical_star_observations WHERE first_observed_snapshot_seq=? ORDER BY source,slug,observation_date,source_row_sha256", (cutover,))]
     table_rows = {
         "snapshot_runs": [run_value],
         "baseline_sources": baselines,
@@ -1342,16 +1379,28 @@ def _project_commit_rows(
             parents_by_sha = {row["commit_sha"]: json.loads(row["parent_shas_json"]) for row in rows}
             frontier = [current_head]
             visited: set[str] = set()
+            reached_previous = False
             while frontier:
                 candidate = frontier.pop()
                 if candidate == prior_head:
-                    break
+                    reached_previous = True
+                    continue
                 if candidate in visited:
                     continue
                 visited.add(candidate)
                 frontier.extend(parents_by_sha.get(candidate, []))
-            else:
+            if not reached_previous:
                 raise ValueError("fast_forward commit chain does not reach previous head")
+            supplied = set(parents_by_sha)
+            if not supplied.issubset(visited):
+                raise ValueError("fast_forward commit lies outside current-to-previous graph")
+            ordinals = {row["commit_sha"]: row["first_observed_ordinal"] for row in rows}
+            if any(
+                row["branch_name"] != current_branch
+                or any(parent in ordinals and ordinals[parent] <= row["first_observed_ordinal"] for parent in json.loads(row["parent_shas_json"]))
+                for row in rows
+            ):
+                raise ValueError("fast_forward commit graph order is invalid")
         elif transition == "history_rewritten":
             if current_branch != prior_branch or current_head == prior_head or rows:
                 raise ValueError("history_rewritten head transition is contradictory")
@@ -1624,6 +1673,10 @@ def record_core_snapshot(candidate_database_path: str | Path, snapshot_payload: 
             latest = connection.execute("SELECT snapshot_seq, snapshot_id, chain_sha256 FROM snapshot_runs ORDER BY snapshot_seq DESC LIMIT 1").fetchone()
             requested_id = _value(snapshot_payload, "snapshot_id", "snapshotId")
             replay = connection.execute("SELECT snapshot_seq, parent_snapshot_seq, parent_snapshot_id, parent_chain_sha256 FROM snapshot_runs WHERE snapshot_id=?", (requested_id,)).fetchone()
+            if replay is not None:
+                if latest is None or replay[0] != latest[0]:
+                    raise ValueError("snapshot replay must be the current latest snapshot")
+                verify_core_snapshot(connection, replay[0])
             parent_rows = None if latest is None else {"tables": {table: _table_row_evidence(connection, table) for table in _NATURAL_KEYS}}
             if replay is not None:
                 seq = replay[0]
@@ -1665,12 +1718,7 @@ def record_core_snapshot(candidate_database_path: str | Path, snapshot_payload: 
                     cutover,
                 )
                 _require_unchanged_legacy_projection(connection, measured_legacy_rows)
-                legacy_rows = {
-                    "baseline_sources": [],
-                    "baseline_membership_slugs": [],
-                    "historical_star_estimates": [],
-                    "historical_star_observations": [],
-                }
+                legacy_rows = measured_legacy_rows
             profiles: list[dict[str, Any]] = []
             next_profile_id = (connection.execute("SELECT COALESCE(MAX(profile_id), 0) + 1 FROM repository_profiles").fetchone()[0])
             normalized: list[tuple[dict[str, Any], dict[str, Any], tuple[str, str, str, str, str | None, str | None]]] = []
@@ -1713,13 +1761,13 @@ def record_core_snapshot(candidate_database_path: str | Path, snapshot_payload: 
             }
             previous_slugs = set() if latest is None else {row[0] for row in connection.execute("SELECT slug FROM snapshot_items WHERE snapshot_seq = ?", (latest[0],))}
             historical = {row[0] for row in connection.execute("SELECT slug FROM baseline_membership_slugs")} | {row[0] for row in connection.execute("SELECT DISTINCT slug FROM snapshot_items")}
-            previous_heads = {} if latest is None else {
-                row[0]: (row[1], row[2])
+            previous_heads: dict[str, tuple[str, str]] = {}
+            if latest is not None:
                 for row in connection.execute(
-                    "SELECT i.slug, p.default_branch, i.default_branch_head_sha FROM snapshot_items i JOIN repository_profiles p ON p.profile_id=i.profile_id AND p.slug=i.slug WHERE i.snapshot_seq=?",
+                    "SELECT i.slug, p.default_branch, i.default_branch_head_sha FROM snapshot_items i JOIN repository_profiles p ON p.profile_id=i.profile_id AND p.slug=i.slug WHERE i.snapshot_seq <= ? ORDER BY i.snapshot_seq",
                     (latest[0],),
-                )
-            }
+                ):
+                    previous_heads[row[0]] = (row[1], row[2])
             for repository, profile, hashes in normalized:
                 slug = profile["slug"]
                 head = heads.get(slug)
@@ -1750,6 +1798,15 @@ def record_core_snapshot(candidate_database_path: str | Path, snapshot_payload: 
                 if not isinstance(estimate_rows, list):
                     raise ValueError("OSS estimate rows are invalid")
                 estimate_payload = _value(estimate, "source_payload_sha256", "sourcePayloadSha256")
+                previous_head = None if slug not in previous_heads else previous_heads[slug][1]
+                stated_previous_head = _value(
+                    repository,
+                    "previous_default_branch_head_sha",
+                    "previousDefaultBranchHeadSha",
+                    default=previous_head,
+                )
+                if stated_previous_head != previous_head:
+                    raise ValueError("previous default branch head does not match last observed head")
                 item = {
                     "snapshot_seq": seq, "slug": slug, "profile_id": profile["profile_id"], "display_rank": _value(repository, "display_rank", "displayRank"),
                     "rank_daily": _value(repository, "rank_daily", "rankDaily"), "rank_weekly": _value(repository, "rank_weekly", "rankWeekly"), "rank_monthly": _value(repository, "rank_monthly", "rankMonthly"),
@@ -1757,7 +1814,7 @@ def record_core_snapshot(candidate_database_path: str | Path, snapshot_payload: 
                     "language_color_daily": _value(repository, "language_color_daily", "languageColorDaily"), "language_color_weekly": _value(repository, "language_color_weekly", "languageColorWeekly"), "language_color_monthly": _value(repository, "language_color_monthly", "languageColorMonthly"),
                     "selected_language_color": _value(repository, "selected_language_color", "selectedLanguageColor"), "selected_language_color_source_period": _value(repository, "selected_language_color_source_period", "selectedLanguageColorSourcePeriod"),
                     "stars": _value(repository, "stars"), "forks": _value(repository, "forks"), "watchers_count": _value(repository, "watchers_count", "watchersCount"), "subscribers": _value(repository, "subscribers"), "open_issues_and_pull_requests": _value(repository, "open_issues_and_pull_requests", "openIssuesAndPullRequests"), "contributors": _value(repository, "contributors"),
-                    "updated_at": _value(repository, "updated_at", "updatedAt"), "pushed_at": _value(repository, "pushed_at", "pushedAt"), "default_branch_head_sha": _value(head, "head_sha", "headSha"), "previous_default_branch_head_sha": None if latest is None else _value(repository, "previous_default_branch_head_sha", "previousDefaultBranchHeadSha", default=latest and connection.execute("SELECT default_branch_head_sha FROM snapshot_items WHERE snapshot_seq = ? AND slug = ?", (latest[0], slug)).fetchone()[0] if slug in previous_slugs else None), "head_transition": _value(head, "transition"),
+                    "updated_at": _value(repository, "updated_at", "updatedAt"), "pushed_at": _value(repository, "pushed_at", "pushedAt"), "default_branch_head_sha": _value(head, "head_sha", "headSha"), "previous_default_branch_head_sha": stated_previous_head, "head_transition": _value(head, "transition"),
                     "readme_status": "absent" if readme_path is None else "present", "readme_path": readme_path, "readme_blob_sha": readme_blob, "readme_content_sha256": readme_content, "membership_status": membership,
                     "release_count": len(inventory), "release_inventory_sha256": _digest(inventory), "latest_release_id": latest_release,
                     "estimate_collection_status": "complete_empty" if not estimate_rows else "complete_nonempty", "estimate_source_payload_sha256": estimate_payload, "estimate_point_count": len(estimate_rows),
@@ -1856,12 +1913,16 @@ def main(argv: list[str] | None = None) -> int:
     snapshot = _load_json_file(args.snapshot, "snapshot")
     events = _load_json_file(args.events, "events")
     index = _load_json_file(args.enrichment_index, "enrichment index")
-    evidence = _load_json_file(args.parent_evidence, "parent evidence")
+    evidence_envelope = _load_json_file(args.parent_evidence, "parent evidence")
+    evidence, legacy_receipt = _parse_parent_evidence_envelope(evidence_envelope)
     state_path = Path(args.readme_state)
     state = _load_json_file(state_path, "README state") if state_path.exists() else {}
     if not isinstance(snapshot, dict):
         raise ValueError("snapshot must be an object")
     snapshot["enrichment_index"] = index
+    if "legacy_baseline_receipt" in snapshot or "legacyBaselineReceipt" in snapshot:
+        raise ValueError("snapshot must not duplicate the reviewed legacy baseline receipt")
+    snapshot["legacy_baseline_receipt"] = legacy_receipt
     legacy = {"legacy_star_observations": args.legacy_star_database, "legacy_trending_membership": args.legacy_membership_database, "legacy_public_star_history": args.legacy_public_star_history}
     snapshot["legacy_baselines"] = legacy
     candidate = prepare_candidate_database(args.parent_database, args.candidate_database, evidence, legacy)
