@@ -21,6 +21,7 @@ const SHA = /^[a-f0-9]{40}$/;
 const SLUG = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+const collectionContexts = new WeakSet();
 
 const defaultSleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const stableJson = value => {
@@ -36,9 +37,11 @@ const normalizeSlug = slug => {
   return slug;
 };
 const repoPath = slug => `/repos/${slug.split("/").map(encodeURIComponent).join("/")}`;
-const eventError = (message, cause) => new Error(message, cause === undefined ? undefined : { cause });
+// Network/parser details can contain upstream bodies or credentials. Event
+// errors deliberately keep only an allowlisted operation label and status.
+const eventError = message => new Error(message);
 
-class EventBudget {
+export class EventBudget {
   constructor({ now = Date.now, originEpochMs } = {}) {
     if (typeof now !== "function") throw new Error("Event clock must be a function");
     this.now = now;
@@ -47,9 +50,15 @@ class EventBudget {
     this.deadlineEpochMs = this.originEpochMs + EVENT_LIMITS.eventWindowMs;
     this.logical = 0;
     this.attempts = 0;
+    this.lastNow = this.originEpochMs;
   }
 
-  remaining() { return this.deadlineEpochMs - this.now(); }
+  remaining() {
+    const current = this.now();
+    if (!Number.isSafeInteger(current) || current < this.lastNow) throw new Error("Event clock regressed");
+    this.lastNow = current;
+    return this.deadlineEpochMs - current;
+  }
   admitLogical() {
     if (this.logical >= EVENT_LIMITS.maxLogicalRequests) throw new Error("Event logical request cap exceeded");
     this.logical += 1;
@@ -69,13 +78,22 @@ class EventBudget {
   receipt() { return Object.freeze({ logicalRequests: this.logical, httpAttempts: this.attempts, originEpochMs: this.originEpochMs, eventDeadlineEpochMs: this.deadlineEpochMs }); }
 }
 
+// The workflow creates this once before checkout. Task 1's canonical-fact
+// client and this module both accept its `budget`; neither gets a mutable
+// deadline or numeric cap override.
+export function createEventCollectionContext({ originEpochMs, now = Date.now } = {}) {
+  if (!Number.isSafeInteger(originEpochMs)) throw new Error("Event collection origin must be an integer epoch");
+  const context = Object.freeze({ budget: new EventBudget({ originEpochMs, now }) });
+  collectionContexts.add(context);
+  return context;
+}
+
+export const isEventCollectionContext = value => collectionContexts.has(value);
+
 function retryableStatus(status) { return status === 429 || status >= 500; }
 function retryableError(error) { return error?.name === "AbortError" || error?.name === "TimeoutError"; }
-function retryDelay(response, attempt) {
-  const fixed = EVENT_LIMITS.retryDelaysMs[attempt];
-  const retryAfter = response?.headers?.get("retry-after");
-  const headerDelay = retryAfter !== null && /^\d+$/.test(retryAfter) ? Number(retryAfter) * 1000 : 0;
-  return Math.max(fixed, headerDelay);
+function retryDelay(_response, attempt) {
+  return EVENT_LIMITS.retryDelaysMs[attempt];
 }
 
 async function request(url, { fetchImpl, sleep, budget, headers = {}, allow304 = false }) {
@@ -108,29 +126,45 @@ async function request(url, { fetchImpl, sleep, budget, headers = {}, allow304 =
 
 async function json(response, label) {
   if (!response?.ok) throw new Error(`${label} returned ${response?.status}`);
-  try { return await response.json(); } catch (error) { throw eventError(`Invalid JSON for ${label}`, error); }
+  try { return await response.json(); } catch { throw new Error(`Invalid JSON for ${label}`); }
 }
 
 function releaseRecord(slug, value) {
-  const allowed = ["id", "tag_name", "name", "target_commitish", "draft", "prerelease", "created_at", "published_at", "html_url"];
+  const canonicalSlug = normalizeSlug(slug).toLowerCase();
+  const allowed = ["release_id", "tag_name", "name", "target_commitish", "draft", "prerelease", "created_at", "published_at", "html_url"];
   if (!value || typeof value !== "object" || !Number.isSafeInteger(value.id) || value.id < 1
     || ["tag_name", "target_commitish", "html_url"].some(key => typeof value[key] !== "string")
     || (value.name !== null && typeof value.name !== "string") || typeof value.draft !== "boolean" || typeof value.prerelease !== "boolean"
-    || !validTime(value.created_at, true) || !validTime(value.published_at, true)) throw new Error(`Invalid release for ${slug}`);
+    || !validTime(value.created_at) || !validTime(value.published_at, true)) throw new Error(`Invalid release for ${slug}`);
   const url = new URL(value.html_url);
   if (url.protocol !== "https:" || url.hostname !== "github.com") throw new Error(`Invalid release for ${slug}`);
-  const record = Object.fromEntries(allowed.map(key => [key, value[key]]));
-  return { slug, ...record, metadataSha256: canonicalHash(record) };
+  const record = {
+    release_id: value.id,
+    tag_name: value.tag_name,
+    name: value.name,
+    target_commitish: value.target_commitish,
+    draft: value.draft,
+    prerelease: value.prerelease,
+    created_at: new Date(value.created_at).toISOString(),
+    published_at: value.published_at === null ? null : new Date(value.published_at).toISOString(),
+    html_url: value.html_url,
+  };
+  return { slug: canonicalSlug, ...Object.fromEntries(allowed.map(key => [key, record[key]])), metadata_sha256: canonicalHash(record) };
 }
 
 function releaseNext(link, slug, page) {
   if (link === null) return null;
-  const matches = [...link.matchAll(/<([^>]+)>\s*;\s*rel="([^"]+)"/g)].filter(([, , rel]) => rel === "next");
+  if (typeof link !== "string" || !link.trim()) throw new Error(`Invalid release Link for ${slug}`);
+  const links = link.split(",").map(part => /^\s*<([^>]+)>\s*;\s*rel="([a-z]+)"\s*$/.exec(part));
+  if (links.some(value => value === null)) throw new Error(`Invalid release Link for ${slug}`);
+  const matches = links.filter(([, , rel]) => rel === "next");
+  if (matches.length > 1) throw new Error(`Invalid release Link for ${slug}`);
   if (!matches.length) return null;
-  if (matches.length !== 1) throw new Error(`Invalid release Link for ${slug}`);
-  const value = new URL(matches[0][1]);
+  let value;
+  try { value = new URL(matches[0][1]); } catch { throw new Error(`Invalid release Link for ${slug}`); }
   const expected = repoPath(slug) + "/releases";
   if (value.protocol !== "https:" || value.hostname !== "api.github.com" || value.pathname !== expected
+    || value.port !== "" || value.hash
     || value.searchParams.getAll("per_page").join() !== "100" || value.searchParams.getAll("page").length !== 1
     || Number(value.searchParams.get("page")) !== page + 1 || [...value.searchParams.keys()].some(key => key !== "per_page" && key !== "page")) {
     throw new Error(`Invalid release Link for ${slug}`);
@@ -150,10 +184,11 @@ async function collectReleaseInventory(slug, context) {
     if (page === EVENT_LIMITS.maxReleasePages && next !== null) throw new Error(`Release page cap exceeded for ${slug}`);
     const records = value.map(entry => releaseRecord(slug, entry));
     for (const record of records) {
-      if (seenIds.has(record.id)) throw new Error(`Duplicate release id for ${slug}`);
-      seenIds.add(record.id);
+      if (seenIds.has(record.release_id)) throw new Error(`Duplicate release id for ${slug}`);
+      seenIds.add(record.release_id);
     }
-    pages.push({ url, etag: response.headers.get("etag"), canonicalBody: stableJson(value), next, records });
+    const etag = response.headers.get("etag");
+    pages.push({ url, etag: etag && !/^W\//i.test(etag) ? etag : null, canonicalBody: stableJson(value), next, records });
     if (next === null) break;
     url = next;
   }
@@ -175,9 +210,9 @@ async function latestRelease(slug, inventory, context) {
   const response = await request(url, context);
   if (response.status === 404) return null;
   const record = releaseRecord(slug, await json(response, `latest release for ${slug}`));
-  const existing = inventory.flatMap(page => page.records).find(value => value.id === record.id);
-  if (!existing || existing.metadataSha256 !== record.metadataSha256) throw new Error(`Latest release is absent from complete inventory for ${slug}`);
-  return record.id;
+  const existing = inventory.flatMap(page => page.records).find(value => value.release_id === record.release_id);
+  if (!existing || existing.metadata_sha256 !== record.metadata_sha256) throw new Error(`Latest release is absent from complete inventory for ${slug}`);
+  return record.release_id;
 }
 
 function priorFor(previous, slug) {
@@ -234,6 +269,7 @@ async function collectCommits(repo, previous, context) {
       // candidate is deduplicated by SHA; absence of the prior head is still
       // diagnosed below, so overlap cannot make a gap look successful.
       if (seen.has(record.sha)) continue;
+      if (page === 1 && seen.size === 0 && record.sha !== headSha) throw new Error(`Current HEAD changed during commit collection for ${slug}`);
       seen.add(record.sha);
       if (record.sha === prior.headSha) { found = true; break; }
       records.push(record);
@@ -265,7 +301,8 @@ export function validateOssInsightResponse(value) {
     || !Array.isArray(rows) || result.row_count !== rows.length || result.row_affect !== 0 || !Number.isInteger(result.limit) || result.limit < rows.length || rows.length > EVENT_LIMITS.maxOssRows) throw new Error("Invalid OSS Insight envelope");
   let previousDate = "";
   const normalized = rows.map(row => {
-    if (!exactKeys(row, ["date", "stargazers"]) || typeof row.date !== "string" || !DATE.test(row.date) || Number.isNaN(new Date(`${row.date}T00:00:00Z`).getTime())) throw new Error("Invalid OSS Insight row");
+    const date = typeof row?.date === "string" ? new Date(`${row.date}T00:00:00.000Z`) : null;
+    if (!exactKeys(row, ["date", "stargazers"]) || !DATE.test(row.date) || Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== row.date) throw new Error("Invalid OSS Insight row");
     if (row.date <= previousDate) throw new Error("OSS Insight dates must be ascending unique");
     previousDate = row.date;
     return { date: row.date, stars: ossInteger(row.stargazers) };
@@ -283,7 +320,7 @@ async function collectOss(slug, context) {
   const bytes = Buffer.from(await response.arrayBuffer());
   if (bytes.length > EVENT_LIMITS.maxOssBytes) throw new Error(`OSS Insight body exceeds ${EVENT_LIMITS.maxOssBytes} bytes for ${slug}`);
   let parsed;
-  try { parsed = JSON.parse(bytes.toString("utf8")); } catch (error) { throw eventError(`Invalid OSS Insight JSON for ${slug}`, error); }
+  try { parsed = JSON.parse(bytes.toString("utf8")); } catch { throw new Error(`Invalid OSS Insight JSON for ${slug}`); }
   return { slug, ...validateOssInsightResponse(parsed) };
 }
 
@@ -291,12 +328,16 @@ export async function collectRepositoryEvents(repositories, {
   previous = {},
   fetchImpl = globalThis.fetch,
   sleep = defaultSleep,
+  collectionContext = null,
   now = Date.now,
   originEpochMs,
 } = {}) {
   if (!Array.isArray(repositories) || repositories.length < 1 || repositories.length > EVENT_LIMITS.maxRepositories) throw new Error(`Repository events require 1-${EVENT_LIMITS.maxRepositories} repositories`);
   if (typeof fetchImpl !== "function" || typeof sleep !== "function") throw new Error("fetchImpl and sleep must be functions");
-  const budget = new EventBudget({ now, originEpochMs });
+  if (collectionContext !== null && (!isEventCollectionContext(collectionContext) || originEpochMs !== undefined || now !== Date.now)) {
+    throw new Error("Event collection context rejects numeric or clock overrides");
+  }
+  const budget = collectionContext?.budget ?? new EventBudget({ now, originEpochMs });
   const context = { fetchImpl, sleep, budget };
   const releases = [];
   const latestReleaseIds = new Map();

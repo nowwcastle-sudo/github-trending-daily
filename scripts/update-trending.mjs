@@ -8,7 +8,7 @@ import {
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { readRunContext, validateRunContext } from "./run-context.mjs";
-import { collectRepositoryEvents } from "./collect-repository-events.mjs";
+import { collectRepositoryEvents, isEventCollectionContext } from "./collect-repository-events.mjs";
 
 const PERIODS = {
   daily: { field: "stars_daily", label: "today" },
@@ -218,18 +218,24 @@ function createGitHubClient({
   maxRequests = DEFAULT_MAX_REQUESTS,
   maxAttempts = DEFAULT_MAX_ATTEMPTS,
   maxRetryDelay = 300000,
+  collectionBudget = null,
 } = {}) {
   if (typeof fetchImpl !== "function" || typeof sleep !== "function") throw new Error("fetchImpl and sleep must be functions");
   if (!Number.isSafeInteger(maxRequests) || maxRequests < 1) throw new Error("maxRequests must be a positive integer");
   if (!Number.isSafeInteger(maxAttempts) || maxAttempts < 1 || maxAttempts > 3) throw new Error("maxAttempts must be between 1 and 3");
   if (!Number.isSafeInteger(maxRetryDelay) || maxRetryDelay < 0) throw new Error("maxRetryDelay must be a non-negative integer");
+  if (collectionBudget !== null && ["admitLogical", "admitAttempt", "admitSleep"].some(method => typeof collectionBudget?.[method] !== "function")) {
+    throw new Error("collectionBudget must be an immutable event budget");
+  }
 
   let requestCount = 0;
   return {
     get requestCount() { return requestCount; },
     async request(path) {
+      collectionBudget?.admitLogical();
       for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
         if (requestCount >= maxRequests) throw new RequestLimitError(`GitHub request limit ${maxRequests} exceeded`);
+        collectionBudget?.admitAttempt();
         requestCount += 1;
         let response;
         try {
@@ -244,11 +250,15 @@ function createGitHubClient({
         } catch (error) {
           if (!isTimeout(error)) throw new Error(`GitHub request failed for ${path}`, { cause: error });
           if (attempt + 1 >= maxAttempts) throw new Error(`GitHub request timed out for ${path}`);
-          await sleep(boundedDelay([2000, 8000][attempt], maxRetryDelay));
+          const delay = collectionBudget ? [2000, 8000][attempt] : boundedDelay([2000, 8000][attempt], maxRetryDelay);
+          collectionBudget?.admitSleep(delay);
+          await sleep(delay);
           continue;
         }
         if (!shouldRetry(response) || attempt + 1 >= maxAttempts) return response;
-        await sleep(retryDelay(response, attempt, maxRetryDelay));
+        const delay = collectionBudget ? [2000, 8000][attempt] : retryDelay(response, attempt, maxRetryDelay);
+        collectionBudget?.admitSleep(delay);
+        await sleep(delay);
       }
       throw new Error(`GitHub request failed for ${path}`);
     },
@@ -311,7 +321,7 @@ function validTimestamp(value, nullable = false) {
 }
 
 function assertRepoMetadata(value, slug) {
-  const counts = [value?.stargazers_count, value?.forks_count, value?.open_issues_count, value?.subscribers_count];
+  const counts = [value?.stargazers_count, value?.forks_count, value?.watchers_count, value?.open_issues_count, value?.subscribers_count];
   const topics = value?.topics;
   if (
     typeof value?.full_name !== "string"
@@ -470,6 +480,7 @@ export async function fetchRepositoryFacts(slug, options = {}) {
     pushed_at: metadata.pushed_at,
     stars: metadata.stargazers_count,
     subscribers: metadata.subscribers_count,
+    watchers_count: metadata.watchers_count,
     topics: [...metadata.topics],
     updated_at: metadata.updated_at,
   };
@@ -563,6 +574,7 @@ export async function fetchRepositoryFacts(slug, options = {}) {
     tag_rule_version: TAG_RULE_VERSION,
     topics: repositoryFacts.topics,
     updated_at: repositoryFacts.updated_at,
+    watchers_count: repositoryFacts.watchers_count,
   };
 }
 
@@ -628,11 +640,12 @@ export async function enrichTrendingRepositories(discovered, {
   maxRequests = DEFAULT_MAX_REQUESTS,
   maxAttempts = DEFAULT_MAX_ATTEMPTS,
   maxRetryDelay = 300000,
+  collectionBudget = null,
 } = {}) {
   if (!Array.isArray(discovered) || discovered.length < 10 || discovered.length > 75) {
     throw new Error("Discovered repositories must contain 10-75 entries");
   }
-  const client = createGitHubClient({ fetchImpl, sleep, token, maxRequests, maxAttempts, maxRetryDelay });
+  const client = createGitHubClient({ fetchImpl, sleep, token, maxRequests, maxAttempts, maxRetryDelay, collectionBudget });
   const requiredRequests = discovered.length * GITHUB_REQUESTS_PER_REPOSITORY * maxAttempts;
   if (maxRequests < requiredRequests) {
     throw new RequestLimitError(`GitHub request budget ${maxRequests} requires at least ${requiredRequests} for ${discovered.length} repositories`);
@@ -670,9 +683,14 @@ export async function enrichTrendingRepositories(discovered, {
 export async function collectTrendingFactsAndEvents(discovered, {
   factOptions = {},
   eventOptions = {},
+  collectionContext,
 } = {}) {
-  const facts = await enrichTrendingRepositories(discovered, factOptions);
-  const events = await collectRepositoryEvents(facts, eventOptions);
+  if (!isEventCollectionContext(collectionContext)) throw new Error("An immutable event collection context is required");
+  if (["maxRequests", "maxAttempts", "maxRetryDelay"].some(key => Number.isFinite(factOptions[key]))) {
+    throw new Error("Transactional fact collection rejects numeric overrides");
+  }
+  const facts = await enrichTrendingRepositories(discovered, { ...factOptions, collectionBudget: collectionContext.budget });
+  const events = await collectRepositoryEvents(facts, { ...eventOptions, collectionContext });
   return { facts, events };
 }
 

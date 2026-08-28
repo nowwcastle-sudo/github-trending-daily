@@ -6,6 +6,7 @@ import { join } from "node:path";
 import test from "node:test";
 
 import { createRunContext } from "../scripts/run-context.mjs";
+import { createEventCollectionContext } from "../scripts/collect-repository-events.mjs";
 
 import {
   buildTrendNote,
@@ -84,13 +85,31 @@ test("repository facts expose the complete allowlist and no private fields", asy
     "license_spdx", "open_issues_and_pull_requests", "primary_language", "provenance", "readme_blob_sha",
     "readme_content_sha256", "readme_path", "readme_status",
     "pushed_at", "rank_daily", "rank_monthly", "rank_weekly", "slug", "stars",
-    "subscribers", "tag_rule_version", "topics", "updated_at",
+    "subscribers", "tag_rule_version", "topics", "updated_at", "watchers_count",
   ].sort();
   const facts = await fetchRepositoryFacts("Owner/Repo", { fetchImpl: canonicalGithubFetch() });
 
   assert.deepEqual(Object.keys(facts).sort(), expectedRepositoryFactKeys);
   assert.equal("owner" in facts, false);
   assert.equal("permissions" in facts, false);
+});
+
+test("stars, watchers_count, and subscribers stay independent in facts and provenance", async () => {
+  const base = await fetchRepositoryFacts("owner/repo-0", { fetchImpl: canonicalGithubFetch() });
+  const swapped = await fetchRepositoryFacts("owner/repo-0", {
+    fetchImpl: async (url, options) => {
+      const response = await canonicalGithubFetch()(url, options);
+      if (new URL(url).pathname === "/repos/owner/repo-0") {
+        const value = await response.json();
+        [value.watchers_count, value.subscribers_count] = [value.subscribers_count, value.watchers_count];
+        return jsonResponse(200, value);
+      }
+      return response;
+    },
+  });
+  assert.deepEqual([base.stars, base.watchers_count, base.subscribers], [100, 11, 7]);
+  assert.deepEqual([swapped.stars, swapped.watchers_count, swapped.subscribers], [100, 7, 11]);
+  assert.notEqual(base.provenance.repository.fact_sha256, swapped.provenance.repository.fact_sha256);
 });
 
 test("repository provenance hash is exact and independent of Trending language color", async () => {
@@ -119,7 +138,7 @@ test("repository provenance hash is exact and independent of Trending language c
     },
   });
 
-  assert.equal(first.provenance.repository.fact_sha256, "f349aac21efe70d2cf6a22826ab9145759c7d94d785e935ddc84565e6fdf8717");
+  assert.equal(first.provenance.repository.fact_sha256, "f455c059faf06da5584278d75c94282d9181d2a4c428ffffddcbfcf677fdbbc3");
   assert.equal(second.provenance.repository.fact_sha256, first.provenance.repository.fact_sha256);
   assert.deepEqual(first.provenance.trending.language_color_selection, {
     rule: "daily_then_weekly_then_monthly",
@@ -375,6 +394,7 @@ function successfulGithubFetch({ failures = new Map(), requests = [] } = {}) {
       stargazers_count: 100,
       forks_count: 20,
       open_issues_count: 3,
+      watchers_count: 11,
       subscribers_count: 7,
       archived: false,
       fork: false,
@@ -415,10 +435,22 @@ test("transactional boundary completes facts and events before paid enrichment",
     if (parsed.pathname.endsWith("/commits")) return jsonResponse(200, []);
     return rest(url, options);
   };
-  const result = await collectTrendingFactsAndEvents(discoveredRepos(), { factOptions: { fetchImpl }, eventOptions: { fetchImpl } });
+  const result = await collectTrendingFactsAndEvents(discoveredRepos(), { factOptions: { fetchImpl }, eventOptions: { fetchImpl }, collectionContext: createEventCollectionContext({ originEpochMs: Date.now() }) });
   assert.equal(result.facts.length, 10);
   assert.equal(result.events.releases.length, 10);
   assert.equal(result.events.estimates.every(value => value.rows.length === 0), true);
+  assert.equal(result.events.budgetReceipt.logicalRequests, 90);
+  assert.equal(result.events.budgetReceipt.httpAttempts, 90);
+});
+
+test("transactional facts reject numeric request-budget overrides", async () => {
+  await assert.rejects(
+    collectTrendingFactsAndEvents(discoveredRepos(), {
+      factOptions: { maxRequests: 1 },
+      collectionContext: createEventCollectionContext({ originEpochMs: Date.now() }),
+    }),
+    /rejects numeric overrides/,
+  );
 });
 
 test("enriches every repository from canonical GitHub sources", async () => {
@@ -439,6 +471,7 @@ test("enriches every repository from canonical GitHub sources", async () => {
   assert.equal(repos[0].language_color, null);
   assert.equal(repos[0].open_issues_and_pull_requests, 3);
   assert.equal(repos[0].subscribers, 7);
+  assert.equal(repos[0].watchers_count, 11);
   assert.equal(repos[0].default_branch_head_sha, "b".repeat(40));
   assert.equal(repos[0].readme_blob_sha, "a".repeat(40));
   assert.match(repos[0].provenance.repository.fact_sha256, /^[a-f0-9]{64}$/);

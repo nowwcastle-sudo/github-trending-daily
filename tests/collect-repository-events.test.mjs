@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   collectRepositoryEvents,
+  createEventCollectionContext,
   validateOssInsightResponse,
 } from "../scripts/collect-repository-events.mjs";
 
@@ -64,7 +65,7 @@ function successfulFetch({ releasePages = [[release(1), release(2)]], commits = 
 
 test("release baseline follows all pages and excludes bodies/assets", async () => {
   const events = await collectRepositoryEvents([repo], { fetchImpl: successfulFetch({ releasePages: [[release(1)], [release(2)]] }) });
-  assert.deepEqual(events.releases.map(value => value.id), [1, 2]);
+  assert.deepEqual(events.releases.map(value => value.release_id), [1, 2]);
   assert.equal("body" in events.releases[0], false);
   assert.equal("assets" in events.releases[0], false);
   assert.equal(events.latestReleaseIds.get("owner/repo"), 1);
@@ -153,14 +154,16 @@ test("all 75 candidates share bounded requests and an immutable event deadline",
 
 test("terminal retry counts every attempt and OSS rejects 10,001 rows and malformed numbers", async () => {
   let attempts = 0;
+  const sleeps = [];
   await assert.rejects(collectRepositoryEvents([repo], {
     fetchImpl: async (url, options) => {
-      if (new URL(url).pathname.endsWith("/releases")) { attempts += 1; return response(503, { message: "temporary" }); }
+      if (new URL(url).pathname.endsWith("/releases")) { attempts += 1; return response(503, { message: "temporary" }, { "retry-after": "999" }); }
       return successfulFetch()(url, options);
     },
-    sleep: async () => {},
+    sleep: async milliseconds => { sleeps.push(milliseconds); },
   }), /release inventory.*503/);
   assert.equal(attempts, 3);
+  assert.deepEqual(sleeps, [2000, 8000]);
   const oversized = Array.from({ length: 10_001 }, (_, index) => {
     const day = new Date(Date.UTC(2000, 0, 1 + index)).toISOString().slice(0, 10);
     return { date: day, stargazers: index };
@@ -169,4 +172,93 @@ test("terminal retry counts every attempt and OSS rejects 10,001 rows and malfor
   for (const invalid of ["+1", " 1", "01", "1e2", "9007199254740992", -1, 1.5, null]) {
     assert.throws(() => validateOssInsightResponse(oss([{ date: "2025-01-01", stargazers: invalid }])), /stargazers/);
   }
+});
+
+test("release records normalize the DB identity and weak ETags require byte-equivalent revalidation", async () => {
+  let calls = 0;
+  const uppercase = { ...repo, slug: "Owner/Repo" };
+  const events = await collectRepositoryEvents([uppercase], {
+    fetchImpl: async (url, options) => {
+      const value = new URL(url);
+      if (value.pathname.endsWith("/releases/latest")) return response(200, release(1));
+      if (value.pathname.endsWith("/releases")) {
+        calls += 1;
+        return response(200, [release(calls === 2 ? 2 : 1)], { etag: 'W/"weak"' });
+      }
+      return successfulFetch()(url, options);
+    },
+  }).catch(error => error);
+  assert.match(events.message, /Release revalidation changed/);
+  assert.equal(calls, 2);
+  const identity = await collectRepositoryEvents([uppercase], { fetchImpl: successfulFetch() });
+  assert.deepEqual(Object.keys(identity.releases[0]).sort(), ["created_at", "draft", "html_url", "metadata_sha256", "name", "prerelease", "published_at", "release_id", "slug", "tag_name", "target_commitish"]);
+  assert.equal(identity.releases[0].slug, "owner/repo");
+  assert.equal(identity.releases[0].created_at, "2026-08-27T00:00:00.000Z");
+});
+
+test("unquoted Link, a page-one HEAD race, and upstream sentinels fail closed without content leakage", async () => {
+  await assert.rejects(collectRepositoryEvents([repo], {
+    fetchImpl: async (url, options) => new URL(url).pathname.endsWith("/releases")
+      ? response(200, [], { link: '<https://api.github.com/repos/owner/repo/releases?per_page=100&page=2>; rel=next' })
+      : successfulFetch()(url, options),
+  }), /Invalid release Link/);
+  await assert.rejects(collectRepositoryEvents([{ ...repo, default_branch_head_sha: sha("c") }], {
+    previous: { "owner/repo": { branch: "main", headSha: sha("a") } },
+    fetchImpl: async (url, options) => new URL(url).pathname.endsWith("/commits")
+      ? response(200, [commit(sha("d"))])
+      : successfulFetch()(url, options),
+  }), /HEAD changed/);
+  const sentinel = "UPSTREAM-BODY-SENTINEL-DO-NOT-LOG";
+  let caught;
+  try {
+    await collectRepositoryEvents([repo], { fetchImpl: async () => { throw new Error(sentinel); }, sleep: async () => {} });
+  } catch (error) { caught = error; }
+  assert.ok(caught);
+  assert.doesNotMatch(caught.message, new RegExp(sentinel));
+  assert.doesNotMatch(caught.stack, new RegExp(sentinel));
+  assert.equal(caught.cause, undefined);
+});
+
+test("calendar-valid 501-point OSS history retains full storage and independent public slice", () => {
+  const rows = Array.from({ length: 501 }, (_, index) => {
+    const date = new Date(Date.UTC(2024, 0, index + 1)).toISOString().slice(0, 10);
+    return { date, stargazers: index };
+  });
+  const validated = validateOssInsightResponse(oss(rows));
+  assert.equal(validated.rows.length, 501);
+  assert.equal(validated.publicRows.length, 500);
+  assert.deepEqual(validated.rows.at(-1), { date: "2025-05-15", stars: 500 });
+  assert.throws(() => validateOssInsightResponse(oss([{ date: "2025-02-30", stargazers: 1 }])), /Invalid OSS Insight row/);
+});
+
+test("shared context rejects deadline overrides and a regressing clock", async () => {
+  const origin = 1_700_000_000_000;
+  const shared = createEventCollectionContext({ originEpochMs: origin, now: () => origin });
+  await assert.rejects(collectRepositoryEvents([repo], { fetchImpl: successfulFetch(), collectionContext: shared, originEpochMs: origin }), /rejects numeric or clock overrides/);
+  await assert.rejects(collectRepositoryEvents([repo], { fetchImpl: successfulFetch(), collectionContext: { budget: shared.budget } }), /rejects numeric or clock overrides/);
+  const readings = [origin + 1, origin];
+  const clock = createEventCollectionContext({ originEpochMs: origin, now: () => readings.shift() });
+  await assert.rejects(collectRepositoryEvents([repo], { fetchImpl: successfulFetch(), collectionContext: clock }), /clock regressed/);
+});
+
+test("75-repository worst-case pagination fails at the shared logical cap rather than truncating", async () => {
+  const repos = Array.from({ length: 75 }, (_, index) => ({ slug: `owner/cap-${index}`, default_branch: "main", default_branch_head_sha: sha("b") }));
+  const previous = Object.fromEntries(repos.map(value => [value.slug, { branch: "main", headSha: sha("a") }]));
+  await assert.rejects(collectRepositoryEvents(repos, {
+    previous,
+    fetchImpl: async url => {
+      const value = new URL(url);
+      if (value.pathname.endsWith("/releases/latest")) return response(200, release(1));
+      if (value.pathname.endsWith("/releases")) {
+        const page = Number(value.searchParams.get("page"));
+        const link = page < 20 ? { link: `<${value.origin}${value.pathname}?per_page=100&page=${page + 1}>; rel="next"` } : {};
+        return response(200, [release(page)], link);
+      }
+      if (value.pathname.endsWith("/commits")) {
+        return Number(value.searchParams.get("page")) === 20 ? response(200, [commit(sha("a"))]) : response(200, [commit(sha("b"))]);
+      }
+      if (value.hostname === "api.ossinsight.io") return new Response(JSON.stringify(oss([])), { status: 200, headers: { "content-type": "application/json" } });
+      throw new Error("unexpected URL");
+    },
+  }), /logical request cap exceeded/);
 });
