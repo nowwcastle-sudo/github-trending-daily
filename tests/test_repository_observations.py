@@ -131,6 +131,208 @@ def complete_fixture(connection, *, display_slug="owner/repo", applicable=False)
         connection.execute("INSERT INTO artifact_hashes VALUES (?, ?, ?, ?)", (1, f"translations/{display_slug.replace('/', '__')}.json", sha256("b"), 1))
 
 
+def recompute_snapshot_chain(connection, snapshot_seq):
+    snapshot_id, parent_chain, core = connection.execute(
+        "SELECT snapshot_id, parent_chain_sha256, core_payload_sha256 FROM snapshot_runs WHERE snapshot_seq = ?",
+        (snapshot_seq,),
+    ).fetchone()
+    connection.execute(
+        "UPDATE snapshot_runs SET chain_sha256 = ? WHERE snapshot_seq = ?",
+        (canonical_hash({
+            "schema_fingerprint_sha256": PINNED_SCHEMA_FINGERPRINT,
+            "parent_chain_sha256": parent_chain,
+            "core_payload_sha256": core,
+            "snapshot_id": snapshot_id,
+            "snapshot_seq": snapshot_seq,
+        }), snapshot_seq),
+    )
+
+
+def recompute_profile_hash(connection, profile_id=1):
+    row = connection.execute(
+        """SELECT slug, display_slug, description, primary_language, topics_json, license_spdx,
+                  archived, is_fork, default_branch, created_at, field_tags_json, form_tags_json,
+                  tag_rule_version
+           FROM repository_profiles WHERE profile_id = ?""",
+        (profile_id,),
+    ).fetchone()
+    slug, display_slug, description, language, topics, license_spdx, archived, is_fork, branch, created, fields, forms, version = row
+    connection.execute(
+        "UPDATE repository_profiles SET profile_sha256 = ? WHERE profile_id = ?",
+        (canonical_hash({
+            "slug": slug,
+            "display_slug": display_slug,
+            "description": description,
+            "primary_language": language,
+            "topics": json.loads(topics),
+            "license_spdx": license_spdx,
+            "archived": bool(archived),
+            "is_fork": bool(is_fork),
+            "default_branch": branch,
+            "created_at": created,
+            "field_tags": json.loads(fields),
+            "form_tags": json.loads(forms),
+            "tag_rule_version": version,
+        }), profile_id),
+    )
+
+
+def recompute_release_hash(connection, release_id):
+    row = connection.execute(
+        """SELECT slug, release_id, tag_name, name, target_commitish, draft, prerelease,
+                  created_at, published_at, html_url
+           FROM release_versions WHERE release_id = ?""",
+        (release_id,),
+    ).fetchone()
+    slug, identifier, tag, name, target, draft, prerelease, created, published, url = row
+    connection.execute(
+        "UPDATE release_versions SET metadata_sha256 = ? WHERE release_id = ?",
+        (canonical_hash({
+            "slug": slug,
+            "release_id": identifier,
+            "tag_name": tag,
+            "name": name,
+            "target_commitish": target,
+            "draft": bool(draft),
+            "prerelease": bool(prerelease),
+            "created_at": created,
+            "published_at": published,
+            "html_url": url,
+        }), release_id),
+    )
+
+
+def recompute_estimate_hash(connection):
+    source, slug, date, present, stars = connection.execute(
+        "SELECT source, slug, estimate_date, is_present, stars FROM historical_star_estimates"
+    ).fetchone()
+    connection.execute(
+        "UPDATE historical_star_estimates SET point_sha256 = ?",
+        (canonical_hash({"slug": slug, "date": date, "is_present": bool(present), "stars": stars}),),
+    )
+
+
+def recompute_legacy_observation_hash(connection):
+    source, row_id, slug, date, stars, delta, legacy = connection.execute(
+        """SELECT source, legacy_row_id, slug, observation_date, stars, stars_delta,
+                  legacy_source FROM historical_star_observations"""
+    ).fetchone()
+    value = ({"source": source, "slug": slug, "observation_date": date, "stars": stars}
+             if source == "legacy_public_star_history" else
+             {"source": source, "legacy_row_id": row_id, "slug": slug,
+              "observation_date": date, "stars": stars, "stars_delta": delta,
+              "legacy_source": legacy})
+    connection.execute(
+        "UPDATE historical_star_observations SET source_row_sha256 = ?",
+        (canonical_hash(value),),
+    )
+
+
+def recompute_insight_hash(connection, snapshot_seq):
+    columns = (
+        "snapshot_seq", "slug", "previous_observed_snapshot_seq",
+        "observation_gap_milliseconds", "stars_delta_since_previous_observation",
+        "display_rank_delta", "rank_daily_delta", "rank_weekly_delta",
+        "rank_monthly_delta", "insight_rule_version",
+    )
+    row = connection.execute(
+        f"SELECT {', '.join(columns)} FROM repository_insights WHERE snapshot_seq = ?",
+        (snapshot_seq,),
+    ).fetchone()
+    connection.execute(
+        "UPDATE repository_insights SET insight_sha256 = ? WHERE snapshot_seq = ?",
+        (canonical_hash(dict(zip(columns, row))), snapshot_seq),
+    )
+
+
+def three_snapshot_fixture(connection):
+    complete_fixture(connection)
+    connection.execute("DROP TRIGGER snapshot_items_reject_update")
+    connection.execute(
+        "UPDATE snapshot_items SET rank_weekly = 1, gain_weekly = 0, rank_monthly = 1, gain_monthly = 0"
+    )
+    first_id, first_chain = connection.execute(
+        "SELECT snapshot_id, chain_sha256 FROM snapshot_runs WHERE snapshot_seq = 1"
+    ).fetchone()
+    second_id = "20260828010102-bbbbbbbbbbbbbbbb"
+    second_chain = refresh_run(
+        connection, seq=2, snapshot_id=second_id, parent_seq=1, parent_id=first_id,
+        parent_chain=first_chain, utc="2026-08-28T01:01:01.002Z",
+    )
+    refresh_run(
+        connection, seq=3, snapshot_id="20260828010103-cccccccccccccccc", parent_seq=2,
+        parent_id=second_id, parent_chain=second_chain, utc="2026-08-28T01:01:01.003Z",
+    )
+    copy_item(
+        connection, 2, stars=3, display_rank=1, rank_daily=1, gain_daily=0,
+        rank_weekly=1, gain_weekly=0, rank_monthly=1, gain_monthly=0,
+        updated_at="2026-08-28T01:01:01.002Z",
+    )
+    copy_item(
+        connection, 3, stars=7, display_rank=1, rank_daily=1, gain_daily=0,
+        rank_weekly=1, gain_weekly=0, rank_monthly=1, gain_monthly=0,
+        updated_at="2026-08-28T01:01:01.003Z",
+    )
+    for snapshot_seq, previous in ((2, 1), (3, 2)):
+        current = connection.execute(
+            "SELECT display_rank, rank_daily, rank_weekly, rank_monthly, stars FROM snapshot_items WHERE snapshot_seq = ? AND slug = 'owner/repo'",
+            (snapshot_seq,),
+        ).fetchone()
+        prior = connection.execute(
+            "SELECT display_rank, rank_daily, rank_weekly, rank_monthly, stars FROM snapshot_items WHERE snapshot_seq = ? AND slug = 'owner/repo'",
+            (previous,),
+        ).fetchone()
+        current_utc = connection.execute(
+            "SELECT observed_at_utc FROM snapshot_runs WHERE snapshot_seq = ?", (snapshot_seq,)
+        ).fetchone()[0]
+        prior_utc = connection.execute(
+            "SELECT observed_at_utc FROM snapshot_runs WHERE snapshot_seq = ?", (previous,)
+        ).fetchone()[0]
+        gap = int((datetime.strptime(current_utc, "%Y-%m-%dT%H:%M:%S.%fZ") - datetime.strptime(prior_utc, "%Y-%m-%dT%H:%M:%S.%fZ")).total_seconds() * 1000)
+        insight = {
+            "snapshot_seq": snapshot_seq,
+            "slug": "owner/repo",
+            "previous_observed_snapshot_seq": previous,
+            "observation_gap_milliseconds": gap,
+            "stars_delta_since_previous_observation": current[4] - prior[4],
+            "display_rank_delta": prior[0] - current[0],
+            "rank_daily_delta": prior[1] - current[1] if prior[1] is not None and current[1] is not None else None,
+            "rank_weekly_delta": prior[2] - current[2] if prior[2] is not None and current[2] is not None else None,
+            "rank_monthly_delta": prior[3] - current[3] if prior[3] is not None and current[3] is not None else None,
+            "insight_rule_version": "repository-insight-v1",
+        }
+        connection.execute(
+            "INSERT INTO repository_insights VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (*insight.values(), canonical_hash(insight)),
+        )
+
+
+def calendar_fixture(connection):
+    complete_fixture(connection)
+    connection.execute("DROP TRIGGER snapshot_items_reject_update")
+    connection.execute(
+        "UPDATE snapshot_items SET pushed_at = '2026-08-28T01:01:01.001Z'"
+    )
+    release = {
+        "slug": "owner/repo",
+        "release_id": 9,
+        "tag_name": "v9",
+        "name": "Calendar release",
+        "target_commitish": "main",
+        "draft": False,
+        "prerelease": False,
+        "created_at": "2026-08-28T01:01:01.001Z",
+        "published_at": "2026-08-28T01:01:01.002Z",
+        "html_url": "https://github.com/owner/repo/releases/tag/v9",
+    }
+    connection.execute(
+        "INSERT INTO release_versions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (release["slug"], release["release_id"], canonical_hash(release), 1,
+         release["tag_name"], release["name"], release["target_commitish"], 0, 0,
+         release["created_at"], release["published_at"], release["html_url"]),
+    )
+
+
 class RepositoryObservationTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
@@ -347,6 +549,108 @@ class RepositoryObservationTests(unittest.TestCase):
                 _validate_populated_rows(connection)
             connection.execute("ROLLBACK TO insight_probe")
             connection.execute("RELEASE insight_probe")
+
+    def test_three_snapshot_refresh_and_insight_invariants_reject_recomputed_mutations(self):
+        mutations = (
+            ("refresh_sequence", "refresh snapshot sequence", lambda connection: connection.execute(
+                "UPDATE snapshot_runs SET parent_snapshot_seq = 3, parent_snapshot_id = snapshot_id WHERE snapshot_seq = 3")),
+            ("parent_identity", "snapshot parent identity", lambda connection: connection.execute(
+                "UPDATE snapshot_runs SET parent_snapshot_id = ? WHERE snapshot_seq = 3",
+                (connection.execute("SELECT snapshot_id FROM snapshot_runs WHERE snapshot_seq = 1").fetchone()[0],))),
+            ("parent_chain", "snapshot parent chain", lambda connection: (
+                connection.execute("UPDATE snapshot_runs SET parent_chain_sha256 = ? WHERE snapshot_seq = 3", (sha256("f"),)),
+                recompute_snapshot_chain(connection, 3))),
+            ("child_chain_preimage", "snapshot chain hash preimage", lambda connection: connection.execute(
+                "UPDATE snapshot_runs SET chain_sha256 = ? WHERE snapshot_seq = 3", (sha256("f"),))),
+            ("gap", "insight gap or primary deltas", lambda connection: (
+                connection.execute("UPDATE repository_insights SET observation_gap_milliseconds = 2 WHERE snapshot_seq = 3"),
+                recompute_insight_hash(connection, 3))),
+            ("stars_delta", "insight gap or primary deltas", lambda connection: (
+                connection.execute("UPDATE repository_insights SET stars_delta_since_previous_observation = 99 WHERE snapshot_seq = 3"),
+                recompute_insight_hash(connection, 3))),
+            ("display_delta", "insight gap or primary deltas", lambda connection: (
+                connection.execute("UPDATE repository_insights SET display_rank_delta = 1 WHERE snapshot_seq = 3"),
+                recompute_insight_hash(connection, 3))),
+            ("daily_delta", "insight gap or primary deltas", lambda connection: (
+                connection.execute("UPDATE repository_insights SET rank_daily_delta = 1 WHERE snapshot_seq = 3"),
+                recompute_insight_hash(connection, 3))),
+            ("weekly_delta", "insight gap or primary deltas", lambda connection: (
+                connection.execute("UPDATE repository_insights SET rank_weekly_delta = 1 WHERE snapshot_seq = 3"),
+                recompute_insight_hash(connection, 3))),
+            ("monthly_delta", "insight gap or primary deltas", lambda connection: (
+                connection.execute("UPDATE repository_insights SET rank_monthly_delta = 1 WHERE snapshot_seq = 3"),
+                recompute_insight_hash(connection, 3))),
+            ("null_current_rank", "insight gap or primary deltas", lambda connection: (
+                connection.execute("UPDATE snapshot_items SET rank_daily = NULL, gain_daily = NULL WHERE snapshot_seq = 3"),
+                connection.execute("UPDATE repository_insights SET rank_daily_delta = 0 WHERE snapshot_seq = 3"),
+                recompute_insight_hash(connection, 3))),
+            ("null_previous_rank", "insight gap or primary deltas", lambda connection: (
+                connection.execute("UPDATE snapshot_items SET rank_daily = NULL, gain_daily = NULL WHERE snapshot_seq = 2"),
+                connection.execute("UPDATE repository_insights SET rank_daily_delta = NULL WHERE snapshot_seq = 2"),
+                recompute_insight_hash(connection, 2),
+                connection.execute("UPDATE repository_insights SET rank_daily_delta = 0 WHERE snapshot_seq = 3"),
+                recompute_insight_hash(connection, 3))),
+        )
+        for name, error, mutate in mutations:
+            with self.subTest(mutation=name):
+                path = Path(self.temporary.name) / f"three-snapshot-{name}.sqlite"
+                create_database(path)
+                with closing(sqlite3.connect(path)) as connection:
+                    three_snapshot_fixture(connection)
+                    _validate_populated_rows(connection)
+                    connection.execute("DROP TRIGGER snapshot_runs_reject_update")
+                    connection.execute("DROP TRIGGER repository_insights_reject_update")
+                    mutate(connection)
+                    with self.assertRaisesRegex(ValueError, error):
+                        _validate_populated_rows(connection)
+
+    def test_calendar_matrix_rejects_impossible_values_after_recomputing_bound_hashes(self):
+        probes = (
+            ("observed_utc", "snapshot_runs", "observed_at_utc", "2026-02-30T01:01:01.001Z", "UTC timestamp is not an exact calendar millisecond", lambda connection: recompute_snapshot_chain(connection, 1)),
+            ("observed_kst", "snapshot_runs", "observed_at_kst", "2026-02-30T10:01:01.001+09:00", "KST timestamp is not an exact calendar millisecond", lambda connection: recompute_snapshot_chain(connection, 1)),
+            ("stats_date", "snapshot_runs", "stats_date_kst", "2026-02-30", "snapshot UTC, KST, and stats date must name one instant", lambda connection: recompute_snapshot_chain(connection, 1)),
+            ("profile_created", "repository_profiles", "created_at", "2026-02-30T01:01:01.001Z", "UTC timestamp is not an exact calendar millisecond", recompute_profile_hash),
+            ("item_updated", "snapshot_items", "updated_at", "2026-02-30T01:01:01.001Z", "UTC timestamp is not an exact calendar millisecond", lambda connection: None),
+            ("item_pushed", "snapshot_items", "pushed_at", "2026-02-30T01:01:01.001Z", "UTC timestamp is not an exact calendar millisecond", lambda connection: None),
+            ("release_created", "release_versions", "created_at", "2026-02-30T01:01:01.001Z", "UTC timestamp is not an exact calendar millisecond", lambda connection: recompute_release_hash(connection, 9)),
+            ("release_published", "release_versions", "published_at", "2026-02-30T01:01:01.001Z", "UTC timestamp is not an exact calendar millisecond", lambda connection: recompute_release_hash(connection, 9)),
+            ("estimate_date", "historical_star_estimates", "estimate_date", "2026-02-30", "day 30 must be in range", recompute_estimate_hash),
+            ("legacy_observation_date", "historical_star_observations", "observation_date", "2026-02-30", "day 30 must be in range", recompute_legacy_observation_hash),
+            ("commit_authored", "commit_events", "authored_at", "2026-02-30T01:01:01.001Z", "UTC timestamp is not an exact calendar millisecond", lambda connection: None),
+            ("commit_committed", "commit_events", "committed_at", "2026-02-30T01:01:01.001Z", "UTC timestamp is not an exact calendar millisecond", lambda connection: None),
+        )
+        for name, table, column, invalid, error, recompute in probes:
+            with self.subTest(calendar_field=name):
+                path = Path(self.temporary.name) / f"calendar-{name}.sqlite"
+                create_database(path)
+                with closing(sqlite3.connect(path)) as connection:
+                    calendar_fixture(connection)
+                    _validate_populated_rows(connection)
+                    connection.execute(f"DROP TRIGGER IF EXISTS {table}_reject_update")
+                    if table != "snapshot_runs":
+                        connection.execute("DROP TRIGGER snapshot_runs_reject_update")
+                    connection.execute(f"UPDATE {table} SET {column} = ?", (invalid,))
+                    recompute(connection)
+                    with self.assertRaisesRegex(ValueError, error):
+                        _validate_populated_rows(connection)
+
+    def test_hash_bound_calendar_probe_fails_if_timestamp_parser_is_bypassed(self):
+        create_database(self.database)
+        with closing(sqlite3.connect(self.database)) as connection:
+            calendar_fixture(connection)
+            connection.execute("DROP TRIGGER repository_profiles_reject_update")
+            connection.execute(
+                "UPDATE repository_profiles SET created_at = '2026-02-30T01:01:01.001Z'"
+            )
+            recompute_profile_hash(connection)
+            original = ledger._parse_utc
+            try:
+                ledger._parse_utc = lambda value: original("2026-08-28T01:01:01.001Z") if value.startswith("2026-02-30") else original(value)
+                with self.assertRaisesRegex(AssertionError, "ValueError not raised"):
+                    with self.assertRaisesRegex(ValueError, "UTC timestamp is not an exact calendar millisecond"):
+                        _validate_populated_rows(connection)
+            finally:
+                ledger._parse_utc = original
 
     def test_all_persisted_calendar_fields_reject_impossible_values(self):
         create_database(self.database)
