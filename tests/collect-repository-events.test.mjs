@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
+import { inspect } from "node:util";
 
 import {
   collectRepositoryEvents,
@@ -42,6 +43,19 @@ function oss(rows) {
       rows,
     },
   };
+}
+
+function assertContentFreeError(error, sentinel) {
+  const pattern = new RegExp(sentinel);
+  for (let current = error; current; current = current.cause) {
+    assert.doesNotMatch(current.message, pattern);
+    assert.doesNotMatch(current.stack ?? "", pattern);
+    assert.doesNotMatch(String(current), pattern);
+    assert.doesNotMatch(inspect(current, { depth: null }), pattern);
+    assert.doesNotMatch(JSON.stringify(current), pattern);
+    assert.equal(Object.keys(current).some(key => pattern.test(key)), false);
+    assert.equal(Object.values(current).some(value => pattern.test(String(value))), false);
+  }
 }
 
 function successfulFetch({ releasePages = [[release(1), release(2)]], commits = [], ossRows = [{ date: "2026-08-26", stargazers: "12" }] } = {}) {
@@ -209,6 +223,35 @@ test("release records normalize the DB identity and weak ETags require byte-equi
     target_commitish: value.target_commitish,
   };
   assert.equal(value.metadata_sha256, createHash("sha256").update(JSON.stringify(preimage)).digest("hex"));
+});
+
+test("malformed release URLs are rejected without retaining upstream URL content", async () => {
+  const sentinel = "RELEASE-MALFORMED-URL-SENTINEL-DO-NOT-RETAIN";
+  let caught;
+  try {
+    await collectRepositoryEvents([repo], {
+      fetchImpl: async (url, options) => new URL(url).pathname.endsWith("/releases")
+        ? response(200, [{ ...release(1), html_url: `https://%${sentinel}` }], { etag: '"release"' })
+        : successfulFetch()(url, options),
+    });
+  } catch (error) { caught = error; }
+  assert.ok(caught);
+  assertContentFreeError(caught, sentinel);
+});
+
+test("malformed commit URLs are rejected without retaining upstream URL content", async () => {
+  const sentinel = "COMMIT-MALFORMED-URL-SENTINEL-DO-NOT-RETAIN";
+  let caught;
+  try {
+    await collectRepositoryEvents([{ ...repo, default_branch_head_sha: sha("c") }], {
+      previous: { "owner/repo": { branch: "main", headSha: sha("a") } },
+      fetchImpl: async (url, options) => new URL(url).pathname.endsWith("/commits")
+        ? response(200, [{ ...commit(sha("c")), html_url: `https://%${sentinel}` }])
+        : successfulFetch()(url, options),
+    });
+  } catch (error) { caught = error; }
+  assert.ok(caught);
+  assertContentFreeError(caught, sentinel);
 });
 
 test("unquoted Link, a page-one HEAD race, and upstream sentinels fail closed without content leakage", async () => {

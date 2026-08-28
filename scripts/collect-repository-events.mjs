@@ -130,6 +130,12 @@ async function json(response, label) {
   try { return await response.json(); } catch { throw new Error(`Invalid JSON for ${label}`); }
 }
 
+function githubHtmlUrl(value, errorMessage) {
+  let url;
+  try { url = new URL(value); } catch { throw new Error(errorMessage); }
+  if (url.protocol !== "https:" || url.hostname !== "github.com") throw new Error(errorMessage);
+}
+
 function releaseRecord(slug, value) {
   const canonicalSlug = normalizeSlug(slug).toLowerCase();
   const allowed = ["release_id", "tag_name", "name", "target_commitish", "draft", "prerelease", "created_at", "published_at", "html_url"];
@@ -137,8 +143,7 @@ function releaseRecord(slug, value) {
     || ["tag_name", "target_commitish", "html_url"].some(key => typeof value[key] !== "string")
     || (value.name !== null && typeof value.name !== "string") || typeof value.draft !== "boolean" || typeof value.prerelease !== "boolean"
     || !validTime(value.created_at) || !validTime(value.published_at, true)) throw new Error(`Invalid release for ${slug}`);
-  const url = new URL(value.html_url);
-  if (url.protocol !== "https:" || url.hostname !== "github.com") throw new Error(`Invalid release for ${slug}`);
+  githubHtmlUrl(value.html_url, `Invalid release for ${slug}`);
   const record = {
     release_id: value.id,
     tag_name: value.tag_name,
@@ -232,8 +237,7 @@ function commitRecord(slug, branch, value, ordinal) {
     || !validTime(value?.commit?.author?.date) || !validTime(value?.commit?.committer?.date)
     || (value.author !== null && (typeof value.author !== "object" || (value.author.login !== undefined && typeof value.author.login !== "string")))
     || typeof value.html_url !== "string") throw new Error(`Invalid commit for ${slug}`);
-  const url = new URL(value.html_url);
-  if (url.protocol !== "https:" || url.hostname !== "github.com") throw new Error(`Invalid commit for ${slug}`);
+  githubHtmlUrl(value.html_url, `Invalid commit for ${slug}`);
   return { slug, sha, firstObservedOrdinal: ordinal, branch, authoredAt: value.commit.author.date, committedAt: value.commit.committer.date, authorLogin: value.author?.login ?? null, parentShas: parents.map(parent => parent.sha), htmlUrl: value.html_url };
 }
 
