@@ -2099,12 +2099,15 @@ def main(argv: list[str] | None = None) -> int:
     legacy = {"legacy_star_observations": args.legacy_star_database, "legacy_trending_membership": args.legacy_membership_database, "legacy_public_star_history": args.legacy_public_star_history}
     snapshot["legacy_baselines"] = legacy
     candidate = prepare_candidate_database(args.parent_database, args.candidate_database, evidence, legacy)
-    result = record_core_snapshot(candidate, snapshot, events, state)
     try:
-        _write_state_atomically(state_path, state)
-    except Exception as error:
+        result = record_core_snapshot(candidate, snapshot, events, state)
+        try:
+            _write_state_atomically(state_path, state)
+        except Exception as error:
+            raise ValueError("README state candidate write failed") from error
+    except Exception:
         _remove_candidate_database(candidate)
-        raise ValueError("README state candidate write failed") from error
+        raise
     print(json.dumps({"snapshot_seq": result.snapshot_seq, "core_payload_sha256": result.core_payload_sha256, "inserted": result.inserted, "reused": result.reused}, separators=(",", ":")))
     return 0
 

@@ -1885,6 +1885,50 @@ class RepositoryObservationTests(unittest.TestCase):
         for suffix in ("-journal", "-wal", "-shm"):
             self.assertFalse(Path(f"{candidate}{suffix}").exists())
 
+    def test_cli_record_failure_removes_candidate_and_allows_same_path_retry(self):
+        for label in ("state", "fact"):
+            root = Path(self.temporary.name) / label
+            root.mkdir()
+            arguments, candidate, state = writer_cli_case(root)
+            state.write_text(
+                json.dumps({"owner/repo": {"invalid": True}}) if label == "state" else "{}",
+                encoding="utf-8",
+            )
+            original_state = state.read_bytes()
+            snapshot_path = root / "snapshot.json"
+            if label == "fact":
+                payload = json.loads(snapshot_path.read_text(encoding="utf-8"))
+                events = json.loads((root / "events.json").read_text(encoding="utf-8"))
+                payload["enrichmentIndex"] = json.loads((root / "index.json").read_text(encoding="utf-8"))
+                payload["repositories"][0]["archived"] = 0
+                bind_writer_inputs(payload, events)
+                index = payload.pop("enrichmentIndex")
+                snapshot_path.write_text(json.dumps(payload), encoding="utf-8")
+                (root / "events.json").write_text(json.dumps(events), encoding="utf-8")
+                (root / "index.json").write_text(json.dumps(index), encoding="utf-8")
+            with self.assertRaises(ValueError):
+                ledger.main(arguments)
+            self.assertEqual(state.read_bytes(), original_state)
+            self.assertFalse(candidate.exists())
+            for suffix in ("-journal", "-wal", "-shm"):
+                self.assertFalse(Path(f"{candidate}{suffix}").exists())
+
+            if label == "state":
+                state.write_text("{}", encoding="utf-8")
+            else:
+                payload = json.loads(snapshot_path.read_text(encoding="utf-8"))
+                events = json.loads((root / "events.json").read_text(encoding="utf-8"))
+                payload["enrichmentIndex"] = json.loads((root / "index.json").read_text(encoding="utf-8"))
+                payload["repositories"][0]["archived"] = False
+                bind_writer_inputs(payload, events)
+                index = payload.pop("enrichmentIndex")
+                snapshot_path.write_text(json.dumps(payload), encoding="utf-8")
+                (root / "events.json").write_text(json.dumps(events), encoding="utf-8")
+                (root / "index.json").write_text(json.dumps(index), encoding="utf-8")
+            with mock.patch("sys.stdout"):
+                self.assertEqual(ledger.main(arguments), 0)
+            self.assertTrue(candidate.is_file())
+
     def test_repository_fact_requires_one_exact_collector_or_camel_shape(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
         mutations = (
