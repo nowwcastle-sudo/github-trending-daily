@@ -11,10 +11,15 @@ import hashlib
 import json
 import re
 import sqlite3
+import argparse
+import shutil
+from urllib.parse import unquote, urlsplit
 from contextlib import closing
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 
 SCHEMA_VERSION = 1
@@ -570,7 +575,10 @@ def _validate_populated_rows(connection: sqlite3.Connection) -> None:
         if item["latest_release_id"] is not None and item["latest_release_id"] not in {entry[0] for entry in inventory}:
             raise ValueError("latest release must be in its exact inventory")
         display = connection.execute("SELECT display_slug FROM repository_profiles WHERE profile_id = ? AND slug = ?", (item["profile_id"], item["slug"])).fetchone()
-        if item["translation_status"] == "applicable" and (display is None or f"translations/{display[0].replace('/', '__')}.json" not in artifacts_by_snapshot.get(item["snapshot_seq"], set())):
+        # Core recording is deliberately before Task 4 derivative finalization.
+        # Once an artifact set exists it must be complete; its temporary
+        # absence cannot invalidate an otherwise exact enrichment join.
+        if item["translation_status"] == "applicable" and artifacts_by_snapshot.get(item["snapshot_seq"]) and (display is None or f"translations/{display[0].replace('/', '__')}.json" not in artifacts_by_snapshot.get(item["snapshot_seq"], set())):
             raise ValueError("applicable translation is absent from artifacts")
 
     for slug, release_id, digest, _, tag, name, target, draft, prerelease, created, published, url in connection.execute("SELECT * FROM release_versions"):
@@ -685,3 +693,1184 @@ def create_database(path: str | Path) -> None:
         if not created:
             for sidecar in (database, Path(f"{database}-journal"), Path(f"{database}-wal"), Path(f"{database}-shm")):
                 sidecar.unlink(missing_ok=True)
+
+
+# A candidate is a logical continuation of the last-good database. SQLite
+# pages are not an invariant: page layout may change after normal recovery.
+# Every natural key and canonical row digest is therefore retained instead.
+CORE_TABLES = (
+    "schema_meta", "baseline_sources", "baseline_membership_slugs", "snapshot_runs",
+    "repository_profiles", "snapshot_items", "release_versions", "snapshot_release_items",
+    "historical_star_estimates", "historical_star_observations", "commit_events",
+    "readme_change_events",
+)
+
+CORE_PREIMAGE_TABLES = (
+    "snapshot_runs",
+    "baseline_sources",
+    "baseline_membership_slugs",
+    "repository_profiles",
+    "snapshot_items",
+    "release_versions",
+    "snapshot_release_items",
+    "historical_star_estimates",
+    "historical_star_observations",
+    "commit_events",
+    "readme_change_events",
+)
+
+LEGACY_BASELINE_PATHS = {
+    "legacy_star_observations": "data/star-observations.sqlite",
+    "legacy_trending_membership": "data/trending-membership.sqlite",
+    "legacy_public_star_history": "data/legacy-public-star-history.json",
+}
+
+
+@dataclass(frozen=True)
+class CoreRecordResult:
+    inserted: dict[str, int]
+    reused: dict[str, int]
+    core_payload_sha256: str
+    snapshot_seq: int
+
+
+def _canonical_bytes(value: Any) -> bytes:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def _digest(value: Any) -> str:
+    return hashlib.sha256(_canonical_bytes(value)).hexdigest()
+
+
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _connect_candidate(path: Path) -> sqlite3.Connection:
+    connection = sqlite3.connect(path)
+    connection.execute("PRAGMA foreign_keys = ON")
+    if connection.execute("PRAGMA journal_mode = DELETE").fetchone()[0].lower() != "delete":
+        connection.close()
+        raise ValueError("candidate database could not use DELETE journal mode")
+    connection.execute("PRAGMA synchronous = FULL")
+    return connection
+
+
+def _columns(connection: sqlite3.Connection, table: str) -> tuple[str, ...]:
+    return tuple(row[1] for row in connection.execute(f"PRAGMA table_info({table})"))
+
+
+def _natural_key_columns(table: str) -> tuple[str, ...]:
+    return {
+        "schema_meta": ("schema_version",),
+        "baseline_sources": ("source_name",),
+        "baseline_membership_slugs": ("slug",),
+        "snapshot_runs": ("snapshot_seq",),
+        "repository_profiles": ("profile_id",),
+        "snapshot_items": ("snapshot_seq", "slug"),
+        "release_versions": ("slug", "release_id", "metadata_sha256"),
+        "snapshot_release_items": ("snapshot_seq", "slug", "release_id"),
+        "historical_star_estimates": ("source", "slug", "estimate_date", "first_observed_snapshot_seq"),
+        "historical_star_observations": ("source", "slug", "observation_date", "source_row_sha256"),
+        "commit_events": ("slug", "commit_sha"),
+        "readme_change_events": ("snapshot_seq", "slug"),
+        "repository_insights": ("snapshot_seq", "slug"),
+        "artifact_hashes": ("snapshot_seq", "artifact_path"),
+    }[table]
+
+
+def _table_row_evidence(connection: sqlite3.Connection, table: str) -> dict[str, Any]:
+    cols = _columns(connection, table)
+    keys = _natural_key_columns(table)
+    rows = [dict(zip(cols, row)) for row in connection.execute(f"SELECT * FROM {table} ORDER BY {', '.join(keys)}")]
+    logical = [{"key": [row[key] for key in keys], "row_sha256": _digest(row)} for row in rows]
+    return {"count": len(rows), "logical_rows_sha256": _digest(logical), "rows": logical}
+
+
+def parent_database_evidence(database_path: str | Path) -> dict[str, Any]:
+    """Return content-free logical evidence for an existing last-good DB."""
+    path = Path(database_path)
+    if not path.is_file():
+        raise ValueError("parent database is missing")
+    for suffix in ("-journal", "-wal", "-shm"):
+        if Path(f"{path}{suffix}").exists():
+            raise ValueError("parent database has a pending SQLite sidecar")
+    # Parent evidence is explicitly read-only.  In particular it must never
+    # run journal_mode/locking pragmas against last-good history.
+    with closing(sqlite3.connect(path.as_uri() + "?mode=ro", uri=True)) as connection:
+        connection.execute("PRAGMA foreign_keys = ON")
+        validate_schema(connection)
+        integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
+        if integrity != "ok" or connection.execute("PRAGMA foreign_key_check").fetchone() is not None:
+            raise ValueError("parent database integrity check failed")
+        latest = connection.execute("SELECT snapshot_seq, snapshot_id, chain_sha256 FROM snapshot_runs ORDER BY snapshot_seq DESC LIMIT 1").fetchone()
+        if latest is None:
+            raise ValueError("parent database has no successful snapshot")
+        tables = {table: _table_row_evidence(connection, table) for table in _NATURAL_KEYS}
+    return {"byte_size": path.stat().st_size, "file_sha256": _file_sha256(path), "last_snapshot_seq": latest[0], "last_snapshot_id": latest[1], "last_chain_sha256": latest[2], "tables": tables}
+
+
+def _require_parent_evidence(actual: dict[str, Any], expected: dict[str, Any]) -> None:
+    aliases = {"size": "byte_size", "sha256": "file_sha256", "lastSnapshotSeq": "last_snapshot_seq", "lastSnapshotId": "last_snapshot_id", "lastChainSha256": "last_chain_sha256"}
+    expected = {aliases.get(key, key): value for key, value in expected.items()}
+    for key in ("byte_size", "file_sha256", "last_snapshot_seq", "last_snapshot_id", "last_chain_sha256"):
+        if expected.get(key) != actual[key]:
+            raise ValueError(f"parent database evidence mismatch: {key}")
+    expected_tables = expected.get("tables") or expected.get("table_evidence")
+    if not isinstance(expected_tables, dict):
+        raise ValueError("parent database evidence requires table digests")
+    for table in _NATURAL_KEYS:
+        candidate = expected_tables.get(table)
+        if not isinstance(candidate, dict):
+            raise ValueError(f"parent database evidence missing table {table}")
+        actual_table = actual["tables"][table]
+        if candidate.get("count") != actual_table["count"] or candidate.get("logical_rows_sha256", candidate.get("sha256")) != actual_table["logical_rows_sha256"]:
+            raise ValueError(f"parent database logical row evidence mismatch: {table}")
+        if candidate.get("rows") is not None and candidate["rows"] != actual_table["rows"]:
+            raise ValueError(f"parent database row digest mismatch: {table}")
+
+
+def _assert_parent_rows_preserved(connection: sqlite3.Connection, evidence: dict[str, Any]) -> None:
+    for table in _NATURAL_KEYS:
+        lookup = {tuple(row["key"]): row["row_sha256"] for row in _table_row_evidence(connection, table)["rows"]}
+        for expected in evidence["tables"][table]["rows"]:
+            if lookup.get(tuple(expected["key"])) != expected["row_sha256"]:
+                raise ValueError(f"candidate database does not preserve parent row digest: {table}")
+
+
+def prepare_candidate_database(parent_database_path: str | Path, candidate_database_path: str | Path, parent_evidence: dict[str, Any] | None, legacy_baselines: dict[str, Any] | None = None) -> Path:
+    """Copy and prove a parent, or create the explicit baseline candidate."""
+    parent, candidate = Path(parent_database_path), Path(candidate_database_path)
+    if parent.resolve(strict=False) == candidate.resolve(strict=False):
+        raise ValueError("parent database and candidate database must be different paths")
+    if candidate.exists():
+        raise FileExistsError(f"candidate database already exists: {candidate}")
+    candidate.parent.mkdir(parents=True, exist_ok=True)
+    if parent.exists():
+        actual = parent_database_evidence(parent)
+        if not isinstance(parent_evidence, dict):
+            raise ValueError("parent database evidence is required")
+        _require_parent_evidence(actual, parent_evidence)
+        shutil.copy2(parent, candidate)
+        try:
+            with closing(_connect_candidate(candidate)) as connection:
+                validate_schema(connection)
+                _assert_parent_rows_preserved(connection, actual)
+        except Exception:
+            candidate.unlink(missing_ok=True)
+            raise
+    else:
+        if parent_evidence not in (None, {}, {"missing": True}):
+            raise ValueError("missing parent database cannot carry parent evidence")
+        create_database(candidate)
+    return candidate
+
+
+def _value(mapping: dict[str, Any], *names: str, default=None):
+    for name in names:
+        if name in mapping:
+            return mapping[name]
+    return default
+
+
+def _slug_value(value: str) -> str:
+    if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", value):
+        raise ValueError("repository slug is invalid")
+    return value.lower()
+
+
+def _json_array(value: Any, label: str) -> str:
+    if not isinstance(value, list):
+        raise ValueError(f"{label} must be an array")
+    return _canonical_bytes(value).decode("utf-8")
+
+
+def _sha_text(value: Any, length: int, label: str) -> str:
+    if not isinstance(value, str) or not re.fullmatch(rf"[a-f0-9]{{{length}}}", value):
+        raise ValueError(f"{label} must be lowercase hexadecimal")
+    return value
+
+
+def _profile_row(repository: dict[str, Any], captured_seq: int, profile_id: int) -> dict[str, Any]:
+    display_slug = _value(repository, "display_slug", "displaySlug", "slug")
+    slug = _slug_value(_value(repository, "slug"))
+    topics = _value(repository, "topics", default=[])
+    fields = _value(repository, "field_tags", "fieldTags", default=["unclassified"])
+    forms = _value(repository, "form_tags", "formTags", default=[])
+    profile = {
+        "profile_id": profile_id, "slug": slug, "display_slug": display_slug,
+        "captured_snapshot_seq": captured_seq,
+        "description": _value(repository, "description"),
+        "primary_language": _value(repository, "primary_language", "primaryLanguage", "language"),
+        "topics_json": _json_array(topics, "topics"),
+        "license_spdx": _value(repository, "license_spdx", "licenseSpdx"),
+        "archived": int(bool(_value(repository, "archived", default=False))),
+        "is_fork": int(bool(_value(repository, "is_fork", "isFork", "fork", default=False))),
+        "default_branch": _value(repository, "default_branch", "defaultBranch", default="main"),
+        "created_at": _value(repository, "created_at", "createdAt"),
+        "field_tags_json": _json_array(fields, "field tags"),
+        "form_tags_json": _json_array(forms, "form tags"),
+        "tag_rule_version": _value(repository, "tag_rule_version", "tagRuleVersion", default=1),
+    }
+    profile["profile_sha256"] = _digest({
+        "slug": profile["slug"], "display_slug": profile["display_slug"], "description": profile["description"],
+        "primary_language": profile["primary_language"], "topics": topics, "license_spdx": profile["license_spdx"],
+        "archived": bool(profile["archived"]), "is_fork": bool(profile["is_fork"]),
+        "default_branch": profile["default_branch"], "created_at": profile["created_at"],
+        "field_tags": fields, "form_tags": forms, "tag_rule_version": profile["tag_rule_version"],
+    })
+    return profile
+
+
+def _enrichment_entry(index: Any, slug: str) -> dict[str, Any]:
+    if not isinstance(index, dict):
+        raise ValueError("enrichment index is required")
+    entries = _value(index, "repositories", "entries", default=index)
+    if not isinstance(entries, dict):
+        raise ValueError("enrichment index repositories is invalid")
+    entry = entries.get(slug) or entries.get(slug.lower())
+    if not isinstance(entry, dict):
+        raise ValueError(f"enrichment index is missing {slug}")
+    return entry
+
+
+def _validate_cross_input_bindings(snapshot: dict[str, Any], events: dict[str, Any], index: Any, repositories: list[dict[str, Any]]) -> None:
+    if not isinstance(index, dict) or set(index) != {"version", "snapshotId", "activeSetSha256", "factsSha256", "eventsSha256", "repositories"} or index["version"] != 1 or not isinstance(index["repositories"], dict):
+        raise ValueError("enrichment index binding envelope is invalid")
+    snapshot_id = _value(snapshot, "snapshot_id", "snapshotId")
+    source_sha = _value(snapshot, "input_source_sha", "inputSourceSha", "sourceSha")
+    slugs = [_slug_value(_value(repository, "slug")) for repository in repositories]
+    if len(set(slugs)) != len(slugs):
+        raise ValueError("snapshot has duplicate repository slug")
+    active_set_sha = _digest(sorted(slugs))
+    facts_sha = _digest({"snapshot_id": snapshot_id, "input_source_sha": source_sha, "repositories": repositories})
+    event_binding_keys = {"version", "snapshotId", "activeSetSha256", "factsSha256", "completeSetSha256"}
+    event_content = {key: value for key, value in events.items() if key not in event_binding_keys}
+    events_sha = _digest(event_content)
+    if events.get("version") != 1 or events.get("snapshotId") != snapshot_id or events.get("activeSetSha256") != active_set_sha or events.get("factsSha256") != facts_sha or events.get("completeSetSha256") != events_sha:
+        raise ValueError("event payload does not bind to exact snapshot facts")
+    if index["snapshotId"] != snapshot_id or index["activeSetSha256"] != active_set_sha or index["factsSha256"] != facts_sha or index["eventsSha256"] != events_sha or set(index["repositories"]) != set(slugs):
+        raise ValueError("enrichment index does not bind to exact facts and events")
+    enrichment_sha = _digest(index)
+    declared = {
+        "active_set_sha256": _value(snapshot, "active_set_sha256", "activeSetSha256"),
+        "facts_sha256": _value(snapshot, "facts_sha256", "factsSha256"),
+        "events_sha256": _value(snapshot, "events_sha256", "eventsSha256"),
+        "enrichment_index_sha256": _value(snapshot, "enrichment_index_sha256", "enrichmentIndexSha256"),
+    }
+    expected = {
+        "active_set_sha256": active_set_sha,
+        "facts_sha256": facts_sha,
+        "events_sha256": events_sha,
+        "enrichment_index_sha256": enrichment_sha,
+    }
+    if declared != expected:
+        raise ValueError("snapshot input hash bindings are invalid")
+    manifest = {
+        "snapshot_id": snapshot_id,
+        "input_source_sha": source_sha,
+        **expected,
+    }
+    manifest_sha = _value(snapshot, "input_manifest_sha256", "inputManifestSha256", "manifestSha256")
+    if manifest_sha is None:
+        if snapshot.get("productionManifestStatus") != "verified_404" or snapshot.get("explicitBootstrapSourceSha") != source_sha:
+            raise ValueError("null input manifest requires verified 404 and explicit bootstrap source")
+    elif manifest_sha != _digest(manifest):
+        raise ValueError("input manifest hash does not bind the complete input set")
+
+
+def _enrichment_hashes(repository: dict[str, Any], profile: dict[str, Any], index: Any) -> tuple[str, str, str, str, str | None, str | None]:
+    slug = profile["slug"]
+    entry = _enrichment_entry(index, slug)
+    summary = _value(entry, "summary", default=entry)
+    if not isinstance(summary, dict):
+        raise ValueError("summary enrichment is invalid")
+    content = _value(summary, "content", "summaryContent")
+    source = _value(summary, "source", "summarySource")
+    if not isinstance(content, dict) or set(content) != {"goal", "usage", "pros", "cons", "fit"} or any(not isinstance(value, str) for value in content.values()):
+        raise ValueError("summary content must be exact detailed summary")
+    if not isinstance(source, dict):
+        raise ValueError("summary source is required")
+    readme_path = _value(repository, "readme_path", "readmePath")
+    readme_blob = _value(repository, "readme_blob_sha", "readmeBlobSha")
+    readme_content = _value(repository, "readme_content_sha256", "readmeContentSha256")
+    if readme_path is None:
+        expected_source = {"kind": "metadata_only", "slug": slug, "profile_sha256": profile["profile_sha256"], "model": source.get("model"), "schema_version": source.get("schema_version"), "translation_applicable": False}
+    else:
+        expected_source = {"kind": "readme", "slug": slug, "path": readme_path, "blob_sha": readme_blob, "content_sha256": readme_content, "model": source.get("model"), "schema_version": source.get("schema_version"), "translation_applicable": source.get("translation_applicable")}
+    if source != expected_source:
+        raise ValueError("summary source does not match canonical repository identity")
+    summary_source = _digest(source)
+    summary_content = _digest(content)
+    summary_envelope = _digest({"content": content, "source": source})
+    translation = _value(entry, "translation")
+    status = _value(repository, "translation_status", "translationStatus")
+    if status == "applicable":
+        if not isinstance(translation, dict) or translation.get("source") != source or not isinstance(_value(translation, "markdown", "translated_markdown"), str):
+            raise ValueError("applicable translation must bind to exact summary source")
+        markdown = _value(translation, "markdown", "translated_markdown")
+        return summary_source, summary_content, summary_envelope, status, _digest(source), hashlib.sha256(_canonical_bytes({"markdown": markdown, "source": source}) + b"\n").hexdigest()
+    if status not in ("not_applicable:no_readme", "not_applicable:no_prose"):
+        raise ValueError("translation status is invalid")
+    if (status == "not_applicable:no_readme") != (readme_path is None):
+        raise ValueError("translation status conflicts with README identity")
+    return summary_source, summary_content, summary_envelope, status, None, None
+
+
+def _insert_row(connection: sqlite3.Connection, table: str, row: dict[str, Any], inserted: dict[str, int], reused: dict[str, int]) -> None:
+    columns = _columns(connection, table)
+    if set(row) != set(columns):
+        missing, extra = set(columns) - set(row), set(row) - set(columns)
+        raise ValueError(f"{table} row does not match exact schema: missing={sorted(missing)} extra={sorted(extra)}")
+    keys = _natural_key_columns(table)
+    where = " AND ".join(f"{key} = ?" for key in keys)
+    old = connection.execute(f"SELECT * FROM {table} WHERE {where}", tuple(row[key] for key in keys)).fetchone()
+    values = tuple(row[column] for column in columns)
+    if old is not None:
+        if tuple(old) != values:
+            raise ValueError(f"conflicting immutable natural key in {table}")
+        reused[table] = reused.get(table, 0) + 1
+        return
+    connection.execute(f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join('?' for _ in columns)})", values)
+    inserted[table] = inserted.get(table, 0) + 1
+
+
+def _core_preimage(connection: sqlite3.Connection, table_rows: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
+    """Build the exact Task-3 preimage in table/natural-key order."""
+    if set(table_rows) != set(CORE_PREIMAGE_TABLES):
+        raise ValueError("core projection does not contain the exact table set")
+    ordered: dict[str, list[dict[str, Any]]] = {}
+    for table in CORE_PREIMAGE_TABLES:
+        keys = _natural_key_columns(table)
+        rows = table_rows[table]
+        ordered[table] = sorted(rows, key=lambda row: tuple(row[key] for key in keys))
+    return {"schema_fingerprint_sha256": schema_fingerprint(connection), "tables": ordered}
+
+
+def verify_core_snapshot(connection: sqlite3.Connection, snapshot_seq: int) -> str:
+    """Independently recompute the Task-3 nonderived snapshot preimage.
+
+    This query path intentionally does not reuse the candidate's in-memory
+    rows. It follows snapshot foreign keys in natural-key order and therefore
+    catches a writer that hashed one row set but committed another.
+    """
+    run_columns = _columns(connection, "snapshot_runs")
+    run = connection.execute("SELECT * FROM snapshot_runs WHERE snapshot_seq=?", (snapshot_seq,)).fetchone()
+    if run is None:
+        raise ValueError("core verifier snapshot is missing")
+    run_value = {key: value for key, value in zip(run_columns, run) if key not in {"core_payload_sha256", "chain_sha256"}}
+    profiles = [dict(zip(_columns(connection, "repository_profiles"), row)) for row in connection.execute("SELECT p.* FROM repository_profiles p JOIN (SELECT DISTINCT profile_id FROM snapshot_items WHERE snapshot_seq=?) i USING(profile_id) ORDER BY p.profile_id", (snapshot_seq,))]
+    items = [dict(zip(_columns(connection, "snapshot_items"), row)) for row in connection.execute("SELECT * FROM snapshot_items WHERE snapshot_seq=? ORDER BY snapshot_seq,slug", (snapshot_seq,))]
+    releases = [dict(zip(_columns(connection, "release_versions"), row)) for row in connection.execute("SELECT DISTINCT v.* FROM release_versions v JOIN snapshot_release_items i ON (i.slug,i.release_id,i.metadata_sha256)=(v.slug,v.release_id,v.metadata_sha256) WHERE i.snapshot_seq=? ORDER BY v.slug,v.release_id,v.metadata_sha256", (snapshot_seq,))]
+    release_items = [dict(zip(_columns(connection, "snapshot_release_items"), row)) for row in connection.execute("SELECT * FROM snapshot_release_items WHERE snapshot_seq=? ORDER BY snapshot_seq,slug,release_id", (snapshot_seq,))]
+    estimates = [dict(zip(_columns(connection, "historical_star_estimates"), row)) for row in connection.execute("SELECT * FROM historical_star_estimates WHERE first_observed_snapshot_seq=? ORDER BY source,slug,estimate_date,first_observed_snapshot_seq", (snapshot_seq,))]
+    commits = [dict(zip(_columns(connection, "commit_events"), row)) for row in connection.execute("SELECT * FROM commit_events WHERE first_observed_snapshot_seq=? ORDER BY slug,commit_sha", (snapshot_seq,))]
+    readmes = [dict(zip(_columns(connection, "readme_change_events"), row)) for row in connection.execute("SELECT * FROM readme_change_events WHERE snapshot_seq=? ORDER BY snapshot_seq,slug", (snapshot_seq,))]
+    baselines = [dict(zip(_columns(connection, "baseline_sources"), row)) for row in connection.execute("SELECT * FROM baseline_sources WHERE cutover_snapshot_seq=? ORDER BY source_name", (snapshot_seq,))]
+    membership = [dict(zip(_columns(connection, "baseline_membership_slugs"), row)) for row in connection.execute("SELECT * FROM baseline_membership_slugs WHERE cutover_snapshot_seq=? ORDER BY slug", (snapshot_seq,))]
+    observations = [dict(zip(_columns(connection, "historical_star_observations"), row)) for row in connection.execute("SELECT * FROM historical_star_observations WHERE first_observed_snapshot_seq=? ORDER BY source,slug,observation_date,source_row_sha256", (snapshot_seq,))]
+    table_rows = {
+        "snapshot_runs": [run_value],
+        "baseline_sources": baselines,
+        "baseline_membership_slugs": membership,
+        "repository_profiles": profiles,
+        "snapshot_items": items,
+        "release_versions": releases,
+        "snapshot_release_items": release_items,
+        "historical_star_estimates": estimates,
+        "historical_star_observations": observations,
+        "commit_events": commits,
+        "readme_change_events": readmes,
+    }
+    digest = _digest(_core_preimage(connection, table_rows))
+    stored = connection.execute("SELECT core_payload_sha256 FROM snapshot_runs WHERE snapshot_seq=?", (snapshot_seq,)).fetchone()[0]
+    if digest != stored:
+        raise ValueError(f"core payload hash preimage mismatch for snapshot {snapshot_seq}")
+    return digest
+
+
+def _event_map(events: dict[str, Any], name: str, key: str = "slug") -> dict[str, dict[str, Any]]:
+    values = _value(events, name, default=[])
+    if not isinstance(values, list):
+        raise ValueError(f"event {name} is invalid")
+    mapped: dict[str, dict[str, Any]] = {}
+    for item in values:
+        if not isinstance(item, dict) or key not in item:
+            raise ValueError(f"event {name} is invalid")
+        slug = _slug_value(item[key])
+        if item[key] != slug or slug in mapped:
+            raise ValueError(f"event {name} has duplicate or noncanonical slug")
+        mapped[slug] = item
+    return mapped
+
+
+def _exact_alias_keys(value: dict[str, Any], snake: set[str], camel: set[str], label: str) -> None:
+    if set(value) not in (snake, camel):
+        raise ValueError(f"{label} fields are not the exact allowlist")
+
+
+def _github_url(value: Any, expected_path_prefix: str, label: str) -> str:
+    if not isinstance(value, str):
+        raise ValueError(f"{label} URL is invalid")
+    parsed = urlsplit(value)
+    path = unquote(parsed.path)
+    if parsed.scheme != "https" or parsed.hostname != "github.com" or parsed.port is not None or parsed.username is not None or parsed.password is not None or parsed.query or parsed.fragment or not path.startswith(expected_path_prefix):
+        raise ValueError(f"{label} URL is invalid")
+    return value
+
+
+def _release_rows(events: dict[str, Any], slug: str, seq: int) -> tuple[list[dict[str, Any]], list[dict[str, Any]], int | None]:
+    all_releases = _value(events, "releases", default=[])
+    if not isinstance(all_releases, list):
+        raise ValueError("release event list is invalid")
+    releases = []
+    seen_ids: set[int] = set()
+    snake = {"slug", "release_id", "tag_name", "name", "target_commitish", "draft", "prerelease", "created_at", "published_at", "html_url", "metadata_sha256"}
+    camel = {"slug", "releaseId", "tagName", "name", "targetCommitish", "draft", "prerelease", "createdAt", "publishedAt", "htmlUrl", "metadataSha256"}
+    for entry in all_releases:
+        if not isinstance(entry, dict):
+            raise ValueError("release event is invalid")
+        _exact_alias_keys(entry, snake, camel, "release event")
+        entry_slug = _slug_value(entry["slug"])
+        if entry["slug"] != entry_slug:
+            raise ValueError("release event slug is noncanonical")
+        if entry_slug != slug:
+            continue
+        release_id = _value(entry, "release_id", "releaseId")
+        if isinstance(release_id, bool) or not isinstance(release_id, int) or release_id < 1 or release_id in seen_ids:
+            raise ValueError("release inventory has invalid or duplicate id")
+        seen_ids.add(release_id)
+        releases.append(entry)
+    version_rows, item_rows = [], []
+    for ordinal, release in enumerate(releases):
+        release_id = _value(release, "release_id", "releaseId")
+        normalized = {
+            "slug": slug, "release_id": release_id, "tag_name": _value(release, "tag_name", "tagName"),
+            "name": _value(release, "name"), "target_commitish": _value(release, "target_commitish", "targetCommitish"),
+            "draft": int(bool(_value(release, "draft"))), "prerelease": int(bool(_value(release, "prerelease"))),
+            "created_at": _value(release, "created_at", "createdAt"), "published_at": _value(release, "published_at", "publishedAt"),
+            "html_url": _value(release, "html_url", "htmlUrl"),
+        }
+        if not isinstance(normalized["tag_name"], str) or not normalized["tag_name"].strip() or not isinstance(normalized["target_commitish"], str) or not normalized["target_commitish"].strip():
+            raise ValueError("release metadata is invalid")
+        if normalized["name"] is not None and not isinstance(normalized["name"], str):
+            raise ValueError("release metadata is invalid")
+        if type(_value(release, "draft")) is not bool or type(_value(release, "prerelease")) is not bool:
+            raise ValueError("release booleans are invalid")
+        _parse_utc(normalized["created_at"])
+        if normalized["published_at"] is not None:
+            _parse_utc(normalized["published_at"])
+        _github_url(normalized["html_url"], f"/{slug}/releases/", "release")
+        digest = _digest({**normalized, "draft": bool(normalized["draft"]), "prerelease": bool(normalized["prerelease"])})
+        stated = _value(release, "metadata_sha256", "metadataSha256")
+        if stated is not None and stated != digest:
+            raise ValueError("release metadata hash does not match allowlisted fields")
+        version_rows.append({"metadata_sha256": digest, "first_observed_snapshot_seq": seq, **normalized})
+        item_rows.append({"snapshot_seq": seq, "slug": slug, "release_id": release_id, "metadata_sha256": digest, "release_ordinal": ordinal})
+    latest_values = _value(events, "latestReleaseIds", "latest_release_ids", default={})
+    if not isinstance(latest_values, dict) or set(latest_values) != set(_event_map(events, "heads")):
+        raise ValueError("latest release id map does not match active repositories")
+    latest = latest_values.get(slug)
+    if latest is not None and latest not in seen_ids:
+        raise ValueError("latest release id is absent from inventory")
+    return version_rows, item_rows, latest
+
+
+def _run_identity(snapshot: dict[str, Any], seq: int, parent: tuple[int, str, str] | None, core: str) -> dict[str, Any]:
+    snapshot_id = _value(snapshot, "snapshot_id", "snapshotId")
+    utc = _value(snapshot, "observed_at_utc", "observedAtUtc", "generated_at", "generatedAt")
+    kst = _value(snapshot, "observed_at_kst", "observedAtKst")
+    stats = _value(snapshot, "stats_date_kst", "statsDate", "stats_date")
+    kind = _value(snapshot, "run_kind", "runKind")
+    if parent is None:
+        if kind != "migration_baseline":
+            raise ValueError("missing parent database requires migration_baseline")
+        parent_seq = parent_id = parent_chain = None
+    else:
+        if kind != "refresh":
+            raise ValueError("existing parent database requires refresh")
+        parent_seq, parent_id, parent_chain = parent
+        if _value(snapshot, "parent_snapshot_id", "parentSnapshotId") != parent_id:
+            raise ValueError("refresh parent snapshot id must equal last parent")
+    return {"snapshot_seq": seq, "snapshot_id": snapshot_id, "run_kind": kind, "observed_at_utc": utc, "observed_at_kst": kst, "stats_date_kst": stats, "parent_snapshot_seq": parent_seq, "parent_snapshot_id": parent_id, "input_source_sha": _value(snapshot, "input_source_sha", "inputSourceSha", "sourceSha"), "input_manifest_sha256": _value(snapshot, "input_manifest_sha256", "inputManifestSha256", "manifestSha256"), "core_payload_sha256": core, "parent_chain_sha256": parent_chain, "chain_sha256": "0" * 64, "repository_count": len(_value(snapshot, "repositories", "repos", default=[]))}
+
+
+def _readme_identity(value: Any, label: str) -> dict[str, Any]:
+    if not isinstance(value, dict) or set(value) != {"path", "blob_sha", "content_sha256", "observed_at_utc"}:
+        raise ValueError(f"README state {label} must contain identity only")
+    path, blob, content = value["path"], value["blob_sha"], value["content_sha256"]
+    if (path is None) != (blob is None) or (path is None) != (content is None):
+        raise ValueError(f"README state {label} has inconsistent null identity")
+    if path is not None:
+        _sha_text(blob, 40, f"README state {label} blob SHA")
+        _sha_text(content, 64, f"README state {label} content SHA")
+    _parse_utc(value["observed_at_utc"])
+    return value
+
+
+def _validated_event_maps(event_payload: dict[str, Any], active_slugs: set[str]) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
+    required = {"heads", "releases", "latestReleaseIds", "commits", "estimates"}
+    allowed = required | {"budgetReceipt", "version", "snapshotId", "activeSetSha256", "factsSha256", "completeSetSha256"}
+    if not required.issubset(event_payload) or not set(event_payload).issubset(allowed):
+        raise ValueError("event payload fields are not the exact allowlist")
+    if "budgetReceipt" in event_payload:
+        receipt = event_payload["budgetReceipt"]
+        if not isinstance(receipt, dict) or set(receipt) != {"logicalRequests", "httpAttempts", "originEpochMs", "eventDeadlineEpochMs"} or any(isinstance(receipt[key], bool) or not isinstance(receipt[key], int) or receipt[key] < 0 for key in receipt) or receipt["logicalRequests"] > 3600 or receipt["httpAttempts"] > 4500 or receipt["eventDeadlineEpochMs"] != receipt["originEpochMs"] + 15 * 60 * 1000:
+            raise ValueError("event budget receipt is invalid")
+    heads = _event_map(event_payload, "heads")
+    estimates = _event_map(event_payload, "estimates")
+    if set(heads) != active_slugs or set(estimates) != active_slugs:
+        raise ValueError("event payload active repository set mismatch")
+    for slug, head in heads.items():
+        _exact_alias_keys(
+            head,
+            {"slug", "branch", "head_sha", "transition"},
+            {"slug", "branch", "headSha", "transition"},
+            "head event",
+        )
+        if not isinstance(head["branch"], str) or not head["branch"].strip():
+            raise ValueError("head branch is invalid")
+        _sha_text(_value(head, "head_sha", "headSha"), 40, "head SHA")
+        if head["transition"] not in {"baseline", "unchanged", "fast_forward", "branch_changed", "history_rewritten"}:
+            raise ValueError("head transition is invalid")
+    for slug, estimate in estimates.items():
+        _exact_alias_keys(
+            estimate,
+            {"slug", "rows", "source_payload_sha256", "public_rows"},
+            {"slug", "rows", "sourcePayloadSha256", "publicRows"},
+            "OSS estimate event",
+        )
+        rows = estimate["rows"]
+        public_rows = _value(estimate, "public_rows", "publicRows")
+        if not isinstance(rows, list) or not isinstance(public_rows, list) or public_rows != rows[-500:]:
+            raise ValueError("OSS estimate public rows do not match full series")
+        _sha_text(_value(estimate, "source_payload_sha256", "sourcePayloadSha256"), 64, "OSS payload SHA")
+        previous_date = ""
+        for row in rows:
+            if not isinstance(row, dict) or set(row) != {"date", "stars"}:
+                raise ValueError("OSS estimate row fields are invalid")
+            date = _legacy_date(row["date"], "OSS estimate date")
+            if date <= previous_date or isinstance(row["stars"], bool) or not isinstance(row["stars"], int) or row["stars"] < 0:
+                raise ValueError("OSS estimate rows must be ascending unique nonnegative integers")
+            previous_date = date
+    return heads, estimates
+
+
+def _project_commit_rows(
+    connection: sqlite3.Connection,
+    event_payload: dict[str, Any],
+    seq: int,
+    active_slugs: set[str],
+    heads: dict[str, dict[str, Any]],
+    previous: dict[str, tuple[str, str]],
+) -> list[dict[str, Any]]:
+    commits = event_payload["commits"]
+    if not isinstance(commits, list):
+        raise ValueError("commit event list is invalid")
+    projected: list[dict[str, Any]] = []
+    grouped: dict[str, list[dict[str, Any]]] = {slug: [] for slug in active_slugs}
+    seen: set[tuple[str, str]] = set()
+    snake = {"slug", "commit_sha", "first_observed_ordinal", "branch_name", "authored_at", "committed_at", "author_login", "parent_shas", "html_url"}
+    camel = {"slug", "sha", "firstObservedOrdinal", "branch", "authoredAt", "committedAt", "authorLogin", "parentShas", "htmlUrl"}
+    for event in commits:
+        if not isinstance(event, dict):
+            raise ValueError("commit event is invalid")
+        _exact_alias_keys(event, snake, camel, "commit event")
+        slug = _slug_value(event["slug"])
+        sha = _sha_text(_value(event, "commit_sha", "sha"), 40, "commit SHA")
+        if event["slug"] != slug or slug not in active_slugs or (slug, sha) in seen:
+            raise ValueError("commit event has duplicate, noncanonical, or inactive slug")
+        seen.add((slug, sha))
+        ordinal = _value(event, "first_observed_ordinal", "firstObservedOrdinal")
+        branch = _value(event, "branch_name", "branch")
+        authored = _value(event, "authored_at", "authoredAt")
+        committed = _value(event, "committed_at", "committedAt")
+        author = _value(event, "author_login", "authorLogin")
+        parents = _value(event, "parent_shas", "parentShas")
+        html_url = _value(event, "html_url", "htmlUrl")
+        if isinstance(ordinal, bool) or not isinstance(ordinal, int) or ordinal < 1 or not isinstance(branch, str) or not branch.strip() or (author is not None and not isinstance(author, str)):
+            raise ValueError("commit metadata is invalid")
+        _parse_utc(authored); _parse_utc(committed)
+        if not isinstance(parents, list) or len(set(parents)) != len(parents):
+            raise ValueError("commit parents are invalid")
+        for parent_sha in parents:
+            _sha_text(parent_sha, 40, "commit parent SHA")
+        if _github_url(html_url, f"/{slug}/commit/", "commit") != f"https://github.com/{slug}/commit/{sha}":
+            raise ValueError("commit URL does not bind to commit SHA")
+        row = {
+            "slug": slug, "commit_sha": sha, "first_observed_snapshot_seq": seq,
+            "first_observed_ordinal": ordinal, "branch_name": branch,
+            "authored_at": authored, "committed_at": committed,
+            "author_login": author, "parent_shas_json": _json_array(parents, "commit parent SHAs"),
+            "html_url": html_url,
+        }
+        existing = connection.execute("SELECT * FROM commit_events WHERE slug=? AND commit_sha=?", (slug, sha)).fetchone()
+        if existing is not None:
+            actual = dict(zip(_columns(connection, "commit_events"), existing))
+            if actual["first_observed_snapshot_seq"] != seq or actual != row:
+                raise ValueError("conflicting or previously observed commit event")
+            row = actual
+        grouped[slug].append(row)
+        projected.append(row)
+    for slug in active_slugs:
+        rows = grouped[slug]
+        if [row["first_observed_ordinal"] for row in rows] != list(range(1, len(rows) + 1)):
+            raise ValueError("commit ordinals are not contiguous in collector order")
+        head = heads[slug]
+        current_head = _value(head, "head_sha", "headSha")
+        current_branch = head["branch"]
+        transition = head["transition"]
+        prior = previous.get(slug)
+        if prior is None:
+            if transition != "baseline" or rows:
+                raise ValueError("newly observed repository requires baseline head without commit backfill")
+            continue
+        prior_branch, prior_head = prior
+        if transition == "unchanged":
+            if current_branch != prior_branch or current_head != prior_head or rows:
+                raise ValueError("unchanged head transition is contradictory")
+        elif transition == "branch_changed":
+            if current_branch == prior_branch or rows:
+                raise ValueError("branch_changed head transition is contradictory")
+        elif transition == "fast_forward":
+            if current_branch != prior_branch or current_head == prior_head or not rows or rows[0]["commit_sha"] != current_head:
+                raise ValueError("fast_forward head transition is contradictory")
+            parents_by_sha = {row["commit_sha"]: json.loads(row["parent_shas_json"]) for row in rows}
+            frontier = [current_head]
+            visited: set[str] = set()
+            while frontier:
+                candidate = frontier.pop()
+                if candidate == prior_head:
+                    break
+                if candidate in visited:
+                    continue
+                visited.add(candidate)
+                frontier.extend(parents_by_sha.get(candidate, []))
+            else:
+                raise ValueError("fast_forward commit chain does not reach previous head")
+        elif transition == "history_rewritten":
+            if current_branch != prior_branch or current_head == prior_head or rows:
+                raise ValueError("history_rewritten head transition is contradictory")
+        else:
+            raise ValueError("existing repository cannot use baseline head transition")
+    return projected
+
+
+def _reconstruct_readme_state(connection: sqlite3.Connection, through_seq: int | None) -> dict[str, Any]:
+    state: dict[str, Any] = {}
+    if through_seq is None:
+        return state
+    for slug, path, blob, content, observed_at in connection.execute(
+        """SELECT i.slug, i.readme_path, i.readme_blob_sha, i.readme_content_sha256, r.observed_at_utc
+           FROM snapshot_items i JOIN snapshot_runs r USING(snapshot_seq)
+           WHERE i.snapshot_seq <= ? ORDER BY i.snapshot_seq, i.slug""",
+        (through_seq,),
+    ):
+        current = {"path": path, "blob_sha": blob, "content_sha256": content, "observed_at_utc": observed_at}
+        prior = state.get(slug)
+        prior_tuple = None if prior is None else (prior["current"]["path"], prior["current"]["blob_sha"], prior["current"]["content_sha256"])
+        current_tuple = (path, blob, content)
+        if prior is None:
+            previous = {"path": None, "blob_sha": None, "content_sha256": None, "observed_at_utc": observed_at}
+        elif prior_tuple != current_tuple:
+            previous = prior["current"]
+        else:
+            previous = prior["previous"]
+        state[slug] = {"current": current, "previous": previous}
+    return state
+
+
+def _validate_readme_state(state: dict[str, Any], connection: sqlite3.Connection, parent_seq: int | None) -> dict[str, Any]:
+    copied = json.loads(json.dumps(state))
+    for slug, entry in copied.items():
+        canonical_slug = _slug_value(slug)
+        if canonical_slug != slug or not isinstance(entry, dict) or set(entry) != {"current", "previous"}:
+            raise ValueError("README state entry is not canonical rolling identity")
+        current, previous = _readme_identity(entry["current"], "current"), _readme_identity(entry["previous"], "previous")
+    if copied != _reconstruct_readme_state(connection, parent_seq):
+        raise ValueError("README state does not exactly match ledger history")
+    return copied
+
+
+def _legacy_logical_rows(path: Path) -> tuple[str, int, str, str | None]:
+    """Fingerprint a frozen SQLite source without trusting SQLite page order."""
+    with closing(sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True)) as connection:
+        connection.execute("PRAGMA query_only = ON")
+        if connection.execute("PRAGMA integrity_check").fetchone() != ("ok",) or connection.execute("PRAGMA foreign_key_check").fetchone() is not None:
+            raise ValueError("legacy baseline SQLite integrity check failed")
+        tables = [row[0] for row in connection.execute("SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name")]
+        logical = []
+        for table in tables:
+            columns = _columns(connection, table)
+            primary = [row[1] for row in connection.execute(f"PRAGMA table_info({table})") if row[5]] or list(columns)
+            for row in connection.execute(f"SELECT * FROM {table} ORDER BY {', '.join(primary)}"):
+                logical.append({"table": table, "row": dict(zip(columns, row))})
+        schema = _fingerprint_rows(_schema_rows(connection))
+    last = None if not logical else _canonical_bytes(logical[-1]).decode("utf-8")
+    return schema, len(logical), _digest(logical), last
+
+
+def _legacy_date(value: Any, label: str) -> str:
+    if not isinstance(value, str):
+        raise ValueError(f"{label} must be an exact date")
+    try:
+        parsed = datetime.strptime(value, "%Y-%m-%d")
+    except ValueError as error:
+        raise ValueError(f"{label} must be an exact date") from error
+    if parsed.strftime("%Y-%m-%d") != value:
+        raise ValueError(f"{label} must be an exact date")
+    return value
+
+
+def _validate_legacy_public_payload(payload: Any) -> list[dict[str, Any]]:
+    if not isinstance(payload, dict) or set(payload) != {"repositories"} or not isinstance(payload["repositories"], list):
+        raise ValueError("legacy public star history must use repositories envelope")
+    seen_slugs: set[str] = set()
+    for repository in payload["repositories"]:
+        if not isinstance(repository, dict) or set(repository) != {"slug", "observed", "estimated"}:
+            raise ValueError("legacy public repository history is invalid")
+        slug = _slug_value(repository["slug"])
+        if repository["slug"] != slug or slug in seen_slugs:
+            raise ValueError("legacy public repository slug is duplicate or noncanonical")
+        seen_slugs.add(slug)
+        for series_name in ("observed", "estimated"):
+            series = repository[series_name]
+            if not isinstance(series, list):
+                raise ValueError("legacy public repository history is invalid")
+            seen_dates: set[str] = set()
+            previous_date = ""
+            for point in series:
+                if not isinstance(point, dict) or set(point) != {"date", "stars"}:
+                    raise ValueError(f"legacy {series_name} point is invalid")
+                date = _legacy_date(point["date"], f"legacy {series_name} date")
+                stars = point["stars"]
+                if isinstance(stars, bool) or not isinstance(stars, int) or stars < 0:
+                    raise ValueError(f"legacy {series_name} stars is invalid")
+                if date in seen_dates or date <= previous_date:
+                    raise ValueError(f"legacy {series_name} dates must be ascending unique")
+                seen_dates.add(date)
+                previous_date = date
+    return payload["repositories"]
+
+
+def _read_legacy_membership_slugs(path: Path) -> list[str]:
+    with closing(sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True)) as legacy:
+        legacy.execute("PRAGMA query_only = ON")
+        if legacy.execute("SELECT 1 FROM sqlite_schema WHERE type='table' AND name='snapshot_members'").fetchone() is None:
+            raise ValueError("legacy membership source has no snapshot_members table")
+        rows = legacy.execute("SELECT snapshot_id, ordinal, slug FROM snapshot_members ORDER BY snapshot_id, ordinal").fetchall()
+    ordinals: dict[int, list[int]] = {}
+    slugs: set[str] = set()
+    for snapshot_id, ordinal, raw_slug in rows:
+        if isinstance(snapshot_id, bool) or not isinstance(snapshot_id, int) or snapshot_id < 1:
+            raise ValueError("legacy membership snapshot id is invalid")
+        if isinstance(ordinal, bool) or not isinstance(ordinal, int) or ordinal < 0:
+            raise ValueError("legacy membership ordinal is invalid")
+        slug = _slug_value(raw_slug)
+        ordinals.setdefault(snapshot_id, []).append(ordinal)
+        slugs.add(slug)
+    if any(values != list(range(len(values))) for values in ordinals.values()):
+        raise ValueError("legacy membership ordinals are not contiguous")
+    return sorted(slugs)
+
+
+def _read_legacy_star_rows(path: Path) -> list[tuple[Any, ...]]:
+    with closing(sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True)) as legacy:
+        legacy.execute("PRAGMA query_only = ON")
+        if legacy.execute("SELECT 1 FROM sqlite_schema WHERE type='table' AND name='star_observations'").fetchone() is None:
+            raise ValueError("legacy star source has no star_observations table")
+        rows = legacy.execute("SELECT id, slug, observed_date, stars_total, stars_delta, source FROM star_observations ORDER BY id").fetchall()
+    seen_ids: set[int] = set()
+    for row_id, raw_slug, date, stars, delta, source in rows:
+        if isinstance(row_id, bool) or not isinstance(row_id, int) or row_id < 1 or row_id in seen_ids:
+            raise ValueError("legacy star row id is invalid")
+        seen_ids.add(row_id)
+        _slug_value(raw_slug)
+        _legacy_date(date, "legacy star observation date")
+        if isinstance(stars, bool) or not isinstance(stars, int) or stars < 0:
+            raise ValueError("legacy star total is invalid")
+        if delta is not None and (isinstance(delta, bool) or not isinstance(delta, int)):
+            raise ValueError("legacy star delta is invalid")
+        if source not in ("legacy_inline", "github_rest"):
+            raise ValueError("legacy star source is invalid")
+    return rows
+
+
+def measure_legacy_baseline_receipt(baselines: dict[str, str | Path]) -> dict[str, Any]:
+    """Measure the reviewed cutover receipt schema; do not write a candidate.
+
+    The envelope deliberately mirrors ``baseline_sources`` one-to-one:
+    ``{"version":1,"sources": {source_name: exact baseline_sources identity fields}}``.
+    It is the only receipt shape the recorder accepts, so later workflow code
+    can create/review it independently before invoking this writer.
+    """
+    names = ("legacy_star_observations", "legacy_trending_membership", "legacy_public_star_history")
+    if set(baselines) != set(names):
+        raise ValueError("legacy baseline receipt requires exactly three frozen sources")
+    sources = {}
+    for name in names:
+        path = Path(baselines[name])
+        if path.is_symlink() or not path.is_file():
+            raise ValueError("legacy baseline source is missing")
+        if name != "legacy_public_star_history":
+            for suffix in ("-journal", "-wal", "-shm"):
+                if Path(f"{path}{suffix}").exists():
+                    raise ValueError("legacy baseline SQLite source has a pending sidecar")
+        if name == "legacy_public_star_history":
+            payload = _load_json_file(path, "legacy public star history")
+            logical = _validate_legacy_public_payload(payload)
+            schema_fingerprint = _digest({"format": "legacy-public-star-history-v1", "top_level_keys": ["repositories"]})
+            count, logical_hash = len(logical), _digest(logical)
+            last = None if not logical else _canonical_bytes(logical[-1]).decode("utf-8")
+        else:
+            schema_fingerprint, count, logical_hash, last = _legacy_logical_rows(path)
+            if name == "legacy_trending_membership":
+                _read_legacy_membership_slugs(path)
+            else:
+                _read_legacy_star_rows(path)
+        sources[name] = {
+            "repo_relative_path": LEGACY_BASELINE_PATHS[name], "byte_size": path.stat().st_size,
+            "file_sha256": _file_sha256(path), "schema_fingerprint_sha256": schema_fingerprint,
+            "logical_row_count": count, "logical_rows_sha256": logical_hash,
+            "last_logical_key_json": last,
+        }
+    return {"version": 1, "sources": sources}
+
+
+def project_legacy_baselines(baselines: dict[str, Any], receipt: dict[str, Any], seq: int) -> dict[str, list[dict[str, Any]]]:
+    """Read and validate frozen legacy sources without writing the candidate."""
+    names = ("legacy_star_observations", "legacy_trending_membership", "legacy_public_star_history")
+    if set(baselines) != set(names):
+        raise ValueError("migration baseline requires exactly three frozen sources")
+    paths = {name: Path(baselines[name]) for name in names}
+    if not isinstance(receipt, dict) or set(receipt) != {"version", "sources"} or receipt["version"] != 1 or not isinstance(receipt["sources"], dict) or set(receipt["sources"]) != set(names):
+        raise ValueError("migration baseline requires reviewed external receipt")
+    measured = measure_legacy_baseline_receipt(paths)
+    projected = {
+        "baseline_sources": [],
+        "baseline_membership_slugs": [],
+        "historical_star_estimates": [],
+        "historical_star_observations": [],
+    }
+    for name, path in paths.items():
+        reviewed = receipt["sources"][name]
+        if set(reviewed) != {"repo_relative_path", "byte_size", "file_sha256", "schema_fingerprint_sha256", "logical_row_count", "logical_rows_sha256", "last_logical_key_json"} or reviewed != measured["sources"][name]:
+            raise ValueError(f"reviewed legacy receipt mismatch: {name}")
+        projected["baseline_sources"].append({"source_name": name, **reviewed, "cutover_snapshot_seq": seq})
+    # Historical membership identity is imported without fabricating its old
+    # snapshots.  The canonical legacy writer names this table snapshot_members.
+    for slug in _read_legacy_membership_slugs(paths["legacy_trending_membership"]):
+        projected["baseline_membership_slugs"].append({"slug": slug, "source_name": "legacy_trending_membership", "cutover_snapshot_seq": seq})
+    public_payload = _load_json_file(paths["legacy_public_star_history"], "legacy public star history")
+    public_repositories = _validate_legacy_public_payload(public_payload)
+    public_sha = _file_sha256(paths["legacy_public_star_history"])
+    for repository in public_repositories:
+        slug = _slug_value(repository["slug"])
+        for point in repository["observed"]:
+            date, stars = point["date"], point["stars"]
+            projected["historical_star_observations"].append({"source": "legacy_public_star_history", "legacy_row_id": None, "slug": slug, "observation_date": date, "stars": stars, "stars_delta": None, "legacy_source": None, "source_row_sha256": _digest({"source": "legacy_public_star_history", "slug": slug, "observation_date": date, "stars": stars}), "first_observed_snapshot_seq": seq})
+        for point in repository["estimated"]:
+            date, stars = point["date"], point["stars"]
+            projected["historical_star_estimates"].append({"source": "legacy_star_history_cache", "slug": slug, "estimate_date": date, "is_present": 1, "stars": stars, "point_sha256": _digest({"slug": slug, "date": date, "is_present": True, "stars": stars}), "source_payload_sha256": public_sha, "first_observed_snapshot_seq": seq})
+    for row_id, slug, date, stars, delta, source in _read_legacy_star_rows(paths["legacy_star_observations"]):
+        slug = _slug_value(slug)
+        projected["historical_star_observations"].append({"source": "legacy_star_observations_db", "legacy_row_id": row_id, "slug": slug, "observation_date": date, "stars": stars, "stars_delta": delta, "legacy_source": source, "source_row_sha256": _digest({"source": "legacy_star_observations_db", "legacy_row_id": row_id, "slug": slug, "observation_date": date, "stars": stars, "stars_delta": delta, "legacy_source": source}), "first_observed_snapshot_seq": seq})
+    if measure_legacy_baseline_receipt(paths) != measured:
+        raise ValueError("legacy baseline source changed during projection")
+    return projected
+
+
+def _require_unchanged_legacy_projection(connection: sqlite3.Connection, projected: dict[str, list[dict[str, Any]]]) -> None:
+    queries = {
+        "baseline_sources": "SELECT * FROM baseline_sources ORDER BY source_name",
+        "baseline_membership_slugs": "SELECT * FROM baseline_membership_slugs ORDER BY slug",
+        "historical_star_estimates": "SELECT * FROM historical_star_estimates WHERE source='legacy_star_history_cache' ORDER BY source,slug,estimate_date,first_observed_snapshot_seq",
+        "historical_star_observations": "SELECT * FROM historical_star_observations ORDER BY source,slug,observation_date,source_row_sha256",
+    }
+    for table, query in queries.items():
+        columns = _columns(connection, table)
+        actual = [dict(zip(columns, row)) for row in connection.execute(query)]
+        keys = _natural_key_columns(table)
+        expected = sorted(projected[table], key=lambda row: tuple(row[key] for key in keys))
+        if actual != expected:
+            raise ValueError(f"refresh frozen baseline logical rows changed: {table}")
+
+
+def record_core_snapshot(candidate_database_path: str | Path, snapshot_payload: dict[str, Any], event_payload: dict[str, Any], readme_state: dict[str, Any]) -> CoreRecordResult:
+    """Append exactly one complete baseline or refresh core snapshot.
+
+    The caller owns external source collection.  This function only admits its
+    validated, body-free logical facts and recomputes every stored hash.
+    """
+    if not isinstance(snapshot_payload, dict) or not isinstance(event_payload, dict) or not isinstance(readme_state, dict):
+        raise ValueError("snapshot, events, and README state must be objects")
+    repositories = _value(snapshot_payload, "repositories", "repos")
+    if not isinstance(repositories, list) or not repositories:
+        raise ValueError("snapshot requires repositories")
+    index = _value(snapshot_payload, "enrichment_index", "enrichmentIndex")
+    _validate_cross_input_bindings(snapshot_payload, event_payload, index, repositories)
+    inserted: dict[str, int] = {}
+    reused: dict[str, int] = {}
+    path = Path(candidate_database_path)
+    next_readme_state: dict[str, Any] | None = None
+    with closing(_connect_candidate(path)) as connection:
+        validate_schema(connection)
+        connection.execute("BEGIN IMMEDIATE")
+        try:
+            latest = connection.execute("SELECT snapshot_seq, snapshot_id, chain_sha256 FROM snapshot_runs ORDER BY snapshot_seq DESC LIMIT 1").fetchone()
+            requested_id = _value(snapshot_payload, "snapshot_id", "snapshotId")
+            replay = connection.execute("SELECT snapshot_seq, parent_snapshot_seq, parent_snapshot_id, parent_chain_sha256 FROM snapshot_runs WHERE snapshot_id=?", (requested_id,)).fetchone()
+            parent_rows = None if latest is None else {"tables": {table: _table_row_evidence(connection, table) for table in _NATURAL_KEYS}}
+            if replay is not None:
+                seq = replay[0]
+                if replay[1] is None:
+                    latest_for_snapshot = None
+                    parent = None
+                else:
+                    latest_for_snapshot = connection.execute("SELECT snapshot_seq, snapshot_id, chain_sha256 FROM snapshot_runs WHERE snapshot_seq=?", (replay[1],)).fetchone()
+                    parent = (replay[1], replay[2], replay[3])
+                latest = latest_for_snapshot
+            else:
+                seq = 1 if latest is None else latest[0] + 1
+                parent = None if latest is None else (latest[0], latest[1], latest[2])
+            state_validation_seq = replay[0] if replay is not None else (None if latest is None else latest[0])
+            validated_readme_state = _validate_readme_state(readme_state, connection, state_validation_seq)
+            next_readme_state = (
+                _reconstruct_readme_state(connection, None if latest is None else latest[0])
+                if replay is not None else validated_readme_state
+            )
+            provisional = _run_identity(snapshot_payload, seq, parent, "0" * 64)
+            baselines = _value(snapshot_payload, "legacy_baselines", "legacyBaselines")
+            if latest is None:
+                if not isinstance(baselines, dict):
+                    raise ValueError("missing parent migration_baseline requires frozen legacy baselines")
+                legacy_rows = project_legacy_baselines(
+                    baselines,
+                    _value(snapshot_payload, "legacy_baseline_receipt", "legacyBaselineReceipt"),
+                    seq,
+                )
+            else:
+                if not isinstance(baselines, dict):
+                    raise ValueError("refresh requires all frozen legacy baselines")
+                cutover = connection.execute("SELECT MIN(cutover_snapshot_seq) FROM baseline_sources").fetchone()[0]
+                if cutover is None:
+                    raise ValueError("refresh parent is missing frozen baseline identities")
+                measured_legacy_rows = project_legacy_baselines(
+                    baselines,
+                    _value(snapshot_payload, "legacy_baseline_receipt", "legacyBaselineReceipt"),
+                    cutover,
+                )
+                _require_unchanged_legacy_projection(connection, measured_legacy_rows)
+                legacy_rows = {
+                    "baseline_sources": [],
+                    "baseline_membership_slugs": [],
+                    "historical_star_estimates": [],
+                    "historical_star_observations": [],
+                }
+            profiles: list[dict[str, Any]] = []
+            next_profile_id = (connection.execute("SELECT COALESCE(MAX(profile_id), 0) + 1 FROM repository_profiles").fetchone()[0])
+            normalized: list[tuple[dict[str, Any], dict[str, Any], tuple[str, str, str, str, str | None, str | None]]] = []
+            seen = set()
+            for repository in repositories:
+                if not isinstance(repository, dict):
+                    raise ValueError("repository fact is invalid")
+                slug = _slug_value(_value(repository, "slug"))
+                if slug in seen:
+                    raise ValueError("snapshot has duplicate repository slug")
+                seen.add(slug)
+                profile = _profile_row(repository, seq, next_profile_id)
+                existing = connection.execute("SELECT * FROM repository_profiles WHERE slug = ? AND profile_sha256 = ?", (slug, profile["profile_sha256"])).fetchone()
+                if existing is not None:
+                    profile = dict(zip(_columns(connection, "repository_profiles"), existing))
+                    profiles.append(profile)
+                else:
+                    profiles.append(profile)
+                    next_profile_id += 1
+                normalized.append((repository, profile, _enrichment_hashes(repository, profile, index)))
+            active_slugs = {profile["slug"] for _, profile, _ in normalized}
+            heads, estimate_events = _validated_event_maps(event_payload, active_slugs)
+            releases_value = event_payload["releases"]
+            if not isinstance(releases_value, list) or any(not isinstance(entry, dict) or _slug_value(_value(entry, "slug")) not in active_slugs for entry in releases_value):
+                raise ValueError("release inventory contains an inactive repository")
+            # The preimage must include existing versions referenced by this
+            # refresh; table rows below are complete logical representations.
+            core_rows = {
+                "snapshot_runs": [{key: value for key, value in provisional.items() if key not in {"core_payload_sha256", "chain_sha256"}}],
+                "baseline_sources": legacy_rows["baseline_sources"],
+                "baseline_membership_slugs": legacy_rows["baseline_membership_slugs"],
+                "repository_profiles": profiles,
+                "snapshot_items": [],
+                "release_versions": [],
+                "snapshot_release_items": [],
+                "historical_star_estimates": list(legacy_rows["historical_star_estimates"]),
+                "historical_star_observations": legacy_rows["historical_star_observations"],
+                "commit_events": [],
+                "readme_change_events": [],
+            }
+            previous_slugs = set() if latest is None else {row[0] for row in connection.execute("SELECT slug FROM snapshot_items WHERE snapshot_seq = ?", (latest[0],))}
+            historical = {row[0] for row in connection.execute("SELECT slug FROM baseline_membership_slugs")} | {row[0] for row in connection.execute("SELECT DISTINCT slug FROM snapshot_items")}
+            previous_heads = {} if latest is None else {
+                row[0]: (row[1], row[2])
+                for row in connection.execute(
+                    "SELECT i.slug, p.default_branch, i.default_branch_head_sha FROM snapshot_items i JOIN repository_profiles p ON p.profile_id=i.profile_id AND p.slug=i.slug WHERE i.snapshot_seq=?",
+                    (latest[0],),
+                )
+            }
+            for repository, profile, hashes in normalized:
+                slug = profile["slug"]
+                head = heads.get(slug)
+                if head is None:
+                    raise ValueError(f"event heads missing {slug}")
+                if head["branch"] != profile["default_branch"]:
+                    raise ValueError("head branch does not match repository profile")
+                releases, release_items, latest_release = _release_rows(event_payload, slug, seq)
+                for release in releases:
+                    existing_release = connection.execute(
+                        "SELECT first_observed_snapshot_seq FROM release_versions WHERE slug=? AND release_id=? AND metadata_sha256=?",
+                        (release["slug"], release["release_id"], release["metadata_sha256"]),
+                    ).fetchone()
+                    if existing_release is not None:
+                        # A→B→A must point to the original immutable version.
+                        release["first_observed_snapshot_seq"] = existing_release[0]
+                readme_path = _value(repository, "readme_path", "readmePath")
+                readme_blob = _value(repository, "readme_blob_sha", "readmeBlobSha")
+                readme_content = _value(repository, "readme_content_sha256", "readmeContentSha256")
+                if latest is None: membership = "baseline_present"
+                elif slug in previous_slugs: membership = "stayed"
+                else: membership = "reentered" if slug in historical else "new"
+                inventory = [{"release_id": row["release_id"], "metadata_sha256": row["metadata_sha256"]} for row in release_items]
+                estimate = estimate_events.get(slug)
+                if estimate is None:
+                    raise ValueError(f"OSS estimate receipt missing {slug}")
+                estimate_rows = _value(estimate, "rows", default=[])
+                if not isinstance(estimate_rows, list):
+                    raise ValueError("OSS estimate rows are invalid")
+                estimate_payload = _value(estimate, "source_payload_sha256", "sourcePayloadSha256")
+                item = {
+                    "snapshot_seq": seq, "slug": slug, "profile_id": profile["profile_id"], "display_rank": _value(repository, "display_rank", "displayRank"),
+                    "rank_daily": _value(repository, "rank_daily", "rankDaily"), "rank_weekly": _value(repository, "rank_weekly", "rankWeekly"), "rank_monthly": _value(repository, "rank_monthly", "rankMonthly"),
+                    "gain_daily": _value(repository, "gain_daily", "gainDaily"), "gain_weekly": _value(repository, "gain_weekly", "gainWeekly"), "gain_monthly": _value(repository, "gain_monthly", "gainMonthly"),
+                    "language_color_daily": _value(repository, "language_color_daily", "languageColorDaily"), "language_color_weekly": _value(repository, "language_color_weekly", "languageColorWeekly"), "language_color_monthly": _value(repository, "language_color_monthly", "languageColorMonthly"),
+                    "selected_language_color": _value(repository, "selected_language_color", "selectedLanguageColor"), "selected_language_color_source_period": _value(repository, "selected_language_color_source_period", "selectedLanguageColorSourcePeriod"),
+                    "stars": _value(repository, "stars"), "forks": _value(repository, "forks"), "watchers_count": _value(repository, "watchers_count", "watchersCount"), "subscribers": _value(repository, "subscribers"), "open_issues_and_pull_requests": _value(repository, "open_issues_and_pull_requests", "openIssuesAndPullRequests"), "contributors": _value(repository, "contributors"),
+                    "updated_at": _value(repository, "updated_at", "updatedAt"), "pushed_at": _value(repository, "pushed_at", "pushedAt"), "default_branch_head_sha": _value(head, "head_sha", "headSha"), "previous_default_branch_head_sha": None if latest is None else _value(repository, "previous_default_branch_head_sha", "previousDefaultBranchHeadSha", default=latest and connection.execute("SELECT default_branch_head_sha FROM snapshot_items WHERE snapshot_seq = ? AND slug = ?", (latest[0], slug)).fetchone()[0] if slug in previous_slugs else None), "head_transition": _value(head, "transition"),
+                    "readme_status": "absent" if readme_path is None else "present", "readme_path": readme_path, "readme_blob_sha": readme_blob, "readme_content_sha256": readme_content, "membership_status": membership,
+                    "release_count": len(inventory), "release_inventory_sha256": _digest(inventory), "latest_release_id": latest_release,
+                    "estimate_collection_status": "complete_empty" if not estimate_rows else "complete_nonempty", "estimate_source_payload_sha256": estimate_payload, "estimate_point_count": len(estimate_rows),
+                    "summary_source_sha256": hashes[0], "summary_content_sha256": hashes[1], "summary_envelope_sha256": hashes[2], "translation_status": hashes[3], "translation_source_sha256": hashes[4], "translation_envelope_sha256": hashes[5],
+                }
+                prior_entry = next_readme_state.get(slug)
+                prior_current = None if prior_entry is None else prior_entry["current"]
+                previous_tuple = (None, None, None) if prior_current is None else (
+                    prior_current["path"], prior_current["blob_sha"], prior_current["content_sha256"]
+                )
+                current_tuple = (readme_path, readme_blob, readme_content)
+                if latest is None:
+                    kind = "baseline"
+                elif previous_tuple == current_tuple:
+                    kind = None
+                elif previous_tuple == (None, None, None):
+                    kind = "added"
+                elif current_tuple == (None, None, None):
+                    kind = "removed"
+                else:
+                    kind = "changed"
+                core_rows["snapshot_items"].append(item); core_rows["release_versions"].extend(releases); core_rows["snapshot_release_items"].extend(release_items)
+                if kind is not None:
+                    core_rows["readme_change_events"].append({"snapshot_seq": seq, "slug": slug, "old_path": previous_tuple[0], "new_path": current_tuple[0], "old_blob_sha": previous_tuple[1], "new_blob_sha": current_tuple[1], "old_content_sha256": previous_tuple[2], "new_content_sha256": current_tuple[2], "change_kind": kind})
+                observed_at = _value(snapshot_payload, "observed_at_utc", "observedAtUtc", "generated_at", "generatedAt")
+                if prior_entry is None:
+                    previous_state = {"path": None, "blob_sha": None, "content_sha256": None, "observed_at_utc": observed_at}
+                elif previous_tuple != current_tuple:
+                    previous_state = prior_entry["current"]
+                else:
+                    previous_state = prior_entry["previous"]
+                next_readme_state[slug] = {
+                    "current": {"path": readme_path, "blob_sha": readme_blob, "content_sha256": readme_content, "observed_at_utc": observed_at},
+                    "previous": previous_state,
+                }
+            # Commit records are prospective: collector provided no historical
+            # backfill for baseline/branch/rewrite transitions.
+            core_rows["commit_events"].extend(
+                _project_commit_rows(connection, event_payload, seq, active_slugs, heads, previous_heads)
+            )
+            for estimate in event_payload["estimates"]:
+                slug = _slug_value(_value(estimate, "slug")); payload_sha = _value(estimate, "source_payload_sha256", "sourcePayloadSha256")
+                current = {row["date"]: row["stars"] for row in _value(estimate, "rows", default=[])}
+                prior = {date: (present, stars) for date, present, stars in connection.execute("SELECT estimate_date, is_present, stars FROM historical_star_estimates WHERE source='ossinsight_api' AND slug=? AND first_observed_snapshot_seq < ? ORDER BY first_observed_snapshot_seq", (slug, seq))}
+                for date in sorted(set(current) | {date for date, (present, _) in prior.items() if present}):
+                    present, stars = (1, current[date]) if date in current else (0, None)
+                    if prior.get(date) != (present, stars):
+                        core_rows["historical_star_estimates"].append({"source": "ossinsight_api", "slug": slug, "estimate_date": date, "is_present": present, "stars": stars, "point_sha256": _digest({"slug": slug, "date": date, "is_present": bool(present), "stars": stars}), "source_payload_sha256": payload_sha, "first_observed_snapshot_seq": seq})
+            core = _digest(_core_preimage(connection, core_rows))
+            requested_id = _value(snapshot_payload, "snapshot_id", "snapshotId")
+            prior_same_id = connection.execute("SELECT snapshot_seq, core_payload_sha256 FROM snapshot_runs WHERE snapshot_id=?", (requested_id,)).fetchone()
+            if prior_same_id is not None:
+                if prior_same_id[1] != core:
+                    raise ValueError("existing snapshot id has conflicting core payload")
+                connection.rollback()
+                return CoreRecordResult(inserted, {"snapshot_runs": 1}, core, prior_same_id[0])
+            run = _run_identity(snapshot_payload, seq, parent, core)
+            run["chain_sha256"] = _digest({"schema_fingerprint_sha256": schema_fingerprint(connection), "parent_chain_sha256": run["parent_chain_sha256"], "core_payload_sha256": core, "snapshot_id": run["snapshot_id"], "snapshot_seq": seq})
+            _insert_row(connection, "snapshot_runs", run, inserted, reused)
+            for table in ("baseline_sources", "baseline_membership_slugs", "repository_profiles", "snapshot_items", "release_versions", "snapshot_release_items", "historical_star_estimates", "historical_star_observations", "commit_events", "readme_change_events"):
+                for row in core_rows[table]: _insert_row(connection, table, row, inserted, reused)
+            verify_core_snapshot(connection, seq)
+            validate_schema(connection)
+            if parent_rows is not None:
+                _assert_parent_rows_preserved(connection, parent_rows)
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
+    readme_state.clear()
+    readme_state.update(next_readme_state or {})
+    return CoreRecordResult(inserted, reused, core, seq)
+
+
+def _load_json_file(path: str | Path, label: str) -> Any:
+    try:
+        with Path(path).open("r", encoding="utf-8") as handle:
+            return json.load(handle)
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValueError(f"{label} must be readable JSON") from error
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Append one exact repository-observation candidate snapshot")
+    parser.add_argument("--parent-database", required=True)
+    parser.add_argument("--candidate-database", required=True)
+    parser.add_argument("--snapshot", required=True)
+    parser.add_argument("--events", required=True)
+    parser.add_argument("--enrichment-index", required=True)
+    parser.add_argument("--parent-evidence", required=True)
+    parser.add_argument("--legacy-star-database", required=True)
+    parser.add_argument("--legacy-membership-database", required=True)
+    parser.add_argument("--legacy-public-star-history", required=True)
+    parser.add_argument("--readme-state", required=True)
+    args = parser.parse_args(argv)
+    snapshot = _load_json_file(args.snapshot, "snapshot")
+    events = _load_json_file(args.events, "events")
+    index = _load_json_file(args.enrichment_index, "enrichment index")
+    evidence = _load_json_file(args.parent_evidence, "parent evidence")
+    state_path = Path(args.readme_state)
+    state = _load_json_file(state_path, "README state") if state_path.exists() else {}
+    if not isinstance(snapshot, dict):
+        raise ValueError("snapshot must be an object")
+    snapshot["enrichment_index"] = index
+    legacy = {"legacy_star_observations": args.legacy_star_database, "legacy_trending_membership": args.legacy_membership_database, "legacy_public_star_history": args.legacy_public_star_history}
+    snapshot["legacy_baselines"] = legacy
+    candidate = prepare_candidate_database(args.parent_database, args.candidate_database, evidence, legacy)
+    result = record_core_snapshot(candidate, snapshot, events, state)
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    state_path.write_text(json.dumps(state, ensure_ascii=False, sort_keys=True, separators=(",", ":")), encoding="utf-8")
+    print(json.dumps({"snapshot_seq": result.snapshot_seq, "core_payload_sha256": result.core_payload_sha256, "inserted": result.inserted, "reused": result.reused}, separators=(",", ":")))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
