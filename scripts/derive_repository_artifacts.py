@@ -21,6 +21,7 @@ try:
         PAGES_BASE_ARTIFACT_PATHS,
         _file_sha256,
         _legacy_logical_rows,
+        _parse_parent_evidence_envelope,
         measure_historical_heads,
         parent_database_evidence,
         validate_schema,
@@ -33,6 +34,7 @@ except ModuleNotFoundError as error:
         PAGES_BASE_ARTIFACT_PATHS,
         _file_sha256,
         _legacy_logical_rows,
+        _parse_parent_evidence_envelope,
         measure_historical_heads,
         parent_database_evidence,
         validate_schema,
@@ -733,6 +735,61 @@ def export_parent_inputs(
     return {"parent_snapshot_id": snapshot_id, "head_count": len(heads)}
 
 
+def verify_parent_inputs(
+    parent_database_path: str | Path,
+    parent_evidence_path: str | Path,
+    prior_heads_path: str | Path,
+) -> dict[str, Any]:
+    """Remeasure one frozen parent DB and its two exact content-free receipts."""
+    evidence_envelope = _load_json_path(parent_evidence_path, "parent evidence")
+    prior_heads = _load_json_path(prior_heads_path, "prior heads")
+    declared_parent, _legacy_receipt, declared_historical, _production_source_sha = _parse_parent_evidence_envelope(evidence_envelope)
+    parent = Path(parent_database_path)
+    if parent.is_symlink():
+        raise ValueError("parent database path is unsafe")
+    if parent.exists():
+        actual_before = parent_database_evidence(parent)
+        if declared_parent != actual_before:
+            raise ValueError("parent database evidence mismatch")
+        actual_historical, heads = measure_historical_heads(parent, actual_before["last_snapshot_seq"])
+        actual_after = parent_database_evidence(parent)
+        if actual_before != actual_after:
+            raise ValueError("parent database changed during verification")
+        if declared_historical != actual_historical:
+            raise ValueError("parent historical evidence mismatch")
+        expected_prior = {
+            "version": 1,
+            "snapshotId": actual_before["last_snapshot_id"],
+            "scope": "all_historical",
+            "parentDatabaseSha256": actual_before["file_sha256"],
+            "snapshotSeq": actual_before["last_snapshot_seq"],
+            "headCount": len(heads),
+            "headsSha256": _digest(heads),
+            "heads": heads,
+        }
+    else:
+        if declared_parent != {"missing": True}:
+            raise ValueError("parent database evidence mismatch")
+        empty_historical = {"scope": "all_historical", "head_count": 0, "heads_sha256": _digest({})}
+        if declared_historical != empty_historical:
+            raise ValueError("parent historical evidence mismatch")
+        expected_prior = {
+            "version": 1,
+            "snapshotId": None,
+            "scope": "all_historical",
+            "parentDatabaseSha256": None,
+            "snapshotSeq": None,
+            "headCount": 0,
+            "headsSha256": _digest({}),
+            "heads": {},
+        }
+        if parent.exists() or parent.is_symlink():
+            raise ValueError("parent database changed during verification")
+    if prior_heads != expected_prior:
+        raise ValueError("parent input receipt mismatch")
+    return {"verified": True, "version": 1}
+
+
 def _summary_content(index: dict[str, Any], item: dict[str, Any]) -> dict[str, str]:
     repositories = index.get("repositories")
     entry = repositories.get(item["slug"]) if isinstance(repositories, dict) else None
@@ -946,6 +1003,10 @@ def _parser() -> argparse.ArgumentParser:
     parent.add_argument("--production-source-sha", required=True)
     parent.add_argument("--parent-evidence-out", required=True)
     parent.add_argument("--prior-heads-out", required=True)
+    verify_parent = commands.add_parser("verify-parent-inputs")
+    verify_parent.add_argument("--parent-database", required=True)
+    verify_parent.add_argument("--parent-evidence", required=True)
+    verify_parent.add_argument("--prior-heads", required=True)
     derive = commands.add_parser("derive")
     derive.add_argument("--database", required=True)
     derive.add_argument("--legacy-membership-database", required=True)
@@ -984,6 +1045,8 @@ def main(argv: list[str] | None = None) -> int:
             args.parent_evidence_out,
             args.prior_heads_out,
         )
+    elif args.command == "verify-parent-inputs":
+        result = verify_parent_inputs(args.parent_database, args.parent_evidence, args.prior_heads)
     elif args.command == "derive":
         result = _derive_cli(args)
     elif args.command == "finalize":

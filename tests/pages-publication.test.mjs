@@ -285,6 +285,8 @@ test("frozen manifest evidence survives the actual render to recorder boundary",
     snapshotId: facts.snapshotId,
     activeSetSha256: facts.activeSetSha256,
     factsSha256: facts.factsSha256,
+    sourceSetSha256: facts.sourceSetSha256,
+    runContextSha256: facts.runContextSha256,
     eventsSha256: events.completeSetSha256,
     repositories: Object.fromEntries(repositories.map(repository => {
       const source = {

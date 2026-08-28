@@ -1,14 +1,16 @@
 import hashlib
+import io
 import json
 import sqlite3
 import tempfile
 import traceback
 import unittest
-from contextlib import closing
+from contextlib import closing, redirect_stdout
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 
+import scripts.derive_repository_artifacts as repository_artifacts
 from scripts.derive_repository_artifacts import (
     _utc_milliseconds,
     derive_daily_star_series,
@@ -244,6 +246,77 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
             "heads_sha256": digest(expected_heads),
         })
         self.assertEqual(evidence["production_source_sha"], "b" * 40)
+
+    def test_parent_verifier_remeasures_v1_and_exact_missing_parent_receipts(self):
+        database = self.root / "parent.sqlite"
+        create_database(database)
+        with closing(sqlite3.connect(database)) as connection:
+            connection.execute("PRAGMA foreign_keys=ON")
+            snapshot_id = insert_run(connection, 1, "2026-08-28T00:00:00.000Z", "2026-08-28", repository_count=2)
+            insert_profile(connection, 1, "owner/a")
+            insert_profile(connection, 2, "owner/b")
+            insert_item(connection, 1, "owner/a", 1, stars=1, display_rank=1, daily=1, head="a" * 40)
+            insert_item(connection, 1, "owner/b", 2, stars=2, display_rank=2, daily=2, head="b" * 40)
+            connection.commit()
+        evidence_path = self.root / "parent-evidence.json"
+        heads_path = self.root / "prior-heads.json"
+        export_parent_inputs(database, {"version": 1, "sources": {}}, snapshot_id, "b" * 40, evidence_path, heads_path)
+        self.assertEqual(repository_artifacts.verify_parent_inputs(database, evidence_path, heads_path), {"verified": True, "version": 1})
+        output = io.StringIO()
+        with redirect_stdout(output):
+            self.assertEqual(repository_artifacts.main([
+                "verify-parent-inputs", "--parent-database", str(database),
+                "--parent-evidence", str(evidence_path), "--prior-heads", str(heads_path),
+            ]), 0)
+        self.assertEqual(output.getvalue(), '{"verified":true,"version":1}\n')
+
+        for label, source_sha in (("v0", "c" * 40), ("404", "d" * 40)):
+            with self.subTest(label=label):
+                missing = self.root / f"missing-{label}.sqlite"
+                missing_evidence = self.root / f"missing-{label}-evidence.json"
+                missing_heads = self.root / f"missing-{label}-heads.json"
+                export_parent_inputs(missing, {"version": 1, "sources": {}}, None, source_sha, missing_evidence, missing_heads)
+                self.assertEqual(repository_artifacts.verify_parent_inputs(missing, missing_evidence, missing_heads), {"verified": True, "version": 1})
+
+    def test_parent_verifier_rejects_self_rehashed_partial_receipt_and_database_swap(self):
+        database = self.root / "parent.sqlite"
+        create_database(database)
+        with closing(sqlite3.connect(database)) as connection:
+            connection.execute("PRAGMA foreign_keys=ON")
+            snapshot_id = insert_run(connection, 1, "2026-08-28T00:00:00.000Z", "2026-08-28", repository_count=2)
+            insert_profile(connection, 1, "owner/a")
+            insert_profile(connection, 2, "owner/b")
+            insert_item(connection, 1, "owner/a", 1, stars=1, display_rank=1, daily=1, head="a" * 40)
+            insert_item(connection, 1, "owner/b", 2, stars=2, display_rank=2, daily=2, head="b" * 40)
+            connection.commit()
+        evidence_path = self.root / "parent-evidence.json"
+        heads_path = self.root / "prior-heads.json"
+        export_parent_inputs(database, {"version": 1, "sources": {}}, snapshot_id, "b" * 40, evidence_path, heads_path)
+
+        partial = json.loads(heads_path.read_text(encoding="utf-8"))
+        partial["heads"].pop("owner/b")
+        partial["headCount"] = len(partial["heads"])
+        partial["headsSha256"] = digest(partial["heads"])
+        partial_path = self.root / "partial-heads.json"
+        partial_path.write_text(json.dumps(partial), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "parent input receipt mismatch"):
+            repository_artifacts.verify_parent_inputs(database, evidence_path, partial_path)
+
+        swapped = self.root / "swapped.sqlite"
+        swapped.write_bytes(database.read_bytes())
+        with closing(sqlite3.connect(swapped)) as connection:
+            insert_profile(connection, 3, "owner/c")
+            connection.commit()
+        with self.assertRaisesRegex(ValueError, "parent database evidence mismatch"):
+            repository_artifacts.verify_parent_inputs(swapped, evidence_path, heads_path)
+
+        with closing(sqlite3.connect(database)) as connection:
+            insert_run(connection, 2, "2026-08-28T02:00:00.000Z", "2026-08-28", repository_count=2)
+            insert_item(connection, 2, "owner/a", 1, stars=3, display_rank=1, daily=1, head="c" * 40)
+            insert_item(connection, 2, "owner/b", 2, stars=4, display_rank=2, daily=2, head="d" * 40)
+            connection.commit()
+        with self.assertRaisesRegex(ValueError, "parent database evidence mismatch"):
+            repository_artifacts.verify_parent_inputs(database, evidence_path, heads_path)
 
     def assert_sanitized_failure(self, action, expected_message, forbidden):
         try:

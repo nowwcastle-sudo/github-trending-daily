@@ -143,14 +143,16 @@ jobs:
           set -euo pipefail
           PARENT_DATABASE="${RUNNER_TEMP}/parent-repository-observations.sqlite"
           if [ "$PRODUCTION_VERSION" = "1" ]; then
-            git show "$HYDRATION_SOURCE_SHA:data/repository-observations.sqlite" > "$PARENT_DATABASE"
+            set -o noclobber
+            git cat-file blob "$HYDRATION_SOURCE_SHA:data/repository-observations.sqlite" > "$PARENT_DATABASE"
             EXPECTED_PARENT="$PARENT_SNAPSHOT_ID"
           else
-            rm -f "$PARENT_DATABASE"
+            [ ! -e "$PARENT_DATABASE" ] || { echo "::error::parent database capture path already exists"; exit 1; }
             EXPECTED_PARENT=none
           fi
           node --input-type=module -e 'import { appendFileSync, writeFileSync } from "node:fs"; import { createRunContext } from "./scripts/run-context.mjs"; const parent=process.env.PRODUCTION_VERSION === "1" ? {snapshotId:process.env.PARENT_SNAPSHOT_ID,sourceSha:process.env.HYDRATION_SOURCE_SHA} : {snapshotId:null,sourceSha:null}; const context=createRunContext(new Date(Number(process.env.REFRESH_ORIGIN_EPOCH_MS)),parent); const encoded=JSON.stringify(context); writeFileSync(process.argv[1],encoded); appendFileSync(process.env.GITHUB_ENV,`RUN_CONTEXT_JSON=${encoded}\n`); appendFileSync(process.env.GITHUB_OUTPUT,`snapshot_id=${context.snapshotId}\n`);' "${RUNNER_TEMP}/run-context.json"
           python scripts/derive_repository_artifacts.py export-parent-inputs --parent-database "$PARENT_DATABASE" --baseline-receipt data/legacy-observation-baseline.json --expected-parent-snapshot "$EXPECTED_PARENT" --production-source-sha "$HYDRATION_SOURCE_SHA" --parent-evidence-out "${RUNNER_TEMP}/parent-evidence.json" --prior-heads-out "${RUNNER_TEMP}/prior-heads.json"
+          python scripts/derive_repository_artifacts.py verify-parent-inputs --parent-database "$PARENT_DATABASE" --parent-evidence "${RUNNER_TEMP}/parent-evidence.json" --prior-heads "${RUNNER_TEMP}/prior-heads.json"
           echo "PARENT_DATABASE=$PARENT_DATABASE" >> "$GITHUB_ENV"
       - name: Collect frozen repository facts
         shell: bash
@@ -159,6 +161,7 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/update-trending.mjs --facts-out "${RUNNER_TEMP}/repository-facts.json" --budget-state "${RUNNER_TEMP}/event-budget.json"
+          node --input-type=module -e 'import { appendFileSync, readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); if(!/^[a-f0-9]{64}$/.test(value.sourceSetSha256 ?? "") || !/^[a-f0-9]{64}$/.test(value.runContextSha256 ?? "")) throw new Error("frozen facts binding is invalid"); appendFileSync(process.env.GITHUB_ENV,`FROZEN_SOURCE_SET_SHA256=${value.sourceSetSha256}\nFROZEN_RUN_CONTEXT_SHA256=${value.runContextSha256}\n`);' "${RUNNER_TEMP}/repository-facts.json"
       - name: Collect complete repository events
         shell: bash
         env:
@@ -179,7 +182,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           set -euo pipefail
-          node scripts/generate-translations.mjs --facts "${RUNNER_TEMP}/repository-facts.json" --events "${RUNNER_TEMP}/repository-events.json" --enrichment-index-out "${RUNNER_TEMP}/enrichment-index.json" --output-root "${RUNNER_TEMP}/candidate"
+          node scripts/generate-translations.mjs --facts "${RUNNER_TEMP}/repository-facts.json" --events "${RUNNER_TEMP}/repository-events.json" --enrichment-index-out "${RUNNER_TEMP}/enrichment-index.json" --output-root "${RUNNER_TEMP}/candidate" --prior-heads "${RUNNER_TEMP}/prior-heads.json" --parent-evidence "${RUNNER_TEMP}/parent-evidence.json" --parent-database "$PARENT_DATABASE"
       - name: Record core repository snapshot
         shell: bash
         run: |

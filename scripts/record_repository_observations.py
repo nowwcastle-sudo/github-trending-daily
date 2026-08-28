@@ -1196,34 +1196,53 @@ def _validate_production_manifest_evidence(snapshot: dict[str, Any], source_sha:
 
 
 def _validate_cross_input_bindings(snapshot: dict[str, Any], events: dict[str, Any], index: Any, repositories: list[dict[str, Any]]) -> None:
-    if not isinstance(index, dict) or set(index) != {"version", "snapshotId", "activeSetSha256", "factsSha256", "eventsSha256", "repositories"} or index["version"] != 1 or not isinstance(index["repositories"], dict):
+    if not isinstance(index, dict) or set(index) != {"version", "snapshotId", "activeSetSha256", "factsSha256", "sourceSetSha256", "runContextSha256", "eventsSha256", "repositories"} or index["version"] != 1 or not isinstance(index["repositories"], dict):
         raise ValueError("enrichment index binding envelope is invalid")
     snapshot_id = _value(snapshot, "snapshot_id", "snapshotId")
     source_sha = _value(snapshot, "input_source_sha", "inputSourceSha", "sourceSha")
     hydration_source_sha = _exclusive_value(snapshot, "hydration_source_sha", "hydrationSourceSha", label="hydration source SHA")
     _sha_text(hydration_source_sha, 40, "hydration source SHA")
+    source_set_sha = _exclusive_value(snapshot, "source_set_sha256", "sourceSetSha256", label="source-set SHA")
+    run_context_sha = _exclusive_value(snapshot, "run_context_sha256", "runContextSha256", label="run-context SHA")
+    _sha_text(source_set_sha, 64, "source-set SHA")
+    _sha_text(run_context_sha, 64, "run-context SHA")
+    parent_snapshot_id = _value(snapshot, "parent_snapshot_id", "parentSnapshotId")
+    expected_run_context_sha = _digest({
+        "observedAtUtc": _value(snapshot, "observed_at_utc", "observedAtUtc"),
+        "observedAtKst": _value(snapshot, "observed_at_kst", "observedAtKst"),
+        "statsDateKst": _value(snapshot, "stats_date_kst", "statsDate"),
+        "snapshotId": snapshot_id,
+        "parentSnapshotId": parent_snapshot_id,
+        "parentSourceSha": hydration_source_sha if parent_snapshot_id is not None else None,
+    })
+    if run_context_sha != expected_run_context_sha:
+        raise ValueError("snapshot run context hash is invalid")
     slugs = [_slug_value(_value(repository, "slug")) for repository in repositories]
     if len(set(slugs)) != len(slugs):
         raise ValueError("snapshot has duplicate repository slug")
     active_set_sha = _digest(sorted(slugs))
     facts_sha = _digest({"snapshot_id": snapshot_id, "input_source_sha": source_sha, "repositories": repositories})
-    event_binding_keys = {"version", "snapshotId", "activeSetSha256", "factsSha256", "completeSetSha256"}
+    event_binding_keys = {"version", "snapshotId", "activeSetSha256", "factsSha256", "sourceSetSha256", "runContextSha256", "completeSetSha256"}
     event_content = {key: value for key, value in events.items() if key not in event_binding_keys}
     events_sha = _digest(event_content)
-    if events.get("version") != 1 or events.get("snapshotId") != snapshot_id or events.get("activeSetSha256") != active_set_sha or events.get("factsSha256") != facts_sha or events.get("completeSetSha256") != events_sha:
+    if events.get("version") != 1 or events.get("snapshotId") != snapshot_id or events.get("activeSetSha256") != active_set_sha or events.get("factsSha256") != facts_sha or events.get("sourceSetSha256") != source_set_sha or events.get("runContextSha256") != run_context_sha or events.get("completeSetSha256") != events_sha:
         raise ValueError("event payload does not bind to exact snapshot facts")
-    if index["snapshotId"] != snapshot_id or index["activeSetSha256"] != active_set_sha or index["factsSha256"] != facts_sha or index["eventsSha256"] != events_sha or set(index["repositories"]) != set(slugs):
+    if index["snapshotId"] != snapshot_id or index["activeSetSha256"] != active_set_sha or index["factsSha256"] != facts_sha or index["sourceSetSha256"] != source_set_sha or index["runContextSha256"] != run_context_sha or index["eventsSha256"] != events_sha or set(index["repositories"]) != set(slugs):
         raise ValueError("enrichment index does not bind to exact facts and events")
     enrichment_sha = _digest(index)
     declared = {
         "active_set_sha256": _value(snapshot, "active_set_sha256", "activeSetSha256"),
         "facts_sha256": _value(snapshot, "facts_sha256", "factsSha256"),
+        "source_set_sha256": source_set_sha,
+        "run_context_sha256": run_context_sha,
         "events_sha256": _value(snapshot, "events_sha256", "eventsSha256"),
         "enrichment_index_sha256": _value(snapshot, "enrichment_index_sha256", "enrichmentIndexSha256"),
     }
     expected = {
         "active_set_sha256": active_set_sha,
         "facts_sha256": facts_sha,
+        "source_set_sha256": source_set_sha,
+        "run_context_sha256": expected_run_context_sha,
         "events_sha256": events_sha,
         "enrichment_index_sha256": enrichment_sha,
     }
@@ -1474,7 +1493,7 @@ def _readme_identity(value: Any, label: str) -> dict[str, Any]:
 
 def _validated_event_maps(event_payload: dict[str, Any], active_slugs: set[str]) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
     required = {"heads", "releases", "latestReleaseIds", "commits", "estimates"}
-    allowed = required | {"budgetReceipt", "version", "snapshotId", "activeSetSha256", "factsSha256", "completeSetSha256"}
+    allowed = required | {"budgetReceipt", "version", "snapshotId", "activeSetSha256", "factsSha256", "sourceSetSha256", "runContextSha256", "completeSetSha256"}
     if not required.issubset(event_payload) or not set(event_payload).issubset(allowed):
         raise ValueError("event payload fields are not the exact allowlist")
     if "budgetReceipt" in event_payload:

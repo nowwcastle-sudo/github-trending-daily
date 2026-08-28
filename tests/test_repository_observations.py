@@ -409,27 +409,40 @@ def bind_writer_inputs(payload, events):
     repositories = payload["repositories"]
     snapshot_id = payload["snapshotId"]
     source_sha = payload["inputSourceSha"]
+    hydration_source_sha = payload["hydrationSourceSha"]
+    run_context_sha = canonical_hash({
+        "observedAtUtc": payload["observedAtUtc"],
+        "observedAtKst": payload["observedAtKst"],
+        "statsDateKst": payload["statsDate"],
+        "snapshotId": snapshot_id,
+        "parentSnapshotId": payload["parentSnapshotId"],
+        "parentSourceSha": hydration_source_sha if payload["parentSnapshotId"] is not None else None,
+    })
+    source_set_sha = sha256("7")
     active_set_sha = canonical_hash(sorted(repository["slug"].lower() for repository in repositories))
     facts_sha = canonical_hash({
         "snapshot_id": snapshot_id,
         "input_source_sha": source_sha,
         "repositories": repositories,
     })
-    for key in ("version", "snapshotId", "activeSetSha256", "factsSha256", "completeSetSha256"):
+    for key in ("version", "snapshotId", "activeSetSha256", "factsSha256", "sourceSetSha256", "runContextSha256", "completeSetSha256"):
         events.pop(key, None)
     events_sha = canonical_hash(events)
     events.update({
         "version": 1, "snapshotId": snapshot_id, "activeSetSha256": active_set_sha,
-        "factsSha256": facts_sha, "completeSetSha256": events_sha,
+        "factsSha256": facts_sha, "sourceSetSha256": source_set_sha,
+        "runContextSha256": run_context_sha, "completeSetSha256": events_sha,
     })
     entries = payload["enrichmentIndex"].get("repositories", payload["enrichmentIndex"])
     payload["enrichmentIndex"] = {
         "version": 1, "snapshotId": snapshot_id, "activeSetSha256": active_set_sha,
-        "factsSha256": facts_sha, "eventsSha256": events_sha, "repositories": entries,
+        "factsSha256": facts_sha, "sourceSetSha256": source_set_sha,
+        "runContextSha256": run_context_sha, "eventsSha256": events_sha, "repositories": entries,
     }
     enrichment_sha = canonical_hash(payload["enrichmentIndex"])
     payload.update({
         "activeSetSha256": active_set_sha, "factsSha256": facts_sha,
+        "sourceSetSha256": source_set_sha, "runContextSha256": run_context_sha,
         "eventsSha256": events_sha, "enrichmentIndexSha256": enrichment_sha,
     })
     return events
@@ -1826,12 +1839,15 @@ class RepositoryObservationTests(unittest.TestCase):
 
     def test_cross_input_bindings_reject_event_and_enrichment_drift(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
-        for mutation, message in (
-            (lambda payload, events: events["heads"][0].update({"headSha": sha1("c")}), "event payload does not bind"),
-            (lambda payload, events: payload["enrichmentIndex"]["repositories"]["owner/repo"]["summary"]["content"].update({"goal": "drift"}), "snapshot input hash bindings"),
+        for label, mutation, message in (
+            ("event-content", lambda payload, events: events["heads"][0].update({"headSha": sha1("c")}), "event payload does not bind"),
+            ("enrichment-content", lambda payload, events: payload["enrichmentIndex"]["repositories"]["owner/repo"]["summary"]["content"].update({"goal": "drift"}), "snapshot input hash bindings"),
+            ("event-source-set", lambda payload, events: events.update({"sourceSetSha256": sha256("8")}), "event payload does not bind"),
+            ("enrichment-run-context", lambda payload, events: payload["enrichmentIndex"].update({"runContextSha256": sha256("8")}), "enrichment index does not bind"),
+            ("snapshot-run-context", lambda payload, events: payload.update({"runContextSha256": sha256("8")}), "snapshot run context"),
         ):
-            candidate = Path(self.temporary.name) / f"binding-{message.split()[0]}.sqlite"
-            prepare_candidate_database(Path(self.temporary.name) / f"missing-{message.split()[0]}.sqlite", candidate, None)
+            candidate = Path(self.temporary.name) / f"binding-{label}.sqlite"
+            prepare_candidate_database(Path(self.temporary.name) / f"missing-{label}.sqlite", candidate, None)
             payload = writer_payload(
                 snapshot_id="20260828010101-aaaaaaaaaaaaaaaa",
                 utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00",

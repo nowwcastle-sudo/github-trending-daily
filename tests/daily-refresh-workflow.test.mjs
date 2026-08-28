@@ -70,14 +70,30 @@ test("frozen facts events and enrichment precede core recording and publication"
     "Build and locally probe committed Pages artifact",
   ]);
   assert.match(workflow, /update-trending\.mjs --facts-out/);
+  assert.match(workflow, /FROZEN_SOURCE_SET_SHA256=\$\{value\.sourceSetSha256\}[\s\S]*FROZEN_RUN_CONTEXT_SHA256=\$\{value\.runContextSha256\}/);
   assert.match(workflow, /derive_repository_artifacts\.py export-parent-inputs[\s\S]*--production-source-sha "\$HYDRATION_SOURCE_SHA"/);
+  assertInOrder(workflow, [
+    "derive_repository_artifacts.py export-parent-inputs",
+    "derive_repository_artifacts.py verify-parent-inputs",
+    "Collect frozen repository facts",
+  ]);
   assert.match(workflow, /collect-repository-events\.mjs --facts[\s\S]*--prior-heads[\s\S]*--parent-evidence[\s\S]*--parent-database/);
-  assert.match(workflow, /generate-translations\.mjs --facts[\s\S]*--events[\s\S]*--enrichment-index-out[\s\S]*--output-root/);
+  assert.match(workflow, /generate-translations\.mjs --facts[\s\S]*--events[\s\S]*--enrichment-index-out[\s\S]*--output-root[\s\S]*--prior-heads[\s\S]*--parent-evidence[\s\S]*--parent-database/);
   assert.match(workflow, /ENRICHMENT_BUDGET_MODE=normal[\s\S]*VERIFIED_RECOVERY_VERSION=1[\s\S]*VERIFIED_BOOTSTRAP_SOURCE_SHA=\$HYDRATION_SOURCE_SHA/);
   assert.match(workflow, /PRODUCTION_MANIFEST_STATUS=\$\{value\.manifestStatus\}[\s\S]*PRODUCTION_MANIFEST_SHA256=\$\{value\.manifestSha256 \?\? ""\}/);
   assert.match(workflow, /update-trending\.mjs --render-facts[\s\S]*--snapshot-out/);
   assert.match(workflow, /record_repository_observations\.py[\s\S]*--parent-database[\s\S]*--candidate-database[\s\S]*--snapshot[\s\S]*--events[\s\S]*--enrichment-index[\s\S]*--readme-state/);
   assert.doesNotMatch(workflow, /record_star_observations\.py|record_trending_membership\.py/);
+});
+
+test("one create-new parent database capture is reused across every frozen boundary", async () => {
+  const workflow = await workflowText();
+  assert.match(workflow, /set -o noclobber[\s\S]*git (?:show|cat-file)[\s\S]*> "\$PARENT_DATABASE"/);
+  assert.doesNotMatch(workflow, /rm -f "\$PARENT_DATABASE"/);
+  assert.equal((workflow.match(/PARENT_DATABASE="\$\{RUNNER_TEMP\}\/parent-repository-observations\.sqlite"/g) ?? []).length, 1);
+  assert.match(workflow, /collect-repository-events\.mjs[^\n]*--parent-database "\$PARENT_DATABASE"/);
+  assert.match(workflow, /generate-translations\.mjs[^\n]*--parent-database "\$PARENT_DATABASE"/);
+  assert.match(workflow, /record_repository_observations\.py[^\n]*--parent-database "\$PARENT_DATABASE"/);
 });
 
 test("candidate finalizes before checkout promotion and staged SQLite scanning", async () => {
