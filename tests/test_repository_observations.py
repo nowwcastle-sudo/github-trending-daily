@@ -4,6 +4,7 @@ import sqlite3
 import tempfile
 import unittest
 from contextlib import closing
+from datetime import datetime, timezone
 from pathlib import Path
 
 from scripts.record_repository_observations import (
@@ -15,6 +16,7 @@ from scripts.record_repository_observations import (
     validate_schema,
 )
 from scripts.record_repository_observations import _validate_populated_rows
+import scripts.record_repository_observations as ledger
 
 
 EXPECTED_TABLES = {
@@ -297,8 +299,10 @@ class RepositoryObservationTests(unittest.TestCase):
         with closing(sqlite3.connect(self.database)) as connection:
             complete_fixture(connection)
             profile(connection, profile_id=2, slug="owner/two", display_slug="Owner/Two")
+            connection.execute("DROP TRIGGER snapshot_items_reject_update")
+            connection.execute("UPDATE snapshot_items SET rank_weekly = 1, gain_weekly = 1, rank_monthly = 1, gain_monthly = 1 WHERE slug = 'owner/repo'")
             original = dict(zip([row[1] for row in connection.execute("PRAGMA table_info(snapshot_items)")], connection.execute("SELECT * FROM snapshot_items").fetchone()))
-            original.update({"slug": "owner/two", "profile_id": 2, "display_rank": 2, "rank_daily": 2, "gain_daily": 1})
+            original.update({"slug": "owner/two", "profile_id": 2, "display_rank": 2, "rank_daily": 2, "gain_daily": 1, "rank_weekly": 2, "gain_weekly": 1, "rank_monthly": 2, "gain_monthly": 1})
             connection.execute(f"INSERT INTO snapshot_items VALUES ({','.join('?' for _ in original)})", list(original.values()))
             releases = []
             for release_id in (1, 2):
@@ -307,7 +311,6 @@ class RepositoryObservationTests(unittest.TestCase):
                 releases.append((release_id, digest))
                 connection.execute("INSERT INTO release_versions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (value["slug"], release_id, digest, 1, value["tag_name"], None, "main", 0, 0, value["created_at"], None, value["html_url"]))
                 connection.execute("INSERT INTO snapshot_release_items VALUES (?, ?, ?, ?, ?)", (1, "owner/repo", release_id, digest, release_id - 1))
-            connection.execute("DROP TRIGGER snapshot_items_reject_update")
             connection.execute("UPDATE snapshot_items SET release_count = 2, release_inventory_sha256 = ?, latest_release_id = 2 WHERE slug = 'owner/repo'", (canonical_hash([{"release_id": release_id, "metadata_sha256": digest} for release_id, digest in releases]),))
             _validate_populated_rows(connection)
             for statement, label in (("UPDATE snapshot_items SET display_rank = 3 WHERE slug = 'owner/two'", "display ranks"), ("UPDATE snapshot_items SET rank_daily = 3 WHERE slug = 'owner/two'", "rank_daily"), ("UPDATE snapshot_release_items SET release_ordinal = 2 WHERE release_id = 2", "release ordinals")):
@@ -360,6 +363,43 @@ class RepositoryObservationTests(unittest.TestCase):
                     _validate_populated_rows(connection)
                 connection.execute("ROLLBACK TO calendar_probe")
                 connection.execute("RELEASE calendar_probe")
+
+    def test_each_rank_dimension_has_an_isolated_gap_mutation(self):
+        create_database(self.database)
+        with closing(sqlite3.connect(self.database)) as connection:
+            complete_fixture(connection)
+            profile(connection, profile_id=2, slug="owner/two", display_slug="Owner/Two")
+            connection.execute("DROP TRIGGER snapshot_items_reject_update")
+            connection.execute("UPDATE snapshot_items SET rank_weekly = 1, gain_weekly = 1, rank_monthly = 1, gain_monthly = 1 WHERE slug = 'owner/repo'")
+            source = dict(zip([row[1] for row in connection.execute("PRAGMA table_info(snapshot_items)")], connection.execute("SELECT * FROM snapshot_items").fetchone()))
+            source.update({"slug": "owner/two", "profile_id": 2, "display_rank": 2, "rank_daily": 2, "gain_daily": 1, "rank_weekly": 2, "gain_weekly": 1, "rank_monthly": 2, "gain_monthly": 1})
+            connection.execute(f"INSERT INTO snapshot_items VALUES ({','.join('?' for _ in source)})", list(source.values()))
+            _validate_populated_rows(connection)
+            for field, label in (("display_rank", "display ranks"), ("rank_daily", "rank_daily"), ("rank_weekly", "rank_weekly"), ("rank_monthly", "rank_monthly")):
+                connection.execute("SAVEPOINT isolated_rank")
+                connection.execute(f"UPDATE snapshot_items SET {field} = 3 WHERE slug = 'owner/two'")
+                with self.assertRaisesRegex(ValueError, label):
+                    _validate_populated_rows(connection)
+                connection.execute("ROLLBACK TO isolated_rank")
+                connection.execute("RELEASE isolated_rank")
+
+    def test_calendar_parser_mutation_proves_calendar_probe_efficacy(self):
+        create_database(self.database)
+        with closing(sqlite3.connect(self.database)) as connection:
+            complete_fixture(connection)
+            connection.execute("SAVEPOINT parser_probe")
+            connection.execute("DROP TRIGGER snapshot_items_reject_update")
+            connection.execute("UPDATE snapshot_items SET updated_at = '9999-99-99T99:99:99.999Z'")
+            original = ledger._parse_utc
+            try:
+                ledger._parse_utc = lambda value: original("2026-08-28T01:01:01.001Z") if value.startswith("9999") else original(value)
+                with self.assertRaisesRegex(AssertionError, "ValueError not raised"):
+                    with self.assertRaises(ValueError):
+                        _validate_populated_rows(connection)
+            finally:
+                ledger._parse_utc = original
+            connection.execute("ROLLBACK TO parser_probe")
+            connection.execute("RELEASE parser_probe")
 
     def test_complete_cross_table_fixture_and_actual_immutable_triggers(self):
         create_database(self.database)
