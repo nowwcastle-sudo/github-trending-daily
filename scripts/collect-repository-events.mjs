@@ -175,7 +175,13 @@ function retryDelay(_response, attempt) {
 const STRONG_ETAG = /^"(?:[\x21\x23-\x7e\x80-\xff])*"$/;
 const WEAK_ETAG = /^W\/"(?:[\x21\x23-\x7e\x80-\xff])*"$/;
 
-async function request(url, { fetchImpl, sleep, budget, headers = {}, allow304 = false }) {
+const REQUEST_OPERATIONS = new Set([
+  "release inventory", "release revalidation", "latest release", "commit inventory",
+  "commit comparison", "branch continuity", "OSS star history",
+]);
+
+async function request(url, { fetchImpl, sleep, budget, operation, headers = {}, allow304 = false }) {
+  if (!REQUEST_OPERATIONS.has(operation)) throw new Error("Event request operation is invalid");
   budget.admitLogical();
   for (let attempt = 0; attempt < EVENT_LIMITS.retryAttempts; attempt += 1) {
     budget.admitAttempt();
@@ -188,7 +194,7 @@ async function request(url, { fetchImpl, sleep, budget, headers = {}, allow304 =
         signal: AbortSignal.timeout(EVENT_LIMITS.requestTimeoutMs),
       });
     } catch (error) {
-      if (!retryableError(error) || attempt === EVENT_LIMITS.retryAttempts - 1) throw eventError(`Event request failed for ${url}`, error);
+      if (!retryableError(error) || attempt === EVENT_LIMITS.retryAttempts - 1) throw eventError(`Event ${operation} request failed`);
       const delay = EVENT_LIMITS.retryDelaysMs[attempt];
       budget.admitSleep(delay);
       await sleep(delay);
@@ -200,7 +206,7 @@ async function request(url, { fetchImpl, sleep, budget, headers = {}, allow304 =
     budget.admitSleep(delay);
     await sleep(delay);
   }
-  throw new Error(`Event request exhausted for ${url}`);
+  throw new Error(`Event ${operation} request exhausted`);
 }
 
 async function json(response, label) {
@@ -208,13 +214,13 @@ async function json(response, label) {
   try { return await response.json(); } catch { throw new Error(`Invalid JSON for ${label}`); }
 }
 
-function githubHtmlUrl(value, errorMessage, expectedPathPrefix) {
+function githubHtmlUrl(value, errorMessage, expectedPath) {
   let url;
   try { url = new URL(value); } catch { throw new Error(errorMessage); }
   if (typeof value !== "string" || !value.startsWith("https://github.com/")
       || url.protocol !== "https:" || url.hostname !== "github.com" || url.host !== "github.com"
       || url.username || url.password || url.port || url.search || url.hash
-      || !url.pathname.startsWith(expectedPathPrefix)) throw new Error(errorMessage);
+      || url.pathname !== expectedPath) throw new Error(errorMessage);
 }
 
 function releaseRecord(slug, value) {
@@ -224,7 +230,8 @@ function releaseRecord(slug, value) {
     || ["tag_name", "target_commitish", "html_url"].some(key => typeof value[key] !== "string")
     || (value.name !== null && typeof value.name !== "string") || typeof value.draft !== "boolean" || typeof value.prerelease !== "boolean"
     || !validTime(value.created_at) || !validTime(value.published_at, true)) throw new Error(`Invalid release for ${slug}`);
-  githubHtmlUrl(value.html_url, `Invalid release for ${slug}`, `/${canonicalSlug}/releases/`);
+  if (!value.tag_name || /[\u0000-\u001f\u007f]/.test(value.tag_name)) throw new Error(`Invalid release for ${slug}`);
+  githubHtmlUrl(value.html_url, `Invalid release for ${slug}`, `/${canonicalSlug}/releases/tag/${encodeURIComponent(value.tag_name)}`);
   const record = {
     release_id: value.id,
     tag_name: value.tag_name,
@@ -266,7 +273,7 @@ async function collectReleaseInventory(slug, context) {
   let url = `https://api.github.com${repoPath(slug)}/releases?per_page=100&page=1`;
   const seenIds = new Set();
   for (let page = 1; page <= EVENT_LIMITS.maxReleasePages; page += 1) {
-    const response = await request(url, { ...context, headers: context.githubHeaders });
+    const response = await request(url, { ...context, operation: "release inventory", headers: context.githubHeaders });
     const value = await json(response, `release inventory for ${slug}`);
     if (!Array.isArray(value)) throw new Error(`Invalid release inventory for ${slug}`);
     const next = releaseNext(response.headers.get("link"), slug, page);
@@ -285,7 +292,7 @@ async function collectReleaseInventory(slug, context) {
   // A strong ETag must yield 304; otherwise exact canonical body and Link identity must match.
   for (const [index, first] of pages.entries()) {
     const headers = { ...context.githubHeaders, ...(first.etag ? { "If-None-Match": first.etag } : {}) };
-    const response = await request(first.url, { ...context, headers, allow304: Boolean(first.etag) });
+    const response = await request(first.url, { ...context, operation: "release revalidation", headers, allow304: Boolean(first.etag) });
     if (first.etag && response.status !== 304) throw new Error(`Release ETag revalidation changed for ${slug} page ${index + 1}`);
     if (response.status === 304) continue;
     const value = await json(response, `release revalidation for ${slug}`);
@@ -297,7 +304,7 @@ async function collectReleaseInventory(slug, context) {
 
 async function latestRelease(slug, inventory, context) {
   const url = `https://api.github.com${repoPath(slug)}/releases/latest`;
-  const response = await request(url, { ...context, headers: context.githubHeaders });
+  const response = await request(url, { ...context, operation: "latest release", headers: context.githubHeaders });
   if (response.status === 404) return null;
   const record = releaseRecord(slug, await json(response, `latest release for ${slug}`));
   const existing = inventory.flatMap(page => page.records).find(value => value.release_id === record.release_id);
@@ -320,16 +327,16 @@ function commitRecord(slug, branch, value, ordinal) {
     || !validTime(value?.commit?.author?.date) || !validTime(value?.commit?.committer?.date)
     || (value.author !== null && (typeof value.author !== "object" || (value.author.login !== undefined && typeof value.author.login !== "string")))
     || typeof value.html_url !== "string") throw new Error(`Invalid commit for ${slug}`);
-  githubHtmlUrl(value.html_url, `Invalid commit for ${slug}`, `/${normalizeSlug(slug).toLowerCase()}/commit/`);
+  githubHtmlUrl(value.html_url, `Invalid commit for ${slug}`, `/${normalizeSlug(slug).toLowerCase()}/commit/${sha}`);
   return { slug, sha, firstObservedOrdinal: ordinal, branch, authoredAt: value.commit.author.date, committedAt: value.commit.committer.date, authorLogin: value.author?.login ?? null, parentShas: parents.map(parent => parent.sha), htmlUrl: value.html_url };
 }
 
 async function diagnoseContinuity(slug, branch, priorHead, currentHead, context) {
   const base = `https://api.github.com${repoPath(slug)}`;
-  const compare = await request(`${base}/compare/${priorHead}...${currentHead}`, { ...context, headers: context.githubHeaders });
+  const compare = await request(`${base}/compare/${priorHead}...${currentHead}`, { ...context, operation: "commit comparison", headers: context.githubHeaders });
   const result = await json(compare, `commit continuity for ${slug}`);
   if (!result || typeof result !== "object" || !["ahead", "behind", "diverged", "identical"].includes(result.status)) throw new Error(`Ambiguous commit continuity for ${slug}`);
-  const ref = await request(`${base}/git/ref/heads/${encodeURIComponent(branch)}`, { ...context, headers: context.githubHeaders });
+  const ref = await request(`${base}/git/ref/heads/${encodeURIComponent(branch)}`, { ...context, operation: "branch continuity", headers: context.githubHeaders });
   const head = await json(ref, `branch continuity for ${slug}`);
   if (!head?.object || !SHA.test(head.object.sha ?? "") || head.object.sha !== currentHead) throw new Error(`Ambiguous commit continuity for ${slug}`);
   if (result.status === "behind" || result.status === "diverged") return "history_rewritten";
@@ -350,7 +357,7 @@ async function collectCommits(repo, previous, context) {
   let found = false;
   for (let page = 1; page <= EVENT_LIMITS.maxCommitPages && !found; page += 1) {
     const url = `https://api.github.com${repoPath(slug)}/commits?sha=${encodeURIComponent(branch)}&per_page=100&page=${page}`;
-    const values = await json(await request(url, { ...context, headers: context.githubHeaders }), `commit inventory for ${slug}`);
+    const values = await json(await request(url, { ...context, operation: "commit inventory", headers: context.githubHeaders }), `commit inventory for ${slug}`);
     if (!Array.isArray(values)) throw new Error(`Invalid commit inventory for ${slug}`);
     if (page === 1 && !values.length) throw new Error(`Contradictory empty commit page for ${slug}`);
     for (const value of values) {
@@ -403,7 +410,7 @@ export function validateOssInsightResponse(value) {
 async function collectOss(slug, context) {
   const [owner, name] = normalizeSlug(slug).split("/");
   const url = `https://api.ossinsight.io/v1/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/stargazers/history`;
-  const response = await request(url, { ...context, headers: { Accept: "application/json" } });
+  const response = await request(url, { ...context, operation: "OSS star history", headers: { Accept: "application/json" } });
   if (!response.ok) throw new Error(`OSS Insight returned ${response.status} for ${slug}`);
   const contentType = response.headers.get("content-type") ?? "";
   if (!/^application\/(?:json|[^;]+\+json)(?:;|$)/i.test(contentType)) throw new Error(`Invalid OSS Insight content type for ${slug}`);
@@ -459,30 +466,39 @@ export async function collectRepositoryEvents(repositories, {
 }
 
 export function validatePriorHeadsPayload(facts, payload) {
-  if (!facts || !Array.isArray(facts.repositories) || !payload || !exactKeys(payload, ["version", "snapshotId", "heads"])
-      || payload.version !== 1 || payload.snapshotId !== facts.parentSnapshotId
+  const keys = ["version", "snapshotId", "scope", "parentDatabaseSha256", "snapshotSeq", "headCount", "headsSha256", "heads"];
+  if (!facts || !Array.isArray(facts.repositories) || !payload || !exactKeys(payload, keys)
+      || payload.version !== 1 || payload.snapshotId !== facts.parentSnapshotId || payload.scope !== "all_historical"
       || !payload.heads || Array.isArray(payload.heads) || typeof payload.heads !== "object") {
     throw new Error("Prior head payload is invalid");
   }
   const active = facts.repositories.map(repository => normalizeSlug(repository?.slug).toLowerCase());
   if (new Set(active).size !== active.length) throw new Error("Prior head payload has duplicate active repositories");
+  const headKeys = Object.keys(payload.heads);
+  if (payload.headCount !== headKeys.length || !Number.isSafeInteger(payload.headCount) || payload.headCount < 0
+      || payload.headsSha256 !== canonicalHash(payload.heads)
+      || headKeys.join("\0") !== [...headKeys].sort().join("\0")) {
+    throw new Error("Prior head payload receipt is invalid");
+  }
   if (facts.parentSnapshotId === null) {
-    if (Object.keys(payload.heads).length !== 0) throw new Error("Migration baseline must not contain prior heads");
-    return {};
+    if (payload.parentDatabaseSha256 !== null || payload.snapshotSeq !== null || headKeys.length !== 0) {
+      throw new Error("Migration prior head payload is invalid");
+    }
+  } else if (!/^[a-f0-9]{64}$/.test(payload.parentDatabaseSha256 ?? "")
+      || !Number.isSafeInteger(payload.snapshotSeq) || payload.snapshotSeq < 1) {
+    throw new Error("Refresh prior head provenance is invalid");
   }
-  if (Object.keys(payload.heads).length !== active.length || active.some(slug => !Object.hasOwn(payload.heads, slug))) {
-    throw new Error("Refresh prior head set is incomplete");
-  }
-  const normalized = {};
-  for (const slug of active) {
+  const historical = {};
+  for (const slug of headKeys) {
+    if (normalizeSlug(slug).toLowerCase() !== slug) throw new Error("Prior head identity is invalid");
     const value = payload.heads[slug];
     if (!exactKeys(value, ["branch", "headSha"]) || typeof value.branch !== "string" || !value.branch
         || /[\u0000-\u001f\u007f]/.test(value.branch) || !SHA.test(value.headSha ?? "")) {
       throw new Error("Refresh prior head is invalid");
     }
-    normalized[slug] = { branch: value.branch, headSha: value.headSha };
+    historical[slug] = { branch: value.branch, headSha: value.headSha };
   }
-  return normalized;
+  return Object.fromEntries(active.filter(slug => Object.hasOwn(historical, slug)).map(slug => [slug, historical[slug]]));
 }
 
 export function bindFrozenEventEnvelope(facts, collected) {
@@ -554,6 +570,7 @@ export function validateFrozenFactsPayload(value) {
       || (value.productionManifestStatus === "verified_404"
         ? value.productionManifestSha256 !== null
         : !/^[a-f0-9]{64}$/.test(value.productionManifestSha256 ?? ""))
+      || (value.parentSnapshotId !== null && value.productionManifestStatus !== "verified_v1")
       || !/^[a-f0-9]{64}$/.test(value.runContextSha256 ?? "")
       || !/^[a-f0-9]{64}$/.test(value.sourceSetSha256 ?? "")
       || !/^[a-f0-9]{64}$/.test(value.activeSetSha256 ?? "")

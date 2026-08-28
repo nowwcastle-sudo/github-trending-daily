@@ -91,6 +91,19 @@ function successfulFetch({ releasePages = [[release(1), release(2)]], commits = 
   };
 }
 
+function priorReceipt({ snapshotId = null, parentDatabaseSha256 = null, snapshotSeq = null, heads = {} } = {}) {
+  return {
+    version: 1,
+    snapshotId,
+    scope: "all_historical",
+    parentDatabaseSha256,
+    snapshotSeq,
+    headCount: Object.keys(heads).length,
+    headsSha256: hashCanonicalJson(heads),
+    heads,
+  };
+}
+
 test("release baseline follows all pages and excludes bodies/assets", async () => {
   const events = await collectRepositoryEvents([repo], { fetchImpl: successfulFetch({ releasePages: [[release(1)], [release(2)]] }) });
   assert.deepEqual(events.releases.map(value => value.release_id), [1, 2]);
@@ -153,7 +166,7 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
   const origin = 1_700_000_000_000;
   const budgetStatePath = join(directory, "budget.json");
   const context = createPersistentEventCollectionContext({ statePath: budgetStatePath, originEpochMs: origin, now: () => origin, create: true });
-  for (let index = 0; index < 43; index += 1) {
+  for (let index = 0; index < 53; index += 1) {
     context.budget.admitLogical();
     context.budget.admitAttempt();
   }
@@ -206,7 +219,7 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
   const priorHeadsPath = join(directory, "prior-heads.json");
   await Promise.all([
     writeFile(factsPath, `${JSON.stringify(facts)}\n`),
-    writeFile(priorHeadsPath, '{"version":1,"snapshotId":null,"heads":{}}\n'),
+    writeFile(priorHeadsPath, `${JSON.stringify(priorReceipt())}\n`),
   ]);
 
   const events = await runFrozenEventCollection({
@@ -220,21 +233,50 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
   assert.equal(events.snapshotId, facts.snapshotId);
   assert.equal(events.releases.length, 20);
   assert.deepEqual(events.latestReleaseIds, Object.fromEntries(repositories.map(value => [value.slug, 1])));
-  assert.equal(events.budgetReceipt.logicalRequests, 83);
+  assert.equal(events.budgetReceipt.logicalRequests, 93);
   assert.deepEqual(JSON.parse(await readFile(eventsOut, "utf8")), events);
 });
 
-test("refresh facts require one exact prior head per active repository", () => {
-  const facts = { parentSnapshotId: "20260828000700-bbbbbbbbbbbbbbbb", repositories: [repo] };
-  assert.throws(() => validatePriorHeadsPayload(facts, { version: 1, snapshotId: facts.parentSnapshotId, heads: {} }), /prior head/i);
-  assert.deepEqual(validatePriorHeadsPayload(facts, {
-    version: 1,
-    snapshotId: facts.parentSnapshotId,
-    heads: { "owner/repo": { branch: "main", headSha: "a".repeat(40) } },
-  }), { "owner/repo": { branch: "main", headSha: "a".repeat(40) } });
-  assert.deepEqual(validatePriorHeadsPayload({ parentSnapshotId: null, repositories: [repo] }, {
-    version: 1, snapshotId: null, heads: {},
-  }), {});
+test("all-historical prior heads distinguish stayed, reentered, and never-observed active repositories", () => {
+  const parentSnapshotId = "20260828000700-bbbbbbbbbbbbbbbb";
+  const facts = {
+    parentSnapshotId,
+    repositories: [repo, { ...repo, slug: "owner/new", default_branch_head_sha: sha("c") }],
+  };
+  const heads = {
+    "owner/exited": { branch: "trunk", headSha: "d".repeat(40) },
+    "owner/repo": { branch: "main", headSha: "a".repeat(40) },
+  };
+  const receipt = priorReceipt({
+    snapshotId: parentSnapshotId,
+    parentDatabaseSha256: "e".repeat(64),
+    snapshotSeq: 7,
+    heads,
+  });
+  assert.deepEqual(validatePriorHeadsPayload(facts, receipt), {
+    "owner/repo": { branch: "main", headSha: "a".repeat(40) },
+  });
+  assert.throws(() => validatePriorHeadsPayload(facts, { ...receipt, scope: "parent_snapshot" }), /prior head/i);
+  assert.throws(() => validatePriorHeadsPayload(facts, { ...receipt, headsSha256: "f".repeat(64) }), /prior head/i);
+  assert.throws(() => validatePriorHeadsPayload(facts, { ...receipt, headCount: 1 }), /prior head/i);
+  assert.deepEqual(validatePriorHeadsPayload({ parentSnapshotId: null, repositories: [repo] }, priorReceipt()), {});
+});
+
+test("complete historical proof keeps stayed continuity and baselines a same-run new repository", async () => {
+  const parentSnapshotId = "20260828000700-bbbbbbbbbbbbbbbb";
+  const repositories = [repo, { ...repo, slug: "owner/new", default_branch_head_sha: sha("c") }];
+  const heads = { "owner/repo": { branch: "main", headSha: sha("b") } };
+  const previous = validatePriorHeadsPayload({ parentSnapshotId, repositories }, priorReceipt({
+    snapshotId: parentSnapshotId,
+    parentDatabaseSha256: "e".repeat(64),
+    snapshotSeq: 7,
+    heads,
+  }));
+  const events = await collectRepositoryEvents(repositories, { previous, fetchImpl: successfulFetch() });
+  assert.deepEqual(events.heads.map(value => [value.slug, value.transition]), [
+    ["owner/repo", "unchanged"],
+    ["owner/new", "baseline"],
+  ]);
 });
 
 test("page twenty without next completes, but a next link fails instead of truncating", async () => {
@@ -414,6 +456,8 @@ test("release identities and same-origin pagination reject every hostile URL com
     "https://github.com/owner/other/releases/tag/v1",
     "https://github.com/owner/repo/releases/tag/v1?download=1",
     "https://github.com/owner/repo/releases/tag/v1#fragment",
+    "https://github.com/owner/repo/releases/tag/v1/suffix",
+    "https://github.com/owner/repo/releases/tag/wrong-tag",
   ];
   for (const htmlUrl of releaseUrls) {
     await assert.rejects(collectRepositoryEvents([repo], {
@@ -448,6 +492,8 @@ test("release identities and same-origin pagination reject every hostile URL com
     `https://github.com/owner/other/commit/${sha("c")}`,
     `https://github.com/owner/repo/commit/${sha("c")}?diff=1`,
     `https://github.com/owner/repo/commit/${sha("c")}#fragment`,
+    `https://github.com/owner/repo/commit/${sha("c")}/suffix`,
+    `https://github.com/owner/repo/commit/${sha("d")}`,
   ];
   for (const htmlUrl of commitUrls) {
     await assert.rejects(collectRepositoryEvents([{ ...repo, default_branch_head_sha: sha("c") }], {
@@ -457,6 +503,25 @@ test("release identities and same-origin pagination reject every hostile URL com
         : successfulFetch()(url, options),
     }), /Invalid commit/);
   }
+});
+
+test("release tag identity uses one deterministic encodeURIComponent path segment", async () => {
+  const tagged = release(1, "v1/preview build");
+  const encoded = encodeURIComponent(tagged.tag_name);
+  const events = await collectRepositoryEvents([repo], {
+    fetchImpl: async (url, options) => {
+      const value = new URL(url);
+      const exact = { ...tagged, html_url: `https://github.com/owner/repo/releases/tag/${encoded}` };
+      if (value.hostname === "api.ossinsight.io") return response(200, oss([]));
+      if (value.pathname.endsWith("/releases/latest")) return response(200, exact);
+      if (value.pathname.endsWith("/releases")) {
+        if (options.headers?.["If-None-Match"]) return new Response(null, { status: 304, headers: { etag: '"release"' } });
+        return response(200, [exact], { etag: '"release"' });
+      }
+      throw new Error("unexpected fixed operation");
+    },
+  });
+  assert.equal(events.releases[0].html_url, `https://github.com/owner/repo/releases/tag/${encoded}`);
 });
 
 test("unquoted Link, a page-one HEAD race, and upstream sentinels fail closed without content leakage", async () => {
@@ -480,6 +545,26 @@ test("unquoted Link, a page-one HEAD race, and upstream sentinels fail closed wi
   assert.doesNotMatch(caught.message, new RegExp(sentinel));
   assert.doesNotMatch(caught.stack, new RegExp(sentinel));
   assert.equal(caught.cause, undefined);
+
+  const branchSentinel = "BRANCH-SENTINEL-DO-NOT-LOG";
+  caught = undefined;
+  try {
+    await collectRepositoryEvents([{
+      ...repo,
+      default_branch: branchSentinel,
+      default_branch_head_sha: sha("c"),
+    }], {
+      previous: { "owner/repo": { branch: branchSentinel, headSha: sha("a") } },
+      fetchImpl: async (url, options) => {
+        if (new URL(url).pathname.endsWith("/releases") || new URL(url).pathname.endsWith("/releases/latest")
+            || new URL(url).hostname === "api.ossinsight.io") return successfulFetch()(url, options);
+        throw Object.assign(new Error(branchSentinel), { name: "TimeoutError" });
+      },
+      sleep: async () => {},
+    });
+  } catch (error) { caught = error; }
+  assert.ok(caught);
+  assertContentFreeError(caught, branchSentinel);
 });
 
 test("calendar-valid 501-point OSS history retains full storage and independent public slice", () => {

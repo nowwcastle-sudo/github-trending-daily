@@ -262,7 +262,7 @@ function frozenPipelineFixture(root) {
     factsSha256: hashCanonicalJson({ snapshot_id: context.snapshotId, input_source_sha: inputSourceSha, repositories }),
     repositories,
     readmes,
-    budgetReceipt: { logicalRequests: 43, httpAttempts: 43, originEpochMs: Date.parse(context.observedAtUtc), eventDeadlineEpochMs: Date.parse(context.observedAtUtc) + 15 * 60_000 },
+    budgetReceipt: { logicalRequests: 53, httpAttempts: 53, originEpochMs: Date.parse(context.observedAtUtc), eventDeadlineEpochMs: Date.parse(context.observedAtUtc) + 15 * 60_000 },
   };
   const eventContent = {
     heads: repositories.map(repository => ({ slug: repository.slug, branch: "main", headSha: "b".repeat(40), transition: "baseline" })),
@@ -270,7 +270,7 @@ function frozenPipelineFixture(root) {
     latestReleaseIds: Object.fromEntries(repositories.map(repository => [repository.slug, null])),
     commits: [],
     estimates: repositories.map(repository => ({ slug: repository.slug, rows: [], sourcePayloadSha256: "d".repeat(64), publicRows: [] })),
-    budgetReceipt: { ...facts.budgetReceipt, logicalRequests: 83, httpAttempts: 83 },
+    budgetReceipt: { ...facts.budgetReceipt, logicalRequests: 93, httpAttempts: 93 },
   };
   const events = {
     ...eventContent,
@@ -282,7 +282,13 @@ function frozenPipelineFixture(root) {
   };
   writeFileSync(factsPath, `${JSON.stringify(facts)}\n`);
   writeFileSync(eventsPath, `${JSON.stringify(events)}\n`);
-  return { sourceRoot, outputRoot, factsPath, eventsPath, indexPath, facts, events };
+  const policyContext = {
+    mode: "normal",
+    inputSourceSha,
+    productionManifestStatus,
+    productionManifestSha256,
+  };
+  return { sourceRoot, outputRoot, factsPath, eventsPath, indexPath, facts, events, policyContext };
 }
 
 test("frozen enrichment gives a same-run new repository a detailed summary and eligible Korean README", async t => {
@@ -311,6 +317,48 @@ test("frozen enrichment gives a same-run new repository a detailed summary and e
   assert.equal(index.factsSha256, fixture.facts.factsSha256);
   assert.equal(index.eventsSha256, fixture.events.completeSetSha256);
   assert.equal(existsSync(path.join(fixture.outputRoot, "translations", "owner__repo-0.json")), true);
+});
+
+test("frozen enrichment rejects cross-source and cross-mode policy proof before Anthropic or output", async t => {
+  const root = mkdtempSync(path.join(tmpdir(), "frozen-policy-binding-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const cases = [
+    fixture => ({
+      mode: "normal",
+      inputSourceSha: "d".repeat(40),
+      eventName: "schedule",
+      recoveryVersion: "1",
+      verifiedBootstrapSourceSha: "d".repeat(40),
+      hydrationSourceSha: "d".repeat(40),
+      productionManifestStatus: fixture.facts.productionManifestStatus,
+      productionManifestSha256: fixture.facts.productionManifestSha256,
+    }),
+    fixture => ({
+      mode: "bootstrap_v0_approved",
+      inputSourceSha: fixture.facts.inputSourceSha,
+      eventName: "workflow_dispatch",
+      recoveryVersion: "0",
+      verifiedBootstrapSourceSha: fixture.facts.inputSourceSha,
+      manualBootstrapSourceSha: fixture.facts.inputSourceSha,
+      hydrationSourceSha: fixture.facts.inputSourceSha,
+      productionManifestStatus: fixture.facts.productionManifestStatus,
+      productionManifestSha256: fixture.facts.productionManifestSha256,
+    }),
+  ];
+  for (const [index, policy] of cases.entries()) {
+    const fixture = frozenPipelineFixture(path.join(root, String(index)));
+    let calls = 0;
+    await assert.rejects(runFrozenEnrichmentPipeline({
+      ...fixture,
+      apiKey: "test-only",
+      deadline: Date.now() + 10 * 60_000,
+      policyContext: policy(fixture),
+      fetchImpl: async () => { calls += 1; return message(validSummaryJson); },
+    }), /policy|source|manifest|bootstrap/i);
+    assert.equal(calls, 0);
+    assert.equal(existsSync(fixture.outputRoot), false);
+    assert.equal(existsSync(fixture.indexPath), false);
+  }
 });
 
 test("frozen enrichment summarizes a repository without README from exact metadata and does not translate it", async t => {

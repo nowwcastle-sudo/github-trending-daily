@@ -152,7 +152,7 @@ class RequestLimitError extends Error {}
 class RetryDelayError extends Error {}
 
 const defaultSleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
-const GITHUB_REQUESTS_PER_REPOSITORY = 5;
+const GITHUB_REQUESTS_PER_REPOSITORY = 6;
 const DEFAULT_MAX_ATTEMPTS = 3;
 const DEFAULT_MAX_REQUESTS = 75 * GITHUB_REQUESTS_PER_REPOSITORY * DEFAULT_MAX_ATTEMPTS;
 const TAG_RULE_VERSION = 1;
@@ -400,11 +400,26 @@ export async function fetchCanonicalReadme(slug, options = {}) {
   ) {
     throw new Error(`Invalid canonical README metadata for ${normalizedSlug}`);
   }
-  let bytes;
+  let contentsBytes;
   try {
-    bytes = decodeBoundedBase64(value.content, 512 * 1024);
+    contentsBytes = decodeBoundedBase64(value.content, 512 * 1024);
   } catch {
     throw new Error(`Invalid canonical README metadata for ${normalizedSlug}`);
+  }
+  const blobPath = githubPath(normalizedSlug, `/git/blobs/${value.sha}`);
+  const blobResponse = await client.request(blobPath);
+  const blob = await requireGitHubJson(blobResponse, blobPath);
+  if (blob?.sha !== value.sha || blob?.encoding !== "base64" || typeof blob.content !== "string") {
+    throw new Error(`Canonical README blob identity is invalid for ${normalizedSlug}`);
+  }
+  let bytes;
+  try {
+    bytes = decodeBoundedBase64(blob.content, 512 * 1024);
+  } catch {
+    throw new Error(`Canonical README blob identity is invalid for ${normalizedSlug}`);
+  }
+  if (!bytes.equals(contentsBytes) || sha256(bytes) !== sha256(contentsBytes)) {
+    throw new Error(`Canonical README blob identity is invalid for ${normalizedSlug}`);
   }
   return {
     status: "present",
@@ -413,6 +428,16 @@ export async function fetchCanonicalReadme(slug, options = {}) {
     markdown: decodeUtf8Strict(bytes),
     contentSha256: sha256(bytes),
   };
+}
+
+function validateProductionManifestLineage(context, status, sha) {
+  const parentless = context.parentSnapshotId === null;
+  if ((status === "verified_404" || status === "verified_v0") && !parentless) {
+    throw new Error("Frozen production manifest lineage is invalid");
+  }
+  if (status === "verified_404" ? sha !== null : !/^[a-f0-9]{64}$/.test(sha ?? "")) {
+    throw new Error("Frozen production manifest evidence is invalid");
+  }
 }
 
 function nullableOrdinal(value, name) {
@@ -703,12 +728,10 @@ export function buildFrozenFactsEnvelope({
 }) {
   validateRunContext(context);
   if (!/^[a-f0-9]{40}$/.test(inputSourceSha ?? "")) throw new Error("Frozen facts source SHA is invalid");
-  if (!["verified_v0", "verified_v1", "verified_404"].includes(productionManifestStatus)
-      || (productionManifestStatus === "verified_404"
-        ? productionManifestSha256 !== null
-        : !/^[a-f0-9]{64}$/.test(productionManifestSha256 ?? ""))) {
+  if (!["verified_v0", "verified_v1", "verified_404"].includes(productionManifestStatus)) {
     throw new Error("Frozen production manifest evidence is invalid");
   }
+  validateProductionManifestLineage(context, productionManifestStatus, productionManifestSha256);
   if (!Array.isArray(repositories) || repositories.length < 10 || repositories.length > 75) {
     throw new Error("Frozen facts require 10-75 repositories");
   }
@@ -1236,6 +1259,11 @@ export async function collectFrozenFacts({
   now = Date.now,
 } = {}) {
   validateRunContext(context);
+  if (!/^[a-f0-9]{40}$/.test(inputSourceSha ?? "")) throw new Error("Frozen facts source SHA is invalid");
+  if (!["verified_v0", "verified_v1", "verified_404"].includes(productionManifestStatus)) {
+    throw new Error("Frozen production manifest evidence is invalid");
+  }
+  validateProductionManifestLineage(context, productionManifestStatus, productionManifestSha256);
   const outputPath = assertTempOutput(factsOut, "Frozen facts output");
   const statePath = assertTempOutput(budgetStatePath, "Event budget state");
   if (outputPath === statePath) throw new Error("Frozen facts and event budget paths must not alias");

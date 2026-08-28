@@ -135,6 +135,26 @@ export function resolveEnrichmentBudgetPolicy({
     : PENDING_BOOTSTRAP_BUDGET_POLICY;
 }
 
+function validateFrozenPolicyBinding(facts, context) {
+  const status = context?.productionManifestStatus;
+  const manifestSha = context?.productionManifestSha256 ?? null;
+  if (context?.inputSourceSha !== facts.inputSourceSha
+      || status !== facts.productionManifestStatus || manifestSha !== facts.productionManifestSha256) {
+    throw budgetPolicyFailure("BUDGET_POLICY_INVALID", "Frozen enrichment manifest policy proof is mismatched");
+  }
+  if (context.mode === "normal") {
+    if (facts.productionManifestStatus !== "verified_v1"
+        || context.manualBootstrapSourceSha
+        || context.recoveryVersion && context.recoveryVersion !== "1") {
+      throw budgetPolicyFailure("BUDGET_POLICY_INVALID", "Frozen enrichment normal policy proof is invalid");
+    }
+    return;
+  }
+  if (!["verified_v0", "verified_404"].includes(facts.productionManifestStatus)) {
+    throw budgetPolicyFailure("BUDGET_POLICY_INVALID", "Frozen enrichment bootstrap identity is mismatched");
+  }
+}
+
 export function slugToFile(slug) {
   return `${slug.replaceAll("/", "__")}.json`;
 }
@@ -2733,6 +2753,7 @@ export async function runFrozenEnrichmentPipeline({
   }));
   const pending = planEnrichment(repos, summaryCache, translationSources);
   const policy = resolveEnrichmentBudgetPolicy(policyContext);
+  validateFrozenPolicyBinding(facts, policyContext);
   const budget = measurePlan(pending, {
     policy,
     verifiedSourceSha: policyContext.verifiedBootstrapSourceSha || undefined,
@@ -2829,11 +2850,14 @@ async function runFrozenEnrichmentCli(argv) {
     .map(name => [name, true]));
   const policyContext = {
     mode: process.env.ENRICHMENT_BUDGET_MODE ?? "normal",
+    inputSourceSha: process.env.INPUT_SOURCE_SHA ?? "",
     eventName: process.env.GITHUB_EVENT_NAME ?? "",
     recoveryVersion: process.env.VERIFIED_RECOVERY_VERSION ?? "",
     verifiedBootstrapSourceSha: process.env.VERIFIED_BOOTSTRAP_SOURCE_SHA ?? "",
     manualBootstrapSourceSha: process.env.MANUAL_BOOTSTRAP_SOURCE_SHA ?? "",
     hydrationSourceSha: process.env.HYDRATION_SOURCE_SHA ?? "",
+    productionManifestStatus: process.env.PRODUCTION_MANIFEST_STATUS ?? "",
+    productionManifestSha256: process.env.PRODUCTION_MANIFEST_SHA256 ?? null,
     numericOverrides,
   };
   const result = await runFrozenEnrichmentPipeline({
@@ -2875,11 +2899,14 @@ async function main() {
       .map(name => [name, true]));
     const policyContext = {
       mode: process.env.ENRICHMENT_BUDGET_MODE ?? "normal",
+      inputSourceSha: process.env.INPUT_SOURCE_SHA ?? "",
       eventName: process.env.GITHUB_EVENT_NAME ?? "",
       recoveryVersion: process.env.VERIFIED_RECOVERY_VERSION ?? "",
       verifiedBootstrapSourceSha: process.env.VERIFIED_BOOTSTRAP_SOURCE_SHA ?? "",
       manualBootstrapSourceSha: process.env.MANUAL_BOOTSTRAP_SOURCE_SHA ?? "",
       hydrationSourceSha: process.env.HYDRATION_SOURCE_SHA ?? "",
+      productionManifestStatus: process.env.PRODUCTION_MANIFEST_STATUS ?? "",
+      productionManifestSha256: process.env.PRODUCTION_MANIFEST_SHA256 ?? null,
       numericOverrides,
     };
     let policy;

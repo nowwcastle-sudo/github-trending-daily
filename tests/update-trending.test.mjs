@@ -38,7 +38,9 @@ test("canonical README uses API path and immutable blob SHA", async () => {
   const result = await fetchCanonicalReadme("Owner/Repo", {
     fetchImpl: async (url, options) => {
       requests.push({ url, options });
-      return jsonResponse(200, readme);
+      return url.endsWith(`/git/blobs/${readme.sha}`)
+        ? jsonResponse(200, { sha: readme.sha, encoding: "base64", content: readme.content })
+        : jsonResponse(200, readme);
     },
   });
 
@@ -48,8 +50,27 @@ test("canonical README uses API path and immutable blob SHA", async () => {
   assert.equal(result.markdown, "# Repo\n\nCanonical readme.");
   assert.match(result.contentSha256, /^[a-f0-9]{64}$/);
   assert.equal(requests[0].url, "https://api.github.com/repos/Owner/Repo/readme");
+  assert.equal(requests[1].url, `https://api.github.com/repos/Owner/Repo/git/blobs/${readme.sha}`);
   assert.equal(requests[0].options.headers.Accept, "application/vnd.github+json");
   assert.ok(requests[0].options.signal instanceof AbortSignal);
+});
+
+test("canonical README rejects a mutable contents/blob mismatch", async () => {
+  const readme = JSON.parse(await fixture("github-readme.json"));
+  let calls = 0;
+  await assert.rejects(fetchCanonicalReadme("Owner/Repo", {
+    fetchImpl: async () => {
+      calls += 1;
+      return calls === 1
+        ? jsonResponse(200, readme)
+        : jsonResponse(200, {
+          sha: readme.sha,
+          encoding: "base64",
+          content: Buffer.from("# Different immutable blob").toString("base64"),
+        });
+    },
+  }), /README|blob|identity/i);
+  assert.equal(calls, 2);
 });
 test("README 404 is absence but repository 500 cannot reuse stale metadata", async () => {
   const absent = await fetchCanonicalReadme("Owner/NoReadme", {
@@ -386,6 +407,11 @@ function successfulGithubFetch({ failures = new Map(), requests = [] } = {}) {
       encoding: "base64",
       content: Buffer.from("# Repo\n\nCanonical readme.").toString("base64"),
     });
+    if (path.includes("/git/blobs/")) return jsonResponse(200, {
+      sha: "a".repeat(40),
+      encoding: "base64",
+      content: Buffer.from("# Repo\n\nCanonical readme.").toString("base64"),
+    });
     if (path.endsWith("/releases/latest")) return jsonResponse(200, { published_at: "2026-08-21T09:08:07Z" });
     if (path.includes("/commits/")) return jsonResponse(200, { sha: "b".repeat(40) });
     const slug = path.slice("/repos/".length);
@@ -441,8 +467,8 @@ test("frozen facts bind the exact run source, active set, and README bodies with
       daily: "1".repeat(64), weekly: "2".repeat(64), monthly: "3".repeat(64),
     },
     budgetReceipt: {
-      logicalRequests: 43,
-      httpAttempts: 43,
+      logicalRequests: 53,
+      httpAttempts: 53,
       originEpochMs: Date.parse(context.observedAtUtc),
       eventDeadlineEpochMs: Date.parse(context.observedAtUtc) + 15 * 60_000,
     },
@@ -459,6 +485,45 @@ test("frozen facts bind the exact run source, active set, and README bodies with
   assert.equal(payload.readmes["owner/repo-0"].markdown, markdown);
   assert.equal("summary" in payload.repositories[0], false);
   assert.equal("events" in payload, false);
+});
+
+test("frozen facts manifest evidence is compatible with the run lineage", async () => {
+  const parentless = createRunContext(new Date("2026-08-29T00:07:00.000Z"));
+  const refresh = createRunContext(new Date("2026-08-29T02:07:00.000Z"), {
+    snapshotId: parentless.snapshotId,
+    sourceSha: "c".repeat(40),
+  });
+  const repositories = await enrichTrendingRepositories(discoveredRepos(), {
+    fetchImpl: successfulGithubFetch(), includeLatestRelease: false,
+  });
+  const markdown = "# Repo\n\nCanonical readme.";
+  const readmes = Object.fromEntries(repositories.map(repository => [repository.slug, {
+    path: repository.readme_path,
+    blobSha: repository.readme_blob_sha,
+    contentSha256: repository.readme_content_sha256,
+    markdown,
+  }]));
+  const base = {
+    inputSourceSha: "c".repeat(40), repositories, readmes,
+    trendingSourceSha256: { daily: "1".repeat(64), weekly: "2".repeat(64), monthly: "3".repeat(64) },
+    budgetReceipt: {
+      logicalRequests: 53, httpAttempts: 53,
+      originEpochMs: Date.parse(parentless.observedAtUtc),
+      eventDeadlineEpochMs: Date.parse(parentless.observedAtUtc) + 15 * 60_000,
+    },
+  };
+  assert.doesNotThrow(() => buildFrozenFactsEnvelope({
+    ...base, context: parentless, productionManifestStatus: "verified_404", productionManifestSha256: null,
+  }));
+  assert.doesNotThrow(() => buildFrozenFactsEnvelope({
+    ...base, context: parentless, productionManifestStatus: "verified_v0", productionManifestSha256: "f".repeat(64),
+  }));
+  assert.throws(() => buildFrozenFactsEnvelope({
+    ...base, context: refresh, productionManifestStatus: "verified_404", productionManifestSha256: null,
+  }), /manifest|lineage/i);
+  assert.throws(() => buildFrozenFactsEnvelope({
+    ...base, context: refresh, productionManifestStatus: "verified_v0", productionManifestSha256: "f".repeat(64),
+  }), /manifest|lineage/i);
 });
 
 test("facts-only collection writes explicit temp outputs and leaves tracked publication bytes untouched", async t => {
@@ -501,7 +566,7 @@ test("facts-only collection writes explicit temp outputs and leaves tracked publ
   assert.equal(anthropicFetches, 0);
   assert.equal(payload.repositories.length, 10);
   assert.equal(payload.readmes["owner/repo-0"].markdown, "# Repo\n\nCanonical readme.");
-  assert.equal(payload.budgetReceipt.logicalRequests, 43);
+  assert.equal(payload.budgetReceipt.logicalRequests, 53);
   assert.deepEqual(after, before);
   assert.deepEqual(JSON.parse(await readFile(factsOut, "utf8")), payload);
 });
@@ -527,7 +592,7 @@ test("render-only consumes exact frozen bindings with zero fetches and emits a r
       markdown,
     }])),
     trendingSourceSha256: { daily: "1".repeat(64), weekly: "2".repeat(64), monthly: "3".repeat(64) },
-    budgetReceipt: { logicalRequests: 43, httpAttempts: 43, originEpochMs: Date.parse(context.observedAtUtc), eventDeadlineEpochMs: Date.parse(context.observedAtUtc) + 15 * 60_000 },
+    budgetReceipt: { logicalRequests: 53, httpAttempts: 53, originEpochMs: Date.parse(context.observedAtUtc), eventDeadlineEpochMs: Date.parse(context.observedAtUtc) + 15 * 60_000 },
   });
   const collected = {
     heads: repositories.map(repository => ({ slug: repository.slug, branch: repository.default_branch, headSha: repository.default_branch_head_sha, transition: "baseline" })),
@@ -535,7 +600,7 @@ test("render-only consumes exact frozen bindings with zero fetches and emits a r
     latestReleaseIds: Object.fromEntries(repositories.map((repository, index) => [repository.slug, index + 1])),
     commits: [],
     estimates: repositories.map(repository => ({ slug: repository.slug, rows: [], sourcePayloadSha256: "d".repeat(64), publicRows: [] })),
-    budgetReceipt: { ...facts.budgetReceipt, logicalRequests: 83, httpAttempts: 83 },
+    budgetReceipt: { ...facts.budgetReceipt, logicalRequests: 93, httpAttempts: 93 },
   };
   const events = bindFrozenEventEnvelope(facts, collected);
   const enrichmentIndex = {
@@ -642,8 +707,8 @@ test("transactional boundary completes facts and events before paid enrichment",
   assert.equal(result.facts.length, 10);
   assert.equal(result.events.releases.length, 10);
   assert.equal(result.events.estimates.every(value => value.rows.length === 0), true);
-  assert.equal(result.events.budgetReceipt.logicalRequests, 90);
-  assert.equal(result.events.budgetReceipt.httpAttempts, 90);
+  assert.equal(result.events.budgetReceipt.logicalRequests, 100);
+  assert.equal(result.events.budgetReceipt.httpAttempts, 100);
 });
 
 test("transactional facts reject numeric request-budget overrides", async () => {
@@ -684,7 +749,7 @@ test("enriches every repository from canonical GitHub sources", async () => {
     token: "test-token-never-print",
   });
 
-  assert.equal(repos.requestCount, 50);
+  assert.equal(repos.requestCount, 60);
   assert.equal(repos.length, 10);
   assert.equal(repos[0].slug, "owner/repo-0");
   assert.equal(repos[0].display_rank, 1);
@@ -725,17 +790,17 @@ test("default request budget completes 75 repositories and custom caps fail befo
   });
 
   assert.equal(repos.length, 75);
-  assert.equal(repos.requestCount, 375);
-  assert.equal(requests.length, 375);
+  assert.equal(repos.requestCount, 450);
+  assert.equal(requests.length, 450);
 
   const blockedRequests = [];
   await assert.rejects(
     enrichTrendingRepositories(discoveredRepos(75), {
       fetchImpl: successfulGithubFetch({ requests: blockedRequests }),
       maxAttempts: 1,
-      maxRequests: 374,
+      maxRequests: 449,
     }),
-    /request budget 374.*requires at least 375/i,
+    /request budget 449.*requires at least 450/i,
   );
   assert.equal(blockedRequests.length, 0);
 });
@@ -744,7 +809,7 @@ test("worst-case successful retries stay within the preflighted request cap", as
   const attempts = new Map();
   const rest = successfulGithubFetch();
   const repos = await enrichTrendingRepositories(discoveredRepos(), {
-    maxRequests: 150,
+    maxRequests: 180,
     fetchImpl: async (url, options) => {
       const count = (attempts.get(url) ?? 0) + 1;
       attempts.set(url, count);
@@ -754,8 +819,8 @@ test("worst-case successful retries stay within the preflighted request cap", as
     sleep: async () => {},
   });
 
-  assert.equal(repos.requestCount, 150);
-  assert.equal(attempts.size, 50);
+  assert.equal(repos.requestCount, 180);
+  assert.equal(attempts.size, 60);
   assert.ok([...attempts.values()].every(value => value === 3));
 });
 
@@ -773,7 +838,7 @@ test("retries only timeout, 429, and 5xx with the bounded 2s/8s schedule", async
     token: "token",
   });
 
-  assert.equal(repos.requestCount, 52);
+  assert.equal(repos.requestCount, 62);
   assert.deepEqual(sleeps, [120000, 8000]);
 
   await assert.rejects(
@@ -802,7 +867,7 @@ test("retries a timeout after 2s and caps attempts at three", async () => {
   });
 
   assert.deepEqual(sleeps, [2000]);
-  assert.equal(repos.requestCount, 51);
+  assert.equal(repos.requestCount, 61);
   await assert.rejects(
     enrichTrendingRepositories(discoveredRepos(), {
       fetchImpl: successfulGithubFetch(),
@@ -877,7 +942,7 @@ test("every GitHub request creates an exact 30 second timeout signal", async t =
 
   await fetchRepositoryFacts("Owner/Repo", { fetchImpl: canonicalGithubFetch() });
 
-  assert.deepEqual(timeouts, [30_000, 30_000, 30_000, 30_000]);
+  assert.deepEqual(timeouts, [30_000, 30_000, 30_000, 30_000, 30_000]);
 });
 
 test("contributors use exact Link pagination and malformed pagination fails closed", async () => {
@@ -987,7 +1052,7 @@ test("README absence is explicit and never persists the decoded body", async () 
     fetchImpl: successfulGithubFetch({ failures }),
   });
 
-  assert.equal(repos.requestCount, 50);
+  assert.equal(repos.requestCount, 59);
   assert.equal(repos[0].readme_status, "absent");
   assert.equal(repos[0].readme_path, null);
   assert.equal(repos[0].readme_blob_sha, null);
@@ -1046,7 +1111,7 @@ test("fails request-count and canonical-value gates instead of publishing partia
       token: "token",
       maxRequests: 5,
     }),
-    /GitHub request budget 5 requires at least 150/,
+    /GitHub request budget 5 requires at least 180/,
   );
 
   const invalid = successfulGithubFetch();
