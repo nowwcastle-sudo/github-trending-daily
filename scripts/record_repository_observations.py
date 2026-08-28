@@ -734,7 +734,7 @@ LEGACY_PUBLIC_STAR_HISTORY_SCHEMA = {
         "keys": ["version", "generatedAt", "repositories"],
         "version": {"type": "integer", "const": 1},
         "generatedAt": {"type": "string", "format": "YYYY-MM-DD"},
-        "repositories": {"type": "array", "source_order": "preserved"},
+        "repositories": {"type": "array", "maxItems": 75, "source_order": "preserved"},
     },
     "repository": {
         "keys": ["slug", "estimated", "observed"],
@@ -743,6 +743,8 @@ LEGACY_PUBLIC_STAR_HISTORY_SCHEMA = {
             "format": "ASCII owner/name display casing",
             "identity": "casefold unique",
         },
+        "estimated": {"type": "array", "maxItems": 500, "items": "point_series"},
+        "observed": {"type": "array", "maxItems": 730, "items": "point_series"},
         "logical_receipt_order": "casefold slug ascending",
     },
     "point_series": {
@@ -1603,10 +1605,17 @@ def _legacy_logical_rows(path: Path) -> tuple[str, int, str, str | None]:
         logical = []
         last_key = None
         for table in tables:
-            columns = _columns(connection, table)
-            table_info = connection.execute(f"PRAGMA table_info({table})").fetchall()
-            primary = [row[1] for row in sorted(table_info, key=lambda row: row[5]) if row[5]] or list(columns)
-            for row in connection.execute(f"SELECT * FROM {table} ORDER BY {', '.join(primary)}"):
+            table_info = connection.execute(
+                "SELECT cid, name, pk FROM pragma_table_info(?) ORDER BY cid",
+                (table,),
+            ).fetchall()
+            columns = tuple(row[1] for row in table_info)
+            primary = [row[1] for row in sorted(table_info, key=lambda row: row[2]) if row[2]]
+            if not columns or not primary:
+                raise ValueError("legacy baseline SQLite table must have a primary key")
+            quoted_table = '"' + table.replace('"', '""') + '"'
+            order_by = ", ".join('"' + column.replace('"', '""') + '"' for column in primary)
+            for row in connection.execute(f"SELECT * FROM {quoted_table} ORDER BY {order_by}"):
                 logical.append({"table": table, "row": dict(zip(columns, row))})
                 last_key = {"table": table, "key": [row[columns.index(column)] for column in primary]}
         schema = _fingerprint_rows(_schema_rows(connection))
@@ -1637,6 +1646,8 @@ def _validate_legacy_public_payload(payload: Any) -> list[dict[str, Any]]:
     ):
         raise ValueError("legacy public star history must use the exact version 1 envelope")
     _legacy_date(payload["generatedAt"], "legacy public generatedAt")
+    if len(payload["repositories"]) > 75:
+        raise ValueError("legacy public repository cardinality exceeds version 1 limit")
     seen_slugs: set[str] = set()
     for repository in payload["repositories"]:
         if not isinstance(repository, dict) or list(repository) != ["slug", "estimated", "observed"]:
@@ -1649,6 +1660,9 @@ def _validate_legacy_public_payload(payload: Any) -> list[dict[str, Any]]:
             series = repository[series_name]
             if not isinstance(series, list):
                 raise ValueError("legacy public repository history is invalid")
+            maximum = 730 if series_name == "observed" else 500
+            if len(series) > maximum:
+                raise ValueError(f"legacy public {series_name} cardinality exceeds version 1 limit")
             seen_dates: set[str] = set()
             previous_date = ""
             for point in series:

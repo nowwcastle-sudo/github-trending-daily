@@ -1,4 +1,5 @@
 import hashlib
+import io
 import json
 import shutil
 import sqlite3
@@ -7,7 +8,7 @@ import sys
 import tempfile
 import traceback
 import unittest
-from contextlib import closing
+from contextlib import closing, redirect_stderr, redirect_stdout
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest import mock
@@ -46,7 +47,7 @@ EXPECTED_TABLES = {
     "artifact_hashes",
 }
 PINNED_SCHEMA_FINGERPRINT = "2d6af4ad04f09869aa44b71ac1bc7444f8c29b714c97f429e2f6b18957340644"
-PINNED_LEGACY_PUBLIC_SCHEMA_FINGERPRINT = "7bdac6a47ac3eee9a5a17835ceba4309da232de0e2eaf0e40f57faf27c21e7cf"
+PINNED_LEGACY_PUBLIC_SCHEMA_FINGERPRINT = "a138d48d9698c96aa008598b0b259e5d11d733c1afb71b967806623f0d7d79b2"
 
 
 def sha256(value="a"):
@@ -447,7 +448,7 @@ def writer_legacy_baselines(directory):
     with closing(sqlite3.connect(star)) as connection:
         connection.execute("CREATE TABLE star_observations(id INTEGER PRIMARY KEY, slug TEXT, observed_date TEXT, stars_total INTEGER, stars_delta INTEGER, source TEXT)")
     with closing(sqlite3.connect(membership)) as connection:
-        connection.execute("CREATE TABLE snapshot_members(snapshot_id INTEGER, ordinal INTEGER, slug TEXT)")
+        connection.execute("CREATE TABLE snapshot_members(snapshot_id INTEGER, ordinal INTEGER, slug TEXT, PRIMARY KEY(snapshot_id, slug))")
     write_legacy_public(public, {"version": 1, "generatedAt": "2026-08-28", "repositories": []})
     paths = {"legacy_star_observations": str(star), "legacy_trending_membership": str(membership), "legacy_public_star_history": str(public)}
     return paths, measure_legacy_baseline_receipt(paths)
@@ -616,6 +617,35 @@ class RepositoryObservationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "canonical pretty-2 LF"):
             measure_legacy_baseline_receipt(paths)
 
+    def test_legacy_public_v1_rejects_repository_and_series_cardinality_overflow(self):
+        paths, _ = writer_legacy_baselines(self.temporary.name)
+        public_path = Path(paths["legacy_public_star_history"])
+
+        def points(count):
+            first = datetime(2024, 1, 1).toordinal()
+            return [
+                {"date": datetime.fromordinal(first + index).strftime("%Y-%m-%d"), "stars": index}
+                for index in range(count)
+            ]
+
+        invalid_repositories = {
+            "76 repositories": [
+                {"slug": f"Owner{index}/Repo", "estimated": [], "observed": []}
+                for index in range(76)
+            ],
+            "501 estimates": [{"slug": "Owner/Repo", "estimated": points(501), "observed": []}],
+            "731 observations": [{"slug": "Owner/Repo", "estimated": [], "observed": points(731)}],
+        }
+        for label, repositories in invalid_repositories.items():
+            with self.subTest(label=label):
+                write_legacy_public(public_path, {
+                    "version": 1,
+                    "generatedAt": "2026-08-28",
+                    "repositories": repositories,
+                })
+                with self.assertRaisesRegex(ValueError, "cardinality"):
+                    measure_legacy_baseline_receipt(paths)
+
     def test_strict_json_loader_rejects_duplicate_keys_constants_and_hides_content(self):
         samples = {
             "top duplicate": '{"SENSITIVE_VALUE":1,"SENSITIVE_VALUE":2}',
@@ -715,6 +745,24 @@ class RepositoryObservationTests(unittest.TestCase):
                 ledger.create_legacy_baseline_receipt(paths, failed_output)
         self.assertNotIn(str(failed_output), "".join(traceback.format_exception(caught.exception)))
         self.assertFalse(failed_output.exists())
+
+    def test_baseline_receipt_creator_rejects_pkless_tables_without_content_leak(self):
+        paths, _ = writer_legacy_baselines(self.temporary.name)
+        star_path = Path(paths["legacy_star_observations"])
+        sentinel = "SENSITIVE" + "_PKLESS_BODY"
+        with closing(sqlite3.connect(star_path)) as connection:
+            connection.execute("CREATE TABLE zzz_no_pk(body TEXT)")
+            connection.execute("INSERT INTO zzz_no_pk VALUES (?)", (sentinel,))
+            connection.commit()
+        output = Path(self.temporary.name) / "pkless-baseline-receipt.json"
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            with self.assertRaises(ValueError) as caught:
+                ledger.create_legacy_baseline_receipt(paths, output)
+        rendered = "".join(traceback.format_exception(caught.exception)) + stdout.getvalue() + stderr.getvalue()
+        self.assertNotIn(sentinel, rendered)
+        self.assertNotIn(str(star_path), rendered)
+        self.assertFalse(output.exists())
 
     def test_baseline_receipt_cli_uses_explicit_sources_and_create_new_output(self):
         paths, expected = writer_legacy_baselines(self.temporary.name)
@@ -1382,7 +1430,7 @@ class RepositoryObservationTests(unittest.TestCase):
                 canonical_hash({"content": content, "source": source}),
             ))
             self.assertEqual(verify_core_snapshot(connection, 1), result.core_payload_sha256)
-        self.assertEqual(result.core_payload_sha256, "52f47d7f3b0cd553ae2d70c15f0e659fd94d55b956bb9b359f7b07777a90d75f")
+        self.assertEqual(result.core_payload_sha256, "67386f935440eab1b87f909368b145bc6390f2ac5f319c7db63fba72cdcb49ba")
 
     def test_reused_profile_and_release_rows_are_part_of_refresh_core_hash(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
