@@ -13,7 +13,7 @@ import os
 import re
 import sqlite3
 import argparse
-import shutil
+import stat
 import sys
 import tempfile
 from urllib.parse import unquote, urlsplit
@@ -820,17 +820,59 @@ def _table_row_evidence(connection: sqlite3.Connection, table: str) -> dict[str,
     return {"count": len(rows), "logical_rows_sha256": _digest(logical), "rows": logical}
 
 
-def parent_database_evidence(database_path: str | Path) -> dict[str, Any]:
-    """Return content-free logical evidence for an existing last-good DB."""
+def _read_parent_database_once(database_path: str | Path) -> bytes | None:
+    """Read one stable inode once; a path replacement cannot change returned bytes."""
     path = Path(database_path)
-    if not path.is_file():
-        raise ValueError("parent database is missing")
+    if path.is_symlink():
+        raise ValueError("parent database path is unsafe")
     for suffix in ("-journal", "-wal", "-shm"):
         if Path(f"{path}{suffix}").exists():
             raise ValueError("parent database has a pending SQLite sidecar")
-    # Parent evidence is explicitly read-only.  In particular it must never
-    # run journal_mode/locking pragmas against last-good history.
-    with closing(sqlite3.connect(path.as_uri() + "?mode=ro", uri=True)) as connection:
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        descriptor = os.open(path, flags)
+    except FileNotFoundError:
+        if path.exists() or path.is_symlink():
+            raise ValueError("parent database path is unsafe") from None
+        return None
+    except OSError:
+        raise ValueError("parent database is unavailable") from None
+    try:
+        before = os.fstat(descriptor)
+        if not stat.S_ISREG(before.st_mode):
+            raise ValueError("parent database path is unsafe")
+        try:
+            linked = os.stat(path, follow_symlinks=False)
+        except OSError:
+            raise ValueError("parent database changed during capture") from None
+        identity = lambda value: (value.st_dev, value.st_ino, value.st_size, value.st_mtime_ns)
+        if identity(linked) != identity(before):
+            raise ValueError("parent database changed during capture")
+        with os.fdopen(descriptor, "rb", closefd=False) as handle:
+            raw = handle.read()
+        after = os.fstat(descriptor)
+        try:
+            linked_after = os.stat(path, follow_symlinks=False)
+        except OSError:
+            raise ValueError("parent database changed during capture") from None
+        if identity(before) != identity(after) or identity(after) != identity(linked_after) or len(raw) != after.st_size:
+            raise ValueError("parent database changed during capture")
+    finally:
+        os.close(descriptor)
+    for suffix in ("-journal", "-wal", "-shm"):
+        if Path(f"{path}{suffix}").exists():
+            raise ValueError("parent database has a pending SQLite sidecar")
+    return raw
+
+
+def _capture_parent_database(database_path: str | Path, expected_snapshot_seq: int | None = None) -> tuple[bytes, dict[str, Any], dict[str, Any], dict[str, dict[str, str]]] | None:
+    """Measure bytes, logical tables, and historical HEADs from one immutable value."""
+    raw = _read_parent_database_once(database_path)
+    if raw is None:
+        return None
+    connection = sqlite3.connect(":memory:")
+    try:
+        connection.deserialize(raw)
         connection.execute("PRAGMA foreign_keys = ON")
         validate_schema(connection)
         integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
@@ -839,26 +881,9 @@ def parent_database_evidence(database_path: str | Path) -> dict[str, Any]:
         latest = connection.execute("SELECT snapshot_seq, snapshot_id, chain_sha256 FROM snapshot_runs ORDER BY snapshot_seq DESC LIMIT 1").fetchone()
         if latest is None:
             raise ValueError("parent database has no successful snapshot")
-        tables = {table: _table_row_evidence(connection, table) for table in _NATURAL_KEYS}
-    return {"byte_size": path.stat().st_size, "file_sha256": _file_sha256(path), "last_snapshot_seq": latest[0], "last_snapshot_id": latest[1], "last_chain_sha256": latest[2], "tables": tables}
-
-
-def measure_historical_heads(database_path: str | Path, expected_snapshot_seq: int | None = None) -> tuple[dict[str, Any], dict[str, dict[str, str]]]:
-    """Measure the complete last-observed HEAD map for every historical slug."""
-    path = Path(database_path)
-    if not path.is_file():
-        raise ValueError("parent database is missing")
-    for suffix in ("-journal", "-wal", "-shm"):
-        if Path(f"{path}{suffix}").exists():
-            raise ValueError("parent database has a pending SQLite sidecar")
-    with closing(sqlite3.connect(path.as_uri() + "?mode=ro", uri=True)) as connection:
-        connection.execute("PRAGMA foreign_keys = ON")
-        validate_schema(connection)
-        if connection.execute("PRAGMA integrity_check").fetchone() != ("ok",) or connection.execute("PRAGMA foreign_key_check").fetchone() is not None:
-            raise ValueError("parent database integrity check failed")
-        latest = connection.execute("SELECT MAX(snapshot_seq) FROM snapshot_runs").fetchone()[0]
-        if latest is None or (expected_snapshot_seq is not None and latest != expected_snapshot_seq):
+        if expected_snapshot_seq is not None and latest[0] != expected_snapshot_seq:
             raise ValueError("parent historical head snapshot mismatch")
+        tables = {table: _table_row_evidence(connection, table) for table in _NATURAL_KEYS}
         rows = connection.execute(
             """SELECT i.slug,p.default_branch,i.default_branch_head_sha
                FROM snapshot_items i JOIN repository_profiles p
@@ -869,10 +894,39 @@ def measure_historical_heads(database_path: str | Path, expected_snapshot_seq: i
                    WHERE previous.slug=i.slug AND previous.snapshot_seq<=?
                )
                ORDER BY i.slug""",
-            (latest,),
+            (latest[0],),
         ).fetchall()
+    except (ValueError, sqlite3.Error):
+        raise
+    finally:
+        connection.close()
     heads = {slug: {"branch": branch, "headSha": head} for slug, branch, head in rows}
-    return {"scope": "all_historical", "head_count": len(heads), "heads_sha256": _digest(heads)}, heads
+    evidence = {
+        "byte_size": len(raw),
+        "file_sha256": hashlib.sha256(raw).hexdigest(),
+        "last_snapshot_seq": latest[0],
+        "last_snapshot_id": latest[1],
+        "last_chain_sha256": latest[2],
+        "tables": tables,
+    }
+    historical = {"scope": "all_historical", "head_count": len(heads), "heads_sha256": _digest(heads)}
+    return raw, evidence, historical, heads
+
+
+def parent_database_evidence(database_path: str | Path) -> dict[str, Any]:
+    """Return content-free logical evidence for one exact last-good DB value."""
+    captured = _capture_parent_database(database_path)
+    if captured is None:
+        raise ValueError("parent database is missing")
+    return captured[1]
+
+
+def measure_historical_heads(database_path: str | Path, expected_snapshot_seq: int | None = None) -> tuple[dict[str, Any], dict[str, dict[str, str]]]:
+    """Measure complete historical HEADs from the same bytes used for validation."""
+    captured = _capture_parent_database(database_path, expected_snapshot_seq)
+    if captured is None:
+        raise ValueError("parent database is missing")
+    return captured[2], captured[3]
 
 
 def _require_parent_evidence(actual: dict[str, Any], expected: dict[str, Any]) -> None:
@@ -939,9 +993,8 @@ def _parse_parent_evidence_envelope(value: Any) -> tuple[dict[str, Any] | None, 
     return parent_evidence, receipt, historical_heads, production_source_sha
 
 
-def _require_historical_head_evidence(parent_database_path: str | Path, expected: dict[str, Any]) -> None:
-    path = Path(parent_database_path)
-    actual = measure_historical_heads(path)[0] if path.exists() else {
+def _require_historical_head_evidence(captured: tuple[bytes, dict[str, Any], dict[str, Any], dict[str, dict[str, str]]] | None, expected: dict[str, Any]) -> None:
+    actual = captured[2] if captured is not None else {
         "scope": "all_historical", "head_count": 0, "heads_sha256": _digest({}),
     }
     if actual != expected:
@@ -956,21 +1009,30 @@ def _assert_parent_rows_preserved(connection: sqlite3.Connection, evidence: dict
                 raise ValueError(f"candidate database does not preserve parent row digest: {table}")
 
 
-def prepare_candidate_database(parent_database_path: str | Path, candidate_database_path: str | Path, parent_evidence: dict[str, Any] | None, legacy_baselines: dict[str, Any] | None = None) -> Path:
-    """Copy and prove a parent, or create the explicit baseline candidate."""
+def _prepare_candidate_database_from_capture(
+    parent_database_path: str | Path,
+    candidate_database_path: str | Path,
+    parent_evidence: dict[str, Any] | None,
+    captured: tuple[bytes, dict[str, Any], dict[str, Any], dict[str, dict[str, str]]] | None,
+) -> Path:
     parent, candidate = Path(parent_database_path), Path(candidate_database_path)
     if parent.resolve(strict=False) == candidate.resolve(strict=False):
         raise ValueError("parent database and candidate database must be different paths")
     if candidate.exists():
         raise FileExistsError(f"candidate database already exists: {candidate}")
     candidate.parent.mkdir(parents=True, exist_ok=True)
-    if parent.exists():
-        actual = parent_database_evidence(parent)
+    if captured is not None:
+        raw, actual, _historical, _heads = captured
         if not isinstance(parent_evidence, dict):
             raise ValueError("parent database evidence is required")
         _require_parent_evidence(actual, parent_evidence)
-        shutil.copy2(parent, candidate)
         try:
+            flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0)
+            descriptor = os.open(candidate, flags, 0o600)
+            with os.fdopen(descriptor, "wb") as handle:
+                handle.write(raw)
+                handle.flush()
+                os.fsync(handle.fileno())
             copied = parent_database_evidence(candidate)
             _require_parent_evidence(copied, actual)
             with closing(_connect_candidate(candidate)) as connection:
@@ -984,6 +1046,12 @@ def prepare_candidate_database(parent_database_path: str | Path, candidate_datab
             raise ValueError("missing parent database cannot carry parent evidence")
         create_database(candidate)
     return candidate
+
+
+def prepare_candidate_database(parent_database_path: str | Path, candidate_database_path: str | Path, parent_evidence: dict[str, Any] | None, legacy_baselines: dict[str, Any] | None = None) -> Path:
+    """Capture and prove a parent once, or create the explicit baseline candidate."""
+    captured = _capture_parent_database(parent_database_path)
+    return _prepare_candidate_database_from_capture(parent_database_path, candidate_database_path, parent_evidence, captured)
 
 
 def _value(mapping: dict[str, Any], *names: str, default=None):
@@ -2308,7 +2376,8 @@ def main(argv: list[str] | None = None) -> int:
     index = _load_json_file(args.enrichment_index, "enrichment index")
     evidence_envelope = _load_json_file(args.parent_evidence, "parent evidence")
     evidence, legacy_receipt, historical_heads, production_source_sha = _parse_parent_evidence_envelope(evidence_envelope)
-    _require_historical_head_evidence(args.parent_database, historical_heads)
+    captured_parent = _capture_parent_database(args.parent_database)
+    _require_historical_head_evidence(captured_parent, historical_heads)
     state_path = Path(args.readme_state)
     state = _load_json_file(state_path, "README state") if state_path.exists() else {}
     if not isinstance(snapshot, dict):
@@ -2322,7 +2391,7 @@ def main(argv: list[str] | None = None) -> int:
     snapshot["legacy_baseline_receipt"] = legacy_receipt
     legacy = {"legacy_star_observations": args.legacy_star_database, "legacy_trending_membership": args.legacy_membership_database, "legacy_public_star_history": args.legacy_public_star_history}
     snapshot["legacy_baselines"] = legacy
-    candidate = prepare_candidate_database(args.parent_database, args.candidate_database, evidence, legacy)
+    candidate = _prepare_candidate_database_from_capture(args.parent_database, args.candidate_database, evidence, captured_parent)
     try:
         result = record_core_snapshot(candidate, snapshot, events, state)
         try:

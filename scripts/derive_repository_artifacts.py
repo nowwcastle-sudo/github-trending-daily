@@ -19,11 +19,10 @@ from typing import Any, Iterable
 try:
     from scripts.record_repository_observations import (
         PAGES_BASE_ARTIFACT_PATHS,
+        _capture_parent_database,
         _file_sha256,
         _legacy_logical_rows,
         _parse_parent_evidence_envelope,
-        measure_historical_heads,
-        parent_database_evidence,
         validate_schema,
         verify_core_snapshot,
     )
@@ -32,11 +31,10 @@ except ModuleNotFoundError as error:
         raise
     from record_repository_observations import (
         PAGES_BASE_ARTIFACT_PATHS,
+        _capture_parent_database,
         _file_sha256,
         _legacy_logical_rows,
         _parse_parent_evidence_envelope,
-        measure_historical_heads,
-        parent_database_evidence,
         validate_schema,
         verify_core_snapshot,
     )
@@ -698,11 +696,11 @@ def export_parent_inputs(
     if not isinstance(production_source_sha, str) or re.fullmatch(r"[a-f0-9]{40}", production_source_sha) is None:
         raise ValueError("production source SHA is invalid")
     parent = Path(parent_database_path)
-    if parent.exists():
-        evidence = parent_database_evidence(parent)
+    captured = _capture_parent_database(parent)
+    if captured is not None:
+        _raw, evidence, historical_heads, heads = captured
         if expected_parent_snapshot_id is None or evidence["last_snapshot_id"] != expected_parent_snapshot_id:
             raise ValueError("parent snapshot identity does not match production")
-        historical_heads, heads = measure_historical_heads(parent, evidence["last_snapshot_seq"])
         snapshot_id = evidence["last_snapshot_id"]
         parent_database_sha256 = evidence["file_sha256"]
         snapshot_seq = evidence["last_snapshot_seq"]
@@ -745,24 +743,19 @@ def verify_parent_inputs(
     prior_heads = _load_json_path(prior_heads_path, "prior heads")
     declared_parent, _legacy_receipt, declared_historical, _production_source_sha = _parse_parent_evidence_envelope(evidence_envelope)
     parent = Path(parent_database_path)
-    if parent.is_symlink():
-        raise ValueError("parent database path is unsafe")
-    if parent.exists():
-        actual_before = parent_database_evidence(parent)
-        if declared_parent != actual_before:
+    captured = _capture_parent_database(parent)
+    if captured is not None:
+        _raw, actual, actual_historical, heads = captured
+        if declared_parent != actual:
             raise ValueError("parent database evidence mismatch")
-        actual_historical, heads = measure_historical_heads(parent, actual_before["last_snapshot_seq"])
-        actual_after = parent_database_evidence(parent)
-        if actual_before != actual_after:
-            raise ValueError("parent database changed during verification")
         if declared_historical != actual_historical:
             raise ValueError("parent historical evidence mismatch")
         expected_prior = {
             "version": 1,
-            "snapshotId": actual_before["last_snapshot_id"],
+            "snapshotId": actual["last_snapshot_id"],
             "scope": "all_historical",
-            "parentDatabaseSha256": actual_before["file_sha256"],
-            "snapshotSeq": actual_before["last_snapshot_seq"],
+            "parentDatabaseSha256": actual["file_sha256"],
+            "snapshotSeq": actual["last_snapshot_seq"],
             "headCount": len(heads),
             "headsSha256": _digest(heads),
             "heads": heads,
@@ -783,8 +776,6 @@ def verify_parent_inputs(
             "headsSha256": _digest({}),
             "heads": {},
         }
-        if parent.exists() or parent.is_symlink():
-            raise ValueError("parent database changed during verification")
     if prior_heads != expected_prior:
         raise ValueError("parent input receipt mismatch")
     return {"verified": True, "version": 1}

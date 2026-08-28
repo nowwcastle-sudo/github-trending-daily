@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import scripts.derive_repository_artifacts as repository_artifacts
+import scripts.record_repository_observations as repository_ledger
 from scripts.derive_repository_artifacts import (
     _utc_milliseconds,
     derive_daily_star_series,
@@ -317,6 +318,71 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
             connection.commit()
         with self.assertRaisesRegex(ValueError, "parent database evidence mismatch"):
             repository_artifacts.verify_parent_inputs(database, evidence_path, heads_path)
+
+    def test_parent_verifier_does_not_reopen_source_between_byte_and_logical_measurements(self):
+        database = self.root / "parent-aba.sqlite"
+        create_database(database)
+        with closing(sqlite3.connect(database)) as connection:
+            connection.execute("PRAGMA foreign_keys=ON")
+            snapshot_id = insert_run(connection, 1, "2026-08-28T00:00:00.000Z", "2026-08-28")
+            insert_profile(connection, 1, "owner/a")
+            insert_item(connection, 1, "owner/a", 1, stars=1, display_rank=1, daily=1, head="a" * 40)
+            connection.commit()
+        evidence_path = self.root / "parent-aba-evidence.json"
+        heads_path = self.root / "parent-aba-heads.json"
+        export_parent_inputs(database, {"version": 1, "sources": {}}, snapshot_id, "b" * 40, evidence_path, heads_path)
+
+        original = self.root / "parent-aba-original.sqlite"
+        replacement = self.root / "parent-aba-replacement.sqlite"
+        replacement.write_bytes(database.read_bytes())
+        with closing(sqlite3.connect(replacement)) as connection:
+            # This changes the bytes without changing any reviewed table/head
+            # evidence, so a digest/logical/digest sequence can be fooled.
+            connection.execute("PRAGMA application_id=7")
+        original_digest = repository_ledger._file_sha256
+        original_connect = repository_ledger.sqlite3.connect
+        state = {"armed": True, "executed": False, "restored": False}
+
+        def digest_then_swap(path):
+            result = original_digest(path)
+            if state["armed"] and Path(path).resolve(strict=False) == database.resolve(strict=False):
+                state["armed"] = False
+                database.replace(original)
+                replacement.replace(database)
+                state["executed"] = True
+            return result
+
+        class RestoreAfterMeasure:
+            def __init__(self, connection):
+                self.connection = connection
+
+            def __getattr__(self, name):
+                return getattr(self.connection, name)
+
+            def close(self):
+                self.connection.close()
+                database.replace(replacement)
+                original.replace(database)
+                state["restored"] = True
+
+        def connect_then_restore(target, *args, **kwargs):
+            connection = original_connect(target, *args, **kwargs)
+            if state["executed"] and not state["restored"] and database.name in str(target):
+                return RestoreAfterMeasure(connection)
+            return connection
+
+        try:
+            with patch.object(repository_ledger, "_file_sha256", side_effect=digest_then_swap), \
+                    patch.object(repository_ledger.sqlite3, "connect", side_effect=connect_then_restore):
+                self.assertEqual(
+                    repository_artifacts.verify_parent_inputs(database, evidence_path, heads_path),
+                    {"verified": True, "version": 1},
+                )
+            self.assertFalse(state["executed"], "verifier reopened the mutable source path between measurements")
+        finally:
+            if not state["restored"] and original.exists():
+                database.unlink(missing_ok=True)
+                original.replace(database)
 
     def assert_sanitized_failure(self, action, expected_message, forbidden):
         try:

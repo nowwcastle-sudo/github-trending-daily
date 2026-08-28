@@ -90,10 +90,27 @@ test("one create-new parent database capture is reused across every frozen bound
   const workflow = await workflowText();
   assert.match(workflow, /set -o noclobber[\s\S]*git (?:show|cat-file)[\s\S]*> "\$PARENT_DATABASE"/);
   assert.doesNotMatch(workflow, /rm -f "\$PARENT_DATABASE"/);
-  assert.equal((workflow.match(/PARENT_DATABASE="\$\{RUNNER_TEMP\}\/parent-repository-observations\.sqlite"/g) ?? []).length, 1);
+  assert.equal((workflow.match(/PARENT_DATABASE="\$PARENT_CAPTURE_DIR\/repository-observations\.sqlite"/g) ?? []).length, 1);
   assert.match(workflow, /collect-repository-events\.mjs[^\n]*--parent-database "\$PARENT_DATABASE"/);
   assert.match(workflow, /generate-translations\.mjs[^\n]*--parent-database "\$PARENT_DATABASE"/);
   assert.match(workflow, /record_repository_observations\.py[^\n]*--parent-database "\$PARENT_DATABASE"/);
+});
+
+test("parent capture directory is sealed before verification and every possible first fetch", async () => {
+  const workflow = await workflowText();
+  const freezeStart = workflow.indexOf("- name: Freeze one run context and parent evidence");
+  const factsStart = workflow.indexOf("- name: Collect frozen repository facts");
+  const freeze = workflow.slice(freezeStart, factsStart);
+  assert.match(freeze, /PARENT_CAPTURE_DIR="\$\{RUNNER_TEMP\}\/frozen-parent-input"/);
+  assert.match(freeze, /mkdir "\$PARENT_CAPTURE_DIR"/);
+  assert.match(freeze, /PARENT_DATABASE="\$PARENT_CAPTURE_DIR\/repository-observations\.sqlite"/);
+  assert.match(freeze, /chmod 0444 "\$PARENT_DATABASE"/);
+  const seal = freeze.indexOf('chmod 0555 "$PARENT_CAPTURE_DIR"');
+  const exportInputs = freeze.indexOf("derive_repository_artifacts.py export-parent-inputs");
+  const verifyInputs = freeze.indexOf("derive_repository_artifacts.py verify-parent-inputs");
+  assert.ok(seal > -1 && seal < exportInputs && seal < verifyInputs,
+    "an existing or absent parent path must be sealed before it is measured");
+  assert.doesNotMatch(workflow.slice(freezeStart), /chmod [^\n]*[+w7][^\n]*\$PARENT_CAPTURE_DIR/);
 });
 
 test("candidate finalizes before checkout promotion and staged SQLite scanning", async () => {

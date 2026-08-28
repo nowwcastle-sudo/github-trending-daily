@@ -141,15 +141,19 @@ jobs:
           PARENT_SNAPSHOT_ID: ${{ steps.state.outputs.parent_snapshot_id }}
         run: |
           set -euo pipefail
-          PARENT_DATABASE="${RUNNER_TEMP}/parent-repository-observations.sqlite"
+          PARENT_CAPTURE_DIR="${RUNNER_TEMP}/frozen-parent-input"
+          mkdir "$PARENT_CAPTURE_DIR"
+          PARENT_DATABASE="$PARENT_CAPTURE_DIR/repository-observations.sqlite"
           if [ "$PRODUCTION_VERSION" = "1" ]; then
             set -o noclobber
             git cat-file blob "$HYDRATION_SOURCE_SHA:data/repository-observations.sqlite" > "$PARENT_DATABASE"
+            chmod 0444 "$PARENT_DATABASE"
             EXPECTED_PARENT="$PARENT_SNAPSHOT_ID"
           else
             [ ! -e "$PARENT_DATABASE" ] || { echo "::error::parent database capture path already exists"; exit 1; }
             EXPECTED_PARENT=none
           fi
+          chmod 0555 "$PARENT_CAPTURE_DIR"
           node --input-type=module -e 'import { appendFileSync, writeFileSync } from "node:fs"; import { createRunContext } from "./scripts/run-context.mjs"; const parent=process.env.PRODUCTION_VERSION === "1" ? {snapshotId:process.env.PARENT_SNAPSHOT_ID,sourceSha:process.env.HYDRATION_SOURCE_SHA} : {snapshotId:null,sourceSha:null}; const context=createRunContext(new Date(Number(process.env.REFRESH_ORIGIN_EPOCH_MS)),parent); const encoded=JSON.stringify(context); writeFileSync(process.argv[1],encoded); appendFileSync(process.env.GITHUB_ENV,`RUN_CONTEXT_JSON=${encoded}\n`); appendFileSync(process.env.GITHUB_OUTPUT,`snapshot_id=${context.snapshotId}\n`);' "${RUNNER_TEMP}/run-context.json"
           python scripts/derive_repository_artifacts.py export-parent-inputs --parent-database "$PARENT_DATABASE" --baseline-receipt data/legacy-observation-baseline.json --expected-parent-snapshot "$EXPECTED_PARENT" --production-source-sha "$HYDRATION_SOURCE_SHA" --parent-evidence-out "${RUNNER_TEMP}/parent-evidence.json" --prior-heads-out "${RUNNER_TEMP}/prior-heads.json"
           python scripts/derive_repository_artifacts.py verify-parent-inputs --parent-database "$PARENT_DATABASE" --parent-evidence "${RUNNER_TEMP}/parent-evidence.json" --prior-heads "${RUNNER_TEMP}/prior-heads.json"

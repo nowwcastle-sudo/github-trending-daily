@@ -2120,7 +2120,7 @@ class RepositoryObservationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "core payload hash preimage mismatch for snapshot 2"):
                 verify_core_snapshot(connection, 2)
 
-    def test_candidate_copy_rejects_parent_append_after_reviewed_evidence(self):
+    def test_candidate_copy_uses_exact_capture_when_source_appends_after_capture(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
         parent = Path(self.temporary.name) / "racing-parent.sqlite"
         prepare_candidate_database(Path(self.temporary.name) / "missing.sqlite", parent, None)
@@ -2140,17 +2140,20 @@ class RepositoryObservationTests(unittest.TestCase):
             stats_date="2026-08-28", run_kind="refresh", parent_snapshot_id=first_id,
         )
         second["legacyBaselines"], second["legacyBaselineReceipt"] = paths, receipt
-        original_copy = shutil.copy2
+        original_capture = ledger._capture_parent_database
 
-        def append_then_copy(source, destination):
+        def capture_then_append(source, expected_snapshot_seq=None):
+            captured = original_capture(source, expected_snapshot_seq)
             record_writer_snapshot(parent, second, writer_events(head=sha1(), transition="unchanged"), state)
-            return original_copy(source, destination)
+            return captured
 
         candidate = Path(self.temporary.name) / "racing-candidate.sqlite"
-        with mock.patch.object(ledger.shutil, "copy2", side_effect=append_then_copy):
-            with self.assertRaisesRegex(ValueError, "parent database evidence mismatch"):
-                prepare_candidate_database(parent, candidate, reviewed)
-        self.assertFalse(candidate.exists())
+        with mock.patch.object(ledger, "_capture_parent_database", side_effect=capture_then_append):
+            prepare_candidate_database(parent, candidate, reviewed)
+        with closing(sqlite3.connect(parent)) as connection:
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM snapshot_runs").fetchone(), (2,))
+        with closing(sqlite3.connect(candidate)) as connection:
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM snapshot_runs").fetchone(), (1,))
 
     def test_independent_core_verifier_detects_post_write_row_mutation(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
