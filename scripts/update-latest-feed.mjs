@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
-import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { mkdir, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
+import { basename, dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { parseJsonStrict } from "./build-pages-artifact.mjs";
@@ -36,12 +36,35 @@ function candidateFail() {
   throw new Error("latest output must be an explicit candidate path");
 }
 
-function validateCandidatePath(path) {
+function samePath(left, right) {
+  return process.platform === "win32" ? left.toLowerCase() === right.toLowerCase() : left === right;
+}
+
+async function canonicalOutputPath(path) {
+  try {
+    return await realpath(path);
+  } catch (error) {
+    if (error?.code !== "ENOENT") candidateFail();
+  }
+  try {
+    return resolve(await realpath(dirname(path)), basename(path));
+  } catch {
+    candidateFail();
+  }
+}
+
+async function validateCandidatePath(path) {
   if (typeof path !== "string" || !path) candidateFail();
   const absolute = resolve(path);
-  const tracked = resolve(TRACKED_LATEST);
-  if (process.platform === "win32" ? absolute.toLowerCase() === tracked.toLowerCase() : absolute === tracked) candidateFail();
-  return absolute;
+  let candidate;
+  let tracked;
+  try {
+    [candidate, tracked] = await Promise.all([canonicalOutputPath(absolute), realpath(TRACKED_LATEST)]);
+  } catch {
+    candidateFail();
+  }
+  if (samePath(candidate, tracked)) candidateFail();
+  return candidate;
 }
 
 function exactKeys(value, expected) {
@@ -141,7 +164,7 @@ export function buildLatestFeed(snapshotExport) {
 }
 
 export async function writeLatestFeed(path, feed) {
-  path = validateCandidatePath(path);
+  path = await validateCandidatePath(path);
   await mkdir(dirname(path), { recursive: true });
   try {
     const prior = JSON.parse(await readFile(path, "utf8"));
@@ -160,7 +183,7 @@ export async function writeLatestFeed(path, feed) {
 }
 
 export async function updateLatestFeed({ exportPath = DEFAULT_EXPORT, latestPath } = {}) {
-  latestPath = validateCandidatePath(latestPath);
+  latestPath = await validateCandidatePath(latestPath);
   let snapshotExport;
   try {
     snapshotExport = parseJsonStrict(await readFile(exportPath), "snapshot export", 16 * 1024 * 1024);

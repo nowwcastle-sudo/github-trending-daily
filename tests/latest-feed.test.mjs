@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, toNamespacedPath } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
@@ -148,6 +148,41 @@ test("latest publication requires an explicit candidate output and refuses the t
       /latest output must be an explicit candidate path/,
     );
     assert.deepEqual(await readFile(trackedLatest), before);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("Windows namespace aliases cannot bypass the tracked latest guard", {
+  skip: process.platform !== "win32",
+}, async () => {
+  const directory = await mkdtemp(join(tmpdir(), "latest-namespace-"));
+  const trackedLatest = join(root, "data", "latest.json");
+  const namespacedLatest = toNamespacedPath(trackedLatest);
+  const before = await readFile(trackedLatest);
+  try {
+    const exportPath = join(directory, "repository-snapshot-export.json");
+    await writeFile(exportPath, "{}\n", "utf8");
+    await assert.rejects(
+      updateLatestFeed({ exportPath, latestPath: namespacedLatest }),
+      /latest output must be an explicit candidate path/,
+    );
+    await assert.rejects(
+      writeLatestFeed(namespacedLatest, JSON.parse(before)),
+      /latest output must be an explicit candidate path/,
+    );
+    assert.deepEqual(await readFile(trackedLatest), before);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("an ordinary nonexistent temp candidate remains writable", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "latest-new-candidate-"));
+  try {
+    const latestPath = join(directory, "latest.json");
+    assert.equal(await writeLatestFeed(latestPath, { version: 1 }), true);
+    assert.equal(await readFile(latestPath, "utf8"), '{\n  "version": 1\n}\n');
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
