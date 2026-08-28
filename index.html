@@ -393,7 +393,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 <body>
 <div class="filter-sidebar" id="filterSidebar" role="dialog" aria-modal="true" aria-label="탐색 사이드바" aria-hidden="true" inert>
   <div class="sidebar-head">
-    <h2>탐색</h2>
+    <h2>대시보드 메뉴</h2>
     <button class="sidebar-close" id="sidebarClose" type="button" aria-label="탐색 사이드바 닫기">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
@@ -401,8 +401,9 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
   <section id="refreshStatus" class="sidebar-refresh" role="status" aria-live="polite" aria-atomic="true">
     <p id="luLast">최근 갱신 시각 : 불러오는 중…</p>
     <p id="luNext">다음 갱신 시각 : —</p>
+    <p id="luCadence">2시간마다 갱신</p>
   </section>
-  <section class="sidebar-section" aria-labelledby="accountTitle">
+  <section class="sidebar-section" id="accountSection" aria-labelledby="accountTitle">
     <h3 id="accountTitle">계정과 동기화</h3>
     <div class="account-controls">
       <p id="syncStatus" class="sync-status" role="status" aria-live="polite">브라우저 동기화</p>
@@ -410,12 +411,36 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
       <button id="logoutBtn" class="account-btn" type="button" hidden>로그아웃</button>
     </div>
   </section>
-  <nav class="sidebar-section sidebar-nav" aria-label="저장소 보기">
+  <nav class="sidebar-section sidebar-nav" id="viewSection" aria-label="저장소 보기">
     <h3>내 목록</h3>
     <button id="allReposBtn" type="button" aria-pressed="true">전체 저장소</button>
     <button id="favOnlyBtn" type="button" aria-pressed="false">즐겨찾기</button>
   </nav>
-  <section class="sidebar-section" aria-labelledby="sortTitle">
+  <section class="sidebar-section" id="periodSection" aria-labelledby="periodTitle">
+    <h3 id="periodTitle">기간</h3>
+    <div class="seg" id="periodSeg" role="group" aria-label="기간 필터">
+      <span class="seg-thumb" id="segThumb"></span>
+      <button data-period="all" aria-pressed="true">전체</button>
+      <button data-period="daily" aria-pressed="false">일간</button>
+      <button data-period="weekly" aria-pressed="false">주간</button>
+      <button data-period="monthly" aria-pressed="false">월간</button>
+    </div>
+  </section>
+  <section class="sidebar-section" id="languageSection" aria-labelledby="languageTitle">
+    <h3 id="languageTitle">프로그래밍 언어</h3>
+    <select class="langsel" id="lang" aria-label="프로그래밍 언어"><option value="">모든 언어</option></select>
+  </section>
+  <section class="sidebar-section" id="fieldSection" aria-labelledby="fieldTitle">
+    <h3 id="fieldTitle">분야</h3>
+    <p class="sidebar-note">여러 분야를 함께 선택할 수 있습니다.</p>
+    <div class="filter-group" id="fieldFilters"></div>
+    <label class="filter-switch"><input id="excludeAi" type="checkbox"> AI 분야 제외</label>
+  </section>
+  <section class="sidebar-section" id="formSection" aria-labelledby="formTitle">
+    <h3 id="formTitle">형태·기술</h3>
+    <div class="filter-group" id="formFilters"></div>
+  </section>
+  <section class="sidebar-section" id="sortSection" aria-labelledby="sortTitle">
     <h3 id="sortTitle">정렬</h3>
     <select class="langsel" id="sortSelect" aria-label="저장소 정렬">
       <option value="trending">Trending 원래 순서</option>
@@ -426,7 +451,22 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     </select>
     <p class="sidebar-note">값이 없는 저장소는 뒤에 표시됩니다.</p>
   </section>
-  <section class="sidebar-section" aria-labelledby="exportTitle">
+  <section class="sidebar-section" id="resultSection">
+    <p class="filter-summary" id="filterSummary" role="status" aria-live="polite">전체 저장소를 표시합니다.</p>
+    <button class="clear-filters" id="clearFiltersBtn" type="button">탐색 필터 지우기</button>
+  </section>
+  <section class="sidebar-section" id="hiddenRepoSection" aria-labelledby="hiddenRepoTitle" hidden>
+    <h3 id="hiddenRepoTitle">숨긴 저장소 관리</h3>
+    <p class="sidebar-note" id="hiddenRepoCount"></p>
+    <div class="hidden-repo-list" id="hiddenRepoList"></div>
+    <button class="clear-filters" id="restoreAllHiddenBtn" type="button">모두 복구</button>
+  </section>
+  <section class="sidebar-section" id="recentExitsSection" aria-labelledby="recentExitsTitle" hidden>
+    <h3 id="recentExitsTitle">최근 이탈</h3>
+    <p class="sidebar-note">직전 확정 목록에는 있었지만 현재 목록에는 없는 저장소입니다.</p>
+    <div class="recent-exit-list" id="recentExitsList"></div>
+  </section>
+  <section class="sidebar-section" id="exportSection" aria-labelledby="exportTitle">
     <h3 id="exportTitle">현재 보기 내보내기</h3>
     <p class="sidebar-note">화면에 보이는 순서와 저장소만 공개 필드로 저장합니다.</p>
     <div class="export-actions">
@@ -435,35 +475,6 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
       <button id="copyViewUrlBtn" type="button">현재 링크 복사</button>
     </div>
     <p class="export-status" id="exportStatus" role="status" aria-live="polite" aria-atomic="true">내보낼 형식을 선택하세요.</p>
-  </section>
-  <section class="sidebar-section" id="recentExitsSection" aria-labelledby="recentExitsTitle" hidden>
-    <h3 id="recentExitsTitle">최근 이탈</h3>
-    <p class="sidebar-note">직전 확정 목록에는 있었지만 현재 목록에는 없는 저장소입니다.</p>
-    <div class="recent-exit-list" id="recentExitsList"></div>
-  </section>
-  <section class="sidebar-section" id="hiddenRepoSection" aria-labelledby="hiddenRepoTitle" hidden>
-    <h3 id="hiddenRepoTitle">숨긴 저장소 관리</h3>
-    <p class="sidebar-note" id="hiddenRepoCount"></p>
-    <div class="hidden-repo-list" id="hiddenRepoList"></div>
-    <button class="clear-filters" id="restoreAllHiddenBtn" type="button">모두 복구</button>
-  </section>
-  <section class="sidebar-section" aria-labelledby="languageTitle">
-    <h3 id="languageTitle">프로그래밍 언어</h3>
-    <select class="langsel" id="lang" aria-label="프로그래밍 언어"><option value="">모든 언어</option></select>
-  </section>
-  <section class="sidebar-section" aria-labelledby="fieldTitle">
-    <h3 id="fieldTitle">분야</h3>
-    <p class="sidebar-note">여러 분야를 함께 선택할 수 있습니다.</p>
-    <div class="filter-group" id="fieldFilters"></div>
-    <label class="filter-switch"><input id="excludeAi" type="checkbox"> AI 분야 제외</label>
-  </section>
-  <section class="sidebar-section" aria-labelledby="formTitle">
-    <h3 id="formTitle">형태·기술</h3>
-    <div class="filter-group" id="formFilters"></div>
-  </section>
-  <section class="sidebar-section">
-    <p class="filter-summary" id="filterSummary" role="status" aria-live="polite">전체 저장소를 표시합니다.</p>
-    <button class="clear-filters" id="clearFiltersBtn" type="button">탐색 필터 지우기</button>
   </section>
 </div>
 <button class="nav-toggle edge-tab" id="navToggle" type="button" aria-label="탐색 사이드바 열기" aria-controls="filterSidebar" aria-expanded="false">
@@ -484,13 +495,6 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 
 <div class="controls">
   <div class="control-row">
-    <div class="seg" id="periodSeg" role="group" aria-label="기간 필터">
-      <span class="seg-thumb" id="segThumb"></span>
-      <button data-period="all" aria-pressed="true">전체</button>
-      <button data-period="daily" aria-pressed="false">일간</button>
-      <button data-period="weekly" aria-pressed="false">주간</button>
-      <button data-period="monthly" aria-pressed="false">월간</button>
-    </div>
     <input class="search" id="q" aria-label="저장소 검색" placeholder="저장소 검색…" autocomplete="off" maxlength="120">
   </div>
 </div>
@@ -603,7 +607,7 @@ const sidebar=document.getElementById("filterSidebar"),sidebarScrim=document.get
 const navToggle=document.getElementById("navToggle"),sidebarClose=document.getElementById("sidebarClose");
 let sidebarTrigger=null;
 function focusableIn(container){
-  return [...container.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>!el.hidden);
+  return [...container.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>!el.hidden&&!el.closest("[hidden]"));
 }
 function trapFocus(container,event){
   if(event.key!=="Tab")return;
@@ -1125,10 +1129,12 @@ MembershipHistory.load("data/membership-status.json",fetch).then(status=>{
 (function(){
   const box=document.getElementById("refreshStatus");if(!box)return;
   const fmt=new Intl.DateTimeFormat("ko-KR",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false});
-  function renderRefreshStatus(lastMs){
+  function updateRefreshStatus(lastValue){
     const next=RefreshSchedule.nextRefreshTime(Date.now());
-    document.getElementById("luLast").textContent="최근 갱신 시각 : "+fmt.format(new Date(lastMs));
-    document.getElementById("luNext").textContent="다음 갱신 시각 : "+fmt.format(next)+" (2시간마다 · 서울 기준 홀수 시 07분)";
+    const lastText=Number.isFinite(lastValue)?fmt.format(new Date(lastValue)):lastValue;
+    document.getElementById("luLast").textContent="최근 갱신 시각 : "+lastText;
+    document.getElementById("luNext").textContent="다음 갱신 시각 : "+fmt.format(next);
+    document.getElementById("luCadence").textContent="2시간마다 갱신";
   }
   fetch("data/latest.json",{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject()).then(f=>{
     SIGNALS.clear();
@@ -1136,14 +1142,12 @@ MembershipHistory.load("data/membership-status.json",fetch).then(status=>{
       const signal=repo?.signal;
       if(typeof repo?.slug==="string"&&signal&&Number.isSafeInteger(signal.streakDays)&&(signal.starsChange===null||Number.isSafeInteger(signal.starsChange)))SIGNALS.set(repo.slug,repo.signal);
     }
-    renderRefreshStatus(new Date(f.generatedAt).getTime());
+    updateRefreshStatus(new Date(f.generatedAt).getTime());
     render();
   }).catch(()=>{
     let latest=null;
     for(const r of REPOS){const d=r._stats_date;if(d&&(!latest||d>latest))latest=d;}
-    document.getElementById("luLast").textContent="최근 갱신 날짜 : "+(latest||"확인할 수 없음");
-    const next=RefreshSchedule.nextRefreshTime(Date.now());
-    document.getElementById("luNext").textContent="다음 갱신 시각 : "+fmt.format(next)+" (2시간마다 · 서울 기준 홀수 시 07분)";
+    updateRefreshStatus(latest||"확인할 수 없음");
   });
 })();
 </script>

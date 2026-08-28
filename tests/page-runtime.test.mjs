@@ -45,18 +45,55 @@ test("the refresh status appears once at the top of the sidebar and not in main"
   assert.match(page, /id="refreshStatus" class="sidebar-refresh" role="status" aria-live="polite" aria-atomic="true"/);
   const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<div id="sidebarScrim"/)?.[0] ?? "";
   const statusIndex = sidebar.indexOf('id="refreshStatus"');
-  const accountIndex = sidebar.indexOf('id="accountTitle"');
+  const accountIndex = sidebar.indexOf('id="accountSection"');
   assert.ok(statusIndex >= 0 && statusIndex < accountIndex, "refresh status must precede the account section");
   const main = page.match(/<main class="wrap">([\s\S]*?)<\/main>/)?.[1] ?? "";
   assert.doesNotMatch(main, /id="refreshStatus"/);
   assert.match(page, /\.sidebar-refresh\{[^}]*font-variant-numeric:tabular-nums/);
 });
 
+test("sidebar sections follow the approved priority and keyboard order", () => {
+  const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<button class="nav-toggle edge-tab"/)?.[0] ?? "";
+  const sectionIds = [
+    "refreshStatus", "accountSection", "viewSection", "periodSection", "languageSection",
+    "fieldSection", "formSection", "sortSection", "resultSection", "hiddenRepoSection",
+    "recentExitsSection", "exportSection",
+  ];
+  let previous = -1;
+  for (const id of sectionIds) {
+    const position = sidebar.indexOf(`id="${id}"`);
+    assert.ok(position > previous, `${id} must exist after the preceding sidebar section`);
+    previous = position;
+  }
+
+  const focusOrder = [
+    "loginBtn", "logoutBtn", "allReposBtn", "favOnlyBtn", "periodSeg", "lang",
+    "fieldFilters", "excludeAi", "formFilters", "sortSelect", "clearFiltersBtn",
+    "restoreAllHiddenBtn", "recentExitsList", "exportCsvBtn", "exportJsonBtn", "copyViewUrlBtn",
+  ];
+  previous = -1;
+  for (const id of focusOrder) {
+    const position = sidebar.indexOf(`id="${id}"`);
+    assert.ok(position > previous, `${id} must retain keyboard order inside its sidebar section`);
+    previous = position;
+  }
+  assert.match(sidebar, /<section[^>]*id="hiddenRepoSection"[^>]*hidden[\s\S]*?id="restoreAllHiddenBtn"/);
+  assert.match(sidebar, /<section[^>]*id="recentExitsSection"[^>]*hidden[\s\S]*?id="recentExitsList"/);
+  assert.match(page, /filter\(el=>!el\.hidden&&!el\.closest\("\[hidden\]"\)\)/);
+});
+
 test("refresh copy and calculation follow the approved two-hour schedule", () => {
+  const refresh = page.match(/<section[^>]*id="refreshStatus"[\s\S]*?<\/section>/)?.[0] ?? "";
+  assert.equal([...page.matchAll(/대시보드 메뉴/g)].length, 1);
+  assert.equal([...refresh.matchAll(/<p\b/g)].length, 3);
+  assert.match(refresh, /<p id="luLast">최근 갱신 시각 : 불러오는 중…<\/p>/);
+  assert.match(refresh, /<p id="luNext">다음 갱신 시각 : —<\/p>/);
+  assert.match(refresh, /<p id="luCadence">2시간마다 갱신<\/p>/);
   assert.match(page, /<script src="refresh-schedule\.js"><\/script>/);
   assert.match(page, /RefreshSchedule\.nextRefreshTime\(Date\.now\(\)\)/);
-  assert.match(page, /2시간마다 · 서울 기준 홀수 시 07분/);
-  assert.doesNotMatch(page, /매일 03:17 갱신|setUTCHours\(18,17/);
+  assert.match(page, /function updateRefreshStatus\(lastValue\)/);
+  assert.match(page, /document\.getElementById\("luCadence"\)\.textContent="2시간마다 갱신"/);
+  assert.doesNotMatch(page, /서울 기준 홀수 시 07분|매일 03:17 갱신|setUTCHours\(18,17/);
 });
 
 test("README rendering does not load third-party HTML parsers", () => {
