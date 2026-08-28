@@ -282,6 +282,7 @@ def validate_membership_timeline(value, target_snapshot_id):
         raise _timeline_error()
     legacy_by_id = {}
     total_members = 0
+    previous_legacy_time = None
     for snapshot in legacy:
         if not _exact(snapshot, {"snapshotId", "generatedAt", "statsDate", "slugSetSha256", "members"}):
             raise _timeline_error()
@@ -289,7 +290,10 @@ def validate_membership_timeline(value, target_snapshot_id):
             raise _timeline_error()
         if snapshot["snapshotId"] in legacy_by_id or not _SHA256_RE.fullmatch(snapshot["slugSetSha256"]):
             raise _timeline_error()
-        _timeline_timestamp(snapshot["generatedAt"])
+        generated_at = _timeline_timestamp(snapshot["generatedAt"])
+        if previous_legacy_time is not None and generated_at <= previous_legacy_time:
+            raise _timeline_error()
+        previous_legacy_time = generated_at
         _timeline_date(snapshot["statsDate"])
         _validate_ordinals(snapshot["members"], {"ordinal", "slug"})
         legacy_by_id[snapshot["snapshotId"]] = snapshot
@@ -301,18 +305,32 @@ def validate_membership_timeline(value, target_snapshot_id):
     if not isinstance(database, list) or not database:
         raise _timeline_error()
     database_by_id = {}
+    previous_database_time = None
     for snapshot in database:
         if not _exact(snapshot, {"snapshotId", "generatedAt", "statsDate", "members"}):
             raise _timeline_error()
         snapshot_id = snapshot["snapshotId"]
         if not isinstance(snapshot_id, str) or not _SNAPSHOT_RE.fullmatch(snapshot_id) or snapshot_id in database_by_id:
             raise _timeline_error()
-        _timeline_timestamp(snapshot["generatedAt"])
+        generated_at = _timeline_timestamp(snapshot["generatedAt"])
+        try:
+            _snapshot_id(snapshot_id, snapshot["generatedAt"])
+        except ValueError as error:
+            raise _timeline_error() from error
+        if previous_database_time is not None and generated_at <= previous_database_time:
+            raise _timeline_error()
+        previous_database_time = generated_at
         _timeline_date(snapshot["statsDate"])
         _validate_ordinals(snapshot["members"], {"ordinal", "slug", "displaySlug", "status"}, {"baseline_present", "new", "reentered", "stayed"})
         database_by_id[snapshot_id] = snapshot
-    if target_snapshot_id not in database_by_id or value["current"] != database_by_id[target_snapshot_id]["members"]:
+    if (
+        database[-1]["snapshotId"] != target_snapshot_id
+        or value["current"] != database[-1]["members"]
+        or previous_legacy_time is None
+        or previous_legacy_time >= _timeline_timestamp(database[0]["generatedAt"])
+    ):
         raise _timeline_error()
+    target_time = previous_database_time
 
     exited = value["exited"]
     if not isinstance(exited, list):
@@ -346,7 +364,9 @@ def validate_membership_timeline(value, target_snapshot_id):
         _timeline_slug(event["displaySlug"])
         if event["displaySlug"].lower() != slug:
             raise _timeline_error()
-        _timeline_timestamp(event["generatedAt"])
+        event_time = _timeline_timestamp(event["generatedAt"])
+        if event_time > target_time:
+            raise _timeline_error()
         _timeline_date(event["statsDate"])
         source = legacy_by_id.get(event["snapshotId"]) if event["provenance"] == "legacy_snapshot" else database_by_id.get(event["snapshotId"])
         if source is None or source["generatedAt"] != event["generatedAt"] or source["statsDate"] != event["statsDate"]:
@@ -641,12 +661,21 @@ def validate_atom_publication(page, latest, database_path, legacy_membership_pat
     return validate_atom_publication_from_timeline(page, latest, timeline, feed_path, changes_path)
 
 
+def _unique_json_object(pairs):
+    value = {}
+    for key, item in pairs:
+        if key in value:
+            raise ValueError("duplicate JSON key")
+        value[key] = item
+    return value
+
+
 def _load_json(path):
     try:
-        with Path(path).open("r", encoding="utf-8") as handle:
-            return json.load(handle)
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
-        raise _input_error() from error
+        payload = Path(path).read_text(encoding="utf-8")
+        return json.loads(payload, object_pairs_hook=_unique_json_object)
+    except (OSError, UnicodeError, ValueError):
+        raise _input_error() from None
 
 
 def main(argv=None):

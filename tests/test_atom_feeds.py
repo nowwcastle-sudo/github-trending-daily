@@ -1,7 +1,9 @@
 import copy
+import hashlib
 import json
 import os
 import tempfile
+import traceback
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -10,6 +12,7 @@ from unittest import mock
 from scripts.generate_atom_feeds import (
     ATOM_NAMESPACE,
     SITE_URL,
+    _load_json,
     generate_atom_feeds_from_timeline,
     select_change_events,
     validate_atom_publication_from_timeline,
@@ -18,8 +21,8 @@ from scripts.generate_atom_feeds import (
 
 
 ATOM = {"atom": ATOM_NAMESPACE}
-SNAPSHOT_ID = "20260826182000-d88e9972357720d2"
-GENERATED_AT = "2026-08-26T18:20:00.000Z"
+SNAPSHOT_ID = "20260828182000-8d3e67704ec19f12"
+GENERATED_AT = "2026-08-28T18:20:00.000Z"
 LEGACY_UPDATED = "2026-08-26T13:21:30.208Z"
 LEGACY_NAMES = [
     ("tt-a1i/archify", "tt-a1i/archify"),
@@ -37,6 +40,12 @@ LEGACY_TUPLES = [
     (f"{SITE_URL}changes.xml#{LEGACY_UPDATED.replace(':', '%3A') .replace('.', '.')}%7Cnew%7C{slug.replace('/', '%2F')}", LEGACY_UPDATED, "new")
     for slug, _ in LEGACY_NAMES
 ]
+
+
+def run_snapshot_id(generated_at):
+    timestamp = "".join(character for character in generated_at if character.isdigit())[:14]
+    digest = hashlib.sha256(f"{generated_at}|run-context-v1".encode()).hexdigest()[:16]
+    return f"{timestamp}-{digest}"
 
 
 def latest_payload():
@@ -62,7 +71,7 @@ def latest_payload():
     return {
         "snapshotId": SNAPSHOT_ID,
         "generatedAt": GENERATED_AT,
-        "statsDate": "2026-08-27",
+        "statsDate": "2026-08-29",
         "count": len(repositories),
         "repos": repositories,
     }
@@ -89,6 +98,15 @@ def page_payload(latest=None):
 
 def legacy_snapshots():
     result = []
+    generated_values = [
+        "2026-08-26T08:58:32.295Z",
+        "2026-08-26T10:50:15.532Z",
+        LEGACY_UPDATED,
+        "2026-08-26T15:04:18.483Z",
+        "2026-08-26T16:59:31.631Z",
+        "2026-08-26T20:04:01.821Z",
+        "2026-08-26T23:28:45.607Z",
+    ]
     for snapshot_id in range(1, 8):
         members = [
             {"ordinal": ordinal, "slug": f"legacy-{snapshot_id}/repo-{ordinal}"}
@@ -101,7 +119,7 @@ def legacy_snapshots():
             ]
         result.append({
             "snapshotId": snapshot_id,
-            "generatedAt": LEGACY_UPDATED if snapshot_id == 3 else f"2026-08-26T0{snapshot_id}:00:00.000Z",
+            "generatedAt": generated_values[snapshot_id - 1],
             "statsDate": "2026-08-26",
             "slugSetSha256": f"{snapshot_id:064x}",
             "members": members,
@@ -134,7 +152,7 @@ def timeline():
         "databaseSnapshots": [{
             "snapshotId": SNAPSHOT_ID,
             "generatedAt": GENERATED_AT,
-            "statsDate": "2026-08-27",
+            "statsDate": "2026-08-29",
             "members": copy.deepcopy(current),
         }],
         "current": current,
@@ -209,8 +227,8 @@ class AtomFeedTests(unittest.TestCase):
 
     def test_database_events_sort_ahead_of_legacy_and_one_final_cap_is_applied(self):
         value = copy.deepcopy(self.timeline)
-        previous_id = "20260826162000-1111111111111111"
-        previous_time = "2026-08-26T16:20:00.000Z"
+        previous_time = "2026-08-28T16:20:00.000Z"
+        previous_id = run_snapshot_id(previous_time)
         previous_members = [
             {"ordinal": index, "slug": f"previous/repo-{index}", "displaySlug": f"Previous/Repo-{index}", "status": "new"}
             for index in range(60)
@@ -220,17 +238,17 @@ class AtomFeedTests(unittest.TestCase):
             for index in range(55)
         ]
         value["databaseSnapshots"] = [
-            {"snapshotId": previous_id, "generatedAt": previous_time, "statsDate": "2026-08-27", "members": previous_members},
-            {"snapshotId": SNAPSHOT_ID, "generatedAt": GENERATED_AT, "statsDate": "2026-08-27", "members": target_members},
+            {"snapshotId": previous_id, "generatedAt": previous_time, "statsDate": "2026-08-29", "members": previous_members},
+            {"snapshotId": SNAPSHOT_ID, "generatedAt": GENERATED_AT, "statsDate": "2026-08-29", "members": target_members},
         ]
         value["current"] = target_members
         events = [
             {"provenance": "repository_snapshot", "snapshotId": previous_id, "generatedAt": previous_time,
-             "statsDate": "2026-08-27", **member}
+             "statsDate": "2026-08-29", **member}
             for member in previous_members
         ] + [
             {"provenance": "repository_snapshot", "snapshotId": SNAPSHOT_ID, "generatedAt": GENERATED_AT,
-             "statsDate": "2026-08-27", **member}
+             "statsDate": "2026-08-29", **member}
             for member in target_members
         ]
         value["events"] = list(reversed(value["events"])) + list(reversed(events))
@@ -262,7 +280,7 @@ class AtomFeedTests(unittest.TestCase):
             "provenance": "repository_snapshot",
             "snapshotId": SNAPSHOT_ID,
             "generatedAt": GENERATED_AT,
-            "statsDate": "2026-08-27",
+            "statsDate": "2026-08-29",
             "ordinal": 1,
             "slug": "alishahryar1/free-claude-code",
             "displaySlug": "Alishahryar1/free-claude-code",
@@ -288,6 +306,83 @@ class AtomFeedTests(unittest.TestCase):
             latest["repos"][0][field] = replacement
             with self.assertRaisesRegex(ValueError, "Atom input is invalid"):
                 generate_atom_feeds_from_timeline(page_payload(latest), latest, self.timeline, self.feed, self.changes)
+
+    def test_future_database_snapshot_and_event_fail_before_document_generation(self):
+        value = copy.deepcopy(self.timeline)
+        future_time = "2026-08-28T20:20:00.000Z"
+        future_id = run_snapshot_id(future_time)
+        future_members = [{
+            "ordinal": index,
+            "slug": member["slug"],
+            "displaySlug": member["displaySlug"],
+            "status": "new" if index == 0 else "stayed",
+        } for index, member in enumerate(value["current"])]
+        value["databaseSnapshots"].append({
+            "snapshotId": future_id,
+            "generatedAt": future_time,
+            "statsDate": "2026-08-29",
+            "members": future_members,
+        })
+        value["events"].append({
+            "provenance": "repository_snapshot",
+            "snapshotId": future_id,
+            "generatedAt": future_time,
+            "statsDate": "2026-08-29",
+            **future_members[0],
+        })
+        with mock.patch("scripts.generate_atom_feeds._current_document") as current_document:
+            with self.assertRaisesRegex(ValueError, "membership timeline is invalid"):
+                generate_atom_feeds_from_timeline(self.page, self.latest, value, self.feed, self.changes)
+        current_document.assert_not_called()
+        self.assertFalse(self.feed.exists())
+        self.assertFalse(self.changes.exists())
+
+    def test_database_snapshot_after_target_fails_even_when_target_is_final_in_array(self):
+        value = copy.deepcopy(self.timeline)
+        future_time = "2026-08-28T20:20:00.000Z"
+        value["databaseSnapshots"].insert(0, {
+            "snapshotId": run_snapshot_id(future_time),
+            "generatedAt": future_time,
+            "statsDate": "2026-08-29",
+            "members": copy.deepcopy(value["current"]),
+        })
+        with mock.patch("scripts.generate_atom_feeds._current_document") as current_document:
+            with self.assertRaisesRegex(ValueError, "membership timeline is invalid"):
+                generate_atom_feeds_from_timeline(self.page, self.latest, value, self.feed, self.changes)
+        current_document.assert_not_called()
+
+    def test_event_after_target_fails_before_document_generation(self):
+        value = copy.deepcopy(self.timeline)
+        value["events"][0]["generatedAt"] = "2026-08-28T20:20:00.000Z"
+        with mock.patch("scripts.generate_atom_feeds._current_document") as current_document:
+            with self.assertRaisesRegex(ValueError, "membership timeline is invalid"):
+                generate_atom_feeds_from_timeline(self.page, self.latest, value, self.feed, self.changes)
+        current_document.assert_not_called()
+
+    def test_database_snapshot_id_must_bind_its_exact_generated_timestamp(self):
+        value = copy.deepcopy(self.timeline)
+        value["databaseSnapshots"][0]["generatedAt"] = "2026-08-28T18:20:01.000Z"
+        with self.assertRaisesRegex(ValueError, "membership timeline is invalid"):
+            validate_membership_timeline(value, SNAPSHOT_ID)
+
+    def test_strict_json_rejects_recursive_duplicate_keys_without_sentinel_leak(self):
+        sentinel = "sensitive-duplicate-value-do-not-echo"
+        fixtures = [
+            '{"snapshotId":"first","snapshotId":"' + sentinel + '"}',
+            '{"events":[{"status":"new","status":"' + sentinel + '"}]}',
+        ]
+        for index, payload in enumerate(fixtures):
+            path = self.root / f"duplicate-{index}.json"
+            path.write_text(payload, encoding="utf-8")
+            try:
+                _load_json(path)
+            except ValueError as error:
+                rendered = "".join(traceback.format_exception(error))
+                message = str(error)
+            else:
+                self.fail("duplicate JSON unexpectedly passed")
+            self.assertEqual(message, "Atom input is invalid")
+            self.assertNotIn(sentinel, rendered)
 
     def test_failed_second_install_restores_both_last_good_files(self):
         self.generate()

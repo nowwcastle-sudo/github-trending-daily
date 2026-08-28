@@ -14,7 +14,7 @@ export const FORM_TAG_IDS = Object.freeze([
 ]);
 
 const DEFAULT_EXPORT = fileURLToPath(new URL("../repository-snapshot-export.json", import.meta.url));
-const DEFAULT_LATEST = fileURLToPath(new URL("../data/latest.json", import.meta.url));
+const TRACKED_LATEST = fileURLToPath(new URL("../data/latest.json", import.meta.url));
 const SNAPSHOT_KEYS = ["version", "snapshotId", "generatedAt", "statsDate", "repositories"];
 const REPOSITORY_KEYS = [
   "slug", "name", "description", "lang", "topics", "stars", "forks", "issues", "contributors",
@@ -30,6 +30,18 @@ const SNAPSHOT_ID_RE = /^\d{14}-[a-f0-9]{16}$/;
 
 function fail() {
   throw new Error("snapshot export is invalid");
+}
+
+function candidateFail() {
+  throw new Error("latest output must be an explicit candidate path");
+}
+
+function validateCandidatePath(path) {
+  if (typeof path !== "string" || !path) candidateFail();
+  const absolute = resolve(path);
+  const tracked = resolve(TRACKED_LATEST);
+  if (process.platform === "win32" ? absolute.toLowerCase() === tracked.toLowerCase() : absolute === tracked) candidateFail();
+  return absolute;
 }
 
 function exactKeys(value, expected) {
@@ -129,6 +141,7 @@ export function buildLatestFeed(snapshotExport) {
 }
 
 export async function writeLatestFeed(path, feed) {
+  path = validateCandidatePath(path);
   await mkdir(dirname(path), { recursive: true });
   try {
     const prior = JSON.parse(await readFile(path, "utf8"));
@@ -146,7 +159,8 @@ export async function writeLatestFeed(path, feed) {
   return true;
 }
 
-export async function updateLatestFeed({ exportPath = DEFAULT_EXPORT, latestPath = DEFAULT_LATEST } = {}) {
+export async function updateLatestFeed({ exportPath = DEFAULT_EXPORT, latestPath } = {}) {
+  latestPath = validateCandidatePath(latestPath);
   let snapshotExport;
   try {
     snapshotExport = parseJsonStrict(await readFile(exportPath), "snapshot export", 16 * 1024 * 1024);

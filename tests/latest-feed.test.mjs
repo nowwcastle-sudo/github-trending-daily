@@ -128,6 +128,31 @@ test("updateLatestFeed consumes only the supplied temp export and never a legacy
   }
 });
 
+test("latest publication requires an explicit candidate output and refuses the tracked latest file", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "latest-candidate-only-"));
+  const trackedLatest = join(root, "data", "latest.json");
+  const before = await readFile(trackedLatest);
+  try {
+    const exportPath = join(directory, "repository-snapshot-export.json");
+    await writeFile(exportPath, "{}\n", "utf8");
+    await assert.rejects(
+      updateLatestFeed({ exportPath }),
+      /latest output must be an explicit candidate path/,
+    );
+    await assert.rejects(
+      updateLatestFeed({ exportPath, latestPath: trackedLatest }),
+      /latest output must be an explicit candidate path/,
+    );
+    await assert.rejects(
+      writeLatestFeed(trackedLatest, JSON.parse(before)),
+      /latest output must be an explicit candidate path/,
+    );
+    assert.deepEqual(await readFile(trackedLatest), before);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test("CLI accepts explicit candidate paths and emits no stored values", async () => {
   const directory = await mkdtemp(join(tmpdir(), "latest-cli-"));
   try {
