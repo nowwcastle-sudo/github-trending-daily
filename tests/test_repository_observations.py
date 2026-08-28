@@ -44,11 +44,17 @@ def sha1(value="a"):
     return value * 40
 
 
+def canonical_hash(value):
+    return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
 def baseline_run(connection, *, snapshot_id="20260828010101-aaaaaaaaaaaaaaaa", utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00"):
+    core = sha256("b")
+    chain = canonical_hash({"schema_fingerprint_sha256": PINNED_SCHEMA_FINGERPRINT, "parent_chain_sha256": None, "core_payload_sha256": core, "snapshot_id": snapshot_id, "snapshot_seq": 1})
     connection.execute(
         """INSERT INTO snapshot_runs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (1, snapshot_id, "migration_baseline", utc, kst, "2026-08-28", None, None,
-         sha1(), sha256(), sha256("b"), None, sha256("c"), 1),
+         sha1(), sha256(), core, None, chain, 1),
     )
 
 
@@ -67,24 +73,27 @@ def profile(connection, *, slug="owner/repo", display_slug="owner/repo", topics=
     )
 
 
-def complete_fixture(connection):
+def complete_fixture(connection, *, display_slug="owner/repo", applicable=False):
     baseline_run(connection)
-    profile(connection)
+    profile(connection, display_slug=display_slug)
+    readme_path, readme_blob, readme_content = ("README.md", sha1("b"), sha256("c")) if applicable else (None, None, None)
+    translation_status = "applicable" if applicable else "not_applicable:no_readme"
+    translation_source, translation_envelope = (sha256("d"), sha256("e")) if applicable else (None, None)
     connection.execute(
         """INSERT INTO snapshot_items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (1, "owner/repo", 1, 1, 1, None, None, 0, None, None, "#112233", None, None,
          "#112233", "daily", 1, 0, 0, 0, 0, 0, "2026-08-28T01:01:01.001Z", None,
-         sha1(), None, "baseline", "absent", None, None, None, "baseline_present", 0,
+         sha1(), None, "baseline", "present" if applicable else "absent", readme_path, readme_blob, readme_content, "baseline_present", 0,
          EMPTY_RELEASE_INVENTORY_SHA256, None, "complete_empty", sha256("e"), 0, sha256("f"),
-         sha256("a"), sha256("b"), "not_applicable:no_readme", None, None),
+         sha256("a"), sha256("b"), translation_status, translation_source, translation_envelope),
     )
     connection.execute(
         "INSERT INTO historical_star_estimates VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        ("legacy_star_history_cache", "owner/repo", "2026-08-28", 1, 1, sha256("c"), sha256("d"), 1),
+        ("legacy_star_history_cache", "owner/repo", "2026-08-28", 1, 1, canonical_hash({"slug": "owner/repo", "date": "2026-08-28", "is_present": True, "stars": 1}), sha256("d"), 1),
     )
     connection.execute(
         "INSERT INTO historical_star_observations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        ("legacy_public_star_history", None, "owner/repo", "2026-08-28", 1, None, None, sha256("e"), 1),
+        ("legacy_public_star_history", None, "owner/repo", "2026-08-28", 1, None, None, canonical_hash({"source": "legacy_public_star_history", "slug": "owner/repo", "observation_date": "2026-08-28", "stars": 1}), 1),
     )
     connection.execute(
         "INSERT INTO commit_events VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -92,14 +101,16 @@ def complete_fixture(connection):
     )
     connection.execute(
         "INSERT INTO readme_change_events VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (1, "owner/repo", None, None, None, None, None, None, "baseline"),
+        (1, "owner/repo", None, readme_path, None, readme_blob, None, readme_content, "baseline"),
     )
     connection.execute(
         "INSERT INTO repository_insights VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (1, "owner/repo", None, None, None, None, None, None, None, "repository-insight-v1", sha256("f")),
+        (1, "owner/repo", None, None, None, None, None, None, None, "repository-insight-v1", canonical_hash({"snapshot_seq": 1, "slug": "owner/repo", "previous_observed_snapshot_seq": None, "observation_gap_milliseconds": None, "stars_delta_since_previous_observation": None, "display_rank_delta": None, "rank_daily_delta": None, "rank_weekly_delta": None, "rank_monthly_delta": None, "insight_rule_version": "repository-insight-v1"})),
     )
     for artifact_path in PAGES_BASE_ARTIFACT_PATHS:
         connection.execute("INSERT INTO artifact_hashes VALUES (?, ?, ?, ?)", (1, artifact_path, sha256("a"), 1))
+    if applicable:
+        connection.execute("INSERT INTO artifact_hashes VALUES (?, ?, ?, ?)", (1, f"translations/{display_slug.replace('/', '__')}.json", sha256("b"), 1))
 
 
 class RepositoryObservationTests(unittest.TestCase):
@@ -213,6 +224,58 @@ class RepositoryObservationTests(unittest.TestCase):
                      sha256("c"), sha256("e"), 1),
                 )
 
+    def test_snapshot_id_and_chain_hash_are_exact(self):
+        create_database(self.database)
+        with closing(sqlite3.connect(self.database)) as connection:
+            for bad_id in ("20260828010101-aaaaaaaaaaaaaaa-", "20260828010101-aaaaaaaaaaaaaaaA", "20260828010101aaaaaaaaaaaaaaaa"):
+                connection.execute("SAVEPOINT snapshot_probe")
+                with self.assertRaises((sqlite3.IntegrityError, ValueError)):
+                    baseline_run(connection, snapshot_id=bad_id)
+                    validate_schema(connection)
+                connection.execute("ROLLBACK TO snapshot_probe")
+                connection.execute("RELEASE snapshot_probe")
+            complete_fixture(connection)
+            connection.execute("SAVEPOINT chain_probe")
+            connection.execute("DROP TRIGGER snapshot_runs_reject_update")
+            connection.execute("UPDATE snapshot_runs SET chain_sha256 = ?", (sha256("f"),))
+            with self.assertRaisesRegex(ValueError, "chain hash"):
+                _validate_populated_rows(connection)
+            connection.execute("ROLLBACK TO chain_probe")
+            connection.execute("RELEASE chain_probe")
+
+    def test_db_only_hash_preimages_reject_mutation(self):
+        create_database(self.database)
+        with closing(sqlite3.connect(self.database)) as connection:
+            complete_fixture(connection)
+            for table, column, label in (
+                ("historical_star_estimates", "point_sha256", "estimate point"),
+                ("historical_star_observations", "source_row_sha256", "legacy observation"),
+                ("repository_insights", "insight_sha256", "insight hash"),
+            ):
+                connection.execute("SAVEPOINT hash_probe")
+                connection.execute(f"DROP TRIGGER {table}_reject_update")
+                connection.execute(f"UPDATE {table} SET {column} = ?", (sha256("f"),))
+                with self.assertRaisesRegex(ValueError, label):
+                    _validate_populated_rows(connection)
+                connection.execute("ROLLBACK TO hash_probe")
+                connection.execute("RELEASE hash_probe")
+
+    def test_release_hash_and_api_merge_parent_order_are_recomputed(self):
+        create_database(self.database)
+        with closing(sqlite3.connect(self.database)) as connection:
+            complete_fixture(connection)
+            release = {"slug": "owner/repo", "release_id": 1, "tag_name": "v1", "name": None, "target_commitish": "main", "draft": False, "prerelease": False, "created_at": "2026-08-28T01:01:01.001Z", "published_at": None, "html_url": "https://github.com/owner/repo/releases/tag/v1"}
+            connection.execute("INSERT INTO release_versions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (release["slug"], release["release_id"], canonical_hash(release), 1, release["tag_name"], release["name"], release["target_commitish"], 0, 0, release["created_at"], release["published_at"], release["html_url"]))
+            connection.execute("INSERT INTO commit_events VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ("owner/merge", sha1("b"), 1, 1, "main", "2026-08-28T01:01:01.001Z", "2026-08-28T01:01:01.001Z", None, json.dumps([sha1("f"), sha1("a")], separators=(",", ":")), "https://github.com/owner/merge/commit/" + sha1("b")))
+            validate_schema(connection)
+            connection.execute("SAVEPOINT release_hash_probe")
+            connection.execute("DROP TRIGGER release_versions_reject_update")
+            connection.execute("UPDATE release_versions SET metadata_sha256 = ?", (sha256("e"),))
+            with self.assertRaisesRegex(ValueError, "release metadata"):
+                _validate_populated_rows(connection)
+            connection.execute("ROLLBACK TO release_hash_probe")
+            connection.execute("RELEASE release_hash_probe")
+
     def test_complete_cross_table_fixture_and_actual_immutable_triggers(self):
         create_database(self.database)
         with closing(sqlite3.connect(self.database)) as connection:
@@ -224,6 +287,19 @@ class RepositoryObservationTests(unittest.TestCase):
                 connection.execute("DELETE FROM repository_profiles")
             with self.assertRaises(sqlite3.IntegrityError):
                 connection.execute("INSERT INTO snapshot_items SELECT * FROM snapshot_items")
+
+    def test_applicable_translation_uses_display_case_and_slug_to_file_separator(self):
+        create_database(self.database)
+        with closing(sqlite3.connect(self.database)) as connection:
+            complete_fixture(connection, display_slug="Owner/Repo", applicable=True)
+            validate_schema(connection)
+            connection.execute("SAVEPOINT translation_path_probe")
+            connection.execute("DROP TRIGGER artifact_hashes_reject_update")
+            connection.execute("UPDATE artifact_hashes SET artifact_path = 'translations/owner--repo.json' WHERE artifact_path = 'translations/Owner__Repo.json'")
+            with self.assertRaisesRegex(ValueError, "translation"):
+                _validate_populated_rows(connection)
+            connection.execute("ROLLBACK TO translation_path_probe")
+            connection.execute("RELEASE translation_path_probe")
 
     def test_row_validator_rejects_wrong_selected_color_latest_release_and_artifact_set(self):
         create_database(self.database)

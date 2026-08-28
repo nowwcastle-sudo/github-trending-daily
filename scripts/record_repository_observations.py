@@ -424,6 +424,13 @@ def _canonical_string_array(value, label: str, *, allowed=(), allow_empty=True):
     return parsed
 
 
+def _canonical_api_sha_array(value, label: str):
+    parsed = _canonical_json(value, label)
+    if not isinstance(parsed, list) or len(set(parsed)) != len(parsed) or any(not isinstance(item, str) or not re.fullmatch(r"[0-9a-f]{40}", item) for item in parsed):
+        raise ValueError(f"{label} must preserve unique lowercase API SHA order")
+    return parsed
+
+
 def _ordered_tag_array(value, label: str, allowed, *, field=False):
     parsed = _canonical_json(value, label)
     if not isinstance(parsed, list) or any(not isinstance(item, str) for item in parsed):
@@ -475,20 +482,31 @@ def _sha256_json(value) -> str:
 
 
 def _validate_populated_rows(connection: sqlite3.Connection) -> None:
+    schema_digest = connection.execute("SELECT schema_fingerprint_sha256 FROM schema_meta").fetchone()[0]
     runs = connection.execute(
         "SELECT snapshot_seq, snapshot_id, observed_at_utc, observed_at_kst, stats_date_kst, parent_snapshot_seq, parent_snapshot_id FROM snapshot_runs ORDER BY snapshot_seq"
     ).fetchall()
     for seq, snapshot_id, utc, kst, stats_date, parent_seq, parent_id in runs:
+        if seq < 1 or not re.fullmatch(r"[0-9]{14}-[a-f0-9]{16}", snapshot_id):
+            raise ValueError("snapshot sequence or id is invalid")
         utc_value = _parse_utc(utc)
         kst_value = _parse_kst(kst)
         if utc_value.astimezone(kst_value.tzinfo) != kst_value or kst_value.date().isoformat() != stats_date:
             raise ValueError("snapshot UTC, KST, and stats date must name one instant")
-        if seq > 1 and parent_seq is not None and parent_seq != seq - 1:
+        if seq > 1 and parent_seq != seq - 1:
             raise ValueError("refresh snapshot sequence must immediately follow its parent")
         if parent_seq is not None:
-            parent = connection.execute("SELECT snapshot_id FROM snapshot_runs WHERE snapshot_seq = ?", (parent_seq,)).fetchone()
-            if parent != (parent_id,):
+            parent = connection.execute("SELECT snapshot_id, chain_sha256 FROM snapshot_runs WHERE snapshot_seq = ?", (parent_seq,)).fetchone()
+            if parent is None or parent[0] != parent_id:
                 raise ValueError("snapshot parent identity is invalid")
+            row = connection.execute("SELECT parent_chain_sha256, core_payload_sha256, chain_sha256 FROM snapshot_runs WHERE snapshot_seq = ?", (seq,)).fetchone()
+            if row[0] != parent[1]:
+                raise ValueError("snapshot parent chain is invalid")
+        else:
+            row = connection.execute("SELECT parent_chain_sha256, core_payload_sha256, chain_sha256 FROM snapshot_runs WHERE snapshot_seq = ?", (seq,)).fetchone()
+        expected_chain = _sha256_json({"schema_fingerprint_sha256": schema_digest, "parent_chain_sha256": row[0], "core_payload_sha256": row[1], "snapshot_id": snapshot_id, "snapshot_seq": seq})
+        if row[2] != expected_chain:
+            raise ValueError("snapshot chain hash preimage mismatch")
 
     profiles = connection.execute(
         "SELECT profile_id, slug, display_slug, description, primary_language, topics_json, license_spdx, archived, is_fork, default_branch, created_at, field_tags_json, form_tags_json, tag_rule_version, profile_sha256 FROM repository_profiles"
@@ -514,10 +532,25 @@ def _validate_populated_rows(connection: sqlite3.Connection) -> None:
     items = connection.execute("SELECT * FROM snapshot_items ORDER BY snapshot_seq, slug").fetchall()
     item_columns = [item[1] for item in connection.execute("PRAGMA table_info(snapshot_items)")]
     item_rows = [dict(zip(item_columns, row)) for row in items]
+    for snapshot_seq in {item["snapshot_seq"] for item in item_rows}:
+        current_items = [item for item in item_rows if item["snapshot_seq"] == snapshot_seq]
+        if sorted(item["display_rank"] for item in current_items) != list(range(1, len(current_items) + 1)):
+            raise ValueError("display ranks must be gapless per snapshot")
+        for rank_field in ("rank_daily", "rank_weekly", "rank_monthly"):
+            ranks = sorted(item[rank_field] for item in current_items if item[rank_field] is not None)
+            if ranks and ranks != list(range(1, len(ranks) + 1)):
+                raise ValueError(f"{rank_field} ranks must be gapless per snapshot")
+    for snapshot_seq, slug in connection.execute("SELECT DISTINCT snapshot_seq, slug FROM snapshot_release_items"):
+        ordinals = [row[0] for row in connection.execute("SELECT release_ordinal FROM snapshot_release_items WHERE snapshot_seq = ? AND slug = ? ORDER BY release_ordinal", (snapshot_seq, slug))]
+        if ordinals != list(range(len(ordinals))):
+            raise ValueError("release ordinals must be gapless")
     artifacts_by_snapshot = {}
     for row in connection.execute("SELECT snapshot_seq, artifact_path FROM artifact_hashes"):
         artifacts_by_snapshot.setdefault(row[0], set()).add(row[1])
     for item in item_rows:
+        _parse_utc(item["updated_at"])
+        if item["pushed_at"] is not None:
+            _parse_utc(item["pushed_at"])
         if any(item[field] is not None and item[field] < 0 for field in ("gain_daily", "gain_weekly", "gain_monthly")):
             raise ValueError("snapshot gains cannot be negative")
         colors = (("daily", item["language_color_daily"]), ("weekly", item["language_color_weekly"]), ("monthly", item["language_color_monthly"]))
@@ -536,13 +569,32 @@ def _validate_populated_rows(connection: sqlite3.Connection) -> None:
             raise ValueError("release inventory count or hash mismatch")
         if item["latest_release_id"] is not None and item["latest_release_id"] not in {entry[0] for entry in inventory}:
             raise ValueError("latest release must be in its exact inventory")
-        if item["translation_status"] == "applicable" and f"translations/{item['slug'].replace('/', '--')}.json" not in artifacts_by_snapshot.get(item["snapshot_seq"], set()):
+        display = connection.execute("SELECT display_slug FROM repository_profiles WHERE profile_id = ? AND slug = ?", (item["profile_id"], item["slug"])).fetchone()
+        if item["translation_status"] == "applicable" and (display is None or f"translations/{display[0].replace('/', '__')}.json" not in artifacts_by_snapshot.get(item["snapshot_seq"], set())):
             raise ValueError("applicable translation is absent from artifacts")
 
-    for slug, commit_sha, parents in connection.execute("SELECT slug, commit_sha, parent_shas_json FROM commit_events"):
-        parsed = _canonical_string_array(parents, "parent_shas_json")
-        if any(not re.fullmatch(r"[0-9a-f]{40}", parent) for parent in parsed):
-            raise ValueError(f"commit {slug}/{commit_sha} has invalid parent SHA")
+    for slug, release_id, digest, _, tag, name, target, draft, prerelease, created, published, url in connection.execute("SELECT * FROM release_versions"):
+        _parse_utc(created)
+        if published is not None:
+            _parse_utc(published)
+        if digest != _sha256_json({"slug": slug, "release_id": release_id, "tag_name": tag, "name": name, "target_commitish": target, "draft": bool(draft), "prerelease": bool(prerelease), "created_at": created, "published_at": published, "html_url": url}):
+            raise ValueError("release metadata hash preimage mismatch")
+
+    for source, slug, estimate_date, present, stars, digest, _, _ in connection.execute("SELECT * FROM historical_star_estimates"):
+        datetime.strptime(estimate_date, "%Y-%m-%d")
+        if digest != _sha256_json({"slug": slug, "date": estimate_date, "is_present": bool(present), "stars": stars}):
+            raise ValueError("estimate point hash preimage mismatch")
+
+    for source, row_id, slug, date, stars, delta, legacy, digest, _ in connection.execute("SELECT * FROM historical_star_observations"):
+        datetime.strptime(date, "%Y-%m-%d")
+        preimage = {"source": source, "slug": slug, "observation_date": date, "stars": stars} if source == "legacy_public_star_history" else {"source": source, "legacy_row_id": row_id, "slug": slug, "observation_date": date, "stars": stars, "stars_delta": delta, "legacy_source": legacy}
+        if digest != _sha256_json(preimage):
+            raise ValueError("legacy observation hash preimage mismatch")
+
+    for slug, commit_sha, authored_at, committed_at, parents in connection.execute("SELECT slug, commit_sha, authored_at, committed_at, parent_shas_json FROM commit_events"):
+        _parse_utc(authored_at)
+        _parse_utc(committed_at)
+        _canonical_api_sha_array(parents, "parent_shas_json")
 
     for snapshot_seq, slug, old_path, new_path, old_blob, new_blob, old_content, new_content, kind in connection.execute("SELECT * FROM readme_change_events"):
         item = connection.execute("SELECT readme_status, readme_path, readme_blob_sha, readme_content_sha256 FROM snapshot_items WHERE snapshot_seq = ? AND slug = ?", (snapshot_seq, slug)).fetchone()
@@ -563,6 +615,12 @@ def _validate_populated_rows(connection: sqlite3.Connection) -> None:
         current = connection.execute("SELECT display_rank, rank_daily, rank_weekly, rank_monthly, stars FROM snapshot_items WHERE snapshot_seq = ? AND slug = ?", (snapshot_seq, slug)).fetchone()
         if current is None:
             raise ValueError("insight has no current snapshot item")
+        preimage = {"snapshot_seq": snapshot_seq, "slug": slug, "previous_observed_snapshot_seq": previous, "observation_gap_milliseconds": gap, "stars_delta_since_previous_observation": stars_delta, "display_rank_delta": display_delta, "rank_daily_delta": daily_delta, "rank_weekly_delta": weekly_delta, "rank_monthly_delta": monthly_delta, "insight_rule_version": rule}
+        if digest != _sha256_json(preimage):
+            raise ValueError("insight hash preimage mismatch")
+        actual_previous = connection.execute("SELECT MAX(snapshot_seq) FROM snapshot_items WHERE slug = ? AND snapshot_seq < ?", (slug, snapshot_seq)).fetchone()[0]
+        if actual_previous != previous:
+            raise ValueError("insight must reference the actual prior observation")
         if previous is None:
             if any(value is not None for value in (gap, stars_delta, display_delta, daily_delta, weekly_delta, monthly_delta)):
                 raise ValueError("first insight must have null deltas")
@@ -573,15 +631,12 @@ def _validate_populated_rows(connection: sqlite3.Connection) -> None:
         if prior is None or prior_time is None or current_time is None:
             raise ValueError("insight prior reference is invalid")
         actual_gap = int((_parse_utc(current_time[0]) - _parse_utc(prior_time[0])).total_seconds() * 1000)
-        actual = (prior[4] - current[4], prior[0] - current[0])
-        if gap != actual_gap or stars_delta != -actual[0] or display_delta != actual[1]:
+        rank_deltas = tuple((prior[index] - current[index]) if prior[index] is not None and current[index] is not None else None for index in (1, 2, 3))
+        if gap != actual_gap or stars_delta != current[4] - prior[4] or display_delta != prior[0] - current[0] or (daily_delta, weekly_delta, monthly_delta) != rank_deltas:
             raise ValueError("insight gap or primary deltas are invalid")
 
     for snapshot_seq, paths in artifacts_by_snapshot.items():
-        expected = set(PAGES_BASE_ARTIFACT_PATHS) | {
-            f"translations/{item['slug'].replace('/', '--')}.json"
-            for item in item_rows if item["snapshot_seq"] == snapshot_seq and item["translation_status"] == "applicable"
-        }
+        expected = set(PAGES_BASE_ARTIFACT_PATHS) | {f"translations/{connection.execute('SELECT display_slug FROM repository_profiles WHERE profile_id = ? AND slug = ?', (item['profile_id'], item['slug'])).fetchone()[0].replace('/', '__')}.json" for item in item_rows if item["snapshot_seq"] == snapshot_seq and item["translation_status"] == "applicable"}
         if paths != expected:
             raise ValueError("artifact paths must equal the exact Pages allowlist")
 
