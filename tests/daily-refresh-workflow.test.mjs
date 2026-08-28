@@ -8,6 +8,15 @@ async function workflowText() {
   return (await readFile(workflowPath, "utf8")).replace(/\r\n/g, "\n");
 }
 
+function assertDeadlineAnchorsFirstShellStep(workflow) {
+  const buildJob = workflow.indexOf("  build:");
+  const buildSteps = workflow.indexOf("    steps:\n", buildJob);
+  const deadlineStep = workflow.indexOf("- name: Anchor refresh job deadline", buildSteps);
+  const checkoutStep = workflow.indexOf("- uses: actions/checkout@", buildSteps);
+  assert.ok(buildJob > 0 && buildSteps > buildJob && deadlineStep > buildSteps && deadlineStep < checkoutStep);
+  assert.doesNotMatch(workflow.slice(buildSteps, deadlineStep), /^\s+run:/m);
+}
+
 test("schedule and manual dispatch share one fail-closed candidate build path", async () => {
   const workflow = await workflowText();
   assert.match(workflow, /^on:\n  schedule:\n    - cron: "7 \*\/2 \* \* \*"\n  workflow_dispatch:/m);
@@ -15,6 +24,13 @@ test("schedule and manual dispatch share one fail-closed candidate build path", 
   assert.doesNotMatch(workflow, /^  (?:push|pull_request):/m);
   assert.doesNotMatch(workflow, /continue-on-error|force(?:-with-lease)?|git push[^\n]*--force/);
   assert.match(workflow, /timeout-minutes: 90/);
+  assertDeadlineAnchorsFirstShellStep(workflow);
+  const earlierShellStep = workflow.replace(
+    "      - name: Anchor refresh job deadline",
+    "      - name: Earlier shell step\n        run: echo too-late\n      - name: Anchor refresh job deadline",
+  );
+  assert.throws(() => assertDeadlineAnchorsFirstShellStep(earlierShellStep));
+  assert.match(workflow, /JOB_STARTED_MS="\$\{EPOCHREALTIME\/\.\/\}"[\s\S]*?JOB_STARTED_MS="\$\{JOB_STARTED_MS:0:13\}"[\s\S]*?ENRICHMENT_DEADLINE_EPOCH_MS=\$\(\( 10#\$JOB_STARTED_MS \+ 4200000 \)\)/);
   assert.equal((workflow.match(/scripts\/prepare-refresh-candidate\.mjs --checkout/g) ?? []).length, 1);
   assert.match(workflow, /RUN_CONTEXT_JSON/);
   assert.match(workflow, /node scripts\/validate-enrichment-coverage\.mjs --root "\$CANDIDATE" --json-counts/);
@@ -25,6 +41,18 @@ test("schedule and manual dispatch share one fail-closed candidate build path", 
   assert.doesNotMatch(manifestFetch, /--location|-L(?:\s|$)/);
   assert.doesNotMatch(workflow, /snapshotId[^\n]*sed|date \+/);
   assert.match(workflow, /\$\{RUNNER_TEMP\}\/candidate/);
+});
+
+test("bootstrap enrichment budget is bound to one verified manual legacy recovery", async () => {
+  const workflow = await workflowText();
+  assert.match(workflow, /if \[ "\$RECOVERY_VERSION" = "0" \]; then[\s\S]*?\[\[ "\$GITHUB_EVENT_NAME" = "workflow_dispatch" \]\][\s\S]*?\[\[ "\$BOOTSTRAP_SOURCE_SHA" =~ \^\[a-f0-9\]\{40\}\$ \]\][\s\S]*?\[ "\$BOOTSTRAP_SOURCE_SHA" = "\$HYDRATION_SOURCE_SHA" \]/);
+  assert.match(workflow, /else[\s\S]*?\[ -z "\$BOOTSTRAP_SOURCE_SHA" \][\s\S]*?fi/);
+  assert.match(workflow, /ENRICHMENT_BUDGET_MODE: \$\{\{ steps\.state\.outputs\.recovery_version == '0' && 'bootstrap_v0_pending_approval' \|\| 'normal' \}\}/);
+  assert.match(workflow, /VERIFIED_RECOVERY_VERSION: \$\{\{ steps\.state\.outputs\.recovery_version \}\}/);
+  assert.match(workflow, /VERIFIED_BOOTSTRAP_SOURCE_SHA: \$\{\{ steps\.state\.outputs\.recovery_source_sha \}\}/);
+  assert.match(workflow, /MANUAL_BOOTSTRAP_SOURCE_SHA: \$\{\{ inputs\['bootstrap-source-sha'\] \}\}/);
+  assert.match(workflow, /HYDRATION_SOURCE_SHA: \$\{\{ steps\.state\.outputs\.hydration_source_sha \}\}/);
+  assert.doesNotMatch(workflow, /ENRICHMENT_(?:INPUT|OUTPUT)_(?:CAP|BUDGET)|MAX_(?:INPUT|OUTPUT)_TOKENS:/);
 });
 
 test("build and deploy jobs have exact least-privilege Pages contracts", async () => {

@@ -139,7 +139,7 @@ README `404`는 repository가 존재하고 canonical README가 실제로 없을 
 
 ### 5.3 LLM 호출 계약
 
-상세 요약과 README 전체 번역을 별도 호출로 분리한다.
+상세 요약과 README 전체 번역은 freshness와 검증을 독립적으로 유지한다. 둘 다 pending이고 16,000-token 상한에 들어오는 첫 bounded translation chunk가 있을 때만 그 chunk와 summary를 한 응답에 결합하며, 그렇지 않으면 별도 summary 호출로 분리한다.
 
 상세 요약 응답은 다음 필드만 가진 구조화 JSON이다.
 
@@ -155,11 +155,11 @@ README `404`는 repository가 존재하고 canonical README가 실제로 없을 
 
 `stars_note`는 LLM에 맡기지 않는다. 현재 stars, period gains, source ranks, membership status로 deterministic하게 생성한다. LLM은 API key, workflow token, 로컬 파일, 다른 저장소의 내용에 접근하지 않으며 README와 허용된 public metadata만 입력으로 받는다.
 
-README 번역은 Markdown을 입력과 출력으로 사용한다. heading, list, table, fenced code, inline code, link destination을 보존하고 자연어만 한국어로 번역한다. 큰 README는 검증 가능한 heading 경계로 bounded chunking한 뒤 순서를 보존해 결합한다. 줄 수를 이유로 뒷부분을 조용히 버리지 않는다.
+README 번역은 Markdown을 입력과 출력으로 사용한다. heading, list, table, fenced code, inline code, link destination을 보존하고 자연어만 한국어로 번역한다. 큰 README는 검증 가능한 heading 경계로 bounded chunking한 뒤 순서를 보존해 결합한다. 줄 수를 이유로 뒷부분을 조용히 버리지 않는다. 먼저 raw normalized atomic block의 64 KiB 구조 상한을 검사하고, sentinel 처리 후 paid-request 상한을 별도로 적용한다. `translationTokens = max(1,024, ceil(chunkBytes / 2) + 1,024)`이며 첫 chunk에 summary를 결합할 때만 4,096을 더한다. 이 계산값이 16,000을 넘지 않도록 combined first chunk는 21,760 UTF-8 bytes 이하, 나머지 translation chunk는 29,952 bytes 이하로 묶는다. 첫 sentinelized atomic block이 combined 상한만 넘으면 summary를 분리하고, 29,952 bytes도 넘는 단일 sentinelized atomic block은 유료 호출 전에 실패한다. 응답의 `segment_bindings`는 로컬 계획의 `index`와 `input_sha256`만 되돌려 주며 번역 본문을 중복하지 않는다. `translated_markdown`에서 clause를 다시 추출해 같은 위치의 로컬 source binding과 대조하고, chunk와 전체 문서의 clause 수·순서·hash·prose·sentinel·fingerprint를 모두 검증한다.
 
 두 호출 모두 다음 gate를 통과해야 한다.
 
-- 요청 timeout
+- 요청별 60초 timeout과 90분 build job의 첫 shell step에서 고정하는 70분 enrichment absolute deadline
 - HTTP status와 response content type 검증
 - bounded retry와 backoff
 - Anthropic `stop_reason == end_turn`
@@ -167,10 +167,19 @@ README 번역은 Markdown을 입력과 출력으로 사용한다. heading, list,
 - JSON/Markdown 완결성 검증
 - prompt echo, code fence wrapping, 빈 결과 거부
 - pending queue 전체 완료 확인
+- 결과를 확정할 수 없는 timeout·fetch·HTTP·body 오류의 input/output request allocation을 unresolved usage로 보존
+- 모든 logical request의 frame id·prompt·JSON body를 유료 호출 전에 한 번만 만들고 실제 fetch와 retry가 같은 `bodyText`를 byte-for-byte 재사용
+- first-attempt exact input/output reservation 합과 각 request를 두 번 복제한 후보 중 큰 12개 retry margin을 독립 계산하고 선택된 고정 policy를 넘으면 fetch 0
 
-API key가 없거나 처리 상한 때문에 대상이 남으면 workflow는 실패한다. 저장소별 오류를 로그만 남기고 exit 0으로 끝내지 않는다.
+API key가 없거나 처리 상한 때문에 대상이 남으면 workflow는 실패한다. 저장소별 오류를 로그만 남기고 exit 0으로 끝내지 않는다. 구조화된 failure log에는 고정 failure code와 numeric usage snapshot을 남기며, 유료 요청 전 실패의 usage는 0이다. 유료 요청 진단에는 public repository slug, request kind, chunk index, attempt, prompt/body byte 수, `max_tokens`, 경과시간, confirmed/unresolved usage 숫자만 허용하고 prompt·README·response body·header·raw provider error·비밀값은 넣지 않는다.
 
 LLM 대상은 새 repository, canonical README blob SHA가 바뀐 repository, provenance·schema·품질 검증에 실패한 repository뿐이다. 동일한 blob SHA의 검증된 summary와 translation은 재사용한다. 호출 전 pending count, 입력 byte 수, 최대 호출 수를 secret 없이 log하고, union·README size에서 정한 안전 상한을 넘으면 일부를 잘라 게시하지 않고 실행 전체를 중단한다. 초기 active-set repair도 같은 gate를 쓰는 1회 `workflow_dispatch`로 수행한다.
+
+2026-08-28 첫 production bootstrap run `33121119785`는 현재 canonical README가 31,475 bytes인 저장소를 처리하다 non-streaming Anthropic status 없는 fetch 예외로 끝났다. 약 204초의 경과는 60초 timeout 세 번과 bounded retry delay에 부합하지만 기존 로그는 정확한 request kind를 남기지 않았다. README 전체 크기는 진단 맥락이며 실제 request admission은 post-sentinel atomic block과 packed request bytes로 판정한다. candidate 검증·commit·deploy는 시작되지 않아 production은 보존됐다. 이 실측 때문에 timeout만 늘리지 않고 token-safe repacking, unresolved input 회계, content-free 실패 감사, build-job anchored enrichment deadline을 publication 선행조건으로 추가한다. SSE streaming은 작은 bounded chunk에서도 같은 timeout이 재현될 때 별도 설계한다.
+
+같은 날 current-main plan-only 재측정은 active/pending 41, logical calls 81, worst-case per-call attempts 243, canonical README 1,430,903 bytes, first-attempt output allocation 965,180 tokens이었다. Normal policy의 250,000 output ceiling으로는 실제 usage가 allocation의 25.9% 미만이어야만 완주하므로 운영 gate는 NO-GO다. Normal은 input/output `1,000,000/250,000`, retry margin 12를 유지한다. Verified version-0 manual bootstrap은 별도의 immutable `bootstrap_v0_approved` policy로만 활성화하고, workflow 기본값은 모든 구현 plan과 최종 보안·기능 검증이 끝날 때까지 `bootstrap_v0_pending_approval`로 유지한다. Pending mode는 Anthropic fetch 0으로 실패해야 한다. Bootstrap identity는 `workflow_dispatch`, canonical manual SHA, verified recovery version 0, verified/manual/hydration SHA 일치가 모두 성립해야 하며 schedule·version 1·부분 설정·숫자형 cap override는 거부한다.
+
+응답 번역 본문 중복 제거와 exact execution plan 구현 뒤 같은 41개 current-main active set을 GitHub canonical README로 다시 측정했다. Anthropic fetch는 0이었다. first-attempt input reservation은 `8,133,863`, output allocation은 `965,180`; 큰 12개 retry margin은 input `3,260,464`, output `191,540`; required total은 input `11,394,327`, output `1,156,720`이었다. 측정 receipt는 verified legacy source SHA, run-context snapshot, source-set hash와 결합되고 repository·README·prompt·body를 출력하지 않는다. 승인된 fixed bootstrap cap은 측정값을 자동 반영하지 않고 각각 올림한 input `11,500,000`, output `1,200,000`이며 runtime 변경이 불가능하다. Haiku 4.5 공식 단가의 보수식으로 최대 `$17.50`이며 실제 예상 청구액이 아니라 body-byte 기반 input reservation과 output allocation의 fail-closed ceiling이다. 81개 first attempt와 최대 12개 additional attempt가 모두 60초 timeout을 쓰면 70분 enrichment deadline을 넘으므로, provider가 극단적으로 느리면 비용 일부가 발생해도 publication은 0일 수 있다. 사용자는 모든 구현 plan 뒤 최초 workflow를 agent가 직접 한 번 실행해 production까지 검증하도록 지시했다. Workflow의 pending mode 해제와 실제 1회 실행은 최종 적대적 리뷰·staged 검증 뒤에만 하며, 실패 시 자동 재실행하지 않는다.
 
 README가 없는 repository는 public metadata를 입력으로 같은 상세 schema를 생성하고 provenance를 `metadata-only`로 기록한다. README 번역은 `not_applicable:no_readme`로 명시한다.
 
@@ -246,7 +255,7 @@ commit을 만든 뒤 그 commit SHA, `snapshot_id`, 주요 artifact SHA256을 �
 
 custom Pages artifact는 site allowlist로 만든다. HTML, CSS/JS, public JSON, translation Markdown, Atom, 필요한 image만 포함하고 SQLite, workflow, docs, test, 임시 파일은 배포하지 않는다.
 
-배포 전에는 upload할 artifact 자체를 로컬 HTTP server에서 검증한다. Pages deploy가 실패하면 이전 production이 유지된다. deploy 성공 후 production readback이 불일치하면 해당 run을 성공으로 판정하지 않고 기록된 last-good `source_sha`의 artifact를 즉시 재배포하는 recovery job을 실행한 뒤 다시 검증한다. candidate data commit은 last-good snapshot의 부모로 사용하지 않으며, 다음 publisher가 production manifest의 last-good snapshot에서 후보 DB를 다시 만든다. 자동 history rewrite나 force push는 하지 않는다.
+배포 전에는 upload할 artifact 자체를 로컬 HTTP server에서 검증한다. Probe의 각 idempotent GET은 그 사이에 수행되는 동기식 Git 검증 시간과 server keep-alive timeout이 경합하지 않도록 독립 연결(`Connection: close`)을 사용한다. Pages deploy가 실패하면 이전 production이 유지된다. deploy 성공 후 production readback이 불일치하면 해당 run을 성공으로 판정하지 않고 기록된 last-good `source_sha`의 artifact를 즉시 재배포하는 recovery job을 실행한 뒤 다시 검증한다. candidate data commit은 last-good snapshot의 부모로 사용하지 않으며, 다음 publisher가 production manifest의 last-good snapshot에서 후보 DB를 다시 만든다. 자동 history rewrite나 force push는 하지 않는다.
 
 ## 6. 유용한 데이터 정본
 
@@ -366,6 +375,8 @@ sidebar title은 `대시보드 메뉴`로 바꾼다. 위에서 아래 순서는 
 11. 최근 이탈
 12. 내보내기
 
+`AI 분야 제외`와 `신규 저장소만`은 분야 선택보다 먼저 보이는 빠른 필터 한 묶음으로 둔다.
+
 갱신 정보는 정확히 세 줄이다.
 
 1. 최근 갱신 시각
@@ -411,6 +422,41 @@ gesture 판정은 passive scroll을 불필요하게 막지 않고, 실제 horizo
 - light/dark에서 contrast와 focus ring 유지
 - 390, 720, 1200, 1440px 실제 browser 검증
 - mouse, touch emulation, keyboard-only, reduced-motion을 각각 검증
+
+### 7.6 신규 저장소만 필터
+
+`AI 분야 제외` 옆에 `신규 저장소만` native checkbox를 추가하고 두 항목을 하나의 `fieldset` 빠른 필터로 묶는다. 일반 sidebar에서는 같은 행, 390px·200% zoom처럼 폭이 부족하면 한 열로 자연스럽게 wrap하며 label 전체 hit target은 최소 44px이다.
+
+URL canonical key는 `membership=new` 하나다. 기본값은 `newOnly:false`이고 exact 값만 true로 읽으며 true일 때만 serialize한다. 의미는 현재 확정 snapshot에서 membership status가 exact `new`인 repository만 표시하는 것이다. `reentered`, `stayed`, `baseline_present`는 제외하고 첫 baseline은 0건이 정상이다. 검색·언어·분야·형태·AI 제외·즐겨찾기와는 AND로 결합하며 선택 기간은 membership 의미를 바꾸지 않는다. active filter count, summary, 초기화, popstate, current-view 공유 URL에 포함한다.
+
+membership join이 아직 끝나지 않았으면 전체 repository를 잠깐 보여 주지 않고 결과 영역을 loading 상태로 둔다. load/schema 실패 시 필터를 조용히 무시하지 않고 0건과 `신규 상태를 불러오지 못해 필터를 적용할 수 없습니다.`를 표시한다. export에는 개인 상태가 아니라 공개 row의 canonical `membership_status`만 허용한다.
+
+### 7.7 카드 분류 배지와 데이터 정본
+
+기존 신규·재진입·연속·HOT 신호와 별도로 카드에 `저장소 분류` list를 두고 **형태 → 분야·기술 → AI** 순으로 표시한다.
+
+- 형태: canonical `form_tags`의 모든 값
+- 분야·기술: canonical `field_tags`의 모든 값 중 `ai-ml` 제외
+- AI: `field_tags`에 `ai-ml`이 있을 때 정확히 한 개, 아니면 없음
+- `unclassified`는 숨기지 않고 `미분류`로 표시
+
+분류 truth는 수집 단계 `classifyRepository` 결과뿐이다. client는 slug, description, topic, LLM summary를 regex로 다시 분류하지 않는다. AI 제외 filter와 AI badge는 모두 `field_tags.includes("ai-ml")`에서 파생하며 별도 `is_ai` fact는 저장하지 않는다.
+
+`repository_profiles`에는 canonical JSON `field_tags`, `form_tags`, `tag_rule_version`을 NOT NULL로 저장하고 profile fact hash에 포함한다. 배열은 definition order, 중복 없음, known id만 허용하며 `unclassified`는 다른 field id와 공존하지 않는다. metadata가 같아도 rule version이나 결과가 달라지면 append-only 새 profile version이다. `snapshot_items`는 그 version을 참조하고 `index.html` REPOS와 `data/latest.json`은 세 값을 손실 없이 전달한다. candidate validator는 missing, unknown, duplicate, noncanonical order, version mismatch를 publication 전에 실패시킨다.
+
+배지는 축약하거나 `+N`으로 감추지 않고 모두 wrap한다. chip은 `max-width:100%`와 safe wrapping으로 수평 overflow를 만들지 않는다. 세 종류는 색만으로 구분하지 않고 visible label과 screen-reader prefix `형태:`, `분야·기술:`, `AI 관련:`를 제공한다. badge별 animation은 두지 않고 card 출현·재배치 같은 의미 있는 container feedback만 사용한다.
+
+### 7.8 scroll-to-top
+
+우측 하단에 `<button type="button" aria-label="페이지 맨 위로 이동">`을 fixed control로 추가한다. `scrollY > innerHeight`일 때만 접근성 tree와 tab order에 나타나고 resize·orientation 뒤 임계를 다시 계산한다. hit target은 최소 48px이며 right/bottom은 safe-area를 포함해 16–20px, undo bar가 보이면 그 높이와 간격만큼 위로 이동한다. sidebar나 README overlay가 main을 inert로 만들 때 이 button도 함께 inert다.
+
+passive scroll listener와 `requestAnimationFrame` 한 번으로 visibility를 갱신한다. click과 native Enter/Space는 같은 동작이며 filter·sort·favorite 상태를 바꾸지 않는다. normal motion은 opacity와 8px translate의 160–200ms overshoot 없는 전환 후 smooth scroll, `prefers-reduced-motion:reduce`는 translate와 smooth scroll 없이 즉시 top으로 이동한다.
+
+mobile edge gesture는 interactive target(`button`, `a`, `input`, `select`, `textarea`, `[role=button]`)에서 시작하지 않고 horizontal intent 확정 전 vertical scroll을 막지 않는다. 우하단 button은 왼쪽 24px open edge와 겹치지 않는다.
+
+### 7.9 title surface
+
+`.title-box`는 border, backdrop filter, shadow를 제거하고 background를 body와 같은 `var(--bg)`로 맞춘다. padding, typography, title reset의 `:focus-visible` ring은 유지한다. light/dark 모두 computed background가 body와 같아 별도 card seam이 없어야 한다.
 
 ## 8. 로그인 유지 설계
 
@@ -507,7 +553,7 @@ Critical·High는 완료를 차단한다. auth isolation, secret, publication in
 | canonical README 없음 | metadata-only summary, translation N/A |
 | README fetch 장애 | candidate 실패 |
 | Anthropic key 누락 | candidate 실패 |
-| LLM truncation/schema 위반 | bounded retry 후 candidate 실패 |
+| LLM truncation/application schema 위반 | 즉시 candidate 실패, 해당 유료 attempt의 input/output reservation은 unresolved usage로 유지하고 retry하지 않음 |
 | release 없음 | 정상 빈 release state |
 | commit continuity 불명 | gap/branch change를 증명하지 못하면 candidate 실패 |
 | DB prefix/hash chain 불일치 | candidate 실패 |
@@ -538,6 +584,11 @@ Critical·High는 완료를 차단한다. auth isolation, secret, publication in
 - hover open이 focus를 이동하면 accessibility test 실패
 - mobile edge 조건을 제거하면 gesture conflict test 실패
 - reduced-motion에서 transform animation이 남으면 test 실패
+- client가 summary/description regex로 AI·분야·형태를 다시 분류하면 canonical-tag test 실패
+- `newOnly`가 baseline, stayed, reentered를 포함하거나 membership loading 중 전체 결과를 먼저 그리면 filter test 실패
+- 분류 배지가 canonical 전체 배열을 축약·누락·재정렬하거나 390px·200% zoom에서 수평 overflow를 만들면 UI test 실패
+- scroll-to-top이 첫 viewport 안에서 focusable하거나 reduced-motion에서 smooth scroll을 쓰거나 undo·overlay와 겹치면 interaction test 실패
+- title surface가 light/dark 중 하나에서 body와 다른 background, border, backdrop, shadow를 가지면 style test 실패
 - persistence 설정보다 observer/login이 먼저 실행되면 auth test 실패
 - BFCache pagehide에서 controller를 dispose하면 lifecycle test 실패
 - logout 후 account favorites가 guest에 남으면 isolation test 실패
@@ -562,7 +613,7 @@ Critical·High는 완료를 차단한다. auth isolation, secret, publication in
 | data | 모든 displayed field, source/display ranks, exact 2h snapshots, releases, future commits, README body 미보관, DB continuity |
 | LLM | 활성 repo detailed summary 100%, compact field 0, placeholder/fallback 0, translation blob SHA 일치 |
 | Atom/export | nonempty Atom summary, XML escaping, CSV formula/quote/newline, JSON field 제한, Blob URL revoke, clipboard failure |
-| UI | 390/720/1200/1440, mouse/touch/keyboard, light/dark/reduced-motion, hover rail, edge swipe, second-tap navigation |
+| UI | 390/720/1200/1440과 200% zoom, mouse/touch/keyboard, light/dark/reduced-motion, hover rail, edge swipe, second-tap navigation, exact 신규 filter, canonical 전체 분류 배지, scroll-to-top, title/background 일치 |
 | auth | refresh, new tab, browser restart, BFCache, cross-tab logout, guest/account isolation, storage denial, sync failure |
 | security | malicious README/DOM/path/shell fixtures, Actions permission, Rules emulator, App Check failure, secret scan |
 | production | exact commit manifest, snapshot/file hashes, HTML·JSON·Atom 일치, live browser verification |
@@ -571,11 +622,11 @@ Firestore Rules는 기본 test의 skip으로 끝내지 않는다. emulator를 �
 
 ## 13. 구현과 배포 단위
 
-각 단위는 전체 검증, staged secret scan, 분리 commit·push, Pages·production 확인까지 끝낸 후 다음으로 넘어간다.
+각 단위는 전체 local 검증, staged secret scan, 분리 commit·push까지 끝낸 후 다음으로 넘어간다. 최신 사용자 지시에 따라 paid bootstrap과 새 Pages·production 확인은 1~5단위 및 repository-wide security/functional gate가 모두 끝난 뒤 단 한 번의 통합 workflow로 수행한다. 그전에는 checked-in workflow를 `bootstrap_v0_pending_approval`로 유지하고 plan-only/fake-provider 검증만 수행한다.
 
 1. transactional workflow, LLM summary/translation, Atom/date/Pages gates
 2. `repository-observations.sqlite`, release baseline, prospective commit timeline, insight derivatives
-3. canonical detailed tooltip, sidebar information architecture, desktop rail, mobile gesture와 motion
+3. canonical detailed tooltip, sidebar information architecture, desktop rail, mobile gesture와 motion, 신규 저장소 filter, canonical 형태·분야/기술·AI 배지, scroll-to-top, title surface 정리
 4. explicit auth persistence와 BFCache lifecycle
 5. Codex Security findings와 fixes
 6. repository-wide functional/workflow/production acceptance
@@ -611,11 +662,12 @@ push 직전마다 `git fetch`와 remote diff를 다시 확인한다. bot 갱신�
 - README body archive보다 rolling hash와 change event
 - 암묵적 Firebase default보다 명시적 local persistence
 - legacy Pages trigger보다 동일 workflow의 explicit deploy와 production readback
+- summary와 translation의 freshness·재사용은 독립적으로 유지하되, 둘 다 필요한 경우 16,000-token 계산 상한 안의 첫 translation chunk만 detailed summary와 결합
 
 ### 버린 것
 
 - LLM 실패를 deterministic placeholder로 덮고 계속 게시하는 방식
-- summary와 full translation을 한 JSON 응답에 넣는 방식
+- summary와 full translation을 항상 한 JSON 응답에 넣어 두 component의 freshness·검증·재사용을 결합하는 방식. 두 component는 독립적으로 계획하되, 둘 다 필요한 경우에만 첫 bounded translation chunk와 summary를 한 응답에서 각각 검증한다.
 - 과거 commit 전체 backfill
 - mobile hamburger와 화면 전체 시작 swipe
 - hover sidebar를 modal로 취급해 매번 focus/inert/scrim을 적용하는 방식

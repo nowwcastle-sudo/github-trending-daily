@@ -110,7 +110,7 @@ function exactKeys(value, keys) {
 async function fetchBytes(url, { expectedStatus = 200, deadline = Date.now() + 120_000 } = {}) {
   const remaining = deadline - Date.now();
   if (remaining <= 0) throw new Error("production probe deadline exceeded");
-  const response = await fetch(url, { redirect: "error", cache: "no-store", signal: AbortSignal.timeout(Math.min(15_000, remaining)) });
+  const response = await fetch(url, { redirect: "error", cache: "no-store", headers: { connection: "close" }, signal: AbortSignal.timeout(Math.min(15_000, remaining)) });
   const declared = Number(response.headers.get("content-length"));
   if (Number.isFinite(declared) && declared > 16 * 1024 * 1024) throw new Error(`response body too large for ${new URL(url).pathname}`);
   const chunks = [];

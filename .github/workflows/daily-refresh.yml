@@ -31,6 +31,13 @@ jobs:
       recovery_version: ${{ steps.state.outputs.recovery_version }}
       recovery_source_sha: ${{ steps.state.outputs.hydration_source_sha }}
     steps:
+      - name: Anchor refresh job deadline
+        shell: bash
+        run: |
+          set -euo pipefail
+          JOB_STARTED_MS="${EPOCHREALTIME/./}"
+          JOB_STARTED_MS="${JOB_STARTED_MS:0:13}"
+          echo "ENRICHMENT_DEADLINE_EPOCH_MS=$(( 10#$JOB_STARTED_MS + 4200000 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
@@ -94,6 +101,13 @@ jobs:
             echo "::error::production manifest request returned HTTP ${HTTP_STATUS}"
             exit 1
           fi
+          if [ "$RECOVERY_VERSION" = "0" ]; then
+            [[ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]] || { echo "::error::legacy bootstrap requires workflow_dispatch"; exit 1; }
+            [[ "$BOOTSTRAP_SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo "::error::legacy bootstrap requires the manual source SHA"; exit 1; }
+            [ "$BOOTSTRAP_SOURCE_SHA" = "$HYDRATION_SOURCE_SHA" ] || { echo "::error::legacy bootstrap source SHA mismatch"; exit 1; }
+          else
+            [ -z "$BOOTSTRAP_SOURCE_SHA" ] || { echo "::error::bootstrap-source-sha is invalid after version-1 publication"; exit 1; }
+          fi
           git merge-base --is-ancestor "$HYDRATION_SOURCE_SHA" "$ORIGINAL_SHA"
           {
             echo "original_sha=$ORIGINAL_SHA"
@@ -153,6 +167,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ENRICHMENT_BUDGET_MODE: ${{ steps.state.outputs.recovery_version == '0' && 'bootstrap_v0_pending_approval' || 'normal' }}
+          VERIFIED_RECOVERY_VERSION: ${{ steps.state.outputs.recovery_version }}
+          VERIFIED_BOOTSTRAP_SOURCE_SHA: ${{ steps.state.outputs.recovery_source_sha }}
+          MANUAL_BOOTSTRAP_SOURCE_SHA: ${{ inputs['bootstrap-source-sha'] }}
+          HYDRATION_SOURCE_SHA: ${{ steps.state.outputs.hydration_source_sha }}
         run: |
           set -euo pipefail
           CANDIDATE="${RUNNER_TEMP}/candidate"

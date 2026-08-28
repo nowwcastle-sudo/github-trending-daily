@@ -37,11 +37,12 @@ const LEGACY_PROBE_MISSING_PATHS = Object.freeze([
   "translations/owner__readme-only.json",
 ]);
 
-async function serveArtifact(root, { mimeOverride = {}, redirect = null, requests = null } = {}) {
+async function serveArtifact(root, { mimeOverride = {}, redirect = null, requests = null, requestHeaders = null } = {}) {
   const mime = { ".html": "text/html; charset=utf-8", ".js": "application/javascript; charset=utf-8", ".json": "application/json; charset=utf-8", ".xml": "application/xml; charset=utf-8", ".md": "text/markdown; charset=utf-8" };
   const server = http.createServer(async (request, response) => {
     const requestUrl = new URL(request.url, "http://127.0.0.1");
     requests?.push(requestUrl);
+    requestHeaders?.push(request.headers);
     const relative = decodeURIComponent(requestUrl.pathname).replace(/^\/+/, "");
     if (relative === redirect) { response.writeHead(302, { location: "/index.html" }); response.end(); return; }
     try {
@@ -64,6 +65,12 @@ function exactLegacyProbeToken(requests) {
     ["deployment-manifest.json", ...LEGACY_PROBE_POSITIVE_PATHS, ...LEGACY_PROBE_MISSING_PATHS].sort(),
   );
   return tokens[0];
+}
+
+function assertProbeConnectionsClose(requests, requestHeaders) {
+  assert.equal(requestHeaders.length, requests.length);
+  assert.ok(requestHeaders.length > 0);
+  assert.ok(requestHeaders.every(headers => headers.connection === "close"));
 }
 
 async function rewriteArtifactFile(artifact, relative, bytes) {
@@ -270,11 +277,13 @@ test("a version-0 recovery manifest produces the next candidate without bootstra
   await writeFile(join(recoveryArtifact, "deployment-manifest.json"), originalLegacyManifest);
   await rm(join(recoveryArtifact, "readmes", "old__inactive.md"));
   const recoveryRequests = [];
-  const recoveryServer = await serveArtifact(recoveryArtifact, { requests: recoveryRequests });
+  const recoveryRequestHeaders = [];
+  const recoveryServer = await serveArtifact(recoveryArtifact, { requests: recoveryRequests, requestHeaders: recoveryRequestHeaders });
   let recoveryProbeToken;
   try {
     await probeProduction({ baseUrl: recoveryServer.baseUrl, legacyRecoverySha: legacySourceSha, gitRoot: checkout });
     recoveryProbeToken = exactLegacyProbeToken(recoveryRequests);
+    assertProbeConnectionsClose(recoveryRequests, recoveryRequestHeaders);
   } finally {
     await recoveryServer.close();
   }
@@ -286,10 +295,12 @@ test("a version-0 recovery manifest produces the next candidate without bootstra
   );
   await writeFile(join(recoveryArtifact, "readmes", "owner__both.md"), originalPresentReadme);
   const bootstrapRequests = [];
-  const bootstrap = await serveArtifact(checkout, { requests: bootstrapRequests });
+  const bootstrapRequestHeaders = [];
+  const bootstrap = await serveArtifact(checkout, { requests: bootstrapRequests, requestHeaders: bootstrapRequestHeaders });
   try {
     await probeProduction({ baseUrl: bootstrap.baseUrl, bootstrapPreflightSha: legacySourceSha, gitRoot: checkout });
     const bootstrapProbeToken = exactLegacyProbeToken(bootstrapRequests);
+    assertProbeConnectionsClose(bootstrapRequests, bootstrapRequestHeaders);
     assert.notEqual(bootstrapProbeToken, recoveryProbeToken);
     await writeFile(join(checkout, "readmes", "owner__neither.md"), "# Stale missing README\n");
     await assert.rejects(
