@@ -9,9 +9,15 @@ import tempfile
 import unittest
 from pathlib import Path
 from contextlib import closing
+from unittest import mock
 
+import scripts.scan_repository_observations as scanner_module
 from scripts.record_repository_observations import SCHEMA_STATEMENTS, create_database
-from tests.test_repository_observations import complete_fixture, recompute_profile_hash
+from tests.test_repository_observations import (
+    complete_fixture,
+    recompute_profile_hash,
+    recompute_snapshot_chain,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,6 +47,18 @@ def set_live_description(path, value):
         )
         recompute_profile_hash(connection)
         connection.execute(_trigger_statement("repository_profiles_reject_update"))
+        connection.commit()
+
+
+def set_snapshot_id(path, snapshot_id):
+    with closing(sqlite3.connect(path)) as connection:
+        connection.execute("DROP TRIGGER snapshot_runs_reject_update")
+        connection.execute(
+            "UPDATE snapshot_runs SET snapshot_id = ? WHERE snapshot_seq = 1",
+            (snapshot_id,),
+        )
+        recompute_snapshot_chain(connection, 1)
+        connection.execute(_trigger_statement("snapshot_runs_reject_update"))
         connection.commit()
 
 
@@ -219,6 +237,47 @@ class RepositoryObservationScannerTests(unittest.TestCase):
                     )
                     self.assertNotIn(secret.encode(), completed.stdout)
 
+    def test_multiword_private_key_header_is_detected_in_a_logical_text_cell(self):
+        secret = "-----BEGIN " + "OPEN SSH " + "PRIVATE KEY-----"
+        with tempfile.TemporaryDirectory() as directory:
+            database = Path(directory) / "logical-private-key.sqlite"
+            make_valid_database(database)
+            set_live_description(database, secret)
+
+            completed = run_scanner(database)
+
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertEqual(completed.stderr, b"")
+            receipt = parse_receipt(completed)
+            self.assertIn("private-key-header", receipt["patternIds"])
+            self.assertIn(
+                {
+                    "column": "description",
+                    "patternId": "private-key-header",
+                    "table": "repository_profiles",
+                },
+                receipt["locations"],
+            )
+            self.assertNotIn(secret.encode(), completed.stdout)
+
+    def test_multiword_private_key_header_is_detected_in_each_raw_encoding(self):
+        secret = "-----BEGIN " + "CERTIFICATE AUTHORITY " + "PRIVATE KEY-----"
+        with tempfile.TemporaryDirectory() as directory:
+            for encoding in ("ascii", "utf-16le", "utf-16be"):
+                with self.subTest(encoding=encoding):
+                    database = Path(directory) / f"raw-private-{encoding}.sqlite"
+                    make_valid_database(database)
+                    leave_freelist_payload(database, secret, encoding=encoding)
+
+                    completed = run_scanner(database)
+
+                    self.assertNotEqual(completed.returncode, 0)
+                    self.assertEqual(completed.stderr, b"")
+                    receipt = parse_receipt(completed)
+                    self.assertIn("private-key-header", receipt["patternIds"])
+                    self.assertEqual(receipt["locations"], [])
+                    self.assertNotIn(secret.encode(), completed.stdout)
+
     def test_raw_ascii_utf16le_and_utf16be_secret_matrix(self):
         secret = "github" + "_pat_" + "Z" * 40
         with tempfile.TemporaryDirectory() as directory:
@@ -276,6 +335,28 @@ class RepositoryObservationScannerTests(unittest.TestCase):
             self.assertEqual(completed.stderr, b"")
             self.assertEqual(parse_receipt(completed), {"error": "invalid-arguments", "ok": False})
             self.assertNotIn(sentinel.encode(), completed.stdout + completed.stderr)
+
+    def test_captured_raw_bytes_remain_the_only_logical_identity_during_an_aba_path_swap(self):
+        alternate_snapshot = "20260828010101-bbbbbbbbbbbbbbbb"
+        with tempfile.TemporaryDirectory() as directory:
+            hostile = Path(directory) / "hostile.sqlite"
+            safe_substitute = Path(directory) / "safe.sqlite"
+            make_valid_database(hostile)
+            make_valid_database(safe_substitute)
+            set_snapshot_id(safe_substitute, alternate_snapshot)
+            hostile_before = hostile.read_bytes()
+
+            with mock.patch.object(
+                scanner_module,
+                "_open_immutable",
+                create=True,
+                side_effect=lambda _path: sqlite3.connect(safe_substitute),
+            ):
+                with self.assertRaises(scanner_module.ScanFailure) as raised:
+                    scanner_module.scan_database(hostile, alternate_snapshot)
+
+            self.assertEqual(raised.exception.code, "snapshot-mismatch")
+            self.assertEqual(hostile.read_bytes(), hostile_before)
 
     def test_divergent_git_index_materialization_scans_staged_blob_not_worktree(self):
         secret = "gho_" + "G" * 32

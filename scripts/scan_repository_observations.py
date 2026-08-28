@@ -22,7 +22,7 @@ PATTERNS = (
     ("github-token", re.compile(r"gh[pousr]_[A-Za-z0-9_]{20,}")),
     ("anthropic-key", re.compile(r"sk-ant-[A-Za-z0-9_-]{20,}")),
     ("google-api-key", re.compile(r"AIza[A-Za-z0-9_-]{30,}")),
-    ("private-key-header", re.compile(r"-----BEGIN (?:[A-Z0-9]+ )?PRIVATE KEY-----")),
+    ("private-key-header", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")),
 )
 
 
@@ -83,11 +83,15 @@ def _read_database_bytes(database):
     return raw
 
 
-def _open_immutable(database):
+def _deserialize_database(raw):
+    connection = None
     try:
-        uri = database.resolve().as_uri() + "?mode=ro&immutable=1"
-        return sqlite3.connect(uri, uri=True)
-    except (OSError, ValueError, sqlite3.Error):
+        connection = sqlite3.connect(":memory:")
+        connection.deserialize(raw)
+        return connection
+    except (ValueError, sqlite3.Error):
+        if connection is not None:
+            connection.close()
         raise ScanFailure("database-unreadable") from None
 
 
@@ -149,7 +153,7 @@ def scan_database(database, expected_snapshot):
     digest_before = hashlib.sha256(raw_before).hexdigest()
     size_before = len(raw_before)
 
-    connection = _open_immutable(database)
+    connection = _deserialize_database(raw_before)
     with closing(connection):
         _validate_integrity(connection)
         _validate_exact_schema(connection)
