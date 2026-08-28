@@ -12,6 +12,7 @@ import json
 import re
 import sqlite3
 from contextlib import closing
+from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
 
@@ -22,11 +23,20 @@ EMPTY_RELEASE_INVENTORY_SHA256 = hashlib.sha256(b"[]").hexdigest()
 
 _SHA1 = "length({0}) = 40 AND {0} = lower({0}) AND {0} NOT GLOB '*[^0-9a-f]*'"
 _SHA256 = "length({0}) = 64 AND {0} = lower({0}) AND {0} NOT GLOB '*[^0-9a-f]*'"
-_SLUG = "{0} GLOB '[a-z0-9_.-]*/*' AND {0} NOT GLOB '*[^a-z0-9_.-/]*' AND {0} = lower({0})"
+_SLUG = "instr({0}, '/') > 1 AND instr(substr({0}, instr({0}, '/') + 1), '/') = 0 AND substr({0}, instr({0}, '/') + 1) <> '' AND {0} NOT GLOB '*[^a-z0-9_.-/]*' AND {0} = lower({0})"
+_DISPLAY_SLUG = "instr({0}, '/') > 1 AND instr(substr({0}, instr({0}, '/') + 1), '/') = 0 AND substr({0}, instr({0}, '/') + 1) <> '' AND {0} NOT GLOB '*[^A-Za-z0-9_.-/]*'"
 _COLOR = "{0} GLOB '#[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'"
 _UTC = "{0} GLOB '????-??-??T??:??:??.???Z'"
 _KST = "{0} GLOB '????-??-??T??:??:??.???+09:00'"
 _DATE = "{0} GLOB '????-??-??'"
+FIELD_TAGS = ("ai-ml", "web-app", "dev-tools", "data", "devops", "security", "productivity", "systems", "learning")
+FORM_TAGS = ("agent", "mcp", "plugin-skill", "ide", "library", "framework", "cli")
+PAGES_BASE_ARTIFACT_PATHS = (
+    "changes.xml", "current-view-export.js", "data/latest.json", "data/membership-status.json",
+    "favorite-sync.js", "favorites.js", "feed.xml", "firebase-client.js", "firebase-config.json",
+    "hidden-repos.js", "index.html", "membership-history.js", "readme-markdown.js",
+    "refresh-schedule.js", "repo-filters.js", "star-history.js", "star-history.json", "ui-motion.js",
+)
 
 
 def _foreign_key(reference: str) -> str:
@@ -45,6 +55,10 @@ def _slug(column: str) -> str:
     return _SLUG.format(column)
 
 
+def _display_slug(column: str) -> str:
+    return _DISPLAY_SLUG.format(column)
+
+
 def _schema_statements() -> tuple[str, ...]:
     # DDL is intentionally explicit: the schema fingerprint is a security
     # boundary, so a clever schema builder would make review harder.
@@ -58,7 +72,7 @@ def _schema_statements() -> tuple[str, ...]:
             snapshot_seq INTEGER PRIMARY KEY,
             snapshot_id TEXT NOT NULL UNIQUE CHECK (snapshot_id GLOB '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9a-f]*' AND length(snapshot_id) = 31 AND snapshot_id = lower(snapshot_id) AND substr(snapshot_id, 16) NOT GLOB '*[^0-9a-f-]*'),
             run_kind TEXT NOT NULL CHECK (run_kind IN ('migration_baseline', 'refresh')),
-            observed_at_utc TEXT NOT NULL CHECK ({_UTC.format('observed_at_utc')}),
+            observed_at_utc TEXT NOT NULL UNIQUE CHECK ({_UTC.format('observed_at_utc')}),
             observed_at_kst TEXT NOT NULL CHECK ({_KST.format('observed_at_kst')}),
             stats_date_kst TEXT NOT NULL CHECK ({_DATE.format('stats_date_kst')}),
             parent_snapshot_seq INTEGER,
@@ -99,7 +113,7 @@ def _schema_statements() -> tuple[str, ...]:
         f"""CREATE TABLE repository_profiles (
             profile_id INTEGER PRIMARY KEY,
             slug TEXT NOT NULL CHECK ({_slug('slug')}),
-            display_slug TEXT NOT NULL CHECK ({_slug('display_slug')}),
+            display_slug TEXT NOT NULL CHECK ({_display_slug('display_slug')} AND lower(display_slug) = slug),
             captured_snapshot_seq INTEGER NOT NULL,
             description TEXT,
             primary_language TEXT,
@@ -353,7 +367,9 @@ def _schema_rows(connection: sqlite3.Connection):
 
 def _fingerprint_rows(rows) -> str:
     normalized = [
-        (object_type, name, re.sub(r"\s+", " ", definition.strip()).lower())
+        # Only whitespace is normalized.  Lowercasing all DDL made the
+        # fingerprint blind to changes in string literals such as enum values.
+        (object_type, name, re.sub(r"\s+", " ", definition.strip()))
         for object_type, name, definition in rows
     ]
     return hashlib.sha256(
@@ -385,6 +401,191 @@ def _canonical_schema() -> tuple[set[tuple[str, str]], str]:
     return {(kind, name) for kind, name, _ in rows}, _fingerprint_rows(rows)
 
 
+def _canonical_json(value, label: str):
+    if not isinstance(value, str):
+        raise ValueError(f"{label} must be JSON text")
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError as error:
+        raise ValueError(f"{label} is not valid JSON") from error
+    if json.dumps(parsed, ensure_ascii=False, sort_keys=True, separators=(",", ":")) != value:
+        raise ValueError(f"{label} is not canonical JSON")
+    return parsed
+
+
+def _canonical_string_array(value, label: str, *, allowed=(), allow_empty=True):
+    parsed = _canonical_json(value, label)
+    if not isinstance(parsed, list) or (not allow_empty and not parsed) or any(not isinstance(item, str) for item in parsed):
+        raise ValueError(f"{label} must be a string array")
+    if len(set(parsed)) != len(parsed) or parsed != sorted(parsed):
+        raise ValueError(f"{label} must be unique code-point lexical order")
+    if allowed and any(item not in allowed for item in parsed):
+        raise ValueError(f"{label} contains an unknown id")
+    return parsed
+
+
+def _ordered_tag_array(value, label: str, allowed, *, field=False):
+    parsed = _canonical_json(value, label)
+    if not isinstance(parsed, list) or any(not isinstance(item, str) for item in parsed):
+        raise ValueError(f"{label} must be a string array")
+    if len(set(parsed)) != len(parsed):
+        raise ValueError(f"{label} contains duplicates")
+    if field and parsed == ["unclassified"]:
+        return parsed
+    if field and "unclassified" in parsed:
+        raise ValueError("unclassified cannot coexist with field tags")
+    if any(item not in allowed for item in parsed):
+        raise ValueError(f"{label} contains an unknown id")
+    ordered = [item for item in allowed if item in parsed]
+    if parsed != ordered:
+        raise ValueError(f"{label} must use definition order")
+    if field and not parsed:
+        raise ValueError("field_tags_json cannot be empty")
+    return parsed
+
+
+def _parse_utc(value: str) -> datetime:
+    if not isinstance(value, str):
+        raise ValueError("UTC timestamp must be text")
+    try:
+        parsed = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+    except ValueError as error:
+        raise ValueError("UTC timestamp is not an exact calendar millisecond") from error
+    if parsed.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z" != value:
+        raise ValueError("UTC timestamp is not an exact millisecond")
+    return parsed
+
+
+def _parse_kst(value: str) -> datetime:
+    if not isinstance(value, str):
+        raise ValueError("KST timestamp must be text")
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError as error:
+        raise ValueError("KST timestamp is not an exact calendar millisecond") from error
+    if parsed.utcoffset() is None or parsed.utcoffset().total_seconds() != 9 * 60 * 60:
+        raise ValueError("KST timestamp must use +09:00")
+    if parsed.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+09:00" != value:
+        raise ValueError("KST timestamp is not an exact millisecond")
+    return parsed
+
+
+def _sha256_json(value) -> str:
+    return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+
+
+def _validate_populated_rows(connection: sqlite3.Connection) -> None:
+    runs = connection.execute(
+        "SELECT snapshot_seq, snapshot_id, observed_at_utc, observed_at_kst, stats_date_kst, parent_snapshot_seq, parent_snapshot_id FROM snapshot_runs ORDER BY snapshot_seq"
+    ).fetchall()
+    for seq, snapshot_id, utc, kst, stats_date, parent_seq, parent_id in runs:
+        utc_value = _parse_utc(utc)
+        kst_value = _parse_kst(kst)
+        if utc_value.astimezone(kst_value.tzinfo) != kst_value or kst_value.date().isoformat() != stats_date:
+            raise ValueError("snapshot UTC, KST, and stats date must name one instant")
+        if seq > 1 and parent_seq is not None and parent_seq != seq - 1:
+            raise ValueError("refresh snapshot sequence must immediately follow its parent")
+        if parent_seq is not None:
+            parent = connection.execute("SELECT snapshot_id FROM snapshot_runs WHERE snapshot_seq = ?", (parent_seq,)).fetchone()
+            if parent != (parent_id,):
+                raise ValueError("snapshot parent identity is invalid")
+
+    profiles = connection.execute(
+        "SELECT profile_id, slug, display_slug, description, primary_language, topics_json, license_spdx, archived, is_fork, default_branch, created_at, field_tags_json, form_tags_json, tag_rule_version, profile_sha256 FROM repository_profiles"
+    ).fetchall()
+    for row in profiles:
+        profile_id, slug, display_slug, description, language, topics, license_spdx, archived, is_fork, branch, created_at, fields, forms, version, digest = row
+        if not re.fullmatch(r"[a-z0-9_.-]+/[a-z0-9_.-]+", slug) or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", display_slug) or display_slug.lower() != slug:
+            raise ValueError("profile slug/display_slug is not canonical")
+        _parse_utc(created_at)
+        topics_value = _canonical_string_array(topics, "topics_json")
+        field_value = _ordered_tag_array(fields, "field_tags_json", FIELD_TAGS, field=True)
+        form_value = _ordered_tag_array(forms, "form_tags_json", FORM_TAGS)
+        expected = _sha256_json({
+            "slug": slug, "display_slug": display_slug, "description": description,
+            "primary_language": language, "topics": topics_value, "license_spdx": license_spdx,
+            "archived": bool(archived), "is_fork": bool(is_fork), "default_branch": branch,
+            "created_at": created_at, "field_tags": field_value, "form_tags": form_value,
+            "tag_rule_version": version,
+        })
+        if digest != expected:
+            raise ValueError(f"profile {profile_id} hash preimage mismatch")
+
+    items = connection.execute("SELECT * FROM snapshot_items ORDER BY snapshot_seq, slug").fetchall()
+    item_columns = [item[1] for item in connection.execute("PRAGMA table_info(snapshot_items)")]
+    item_rows = [dict(zip(item_columns, row)) for row in items]
+    artifacts_by_snapshot = {}
+    for row in connection.execute("SELECT snapshot_seq, artifact_path FROM artifact_hashes"):
+        artifacts_by_snapshot.setdefault(row[0], set()).add(row[1])
+    for item in item_rows:
+        if any(item[field] is not None and item[field] < 0 for field in ("gain_daily", "gain_weekly", "gain_monthly")):
+            raise ValueError("snapshot gains cannot be negative")
+        colors = (("daily", item["language_color_daily"]), ("weekly", item["language_color_weekly"]), ("monthly", item["language_color_monthly"]))
+        expected_color = next(((period, color) for period, color in colors if color is not None), None)
+        if expected_color is None:
+            if item["selected_language_color"] is not None or item["selected_language_color_source_period"] is not None:
+                raise ValueError("selected color requires a source color")
+        elif (item["selected_language_color_source_period"], item["selected_language_color"]) != expected_color:
+            raise ValueError("selected color must be daily then weekly then monthly")
+        inventory = connection.execute(
+            "SELECT release_id, metadata_sha256 FROM snapshot_release_items WHERE snapshot_seq = ? AND slug = ? ORDER BY release_ordinal",
+            (item["snapshot_seq"], item["slug"]),
+        ).fetchall()
+        expected_inventory = _sha256_json([{"release_id": release_id, "metadata_sha256": digest} for release_id, digest in inventory])
+        if len(inventory) != item["release_count"] or expected_inventory != item["release_inventory_sha256"]:
+            raise ValueError("release inventory count or hash mismatch")
+        if item["latest_release_id"] is not None and item["latest_release_id"] not in {entry[0] for entry in inventory}:
+            raise ValueError("latest release must be in its exact inventory")
+        if item["translation_status"] == "applicable" and f"translations/{item['slug'].replace('/', '--')}.json" not in artifacts_by_snapshot.get(item["snapshot_seq"], set()):
+            raise ValueError("applicable translation is absent from artifacts")
+
+    for slug, commit_sha, parents in connection.execute("SELECT slug, commit_sha, parent_shas_json FROM commit_events"):
+        parsed = _canonical_string_array(parents, "parent_shas_json")
+        if any(not re.fullmatch(r"[0-9a-f]{40}", parent) for parent in parsed):
+            raise ValueError(f"commit {slug}/{commit_sha} has invalid parent SHA")
+
+    for snapshot_seq, slug, old_path, new_path, old_blob, new_blob, old_content, new_content, kind in connection.execute("SELECT * FROM readme_change_events"):
+        item = connection.execute("SELECT readme_status, readme_path, readme_blob_sha, readme_content_sha256 FROM snapshot_items WHERE snapshot_seq = ? AND slug = ?", (snapshot_seq, slug)).fetchone()
+        if item is None:
+            raise ValueError("README event has no snapshot item")
+        old_tuple = (old_path, old_blob, old_content)
+        new_tuple = (new_path, new_blob, new_content)
+        if kind == "baseline" and (old_tuple != (None, None, None) or new_tuple != item[1:]):
+            raise ValueError("baseline README event must match current item")
+        if kind == "added" and not (old_tuple == (None, None, None) and all(new_tuple)):
+            raise ValueError("README added event is invalid")
+        if kind == "removed" and not (all(old_tuple) and new_tuple == (None, None, None)):
+            raise ValueError("README removed event is invalid")
+        if kind == "changed" and not (all(old_tuple) and all(new_tuple) and old_tuple != new_tuple):
+            raise ValueError("README changed event is invalid")
+
+    for snapshot_seq, slug, previous, gap, stars_delta, display_delta, daily_delta, weekly_delta, monthly_delta, rule, digest in connection.execute("SELECT * FROM repository_insights"):
+        current = connection.execute("SELECT display_rank, rank_daily, rank_weekly, rank_monthly, stars FROM snapshot_items WHERE snapshot_seq = ? AND slug = ?", (snapshot_seq, slug)).fetchone()
+        if current is None:
+            raise ValueError("insight has no current snapshot item")
+        if previous is None:
+            if any(value is not None for value in (gap, stars_delta, display_delta, daily_delta, weekly_delta, monthly_delta)):
+                raise ValueError("first insight must have null deltas")
+            continue
+        prior = connection.execute("SELECT display_rank, rank_daily, rank_weekly, rank_monthly, stars FROM snapshot_items WHERE snapshot_seq = ? AND slug = ?", (previous, slug)).fetchone()
+        prior_time = connection.execute("SELECT observed_at_utc FROM snapshot_runs WHERE snapshot_seq = ?", (previous,)).fetchone()
+        current_time = connection.execute("SELECT observed_at_utc FROM snapshot_runs WHERE snapshot_seq = ?", (snapshot_seq,)).fetchone()
+        if prior is None or prior_time is None or current_time is None:
+            raise ValueError("insight prior reference is invalid")
+        actual_gap = int((_parse_utc(current_time[0]) - _parse_utc(prior_time[0])).total_seconds() * 1000)
+        actual = (prior[4] - current[4], prior[0] - current[0])
+        if gap != actual_gap or stars_delta != -actual[0] or display_delta != actual[1]:
+            raise ValueError("insight gap or primary deltas are invalid")
+
+    for snapshot_seq, paths in artifacts_by_snapshot.items():
+        expected = set(PAGES_BASE_ARTIFACT_PATHS) | {
+            f"translations/{item['slug'].replace('/', '--')}.json"
+            for item in item_rows if item["snapshot_seq"] == snapshot_seq and item["translation_status"] == "applicable"
+        }
+        if paths != expected:
+            raise ValueError("artifact paths must equal the exact Pages allowlist")
+
+
 def validate_schema(connection: sqlite3.Connection) -> None:
     """Reject a database which is not exactly the v1 canonical ledger schema."""
     _require_strict_support()
@@ -399,6 +600,7 @@ def validate_schema(connection: sqlite3.Connection) -> None:
     ).fetchall()
     if metadata != [(SCHEMA_VERSION, CREATION_POLICY, expected_fingerprint)]:
         raise ValueError("Repository-observations schema metadata is invalid")
+    _validate_populated_rows(connection)
 
 
 def create_database(path: str | Path) -> None:
