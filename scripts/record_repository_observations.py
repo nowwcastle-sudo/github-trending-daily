@@ -1114,6 +1114,22 @@ def _enrichment_entry(index: Any, slug: str) -> dict[str, Any]:
     return entry
 
 
+def _validate_production_manifest_evidence(snapshot: dict[str, Any], source_sha: Any) -> None:
+    status = snapshot.get("productionManifestStatus")
+    manifest_sha = _value(snapshot, "input_manifest_sha256", "inputManifestSha256", "manifestSha256")
+    explicit_source_present = "explicitBootstrapSourceSha" in snapshot
+    if status in {"verified_v0", "verified_v1"}:
+        if explicit_source_present:
+            raise ValueError("production manifest evidence is invalid")
+        _sha_text(manifest_sha, 64, "production manifest SHA")
+        return
+    if status == "verified_404":
+        if manifest_sha is not None or not explicit_source_present or snapshot["explicitBootstrapSourceSha"] != source_sha:
+            raise ValueError("production manifest evidence is invalid")
+        return
+    raise ValueError("production manifest evidence is invalid")
+
+
 def _validate_cross_input_bindings(snapshot: dict[str, Any], events: dict[str, Any], index: Any, repositories: list[dict[str, Any]]) -> None:
     if not isinstance(index, dict) or set(index) != {"version", "snapshotId", "activeSetSha256", "factsSha256", "eventsSha256", "repositories"} or index["version"] != 1 or not isinstance(index["repositories"], dict):
         raise ValueError("enrichment index binding envelope is invalid")
@@ -1146,17 +1162,7 @@ def _validate_cross_input_bindings(snapshot: dict[str, Any], events: dict[str, A
     }
     if declared != expected:
         raise ValueError("snapshot input hash bindings are invalid")
-    manifest = {
-        "snapshot_id": snapshot_id,
-        "input_source_sha": source_sha,
-        **expected,
-    }
-    manifest_sha = _value(snapshot, "input_manifest_sha256", "inputManifestSha256", "manifestSha256")
-    if manifest_sha is None:
-        if snapshot.get("productionManifestStatus") != "verified_404" or snapshot.get("explicitBootstrapSourceSha") != source_sha:
-            raise ValueError("null input manifest requires verified 404 and explicit bootstrap source")
-    elif manifest_sha != _digest(manifest):
-        raise ValueError("input manifest hash does not bind the complete input set")
+    _validate_production_manifest_evidence(snapshot, source_sha)
 
 
 def _enrichment_hashes(repository: dict[str, Any], profile: dict[str, Any], index: Any) -> tuple[str, str, str, str, str | None, str | None]:

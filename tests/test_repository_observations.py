@@ -368,6 +368,7 @@ def writer_payload(*, snapshot_id, utc, kst, stats_date, run_kind, parent_snapsh
         "snapshotId": snapshot_id, "observedAtUtc": utc, "observedAtKst": kst,
         "statsDate": stats_date, "runKind": run_kind, "parentSnapshotId": parent_snapshot_id,
         "inputSourceSha": sha1(), "inputManifestSha256": sha256(),
+        "productionManifestStatus": "verified_v1",
         "enrichmentIndex": {"owner/repo": {"summary": {
             "content": {"goal": "g", "usage": "u", "pros": "p", "cons": "c", "fit": "f"},
             "source": source,
@@ -424,11 +425,6 @@ def bind_writer_inputs(payload, events):
     payload.update({
         "activeSetSha256": active_set_sha, "factsSha256": facts_sha,
         "eventsSha256": events_sha, "enrichmentIndexSha256": enrichment_sha,
-    })
-    payload["inputManifestSha256"] = canonical_hash({
-        "snapshot_id": snapshot_id, "input_source_sha": source_sha,
-        "active_set_sha256": active_set_sha, "facts_sha256": facts_sha,
-        "events_sha256": events_sha, "enrichment_index_sha256": enrichment_sha,
     })
     return events
 
@@ -1430,7 +1426,7 @@ class RepositoryObservationTests(unittest.TestCase):
                 canonical_hash({"content": content, "source": source}),
             ))
             self.assertEqual(verify_core_snapshot(connection, 1), result.core_payload_sha256)
-        self.assertEqual(result.core_payload_sha256, "67386f935440eab1b87f909368b145bc6390f2ac5f319c7db63fba72cdcb49ba")
+        self.assertEqual(result.core_payload_sha256, "dff9c5ccfc6e2a95282d15a5798103eabd023f6a0aa6c339ec1ef6ae1408d8c6")
 
     def test_reused_profile_and_release_rows_are_part_of_refresh_core_hash(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
@@ -1705,12 +1701,105 @@ class RepositoryObservationTests(unittest.TestCase):
             self.assertEqual(verify_core_snapshot(connection, 3), results[2].core_payload_sha256)
         self.assertEqual(results[2].reused.get("release_versions"), 1)
 
-    def test_cross_input_bindings_reject_event_enrichment_and_manifest_drift(self):
+    def test_renderer_verified_v1_manifest_bytes_sha_records_exactly(self):
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        candidate = Path(self.temporary.name) / "renderer-compatible.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing-renderer.sqlite", candidate, None)
+        payload = writer_payload(
+            snapshot_id="20260828010101-aaaaaaaaaaaaaaaa",
+            utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00",
+            stats_date="2026-08-28", run_kind="migration_baseline",
+        )
+        production_manifest_bytes = (
+            b'{"version":1,"sourceSha":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",'
+            b'"snapshotId":"20260828000101-bbbbbbbbbbbbbbbb","files":{}}\n'
+        )
+        production_manifest_sha = hashlib.sha256(production_manifest_bytes).hexdigest()
+        payload["inputManifestSha256"] = production_manifest_sha
+        payload["legacyBaselines"], payload["legacyBaselineReceipt"] = paths, receipt
+
+        result = record_writer_snapshot(
+            candidate, payload, writer_events(head=sha1(), transition="baseline"), {},
+        )
+
+        with closing(sqlite3.connect(candidate)) as connection:
+            self.assertEqual(
+                connection.execute("SELECT input_manifest_sha256 FROM snapshot_runs").fetchone(),
+                (production_manifest_sha,),
+            )
+            self.assertEqual(verify_core_snapshot(connection, 1), result.core_payload_sha256)
+
+    def test_production_manifest_status_sha_and_bootstrap_source_matrix(self):
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        valid_modes = (
+            ("verified_v1", sha256("1"), None),
+            ("verified_v0", sha256("2"), None),
+            ("verified_404", None, sha1()),
+        )
+        for index, (status, manifest_sha, bootstrap_source) in enumerate(valid_modes):
+            with self.subTest(valid=status):
+                candidate = Path(self.temporary.name) / f"manifest-valid-{index}.sqlite"
+                prepare_candidate_database(Path(self.temporary.name) / f"missing-valid-{index}.sqlite", candidate, None)
+                payload = writer_payload(
+                    snapshot_id=f"20260828010{index + 1}01-{chr(97 + index) * 16}",
+                    utc=f"2026-08-28T01:0{index + 1}:01.001Z",
+                    kst=f"2026-08-28T10:0{index + 1}:01.001+09:00",
+                    stats_date="2026-08-28", run_kind="migration_baseline",
+                )
+                payload["productionManifestStatus"] = status
+                payload["inputManifestSha256"] = manifest_sha
+                if bootstrap_source is not None:
+                    payload["explicitBootstrapSourceSha"] = bootstrap_source
+                payload["legacyBaselines"], payload["legacyBaselineReceipt"] = paths, receipt
+                record_writer_snapshot(
+                    candidate, payload, writer_events(head=sha1(), transition="baseline"), {},
+                )
+                with closing(sqlite3.connect(candidate)) as connection:
+                    self.assertEqual(
+                        connection.execute("SELECT input_manifest_sha256 FROM snapshot_runs").fetchone(),
+                        (manifest_sha,),
+                    )
+
+        private_marker = "do-not-" + "echo-production-evidence"
+        invalid_modes = (
+            ("verified_v1", None, None),
+            ("verified_v0", None, None),
+            ("verified_404", sha256("3"), sha1()),
+            ("verified_404", None, None),
+            ("verified_404", None, sha1("b")),
+            ("verified_v1", sha256("4"), sha1()),
+            (private_marker, sha256("5"), None),
+            ("verified_v0", private_marker, None),
+        )
+        for index, (status, manifest_sha, bootstrap_source) in enumerate(invalid_modes):
+            with self.subTest(invalid=index):
+                candidate = Path(self.temporary.name) / f"manifest-invalid-{index}.sqlite"
+                prepare_candidate_database(Path(self.temporary.name) / f"missing-invalid-{index}.sqlite", candidate, None)
+                payload = writer_payload(
+                    snapshot_id=f"20260828020{index + 1}01-{'abcdef0123456789'[index] * 16}",
+                    utc=f"2026-08-28T02:{index + 1:02d}:01.001Z",
+                    kst=f"2026-08-28T11:{index + 1:02d}:01.001+09:00",
+                    stats_date="2026-08-28", run_kind="migration_baseline",
+                )
+                payload["productionManifestStatus"] = status
+                payload["inputManifestSha256"] = manifest_sha
+                if bootstrap_source is not None:
+                    payload["explicitBootstrapSourceSha"] = bootstrap_source
+                payload["legacyBaselines"], payload["legacyBaselineReceipt"] = paths, receipt
+                with self.assertRaises(ValueError) as raised:
+                    record_writer_snapshot(
+                        candidate, payload, writer_events(head=sha1(), transition="baseline"), {},
+                    )
+                self.assertNotIn(private_marker, str(raised.exception))
+                self.assertNotIn(str(candidate), str(raised.exception))
+                with closing(sqlite3.connect(candidate)) as connection:
+                    self.assertEqual(connection.execute("SELECT COUNT(*) FROM snapshot_runs").fetchone(), (0,))
+
+    def test_cross_input_bindings_reject_event_and_enrichment_drift(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
         for mutation, message in (
             (lambda payload, events: events["heads"][0].update({"headSha": sha1("c")}), "event payload does not bind"),
             (lambda payload, events: payload["enrichmentIndex"]["repositories"]["owner/repo"]["summary"]["content"].update({"goal": "drift"}), "snapshot input hash bindings"),
-            (lambda payload, events: payload.update({"inputManifestSha256": sha256("d")}), "input manifest hash"),
         ):
             candidate = Path(self.temporary.name) / f"binding-{message.split()[0]}.sqlite"
             prepare_candidate_database(Path(self.temporary.name) / f"missing-{message.split()[0]}.sqlite", candidate, None)
