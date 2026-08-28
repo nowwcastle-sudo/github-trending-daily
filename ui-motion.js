@@ -76,5 +76,78 @@
     return hoverCapable && trigger === "pointer" ? "hover" : "modal";
   }
 
-  return { tooltipLayout, periodGain, badgeModel, touchCardAction, sidebarMode };
+  function startEdgeGesture({ x, y, sidebarOpen, withinSidebar, sidebarWidth = 1 }) {
+    if (![x, y, sidebarWidth].every(Number.isFinite) || sidebarWidth <= 0) return null;
+    if ((!sidebarOpen && x > 24) || (sidebarOpen && !withinSidebar)) return null;
+    return {
+      startX: x,
+      startY: y,
+      lastX: x,
+      lastY: y,
+      dx: 0,
+      dy: 0,
+      sidebarOpen: Boolean(sidebarOpen),
+      sidebarWidth,
+      state: "pending",
+      progress: sidebarOpen ? 1 : 0,
+      result: null,
+    };
+  }
+
+  function updateEdgeGesture(gesture, { x, y }) {
+    if (!gesture || gesture.result || !Number.isFinite(x) || !Number.isFinite(y)) {
+      return { state: "cancelled", progress: gesture?.sidebarOpen ? 1 : 0 };
+    }
+    gesture.lastX = x;
+    gesture.lastY = y;
+    gesture.dx = x - gesture.startX;
+    gesture.dy = y - gesture.startY;
+    const absX = Math.abs(gesture.dx);
+    const absY = Math.abs(gesture.dy);
+    if (gesture.state === "pending" && absX > 8 && absX > absY * 1.2) {
+      const intendedDirection = gesture.sidebarOpen ? gesture.dx < 0 : gesture.dx > 0;
+      gesture.state = intendedDirection ? "horizontal" : "cancelled";
+    } else if (gesture.state === "pending" && absY > 8 && absY > absX * 1.2) {
+      gesture.state = "cancelled";
+    }
+    if (gesture.state === "horizontal") {
+      const rawProgress = gesture.sidebarOpen
+        ? 1 + gesture.dx / gesture.sidebarWidth
+        : gesture.dx / gesture.sidebarWidth;
+      gesture.progress = clamp(rawProgress, 0, 1);
+    } else if (gesture.state === "cancelled") {
+      gesture.progress = gesture.sidebarOpen ? 1 : 0;
+    }
+    return { state: gesture.state, progress: gesture.progress };
+  }
+
+  function finishEdgeGesture(gesture) {
+    if (!gesture) return "cancel";
+    if (gesture.result) return gesture.result;
+    const opens = !gesture.sidebarOpen && gesture.state === "horizontal" && gesture.dx >= 48;
+    const closes = gesture.sidebarOpen && gesture.state === "horizontal" && (gesture.dx <= -48 || gesture.progress <= 0.5);
+    gesture.result = opens ? "open" : closes ? "close" : "cancel";
+    if (gesture.result === "cancel") gesture.progress = gesture.sidebarOpen ? 1 : 0;
+    return gesture.result;
+  }
+
+  function cancelEdgeGesture(gesture) {
+    if (!gesture) return "cancel";
+    gesture.state = "cancelled";
+    gesture.progress = gesture.sidebarOpen ? 1 : 0;
+    gesture.result = "cancel";
+    return gesture.result;
+  }
+
+  return {
+    tooltipLayout,
+    periodGain,
+    badgeModel,
+    touchCardAction,
+    sidebarMode,
+    startEdgeGesture,
+    updateEdgeGesture,
+    finishEdgeGesture,
+    cancelEdgeGesture,
+  };
 });

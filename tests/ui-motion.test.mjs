@@ -118,6 +118,82 @@ test("sidebar mode separates passive hover from modal activation", async () => {
   assert.equal(UiMotion.sidebarMode({ hoverCapable: false, trigger: "pointer" }), "modal");
 });
 
+test("mobile gesture starts only in 24px edge and commits after 48px horizontal intent", async () => {
+  const UiMotion = await loadUiMotion();
+  assert.equal(UiMotion.startEdgeGesture({ x: 25, y: 100, sidebarOpen: false, withinSidebar: false }), null);
+  assert.equal(UiMotion.startEdgeGesture({ x: 12, y: 100, sidebarOpen: true, withinSidebar: false }), null);
+  const gesture = UiMotion.startEdgeGesture({ x: 20, y: 100, sidebarOpen: false, withinSidebar: false, sidebarWidth: 320 });
+  assert.equal(UiMotion.updateEdgeGesture(gesture, { x: 69, y: 105 }).state, "horizontal");
+  assert.equal(UiMotion.finishEdgeGesture(gesture), "open");
+});
+
+test("vertical intent cancels without claiming native scroll", async () => {
+  const UiMotion = await loadUiMotion();
+  const gesture = UiMotion.startEdgeGesture({ x: 10, y: 100, sidebarOpen: false, withinSidebar: false, sidebarWidth: 320 });
+  const update = UiMotion.updateEdgeGesture(gesture, { x: 18, y: 140 });
+  assert.equal(update.state, "cancelled");
+  assert.equal(update.progress, 0);
+});
+
+test("close threshold, short taps, and cancellation restore the exact prior state", async () => {
+  const UiMotion = await loadUiMotion();
+  const closing = UiMotion.startEdgeGesture({ x: 260, y: 100, sidebarOpen: true, withinSidebar: true, sidebarWidth: 320 });
+  UiMotion.updateEdgeGesture(closing, { x: 211, y: 104 });
+  assert.equal(UiMotion.finishEdgeGesture(closing), "close");
+
+  const tap = UiMotion.startEdgeGesture({ x: 12, y: 100, sidebarOpen: false, withinSidebar: false, sidebarWidth: 320 });
+  UiMotion.updateEdgeGesture(tap, { x: 16, y: 102 });
+  assert.equal(UiMotion.finishEdgeGesture(tap), "cancel");
+  assert.equal(tap.progress, 0);
+
+  const cancelled = UiMotion.startEdgeGesture({ x: 260, y: 100, sidebarOpen: true, withinSidebar: true, sidebarWidth: 320 });
+  UiMotion.updateEdgeGesture(cancelled, { x: 230, y: 102 });
+  assert.equal(UiMotion.cancelEdgeGesture(cancelled), "cancel");
+  assert.equal(UiMotion.cancelEdgeGesture(cancelled), "cancel");
+  assert.equal(cancelled.sidebarOpen, true);
+  assert.equal(cancelled.progress, 1);
+});
+
+test("gesture progress uses measured sidebar width and the 1.2 direction ratio", async () => {
+  const UiMotion = await loadUiMotion();
+  const measured = UiMotion.startEdgeGesture({ x: 10, y: 50, sidebarOpen: false, withinSidebar: false, sidebarWidth: 400 });
+  assert.equal(UiMotion.updateEdgeGesture(measured, { x: 110, y: 55 }).progress, 0.25);
+
+  const undecided = UiMotion.startEdgeGesture({ x: 10, y: 50, sidebarOpen: false, withinSidebar: false, sidebarWidth: 400 });
+  assert.equal(UiMotion.updateEdgeGesture(undecided, { x: 22, y: 60 }).state, "pending");
+  assert.equal(UiMotion.finishEdgeGesture(undecided), "cancel");
+
+  const tenByNine = UiMotion.startEdgeGesture({ x: 10, y: 50, sidebarOpen: false, withinSidebar: false, sidebarWidth: 400 });
+  assert.equal(UiMotion.updateEdgeGesture(tenByNine, { x: 20, y: 59 }).state, "pending");
+  const nineByTwelve = UiMotion.startEdgeGesture({ x: 10, y: 50, sidebarOpen: false, withinSidebar: false, sidebarWidth: 400 });
+  assert.equal(UiMotion.updateEdgeGesture(nineByTwelve, { x: 19, y: 62 }).state, "cancelled");
+});
+
+test("open commits at 48px while close accepts 48px or the measured midpoint", async () => {
+  const UiMotion = await loadUiMotion();
+  for (const [sidebarOpen, distance, expected] of [
+    [false, 47, "cancel"],
+    [false, 48, "open"],
+    [true, -47, "cancel"],
+    [true, -48, "close"],
+  ]) {
+    const startX = sidebarOpen ? 260 : 10;
+    const gesture = UiMotion.startEdgeGesture({ x: startX, y: 100, sidebarOpen, withinSidebar: sidebarOpen, sidebarWidth: 400 });
+    UiMotion.updateEdgeGesture(gesture, { x: startX + distance, y: 102 });
+    assert.equal(UiMotion.finishEdgeGesture(gesture), expected);
+  }
+
+  const wideMidpoint = UiMotion.startEdgeGesture({ x: 260, y: 100, sidebarOpen: true, withinSidebar: true, sidebarWidth: 400 });
+  UiMotion.updateEdgeGesture(wideMidpoint, { x: 60, y: 102 });
+  assert.equal(wideMidpoint.progress, 0.5);
+  assert.equal(UiMotion.finishEdgeGesture(wideMidpoint), "close");
+
+  const narrowMidpoint = UiMotion.startEdgeGesture({ x: 80, y: 100, sidebarOpen: true, withinSidebar: true, sidebarWidth: 80 });
+  UiMotion.updateEdgeGesture(narrowMidpoint, { x: 40, y: 102 });
+  assert.equal(narrowMidpoint.progress, 0.5);
+  assert.equal(UiMotion.finishEdgeGesture(narrowMidpoint), "close");
+});
+
 test("a pending Korean tab updates when its translation resolves without forcing a tab switch", async () => {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const translationHandler = html.match(/fetch\(`translations\/[\s\S]*?\.catch\(\(\)=>\{/m)?.[0] || "";

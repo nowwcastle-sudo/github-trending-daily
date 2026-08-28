@@ -4,6 +4,7 @@ import test from "node:test";
 import vm from "node:vm";
 
 const page = await readFile(new URL("../index.html", import.meta.url), "utf8");
+const uiMotionSource = await readFile(new URL("../ui-motion.js", import.meta.url), "utf8");
 
 function sidebarHarness({ hoverCapable = true } = {}) {
   const start = page.indexOf('const sidebar=document.getElementById("filterSidebar")');
@@ -32,6 +33,19 @@ function sidebarHarness({ hoverCapable = true } = {}) {
       this.listeners = new Map();
       this.focusCount = 0;
       this.focusWithin = false;
+      this.canFocus = true;
+      this.tagName = "DIV";
+      this.role = null;
+      this.tabIndex = undefined;
+      this.parentElement = null;
+      this.isConnected = true;
+      this.withinSidebar = false;
+      this.width = 320;
+      this.capturedPointer = null;
+      this.style = {
+        transform: "",
+        removeProperty(name) { if (name === "transform") this.transform = ""; },
+      };
     }
     set inert(value) { this._inert = value; trace.push(`${this.id}:inert:${value}`); }
     get inert() { return this._inert; }
@@ -45,10 +59,15 @@ function sidebarHarness({ hoverCapable = true } = {}) {
         target: this,
         currentTarget: this,
         defaultPrevented: false,
-        preventDefault() { this.defaultPrevented = true; },
+        preventDefault() { this.defaultPrevented = true; trace.push(`${type}:preventDefault`); },
+        immediatePropagationStopped: false,
+        stopImmediatePropagation() { this.immediatePropagationStopped = true; trace.push(`${type}:stopImmediatePropagation`); },
         ...properties,
       };
-      for (const listener of this.listeners.get(type) || []) listener(event);
+      for (const listener of this.listeners.get(type) || []) {
+        listener(event);
+        if (event.immediatePropagationStopped) break;
+      }
       return event;
     }
     setAttribute(name, value) { this.attributes.set(name, String(value)); trace.push(`${this.id}:${name}:${value}`); }
@@ -59,9 +78,30 @@ function sidebarHarness({ hoverCapable = true } = {}) {
       if (selector === ":focus") return documentRef.activeElement === this;
       return false;
     }
-    contains(node) { return node === this; }
+    closest(selector) {
+      const selectors = selector.split(",").map(value => value.trim().toLowerCase());
+      for (let node = this; node; node = node.parentElement) {
+        const tagName = String(node.tagName || "").toLowerCase();
+        if (selectors.some(value => value === tagName
+          || (value === '[role="button"]' && node.role === "button")
+          || (value === "[tabindex]" && node.tabIndex !== undefined))) return node;
+      }
+      return null;
+    }
+    contains(node) {
+      for (let current = node; current; current = current.parentElement) if (current === this) return true;
+      return Boolean(node?.withinSidebar);
+    }
     querySelectorAll() { return []; }
+    getBoundingClientRect() { return { width: this.width }; }
+    setPointerCapture(pointerId) { this.capturedPointer = pointerId; trace.push(`${this.id}:capture:${pointerId}`); }
+    hasPointerCapture(pointerId) { return this.capturedPointer === pointerId; }
+    releasePointerCapture(pointerId) {
+      if (this.capturedPointer === pointerId) this.capturedPointer = null;
+      trace.push(`${this.id}:release:${pointerId}`);
+    }
     focus() {
+      if (!this.canFocus) { trace.push(`${this.id}:focus-noop`); return; }
       documentRef.activeElement = this;
       this.focusWithin = true;
       this.focusCount += 1;
@@ -81,6 +121,24 @@ function sidebarHarness({ hoverCapable = true } = {}) {
   const outside = new FakeHTMLElement("outside");
   const body = new FakeHTMLElement("body");
   const documentListeners = new Map();
+  const windowListeners = new Map();
+  function dispatchListeners(listeners, type, properties = {}) {
+    const event = {
+      type,
+      target: properties.target ?? documentRef,
+      currentTarget: documentRef,
+      defaultPrevented: false,
+      preventDefault() { this.defaultPrevented = true; trace.push(`${type}:preventDefault`); },
+      immediatePropagationStopped: false,
+      stopImmediatePropagation() { this.immediatePropagationStopped = true; trace.push(`${type}:stopImmediatePropagation`); },
+      ...properties,
+    };
+    for (const listener of listeners.get(type) || []) {
+      listener(event);
+      if (event.immediatePropagationStopped) break;
+    }
+    return event;
+  }
   documentRef = {
     activeElement: outside,
     body,
@@ -90,6 +148,14 @@ function sidebarHarness({ hoverCapable = true } = {}) {
       if (!documentListeners.has(type)) documentListeners.set(type, []);
       documentListeners.get(type).push(listener);
     },
+    dispatch(type, properties = {}) { return dispatchListeners(documentListeners, type, properties); },
+  };
+  const windowRef = {
+    addEventListener(type, listener) {
+      if (!windowListeners.has(type)) windowListeners.set(type, []);
+      windowListeners.get(type).push(listener);
+    },
+    dispatch(type, properties = {}) { return dispatchListeners(windowListeners, type, properties); },
   };
 
   let now = 0;
@@ -118,13 +184,10 @@ function sidebarHarness({ hoverCapable = true } = {}) {
   const calls = { closeReadme: 0, hideTip: 0 };
   const context = {
     document: documentRef,
+    window: windowRef,
     HTMLElement: FakeHTMLElement,
-    UiMotion: {
-      sidebarMode({ hoverCapable: capable, trigger }) {
-        return capable && trigger === "pointer" ? "hover" : "modal";
-      },
-    },
-    matchMedia() { return { matches: hoverCapable }; },
+    performance: { now: () => now },
+    matchMedia(query) { return { matches: query.includes("pointer:coarse") ? !hoverCapable : hoverCapable }; },
     closeReadme() { calls.closeReadme += 1; nodes.get("readmePanel").classList.remove("open"); },
     hideTip() {
       calls.hideTip += 1;
@@ -141,6 +204,7 @@ function sidebarHarness({ hoverCapable = true } = {}) {
   context.__tipLayer = nodes.get("tipLayer");
   context.__positionCount = 0;
   vm.createContext(context);
+  vm.runInContext(uiMotionSource, context, { filename: "ui-motion-fixture.js" });
   vm.runInContext(page.slice(start, end), context, { filename: "sidebar-runtime-fixture.js" });
   vm.runInContext(`
     const REPOS=globalThis.__repos,tipLayer=globalThis.__tipLayer;
@@ -162,11 +226,19 @@ function sidebarHarness({ hoverCapable = true } = {}) {
     body,
     outside,
     document: documentRef,
+    window: windowRef,
+    UiMotion: context.UiMotion,
     calls,
     trace,
     advance,
     showTip(card = { dataset: { idx: "0" } }) { context.__showTip(card); },
     positionCount() { return context.__positionCount; },
+    createTarget(id, options = {}) {
+      const target = new FakeHTMLElement(id);
+      Object.assign(target, options);
+      return target;
+    },
+    listenerCount(type) { return documentListeners.get(type)?.length ?? 0; },
   };
 }
 
@@ -472,6 +544,269 @@ test("hover close button restores rail focus before hiding and inerting the side
   assert.ok(focusIndex >= 0 && focusIndex < hiddenIndex && focusIndex < inertIndex);
   assert.equal(harness.document.activeElement, harness.toggle);
   assert.equal(harness.sidebar.dataset.openMode, undefined);
+});
+
+test("coarse pointers hide the rail and preserve native vertical touch action", () => {
+  const coarse = page.match(/@media\(hover:none\),\(pointer:coarse\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.match(coarse, /body\{touch-action:pan-y pinch-zoom\}/);
+  assert.match(coarse, /\.nav-toggle\{display:none\}/);
+  assert.match(coarse, /\.filter-sidebar\{touch-action:pan-y pinch-zoom\}/);
+  assert.match(page, /\.filter-sidebar\.dragging\{transition:none\}/);
+  assert.doesNotMatch(page, /id="(?:mobileNav|swipeEdge|edgeHitTarget)"|class="[^"]*(?:hamburger|swipe-edge|edge-hit-target)/i);
+});
+
+test("an unclaimed 24px-edge tap preserves first-detail then same-card navigation", () => {
+  const harness = sidebarHarness({ hoverCapable: false });
+  assert.ok(harness.listenerCount("pointerdown") > 0);
+  assert.ok(harness.listenerCount("pointermove") > 0);
+  const state = { activeIndex: null, tooltipOpen: false, visited: [] };
+  function card(index) {
+    const target = harness.createTarget(`card${index}`);
+    target.dataset.idx = String(index);
+    target.href = `https://github.com/owner/repo${index}`;
+    target.addEventListener("click", () => {
+      const action = harness.UiMotion.touchCardAction({
+        activeIndex: state.activeIndex,
+        cardIndex: index,
+        tooltipOpen: state.tooltipOpen,
+      });
+      if (action === "navigate") state.visited.push(target.href);
+      else { state.activeIndex = index; state.tooltipOpen = true; }
+    });
+    return target;
+  }
+  function tap(target, pointerId) {
+    const down = harness.document.dispatch("pointerdown", { target, pointerId, pointerType: "touch", isPrimary: true, button: 0, clientX: 12, clientY: 100 });
+    const up = harness.document.dispatch("pointerup", { target, pointerId, pointerType: "touch", isPrimary: true, button: 0, clientX: 12, clientY: 100 });
+    target.dispatch("click");
+    assert.equal(down.defaultPrevented, false);
+    assert.equal(up.defaultPrevented, false);
+    assert.equal(target.capturedPointer, null);
+  }
+
+  const first = card(0), different = card(1);
+  tap(first, 1);
+  assert.equal(state.activeIndex, 0);
+  assert.deepEqual(state.visited, []);
+  tap(first, 2);
+  assert.deepEqual(state.visited, ["https://github.com/owner/repo0"]);
+  tap(different, 3);
+  assert.equal(state.activeIndex, 1);
+  assert.equal(state.visited.length, 1);
+});
+
+test("pointerdown, vertical intent, x=25, and interactive targets remain unclaimed", () => {
+  const harness = sidebarHarness({ hoverCapable: false });
+  assert.ok(harness.listenerCount("pointerdown") > 0);
+  const gestureRuntime = page.match(/const sidebarCoarseMedia=[\s\S]*?function syncUrl/)?.[0] ?? "";
+  assert.match(gestureRuntime, /document\.addEventListener\("pointerdown",handleSidebarGestureDown,true\)/);
+  assert.match(gestureRuntime, /document\.addEventListener\("pointermove",handleSidebarGestureMove,\{passive:false\}\)/);
+  const downFlow = gestureRuntime.match(/function handleSidebarGestureDown[\s\S]*?function handleSidebarGestureMove/)?.[0] ?? "";
+  assert.doesNotMatch(downFlow, /preventDefault\s*\(|setPointerCapture\s*\(/);
+  const plain = harness.createTarget("plain");
+  const down = harness.document.dispatch("pointerdown", { target: plain, pointerId: 1, pointerType: "touch", isPrimary: true, button: 0, clientX: 12, clientY: 100 });
+  assert.equal(down.defaultPrevented, false);
+  assert.equal(plain.capturedPointer, null);
+  const vertical = harness.document.dispatch("pointermove", { target: plain, pointerId: 1, clientX: 20, clientY: 140 });
+  assert.equal(vertical.defaultPrevented, false);
+  assert.equal(plain.capturedPointer, null);
+  assert.equal(harness.pageMain.tabIndex, undefined);
+
+  const undecided = harness.createTarget("undecided");
+  harness.document.dispatch("pointerdown", { target: undecided, pointerId: 5, pointerType: "touch", isPrimary: true, button: 0, clientX: 12, clientY: 100 });
+  const diagonal = harness.document.dispatch("pointermove", { target: undecided, pointerId: 5, clientX: 22, clientY: 109 });
+  assert.equal(diagonal.defaultPrevented, false);
+  assert.equal(undecided.capturedPointer, null);
+  harness.document.dispatch("pointerup", { target: undecided, pointerId: 5, clientX: 22, clientY: 109 });
+
+  for (const [target, x, pointerId] of [
+    [harness.createTarget("outside-edge"), 25, 2],
+    [harness.createTarget("button", { tagName: "BUTTON" }), 12, 3],
+    [harness.createTarget("link", { tagName: "A" }), 12, 4],
+    [harness.createTarget("input", { tagName: "INPUT" }), 12, 11],
+    [harness.createTarget("select", { tagName: "SELECT" }), 12, 12],
+    [harness.createTarget("textarea", { tagName: "TEXTAREA" }), 12, 13],
+    [harness.createTarget("role-button", { role: "button" }), 12, 14],
+  ]) {
+    const candidate = harness.document.dispatch("pointerdown", { target, pointerId, pointerType: "touch", isPrimary: true, button: 0, clientX: x, clientY: 100 });
+    const move = harness.document.dispatch("pointermove", { target, pointerId, clientX: x + 70, clientY: 102 });
+    harness.document.dispatch("pointerup", { target, pointerId, clientX: x + 70, clientY: 102 });
+    assert.equal(candidate.defaultPrevented, false);
+    assert.equal(move.defaultPrevented, false);
+    assert.equal(target.capturedPointer, null);
+  }
+  assert.equal(harness.sidebar.dataset.openMode, undefined);
+
+  harness.toggle.dispatch("click", { detail: 1 });
+  const outsideOpen = harness.createTarget("outside-open");
+  harness.document.dispatch("pointerdown", { target: outsideOpen, pointerId: 6, pointerType: "touch", isPrimary: true, button: 0, clientX: 12, clientY: 100 });
+  const outsideMove = harness.document.dispatch("pointermove", { target: outsideOpen, pointerId: 6, clientX: 80, clientY: 102 });
+  assert.equal(outsideMove.defaultPrevented, false);
+  assert.equal(harness.sidebar.dataset.openMode, "modal");
+});
+
+test("a claimed short swipe consumes exactly its matching synthetic click", () => {
+  const harness = sidebarHarness({ hoverCapable: false });
+  const card = harness.createTarget("claimed-card", { tagName: "ARTICLE", tabIndex: 0 });
+  let navigations = 0;
+  card.addEventListener("click", () => { navigations += 1; });
+  function claimedCancel(pointerId) {
+    harness.document.dispatch("pointerdown", { target: card, pointerId, pointerType: "touch", isPrimary: true, button: 0, clientX: 12, clientY: 100 });
+    const move = harness.document.dispatch("pointermove", { target: card, pointerId, clientX: 32, clientY: 102 });
+    assert.equal(move.defaultPrevented, true);
+    harness.document.dispatch("pointerup", { target: card, pointerId, clientX: 32, clientY: 102 });
+    assert.equal(harness.sidebar.dataset.openMode, undefined);
+  }
+  function click(pointerId) {
+    const event = harness.document.dispatch("click", { target: card, pointerId, detail: 1 });
+    if (!event.immediatePropagationStopped) card.dispatch("click", { pointerId, detail: 1 });
+    return event;
+  }
+
+  claimedCancel(41);
+  const synthetic = click(undefined);
+  assert.equal(synthetic.defaultPrevented, true);
+  assert.equal(synthetic.immediatePropagationStopped, true);
+  assert.equal(navigations, 0);
+  assert.equal(click(42).defaultPrevented, false);
+  assert.equal(navigations, 1);
+
+  claimedCancel(47);
+  assert.equal(click(47).defaultPrevented, true);
+  assert.equal(navigations, 1);
+
+  claimedCancel(43);
+  assert.equal(click(44).defaultPrevented, false);
+  assert.equal(navigations, 2);
+
+  claimedCancel(45);
+  harness.advance(501);
+  assert.equal(click(45).defaultPrevented, false);
+  assert.equal(navigations, 3);
+
+  claimedCancel(46);
+  card.isConnected = false;
+  assert.equal(click(46).defaultPrevented, false);
+  assert.equal(navigations, 4);
+});
+
+test("horizontal intent claims only the move and follows the measured sidebar width", () => {
+  const harness = sidebarHarness({ hoverCapable: false });
+  harness.sidebar.width = 400;
+  const target = harness.createTarget("edge-card");
+  const down = harness.document.dispatch("pointerdown", { target, pointerId: 7, pointerType: "touch", isPrimary: true, button: 0, clientX: 12, clientY: 100 });
+  assert.equal(down.defaultPrevented, false);
+  assert.equal(target.capturedPointer, null);
+
+  const move = harness.document.dispatch("pointermove", { target, pointerId: 7, clientX: 112, clientY: 104 });
+  assert.equal(move.defaultPrevented, true);
+  assert.equal(target.capturedPointer, 7);
+  assert.equal(harness.sidebar.classList.contains("dragging"), true);
+  assert.equal(harness.sidebar.style.transform, "translate3d(-300px,0,0)");
+
+  const up = harness.document.dispatch("pointerup", { target, pointerId: 7, clientX: 112, clientY: 104 });
+  assert.equal(up.defaultPrevented, true);
+  assert.equal(harness.sidebar.dataset.openMode, "modal");
+  assert.equal(harness.sidebar.style.transform, "");
+  assert.equal(harness.sidebar.classList.contains("dragging"), false);
+});
+
+test("a swipe-open modal restores focus to the nearest card or a focusable main fallback", () => {
+  for (const nearestCard of [true, false]) {
+    const harness = sidebarHarness({ hoverCapable: false });
+    const card = harness.createTarget(`card-${nearestCard}`, { tagName: "ARTICLE", tabIndex: 0 });
+    const target = harness.createTarget(`copy-${nearestCard}`, {
+      canFocus: false,
+      parentElement: nearestCard ? card : null,
+    });
+    harness.document.dispatch("pointerdown", { target, pointerId: 17, pointerType: "touch", isPrimary: true, button: 0, clientX: 12, clientY: 100 });
+    harness.document.dispatch("pointermove", { target, pointerId: 17, clientX: 80, clientY: 102 });
+    harness.document.dispatch("pointerup", { target, pointerId: 17, clientX: 80, clientY: 102 });
+    assert.equal(harness.sidebar.dataset.openMode, "modal");
+    assert.equal(harness.pageMain.tabIndex, nearestCard ? undefined : -1);
+    assert.equal(harness.document.activeElement, harness.close);
+
+    harness.scrim.dispatch("click");
+    assert.equal(harness.document.activeElement, nearestCard ? card : harness.pageMain);
+    assert.equal(harness.pageMain.inert, false);
+    assert.equal(harness.sidebar.inert, true);
+  }
+});
+
+test("a 48px left swipe inside an open modal closes it", () => {
+  const harness = sidebarHarness({ hoverCapable: false });
+  harness.toggle.dispatch("click", { detail: 1 });
+  const target = harness.createTarget("sidebar-blank", { withinSidebar: true });
+  harness.document.dispatch("pointerdown", { target, pointerId: 8, pointerType: "touch", isPrimary: true, button: 0, clientX: 260, clientY: 100 });
+  const move = harness.document.dispatch("pointermove", { target, pointerId: 8, clientX: 211, clientY: 104 });
+  assert.equal(move.defaultPrevented, true);
+  harness.document.dispatch("pointerup", { target, pointerId: 8, clientX: 211, clientY: 104 });
+  assert.equal(harness.sidebar.dataset.openMode, undefined);
+  assert.equal(harness.sidebar.classList.contains("open"), false);
+});
+
+test("pointer cancellation and viewport changes idempotently restore the exact prior state", () => {
+  for (const priorOpen of [false, true]) {
+    for (const cancellation of ["pointercancel", "lostpointercapture", "resize", "orientationchange"]) {
+      const harness = sidebarHarness({ hoverCapable: false });
+      if (priorOpen) harness.toggle.dispatch("click", { detail: 1 });
+      const target = harness.createTarget(`target-${cancellation}-${priorOpen}`, { withinSidebar: priorOpen });
+      const pointerId = priorOpen ? 10 : 9;
+      const startX = priorOpen ? 260 : 12;
+      const moveX = priorOpen ? 220 : 80;
+      harness.document.dispatch("pointerdown", { target, pointerId, pointerType: "touch", isPrimary: true, button: 0, clientX: startX, clientY: 100 });
+      harness.document.dispatch("pointermove", { target, pointerId, clientX: moveX, clientY: 103 });
+      assert.equal(harness.sidebar.classList.contains("dragging"), true);
+      if (cancellation === "resize" || cancellation === "orientationchange") harness.window.dispatch(cancellation);
+      else harness.document.dispatch(cancellation, { target, pointerId });
+      if (cancellation === "resize" || cancellation === "orientationchange") harness.window.dispatch(cancellation);
+      else harness.document.dispatch(cancellation, { target, pointerId });
+      assert.equal(harness.sidebar.dataset.openMode, priorOpen ? "modal" : undefined);
+      assert.equal(harness.sidebar.classList.contains("open"), priorOpen);
+      assert.equal(harness.sidebar.classList.contains("dragging"), false);
+      assert.equal(harness.sidebar.style.transform, "");
+    }
+  }
+});
+
+test("pinch cancellation restores the exact state before the claimed drag", () => {
+  for (const priorOpen of [false, true]) {
+    const harness = sidebarHarness({ hoverCapable: false });
+    if (priorOpen) harness.toggle.dispatch("click", { detail: 1 });
+    const target = harness.createTarget(`pinch-${priorOpen}`, { withinSidebar: priorOpen });
+    const startX = priorOpen ? 260 : 12;
+    const moveX = priorOpen ? 220 : 80;
+    harness.document.dispatch("pointerdown", { target, pointerId: 51, pointerType: "touch", isPrimary: true, button: 0, clientX: startX, clientY: 100 });
+    harness.document.dispatch("pointermove", { target, pointerId: 51, clientX: moveX, clientY: 103 });
+    assert.equal(harness.sidebar.classList.contains("dragging"), true);
+    harness.document.dispatch("pointercancel", { target, pointerId: 51, pointerType: "touch", pinch: true });
+    assert.equal(harness.sidebar.dataset.openMode, priorOpen ? "modal" : undefined);
+    assert.equal(harness.sidebar.classList.contains("open"), priorOpen);
+    assert.equal(harness.sidebar.classList.contains("dragging"), false);
+    assert.equal(harness.sidebar.style.transform, "");
+    assert.equal(target.capturedPointer, null);
+  }
+});
+
+test("gesture cancellation never consumes the next normal click", () => {
+  for (const cancellation of ["pointercancel", "lostpointercapture", "resize", "orientationchange"]) {
+    const harness = sidebarHarness({ hoverCapable: false });
+    const target = harness.createTarget(`cancel-click-${cancellation}`, { tagName: "ARTICLE", tabIndex: 0 });
+    let clicks = 0;
+    target.addEventListener("click", () => { clicks += 1; });
+    harness.document.dispatch("pointerdown", { target, pointerId: 61, pointerType: "touch", isPrimary: true, button: 0, clientX: 12, clientY: 100 });
+    harness.document.dispatch("pointermove", { target, pointerId: 61, clientX: 80, clientY: 103 });
+    assert.equal(harness.sidebar.classList.contains("dragging"), true);
+    if (cancellation === "resize" || cancellation === "orientationchange") harness.window.dispatch(cancellation);
+    else harness.document.dispatch(cancellation, { target, pointerId: 61 });
+    assert.equal(harness.sidebar.dataset.openMode, undefined);
+
+    const click = harness.document.dispatch("click", { target, pointerId: 61, detail: 1 });
+    if (!click.immediatePropagationStopped) target.dispatch("click", { pointerId: 61, detail: 1 });
+    assert.equal(click.defaultPrevented, false);
+    assert.equal(click.immediatePropagationStopped, false);
+    assert.equal(clicks, 1);
+  }
 });
 
 test("responsive sidebar owns account, favorites, and discovery filters", () => {

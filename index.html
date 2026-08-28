@@ -104,6 +104,7 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
   transition:transform .3s cubic-bezier(.32,.72,0,1),opacity .2s ease-out;
 }
 .filter-sidebar.open{transform:translate3d(0,0,0);opacity:1}
+.filter-sidebar.dragging{transition:none}
 .filter-sidebar.open~.nav-toggle{transform:translate3d(calc(var(--sidebar-width) - 1px),0,0);opacity:1;box-shadow:none}
 @media(hover:hover) and (pointer:fine){
   .nav-toggle{
@@ -111,6 +112,11 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
     background:var(--accent-soft);color:var(--accent-selected);box-shadow:none;
   }
   .nav-toggle:hover,.nav-toggle:focus-visible{background:var(--accent);color:#fff}
+}
+@media(hover:none),(pointer:coarse){
+  body{touch-action:pan-y pinch-zoom}
+  .nav-toggle{display:none}
+  .filter-sidebar{touch-action:pan-y pinch-zoom}
 }
 .sidebar-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .sidebar-head h2{font-size:19px;letter-spacing:-.015em}
@@ -689,6 +695,90 @@ sidebarClose.addEventListener("click",()=>{
 sidebarScrim.addEventListener("click",()=>closeSidebar());
 sidebar.addEventListener("keydown",event=>{if(sidebar.dataset.openMode==="modal")trapFocus(sidebar,event)});
 document.addEventListener("keydown",event=>{if(event.key==="Escape"&&sidebar.dataset.openMode==="modal")closeSidebar()});
+
+const sidebarCoarseMedia=matchMedia("(hover:none), (pointer:coarse)");
+const sidebarGestureInteractive='button,a,input,select,textarea,[role="button"]';
+let sidebarGesture=null,sidebarGesturePointerId=null,sidebarGestureTarget=null,sidebarGestureClaimed=false,sidebarGestureClickGuard=null;
+function armSidebarGestureClickGuard(pointerId,target){
+  const guard={pointerId,target,expiresAt:performance.now()+500};
+  sidebarGestureClickGuard=guard;
+  setTimeout(()=>{if(sidebarGestureClickGuard===guard)sidebarGestureClickGuard=null},500);
+}
+function consumeSidebarGestureClick(event){
+  const guard=sidebarGestureClickGuard;if(!guard)return;
+  sidebarGestureClickGuard=null;
+  if(performance.now()>guard.expiresAt||(event.pointerId!==undefined&&event.pointerId!==guard.pointerId)||guard.target?.isConnected===false)return;
+  const path=typeof event.composedPath==="function"?event.composedPath():[];
+  if(event.target!==guard.target&&!guard.target?.contains?.(event.target)&&!path.includes(guard.target))return;
+  event.preventDefault();event.stopImmediatePropagation();
+}
+function clearSidebarGestureVisual(){
+  sidebar.classList.remove("dragging");sidebar.style.removeProperty("transform");
+}
+function completeSidebarGesture(result,armClaimedClick=false){
+  const gesture=sidebarGesture,pointerId=sidebarGesturePointerId,target=sidebarGestureTarget,claimed=sidebarGestureClaimed;
+  sidebarGesture=null;sidebarGesturePointerId=null;sidebarGestureTarget=null;sidebarGestureClaimed=false;
+  clearSidebarGestureVisual();
+  if(armClaimedClick&&claimed)armSidebarGestureClickGuard(pointerId,target);
+  if(target?.hasPointerCapture?.(pointerId))target.releasePointerCapture(pointerId);
+  if(result==="open"){
+    if(gesture.trigger===pageMain)pageMain.tabIndex=-1;
+    openSidebar("modal",gesture.trigger);
+  }
+  else if(result==="close")closeSidebar();
+}
+function cancelSidebarGesture(){
+  if(!sidebarGesture)return;
+  UiMotion.cancelEdgeGesture(sidebarGesture);completeSidebarGesture("cancel");
+}
+function handleSidebarGestureDown(event){
+  if(!sidebarCoarseMedia.matches||sidebarGesture||event.isPrimary===false||event.button!==0||event.pointerType==="mouse")return;
+  if(event.target?.closest?.(sidebarGestureInteractive))return;
+  const sidebarOpen=sidebar.dataset.openMode==="modal";
+  const gesture=UiMotion.startEdgeGesture({
+    x:event.clientX,y:event.clientY,sidebarOpen,withinSidebar:sidebar.contains(event.target),
+    sidebarWidth:sidebar.getBoundingClientRect().width,
+  });
+  if(!gesture)return;
+  if(!sidebarOpen){
+    const returnTarget=event.target instanceof HTMLElement?event.target.closest("[tabindex],a,button,input,select,textarea"):null;
+    gesture.trigger=returnTarget instanceof HTMLElement?returnTarget:pageMain;
+  }
+  sidebarGesture=gesture;sidebarGesturePointerId=event.pointerId;
+  sidebarGestureTarget=typeof event.target?.setPointerCapture==="function"?event.target:sidebar;
+  sidebarGestureClaimed=false;
+}
+function handleSidebarGestureMove(event){
+  if(!sidebarGesture||event.pointerId!==sidebarGesturePointerId)return;
+  const update=UiMotion.updateEdgeGesture(sidebarGesture,{x:event.clientX,y:event.clientY});
+  if(update.state==="cancelled"){cancelSidebarGesture();return}
+  if(update.state!=="horizontal")return;
+  event.preventDefault();
+  if(!sidebarGestureClaimed){
+    sidebarGestureClaimed=true;sidebarGestureTarget.setPointerCapture(event.pointerId);
+  }
+  const width=sidebarGesture.sidebarWidth;
+  const offset=sidebarGesture.sidebarOpen
+    ? Math.max(-width,Math.min(0,sidebarGesture.dx))
+    : -width+Math.max(0,Math.min(width,sidebarGesture.dx));
+  sidebar.classList.add("dragging");sidebar.style.transform=`translate3d(${offset}px,0,0)`;
+}
+function handleSidebarGestureUp(event){
+  if(!sidebarGesture||event.pointerId!==sidebarGesturePointerId)return;
+  if(sidebarGestureClaimed)event.preventDefault();
+  completeSidebarGesture(UiMotion.finishEdgeGesture(sidebarGesture),true);
+}
+function handleSidebarGestureCancel(event){
+  if(sidebarGesture&&event.pointerId===sidebarGesturePointerId)cancelSidebarGesture();
+}
+document.addEventListener("pointerdown",handleSidebarGestureDown,true);
+document.addEventListener("pointermove",handleSidebarGestureMove,{passive:false});
+document.addEventListener("pointerup",handleSidebarGestureUp);
+document.addEventListener("pointercancel",handleSidebarGestureCancel);
+document.addEventListener("lostpointercapture",handleSidebarGestureCancel);
+document.addEventListener("click",consumeSidebarGestureClick,true);
+window.addEventListener("resize",cancelSidebarGesture);
+window.addEventListener("orientationchange",cancelSidebarGesture);
 
 function syncUrl(mode="push"){
   const next=RepoFilters.serializeState({...filterState,period,favOnly});
