@@ -19,6 +19,17 @@ function memoryStorage(initial = {}) {
   };
 }
 
+function recordingStorage(initial = {}) {
+  const storage = memoryStorage(initial);
+  const writes = [];
+  const setItem = storage.setItem;
+  storage.setItem = (key, value) => {
+    writes.push([key, String(value)]);
+    setItem(key, value);
+  };
+  return { storage, writes };
+}
+
 function deferred() {
   let resolve;
   let reject;
@@ -173,6 +184,110 @@ test("logout restores guest favorites without copying account values", async () 
   assert.deepEqual(controller.favorites(), ["guest/only"]);
   assert.equal(storage.getItem("gh-favs-guest"), '["guest/only"]');
   assert.equal(cloud.calls.filter(([method]) => ["add", "remove", "importUnion"].includes(method)).length, 0);
+});
+
+test("a restored Alice session replaces the guest list with only Alice's cloud list", async () => {
+  const { storage, writes } = recordingStorage({
+    "gh-favs-guest": '["guest/only"]',
+    "gh-favs-imported:alice": "1",
+  });
+  const states = [];
+  const cloud = fakeCloud({ alice: ["alice/only"] });
+  const controller = FavoriteSync.createController(controllerOptions(storage, cloud, states));
+
+  assert.equal(controller.mode(), "guest");
+  assert.deepEqual(controller.favorites(), ["guest/only"]);
+  await controller.setUser({ uid: "alice" });
+
+  assert.equal(controller.mode(), "account");
+  assert.deepEqual(controller.favorites(), ["alice/only"]);
+  assert.deepEqual(states.at(-1), ["alice/only"]);
+  assert.deepEqual(cloud.calls, [["read", "alice"], ["watch", "alice"]]);
+  assert.deepEqual(writes, [["gh-favs-cache:alice", '["alice/only"]']]);
+  assert.equal(storage.getItem("gh-favs-guest"), '["guest/only"]');
+});
+
+test("a pending Alice restore cannot replace Bob after Bob's auth callback wins", async () => {
+  const { storage, writes } = recordingStorage({
+    "gh-favs-guest": '["guest/only"]',
+    "gh-favs-imported:alice": "1",
+    "gh-favs-imported:bob": "1",
+  });
+  const states = [];
+  const cloud = fakeCloud({ bob: ["bob/only"] });
+  const lateAliceRead = cloud.deferNext("read");
+  const controller = FavoriteSync.createController(controllerOptions(storage, cloud, states));
+
+  const alice = controller.setUser({ uid: "alice" });
+  await Promise.resolve();
+  await controller.setUser({ uid: "bob" });
+  lateAliceRead.resolve(["alice/late"]);
+  await alice;
+
+  assert.equal(controller.mode(), "account");
+  assert.deepEqual(controller.favorites(), ["bob/only"]);
+  assert.deepEqual(states.at(-1), ["bob/only"]);
+  assert.equal(cloud.watchers.has("alice"), false);
+  assert.equal(cloud.watchers.has("bob"), true);
+  assert.deepEqual(writes, [["gh-favs-cache:bob", '["bob/only"]']]);
+  assert.equal(storage.getItem("gh-favs-guest"), '["guest/only"]');
+});
+
+test("a cross-tab signout restores only the preserved guest list", async () => {
+  const { storage, writes } = recordingStorage({
+    "gh-favs-guest": '["guest/only"]',
+    "gh-favs-imported:alice": "1",
+  });
+  const cloud = fakeCloud({ alice: ["alice/only"] });
+  const controller = FavoriteSync.createController(controllerOptions(storage, cloud));
+
+  await controller.setUser({ uid: "alice" });
+  await controller.setUser(null);
+
+  assert.equal(controller.mode(), "guest");
+  assert.deepEqual(controller.favorites(), ["guest/only"]);
+  assert.deepEqual(cloud.calls, [["read", "alice"], ["watch", "alice"], ["unsubscribe", "alice"]]);
+  assert.deepEqual(writes, [["gh-favs-cache:alice", '["alice/only"]']]);
+  assert.equal(storage.getItem("gh-favs-guest"), '["guest/only"]');
+});
+
+test("an Alice listener error retains account mode and the last Alice cache", async () => {
+  const { storage, writes } = recordingStorage({ "gh-favs-imported:alice": "1" });
+  const messages = [];
+  const cloud = fakeCloud({ alice: ["alice/initial"] });
+  const controller = FavoriteSync.createController(controllerOptions(storage, cloud, [], [], messages));
+
+  await controller.setUser({ uid: "alice" });
+  cloud.emit("alice", ["alice/cached"]);
+  cloud.emitError("alice");
+
+  assert.equal(controller.mode(), "account");
+  assert.deepEqual(controller.favorites(), ["alice/cached"]);
+  assert.equal(storage.getItem("gh-favs-cache:alice"), '["alice/cached"]');
+  assert.equal(storage.getItem("gh-favs-guest"), null);
+  assert.deepEqual(messages, [["즐겨찾기 실시간 동기화가 중단되었어요.", "error"]]);
+  assert.deepEqual(writes, [
+    ["gh-favs-cache:alice", '["alice/initial"]'],
+    ["gh-favs-cache:alice", '["alice/cached"]'],
+  ]);
+});
+
+test("logout then reload leaves account favorites outside the guest storage key", async () => {
+  const { storage, writes } = recordingStorage({
+    "gh-favs-guest": '["guest/only"]',
+    "gh-favs-imported:alice": "1",
+  });
+  const cloud = fakeCloud({ alice: ["alice/only"] });
+  const controller = FavoriteSync.createController(controllerOptions(storage, cloud));
+
+  await controller.setUser({ uid: "alice" });
+  await controller.setUser(null);
+  const reloaded = FavoriteSync.createController(controllerOptions(storage, fakeCloud()));
+
+  assert.equal(reloaded.mode(), "guest");
+  assert.deepEqual(reloaded.favorites(), ["guest/only"]);
+  assert.equal(storage.getItem("gh-favs-guest"), '["guest/only"]');
+  assert.deepEqual(writes, [["gh-favs-cache:alice", '["alice/only"]']]);
 });
 
 test("account switch unsubscribes first and ignores late callbacks from the old UID", async () => {
