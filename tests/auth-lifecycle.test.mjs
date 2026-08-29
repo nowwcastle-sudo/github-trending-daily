@@ -66,3 +66,18 @@ test("real discard runs once and stop removes both listeners idempotently", () =
   assert.equal(target.removes("pagehide"), 1);
   assert.equal(target.removes("pageshow"), 1);
 });
+
+test("missing or indeterminate pagehide events discard resources once", () => {
+  const target = eventTarget();
+  const calls = [];
+  const lifecycle = AuthLifecycle.create({
+    target,
+    onDiscard: () => calls.push("discard"),
+    onRestore: () => calls.push("restore"),
+  });
+
+  lifecycle.start();
+  target.emit("pagehide");
+  target.emit("pagehide", {});
+  assert.deepEqual(calls, ["discard"]);
+});

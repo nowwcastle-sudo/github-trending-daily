@@ -125,7 +125,12 @@ async function bootstrap() {
   const status = document.getElementById("syncStatus");
   const login = document.getElementById("loginBtn");
   const logout = document.getElementById("logoutBtn");
+  const authLifecycle = globalThis.AuthLifecycle;
   const generation = ++bootstrapGeneration;
+  if (typeof authLifecycle?.create !== "function") {
+    retainGuestMode(status, login, logout, "로그인 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
+    return;
+  }
   setAccountPending(status, login, logout);
 
   if (!globalThis.Favorites || !globalThis.FavoriteSync || !globalThis.favoriteController || !globalThis.applyFavoriteState) {
@@ -283,6 +288,12 @@ async function bootstrap() {
     stopAuth = onAuthStateChanged(auth, user => { void applyAuthState(user); });
     login.addEventListener("click", onLogin);
     logout.addEventListener("click", onLogout);
+    lifecycle = authLifecycle.create({
+      target: globalThis,
+      onDiscard: () => { bundle.dispose(); },
+      onRestore: restorePublishedState,
+    });
+    lifecycle.start();
   } catch {
     bundle.dispose();
     if (generation === bootstrapGeneration) {
@@ -300,12 +311,6 @@ async function bootstrap() {
   previous.dispose();
   globalThis.favoriteController = controller;
   bundle.published = true;
-  lifecycle = AuthLifecycle.create({
-    target: globalThis,
-    onDiscard: () => { bundle.dispose(); },
-    onRestore: restorePublishedState,
-  });
-  lifecycle.start();
   restorePublishedState();
   if (hasPendingUser) void applyAuthState(pendingUser);
 }

@@ -5,7 +5,9 @@ import vm from "node:vm";
 
 await import("../favorites.js");
 await import("../favorite-sync.js");
+await import("../auth-lifecycle.js");
 const FavoriteSync = globalThis.FavoriteSync;
+const AuthLifecycle = globalThis.AuthLifecycle;
 
 function memoryStorage(initial = {}) {
   const values = new Map(Object.entries(initial));
@@ -547,8 +549,19 @@ function makeButton({ hidden = false, failAdd } = {}) {
 function deferredBootstrapRuntime(options = {}) {
   const persistence = options.persistence || options.persistences?.[0] || deferred();
   const persistences = [...(options.persistences || [persistence])];
+  const statusAttributes = new Map();
+  const statusMutations = [];
   const elements = {
-    syncStatus: { textContent: "", title: "", dataset: {}, setAttribute() {} },
+    syncStatus: {
+      textContent: "",
+      title: "",
+      dataset: {},
+      setAttribute(name, value) {
+        statusAttributes.set(name, String(value));
+        statusMutations.push([name, String(value)]);
+      },
+      getAttribute(name) { return statusAttributes.get(name) ?? null; },
+    },
     loginBtn: makeButton(),
     logoutBtn: makeButton({ hidden: true, failAdd: options.failLogoutAdd }),
   };
@@ -559,7 +572,7 @@ function deferredBootstrapRuntime(options = {}) {
   const controllers = [];
   const observers = [];
   const applied = [];
-  let lifecycle;
+  const windowListeners = new Map();
   const guest = {
     disposeCalls: 0,
     dispose() { this.disposeCalls += 1; },
@@ -579,7 +592,7 @@ function deferredBootstrapRuntime(options = {}) {
           id: `controller-${controllerCreations}`,
           disposeCalls: 0,
           dispose() { this.disposeCalls += 1; },
-          favorites: () => [],
+          favorites: () => [`controller-${controllerCreations}/favorite`],
           setUser: async () => {},
         };
         controllers.push(controller);
@@ -631,21 +644,15 @@ function deferredBootstrapRuntime(options = {}) {
     runTransaction: async (_db, update) => update({ get: async () => ({ exists: () => false }), set() {} }),
     serverTimestamp: () => ({}),
     setDoc: async () => {},
-    AuthLifecycle: {
-      create(options) {
-        lifecycle = {
-          options,
-          startCalls: 0,
-          stopCalls: 0,
-        };
-        return {
-          start() { lifecycle.startCalls += 1; },
-          stop() { lifecycle.stopCalls += 1; },
-        };
-      },
+    addEventListener(type, listener) {
+      if (!windowListeners.has(type)) windowListeners.set(type, new Set());
+      windowListeners.get(type).add(listener);
     },
+    removeEventListener(type, listener) { windowListeners.get(type)?.delete(listener); },
     globalThis: null,
   };
+  if (Object.hasOwn(options, "authLifecycle")) context.AuthLifecycle = options.authLifecycle;
+  else context.AuthLifecycle = AuthLifecycle;
   context.globalThis = context;
   return {
     context,
@@ -658,11 +665,11 @@ function deferredBootstrapRuntime(options = {}) {
     get calls() { return calls; },
     get controllers() { return controllers; },
     get observers() { return observers; },
-    get lifecycle() { return lifecycle; },
     get applied() { return applied; },
+    get statusMutations() { return statusMutations; },
     browserLocalPersistence,
-    triggerPagehide(persisted) { if (!persisted) lifecycle?.options.onDiscard(); },
-    triggerPageshow(persisted) { if (persisted) lifecycle?.options.onRestore(); },
+    triggerPagehide(event) { for (const listener of windowListeners.get("pagehide") || []) listener(event); },
+    triggerPageshow(event) { for (const listener of windowListeners.get("pageshow") || []) listener(event); },
   };
 }
 
@@ -755,8 +762,8 @@ test("published bundle disposal is idempotent", async () => {
   runtime.persistence.resolve();
   await flushBootstrap();
 
-  runtime.triggerPagehide(false);
-  runtime.triggerPagehide(false);
+  runtime.triggerPagehide({ persisted: false });
+  runtime.triggerPagehide({ persisted: false });
   assert.equal(runtime.unsubscribeCalls, 1);
   assert.equal(runtime.controllers[0].disposeCalls, 1);
   assert.equal(runtime.elements.loginBtn.removeCalls, 1);
@@ -770,19 +777,35 @@ test("BFCache restore keeps the published Auth bundle and reapplies visible stat
   const controller = runtime.controllers[0];
   runtime.calls.find(call => call.type === "getAuth").auth.currentUser = { uid: "alice" };
 
-  assert.equal(runtime.lifecycle.startCalls, 1);
-  runtime.triggerPagehide(true);
+  runtime.triggerPagehide({ persisted: true });
   assert.equal(runtime.unsubscribeCalls, 0);
   assert.equal(controller.disposeCalls, 0);
-  runtime.triggerPageshow(true);
+  runtime.elements.syncStatus.textContent = "stale";
+  runtime.elements.syncStatus.title = "stale";
+  runtime.elements.syncStatus.dataset.tone = "notice";
+  runtime.elements.syncStatus.setAttribute("aria-label", "stale");
+  const beforeRestore = {
+    auth: runtime.calls.filter(call => call.type === "getAuth").length,
+    controllers: runtime.controllerCreations,
+    applied: runtime.applied.length,
+    statusMutations: runtime.statusMutations.length,
+  };
+  runtime.triggerPageshow({ persisted: true });
 
   assert.equal(runtime.unsubscribeCalls, 0);
   assert.equal(controller.disposeCalls, 0);
+  assert.equal(runtime.calls.filter(call => call.type === "getAuth").length, beforeRestore.auth);
+  assert.equal(runtime.controllerCreations, beforeRestore.controllers);
+  assert.equal(runtime.applied.length, beforeRestore.applied + 1);
   assert.equal(runtime.elements.loginBtn.hidden, true);
   assert.equal(runtime.elements.logoutBtn.hidden, false);
   assert.equal(runtime.elements.logoutBtn.disabled, false);
-  assert.deepEqual(JSON.parse(JSON.stringify(runtime.applied.at(-1))), { favorites: [], busy: false });
-  assert.equal(runtime.lifecycle.stopCalls, 0);
+  assert.equal(runtime.elements.syncStatus.textContent, "구글 계정 동기화");
+  assert.equal(runtime.elements.syncStatus.title, "구글 계정 동기화");
+  assert.equal(runtime.elements.syncStatus.getAttribute("aria-label"), "구글 계정 동기화");
+  assert.equal(runtime.elements.syncStatus.dataset.tone, "normal");
+  assert.equal(runtime.statusMutations.length, beforeRestore.statusMutations + 1);
+  assert.deepEqual(JSON.parse(JSON.stringify(runtime.applied.at(-1))), { favorites: ["controller-1/favorite"], busy: false });
 });
 
 test("real page discard disposes the published Auth bundle and lifecycle exactly once", async () => {
@@ -790,11 +813,47 @@ test("real page discard disposes the published Auth bundle and lifecycle exactly
   runtime.persistence.resolve();
   await flushBootstrap();
 
-  runtime.triggerPagehide(false);
-  runtime.triggerPagehide(false);
+  runtime.triggerPagehide({ persisted: false });
+  runtime.triggerPagehide({ persisted: false });
   assert.equal(runtime.unsubscribeCalls, 1);
   assert.equal(runtime.controllers[0].disposeCalls, 1);
-  assert.equal(runtime.lifecycle.stopCalls, 1);
+});
+
+test("missing or malformed lifecycle helpers retain guest mode before Firebase resources", async () => {
+  for (const authLifecycle of [undefined, {}, { create: true }]) {
+    const runtime = await runFirebaseBootstrap({ authLifecycle });
+    assert.deepEqual(runtime.calls, []);
+    assert.equal(runtime.guest.disposeCalls, 0);
+    assert.equal(runtime.context.favoriteController, runtime.guest);
+    assert.equal(runtime.observerCalls, 0);
+    assert.equal(runtime.controllerCreations, 0);
+    assert.equal(runtime.elements.loginBtn.listenerCount(), 0);
+    assert.equal(runtime.elements.logoutBtn.listenerCount(), 0);
+    assert.equal(runtime.elements.loginBtn.hidden, true);
+    assert.equal(runtime.elements.logoutBtn.hidden, true);
+    assert.equal(runtime.elements.syncStatus.textContent, "로그인 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
+  }
+});
+
+test("lifecycle construction and startup failure clean phase B before guest publication", async () => {
+  for (const authLifecycle of [
+    { create() { throw new Error("raw lifecycle create detail"); } },
+    { create() { return { start() { throw new Error("raw lifecycle start detail"); }, stop() {} }; } },
+  ]) {
+    const runtime = await runFirebaseBootstrap({ authLifecycle });
+    runtime.persistence.resolve();
+    await flushBootstrap();
+    assert.equal(runtime.guest.disposeCalls, 0);
+    assert.equal(runtime.context.favoriteController, runtime.guest);
+    assert.equal(runtime.observerCalls, 1);
+    assert.equal(runtime.unsubscribeCalls, 1);
+    assert.equal(runtime.controllerCreations, 1);
+    assert.equal(runtime.controllers[0].disposeCalls, 1);
+    assert.equal(runtime.elements.loginBtn.listenerCount(), 0);
+    assert.equal(runtime.elements.logoutBtn.listenerCount(), 0);
+    assert.equal(runtime.elements.syncStatus.textContent, "로그인 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
+    assert.doesNotMatch(runtime.elements.syncStatus.textContent, /raw lifecycle/);
+  }
 });
 
 test("an older persistence bootstrap cannot publish after a newer one", async () => {
@@ -896,6 +955,7 @@ test("a configuration failure stays on the existing guest controller", async () 
   const context = {
     Favorites: globalThis.Favorites,
     FavoriteSync,
+    AuthLifecycle,
     favoriteController: { favorites: () => ["guest/one"] },
     applyFavoriteState: state => { applied = state; },
     fetch: async () => ({ ok: true, json: async () => ({ projectId: "github-trending-nowwcastle", appCheckSiteKey: "public-site-key" }) }),
