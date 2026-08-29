@@ -203,6 +203,7 @@ async function artifactContract(source, latest, sources, identity = snapshotId) 
 
 test("version-1 artifact path set is exact and derived from active applicable translations", () => {
   assert.deepEqual(VERSION_1_BASE_PATHS, [
+    "auth-lifecycle.js",
     "changes.xml",
     "current-view-export.js",
     "data/latest.json",
@@ -222,6 +223,10 @@ test("version-1 artifact path set is exact and derived from active applicable tr
     "star-history.json",
     "ui-motion.js",
   ]);
+  assert.equal(VERSION_1_BASE_PATHS.filter(path => path === "auth-lifecycle.js").length, 1);
+  const python = spawnSync(process.env.PYTHON ?? "python", ["-c", "import json; from scripts.record_repository_observations import PAGES_BASE_ARTIFACT_PATHS; print(json.dumps(PAGES_BASE_ARTIFACT_PATHS))"], { cwd: root, encoding: "utf8" });
+  assert.equal(python.status, 0, python.stderr);
+  assert.deepEqual(JSON.parse(python.stdout), VERSION_1_BASE_PATHS);
   const latest = { repos: [{ slug: "Owner/One" }, { slug: "owner/two" }] };
   const sources = { version: 2, sources: {
     "Owner/One": sourceEntry(true),

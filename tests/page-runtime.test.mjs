@@ -352,6 +352,13 @@ test("the generated page has unique element ids", () => {
   assert.deepEqual(duplicates, []);
 });
 
+test("the BFCache lifecycle helper loads before the dynamic Firebase client", () => {
+  const lifecycle = page.indexOf('<script src="auth-lifecycle.js"></script>');
+  const firebase = page.indexOf('import("./firebase-client.js").catch');
+  assert.ok(lifecycle >= 0, "auth lifecycle helper must be loaded by the page");
+  assert.ok(firebase >= 0 && lifecycle < firebase, "auth lifecycle helper must load before dynamic Firebase import");
+});
+
 test("repository signals are initialized before rendering and refreshed from the feed", () => {
   const declaration = page.indexOf("const SIGNALS=new Map()");
   const render = page.indexOf("function render(){");

@@ -40,7 +40,7 @@ _DATE = "{0} GLOB '????-??-??'"
 FIELD_TAGS = ("ai-ml", "web-app", "dev-tools", "data", "devops", "security", "productivity", "systems", "learning")
 FORM_TAGS = ("agent", "mcp", "plugin-skill", "ide", "library", "framework", "cli")
 PAGES_BASE_ARTIFACT_PATHS = (
-    "changes.xml", "current-view-export.js", "data/latest.json", "data/membership-status.json",
+    "auth-lifecycle.js", "changes.xml", "current-view-export.js", "data/latest.json", "data/membership-status.json",
     "favorite-sync.js", "favorites.js", "feed.xml", "firebase-client.js", "firebase-config.json",
     "hidden-repos.js", "index.html", "membership-history.js", "readme-markdown.js",
     "refresh-schedule.js", "repo-filters.js", "star-history.js", "star-history.json", "ui-motion.js",

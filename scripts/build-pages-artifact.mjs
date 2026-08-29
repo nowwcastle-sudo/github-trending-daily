@@ -76,6 +76,7 @@ export function parseJsonStrict(input, label = "JSON", maxBytes = 16 * 1024 * 10
 }
 
 export const VERSION_1_BASE_PATHS = Object.freeze([
+  "auth-lifecycle.js",
   "changes.xml",
   "current-view-export.js",
   "data/latest.json",

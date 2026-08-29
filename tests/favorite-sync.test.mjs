@@ -558,7 +558,8 @@ function deferredBootstrapRuntime(options = {}) {
   const calls = [];
   const controllers = [];
   const observers = [];
-  const pagehideListeners = [];
+  const applied = [];
+  let lifecycle;
   const guest = {
     disposeCalls: 0,
     dispose() { this.disposeCalls += 1; },
@@ -586,7 +587,7 @@ function deferredBootstrapRuntime(options = {}) {
       },
     },
     favoriteController: guest,
-    applyFavoriteState() {},
+    applyFavoriteState(state) { applied.push(state); },
     fetch: async () => ({ ok: true, json: async () => ({
       projectId: "github-trending-nowwcastle",
       authDomain: "github-trending-nowwcastle.firebaseapp.com",
@@ -630,8 +631,18 @@ function deferredBootstrapRuntime(options = {}) {
     runTransaction: async (_db, update) => update({ get: async () => ({ exists: () => false }), set() {} }),
     serverTimestamp: () => ({}),
     setDoc: async () => {},
-    addEventListener(type, listener) {
-      if (type === "pagehide") pagehideListeners.push(listener);
+    AuthLifecycle: {
+      create(options) {
+        lifecycle = {
+          options,
+          startCalls: 0,
+          stopCalls: 0,
+        };
+        return {
+          start() { lifecycle.startCalls += 1; },
+          stop() { lifecycle.stopCalls += 1; },
+        };
+      },
     },
     globalThis: null,
   };
@@ -647,8 +658,11 @@ function deferredBootstrapRuntime(options = {}) {
     get calls() { return calls; },
     get controllers() { return controllers; },
     get observers() { return observers; },
+    get lifecycle() { return lifecycle; },
+    get applied() { return applied; },
     browserLocalPersistence,
-    triggerPagehide() { for (const listener of pagehideListeners) listener(); },
+    triggerPagehide(persisted) { if (!persisted) lifecycle?.options.onDiscard(); },
+    triggerPageshow(persisted) { if (persisted) lifecycle?.options.onRestore(); },
   };
 }
 
@@ -741,12 +755,46 @@ test("published bundle disposal is idempotent", async () => {
   runtime.persistence.resolve();
   await flushBootstrap();
 
-  runtime.triggerPagehide();
-  runtime.triggerPagehide();
+  runtime.triggerPagehide(false);
+  runtime.triggerPagehide(false);
   assert.equal(runtime.unsubscribeCalls, 1);
   assert.equal(runtime.controllers[0].disposeCalls, 1);
   assert.equal(runtime.elements.loginBtn.removeCalls, 1);
   assert.equal(runtime.elements.logoutBtn.removeCalls, 1);
+});
+
+test("BFCache restore keeps the published Auth bundle and reapplies visible state once", async () => {
+  const runtime = await runFirebaseBootstrap();
+  runtime.persistence.resolve();
+  await flushBootstrap();
+  const controller = runtime.controllers[0];
+  runtime.calls.find(call => call.type === "getAuth").auth.currentUser = { uid: "alice" };
+
+  assert.equal(runtime.lifecycle.startCalls, 1);
+  runtime.triggerPagehide(true);
+  assert.equal(runtime.unsubscribeCalls, 0);
+  assert.equal(controller.disposeCalls, 0);
+  runtime.triggerPageshow(true);
+
+  assert.equal(runtime.unsubscribeCalls, 0);
+  assert.equal(controller.disposeCalls, 0);
+  assert.equal(runtime.elements.loginBtn.hidden, true);
+  assert.equal(runtime.elements.logoutBtn.hidden, false);
+  assert.equal(runtime.elements.logoutBtn.disabled, false);
+  assert.deepEqual(JSON.parse(JSON.stringify(runtime.applied.at(-1))), { favorites: [], busy: false });
+  assert.equal(runtime.lifecycle.stopCalls, 0);
+});
+
+test("real page discard disposes the published Auth bundle and lifecycle exactly once", async () => {
+  const runtime = await runFirebaseBootstrap();
+  runtime.persistence.resolve();
+  await flushBootstrap();
+
+  runtime.triggerPagehide(false);
+  runtime.triggerPagehide(false);
+  assert.equal(runtime.unsubscribeCalls, 1);
+  assert.equal(runtime.controllers[0].disposeCalls, 1);
+  assert.equal(runtime.lifecycle.stopCalls, 1);
 });
 
 test("an older persistence bootstrap cannot publish after a newer one", async () => {
@@ -875,7 +923,8 @@ test("Firebase client uses pinned official modules and the required page script 
   }
   assert.match(source, /\brunTransaction\b/);
   assert.ok(html.indexOf('<script src="favorites.js"></script>') < html.indexOf('<script src="favorite-sync.js"></script>'));
-  assert.ok(html.indexOf('<script src="favorite-sync.js"></script>') < html.indexOf('import("./firebase-client.js").catch'));
+  assert.ok(html.indexOf('<script src="favorite-sync.js"></script>') < html.indexOf('<script src="auth-lifecycle.js"></script>'));
+  assert.ok(html.indexOf('<script src="auth-lifecycle.js"></script>') < html.indexOf('import("./firebase-client.js").catch'));
   assert.doesNotMatch(html, /<script type="module" src="firebase-client\.js"><\/script>/);
 });
 

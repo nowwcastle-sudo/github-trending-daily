@@ -176,6 +176,7 @@ async function bootstrap() {
   let controller;
   let stopAuth = () => {};
   let bundle;
+  let lifecycle;
   let pendingUser;
   let hasPendingUser = false;
 
@@ -230,18 +231,30 @@ async function bootstrap() {
     }
   };
 
+  const restorePublishedState = () => {
+    if (!bundle.published || bundle.disposed) return;
+    const user = auth.currentUser;
+    login.hidden = Boolean(user);
+    logout.hidden = !user;
+    login.disabled = Boolean(user);
+    logout.disabled = !user;
+    setSyncStatus(status, user);
+    globalThis.applyFavoriteState({ favorites: controller.favorites(), busy });
+  };
+
   bundle = {
     disposed: false,
     published: false,
     provider: null,
     dispose() {
       if (this.disposed) return;
-      this.disposed = true;
       authGeneration += 1;
+      this.disposed = true;
       stopAuth();
       controller?.dispose();
       login.removeEventListener("click", onLogin);
       logout.removeEventListener("click", onLogout);
+      lifecycle?.stop();
     },
   };
 
@@ -287,13 +300,14 @@ async function bootstrap() {
   previous.dispose();
   globalThis.favoriteController = controller;
   bundle.published = true;
-  login.hidden = Boolean(auth.currentUser);
-  logout.hidden = !auth.currentUser;
-  login.disabled = Boolean(auth.currentUser);
-  logout.disabled = !auth.currentUser;
+  lifecycle = AuthLifecycle.create({
+    target: globalThis,
+    onDiscard: () => { bundle.dispose(); },
+    onRestore: restorePublishedState,
+  });
+  lifecycle.start();
+  restorePublishedState();
   if (hasPendingUser) void applyAuthState(pendingUser);
-
-  addEventListener("pagehide", () => { bundle.dispose(); }, { once: true });
 }
 
 bootstrap();
