@@ -253,7 +253,7 @@ function releaseRecord(slug, value) {
   return { slug: canonicalSlug, ...Object.fromEntries(allowed.map(key => [key, record[key]])), metadata_sha256: canonicalHash({ slug: canonicalSlug, ...record }) };
 }
 
-function releaseNext(link, slug, page) {
+function releaseNext(link, slug, page, itemCount) {
   if (link === null) return null;
   if (typeof link !== "string" || !link.trim()) throw new Error(`Invalid release Link for ${slug}`);
   const links = link.split(",").map(part => /^\s*<([^>]+)>\s*;\s*rel="([a-z]+)"\s*$/.exec(part));
@@ -264,8 +264,10 @@ function releaseNext(link, slug, page) {
   let value;
   try { value = new URL(matches[0][1]); } catch { throw new Error(`Invalid release Link for ${slug}`); }
   const expected = repoPath(slug) + "/releases";
+  const numericRepository = /^\/repositories\/[1-9]\d{0,19}\/releases$/.test(value.pathname);
   if (!matches[0][1].startsWith("https://api.github.com/")
-    || value.protocol !== "https:" || value.hostname !== "api.github.com" || value.host !== "api.github.com" || value.pathname !== expected
+    || value.protocol !== "https:" || value.hostname !== "api.github.com" || value.host !== "api.github.com"
+    || value.pathname !== expected && !numericRepository || numericRepository && itemCount !== 100
     || value.port !== "" || value.hash
     || value.username || value.password
     || value.searchParams.getAll("per_page").join() !== "100" || value.searchParams.getAll("page").length !== 1
@@ -283,9 +285,10 @@ async function collectReleaseInventory(slug, context) {
     const response = await request(url, { ...context, operation: "release inventory", headers: context.githubHeaders });
     const value = await json(response, `release inventory for ${slug}`);
     if (!Array.isArray(value)) throw new Error(`Invalid release inventory for ${slug}`);
-    const next = releaseNext(response.headers.get("link"), slug, page);
+    const next = releaseNext(response.headers.get("link"), slug, page, value.length);
     if (page === EVENT_LIMITS.maxReleasePages && next !== null) throw new Error(`Release page cap exceeded for ${slug}`);
     const records = value.map(entry => releaseRecord(slug, entry));
+    if (page > 1 && records.length === 0) throw new Error(`Invalid release pagination for ${slug}`);
     for (const record of records) {
       if (seenIds.has(record.release_id)) throw new Error(`Duplicate release id for ${slug}`);
       seenIds.add(record.release_id);
@@ -303,7 +306,7 @@ async function collectReleaseInventory(slug, context) {
     if (first.etag && response.status !== 304) throw new Error(`Release ETag revalidation changed for ${slug} page ${index + 1}`);
     if (response.status === 304) continue;
     const value = await json(response, `release revalidation for ${slug}`);
-    const next = releaseNext(response.headers.get("link"), slug, index + 1);
+    const next = releaseNext(response.headers.get("link"), slug, index + 1, Array.isArray(value) ? value.length : -1);
     if (stableJson(value) !== first.canonicalBody || next !== first.next) throw new Error(`Release revalidation changed for ${slug} page ${index + 1}`);
   }
   return pages;

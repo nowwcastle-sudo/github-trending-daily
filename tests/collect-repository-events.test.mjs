@@ -516,6 +516,38 @@ test("hostile Link and a page-two-only non-ETag mutation both stop the complete 
   }), /Release revalidation changed.*page 2/);
 });
 
+test("GitHub numeric repository release pagination remains complete and slug-bound", async () => {
+  const repositoryId = "1079456184";
+  const pageOne = Array.from({ length: 100 }, (_, index) => release(index + 1));
+  const numericNext = `https://api.github.com/repositories/${repositoryId}/releases?per_page=100&page=2`;
+  const events = await collectRepositoryEvents([repo], {
+    fetchImpl: async (url, options) => {
+      const value = new URL(url);
+      if (value.pathname.endsWith("/releases")) {
+        const page = Number(value.searchParams.get("page"));
+        return page === 1
+          ? response(200, pageOne, { link: `<${numericNext}>; rel="next", <${numericNext}>; rel="last"` })
+          : response(200, [release(101)]);
+      }
+      return successfulFetch()(url, options);
+    },
+  });
+  assert.equal(events.releases.length, 101);
+
+  await assert.rejects(collectRepositoryEvents([repo], {
+    fetchImpl: async (url, options) => {
+      const value = new URL(url);
+      if (value.pathname.endsWith("/releases")) {
+        const page = Number(value.searchParams.get("page"));
+        return page === 1
+          ? response(200, pageOne.slice(1), { link: `<${numericNext}>; rel="next"` })
+          : response(200, []);
+      }
+      return successfulFetch()(url, options);
+    },
+  }), /Invalid release Link/);
+});
+
 test("all 75 candidates share bounded requests and an immutable event deadline", async () => {
   const repos = Array.from({ length: 75 }, (_, index) => ({ slug: `owner/repo-${index}`, default_branch: "main", default_branch_head_sha: sha("b") }));
   const all = await collectRepositoryEvents(repos, { fetchImpl: successfulFetch() });
