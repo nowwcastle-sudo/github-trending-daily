@@ -73,17 +73,22 @@ jobs:
           [ "$ORIGINAL_SHA" = "$(git rev-parse refs/remotes/origin/main)" ] || { echo "::error::checkout is not exact origin/main"; exit 1; }
           MANIFEST_FILE="${RUNNER_TEMP}/production-manifest.json"
           HTTP_STATUS="$(curl --silent --show-error --connect-timeout 5 --max-time 15 --max-filesize 1048576 --output "$MANIFEST_FILE" --write-out '%{http_code}' "${PRODUCTION_BASE_URL}deployment-manifest.json?preflight=${GITHUB_RUN_ID}")"
+          if [ -n "$REQUESTED_BOOTSTRAP_SOURCE_SHA" ] && [[ ! "$REQUESTED_BOOTSTRAP_SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]]; then
+            echo "::error::requested bootstrap source SHA is invalid"
+            exit 1
+          fi
+          FALLBACK_SOURCE_SHA="$ORIGINAL_SHA"
+          if [ "$HTTP_STATUS" = "404" ]; then
+            [ -n "$REQUESTED_BOOTSTRAP_SOURCE_SHA" ] || { echo "::error::verified-404 bootstrap requires an explicit source SHA"; exit 1; }
+            FALLBACK_SOURCE_SHA="$REQUESTED_BOOTSTRAP_SOURCE_SHA"
+          fi
           STATE_FILE="${RUNNER_TEMP}/production-state.json"
-          node scripts/build-pages-artifact.mjs --inspect-manifest "$MANIFEST_FILE" --http-status "$HTTP_STATUS" --fallback-source-sha "$ORIGINAL_SHA" > "$STATE_FILE"
+          node scripts/build-pages-artifact.mjs --inspect-manifest "$MANIFEST_FILE" --http-status "$HTTP_STATUS" --fallback-source-sha "$FALLBACK_SOURCE_SHA" > "$STATE_FILE"
           export ORIGINAL_SHA STATE_FILE
           node --input-type=module -e 'import { appendFileSync, readFileSync } from "node:fs"; import { parseJsonStrict } from "./scripts/build-pages-artifact.mjs"; const value=parseJsonStrict(readFileSync(process.env.STATE_FILE),"verified production state",1024*1024); const keys=["manifestSha256","manifestStatus","snapshotId","sourceSha","version"]; if(Object.keys(value).sort().join("\\0")!==keys.sort().join("\\0")) throw new Error("invalid production state"); appendFileSync(process.env.GITHUB_OUTPUT,`hydration_source_sha=${value.sourceSha}\nproduction_version=${value.version}\nparent_snapshot_id=${value.snapshotId ?? ""}\nrecovery_version=${value.version}\noriginal_sha=${process.env.ORIGINAL_SHA}\n`); appendFileSync(process.env.GITHUB_ENV,`HYDRATION_SOURCE_SHA=${value.sourceSha}\nPRODUCTION_MANIFEST_STATUS=${value.manifestStatus}\nPRODUCTION_MANIFEST_SHA256=${value.manifestSha256 ?? ""}\nPRODUCTION_VERSION=${value.version}\nPARENT_SNAPSHOT_ID=${value.snapshotId ?? ""}\nINPUT_SOURCE_SHA=${process.env.ORIGINAL_SHA}\n`);'
           HYDRATION_SOURCE_SHA="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(value.sourceSha);' "$STATE_FILE")"
           PRODUCTION_VERSION="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(String(value.version));' "$STATE_FILE")"
           PRODUCTION_MANIFEST_STATUS="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(value.manifestStatus);' "$STATE_FILE")"
-          if [ -n "$REQUESTED_BOOTSTRAP_SOURCE_SHA" ] && [[ ! "$REQUESTED_BOOTSTRAP_SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]]; then
-            echo "::error::requested bootstrap source SHA is invalid"
-            exit 1
-          fi
           git cat-file -e "${HYDRATION_SOURCE_SHA}^{commit}"
           git merge-base --is-ancestor "$HYDRATION_SOURCE_SHA" "$ORIGINAL_SHA"
           if [ "$PRODUCTION_VERSION" = "0" ]; then

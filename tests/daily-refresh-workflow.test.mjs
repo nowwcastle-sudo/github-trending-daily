@@ -160,7 +160,7 @@ test("v1 publication is one nonempty generated child and refresh chain is rechec
   assert.match(workflow, /git commit -m "chore: refresh trending snapshot"/);
   assert.match(workflow, /SOURCE_SHA="\$\(git rev-parse HEAD\)"/);
   assert.match(workflow, /\[ "\$SOURCE_SHA" != "\$ORIGINAL_SHA" \]/);
-  assert.doesNotMatch(workflow, /SOURCE_SHA="\$ORIGINAL_SHA"/);
+  assert.doesNotMatch(workflow, /(?:^|\n)\s+SOURCE_SHA="\$ORIGINAL_SHA"/);
   assert.match(workflow, /verify-refresh-chain\.mjs|probe-production\.mjs/);
 });
 
@@ -203,7 +203,7 @@ test("production preflight distinguishes strict v0 v1 and verified 404", async (
   const stateStart = workflow.indexOf("- name: Resolve verified production state");
   const stateEnd = workflow.indexOf("- name: Build verified recovery artifact", stateStart);
   const state = workflow.slice(stateStart, stateEnd);
-  assert.match(state, /build-pages-artifact\.mjs --inspect-manifest "\$MANIFEST_FILE" --http-status "\$HTTP_STATUS" --fallback-source-sha "\$ORIGINAL_SHA"/);
+  assert.match(state, /FALLBACK_SOURCE_SHA="\$ORIGINAL_SHA"[\s\S]*?"\$HTTP_STATUS" = "404"[\s\S]*?FALLBACK_SOURCE_SHA="\$REQUESTED_BOOTSTRAP_SOURCE_SHA"[\s\S]*?build-pages-artifact\.mjs --inspect-manifest "\$MANIFEST_FILE" --http-status "\$HTTP_STATUS" --fallback-source-sha "\$FALLBACK_SOURCE_SHA"/);
   assert.match(state, /PRODUCTION_MANIFEST_STATUS/);
   assert.match(state, /verified_404[\s\S]*--bootstrap-preflight-sha/);
   assert.match(state, /verified_v0[\s\S]*--legacy-recovery-sha/);
