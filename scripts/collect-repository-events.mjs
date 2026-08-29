@@ -219,11 +219,14 @@ function githubHtmlUrl(value, errorMessage, expectedPath) {
   let url;
   try { url = new URL(value); } catch { throw new Error(errorMessage); }
   const actualParts = url.pathname.split("/");
-  const expectedParts = expectedPath.split("/");
-  const exactRepositoryPath = actualParts.length === expectedParts.length
-    && actualParts.every((part, index) => (index === 1 || index === 2)
-      ? part.toLowerCase() === expectedParts[index].toLowerCase()
-      : part === expectedParts[index]);
+  const expectedPaths = Array.isArray(expectedPath) ? expectedPath : [expectedPath];
+  const exactRepositoryPath = expectedPaths.some(pathname => {
+    const expectedParts = pathname.split("/");
+    return actualParts.length === expectedParts.length
+      && actualParts.every((part, index) => (index === 1 || index === 2)
+        ? part.toLowerCase() === expectedParts[index].toLowerCase()
+        : part === expectedParts[index]);
+  });
   if (typeof value !== "string" || !value.startsWith("https://github.com/")
       || url.protocol !== "https:" || url.hostname !== "github.com" || url.host !== "github.com"
       || url.username || url.password || url.port || url.search || url.hash
@@ -238,7 +241,10 @@ function releaseRecord(slug, value) {
     || (value.name !== null && typeof value.name !== "string") || typeof value.draft !== "boolean" || typeof value.prerelease !== "boolean"
     || !validTime(value.created_at) || !validTime(value.published_at, true)) throw new Error(`Invalid release for ${slug}`);
   if (!value.tag_name || /[\u0000-\u001f\u007f]/.test(value.tag_name)) throw new Error(`Invalid release for ${slug}`);
-  githubHtmlUrl(value.html_url, `Invalid release for ${slug}`, `/${canonicalSlug}/releases/tag/${encodeURIComponent(value.tag_name)}`);
+  githubHtmlUrl(value.html_url, `Invalid release for ${slug}`, [
+    `/${canonicalSlug}/releases/tag/${encodeURIComponent(value.tag_name)}`,
+    `/${canonicalSlug}/releases/tag/${value.tag_name.split("/").map(encodeURIComponent).join("/")}`,
+  ]);
   const record = {
     release_id: value.id,
     tag_name: value.tag_name,

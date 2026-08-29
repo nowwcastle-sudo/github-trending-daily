@@ -725,23 +725,26 @@ test("release identities and same-origin pagination reject every hostile URL com
   }
 });
 
-test("release tag identity uses one deterministic encodeURIComponent path segment", async () => {
+test("release tag identity accepts exact encoded and GitHub slash paths", async () => {
   const tagged = release(1, "v1/preview build");
   const encoded = encodeURIComponent(tagged.tag_name);
-  const events = await collectRepositoryEvents([repo], {
-    fetchImpl: async (url, options) => {
-      const value = new URL(url);
-      const exact = { ...tagged, html_url: `https://github.com/owner/repo/releases/tag/${encoded}` };
-      if (value.hostname === "api.ossinsight.io") return response(200, oss([]));
-      if (value.pathname.endsWith("/releases/latest")) return response(200, exact);
-      if (value.pathname.endsWith("/releases")) {
-        if (options.headers?.["If-None-Match"]) return new Response(null, { status: 304, headers: { etag: '"release"' } });
-        return response(200, [exact], { etag: '"release"' });
-      }
-      throw new Error("unexpected fixed operation");
-    },
-  });
-  assert.equal(events.releases[0].html_url, `https://github.com/owner/repo/releases/tag/${encoded}`);
+  const slashPath = tagged.tag_name.split("/").map(encodeURIComponent).join("/");
+  for (const path of [encoded, slashPath]) {
+    const events = await collectRepositoryEvents([repo], {
+      fetchImpl: async (url, options) => {
+        const value = new URL(url);
+        const exact = { ...tagged, html_url: `https://github.com/owner/repo/releases/tag/${path}` };
+        if (value.hostname === "api.ossinsight.io") return response(200, oss([]));
+        if (value.pathname.endsWith("/releases/latest")) return response(200, exact);
+        if (value.pathname.endsWith("/releases")) {
+          if (options.headers?.["If-None-Match"]) return new Response(null, { status: 304, headers: { etag: '"release"' } });
+          return response(200, [exact], { etag: '"release"' });
+        }
+        throw new Error("unexpected fixed operation");
+      },
+    });
+    assert.equal(events.releases[0].html_url, `https://github.com/owner/repo/releases/tag/${path}`);
+  }
 });
 
 test("GitHub HTML URLs compare only owner and repository path casing loosely", async () => {
