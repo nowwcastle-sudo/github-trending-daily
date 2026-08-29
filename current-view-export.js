@@ -9,8 +9,8 @@
   const TIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
   const PERIODS = new Set(["all", "daily", "weekly", "monthly"]);
   const SORTS = new Set(["trending", "gain", "stars", "pushed", "release"]);
-  const MEMBERSHIP = new Set(["baseline", "new", "reentered", "stayed"]);
-  const URL_KEYS = new Set(["period", "sort", "view", "lang", "field", "tag", "exclude", "q"]);
+  const MEMBERSHIP = new Set(["baseline_present", "new", "reentered", "stayed"]);
+  const URL_KEYS = new Set(["period", "sort", "view", "lang", "field", "tag", "exclude", "membership", "q"]);
   const CSV_COLUMNS = [
     "slug", "name", "description", "language", "topics", "stars", "forks", "issues",
     "contributors", "period_gain", "pushed_at", "latest_release", "membership_status",
@@ -39,14 +39,23 @@
     return Array.isArray(value) ? value.filter(item => typeof item === "string") : [];
   }
 
+  function checkedMembershipStatus(value) {
+    const status = value === "baseline" ? "baseline_present" : value;
+    if (!MEMBERSHIP.has(status)) throw new Error("current export membership status is invalid");
+    return status;
+  }
+
   function checkedSourceUrl(value) {
     let url;
     try { url = new URL(value); }
     catch { throw new Error("invalid export source URL"); }
+    const membership = url.searchParams.getAll("membership");
     if (
       !["https:", "http:"].includes(url.protocol)
       || url.username || url.password || url.hash
       || [...url.searchParams.keys()].some(key => !URL_KEYS.has(key))
+      || membership.length > 1
+      || (membership.length === 1 && membership[0] !== "new")
     ) {
       throw new Error("export source URL must use whitelisted state");
     }
@@ -61,6 +70,7 @@
       field: [...new Set(stringList(value.fields))],
       tag: [...new Set(stringList(value.forms))],
       excludeAi: value.excludeAi === true,
+      newOnly: value.newOnly === true,
       q: typeof value.q === "string" && value.q.length <= 120 ? value.q : "",
       sort: SORTS.has(value.sort) ? value.sort : "trending",
     };
@@ -94,7 +104,7 @@
         periodGain: number(gainOf(repository)),
         pushedAt: nullableText(repository.pushed_at),
         latestRelease: nullableText(repository.latest_release),
-        membershipStatus: MEMBERSHIP.has(status) ? status : null,
+        membershipStatus: checkedMembershipStatus(status),
       };
     });
     return {

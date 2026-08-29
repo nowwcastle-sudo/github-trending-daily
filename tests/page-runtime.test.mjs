@@ -242,6 +242,108 @@ function sidebarHarness({ hoverCapable = true } = {}) {
   };
 }
 
+function renderContractHarness(classification = { forms: [], fields: ["unclassified"] }, repos = []) {
+  const start = page.indexOf("const NEW_ONLY_LOAD_ERROR=");
+  const end = page.indexOf("\n/* render */", start);
+  assert.ok(start >= 0 && end > start, "render contract helpers must be isolated");
+  const context = {
+    MEMBERSHIP_STATUS: new Map(),
+    RepoFilters: {
+      fields: [
+        { id: "ai-ml", label: "AI·머신러닝" },
+        { id: "dev-tools", label: "개발 도구" },
+        { id: "security", label: "보안·프라이버시" },
+        { id: "unclassified", label: "미분류" },
+      ],
+      forms: [
+        { id: "agent", label: "Agent" },
+        { id: "mcp", label: "MCP" },
+      ],
+      classifyRepo() { return classification; },
+    },
+    MembershipHistory: {
+      currentStatus(status) { return status.currentStatus; },
+    },
+    REPOS: repos,
+    esc(value) { return String(value); },
+  };
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(`${page.slice(start, end)}
+    globalThis.__renderContract={newOnlyGate,transientMembershipRepo,membershipStatusForRepos,classificationBadges};
+  `, context, { filename: "render-contract-fixture.js" });
+  return { context, contract: context.__renderContract };
+}
+
+function scrollTopHarness({ reducedMotion = false } = {}) {
+  const start = page.indexOf("/* scroll-to-top runtime */");
+  const end = page.indexOf("/* scroll-to-top runtime end */", start);
+  assert.ok(start >= 0 && end > start, "scroll-to-top runtime must be isolated");
+  class ClassList {
+    constructor() { this.values = new Set(); }
+    add(value) { this.values.add(value); }
+    remove(value) { this.values.delete(value); }
+    contains(value) { return this.values.has(value); }
+  }
+  const button = {
+    hidden: true,
+    inert: true,
+    tabIndex: -1,
+    style: {
+      values: new Map(),
+      setProperty(name, value) { this.values.set(name, value); },
+      getPropertyValue(name) { return this.values.get(name) ?? ""; },
+    },
+    listeners: new Map(),
+    addEventListener(type, listener) { this.listeners.set(type, listener); },
+    dispatch(type) { this.listeners.get(type)?.({ currentTarget: this }); },
+  };
+  const listeners = new Map(), frames = [], scrollCalls = [];
+  const windowRef = {
+    scrollY: 0,
+    innerHeight: 800,
+    addEventListener(type, listener, options) { listeners.set(type, { listener, options }); },
+    scrollTo(options) { scrollCalls.push(options); },
+  };
+  const hiddenNotice = {
+    hidden: true,
+    height: 0,
+    getBoundingClientRect() {
+      return { top: windowRef.innerHeight - 20 - this.height, height: this.height };
+    },
+  };
+  const context = {
+    document: { getElementById(id) { return id === "scrollTopBtn" ? button : id === "hiddenNotice" ? hiddenNotice : null; } },
+    window: windowRef,
+    sidebar: { dataset: {} },
+    sidebarScrim: { classList: new ClassList() },
+    panel: { classList: new ClassList() },
+    scrim: { classList: new ClassList() },
+    requestAnimationFrame(callback) { frames.push(callback); return frames.length; },
+    matchMedia() { return { matches: reducedMotion }; },
+  };
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(page.slice(start, end), context, { filename: "scroll-top-fixture.js" });
+  return {
+    button,
+    sidebar: context.sidebar,
+    sidebarScrim: context.sidebarScrim,
+    panel: context.panel,
+    scrim: context.scrim,
+    scrollCalls,
+    listener(type) { return listeners.get(type); },
+    dispatch(type) { listeners.get(type)?.listener({ type }); },
+    setViewport(scrollY, innerHeight = 800) { windowRef.scrollY = scrollY; windowRef.innerHeight = innerHeight; },
+    setUndo(hidden, height = 0) { hiddenNotice.hidden = hidden; hiddenNotice.height = height; },
+    offset() { return button.style.getPropertyValue("--scroll-top-offset"); },
+    pendingFrames() { return frames.length; },
+    flush() { const callbacks = frames.splice(0); callbacks.forEach(callback => callback()); },
+    click() { button.dispatch("click"); },
+    openModal() { context.sidebar.dataset.openMode = "modal"; context.hideScrollTopImmediately(); },
+  };
+}
+
 test("the generated page has unique element ids", () => {
   const ids = [...page.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
   const duplicates = [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
@@ -884,6 +986,10 @@ test("the explore edge tab stays attached, reachable, and outside the inert page
   assert.match(page, /\.filter-sidebar\{[\s\S]*?width:var\(--sidebar-width\)/);
   assert.match(page, /\.nav-toggle\{[^}]*background:var\(--tip-bg\)[^}]*transition:transform \.3s cubic-bezier\(\.32,\.72,0,1\),opacity \.2s ease-out/);
   assert.match(page, /\.filter-sidebar\.open~\.nav-toggle\{transform:translate3d\(calc\(var\(--sidebar-width\) - 1px\),0,0\)/);
+  assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 60px\)\}\}/);
+  assert.match(page, /@media\(max-width:560px\)\{[\s\S]*?h1\{white-space:normal;overflow-wrap:anywhere\}/);
+  assert.match(page, /\.repo-link\{[^}]*min-width:0[^}]*overflow-wrap:anywhere[^}]*word-break:break-word/);
+  assert.match(page, /@media\(max-width:560px\)\{[\s\S]*?\.undo-bar\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}[\s\S]*?\.undo-bar span\{grid-column:1\/-1;min-width:0\}/);
   assert.match(page, /navToggle\.setAttribute\("aria-label","탐색 사이드바 닫기"\)/);
   assert.match(page, /navToggle\.setAttribute\("aria-label","탐색 사이드바 열기"\)/);
   assert.match(page, /navToggle\.addEventListener\("pointerenter"/);
@@ -899,7 +1005,7 @@ test("filter state is restored from and written to the URL", () => {
   assert.match(page, /RepoFilters\.parseState\(location\.search/);
   assert.match(page, /history\.(?:pushState|replaceState)\(/);
   assert.match(page, /addEventListener\("popstate"/);
-  assert.match(page, /RepoFilters\.matchesRepo\(r,/);
+  assert.match(page, /RepoFilters\.matchesRepo\(transientMembershipRepo\(r\),/);
 });
 
 test("membership history is loaded before semantic badges and recent exits are rendered", () => {
@@ -911,6 +1017,181 @@ test("membership history is loaded before semantic badges and recent exits are r
   assert.match(page, /id="recentExitsSection"[^>]*hidden/);
   assert.match(page, /id="recentExitsList"/);
   assert.match(page, /recentExitsList[\s\S]*?https:\/\/github\.com\//);
+});
+
+test("new-only control follows AI exclusion and owns the complete public view state", () => {
+  const fieldSection = page.match(/<section class="sidebar-section" id="fieldSection"[\s\S]*?<\/section>/)?.[0] ?? "";
+  const excludeIndex = fieldSection.indexOf('id="excludeAi"');
+  const newOnlyIndex = fieldSection.indexOf('id="newOnly"');
+  assert.ok(excludeIndex >= 0 && excludeIndex < newOnlyIndex);
+  assert.equal([...fieldSection.matchAll(/id="newOnly"/g)].length, 1);
+  assert.match(fieldSection, /<fieldset class="filter-switch-row">[\s\S]*?<legend class="sr-only">빠른 필터<\/legend>/);
+  assert.match(fieldSection, /<label class="filter-switch"><input id="newOnly" type="checkbox"> 신규 저장소만<\/label>/);
+  assert.match(page, /\.filter-switch-row\{[^}]*grid-template-columns:repeat\(auto-fit,minmax\(min\(140px,100%\),1fr\)\)/);
+  assert.match(page, /document\.getElementById\("newOnly"\)\.checked=filterState\.newOnly/);
+  assert.match(page, /activeDiscoveryCount\(\)[\s\S]*?\+\(filterState\.newOnly\?1:0\)/);
+  assert.match(page, /document\.getElementById\("newOnly"\)\.addEventListener\("change",event=>\{[\s\S]*?newOnly:event\.target\.checked[\s\S]*?syncUrl\(\);render\(\)/);
+  assert.match(page, /clearFiltersBtn[\s\S]*?newOnly:false/);
+  assert.match(page, /function currentExportState\(\)\{return \{\.\.\.filterState,period,favOnly\}\}/);
+  assert.match(page, /window\.addEventListener\("popstate",\(\)=>applyFilterState\(RepoFilters\.parseState\(location\.search,LANGUAGES\)\)\)/);
+});
+
+test("new-only waits for membership and fails closed with one canonical baseline boundary", () => {
+  const { context, contract } = renderContractHarness();
+  assert.equal(JSON.stringify(contract.newOnlyGate({ newOnly: true }, "loading")), JSON.stringify({
+    message: "신규 상태를 불러오는 중…",
+    summary: "신규 상태를 불러오는 중입니다.",
+  }));
+  assert.equal(JSON.stringify(contract.newOnlyGate({ newOnly: true }, "error")), JSON.stringify({
+    message: "신규 상태를 불러오지 못해 필터를 적용할 수 없습니다.",
+    summary: "0개 저장소 · 신규 상태를 불러오지 못해 필터를 적용할 수 없습니다.",
+  }));
+  assert.equal(contract.newOnlyGate({ newOnly: true }, "ready"), null);
+  assert.equal(contract.newOnlyGate({ newOnly: false }, "loading"), null);
+  context.MEMBERSHIP_STATUS.set("owner/repo", "baseline");
+  const transient = contract.transientMembershipRepo({ slug: "Owner/Repo", name: "Repo" });
+  assert.equal(transient.membership_status, "baseline_present");
+  assert.equal(transient.name, "Repo");
+
+  const renderFlow = page.match(/function render\(\)\{[\s\S]*?\/\* 즐겨찾기 \*\//)?.[0] ?? "";
+  const gateIndex = renderFlow.indexOf("const newOnlyBlock=newOnlyGate(filterState,membershipLoadState)");
+  const filterIndex = renderFlow.indexOf("REPOS.filter");
+  assert.ok(gateIndex >= 0 && gateIndex < filterIndex, "membership gate must run before repository filtering");
+  assert.match(renderFlow, /if\(newOnlyBlock\)\{[\s\S]*?currentVisibleRepos=\[\][\s\S]*?list\.innerHTML=""[\s\S]*?newOnlyBlock\.message[\s\S]*?return/);
+  assert.match(page, /let membershipLoadState="loading"/);
+  assert.match(page, /membershipLoadState="ready"[\s\S]*?renderRecentExits\(status\.exited\);render\(\)/);
+  assert.match(page, /membershipLoadState="error"[\s\S]*?MEMBERSHIP_STATUS\.clear\(\)[\s\S]*?renderRecentExits\(\);render\(\)/);
+});
+
+test("membership readiness requires an exact normalized current-slug join", () => {
+  const repos = [{ slug: "Owner/One" }, { slug: "owner/two" }];
+  const { contract } = renderContractHarness(undefined, repos);
+  const complete = new Map([["owner/one", "baseline"], ["owner/two", "new"]]);
+  assert.equal(contract.membershipStatusForRepos({ currentStatus: complete }), complete);
+
+  assert.throws(
+    () => contract.membershipStatusForRepos({ currentStatus: new Map([["owner/one", "baseline"]]) }),
+    /membership current rows do not exactly match repositories/,
+    "a missing repository row must reject readiness",
+  );
+  assert.throws(
+    () => contract.membershipStatusForRepos({ currentStatus: new Map([["owner/one", "baseline"], ["owner/unexpected", "new"]]) }),
+    /membership current rows do not exactly match repositories/,
+    "an equal-sized unexpected row must reject readiness rather than passing a count-only mutation",
+  );
+
+  const helper = page.match(/function membershipStatusForRepos\(status\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.match(helper, /current\.size!==repoSlugs\.size/);
+  assert.match(helper, /\[\.\.\.repoSlugs\]\.some\(slug=>!current\.has\(slug\)\)/);
+});
+
+test("canonical card badges preserve every form and non-AI field before one AI badge", () => {
+  const classification = { forms: ["agent", "mcp"], fields: ["ai-ml", "dev-tools", "security"] };
+  const html = renderContractHarness(classification).contract.classificationBadges({});
+  const order = ["Agent", "MCP", "개발 도구", "보안·프라이버시", 'data-category="ai"'].map(value => html.indexOf(value));
+  assert.ok(order.every(index => index >= 0));
+  assert.deepEqual(order, [...order].sort((left, right) => left - right));
+  assert.equal([...html.matchAll(/data-category="form"/g)].length, 2);
+  assert.equal([...html.matchAll(/data-category="field"/g)].length, 2);
+  assert.equal([...html.matchAll(/data-category="ai"/g)].length, 1);
+  for (const category of ["형태:", "분야·기술:", "AI 관련:"]) {
+    assert.match(html, new RegExp(`class="category-label" aria-hidden="true">${category}`));
+    assert.match(html, new RegExp(`class="sr-only">${category} `));
+  }
+  assert.doesNotMatch(html, /\+\d|\+N/);
+  const helper = page.match(/function classificationBadges\(repo\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.match(helper, /RepoFilters\.classifyRepo\(repo\)/);
+  assert.doesNotMatch(helper, /repo\.(?:slug|desc|description|topics|summary)|RegExp|\.test\(/);
+  assert.match(page, /<div class="category-badges">\$\{classificationBadges\(r\)\}<\/div>/);
+  assert.match(page, /\.category-badge\{[^}]*max-width:100%[^}]*overflow-wrap:anywhere/);
+});
+
+test("repository issue counts use the exact Korean issue and PR label twice", () => {
+  assert.equal([...page.matchAll(/열린 이슈·PR/g)].length, 2);
+  assert.equal([...page.matchAll(/\$\{fmt\(r\.issues\|\|0\)\}/g)].length, 2);
+  assert.doesNotMatch(page, /\$\{fmt\(r\.issues\|\|0\)\} issues/);
+});
+
+test("scroll-to-top is native, thresholded, coalesced, overlay-safe, and motion-aware", () => {
+  assert.match(page, /<button class="scroll-top" id="scrollTopBtn" type="button" aria-label="페이지 맨 위로 이동" hidden tabindex="-1" inert>/);
+  const style = page.match(/\.scroll-top\{[^}]*\}/)?.[0] ?? "";
+  assert.match(style, /position:fixed/);
+  assert.match(style, /min-width:48px/);
+  assert.match(style, /min-height:48px/);
+  assert.match(style, /right:calc\(env\(safe-area-inset-right\) \+ 16px\)/);
+  assert.match(style, /bottom:max\(calc\(env\(safe-area-inset-bottom\) \+ 16px\),var\(--scroll-top-offset,16px\)\)/);
+  assert.match(page, /@media\(max-width:1147px\)\{\.list-stage\{padding-right:calc\(56px \+ env\(safe-area-inset-right\)\)\}\}/);
+
+  const harness = scrollTopHarness();
+  for (const type of ["scroll", "resize", "orientationchange"]) {
+    assert.equal(JSON.stringify(harness.listener(type)?.options), JSON.stringify({ passive: true }));
+  }
+  assert.equal(harness.pendingFrames(), 1);
+  harness.flush();
+  assert.equal(harness.button.hidden, true);
+  assert.equal(harness.button.inert, true);
+  assert.equal(harness.button.tabIndex, -1);
+
+  harness.setViewport(800, 800);
+  harness.dispatch("scroll");
+  harness.dispatch("resize");
+  harness.dispatch("orientationchange");
+  assert.equal(harness.pendingFrames(), 1);
+  harness.flush();
+  assert.equal(harness.button.hidden, true);
+
+  harness.setViewport(801, 800);
+  harness.dispatch("scroll");
+  harness.flush();
+  assert.equal(harness.button.hidden, false);
+  assert.equal(harness.button.inert, false);
+  assert.equal(harness.button.tabIndex, 0);
+  assert.equal(harness.offset(), "16px");
+
+  harness.openModal();
+  assert.equal(harness.button.hidden, true);
+  assert.equal(harness.button.inert, true);
+  assert.equal(harness.button.tabIndex, -1);
+  assert.match(page, /if\(mode==="modal"&&typeof hideScrollTopImmediately==="function"\)hideScrollTopImmediately\(\)/);
+  assert.match(page, /panel\.inert=false[\s\S]*?if\(typeof hideScrollTopImmediately==="function"\)hideScrollTopImmediately\(\)/);
+  harness.sidebar.dataset.openMode = "hover";
+  harness.dispatch("resize");
+  harness.flush();
+  assert.equal(harness.button.hidden, false);
+
+  harness.setUndo(false, 120);
+  harness.dispatch("resize");
+  harness.flush();
+  assert.equal(harness.offset(), "156px");
+  harness.setUndo(true);
+
+  harness.sidebar.dataset.openMode = "modal";
+  harness.dispatch("resize");
+  harness.flush();
+  assert.equal(harness.button.hidden, true);
+  assert.equal(harness.button.inert, true);
+  harness.sidebar.dataset.openMode = "hover";
+  harness.dispatch("resize");
+  harness.flush();
+  assert.equal(harness.button.hidden, false);
+
+  for (const [overlay, className] of [[harness.sidebarScrim, "on"], [harness.panel, "open"], [harness.scrim, "on"]]) {
+    overlay.classList.add(className);
+    harness.dispatch("resize");
+    harness.flush();
+    assert.equal(harness.button.hidden, true);
+    assert.equal(harness.button.inert, true);
+    overlay.classList.remove(className);
+  }
+  harness.dispatch("resize");
+  harness.flush();
+  harness.click();
+  assert.equal(JSON.stringify(harness.scrollCalls.at(-1)), JSON.stringify({ top: 0, behavior: "smooth" }));
+
+  const reduced = scrollTopHarness({ reducedMotion: true });
+  reduced.flush();
+  reduced.click();
+  assert.equal(JSON.stringify(reduced.scrollCalls.at(-1)), JSON.stringify({ top: 0, behavior: "auto" }));
 });
 
 test("the page head advertises both exact Atom subscription endpoints", () => {
@@ -983,7 +1264,10 @@ test("light surfaces use semantic borders while dark and interaction states stay
   assert.match(page, /--surface-border:rgba\(0,0,0,\.14\)/);
   assert.match(page, /--surface-border-strong:rgba\(0,0,0,\.24\)/);
   assert.match(page, /html\[data-theme="dark"\]\{[\s\S]*?--surface-border:var\(--hairline\); --surface-border-strong:var\(--border\)/);
-  assert.match(page, /\.title-box\{[^}]*border:1px solid var\(--surface-border\)/);
+  const title = page.match(/\.title-box\{[^}]*\}/)?.[0] ?? "";
+  assert.match(title, /background:var\(--bg\)/);
+  assert.match(title, /border:none/);
+  assert.doesNotMatch(title, /var\(--(?:bg-elev|card|surface)|box-shadow|backdrop-filter/);
   assert.match(page, /<div class="title-box">\s*<h1><button class="title-reset"/);
   assert.match(page, /header\{[^}]*grid-template-columns:minmax\(0,1fr\) auto/);
   assert.match(page, /\.card\{[\s\S]*?border:1px solid var\(--surface-border\)/);
@@ -1004,4 +1288,90 @@ test("touch cards preserve controls and navigate only on the same card's second 
   assert.match(handler, /if\(e\.target\.closest\("\.favbtn,\.js-readme,\.js-hide-repo,button,a"\)\)return/);
   assert.match(handler, /UiMotion\.touchCardAction\(\{[\s\S]*?activeIndex:activeTipIndex,[\s\S]*?cardIndex:\+card\.dataset\.idx,[\s\S]*?tooltipOpen:tipLayer\.classList\.contains\("on"\)/);
   assert.match(handler, /if\(action==="show"\)\{[\s\S]*?showTip\(card\)[\s\S]*?\}else\{[\s\S]*?window\.open\(card\.dataset\.href,"_blank","noopener"\)/);
+});
+
+test("a touch tooltip body forwards the covered same-card second tap without stealing explicit controls", () => {
+  const helperStart = page.indexOf("function touchCardBehindTip(event){");
+  const listenerStart = page.indexOf('tipLayer.addEventListener("click",e=>{', helperStart);
+  const listenerEnd = page.indexOf('\ntipLayer.addEventListener("mouseleave"', listenerStart);
+  assert.ok(helperStart >= 0 && listenerStart > helperStart && listenerEnd > listenerStart,
+    "touch tooltip second-tap runtime must be isolated");
+
+  class TipLayer {
+    addEventListener(type, listener) { if (type === "click") this.click = listener; }
+  }
+  const tipLayer = new TipLayer();
+  const card = {
+    dataset: { idx: "3", href: "https://github.com/owner/repo" },
+    closest(selector) { return selector === ".card" ? this : null; },
+  };
+  const otherCard = {
+    dataset: { idx: "4", href: "https://github.com/owner/other" },
+    closest(selector) { return selector === ".card" ? this : null; },
+  };
+  const tooltipParagraph = { closest() { return null; } };
+  const calls = { opened: [], readme: 0, hidden: 0 };
+  const context = {
+    __touch: true,
+    __stack: [tooltipParagraph, card],
+    __tipLayer: tipLayer,
+    document: { elementsFromPoint() { return context.__stack; } },
+    window: { open(href, target, features) { calls.opened.push(`${href}|${target}|${features}`); } },
+    touchLayout() { return context.__touch; },
+    activeTipIndex: 3,
+    hideRepository() { calls.hidden += 1; },
+    openReadme() { calls.readme += 1; },
+  };
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(`
+    const tipLayer=globalThis.__tipLayer;
+    let activeTipIndex=globalThis.activeTipIndex;
+    ${page.slice(helperStart, listenerStart)}
+    ${page.slice(listenerStart, listenerEnd)}
+  `, context, { filename: "touch-tooltip-second-tap-fixture.js" });
+
+  function dispatch(target, properties = {}) {
+    const event = { target, clientX: 24, clientY: 180, detail: 1, prevented: false,
+      preventDefault() { this.prevented = true; }, ...properties };
+    tipLayer.click(event);
+    return event;
+  }
+
+  dispatch(tooltipParagraph);
+  assert.deepEqual(calls.opened, ["https://github.com/owner/repo|_blank|noopener"]);
+
+  context.__stack = [tooltipParagraph, otherCard];
+  dispatch(tooltipParagraph);
+  assert.equal(calls.opened.length, 1, "a different covered card must not inherit the active card's navigation");
+
+  context.__touch = false;
+  context.__stack = [tooltipParagraph, card];
+  dispatch(tooltipParagraph);
+  assert.equal(calls.opened.length, 1, "desktop tooltip content must retain its existing behavior");
+  context.__touch = true;
+
+  const readmeButton = {
+    dataset: { slug: "owner/repo", name: "Repo" },
+    closest(selector) { return selector === ".js-readme" ? this : null; },
+  };
+  const readmeEvent = dispatch(readmeButton);
+  assert.equal(readmeEvent.prevented, true);
+  assert.equal(calls.readme, 1);
+  assert.equal(calls.opened.length, 1);
+
+  const hideButton = {
+    dataset: { slug: "owner/repo" },
+    closest(selector) { return selector === ".js-hide-repo" ? this : null; },
+  };
+  const hideEvent = dispatch(hideButton);
+  assert.equal(hideEvent.prevented, true);
+  assert.equal(calls.hidden, 1);
+  assert.equal(calls.opened.length, 1);
+
+  const explicitLink = {
+    closest(selector) { return selector.startsWith("button,a,input,select,textarea") ? this : null; },
+  };
+  dispatch(explicitLink);
+  assert.equal(calls.opened.length, 1, "an explicit tooltip control must own its tap");
 });

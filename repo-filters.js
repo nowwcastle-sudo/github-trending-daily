@@ -5,28 +5,32 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
+  const TAG_RULE_VERSION = 1;
   const FIELD_DEFINITIONS = [
-    ["ai-ml", "AI·머신러닝", /\b(ai|artificial[- ]intelligence|machine[- ]learning|deep[- ]learning|llms?|gpt|claude|codex|agents?|agentic|rag|inference|neural|generative[- ]ai|computer[- ]vision|nlp)\b/i],
-    ["web-app", "웹·앱 개발", /\b(web|frontend|react|vue|svelte|next\.?js|mobile|android|ios|browser|webapp)\b/i],
-    ["dev-tools", "개발 도구", /\b(developer[- ]tools?|devtools?|coding|programming|compiler|sdk|ide|cli|automation|api|mcp|plugins?)\b/i],
-    ["data", "데이터·DB", /\b(data|database|sql|analytics|warehouse|vector[- ]database|data[- ]engineering)\b/i],
-    ["devops", "DevOps·인프라", /\b(devops|cloud|kubernetes|k8s|docker|infrastructure|ci[- /]?cd|observability|deployment)\b/i],
-    ["security", "보안·프라이버시", /\b(security|privacy|pentest|osint|vulnerabilit(?:y|ies)|authentication|authorization|password|secrets?)\b/i],
-    ["productivity", "앱·생산성", /\b(productivity|project[- ]management|note[- ]taking|knowledge[- ]management|job[- ]search|workflow|crm|finance|media|desktop[- ]app)\b/i],
-    ["systems", "시스템·하드웨어", /\b(linux|operating[- ]system|kernel|embedded|hardware|robotics?|on[- ]device|wearables?|smart[- ]home)\b/i],
-    ["learning", "학습·자료", /\b(awesome|learn|learning|tutorial|course|book|beginners?|curriculum|resources?)\b/i],
+    ["ai-ml", "AI·머신러닝"],
+    ["web-app", "웹·앱 개발"],
+    ["dev-tools", "개발 도구"],
+    ["data", "데이터·DB"],
+    ["devops", "DevOps·인프라"],
+    ["security", "보안·프라이버시"],
+    ["productivity", "앱·생산성"],
+    ["systems", "시스템·하드웨어"],
+    ["learning", "학습·자료"],
+    ["unclassified", "미분류"],
   ];
   const FORM_DEFINITIONS = [
-    ["agent", "Agent", /\b(agents?|agentic)\b/i],
-    ["mcp", "MCP", /\bmcp\b/i],
-    ["plugin-skill", "Plugin·Skill", /\b(plugins?|skills?)\b/i],
-    ["ide", "IDE·코딩 도구", /\b(ide|code[- ]editor|coding[- ]environment)\b/i],
-    ["library", "Library·SDK", /\b(library|libraries|sdk|toolkit|package)\b/i],
-    ["framework", "Framework", /\bframeworks?\b/i],
-    ["cli", "CLI·Automation", /\b(cli|command[- ]line|automation|workflow)\b/i],
+    ["agent", "Agent"],
+    ["mcp", "MCP"],
+    ["plugin-skill", "Plugin·Skill"],
+    ["ide", "IDE·코딩 도구"],
+    ["library", "Library·SDK"],
+    ["framework", "Framework"],
+    ["cli", "CLI·Automation"],
   ];
-  const FIELD_IDS = new Set([...FIELD_DEFINITIONS.map(([id]) => id), "unclassified"]);
+  const FIELD_IDS = new Set(FIELD_DEFINITIONS.map(([id]) => id));
   const FORM_IDS = new Set(FORM_DEFINITIONS.map(([id]) => id));
+  const FIELD_ORDER = new Map(FIELD_DEFINITIONS.map(([id], index) => [id, index]));
+  const FORM_ORDER = new Map(FORM_DEFINITIONS.map(([id], index) => [id, index]));
   const PERIODS = new Set(["all", "daily", "weekly", "monthly"]);
   const SORT_DEFINITIONS = [
     ["trending", "Trending 원래 순서"],
@@ -49,11 +53,27 @@
     ].filter(value => typeof value === "string").join(" ").toLowerCase();
   }
 
+  function canonicalTags(value, allowed, order, required = false) {
+    if (!Array.isArray(value) || (required && !value.length)) throw new Error("invalid repository classification");
+    const seen = new Set();
+    let previous = -1;
+    for (const tag of value) {
+      const position = order.get(tag);
+      if (typeof tag !== "string" || !allowed.has(tag) || seen.has(tag) || position <= previous) {
+        throw new Error("invalid repository classification");
+      }
+      seen.add(tag);
+      previous = position;
+    }
+    return [...value];
+  }
+
   function classifyRepo(repo) {
-    const text = sourceText(repo);
-    const fields = FIELD_DEFINITIONS.filter(([, , pattern]) => pattern.test(text)).map(([id]) => id);
-    const forms = FORM_DEFINITIONS.filter(([, , pattern]) => pattern.test(text)).map(([id]) => id);
-    return { fields: fields.length ? fields : ["unclassified"], forms };
+    if (!repo || repo.tag_rule_version !== TAG_RULE_VERSION) throw new Error("invalid repository classification");
+    const fields = canonicalTags(repo.field_tags, FIELD_IDS, FIELD_ORDER, true);
+    const forms = canonicalTags(repo.form_tags, FORM_IDS, FORM_ORDER);
+    if (fields.includes("unclassified") && fields.length !== 1) throw new Error("invalid repository classification");
+    return { fields, forms };
   }
 
   function normalizedList(value, allowed) {
@@ -62,7 +82,7 @@
   }
 
   function defaultState() {
-    return { period: "all", sort: "trending", favOnly: false, q: "", lang: "", fields: [], forms: [], excludeAi: false };
+    return { period: "all", sort: "trending", favOnly: false, q: "", lang: "", fields: [], forms: [], excludeAi: false, newOnly: false };
   }
 
   function normalizeSort(sort, period) {
@@ -84,6 +104,8 @@
     state.fields = normalizedList((params.get("field") ?? "").split(","), FIELD_IDS);
     state.forms = normalizedList((params.get("tag") ?? "").split(","), FORM_IDS);
     state.excludeAi = params.get("exclude") === "ai";
+    const membership = params.getAll("membership");
+    state.newOnly = membership.length === 1 && membership[0] === "new";
     return state;
   }
 
@@ -95,6 +117,7 @@
     if (period !== "all") params.set("period", period);
     if (sort !== "trending") params.set("sort", sort);
     if (state.favOnly) params.set("view", "favorites");
+    if (state.newOnly === true) params.set("membership", "new");
     if (typeof state.lang === "string" && state.lang) params.set("lang", state.lang);
     const fields = normalizedList(state.fields, FIELD_IDS);
     const forms = normalizedList(state.forms, FORM_IDS);
@@ -114,6 +137,7 @@
     if (state.forms?.length && !state.forms.some(id => classification.forms.includes(id))) return false;
     if (state.lang && repo?.lang !== state.lang) return false;
     if (state.q && !sourceText(repo).includes(state.q.toLowerCase())) return false;
+    if (state.newOnly === true && repo?.membership_status !== "new") return false;
     return true;
   }
 
@@ -149,7 +173,7 @@
   }
 
   return {
-    fields: [...FIELD_DEFINITIONS.map(([id, label]) => ({ id, label })), { id: "unclassified", label: "미분류" }],
+    fields: FIELD_DEFINITIONS.map(([id, label]) => ({ id, label })),
     forms: FORM_DEFINITIONS.map(([id, label]) => ({ id, label })),
     sorts: SORT_DEFINITIONS.map(([id, label]) => ({ id, label })),
     classifyRepo,

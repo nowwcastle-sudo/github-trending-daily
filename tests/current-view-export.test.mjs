@@ -33,6 +33,8 @@ function repository(slug, overrides = {}) {
 }
 
 function modelOptions(repositories) {
+  const membershipStatus = new Map(repositories.map(repo => [repo.slug.toLowerCase(), "stayed"]));
+  if (membershipStatus.has("owner/second")) membershipStatus.set("owner/second", "reentered");
   return {
     repositories,
     state: {
@@ -42,15 +44,83 @@ function modelOptions(repositories) {
       fields: ["dev-tools"],
       forms: ["cli"],
       excludeAi: true,
+      newOnly: false,
       q: "export",
       sort: "stars",
     },
     sourceUrl: "https://example.test/trending/?period=weekly&sort=stars&view=favorites&lang=JavaScript&field=dev-tools&tag=cli&exclude=ai&q=export",
     exportedAt: "2026-08-26T12:34:56.789Z",
-    membershipStatus: new Map([["owner/second", "reentered"], ["owner/first", "stayed"]]),
+    membershipStatus,
     gainOf: repo => repo.slug === "owner/second" ? 22 : 11,
   };
 }
+
+test("membership output uses only the canonical public statuses", () => {
+  const repositories = [
+    repository("owner/legacy-baseline"),
+    repository("owner/current-baseline"),
+    repository("owner/new"),
+    repository("owner/reentered"),
+    repository("owner/stayed"),
+  ];
+  const options = modelOptions(repositories);
+  options.membershipStatus = new Map([
+    ["owner/legacy-baseline", "baseline"],
+    ["owner/current-baseline", "baseline_present"],
+    ["owner/new", "new"],
+    ["owner/reentered", "reentered"],
+    ["owner/stayed", "stayed"],
+  ]);
+
+  const model = CurrentViewExport.buildModel(options);
+  assert.deepEqual(
+    model.repositories.map(repo => repo.membershipStatus),
+    ["baseline_present", "baseline_present", "new", "reentered", "stayed"],
+  );
+  const json = CurrentViewExport.toJson(model);
+  const csv = CurrentViewExport.toCsv(model);
+  assert.equal((json.match(/"membershipStatus": "baseline_present"/g) ?? []).length, 2);
+  assert.doesNotMatch(json, /"membershipStatus": "baseline"/);
+  assert.equal((csv.match(/,baseline_present\r\n/g) ?? []).length, 2);
+  assert.doesNotMatch(csv, /,baseline\r\n/);
+});
+
+test("membership export fails closed for missing or unknown status", () => {
+  for (const status of [undefined, "unknown"]) {
+    const repositories = [repository("owner/repo")];
+    const options = modelOptions(repositories);
+    options.membershipStatus = status === undefined
+      ? new Map()
+      : new Map([["owner/repo", status]]);
+    assert.throws(
+      () => CurrentViewExport.buildModel(options),
+      /membership status is invalid/,
+    );
+  }
+});
+
+test("new-only export state allows only the exact membership=new URL value", () => {
+  const repositories = [repository("owner/repo")];
+  const options = modelOptions(repositories);
+  options.state = { ...options.state, newOnly: true };
+  options.sourceUrl = "https://example.test/trending/?membership=new";
+
+  const model = CurrentViewExport.buildModel(options);
+  assert.equal(model.filters.newOnly, true);
+  assert.equal(model.sourceUrl, "https://example.test/trending/?membership=new");
+
+  const location = { origin: "https://example.test", pathname: "/trending/" };
+  assert.equal(
+    CurrentViewExport.buildSourceUrl(location, options.state, () => "?membership=new"),
+    "https://example.test/trending/?membership=new",
+  );
+  for (const query of ["?membership=stayed", "?membership=", "?membership=NEW", "?membership=new&membership=new"]) {
+    assert.throws(
+      () => CurrentViewExport.buildSourceUrl(location, options.state, () => query),
+      /whitelisted/,
+    );
+  }
+});
 
 test("model preserves the exact visible order and exposes only the public contract", () => {
   const visible = [repository("owner/second"), repository("owner/first")];
@@ -68,6 +138,7 @@ test("model preserves the exact visible order and exposes only the public contra
     field: ["dev-tools"],
     tag: ["cli"],
     excludeAi: true,
+    newOnly: false,
     q: "export",
     sort: "stars",
   });

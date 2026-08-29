@@ -50,7 +50,7 @@ body{
 /* ── Header ─────────────────────────── */
 header{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:16px;margin-bottom:8px}
 h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-height:1.1;white-space:nowrap}
-.title-box{padding:16px 18px;border:1px solid var(--surface-border);border-radius:16px;background:var(--bg-elev);backdrop-filter:blur(20px) saturate(180%)}
+.title-box{padding:16px 18px;border:none;border-radius:16px;background:var(--bg)}
 .title-reset{border:0;background:none;color:inherit;padding:0;font:inherit;letter-spacing:inherit;cursor:pointer}
 .title-reset:focus-visible{outline:3px solid var(--accent);outline-offset:4px;border-radius:5px}
 .sub{color:var(--text-2);font-size:15px;margin-top:6px;letter-spacing:.01em}
@@ -177,6 +177,7 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .filter-chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .filter-switch{display:flex;align-items:center;gap:9px;min-height:44px;color:var(--text);font-size:13px;font-weight:600;cursor:pointer}
 .filter-switch input{width:18px;height:18px;accent-color:var(--accent)}
+.filter-switch-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr));gap:8px;border:0;margin:0;padding:0;min-inline-size:0}
 .clear-filters{border-color:var(--border);text-align:center;color:var(--text-2)}
 .filter-summary{color:var(--text-2);font-size:12px;line-height:1.45}
 #sidebarScrim{position:fixed;inset:0;z-index:310;background:rgba(0,0,0,.34);opacity:0;pointer-events:none;transition:opacity .24s ease-out}
@@ -236,7 +237,7 @@ body.overlay-open{overflow:hidden}
   box-shadow:0 2px 4px rgba(0,0,0,.05),0 14px 40px rgba(0,0,0,.10)}
 .card:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-color:var(--surface-border-strong)}
 .card:active{transform:translateY(0) scale(.995)}
-.repo-link{color:inherit;text-decoration:none}
+.repo-link{color:inherit;text-decoration:none;min-width:0;overflow-wrap:anywhere;word-break:break-word}
 .repo-link:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:4px}
 .rank{font-size:19px;font-weight:700;color:var(--text-3);width:26px;flex-shrink:0;padding-top:2px;
   font-variant-numeric:tabular-nums}
@@ -244,6 +245,10 @@ body.overlay-open{overflow:hidden}
 .cname{font-weight:650;font-size:19px;letter-spacing:-.011em;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .badge{font-size:11px;font-weight:700;letter-spacing:.03em;color:var(--hot);background:var(--hot-soft);
   padding:2.5px 8px;border-radius:99px}
+.category-badges{display:grid;gap:7px;max-width:100%;margin-top:9px}
+.category-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap;max-width:100%;min-width:0}
+.category-label{flex:0 0 auto;color:var(--text-3);font-size:11px;font-weight:700}
+.category-badge{display:inline-flex;align-items:center;max-width:100%;overflow-wrap:anywhere;word-break:break-word;white-space:normal}
 .membership-new{color:var(--accent-selected);background:var(--accent-soft)}
 .membership-reentered{color:var(--hot);background:var(--hot-soft)}
 .cdesc{color:var(--text-2);font-size:15.5px;line-height:1.5;margin:6px 0 12px;
@@ -306,6 +311,12 @@ body.overlay-open{overflow:hidden}
 .undo-bar button{min-height:44px;border:1px solid var(--border);border-radius:9px;background:transparent;color:var(--text);padding:7px 11px;font:inherit;font-size:12.5px;font-weight:650;cursor:pointer}
 .undo-bar button:hover{border-color:var(--accent);color:var(--accent)}
 .undo-bar button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.scroll-top{position:fixed;z-index:240;right:calc(env(safe-area-inset-right) + 16px);bottom:max(calc(env(safe-area-inset-bottom) + 16px),var(--scroll-top-offset,16px));min-width:48px;min-height:48px;border:1px solid var(--surface-border);border-radius:50%;background:var(--control-solid);color:var(--text);box-shadow:var(--shadow-card);display:grid;place-items:center;cursor:pointer;transition:transform .16s ease-out,border-color .16s ease,color .16s ease,opacity .16s ease}
+.scroll-top:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
+.scroll-top:active{transform:translateY(0) scale(.96)}
+.scroll-top:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.scroll-top svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.scroll-top[hidden]{display:none}
 .sidebar-section[hidden],.undo-bar[hidden],.empty button[hidden]{display:none}
 footer{margin-top:56px;text-align:center;color:var(--text-3);font-size:12.5px;line-height:1.8}
 footer a{color:var(--text-2)}
@@ -325,8 +336,13 @@ footer a{color:var(--text-2)}
   .header-actions{width:100%;justify-content:flex-end}
   .account-controls{justify-content:flex-start}
 }
+@media(max-width:1147px){.list-stage{padding-right:calc(56px + env(safe-area-inset-right))}}
 @media(max-width:560px){
   .wrap{padding:32px 16px 72px}
+  h1{white-space:normal;overflow-wrap:anywhere}
+  .undo-bar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .undo-bar span{grid-column:1/-1;min-width:0}
+  .undo-bar button{width:100%}
   .cstat{display:none}.rank{width:20px}
   .controls{position:static}
   .seg button{padding-inline:8px;font-size:12.5px}
@@ -334,6 +350,7 @@ footer a{color:var(--text-2)}
   .signal-guide>strong{display:block;margin-bottom:7px}
   .signal-guide dl{display:grid;gap:7px}
 }
+@media(hover:hover) and (pointer:fine) and (max-width:1147px){.wrap{padding-left:calc(env(safe-area-inset-left) + 60px)}}
 
 .favbtn{position:absolute;right:8px;top:7px;width:44px;height:44px;background:none;border:none;color:var(--text-3);
   font-size:20px;cursor:pointer;padding:0;border-radius:10px;line-height:1;display:flex;align-items:center;justify-content:center;
@@ -447,7 +464,11 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <h3 id="fieldTitle">분야</h3>
     <p class="sidebar-note">여러 분야를 함께 선택할 수 있습니다.</p>
     <div class="filter-group" id="fieldFilters"></div>
-    <label class="filter-switch"><input id="excludeAi" type="checkbox"> AI 분야 제외</label>
+    <fieldset class="filter-switch-row">
+      <legend class="sr-only">빠른 필터</legend>
+      <label class="filter-switch"><input id="excludeAi" type="checkbox"> AI 분야 제외</label>
+      <label class="filter-switch"><input id="newOnly" type="checkbox"> 신규 저장소만</label>
+    </fieldset>
   </section>
   <section class="sidebar-section" id="formSection" aria-labelledby="formTitle">
     <h3 id="formTitle">형태·기술</h3>
@@ -544,6 +565,10 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 </footer>
 </main>
 
+<button class="scroll-top" id="scrollTopBtn" type="button" aria-label="페이지 맨 위로 이동" hidden tabindex="-1" inert>
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 10 6-6 6 6M12 4v16"/></svg>
+</button>
+
 <div id="readmeScrim"></div>
 <div id="readmePanel" role="dialog" aria-modal="true" aria-labelledby="rpTitle" aria-hidden="true" inert>
   <div class="rp-head"><h2 id="rpTitle">README</h2>
@@ -569,6 +594,7 @@ const REPOS = [{"slug":"tt-a1i/archify","latest_release":"2026-08-17","name":"tt
 // GENERATED:TRENDING-REPOS:END
 const SIGNALS=new Map();
 const MEMBERSHIP_STATUS=new Map();
+let membershipLoadState="loading";
 let currentVisibleRepos=[];
 const LANGUAGES=[...new Set(REPOS.map(r=>r.lang).filter(Boolean))].sort();
 let filterState=RepoFilters.parseState(location.search,LANGUAGES);
@@ -644,6 +670,7 @@ function closeSidebar(restoreFocus=true){
     if(!document.getElementById("readmePanel").classList.contains("open"))document.body.classList.remove("overlay-open");
     if(restoreFocus&&sidebarTrigger instanceof HTMLElement)sidebarTrigger.focus();
   }
+  if(typeof scheduleScrollTopUpdate==="function")scheduleScrollTopUpdate();
 }
 function openSidebar(mode,trigger){
   const currentMode=sidebar.dataset.openMode;
@@ -662,6 +689,8 @@ function openSidebar(mode,trigger){
   }else{
     sidebar.removeAttribute("aria-modal");navToggle.setAttribute("aria-label","탐색 사이드바 고정");
   }
+  if(mode==="modal"&&typeof hideScrollTopImmediately==="function")hideScrollTopImmediately();
+  else if(typeof scheduleScrollTopUpdate==="function")scheduleScrollTopUpdate();
 }
 function scheduleSidebarHoverClose(){
   clearSidebarHoverTimer();
@@ -803,7 +832,7 @@ renderFilterGroup(document.getElementById("fieldFilters"),RepoFilters.fields,"fi
 renderFilterGroup(document.getElementById("formFilters"),RepoFilters.forms,"forms");
 
 function activeDiscoveryCount(){
-  return filterState.fields.length+filterState.forms.length+(filterState.lang?1:0)+(filterState.excludeAi?1:0);
+  return filterState.fields.length+filterState.forms.length+(filterState.lang?1:0)+(filterState.excludeAi?1:0)+(filterState.newOnly?1:0);
 }
 function updateFilterUi(){
   document.getElementById("q").value=filterState.q;
@@ -811,6 +840,7 @@ function updateFilterUi(){
   sortSel.value=filterState.sort;
   const gainOption=sortSel.querySelector('[value="gain"]');gainOption.disabled=period==="all";
   document.getElementById("excludeAi").checked=filterState.excludeAi;
+  document.getElementById("newOnly").checked=filterState.newOnly;
   document.querySelectorAll("[data-filter-id]").forEach(button=>{
     const key=button.closest("#fieldFilters")?"fields":"forms";
     button.setAttribute("aria-pressed",filterState[key].includes(button.dataset.filterId));
@@ -864,9 +894,11 @@ function showHiddenNotice(message,{undoSlug=null,tone=""}={}){
   const notice=document.getElementById("hiddenNotice"),undo=document.getElementById("undoHideBtn");
   lastHiddenSlug=undoSlug;document.getElementById("hiddenNoticeText").textContent=message;
   undo.hidden=!undoSlug;notice.dataset.tone=tone;notice.hidden=false;
+  if(typeof scheduleScrollTopUpdate==="function")scheduleScrollTopUpdate();
 }
 function dismissHiddenNotice(){
   lastHiddenSlug=null;document.getElementById("hiddenNotice").hidden=true;
+  if(typeof scheduleScrollTopUpdate==="function")scheduleScrollTopUpdate();
 }
 function hideRepository(slug,focusUndo=false){
   const repo=REPOS.find(item=>item.slug===slug);if(!repo)return;
@@ -890,7 +922,7 @@ function restoreRepository(slug,{focusCard=false,focusManager=false}={}){
 function tipHTML(r){
   const s=r.summary;if(!s)return "";
   return `
-  <h2>${esc(r.name)}</h2><p class="tsub">${fmt(r.stars)} ★ · ⑂ ${fmt(r.forks)} · 👥 ${fmt(r.contributors||0)} 기여자 · ◎ ${fmt(r.issues||0)} issues · ${esc(r.lang)}</p>
+  <h2>${esc(r.name)}</h2><p class="tsub">${fmt(r.stars)} ★ · ⑂ ${fmt(r.forks)} · 👥 ${fmt(r.contributors||0)} 기여자 · ◎ ${fmt(r.issues||0)} 열린 이슈·PR · ${esc(r.lang)}</p>
   <div class="trow"><span class="tlabel">🎯 프로젝트 목표</span><p>${esc(s.goal)}</p></div>
   <div class="trow"><span class="tlabel">🛠 실행 방법</span><p>${esc(s.usage)}</p></div>
   <div class="trow"><span class="tlabel">👍 장점</span><p>${esc(s.pros)}</p></div>
@@ -900,12 +932,50 @@ function tipHTML(r){
   <p class="thint tip-actions"><button type="button" class="rdbtn js-readme" data-slug="${r.slug}" data-name="${esc(r.name)}">📖 README 전체 보기</button><button type="button" class="rdbtn js-hide-repo" data-slug="${r.slug}">관심 없음</button></p>`;
 }
 
+const NEW_ONLY_LOAD_ERROR="신규 상태를 불러오지 못해 필터를 적용할 수 없습니다.";
+const FIELD_BADGE_LABELS=new Map(RepoFilters.fields.map(({id,label})=>[id,label]));
+const FORM_BADGE_LABELS=new Map(RepoFilters.forms.map(({id,label})=>[id,label]));
+function newOnlyGate(state,loadState){
+  if(!state.newOnly||loadState==="ready")return null;
+  if(loadState==="error")return {message:NEW_ONLY_LOAD_ERROR,summary:`0개 저장소 · ${NEW_ONLY_LOAD_ERROR}`};
+  return {message:"신규 상태를 불러오는 중…",summary:"신규 상태를 불러오는 중입니다."};
+}
+function transientMembershipRepo(repo){
+  const status=MEMBERSHIP_STATUS.get(repo.slug.toLowerCase());
+  return {...repo,membership_status:status==="baseline"?"baseline_present":status};
+}
+function membershipStatusForRepos(status){
+  const current=MembershipHistory.currentStatus(status);
+  const repoSlugs=new Set(REPOS.map(repo=>repo.slug.toLowerCase()));
+  if(current.size!==repoSlugs.size||[...repoSlugs].some(slug=>!current.has(slug)))throw new Error("membership current rows do not exactly match repositories");
+  return current;
+}
+function categoryBadgeGroup(category,label,values){
+  if(!values.length)return "";
+  return `<div class="category-group" data-category-group="${category}"><span class="category-label" aria-hidden="true">${label}:</span>${values.map(value=>`<span class="badge category-badge" data-category="${category}"><span class="sr-only">${label}: </span>${esc(value)}</span>`).join("")}</div>`;
+}
+function classificationBadges(repo){
+  const {forms,fields}=RepoFilters.classifyRepo(repo);
+  const formBadges=categoryBadgeGroup("form","형태",forms.map(id=>FORM_BADGE_LABELS.get(id)));
+  const fieldBadges=categoryBadgeGroup("field","분야·기술",fields.filter(id=>id!=="ai-ml").map(id=>FIELD_BADGE_LABELS.get(id)));
+  const aiBadge=fields.includes("ai-ml")?categoryBadgeGroup("ai","AI 관련",["AI"]):"";
+  return `${formBadges}${fieldBadges}${aiBadge}`;
+}
 /* render */
 const list=document.getElementById("list"),empty=document.getElementById("empty");
 function render(){
   const viewPeriod=period;
   const gainOf=r=>UiMotion.periodGain(r,viewPeriod);
-  let items=REPOS.filter(r=>RepoFilters.matchesRepo(r,filterState));
+  const newOnlyBlock=newOnlyGate(filterState,membershipLoadState);
+  if(newOnlyBlock){
+    currentVisibleRepos=[];list.innerHTML="";empty.style.display="grid";
+    document.getElementById("emptyText").textContent=newOnlyBlock.message;
+    document.getElementById("emptyResetBtn").hidden=false;
+    document.getElementById("emptyManageHiddenBtn").hidden=true;
+    document.getElementById("filterSummary").textContent=newOnlyBlock.summary;
+    updateHiddenManager();return;
+  }
+  let items=REPOS.filter(r=>RepoFilters.matchesRepo(transientMembershipRepo(r),filterState));
   if(favOnly)items=items.filter(r=>favSet.has(r.slug));
   const matchedCount=items.length;
   items=HiddenRepos.filterRepos(items,hiddenSet);
@@ -933,12 +1003,13 @@ function render(){
       <div class="rank">${i+1}</div>
       <div class="cbody">
         <div class="cname"><a class="repo-link" href="https://github.com/${r.slug}" target="_blank" rel="noopener">${esc(r.name)}</a>${membershipBadge}${badges.streakDays?`<span class="badge" title="연속된 날짜에 Trending에서 관측">🔥 ${badges.streakDays}일 연속</span>`:""}${badges.starsChange!==null?`<span class="rankchg" title="직전 관측일 대비 총 스타 변화">${badges.starsChange>0?"↑":"↓"}${fmt(Math.abs(badges.starsChange))}</span>`:""}${badges.hot?`<span class="badge" title="선택 기간 스타 증가 1,000 이상">HOT</span>`:""}</div>
+        <div class="category-badges">${classificationBadges(r)}</div>
         <p class="cdesc">${esc(r.desc)}</p>
         <div class="cmeta">
           ${r.lang?`<span><i class="dot" style="background:${r.color}"></i>${esc(r.lang)}</span>`:""}
           <span>⑂ ${fmt(r.forks)} forks</span>
           <span>👥 ${fmt(r.contributors||0)} 기여자</span>
-          <span>◎ ${fmt(r.issues||0)} issues</span>
+          <span>◎ ${fmt(r.issues||0)} 열린 이슈·PR</span>
           ${r.pushed_at?`<span>🕒 커밋 ${esc(r.pushed_at)}</span>`:""}
           ${r.latest_release?`<span>🏷 릴리스 ${esc(r.latest_release)}</span>`:""}
           <span class="today">★ +${fmt(gainOf(r))} <span style="color:var(--text-3);font-weight:400">${unit}</span></span>
@@ -1004,8 +1075,11 @@ sortSel.addEventListener("change",()=>{
 document.getElementById("excludeAi").addEventListener("change",event=>{
   filterState={...filterState,excludeAi:event.target.checked};updateFilterUi();syncUrl();render();
 });
+document.getElementById("newOnly").addEventListener("change",event=>{
+  filterState={...filterState,newOnly:event.target.checked};updateFilterUi();syncUrl();render();
+});
 document.getElementById("clearFiltersBtn").addEventListener("click",()=>{
-  filterState={...filterState,lang:"",fields:[],forms:[],excludeAi:false};
+  filterState={...filterState,lang:"",fields:[],forms:[],excludeAi:false,newOnly:false};
   updateFilterUi();syncUrl();render();
 });
 document.getElementById("hiddenRepoList").addEventListener("click",event=>{
@@ -1089,6 +1163,7 @@ function closeReadme(restoreFocus=true){
   scrim.classList.remove("on");pageMain.classList.remove("reading");pageMain.inert=false;
   if(!sidebar.classList.contains("open"))document.body.classList.remove("overlay-open");
   if(restoreFocus&&readmeTrigger instanceof HTMLElement)readmeTrigger.focus();
+  if(typeof scheduleScrollTopUpdate==="function")scheduleScrollTopUpdate();
 }
 document.getElementById("rpClose").addEventListener("click",closeReadme);
 scrim.addEventListener("click",closeReadme);
@@ -1124,6 +1199,7 @@ async function openReadme(slug,name){
   document.getElementById("tabKo").setAttribute("aria-pressed","false");
   setReadmeBody("불러오는 중…",true);panel.inert=false;panel.classList.add("open");panel.setAttribute("aria-hidden","false");scrim.classList.add("on");
   pageMain.classList.add("reading");pageMain.inert=true;document.body.classList.add("overlay-open");document.getElementById("rpClose").focus();
+  if(typeof hideScrollTopImmediately==="function")hideScrollTopImmediately();
   try{
     if(!metadata)throw new Error("README metadata is unavailable");
     const res=await fetch(`https://api.github.com/repos/${slug}/contents/${encodeReadmePath(metadata.path)}?ref=${metadata.defaultBranchHeadSha}`);
@@ -1178,6 +1254,34 @@ function resetAllState(scroll=true){
 }
 document.getElementById("resetBtn").addEventListener("click",()=>resetAllState());
 document.getElementById("emptyResetBtn").addEventListener("click",()=>resetAllState(false));
+
+/* scroll-to-top runtime */
+const scrollTopButton=document.getElementById("scrollTopBtn"),hiddenNotice=document.getElementById("hiddenNotice");
+let scrollTopFrame=null;
+function scrollTopBlocked(){
+  return sidebar.dataset.openMode==="modal"||sidebarScrim.classList.contains("on")||panel.classList.contains("open")||scrim.classList.contains("on");
+}
+function scrollTopOffset(){
+  if(hiddenNotice.hidden)return 16;
+  return Math.max(16,Math.ceil(window.innerHeight-hiddenNotice.getBoundingClientRect().top+16));
+}
+function updateScrollTopButton(){
+  scrollTopFrame=null;
+  scrollTopButton.style.setProperty("--scroll-top-offset",`${scrollTopOffset()}px`);
+  const visible=window.scrollY>window.innerHeight&&!scrollTopBlocked();
+  scrollTopButton.hidden=!visible;scrollTopButton.inert=!visible;scrollTopButton.tabIndex=visible?0:-1;
+}
+function hideScrollTopImmediately(){
+  scrollTopButton.hidden=true;scrollTopButton.inert=true;scrollTopButton.tabIndex=-1;
+}
+function scheduleScrollTopUpdate(){
+  if(scrollTopFrame!==null)return;
+  scrollTopFrame=requestAnimationFrame(updateScrollTopButton);
+}
+for(const eventName of ["scroll","resize","orientationchange"])window.addEventListener(eventName,scheduleScrollTopUpdate,{passive:true});
+scrollTopButton.addEventListener("click",()=>window.scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"}));
+scheduleScrollTopUpdate();
+/* scroll-to-top runtime end */
 
 /* 플로팅 툴팁: body 직속 레이어, 카드에 절대 가려지지 않음 */
 const tipLayer=document.getElementById("tipLayer"),listStage=document.getElementById("listStage");
@@ -1244,11 +1348,20 @@ list.addEventListener("mouseleave",e=>{
   hideTimer=setTimeout(hideTip,120);
 });
 tipLayer.addEventListener("mouseenter",()=>clearTimeout(hideTimer));
+function touchCardBehindTip(event){
+  if(!touchLayout()||activeTipIndex===null)return null;
+  return document.elementsFromPoint(event.clientX,event.clientY)
+    .map(element=>element.closest&&element.closest(".card"))
+    .find(card=>card&&+card.dataset.idx===activeTipIndex)||null;
+}
 tipLayer.addEventListener("click",e=>{
   const hideButton=e.target.closest(".js-hide-repo");
   if(hideButton){e.preventDefault();hideRepository(hideButton.dataset.slug,e.detail===0);return}
-  const readmeButton=e.target.closest(".js-readme");if(!readmeButton)return;
-  e.preventDefault();openReadme(readmeButton.dataset.slug,readmeButton.dataset.name);
+  const readmeButton=e.target.closest(".js-readme");
+  if(readmeButton){e.preventDefault();openReadme(readmeButton.dataset.slug,readmeButton.dataset.name);return}
+  if(e.target.closest('button,a,input,select,textarea,[role="button"]'))return;
+  const card=touchCardBehindTip(e);
+  if(card)window.open(card.dataset.href,"_blank","noopener");
 });
 tipLayer.addEventListener("mouseleave",()=>{hideTimer=setTimeout(hideTip,150)});
 
@@ -1268,10 +1381,12 @@ window.addEventListener("resize",hideTip);
 updateFilterUi();
 requestAnimationFrame(()=>{moveThumb();render()});
 MembershipHistory.load("data/membership-status.json",fetch).then(status=>{
+  const current=membershipStatusForRepos(status);
   MEMBERSHIP_STATUS.clear();
-  for(const [slug,value] of MembershipHistory.currentStatus(status))MEMBERSHIP_STATUS.set(slug,value);
+  for(const [slug,value] of current)MEMBERSHIP_STATUS.set(slug,value);
+  membershipLoadState="ready";
   renderRecentExits(status.exited);render();
-}).catch(()=>{MEMBERSHIP_STATUS.clear();renderRecentExits();render()});
+}).catch(()=>{membershipLoadState="error";MEMBERSHIP_STATUS.clear();renderRecentExits();render()});
 /* 최근/다음 갱신 시각 표시 */
 (function(){
   const box=document.getElementById("refreshStatus");if(!box)return;
