@@ -1,0 +1,56 @@
+name: Deploy current Pages artifact
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - name: Bind deployment to exact origin main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          [ "$SOURCE_SHA" = "$(git rev-parse refs/remotes/origin/main)" ] || { echo "::error::checkout is not exact origin/main"; exit 1; }
+          echo "SOURCE_SHA=$SOURCE_SHA" >> "$GITHUB_ENV"
+      - name: Build committed legacy Pages artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/build-pages-artifact.mjs --mode legacy --source "." --out "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA"
+          node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/pages-artifact" --legacy-recovery-sha "$SOURCE_SHA"
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ${{ runner.temp }}/pages-artifact
+      - name: Deploy Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+      - name: Probe deployed Pages artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/probe-production.mjs --base-url "${{ steps.deployment.outputs.page_url }}" --legacy-recovery-sha "$SOURCE_SHA"
