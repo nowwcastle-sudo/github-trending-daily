@@ -4,9 +4,11 @@ import {
   ReCaptchaEnterpriseProvider,
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app-check.js";
 import {
+  browserLocalPersistence,
   getAuth,
   GoogleAuthProvider,
   onAuthStateChanged,
+  setPersistence,
   signInWithPopup,
   signOut,
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
@@ -100,56 +102,89 @@ function validateFirebaseConfig(config) {
   return config;
 }
 
+let bootstrapGeneration = 0;
+
+function setAccountPending(status, login, logout) {
+  login.hidden = false;
+  login.disabled = true;
+  logout.hidden = true;
+  logout.disabled = true;
+  setSyncStatus(status, null, "로그인 준비 중이에요.", "notice");
+}
+
+function retainGuestMode(status, login, logout, message) {
+  login.hidden = true;
+  login.disabled = true;
+  logout.hidden = true;
+  logout.disabled = true;
+  setSyncStatus(status, null, message, "error");
+  globalThis.applyFavoriteState({ favorites: globalThis.favoriteController.favorites(), busy: false });
+}
+
 async function bootstrap() {
-  if (!globalThis.Favorites || !globalThis.FavoriteSync || !globalThis.favoriteController || !globalThis.applyFavoriteState) {
-    throw new Error("favorite synchronization is unavailable");
-  }
-
-  const response = await fetch(new URL("firebase-config.json", import.meta.url), { cache: "no-store" });
-  if (!response.ok) throw new Error("Firebase configuration is unavailable");
-  const config = validateFirebaseConfig(await response.json());
-
-  const app = initializeApp(config);
-  initializeAppCheck(app, {
-    provider: new ReCaptchaEnterpriseProvider(config.appCheckSiteKey),
-    isTokenAutoRefreshEnabled: true,
-  });
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const provider = new GoogleAuthProvider();
-  const cloud = createCloudAdapter(db, {
-    arrayRemove,
-    arrayUnion,
-    doc,
-    getDoc,
-    onSnapshot,
-    runTransaction,
-    serverTimestamp,
-    setDoc,
-  });
   const status = document.getElementById("syncStatus");
   const login = document.getElementById("loginBtn");
   const logout = document.getElementById("logoutBtn");
+  const generation = ++bootstrapGeneration;
+  setAccountPending(status, login, logout);
+
+  if (!globalThis.Favorites || !globalThis.FavoriteSync || !globalThis.favoriteController || !globalThis.applyFavoriteState) {
+    retainGuestMode(status, login, logout, "로그인 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
+    return;
+  }
+
+  let app;
+  let auth;
+  let db;
+  try {
+    const response = await fetch(new URL("firebase-config.json", import.meta.url), { cache: "no-store" });
+    if (!response.ok) throw new Error("Firebase configuration is unavailable");
+    const config = validateFirebaseConfig(await response.json());
+    app = initializeApp(config);
+    await initializeAppCheck(app, {
+      provider: new ReCaptchaEnterpriseProvider(config.appCheckSiteKey),
+      isTokenAutoRefreshEnabled: true,
+    });
+    auth = getAuth(app);
+  } catch {
+    if (generation === bootstrapGeneration) {
+      retainGuestMode(status, login, logout, "로그인 보안 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
+    }
+    return;
+  }
+
+  try {
+    await setPersistence(auth, browserLocalPersistence);
+  } catch {
+    if (generation === bootstrapGeneration) {
+      retainGuestMode(status, login, logout, "이 브라우저에서 로그인 상태를 저장할 수 없어 브라우저 저장으로 사용합니다.");
+    }
+    return;
+  }
+
+  try {
+    db = getFirestore(app);
+  } catch {
+    if (generation === bootstrapGeneration) {
+      retainGuestMode(status, login, logout, "로그인 보안 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
+    }
+    return;
+  }
+
   let busy = false;
   let authGeneration = 0;
   let controller;
+  let stopAuth = () => {};
+  let bundle;
+  let pendingUser;
+  let hasPendingUser = false;
 
-  controller = FavoriteSync.createController({
-    storage: localStorage,
-    cloud,
-    onState: favorites => globalThis.applyFavoriteState({ favorites, busy }),
-    onBusy: value => {
-      busy = value;
-      globalThis.applyFavoriteState({ favorites: controller.favorites(), busy });
-    },
-    onMessage: message => { setSyncStatus(status, auth.currentUser, message, "notice"); },
-  });
-
-  const previous = globalThis.favoriteController;
-  previous.dispose();
-  globalThis.favoriteController = controller;
-
-  const stopAuth = onAuthStateChanged(auth, async user => {
+  const applyAuthState = async user => {
+    if (!bundle.published || bundle.disposed) {
+      pendingUser = user;
+      hasPendingUser = true;
+      return;
+    }
     const capturedGeneration = ++authGeneration;
     login.hidden = Boolean(user);
     logout.hidden = !user;
@@ -157,59 +192,108 @@ async function bootstrap() {
     logout.disabled = true;
     try {
       await controller.setUser(user ? { uid: user.uid } : null);
-      if (capturedGeneration !== authGeneration) return;
+      if (capturedGeneration !== authGeneration || bundle.disposed) return;
       setSyncStatus(status, user);
     } catch {
-      if (capturedGeneration === authGeneration) {
+      if (capturedGeneration === authGeneration && !bundle.disposed) {
         setSyncStatus(status, user, "즐겨찾기 동기화를 시작하지 못했어요. 다시 로그인해 주세요.", "error");
       }
     } finally {
-      if (capturedGeneration === authGeneration) {
+      if (capturedGeneration === authGeneration && !bundle.disposed) {
         login.disabled = Boolean(user);
         logout.disabled = !user;
       }
     }
-  });
+  };
 
-  login.addEventListener("click", async () => {
+  const onLogin = async () => {
     login.disabled = true;
     login.textContent = "로그인 중…";
     setSyncStatus(status, null, "Google 로그인 창을 여는 중이에요.", "notice");
     try {
-      await signInWithPopup(auth, provider);
+      await signInWithPopup(auth, bundle.provider);
     } catch (error) {
       setSyncStatus(status, null, authErrorMessage(error), "error");
     } finally {
       login.textContent = "Google로 로그인";
-      if (!auth.currentUser) login.disabled = false;
+      if (!auth.currentUser && !bundle.disposed) login.disabled = false;
     }
-  });
+  };
 
-  logout.addEventListener("click", async () => {
+  const onLogout = async () => {
     logout.disabled = true;
     try {
       await signOut(auth);
     } catch {
       setSyncStatus(status, auth.currentUser, "로그아웃하지 못했어요. 잠시 후 다시 시도해 주세요.", "error");
-      logout.disabled = false;
+      if (!bundle.disposed) logout.disabled = false;
     }
-  });
+  };
 
-  addEventListener("pagehide", () => {
-    authGeneration += 1;
-    stopAuth();
-    controller.dispose();
-  }, { once: true });
+  bundle = {
+    disposed: false,
+    published: false,
+    provider: null,
+    dispose() {
+      if (this.disposed) return;
+      this.disposed = true;
+      authGeneration += 1;
+      stopAuth();
+      controller?.dispose();
+      login.removeEventListener("click", onLogin);
+      logout.removeEventListener("click", onLogout);
+    },
+  };
+
+  try {
+    const cloud = createCloudAdapter(db, {
+      arrayRemove,
+      arrayUnion,
+      doc,
+      getDoc,
+      onSnapshot,
+      runTransaction,
+      serverTimestamp,
+      setDoc,
+    });
+    bundle.provider = new GoogleAuthProvider();
+    controller = FavoriteSync.createController({
+      storage: localStorage,
+      cloud,
+      onState: favorites => globalThis.applyFavoriteState({ favorites, busy }),
+      onBusy: value => {
+        busy = value;
+        globalThis.applyFavoriteState({ favorites: controller.favorites(), busy });
+      },
+      onMessage: message => { setSyncStatus(status, auth.currentUser, message, "notice"); },
+    });
+    stopAuth = onAuthStateChanged(auth, user => { void applyAuthState(user); });
+    login.addEventListener("click", onLogin);
+    logout.addEventListener("click", onLogout);
+  } catch {
+    bundle.dispose();
+    if (generation === bootstrapGeneration) {
+      retainGuestMode(status, login, logout, "로그인 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
+    }
+    return;
+  }
+
+  if (generation !== bootstrapGeneration) {
+    bundle.dispose();
+    return;
+  }
+
+  const previous = globalThis.favoriteController;
+  previous.dispose();
+  globalThis.favoriteController = controller;
+  bundle.published = true;
+  login.hidden = Boolean(auth.currentUser);
+  logout.hidden = !auth.currentUser;
+  login.disabled = Boolean(auth.currentUser);
+  logout.disabled = !auth.currentUser;
+  if (hasPendingUser) void applyAuthState(pendingUser);
+
+  addEventListener("pagehide", () => { bundle.dispose(); }, { once: true });
 }
 
-function keepGuestMode() {
-  const status = document.getElementById("syncStatus");
-  const login = document.getElementById("loginBtn");
-  const logout = document.getElementById("logoutBtn");
-  setSyncStatus(status, null, "Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다.", "error");
-  login.hidden = true;
-  logout.hidden = true;
-  globalThis.applyFavoriteState({ favorites: globalThis.favoriteController.favorites(), busy: false });
-}
-
-bootstrap().catch(keepGuestMode);
+bootstrap();

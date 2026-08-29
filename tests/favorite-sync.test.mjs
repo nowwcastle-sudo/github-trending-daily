@@ -509,7 +509,7 @@ async function loadFirebaseClientForTest() {
   const runnable = source
     .replace(/import\s*\{[\s\S]*?\}\s*from\s*"https:\/\/www\.gstatic\.com\/firebasejs\/12\.17\.1\/[^\"]+";\s*/g, "")
     .replace(/import\.meta\.url/g, '""')
-    .replace(/bootstrap\(\)\.catch\([\s\S]*$/m, "")
+    .replace(/\nbootstrap\(\)(?:\.catch\(keepGuestMode\))?;\s*$/m, "")
     + "\nglobalThis.__client = { createCloudAdapter, authErrorMessage, validateFirebaseConfig, setSyncStatus, syncModeLabel: typeof syncModeLabel === 'function' ? syncModeLabel : undefined };";
   const context = {
     Favorites: globalThis.Favorites,
@@ -520,6 +520,174 @@ async function loadFirebaseClientForTest() {
   vm.runInNewContext(runnable, context);
   return { source, ...context.__client };
 }
+
+function makeButton({ hidden = false } = {}) {
+  const listeners = new Map();
+  return {
+    disabled: false,
+    hidden,
+    textContent: "Google로 로그인",
+    addEventListener(type, listener) { listeners.set(type, listener); },
+    removeEventListener(type, listener) {
+      if (listeners.get(type) === listener) listeners.delete(type);
+    },
+    listenerCount: () => listeners.size,
+  };
+}
+
+function deferredBootstrapRuntime(options = {}) {
+  const persistence = options.persistence || deferred();
+  const elements = {
+    syncStatus: { textContent: "", title: "", dataset: {}, setAttribute() {} },
+    loginBtn: makeButton(),
+    logoutBtn: makeButton({ hidden: true }),
+  };
+  let observerCalls = 0;
+  let controllerCreations = 0;
+  const guest = {
+    disposeCalls: 0,
+    dispose() { this.disposeCalls += 1; },
+    favorites: () => ["guest/one"],
+  };
+  const auth = { currentUser: null };
+  const context = {
+    Favorites: globalThis.Favorites,
+    FavoriteSync: {
+      createController() {
+        controllerCreations += 1;
+        if (options.controllerError) throw options.controllerError;
+        return { dispose() {}, favorites: () => [], setUser: async () => {} };
+      },
+    },
+    favoriteController: guest,
+    applyFavoriteState() {},
+    fetch: async () => ({ ok: true, json: async () => ({
+      projectId: "github-trending-nowwcastle",
+      authDomain: "github-trending-nowwcastle.firebaseapp.com",
+      appCheckSiteKey: "public-site-key",
+    }) }),
+    URL: class {},
+    document: { getElementById: id => elements[id] },
+    localStorage: memoryStorage(),
+    initializeApp: config => ({ config }),
+    initializeAppCheck: options.appCheck || (() => ({})),
+    ReCaptchaEnterpriseProvider: class {},
+    getAuth: () => auth,
+    getFirestore: () => ({}),
+    GoogleAuthProvider: class {},
+    setPersistence: () => persistence.promise,
+    browserLocalPersistence: {},
+    onAuthStateChanged: () => { observerCalls += 1; return () => {}; },
+    signInWithPopup: async () => {},
+    signOut: async () => {},
+    arrayRemove: value => value,
+    arrayUnion: value => value,
+    doc: () => ({}),
+    getDoc: async () => ({ exists: () => false }),
+    onSnapshot: () => () => {},
+    runTransaction: async (_db, update) => update({ get: async () => ({ exists: () => false }), set() {} }),
+    serverTimestamp: () => ({}),
+    setDoc: async () => {},
+    addEventListener() {},
+    globalThis: null,
+  };
+  context.globalThis = context;
+  return {
+    context,
+    elements,
+    guest,
+    persistence,
+    get observerCalls() { return observerCalls; },
+    get controllerCreations() { return controllerCreations; },
+  };
+}
+
+async function runFirebaseBootstrap(options = {}) {
+  const source = await readFile(new URL("../firebase-client.js", import.meta.url), "utf8");
+  const runtime = deferredBootstrapRuntime(options);
+  const runnable = source
+    .replace(/import\s*\{[\s\S]*?\}\s*from\s*"https:\/\/www\.gstatic\.com\/firebasejs\/12\.17\.1\/[^\"]+";\s*/g, "")
+    .replace(/import\.meta\.url/g, '""');
+  vm.runInNewContext(runnable, runtime.context);
+  await flushBootstrap();
+  return runtime;
+}
+
+async function flushBootstrap() {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await new Promise(resolve => setImmediate(resolve));
+}
+
+test("local persistence resolves before observer and popup wiring", async () => {
+  const { source } = await loadFirebaseClientForTest();
+  const persistence = source.indexOf("await setPersistence(auth, browserLocalPersistence)");
+  assert.ok(persistence > source.indexOf("const auth = getAuth(app)"));
+  assert.ok(persistence < source.indexOf("onAuthStateChanged(auth"));
+  assert.ok(persistence < source.indexOf('login.addEventListener("click"'));
+
+  const runtime = await runFirebaseBootstrap();
+  assert.equal(runtime.observerCalls, 0);
+  assert.equal(runtime.controllerCreations, 0);
+  assert.equal(runtime.guest.disposeCalls, 0);
+  assert.equal(runtime.elements.loginBtn.disabled, true);
+  assert.equal(runtime.elements.loginBtn.listenerCount(), 0);
+
+  runtime.persistence.resolve();
+  await flushBootstrap();
+  assert.equal(runtime.observerCalls, 1);
+  assert.equal(runtime.controllerCreations, 1);
+  assert.equal(runtime.guest.disposeCalls, 1);
+  assert.equal(runtime.elements.loginBtn.disabled, false);
+  assert.equal(runtime.elements.loginBtn.listenerCount(), 1);
+});
+
+test("persistence rejection retains guest mode with the storage-specific safe message", async () => {
+  const runtime = await runFirebaseBootstrap();
+  runtime.persistence.reject(new Error("raw persistence detail"));
+  await flushBootstrap();
+
+  assert.equal(runtime.guest.disposeCalls, 0);
+  assert.equal(runtime.observerCalls, 0);
+  assert.equal(runtime.elements.loginBtn.listenerCount(), 0);
+  assert.equal(runtime.elements.logoutBtn.listenerCount(), 0);
+  assert.equal(runtime.elements.loginBtn.hidden, true);
+  assert.equal(runtime.elements.loginBtn.disabled, true);
+  assert.equal(runtime.elements.logoutBtn.hidden, true);
+  assert.equal(runtime.elements.logoutBtn.disabled, true);
+  assert.equal(runtime.elements.syncStatus.textContent, "이 브라우저에서 로그인 상태를 저장할 수 없어 브라우저 저장으로 사용합니다.");
+  assert.doesNotMatch(runtime.elements.syncStatus.textContent, /raw persistence detail/);
+});
+
+test("App Check initialization rejection retains guest mode with the security safe message", async () => {
+  const runtime = await runFirebaseBootstrap({ appCheck: () => Promise.reject(new Error("raw App Check detail")) });
+  await flushBootstrap();
+
+  assert.equal(runtime.guest.disposeCalls, 0);
+  assert.equal(runtime.observerCalls, 0);
+  assert.equal(runtime.elements.loginBtn.listenerCount(), 0);
+  assert.equal(runtime.elements.logoutBtn.listenerCount(), 0);
+  assert.equal(runtime.elements.loginBtn.hidden, true);
+  assert.equal(runtime.elements.loginBtn.disabled, true);
+  assert.equal(runtime.elements.syncStatus.textContent, "로그인 보안 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
+  assert.doesNotMatch(runtime.elements.syncStatus.textContent, /raw App Check detail/);
+});
+
+test("later account resource rejection retains guest mode with a distinct safe message", async () => {
+  const runtime = await runFirebaseBootstrap({ controllerError: new Error("raw resource detail") });
+  runtime.persistence.resolve();
+  await flushBootstrap();
+
+  assert.equal(runtime.guest.disposeCalls, 0);
+  assert.equal(runtime.observerCalls, 0);
+  assert.equal(runtime.elements.loginBtn.listenerCount(), 0);
+  assert.equal(runtime.elements.logoutBtn.listenerCount(), 0);
+  assert.equal(runtime.elements.loginBtn.hidden, true);
+  assert.equal(runtime.elements.loginBtn.disabled, true);
+  assert.equal(runtime.elements.syncStatus.textContent, "로그인 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
+  assert.doesNotMatch(runtime.elements.syncStatus.textContent, /raw resource detail/);
+});
 
 test("App Check uses the pinned Enterprise provider before Firebase services", async () => {
   const { source, validateFirebaseConfig } = await loadFirebaseClientForTest();
@@ -538,7 +706,7 @@ test("App Check uses the pinned Enterprise provider before Firebase services", a
   assert.throws(() => validateFirebaseConfig({ ...config, appCheckSiteKey: 123 }), /App Check site key/);
 });
 
-test("an App Check initialization failure stays on the existing guest controller", async () => {
+test("a configuration failure stays on the existing guest controller", async () => {
   const source = await readFile(new URL("../firebase-client.js", import.meta.url), "utf8");
   const runnable = source
     .replace(/import\s*\{[\s\S]*?\}\s*from\s*"https:\/\/www\.gstatic\.com\/firebasejs\/12\.17\.1\/[^"]+";\s*/g, "")
@@ -565,7 +733,7 @@ test("an App Check initialization failure stays on the existing guest controller
   context.globalThis = context;
   vm.runInNewContext(runnable, context);
   await new Promise(resolve => setImmediate(resolve));
-  assert.equal(elements.syncStatus.textContent, "Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다.");
+  assert.equal(elements.syncStatus.textContent, "로그인 보안 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
   assert.equal(elements.loginBtn.hidden, true);
   assert.equal(elements.logoutBtn.hidden, true);
   assert.deepEqual(JSON.parse(JSON.stringify(applied)), { favorites: ["guest/one"], busy: false });
@@ -700,7 +868,7 @@ test("sync mode exposes only the browser and Google account labels", async () =>
 
 test("an authenticated synchronization failure retains the account mode label", async () => {
   const source = await readFile(new URL("../firebase-client.js", import.meta.url), "utf8");
-  const authHandler = source.match(/const stopAuth = onAuthStateChanged[\s\S]*?login\.addEventListener/m)?.[0] || "";
+  const authHandler = source.match(/const applyAuthState = async user => \{[\s\S]*?const onLogin/m)?.[0] || "";
 
   assert.match(authHandler, /catch\s*\{[\s\S]*?setSyncStatus\(status, user, "즐겨찾기 동기화를 시작하지 못했어요/);
 });
