@@ -956,6 +956,7 @@ test("CLI deadline epoch rejects missing, malformed, unsafe, and past values bef
       "--facts", "unused-facts.json",
       "--events", "unused-events.json",
       "--enrichment-index-out", "unused-index.json",
+      "--source-root", "unused-source",
       "--output-root", "unused-output",
       "--parent-evidence", "unused-evidence.json",
       "--prior-heads", "unused-heads.json",
@@ -974,6 +975,12 @@ test("CLI deadline epoch rejects missing, malformed, unsafe, and past values bef
     }, name);
     assert.equal(result.stdout, "", name);
   }
+});
+
+test("frozen CLI binds reusable enrichment state to its explicit source root", async () => {
+  const source = await readFile(path.resolve("scripts/generate-translations.mjs"), "utf8");
+  assert.match(source, /const allowed = new Set\(\[[^\]]*"--source-root"[^\]]*\]\)/);
+  assert.match(source, /sourceRoot: args\["--source-root"\]/);
 });
 
 test("argument-free paid CLI is rejected before key, README, or API work", () => {

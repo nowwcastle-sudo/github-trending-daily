@@ -82,7 +82,7 @@ test("frozen facts events and enrichment precede core recording and publication"
     "Collect frozen repository facts",
   ]);
   assert.match(workflow, /collect-repository-events\.mjs --facts[\s\S]*--prior-heads[\s\S]*--parent-evidence[\s\S]*--parent-database/);
-  assert.match(workflow, /generate-translations\.mjs --facts[\s\S]*--events[\s\S]*--enrichment-index-out[\s\S]*--output-root[\s\S]*--prior-heads[\s\S]*--parent-evidence[\s\S]*--parent-database/);
+  assert.match(workflow, /generate-translations\.mjs --facts[\s\S]*--events[\s\S]*--enrichment-index-out[\s\S]*--source-root "\$\{RUNNER_TEMP\}\/candidate"[\s\S]*--output-root "\$\{RUNNER_TEMP\}\/candidate"[\s\S]*--prior-heads[\s\S]*--parent-evidence[\s\S]*--parent-database/);
   assert.match(workflow, /ENRICHMENT_BUDGET_MODE=normal[\s\S]*VERIFIED_RECOVERY_VERSION=1[\s\S]*VERIFIED_BOOTSTRAP_SOURCE_SHA=\$HYDRATION_SOURCE_SHA/);
   assert.match(workflow, /PRODUCTION_MANIFEST_STATUS=\$\{value\.manifestStatus\}[\s\S]*PRODUCTION_MANIFEST_SHA256=\$\{value\.manifestSha256 \?\? ""\}/);
   assert.match(workflow, /update-trending\.mjs --render-facts[\s\S]*--snapshot-out/);

@@ -206,7 +206,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           set -euo pipefail
-          node scripts/generate-translations.mjs --facts "${RUNNER_TEMP}/repository-facts.json" --events "${RUNNER_TEMP}/repository-events.json" --enrichment-index-out "${RUNNER_TEMP}/enrichment-index.json" --output-root "${RUNNER_TEMP}/candidate" --prior-heads "${RUNNER_TEMP}/prior-heads.json" --parent-evidence "${RUNNER_TEMP}/parent-evidence.json" --parent-database "$PARENT_DATABASE"
+          node scripts/generate-translations.mjs --facts "${RUNNER_TEMP}/repository-facts.json" --events "${RUNNER_TEMP}/repository-events.json" --enrichment-index-out "${RUNNER_TEMP}/enrichment-index.json" --source-root "${RUNNER_TEMP}/candidate" --output-root "${RUNNER_TEMP}/candidate" --prior-heads "${RUNNER_TEMP}/prior-heads.json" --parent-evidence "${RUNNER_TEMP}/parent-evidence.json" --parent-database "$PARENT_DATABASE"
       - name: Record core repository snapshot
         shell: bash
         run: |

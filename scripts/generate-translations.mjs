@@ -2856,7 +2856,7 @@ export async function runFrozenEnrichmentPipeline({
 }
 
 function frozenCliArgs(argv) {
-  const allowed = new Set(["--facts", "--events", "--enrichment-index-out", "--output-root", "--parent-evidence", "--prior-heads", "--parent-database"]);
+  const allowed = new Set(["--facts", "--events", "--enrichment-index-out", "--source-root", "--output-root", "--parent-evidence", "--prior-heads", "--parent-database"]);
   const values = {};
   for (let index = 0; index < argv.length; index += 2) {
     const key = argv[index];
@@ -2896,6 +2896,7 @@ async function runFrozenEnrichmentCli(argv) {
     factsPath: args["--facts"],
     eventsPath: args["--events"],
     enrichmentIndexOut: args["--enrichment-index-out"],
+    sourceRoot: args["--source-root"],
     outputRoot: args["--output-root"],
     parentEvidencePath: args["--parent-evidence"],
     priorHeadsPath: args["--prior-heads"],
