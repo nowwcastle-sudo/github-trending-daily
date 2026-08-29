@@ -2733,7 +2733,7 @@ export async function runFrozenEnrichmentPipeline({
       || indexFile.startsWith(`${candidateRoot}${path.sep}`) === false && indexFile === candidateRoot) {
     throw new Error("Frozen enrichment paths must not alias");
   }
-  if (existsSync(indexFile) || existsSync(candidateRoot)) throw new Error("Frozen enrichment outputs must not already exist");
+  if (existsSync(indexFile)) throw new Error("Frozen enrichment index output must not already exist");
   const [initialFactsBytes, initialEventsBytes, cacheBytes, sourcesBytes] = await Promise.all([
     readFile(factsFile),
     readFile(eventsFile),

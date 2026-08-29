@@ -313,6 +313,8 @@ test("frozen enrichment gives a same-run new repository a detailed summary and e
   const root = mkdtempSync(path.join(tmpdir(), "frozen-enrichment-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   const fixture = frozenPipelineFixture(root);
+  mkdirSync(fixture.outputRoot, { recursive: true });
+  writeFileSync(path.join(fixture.outputRoot, "existing-candidate-file.txt"), "preserve\n");
   let calls = 0;
   let verifierCalls = 0;
   const urls = [];
@@ -343,6 +345,7 @@ test("frozen enrichment gives a same-run new repository a detailed summary and e
   assert.equal(index.runContextSha256, fixture.facts.runContextSha256);
   assert.equal(index.eventsSha256, fixture.events.completeSetSha256);
   assert.equal(existsSync(path.join(fixture.outputRoot, "translations", "owner__repo-0.json")), true);
+  assert.equal(readFileSync(path.join(fixture.outputRoot, "existing-candidate-file.txt"), "utf8"), "preserve\n");
 });
 
 test("frozen enrichment rejects cross-source and cross-mode policy proof before Anthropic or output", async t => {
