@@ -168,6 +168,14 @@ async function bootstrap() {
 
   try {
     auth = getAuth(app);
+  } catch {
+    if (generation === bootstrapGeneration) {
+      retainGuestMode(status, login, logout, "로그인 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
+    }
+    return;
+  }
+
+  try {
     await setPersistence(auth, browserLocalPersistence);
   } catch {
     if (generation === bootstrapGeneration) {

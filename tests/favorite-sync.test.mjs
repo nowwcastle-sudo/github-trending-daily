@@ -734,6 +734,7 @@ function deferredBootstrapRuntime(options = {}) {
       const current = auths[Math.min(authIndex, auths.length - 1)];
       authIndex += 1;
       calls.push({ type: "getAuth", auth: current });
+      if (options.authError) throw options.authError;
       return current;
     },
     getFirestore: () => {
@@ -1083,6 +1084,28 @@ test("persistence rejection retains guest mode with the storage-specific safe me
   assert.equal(runtime.elements.logoutBtn.disabled, true);
   assert.equal(runtime.elements.syncStatus.textContent, "이 브라우저에서 로그인 상태를 저장할 수 없어 브라우저 저장으로 사용합니다.");
   assert.doesNotMatch(runtime.elements.syncStatus.textContent, /raw persistence detail/);
+});
+
+test("Auth initialization failure retains guest mode with the generic safe message", async () => {
+  const runtime = await runFirebaseBootstrap({ authError: new Error("raw Auth initialization detail") });
+  await flushBootstrap();
+
+  assert.deepEqual(runtime.calls.map(call => call.type), ["getFirestore", "getAuth"]);
+  assert.equal(runtime.context.favoriteController, runtime.guest);
+  assert.equal(runtime.guest.disposeCalls, 0);
+  assert.equal(runtime.observerCalls, 0);
+  assert.equal(runtime.controllerCreations, 0);
+  assert.equal(runtime.elements.loginBtn.listenerCount(), 0);
+  assert.equal(runtime.elements.logoutBtn.listenerCount(), 0);
+  assert.equal(runtime.elements.loginBtn.hidden, true);
+  assert.equal(runtime.elements.loginBtn.disabled, true);
+  assert.equal(runtime.elements.logoutBtn.hidden, true);
+  assert.equal(runtime.elements.logoutBtn.disabled, true);
+  assert.equal(runtime.elements.syncStatus.textContent, "로그인 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
+  assert.equal(runtime.elements.syncStatus.title, "로그인 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
+  assert.equal(runtime.elements.syncStatus.getAttribute("aria-label"), "브라우저 동기화. 로그인 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
+  assert.equal(runtime.elements.syncStatus.dataset.tone, "error");
+  assert.doesNotMatch(runtime.elements.syncStatus.textContent, /raw Auth initialization detail/);
 });
 
 test("App Check initialization rejection retains guest mode with the security safe message", async () => {

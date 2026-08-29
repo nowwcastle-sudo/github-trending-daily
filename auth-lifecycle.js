@@ -10,7 +10,7 @@
     let discarded = false;
 
     const onPageHide = event => {
-      if (event?.persisted === true || discarded) return;
+      if (event?.persisted !== false || discarded) return;
       discarded = true;
       onDiscard();
     };

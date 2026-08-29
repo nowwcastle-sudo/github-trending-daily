@@ -943,6 +943,21 @@ test("responsive sidebar owns account, favorites, and discovery filters", () => 
   assert.match(page, /if\(sidebar\.dataset\.openMode==="modal"\)trapFocus\(sidebar,event\)/);
 });
 
+test("static account markup is fail-closed while Firebase prepares login", () => {
+  const status = page.match(/<p[^>]*id="syncStatus"[^>]*>[\s\S]*?<\/p>/)?.[0] ?? "";
+  const login = page.match(/<button[^>]*id="loginBtn"[^>]*>/)?.[0] ?? "";
+  const logout = page.match(/<button[^>]*id="logoutBtn"[^>]*>/)?.[0] ?? "";
+
+  assert.match(status, /title="로그인 준비 중이에요\."/);
+  assert.match(status, /aria-label="브라우저 동기화\. 로그인 준비 중이에요\."/);
+  assert.match(status, /data-tone="notice"/);
+  assert.match(status, />로그인 준비 중이에요\.<\/p>$/);
+  assert.match(login, /\bdisabled\b/);
+  assert.doesNotMatch(login, /\bhidden\b/);
+  assert.match(logout, /\bhidden\b/);
+  assert.match(logout, /\bdisabled\b/);
+});
+
 test("browser-local hidden repositories have tooltip actions, undo, and sidebar recovery", () => {
   assert.match(page, /<script src="favorites\.js"><\/script>\s*<script src="hidden-repos\.js"><\/script>/);
   assert.match(page, /class="rdbtn js-hide-repo"[^>]*data-slug="\$\{r\.slug\}"[^>]*>관심 없음<\/button>/);
