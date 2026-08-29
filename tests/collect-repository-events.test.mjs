@@ -620,6 +620,23 @@ test("release records normalize the DB identity and weak ETags require byte-equi
   assert.equal(value.metadata_sha256, createHash("sha256").update(JSON.stringify(preimage)).digest("hex"));
 });
 
+test("weak release revalidation ignores fields outside the stored release contract", async () => {
+  let calls = 0;
+  const events = await collectRepositoryEvents([repo], {
+    fetchImpl: async (url, options) => {
+      const value = new URL(url);
+      if (value.pathname.endsWith("/releases")) {
+        calls += 1;
+        return response(200, [{ ...release(1), assets: [{ download_count: calls }] }], { etag: 'W/"weak"' });
+      }
+      return successfulFetch()(url, options);
+    },
+  });
+  assert.equal(calls, 2);
+  assert.equal(events.releases.length, 1);
+  assert.equal(events.releases[0].release_id, 1);
+});
+
 test("malformed release URLs are rejected without retaining upstream URL content", async () => {
   const sentinel = "RELEASE-MALFORMED-URL-SENTINEL-DO-NOT-RETAIN";
   let caught;

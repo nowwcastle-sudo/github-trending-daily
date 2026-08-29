@@ -295,7 +295,7 @@ async function collectReleaseInventory(slug, context) {
     }
     const etag = response.headers.get("etag");
     if (etag !== null && !STRONG_ETAG.test(etag) && !WEAK_ETAG.test(etag)) throw new Error(`Invalid release ETag for ${slug}`);
-    pages.push({ url, etag: etag !== null && STRONG_ETAG.test(etag) ? etag : null, canonicalBody: stableJson(value), next, records });
+    pages.push({ url, etag: etag !== null && STRONG_ETAG.test(etag) ? etag : null, canonicalBody: stableJson(records), next, records });
     if (next === null) break;
     url = next;
   }
@@ -306,8 +306,10 @@ async function collectReleaseInventory(slug, context) {
     if (first.etag && response.status !== 304) throw new Error(`Release ETag revalidation changed for ${slug} page ${index + 1}`);
     if (response.status === 304) continue;
     const value = await json(response, `release revalidation for ${slug}`);
-    const next = releaseNext(response.headers.get("link"), slug, index + 1, Array.isArray(value) ? value.length : -1);
-    if (stableJson(value) !== first.canonicalBody || next !== first.next) throw new Error(`Release revalidation changed for ${slug} page ${index + 1}`);
+    if (!Array.isArray(value)) throw new Error(`Release revalidation changed for ${slug} page ${index + 1}`);
+    const next = releaseNext(response.headers.get("link"), slug, index + 1, value.length);
+    const records = value.map(entry => releaseRecord(slug, entry));
+    if (stableJson(records) !== first.canonicalBody || next !== first.next) throw new Error(`Release revalidation changed for ${slug} page ${index + 1}`);
   }
   return pages;
 }
