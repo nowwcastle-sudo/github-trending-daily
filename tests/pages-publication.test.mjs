@@ -152,9 +152,10 @@ const classificationMutations = [
   ["drifted version", repo => { repo.tag_rule_version = 2; }],
 ];
 
-test("current raw v0 page repositories are rejected as provenance-less v1 classifications", async () => {
-  await assert.rejects(
-    readFile(join(root, "index.html")).then(bytes => parseEmbeddedRepos(bytes, "current raw page REPOS", { requireClassification: true })),
+test("synthetic provenance-less v0 page is rejected as a v1 classification candidate", () => {
+  const rawV0Page = `<script>\nconst REPOS = ${JSON.stringify([{ slug: "owner/one" }])};\n</script>\n`;
+  assert.throws(
+    () => parseEmbeddedRepos(rawV0Page, "synthetic raw v0 page REPOS", { requireClassification: true }),
     /classification/i,
   );
 });
