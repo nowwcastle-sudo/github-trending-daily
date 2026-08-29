@@ -521,42 +521,68 @@ async function loadFirebaseClientForTest() {
   return { source, ...context.__client };
 }
 
-function makeButton({ hidden = false } = {}) {
+function makeButton({ hidden = false, failAdd } = {}) {
   const listeners = new Map();
+  let addCalls = 0;
+  let removeCalls = 0;
   return {
     disabled: false,
     hidden,
     textContent: "Google로 로그인",
-    addEventListener(type, listener) { listeners.set(type, listener); },
+    addEventListener(type, listener) {
+      addCalls += 1;
+      if (failAdd) throw failAdd;
+      listeners.set(type, listener);
+    },
     removeEventListener(type, listener) {
+      removeCalls += 1;
       if (listeners.get(type) === listener) listeners.delete(type);
     },
     listenerCount: () => listeners.size,
+    get addCalls() { return addCalls; },
+    get removeCalls() { return removeCalls; },
   };
 }
 
 function deferredBootstrapRuntime(options = {}) {
-  const persistence = options.persistence || deferred();
+  const persistence = options.persistence || options.persistences?.[0] || deferred();
+  const persistences = [...(options.persistences || [persistence])];
   const elements = {
     syncStatus: { textContent: "", title: "", dataset: {}, setAttribute() {} },
     loginBtn: makeButton(),
-    logoutBtn: makeButton({ hidden: true }),
+    logoutBtn: makeButton({ hidden: true, failAdd: options.failLogoutAdd }),
   };
   let observerCalls = 0;
   let controllerCreations = 0;
+  let unsubscribeCalls = 0;
+  const calls = [];
+  const controllers = [];
+  const observers = [];
+  const pagehideListeners = [];
   const guest = {
     disposeCalls: 0,
     dispose() { this.disposeCalls += 1; },
     favorites: () => ["guest/one"],
   };
-  const auth = { currentUser: null };
+  const auth = { currentUser: null, name: "auth-1" };
+  const auths = options.auths || [auth];
+  const browserLocalPersistence = {};
+  let authIndex = 0;
   const context = {
     Favorites: globalThis.Favorites,
     FavoriteSync: {
       createController() {
         controllerCreations += 1;
         if (options.controllerError) throw options.controllerError;
-        return { dispose() {}, favorites: () => [], setUser: async () => {} };
+        const controller = {
+          id: `controller-${controllerCreations}`,
+          disposeCalls: 0,
+          dispose() { this.disposeCalls += 1; },
+          favorites: () => [],
+          setUser: async () => {},
+        };
+        controllers.push(controller);
+        return controller;
       },
     },
     favoriteController: guest,
@@ -572,12 +598,28 @@ function deferredBootstrapRuntime(options = {}) {
     initializeApp: config => ({ config }),
     initializeAppCheck: options.appCheck || (() => ({})),
     ReCaptchaEnterpriseProvider: class {},
-    getAuth: () => auth,
-    getFirestore: () => ({}),
+    getAuth: () => {
+      const current = auths[Math.min(authIndex, auths.length - 1)];
+      authIndex += 1;
+      calls.push({ type: "getAuth", auth: current });
+      return current;
+    },
+    getFirestore: () => {
+      calls.push({ type: "getFirestore" });
+      if (options.firestoreError) throw options.firestoreError;
+      return {};
+    },
     GoogleAuthProvider: class {},
-    setPersistence: () => persistence.promise,
-    browserLocalPersistence: {},
-    onAuthStateChanged: () => { observerCalls += 1; return () => {}; },
+    setPersistence: (receivedAuth, persistenceType) => {
+      calls.push({ type: "setPersistence", auth: receivedAuth, persistenceType });
+      return persistences.shift().promise;
+    },
+    browserLocalPersistence,
+    onAuthStateChanged: (receivedAuth, callback) => {
+      observerCalls += 1;
+      observers.push({ auth: receivedAuth, callback });
+      return () => { unsubscribeCalls += 1; };
+    },
     signInWithPopup: async () => {},
     signOut: async () => {},
     arrayRemove: value => value,
@@ -588,7 +630,9 @@ function deferredBootstrapRuntime(options = {}) {
     runTransaction: async (_db, update) => update({ get: async () => ({ exists: () => false }), set() {} }),
     serverTimestamp: () => ({}),
     setDoc: async () => {},
-    addEventListener() {},
+    addEventListener(type, listener) {
+      if (type === "pagehide") pagehideListeners.push(listener);
+    },
     globalThis: null,
   };
   context.globalThis = context;
@@ -599,6 +643,12 @@ function deferredBootstrapRuntime(options = {}) {
     persistence,
     get observerCalls() { return observerCalls; },
     get controllerCreations() { return controllerCreations; },
+    get unsubscribeCalls() { return unsubscribeCalls; },
+    get calls() { return calls; },
+    get controllers() { return controllers; },
+    get observers() { return observers; },
+    browserLocalPersistence,
+    triggerPagehide() { for (const listener of pagehideListeners) listener(); },
   };
 }
 
@@ -607,8 +657,11 @@ async function runFirebaseBootstrap(options = {}) {
   const runtime = deferredBootstrapRuntime(options);
   const runnable = source
     .replace(/import\s*\{[\s\S]*?\}\s*from\s*"https:\/\/www\.gstatic\.com\/firebasejs\/12\.17\.1\/[^\"]+";\s*/g, "")
-    .replace(/import\.meta\.url/g, '""');
+    .replace(/import\.meta\.url/g, '""')
+    .replace(/\nbootstrap\(\);\s*$/m, "\nglobalThis.__bootstrap = bootstrap;");
   vm.runInNewContext(runnable, runtime.context);
+  runtime.start = () => runtime.context.__bootstrap();
+  runtime.start();
   await flushBootstrap();
   return runtime;
 }
@@ -623,11 +676,22 @@ async function flushBootstrap() {
 test("local persistence resolves before observer and popup wiring", async () => {
   const { source } = await loadFirebaseClientForTest();
   const persistence = source.indexOf("await setPersistence(auth, browserLocalPersistence)");
-  assert.ok(persistence > source.indexOf("const auth = getAuth(app)"));
+  const authMatch = source.match(/auth\s*=\s*getAuth\(app\);/);
+  const firestore = source.indexOf("db = getFirestore(app)");
+  assert.ok(authMatch, "production getAuth assignment must exist");
+  const auth = source.indexOf(authMatch[0]);
+  assert.ok(auth >= 0);
+  assert.ok(firestore >= 0);
+  assert.ok(firestore < auth);
+  assert.ok(persistence >= 0);
+  assert.ok(persistence > auth);
   assert.ok(persistence < source.indexOf("onAuthStateChanged(auth"));
   assert.ok(persistence < source.indexOf('login.addEventListener("click"'));
 
   const runtime = await runFirebaseBootstrap();
+  assert.deepEqual(runtime.calls.map(call => call.type), ["getFirestore", "getAuth", "setPersistence"]);
+  assert.equal(runtime.calls[2].auth, runtime.calls[1].auth);
+  assert.equal(runtime.calls[2].persistenceType, runtime.browserLocalPersistence);
   assert.equal(runtime.observerCalls, 0);
   assert.equal(runtime.controllerCreations, 0);
   assert.equal(runtime.guest.disposeCalls, 0);
@@ -641,6 +705,70 @@ test("local persistence resolves before observer and popup wiring", async () => 
   assert.equal(runtime.guest.disposeCalls, 1);
   assert.equal(runtime.elements.loginBtn.disabled, false);
   assert.equal(runtime.elements.loginBtn.listenerCount(), 1);
+});
+
+test("Firestore initialization fails closed before Auth with the generic login-unavailable message", async () => {
+  const runtime = await runFirebaseBootstrap({ firestoreError: new Error("raw Firestore detail") });
+
+  assert.deepEqual(runtime.calls.map(call => call.type), ["getFirestore"]);
+  assert.equal(runtime.guest.disposeCalls, 0);
+  assert.equal(runtime.observerCalls, 0);
+  assert.equal(runtime.elements.loginBtn.listenerCount(), 0);
+  assert.equal(runtime.elements.logoutBtn.listenerCount(), 0);
+  assert.equal(runtime.elements.syncStatus.textContent, "로그인 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
+  assert.doesNotMatch(runtime.elements.syncStatus.textContent, /raw Firestore detail/);
+});
+
+test("partial account bundle cleanup unsubscribes and removes both handlers exactly once", async () => {
+  const runtime = await runFirebaseBootstrap({ failLogoutAdd: new Error("second handler failure") });
+  runtime.persistence.resolve();
+  await flushBootstrap();
+
+  assert.equal(runtime.guest.disposeCalls, 0);
+  assert.equal(runtime.context.favoriteController, runtime.guest);
+  assert.equal(runtime.observerCalls, 1);
+  assert.equal(runtime.unsubscribeCalls, 1);
+  assert.equal(runtime.controllers.length, 1);
+  assert.equal(runtime.controllers[0].disposeCalls, 1);
+  assert.equal(runtime.elements.loginBtn.removeCalls, 1);
+  assert.equal(runtime.elements.logoutBtn.removeCalls, 1);
+  assert.equal(runtime.elements.loginBtn.listenerCount(), 0);
+  assert.equal(runtime.elements.logoutBtn.listenerCount(), 0);
+});
+
+test("published bundle disposal is idempotent", async () => {
+  const runtime = await runFirebaseBootstrap();
+  runtime.persistence.resolve();
+  await flushBootstrap();
+
+  runtime.triggerPagehide();
+  runtime.triggerPagehide();
+  assert.equal(runtime.unsubscribeCalls, 1);
+  assert.equal(runtime.controllers[0].disposeCalls, 1);
+  assert.equal(runtime.elements.loginBtn.removeCalls, 1);
+  assert.equal(runtime.elements.logoutBtn.removeCalls, 1);
+});
+
+test("an older persistence bootstrap cannot publish after a newer one", async () => {
+  const first = deferred();
+  const second = deferred();
+  const runtime = await runFirebaseBootstrap({
+    persistences: [first, second],
+    auths: [{ currentUser: null, name: "older" }, { currentUser: null, name: "newer" }],
+  });
+  runtime.start();
+  await flushBootstrap();
+
+  second.resolve();
+  await flushBootstrap();
+  const newestController = runtime.context.favoriteController;
+  assert.equal(runtime.guest.disposeCalls, 1);
+  assert.equal(newestController, runtime.controllers[0]);
+
+  first.resolve();
+  await flushBootstrap();
+  assert.equal(runtime.guest.disposeCalls, 1);
+  assert.equal(runtime.context.favoriteController, newestController);
 });
 
 test("persistence rejection retains guest mode with the storage-specific safe message", async () => {

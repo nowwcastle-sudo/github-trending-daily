@@ -145,19 +145,9 @@ async function bootstrap() {
       provider: new ReCaptchaEnterpriseProvider(config.appCheckSiteKey),
       isTokenAutoRefreshEnabled: true,
     });
-    auth = getAuth(app);
   } catch {
     if (generation === bootstrapGeneration) {
       retainGuestMode(status, login, logout, "로그인 보안 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
-    }
-    return;
-  }
-
-  try {
-    await setPersistence(auth, browserLocalPersistence);
-  } catch {
-    if (generation === bootstrapGeneration) {
-      retainGuestMode(status, login, logout, "이 브라우저에서 로그인 상태를 저장할 수 없어 브라우저 저장으로 사용합니다.");
     }
     return;
   }
@@ -166,7 +156,17 @@ async function bootstrap() {
     db = getFirestore(app);
   } catch {
     if (generation === bootstrapGeneration) {
-      retainGuestMode(status, login, logout, "로그인 보안 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
+      retainGuestMode(status, login, logout, "로그인 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
+    }
+    return;
+  }
+
+  try {
+    auth = getAuth(app);
+    await setPersistence(auth, browserLocalPersistence);
+  } catch {
+    if (generation === bootstrapGeneration) {
+      retainGuestMode(status, login, logout, "이 브라우저에서 로그인 상태를 저장할 수 없어 브라우저 저장으로 사용합니다.");
     }
     return;
   }
