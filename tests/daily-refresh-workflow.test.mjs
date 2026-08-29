@@ -28,12 +28,16 @@ function assertClockAnchorsFirstExecutableStep(workflow) {
 
 test("schedule is held before checkout and manual bootstrap has a separate immutable gate", async () => {
   const workflow = await workflowText();
-  assert.match(workflow, /^on:\n  schedule:\n    - cron: "7 \*\/2 \* \* \*"\n  workflow_dispatch:\s*\{\}$/m);
+  assert.match(workflow, /^on:\n  schedule:\n    - cron: "7 \*\/2 \* \* \*"\n  workflow_dispatch:\n    inputs:\n      bootstrap-source-sha:\n        description: [^\n]+\n        required: false\n        type: string$/m);
   assert.match(workflow, /if: \$\{\{ \(github\.event_name == 'schedule' && vars\.GH_TRENDING_REFRESH_SCHEDULE == 'enabled'\) \|\| github\.event_name == 'workflow_dispatch' \}\}/);
   assert.match(workflow, /MANUAL_BOOTSTRAP_GATE: bootstrap_v0_pending_approval/);
   assert.doesNotMatch(workflow, /bootstrap_v0_approved/);
   assert.match(workflow, /GITHUB_EVENT_NAME.*workflow_dispatch[\s\S]*MANUAL_BOOTSTRAP_GATE.*bootstrap_v0_pending_approval[\s\S]*exit 1/);
-  assert.doesNotMatch(workflow, /bootstrap-source-sha|workflow_dispatch:\n\s+inputs:/);
+  assert.match(workflow, /REQUESTED_BOOTSTRAP_SOURCE_SHA: \$\{\{ inputs\['bootstrap-source-sha'\] \|\| '' \}\}/);
+  assert.match(workflow, /REQUESTED_BOOTSTRAP_SOURCE_SHA[\s\S]*\^\[a-f0-9\]\{40\}\$/);
+  assert.match(workflow, /PRODUCTION_MANIFEST_STATUS.*verified_404[\s\S]*REQUESTED_BOOTSTRAP_SOURCE_SHA.*HYDRATION_SOURCE_SHA/);
+  assert.match(workflow, /PRODUCTION_MANIFEST_STATUS.*verified_v0[\s\S]*-z "\$REQUESTED_BOOTSTRAP_SOURCE_SHA"/);
+  assert.match(workflow, /PRODUCTION_VERSION.*1[\s\S]*-z "\$REQUESTED_BOOTSTRAP_SOURCE_SHA"/);
   assertClockAnchorsFirstExecutableStep(workflow);
   const mutation = workflow.replace(
     "      - name: Anchor immutable refresh clock and gates",

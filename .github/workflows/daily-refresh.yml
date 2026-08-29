@@ -3,7 +3,12 @@ name: Trending refresh (2 hours)
 on:
   schedule:
     - cron: "7 */2 * * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      bootstrap-source-sha:
+        description: Verified Pages source SHA for the first version-0 bootstrap only
+        required: false
+        type: string
 
 permissions: {}
 
@@ -14,6 +19,7 @@ concurrency:
 env:
   PRODUCTION_BASE_URL: https://nowwcastle-sudo.github.io/github-trending-daily/
   MANUAL_BOOTSTRAP_GATE: bootstrap_v0_pending_approval
+  REQUESTED_BOOTSTRAP_SOURCE_SHA: ${{ inputs['bootstrap-source-sha'] || '' }}
 
 jobs:
   build:
@@ -74,6 +80,10 @@ jobs:
           HYDRATION_SOURCE_SHA="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(value.sourceSha);' "$STATE_FILE")"
           PRODUCTION_VERSION="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(String(value.version));' "$STATE_FILE")"
           PRODUCTION_MANIFEST_STATUS="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(value.manifestStatus);' "$STATE_FILE")"
+          if [ -n "$REQUESTED_BOOTSTRAP_SOURCE_SHA" ] && [[ ! "$REQUESTED_BOOTSTRAP_SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]]; then
+            echo "::error::requested bootstrap source SHA is invalid"
+            exit 1
+          fi
           git cat-file -e "${HYDRATION_SOURCE_SHA}^{commit}"
           git merge-base --is-ancestor "$HYDRATION_SOURCE_SHA" "$ORIGINAL_SHA"
           if [ "$PRODUCTION_VERSION" = "0" ]; then
@@ -85,16 +95,21 @@ jobs:
             echo "ENRICHMENT_BUDGET_MODE=$MANUAL_BOOTSTRAP_GATE" >> "$GITHUB_ENV"
             echo "VERIFIED_RECOVERY_VERSION=0" >> "$GITHUB_ENV"
             echo "VERIFIED_BOOTSTRAP_SOURCE_SHA=$HYDRATION_SOURCE_SHA" >> "$GITHUB_ENV"
-            echo "MANUAL_BOOTSTRAP_SOURCE_SHA=$HYDRATION_SOURCE_SHA" >> "$GITHUB_ENV"
             if [ "$PRODUCTION_MANIFEST_STATUS" = "verified_404" ]; then
+              [ -n "$REQUESTED_BOOTSTRAP_SOURCE_SHA" ] || { echo "::error::verified-404 bootstrap requires an explicit source SHA"; exit 1; }
+              [ "$REQUESTED_BOOTSTRAP_SOURCE_SHA" = "$HYDRATION_SOURCE_SHA" ] || { echo "::error::requested bootstrap source does not match verified Pages source"; exit 1; }
+              echo "MANUAL_BOOTSTRAP_SOURCE_SHA=$REQUESTED_BOOTSTRAP_SOURCE_SHA" >> "$GITHUB_ENV"
               node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --bootstrap-preflight-sha "$HYDRATION_SOURCE_SHA"
             elif [ "$PRODUCTION_MANIFEST_STATUS" = "verified_v0" ]; then
+              [ -z "$REQUESTED_BOOTSTRAP_SOURCE_SHA" ] || { echo "::error::verified-v0 manifest bootstrap forbids an explicit source SHA"; exit 1; }
+              echo "MANUAL_BOOTSTRAP_SOURCE_SHA=$HYDRATION_SOURCE_SHA" >> "$GITHUB_ENV"
               node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --legacy-recovery-sha "$HYDRATION_SOURCE_SHA"
             else
               echo "::error::invalid migration manifest evidence"
               exit 1
             fi
           else
+            [ -z "$REQUESTED_BOOTSTRAP_SOURCE_SHA" ] || { echo "::error::version-1 refresh forbids a bootstrap source SHA"; exit 1; }
             git cat-file -e "$HYDRATION_SOURCE_SHA:data/repository-observations.sqlite"
             PARENT_SNAPSHOT_ID="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(value.snapshotId ?? "");' "$STATE_FILE")"
             [ -n "$PARENT_SNAPSHOT_ID" ]

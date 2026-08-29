@@ -2909,7 +2909,7 @@ async function main() {
       return;
     }
     const planOnly = args.length === 1 && args[0] === "--plan-only";
-    if (args.length > 0 && !planOnly) throw cliFailure("QUEUE_FAILED");
+    if (!planOnly) throw cliFailure("QUEUE_FAILED");
     const startedAt = Date.now();
     const deadlineText = process.env.ENRICHMENT_DEADLINE_EPOCH_MS ?? "";
     let deadline;

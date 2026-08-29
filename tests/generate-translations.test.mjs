@@ -948,7 +948,16 @@ test("CLI deadline epoch rejects missing, malformed, unsafe, and past values bef
   ]) {
     const env = { ...baseEnv, ANTHROPIC_API_KEY: "", GITHUB_TOKEN: "" };
     if (value !== null) env.ENRICHMENT_DEADLINE_EPOCH_MS = value;
-    const result = spawnSync(process.execPath, [path.resolve("scripts/generate-translations.mjs")], {
+    const result = spawnSync(process.execPath, [
+      path.resolve("scripts/generate-translations.mjs"),
+      "--facts", "unused-facts.json",
+      "--events", "unused-events.json",
+      "--enrichment-index-out", "unused-index.json",
+      "--output-root", "unused-output",
+      "--parent-evidence", "unused-evidence.json",
+      "--prior-heads", "unused-heads.json",
+      "--parent-database", "unused-database.sqlite",
+    ], {
       cwd: path.resolve("."),
       encoding: "utf8",
       env,
@@ -964,7 +973,7 @@ test("CLI deadline epoch rejects missing, malformed, unsafe, and past values bef
   }
 });
 
-test("CLI API-key failure emits the same exact content-free zero-usage envelope", () => {
+test("argument-free paid CLI is rejected before key, README, or API work", () => {
   const env = Object.fromEntries([
     ["SystemRoot", process.env.SystemRoot],
     ["WINDIR", process.env.WINDIR],
@@ -982,7 +991,7 @@ test("CLI API-key failure emits the same exact content-free zero-usage envelope"
   assert.equal(result.stdout, "");
   assert.deepEqual(JSON.parse(result.stderr.trim()), {
     ok: false,
-    code: "MISSING_API_KEY",
+    code: "QUEUE_FAILED",
     diagnostic: null,
     usage: ZERO_USAGE,
   });
