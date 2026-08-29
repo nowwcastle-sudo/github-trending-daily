@@ -8,6 +8,7 @@
 <link rel="alternate" type="application/atom+xml" title="GitHub Trending Daily — 신규·재진입" href="https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml">
 <style>:root{
   --sidebar-width:min(360px,calc(100vw - 44px));
+  --sidebar-open-duration:260ms;--sidebar-close-duration:210ms;--tooltip-duration:160ms;
   --bg:#f5f5f7; --bg-elev:rgba(255,255,255,.72); --card:rgba(255,255,255,.85);
   --text:#1d1d1f; --text-2:#6e6e73; --text-3:#6e6e73;
   --border:rgba(0,0,0,.08); --hairline:rgba(0,0,0,.06);
@@ -83,7 +84,7 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
   position:fixed;z-index:330;left:0;top:max(160px,calc(env(safe-area-inset-top) + 68px));width:44px;height:48px;min-width:44px;min-height:44px;
   border:1px solid var(--tip-border);border-left:0;border-radius:0 13px 13px 0;padding:0;background:var(--tip-bg);backdrop-filter:blur(28px) saturate(180%);
   color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.96;transform:translate3d(0,0,0);box-shadow:var(--shadow-card);
-  transition:transform .3s cubic-bezier(.32,.72,0,1),opacity .2s ease-out,border-color .18s ease,color .18s ease;
+  transition:transform var(--sidebar-close-duration) cubic-bezier(.32,.72,0,1),opacity var(--sidebar-close-duration) ease-out,border-color .18s ease,color .18s ease;
 }
 .nav-toggle:hover,.nav-toggle:focus-visible{opacity:1;border-color:var(--surface-border-strong);color:var(--accent)}
 .nav-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
@@ -101,11 +102,11 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
   background:var(--tip-bg);backdrop-filter:blur(28px) saturate(180%);
   border:1px solid var(--tip-border);border-radius:0 18px 18px 0;box-shadow:var(--shadow-pop);
   color:var(--text);transform:translate3d(-105%,0,0);opacity:.85;
-  transition:transform .3s cubic-bezier(.32,.72,0,1),opacity .2s ease-out;
+  transition:transform var(--sidebar-close-duration) cubic-bezier(.32,.72,0,1),opacity var(--sidebar-close-duration) ease-out;
 }
-.filter-sidebar.open{transform:translate3d(0,0,0);opacity:1}
+.filter-sidebar.open{transform:translate3d(0,0,0);opacity:1;transition-duration:var(--sidebar-open-duration),var(--sidebar-open-duration)}
 .filter-sidebar.dragging{transition:none}
-.filter-sidebar.open~.nav-toggle{transform:translate3d(calc(var(--sidebar-width) - 1px),0,0);opacity:1;box-shadow:none}
+.filter-sidebar.open~.nav-toggle{transform:translate3d(calc(var(--sidebar-width) - 1px),0,0);opacity:1;box-shadow:none;transition-duration:var(--sidebar-open-duration),var(--sidebar-open-duration),.18s,.18s}
 @media(hover:hover) and (pointer:fine){
   .nav-toggle{
     top:0;bottom:0;width:44px;height:100vh;height:100dvh;border-radius:0;
@@ -219,7 +220,7 @@ body.overlay-open{overflow:hidden}
 .signal-guide>strong{flex-shrink:0;color:var(--text);font-size:12.5px;padding-top:2px}
 .signal-guide dl{display:flex;align-items:center;gap:10px 18px;flex-wrap:wrap}
 .signal-guide dl>div{display:flex;align-items:center;gap:7px}
-.signal-guide dt{flex-shrink:0}.signal-guide dd{margin:0}
+.signal-guide dt{flex-shrink:0}.signal-guide dd{margin:0;min-width:0;overflow-wrap:anywhere}
 .signal-guide .badge,.signal-guide .rankchg{display:inline-block;white-space:nowrap}
 
 /* ── Cards ──────────────────────────── */
@@ -270,7 +271,7 @@ body.overlay-open{overflow:hidden}
   background:var(--tip-bg);backdrop-filter:blur(28px) saturate(180%);
   border:1px solid var(--tip-border);border-radius:16px;box-shadow:var(--shadow-pop);
   padding:18px 20px;transform-origin:top left;
-  transition:opacity .18s ease-out,transform .24s cubic-bezier(.16,1,.3,1);
+  transition:opacity var(--tooltip-duration) ease-out,transform var(--tooltip-duration) cubic-bezier(.16,1,.3,1);
 }
 #tipLayer.on{opacity:1;transform:translate3d(0,0,0) scale(1);pointer-events:auto}
 /* 넓은 화면은 측정된 여백이 부족한 경우에만 목록을 transform으로 이동한다. */
@@ -311,9 +312,10 @@ body.overlay-open{overflow:hidden}
 .undo-bar button{min-height:44px;border:1px solid var(--border);border-radius:9px;background:transparent;color:var(--text);padding:7px 11px;font:inherit;font-size:12.5px;font-weight:650;cursor:pointer}
 .undo-bar button:hover{border-color:var(--accent);color:var(--accent)}
 .undo-bar button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.scroll-top{position:fixed;z-index:240;right:calc(env(safe-area-inset-right) + 16px);bottom:max(calc(env(safe-area-inset-bottom) + 16px),var(--scroll-top-offset,16px));min-width:48px;min-height:48px;border:1px solid var(--surface-border);border-radius:50%;background:var(--control-solid);color:var(--text);box-shadow:var(--shadow-card);display:grid;place-items:center;cursor:pointer;transition:transform .16s ease-out,border-color .16s ease,color .16s ease,opacity .16s ease}
-.scroll-top:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
-.scroll-top:active{transform:translateY(0) scale(.96)}
+.scroll-top{position:fixed;z-index:240;right:calc(env(safe-area-inset-right) + 16px);bottom:max(calc(env(safe-area-inset-bottom) + 16px),var(--scroll-top-offset,16px));min-width:48px;min-height:48px;border:1px solid var(--surface-border);border-radius:50%;background:var(--control-solid);color:var(--text);box-shadow:var(--shadow-card);display:grid;place-items:center;cursor:pointer;opacity:0;transform:translate3d(0,8px,0);pointer-events:none;transition:opacity .18s ease-out,transform .18s cubic-bezier(.16,1,.3,1)}
+.scroll-top.visible{opacity:1;transform:translate3d(0,0,0);pointer-events:auto}
+.scroll-top.visible:hover{border-color:var(--accent);color:var(--accent);transform:translate3d(0,-2px,0)}
+.scroll-top.visible:active{transform:translate3d(0,0,0) scale(.96)}
 .scroll-top:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .scroll-top svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .scroll-top[hidden]{display:none}
@@ -322,8 +324,11 @@ footer{margin-top:56px;text-align:center;color:var(--text-3);font-size:12.5px;li
 footer a{color:var(--text-2)}
 
 @media(prefers-reduced-motion:reduce){
+  :root{--sidebar-open-duration:0ms;--sidebar-close-duration:0ms;--tooltip-duration:0ms}
   html{scroll-behavior:auto}
-  *,*::before,*::after{transition-duration:.01ms!important;animation:none!important}
+  *,*::before,*::after{transition-duration:0ms!important;animation:none!important}
+  .filter-sidebar,#tipLayer,.scroll-top{transition:none!important}
+  .scroll-top,.scroll-top.visible,.scroll-top.visible:hover,.scroll-top.visible:active{transform:none!important}
 }
 @media(prefers-reduced-transparency:reduce){
   .filter-sidebar{background:var(--control-solid);backdrop-filter:none}
@@ -364,7 +369,7 @@ footer a{color:var(--text-2)}
 #readmePanel{position:fixed;top:0;right:0;width:min(1200px,92vw);height:100vh;height:100dvh;z-index:300;
   background:var(--tip-bg);backdrop-filter:blur(28px) saturate(180%);
   border-left:1px solid var(--tip-border);box-shadow:var(--shadow-pop);
-  transform:translate3d(102%,0,0);will-change:transform;
+  transform:translate3d(100%,0,0);will-change:transform;
   transition:transform .3s cubic-bezier(.16,1,.3,1);display:flex;flex-direction:column}
 #readmePanel.open{transform:translate3d(0,0,0)}
 #readmePanel .rp-head{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--hairline)}
@@ -1269,10 +1274,19 @@ function updateScrollTopButton(){
   scrollTopFrame=null;
   scrollTopButton.style.setProperty("--scroll-top-offset",`${scrollTopOffset()}px`);
   const visible=window.scrollY>window.innerHeight&&!scrollTopBlocked();
-  scrollTopButton.hidden=!visible;scrollTopButton.inert=!visible;scrollTopButton.tabIndex=visible?0:-1;
+  setScrollTopVisible(visible);
+}
+function setScrollTopVisible(visible){
+  if(!visible){
+    scrollTopButton.classList.remove("visible");scrollTopButton.hidden=true;scrollTopButton.inert=true;scrollTopButton.tabIndex=-1;return;
+  }
+  const entering=scrollTopButton.hidden;
+  scrollTopButton.hidden=false;scrollTopButton.inert=false;scrollTopButton.tabIndex=0;
+  if(entering){scrollTopButton.classList.remove("visible");scrollTopButton.getBoundingClientRect()}
+  scrollTopButton.classList.add("visible");
 }
 function hideScrollTopImmediately(){
-  scrollTopButton.hidden=true;scrollTopButton.inert=true;scrollTopButton.tabIndex=-1;
+  setScrollTopVisible(false);
 }
 function scheduleScrollTopUpdate(){
   if(scrollTopFrame!==null)return;

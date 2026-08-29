@@ -289,6 +289,7 @@ function scrollTopHarness({ reducedMotion = false } = {}) {
     hidden: true,
     inert: true,
     tabIndex: -1,
+    classList: new ClassList(),
     style: {
       values: new Map(),
       setProperty(name, value) { this.values.set(name, value); },
@@ -297,6 +298,7 @@ function scrollTopHarness({ reducedMotion = false } = {}) {
     listeners: new Map(),
     addEventListener(type, listener) { this.listeners.set(type, listener); },
     dispatch(type) { this.listeners.get(type)?.({ currentTarget: this }); },
+    getBoundingClientRect() { return { top: 0, width: 48, height: 48 }; },
   };
   const listeners = new Map(), frames = [], scrollCalls = [];
   const windowRef = {
@@ -984,7 +986,7 @@ test("the explore edge tab stays attached, reachable, and outside the inert page
   assert.match(page, /id="navToggle"[\s\S]*?<path d="M4 7h16M7 12h10M10 17h4"\/>/);
   assert.match(page, /--sidebar-width:min\(360px,calc\(100vw - 44px\)\)/);
   assert.match(page, /\.filter-sidebar\{[\s\S]*?width:var\(--sidebar-width\)/);
-  assert.match(page, /\.nav-toggle\{[^}]*background:var\(--tip-bg\)[^}]*transition:transform \.3s cubic-bezier\(\.32,\.72,0,1\),opacity \.2s ease-out/);
+  assert.match(page, /\.nav-toggle\{[^}]*background:var\(--tip-bg\)[^}]*transition:transform var\(--sidebar-close-duration\) cubic-bezier\(\.32,\.72,0,1\),opacity var\(--sidebar-close-duration\) ease-out/);
   assert.match(page, /\.filter-sidebar\.open~\.nav-toggle\{transform:translate3d\(calc\(var\(--sidebar-width\) - 1px\),0,0\)/);
   assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 60px\)\}\}/);
   assert.match(page, /@media\(max-width:560px\)\{[\s\S]*?h1\{white-space:normal;overflow-wrap:anywhere\}/);
@@ -998,7 +1000,7 @@ test("the explore edge tab stays attached, reachable, and outside the inert page
   assert.match(page, /trigger:event\.detail===0\?"keyboard":"click"/);
   assert.match(page, /if\(readme\.classList\.contains\("open"\)\)[\s\S]*?closeReadme\(false\)/);
   assert.match(page, /if\(restoreFocus&&sidebarTrigger instanceof HTMLElement\)sidebarTrigger\.focus\(\)/);
-  assert.match(page, /@media\(prefers-reduced-motion:reduce\)\{[\s\S]*?transition-duration:\.01ms!important/);
+  assert.match(page, /@media\(prefers-reduced-motion:reduce\)\{[\s\S]*?transition-duration:0ms!important/);
 });
 
 test("filter state is restored from and written to the URL", () => {
@@ -1131,6 +1133,7 @@ test("scroll-to-top is native, thresholded, coalesced, overlay-safe, and motion-
   assert.equal(harness.button.hidden, true);
   assert.equal(harness.button.inert, true);
   assert.equal(harness.button.tabIndex, -1);
+  assert.equal(harness.button.classList.contains("visible"), false);
 
   harness.setViewport(800, 800);
   harness.dispatch("scroll");
@@ -1146,12 +1149,14 @@ test("scroll-to-top is native, thresholded, coalesced, overlay-safe, and motion-
   assert.equal(harness.button.hidden, false);
   assert.equal(harness.button.inert, false);
   assert.equal(harness.button.tabIndex, 0);
+  assert.equal(harness.button.classList.contains("visible"), true);
   assert.equal(harness.offset(), "16px");
 
   harness.openModal();
   assert.equal(harness.button.hidden, true);
   assert.equal(harness.button.inert, true);
   assert.equal(harness.button.tabIndex, -1);
+  assert.equal(harness.button.classList.contains("visible"), false);
   assert.match(page, /if\(mode==="modal"&&typeof hideScrollTopImmediately==="function"\)hideScrollTopImmediately\(\)/);
   assert.match(page, /panel\.inert=false[\s\S]*?if\(typeof hideScrollTopImmediately==="function"\)hideScrollTopImmediately\(\)/);
   harness.sidebar.dataset.openMode = "hover";
@@ -1192,6 +1197,55 @@ test("scroll-to-top is native, thresholded, coalesced, overlay-safe, and motion-
   reduced.flush();
   reduced.click();
   assert.equal(JSON.stringify(reduced.scrollCalls.at(-1)), JSON.stringify({ top: 0, behavior: "auto" }));
+});
+
+test("sidebar, tooltip, and scroll-top motion use the exact bounded tokens", () => {
+  const root = page.match(/:root\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.match(root, /--sidebar-open-duration:260ms/);
+  assert.match(root, /--sidebar-close-duration:210ms/);
+  assert.match(root, /--tooltip-duration:160ms/);
+
+  const sidebar = page.match(/\.filter-sidebar\{[\s\S]*?\n\}/)?.[0] ?? "";
+  const sidebarTransition = sidebar.match(/transition:([^;]+);/)?.[1] ?? "";
+  assert.match(sidebarTransition, /transform var\(--sidebar-close-duration\)/);
+  assert.match(sidebarTransition, /opacity var\(--sidebar-close-duration\)/);
+  assert.doesNotMatch(sidebarTransition, /\b(?:width|left|height|margin|padding)\b/);
+  assert.match(page, /\.filter-sidebar\.open\{[^}]*transition-duration:var\(--sidebar-open-duration\),var\(--sidebar-open-duration\)/);
+  assert.match(page, /\.filter-sidebar\.dragging\{transition:none\}/);
+
+  const tooltip = page.match(/#tipLayer\{[\s\S]*?\n\}/)?.[0] ?? "";
+  const tooltipTransition = tooltip.match(/transition:([^;]+);/)?.[1] ?? "";
+  assert.match(tooltipTransition, /opacity var\(--tooltip-duration\)/);
+  assert.match(tooltipTransition, /transform var\(--tooltip-duration\)/);
+  assert.doesNotMatch(tooltipTransition, /\b(?:width|left|top|height|margin|padding)\b/);
+
+  const scrollTop = page.match(/\.scroll-top\{[^}]*\}/)?.[0] ?? "";
+  assert.match(scrollTop, /opacity:0/);
+  assert.match(scrollTop, /transform:translate3d\(0,8px,0\)/);
+  assert.match(scrollTop, /transition:opacity \.18s[^,]*,transform \.18s/);
+  assert.match(page, /\.scroll-top\.visible\{opacity:1;transform:translate3d\(0,0,0\);pointer-events:auto\}/);
+  assert.match(page, /function setScrollTopVisible\(visible\)\{[\s\S]*?scrollTopButton\.getBoundingClientRect\(\)[\s\S]*?classList\.add\("visible"\)/);
+
+  const reduced = page.match(/@media\(prefers-reduced-motion:reduce\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.match(reduced, /--sidebar-open-duration:0ms/);
+  assert.match(reduced, /--sidebar-close-duration:0ms/);
+  assert.match(reduced, /--tooltip-duration:0ms/);
+  assert.match(reduced, /\.filter-sidebar,#tipLayer,\.scroll-top\{transition:none!important\}/);
+  assert.match(reduced, /\.scroll-top,\.scroll-top\.visible[^}]*transform:none!important/);
+});
+
+test("the closed README panel does not inflate the narrow zoomed viewport", () => {
+  const panel = page.match(/#readmePanel\{[^}]*\}/)?.[0] ?? "";
+  assert.match(panel, /right:0/);
+  assert.match(panel, /transform:translate3d\(100%,0,0\)/);
+  assert.doesNotMatch(panel, /transform:translate3d\(102%,0,0\)/);
+  assert.match(page, /#readmePanel\.open\{transform:translate3d\(0,0,0\)\}/);
+});
+
+test("badge guide descriptions can shrink inside a 200 percent zoom viewport", () => {
+  const description = page.match(/\.signal-guide dd\{[^}]*\}/)?.[0] ?? "";
+  assert.match(description, /min-width:0/);
+  assert.match(description, /overflow-wrap:anywhere/);
 });
 
 test("the page head advertises both exact Atom subscription endpoints", () => {
