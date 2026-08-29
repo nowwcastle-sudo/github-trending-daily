@@ -203,8 +203,9 @@ async function makeArtifact(directory, sourceSha, snapshotId) {
   const sources = { version: 2, sources: { [slug]: { translation_applicable: false } } };
   const payloads = new Map();
   for (const relative of VERSION_1_BASE_PATHS) payloads.set(relative, Buffer.from(`${relative}\n`));
-  payloads.set("index.html", Buffer.from(`<html>\nconst REPOS = [${JSON.stringify({ slug, _snapshot_id: snapshotId, _generated_at: generatedAt, _stats_date: statsDate })}];\n</html>\n`));
-  payloads.set("data/latest.json", Buffer.from(`${JSON.stringify({ snapshotId, generatedAt, statsDate, count: 1, repos: [{ slug }] })}\n`));
+  const classification = { tag_rule_version: 1, field_tags: ["ai-ml", "dev-tools"], form_tags: ["agent", "library"] };
+  payloads.set("index.html", Buffer.from(`<html>\nconst REPOS = [${JSON.stringify({ slug, _snapshot_id: snapshotId, _generated_at: generatedAt, _stats_date: statsDate, ...classification })}];\n</html>\n`));
+  payloads.set("data/latest.json", Buffer.from(`${JSON.stringify({ snapshotId, generatedAt, statsDate, count: 1, repos: [{ slug, ...classification }] })}\n`));
   payloads.set("data/membership-status.json", Buffer.from(`${JSON.stringify({ schemaVersion: 1, generatedAt, statsDate, baseline: true, current: [{ slug, status: "baseline" }], exited: [] })}\n`));
   payloads.set("feed.xml", Buffer.from(atom({ kind: "current", generatedAt, snapshotId, statsDate, slug })));
   payloads.set("changes.xml", Buffer.from(atom({ kind: "changes", generatedAt, snapshotId, statsDate })));

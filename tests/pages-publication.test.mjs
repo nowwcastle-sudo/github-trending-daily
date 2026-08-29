@@ -14,6 +14,7 @@ import {
   buildPagesArtifact,
   expectedVersion1Paths,
   inspectProductionState,
+  parseEmbeddedRepos,
 } from "../scripts/build-pages-artifact.mjs";
 import { prepareRefreshCandidate, verifyCandidateMutations } from "../scripts/prepare-refresh-candidate.mjs";
 import { probeArtifactDirectory, probeProduction } from "../scripts/probe-production.mjs";
@@ -132,6 +133,50 @@ function sourceEntry(applicable = true) {
   };
 }
 
+const validClassification = () => ({
+  tag_rule_version: 1,
+  field_tags: ["ai-ml", "dev-tools"],
+  form_tags: ["agent", "library"],
+});
+const classificationMutations = [
+  ["missing version", repo => { delete repo.tag_rule_version; }],
+  ["missing field tags", repo => { delete repo.field_tags; }],
+  ["missing form tags", repo => { delete repo.form_tags; }],
+  ["unknown field tag", repo => { repo.field_tags = ["unknown"]; }],
+  ["unknown form tag", repo => { repo.form_tags = ["unknown"]; }],
+  ["duplicate field tag", repo => { repo.field_tags = ["ai-ml", "ai-ml"]; }],
+  ["duplicate form tag", repo => { repo.form_tags = ["agent", "agent"]; }],
+  ["out-of-order field tags", repo => { repo.field_tags = ["dev-tools", "ai-ml"]; }],
+  ["out-of-order form tags", repo => { repo.form_tags = ["library", "agent"]; }],
+  ["mixed unclassified", repo => { repo.field_tags = ["unclassified", "ai-ml"]; }],
+  ["drifted version", repo => { repo.tag_rule_version = 2; }],
+];
+
+test("current raw v0 page repositories are rejected as provenance-less v1 classifications", async () => {
+  await assert.rejects(
+    readFile(join(root, "index.html")).then(bytes => parseEmbeddedRepos(bytes, "current raw page REPOS", { requireClassification: true })),
+    /classification/i,
+  );
+});
+
+test("version-1 page REPOS and latest validators reject incomplete or noncanonical classifications", () => {
+  for (const [, mutate] of classificationMutations) {
+    const pageRepo = { slug: "owner/one", ...validClassification() };
+    mutate(pageRepo);
+    assert.throws(
+      () => parseEmbeddedRepos(`<script>\nconst REPOS = ${JSON.stringify([pageRepo])};\n</script>\n`, "page REPOS", { requireClassification: true }),
+      /classification/i,
+    );
+
+    const latestRepo = { slug: "owner/one", ...validClassification() };
+    mutate(latestRepo);
+    assert.throws(
+      () => expectedVersion1Paths({ repos: [latestRepo] }, { version: 2, sources: {} }),
+      /classification/i,
+    );
+  }
+});
+
 function frozenRepository(context, index) {
   const slug = `owner/repo-${index}`;
   const profile = {
@@ -227,7 +272,7 @@ test("version-1 artifact path set is exact and derived from active applicable tr
   const python = spawnSync(process.env.PYTHON ?? "python", ["-c", "import json; from scripts.record_repository_observations import PAGES_BASE_ARTIFACT_PATHS; print(json.dumps(PAGES_BASE_ARTIFACT_PATHS))"], { cwd: root, encoding: "utf8" });
   assert.equal(python.status, 0, python.stderr);
   assert.deepEqual(JSON.parse(python.stdout), VERSION_1_BASE_PATHS);
-  const latest = { repos: [{ slug: "Owner/One" }, { slug: "owner/two" }] };
+  const latest = { repos: [{ slug: "Owner/One", ...validClassification() }, { slug: "owner/two", ...validClassification() }] };
   const sources = { version: 2, sources: {
     "Owner/One": sourceEntry(true),
     "owner/two": sourceEntry(false),
@@ -410,11 +455,11 @@ test("builder hashes only the exact allowlist and exact translation envelope", a
   t.after(() => rm(directory, { recursive: true, force: true }));
   await mkdir(source);
   await writeTree(source, VERSION_1_BASE_PATHS);
-  const latest = { snapshotId, repos: [{ slug: "owner/one" }] };
+  const latest = { snapshotId, repos: [{ slug: "owner/one", ...validClassification() }] };
   const sources = { version: 2, sources: { "owner/one": sourceEntry(true) } };
   await writeFile(join(source, "data", "latest.json"), `${JSON.stringify(latest)}\n`);
   await writeFile(join(source, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`);
-  const validPage = `<script>\nconst REPOS = [${JSON.stringify({ slug: "owner/one" })}];\n</script>\n`;
+  const validPage = `<script>\nconst REPOS = [${JSON.stringify({ slug: "owner/one", ...validClassification() })}];\n</script>\n`;
   await writeFile(join(source, "index.html"), validPage);
   await mkdir(join(source, "translations"));
   await writeFile(join(source, "translations", "owner__one.json"), `${JSON.stringify({ markdown: "# One", source: sources.sources["owner/one"] })}\n`);
@@ -437,8 +482,54 @@ test("builder hashes only the exact allowlist and exact translation envelope", a
   await writeFile(join(source, "translations", "owner__one.json"), `${JSON.stringify({ markdown: "# One", source: sources.sources["owner/one"] })}\n`);
   await writeFile(join(source, "index.html"), '<script>\nconst REPOS = [{"slug":"owner/one","slug":"owner/one"}];\n</script>\n');
   await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "duplicate-page-json"), sourceSha, snapshotId, artifactContract: contract }), /duplicate key/i);
-  await writeFile(join(source, "index.html"), '<script>\nconst REPOS = [{"slug":"Owner/One"},{"slug":"owner/one"}];\n</script>\n');
+  await writeFile(join(source, "index.html"), `<script>\nconst REPOS = ${JSON.stringify([{ slug: "Owner/One", ...validClassification() }, { slug: "owner/one", ...validClassification() }])};\n</script>\n`);
   await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "case-fold-page"), sourceSha, snapshotId, artifactContract: contract }), /duplicate|case-fold|identity/i);
+});
+
+test("builder rejects invalid page/latest classifications and requires exact equality", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "pages-classification-"));
+  const source = join(directory, "source");
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  await mkdir(source);
+  await writeTree(source, VERSION_1_BASE_PATHS);
+  const base = { slug: "owner/one", ...validClassification() };
+  const sources = { version: 2, sources: { "owner/one": sourceEntry(false) } };
+  const page = repo => `<script>\nconst REPOS = ${JSON.stringify([repo])};\n</script>\n`;
+  const writeCandidate = async (latestRepo, pageRepo) => {
+    await writeFile(join(source, "data", "latest.json"), `${JSON.stringify({ snapshotId, repos: [latestRepo] })}\n`);
+    await writeFile(join(source, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`);
+    await writeFile(join(source, "index.html"), page(pageRepo));
+  };
+  const candidateContract = async () => ({
+    version: 1,
+    snapshotId,
+    artifacts: await Promise.all(VERSION_1_BASE_PATHS.map(async artifact_path => {
+      const bytes = await readFile(join(source, ...artifact_path.split("/")));
+      return { artifact_path, sha256: createHash("sha256").update(bytes).digest("hex"), byte_size: bytes.length };
+    })),
+  });
+  await writeCandidate(base, base);
+  await buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "valid"), sourceSha, snapshotId, artifactContract: await candidateContract() });
+
+  for (const [label, mutate] of classificationMutations) {
+    for (const target of ["page", "latest"]) {
+      const latestRepo = structuredClone(base);
+      const pageRepo = structuredClone(base);
+      mutate(target === "page" ? pageRepo : latestRepo);
+      await writeCandidate(latestRepo, pageRepo);
+      await assert.rejects(
+        buildPagesArtifact({ sourceRoot: source, outDir: join(directory, `${label}-${target}`), sourceSha, snapshotId, artifactContract: await candidateContract() }),
+        /classification/i,
+      );
+    }
+  }
+
+  const mismatchedPage = { ...base, field_tags: ["dev-tools"] };
+  await writeCandidate(base, mismatchedPage);
+  await assert.rejects(
+    buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "mismatch"), sourceSha, snapshotId, artifactContract: await candidateContract() }),
+    /classification does not match latest/i,
+  );
 });
 
 test("builder requires exact DB artifact path hash and size equality", async t => {
@@ -447,11 +538,11 @@ test("builder requires exact DB artifact path hash and size equality", async t =
   t.after(() => rm(directory, { recursive: true, force: true }));
   await mkdir(source);
   await writeTree(source, VERSION_1_BASE_PATHS);
-  const latest = { snapshotId, repos: [{ slug: "owner/one" }] };
+  const latest = { snapshotId, repos: [{ slug: "owner/one", ...validClassification() }] };
   const sources = { version: 2, sources: { "owner/one": sourceEntry(false) } };
   await writeFile(join(source, "data", "latest.json"), `${JSON.stringify(latest)}\n`);
   await writeFile(join(source, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`);
-  await writeFile(join(source, "index.html"), '<script>\nconst REPOS = [{"slug":"owner/one"}];\n</script>\n');
+  await writeFile(join(source, "index.html"), `<script>\nconst REPOS = [${JSON.stringify({ slug: "owner/one", ...validClassification() })}];\n</script>\n`);
   const contract = await artifactContract(source, latest, sources);
 
   const missing = structuredClone(contract);

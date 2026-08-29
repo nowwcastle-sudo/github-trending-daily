@@ -176,6 +176,22 @@ const FORM_RULES = [
   ["framework", /\bframeworks?\b/i],
   ["cli", /\b(cli|command[- ]line|automation|workflow)\b/i],
 ];
+const FIELD_TAG_IDS = FIELD_RULES.map(([id]) => id);
+const FORM_TAG_IDS = FORM_RULES.map(([id]) => id);
+
+function hasCanonicalTags(value, allowed, { field = false } = {}) {
+  if (!Array.isArray(value) || value.some(item => typeof item !== "string") || new Set(value).size !== value.length) return false;
+  if (field && value.length === 1 && value[0] === "unclassified") return true;
+  if (field && (value.length === 0 || value.includes("unclassified"))) return false;
+  return value.every((item, index) => allowed.includes(item)
+    && (index === 0 || allowed.indexOf(value[index - 1]) < allowed.indexOf(item)));
+}
+
+function hasCanonicalClassification(value) {
+  return value?.tag_rule_version === TAG_RULE_VERSION
+    && hasCanonicalTags(value.field_tags, FIELD_TAG_IDS, { field: true })
+    && hasCanonicalTags(value.form_tags, FORM_TAG_IDS);
+}
 
 function githubPath(slug, suffix = "") {
   return `/repos/${slug.split("/").map(encodeURIComponent).join("/")}${suffix}`;
@@ -1038,6 +1054,7 @@ function assertCompleteSummary(repo, { snapshotId, generatedAt, statsDate }) {
     repo?.detail?.stars_note,
   ].every(value => typeof value === "string" && value.trim());
   if (!complete) throw new Error(`Published ${slug} must have a complete summary and detail`);
+  if (!hasCanonicalClassification(repo)) throw new Error("Published repository classification is invalid");
   return slug;
 }
 

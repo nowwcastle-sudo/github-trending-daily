@@ -1270,6 +1270,9 @@ function publishableRepo(index, statsDate = "2026-08-23") {
     desc: `Description ${index}`,
     lang: "JavaScript",
     topics: ["developer-tools"],
+    tag_rule_version: 1,
+    field_tags: ["ai-ml", "dev-tools"],
+    form_tags: ["agent", "library"],
     stars: 100 + index,
     forks: 20,
     stars_daily: index + 1,
@@ -1346,6 +1349,31 @@ test("final snapshot rejects invalid collection sizes and incomplete UI fields",
     () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos: unsafeTopics, statsDate: "2026-08-23" }),
     /valid UI schema/i,
   );
+});
+
+test("final snapshot rejects incomplete or noncanonical repository classifications", () => {
+  const invalid = [
+    ["missing version", repo => { delete repo.tag_rule_version; }],
+    ["missing field tags", repo => { delete repo.field_tags; }],
+    ["missing form tags", repo => { delete repo.form_tags; }],
+    ["unknown field tag", repo => { repo.field_tags = ["unknown"]; }],
+    ["unknown form tag", repo => { repo.form_tags = ["unknown"]; }],
+    ["duplicate field tag", repo => { repo.field_tags = ["ai-ml", "ai-ml"]; }],
+    ["duplicate form tag", repo => { repo.form_tags = ["agent", "agent"]; }],
+    ["out-of-order field tags", repo => { repo.field_tags = ["dev-tools", "ai-ml"]; }],
+    ["out-of-order form tags", repo => { repo.form_tags = ["library", "agent"]; }],
+    ["mixed unclassified", repo => { repo.field_tags = ["unclassified", "ai-ml"]; }],
+    ["drifted version", repo => { repo.tag_rule_version = 2; }],
+  ];
+
+  for (const [, mutate] of invalid) {
+    const repos = publishableRepos();
+    mutate(repos[0]);
+    assert.throws(
+      () => createPageSnapshot({ page: markedPage, summaryCache: {}, repos, statsDate: "2026-08-23" }),
+      /classification/i,
+    );
+  }
 });
 
 test("summary cache rejects case-insensitive duplicate keys during snapshot creation", () => {

@@ -9,6 +9,9 @@ const SHA_RE = /^[a-f0-9]{40}$/;
 const SHA256_RE = /^[a-f0-9]{64}$/;
 const SNAPSHOT_RE = /^[0-9]{14}-[a-f0-9]{16}$/;
 const SOURCE_KEYS = ["blob_sha", "content_sha256", "model", "schema_version", "translation_applicable"];
+const TAG_RULE_VERSION = 1;
+const FIELD_TAG_IDS = ["ai-ml", "web-app", "dev-tools", "data", "devops", "security", "productivity", "systems", "learning"];
+const FORM_TAG_IDS = ["agent", "mcp", "plugin-skill", "ide", "library", "framework", "cli"];
 
 export function parseJsonStrict(input, label = "JSON", maxBytes = 16 * 1024 * 1024) {
   const bytes = Buffer.isBuffer(input) ? input : Buffer.from(input);
@@ -119,6 +122,32 @@ function equalJson(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
+function hasCanonicalTags(value, allowed, { field = false } = {}) {
+  if (!Array.isArray(value) || value.some(item => typeof item !== "string") || new Set(value).size !== value.length) return false;
+  if (field && value.length === 1 && value[0] === "unclassified") return true;
+  if (field && (value.length === 0 || value.includes("unclassified"))) return false;
+  return value.every((item, index) => allowed.includes(item)
+    && (index === 0 || allowed.indexOf(value[index - 1]) < allowed.indexOf(item)));
+}
+
+function hasCanonicalClassification(value) {
+  return value?.tag_rule_version === TAG_RULE_VERSION
+    && hasCanonicalTags(value.field_tags, FIELD_TAG_IDS, { field: true })
+    && hasCanonicalTags(value.form_tags, FORM_TAG_IDS);
+}
+
+function assertCanonicalClassification(value) {
+  if (!hasCanonicalClassification(value)) throw new Error("repository classification is invalid");
+}
+
+function classification(value) {
+  return {
+    tag_rule_version: value.tag_rule_version,
+    field_tags: value.field_tags,
+    form_tags: value.form_tags,
+  };
+}
+
 function normalizeLatest(value) {
   if (!value || typeof value !== "object" || !Array.isArray(value.repos)) throw new Error("invalid latest document");
   const seen = new Set();
@@ -128,12 +157,13 @@ function normalizeLatest(value) {
     }
     const key = repo.slug.toLowerCase();
     if (seen.has(key)) throw new Error("duplicate latest repository");
+    assertCanonicalClassification(repo);
     seen.add(key);
   }
   return value;
 }
 
-export function parseEmbeddedRepos(pageValue, label = "page REPOS") {
+export function parseEmbeddedRepos(pageValue, label = "page REPOS", { requireClassification = false } = {}) {
   const page = Buffer.isBuffer(pageValue) ? new TextDecoder("utf-8", { fatal: true }).decode(pageValue) : pageValue;
   if (typeof page !== "string") throw new Error(`${label} is invalid`);
   const matches = [...page.matchAll(/(?:^|\n)const REPOS = (\[[^\n]+\]);/g)];
@@ -146,6 +176,7 @@ export function parseEmbeddedRepos(pageValue, label = "page REPOS") {
         || !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo.slug)) throw new Error(`${label} row shape is invalid`);
     const folded = repo.slug.toLowerCase();
     if (seen.has(folded)) throw new Error(`${label} contains a case-fold duplicate identity`);
+    if (requireClassification) assertCanonicalClassification(repo);
     seen.add(folded);
   }
   return repos;
@@ -332,9 +363,15 @@ export async function buildPagesArtifact({ sourceRoot, outDir, sourceSha, snapsh
     readFile(path.join(sourceRoot, "data", "translation-sources.json")).then(bytes => parseJsonStrict(bytes, "translation sources")),
   ]);
   const paths = expectedVersion1Paths(latest, sources);
-  const pageRepos = parseEmbeddedRepos(await readFile(path.join(sourceRoot, "index.html")), "version-1 page REPOS");
+  const pageRepos = parseEmbeddedRepos(await readFile(path.join(sourceRoot, "index.html")), "version-1 page REPOS", { requireClassification: true });
   if (pageRepos.map(repo => repo.slug.toLowerCase()).sort().join("\0") !== latest.repos.map(repo => repo.slug.toLowerCase()).sort().join("\0")) {
     throw new Error("version-1 page REPOS identity does not match latest");
+  }
+  const latestBySlug = new Map(latest.repos.map(repo => [repo.slug.toLowerCase(), repo]));
+  for (const repo of pageRepos) {
+    if (!equalJson(classification(repo), classification(latestBySlug.get(repo.slug.toLowerCase())))) {
+      throw new Error("version-1 page REPOS classification does not match latest");
+    }
   }
   const sourcesBySlug = normalizeSources(sources);
   for (const repo of latest.repos) {
@@ -359,7 +396,7 @@ export async function buildLegacyRecoveryArtifact({ sourceRoot, outDir, sourceSh
       if (error?.code !== "ENOENT") throw error;
     }
   }
-  const repos = parseEmbeddedRepos(page, "legacy page REPOS");
+  const repos = parseEmbeddedRepos(page, "legacy page REPOS", { requireClassification: false });
   const activeReadmes = activeLegacyCachePaths(repos, "readmes", ".md");
   const activeTranslations = activeLegacyCachePaths(repos, "translations", ".json");
   const [trackedReadmes, trackedTranslations] = await Promise.all([
