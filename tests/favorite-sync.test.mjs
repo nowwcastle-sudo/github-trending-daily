@@ -683,9 +683,11 @@ function deferredBootstrapRuntime(options = {}) {
   let observerCalls = 0;
   let controllerCreations = 0;
   let unsubscribeCalls = 0;
+  let snapshotUnsubscribes = 0;
   const calls = [];
   const controllers = [];
   const observers = [];
+  const snapshots = [];
   const applied = [];
   const windowListeners = new Map();
   const guest = {
@@ -696,14 +698,15 @@ function deferredBootstrapRuntime(options = {}) {
   const auth = { currentUser: null, name: "auth-1" };
   const auths = options.auths || [auth];
   const browserLocalPersistence = {};
+  const storage = options.storage || memoryStorage();
   let authIndex = 0;
   const context = {
     Favorites: globalThis.Favorites,
     FavoriteSync: {
-      createController() {
+      createController(controllerOptions) {
         controllerCreations += 1;
         if (options.controllerError) throw options.controllerError;
-        const controller = {
+        const controller = options.realController ? globalThis.FavoriteSync.createController(controllerOptions) : {
           id: `controller-${controllerCreations}`,
           disposeCalls: 0,
           dispose() { this.disposeCalls += 1; },
@@ -723,7 +726,7 @@ function deferredBootstrapRuntime(options = {}) {
     }) }),
     URL: class {},
     document: { getElementById: id => elements[id] },
-    localStorage: memoryStorage(),
+    localStorage: storage,
     initializeApp: config => ({ config }),
     initializeAppCheck: options.appCheck || (() => ({})),
     ReCaptchaEnterpriseProvider: class {},
@@ -754,8 +757,11 @@ function deferredBootstrapRuntime(options = {}) {
     arrayRemove: value => value,
     arrayUnion: value => value,
     doc: () => ({}),
-    getDoc: async () => ({ exists: () => false }),
-    onSnapshot: () => () => {},
+    getDoc: options.getDoc || (async () => ({ exists: () => false })),
+    onSnapshot: (_reference, _snapshotOptions, next, error) => {
+      snapshots.push({ next, error });
+      return () => { snapshotUnsubscribes += 1; };
+    },
     runTransaction: async (_db, update) => update({ get: async () => ({ exists: () => false }), set() {} }),
     serverTimestamp: () => ({}),
     setDoc: async () => {},
@@ -777,11 +783,14 @@ function deferredBootstrapRuntime(options = {}) {
     get observerCalls() { return observerCalls; },
     get controllerCreations() { return controllerCreations; },
     get unsubscribeCalls() { return unsubscribeCalls; },
+    get snapshotUnsubscribes() { return snapshotUnsubscribes; },
     get calls() { return calls; },
     get controllers() { return controllers; },
     get observers() { return observers; },
+    get snapshots() { return snapshots; },
     get applied() { return applied; },
     get statusMutations() { return statusMutations; },
+    storage,
     browserLocalPersistence,
     triggerPagehide(event) { for (const listener of windowListeners.get("pagehide") || []) listener(event); },
     triggerPageshow(event) { for (const listener of windowListeners.get("pageshow") || []) listener(event); },
@@ -841,6 +850,72 @@ test("local persistence resolves before observer and popup wiring", async () => 
   assert.equal(runtime.guest.disposeCalls, 1);
   assert.equal(runtime.elements.loginBtn.disabled, false);
   assert.equal(runtime.elements.loginBtn.listenerCount(), 1);
+});
+
+test("a real null auth observer callback visibly restores only the guest list", async () => {
+  const { storage, writes } = recordingStorage({
+    "gh-favs-guest": '["guest/only"]',
+    "gh-favs-imported:alice": "1",
+  });
+  const runtime = await runFirebaseBootstrap({
+    realController: true,
+    storage,
+    getDoc: async () => ({ exists: () => true, data: () => ({ favorites: ["alice/only"] }) }),
+  });
+  runtime.persistence.resolve();
+  await flushBootstrap();
+  const auth = runtime.observers[0].auth;
+  auth.currentUser = { uid: "alice" };
+  runtime.observers[0].callback(auth.currentUser);
+  await flushBootstrap();
+
+  auth.currentUser = null;
+  runtime.observers[0].callback(null);
+  await flushBootstrap();
+
+  assert.equal(runtime.context.favoriteController.mode(), "guest");
+  assert.deepEqual(JSON.parse(JSON.stringify(runtime.applied.at(-1))), { favorites: ["guest/only"], busy: false });
+  assert.equal(runtime.snapshotUnsubscribes, 1);
+  assert.deepEqual(writes, [["gh-favs-cache:alice", '["alice/only"]']]);
+  assert.equal(storage.getItem("gh-favs-guest"), '["guest/only"]');
+  assert.equal(runtime.elements.loginBtn.hidden, false);
+  assert.equal(runtime.elements.loginBtn.disabled, false);
+  assert.equal(runtime.elements.logoutBtn.hidden, true);
+  assert.equal(runtime.elements.logoutBtn.disabled, true);
+  assert.equal(runtime.elements.syncStatus.textContent, "브라우저 동기화");
+  assert.equal(runtime.elements.syncStatus.title, "브라우저 동기화");
+  assert.equal(runtime.elements.syncStatus.getAttribute("aria-label"), "브라우저 동기화");
+  assert.equal(runtime.elements.syncStatus.dataset.tone, "normal");
+});
+
+test("a real Alice Firestore listener error keeps the cached account list visibly labeled", async () => {
+  const { storage, writes } = recordingStorage({
+    "gh-favs-guest": '["guest/only"]',
+    "gh-favs-imported:alice": "1",
+    "gh-favs-cache:alice": '["alice/cached"]',
+  });
+  const runtime = await runFirebaseBootstrap({
+    realController: true,
+    storage,
+    getDoc: async () => { throw new Error("offline"); },
+  });
+  runtime.persistence.resolve();
+  await flushBootstrap();
+  const auth = runtime.observers[0].auth;
+  auth.currentUser = { uid: "alice" };
+  runtime.observers[0].callback(auth.currentUser);
+  await flushBootstrap();
+  runtime.snapshots[0].error(new Error("listener offline"));
+
+  assert.equal(runtime.context.favoriteController.mode(), "account");
+  assert.equal(auth.currentUser.uid, "alice");
+  assert.deepEqual(JSON.parse(JSON.stringify(runtime.applied.at(-1))), { favorites: ["alice/cached"], busy: false });
+  assert.deepEqual(writes, []);
+  assert.equal(storage.getItem("gh-favs-guest"), '["guest/only"]');
+  assert.equal(runtime.elements.syncStatus.textContent, "즐겨찾기 실시간 동기화가 중단되었어요.");
+  assert.equal(runtime.elements.syncStatus.title, "즐겨찾기 실시간 동기화가 중단되었어요.");
+  assert.equal(runtime.elements.syncStatus.getAttribute("aria-label"), "구글 계정 동기화. 즐겨찾기 실시간 동기화가 중단되었어요.");
+  assert.equal(runtime.elements.syncStatus.dataset.tone, "notice");
 });
 
 test("Firestore initialization fails closed before Auth with the generic login-unavailable message", async () => {
