@@ -1769,6 +1769,21 @@ test("ordinary CommonMark HTML blocks end at blank lines and preserve standalone
   );
 });
 
+test("a leading void tag keeps the following balanced HTML table atomic", () => {
+  const value = [
+    "<br /><table>",
+    "<thead><tr><th>Provider</th></tr></thead>",
+    "<tbody><tr><td>LiveKit</td></tr></tbody>",
+    "</table>",
+  ].join("\n");
+  assert.equal(splitMarkdownAtHeadings(value, 64 * 1024).join(""), value);
+  assert.deepEqual(extractTranslatableProse(value), ["Provider LiveKit"]);
+  assert.throws(
+    () => splitMarkdownAtHeadings("<br><table><tbody>\n</table>\n", 64 * 1024),
+    /mismatch/i,
+  );
+});
+
 test("code-only raw-text HTML blocks are byte-preserved N/A translations", async () => {
   for (const tag of ["script", "style", "pre", "textarea"]) {
     const value = `<${tag}>\nconst command = "Install now. Run the command.";\n</${tag}>\n`;

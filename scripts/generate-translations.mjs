@@ -274,18 +274,26 @@ const HTML_BLOCK_TAGS = new Set([
   "script", "pre", "style", "summary", "table", "tbody", "td", "textarea", "tfoot", "th", "thead",
   "title", "tr", "track", "ul",
 ]);
-const HTML_VOID_TAGS = new Set(["base", "basefont", "col", "frame", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"]);
+const HTML_VOID_TAGS = new Set(["base", "basefont", "br", "col", "frame", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"]);
 const HTML_RAW_TEXT_TAGS = new Set(["script", "style", "pre", "textarea"]);
 
 function htmlStart(value) {
-  if (/^ {0,3}<!--/.test(value)) return { kind: "terminated", end: "-->", tag: "!--" };
-  if (/^ {0,3}<\?/.test(value)) return { kind: "terminated", end: "?>", tag: "?" };
-  if (/^ {0,3}<!\[CDATA\[/.test(value)) return { kind: "terminated", end: "]]>", tag: "![CDATA[" };
-  if (/^ {0,3}<![A-Z]/.test(value)) return { kind: "terminated", end: ">", tag: "!" };
-  const match = value.match(/^ {0,3}<\/?([A-Za-z][A-Za-z0-9-]*)(?:\s|\/?>|$)/);
+  let candidate = value;
+  let remainder = value.replace(/^ {0,3}/, "");
+  while (true) {
+    const leading = remainder.match(/^<\s*([A-Za-z][A-Za-z0-9-]*)\b[^>]*>\s*/);
+    if (!leading || !HTML_VOID_TAGS.has(leading[1].toLowerCase())) break;
+    candidate = remainder.slice(leading[0].length);
+    remainder = candidate;
+  }
+  if (/^ {0,3}<!--/.test(candidate)) return { kind: "terminated", end: "-->", tag: "!--" };
+  if (/^ {0,3}<\?/.test(candidate)) return { kind: "terminated", end: "?>", tag: "?" };
+  if (/^ {0,3}<!\[CDATA\[/.test(candidate)) return { kind: "terminated", end: "]]>", tag: "![CDATA[" };
+  if (/^ {0,3}<![A-Z]/.test(candidate)) return { kind: "terminated", end: ">", tag: "!" };
+  const match = candidate.match(/^ {0,3}<\/?([A-Za-z][A-Za-z0-9-]*)(?:\s|\/?>|$)/);
   if (!match || !HTML_BLOCK_TAGS.has(match[1].toLowerCase())) return null;
   const tag = match[1].toLowerCase();
-  if (HTML_RAW_TEXT_TAGS.has(tag) && !/^ {0,3}<\//.test(value)) return { kind: "raw", tag };
+  if (HTML_RAW_TEXT_TAGS.has(tag) && !/^ {0,3}<\//.test(candidate)) return { kind: "raw", tag };
   return { kind: "tag", tag };
 }
 
