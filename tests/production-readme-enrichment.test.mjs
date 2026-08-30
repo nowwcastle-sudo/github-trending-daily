@@ -37,7 +37,7 @@ function validV3Source(value, repository) {
     && value.api_provider === "firstParty"
     && value.model === "claude-sonnet-5"
     && value.schema_version === 3
-    && value.prompt_schema_version === 1
+    && value.prompt_schema_version === 2
     && value.translation_applicable === false;
 }
 

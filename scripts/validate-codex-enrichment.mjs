@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { parseJsonStrict } from "./build-pages-artifact.mjs";
+import { parseFrozenFactsBytes } from "./collect-repository-events.mjs";
 import { validatePreparedCodexEnrichment } from "./generate-translations.mjs";
 
 function parseArgs(argv) {
@@ -22,7 +23,7 @@ export async function validateCodexEnrichmentFiles(argv) {
   ]);
   return validatePreparedCodexEnrichment(
     parseJsonStrict(preparedBytes, "prepared Codex enrichment", 64 * 1024 * 1024),
-    parseJsonStrict(factsBytes, "frozen facts", 64 * 1024 * 1024),
+    parseFrozenFactsBytes(factsBytes),
     { complete: !args.partial },
   );
 }

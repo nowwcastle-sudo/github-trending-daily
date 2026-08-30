@@ -10,6 +10,7 @@ import {
   runClaudeSummaryBundleRequests,
   validateSummaryBundle,
   validateSummaryBundleEnvelope,
+  validateStoredSummaryBundleEnvelope,
 } from "../scripts/generate-summary-bundles.mjs";
 
 const fields = ["goal", "usage", "pros", "cons", "fit"];
@@ -55,6 +56,25 @@ function envelope() {
   };
 }
 
+function modelEnvelope() {
+  const value = envelope();
+  for (const refs of Object.values(value.evidence)) delete refs[0].section_heading;
+  return value;
+}
+
+function derivedHeading(markdown, startLine) {
+  const value = modelEnvelope();
+  for (const refs of Object.values(value.evidence)) {
+    refs[0].start_line = startLine;
+    refs[0].end_line = startLine;
+  }
+  return validateSummaryBundleEnvelope(value, {
+    ...item,
+    markdown,
+    readme_content_sha256: createHash("sha256").update(Buffer.from(markdown, "utf8")).digest("hex"),
+  }).evidence.goal[0].section_heading;
+}
+
 test("summary bundle accepts exactly five complete locales and rejects generic README fallbacks", () => {
   assert.deepEqual(Object.keys(validateSummaryBundle(bundle())), SUMMARY_BUNDLE_LOCALES);
   assert.throws(() => validateSummaryBundle({ ...bundle(), ja: undefined }), /locale|schema/i);
@@ -64,13 +84,67 @@ test("summary bundle accepts exactly five complete locales and rejects generic R
 });
 
 test("the shared summary contract validates README evidence and cross-locale invariants", () => {
-  assert.deepEqual(validateSummaryBundleEnvelope(envelope(), item).summaries, bundle());
-  const missingCommand = envelope();
+  assert.deepEqual(validateSummaryBundleEnvelope(modelEnvelope(), item).summaries, bundle());
+  assert.throws(() => validateSummaryBundleEnvelope(envelope(), item), /output|evidence|range/i);
+  const missingCommand = modelEnvelope();
   missingCommand.summaries.ja.goal = missingCommand.summaries.ja.goal.replace("`npm test`", "");
   assert.throws(() => validateSummaryBundleEnvelope(missingCommand, item), /invariant|command|locale/i);
-  const staleEvidence = envelope();
+  const staleEvidence = modelEnvelope();
   staleEvidence.evidence.fit[0].end_line = 99;
   assert.throws(() => validateSummaryBundleEnvelope(staleEvidence, item), /evidence|line|README/i);
+});
+
+test("stored evidence requires the canonical README-derived heading shape", () => {
+  assert.deepEqual(validateStoredSummaryBundleEnvelope(envelope(), item).summaries, bundle());
+  assert.throws(() => validateStoredSummaryBundleEnvelope(modelEnvelope(), item), /evidence|range/i);
+  const staleHeading = envelope();
+  staleHeading.evidence.goal[0].section_heading = "Other section";
+  assert.throws(() => validateStoredSummaryBundleEnvelope(staleHeading, item), /evidence|heading|README/i);
+  const paddedHeading = envelope();
+  paddedHeading.evidence.goal[0].section_heading = " Repository ";
+  assert.throws(() => validateStoredSummaryBundleEnvelope(paddedHeading, item), /evidence|heading|README/i);
+});
+
+test("model evidence returns only line ranges and derives headings from the frozen README", () => {
+  const request = buildSummaryBundleRequest(item, { frameId: "gh-summary-00000000-0000-4000-8000-000000000000" });
+  const evidenceItem = request.schema.properties.evidence.properties.goal.items;
+  assert.deepEqual(evidenceItem.required, ["start_line", "end_line"]);
+  assert.deepEqual(Object.keys(evidenceItem.properties), ["start_line", "end_line"]);
+
+  const checked = validateSummaryBundleEnvelope(modelEnvelope(), item);
+  assert.deepEqual(checked.evidence.goal, [{ start_line: 1, end_line: 3, section_heading: "Repository" }]);
+});
+
+test("derived evidence headings recognize Setext sections in frozen README Markdown", () => {
+  const setextMarkdown = "Repository\n==========\n\nInstall with `npm install` and run `npm test`.";
+  const setextItem = {
+    ...item,
+    markdown: setextMarkdown,
+    readme_content_sha256: createHash("sha256").update(Buffer.from(setextMarkdown, "utf8")).digest("hex"),
+  };
+  const value = modelEnvelope();
+  for (const refs of Object.values(value.evidence)) {
+    refs[0].start_line = 4;
+    refs[0].end_line = 4;
+  }
+  const checked = validateSummaryBundleEnvelope(value, setextItem);
+  assert.deepEqual(checked.evidence.goal, [{ start_line: 4, end_line: 4, section_heading: "Repository" }]);
+});
+
+test("derived headings ignore thematic breaks, indented code, and shorter closing fences", () => {
+  assert.equal(derivedHeading("***\n---\n\nRun `npm test`.", 4), "");
+  assert.equal(derivedHeading("    Code title\n---\n\nRun `npm test`.", 4), "");
+  assert.equal(derivedHeading(" \tCode title\n---\n\nRun `npm test`.", 4), "");
+  assert.equal(derivedHeading("\t# Fake\nRun `npm test`.", 2), "");
+  assert.equal(derivedHeading("````text\n```\nCode title\n===\n````\nRun `npm test`.", 6), "");
+});
+
+test("derived Setext headings reject non-paragraph blocks and invalid backtick openers", () => {
+  assert.equal(derivedHeading("- item\n---\n\nRun `npm test`.", 4), "");
+  assert.equal(derivedHeading("> quote\n===\n\nRun `npm test`.", 4), "");
+  assert.equal(derivedHeading("[label]: target\n---\n\nRun `npm test`.", 4), "");
+  assert.equal(derivedHeading("<div>\n---\n\nRun `npm test`.", 4), "");
+  assert.equal(derivedHeading("```bad`info\n# Real\nRun `npm test`.", 3), "Real");
 });
 
 test("one Sonnet 5 request carries all five summaries and no README translation output", () => {
@@ -95,11 +169,17 @@ test("Claude subscription planning keeps byte and retry bounds without a dollar-
   assert.equal(Object.hasOwn(plan, "maximumCostUsd"), false);
   assert.ok(MAX_FROZEN_FACTS_BYTES > 75 * 2 * 1024 * 1024 * 2);
 });
+
+test("every frozen-facts consumer shares the collector's 75-repository byte cap", async () => {
+  const collector = await import("../scripts/collect-repository-events.mjs");
+  assert.equal(collector.MAX_FROZEN_FACTS_BYTES, MAX_FROZEN_FACTS_BYTES);
+  assert.equal(typeof collector.parseFrozenFactsBytes, "function");
+});
 test("Claude subscription execution preflights once and applies one bounded quality correction", async () => {
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
-  const invalid = envelope();
+  const invalid = modelEnvelope();
   invalid.summaries.ko.usage = "자세한 내용은 README를 참고하세요.";
-  const replies = [invalid, envelope()];
+  const replies = [invalid, modelEnvelope()];
   let preflights = 0;
   let calls = 0;
   const result = await runClaudeSummaryBundleRequests({
@@ -167,7 +247,7 @@ test("Claude subscription execution retries one bounded transport failure after 
     executeClaude: async () => {
       calls += 1;
       if (calls === 1) throw Object.assign(new Error("transport unavailable"), { retryable: true });
-      return { structuredOutput: envelope(), usage: { inputTokens: 100, outputTokens: 200 } };
+      return { structuredOutput: modelEnvelope(), usage: { inputTokens: 100, outputTokens: 200 } };
     },
   });
   assert.equal(calls, 2);

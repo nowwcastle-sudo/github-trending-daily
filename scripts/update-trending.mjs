@@ -15,7 +15,7 @@ import {
   createPersistentEventCollectionContext,
   hashCanonicalJson,
   isEventCollectionContext,
-  validateFrozenFactsPayload,
+  parseFrozenFactsBytes,
 } from "./collect-repository-events.mjs";
 import { parseJsonStrict } from "./build-pages-artifact.mjs";
 import { DEFAULT_ENRICHMENT_MODEL, isEnrichmentModel } from "./enrichment-models.mjs";
@@ -28,7 +28,7 @@ const PERIODS = {
 };
 const ENRICHMENT_MODEL = DEFAULT_ENRICHMENT_MODEL;
 const ENRICHMENT_SCHEMA_VERSION = 3;
-const SUMMARY_PROMPT_SCHEMA_VERSION = 1;
+const SUMMARY_PROMPT_SCHEMA_VERSION = 2;
 const SUMMARY_FIELDS = ["goal", "usage", "pros", "cons", "fit"];
 const SUMMARY_LOCALES = ["en", "ko", "zh-CN", "es", "ja"];
 const MAX_README_BYTES = 2 * 1024 * 1024;
@@ -1457,7 +1457,7 @@ export async function renderFrozenCandidate({
   const [factsBytes, eventsBytes, indexBytes, template] = await Promise.all([
     readFile(factsPath), readFile(eventsPath), readFile(enrichmentIndexPath), readFile(pageTemplatePath, "utf8"),
   ]);
-  const facts = validateFrozenFactsPayload(parseJsonStrict(factsBytes, "frozen facts", 64 * 1024 * 1024));
+  const facts = parseFrozenFactsBytes(factsBytes);
   const events = validateFrozenRenderEvents(facts, parseJsonStrict(eventsBytes, "frozen events", 64 * 1024 * 1024));
   const index = validateFrozenEnrichmentIndex(facts, events, parseJsonStrict(indexBytes, "enrichment index", 64 * 1024 * 1024));
   const context = validateRunContext({

@@ -7,6 +7,7 @@
 - 작업 worktree: `C:\Users\nasca\.codex\worktrees\3a3b\transactional-refresh-20260827`
 - production RED source SHA: `0aa617016c0e832909f74e3d9a70bbe210c10d60`
 - 2026-08-31 첫 controlled dispatch 좌표: clean `HEAD == origin/main == c33b7e449aa3b225130e771b530215c7ee2a75cf`, workflow run `33337114759` (remote write 직전 다시 fetch)
+- 2026-08-31 두 번째 controlled dispatch 좌표: clean `HEAD == origin/main == 6e6f4749178094782557987d86da2e3385a60b08`, workflow run `33338119441`
 - AgentMemory handoff: `mem_mtfb5jzh_7ddf0a27f5dc`
 - 원본 task: `01a03d80-1266-76e1-896d-16648967d258`
 
@@ -24,7 +25,7 @@
 6. sidebar는 사용자가 선택한 B안인 **Compact Rail**로 확정한다. 데스크톱 hover는 비모달, click·keyboard 실행은 focus trap 모달, 모바일은 명시 버튼과 edge swipe를 유지한다.
 7. summary producer는 Windows self-hosted runner의 `claude -p --model claude-sonnet-5`와 first-party OAuth subscription을 사용한다. direct Anthropic Messages API, API key, dollar-cost planning은 폐기한다.
 8. runner는 repository 전용 label `gh-trending-claude`를 요구하며, 사용자 범위 `CLAUDE_CODE_OAUTH_TOKEN`만 Claude step 안에서 가져온다. Claude 자식 환경은 positive allowlist이고 도구·slash command·Chrome·session persistence를 끈다.
-9. controlled workflow와 Pages 배포는 로컬 검증·비밀값 검사·remote drift·runner online/OAuth preflight가 모두 통과한 뒤 6단계 말미에 수행한다. 사용자가 2026-08-31 설치·등록과 정확히 한 번의 dispatch를 승인했으며, 두 번째 dispatch는 별도 승인 없이는 금지한다.
+9. controlled workflow와 Pages 배포는 로컬 검증·비밀값 검사·remote drift·runner online/OAuth preflight가 모두 통과한 뒤 6단계 말미에 수행한다. 사용자가 첫 번째와 두 번째 dispatch를 각각 승인했고 둘 다 실패로 종료됐다. 사용자는 2026-08-31 세 번째 단일 dispatch도 승인했으며, repair commit의 PR·CodeQL과 모든 preflight가 통과한 뒤 한 번만 실행한다.
 10. repository observation DB에는 README 전체 본문을 저장하지 않는다. source identity, hash, schema, state만 저장한다.
 11. Codex Security Deep Scan `21f276c1-3f0e-4e13-83ae-901cc307a4c6`은 명시적으로 보류한다. 재개·취소·신규 생성·통과 취급을 하지 않고 잔여 보안 위험으로 보고한다.
 12. Deep Scan만 보류한다. CodeQL, 정적·의존성·비밀값 검사, Firestore Rules, 실제 로그인과 나머지 production 인수시험은 생략하지 않는다.
@@ -53,7 +54,7 @@
 8. 5개 언어는 한 묶음이며 한 언어의 결함도 repository와 candidate 전체를 실패시킨다.
 9. `insufficient_source`는 candidate 실패다. metadata fallback이나 “README 참고” 문구로 통과시키지 않는다.
 10. 기존 전체 12 retry와 input/output cap 안에서 repository별 품질 교정은 최대 1회다.
-11. 내부 evidence는 README section heading과 line range로 유지하되 README 전체 본문은 observation DB에 넣지 않는다.
+11. 모델은 내부 evidence의 README line range만 반환한다. section heading은 frozen README의 ATX/Setext 구조에서 결정적으로 파생해 저장하고, 기존 cache의 저장 heading은 파생값과 다르면 거부한다. README 전체 본문은 observation DB에 넣지 않는다.
 12. UI에는 “verified repository README를 바탕으로 AI가 생성”했다고 표시하고 human verified라고 하지 않는다.
 13. reuse는 동일 README blob/content hash, prompt schema, `claude -p` provider/interface, CLI version, OAuth auth method일 때만 허용한다.
 14. 첫 production은 automated full census와 층화 10-repository × 5-locale 수동 표본을 web/mobile 양쪽에서 수행한다.
@@ -64,12 +65,13 @@
 - `index.html`: 64px Compact Rail, 5-locale UI, 5개 summary tabs, 두 번째 줄 View README, 동일 field 구조와 AI disclosure.
 - `scripts/readme-variants.mjs`: 같은 디렉터리의 deterministic upstream README aliases만 수집하고 exact path/blob/head/content hash를 검증한다.
 - `scripts/claude-cli-runtime.mjs`: Claude Code 2.1.211 이상, first-party OAuth, positive-allowlist child environment, tool-free structured output, 8 MiB stdin, timeout·output cap·Windows process-tree 강제 종료를 구현한다.
-- `scripts/generate-summary-bundles.mjs`: `claude -p` Sonnet 5, schema v3, prompt schema v1, atomic 5-locale output, 한 번의 correction, 전체 retry cap과 CLI/OAuth provenance를 구현한다. 실 LLM 호출은 아직 0회다.
+- `scripts/generate-summary-bundles.mjs`: `claude -p` Sonnet 5, schema v3, prompt schema v2, atomic 5-locale output, 한 번의 correction, 전체 retry cap과 CLI/OAuth provenance를 구현한다. prompt schema v2는 모델이 `start_line`/`end_line`만 반환하고 section heading은 frozen README에서 파생한다.
+- `scripts/collect-repository-events.mjs`: 최대 75개 repository와 각각 최대 2 MiB canonical README 및 envelope 여유분을 수용하는 320 MiB frozen-facts 상한과 strict parser를 단일 정의하며, enrichment·render·coverage·Codex adapter 등 모든 consumer가 같은 parser를 사용한다. upstream variant는 identity metadata만 frozen facts에 포함되고 본문은 포함하지 않는다.
 - `scripts/update-trending.mjs`: canonical README 개별 상한은 2 MiB이고, immutable blob/path/head/content hash와 strict UTF-8/control-character gate를 요구한다.
 - `scripts/update-trending.mjs`: v3 source와 exact 5-locale summary bundle만 render하며 metadata fallback을 허용하지 않는다.
 - `scripts/validate-enrichment-coverage.mjs`: active page/facts/cache/source exact set, full envelope, locale completeness, stale/missing/insufficient source, translation residue를 fail closed로 검사한다.
 - `scripts/build-pages-artifact.mjs`: source registry v3와 `site-i18n.js`를 exact artifact에 포함하고 legacy translation artifact를 제외한다.
-- workflow는 GitHub-hosted `prepare` → Windows self-hosted `enrich` → GitHub-hosted `publish`로 분리한다. self-hosted runner는 tracked checkout·DB·page·commit·Pages 권한이 없고 네 개의 allowlisted enrichment 파일만 내보낸다. manual bootstrap gate는 승인 상태이고 schedule은 계속 hold한다. 아직 실행하지 않았다.
+- workflow는 GitHub-hosted `prepare` → Windows self-hosted `enrich` → GitHub-hosted `publish`로 분리한다. self-hosted runner는 tracked checkout·DB·page·commit·Pages 권한이 없고 네 개의 allowlisted enrichment 파일만 내보낸다. manual bootstrap gate는 승인 상태이고 schedule은 계속 hold한다. 두 controlled run 모두 publish 전 fail-closed로 종료됐다.
 - runner `nasca-gh-trending-claude`는 `C:\actions-runner-gh-trending`의 공식 Actions Runner 2.337.0으로 등록했고, 예약 작업 `GitHub Actions Runner - GitHub Trending Claude`가 사용자 로그인 세션에서 sanitized wrapper로 실행한다. PC가 켜져 있고 사용자 `nasca`가 로그인한 동안에만 실행 가능하다.
 - `README.md`, `README.ko.md`, `README.en.md`와 2026-08-31 candidate screenshots를 새 구조에 맞췄다.
 
@@ -80,7 +82,7 @@
 3. **Upstream README variants — 구현 완료, production data 대기**: 실제 존재하는 언어판만 exact source identity로 표시하고 full README translation path를 폐기한다.
 4. **Grilling 기반 summary 사양 — 완료**: 위 품질·길이·근거·동일성·실패 계약을 공동 확정한다.
 5. **Sonnet 5 producer·coverage gates — 코드·로컬 검증 완료**: local `claude -p`, first-party OAuth, 고정 byte/retry/timeout cap, producer provenance, atomic 5-locale bundle 계약을 사용한다.
-6. **검증·commit/push·controlled workflow·Pages — 첫 dispatch 실패 복구 완료, 재승인 대기**: 기존 390/720/1200/1440, 5 locale, hover/click/focus/Escape, light/dark, tooltip, README legacy failure UI, export privacy, Atom/membership 실브라우저 검증을 보존한다. focused/full/adversarial·비밀값 검사와 main CodeQL 실분석 0건을 통과했고 manual bootstrap gate만 승인했다. 승인된 첫 controlled run `33337114759`는 GitHub-hosted `prepare`의 Python test에서 Windows/Linux 이식성 assertion 3건으로 실패했다. enrich·DB·commit·Pages는 모두 skipped였고 model call·publication은 0회다. SQLite fixture binary SHA를 특정 Windows 값으로 고정한 test는 동일 frozen source bytes의 replay hash를 검증하도록 바꾸고, Python 버전별 날짜 예외 문구를 허용했다. production hash 계약과 독립 verifier는 유지된다. 수정 후 Windows Node 509/Python 146과 Linux Python 3.13 전체 146개가 통과했다. 두 번째 dispatch는 새 사용자 승인 전까지 금지한다.
+6. **검증·commit/push·controlled workflow·Pages — 두 번째 dispatch 실패의 local repair 검증 완료, 세 번째 단일 dispatch 승인됨**: 기존 390/720/1200/1440, 5 locale, hover/click/focus/Escape, light/dark, tooltip, README legacy failure UI, export privacy, Atom/membership 실브라우저 검증을 보존한다. 첫 run `33337114759`는 `prepare`의 Windows/Linux 이식성 assertion 3건으로 실패해 enrich·DB·commit·Pages와 model call이 모두 0이었다. 이식성 수정 후 두 번째 run `33338119441`은 `prepare`, frozen facts, complete events까지 성공하고 self-hosted Claude enrichment를 실제 시작했지만 `Summary bundle README evidence heading is invalid for goal`에서 실패했다. enrichment output artifact, usage receipt, DB, commit, Pages, probe는 생성·실행되지 않았다. frozen input은 repository 50개, `sourceSetSha256=499304113b57fa244b79a1ac103989703d136ba476a2860229fdcf37a835b347`, `runContextSha256=621039a20de5ccfca6ec1dd180c79b026316b8e9615313aa7a46abc573d6e0af`다. 원인은 모델에게 줄 범위와 함께 자유형 heading을 중복 입력시키던 계약이며 prompt schema v2에서 line range만 받고 heading을 결정적으로 파생한다. raw model line-only shape와 저장 cache derived-heading shape는 서로 거부하며 coverage validator는 저장형만 검증한다. ATX/Setext parser는 fence 길이, thematic break, tab/4-space code, list/quote/link definition/HTML을 구분한다. 모든 frozen-facts consumer는 collector의 320 MiB strict parser를 공유한다. 실제 frozen 50개를 model call 없이 planner로 재생해 50/50 line-only schema, 총 input 3,538,980 bytes, 최대 request 1,495,581 bytes를 확인했다. mutation은 heading 필드를 되삽입했을 때 회귀 테스트를 exit 1로 만들었다. 최종 local 기준선은 Node 515개(503 pass, 12 intentional skip), Python 146 pass, Firestore Rules 9 pass다. 세 번째 dispatch는 repair PR·CodeQL·preflight 통과 후 승인 범위에서 한 번만 실행한다.
 
 ## 6. 적대적 검증 범위
 
@@ -113,10 +115,10 @@
 
 ## 8. 종료 조건
 
-- controlled workflow 전까지 model calls, workflow dispatch, deploy는 모두 0회다. OAuth preflight는 모델 호출이 아니며 version/auth method/provider만 검증한다.
+- 두 번째 run에서 실제 Claude enrichment 요청은 시작됐지만 validator 실패로 완성 bundle과 usage receipt가 남지 않아 token count는 `unknown`이다. production DB·commit·Pages publication은 두 run 모두 0회다.
 - full tests, adversarial review, mutation, staged/working-tree secret scan이 통과한다.
 - push 직전 remote drift를 fetch 후 재판정하고 사용자 변경을 보존한다.
-- 승인된 첫 controlled workflow `33337114759`는 prepare test 실패로 종료됐다. model call·publication은 0회이고, 두 번째 dispatch, cap 상향, direct API·새 유료 provider는 별도 승인 없이는 금지한다.
+- controlled workflow `33337114759`와 `33338119441`은 각각 prepare test와 enrichment evidence gate에서 실패했다. 세 번째 단일 dispatch는 2026-08-31 승인됐지만, 네 번째 dispatch·cap 상향·direct API·새 유료 provider는 별도 승인 없이는 금지한다.
 - production manifest와 exact file hashes가 deployed source SHA에 묶인다.
 - 모든 active repository가 detailed 5-locale summary, valid README provenance, canonical/upstream README variants를 전수 통과한다.
 - 하나라도 generic fallback, missing locale, stale source, variant mismatch면 recovery/hold를 유지한다.

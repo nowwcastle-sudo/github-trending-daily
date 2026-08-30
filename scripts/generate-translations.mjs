@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { buildTrendNote, fetchCanonicalReadme } from "./update-trending.mjs";
-import { hashCanonicalJson, validateFrozenFactsPayload, verifyFrozenParentInputs } from "./collect-repository-events.mjs";
+import { hashCanonicalJson, parseFrozenFactsBytes, validateFrozenFactsPayload, verifyFrozenParentInputs } from "./collect-repository-events.mjs";
 import { parseJsonStrict } from "./build-pages-artifact.mjs";
 import { LEGACY_TRANSLATION_MODEL, isCodexCliEnrichmentModel, isEnrichmentModel } from "./enrichment-models.mjs";
 import { validateRunContext } from "./run-context.mjs";
@@ -3164,7 +3164,7 @@ export async function runFrozenEnrichmentPipeline({
     readFile(path.join(inputRoot, "data", "translation-sources.json")),
     preparedFile ? readFile(preparedFile) : Promise.resolve(null),
   ]);
-  const facts = validateFrozenFactsPayload(parseJsonStrict(initialFactsBytes, "frozen facts", 64 * 1024 * 1024));
+  const facts = parseFrozenFactsBytes(initialFactsBytes);
   const events = validateFrozenEvents(facts, parseJsonStrict(initialEventsBytes, "frozen events", 64 * 1024 * 1024));
   let summaryCache = parseJsonStrict(cacheBytes, "summary cache", 32 * 1024 * 1024);
   let translationSources = parseJsonStrict(sourcesBytes, "translation sources", 32 * 1024 * 1024);
@@ -3227,7 +3227,7 @@ export async function runFrozenEnrichmentPipeline({
   if (preparedFile && !initialPreparedBytes.equals(finalPreparedBytes)) {
     throw new Error("Prepared Codex enrichment changed after planning");
   }
-  const finalFacts = validateFrozenFactsPayload(parseJsonStrict(finalFactsBytes, "frozen facts", 64 * 1024 * 1024));
+  const finalFacts = parseFrozenFactsBytes(finalFactsBytes);
   const finalEvents = validateFrozenEvents(finalFacts, parseJsonStrict(finalEventsBytes, "frozen events", 64 * 1024 * 1024));
   if (finalEvents.completeSetSha256 !== events.completeSetSha256) throw new Error("Frozen event binding changed after planning");
   if (!preparedFile) validateFrozenPolicyBinding(finalFacts, policyContext);

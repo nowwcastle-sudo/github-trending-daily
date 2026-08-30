@@ -146,7 +146,7 @@ function sourceEntry(slug = "owner/one", {
     api_provider: "firstParty",
     model: "claude-sonnet-5",
     schema_version: 3,
-    prompt_schema_version: 1,
+    prompt_schema_version: 2,
     translation_applicable: false,
   };
 }
@@ -489,7 +489,7 @@ test("builder hashes only the exact allowlist and exact summary source envelope"
   await assert.rejects(readFile(join(out, "data", "private.sqlite")));
 
   const invalidSources = structuredClone(sources);
-  invalidSources.sources["owner/one"].prompt_schema_version = 2;
+  invalidSources.sources["owner/one"].prompt_schema_version = 1;
   await writeFile(join(source, "data", "translation-sources.json"), `${JSON.stringify(invalidSources)}\n`);
   await assert.rejects(
     buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "bad"), sourceSha, snapshotId, artifactContract: contract }),
