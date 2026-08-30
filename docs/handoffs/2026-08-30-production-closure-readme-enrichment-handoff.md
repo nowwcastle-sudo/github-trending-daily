@@ -5,7 +5,8 @@
 - 저장소: `https://github.com/nowwcastle-sudo/github-trending-daily`
 - 운영 페이지: `https://nowwcastle-sudo.github.io/github-trending-daily/`
 - 작업 worktree: `C:\Users\nasca\.codex\worktrees\3a3b\transactional-refresh-20260827`
-- 기준선 SHA: `0aa617016c0e832909f74e3d9a70bbe210c10d60` (remote write 직전 반드시 fetch 후 재측정)
+- production RED source SHA: `0aa617016c0e832909f74e3d9a70bbe210c10d60`
+- 2026-08-31 최종 검증 전 fetch 좌표: 작업 parent/원격 branch `7cbf10839ef2990fdb3c8912b9b3bf40def74553`, `origin/main` `dfd32a0d2537cb3f4abc6d92a85ef62057e71605` (remote write 직전 다시 fetch)
 - AgentMemory handoff: `mem_mtfb5jzh_7ddf0a27f5dc`
 - 원본 task: `01a03d80-1266-76e1-896d-16648967d258`
 
@@ -21,9 +22,9 @@
 4. summary tooltip은 영어·한국어·중국어 간체·스페인어·일본어 5개 언어를 원자적 묶음으로 제공한다. 웹과 모바일의 내용·품질은 동일하고 layout만 반응형으로 바뀐다.
 5. summary 언어 버튼은 첫 줄, **View README**는 두 번째 줄, `goal/usage/pros/cons/fit`은 그 아래에 둔다.
 6. sidebar는 사용자가 선택한 B안인 **Compact Rail**로 확정한다. 데스크톱 hover는 비모달, click·keyboard 실행은 focus trap 모달, 모바일은 명시 버튼과 edge swipe를 유지한다.
-7. summary producer는 `claude-sonnet-5`, 승인 단가는 입력 $2·출력 $10/백만 토큰으로 계산한다.
-8. GitHub의 기존 `ANTHROPIC_API_KEY` Secret을 사용한다. 사용자가 2026-08-31 기존 Anthropic 경로 복구와 실제 controlled workflow 1회 실행을 승인했으므로, collector·고정 cap·비밀값·remote drift gate가 모두 통과한 뒤에만 호출한다.
-9. controlled workflow와 Pages 배포는 로컬 검증·비밀값 검사·remote drift·실측 비용 판정이 모두 통과한 뒤 6단계 말미에 수행한다. 별도 중간 확인은 두지 않되 dispatch는 정확히 한 번만 허용한다.
+7. summary producer는 Windows self-hosted runner의 `claude -p --model claude-sonnet-5`와 first-party OAuth subscription을 사용한다. direct Anthropic Messages API, API key, dollar-cost planning은 폐기한다.
+8. runner는 repository 전용 label `gh-trending-claude`를 요구하며, 사용자 범위 `CLAUDE_CODE_OAUTH_TOKEN`만 Claude step 안에서 가져온다. Claude 자식 환경은 positive allowlist이고 도구·slash command·Chrome·session persistence를 끈다.
+9. controlled workflow와 Pages 배포는 로컬 검증·비밀값 검사·remote drift·runner online/OAuth preflight가 모두 통과한 뒤 6단계 말미에 수행한다. 사용자가 2026-08-31 설치·등록과 정확히 한 번의 dispatch를 승인했으며, 두 번째 dispatch는 별도 승인 없이는 금지한다.
 10. repository observation DB에는 README 전체 본문을 저장하지 않는다. source identity, hash, schema, state만 저장한다.
 11. Codex Security Deep Scan `21f276c1-3f0e-4e13-83ae-901cc307a4c6`은 명시적으로 보류한다. 재개·취소·신규 생성·통과 취급을 하지 않고 잔여 보안 위험으로 보고한다.
 12. Deep Scan만 보류한다. CodeQL, 정적·의존성·비밀값 검사, Firestore Rules, 실제 로그인과 나머지 production 인수시험은 생략하지 않는다.
@@ -54,7 +55,7 @@
 10. 기존 전체 12 retry와 input/output cap 안에서 repository별 품질 교정은 최대 1회다.
 11. 내부 evidence는 README section heading과 line range로 유지하되 README 전체 본문은 observation DB에 넣지 않는다.
 12. UI에는 “verified repository README를 바탕으로 AI가 생성”했다고 표시하고 human verified라고 하지 않는다.
-13. reuse는 동일 README blob/content hash와 동일 prompt schema version일 때만 허용한다.
+13. reuse는 동일 README blob/content hash, prompt schema, `claude -p` provider/interface, CLI version, OAuth auth method일 때만 허용한다.
 14. 첫 production은 automated full census와 층화 10-repository × 5-locale 수동 표본을 web/mobile 양쪽에서 수행한다.
 
 ## 4. 구현된 계약
@@ -62,11 +63,14 @@
 - `site-i18n.js`: exact locales `en`, `ko`, `zh-CN`, `es`, `ja`; 저장값 → browser locale → English 순으로 선택한다.
 - `index.html`: 64px Compact Rail, 5-locale UI, 5개 summary tabs, 두 번째 줄 View README, 동일 field 구조와 AI disclosure.
 - `scripts/readme-variants.mjs`: 같은 디렉터리의 deterministic upstream README aliases만 수집하고 exact path/blob/head/content hash를 검증한다.
-- `scripts/generate-summary-bundles.mjs`: Sonnet 5, schema v3, prompt schema v1, atomic 5-locale output, 한 번의 correction, 전체 retry/cost cap을 구현한다. 실 LLM 호출은 아직 0회다.
+- `scripts/claude-cli-runtime.mjs`: Claude Code 2.1.211 이상, first-party OAuth, positive-allowlist child environment, tool-free structured output, 8 MiB stdin, timeout·output cap·Windows process-tree 강제 종료를 구현한다.
+- `scripts/generate-summary-bundles.mjs`: `claude -p` Sonnet 5, schema v3, prompt schema v1, atomic 5-locale output, 한 번의 correction, 전체 retry cap과 CLI/OAuth provenance를 구현한다. 실 LLM 호출은 아직 0회다.
+- `scripts/update-trending.mjs`: canonical README 개별 상한은 2 MiB이고, immutable blob/path/head/content hash와 strict UTF-8/control-character gate를 요구한다.
 - `scripts/update-trending.mjs`: v3 source와 exact 5-locale summary bundle만 render하며 metadata fallback을 허용하지 않는다.
 - `scripts/validate-enrichment-coverage.mjs`: active page/facts/cache/source exact set, full envelope, locale completeness, stale/missing/insufficient source, translation residue를 fail closed로 검사한다.
 - `scripts/build-pages-artifact.mjs`: source registry v3와 `site-i18n.js`를 exact artifact에 포함하고 legacy translation artifact를 제외한다.
-- workflow는 summary-bundle producer와 exact coverage validator를 호출하도록 변경했지만 아직 실행하지 않았다.
+- workflow는 GitHub-hosted `prepare` → Windows self-hosted `enrich` → GitHub-hosted `publish`로 분리한다. self-hosted runner는 tracked checkout·DB·page·commit·Pages 권한이 없고 네 개의 allowlisted enrichment 파일만 내보낸다. 아직 실행하지 않았다.
+- runner `nasca-gh-trending-claude`는 `C:\actions-runner-gh-trending`의 공식 Actions Runner 2.337.0으로 등록했고, 예약 작업 `GitHub Actions Runner - GitHub Trending Claude`가 사용자 로그인 세션에서 sanitized wrapper로 실행한다. PC가 켜져 있고 사용자 `nasca`가 로그인한 동안에만 실행 가능하다.
 - `README.md`, `README.ko.md`, `README.en.md`와 2026-08-31 candidate screenshots를 새 구조에 맞췄다.
 
 ## 5. canonical 실행 계획
@@ -75,8 +79,8 @@
 2. **B Compact Rail·5-locale shell·영문 기본 문서 — 완료**: UI와 정적 문서를 새 구조로 전환한다.
 3. **Upstream README variants — 구현 완료, production data 대기**: 실제 존재하는 언어판만 exact source identity로 표시하고 full README translation path를 폐기한다.
 4. **Grilling 기반 summary 사양 — 완료**: 위 품질·길이·근거·동일성·실패 계약을 공동 확정한다.
-5. **Sonnet 5 producer·coverage gates — 코드 완료**: 기존 Anthropic Messages API, 고정 token/retry/cost cap, atomic 5-locale bundle 계약을 사용한다.
-6. **검증·commit/push·controlled workflow·Pages — 진행 중**: 기존 390/720/1200/1440, 5 locale, hover/click/focus/Escape, light/dark, tooltip, README legacy failure UI, export privacy, Atom/membership 실브라우저 검증을 보존한다. 최종 focused/full/adversarial·비밀값 검사·remote drift·실측 비용 판정을 통과하면 commit/push하고, 같은 단계에서 정확히 한 번의 controlled refresh와 Pages deployment를 실행해 manifest·Anthropic usage·비용·bot commit·snapshot·observation·production full census를 묶어 검증한다.
+5. **Sonnet 5 producer·coverage gates — 코드 완료, 최종 검증 중**: local `claude -p`, first-party OAuth, 고정 byte/retry/timeout cap, producer provenance, atomic 5-locale bundle 계약을 사용한다.
+6. **검증·commit/push·controlled workflow·Pages — 진행 중**: 기존 390/720/1200/1440, 5 locale, hover/click/focus/Escape, light/dark, tooltip, README legacy failure UI, export privacy, Atom/membership 실브라우저 검증을 보존한다. 최종 focused/full/adversarial·비밀값 검사·remote drift·runner health를 통과하면 commit/push하고, 같은 단계에서 정확히 한 번의 controlled refresh와 Pages deployment를 실행해 manifest·CLI/OAuth runtime·token usage·bot commit·snapshot·observation·production full census를 묶어 검증한다.
 
 ## 6. 적대적 검증 범위
 
@@ -109,10 +113,10 @@
 
 ## 8. 종료 조건
 
-- LLM key 준비와 사용자 후속 지시 전까지 provider calls, workflow dispatch, deploy는 모두 0회다.
+- controlled workflow 전까지 model calls, workflow dispatch, deploy는 모두 0회다. OAuth preflight는 모델 호출이 아니며 version/auth method/provider만 검증한다.
 - full tests, adversarial review, mutation, staged/working-tree secret scan이 통과한다.
 - push 직전 remote drift를 fetch 후 재판정하고 사용자 변경을 보존한다.
-- 사용자 확인 뒤 controlled workflow는 정확히 1회다. 두 번째 dispatch, cap 상향, 새 유료 provider는 별도 승인 없이는 금지한다.
+- 승인된 controlled workflow는 정확히 1회다. 두 번째 dispatch, cap 상향, direct API·새 유료 provider는 별도 승인 없이는 금지한다.
 - production manifest와 exact file hashes가 deployed source SHA에 묶인다.
 - 모든 active repository가 detailed 5-locale summary, valid README provenance, canonical/upstream README variants를 전수 통과한다.
 - 하나라도 generic fallback, missing locale, stale source, variant mismatch면 recovery/hold를 유지한다.

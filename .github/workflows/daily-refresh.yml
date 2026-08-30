@@ -22,20 +22,31 @@ env:
   REQUESTED_BOOTSTRAP_SOURCE_SHA: ${{ inputs['bootstrap-source-sha'] || '' }}
 
 jobs:
-  build:
+  prepare:
     if: ${{ (github.event_name == 'schedule' && vars.GH_TRENDING_REFRESH_SCHEDULE == 'enabled') || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:
-      contents: write
+      contents: read
     outputs:
-      source_sha: ${{ steps.publish.outputs.source_sha }}
+      original_sha: ${{ steps.state.outputs.original_sha }}
       snapshot_id: ${{ steps.context.outputs.snapshot_id }}
       recovery_version: ${{ steps.state.outputs.recovery_version }}
       recovery_source_sha: ${{ steps.state.outputs.hydration_source_sha }}
       recovery_snapshot_id: ${{ steps.state.outputs.parent_snapshot_id }}
+      production_version: ${{ steps.state.outputs.production_version }}
+      production_manifest_status: ${{ steps.state.outputs.production_manifest_status }}
+      production_manifest_sha256: ${{ steps.state.outputs.production_manifest_sha256 }}
+      enrichment_budget_mode: ${{ steps.state.outputs.enrichment_budget_mode }}
+      manual_bootstrap_source_sha: ${{ steps.state.outputs.manual_bootstrap_source_sha }}
+      verified_bootstrap_source_sha: ${{ steps.state.outputs.hydration_source_sha }}
+      frozen_source_set_sha256: ${{ steps.facts.outputs.source_set_sha256 }}
+      frozen_run_context_sha256: ${{ steps.facts.outputs.run_context_sha256 }}
+      enrichment_deadline_epoch_ms: ${{ steps.events.outputs.enrichment_deadline_epoch_ms }}
+      refresh_hard_deadline_epoch_ms: ${{ steps.clock.outputs.hard_deadline_epoch_ms }}
     steps:
       - name: Anchor immutable refresh clock and gates
+        id: clock
         shell: bash
         run: |
           set -euo pipefail
@@ -49,6 +60,7 @@ jobs:
           echo "REFRESH_HARD_DEADLINE_EPOCH_MS=$(( 10#$REFRESH_ORIGIN_EPOCH_MS + 6900000 ))" >> "$GITHUB_ENV"
           echo "REFRESH_EVENT_DEADLINE_EPOCH_MS=$(( 10#$REFRESH_ORIGIN_EPOCH_MS + 900000 ))" >> "$GITHUB_ENV"
           echo "REFRESH_TEARDOWN_CUSHION_MS=300000" >> "$GITHUB_ENV"
+          echo "hard_deadline_epoch_ms=$(( 10#$REFRESH_ORIGIN_EPOCH_MS + 6900000 ))" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
@@ -89,6 +101,9 @@ jobs:
           HYDRATION_SOURCE_SHA="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(value.sourceSha);' "$STATE_FILE")"
           PRODUCTION_VERSION="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(String(value.version));' "$STATE_FILE")"
           PRODUCTION_MANIFEST_STATUS="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(value.manifestStatus);' "$STATE_FILE")"
+          PRODUCTION_MANIFEST_SHA256="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(value.manifestSha256 ?? "");' "$STATE_FILE")"
+          echo "production_manifest_status=$PRODUCTION_MANIFEST_STATUS" >> "$GITHUB_OUTPUT"
+          echo "production_manifest_sha256=$PRODUCTION_MANIFEST_SHA256" >> "$GITHUB_OUTPUT"
           git cat-file -e "${HYDRATION_SOURCE_SHA}^{commit}"
           git merge-base --is-ancestor "$HYDRATION_SOURCE_SHA" "$ORIGINAL_SHA"
           if [ "$PRODUCTION_VERSION" = "0" ]; then
@@ -98,16 +113,19 @@ jobs:
               exit 1
             fi
             echo "ENRICHMENT_BUDGET_MODE=$MANUAL_BOOTSTRAP_GATE" >> "$GITHUB_ENV"
+            echo "enrichment_budget_mode=$MANUAL_BOOTSTRAP_GATE" >> "$GITHUB_OUTPUT"
             echo "VERIFIED_RECOVERY_VERSION=0" >> "$GITHUB_ENV"
             echo "VERIFIED_BOOTSTRAP_SOURCE_SHA=$HYDRATION_SOURCE_SHA" >> "$GITHUB_ENV"
             if [ "$PRODUCTION_MANIFEST_STATUS" = "verified_404" ]; then
               [ -n "$REQUESTED_BOOTSTRAP_SOURCE_SHA" ] || { echo "::error::verified-404 bootstrap requires an explicit source SHA"; exit 1; }
               [ "$REQUESTED_BOOTSTRAP_SOURCE_SHA" = "$HYDRATION_SOURCE_SHA" ] || { echo "::error::requested bootstrap source does not match verified Pages source"; exit 1; }
               echo "MANUAL_BOOTSTRAP_SOURCE_SHA=$REQUESTED_BOOTSTRAP_SOURCE_SHA" >> "$GITHUB_ENV"
+              echo "manual_bootstrap_source_sha=$REQUESTED_BOOTSTRAP_SOURCE_SHA" >> "$GITHUB_OUTPUT"
               node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --bootstrap-preflight-sha "$HYDRATION_SOURCE_SHA"
             elif [ "$PRODUCTION_MANIFEST_STATUS" = "verified_v0" ]; then
               [ -z "$REQUESTED_BOOTSTRAP_SOURCE_SHA" ] || { echo "::error::verified-v0 manifest bootstrap forbids an explicit source SHA"; exit 1; }
               echo "MANUAL_BOOTSTRAP_SOURCE_SHA=$HYDRATION_SOURCE_SHA" >> "$GITHUB_ENV"
+              echo "manual_bootstrap_source_sha=$HYDRATION_SOURCE_SHA" >> "$GITHUB_OUTPUT"
               node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --legacy-recovery-sha "$HYDRATION_SOURCE_SHA"
             else
               echo "::error::invalid migration manifest evidence"
@@ -119,6 +137,8 @@ jobs:
             PARENT_SNAPSHOT_ID="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(value.snapshotId ?? "");' "$STATE_FILE")"
             [ -n "$PARENT_SNAPSHOT_ID" ]
             echo "ENRICHMENT_BUDGET_MODE=normal" >> "$GITHUB_ENV"
+            echo "enrichment_budget_mode=normal" >> "$GITHUB_OUTPUT"
+            echo "manual_bootstrap_source_sha=" >> "$GITHUB_OUTPUT"
             echo "VERIFIED_RECOVERY_VERSION=1" >> "$GITHUB_ENV"
             echo "VERIFIED_BOOTSTRAP_SOURCE_SHA=$HYDRATION_SOURCE_SHA" >> "$GITHUB_ENV"
             node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --source-sha "$HYDRATION_SOURCE_SHA" --snapshot-id "$PARENT_SNAPSHOT_ID"
@@ -179,6 +199,7 @@ jobs:
           python scripts/derive_repository_artifacts.py verify-parent-inputs --parent-database "$PARENT_DATABASE" --parent-evidence "${RUNNER_TEMP}/parent-evidence.json" --prior-heads "${RUNNER_TEMP}/prior-heads.json"
           echo "PARENT_DATABASE=$PARENT_DATABASE" >> "$GITHUB_ENV"
       - name: Collect frozen repository facts
+        id: facts
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -186,7 +207,9 @@ jobs:
           set -euo pipefail
           node scripts/update-trending.mjs --facts-out "${RUNNER_TEMP}/repository-facts.json" --budget-state "${RUNNER_TEMP}/event-budget.json"
           node --input-type=module -e 'import { appendFileSync, readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); if(!/^[a-f0-9]{64}$/.test(value.sourceSetSha256 ?? "") || !/^[a-f0-9]{64}$/.test(value.runContextSha256 ?? "")) throw new Error("frozen facts binding is invalid"); appendFileSync(process.env.GITHUB_ENV,`FROZEN_SOURCE_SET_SHA256=${value.sourceSetSha256}\nFROZEN_RUN_CONTEXT_SHA256=${value.runContextSha256}\n`);' "${RUNNER_TEMP}/repository-facts.json"
+          node --input-type=module -e 'import { appendFileSync, readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); appendFileSync(process.env.GITHUB_OUTPUT,`source_set_sha256=${value.sourceSetSha256}\nrun_context_sha256=${value.runContextSha256}\n`);' "${RUNNER_TEMP}/repository-facts.json"
       - name: Collect complete repository events
+        id: events
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -200,13 +223,174 @@ jobs:
           [ "$ENRICHMENT_DEADLINE" -gt "$NOW_MS" ] || { echo "::error::no enrichment budget remains"; exit 1; }
           echo "REFRESH_ENRICHMENT_DEADLINE_EPOCH_MS=$ENRICHMENT_DEADLINE" >> "$GITHUB_ENV"
           echo "ENRICHMENT_DEADLINE_EPOCH_MS=$ENRICHMENT_DEADLINE" >> "$GITHUB_ENV"
-      - name: Generate bound enrichment
+          echo "enrichment_deadline_epoch_ms=$ENRICHMENT_DEADLINE" >> "$GITHUB_OUTPUT"
+      - name: Upload frozen enrichment input
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: refresh-input-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/candidate
+            ${{ runner.temp }}/repository-facts.json
+            ${{ runner.temp }}/repository-events.json
+            ${{ runner.temp }}/prior-heads.json
+            ${{ runner.temp }}/parent-evidence.json
+            ${{ runner.temp }}/frozen-parent-input/repository-observations.sqlite
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 1
+      - name: Upload recovery artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          name: github-pages-recovery-${{ github.run_id }}
+          path: ${{ runner.temp }}/recovery-artifact
+          retention-days: 2
+
+  enrich:
+    name: Generate source-bound summaries on Claude OAuth runner
+    needs: prepare
+    runs-on: [self-hosted, Windows, X64, gh-trending-claude]
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.original_sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - name: Download frozen enrichment input
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: refresh-input-${{ github.run_id }}
+          path: ${{ runner.temp }}/refresh-input
+      - name: Verify isolated Claude runner checkout
+        shell: pwsh
+        env:
+          ORIGINAL_SHA: ${{ needs.prepare.outputs.original_sha }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          if ((git rev-parse HEAD).Trim() -ne $env:ORIGINAL_SHA) { throw "Claude runner checkout identity mismatch" }
+          if ((git status --porcelain=v1).Count -ne 0) { throw "Claude runner checkout is not clean" }
+          $root = Join-Path $env:RUNNER_TEMP "refresh-input"
+          foreach ($relative in @("candidate", "repository-facts.json", "repository-events.json", "prior-heads.json", "parent-evidence.json")) {
+            if (-not (Test-Path -LiteralPath (Join-Path $root $relative))) { throw "Frozen enrichment input is incomplete" }
+          }
+      - name: Generate bound enrichment with Claude OAuth
+        shell: pwsh
+        env:
+          ENRICHMENT_DEADLINE_EPOCH_MS: ${{ needs.prepare.outputs.enrichment_deadline_epoch_ms }}
+          ENRICHMENT_BUDGET_MODE: ${{ needs.prepare.outputs.enrichment_budget_mode }}
+          INPUT_SOURCE_SHA: ${{ needs.prepare.outputs.original_sha }}
+          VERIFIED_RECOVERY_VERSION: ${{ needs.prepare.outputs.recovery_version }}
+          VERIFIED_BOOTSTRAP_SOURCE_SHA: ${{ needs.prepare.outputs.verified_bootstrap_source_sha }}
+          MANUAL_BOOTSTRAP_SOURCE_SHA: ${{ needs.prepare.outputs.manual_bootstrap_source_sha }}
+          HYDRATION_SOURCE_SHA: ${{ needs.prepare.outputs.recovery_source_sha }}
+          FROZEN_SOURCE_SET_SHA256: ${{ needs.prepare.outputs.frozen_source_set_sha256 }}
+          FROZEN_RUN_CONTEXT_SHA256: ${{ needs.prepare.outputs.frozen_run_context_sha256 }}
+          PRODUCTION_MANIFEST_STATUS: ${{ needs.prepare.outputs.production_manifest_status }}
+          PRODUCTION_MANIFEST_SHA256: ${{ needs.prepare.outputs.production_manifest_sha256 }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $oauthToken = [Environment]::GetEnvironmentVariable("CLAUDE_CODE_OAUTH_TOKEN", "User")
+          if ([string]::IsNullOrWhiteSpace($oauthToken)) { throw "Claude OAuth token is unavailable for the runner user" }
+          $env:CLAUDE_CODE_OAUTH_TOKEN = $oauthToken
+          try {
+            $root = Join-Path $env:RUNNER_TEMP "refresh-input"
+            $candidate = Join-Path $root "candidate"
+            $index = Join-Path $root "enrichment-index.json"
+            $parentDatabase = Join-Path $root "frozen-parent-input/repository-observations.sqlite"
+            $output = & node scripts/generate-summary-bundles.mjs --facts (Join-Path $root "repository-facts.json") --events (Join-Path $root "repository-events.json") --enrichment-index-out $index --source-root $candidate --output-root $candidate --prior-heads (Join-Path $root "prior-heads.json") --parent-evidence (Join-Path $root "parent-evidence.json") --parent-database $parentDatabase
+            if ($LASTEXITCODE -ne 0) { throw "Claude enrichment failed" }
+            $receipt = ($output -join "`n")
+            Set-Content -LiteralPath (Join-Path $root "enrichment-usage.json") -Value $receipt -Encoding utf8 -NoNewline
+            node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); const usage=value?.usage; const runtime=value?.runtime; const keys=["repositories","pending","runtime","usage"]; const usageKeys=["attempts","inputTokens","logicalCalls","outputTokens","retries"]; const runtimeKeys=["api_provider","auth_method","cli_version","interface","model","provider"]; if(Object.keys(value).sort().join("\0")!==keys.sort().join("\0")||Object.keys(usage??{}).sort().join("\0")!==usageKeys.sort().join("\0")||Object.values(usage).some(v=>!Number.isSafeInteger(v)||v<0)||Object.keys(runtime??{}).sort().join("\0")!==runtimeKeys.sort().join("\0")||runtime.provider!=="claude-cli-oauth"||runtime.interface!=="claude-p"||runtime.auth_method!=="oauth_token"||runtime.api_provider!=="firstParty"||runtime.model!=="claude-sonnet-5"||!/^[0-9]+\.[0-9]+\.[0-9]+$/.test(runtime.cli_version)||JSON.stringify(value).match(/cost/i)) throw new Error("Claude usage receipt is invalid");' (Join-Path $root "enrichment-usage.json")
+            if ((git status --porcelain=v1).Count -ne 0) { throw "Claude runner changed the tracked checkout" }
+            $result = Join-Path $env:RUNNER_TEMP "refresh-enriched"
+            New-Item -ItemType Directory -Path (Join-Path $result "data") | Out-Null
+            Copy-Item -LiteralPath (Join-Path $candidate "data/repo-summaries.json") -Destination (Join-Path $result "data/repo-summaries.json")
+            Copy-Item -LiteralPath (Join-Path $candidate "data/translation-sources.json") -Destination (Join-Path $result "data/translation-sources.json")
+            Copy-Item -LiteralPath $index -Destination (Join-Path $result "enrichment-index.json")
+            Copy-Item -LiteralPath (Join-Path $root "enrichment-usage.json") -Destination (Join-Path $result "enrichment-usage.json")
+            if ((Get-ChildItem -LiteralPath (Join-Path $candidate "translations") -Force).Count -ne 0) { throw "Retired translation residue is present" }
+          } finally {
+            $env:CLAUDE_CODE_OAUTH_TOKEN = $null
+            $oauthToken = $null
+          }
+      - name: Upload bounded enrichment output
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: refresh-enriched-${{ github.run_id }}
+          path: ${{ runner.temp }}/refresh-enriched
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Validate and publish refresh candidate
+    needs: [prepare, enrich]
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: write
+    outputs:
+      source_sha: ${{ steps.publish.outputs.source_sha }}
+      snapshot_id: ${{ needs.prepare.outputs.snapshot_id }}
+    env:
+      REFRESH_HARD_DEADLINE_EPOCH_MS: ${{ needs.prepare.outputs.refresh_hard_deadline_epoch_ms }}
+      REFRESH_TEARDOWN_CUSHION_MS: 300000
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.original_sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: Download frozen enrichment input
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: refresh-input-${{ github.run_id }}
+          path: ${{ runner.temp }}/refresh-input
+      - name: Download bounded enrichment output
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: refresh-enriched-${{ github.run_id }}
+          path: ${{ runner.temp }}/refresh-enriched
+      - name: Rebuild and install bounded enrichment candidate
         shell: bash
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ORIGINAL_SHA: ${{ needs.prepare.outputs.original_sha }}
+          HYDRATION_SOURCE_SHA: ${{ needs.prepare.outputs.recovery_source_sha }}
         run: |
           set -euo pipefail
-          node scripts/generate-summary-bundles.mjs --facts "${RUNNER_TEMP}/repository-facts.json" --events "${RUNNER_TEMP}/repository-events.json" --enrichment-index-out "${RUNNER_TEMP}/enrichment-index.json" --source-root "${RUNNER_TEMP}/candidate" --output-root "${RUNNER_TEMP}/candidate" --prior-heads "${RUNNER_TEMP}/prior-heads.json" --parent-evidence "${RUNNER_TEMP}/parent-evidence.json" --parent-database "$PARENT_DATABASE"
+          [ "$ORIGINAL_SHA" = "$(git rev-parse HEAD)" ]
+          git diff --quiet --
+          git diff --cached --quiet --
+          INPUT_ROOT="${RUNNER_TEMP}/refresh-input"
+          ENRICHED_ROOT="${RUNNER_TEMP}/refresh-enriched"
+          EXPECTED_FILES=$'data/repo-summaries.json\ndata/translation-sources.json\nenrichment-index.json\nenrichment-usage.json'
+          ACTUAL_FILES="$(find "$ENRICHED_ROOT" -type f -printf '%P\n' | LC_ALL=C sort)"
+          [ "$ACTUAL_FILES" = "$EXPECTED_FILES" ] || { echo "::error::unexpected enrichment artifact residue"; exit 1; }
+          [ -z "$(find "$ENRICHED_ROOT" -type l -print -quit)" ] || { echo "::error::enrichment artifact symlink rejected"; exit 1; }
+          node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); const usage=value?.usage; const runtime=value?.runtime; const keys=["repositories","pending","runtime","usage"]; const usageKeys=["attempts","inputTokens","logicalCalls","outputTokens","retries"]; const runtimeKeys=["api_provider","auth_method","cli_version","interface","model","provider"]; if(Object.keys(value).sort().join("\0")!==keys.sort().join("\0")||Object.keys(usage??{}).sort().join("\0")!==usageKeys.sort().join("\0")||Object.values(usage).some(v=>!Number.isSafeInteger(v)||v<0)||Object.keys(runtime??{}).sort().join("\0")!==runtimeKeys.sort().join("\0")||runtime.provider!=="claude-cli-oauth"||runtime.interface!=="claude-p"||runtime.auth_method!=="oauth_token"||runtime.api_provider!=="firstParty"||runtime.model!=="claude-sonnet-5"||!/^[0-9]+\.[0-9]+\.[0-9]+$/.test(runtime.cli_version)||JSON.stringify(value).match(/cost/i)) throw new Error("Claude usage receipt is invalid");' "$ENRICHED_ROOT/enrichment-usage.json"
+          node scripts/prepare-refresh-candidate.mjs --checkout "$GITHUB_WORKSPACE" --last-good-sha "$HYDRATION_SOURCE_SHA" --out "${RUNNER_TEMP}/candidate"
+          cp -a "${RUNNER_TEMP}/candidate" "${RUNNER_TEMP}/candidate-baseline"
+          rm -f "${RUNNER_TEMP}/candidate/data/repository-observations.sqlite" "${RUNNER_TEMP}/candidate/data/repository-observations.sqlite-journal" "${RUNNER_TEMP}/candidate/data/repository-observations.sqlite-shm" "${RUNNER_TEMP}/candidate/data/repository-observations.sqlite-wal"
+          cp "$ENRICHED_ROOT/data/repo-summaries.json" "${RUNNER_TEMP}/candidate/data/repo-summaries.json"
+          cp "$ENRICHED_ROOT/data/translation-sources.json" "${RUNNER_TEMP}/candidate/data/translation-sources.json"
+          rm -rf "${RUNNER_TEMP}/candidate/translations"
+          mkdir "${RUNNER_TEMP}/candidate/translations"
+          cp "$INPUT_ROOT/repository-facts.json" "${RUNNER_TEMP}/repository-facts.json"
+          cp "$INPUT_ROOT/repository-events.json" "${RUNNER_TEMP}/repository-events.json"
+          cp "$INPUT_ROOT/prior-heads.json" "${RUNNER_TEMP}/prior-heads.json"
+          cp "$INPUT_ROOT/parent-evidence.json" "${RUNNER_TEMP}/parent-evidence.json"
+          cp "$ENRICHED_ROOT/enrichment-index.json" "${RUNNER_TEMP}/enrichment-index.json"
+          echo "PARENT_DATABASE=$INPUT_ROOT/frozen-parent-input/repository-observations.sqlite" >> "$GITHUB_ENV"
       - name: Record core repository snapshot
         shell: bash
         run: |
@@ -217,7 +401,7 @@ jobs:
       - name: Derive and render public artifacts
         shell: bash
         env:
-          SNAPSHOT_ID: ${{ steps.context.outputs.snapshot_id }}
+          SNAPSHOT_ID: ${{ needs.prepare.outputs.snapshot_id }}
         run: |
           set -euo pipefail
           CANDIDATE="${RUNNER_TEMP}/candidate"
@@ -230,14 +414,14 @@ jobs:
       - name: Finalize repository derivatives
         shell: bash
         env:
-          SNAPSHOT_ID: ${{ steps.context.outputs.snapshot_id }}
+          SNAPSHOT_ID: ${{ needs.prepare.outputs.snapshot_id }}
         run: |
           set -euo pipefail
           python scripts/derive_repository_artifacts.py finalize --database "${RUNNER_TEMP}/candidate/data/repository-observations.sqlite" --snapshot-id "$SNAPSHOT_ID" --insights "${RUNNER_TEMP}/repository-insights.json" --candidate-root "${RUNNER_TEMP}/candidate"
       - name: Validate whole candidate
         shell: bash
         env:
-          SNAPSHOT_ID: ${{ steps.context.outputs.snapshot_id }}
+          SNAPSHOT_ID: ${{ needs.prepare.outputs.snapshot_id }}
         run: |
           set -euo pipefail
           CANDIDATE="${RUNNER_TEMP}/candidate"
@@ -248,7 +432,7 @@ jobs:
       - name: Build and probe validated candidate
         shell: bash
         env:
-          SNAPSHOT_ID: ${{ steps.context.outputs.snapshot_id }}
+          SNAPSHOT_ID: ${{ needs.prepare.outputs.snapshot_id }}
         run: |
           set -euo pipefail
           PROOF_ROOT="${RUNNER_TEMP}/candidate-proof"
@@ -265,8 +449,8 @@ jobs:
         id: publish
         shell: bash
         env:
-          ORIGINAL_SHA: ${{ steps.state.outputs.original_sha }}
-          SNAPSHOT_ID: ${{ steps.context.outputs.snapshot_id }}
+          ORIGINAL_SHA: ${{ needs.prepare.outputs.original_sha }}
+          SNAPSHOT_ID: ${{ needs.prepare.outputs.snapshot_id }}
         run: |
           set -euo pipefail
           CANDIDATE="${RUNNER_TEMP}/candidate"
@@ -334,7 +518,7 @@ jobs:
         shell: bash
         env:
           SOURCE_SHA: ${{ steps.publish.outputs.source_sha }}
-          SNAPSHOT_ID: ${{ steps.context.outputs.snapshot_id }}
+          SNAPSHOT_ID: ${{ needs.prepare.outputs.snapshot_id }}
         run: |
           set -euo pipefail
           PAGES_SOURCE="${RUNNER_TEMP}/pages-source"
@@ -343,12 +527,6 @@ jobs:
           python scripts/derive_repository_artifacts.py export-contract --database "$PAGES_SOURCE/data/repository-observations.sqlite" --snapshot-id "$SNAPSHOT_ID" --contract-out "${RUNNER_TEMP}/committed-artifact-contract.json"
           node scripts/build-pages-artifact.mjs --source "$PAGES_SOURCE" --out "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "${RUNNER_TEMP}/committed-artifact-contract.json"
           node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "${RUNNER_TEMP}/committed-artifact-contract.json"
-      - name: Upload recovery artifact
-        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
-        with:
-          name: github-pages-recovery-${{ github.run_id }}
-          path: ${{ runner.temp }}/recovery-artifact
-          retention-days: 2
       - name: Upload candidate Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
@@ -357,7 +535,7 @@ jobs:
 
   deploy:
     name: Deploy candidate Pages artifact
-    needs: build
+    needs: publish
     runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:
@@ -374,7 +552,7 @@ jobs:
 
   verify:
     name: Probe production candidate
-    needs: [build, deploy]
+    needs: [publish, deploy]
     runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:
@@ -395,12 +573,12 @@ jobs:
         run: |
           set -euo pipefail
           CONTRACT="${RUNNER_TEMP}/production-artifact-contract.json"
-          python scripts/derive_repository_artifacts.py export-contract --database data/repository-observations.sqlite --snapshot-id "${{ needs.build.outputs.snapshot_id }}" --contract-out "$CONTRACT"
-          node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --source-sha "${{ needs.build.outputs.source_sha }}" --snapshot-id "${{ needs.build.outputs.snapshot_id }}" --artifact-contract "$CONTRACT"
+          python scripts/derive_repository_artifacts.py export-contract --database data/repository-observations.sqlite --snapshot-id "${{ needs.publish.outputs.snapshot_id }}" --contract-out "$CONTRACT"
+          node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --source-sha "${{ needs.publish.outputs.source_sha }}" --snapshot-id "${{ needs.publish.outputs.snapshot_id }}" --artifact-contract "$CONTRACT"
 
   recovery:
     name: Recover prior Pages artifact
-    needs: [build, deploy, verify]
+    needs: [prepare, publish, deploy, verify]
     if: ${{ always() && needs.verify.result == 'failure' && needs.deploy.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -425,9 +603,9 @@ jobs:
       - name: Verify recovered production
         shell: bash
         env:
-          RECOVERY_VERSION: ${{ needs.build.outputs.recovery_version }}
-          RECOVERY_SOURCE_SHA: ${{ needs.build.outputs.recovery_source_sha }}
-          RECOVERY_SNAPSHOT_ID: ${{ needs.build.outputs.recovery_snapshot_id }}
+          RECOVERY_VERSION: ${{ needs.prepare.outputs.recovery_version }}
+          RECOVERY_SOURCE_SHA: ${{ needs.prepare.outputs.recovery_source_sha }}
+          RECOVERY_SNAPSHOT_ID: ${{ needs.prepare.outputs.recovery_snapshot_id }}
         run: |
           set -euo pipefail
           if [ "$RECOVERY_VERSION" = "0" ]; then

@@ -31,6 +31,8 @@ const ENRICHMENT_SCHEMA_VERSION = 3;
 const SUMMARY_PROMPT_SCHEMA_VERSION = 1;
 const SUMMARY_FIELDS = ["goal", "usage", "pros", "cons", "fit"];
 const SUMMARY_LOCALES = ["en", "ko", "zh-CN", "es", "ja"];
+const MAX_README_BYTES = 2 * 1024 * 1024;
+const SUMMARY_SOURCE_KEYS = ["kind", "slug", "path", "blob_sha", "content_sha256", "provider", "interface", "cli_version", "auth_method", "api_provider", "model", "schema_version", "prompt_schema_version", "translation_applicable"];
 
 function periodConfig(period) {
   const config = PERIODS[period];
@@ -386,11 +388,16 @@ function decodeBoundedBase64(value, maximumBytes) {
 }
 
 function decodeUtf8Strict(bytes) {
+  let text;
   try {
-    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
   } catch {
     throw new Error("README content is not valid UTF-8");
   }
+  if (/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(text)) {
+    throw new Error("README content contains unsupported control characters");
+  }
+  return text;
 }
 
 function classifyRepository({ slug, display_slug, description, primary_language, topics }) {
@@ -410,7 +417,7 @@ export async function fetchCanonicalReadme(slug, options = {}) {
   }
   const value = await requireGitHubJson(response, apiPath);
   if (
-    value?.encoding !== "base64"
+    !["base64", "none"].includes(value?.encoding)
     || typeof value.path !== "string"
     || !value.path
     || value.path.startsWith("/")
@@ -421,10 +428,17 @@ export async function fetchCanonicalReadme(slug, options = {}) {
     throw new Error(`Invalid canonical README metadata for ${normalizedSlug}`);
   }
   let contentsBytes;
-  try {
-    contentsBytes = decodeBoundedBase64(value.content, 512 * 1024);
-  } catch {
-    throw new Error(`Invalid canonical README metadata for ${normalizedSlug}`);
+  if (value.encoding === "none") {
+    if (value.content !== "" || !Number.isSafeInteger(value.size) || value.size < 0 || value.size > MAX_README_BYTES) {
+      throw new Error(`Invalid canonical README metadata for ${normalizedSlug}`);
+    }
+    contentsBytes = null;
+  } else {
+    try {
+      contentsBytes = decodeBoundedBase64(value.content, MAX_README_BYTES);
+    } catch {
+      throw new Error(`Invalid canonical README metadata for ${normalizedSlug}`);
+    }
   }
   const blobPath = githubPath(normalizedSlug, `/git/blobs/${value.sha}`);
   const blobResponse = await client.request(blobPath);
@@ -434,11 +448,13 @@ export async function fetchCanonicalReadme(slug, options = {}) {
   }
   let bytes;
   try {
-    bytes = decodeBoundedBase64(blob.content, 512 * 1024);
+    bytes = decodeBoundedBase64(blob.content, MAX_README_BYTES);
   } catch {
     throw new Error(`Canonical README blob identity is invalid for ${normalizedSlug}`);
   }
-  if (!bytes.equals(contentsBytes) || sha256(bytes) !== sha256(contentsBytes)) {
+  if (contentsBytes
+    ? (!bytes.equals(contentsBytes) || sha256(bytes) !== sha256(contentsBytes))
+    : (blob.size !== value.size || bytes.length !== value.size)) {
     throw new Error(`Canonical README blob identity is invalid for ${normalizedSlug}`);
   }
   return {
@@ -864,7 +880,7 @@ export async function fetchReadmeVariants(slug, headSha, canonicalReadme, option
       throw new Error(`README variant blob identity is invalid for ${normalizedSlug}`);
     }
     let bytes;
-    try { bytes = decodeBoundedBase64(blob.content, 512 * 1024); }
+    try { bytes = decodeBoundedBase64(blob.content, MAX_README_BYTES); }
     catch { throw new Error(`README variant blob identity is invalid for ${normalizedSlug}`); }
     decodeUtf8Strict(bytes);
     variants.push({
@@ -885,9 +901,12 @@ function frozenSourceMatchesFact(source, fact) {
   if (!source || Array.isArray(source) || typeof source !== "object"
       || source.model !== ENRICHMENT_MODEL || source.schema_version !== ENRICHMENT_SCHEMA_VERSION
       || source.prompt_schema_version !== SUMMARY_PROMPT_SCHEMA_VERSION
+      || source.provider !== "claude-cli-oauth" || source.interface !== "claude-p"
+      || !/^\d+\.\d+\.\d+$/.test(source.cli_version)
+      || source.auth_method !== "oauth_token" || source.api_provider !== "firstParty"
       || source.slug !== fact.slug.toLowerCase() || source.translation_applicable !== false) return false;
   if (fact.readme_status === "present") {
-    return exactObjectKeys(source, ["kind", "slug", "path", "blob_sha", "content_sha256", "model", "schema_version", "prompt_schema_version", "translation_applicable"])
+    return exactObjectKeys(source, SUMMARY_SOURCE_KEYS)
       && source.kind === "readme" && source.path === fact.readme_path
       && source.blob_sha === fact.readme_blob_sha && source.content_sha256 === fact.readme_content_sha256;
   }

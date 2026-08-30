@@ -3,17 +3,17 @@ import { createHash } from "node:crypto";
 import test from "node:test";
 
 import {
+  MAX_FROZEN_FACTS_BYTES,
   SUMMARY_BUNDLE_LOCALES,
-  SONNET_5_INPUT_USD_PER_MILLION,
-  SONNET_5_OUTPUT_USD_PER_MILLION,
   buildSummaryBundleRequest,
-  measureSummaryBundlePlan,
-  runSummaryBundleRequests,
+  measureClaudeCliSummaryBundlePlan,
+  runClaudeSummaryBundleRequests,
   validateSummaryBundle,
   validateSummaryBundleEnvelope,
 } from "../scripts/generate-summary-bundles.mjs";
 
 const fields = ["goal", "usage", "pros", "cons", "fit"];
+const oauthRuntime = { version: "2.1.241", authMethod: "oauth_token", apiProvider: "firstParty" };
 
 const localeLead = {
   en: "This field explains the repository with concrete technical context for developers evaluating adoption.",
@@ -75,57 +75,108 @@ test("the shared summary contract validates README evidence and cross-locale inv
 
 test("one Sonnet 5 request carries all five summaries and no README translation output", () => {
   const request = buildSummaryBundleRequest(item, { frameId: "gh-summary-00000000-0000-4000-8000-000000000000" });
-  assert.equal(request.body.model, "claude-sonnet-5");
+  assert.equal(request.model, "claude-sonnet-5");
   assert.equal(request.kind, "summary_bundle");
   assert.deepEqual(request.locales, SUMMARY_BUNDLE_LOCALES);
-  assert.deepEqual(Object.keys(request.body.output_config.format.schema.properties.summaries.properties), SUMMARY_BUNDLE_LOCALES);
-  assert.deepEqual(request.body.output_config.format.schema.required.sort(), ["evidence", "inference_fields", "invariants", "summaries"].sort());
-  assert.match(request.body.messages[0].content, /180.{0,20}280|evidence|line range/is);
-  assert.doesNotMatch(JSON.stringify(request.body.output_config), /translated_markdown|translation_applicable/);
-  assert.match(request.body.messages[0].content, /untrusted source data/i);
+  assert.deepEqual(Object.keys(request.schema.properties.summaries.properties), SUMMARY_BUNDLE_LOCALES);
+  assert.deepEqual(request.schema.required.sort(), ["evidence", "inference_fields", "invariants", "summaries"].sort());
+  assert.match(request.prompt, /180.{0,20}280|evidence|line range/is);
+  assert.doesNotMatch(JSON.stringify(request.schema), /translated_markdown|translation_applicable/);
+  assert.match(request.prompt, /untrusted source data/i);
 });
 
-test("fixed Sonnet 5 pricing and token caps produce a bounded worst-case estimate", () => {
-  assert.equal(SONNET_5_INPUT_USD_PER_MILLION, 2);
-  assert.equal(SONNET_5_OUTPUT_USD_PER_MILLION, 10);
-  const plan = measureSummaryBundlePlan([item], { inputTokenCap: 1_000_000, outputTokenCap: 250_000, retryAttempts: 12 });
+test("Claude subscription planning keeps byte and retry bounds without a dollar-cost stage", () => {
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
   assert.equal(plan.logicalCalls, 1);
   assert.equal(plan.model, "claude-sonnet-5");
-  assert.equal(plan.maximumCostUsd, 4.5);
-  assert.equal(plan.plannedMaximumCostUsd, 0.166206);
-  assert.ok(plan.requiredInputReservation > 0 && plan.requiredInputReservation <= 1_000_000);
-  assert.ok(plan.requiredOutputAllocation > 0 && plan.requiredOutputAllocation <= 250_000);
+  assert.equal(plan.provider, "claude-cli-oauth");
+  assert.ok(plan.inputBytes > 0);
+  assert.equal(Object.hasOwn(plan, "plannedMaximumCostUsd"), false);
+  assert.equal(Object.hasOwn(plan, "maximumCostUsd"), false);
+  assert.ok(MAX_FROZEN_FACTS_BYTES > 75 * 2 * 1024 * 1024 * 2);
 });
-
-test("one bounded quality correction repairs a machine-detected bundle defect", async () => {
-  const plan = measureSummaryBundlePlan([item], { inputTokenCap: 1_000_000, outputTokenCap: 250_000, retryAttempts: 12 });
+test("Claude subscription execution preflights once and applies one bounded quality correction", async () => {
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
   const invalid = envelope();
   invalid.summaries.ko.usage = "자세한 내용은 README를 참고하세요.";
   const replies = [invalid, envelope()];
+  let preflights = 0;
   let calls = 0;
-  const result = await runSummaryBundleRequests({
+  const result = await runClaudeSummaryBundleRequests({
     plan,
-    apiKey: "test-key",
+    environment: { ANTHROPIC_API_KEY: "must-be-removed" },
     now: () => 0,
     deadline: 100_000,
     attemptTimeoutMs: 1_000,
     sleep: async () => {},
-    fetchImpl: async () => {
-      const document = replies[calls++];
-      return {
-        ok: true,
-        status: 200,
-        text: async () => JSON.stringify({
-          content: [{ type: "text", text: JSON.stringify(document) }],
-          usage: { input_tokens: 100, output_tokens: 200 },
-        }),
-      };
+    preflight: async () => { preflights += 1; return oauthRuntime; },
+    executeClaude: async ({ prompt, schema, model }) => {
+      assert.match(prompt, /untrusted source data/i);
+      assert.equal(schema.type, "object");
+      assert.equal(model, "claude-sonnet-5");
+      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+  assert.equal(preflights, 1);
+  assert.equal(calls, 2);
+  assert.deepEqual(result.usage, {
+    inputTokens: 200,
+    outputTokens: 400,
+    logicalCalls: 1,
+    attempts: 2,
+    retries: 1,
+  });
+  assert.deepEqual(result.runtime, {
+    provider: "claude-cli-oauth",
+    interface: "claude-p",
+    cli_version: "2.1.241",
+    auth_method: "oauth_token",
+    api_provider: "firstParty",
+    model: "claude-sonnet-5",
+  });
+});
+
+test("Claude subscription execution makes zero model calls when OAuth preflight fails", async () => {
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  let calls = 0;
+  await assert.rejects(
+    runClaudeSummaryBundleRequests({
+      plan,
+      now: () => 0,
+      deadline: 100_000,
+      attemptTimeoutMs: 1_000,
+      preflight: async () => { throw new Error("OAuth unavailable"); },
+      executeClaude: async () => { calls += 1; },
+    }),
+    /OAuth unavailable/,
+  );
+  assert.equal(calls, 0);
+});
+
+test("Claude subscription execution retries one bounded transport failure after 2 seconds", async () => {
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  const sleeps = [];
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async milliseconds => { sleeps.push(milliseconds); },
+    preflight: async () => oauthRuntime,
+    executeClaude: async () => {
+      calls += 1;
+      if (calls === 1) throw Object.assign(new Error("transport unavailable"), { retryable: true });
+      return { structuredOutput: envelope(), usage: { inputTokens: 100, outputTokens: 200 } };
     },
   });
   assert.equal(calls, 2);
-  assert.equal(result.usage.logicalCalls, 1);
-  assert.equal(result.usage.attempts, 2);
-  assert.equal(result.usage.retries, 1);
-  assert.equal(result.usage.inputTokens, 200);
-  assert.equal(result.usage.outputTokens, 400);
+  assert.deepEqual(sleeps, [2_000]);
+  assert.deepEqual(result.usage, {
+    inputTokens: 100,
+    outputTokens: 200,
+    logicalCalls: 1,
+    attempts: 2,
+    retries: 1,
+  });
 });

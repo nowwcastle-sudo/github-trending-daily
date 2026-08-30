@@ -8,7 +8,7 @@ import { DEFAULT_ENRICHMENT_MODEL } from "./enrichment-models.mjs";
 const SHA_RE = /^[a-f0-9]{40}$/;
 const SHA256_RE = /^[a-f0-9]{64}$/;
 const SNAPSHOT_RE = /^[0-9]{14}-[a-f0-9]{16}$/;
-const SOURCE_KEYS = ["kind", "slug", "path", "blob_sha", "content_sha256", "model", "schema_version", "prompt_schema_version", "translation_applicable"];
+const SOURCE_KEYS = ["kind", "slug", "path", "blob_sha", "content_sha256", "provider", "interface", "cli_version", "auth_method", "api_provider", "model", "schema_version", "prompt_schema_version", "translation_applicable"];
 const TAG_RULE_VERSION = 1;
 const FIELD_TAG_IDS = ["ai-ml", "web-app", "dev-tools", "data", "devops", "security", "productivity", "systems", "learning"];
 const FORM_TAG_IDS = ["agent", "mcp", "plugin-skill", "ide", "library", "framework", "cli"];
@@ -118,6 +118,11 @@ function validSource(value) {
     && typeof value.path === "string" && value.path.length > 0
     && /^[a-f0-9]{40}$/.test(value.blob_sha)
     && /^[a-f0-9]{64}$/.test(value.content_sha256)
+    && value.provider === "claude-cli-oauth"
+    && value.interface === "claude-p"
+    && /^\d+\.\d+\.\d+$/.test(value.cli_version)
+    && value.auth_method === "oauth_token"
+    && value.api_provider === "firstParty"
     && value.model === DEFAULT_ENRICHMENT_MODEL
     && value.schema_version === 3
     && value.prompt_schema_version === 1
