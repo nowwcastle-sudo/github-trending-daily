@@ -1363,7 +1363,7 @@ def _enrichment_hashes(repository: dict[str, Any], profile: dict[str, Any], inde
         expected_source = {"kind": "readme", "slug": slug, "path": readme_path, "blob_sha": readme_blob, "content_sha256": readme_content, "model": source.get("model"), "schema_version": source.get("schema_version"), "prompt_schema_version": source.get("prompt_schema_version"), "translation_applicable": source.get("translation_applicable")}
     if source != expected_source:
         raise ValueError("summary source does not match canonical repository identity")
-    if source.get("model") != "auto:smart" or source.get("schema_version") != 3 or source.get("prompt_schema_version") != 1 or source.get("translation_applicable") is not False:
+    if source.get("model") != "claude-sonnet-5" or source.get("schema_version") != 3 or source.get("prompt_schema_version") != 1 or source.get("translation_applicable") is not False:
         raise ValueError("summary source model or prompt contract is invalid")
     summary_source = _digest(source)
     summary_content = _digest(content)

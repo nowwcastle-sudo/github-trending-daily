@@ -632,7 +632,7 @@ test("facts-only collection writes explicit temp outputs and leaves tracked publ
       <span>${index + 1} stars ${labels[period]}</span>
     </article>`).join("\n");
   const rest = successfulGithubFetch();
-  let providerFetches = 0;
+  let anthropicFetches = 0;
   const payload = await collectFrozenFacts({
     factsOut,
     budgetStatePath,
@@ -648,13 +648,13 @@ test("facts-only collection writes explicit temp outputs and leaves tracked publ
       if (parsed.hostname === "github.com" && parsed.pathname === "/trending") {
         return new Response(trending(parsed.searchParams.get("since")), { status: 200 });
       }
-      if (parsed.pathname.endsWith("/v1/chat/completions")) providerFetches += 1;
+      if (parsed.hostname === "api.anthropic.com") anthropicFetches += 1;
       return rest(url, options);
     },
   });
 
   const after = await Promise.all(trackedPaths.map(file => readFile(file)));
-  assert.equal(providerFetches, 0);
+  assert.equal(anthropicFetches, 0);
   assert.equal(payload.repositories.length, 10);
   assert.equal(payload.readmes["owner/repo-0"].markdown, "# Repo\n\nCanonical readme.");
   assert.equal(payload.budgetReceipt.logicalRequests, 63);
@@ -893,7 +893,7 @@ const cachedEntry = (index, slug = `owner/repo-${index}`) => {
       path: "docs/README.rst",
       blob_sha: "a".repeat(40),
       content_sha256: createHash("sha256").update("# Repo\n\nCanonical readme.").digest("hex"),
-      model: "auto:smart",
+      model: "claude-sonnet-5",
       schema_version: 3,
       prompt_schema_version: 1,
       translation_applicable: false,

@@ -30,7 +30,7 @@ The candidate screenshots below were captured locally from the 2026-08-31 source
 
 ## Summary quality contract
 
-The refresh pipeline uses the versioned FreeLLMAPI OpenAI-compatible `auto:smart` route. No model call happens before repository and README collection succeeds.
+The refresh pipeline is configured for `claude-sonnet-5` at the approved $2 input / $10 output per million-token rates. No model call happens before repository and README collection succeeds.
 
 Each repository is produced as one atomic five-language bundle:
 
@@ -77,7 +77,7 @@ The workflow is fail closed:
 - The model is called zero times if collection fails.
 - An incomplete enrichment candidate writes no observation, page, commit, or Pages deployment.
 - A failed candidate leaves the tracked tree unchanged.
-- Missing or stale README provenance, source mismatch, incomplete chunks, invalid model output, token/retry/deadline limit breaches, or translation residue stop publication.
+- Missing or stale README provenance, source mismatch, incomplete chunks, invalid model output, cost-cap breaches, or translation residue stop publication.
 - The browser never receives a provider API key.
 
 Historical star charts can include GH Archive-derived estimates; current total stars come from GitHub. CSV uses a UTF-8 BOM for spreadsheet compatibility, quotes commas, quotes, and line breaks, and prefixes formula-like values with an apostrophe.

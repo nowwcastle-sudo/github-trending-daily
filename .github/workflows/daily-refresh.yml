@@ -203,8 +203,7 @@ jobs:
       - name: Generate bound enrichment
         shell: bash
         env:
-          FREELLMAPI_API_KEY: ${{ secrets.FREELLMAPI_API_KEY }}
-          FREELLMAPI_BASE_URL: ${{ vars.FREELLMAPI_BASE_URL }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           set -euo pipefail
           node scripts/generate-summary-bundles.mjs --facts "${RUNNER_TEMP}/repository-facts.json" --events "${RUNNER_TEMP}/repository-events.json" --enrichment-index-out "${RUNNER_TEMP}/enrichment-index.json" --source-root "${RUNNER_TEMP}/candidate" --output-root "${RUNNER_TEMP}/candidate" --prior-heads "${RUNNER_TEMP}/prior-heads.json" --parent-evidence "${RUNNER_TEMP}/parent-evidence.json" --parent-database "$PARENT_DATABASE"

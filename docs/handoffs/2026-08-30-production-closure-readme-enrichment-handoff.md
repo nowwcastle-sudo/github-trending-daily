@@ -21,9 +21,9 @@
 4. summary tooltip은 영어·한국어·중국어 간체·스페인어·일본어 5개 언어를 원자적 묶음으로 제공한다. 웹과 모바일의 내용·품질은 동일하고 layout만 반응형으로 바뀐다.
 5. summary 언어 버튼은 첫 줄, **View README**는 두 번째 줄, `goal/usage/pros/cons/fit`은 그 아래에 둔다.
 6. sidebar는 사용자가 선택한 B안인 **Compact Rail**로 확정한다. 데스크톱 hover는 비모달, click·keyboard 실행은 focus trap 모달, 모바일은 명시 버튼과 edge swipe를 유지한다.
-7. summary producer는 FreeLLMAPI OpenAI 호환 Chat Completions와 `auto:smart` route를 사용한다. 달러 비용 계산은 폐기하고 토큰·재시도·요청 크기·deadline 상한만 운영 안전장치로 유지한다.
-8. GitHub에는 `FREELLMAPI_API_KEY` Secret과 `FREELLMAPI_BASE_URL` Variable을 사용한다. 실제 LLM 호출은 별도 실행 승인 전까지 보류한다.
-9. controlled workflow와 Pages 배포는 로컬 검증·비밀값 검사·remote drift 판정이 모두 통과한 뒤 6단계 말미에 수행한다. 사용자의 2026-08-31 최신 승인에 따라 별도 중간 확인은 두지 않되 dispatch는 정확히 한 번만 허용한다.
+7. summary producer는 `claude-sonnet-5`, 승인 단가는 입력 $2·출력 $10/백만 토큰으로 계산한다.
+8. GitHub의 기존 `ANTHROPIC_API_KEY` Secret을 사용한다. 사용자가 2026-08-31 기존 Anthropic 경로 복구와 실제 controlled workflow 1회 실행을 승인했으므로, collector·고정 cap·비밀값·remote drift gate가 모두 통과한 뒤에만 호출한다.
+9. controlled workflow와 Pages 배포는 로컬 검증·비밀값 검사·remote drift·실측 비용 판정이 모두 통과한 뒤 6단계 말미에 수행한다. 별도 중간 확인은 두지 않되 dispatch는 정확히 한 번만 허용한다.
 10. repository observation DB에는 README 전체 본문을 저장하지 않는다. source identity, hash, schema, state만 저장한다.
 11. Codex Security Deep Scan `21f276c1-3f0e-4e13-83ae-901cc307a4c6`은 명시적으로 보류한다. 재개·취소·신규 생성·통과 취급을 하지 않고 잔여 보안 위험으로 보고한다.
 12. Deep Scan만 보류한다. CodeQL, 정적·의존성·비밀값 검사, Firestore Rules, 실제 로그인과 나머지 production 인수시험은 생략하지 않는다.
@@ -62,7 +62,7 @@
 - `site-i18n.js`: exact locales `en`, `ko`, `zh-CN`, `es`, `ja`; 저장값 → browser locale → English 순으로 선택한다.
 - `index.html`: 64px Compact Rail, 5-locale UI, 5개 summary tabs, 두 번째 줄 View README, 동일 field 구조와 AI disclosure.
 - `scripts/readme-variants.mjs`: 같은 디렉터리의 deterministic upstream README aliases만 수집하고 exact path/blob/head/content hash를 검증한다.
-- `scripts/generate-summary-bundles.mjs`: FreeLLMAPI OpenAI 호환 `auto:smart`, schema v3, prompt schema v1, atomic 5-locale output, 한 번의 correction, 전체 token/retry/deadline 상한을 구현한다. 실 LLM 호출은 아직 0회다.
+- `scripts/generate-summary-bundles.mjs`: Sonnet 5, schema v3, prompt schema v1, atomic 5-locale output, 한 번의 correction, 전체 retry/cost cap을 구현한다. 실 LLM 호출은 아직 0회다.
 - `scripts/update-trending.mjs`: v3 source와 exact 5-locale summary bundle만 render하며 metadata fallback을 허용하지 않는다.
 - `scripts/validate-enrichment-coverage.mjs`: active page/facts/cache/source exact set, full envelope, locale completeness, stale/missing/insufficient source, translation residue를 fail closed로 검사한다.
 - `scripts/build-pages-artifact.mjs`: source registry v3와 `site-i18n.js`를 exact artifact에 포함하고 legacy translation artifact를 제외한다.
@@ -75,8 +75,8 @@
 2. **B Compact Rail·5-locale shell·영문 기본 문서 — 완료**: UI와 정적 문서를 새 구조로 전환한다.
 3. **Upstream README variants — 구현 완료, production data 대기**: 실제 존재하는 언어판만 exact source identity로 표시하고 full README translation path를 폐기한다.
 4. **Grilling 기반 summary 사양 — 완료**: 위 품질·길이·근거·동일성·실패 계약을 공동 확정한다.
-5. **FreeLLMAPI OpenAI producer·coverage gates — 코드 완료, 실호출 보류**: Secret·Variable은 사용자가 등록했고 코드·테스트 동기화가 끝날 때까지 실 LLM 호출은 0회로 유지한다.
-6. **검증·commit/push·controlled workflow·Pages — 진행 중**: 기존 390/720/1200/1440, 5 locale, hover/click/focus/Escape, light/dark, tooltip, README legacy failure UI, export privacy, Atom/membership 실브라우저 검증을 보존한다. 최종 focused/full/adversarial·비밀값 검사·remote drift 판정을 통과하면 commit/push하고, 같은 단계에서 정확히 한 번의 controlled refresh와 Pages deployment를 실행해 manifest·usage·routed model·bot commit·snapshot·observation·production full census를 묶어 검증한다.
+5. **Sonnet 5 producer·coverage gates — 코드 완료**: 기존 Anthropic Messages API, 고정 token/retry/cost cap, atomic 5-locale bundle 계약을 사용한다.
+6. **검증·commit/push·controlled workflow·Pages — 진행 중**: 기존 390/720/1200/1440, 5 locale, hover/click/focus/Escape, light/dark, tooltip, README legacy failure UI, export privacy, Atom/membership 실브라우저 검증을 보존한다. 최종 focused/full/adversarial·비밀값 검사·remote drift·실측 비용 판정을 통과하면 commit/push하고, 같은 단계에서 정확히 한 번의 controlled refresh와 Pages deployment를 실행해 manifest·Anthropic usage·비용·bot commit·snapshot·observation·production full census를 묶어 검증한다.
 
 ## 6. 적대적 검증 범위
 

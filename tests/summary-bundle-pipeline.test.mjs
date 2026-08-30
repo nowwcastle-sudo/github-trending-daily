@@ -4,9 +4,10 @@ import test from "node:test";
 
 import {
   SUMMARY_BUNDLE_LOCALES,
+  SONNET_5_INPUT_USD_PER_MILLION,
+  SONNET_5_OUTPUT_USD_PER_MILLION,
   buildSummaryBundleRequest,
   measureSummaryBundlePlan,
-  resolveFreeLlmApiChatUrl,
   runSummaryBundleRequests,
   validateSummaryBundle,
   validateSummaryBundleEnvelope,
@@ -72,49 +73,31 @@ test("the shared summary contract validates README evidence and cross-locale inv
   assert.throws(() => validateSummaryBundleEnvelope(staleEvidence, item), /evidence|line|README/i);
 });
 
-test("one OpenAI-compatible request carries all five summaries and no README translation output", () => {
+test("one Sonnet 5 request carries all five summaries and no README translation output", () => {
   const request = buildSummaryBundleRequest(item, { frameId: "gh-summary-00000000-0000-4000-8000-000000000000" });
-  assert.equal(request.body.model, "auto:smart");
+  assert.equal(request.body.model, "claude-sonnet-5");
   assert.equal(request.kind, "summary_bundle");
   assert.deepEqual(request.locales, SUMMARY_BUNDLE_LOCALES);
-  assert.equal(request.body.stream, false);
-  assert.equal(request.body.response_format.type, "json_schema");
-  assert.equal(request.body.response_format.json_schema.name, "github_trending_summary_bundle");
-  assert.equal(request.body.response_format.json_schema.strict, true);
-  assert.deepEqual(Object.keys(request.body.response_format.json_schema.schema.properties.summaries.properties), SUMMARY_BUNDLE_LOCALES);
-  assert.deepEqual(request.body.response_format.json_schema.schema.required.sort(), ["evidence", "inference_fields", "invariants", "summaries"].sort());
+  assert.deepEqual(Object.keys(request.body.output_config.format.schema.properties.summaries.properties), SUMMARY_BUNDLE_LOCALES);
+  assert.deepEqual(request.body.output_config.format.schema.required.sort(), ["evidence", "inference_fields", "invariants", "summaries"].sort());
   assert.match(request.body.messages[0].content, /180.{0,20}280|evidence|line range/is);
-  assert.doesNotMatch(JSON.stringify(request.body.response_format), /translated_markdown|translation_applicable/);
-  assert.equal(Object.hasOwn(request.body, "output_config"), false);
+  assert.doesNotMatch(JSON.stringify(request.body.output_config), /translated_markdown|translation_applicable/);
   assert.match(request.body.messages[0].content, /untrusted source data/i);
 });
 
-test("token and retry limits remain without a monetary cost estimate", () => {
+test("fixed Sonnet 5 pricing and token caps produce a bounded worst-case estimate", () => {
+  assert.equal(SONNET_5_INPUT_USD_PER_MILLION, 2);
+  assert.equal(SONNET_5_OUTPUT_USD_PER_MILLION, 10);
   const plan = measureSummaryBundlePlan([item], { inputTokenCap: 1_000_000, outputTokenCap: 250_000, retryAttempts: 12 });
   assert.equal(plan.logicalCalls, 1);
-  assert.equal(plan.model, "auto:smart");
-  assert.equal(Object.hasOwn(plan, "maximumCostUsd"), false);
+  assert.equal(plan.model, "claude-sonnet-5");
+  assert.equal(plan.maximumCostUsd, 4.5);
+  assert.equal(plan.plannedMaximumCostUsd, 0.166206);
   assert.ok(plan.requiredInputReservation > 0 && plan.requiredInputReservation <= 1_000_000);
   assert.ok(plan.requiredOutputAllocation > 0 && plan.requiredOutputAllocation <= 250_000);
 });
 
-test("FreeLLMAPI base URLs permit loopback HTTP and require remote HTTPS", () => {
-  assert.equal(resolveFreeLlmApiChatUrl("http://127.0.0.1:3001/v1"), "http://127.0.0.1:3001/v1/chat/completions");
-  assert.equal(resolveFreeLlmApiChatUrl("https://router.example.test/v1/"), "https://router.example.test/v1/chat/completions");
-  for (const value of [
-    "",
-    "http://router.example.test/v1",
-    "https://user:password@router.example.test/v1",
-    "https://router.example.test/v1?key=value",
-    "https://router.example.test/v1#fragment",
-    "https://router.example.test/",
-    "https://router.example.test/v1/chat/completions",
-  ]) {
-    assert.throws(() => resolveFreeLlmApiChatUrl(value), /FREELLMAPI_BASE_URL|HTTPS/i, value);
-  }
-});
-
-test("one bounded quality correction uses the configured OpenAI-compatible endpoint", async () => {
+test("one bounded quality correction repairs a machine-detected bundle defect", async () => {
   const plan = measureSummaryBundlePlan([item], { inputTokenCap: 1_000_000, outputTokenCap: 250_000, retryAttempts: 12 });
   const invalid = envelope();
   invalid.summaries.ko.usage = "자세한 내용은 README를 참고하세요.";
@@ -123,29 +106,18 @@ test("one bounded quality correction uses the configured OpenAI-compatible endpo
   const result = await runSummaryBundleRequests({
     plan,
     apiKey: "test-key",
-    baseUrl: "https://router.example.test/v1",
     now: () => 0,
     deadline: 100_000,
     attemptTimeoutMs: 1_000,
     sleep: async () => {},
-    fetchImpl: async (url, init) => {
-      assert.equal(url, "https://router.example.test/v1/chat/completions");
-      assert.equal(init.headers.authorization, "Bearer test-key");
-      assert.equal(Object.hasOwn(init.headers, "x-api-key"), false);
-      assert.equal(Object.hasOwn(init.headers, "anthropic-version"), false);
-      assert.equal(init.redirect, "error");
+    fetchImpl: async () => {
       const document = replies[calls++];
       return {
         ok: true,
         status: 200,
-        headers: { get: name => name.toLowerCase() === "x-routed-via" ? "test/example-model" : null },
         text: async () => JSON.stringify({
-          choices: [{
-            index: 0,
-            message: { role: "assistant", content: JSON.stringify(document) },
-            finish_reason: "stop",
-          }],
-          usage: { prompt_tokens: 100, completion_tokens: 200, total_tokens: 300 },
+          content: [{ type: "text", text: JSON.stringify(document) }],
+          usage: { input_tokens: 100, output_tokens: 200 },
         }),
       };
     },
@@ -156,51 +128,4 @@ test("one bounded quality correction uses the configured OpenAI-compatible endpo
   assert.equal(result.usage.retries, 1);
   assert.equal(result.usage.inputTokens, 200);
   assert.equal(result.usage.outputTokens, 400);
-  assert.deepEqual(result.usage.routes, { "test/example-model": 2 });
-});
-
-test("a response without exact usage and routed-model receipts fails closed", async () => {
-  const plan = measureSummaryBundlePlan([item], { inputTokenCap: 1_000_000, outputTokenCap: 250_000, retryAttempts: 0 });
-  const response = ({ usage, route }) => ({
-    ok: true,
-    status: 200,
-    headers: { get: name => name.toLowerCase() === "x-routed-via" ? route : null },
-    text: async () => JSON.stringify({
-      choices: [{
-        index: 0,
-        message: { role: "assistant", content: JSON.stringify(envelope()) },
-        finish_reason: "stop",
-      }],
-      usage,
-    }),
-  });
-  const common = {
-    plan,
-    apiKey: "test-key",
-    baseUrl: "https://router.example.test/v1",
-    now: () => 0,
-    deadline: 100_000,
-    attemptTimeoutMs: 1_000,
-    sleep: async () => {},
-  };
-  await assert.rejects(
-    runSummaryBundleRequests({
-      ...common,
-      fetchImpl: async () => response({
-        usage: { prompt_tokens: 100, completion_tokens: 200, total_tokens: 299 },
-        route: "test/example-model",
-      }),
-    }),
-    /usage receipt/i,
-  );
-  await assert.rejects(
-    runSummaryBundleRequests({
-      ...common,
-      fetchImpl: async () => response({
-        usage: { prompt_tokens: 100, completion_tokens: 200, total_tokens: 300 },
-        route: null,
-      }),
-    }),
-    /routed model receipt/i,
-  );
 });
