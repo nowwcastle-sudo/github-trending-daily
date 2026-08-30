@@ -12,6 +12,11 @@ import {
 } from "./collect-repository-events.mjs";
 import { DEFAULT_ENRICHMENT_MODEL } from "./enrichment-models.mjs";
 import {
+  MAX_CLAUDE_STDIN_BYTES,
+  runClaudeOAuthPreflight,
+  runClaudeStructuredRequest,
+} from "./claude-cli-runtime.mjs";
+import {
   installEnrichmentSet,
   resolveEnrichmentBudgetPolicy,
   validateFrozenPolicyBinding,
@@ -22,15 +27,12 @@ const SHA256_RE = /^[a-f0-9]{64}$/;
 const REPO_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const MAX_SUMMARY_FIELD_CHARACTERS = 1_400;
 const MAX_SUMMARY_BUNDLE_CHARACTERS = 24_000;
-const REQUEST_OUTPUT_TOKENS = 4_096;
 const MAX_REPOSITORIES = 75;
-const MAX_INPUT_BYTES = 4 * 1024 * 1024;
-const MAX_RESPONSE_BYTES = 1024 * 1024;
-const ATTEMPT_TIMEOUT_MS = 60_000;
+export const MAX_FROZEN_FACTS_BYTES = 320 * 1024 * 1024;
+const CLAUDE_ATTEMPT_TIMEOUT_MS = 10 * 60_000;
 const RETRY_DELAYS = Object.freeze([2_000, 8_000]);
 const FINALIZATION_RESERVE_MS = 30_000;
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-const SOURCE_KEYS = Object.freeze(["kind", "slug", "path", "blob_sha", "content_sha256", "model", "schema_version", "prompt_schema_version", "translation_applicable"]);
+const SOURCE_KEYS = Object.freeze(["kind", "slug", "path", "blob_sha", "content_sha256", "provider", "interface", "cli_version", "auth_method", "api_provider", "model", "schema_version", "prompt_schema_version", "translation_applicable"]);
 const INVARIANT_KINDS = Object.freeze(["command", "version", "number", "url", "product"]);
 const MARKETING_RE = /(?:\b(?:best|revolutionary|game[- ]?changing|unmatched|ultimate)\b|최고의|혁신적|압도적|革命性|最佳|无与伦比|revolucionari[oa]|inigualable|究極|革新的)/i;
 const HEDGE_MARKERS = Object.freeze({
@@ -45,8 +47,6 @@ export const SUMMARY_BUNDLE_LOCALES = Object.freeze(["en", "ko", "zh-CN", "es", 
 export const SUMMARY_BUNDLE_FIELDS = Object.freeze(["goal", "usage", "pros", "cons", "fit"]);
 export const SUMMARY_BUNDLE_SCHEMA_VERSION = 3;
 export const SUMMARY_PROMPT_SCHEMA_VERSION = 1;
-export const SONNET_5_INPUT_USD_PER_MILLION = 2;
-export const SONNET_5_OUTPUT_USD_PER_MILLION = 10;
 
 function exactKeys(value, keys) {
   return value && !Array.isArray(value) && typeof value === "object"
@@ -288,24 +288,15 @@ export function buildSummaryBundleRequest(input, { frameId } = {}) {
     `UNTRUSTED_DATA_JSON ${boundary} ${Buffer.byteLength(payload, "utf8")} ${payloadHash}`,
     payload,
   ].join("\n");
-  const body = {
-    model: DEFAULT_ENRICHMENT_MODEL,
-    max_tokens: REQUEST_OUTPUT_TOKENS,
-    messages: [{ role: "user", content: prompt }],
-    output_config: { format: { type: "json_schema", schema: summarySchema() } },
-  };
-  const bodyText = JSON.stringify(body);
+  const schema = summarySchema();
   return Object.freeze({
     kind: "summary_bundle",
     repositorySlug: item.slug,
     locales: [...SUMMARY_BUNDLE_LOCALES],
-    body,
-    bodyText,
-    bodySha256: createHash("sha256").update(Buffer.from(bodyText, "utf8")).digest("hex"),
-    // Every tokenizer token represents at least one source byte. Reserving the
-    // complete wire body plus protocol headroom is intentionally conservative.
-    inputReservation: Buffer.byteLength(bodyText, "utf8") + 1_024,
-    outputAllocation: REQUEST_OUTPUT_TOKENS,
+    model: DEFAULT_ENRICHMENT_MODEL,
+    prompt,
+    schema,
+    inputByteCap: Buffer.byteLength(prompt, "utf8") + 1_024,
   });
 }
 
@@ -318,46 +309,48 @@ function safeSum(values, label) {
   return result;
 }
 
-export function measureSummaryBundlePlan(items, { inputTokenCap, outputTokenCap, retryAttempts } = {}) {
+export function measureClaudeCliSummaryBundlePlan(items, { retryAttempts } = {}) {
   if (!Array.isArray(items) || items.length > MAX_REPOSITORIES) throw new Error("Summary bundle item count exceeds the fixed cap");
-  if (![inputTokenCap, outputTokenCap, retryAttempts].every(value => Number.isSafeInteger(value) && value >= 0)) {
-    throw new Error("Summary bundle budget policy is invalid");
-  }
+  if (!Number.isSafeInteger(retryAttempts) || retryAttempts < 0) throw new Error("Summary bundle retry policy is invalid");
   const requests = items.map(item => buildSummaryBundleRequest(item));
-  const inputBytes = safeSum(requests.map(request => Buffer.byteLength(request.bodyText, "utf8")), "Summary bundle input bytes");
-  const firstInput = safeSum(requests.map(request => request.inputReservation), "Summary bundle input reservation");
-  const firstOutput = safeSum(requests.map(request => request.outputAllocation), "Summary bundle output allocation");
-  const retryInput = requests.flatMap(request => [request.inputReservation, request.inputReservation]).sort((a, b) => b - a).slice(0, retryAttempts);
-  const retryOutput = requests.flatMap(request => [request.outputAllocation, request.outputAllocation]).sort((a, b) => b - a).slice(0, retryAttempts);
-  const requiredInputReservation = safeSum([firstInput, safeSum(retryInput, "Summary bundle retry input")], "Summary bundle total input");
-  const requiredOutputAllocation = safeSum([firstOutput, safeSum(retryOutput, "Summary bundle retry output")], "Summary bundle total output");
-  if (inputBytes > MAX_INPUT_BYTES || requiredInputReservation > inputTokenCap || requiredOutputAllocation > outputTokenCap) {
-    throw new Error("Summary bundle exact plan exceeds the fixed token caps");
-  }
+  const requestBytes = requests.map(request => Buffer.byteLength(request.prompt, "utf8"));
+  if (requestBytes.some(value => value > MAX_CLAUDE_STDIN_BYTES)) throw new Error("Summary bundle request exceeds the Claude CLI input cap");
+  const inputBytes = safeSum(requestBytes, "Summary bundle CLI input bytes");
   return Object.freeze({
+    provider: "claude-cli-oauth",
     model: DEFAULT_ENRICHMENT_MODEL,
     logicalCalls: requests.length,
-    maximumAttempts: requests.length * 3,
+    maximumAttempts: requests.length + Math.min(retryAttempts, requests.length * 2),
     inputBytes,
-    requiredInputReservation,
-    requiredOutputAllocation,
-    inputTokenCap,
-    outputTokenCap,
     retryAttempts,
-    maximumCostUsd: Number(((inputTokenCap * SONNET_5_INPUT_USD_PER_MILLION + outputTokenCap * SONNET_5_OUTPUT_USD_PER_MILLION) / 1_000_000).toFixed(6)),
     items: [...items],
     requests,
   });
 }
 
-function sourceFor(item) {
+function producerProvenance(value) {
+  if (!value || Object.keys(value).sort().join("\0") !== ["apiProvider", "authMethod", "version"].sort().join("\0")
+      || !/^\d+\.\d+\.\d+$/.test(value.version) || value.authMethod !== "oauth_token" || value.apiProvider !== "firstParty") {
+    throw new Error("Claude CLI runtime provenance is invalid");
+  }
+  return {
+    provider: "claude-cli-oauth",
+    interface: "claude-p",
+    cli_version: value.version,
+    auth_method: value.authMethod,
+    api_provider: value.apiProvider,
+    model: DEFAULT_ENRICHMENT_MODEL,
+  };
+}
+
+function sourceFor(item, runtime) {
   return {
     kind: "readme",
     slug: item.slug.toLowerCase(),
     path: item.readme_path,
     blob_sha: item.readme_blob_sha,
     content_sha256: item.readme_content_sha256,
-    model: DEFAULT_ENRICHMENT_MODEL,
+    ...runtime,
     schema_version: SUMMARY_BUNDLE_SCHEMA_VERSION,
     prompt_schema_version: SUMMARY_PROMPT_SCHEMA_VERSION,
     // Retained only for the existing observation schema. README translation is retired.
@@ -365,13 +358,13 @@ function sourceFor(item) {
   };
 }
 
-function validSource(value, item) {
-  const expected = sourceFor(item);
+function validSource(value, item, runtime) {
+  const expected = sourceFor(item, runtime);
   return exactKeys(value, SOURCE_KEYS) && JSON.stringify(value) === JSON.stringify(expected);
 }
 
-function reusableEntry(value, item) {
-  if (!exactKeys(value, ["content", "summaries", "evidence", "invariants", "inference_fields", "source"]) || !validSource(value.source, item)) return null;
+function reusableEntry(value, item, runtime) {
+  if (!exactKeys(value, ["content", "summaries", "evidence", "invariants", "inference_fields", "source"]) || !validSource(value.source, item, runtime)) return null;
   let checked;
   try {
     checked = validateSummaryBundleEnvelope({
@@ -431,27 +424,6 @@ function frozenPath(target, label, { output = false } = {}) {
   return resolved;
 }
 
-function responseUsage(value) {
-  const usage = value?.usage;
-  const input = usage?.input_tokens;
-  const output = usage?.output_tokens;
-  const cacheCreate = usage?.cache_creation_input_tokens ?? 0;
-  const cacheRead = usage?.cache_read_input_tokens ?? 0;
-  if (![input, output, cacheCreate, cacheRead].every(token => Number.isSafeInteger(token) && token >= 0)) {
-    throw new Error("Anthropic usage receipt is invalid");
-  }
-  return { inputTokens: input + cacheCreate + cacheRead, outputTokens: output };
-}
-
-function parsedResponse(value, item) {
-  if (!value || !Array.isArray(value.content) || value.content.length !== 1
-      || value.content[0]?.type !== "text" || typeof value.content[0].text !== "string") {
-    throw new Error("Anthropic structured response is invalid");
-  }
-  const document = parseJsonStrict(Buffer.from(value.content[0].text, "utf8"), "summary bundle response", MAX_RESPONSE_BYTES);
-  return validateSummaryBundleEnvelope(document, item);
-}
-
 function retryable(error) {
   return error?.name === "AbortError" || error?.retryable === true;
 }
@@ -468,13 +440,11 @@ function qualityCode(error) {
 }
 
 function correctionRequest(request, error) {
-  const body = structuredClone(request.body);
-  body.messages[0].content += `\nA prior answer failed the deterministic validator with ${qualityCode(error)}. Produce a fresh complete answer that corrects only this class of defect while preserving all source-bound claims.`;
-  const bodyText = JSON.stringify(body);
-  if (Buffer.byteLength(bodyText, "utf8") > request.inputReservation) {
-    throw new Error("Summary bundle correction exceeds its reserved input budget");
+  const prompt = `${request.prompt}\nA prior answer failed the deterministic validator with ${qualityCode(error)}. Produce a fresh complete answer that corrects only this class of defect while preserving all source-bound claims.`;
+  if (Buffer.byteLength(prompt, "utf8") > request.inputByteCap) {
+    throw new Error("Summary bundle correction exceeds its fixed input byte cap");
   }
-  return { ...request, body, bodyText };
+  return { ...request, prompt };
 }
 
 function deadlineRemaining(now, deadline, required) {
@@ -483,7 +453,7 @@ function deadlineRemaining(now, deadline, required) {
   }
 }
 
-async function requestOne(request, item, runtime) {
+async function requestOneWithClaude(request, item, runtime) {
   let prior = null;
   let nextKind = null;
   let transportRetries = 0;
@@ -498,36 +468,26 @@ async function requestOne(request, item, runtime) {
       if (delay) await runtime.sleep(delay);
     }
     deadlineRemaining(runtime.now, runtime.deadline, runtime.attemptTimeoutMs);
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), runtime.attemptTimeoutMs);
     runtime.attempts += 1;
     try {
-      const response = await runtime.fetchImpl(ANTHROPIC_URL, {
-        method: "POST",
-        headers: {
-          "anthropic-version": "2023-06-01",
-          "content-type": "application/json",
-          "x-api-key": runtime.apiKey,
-        },
-        body: currentRequest.bodyText,
-        signal: controller.signal,
+      const response = await runtime.executeClaude({
+        prompt: currentRequest.prompt,
+        schema: currentRequest.schema,
+        model: DEFAULT_ENRICHMENT_MODEL,
+        runProcess: runtime.runProcess,
+        environment: runtime.environment,
+        cwd: runtime.cwd,
+        timeoutMs: runtime.attemptTimeoutMs,
       });
-      if (!response?.ok) {
-        const error = new Error(`Anthropic request failed with HTTP ${response?.status ?? "unknown"}`);
-        error.retryable = response?.status === 429 || response?.status >= 500;
-        throw error;
+      if (!response || !response.usage || !Number.isSafeInteger(response.usage.inputTokens)
+          || response.usage.inputTokens < 0 || !Number.isSafeInteger(response.usage.outputTokens)
+          || response.usage.outputTokens < 0) {
+        throw new Error("Claude CLI summary usage is invalid");
       }
-      const text = await response.text();
-      if (Buffer.byteLength(text, "utf8") > MAX_RESPONSE_BYTES) throw new Error("Anthropic response exceeds the fixed byte cap");
-      const responseValue = parseJsonStrict(Buffer.from(text, "utf8"), "Anthropic response", MAX_RESPONSE_BYTES);
-      const usage = responseUsage(responseValue);
-      runtime.inputTokens += usage.inputTokens;
-      runtime.outputTokens += usage.outputTokens;
-      if (runtime.inputTokens > runtime.inputTokenCap || runtime.outputTokens > runtime.outputTokenCap) {
-        throw new Error("Anthropic usage exceeds the fixed token caps");
-      }
+      runtime.inputTokens += response.usage.inputTokens;
+      runtime.outputTokens += response.usage.outputTokens;
       try {
-        return parsedResponse(responseValue, item);
+        return validateSummaryBundleEnvelope(response.structuredOutput, item);
       } catch (error) {
         error.quality = true;
         throw error;
@@ -543,34 +503,39 @@ async function requestOne(request, item, runtime) {
         transportRetries += 1;
         nextKind = "transport";
       } else throw error;
-    } finally {
-      clearTimeout(timer);
     }
   }
   throw prior;
 }
 
-export async function runSummaryBundleRequests({
+export async function runClaudeSummaryBundleRequests({
   plan,
-  apiKey,
-  fetchImpl = globalThis.fetch,
+  runProcess,
+  environment = process.env,
+  cwd = process.cwd(),
+  preflight = runClaudeOAuthPreflight,
+  preflightResult,
+  executeClaude = runClaudeStructuredRequest,
   sleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds)),
   now = Date.now,
   deadline,
   concurrency = 3,
-  attemptTimeoutMs = ATTEMPT_TIMEOUT_MS,
+  attemptTimeoutMs = CLAUDE_ATTEMPT_TIMEOUT_MS,
 } = {}) {
-  if (!plan || !Array.isArray(plan.requests) || plan.model !== DEFAULT_ENRICHMENT_MODEL
-      || typeof apiKey !== "string" || !apiKey || typeof fetchImpl !== "function"
+  if (!plan || !Array.isArray(plan.requests) || !Array.isArray(plan.items)
+      || plan.provider !== "claude-cli-oauth" || plan.model !== DEFAULT_ENRICHMENT_MODEL
+      || typeof preflight !== "function" || typeof executeClaude !== "function"
       || typeof sleep !== "function" || typeof now !== "function" || !Number.isSafeInteger(concurrency)
       || concurrency < 1 || concurrency > 4 || !Number.isSafeInteger(attemptTimeoutMs) || attemptTimeoutMs < 1) {
-    throw new Error("Summary bundle execution configuration is invalid");
+    throw new Error("Claude summary bundle execution configuration is invalid");
   }
-  const runtime = {
-    apiKey, fetchImpl, sleep, now, deadline, attemptTimeoutMs,
-    retryCap: plan.retryAttempts, retries: 0, attempts: 0,
-    inputTokenCap: plan.inputTokenCap, outputTokenCap: plan.outputTokenCap,
-    inputTokens: 0, outputTokens: 0,
+  const provenance = producerProvenance(preflightResult ?? await preflight({ runProcess, environment, cwd }));
+  if (plan.requests.length === 0) {
+    return { results: [], usage: { inputTokens: 0, outputTokens: 0, logicalCalls: 0, attempts: 0, retries: 0 }, runtime: provenance };
+  }
+  const execution = {
+    runProcess, environment, cwd, executeClaude, sleep, now, deadline, attemptTimeoutMs,
+    retryCap: plan.retryAttempts, retries: 0, attempts: 0, inputTokens: 0, outputTokens: 0,
   };
   const results = new Array(plan.requests.length);
   let cursor = 0;
@@ -579,19 +544,20 @@ export async function runSummaryBundleRequests({
       const index = cursor;
       cursor += 1;
       if (index >= plan.requests.length) return;
-      results[index] = await requestOne(plan.requests[index], plan.items[index], runtime);
+      results[index] = await requestOneWithClaude(plan.requests[index], plan.items[index], execution);
     }
   }
   await Promise.all(Array.from({ length: Math.min(concurrency, plan.requests.length) }, () => worker()));
   return {
     results,
     usage: {
-      inputTokens: runtime.inputTokens,
-      outputTokens: runtime.outputTokens,
+      inputTokens: execution.inputTokens,
+      outputTokens: execution.outputTokens,
       logicalCalls: results.length,
-      attempts: runtime.attempts,
-      retries: runtime.retries,
+      attempts: execution.attempts,
+      retries: execution.retries,
     },
+    runtime: provenance,
   };
 }
 
@@ -641,10 +607,13 @@ export async function runFrozenSummaryBundlePipeline({
   parentEvidencePath,
   priorHeadsPath,
   parentDatabasePath,
-  apiKey,
   policyContext = { mode: "normal" },
   deadline,
-  fetchImpl = globalThis.fetch,
+  runProcess,
+  environment = process.env,
+  cwd = process.cwd(),
+  preflight = runClaudeOAuthPreflight,
+  executeClaude = runClaudeStructuredRequest,
   sleep,
   now = Date.now,
 } = {}) {
@@ -658,7 +627,7 @@ export async function runFrozenSummaryBundlePipeline({
   const [factsBytes, eventsBytes, cacheBytes] = await Promise.all([
     readFile(factsFile), readFile(eventsFile), readFile(cacheFile),
   ]);
-  const facts = validateFrozenFactsPayload(parseJsonStrict(factsBytes, "frozen facts", 64 * 1024 * 1024));
+  const facts = validateFrozenFactsPayload(parseJsonStrict(factsBytes, "frozen facts", MAX_FROZEN_FACTS_BYTES));
   const events = validateEvents(facts, parseJsonStrict(eventsBytes, "frozen events", 64 * 1024 * 1024));
   const priorCache = caseFoldedEntries(parseJsonStrict(cacheBytes, "summary cache", 32 * 1024 * 1024));
   const items = facts.repositories.map(repository => {
@@ -675,20 +644,8 @@ export async function runFrozenSummaryBundlePipeline({
       markdown: readme.markdown,
     });
   });
-  const retained = new Map();
-  const pending = [];
-  for (const item of items) {
-    const entry = reusableEntry(priorCache.get(item.slug.toLowerCase()), item);
-    if (entry) retained.set(item.slug.toLowerCase(), entry);
-    else pending.push(item);
-  }
   const policy = resolveEnrichmentBudgetPolicy(policyContext);
   validateFrozenPolicyBinding(facts, policyContext);
-  const plan = measureSummaryBundlePlan(pending, {
-    inputTokenCap: policy.inputTokens,
-    outputTokenCap: policy.outputTokens,
-    retryAttempts: policy.retryAttempts,
-  });
   const [finalFactsBytes, finalEventsBytes, finalCacheBytes] = await Promise.all([
     readFile(factsFile), readFile(eventsFile), readFile(cacheFile),
   ]);
@@ -696,8 +653,19 @@ export async function runFrozenSummaryBundlePipeline({
     throw new Error("Frozen summary bundle inputs changed after planning");
   }
   verifyFrozenParentInputs({ parentDatabasePath, parentEvidencePath, priorHeadsPath });
-  const completed = pending.length ? await runSummaryBundleRequests({ plan, apiKey, fetchImpl, sleep, now, deadline })
-    : { results: [], usage: { inputTokens: 0, outputTokens: 0, logicalCalls: 0, attempts: 0, retries: 0 } };
+  const preflightResult = await preflight({ runProcess, environment, cwd });
+  const runtime = producerProvenance(preflightResult);
+  const retained = new Map();
+  const pending = [];
+  for (const item of items) {
+    const entry = reusableEntry(priorCache.get(item.slug.toLowerCase()), item, runtime);
+    if (entry) retained.set(item.slug.toLowerCase(), entry);
+    else pending.push(item);
+  }
+  const plan = measureClaudeCliSummaryBundlePlan(pending, { retryAttempts: policy.retryAttempts });
+  const completed = await runClaudeSummaryBundleRequests({
+    plan, runProcess, environment, cwd, preflight, preflightResult, executeClaude, sleep, now, deadline,
+  });
   for (let index = 0; index < pending.length; index += 1) {
     const item = pending[index];
     const checked = completed.results[index];
@@ -707,7 +675,7 @@ export async function runFrozenSummaryBundlePipeline({
       evidence: checked.evidence,
       invariants: checked.invariants,
       inference_fields: checked.inference_fields,
-      source: sourceFor(item),
+      source: sourceFor(item, completed.runtime),
     });
   }
   const cache = {};
@@ -716,7 +684,7 @@ export async function runFrozenSummaryBundlePipeline({
   for (const item of items) {
     const slug = item.slug.toLowerCase();
     const entry = retained.get(slug);
-    if (!entry || !reusableEntry(entry, item)) throw new Error(`Summary bundle coverage is incomplete for ${item.slug}`);
+    if (!entry || !reusableEntry(entry, item, completed.runtime)) throw new Error(`Summary bundle coverage is incomplete for ${item.slug}`);
     cache[item.slug] = entry;
     sources[item.slug] = entry.source;
     repositories[slug] = {
@@ -743,7 +711,7 @@ export async function runFrozenSummaryBundlePipeline({
       { path: path.join(candidateRoot, "data", "translation-sources.json"), text: `${JSON.stringify({ version: SUMMARY_BUNDLE_SCHEMA_VERSION, sources }, null, 2)}\n` },
       { path: indexFile, text: `${JSON.stringify(index)}\n` },
     ]);
-    return { repositories: items.length, pending: pending.length, usage: completed.usage, index };
+    return { repositories: items.length, pending: pending.length, usage: completed.usage, runtime: completed.runtime, index };
   });
 }
 
@@ -773,11 +741,12 @@ async function main() {
     priorHeadsPath: args["--prior-heads"],
     parentEvidencePath: args["--parent-evidence"],
     parentDatabasePath: args["--parent-database"],
-    apiKey: process.env.ANTHROPIC_API_KEY ?? "",
     policyContext: policyContextFromEnvironment(process.env),
+    environment: process.env,
+    cwd: process.cwd(),
     deadline: Number(deadlineText),
   });
-  process.stdout.write(`${JSON.stringify({ repositories: result.repositories, pending: result.pending, usage: result.usage })}\n`);
+  process.stdout.write(`${JSON.stringify({ repositories: result.repositories, pending: result.pending, runtime: result.runtime, usage: result.usage })}\n`);
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {

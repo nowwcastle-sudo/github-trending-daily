@@ -3811,6 +3811,8 @@ function writeCoverageRoot(kind) {
     const source = {
       kind: "readme", slug: repository.slug, path: repository.readme_path,
       blob_sha: repository.readme_blob_sha, content_sha256: repository.readme_content_sha256,
+      provider: "claude-cli-oauth", interface: "claude-p", cli_version: "2.1.241",
+      auth_method: "oauth_token", api_provider: "firstParty",
       model: "claude-sonnet-5", schema_version: 3, prompt_schema_version: 1, translation_applicable: false,
     };
     cache[repository.slug] = {

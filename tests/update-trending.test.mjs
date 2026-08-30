@@ -893,6 +893,11 @@ const cachedEntry = (index, slug = `owner/repo-${index}`) => {
       path: "docs/README.rst",
       blob_sha: "a".repeat(40),
       content_sha256: createHash("sha256").update("# Repo\n\nCanonical readme.").digest("hex"),
+      provider: "claude-cli-oauth",
+      interface: "claude-p",
+      cli_version: "2.1.241",
+      auth_method: "oauth_token",
+      api_provider: "firstParty",
       model: "claude-sonnet-5",
       schema_version: 3,
       prompt_schema_version: 1,
@@ -1000,7 +1005,7 @@ test("canonical README rejects mutable or oversized metadata and retries transie
     { path: "README.md", sha: "short", encoding: "base64", content: "YQ==" },
     { path: "README.md", sha: "a".repeat(40), encoding: "utf-8", content: "text" },
     { path: "README.md", sha: "a".repeat(40), encoding: "base64", content: "not base64" },
-    { path: "README.md", sha: "a".repeat(40), encoding: "base64", content: Buffer.alloc(512 * 1024 + 1).toString("base64") },
+    { path: "README.md", sha: "a".repeat(40), encoding: "base64", content: Buffer.alloc(2 * 1024 * 1024 + 1).toString("base64") },
   ];
   for (const value of invalidValues) {
     await assert.rejects(
@@ -1025,8 +1030,8 @@ test("canonical README rejects mutable or oversized metadata and retries transie
   assert.deepEqual(sleeps, [2000, 8000]);
 });
 
-test("canonical README accepts exactly 512 KiB and rejects invalid UTF-8", async () => {
-  const exact = Buffer.alloc(512 * 1024, 0x61);
+test("canonical README accepts exactly 2 MiB and rejects invalid UTF-8", async () => {
+  const exact = Buffer.alloc(2 * 1024 * 1024, 0x61);
   const accepted = await fetchCanonicalReadme("Owner/Repo", {
     fetchImpl: async () => jsonResponse(200, {
       path: "README.md",
@@ -1035,7 +1040,7 @@ test("canonical README accepts exactly 512 KiB and rejects invalid UTF-8", async
       content: exact.toString("base64"),
     }),
   });
-  assert.equal(Buffer.byteLength(accepted.markdown), 512 * 1024);
+  assert.equal(Buffer.byteLength(accepted.markdown), 2 * 1024 * 1024);
 
   await assert.rejects(
     fetchCanonicalReadme("Owner/Repo", {
@@ -1048,6 +1053,58 @@ test("canonical README accepts exactly 512 KiB and rejects invalid UTF-8", async
     }),
     /valid UTF-8/,
   );
+  await assert.rejects(
+    fetchCanonicalReadme("Owner/Repo", {
+      fetchImpl: async () => jsonResponse(200, {
+        path: "README.md",
+        sha: "a".repeat(40),
+        encoding: "base64",
+        content: Buffer.from("# README\n\0hidden", "utf8").toString("base64"),
+      }),
+    }),
+    /control characters/,
+  );
+});
+
+test("canonical README accepts GitHub's identity-only response for a verified large blob", async () => {
+  const bytes = Buffer.alloc(1_401_923, 0x61);
+  const accepted = await fetchCanonicalReadme("Owner/Repo", {
+    fetchImpl: async url => url.endsWith("/readme")
+      ? jsonResponse(200, {
+        path: "README.md",
+        sha: "a".repeat(40),
+        size: bytes.length,
+        encoding: "none",
+        content: "",
+      })
+      : jsonResponse(200, {
+        sha: "a".repeat(40),
+        size: bytes.length,
+        encoding: "base64",
+        content: bytes.toString("base64"),
+      }),
+  });
+
+  assert.equal(Buffer.byteLength(accepted.markdown), 1_401_923);
+});
+
+test("canonical README rejects identity-only size mismatches and nonempty placeholder content", async () => {
+  const bytes = Buffer.alloc(1_401_923, 0x61);
+  for (const contents of [
+    { path: "README.md", sha: "a".repeat(40), size: bytes.length - 1, encoding: "none", content: "" },
+    { path: "README.md", sha: "a".repeat(40), size: bytes.length, encoding: "none", content: "placeholder" },
+  ]) {
+    await assert.rejects(
+      fetchCanonicalReadme("Owner/Repo", {
+        fetchImpl: async url => url.endsWith("/readme")
+          ? jsonResponse(200, contents)
+          : jsonResponse(200, {
+            sha: "a".repeat(40), size: bytes.length, encoding: "base64", content: bytes.toString("base64"),
+          }),
+      }),
+      /canonical README (?:metadata|blob identity)/i,
+    );
+  }
 });
 
 test("every GitHub request creates an exact 30 second timeout signal", async t => {

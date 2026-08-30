@@ -49,11 +49,11 @@ test("the checked-in page is English-first and exposes one persisted site-langua
 });
 
 test("repository documentation is English-first with a complete Korean counterpart", () => {
-  assert.match(readme, /^# GitHub Trending Daily\n\n\[한국어\]\(README\.ko\.md\)/);
+  assert.match(readme, /^# GitHub Trending Daily\r?\n\r?\n\[한국어\]\(README\.ko\.md\)/);
   assert.match(readme, /candidate-desktop-1440\.png/);
   assert.match(readme, /candidate-mobile-sidebar-390\.png/);
   assert.match(readme, /README variants from upstream only/);
-  assert.match(koreanReadme, /^# GitHub Trending Daily\n\n\[English\]\(README\.md\)/);
+  assert.match(koreanReadme, /^# GitHub Trending Daily\r?\n\r?\n\[English\]\(README\.md\)/);
   assert.match(koreanReadme, /상류 저장소 README 언어판만 표시/);
   assert.match(compatibilityReadme, /canonical English documentation is now \[README\.md\]\(README\.md\)/);
 });

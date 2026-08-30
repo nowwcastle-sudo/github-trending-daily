@@ -24,12 +24,17 @@ function validDetailedSummary(value) {
 }
 
 function validV3Source(value, repository) {
-  return exactKeys(value, ["kind", "slug", "path", "blob_sha", "content_sha256", "model", "schema_version", "prompt_schema_version", "translation_applicable"])
+  return exactKeys(value, ["kind", "slug", "path", "blob_sha", "content_sha256", "provider", "interface", "cli_version", "auth_method", "api_provider", "model", "schema_version", "prompt_schema_version", "translation_applicable"])
     && value.kind === "readme"
     && value.slug === repository.slug.toLowerCase()
     && value.path === repository.readme_path
     && value.blob_sha === repository.readme_blob_sha
     && value.content_sha256 === repository.readme_content_sha256
+    && value.provider === "claude-cli-oauth"
+    && value.interface === "claude-p"
+    && /^\d+\.\d+\.\d+$/.test(value.cli_version)
+    && value.auth_method === "oauth_token"
+    && value.api_provider === "firstParty"
     && value.model === "claude-sonnet-5"
     && value.schema_version === 3
     && value.prompt_schema_version === 1

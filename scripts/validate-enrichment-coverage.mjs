@@ -12,7 +12,7 @@ import {
 } from "./generate-summary-bundles.mjs";
 import { DEFAULT_ENRICHMENT_MODEL } from "./enrichment-models.mjs";
 
-const SOURCE_KEYS = ["kind", "slug", "path", "blob_sha", "content_sha256", "model", "schema_version", "prompt_schema_version", "translation_applicable"];
+const SOURCE_KEYS = ["kind", "slug", "path", "blob_sha", "content_sha256", "provider", "interface", "cli_version", "auth_method", "api_provider", "model", "schema_version", "prompt_schema_version", "translation_applicable"];
 
 function exactKeys(value, keys) {
   return value && !Array.isArray(value) && typeof value === "object"
@@ -33,13 +33,18 @@ function parseArgs(args) {
   return { root, facts };
 }
 
-function expectedSource(repository, readme) {
+function expectedSource(repository, readme, actual) {
   return {
     kind: "readme",
     slug: repository.slug.toLowerCase(),
     path: readme.path,
     blob_sha: readme.blobSha,
     content_sha256: readme.contentSha256,
+    provider: "claude-cli-oauth",
+    interface: "claude-p",
+    cli_version: actual.cli_version,
+    auth_method: "oauth_token",
+    api_provider: "firstParty",
     model: DEFAULT_ENRICHMENT_MODEL,
     schema_version: SUMMARY_BUNDLE_SCHEMA_VERSION,
     prompt_schema_version: SUMMARY_PROMPT_SCHEMA_VERSION,
@@ -84,7 +89,8 @@ export async function validateEnrichmentRoot(root, { factsPath } = {}) {
     if (repository.readme_status !== "present" || !readme?.markdown
         || !exactKeys(entry, ["content", "summaries", "evidence", "invariants", "inference_fields", "source"])
         || !exactKeys(entry.source, SOURCE_KEYS)
-        || JSON.stringify(entry.source) !== JSON.stringify(expectedSource(repository, readme))
+        || !/^\d+\.\d+\.\d+$/.test(entry.source.cli_version)
+        || JSON.stringify(entry.source) !== JSON.stringify(expectedSource(repository, readme, entry.source))
         || JSON.stringify(sourceMap.get(slug).value) !== JSON.stringify(entry.source)) {
       throw new Error(`Summary bundle source coverage is invalid for ${repository.slug}`);
     }

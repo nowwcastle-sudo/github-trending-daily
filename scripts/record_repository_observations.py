@@ -1360,10 +1360,14 @@ def _enrichment_hashes(repository: dict[str, Any], profile: dict[str, Any], inde
     if readme_path is None:
         expected_source = {"kind": "metadata_only", "slug": slug, "profile_sha256": profile["profile_sha256"], "model": source.get("model"), "schema_version": source.get("schema_version"), "translation_applicable": False}
     else:
-        expected_source = {"kind": "readme", "slug": slug, "path": readme_path, "blob_sha": readme_blob, "content_sha256": readme_content, "model": source.get("model"), "schema_version": source.get("schema_version"), "prompt_schema_version": source.get("prompt_schema_version"), "translation_applicable": source.get("translation_applicable")}
+        expected_source = {"kind": "readme", "slug": slug, "path": readme_path, "blob_sha": readme_blob, "content_sha256": readme_content, "provider": source.get("provider"), "interface": source.get("interface"), "cli_version": source.get("cli_version"), "auth_method": source.get("auth_method"), "api_provider": source.get("api_provider"), "model": source.get("model"), "schema_version": source.get("schema_version"), "prompt_schema_version": source.get("prompt_schema_version"), "translation_applicable": source.get("translation_applicable")}
     if source != expected_source:
         raise ValueError("summary source does not match canonical repository identity")
-    if source.get("model") != "claude-sonnet-5" or source.get("schema_version") != 3 or source.get("prompt_schema_version") != 1 or source.get("translation_applicable") is not False:
+    if (source.get("provider") != "claude-cli-oauth" or source.get("interface") != "claude-p"
+            or re.fullmatch(r"\d+\.\d+\.\d+", source.get("cli_version", "")) is None
+            or source.get("auth_method") != "oauth_token" or source.get("api_provider") != "firstParty"
+            or source.get("model") != "claude-sonnet-5" or source.get("schema_version") != 3
+            or source.get("prompt_schema_version") != 1 or source.get("translation_applicable") is not False):
         raise ValueError("summary source model or prompt contract is invalid")
     summary_source = _digest(source)
     summary_content = _digest(content)
