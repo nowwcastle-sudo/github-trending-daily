@@ -6,7 +6,7 @@
 - 운영 페이지: `https://nowwcastle-sudo.github.io/github-trending-daily/`
 - 작업 worktree: `C:\Users\nasca\.codex\worktrees\3a3b\transactional-refresh-20260827`
 - production RED source SHA: `0aa617016c0e832909f74e3d9a70bbe210c10d60`
-- 2026-08-31 activation 직전 fetch 좌표: clean `HEAD == origin/main == a352f97ada2b0d6dfa1bbe2c8e74d19aad970e46`, 원격 작업 branch `2e484fd99d6ed9455b7fba6b28173739ab264094` (remote write 직전 다시 fetch)
+- 2026-08-31 첫 controlled dispatch 좌표: clean `HEAD == origin/main == c33b7e449aa3b225130e771b530215c7ee2a75cf`, workflow run `33337114759` (remote write 직전 다시 fetch)
 - AgentMemory handoff: `mem_mtfb5jzh_7ddf0a27f5dc`
 - 원본 task: `01a03d80-1266-76e1-896d-16648967d258`
 
@@ -80,7 +80,7 @@
 3. **Upstream README variants — 구현 완료, production data 대기**: 실제 존재하는 언어판만 exact source identity로 표시하고 full README translation path를 폐기한다.
 4. **Grilling 기반 summary 사양 — 완료**: 위 품질·길이·근거·동일성·실패 계약을 공동 확정한다.
 5. **Sonnet 5 producer·coverage gates — 코드·로컬 검증 완료**: local `claude -p`, first-party OAuth, 고정 byte/retry/timeout cap, producer provenance, atomic 5-locale bundle 계약을 사용한다.
-6. **검증·commit/push·controlled workflow·Pages — activation 진행 중**: 기존 390/720/1200/1440, 5 locale, hover/click/focus/Escape, light/dark, tooltip, README legacy failure UI, export privacy, Atom/membership 실브라우저 검증을 보존한다. focused/full/adversarial·비밀값 검사와 main CodeQL 실분석 0건을 통과했고, manual bootstrap gate만 승인 상태로 전환한다. push 직전 remote drift와 runner health를 다시 판정한 뒤 정확히 한 번의 controlled refresh와 Pages deployment를 실행해 manifest·CLI/OAuth runtime·token usage·bot commit·snapshot·observation·production full census를 묶어 검증한다.
+6. **검증·commit/push·controlled workflow·Pages — 첫 dispatch 실패 복구 완료, 재승인 대기**: 기존 390/720/1200/1440, 5 locale, hover/click/focus/Escape, light/dark, tooltip, README legacy failure UI, export privacy, Atom/membership 실브라우저 검증을 보존한다. focused/full/adversarial·비밀값 검사와 main CodeQL 실분석 0건을 통과했고 manual bootstrap gate만 승인했다. 승인된 첫 controlled run `33337114759`는 GitHub-hosted `prepare`의 Python test에서 Windows/Linux 이식성 assertion 3건으로 실패했다. enrich·DB·commit·Pages는 모두 skipped였고 model call·publication은 0회다. SQLite fixture binary SHA를 특정 Windows 값으로 고정한 test는 동일 frozen source bytes의 replay hash를 검증하도록 바꾸고, Python 버전별 날짜 예외 문구를 허용했다. production hash 계약과 독립 verifier는 유지된다. 수정 후 Windows Node 509/Python 146과 Linux Python 3.13 전체 146개가 통과했다. 두 번째 dispatch는 새 사용자 승인 전까지 금지한다.
 
 ## 6. 적대적 검증 범위
 
@@ -116,7 +116,7 @@
 - controlled workflow 전까지 model calls, workflow dispatch, deploy는 모두 0회다. OAuth preflight는 모델 호출이 아니며 version/auth method/provider만 검증한다.
 - full tests, adversarial review, mutation, staged/working-tree secret scan이 통과한다.
 - push 직전 remote drift를 fetch 후 재판정하고 사용자 변경을 보존한다.
-- 승인된 controlled workflow는 정확히 1회다. 두 번째 dispatch, cap 상향, direct API·새 유료 provider는 별도 승인 없이는 금지한다.
+- 승인된 첫 controlled workflow `33337114759`는 prepare test 실패로 종료됐다. model call·publication은 0회이고, 두 번째 dispatch, cap 상향, direct API·새 유료 provider는 별도 승인 없이는 금지한다.
 - production manifest와 exact file hashes가 deployed source SHA에 묶인다.
 - 모든 active repository가 detailed 5-locale summary, valid README provenance, canonical/upstream README variants를 전수 통과한다.
 - 하나라도 generic fallback, missing locale, stale source, variant mismatch면 recovery/hold를 유지한다.
