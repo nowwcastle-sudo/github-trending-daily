@@ -356,7 +356,7 @@ def writer_payload(*, snapshot_id, utc, kst, stats_date, run_kind, parent_snapsh
         "blob_sha": sha1("b"), "content_sha256": sha256("c"),
         "provider": "claude-cli-oauth", "interface": "claude-p", "cli_version": "2.1.241",
         "auth_method": "oauth_token", "api_provider": "firstParty",
-        "model": "claude-sonnet-5", "schema_version": 3, "prompt_schema_version": 2,
+        "model": "claude-sonnet-5", "schema_version": 3, "prompt_schema_version": 3,
         "translation_applicable": False,
     }
     provenance = {
@@ -1568,7 +1568,7 @@ class RepositoryObservationTests(unittest.TestCase):
                     "blob_sha": sha1(other_blob), "content_sha256": sha256(other_content),
                     "provider": "claude-cli-oauth", "interface": "claude-p", "cli_version": "2.1.241",
                     "auth_method": "oauth_token", "api_provider": "firstParty",
-                    "model": "claude-sonnet-5", "schema_version": 3, "prompt_schema_version": 2,
+                    "model": "claude-sonnet-5", "schema_version": 3, "prompt_schema_version": 3,
                     "translation_applicable": False,
                 }
                 value["enrichmentIndex"]["other/repo"] = {

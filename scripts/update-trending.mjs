@@ -28,7 +28,7 @@ const PERIODS = {
 };
 const ENRICHMENT_MODEL = DEFAULT_ENRICHMENT_MODEL;
 const ENRICHMENT_SCHEMA_VERSION = 3;
-const SUMMARY_PROMPT_SCHEMA_VERSION = 2;
+const SUMMARY_PROMPT_SCHEMA_VERSION = 3;
 const SUMMARY_FIELDS = ["goal", "usage", "pros", "cons", "fit"];
 const SUMMARY_LOCALES = ["en", "ko", "zh-CN", "es", "ja"];
 const MAX_README_BYTES = 2 * 1024 * 1024;

@@ -204,7 +204,7 @@ async function makeArtifact(directory, sourceSha, snapshotId) {
     kind: "readme", slug, path: "README.md", blob_sha: "b".repeat(40), content_sha256: "c".repeat(64),
     provider: "claude-cli-oauth", interface: "claude-p", cli_version: "2.1.241",
     auth_method: "oauth_token", api_provider: "firstParty",
-    model: "claude-sonnet-5", schema_version: 3, prompt_schema_version: 2, translation_applicable: false,
+    model: "claude-sonnet-5", schema_version: 3, prompt_schema_version: 3, translation_applicable: false,
   } } };
   const payloads = new Map();
   for (const relative of VERSION_1_BASE_PATHS) payloads.set(relative, Buffer.from(`${relative}\n`));

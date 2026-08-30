@@ -900,7 +900,7 @@ const cachedEntry = (index, slug = `owner/repo-${index}`) => {
       api_provider: "firstParty",
       model: "claude-sonnet-5",
       schema_version: 3,
-      prompt_schema_version: 2,
+      prompt_schema_version: 3,
       translation_applicable: false,
     },
   };
