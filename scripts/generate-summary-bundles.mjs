@@ -29,7 +29,6 @@ const MAX_RESPONSE_BYTES = 1024 * 1024;
 const ATTEMPT_TIMEOUT_MS = 60_000;
 const RETRY_DELAYS = Object.freeze([2_000, 8_000]);
 const FINALIZATION_RESERVE_MS = 30_000;
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const SOURCE_KEYS = Object.freeze(["kind", "slug", "path", "blob_sha", "content_sha256", "model", "schema_version", "prompt_schema_version", "translation_applicable"]);
 const INVARIANT_KINDS = Object.freeze(["command", "version", "number", "url", "product"]);
 const MARKETING_RE = /(?:\b(?:best|revolutionary|game[- ]?changing|unmatched|ultimate)\b|최고의|혁신적|압도적|革命性|最佳|无与伦比|revolucionari[oa]|inigualable|究極|革新的)/i;
@@ -45,8 +44,25 @@ export const SUMMARY_BUNDLE_LOCALES = Object.freeze(["en", "ko", "zh-CN", "es", 
 export const SUMMARY_BUNDLE_FIELDS = Object.freeze(["goal", "usage", "pros", "cons", "fit"]);
 export const SUMMARY_BUNDLE_SCHEMA_VERSION = 3;
 export const SUMMARY_PROMPT_SCHEMA_VERSION = 1;
-export const SONNET_5_INPUT_USD_PER_MILLION = 2;
-export const SONNET_5_OUTPUT_USD_PER_MILLION = 10;
+
+export function resolveFreeLlmApiChatUrl(value) {
+  if (typeof value !== "string" || !value.trim()) throw new Error("FREELLMAPI_BASE_URL is required");
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error("FREELLMAPI_BASE_URL is invalid");
+  }
+  if (url.username || url.password || url.search || url.hash || url.pathname.replace(/\/+$/, "") !== "/v1") {
+    throw new Error("FREELLMAPI_BASE_URL must be an origin plus /v1");
+  }
+  const loopback = new Set(["127.0.0.1", "localhost", "[::1]"]).has(url.hostname.toLowerCase());
+  if (url.protocol !== "https:" && !(url.protocol === "http:" && loopback)) {
+    throw new Error("Remote FREELLMAPI_BASE_URL must use HTTPS");
+  }
+  url.pathname = "/v1/chat/completions";
+  return url.href;
+}
 
 function exactKeys(value, keys) {
   return value && !Array.isArray(value) && typeof value === "object"
@@ -291,8 +307,16 @@ export function buildSummaryBundleRequest(input, { frameId } = {}) {
   const body = {
     model: DEFAULT_ENRICHMENT_MODEL,
     max_tokens: REQUEST_OUTPUT_TOKENS,
+    stream: false,
     messages: [{ role: "user", content: prompt }],
-    output_config: { format: { type: "json_schema", schema: summarySchema() } },
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: "github_trending_summary_bundle",
+        strict: true,
+        schema: summarySchema(),
+      },
+    },
   };
   const bodyText = JSON.stringify(body);
   return Object.freeze({
@@ -344,7 +368,6 @@ export function measureSummaryBundlePlan(items, { inputTokenCap, outputTokenCap,
     inputTokenCap,
     outputTokenCap,
     retryAttempts,
-    maximumCostUsd: Number(((inputTokenCap * SONNET_5_INPUT_USD_PER_MILLION + outputTokenCap * SONNET_5_OUTPUT_USD_PER_MILLION) / 1_000_000).toFixed(6)),
     items: [...items],
     requests,
   });
@@ -433,22 +456,27 @@ function frozenPath(target, label, { output = false } = {}) {
 
 function responseUsage(value) {
   const usage = value?.usage;
-  const input = usage?.input_tokens;
-  const output = usage?.output_tokens;
-  const cacheCreate = usage?.cache_creation_input_tokens ?? 0;
-  const cacheRead = usage?.cache_read_input_tokens ?? 0;
-  if (![input, output, cacheCreate, cacheRead].every(token => Number.isSafeInteger(token) && token >= 0)) {
-    throw new Error("Anthropic usage receipt is invalid");
+  const input = usage?.prompt_tokens;
+  const output = usage?.completion_tokens;
+  const total = usage?.total_tokens;
+  if (![input, output, total].every(token => Number.isSafeInteger(token) && token >= 0) || input + output !== total) {
+    throw new Error("OpenAI-compatible usage receipt is invalid");
   }
-  return { inputTokens: input + cacheCreate + cacheRead, outputTokens: output };
+  return { inputTokens: input, outputTokens: output };
+}
+
+function responseRoute(response) {
+  const value = response?.headers?.get?.("x-routed-via")?.trim() ?? "";
+  if (!/^[\x20-\x7e]{1,256}$/.test(value)) throw new Error("FreeLLMAPI routed model receipt is invalid");
+  return value;
 }
 
 function parsedResponse(value, item) {
-  if (!value || !Array.isArray(value.content) || value.content.length !== 1
-      || value.content[0]?.type !== "text" || typeof value.content[0].text !== "string") {
-    throw new Error("Anthropic structured response is invalid");
+  if (!value || !Array.isArray(value.choices) || value.choices.length !== 1
+      || value.choices[0]?.finish_reason !== "stop" || typeof value.choices[0]?.message?.content !== "string") {
+    throw new Error("OpenAI-compatible structured response is invalid");
   }
-  const document = parseJsonStrict(Buffer.from(value.content[0].text, "utf8"), "summary bundle response", MAX_RESPONSE_BYTES);
+  const document = parseJsonStrict(Buffer.from(value.choices[0].message.content, "utf8"), "summary bundle response", MAX_RESPONSE_BYTES);
   return validateSummaryBundleEnvelope(document, item);
 }
 
@@ -502,29 +530,34 @@ async function requestOne(request, item, runtime) {
     const timer = setTimeout(() => controller.abort(), runtime.attemptTimeoutMs);
     runtime.attempts += 1;
     try {
-      const response = await runtime.fetchImpl(ANTHROPIC_URL, {
+      const response = await runtime.fetchImpl(runtime.chatCompletionsUrl, {
         method: "POST",
         headers: {
-          "anthropic-version": "2023-06-01",
+          accept: "application/json",
+          authorization: `Bearer ${runtime.apiKey}`,
           "content-type": "application/json",
-          "x-api-key": runtime.apiKey,
+          "x-freellm-cache": "off",
+          "x-freellm-compress": "off",
         },
         body: currentRequest.bodyText,
         signal: controller.signal,
+        redirect: "error",
       });
       if (!response?.ok) {
-        const error = new Error(`Anthropic request failed with HTTP ${response?.status ?? "unknown"}`);
+        const error = new Error(`FreeLLMAPI request failed with HTTP ${response?.status ?? "unknown"}`);
         error.retryable = response?.status === 429 || response?.status >= 500;
         throw error;
       }
       const text = await response.text();
-      if (Buffer.byteLength(text, "utf8") > MAX_RESPONSE_BYTES) throw new Error("Anthropic response exceeds the fixed byte cap");
-      const responseValue = parseJsonStrict(Buffer.from(text, "utf8"), "Anthropic response", MAX_RESPONSE_BYTES);
+      if (Buffer.byteLength(text, "utf8") > MAX_RESPONSE_BYTES) throw new Error("FreeLLMAPI response exceeds the fixed byte cap");
+      const responseValue = parseJsonStrict(Buffer.from(text, "utf8"), "FreeLLMAPI response", MAX_RESPONSE_BYTES);
       const usage = responseUsage(responseValue);
       runtime.inputTokens += usage.inputTokens;
       runtime.outputTokens += usage.outputTokens;
+      const route = responseRoute(response);
+      runtime.routes.set(route, (runtime.routes.get(route) ?? 0) + 1);
       if (runtime.inputTokens > runtime.inputTokenCap || runtime.outputTokens > runtime.outputTokenCap) {
-        throw new Error("Anthropic usage exceeds the fixed token caps");
+        throw new Error("FreeLLMAPI usage exceeds the fixed token caps");
       }
       try {
         return parsedResponse(responseValue, item);
@@ -553,6 +586,7 @@ async function requestOne(request, item, runtime) {
 export async function runSummaryBundleRequests({
   plan,
   apiKey,
+  baseUrl,
   fetchImpl = globalThis.fetch,
   sleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds)),
   now = Date.now,
@@ -566,11 +600,13 @@ export async function runSummaryBundleRequests({
       || concurrency < 1 || concurrency > 4 || !Number.isSafeInteger(attemptTimeoutMs) || attemptTimeoutMs < 1) {
     throw new Error("Summary bundle execution configuration is invalid");
   }
+  const chatCompletionsUrl = resolveFreeLlmApiChatUrl(baseUrl);
   const runtime = {
-    apiKey, fetchImpl, sleep, now, deadline, attemptTimeoutMs,
+    apiKey, chatCompletionsUrl, fetchImpl, sleep, now, deadline, attemptTimeoutMs,
     retryCap: plan.retryAttempts, retries: 0, attempts: 0,
     inputTokenCap: plan.inputTokenCap, outputTokenCap: plan.outputTokenCap,
     inputTokens: 0, outputTokens: 0,
+    routes: new Map(),
   };
   const results = new Array(plan.requests.length);
   let cursor = 0;
@@ -591,6 +627,7 @@ export async function runSummaryBundleRequests({
       logicalCalls: results.length,
       attempts: runtime.attempts,
       retries: runtime.retries,
+      routes: Object.fromEntries([...runtime.routes].sort(([left], [right]) => left.localeCompare(right))),
     },
   };
 }
@@ -642,6 +679,7 @@ export async function runFrozenSummaryBundlePipeline({
   priorHeadsPath,
   parentDatabasePath,
   apiKey,
+  baseUrl,
   policyContext = { mode: "normal" },
   deadline,
   fetchImpl = globalThis.fetch,
@@ -696,8 +734,8 @@ export async function runFrozenSummaryBundlePipeline({
     throw new Error("Frozen summary bundle inputs changed after planning");
   }
   verifyFrozenParentInputs({ parentDatabasePath, parentEvidencePath, priorHeadsPath });
-  const completed = pending.length ? await runSummaryBundleRequests({ plan, apiKey, fetchImpl, sleep, now, deadline })
-    : { results: [], usage: { inputTokens: 0, outputTokens: 0, logicalCalls: 0, attempts: 0, retries: 0 } };
+  const completed = pending.length ? await runSummaryBundleRequests({ plan, apiKey, baseUrl, fetchImpl, sleep, now, deadline })
+    : { results: [], usage: { inputTokens: 0, outputTokens: 0, logicalCalls: 0, attempts: 0, retries: 0, routes: {} } };
   for (let index = 0; index < pending.length; index += 1) {
     const item = pending[index];
     const checked = completed.results[index];
@@ -773,7 +811,8 @@ async function main() {
     priorHeadsPath: args["--prior-heads"],
     parentEvidencePath: args["--parent-evidence"],
     parentDatabasePath: args["--parent-database"],
-    apiKey: process.env.ANTHROPIC_API_KEY ?? "",
+    apiKey: process.env.FREELLMAPI_API_KEY ?? "",
+    baseUrl: process.env.FREELLMAPI_BASE_URL ?? "",
     policyContext: policyContextFromEnvironment(process.env),
     deadline: Number(deadlineText),
   });

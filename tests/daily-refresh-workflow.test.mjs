@@ -91,6 +91,17 @@ test("frozen facts events and enrichment precede core recording and publication"
   assert.doesNotMatch(workflow, /record_star_observations\.py|record_trending_membership\.py/);
 });
 
+test("enrichment uses only the FreeLLMAPI secret and base URL variable", async () => {
+  const workflow = await workflowText();
+  const enrichment = workflow.slice(
+    workflow.indexOf("- name: Generate bound enrichment"),
+    workflow.indexOf("- name: Record core repository snapshot"),
+  );
+  assert.match(enrichment, /FREELLMAPI_API_KEY: \$\{\{ secrets\.FREELLMAPI_API_KEY \}\}/);
+  assert.match(enrichment, /FREELLMAPI_BASE_URL: \$\{\{ vars\.FREELLMAPI_BASE_URL \}\}/);
+  assert.doesNotMatch(enrichment, /ANTHROPIC_API_KEY|ANTHROPIC_BASE_URL/);
+});
+
 test("one create-new parent database capture is reused across every frozen boundary", async () => {
   const workflow = await workflowText();
   assert.match(workflow, /set -o noclobber[\s\S]*git (?:show|cat-file)[\s\S]*> "\$PARENT_DATABASE"/);

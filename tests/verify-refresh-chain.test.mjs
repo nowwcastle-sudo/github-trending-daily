@@ -202,7 +202,7 @@ async function makeArtifact(directory, sourceSha, snapshotId) {
   const slug = "owner/repo";
   const sources = { version: 3, sources: { [slug]: {
     kind: "readme", slug, path: "README.md", blob_sha: "b".repeat(40), content_sha256: "c".repeat(64),
-    model: "claude-sonnet-5", schema_version: 3, prompt_schema_version: 1, translation_applicable: false,
+    model: "auto:smart", schema_version: 3, prompt_schema_version: 1, translation_applicable: false,
   } } };
   const payloads = new Map();
   for (const relative of VERSION_1_BASE_PATHS) payloads.set(relative, Buffer.from(`${relative}\n`));

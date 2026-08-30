@@ -354,7 +354,7 @@ def writer_payload(*, snapshot_id, utc, kst, stats_date, run_kind, parent_snapsh
     source = {
         "kind": "readme", "slug": "owner/repo", "path": "README.md",
         "blob_sha": sha1("b"), "content_sha256": sha256("c"),
-        "model": "claude-sonnet-5", "schema_version": 3, "prompt_schema_version": 1,
+        "model": "auto:smart", "schema_version": 3, "prompt_schema_version": 1,
         "translation_applicable": False,
     }
     provenance = {
@@ -1451,7 +1451,7 @@ class RepositoryObservationTests(unittest.TestCase):
                 canonical_hash({"content": content, "source": source}),
             ))
             self.assertEqual(verify_core_snapshot(connection, 1), result.core_payload_sha256)
-        self.assertEqual(result.core_payload_sha256, "964990a2b1f147d8670c35f9dfcd13081cc8ce45529eec08daee97b0116b7603")
+        self.assertEqual(result.core_payload_sha256, "489337d56fd3bf6e3ef9e7136e804ca9c967d584de743c173435d9f4531f4eed")
 
     def test_reused_profile_and_release_rows_are_part_of_refresh_core_hash(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
@@ -1556,7 +1556,7 @@ class RepositoryObservationTests(unittest.TestCase):
                 source = {
                     "kind": "readme", "slug": "other/repo", "path": "README.md",
                     "blob_sha": sha1(other_blob), "content_sha256": sha256(other_content),
-                    "model": "claude-sonnet-5", "schema_version": 3, "prompt_schema_version": 1,
+                    "model": "auto:smart", "schema_version": 3, "prompt_schema_version": 1,
                     "translation_applicable": False,
                 }
                 value["enrichmentIndex"]["other/repo"] = {

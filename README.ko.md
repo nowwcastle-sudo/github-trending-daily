@@ -30,7 +30,7 @@
 
 ## 요약 품질 계약
 
-갱신 파이프라인은 승인된 영구 단가인 입력 $2·출력 $10/백만 토큰 기준의 `claude-sonnet-5`로 설정되어 있습니다. 저장소와 README 수집이 성공하기 전에는 모델을 호출하지 않습니다.
+갱신 파이프라인은 버전 관리되는 FreeLLMAPI OpenAI 호환 `auto:smart` route를 사용합니다. 저장소와 README 수집이 성공하기 전에는 모델을 호출하지 않습니다.
 
 저장소 하나는 5개 언어를 하나의 원자적 묶음으로 생성합니다.
 
@@ -77,7 +77,7 @@ workflow는 fail-closed입니다.
 - 수집 실패 시 모델 호출은 0회입니다.
 - enrichment가 불완전하면 observation, 페이지, commit, Pages 배포는 모두 0입니다.
 - candidate 실패 시 tracked tree는 바뀌지 않습니다.
-- README provenance 누락·stale, source mismatch, incomplete chunk, 모델 출력 오류, 비용 cap 초과, 옛 translation residue는 publication을 막습니다.
+- README provenance 누락·stale, source mismatch, incomplete chunk, 모델 출력 오류, 토큰·재시도·deadline 상한 초과, 옛 translation residue는 publication을 막습니다.
 - provider API key는 브라우저에 전달하지 않습니다.
 
 과거 스타 차트에는 GH Archive 기반 추정치가 섞일 수 있고 현재 총 스타는 GitHub 기준입니다. CSV는 스프레드시트 호환을 위해 UTF-8 BOM을 포함하고 comma·quote·줄바꿈을 quoting하며 수식처럼 실행될 수 있는 값 앞에는 apostrophe를 붙입니다.

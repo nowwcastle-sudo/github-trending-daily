@@ -30,7 +30,7 @@ function validV3Source(value, repository) {
     && value.path === repository.readme_path
     && value.blob_sha === repository.readme_blob_sha
     && value.content_sha256 === repository.readme_content_sha256
-    && value.model === "claude-sonnet-5"
+    && value.model === "auto:smart"
     && value.schema_version === 3
     && value.prompt_schema_version === 1
     && value.translation_applicable === false;

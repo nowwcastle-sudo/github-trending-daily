@@ -139,7 +139,7 @@ function sourceEntry(slug = "owner/one", {
     path,
     blob_sha: blobSha,
     content_sha256: contentSha256,
-    model: "claude-sonnet-5",
+    model: "auto:smart",
     schema_version: 3,
     prompt_schema_version: 1,
     translation_applicable: false,
