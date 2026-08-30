@@ -12,10 +12,7 @@
   }
 
   function escapeNonCode(value) {
-    const neutralized = String(value).replace(/<[^>\n]*>/g, tag => tag
-      .replace(/\son[a-z0-9_-]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
-      .replace(/javascript\s*:/gi, ""));
-    return escapeText(neutralized);
+    return escapeText(value);
   }
 
   function repositorySource(source) {

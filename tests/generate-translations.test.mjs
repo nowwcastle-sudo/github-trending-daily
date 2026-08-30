@@ -2021,6 +2021,13 @@ test("ordinary CommonMark HTML blocks end at blank lines and preserve standalone
   );
 });
 
+test("HTML comment blocks accept the standard --!> closing form", () => {
+  assert.deepEqual(
+    splitMarkdownAtHeadings("<!-- inert comment --!>\n\nVisible prose.\n", 1024),
+    ["<!-- inert comment --!>\n\nVisible prose.\n"],
+  );
+});
+
 test("a leading void tag keeps the following balanced HTML table atomic", () => {
   const value = [
     "<br /><table>",

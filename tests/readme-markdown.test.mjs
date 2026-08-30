@@ -16,10 +16,10 @@ async function loadRenderer() {
   return context.globalThis.ReadmeMarkdown;
 }
 
-test("raw HTML and dangerous URL schemes never survive rendering", async () => {
+test("raw HTML and dangerous URL schemes never become executable", async () => {
   const ReadmeMarkdown = await loadRenderer();
   const html = ReadmeMarkdown.render('<img src=x onerror=alert(1)>\n[x](javascript:alert(1))', source);
-  assert.doesNotMatch(html, /<img|onerror|javascript:/i);
+  assert.doesNotMatch(html, /<img|href=["']javascript:/i);
   assert.match(html, /&lt;img/);
 });
 
@@ -49,8 +49,15 @@ test("safe relative images use immutable raw-content URLs", async () => {
 test("raw HTML is neutralized without changing escaped code", async () => {
   const ReadmeMarkdown = await loadRenderer();
   const html = ReadmeMarkdown.render('<img src=x onerror=alert(1)>\n`<button onclick="save()">`', source);
-  assert.doesNotMatch(html, /<img|onerror|javascript:/i);
+  assert.doesNotMatch(html, /<img/i);
   assert.match(html, /<code>&lt;button onclick=&quot;save\(\)&quot;&gt;<\/code>/);
+});
+
+test("raw HTML stays inert without incomplete multi-pass attribute filtering", async () => {
+  const ReadmeMarkdown = await loadRenderer();
+  const html = ReadmeMarkdown.render('<img src=x ononerror="alert(1)">', source);
+  assert.doesNotMatch(html, /<img/i);
+  assert.match(html, /&lt;img src=x ononerror=&quot;alert\(1\)&quot;&gt;/);
 });
 
 test("relative URLs fail closed without a valid commit SHA", async () => {
