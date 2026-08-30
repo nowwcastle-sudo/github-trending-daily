@@ -6,7 +6,7 @@
 - 운영 페이지: `https://nowwcastle-sudo.github.io/github-trending-daily/`
 - 작업 worktree: `C:\Users\nasca\.codex\worktrees\3a3b\transactional-refresh-20260827`
 - production RED source SHA: `0aa617016c0e832909f74e3d9a70bbe210c10d60`
-- 2026-08-31 최종 검증 전 fetch 좌표: 작업 parent/원격 branch `7cbf10839ef2990fdb3c8912b9b3bf40def74553`, `origin/main` `dfd32a0d2537cb3f4abc6d92a85ef62057e71605` (remote write 직전 다시 fetch)
+- 2026-08-31 activation 직전 fetch 좌표: clean `HEAD == origin/main == a352f97ada2b0d6dfa1bbe2c8e74d19aad970e46`, 원격 작업 branch `2e484fd99d6ed9455b7fba6b28173739ab264094` (remote write 직전 다시 fetch)
 - AgentMemory handoff: `mem_mtfb5jzh_7ddf0a27f5dc`
 - 원본 task: `01a03d80-1266-76e1-896d-16648967d258`
 
@@ -69,7 +69,7 @@
 - `scripts/update-trending.mjs`: v3 source와 exact 5-locale summary bundle만 render하며 metadata fallback을 허용하지 않는다.
 - `scripts/validate-enrichment-coverage.mjs`: active page/facts/cache/source exact set, full envelope, locale completeness, stale/missing/insufficient source, translation residue를 fail closed로 검사한다.
 - `scripts/build-pages-artifact.mjs`: source registry v3와 `site-i18n.js`를 exact artifact에 포함하고 legacy translation artifact를 제외한다.
-- workflow는 GitHub-hosted `prepare` → Windows self-hosted `enrich` → GitHub-hosted `publish`로 분리한다. self-hosted runner는 tracked checkout·DB·page·commit·Pages 권한이 없고 네 개의 allowlisted enrichment 파일만 내보낸다. 아직 실행하지 않았다.
+- workflow는 GitHub-hosted `prepare` → Windows self-hosted `enrich` → GitHub-hosted `publish`로 분리한다. self-hosted runner는 tracked checkout·DB·page·commit·Pages 권한이 없고 네 개의 allowlisted enrichment 파일만 내보낸다. manual bootstrap gate는 승인 상태이고 schedule은 계속 hold한다. 아직 실행하지 않았다.
 - runner `nasca-gh-trending-claude`는 `C:\actions-runner-gh-trending`의 공식 Actions Runner 2.337.0으로 등록했고, 예약 작업 `GitHub Actions Runner - GitHub Trending Claude`가 사용자 로그인 세션에서 sanitized wrapper로 실행한다. PC가 켜져 있고 사용자 `nasca`가 로그인한 동안에만 실행 가능하다.
 - `README.md`, `README.ko.md`, `README.en.md`와 2026-08-31 candidate screenshots를 새 구조에 맞췄다.
 
@@ -79,8 +79,8 @@
 2. **B Compact Rail·5-locale shell·영문 기본 문서 — 완료**: UI와 정적 문서를 새 구조로 전환한다.
 3. **Upstream README variants — 구현 완료, production data 대기**: 실제 존재하는 언어판만 exact source identity로 표시하고 full README translation path를 폐기한다.
 4. **Grilling 기반 summary 사양 — 완료**: 위 품질·길이·근거·동일성·실패 계약을 공동 확정한다.
-5. **Sonnet 5 producer·coverage gates — 코드 완료, 최종 검증 중**: local `claude -p`, first-party OAuth, 고정 byte/retry/timeout cap, producer provenance, atomic 5-locale bundle 계약을 사용한다.
-6. **검증·commit/push·controlled workflow·Pages — 진행 중**: 기존 390/720/1200/1440, 5 locale, hover/click/focus/Escape, light/dark, tooltip, README legacy failure UI, export privacy, Atom/membership 실브라우저 검증을 보존한다. 최종 focused/full/adversarial·비밀값 검사·remote drift·runner health를 통과하면 commit/push하고, 같은 단계에서 정확히 한 번의 controlled refresh와 Pages deployment를 실행해 manifest·CLI/OAuth runtime·token usage·bot commit·snapshot·observation·production full census를 묶어 검증한다.
+5. **Sonnet 5 producer·coverage gates — 코드·로컬 검증 완료**: local `claude -p`, first-party OAuth, 고정 byte/retry/timeout cap, producer provenance, atomic 5-locale bundle 계약을 사용한다.
+6. **검증·commit/push·controlled workflow·Pages — activation 진행 중**: 기존 390/720/1200/1440, 5 locale, hover/click/focus/Escape, light/dark, tooltip, README legacy failure UI, export privacy, Atom/membership 실브라우저 검증을 보존한다. focused/full/adversarial·비밀값 검사와 main CodeQL 실분석 0건을 통과했고, manual bootstrap gate만 승인 상태로 전환한다. push 직전 remote drift와 runner health를 다시 판정한 뒤 정확히 한 번의 controlled refresh와 Pages deployment를 실행해 manifest·CLI/OAuth runtime·token usage·bot commit·snapshot·observation·production full census를 묶어 검증한다.
 
 ## 6. 적대적 검증 범위
 
