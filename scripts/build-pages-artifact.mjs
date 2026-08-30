@@ -125,7 +125,7 @@ function validSource(value) {
     && value.api_provider === "firstParty"
     && value.model === DEFAULT_ENRICHMENT_MODEL
     && value.schema_version === 3
-    && value.prompt_schema_version === 2
+    && value.prompt_schema_version === 3
     && value.translation_applicable === false;
 }
 

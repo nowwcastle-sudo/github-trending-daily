@@ -1367,7 +1367,7 @@ def _enrichment_hashes(repository: dict[str, Any], profile: dict[str, Any], inde
             or re.fullmatch(r"\d+\.\d+\.\d+", source.get("cli_version", "")) is None
             or source.get("auth_method") != "oauth_token" or source.get("api_provider") != "firstParty"
             or source.get("model") != "claude-sonnet-5" or source.get("schema_version") != 3
-            or source.get("prompt_schema_version") != 2 or source.get("translation_applicable") is not False):
+            or source.get("prompt_schema_version") != 3 or source.get("translation_applicable") is not False):
         raise ValueError("summary source model or prompt contract is invalid")
     summary_source = _digest(source)
     summary_content = _digest(content)

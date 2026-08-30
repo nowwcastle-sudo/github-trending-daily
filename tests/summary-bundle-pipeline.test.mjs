@@ -59,6 +59,7 @@ function envelope() {
 function modelEnvelope() {
   const value = envelope();
   for (const refs of Object.values(value.evidence)) delete refs[0].section_heading;
+  for (const invariant of value.invariants) delete invariant.fields;
   return value;
 }
 
@@ -84,8 +85,13 @@ test("summary bundle accepts exactly five complete locales and rejects generic R
 });
 
 test("the shared summary contract validates README evidence and cross-locale invariants", () => {
-  assert.deepEqual(validateSummaryBundleEnvelope(modelEnvelope(), item).summaries, bundle());
+  const checked = validateSummaryBundleEnvelope(modelEnvelope(), item);
+  assert.deepEqual(checked.summaries, bundle());
+  assert.deepEqual(checked.invariants[0].fields, fields);
   assert.throws(() => validateSummaryBundleEnvelope(envelope(), item), /output|evidence|range/i);
+  const rawWithInvariantFields = modelEnvelope();
+  rawWithInvariantFields.invariants[0].fields = [...fields];
+  assert.throws(() => validateSummaryBundleEnvelope(rawWithInvariantFields, item), /invariant|schema/i);
   const missingCommand = modelEnvelope();
   missingCommand.summaries.ja.goal = missingCommand.summaries.ja.goal.replace("`npm test`", "");
   assert.throws(() => validateSummaryBundleEnvelope(missingCommand, item), /invariant|command|locale/i);
@@ -103,6 +109,9 @@ test("stored evidence requires the canonical README-derived heading shape", () =
   const paddedHeading = envelope();
   paddedHeading.evidence.goal[0].section_heading = " Repository ";
   assert.throws(() => validateStoredSummaryBundleEnvelope(paddedHeading, item), /evidence|heading|README/i);
+  const staleInvariantFields = envelope();
+  staleInvariantFields.invariants[0].fields = ["goal"];
+  assert.throws(() => validateStoredSummaryBundleEnvelope(staleInvariantFields, item), /invariant|fields/i);
 });
 
 test("model evidence returns only line ranges and derives headings from the frozen README", () => {
@@ -154,6 +163,9 @@ test("one Sonnet 5 request carries all five summaries and no README translation 
   assert.deepEqual(request.locales, SUMMARY_BUNDLE_LOCALES);
   assert.deepEqual(Object.keys(request.schema.properties.summaries.properties), SUMMARY_BUNDLE_LOCALES);
   assert.deepEqual(request.schema.required.sort(), ["evidence", "inference_fields", "invariants", "summaries"].sort());
+  const invariantItem = request.schema.properties.invariants.items;
+  assert.deepEqual(invariantItem.required, ["kind", "value"]);
+  assert.deepEqual(Object.keys(invariantItem.properties), ["kind", "value"]);
   assert.match(request.prompt, /180.{0,20}280|evidence|line range/is);
   assert.doesNotMatch(JSON.stringify(request.schema), /translated_markdown|translation_applicable/);
   assert.match(request.prompt, /untrusted source data/i);
@@ -259,4 +271,43 @@ test("Claude subscription execution retries one bounded transport failure after 
     attempts: 2,
     retries: 1,
   });
+});
+
+test("a fatal bundle failure stops every worker from dispatching a new repository", async () => {
+  const items = Array.from({ length: 4 }, (_, index) => ({ ...item, slug: `owner/repo-${index}` }));
+  const plan = measureClaudeCliSummaryBundlePlan(items, { retryAttempts: 12 });
+  let releaseSecond;
+  const secondBlocked = new Promise(resolve => { releaseSecond = resolve; });
+  const calls = [];
+  const execution = runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    concurrency: 2,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      const slug = /"repository":"([^"]+)"/.exec(prompt)?.[1];
+      calls.push(slug);
+      if (slug === "owner/repo-0") {
+        const invalid = modelEnvelope();
+        invalid.summaries.ko.usage = "자세한 내용은 README를 참고하세요.";
+        return { structuredOutput: invalid, usage: { inputTokens: 100, outputTokens: 200 } };
+      }
+      if (slug === "owner/repo-1") {
+        await secondBlocked;
+        return { structuredOutput: modelEnvelope(), usage: { inputTokens: 100, outputTokens: 200 } };
+      }
+      return { structuredOutput: modelEnvelope(), usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+  const rejected = assert.rejects(execution, /generic|placeholder|README/i);
+  while (calls.filter(slug => slug === "owner/repo-0").length < 2) await new Promise(resolve => setImmediate(resolve));
+  await new Promise(resolve => setImmediate(resolve));
+  releaseSecond();
+  await rejected;
+  assert.equal(calls.includes("owner/repo-2"), false);
+  assert.equal(calls.includes("owner/repo-3"), false);
 });

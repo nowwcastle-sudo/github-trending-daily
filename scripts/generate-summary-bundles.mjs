@@ -46,7 +46,7 @@ const HEDGE_MARKERS = Object.freeze({
 export const SUMMARY_BUNDLE_LOCALES = Object.freeze(["en", "ko", "zh-CN", "es", "ja"]);
 export const SUMMARY_BUNDLE_FIELDS = Object.freeze(["goal", "usage", "pros", "cons", "fit"]);
 export const SUMMARY_BUNDLE_SCHEMA_VERSION = 3;
-export const SUMMARY_PROMPT_SCHEMA_VERSION = 2;
+export const SUMMARY_PROMPT_SCHEMA_VERSION = 3;
 export { MAX_FROZEN_FACTS_BYTES } from "./collect-repository-events.mjs";
 
 function exactKeys(value, keys) {
@@ -159,9 +159,10 @@ function validateSummaryBundleEnvelopeShape(value, item, { stored }) {
   }
   if (!Array.isArray(value.invariants) || value.invariants.length > 16) throw new Error("Summary bundle invariants are invalid");
   const invariants = value.invariants.map(invariant => {
-    if (!exactKeys(invariant, ["kind", "value", "fields"]) || !INVARIANT_KINDS.includes(invariant.kind)
+    if (!(stored ? exactKeys(invariant, ["kind", "value", "fields"]) : exactKeys(invariant, ["kind", "value"]))
+        || !INVARIANT_KINDS.includes(invariant.kind)
         || typeof invariant.value !== "string" || !invariant.value.trim() || invariant.value.length > 160
-        || !exactArray(invariant.fields, SUMMARY_BUNDLE_FIELDS, { allowEmpty: false })) {
+        || (stored && !exactArray(invariant.fields, SUMMARY_BUNDLE_FIELDS, { allowEmpty: false }))) {
       throw new Error("Summary bundle invariant schema is invalid");
     }
     const exact = invariant.value.trim();
@@ -169,16 +170,18 @@ function validateSummaryBundleEnvelopeShape(value, item, { stored }) {
       ? source.markdown.toLocaleLowerCase("en").includes(exact.toLocaleLowerCase("en"))
       : source.markdown.includes(exact);
     if (!sourceContains) throw new Error(`Summary bundle invariant is absent from README: ${exact}`);
+    const fields = SUMMARY_BUNDLE_FIELDS.filter(field => invariant.kind === "product"
+      ? summaries.en[field].toLocaleLowerCase("en").includes(exact.toLocaleLowerCase("en"))
+      : summaries.en[field].includes(exact));
+    if (fields.length === 0) throw new Error("Summary bundle invariant is absent from en summary fields");
     for (const locale of SUMMARY_BUNDLE_LOCALES) {
-      for (const field of invariant.fields) {
-        const content = summaries[locale][field];
-        const present = invariant.kind === "product"
-          ? content.toLocaleLowerCase(locale).includes(exact.toLocaleLowerCase(locale))
-          : content.includes(exact);
-        if (!present) throw new Error(`Summary bundle invariant is missing from ${locale}.${field}`);
-      }
+      const actual = SUMMARY_BUNDLE_FIELDS.filter(field => invariant.kind === "product"
+        ? summaries[locale][field].toLocaleLowerCase(locale).includes(exact.toLocaleLowerCase(locale))
+        : summaries[locale][field].includes(exact));
+      if (!equalTokens(fields, actual)) throw new Error(`Summary bundle invariant fields mismatch in ${locale}`);
     }
-    return { kind: invariant.kind, value: exact, fields: [...invariant.fields] };
+    if (stored && !equalTokens(fields, invariant.fields)) throw new Error("Stored summary bundle invariant fields are invalid");
+    return { kind: invariant.kind, value: exact, fields };
   });
   if (!exactArray(value.inference_fields, SUMMARY_BUNDLE_FIELDS)) throw new Error("Summary bundle inference field set is invalid");
   for (const field of SUMMARY_BUNDLE_FIELDS) {
@@ -247,11 +250,10 @@ function summarySchema() {
         type: "array", maxItems: 16,
         items: {
           type: "object", additionalProperties: false,
-          required: ["kind", "value", "fields"],
+          required: ["kind", "value"],
           properties: {
             kind: { type: "string", enum: [...INVARIANT_KINDS] },
             value: { type: "string", minLength: 1, maxLength: 160 },
-            fields: { type: "array", minItems: 1, uniqueItems: true, items: { type: "string", enum: [...SUMMARY_BUNDLE_FIELDS] } },
           },
         },
       },
@@ -303,7 +305,7 @@ export function buildSummaryBundleRequest(input, { frameId } = {}) {
     "Using only documented facts and direct cautious implications supported by that README, return neutral technical summaries in English, Korean, Simplified Chinese, Spanish, and Japanese.",
     "The English bundle must total 180 to 280 words. Match the same information density and claims in every locale. Each locale must include distinct goal, usage, pros, cons, and fit fields without repetition.",
     "Preserve every command, URL, version, number, and product name across locales. Include at most one or two central README commands and never invent setup steps or capabilities.",
-    "Return one to three verified README line ranges for each field, the exact cross-locale invariants and their fields, and every field that contains a cautious inference. Line ranges refer to the numbered untrusted README lines; section headings are derived deterministically and must not be returned.",
+    "Return one to three verified README line ranges for each field, the exact cross-locale invariant kind and value pairs, and every field that contains a cautious inference. Line ranges refer to the numbered untrusted README lines; section headings and invariant field locations are derived deterministically and must not be returned.",
     "Do not use promotional superlatives or a generic instruction to read or consult the README. If the source cannot support all five fields, return no substitute or metadata-only summary.",
     `UNTRUSTED_DATA_JSON ${boundary} ${Buffer.byteLength(payload, "utf8")} ${payloadHash}`,
     payload,
@@ -559,15 +561,23 @@ export async function runClaudeSummaryBundleRequests({
   };
   const results = new Array(plan.requests.length);
   let cursor = 0;
+  let fatal = null;
   async function worker() {
     while (true) {
+      if (fatal) return;
       const index = cursor;
       cursor += 1;
       if (index >= plan.requests.length) return;
-      results[index] = await requestOneWithClaude(plan.requests[index], plan.items[index], execution);
+      try {
+        results[index] = await requestOneWithClaude(plan.requests[index], plan.items[index], execution);
+      } catch (error) {
+        fatal ??= error;
+        return;
+      }
     }
   }
   await Promise.all(Array.from({ length: Math.min(concurrency, plan.requests.length) }, () => worker()));
+  if (fatal) throw fatal;
   return {
     results,
     usage: {
