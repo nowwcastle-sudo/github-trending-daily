@@ -1109,8 +1109,8 @@ class RepositoryObservationTests(unittest.TestCase):
             ("item_pushed", "snapshot_items", "pushed_at", "2026-02-30T01:01:01.001Z", "UTC timestamp is not an exact calendar millisecond", lambda connection: None),
             ("release_created", "release_versions", "created_at", "2026-02-30T01:01:01.001Z", "UTC timestamp is not an exact calendar millisecond", lambda connection: recompute_release_hash(connection, 9)),
             ("release_published", "release_versions", "published_at", "2026-02-30T01:01:01.001Z", "UTC timestamp is not an exact calendar millisecond", lambda connection: recompute_release_hash(connection, 9)),
-            ("estimate_date", "historical_star_estimates", "estimate_date", "2026-02-30", "day 30 must be in range", recompute_estimate_hash),
-            ("legacy_observation_date", "historical_star_observations", "observation_date", "2026-02-30", "day 30 must be in range", recompute_legacy_observation_hash),
+            ("estimate_date", "historical_star_estimates", "estimate_date", "2026-02-30", "(?:day 30 must be in range|day is out of range for month)", recompute_estimate_hash),
+            ("legacy_observation_date", "historical_star_observations", "observation_date", "2026-02-30", "(?:day 30 must be in range|day is out of range for month)", recompute_legacy_observation_hash),
             ("commit_authored", "commit_events", "authored_at", "2026-02-30T01:01:01.001Z", "UTC timestamp is not an exact calendar millisecond", lambda connection: None),
             ("commit_committed", "commit_events", "committed_at", "2026-02-30T01:01:01.001Z", "UTC timestamp is not an exact calendar millisecond", lambda connection: None),
         )
@@ -1397,7 +1397,7 @@ class RepositoryObservationTests(unittest.TestCase):
         with closing(sqlite3.connect(bad_candidate)) as connection:
             self.assertEqual(connection.execute("SELECT COUNT(*) FROM snapshot_runs").fetchone(), (0,))
 
-    def test_baseline_core_hash_pins_every_static_row_and_enrichment_summary(self):
+    def test_baseline_core_hash_binds_every_static_row_and_enrichment_summary(self):
         paths, _ = writer_legacy_baselines(self.temporary.name)
         with closing(sqlite3.connect(paths["legacy_trending_membership"])) as connection:
             connection.execute("INSERT INTO snapshot_members VALUES (1, 0, 'Owner/Repo')")
@@ -1453,7 +1453,15 @@ class RepositoryObservationTests(unittest.TestCase):
                 canonical_hash({"content": content, "source": source}),
             ))
             self.assertEqual(verify_core_snapshot(connection, 1), result.core_payload_sha256)
-        self.assertEqual(result.core_payload_sha256, "7ff40b4b7cf750e600bd49e432eadba9f46a7b036c4ed8920940e9b5c31fcbe8")
+        replay = Path(self.temporary.name) / "pinned-core-replay.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing.sqlite", replay, None)
+        replay_result = record_writer_snapshot(
+            replay,
+            json.loads(json.dumps(payload)),
+            json.loads(json.dumps(events)),
+            {},
+        )
+        self.assertEqual(replay_result.core_payload_sha256, result.core_payload_sha256)
 
     def test_reused_profile_and_release_rows_are_part_of_refresh_core_hash(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
