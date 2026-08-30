@@ -3,12 +3,12 @@ import { copyFile, lstat, mkdir, readFile, readdir, realpath, writeFile } from "
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { ENRICHMENT_MODEL, slugToFile } from "./generate-translations.mjs";
+import { DEFAULT_ENRICHMENT_MODEL } from "./enrichment-models.mjs";
 
 const SHA_RE = /^[a-f0-9]{40}$/;
 const SHA256_RE = /^[a-f0-9]{64}$/;
 const SNAPSHOT_RE = /^[0-9]{14}-[a-f0-9]{16}$/;
-const SOURCE_KEYS = ["blob_sha", "content_sha256", "model", "schema_version", "translation_applicable"];
+const SOURCE_KEYS = ["kind", "slug", "path", "blob_sha", "content_sha256", "model", "schema_version", "prompt_schema_version", "translation_applicable"];
 const TAG_RULE_VERSION = 1;
 const FIELD_TAG_IDS = ["ai-ml", "web-app", "dev-tools", "data", "devops", "security", "productivity", "systems", "learning"];
 const FORM_TAG_IDS = ["agent", "mcp", "plugin-skill", "ide", "library", "framework", "cli"];
@@ -97,6 +97,7 @@ export const VERSION_1_BASE_PATHS = Object.freeze([
   "repo-filters.js",
   "star-history.js",
   "star-history.json",
+  "site-i18n.js",
   "ui-motion.js",
 ].sort());
 
@@ -111,11 +112,16 @@ function exactKeys(value, keys) {
 
 function validSource(value) {
   return exactKeys(value, SOURCE_KEYS)
+    && value.kind === "readme"
+    && /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(value.slug)
+    && value.slug === value.slug.toLowerCase()
+    && typeof value.path === "string" && value.path.length > 0
     && /^[a-f0-9]{40}$/.test(value.blob_sha)
     && /^[a-f0-9]{64}$/.test(value.content_sha256)
-    && value.model === ENRICHMENT_MODEL
-    && value.schema_version === 2
-    && typeof value.translation_applicable === "boolean";
+    && value.model === DEFAULT_ENRICHMENT_MODEL
+    && value.schema_version === 3
+    && value.prompt_schema_version === 1
+    && value.translation_applicable === false;
 }
 
 function equalJson(left, right) {
@@ -183,7 +189,7 @@ export function parseEmbeddedRepos(pageValue, label = "page REPOS", { requireCla
 }
 
 function normalizeSources(value) {
-  if (!exactKeys(value, ["version", "sources"]) || value.version !== 2 || !value.sources || typeof value.sources !== "object" || Array.isArray(value.sources)) {
+  if (!exactKeys(value, ["version", "sources"]) || value.version !== 3 || !value.sources || typeof value.sources !== "object" || Array.isArray(value.sources)) {
     throw new Error("invalid translation sources");
   }
   const entries = new Map();
@@ -200,15 +206,14 @@ function normalizeSources(value) {
 export function expectedVersion1Paths(latestValue, sourcesValue) {
   const latest = normalizeLatest(latestValue);
   const sources = normalizeSources(sourcesValue);
-  const translations = [];
   for (const repo of latest.repos) {
     const entry = sources.get(repo.slug.toLowerCase());
-    if (entry?.source.translation_applicable === true) {
-      if (!validSource(entry.source)) throw new Error(`invalid active translation source: ${repo.slug}`);
-      translations.push(`translations/${slugToFile(repo.slug)}`);
+    if (!entry || !validSource(entry.source) || entry.source.slug !== repo.slug.toLowerCase()) {
+      throw new Error(`invalid active summary source: ${repo.slug}`);
     }
   }
-  return [...VERSION_1_BASE_PATHS, ...translations].sort();
+  if (sources.size !== latest.repos.length) throw new Error("summary source active set is not exact");
+  return [...VERSION_1_BASE_PATHS].sort();
 }
 
 function safeTarget(root, relative) {
@@ -371,16 +376,6 @@ export async function buildPagesArtifact({ sourceRoot, outDir, sourceSha, snapsh
   for (const repo of pageRepos) {
     if (!equalJson(classification(repo), classification(latestBySlug.get(repo.slug.toLowerCase())))) {
       throw new Error("version-1 page REPOS classification does not match latest");
-    }
-  }
-  const sourcesBySlug = normalizeSources(sources);
-  for (const repo of latest.repos) {
-    const source = sourcesBySlug.get(repo.slug.toLowerCase())?.source;
-    if (source?.translation_applicable !== true) continue;
-    const file = `translations/${slugToFile(repo.slug)}`;
-    const payload = parseJsonStrict(await readRegularFile(sourceRoot, file), "translation envelope");
-    if (!exactKeys(payload, ["markdown", "source"]) || typeof payload.markdown !== "string" || !payload.markdown.trim() || !equalJson(payload.source, source)) {
-      throw new Error(`invalid translation envelope: ${repo.slug}`);
     }
   }
   await verifyArtifactContract(sourceRoot, snapshotId, paths, artifactContract);

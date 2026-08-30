@@ -4,8 +4,6 @@ import { lstat, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { extractReposFromIndex, slugToFile } from "./generate-translations.mjs";
-
 const SHA_RE = /^[a-f0-9]{40}$/;
 export const MUTABLE_GENERATED_PATHS = Object.freeze([
   "changes.xml",
@@ -94,10 +92,8 @@ export async function verifyCandidateMutations({ baselineRoot, candidateRoot }) 
       throw new Error(`non-generated candidate bytes changed: ${relative}`);
     }
   }
-  const activeTranslations = extractReposFromIndex(decodeHtml(candidate.get("index.html") ?? Buffer.alloc(0)))
-    .map(repo => `translations/${slugToFile(repo.slug)}`).sort();
   const actualTranslations = [...candidate.keys()].filter(relative => relative.startsWith("translations/")).sort();
-  if (actualTranslations.join("\0") !== activeTranslations.join("\0")) throw new Error("unexpected or missing translation residue");
+  if (actualTranslations.length !== 0) throw new Error("retired README translation residue is present");
   return { files: candidate.size };
 }
 

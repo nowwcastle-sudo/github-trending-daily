@@ -113,6 +113,7 @@ function sidebarHarness({ hoverCapable = true } = {}) {
     ["filterSidebar", new FakeHTMLElement("filterSidebar")],
     ["sidebarScrim", new FakeHTMLElement("sidebarScrim")],
     ["navToggle", new FakeHTMLElement("navToggle")],
+    ["mobileNavToggle", new FakeHTMLElement("mobileNavToggle")],
     ["sidebarClose", new FakeHTMLElement("sidebarClose")],
     ["readmePanel", new FakeHTMLElement("readmePanel")],
     ["tipLayer", new FakeHTMLElement("tipLayer")],
@@ -198,6 +199,7 @@ function sidebarHarness({ hoverCapable = true } = {}) {
     },
     setTimeout: setTimer,
     clearTimeout(id) { timers.delete(id); },
+    tr(key) { return key; },
   };
   context.globalThis = context;
   context.__repos = [{ summary: { goal: "goal" } }];
@@ -243,7 +245,7 @@ function sidebarHarness({ hoverCapable = true } = {}) {
 }
 
 function renderContractHarness(classification = { forms: [], fields: ["unclassified"] }, repos = []) {
-  const start = page.indexOf("const NEW_ONLY_LOAD_ERROR=");
+  const start = page.indexOf("function newOnlyGate(");
   const end = page.indexOf("\n/* render */", start);
   assert.ok(start >= 0 && end > start, "render contract helpers must be isolated");
   const context = {
@@ -266,6 +268,21 @@ function renderContractHarness(classification = { forms: [], fields: ["unclassif
     },
     REPOS: repos,
     esc(value) { return String(value); },
+    tr(key, parameters = {}) {
+      const messages = {
+        "new.loading": "Loading new-repository status…",
+        "new.loadingSummary": "Loading new-repository status.",
+        "new.error": "New-repository status could not be loaded, so this filter is unavailable.",
+        "result.count": `${parameters.count} repositories`,
+        "classification.form": "Form",
+        "classification.field": "Field and technology",
+        "classification.ai": "AI related",
+      };
+      return messages[key] ?? key;
+    },
+    filterLabel(kind, id) {
+      return ({ agent: "Agent", mcp: "MCP", "dev-tools": "Developer tools", security: "Security and privacy", unclassified: "Unclassified" })[id] ?? id;
+    },
   };
   context.globalThis = context;
   vm.createContext(context);
@@ -370,21 +387,21 @@ test("repository signals are initialized before rendering and refreshed from the
 
 test("tooltip cleanup and refresh status contain no merged JavaScript tokens", () => {
   assert.doesNotMatch(page, /nulldocument/);
-  assert.match(page, /activeTipIndex=null;listStage\.style\.transform=""/);
+  assert.match(page, /activeTipIndex=null;activeSummaryLocale=null;listStage\.style\.transform=""/);
   assert.match(page, /id="refreshStatus" class="sidebar-refresh"/);
 });
 
 test("tooltip runtime has one detailed content path", () => {
-  assert.match(page, /function tipHTML\(r\)/);
-  assert.match(page, /const s=r\.summary/);
-  assert.match(page, /tipLayer\.innerHTML=tipHTML\(r\)/);
+  assert.match(page, /function tipHTML\(r/);
+  assert.match(page, /const bundle=summaryBundle\(r\),s=locale\?bundle\[locale\]:null/);
+  assert.match(page, /tipLayer\.innerHTML=tipHTML\(repo,activeSummaryLocale\)/);
   assert.doesNotMatch(page, /tipHTML\(r,detailed\)|r\.detail|mobile summary/i);
   assert.doesNotMatch(page, /UiMotion\.mobileTooltipHtml/);
-  for (const field of ["goal", "usage", "pros", "cons", "fit", "stars_note"]) {
+  for (const field of ["goal", "usage", "pros", "cons", "fit"]) {
     assert.match(page, new RegExp(`esc\\(s\\.${field}\\)`));
   }
-  for (const label of ["프로젝트 목표", "실행 방법", "장점", "단점·주의점", "어울리는 상황", "트렌드 한 줄 평"]) {
-    assert.match(page, new RegExp(label));
+  for (const key of ["goal", "usage", "pros", "cons", "fit"]) {
+    assert.match(page, new RegExp(`tr\\(\"tooltip\\.${key}\"\\)`));
   }
 });
 
@@ -401,7 +418,7 @@ test("the refresh status appears once at the top of the sidebar and not in main"
 });
 
 test("sidebar sections follow the approved priority and keyboard order", () => {
-  const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<button class="nav-toggle edge-tab"/)?.[0] ?? "";
+  const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<nav class="nav-rail"/)?.[0] ?? "";
   const sectionIds = [
     "refreshStatus", "accountSection", "viewSection", "periodSection", "languageSection",
     "fieldSection", "formSection", "sortSection", "resultSection", "hiddenRepoSection",
@@ -432,15 +449,15 @@ test("sidebar sections follow the approved priority and keyboard order", () => {
 
 test("refresh copy and calculation follow the approved two-hour schedule", () => {
   const refresh = page.match(/<section[^>]*id="refreshStatus"[\s\S]*?<\/section>/)?.[0] ?? "";
-  assert.equal([...page.matchAll(/대시보드 메뉴/g)].length, 1);
+  assert.equal([...page.matchAll(/Dashboard menu/g)].length, 1);
   assert.equal([...refresh.matchAll(/<p\b/g)].length, 3);
-  assert.match(refresh, /<p id="luLast">최근 갱신 시각 : 불러오는 중…<\/p>/);
-  assert.match(refresh, /<p id="luNext">다음 갱신 시각 : —<\/p>/);
-  assert.match(refresh, /<p id="luCadence">2시간마다 갱신<\/p>/);
+  assert.match(refresh, /<p id="luLast" data-i18n="refresh\.loading">Last refreshed: loading…<\/p>/);
+  assert.match(refresh, /<p id="luNext" data-i18n="refresh\.next">Next refresh: —<\/p>/);
+  assert.match(refresh, /<p id="luCadence" data-i18n="refresh\.cadence">Refreshes every 2 hours<\/p>/);
   assert.match(page, /<script src="refresh-schedule\.js"><\/script>/);
   assert.match(page, /RefreshSchedule\.nextRefreshTime\(Date\.now\(\)\)/);
-  assert.match(page, /function updateRefreshStatus\(lastValue\)/);
-  assert.match(page, /document\.getElementById\("luCadence"\)\.textContent="2시간마다 갱신"/);
+  assert.match(page, /function updateRefreshStatus\(nextLastValue\)/);
+  assert.match(page, /document\.getElementById\("luCadence"\)\.textContent=tr\("refresh\.cadence"\)/);
   assert.doesNotMatch(page, /서울 기준 홀수 시 07분|매일 03:17 갱신|setUTCHours\(18,17/);
 });
 
@@ -455,13 +472,13 @@ test("README tabs consume only Markdown tied to immutable repository metadata", 
   assert.match(page, /readme_path/);
   assert.match(page, /readme_blob_sha/);
   assert.match(page, /default_branch_head_sha/);
-  assert.match(page, /commitSha:repo\.default_branch_head_sha/);
-  assert.match(page, /https:\/\/api\.github\.com\/repos\/\$\{slug\}\/contents\/\$\{encodeReadmePath\(metadata\.path\)\}\?ref=\$\{metadata\.defaultBranchHeadSha\}/);
-  assert.match(page, /payload\.sha!==metadata\.blobSha/);
-  assert.match(page, /ReadmeMarkdown\.render\(markdown,metadata\.rendererSource\)/);
-  assert.match(page, /t\.markdown/);
-  assert.match(page, /t\.source\.blob_sha===metadata\.blobSha/);
-  assert.doesNotMatch(page, /t\.html/);
+  assert.match(page, /readme_variants/);
+  assert.match(page, /https:\/\/api\.github\.com\/repos\/\$\{state\.slug\}\/contents\/\$\{encodeReadmePath\(variant\.path\)\}\?ref=\$\{state\.metadata\.defaultBranchHeadSha\}/);
+  assert.match(page, /payload\.sha!==variant\.blobSha/);
+  assert.match(page, /crypto\.subtle\.digest\("SHA-256"/);
+  assert.match(page, /actual!==expectedHash\.toLowerCase\(\)/);
+  assert.match(page, /ReadmeMarkdown\.render\(markdown,\{repositoryUrl:`https:\/\/github\.com\/\$\{state\.slug\}`,blobSha:variant\.blobSha,commitSha:state\.metadata\.defaultBranchHeadSha\}\)/);
+  assert.doesNotMatch(page, /translations\/|translated_markdown|translation_applicable/);
   assert.doesNotMatch(page, /raw\.githubusercontent\.com/);
   assert.doesNotMatch(page, /HEAD\/README\.md/);
 });
@@ -495,29 +512,32 @@ test("README runtime refuses a mismatched immutable Contents response without us
     pageMain: node(), sidebar: node(), closeSidebar() {}, hideTip() {}, matchMedia() { return { matches: true }; },
     window: { open() {} }, location: { reload() {} },
     ReadmeMarkdown: { render(markdown) { rendered.push(markdown); return `<p>${markdown}</p>`; } },
+    SUMMARY_LOCALES: ["en", "ko", "zh-CN", "es", "ja"],
+    siteI18n: { locale: "en" },
+    tr(key) { return ({ "readme.default": "Default", "readme.loading": "Loading…", "readme.unavailable": "README is unavailable.", "readme.direct": "View directly on GitHub ↗" })[key] ?? key; },
     fetch: async url => {
       requested.push(url);
       return { ok: true, json: async () => ({ path: "README.md", sha: "b".repeat(40), encoding: "base64", content: "IyBSZXBv" }) };
     },
-    TextDecoder, Uint8Array, atob, Error, Promise,
+    TextDecoder, TextEncoder, Uint8Array, atob, crypto: globalThis.crypto, Error, Promise, Map,
   };
   vm.runInNewContext(page.slice(start, end), context, { filename: "readme-runtime-fixture.js" });
   await context.globalThis.ReadmeRuntime.openReadme("owner/repo", "Repo");
   assert.deepEqual(requested, [`https://api.github.com/repos/owner/repo/contents/README.md?ref=${expectedSha}`]);
   assert.equal(requested.some(url => url.includes("HEAD/README.md")), false);
   assert.deepEqual(rendered, []);
-  assert.match(getNode("readmeBody").innerHTML, /README를 확인할 수 없어요/);
+  assert.match(getNode("readmeBody").innerHTML, /README is unavailable\./);
 });
 
 test("landmarks, form controls, and hidden panels retain accessible boundaries", () => {
   assert.match(page, /<main class="wrap">[\s\S]*?<\/main>/);
   const main = page.match(/<main class="wrap">([\s\S]*?)<\/main>/)?.[1] ?? "";
   assert.match(main, /<div class="list" id="list"><\/div>/);
-  assert.match(main, /class="signal-guide"[^>]*aria-label="배지 안내"/);
+  assert.match(main, /class="signal-guide"[^>]*aria-label="Badge guide"[^>]*data-i18n-aria-label="badges\.aria"/);
   assert.match(main, /class="list-stage" id="listStage"/);
   assert.match(main, /<footer>/);
-  assert.match(page, /<select class="langsel" id="lang" aria-label="프로그래밍 언어"/);
-  assert.match(page, /<input class="search" id="q" aria-label="저장소 검색"/);
+  assert.match(page, /<select class="langsel" id="lang" aria-label="Programming language"[^>]*data-i18n-aria-label="language\.title"/);
+  assert.match(page, /<input class="search" id="q" aria-label="Search repositories"[^>]*data-i18n-aria-label="search\.aria"/);
   assert.match(page, /id="readmePanel"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-hidden="true" inert/);
   assert.match(page, /id="tipLayer"[^>]*aria-hidden="true" inert/);
   assert.match(page, /panel\.inert=false[\s\S]*?panel\.setAttribute\("aria-hidden","false"\)/);
@@ -525,11 +545,13 @@ test("landmarks, form controls, and hidden panels retain accessible boundaries",
   assert.doesNotMatch(page, /#tipLayer h3|<h3>\$\{esc\(r\.name\)\}<\/h3>/);
 });
 
-test("fine pointers expose a full-height rail without changing coarse-pointer layout", () => {
+test("fine pointers expose the selected 64px compact Explore rail", () => {
   assert.match(page, /\.filter-sidebar\{[\s\S]*?height:100vh;height:100dvh[\s\S]*?transform:translate3d\(-105%,0,0\)/);
   const finePointer = page.match(/@media\(hover:hover\) and \(pointer:fine\)\{[\s\S]*?\n\}/)?.[0] ?? "";
-  assert.match(finePointer, /\.nav-toggle\{[^}]*top:0[^}]*bottom:0[^}]*width:44px[^}]*height:100vh[^}]*height:100dvh[^}]*border-radius:0/);
-  assert.match(finePointer, /\.nav-toggle:hover,\.nav-toggle:focus-visible\{[^}]*background:var\(--accent\)[^}]*color:#fff/);
+  assert.match(finePointer, /\.nav-rail\{[^}]*display:flex/);
+  assert.match(finePointer, /\.filter-sidebar\{[^}]*left:64px[^}]*width:min\(336px,calc\(100vw - 64px\)\)/);
+  assert.match(page, /\.nav-rail\{[^}]*width:64px[^}]*height:100vh[^}]*height:100dvh/);
+  assert.match(page, /\.nav-toggle:hover,\.nav-toggle:focus-visible,[^}]*\.nav-toggle\{[^}]*background:var\(--accent-soft\)[^}]*color:var\(--accent-selected\)/);
 });
 
 test("hover-open sidebar stays passive and exposes non-modal dialog semantics", () => {
@@ -660,10 +682,12 @@ test("hover close button restores rail focus before hiding and inerting the side
 test("coarse pointers hide the rail and preserve native vertical touch action", () => {
   const coarse = page.match(/@media\(hover:none\),\(pointer:coarse\)\{[\s\S]*?\n\}/)?.[0] ?? "";
   assert.match(coarse, /body\{touch-action:pan-y pinch-zoom\}/);
-  assert.match(coarse, /\.nav-toggle\{display:none\}/);
+  assert.match(coarse, /\.nav-rail\{display:none\}/);
+  assert.match(coarse, /\.mobile-nav-toggle\{display:inline-flex\}/);
   assert.match(coarse, /\.filter-sidebar\{touch-action:pan-y pinch-zoom\}/);
   assert.match(page, /\.filter-sidebar\.dragging\{transition:none\}/);
-  assert.doesNotMatch(page, /id="(?:mobileNav|swipeEdge|edgeHitTarget)"|class="[^"]*(?:hamburger|swipe-edge|edge-hit-target)/i);
+  assert.match(page, /id="mobileNavToggle"/);
+  assert.doesNotMatch(page, /id="(?:swipeEdge|edgeHitTarget)"|class="[^"]*(?:hamburger|swipe-edge|edge-hit-target)/i);
 });
 
 test("an unclaimed 24px-edge tap preserves first-detail then same-card navigation", () => {
@@ -925,10 +949,10 @@ test("responsive sidebar owns account, favorites, and discovery filters", () => 
   assert.match(page, /id="navToggle"[^>]*aria-controls="filterSidebar"[^>]*aria-expanded="false"/);
   const sidebarTag = page.match(/<div[^>]*id="filterSidebar"[^>]*>/)?.[0] ?? "";
   assert.match(sidebarTag, /role="dialog"/);
-  assert.match(sidebarTag, /aria-label="탐색 사이드바"/);
+  assert.match(sidebarTag, /aria-label="Explore sidebar"/);
   assert.match(sidebarTag, /aria-hidden="true" inert/);
   assert.doesNotMatch(sidebarTag, /aria-modal=/);
-  const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<button class="nav-toggle edge-tab"/)?.[0] ?? "";
+  const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<nav class="nav-rail"/)?.[0] ?? "";
   assert.match(sidebar, /id="syncStatus"/);
   assert.match(sidebar, /id="loginBtn"/);
   assert.match(sidebar, /id="favOnlyBtn"/);
@@ -948,10 +972,10 @@ test("static account markup is fail-closed while Firebase prepares login", () =>
   const login = page.match(/<button[^>]*id="loginBtn"[^>]*>/)?.[0] ?? "";
   const logout = page.match(/<button[^>]*id="logoutBtn"[^>]*>/)?.[0] ?? "";
 
-  assert.match(status, /title="로그인 준비 중이에요\."/);
-  assert.match(status, /aria-label="브라우저 동기화\. 로그인 준비 중이에요\."/);
+  assert.match(status, /title="Preparing sign-in\."/);
+  assert.match(status, /aria-label="Browser sync\. Preparing sign-in\."/);
   assert.match(status, /data-tone="notice"/);
-  assert.match(status, />로그인 준비 중이에요\.<\/p>$/);
+  assert.match(status, />Preparing sign-in\.<\/p>$/);
   assert.match(login, /\bdisabled\b/);
   assert.doesNotMatch(login, /\bhidden\b/);
   assert.match(logout, /\bhidden\b/);
@@ -960,7 +984,7 @@ test("static account markup is fail-closed while Firebase prepares login", () =>
 
 test("browser-local hidden repositories have tooltip actions, undo, and sidebar recovery", () => {
   assert.match(page, /<script src="favorites\.js"><\/script>\s*<script src="hidden-repos\.js"><\/script>/);
-  assert.match(page, /class="rdbtn js-hide-repo"[^>]*data-slug="\$\{r\.slug\}"[^>]*>관심 없음<\/button>/);
+  assert.match(page, /class="rdbtn js-hide-repo"[^>]*data-slug="\$\{r\.slug\}"[^>]*>\$\{tr\("tooltip\.hide"\)\}<\/button>/);
   assert.match(page, /id="hiddenRepoSection"[^>]*hidden/);
   assert.match(page, /id="hiddenRepoList"/);
   assert.match(page, /id="restoreAllHiddenBtn"/);
@@ -990,13 +1014,13 @@ test("hidden repositories are removed after favorites without entering URL state
   assert.match(renderFlow, /if\(favOnly\)items=items\.filter\(r=>favSet\.has\(r\.slug\)\)/);
   assert.match(renderFlow, /const matchedCount=items\.length;\s*items=HiddenRepos\.filterRepos\(items,hiddenSet\)/);
   assert.match(renderFlow, /hiddenOnly=!items\.length&&matchedCount>0/);
-  assert.match(renderFlow, /현재 조건의 저장소를 모두 숨겼어요/);
+  assert.match(renderFlow, /tr\("empty\.hiddenAll"\)/);
   assert.match(renderFlow, /emptyManageHiddenBtn/);
   const urlFlow = page.match(/function syncUrl[\s\S]*?function toggleFilter/)?.[0] ?? "";
   assert.doesNotMatch(urlFlow, /hidden|slug/i);
 });
 
-test("the explore edge tab stays attached, reachable, and outside the inert page", () => {
+test("the selected compact Explore rail stays reachable and outside the inert page", () => {
   const sidebarIndex = page.indexOf('id="filterSidebar"');
   const navIndex = page.indexOf('id="navToggle"');
   const scrimIndex = page.indexOf('id="sidebarScrim"');
@@ -1004,18 +1028,19 @@ test("the explore edge tab stays attached, reachable, and outside the inert page
   assert.ok(sidebarIndex >= 0 && sidebarIndex < navIndex && navIndex < scrimIndex && scrimIndex < mainIndex);
   const main = page.match(/<main class="wrap">([\s\S]*?)<\/main>/)?.[1] ?? "";
   assert.doesNotMatch(main, /id="navToggle"/);
-  assert.match(page, /class="nav-toggle edge-tab" id="navToggle"[^>]*aria-label="탐색 사이드바 열기"[^>]*aria-controls="filterSidebar"[^>]*aria-expanded="false"/);
-  assert.match(page, /id="navToggle"[\s\S]*?<path d="M4 7h16M7 12h10M10 17h4"\/>/);
+  assert.match(page, /<nav class="nav-rail"[^>]*aria-label="Quick navigation"[^>]*data-i18n-aria-label="nav\.quick">[\s\S]*?class="nav-toggle" id="navToggle"[^>]*aria-label="Open Explore sidebar"[^>]*data-i18n-aria-label="nav\.open"[^>]*aria-controls="filterSidebar"[^>]*aria-expanded="false"/);
+  assert.match(page, /id="navToggle"[\s\S]*?<span class="nav-glyph" aria-hidden="true"><\/span>[\s\S]*?<span class="nav-label" data-i18n="nav\.explore">Explore<\/span>/);
   assert.match(page, /--sidebar-width:min\(360px,calc\(100vw - 44px\)\)/);
   assert.match(page, /\.filter-sidebar\{[\s\S]*?width:var\(--sidebar-width\)/);
-  assert.match(page, /\.nav-toggle\{[^}]*background:var\(--tip-bg\)[^}]*transition:transform var\(--sidebar-close-duration\) cubic-bezier\(\.32,\.72,0,1\),opacity var\(--sidebar-close-duration\) ease-out/);
-  assert.match(page, /\.filter-sidebar\.open~\.nav-toggle\{transform:translate3d\(calc\(var\(--sidebar-width\) - 1px\),0,0\)/);
-  assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 60px\)\}\}/);
+  assert.match(page, /\.nav-rail\{[^}]*background:var\(--bg-elev\)[^}]*backdrop-filter:blur\(24px\) saturate\(160%\)/);
+  assert.doesNotMatch(page, /\.filter-sidebar\.open~\.nav-toggle\{transform:/);
+  assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(min-width:721px\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 80px\)\}\}/);
+  assert.match(page, /id="mobileNavToggle"[^>]*aria-controls="filterSidebar"[^>]*aria-expanded="false"/);
   assert.match(page, /@media\(max-width:560px\)\{[\s\S]*?h1\{white-space:normal;overflow-wrap:anywhere\}/);
   assert.match(page, /\.repo-link\{[^}]*min-width:0[^}]*overflow-wrap:anywhere[^}]*word-break:break-word/);
   assert.match(page, /@media\(max-width:560px\)\{[\s\S]*?\.undo-bar\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}[\s\S]*?\.undo-bar span\{grid-column:1\/-1;min-width:0\}/);
-  assert.match(page, /navToggle\.setAttribute\("aria-label","탐색 사이드바 닫기"\)/);
-  assert.match(page, /navToggle\.setAttribute\("aria-label","탐색 사이드바 열기"\)/);
+  assert.match(page, /setSidebarTriggerState\(tr\("nav\.close"\),true\)/);
+  assert.match(page, /setSidebarTriggerState\(tr\("nav\.open"\),false\)/);
   assert.match(page, /navToggle\.addEventListener\("pointerenter"/);
   assert.match(page, /navToggle\.addEventListener\("click",activateSidebar\)/);
   assert.doesNotMatch(page, /navToggle\.addEventListener\("keydown"/);
@@ -1036,8 +1061,8 @@ test("membership history is loaded before semantic badges and recent exits are r
   assert.match(page, /<script src="membership-history\.js"><\/script>/);
   assert.match(page, /MembershipHistory\.load\("data\/membership-status\.json",fetch\)/);
   assert.match(page, /MEMBERSHIP_STATUS\.get\(r\.slug\.toLowerCase\(\)\)/);
-  assert.match(page, />신규<\/span>/);
-  assert.match(page, />재진입<\/span>/);
+  assert.match(page, /tr\("badges\.newLabel"\)/);
+  assert.match(page, /tr\("badges\.reenteredLabel"\)/);
   assert.match(page, /id="recentExitsSection"[^>]*hidden/);
   assert.match(page, /id="recentExitsList"/);
   assert.match(page, /recentExitsList[\s\S]*?https:\/\/github\.com\//);
@@ -1049,8 +1074,8 @@ test("new-only control follows AI exclusion and owns the complete public view st
   const newOnlyIndex = fieldSection.indexOf('id="newOnly"');
   assert.ok(excludeIndex >= 0 && excludeIndex < newOnlyIndex);
   assert.equal([...fieldSection.matchAll(/id="newOnly"/g)].length, 1);
-  assert.match(fieldSection, /<fieldset class="filter-switch-row">[\s\S]*?<legend class="sr-only">빠른 필터<\/legend>/);
-  assert.match(fieldSection, /<label class="filter-switch"><input id="newOnly" type="checkbox"> 신규 저장소만<\/label>/);
+  assert.match(fieldSection, /<fieldset class="filter-switch-row">[\s\S]*?<legend class="sr-only" data-i18n="field\.quick">Quick filters<\/legend>/);
+  assert.match(fieldSection, /<label class="filter-switch"><input id="newOnly" type="checkbox"> <span data-i18n="field\.newOnly">New repositories only<\/span><\/label>/);
   assert.match(page, /\.filter-switch-row\{[^}]*grid-template-columns:repeat\(auto-fit,minmax\(min\(140px,100%\),1fr\)\)/);
   assert.match(page, /document\.getElementById\("newOnly"\)\.checked=filterState\.newOnly/);
   assert.match(page, /activeDiscoveryCount\(\)[\s\S]*?\+\(filterState\.newOnly\?1:0\)/);
@@ -1063,12 +1088,12 @@ test("new-only control follows AI exclusion and owns the complete public view st
 test("new-only waits for membership and fails closed with one canonical baseline boundary", () => {
   const { context, contract } = renderContractHarness();
   assert.equal(JSON.stringify(contract.newOnlyGate({ newOnly: true }, "loading")), JSON.stringify({
-    message: "신규 상태를 불러오는 중…",
-    summary: "신규 상태를 불러오는 중입니다.",
+    message: "Loading new-repository status…",
+    summary: "Loading new-repository status.",
   }));
   assert.equal(JSON.stringify(contract.newOnlyGate({ newOnly: true }, "error")), JSON.stringify({
-    message: "신규 상태를 불러오지 못해 필터를 적용할 수 없습니다.",
-    summary: "0개 저장소 · 신규 상태를 불러오지 못해 필터를 적용할 수 없습니다.",
+    message: "New-repository status could not be loaded, so this filter is unavailable.",
+    summary: "0 repositories · New-repository status could not be loaded, so this filter is unavailable.",
   }));
   assert.equal(contract.newOnlyGate({ newOnly: true }, "ready"), null);
   assert.equal(contract.newOnlyGate({ newOnly: false }, "loading"), null);
@@ -1112,13 +1137,13 @@ test("membership readiness requires an exact normalized current-slug join", () =
 test("canonical card badges preserve every form and non-AI field before one AI badge", () => {
   const classification = { forms: ["agent", "mcp"], fields: ["ai-ml", "dev-tools", "security"] };
   const html = renderContractHarness(classification).contract.classificationBadges({});
-  const order = ["Agent", "MCP", "개발 도구", "보안·프라이버시", 'data-category="ai"'].map(value => html.indexOf(value));
+  const order = ["Agent", "MCP", "Developer tools", "Security and privacy", 'data-category="ai"'].map(value => html.indexOf(value));
   assert.ok(order.every(index => index >= 0));
   assert.deepEqual(order, [...order].sort((left, right) => left - right));
   assert.equal([...html.matchAll(/data-category="form"/g)].length, 2);
   assert.equal([...html.matchAll(/data-category="field"/g)].length, 2);
   assert.equal([...html.matchAll(/data-category="ai"/g)].length, 1);
-  for (const category of ["형태:", "분야·기술:", "AI 관련:"]) {
+  for (const category of ["Form:", "Field and technology:", "AI related:"]) {
     assert.match(html, new RegExp(`class="category-label" aria-hidden="true">${category}`));
     assert.match(html, new RegExp(`class="sr-only">${category} `));
   }
@@ -1130,14 +1155,14 @@ test("canonical card badges preserve every form and non-AI field before one AI b
   assert.match(page, /\.category-badge\{[^}]*max-width:100%[^}]*overflow-wrap:anywhere/);
 });
 
-test("repository issue counts use the exact Korean issue and PR label twice", () => {
-  assert.equal([...page.matchAll(/열린 이슈·PR/g)].length, 2);
+test("repository issue counts use the selected locale label in cards and tooltips", () => {
+  assert.equal([...page.matchAll(/tr\("repo\.issues"\)/g)].length, 2);
   assert.equal([...page.matchAll(/\$\{fmt\(r\.issues\|\|0\)\}/g)].length, 2);
   assert.doesNotMatch(page, /\$\{fmt\(r\.issues\|\|0\)\} issues/);
 });
 
 test("scroll-to-top is native, thresholded, coalesced, overlay-safe, and motion-aware", () => {
-  assert.match(page, /<button class="scroll-top" id="scrollTopBtn" type="button" aria-label="페이지 맨 위로 이동" hidden tabindex="-1" inert>/);
+  assert.match(page, /<button class="scroll-top" id="scrollTopBtn" type="button" aria-label="Back to top" data-i18n-aria-label="scroll\.top" hidden tabindex="-1" inert>/);
   const style = page.match(/\.scroll-top\{[^}]*\}/)?.[0] ?? "";
   assert.match(style, /position:fixed/);
   assert.match(style, /min-width:48px/);
@@ -1273,16 +1298,16 @@ test("badge guide descriptions can shrink inside a 200 percent zoom viewport", (
 test("the page head advertises both exact Atom subscription endpoints", () => {
   const alternates = [...page.matchAll(/<link rel="alternate" type="application\/atom\+xml" title="([^"]+)" href="([^"]+)">/g)];
   assert.deepEqual(alternates.map(match => match.slice(1)), [
-    ["GitHub Trending Daily — 현재 전체", "https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml"],
-    ["GitHub Trending Daily — 신규·재진입", "https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml"],
+    ["GitHub Trending Daily — Current repositories", "https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml"],
+    ["GitHub Trending Daily — New and re-entered repositories", "https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml"],
   ]);
 });
 
 test("current-view export uses the exact rendered array and keeps private state out", () => {
   assert.match(page, /<script src="current-view-export\.js"><\/script>/);
-  assert.match(page, /id="exportCsvBtn"[^>]*>CSV 다운로드<\/button>/);
-  assert.match(page, /id="exportJsonBtn"[^>]*>JSON 다운로드<\/button>/);
-  assert.match(page, /id="copyViewUrlBtn"[^>]*>현재 링크 복사<\/button>/);
+  assert.match(page, /id="exportCsvBtn"[^>]*data-i18n="export\.csv">Download CSV<\/button>/);
+  assert.match(page, /id="exportJsonBtn"[^>]*data-i18n="export\.json">Download JSON<\/button>/);
+  assert.match(page, /id="copyViewUrlBtn"[^>]*data-i18n="export\.copy">Copy current link<\/button>/);
   assert.match(page, /id="exportStatus"[^>]*role="status"[^>]*aria-live="polite"/);
   assert.match(page, /\.export-actions button\{[^}]*min-height:44px/);
   const sort = page.indexOf("items=RepoFilters.sortRepos(items,filterState.sort,viewPeriod)");
@@ -1297,12 +1322,12 @@ test("current-view export uses the exact rendered array and keeps private state 
 });
 
 test("sorting is shareable, stable, and keeps the selected period in favorites", () => {
-  assert.match(page, /<select class="langsel" id="sortSelect" aria-label="저장소 정렬"/);
-  assert.match(page, /<option value="trending">Trending 원래 순서<\/option>/);
-  assert.match(page, /<option value="gain">선택 기간 스타 증가<\/option>/);
-  assert.match(page, /<option value="stars">총 스타<\/option>/);
-  assert.match(page, /<option value="pushed">최근 푸시<\/option>/);
-  assert.match(page, /<option value="release">최근 릴리스<\/option>/);
+  assert.match(page, /<select class="langsel" id="sortSelect" aria-label="Repository sort order"[^>]*data-i18n-aria-label="sort\.aria"/);
+  assert.match(page, /<option value="trending" data-i18n="sort\.original">Original Trending order<\/option>/);
+  assert.match(page, /<option value="gain" data-i18n="sort\.gain">Stars gained in selected period<\/option>/);
+  assert.match(page, /<option value="stars" data-i18n="sort\.stars">Total stars<\/option>/);
+  assert.match(page, /<option value="pushed" data-i18n="sort\.pushed">Latest push<\/option>/);
+  assert.match(page, /<option value="release" data-i18n="sort\.release">Latest release<\/option>/);
   assert.match(page, /\.langsel\{[^}]*min-height:44px/);
   assert.match(page, /gainOption\.disabled=period==="all"/);
   assert.match(page, /const viewPeriod=period;/);

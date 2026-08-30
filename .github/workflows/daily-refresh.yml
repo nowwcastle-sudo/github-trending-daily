@@ -206,7 +206,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           set -euo pipefail
-          node scripts/generate-translations.mjs --facts "${RUNNER_TEMP}/repository-facts.json" --events "${RUNNER_TEMP}/repository-events.json" --enrichment-index-out "${RUNNER_TEMP}/enrichment-index.json" --source-root "${RUNNER_TEMP}/candidate" --output-root "${RUNNER_TEMP}/candidate" --prior-heads "${RUNNER_TEMP}/prior-heads.json" --parent-evidence "${RUNNER_TEMP}/parent-evidence.json" --parent-database "$PARENT_DATABASE"
+          node scripts/generate-summary-bundles.mjs --facts "${RUNNER_TEMP}/repository-facts.json" --events "${RUNNER_TEMP}/repository-events.json" --enrichment-index-out "${RUNNER_TEMP}/enrichment-index.json" --source-root "${RUNNER_TEMP}/candidate" --output-root "${RUNNER_TEMP}/candidate" --prior-heads "${RUNNER_TEMP}/prior-heads.json" --parent-evidence "${RUNNER_TEMP}/parent-evidence.json" --parent-database "$PARENT_DATABASE"
       - name: Record core repository snapshot
         shell: bash
         run: |
@@ -242,7 +242,7 @@ jobs:
           set -euo pipefail
           CANDIDATE="${RUNNER_TEMP}/candidate"
           python scripts/derive_repository_artifacts.py verify-pages --database "$CANDIDATE/data/repository-observations.sqlite" --snapshot-id "$SNAPSHOT_ID" --candidate-root "$CANDIDATE" --contract-out "${RUNNER_TEMP}/candidate-artifact-contract.json"
-          node scripts/validate-enrichment-coverage.mjs --root "$CANDIDATE" --json-counts
+          node scripts/validate-enrichment-coverage.mjs --root "$CANDIDATE" --facts "${RUNNER_TEMP}/repository-facts.json" --json-counts
           python scripts/generate_atom_feeds.py --page "$CANDIDATE/index.html" --latest "$CANDIDATE/data/latest.json" --database "$CANDIDATE/data/repository-observations.sqlite" --legacy-membership-database data/trending-membership.sqlite --feed "$CANDIDATE/feed.xml" --changes "$CANDIDATE/changes.xml" --validate-only
           node scripts/prepare-refresh-candidate.mjs --verify-generated "${RUNNER_TEMP}/candidate-baseline" --candidate "$CANDIDATE"
       - name: Build and probe validated candidate

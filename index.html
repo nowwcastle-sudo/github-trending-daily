@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GitHub Trending — 인사이트 대시보드</title>
-<link rel="alternate" type="application/atom+xml" title="GitHub Trending Daily — 현재 전체" href="https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml">
-<link rel="alternate" type="application/atom+xml" title="GitHub Trending Daily — 신규·재진입" href="https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml">
+<title>GitHub Trending — Insight Dashboard</title>
+<link rel="alternate" type="application/atom+xml" title="GitHub Trending Daily — Current repositories" href="https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml">
+<link rel="alternate" type="application/atom+xml" title="GitHub Trending Daily — New and re-entered repositories" href="https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml">
 <style>:root{
   --sidebar-width:min(360px,calc(100vw - 44px));
   --sidebar-open-duration:260ms;--sidebar-close-duration:210ms;--tooltip-duration:160ms;
@@ -63,7 +63,9 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 }
 .theme-toggle:hover{border-color:var(--text-3)}
 .theme-toggle:active{transform:scale(.94)}
-.header-actions{display:flex;align-items:center;justify-content:flex-end}
+.header-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.site-locale{min-height:44px;border:1px solid var(--border);border-radius:11px;background:var(--bg-elev);color:var(--text);padding:8px 30px 8px 10px;font:inherit;font-size:12px;font-weight:650;cursor:pointer}
+.site-locale:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .account-controls{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 .sync-status{
   max-width:300px;color:var(--text-2);font-size:12.5px;line-height:1.35;
@@ -80,18 +82,28 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .account-btn:disabled{cursor:wait;opacity:.55}
 .account-btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .theme-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.nav-toggle{
-  position:fixed;z-index:330;left:0;top:max(160px,calc(env(safe-area-inset-top) + 68px));width:44px;height:48px;min-width:44px;min-height:44px;
-  border:1px solid var(--tip-border);border-left:0;border-radius:0 13px 13px 0;padding:0;background:var(--tip-bg);backdrop-filter:blur(28px) saturate(180%);
-  color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.96;transform:translate3d(0,0,0);box-shadow:var(--shadow-card);
-  transition:transform var(--sidebar-close-duration) cubic-bezier(.32,.72,0,1),opacity var(--sidebar-close-duration) ease-out,border-color .18s ease,color .18s ease;
+.nav-rail{
+  position:fixed;z-index:330;inset:0 auto 0 0;width:64px;height:100vh;height:100dvh;display:none;flex-direction:column;align-items:center;gap:12px;
+  padding:calc(28px + env(safe-area-inset-top)) 8px calc(20px + env(safe-area-inset-bottom));background:var(--bg-elev);backdrop-filter:blur(24px) saturate(160%);
+  border-right:1px solid var(--hairline);
 }
-.nav-toggle:hover,.nav-toggle:focus-visible{opacity:1;border-color:var(--surface-border-strong);color:var(--accent)}
+.nav-toggle{
+  position:relative;width:48px;min-height:60px;border:0;border-radius:14px;padding:7px 4px;background:transparent;color:var(--text-2);cursor:pointer;
+  display:grid;place-items:center;align-content:center;gap:4px;font:inherit;font-size:10px;font-weight:650;letter-spacing:.01em;
+  transition:background-color .16s ease,color .16s ease,transform .1s ease-out;
+}
+.nav-toggle:hover,.nav-toggle:focus-visible,.filter-sidebar.open~.nav-rail .nav-toggle{background:var(--accent-soft);color:var(--accent-selected)}
 .nav-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.nav-toggle:active svg{transform:scale(.9)}
-.nav-toggle svg,.sidebar-close svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round}
-.nav-toggle svg{transition:transform .12s ease-out}
-.nav-toggle .filter-count{position:absolute;top:3px;right:2px;min-width:15px;padding:1px 4px;font-size:9px;line-height:13px}
+.nav-toggle:active{transform:scale(.96)}
+.nav-glyph{width:20px;height:17px;border:1.5px solid currentColor;border-radius:4px;position:relative}
+.nav-glyph::before{content:"";position:absolute;left:6px;top:0;bottom:0;border-left:1.5px solid currentColor}
+.nav-label{line-height:1}
+.nav-rail-spacer{flex:1}
+.nav-rail .filter-count{min-width:20px;padding:2px 6px;font-size:10px;line-height:14px;text-align:center}
+.mobile-nav-toggle{display:none;align-items:center;justify-content:center;gap:7px;min-width:44px;min-height:44px;border:1px solid var(--border);border-radius:11px;background:var(--bg-elev);color:var(--text);padding:8px 10px;font:inherit;font-size:12px;font-weight:650;cursor:pointer}
+.mobile-nav-toggle .nav-glyph{width:18px;height:15px}
+.mobile-nav-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.sidebar-close svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round}
 .filter-count{min-width:20px;padding:2px 6px;border-radius:99px;background:var(--accent-soft);color:var(--accent-selected);font-size:11px;font-variant-numeric:tabular-nums}
 .filter-count:empty{display:none}
 
@@ -106,17 +118,15 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 }
 .filter-sidebar.open{transform:translate3d(0,0,0);opacity:1;transition-duration:var(--sidebar-open-duration),var(--sidebar-open-duration)}
 .filter-sidebar.dragging{transition:none}
-.filter-sidebar.open~.nav-toggle{transform:translate3d(calc(var(--sidebar-width) - 1px),0,0);opacity:1;box-shadow:none;transition-duration:var(--sidebar-open-duration),var(--sidebar-open-duration),.18s,.18s}
 @media(hover:hover) and (pointer:fine){
-  .nav-toggle{
-    top:0;bottom:0;width:44px;height:100vh;height:100dvh;border-radius:0;
-    background:var(--accent-soft);color:var(--accent-selected);box-shadow:none;
-  }
-  .nav-toggle:hover,.nav-toggle:focus-visible{background:var(--accent);color:#fff}
+  .nav-rail{display:flex}
+  .filter-sidebar{left:64px;width:min(336px,calc(100vw - 64px));transform:translate3d(calc(-100% - 64px),0,0)}
+  .filter-sidebar.open{transform:translate3d(0,0,0)}
 }
 @media(hover:none),(pointer:coarse){
   body{touch-action:pan-y pinch-zoom}
-  .nav-toggle{display:none}
+  .nav-rail{display:none}
+  .mobile-nav-toggle{display:inline-flex}
   .filter-sidebar{touch-action:pan-y pinch-zoom}
 }
 .sidebar-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -287,6 +297,16 @@ body.overlay-open{overflow:hidden}
 }
 #tipLayer h2{font-size:20px;letter-spacing:-.01em;margin-bottom:2px}
 .tsub{font-size:14px;color:var(--text-3);margin-bottom:12px}
+.summary-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin:2px 0 8px;overflow-x:auto;scrollbar-width:none}
+.summary-tabs::-webkit-scrollbar{display:none}
+.summary-tab{min-width:48px;min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--text-2);padding:7px 5px;font:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.summary-tab:hover,.summary-tab:focus-visible{background:var(--seg-bg);color:var(--text)}
+.summary-tab:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.summary-tab[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-selected)}
+.summary-tab:disabled{opacity:.38;cursor:not-allowed}
+.tip-ai-note{margin:10px 0 2px;color:var(--text-2);font-size:11px;line-height:1.45}
+.tip-readme-row{display:flex;margin-bottom:10px}
+.tip-readme-row .rdbtn{width:100%;justify-content:center}
 .trow{padding:9px 0;border-top:1px solid var(--hairline)}
 .trow:first-of-type{border-top:none;padding-top:2px}
 .tlabel{display:block;font-size:12.5px;font-weight:700;letter-spacing:.05em;color:var(--accent);
@@ -342,6 +362,12 @@ footer a{color:var(--text-2)}
   .account-controls{justify-content:flex-start}
 }
 @media(max-width:1147px){.list-stage{padding-right:calc(56px + env(safe-area-inset-right))}}
+@media(max-width:720px){
+  .nav-rail{display:none!important}
+  .mobile-nav-toggle{display:inline-flex}
+  .filter-sidebar{left:0;width:var(--sidebar-width);transform:translate3d(-105%,0,0)}
+  .filter-sidebar.open{transform:translate3d(0,0,0)}
+}
 @media(max-width:560px){
   .wrap{padding:32px 16px 72px}
   h1{white-space:normal;overflow-wrap:anywhere}
@@ -355,7 +381,7 @@ footer a{color:var(--text-2)}
   .signal-guide>strong{display:block;margin-bottom:7px}
   .signal-guide dl{display:grid;gap:7px}
 }
-@media(hover:hover) and (pointer:fine) and (max-width:1147px){.wrap{padding-left:calc(env(safe-area-inset-left) + 60px)}}
+@media(hover:hover) and (pointer:fine) and (min-width:721px) and (max-width:1147px){.wrap{padding-left:calc(env(safe-area-inset-left) + 80px)}}
 
 .favbtn{position:absolute;right:8px;top:7px;width:44px;height:44px;background:none;border:none;color:var(--text-3);
   font-size:20px;cursor:pointer;padding:0;border-radius:10px;line-height:1;display:flex;align-items:center;justify-content:center;
@@ -426,143 +452,154 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 
 </head>
 <body>
-<div class="filter-sidebar" id="filterSidebar" role="dialog" aria-label="탐색 사이드바" aria-hidden="true" inert>
+<div class="filter-sidebar" id="filterSidebar" role="dialog" aria-label="Explore sidebar" data-i18n-aria-label="nav.open" aria-hidden="true" inert>
   <div class="sidebar-head">
-    <h2>대시보드 메뉴</h2>
-    <button class="sidebar-close" id="sidebarClose" type="button" aria-label="탐색 사이드바 닫기">
+    <h2 data-i18n="sidebar.title">Dashboard menu</h2>
+    <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close Explore sidebar" data-i18n-aria-label="sidebar.close">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
   </div>
   <section id="refreshStatus" class="sidebar-refresh" role="status" aria-live="polite" aria-atomic="true">
-    <p id="luLast">최근 갱신 시각 : 불러오는 중…</p>
-    <p id="luNext">다음 갱신 시각 : —</p>
-    <p id="luCadence">2시간마다 갱신</p>
+    <p id="luLast" data-i18n="refresh.loading">Last refreshed: loading…</p>
+    <p id="luNext" data-i18n="refresh.next">Next refresh: —</p>
+    <p id="luCadence" data-i18n="refresh.cadence">Refreshes every 2 hours</p>
   </section>
   <section class="sidebar-section" id="accountSection" aria-labelledby="accountTitle">
-    <h3 id="accountTitle">계정과 동기화</h3>
+    <h3 id="accountTitle" data-i18n="account.title">Account and sync</h3>
     <div class="account-controls">
-      <p id="syncStatus" class="sync-status" role="status" aria-live="polite" title="로그인 준비 중이에요." aria-label="브라우저 동기화. 로그인 준비 중이에요." data-tone="notice">로그인 준비 중이에요.</p>
-      <button id="loginBtn" class="account-btn" type="button" disabled>Google로 로그인</button>
-      <button id="logoutBtn" class="account-btn" type="button" hidden disabled>로그아웃</button>
+      <p id="syncStatus" class="sync-status" role="status" aria-live="polite" title="Preparing sign-in." data-i18n-title="account.preparing" aria-label="Browser sync. Preparing sign-in." data-tone="notice" data-i18n="account.preparing">Preparing sign-in.</p>
+      <button id="loginBtn" class="account-btn" type="button" disabled data-i18n="account.login">Sign in with Google</button>
+      <button id="logoutBtn" class="account-btn" type="button" hidden disabled data-i18n="account.logout">Sign out</button>
     </div>
   </section>
-  <nav class="sidebar-section sidebar-nav" id="viewSection" aria-label="저장소 보기">
-    <h3>내 목록</h3>
-    <button id="allReposBtn" type="button" aria-pressed="true">전체 저장소</button>
-    <button id="favOnlyBtn" type="button" aria-pressed="false">즐겨찾기</button>
+  <nav class="sidebar-section sidebar-nav" id="viewSection" aria-label="Repository view" data-i18n-aria-label="view.aria">
+    <h3 data-i18n="view.title">My list</h3>
+    <button id="allReposBtn" type="button" aria-pressed="true" data-i18n="view.all">All repositories</button>
+    <button id="favOnlyBtn" type="button" aria-pressed="false" data-i18n="view.favorites">Favorites</button>
   </nav>
   <section class="sidebar-section" id="periodSection" aria-labelledby="periodTitle">
-    <h3 id="periodTitle">기간</h3>
-    <div class="seg" id="periodSeg" role="group" aria-label="기간 필터">
+    <h3 id="periodTitle" data-i18n="period.title">Period</h3>
+    <div class="seg" id="periodSeg" role="group" aria-label="Period filter" data-i18n-aria-label="period.aria">
       <span class="seg-thumb" id="segThumb"></span>
-      <button data-period="all" aria-pressed="true">전체</button>
-      <button data-period="daily" aria-pressed="false">일간</button>
-      <button data-period="weekly" aria-pressed="false">주간</button>
-      <button data-period="monthly" aria-pressed="false">월간</button>
+      <button data-period="all" aria-pressed="true" data-i18n="period.all">All</button>
+      <button data-period="daily" aria-pressed="false" data-i18n="period.daily">Daily</button>
+      <button data-period="weekly" aria-pressed="false" data-i18n="period.weekly">Weekly</button>
+      <button data-period="monthly" aria-pressed="false" data-i18n="period.monthly">Monthly</button>
     </div>
   </section>
   <section class="sidebar-section" id="languageSection" aria-labelledby="languageTitle">
-    <h3 id="languageTitle">프로그래밍 언어</h3>
-    <select class="langsel" id="lang" aria-label="프로그래밍 언어"><option value="">모든 언어</option></select>
+    <h3 id="languageTitle" data-i18n="language.title">Programming language</h3>
+    <select class="langsel" id="lang" aria-label="Programming language" data-i18n-aria-label="language.title"><option value="" data-i18n="language.all">All languages</option></select>
   </section>
   <section class="sidebar-section" id="fieldSection" aria-labelledby="fieldTitle">
-    <h3 id="fieldTitle">분야</h3>
-    <p class="sidebar-note">여러 분야를 함께 선택할 수 있습니다.</p>
+    <h3 id="fieldTitle" data-i18n="field.title">Field</h3>
+    <p class="sidebar-note" data-i18n="field.note">You can select multiple fields.</p>
     <div class="filter-group" id="fieldFilters"></div>
     <fieldset class="filter-switch-row">
-      <legend class="sr-only">빠른 필터</legend>
-      <label class="filter-switch"><input id="excludeAi" type="checkbox"> AI 분야 제외</label>
-      <label class="filter-switch"><input id="newOnly" type="checkbox"> 신규 저장소만</label>
+      <legend class="sr-only" data-i18n="field.quick">Quick filters</legend>
+      <label class="filter-switch"><input id="excludeAi" type="checkbox"> <span data-i18n="field.excludeAi">Exclude AI</span></label>
+      <label class="filter-switch"><input id="newOnly" type="checkbox"> <span data-i18n="field.newOnly">New repositories only</span></label>
     </fieldset>
   </section>
   <section class="sidebar-section" id="formSection" aria-labelledby="formTitle">
-    <h3 id="formTitle">형태·기술</h3>
+    <h3 id="formTitle" data-i18n="form.title">Form and technology</h3>
     <div class="filter-group" id="formFilters"></div>
   </section>
   <section class="sidebar-section" id="sortSection" aria-labelledby="sortTitle">
-    <h3 id="sortTitle">정렬</h3>
-    <select class="langsel" id="sortSelect" aria-label="저장소 정렬">
-      <option value="trending">Trending 원래 순서</option>
-      <option value="gain">선택 기간 스타 증가</option>
-      <option value="stars">총 스타</option>
-      <option value="pushed">최근 푸시</option>
-      <option value="release">최근 릴리스</option>
+    <h3 id="sortTitle" data-i18n="sort.title">Sort</h3>
+    <select class="langsel" id="sortSelect" aria-label="Repository sort order" data-i18n-aria-label="sort.aria">
+      <option value="trending" data-i18n="sort.original">Original Trending order</option>
+      <option value="gain" data-i18n="sort.gain">Stars gained in selected period</option>
+      <option value="stars" data-i18n="sort.stars">Total stars</option>
+      <option value="pushed" data-i18n="sort.pushed">Latest push</option>
+      <option value="release" data-i18n="sort.release">Latest release</option>
     </select>
-    <p class="sidebar-note">값이 없는 저장소는 뒤에 표시됩니다.</p>
+    <p class="sidebar-note" data-i18n="sort.note">Repositories without a value appear last.</p>
   </section>
   <section class="sidebar-section" id="resultSection">
-    <p class="filter-summary" id="filterSummary" role="status" aria-live="polite">전체 저장소를 표시합니다.</p>
-    <button class="clear-filters" id="clearFiltersBtn" type="button">탐색 필터 지우기</button>
+    <p class="filter-summary" id="filterSummary" role="status" aria-live="polite" data-i18n="result.all">Showing all repositories.</p>
+    <button class="clear-filters" id="clearFiltersBtn" type="button" data-i18n="result.clear">Clear Explore filters</button>
   </section>
   <section class="sidebar-section" id="hiddenRepoSection" aria-labelledby="hiddenRepoTitle" hidden>
-    <h3 id="hiddenRepoTitle">숨긴 저장소 관리</h3>
+    <h3 id="hiddenRepoTitle" data-i18n="hidden.title">Manage hidden repositories</h3>
     <p class="sidebar-note" id="hiddenRepoCount"></p>
     <div class="hidden-repo-list" id="hiddenRepoList"></div>
-    <button class="clear-filters" id="restoreAllHiddenBtn" type="button">모두 복구</button>
+    <button class="clear-filters" id="restoreAllHiddenBtn" type="button" data-i18n="hidden.restoreAll">Restore all</button>
   </section>
   <section class="sidebar-section" id="recentExitsSection" aria-labelledby="recentExitsTitle" hidden>
-    <h3 id="recentExitsTitle">최근 이탈</h3>
-    <p class="sidebar-note">직전 확정 목록에는 있었지만 현재 목록에는 없는 저장소입니다.</p>
+    <h3 id="recentExitsTitle" data-i18n="exits.title">Recent exits</h3>
+    <p class="sidebar-note" data-i18n="exits.note">Repositories that were in the previous confirmed list but are not in the current list.</p>
     <div class="recent-exit-list" id="recentExitsList"></div>
   </section>
   <section class="sidebar-section" id="exportSection" aria-labelledby="exportTitle">
-    <h3 id="exportTitle">현재 보기 내보내기</h3>
-    <p class="sidebar-note">화면에 보이는 순서와 저장소만 공개 필드로 저장합니다.</p>
+    <h3 id="exportTitle" data-i18n="export.title">Export current view</h3>
+    <p class="sidebar-note" data-i18n="export.note">Saves only public fields for the visible repositories in their current order.</p>
     <div class="export-actions">
-      <button id="exportCsvBtn" type="button">CSV 다운로드</button>
-      <button id="exportJsonBtn" type="button">JSON 다운로드</button>
-      <button id="copyViewUrlBtn" type="button">현재 링크 복사</button>
+      <button id="exportCsvBtn" type="button" data-i18n="export.csv">Download CSV</button>
+      <button id="exportJsonBtn" type="button" data-i18n="export.json">Download JSON</button>
+      <button id="copyViewUrlBtn" type="button" data-i18n="export.copy">Copy current link</button>
     </div>
-    <p class="export-status" id="exportStatus" role="status" aria-live="polite" aria-atomic="true">내보낼 형식을 선택하세요.</p>
+    <p class="export-status" id="exportStatus" role="status" aria-live="polite" aria-atomic="true" data-i18n="export.prompt">Choose an export format.</p>
   </section>
 </div>
-<button class="nav-toggle edge-tab" id="navToggle" type="button" aria-label="탐색 사이드바 열기" aria-controls="filterSidebar" aria-expanded="false">
-  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"/></svg>
-  <span class="filter-count" id="filterCount"></span>
-</button>
+<nav class="nav-rail" aria-label="Quick navigation" data-i18n-aria-label="nav.quick">
+  <button class="nav-toggle" id="navToggle" type="button" aria-label="Open Explore sidebar" data-i18n-aria-label="nav.open" aria-controls="filterSidebar" aria-expanded="false">
+    <span class="nav-glyph" aria-hidden="true"></span>
+    <span class="nav-label" data-i18n="nav.explore">Explore</span>
+  </button>
+  <span class="nav-rail-spacer" aria-hidden="true"></span>
+  <span class="filter-count" id="filterCount" aria-live="polite"></span>
+</nav>
 <div id="sidebarScrim"></div>
 <main class="wrap">
 <header>
   <div class="title-box">
-    <h1><button class="title-reset" id="resetBtn" type="button" title="클릭하면 처음 화면으로 초기화됩니다">GitHub Trending</button></h1>
-    <p class="sub">인사이트 요약이 담긴 오늘의 트렌딩 저장소 — 카드를 가리키거나 탭해보세요</p>
+    <h1><button class="title-reset" id="resetBtn" type="button" title="Reset to the initial view" data-i18n-title="header.resetTitle">GitHub Trending</button></h1>
+    <p class="sub" data-i18n="header.subtitle">Today’s trending repositories with detailed, source-bound summaries — hover or tap a card</p>
   </div>
   <div class="header-actions">
-    <button class="theme-toggle" id="themeBtn" aria-label="테마 전환"></button>
+    <label class="sr-only" for="siteLocale" data-i18n="site.language">Site language</label>
+    <select class="site-locale" id="siteLocale" aria-label="Site language" data-i18n-aria-label="site.language">
+      <option value="en">English</option><option value="ko">한국어</option><option value="zh-CN">简体中文</option><option value="es">Español</option><option value="ja">日本語</option>
+    </select>
+    <button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-label="Open Explore sidebar" data-i18n-aria-label="nav.open" aria-controls="filterSidebar" aria-expanded="false">
+      <span class="nav-glyph" aria-hidden="true"></span><span data-i18n="nav.explore">Explore</span>
+    </button>
+    <button class="theme-toggle" id="themeBtn" aria-label="Change theme" data-i18n-aria-label="header.theme"></button>
   </div>
 </header>
 
 <div class="controls">
   <div class="control-row">
-    <input class="search" id="q" aria-label="저장소 검색" placeholder="저장소 검색…" autocomplete="off" maxlength="120">
+    <input class="search" id="q" aria-label="Search repositories" data-i18n-aria-label="search.aria" placeholder="Search repositories…" data-i18n-placeholder="search.placeholder" autocomplete="off" maxlength="120">
   </div>
 </div>
 
-<aside class="signal-guide" aria-label="배지 안내">
-  <strong>배지 안내</strong>
+<aside class="signal-guide" aria-label="Badge guide" data-i18n-aria-label="badges.aria">
+  <strong data-i18n="badges.title">Badge guide</strong>
   <dl>
-    <div><dt><span class="badge">🔥 N일 연속</span></dt><dd>연속된 날짜에 Trending에서 관측</dd></div>
-    <div><dt><span class="rankchg">↑/↓ N</span></dt><dd>직전 관측일 대비 총 스타 변화</dd></div>
-    <div><dt><span class="badge">HOT</span></dt><dd>선택 기간 스타 증가 1,000 이상</dd></div>
-    <div><dt><span class="badge membership-new">신규</span></dt><dd>baseline 이후 처음 관측</dd></div>
-    <div><dt><span class="badge membership-reentered">재진입</span></dt><dd>직전 목록에서 빠졌다가 다시 등장</dd></div>
+    <div><dt><span class="badge">🔥 N</span></dt><dd data-i18n="badges.streak">Observed on Trending on consecutive dates</dd></div>
+    <div><dt><span class="rankchg">↑/↓ N</span></dt><dd data-i18n="badges.change">Change in total stars since the previous observation date</dd></div>
+    <div><dt><span class="badge">HOT</span></dt><dd data-i18n="badges.hot">At least 1,000 stars gained in the selected period</dd></div>
+    <div><dt><span class="badge membership-new" data-i18n="badges.newLabel">New</span></dt><dd data-i18n="badges.new">First observed after the baseline</dd></div>
+    <div><dt><span class="badge membership-reentered" data-i18n="badges.reenteredLabel">Re-entered</span></dt><dd data-i18n="badges.reentered">Returned after leaving the previous list</dd></div>
   </dl>
 </aside>
 
-<p id="cardKeyboardHint" class="sr-only">카드에 초점이 있을 때 Delete 키를 누르면 저장소를 관심 없음 처리할 수 있습니다.</p>
+<p id="cardKeyboardHint" class="sr-only" data-i18n="keyboard.card">When a card is focused, press Delete to hide that repository.</p>
 <div class="list-stage" id="listStage">
   <div class="list" id="list"></div>
-  <div class="empty" id="empty"><p id="emptyText">조건에 맞는 저장소가 없어요.</p><button id="emptyResetBtn" type="button">필터 초기화</button><button id="emptyManageHiddenBtn" type="button" hidden>숨긴 저장소 관리</button></div>
+  <div class="empty" id="empty"><p id="emptyText" data-i18n="empty.default">No repositories match these conditions.</p><button id="emptyResetBtn" type="button" data-i18n="empty.reset">Reset filters</button><button id="emptyManageHiddenBtn" type="button" hidden data-i18n="empty.manage">Manage hidden repositories</button></div>
 </div>
 
 <div class="undo-bar" id="hiddenNotice" aria-live="polite" aria-atomic="true" hidden>
   <span id="hiddenNoticeText"></span>
-  <button id="undoHideBtn" type="button">되돌리기</button>
-  <button id="dismissHiddenNoticeBtn" type="button">닫기</button>
+  <button id="undoHideBtn" type="button" data-i18n="common.undo">Undo</button>
+  <button id="dismissHiddenNoticeBtn" type="button" data-i18n="common.close">Close</button>
 </div>
 
 <footer>
-  GitHub Trending 기준 · 요약은 README 기반 AI 분석입니다<br>
+  <span data-i18n="footer.note">Based on GitHub Trending · summaries are AI analyses grounded in repository README files</span><br>
   <!-- GENERATED:TRENDING-DATE:START -->
 <time id="lastUpdated" datetime="2026-08-30">2026-08-30 (Asia/Seoul)</time>
 <!-- GENERATED:TRENDING-DATE:END --><br>
@@ -570,18 +607,19 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 </footer>
 </main>
 
-<button class="scroll-top" id="scrollTopBtn" type="button" aria-label="페이지 맨 위로 이동" hidden tabindex="-1" inert>
+<button class="scroll-top" id="scrollTopBtn" type="button" aria-label="Back to top" data-i18n-aria-label="scroll.top" hidden tabindex="-1" inert>
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 10 6-6 6 6M12 4v16"/></svg>
 </button>
 
 <div id="readmeScrim"></div>
-<div id="readmePanel" role="dialog" aria-modal="true" aria-labelledby="rpTitle" aria-hidden="true" inert>
+<div id="readmePanel" role="dialog" aria-modal="true" aria-label="README viewer" data-i18n-aria-label="readme.dialog" aria-labelledby="rpTitle" aria-hidden="true" inert>
   <div class="rp-head"><h2 id="rpTitle">README</h2>
-    <div class="rp-tabs"><button id="tabOrig" aria-pressed="true">원문</button><button id="tabKo" aria-pressed="false">🇰🇷 한국어</button></div>
-    <button class="rdbtn" id="rpOpenGithub">GitHub ↗</button><button class="rp-close" id="rpClose" aria-label="닫기">✕</button></div>
-  <div id="readmeBody">불러오는 중…</div>
+    <div class="rp-tabs" id="readmeVariantTabs"></div>
+    <button class="rdbtn" id="rpOpenGithub" data-i18n="readme.github">GitHub ↗</button><button class="rp-close" id="rpClose" aria-label="Close README viewer" data-i18n-aria-label="readme.close">✕</button></div>
+  <div id="readmeBody" data-i18n="readme.loading">Loading…</div>
 </div>
-<div id="tipLayer" role="dialog" aria-label="저장소 요약" aria-hidden="true" inert></div>
+<div id="tipLayer" role="dialog" aria-label="Repository summary" data-i18n-aria-label="tooltip.dialog" aria-hidden="true" inert></div>
+<script src="site-i18n.js"></script>
 <script src="readme-markdown.js"></script>
 <script src="favorites.js"></script>
 <script src="hidden-repos.js"></script>
@@ -598,6 +636,19 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 // GENERATED:TRENDING-REPOS:START
 const REPOS = [{"slug":"tt-a1i/archify","latest_release":"2026-08-17","name":"tt-a1i / archify","desc":"Agent skill for beautiful, verifiable architecture, workflow, sequence, data-flow, and lifecycle diagrams—self-contained HTML with motion and crisp export.","lang":"JavaScript","topics":["agent-skills","architecture-as-code","architecture-diagram","claude-skill","code-visualization","codex","coding-agents","data-flow-diagram","deepseek-harness","developer-tools","diagram-as-code","diagrams","diagrams-as-code","dsh-plugin","mermaid-alternative","opencode","sequence-diagram","software-architecture","system-design","text-to-diagram"],"rank_daily":1,"rank_weekly":5,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools","data","productivity"],"form_tags":["agent","plugin-skill","cli"],"stars":29939,"forks":1870,"stars_daily":3927,"stars_weekly":11099,"color":"#f1e05a","summary":{"goal":"Agent skill for beautiful, verifiable architecture, workflow, sequence, data-flow, and lifecycle diagrams—self-contained HTML with motion and crisp export. GitHub에 공개된 JavaScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 3,927개, 이번 주 11,099개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Agent skill for beautiful, verifiable architecture, workflow, sequence, data-flow, and lifecycle diagrams—self-contained HTML with motion and crisp export. GitHub에 공개된 JavaScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 3,927개, 이번 주 11,099개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +3,927 · 주간 +11,099"},"issues":69,"contributors":10,"pushed_at":"2026-08-28","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"K-Dense-AI/scientific-agent-skills","latest_release":"2026-08-17","name":"K-Dense-AI / scientific-agent-skills","desc":"Turn any AI agent into an AI Scientist. The #1 Agent Skills library for science, used by 190,000+ scientists worldwide. 165 ready-to-use validated skills plus 100+ scientific databases covering biology, chemistry, medicine, and drug discovery. Compatible with Cursor, Claude Code, Codex, Pi, Antigravity, and the open Agent Skills standard.","lang":"Python","topics":["agent-skills","ai-scientist","bioinformatics","chemoinformatics","claude","claude-skills","claudecode","clinical-research","computational-biology","data-analysis","drug-discovery","genomics","materials-science","metabolomics","proteomics","scientific-computing","scientific-visualization"],"rank_daily":2,"rank_weekly":null,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml","data"],"form_tags":["agent","plugin-skill","library"],"stars":37554,"forks":3550,"stars_daily":1604,"color":"#3572a5","summary":{"goal":"Turn any AI agent into an AI Scientist. The #1 Agent Skills library for science, used by 190,000+ scientists worldwide. 165 ready-to-use validated skills plus 100+ scientific databases covering biology, chemistry, medicine, and drug discovery. Compatible with Cursor, Claude Code, Codex, Pi, Antigravity, and the open Agent Skills standard. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 1,604개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Turn any AI agent into an AI Scientist. The #1 Agent Skills library for science, used by 190,000+ scientists worldwide. 165 ready-to-use validated skills plus 100+ scientific databases covering biology, chemistry, medicine, and drug discovery. Compatible with Cursor, Claude Code, Codex, Pi, Antigravity, and the open Agent Skills standard. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 1,604개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +1,604"},"issues":15,"contributors":51,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"anthropics/claude-plugins-official","latest_release":null,"name":"anthropics / claude-plugins-official","desc":"Official, Anthropic-managed directory of high quality Claude Code Plugins.","lang":"Python","topics":["claude-code","mcp","skills"],"rank_daily":3,"rank_weekly":13,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools"],"form_tags":["mcp","plugin-skill"],"stars":35256,"forks":3948,"stars_daily":356,"stars_weekly":1281,"color":"#3572a5","summary":{"goal":"Official, Anthropic-managed directory of high quality Claude Code Plugins. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 356개, 이번 주 1,281개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Official, Anthropic-managed directory of high quality Claude Code Plugins. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 356개, 이번 주 1,281개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +356 · 주간 +1,281"},"issues":1056,"contributors":36,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"bilawalsidhu/gods-eye-view","latest_release":null,"name":"bilawalsidhu / gods-eye-view","desc":"A spy satellite simulator in your browser, except the data is real. Live open source spatial intelligence on a photorealistic 3D globe.","lang":"JavaScript","topics":["3d-globe","cesium","flight-tracking","geospatial","geospatial-intelligence","gis","osint","photogrammetry","satellite-tracking","spatial-intelligence","webgl","worldview"],"rank_daily":4,"rank_weekly":null,"rank_monthly":null,"tag_rule_version":1,"field_tags":["web-app","data","security"],"form_tags":[],"stars":12076,"forks":2418,"stars_daily":1870,"color":"#f1e05a","summary":{"goal":"A spy satellite simulator in your browser, except the data is real. Live open source spatial intelligence on a photorealistic 3D globe. GitHub에 공개된 JavaScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 1,870개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"A spy satellite simulator in your browser, except the data is real. Live open source spatial intelligence on a photorealistic 3D globe. GitHub에 공개된 JavaScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 1,870개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +1,870"},"issues":104,"contributors":1,"pushed_at":"2026-08-28","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"abhigyanpatwari/GitNexus","latest_release":"2026-08-27","name":"abhigyanpatwari / GitNexus","desc":"GitNexus: The Zero-Server Code Intelligence Engine -       GitNexus is a client-side knowledge graph creator that runs entirely in your browser. Drop in a git repository (Github, Gitlab, Azure, Local) or ZIP file, and get an interactive knowledge graph with a built in Graph RAG Agent. Perfect for code exploration","lang":"TypeScript","topics":[],"rank_daily":5,"rank_weekly":null,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml","web-app"],"form_tags":["agent"],"stars":46317,"forks":5109,"stars_daily":273,"color":"#3178c6","summary":{"goal":"GitNexus: The Zero-Server Code Intelligence Engine -       GitNexus is a client-side knowledge graph creator that runs entirely in your browser. Drop in a git repository (Github, Gitlab, Azure, Local) or ZIP file, and get an interactive knowledge graph with a built in Graph RAG Agent. Perfect for code exploration GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 273개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"GitNexus: The Zero-Server Code Intelligence Engine -       GitNexus is a client-side knowledge graph creator that runs entirely in your browser. Drop in a git repository (Github, Gitlab, Azure, Local) or ZIP file, and get an interactive knowledge graph with a built in Graph RAG Agent. Perfect for code exploration GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 273개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +273"},"issues":327,"contributors":178,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"JetBrains/go-modern-guidelines","latest_release":null,"name":"JetBrains / go-modern-guidelines","desc":"Help AI coding agents write modern Go","lang":"Go","topics":["ai-agents","coding-agent","developer-tools","go","golang","guidelines"],"rank_daily":6,"rank_weekly":null,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools"],"form_tags":["agent"],"stars":2778,"forks":81,"stars_daily":294,"color":"#00add8","summary":{"goal":"Help AI coding agents write modern Go GitHub에 공개된 Go 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 294개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Go 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Help AI coding agents write modern Go GitHub에 공개된 Go 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 294개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Go 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +294"},"issues":8,"contributors":6,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"calesthio/OpenMontage","latest_release":null,"name":"calesthio / OpenMontage","desc":"World's first open-source, agentic video production system. 12 production pipelines, 100+ tools, 700+ agent skill and production-knowledge files. Turn your AI coding assistant into a full video production studio.","lang":"Python","topics":["agent","agentic-ai","ai","claude","copilot","cursor","elevenlabs","ffmpeg","flux","image-generation","open-source","openai","python","remotion","stable-diffusion","text-to-speech","text-to-video","video-generation","video-production"],"rank_daily":7,"rank_weekly":null,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools"],"form_tags":["agent","plugin-skill"],"stars":53808,"forks":6688,"stars_daily":809,"color":"#3572a5","summary":{"goal":"World's first open-source, agentic video production system. 12 production pipelines, 100+ tools, 700+ agent skill and production-knowledge files. Turn your AI coding assistant into a full video production studio. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 809개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"World's first open-source, agentic video production system. 12 production pipelines, 100+ tools, 700+ agent skill and production-knowledge files. Turn your AI coding assistant into a full video production studio. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 809개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +809"},"issues":260,"contributors":52,"pushed_at":"2026-08-22","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"abi/screenshot-to-code","latest_release":null,"name":"abi / screenshot-to-code","desc":"Drop in a screenshot and convert it to clean code (HTML/Tailwind/React/Vue)","lang":"Python","topics":[],"rank_daily":8,"rank_weekly":null,"rank_monthly":null,"tag_rule_version":1,"field_tags":["web-app"],"form_tags":[],"stars":75878,"forks":9238,"stars_daily":558,"color":"#3572a5","summary":{"goal":"Drop in a screenshot and convert it to clean code (HTML/Tailwind/React/Vue) GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 558개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Drop in a screenshot and convert it to clean code (HTML/Tailwind/React/Vue) GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 558개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +558"},"issues":131,"contributors":29,"pushed_at":"2026-08-14","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"cursor/plugins","latest_release":null,"name":"cursor / plugins","desc":"Cursor plugin specification and official plugins","lang":"TypeScript","topics":[],"rank_daily":9,"rank_weekly":10,"rank_monthly":null,"tag_rule_version":1,"field_tags":["dev-tools"],"form_tags":["plugin-skill"],"stars":6100,"forks":483,"stars_daily":257,"stars_weekly":1594,"color":"#3178c6","summary":{"goal":"Cursor plugin specification and official plugins GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 257개, 이번 주 1,594개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Cursor plugin specification and official plugins GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 257개, 이번 주 1,594개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +257 · 주간 +1,594"},"issues":84,"contributors":12,"pushed_at":"2026-08-28","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"freestylefly/awesome-gpt-image-2","latest_release":null,"name":"freestylefly / awesome-gpt-image-2","desc":"Prompt as Code | GPT-Image2 工业级提示词引擎与模板库，530+ 个案例逆向工程，20+ 套工业级模板，并提炼出Skills，持续更新中","lang":"JavaScript","topics":["agents","ai-image-generation","chatgpt","dsh-plugin","gpt-image-2","image-prompts","prompt-as-code","prompt-engineering","skills","workflow-automation"],"rank_daily":10,"rank_weekly":2,"rank_monthly":3,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools","productivity","learning"],"form_tags":["agent","plugin-skill","cli"],"stars":24876,"forks":2445,"stars_daily":767,"stars_weekly":12877,"stars_monthly":15580,"color":"#f1e05a","summary":{"goal":"Prompt as Code | GPT-Image2 工业级提示词引擎与模板库，530+ 个案例逆向工程，20+ 套工业级模板，并提炼出Skills，持续更新中 GitHub에 공개된 JavaScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 767개, 이번 주 12,877개, 이번 달 15,580개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Prompt as Code | GPT-Image2 工业级提示词引擎与模板库，530+ 个案例逆向工程，20+ 套工业级模板，并提炼出Skills，持续更新中 GitHub에 공개된 JavaScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 767개, 이번 주 12,877개, 이번 달 15,580개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +767 · 주간 +12,877 · 월간 +15,580"},"issues":17,"contributors":5,"pushed_at":"2026-08-28","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"tailscale/tailcat","latest_release":null,"name":"tailscale / tailcat","desc":"like netcat, but over Tailscale's data plane, without Tailscale's control plane","lang":"Go","topics":[],"rank_daily":11,"rank_weekly":null,"rank_monthly":null,"tag_rule_version":1,"field_tags":["data"],"form_tags":[],"stars":3228,"forks":92,"stars_daily":790,"color":"#00add8","summary":{"goal":"like netcat, but over Tailscale's data plane, without Tailscale's control plane GitHub에 공개된 Go 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 790개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Go 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"like netcat, but over Tailscale's data plane, without Tailscale's control plane GitHub에 공개된 Go 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 790개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Go 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +790"},"issues":12,"contributors":333,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"NationalSecurityAgency/ghidra","latest_release":"2026-08-18","name":"NationalSecurityAgency / ghidra","desc":"Ghidra is a software reverse engineering (SRE) framework","lang":"Java","topics":["disassembler","reverse-engineering","software-analysis"],"rank_daily":12,"rank_weekly":null,"rank_monthly":null,"tag_rule_version":1,"field_tags":["unclassified"],"form_tags":["framework"],"stars":73538,"forks":8023,"stars_daily":375,"color":"#b07219","summary":{"goal":"Ghidra is a software reverse engineering (SRE) framework GitHub에 공개된 Java 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 375개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Java 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Ghidra is a software reverse engineering (SRE) framework GitHub에 공개된 Java 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 375개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Java 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +375"},"issues":1921,"contributors":449,"pushed_at":"2026-08-28","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"swoole/typephp","latest_release":"2026-08-27","name":"swoole / typephp","desc":"Compile PHP to Native Binaries","lang":"PHP","topics":[],"rank_daily":13,"rank_weekly":null,"rank_monthly":null,"tag_rule_version":1,"field_tags":["unclassified"],"form_tags":[],"stars":908,"forks":44,"stars_daily":188,"color":"#4f5d95","summary":{"goal":"Compile PHP to Native Binaries GitHub에 공개된 PHP 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 188개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"PHP 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Compile PHP to Native Binaries GitHub에 공개된 PHP 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 188개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"PHP 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +188"},"issues":5,"contributors":8,"pushed_at":"2026-08-28","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"marin-community/marin","latest_release":null,"name":"marin-community / marin","desc":"Open-source framework for the research and development of foundation models.","lang":"Python","topics":[],"rank_daily":14,"rank_weekly":null,"rank_monthly":20,"tag_rule_version":1,"field_tags":["unclassified"],"form_tags":["framework"],"stars":2981,"forks":243,"stars_daily":163,"stars_monthly":1650,"color":"#3572a5","summary":{"goal":"Open-source framework for the research and development of foundation models. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 163개, 이번 달 1,650개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Open-source framework for the research and development of foundation models. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 163개, 이번 달 1,650개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +163 · 월간 +1,650"},"issues":567,"contributors":102,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"tashfeenahmed/freellmapi","latest_release":"2026-08-26","name":"tashfeenahmed / freellmapi","desc":"7.4 billion tokens per month. 34 free LLM providers. 635 free model endpoints. All behind one /v1 endpoint, plus any custom OpenAI-compatible endpoint. Smart routing, automatic failover, encrypted keys. Personal experimentation only.","lang":"TypeScript","topics":[],"rank_daily":15,"rank_weekly":8,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml"],"form_tags":[],"stars":22043,"forks":3094,"stars_daily":612,"stars_weekly":2162,"color":"#3178c6","summary":{"goal":"7.4 billion tokens per month. 34 free LLM providers. 635 free model endpoints. All behind one /v1 endpoint, plus any custom OpenAI-compatible endpoint. Smart routing, automatic failover, encrypted keys. Personal experimentation only. GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 612개, 이번 주 2,162개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"7.4 billion tokens per month. 34 free LLM providers. 635 free model endpoints. All behind one /v1 endpoint, plus any custom OpenAI-compatible endpoint. Smart routing, automatic failover, encrypted keys. Personal experimentation only. GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 612개, 이번 주 2,162개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +612 · 주간 +2,162"},"issues":69,"contributors":64,"pushed_at":"2026-08-28","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"ChromeDevTools/chrome-devtools-mcp","latest_release":"2026-08-25","name":"ChromeDevTools / chrome-devtools-mcp","desc":"Chrome DevTools for coding agents","lang":"TypeScript","topics":["browser","chrome","chrome-devtools","debugging","devtools","mcp","mcp-server","puppeteer"],"rank_daily":16,"rank_weekly":null,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml","web-app","dev-tools"],"form_tags":["agent","mcp"],"stars":50098,"forks":3513,"stars_daily":215,"color":"#3178c6","summary":{"goal":"Chrome DevTools for coding agents GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 215개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Chrome DevTools for coding agents GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 215개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +215"},"issues":95,"contributors":118,"pushed_at":"2026-08-28","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"rohitg00/ai-engineering-from-scratch","latest_release":"2026-08-10","name":"rohitg00 / ai-engineering-from-scratch","desc":"Learn it. Build it. Ship it for others.","lang":"Python","topics":["agents","ai","ai-agents","ai-engineering","computer-vision","course","deep-learning","from-scratch","generative-ai","llm","machine-learning","mcp","nlp","python","reinforcement-learning","rust","swarm-intelligence","transformers","tutorial","typescript"],"rank_daily":17,"rank_weekly":16,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools","learning"],"form_tags":["agent","mcp"],"stars":50860,"forks":8804,"stars_daily":359,"stars_weekly":3263,"color":"#3572a5","summary":{"goal":"Learn it. Build it. Ship it for others. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 359개, 이번 주 3,263개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Learn it. Build it. Ship it for others. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 359개, 이번 주 3,263개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +359 · 주간 +3,263"},"issues":99,"contributors":17,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"DietrichGebert/ponytail","latest_release":"2026-08-07","name":"DietrichGebert / ponytail","desc":"Makes your AI agent think like the laziest senior dev in the room. The best code is the code you never wrote.","lang":"JavaScript","topics":["agent-skills","ai-agents","claude","claude-code","claude-code-plugin","cursor-rules","developer-tools","llm","prompt-engineering","yagni"],"rank_daily":18,"rank_weekly":null,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools"],"form_tags":["agent","plugin-skill"],"stars":116118,"forks":6339,"stars_daily":1171,"color":"#f1e05a","summary":{"goal":"Makes your AI agent think like the laziest senior dev in the room. The best code is the code you never wrote. GitHub에 공개된 JavaScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 1,171개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Makes your AI agent think like the laziest senior dev in the room. The best code is the code you never wrote. GitHub에 공개된 JavaScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 1,171개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +1,171"},"issues":181,"contributors":64,"pushed_at":"2026-08-07","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"google/googletest","latest_release":"2026-08-10","name":"google / googletest","desc":"GoogleTest - Google Testing and Mocking Framework","lang":"C++","topics":[],"rank_daily":19,"rank_weekly":null,"rank_monthly":null,"tag_rule_version":1,"field_tags":["unclassified"],"form_tags":["framework"],"stars":39251,"forks":10876,"stars_daily":125,"color":"#f34b7d","summary":{"goal":"GoogleTest - Google Testing and Mocking Framework GitHub에 공개된 C++ 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 125개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"C++ 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"GoogleTest - Google Testing and Mocking Framework GitHub에 공개된 C++ 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 125개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"C++ 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +125"},"issues":493,"contributors":502,"pushed_at":"2026-08-27","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"livekit/agents","latest_release":"2026-08-27","name":"livekit / agents","desc":"A framework for building realtime voice AI agents 🤖🎙️📹 ","lang":"Python","topics":["agents","ai","openai","real-time","video","voice"],"rank_daily":20,"rank_weekly":null,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml"],"form_tags":["agent","framework"],"stars":13494,"forks":3644,"stars_daily":256,"color":"#3572a5","summary":{"goal":"A framework for building realtime voice AI agents 🤖🎙️📹 GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 256개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"A framework for building realtime voice AI agents 🤖🎙️📹 GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"오늘 256개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"일간 +256"},"issues":803,"contributors":475,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"anthropics/claude-plugins-community","latest_release":null,"name":"anthropics / claude-plugins-community","desc":"Community plugin marketplace for Claude Cowork and Claude Code. Read-only mirror — submit plugins at clau.de/plugin-directory-submission.","lang":"Python","topics":[],"rank_daily":null,"rank_weekly":1,"rank_monthly":5,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools"],"form_tags":["plugin-skill"],"stars":2683,"forks":223,"stars_weekly":2207,"stars_monthly":2246,"color":"#3572a5","summary":{"goal":"Community plugin marketplace for Claude Cowork and Claude Code. Read-only mirror — submit plugins at clau.de/plugin-directory-submission. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 2,207개, 이번 달 2,246개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Community plugin marketplace for Claude Cowork and Claude Code. Read-only mirror — submit plugins at clau.de/plugin-directory-submission. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 2,207개, 이번 달 2,246개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"주간 +2,207 · 월간 +2,246"},"issues":42,"contributors":6,"pushed_at":"2026-08-25","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"omacom/omarchy","latest_release":"2026-08-25","name":"omacom / omarchy","desc":"Beautiful, Modern \u0026 Opinionated Linux","lang":"Shell","topics":[],"rank_daily":null,"rank_weekly":3,"rank_monthly":1,"tag_rule_version":1,"field_tags":["systems"],"form_tags":[],"stars":34383,"forks":3536,"stars_weekly":5942,"stars_monthly":9083,"color":"#89e051","summary":{"goal":"Beautiful, Modern \u0026 Opinionated Linux GitHub에 공개된 Shell 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 5,942개, 이번 달 9,083개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Shell 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Beautiful, Modern \u0026 Opinionated Linux GitHub에 공개된 Shell 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 5,942개, 이번 달 9,083개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Shell 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"주간 +5,942 · 월간 +9,083"},"issues":2079,"contributors":505,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"openai/codex","latest_release":"2026-08-29","name":"openai / codex","desc":"Lightweight coding agent that runs in your terminal","lang":"Rust","topics":[],"rank_daily":null,"rank_weekly":4,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools"],"form_tags":["agent"],"stars":119747,"forks":18297,"stars_weekly":9109,"color":"#dea584","summary":{"goal":"Lightweight coding agent that runs in your terminal GitHub에 공개된 Rust 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 9,109개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Rust 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Lightweight coding agent that runs in your terminal GitHub에 공개된 Rust 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 9,109개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Rust 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"주간 +9,109"},"issues":14373,"contributors":585,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"AprilNEA/OpenLogi","latest_release":"2026-08-26","name":"AprilNEA / OpenLogi","desc":"⚡️A native, local-first alternative to Logitech Options+, written in Rust 🦀 — remap buttons, DPI, and SmartShift over HID++. No account, no telemetry.","lang":"Rust","topics":["dpi","gpui","hid","hidpp","local-first","logitech","logitech-mouse","logitech-options","mouse-remapping","mx-master","privacy","rust","smartshift"],"rank_daily":null,"rank_weekly":6,"rank_monthly":10,"tag_rule_version":1,"field_tags":["security"],"form_tags":[],"stars":17556,"forks":506,"stars_weekly":4825,"stars_monthly":9621,"color":"#dea584","summary":{"goal":"⚡️A native, local-first alternative to Logitech Options+, written in Rust 🦀 — remap buttons, DPI, and SmartShift over HID++. No account, no telemetry. GitHub에 공개된 Rust 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 4,825개, 이번 달 9,621개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Rust 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"⚡️A native, local-first alternative to Logitech Options+, written in Rust 🦀 — remap buttons, DPI, and SmartShift over HID++. No account, no telemetry. GitHub에 공개된 Rust 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 4,825개, 이번 달 9,621개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Rust 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"주간 +4,825 · 월간 +9,621"},"issues":379,"contributors":66,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"apache/maka","latest_release":"2026-08-18","name":"apache / maka","desc":"Apache Maka (Incubating) is a local-first AI agent workspace. Model messages, tool calls, tool results, permission decisions, and termination events are recorded as an append-only log.","lang":"TypeScript","topics":["agent-runtime","ai","ai-agent","apache","cli","desktop","electron","event-sourcing","incubator","llm","local-first","maka","tool-use","typescript"],"rank_daily":null,"rank_weekly":7,"rank_monthly":8,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools"],"form_tags":["agent","cli"],"stars":3996,"forks":370,"stars_weekly":1918,"stars_monthly":2992,"color":"#3178c6","summary":{"goal":"Apache Maka (Incubating) is a local-first AI agent workspace. Model messages, tool calls, tool results, permission decisions, and termination events are recorded as an append-only log. GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 1,918개, 이번 달 2,992개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Apache Maka (Incubating) is a local-first AI agent workspace. Model messages, tool calls, tool results, permission decisions, and termination events are recorded as an append-only log. GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 1,918개, 이번 달 2,992개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"주간 +1,918 · 월간 +2,992"},"issues":329,"contributors":97,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"modular/modular","latest_release":"2026-08-11","name":"modular / modular","desc":"The Modular Platform (includes MAX \u0026 Mojo)","lang":"Mojo","topics":["ai","language","machine-learning","max","modular","mojo","programming-language"],"rank_daily":null,"rank_weekly":9,"rank_monthly":12,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools","learning"],"form_tags":[],"stars":29326,"forks":3124,"stars_weekly":875,"stars_monthly":2765,"color":"#ff4c1f","summary":{"goal":"The Modular Platform (includes MAX \u0026 Mojo) GitHub에 공개된 Mojo 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 875개, 이번 달 2,765개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Mojo 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"The Modular Platform (includes MAX \u0026 Mojo) GitHub에 공개된 Mojo 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 875개, 이번 달 2,765개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Mojo 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"주간 +875 · 월간 +2,765"},"issues":1125,"contributors":464,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"MadsLorentzen/ai-job-search","latest_release":"2026-08-29","name":"MadsLorentzen / ai-job-search","desc":"The job search that runs on your machine. AI job application framework built on Claude Code: evaluate postings, tailor CVs, write cover letters, prep interviews. Fork it and own it.","lang":"Python","topics":["ai","ai-agents","career","claude-code","cover-letter","cv","interview-preparation","job-application","job-hunting","job-search","latex","resume"],"rank_daily":null,"rank_weekly":11,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml","productivity"],"form_tags":["agent","framework"],"stars":37957,"forks":12865,"stars_weekly":4828,"color":"#3572a5","summary":{"goal":"The job search that runs on your machine. AI job application framework built on Claude Code: evaluate postings, tailor CVs, write cover letters, prep interviews. Fork it and own it. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 4,828개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"The job search that runs on your machine. AI job application framework built on Claude Code: evaluate postings, tailor CVs, write cover letters, prep interviews. Fork it and own it. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 4,828개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"주간 +4,828"},"issues":8,"contributors":54,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"tinyhumansai/openhuman","latest_release":"2026-08-07","name":"tinyhumansai / openhuman","desc":"Your Personal AI super intelligence. A brain that builds a local-first memory of your life, a fantastic orchestrator of agent fleets and workflows, and a deep researcher.","lang":"Rust","topics":[],"rank_daily":null,"rank_weekly":12,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml"],"form_tags":["agent"],"stars":38807,"forks":3812,"stars_weekly":2353,"color":"#dea584","summary":{"goal":"Your Personal AI super intelligence. A brain that builds a local-first memory of your life, a fantastic orchestrator of agent fleets and workflows, and a deep researcher. GitHub에 공개된 Rust 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 2,353개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Rust 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Your Personal AI super intelligence. A brain that builds a local-first memory of your life, a fantastic orchestrator of agent fleets and workflows, and a deep researcher. GitHub에 공개된 Rust 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 2,353개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Rust 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"주간 +2,353"},"issues":325,"contributors":151,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"VoltAgent/awesome-agent-skills","latest_release":null,"name":"VoltAgent / awesome-agent-skills","desc":"A curated collection of 1000+ agent skills from official dev teams and the community, compatible with Claude Code, Codex, Gemini CLI, Cursor, and more.","lang":"","topics":["agent-skills","ai-agents","awesome","awesome-list","claude-code","claude-code-skills","claude-skills","codex-skills","cursor-skills","gemini-skills","opencode-skills","skills"],"rank_daily":null,"rank_weekly":14,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools","learning"],"form_tags":["agent","plugin-skill","cli"],"stars":33192,"forks":3506,"stars_weekly":2372,"color":"#8b949e","summary":{"goal":"A curated collection of 1000+ agent skills from official dev teams and the community, compatible with Claude Code, Codex, Gemini CLI, Cursor, and more. GitHub에 공개된 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 2,372개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"오픈소스 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"A curated collection of 1000+ agent skills from official dev teams and the community, compatible with Claude Code, Codex, Gemini CLI, Cursor, and more. GitHub에 공개된 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 2,372개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"오픈소스 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"주간 +2,372"},"issues":20,"contributors":165,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"PostHog/posthog","latest_release":"2026-08-29","name":"PostHog / posthog","desc":":hedgehog: PostHog is the leading platform for building self-driving products. Our developer tools – AI observability, analytics, session replay, flags, experiments, error tracking, logs, and more – capture all the context agents need to diagnose problems, uncover opportunities, and ship fixes. Steer it all from Slack, web, desktop, or the MCP.","lang":"Python","topics":["ab-testing","ai-analytics","analytics","cdp","data-warehouse","experiments","feature-flags","javascript","product-analytics","python","react","session-replay","surveys","typescript","web-analytics"],"rank_daily":null,"rank_weekly":15,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml","web-app","dev-tools","data","devops"],"form_tags":["agent","mcp"],"stars":39455,"forks":3309,"stars_weekly":1270,"color":"#3572a5","summary":{"goal":":hedgehog: PostHog is the leading platform for building self-driving products. Our developer tools – AI observability, analytics, session replay, flags, experiments, error tracking, logs, and more – capture all the context agents need to diagnose problems, uncover opportunities, and ship fixes. Steer it all from Slack, web, desktop, or the MCP. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 1,270개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":":hedgehog: PostHog is the leading platform for building self-driving products. Our developer tools – AI observability, analytics, session replay, flags, experiments, error tracking, logs, and more – capture all the context agents need to diagnose problems, uncover opportunities, and ship fixes. Steer it all from Slack, web, desktop, or the MCP. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 1,270개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"주간 +1,270"},"issues":5173,"contributors":562,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"Alishahryar1/free-claude-code","latest_release":null,"name":"Alishahryar1 / free-claude-code","desc":"Use Claude Code, Codex, Pi, and OpenCode and more for free (1.3B+ free tokens) from your terminal, app, IDE, or phone like OpenClaw (voice supported + ToS friendly)","lang":"Python","topics":[],"rank_daily":null,"rank_weekly":17,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools"],"form_tags":["ide"],"stars":51340,"forks":8265,"stars_weekly":4769,"color":"#3572a5","summary":{"goal":"Use Claude Code, Codex, Pi, and OpenCode and more for free (1.3B+ free tokens) from your terminal, app, IDE, or phone like OpenClaw (voice supported + ToS friendly) GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 4,769개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Use Claude Code, Codex, Pi, and OpenCode and more for free (1.3B+ free tokens) from your terminal, app, IDE, or phone like OpenClaw (voice supported + ToS friendly) GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 4,769개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"주간 +4,769"},"issues":361,"contributors":45,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"chaitanyagiri/munder-difflin","latest_release":"2026-08-27","name":"chaitanyagiri / munder-difflin","desc":"local multi-agent harness","lang":"JavaScript","topics":["agents","claude-code","free","harness","harness-engineering","memory"],"rank_daily":null,"rank_weekly":18,"rank_monthly":null,"tag_rule_version":1,"field_tags":["ai-ml"],"form_tags":["agent"],"stars":5396,"forks":643,"stars_weekly":1853,"color":"#f1e05a","summary":{"goal":"local multi-agent harness GitHub에 공개된 JavaScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 1,853개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"local multi-agent harness GitHub에 공개된 JavaScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 1,853개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"주간 +1,853"},"issues":120,"contributors":43,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"bookorbit/bookorbit","latest_release":"2026-08-29","name":"bookorbit / bookorbit","desc":"BookOrbit: Your Reading Space","lang":"TypeScript","topics":["audiobook-player","digital-library","docker","ebook-reader","library-management","metadata-management","nestjs","oidc-single-sign-on","opds","self-hosted","vue"],"rank_daily":null,"rank_weekly":19,"rank_monthly":null,"tag_rule_version":1,"field_tags":["web-app","devops"],"form_tags":["library"],"stars":3591,"forks":214,"stars_weekly":806,"color":"#3178c6","summary":{"goal":"BookOrbit: Your Reading Space GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 806개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"BookOrbit: Your Reading Space GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 주 806개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"주간 +806"},"issues":309,"contributors":25,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"TencentCloud/TencentDB-Agent-Memory","latest_release":"2026-08-25","name":"TencentCloud / TencentDB-Agent-Memory","desc":"TencentDB Agent Memory is a team-level memory hub for AI Agents — turning conversations, docs, and code into four reusable memory assets (Chat Memory, Skill, LLM-Wiki, Code-Graph) that are governed, shared, and equipped across agents and frameworks.","lang":"TypeScript","topics":["agent","ai-agent","embedding","llm","local-first","long-term-memory","memory","openclaw-plugin","vector-search"],"rank_daily":null,"rank_weekly":null,"rank_monthly":2,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools"],"form_tags":["agent","plugin-skill","framework"],"stars":25128,"forks":2339,"stars_monthly":15798,"color":"#3178c6","summary":{"goal":"TencentDB Agent Memory is a team-level memory hub for AI Agents — turning conversations, docs, and code into four reusable memory assets (Chat Memory, Skill, LLM-Wiki, Code-Graph) that are governed, shared, and equipped across agents and frameworks. GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 15,798개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"TencentDB Agent Memory is a team-level memory hub for AI Agents — turning conversations, docs, and code into four reusable memory assets (Chat Memory, Skill, LLM-Wiki, Code-Graph) that are governed, shared, and equipped across agents and frameworks. GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 15,798개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"월간 +15,798"},"issues":741,"contributors":9,"pushed_at":"2026-08-27","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"zhaoxuya520/reverse-skill","latest_release":"2026-08-08","name":"zhaoxuya520 / reverse-skill","desc":"Reverse Engineering / Authorized Penetration Testing / Security Research Skill Router Pack AI-powered routing + On-demand toolchain bootstrapping + Self-evolving knowledge base  Supports Claude Code, Kiro, Cursor, Cline, and other AI coding clients 逆向/渗透/安全技能路由包 - AI 自动路由 + 按需自举工具链 + 自动进化经验库 | 支持 Claude Code / Kiro / Cursor / Cline 等代码 AI 客户端","lang":"PowerShell","topics":[],"rank_daily":null,"rank_weekly":null,"rank_monthly":4,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools","security"],"form_tags":["plugin-skill"],"stars":30323,"forks":4151,"stars_monthly":21291,"color":"#012456","summary":{"goal":"Reverse Engineering / Authorized Penetration Testing / Security Research Skill Router Pack AI-powered routing + On-demand toolchain bootstrapping + Self-evolving knowledge base  Supports Claude Code, Kiro, Cursor, Cline, and other AI coding clients 逆向/渗透/安全技能路由包 - AI 自动路由 + 按需自举工具链 + 自动进化经验库 | 支持 Claude Code / Kiro / Cursor / Cline 等代码 AI 客户端 GitHub에 공개된 PowerShell 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 21,291개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"PowerShell 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Reverse Engineering / Authorized Penetration Testing / Security Research Skill Router Pack AI-powered routing + On-demand toolchain bootstrapping + Self-evolving knowledge base  Supports Claude Code, Kiro, Cursor, Cline, and other AI coding clients 逆向/渗透/安全技能路由包 - AI 自动路由 + 按需自举工具链 + 自动进化经验库 | 支持 Claude Code / Kiro / Cursor / Cline 等代码 AI 客户端 GitHub에 공개된 PowerShell 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 21,291개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"PowerShell 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"월간 +21,291"},"issues":18,"contributors":12,"pushed_at":"2026-08-26","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"cactus-compute/needle","latest_release":null,"name":"cactus-compute / needle","desc":"14MB foundation model for tiny devices; phones, wearables, smart home, and robots.","lang":"Python","topics":["cactus","gemini","gemma","llm","on-device-ai"],"rank_daily":null,"rank_weekly":null,"rank_monthly":6,"tag_rule_version":1,"field_tags":["ai-ml","systems"],"form_tags":[],"stars":9639,"forks":619,"stars_monthly":6279,"color":"#3572a5","summary":{"goal":"14MB foundation model for tiny devices; phones, wearables, smart home, and robots. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 6,279개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"14MB foundation model for tiny devices; phones, wearables, smart home, and robots. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 6,279개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"월간 +6,279"},"issues":30,"contributors":20,"pushed_at":"2026-08-28","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"volcengine/OpenViking","latest_release":"2026-08-28","name":"volcengine / OpenViking","desc":"Self-evolving Context Database for AI Agents. Unify Agent Memory, Knowledge RAG and Skills.","lang":"Python","topics":["agent-memory","agent-plugins","agentic-rag","context-database","dsh-plugin","self-evolving"],"rank_daily":null,"rank_weekly":null,"rank_monthly":7,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools","data"],"form_tags":["agent","plugin-skill"],"stars":34237,"forks":2601,"stars_monthly":6661,"color":"#3572a5","summary":{"goal":"Self-evolving Context Database for AI Agents. Unify Agent Memory, Knowledge RAG and Skills. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 6,661개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Self-evolving Context Database for AI Agents. Unify Agent Memory, Knowledge RAG and Skills. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 6,661개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"월간 +6,661"},"issues":580,"contributors":240,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"usekaneo/kaneo","latest_release":"2026-08-21","name":"usekaneo / kaneo","desc":"🎯 All you need. Nothing you don't. Open source project management that works for you, not against you.","lang":"TypeScript","topics":["hono","issue-management","issue-tracker","jira-alternative","kanban","linear-alternative","mcp","project-management","react","self-hosted","typescript"],"rank_daily":null,"rank_weekly":null,"rank_monthly":9,"tag_rule_version":1,"field_tags":["web-app","dev-tools","productivity"],"form_tags":["mcp"],"stars":8686,"forks":725,"stars_monthly":4703,"color":"#3178c6","summary":{"goal":"🎯 All you need. Nothing you don't. Open source project management that works for you, not against you. GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 4,703개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"🎯 All you need. Nothing you don't. Open source project management that works for you, not against you. GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 4,703개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"월간 +4,703"},"issues":69,"contributors":106,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"microsoft/AI-For-Beginners","latest_release":null,"name":"microsoft / AI-For-Beginners","desc":"12 Weeks, 24 Lessons, AI for All!","lang":"Jupyter Notebook","topics":["ai","artificial-intelligence","cnn","computer-vision","deep-learning","gan","machine-learning","microsoft-for-beginners","nlp","rnn"],"rank_daily":null,"rank_weekly":null,"rank_monthly":11,"tag_rule_version":1,"field_tags":["ai-ml","learning"],"form_tags":[],"stars":67648,"forks":13032,"stars_monthly":14701,"color":"#da5b0b","summary":{"goal":"12 Weeks, 24 Lessons, AI for All! GitHub에 공개된 Jupyter Notebook 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 14,701개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Jupyter Notebook 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"12 Weeks, 24 Lessons, AI for All! GitHub에 공개된 Jupyter Notebook 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 14,701개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Jupyter Notebook 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"월간 +14,701"},"issues":33,"contributors":76,"pushed_at":"2026-07-21","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"pingdotgg/t3code","latest_release":"2026-08-29","name":"pingdotgg / t3code","desc":"","lang":"TypeScript","topics":[],"rank_daily":null,"rank_weekly":null,"rank_monthly":13,"tag_rule_version":1,"field_tags":["unclassified"],"form_tags":[],"stars":20939,"forks":5019,"stars_monthly":5636,"color":"#3178c6","summary":{"goal":"pingdotgg/t3code 공개 저장소 GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 5,636개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"pingdotgg/t3code 공개 저장소 GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 5,636개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"월간 +5,636"},"issues":1306,"contributors":314,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"virgiliojr94/book-to-skill","latest_release":"2026-08-10","name":"virgiliojr94 / book-to-skill","desc":"Turn any technical book PDF into a Claude Code skill — ready to study, reference, and use while you work.","lang":"Python","topics":["agent-skills","ai-agents","book-to-skill","context-engineering","document-processing","edtech","knowledge-base","knowledge-management","llm","pdf-to-markdown","rag","self-study","study-tools"],"rank_daily":null,"rank_weekly":null,"rank_monthly":14,"tag_rule_version":1,"field_tags":["ai-ml","productivity","learning"],"form_tags":["agent","plugin-skill"],"stars":26928,"forks":2788,"stars_monthly":15782,"color":"#3572a5","summary":{"goal":"Turn any technical book PDF into a Claude Code skill — ready to study, reference, and use while you work. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 15,782개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Turn any technical book PDF into a Claude Code skill — ready to study, reference, and use while you work. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 15,782개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"월간 +15,782"},"issues":11,"contributors":33,"pushed_at":"2026-08-28","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"diegosouzapw/OmniRoute","latest_release":"2026-08-26","name":"diegosouzapw / OmniRoute","desc":"Never stop coding. Free MIT AI gateway: one endpoint, 350 providers (90+ free), 1200+ models Kimi, Claude, GPT, Gemini, GLM, DeepSeek, MiniMax. Works with Claude Code, Codex, Cursor, OpenCode, Cline \u0026 Copilot. Quota-aware auto-fallback, RTK+Caveman compression saves 15-95% tokens, MCP/A2A, Desktop/PWA. Built by 450+ contributors","lang":"TypeScript","topics":["a2a","ai-agents","ai-gateway","anthropic","claude","claude-code","cline","codex","copilot","cursor","deepseek","free-ai","gemini","kimi","llm-gateway","mcp","openai","openai-proxy","qwen","token-saver"],"rank_daily":null,"rank_weekly":null,"rank_monthly":15,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools"],"form_tags":["agent","mcp"],"stars":57905,"forks":7985,"stars_monthly":25061,"color":"#3178c6","summary":{"goal":"Never stop coding. Free MIT AI gateway: one endpoint, 350 providers (90+ free), 1200+ models Kimi, Claude, GPT, Gemini, GLM, DeepSeek, MiniMax. Works with Claude Code, Codex, Cursor, OpenCode, Cline \u0026 Copilot. Quota-aware auto-fallback, RTK+Caveman compression saves 15-95% tokens, MCP/A2A, Desktop/PWA. Built by 450+ contributors GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 25,061개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"Never stop coding. Free MIT AI gateway: one endpoint, 350 providers (90+ free), 1200+ models Kimi, Claude, GPT, Gemini, GLM, DeepSeek, MiniMax. Works with Claude Code, Codex, Cursor, OpenCode, Cline \u0026 Copilot. Quota-aware auto-fallback, RTK+Caveman compression saves 15-95% tokens, MCP/A2A, Desktop/PWA. Built by 450+ contributors GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 25,061개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"월간 +25,061"},"issues":223,"contributors":555,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"ayghri/i-have-adhd","latest_release":null,"name":"ayghri / i-have-adhd","desc":"A skill to stop your coding agent from burying the answer. ADHD-friendly output.","lang":"Python","topics":["adhd","claude-","claude-code-plugin","claude-skills","developer-tools","productivity"],"rank_daily":null,"rank_weekly":null,"rank_monthly":16,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools","productivity"],"form_tags":["agent","plugin-skill"],"stars":25498,"forks":1604,"stars_monthly":13080,"color":"#3572a5","summary":{"goal":"A skill to stop your coding agent from burying the answer. ADHD-friendly output. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 13,080개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"A skill to stop your coding agent from burying the answer. ADHD-friendly output. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 13,080개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"월간 +13,080"},"issues":22,"contributors":33,"pushed_at":"2026-08-26","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"block/buzz","latest_release":"2026-08-26","name":"block / buzz","desc":"A hive mind communication platform","lang":"Rust","topics":[],"rank_daily":null,"rank_weekly":null,"rank_monthly":17,"tag_rule_version":1,"field_tags":["unclassified"],"form_tags":[],"stars":31383,"forks":4007,"stars_monthly":16342,"color":"#dea584","summary":{"goal":"A hive mind communication platform GitHub에 공개된 Rust 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 16,342개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Rust 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"A hive mind communication platform GitHub에 공개된 Rust 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 16,342개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Rust 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"월간 +16,342"},"issues":3224,"contributors":99,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"lyogavin/airllm","latest_release":"2026-08-28","name":"lyogavin / airllm","desc":"AirLLM 70B inference with single 4GB GPU","lang":"Jupyter Notebook","topics":["chinese-llm","chinese-nlp","finetune","generative-ai","instruct-gpt","instruction-set","llama","llm","lora","open-models","open-source","open-source-models","qlora"],"rank_daily":null,"rank_weekly":null,"rank_monthly":18,"tag_rule_version":1,"field_tags":["ai-ml"],"form_tags":[],"stars":33036,"forks":3475,"stars_monthly":8902,"color":"#da5b0b","summary":{"goal":"AirLLM 70B inference with single 4GB GPU GitHub에 공개된 Jupyter Notebook 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 8,902개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Jupyter Notebook 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"AirLLM 70B inference with single 4GB GPU GitHub에 공개된 Jupyter Notebook 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 8,902개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Jupyter Notebook 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"월간 +8,902"},"issues":145,"contributors":10,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"megadose/holehe","latest_release":null,"name":"megadose / holehe","desc":"holehe allows you to check if the mail is used on different sites like twitter, instagram and will retrieve information on sites with the forgotten password function.","lang":"Python","topics":["ebay","email","emails","information-gathering","instagram","open-source-intelligence","osint","osint-python","osint-tools","pypi","python","social-network","tellonym","trio","twitter"],"rank_daily":null,"rank_weekly":null,"rank_monthly":19,"tag_rule_version":1,"field_tags":["security"],"form_tags":[],"stars":14415,"forks":1844,"stars_monthly":2604,"color":"#3572a5","summary":{"goal":"holehe allows you to check if the mail is used on different sites like twitter, instagram and will retrieve information on sites with the forgotten password function. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 2,604개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"holehe allows you to check if the mail is used on different sites like twitter, instagram and will retrieve information on sites with the forgotten password function. GitHub에 공개된 Python 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 2,604개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"월간 +2,604"},"issues":115,"contributors":32,"pushed_at":"2024-09-10","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"unclebob/swarm-forge","latest_release":null,"name":"unclebob / swarm-forge","desc":"A simple tool for coordinating several AI agents.","lang":"Clojure","topics":[],"rank_daily":null,"rank_weekly":null,"rank_monthly":21,"tag_rule_version":1,"field_tags":["ai-ml"],"form_tags":["agent"],"stars":3012,"forks":310,"stars_monthly":1587,"color":"#db5855","summary":{"goal":"A simple tool for coordinating several AI agents. GitHub에 공개된 Clojure 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 1,587개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Clojure 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"A simple tool for coordinating several AI agents. GitHub에 공개된 Clojure 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 1,587개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"Clojure 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"월간 +1,587"},"issues":28,"contributors":4,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"earendil-works/pi","latest_release":"2026-08-28","name":"earendil-works / pi","desc":"AI agent toolkit: unified LLM API, agent loop, TUI, coding agent CLI","lang":"TypeScript","topics":[],"rank_daily":null,"rank_weekly":null,"rank_monthly":22,"tag_rule_version":1,"field_tags":["ai-ml","dev-tools"],"form_tags":["agent","library","cli"],"stars":99007,"forks":12276,"stars_monthly":19558,"color":"#3178c6","summary":{"goal":"AI agent toolkit: unified LLM API, agent loop, TUI, coding agent CLI GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 19,558개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"AI agent toolkit: unified LLM API, agent loop, TUI, coding agent CLI GitHub에 공개된 TypeScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 19,558개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"월간 +19,558"},"issues":137,"contributors":283,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"},{"slug":"citrolabs/ego-lite","latest_release":"2026-08-11","name":"citrolabs / ego-lite","desc":"The fastest browser for AI agents to run browser automation, built for sharing your logged-in browser state with your AI agents, like Codex or Claude Code, without disturbing you. Zero cost, zero config.","lang":"JavaScript","topics":["agent-skills","ai-agent","automation","browser","browser-automation","claude-code","codex","hermes-agent","skills","skills-sh"],"rank_daily":null,"rank_weekly":null,"rank_monthly":23,"tag_rule_version":1,"field_tags":["ai-ml","web-app","dev-tools"],"form_tags":["agent","plugin-skill","cli"],"stars":14278,"forks":731,"stars_monthly":8592,"color":"#f1e05a","summary":{"goal":"The fastest browser for AI agents to run browser automation, built for sharing your logged-in browser state with your AI agents, like Codex or Claude Code, without disturbing you. Zero cost, zero config. GitHub에 공개된 JavaScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 8,592개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."},"detail":{"goal":"The fastest browser for AI agents to run browser automation, built for sharing your logged-in browser state with your AI agents, like Codex or Claude Code, without disturbing you. Zero cost, zero config. GitHub에 공개된 JavaScript 기반 저장소다.","usage":"구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.","pros":"이번 달 8,592개의 스타 증가가 공개 Trending 데이터에서 확인됐다.","cons":"자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.","fit":"JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다.","stars_note":"월간 +8,592"},"issues":142,"contributors":8,"pushed_at":"2026-08-29","_snapshot_id":"20260829152227-83c221c1d16f37d8","_generated_at":"2026-08-29T15:22:27.776Z","_stats_date":"2026-08-30"}];
 // GENERATED:TRENDING-REPOS:END
+const siteI18n=SiteI18n.create({document,storage:localStorage,navigator});
+const tr=(key,parameters)=>siteI18n.t(key,parameters);
+globalThis.pageI18n=siteI18n;
+const siteLocale=document.getElementById("siteLocale");
+siteLocale.addEventListener("change",event=>siteI18n.setLocale(event.currentTarget.value));
+document.addEventListener("site-locale-change",()=>{
+  updateFilterLabels();
+  render();
+  if(activeTipIndex!==null&&tipLayer.classList.contains("on")){
+    const repo=REPOS[activeTipIndex];activeSummaryLocale=resolveSummaryLocale(repo,siteI18n.locale);tipLayer.innerHTML=tipHTML(repo,activeSummaryLocale);
+  }
+  updateRefreshStatus();renderRecentExits(currentRecentExits);renderHist();
+});
 const SIGNALS=new Map();
 const MEMBERSHIP_STATUS=new Map();
 let membershipLoadState="loading";
@@ -624,7 +675,7 @@ const guestController=FavoriteSync.createController({
   onMessage:message=>{
     const status=document.getElementById("syncStatus");
     status.title=message;status.dataset.tone="notice";
-    status.setAttribute("aria-label",`브라우저 동기화. ${message}`);
+    status.setAttribute("aria-label",tr("account.syncLabel",{message}));
   },
 });
 globalThis.favoriteController=guestController;
@@ -649,7 +700,8 @@ LANGUAGES.forEach(l=>langSel.insertAdjacentHTML("beforeend",`<option>${l}</optio
 
 /* discovery sidebar + shareable URL state */
 const sidebar=document.getElementById("filterSidebar"),sidebarScrim=document.getElementById("sidebarScrim"),pageMain=document.querySelector(".wrap");
-const navToggle=document.getElementById("navToggle"),sidebarClose=document.getElementById("sidebarClose");
+const navToggle=document.getElementById("navToggle"),mobileNavToggle=document.getElementById("mobileNavToggle"),sidebarClose=document.getElementById("sidebarClose");
+const sidebarToggles=[navToggle,mobileNavToggle];
 const sidebarHoverMedia=matchMedia("(hover:hover) and (pointer:fine)");
 let sidebarTrigger=null,sidebarHoverTimer=null,railPointerInside=false,sidebarPointerInside=false;
 function focusableIn(container){
@@ -665,11 +717,14 @@ function trapFocus(container,event){
 function clearSidebarHoverTimer(){
   clearTimeout(sidebarHoverTimer);sidebarHoverTimer=null;
 }
+function setSidebarTriggerState(label,expanded){
+  sidebarToggles.forEach(toggle=>{toggle.setAttribute("aria-label",label);toggle.setAttribute("aria-expanded",String(expanded))});
+}
 function closeSidebar(restoreFocus=true){
   const mode=sidebar.dataset.openMode;if(!mode)return;
   clearSidebarHoverTimer();
   sidebar.classList.remove("open");sidebar.setAttribute("aria-hidden","true");sidebar.inert=true;
-  sidebar.removeAttribute("aria-modal");navToggle.setAttribute("aria-expanded","false");navToggle.setAttribute("aria-label","탐색 사이드바 열기");
+  sidebar.removeAttribute("aria-modal");setSidebarTriggerState(tr("nav.open"),false);
   delete sidebar.dataset.openMode;
   if(mode==="modal"){
     sidebarScrim.classList.remove("on");pageMain.inert=false;
@@ -687,13 +742,13 @@ function openSidebar(mode,trigger){
   if(readme.classList.contains("open"))closeReadme(false);
   hideTip();clearSidebarHoverTimer();
   sidebar.inert=false;sidebar.classList.add("open");sidebar.setAttribute("aria-hidden","false");
-  sidebar.dataset.openMode=mode;navToggle.setAttribute("aria-expanded","true");
+  sidebar.dataset.openMode=mode;
   if(mode==="modal"){
     sidebarTrigger=trigger instanceof HTMLElement?trigger:document.activeElement;
-    sidebar.setAttribute("aria-modal","true");sidebarScrim.classList.add("on");navToggle.setAttribute("aria-label","탐색 사이드바 닫기");pageMain.inert=true;
+    sidebar.setAttribute("aria-modal","true");sidebarScrim.classList.add("on");setSidebarTriggerState(tr("nav.close"),true);pageMain.inert=true;
     document.body.classList.add("overlay-open");sidebarClose.focus();
   }else{
-    sidebar.removeAttribute("aria-modal");navToggle.setAttribute("aria-label","탐색 사이드바 고정");
+    sidebar.removeAttribute("aria-modal");setSidebarTriggerState(tr("nav.pin"),true);
   }
   if(mode==="modal"&&typeof hideScrollTopImmediately==="function")hideScrollTopImmediately();
   else if(typeof scheduleScrollTopUpdate==="function")scheduleScrollTopUpdate();
@@ -723,6 +778,7 @@ navToggle.addEventListener("focusin",clearSidebarHoverTimer);
 sidebar.addEventListener("focusout",()=>setTimeout(scheduleSidebarHoverClose,0));
 navToggle.addEventListener("focusout",()=>setTimeout(scheduleSidebarHoverClose,0));
 navToggle.addEventListener("click",activateSidebar);
+mobileNavToggle.addEventListener("click",activateSidebar);
 sidebarClose.addEventListener("click",()=>{
   if(sidebar.dataset.openMode==="hover")navToggle.focus();
   closeSidebar();
@@ -829,13 +885,26 @@ function toggleFilter(key,id){
   updateFilterUi();syncUrl();render();
 }
 function renderFilterGroup(container,definitions,key){
-  container.innerHTML=definitions.map(({id,label})=>`<button class="filter-chip" type="button" data-filter-id="${id}" aria-pressed="false">${label}</button>`).join("");
+  container.innerHTML=definitions.map(({id})=>`<button class="filter-chip" type="button" data-filter-id="${id}" aria-pressed="false"></button>`).join("");
   container.addEventListener("click",event=>{
     const button=event.target.closest("[data-filter-id]");if(button)toggleFilter(key,button.dataset.filterId);
   });
 }
+const FIELD_MESSAGE_KEYS=new Map([
+  ["ai-ml","field.aiMl"],["web-app","field.webApp"],["dev-tools","field.devTools"],["data","field.data"],["devops","field.devops"],
+  ["security","field.security"],["productivity","field.productivity"],["systems","field.systems"],["learning","field.learning"],["unclassified","field.unclassified"],
+]);
+const FORM_MESSAGE_KEYS=new Map([
+  ["agent","form.agent"],["mcp","form.mcp"],["plugin-skill","form.pluginSkill"],["ide","form.ide"],["library","form.library"],["framework","form.framework"],["cli","form.cli"],
+]);
+function filterLabel(kind,id){return tr((kind==="fields"?FIELD_MESSAGE_KEYS:FORM_MESSAGE_KEYS).get(id))}
+function updateFilterLabels(){
+  document.querySelectorAll("#fieldFilters [data-filter-id]").forEach(button=>{button.textContent=filterLabel("fields",button.dataset.filterId)});
+  document.querySelectorAll("#formFilters [data-filter-id]").forEach(button=>{button.textContent=filterLabel("forms",button.dataset.filterId)});
+}
 renderFilterGroup(document.getElementById("fieldFilters"),RepoFilters.fields,"fields");
 renderFilterGroup(document.getElementById("formFilters"),RepoFilters.forms,"forms");
+updateFilterLabels();
 
 function activeDiscoveryCount(){
   return filterState.fields.length+filterState.forms.length+(filterState.lang?1:0)+(filterState.excludeAi?1:0)+(filterState.newOnly?1:0);
@@ -888,10 +957,12 @@ function repoLabel(slug){return REPOS.find(repo=>repo.slug===slug)?.name||slug}
 function updateHiddenManager(){
   const section=document.getElementById("hiddenRepoSection"),listBox=document.getElementById("hiddenRepoList");
   const slugs=[...hiddenSet];section.hidden=!slugs.length;
-  document.getElementById("hiddenRepoCount").textContent=`이 브라우저에서 ${slugs.length}개를 숨겼습니다.`;
-  listBox.innerHTML=slugs.map(slug=>`<div class="hidden-repo-row"><span class="hidden-repo-name">${esc(repoLabel(slug))}</span><button class="hidden-restore" type="button" data-restore-hidden="${esc(slug)}" aria-label="${esc(repoLabel(slug))} 복구">복구</button></div>`).join("");
+  document.getElementById("hiddenRepoCount").textContent=tr("hidden.count",{count:slugs.length});
+  listBox.innerHTML=slugs.map(slug=>`<div class="hidden-repo-row"><span class="hidden-repo-name">${esc(repoLabel(slug))}</span><button class="hidden-restore" type="button" data-restore-hidden="${esc(slug)}" aria-label="${esc(tr("hidden.restoreRepo",{name:repoLabel(slug)}))}">${tr("common.restore")}</button></div>`).join("");
 }
+let currentRecentExits=[];
 function renderRecentExits(exited=[]){
+  currentRecentExits=exited;
   const section=document.getElementById("recentExitsSection"),recentExitsList=document.getElementById("recentExitsList");
   section.hidden=!exited.length;
   recentExitsList.innerHTML=exited.map(item=>`<a class="recent-exit-link" href="https://github.com/${esc(item.slug)}" target="_blank" rel="noopener">${esc(repoLabel(item.slug))} ↗</a>`).join("");
@@ -911,40 +982,53 @@ function hideRepository(slug,focusUndo=false){
   try{
     const alreadyHidden=hiddenSet.has(slug),saved=HiddenRepos.hide(storage,slug);
     hiddenSet=new Set(saved);if(alreadyHidden)return;
-    hideTip();render();showHiddenNotice(`${repo.name} 저장소를 숨겼습니다.`,{undoSlug:slug});
+    hideTip();render();showHiddenNotice(tr("hidden.didHide",{name:repo.name}),{undoSlug:slug});
     if(focusUndo)requestAnimationFrame(()=>document.getElementById("undoHideBtn").focus());
-  }catch{showHiddenNotice("숨김 목록을 저장할 수 없어 화면을 변경하지 않았습니다.",{tone:"error"})}
+  }catch{showHiddenNotice(tr("hidden.saveError"),{tone:"error"})}
 }
 function restoreRepository(slug,{focusCard=false,focusManager=false}={}){
   try{
     hiddenSet=new Set(HiddenRepos.restore(storage,slug));render();
-    if(focusCard)dismissHiddenNotice();else showHiddenNotice(`${repoLabel(slug)} 저장소를 다시 표시했습니다.`);
+    if(focusCard)dismissHiddenNotice();else showHiddenNotice(tr("hidden.didRestore",{name:repoLabel(slug)}));
     requestAnimationFrame(()=>{
       if(focusCard){const index=REPOS.findIndex(repo=>repo.slug===slug);document.querySelector(`.card[data-idx="${index}"]`)?.focus()}
       else if(focusManager)(document.querySelector(".hidden-restore")||sidebarClose).focus();
     });
-  }catch{showHiddenNotice("숨김 목록을 저장할 수 없어 화면을 변경하지 않았습니다.",{tone:"error"})}
+  }catch{showHiddenNotice(tr("hidden.saveError"),{tone:"error"})}
 }
-function tipHTML(r){
-  const s=r.summary;if(!s)return "";
+const SUMMARY_LOCALES=["en","ko","zh-CN","es","ja"];
+const SUMMARY_LOCALE_LABELS=new Map([["en","EN"],["ko","한국어"],["zh-CN","中文"],["es","ES"],["ja","日本語"]]);
+function summaryBundle(r){
+  if(r?.summaries&&typeof r.summaries==="object")return r.summaries;
+  return r?.summary&&typeof r.summary==="object"?{ko:r.summary}:{};
+}
+function summaryAvailable(summary){return summary&&["goal","usage","pros","cons","fit"].every(key=>typeof summary[key]==="string"&&summary[key].trim())}
+function resolveSummaryLocale(r,preferred=siteI18n.locale){
+  const bundle=summaryBundle(r);
+  if(summaryAvailable(bundle[preferred]))return preferred;
+  if(summaryAvailable(bundle.en))return "en";
+  return SUMMARY_LOCALES.find(locale=>summaryAvailable(bundle[locale]))||null;
+}
+function tipHTML(r,locale=resolveSummaryLocale(r)){
+  const bundle=summaryBundle(r),s=locale?bundle[locale]:null;if(!summaryAvailable(s))return "";
+  const tabs=SUMMARY_LOCALES.map(code=>`<button type="button" class="summary-tab" data-summary-locale="${code}" aria-pressed="${code===locale}"${summaryAvailable(bundle[code])?"":" disabled"}>${SUMMARY_LOCALE_LABELS.get(code)}</button>`).join("");
   return `
-  <h2>${esc(r.name)}</h2><p class="tsub">${fmt(r.stars)} ★ · ⑂ ${fmt(r.forks)} · 👥 ${fmt(r.contributors||0)} 기여자 · ◎ ${fmt(r.issues||0)} 열린 이슈·PR · ${esc(r.lang)}</p>
-  <div class="trow"><span class="tlabel">🎯 프로젝트 목표</span><p>${esc(s.goal)}</p></div>
-  <div class="trow"><span class="tlabel">🛠 실행 방법</span><p>${esc(s.usage)}</p></div>
-  <div class="trow"><span class="tlabel">👍 장점</span><p>${esc(s.pros)}</p></div>
-  <div class="trow"><span class="tlabel">👎 단점·주의점</span><p>${esc(s.cons)}</p></div>
-  <div class="trow"><span class="tlabel">💡 어울리는 상황</span><p>${esc(s.fit)}</p></div>
-  <div class="trow"><span class="tlabel">📈 트렌드 한 줄 평</span><p>${esc(s.stars_note)}</p></div>
-  <p class="thint tip-actions"><button type="button" class="rdbtn js-readme" data-slug="${r.slug}" data-name="${esc(r.name)}">📖 README 전체 보기</button><button type="button" class="rdbtn js-hide-repo" data-slug="${r.slug}">관심 없음</button></p>`;
+  <h2>${esc(r.name)}</h2><p class="tsub">${fmt(r.stars)} ★ · ⑂ ${fmt(r.forks)} · 👥 ${fmt(r.contributors||0)} ${tr("repo.contributors")} · ◎ ${fmt(r.issues||0)} ${tr("repo.issues")} · ${esc(r.lang)}</p>
+  <div class="summary-tabs" role="group" aria-label="${tr("tooltip.language")}">${tabs}</div>
+  <div class="tip-readme-row"><button type="button" class="rdbtn js-readme" data-slug="${r.slug}" data-name="${esc(r.name)}">${tr("readme.view")}</button></div>
+  <div class="trow"><span class="tlabel">🎯 ${tr("tooltip.goal")}</span><p>${esc(s.goal)}</p></div>
+  <div class="trow"><span class="tlabel">🛠 ${tr("tooltip.usage")}</span><p>${esc(s.usage)}</p></div>
+  <div class="trow"><span class="tlabel">👍 ${tr("tooltip.pros")}</span><p>${esc(s.pros)}</p></div>
+  <div class="trow"><span class="tlabel">👎 ${tr("tooltip.cons")}</span><p>${esc(s.cons)}</p></div>
+  <div class="trow"><span class="tlabel">💡 ${tr("tooltip.fit")}</span><p>${esc(s.fit)}</p></div>
+  <p class="tip-ai-note">${tr("tooltip.aiNote")}</p>
+  <p class="thint tip-actions"><button type="button" class="rdbtn js-hide-repo" data-slug="${r.slug}">${tr("tooltip.hide")}</button></p>`;
 }
 
-const NEW_ONLY_LOAD_ERROR="신규 상태를 불러오지 못해 필터를 적용할 수 없습니다.";
-const FIELD_BADGE_LABELS=new Map(RepoFilters.fields.map(({id,label})=>[id,label]));
-const FORM_BADGE_LABELS=new Map(RepoFilters.forms.map(({id,label})=>[id,label]));
 function newOnlyGate(state,loadState){
   if(!state.newOnly||loadState==="ready")return null;
-  if(loadState==="error")return {message:NEW_ONLY_LOAD_ERROR,summary:`0개 저장소 · ${NEW_ONLY_LOAD_ERROR}`};
-  return {message:"신규 상태를 불러오는 중…",summary:"신규 상태를 불러오는 중입니다."};
+  if(loadState==="error")return {message:tr("new.error"),summary:`${tr("result.count",{count:0})} · ${tr("new.error")}`};
+  return {message:tr("new.loading"),summary:tr("new.loadingSummary")};
 }
 function transientMembershipRepo(repo){
   const status=MEMBERSHIP_STATUS.get(repo.slug.toLowerCase());
@@ -962,9 +1046,9 @@ function categoryBadgeGroup(category,label,values){
 }
 function classificationBadges(repo){
   const {forms,fields}=RepoFilters.classifyRepo(repo);
-  const formBadges=categoryBadgeGroup("form","형태",forms.map(id=>FORM_BADGE_LABELS.get(id)));
-  const fieldBadges=categoryBadgeGroup("field","분야·기술",fields.filter(id=>id!=="ai-ml").map(id=>FIELD_BADGE_LABELS.get(id)));
-  const aiBadge=fields.includes("ai-ml")?categoryBadgeGroup("ai","AI 관련",["AI"]):"";
+  const formBadges=categoryBadgeGroup("form",tr("classification.form"),forms.map(id=>filterLabel("forms",id)));
+  const fieldBadges=categoryBadgeGroup("field",tr("classification.field"),fields.filter(id=>id!=="ai-ml").map(id=>filterLabel("fields",id)));
+  const aiBadge=fields.includes("ai-ml")?categoryBadgeGroup("ai",tr("classification.ai"),["AI"]):"";
   return `${formBadges}${fieldBadges}${aiBadge}`;
 }
 /* render */
@@ -989,41 +1073,46 @@ function render(){
   currentVisibleRepos=items;
   const hiddenOnly=!items.length&&matchedCount>0;
   empty.style.display=items.length?"none":"grid";
-  document.getElementById("emptyText").textContent=hiddenOnly?"현재 조건의 저장소를 모두 숨겼어요.":"조건에 맞는 저장소가 없어요.";
+  document.getElementById("emptyText").textContent=hiddenOnly?tr("empty.hiddenAll"):tr("empty.default");
   document.getElementById("emptyResetBtn").hidden=hiddenOnly;
   document.getElementById("emptyManageHiddenBtn").hidden=!hiddenOnly;
   const activeCount=activeDiscoveryCount();
-  const sortLabel=RepoFilters.sorts.find(option=>option.id===filterState.sort)?.label||RepoFilters.sorts[0].label;
-  document.getElementById("filterSummary").textContent=`${items.length}개 저장소 · ${sortLabel}${activeCount?` · 탐색 필터 ${activeCount}개`:""}${favOnly?" · 즐겨찾기 보기":""}${hiddenSet.size?` · 숨김 ${hiddenSet.size}개`:""}`;
+  const sortLabel=tr(`sort.${filterState.sort==="trending"?"original":filterState.sort}`);
+  document.getElementById("filterSummary").textContent=[
+    tr("result.count",{count:items.length}),sortLabel,
+    ...(activeCount?[tr("result.filters",{count:activeCount})]:[]),
+    ...(favOnly?[tr("result.favorites")]:[]),
+    ...(hiddenSet.size?[tr("result.hidden",{count:hiddenSet.size})]:[]),
+  ].join(" · ");
   updateHiddenManager();
   const maxT=Math.max(...items.map(gainOf),1);
   list.innerHTML=items.map((r,i)=>{
-    const unit=viewPeriod==="all"?"최근":viewPeriod==="daily"?"오늘":viewPeriod==="weekly"?"이번 주":"이번 달";
+    const unit=tr(viewPeriod==="all"?"period.recent":viewPeriod==="daily"?"period.today":viewPeriod==="weekly"?"period.thisWeek":"period.thisMonth");
     const faved=favSet.has(r.slug);
     const signal=SIGNALS.get(r.slug);
     const badges=UiMotion.badgeModel(r,signal,viewPeriod);
     const membership=MEMBERSHIP_STATUS.get(r.slug.toLowerCase());
-    const membershipBadge=membership==="new"?'<span class="badge membership-new" title="baseline 이후 처음 관측">신규</span>':membership==="reentered"?'<span class="badge membership-reentered" title="직전 확정 목록에서 빠졌다가 다시 등장">재진입</span>':"";
-    return `<article class="card" tabindex="0" data-idx="${REPOS.indexOf(r)}" data-href="https://github.com/${r.slug}" aria-label="${esc(r.name)} 저장소" aria-describedby="cardKeyboardHint" aria-keyshortcuts="Delete">
-      <button type="button" class="favbtn${faved?" on":""}" data-slug="${r.slug}" title="즐겨찾기" aria-label="${faved?"즐겨찾기 해제":"즐겨찾기 추가"}" aria-pressed="${faved}"${favoriteBusy?" disabled":""}>${faved?"★":"☆"}</button>
+    const membershipBadge=membership==="new"?`<span class="badge membership-new" title="${tr("badges.new")}">${tr("badges.newLabel")}</span>`:membership==="reentered"?`<span class="badge membership-reentered" title="${tr("badges.reentered")}">${tr("badges.reenteredLabel")}</span>`:"";
+    return `<article class="card" tabindex="0" data-idx="${REPOS.indexOf(r)}" data-href="https://github.com/${r.slug}" aria-label="${esc(tr("repo.aria",{name:r.name}))}" aria-describedby="cardKeyboardHint" aria-keyshortcuts="Delete">
+      <button type="button" class="favbtn${faved?" on":""}" data-slug="${r.slug}" title="${tr("repo.favorite")}" aria-label="${tr(faved?"repo.favoriteRemove":"repo.favoriteAdd")}" aria-pressed="${faved}"${favoriteBusy?" disabled":""}>${faved?"★":"☆"}</button>
       <div class="rank">${i+1}</div>
       <div class="cbody">
-        <div class="cname"><a class="repo-link" href="https://github.com/${r.slug}" target="_blank" rel="noopener">${esc(r.name)}</a>${membershipBadge}${badges.streakDays?`<span class="badge" title="연속된 날짜에 Trending에서 관측">🔥 ${badges.streakDays}일 연속</span>`:""}${badges.starsChange!==null?`<span class="rankchg" title="직전 관측일 대비 총 스타 변화">${badges.starsChange>0?"↑":"↓"}${fmt(Math.abs(badges.starsChange))}</span>`:""}${badges.hot?`<span class="badge" title="선택 기간 스타 증가 1,000 이상">HOT</span>`:""}</div>
+        <div class="cname"><a class="repo-link" href="https://github.com/${r.slug}" target="_blank" rel="noopener">${esc(r.name)}</a>${membershipBadge}${badges.streakDays?`<span class="badge" title="${tr("badges.streak")}">🔥 ${badges.streakDays}</span>`:""}${badges.starsChange!==null?`<span class="rankchg" title="${tr("badges.change")}">${badges.starsChange>0?"↑":"↓"}${fmt(Math.abs(badges.starsChange))}</span>`:""}${badges.hot?`<span class="badge" title="${tr("badges.hot")}">HOT</span>`:""}</div>
         <div class="category-badges">${classificationBadges(r)}</div>
         <p class="cdesc">${esc(r.desc)}</p>
         <div class="cmeta">
           ${r.lang?`<span><i class="dot" style="background:${r.color}"></i>${esc(r.lang)}</span>`:""}
-          <span>⑂ ${fmt(r.forks)} forks</span>
-          <span>👥 ${fmt(r.contributors||0)} 기여자</span>
-          <span>◎ ${fmt(r.issues||0)} 열린 이슈·PR</span>
-          ${r.pushed_at?`<span>🕒 커밋 ${esc(r.pushed_at)}</span>`:""}
-          ${r.latest_release?`<span>🏷 릴리스 ${esc(r.latest_release)}</span>`:""}
+          <span>⑂ ${fmt(r.forks)} ${tr("repo.forks")}</span>
+          <span>👥 ${fmt(r.contributors||0)} ${tr("repo.contributors")}</span>
+          <span>◎ ${fmt(r.issues||0)} ${tr("repo.issues")}</span>
+          ${r.pushed_at?`<span>🕒 ${tr("repo.commit")} ${esc(r.pushed_at)}</span>`:""}
+          ${r.latest_release?`<span>🏷 ${tr("repo.release")} ${esc(r.latest_release)}</span>`:""}
           <span class="today">★ +${fmt(gainOf(r))} <span style="color:var(--text-3);font-weight:400">${unit}</span></span>
         </div>
         <div class="spark"><i style="width:${Math.max(4,gainOf(r)/maxT*100)}%"></i></div>
         <div class="sparkhist" data-slug="${r.slug}"></div>
       </div>
-      <div class="cstat"><div class="stars">${fmt(r.stars)}</div><div class="slabel">total stars</div></div>
+      <div class="cstat"><div class="stars">${fmt(r.stars)}</div><div class="slabel">${tr("repo.totalStars")}</div></div>
     </article>`;
   }).join("");
   if(typeof renderHist==="function")renderHist();
@@ -1092,8 +1181,8 @@ document.getElementById("hiddenRepoList").addEventListener("click",event=>{
   const button=event.target.closest("[data-restore-hidden]");if(button)restoreRepository(button.dataset.restoreHidden,{focusManager:true});
 });
 document.getElementById("restoreAllHiddenBtn").addEventListener("click",()=>{
-  try{hiddenSet=new Set(HiddenRepos.restoreAll(storage));render();showHiddenNotice("숨긴 저장소를 모두 다시 표시했습니다.");sidebarClose.focus()}
-  catch{showHiddenNotice("숨김 목록을 저장할 수 없어 화면을 변경하지 않았습니다.",{tone:"error"})}
+  try{hiddenSet=new Set(HiddenRepos.restoreAll(storage));render();showHiddenNotice(tr("hidden.restoreAll"));sidebarClose.focus()}
+  catch{showHiddenNotice(tr("hidden.saveError"),{tone:"error"})}
 });
 document.getElementById("undoHideBtn").addEventListener("click",()=>{if(lastHiddenSlug)restoreRepository(lastHiddenSlug,{focusCard:true})});
 document.getElementById("dismissHiddenNoticeBtn").addEventListener("click",dismissHiddenNotice);
@@ -1126,14 +1215,14 @@ function downloadCurrentView(type){
       filename:CurrentViewExport.fileName(type,model.exportedAt),
       mimeType:type==="csv"?"text/csv;charset=utf-8":"application/json;charset=utf-8",
     });
-    setExportStatus(`${model.resultCount}개 저장소 ${type.toUpperCase()} 다운로드를 시작했습니다.`,"success");
-  }catch{setExportStatus("현재 보기를 파일로 만들지 못했습니다. 잠시 후 다시 시도하세요.","error")}
+    setExportStatus(tr("export.downloaded",{format:type.toUpperCase()}),"success");
+  }catch{setExportStatus(tr("export.downloadFailed"),"error")}
 }
 document.getElementById("exportCsvBtn").addEventListener("click",()=>downloadCurrentView("csv"));
 document.getElementById("exportJsonBtn").addEventListener("click",()=>downloadCurrentView("json"));
 document.getElementById("copyViewUrlBtn").addEventListener("click",async()=>{
-  try{await CurrentViewExport.copyText(currentExportUrl());setExportStatus("현재 보기 링크를 복사했습니다.","success")}
-  catch{setExportStatus("클립보드에 링크를 복사하지 못했습니다.","error")}
+  try{await CurrentViewExport.copyText(currentExportUrl());setExportStatus(tr("export.linkCopied"),"success")}
+  catch{setExportStatus(tr("export.copyFailed"),"error")}
 });
 
 let historyBySlug=null,historyLoadError=false;
@@ -1143,8 +1232,8 @@ const historyReady=StarHistory.load("star-history.json",fetch)
 
 function renderHist(){
   document.querySelectorAll(".sparkhist[data-slug]").forEach(el=>{
-    if(historyLoadError){el.innerHTML='<p class="histnote">📈 스타 추이를 불러오지 못했어요</p>';return}
-    if(!historyBySlug){el.innerHTML='<p class="histnote">📈 스타 추이를 불러오는 중…</p>';return}
+    if(historyLoadError){el.innerHTML=`<p class="histnote">${tr("history.failed")}</p>`;return}
+    if(!historyBySlug){el.innerHTML=`<p class="histnote">${tr("history.loading")}</p>`;return}
     el.innerHTML=StarHistory.historyHtml(el.dataset.slug,historyBySlug.get(el.dataset.slug));
   });
 }
@@ -1180,77 +1269,69 @@ function readmeMetadata(repo){
   if(!repo||typeof repo.readme_path!=="string"||typeof repo.readme_blob_sha!=="string"||typeof repo.readme_content_sha256!=="string"||typeof repo.default_branch_head_sha!=="string")return null;
   const path=repo.readme_path;
   if(!path||path.startsWith("/")||path.split("/").some(part=>!part||part==="."||part==="..")||!READ_ME_SHA.test(repo.readme_blob_sha)||!READ_ME_SHA.test(repo.default_branch_head_sha)||!READ_ME_HASH.test(repo.readme_content_sha256))return null;
-  return {path,blobSha:repo.readme_blob_sha,contentSha256:repo.readme_content_sha256,defaultBranchHeadSha:repo.default_branch_head_sha,rendererSource:{repositoryUrl:`https://github.com/${repo.slug}`,blobSha:repo.readme_blob_sha,commitSha:repo.default_branch_head_sha}};
+  const canonical={id:"default",locale:SUMMARY_LOCALES.includes(repo.readme_locale)?repo.readme_locale:null,path,blobSha:repo.readme_blob_sha,contentSha256:repo.readme_content_sha256};
+  const seen=new Set(canonical.locale?[canonical.locale]:[]),variants=[];
+  const values=repo.readme_variants===undefined?[]:repo.readme_variants;if(!Array.isArray(values))return null;
+  for(const value of values){
+    if(!value||!SUMMARY_LOCALES.includes(value.locale)||seen.has(value.locale)||typeof value.path!=="string"||!value.path||value.path.startsWith("/")||value.path.split("/").some(part=>!part||part==="."||part==="..")||!READ_ME_SHA.test(value.blob_sha)||!READ_ME_HASH.test(value.content_sha256))return null;
+    seen.add(value.locale);variants.push({id:value.locale,locale:value.locale,path:value.path,blobSha:value.blob_sha,contentSha256:value.content_sha256});
+  }
+  return {defaultBranchHeadSha:repo.default_branch_head_sha,canonical,variants:[canonical,...variants]};
 }
 function encodeReadmePath(path){return path.split("/").map(encodeURIComponent).join("/")}
-function decodeReadmeMarkdown(payload,metadata){
-  if(!payload||payload.sha!==metadata.blobSha||payload.path!==metadata.path||payload.encoding!=="base64"||typeof payload.content!=="string")throw new Error("README source verification failed");
+function decodeReadmeMarkdown(payload,variant){
+  if(!payload||payload.sha!==variant.blobSha||payload.path!==variant.path||payload.encoding!=="base64"||typeof payload.content!=="string")throw new Error("README source verification failed");
   const base64=payload.content.replace(/\r?\n/g,"");
   if(!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(base64))throw new Error("README source verification failed");
   try{return new TextDecoder("utf-8",{fatal:true}).decode(Uint8Array.from(atob(base64),character=>character.charCodeAt(0)))}
   catch{throw new Error("README source verification failed")}
 }
-function validTranslation(t,metadata){
-  return t&&typeof t.markdown==="string"&&t.markdown.trim()&&t.source&&t.source.schema_version===2&&t.source.translation_applicable===true&&t.source.blob_sha===metadata.blobSha&&t.source.content_sha256===metadata.contentSha256;
+async function verifyReadmeContent(markdown,expectedHash){
+  const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(markdown));
+  const actual=[...new Uint8Array(digest)].map(value=>value.toString(16).padStart(2,"0")).join("");
+  if(actual!==expectedHash.toLowerCase())throw new Error("README content hash mismatch");
 }
-let curSlug=null,curName="",origHTML=null,koHTML=null,koState="idle";
+const README_VARIANT_LABELS=new Map([["en","English"],["ko","한국어"],["zh-CN","简体中文"],["es","Español"],["ja","日本語"]]);
+const readmeVariantTabs=document.getElementById("readmeVariantTabs");
+let currentReadme=null;
+function readmeVariantLabel(variant){return variant.locale?README_VARIANT_LABELS.get(variant.locale):tr("readme.default")}
+function renderReadmeVariantTabs(state){
+  readmeVariantTabs.innerHTML=state.metadata.variants.map(variant=>`<button type="button" data-readme-variant="${variant.id}" aria-pressed="${variant.id===state.currentId}">${readmeVariantLabel(variant)}</button>`).join("");
+}
+function selectedReadmeVariant(metadata,preferred=siteI18n.locale){return metadata.variants.find(variant=>variant.locale===preferred)||metadata.canonical}
+function readmeGithubUrl(state,variant){return `https://github.com/${state.slug}/blob/${state.metadata.defaultBranchHeadSha}/${encodeReadmePath(variant.path)}`}
+async function showReadmeVariant(id,{focus=false}={}){
+  const state=currentReadme,variant=state?.metadata.variants.find(value=>value.id===id);if(!state||!variant)return;
+  state.currentId=id;renderReadmeVariantTabs(state);document.getElementById("rpOpenGithub").onclick=()=>window.open(readmeGithubUrl(state,variant),"_blank","noopener");
+  if(focus)readmeVariantTabs.querySelector(`[data-readme-variant="${id}"]`)?.focus();
+  if(state.cache.has(id)){setReadmeBody(state.cache.get(id));return}
+  setReadmeBody(tr("readme.loading"),true);
+  try{
+    const response=await fetch(`https://api.github.com/repos/${state.slug}/contents/${encodeReadmePath(variant.path)}?ref=${state.metadata.defaultBranchHeadSha}`);
+    if(!response.ok)throw new Error(response.status);
+    const markdown=decodeReadmeMarkdown(await response.json(),variant);
+    await verifyReadmeContent(markdown,variant.contentSha256);
+    const html=ReadmeMarkdown.render(markdown,{repositoryUrl:`https://github.com/${state.slug}`,blobSha:variant.blobSha,commitSha:state.metadata.defaultBranchHeadSha});
+    if(currentReadme!==state)return;
+    state.cache.set(id,html);if(state.currentId===id)setReadmeBody(html);
+  }catch{
+    if(currentReadme!==state||state.currentId!==id)return;
+    setReadmeBody(`<p>${tr("readme.unavailable")}</p><p><a href="${readmeGithubUrl(state,variant)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">${tr("readme.direct")}</a></p>`);
+  }
+}
 async function openReadme(slug,name){
   const repoIndex=REPOS.findIndex(repo=>repo.slug===slug),metadata=readmeMetadata(REPOS[repoIndex]);
   readmeTrigger=document.querySelector(`.card[data-idx="${repoIndex}"]`)||document.activeElement;
   closeSidebar(false);hideTip();
   document.getElementById("rpTitle").textContent=name;
-  document.getElementById("rpOpenGithub").onclick=()=>window.open("https://github.com/"+slug,"_blank");
-  curSlug=slug;curName=name;origHTML=null;koHTML=null;koState="loading";
-  document.getElementById("tabOrig").setAttribute("aria-pressed","true");
-  document.getElementById("tabKo").setAttribute("aria-pressed","false");
-  setReadmeBody("불러오는 중…",true);panel.inert=false;panel.classList.add("open");panel.setAttribute("aria-hidden","false");scrim.classList.add("on");
+  setReadmeBody(tr("readme.loading"),true);panel.inert=false;panel.classList.add("open");panel.setAttribute("aria-hidden","false");scrim.classList.add("on");
   pageMain.classList.add("reading");pageMain.inert=true;document.body.classList.add("overlay-open");document.getElementById("rpClose").focus();
   if(typeof hideScrollTopImmediately==="function")hideScrollTopImmediately();
-  try{
-    if(!metadata)throw new Error("README metadata is unavailable");
-    const res=await fetch(`https://api.github.com/repos/${slug}/contents/${encodeReadmePath(metadata.path)}?ref=${metadata.defaultBranchHeadSha}`);
-    if(!res.ok)throw new Error(res.status);
-    const markdown=decodeReadmeMarkdown(await res.json(),metadata);
-    const _orig=ReadmeMarkdown.render(markdown,metadata.rendererSource);
-    if(slug!==curSlug)return;
-    origHTML=_orig;
-    if(document.querySelector(".rp-tabs [aria-pressed=true]").id==="tabOrig")setReadmeBody(origHTML);
-  }catch{
-    setReadmeBody(`<p>README를 확인할 수 없어요.</p><p><a href="https://github.com/${slug}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">GitHub에서 직접 보기 ↗</a></p>`);
-    return;
-  }
-  // 한국어 번역 로드 (캐시된 번역 파일)
-  koState="loading";
-  fetch(`translations/${slug.replace("/","__")}.json`).then(r=>r.ok?r.json():Promise.reject()).then(t=>{
-    if(!validTranslation(t,metadata))throw new Error("Invalid translation source");
-    const _ko=ReadmeMarkdown.render(t.markdown,metadata.rendererSource);
-    if(slug!==curSlug)return;
-    koHTML=_ko;koState="ok";
-    if(document.querySelector(".rp-tabs [aria-pressed=true]").id==="tabKo")
-      setReadmeBody(koHTML);
-  }).catch(()=>{
-    if(slug!==curSlug)return;
-    koState="fail";
-    if(document.querySelector(".rp-tabs [aria-pressed=true]").id==="tabKo")
-      setReadmeBody(`<p>${curName}의 한국어 번역을 불러오지 못했어요. <button class="rdbtn" onclick="location.reload()">새로고침</button> 후 다시 시도해주세요.</p>`);
-  });
+  if(!metadata){currentReadme=null;readmeVariantTabs.innerHTML="";setReadmeBody(`<p>${tr("readme.unavailable")}</p><p><a href="https://github.com/${slug}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">${tr("readme.direct")}</a></p>`);return}
+  const selected=selectedReadmeVariant(metadata);
+  currentReadme={slug,name,metadata,currentId:selected.id,cache:new Map()};renderReadmeVariantTabs(currentReadme);await showReadmeVariant(selected.id);
 }
-function setTab(which){
-  document.getElementById("tabOrig").setAttribute("aria-pressed",which==="orig");
-  document.getElementById("tabKo").setAttribute("aria-pressed",which==="ko");
-  let html;
-  if(which==="orig"){
-    if(origHTML)html=origHTML;
-    else html=`<p>원문을 불러오지 못했어요. 패널을 닫고 다시 열어주세요.</p>`;
-  }else{
-    if(koHTML)html=koHTML;
-    else if(koState==="fail")html=`<p>${curName}의 한국어 번역을 불러오지 못했어요. 원문 탭으로 확인해주세요.</p>`;
-    else html=`<p>🇰🇷 한국어 번역을 만들고 있어요… 조금 뒤 탭을 다시 눌러주세요.</p>`;
-  }
-  setReadmeBody(html);
-}
-document.getElementById("tabOrig").addEventListener("click",()=>setTab("orig"));
-document.getElementById("tabKo").addEventListener("click",()=>setTab("ko"));
+readmeVariantTabs.addEventListener("click",event=>{const button=event.target.closest("[data-readme-variant]");if(button)showReadmeVariant(button.dataset.readmeVariant,{focus:true})});
 if(globalThis.__README_RUNTIME_TEST__)globalThis.ReadmeRuntime={openReadme};
 
 /* 제목·빈 결과 버튼 → 처음 화면으로 초기화 */
@@ -1300,7 +1381,7 @@ scheduleScrollTopUpdate();
 
 /* 플로팅 툴팁: body 직속 레이어, 카드에 절대 가려지지 않음 */
 const tipLayer=document.getElementById("tipLayer"),listStage=document.getElementById("listStage");
-let hideTimer=null,activeTipIndex=null;
+let hideTimer=null,activeTipIndex=null,activeSummaryLocale=null;
 function touchLayout(){return matchMedia("(hover: none), (pointer: coarse)").matches}
 function railLayout(){return innerWidth>=1100&&!touchLayout()}
 function currentListShift(){
@@ -1315,10 +1396,10 @@ function showTip(card){
   }
   clearTimeout(hideTimer);
   const idx=+card.dataset.idx,r=REPOS[idx];
-  if(!r||!r.summary)return;
+  if(!r||!resolveSummaryLocale(r))return;
   if(activeTipIndex===idx&&tipLayer.classList.contains("on")){positionTip(card);return}
-  activeTipIndex=idx;
-  tipLayer.innerHTML=tipHTML(r);
+  activeTipIndex=idx;activeSummaryLocale=resolveSummaryLocale(r);
+  tipLayer.innerHTML=tipHTML(r,activeSummaryLocale);
   positionTip(card);
   tipLayer.classList.add("on");
   tipLayer.inert=false;
@@ -1370,6 +1451,16 @@ function touchCardBehindTip(event){
     .find(card=>card&&+card.dataset.idx===activeTipIndex)||null;
 }
 tipLayer.addEventListener("click",e=>{
+  const summaryButton=e.target.closest(".summary-tab");
+  if(summaryButton){
+    e.preventDefault();
+    const r=activeTipIndex===null?null:REPOS[activeTipIndex],nextLocale=summaryButton.dataset.summaryLocale;
+    if(r&&summaryAvailable(summaryBundle(r)[nextLocale])){
+      activeSummaryLocale=nextLocale;tipLayer.innerHTML=tipHTML(r,activeSummaryLocale);
+      tipLayer.querySelector(`[data-summary-locale="${nextLocale}"]`)?.focus();
+    }
+    return;
+  }
   const hideButton=e.target.closest(".js-hide-repo");
   if(hideButton){e.preventDefault();hideRepository(hideButton.dataset.slug,e.detail===0);return}
   const readmeButton=e.target.closest(".js-readme");
@@ -1384,7 +1475,7 @@ window.addEventListener("scroll",()=>{
   const card=activeTipIndex===null?null:document.querySelector(`.card[data-idx="${activeTipIndex}"]`);
   if(card&&tipLayer.classList.contains("on"))positionTip(card);
 },{passive:true});
-function hideTip(){tipLayer.classList.remove("on");tipLayer.setAttribute("aria-hidden","true");tipLayer.inert=true;activeTipIndex=null;listStage.style.transform="";}
+function hideTip(){tipLayer.classList.remove("on");tipLayer.setAttribute("aria-hidden","true");tipLayer.inert=true;activeTipIndex=null;activeSummaryLocale=null;listStage.style.transform="";}
 document.addEventListener("click",e=>{
   if(!touchLayout()||!tipLayer.classList.contains("on"))return;
   if(e.target.closest("#tipLayer")||e.target.closest(".card"))return;
@@ -1402,17 +1493,19 @@ MembershipHistory.load("data/membership-status.json",fetch).then(status=>{
   membershipLoadState="ready";
   renderRecentExits(status.exited);render();
 }).catch(()=>{membershipLoadState="error";MEMBERSHIP_STATUS.clear();renderRecentExits();render()});
-/* 최근/다음 갱신 시각 표시 */
-(function(){
+/* last/next refresh times */
+let lastRefreshValue=null;
+function updateRefreshStatus(nextLastValue){
+  if(nextLastValue!==undefined)lastRefreshValue=nextLastValue;
   const box=document.getElementById("refreshStatus");if(!box)return;
-  const fmt=new Intl.DateTimeFormat("ko-KR",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false});
-  function updateRefreshStatus(lastValue){
-    const next=RefreshSchedule.nextRefreshTime(Date.now());
-    const lastText=Number.isFinite(lastValue)?fmt.format(new Date(lastValue)):lastValue;
-    document.getElementById("luLast").textContent="최근 갱신 시각 : "+lastText;
-    document.getElementById("luNext").textContent="다음 갱신 시각 : "+fmt.format(next);
-    document.getElementById("luCadence").textContent="2시간마다 갱신";
-  }
+  const formatter=new Intl.DateTimeFormat(siteI18n.locale,{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false});
+  const next=RefreshSchedule.nextRefreshTime(Date.now());
+  const lastText=Number.isFinite(lastRefreshValue)?formatter.format(new Date(lastRefreshValue)):(lastRefreshValue||tr("refresh.unknown"));
+  document.getElementById("luLast").textContent=tr("refresh.lastAt",{time:lastText});
+  document.getElementById("luNext").textContent=tr("refresh.nextAt",{time:formatter.format(next)});
+  document.getElementById("luCadence").textContent=tr("refresh.cadence");
+}
+(function(){
   fetch("data/latest.json",{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject()).then(f=>{
     SIGNALS.clear();
     for(const repo of Array.isArray(f.repos)?f.repos:[]){
@@ -1424,7 +1517,7 @@ MembershipHistory.load("data/membership-status.json",fetch).then(status=>{
   }).catch(()=>{
     let latest=null;
     for(const r of REPOS){const d=r._stats_date;if(d&&(!latest||d>latest))latest=d;}
-    updateRefreshStatus(latest||"확인할 수 없음");
+    updateRefreshStatus(latest||tr("refresh.unknown"));
   });
 })();
 </script>
@@ -1433,9 +1526,10 @@ import("./firebase-client.js").catch(()=>{
   const status=document.getElementById("syncStatus");
   const login=document.getElementById("loginBtn");
   const logout=document.getElementById("logoutBtn");
-  status.textContent="Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다.";
-  status.title="Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다.";
-  status.setAttribute("aria-label","브라우저 동기화. Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다.");
+  const message=globalThis.pageI18n.t("account.unavailable");
+  status.textContent=message;
+  status.title=message;
+  status.setAttribute("aria-label",globalThis.pageI18n.t("account.syncLabel",{message}));
   status.dataset.tone="error";
   login.hidden=true;
   logout.hidden=true;

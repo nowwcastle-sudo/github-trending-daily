@@ -43,7 +43,7 @@ PAGES_BASE_ARTIFACT_PATHS = (
     "auth-lifecycle.js", "changes.xml", "current-view-export.js", "data/latest.json", "data/membership-status.json",
     "favorite-sync.js", "favorites.js", "feed.xml", "firebase-client.js", "firebase-config.json",
     "hidden-repos.js", "index.html", "membership-history.js", "readme-markdown.js",
-    "refresh-schedule.js", "repo-filters.js", "star-history.js", "star-history.json", "ui-motion.js",
+    "refresh-schedule.js", "repo-filters.js", "site-i18n.js", "star-history.js", "star-history.json", "ui-motion.js",
 )
 
 
@@ -1092,7 +1092,7 @@ _REPOSITORY_FACT_SNAKE_KEYS = {
     "gain_daily", "gain_monthly", "gain_weekly", "is_fork", "language_color",
     "license_spdx", "open_issues_and_pull_requests", "primary_language", "provenance",
     "pushed_at", "rank_daily", "rank_monthly", "rank_weekly", "readme_blob_sha",
-    "readme_content_sha256", "readme_path", "readme_status", "slug", "stars",
+    "readme_content_sha256", "readme_locale", "readme_path", "readme_status", "readme_variants", "slug", "stars",
     "subscribers", "tag_rule_version", "topics", "updated_at", "watchers_count",
 }
 _REPOSITORY_FACT_CAMEL_NAMES = {
@@ -1104,8 +1104,8 @@ _REPOSITORY_FACT_CAMEL_NAMES = {
     "open_issues_and_pull_requests": "openIssuesAndPullRequests", "primary_language": "primaryLanguage",
     "pushed_at": "pushedAt", "rank_daily": "rankDaily", "rank_monthly": "rankMonthly",
     "rank_weekly": "rankWeekly", "readme_blob_sha": "readmeBlobSha",
-    "readme_content_sha256": "readmeContentSha256", "readme_path": "readmePath",
-    "readme_status": "readmeStatus", "tag_rule_version": "tagRuleVersion",
+    "readme_content_sha256": "readmeContentSha256", "readme_locale": "readmeLocale", "readme_path": "readmePath",
+    "readme_status": "readmeStatus", "readme_variants": "readmeVariants", "tag_rule_version": "tagRuleVersion",
     "updated_at": "updatedAt", "watchers_count": "watchersCount",
 }
 _REPOSITORY_FACT_CAMEL_KEYS = {
@@ -1188,8 +1188,31 @@ def _validate_repository_fact(repository: Any) -> None:
     readme_path = _value(repository, "readme_path", "readmePath")
     readme_blob = _value(repository, "readme_blob_sha", "readmeBlobSha")
     readme_content = _value(repository, "readme_content_sha256", "readmeContentSha256")
+    readme_locale = _value(repository, "readme_locale", "readmeLocale")
+    readme_variants = _value(repository, "readme_variants", "readmeVariants")
     if status not in ("present", "absent") or (status == "absent") != (readme_path is None and readme_blob is None and readme_content is None):
         raise ValueError("repository README identity is invalid")
+    if readme_locale is not None and readme_locale not in ("en", "ko", "zh-CN", "es", "ja"):
+        raise ValueError("repository README locale is invalid")
+    if not isinstance(readme_variants, list):
+        raise ValueError("repository README variants must be an array")
+    variant_locales = []
+    for variant in readme_variants:
+        if not isinstance(variant, dict) or set(variant) != {"locale", "path", "blob_sha", "content_sha256"}:
+            raise ValueError("repository README variant identity is invalid")
+        locale = variant["locale"]
+        if locale not in ("en", "ko", "zh-CN", "es", "ja") or locale in variant_locales:
+            raise ValueError("repository README variant locale is invalid")
+        if not isinstance(variant["path"], str) or not variant["path"] or variant["path"] == readme_path:
+            raise ValueError("repository README variant path is invalid")
+        _sha_text(variant["blob_sha"], 40, "repository README variant blob SHA")
+        _sha_text(variant["content_sha256"], 64, "repository README variant content SHA")
+        variant_locales.append(locale)
+    order = {locale: index for index, locale in enumerate(("en", "ko", "zh-CN", "es", "ja"))}
+    if variant_locales != sorted(variant_locales, key=order.__getitem__):
+        raise ValueError("repository README variants are not canonical")
+    if status == "absent" and (readme_locale is not None or readme_variants):
+        raise ValueError("repository README language identity conflicts with absence")
     if status == "present":
         if not isinstance(readme_path, str) or not readme_path:
             raise ValueError("repository README identity is invalid")
@@ -1337,9 +1360,11 @@ def _enrichment_hashes(repository: dict[str, Any], profile: dict[str, Any], inde
     if readme_path is None:
         expected_source = {"kind": "metadata_only", "slug": slug, "profile_sha256": profile["profile_sha256"], "model": source.get("model"), "schema_version": source.get("schema_version"), "translation_applicable": False}
     else:
-        expected_source = {"kind": "readme", "slug": slug, "path": readme_path, "blob_sha": readme_blob, "content_sha256": readme_content, "model": source.get("model"), "schema_version": source.get("schema_version"), "translation_applicable": source.get("translation_applicable")}
+        expected_source = {"kind": "readme", "slug": slug, "path": readme_path, "blob_sha": readme_blob, "content_sha256": readme_content, "model": source.get("model"), "schema_version": source.get("schema_version"), "prompt_schema_version": source.get("prompt_schema_version"), "translation_applicable": source.get("translation_applicable")}
     if source != expected_source:
         raise ValueError("summary source does not match canonical repository identity")
+    if source.get("model") != "claude-sonnet-5" or source.get("schema_version") != 3 or source.get("prompt_schema_version") != 1 or source.get("translation_applicable") is not False:
+        raise ValueError("summary source model or prompt contract is invalid")
     summary_source = _digest(source)
     summary_content = _digest(content)
     summary_envelope = _digest({"content": content, "source": source})

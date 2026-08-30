@@ -18,15 +18,19 @@ import {
   validateFrozenFactsPayload,
 } from "./collect-repository-events.mjs";
 import { parseJsonStrict } from "./build-pages-artifact.mjs";
+import { DEFAULT_ENRICHMENT_MODEL, isEnrichmentModel } from "./enrichment-models.mjs";
+import { detectReadmeVariantPaths, inferReadmeLocale, isReadmeVariantSet } from "./readme-variants.mjs";
 
 const PERIODS = {
   daily: { field: "stars_daily", label: "today" },
   weekly: { field: "stars_weekly", label: "this week" },
   monthly: { field: "stars_monthly", label: "this month" },
 };
-const ENRICHMENT_MODEL = "claude-haiku-4-5";
-const ENRICHMENT_SCHEMA_VERSION = 2;
+const ENRICHMENT_MODEL = DEFAULT_ENRICHMENT_MODEL;
+const ENRICHMENT_SCHEMA_VERSION = 3;
+const SUMMARY_PROMPT_SCHEMA_VERSION = 1;
 const SUMMARY_FIELDS = ["goal", "usage", "pros", "cons", "fit"];
+const SUMMARY_LOCALES = ["en", "ko", "zh-CN", "es", "ja"];
 
 function periodConfig(period) {
   const config = PERIODS[period];
@@ -152,7 +156,7 @@ class RequestLimitError extends Error {}
 class RetryDelayError extends Error {}
 
 const defaultSleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
-const GITHUB_REQUESTS_PER_REPOSITORY = 6;
+const GITHUB_REQUESTS_PER_REPOSITORY = 11;
 const DEFAULT_MAX_ATTEMPTS = 3;
 const DEFAULT_MAX_REQUESTS = 75 * GITHUB_REQUESTS_PER_REPOSITORY * DEFAULT_MAX_ATTEMPTS;
 const TAG_RULE_VERSION = 1;
@@ -489,6 +493,7 @@ export async function fetchRepositoryFacts(slug, options = {}) {
   if (!/^[a-f0-9]{40}$/.test(head?.sha ?? "")) throw new Error(`Invalid default branch HEAD for ${normalizedSlug}`);
 
   const readme = await fetchCanonicalReadme(normalizedSlug, { ...options, client });
+  const readmeVariants = await fetchReadmeVariants(normalizedSlug, head.sha, readme, { ...options, client });
   const [owner, name] = normalizedSlug.split("/");
   const source = options.source ?? {};
   const ranks = {
@@ -545,8 +550,10 @@ export async function fetchRepositoryFacts(slug, options = {}) {
   const readmeFacts = {
     readme_blob_sha: readme.blobSha,
     readme_content_sha256: readme.contentSha256,
+    readme_locale: readme.path === null ? null : inferReadmeLocale(readme.path),
     readme_path: readme.path,
     readme_status: readme.status,
+    readme_variants: readmeVariants,
   };
   const provenance = {
     repository: {
@@ -568,6 +575,9 @@ export async function fetchRepositoryFacts(slug, options = {}) {
       path: readme.path,
       blob_sha: readme.blobSha,
       content_sha256: readme.contentSha256,
+      locale: readmeFacts.readme_locale,
+      variant_tree_api_path: readme.status === "present" ? githubPath(normalizedSlug, `/git/trees/${head.sha}`) : null,
+      variants: readmeVariants,
     },
     trending: {
       ...Object.fromEntries(["daily", "weekly", "monthly"].map(period => [period, {
@@ -612,8 +622,10 @@ export async function fetchRepositoryFacts(slug, options = {}) {
     provenance,
     readme_blob_sha: readmeFacts.readme_blob_sha,
     readme_content_sha256: readmeFacts.readme_content_sha256,
+    readme_locale: readmeFacts.readme_locale,
     readme_path: readmeFacts.readme_path,
     readme_status: readmeFacts.readme_status,
+    readme_variants: readmeFacts.readme_variants,
     pushed_at: repositoryFacts.pushed_at,
     rank_daily: ranks.rank_daily,
     rank_monthly: ranks.rank_monthly,
@@ -637,52 +649,6 @@ async function fetchLatestRelease(slug, { client }) {
   const value = await requireGitHubJson(response, apiPath);
   if (!validTimestamp(value?.published_at)) throw new Error(`Invalid latest GitHub release for ${slug}`);
   return value.published_at.slice(0, 10);
-}
-
-function readmeIntroduction(readme) {
-  if (typeof readme !== "string") return "";
-  return readme
-    .split(/\r?\n\s*\r?\n/)
-    .map(paragraph => paragraph
-      .replace(/```[\s\S]*?```/g, "")
-      .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-      .replace(/<[^>]+>/g, "")
-      .replace(/^#+\s*/gm, "")
-      .replace(/\s+/g, " ")
-      .trim())
-    .find(Boolean) ?? "";
-}
-
-function trendNote(repo) {
-  const labels = [
-    ["stars_daily", "오늘"],
-    ["stars_weekly", "이번 주"],
-    ["stars_monthly", "이번 달"],
-  ];
-  return labels
-    .filter(([field]) => Number.isSafeInteger(repo[field]))
-    .map(([field, label]) => `${label} ${repo[field].toLocaleString("ko-KR")}개`)
-    .join(", ");
-}
-
-function koreanFallback(repo, metadata, readme) {
-  const source = metadata.description?.trim() || readmeIntroduction(readme) || `${repo.slug} 공개 저장소`;
-  const language = metadata.language ? `${metadata.language} 기반 ` : "";
-  const gains = trendNote(repo);
-  const goal = `${source} GitHub에 공개된 ${language}저장소다.`;
-  const usage = "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.";
-  const pros = `${gains}의 스타 증가가 공개 Trending 데이터에서 확인됐다.`;
-  const cons = "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.";
-  const fit = `${metadata.language || "오픈소스"} 저장소를 탐색하려는 사용자에게 참고 자료가 된다.`;
-  return {
-    summary: { goal, usage, pros, cons, fit },
-    detail: { goal, usage, pros, cons, fit, stars_note: buildTrendNote({
-      gain_daily: repo.stars_daily,
-      gain_weekly: repo.stars_weekly,
-      gain_monthly: repo.stars_monthly,
-      membership_status: repo.membership_status,
-    }) },
-  };
 }
 
 export async function enrichTrendingRepositories(discovered, {
@@ -781,13 +747,16 @@ export function buildFrozenFactsEnvelope({
     }
     const absent = repository.readme_status === "absent";
     if (absent) {
-      if (readme.path !== null || readme.blobSha !== null || readme.contentSha256 !== null || readme.markdown !== null) {
+      if (readme.path !== null || readme.blobSha !== null || readme.contentSha256 !== null || readme.markdown !== null
+          || repository.readme_locale !== null || !isReadmeVariantSet(repository.readme_variants, null) || repository.readme_variants.length !== 0) {
         throw new Error("Frozen README absence identity is invalid");
       }
     } else if (repository.readme_status !== "present"
         || readme.path !== repository.readme_path
         || readme.blobSha !== repository.readme_blob_sha
         || readme.contentSha256 !== repository.readme_content_sha256
+        || repository.readme_locale !== inferReadmeLocale(repository.readme_path)
+        || !isReadmeVariantSet(repository.readme_variants, repository.readme_path)
         || typeof readme.markdown !== "string"
         || sha256(Buffer.from(readme.markdown, "utf8")) !== readme.contentSha256) {
       throw new Error("Frozen README identity does not match canonical facts");
@@ -867,7 +836,45 @@ export function buildTrendNote(repo) {
 function validDetailedContent(value) {
   return value && !Array.isArray(value) && typeof value === "object"
     && Object.keys(value).length === SUMMARY_FIELDS.length
-    && SUMMARY_FIELDS.every(field => typeof value[field] === "string" && value[field].trim());
+    && SUMMARY_FIELDS.every(field => typeof value[field] === "string" && value[field].trim())
+    && !SUMMARY_FIELDS.some(field => /(?:\bTODO\b|\bTBD\b|placeholder|확인\s*필요|자동\s*요약|구체적인\s*설치\s*및\s*사용\s*절차는\s*저장소\s*README\s*원문을\s*확인한다|README(?:를|에서|\s*원문을)?\s*(?:확인|참고))/i.test(value[field]));
+}
+
+function validSummaryBundle(value) {
+  return value && !Array.isArray(value) && typeof value === "object"
+    && exactObjectKeys(value, SUMMARY_LOCALES)
+    && SUMMARY_LOCALES.every(locale => validDetailedContent(value[locale]));
+}
+
+export async function fetchReadmeVariants(slug, headSha, canonicalReadme, options = {}) {
+  const normalizedSlug = normalizeSlug(slug);
+  if (!/^[a-f0-9]{40}$/.test(headSha ?? "")) throw new Error(`Invalid default branch HEAD for ${normalizedSlug}`);
+  if (canonicalReadme?.status !== "present" || typeof canonicalReadme.path !== "string") return [];
+  const client = options.client ?? createGitHubClient(options);
+  const treePath = `${githubPath(normalizedSlug, `/git/trees/${headSha}`)}?recursive=1`;
+  const treeResponse = await client.request(treePath);
+  const tree = await requireGitHubJson(treeResponse, treePath);
+  const detected = detectReadmeVariantPaths(canonicalReadme.path, tree);
+  const variants = [];
+  for (const variant of detected) {
+    const blobPath = githubPath(normalizedSlug, `/git/blobs/${variant.blobSha}`);
+    const blobResponse = await client.request(blobPath);
+    const blob = await requireGitHubJson(blobResponse, blobPath);
+    if (blob?.sha !== variant.blobSha || blob?.encoding !== "base64" || typeof blob.content !== "string") {
+      throw new Error(`README variant blob identity is invalid for ${normalizedSlug}`);
+    }
+    let bytes;
+    try { bytes = decodeBoundedBase64(blob.content, 512 * 1024); }
+    catch { throw new Error(`README variant blob identity is invalid for ${normalizedSlug}`); }
+    decodeUtf8Strict(bytes);
+    variants.push({
+      locale: variant.locale,
+      path: variant.path,
+      blob_sha: variant.blobSha,
+      content_sha256: sha256(bytes),
+    });
+  }
+  return variants;
 }
 
 function exactObjectKeys(value, keys) {
@@ -877,41 +884,22 @@ function exactObjectKeys(value, keys) {
 function frozenSourceMatchesFact(source, fact) {
   if (!source || Array.isArray(source) || typeof source !== "object"
       || source.model !== ENRICHMENT_MODEL || source.schema_version !== ENRICHMENT_SCHEMA_VERSION
-      || source.slug !== fact.slug.toLowerCase() || typeof source.translation_applicable !== "boolean") return false;
+      || source.prompt_schema_version !== SUMMARY_PROMPT_SCHEMA_VERSION
+      || source.slug !== fact.slug.toLowerCase() || source.translation_applicable !== false) return false;
   if (fact.readme_status === "present") {
-    return exactObjectKeys(source, ["kind", "slug", "path", "blob_sha", "content_sha256", "model", "schema_version", "translation_applicable"])
+    return exactObjectKeys(source, ["kind", "slug", "path", "blob_sha", "content_sha256", "model", "schema_version", "prompt_schema_version", "translation_applicable"])
       && source.kind === "readme" && source.path === fact.readme_path
       && source.blob_sha === fact.readme_blob_sha && source.content_sha256 === fact.readme_content_sha256;
   }
-  if (fact.readme_status !== "absent" || source.translation_applicable !== false
-      || !exactObjectKeys(source, ["kind", "slug", "profile_sha256", "model", "schema_version", "translation_applicable"])) return false;
-  const profile = {
-    slug: fact.slug.toLowerCase(),
-    display_slug: fact.display_slug.replace(/\s*\/\s*/g, "/"),
-    description: fact.description,
-    primary_language: fact.primary_language,
-    topics: fact.topics,
-    license_spdx: fact.license_spdx,
-    archived: fact.archived,
-    is_fork: fact.is_fork,
-    default_branch: fact.default_branch,
-    created_at: fact.created_at,
-    field_tags: fact.field_tags,
-    form_tags: fact.form_tags,
-    tag_rule_version: fact.tag_rule_version,
-  };
-  return source.kind === "metadata_only" && source.profile_sha256 === hashCanonicalJson(profile);
+  return false;
 }
 
 function reusableSummaryEntry(value, fact) {
   const source = value?.source;
-  if (!validDetailedContent(value?.content) || !source || Array.isArray(source) || typeof source !== "object") return false;
-  if (source.kind !== undefined) return frozenSourceMatchesFact(source, fact);
-  return source
-    && source.blob_sha === fact.readme_blob_sha
-    && source.content_sha256 === fact.readme_content_sha256
-    && source.model === ENRICHMENT_MODEL
-    && source.schema_version === ENRICHMENT_SCHEMA_VERSION;
+  if (!validDetailedContent(value?.content) || !validSummaryBundle(value?.summaries)
+      || JSON.stringify(value.content) !== JSON.stringify(value.summaries.en)
+      || !source || Array.isArray(source) || typeof source !== "object") return false;
+  return frozenSourceMatchesFact(source, fact);
 }
 
 function renderRepositoryFacts(facts, summaryCache, context, latestReleases) {
@@ -922,12 +910,10 @@ function renderRepositoryFacts(facts, summaryCache, context, latestReleases) {
       .map(period => [`stars_${period}`, fact[`gain_${period}`]])
       .filter(([, value]) => value !== null));
     const cached = summaries.get(fact.slug.toLowerCase());
-    const fallback = koreanFallback(
-      { slug: fact.slug, ...gains, membership_status: fact.membership_status },
-      { description: fact.description, language: fact.primary_language },
-      "",
-    );
-    const content = reusableSummaryEntry(cached, fact) ? cached.content : fallback.detail;
+    if (!reusableSummaryEntry(cached, fact)) {
+      throw new Error(`Detailed enrichment is unavailable for ${fact.slug}`);
+    }
+    const content = cached.content;
     const starsNote = buildTrendNote(fact);
     return {
       slug: fact.slug,
@@ -947,10 +933,17 @@ function renderRepositoryFacts(facts, summaryCache, context, latestReleases) {
       ...gains,
       color: fact.language_color ?? "#8b949e",
       summary: Object.fromEntries(SUMMARY_FIELDS.map(field => [field, content[field]])),
+      summaries: Object.fromEntries(SUMMARY_LOCALES.map(locale => [locale, { ...cached.summaries[locale] }])),
       detail: { ...Object.fromEntries(SUMMARY_FIELDS.map(field => [field, content[field]])), stars_note: starsNote },
       issues: fact.open_issues_and_pull_requests,
       contributors: fact.contributors,
       pushed_at: fact.pushed_at?.slice(0, 10) ?? null,
+      readme_path: fact.readme_path,
+      readme_blob_sha: fact.readme_blob_sha,
+      readme_content_sha256: fact.readme_content_sha256,
+      readme_locale: fact.readme_locale,
+      readme_variants: fact.readme_variants,
+      default_branch_head_sha: fact.default_branch_head_sha,
       _snapshot_id: snapshotId,
       _generated_at: generatedAt,
       _stats_date: statsDate,
@@ -1383,20 +1376,12 @@ function validateFrozenEnrichmentIndex(facts, events, index) {
   }
   for (const [position, slug] of slugs.entries()) {
     const entry = index.repositories[slug];
-    if (!entry || Array.isArray(entry) || typeof entry !== "object" || !["summary", "summary\0translation"].includes(Object.keys(entry).sort().join("\0"))
-        || !reusableSummaryEntry(entry.summary, facts.repositories[position])) {
+    if (!entry || Array.isArray(entry) || typeof entry !== "object"
+        || !exactObjectKeys(entry, ["summary", "summaries", "evidence", "invariants", "inference_fields"])
+        || !reusableSummaryEntry({ ...entry.summary, summaries: entry.summaries }, facts.repositories[position])
+        || !entry.evidence || Array.isArray(entry.evidence) || typeof entry.evidence !== "object"
+        || !Array.isArray(entry.invariants) || !Array.isArray(entry.inference_fields)) {
       throw new Error("Frozen render detailed summary is invalid");
-    }
-    const source = entry.summary.source;
-    if (source.translation_applicable) {
-      if (!entry.translation || Array.isArray(entry.translation) || typeof entry.translation !== "object"
-          || !exactObjectKeys(entry.translation, ["markdown", "source"])
-          || typeof entry.translation.markdown !== "string" || !entry.translation.markdown.trim()
-          || JSON.stringify(entry.translation.source) !== JSON.stringify(source)) {
-        throw new Error("Frozen render translation identity is invalid");
-      }
-    } else if (Object.hasOwn(entry, "translation")) {
-      throw new Error("Frozen render translation is not applicable");
     }
   }
   return index;
@@ -1467,7 +1452,13 @@ export async function renderFrozenCandidate({
   if (canonicalHash(context) !== facts.runContextSha256) throw new Error("Frozen render run context is mismatched");
   const summaryCache = Object.fromEntries(facts.repositories.map(repository => [
     repository.slug,
-    index.repositories[repository.slug.toLowerCase()].summary,
+    {
+      ...index.repositories[repository.slug.toLowerCase()].summary,
+      summaries: index.repositories[repository.slug.toLowerCase()].summaries,
+      evidence: index.repositories[repository.slug.toLowerCase()].evidence,
+      invariants: index.repositories[repository.slug.toLowerCase()].invariants,
+      inference_fields: index.repositories[repository.slug.toLowerCase()].inference_fields,
+    },
   ]));
   const latestReleases = latestReleaseDates(facts, events);
   const published = renderRepositoryFacts(facts.repositories, summaryCache, context, latestReleases);

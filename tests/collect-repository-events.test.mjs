@@ -196,7 +196,7 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
   const origin = 1_700_000_000_000;
   const budgetStatePath = join(directory, "budget.json");
   const context = createPersistentEventCollectionContext({ statePath: budgetStatePath, originEpochMs: origin, now: () => origin, create: true });
-  for (let index = 0; index < 53; index += 1) {
+  for (let index = 0; index < 63; index += 1) {
     context.budget.admitLogical();
     context.budget.admitAttempt();
   }
@@ -205,6 +205,8 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
     default_branch: "main",
     default_branch_head_sha: sha("b"),
     readme_status: "absent",
+    readme_locale: null,
+    readme_variants: [],
   }));
   const runContext = {
     observedAtUtc: "2023-11-14T22:13:20.000Z",
@@ -284,7 +286,7 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
   assert.equal(verifierCalls, 1);
   assert.equal(events.releases.length, 20);
   assert.deepEqual(events.latestReleaseIds, Object.fromEntries(repositories.map(value => [value.slug, 1])));
-  assert.equal(events.budgetReceipt.logicalRequests, 93);
+  assert.equal(events.budgetReceipt.logicalRequests, 103);
   assert.deepEqual(JSON.parse(await readFile(eventsOut, "utf8")), events);
 
   let evidenceSwapFetches = 0;
@@ -582,6 +584,38 @@ test("terminal retry counts every attempt and OSS rejects 10,001 rows and malfor
   for (const invalid of ["+1", " 1", "01", "1e2", "9007199254740992", -1, 1.5, null]) {
     assert.throws(() => validateOssInsightResponse(oss([{ date: "2025-01-01", stargazers: invalid }])), /stargazers/);
   }
+});
+
+test("truncated release JSON retries within the fixed attempt budget", async () => {
+  const base = successfulFetch();
+  const sleeps = [];
+  let inventoryAttempts = 0;
+  const events = await collectRepositoryEvents([repo], {
+    fetchImpl: async (url, options) => {
+      if (new URL(url).pathname.endsWith("/releases") && !options.headers?.["If-None-Match"]) {
+        inventoryAttempts += 1;
+        if (inventoryAttempts === 1) return new Response("{", { status: 200, headers: { "content-type": "application/json" } });
+      }
+      return base(url, options);
+    },
+    sleep: async milliseconds => { sleeps.push(milliseconds); },
+  });
+  assert.equal(events.releases.length, 2);
+  assert.equal(inventoryAttempts, 2);
+  assert.deepEqual(sleeps, [2000]);
+
+  let terminalAttempts = 0;
+  await assert.rejects(collectRepositoryEvents([repo], {
+    fetchImpl: async (url, options) => {
+      if (new URL(url).pathname.endsWith("/releases") && !options.headers?.["If-None-Match"]) {
+        terminalAttempts += 1;
+        return new Response("{", { status: 200, headers: { "content-type": "application/json" } });
+      }
+      return base(url, options);
+    },
+    sleep: async () => {},
+  }), /Invalid JSON for release inventory/);
+  assert.equal(terminalAttempts, 3);
 });
 
 test("release records normalize the DB identity and weak ETags require byte-equivalent revalidation", async () => {

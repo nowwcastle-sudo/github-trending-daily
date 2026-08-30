@@ -351,16 +351,19 @@ def writer_payload(*, snapshot_id, utc, kst, stats_date, run_kind, parent_snapsh
         "is_fork": False, "default_branch": "main", "created_at": utc,
         "field_tags": ["unclassified"], "form_tags": [], "tag_rule_version": 1,
     }
-    profile_digest = canonical_hash(profile_value)
-    source = {"kind": "metadata_only", "slug": "owner/repo", "profile_sha256": profile_digest,
-              "model": "test-model", "schema_version": 2, "translation_applicable": False}
+    source = {
+        "kind": "readme", "slug": "owner/repo", "path": "README.md",
+        "blob_sha": sha1("b"), "content_sha256": sha256("c"),
+        "model": "claude-sonnet-5", "schema_version": 3, "prompt_schema_version": 1,
+        "translation_applicable": False,
+    }
     provenance = {
         "repository": {"api_path": "/repos/owner/repo", "fact_sha256": sha256("1")},
         "contributors": {"api_path": "/repos/owner/repo/contributors", "fact_sha256": sha256("2")},
         "default_branch_head": {"api_path": "/repos/owner/repo/commits/main", "fact_sha256": sha256("3")},
         "readme": {
-            "api_path": "/repos/owner/repo/readme", "blob_api_path": None,
-            "status": "absent", "path": None, "blob_sha": None, "content_sha256": None,
+            "api_path": "/repos/owner/repo/readme", "blob_api_path": f"/repos/owner/repo/git/blobs/{sha1('b')}",
+            "status": "present", "path": "README.md", "blob_sha": sha1("b"), "content_sha256": sha256("c"),
         },
         "trending": {
             "daily": {"source_path": "/trending?since=daily", "rank": 1, "gain": 0, "language_color": "#112233", "fact_sha256": sha256("4")},
@@ -390,8 +393,9 @@ def writer_payload(*, snapshot_id, utc, kst, stats_date, run_kind, parent_snapsh
             "rankMonthly": None, "gainMonthly": None, "languageColor": "#112233",
             "stars": 1, "forks": 0, "watchersCount": 2, "subscribers": 3,
             "openIssuesAndPullRequests": 4, "contributors": 5, "updatedAt": utc,
-            "pushedAt": None, "readmeStatus": "absent", "readmePath": None,
-            "readmeBlobSha": None, "readmeContentSha256": None, "provenance": provenance,
+            "pushedAt": None, "readmeStatus": "present", "readmePath": "README.md",
+            "readmeBlobSha": sha1("b"), "readmeContentSha256": sha256("c"), "readmeLocale": None,
+            "readmeVariants": [], "provenance": provenance,
         }],
     }
 
@@ -1447,7 +1451,7 @@ class RepositoryObservationTests(unittest.TestCase):
                 canonical_hash({"content": content, "source": source}),
             ))
             self.assertEqual(verify_core_snapshot(connection, 1), result.core_payload_sha256)
-        self.assertEqual(result.core_payload_sha256, "dff9c5ccfc6e2a95282d15a5798103eabd023f6a0aa6c339ec1ef6ae1408d8c6")
+        self.assertEqual(result.core_payload_sha256, "964990a2b1f147d8670c35f9dfcd13081cc8ce45529eec08daee97b0116b7603")
 
     def test_reused_profile_and_release_rows_are_part_of_refresh_core_hash(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
@@ -1463,14 +1467,6 @@ class RepositoryObservationTests(unittest.TestCase):
                 parent_snapshot_id=parent,
             )
             value["repositories"][0]["createdAt"] = "2026-08-28T01:01:01.001Z"
-            profile_value = {
-                "slug": "owner/repo", "display_slug": "owner/repo", "description": None,
-                "primary_language": None, "topics": [], "license_spdx": None,
-                "archived": False, "is_fork": False, "default_branch": "main",
-                "created_at": "2026-08-28T01:01:01.001Z", "field_tags": ["unclassified"],
-                "form_tags": [], "tag_rule_version": 1,
-            }
-            value["enrichmentIndex"]["owner/repo"]["summary"]["source"]["profile_sha256"] = canonical_hash(profile_value)
             value["legacyBaselines"], value["legacyBaselineReceipt"] = paths, receipt
             return value
 
@@ -1560,8 +1556,8 @@ class RepositoryObservationTests(unittest.TestCase):
                 source = {
                     "kind": "readme", "slug": "other/repo", "path": "README.md",
                     "blob_sha": sha1(other_blob), "content_sha256": sha256(other_content),
-                    "model": "test-model", "schema_version": 2,
-                    "translation_applicable": True,
+                    "model": "claude-sonnet-5", "schema_version": 3, "prompt_schema_version": 1,
+                    "translation_applicable": False,
                 }
                 value["enrichmentIndex"]["other/repo"] = {
                     "summary": {
@@ -2448,7 +2444,8 @@ class RepositoryObservationTests(unittest.TestCase):
             "isFork": "is_fork", "languageColor": "language_color", "licenseSpdx": "license_spdx",
             "openIssuesAndPullRequests": "open_issues_and_pull_requests", "primaryLanguage": "primary_language",
             "readmeBlobSha": "readme_blob_sha", "readmeContentSha256": "readme_content_sha256",
-            "readmePath": "readme_path", "readmeStatus": "readme_status", "pushedAt": "pushed_at",
+            "readmeLocale": "readme_locale", "readmePath": "readme_path", "readmeStatus": "readme_status",
+            "readmeVariants": "readme_variants", "pushedAt": "pushed_at",
             "rankDaily": "rank_daily", "rankMonthly": "rank_monthly", "rankWeekly": "rank_weekly",
             "tagRuleVersion": "tag_rule_version", "updatedAt": "updated_at", "watchersCount": "watchers_count",
         }
