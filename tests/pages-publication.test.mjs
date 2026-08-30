@@ -19,7 +19,7 @@ import {
 import { prepareRefreshCandidate, verifyCandidateMutations } from "../scripts/prepare-refresh-candidate.mjs";
 import { probeArtifactDirectory, probeProduction } from "../scripts/probe-production.mjs";
 import { createRunContext } from "../scripts/run-context.mjs";
-import { bindFrozenEventEnvelope, hashCanonicalJson } from "../scripts/collect-repository-events.mjs";
+import { bindFrozenEventEnvelope } from "../scripts/collect-repository-events.mjs";
 import { buildLatestFeed } from "../scripts/update-latest-feed.mjs";
 import { buildFrozenFactsEnvelope, renderFrozenCandidate } from "../scripts/update-trending.mjs";
 
@@ -123,14 +123,33 @@ async function writeTree(directory, paths) {
   }
 }
 
-function sourceEntry(applicable = true) {
+const summaryLocales = ["en", "ko", "zh-CN", "es", "ja"];
+const summaryFields = ["goal", "usage", "pros", "cons", "fit"];
+const frozenMarkdown = "# Repository\n\nCanonical README evidence for the repository.";
+const frozenContentSha256 = createHash("sha256").update(frozenMarkdown).digest("hex");
+
+function sourceEntry(slug = "owner/one", {
+  path = "README.md",
+  blobSha = "b".repeat(40),
+  contentSha256 = "c".repeat(64),
+} = {}) {
   return {
-    blob_sha: "b".repeat(40),
-    content_sha256: "c".repeat(64),
-    model: "claude-haiku-4-5",
-    schema_version: 2,
-    translation_applicable: applicable,
+    kind: "readme",
+    slug: slug.toLowerCase(),
+    path,
+    blob_sha: blobSha,
+    content_sha256: contentSha256,
+    model: "claude-sonnet-5",
+    schema_version: 3,
+    prompt_schema_version: 1,
+    translation_applicable: false,
   };
+}
+
+function summaryBundle(label = "repository") {
+  return Object.fromEntries(summaryLocales.map(locale => [locale, Object.fromEntries(
+    summaryFields.map(field => [field, `${label} ${locale} ${field} detailed technical evidence`]),
+  )]));
 }
 
 const validClassification = () => ({
@@ -172,7 +191,7 @@ test("version-1 page REPOS and latest validators reject incomplete or noncanonic
     const latestRepo = { slug: "owner/one", ...validClassification() };
     mutate(latestRepo);
     assert.throws(
-      () => expectedVersion1Paths({ repos: [latestRepo] }, { version: 2, sources: {} }),
+      () => expectedVersion1Paths({ repos: [latestRepo] }, { version: 3, sources: {} }),
       /classification/i,
     );
   }
@@ -215,15 +234,17 @@ function frozenRepository(context, index) {
     contributors: index + 1,
     updated_at: context.observedAtUtc,
     pushed_at: null,
-    readme_status: "absent",
-    readme_path: null,
-    readme_blob_sha: null,
-    readme_content_sha256: null,
+    readme_status: "present",
+    readme_path: "README.md",
+    readme_blob_sha: "b".repeat(40),
+    readme_content_sha256: frozenContentSha256,
+    readme_locale: null,
+    readme_variants: [],
     provenance: {
       repository: { api_path: `/repos/${slug}`, fact_sha256: factSha },
       contributors: { api_path: `/repos/${slug}/contributors`, fact_sha256: factSha },
       default_branch_head: { api_path: `/repos/${slug}/commits/main`, fact_sha256: factSha },
-      readme: { api_path: `/repos/${slug}/readme`, blob_api_path: null, status: "absent", path: null, blob_sha: null, content_sha256: null },
+      readme: { api_path: `/repos/${slug}/readme`, blob_api_path: `/repos/${slug}/git/blobs/${"b".repeat(40)}`, status: "present", path: "README.md", blob_sha: "b".repeat(40), content_sha256: frozenContentSha256 },
       trending: {
         daily: { source_path: "/trending?since=daily", rank: index + 1, gain: index, language_color: "#112233", fact_sha256: factSha },
         weekly: { source_path: "/trending?since=weekly", rank: null, gain: null, language_color: null, fact_sha256: factSha },
@@ -247,7 +268,7 @@ async function artifactContract(source, latest, sources, identity = snapshotId) 
   return { version: 1, snapshotId: identity, artifacts };
 }
 
-test("version-1 artifact path set is exact and derived from active applicable translations", () => {
+test("version-1 artifact path set is exact and contains no full README translations", () => {
   assert.deepEqual(VERSION_1_BASE_PATHS, [
     "auth-lifecycle.js",
     "changes.xml",
@@ -265,6 +286,7 @@ test("version-1 artifact path set is exact and derived from active applicable tr
     "readme-markdown.js",
     "refresh-schedule.js",
     "repo-filters.js",
+    "site-i18n.js",
     "star-history.js",
     "star-history.json",
     "ui-motion.js",
@@ -274,15 +296,15 @@ test("version-1 artifact path set is exact and derived from active applicable tr
   assert.equal(python.status, 0, python.stderr);
   assert.deepEqual(JSON.parse(python.stdout), VERSION_1_BASE_PATHS);
   const latest = { repos: [{ slug: "Owner/One", ...validClassification() }, { slug: "owner/two", ...validClassification() }] };
-  const sources = { version: 2, sources: {
-    "Owner/One": sourceEntry(true),
-    "owner/two": sourceEntry(false),
-    "old/stale": { ...sourceEntry(false), blob_sha: null, model: null, translation_applicable: null },
+  const sources = { version: 3, sources: {
+    "Owner/One": sourceEntry("owner/one"),
+    "owner/two": sourceEntry("owner/two"),
   } };
-  assert.deepEqual(expectedVersion1Paths(latest, sources), [
-    ...VERSION_1_BASE_PATHS,
-    "translations/Owner__One.json",
-  ].sort());
+  assert.deepEqual(expectedVersion1Paths(latest, sources), [...VERSION_1_BASE_PATHS].sort());
+  assert.throws(
+    () => expectedVersion1Paths(latest, { version: 3, sources: { ...sources.sources, "old/stale": sourceEntry("old/stale") } }),
+    /active set/i,
+  );
   assert.ok(!VERSION_1_BASE_PATHS.some(path => path.endsWith(".sqlite")));
   assert.ok(!VERSION_1_BASE_PATHS.includes("data/translation-sources.json"));
 });
@@ -301,7 +323,10 @@ test("frozen manifest evidence survives the actual render to recorder boundary",
     productionManifestSha256,
     repositories,
     readmes: Object.fromEntries(repositories.map(repository => [repository.slug, {
-      path: null, blobSha: null, contentSha256: null, markdown: null,
+      path: repository.readme_path,
+      blobSha: repository.readme_blob_sha,
+      contentSha256: repository.readme_content_sha256,
+      markdown: frozenMarkdown,
     }])),
     trendingSourceSha256: {
       daily: "1".repeat(64), weekly: "2".repeat(64), monthly: "3".repeat(64),
@@ -340,33 +365,21 @@ test("frozen manifest evidence survives the actual render to recorder boundary",
     runContextSha256: facts.runContextSha256,
     eventsSha256: events.completeSetSha256,
     repositories: Object.fromEntries(repositories.map(repository => {
-      const source = {
-        kind: "metadata_only",
-        slug: repository.slug,
-        profile_sha256: hashCanonicalJson({
-          slug: repository.slug,
-          display_slug: repository.display_slug,
-          description: repository.description,
-          primary_language: repository.primary_language,
-          topics: repository.topics,
-          license_spdx: repository.license_spdx,
-          archived: repository.archived,
-          is_fork: repository.is_fork,
-          default_branch: repository.default_branch,
-          created_at: repository.created_at,
-          field_tags: repository.field_tags,
-          form_tags: repository.form_tags,
-          tag_rule_version: repository.tag_rule_version,
-        }),
-        model: "claude-haiku-4-5",
-        schema_version: 2,
-        translation_applicable: false,
-      };
+      const source = sourceEntry(repository.slug, {
+        path: repository.readme_path,
+        blobSha: repository.readme_blob_sha,
+        contentSha256: repository.readme_content_sha256,
+      });
+      const summaries = summaryBundle(repository.slug);
       return [repository.slug, {
         summary: {
-          content: { goal: "goal", usage: "usage", pros: "pros", cons: "cons", fit: "fit" },
+          content: summaries.en,
           source,
         },
+        summaries,
+        evidence: Object.fromEntries(summaryFields.map(field => [field, []])),
+        invariants: [],
+        inference_fields: [],
       }];
     })),
   };
@@ -449,7 +462,7 @@ test("frozen manifest evidence survives the actual render to recorder boundary",
   assert.deepEqual(JSON.parse(inspected.stdout), [facts.inputSourceSha, productionManifestSha256, 10]);
 });
 
-test("builder hashes only the exact allowlist and exact translation envelope", async t => {
+test("builder hashes only the exact allowlist and exact summary source envelope", async t => {
   const directory = await mkdtemp(join(tmpdir(), "pages-builder-"));
   const source = join(directory, "source");
   const out = join(directory, "out");
@@ -457,13 +470,11 @@ test("builder hashes only the exact allowlist and exact translation envelope", a
   await mkdir(source);
   await writeTree(source, VERSION_1_BASE_PATHS);
   const latest = { snapshotId, repos: [{ slug: "owner/one", ...validClassification() }] };
-  const sources = { version: 2, sources: { "owner/one": sourceEntry(true) } };
+  const sources = { version: 3, sources: { "owner/one": sourceEntry("owner/one") } };
   await writeFile(join(source, "data", "latest.json"), `${JSON.stringify(latest)}\n`);
   await writeFile(join(source, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`);
   const validPage = `<script>\nconst REPOS = [${JSON.stringify({ slug: "owner/one", ...validClassification() })}];\n</script>\n`;
   await writeFile(join(source, "index.html"), validPage);
-  await mkdir(join(source, "translations"));
-  await writeFile(join(source, "translations", "owner__one.json"), `${JSON.stringify({ markdown: "# One", source: sources.sources["owner/one"] })}\n`);
   await writeFile(join(source, "data", "private.sqlite"), "private");
 
   const contract = await artifactContract(source, latest, sources);
@@ -472,15 +483,16 @@ test("builder hashes only the exact allowlist and exact translation envelope", a
   assert.equal(manifest.files["index.html"], createHash("sha256").update(validPage).digest("hex"));
   await assert.rejects(readFile(join(out, "data", "private.sqlite")));
 
-  await writeFile(join(source, "translations", "owner__one.json"), `${JSON.stringify({ html: "legacy", source: sources.sources["owner/one"] })}\n`);
+  const invalidSources = structuredClone(sources);
+  invalidSources.sources["owner/one"].prompt_schema_version = 2;
+  await writeFile(join(source, "data", "translation-sources.json"), `${JSON.stringify(invalidSources)}\n`);
   await assert.rejects(
     buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "bad"), sourceSha, snapshotId, artifactContract: contract }),
-    /translation envelope/i,
+    /summary source/i,
   );
-  await writeFile(join(source, "data", "translation-sources.json"), `{"version":2,"version":2,"sources":{}}\n`);
+  await writeFile(join(source, "data", "translation-sources.json"), `{"version":3,"version":3,"sources":{}}\n`);
   await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "duplicate-source"), sourceSha, snapshotId, artifactContract: contract }), /duplicate key/i);
   await writeFile(join(source, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`);
-  await writeFile(join(source, "translations", "owner__one.json"), `${JSON.stringify({ markdown: "# One", source: sources.sources["owner/one"] })}\n`);
   await writeFile(join(source, "index.html"), '<script>\nconst REPOS = [{"slug":"owner/one","slug":"owner/one"}];\n</script>\n');
   await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "duplicate-page-json"), sourceSha, snapshotId, artifactContract: contract }), /duplicate key/i);
   await writeFile(join(source, "index.html"), `<script>\nconst REPOS = ${JSON.stringify([{ slug: "Owner/One", ...validClassification() }, { slug: "owner/one", ...validClassification() }])};\n</script>\n`);
@@ -494,7 +506,7 @@ test("builder rejects invalid page/latest classifications and requires exact equ
   await mkdir(source);
   await writeTree(source, VERSION_1_BASE_PATHS);
   const base = { slug: "owner/one", ...validClassification() };
-  const sources = { version: 2, sources: { "owner/one": sourceEntry(false) } };
+  const sources = { version: 3, sources: { "owner/one": sourceEntry("owner/one") } };
   const page = repo => `<script>\nconst REPOS = ${JSON.stringify([repo])};\n</script>\n`;
   const writeCandidate = async (latestRepo, pageRepo) => {
     await writeFile(join(source, "data", "latest.json"), `${JSON.stringify({ snapshotId, repos: [latestRepo] })}\n`);
@@ -540,7 +552,7 @@ test("builder requires exact DB artifact path hash and size equality", async t =
   await mkdir(source);
   await writeTree(source, VERSION_1_BASE_PATHS);
   const latest = { snapshotId, repos: [{ slug: "owner/one", ...validClassification() }] };
-  const sources = { version: 2, sources: { "owner/one": sourceEntry(false) } };
+  const sources = { version: 3, sources: { "owner/one": sourceEntry("owner/one") } };
   await writeFile(join(source, "data", "latest.json"), `${JSON.stringify(latest)}\n`);
   await writeFile(join(source, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`);
   await writeFile(join(source, "index.html"), `<script>\nconst REPOS = [${JSON.stringify({ slug: "owner/one", ...validClassification() })}];\n</script>\n`);
@@ -958,7 +970,7 @@ test("frozen membership and repository ledger produce one candidate Atom identit
     "chain = hashlib.sha256(json.dumps({'schema_fingerprint_sha256': schema, 'parent_chain_sha256': None, 'core_payload_sha256': core, 'snapshot_id': snapshot_id, 'snapshot_seq': 1}, sort_keys=True, separators=(',', ':')).encode()).hexdigest()",
     "connection.execute('INSERT INTO snapshot_runs VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', (1, snapshot_id, 'migration_baseline', '2026-08-29T10:07:00.000Z', '2026-08-29T19:07:00.000+09:00', '2026-08-29', None, None, 'a' * 40, 'b' * 64, core, None, chain, 10))",
     "[insert_profile(connection, index + 1, f'owner/repo-{index}') for index in range(10)]",
-    "[insert_item(connection, 1, f'owner/repo-{index}', index + 1, stars=index, display_rank=index + 1, daily=index + 1, translation_applicable=index == 0) for index in range(10)]",
+    "[insert_item(connection, 1, f'owner/repo-{index}', index + 1, stars=index, display_rank=index + 1, daily=index + 1, translation_applicable=False) for index in range(10)]",
     "schema_fingerprint, logical_count, logical_hash, last_key = _legacy_logical_rows(legacy)",
     "connection.execute('INSERT INTO baseline_sources VALUES (?,?,?,?,?,?,?,?,?)', ('legacy_trending_membership', 'data/trending-membership.sqlite', legacy.stat().st_size, _file_sha256(legacy), schema_fingerprint, logical_count, logical_hash, last_key, 1))",
     "legacy_connection = sqlite3.connect(legacy)",
@@ -987,23 +999,23 @@ test("frozen membership and repository ledger produce one candidate Atom identit
   assert.equal((feed.match(/<entry>/g) ?? []).length, 10);
   assert.ok([...feed.matchAll(/<summary type="text">([^<]+)<\/summary>/g)].every(match => match[1].trim()));
 
-  const sources = { version: 2, sources: Object.fromEntries(repos.map((repo, index) => [repo.slug, sourceEntry(index === 0)])) };
-  const summaries = Object.fromEntries(repos.map(repo => [repo.slug, {
-    content: { goal: "goal", usage: "usage", pros: "pros", cons: "cons", fit: "fit" },
-    source: sources.sources[repo.slug],
-  }]));
+  const sources = { version: 3, sources: Object.fromEntries(repos.map(repo => [repo.slug, sourceEntry(repo.slug)])) };
+  const summaries = Object.fromEntries(repos.map(repo => {
+    const bundle = summaryBundle(repo.slug);
+    return [repo.slug, {
+      content: bundle.en,
+      summaries: bundle,
+      source: sources.sources[repo.slug],
+      evidence: Object.fromEntries(summaryFields.map(field => [field, []])),
+      invariants: [],
+      inference_fields: [],
+    }];
+  }));
   await mkdir(join(directory, "data"), { recursive: true });
   await writeFile(join(directory, "data", "latest.json"), `${JSON.stringify(latest)}\n`);
   await writeFile(join(directory, "data", "membership-status.json"), await readFile(join(directory, "membership.json")));
   await writeFile(join(directory, "data", "repo-summaries.json"), `${JSON.stringify(summaries)}\n`);
   await writeFile(join(directory, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`);
-  await mkdir(join(directory, "translations"));
-  for (const [index, repo] of repos.entries()) {
-    await writeFile(join(directory, "translations", `owner__repo-${index}.json`), `${JSON.stringify({ markdown: index === 0 ? "# 저장소 0" : "```text\nN/A\n```", source: sources.sources[repo.slug] })}\n`);
-  }
-  const coverage = spawnSync(process.execPath, [join(root, "scripts", "validate-enrichment-coverage.mjs"), "--root", directory, "--json-counts"], { encoding: "utf8" });
-  assert.equal(coverage.status, 0, coverage.stderr);
-  assert.deepEqual(JSON.parse(coverage.stdout), { repository: 10, valid: 10, compact: 0, placeholder: 0, applicable: 1, "N/A": 9, missing: 0, stale: 0 });
   for (const relative of VERSION_1_BASE_PATHS) {
     const target = join(directory, ...relative.split("/"));
     try { await readFile(target); } catch {

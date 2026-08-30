@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { parseJsonStrict } from "./build-pages-artifact.mjs";
+import { inferReadmeLocale, isReadmeVariantSet } from "./readme-variants.mjs";
 
 export const EVENT_LIMITS = Object.freeze({
   maxRepositories: 75,
@@ -28,6 +29,7 @@ const SLUG = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const collectionContexts = new WeakSet();
+const RETRYABLE_RESPONSE_BODY = Symbol("retryable-response-body");
 
 const defaultSleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const stableJson = value => {
@@ -181,7 +183,7 @@ const REQUEST_OPERATIONS = new Set([
   "commit comparison", "branch continuity", "OSS star history",
 ]);
 
-async function request(url, { fetchImpl, sleep, budget, operation, headers = {}, allow304 = false }) {
+async function request(url, { fetchImpl, sleep, budget, operation, headers = {}, allow304 = false, readResponse = null }) {
   if (!REQUEST_OPERATIONS.has(operation)) throw new Error("Event request operation is invalid");
   budget.admitLogical();
   for (let attempt = 0; attempt < EVENT_LIMITS.retryAttempts; attempt += 1) {
@@ -201,8 +203,19 @@ async function request(url, { fetchImpl, sleep, budget, operation, headers = {},
       await sleep(delay);
       continue;
     }
-    if (response.status === 304 && allow304) return response;
-    if (!retryableStatus(response.status) || attempt === EVENT_LIMITS.retryAttempts - 1) return response;
+    if (response.status === 304 && allow304) return readResponse ? readResponse(response) : response;
+    if (!retryableStatus(response.status) || attempt === EVENT_LIMITS.retryAttempts - 1) {
+      if (!readResponse) return response;
+      try {
+        return await readResponse(response);
+      } catch (error) {
+        if (!error?.[RETRYABLE_RESPONSE_BODY] || attempt === EVENT_LIMITS.retryAttempts - 1) throw error;
+        const delay = EVENT_LIMITS.retryDelaysMs[attempt];
+        budget.admitSleep(delay);
+        await sleep(delay);
+        continue;
+      }
+    }
     const delay = retryDelay(response, attempt);
     budget.admitSleep(delay);
     await sleep(delay);
@@ -212,7 +225,13 @@ async function request(url, { fetchImpl, sleep, budget, operation, headers = {},
 
 async function json(response, label) {
   if (!response?.ok) throw new Error(`${label} returned ${response?.status}`);
-  try { return await response.json(); } catch { throw new Error(`Invalid JSON for ${label}`); }
+  try {
+    return await response.json();
+  } catch {
+    const error = new Error(`Invalid JSON for ${label}`);
+    Object.defineProperty(error, RETRYABLE_RESPONSE_BODY, { value: true });
+    throw error;
+  }
 }
 
 function githubHtmlUrl(value, errorMessage, expectedPath) {
@@ -288,8 +307,12 @@ async function collectReleaseInventory(slug, context) {
   let url = `https://api.github.com${repoPath(slug)}/releases?per_page=100&page=1`;
   const seenIds = new Set();
   for (let page = 1; page <= EVENT_LIMITS.maxReleasePages; page += 1) {
-    const response = await request(url, { ...context, operation: "release inventory", headers: context.githubHeaders });
-    const value = await json(response, `release inventory for ${slug}`);
+    const { response, value } = await request(url, {
+      ...context,
+      operation: "release inventory",
+      headers: context.githubHeaders,
+      readResponse: async response => ({ response, value: await json(response, `release inventory for ${slug}`) }),
+    });
     if (!Array.isArray(value)) throw new Error(`Invalid release inventory for ${slug}`);
     const next = releaseNext(response.headers.get("link"), slug, page, value.length);
     if (page === EVENT_LIMITS.maxReleasePages && next !== null) throw new Error(`Release page cap exceeded for ${slug}`);
@@ -308,10 +331,18 @@ async function collectReleaseInventory(slug, context) {
   // A strong ETag must yield 304; otherwise exact canonical body and Link identity must match.
   for (const [index, first] of pages.entries()) {
     const headers = { ...context.githubHeaders, ...(first.etag ? { "If-None-Match": first.etag } : {}) };
-    const response = await request(first.url, { ...context, operation: "release revalidation", headers, allow304: Boolean(first.etag) });
+    const { response, value } = await request(first.url, {
+      ...context,
+      operation: "release revalidation",
+      headers,
+      allow304: Boolean(first.etag),
+      readResponse: async response => ({
+        response,
+        value: response.status === 304 ? null : await json(response, `release revalidation for ${slug}`),
+      }),
+    });
     if (first.etag && response.status !== 304) throw new Error(`Release ETag revalidation changed for ${slug} page ${index + 1}`);
     if (response.status === 304) continue;
-    const value = await json(response, `release revalidation for ${slug}`);
     if (!Array.isArray(value)) throw new Error(`Release revalidation changed for ${slug} page ${index + 1}`);
     const next = releaseNext(response.headers.get("link"), slug, index + 1, value.length);
     const records = value.map(entry => releaseRecord(slug, entry));
@@ -671,9 +702,12 @@ export function validateFrozenFactsPayload(value) {
     const readme = value.readmes[slug];
     if (!exactKeys(readme, ["path", "blobSha", "contentSha256", "markdown"])) throw new Error("Frozen README envelope is invalid");
     if (repository.readme_status === "absent") {
-      if ([readme.path, readme.blobSha, readme.contentSha256, readme.markdown].some(item => item !== null)) throw new Error("Frozen README absence is invalid");
+      if ([readme.path, readme.blobSha, readme.contentSha256, readme.markdown, repository.readme_locale].some(item => item !== null)
+          || !isReadmeVariantSet(repository.readme_variants, null) || repository.readme_variants.length !== 0) throw new Error("Frozen README absence is invalid");
     } else if (repository.readme_status !== "present" || readme.path !== repository.readme_path
         || readme.blobSha !== repository.readme_blob_sha || readme.contentSha256 !== repository.readme_content_sha256
+        || repository.readme_locale !== inferReadmeLocale(repository.readme_path)
+        || !isReadmeVariantSet(repository.readme_variants, repository.readme_path)
         || typeof readme.markdown !== "string"
         || createHash("sha256").update(Buffer.from(readme.markdown, "utf8")).digest("hex") !== readme.contentSha256) {
       throw new Error("Frozen README identity is invalid");

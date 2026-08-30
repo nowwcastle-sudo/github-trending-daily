@@ -1,69 +1,92 @@
 # GitHub Trending Daily
 
-[English](README.en.md)
+[한국어](README.ko.md)
 
-> 오늘 뜨는 저장소를 별 개수만 보고 지나치지 마세요. 왜 주목받는지, 어떻게 쓰는지, 내 관심 분야에 맞는지를 한 화면에서 빠르게 파악할 수 있습니다.
+> A focused, static dashboard for understanding what a trending repository does, how it is used, and whether it is relevant—not just how many stars it has.
 
-## 지금 만나보세요
+<h2 align="center"><a href="https://nowwcastle-sudo.github.io/github-trending-daily/"><strong>Open GitHub Trending Daily</strong></a></h2>
 
-<h2 align="center"><a href="https://nowwcastle-sudo.github.io/github-trending-daily/"><strong>🚀 GitHub Trending Daily 바로 열기</strong></a></h2>
+No server setup or account is required. Google sign-in is optional and is used only to synchronize favorites.
 
-서버 설치나 계정 생성 없이 바로 둘러볼 수 있습니다. 즐겨찾기 동기화가 필요할 때만 Google 로그인을 선택하세요.
+## Current implementation status
 
-## 실제 화면
+The multilingual interface, Compact Rail navigation, source-bound README viewer, and five-language summary pipeline are implemented in the current candidate. Production still contains the earlier legacy summary data until a controlled refresh and Pages deployment are explicitly approved. The candidate does not treat legacy generic summaries, missing README provenance, or missing language bundles as a successful release.
 
-![GitHub Trending Daily 데스크톱 운영 화면](docs/screenshots/production-desktop.png)
+The candidate screenshots below were captured locally from the 2026-08-31 source at 1440 px and 390 px. They are not presented as production deployment evidence.
 
-<p align="center"><img src="docs/screenshots/production-mobile-sidebar.png" width="390" alt="GitHub Trending Daily 모바일 사이드바 운영 화면"></p>
+![Desktop candidate with the Compact Rail](docs/screenshots/candidate-desktop-1440.png)
 
-두 이미지는 2026-08-26 실제 [운영 사이트](https://nowwcastle-sudo.github.io/github-trending-daily/)에서 촬영했습니다.
+<p align="center"><img src="docs/screenshots/candidate-mobile-sidebar-390.png" width="390" alt="Mobile candidate with the Explore sidebar open"></p>
 
-## 만든 배경
+## What changed in this version
 
-GitHub Trending은 새로운 프로젝트를 발견하기에는 좋지만, 저장소마다 README를 열어 목적과 사용법을 확인하고 일간·주간·월간 인기도를 비교하는 데 시간이 듭니다. GitHub Trending Daily는 이 탐색 비용을 줄이기 위해 Trending 데이터, GitHub 공개 메타데이터, README 기반 한국어 요약을 정돈된 카드에 모은 정적 대시보드입니다.
+- **English-first repository documentation** — This `README.md` is the canonical English document. The complete Korean version is in [README.ko.md](README.ko.md); [README.en.md](README.en.md) remains as a compatibility pointer.
+- **Five site languages** — Stable interface text can be switched among English, Korean, Simplified Chinese, Spanish, and Japanese. Repository cards keep their source data and are not mechanically translated on every refresh.
+- **Five-language summary bundles** — Every enriched repository must provide semantically equivalent English, Korean, Simplified Chinese, Spanish, and Japanese summaries with the same facts, commands, numbers, warnings, and product names.
+- **The same summary on desktop and mobile** — Responsive layout changes presentation only. It never shortens or weakens the summary on a smaller screen.
+- **Compact Rail navigation** — On desktop, the 64 px Explore rail opens a passive sidebar on hover and a focus-trapped modal when clicked or activated from the keyboard. Mobile keeps an explicit 44 px control and edge-swipe behavior.
+- **README variants from upstream only** — The viewer lists only README language files that actually exist in the repository. It verifies path, immutable blob SHA, default-branch head SHA, and content SHA-256 before rendering. This project no longer generates or stores full README translations.
+- **Clearer tooltip actions** — Five summary-language controls occupy the first row; **View README** is directly below them, followed by goal, usage, strengths, cautions, and best-fit sections.
 
-별 수만 높은 프로젝트가 아니라 지금 얼마나 빠르게 관심을 받고 있는지, 실제로 무엇을 하는 프로젝트인지, 내 관심 분야와 맞는지를 한 흐름에서 판단하도록 만들었습니다.
+## Summary quality contract
 
-## 현재 기능
+The refresh pipeline is configured for `claude-sonnet-5` at the approved $2 input / $10 output per million-token rates. No model call happens before repository and README collection succeeds.
 
-- **2시간 자동 갱신** — 일간·주간·월간 GitHub Trending 표본을 서울 시간 기준으로 정기 수집합니다.
-- **정보 밀도 높은 저장소 카드** — 총 스타, 기간 증가량, 포크, 이슈, 기여자, 최근 커밋·릴리스를 함께 보여줍니다.
-- **변화 신호** — 스타 히스토리, 연속 Trending 일수, 직전 관측 대비 변화, HOT 배지로 상승 흐름을 표시합니다.
-- **Atom 구독** — [feed.xml](https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml)은 현재 전체 Trending 저장소를, [changes.xml](https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml)은 baseline 이후 신규·재진입 사건 최근 100개를 최신순으로 제공합니다.
-- **현재 보기 내보내기** — 사이드바에서 **CSV 다운로드**, **JSON 다운로드**, **현재 링크 복사**를 선택합니다. 검색·필터·숨김·즐겨찾기·정렬을 적용한 뒤 화면에 보이는 저장소와 순서를 그대로 사용하며 계정 정보나 숨김·즐겨찾기 전체 목록은 포함하지 않습니다.
-- **기간 보기** — 전체·일간·주간·월간 결과를 한 번에 전환합니다.
-- **선택 가능한 정렬** — 기본 Trending 원래 순서를 유지하거나 선택 기간 스타 증가, 총 스타, 최근 푸시, 최근 릴리스 순으로 정렬합니다. 값이 없는 저장소는 뒤에 표시되고 동률은 원래 순서를 유지합니다.
-- **검색과 언어 필터** — 저장소 텍스트를 검색하고 프로그래밍 언어로 좁힙니다.
-- **분야 다중 태그** — AI·머신러닝, 웹·앱 개발, 개발 도구, 데이터·DB, DevOps·인프라, 보안·프라이버시 등 여러 분야를 함께 선택합니다.
-- **형태·기술 다중 태그** — Agent, MCP, Plugin·Skill, IDE·코딩 도구, Library·SDK, Framework, CLI·Automation을 분야와 독립적으로 조합합니다.
-- **AI 제외 토글** — AI 관련 저장소를 한 번에 제외해 다른 분야의 프로젝트를 발견합니다.
-- **공유 가능한 URL 상태** — 기간, 정렬, 즐겨찾기 보기, 검색어, 언어, 분야·형태 태그, AI 제외 조건을 주소에 보존하고 뒤로가기로 복원합니다. 브라우저에만 속하는 숨김 선택은 URL에 포함되지 않습니다.
-- **반응형 요약과 README 뷰어** — 데스크톱은 조건부 툴팁, 모바일은 첫 탭 요약을 제공하며 원문·캐시된 한국어 README를 나란히 확인합니다.
-- **브라우저별 관심 없음** — 데스크톱 툴팁이나 모바일 요약에서 저장소를 숨기고 즉시 되돌리거나 사이드바에서 개별·전체 복구합니다. 숨겨도 즐겨찾기 상태는 그대로 유지됩니다.
-- **로컬·계정 즐겨찾기** — 로그아웃 상태는 현재 브라우저에 저장하고, Google 로그인 시 같은 계정의 기기·브라우저 사이에서 동기화합니다.
-- **사이드바 중심 탐색** — 왼쪽 가장자리의 탐색 아이콘으로 오버레이 사이드바를 열고 맨 위에서 최근·다음 갱신 시각을 확인합니다. 다시 누르거나 바깥을 클릭하거나 Escape를 눌러 닫습니다.
-- **접근 가능한 반응형 UI** — 라이트·다크 테마, 키보드 포커스, 모바일 44px 터치 대상, reduced-motion·reduced-transparency 환경을 지원합니다.
+Each repository is produced as one atomic five-language bundle:
 
-## 추가 예정 기능
+- `goal`, `usage`, `pros`, `cons`, and `fit` must be distinct and grounded in the verified README.
+- The English equivalent must contain 180–280 words, with 200–240 as the target.
+- Only commands that appear in the README may be quoted, limited to one or two central commands.
+- Promotional superlatives and generic “see the README” fallbacks are invalid.
+- Evidence is retained as README headings and line ranges; full README bodies are not written to the observation database.
+- One repository-level quality correction is allowed within the existing global retry and token caps.
+- One missing locale, mismatched invariant, insufficient source, or schema defect fails the entire repository and therefore the candidate.
 
-- **분류 정밀도 고도화** — 누적 Trending 표본과 GitHub Topics를 표본 검수해 분야·형태 태그 규칙을 계속 조정합니다.
-- **개인화 추천은 후순위로 설계** — 공식 OAuth·약관·토큰 범위·정적 사이트 키 노출·과금 오남용을 검증한 뒤, 개인정보를 최소화하는 별도 기능으로 검토합니다.
+The interface describes these summaries accurately as AI-generated from a verified repository README; it does not claim human verification.
 
-## 사용 방법
+## Features
 
-1. [운영 사이트](https://nowwcastle-sudo.github.io/github-trending-daily/)를 엽니다.
-2. 상단에서 전체·일간·주간·월간 기간을 고르거나 저장소 이름·설명을 검색합니다.
-3. 왼쪽 가장자리의 **탐색 아이콘**을 눌러 정렬, 즐겨찾기 보기, 프로그래밍 언어, 분야, 형태·기술, AI 제외 조건을 조합합니다. 같은 그룹 안은 OR, 서로 다른 그룹 사이는 AND로 적용됩니다.
-4. 데스크톱에서는 카드에 마우스를 올리고, 모바일에서는 카드를 한 번 탭해 프로젝트 목표·사용법·장단점을 확인합니다. **관심 없음**을 누르거나 키보드로 카드에 초점을 둔 뒤 Delete를 누르면 현재 브라우저에서 숨겨지며, 알림의 되돌리기나 사이드바에서 복구할 수 있습니다.
-5. 별 버튼으로 즐겨찾기를 저장합니다. 로그인하지 않으면 현재 브라우저에, Google로 로그인하면 같은 계정에 동기화됩니다.
-6. 정렬이나 필터를 적용한 주소를 복사하면 같은 탐색 조건을 공유할 수 있습니다. 숨김 선택은 공유되지 않습니다.
-7. 사이드바의 **CSV 다운로드**, **JSON 다운로드**, **현재 링크 복사**로 현재 화면의 저장소 순서나 공개 가능한 탐색 조건을 내보냅니다.
-8. 모든 현재 저장소는 `feed.xml`, membership 변화만 보려면 `changes.xml`을 Atom 리더에 등록합니다.
+- Daily, weekly, monthly, and combined GitHub Trending views.
+- Total stars, period gain, forks, issues and pull requests, contributors, recent commits, and releases.
+- Momentum history, consecutive Trending observations, rank change, HOT, new, and re-entered signals.
+- Search plus programming-language, field, form, technology, favorites, and AI-exclusion filters.
+- Stable sorting by original Trending order, period gain, total stars, latest push, or latest release.
+- Shareable URL state for public discovery controls; browser-local hidden repositories are not included.
+- Per-browser **Not interested** with undo and individual or complete recovery.
+- Local favorites when signed out and optional Google-account synchronization when signed in.
+- Current-view CSV and JSON export containing public fields only, plus a copyable discovery URL.
+- [feed.xml](https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml) for the current repository set and [changes.xml](https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml) for new and re-entered membership events.
+- Light and dark themes, keyboard navigation, focus trapping, 44 px touch targets, reduced-motion handling, reduced-transparency handling, BFCache restoration, and responsive layouts.
 
-## 갱신과 데이터
+## How to use
 
-GitHub Actions가 서울(Asia/Seoul) 기준 홀수 시각의 07분에 실행되어 약 2시간마다 데이터를 갱신합니다. GitHub Trending 페이지와 GitHub REST API의 공개 저장소 메타데이터·Topics를 사용하며, 현재 총 스타는 GitHub 기준이고 과거 스타 히스토리는 GH Archive 기반 추정치가 섞일 수 있습니다.
+1. Open the [site](https://nowwcastle-sudo.github.io/github-trending-daily/).
+2. Choose the site language in the header.
+3. Open **Explore** to combine period, sorting, favorites, programming language, field, form, technology, and AI-exclusion filters. Choices use OR within a group and AND between groups.
+4. Hover or focus a card on desktop, or tap it on mobile, to open the complete summary. Select a summary language without losing detail.
+5. Select **View README** to see the verified canonical README and any upstream language variants that the repository actually provides.
+6. Save a favorite locally or sign in with Google to synchronize it. Hiding a repository does not remove its favorite.
+7. Export the current public view as CSV or JSON, copy its URL, or subscribe to an Atom feed.
 
-README 한국어 번역은 새 저장소이거나 **README 해시**가 바뀐 경우에만 유료 번역 대기열에 들어가도록 비용 게이트를 둡니다. 사이트는 GitHub Pages에서 정적으로 제공되며, 개인화 추천이나 사용자 API 키를 현재 페이지에 노출하지 않습니다.
+## Refresh and publication safety
 
-CSV는 한국어 Excel 호환성을 위해 **UTF-8 BOM**을 포함하며 고정 열은 `slug, name, description, language, topics, stars, forks, issues, contributors, period_gain, pushed_at, latest_release, membership_status` 순서입니다. comma·quote·줄바꿈은 CSV quoting으로 보존하고 수식처럼 실행될 수 있는 문자열은 앞 apostrophe로 방어합니다.
+When activated, GitHub Actions is scheduled at minute 07 of odd-numbered hours in `Asia/Seoul`, approximately every two hours. The workflow collects and freezes canonical repository and README facts before considering enrichment. It must then complete exact five-language coverage, provenance validation, rendering, observation recording, and artifact validation before publication.
+
+The workflow is fail closed:
+
+- The model is called zero times if collection fails.
+- An incomplete enrichment candidate writes no observation, page, commit, or Pages deployment.
+- A failed candidate leaves the tracked tree unchanged.
+- Missing or stale README provenance, source mismatch, incomplete chunks, invalid model output, cost-cap breaches, or translation residue stop publication.
+- The browser never receives a provider API key.
+
+Historical star charts can include GH Archive-derived estimates; current total stars come from GitHub. CSV uses a UTF-8 BOM for spreadsheet compatibility, quotes commas, quotes, and line breaks, and prefixes formula-like values with an apostrophe.
+
+## Local verification
+
+```powershell
+npm test
+python -m unittest discover -s tests -p "test_*.py"
+```
+
+Run these commands from the repository root in PowerShell. Production activation, workflow dispatch, and Pages deployment are separate controlled steps.

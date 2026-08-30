@@ -1,79 +1,133 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 
+import { parseJsonStrict } from "./build-pages-artifact.mjs";
+import { validateFrozenFactsPayload } from "./collect-repository-events.mjs";
+import { extractReposFromIndex } from "./generate-translations.mjs";
 import {
-  extractReposFromIndex,
-  parseTranslationPayload,
-  sameSource,
-  slugToFile,
-  validateActiveEnrichment,
-} from "./generate-translations.mjs";
+  SUMMARY_BUNDLE_SCHEMA_VERSION,
+  SUMMARY_PROMPT_SCHEMA_VERSION,
+  validateSummaryBundleEnvelope,
+} from "./generate-summary-bundles.mjs";
+import { DEFAULT_ENRICHMENT_MODEL } from "./enrichment-models.mjs";
+
+const SOURCE_KEYS = ["kind", "slug", "path", "blob_sha", "content_sha256", "model", "schema_version", "prompt_schema_version", "translation_applicable"];
+
+function exactKeys(value, keys) {
+  return value && !Array.isArray(value) && typeof value === "object"
+    && Object.keys(value).sort().join("\0") === [...keys].sort().join("\0");
+}
 
 function parseArgs(args) {
   let root = null;
+  let facts = null;
   let jsonCounts = false;
   for (let index = 0; index < args.length; index += 1) {
-    if (args[index] === "--root" && index + 1 < args.length) {
-      root = path.resolve(args[index + 1]);
-      index += 1;
-    } else if (args[index] === "--json-counts") {
-      jsonCounts = true;
-    } else {
-      throw new Error("Usage: validate-enrichment-coverage.mjs --root DIR --json-counts");
-    }
+    if (args[index] === "--root" && index + 1 < args.length) root = path.resolve(args[++index]);
+    else if (args[index] === "--facts" && index + 1 < args.length) facts = path.resolve(args[++index]);
+    else if (args[index] === "--json-counts") jsonCounts = true;
+    else throw new Error("Usage: validate-enrichment-coverage.mjs --root DIR --facts FILE --json-counts");
   }
-  if (!root || !jsonCounts) throw new Error("Usage: validate-enrichment-coverage.mjs --root DIR --json-counts");
-  return root;
+  if (!root || !facts || !jsonCounts) throw new Error("Usage: validate-enrichment-coverage.mjs --root DIR --facts FILE --json-counts");
+  return { root, facts };
 }
 
-export async function validateEnrichmentRoot(root) {
-  const [page, cacheText, sourcesText, files] = await Promise.all([
+function expectedSource(repository, readme) {
+  return {
+    kind: "readme",
+    slug: repository.slug.toLowerCase(),
+    path: readme.path,
+    blob_sha: readme.blobSha,
+    content_sha256: readme.contentSha256,
+    model: DEFAULT_ENRICHMENT_MODEL,
+    schema_version: SUMMARY_BUNDLE_SCHEMA_VERSION,
+    prompt_schema_version: SUMMARY_PROMPT_SCHEMA_VERSION,
+    translation_applicable: false,
+  };
+}
+
+export async function validateEnrichmentRoot(root, { factsPath } = {}) {
+  if (!factsPath) throw new Error("Frozen facts are required for source-bound coverage validation");
+  const [page, cacheBytes, sourcesBytes, factsBytes, translationFiles] = await Promise.all([
     readFile(path.join(root, "index.html"), "utf8"),
-    readFile(path.join(root, "data", "repo-summaries.json"), "utf8"),
-    readFile(path.join(root, "data", "translation-sources.json"), "utf8"),
-    readdir(path.join(root, "translations"), { withFileTypes: true }),
+    readFile(path.join(root, "data", "repo-summaries.json")),
+    readFile(path.join(root, "data", "translation-sources.json")),
+    readFile(factsPath),
+    readdir(path.join(root, "translations"), { withFileTypes: true }).catch(error => {
+      if (error?.code === "ENOENT") return [];
+      throw error;
+    }),
   ]);
+  if (translationFiles.length !== 0) throw new Error("Retired README translation residue is present");
   const active = extractReposFromIndex(page);
-  const sources = JSON.parse(sourcesText);
-  const wanted = new Set(active.map(repo => slugToFile(repo.slug).toLowerCase()));
-  const translations = {};
-  for (const file of files) {
-    if (!file.isFile() || !wanted.has(file.name.toLowerCase())) continue;
-    const value = parseTranslationPayload(JSON.parse(await readFile(path.join(root, "translations", file.name), "utf8")));
-    const repo = active.find(candidate => slugToFile(candidate.slug).toLowerCase() === file.name.toLowerCase());
-    const source = Object.entries(sources?.sources ?? {})
-      .find(([slug]) => slug.toLowerCase() === repo?.slug.toLowerCase())?.[1];
-    if (!repo || !value || !sameSource(value.source, source)) {
-      throw new Error("Translation does not match its exact source envelope");
-    }
-    translations[repo.slug] = value.markdown;
+  const cache = parseJsonStrict(cacheBytes, "summary cache", 32 * 1024 * 1024);
+  const sources = parseJsonStrict(sourcesBytes, "summary sources", 32 * 1024 * 1024);
+  const facts = validateFrozenFactsPayload(parseJsonStrict(factsBytes, "frozen facts", 64 * 1024 * 1024));
+  if (!exactKeys(sources, ["version", "sources"]) || sources.version !== SUMMARY_BUNDLE_SCHEMA_VERSION
+      || !sources.sources || Array.isArray(sources.sources) || typeof sources.sources !== "object") {
+    throw new Error("Summary source registry is invalid");
   }
-  return validateActiveEnrichment(
-    active,
-    translations,
-    JSON.parse(cacheText),
-    sources,
-  );
+  const activeMap = new Map(active.map(repo => [repo.slug.toLowerCase(), repo]));
+  const factMap = new Map(facts.repositories.map(repository => [repository.slug.toLowerCase(), repository]));
+  const cacheMap = new Map(Object.entries(cache).map(([slug, value]) => [slug.toLowerCase(), { slug, value }]));
+  const sourceMap = new Map(Object.entries(sources.sources).map(([slug, value]) => [slug.toLowerCase(), { slug, value }]));
+  const slugs = [...activeMap.keys()];
+  if ([factMap, cacheMap, sourceMap].some(map => map.size !== slugs.length || slugs.some(slug => !map.has(slug)))) {
+    throw new Error("Summary bundle active set is not exact");
+  }
+  for (const slug of slugs) {
+    const repository = factMap.get(slug);
+    const readme = facts.readmes[slug];
+    const entry = cacheMap.get(slug).value;
+    const pageRepo = activeMap.get(slug);
+    if (repository.readme_status !== "present" || !readme?.markdown
+        || !exactKeys(entry, ["content", "summaries", "evidence", "invariants", "inference_fields", "source"])
+        || !exactKeys(entry.source, SOURCE_KEYS)
+        || JSON.stringify(entry.source) !== JSON.stringify(expectedSource(repository, readme))
+        || JSON.stringify(sourceMap.get(slug).value) !== JSON.stringify(entry.source)) {
+      throw new Error(`Summary bundle source coverage is invalid for ${repository.slug}`);
+    }
+    const checked = validateSummaryBundleEnvelope({
+      summaries: entry.summaries,
+      evidence: entry.evidence,
+      invariants: entry.invariants,
+      inference_fields: entry.inference_fields,
+    }, {
+      slug: repository.slug,
+      readme_path: readme.path,
+      readme_blob_sha: readme.blobSha,
+      readme_content_sha256: readme.contentSha256,
+      default_branch_head_sha: repository.default_branch_head_sha,
+      markdown: readme.markdown,
+    });
+    if (JSON.stringify(entry.content) !== JSON.stringify(checked.summaries.en)
+        || JSON.stringify(pageRepo.summary) !== JSON.stringify(checked.summaries.en)
+        || JSON.stringify(pageRepo.summaries) !== JSON.stringify(checked.summaries)) {
+      throw new Error(`Rendered summary bundle is stale for ${repository.slug}`);
+    }
+  }
+  return {
+    valid: true,
+    counts: {
+      repository: slugs.length,
+      valid: slugs.length,
+      locales: slugs.length * 5,
+      missing: 0,
+      stale: 0,
+      insufficient_source: 0,
+      translations: 0,
+    },
+  };
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
   try {
-    const root = parseArgs(process.argv.slice(2));
-    const result = await validateEnrichmentRoot(root);
+    const args = parseArgs(process.argv.slice(2));
+    const result = await validateEnrichmentRoot(args.root, { factsPath: args.facts });
     process.stdout.write(`${JSON.stringify(result.counts)}\n`);
-    if (!result.valid) process.exitCode = 1;
   } catch {
-    process.stdout.write(`${JSON.stringify({
-      repository: 0,
-      valid: 0,
-      compact: 0,
-      placeholder: 0,
-      applicable: 0,
-      "N/A": 0,
-      missing: 0,
-      stale: 1,
-    })}\n`);
+    process.stdout.write(`${JSON.stringify({ repository: 0, valid: 0, locales: 0, missing: 0, stale: 1, insufficient_source: 0, translations: 0 })}\n`);
     process.exitCode = 1;
   }
 }

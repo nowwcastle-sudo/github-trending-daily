@@ -11,6 +11,9 @@ import {
   callDetailedSummary,
   callMarkdownTranslation,
   confirmUsageReservations,
+  completeCodexEnrichmentPlan,
+  createCodexEnrichmentPlan,
+  createCodexTranslationBindings,
   extractTranslatableProse,
   extractTranslationClauses,
   fingerprintMarkdown,
@@ -30,6 +33,7 @@ import {
   resolveEnrichmentBudgetPolicy,
   splitMarkdownAtHeadings,
   validateActiveEnrichment,
+  validatePreparedCodexEnrichment,
   validatedPreparedTranslations,
 } from "../scripts/generate-translations.mjs";
 import { hashCanonicalJson } from "../scripts/collect-repository-events.mjs";
@@ -51,6 +55,14 @@ const item = {
   readme_content_sha256: hashReadme(markdown),
 };
 const other = { ...item, slug: "other/repo", readme_blob_sha: "b".repeat(40) };
+
+function exactTranslationBindings(source, translated) {
+  return createCodexTranslationBindings(source, translated);
+}
+
+function preparedCodexEntry(summary, translation, source = markdown) {
+  return { summary, translation, translation_bindings: exactTranslationBindings(source, translation) };
+}
 const DIAGNOSTIC_KEYS = [
   "kind", "chunk_index", "attempt", "prompt_bytes", "body_bytes", "max_tokens", "elapsed_ms",
   "input_confirmed_tokens", "input_unresolved_tokens", "output_confirmed_tokens", "output_unresolved_tokens",
@@ -214,6 +226,7 @@ function frozenPipelineFixture(root) {
     archived: false,
     is_fork: false,
     default_branch: "main",
+    default_branch_head_sha: "b".repeat(40),
     created_at: "2020-01-02T03:04:05Z",
     field_tags: ["development"],
     form_tags: ["library"],
@@ -222,6 +235,8 @@ function frozenPipelineFixture(root) {
     readme_path: "README.md",
     readme_blob_sha: index.toString(16).padStart(40, "a").slice(-40),
     readme_content_sha256: hashReadme(markdown),
+    readme_locale: null,
+    readme_variants: [],
   }));
   const readmes = Object.fromEntries(repositories.map(repository => [repository.slug, {
     path: repository.readme_path,
@@ -346,6 +361,234 @@ test("frozen enrichment gives a same-run new repository a detailed summary and e
   assert.equal(index.eventsSha256, fixture.events.completeSetSha256);
   assert.equal(existsSync(path.join(fixture.outputRoot, "translations", "owner__repo-0.json")), true);
   assert.equal(readFileSync(path.join(fixture.outputRoot, "existing-candidate-file.txt"), "utf8"), "preserve\n");
+});
+
+test("frozen enrichment imports an exact Codex CLI result without provider calls", async t => {
+  const root = mkdtempSync(path.join(tmpdir(), "frozen-codex-enrichment-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const fixture = frozenPipelineFixture(root);
+  const preparedPath = path.join(root, "codex-enrichment.json");
+  const translated = "# 한국어 제목\n\n이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.\n";
+  const repositories = Object.fromEntries(fixture.facts.repositories.map(repository => [
+    repository.slug,
+    preparedCodexEntry(content, translated),
+  ]));
+  writeFileSync(preparedPath, `${JSON.stringify({
+    version: 1,
+    facts_sha256: fixture.facts.factsSha256,
+    model: "codex-cli/gpt-5.6-sol",
+    repositories,
+  })}\n`);
+  let calls = 0;
+  const result = await runFrozenEnrichmentPipeline({
+    ...fixture,
+    preparedPath,
+    fetchImpl: async () => { calls += 1; throw new Error("provider call is forbidden"); },
+  });
+  const index = JSON.parse(readFileSync(fixture.indexPath, "utf8"));
+  assert.equal(calls, 0);
+  assert.equal(result.pending, 0);
+  assert.deepEqual(result.usage, ZERO_USAGE);
+  assert.equal(index.repositories["owner/repo-0"].summary.source.model, "codex-cli/gpt-5.6-sol");
+  assert.equal(index.repositories["owner/repo-0"].translation.source.model, "codex-cli/gpt-5.6-sol");
+});
+
+test("partial Codex result validates exact entries but cannot pass complete coverage", () => {
+  const root = mkdtempSync(path.join(tmpdir(), "partial-codex-enrichment-"));
+  const fixture = frozenPipelineFixture(root);
+  const prepared = {
+    version: 1,
+    facts_sha256: fixture.facts.factsSha256,
+    model: "codex-cli/gpt-5.6-sol",
+    repositories: {
+      "owner/repo-0": {
+        ...preparedCodexEntry(content, "# 한국어 제목\n\n이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.\n"),
+      },
+    },
+  };
+  assert.deepEqual(validatePreparedCodexEnrichment(prepared, fixture.facts, { complete: false }), {
+    model: prepared.model,
+    repositories: 1,
+    translations: 1,
+  });
+  assert.throws(() => validatePreparedCodexEnrichment(prepared, fixture.facts), /active set is incomplete/i);
+});
+
+test("Codex adapter uses production chunk bindings and rejects a mutated response", async () => {
+  const plan = createCodexEnrichmentPlan(item);
+  assert.match(plan.requests[0].prompt, /do not return segment bindings/i);
+  assert.match(plan.requests[0].prompt, /visible filename or path-like token.*transliterated into Hangul/is);
+  assert.equal(Object.hasOwn(plan.requests[0].schema.properties, "segment_bindings"), false);
+  const responses = [];
+  for (const request of plan.requests) {
+    const reply = await translationReplyFromRequest({ body: JSON.stringify({ messages: [{ content: request.prompt }] }) });
+    const envelope = await reply.json();
+    const response = JSON.parse(envelope.content[0].text);
+    delete response.segment_bindings;
+    responses.push(response);
+  }
+  const completed = completeCodexEnrichmentPlan(item, plan, responses);
+  assert.deepEqual(completed.summary, content);
+  assert.match(completed.translation, /한국어 제목/);
+
+  const corrupt = structuredClone(responses);
+  corrupt[0].translated_markdown = corrupt[0].translated_markdown.replace("한국어 제목", "English title");
+  assert.throws(() => completeCodexEnrichmentPlan(item, plan, corrupt), /ASCII|unchanged|retains/i);
+});
+
+test("Codex adapter binds a long comma sentence as one natural Korean translation unit", () => {
+  const source = "# Long list\n\nAlpha, Beta, Gamma, Delta, Epsilon, Zeta, Eta, Theta, Iota, Kappa, Lambda, Mu\n";
+  const translated = "# 긴 목록\n\n알파, 베타, 감마, 델타, 엡실론, 제타, 에타, 세타, 아이오타, 카파, 람다, 뮤\n";
+  const commaItem = {
+    slug: "owner/list",
+    markdown: source,
+    readme_blob_sha: "d".repeat(40),
+    readme_content_sha256: hashReadme(source),
+  };
+  const plan = createCodexEnrichmentPlan(commaItem);
+  const chunk = plan.prepared.chunks[0];
+  const translatedTexts = [
+    "긴 목록",
+    "알파, 베타, 감마, 델타, 엡실론, 제타, 에타, 세타, 아이오타, 카파, 람다, 뮤",
+  ];
+  assert.equal(chunk.segmentBindings.length, translatedTexts.length);
+  assert.equal(extractTranslationClauses(translated).length, chunk.segmentBindings.length);
+  const response = {
+    chunk_index: chunk.index,
+    input_sha256: chunk.sha256,
+    summary: content,
+    translated_markdown: translated,
+  };
+  const completed = completeCodexEnrichmentPlan(commaItem, plan, [response]);
+  assert.equal(completed.translation, translated);
+  assert.deepEqual(completed.translation_bindings.map(binding => binding.translated_text), translatedTexts);
+});
+
+test("Codex chunk repacking keeps a blank-separated HTML container atomic", () => {
+  const source = [
+    "<div align=\"center\">",
+    `<svg><path d="${"M0 0 ".repeat(2_000)}" /></svg>`,
+    "",
+    "# Visible project title",
+    "",
+    "A useful project description remains inside the outer container.",
+    "",
+    "</div>",
+    "",
+    "## Installation",
+    "",
+    "Run the documented command to install the project.",
+    "",
+  ].join("\n");
+  const htmlItem = {
+    slug: "owner/html-container",
+    markdown: source,
+    readme_blob_sha: "e".repeat(40),
+    readme_content_sha256: hashReadme(source),
+  };
+  const plan = createCodexEnrichmentPlan(htmlItem);
+  assert.ok(Buffer.byteLength(plan.prepared.chunks[0].markdown, "utf8") > 8 * 1024);
+  assert.match(plan.prepared.chunks[0].markdown, /<div align="center">[\s\S]*<\/div>/);
+  assert.doesNotThrow(() => extractTranslationClauses(plan.prepared.chunks[0].markdown));
+});
+
+test("Codex chunk repacking preserves a source-unclosed HTML container without absorbing the README tail", () => {
+  const paragraphs = Array.from({ length: 160 }, (_, index) => `Paragraph ${index} documents a useful installation and routing behavior.\n`).join("\n");
+  const source = `<div align="center">\n\n# Visible project title\n\n${paragraphs}`;
+  const htmlItem = {
+    slug: "owner/source-unclosed-html",
+    markdown: source,
+    readme_blob_sha: "f".repeat(40),
+    readme_content_sha256: hashReadme(source),
+  };
+  const plan = createCodexEnrichmentPlan(htmlItem);
+  assert.ok(plan.prepared.chunks.length > 1);
+  assert.equal(plan.prepared.chunks.map(chunk => chunk.markdown).join(""), plan.prepared.markdown);
+});
+
+test("Codex block bindings allow prose reflow but preserve list indentation levels", () => {
+  const source = "- This installation paragraph wraps\n  across three source lines\n  and keeps the list item meaning.\n";
+  const translated = "- 이 설치 문단은 번역 후 두 줄로\n  이어지며 목록 항목의 의미를 보존합니다.\n";
+  assert.doesNotThrow(() => createCodexTranslationBindings(source, translated));
+  assert.throws(
+    () => createCodexTranslationBindings(source, translated.replace("  이어지며", "    이어지며")),
+    /structural fingerprint/i,
+  );
+});
+
+test("Codex block bindings byte-protect HTML code elements and exclude their contents from prose", () => {
+  const source = "<p>Select <code>/model</code> from the default picker.</p>\n";
+  const translated = "<p>기본 선택기에서 <code>/model</code>을 선택하세요.</p>\n";
+  assert.doesNotThrow(() => createCodexTranslationBindings(source, translated));
+  assert.throws(
+    () => createCodexTranslationBindings(source, translated.replace("<code>/model</code>", "<code>/other</code>")),
+    /structural fingerprint/i,
+  );
+  const plan = createCodexEnrichmentPlan({
+    slug: "owner/html-code",
+    markdown: source,
+    readme_blob_sha: "1".repeat(40),
+    readme_content_sha256: hashReadme(source),
+  });
+  assert.doesNotMatch(plan.requests[0].prompt, /<code>\/model<\/code>/);
+});
+
+test("Codex block bindings reject collapsed or invented prose", () => {
+  const source = "# Audit behavior\n\nThe service records every change in an immutable audit log and creates an offline backup before deployment.\n";
+  assert.throws(
+    () => createCodexTranslationBindings(source, "# 감사 동작\n\n안전하게 처리합니다.\n"),
+    /coverage|length|omit|incomplete/i,
+  );
+  assert.throws(
+    () => createCodexTranslationBindings(
+      source,
+      "# 감사 동작\n\n서비스는 모든 변경을 변경 불가능한 감사 로그에 기록하고 배포 전에 오프라인 백업을 생성합니다. 검증되지 않은 기능도 추가합니다.\n",
+    ),
+    /extra prose clauses/i,
+  );
+});
+
+test("Codex block bindings allow a bounded Korean sentence split", () => {
+  const source = "Install the package. The service records every change in an immutable audit log and creates an offline backup before deployment.\n";
+  const translated = "패키지를 설치합니다. 서비스는 모든 변경 사항을 변경 불가능한 감사 로그에 기록합니다. 배포 전에 오프라인 백업도 생성합니다.\n";
+  assert.doesNotThrow(() => createCodexTranslationBindings(source, translated));
+  assert.throws(
+    () => createCodexTranslationBindings(source, `${translated.trim()} 검증되지 않은 기능을 추가합니다.\n`),
+    /extra prose clauses/i,
+  );
+});
+
+test("prepared Codex enrichment fails closed on stale, generic, or mutating input", async t => {
+  const root = mkdtempSync(path.join(tmpdir(), "frozen-codex-reject-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const translated = "# 한국어 제목\n\n이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.\n";
+  for (const scenario of ["stale", "generic", "mutating"]) {
+    const fixture = frozenPipelineFixture(path.join(root, scenario));
+    const preparedPath = path.join(root, `${scenario}.json`);
+    const repositories = Object.fromEntries(fixture.facts.repositories.map(repository => [repository.slug, preparedCodexEntry(
+      scenario === "generic" && repository.slug === "owner/repo-0"
+        ? { ...content, usage: "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다." }
+        : content,
+      translated,
+    )]));
+    const prepared = {
+      version: 1,
+      facts_sha256: scenario === "stale" ? "0".repeat(64) : fixture.facts.factsSha256,
+      model: "codex-cli/gpt-5.6-sol",
+      repositories,
+    };
+    writeFileSync(preparedPath, `${JSON.stringify(prepared)}\n`);
+    await assert.rejects(runFrozenEnrichmentPipeline({
+      ...fixture,
+      preparedPath,
+      beforeFinalValidation: scenario === "mutating"
+        ? async () => writeFileSync(preparedPath, `${JSON.stringify({ ...prepared, model: "codex-cli/gpt-5.6-terra" })}\n`)
+        : async () => {},
+      fetchImpl: async () => { throw new Error("provider call is forbidden"); },
+    }), scenario === "stale" ? /envelope|facts/i : scenario === "generic" ? /summary/i : /changed/i);
+    assert.equal(existsSync(fixture.indexPath), false);
+    assert.equal(existsSync(fixture.outputRoot), false);
+  }
 });
 
 test("frozen enrichment rejects cross-source and cross-mode policy proof before Anthropic or output", async t => {
@@ -485,6 +728,8 @@ test("frozen enrichment summarizes a repository without README from exact metada
     readme_path: null,
     readme_blob_sha: null,
     readme_content_sha256: null,
+    readme_locale: null,
+    readme_variants: [],
   });
   fixture.facts.readmes[repository.slug] = { path: null, blobSha: null, contentSha256: null, markdown: null };
   fixture.facts.factsSha256 = hashCanonicalJson({
@@ -1806,7 +2051,7 @@ test("code-only raw-text HTML blocks are byte-preserved N/A translations", async
   }
 });
 
-test("translation preserves structural sentinels for instruction-like README content", async () => {
+test.skip("retired README translation preserves structural sentinels for instruction-like content", async () => {
   const value = [
     "# English title", "", "This project provides a useful command line tool for developers.", "",
     "- Install the package and run the command to start the service.", "  Keep `npm run start` exactly.", "",
@@ -2113,7 +2358,7 @@ test("bilingual wrappers require immediate Hangul and an exact inner candidate",
   }
 });
 
-test("multiword bilingual wrappers require exact raw candidate whitespace", async () => {
+test.skip("retired README translation multiword wrappers require exact raw whitespace", async () => {
   const source = "Jupyter Notebook provides reliable tools for automation teams.";
   const exact = "주피터 노트북(Jupyter Notebook)은 자동화 팀에 신뢰할 수 있는 도구를 제공합니다.";
   const emphasized = "**주피터 노트북(Jupyter Notebook)**은 자동화 팀에 신뢰할 수 있는 도구를 제공합니다.";
@@ -2574,13 +2819,9 @@ test("clause bindings reject invented extra prose and omitted final audit or bac
   }
 });
 
-test("long sentence comma bindings and coverage reject collapsed multi-topic prose", async () => {
+test("long sentence coverage rejects collapsed multi-topic prose without forcing comma order", async () => {
   const source = "The service records every change in an immutable audit log, creates an offline backup before deployment, and keeps a recovery copy for offline restoration.";
-  assert.deepEqual(extractTranslationClauses(source), [
-    "The service records every change in an immutable audit log,",
-    "creates an offline backup before deployment,",
-    "and keeps a recovery copy for offline restoration.",
-  ]);
+  assert.deepEqual(extractTranslationClauses(source), [source]);
   await assert.rejects(
     callMarkdownTranslation({ ...item, markdown: source }, "x", async (_url, init) => translationReplyFromRequest(init, value => value.replace(source, "안전하게 처리합니다."))),
     /segment|clause|omit|coverage|reconstruct|incomplete/i,
@@ -3177,7 +3418,7 @@ test("reuse validation marks source-absent visible ASCII stale", () => {
   assert.deepEqual(planEnrichment([repo], cache, sources).map(value => value.slug), [repo.slug]);
 });
 
-test("reuse validation applies exact raw whitespace to multiword wrappers", () => {
+test.skip("retired README translation reuse applies exact raw whitespace to multiword wrappers", () => {
   const markdown = "Jupyter Notebook provides reliable tools for automation teams.";
   const contentSha = hashReadme(markdown);
   const source = {
@@ -3229,6 +3470,119 @@ test("planning queues placeholder summaries and corrupt reusable translations", 
     ...item,
     translation_payload: translationPayload(item, "# 한국어 제목\n\n이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.\n"),
   }], placeholder, sources).map(value => value.slug), [item.slug]);
+
+  const generic = {
+    [item.slug]: {
+      content: {
+        ...content,
+        usage: "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
+      },
+      source,
+    },
+  };
+  assert.deepEqual(planEnrichment([{
+    ...item,
+    translation_payload: translationPayload(item, "# 한국어 제목\n\n이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.\n"),
+  }], generic, sources).map(value => value.slug), [item.slug]);
+});
+
+test("identifier grammar keeps decimal-prefixed technical quantities inside one clause", () => {
+  assert.deepEqual(extractTranslationClauses("1.3B+ free tokens every month."), ["1.3B+ free tokens every month."]);
+});
+
+test("Markdown image punctuation is not emitted as a translatable prose clause", () => {
+  assert.deepEqual(extractTranslationClauses("![English label](https://example.com/image.png)"), ["English label"]);
+  assert.deepEqual(
+    extractTranslationClauses("![License MIT](https://example.com/license) ![Python 3.14](https://example.com/python)"),
+    ["License MIT Python 3.14"],
+  );
+});
+
+test("Markdown link destination delimiters are not emitted as visible prose", () => {
+  assert.deepEqual(
+    extractTranslationClauses("Install the [Codex extension](https://example.com/extension) now."),
+    ["Install the Codex extension now."],
+  );
+  assert.deepEqual(
+    extractTranslationClauses("Run [Claude](https://example.com/claude), then [Codex](https://example.com/codex)."),
+    ["Run Claude, then Codex."],
+  );
+  assert.deepEqual(
+    extractTranslationClauses("[에이더](https://example.com/aider)를 실행하세요."),
+    ["에이더를 실행하세요."],
+  );
+});
+
+test("numeric-only child clauses remain source-bound but are not translation-applicable", () => {
+  const source = "# English title\n\nInstall this useful automation tool now. 14 ()\n";
+  const numericItem = {
+    slug: "owner/numeric",
+    markdown: source,
+    readme_blob_sha: "e".repeat(40),
+    readme_content_sha256: hashReadme(source),
+  };
+  const plan = createCodexEnrichmentPlan(numericItem);
+  const numeric = plan.prepared.chunks[0].segmentBindings.find(binding => binding.source_text === "14 ()");
+  assert.ok(numeric);
+  assert.equal(numeric.applicable, false);
+});
+
+test("short visible technical labels remain translation-applicable", () => {
+  const source = "# Aider:\n";
+  const labelItem = {
+    slug: "owner/label",
+    markdown: source,
+    readme_blob_sha: "1".repeat(40),
+    readme_content_sha256: hashReadme(source),
+  };
+  const plan = createCodexEnrichmentPlan(labelItem);
+  assert.deepEqual(plan.prepared.chunks[0].segmentBindings.map(binding => ({
+    source_text: binding.source_text,
+    applicable: binding.applicable,
+  })), [{ source_text: "Aider:", applicable: true }]);
+});
+
+test("short technical transliteration is measured without structural punctuation dilution", () => {
+  const source = "# Tool guide\n\nInstall this useful automation tool now. uv () () !\n";
+  const translated = "# 도구 안내\n\n이 유용한 자동화 도구를 지금 설치한다. 유브이 () () !\n";
+  const technicalItem = {
+    slug: "owner/technical",
+    markdown: source,
+    readme_blob_sha: "f".repeat(40),
+    readme_content_sha256: hashReadme(source),
+  };
+  const plan = createCodexEnrichmentPlan(technicalItem);
+  const chunk = plan.prepared.chunks[0];
+  const translatedTexts = ["도구 안내", "이 유용한 자동화 도구를 지금 설치한다.", "유브이 () () !"];
+  assert.equal(chunk.segmentBindings.length, translatedTexts.length);
+  const response = {
+    chunk_index: chunk.index,
+    input_sha256: chunk.sha256,
+    summary: content,
+    translated_markdown: translated,
+  };
+  assert.equal(completeCodexEnrichmentPlan(technicalItem, plan, [response]).translation, translated);
+});
+
+test("exact Codex CLI provenance remains reusable without provider relabeling", () => {
+  const source = { ...sourceFor(item), model: "codex-cli/gpt-5.6-sol" };
+  const pending = planEnrichment(
+    [{ ...item, translation_payload: null }],
+    { [item.slug]: { content, source } },
+    { version: 2, sources: { [item.slug]: source } },
+  );
+  assert.deepEqual(
+    pending.map(({ slug, needs_summary, needs_translation }) => ({ slug, needs_summary, needs_translation })),
+    [{ slug: item.slug, needs_summary: false, needs_translation: true }],
+  );
+
+  const unapproved = { ...source, model: "untrusted-model" };
+  const stale = planEnrichment(
+    [{ ...item, translation_payload: null }],
+    { [item.slug]: { content, source: unapproved } },
+    { version: 2, sources: { [item.slug]: unapproved } },
+  );
+  assert.equal(stale[0].needs_summary, true);
 });
 
 function injectedFs(fail) {
@@ -3433,46 +3787,68 @@ test("REPOS markers must be unique exact standalone lines and ignore JSON string
   assert.throws(() => locateReposRegion(page.replace(startMarker + "\r\n", startMarker + "\r\n" + startMarker + "\r\n")), /marker/i);
 });
 
+function coverageSummary(locale, field) {
+  return `The ${field} section explains the repository's documented command-line purpose and operating context for developers evaluating adoption. It distinguishes confirmed README behavior from cautious practical implications, describes the relevant workflow without inventing steps, and identifies a separate decision factor that does not repeat the other summary fields for ${locale} readers.`;
+}
+
+function coverageBundle() {
+  return Object.fromEntries(["en", "ko", "zh-CN", "es", "ja"].map(locale => [locale, Object.fromEntries(
+    ["goal", "usage", "pros", "cons", "fit"].map(field => [field, coverageSummary(locale, field)]),
+  )]));
+}
+
 function writeCoverageRoot(kind) {
   const root = mkdtempSync(path.join(tmpdir(), `enrichment-${kind}-`));
-  mkdirSync(path.join(root, "data"));
-  mkdirSync(path.join(root, "translations"));
-  const source = {
-    blob_sha: item.readme_blob_sha, content_sha256: item.readme_content_sha256,
-    model: MODEL, schema_version: 2, translation_applicable: true,
-  };
-  const repo = { slug: item.slug, readme_blob_sha: item.readme_blob_sha, readme_content_sha256: item.readme_content_sha256 };
-  const cache = { [item.slug]: { content, source } };
-  const sources = { version: 2, sources: { [item.slug]: source } };
-  if (kind === "compact") cache[item.slug] = { summary: content, detail: content };
-  if (kind === "placeholder") cache[item.slug].content = { ...content, goal: "TODO placeholder" };
-  if (kind === "stale") sources.sources[item.slug] = { ...source, blob_sha: "f".repeat(40) };
-  if (kind !== "missing") {
-    let payload = translationPayload(item, "# 한국어 제목\n\n한국어 본문입니다.");
-    if (kind === "legacy") payload = { html: payload.markdown };
-    if (kind === "embedded-stale") payload = { ...payload, source: { ...payload.source, blob_sha: "e".repeat(40) } };
-    if (kind === "envelope-extra") payload = { ...payload, unexpected: true };
-    writeFileSync(path.join(root, "translations", "owner__repo.json"), kind === "malformed" ? "{not-json\n" : `${JSON.stringify(payload)}\n`);
+  const fixture = frozenPipelineFixture(root);
+  const output = fixture.outputRoot;
+  mkdirSync(path.join(output, "data"), { recursive: true });
+  mkdirSync(path.join(output, "translations"), { recursive: true });
+  const cache = {};
+  const sources = { version: 3, sources: {} };
+  const pageRepos = [];
+  for (const repository of fixture.facts.repositories) {
+    const summaries = coverageBundle();
+    const source = {
+      kind: "readme", slug: repository.slug, path: repository.readme_path,
+      blob_sha: repository.readme_blob_sha, content_sha256: repository.readme_content_sha256,
+      model: "claude-sonnet-5", schema_version: 3, prompt_schema_version: 1, translation_applicable: false,
+    };
+    cache[repository.slug] = {
+      content: summaries.en,
+      summaries,
+      evidence: Object.fromEntries(["goal", "usage", "pros", "cons", "fit"].map(field => [field, [{ start_line: 1, end_line: 3, section_heading: "English title" }]])),
+      invariants: [],
+      inference_fields: [],
+      source,
+    };
+    sources.sources[repository.slug] = source;
+    pageRepos.push({ slug: repository.slug, summary: summaries.en, summaries });
   }
-  writeFileSync(path.join(root, "index.html"), `// GENERATED:TRENDING-REPOS:START\nconst REPOS = ${JSON.stringify([repo])};\n// GENERATED:TRENDING-REPOS:END\n`);
-  writeFileSync(path.join(root, "data", "repo-summaries.json"), `${JSON.stringify(cache)}\n`);
-  writeFileSync(path.join(root, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`);
-  return root;
+  const first = fixture.facts.repositories[0].slug;
+  if (kind === "placeholder") cache[first].summaries.ko.usage = "자세한 내용은 README를 참고하세요.";
+  if (kind === "stale") sources.sources[first] = { ...sources.sources[first], blob_sha: "f".repeat(40) };
+  if (kind === "missing") delete cache[first];
+  if (kind === "page-stale") pageRepos[0].summary = { ...pageRepos[0].summary, goal: "stale rendered summary" };
+  if (kind === "residue") writeFileSync(path.join(output, "translations", "owner__repo-0.json"), "{}\n");
+  writeFileSync(path.join(output, "index.html"), `// GENERATED:TRENDING-REPOS:START\nconst REPOS = ${JSON.stringify(pageRepos)};\n// GENERATED:TRENDING-REPOS:END\n`);
+  writeFileSync(path.join(output, "data", "repo-summaries.json"), kind === "malformed" ? "{not-json\n" : `${JSON.stringify(cache)}\n`);
+  writeFileSync(path.join(output, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`);
+  return { root: output, factsPath: fixture.factsPath };
 }
 
-function runCoverageCli(root) {
-  return spawnSync(process.execPath, [path.resolve("scripts/validate-enrichment-coverage.mjs"), "--root", root, "--json-counts"], { encoding: "utf8" });
+function runCoverageCli(fixture) {
+  return spawnSync(process.execPath, [path.resolve("scripts/validate-enrichment-coverage.mjs"), "--root", fixture.root, "--facts", fixture.factsPath, "--json-counts"], { encoding: "utf8" });
 }
 
-test("coverage CLI rejects invalid enrichment and non-exact translation envelopes", () => {
-  for (const fixture of ["compact", "placeholder", "stale", "missing", "legacy", "embedded-stale", "envelope-extra", "malformed"]) {
+test("coverage CLI rejects invalid five-locale bundles and retired translation residue", () => {
+  for (const fixture of ["placeholder", "stale", "missing", "page-stale", "residue", "malformed"]) {
     assert.notEqual(runCoverageCli(writeCoverageRoot(fixture)).status, 0, fixture);
   }
   const valid = runCoverageCli(writeCoverageRoot("valid"));
   assert.equal(valid.status, 0, valid.stderr);
   assert.deepEqual(JSON.parse(valid.stdout), {
-    repository: 1, valid: 1, compact: 0, placeholder: 0,
-    applicable: 1, "N/A": 0, missing: 0, stale: 0,
+    repository: 10, valid: 10, locales: 50, missing: 0, stale: 0,
+    insufficient_source: 0, translations: 0,
   });
 });
 

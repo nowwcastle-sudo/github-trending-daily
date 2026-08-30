@@ -194,10 +194,10 @@ test("open commits at 48px while close accepts 48px or the measured midpoint", a
   assert.equal(UiMotion.finishEdgeGesture(narrowMidpoint), "close");
 });
 
-test("a pending Korean tab updates when its translation resolves without forcing a tab switch", async () => {
+test("a pending upstream README variant updates only when it remains selected", async () => {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
-  const translationHandler = html.match(/fetch\(`translations\/[\s\S]*?\.catch\(\(\)=>\{/m)?.[0] || "";
+  const variantHandler = html.match(/async function showReadmeVariant[\s\S]*?async function openReadme/m)?.[0] || "";
 
-  assert.match(translationHandler, /koHTML=_ko;koState="ok";\s*if\(document\.querySelector\("\.rp-tabs \[aria-pressed=true\]"\)\.id==="tabKo"\)\s*setReadmeBody\(koHTML\)/);
-  assert.doesNotMatch(translationHandler, /setTab\("ko"\)/);
+  assert.match(variantHandler, /state\.cache\.set\(id,html\);if\(state\.currentId===id\)setReadmeBody\(html\)/);
+  assert.doesNotMatch(variantHandler, /currentId=variant\.id/);
 });

@@ -7,13 +7,14 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { buildTrendNote, fetchCanonicalReadme } from "./update-trending.mjs";
 import { hashCanonicalJson, validateFrozenFactsPayload, verifyFrozenParentInputs } from "./collect-repository-events.mjs";
 import { parseJsonStrict } from "./build-pages-artifact.mjs";
+import { LEGACY_TRANSLATION_MODEL, isCodexCliEnrichmentModel, isEnrichmentModel } from "./enrichment-models.mjs";
 import { validateRunContext } from "./run-context.mjs";
 
 const REPO_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const SHA1_RE = /^[a-f0-9]{40}$/;
 const SHA256_RE = /^[a-f0-9]{64}$/;
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-export const ENRICHMENT_MODEL = "claude-haiku-4-5";
+export const ENRICHMENT_MODEL = LEGACY_TRANSLATION_MODEL;
 export const ENRICHMENT_SCHEMA_VERSION = 2;
 const SUMMARY_KEYS = ["goal", "usage", "pros", "cons", "fit"];
 const CHUNK_BYTES = 64 * 1024;
@@ -135,7 +136,7 @@ export function resolveEnrichmentBudgetPolicy({
     : PENDING_BOOTSTRAP_BUDGET_POLICY;
 }
 
-function validateFrozenPolicyBinding(facts, context) {
+export function validateFrozenPolicyBinding(facts, context) {
   const status = context?.productionManifestStatus;
   const manifestSha = context?.productionManifestSha256 ?? null;
   if (context?.inputSourceSha !== facts.inputSourceSha
@@ -497,7 +498,7 @@ function sentinelProtector(markdown) {
   return { prefix, values, protect };
 }
 
-function protectLinkDestinations(value, protect) {
+function protectLinkDestinations(value, protect, preserveDelimiters = true) {
   let output = "";
   let cursor = 0;
   while (cursor < value.length) {
@@ -506,7 +507,7 @@ function protectLinkDestinations(value, protect) {
       output += value.slice(cursor);
       break;
     }
-    output += value.slice(cursor, start + 2);
+    output += value.slice(cursor, start + (preserveDelimiters ? 2 : 1));
     let index = start + 2;
     let depth = 0;
     let escaped = false;
@@ -531,7 +532,7 @@ function protectLinkDestinations(value, protect) {
       break;
     }
     output += protect(value.slice(start + 2, index));
-    output += ")";
+    if (preserveDelimiters) output += ")";
     cursor = index + 1;
   }
   return output;
@@ -705,12 +706,17 @@ function transformAutolinks(value, transform) {
   return value.replace(autolink, destination => transform(destination));
 }
 
+function transformHtmlCodeElements(value, transform) {
+  return value.replace(/<code\b[^>]*>[\s\S]*?<\/code\s*>/gi, element => transform(element));
+}
+
 function protectMarkdown(markdown) {
   const sentinel = sentinelProtector(markdown);
   const protectedBlocks = parseAtomicBlocks(markdown).map(block => {
     if (block.type === "fence" || block.type === "raw_html") return { ...block, text: sentinel.protect(block.text) };
     const references = transformReferenceDefinitions(block.text, value => sentinel.protect(value));
-    const inline = transformInlineCodes(references, value => sentinel.protect(value));
+    const htmlCode = transformHtmlCodeElements(references, value => sentinel.protect(value));
+    const inline = transformInlineCodes(htmlCode, value => sentinel.protect(value));
     const links = protectLinkDestinations(inline, sentinel.protect);
     return { ...block, text: transformAutolinks(links, sentinel.protect) };
   });
@@ -756,6 +762,18 @@ function restoreSentinels(value, sentinel) {
   return restored;
 }
 
+function restoreChunkSentinels(value, source, sentinel) {
+  let restored = value;
+  for (const [id, original] of sentinel.values) {
+    if (!source.includes(id)) continue;
+    if (source.split(id).length - 1 !== 1 || restored.split(id).length - 1 !== 1) {
+      throw new Error("Markdown chunk sentinel missing or duplicated");
+    }
+    restored = restored.replace(id, original);
+  }
+  return restored;
+}
+
 function linkDestinations(markdown) {
   const destinations = [];
   const collect = value => {
@@ -785,6 +803,18 @@ function inlineCodes(markdown) {
   return values;
 }
 
+function htmlCodeElements(markdown) {
+  const values = [];
+  for (const block of parseAtomicBlocks(markdown)) {
+    if (block.type === "fence" || block.type === "raw_html") continue;
+    transformHtmlCodeElements(block.text, value => {
+      values.push(value);
+      return value;
+    });
+  }
+  return values;
+}
+
 function fenceFingerprint(text) {
   const lines = markdownLines(text).map(lineText);
   const opening = fenceStart(lines[0] ?? "");
@@ -807,9 +837,8 @@ export function fingerprintMarkdown(value) {
       const lines = markdownLines(block.text).map(lineText);
       return {
         type: "list",
-        lines: lines.length,
         markers: lines.map(line => listMarker(line)?.marker ?? null).filter(Boolean),
-        continuation_indents: lines.filter(line => !listMarker(line)).map(line => line.match(/^ */)?.[0].length ?? 0),
+        continuation_indents: [...new Set(lines.filter(line => !listMarker(line)).map(line => line.match(/^ */)?.[0].length ?? 0))].sort((left, right) => left - right),
       };
     }
     if (block.type === "table") {
@@ -826,12 +855,14 @@ export function fingerprintMarkdown(value) {
       tags: [...block.text.matchAll(/<\/?([A-Za-z][A-Za-z0-9-]*)\b/g)].map(match => match[0].startsWith("</") ? `/${match[1].toLowerCase()}` : match[1].toLowerCase()),
     };
     if (block.type === "blank") return { type: "blank", lines: markdownLines(block.text).length };
+    if (block.type === "paragraph") return { type: "paragraph" };
     return { type: block.type, lines: markdownLines(block.text).length };
   });
   return {
     blocks,
     fenced_code: parseAtomicBlocks(markdown).filter(block => block.type === "fence").map(block => block.text),
     inline_code: inlineCodes(markdown),
+    html_code: htmlCodeElements(markdown),
     link_destinations: linkDestinations(markdown),
     reference_definitions: atomicBlocks
       .filter(block => block.type !== "fence" && block.type !== "raw_html")
@@ -844,20 +875,26 @@ function stripRawMarkdownProse(block) {
   if (block.type === "blank" || block.type === "fence") return "";
   let value = block.text;
   value = transformReferenceDefinitions(value, () => " ");
+  value = transformHtmlCodeElements(value, () => " ");
   value = transformInlineCodes(value, () => " ");
-  value = protectLinkDestinations(value, () => "");
+  value = protectLinkDestinations(value, () => "", false);
   value = transformAutolinks(value, () => "");
   value = value.replace(/⟦GH_TRANSLATE_[A-F0-9]{16}_\d{6}⟧/g, " ");
+  value = value.replace(/!\[/g, "[");
   value = value.replace(/<[^>]*>/g, " ");
   value = value.replace(/^ {0,3}#{1,6}\s*/gm, "");
   value = value.replace(/^ {0,3}(?:[-+*]|\d+[.)])\s+/gm, "");
   value = value.replace(/^\s*\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)+\|?\s*$/gm, "");
   value = value.replace(/\|/g, " ");
-  return value.replace(/[*_~>\[\]]/g, " ");
+  value = value.replace(/[*_~\[\]]/g, "");
+  return value.replace(/>/g, " ");
 }
 
 function stripMarkdownProse(block) {
-  return stripRawMarkdownProse(block).replace(/\s+/g, " ").trim();
+  return stripRawMarkdownProse(block)
+    .replace(/\s+/g, " ")
+    .replace(/\s+([,.;:!?，。；：！？])/gu, "$1")
+    .trim();
 }
 
 function allProseSegments(markdown) {
@@ -874,6 +911,7 @@ function rawVisibleProse(markdown) {
 }
 
 const IDENTIFIER_TOKEN_SOURCE = String.raw`[A-Za-z][A-Za-z0-9]*(?:[._+-][A-Za-z0-9]+)*(?:\+{1,2}|#)?`;
+const CODEX_TRANSLATION_CHUNK_BYTES = 8 * 1024;
 
 function identifierTokens(value) {
   return [...value.matchAll(new RegExp(IDENTIFIER_TOKEN_SOURCE, "g"))]
@@ -882,6 +920,9 @@ function identifierTokens(value) {
 
 function splitProseClauses(value) {
   const protectedPeriods = new Set();
+  for (let index = 1; index < value.length - 1; index += 1) {
+    if (value[index] === "." && /\d/.test(value[index - 1]) && /\d/.test(value[index + 1])) protectedPeriods.add(index);
+  }
   for (const token of identifierTokens(value)) {
     for (let index = token.start + 1; index < token.end - 1; index += 1) {
       if (value[index] === ".") protectedPeriods.add(index);
@@ -897,14 +938,9 @@ function splitProseClauses(value) {
     start = index + 1;
   }
   sentences.push(value.slice(start));
-  return sentences.flatMap(clause => {
-    const words = identifierTokens(clause);
-    return words.length >= 12
-      ? clause.split(/(?<=[,，])(?:\s+|(?=\S))/u)
-      : [clause];
-  })
+  return sentences
     .map(clause => clause.trim())
-    .filter(Boolean);
+    .filter(clause => /[\p{L}\p{N}]/u.test(clause));
 }
 
 export function extractTranslationClauses(markdown) {
@@ -914,13 +950,12 @@ export function extractTranslationClauses(markdown) {
 function proseBindings(markdown) {
   const bindings = [];
   for (const parent of allProseSegments(markdown)) {
-    const parentApplicable = isTranslatableProse(parent);
     for (const sourceText of splitProseClauses(parent)) {
       bindings.push({
         index: bindings.length,
         input_sha256: hashReadme(sourceText),
         source_text: sourceText,
-        applicable: parentApplicable,
+        applicable: /[A-Za-z]/.test(sourceText),
       });
     }
   }
@@ -1045,7 +1080,9 @@ function assertTranslatedSegment(original, translated, applicable = isTranslatab
     const normalizedTranslated = normalize(validationTranslated);
     if (normalizedTranslated.includes(normalizedOriginal)) throw new Error("Translatable prose is unchanged or retains the source");
     if (!/[가-힣]/.test(translated)) throw new Error("Translated prose does not contain Hangul");
-    if (editDistanceRatio(normalizedOriginal, normalizedTranslated) < 0.3) {
+    const semanticOriginal = normalizedOriginal.replace(/[^\p{L}\p{N}]+/gu, "");
+    const semanticTranslated = normalizedTranslated.replace(/[^\p{L}\p{N}]+/gu, "");
+    if (editDistanceRatio(semanticOriginal, semanticTranslated) < 0.3) {
       throw new Error("Translated prose edit distance is not material");
     }
     const beforeAscii = (validationOriginal.match(/[A-Za-z]/g) ?? []).length;
@@ -1079,13 +1116,64 @@ function assertProseTranslation(before, after, verifiedTerms = []) {
   }
 }
 
+export function createCodexTranslationBindings(before, after, verifiedTerms = []) {
+  const source = normalizedMarkdown(before);
+  const translated = normalizedMarkdown(after);
+  if (JSON.stringify(fingerprintMarkdown(source)) !== JSON.stringify(fingerprintMarkdown(translated))) {
+    throw new Error("Codex Markdown structural fingerprint changed");
+  }
+  const sourceBlocks = parseAtomicBlocks(source);
+  const translatedBlocks = parseAtomicBlocks(translated);
+  if (sourceBlocks.length !== translatedBlocks.length) throw new Error("Codex Markdown block count changed");
+  const bindings = [];
+  for (let blockIndex = 0; blockIndex < sourceBlocks.length; blockIndex += 1) {
+    if (["blank", "fence", "raw_html"].includes(sourceBlocks[blockIndex].type)) continue;
+    const sourceText = stripMarkdownProse(sourceBlocks[blockIndex]);
+    const translatedText = stripMarkdownProse(translatedBlocks[blockIndex]);
+    if (!sourceText && !translatedText) continue;
+    if (!sourceText || !translatedText) throw new Error(`Codex Markdown block ${blockIndex} prose is incomplete`);
+    const applicable = /[A-Za-z]/.test(sourceText);
+    if (applicable) {
+      assertTranslatedSegment(sourceText, translatedText, true, verifiedTerms);
+      if (/[A-Za-z]/.test(translatedText)) throw new Error(`Codex Markdown block ${blockIndex} visible prose retains ASCII`);
+      const sourceClauseCount = extractTranslationClauses(sourceText).length;
+      const translatedClauseCount = extractTranslationClauses(translatedText).length;
+      const maximumTranslatedClauses = sourceClauseCount === 1 ? 1 : Math.ceil(sourceClauseCount * 1.25);
+      if (translatedClauseCount > maximumTranslatedClauses) {
+        throw new Error(`Codex Markdown block ${blockIndex} invents extra prose clauses (${sourceClauseCount} -> ${translatedClauseCount})`);
+      }
+      const sourceWords = identifierTokens(sourceText).length;
+      const translatedHangul = (translatedText.match(/[가-힣]/g) ?? []).length;
+      if (sourceWords >= 8 && translatedHangul < Math.min(240, Math.ceil(sourceWords * 0.6))) {
+        throw new Error(`Codex Markdown block ${blockIndex} translation coverage is incomplete`);
+      }
+      const sourceSemanticLength = (sourceText.match(/[\p{L}\p{N}]/gu) ?? []).length;
+      const translatedSemanticLength = (translatedText.match(/[\p{L}\p{N}]/gu) ?? []).length;
+      if (sourceSemanticLength >= 40
+          && (translatedSemanticLength < Math.ceil(sourceSemanticLength * 0.22)
+            || translatedSemanticLength > Math.ceil(sourceSemanticLength * 2.5))) {
+        throw new Error(`Codex Markdown block ${blockIndex} translation length is implausible`);
+      }
+    } else if (normalizedEchoValue(sourceText) !== normalizedEchoValue(translatedText)) {
+      throw new Error(`Codex Markdown block ${blockIndex} non-translatable prose changed`);
+    }
+    bindings.push({
+      index: bindings.length,
+      input_sha256: hashReadme(sourceText),
+      translated_text: translatedText,
+    });
+  }
+  if (bindings.length === 0) throw new Error("Codex Markdown contains no source-bound prose blocks");
+  return bindings;
+}
+
 function exactKeys(value, keys) {
   return Object.keys(value).sort().join("\0") === [...keys].sort().join("\0");
 }
 
 function validSource(source) {
   if (!source || Array.isArray(source) || typeof source !== "object"
-      || source.model !== ENRICHMENT_MODEL
+      || !isEnrichmentModel(source.model)
       || source.schema_version !== ENRICHMENT_SCHEMA_VERSION
       || typeof source.translation_applicable !== "boolean") return false;
   if (source.kind === "readme") {
@@ -1132,7 +1220,8 @@ function frozenProfile(item) {
   return profile;
 }
 
-function canonicalSource(item, applicable) {
+function canonicalSource(item, applicable, model = ENRICHMENT_MODEL) {
+  if (!isEnrichmentModel(model)) throw new Error(`Enrichment model is invalid for ${item.slug}`);
   if (item.frozen_source_kind === "metadata_only") {
     if (applicable !== false || item.readme_path !== null || item.readme_blob_sha !== null || item.readme_content_sha256 !== null) {
       throw new Error(`Canonical metadata provenance is invalid for ${item.slug}`);
@@ -1141,7 +1230,7 @@ function canonicalSource(item, applicable) {
       kind: "metadata_only",
       slug: item.slug.toLowerCase(),
       profile_sha256: hashCanonicalJson(frozenProfile(item)),
-      model: ENRICHMENT_MODEL,
+      model,
       schema_version: ENRICHMENT_SCHEMA_VERSION,
       translation_applicable: false,
     };
@@ -1157,7 +1246,7 @@ function canonicalSource(item, applicable) {
       path: item.readme_path,
       blob_sha: item.readme_blob_sha,
       content_sha256: item.readme_content_sha256,
-      model: ENRICHMENT_MODEL,
+      model,
       schema_version: ENRICHMENT_SCHEMA_VERSION,
       translation_applicable: applicable,
     };
@@ -1165,7 +1254,7 @@ function canonicalSource(item, applicable) {
   return {
     blob_sha: item.readme_blob_sha,
     content_sha256: item.readme_content_sha256,
-    model: ENRICHMENT_MODEL,
+    model,
     schema_version: ENRICHMENT_SCHEMA_VERSION,
     translation_applicable: applicable,
   };
@@ -1237,7 +1326,8 @@ export function planEnrichment(repos, summaryCache, translationSources) {
     const cacheEntry = cache.get(key)?.entry;
     const sourceEntry = sources.get(key)?.entry;
     const translationPayload = parseTranslationPayload(repo.translation_payload);
-    const currentSource = canonicalSource(repo, frozenMetadata ? false : extractTranslatableProse(markdown).length > 0);
+    const sourceModel = isEnrichmentModel(sourceEntry?.model) ? sourceEntry.model : ENRICHMENT_MODEL;
+    const currentSource = canonicalSource(repo, frozenMetadata ? false : extractTranslatableProse(markdown).length > 0, sourceModel);
     const sourceMatches = sameSource(sourceEntry, currentSource);
     const summary = detailedSummary(cacheEntry?.content);
     const needsSummary = !(sourceMatches
@@ -1804,6 +1894,7 @@ export async function callDetailedSummary(item, apiKey, fetchImpl = globalThis.f
 function validateDetailedSummary(value, prompt, item) {
   const summary = detailedSummary(value);
   if (!summary) throw new Error("Detailed summary does not match the exact schema or length caps");
+  if (placeholderSummary(summary)) throw new Error("Detailed summary contains generic or placeholder content");
   const normalizedSummary = normalizedEchoValue(SUMMARY_KEYS.map(key => summary[key]).join("\n"));
   const normalizedPrompt = normalizedEchoValue(prompt);
   const normalizedSource = normalizedEchoValue(item.markdown);
@@ -1962,7 +2053,7 @@ async function callTranslationChunk(chunk, apiKey, fetchImpl, options) {
       }
       assertTranslatedSegment(expected.source_text, translatedClauses[index], expected.applicable, chunk.verifiedTerms);
     }
-    const outputProse = normalizedEchoValue(allProseSegments(parsed.translated_markdown).join(" "));
+    const outputProse = normalizedEchoValue(extractTranslationClauses(parsed.translated_markdown).join(" "));
     const boundProse = normalizedEchoValue(translatedClauses.join(" "));
     if (outputProse !== boundProse) throw new Error("Markdown translation prose does not exactly reconstruct its clause bindings");
     if (utf8Bytes(parsed.translated_markdown) > MAX_CHUNK_OUTPUT) throw new Error("Markdown translation chunk exceeds output cap");
@@ -2034,6 +2125,237 @@ export async function callMarkdownTranslation(item, apiKey, fetchImpl = globalTh
   assertProseTranslation(prepared.markdown, restored, prepared.verifiedTerms);
   confirmUsageReservations(runtime, usageConfirmations);
   return options.includeSummary ? { markdown: restored, summary } : restored;
+}
+
+function codexChunkSchema(chunk, includeSummary) {
+  const properties = {
+    chunk_index: { type: "integer", const: chunk.index },
+    input_sha256: { type: "string", const: chunk.sha256 },
+    translated_markdown: { type: "string", minLength: 1 },
+    ...(includeSummary ? { summary: outputSchema() } : {}),
+  };
+  return {
+    type: "object",
+    properties,
+    required: Object.keys(properties),
+    additionalProperties: false,
+  };
+}
+
+function codexAdapterPrompt(prompt) {
+  const adaptedPrompt = prompt.replace(
+    "Return JSON only with chunk_index, input_sha256, translated_markdown, and one segment_binding per source clause.",
+    "Return JSON only with chunk_index, input_sha256, and translated_markdown. The application binds translated Markdown blocks to immutable source block hashes.",
+  ).replace(
+    "Each segment_binding must contain only the copied index and input_sha256 in exact clause order/count; translated prose appears only in translated_markdown.",
+    "Do not return segment bindings. Translate every applicable source segment without omission; the application validates block structure, coverage, visible prose, and source hashes from translated_markdown.",
+  );
+  return [
+    "Codex adapter rule: in visible natural-language prose, fully transliterate every product and technical name into Hangul and leave no ASCII letters. Do not use bilingual `(Original)` wrappers. Only exact GH_TRANSLATE sentinel tokens and the bytes later restored from those sentinels remain unchanged. Any ASCII present in a `source_text`, including a visible filename or path-like token, is unprotected prose and must be transliterated into Hangul.",
+    "Codex adapter rule: every object in the `segments` data array is required translation evidence. Translate all applicable source text exactly once in translated_markdown without omission, preserve non-applicable text, and preserve Markdown block order and structure.",
+    adaptedPrompt,
+  ].join("\n");
+}
+
+function matchedHtmlContainerBoundaries(blocks) {
+  const openings = [];
+  const spans = [];
+  for (const [index, block] of blocks.entries()) {
+    if (block.type !== "html") continue;
+    for (const match of block.text.matchAll(/<\s*(\/?)\s*([A-Za-z][A-Za-z0-9-]*)\b[^>]*>/g)) {
+      const tag = match[2].toLowerCase();
+      if (!HTML_BLOCK_TAGS.has(tag) || HTML_VOID_TAGS.has(tag) || /\/\s*>$/.test(match[0])) continue;
+      if (!match[1]) {
+        openings.push({ tag, index });
+      } else if (openings.at(-1)?.tag === tag) {
+        const opening = openings.pop();
+        if (opening.index < index) spans.push([opening.index, index]);
+      }
+    }
+  }
+  const changes = new Int32Array(blocks.length + 1);
+  for (const [start, end] of spans) {
+    changes[start] += 1;
+    changes[end] -= 1;
+  }
+  const unsafe = new Array(blocks.length).fill(false);
+  let depth = 0;
+  for (let index = 0; index < blocks.length; index += 1) {
+    depth += changes[index];
+    unsafe[index] = depth > 0;
+  }
+  return unsafe;
+}
+
+function packCodexRequestBlocks(blocks, maxBytes = CODEX_TRANSLATION_CHUNK_BYTES) {
+  const chunks = [];
+  let current = [];
+  let currentBytes = 0;
+  const unsafeAfter = matchedHtmlContainerBoundaries(blocks);
+  const emit = () => {
+    if (!current.length) return;
+    chunks.push(current.map(block => block.text).join(""));
+    current = [];
+    currentBytes = 0;
+  };
+  for (const [index, block] of blocks.entries()) {
+    const bytes = utf8Bytes(block.text);
+    if (current.length && currentBytes + bytes > maxBytes && !unsafeAfter[index - 1]) emit();
+    current.push(block);
+    currentBytes += bytes;
+    if (currentBytes >= maxBytes && !unsafeAfter[index]) emit();
+  }
+  emit();
+  return chunks;
+}
+
+export function createCodexEnrichmentPlan(item, frameIdFactory = randomUUID) {
+  const prepared = prepareTranslation(item, { includeSummary: true });
+  const chunks = packCodexRequestBlocks(prepared.chunks.flatMap(chunk => parseAtomicBlocks(chunk.markdown)))
+    .map((markdownValue, index) => ({
+      index,
+      markdown: markdownValue,
+      sha256: hashReadme(markdownValue),
+      segmentBindings: proseBindings(markdownValue),
+      verifiedTerms: prepared.verifiedTerms,
+    }));
+  if (chunks.map(chunk => chunk.markdown).join("") !== prepared.chunks.map(chunk => chunk.markdown).join("")) {
+    throw new Error("Codex Markdown repacking changed the protected source");
+  }
+  const requests = [];
+  if (prepared.separateSummary) {
+    const prompt = codexAdapterPrompt(summaryPrompt(item, frameIdFactory));
+    requests.push({
+      kind: "summary",
+      chunk_index: null,
+      prompt,
+      prompt_sha256: hashReadme(prompt),
+      schema: outputSchema(),
+    });
+  }
+  for (const chunk of chunks) {
+    const includeSummary = prepared.combineSummary && chunk.index === 0;
+    const prompt = codexAdapterPrompt(translationPrompt(
+      chunk.markdown,
+      chunk.index,
+      chunk.sha256,
+      chunk.segmentBindings,
+      chunk.verifiedTerms,
+      includeSummary ? { ...item, markdown: prepared.markdown } : null,
+      frameIdFactory,
+    ));
+    requests.push({
+      kind: includeSummary ? "combined" : "translation",
+      chunk_index: chunk.index,
+      prompt,
+      prompt_sha256: hashReadme(prompt),
+      schema: codexChunkSchema(chunk, includeSummary),
+    });
+  }
+  return {
+    version: 1,
+    slug: item.slug,
+    source_sha256: hashReadme(prepared.markdown),
+    prepared: {
+      markdown: prepared.markdown,
+      sentinel: { prefix: prepared.sentinel.prefix, values: [...prepared.sentinel.values] },
+      chunks,
+      verified_terms: prepared.verifiedTerms,
+      combine_summary: prepared.combineSummary,
+      separate_summary: prepared.separateSummary,
+    },
+    requests,
+  };
+}
+
+function validateCodexChunkResponse(chunk, response, { includeSummary, prompt, summaryItem }) {
+  const expectedKeys = includeSummary
+    ? "chunk_index,input_sha256,summary,translated_markdown"
+    : "chunk_index,input_sha256,translated_markdown";
+  if (!response || Array.isArray(response) || typeof response !== "object"
+      || Object.keys(response).sort().join(",") !== expectedKeys
+      || response.chunk_index !== chunk.index || response.input_sha256 !== chunk.sha256
+      || typeof response.translated_markdown !== "string" || !response.translated_markdown.trim()) {
+    throw new Error("Codex Markdown translation chunk envelope is missing, duplicated, or reordered");
+  }
+  if (JSON.stringify(fingerprintMarkdown(chunk.markdown)) !== JSON.stringify(fingerprintMarkdown(response.translated_markdown))) {
+    throw new Error("Codex Markdown translation chunk structural fingerprint changed");
+  }
+  assertRawProseTranslation(chunk.markdown, response.translated_markdown, chunk.verifiedTerms);
+  if (utf8Bytes(response.translated_markdown) > MAX_CHUNK_OUTPUT) throw new Error("Codex Markdown translation chunk exceeds output cap");
+  return includeSummary ? validateDetailedSummary(response.summary, prompt, summaryItem) : null;
+}
+
+export function completeCodexEnrichmentPlan(item, plan, responses) {
+  if (!plan || Array.isArray(plan) || typeof plan !== "object" || plan.version !== 1
+      || plan.slug !== item.slug || plan.source_sha256 !== hashReadme(normalizedMarkdown(item.markdown))
+      || !plan.prepared || !Array.isArray(plan.prepared.chunks)
+      || !Array.isArray(plan.prepared.sentinel?.values) || !Array.isArray(plan.requests)
+      || !Array.isArray(responses) || responses.length !== plan.requests.length) {
+    throw new Error("Codex enrichment plan binding is invalid");
+  }
+  const prepared = plan.prepared;
+  const sentinel = { prefix: prepared.sentinel.prefix, values: new Map(prepared.sentinel.values) };
+  if (prepared.markdown !== normalizedMarkdown(item.markdown)
+      || JSON.stringify(prepared.verified_terms) !== JSON.stringify(verifiedTermsFromItem(item))) {
+    throw new Error("Codex enrichment source changed after planning");
+  }
+  const translated = [];
+  let summary = null;
+  let responseIndex = 0;
+  if (prepared.separate_summary) {
+    const request = plan.requests[responseIndex];
+    if (request.kind !== "summary" || request.chunk_index !== null || hashReadme(request.prompt) !== request.prompt_sha256) {
+      throw new Error("Codex summary request plan is invalid");
+    }
+    try {
+      summary = validateDetailedSummary(responses[responseIndex], request.prompt, item);
+    } catch (error) {
+      throw new Error(`Codex request ${responseIndex}: ${error instanceof Error ? error.message : "summary validation failed"}`, { cause: error });
+    }
+    responseIndex += 1;
+  }
+  for (const chunk of prepared.chunks) {
+    if (chunk.index !== translated.length || chunk.sha256 !== hashReadme(chunk.markdown)
+        || JSON.stringify(chunk.segmentBindings) !== JSON.stringify(proseBindings(chunk.markdown))) {
+      throw new Error("Codex translation chunk plan is invalid");
+    }
+    const request = plan.requests[responseIndex];
+    const includeSummary = prepared.combine_summary && chunk.index === 0;
+    if (!request || request.chunk_index !== chunk.index
+        || request.kind !== (includeSummary ? "combined" : "translation")
+        || hashReadme(request.prompt) !== request.prompt_sha256
+        || JSON.stringify(request.schema) !== JSON.stringify(codexChunkSchema(chunk, includeSummary))) {
+      throw new Error("Codex translation request plan is invalid");
+    }
+    let chunkSummary;
+    try {
+      chunkSummary = validateCodexChunkResponse(chunk, responses[responseIndex], {
+        includeSummary,
+        prompt: request.prompt,
+        summaryItem: includeSummary ? { ...item, markdown: prepared.markdown } : null,
+      });
+      createCodexTranslationBindings(
+        restoreChunkSentinels(chunk.markdown, chunk.markdown, sentinel),
+        restoreChunkSentinels(responses[responseIndex].translated_markdown, chunk.markdown, sentinel),
+        prepared.verified_terms,
+      );
+    } catch (error) {
+      throw new Error(`Codex request ${responseIndex}: ${error instanceof Error ? error.message : "translation validation failed"}`, { cause: error });
+    }
+    if (chunkSummary) summary = chunkSummary;
+    translated.push(responses[responseIndex].translated_markdown);
+    responseIndex += 1;
+  }
+  if (!summary || responseIndex !== responses.length) throw new Error("Codex detailed summary is incomplete");
+  const restored = restoreSentinels(translated.join(""), sentinel);
+  assertRawProseTranslation(prepared.markdown, restored, prepared.verified_terms);
+  const translationBindings = createCodexTranslationBindings(prepared.markdown, restored, prepared.verified_terms);
+  return {
+    summary,
+    translation: restored,
+    translation_bindings: translationBindings,
+  };
 }
 
 function selectedBudgetPolicy(options = {}) {
@@ -2363,7 +2685,7 @@ export async function runEnrichment({
 }
 
 function placeholderSummary(value) {
-  return SUMMARY_KEYS.some(key => /(?:\bTODO\b|\bTBD\b|placeholder|확인\s*필요|자동\s*요약)/i.test(value?.[key] ?? ""));
+  return SUMMARY_KEYS.some(key => /(?:\bTODO\b|\bTBD\b|placeholder|확인\s*필요|자동\s*요약|구체적인\s*설치\s*및\s*사용\s*절차는\s*저장소\s*README\s*원문을\s*확인한다|README(?:를|에서|\s*원문을)?\s*(?:확인|참고))/i.test(value?.[key] ?? ""));
 }
 
 function translationMap(value) {
@@ -2408,7 +2730,10 @@ export function validateActiveEnrichment(activeRepos, translations, summaryCache
     if (frozen) {
       const applicable = repo.frozen_source_kind === "readme" && extractTranslatableProse(normalizedMarkdown(repo.markdown)).length > 0;
       let expectedSource;
-      try { expectedSource = canonicalSource(repo, applicable); } catch {
+      try {
+        const sourceModel = isEnrichmentModel(sourceEntry?.model) ? sourceEntry.model : ENRICHMENT_MODEL;
+        expectedSource = canonicalSource(repo, applicable, sourceModel);
+      } catch {
         counts.stale += 1;
         continue;
       }
@@ -2709,6 +3034,89 @@ async function readFrozenTranslation(sourceRoot, slug) {
   }
 }
 
+function preparedCodexEnrichment(value, facts, repos, { complete = true } = {}) {
+  if (!value || Array.isArray(value) || typeof value !== "object"
+      || !exactKeys(value, ["version", "facts_sha256", "model", "repositories"])
+      || value.version !== 1 || value.facts_sha256 !== facts.factsSha256
+      || !isCodexCliEnrichmentModel(value.model)
+      || !value.repositories || Array.isArray(value.repositories) || typeof value.repositories !== "object") {
+    throw new Error("Prepared Codex enrichment envelope is invalid");
+  }
+  const entries = caseInsensitiveMap(value.repositories);
+  if (entries.size === 0 || entries.size > repos.length || complete && entries.size !== repos.length) {
+    throw new Error("Prepared Codex enrichment active set is incomplete");
+  }
+  const summaries = {};
+  const sources = {};
+  const translations = {};
+  const repoMap = new Map(repos.map(repo => [repo.slug.toLowerCase(), repo]));
+  for (const [key, preparedEntry] of entries) {
+    const repo = repoMap.get(key);
+    if (!repo || preparedEntry.slug !== repo.slug) throw new Error("Prepared Codex enrichment contains a stale repository");
+    const entry = preparedEntry.entry;
+    if (!entry || Array.isArray(entry) || typeof entry !== "object"
+        || !exactKeys(entry, ["summary", "translation", "translation_bindings"])) {
+      throw new Error(`Prepared Codex enrichment is missing for ${repo.slug}`);
+    }
+    const summary = detailedSummary(entry.summary);
+    if (!summary || placeholderSummary(summary)) throw new Error(`Prepared Codex summary is invalid for ${repo.slug}`);
+    const applicable = repo.frozen_source_kind === "readme" && extractTranslatableProse(repo.markdown).length > 0;
+    const source = canonicalSource(repo, applicable, value.model);
+    if (applicable) {
+      if (typeof entry.translation !== "string" || !entry.translation.trim() || !/[가-힣]/.test(entry.translation)) {
+        throw new Error(`Prepared Codex translation is missing for ${repo.slug}`);
+      }
+      if (JSON.stringify(fingerprintMarkdown(repo.markdown)) !== JSON.stringify(fingerprintMarkdown(entry.translation))) {
+        throw new Error(`Prepared Codex translation structure is invalid for ${repo.slug}`);
+      }
+      const expectedBindings = createCodexTranslationBindings(repo.markdown, entry.translation, verifiedTermsFromItem(repo));
+      if (!Array.isArray(entry.translation_bindings) || entry.translation_bindings.length !== expectedBindings.length) {
+        throw new Error(`Prepared Codex translation bindings are incomplete for ${repo.slug}`);
+      }
+      for (let index = 0; index < expectedBindings.length; index += 1) {
+        const expected = expectedBindings[index];
+        const actual = entry.translation_bindings[index];
+        if (!actual || Array.isArray(actual) || typeof actual !== "object"
+            || !exactKeys(actual, ["index", "input_sha256", "translated_text"])
+            || actual.index !== expected.index || actual.input_sha256 !== expected.input_sha256
+            || actual.translated_text !== expected.translated_text) {
+          throw new Error(`Prepared Codex translation binding changed for ${repo.slug}`);
+        }
+      }
+      assertRawProseTranslation(repo.markdown, entry.translation, verifiedTermsFromItem(repo));
+      translations[repo.slug] = entry.translation;
+    } else if (entry.translation !== null || entry.translation_bindings !== null) {
+      throw new Error(`Prepared Codex translation applicability is invalid for ${repo.slug}`);
+    }
+    summaries[repo.slug] = { content: summary, source };
+    sources[repo.slug] = source;
+  }
+  return { summaries, sources, translations };
+}
+
+export function validatePreparedCodexEnrichment(value, factsValue, options = {}) {
+  const facts = validateFrozenFactsPayload(factsValue);
+  const repos = facts.repositories.map(repository => {
+    const readme = facts.readmes[repository.slug.toLowerCase()];
+    const metadataOnly = repository.readme_status === "absent";
+    return {
+      ...repository,
+      markdown: metadataOnly
+        ? JSON.stringify({ kind: "metadata_only", profile: frozenProfile(repository) })
+        : readme.markdown,
+      readme_blob_sha: readme.blobSha,
+      readme_content_sha256: readme.contentSha256,
+      frozen_source_kind: metadataOnly ? "metadata_only" : "readme",
+    };
+  });
+  const prepared = preparedCodexEnrichment(value, facts, repos, options);
+  return {
+    model: value.model,
+    repositories: Object.keys(prepared.summaries).length,
+    translations: Object.keys(prepared.translations).length,
+  };
+}
+
 export async function runFrozenEnrichmentPipeline({
   factsPath,
   eventsPath,
@@ -2728,6 +3136,7 @@ export async function runFrozenEnrichmentPipeline({
   priorHeadsPath,
   parentDatabasePath,
   verifyParentInputs = verifyFrozenParentInputs,
+  preparedPath,
 } = {}) {
   const factsFile = frozenPath(factsPath, "Frozen facts", { output: true });
   const eventsFile = frozenPath(eventsPath, "Frozen events", { output: true });
@@ -2736,25 +3145,28 @@ export async function runFrozenEnrichmentPipeline({
   const parentEvidenceFile = frozenPath(parentEvidencePath, "Parent evidence");
   const priorHeadsFile = frozenPath(priorHeadsPath, "Prior heads");
   const parentDatabaseFile = frozenPath(parentDatabasePath, "Parent database");
+  const preparedFile = preparedPath ? frozenPath(preparedPath, "Prepared Codex enrichment") : null;
   const inputRoot = path.resolve(sourceRoot);
-  if (new Set([factsFile, eventsFile, indexFile, candidateRoot, parentEvidenceFile, priorHeadsFile, parentDatabaseFile]).size !== 7
+  const frozenPaths = [factsFile, eventsFile, indexFile, candidateRoot, parentEvidenceFile, priorHeadsFile, parentDatabaseFile, ...(preparedFile ? [preparedFile] : [])];
+  if (new Set(frozenPaths).size !== frozenPaths.length
       || indexFile.startsWith(`${candidateRoot}${path.sep}`) === false && indexFile === candidateRoot) {
     throw new Error("Frozen enrichment paths must not alias");
   }
   if (existsSync(indexFile)) throw new Error("Frozen enrichment index output must not already exist");
-  const [initialFactsBytes, initialEventsBytes, cacheBytes, sourcesBytes] = await Promise.all([
+  const [initialFactsBytes, initialEventsBytes, cacheBytes, sourcesBytes, initialPreparedBytes] = await Promise.all([
     readFile(factsFile),
     readFile(eventsFile),
     readFile(path.join(inputRoot, "data", "repo-summaries.json")),
     readFile(path.join(inputRoot, "data", "translation-sources.json")),
+    preparedFile ? readFile(preparedFile) : Promise.resolve(null),
   ]);
   const facts = validateFrozenFactsPayload(parseJsonStrict(initialFactsBytes, "frozen facts", 64 * 1024 * 1024));
   const events = validateFrozenEvents(facts, parseJsonStrict(initialEventsBytes, "frozen events", 64 * 1024 * 1024));
-  const summaryCache = parseJsonStrict(cacheBytes, "summary cache", 32 * 1024 * 1024);
-  const translationSources = parseJsonStrict(sourcesBytes, "translation sources", 32 * 1024 * 1024);
+  let summaryCache = parseJsonStrict(cacheBytes, "summary cache", 32 * 1024 * 1024);
+  let translationSources = parseJsonStrict(sourcesBytes, "translation sources", 32 * 1024 * 1024);
   caseInsensitiveMap(summaryCache);
   caseInsensitiveMap(normalizeSourcesDocument(translationSources).sources);
-  const repos = await Promise.all(facts.repositories.map(async repository => {
+  let repos = await Promise.all(facts.repositories.map(async repository => {
     const readme = facts.readmes[repository.slug.toLowerCase()];
     const metadataOnly = repository.readme_status === "absent";
     if (metadataOnly !== (readme.path === null && readme.blobSha === null && readme.contentSha256 === null && readme.markdown === null)) {
@@ -2772,30 +3184,58 @@ export async function runFrozenEnrichmentPipeline({
       translation_payload: metadataOnly ? null : await readFrozenTranslation(inputRoot, repository.slug),
     };
   }));
+  if (preparedFile) {
+    const prepared = preparedCodexEnrichment(
+      parseJsonStrict(initialPreparedBytes, "prepared Codex enrichment", 64 * 1024 * 1024),
+      facts,
+      repos,
+    );
+    summaryCache = mergeCaseInsensitive(summaryCache, prepared.summaries);
+    translationSources = {
+      version: ENRICHMENT_SCHEMA_VERSION,
+      sources: mergeCaseInsensitive(normalizeSourcesDocument(translationSources).sources, prepared.sources),
+    };
+    repos = repos.map(repo => ({
+      ...repo,
+      translation_payload: Object.hasOwn(prepared.translations, repo.slug)
+        ? { markdown: prepared.translations[repo.slug], source: prepared.sources[repo.slug] }
+        : null,
+    }));
+  }
   const pending = planEnrichment(repos, summaryCache, translationSources);
-  const policy = resolveEnrichmentBudgetPolicy(policyContext);
-  validateFrozenPolicyBinding(facts, policyContext);
-  const budget = measurePlan(pending, {
+  if (preparedFile && pending.length) throw new Error("Prepared Codex enrichment coverage is incomplete");
+  const policy = preparedFile ? null : resolveEnrichmentBudgetPolicy(policyContext);
+  if (!preparedFile) validateFrozenPolicyBinding(facts, policyContext);
+  const budget = preparedFile ? null : measurePlan(pending, {
     policy,
     verifiedSourceSha: policyContext.verifiedBootstrapSourceSha || undefined,
     frameIdFactory,
   });
   await beforeFinalValidation();
-  const [finalFactsBytes, finalEventsBytes] = await Promise.all([readFile(factsFile), readFile(eventsFile)]);
+  const [finalFactsBytes, finalEventsBytes, finalPreparedBytes] = await Promise.all([
+    readFile(factsFile),
+    readFile(eventsFile),
+    preparedFile ? readFile(preparedFile) : Promise.resolve(null),
+  ]);
   if (!initialFactsBytes.equals(finalFactsBytes) || !initialEventsBytes.equals(finalEventsBytes)) {
     throw new Error("Frozen facts or events changed after planning");
+  }
+  if (preparedFile && !initialPreparedBytes.equals(finalPreparedBytes)) {
+    throw new Error("Prepared Codex enrichment changed after planning");
   }
   const finalFacts = validateFrozenFactsPayload(parseJsonStrict(finalFactsBytes, "frozen facts", 64 * 1024 * 1024));
   const finalEvents = validateFrozenEvents(finalFacts, parseJsonStrict(finalEventsBytes, "frozen events", 64 * 1024 * 1024));
   if (finalEvents.completeSetSha256 !== events.completeSetSha256) throw new Error("Frozen event binding changed after planning");
-  validateFrozenPolicyBinding(finalFacts, policyContext);
+  if (!preparedFile) validateFrozenPolicyBinding(finalFacts, policyContext);
   if (typeof verifyParentInputs !== "function") throw new Error("Frozen parent verifier is invalid");
   await verifyParentInputs({
     parentDatabasePath: parentDatabaseFile,
     parentEvidencePath: parentEvidenceFile,
     priorHeadsPath: priorHeadsFile,
   });
-  const completed = pending.length ? await runEnrichment({
+  const completed = preparedFile
+    ? { summaries: {}, translations: {}, sources: {}, usage: emptyUsageSnapshot() }
+    : pending.length ? await runEnrichment({
     apiKey,
     items: pending,
     executionPlan: budget,
