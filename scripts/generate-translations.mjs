@@ -315,7 +315,7 @@ function applyHtmlTags(value, stack, state) {
 
 function assertClosedHtmlConstructs(value) {
   const comments = (value.match(/<!--/g) ?? []).length;
-  const commentEnds = (value.match(/-->/g) ?? []).length;
+  const commentEnds = (value.match(/--!?>/g) ?? []).length;
   const cdata = (value.match(/<!\[CDATA\[/g) ?? []).length;
   const cdataEnds = (value.match(/\]\]>/g) ?? []).length;
   if (comments !== commentEnds || cdata !== cdataEnds) throw new Error("HTML block contains an unclosed declaration");
@@ -328,6 +328,10 @@ function assertClosedHtmlConstructs(value) {
       throw new Error("HTML block contains an unclosed declaration");
     }
   }
+}
+
+function hasHtmlTerminator(value, terminator) {
+  return terminator === "-->" ? /--!?>/.test(value) : value.includes(terminator);
 }
 
 function startsSpecial(lines, index) {
@@ -375,9 +379,9 @@ function parseAtomicBlocks(value) {
     if (html) {
       let end = index + 1;
       if (html.kind === "terminated") {
-        let closed = current.includes(html.end);
+        let closed = hasHtmlTerminator(current, html.end);
         while (!closed && end < lines.length) {
-          closed = lineText(lines[end]).includes(html.end);
+          closed = hasHtmlTerminator(lineText(lines[end]), html.end);
           end += 1;
         }
         if (!closed) throw new Error("HTML block contains an unclosed declaration");
