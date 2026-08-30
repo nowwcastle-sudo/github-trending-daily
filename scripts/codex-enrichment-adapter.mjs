@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { parseJsonStrict } from "./build-pages-artifact.mjs";
-import { validateFrozenFactsPayload } from "./collect-repository-events.mjs";
+import { parseFrozenFactsBytes } from "./collect-repository-events.mjs";
 import { completeCodexEnrichmentPlan, createCodexEnrichmentPlan } from "./generate-translations.mjs";
 
 function parseArgs(argv, keys) {
@@ -34,7 +34,7 @@ function itemFromFacts(facts, slug) {
 }
 
 async function readFacts(file) {
-  return validateFrozenFactsPayload(parseJsonStrict(await readFile(path.resolve(file)), "frozen facts", 64 * 1024 * 1024));
+  return parseFrozenFactsBytes(await readFile(path.resolve(file)));
 }
 
 async function prepare(argv) {

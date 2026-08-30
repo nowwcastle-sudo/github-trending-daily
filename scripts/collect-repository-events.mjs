@@ -7,6 +7,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseJsonStrict } from "./build-pages-artifact.mjs";
 import { inferReadmeLocale, isReadmeVariantSet } from "./readme-variants.mjs";
 
+export const MAX_FROZEN_FACTS_BYTES = 320 * 1024 * 1024;
+
 export const EVENT_LIMITS = Object.freeze({
   maxRepositories: 75,
   maxReleasePages: 20,
@@ -716,6 +718,10 @@ export function validateFrozenFactsPayload(value) {
   return value;
 }
 
+export function parseFrozenFactsBytes(bytes) {
+  return validateFrozenFactsPayload(parseJsonStrict(bytes, "frozen facts", MAX_FROZEN_FACTS_BYTES));
+}
+
 function assertOutsideCheckout(target, label) {
   if (typeof target !== "string" || !target) throw new Error(`${label} path is required`);
   const resolved = path.resolve(target);
@@ -799,7 +805,7 @@ export async function runFrozenEventCollection({
     assertOutsideCheckout(parentDatabasePath, "Parent database"),
   ];
   if (new Set(resolved).size !== resolved.length) throw new Error("Frozen event CLI paths must not alias");
-  const facts = validateFrozenFactsPayload(parseJsonStrict(readFileSync(resolved[0]), "frozen facts", 64 * 1024 * 1024));
+  const facts = parseFrozenFactsBytes(readFileSync(resolved[0]));
   const priorBytes = readFileSync(resolved[3]);
   const parentEvidenceBytes = readFileSync(resolved[4]);
   const priorPayload = parseJsonStrict(priorBytes, "prior heads", 16 * 1024 * 1024);

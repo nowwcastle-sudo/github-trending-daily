@@ -6,8 +6,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { parseJsonStrict } from "./build-pages-artifact.mjs";
 import {
+  MAX_FROZEN_FACTS_BYTES,
   hashCanonicalJson,
-  validateFrozenFactsPayload,
+  parseFrozenFactsBytes,
   verifyFrozenParentInputs,
 } from "./collect-repository-events.mjs";
 import { DEFAULT_ENRICHMENT_MODEL } from "./enrichment-models.mjs";
@@ -28,7 +29,6 @@ const REPO_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const MAX_SUMMARY_FIELD_CHARACTERS = 1_400;
 const MAX_SUMMARY_BUNDLE_CHARACTERS = 24_000;
 const MAX_REPOSITORIES = 75;
-export const MAX_FROZEN_FACTS_BYTES = 320 * 1024 * 1024;
 const CLAUDE_ATTEMPT_TIMEOUT_MS = 10 * 60_000;
 const RETRY_DELAYS = Object.freeze([2_000, 8_000]);
 const FINALIZATION_RESERVE_MS = 30_000;
@@ -46,7 +46,8 @@ const HEDGE_MARKERS = Object.freeze({
 export const SUMMARY_BUNDLE_LOCALES = Object.freeze(["en", "ko", "zh-CN", "es", "ja"]);
 export const SUMMARY_BUNDLE_FIELDS = Object.freeze(["goal", "usage", "pros", "cons", "fit"]);
 export const SUMMARY_BUNDLE_SCHEMA_VERSION = 3;
-export const SUMMARY_PROMPT_SCHEMA_VERSION = 1;
+export const SUMMARY_PROMPT_SCHEMA_VERSION = 2;
+export { MAX_FROZEN_FACTS_BYTES } from "./collect-repository-events.mjs";
 
 function exactKeys(value, keys) {
   return value && !Array.isArray(value) && typeof value === "object"
@@ -95,15 +96,23 @@ function markdownHeadings(markdown) {
   const headings = [];
   const lines = markdown.split(/\r?\n/);
   for (let index = 0; index < lines.length; index += 1) {
-    const fence = /^\s{0,3}(`{3,}|~{3,})/.exec(lines[index]);
-    if (fence) {
-      if (!fenced) fenced = fence[1][0];
-      else if (fence[1][0] === fenced) fenced = null;
+    const fence = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(lines[index]);
+    if (fence && !(fence[1][0] === "`" && fence[2].includes("`"))) {
+      const marker = fence[1];
+      if (!fenced) fenced = { character: marker[0], length: marker.length };
+      else if (marker[0] === fenced.character && marker.length >= fenced.length && !fence[2].trim()) fenced = null;
       continue;
     }
     if (fenced) continue;
-    const heading = /^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/.exec(lines[index]);
+    const heading = /^ {0,3}#{1,6}[ \t]+(.+?)[ \t]*#*[ \t]*$/.exec(lines[index]);
     if (heading) headings.push({ line: index + 1, text: heading[1].trim() });
+    else if (lines[index].trim()
+        && !/^(?: {4}| {0,3}\t)/.test(lines[index])
+        && !/^ {0,3}(?:(?:\*[ \t]*){3,}|(?:-[ \t]*){3,}|(?:_[ \t]*){3,})$/.test(lines[index])
+        && !/^ {0,3}(?:[-+*](?:[ \t]|$)|\d{1,9}[.)](?:[ \t]|$)|>(?:[ \t]|$)|\[[^\]\r\n]+\]:[ \t]*|<)/.test(lines[index])
+        && /^ {0,3}(?:=+|-+)[ \t]*$/.test(lines[index + 1] ?? "")) {
+      headings.push({ line: index + 1, text: lines[index].trim() });
+    }
   }
   return { headings, lineCount: lines.length };
 }
@@ -120,7 +129,7 @@ function equalTokens(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
-export function validateSummaryBundleEnvelope(value, item) {
+function validateSummaryBundleEnvelopeShape(value, item, { stored }) {
   const source = checkedItem(item);
   if (!exactKeys(value, ["summaries", "evidence", "invariants", "inference_fields"])) {
     throw new Error("Summary bundle output envelope is invalid");
@@ -133,14 +142,18 @@ export function validateSummaryBundleEnvelope(value, item) {
     const refs = value.evidence[field];
     if (!Array.isArray(refs) || refs.length < 1 || refs.length > 3) throw new Error(`Summary bundle evidence is incomplete for ${field}`);
     evidence[field] = refs.map(ref => {
-      if (!exactKeys(ref, ["start_line", "end_line", "section_heading"])
-          || !Number.isSafeInteger(ref.start_line) || !Number.isSafeInteger(ref.end_line)
+      if (!(stored
+        ? exactKeys(ref, ["start_line", "end_line", "section_heading"])
+        : exactKeys(ref, ["start_line", "end_line"]))) {
+        throw new Error(`Summary bundle README evidence range is invalid for ${field}`);
+      }
+      if (!Number.isSafeInteger(ref.start_line) || !Number.isSafeInteger(ref.end_line)
           || ref.start_line < 1 || ref.end_line < ref.start_line || ref.end_line > structure.lineCount
-          || ref.end_line - ref.start_line > 120 || typeof ref.section_heading !== "string") {
+          || ref.end_line - ref.start_line > 120 || (stored && typeof ref.section_heading !== "string")) {
         throw new Error(`Summary bundle README evidence range is invalid for ${field}`);
       }
       const prior = structure.headings.filter(heading => heading.line <= ref.start_line).at(-1)?.text ?? "";
-      if (prior !== ref.section_heading.trim()) throw new Error(`Summary bundle README evidence heading is invalid for ${field}`);
+      if (stored && prior !== ref.section_heading) throw new Error(`Summary bundle README evidence heading is invalid for ${field}`);
       return { start_line: ref.start_line, end_line: ref.end_line, section_heading: prior };
     });
   }
@@ -188,6 +201,14 @@ export function validateSummaryBundleEnvelope(value, item) {
   return { summaries, evidence, invariants, inference_fields: [...value.inference_fields] };
 }
 
+export function validateSummaryBundleEnvelope(value, item) {
+  return validateSummaryBundleEnvelopeShape(value, item, { stored: false });
+}
+
+export function validateStoredSummaryBundleEnvelope(value, item) {
+  return validateSummaryBundleEnvelopeShape(value, item, { stored: true });
+}
+
 function summarySchema() {
   const detailed = {
     type: "object",
@@ -214,11 +235,10 @@ function summarySchema() {
           type: "array", minItems: 1, maxItems: 3,
           items: {
             type: "object", additionalProperties: false,
-            required: ["start_line", "end_line", "section_heading"],
+            required: ["start_line", "end_line"],
             properties: {
               start_line: { type: "integer", minimum: 1 },
               end_line: { type: "integer", minimum: 1 },
-              section_heading: { type: "string" },
             },
           },
         }])),
@@ -283,7 +303,7 @@ export function buildSummaryBundleRequest(input, { frameId } = {}) {
     "Using only documented facts and direct cautious implications supported by that README, return neutral technical summaries in English, Korean, Simplified Chinese, Spanish, and Japanese.",
     "The English bundle must total 180 to 280 words. Match the same information density and claims in every locale. Each locale must include distinct goal, usage, pros, cons, and fit fields without repetition.",
     "Preserve every command, URL, version, number, and product name across locales. Include at most one or two central README commands and never invent setup steps or capabilities.",
-    "Return one to three verified README line ranges for each field, the exact cross-locale invariants and their fields, and every field that contains a cautious inference. Line ranges refer to the numbered untrusted README lines.",
+    "Return one to three verified README line ranges for each field, the exact cross-locale invariants and their fields, and every field that contains a cautious inference. Line ranges refer to the numbered untrusted README lines; section headings are derived deterministically and must not be returned.",
     "Do not use promotional superlatives or a generic instruction to read or consult the README. If the source cannot support all five fields, return no substitute or metadata-only summary.",
     `UNTRUSTED_DATA_JSON ${boundary} ${Buffer.byteLength(payload, "utf8")} ${payloadHash}`,
     payload,
@@ -367,7 +387,7 @@ function reusableEntry(value, item, runtime) {
   if (!exactKeys(value, ["content", "summaries", "evidence", "invariants", "inference_fields", "source"]) || !validSource(value.source, item, runtime)) return null;
   let checked;
   try {
-    checked = validateSummaryBundleEnvelope({
+    checked = validateStoredSummaryBundleEnvelope({
       summaries: value.summaries,
       evidence: value.evidence,
       invariants: value.invariants,
@@ -627,7 +647,7 @@ export async function runFrozenSummaryBundlePipeline({
   const [factsBytes, eventsBytes, cacheBytes] = await Promise.all([
     readFile(factsFile), readFile(eventsFile), readFile(cacheFile),
   ]);
-  const facts = validateFrozenFactsPayload(parseJsonStrict(factsBytes, "frozen facts", MAX_FROZEN_FACTS_BYTES));
+  const facts = parseFrozenFactsBytes(factsBytes);
   const events = validateEvents(facts, parseJsonStrict(eventsBytes, "frozen events", 64 * 1024 * 1024));
   const priorCache = caseFoldedEntries(parseJsonStrict(cacheBytes, "summary cache", 32 * 1024 * 1024));
   const items = facts.repositories.map(repository => {

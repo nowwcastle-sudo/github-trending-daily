@@ -3,12 +3,12 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { parseJsonStrict } from "./build-pages-artifact.mjs";
-import { validateFrozenFactsPayload } from "./collect-repository-events.mjs";
+import { parseFrozenFactsBytes } from "./collect-repository-events.mjs";
 import { extractReposFromIndex } from "./generate-translations.mjs";
 import {
   SUMMARY_BUNDLE_SCHEMA_VERSION,
   SUMMARY_PROMPT_SCHEMA_VERSION,
-  validateSummaryBundleEnvelope,
+  validateStoredSummaryBundleEnvelope,
 } from "./generate-summary-bundles.mjs";
 import { DEFAULT_ENRICHMENT_MODEL } from "./enrichment-models.mjs";
 
@@ -68,7 +68,7 @@ export async function validateEnrichmentRoot(root, { factsPath } = {}) {
   const active = extractReposFromIndex(page);
   const cache = parseJsonStrict(cacheBytes, "summary cache", 32 * 1024 * 1024);
   const sources = parseJsonStrict(sourcesBytes, "summary sources", 32 * 1024 * 1024);
-  const facts = validateFrozenFactsPayload(parseJsonStrict(factsBytes, "frozen facts", 64 * 1024 * 1024));
+  const facts = parseFrozenFactsBytes(factsBytes);
   if (!exactKeys(sources, ["version", "sources"]) || sources.version !== SUMMARY_BUNDLE_SCHEMA_VERSION
       || !sources.sources || Array.isArray(sources.sources) || typeof sources.sources !== "object") {
     throw new Error("Summary source registry is invalid");
@@ -94,7 +94,7 @@ export async function validateEnrichmentRoot(root, { factsPath } = {}) {
         || JSON.stringify(sourceMap.get(slug).value) !== JSON.stringify(entry.source)) {
       throw new Error(`Summary bundle source coverage is invalid for ${repository.slug}`);
     }
-    const checked = validateSummaryBundleEnvelope({
+    const checked = validateStoredSummaryBundleEnvelope({
       summaries: entry.summaries,
       evidence: entry.evidence,
       invariants: entry.invariants,
