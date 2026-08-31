@@ -251,7 +251,10 @@ test("quality correction identifies a repeated failing locale field and stays bo
     },
   });
   assert.equal(calls, 3);
+  assert.match(prompts[0], /prerequisite, limitation, operational trade-off/);
   assert.match(prompts[1], /es\.cons/);
+  assert.match(prompts[1], /prerequisite, limitation, operational trade-off/);
+  assert.match(prompts[1], /do not mention the README at all/i);
   assert.match(prompts[2], /es\.cons/);
   assert.deepEqual(result.usage, {
     inputTokens: 300,
