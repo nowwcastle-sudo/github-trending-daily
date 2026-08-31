@@ -19,6 +19,8 @@ import { slugToFile } from "./generate-translations.mjs";
 const SHA_RE = /^[a-f0-9]{40}$/;
 const SNAPSHOT_RE = /^[0-9]{14}-[a-f0-9]{16}$/;
 const SLUG_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+const TRANSIENT_HTTP_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504]);
+const FETCH_RETRY_DELAYS_MS = Object.freeze([250, 1_000]);
 
 function hash(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
@@ -149,21 +151,36 @@ function exactKeys(value, keys) {
 }
 
 async function fetchBytes(url, { expectedStatus = 200, deadline = Date.now() + 120_000 } = {}) {
-  const remaining = deadline - Date.now();
-  if (remaining <= 0) throw new Error("production probe deadline exceeded");
-  const response = await fetch(url, { redirect: "error", cache: "no-store", headers: { connection: "close" }, signal: AbortSignal.timeout(Math.min(15_000, remaining)) });
-  const declared = Number(response.headers.get("content-length"));
-  if (Number.isFinite(declared) && declared > 16 * 1024 * 1024) throw new Error(`response body too large for ${new URL(url).pathname}`);
-  const chunks = [];
-  let size = 0;
-  for await (const chunk of response.body ?? []) {
-    size += chunk.length;
-    if (size > 16 * 1024 * 1024) throw new Error(`response body too large for ${new URL(url).pathname}`);
-    chunks.push(Buffer.from(chunk));
+  for (let attempt = 0; attempt <= FETCH_RETRY_DELAYS_MS.length; attempt += 1) {
+    try {
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) throw new Error("production probe deadline exceeded");
+      const response = await fetch(url, { redirect: "error", cache: "no-store", headers: { connection: "close" }, signal: AbortSignal.timeout(Math.min(15_000, remaining)) });
+      const declared = Number(response.headers.get("content-length"));
+      if (Number.isFinite(declared) && declared > 16 * 1024 * 1024) throw new Error(`response body too large for ${new URL(url).pathname}`);
+      const chunks = [];
+      let size = 0;
+      for await (const chunk of response.body ?? []) {
+        size += chunk.length;
+        if (size > 16 * 1024 * 1024) throw new Error(`response body too large for ${new URL(url).pathname}`);
+        chunks.push(Buffer.from(chunk));
+      }
+      const bytes = Buffer.concat(chunks);
+      if (response.status !== expectedStatus) {
+        const error = new Error(`unexpected HTTP status for ${new URL(url).pathname}: ${response.status}`);
+        error.transient = TRANSIENT_HTTP_STATUSES.has(response.status);
+        throw error;
+      }
+      return { bytes, contentType: response.headers.get("content-type") ?? "", status: response.status };
+    } catch (error) {
+      const transport = ["AbortError", "TimeoutError", "TypeError"].includes(error?.name);
+      if (attempt >= FETCH_RETRY_DELAYS_MS.length || (error?.transient !== true && !transport)) throw error;
+      const delay = FETCH_RETRY_DELAYS_MS[attempt];
+      if (deadline - Date.now() <= delay) throw new Error("production probe deadline exceeded");
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
   }
-  const bytes = Buffer.concat(chunks);
-  if (response.status !== expectedStatus) throw new Error(`unexpected HTTP status for ${new URL(url).pathname}: ${response.status}`);
-  return { bytes, contentType: response.headers.get("content-type") ?? "", status: response.status };
+  throw new Error("production probe failed");
 }
 
 function withProbe(baseUrl, relative, snapshotId) {

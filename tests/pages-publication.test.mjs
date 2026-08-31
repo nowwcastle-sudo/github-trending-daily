@@ -71,13 +71,18 @@ test("production state inspection validates v0 v1 explicitly and preserves verif
   assert.throws(() => inspectProductionState({ httpStatus: "500", manifestBytes: Buffer.alloc(0), fallbackSourceSha: sourceSha }), /status/i);
 });
 
-async function serveArtifact(root, { mimeOverride = {}, redirect = null, requests = null, requestHeaders = null } = {}) {
+async function serveArtifact(root, { mimeOverride = {}, redirect = null, requests = null, requestHeaders = null, transientStatus = {} } = {}) {
   const mime = { ".html": "text/html; charset=utf-8", ".js": "application/javascript; charset=utf-8", ".json": "application/json; charset=utf-8", ".xml": "application/xml; charset=utf-8", ".md": "text/markdown; charset=utf-8" };
+  const transientSent = new Set();
   const server = http.createServer(async (request, response) => {
     const requestUrl = new URL(request.url, "http://127.0.0.1");
     requests?.push(requestUrl);
     requestHeaders?.push(request.headers);
     const relative = decodeURIComponent(requestUrl.pathname).replace(/^\/+/, "");
+    if (Object.hasOwn(transientStatus, relative) && !transientSent.has(relative)) {
+      transientSent.add(relative);
+      response.writeHead(transientStatus[relative]); response.end(); return;
+    }
     if (relative === redirect) { response.writeHead(302, { location: "/index.html" }); response.end(); return; }
     try {
       const bytes = await readFile(join(root, ...relative.split("/")));
@@ -695,6 +700,17 @@ test("a version-0 recovery manifest produces the next candidate without bootstra
     assertProbeConnectionsClose(recoveryRequests, recoveryRequestHeaders);
   } finally {
     await recoveryServer.close();
+  }
+  const transientRequests = [];
+  const transientServer = await serveArtifact(recoveryArtifact, {
+    requests: transientRequests,
+    transientStatus: { "readmes/owner__both.md": 503 },
+  });
+  try {
+    await probeProduction({ baseUrl: transientServer.baseUrl, legacyRecoverySha: legacySourceSha, gitRoot: checkout });
+    assert.equal(transientRequests.filter(url => url.pathname.endsWith("/readmes/owner__both.md")).length, 2);
+  } finally {
+    await transientServer.close();
   }
   const originalPresentReadme = await readFile(join(recoveryArtifact, "readmes", "owner__both.md"));
   await writeFile(join(recoveryArtifact, "readmes", "owner__both.md"), "# Altered\n");
