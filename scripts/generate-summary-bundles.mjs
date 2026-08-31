@@ -528,8 +528,34 @@ function correctionTargets(error) {
   return { summaries: summaryTargets, evidence: evidenceTargets, invariants, inference_fields: inferenceFields };
 }
 
-function correctionSchema(targets) {
+function correctionFieldDescriptions(error) {
+  const descriptions = new Map();
+  const add = (locale, fields, description) => {
+    for (const field of fields) {
+      const key = `${locale}.${field}`;
+      const values = descriptions.get(key) ?? [];
+      if (!values.includes(description)) values.push(description);
+      descriptions.set(key, values);
+    }
+  };
+  for (const defect of error.qualityDefects ?? []) {
+    const description = qualityFeedbackForDefect(defect);
+    if (defect.invariantFields && SUMMARY_BUNDLE_LOCALES.includes(defect.locale)) {
+      const expected = new Set(defect.invariantFields.expected ?? []);
+      const actual = new Set(defect.invariantFields.actual ?? []);
+      add(defect.locale, SUMMARY_BUNDLE_FIELDS.filter(field => expected.has(field) !== actual.has(field)), description);
+    } else if (SUMMARY_BUNDLE_LOCALES.includes(defect.locale) && SUMMARY_BUNDLE_FIELDS.includes(defect.field)) {
+      add(defect.locale, [defect.field], description);
+    } else if (defect.code === "FIELD_REPETITION" && SUMMARY_BUNDLE_LOCALES.includes(defect.locale)) {
+      add(defect.locale, SUMMARY_BUNDLE_FIELDS, description);
+    }
+  }
+  return descriptions;
+}
+
+function correctionSchema(targets, error) {
   const full = summarySchema();
+  const descriptions = correctionFieldDescriptions(error);
   const required = [];
   const properties = {};
   if (Object.keys(targets.summaries).length > 0) {
@@ -542,7 +568,11 @@ function correctionSchema(targets) {
         type: "object",
         additionalProperties: false,
         required: [...fields],
-        properties: Object.fromEntries(fields.map(field => [field, full.properties.summaries.properties[locale].properties[field]])),
+        properties: Object.fromEntries(fields.map(field => {
+          const base = full.properties.summaries.properties[locale].properties[field];
+          const description = descriptions.get(`${locale}.${field}`)?.join(". ");
+          return [field, description ? { ...base, description } : base];
+        })),
       }])),
     };
   }
@@ -828,7 +858,7 @@ function correctionRequest(request, error, previousOutput) {
   return {
     ...request,
     prompt,
-    schema: targets ? correctionSchema(targets) : request.schema,
+    schema: targets ? correctionSchema(targets, error) : request.schema,
     correctionTargets: targets,
     previousOutput,
   };

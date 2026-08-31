@@ -510,6 +510,53 @@ test("invariant correction ends with exact additions for four missing locale fie
   assert.deepEqual(result.results[0].summaries, valid.summaries);
 });
 
+test("correction schema binds exact token and hedge requirements to each selected field", async () => {
+  const hedge = {
+    en: "It may.",
+    ko: "이는 신중한 도입 판단에 도움이 될 수 있습니다.",
+    "zh-CN": "可能。",
+    es: "Puede.",
+    ja: "可能性があります。",
+  };
+  const invalid = modelEnvelope();
+  invalid.inference_fields = ["fit"];
+  for (const locale of SUMMARY_BUNDLE_LOCALES.filter(locale => locale !== "ko")) {
+    invalid.summaries[locale].fit += ` ${hedge[locale]}`;
+  }
+  invalid.summaries.ko.fit = invalid.summaries.ko.fit.replace("판단할 수 있도록", "판단하도록");
+  invalid.summaries.ja.goal += " 2026.";
+  const valid = structuredClone(invalid);
+  valid.summaries.ko.fit += ` ${hedge.ko}`;
+  valid.summaries.ja.goal = valid.summaries.ja.goal.replace(" 2026.", "");
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  const schemas = [];
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ schema }) => {
+      schemas.push(schema);
+      if (calls++ === 0) return { structuredOutput: invalid, usage: { inputTokens: 100, outputTokens: 200 } };
+      const selections = Object.fromEntries(schema.properties.summaries.required.map(locale => [
+        locale,
+        schema.properties.summaries.properties[locale].required,
+      ]));
+      return { structuredOutput: summaryPatch(valid, selections), usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+
+  assert.equal(calls, 2);
+  const corrected = schemas[1].properties.summaries.properties;
+  assert.match(corrected.ja.properties.goal.description, /ja\.goal.*expected_tokens.*actual_tokens/i);
+  assert.match(corrected.ko.properties.fit.description, /ko\.fit.*explicit natural hedging.*수 있습니다/i);
+  assert.deepEqual(result.results[0].summaries, valid.summaries);
+});
+
 test("cross-locale token correction receives every exact expected and actual inventory", async () => {
   const invalid = modelEnvelope();
   invalid.invariants = [];
