@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
@@ -101,6 +102,25 @@ test("Spanish todo remains prose while uppercase TODO remains a placeholder mark
   const placeholder = bundle();
   placeholder.es.cons += " TODO";
   assert.throws(() => validateSummaryBundle(placeholder), /generic|placeholder/i);
+});
+
+test("tracked v0 bootstrap seed contains only source-bound five-locale summary entries", async () => {
+  const seed = JSON.parse(await readFile("data/bootstrap-summary-seed.json", "utf8"));
+  assert.equal(Object.keys(seed).length, 45);
+  for (const [slug, entry] of Object.entries(seed)) {
+    assert.deepEqual(Object.keys(entry).sort(), ["content", "evidence", "inference_fields", "invariants", "source", "summaries"]);
+    assert.deepEqual(entry.content, entry.summaries.en);
+    assert.deepEqual(validateSummaryBundle(entry.summaries), entry.summaries);
+    assert.equal(entry.source.slug, slug.toLowerCase());
+    assert.equal(entry.source.provider, "claude-cli-oauth");
+    assert.equal(entry.source.interface, "claude-p");
+    assert.equal(entry.source.auth_method, "oauth_token");
+    assert.equal(entry.source.api_provider, "firstParty");
+    assert.equal(entry.source.model, "claude-sonnet-5");
+    assert.equal(entry.source.schema_version, 3);
+    assert.equal(entry.source.prompt_schema_version, 3);
+    assert.equal(entry.source.translation_applicable, false);
+  }
 });
 
 test("the shared summary contract validates README evidence and cross-locale invariants", () => {

@@ -117,6 +117,24 @@ test("failed enrichment uploads bounded defect diagnostics without a partial can
   assert.doesNotMatch(failureUpload, /refresh-enriched|repo-summaries|translation-sources|enrichment-index/);
 });
 
+test("approved v0 bootstrap seeds only the frozen candidate before Claude enrichment", async () => {
+  const workflow = await workflowText();
+  const enrichStart = workflow.indexOf("  enrich:");
+  const publishStart = workflow.indexOf("  publish:");
+  const enrich = workflow.slice(enrichStart, publishStart);
+  assertInOrder(enrich, [
+    "Download frozen enrichment input",
+    "Seed approved v0 summary cache",
+    "Generate bound enrichment with Claude OAuth",
+  ]);
+  assert.match(enrich, /- name: Seed approved v0 summary cache\n\s+if: \$\{\{ needs\.prepare\.outputs\.recovery_version == '0' \}\}/);
+  assert.match(enrich, /\$seed = Join-Path \$env:GITHUB_WORKSPACE "data\/bootstrap-summary-seed\.json"/);
+  assert.match(enrich, /\$target = Join-Path \$env:RUNNER_TEMP "refresh-input\/candidate\/data\/repo-summaries\.json"/);
+  assert.match(enrich, /Copy-Item -LiteralPath \$seed -Destination \$target/);
+  assert.doesNotMatch(workflow.slice(publishStart), /bootstrap-summary-seed\.json/);
+  await access("data/bootstrap-summary-seed.json");
+});
+
 test("parent capture directory is sealed before verification and every possible first fetch", async () => {
   const workflow = await workflowText();
   const freezeStart = workflow.indexOf("- name: Freeze one run context and parent evidence");
