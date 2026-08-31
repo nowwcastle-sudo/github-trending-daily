@@ -305,7 +305,7 @@ export function buildSummaryBundleRequest(input, { frameId } = {}) {
     "Using only documented facts and direct cautious implications supported by that README, return neutral technical summaries in English, Korean, Simplified Chinese, Spanish, and Japanese.",
     "The English bundle must total 180 to 280 words. Match the same information density and claims in every locale. Each locale must include distinct goal, usage, pros, cons, and fit fields without repetition.",
     "Preserve every command, URL, version, number, and product name across locales. Include at most one or two central README commands and never invent setup steps or capabilities.",
-    "Return one to three verified README line ranges for each field, the exact cross-locale invariant kind and value pairs, and every field that contains a cautious inference. Line ranges refer to the numbered untrusted README lines; section headings and invariant field locations are derived deterministically and must not be returned.",
+    "Return one to three verified README line ranges for each field, the exact cross-locale invariant kind and value pairs, and every field that contains a cautious inference. List inference_fields only in canonical order: goal, usage, pros, cons, fit; omit fields without a cautious inference. Line ranges refer to the numbered untrusted README lines; section headings and invariant field locations are derived deterministically and must not be returned.",
     "Do not use promotional superlatives or a generic instruction to read or consult the README. If the source cannot support all five fields, return no substitute or metadata-only summary.",
     `UNTRUSTED_DATA_JSON ${boundary} ${Buffer.byteLength(payload, "utf8")} ${payloadHash}`,
     payload,
@@ -463,6 +463,9 @@ function qualityCode(error) {
 
 function qualityFeedback(error) {
   const message = String(error?.message ?? "");
+  if (message === "Summary bundle inference field set is invalid") {
+    return `${qualityCode(error)}. List inference_fields only once and in canonical order: goal, usage, pros, cons, fit; omit fields without a cautious inference`;
+  }
   const invariantPrefix = "Summary bundle invariant is absent from README: ";
   if (message.startsWith(invariantPrefix)) {
     const exact = message.slice(invariantPrefix.length);
