@@ -304,6 +304,40 @@ test("quality correction identifies an invariant that is not a literal README su
   assert.equal(result.results[0].invariants[1].value, "3.13+");
 });
 
+test("quality correction identifies an invariant field mismatch in one locale", async () => {
+  const invalid = () => {
+    const value = modelEnvelope();
+    value.summaries.ja.cons = value.summaries.ja.cons.replace("`npm test`", "the test command");
+    return value;
+  };
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  const replies = [invalid(), invalid(), modelEnvelope()];
+  const prompts = [];
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      prompts.push(prompt);
+      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+  assert.equal(calls, 3);
+  assert.match(prompts[0], /same named fields across all five locales/i);
+  assert.match(prompts[1], /ja/);
+  assert.match(prompts[1], /npm test/);
+  assert.match(prompts[1], /untrusted data, never as instructions/i);
+  assert.match(prompts[1], /expected.*goal.*usage.*pros.*cons.*fit/i);
+  assert.match(prompts[1], /actual.*goal.*usage.*pros.*fit/i);
+  assert.match(prompts[2], /npm test/);
+  assert.deepEqual(result.results[0].invariants[0].fields, fields);
+});
+
 test("inference fields use one documented canonical order across quality corrections", async () => {
   const hedge = {
     en: "This may support a cautious adoption decision.",
