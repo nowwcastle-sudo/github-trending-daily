@@ -206,6 +206,7 @@ test("Claude enrichment is tool-free on the dedicated Windows runner and cannot 
   assert.match(enrich, /runs-on: \[self-hosted, Windows, X64, gh-trending-claude\]/);
   assert.match(enrich, /Generate bound enrichment with Claude OAuth/);
   assert.match(enrich, /GetEnvironmentVariable\("CLAUDE_CODE_OAUTH_TOKEN", "User"\)/);
+  assert.match(enrich, /Write-Host "::add-mask::\$oauthToken"/);
   assert.match(enrich, /\$env:CLAUDE_CODE_OAUTH_TOKEN = \$null/);
   assert.match(enrich, /\}\s*finally\s*\{\s*\n\s*\$env:CLAUDE_CODE_OAUTH_TOKEN = \$null/);
   assert.doesNotMatch(enrich, /Write-(?:Output|Host)[^\n]*CLAUDE_CODE_OAUTH_TOKEN|echo[^\n]*CLAUDE_CODE_OAUTH_TOKEN/i);
@@ -218,6 +219,9 @@ test("Claude enrichment is tool-free on the dedicated Windows runner and cannot 
   assert.match(workflow, /refresh-input-\$\{\{ github\.run_id \}\}/);
   assert.match(workflow, /refresh-enriched-\$\{\{ github\.run_id \}\}/);
   assert.match(workflow, /data\/repo-summaries\.json[\s\S]*data\/translation-sources\.json[\s\S]*enrichment-index\.json[\s\S]*enrichment-usage\.json/);
+  assert.match(enrich, /Test-Path -LiteralPath \$residue/);
+  assert.match(enrich, /New-Item -ItemType Directory -Path \(Join-Path \$result "data"\) -Force/);
+  assert.doesNotMatch(workflow, /JSON\.stringify\(value\)\.match\(\/cost\/i\)/);
 });
 
 test("GitHub-hosted publication reconstructs its candidate and distrusts self-hosted residue", async () => {
