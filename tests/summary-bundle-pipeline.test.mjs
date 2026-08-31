@@ -338,6 +338,37 @@ test("quality correction identifies an invariant field mismatch in one locale", 
   assert.deepEqual(result.results[0].invariants[0].fields, fields);
 });
 
+test("quality correction identifies unsupported marketing language in one locale field", async () => {
+  const invalid = () => {
+    const value = modelEnvelope();
+    value.summaries.en.fit += " It is the ultimate choice.";
+    return value;
+  };
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  const replies = [invalid(), invalid(), modelEnvelope()];
+  const prompts = [];
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      prompts.push(prompt);
+      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+  assert.equal(calls, 3);
+  assert.match(prompts[1], /en\.fit/);
+  assert.match(prompts[1], /neutral.*source-supported/i);
+  assert.match(prompts[1], /promotional.*superlative/i);
+  assert.match(prompts[2], /en\.fit/);
+  assert.deepEqual(result.results[0].summaries, bundle());
+});
+
 test("inference fields use one documented canonical order across quality corrections", async () => {
   const hedge = {
     en: "This may support a cautious adoption decision.",
