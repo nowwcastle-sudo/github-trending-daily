@@ -420,6 +420,54 @@ test("invariant field correction audits every declared invariant across every lo
   assert.deepEqual(result.results[0].invariants[0].fields, fields);
 });
 
+test("cross-locale token correction receives every exact expected and actual inventory", async () => {
+  const invalid = modelEnvelope();
+  invalid.invariants = [];
+  for (const locale of ["ko", "zh-CN", "ja"]) {
+    invalid.summaries[locale].goal = invalid.summaries[locale].goal.replace("1.0", "1");
+    invalid.summaries[locale].usage = invalid.summaries[locale].usage.replace("2.0", "2");
+  }
+  const valid = modelEnvelope();
+  valid.invariants = [];
+  const selected = {
+    ko: ["goal", "usage"],
+    "zh-CN": ["goal", "usage"],
+    ja: ["goal", "usage"],
+  };
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  const replies = [invalid, summaryPatch(valid, selected)];
+  const prompts = [];
+  const schemas = [];
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt, schema }) => {
+      prompts.push(prompt);
+      schemas.push(schema);
+      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+
+  assert.equal(calls, 2);
+  assert.match(prompts[1], /expected_tokens/);
+  assert.match(prompts[1], /actual_tokens/);
+  assert.match(prompts[1], /"numbers":\["1\.0"\]/);
+  assert.match(prompts[1], /"numbers":\["1"\]/);
+  assert.match(prompts[1], /"numbers":\["2\.0"\]/);
+  assert.match(prompts[1], /"numbers":\["2"\]/);
+  assert.deepEqual(schemas[1].properties.summaries.required, ["ko", "zh-CN", "ja"]);
+  for (const locale of Object.keys(selected)) {
+    assert.deepEqual(schemas[1].properties.summaries.properties[locale].required, ["goal", "usage"]);
+  }
+  assert.deepEqual(result.results[0].summaries, bundle());
+});
+
 test("quality correction identifies unsupported marketing language in one locale field", async () => {
   const invalid = () => {
     const value = modelEnvelope();
@@ -606,7 +654,16 @@ test("terminal quality failure exposes bounded defect diagnostics without model 
             actual_fields: ["goal", "usage", "pros", "fit"],
             invariant: { length: 8, sha256: invariantHash },
           },
-          { code: "LOCALE_INVARIANT", locale: "es", field: "cons" },
+          {
+            code: "LOCALE_INVARIANT",
+            locale: "es",
+            field: "cons",
+            token_mismatch: {
+              kinds: ["commands", "numbers"],
+              expected_counts: { commands: 1, urls: 0, numbers: 1 },
+              actual_counts: { commands: 0, urls: 0, numbers: 0 },
+            },
+          },
         ],
         usage: { inputTokens: 300, outputTokens: 600, attempts: 3, retries: 2 },
         runtime: {
