@@ -463,6 +463,11 @@ function qualityCode(error) {
 
 function qualityFeedback(error) {
   const message = String(error?.message ?? "");
+  const invariantPrefix = "Summary bundle invariant is absent from README: ";
+  if (message.startsWith(invariantPrefix)) {
+    const exact = message.slice(invariantPrefix.length);
+    return `${qualityCode(error)}. The rejected invariant value was ${JSON.stringify(exact)}. Declare only an exact literal substring from the raw README as the invariant value, including its original punctuation and Markdown formatting, or omit it if the summaries do not require it`;
+  }
   const field = /Summary bundle contains a generic or placeholder (en|ko|zh-CN|es|ja)\.(goal|usage|pros|cons|fit)$/.exec(message);
   if (!field) return qualityCode(error);
   return `${qualityCode(error)} at ${field[1]}.${field[2]}. Rewrite that field as concrete README-supported content without instructing the reader to read or consult the README`;
