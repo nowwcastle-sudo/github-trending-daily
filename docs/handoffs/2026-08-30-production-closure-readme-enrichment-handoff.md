@@ -18,6 +18,7 @@
 - 2026-08-31 열다섯 번째 controlled dispatch 좌표: clean `HEAD == origin/main == d8c6cdb717636ba45cff0576800d6b276fb300c0`, workflow run `33372034170`
 - 2026-08-31 열여섯 번째·열일곱 번째 controlled dispatch 좌표: clean `HEAD == origin/main == 80f3e6cccee30a8c2a4372eb0deb33697ea86600`, workflow runs `33374144042`, `33375183865`
 - 2026-08-31 열여덟 번째 controlled dispatch 좌표: clean `HEAD == origin/main == aca6b975a8c97f992edae6b26ae22e85931516f6`, workflow run `33378871320`
+- 2026-08-31 열아홉 번째 controlled dispatch 좌표: clean `HEAD == origin/main == 7ee589c2d2952f51db50d1e9e615dac0455ea2b3`, workflow run `33383238462`
 - AgentMemory handoff: `mem_mtfb5jzh_7ddf0a27f5dc`
 - 원본 task: `01a03d80-1266-76e1-896d-16648967d258`
 
@@ -112,6 +113,10 @@
 
 대안 비교에서는 model-declared invariant를 전부 없애는 방식은 product name의 exact cross-locale 계약을 약화하므로 제외했고, English generation과 localization을 두 번의 호출로 나누는 방식은 호출 수·실행시간·새 실패 seam을 거의 두 배로 늘려 제외했다. 선택한 adapter 방식은 기존 단일 atomic bundle과 stored schema를 유지하면서 모델이 중복 선언한 값만 정규화하고 deterministic validator의 진단 깊이만 높인다.
 
+**6단계 최신 후속 — 열아홉 번째 dispatch와 targeted correction 인터페이스 검증 완료**: producer/validator adapter repair는 PR #18, main `7ee589c2d2952f51db50d1e9e615dac0455ea2b3`, CodeQL run `33382835965`의 실제 analysis 2건(JavaScript/TypeScript 87규칙, Python 43규칙), results 0, open alerts 0을 통과했다. run `33383238462`은 prepare를 4분 59초, 실제 Claude enrichment를 14분 27초 수행한 뒤 `Summary bundle contains a generic or placeholder es.cons [repository=Lakr233/vphone-cli; defects=5]`로 fail-closed 종료됐으며 publish·DB·commit·Pages·probe·recovery는 모두 skipped다. frozen input은 snapshot `20260831103722-c4820a9a5c135355`, repositories/readmes `50/50`, `activeSetSha256=99645392adda6dde6cbf12bcbaf22eaad11e34e41a130ac97121c8a74ec048e2`, `sourceSetSha256=5f970fef7714b488bab0e9167b95be87f3054d7943e667938a8ec4344c3ebdce`, `runContextSha256=c2ff2df5230a967a8ccf0df8b1458eac6d910b4556bedba9d0b8b047480a13b0`, `factsSha256=bcdc72a3e8c259d2050d337eb5383bad30ddf6297c059a1ca6c95d439ffa8bf3`, `eventsSha256=e4ea7da9d9ad569ccd6669d5629eecebfdf628b6eb3785f6cef852b4efa9d8b7`다. 실패 당시 artifact에는 frozen input만 있고 모델 출력·전체 defect 목록·usage receipt가 없어 exact 5개 defect와 calls/tokens는 `unknown`이다.
+
+반복 원인을 단일 Spanish 문구가 아니라 correction Interface 전체에서 재검토했다. 첫 응답은 5 locale × 5 field 전체 bundle이 필요하지만 correction도 같은 전체 schema를 사용해 이미 정상인 필드를 다시 생성했고, 한 필드의 fallback이 generic·declared invariant field·cross-locale token 결함을 동시에 만들 수 있었다. correction을 validator-selected patch schema로 교체해 `summaries.es.cons` 결함이면 모델도 그 경로 하나만 반환할 수 있게 하고, evidence·invariants·inference도 결함 종류별 최소 replacement만 허용한다. 1차 patch의 부분 성공은 다음 correction의 immutable base로 유지하며, terminal failure는 모델 출력이나 README 본문 없이 defect code·locale·field·invariant digest·usage·runtime만 `refresh-enrichment-failure-<run_id>` artifact로 남긴다. 전체 schema 복귀, 부분 성공본 폐기, defect artifact 제거 변이는 각각 새 RED를 실패시켰다. 최종 local 기준선은 Node 531개(519 pass, 12 intentional skip), Python 146 pass, Firestore Rules 9 pass, actionlint 1.7.12 pass, production dependency audit 0이다.
+
 ## 6. 적대적 검증 범위
 
 - collector 성공 전 provider 0회
@@ -143,10 +148,10 @@
 
 ## 8. 종료 조건
 
-- 두 번째·세 번째·여섯 번째·일곱 번째·여덟 번째·아홉 번째·열두 번째·열세 번째·열네 번째·열다섯 번째·열일곱 번째·열여덟 번째 run에서 실제 Claude enrichment 요청은 시작됐지만 validator 실패로 완성 bundle과 usage receipt가 남지 않아 token count는 `unknown`이다. 열 번째·열한 번째·열여섯 번째는 collector에서 종료돼 Claude 호출이 0회였다. production DB·commit·Pages publication은 열여덟 run 모두 0회다.
+- 두 번째·세 번째·여섯 번째·일곱 번째·여덟 번째·아홉 번째·열두 번째·열세 번째·열네 번째·열다섯 번째·열일곱 번째·열여덟 번째·열아홉 번째 run에서 실제 Claude enrichment 요청은 시작됐지만 validator 실패로 완성 bundle과 usage receipt가 남지 않아 token count는 `unknown`이다. 열 번째·열한 번째·열여섯 번째는 collector에서 종료돼 Claude 호출이 0회였다. production DB·commit·Pages publication은 열아홉 run 모두 0회다.
 - full tests, adversarial review, mutation, staged/working-tree secret scan이 통과한다.
 - push 직전 remote drift를 fetch 후 재판정하고 사용자 변경을 보존한다.
-- controlled workflow `33337114759`, `33338119441`, `33340906781`, `33353784160`, `33355529363`, `33356905445`, `33358622337`, `33360314788`, `33361877370`, `33363575020`, `33363947539`, `33365422799`, `33367283210`, `33370143480`, `33372034170`, `33374144042`, `33375183865`, `33378871320`은 각각 prepare test, enrichment evidence gate, enrichment invariant gate, runner Worker handoff, reboot 후 runner handoff, Spanish placeholder gate, raw README invariant substring gate, inference field order gate, repeated Spanish cons fallback gate, OSS Insight `freellmapi` 500, OSS Insight `pi` 500, Japanese inference-strength gate, Japanese invariant field gate, English marketing language gate, Spanish invariant field gate, transient GitHub metadata 수집, rendered Markdown version invariant gate, unused English summary invariant gate에서 publish 전에 종료됐다. 필요한 후속 dispatch는 승인됐지만 cap 상향·direct API·새 유료 provider는 승인되지 않았다.
+- controlled workflow `33337114759`, `33338119441`, `33340906781`, `33353784160`, `33355529363`, `33356905445`, `33358622337`, `33360314788`, `33361877370`, `33363575020`, `33363947539`, `33365422799`, `33367283210`, `33370143480`, `33372034170`, `33374144042`, `33375183865`, `33378871320`, `33383238462`은 각각 prepare test, enrichment evidence gate, enrichment invariant gate, runner Worker handoff, reboot 후 runner handoff, Spanish placeholder gate, raw README invariant substring gate, inference field order gate, repeated Spanish cons fallback gate, OSS Insight `freellmapi` 500, OSS Insight `pi` 500, Japanese inference-strength gate, Japanese invariant field gate, English marketing language gate, Spanish invariant field gate, transient GitHub metadata 수집, rendered Markdown version invariant gate, unused English summary invariant gate, `Lakr233/vphone-cli`의 5-defect full-regeneration correction gate에서 publish 전에 종료됐다. 필요한 후속 dispatch는 승인됐지만 cap 상향·direct API·새 유료 provider는 승인되지 않았다.
 - production manifest와 exact file hashes가 deployed source SHA에 묶인다.
 - 모든 active repository가 detailed 5-locale summary, valid README provenance, canonical/upstream README variants를 전수 통과한다.
 - 하나라도 generic fallback, missing locale, stale source, variant mismatch면 recovery/hold를 유지한다.
