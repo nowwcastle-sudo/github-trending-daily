@@ -586,6 +586,38 @@ test("terminal retry counts every attempt and OSS rejects 10,001 rows and malfor
   }
 });
 
+test("OSS Insight alone gets the longer bounded recovery schedule", async () => {
+  const base = successfulFetch();
+  const sleeps = [];
+  let attempts = 0;
+  const events = await collectRepositoryEvents([repo], {
+    fetchImpl: async (url, options) => {
+      if (new URL(url).hostname === "api.ossinsight.io") {
+        attempts += 1;
+        if (attempts < 5) return response(500, { message: "temporary" });
+      }
+      return base(url, options);
+    },
+    sleep: async milliseconds => { sleeps.push(milliseconds); },
+  });
+  assert.equal(events.estimates.length, 1);
+  assert.equal(attempts, 5);
+  assert.deepEqual(sleeps, [2000, 8000, 30_000, 60_000]);
+
+  attempts = 0;
+  await assert.rejects(collectRepositoryEvents([repo], {
+    fetchImpl: async (url, options) => {
+      if (new URL(url).hostname === "api.ossinsight.io") {
+        attempts += 1;
+        return response(500, { message: "temporary" });
+      }
+      return base(url, options);
+    },
+    sleep: async () => {},
+  }), /OSS Insight returned 500/);
+  assert.equal(attempts, 5);
+});
+
 test("truncated release JSON retries within the fixed attempt budget", async () => {
   const base = successfulFetch();
   const sleeps = [];
