@@ -34,8 +34,13 @@ const CLAUDE_ATTEMPT_TIMEOUT_MS = 10 * 60_000;
 const RETRY_DELAYS = Object.freeze([2_000, 8_000]);
 const FINALIZATION_RESERVE_MS = 30_000;
 const MAX_CORRECTION_CONTEXT_BYTES = 128 * 1024;
+const MAX_REQUEST_ATTEMPTS = 4;
+const MAX_REQUEST_RETRIES = MAX_REQUEST_ATTEMPTS - 1;
+const MAX_TRANSPORT_RETRIES = 2;
 const SOURCE_KEYS = Object.freeze(["kind", "slug", "path", "blob_sha", "content_sha256", "provider", "interface", "cli_version", "auth_method", "api_provider", "model", "schema_version", "prompt_schema_version", "translation_applicable"]);
 const INVARIANT_KINDS = Object.freeze(["command", "version", "number", "url", "product"]);
+const CANONICAL_NUMBER_INVARIANT_RE = /^\d+(?:\.\d+)*(?:\s?(?:GB|MB|KB|ms|s|%))?$/i;
+const GENERIC_SUMMARY_RE = /(?:\bTODO\b|\bTBD\b|placeholder|확인\s*필요|자동\s*요약|(?:README|readme)(?:를|에서|\s*원문을)?\s*(?:확인|참고|refer|check)|자세한\s*내용은\s*README|consulte\s+(?:el\s+)?README|README\s*(?:を|をご)?(?:参照|確認)|请(?:查看|参阅)\s*README)/i;
 const MARKETING_RE = /(?:\bbest\b(?!\s+practices?\b)|\b(?:revolutionary|game[- ]?changing|unmatched|ultimate)\b|최고의|혁신적|압도적|革命性|最佳(?!实践)|无与伦比|revolucionari[oa]|inigualable|究極|革新的)/gi;
 const HEDGE_SCHEMA_PATTERNS = Object.freeze({
   en: String.raw`\b(?:[Mm]ay|[Mm]ight|[Cc]ould|[Ll]ikely|[Ss]uggests?|[Aa]ppears?)\b`,
@@ -65,8 +70,9 @@ function exactKeys(value, keys) {
     && Object.keys(value).sort().join("\0") === [...keys].sort().join("\0");
 }
 
-function genericSummary(value) {
-  return /(?:\bTODO\b|\bTBD\b|placeholder|확인\s*필요|자동\s*요약|(?:README|readme)(?:를|에서|\s*원문을)?\s*(?:확인|참고|refer|check)|자세한\s*내용은\s*README|consulte\s+(?:el\s+)?README|README\s*(?:を|をご)?(?:参照|確認)|请(?:查看|参阅)\s*README)/i.test(value);
+function genericSummaryTerms(value) {
+  const match = GENERIC_SUMMARY_RE.exec(value);
+  return match ? [match[0]] : [];
 }
 
 function throwQualityDefects(defects) {
@@ -92,12 +98,14 @@ function checkedSummaryBundle(value) {
     result[locale] = {};
     for (const field of SUMMARY_BUNDLE_FIELDS) {
       const text = typeof summary[field] === "string" ? summary[field].trim() : "";
-      if (!text || text.length > MAX_SUMMARY_FIELD_CHARACTERS || genericSummary(text)) {
+      const genericTerms = genericSummaryTerms(text);
+      if (!text || text.length > MAX_SUMMARY_FIELD_CHARACTERS || genericTerms.length > 0) {
         defects.push({
           code: "GENERIC_OR_PLACEHOLDER",
           message: `Summary bundle contains a generic or placeholder ${locale}.${field}`,
           locale,
           field,
+          ...(genericTerms.length > 0 ? { genericTerms } : {}),
         });
       }
       const forbiddenTerms = marketingTerms(text);
@@ -243,6 +251,15 @@ function validateSummaryBundleEnvelopeShape(value, item, { stored }) {
       continue;
     }
     const exact = invariant.value.trim();
+    if (invariant.kind === "number" && !CANONICAL_NUMBER_INVARIANT_RE.test(exact)) {
+      defects.push({
+        code: "INVARIANT_DECLARATION",
+        message: "Summary bundle number invariant must be a canonical numeric token",
+        invariant: exact,
+        invariantKind: invariant.kind,
+      });
+      continue;
+    }
     const fields = SUMMARY_BUNDLE_FIELDS.filter(field => invariant.kind === "product"
       ? summaries.en[field].toLocaleLowerCase("en").includes(exact.toLocaleLowerCase("en"))
       : summaries.en[field].includes(exact));
@@ -457,12 +474,22 @@ export function measureClaudeCliSummaryBundlePlan(items, { retryAttempts } = {})
     provider: "claude-cli-oauth",
     model: DEFAULT_ENRICHMENT_MODEL,
     logicalCalls: requests.length,
-    maximumAttempts: requests.length + Math.min(retryAttempts, requests.length * 2),
+    maximumAttempts: requests.length + Math.min(retryAttempts, requests.length * MAX_REQUEST_RETRIES),
     inputBytes,
     retryAttempts,
     items: [...items],
     requests,
   });
+}
+
+export function resolveClaudeCliSummaryRetryCap(policy, pendingRepositories) {
+  if (!policy || typeof policy.name !== "string" || !Number.isSafeInteger(policy.retryAttempts) || policy.retryAttempts < 0
+      || !Number.isSafeInteger(pendingRepositories) || pendingRepositories < 0 || pendingRepositories > MAX_REPOSITORIES) {
+    throw new Error("Claude summary retry policy is invalid");
+  }
+  return policy.name === "bootstrap_v0_approved"
+    ? Math.max(policy.retryAttempts, pendingRepositories * MAX_REQUEST_RETRIES)
+    : policy.retryAttempts;
 }
 
 function producerProvenance(value) {
@@ -493,6 +520,10 @@ function correctionTargets(error) {
     summaries.set(locale, selected);
   };
   for (const defect of error.qualityDefects) {
+    if (defect.code === "INVARIANT_DECLARATION") {
+      invariants = true;
+      continue;
+    }
     if (defect.code === "EVIDENCE_BINDING") {
       if (SUMMARY_BUNDLE_FIELDS.includes(defect.field)) evidence.add(defect.field);
       else for (const field of SUMMARY_BUNDLE_FIELDS) evidence.add(field);
@@ -752,8 +783,11 @@ function promptDefectDiagnostic(defect) {
     ...(defect.field ? { field: defect.field } : {}),
     ...(Array.isArray(defect.marketingTerms) && defect.marketingTerms.length > 0
       ? { forbidden_terms: [...defect.marketingTerms] }
-      : {}),
+      : Array.isArray(defect.genericTerms) && defect.genericTerms.length > 0
+        ? { forbidden_terms: [...defect.genericTerms] }
+        : {}),
     ...(defect.invariant ? { invariant: defect.invariant } : {}),
+    ...(defect.invariantKind ? { invariant_kind: defect.invariantKind } : {}),
     ...(defect.invariantFields ? {
       expected_fields: defect.invariantFields.expected,
       actual_fields: defect.invariantFields.actual,
@@ -783,6 +817,9 @@ function qualityFeedbackForDefect(error) {
   const message = String(error?.message ?? "");
   const expectedTokens = exactTokenInventory(error?.expected);
   const actualTokens = exactTokenInventory(error?.actual);
+  if (error?.code === "INVARIANT_DECLARATION" && error?.invariantKind === "number") {
+    return `${qualityCode(error)}. Replace the rejected number invariant ${JSON.stringify(error.invariant)} with only its canonical numeric token, such as "2", "3.13", "20%", or "512MB"; omit surrounding source-language words and do not rewrite any summary field`;
+  }
   if (expectedTokens && actualTokens && SUMMARY_BUNDLE_LOCALES.includes(error?.locale)
       && SUMMARY_BUNDLE_FIELDS.includes(error?.field)) {
     return `${qualityCode(error)} at ${error.locale}.${error.field}. Rewrite only that field and replace its command, URL, and number token inventory with exactly expected_tokens in VALIDATION_DEFECTS_JSON; remove every token present only in actual_tokens and add no other command, URL, or number token`;
@@ -828,9 +865,9 @@ function qualityFeedbackForDefect(error) {
   const field = /Summary bundle contains a generic or placeholder (en|ko|zh-CN|es|ja)\.(goal|usage|pros|cons|fit)$/.exec(message);
   if (!field) return qualityCode(error);
   if (field[2] === "cons") {
-    return `${qualityCode(error)} at ${field[1]}.cons. Rewrite that field in ${field[1]} as one concrete source-supported prerequisite, limitation, operational trade-off, or cautiously worded documentation gap; do not mention the README at all in that field`;
+    return `${qualityCode(error)} at ${field[1]}.cons. Rewrite that field in ${field[1]} as one concrete source-supported prerequisite, limitation, operational trade-off, or cautiously worded documentation gap; remove every exact forbidden_terms value in VALIDATION_DEFECTS_JSON and do not mention the README at all in that field`;
   }
-  return `${qualityCode(error)} at ${field[1]}.${field[2]}. Rewrite that field as concrete README-supported content without instructing the reader to read or consult the README`;
+  return `${qualityCode(error)} at ${field[1]}.${field[2]}. Rewrite that field as concrete README-supported content, remove every exact forbidden_terms value in VALIDATION_DEFECTS_JSON, and do not instruct the reader to read or consult the README`;
 }
 
 function qualityFeedback(error) {
@@ -884,7 +921,7 @@ async function requestOneWithClaude(request, item, runtime) {
   let transportRetries = 0;
   let qualityCorrections = 0;
   let currentRequest = request;
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  for (let attempt = 0; attempt < MAX_REQUEST_ATTEMPTS; attempt += 1) {
     if (nextKind) {
       if (runtime.retries >= runtime.retryCap) throw prior;
       const delay = nextKind === "transport" ? RETRY_DELAYS[transportRetries - 1] : 0;
@@ -924,12 +961,12 @@ async function requestOneWithClaude(request, item, runtime) {
       }
     } catch (error) {
       prior = error;
-      if (attempt === 2) throw error;
-      if (error?.quality === true && qualityCorrections < 2) {
+      if (attempt === MAX_REQUEST_ATTEMPTS - 1) throw error;
+      if (error?.quality === true && qualityCorrections < MAX_REQUEST_RETRIES) {
         qualityCorrections += 1;
         currentRequest = correctionRequest(request, error, error.previousOutput);
         nextKind = "quality";
-      } else if (retryable(error) && transportRetries < 2) {
+      } else if (retryable(error) && transportRetries < MAX_TRANSPORT_RETRIES) {
         transportRetries += 1;
         nextKind = "transport";
       } else throw error;
@@ -996,7 +1033,9 @@ export async function runClaudeSummaryBundleRequests({
       ...(defect.field ? { field: defect.field } : {}),
       ...(Array.isArray(defect.marketingTerms) && defect.marketingTerms.length > 0
         ? { forbidden_terms: [...defect.marketingTerms] }
-        : {}),
+        : Array.isArray(defect.genericTerms) && defect.genericTerms.length > 0
+          ? { forbidden_terms: [...defect.genericTerms] }
+          : {}),
       ...(defect.invariantFields ? {
         expected_fields: [...(defect.invariantFields.expected ?? [])],
         actual_fields: [...(defect.invariantFields.actual ?? [])],
@@ -1007,6 +1046,7 @@ export async function runClaudeSummaryBundleRequests({
           sha256: createHash("sha256").update(Buffer.from(defect.invariant, "utf8")).digest("hex"),
         },
       } : {}),
+      ...(typeof defect.invariantKind === "string" ? { invariant_kind: defect.invariantKind } : {}),
       ...(tokenMismatchDiagnostic(defect) ? { token_mismatch: tokenMismatchDiagnostic(defect) } : {}),
     })) : [];
     fatal.summaryFailureDiagnostic = {
@@ -1141,7 +1181,9 @@ export async function runFrozenSummaryBundlePipeline({
     if (entry) retained.set(item.slug.toLowerCase(), entry);
     else pending.push(item);
   }
-  const plan = measureClaudeCliSummaryBundlePlan(pending, { retryAttempts: policy.retryAttempts });
+  const plan = measureClaudeCliSummaryBundlePlan(pending, {
+    retryAttempts: resolveClaudeCliSummaryRetryCap(policy, pending.length),
+  });
   const completed = await runClaudeSummaryBundleRequests({
     plan, runProcess, environment, cwd, preflight, preflightResult, executeClaude, sleep, now, deadline,
   });
