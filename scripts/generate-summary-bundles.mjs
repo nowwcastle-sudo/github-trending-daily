@@ -40,7 +40,8 @@ const MAX_TRANSPORT_RETRIES = 2;
 const SOURCE_KEYS = Object.freeze(["kind", "slug", "path", "blob_sha", "content_sha256", "provider", "interface", "cli_version", "auth_method", "api_provider", "model", "schema_version", "prompt_schema_version", "translation_applicable"]);
 const INVARIANT_KINDS = Object.freeze(["command", "version", "number", "url", "product"]);
 const CANONICAL_NUMBER_INVARIANT_RE = /^\d+(?:\.\d+)*(?:\s?(?:GB|MB|KB|ms|s|%))?$/i;
-const GENERIC_SUMMARY_RE = /(?:\bTODO\b|\bTBD\b|placeholder|확인\s*필요|자동\s*요약|(?:README|readme)(?:를|에서|\s*원문을)?\s*(?:확인|참고|refer|check)|자세한\s*내용은\s*README|consulte\s+(?:el\s+)?README|README\s*(?:を|をご)?(?:参照|確認)|请(?:查看|参阅)\s*README)/i;
+const GENERIC_MARKER_RE = /\b(?:TODO|TBD)\b/;
+const GENERIC_SUMMARY_RE = /(?:placeholder|확인\s*필요|자동\s*요약|(?:README|readme)(?:를|에서|\s*원문을)?\s*(?:확인|참고|refer|check)|자세한\s*내용은\s*README|consulte\s+(?:el\s+)?README|README\s*(?:を|をご)?(?:参照|確認)|请(?:查看|参阅)\s*README)/i;
 const MARKETING_RE = /(?:\bbest\b(?!\s+practices?\b)|\b(?:revolutionary|game[- ]?changing|unmatched|ultimate)\b|최고의|혁신적|압도적|革命性|最佳(?!实践)|无与伦比|revolucionari[oa]|inigualable|究極|革新的)/gi;
 const HEDGE_SCHEMA_PATTERNS = Object.freeze({
   en: String.raw`\b(?:[Mm]ay|[Mm]ight|[Cc]ould|[Ll]ikely|[Ss]uggests?|[Aa]ppears?)\b`,
@@ -71,7 +72,7 @@ function exactKeys(value, keys) {
 }
 
 function genericSummaryTerms(value) {
-  const match = GENERIC_SUMMARY_RE.exec(value);
+  const match = GENERIC_MARKER_RE.exec(value) ?? GENERIC_SUMMARY_RE.exec(value);
   return match ? [match[0]] : [];
 }
 

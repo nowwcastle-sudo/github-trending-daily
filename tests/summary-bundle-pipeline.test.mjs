@@ -93,6 +93,16 @@ test("summary bundle accepts exactly five complete locales and rejects generic R
   assert.throws(() => validateSummaryBundle(generic), /generic|placeholder|README/i);
 });
 
+test("Spanish todo remains prose while uppercase TODO remains a placeholder marker", () => {
+  const spanish = bundle();
+  spanish.es.cons += " La configuración manual puede afectar a todo el flujo de trabajo.";
+  assert.deepEqual(validateSummaryBundle(spanish), spanish);
+
+  const placeholder = bundle();
+  placeholder.es.cons += " TODO";
+  assert.throws(() => validateSummaryBundle(placeholder), /generic|placeholder/i);
+});
+
 test("the shared summary contract validates README evidence and cross-locale invariants", () => {
   const checked = validateSummaryBundleEnvelope(modelEnvelope(), item);
   assert.deepEqual(checked.summaries, bundle());
