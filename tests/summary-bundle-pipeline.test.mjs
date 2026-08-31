@@ -420,6 +420,45 @@ test("invariant field correction audits every declared invariant across every lo
   assert.deepEqual(result.results[0].invariants[0].fields, fields);
 });
 
+test("invariant correction names exact add and remove actions for one extra locale field", async () => {
+  const productMarkdown = "# Repository\n\nInstall with `npm install`, run `npm test`, and use Cursor.";
+  const productItem = {
+    ...item,
+    markdown: productMarkdown,
+    readme_content_sha256: createHash("sha256").update(Buffer.from(productMarkdown, "utf8")).digest("hex"),
+  };
+  const invalid = modelEnvelope();
+  for (const locale of SUMMARY_BUNDLE_LOCALES) invalid.summaries[locale].usage += " Cursor.";
+  invalid.summaries.es.fit += " Cursor 163.";
+  invalid.invariants.push({ kind: "product", value: "Cursor" });
+  const valid = structuredClone(invalid);
+  valid.summaries.es.fit = valid.summaries.es.fit.replace(" Cursor 163.", "");
+  const plan = measureClaudeCliSummaryBundlePlan([productItem], { retryAttempts: 12 });
+  const replies = [invalid, summaryPatch(valid, { es: ["fit"] })];
+  const prompts = [];
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      prompts.push(prompt);
+      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+
+  assert.equal(calls, 2);
+  assert.match(prompts[1], /"add_to_fields":\[\]/);
+  assert.match(prompts[1], /"remove_from_fields":\["fit"\]/);
+  assert.match(prompts[1], /remove exact invariant "Cursor" from es\.fit/i);
+  assert.match(prompts[1], /replace.*token.*inventory.*expected_tokens/i);
+  assert.deepEqual(result.results[0].summaries, valid.summaries);
+});
+
 test("cross-locale token correction receives every exact expected and actual inventory", async () => {
   const invalid = modelEnvelope();
   invalid.invariants = [];
