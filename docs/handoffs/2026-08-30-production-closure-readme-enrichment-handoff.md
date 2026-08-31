@@ -12,6 +12,7 @@
 - 2026-08-31 네 번째~여섯 번째 controlled dispatch 좌표: clean `HEAD == origin/main == dfa3bd387c40c104b15abf861bb9f4c003fb7902`, workflow runs `33353784160`, `33355529363`, `33356905445`
 - 2026-08-31 일곱 번째 controlled dispatch 좌표: clean `HEAD == origin/main == c83aa52c4f9fb7c79742a217a0ccae91a4726be6`, workflow run `33358622337`
 - 2026-08-31 여덟 번째 controlled dispatch 좌표: clean `HEAD == origin/main == a1d04d5505929d298a2030e75eec01fb288ded3f`, workflow run `33360314788`
+- 2026-08-31 아홉 번째 controlled dispatch 좌표: clean `HEAD == origin/main == 49596f97fad19cb5b4b732388165b9f9b37b3824`, workflow run `33361877370`
 - AgentMemory handoff: `mem_mtfb5jzh_7ddf0a27f5dc`
 - 원본 task: `01a03d80-1266-76e1-896d-16648967d258`
 
@@ -75,7 +76,7 @@
 - `scripts/update-trending.mjs`: v3 source와 exact 5-locale summary bundle만 render하며 metadata fallback을 허용하지 않는다.
 - `scripts/validate-enrichment-coverage.mjs`: active page/facts/cache/source exact set, full envelope, locale completeness, stale/missing/insufficient source, translation residue를 fail closed로 검사한다.
 - `scripts/build-pages-artifact.mjs`: source registry v3와 `site-i18n.js`를 exact artifact에 포함하고 legacy translation artifact를 제외한다.
-- workflow는 GitHub-hosted `prepare` → Windows self-hosted `enrich` → GitHub-hosted `publish`로 분리한다. self-hosted runner는 tracked checkout·DB·page·commit·Pages 권한이 없고 네 개의 allowlisted enrichment 파일만 내보낸다. manual bootstrap gate는 승인 상태이고 schedule은 계속 hold한다. 여덟 controlled run 모두 publish 전 fail-closed로 종료됐다.
+- workflow는 GitHub-hosted `prepare` → Windows self-hosted `enrich` → GitHub-hosted `publish`로 분리한다. self-hosted runner는 tracked checkout·DB·page·commit·Pages 권한이 없고 네 개의 allowlisted enrichment 파일만 내보낸다. manual bootstrap gate는 승인 상태이고 schedule은 계속 hold한다. 아홉 controlled run 모두 publish 전 fail-closed로 종료됐다.
 - runner `nasca-gh-trending-claude`는 `C:\actions-runner-gh-trending`의 공식 Actions Runner 2.337.0으로 등록했다. Task Scheduler 경로에서는 listener가 job을 받은 뒤 Worker IPC가 44초간 멈춰 `steps=0`으로 실패했지만, interactive listener에서는 Worker·checkout·Claude step이 정상 실행됐다. 현재 production closure 동안은 interactive listener를 사용하고 schedule은 hold한다.
 - `README.md`, `README.ko.md`, `README.en.md`와 2026-08-31 candidate screenshots를 새 구조에 맞췄다.
 
@@ -87,6 +88,8 @@
 4. **Grilling 기반 summary 사양 — 완료**: 위 품질·길이·근거·동일성·실패 계약을 공동 확정한다.
 5. **Sonnet 5 producer·coverage gates — 코드·로컬 검증 완료**: local `claude -p`, first-party OAuth, 고정 byte/retry/timeout cap, producer provenance, atomic 5-locale bundle 계약을 사용한다.
 6. **검증·commit/push·controlled workflow·Pages — 여덟 번째 dispatch의 inference-order correction repair 검증 완료**: 기존 390/720/1200/1440, 5 locale, hover/click/focus/Escape, light/dark, tooltip, README legacy failure UI, export privacy, Atom/membership 실브라우저 검증을 보존한다. 첫 일곱 run의 원인과 frozen evidence는 위 이력대로 유지한다. 여덟 번째 run `33360314788`은 prepare를 5분 39초에 완주하고 interactive runner에서 실제 Claude enrichment를 8분 48초 수행한 뒤 `Summary bundle inference field set is invalid`로 fail-closed 종료됐다. structured-output schema는 `inference_fields`의 enum·unique만 보장하지만 validator는 `goal, usage, pros, cons, fit` canonical order를 요구했고, 기존 initial/correction prompt는 그 순서를 설명하지 않았다. exact completed model calls와 tokens는 usage receipt가 없어 `unknown`이며 DB·commit·Pages·probe는 0이다. 해당 frozen input은 snapshot `20260831052234-795cef5ad0be9d73`, repositories `50`, `sourceSetSha256=a8f5411c72c0128ed980955f1508f0a4c97c26921ff6d72a1949ab21d91364da`, `runContextSha256=7ff72823815f7bcea372a62e4c913d2cad31c927460df08872192588ffa588f5`, `factsSha256=69bea7ba4c78fc70f55914704a24fadcb73162483b48387e59835230801b70e3`, `eventsSha256=dfb2fda15402588f34669356947bfd7c2e7cf65f8d56d3f78ba4f8de0b9f7642`다. 새 RED는 두 번의 out-of-order inference set 뒤 canonical set을 요구하며 기존 prompt에서 실패했고, initial prompt와 exact correction에 canonical order를 명시해 green이 됐다. 전용 correction을 무력화한 변이는 RED를 다시 실패시켰다. 최종 local 기준선은 Node 519개(507 pass, 12 intentional skip), Python 146 pass, Firestore Rules 9 pass다.
+
+**6단계 최신 후속 — 아홉 번째 dispatch의 concrete-cons repair 검증 완료**: run `33361877370`은 prepare를 5분 26초에 완주하고 실제 Claude enrichment를 10분 32초 수행한 뒤, 두 번의 기존 locale/field correction에도 `Summary bundle contains a generic or placeholder es.cons`로 fail-closed 종료됐다. 기존 correction은 위치와 “README를 보라고 하지 말라”는 금지만 전달해 source가 명시적 단점을 주지 않을 때 대체할 `cons` 유형을 제시하지 못했다. retry/cap/validator를 바꾸지 않고 initial/correction prompt에 source-supported prerequisite, limitation, operational trade-off, cautiously worded documentation gap 중 하나를 쓰도록 명시했다. tight RED는 같은 invalid `es.cons`가 두 번 이어진 뒤 valid response를 요구하며 새 구체 지침을 검사하고, cons 전용 correction을 무력화한 변이는 다시 실패했다. frozen input은 snapshot `20260831054926-fed9cec3abd9f8d9`, repositories `50`, `sourceSetSha256=b0beee6143ea9a0a925eb7ce65fa7009dad3ed7b9dcedb6d4843188820b948be`, `runContextSha256=93cb15e562b7edc516c5e0225f139cae96045c9d9256ad2e53d3da717cd44f8e`, `factsSha256=55717ab6913daea38711f8f3e0deeab9c059335098afe06c7cb76d8a07c1ca6b`, `eventsSha256=85db27b6777121be4f0e18b3e415c224807e5df38acbfd6a0d51eccdca300ef8`다. usage receipt 전 실패해 exact calls/tokens는 `unknown`이고 DB·commit·Pages·probe는 0이다. local 기준선은 Node 519개(507 pass, 12 intentional skip), Python 146 pass, Firestore Rules 9 pass다.
 
 ## 6. 적대적 검증 범위
 
@@ -119,10 +122,10 @@
 
 ## 8. 종료 조건
 
-- 두 번째·세 번째·여섯 번째·일곱 번째·여덟 번째 run에서 실제 Claude enrichment 요청은 시작됐지만 validator 실패로 완성 bundle과 usage receipt가 남지 않아 token count는 `unknown`이다. production DB·commit·Pages publication은 여덟 run 모두 0회다.
+- 두 번째·세 번째·여섯 번째·일곱 번째·여덟 번째·아홉 번째 run에서 실제 Claude enrichment 요청은 시작됐지만 validator 실패로 완성 bundle과 usage receipt가 남지 않아 token count는 `unknown`이다. production DB·commit·Pages publication은 아홉 run 모두 0회다.
 - full tests, adversarial review, mutation, staged/working-tree secret scan이 통과한다.
 - push 직전 remote drift를 fetch 후 재판정하고 사용자 변경을 보존한다.
-- controlled workflow `33337114759`, `33338119441`, `33340906781`, `33353784160`, `33355529363`, `33356905445`, `33358622337`, `33360314788`은 각각 prepare test, enrichment evidence gate, enrichment invariant gate, runner Worker handoff, reboot 후 runner handoff, Spanish placeholder gate, raw README invariant substring gate, inference field order gate에서 publish 전에 종료됐다. 필요한 후속 dispatch는 승인됐지만 cap 상향·direct API·새 유료 provider는 승인되지 않았다.
+- controlled workflow `33337114759`, `33338119441`, `33340906781`, `33353784160`, `33355529363`, `33356905445`, `33358622337`, `33360314788`, `33361877370`은 각각 prepare test, enrichment evidence gate, enrichment invariant gate, runner Worker handoff, reboot 후 runner handoff, Spanish placeholder gate, raw README invariant substring gate, inference field order gate, repeated Spanish cons fallback gate에서 publish 전에 종료됐다. 필요한 후속 dispatch는 승인됐지만 cap 상향·direct API·새 유료 provider는 승인되지 않았다.
 - production manifest와 exact file hashes가 deployed source SHA에 묶인다.
 - 모든 active repository가 detailed 5-locale summary, valid README provenance, canonical/upstream README variants를 전수 통과한다.
 - 하나라도 generic fallback, missing locale, stale source, variant mismatch면 recovery/hold를 유지한다.
