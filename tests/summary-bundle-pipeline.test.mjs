@@ -345,6 +345,47 @@ test("inference fields use one documented canonical order across quality correct
   assert.deepEqual(result.results[0].inference_fields, ["goal", "fit"]);
 });
 
+test("inference strength correction identifies the exact locale field", async () => {
+  const withInference = japanese => {
+    const value = modelEnvelope();
+    const hedges = {
+      en: "This may affect an adoption decision.",
+      ko: "이는 도입 판단에 영향을 줄 수 있습니다.",
+      "zh-CN": "这可能会影响采用决策。",
+      es: "Esto puede afectar una decisión de adopción.",
+      ja: japanese,
+    };
+    for (const locale of SUMMARY_BUNDLE_LOCALES) value.summaries[locale].cons += ` ${hedges[locale]}`;
+    value.inference_fields = ["cons"];
+    return value;
+  };
+  const invalid = () => withInference("これは導入判断に影響します。");
+  const valid = withInference("これは導入判断に影響する可能性があります。");
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  const replies = [invalid(), invalid(), valid];
+  const prompts = [];
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      prompts.push(prompt);
+      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+  assert.equal(calls, 3);
+  assert.match(prompts[0], /every locale.*explicit.*hedging/i);
+  assert.match(prompts[1], /ja\.cons/);
+  assert.match(prompts[1], /可能性/);
+  assert.match(prompts[2], /ja\.cons/);
+  assert.deepEqual(result.results[0].inference_fields, ["cons"]);
+});
+
 test("Claude subscription execution makes zero model calls when OAuth preflight fails", async () => {
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
   let calls = 0;
