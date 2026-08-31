@@ -301,6 +301,47 @@ test("quality correction identifies an invariant that is not a literal README su
   assert.equal(result.results[0].invariants[1].value, "3.13+");
 });
 
+test("inference fields use one documented canonical order across quality corrections", async () => {
+  const hedge = {
+    en: "This may support a cautious adoption decision.",
+    ko: "이는 신중한 도입 판단에 도움이 될 수 있습니다.",
+    "zh-CN": "这可能有助于谨慎评估采用方案。",
+    es: "Esto puede apoyar una evaluación prudente.",
+    ja: "これは慎重な導入評価に役立つ可能性があります。",
+  };
+  const withInference = inferenceFields => {
+    const value = modelEnvelope();
+    for (const locale of SUMMARY_BUNDLE_LOCALES) {
+      value.summaries[locale].goal += ` ${hedge[locale]}`;
+      value.summaries[locale].fit += ` ${hedge[locale]}`;
+    }
+    value.inference_fields = inferenceFields;
+    return value;
+  };
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  const replies = [withInference(["fit", "goal"]), withInference(["fit", "goal"]), withInference(["goal", "fit"])];
+  const prompts = [];
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      prompts.push(prompt);
+      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+  assert.equal(calls, 3);
+  assert.match(prompts[0], /goal, usage, pros, cons, fit/);
+  assert.match(prompts[1], /inference_fields only once and in canonical order/);
+  assert.match(prompts[2], /inference_fields only once and in canonical order/);
+  assert.deepEqual(result.results[0].inference_fields, ["goal", "fit"]);
+});
+
 test("Claude subscription execution makes zero model calls when OAuth preflight fails", async () => {
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
   let calls = 0;
