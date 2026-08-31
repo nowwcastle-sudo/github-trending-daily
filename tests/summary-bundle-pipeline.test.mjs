@@ -262,6 +262,45 @@ test("quality correction identifies a repeated failing locale field and stays bo
   });
 });
 
+test("quality correction identifies an invariant that is not a literal README substring", async () => {
+  const versionMarkdown = "# Repository\n\n- **Python**: 3.13+; run `npm test`.";
+  const versionItem = {
+    ...item,
+    markdown: versionMarkdown,
+    readme_content_sha256: createHash("sha256").update(Buffer.from(versionMarkdown, "utf8")).digest("hex"),
+  };
+  const invalid = () => {
+    const value = modelEnvelope();
+    for (const locale of SUMMARY_BUNDLE_LOCALES) value.summaries[locale].goal += " Python 3.13+.";
+    value.invariants.push({ kind: "version", value: "Python 3.13+" });
+    return value;
+  };
+  const valid = invalid();
+  valid.invariants[1].value = "3.13+";
+  const plan = measureClaudeCliSummaryBundlePlan([versionItem], { retryAttempts: 12 });
+  const replies = [invalid(), invalid(), valid];
+  const prompts = [];
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      prompts.push(prompt);
+      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+  assert.equal(calls, 3);
+  assert.match(prompts[1], /Python 3\.13\+/);
+  assert.match(prompts[1], /exact literal substring/i);
+  assert.match(prompts[2], /Python 3\.13\+/);
+  assert.equal(result.results[0].invariants[1].value, "3.13+");
+});
+
 test("Claude subscription execution makes zero model calls when OAuth preflight fails", async () => {
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
   let calls = 0;
