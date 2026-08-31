@@ -147,6 +147,28 @@ test("README inventory invariants that are unused by the summary are omitted det
   assert.deepEqual(checked.invariants, [{ kind: "command", value: "npm test", fields }]);
 });
 
+test("product invariants require every English-bound field but allow extra translated mentions", () => {
+  const productMarkdown = "# Repository\n\nThe iOS application runs with `npm test`.";
+  const productItem = {
+    ...item,
+    markdown: productMarkdown,
+    readme_content_sha256: createHash("sha256").update(Buffer.from(productMarkdown, "utf8")).digest("hex"),
+  };
+  const value = modelEnvelope();
+  for (const locale of SUMMARY_BUNDLE_LOCALES) value.summaries[locale].goal += " iOS.";
+  value.summaries.es.pros += " iOS.";
+  value.summaries.es.cons += " iOS.";
+  value.summaries.es.fit += " iOS.";
+  value.invariants.push({ kind: "product", value: "iOS" });
+
+  const checked = validateSummaryBundleEnvelope(value, productItem);
+  assert.deepEqual(checked.invariants.at(-1), { kind: "product", value: "iOS", fields: ["goal"] });
+
+  const missing = structuredClone(value);
+  missing.summaries.ja.goal = missing.summaries.ja.goal.replace(" iOS.", "");
+  assert.throws(() => validateSummaryBundleEnvelope(missing, productItem), /invariant|locale/i);
+});
+
 test("stored evidence requires the canonical README-derived heading shape", () => {
   assert.deepEqual(validateStoredSummaryBundleEnvelope(envelope(), item).summaries, bundle());
   assert.throws(() => validateStoredSummaryBundleEnvelope(modelEnvelope(), item), /evidence|range/i);
@@ -431,20 +453,62 @@ test("invariant field correction audits every declared invariant across every lo
   assert.deepEqual(result.results[0].invariants[0].fields, fields);
 });
 
-test("invariant correction names exact add and remove actions for one extra locale field", async () => {
-  const productMarkdown = "# Repository\n\nInstall with `npm install`, run `npm test`, and use Cursor.";
+test("product invariant correction adds a missing bound field without removing translated extras", async () => {
+  const productMarkdown = "# Repository\n\nThe iOS application runs with `npm test`.";
   const productItem = {
     ...item,
     markdown: productMarkdown,
     readme_content_sha256: createHash("sha256").update(Buffer.from(productMarkdown, "utf8")).digest("hex"),
   };
   const invalid = modelEnvelope();
-  for (const locale of SUMMARY_BUNDLE_LOCALES) invalid.summaries[locale].usage += " Cursor.";
-  invalid.summaries.es.fit += " Cursor 163.";
-  invalid.invariants.push({ kind: "product", value: "Cursor" });
+  for (const locale of SUMMARY_BUNDLE_LOCALES) invalid.summaries[locale].goal += " iOS.";
+  invalid.summaries.es.pros += " iOS.";
+  invalid.summaries.es.cons += " iOS.";
+  invalid.summaries.es.fit += " iOS.";
+  invalid.summaries.ja.goal = invalid.summaries.ja.goal.replace(" iOS.", "");
+  invalid.invariants.push({ kind: "product", value: "iOS" });
   const valid = structuredClone(invalid);
-  valid.summaries.es.fit = valid.summaries.es.fit.replace(" Cursor 163.", "");
+  valid.summaries.ja.goal += " iOS.";
   const plan = measureClaudeCliSummaryBundlePlan([productItem], { retryAttempts: 12 });
+  const replies = [invalid, summaryPatch(valid, { ja: ["goal"] })];
+  const prompts = [];
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      prompts.push(prompt);
+      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+
+  assert.equal(calls, 2);
+  assert.match(prompts[1], /"invariant_kind":"product"/);
+  assert.match(prompts[1], /"add_to_fields":\["goal"\]/);
+  assert.match(prompts[1], /"remove_from_fields":\[\]/);
+  assert.doesNotMatch(prompts[1], /remove exact invariant "iOS" from/i);
+  assert.deepEqual(result.results[0].summaries, valid.summaries);
+});
+
+test("command invariant correction names exact add and remove actions for one extra locale field", async () => {
+  const commandMarkdown = "# Repository\n\nAuthenticate with the auth command, then run `npm test`.";
+  const commandItem = {
+    ...item,
+    markdown: commandMarkdown,
+    readme_content_sha256: createHash("sha256").update(Buffer.from(commandMarkdown, "utf8")).digest("hex"),
+  };
+  const invalid = modelEnvelope();
+  for (const locale of SUMMARY_BUNDLE_LOCALES) invalid.summaries[locale].usage += " auth.";
+  invalid.summaries.es.fit += " auth 163.";
+  invalid.invariants.push({ kind: "command", value: "auth" });
+  const valid = structuredClone(invalid);
+  valid.summaries.es.fit = valid.summaries.es.fit.replace(" auth 163.", "");
+  const plan = measureClaudeCliSummaryBundlePlan([commandItem], { retryAttempts: 12 });
   const replies = [invalid, summaryPatch(valid, { es: ["fit"] })];
   const prompts = [];
   let calls = 0;
@@ -465,12 +529,12 @@ test("invariant correction names exact add and remove actions for one extra loca
   assert.equal(calls, 2);
   assert.match(prompts[1], /"add_to_fields":\[\]/);
   assert.match(prompts[1], /"remove_from_fields":\["fit"\]/);
-  assert.match(prompts[1], /remove exact invariant "Cursor" from es\.fit/i);
+  assert.match(prompts[1], /remove exact invariant "auth" from es\.fit/i);
   assert.match(prompts[1], /replace.*token.*inventory.*expected_tokens/i);
   const previousOutputEnd = prompts[1].indexOf("END_PREVIOUS_OUTPUT_JSON");
   assert.ok(previousOutputEnd > prompts[1].indexOf("PREVIOUS_OUTPUT_JSON"));
   const finalInstructions = prompts[1].slice(previousOutputEnd);
-  assert.match(finalInstructions, /remove exact invariant "Cursor" from es\.fit/i);
+  assert.match(finalInstructions, /remove exact invariant "auth" from es\.fit/i);
   assert.match(finalInstructions, /replace.*token.*inventory.*expected_tokens/i);
   assert.match(finalInstructions, /Return only the validator-selected correction object/i);
   assert.deepEqual(result.results[0].summaries, valid.summaries);
