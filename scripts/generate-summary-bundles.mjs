@@ -132,6 +132,21 @@ function invariantTokens(text) {
   };
 }
 
+function sourceContainsInvariant(markdown, exact, kind) {
+  const comparable = value => kind === "product" ? value.toLocaleLowerCase("en") : value;
+  const candidate = comparable(exact);
+  const source = comparable(markdown);
+  if (source.includes(candidate)) return true;
+  if (!["version", "number", "product"].includes(kind)) return false;
+  const variants = [`**${exact}**`, `__${exact}__`];
+  for (const match of exact.matchAll(/\S+/g)) {
+    for (const marker of ["**", "__"]) {
+      variants.push(`${exact.slice(0, match.index)}${marker}${match[0]}${marker}${exact.slice(match.index + match[0].length)}`);
+    }
+  }
+  return variants.some(variant => source.includes(comparable(variant)));
+}
+
 function equalTokens(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
 }
@@ -173,9 +188,7 @@ function validateSummaryBundleEnvelopeShape(value, item, { stored }) {
       throw new Error("Summary bundle invariant schema is invalid");
     }
     const exact = invariant.value.trim();
-    const sourceContains = invariant.kind === "product"
-      ? source.markdown.toLocaleLowerCase("en").includes(exact.toLocaleLowerCase("en"))
-      : source.markdown.includes(exact);
+    const sourceContains = sourceContainsInvariant(source.markdown, exact, invariant.kind);
     if (!sourceContains) throw new Error(`Summary bundle invariant is absent from README: ${exact}`);
     const fields = SUMMARY_BUNDLE_FIELDS.filter(field => invariant.kind === "product"
       ? summaries.en[field].toLocaleLowerCase("en").includes(exact.toLocaleLowerCase("en"))
