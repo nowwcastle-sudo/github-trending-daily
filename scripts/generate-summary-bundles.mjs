@@ -13,6 +13,7 @@ import {
 } from "./collect-repository-events.mjs";
 import { DEFAULT_ENRICHMENT_MODEL } from "./enrichment-models.mjs";
 import {
+  CLAUDE_REQUEST_FAILURE_CODES,
   MAX_CLAUDE_STDIN_BYTES,
   runClaudeOAuthPreflight,
   runClaudeStructuredRequest,
@@ -1011,7 +1012,9 @@ export async function runClaudeSummaryBundleRequests({
     fatal.summaryFailureDiagnostic = {
       version: 1,
       repository: fatal.repositorySlug,
-      failure_code: fatal.quality === true ? "QUALITY_VALIDATION_FAILED" : "CLAUDE_REQUEST_FAILED",
+      failure_code: fatal.quality === true
+        ? "QUALITY_VALIDATION_FAILED"
+        : CLAUDE_REQUEST_FAILURE_CODES.includes(fatal.failureCode) ? fatal.failureCode : "CLAUDE_REQUEST_FAILED",
       defect_count: defects.length,
       defects,
       usage: {

@@ -3,12 +3,23 @@ import { spawn } from "node:child_process";
 import { parseJsonStrict } from "./build-pages-artifact.mjs";
 
 export const MAX_CLAUDE_STDIN_BYTES = 8 * 1024 * 1024;
+export const CLAUDE_REQUEST_FAILURE_CODES = Object.freeze([
+  "CLAUDE_AUTH_FAILED",
+  "CLAUDE_OUTPUT_LIMIT",
+  "CLAUDE_PROCESS_EXECUTION_FAILED",
+  "CLAUDE_RATE_LIMITED",
+  "CLAUDE_REQUEST_FAILED",
+  "CLAUDE_SCHEMA_INVALID",
+  "CLAUDE_TIMEOUT",
+  "CLAUDE_TRANSIENT_PROVIDER_FAILURE",
+]);
 
 const MINIMUM_CLAUDE_VERSION = Object.freeze([2, 1, 211]);
 const MAX_AUTH_OUTPUT_BYTES = 64 * 1024;
 const MAX_STRUCTURED_OUTPUT_BYTES = 1024 * 1024;
 const MAX_STDERR_BYTES = 64 * 1024;
 const TERMINATION_GRACE_MS = 5_000;
+const TRANSIENT_FAILURE_RE = /(?:\b429\b|rate.?limit|overload|\b50[0234]\b|server.?error|timed?.?out|connection)/i;
 const ALLOWED_ENVIRONMENT_NAMES = new Set([
   "APPDATA",
   "CLAUDE_CODE_OAUTH_TOKEN",
@@ -171,7 +182,9 @@ async function executeProcess({ runProcess, args, input = "", environment, cwd, 
       maxStderrBytes: MAX_STDERR_BYTES,
     });
   } catch {
-    throw new Error("Claude CLI process execution failed");
+    const error = new Error("Claude CLI process execution failed");
+    error.failureCode = "CLAUDE_PROCESS_EXECUTION_FAILED";
+    throw error;
   }
   return checkedProcessResult(result);
 }
@@ -232,13 +245,30 @@ function usageReceipt(value) {
 function executionFailure(result) {
   if (result.timedOut) {
     const error = new Error("Claude CLI request timed out");
+    error.failureCode = "CLAUDE_TIMEOUT";
     error.retryable = true;
     return error;
   }
-  if (result.outputExceeded) return new Error("Claude CLI output exceeds the fixed byte cap");
+  if (result.outputExceeded) {
+    const error = new Error("Claude CLI output exceeds the fixed byte cap");
+    error.failureCode = "CLAUDE_OUTPUT_LIMIT";
+    error.retryable = false;
+    return error;
+  }
   const diagnostic = `${result.stderr}\n${result.stdout}`;
   const error = new Error("Claude CLI request failed");
-  error.retryable = /(?:\b429\b|rate.?limit|overload|\b50[0234]\b|server.?error|timed?.?out|connection)/i.test(diagnostic);
+  if (/(?:json[\s_-]*schema|--json-schema).{0,160}(?:invalid|unsupported|too (?:complex|large)|maximum|exceed)|(?:invalid|unsupported).{0,160}(?:json[\s_-]*schema|--json-schema)/is.test(diagnostic)) {
+    error.failureCode = "CLAUDE_SCHEMA_INVALID";
+  } else if (/(?:\b401\b|\b403\b|unauthori[sz]ed|forbidden|not logged in|authentication (?:failed|required)|oauth(?: token)?.{0,80}(?:expired|invalid|missing|required)|token.{0,80}(?:expired|invalid))/i.test(diagnostic)) {
+    error.failureCode = "CLAUDE_AUTH_FAILED";
+  } else if (/(?:\b429\b|rate.?limit)/i.test(diagnostic)) {
+    error.failureCode = "CLAUDE_RATE_LIMITED";
+  } else if (TRANSIENT_FAILURE_RE.test(diagnostic)) {
+    error.failureCode = "CLAUDE_TRANSIENT_PROVIDER_FAILURE";
+  } else {
+    error.failureCode = "CLAUDE_REQUEST_FAILED";
+  }
+  error.retryable = TRANSIENT_FAILURE_RE.test(diagnostic);
   return error;
 }
 

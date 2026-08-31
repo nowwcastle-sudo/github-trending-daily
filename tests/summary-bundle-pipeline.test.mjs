@@ -868,6 +868,48 @@ test("terminal quality failure exposes bounded defect diagnostics without model 
   );
 });
 
+test("terminal Claude failure preserves its bounded request code without raw diagnostics", async () => {
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+
+  await assert.rejects(
+    runClaudeSummaryBundleRequests({
+      plan,
+      environment: {},
+      now: () => 0,
+      deadline: 100_000,
+      attemptTimeoutMs: 1_000,
+      sleep: async () => {},
+      preflight: async () => oauthRuntime,
+      executeClaude: async () => {
+        const error = new Error("Claude CLI request failed");
+        error.failureCode = "CLAUDE_SCHEMA_INVALID";
+        error.retryable = false;
+        throw error;
+      },
+    }),
+    error => {
+      assert.deepEqual(error.summaryFailureDiagnostic, {
+        version: 1,
+        repository: "owner/repo",
+        failure_code: "CLAUDE_SCHEMA_INVALID",
+        defect_count: 0,
+        defects: [],
+        usage: { inputTokens: 0, outputTokens: 0, attempts: 1, retries: 0 },
+        runtime: {
+          provider: "claude-cli-oauth",
+          interface: "claude-p",
+          cli_version: "2.1.241",
+          auth_method: "oauth_token",
+          api_provider: "firstParty",
+          model: "claude-sonnet-5",
+        },
+      });
+      assert.doesNotMatch(JSON.stringify(error.summaryFailureDiagnostic), /raw|stderr|stdout|diagnostic/i);
+      return true;
+    },
+  );
+});
+
 test("inference fields use one documented canonical order across quality corrections", async () => {
   const hedge = {
     en: "This may support a cautious adoption decision.",

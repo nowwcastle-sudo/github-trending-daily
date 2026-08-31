@@ -146,7 +146,9 @@ test("Claude CLI structured requests fail closed on timeout and missing structur
       timeoutMs: 1,
       runProcess: async () => ({ exitCode: null, stdout: "", stderr: "sensitive diagnostic", timedOut: true }),
     }),
-    error => error?.retryable === true && !String(error.message).includes("sensitive diagnostic"),
+    error => error?.retryable === true
+      && error?.failureCode === "CLAUDE_TIMEOUT"
+      && !String(error.message).includes("sensitive diagnostic"),
   );
   await assert.rejects(
     runClaudeStructuredRequest({
@@ -164,4 +166,33 @@ test("Claude CLI structured requests fail closed on timeout and missing structur
     }),
     /structured output/i,
   );
+});
+
+test("Claude CLI request failures expose only bounded diagnostic codes", async () => {
+  const schema = { type: "object" };
+  const request = stderr => runClaudeStructuredRequest({
+    prompt: "input",
+    schema,
+    model: "claude-sonnet-5",
+    environment: {},
+    timeoutMs: 1_000,
+    runProcess: async () => ({ exitCode: 1, stdout: "", stderr, timedOut: false }),
+  });
+
+  const cases = [
+    ["Invalid JSON schema for --json-schema: secret diagnostic", "CLAUDE_SCHEMA_INVALID", false],
+    ["OAuth token expired: secret diagnostic", "CLAUDE_AUTH_FAILED", false],
+    ["HTTP 429 rate limit: secret diagnostic", "CLAUDE_RATE_LIMITED", true],
+    ["HTTP 503 server error: secret diagnostic", "CLAUDE_TRANSIENT_PROVIDER_FAILURE", true],
+    ["opaque secret diagnostic", "CLAUDE_REQUEST_FAILED", false],
+  ];
+  for (const [diagnostic, failureCode, retryable] of cases) {
+    await assert.rejects(
+      request(diagnostic),
+      error => error?.failureCode === failureCode
+        && error?.retryable === retryable
+        && error.message === "Claude CLI request failed"
+        && !JSON.stringify(error).includes("secret diagnostic"),
+    );
+  }
 });
