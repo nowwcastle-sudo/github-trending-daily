@@ -42,6 +42,13 @@ const HEDGE_MARKERS = Object.freeze({
   es: /\b(?:puede|podr[ií]a|posiblemente|sugiere|parece)\b/i,
   ja: /(?:可能性|かもしれ|可能で|示唆|考えられ)/,
 });
+const HEDGE_GUIDANCE = Object.freeze({
+  en: "may, might, could, likely, suggests, or appears",
+  ko: "수 있습니다, 가능성, or 시사합니다",
+  "zh-CN": "可能, 或许, 也许, 表明, or 暗示",
+  es: "puede, podría, posiblemente, sugiere, or parece",
+  ja: "可能性があります, かもしれません, 可能です, 示唆します, or 考えられます",
+});
 
 export const SUMMARY_BUNDLE_LOCALES = Object.freeze(["en", "ko", "zh-CN", "es", "ja"]);
 export const SUMMARY_BUNDLE_FIELDS = Object.freeze(["goal", "usage", "pros", "cons", "fit"]);
@@ -306,7 +313,7 @@ export function buildSummaryBundleRequest(input, { frameId } = {}) {
     "The English bundle must total 180 to 280 words. Match the same information density and claims in every locale. Each locale must include distinct goal, usage, pros, cons, and fit fields without repetition.",
     "For cons, describe one concrete source-supported prerequisite, limitation, operational trade-off, or cautiously worded documentation gap; never instruct the reader to consult the README.",
     "Preserve every command, URL, version, number, and product name across locales. Include at most one or two central README commands and never invent setup steps or capabilities.",
-    "Return one to three verified README line ranges for each field, the exact cross-locale invariant kind and value pairs, and every field that contains a cautious inference. List inference_fields only in canonical order: goal, usage, pros, cons, fit; omit fields without a cautious inference. Line ranges refer to the numbered untrusted README lines; section headings and invariant field locations are derived deterministically and must not be returned.",
+    "Return one to three verified README line ranges for each field, the exact cross-locale invariant kind and value pairs, and every field that contains a cautious inference. In every locale, make the uncertainty explicit with natural hedging for each field listed in inference_fields. List inference_fields only in canonical order: goal, usage, pros, cons, fit; omit fields without a cautious inference. Line ranges refer to the numbered untrusted README lines; section headings and invariant field locations are derived deterministically and must not be returned.",
     "Do not use promotional superlatives or a generic instruction to read or consult the README. If the source cannot support all five fields, return no substitute or metadata-only summary.",
     `UNTRUSTED_DATA_JSON ${boundary} ${Buffer.byteLength(payload, "utf8")} ${payloadHash}`,
     payload,
@@ -471,6 +478,10 @@ function qualityFeedback(error) {
   if (message.startsWith(invariantPrefix)) {
     const exact = message.slice(invariantPrefix.length);
     return `${qualityCode(error)}. The rejected invariant value was ${JSON.stringify(exact)}. Declare only an exact literal substring from the raw README as the invariant value, including its original punctuation and Markdown formatting, or omit it if the summaries do not require it`;
+  }
+  const inference = /Summary bundle inference strength is missing in (en|ko|zh-CN|es|ja)\.(goal|usage|pros|cons|fit)$/.exec(message);
+  if (inference) {
+    return `${qualityCode(error)} at ${inference[1]}.${inference[2]}. Because ${inference[2]} is listed in inference_fields, rewrite that field with explicit natural hedging in ${inference[1]}, such as ${HEDGE_GUIDANCE[inference[1]]}; preserve the same cautious claim across all five locales`;
   }
   const field = /Summary bundle contains a generic or placeholder (en|ko|zh-CN|es|ja)\.(goal|usage|pros|cons|fit)$/.exec(message);
   if (!field) return qualityCode(error);
