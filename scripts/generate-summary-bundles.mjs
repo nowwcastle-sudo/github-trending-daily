@@ -461,8 +461,15 @@ function qualityCode(error) {
   return "OUTPUT_SCHEMA";
 }
 
+function qualityFeedback(error) {
+  const message = String(error?.message ?? "");
+  const field = /Summary bundle contains a generic or placeholder (en|ko|zh-CN|es|ja)\.(goal|usage|pros|cons|fit)$/.exec(message);
+  if (!field) return qualityCode(error);
+  return `${qualityCode(error)} at ${field[1]}.${field[2]}. Rewrite that field as concrete README-supported content without instructing the reader to read or consult the README`;
+}
+
 function correctionRequest(request, error) {
-  const prompt = `${request.prompt}\nA prior answer failed the deterministic validator with ${qualityCode(error)}. Produce a fresh complete answer that corrects only this class of defect while preserving all source-bound claims.`;
+  const prompt = `${request.prompt}\nA prior answer failed the deterministic validator with ${qualityFeedback(error)}. Produce a fresh complete answer that corrects only this class of defect while preserving all source-bound claims.`;
   if (Buffer.byteLength(prompt, "utf8") > request.inputByteCap) {
     throw new Error("Summary bundle correction exceeds its fixed input byte cap");
   }
@@ -517,7 +524,7 @@ async function requestOneWithClaude(request, item, runtime) {
     } catch (error) {
       prior = error;
       if (attempt === 2) throw error;
-      if (error?.quality === true && qualityCorrections === 0) {
+      if (error?.quality === true && qualityCorrections < 2) {
         qualityCorrections += 1;
         currentRequest = correctionRequest(request, error);
         nextKind = "quality";
