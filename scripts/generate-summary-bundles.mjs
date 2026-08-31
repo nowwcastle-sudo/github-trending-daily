@@ -499,6 +499,10 @@ function qualityFeedback(error) {
   if (inference) {
     return `${qualityCode(error)} at ${inference[1]}.${inference[2]}. Because ${inference[2]} is listed in inference_fields, rewrite that field with explicit natural hedging in ${inference[1]}, such as ${HEDGE_GUIDANCE[inference[1]]}; preserve the same cautious claim across all five locales`;
   }
+  const marketing = /Summary bundle contains unsupported marketing language in (en|ko|zh-CN|es|ja)\.(goal|usage|pros|cons|fit)$/.exec(message);
+  if (marketing) {
+    return `${qualityCode(error)} at ${marketing[1]}.${marketing[2]}. Rewrite that field in neutral source-supported language without promotional superlatives, while preserving its documented facts and cross-locale invariants`;
+  }
   const field = /Summary bundle contains a generic or placeholder (en|ko|zh-CN|es|ja)\.(goal|usage|pros|cons|fit)$/.exec(message);
   if (!field) return qualityCode(error);
   if (field[2] === "cons") {
