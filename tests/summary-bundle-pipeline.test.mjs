@@ -119,6 +119,15 @@ test("version invariants bind to the rendered text of README emphasis", () => {
   assert.throws(() => validateSummaryBundleEnvelope(invented, emphasizedItem), /invariant is absent from README/i);
 });
 
+test("README inventory invariants that are unused by the summary are omitted deterministically", () => {
+  const value = modelEnvelope();
+  value.invariants.push({ kind: "product", value: "source-bound examples" });
+
+  const checked = validateSummaryBundleEnvelope(value, item);
+
+  assert.deepEqual(checked.invariants, [{ kind: "command", value: "npm test", fields }]);
+});
+
 test("stored evidence requires the canonical README-derived heading shape", () => {
   assert.deepEqual(validateStoredSummaryBundleEnvelope(envelope(), item).summaries, bundle());
   assert.throws(() => validateStoredSummaryBundleEnvelope(modelEnvelope(), item), /evidence|range/i);
@@ -420,6 +429,39 @@ test("quality correction identifies unsupported marketing language in one locale
   assert.deepEqual(result.results[0].summaries, bundle());
 });
 
+test("one correction receives the prior output and every independent quality defect", async () => {
+  const invalid = modelEnvelope();
+  invalid.summaries.en.fit += " It is the ultimate choice.";
+  invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
+  invalid.summaries.ja.goal = invalid.summaries.ja.goal.replace("`npm test`", "the test command");
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  const replies = [invalid, modelEnvelope()];
+  const prompts = [];
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      prompts.push(prompt);
+      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+
+  assert.equal(calls, 2);
+  assert.match(prompts[1], /PREVIOUS_OUTPUT_JSON/);
+  assert.match(prompts[1], /VALIDATION_DEFECTS_JSON/);
+  assert.match(prompts[1], /en\.fit/);
+  assert.match(prompts[1], /es\.cons/);
+  assert.match(prompts[1], /ja/);
+  assert.match(prompts[1], /ultimate choice/);
+  assert.deepEqual(result.results[0].summaries, bundle());
+});
+
 test("inference fields use one documented canonical order across quality corrections", async () => {
   const hedge = {
     en: "This may support a cautious adoption decision.",
@@ -577,7 +619,12 @@ test("a fatal bundle failure stops every worker from dispatching a new repositor
       return { structuredOutput: modelEnvelope(), usage: { inputTokens: 100, outputTokens: 200 } };
     },
   });
-  const rejected = assert.rejects(execution, /generic|placeholder|README/i);
+  const rejected = assert.rejects(execution, error => {
+    assert.match(String(error?.message), /generic|placeholder|README/i);
+    assert.match(String(error?.message), /owner\/repo-0/);
+    assert.match(String(error?.message), /defects?=/i);
+    return true;
+  });
   while (calls.filter(slug => slug === "owner/repo-0").length < 2) await new Promise(resolve => setImmediate(resolve));
   await new Promise(resolve => setImmediate(resolve));
   releaseSecond();
