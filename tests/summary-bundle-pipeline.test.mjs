@@ -456,6 +456,57 @@ test("invariant correction names exact add and remove actions for one extra loca
   assert.match(prompts[1], /"remove_from_fields":\["fit"\]/);
   assert.match(prompts[1], /remove exact invariant "Cursor" from es\.fit/i);
   assert.match(prompts[1], /replace.*token.*inventory.*expected_tokens/i);
+  const previousOutputEnd = prompts[1].indexOf("END_PREVIOUS_OUTPUT_JSON");
+  assert.ok(previousOutputEnd > prompts[1].indexOf("PREVIOUS_OUTPUT_JSON"));
+  const finalInstructions = prompts[1].slice(previousOutputEnd);
+  assert.match(finalInstructions, /remove exact invariant "Cursor" from es\.fit/i);
+  assert.match(finalInstructions, /replace.*token.*inventory.*expected_tokens/i);
+  assert.match(finalInstructions, /Return only the validator-selected correction object/i);
+  assert.deepEqual(result.results[0].summaries, valid.summaries);
+});
+
+test("invariant correction ends with exact additions for four missing locale fields", async () => {
+  const authMarkdown = "# Repository\n\nAuthenticate with the `auth` command, then run `npm test`.";
+  const authItem = {
+    ...item,
+    markdown: authMarkdown,
+    readme_content_sha256: createHash("sha256").update(Buffer.from(authMarkdown, "utf8")).digest("hex"),
+  };
+  const invalid = modelEnvelope();
+  invalid.summaries.en.usage += " auth.";
+  invalid.summaries.en.pros += " auth.";
+  for (const locale of SUMMARY_BUNDLE_LOCALES.slice(1)) invalid.summaries[locale].usage += " auth.";
+  invalid.invariants.push({ kind: "command", value: "auth" });
+  const valid = structuredClone(invalid);
+  const selected = {};
+  for (const locale of SUMMARY_BUNDLE_LOCALES.slice(1)) {
+    valid.summaries[locale].pros += " auth.";
+    selected[locale] = ["pros"];
+  }
+  const plan = measureClaudeCliSummaryBundlePlan([authItem], { retryAttempts: 12 });
+  const replies = [invalid, summaryPatch(valid, selected)];
+  const prompts = [];
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      prompts.push(prompt);
+      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+
+  assert.equal(calls, 2);
+  const finalInstructions = prompts[1].slice(prompts[1].indexOf("END_PREVIOUS_OUTPUT_JSON"));
+  for (const locale of SUMMARY_BUNDLE_LOCALES.slice(1)) {
+    assert.match(finalInstructions, new RegExp(`add exact invariant "auth" only to ${locale.replace("-", "\\-")}\\.pros`, "i"));
+  }
+  assert.match(finalInstructions, /Return only the validator-selected correction object/i);
   assert.deepEqual(result.results[0].summaries, valid.summaries);
 });
 
