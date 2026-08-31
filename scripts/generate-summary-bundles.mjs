@@ -36,13 +36,15 @@ const MAX_CORRECTION_CONTEXT_BYTES = 128 * 1024;
 const SOURCE_KEYS = Object.freeze(["kind", "slug", "path", "blob_sha", "content_sha256", "provider", "interface", "cli_version", "auth_method", "api_provider", "model", "schema_version", "prompt_schema_version", "translation_applicable"]);
 const INVARIANT_KINDS = Object.freeze(["command", "version", "number", "url", "product"]);
 const MARKETING_RE = /(?:\bbest\b(?!\s+practices?\b)|\b(?:revolutionary|game[- ]?changing|unmatched|ultimate)\b|최고의|혁신적|압도적|革命性|最佳(?!实践)|无与伦比|revolucionari[oa]|inigualable|究極|革新的)/gi;
-const HEDGE_MARKERS = Object.freeze({
-  en: /\b(?:may|might|could|likely|suggests?|appears?)\b/i,
-  ko: /(?:수\s*있|가능(?:성|할)|시사|보일\s*수)/,
-  "zh-CN": /(?:可能|或许|也许|表明|暗示)/,
-  es: /\b(?:puede|podr[ií]a|posiblemente|sugiere|parece)\b/i,
-  ja: /(?:可能性|かもしれ|可能で|示唆|考えられ)/,
+const HEDGE_SCHEMA_PATTERNS = Object.freeze({
+  en: String.raw`\b(?:[Mm]ay|[Mm]ight|[Cc]ould|[Ll]ikely|[Ss]uggests?|[Aa]ppears?)\b`,
+  ko: String.raw`(?:수\s*있|가능(?:성|할)|시사|보일\s*수)`,
+  "zh-CN": "(?:可能|或许|也许|表明|暗示)",
+  es: String.raw`\b(?:[Pp]uede|[Pp]odr[ií]a|[Pp]osiblemente|[Ss]ugiere|[Pp]arece)\b`,
+  ja: "(?:可能性|かもしれ|可能で|示唆|考えられ)",
 });
+const HEDGE_MARKERS = Object.freeze(Object.fromEntries(Object.entries(HEDGE_SCHEMA_PATTERNS)
+  .map(([locale, pattern]) => [locale, new RegExp(pattern, "u")])));
 const HEDGE_GUIDANCE = Object.freeze({
   en: "may, might, could, likely, suggests, or appears",
   ko: "수 있습니다, 가능성, or 시사합니다",
@@ -556,6 +558,10 @@ function correctionFieldDescriptions(error) {
 function correctionSchema(targets, error) {
   const full = summarySchema();
   const descriptions = correctionFieldDescriptions(error);
+  const enforcedHedges = new Set((error.qualityDefects ?? [])
+    .filter(defect => defect.code === "OUTPUT_SCHEMA" && SUMMARY_BUNDLE_LOCALES.includes(defect.locale)
+      && SUMMARY_BUNDLE_FIELDS.includes(defect.field))
+    .map(defect => `${defect.locale}.${defect.field}`));
   const required = [];
   const properties = {};
   if (Object.keys(targets.summaries).length > 0) {
@@ -571,7 +577,8 @@ function correctionSchema(targets, error) {
         properties: Object.fromEntries(fields.map(field => {
           const base = full.properties.summaries.properties[locale].properties[field];
           const description = descriptions.get(`${locale}.${field}`)?.join(". ");
-          return [field, description ? { ...base, description } : base];
+          const pattern = enforcedHedges.has(`${locale}.${field}`) ? HEDGE_SCHEMA_PATTERNS[locale] : undefined;
+          return [field, description || pattern ? { ...base, ...(description ? { description } : {}), ...(pattern ? { pattern } : {}) } : base];
         })),
       }])),
     };

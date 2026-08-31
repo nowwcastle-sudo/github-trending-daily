@@ -557,6 +557,45 @@ test("correction schema binds exact token and hedge requirements to each selecte
   assert.deepEqual(result.results[0].summaries, valid.summaries);
 });
 
+test("inference correction schema structurally requires the locale hedge marker", async () => {
+  const hedge = {
+    en: "It may.",
+    ko: "가능성이 있습니다.",
+    "zh-CN": "可能。",
+    es: "Podría.",
+    ja: "可能性があります。",
+  };
+  const invalid = modelEnvelope();
+  invalid.inference_fields = ["cons"];
+  for (const locale of SUMMARY_BUNDLE_LOCALES.filter(locale => locale !== "es")) {
+    invalid.summaries[locale].cons += ` ${hedge[locale]}`;
+  }
+  const valid = structuredClone(invalid);
+  valid.summaries.es.cons += ` ${hedge.es}`;
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ schema }) => {
+      if (calls++ === 0) return { structuredOutput: invalid, usage: { inputTokens: 100, outputTokens: 200 } };
+      const fieldSchema = schema.properties.summaries.properties.es.properties.cons;
+      assert.equal(typeof fieldSchema.pattern, "string");
+      assert.doesNotMatch(invalid.summaries.es.cons, new RegExp(fieldSchema.pattern, "u"));
+      assert.match(valid.summaries.es.cons, new RegExp(fieldSchema.pattern, "u"));
+      return { structuredOutput: summaryPatch(valid, { es: ["cons"] }), usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+
+  assert.equal(calls, 2);
+  assert.deepEqual(result.results[0].summaries, valid.summaries);
+});
+
 test("cross-locale token correction receives every exact expected and actual inventory", async () => {
   const invalid = modelEnvelope();
   invalid.invariants = [];
