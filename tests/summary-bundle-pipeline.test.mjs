@@ -100,6 +100,25 @@ test("the shared summary contract validates README evidence and cross-locale inv
   assert.throws(() => validateSummaryBundleEnvelope(staleEvidence, item), /evidence|line|README/i);
 });
 
+test("version invariants bind to the rendered text of README emphasis", () => {
+  const emphasizedMarkdown = "# Repository\n\n- **Node.js** >= 20; run `npm test`.";
+  const emphasizedItem = {
+    ...item,
+    markdown: emphasizedMarkdown,
+    readme_content_sha256: createHash("sha256").update(Buffer.from(emphasizedMarkdown, "utf8")).digest("hex"),
+  };
+  const value = modelEnvelope();
+  for (const locale of SUMMARY_BUNDLE_LOCALES) value.summaries[locale].usage += " Node.js >= 20.";
+  value.invariants.push({ kind: "version", value: "Node.js >= 20" });
+
+  assert.equal(validateSummaryBundleEnvelope(value, emphasizedItem).invariants[1].value, "Node.js >= 20");
+
+  const invented = structuredClone(value);
+  for (const locale of SUMMARY_BUNDLE_LOCALES) invented.summaries[locale].usage = invented.summaries[locale].usage.replace(">= 20", ">= 21");
+  invented.invariants[1].value = "Node.js >= 21";
+  assert.throws(() => validateSummaryBundleEnvelope(invented, emphasizedItem), /invariant is absent from README/i);
+});
+
 test("stored evidence requires the canonical README-derived heading shape", () => {
   assert.deepEqual(validateStoredSummaryBundleEnvelope(envelope(), item).summaries, bundle());
   assert.throws(() => validateStoredSummaryBundleEnvelope(modelEnvelope(), item), /evidence|range/i);
