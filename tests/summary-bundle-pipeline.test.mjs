@@ -211,6 +211,7 @@ test("one Sonnet 5 request carries all five summaries and no README translation 
 test("Claude subscription planning keeps byte and retry bounds without a dollar-cost stage", () => {
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
   assert.equal(plan.logicalCalls, 1);
+  assert.equal(plan.maximumAttempts, 4);
   assert.equal(plan.model, "claude-sonnet-5");
   assert.equal(plan.provider, "claude-cli-oauth");
   assert.ok(plan.inputBytes > 0);
@@ -721,7 +722,44 @@ test("one correction receives the prior output and every independent quality def
   assert.match(prompts[1], /es\.cons/);
   assert.match(prompts[1], /ja/);
   assert.match(prompts[1], /ultimate choice/);
+  assert.match(prompts[1], /forbidden_terms[^\n]*Consulte el README/i);
   assert.deepEqual(result.results[0].summaries, bundle());
+});
+
+test("a third targeted quality correction remains bounded and can finish one repository", async () => {
+  const invalid = modelEnvelope();
+  invalid.summaries.es.pros = "Consulte el README para conocer las ventajas.";
+  const valid = modelEnvelope();
+  const badPatch = summaryPatch(invalid, { es: ["pros"] });
+  const validPatch = summaryPatch(valid, { es: ["pros"] });
+  const replies = [invalid, badPatch, badPatch, validPatch];
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  let calls = 0;
+
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async () => ({
+      structuredOutput: replies[calls++],
+      usage: { inputTokens: 100, outputTokens: 200 },
+    }),
+  });
+
+  assert.equal(calls, 4);
+  assert.equal(result.usage.attempts, 4);
+  assert.equal(result.usage.retries, 3);
+  assert.deepEqual(result.results[0].summaries, bundle());
+});
+
+test("approved bootstrap retry capacity covers three bounded corrections per pending repository", async () => {
+  const producer = await import("../scripts/generate-summary-bundles.mjs");
+  assert.equal(producer.resolveClaudeCliSummaryRetryCap({ name: "bootstrap_v0_approved", retryAttempts: 12 }, 45), 135);
+  assert.equal(producer.resolveClaudeCliSummaryRetryCap({ name: "normal", retryAttempts: 12 }, 45), 12);
 });
 
 test("quality correction schema exposes only validator-selected defective paths", async () => {
@@ -806,6 +844,7 @@ test("terminal quality failure exposes bounded defect diagnostics without model 
   const invalid = modelEnvelope();
   invalid.summaries.en.fit += " It is the ultimate choice.";
   invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
+  const badPatch = summaryPatch(invalid, { en: ["fit"], es: ["cons"] });
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
   let calls = 0;
 
@@ -820,11 +859,11 @@ test("terminal quality failure exposes bounded defect diagnostics without model 
       preflight: async () => oauthRuntime,
       executeClaude: async () => {
         calls += 1;
-        return { structuredOutput: invalid, usage: { inputTokens: 100, outputTokens: 200 } };
+        return { structuredOutput: calls === 1 ? invalid : badPatch, usage: { inputTokens: 100, outputTokens: 200 } };
       },
     }),
     error => {
-      assert.equal(calls, 3);
+      assert.equal(calls, 4);
       const invariantHash = createHash("sha256").update(Buffer.from("npm test", "utf8")).digest("hex");
       assert.deepEqual(error.summaryFailureDiagnostic, {
         version: 1,
@@ -833,7 +872,7 @@ test("terminal quality failure exposes bounded defect diagnostics without model 
         defect_count: 4,
         defects: [
           { code: "UNSUPPORTED_MARKETING", locale: "en", field: "fit", forbidden_terms: ["ultimate"] },
-          { code: "GENERIC_OR_PLACEHOLDER", locale: "es", field: "cons" },
+          { code: "GENERIC_OR_PLACEHOLDER", locale: "es", field: "cons", forbidden_terms: ["Consulte el README"] },
           {
             code: "LOCALE_INVARIANT",
             locale: "es",
@@ -852,7 +891,7 @@ test("terminal quality failure exposes bounded defect diagnostics without model 
             },
           },
         ],
-        usage: { inputTokens: 300, outputTokens: 600, attempts: 3, retries: 2 },
+        usage: { inputTokens: 400, outputTokens: 800, attempts: 4, retries: 3 },
         runtime: {
           provider: "claude-cli-oauth",
           interface: "claude-p",
@@ -862,10 +901,61 @@ test("terminal quality failure exposes bounded defect diagnostics without model 
           model: "claude-sonnet-5",
         },
       });
-      assert.doesNotMatch(JSON.stringify(error.summaryFailureDiagnostic), /Consulte|README|summaries|ultimate choice/i);
+      assert.doesNotMatch(JSON.stringify(error.summaryFailureDiagnostic), /para conocer las limitaciones|summaries|ultimate choice/i);
       return true;
     },
   );
+});
+
+test("language-specific number invariants are corrected at the declaration instead of polluting translated fields", async () => {
+  const durationMarkdown = `${markdown}\n\nA typical local operation completes in 2 minutes.`;
+  const durationItem = {
+    ...item,
+    markdown: durationMarkdown,
+    readme_content_sha256: createHash("sha256").update(Buffer.from(durationMarkdown, "utf8")).digest("hex"),
+  };
+  const invalid = modelEnvelope();
+  const localizedDurations = {
+    en: "The documented operation completes in 2 minutes.",
+    ko: "문서화된 작업은 2분 안에 완료됩니다.",
+    "zh-CN": "文档所述操作可在 2 分钟内完成。",
+    es: "La operación documentada termina en 2 minutos.",
+    ja: "文書化された処理は 2 分で完了します。",
+  };
+  for (const locale of SUMMARY_BUNDLE_LOCALES) invalid.summaries[locale].pros += ` ${localizedDurations[locale]}`;
+  invalid.invariants.push({ kind: "number", value: "2 minutes" });
+  const corrected = {
+    invariants: [
+      ...invalid.invariants.slice(0, -1),
+      { kind: "number", value: "2" },
+    ],
+  };
+  const replies = [invalid, corrected];
+  const schemas = [];
+  const prompts = [];
+  let calls = 0;
+  const plan = measureClaudeCliSummaryBundlePlan([durationItem], { retryAttempts: 12 });
+
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt, schema }) => {
+      prompts.push(prompt);
+      schemas.push(schema);
+      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+
+  assert.equal(calls, 2);
+  assert.deepEqual(schemas[1].required, ["invariants"]);
+  assert.doesNotMatch(JSON.stringify(schemas[1]), /summaries/);
+  assert.match(prompts[1], /canonical numeric token/i);
+  assert.deepEqual(result.results[0].invariants.at(-1), { kind: "number", value: "2", fields: ["usage", "pros"] });
 });
 
 test("terminal Claude failure preserves its bounded request code without raw diagnostics", async () => {
@@ -1051,6 +1141,7 @@ test("a fatal bundle failure stops every worker from dispatching a new repositor
   let releaseSecond;
   const secondBlocked = new Promise(resolve => { releaseSecond = resolve; });
   const calls = [];
+  let firstRepositoryCalls = 0;
   const execution = runClaudeSummaryBundleRequests({
     plan,
     environment: {},
@@ -1066,7 +1157,11 @@ test("a fatal bundle failure stops every worker from dispatching a new repositor
       if (slug === "owner/repo-0") {
         const invalid = modelEnvelope();
         invalid.summaries.ko.usage = "자세한 내용은 README를 참고하세요.";
-        return { structuredOutput: invalid, usage: { inputTokens: 100, outputTokens: 200 } };
+        firstRepositoryCalls += 1;
+        return {
+          structuredOutput: firstRepositoryCalls === 1 ? invalid : summaryPatch(invalid, { ko: ["usage"] }),
+          usage: { inputTokens: 100, outputTokens: 200 },
+        };
       }
       if (slug === "owner/repo-1") {
         await secondBlocked;

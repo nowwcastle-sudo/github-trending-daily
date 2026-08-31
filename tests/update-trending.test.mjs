@@ -741,6 +741,7 @@ test("render-only consumes exact frozen bindings with zero fetches and emits a r
     globalThis.fetch = originalFetch;
   }
   const published = parsePageRepos(await readFile(pageOut, "utf8"));
+  const persisted = JSON.parse(await readFile(cacheOut, "utf8"));
   const snapshot = JSON.parse(await readFile(snapshotOut, "utf8"));
   assert.equal(fetches, 0);
   assert.equal(published.length, 10);
@@ -762,6 +763,18 @@ test("render-only consumes exact frozen bindings with zero fetches and emits a r
   assert.equal(snapshot.enrichmentIndexSha256, hashCanonicalJson(enrichmentIndex));
   assert.equal(snapshot.repositories.length, 10);
   assert.equal(JSON.stringify(snapshot).includes(markdown), false);
+  assert.deepEqual(Object.keys(persisted[repositories[0].slug]).sort(), [
+    "content",
+    "evidence",
+    "inference_fields",
+    "invariants",
+    "source",
+    "summaries",
+  ]);
+  assert.deepEqual(persisted[repositories[0].slug].summaries, enrichmentIndex.repositories[repositories[0].slug].summaries);
+  assert.deepEqual(persisted[repositories[0].slug].evidence, enrichmentIndex.repositories[repositories[0].slug].evidence);
+  assert.deepEqual(persisted[repositories[0].slug].invariants, enrichmentIndex.repositories[repositories[0].slug].invariants);
+  assert.deepEqual(persisted[repositories[0].slug].inference_fields, enrichmentIndex.repositories[repositories[0].slug].inference_fields);
 
   const hostile = structuredClone(enrichmentIndex);
   hostile.repositories[repositories[0].slug].summary.source.path = "docs/OTHER.md";

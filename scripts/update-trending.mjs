@@ -1136,7 +1136,8 @@ export function createPageSnapshot({ page, summaryCache, repos, statsDate }) {
     if (seen.has(key)) throw new Error(`Duplicate published repository: ${slug}`);
     seen.add(key);
     const cacheKey = cacheKeys.get(key) ?? slug;
-    const source = nextCache[cacheKey]?.source ?? {
+    const cached = nextCache[cacheKey];
+    const source = cached?.source ?? {
       blob_sha: null,
       content_sha256: null,
       model: null,
@@ -1145,6 +1146,10 @@ export function createPageSnapshot({ page, summaryCache, repos, statsDate }) {
     };
     nextCache[cacheKey] = {
       content: Object.fromEntries(SUMMARY_FIELDS.map(field => [field, repo.detail[field]])),
+      ...(Object.hasOwn(cached ?? {}, "summaries") ? { summaries: cached.summaries } : {}),
+      ...(Object.hasOwn(cached ?? {}, "evidence") ? { evidence: cached.evidence } : {}),
+      ...(Object.hasOwn(cached ?? {}, "invariants") ? { invariants: cached.invariants } : {}),
+      ...(Object.hasOwn(cached ?? {}, "inference_fields") ? { inference_fields: cached.inference_fields } : {}),
       source,
     };
     cacheKeys.set(key, cacheKey);
