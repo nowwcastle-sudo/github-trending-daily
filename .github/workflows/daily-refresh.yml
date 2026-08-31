@@ -302,7 +302,7 @@ jobs:
             $candidate = Join-Path $root "candidate"
             $index = Join-Path $root "enrichment-index.json"
             $parentDatabase = Join-Path $root "frozen-parent-input/repository-observations.sqlite"
-            $output = & node scripts/generate-summary-bundles.mjs --facts (Join-Path $root "repository-facts.json") --events (Join-Path $root "repository-events.json") --enrichment-index-out $index --source-root $candidate --output-root $candidate --prior-heads (Join-Path $root "prior-heads.json") --parent-evidence (Join-Path $root "parent-evidence.json") --parent-database $parentDatabase
+            $output = & node scripts/generate-summary-bundles.mjs --facts (Join-Path $root "repository-facts.json") --events (Join-Path $root "repository-events.json") --enrichment-index-out $index --source-root $candidate --output-root $candidate --prior-heads (Join-Path $root "prior-heads.json") --parent-evidence (Join-Path $root "parent-evidence.json") --parent-database $parentDatabase --failure-diagnostics-out (Join-Path $root "enrichment-failure.json")
             if ($LASTEXITCODE -ne 0) { throw "Claude enrichment failed" }
             $receipt = ($output -join "`n")
             Set-Content -LiteralPath (Join-Path $root "enrichment-usage.json") -Value $receipt -Encoding utf8 -NoNewline
@@ -319,6 +319,14 @@ jobs:
             $env:CLAUDE_CODE_OAUTH_TOKEN = $null
             $oauthToken = $null
           }
+      - name: Upload bounded enrichment failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: refresh-enrichment-failure-${{ github.run_id }}
+          path: ${{ runner.temp }}/refresh-input/enrichment-failure.json
+          if-no-files-found: ignore
+          retention-days: 1
       - name: Upload bounded enrichment output
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

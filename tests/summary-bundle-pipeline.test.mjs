@@ -63,6 +63,15 @@ function modelEnvelope() {
   return value;
 }
 
+function summaryPatch(value, selections) {
+  return {
+    summaries: Object.fromEntries(Object.entries(selections).map(([locale, selected]) => [
+      locale,
+      Object.fromEntries(selected.map(field => [field, value.summaries[locale][field]])),
+    ])),
+  };
+}
+
 function derivedHeading(markdown, startLine) {
   const value = modelEnvelope();
   for (const refs of Object.values(value.evidence)) {
@@ -219,7 +228,8 @@ test("Claude subscription execution preflights once and applies one bounded qual
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
   const invalid = modelEnvelope();
   invalid.summaries.ko.usage = "자세한 내용은 README를 참고하세요.";
-  const replies = [invalid, modelEnvelope()];
+  const valid = modelEnvelope();
+  const replies = [invalid, summaryPatch(valid, { ko: ["usage"] })];
   let preflights = 0;
   let calls = 0;
   const result = await runClaudeSummaryBundleRequests({
@@ -262,7 +272,12 @@ test("quality correction identifies a repeated failing locale field and stays bo
   firstInvalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
   const secondInvalid = modelEnvelope();
   secondInvalid.summaries.es.cons = "Consulte el README para revisar las limitaciones.";
-  const replies = [firstInvalid, secondInvalid, modelEnvelope()];
+  const valid = modelEnvelope();
+  const replies = [
+    firstInvalid,
+    summaryPatch(secondInvalid, { es: ["cons"] }),
+    summaryPatch(valid, { es: ["cons"] }),
+  ];
   const prompts = [];
   let calls = 0;
   const result = await runClaudeSummaryBundleRequests({
@@ -309,7 +324,7 @@ test("quality correction identifies an invariant that is not a literal README su
   const valid = invalid();
   valid.invariants[1].value = "3.13+";
   const plan = measureClaudeCliSummaryBundlePlan([versionItem], { retryAttempts: 12 });
-  const replies = [invalid(), invalid(), valid];
+  const replies = [invalid(), { invariants: invalid().invariants }, { invariants: valid.invariants }];
   const prompts = [];
   let calls = 0;
   const result = await runClaudeSummaryBundleRequests({
@@ -339,7 +354,12 @@ test("quality correction identifies an invariant field mismatch in one locale", 
     return value;
   };
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
-  const replies = [invalid(), invalid(), modelEnvelope()];
+  const valid = modelEnvelope();
+  const replies = [
+    invalid(),
+    summaryPatch(invalid(), { ja: ["cons"] }),
+    summaryPatch(valid, { ja: ["cons"] }),
+  ];
   const prompts = [];
   let calls = 0;
   const result = await runClaudeSummaryBundleRequests({
@@ -375,7 +395,9 @@ test("invariant field correction audits every declared invariant across every lo
     return value;
   };
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
-  const replies = [invalid(), invalid(), modelEnvelope()];
+  const valid = modelEnvelope();
+  const selected = { ko: ["goal"], es: ["usage"], ja: ["cons"] };
+  const replies = [invalid(), summaryPatch(invalid(), selected), summaryPatch(valid, selected)];
   const prompts = [];
   let calls = 0;
   const result = await runClaudeSummaryBundleRequests({
@@ -405,7 +427,12 @@ test("quality correction identifies unsupported marketing language in one locale
     return value;
   };
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
-  const replies = [invalid(), invalid(), modelEnvelope()];
+  const valid = modelEnvelope();
+  const replies = [
+    invalid(),
+    summaryPatch(invalid(), { en: ["fit"] }),
+    summaryPatch(valid, { en: ["fit"] }),
+  ];
   const prompts = [];
   let calls = 0;
   const result = await runClaudeSummaryBundleRequests({
@@ -435,7 +462,9 @@ test("one correction receives the prior output and every independent quality def
   invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
   invalid.summaries.ja.goal = invalid.summaries.ja.goal.replace("`npm test`", "the test command");
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
-  const replies = [invalid, modelEnvelope()];
+  const valid = modelEnvelope();
+  const selected = { en: ["fit"], es: ["cons"], ja: ["goal"] };
+  const replies = [invalid, summaryPatch(valid, selected)];
   const prompts = [];
   let calls = 0;
   const result = await runClaudeSummaryBundleRequests({
@@ -462,6 +491,139 @@ test("one correction receives the prior output and every independent quality def
   assert.deepEqual(result.results[0].summaries, bundle());
 });
 
+test("quality correction schema exposes only validator-selected defective paths", async () => {
+  const invalid = modelEnvelope();
+  invalid.summaries.en.fit += " It is the ultimate choice.";
+  invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
+  invalid.summaries.ja.goal = invalid.summaries.ja.goal.replace("`npm test`", "the test command");
+  const corrected = modelEnvelope();
+  const patch = {
+    summaries: {
+      en: { fit: corrected.summaries.en.fit },
+      es: { cons: corrected.summaries.es.cons },
+      ja: { goal: corrected.summaries.ja.goal },
+    },
+  };
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  const replies = [invalid, patch];
+  const schemas = [];
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ schema }) => {
+      schemas.push(schema);
+      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+
+  assert.equal(calls, 2);
+  assert.deepEqual(schemas[1].required, ["summaries"]);
+  assert.deepEqual(Object.keys(schemas[1].properties), ["summaries"]);
+  assert.deepEqual(schemas[1].properties.summaries.required, ["en", "es", "ja"]);
+  assert.deepEqual(schemas[1].properties.summaries.properties.en.required, ["fit"]);
+  assert.deepEqual(schemas[1].properties.summaries.properties.es.required, ["cons"]);
+  assert.deepEqual(schemas[1].properties.summaries.properties.ja.required, ["goal"]);
+  assert.deepEqual(result.results[0].summaries, bundle());
+});
+
+test("a partial correction becomes the immutable base for the next targeted correction", async () => {
+  const invalid = modelEnvelope();
+  invalid.summaries.en.fit += " It is the ultimate choice.";
+  invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
+  const valid = modelEnvelope();
+  const partial = {
+    summaries: {
+      en: { fit: valid.summaries.en.fit },
+      es: { cons: invalid.summaries.es.cons },
+    },
+  };
+  const final = summaryPatch(valid, { es: ["cons"] });
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  const replies = [invalid, partial, final];
+  const schemas = [];
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ schema }) => {
+      schemas.push(schema);
+      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+
+  assert.equal(calls, 3);
+  assert.deepEqual(schemas[1].properties.summaries.required, ["en", "es"]);
+  assert.deepEqual(schemas[2].properties.summaries.required, ["es"]);
+  assert.deepEqual(schemas[2].properties.summaries.properties.es.required, ["cons"]);
+  assert.deepEqual(result.results[0].summaries, bundle());
+});
+
+test("terminal quality failure exposes bounded defect diagnostics without model output", async () => {
+  const invalid = modelEnvelope();
+  invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  let calls = 0;
+
+  await assert.rejects(
+    runClaudeSummaryBundleRequests({
+      plan,
+      environment: {},
+      now: () => 0,
+      deadline: 100_000,
+      attemptTimeoutMs: 1_000,
+      sleep: async () => {},
+      preflight: async () => oauthRuntime,
+      executeClaude: async () => {
+        calls += 1;
+        return { structuredOutput: invalid, usage: { inputTokens: 100, outputTokens: 200 } };
+      },
+    }),
+    error => {
+      assert.equal(calls, 3);
+      const invariantHash = createHash("sha256").update(Buffer.from("npm test", "utf8")).digest("hex");
+      assert.deepEqual(error.summaryFailureDiagnostic, {
+        version: 1,
+        repository: "owner/repo",
+        failure_code: "QUALITY_VALIDATION_FAILED",
+        defect_count: 3,
+        defects: [
+          { code: "GENERIC_OR_PLACEHOLDER", locale: "es", field: "cons" },
+          {
+            code: "LOCALE_INVARIANT",
+            locale: "es",
+            expected_fields: fields,
+            actual_fields: ["goal", "usage", "pros", "fit"],
+            invariant: { length: 8, sha256: invariantHash },
+          },
+          { code: "LOCALE_INVARIANT", locale: "es", field: "cons" },
+        ],
+        usage: { inputTokens: 300, outputTokens: 600, attempts: 3, retries: 2 },
+        runtime: {
+          provider: "claude-cli-oauth",
+          interface: "claude-p",
+          cli_version: "2.1.241",
+          auth_method: "oauth_token",
+          api_provider: "firstParty",
+          model: "claude-sonnet-5",
+        },
+      });
+      assert.doesNotMatch(JSON.stringify(error.summaryFailureDiagnostic), /Consulte|README|summaries/i);
+      return true;
+    },
+  );
+});
+
 test("inference fields use one documented canonical order across quality corrections", async () => {
   const hedge = {
     en: "This may support a cautious adoption decision.",
@@ -480,7 +642,11 @@ test("inference fields use one documented canonical order across quality correct
     return value;
   };
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
-  const replies = [withInference(["fit", "goal"]), withInference(["fit", "goal"]), withInference(["goal", "fit"])];
+  const replies = [
+    withInference(["fit", "goal"]),
+    { inference_fields: ["fit", "goal"] },
+    { inference_fields: ["goal", "fit"] },
+  ];
   const prompts = [];
   let calls = 0;
   const result = await runClaudeSummaryBundleRequests({
@@ -520,7 +686,11 @@ test("inference strength correction identifies the exact locale field", async ()
   const invalid = () => withInference("これは導入判断に影響します。");
   const valid = withInference("これは導入判断に影響する可能性があります。");
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
-  const replies = [invalid(), invalid(), valid];
+  const replies = [
+    invalid(),
+    summaryPatch(invalid(), { ja: ["cons"] }),
+    summaryPatch(valid, { ja: ["cons"] }),
+  ];
   const prompts = [];
   let calls = 0;
   const result = await runClaudeSummaryBundleRequests({

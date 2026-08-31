@@ -101,6 +101,22 @@ test("one create-new parent database capture is reused across every frozen bound
   assert.match(workflow, /record_repository_observations\.py[^\n]*--parent-database "\$PARENT_DATABASE"/);
 });
 
+test("failed enrichment uploads bounded defect diagnostics without a partial candidate", async () => {
+  const workflow = await workflowText();
+  assert.match(workflow, /generate-summary-bundles\.mjs[^\n]*--failure-diagnostics-out \(Join-Path \$root "enrichment-failure\.json"\)/);
+  assertInOrder(workflow, [
+    "Generate bound enrichment with Claude OAuth",
+    "Upload bounded enrichment failure diagnostics",
+    "Upload bounded enrichment output",
+  ]);
+  assert.match(workflow, /- name: Upload bounded enrichment failure diagnostics\n\s+if: failure\(\)\n\s+uses: actions\/upload-artifact@[0-9a-f]{40}[\s\S]*name: refresh-enrichment-failure-\$\{\{ github\.run_id \}\}[\s\S]*path: \$\{\{ runner\.temp \}\}\/refresh-input\/enrichment-failure\.json[\s\S]*if-no-files-found: ignore/);
+  const failureUpload = workflow.slice(
+    workflow.indexOf("Upload bounded enrichment failure diagnostics"),
+    workflow.indexOf("Upload bounded enrichment output"),
+  );
+  assert.doesNotMatch(failureUpload, /refresh-enriched|repo-summaries|translation-sources|enrichment-index/);
+});
+
 test("parent capture directory is sealed before verification and every possible first fetch", async () => {
   const workflow = await workflowText();
   const freezeStart = workflow.indexOf("- name: Freeze one run context and parent evidence");
