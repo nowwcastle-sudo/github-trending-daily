@@ -17,8 +17,8 @@ export const EVENT_LIMITS = Object.freeze({
   maxLogicalRequests: 3600,
   maxAttempts: 4500,
   requestTimeoutMs: 30_000,
-  retryAttempts: 3,
   retryDelaysMs: Object.freeze([2000, 8000]),
+  ossRetryDelaysMs: Object.freeze([2000, 8000, 30_000, 60_000]),
   eventAdmissionReserveMs: 5000,
   eventWindowMs: 15 * 60_000,
   maxOssBytes: 2 * 1024 * 1024,
@@ -173,8 +173,8 @@ export function createPersistentEventCollectionContext({ statePath, originEpochM
 
 function retryableStatus(status) { return status === 429 || status >= 500; }
 function retryableError(error) { return error?.name === "AbortError" || error?.name === "TimeoutError"; }
-function retryDelay(_response, attempt) {
-  return EVENT_LIMITS.retryDelaysMs[attempt];
+function retryDelay(_response, attempt, retryDelaysMs) {
+  return retryDelaysMs[attempt];
 }
 
 const STRONG_ETAG = /^"(?:[\x21\x23-\x7e\x80-\xff])*"$/;
@@ -185,10 +185,10 @@ const REQUEST_OPERATIONS = new Set([
   "commit comparison", "branch continuity", "OSS star history",
 ]);
 
-async function request(url, { fetchImpl, sleep, budget, operation, headers = {}, allow304 = false, readResponse = null }) {
+async function request(url, { fetchImpl, sleep, budget, operation, headers = {}, allow304 = false, readResponse = null, retryDelaysMs = EVENT_LIMITS.retryDelaysMs }) {
   if (!REQUEST_OPERATIONS.has(operation)) throw new Error("Event request operation is invalid");
   budget.admitLogical();
-  for (let attempt = 0; attempt < EVENT_LIMITS.retryAttempts; attempt += 1) {
+  for (let attempt = 0; attempt <= retryDelaysMs.length; attempt += 1) {
     budget.admitAttempt();
     let response;
     try {
@@ -199,26 +199,26 @@ async function request(url, { fetchImpl, sleep, budget, operation, headers = {},
         signal: AbortSignal.timeout(EVENT_LIMITS.requestTimeoutMs),
       });
     } catch (error) {
-      if (!retryableError(error) || attempt === EVENT_LIMITS.retryAttempts - 1) throw eventError(`Event ${operation} request failed`);
-      const delay = EVENT_LIMITS.retryDelaysMs[attempt];
+      if (!retryableError(error) || attempt === retryDelaysMs.length) throw eventError(`Event ${operation} request failed`);
+      const delay = retryDelaysMs[attempt];
       budget.admitSleep(delay);
       await sleep(delay);
       continue;
     }
     if (response.status === 304 && allow304) return readResponse ? readResponse(response) : response;
-    if (!retryableStatus(response.status) || attempt === EVENT_LIMITS.retryAttempts - 1) {
+    if (!retryableStatus(response.status) || attempt === retryDelaysMs.length) {
       if (!readResponse) return response;
       try {
         return await readResponse(response);
       } catch (error) {
-        if (!error?.[RETRYABLE_RESPONSE_BODY] || attempt === EVENT_LIMITS.retryAttempts - 1) throw error;
-        const delay = EVENT_LIMITS.retryDelaysMs[attempt];
+        if (!error?.[RETRYABLE_RESPONSE_BODY] || attempt === retryDelaysMs.length) throw error;
+        const delay = retryDelaysMs[attempt];
         budget.admitSleep(delay);
         await sleep(delay);
         continue;
       }
     }
-    const delay = retryDelay(response, attempt);
+    const delay = retryDelay(response, attempt, retryDelaysMs);
     budget.admitSleep(delay);
     await sleep(delay);
   }
@@ -461,7 +461,7 @@ export function validateOssInsightResponse(value) {
 async function collectOss(slug, context) {
   const [owner, name] = normalizeSlug(slug).split("/");
   const url = `https://api.ossinsight.io/v1/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/stargazers/history`;
-  const response = await request(url, { ...context, operation: "OSS star history", headers: { Accept: "application/json" } });
+  const response = await request(url, { ...context, operation: "OSS star history", headers: { Accept: "application/json" }, retryDelaysMs: EVENT_LIMITS.ossRetryDelaysMs });
   if (!response.ok) throw new Error(`OSS Insight returned ${response.status} for ${slug}`);
   const contentType = response.headers.get("content-type") ?? "";
   if (!/^application\/(?:json|[^;]+\+json)(?:;|$)/i.test(contentType)) throw new Error(`Invalid OSS Insight content type for ${slug}`);
