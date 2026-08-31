@@ -228,6 +228,40 @@ test("Claude subscription execution preflights once and applies one bounded qual
   });
 });
 
+test("quality correction identifies a repeated failing locale field and stays bounded", async () => {
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  const firstInvalid = modelEnvelope();
+  firstInvalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
+  const secondInvalid = modelEnvelope();
+  secondInvalid.summaries.es.cons = "Consulte el README para revisar las limitaciones.";
+  const replies = [firstInvalid, secondInvalid, modelEnvelope()];
+  const prompts = [];
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      prompts.push(prompt);
+      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+  assert.equal(calls, 3);
+  assert.match(prompts[1], /es\.cons/);
+  assert.match(prompts[2], /es\.cons/);
+  assert.deepEqual(result.usage, {
+    inputTokens: 300,
+    outputTokens: 600,
+    logicalCalls: 1,
+    attempts: 3,
+    retries: 2,
+  });
+});
+
 test("Claude subscription execution makes zero model calls when OAuth preflight fails", async () => {
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
   let calls = 0;
