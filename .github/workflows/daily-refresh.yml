@@ -296,6 +296,7 @@ jobs:
           $ErrorActionPreference = "Stop"
           $oauthToken = [Environment]::GetEnvironmentVariable("CLAUDE_CODE_OAUTH_TOKEN", "User")
           if ([string]::IsNullOrWhiteSpace($oauthToken)) { throw "Claude OAuth token is unavailable for the runner user" }
+          Write-Host "::add-mask::$oauthToken"
           $env:CLAUDE_CODE_OAUTH_TOKEN = $oauthToken
           try {
             $root = Join-Path $env:RUNNER_TEMP "refresh-input"
@@ -306,15 +307,16 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw "Claude enrichment failed" }
             $receipt = ($output -join "`n")
             Set-Content -LiteralPath (Join-Path $root "enrichment-usage.json") -Value $receipt -Encoding utf8 -NoNewline
-            node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); const usage=value?.usage; const runtime=value?.runtime; const keys=["repositories","pending","runtime","usage"]; const usageKeys=["attempts","inputTokens","logicalCalls","outputTokens","retries"]; const runtimeKeys=["api_provider","auth_method","cli_version","interface","model","provider"]; if(Object.keys(value).sort().join("\0")!==keys.sort().join("\0")||Object.keys(usage??{}).sort().join("\0")!==usageKeys.sort().join("\0")||Object.values(usage).some(v=>!Number.isSafeInteger(v)||v<0)||Object.keys(runtime??{}).sort().join("\0")!==runtimeKeys.sort().join("\0")||runtime.provider!=="claude-cli-oauth"||runtime.interface!=="claude-p"||runtime.auth_method!=="oauth_token"||runtime.api_provider!=="firstParty"||runtime.model!=="claude-sonnet-5"||!/^[0-9]+\.[0-9]+\.[0-9]+$/.test(runtime.cli_version)||JSON.stringify(value).match(/cost/i)) throw new Error("Claude usage receipt is invalid");' (Join-Path $root "enrichment-usage.json")
+            node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); const usage=value?.usage; const runtime=value?.runtime; const keys=["repositories","pending","runtime","usage"]; const usageKeys=["attempts","inputTokens","logicalCalls","outputTokens","retries"]; const runtimeKeys=["api_provider","auth_method","cli_version","interface","model","provider"]; if(Object.keys(value).sort().join("\0")!==keys.sort().join("\0")||Object.keys(usage??{}).sort().join("\0")!==usageKeys.sort().join("\0")||Object.values(usage).some(v=>!Number.isSafeInteger(v)||v<0)||Object.keys(runtime??{}).sort().join("\0")!==runtimeKeys.sort().join("\0")||runtime.provider!=="claude-cli-oauth"||runtime.interface!=="claude-p"||runtime.auth_method!=="oauth_token"||runtime.api_provider!=="firstParty"||runtime.model!=="claude-sonnet-5"||!/^[0-9]+\.[0-9]+\.[0-9]+$/.test(runtime.cli_version)) throw new Error("Claude usage receipt is invalid");' (Join-Path $root "enrichment-usage.json")
             if ((git status --porcelain=v1).Count -ne 0) { throw "Claude runner changed the tracked checkout" }
             $result = Join-Path $env:RUNNER_TEMP "refresh-enriched"
-            New-Item -ItemType Directory -Path (Join-Path $result "data") | Out-Null
+            New-Item -ItemType Directory -Path (Join-Path $result "data") -Force | Out-Null
             Copy-Item -LiteralPath (Join-Path $candidate "data/repo-summaries.json") -Destination (Join-Path $result "data/repo-summaries.json")
             Copy-Item -LiteralPath (Join-Path $candidate "data/translation-sources.json") -Destination (Join-Path $result "data/translation-sources.json")
             Copy-Item -LiteralPath $index -Destination (Join-Path $result "enrichment-index.json")
             Copy-Item -LiteralPath (Join-Path $root "enrichment-usage.json") -Destination (Join-Path $result "enrichment-usage.json")
-            if ((Get-ChildItem -LiteralPath (Join-Path $candidate "translations") -Force).Count -ne 0) { throw "Retired translation residue is present" }
+            $residue = Join-Path $candidate "translations"
+            if ((Test-Path -LiteralPath $residue) -and (Get-ChildItem -LiteralPath $residue -Force).Count -ne 0) { throw "Retired translation residue is present" }
           } finally {
             $env:CLAUDE_CODE_OAUTH_TOKEN = $null
             $oauthToken = $null
@@ -385,7 +387,7 @@ jobs:
           ACTUAL_FILES="$(find "$ENRICHED_ROOT" -type f -printf '%P\n' | LC_ALL=C sort)"
           [ "$ACTUAL_FILES" = "$EXPECTED_FILES" ] || { echo "::error::unexpected enrichment artifact residue"; exit 1; }
           [ -z "$(find "$ENRICHED_ROOT" -type l -print -quit)" ] || { echo "::error::enrichment artifact symlink rejected"; exit 1; }
-          node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); const usage=value?.usage; const runtime=value?.runtime; const keys=["repositories","pending","runtime","usage"]; const usageKeys=["attempts","inputTokens","logicalCalls","outputTokens","retries"]; const runtimeKeys=["api_provider","auth_method","cli_version","interface","model","provider"]; if(Object.keys(value).sort().join("\0")!==keys.sort().join("\0")||Object.keys(usage??{}).sort().join("\0")!==usageKeys.sort().join("\0")||Object.values(usage).some(v=>!Number.isSafeInteger(v)||v<0)||Object.keys(runtime??{}).sort().join("\0")!==runtimeKeys.sort().join("\0")||runtime.provider!=="claude-cli-oauth"||runtime.interface!=="claude-p"||runtime.auth_method!=="oauth_token"||runtime.api_provider!=="firstParty"||runtime.model!=="claude-sonnet-5"||!/^[0-9]+\.[0-9]+\.[0-9]+$/.test(runtime.cli_version)||JSON.stringify(value).match(/cost/i)) throw new Error("Claude usage receipt is invalid");' "$ENRICHED_ROOT/enrichment-usage.json"
+          node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); const usage=value?.usage; const runtime=value?.runtime; const keys=["repositories","pending","runtime","usage"]; const usageKeys=["attempts","inputTokens","logicalCalls","outputTokens","retries"]; const runtimeKeys=["api_provider","auth_method","cli_version","interface","model","provider"]; if(Object.keys(value).sort().join("\0")!==keys.sort().join("\0")||Object.keys(usage??{}).sort().join("\0")!==usageKeys.sort().join("\0")||Object.values(usage).some(v=>!Number.isSafeInteger(v)||v<0)||Object.keys(runtime??{}).sort().join("\0")!==runtimeKeys.sort().join("\0")||runtime.provider!=="claude-cli-oauth"||runtime.interface!=="claude-p"||runtime.auth_method!=="oauth_token"||runtime.api_provider!=="firstParty"||runtime.model!=="claude-sonnet-5"||!/^[0-9]+\.[0-9]+\.[0-9]+$/.test(runtime.cli_version)) throw new Error("Claude usage receipt is invalid");' "$ENRICHED_ROOT/enrichment-usage.json"
           node scripts/prepare-refresh-candidate.mjs --checkout "$GITHUB_WORKSPACE" --last-good-sha "$HYDRATION_SOURCE_SHA" --out "${RUNNER_TEMP}/candidate"
           cp -a "${RUNNER_TEMP}/candidate" "${RUNNER_TEMP}/candidate-baseline"
           rm -f "${RUNNER_TEMP}/candidate/data/repository-observations.sqlite" "${RUNNER_TEMP}/candidate/data/repository-observations.sqlite-journal" "${RUNNER_TEMP}/candidate/data/repository-observations.sqlite-shm" "${RUNNER_TEMP}/candidate/data/repository-observations.sqlite-wal"

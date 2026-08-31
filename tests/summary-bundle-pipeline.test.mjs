@@ -498,10 +498,19 @@ test("quality correction identifies unsupported marketing language in one locale
   });
   assert.equal(calls, 3);
   assert.match(prompts[1], /en\.fit/);
+  assert.match(prompts[1], /forbidden_terms/);
+  assert.match(prompts[1], /ultimate/);
   assert.match(prompts[1], /neutral.*source-supported/i);
   assert.match(prompts[1], /promotional.*superlative/i);
   assert.match(prompts[2], /en\.fit/);
   assert.deepEqual(result.results[0].summaries, bundle());
+});
+
+test("source-grounded best practices terminology is not promotional marketing", () => {
+  const summaries = bundle();
+  summaries.en.goal += " It enforces a documented code standard and a set of best practices.";
+  summaries["zh-CN"].goal += " 它用于执行文档化的编码标准和一组最佳实践。";
+  assert.deepEqual(validateSummaryBundle(summaries), summaries);
 });
 
 test("one correction receives the prior output and every independent quality defect", async () => {
@@ -619,6 +628,7 @@ test("a partial correction becomes the immutable base for the next targeted corr
 
 test("terminal quality failure exposes bounded defect diagnostics without model output", async () => {
   const invalid = modelEnvelope();
+  invalid.summaries.en.fit += " It is the ultimate choice.";
   invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
   let calls = 0;
@@ -644,8 +654,9 @@ test("terminal quality failure exposes bounded defect diagnostics without model 
         version: 1,
         repository: "owner/repo",
         failure_code: "QUALITY_VALIDATION_FAILED",
-        defect_count: 3,
+        defect_count: 4,
         defects: [
+          { code: "UNSUPPORTED_MARKETING", locale: "en", field: "fit", forbidden_terms: ["ultimate"] },
           { code: "GENERIC_OR_PLACEHOLDER", locale: "es", field: "cons" },
           {
             code: "LOCALE_INVARIANT",
@@ -675,7 +686,7 @@ test("terminal quality failure exposes bounded defect diagnostics without model 
           model: "claude-sonnet-5",
         },
       });
-      assert.doesNotMatch(JSON.stringify(error.summaryFailureDiagnostic), /Consulte|README|summaries/i);
+      assert.doesNotMatch(JSON.stringify(error.summaryFailureDiagnostic), /Consulte|README|summaries|ultimate choice/i);
       return true;
     },
   );

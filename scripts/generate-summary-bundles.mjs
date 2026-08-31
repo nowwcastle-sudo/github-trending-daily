@@ -35,7 +35,7 @@ const FINALIZATION_RESERVE_MS = 30_000;
 const MAX_CORRECTION_CONTEXT_BYTES = 128 * 1024;
 const SOURCE_KEYS = Object.freeze(["kind", "slug", "path", "blob_sha", "content_sha256", "provider", "interface", "cli_version", "auth_method", "api_provider", "model", "schema_version", "prompt_schema_version", "translation_applicable"]);
 const INVARIANT_KINDS = Object.freeze(["command", "version", "number", "url", "product"]);
-const MARKETING_RE = /(?:\b(?:best|revolutionary|game[- ]?changing|unmatched|ultimate)\b|최고의|혁신적|압도적|革命性|最佳|无与伦比|revolucionari[oa]|inigualable|究極|革新的)/i;
+const MARKETING_RE = /(?:\bbest\b(?!\s+practices?\b)|\b(?:revolutionary|game[- ]?changing|unmatched|ultimate)\b|최고의|혁신적|압도적|革命性|最佳(?!实践)|无与伦比|revolucionari[oa]|inigualable|究極|革新的)/gi;
 const HEDGE_MARKERS = Object.freeze({
   en: /\b(?:may|might|could|likely|suggests?|appears?)\b/i,
   ko: /(?:수\s*있|가능(?:성|할)|시사|보일\s*수)/,
@@ -74,6 +74,10 @@ function throwQualityDefects(defects) {
   throw error;
 }
 
+function marketingTerms(value) {
+  return [...value.matchAll(MARKETING_RE)].map(match => match[0]);
+}
+
 function checkedSummaryBundle(value) {
   if (!exactKeys(value, SUMMARY_BUNDLE_LOCALES)) throw new Error("Summary bundle locale schema is invalid");
   let total = 0;
@@ -93,12 +97,14 @@ function checkedSummaryBundle(value) {
           field,
         });
       }
-      if (MARKETING_RE.test(text)) {
+      const forbiddenTerms = marketingTerms(text);
+      if (forbiddenTerms.length > 0) {
         defects.push({
           code: "UNSUPPORTED_MARKETING",
           message: `Summary bundle contains unsupported marketing language in ${locale}.${field}`,
           locale,
           field,
+          marketingTerms: forbiddenTerms,
         });
       }
       total += text.length;
@@ -699,6 +705,9 @@ function promptDefectDiagnostic(defect) {
     message: String(defect.message ?? ""),
     ...(defect.locale ? { locale: defect.locale } : {}),
     ...(defect.field ? { field: defect.field } : {}),
+    ...(Array.isArray(defect.marketingTerms) && defect.marketingTerms.length > 0
+      ? { forbidden_terms: [...defect.marketingTerms] }
+      : {}),
     ...(defect.invariant ? { invariant: defect.invariant } : {}),
     ...(defect.invariantFields ? {
       expected_fields: defect.invariantFields.expected,
@@ -757,7 +766,7 @@ function qualityFeedbackForDefect(error) {
   }
   const marketing = /Summary bundle contains unsupported marketing language in (en|ko|zh-CN|es|ja)\.(goal|usage|pros|cons|fit)$/.exec(message);
   if (marketing) {
-    return `${qualityCode(error)} at ${marketing[1]}.${marketing[2]}. Rewrite that field in neutral source-supported language without promotional superlatives, while preserving its documented facts and cross-locale invariants`;
+    return `${qualityCode(error)} at ${marketing[1]}.${marketing[2]}. Rewrite that field in neutral source-supported language without any exact forbidden_terms listed in VALIDATION_DEFECTS_JSON, while preserving its documented facts and cross-locale invariants`;
   }
   const field = /Summary bundle contains a generic or placeholder (en|ko|zh-CN|es|ja)\.(goal|usage|pros|cons|fit)$/.exec(message);
   if (!field) return qualityCode(error);
@@ -926,6 +935,9 @@ export async function runClaudeSummaryBundleRequests({
       code: defect.code ?? qualityCode(defect),
       ...(defect.locale ? { locale: defect.locale } : {}),
       ...(defect.field ? { field: defect.field } : {}),
+      ...(Array.isArray(defect.marketingTerms) && defect.marketingTerms.length > 0
+        ? { forbidden_terms: [...defect.marketingTerms] }
+        : {}),
       ...(defect.invariantFields ? {
         expected_fields: [...(defect.invariantFields.expected ?? [])],
         actual_fields: [...(defect.invariantFields.actual ?? [])],
