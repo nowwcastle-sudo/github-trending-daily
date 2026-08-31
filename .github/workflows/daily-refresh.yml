@@ -278,6 +278,16 @@ jobs:
           foreach ($relative in @("candidate", "repository-facts.json", "repository-events.json", "prior-heads.json", "parent-evidence.json")) {
             if (-not (Test-Path -LiteralPath (Join-Path $root $relative))) { throw "Frozen enrichment input is incomplete" }
           }
+      - name: Seed approved v0 summary cache
+        if: ${{ needs.prepare.outputs.recovery_version == '0' }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $seed = Join-Path $env:GITHUB_WORKSPACE "data/bootstrap-summary-seed.json"
+          $target = Join-Path $env:RUNNER_TEMP "refresh-input/candidate/data/repo-summaries.json"
+          if (-not (Test-Path -LiteralPath $seed -PathType Leaf)) { throw "Approved v0 summary seed is unavailable" }
+          if (-not (Test-Path -LiteralPath $target -PathType Leaf)) { throw "Frozen candidate summary cache is unavailable" }
+          Copy-Item -LiteralPath $seed -Destination $target
       - name: Generate bound enrichment with Claude OAuth
         shell: pwsh
         env:
