@@ -338,6 +338,38 @@ test("quality correction identifies an invariant field mismatch in one locale", 
   assert.deepEqual(result.results[0].invariants[0].fields, fields);
 });
 
+test("invariant field correction audits every declared invariant across every locale", async () => {
+  const invalid = () => {
+    const value = modelEnvelope();
+    value.summaries.ko.goal = value.summaries.ko.goal.replace("`npm test`", "the test command");
+    value.summaries.es.usage = value.summaries.es.usage.replace("`npm test`", "the test command");
+    value.summaries.ja.cons = value.summaries.ja.cons.replace("`npm test`", "the test command");
+    return value;
+  };
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  const replies = [invalid(), invalid(), modelEnvelope()];
+  const prompts = [];
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      prompts.push(prompt);
+      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+  assert.equal(calls, 3);
+  assert.match(prompts[1], /audit every declared invariant value across all five locales/i);
+  assert.match(prompts[1], /not only the diagnostic one/i);
+  assert.match(prompts[2], /audit every declared invariant value across all five locales/i);
+  assert.deepEqual(result.results[0].invariants[0].fields, fields);
+});
+
 test("quality correction identifies unsupported marketing language in one locale field", async () => {
   const invalid = () => {
     const value = modelEnvelope();
