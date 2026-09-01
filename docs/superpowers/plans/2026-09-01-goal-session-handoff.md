@@ -327,12 +327,13 @@ node --test tests\page-runtime.test.mjs tests\ui-motion.test.mjs
 - temp DB S1/S2/S3 ledger→membership JSON→Atom→card 통합 GREEN. migration baseline→new 변이 RED와 원복.
 - `npm test` exit 0: Node 559 total = 547 pass + 12 intentional skip, Python 148 pass. Firestore Rules 9/9, actionlint 1.7.12 exact custom-label ignore, production dependency audit 0.
 - local actual browser 390/720/1200/1440 overflow 0, 5 locale 전환, hover immediate close+210ms, keyboard hidden trigger, exact period/export contract, reduced-motion 확인. headless coarse pointer/BFCache 한계는 production pass로 세지 않음.
+- implementation commit `3fef215f55e619a86b6d1c97722c25b1d09f847f`, branch push, PR #34 생성.
 - `wait-what` 발동 0회.
 
 미완료:
 
 - fresh `git diff --check`, staged secret scan과 staged diff review.
-- commit, push, PR, PR coordinate/Actions/CodeQL 검증.
+- PR #34 최종 head coordinate, Actions, matching commit CodeQL 검증.
 - current production Google login persistence 최종 gate.
 - merge/deploy-only 사용자 확인과 실제 배포.
 - CDP가 비활성화한 BFCache와 headless가 제공하지 않은 real coarse touch는 current production의 실제 브라우저 gate에서 재검증.

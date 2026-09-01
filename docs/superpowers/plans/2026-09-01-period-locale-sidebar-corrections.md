@@ -111,7 +111,7 @@
 - [x] focused Node tests, `npm test`, `npm run test:rules`, actionlint, production audit, `git diff --check`를 fresh 실행한다.
 - [ ] 390/720/1200/1440, 5 locales, BFCache, hover/modal, keyboard, real swipe, reduced motion, exact period counts, overflow 0을 actual browser로 확인한다.
 - [x] staged diff와 staged added lines에서 secret pattern을 값 출력 없이 검사한다.
-- [ ] 작은 한국어 커밋으로 나눠 push하고 PR을 만든다.
+- [x] 작은 한국어 커밋으로 나눠 push하고 PR을 만든다.
 - [ ] PR과 main 후보 SHA에 실제 CodeQL analyses 2건과 results 0을 확인한다.
 
 ### Task 6: Google 로그인 persistence 최종 pre-deploy gate

@@ -30,7 +30,7 @@
 
 이 문서는 2026-08-30 production closure의 최신 정본이다. 오래된 progress·ledger·이전 README 번역 계획보다 현재 사용자 결정, 코드, 테스트, Actions, Pages, production 실측을 우선한다. 원격 자동 갱신이 있을 수 있으므로 push와 배포 직전에 `git fetch --prune origin`으로 좌표를 다시 확정한다.
 
-2026-09-01 후속 계약이 이전 UI 설명을 대체한다. branch `codex/fix-period-locale-sidebar-20260901`, 기준 `HEAD == origin/main == 084a657d1bb36c7a79b3005161c50ddabf4938c0`에서 site locale 단독 summary, hover 0ms close 시작+210ms transition, 모바일 visible button 제거, 실제 period membership/gain/HOT/All, neutral migration baseline과 S1/S2/S3 전이를 구현·국소 검증했다. 아직 uncommitted candidate이며 production 성공·PR 준비·배포 준비로 부르지 않는다. `wait-what` 발동은 0회다.
+2026-09-01 후속 계약이 이전 UI 설명을 대체한다. branch `codex/fix-period-locale-sidebar-20260901`, base `084a657d1bb36c7a79b3005161c50ddabf4938c0`에서 site locale 단독 summary, hover 0ms close 시작+210ms transition, 모바일 visible button 제거, 실제 period membership/gain/HOT/All, neutral migration baseline과 S1/S2/S3 전이를 구현·검증해 PR #34를 만들었다. current production 성공·merge 준비·배포 준비로는 아직 부르지 않는다. `wait-what` 발동은 0회다.
 
 ## 1. 현재 사용자 결정
 
