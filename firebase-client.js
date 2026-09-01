@@ -192,6 +192,7 @@ async function bootstrap() {
   let lifecycle;
   let pendingUser;
   let hasPendingUser = false;
+  const signoutSignalKey = "gh-auth-signout";
 
   const applyAuthState = async user => {
     if (!bundle.published || bundle.disposed) {
@@ -238,10 +239,23 @@ async function bootstrap() {
     logout.disabled = true;
     try {
       await signOut(auth);
+      try {
+        localStorage.setItem(signoutSignalKey, "1");
+        localStorage.removeItem(signoutSignalKey);
+      } catch {}
     } catch {
       setSyncStatus(status, auth.currentUser, "로그아웃하지 못했어요. 잠시 후 다시 시도해 주세요.", "error");
       if (!bundle.disposed) logout.disabled = false;
     }
+  };
+
+  const onPeerSignout = event => {
+    if (event?.key !== signoutSignalKey || event.newValue !== "1" || !auth.currentUser || bundle.disposed) return;
+    void signOut(auth).catch(() => {
+      if (!bundle.disposed) {
+        setSyncStatus(status, auth.currentUser, "로그아웃하지 못했어요. 잠시 후 다시 시도해 주세요.", "error");
+      }
+    });
   };
 
   const restorePublishedState = () => {
@@ -267,6 +281,7 @@ async function bootstrap() {
       controller?.dispose();
       login.removeEventListener("click", onLogin);
       logout.removeEventListener("click", onLogout);
+      globalThis.removeEventListener("storage", onPeerSignout);
       lifecycle?.stop();
     },
   };
@@ -296,6 +311,7 @@ async function bootstrap() {
     stopAuth = onAuthStateChanged(auth, user => { void applyAuthState(user); });
     login.addEventListener("click", onLogin);
     logout.addEventListener("click", onLogout);
+    globalThis.addEventListener("storage", onPeerSignout);
     lifecycle = authLifecycle.create({
       target: globalThis,
       onDiscard: () => { bundle.dispose(); },

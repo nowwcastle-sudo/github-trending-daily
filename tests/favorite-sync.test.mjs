@@ -655,6 +655,7 @@ function makeButton({ hidden = false, failAdd } = {}) {
       removeCalls += 1;
       if (listeners.get(type) === listener) listeners.delete(type);
     },
+    click() { return listeners.get("click")?.(); },
     listenerCount: () => listeners.size,
     get addCalls() { return addCalls; },
     get removeCalls() { return removeCalls; },
@@ -754,7 +755,7 @@ function deferredBootstrapRuntime(options = {}) {
       return () => { unsubscribeCalls += 1; };
     },
     signInWithPopup: async () => {},
-    signOut: async () => {},
+    signOut: options.signOut || (async () => {}),
     arrayRemove: value => value,
     arrayUnion: value => value,
     doc: () => ({}),
@@ -791,10 +792,12 @@ function deferredBootstrapRuntime(options = {}) {
     get snapshots() { return snapshots; },
     get applied() { return applied; },
     get statusMutations() { return statusMutations; },
+    windowListenerCount(type) { return windowListeners.get(type)?.size || 0; },
     storage,
     browserLocalPersistence,
     triggerPagehide(event) { for (const listener of windowListeners.get("pagehide") || []) listener(event); },
     triggerPageshow(event) { for (const listener of windowListeners.get("pageshow") || []) listener(event); },
+    triggerStorage(event) { for (const listener of windowListeners.get("storage") || []) listener(event); },
   };
 }
 
@@ -889,6 +892,79 @@ test("a real null auth observer callback visibly restores only the guest list", 
   assert.equal(runtime.elements.syncStatus.dataset.tone, "normal");
 });
 
+test("explicit logout publishes a transient same-origin signal after Firebase sign-out", async () => {
+  const storage = memoryStorage();
+  const order = [];
+  const setItem = storage.setItem;
+  const removeItem = storage.removeItem;
+  storage.setItem = (key, value) => {
+    order.push(["set", key, String(value)]);
+    setItem(key, value);
+  };
+  storage.removeItem = key => {
+    order.push(["remove", key]);
+    removeItem(key);
+  };
+  let runtime;
+  runtime = await runFirebaseBootstrap({
+    storage,
+    signOut: async auth => {
+      order.push(["signOut"]);
+      auth.currentUser = null;
+      runtime.observers[0].callback(null);
+    },
+  });
+  runtime.persistence.resolve();
+  await flushBootstrap();
+  const auth = runtime.observers[0].auth;
+  auth.currentUser = { uid: "alice" };
+  runtime.observers[0].callback(auth.currentUser);
+  await flushBootstrap();
+
+  await runtime.elements.logoutBtn.click();
+  await flushBootstrap();
+
+  assert.deepEqual(order, [
+    ["signOut"],
+    ["set", "gh-auth-signout", "1"],
+    ["remove", "gh-auth-signout"],
+  ]);
+  assert.equal(storage.getItem("gh-auth-signout"), null);
+});
+
+test("same-origin logout signal restores a peer tab to the guest list without reload", async () => {
+  const storage = memoryStorage({
+    "gh-favs-guest": '["guest/only"]',
+    "gh-favs-imported:alice": "1",
+  });
+  let runtime;
+  runtime = await runFirebaseBootstrap({
+    realController: true,
+    storage,
+    getDoc: async () => ({ exists: () => true, data: () => ({ favorites: ["alice/only"] }) }),
+    signOut: async auth => {
+      auth.currentUser = null;
+      runtime.observers[0].callback(null);
+    },
+  });
+  runtime.persistence.resolve();
+  await flushBootstrap();
+  const auth = runtime.observers[0].auth;
+  auth.currentUser = { uid: "alice" };
+  runtime.observers[0].callback(auth.currentUser);
+  await flushBootstrap();
+  assert.equal(runtime.context.favoriteController.mode(), "account");
+
+  runtime.triggerStorage({ key: "gh-auth-signout", newValue: "1" });
+  await flushBootstrap();
+
+  assert.equal(runtime.context.favoriteController.mode(), "guest");
+  assert.deepEqual(JSON.parse(JSON.stringify(runtime.applied.at(-1))), { favorites: ["guest/only"], busy: false });
+  assert.equal(runtime.elements.syncStatus.textContent, "브라우저 동기화");
+  assert.equal(runtime.elements.loginBtn.hidden, false);
+  assert.equal(runtime.elements.logoutBtn.hidden, true);
+});
+
 test("a real Alice Firestore listener error keeps the cached account list visibly labeled", async () => {
   const { storage, writes } = recordingStorage({
     "gh-favs-guest": '["guest/only"]',
@@ -952,6 +1028,7 @@ test("published bundle disposal is idempotent", async () => {
   const runtime = await runFirebaseBootstrap();
   runtime.persistence.resolve();
   await flushBootstrap();
+  assert.equal(runtime.windowListenerCount("storage"), 1);
 
   runtime.triggerPagehide({ persisted: false });
   runtime.triggerPagehide({ persisted: false });
@@ -959,6 +1036,7 @@ test("published bundle disposal is idempotent", async () => {
   assert.equal(runtime.controllers[0].disposeCalls, 1);
   assert.equal(runtime.elements.loginBtn.removeCalls, 1);
   assert.equal(runtime.elements.logoutBtn.removeCalls, 1);
+  assert.equal(runtime.windowListenerCount("storage"), 0);
 });
 
 test("BFCache restore keeps the published Auth bundle and reapplies visible state once", async () => {

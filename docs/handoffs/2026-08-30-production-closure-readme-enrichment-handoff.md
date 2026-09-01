@@ -200,6 +200,8 @@ failure artifact가 보존한 3-byte invariant SHA-256을 frozen README substrin
 - reduced-motion emulation에서 sidebar, tooltip, scroll-top transition duration은 모두 0s이고 overflow는 0이다.
 - headless CDP는 coarse pointer와 BFCache 복원을 제공하지 않았다. swipe는 actual page runtime에 touch pointer event를 주입해 right-open/left-close를 확인했고, BFCache는 자동 테스트 GREEN만 있으며 actual browser pass로 세지 않는다.
 - axe-core 4.12.1은 390/1440에서 violations 0을 반환했지만 passes도 0이라 완전한 accessibility clean 근거로 사용하지 않는다. Impeccable detector도 HTML parser dependency 부재로 degraded regex mode였고 findings 0은 undercount다.
+- 사용자의 일반 Chrome에서는 current production 로그인 계정 모드가 reload, 새 탭, `pageshow.persisted=true` BFCache, Chrome 완전 재시작 뒤에도 유지됐고 계정 즐겨찾기 수는 모두 6개였다. App Check warning/error 비식별 집계는 0건이었다.
+- current production의 cross-tab logout은 RED다. 로그아웃한 탭은 guest 1개로 즉시 전환됐지만 peer 탭은 10초 뒤에도 account 6개를 유지했고 reload 뒤에만 guest 1개가 됐다. Firebase local persistence 자체는 지워졌지만 peer의 live auth observer 전달이 없었다. `firebase-client.js`에 사용자 식별정보 없는 일회성 same-origin signout 신호를 추가해 peer가 자기 Auth를 로그아웃하도록 보완했으며 focused TDD와 두 변이는 통과했다. 아직 미배포이므로 production pass로 세지 않는다.
 
 ## 8. 종료 조건
 

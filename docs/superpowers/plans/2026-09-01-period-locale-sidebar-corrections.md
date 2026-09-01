@@ -119,11 +119,13 @@
 **Files:**
 - No intended source change unless current production failure is reproduced by a RED test.
 
-- [ ] exact current production에서 사용자가 Google account selection/consent를 수행한다.
+- [x] exact current production을 사용자의 일반 Chrome 계정 세션에서 확인한다.
 - [ ] login→favorite→reload→new tab→BFCache→browser restart→cross-tab logout→guest/account separation을 actual browser로 확인한다.
-- [ ] identity, UID, token, storage value를 출력하거나 기록하지 않는다.
+- [x] identity, UID, token, storage value를 출력하거나 기록하지 않는다.
 - [ ] current production이 통과하면 exact browser/version/source SHA와 pass matrix만 기록한다.
-- [ ] 실패하면 stack/network boundary를 조사하고 RED를 작성하되, 새 auth fix를 production에서 검증했다고 추정하지 않고 merge/deploy 전 정지한다.
+- [x] 실패하면 stack/network boundary를 조사하고 RED를 작성하되, 새 auth fix를 production에서 검증했다고 추정하지 않고 merge/deploy 전 정지한다.
+
+2026-09-01 actual Chrome 결과: reload, 새 탭, `pageshow.persisted=true` BFCache, Chrome 완전 재시작에서 계정 모드와 즐겨찾기 6개가 유지됐다. 명시적 로그아웃 탭은 guest 1개로 즉시 전환됐지만 peer 탭은 10초 뒤에도 계정 6개를 유지했고 reload 뒤에만 guest 1개로 전환됐다. current production의 cross-tab logout은 RED다. `firebase-client.js`에 UID·token 없는 일회성 same-origin `storage` 신호를 추가했고, 발행·peer guest 전환 테스트는 수정 전 RED, 수정 후 GREEN, 발행값·listener event 두 변이에서 다시 RED였다. 이 수정은 아직 production에 배포되지 않았으므로 Task 6 전체 통과로 세지 않는다.
 
 ### Task 7: merge/deploy confirmation gate
 
