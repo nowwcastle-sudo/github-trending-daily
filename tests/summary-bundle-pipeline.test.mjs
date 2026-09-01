@@ -13,9 +13,26 @@ import {
   validateSummaryBundleEnvelope,
   validateStoredSummaryBundleEnvelope,
 } from "../scripts/generate-summary-bundles.mjs";
+import {
+  CLAUDE_SUMMARY_PRODUCER_PROFILE,
+  CODEX_SUMMARY_PRODUCER_PROFILE,
+  isSupportedSummaryProducer,
+} from "../scripts/enrichment-models.mjs";
 
 const fields = ["goal", "usage", "pros", "cons", "fit"];
 const oauthRuntime = { version: "2.1.241", authMethod: "oauth_token", apiProvider: "firstParty" };
+
+test("summary producer admission accepts exact Claude and Codex profiles only", () => {
+  const claude = { ...CLAUDE_SUMMARY_PRODUCER_PROFILE, cli_version: "2.1.241" };
+  const codex = { ...CODEX_SUMMARY_PRODUCER_PROFILE, cli_version: "0.151.0" };
+  assert.equal(isSupportedSummaryProducer(claude), true);
+  assert.equal(isSupportedSummaryProducer(codex), true);
+  for (const key of ["provider", "interface", "auth_method", "api_provider", "model"]) {
+    assert.equal(isSupportedSummaryProducer({ ...codex, [key]: `${codex[key]}-wrong` }), false, key);
+  }
+  assert.equal(isSupportedSummaryProducer({ ...codex, cli_version: "0.151" }), false);
+  assert.equal(isSupportedSummaryProducer({ ...codex, extra: true }), false);
+});
 
 const localeLead = {
   en: "This field explains the repository with concrete technical context for developers evaluating adoption.",
