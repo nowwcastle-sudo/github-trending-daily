@@ -1374,8 +1374,9 @@ def _validate_cross_input_bindings(snapshot: dict[str, Any], events: dict[str, A
 
 
 def _supported_summary_producer(source: Any) -> bool:
-    return (isinstance(source, dict)
-            and re.fullmatch(r"\d+\.\d+\.\d+", source.get("cli_version", "")) is not None
+    version = source.get("cli_version") if isinstance(source, dict) else None
+    return (isinstance(version, str)
+            and re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version) is not None
             and tuple(source.get(field) for field in _SUMMARY_PRODUCER_FIELDS) in _SUMMARY_PRODUCER_PROFILES)
 
 

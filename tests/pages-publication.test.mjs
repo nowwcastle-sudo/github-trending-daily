@@ -652,16 +652,23 @@ test("Pages builder admits exact mixed Claude and Codex sources", async t => {
   t.after(() => rm(directory, { recursive: true, force: true }));
   const fixture = await writeMixedSummaryConsumerFixture(directory);
   const contract = await artifactContractForPaths(fixture.source, VERSION_1_BASE_PATHS);
+  const sourcePage = await readFile(join(fixture.source, "index.html"));
+  const artifact = join(directory, "artifact");
 
   await buildPagesArtifact({
     sourceRoot: fixture.source,
-    outDir: join(directory, "artifact"),
+    outDir: artifact,
     sourceSha,
     snapshotId,
     artifactContract: contract,
   });
-  assert.deepEqual(fixture.cache[fixture.repositories[0].slug].source, fixture.sources.sources[fixture.repositories[0].slug]);
-  assert.deepEqual(fixture.cache[fixture.repositories[1].slug].source, fixture.sources.sources[fixture.repositories[1].slug]);
+  assert.deepEqual(await readFile(join(artifact, "index.html")), sourcePage);
+  for (const privateInput of ["repo-summaries.json", "translation-sources.json"]) {
+    await assert.rejects(
+      readFile(join(artifact, "data", privateInput)),
+      error => error?.code === "ENOENT",
+    );
+  }
 });
 
 test("coverage validator admits exact mixed Claude and Codex sources", async t => {

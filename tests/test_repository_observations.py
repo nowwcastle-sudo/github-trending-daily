@@ -1529,6 +1529,22 @@ class RepositoryObservationTests(unittest.TestCase):
                         hybrid["enrichmentIndex"],
                     )
 
+    def test_summary_producer_rejects_non_ascii_and_non_string_semver(self):
+        producer = {
+            "provider": "codex-cli",
+            "interface": "codex-exec",
+            "cli_version": "0.151.0",
+            "auth_method": "chatgpt_session",
+            "api_provider": "openai_first_party",
+            "model": "codex-cli/gpt-5.6-sol",
+        }
+        for label, version in (
+                ("unicode_digits", "٠.١٥١.٠"),
+                ("null", None),
+                ("number", 151)):
+            with self.subTest(label=label):
+                self.assertFalse(ledger._supported_summary_producer({**producer, "cli_version": version}))
+
     def test_reused_profile_and_release_rows_are_part_of_refresh_core_hash(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
         first_id = "20260828010101-aaaaaaaaaaaaaaaa"
