@@ -45,6 +45,11 @@ PAGES_BASE_ARTIFACT_PATHS = (
     "hidden-repos.js", "index.html", "membership-history.js", "readme-markdown.js",
     "refresh-schedule.js", "repo-filters.js", "site-i18n.js", "star-history.js", "star-history.json", "ui-motion.js",
 )
+_SUMMARY_PRODUCER_FIELDS = ("provider", "interface", "auth_method", "api_provider", "model")
+_SUMMARY_PRODUCER_PROFILES = (
+    ("claude-cli-oauth", "claude-p", "oauth_token", "firstParty", "claude-sonnet-5"),
+    ("codex-cli", "codex-exec", "chatgpt_session", "openai_first_party", "codex-cli/gpt-5.6-sol"),
+)
 
 
 def _foreign_key(reference: str) -> str:
@@ -1368,6 +1373,12 @@ def _validate_cross_input_bindings(snapshot: dict[str, Any], events: dict[str, A
     _validate_production_manifest_evidence(snapshot, source_sha, hydration_source_sha)
 
 
+def _supported_summary_producer(source: Any) -> bool:
+    return (isinstance(source, dict)
+            and re.fullmatch(r"\d+\.\d+\.\d+", source.get("cli_version", "")) is not None
+            and tuple(source.get(field) for field in _SUMMARY_PRODUCER_FIELDS) in _SUMMARY_PRODUCER_PROFILES)
+
+
 def _enrichment_hashes(repository: dict[str, Any], profile: dict[str, Any], index: Any) -> tuple[str, str, str, str, str | None, str | None]:
     slug = profile["slug"]
     entry = _enrichment_entry(index, slug)
@@ -1389,10 +1400,7 @@ def _enrichment_hashes(repository: dict[str, Any], profile: dict[str, Any], inde
         expected_source = {"kind": "readme", "slug": slug, "path": readme_path, "blob_sha": readme_blob, "content_sha256": readme_content, "provider": source.get("provider"), "interface": source.get("interface"), "cli_version": source.get("cli_version"), "auth_method": source.get("auth_method"), "api_provider": source.get("api_provider"), "model": source.get("model"), "schema_version": source.get("schema_version"), "prompt_schema_version": source.get("prompt_schema_version"), "translation_applicable": source.get("translation_applicable")}
     if source != expected_source:
         raise ValueError("summary source does not match canonical repository identity")
-    if (source.get("provider") != "claude-cli-oauth" or source.get("interface") != "claude-p"
-            or re.fullmatch(r"\d+\.\d+\.\d+", source.get("cli_version", "")) is None
-            or source.get("auth_method") != "oauth_token" or source.get("api_provider") != "firstParty"
-            or source.get("model") != "claude-sonnet-5" or source.get("schema_version") != 3
+    if (not _supported_summary_producer(source) or source.get("schema_version") != 3
             or source.get("prompt_schema_version") != 3 or source.get("translation_applicable") is not False):
         raise ValueError("summary source model or prompt contract is invalid")
     summary_source = _digest(source)

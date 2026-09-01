@@ -18,7 +18,7 @@ import {
   parseFrozenFactsBytes,
 } from "./collect-repository-events.mjs";
 import { parseJsonStrict } from "./build-pages-artifact.mjs";
-import { DEFAULT_ENRICHMENT_MODEL, isEnrichmentModel } from "./enrichment-models.mjs";
+import { isEnrichmentModel, isSupportedSummaryProducer } from "./enrichment-models.mjs";
 import { detectReadmeVariantPaths, inferReadmeLocale, isReadmeVariantSet } from "./readme-variants.mjs";
 
 const PERIODS = {
@@ -26,13 +26,13 @@ const PERIODS = {
   weekly: { field: "stars_weekly", label: "this week" },
   monthly: { field: "stars_monthly", label: "this month" },
 };
-const ENRICHMENT_MODEL = DEFAULT_ENRICHMENT_MODEL;
 const ENRICHMENT_SCHEMA_VERSION = 3;
 const SUMMARY_PROMPT_SCHEMA_VERSION = 3;
 const SUMMARY_FIELDS = ["goal", "usage", "pros", "cons", "fit"];
 const SUMMARY_LOCALES = ["en", "ko", "zh-CN", "es", "ja"];
 const MAX_README_BYTES = 2 * 1024 * 1024;
 const SUMMARY_SOURCE_KEYS = ["kind", "slug", "path", "blob_sha", "content_sha256", "provider", "interface", "cli_version", "auth_method", "api_provider", "model", "schema_version", "prompt_schema_version", "translation_applicable"];
+const SUMMARY_PRODUCER_KEYS = ["provider", "interface", "cli_version", "auth_method", "api_provider", "model"];
 
 function periodConfig(period) {
   const config = PERIODS[period];
@@ -899,11 +899,9 @@ function exactObjectKeys(value, keys) {
 
 function frozenSourceMatchesFact(source, fact) {
   if (!source || Array.isArray(source) || typeof source !== "object"
-      || source.model !== ENRICHMENT_MODEL || source.schema_version !== ENRICHMENT_SCHEMA_VERSION
+      || !isSupportedSummaryProducer(Object.fromEntries(SUMMARY_PRODUCER_KEYS.map(key => [key, source[key]])))
+      || source.schema_version !== ENRICHMENT_SCHEMA_VERSION
       || source.prompt_schema_version !== SUMMARY_PROMPT_SCHEMA_VERSION
-      || source.provider !== "claude-cli-oauth" || source.interface !== "claude-p"
-      || !/^\d+\.\d+\.\d+$/.test(source.cli_version)
-      || source.auth_method !== "oauth_token" || source.api_provider !== "firstParty"
       || source.slug !== fact.slug.toLowerCase() || source.translation_applicable !== false) return false;
   if (fact.readme_status === "present") {
     return exactObjectKeys(source, SUMMARY_SOURCE_KEYS)

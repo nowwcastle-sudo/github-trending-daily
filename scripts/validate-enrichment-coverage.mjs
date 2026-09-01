@@ -10,9 +10,10 @@ import {
   SUMMARY_PROMPT_SCHEMA_VERSION,
   validateStoredSummaryBundleEnvelope,
 } from "./generate-summary-bundles.mjs";
-import { DEFAULT_ENRICHMENT_MODEL } from "./enrichment-models.mjs";
+import { isSupportedSummaryProducer } from "./enrichment-models.mjs";
 
 const SOURCE_KEYS = ["kind", "slug", "path", "blob_sha", "content_sha256", "provider", "interface", "cli_version", "auth_method", "api_provider", "model", "schema_version", "prompt_schema_version", "translation_applicable"];
+const SUMMARY_PRODUCER_KEYS = ["provider", "interface", "cli_version", "auth_method", "api_provider", "model"];
 
 function exactKeys(value, keys) {
   return value && !Array.isArray(value) && typeof value === "object"
@@ -40,12 +41,7 @@ function expectedSource(repository, readme, actual) {
     path: readme.path,
     blob_sha: readme.blobSha,
     content_sha256: readme.contentSha256,
-    provider: "claude-cli-oauth",
-    interface: "claude-p",
-    cli_version: actual.cli_version,
-    auth_method: "oauth_token",
-    api_provider: "firstParty",
-    model: DEFAULT_ENRICHMENT_MODEL,
+    ...Object.fromEntries(SUMMARY_PRODUCER_KEYS.map(key => [key, actual[key]])),
     schema_version: SUMMARY_BUNDLE_SCHEMA_VERSION,
     prompt_schema_version: SUMMARY_PROMPT_SCHEMA_VERSION,
     translation_applicable: false,
@@ -90,6 +86,7 @@ export async function validateEnrichmentRoot(root, { factsPath } = {}) {
         || !exactKeys(entry, ["content", "summaries", "evidence", "invariants", "inference_fields", "source"])
         || !exactKeys(entry.source, SOURCE_KEYS)
         || !/^\d+\.\d+\.\d+$/.test(entry.source.cli_version)
+        || !isSupportedSummaryProducer(Object.fromEntries(SUMMARY_PRODUCER_KEYS.map(key => [key, entry.source[key]])))
         || JSON.stringify(entry.source) !== JSON.stringify(expectedSource(repository, readme, entry.source))
         || JSON.stringify(sourceMap.get(slug).value) !== JSON.stringify(entry.source)) {
       throw new Error(`Summary bundle source coverage is invalid for ${repository.slug}`);

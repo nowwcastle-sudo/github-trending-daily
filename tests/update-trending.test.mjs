@@ -709,7 +709,7 @@ test("render-only consumes exact frozen bindings with zero fetches and emits a r
     runContextSha256: facts.runContextSha256,
     eventsSha256: events.completeSetSha256,
     repositories: Object.fromEntries(repositories.map((repository, index) => {
-      const cached = cachedEntry(index);
+      const cached = cachedEntry(index, repository.slug, { producer: index === 1 ? "codex" : "claude" });
       return [repository.slug, {
         summary: { content: cached.content, source: cached.source },
         summaries: cached.summaries,
@@ -775,6 +775,28 @@ test("render-only consumes exact frozen bindings with zero fetches and emits a r
   assert.deepEqual(persisted[repositories[0].slug].evidence, enrichmentIndex.repositories[repositories[0].slug].evidence);
   assert.deepEqual(persisted[repositories[0].slug].invariants, enrichmentIndex.repositories[repositories[0].slug].invariants);
   assert.deepEqual(persisted[repositories[0].slug].inference_fields, enrichmentIndex.repositories[repositories[0].slug].inference_fields);
+  for (const repository of repositories.slice(0, 2)) {
+    const expected = enrichmentIndex.repositories[repository.slug].summary.source;
+    assert.deepEqual(persisted[repository.slug].source, expected);
+    assert.deepEqual(published.find(value => value.slug === repository.slug).summary, persisted[repository.slug].summaries.en);
+    assert.deepEqual(Object.keys(persisted[repository.slug].summaries).sort(), ["en", "es", "ja", "ko", "zh-CN"]);
+    assert.ok(Object.values(persisted[repository.slug].summaries).every(value => (
+      Object.keys(value).sort().join("\0") === ["cons", "fit", "goal", "pros", "usage"].join("\0")
+    )));
+  }
+
+  const hybridProducer = structuredClone(enrichmentIndex);
+  hybridProducer.repositories[repositories[1].slug].summary.source.model = "claude-sonnet-5";
+  await writeFile(indexPath, `${JSON.stringify(hybridProducer)}\n`);
+  await assert.rejects(renderFrozenCandidate({
+    factsPath,
+    eventsPath,
+    enrichmentIndexPath: indexPath,
+    pageTemplatePath: templatePath,
+    pageOut: join(directory, "hybrid", "index.html"),
+    cacheOut: join(directory, "hybrid", "data", "repo-summaries.json"),
+    snapshotOut: join(directory, "hybrid-snapshot.json"),
+  }), /enrichment|summary|source/i);
 
   const hostile = structuredClone(enrichmentIndex);
   hostile.repositories[repositories[0].slug].summary.source.path = "docs/OTHER.md";
@@ -893,10 +915,28 @@ test("enriches every repository from canonical GitHub sources", async () => {
   assert.ok(requests.every(request => request.options.signal instanceof AbortSignal));
 });
 
-const cachedEntry = (index, slug = `owner/repo-${index}`) => {
+const cachedEntry = (index, slug = `owner/repo-${index}`, { producer = "claude" } = {}) => {
   const cached = cachedSummary(index);
   const { stars_note: _starsNote, ...content } = cached.detail;
   const summaries = Object.fromEntries(["en", "ko", "zh-CN", "es", "ja"].map(locale => [locale, { ...content }]));
+  const producers = {
+    claude: {
+      provider: "claude-cli-oauth",
+      interface: "claude-p",
+      cli_version: "2.1.241",
+      auth_method: "oauth_token",
+      api_provider: "firstParty",
+      model: "claude-sonnet-5",
+    },
+    codex: {
+      provider: "codex-cli",
+      interface: "codex-exec",
+      cli_version: "0.151.0",
+      auth_method: "chatgpt_session",
+      api_provider: "openai_first_party",
+      model: "codex-cli/gpt-5.6-sol",
+    },
+  };
   return {
     content,
     summaries,
@@ -906,12 +946,7 @@ const cachedEntry = (index, slug = `owner/repo-${index}`) => {
       path: "docs/README.rst",
       blob_sha: "a".repeat(40),
       content_sha256: createHash("sha256").update("# Repo\n\nCanonical readme.").digest("hex"),
-      provider: "claude-cli-oauth",
-      interface: "claude-p",
-      cli_version: "2.1.241",
-      auth_method: "oauth_token",
-      api_provider: "firstParty",
-      model: "claude-sonnet-5",
+      ...producers[producer],
       schema_version: 3,
       prompt_schema_version: 3,
       translation_applicable: false,
