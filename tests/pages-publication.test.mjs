@@ -22,6 +22,7 @@ import { createRunContext } from "../scripts/run-context.mjs";
 import { bindFrozenEventEnvelope } from "../scripts/collect-repository-events.mjs";
 import { buildLatestFeed } from "../scripts/update-latest-feed.mjs";
 import { buildFrozenFactsEnvelope, renderFrozenCandidate } from "../scripts/update-trending.mjs";
+import { validateEnrichmentRoot } from "../scripts/validate-enrichment-coverage.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const sourceSha = "a".repeat(40);
@@ -163,19 +164,33 @@ function sourceEntry(slug = "owner/one", {
   path = "README.md",
   blobSha = "b".repeat(40),
   contentSha256 = "c".repeat(64),
+  producer = "claude",
 } = {}) {
+  const producers = {
+    claude: {
+      provider: "claude-cli-oauth",
+      interface: "claude-p",
+      cli_version: "2.1.241",
+      auth_method: "oauth_token",
+      api_provider: "firstParty",
+      model: "claude-sonnet-5",
+    },
+    codex: {
+      provider: "codex-cli",
+      interface: "codex-exec",
+      cli_version: "0.151.0",
+      auth_method: "chatgpt_session",
+      api_provider: "openai_first_party",
+      model: "codex-cli/gpt-5.6-sol",
+    },
+  };
   return {
     kind: "readme",
     slug: slug.toLowerCase(),
     path,
     blob_sha: blobSha,
     content_sha256: contentSha256,
-    provider: "claude-cli-oauth",
-    interface: "claude-p",
-    cli_version: "2.1.241",
-    auth_method: "oauth_token",
-    api_provider: "firstParty",
-    model: "claude-sonnet-5",
+    ...producers[producer],
     schema_version: 3,
     prompt_schema_version: 3,
     translation_applicable: false,
@@ -185,6 +200,24 @@ function sourceEntry(slug = "owner/one", {
 function summaryBundle(label = "repository") {
   return Object.fromEntries(summaryLocales.map(locale => [locale, Object.fromEntries(
     summaryFields.map(field => [field, `${label} ${locale} ${field} detailed technical evidence`]),
+  )]));
+}
+
+function storedSummaryBundle() {
+  const localeLead = {
+    en: "This field explains the repository with concrete technical context for developers evaluating adoption.",
+    ko: "이 필드는 도입을 검토하는 개발자가 판단할 수 있도록 저장소의 구체적인 기술 맥락을 설명합니다.",
+    "zh-CN": "此字段为评估采用方案的开发者说明该仓库的具体技术背景和实际约束。",
+    es: "Este campo explica el repositorio con contexto técnico concreto para desarrolladores que evalúan su adopción.",
+    ja: "この項目は導入を検討する開発者向けに、リポジトリの具体的な技術背景と制約を説明します。",
+  };
+  return Object.fromEntries(summaryLocales.map(locale => [locale, Object.fromEntries(
+    summaryFields.map((field, index) => {
+      const suffix = locale === "en"
+        ? `For ${field}, it identifies documented behavior, the relevant workflow, and a distinct practical consideration without repeating another section. The explanation preserves TestProduct ${index + 1}.0 and the exact command \`npm test\` while separating confirmed facts from cautious implications for a real project.`
+        : `${field} 항목 ${index + 1}.0은 문서화된 동작과 실제 적용 조건을 다른 필드와 겹치지 않게 구분하며 TestProduct와 정확한 명령 \`npm test\`를 동일하게 보존합니다.`;
+      return [field, `${localeLead[locale]} ${suffix}`];
+    }),
   )]));
 }
 
@@ -302,8 +335,12 @@ function frozenRepository(context, index) {
 }
 
 async function artifactContract(source, latest, sources, identity = snapshotId) {
+  return artifactContractForPaths(source, expectedVersion1Paths(latest, sources), identity);
+}
+
+async function artifactContractForPaths(source, paths, identity = snapshotId) {
   const artifacts = [];
-  for (const artifact_path of expectedVersion1Paths(latest, sources)) {
+  for (const artifact_path of paths) {
     const bytes = await readFile(join(source, ...artifact_path.split("/")));
     artifacts.push({
       artifact_path,
@@ -312,6 +349,71 @@ async function artifactContract(source, latest, sources, identity = snapshotId) 
     });
   }
   return { version: 1, snapshotId: identity, artifacts };
+}
+
+async function writeMixedSummaryConsumerFixture(directory) {
+  const source = join(directory, "source");
+  const factsPath = join(directory, "facts.json");
+  await mkdir(source);
+  await writeTree(source, VERSION_1_BASE_PATHS);
+  const context = createRunContext(new Date("2026-08-29T00:07:00.000Z"));
+  const repositories = Array.from({ length: 10 }, (_, index) => frozenRepository(context, index));
+  const facts = buildFrozenFactsEnvelope({
+    context,
+    inputSourceSha: "c".repeat(40),
+    hydrationSourceSha: "b".repeat(40),
+    productionManifestStatus: "verified_v0",
+    productionManifestSha256: "f".repeat(64),
+    repositories,
+    readmes: Object.fromEntries(repositories.map(repository => [repository.slug, {
+      path: repository.readme_path,
+      blobSha: repository.readme_blob_sha,
+      contentSha256: repository.readme_content_sha256,
+      markdown: frozenMarkdown,
+    }])),
+    trendingSourceSha256: { daily: "1".repeat(64), weekly: "2".repeat(64), monthly: "3".repeat(64) },
+    budgetReceipt: {
+      logicalRequests: 9,
+      httpAttempts: 9,
+      originEpochMs: Date.parse(context.observedAtUtc),
+      eventDeadlineEpochMs: Date.parse(context.observedAtUtc) + 15 * 60_000,
+    },
+  });
+  const sources = { version: 3, sources: {} };
+  const cache = {};
+  const pageRepos = [];
+  for (const [index, repository] of repositories.entries()) {
+    const summaries = storedSummaryBundle();
+    const sourceValue = sourceEntry(repository.slug, {
+      path: repository.readme_path,
+      blobSha: repository.readme_blob_sha,
+      contentSha256: repository.readme_content_sha256,
+      producer: index === 1 ? "codex" : "claude",
+    });
+    sources.sources[repository.slug] = sourceValue;
+    cache[repository.slug] = {
+      content: summaries.en,
+      summaries,
+      evidence: Object.fromEntries(summaryFields.map(field => [field, [{
+        start_line: 1,
+        end_line: 3,
+        section_heading: "Repository",
+      }]])),
+      invariants: [],
+      inference_fields: [],
+      source: sourceValue,
+    };
+    pageRepos.push({ slug: repository.slug, ...validClassification(), summary: summaries.en, summaries });
+  }
+  const latest = { snapshotId, repos: pageRepos };
+  await Promise.all([
+    writeFile(factsPath, `${JSON.stringify(facts)}\n`),
+    writeFile(join(source, "data", "latest.json"), `${JSON.stringify(latest)}\n`),
+    writeFile(join(source, "data", "repo-summaries.json"), `${JSON.stringify(cache)}\n`),
+    writeFile(join(source, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`),
+    writeFile(join(source, "index.html"), `<script>\n// GENERATED:TRENDING-REPOS:START\nconst REPOS = ${JSON.stringify(pageRepos)};\n// GENERATED:TRENDING-REPOS:END\n</script>\n`),
+  ]);
+  return { cache, factsPath, pageRepos, repositories, source, sources };
 }
 
 test("version-1 artifact path set is exact and contains no full README translations", () => {
@@ -529,6 +631,20 @@ test("builder hashes only the exact allowlist and exact summary source envelope"
   assert.equal(manifest.files["index.html"], createHash("sha256").update(validPage).digest("hex"));
   await assert.rejects(readFile(join(out, "data", "private.sqlite")));
 
+  const changedPage = validPage.replace("</script>", "</scripT>");
+  assert.equal(Buffer.byteLength(changedPage), Buffer.byteLength(validPage));
+  await writeFile(join(source, "index.html"), changedPage);
+  const oldOut = join(directory, "old-contract");
+  await assert.rejects(
+    buildPagesArtifact({ sourceRoot: source, outDir: oldOut, sourceSha, snapshotId, artifactContract: contract }),
+    /full refresh/i,
+  );
+  await assert.rejects(readFile(join(oldOut, "deployment-manifest.json")));
+  const newContract = await artifactContract(source, latest, sources);
+  const newOut = join(directory, "new-contract");
+  await buildPagesArtifact({ sourceRoot: source, outDir: newOut, sourceSha, snapshotId, artifactContract: newContract });
+  await writeFile(join(source, "index.html"), validPage);
+
   const invalidSources = structuredClone(sources);
   invalidSources.sources["owner/one"].prompt_schema_version = 2;
   await writeFile(join(source, "data", "translation-sources.json"), `${JSON.stringify(invalidSources)}\n`);
@@ -543,6 +659,122 @@ test("builder hashes only the exact allowlist and exact summary source envelope"
   await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "duplicate-page-json"), sourceSha, snapshotId, artifactContract: contract }), /duplicate key/i);
   await writeFile(join(source, "index.html"), `<script>\nconst REPOS = ${JSON.stringify([{ slug: "Owner/One", ...validClassification() }, { slug: "owner/one", ...validClassification() }])};\n</script>\n`);
   await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "case-fold-page"), sourceSha, snapshotId, artifactContract: contract }), /duplicate|case-fold|identity/i);
+});
+
+test("Pages builder admits exact mixed Claude and Codex sources", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "mixed-summary-builder-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const fixture = await writeMixedSummaryConsumerFixture(directory);
+  const contract = await artifactContractForPaths(fixture.source, VERSION_1_BASE_PATHS);
+  const sourcePage = await readFile(join(fixture.source, "index.html"));
+  const artifact = join(directory, "artifact");
+
+  await buildPagesArtifact({
+    sourceRoot: fixture.source,
+    outDir: artifact,
+    sourceSha,
+    snapshotId,
+    artifactContract: contract,
+  });
+  assert.deepEqual(await readFile(join(artifact, "index.html")), sourcePage);
+  for (const privateInput of ["repo-summaries.json", "translation-sources.json"]) {
+    await assert.rejects(
+      readFile(join(artifact, "data", privateInput)),
+      error => error?.code === "ENOENT",
+    );
+  }
+});
+
+test("coverage validator admits exact mixed Claude and Codex sources", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "mixed-summary-coverage-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const fixture = await writeMixedSummaryConsumerFixture(directory);
+  const coverage = await validateEnrichmentRoot(fixture.source, { factsPath: fixture.factsPath });
+
+  assert.deepEqual(coverage.counts, {
+    repository: 10,
+    valid: 10,
+    locales: 50,
+    missing: 0,
+    stale: 0,
+    insufficient_source: 0,
+    translations: 0,
+  });
+  assert.deepEqual(fixture.pageRepos[1].summary, fixture.cache[fixture.repositories[1].slug].summaries.en);
+});
+
+test("Pages builder and coverage validator reject every one-field Claude Codex hybrid", async t => {
+  const mutations = [
+    ["provider", "claude-cli-oauth"],
+    ["interface", "claude-p"],
+    ["auth_method", "oauth_token"],
+    ["api_provider", "firstParty"],
+    ["model", "claude-sonnet-5"],
+  ];
+  for (const [field, claudeValue] of mutations) {
+    await t.test(field, async () => {
+      const directory = await mkdtemp(join(tmpdir(), `hybrid-summary-${field}-`));
+      try {
+        const fixture = await writeMixedSummaryConsumerFixture(directory);
+        const contract = await artifactContractForPaths(fixture.source, VERSION_1_BASE_PATHS);
+        const slug = fixture.repositories[1].slug;
+        const hybrid = { ...fixture.sources.sources[slug], [field]: claudeValue };
+        fixture.sources.sources[slug] = hybrid;
+        fixture.cache[slug].source = hybrid;
+        await Promise.all([
+          writeFile(join(fixture.source, "data", "translation-sources.json"), `${JSON.stringify(fixture.sources)}\n`),
+          writeFile(join(fixture.source, "data", "repo-summaries.json"), `${JSON.stringify(fixture.cache)}\n`),
+        ]);
+        await assert.rejects(buildPagesArtifact({
+          sourceRoot: fixture.source,
+          outDir: join(directory, "artifact"),
+          sourceSha,
+          snapshotId,
+          artifactContract: contract,
+        }), /summary source/i);
+        await assert.rejects(
+          validateEnrichmentRoot(fixture.source, { factsPath: fixture.factsPath }),
+          /summary bundle source coverage/i,
+        );
+      } finally {
+        await rm(directory, { recursive: true, force: true });
+      }
+    });
+  }
+});
+
+test("Pages builder and coverage validator reject an unknown summary producer", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "unknown-summary-producer-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const fixture = await writeMixedSummaryConsumerFixture(directory);
+  const contract = await artifactContractForPaths(fixture.source, VERSION_1_BASE_PATHS);
+  const slug = fixture.repositories[1].slug;
+  const unknown = {
+    ...fixture.sources.sources[slug],
+    provider: "unknown-cli",
+    interface: "unknown-exec",
+    auth_method: "unknown_session",
+    api_provider: "unknown_first_party",
+    model: "unknown/model",
+  };
+  fixture.sources.sources[slug] = unknown;
+  fixture.cache[slug].source = unknown;
+  await Promise.all([
+    writeFile(join(fixture.source, "data", "translation-sources.json"), `${JSON.stringify(fixture.sources)}\n`),
+    writeFile(join(fixture.source, "data", "repo-summaries.json"), `${JSON.stringify(fixture.cache)}\n`),
+  ]);
+
+  await assert.rejects(buildPagesArtifact({
+    sourceRoot: fixture.source,
+    outDir: join(directory, "artifact"),
+    sourceSha,
+    snapshotId,
+    artifactContract: contract,
+  }), /summary source/i);
+  await assert.rejects(
+    validateEnrichmentRoot(fixture.source, { factsPath: fixture.factsPath }),
+    /summary bundle source coverage/i,
+  );
 });
 
 test("builder rejects invalid page/latest classifications and requires exact equality", async t => {

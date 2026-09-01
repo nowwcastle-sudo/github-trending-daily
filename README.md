@@ -73,6 +73,11 @@ The interface describes these summaries accurately as AI-generated from a verifi
 
 When activated, GitHub Actions is scheduled at minute 07 of odd-numbered hours in `Asia/Seoul`, approximately every two hours. The workflow collects and freezes canonical repository and README facts before considering enrichment. It must then complete exact five-language coverage, provenance validation, rendering, observation recording, and artifact validation before publication.
 
+Scheduled Daily Refresh keeps Claude CLI OAuth with `claude-sonnet-5` as the default summary producer. Codex is a fallback only for the exact repositories that remain pending against the same frozen input; it does not replace the scheduled default or regenerate already complete repositories.
+
+- **Code release** — Record, derive, and finalize a new v1 snapshot from the current Pages code bytes, then deploy it.
+- **Finalized artifact redeploy** — Redeploy only an artifact that is byte-for-byte identical to the source already finalized. If Pages bytes changed under the old finalized contract, the builder stops before artifact or manifest output and requires a full refresh.
+
 The workflow is fail closed:
 
 - The model is called zero times if collection fails.

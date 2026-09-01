@@ -3,12 +3,13 @@ import { copyFile, lstat, mkdir, readFile, readdir, realpath, writeFile } from "
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { DEFAULT_ENRICHMENT_MODEL } from "./enrichment-models.mjs";
+import { isSupportedSummaryProducer } from "./enrichment-models.mjs";
 
 const SHA_RE = /^[a-f0-9]{40}$/;
 const SHA256_RE = /^[a-f0-9]{64}$/;
 const SNAPSHOT_RE = /^[0-9]{14}-[a-f0-9]{16}$/;
 const SOURCE_KEYS = ["kind", "slug", "path", "blob_sha", "content_sha256", "provider", "interface", "cli_version", "auth_method", "api_provider", "model", "schema_version", "prompt_schema_version", "translation_applicable"];
+const SUMMARY_PRODUCER_KEYS = ["provider", "interface", "cli_version", "auth_method", "api_provider", "model"];
 const TAG_RULE_VERSION = 1;
 const FIELD_TAG_IDS = ["ai-ml", "web-app", "dev-tools", "data", "devops", "security", "productivity", "systems", "learning"];
 const FORM_TAG_IDS = ["agent", "mcp", "plugin-skill", "ide", "library", "framework", "cli"];
@@ -118,12 +119,7 @@ function validSource(value) {
     && typeof value.path === "string" && value.path.length > 0
     && /^[a-f0-9]{40}$/.test(value.blob_sha)
     && /^[a-f0-9]{64}$/.test(value.content_sha256)
-    && value.provider === "claude-cli-oauth"
-    && value.interface === "claude-p"
-    && /^\d+\.\d+\.\d+$/.test(value.cli_version)
-    && value.auth_method === "oauth_token"
-    && value.api_provider === "firstParty"
-    && value.model === DEFAULT_ENRICHMENT_MODEL
+    && isSupportedSummaryProducer(Object.fromEntries(SUMMARY_PRODUCER_KEYS.map(key => [key, value[key]])))
     && value.schema_version === 3
     && value.prompt_schema_version === 3
     && value.translation_applicable === false;
@@ -301,7 +297,7 @@ function validateArtifactContract(value, snapshotId, paths) {
     safeTarget("/artifact-root", row.artifact_path);
     actual.push(row.artifact_path);
   }
-  if (actual.join("\0") !== expected.join("\0")) throw new Error("finalized artifact path set does not match Pages allowlist");
+  if (actual.join("\0") !== expected.join("\0")) throw new Error("finalized artifact Pages path set changed; a code release requires a full refresh");
   return value.artifacts;
 }
 
@@ -309,8 +305,8 @@ async function verifyArtifactContract(sourceRoot, snapshotId, paths, contract) {
   const rows = validateArtifactContract(contract, snapshotId, paths);
   for (const row of rows) {
     const bytes = await readRegularFile(sourceRoot, row.artifact_path);
-    if (hash(bytes) !== row.sha256) throw new Error(`finalized artifact hash does not match: ${row.artifact_path}`);
-    if (bytes.length !== row.byte_size) throw new Error(`finalized artifact size does not match: ${row.artifact_path}`);
+    if (hash(bytes) !== row.sha256) throw new Error(`finalized artifact Pages bytes changed; a code release requires a full refresh: hash mismatch: ${row.artifact_path}`);
+    if (bytes.length !== row.byte_size) throw new Error(`finalized artifact Pages bytes changed; a code release requires a full refresh: size mismatch: ${row.artifact_path}`);
   }
 }
 

@@ -4,9 +4,9 @@ import test from "node:test";
 
 const workflowPath = ".github/workflows/deploy-current-pages.yml";
 
-test("deployment-only workflow publishes one committed v0 or v1 artifact without refresh or LLM work", async () => {
+test("finalized artifact redeploy workflow publishes one committed v0 or v1 artifact without refresh or LLM work", async () => {
   const workflow = (await readFile(workflowPath, "utf8")).replaceAll("\r\n", "\n");
-  assert.match(workflow, /^name: Deploy current Pages artifact$/m);
+  assert.match(workflow, /^name: Redeploy finalized Pages artifact$/m);
   assert.match(workflow, /^on:\n  workflow_dispatch:$/m);
   assert.doesNotMatch(workflow, /^  (?:schedule|push):/m);
   assert.match(workflow, /^permissions: \{\}$/m);
@@ -18,9 +18,10 @@ test("deployment-only workflow publishes one committed v0 or v1 artifact without
   assert.match(workflow, /build-pages-artifact\.mjs --source "\."[\s\S]*--snapshot-id "\$SNAPSHOT_ID"[\s\S]*--artifact-contract "\$ARTIFACT_CONTRACT"/);
   assert.match(workflow, /build-pages-artifact\.mjs --mode legacy[\s\S]*--source "\."[\s\S]*--source-sha "\$SOURCE_SHA"/);
   assert.match(workflow, /probe-production\.mjs --artifact-dir[\s\S]*--source-sha "\$SOURCE_SHA"[\s\S]*--snapshot-id "\$SNAPSHOT_ID"/);
+  assert.match(workflow, /- name: Build committed Pages artifact[\s\S]*- name: Upload Pages artifact/);
   assert.match(workflow, /actions\/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9/);
   assert.match(workflow, /actions\/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128/);
   assert.match(workflow, /probe-production\.mjs --base-url[\s\S]*--source-sha "\$SOURCE_SHA"[\s\S]*--snapshot-id "\$SNAPSHOT_ID"/);
   assert.match(workflow, /probe-production\.mjs --base-url[\s\S]*--legacy-recovery-sha "\$SOURCE_SHA"/);
-  assert.doesNotMatch(workflow, /ANTHROPIC|update-trending|generate-translations|collect-repository-events|record_(?:star|repository|trending)|generate_atom_feeds/);
+  assert.doesNotMatch(workflow, /ANTHROPIC|CLAUDE|CODEX|update-trending|generate-translations|generate-summary-bundles|collect-repository-events|record_(?:star|repository|trending)|generate_atom_feeds/i);
 });

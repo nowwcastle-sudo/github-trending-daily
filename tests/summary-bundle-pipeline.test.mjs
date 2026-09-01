@@ -1,21 +1,103 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { execFile as execFileCallback } from "node:child_process";
+import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 
 import {
   MAX_FROZEN_FACTS_BYTES,
   SUMMARY_BUNDLE_LOCALES,
+  admitPreparedCodexSet,
   buildSummaryBundleRequest,
+  buildSummarySource,
   measureClaudeCliSummaryBundlePlan,
+  planSummaryBundleReuse,
   runClaudeSummaryBundleRequests,
+  runFrozenSummaryBundlePipeline,
+  summaryItemsFromFacts,
   validateSummaryBundle,
   validateSummaryBundleEnvelope,
   validateStoredSummaryBundleEnvelope,
 } from "../scripts/generate-summary-bundles.mjs";
+import {
+  CLAUDE_SUMMARY_PRODUCER_PROFILE,
+  CODEX_SUMMARY_PRODUCER_PROFILE,
+  isSupportedSummaryProducer,
+} from "../scripts/enrichment-models.mjs";
+import { hashCanonicalJson } from "../scripts/collect-repository-events.mjs";
 
 const fields = ["goal", "usage", "pros", "cons", "fit"];
 const oauthRuntime = { version: "2.1.241", authMethod: "oauth_token", apiProvider: "firstParty" };
+const execFile = promisify(execFileCallback);
+const checkoutRoot = resolve(fileURLToPath(new URL("../", import.meta.url)));
+
+function pathIsInside(target, parent) {
+  const relativePath = relative(resolve(parent), resolve(target));
+  return relativePath === "" || (!relativePath.startsWith(`..${sep}`) && relativePath !== ".." && !isAbsolute(relativePath));
+}
+
+function safePythonCandidate(value) {
+  if (typeof value !== "string" || !value.trim()) return null;
+  const candidate = resolve(value.trim());
+  const windowsApps = process.platform === "win32"
+    ? join(process.env.LOCALAPPDATA ?? "", "Microsoft", "WindowsApps")
+    : null;
+  if (pathIsInside(candidate, checkoutRoot) || (windowsApps && pathIsInside(candidate, windowsApps))) return null;
+  return candidate;
+}
+
+async function resolvePythonCommand(command) {
+  try {
+    const lookup = process.platform === "win32" ? "where.exe" : "which";
+    const { stdout } = await execFile(lookup, [command], { windowsHide: true, maxBuffer: 8 * 1024 });
+    return stdout.split(/\r?\n/).map(value => value.trim()).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+async function resolveVerifiedPythonExecutable({ environment = process.env } = {}) {
+  const candidates = environment.PYTHON ? [environment.PYTHON] : [];
+  if (process.platform === "win32") candidates.push(...await resolvePythonCommand("python.exe"));
+  else {
+    candidates.push(...await resolvePythonCommand("python3"));
+    candidates.push(...await resolvePythonCommand("python"));
+  }
+  const seen = new Set();
+  for (const value of candidates) {
+    const candidate = safePythonCandidate(value);
+    if (!candidate || seen.has(candidate.toLowerCase())) continue;
+    seen.add(candidate.toLowerCase());
+    try {
+      const { stdout } = await execFile(candidate, ["-c", "import sys; print(sys.executable)"], {
+        windowsHide: true,
+        maxBuffer: 8 * 1024,
+      });
+      const executable = stdout.trim();
+      if (!isAbsolute(executable) || !safePythonCandidate(executable)) continue;
+      return resolve(executable);
+    } catch {
+      // bare command를 호출하지 않고 다음 로컬 실행 파일 후보를 시도한다.
+    }
+  }
+  throw new Error("Verified Python executable is unavailable for summary CLI integration");
+}
+
+test("summary producer admission accepts exact Claude and Codex profiles only", () => {
+  const claude = { ...CLAUDE_SUMMARY_PRODUCER_PROFILE, cli_version: "2.1.241" };
+  const codex = { ...CODEX_SUMMARY_PRODUCER_PROFILE, cli_version: "0.151.0" };
+  assert.equal(isSupportedSummaryProducer(claude), true);
+  assert.equal(isSupportedSummaryProducer(codex), true);
+  for (const key of ["provider", "interface", "auth_method", "api_provider", "model"]) {
+    assert.equal(isSupportedSummaryProducer({ ...codex, [key]: `${codex[key]}-wrong` }), false, key);
+  }
+  assert.equal(isSupportedSummaryProducer({ ...codex, cli_version: "0.151" }), false);
+  assert.equal(isSupportedSummaryProducer({ ...codex, extra: true }), false);
+});
 
 const localeLead = {
   en: "This field explains the repository with concrete technical context for developers evaluating adoption.",
@@ -56,6 +138,476 @@ function envelope() {
     inference_fields: [],
   };
 }
+
+function storedEntry(entryItem, producer) {
+  const value = envelope();
+  return {
+    content: value.summaries.en,
+    summaries: value.summaries,
+    evidence: value.evidence,
+    invariants: value.invariants,
+    inference_fields: value.inference_fields,
+    source: {
+      kind: "readme",
+      slug: entryItem.slug.toLowerCase(),
+      path: entryItem.readme_path,
+      blob_sha: entryItem.readme_blob_sha,
+      content_sha256: entryItem.readme_content_sha256,
+      ...producer,
+      schema_version: 3,
+      prompt_schema_version: 3,
+      translation_applicable: false,
+    },
+  };
+}
+
+function preparedCodexFixture(entries, { factsSha256 = "f".repeat(64) } = {}) {
+  const producer = {
+    provider: "codex-cli",
+    interface: "codex-exec",
+    cli_version: "0.151.0",
+    auth_method: "chatgpt_session",
+    api_provider: "openai_first_party",
+    model: "codex-cli/gpt-5.6-sol",
+  };
+  return {
+    version: 1,
+    facts_sha256: factsSha256,
+    producer,
+    usage: { attempts: entries.length, input_tokens: 11, output_tokens: 7 },
+    repositories: Object.fromEntries(entries.map(([entryItem, value]) => [entryItem.slug, {
+      content: value.summaries.en,
+      summaries: value.summaries,
+      evidence: value.evidence,
+      invariants: value.invariants,
+      inference_fields: value.inference_fields,
+      source: {
+        kind: "readme",
+        slug: entryItem.slug.toLowerCase(),
+        path: entryItem.readme_path,
+        blob_sha: entryItem.readme_blob_sha,
+        content_sha256: entryItem.readme_content_sha256,
+        ...producer,
+        schema_version: 3,
+        prompt_schema_version: 3,
+        translation_applicable: false,
+      },
+    }])),
+  };
+}
+
+function pipelineItem(slug, index) {
+  return {
+    ...item,
+    slug,
+    readme_blob_sha: String(index % 10).repeat(40),
+    default_branch_head_sha: String((index + 1) % 10).repeat(40),
+  };
+}
+
+function frozenPipelineFacts(items) {
+  const snapshotId = "20260901000000-aaaaaaaaaaaaaaaa";
+  const parentSnapshotId = "20260831000000-bbbbbbbbbbbbbbbb";
+  const observedAtUtc = "2026-09-01T00:00:00Z";
+  const observedAtKst = "2026-09-01T09:00:00+09:00";
+  const statsDate = "2026-09-01";
+  const inputSourceSha = "a".repeat(40);
+  const hydrationSourceSha = "b".repeat(40);
+  const repositories = items.map(value => ({
+    slug: value.slug,
+    readme_status: "present",
+    readme_path: value.readme_path,
+    readme_blob_sha: value.readme_blob_sha,
+    readme_content_sha256: value.readme_content_sha256,
+    readme_locale: null,
+    readme_variants: [],
+    default_branch_head_sha: value.default_branch_head_sha,
+  }));
+  const runContextSha256 = hashCanonicalJson({
+    observedAtUtc,
+    observedAtKst,
+    statsDateKst: statsDate,
+    snapshotId,
+    parentSnapshotId,
+    parentSourceSha: hydrationSourceSha,
+  });
+  const trendingSourceSha256 = { daily: "c".repeat(64), weekly: "d".repeat(64), monthly: "e".repeat(64) };
+  const productionManifestSha256 = "f".repeat(64);
+  const sourceSetSha256 = hashCanonicalJson({
+    input_source_sha: inputSourceSha,
+    hydration_source_sha: hydrationSourceSha,
+    production_manifest_status: "verified_v1",
+    production_manifest_sha256: productionManifestSha256,
+    run_context_sha256: runContextSha256,
+    trending_source_sha256: trendingSourceSha256,
+  });
+  return {
+    version: 1,
+    snapshotId,
+    observedAtUtc,
+    observedAtKst,
+    statsDate,
+    parentSnapshotId,
+    inputSourceSha,
+    hydrationSourceSha,
+    productionManifestStatus: "verified_v1",
+    productionManifestSha256,
+    runContextSha256,
+    trendingSourceSha256,
+    sourceSetSha256,
+    activeSetSha256: hashCanonicalJson(items.map(value => value.slug.toLowerCase()).sort()),
+    factsSha256: hashCanonicalJson({ snapshot_id: snapshotId, input_source_sha: inputSourceSha, repositories }),
+    repositories,
+    readmes: Object.fromEntries(items.map(value => [value.slug.toLowerCase(), {
+      path: value.readme_path,
+      blobSha: value.readme_blob_sha,
+      contentSha256: value.readme_content_sha256,
+      markdown: value.markdown,
+    }])),
+    budgetReceipt: {
+      logicalRequests: 0,
+      httpAttempts: 0,
+      originEpochMs: 1_700_000_000_000,
+      eventDeadlineEpochMs: 1_700_000_000_000 + 900_000,
+    },
+  };
+}
+
+function frozenPipelineEvents(facts) {
+  const content = {
+    heads: [],
+    releases: [],
+    latestReleaseIds: Object.fromEntries(facts.repositories.map(repository => [repository.slug.toLowerCase(), null])),
+    commits: [],
+    estimates: [],
+    budgetReceipt: {},
+  };
+  return {
+    version: 1,
+    snapshotId: facts.snapshotId,
+    activeSetSha256: facts.activeSetSha256,
+    factsSha256: facts.factsSha256,
+    sourceSetSha256: facts.sourceSetSha256,
+    runContextSha256: facts.runContextSha256,
+    completeSetSha256: hashCanonicalJson(content),
+    ...content,
+  };
+}
+
+function normalPolicyContext(facts) {
+  return {
+    mode: "normal",
+    inputSourceSha: facts.inputSourceSha,
+    hydrationSourceSha: facts.hydrationSourceSha,
+    sourceSetSha256: facts.sourceSetSha256,
+    runContextSha256: facts.runContextSha256,
+    productionManifestStatus: facts.productionManifestStatus,
+    productionManifestSha256: facts.productionManifestSha256,
+    recoveryVersion: "1",
+    verifiedBootstrapSourceSha: facts.hydrationSourceSha,
+    manualBootstrapSourceSha: "",
+  };
+}
+
+async function exists(target) {
+  return access(target).then(() => true, () => false);
+}
+
+async function frozenPipelineFixture(t) {
+  const root = await mkdtemp(join(tmpdir(), "summary-bundle-pipeline-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const retainedItems = Array.from({ length: 42 }, (_, index) => pipelineItem(`owner/repo-${String(index).padStart(2, "0")}`, index));
+  const staleItems = [
+    pipelineItem("kaifcodec/user-scanner", 42),
+    pipelineItem("handsomestwei/patent-disclosure-skill", 43),
+  ];
+  const items = [...retainedItems, ...staleItems];
+  const facts = frozenPipelineFacts(items);
+  const sourceRoot = join(root, "source");
+  const factsPath = join(root, "facts.json");
+  const eventsPath = join(root, "events.json");
+  const preparedPath = join(root, "prepared-codex.json");
+  const priorHeadsPath = join(root, "prior-heads.json");
+  const parentEvidencePath = join(root, "parent-evidence.json");
+  const parentDatabasePath = join(root, "missing-parent.sqlite");
+  const priorHeads = {
+    version: 1,
+    snapshotId: null,
+    scope: "all_historical",
+    parentDatabaseSha256: null,
+    snapshotSeq: null,
+    headCount: 0,
+    headsSha256: hashCanonicalJson({}),
+    heads: {},
+  };
+  const parentEvidence = {
+    version: 1,
+    parent_database: { missing: true },
+    production_source_sha: facts.hydrationSourceSha,
+    historical_heads: { scope: "all_historical", head_count: 0, heads_sha256: priorHeads.headsSha256 },
+    legacy_baseline_receipt: {},
+  };
+  const claudeProducer = { ...CLAUDE_SUMMARY_PRODUCER_PROFILE, cli_version: "2.1.241" };
+  const cache = Object.fromEntries(retainedItems.map(value => [value.slug, storedEntry(value, claudeProducer)]));
+  const prepared = preparedCodexFixture(staleItems.map(value => [value, envelope()]), { factsSha256: facts.factsSha256 });
+  await mkdir(join(sourceRoot, "data"), { recursive: true });
+  await Promise.all([
+    writeFile(join(sourceRoot, "data", "repo-summaries.json"), `${JSON.stringify(cache)}\n`),
+    writeFile(factsPath, `${JSON.stringify(facts)}\n`),
+    writeFile(eventsPath, `${JSON.stringify(frozenPipelineEvents(facts))}\n`),
+    writeFile(preparedPath, `${JSON.stringify(prepared)}\n`),
+    writeFile(priorHeadsPath, `${JSON.stringify(priorHeads)}\n`),
+    writeFile(parentEvidencePath, `${JSON.stringify(parentEvidence)}\n`),
+  ]);
+  return {
+    root, facts, items, staleItems, sourceRoot, factsPath, eventsPath, preparedPath,
+    priorHeadsPath, parentEvidencePath, parentDatabasePath,
+  };
+}
+
+async function pipelineArguments(value, name) {
+  const outputRoot = join(value.root, name);
+  await mkdir(outputRoot, { recursive: true });
+  return {
+    factsPath: value.factsPath,
+    eventsPath: value.eventsPath,
+    enrichmentIndexOut: join(value.root, `${name}-index.json`),
+    sourceRoot: value.sourceRoot,
+    outputRoot,
+    parentEvidencePath: value.parentEvidencePath,
+    priorHeadsPath: value.priorHeadsPath,
+    parentDatabasePath: value.parentDatabasePath,
+    policyContext: normalPolicyContext(value.facts),
+    deadline: Date.now() + 1_000_000,
+  };
+}
+
+test("summary item projection keeps frozen README identities in repository order", () => {
+  const facts = {
+    repositories: [
+      { slug: "owner/second", readme_status: "present", default_branch_head_sha: "d".repeat(40) },
+      { slug: "owner/first", readme_status: "present", default_branch_head_sha: "c".repeat(40) },
+    ],
+    readmes: {
+      "owner/first": { path: "README.md", blobSha: "a".repeat(40), contentSha256: item.readme_content_sha256, markdown },
+      "owner/second": { path: "docs/README.md", blobSha: "b".repeat(40), contentSha256: item.readme_content_sha256, markdown },
+    },
+  };
+
+  assert.deepEqual(summaryItemsFromFacts(facts).map(value => ({ slug: value.slug, readme_path: value.readme_path })), [
+    { slug: "owner/second", readme_path: "docs/README.md" },
+    { slug: "owner/first", readme_path: "README.md" },
+  ]);
+});
+
+test("source-identical Claude and Codex cache entries are retained while stale entries stay pending", () => {
+  const claudeItem = { ...item, slug: "owner/claude" };
+  const codexItem = { ...item, slug: "owner/codex", readme_blob_sha: "b".repeat(40) };
+  const staleItem = { ...item, slug: "owner/stale", readme_blob_sha: "d".repeat(40) };
+  const claudeProducer = { ...CLAUDE_SUMMARY_PRODUCER_PROFILE, cli_version: "2.1.241" };
+  const codexProducer = { ...CODEX_SUMMARY_PRODUCER_PROFILE, cli_version: "0.151.0" };
+  const staleEntry = storedEntry(staleItem, codexProducer);
+  staleEntry.source.content_sha256 = "e".repeat(64);
+  const planned = planSummaryBundleReuse([claudeItem, codexItem, staleItem], {
+    "OWNER/CLAUDE": storedEntry(claudeItem, claudeProducer),
+    "owner/codex": storedEntry(codexItem, codexProducer),
+    "owner/stale": staleEntry,
+  });
+
+  assert.deepEqual([...planned.retained.keys()], ["owner/claude", "owner/codex"]);
+  assert.deepEqual(planned.pending.map(value => value.slug), ["owner/stale"]);
+  assert.equal(planned.retained.get("owner/codex").source.provider, "codex-cli");
+});
+
+test("cache reuse rejects changed README or Codex model instead of relabeling it", () => {
+  const codexProducer = { ...CODEX_SUMMARY_PRODUCER_PROFILE, cli_version: "0.151.0" };
+  const readmeChanged = { ...item, slug: "owner/readme" };
+  const changedReadmeEntry = storedEntry(readmeChanged, codexProducer);
+  changedReadmeEntry.source.content_sha256 = "f".repeat(64);
+  const changedModel = { ...item, slug: "owner/model", readme_blob_sha: "b".repeat(40) };
+  const changedModelEntry = storedEntry(changedModel, { ...codexProducer, model: "codex-cli/gpt-5.6-terra" });
+
+  assert.deepEqual(planSummaryBundleReuse([readmeChanged], { [readmeChanged.slug]: changedReadmeEntry }).pending, [readmeChanged]);
+  assert.deepEqual(planSummaryBundleReuse([changedModel], { [changedModel.slug]: changedModelEntry }).pending, [changedModel]);
+});
+
+test("prepared Codex admission requires exact facts, producer, pending set, and source identity", () => {
+  const staleItem = { ...item, slug: "owner/stale" };
+  const admitted = admitPreparedCodexSet({
+    value: preparedCodexFixture([[staleItem, envelope()]]),
+    factsSha256: "f".repeat(64),
+    pending: [staleItem],
+  });
+
+  assert.equal(admitted.runtime.provider, "codex-cli");
+  assert.equal(admitted.results.length, 1);
+  assert.deepEqual(admitted.usage, {
+    inputTokens: 11,
+    outputTokens: 7,
+    logicalCalls: 1,
+    attempts: 1,
+    retries: 0,
+  });
+
+  const cases = [
+    ["facts SHA", value => { value.facts_sha256 = "e".repeat(64); }, "f".repeat(64), [staleItem]],
+    ["slug missing", value => { delete value.repositories[staleItem.slug]; }, "f".repeat(64), [staleItem]],
+    ["extra slug", value => { value.repositories["owner/extra"] = structuredClone(value.repositories[staleItem.slug]); }, "f".repeat(64), [staleItem]],
+    ["README identity", value => { value.repositories[staleItem.slug].source.blob_sha = "b".repeat(40); }, "f".repeat(64), [staleItem]],
+    ["producer model", value => { value.producer.model = "codex-cli/gpt-5.6-terra"; }, "f".repeat(64), [staleItem]],
+  ];
+  for (const [name, mutate, factsSha256, pending] of cases) {
+    const value = preparedCodexFixture([[staleItem, envelope()]]);
+    mutate(value);
+    assert.throws(() => admitPreparedCodexSet({ value, factsSha256, pending }), undefined, name);
+  }
+
+  const upperCaseStaleItem = { ...staleItem, slug: "OWNER/STALE" };
+  const collidingPrepared = preparedCodexFixture([
+    [staleItem, envelope()],
+    [upperCaseStaleItem, envelope()],
+  ]);
+  assert.throws(
+    () => admitPreparedCodexSet({
+      value: collidingPrepared,
+      factsSha256: "f".repeat(64),
+      pending: [staleItem, upperCaseStaleItem],
+    }),
+    /pending set/i,
+  );
+});
+
+test("frozen pipeline imports the exact 42 Claude plus 2 prepared Codex active set without Claude calls", async t => {
+  const fixture = await frozenPipelineFixture(t);
+  let preflights = 0;
+  let calls = 0;
+  const result = await runFrozenSummaryBundlePipeline({
+    ...await pipelineArguments(fixture, "prepared-candidate"),
+    preparedCodexPath: fixture.preparedPath,
+    preflight: async () => { preflights += 1; throw new Error("Claude preflight must not run"); },
+    executeClaude: async () => { calls += 1; throw new Error("Claude request must not run"); },
+  });
+
+  const activeSlugs = fixture.items.map(value => value.slug.toLowerCase());
+  assert.equal(preflights, 0);
+  assert.equal(calls, 0);
+  assert.equal(result.repositories, 44);
+  assert.equal(result.pending, 2);
+  assert.equal(result.runtime.provider, "codex-cli");
+  assert.equal(result.usage.logicalCalls, 2);
+  assert.deepEqual(Object.keys(result.index.repositories).sort(), activeSlugs.sort());
+  assert.deepEqual(result.usage, {
+    inputTokens: 11,
+    outputTokens: 7,
+    logicalCalls: 2,
+    attempts: 2,
+    retries: 0,
+  });
+});
+
+test("prepared Codex missing or extra entries create no candidate cache, source registry, or index", async t => {
+  for (const [name, mutate, expected] of [
+    ["missing", value => { delete value.repositories["kaifcodec/user-scanner"]; }, /prepared Codex summary pending set/i],
+    ["case collision", value => { value.repositories["KAIFCODEC/USER-SCANNER"] = structuredClone(value.repositories["kaifcodec/user-scanner"]); }, /prepared Codex summary pending set/i],
+    ["extra", value => { value.repositories["owner/extra"] = structuredClone(value.repositories["kaifcodec/user-scanner"]); }, /prepared Codex summary pending set/i],
+    ["facts SHA drift", value => { value.facts_sha256 = "e".repeat(64); }, /prepared Codex summary set is invalid/i],
+  ]) {
+    const fixture = await frozenPipelineFixture(t);
+    const prepared = JSON.parse(await readFile(fixture.preparedPath, "utf8"));
+    mutate(prepared);
+    await writeFile(fixture.preparedPath, `${JSON.stringify(prepared)}\n`);
+    const args = await pipelineArguments(fixture, `${name}-candidate`);
+    let preflights = 0;
+    await assert.rejects(
+      runFrozenSummaryBundlePipeline({
+        ...args,
+        preparedCodexPath: fixture.preparedPath,
+        preflight: async () => { preflights += 1; throw new Error("Claude preflight must not run"); },
+      }),
+      expected,
+      name,
+    );
+    assert.equal(preflights, 0, name);
+    assert.equal(await exists(join(args.outputRoot, "data", "repo-summaries.json")), false, name);
+    assert.equal(await exists(join(args.outputRoot, "data", "translation-sources.json")), false, name);
+    assert.equal(await exists(args.enrichmentIndexOut), false, name);
+  }
+});
+
+test("frozen pipeline preserves the Claude preflight and request path when prepared Codex is absent", async t => {
+  const fixture = await frozenPipelineFixture(t);
+  let preflights = 0;
+  let calls = 0;
+  const result = await runFrozenSummaryBundlePipeline({
+    ...await pipelineArguments(fixture, "claude-candidate"),
+    preflight: async () => { preflights += 1; return oauthRuntime; },
+    executeClaude: async () => {
+      calls += 1;
+      return { structuredOutput: modelEnvelope(), usage: { inputTokens: 11, outputTokens: 7 } };
+    },
+  });
+
+  assert.equal(preflights, 1);
+  assert.equal(calls, 2);
+  assert.equal(result.runtime.provider, "claude-cli-oauth");
+  assert.deepEqual(result.usage, {
+    inputTokens: 22,
+    outputTokens: 14,
+    logicalCalls: 2,
+    attempts: 2,
+    retries: 0,
+  });
+});
+
+test("summary bundle CLI accepts the optional prepared Codex file", async t => {
+  const fixture = await frozenPipelineFixture(t);
+  const args = await pipelineArguments(fixture, "cli-candidate");
+  const scriptPath = fileURLToPath(new URL("../scripts/generate-summary-bundles.mjs", import.meta.url));
+  const pythonExecutable = await resolveVerifiedPythonExecutable();
+  const unexpectedPythonRoot = join(fixture.root, "Python");
+  assert.equal(isAbsolute(pythonExecutable), true);
+  assert.equal(await exists(unexpectedPythonRoot), false);
+  const environment = {
+    ...process.env,
+    PYTHON: pythonExecutable,
+    ENRICHMENT_DEADLINE_EPOCH_MS: `${Date.now() + 1_000_000}`,
+    ENRICHMENT_BUDGET_MODE: "normal",
+    INPUT_SOURCE_SHA: fixture.facts.inputSourceSha,
+    HYDRATION_SOURCE_SHA: fixture.facts.hydrationSourceSha,
+    FROZEN_SOURCE_SET_SHA256: fixture.facts.sourceSetSha256,
+    FROZEN_RUN_CONTEXT_SHA256: fixture.facts.runContextSha256,
+    PRODUCTION_MANIFEST_STATUS: fixture.facts.productionManifestStatus,
+    PRODUCTION_MANIFEST_SHA256: fixture.facts.productionManifestSha256,
+    VERIFIED_RECOVERY_VERSION: "1",
+    VERIFIED_BOOTSTRAP_SOURCE_SHA: fixture.facts.hydrationSourceSha,
+    MANUAL_BOOTSTRAP_SOURCE_SHA: "",
+  };
+  const { stdout } = await execFile(process.execPath, [scriptPath,
+    "--facts", args.factsPath,
+    "--events", args.eventsPath,
+    "--enrichment-index-out", args.enrichmentIndexOut,
+    "--source-root", args.sourceRoot,
+    "--output-root", args.outputRoot,
+    "--prior-heads", args.priorHeadsPath,
+    "--parent-evidence", args.parentEvidencePath,
+    "--parent-database", args.parentDatabasePath,
+    "--failure-diagnostics-out", join(fixture.root, "failure-diagnostics.json"),
+    "--prepared-codex", fixture.preparedPath,
+  ], { cwd: fixture.root, env: environment });
+
+  const result = JSON.parse(stdout);
+  assert.equal(result.repositories, 44);
+  assert.equal(result.pending, 2);
+  assert.equal(result.runtime.provider, "codex-cli");
+  assert.equal(result.usage.logicalCalls, 2);
+  assert.equal(await exists(unexpectedPythonRoot), false);
+});
+
+test("summary source uses the exact supported producer profile", () => {
+  const producer = { ...CODEX_SUMMARY_PRODUCER_PROFILE, cli_version: "0.151.0" };
+  assert.deepEqual(buildSummarySource(item, producer), storedEntry(item, producer).source);
+  assert.throws(() => buildSummarySource(item, { ...producer, model: "codex-cli/gpt-5.6-terra" }), /producer/i);
+});
 
 function modelEnvelope() {
   const value = envelope();

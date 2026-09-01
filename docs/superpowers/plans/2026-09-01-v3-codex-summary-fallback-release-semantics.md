@@ -313,11 +313,12 @@ git commit -m "refactor: 요약 재사용과 prepared admission을 source 기준
 
 **Interfaces:**
 - Consumes: Task 2의 `summaryItemsFromFacts`, `planSummaryBundleReuse`, `buildSummaryBundleRequest`, `buildSummarySource`.
+- Consumes: Complete는 `sourceRoot`의 current source cache에서 exact pending을 독립 재계산하고 plan의 pending/requests와 대조한다.
 - Produces: `runCodexSummaryPreflight({ runProcess, environment, cwd }): Promise<Producer>`.
 - Produces: `parseCodexTurnEvents(bytes): { inputTokens, outputTokens }`.
 - Produces: `prepareCodexSummaryBundle({ factsPath, sourceRoot, outDir, preflight }): Promise<Result>`.
-- Produces: `completeCodexSummaryBundle({ factsPath, planPath, responsesDir, outPath, preflight }): Promise<Result>`.
-- Produces: CLI `prepare`와 `complete`.
+- Produces: `completeCodexSummaryBundle({ factsPath, sourceRoot, planPath, responsesDir, outPath, preflight }): Promise<Result>`.
+- Produces: CLI `prepare`와 `complete`; 두 command 모두 required `--source-root`를 받는다.
 
 - [ ] **Step 1: Official JSONL usage fixture RED test를 쓴다**
 
@@ -363,7 +364,7 @@ existing out-dir, checkout 내부 out-dir, sourceRoot로 resolve되는 symlink p
 
 - [ ] **Step 4: Complete RED test를 쓴다**
 
-Prepare가 만든 plan, valid response JSON, Step 1 JSONL을 사용한다. complete output은 exact keys `version`, `facts_sha256`, `producer`, `usage`, `repositories`이고 repository entry는 `content`, `summaries`, `evidence`, `invariants`, `inference_fields`, `source`를 가진다. plan의 facts, prompt, schema, README hash, 현재 CLI version을 각각 바꾼 fixture는 output file을 만들지 않아야 한다.
+Prepare가 만든 plan, valid response JSON, Step 1 JSONL을 사용한다. complete output은 exact keys `version`, `facts_sha256`, `producer`, `usage`, `repositories`이고 repository entry는 `content`, `summaries`, `evidence`, `invariants`, `inference_fields`, `source`를 가진다. `sourceRoot`의 current source cache로 exact pending을 독립 재계산하므로 plan pending/requests를 함께 삭제한 변조도 output 전에 거부한다. plan의 facts, prompt, schema, README hash, 현재 CLI version을 각각 바꾼 fixture는 output file을 만들지 않아야 한다.
 
 - [ ] **Step 5: RED를 실행한다**
 
@@ -666,7 +667,9 @@ if (-not (Test-Path -LiteralPath $actionlintZip)) {
 $digest = (Get-FileHash -LiteralPath $actionlintZip -Algorithm SHA256).Hash.ToLowerInvariant()
 if ($digest -ne '6e7241b51e6817ea6a047693d8e6fed13b31819c9a0dd6c5a726e1592d22f6e9') { throw 'actionlint archive digest mismatch' }
 if (-not (Test-Path -LiteralPath $actionlintRoot)) { Expand-Archive -LiteralPath $actionlintZip -DestinationPath $actionlintRoot }
-& (Join-Path $actionlintRoot 'actionlint.exe') -ignore 'label "github-pages-ubuntu-latest-8-core" is unknown' .github/workflows/*.yml
+$workflowFiles = @(Get-ChildItem -LiteralPath '.github/workflows' -Filter '*.yml' -File | Sort-Object FullName)
+if ($workflowFiles.Count -eq 0) { throw 'No workflow files found' }
+& (Join-Path $actionlintRoot 'actionlint.exe') -ignore 'label "github-pages-ubuntu-latest-8-core" is unknown' -ignore 'label "gh-trending-claude" is unknown' @($workflowFiles.FullName)
 if ($LASTEXITCODE -ne 0) { throw 'actionlint failed' }
 ```
 
@@ -675,7 +678,7 @@ if ($LASTEXITCODE -ne 0) { throw 'actionlint failed' }
 각 spec section 1-15를 Task 1-8 중 하나에 매핑한다. 다음 scan은 match 0이어야 한다.
 
 ```powershell
-$redFlags = @('T'+'BD','FIX'+'ME','implement'+' later','fill in'+' details','추후'+' 결정','PLACE'+'HOLDER')
+$redFlags = @(('T'+'BD'),('FIX'+'ME'),('implement'+' later'),('fill in'+' details'),('추후'+' 결정'),('PLACE'+'HOLDER'))
 rg -n ($redFlags -join '|') docs/superpowers/plans/2026-09-01-v3-codex-summary-fallback-release-semantics.md
 if ($LASTEXITCODE -eq 0) { throw 'Plan placeholder found' }
 ```
@@ -759,15 +762,22 @@ Expected: exact pending slug가 `kaifcodec/user-scanner`, `handsomestwei/patent-
 각 `000`, `001`에 대해 빈 cwd를 따로 만들고 다음 command를 실행한다. prompt는 stdin으로 전달하고 stdout JSONL은 events file에 보존한다.
 
 ```powershell
-$codexCwd = Join-Path $refreshRoot 'codex-empty-cwd'
-New-Item -ItemType Directory -Path $codexCwd | Out-Null
+$responsesRoot = Join-Path $refreshRoot 'codex-responses'
+New-Item -ItemType Directory -Path $responsesRoot | Out-Null
 foreach ($suffix in @('000','001')) {
+  $codexCwd = Join-Path $refreshRoot "codex-empty-cwd-$suffix"
+  New-Item -ItemType Directory -Path $codexCwd | Out-Null
   $prompt = Join-Path $adapterRoot "request-$suffix-prompt.txt"
   $schema = Join-Path $adapterRoot "request-$suffix-schema.json"
-  $response = Join-Path $adapterRoot "response-$suffix.json"
-  $events = Join-Path $adapterRoot "events-$suffix.jsonl"
-  Get-Content -LiteralPath $prompt -Raw | codex exec --ephemeral --ignore-user-config --model gpt-5.6-sol --sandbox read-only --output-schema $schema --output-last-message $response --json - 1> $events
-  if ($LASTEXITCODE -ne 0) { throw "Codex request $suffix failed" }
+  $response = Join-Path $responsesRoot "response-$suffix.json"
+  $events = Join-Path $responsesRoot "events-$suffix.jsonl"
+  Push-Location -LiteralPath $codexCwd
+  try {
+    Get-Content -LiteralPath $prompt -Raw | codex exec --ephemeral --ignore-user-config --model gpt-5.6-sol --sandbox read-only --output-schema $schema --output-last-message $response --json - 1> $events
+    if ($LASTEXITCODE -ne 0) { throw "Codex request $suffix failed" }
+  } finally {
+    Pop-Location
+  }
 }
 ```
 
@@ -775,7 +785,7 @@ foreach ($suffix in @('000','001')) {
 
 ```powershell
 $prepared = Join-Path $refreshRoot 'prepared-codex.json'
-node scripts/codex-summary-bundle-adapter.mjs complete --facts (Join-Path $refreshRoot 'repository-facts.json') --plan (Join-Path $adapterRoot 'plan.json') --responses-dir $adapterRoot --out $prepared
+node scripts/codex-summary-bundle-adapter.mjs complete --facts (Join-Path $refreshRoot 'repository-facts.json') --source-root (Join-Path $refreshRoot 'candidate') --plan (Join-Path $adapterRoot 'plan.json') --responses-dir $responsesRoot --out $prepared
 ```
 
 그 다음 existing `generate-summary-bundles.mjs` command에 `--prepared-codex $prepared`만 추가한다. 완료 조건은 retained Claude 42, new Codex 2, active 44, locales 220, missing/stale/insufficient source 0이다.

@@ -73,6 +73,11 @@ UI에는 “검증된 저장소 README를 바탕으로 AI가 생성했다”고 
 
 활성화된 경우 GitHub Actions는 `Asia/Seoul` 기준 홀수 시각 07분, 약 2시간 간격으로 실행됩니다. 먼저 정본 저장소와 README 사실을 수집·동결한 뒤 enrichment 필요 여부를 판정합니다. 그다음 정확한 5개 언어 coverage, provenance 검증, 렌더, observation 기록, artifact 검증을 모두 마쳐야 publication으로 넘어갑니다.
 
+예약 Daily Refresh는 Claude CLI OAuth의 `claude-sonnet-5`를 기본 요약 producer로 유지합니다. Codex는 같은 frozen input에서 정확히 pending으로 남은 저장소에만 쓰는 fallback이며, 예약 실행의 기본 producer를 대체하거나 이미 완료된 저장소를 다시 생성하지 않습니다.
+
+- **Code release** — 현재 Pages code bytes로 새 v1 snapshot을 record, derive, finalize한 뒤 배포합니다.
+- **Finalized artifact redeploy** — 이미 finalize된 source와 byte-for-byte 같은 artifact만 다시 배포합니다. old finalized contract 아래에서 Pages bytes가 바뀌면 builder는 artifact나 manifest를 출력하기 전에 중단하고 full refresh를 요구합니다.
+
 workflow는 fail-closed입니다.
 
 - 수집 실패 시 모델 호출은 0회입니다.

@@ -344,14 +344,14 @@ def calendar_fixture(connection):
     )
 
 
-def writer_payload(*, snapshot_id, utc, kst, stats_date, run_kind, parent_snapshot_id=None):
+def writer_payload(*, snapshot_id, utc, kst, stats_date, run_kind, parent_snapshot_id=None, summary_source=None):
     profile_value = {
         "slug": "owner/repo", "display_slug": "owner/repo", "description": None,
         "primary_language": None, "topics": [], "license_spdx": None, "archived": False,
         "is_fork": False, "default_branch": "main", "created_at": utc,
         "field_tags": ["unclassified"], "form_tags": [], "tag_rule_version": 1,
     }
-    source = {
+    source = json.loads(json.dumps(summary_source)) if summary_source is not None else {
         "kind": "readme", "slug": "owner/repo", "path": "README.md",
         "blob_sha": sha1("b"), "content_sha256": sha256("c"),
         "provider": "claude-cli-oauth", "interface": "claude-p", "cli_version": "2.1.241",
@@ -1463,6 +1463,87 @@ class RepositoryObservationTests(unittest.TestCase):
             {},
         )
         self.assertEqual(replay_result.core_payload_sha256, result.core_payload_sha256)
+
+    def test_codex_summary_source_hashes_and_records_while_hybrids_fail_closed(self):
+        codex_source = {
+            "kind": "readme", "slug": "owner/repo", "path": "README.md",
+            "blob_sha": sha1("b"), "content_sha256": sha256("c"),
+            "provider": "codex-cli", "interface": "codex-exec", "cli_version": "0.151.0",
+            "auth_method": "chatgpt_session", "api_provider": "openai_first_party",
+            "model": "codex-cli/gpt-5.6-sol", "schema_version": 3, "prompt_schema_version": 3,
+            "translation_applicable": False,
+        }
+        payload = writer_payload(
+            snapshot_id="20260828010101-aaaaaaaaaaaaaaaa",
+            utc="2026-08-28T01:01:01.001Z",
+            kst="2026-08-28T10:01:01.001+09:00",
+            stats_date="2026-08-28",
+            run_kind="migration_baseline",
+            summary_source=codex_source,
+        )
+        hashes = ledger._enrichment_hashes(
+            payload["repositories"][0],
+            {"slug": "owner/repo"},
+            payload["enrichmentIndex"],
+        )
+        content = payload["enrichmentIndex"]["owner/repo"]["summary"]["content"]
+        self.assertEqual(hashes[:3], (
+            canonical_hash(codex_source),
+            canonical_hash(content),
+            canonical_hash({"content": content, "source": codex_source}),
+        ))
+
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        candidate = Path(self.temporary.name) / "codex-summary.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing.sqlite", candidate, None)
+        payload["legacyBaselines"], payload["legacyBaselineReceipt"] = paths, receipt
+        record_writer_snapshot(candidate, payload, writer_events(head=sha1(), transition="baseline"), {})
+        with closing(sqlite3.connect(candidate)) as connection:
+            self.assertEqual(
+                connection.execute("SELECT summary_source_sha256 FROM snapshot_items").fetchone(),
+                (canonical_hash(codex_source),),
+            )
+
+        claude_values = {
+            "provider": "claude-cli-oauth",
+            "interface": "claude-p",
+            "auth_method": "oauth_token",
+            "api_provider": "firstParty",
+            "model": "claude-sonnet-5",
+        }
+        for field, value in claude_values.items():
+            with self.subTest(field=field):
+                hybrid_source = {**codex_source, field: value}
+                hybrid = writer_payload(
+                    snapshot_id="20260828010101-aaaaaaaaaaaaaaaa",
+                    utc="2026-08-28T01:01:01.001Z",
+                    kst="2026-08-28T10:01:01.001+09:00",
+                    stats_date="2026-08-28",
+                    run_kind="migration_baseline",
+                    summary_source=hybrid_source,
+                )
+                with self.assertRaisesRegex(ValueError, "summary source"):
+                    ledger._enrichment_hashes(
+                        hybrid["repositories"][0],
+                        {"slug": "owner/repo"},
+                        hybrid["enrichmentIndex"],
+                    )
+
+    def test_summary_producer_rejects_non_ascii_and_non_string_semver(self):
+        producer = {
+            "provider": "codex-cli",
+            "interface": "codex-exec",
+            "cli_version": "0.151.0",
+            "auth_method": "chatgpt_session",
+            "api_provider": "openai_first_party",
+            "model": "codex-cli/gpt-5.6-sol",
+        }
+        for label, version in (
+                ("unicode_digits", "٠.١٥١.٠"),
+                ("null", None),
+                ("number", 151)):
+            with self.subTest(label=label):
+                self.assertFalse(ledger._supported_summary_producer({**producer, "cli_version": version}))
 
     def test_reused_profile_and_release_rows_are_part_of_refresh_core_hash(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
