@@ -471,6 +471,19 @@ def _parse_utc(value: str) -> datetime:
     return parsed
 
 
+def _canonical_repository_utc(value: Any, *, nullable: bool = False) -> str | None:
+    if nullable and value is None:
+        return None
+    if isinstance(value, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", value):
+        try:
+            parsed = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        except ValueError as error:
+            raise ValueError("repository UTC timestamp is invalid") from error
+        return parsed.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    _parse_utc(value)
+    return value
+
+
 def _parse_kst(value: str) -> datetime:
     if not isinstance(value, str):
         raise ValueError("KST timestamp must be text")
@@ -1128,7 +1141,8 @@ def _repository_fact_colors(repository: dict[str, Any]) -> tuple[Any, Any, Any, 
         _sha_text(entry["fact_sha256"], 64, "repository provenance fact SHA")
     readme = provenance["readme"]
     if not isinstance(readme, dict) or set(readme) != {
-        "api_path", "blob_api_path", "status", "path", "blob_sha", "content_sha256"
+        "api_path", "blob_api_path", "status", "path", "blob_sha", "content_sha256",
+        "locale", "variant_tree_api_path", "variants",
     }:
         raise ValueError("repository provenance fields are not the exact allowlist")
     trending = provenance["trending"]
@@ -1158,9 +1172,21 @@ def _repository_fact_colors(repository: dict[str, Any]) -> tuple[Any, Any, Any, 
         _value(repository, "readme_path", "readmePath"),
         _value(repository, "readme_blob_sha", "readmeBlobSha"),
         _value(repository, "readme_content_sha256", "readmeContentSha256"),
+        _value(repository, "readme_locale", "readmeLocale"),
+        _value(repository, "readme_variants", "readmeVariants"),
     )
-    if (readme["status"], readme["path"], readme["blob_sha"], readme["content_sha256"]) != readme_values:
+    if (
+        readme["status"], readme["path"], readme["blob_sha"], readme["content_sha256"],
+        readme["locale"], readme["variants"],
+    ) != readme_values:
         raise ValueError("repository provenance README values do not match facts")
+    tree_api_path = readme["variant_tree_api_path"]
+    if readme["status"] == "present":
+        head_sha = _value(repository, "default_branch_head_sha", "defaultBranchHeadSha")
+        if not isinstance(tree_api_path, str) or not tree_api_path.endswith(f"/git/trees/{head_sha}"):
+            raise ValueError("repository provenance README variant tree path is invalid")
+    elif tree_api_path is not None:
+        raise ValueError("repository provenance README variant tree path is invalid")
     return colors[0], colors[1], colors[2], selected, selection["selected_period"]
 
 
@@ -1239,7 +1265,7 @@ def _profile_row(repository: dict[str, Any], captured_seq: int, profile_id: int)
         "archived": int(_value(repository, "archived")),
         "is_fork": int(_value(repository, "is_fork", "isFork")),
         "default_branch": _value(repository, "default_branch", "defaultBranch"),
-        "created_at": _value(repository, "created_at", "createdAt"),
+        "created_at": _canonical_repository_utc(_value(repository, "created_at", "createdAt")),
         "field_tags_json": _json_array(fields, "field tags"),
         "form_tags_json": _json_array(forms, "form tags"),
         "tag_rule_version": _value(repository, "tag_rule_version", "tagRuleVersion"),
@@ -1478,8 +1504,8 @@ def _event_map(events: dict[str, Any], name: str, key: str = "slug") -> dict[str
         if not isinstance(item, dict) or key not in item:
             raise ValueError(f"event {name} is invalid")
         slug = _slug_value(item[key])
-        if item[key] != slug or slug in mapped:
-            raise ValueError(f"event {name} has duplicate or noncanonical slug")
+        if slug in mapped:
+            raise ValueError(f"event {name} has duplicate slug")
         mapped[slug] = item
     return mapped
 
@@ -1494,7 +1520,7 @@ def _github_url(value: Any, expected_path_prefix: str, label: str) -> str:
         raise ValueError(f"{label} URL is invalid")
     parsed = urlsplit(value)
     path = unquote(parsed.path)
-    if parsed.scheme != "https" or parsed.hostname != "github.com" or parsed.port is not None or parsed.username is not None or parsed.password is not None or parsed.query or parsed.fragment or not path.startswith(expected_path_prefix):
+    if parsed.scheme != "https" or parsed.hostname != "github.com" or parsed.port is not None or parsed.username is not None or parsed.password is not None or parsed.query or parsed.fragment or not path.casefold().startswith(expected_path_prefix.casefold()):
         raise ValueError(f"{label} URL is invalid")
     return value
 
@@ -2223,7 +2249,7 @@ def record_core_snapshot(candidate_database_path: str | Path, snapshot_payload: 
                     "language_color_daily": colors[0], "language_color_weekly": colors[1], "language_color_monthly": colors[2],
                     "selected_language_color": colors[3], "selected_language_color_source_period": colors[4],
                     "stars": _value(repository, "stars"), "forks": _value(repository, "forks"), "watchers_count": _value(repository, "watchers_count", "watchersCount"), "subscribers": _value(repository, "subscribers"), "open_issues_and_pull_requests": _value(repository, "open_issues_and_pull_requests", "openIssuesAndPullRequests"), "contributors": _value(repository, "contributors"),
-                    "updated_at": _value(repository, "updated_at", "updatedAt"), "pushed_at": _value(repository, "pushed_at", "pushedAt"), "default_branch_head_sha": _value(head, "head_sha", "headSha"), "previous_default_branch_head_sha": stated_previous_head, "head_transition": _value(head, "transition"),
+                    "updated_at": _canonical_repository_utc(_value(repository, "updated_at", "updatedAt")), "pushed_at": _canonical_repository_utc(_value(repository, "pushed_at", "pushedAt"), nullable=True), "default_branch_head_sha": _value(head, "head_sha", "headSha"), "previous_default_branch_head_sha": stated_previous_head, "head_transition": _value(head, "transition"),
                     "readme_status": "absent" if readme_path is None else "present", "readme_path": readme_path, "readme_blob_sha": readme_blob, "readme_content_sha256": readme_content, "membership_status": membership,
                     "release_count": len(inventory), "release_inventory_sha256": _digest(inventory), "latest_release_id": latest_release,
                     "estimate_collection_status": "complete_empty" if not estimate_rows else "complete_nonempty", "estimate_source_payload_sha256": estimate_payload, "estimate_point_count": len(estimate_rows),

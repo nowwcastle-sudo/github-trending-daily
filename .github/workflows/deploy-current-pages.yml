@@ -28,6 +28,9 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24"
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
       - name: Bind deployment to exact origin main
         shell: bash
         run: |
@@ -36,12 +39,24 @@ jobs:
           SOURCE_SHA="$(git rev-parse HEAD)"
           [ "$SOURCE_SHA" = "$(git rev-parse refs/remotes/origin/main)" ] || { echo "::error::checkout is not exact origin/main"; exit 1; }
           echo "SOURCE_SHA=$SOURCE_SHA" >> "$GITHUB_ENV"
-      - name: Build committed legacy Pages artifact
+      - name: Build committed Pages artifact
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/build-pages-artifact.mjs --mode legacy --source "." --out "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA"
-          node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/pages-artifact" --legacy-recovery-sha "$SOURCE_SHA"
+          if [ -f data/repository-observations.sqlite ]; then
+            SNAPSHOT_ID="$(node --input-type=module -e 'import {readFileSync} from "node:fs"; const value=JSON.parse(readFileSync("data/latest.json","utf8")); if(!/^[0-9]{14}-[a-f0-9]{16}$/.test(value.snapshotId??"")) throw new Error("committed snapshot id is invalid"); process.stdout.write(value.snapshotId);')"
+            ARTIFACT_CONTRACT="${RUNNER_TEMP}/artifact-contract.json"
+            python scripts/derive_repository_artifacts.py export-contract --database data/repository-observations.sqlite --snapshot-id "$SNAPSHOT_ID" --contract-out "$ARTIFACT_CONTRACT"
+            node scripts/build-pages-artifact.mjs --source "." --out "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "$ARTIFACT_CONTRACT"
+            node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "$ARTIFACT_CONTRACT"
+            echo "DEPLOYMENT_MODE=v1" >> "$GITHUB_ENV"
+            echo "SNAPSHOT_ID=$SNAPSHOT_ID" >> "$GITHUB_ENV"
+            echo "ARTIFACT_CONTRACT=$ARTIFACT_CONTRACT" >> "$GITHUB_ENV"
+          else
+            node scripts/build-pages-artifact.mjs --mode legacy --source "." --out "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA"
+            node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/pages-artifact" --legacy-recovery-sha "$SOURCE_SHA"
+            echo "DEPLOYMENT_MODE=v0" >> "$GITHUB_ENV"
+          fi
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
@@ -53,4 +68,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/probe-production.mjs --base-url "${{ steps.deployment.outputs.page_url }}" --legacy-recovery-sha "$SOURCE_SHA"
+          if [ "$DEPLOYMENT_MODE" = "v1" ]; then
+            node scripts/probe-production.mjs --base-url "${{ steps.deployment.outputs.page_url }}" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "$ARTIFACT_CONTRACT"
+          else
+            node scripts/probe-production.mjs --base-url "${{ steps.deployment.outputs.page_url }}" --legacy-recovery-sha "$SOURCE_SHA"
+          fi

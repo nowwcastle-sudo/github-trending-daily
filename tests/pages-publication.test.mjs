@@ -17,7 +17,7 @@ import {
   parseEmbeddedRepos,
 } from "../scripts/build-pages-artifact.mjs";
 import { prepareRefreshCandidate, verifyCandidateMutations } from "../scripts/prepare-refresh-candidate.mjs";
-import { probeArtifactDirectory, probeProduction } from "../scripts/probe-production.mjs";
+import { probeArtifactDirectory, probeProduction, validateCurrentAtom } from "../scripts/probe-production.mjs";
 import { createRunContext } from "../scripts/run-context.mjs";
 import { bindFrozenEventEnvelope } from "../scripts/collect-repository-events.mjs";
 import { buildLatestFeed } from "../scripts/update-latest-feed.mjs";
@@ -40,6 +40,32 @@ const LEGACY_PROBE_MISSING_PATHS = Object.freeze([
   "translations/owner__neither.json",
   "translations/owner__readme-only.json",
 ]);
+
+test("current Atom probe keeps a lowercase stable id while preserving GitHub slug display case", () => {
+  const generatedAt = "2026-08-31T23:22:56.651Z";
+  const mixedCaseSlug = "Owner/Repo";
+  const xml = `<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml</id>
+  <title>GitHub Trending Daily — 현재 전체</title>
+  <updated>${generatedAt}</updated>
+  <category scheme="https://nowwcastle-sudo.github.io/github-trending-daily/snapshot" term="${snapshotId}" />
+  <category scheme="https://nowwcastle-sudo.github.io/github-trending-daily/stats-date" term="2026-09-01" />
+  <link rel="self" type="application/atom+xml" href="https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml" />
+  <link rel="alternate" type="text/html" href="https://nowwcastle-sudo.github.io/github-trending-daily/" />
+  <entry>
+    <id>https://github.com/owner/repo</id>
+    <title>${mixedCaseSlug}</title>
+    <updated>${generatedAt}</updated>
+    <link rel="alternate" type="text/html" href="https://github.com/${mixedCaseSlug}" />
+    <summary type="text">Repository summary</summary>
+  </entry>
+</feed>`;
+
+  assert.equal(validateCurrentAtom(xml, {
+    generatedAt, snapshotId, statsDate: "2026-09-01", repos: [{ slug: mixedCaseSlug }],
+  }).length, 1);
+});
 
 test("production state inspection validates v0 v1 explicitly and preserves verified 404", () => {
   const fileHash = "b".repeat(64);
@@ -254,7 +280,17 @@ function frozenRepository(context, index) {
       repository: { api_path: `/repos/${slug}`, fact_sha256: factSha },
       contributors: { api_path: `/repos/${slug}/contributors`, fact_sha256: factSha },
       default_branch_head: { api_path: `/repos/${slug}/commits/main`, fact_sha256: factSha },
-      readme: { api_path: `/repos/${slug}/readme`, blob_api_path: `/repos/${slug}/git/blobs/${"b".repeat(40)}`, status: "present", path: "README.md", blob_sha: "b".repeat(40), content_sha256: frozenContentSha256 },
+      readme: {
+        api_path: `/repos/${slug}/readme`,
+        blob_api_path: `/repos/${slug}/git/blobs/${"b".repeat(40)}`,
+        status: "present",
+        path: "README.md",
+        blob_sha: "b".repeat(40),
+        content_sha256: frozenContentSha256,
+        locale: null,
+        variant_tree_api_path: `/repos/${slug}/git/trees/${(index + 1).toString(16).padStart(40, "0")}`,
+        variants: [],
+      },
       trending: {
         daily: { source_path: "/trending?since=daily", rank: index + 1, gain: index, language_color: "#112233", fact_sha256: factSha },
         weekly: { source_path: "/trending?since=weekly", rank: null, gain: null, language_color: null, fact_sha256: factSha },

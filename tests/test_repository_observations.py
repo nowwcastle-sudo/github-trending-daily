@@ -366,6 +366,7 @@ def writer_payload(*, snapshot_id, utc, kst, stats_date, run_kind, parent_snapsh
         "readme": {
             "api_path": "/repos/owner/repo/readme", "blob_api_path": f"/repos/owner/repo/git/blobs/{sha1('b')}",
             "status": "present", "path": "README.md", "blob_sha": sha1("b"), "content_sha256": sha256("c"),
+            "locale": None, "variant_tree_api_path": f"/repos/owner/repo/git/trees/{sha1()}", "variants": [],
         },
         "trending": {
             "daily": {"source_path": "/trending?since=daily", "rank": 1, "gain": 0, "language_color": "#112233", "fact_sha256": sha256("4")},
@@ -1602,6 +1603,7 @@ class RepositoryObservationTests(unittest.TestCase):
         first_id = "20260828010101-aaaaaaaaaaaaaaaa"
         first = payload(first_id, "2026-08-28T01:01:01.001Z", "2026-08-28T10:01:01.001+09:00", "migration_baseline", None, True)
         first["repositories"][1]["defaultBranchHeadSha"] = sha1("b")
+        first["repositories"][1]["provenance"]["readme"]["variant_tree_api_path"] = f"/repos/other/repo/git/trees/{sha1('b')}"
         first["legacyBaselines"], first["legacyBaselineReceipt"] = paths, receipt
         record_writer_snapshot(
             candidate,
@@ -1621,6 +1623,7 @@ class RepositoryObservationTests(unittest.TestCase):
         )
         third = payload("20260828050101-cccccccccccccccc", "2026-08-28T05:01:01.001Z", "2026-08-28T14:01:01.001+09:00", "refresh", second_id, True, "d", "e")
         third["repositories"][1]["defaultBranchHeadSha"] = sha1("d")
+        third["repositories"][1]["provenance"]["readme"]["variant_tree_api_path"] = f"/repos/other/repo/git/trees/{sha1('d')}"
         with self.assertRaisesRegex(ValueError, "existing repository cannot use baseline"):
             record_writer_snapshot(
                 candidate,
@@ -1899,6 +1902,43 @@ class RepositoryObservationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, message):
                 record_core_snapshot(candidate, payload, events, {})
 
+    def test_event_maps_accept_github_slug_case_but_keep_casefolded_duplicate_rejection(self):
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        candidate = Path(self.temporary.name) / "event-case.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing-event-case.sqlite", candidate, None)
+        payload = writer_payload(
+            snapshot_id="20260828010101-aaaaaaaaaaaaaaaa",
+            utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00",
+            stats_date="2026-08-28", run_kind="migration_baseline",
+        )
+        payload["legacyBaselines"], payload["legacyBaselineReceipt"] = paths, receipt
+        payload["repositories"][0]["createdAt"] = "2026-08-28T01:01:01Z"
+        payload["repositories"][0]["updatedAt"] = "2026-08-28T01:01:02Z"
+        payload["repositories"][0]["pushedAt"] = "2026-08-28T01:01:03Z"
+        events = writer_events(head=sha1(), transition="baseline")
+        events["heads"][0]["slug"] = "Owner/Repo"
+        events["estimates"][0]["slug"] = "Owner/Repo"
+        release = {
+            "slug": "owner/repo", "release_id": 7, "tag_name": "v1", "name": None,
+            "target_commitish": "main", "draft": False, "prerelease": False,
+            "created_at": "2026-08-28T01:01:01.001Z", "published_at": None,
+            "html_url": "https://github.com/Owner/Repo/releases/tag/v1",
+        }
+        events["releases"] = [{
+            "slug": release["slug"], "releaseId": release["release_id"],
+            "tagName": release["tag_name"], "name": release["name"],
+            "targetCommitish": release["target_commitish"], "draft": release["draft"],
+            "prerelease": release["prerelease"], "createdAt": release["created_at"],
+            "publishedAt": release["published_at"], "htmlUrl": release["html_url"],
+            "metadataSha256": canonical_hash(release),
+        }]
+        events["latestReleaseIds"] = {"owner/repo": 7}
+        bind_writer_inputs(payload, events)
+
+        result = record_core_snapshot(candidate, payload, events, {})
+
+        self.assertEqual(result.snapshot_seq, 1)
+
     def test_post_append_preserves_exact_rows_in_all_fourteen_tables(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
         candidate = Path(self.temporary.name) / "all-table-prefix.sqlite"
@@ -2036,6 +2076,7 @@ class RepositoryObservationTests(unittest.TestCase):
         )
         second["legacyBaselines"], second["legacyBaselineReceipt"] = paths, receipt
         second["repositories"][0]["defaultBranchHeadSha"] = sha1("b")
+        second["repositories"][0]["provenance"]["readme"]["variant_tree_api_path"] = f"/repos/owner/repo/git/trees/{sha1('b')}"
         events = writer_events(head=sha1("b"), transition="fast_forward")
         events["commits"] = [{
             "slug": "owner/repo", "sha": sha1("b"), "firstObservedOrdinal": 1,
@@ -2075,6 +2116,7 @@ class RepositoryObservationTests(unittest.TestCase):
         )
         second["legacyBaselines"], second["legacyBaselineReceipt"] = paths, receipt
         second["repositories"][0]["defaultBranchHeadSha"] = sha1("b")
+        second["repositories"][0]["provenance"]["readme"]["variant_tree_api_path"] = f"/repos/owner/repo/git/trees/{sha1('b')}"
         events = writer_events(head=sha1("b"), transition="fast_forward")
         events["commits"] = [
             {

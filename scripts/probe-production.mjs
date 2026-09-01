@@ -248,7 +248,7 @@ function validateAtomHeader(xml, { kind, generatedAt, snapshotId, statsDate }) {
   if (JSON.stringify(categories.sort()) !== JSON.stringify(expected.sort())) throw new Error(`invalid ${kind} Atom run identity`);
 }
 
-function validateCurrentAtom(xml, latest) {
+export function validateCurrentAtom(xml, latest) {
   validateAtomHeader(xml, { kind: "current", generatedAt: latest.generatedAt, snapshotId: latest.snapshotId, statsDate: latest.statsDate });
   const entries = atomEntries(xml);
   if (entries.length !== latest.repos.length) throw new Error("current Atom entry count mismatch");
@@ -256,7 +256,8 @@ function validateCurrentAtom(xml, latest) {
     const entry = entries[index];
     const slug = latest.repos[index].slug;
     const repositoryUrl = `https://github.com/${slug}`;
-    if (oneMatch(entry, /<id>([^<]+)<\/id>/g, "current Atom id") !== repositoryUrl
+    const stableRepositoryId = `https://github.com/${slug.toLowerCase()}`;
+    if (oneMatch(entry, /<id>([^<]+)<\/id>/g, "current Atom id") !== stableRepositoryId
         || oneMatch(entry, /<title>([^<]+)<\/title>/g, "current Atom title") !== slug
         || oneMatch(entry, /<updated>([^<]+)<\/updated>/g, "current Atom timestamp") !== latest.generatedAt
         || !entry.includes(`<link rel="alternate" type="text/html" href="${repositoryUrl}" />`)) throw new Error("current Atom entry identity mismatch");

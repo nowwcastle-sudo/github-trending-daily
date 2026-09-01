@@ -94,6 +94,36 @@ test("summary bundle accepts exactly five complete locales and rejects generic R
   assert.throws(() => validateSummaryBundle(generic), /generic|placeholder|README/i);
 });
 
+test("a concise five-part English summary does not need translation-length parity", () => {
+  const concise = bundle();
+  concise.en = {
+    goal: "Explains the documented repository purpose, intended users, supported scope, and practical problem that the project is designed to solve for adopters.",
+    usage: "Describes the documented setup path, primary command flow, required environment, and normal operating sequence without inventing undocumented installation steps or capabilities.",
+    pros: "Highlights concrete documented strengths, including workflow coverage, integration points, maintained examples, and operational conveniences that can reduce adoption effort for suitable teams.",
+    cons: "States a documented prerequisite, limitation, maintenance trade-off, or cautious documentation gap so readers can evaluate operational cost without promotional language or guesswork.",
+    fit: "Identifies the projects and teams that match the documented use case, while distinguishing situations where the repository scope or prerequisites make another option preferable.",
+  };
+  const englishWords = Object.values(concise.en).join(" ").split(/\s+/).length;
+
+  assert.ok(englishWords >= 100 && englishWords < 150);
+  assert.deepEqual(validateSummaryBundle(concise), concise);
+});
+
+test("locale prose may vary while every summary keeps the same field roles", () => {
+  const natural = modelEnvelope();
+  for (const locale of SUMMARY_BUNDLE_LOCALES) {
+    for (const field of fields.filter(field => field !== "usage")) {
+      natural.summaries[locale][field] = natural.summaries[locale][field].replace("`npm test`", "the documented test command");
+    }
+  }
+  natural.summaries.ja.goal = "TestProduct 1.0 の目的と対象利用者を、README に記載された範囲で簡潔に説明します。";
+
+  const checked = validateSummaryBundleEnvelope(natural, item);
+
+  assert.equal(checked.summaries.ja.goal, natural.summaries.ja.goal);
+  assert.deepEqual(checked.invariants[0].fields, ["usage"]);
+});
+
 test("Spanish todo remains prose while uppercase TODO remains a placeholder marker", () => {
   const spanish = bundle();
   spanish.es.cons += " La configuración manual puede afectar a todo el flujo de trabajo.";
@@ -255,7 +285,8 @@ test("one Sonnet 5 request carries all five summaries and no README translation 
   const invariantItem = request.schema.properties.invariants.items;
   assert.deepEqual(invariantItem.required, ["kind", "value"]);
   assert.deepEqual(Object.keys(invariantItem.properties), ["kind", "value"]);
-  assert.match(request.prompt, /180.{0,20}280|evidence|line range/is);
+  assert.match(request.prompt, /100.{0,20}280|evidence|line range/is);
+  assert.match(request.prompt, /natural|length|ordering|emphasis/i);
   assert.doesNotMatch(JSON.stringify(request.schema), /translated_markdown|translation_applicable/);
   assert.match(request.prompt, /untrusted source data/i);
 });
@@ -739,20 +770,10 @@ test("cross-locale token correction receives every exact expected and actual inv
   assert.deepEqual(result.results[0].summaries, bundle());
 });
 
-test("quality correction identifies unsupported marketing language in one locale field", async () => {
-  const invalid = () => {
-    const value = modelEnvelope();
-    value.summaries.en.fit += " It is the ultimate choice.";
-    return value;
-  };
+test("subjective marketing wording does not consume a quality correction", async () => {
+  const value = modelEnvelope();
+  value.summaries.en.fit += " It is the ultimate choice.";
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
-  const valid = modelEnvelope();
-  const replies = [
-    invalid(),
-    summaryPatch(invalid(), { en: ["fit"] }),
-    summaryPatch(valid, { en: ["fit"] }),
-  ];
-  const prompts = [];
   let calls = 0;
   const result = await runClaudeSummaryBundleRequests({
     plan,
@@ -762,19 +783,13 @@ test("quality correction identifies unsupported marketing language in one locale
     attemptTimeoutMs: 1_000,
     sleep: async () => {},
     preflight: async () => oauthRuntime,
-    executeClaude: async ({ prompt }) => {
-      prompts.push(prompt);
-      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    executeClaude: async () => {
+      calls += 1;
+      return { structuredOutput: value, usage: { inputTokens: 100, outputTokens: 200 } };
     },
   });
-  assert.equal(calls, 3);
-  assert.match(prompts[1], /en\.fit/);
-  assert.match(prompts[1], /forbidden_terms/);
-  assert.match(prompts[1], /ultimate/);
-  assert.match(prompts[1], /neutral.*source-supported/i);
-  assert.match(prompts[1], /promotional.*superlative/i);
-  assert.match(prompts[2], /en\.fit/);
-  assert.deepEqual(result.results[0].summaries, bundle());
+  assert.equal(calls, 1);
+  assert.equal(result.results[0].summaries.en.fit, value.summaries.en.fit);
 });
 
 test("source-grounded best practices terminology is not promotional marketing", () => {
@@ -784,14 +799,27 @@ test("source-grounded best practices terminology is not promotional marketing", 
   assert.deepEqual(validateSummaryBundle(summaries), summaries);
 });
 
+test("source-grounded best wording does not fail the deployable summary contract", () => {
+  const summaries = bundle();
+  summaries.en.goal += " The README describes it as one of the best known options for this use case.";
+
+  assert.deepEqual(validateSummaryBundle(summaries), summaries);
+});
+
+test("subjective marketing wording does not block an otherwise deployable summary", () => {
+  const summaries = bundle();
+  summaries.en.fit += " The README calls this the ultimate option for its intended audience.";
+
+  assert.deepEqual(validateSummaryBundle(summaries), summaries);
+});
+
 test("one correction receives the prior output and every independent quality defect", async () => {
   const invalid = modelEnvelope();
-  invalid.summaries.en.fit += " It is the ultimate choice.";
   invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
   invalid.summaries.ja.goal = invalid.summaries.ja.goal.replace("`npm test`", "the test command");
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
   const valid = modelEnvelope();
-  const selected = { en: ["fit"], es: ["cons"], ja: ["goal"] };
+  const selected = { es: ["cons"], ja: ["goal"] };
   const replies = [invalid, summaryPatch(valid, selected)];
   const prompts = [];
   let calls = 0;
@@ -812,10 +840,8 @@ test("one correction receives the prior output and every independent quality def
   assert.equal(calls, 2);
   assert.match(prompts[1], /PREVIOUS_OUTPUT_JSON/);
   assert.match(prompts[1], /VALIDATION_DEFECTS_JSON/);
-  assert.match(prompts[1], /en\.fit/);
   assert.match(prompts[1], /es\.cons/);
   assert.match(prompts[1], /ja/);
-  assert.match(prompts[1], /ultimate choice/);
   assert.match(prompts[1], /forbidden_terms[^\n]*Consulte el README/i);
   assert.deepEqual(result.results[0].summaries, bundle());
 });
@@ -858,13 +884,11 @@ test("approved bootstrap retry capacity covers three bounded corrections per pen
 
 test("quality correction schema exposes only validator-selected defective paths", async () => {
   const invalid = modelEnvelope();
-  invalid.summaries.en.fit += " It is the ultimate choice.";
   invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
   invalid.summaries.ja.goal = invalid.summaries.ja.goal.replace("`npm test`", "the test command");
   const corrected = modelEnvelope();
   const patch = {
     summaries: {
-      en: { fit: corrected.summaries.en.fit },
       es: { cons: corrected.summaries.es.cons },
       ja: { goal: corrected.summaries.ja.goal },
     },
@@ -890,8 +914,7 @@ test("quality correction schema exposes only validator-selected defective paths"
   assert.equal(calls, 2);
   assert.deepEqual(schemas[1].required, ["summaries"]);
   assert.deepEqual(Object.keys(schemas[1].properties), ["summaries"]);
-  assert.deepEqual(schemas[1].properties.summaries.required, ["en", "es", "ja"]);
-  assert.deepEqual(schemas[1].properties.summaries.properties.en.required, ["fit"]);
+  assert.deepEqual(schemas[1].properties.summaries.required, ["es", "ja"]);
   assert.deepEqual(schemas[1].properties.summaries.properties.es.required, ["cons"]);
   assert.deepEqual(schemas[1].properties.summaries.properties.ja.required, ["goal"]);
   assert.deepEqual(result.results[0].summaries, bundle());
@@ -899,7 +922,7 @@ test("quality correction schema exposes only validator-selected defective paths"
 
 test("a partial correction becomes the immutable base for the next targeted correction", async () => {
   const invalid = modelEnvelope();
-  invalid.summaries.en.fit += " It is the ultimate choice.";
+  invalid.summaries.en.fit += " TODO";
   invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
   const valid = modelEnvelope();
   const partial = {
@@ -936,9 +959,8 @@ test("a partial correction becomes the immutable base for the next targeted corr
 
 test("terminal quality failure exposes bounded defect diagnostics without model output", async () => {
   const invalid = modelEnvelope();
-  invalid.summaries.en.fit += " It is the ultimate choice.";
   invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
-  const badPatch = summaryPatch(invalid, { en: ["fit"], es: ["cons"] });
+  const badPatch = summaryPatch(invalid, { es: ["cons"] });
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
   let calls = 0;
 
@@ -963,9 +985,8 @@ test("terminal quality failure exposes bounded defect diagnostics without model 
         version: 1,
         repository: "owner/repo",
         failure_code: "QUALITY_VALIDATION_FAILED",
-        defect_count: 4,
+        defect_count: 3,
         defects: [
-          { code: "UNSUPPORTED_MARKETING", locale: "en", field: "fit", forbidden_terms: ["ultimate"] },
           { code: "GENERIC_OR_PLACEHOLDER", locale: "es", field: "cons", forbidden_terms: ["Consulte el README"] },
           {
             code: "LOCALE_INVARIANT",
