@@ -677,7 +677,7 @@ if ($LASTEXITCODE -ne 0) { throw 'actionlint failed' }
 각 spec section 1-15를 Task 1-8 중 하나에 매핑한다. 다음 scan은 match 0이어야 한다.
 
 ```powershell
-$redFlags = @('T'+'BD','FIX'+'ME','implement'+' later','fill in'+' details','추후'+' 결정','PLACE'+'HOLDER')
+$redFlags = @(('T'+'BD'),('FIX'+'ME'),('implement'+' later'),('fill in'+' details'),('추후'+' 결정'),('PLACE'+'HOLDER'))
 rg -n ($redFlags -join '|') docs/superpowers/plans/2026-09-01-v3-codex-summary-fallback-release-semantics.md
 if ($LASTEXITCODE -eq 0) { throw 'Plan placeholder found' }
 ```
