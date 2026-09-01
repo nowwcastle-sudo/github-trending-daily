@@ -85,12 +85,14 @@ test("tracked production migration gate distinguishes the exact legacy RED from 
     validReadmeProvenance: observed.repository,
     trackedTranslations: 0,
   });
-  assert.deepEqual(Object.keys(sourceRegistry.sources).sort(), repositories.map(repository => repository.slug.toLowerCase()).sort());
+  assert.deepEqual(Object.keys(sourceRegistry.sources), repositories.map(repository => repository.slug));
+  const sourcesByIdentity = new Map(Object.entries(sourceRegistry.sources).map(([slug, source]) => [slug.toLowerCase(), source]));
+  assert.equal(sourcesByIdentity.size, repositories.length, "v3 source identities must be case-insensitively unique");
   for (const repository of repositories) {
     assert.ok(exactKeys(repository.summaries, locales), `${repository.slug}: five-locale summary bundle missing`);
     assert.ok(locales.every(locale => validDetailedSummary(repository.summaries[locale])), `${repository.slug}: invalid detailed summary`);
     assert.deepEqual(repository.summary, repository.summaries.en, `${repository.slug}: English default mismatch`);
-    assert.ok(validV3Source(sourceRegistry.sources[repository.slug.toLowerCase()], repository), `${repository.slug}: invalid v3 source`);
+    assert.ok(validV3Source(sourcesByIdentity.get(repository.slug.toLowerCase()), repository), `${repository.slug}: invalid v3 source`);
   }
   return { status: "v3_ready", ...observed };
 });

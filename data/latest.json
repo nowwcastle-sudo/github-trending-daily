@@ -1,12 +1,45 @@
 {
-  "generatedAt": "2026-08-29T15:50:10.418Z",
-  "statsDate": "2026-08-30",
-  "count": 49,
+  "snapshotId": "20260831232256-93d42067ab071cda",
+  "generatedAt": "2026-08-31T23:22:56.651Z",
+  "statsDate": "2026-09-01",
+  "count": 45,
   "repos": [
+    {
+      "slug": "THU-MAIC/OpenMAIC",
+      "name": "THU-MAIC / OpenMAIC",
+      "description": "Open Multi-Agent Interactive Classroom — Get an immersive, multi-agent learning experience in just one click",
+      "lang": "TypeScript",
+      "topics": [],
+      "stars": 26896,
+      "forks": 4744,
+      "issues": 236,
+      "contributors": 63,
+      "gains": {
+        "daily": 2819,
+        "weekly": 2085,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "OpenMAIC (Open Multi-Agent Interactive Classroom) is an open-source AI platform that turns a topic or document into an interactive classroom experience, using multi-agent orchestration to generate slides, quizzes, interactive simulations, and project-based learning activities delivered by AI teachers and classmates. OpenMAIC v1.0.0, released August 27, 2026, adds a chat-based Pro workbench alongside the original one-click generator, letting users steer course creation.",
+        "usage": "Clone the repository, run `pnpm install`, copy `.env.example` to `.env.local`, and set at least one LLM provider API key (e.g., OPENAI_API_KEY or ANTHROPIC_API_KEY). Then run `pnpm dev` and open http://localhost:3000. Prerequisites are Node.js >= 20 and pnpm >= 10; Docker Compose and Vercel deployment options are also documented.",
+        "pros": "The project uses the MIT License, permitting free commercial use. Its provider-neutral design lets users bring their own LLM, media, search, and storage backends (OpenAI, Anthropic, Amazon Bedrock, Google Gemini, DeepSeek, Ollama, and more). It also ships 20 built-in skills covering curriculum planning, slide/stage craft, and PPTX import/editing.",
+        "cons": "Database-backed persistence ships with a development-mode token (PERSISTENCE_DEV_TOKEN/NEXT_PUBLIC_PERSISTENCE_TOKEN) that offers no confidentiality or user isolation and is suitable only for localhost or trusted-network, single-user deployments; production use requires replacing the default server-auth module with real session verification.",
+        "fit": "This appears suited to educators, teams, or self-hosters wanting a customizable, multi-provider interactive course generator working across 12 locales, with optional chat-driven (OpenClaw) or agent-workbench workflows. Shared or production deployments likely require additional setup effort for PostgreSQL persistence, provider API keys, and stronger authentication beyond the default development token."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "learning"
+      ],
+      "form_tags": [
+        "agent"
+      ]
+    },
     {
       "slug": "tt-a1i/archify",
       "name": "tt-a1i / archify",
-      "desc": "Agent skill for beautiful, verifiable architecture, workflow, sequence, data-flow, and lifecycle diagrams—self-contained HTML with motion and crisp export.",
+      "description": "Agent skill for beautiful, verifiable architecture, workflow, sequence, data-flow, and lifecycle diagrams—self-contained HTML with motion and crisp export.",
       "lang": "JavaScript",
       "topics": [
         "agent-skills",
@@ -30,31 +63,40 @@
         "system-design",
         "text-to-diagram"
       ],
-      "stars": 29939,
-      "forks": 1870,
-      "issues": 69,
-      "contributors": 10,
+      "stars": 38552,
+      "forks": 2466,
+      "issues": 93,
+      "contributors": 13,
       "gains": {
-        "daily": 3927,
-        "weekly": 11099,
-        "monthly": null
+        "daily": 3993,
+        "weekly": 18103,
+        "monthly": 25275
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 7687
-      },
+      "signal": null,
       "summary": {
-        "goal": "Agent skill for beautiful, verifiable architecture, workflow, sequence, data-flow, and lifecycle diagrams—self-contained HTML with motion and crisp export. GitHub에 공개된 JavaScript 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 3,927개, 이번 주 11,099개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+        "goal": "Archify (stable version v2.16.0) is a Node.js rendering and validation system for Cursor, Claude Code, Codex CLI, and OpenCode. It turns a codebase or system description into an interactive system map directly in chat, with agents producing typed JSON IR that Archify deterministically compiles into HTML/SVG across five diagram types.",
+        "usage": "Install globally with `npx skills add tt-a1i/archify -g`, then describe a system in an agent chat — no existing repository is required. For source-grounded diagrams, an agent can analyze a repository first. To pick a diagram type, run `node archify/bin/archify.mjs guide \"Show an API request with Redis cache miss\"`.",
+        "pros": "Every renderer-backed mode uses a typed JSON IR with a schema, and atomic validation — schema, layout, HTML/SVG, route, and label-to-route checks — must pass before an artifact replaces prior output. Failures on validation or delivery return stable rule codes with measured evidence instead of a raw error. Output is one portable HTML file, with PNG, SVG, WebM, and 1200×630 share cards available.",
+        "cons": "Automatic Mermaid parsing, general-purpose auto-layout, hosted sharing, and WYSIWYG editing are explicitly outside current scope, so those needs require separate tooling. The DeepSeek Harness integration is a community add-on, not an official DeepSeek product, and is currently tied to a developer-preview release, `@deepseek-ai/dsh@0.1.0-rc.6`.",
+        "fit": "Given install surfaces limited to Raven, Claude Code, Codex CLI, opencode, and Claude.ai or Project Knowledge uploads, Archify likely suits teams already working within these agent-chat environments rather than those wanting a standalone diagram editor. Some surfaces note dependence on sandbox Node.js access, so availability may vary by platform."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools",
+        "data",
+        "productivity"
+      ],
+      "form_tags": [
+        "agent",
+        "plugin-skill",
+        "cli"
+      ]
     },
     {
       "slug": "K-Dense-AI/scientific-agent-skills",
       "name": "K-Dense-AI / scientific-agent-skills",
-      "desc": "Turn any AI agent into an AI Scientist. The #1 Agent Skills library for science, used by 190,000+ scientists worldwide. 165 ready-to-use validated skills plus 100+ scientific databases covering biology, chemistry, medicine, and drug discovery. Compatible with Cursor, Claude Code, Codex, Pi, Antigravity, and the open Agent Skills standard.",
+      "description": "Turn any AI agent into an AI Scientist. The #1 Agent Skills library for science, used by 190,000+ scientists worldwide. 165 ready-to-use validated skills plus 100+ scientific databases covering biology, chemistry, medicine, and drug discovery. Compatible with Cursor, Claude Code, Codex, Pi, Antigravity, and the open Agent Skills standard.",
       "lang": "Python",
       "topics": [
         "agent-skills",
@@ -75,264 +117,555 @@
         "scientific-computing",
         "scientific-visualization"
       ],
-      "stars": 37554,
-      "forks": 3550,
-      "issues": 15,
+      "stars": 40685,
+      "forks": 3768,
+      "issues": 25,
       "contributors": 51,
       "gains": {
-        "daily": 1604,
-        "weekly": null,
+        "daily": 1968,
+        "weekly": 4309,
         "monthly": null
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 2388
-      },
+      "signal": null,
       "summary": {
-        "goal": "Turn any AI agent into an AI Scientist. The #1 Agent Skills library for science, used by 190,000+ scientists worldwide. 165 ready-to-use validated skills plus 100+ scientific databases covering biology, chemistry, medicine, and drug discovery. Compatible with Cursor, Claude Code, Codex, Pi, Antigravity, and the open Agent Skills standard. GitHub에 공개된 Python 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 1,604개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "anthropics/claude-plugins-official",
-      "name": "anthropics / claude-plugins-official",
-      "desc": "Official, Anthropic-managed directory of high quality Claude Code Plugins.",
-      "lang": "Python",
-      "topics": [
-        "claude-code",
-        "mcp",
-        "skills"
+        "goal": "Scientific Agent Skills (v2.65.0) is a collection of 163 documented skills for AI agents that follow the open Agent Skills standard, covering domains such as bioinformatics, cheminformatics, clinical research, and materials science, alongside unified access to 100+ scientific and financial databases, maintained by K-Dense.",
+        "usage": "Supported hosts can install the full collection with `npx skills add K-Dense-AI/scientific-agent-skills`, or via GitHub CLI (v2.90.0+) with `gh skill install K-Dense-AI/scientific-agent-skills`, including options to target a specific skill, pin a version, or update later. The repository also loads as a single Agent Plugins package for compatible clients.",
+        "pros": "The documentation describes tested example workflows with validation and provenance notes across all 163 skills, which may reduce API documentation research time. It also states that every skill shipping a `scripts/` folder is covered by a CI-run test suite, suggesting a maintained baseline of reliability, though this should be verified in one's own environment.",
+        "cons": "Because skills can execute code, install packages, and make network requests, the README cautions that community-contributed skills may not all have been exhaustively reviewed, and recommends installing only needed skills rather than the entire collection. Repository tooling also requires Python 3.13+ and the `uv` package manager as prerequisites.",
+        "fit": "This suits users of coding agents that support the Agent-Skills standard, such as Cursor, Claude Code, Codex, Gemini CLI, and Google Antigravity. Other hosts may differ in install paths and optional metadata support, so compatibility with a given host likely warrants confirmation against that host's own documentation."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "data"
       ],
-      "stars": 35256,
-      "forks": 3948,
-      "issues": 1056,
-      "contributors": 36,
-      "gains": {
-        "daily": 356,
-        "weekly": 1281,
-        "monthly": null
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 677
-      },
-      "summary": {
-        "goal": "Official, Anthropic-managed directory of high quality Claude Code Plugins. GitHub에 공개된 Python 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 356개, 이번 주 1,281개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+      "form_tags": [
+        "agent",
+        "plugin-skill",
+        "library"
+      ]
     },
     {
-      "slug": "bilawalsidhu/gods-eye-view",
-      "name": "bilawalsidhu / gods-eye-view",
-      "desc": "A spy satellite simulator in your browser, except the data is real. Live open source spatial intelligence on a photorealistic 3D globe.",
-      "lang": "JavaScript",
+      "slug": "k1tbyte/Wand-Enhancer",
+      "name": "k1tbyte / Wand-Enhancer",
+      "description": "Advanced UX and interoperability extension for Wand (WeMod) app",
+      "lang": "C#",
       "topics": [
-        "3d-globe",
-        "cesium",
-        "flight-tracking",
-        "geospatial",
-        "geospatial-intelligence",
-        "gis",
-        "osint",
-        "photogrammetry",
-        "satellite-tracking",
-        "spatial-intelligence",
-        "webgl",
-        "worldview"
+        "csharp",
+        "wand",
+        "wand-enhancer",
+        "wand-pro",
+        "wemod",
+        "wpf"
       ],
-      "stars": 12076,
-      "forks": 2418,
-      "issues": 104,
-      "contributors": 1,
+      "stars": 23353,
+      "forks": 59545,
+      "issues": 54,
+      "contributors": 5,
       "gains": {
-        "daily": 1870,
+        "daily": 511,
         "weekly": null,
         "monthly": null
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 4615
-      },
+      "signal": null,
       "summary": {
-        "goal": "A spy satellite simulator in your browser, except the data is real. Live open source spatial intelligence on a photorealistic 3D globe. GitHub에 공개된 JavaScript 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 1,870개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+        "goal": "WandEnhancer is an open-source interoperability tool designed to extend local client-side configurations and improve the user experience of the Wand application. Documented features include local environment configuration management, automated compatibility adjustments for new client versions, client-side layout and theme customization, AI features, and a Remote Web Panel for mobile control.",
+        "usage": "To use WandEnhancer, users fork the repository, run the Build executable workflow via GitHub Actions, and execute the downloaded WandEnhancer.exe to apply local client modifications. The Remote Web Panel is reached by ensuring the PC and phone share the same Wi-Fi network and scanning a QR code shown in the app. Building from source requires CMake, Node.js, pnpm, Visual Studio 2022 with the C++ workload, and .NET Framework 4.8 targeting pack, then running build.cmd.",
+        "pros": "The .NET patcher operates locally and does not contact an update or telemetry service; the bundled version.dll proxy changes an Electron fuse inside Wand's own process rather than injecting into another process. Custom JavaScript can be injected at patch time to adjust the client UI, reusing the Remote Web Panel's renderer injection.",
+        "cons": "Official GitHub Releases contain no prebuilt executables, so obtaining WandEnhancer.exe requires building it from a personal fork via GitHub Actions, and unsigned builds may trigger antivirus or SmartScreen warnings. The Remote Web Panel uses plain HTTP on port 3223 without a pairing code, so anyone able to reach that port can view or control it.",
+        "fit": "Based on the documented build requirements, WandEnhancer appears suited to Windows users willing to set up a Visual Studio 2022 development environment or use GitHub Actions to build their own executable, and to run the Remote Web Panel only within a trusted local network or VPN."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "unclassified"
+      ],
+      "form_tags": []
     },
     {
-      "slug": "abhigyanpatwari/GitNexus",
-      "name": "abhigyanpatwari / GitNexus",
-      "desc": "GitNexus: The Zero-Server Code Intelligence Engine -       GitNexus is a client-side knowledge graph creator that runs entirely in your browser. Drop in a git repository (Github, Gitlab, Azure, Local) or ZIP file, and get an interactive knowledge graph with a built in Graph RAG Agent. Perfect for code exploration",
-      "lang": "TypeScript",
-      "topics": [],
-      "stars": 46317,
-      "forks": 5109,
-      "issues": 327,
-      "contributors": 178,
-      "gains": {
-        "daily": 273,
-        "weekly": null,
-        "monthly": null
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": null
-      },
-      "summary": {
-        "goal": "GitNexus: The Zero-Server Code Intelligence Engine -       GitNexus is a client-side knowledge graph creator that runs entirely in your browser. Drop in a git repository (Github, Gitlab, Azure, Local) or ZIP file, and get an interactive knowledge graph with a built in Graph RAG Agent. Perfect for code exploration GitHub에 공개된 TypeScript 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 273개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "JetBrains/go-modern-guidelines",
-      "name": "JetBrains / go-modern-guidelines",
-      "desc": "Help AI coding agents write modern Go",
+      "slug": "majd/ipatool",
+      "name": "majd / ipatool",
+      "description": "Command-line tool that allows searching and downloading app packages (known as ipa files) for iOS, iPadOS, tvOS, and visionOS from the App Store.",
       "lang": "Go",
       "topics": [
-        "ai-agents",
-        "coding-agent",
-        "developer-tools",
+        "apple",
+        "appstore",
+        "cli",
+        "command-line",
+        "command-line-tool",
         "go",
         "golang",
-        "guidelines"
+        "golang-library",
+        "ios",
+        "ipa",
+        "itunes",
+        "macos",
+        "research",
+        "reverse-engineering",
+        "security",
+        "swift",
+        "tool"
       ],
-      "stars": 2778,
-      "forks": 81,
-      "issues": 8,
-      "contributors": 6,
-      "gains": {
-        "daily": 294,
-        "weekly": null,
-        "monthly": null
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 797
-      },
-      "summary": {
-        "goal": "Help AI coding agents write modern Go GitHub에 공개된 Go 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 294개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Go 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "calesthio/OpenMontage",
-      "name": "calesthio / OpenMontage",
-      "desc": "World's first open-source, agentic video production system. 12 production pipelines, 100+ tools, 700+ agent skill and production-knowledge files. Turn your AI coding assistant into a full video production studio.",
-      "lang": "Python",
-      "topics": [
-        "agent",
-        "agentic-ai",
-        "ai",
-        "claude",
-        "copilot",
-        "cursor",
-        "elevenlabs",
-        "ffmpeg",
-        "flux",
-        "image-generation",
-        "open-source",
-        "openai",
-        "python",
-        "remotion",
-        "stable-diffusion",
-        "text-to-speech",
-        "text-to-video",
-        "video-generation",
-        "video-production"
-      ],
-      "stars": 53808,
-      "forks": 6688,
-      "issues": 260,
-      "contributors": 52,
-      "gains": {
-        "daily": 809,
-        "weekly": null,
-        "monthly": null
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 1708
-      },
-      "summary": {
-        "goal": "World's first open-source, agentic video production system. 12 production pipelines, 100+ tools, 700+ agent skill and production-knowledge files. Turn your AI coding assistant into a full video production studio. GitHub에 공개된 Python 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 809개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "abi/screenshot-to-code",
-      "name": "abi / screenshot-to-code",
-      "desc": "Drop in a screenshot and convert it to clean code (HTML/Tailwind/React/Vue)",
-      "lang": "Python",
-      "topics": [],
-      "stars": 75878,
-      "forks": 9238,
-      "issues": 131,
+      "stars": 10514,
+      "forks": 895,
+      "issues": 23,
       "contributors": 29,
       "gains": {
-        "daily": 558,
+        "daily": 376,
         "weekly": null,
         "monthly": null
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": null
-      },
+      "signal": null,
       "summary": {
-        "goal": "Drop in a screenshot and convert it to clean code (HTML/Tailwind/React/Vue) GitHub에 공개된 Python 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 558개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+        "goal": "ipatool is a command-line tool that lets users search the App Store for iOS, iPadOS, tvOS, and visionOS apps and download a copy of the app package, known as an .ipa file; it requires a supported operating system (Windows, Linux, or macOS) and an Apple ID configured for the App Store.",
+        "usage": "Core commands include `ipatool auth login` to authenticate with an Apple ID and `ipatool download` to fetch an app package; flags such as `--app-id`, `--bundle-identifier`, `--output`, and `--purchase` control the target app, destination, and license acquisition, while global flags like `--format` and `--verbose` adjust output; `--non-interactive` supports automated environments.",
+        "pros": "The tool offers both text and JSON output formats via `--format`, can be installed via Homebrew, and is released under the MIT license.",
+        "cons": "Downloads are described as producing an '(encrypted)' app package, which cautiously suggests an additional decryption step may be needed before installation, a detail not further documented.",
+        "fit": "Given its `--non-interactive` flag and JSON output option, ipatool may be reasonably suited for scripted or automated App Store download workflows in CI-like environments, though broader automation or CI use is not explicitly confirmed."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "web-app",
+        "dev-tools",
+        "security"
+      ],
+      "form_tags": [
+        "library",
+        "cli"
+      ]
     },
     {
-      "slug": "cursor/plugins",
-      "name": "cursor / plugins",
-      "desc": "Cursor plugin specification and official plugins",
-      "lang": "TypeScript",
-      "topics": [],
-      "stars": 6100,
-      "forks": 483,
-      "issues": 84,
-      "contributors": 12,
+      "slug": "jingyaogong/minimind",
+      "name": "jingyaogong / minimind",
+      "description": "🧠 Train a 64M-parameter LLM from scratch in just 2h!",
+      "lang": "Python",
+      "topics": [
+        "artificial-intelligence",
+        "large-language-model"
+      ],
+      "stars": 56063,
+      "forks": 7313,
+      "issues": 56,
+      "contributors": 13,
       "gains": {
-        "daily": 257,
-        "weekly": 1594,
+        "daily": 472,
+        "weekly": null,
         "monthly": null
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 448
-      },
+      "signal": null,
       "summary": {
-        "goal": "Cursor plugin specification and official plugins GitHub에 공개된 TypeScript 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 257개, 이번 주 1,594개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+        "goal": "MiniMind is an open-source project whose goal is to train a small language model (~64M parameters) entirely from scratch, at a documented cost of about 3 RMB and roughly 2 hours of training time for the SFT stage on a single NVIDIA 3090. It covers pretraining, SFT, LoRA, RLHF (DPO), RLAIF (PPO/GRPO/CISPO), Tool Use, Agentic RL, and distillation, implemented natively in PyTorch without relying on high-level third-party abstractions.",
+        "usage": "To get started, clone the repository and install dependencies: `git clone --depth 1 https://github.com/jingyaogong/minimind` then `cd minimind && pip install -r requirements.txt`. Training scripts are run from the `trainer` directory, e.g. `python train_pretrain.py` for pretraining and `python train_full_sft.py` for supervised fine-tuning, while `python eval_llm.py --load_from ./minimind-3` runs inference on a downloaded model.",
+        "pros": "The project documents an extremely lightweight footprint, with the main dense checkpoint described as about 1/2700 the size of GPT-3. It provides fully open training code and data across every stage, and states compatibility with mainstream frameworks (transformers, trl, peft) and inference engines (llama.cpp, vllm, ollama), plus multi-GPU DDP/DeepSpeed training, wandb/swanlab logging, and checkpoint resume support.",
+        "cons": "Reproducing the full mainline pipeline requires substantially larger data files than the smaller 'mini' variants: the main pretraining file is about 10GB and the main SFT file is about 14GB, which likely implies a non-trivial download and storage commitment for users who forgo the reduced mini datasets.",
+        "fit": "Given its emphasis on sub-2-hour, single-GPU (NVIDIA 3090) reproduction at minimal cost, the project appears well suited to individual learners and researchers exploring LLM internals on limited hardware, rather than as a production-scale deployment solution, though this framing is not stated as an explicit target-audience claim."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml"
+      ],
+      "form_tags": []
+    },
+    {
+      "slug": "Osmantic/ODS",
+      "name": "Osmantic / ODS",
+      "description": "Turn your PC, Mac, or Linux box into an AI server.  LLM inference, chat UI, voice, agents, workflows, RAG, and image generation.",
+      "lang": "Python",
+      "topics": [
+        "ai-agents",
+        "amd",
+        "comfyui",
+        "docker",
+        "llama-cpp",
+        "llm",
+        "local-ai",
+        "n8n",
+        "nvidia",
+        "open-webui",
+        "rag",
+        "self-hosted",
+        "speech-to-text",
+        "strix-halo",
+        "text-to-speech",
+        "workflow-automation"
+      ],
+      "stars": 5460,
+      "forks": 772,
+      "issues": 1526,
+      "contributors": 65,
+      "gains": {
+        "daily": 163,
+        "weekly": null,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "ODS ('Osmantic Deployment System') aims to turn a Windows, macOS, or Linux machine into a private AI server. Per the README, it installs and wires together tools such as Ollama, Open WebUI, n8n, and ComfyUI so users do not have to assemble them manually, and states no cloud subscription is required, though optional cloud/hybrid API modes exist.",
+        "usage": "Linux/macOS users can run `curl -fsSL https://install.osmantic.com/ods.sh | bash`; Windows users run a PowerShell block ending in `.\\install.ps1`. This installs the stack, picks a model for the detected hardware, starts services, and opens a web UI at http://localhost:3000.",
+        "pros": "The installer is described as detecting the GPU, selecting a matching model, and launching all services in one command, with a bootstrap mode said to enable chatting in under 2 minutes. The stack is also described as moddable via folder-based extensions enabled through `ods enable`.",
+        "cons": "Docker must be installed and running beforehand; Windows setups specifically require Docker Desktop with the WSL2 backend, run from a non-administrator PowerShell session. The README also notes hardware-based model picks are current catalog examples that can differ, and that throughput needs a local benchmark after first launch, suggesting actual results may vary.",
+        "fit": "The README targets people wanting private AI at home, in a lab, or on a workstation without manually wiring together separate services. Documented support covers Linux, Windows (WSL2/Docker Desktop), and macOS on Apple Silicon, which may leave other platforms less supported."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools",
+        "devops",
+        "productivity",
+        "systems"
+      ],
+      "form_tags": [
+        "agent",
+        "cli"
+      ]
+    },
+    {
+      "slug": "checkstyle/checkstyle",
+      "name": "checkstyle / checkstyle",
+      "description": "Checkstyle is a development tool to help programmers write Java code that adheres to a coding standard. By default it supports the Google Java Style Guide and Sun Code Conventions, but is highly configurable. It can be invoked with an ANT task and a command line program.",
+      "lang": "Java",
+      "topics": [
+        "code-quality",
+        "command-line-tool",
+        "hacktoberfest",
+        "java",
+        "static-analysis",
+        "static-code-analysis"
+      ],
+      "stars": 9402,
+      "forks": 4206,
+      "issues": 764,
+      "contributors": 717,
+      "gains": {
+        "daily": 199,
+        "weekly": null,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "Checkstyle is a tool that ensures adherence to a code standard or a set of best practices for Java source code. The project publishes releases on GitHub and Maven Central, with full documentation available in HTML format.",
+        "usage": "Users can download the latest release from GitHub or add Checkstyle to a build via Maven Central, then consult the documentation for usage and configuration. The README shows running the tool with the command `java -jar checkstyle-10.18.1-all.jar -c config.xml Test.java`, where config.xml defines a Checker module containing a TreeWalker with checks such as FallThrough, applied against a Java source file.",
+        "pros": "Checkstyle is licensed under the GNU LGPL v2.1 License and builds on established libraries including ANTLR, Apache Commons, Google Guava, and Picocli. The README also displays numerous continuous-integration and quality-tracking badges, which may cautiously suggest an actively maintained build and test pipeline.",
+        "cons": "Applying a check such as FallThrough first requires authoring an XML configuration file with a DOCTYPE declaration referencing the Checkstyle DTD and a Checker/TreeWalker module structure, a concrete prerequisite before any audit can run.",
+        "fit": "Checkstyle may fit Java projects seeking automated enforcement of coding standards through a configurable module-based audit tool. As an open-source project maintained by volunteers, it appears to be supported through sponsorship channels such as Liberapay and OpenCollective rather than commercial backing."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "dev-tools"
+      ],
+      "form_tags": [
+        "cli"
+      ]
+    },
+    {
+      "slug": "zhaoxuya520/reverse-skill",
+      "name": "zhaoxuya520 / reverse-skill",
+      "description": "Reverse Engineering / Authorized Penetration Testing / Security Research Skill Router Pack AI-powered routing + On-demand toolchain bootstrapping + Self-evolving knowledge base  Supports Claude Code, Kiro, Cursor, Cline, and other AI coding clients 逆向/渗透/安全技能路由包 - AI 自动路由 + 按需自举工具链 + 自动进化经验库 | 支持 Claude Code / Kiro / Cursor / Cline 等代码 AI 客户端",
+      "lang": "PowerShell",
+      "topics": [],
+      "stars": 33081,
+      "forks": 4489,
+      "issues": 19,
+      "contributors": 12,
+      "gains": {
+        "daily": 1439,
+        "weekly": null,
+        "monthly": 21984
+      },
+      "signal": null,
+      "summary": {
+        "goal": "reverse-skill is described as a Cybersecurity Skills Router that, when an AI coding agent (such as Claude Code, Codex, Cursor, or OpenCode) encounters an APK, binary, frontend JS encryption, CTF challenge, or pentesting target, routes the task to a documented methodology, checks available tools, and executes a repeatable workflow instead of improvising commands.",
+        "usage": "Getting started involves cloning the repository with `git clone https://github.com/zhaoxuya520/reverse-skill.git`, then refreshing the platform tool index (e.g. `powershell -File skills/scripts/refresh-tool-index.ps1` on Windows or the matching `.sh` script on Linux/macOS/Kali). A documented test suite, including `powershell -NoProfile -ExecutionPolicy Bypass -File skills/scripts/test-routing.ps1`, runs 173 routing regression cases and other checks after any routing or config change.",
+        "pros": "The routing layer is backed by 43 documented rules (R0–R44) validated against 173 regression benchmark cases across 44 tracked skill modules, with CI running on both Windows and Ubuntu, which suggests a fairly tested and platform-consistent routing core. The client-neutral design and coverage of many scenarios (APK, binaries, JS, CTF, pentesting, firmware, LLM security, etc.) may make it adaptable across different AI coding clients.",
+        "cons": "The project's licensing is not uniform: while the core is MIT licensed, the CTF-Sandbox-Orchestrator submodule is GPLv3 and the separately invoked Pentest Swarm AI tool is AGPL-3.0, so users must track differing license terms depending on which components they use.",
+        "fit": "Given the Disclaimer restricting use to lawful security research, education, CTF competitions, and authorized testing, the project appears well suited for security teams or individual researchers already relying on a compatible AI coding client (Claude Code, Codex, Cursor, OpenCode) who need a shared routing/workflow layer for reverse engineering and pentesting tasks."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools",
+        "security"
+      ],
+      "form_tags": [
+        "plugin-skill"
+      ]
+    },
+    {
+      "slug": "affaan-m/ECC",
+      "name": "affaan-m / ECC",
+      "description": "The agent harness performance optimization system. Skills, instincts, memory, security, and research-first development for Claude Code, Codex, Opencode, Cursor and beyond.",
+      "lang": "JavaScript",
+      "topics": [
+        "ai-agents",
+        "anthropic",
+        "claude",
+        "claude-code",
+        "developer-tools",
+        "llm",
+        "mcp",
+        "productivity"
+      ],
+      "stars": 245222,
+      "forks": 37046,
+      "issues": 123,
+      "contributors": 347,
+      "gains": {
+        "daily": 548,
+        "weekly": null,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "ECC bills itself as \"the agent harness operating system\" — an MIT-licensed toolkit that gives a coding agent a coordinated engineering workflow: plan, test, implement, review, verify, remember, and improve, instead of rebuilding that process in every prompt. It bundles 68 agents, 286 skills, and 94 legacy command shims, plus hooks, rules, memory, and AgentShield security scanning.",
+        "usage": "The documented entry point is running `npx ecc-universal setup` from a terminal for guided Claude Code installation, or using Claude Code's native `/plugin marketplace add https://github.com/affaan-m/ECC` followed by `/plugin install ecc@ecc`. This path requires Node.js 18 or newer, Git, and Claude Code 2.1 or newer on PATH.",
+        "pros": "Documented benefits include a gated TDD workflow (RED->GREEN->REFACTOR) with evidence, a fresh-context reviewer for regressions, session memory distilled into reusable skills, and AgentShield scanning of prompts, hooks, MCP config, permissions, and secrets. Skills, agents, rules, and hooks are kept as separate concerns so components load only when needed.",
+        "cons": "Project documentation notes that ECC is designed primarily for Claude Code today, and it labels adapters for other harnesses (Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, Qwen, and others) as \"capability-limited,\" which may suggest reduced functionality or feature gaps for teams not primarily on Claude Code.",
+        "fit": "Given the stated Claude Code-first design and the capability-limited status of other harness adapters, ECC appears well suited to teams already standardized on Claude Code 2.1+ who want a structured, evidence-based development loop, while users on other harnesses should likely expect partial rather than full feature parity."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools",
+        "security",
+        "productivity"
+      ],
+      "form_tags": [
+        "agent",
+        "mcp",
+        "plugin-skill"
+      ]
+    },
+    {
+      "slug": "kaifcodec/user-scanner",
+      "name": "kaifcodec / user-scanner",
+      "description": "🕵️‍♂️ (2-in-1) Email & Username OSINT suite for deep data extraction just from a single Email/Username. Analyzes 465+ actively maintained scan vectors (175+ email / 290+ username) for security research, investigations, and digital footprinting.",
+      "lang": "Python",
+      "topics": [
+        "cybersecurity",
+        "cybersecurity-tools",
+        "email-osint",
+        "ethical-hacking",
+        "ethical-hacking-tools",
+        "identification",
+        "infosec",
+        "osint",
+        "osint-email",
+        "osint-tool",
+        "osint-tools",
+        "osint-username",
+        "pentesting",
+        "python",
+        "redteam-tools",
+        "redteaming",
+        "threat-intelligence"
+      ],
+      "stars": 4207,
+      "forks": 444,
+      "issues": 11,
+      "contributors": 54,
+      "gains": {
+        "daily": 184,
+        "weekly": null,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "User Scanner is a command-line OSINT suite combining email and username intelligence lookups. It advertises 465+ total scan vectors, including 175+ email-integrated sites and 290+ username platforms, for mapping digital footprints, verifying account registrations, and analyzing target behavior in seconds.",
+        "usage": "Install with `pip install user-scanner`, then run scans from the command line. A single target lookup uses `user-scanner -u johndoe` for a username or `user-scanner -e johndoe@gmail.com` for an email address, checking the target across all available platform modules.",
+        "pros": "Reported capabilities include rich metadata scraping (avatars, bios, follower counts, UID numbers), a cross-scan pivot engine that mines handles and profile links from initial results, export options to PDF, JSON, and CSV, and a Model Context Protocol (MCP) server for integration with AI agents such as Claude Desktop and Cursor.",
+        "cons": "Because web platforms frequently change authentication flows, keeping 465+ scan modules functional appears to require continuous maintenance, suggesting individual modules could become outdated or unreliable between updates.",
+        "fit": "The documentation frames the tool strictly for educational use, authorized security research, and defensive OSINT investigations, implying it is likely not intended for unauthorized or offensive engagements outside those explicitly permitted contexts."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "data",
+        "security"
+      ],
+      "form_tags": []
+    },
+    {
+      "slug": "every-app/open-seo",
+      "name": "every-app / open-seo",
+      "description": "Open source alternative to Semrush and Ahrefs",
+      "lang": "TypeScript",
+      "topics": [
+        "backlink-analysis",
+        "google-search-console-mcp",
+        "keyword-research",
+        "mcp",
+        "seo",
+        "seo-tools",
+        "site-audit"
+      ],
+      "stars": 15725,
+      "forks": 1895,
+      "issues": 121,
+      "contributors": 18,
+      "gains": {
+        "daily": 608,
+        "weekly": 1881,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "OpenSEO is described as an open source, pay-as-you-go alternative to Semrush and Ahrefs. It is designed for use with AI agents such as Claude Code, OpenClaw, and Hermes, exposing an MCP server and pre-built Agent Skills so agents can perform SEO tasks using OpenSEO's data.",
+        "usage": "A hosted version can be tried free at openseo.so, with an optional $10/month subscription. For self-hosting, OpenSEO documents a simple Docker setup for personal testing and a Cloudflare setup, recommended for internet-facing, multi-device or team use, which works on Cloudflare's free plan. Both require a separately obtained DataForSEO API key. Contributors can add a documented skill with `npx skills add every-app/open-seo --skill simple-issue-description`.",
+        "pros": "No recurring subscription is required for self-hosted use, since users bring their own DataForSEO API key and pay DataForSEO only for what they consume. A modern, simple UI focuses on specific workflows, and users can fork the project to build custom tools.",
+        "cons": "Self-hosted access to SEO data depends on a separately paid DataForSEO API key, so functionality is not available out of the box. Docker self-hosting appears intended mainly for personal testing, with Cloudflare recommended instead unless a user is already confident self-hosting other apps. Plans to simplify hosting on platforms like Railway, Coolify, or Dokploy in coming months suggest current support for those platforms may be more limited.",
+        "fit": "OpenSEO appears suited to individuals or small teams wanting SEO workflows such as keyword research, rank tracking, competitor insights, backlinks, site audits, and AI visibility, combined with AI-agent integration. The free trial and Docker path seem suited to personal evaluation, while Cloudflare, usable on a free plan, appears intended for team, internet-facing use."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "dev-tools"
+      ],
+      "form_tags": [
+        "mcp"
+      ]
+    },
+    {
+      "slug": "p-e-w/heretic",
+      "name": "p-e-w / heretic",
+      "description": "Fully automatic censorship removal for language models",
+      "lang": "Python",
+      "topics": [
+        "abliteration",
+        "llm",
+        "transformer"
+      ],
+      "stars": 29629,
+      "forks": 3247,
+      "issues": 81,
+      "contributors": 34,
+      "gains": {
+        "daily": 536,
+        "weekly": 992,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "Heretic is a command-line tool that automatically removes censorship (\"safety alignment\") from transformer-based language models without expensive post-training. It combines directional ablation (\"abliteration\") with a TPE-based Optuna parameter optimizer, minimizing refusals and KL divergence from the original model. It supports most dense, multimodal, and several MoE model architectures.",
+        "usage": "Prepare a Python 3.10+ environment with PyTorch 2.2+, then run `pip install -U heretic-llm` and `heretic Qwen/Qwen3-4B-Instruct-2507`, substituting the target model name. Heretic runs automatically without required configuration, though `heretic --help` exposes optional parameters. On an RTX 3090, decensoring Qwen3-4B-Instruct-2507 takes about 20-30 minutes; quantization via bitsandbytes (`bnb_4bit`) can reduce VRAM usage.",
+        "pros": "In a comparison on google/gemma-3-12b-it, the Heretic-generated model matched competing abliterations' refusal-suppression rate (3/100) while achieving a lower KL divergence (0.16 vs. 1.04 and 0.45), suggesting less damage to original capabilities. No understanding of transformer internals is required; anyone able to run a command-line program can use it.",
+        "cons": "Using Heretic requires a prepared Python 3.10+ environment with PyTorch 2.2+; some configurations need newer versions, since loading MXFP4-quantized models like gpt-oss depends on `torch.accelerator`, added only in PyTorch 2.6, and the README does not list version requirements for every supported model in advance.",
+        "fit": "Heretic may particularly suit users comfortable running command-line Python tools with a suitable GPU, given the reported 20-30 minute run on an RTX 3090. It appears less immediately suited to pure state-space models or certain other research architectures, which are not yet supported out of the box."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml"
+      ],
+      "form_tags": []
+    },
+    {
+      "slug": "handsomestWei/patent-disclosure-skill",
+      "name": "handsomestWei / patent-disclosure-skill",
+      "description": "中国专利.skill：专利点挖掘与交底书（发明/实用/外观）编写，通俗解读专利，嗅探政策动向，辅助审查答复。",
+      "lang": "Python",
+      "topics": [
+        "chinese",
+        "disclosure",
+        "obsidian",
+        "patent",
+        "skill"
+      ],
+      "stars": 6191,
+      "forks": 728,
+      "issues": 8,
+      "contributors": 2,
+      "gains": {
+        "daily": 571,
+        "weekly": null,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "This repository provides an agent skill for drafting Chinese patent disclosure documents (交底书) across invention, utility model, and design patent types, alongside a separate mode for plain-language patent reading that builds an Obsidian knowledge base, plus optional policy-trend awareness and examination-response drafting assistance.",
+        "usage": "Users invoke it with natural language or slash commands such as /交底书 for disclosure drafting and /读专利 for patent reading, supplying a project path or patent PDF/publication number. Prior art search prioritizes the CNIPA public announcement service at http://epub.cnipa.gov.cn/ via tools/crawl/cnipa_epub_search.py, falling back to web search when needed.",
+        "pros": "It supports type-specific templates for invention, utility model, and design patents; auto-generates mermaid diagrams or structure/appearance line art for figures; produces timestamped .docx deliverables with self-check and revision-tracked iteration; and can build a linked Obsidian knowledge graph connecting claims, terminology, and figures across read patents.",
+        "cons": "The policy-tracking and examination-response modes are disabled by default and require explicit user confirmation before running, and examination-response drafting only produces a draft that still needs human review before submission; native CAD/STEP file parsing is also not performed automatically.",
+        "fit": "Given its reliance on Obsidian for the full patent-reading experience and its workflows specific to the Chinese patent system (CNIPA search, Chinese templates), this skill may suit individuals or teams handling Chinese patent drafting, reading, or examination-response work who are comfortable with agent-based tooling and Python 3.9+ environments."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "unclassified"
+      ],
+      "form_tags": [
+        "plugin-skill"
+      ]
+    },
+    {
+      "slug": "firecrawl/pdf-inspector",
+      "name": "firecrawl / pdf-inspector",
+      "description": "Fast Rust library for PDF inspection, classification, and text extraction. Intelligently detects scanned vs text-based PDFs to enable smart routing decisions.",
+      "lang": "Rust",
+      "topics": [
+        "markdown",
+        "nodejs",
+        "ocr-routing",
+        "pdf",
+        "pdf-classification",
+        "pdf-extraction",
+        "pdf-parser",
+        "python",
+        "rust",
+        "text-extraction"
+      ],
+      "stars": 17339,
+      "forks": 1199,
+      "issues": 195,
+      "contributors": 12,
+      "gains": {
+        "daily": 199,
+        "weekly": null,
+        "monthly": 15341
+      },
+      "signal": null,
+      "summary": {
+        "goal": "pdf-inspector is a Rust library for classifying and extracting text from PDFs, distinguishing text-based, scanned, image-based, or mixed documents, and converting text-based ones to Markdown without OCR by default. Built by Firecrawl, it targets handling such PDFs locally in under 200ms, skipping OCR for roughly 54% of PDFs that do not need it; Rust and CLI users can opt into selective OCR when needed.",
+        "usage": "Python users install it with `pip install pdf-inspector` and call `process_pdf()` to get a PDF type and Markdown string. The CLI's `pdf2md document.pdf` command converts a file to Markdown, and flags such as --json adjust the output format.",
+        "pros": "In a benchmark on a 200-PDF corpus refreshed July 31, 2026, pdf-inspector reported the highest overall score (0.875) and reading-order score (0.915) among the local engines listed, alongside the fastest complete run at 0.470s, though results reflect this specific corpus and may not generalize to all document types. The library also loads each document once and shares it between detection and extraction stages, avoiding redundant parsing.",
+        "cons": "Enabling OCR for Rust and CLI use requires running `cargo install pdf-inspector --features ocr --bin pdf2md` and separately installing PDFium and ONNX Runtime libraries, setting the PDFIUM_LIB_PATH and ORT_DYLIB_PATH environment variables, which suggests OCR setup likely involves extra configuration beyond the base install.",
+        "fit": "pdf-inspector is described as well suited to native-text PDFs such as reports, research papers, financial documents, invoices, and legal PDFs where speed, reading order, and table structure matter, suggesting it may be less central for workflows dominated by scanned or image-heavy documents where OCR (not covered in this benchmark) plays a larger role."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "unclassified"
+      ],
+      "form_tags": [
+        "library"
+      ]
+    },
+    {
+      "slug": "pollen-robotics/microduck_rl",
+      "name": "pollen-robotics / microduck_rl",
+      "description": "RL training environments for Microduck (mjlab)",
+      "lang": "Python",
+      "topics": [],
+      "stars": 1121,
+      "forks": 193,
+      "issues": 15,
+      "contributors": 5,
+      "gains": {
+        "daily": 384,
+        "weekly": null,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "microduck_rl provides reinforcement-learning training environments for Microduck, a roughly 800 g, 25 cm tall bipedal robot, built on the mjlab framework (MuJoCo Warp) using PPO. Policies are trained at 50 Hz, exported to ONNX, and deployed on the physical robot by the runtime in the separate pollen-robotics/microduck repository.",
+        "usage": "Training requires a CUDA GPU and the uv package manager. After `git clone https://github.com/pollen-robotics/microduck_rl`, a walking policy trains with `uv run train Mjlab-Velocity-Flat-MicroDuck --env.scene.num-envs 4096`, taking roughly 1-2 hours for a usable gait. Additional scripts view, export to ONNX, or interactively drive trained policies via keyboard, and tests run with `uv run --with pytest pytest tests/`.",
+        "pros": "The project documents a sim2real recipe, including BAM actuator physics modeled to the voltage control law, per-environment domain randomization, and simulated gear backlash, which the README suggests is likely central to closing the sim2real gap for this lightweight, small-actuator biped. A shared 61-dimensional observation contract across tasks also appears to enable the deployed runtime to hot-swap between walking, recovery, and trick policies.",
+        "cons": "On ARM systems such as DGX Spark/GB10 or Jetson, `uv sync` downloads roughly 2 GB of CUDA wheels and can hit uv's default 30-second HTTP timeout mid-download, requiring `UV_HTTP_TIMEOUT=600` before the first sync. Local training also needs a CUDA-capable GPU, though a `--hf-jobs` flag is noted as an alternative for running on Hugging Face Jobs without one.",
+        "fit": "Given its CUDA GPU requirement, mjlab/MuJoCo Warp dependency, and tight coupling to the Microduck hardware's actuator and observation layout, this repository appears suited for users already working with the Microduck robot or similar small-actuator bipeds who need a sim2real RL training pipeline, rather than as a general-purpose RL framework."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "systems"
+      ],
+      "form_tags": []
     },
     {
       "slug": "freestylefly/awesome-gpt-image-2",
       "name": "freestylefly / awesome-gpt-image-2",
-      "desc": "Prompt as Code | GPT-Image2 工业级提示词引擎与模板库，530+ 个案例逆向工程，20+ 套工业级模板，并提炼出Skills，持续更新中",
+      "description": "Prompt as Code | GPT-Image2 工业级提示词引擎与模板库，530+ 个案例逆向工程，20+ 套工业级模板，并提炼出Skills，持续更新中",
       "lang": "JavaScript",
       "topics": [
         "agents",
@@ -346,206 +679,261 @@
         "skills",
         "workflow-automation"
       ],
-      "stars": 24876,
-      "forks": 2445,
-      "issues": 17,
+      "stars": 26340,
+      "forks": 2573,
+      "issues": 22,
       "contributors": 5,
       "gains": {
-        "daily": 767,
-        "weekly": 12877,
-        "monthly": 15580
+        "daily": null,
+        "weekly": 13413,
+        "monthly": 16908
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 2047
-      },
+      "signal": null,
       "summary": {
-        "goal": "Prompt as Code | GPT-Image2 工业级提示词引擎与模板库，530+ 个案例逆向工程，20+ 套工业级模板，并提炼出Skills，持续更新中 GitHub에 공개된 JavaScript 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 767개, 이번 주 12,877개, 이번 달 15,580개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "tailscale/tailcat",
-      "name": "tailscale / tailcat",
-      "desc": "like netcat, but over Tailscale's data plane, without Tailscale's control plane",
-      "lang": "Go",
-      "topics": [],
-      "stars": 3228,
-      "forks": 92,
-      "issues": 12,
-      "contributors": 333,
-      "gains": {
-        "daily": 790,
-        "weekly": null,
-        "monthly": null
+        "goal": "This repository documents GPT-Image2 prompt engineering as an 'Industrial Prompt Engine & Template Library' offering 500+ reverse-engineered cases and 20+ industrial templates. Its stated goal is compressing prose-style prompts into structured 'Prompt-as-Code' protocols for batch generation, template systems, and production-style workflows.",
+        "usage": "Users can browse the 544 cataloged cases across category pages such as UI, posters, and photography, visit the live gallery at https://gpt-image2.canghe.ai/, or install the companion agent skill named gpt-image-2-style-library by running `npx skills add freestylefly/awesome-gpt-image-2 --skill gpt-image-2-style-library --agent claude-code codex --global --yes --copy` for use inside Claude Code or Codex.",
+        "pros": "The catalog is organized into separate labeled categories such as UI, posters, and photography, enabling targeted browsing rather than a single undifferentiated list. The atomic-schema design and agent-skill integration are explicitly built for agents, scripts, and automation systems, and support Claude Code, Codex, and Cursor.",
+        "cons": "Enabling the live site's login-gated image generation reportedly requires configuring Supabase Auth, Supabase Postgres, and a Vercel Function proxy, along with numerous environment variables and several sequential SQL migrations. This suggests the hosted generation feature involves considerably more setup than simply cloning or browsing the repository content.",
+        "fit": "This project appears suited to prompt engineers or agent/automation users who want structured, reusable GPT-Image2 prompt templates rather than a turnkey application. Commercial reuse of the underlying case content is not guaranteed by the repository, despite the code itself being under the MIT License, and appears to require separate authorization from original rights holders."
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": null
-      },
-      "summary": {
-        "goal": "like netcat, but over Tailscale's data plane, without Tailscale's control plane GitHub에 공개된 Go 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 790개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Go 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "NationalSecurityAgency/ghidra",
-      "name": "NationalSecurityAgency / ghidra",
-      "desc": "Ghidra is a software reverse engineering (SRE) framework",
-      "lang": "Java",
-      "topics": [
-        "disassembler",
-        "reverse-engineering",
-        "software-analysis"
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools",
+        "productivity",
+        "learning"
       ],
-      "stars": 73538,
-      "forks": 8023,
-      "issues": 1921,
-      "contributors": 449,
-      "gains": {
-        "daily": 375,
-        "weekly": null,
-        "monthly": null
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": null
-      },
-      "summary": {
-        "goal": "Ghidra is a software reverse engineering (SRE) framework GitHub에 공개된 Java 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 375개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Java 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+      "form_tags": [
+        "agent",
+        "plugin-skill",
+        "cli"
+      ]
     },
     {
-      "slug": "swoole/typephp",
-      "name": "swoole / typephp",
-      "desc": "Compile PHP to Native Binaries",
-      "lang": "PHP",
-      "topics": [],
-      "stars": 908,
-      "forks": 44,
-      "issues": 5,
-      "contributors": 8,
-      "gains": {
-        "daily": 188,
-        "weekly": null,
-        "monthly": null
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": null
-      },
-      "summary": {
-        "goal": "Compile PHP to Native Binaries GitHub에 공개된 PHP 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 188개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "PHP 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "marin-community/marin",
-      "name": "marin-community / marin",
-      "desc": "Open-source framework for the research and development of foundation models.",
+      "slug": "anthropics/claude-plugins-community",
+      "name": "anthropics / claude-plugins-community",
+      "description": "Community plugin marketplace for Claude Cowork and Claude Code. Read-only mirror — submit plugins at clau.de/plugin-directory-submission.",
       "lang": "Python",
       "topics": [],
-      "stars": 2981,
-      "forks": 243,
-      "issues": 567,
-      "contributors": 102,
+      "stars": 3040,
+      "forks": 242,
+      "issues": 43,
+      "contributors": 6,
       "gains": {
-        "daily": 163,
-        "weekly": null,
-        "monthly": 1650
+        "daily": null,
+        "weekly": 2162,
+        "monthly": 2543
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 338
-      },
+      "signal": null,
       "summary": {
-        "goal": "Open-source framework for the research and development of foundation models. GitHub에 공개된 Python 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 163개, 이번 달 1,650개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+        "goal": "Claude Plugins — Community is documented as a read-only mirror of the community plugin marketplace for Claude Cowork and Claude Code. The .claude-plugin/marketplace.json file lists plugins available for installation, synced nightly from Anthropic's internal review pipeline.",
+        "usage": "Plugins can be installed from claude.com/plugins/ for Claude Cowork, or through the Claude Code CLI, which requires first adding the marketplace and then installing a specific plugin by running `claude plugin marketplace add anthropics/claude-plugins-community` followed by `claude plugin install <plugin-name>@claude-community`.",
+        "pros": "Every listed plugin has passed automated security scanning and been approved for distribution before appearing in the marketplace. Submissions go through a single, centralized intake point at clau.de/plugin-directory-submission rather than ad hoc channels.",
+        "cons": "Because the marketplace list syncs only nightly from an internal pipeline, the visible plugin set may lag behind the actual review state by up to a day; exact update timing and discrepancy handling are not detailed in the source material.",
+        "fit": "This repository appears suited for users who want to browse and install pre-vetted plugins through the documented web interface or CLI, rather than contribute code directly, since pull requests opened against the repo are closed automatically."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools"
+      ],
+      "form_tags": [
+        "plugin-skill"
+      ]
+    },
+    {
+      "slug": "omacom/omarchy",
+      "name": "omacom / omarchy",
+      "description": "Beautiful, Modern & Opinionated Linux",
+      "lang": "Shell",
+      "topics": [],
+      "stars": 36173,
+      "forks": 3743,
+      "issues": 2512,
+      "contributors": 507,
+      "gains": {
+        "daily": null,
+        "weekly": 6692,
+        "monthly": 11259
+      },
+      "signal": null,
+      "summary": {
+        "goal": "Omarchy is presented as a beautiful, modern, and opinionated Linux distribution created by DHH. Being explicitly called 'opinionated' suggests it aims to offer a curated, preconfigured desktop experience rather than a general-purpose or minimal setup, although this design intent is not stated directly.",
+        "usage": "The authoritative documentation lives in the manual/ directory of the repository and is also mirrored, along with its screenshots, at https://learn.omacom.io/2/the-omarchy-manual. Its table of contents links to topics such as Getting Started, the Omarchy CLI, Updates, and Unattended Installs, indicating that setup and day-to-day configuration are documented through these linked pages.",
+        "pros": "The manual spans a broad range of areas, including terminal, Neovim, AI, development tools, browsers, and gaming, as well as configuration topics like dotfiles, monitors, networking, and fonts. The project is released under the MIT License, a permissive open-source license.",
+        "cons": "Screenshots referenced in the manual are hosted on the mirrored learn.omacom.io site rather than within the repository itself, so readers relying only on the local manual/ files may lack direct access to those visual references; whether they are otherwise available offline is not made clear, pointing to a possible documentation gap for offline use.",
+        "fit": "Given topics such as 'Coming From Mac or Windows,' Mac support, and dual boot installation, Omarchy may be suited to desktop or workstation users migrating from other operating systems, though a specific target audience or hardware requirement is not explicitly named."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "systems"
+      ],
+      "form_tags": []
+    },
+    {
+      "slug": "MadsLorentzen/ai-job-search",
+      "name": "MadsLorentzen / ai-job-search",
+      "description": "The job search that runs on your machine. AI job application framework built on Claude Code: evaluate postings, tailor CVs, write cover letters, prep interviews. Fork it and own it.",
+      "lang": "Python",
+      "topics": [
+        "ai",
+        "ai-agents",
+        "career",
+        "claude-code",
+        "cover-letter",
+        "cv",
+        "interview-preparation",
+        "job-application",
+        "job-hunting",
+        "job-search",
+        "latex",
+        "resume"
+      ],
+      "stars": 39075,
+      "forks": 13252,
+      "issues": 9,
+      "contributors": 56,
+      "gains": {
+        "daily": null,
+        "weekly": 5348,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "ai-job-search is an AI-powered job application framework built on Claude Code (CLI). Users fork the repo, fill in a profile, and have Claude evaluate postings, tailor a CV, write cover letters, and prepare for interviews. The core pipeline is language- and country-agnostic; shipped portal skills target the Danish market.",
+        "usage": "Setup starts with `gh repo fork MadsLorentzen/ai-job-search --clone`, then running `claude` and `/setup` to build a profile from a documents folder, a pasted CV, or a guided interview. The `/apply` command, e.g. `/apply https://jobindex.dk/job/1234567`, evaluates fit, drafts a tailored CV and cover letter, and revises them through a reviewer agent before final output.",
+        "pros": "The workflow compiles and visually inspects generated PDFs until layout is clean, and checks the CV's PDF text layer for ATS-parseable contact details and keyword coverage. A separate reviewer agent critiques drafts before revision. The maintainer reports 69 tailored applications and 20 first interviews before one signed contract; as a single case, this may suggest the workflow's effectiveness without confirming it broadly.",
+        "cons": "Running the framework requires Python 3.10+, the Bun runtime for job-search CLI tools, and a LaTeX distribution with both `lualatex` and `xelatex`, since the CV and cover letter templates depend on each engine. Because GitHub disallows private forks of public repos, a fork used for personal job searching writes profile data into tracked files in a public repository unless a private mirror is used instead.",
+        "fit": "The framework appears suited to users comfortable running Claude Code CLI locally with Python, Bun, and LaTeX installed. Its shipped portal skills (e.g., Jobindex, Jobnet) cover only the Danish market; other countries would need a generated skill via `/add-portal`, so coverage outside Denmark may be limited until one is added."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "productivity"
+      ],
+      "form_tags": [
+        "agent",
+        "framework"
+      ]
+    },
+    {
+      "slug": "apache/maka",
+      "name": "apache / maka",
+      "description": "Apache Maka (Incubating) is a local-first AI agent workspace. Model messages, tool calls, tool results, permission decisions, and termination events are recorded as an append-only log.",
+      "lang": "TypeScript",
+      "topics": [
+        "agent-runtime",
+        "ai",
+        "ai-agent",
+        "apache",
+        "cli",
+        "desktop",
+        "electron",
+        "event-sourcing",
+        "incubator",
+        "llm",
+        "local-first",
+        "maka",
+        "tool-use",
+        "typescript"
+      ],
+      "stars": 4319,
+      "forks": 405,
+      "issues": 376,
+      "contributors": 101,
+      "gains": {
+        "daily": null,
+        "weekly": 1973,
+        "monthly": 3257
+      },
+      "signal": null,
+      "summary": {
+        "goal": "Apache Maka (Incubating) is a local-first Agent workspace that inspects projects, runs tools under a sandbox boundary, and records model messages and tool calls as recoverable execution facts on the user's machine through one Runtime Host. It is incubating at the Apache Software Foundation, sponsored by the Apache Incubator PMC.",
+        "usage": "Setup requires Node.js 22.19 or newer, npm 11, Git, and ripgrep. Desktop starts with `git clone https://github.com/apache/maka.git`, `cd maka`, `npm ci`, and `npm run dev`, launching an Electron + React interface with hot reloading. The TUI/CLI runs as `maka` or `maka run`, sharing workspace and model connections with Desktop; first launch requires adding a model connection under Settings → Models.",
+        "pros": "Built-in tools — Read, Write, Edit, Bash, Glob, and Grep — run under an approval-gated sandbox boundary, with abortable runs and classified failures. Execution is written down as a durable record enabling crash recovery, and shortening context for the next prompt does not delete the saved evidence.",
+        "cons": "The built-in tools — Read, Write, Edit, Bash, Glob, and Grep — appear to require approval whenever an action would leave the sandbox boundary, which may add friction to fully automated workflows even though it strengthens safety; the documentation does not specify which of these tools trigger that approval step.",
+        "fit": "Given its local-first design and sandboxed execution of tools such as Read, Write, Edit, Bash, Glob, and Grep, Maka may suit developers and testers who want an auditable, self-hosted Agent workspace for daily coding and reproducible evaluation runs, rather than teams needing a production-ready, officially released cross-platform tool at this stage."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools"
+      ],
+      "form_tags": [
+        "agent",
+        "cli"
+      ]
     },
     {
       "slug": "tashfeenahmed/freellmapi",
       "name": "tashfeenahmed / freellmapi",
-      "desc": "7.4 billion tokens per month. 34 free LLM providers. 635 free model endpoints. All behind one /v1 endpoint, plus any custom OpenAI-compatible endpoint. Smart routing, automatic failover, encrypted keys. Personal experimentation only.",
+      "description": "7.4 billion tokens per month. 34 free LLM providers. 635 free model endpoints. All behind one /v1 endpoint, plus any custom OpenAI-compatible endpoint. Smart routing, automatic failover, encrypted keys. Personal experimentation only.",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 22043,
-      "forks": 3094,
-      "issues": 69,
+      "stars": 23317,
+      "forks": 3202,
+      "issues": 83,
       "contributors": 64,
       "gains": {
-        "daily": 612,
-        "weekly": 2162,
+        "daily": null,
+        "weekly": 3037,
         "monthly": null
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 1082
-      },
+      "signal": null,
       "summary": {
-        "goal": "7.4 billion tokens per month. 34 free LLM providers. 635 free model endpoints. All behind one /v1 endpoint, plus any custom OpenAI-compatible endpoint. Smart routing, automatic failover, encrypted keys. Personal experimentation only. GitHub에 공개된 TypeScript 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 612개, 이번 주 2,162개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+        "goal": "FreeLLMAPI aggregates free-tier access from 34 LLM providers (474 model families, 635 free endpoints) behind a single OpenAI-compatible /v1 API, giving access to roughly 7.4 billion tokens per month of pooled free inference capacity through one unified endpoint and API key.",
+        "usage": "Quick start uses `curl -fsSL https://freellmapi.co/install.sh | bash` (Docker required) to set up ~/freellmapi and start the container, then http://localhost:3001 to add provider keys and get a unified API key. Coding-agent integration can use `npx freellmapi setup-claude --url http://localhost:3001 --api-key <unified-key>`.",
+        "pros": "Provider keys are encrypted (AES-256-GCM in SQLite) and only a single unified `freellmapi-…` token is exposed to client apps. The router auto-fails over between providers on rate limits, tracks per-key RPM/RPD/TPM/TPD usage against provider ceilings, and pulls a signed model catalog automatically, keeping the endpoint OpenAI-, Anthropic-, and Ollama-compatible for many clients. It also runs on Node 20+ across Windows, macOS, and Linux with about 40 MB RSS at idle.",
+        "cons": "Free installs receive catalog updates only from a monthly snapshot, roughly 30 days after a model appears in the live feed, and this gap currently sits at about 303 models — suggesting free-tier users may work with a persistently outdated model list compared to the paid live-feed tier.",
+        "fit": "The disclaimer frames the project as intended for personal experimentation and learning rather than production use, and notes no SLA, variable latency, and no frontier models — implying it likely suits individual developers prototyping locally rather than teams needing guaranteed-uptime inference."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml"
+      ],
+      "form_tags": []
     },
     {
-      "slug": "ChromeDevTools/chrome-devtools-mcp",
-      "name": "ChromeDevTools / chrome-devtools-mcp",
-      "desc": "Chrome DevTools for coding agents",
-      "lang": "TypeScript",
+      "slug": "anthropics/claude-plugins-official",
+      "name": "anthropics / claude-plugins-official",
+      "description": "Official, Anthropic-managed directory of high quality Claude Code Plugins.",
+      "lang": "Python",
       "topics": [
-        "browser",
-        "chrome",
-        "chrome-devtools",
-        "debugging",
-        "devtools",
+        "claude-code",
         "mcp",
-        "mcp-server",
-        "puppeteer"
+        "skills"
       ],
-      "stars": 50098,
-      "forks": 3513,
-      "issues": 95,
-      "contributors": 118,
+      "stars": 35734,
+      "forks": 3988,
+      "issues": 1062,
+      "contributors": 36,
       "gains": {
-        "daily": 215,
-        "weekly": null,
+        "daily": null,
+        "weekly": 1940,
         "monthly": null
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": null
-      },
+      "signal": null,
       "summary": {
-        "goal": "Chrome DevTools for coding agents GitHub에 공개된 TypeScript 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 215개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+        "goal": "The repository serves as a curated directory of plugins for Claude Code, organized into internally maintained plugins under /plugins and third-party plugins under /external_plugins.",
+        "usage": "Plugins are installed directly from this marketplace using Claude Code's plugin system, either by running /plugin install {plugin-name}@claude-plugins-official or by browsing entries through /plugin > Discover.",
+        "pros": "The plugin structure standardizes each entry around a required plugin.json manifest plus optional MCP configuration, commands, agents, and skills, and marketplace entries can support skill-only plugins via a strict: false declaration. A renames map also lets published plugin slugs be migrated without breaking existing installs.",
+        "cons": "Anthropic states it does not control or verify the MCP servers, files, or other software bundled in plugins, nor whether they will keep working as intended, which suggests day-to-day trust and safety vetting for any installed plugin remains a task users must handle themselves.",
+        "fit": "Because installation and discovery happen through Claude Code's own /plugin commands, the directory appears suited to teams already running Claude Code who want to extend it through vetted internal plugins or community/partner contributions meeting the stated quality and security standards for submission."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools"
+      ],
+      "form_tags": [
+        "mcp",
+        "plugin-skill"
+      ]
     },
     {
       "slug": "rohitg00/ai-engineering-from-scratch",
       "name": "rohitg00 / ai-engineering-from-scratch",
-      "desc": "Learn it. Build it. Ship it for others.",
+      "description": "Learn it. Build it. Ship it for others.",
       "lang": "Python",
       "topics": [
         "agents",
@@ -569,211 +957,248 @@
         "tutorial",
         "typescript"
       ],
-      "stars": 50860,
-      "forks": 8804,
-      "issues": 99,
+      "stars": 51576,
+      "forks": 8926,
+      "issues": 97,
       "contributors": 17,
       "gains": {
-        "daily": 359,
-        "weekly": 3263,
+        "daily": null,
+        "weekly": 3720,
         "monthly": null
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 849
-      },
+      "signal": null,
       "summary": {
-        "goal": "Learn it. Build it. Ship it for others. GitHub에 공개된 Python 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 359개, 이번 주 3,263개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+        "goal": "AI Engineering from Scratch is a free, open-source curriculum containing 523 lessons across 20 phases (~342 hours), teaching AI engineering from math foundations through autonomous multi-agent systems. Lessons use Python, TypeScript, Rust, and Julia, and each ends with a reusable artifact—a prompt, skill, agent, or MCP server.",
+        "usage": "Learners can clone the repository with `git clone https://github.com/rohitg00/ai-engineering-from-scratch.git` and run lesson code directly with python3, or install an AI tutor into a compatible coding agent using `npx skills add rohitg00/ai-engineering-from-scratch`, which drives placement quizzes and lesson-by-lesson progress tracking.",
+        "pros": "Each lesson appears to follow a consistent 'Build It / Use It' structure, implementing an algorithm from scratch before using it via a production library such as PyTorch. The curriculum also compiles into a six-volume EPUB/PDF book series, rebuilt by CI from the same lesson sources.",
+        "cons": "Using the coding-agent tutor path appears to require Node.js and npx already installed, and executing runnable labs needs python3 separately; Agent Skills host labs additionally need a selected host and a writable skill scope, which could add setup overhead for some users.",
+        "fit": "Given the stated ~306-hour beginner path down to a ~60-hour agent-engineering-only path for senior engineers, this curriculum may suit learners wanting hands-on, code-first AI engineering education rather than a quick API-usage overview."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools",
+        "learning"
+      ],
+      "form_tags": [
+        "agent",
+        "mcp"
+      ]
     },
     {
-      "slug": "DietrichGebert/ponytail",
-      "name": "DietrichGebert / ponytail",
-      "desc": "Makes your AI agent think like the laziest senior dev in the room. The best code is the code you never wrote.",
-      "lang": "JavaScript",
+      "slug": "asciimoo/hister",
+      "name": "asciimoo / hister",
+      "description": "Your own search engine",
+      "lang": "Go",
       "topics": [
-        "agent-skills",
-        "ai-agents",
-        "claude",
-        "claude-code",
-        "claude-code-plugin",
-        "cursor-rules",
-        "developer-tools",
-        "llm",
-        "prompt-engineering",
-        "yagni"
+        "browser-history",
+        "go",
+        "golang",
+        "history",
+        "index",
+        "mcp",
+        "mcp-server",
+        "personal-search",
+        "personal-search-engine",
+        "privacy",
+        "search",
+        "search-engine",
+        "semantic-search",
+        "web"
       ],
-      "stars": 116118,
-      "forks": 6339,
-      "issues": 181,
-      "contributors": 64,
+      "stars": 3423,
+      "forks": 155,
+      "issues": 52,
+      "contributors": 56,
       "gains": {
-        "daily": 1171,
-        "weekly": null,
+        "daily": null,
+        "weekly": 1006,
         "monthly": null
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 2382
-      },
+      "signal": null,
       "summary": {
-        "goal": "Makes your AI agent think like the laziest senior dev in the room. The best code is the code you never wrote. GitHub에 공개된 JavaScript 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 1,171개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+        "goal": "Hister is described as a private, self-hostable search engine that indexes the full contents of visited web pages and local files, letting users search from a web interface, a terminal client, or an AI assistant connected via MCP.",
+        "usage": "To start, download the platform binary from the latest GitHub release, rename it to hister (or hister.exe on Windows), make it executable with chmod +x hister on Linux/macOS, then run ./hister listen (or .\\hister.exe listen on Windows in PowerShell) and open http://127.0.0.1:4433, installing the Firefox or Chrome extension; no configuration is required for a local personal setup.",
+        "pros": "Documented features include no telemetry or mandatory cloud service, full text indexing of page and file contents rather than just titles/URLs, automatic browser indexing via extension, powerful query syntax with field filters and wildcards, and support for web, terminal, and MCP clients plus multi-user setups on a shared server.",
+        "cons": "Enabling the optional semantic search feature appears to require configuring an external embeddings endpoint that receives document text, which may represent a privacy trade-off compared to the fully local default setup for users who choose to enable it.",
+        "fit": "Given its privacy-focused, no-telemetry design and multi-user support on a shared server, Hister may be well suited to individuals or small teams wanting self-hosted, private full-text search over their own browsing history and files rather than a hosted third-party search service."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "web-app",
+        "dev-tools",
+        "security"
+      ],
+      "form_tags": [
+        "mcp"
+      ]
+    },
+    {
+      "slug": "cursor/plugins",
+      "name": "cursor / plugins",
+      "description": "Cursor plugin specification and official plugins",
+      "lang": "TypeScript",
+      "topics": [],
+      "stars": 6380,
+      "forks": 517,
+      "issues": 88,
+      "contributors": 13,
+      "gains": {
+        "daily": null,
+        "weekly": 1503,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "This repository is presented as the official collection of Cursor plugins for developer tools, frameworks, and SaaS products, organized as a multi-plugin marketplace where each plugin sits in its own directory with a .cursor-plugin/plugin.json manifest.",
+        "usage": "Plugins appear to be distributed through the root .cursor-plugin/marketplace.json, which lists every plugin, while each plugin folder likely follows the documented layout with skills/, rules/, an mcp.json file, and its own README, CHANGELOG, and LICENSE, though explicit install steps are not shown.",
+        "pros": "The catalog seems to offer broad coverage, spanning developer tool integrations such as GitHub alongside CRM and productivity integrations such as Salesforce, Gmail, and Google Calendar, suggesting a consistent per-plugin manifest structure that could ease browsing across many categories.",
+        "cons": "The README does not document installation steps, version compatibility, or requirements for enabling these plugins inside Cursor, which may leave newcomers uncertain about prerequisites before a plugin's own manifest and files can be used.",
+        "fit": "This repository appears well suited to teams already using Cursor who want ready-made, MIT-licensed manifests for tools like GitHub or Salesforce, and likely less relevant to anyone not working within the Cursor plugin ecosystem."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "dev-tools"
+      ],
+      "form_tags": [
+        "plugin-skill"
+      ]
+    },
+    {
+      "slug": "ConardLi/garden-skills",
+      "name": "ConardLi / garden-skills",
+      "description": "ConardLi's open-source Skills collection, featuring web design, knowledge retrieval, image generation, and more.",
+      "lang": "CSS",
+      "topics": [
+        "agent",
+        "claude",
+        "gpt-image-2",
+        "rag",
+        "skills",
+        "web-design"
+      ],
+      "stars": 11910,
+      "forks": 1464,
+      "issues": 18,
+      "contributors": 3,
+      "gains": {
+        "daily": null,
+        "weekly": 1222,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "Garden Skills is a curated collection of production-ready Agent Skills for Claude Code, Cursor, Codex, and other AI coding agents, covering web video presentation, web design and frontend engineering, image generation with GPT Image 2, local knowledge-base retrieval, and turning source material into polished articles.",
+        "usage": "Skills can be installed with the agent-agnostic `npx skills add ConardLi/garden-skills` command, which auto-detects the agent and places the skill folder in the correct directory, or through the Claude Code plugin marketplace via `/plugin marketplace add ConardLi/garden-skills` followed by installing a specific plugin pack. Additional install paths documented include pinned `.zip` release downloads, manual copying after cloning, and git submodule vendoring.",
+        "pros": "Individual skills ship substantial built-in libraries: web-video-presentation includes 23 built-in themes, web-design-engineer offers 25 anchored style recipes, and gpt-image-2 provides 18 visual categories with 79 structured prompt templates for image generation and editing workflows.",
+        "cons": "The README's own badge advertises 5 skills, while the Option A install instructions describe the same command as installing 4 skills, suggesting the stated skill count may not be fully consistent throughout the document.",
+        "fit": "Based on the documented SKILL.md format and the tested agent list, this collection may be well suited for teams already working inside Claude Code, Cursor, Codex, or similar SKILL.md-compatible agents who want ready-made presentation, design, image-generation, retrieval, or article-formatting workflows rather than building such skills from scratch."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "web-app"
+      ],
+      "form_tags": [
+        "agent",
+        "plugin-skill"
+      ]
     },
     {
       "slug": "google/googletest",
       "name": "google / googletest",
-      "desc": "GoogleTest - Google Testing and Mocking Framework",
+      "description": "GoogleTest - Google Testing and Mocking Framework",
       "lang": "C++",
       "topics": [],
-      "stars": 39251,
-      "forks": 10876,
-      "issues": 493,
+      "stars": 39409,
+      "forks": 10885,
+      "issues": 496,
       "contributors": 502,
       "gains": {
-        "daily": 125,
-        "weekly": null,
+        "daily": null,
+        "weekly": 441,
         "monthly": null
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 248
-      },
+      "signal": null,
       "summary": {
-        "goal": "GoogleTest - Google Testing and Mocking Framework GitHub에 공개된 C++ 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 125개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "C++ 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "livekit/agents",
-      "name": "livekit / agents",
-      "desc": "A framework for building realtime voice AI agents 🤖🎙️📹 ",
-      "lang": "Python",
-      "topics": [
-        "agents",
-        "ai",
-        "openai",
-        "real-time",
-        "video",
-        "voice"
+        "goal": "GoogleTest is documented as Google's C++ test framework, formed from a merger of the formerly separate GoogleTest and GoogleMock projects, which are maintained and released together because they were closely related. It is built on an xUnit-based architecture for unit testing in C++ projects.",
+        "usage": "Rather than listing setup commands, the documentation directs readers to the GoogleTest User's Guide and Primer at https://google.github.io/googletest/, and to a separate googletest/README.md file for build instructions; actual usage steps likely follow those linked resources rather than commands given directly here.",
+        "pros": "Listed features include automatic test discovery, a rich set of assertions, user-defined assertions, death tests, configurable fatal and non-fatal failures, value-parameterized tests, type-parameterized tests, and multiple options for running tests, including parallel execution. The project also states it is used by notable codebases such as Chromium, LLVM, Protocol Buffers, and OpenCV.",
+        "cons": "The 1.18.x branch requires at least C++17, as stated in the release announcement, so projects still targeting older C++ standards would need to upgrade their toolchain before adopting this release line.",
+        "fit": "Given the stated C++17 requirement and its documented use inside large codebases such as Chromium and LLVM, the framework appears suited to teams building C++17-or-newer projects that need a mature xUnit-style test setup; teams on legacy C++ standards may need to confirm compatibility first."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "unclassified"
       ],
-      "stars": 13494,
-      "forks": 3644,
-      "issues": 803,
-      "contributors": 475,
-      "gains": {
-        "daily": 256,
-        "weekly": null,
-        "monthly": null
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": null
-      },
-      "summary": {
-        "goal": "A framework for building realtime voice AI agents 🤖🎙️📹 GitHub에 공개된 Python 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "오늘 256개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+      "form_tags": [
+        "framework"
+      ]
     },
     {
-      "slug": "anthropics/claude-plugins-community",
-      "name": "anthropics / claude-plugins-community",
-      "desc": "Community plugin marketplace for Claude Cowork and Claude Code. Read-only mirror — submit plugins at clau.de/plugin-directory-submission.",
+      "slug": "abi/screenshot-to-code",
+      "name": "abi / screenshot-to-code",
+      "description": "Drop in a screenshot and convert it to clean code (HTML/Tailwind/React/Vue)",
       "lang": "Python",
       "topics": [],
-      "stars": 2683,
-      "forks": 223,
-      "issues": 42,
-      "contributors": 6,
+      "stars": 76698,
+      "forks": 9332,
+      "issues": 134,
+      "contributors": 29,
       "gains": {
         "daily": null,
-        "weekly": 2207,
-        "monthly": 2246
+        "weekly": 1909,
+        "monthly": null
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 306
-      },
+      "signal": null,
       "summary": {
-        "goal": "Community plugin marketplace for Claude Cowork and Claude Code. Read-only mirror — submit plugins at clau.de/plugin-directory-submission. GitHub에 공개된 Python 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 주 2,207개, 이번 달 2,246개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+        "goal": "screenshot-to-code converts screenshots, mockups, Figma designs, and screen recordings into functional code using AI. It supports six frontend stacks (HTML+Tailwind, HTML+CSS, React+Tailwind, Vue+Tailwind, Bootstrap, Ionic+Tailwind) and default AI models including Gemini 3 Flash Preview, Gemini 3.1 Pro Preview, GPT-5.5, GPT-5.4 Mini, Claude Opus 4.6, Claude Opus 4.8, and z-image-turbo via Replicate.",
+        "usage": "Two documented paths exist: run locally with a React/Vite frontend and FastAPI backend, or use the hosted app at screenshottocode.com with no local setup. Local setup needs at least one provider API key (OpenAI, Anthropic, or Gemini); backend dependencies install with `poetry install`, and a documented Docker alternative starts the app with `docker-compose up -d --build`, serving it at http://localhost:5173.",
+        "pros": "Documented pros include support for six frontend stacks, several default AI models across providers, and an optional screenshot-preview feature that renders generated pages in a headless browser once Chromium is installed. Converting screen recordings into prototypes and a no-setup hosted app are also documented.",
+        "cons": "Running the app requires at least one paid AI provider API key (OpenAI, Anthropic, or Gemini), and image-editing plus background-removal features stay unavailable without a Replicate key. The documented Docker setup is not meant for development, since file changes won't trigger a rebuild.",
+        "fit": "Given the multiple frontend stacks and provider-key-based setup, this tool may suit developers who want to prototype or self-host UI generation from designs and are comfortable managing Python/Node environments or Docker. Users preferring no installation might instead lean toward the hosted app."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "web-app"
+      ],
+      "form_tags": []
     },
     {
-      "slug": "omacom/omarchy",
-      "name": "omacom / omarchy",
-      "desc": "Beautiful, Modern & Opinionated Linux",
-      "lang": "Shell",
-      "topics": [],
-      "stars": 34383,
-      "forks": 3536,
-      "issues": 2079,
-      "contributors": 505,
-      "gains": {
-        "daily": null,
-        "weekly": 5942,
-        "monthly": 9083
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": null
-      },
-      "summary": {
-        "goal": "Beautiful, Modern & Opinionated Linux GitHub에 공개된 Shell 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 주 5,942개, 이번 달 9,083개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Shell 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "openai/codex",
-      "name": "openai / codex",
-      "desc": "Lightweight coding agent that runs in your terminal",
+      "slug": "tinyhumansai/openhuman",
+      "name": "tinyhumansai / openhuman",
+      "description": "Your Personal AI super intelligence. A brain that builds a local-first memory of your life, a fantastic orchestrator of agent fleets and workflows, and a deep researcher.",
       "lang": "Rust",
       "topics": [],
-      "stars": 119747,
-      "forks": 18297,
-      "issues": 14373,
-      "contributors": 585,
+      "stars": 39196,
+      "forks": 3854,
+      "issues": 349,
+      "contributors": 152,
       "gains": {
         "daily": null,
-        "weekly": 9109,
+        "weekly": 2526,
         "monthly": null
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 595
-      },
+      "signal": null,
       "summary": {
-        "goal": "Lightweight coding agent that runs in your terminal GitHub에 공개된 Rust 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 주 9,109개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Rust 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+        "goal": "OpenHuman is presented as a personal AI orchestrator and harness that combines persistent local memory, multi-agent orchestration, and research/action capabilities; it is currently labeled Early Beta and under active development, so its scope may still be maturing.",
+        "usage": "To get started, users can download installers from tinyhumans.ai/openhuman or the GitHub Releases page, or install via terminal per INSTALL.md. Contributors building from source clone the repository, then run `git submodule update --init --recursive` to fetch vendored Tauri/CEF sources before `pnpm install`.",
+        "pros": "Documented capabilities include Memory Tree plus Obsidian Wiki for local memory, 100+ OAuth integrations, 5,000+ MCP servers, 90,000+ Skills, TokenJuice compression said to give up to 80% fewer tokens, 17 messaging channels including native email (IMAP/SMTP), and a Privacy Mode enforced in the Rust core that keeps inference on-device.",
+        "cons": "The project is labeled 'Early Beta' with active development and explicitly says to expect rough edges. Building from source requires several prerequisites—Node.js 24+, pnpm 10.10.0, Rust 1.93.0, CMake, Ninja, ripgrep, and platform build tools—and the README's own comparison table cautions that competing products evolve and should be verified independently.",
+        "fit": "OpenHuman appears suited to users wanting a local-first, privacy-oriented personal AI assistant that orchestrates multiple agents and connects to many integrations and messaging channels, rather than a single-loop chatbot; it may not yet suit users needing a stable, production-ready release given its beta status."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml"
+      ],
+      "form_tags": [
+        "agent"
+      ]
     },
     {
       "slug": "AprilNEA/OpenLogi",
       "name": "AprilNEA / OpenLogi",
-      "desc": "⚡️A native, local-first alternative to Logitech Options+, written in Rust 🦀 — remap buttons, DPI, and SmartShift over HID++. No account, no telemetry.",
+      "description": "⚡️A native, local-first alternative to Logitech Options+, written in Rust 🦀 — remap buttons, DPI, and SmartShift over HID++. No account, no telemetry.",
       "lang": "Rust",
       "topics": [
         "dpi",
@@ -790,358 +1215,33 @@
         "rust",
         "smartshift"
       ],
-      "stars": 17556,
-      "forks": 506,
-      "issues": 379,
+      "stars": 18166,
+      "forks": 537,
+      "issues": 422,
       "contributors": 66,
       "gains": {
         "daily": null,
-        "weekly": 4825,
-        "monthly": 9621
+        "weekly": 3406,
+        "monthly": 9946
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 478
-      },
+      "signal": null,
       "summary": {
-        "goal": "⚡️A native, local-first alternative to Logitech Options+, written in Rust 🦀 — remap buttons, DPI, and SmartShift over HID++. No account, no telemetry. GitHub에 공개된 Rust 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 주 4,825개, 이번 달 9,621개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Rust 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "apache/maka",
-      "name": "apache / maka",
-      "desc": "Apache Maka (Incubating) is a local-first AI agent workspace. Model messages, tool calls, tool results, permission decisions, and termination events are recorded as an append-only log.",
-      "lang": "TypeScript",
-      "topics": [
-        "agent-runtime",
-        "ai",
-        "ai-agent",
-        "apache",
-        "cli",
-        "desktop",
-        "electron",
-        "event-sourcing",
-        "incubator",
-        "llm",
-        "local-first",
-        "maka",
-        "tool-use",
-        "typescript"
+        "goal": "OpenLogi is a native, local-first alternative to Logitech's Options+ software, written in Rust with the GPUI toolkit. It aims to expose Logitech mouse, keyboard, and webcam capabilities over the HID++ and UVC protocols, running on macOS, Linux, and Windows.",
+        "usage": "Installation differs by platform. On macOS, run `brew install --cask openlogi` via Homebrew, or download the notarized .dmg from GitHub releases. Linux users install a .deb, .rpm, or .pkg.tar.zst package for x86_64/arm64, then enable the background agent with `systemctl --user enable --now openlogi-agent.service`. Windows ships as a portable .zip or per-user .msi. Command-line usage details are documented separately in docs/USAGE.md, and settings are stored in a single TOML configuration file.",
+        "pros": "The project lists several capabilities beyond Options+: a lightweight native Rust implementation, first-class Linux support, gesture assignment to any physical button, a single plain-text TOML config file for syncing across machines, and a real CLI alongside the GUI. Device features include battery/charge reporting over Bolt, Unifying, Bluetooth, or wired connections, per-application profile overlays, and Litra light control for power, brightness, and color temperature.",
+        "cons": "OpenLogi and Logi Options+ appear to compete for HID++ access, since only one application can own a given receiver at a time; this suggests users should quit Options+ before installing OpenLogi, which may add a coordination step for anyone migrating between the two tools.",
+        "fit": "OpenLogi appears suited to users on macOS, Linux, or Windows who want scriptable, local-first control of Logitech peripherals without relying on Options+, which lacks a Linux counterpart. Given the explicit warning that the project is under active development and not yet stable, it may be a less certain fit for users needing a fully mature, unchanging configuration surface."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "security"
       ],
-      "stars": 3996,
-      "forks": 370,
-      "issues": 329,
-      "contributors": 97,
-      "gains": {
-        "daily": null,
-        "weekly": 1918,
-        "monthly": 2992
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 258
-      },
-      "summary": {
-        "goal": "Apache Maka (Incubating) is a local-first AI agent workspace. Model messages, tool calls, tool results, permission decisions, and termination events are recorded as an append-only log. GitHub에 공개된 TypeScript 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 주 1,918개, 이번 달 2,992개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "modular/modular",
-      "name": "modular / modular",
-      "desc": "The Modular Platform (includes MAX & Mojo)",
-      "lang": "Mojo",
-      "topics": [
-        "ai",
-        "language",
-        "machine-learning",
-        "max",
-        "modular",
-        "mojo",
-        "programming-language"
-      ],
-      "stars": 29326,
-      "forks": 3124,
-      "issues": 1125,
-      "contributors": 464,
-      "gains": {
-        "daily": null,
-        "weekly": 875,
-        "monthly": 2765
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 80
-      },
-      "summary": {
-        "goal": "The Modular Platform (includes MAX & Mojo) GitHub에 공개된 Mojo 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 주 875개, 이번 달 2,765개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Mojo 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "MadsLorentzen/ai-job-search",
-      "name": "MadsLorentzen / ai-job-search",
-      "desc": "The job search that runs on your machine. AI job application framework built on Claude Code: evaluate postings, tailor CVs, write cover letters, prep interviews. Fork it and own it.",
-      "lang": "Python",
-      "topics": [
-        "ai",
-        "ai-agents",
-        "career",
-        "claude-code",
-        "cover-letter",
-        "cv",
-        "interview-preparation",
-        "job-application",
-        "job-hunting",
-        "job-search",
-        "latex",
-        "resume"
-      ],
-      "stars": 37957,
-      "forks": 12865,
-      "issues": 8,
-      "contributors": 54,
-      "gains": {
-        "daily": null,
-        "weekly": 4828,
-        "monthly": null
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 1755
-      },
-      "summary": {
-        "goal": "The job search that runs on your machine. AI job application framework built on Claude Code: evaluate postings, tailor CVs, write cover letters, prep interviews. Fork it and own it. GitHub에 공개된 Python 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 주 4,828개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "tinyhumansai/openhuman",
-      "name": "tinyhumansai / openhuman",
-      "desc": "Your Personal AI super intelligence. A brain that builds a local-first memory of your life, a fantastic orchestrator of agent fleets and workflows, and a deep researcher.",
-      "lang": "Rust",
-      "topics": [],
-      "stars": 38807,
-      "forks": 3812,
-      "issues": 325,
-      "contributors": 151,
-      "gains": {
-        "daily": null,
-        "weekly": 2353,
-        "monthly": null
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 316
-      },
-      "summary": {
-        "goal": "Your Personal AI super intelligence. A brain that builds a local-first memory of your life, a fantastic orchestrator of agent fleets and workflows, and a deep researcher. GitHub에 공개된 Rust 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 주 2,353개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Rust 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "VoltAgent/awesome-agent-skills",
-      "name": "VoltAgent / awesome-agent-skills",
-      "desc": "A curated collection of 1000+ agent skills from official dev teams and the community, compatible with Claude Code, Codex, Gemini CLI, Cursor, and more.",
-      "lang": "",
-      "topics": [
-        "agent-skills",
-        "ai-agents",
-        "awesome",
-        "awesome-list",
-        "claude-code",
-        "claude-code-skills",
-        "claude-skills",
-        "codex-skills",
-        "cursor-skills",
-        "gemini-skills",
-        "opencode-skills",
-        "skills"
-      ],
-      "stars": 33192,
-      "forks": 3506,
-      "issues": 20,
-      "contributors": 165,
-      "gains": {
-        "daily": null,
-        "weekly": 2372,
-        "monthly": null
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 681
-      },
-      "summary": {
-        "goal": "A curated collection of 1000+ agent skills from official dev teams and the community, compatible with Claude Code, Codex, Gemini CLI, Cursor, and more. GitHub에 공개된 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 주 2,372개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "오픈소스 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "PostHog/posthog",
-      "name": "PostHog / posthog",
-      "desc": ":hedgehog: PostHog is the leading platform for building self-driving products. Our developer tools – AI observability, analytics, session replay, flags, experiments, error tracking, logs, and more – capture all the context agents need to diagnose problems, uncover opportunities, and ship fixes. Steer it all from Slack, web, desktop, or the MCP.",
-      "lang": "Python",
-      "topics": [
-        "ab-testing",
-        "ai-analytics",
-        "analytics",
-        "cdp",
-        "data-warehouse",
-        "experiments",
-        "feature-flags",
-        "javascript",
-        "product-analytics",
-        "python",
-        "react",
-        "session-replay",
-        "surveys",
-        "typescript",
-        "web-analytics"
-      ],
-      "stars": 39455,
-      "forks": 3309,
-      "issues": 5173,
-      "contributors": 562,
-      "gains": {
-        "daily": null,
-        "weekly": 1270,
-        "monthly": null
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 136
-      },
-      "summary": {
-        "goal": ":hedgehog: PostHog is the leading platform for building self-driving products. Our developer tools – AI observability, analytics, session replay, flags, experiments, error tracking, logs, and more – capture all the context agents need to diagnose problems, uncover opportunities, and ship fixes. Steer it all from Slack, web, desktop, or the MCP. GitHub에 공개된 Python 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 주 1,270개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "Alishahryar1/free-claude-code",
-      "name": "Alishahryar1 / free-claude-code",
-      "desc": "Use Claude Code, Codex, Pi, and OpenCode and more for free (1.3B+ free tokens) from your terminal, app, IDE, or phone like OpenClaw (voice supported + ToS friendly)",
-      "lang": "Python",
-      "topics": [],
-      "stars": 51340,
-      "forks": 8265,
-      "issues": 361,
-      "contributors": 45,
-      "gains": {
-        "daily": null,
-        "weekly": 4769,
-        "monthly": null
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 555
-      },
-      "summary": {
-        "goal": "Use Claude Code, Codex, Pi, and OpenCode and more for free (1.3B+ free tokens) from your terminal, app, IDE, or phone like OpenClaw (voice supported + ToS friendly) GitHub에 공개된 Python 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 주 4,769개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "chaitanyagiri/munder-difflin",
-      "name": "chaitanyagiri / munder-difflin",
-      "desc": "local multi-agent harness",
-      "lang": "JavaScript",
-      "topics": [
-        "agents",
-        "claude-code",
-        "free",
-        "harness",
-        "harness-engineering",
-        "memory"
-      ],
-      "stars": 5396,
-      "forks": 643,
-      "issues": 120,
-      "contributors": 43,
-      "gains": {
-        "daily": null,
-        "weekly": 1853,
-        "monthly": null
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 395
-      },
-      "summary": {
-        "goal": "local multi-agent harness GitHub에 공개된 JavaScript 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 주 1,853개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "bookorbit/bookorbit",
-      "name": "bookorbit / bookorbit",
-      "desc": "BookOrbit: Your Reading Space",
-      "lang": "TypeScript",
-      "topics": [
-        "audiobook-player",
-        "digital-library",
-        "docker",
-        "ebook-reader",
-        "library-management",
-        "metadata-management",
-        "nestjs",
-        "oidc-single-sign-on",
-        "opds",
-        "self-hosted",
-        "vue"
-      ],
-      "stars": 3591,
-      "forks": 214,
-      "issues": 309,
-      "contributors": 25,
-      "gains": {
-        "daily": null,
-        "weekly": 806,
-        "monthly": null
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 236
-      },
-      "summary": {
-        "goal": "BookOrbit: Your Reading Space GitHub에 공개된 TypeScript 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 주 806개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+      "form_tags": []
     },
     {
       "slug": "TencentCloud/TencentDB-Agent-Memory",
       "name": "TencentCloud / TencentDB-Agent-Memory",
-      "desc": "TencentDB Agent Memory is a team-level memory hub for AI Agents — turning conversations, docs, and code into four reusable memory assets (Chat Memory, Skill, LLM-Wiki, Code-Graph) that are governed, shared, and equipped across agents and frameworks.",
+      "description": "TencentDB Agent Memory is a team-level memory hub for AI Agents — turning conversations, docs, and code into four reusable memory assets (Chat Memory, Skill, LLM-Wiki, Code-Graph) that are governed, shared, and equipped across agents and frameworks.",
       "lang": "TypeScript",
       "topics": [
         "agent",
@@ -1154,58 +1254,38 @@
         "openclaw-plugin",
         "vector-search"
       ],
-      "stars": 25128,
-      "forks": 2339,
-      "issues": 741,
+      "stars": 25414,
+      "forks": 2369,
+      "issues": 754,
       "contributors": 9,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 15798
+        "monthly": 15913
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 285
-      },
+      "signal": null,
       "summary": {
-        "goal": "TencentDB Agent Memory is a team-level memory hub for AI Agents — turning conversations, docs, and code into four reusable memory assets (Chat Memory, Skill, LLM-Wiki, Code-Graph) that are governed, shared, and equipped across agents and frameworks. GitHub에 공개된 TypeScript 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 달 15,798개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "zhaoxuya520/reverse-skill",
-      "name": "zhaoxuya520 / reverse-skill",
-      "desc": "Reverse Engineering / Authorized Penetration Testing / Security Research Skill Router Pack AI-powered routing + On-demand toolchain bootstrapping + Self-evolving knowledge base  Supports Claude Code, Kiro, Cursor, Cline, and other AI coding clients 逆向/渗透/安全技能路由包 - AI 自动路由 + 按需自举工具链 + 自动进化经验库 | 支持 Claude Code / Kiro / Cursor / Cline 等代码 AI 客户端",
-      "lang": "PowerShell",
-      "topics": [],
-      "stars": 30323,
-      "forks": 4151,
-      "issues": 18,
-      "contributors": 12,
-      "gains": {
-        "daily": null,
-        "weekly": null,
-        "monthly": 21291
+        "goal": "TencentDB Agent Memory is described as a shared memory server that lets multiple coding agents — including Claude Code, Codex, CodeBuddy, WorkBuddy, Hermes, and OpenClaw — reuse Chat Memory, Skills, Wiki, and CodeGraph assets across sessions through one Proxy and a Memory Hub, so project context and reusable workflows do not need to be re-explained to each new agent.",
+        "usage": "Setup starts by cloning the repository with `git clone https://github.com/Tencent/TencentDB-Agent-Memory.git`, entering the `deploy/global-images` directory, copying `.env.example` to `.env` to fill in two sets of LLM parameters, then running `./start-all.sh` to launch memory-core, memory-hub, and proxy together; the control panel then opens at http://localhost:8125. Agents connect by pointing their base URL at the Proxy.",
+        "pros": "A PersonaMem benchmark cited in the project shows improvement from 48% to 76% (a +59% relative gain) when the memory system is enabled. Memory is layered from raw L0 Conversation records up through L1 Atom, L2 Scenario, and L3 Persona summaries, and new assets stay private by default until explicitly shared with a team.",
+        "cons": "CodeGraph indexing currently prioritizes public HTTPS repositories, and support for private repositories and SSH credentials is described as still being refined, so teams needing private-repo code indexing may find that capability incomplete at this time.",
+        "fit": "With a stated Node.js requirement of 22.16 or later and an OpenClaw compatibility floor of 2026.3.13, the project appears suited to teams already running current-generation Node and agent-framework versions; the current release is v2.0.0, with v2.0.1 said to add zero-config cold start and further improvements."
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 504
-      },
-      "summary": {
-        "goal": "Reverse Engineering / Authorized Penetration Testing / Security Research Skill Router Pack AI-powered routing + On-demand toolchain bootstrapping + Self-evolving knowledge base  Supports Claude Code, Kiro, Cursor, Cline, and other AI coding clients 逆向/渗透/安全技能路由包 - AI 自动路由 + 按需自举工具链 + 自动进化经验库 | 支持 Claude Code / Kiro / Cursor / Cline 等代码 AI 客户端 GitHub에 공개된 PowerShell 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 달 21,291개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "PowerShell 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools"
+      ],
+      "form_tags": [
+        "agent",
+        "plugin-skill",
+        "framework"
+      ]
     },
     {
       "slug": "cactus-compute/needle",
       "name": "cactus-compute / needle",
-      "desc": "14MB foundation model for tiny devices; phones, wearables, smart home, and robots.",
+      "description": "14MB foundation model for tiny devices; phones, wearables, smart home, and robots.",
       "lang": "Python",
       "topics": [
         "cactus",
@@ -1214,31 +1294,34 @@
         "llm",
         "on-device-ai"
       ],
-      "stars": 9639,
-      "forks": 619,
-      "issues": 30,
+      "stars": 9881,
+      "forks": 639,
+      "issues": 33,
       "contributors": 20,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 6279
+        "monthly": 6450
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 223
-      },
+      "signal": null,
       "summary": {
-        "goal": "14MB foundation model for tiny devices; phones, wearables, smart home, and robots. GitHub에 공개된 Python 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 달 6,279개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+        "goal": "Needle 2 is an open 45M-parameter model for tool calling, device use, and structured extraction, distributed as a single 14MB binary that runs a full session in about 28MB of RAM. This repository is the Python package for inference, LoRA fine-tuning, and export; on cited benchmarks it trades wins with small models such as FunctionGemma 270M, LFM2.5 230M, and Apple FM while being 5x to 70x smaller.",
+        "usage": "After installing with `pip install cactus-needle`, developers decorate a Python function as a tool and call a run method so the model selects and executes it, returning output as structured data; a separate extraction call with a Pydantic model returns a typed object from text. The `needle playground` command opens a browser UI, by default at `http://127.0.0.1:7860`, for testing tools interactively.",
+        "pros": "Weights are baked into the single 14MB engine, so inference needs no separate model files and no network access. Every response carries a calibrated confidence score, and built-in tool retrieval narrows a large declared catalogue to the top five most relevant tools per turn. A 256-token sliding window with pinned tool keys keeps total runtime memory near 28MB regardless of conversation length.",
+        "cons": "The base runtime install does not include the training stack, so fine-tuning or checkpoint export needs an additional installation step; the optional data-synthesis feature further depends on an external `OPENROUTER_API_KEY`, so a full fine-tuning workflow may require more setup than the base install alone.",
+        "fit": "Given the small binary size, low memory footprint, and documented offline setup for air-gapped devices, the package appears suited to developers building tool-calling agents for resource-constrained or on-device deployments; ready-made environments such as smart_home and media_player suggest a fit for adapting tool surfaces to a product."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "systems"
+      ],
+      "form_tags": []
     },
     {
       "slug": "volcengine/OpenViking",
       "name": "volcengine / OpenViking",
-      "desc": "Self-evolving Context Database for AI Agents. Unify Agent Memory, Knowledge RAG and Skills.",
+      "description": "Self-evolving Context Database for AI Agents. Unify Agent Memory, Knowledge RAG and Skills.",
       "lang": "Python",
       "topics": [
         "agent-memory",
@@ -1248,135 +1331,258 @@
         "dsh-plugin",
         "self-evolving"
       ],
-      "stars": 34237,
-      "forks": 2601,
-      "issues": 580,
-      "contributors": 240,
+      "stars": 34698,
+      "forks": 2652,
+      "issues": 594,
+      "contributors": 244,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 6661
+        "monthly": 6903
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 417
-      },
+      "signal": null,
       "summary": {
-        "goal": "Self-evolving Context Database for AI Agents. Unify Agent Memory, Knowledge RAG and Skills. GitHub에 공개된 Python 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 달 6,661개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "usekaneo/kaneo",
-      "name": "usekaneo / kaneo",
-      "desc": "🎯 All you need. Nothing you don't. Open source project management that works for you, not against you.",
-      "lang": "TypeScript",
-      "topics": [
-        "hono",
-        "issue-management",
-        "issue-tracker",
-        "jira-alternative",
-        "kanban",
-        "linear-alternative",
-        "mcp",
-        "project-management",
-        "react",
-        "self-hosted",
-        "typescript"
+        "goal": "OpenViking is an open-source context database for AI agents that stores memories, resources, and skills as a virtual filesystem addressed via the `viking://` protocol, letting agents browse context with commands such as `ls`, `tree`, and `find` instead of querying a vector store. Content is organized into three loading tiers — L0 abstract, L1 overview, L2 details — loaded on demand, and the main project is licensed under AGPLv3.",
+        "usage": "Install with `pip install openviking --upgrade`, which requires Python 3.10 or higher, then run `openviking-server init` to launch an interactive wizard that configures providers, models, and the `ov.conf` file. The install also includes an `ov` client CLI for interacting with a running server.",
+        "pros": "OpenViking version 0.3.22 has been evaluated on LoCoMo and tau2-bench benchmarks. Reported results show 80-83% LoCoMo accuracy across three agent integrations, up from 24-57% under native memory, with input token reductions of 34.3-91.0% and query latency reductions of 58.45-66.10%; tau2-bench task success increased by +6.87 percentage points for retail and +11.87 for airline scenarios.",
+        "cons": "The desktop OpenViking Helper companion app is documented as still in beta, currently limited to macOS and Windows x64 platforms, which suggests broader operating-system support may not yet be available.",
+        "fit": "The project appears suited to teams integrating agent memory and context retrieval into tools such as Claude Code, Codex, OpenClaw, Hermes, Cursor, and MCP clients, though the README notes the project is still in its early stages, implying interfaces and capabilities may continue to evolve."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools",
+        "data"
       ],
-      "stars": 8686,
-      "forks": 725,
-      "issues": 69,
-      "contributors": 106,
-      "gains": {
-        "daily": null,
-        "weekly": null,
-        "monthly": 4703
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": null
-      },
-      "summary": {
-        "goal": "🎯 All you need. Nothing you don't. Open source project management that works for you, not against you. GitHub에 공개된 TypeScript 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 달 4,703개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+      "form_tags": [
+        "agent",
+        "plugin-skill"
+      ]
     },
     {
-      "slug": "microsoft/AI-For-Beginners",
-      "name": "microsoft / AI-For-Beginners",
-      "desc": "12 Weeks, 24 Lessons, AI for All!",
-      "lang": "Jupyter Notebook",
+      "slug": "modular/modular",
+      "name": "modular / modular",
+      "description": "The Modular Platform (includes MAX & Mojo)",
+      "lang": "Mojo",
       "topics": [
         "ai",
-        "artificial-intelligence",
-        "cnn",
-        "computer-vision",
-        "deep-learning",
-        "gan",
+        "language",
         "machine-learning",
-        "microsoft-for-beginners",
-        "nlp",
-        "rnn"
+        "max",
+        "modular",
+        "mojo",
+        "programming-language"
       ],
-      "stars": 67648,
-      "forks": 13032,
-      "issues": 33,
-      "contributors": 76,
+      "stars": 29409,
+      "forks": 3128,
+      "issues": 1135,
+      "contributors": 464,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 14701
+        "monthly": 2825
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 315
-      },
+      "signal": null,
       "summary": {
-        "goal": "12 Weeks, 24 Lessons, AI for All! GitHub에 공개된 Jupyter Notebook 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 달 14,701개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Jupyter Notebook 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+        "goal": "The modular/modular repository hosts open-source components of the Modular Platform, described as a unified platform for AI development and deployment. Its two main pillars are the MAX Framework and the Mojo Language, both developed within this single codebase.",
+        "usage": "To start with MAX, follow the quickstart guide at https://max.modular.com/get-started to serve a model with the MAX framework. To start with Mojo, follow the quickstart guide at https://mojolang.org/docs/manual/quickstart/. Both guides are the documented entry points for using the two components.",
+        "pros": "The repository bundles multiple components together: the Mojo compiler, the Mojo standard library, a MAX accelerator library, a MAX inference server offering an OpenAI-compatible endpoint, MAX model pipelines built as Python-based graphs, plus code examples for both MAX and Mojo, which may ease combined adoption.",
+        "cons": "Contributions to the Mojo compiler are not currently accepted, unlike the Mojo standard library, MAX accelerator library, and other listed areas; the README's wording ('yet') suggests this restriction could be temporary, but no timeline is given.",
+        "fit": "Licensing differs by component: the repository and its contributions use the Apache License v2.0 with LLVM Exceptions, while MAX usage and distribution follow the separate Modular Community License, so teams may need to evaluate both licenses depending on which parts they adopt."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools",
+        "learning"
+      ],
+      "form_tags": []
+    },
+    {
+      "slug": "megadose/holehe",
+      "name": "megadose / holehe",
+      "description": "holehe allows you to check if the mail is used on different sites like twitter, instagram and will retrieve information on sites with the forgotten password function.",
+      "lang": "Python",
+      "topics": [
+        "ebay",
+        "email",
+        "emails",
+        "information-gathering",
+        "instagram",
+        "open-source-intelligence",
+        "osint",
+        "osint-python",
+        "osint-tools",
+        "pypi",
+        "python",
+        "social-network",
+        "tellonym",
+        "trio",
+        "twitter"
+      ],
+      "stars": 14522,
+      "forks": 1853,
+      "issues": 115,
+      "contributors": 32,
+      "gains": {
+        "daily": null,
+        "weekly": null,
+        "monthly": 2652
+      },
+      "signal": null,
+      "summary": {
+        "goal": "Holehe is an OSINT command-line tool and Python library that checks whether an email address is registered on more than 120 online services, such as Twitter, Instagram, and Imgur, by using each site's forgotten-password function, without alerting the target email account itself.",
+        "usage": "Holehe can be installed via `pip3 install holehe` and then run from the command line as `holehe test@gmail.com`. It can also be installed from source or built and run with Docker. For programmatic use, individual check modules (for example, the snapchat module) can be imported into a Python application and awaited using the async trio and httpx libraries.",
+        "pros": "Holehe covers a broad set of over 120 services and reports results in a consistent JSON-like format including account existence, rate-limit status, and partially obfuscated recovery email or phone data. It explicitly avoids alerting the target email address during checks, and supports multiple installation paths (PyPI, source, Docker), plus a Maltego transform integration and reuse as an embeddable Python library.",
+        "cons": "The module table marks numerous services with a frequent rate-limit indicator, and the stated remedy for this is changing IP address, suggesting rate limiting could interrupt checks across many of the 120+ supported sites during heavier use.",
+        "fit": "The project states it is built for educational purposes only and is licensed under GPL-3.0, which suggests it may be suited to authorized research, learning, or investigative contexts rather than unrestricted general use, though further usage restrictions are not detailed."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "security"
+      ],
+      "form_tags": []
     },
     {
       "slug": "pingdotgg/t3code",
       "name": "pingdotgg / t3code",
-      "desc": "",
+      "description": "",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 20939,
-      "forks": 5019,
-      "issues": 1306,
-      "contributors": 314,
+      "stars": 21196,
+      "forks": 5112,
+      "issues": 1471,
+      "contributors": 316,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 5636
+        "monthly": 5445
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 222
-      },
+      "signal": null,
       "summary": {
-        "goal": "pingdotgg/t3code 공개 저장소 GitHub에 공개된 TypeScript 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 달 5,636개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+        "goal": "T3 Code is described as an 'agent harness control surface' for controlling coding agents on a local machine via a mobile app (iOS, Android), a web app, and an Electron-based desktop app. It works with existing subscriptions to Claude Code, Codex, Cursor, Grok Build, and OpenCode if those tools are already set up.",
+        "usage": "To try T3 Code without installing, run `npx t3@latest`, which requires Node.js 22.16+, 23.11+, or 24.10+ and starts a local backend plus web app. At least one supported provider (Codex, Claude Code, Cursor, Grok Build, or OpenCode) must already be installed and authenticated. A desktop app is also installable via winget, Homebrew, or the AUR.",
+        "pros": "The project is described as free and open, so users can fork it if its direction changes. It unifies control of several agent providers (Codex, Claude Code, Cursor, Grok Build, OpenCode) in one interface, and the desktop app supports several install paths, including winget, Homebrew, and the AUR.",
+        "cons": "The project is very early and expected to have bugs; it is mostly not accepting contributions except small fixes, and no documentation website exists yet, only markdown files in the repository's docs/ folder.",
+        "fit": "Because T3 Code requires an already-installed, authenticated agent CLI (Codex, Claude Code, Cursor, Grok Build, or OpenCode), it seems suited to developers already using one of these tools who want unified mobile, web, or desktop control. Its very early stage and limited contribution process suggest it may not yet fit teams needing a stable, contribution-friendly tool."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "unclassified"
+      ],
+      "form_tags": []
+    },
+    {
+      "slug": "public-apis/public-apis",
+      "name": "public-apis / public-apis",
+      "description": "A collective list of free APIs",
+      "lang": "Python",
+      "topics": [
+        "api",
+        "apis",
+        "dataset",
+        "development",
+        "free",
+        "list",
+        "lists",
+        "open-source",
+        "public",
+        "public-api",
+        "public-apis",
+        "resources",
+        "software"
+      ],
+      "stars": 473775,
+      "forks": 52308,
+      "issues": 1845,
+      "contributors": 1673,
+      "gains": {
+        "daily": null,
+        "weekly": null,
+        "monthly": 20630
+      },
+      "signal": null,
+      "summary": {
+        "goal": "This repository (public-apis/public-apis) is a community-curated Markdown list of free and public HTTP APIs, organized into 51 categories in its Index — including Animals, Business, Finance, Weather and Machine Learning; each entry gives an API name, a one-line description, its Auth method, and whether it supports HTTPS and CORS (lines 24, 72-124, 127-135).",
+        "usage": "Readers use the Index (lines 72-124) to jump to a category anchor, then read a Markdown table per category listing API name, description, Auth (e.g. apiKey, OAuth, No), HTTPS and CORS columns, as shown for Animals (lines 128-135) and Anime (lines 162-167); the README itself provides no installation or CLI commands, only outbound links to each API's own site or documentation.",
+        "pros": "The list spans dozens of categories with hundreds of entries per major category (e.g. Development, lines 542-696), is community-maintained through a documented Contributing Guide (line 64), and is released under the MIT License (line 2210), so the list itself can be freely reused or redistributed.",
+        "cons": "Because the README only records Auth, HTTPS and CORS at a point in time, and several entries mark CORS as 'Unknown' (e.g. lines 150, 155), a developer likely cannot rely on this file alone to confirm current availability, pricing or CORS behavior for any linked API — that probably requires checking each API's own documentation directly (lines 130-135).",
+        "fit": "This resource appears well suited to developers looking for a starting point for prototyping, hackathons, or student projects across varied domains, rather than for production systems that need a single managed gateway or guaranteed uptime, since the README seems to aggregate third-party links rather than offering a unified API or SDK of its own (lines 1-9, 42-55)."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "dev-tools",
+        "learning"
+      ],
+      "form_tags": []
+    },
+    {
+      "slug": "unclebob/swarm-forge",
+      "name": "unclebob / swarm-forge",
+      "description": "A simple tool for coordinating several AI agents.",
+      "lang": "Clojure",
+      "topics": [],
+      "stars": 3448,
+      "forks": 340,
+      "issues": 33,
+      "contributors": 4,
+      "gains": {
+        "daily": null,
+        "weekly": null,
+        "monthly": 1897
+      },
+      "signal": null,
+      "summary": {
+        "goal": "SwarmForge is a tmux-based orchestration platform that coordinates AI coding agents working in separate git worktrees. The `main` branch documents the system and holds shared scripts and constitution articles, while pack branches (`two-pack`, `four-pack`, `six-pack`) are workflow templates; `get-swarm-forge` installs them into a forge's `packs/` directory, and creating a New Project instantiates one pack under `projects/<name>/`.",
+        "usage": "Install the `get-swarm-forge` helper on the PATH and run it inside the intended forge directory to download `main` and all pack branches into `packs/`. Running `./swarm` starts the host dashboard and the lieutenant; using New Project in the dashboard (name, mission, pack) instantiates a pack under `projects/<name>/` and starts its roles.",
+        "pros": "The platform appears to define swarm topology through `swarmforge/swarmforge.conf` rather than hardcoded variables, and its layered constitution lets shared `main` rules be extended per pack without being overridden. Git handoffs seem to include a two-step audit gate that may prompt agents to re-check requirements before delivering work.",
+        "cons": "Running SwarmForge locally requires prerequisites including `zsh`, `git`, `tmux`, Babashka (`bb`), and at least one configured agent backend such as `codex`, `claude`, `copilot`, or `grok`, suggesting some environment setup before a runnable branch can start. Sleep prevention also appears OS-dependent, and documentation notes that display lock or manual sleep can still interrupt agents depending on the OS.",
+        "fit": "Given its reliance on tmux, git worktrees, and locally configured agent backends, SwarmForge appears suited to individuals or small teams running multi-agent coding workflows on a single local machine rather than in a purely cloud-hosted setup."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml"
+      ],
+      "form_tags": [
+        "agent"
+      ]
+    },
+    {
+      "slug": "akitaonrails/ai-memory",
+      "name": "akitaonrails / ai-memory",
+      "description": "Solution for long term memory for agent coding CLIs and to facilitate handoff between different agent vendors",
+      "lang": "Rust",
+      "topics": [],
+      "stars": 5349,
+      "forks": 369,
+      "issues": 9,
+      "contributors": 68,
+      "gains": {
+        "daily": null,
+        "weekly": null,
+        "monthly": 3902
+      },
+      "signal": null,
+      "summary": {
+        "goal": "ai-memory is a long-term memory system for AI coding agents (e.g., Claude Code, Codex) that compiles sanitized lifecycle observations into a persistent, shared markdown wiki, letting a new agent session continue prior work via a bounded handoff instead of re-explaining context.",
+        "usage": "The project ships as a Rust binary and Docker image. A typical setup runs `docker run -d --name ai-memory ... akitaonrails/ai-memory:latest` to start the server, then `ai-memory install-mcp --client claude-code --apply` and `ai-memory install-hooks --agent claude-code --apply` to wire an agent; `ai-memory run claude` and `ai-memory run codex --yolo` continue one workstream across harnesses.",
+        "pros": "It supports a documented Zero-LLM mode where FTS5 search, entity, and graph-neighbor retrieval work without any provider keys, and the wiki is plain git-versioned markdown - grep-able and backed up with `rsync` without a vector database. The Support Matrix lists broad multi-agent coverage across Claude Code, Codex, Cursor, Gemini CLI, and others.",
+        "cons": "Native Windows support is documented as Experimental, with PowerShell/Git Bash script bundles described as compatibility fallbacks that do not enforce capture-policy v1, so Windows users may need the WSL2 path for full functionality.",
+        "fit": "Given its reliance on lifecycle hooks, MCP configuration, and a running local or homelab server, ai-memory appears well suited for developers or small teams already using one or more supported agent CLIs who want continuity across sessions and machines, rather than users seeking a zero-setup tool."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools"
+      ],
+      "form_tags": [
+        "agent"
+      ]
     },
     {
       "slug": "virgiliojr94/book-to-skill",
       "name": "virgiliojr94 / book-to-skill",
-      "desc": "Turn any technical book PDF into a Claude Code skill — ready to study, reference, and use while you work.",
+      "description": "Turn any technical book PDF into a Claude Code skill — ready to study, reference, and use while you work.",
       "lang": "Python",
       "topics": [
         "agent-skills",
@@ -1393,31 +1599,113 @@
         "self-study",
         "study-tools"
       ],
-      "stars": 26928,
-      "forks": 2788,
+      "stars": 27569,
+      "forks": 2849,
       "issues": 11,
+      "contributors": 36,
+      "gains": {
+        "daily": null,
+        "weekly": null,
+        "monthly": 13879
+      },
+      "signal": null,
+      "summary": {
+        "goal": "book-to-skill converts a technical book, document folder, or collection of sources into a structured agent skill for GitHub Copilot CLI, Amp, or Claude Code. It works with any host supporting the open Agent Skills standard, using a shared SKILL.md format so an agent can load content on demand instead of holding it all in context.",
+        "usage": "Users run `/book-to-skill <path|folder|glob> [skill-name]` to point the tool at a file, folder, or glob, which distills the source into chapter files, a glossary, and pattern and cheatsheet references. Installation is done via `npx skills add virgiliojr94/book-to-skill` for any supported host, or by cloning the repository directly into the host's skills directory.",
+        "pros": "The README reports 24×–51× fewer tokens than dumping a full book into context to answer one question, measured on real books, since chapter files load only when a topic is asked about, rather than counting against the base skill budget. Processing runs locally, with files not uploaded by the tool itself.",
+        "cons": "Scanned PDFs with no text layer are not converted automatically: the extractor detects the missing layer from the first pages and stops with an explanation rather than producing an empty skill, so OCR must be run beforehand. Most optional format dependencies install via pip3, suggesting a Python 3 environment is likely expected, though the README does not state this as a formal prerequisite.",
+        "fit": "book-to-skill appears suited to users already working within GitHub Copilot CLI, Amp, or Claude Code, since the README does not describe other agent hosts. It also fits technical books and other structured prose already owned by the user, such as internal documentation, brand or design guidelines, research paper clusters, and specs or standards referenced repeatedly rather than memorized."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "productivity",
+        "learning"
+      ],
+      "form_tags": [
+        "agent",
+        "plugin-skill"
+      ]
+    },
+    {
+      "slug": "ayghri/i-have-adhd",
+      "name": "ayghri / i-have-adhd",
+      "description": "A skill to stop your coding agent from burying the answer. ADHD-friendly output.",
+      "lang": "Python",
+      "topics": [
+        "adhd",
+        "claude-",
+        "claude-code-plugin",
+        "claude-skills",
+        "developer-tools",
+        "productivity"
+      ],
+      "stars": 26061,
+      "forks": 1638,
+      "issues": 23,
       "contributors": 33,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 15782
+        "monthly": 11902
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 801
-      },
+      "signal": null,
       "summary": {
-        "goal": "Turn any technical book PDF into a Claude Code skill — ready to study, reference, and use while you work. GitHub에 공개된 Python 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 달 15,782개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+        "goal": "This repository provides a skill/plugin that changes how a coding assistant replies during coding sessions, making it lead with the next action, number multi-step tasks, and drop filler closers such as \"Hope this helps!\", described as preventing the assistant from \"burying the answer\" inside longer explanations.",
+        "usage": "Installation is done by copying a CLI prompt that references https://github.com/ayghri/i-have-adhd and the repository's AGENTS.md, or by following the separate INSTALL.md instructions; customizing the ruleset requires forking the repository and editing skills/i-have-adhd/SKILL.md, then running commands such as `claude plugin install i-have-adhd@i-have-adhd` and restarting Claude Code before reinvoking `/i-have-adhd`.",
+        "pros": "The skill defines 10 concrete rules covering numbered steps, lists capped at 5 items, specific time estimates in minutes rather than vague terms, and matter-of-fact error reporting, and the project is released under the MIT license with credited inspiration from a published ADHD tool kit.",
+        "cons": "Seeing the full rule text requires a separate file, and adjusting behavior is not a single settings toggle but a multi-step fork-and-reinstall process using several sequential `claude plugin` commands, one of which explicitly warns that the fork and the upstream copy share the same name.",
+        "fit": "Judging by its plugin install commands, this skill may fit users of Claude Code who want terser, action-first responses; the documentation states it is adapted for LLM output style, not for organizing a person's day, though broader compatibility is not specified."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools",
+        "productivity"
+      ],
+      "form_tags": [
+        "agent",
+        "plugin-skill"
+      ]
+    },
+    {
+      "slug": "earendil-works/pi",
+      "name": "earendil-works / pi",
+      "description": "AI agent toolkit: unified LLM API, agent loop, TUI, coding agent CLI",
+      "lang": "TypeScript",
+      "topics": [],
+      "stars": 99977,
+      "forks": 12406,
+      "issues": 138,
+      "contributors": 283,
+      "gains": {
+        "daily": null,
+        "weekly": null,
+        "monthly": 18925
+      },
+      "signal": null,
+      "summary": {
+        "goal": "Pi is described as an agent harness project including a self-extensible coding agent, comprising an interactive coding agent CLI (pi-coding-agent), an agent runtime with tool calling and state management (pi-agent-core), and a unified multi-provider LLM API supporting OpenAI, Anthropic, and Google (pi-ai).",
+        "usage": "Development workflow uses npm install --ignore-scripts to install dependencies without lifecycle scripts, followed by npm run build to refresh model data and build all packages, or npm run build:offline to rebuild using existing model data. npm run check performs lint, format, and type checking, while ./test.sh runs tests and ./pi-test.sh runs Pi from source. Standalone binaries can be built from a release source archive using ./scripts/build-binaries.sh with flags such as --offline-model-data and --platform linux-x64.",
+        "pros": "The project documents supply-chain hardening practices: direct external dependencies are pinned to exact versions while internal workspace packages remain version-ranged, and package-lock.json is treated as the dependency ground truth with pre-commit protections against accidental changes. Scheduled checks include npm audit and npm audit signatures, alongside an explicit allowlist requirement for new dependency lifecycle scripts.",
+        "cons": "Pi does not include a built-in permission system for restricting filesystem, process, network, or credential access; by default it runs with the full permissions of the user and process that launched it, so stronger isolation likely requires separately configuring containerization or sandboxing.",
+        "fit": "This appears suited to developers who can configure their own isolation layer, since documented containerization or sandboxing options are presented as separate patterns rather than defaults. The unified multi-provider LLM API design may also suit projects that want flexibility across OpenAI, Anthropic, and Google backends rather than a single vendor integration."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools"
+      ],
+      "form_tags": [
+        "agent",
+        "library",
+        "cli"
+      ]
     },
     {
       "slug": "diegosouzapw/OmniRoute",
       "name": "diegosouzapw / OmniRoute",
-      "desc": "Never stop coding. Free MIT AI gateway: one endpoint, 350 providers (90+ free), 1200+ models Kimi, Claude, GPT, Gemini, GLM, DeepSeek, MiniMax. Works with Claude Code, Codex, Cursor, OpenCode, Cline & Copilot. Quota-aware auto-fallback, RTK+Caveman compression saves 15-95% tokens, MCP/A2A, Desktop/PWA. Built by 450+ contributors",
+      "description": "Never stop coding. Free MIT AI gateway: one endpoint, 352 providers (150+ free), 1200+ models Kimi, Claude, GPT, Gemini, GLM, DeepSeek, MiniMax. Works with Claude Code, Codex, Cursor, OpenCode, Cline & Copilot. Quota-aware auto-fallback, RTK+Caveman compression saves 15-95% tokens, MCP/A2A, Desktop/PWA. Built by 550+ contributors",
       "lang": "TypeScript",
       "topics": [
         "a2a",
@@ -1441,263 +1729,64 @@
         "qwen",
         "token-saver"
       ],
-      "stars": 57905,
-      "forks": 7985,
-      "issues": 223,
-      "contributors": 555,
+      "stars": 59281,
+      "forks": 8236,
+      "issues": 210,
+      "contributors": 578,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 25061
+        "monthly": 24211
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 1119
-      },
+      "signal": null,
       "summary": {
-        "goal": "Never stop coding. Free MIT AI gateway: one endpoint, 350 providers (90+ free), 1200+ models Kimi, Claude, GPT, Gemini, GLM, DeepSeek, MiniMax. Works with Claude Code, Codex, Cursor, OpenCode, Cline & Copilot. Quota-aware auto-fallback, RTK+Caveman compression saves 15-95% tokens, MCP/A2A, Desktop/PWA. Built by 450+ contributors GitHub에 공개된 TypeScript 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 달 25,061개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "ayghri/i-have-adhd",
-      "name": "ayghri / i-have-adhd",
-      "desc": "A skill to stop your coding agent from burying the answer. ADHD-friendly output.",
-      "lang": "Python",
-      "topics": [
-        "adhd",
-        "claude-",
-        "claude-code-plugin",
-        "claude-skills",
-        "developer-tools",
-        "productivity"
+        "goal": "README describes OmniRoute as a self-hostable AI gateway that routes requests across 352 AI providers (90+ with free tiers) through one OpenAI-compatible endpoint at http://localhost:20128/v1, aiming to combine free-tier quotas, automatic provider fallback, and token compression to reduce AI tool costs.",
+        "usage": "Usage starts with `npm install -g omniroute` followed by running `omniroute`, which starts a local gateway and dashboard on port 20128; a documented curl example calls `http://localhost:20128/v1/chat/completions` with model `auto` and works immediately without API keys.",
+        "pros": "Documented strengths include coverage of 352 providers with 19 routing strategies, three independent resilience layers (provider circuit breakers, connection cooldowns, model lockout) for automatic fallback, and an MIT license permitting self-hosting.",
+        "cons": "A documented operational trade-off is that the Docker image defaults to a 1024 MB heap (`OMNIROUTE_MEMORY_MB`), sufficient only for the dashboard and light chat; running one coding agent needs an 8192 MB heap with a container sized at least 10 GB, so deployments must be manually resized for heavier workloads.",
+        "fit": "OmniRoute appears suited to developers who want to consolidate multiple AI provider accounts and free tiers behind a single local endpoint, though free-tier token budgets are not guaranteed and can change as providers adjust quotas, eligibility, or regions."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools"
       ],
-      "stars": 25498,
-      "forks": 1604,
-      "issues": 22,
-      "contributors": 33,
-      "gains": {
-        "daily": null,
-        "weekly": null,
-        "monthly": 13080
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 601
-      },
-      "summary": {
-        "goal": "A skill to stop your coding agent from burying the answer. ADHD-friendly output. GitHub에 공개된 Python 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 달 13,080개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+      "form_tags": [
+        "agent",
+        "mcp"
+      ]
     },
     {
-      "slug": "block/buzz",
-      "name": "block / buzz",
-      "desc": "A hive mind communication platform",
-      "lang": "Rust",
-      "topics": [],
-      "stars": 31383,
-      "forks": 4007,
-      "issues": 3224,
-      "contributors": 99,
-      "gains": {
-        "daily": null,
-        "weekly": null,
-        "monthly": 16342
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 304
-      },
-      "summary": {
-        "goal": "A hive mind communication platform GitHub에 공개된 Rust 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 달 16,342개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Rust 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "lyogavin/airllm",
-      "name": "lyogavin / airllm",
-      "desc": "AirLLM 70B inference with single 4GB GPU",
-      "lang": "Jupyter Notebook",
-      "topics": [
-        "chinese-llm",
-        "chinese-nlp",
-        "finetune",
-        "generative-ai",
-        "instruct-gpt",
-        "instruction-set",
-        "llama",
-        "llm",
-        "lora",
-        "open-models",
-        "open-source",
-        "open-source-models",
-        "qlora"
-      ],
-      "stars": 33036,
-      "forks": 3475,
-      "issues": 145,
-      "contributors": 10,
-      "gains": {
-        "daily": null,
-        "weekly": null,
-        "monthly": 8902
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 401
-      },
-      "summary": {
-        "goal": "AirLLM 70B inference with single 4GB GPU GitHub에 공개된 Jupyter Notebook 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 달 8,902개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Jupyter Notebook 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "megadose/holehe",
-      "name": "megadose / holehe",
-      "desc": "holehe allows you to check if the mail is used on different sites like twitter, instagram and will retrieve information on sites with the forgotten password function.",
-      "lang": "Python",
-      "topics": [
-        "ebay",
-        "email",
-        "emails",
-        "information-gathering",
-        "instagram",
-        "open-source-intelligence",
-        "osint",
-        "osint-python",
-        "osint-tools",
-        "pypi",
-        "python",
-        "social-network",
-        "tellonym",
-        "trio",
-        "twitter"
-      ],
-      "stars": 14415,
-      "forks": 1844,
-      "issues": 115,
-      "contributors": 32,
-      "gains": {
-        "daily": null,
-        "weekly": null,
-        "monthly": 2604
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 94
-      },
-      "summary": {
-        "goal": "holehe allows you to check if the mail is used on different sites like twitter, instagram and will retrieve information on sites with the forgotten password function. GitHub에 공개된 Python 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 달 2,604개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Python 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "unclebob/swarm-forge",
-      "name": "unclebob / swarm-forge",
-      "desc": "A simple tool for coordinating several AI agents.",
-      "lang": "Clojure",
-      "topics": [],
-      "stars": 3012,
-      "forks": 310,
-      "issues": 28,
-      "contributors": 4,
-      "gains": {
-        "daily": null,
-        "weekly": null,
-        "monthly": 1587
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 103
-      },
-      "summary": {
-        "goal": "A simple tool for coordinating several AI agents. GitHub에 공개된 Clojure 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 달 1,587개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "Clojure 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "earendil-works/pi",
-      "name": "earendil-works / pi",
-      "desc": "AI agent toolkit: unified LLM API, agent loop, TUI, coding agent CLI",
+      "slug": "CodebuffAI/freebuff",
+      "name": "CodebuffAI / freebuff",
+      "description": "The free coding agent",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 99007,
-      "forks": 12276,
-      "issues": 137,
-      "contributors": 283,
+      "stars": 11371,
+      "forks": 1224,
+      "issues": 204,
+      "contributors": 35,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 19558
+        "monthly": 3236
       },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 1315
-      },
+      "signal": null,
       "summary": {
-        "goal": "AI agent toolkit: unified LLM API, agent loop, TUI, coding agent CLI GitHub에 공개된 TypeScript 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 달 19,558개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "TypeScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
-    },
-    {
-      "slug": "citrolabs/ego-lite",
-      "name": "citrolabs / ego-lite",
-      "desc": "The fastest browser for AI agents to run browser automation, built for sharing your logged-in browser state with your AI agents, like Codex or Claude Code, without disturbing you. Zero cost, zero config.",
-      "lang": "JavaScript",
-      "topics": [
-        "agent-skills",
-        "ai-agent",
-        "automation",
-        "browser",
-        "browser-automation",
-        "claude-code",
-        "codex",
-        "hermes-agent",
-        "skills",
-        "skills-sh"
+        "goal": "Freebuff is a set of five free AI products — Freebuff Desktop, Freebuff CLI, Freebuff Web, Freebuff Cloud, and Freebuff Chat — for coding, building, and research, providing specialized agents and a choice of leading models without requiring a subscription, credits, or API key.",
+        "usage": "Freebuff can be run in any project from a terminal by installing the CLI globally with `npm install -g freebuff`, moving into a project directory, and running `freebuff`; the tool then locates relevant files, makes changes, and runs applicable checks.",
+        "pros": "Access to multiple models, including GLM 5.3 Flash and MiMo 2.5, is described as unmetered and drawn from normal daily sessions rather than a separate limit, and the product is stated to be available in every country, with specialized agents handling context-gathering, editing, and review separately.",
+        "cons": "In regions without full support, or via VPN, access appears limited to the MiMo 2.5 model with three one-hour sessions per day, extendable through earned sessions up to seven — a constraint that may reduce sustained usage compared with fully supported regions.",
+        "fit": "The products appear suited to developers seeking free access to coding and research agents across terminal, desktop, web, cloud, and chat interfaces, and may be particularly useful for those in supported regions with full-access models; contributors would additionally need Docker and a configured `.env.local` for local development."
+      },
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools"
       ],
-      "stars": 14278,
-      "forks": 731,
-      "issues": 142,
-      "contributors": 8,
-      "gains": {
-        "daily": null,
-        "weekly": null,
-        "monthly": 8592
-      },
-      "signal": {
-        "streakDays": 1,
-        "starsChange": 324
-      },
-      "summary": {
-        "goal": "The fastest browser for AI agents to run browser automation, built for sharing your logged-in browser state with your AI agents, like Codex or Claude Code, without disturbing you. Zero cost, zero config. GitHub에 공개된 JavaScript 기반 저장소다.",
-        "usage": "구체적인 설치 및 사용 절차는 저장소 README 원문을 확인한다.",
-        "pros": "이번 달 8,592개의 스타 증가가 공개 Trending 데이터에서 확인됐다.",
-        "cons": "자동 요약은 공개 설명과 GitHub 메타데이터만 반영하므로 세부 기능과 제약은 README 원문 확인이 필요하다.",
-        "fit": "JavaScript 저장소를 탐색하려는 사용자에게 참고 자료가 된다."
-      }
+      "form_tags": [
+        "agent"
+      ]
     }
   ]
 }

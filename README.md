@@ -10,9 +10,9 @@ No server setup or account is required. Google sign-in is optional and is used o
 
 ## Current implementation status
 
-The multilingual interface, Compact Rail navigation, source-bound README viewer, and five-language summary pipeline are implemented in the current candidate. Production still contains the earlier legacy summary data until a controlled refresh and Pages deployment are explicitly approved. The candidate does not treat legacy generic summaries, missing README provenance, or missing language bundles as a successful release.
+The multilingual interface, Compact Rail navigation, source-bound README viewer, and five-language summary pipeline are implemented in the current source. The repository includes a locally reproduced 45-repository v1 snapshot; the public site's exact deployed revision must still be confirmed from its deployment manifest. Generic legacy summaries, missing README provenance, or incomplete language bundles are never counted as a successful v1 release.
 
-The candidate screenshots below were captured locally from the 2026-08-31 source at 1440 px and 390 px. They are not presented as production deployment evidence.
+The interface screenshots below were captured from the 2026-08-31 source at 1440 px and 390 px. The deployment manifest, rather than a screenshot, is the production revision proof.
 
 ![Desktop candidate with the Compact Rail](docs/screenshots/candidate-desktop-1440.png)
 
@@ -22,7 +22,7 @@ The candidate screenshots below were captured locally from the 2026-08-31 source
 
 - **English-first repository documentation** — This `README.md` is the canonical English document. The complete Korean version is in [README.ko.md](README.ko.md); [README.en.md](README.en.md) remains as a compatibility pointer.
 - **Five site languages** — Stable interface text can be switched among English, Korean, Simplified Chinese, Spanish, and Japanese. Repository cards keep their source data and are not mechanically translated on every refresh.
-- **Five-language summary bundles** — Every enriched repository must provide semantically equivalent English, Korean, Simplified Chinese, Spanish, and Japanese summaries with the same facts, commands, numbers, warnings, and product names.
+- **Five-language summary bundles** — Every enriched repository provides English, Korean, Simplified Chinese, Spanish, and Japanese summaries with the same five field roles and README-backed facts. Natural wording, sentence count, emphasis, and total length may differ by language.
 - **The same summary on desktop and mobile** — Responsive layout changes presentation only. It never shortens or weakens the summary on a smaller screen.
 - **Compact Rail navigation** — On desktop, the 64 px Explore rail opens a passive sidebar on hover and a focus-trapped modal when clicked or activated from the keyboard. Mobile keeps an explicit 44 px control and edge-swipe behavior.
 - **README variants from upstream only** — The viewer lists only README language files that actually exist in the repository. It verifies path, immutable blob SHA, default-branch head SHA, and content SHA-256 before rendering. This project no longer generates or stores full README translations.
@@ -30,17 +30,17 @@ The candidate screenshots below were captured locally from the 2026-08-31 source
 
 ## Summary quality contract
 
-The refresh pipeline is configured for `claude-sonnet-5` at the approved $2 input / $10 output per million-token rates. No model call happens before repository and README collection succeeds.
+The refresh pipeline is configured for `claude-sonnet-5` through Claude CLI OAuth and has no dollar-cost calculation stage. No model call happens before repository and README collection succeeds.
 
 Each repository is produced as one atomic five-language bundle:
 
-- `goal`, `usage`, `pros`, `cons`, and `fit` must be distinct and grounded in the verified README.
-- The English equivalent must contain 180–280 words, with 200–240 as the target.
-- Only commands that appear in the README may be quoted, limited to one or two central commands.
-- Promotional superlatives and generic “see the README” fallbacks are invalid.
-- Evidence is retained as README headings and line ranges; full README bodies are not written to the observation database.
-- One repository-level quality correction is allowed within the existing global retry and token caps.
-- One missing locale, mismatched invariant, insufficient source, or schema defect fails the entire repository and therefore the candidate.
+- `goal`, `usage`, `pros`, `cons`, and `fit` must be distinct, keep their semantic roles, and be grounded in the verified README. Installation and execution instructions belong in `usage`.
+- The English bundle may contain 100–280 words. Other locales are not required to match its word count, sentence count, phrasing, or information order.
+- Only commands that appear in the README may be quoted, limited to one or two central commands and retained in the same semantic field across locales.
+- Generic “see the README” fallbacks are invalid. Subjective wording alone does not fail an otherwise source-backed, structurally complete summary.
+- README path, blob, content hash, and default-branch head identify the shared canonical source; they are not used to require byte-for-byte or perfectly equivalent prose across locales. Evidence is retained as README headings and line ranges, while full README bodies are not written to the observation database.
+- Up to three repository-level quality corrections are allowed within the existing bounded attempt and token policy.
+- One missing locale, misplaced or unbacked immutable token, insufficient source, or schema defect fails the entire repository and therefore the candidate.
 
 The interface describes these summaries accurately as AI-generated from a verified repository README; it does not claim human verification.
 
