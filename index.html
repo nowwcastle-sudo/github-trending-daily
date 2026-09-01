@@ -100,9 +100,9 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .nav-label{line-height:1}
 .nav-rail-spacer{flex:1}
 .nav-rail .filter-count{min-width:20px;padding:2px 6px;font-size:10px;line-height:14px;text-align:center}
-.mobile-nav-toggle{display:none;align-items:center;justify-content:center;gap:7px;min-width:44px;min-height:44px;border:1px solid var(--border);border-radius:11px;background:var(--bg-elev);color:var(--text);padding:8px 10px;font:inherit;font-size:12px;font-weight:650;cursor:pointer}
+.mobile-nav-toggle{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .mobile-nav-toggle .nav-glyph{width:18px;height:15px}
-.mobile-nav-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.mobile-nav-toggle:focus-visible{position:fixed;z-index:340;top:max(calc(env(safe-area-inset-top) + 12px),12px);right:max(calc(env(safe-area-inset-right) + 12px),12px);width:auto;height:auto;min-width:44px;min-height:44px;margin:0;overflow:visible;clip:auto;white-space:normal;display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--border);border-radius:11px;background:var(--control-solid);color:var(--text);padding:8px 10px;font:inherit;font-size:12px;font-weight:650;cursor:pointer;outline:3px solid var(--accent);outline-offset:2px}
 .sidebar-close svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round}
 .filter-count{min-width:20px;padding:2px 6px;border-radius:99px;background:var(--accent-soft);color:var(--accent-selected);font-size:11px;font-variant-numeric:tabular-nums}
 .filter-count:empty{display:none}
@@ -126,7 +126,6 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 @media(hover:none),(pointer:coarse){
   body{touch-action:pan-y pinch-zoom}
   .nav-rail{display:none}
-  .mobile-nav-toggle{display:inline-flex}
   .filter-sidebar{touch-action:pan-y pinch-zoom}
 }
 .sidebar-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -297,14 +296,8 @@ body.overlay-open{overflow:hidden}
 }
 #tipLayer h2{font-size:20px;letter-spacing:-.01em;margin-bottom:2px}
 .tsub{font-size:14px;color:var(--text-3);margin-bottom:12px}
-.summary-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin:2px 0 8px;overflow-x:auto;scrollbar-width:none}
-.summary-tabs::-webkit-scrollbar{display:none}
-.summary-tab{min-width:48px;min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--text-2);padding:7px 5px;font:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
-.summary-tab:hover,.summary-tab:focus-visible{background:var(--seg-bg);color:var(--text)}
-.summary-tab:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
-.summary-tab[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-selected)}
-.summary-tab:disabled{opacity:.38;cursor:not-allowed}
 .tip-ai-note{margin:10px 0 2px;color:var(--text-2);font-size:11px;line-height:1.45}
+.tip-unavailable{margin:12px 0;color:var(--text-2);font-size:15.5px;line-height:1.55}
 .tip-readme-row{display:flex;margin-bottom:10px}
 .tip-readme-row .rdbtn{width:100%;justify-content:center}
 .trow{padding:9px 0;border-top:1px solid var(--hairline)}
@@ -364,7 +357,6 @@ footer a{color:var(--text-2)}
 @media(max-width:1147px){.list-stage{padding-right:calc(56px + env(safe-area-inset-right))}}
 @media(max-width:720px){
   .nav-rail{display:none!important}
-  .mobile-nav-toggle{display:inline-flex}
   .filter-sidebar{left:0;width:var(--sidebar-width);transform:translate3d(-105%,0,0)}
   .filter-sidebar.open{transform:translate3d(0,0,0)}
 }
@@ -562,7 +554,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <select class="site-locale" id="siteLocale" aria-label="Site language" data-i18n-aria-label="site.language">
       <option value="en">English</option><option value="ko">한국어</option><option value="zh-CN">简体中文</option><option value="es">Español</option><option value="ja">日本語</option>
     </select>
-    <button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-label="Open Explore sidebar" data-i18n-aria-label="nav.open" aria-controls="filterSidebar" aria-expanded="false">
+    <button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-label="Open Explore sidebar" data-i18n-aria-label="nav.open" aria-controls="filterSidebar" aria-expanded="false" aria-hidden="true" tabindex="-1" inert>
       <span class="nav-glyph" aria-hidden="true"></span><span data-i18n="nav.explore">Explore</span>
     </button>
     <button class="theme-toggle" id="themeBtn" aria-label="Change theme" data-i18n-aria-label="header.theme"></button>
@@ -645,7 +637,7 @@ document.addEventListener("site-locale-change",()=>{
   updateFilterLabels();
   render();
   if(activeTipIndex!==null&&tipLayer.classList.contains("on")){
-    const repo=REPOS[activeTipIndex];activeSummaryLocale=resolveSummaryLocale(repo,siteI18n.locale);tipLayer.innerHTML=tipHTML(repo,activeSummaryLocale);
+    const repo=REPOS[activeTipIndex];tipLayer.innerHTML=tipHTML(repo,resolveSummaryLocale(repo,siteI18n.locale));
   }
   updateRefreshStatus();renderRecentExits(currentRecentExits);renderHist();
 });
@@ -703,7 +695,7 @@ const sidebar=document.getElementById("filterSidebar"),sidebarScrim=document.get
 const navToggle=document.getElementById("navToggle"),mobileNavToggle=document.getElementById("mobileNavToggle"),sidebarClose=document.getElementById("sidebarClose");
 const sidebarToggles=[navToggle,mobileNavToggle];
 const sidebarHoverMedia=matchMedia("(hover:hover) and (pointer:fine)");
-let sidebarTrigger=null,sidebarHoverTimer=null,railPointerInside=false,sidebarPointerInside=false;
+let sidebarTrigger=null,railPointerInside=false,sidebarPointerInside=false;
 function focusableIn(container){
   return [...container.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>!el.hidden&&!el.closest("[hidden]"));
 }
@@ -714,15 +706,11 @@ function trapFocus(container,event){
   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
 }
-function clearSidebarHoverTimer(){
-  clearTimeout(sidebarHoverTimer);sidebarHoverTimer=null;
-}
 function setSidebarTriggerState(label,expanded){
   sidebarToggles.forEach(toggle=>{toggle.setAttribute("aria-label",label);toggle.setAttribute("aria-expanded",String(expanded))});
 }
 function closeSidebar(restoreFocus=true){
   const mode=sidebar.dataset.openMode;if(!mode)return;
-  clearSidebarHoverTimer();
   sidebar.classList.remove("open");sidebar.setAttribute("aria-hidden","true");sidebar.inert=true;
   sidebar.removeAttribute("aria-modal");setSidebarTriggerState(tr("nav.open"),false);
   delete sidebar.dataset.openMode;
@@ -740,7 +728,7 @@ function openSidebar(mode,trigger){
   const readme=document.getElementById("readmePanel");
   if(mode==="hover"&&readme.classList.contains("open"))return;
   if(readme.classList.contains("open"))closeReadme(false);
-  hideTip();clearSidebarHoverTimer();
+  hideTip();
   sidebar.inert=false;sidebar.classList.add("open");sidebar.setAttribute("aria-hidden","false");
   sidebar.dataset.openMode=mode;
   if(mode==="modal"){
@@ -753,13 +741,12 @@ function openSidebar(mode,trigger){
   if(mode==="modal"&&typeof hideScrollTopImmediately==="function")hideScrollTopImmediately();
   else if(typeof scheduleScrollTopUpdate==="function")scheduleScrollTopUpdate();
 }
-function scheduleSidebarHoverClose(){
-  clearSidebarHoverTimer();
-  if(sidebar.dataset.openMode!=="hover")return;
-  sidebarHoverTimer=setTimeout(()=>{
-    sidebarHoverTimer=null;
-    if(!railPointerInside&&!sidebarPointerInside&&!sidebar.matches(":focus-within")&&!navToggle.matches(":focus"))closeSidebar(false);
-  },180);
+function sidebarOwnsTarget(target){
+  return Boolean(target&&(target===navToggle||target===sidebar||navToggle.contains(target)||sidebar.contains(target)));
+}
+function closeHoverSidebarIfOutside(relatedTarget=null){
+  if(sidebar.dataset.openMode!=="hover"||sidebarOwnsTarget(relatedTarget))return;
+  if(!railPointerInside&&!sidebarPointerInside&&!sidebar.matches(":focus-within")&&!navToggle.matches(":focus"))closeSidebar(false);
 }
 function activateSidebar(event){
   if(sidebar.dataset.openMode==="modal")closeSidebar();
@@ -767,16 +754,14 @@ function activateSidebar(event){
 }
 navToggle.addEventListener("pointerenter",()=>{
   if(!sidebarHoverMedia.matches)return;
-  railPointerInside=true;clearSidebarHoverTimer();
+  railPointerInside=true;
   openSidebar(UiMotion.sidebarMode({hoverCapable:sidebarHoverMedia.matches,trigger:"pointer"}),navToggle);
 });
-navToggle.addEventListener("pointerleave",()=>{railPointerInside=false;scheduleSidebarHoverClose()});
-sidebar.addEventListener("pointerenter",()=>{if(sidebarHoverMedia.matches){sidebarPointerInside=true;clearSidebarHoverTimer()}});
-sidebar.addEventListener("pointerleave",()=>{sidebarPointerInside=false;scheduleSidebarHoverClose()});
-sidebar.addEventListener("focusin",clearSidebarHoverTimer);
-navToggle.addEventListener("focusin",clearSidebarHoverTimer);
-sidebar.addEventListener("focusout",()=>setTimeout(scheduleSidebarHoverClose,0));
-navToggle.addEventListener("focusout",()=>setTimeout(scheduleSidebarHoverClose,0));
+navToggle.addEventListener("pointerleave",event=>{railPointerInside=false;closeHoverSidebarIfOutside(event.relatedTarget)});
+sidebar.addEventListener("pointerenter",()=>{if(sidebarHoverMedia.matches)sidebarPointerInside=true});
+sidebar.addEventListener("pointerleave",event=>{sidebarPointerInside=false;closeHoverSidebarIfOutside(event.relatedTarget)});
+sidebar.addEventListener("focusout",event=>closeHoverSidebarIfOutside(event.relatedTarget));
+navToggle.addEventListener("focusout",event=>closeHoverSidebarIfOutside(event.relatedTarget));
 navToggle.addEventListener("click",activateSidebar);
 mobileNavToggle.addEventListener("click",activateSidebar);
 sidebarClose.addEventListener("click",()=>{
@@ -788,6 +773,15 @@ sidebar.addEventListener("keydown",event=>{if(sidebar.dataset.openMode==="modal"
 document.addEventListener("keydown",event=>{if(event.key==="Escape"&&sidebar.dataset.openMode==="modal")closeSidebar()});
 
 const sidebarCoarseMedia=matchMedia("(hover:none), (pointer:coarse)");
+const sidebarMobileAccessMedia=matchMedia("(max-width:720px), (hover:none), (pointer:coarse)");
+function updateMobileNavAccess(){
+  const available=sidebarMobileAccessMedia.matches;
+  mobileNavToggle.tabIndex=available?0:-1;
+  mobileNavToggle.inert=!available;
+  mobileNavToggle.setAttribute("aria-hidden",String(!available));
+}
+updateMobileNavAccess();
+sidebarMobileAccessMedia.addEventListener?.("change",updateMobileNavAccess);
 const sidebarGestureInteractive='button,a,input,select,textarea,[role="button"]';
 let sidebarGesture=null,sidebarGesturePointerId=null,sidebarGestureTarget=null,sidebarGestureClaimed=false,sidebarGestureClickGuard=null;
 function armSidebarGestureClickGuard(pointerId,target){
@@ -997,7 +991,6 @@ function restoreRepository(slug,{focusCard=false,focusManager=false}={}){
   }catch{showHiddenNotice(tr("hidden.saveError"),{tone:"error"})}
 }
 const SUMMARY_LOCALES=["en","ko","zh-CN","es","ja"];
-const SUMMARY_LOCALE_LABELS=new Map([["en","EN"],["ko","한국어"],["zh-CN","中文"],["es","ES"],["ja","日本語"]]);
 function summaryBundle(r){
   if(r?.summaries&&typeof r.summaries==="object")return r.summaries;
   return r?.summary&&typeof r.summary==="object"?{ko:r.summary}:{};
@@ -1005,24 +998,22 @@ function summaryBundle(r){
 function summaryAvailable(summary){return summary&&["goal","usage","pros","cons","fit"].every(key=>typeof summary[key]==="string"&&summary[key].trim())}
 function resolveSummaryLocale(r,preferred=siteI18n.locale){
   const bundle=summaryBundle(r);
-  if(summaryAvailable(bundle[preferred]))return preferred;
-  if(summaryAvailable(bundle.en))return "en";
-  return SUMMARY_LOCALES.find(locale=>summaryAvailable(bundle[locale]))||null;
+  return SUMMARY_LOCALES.includes(preferred)&&summaryAvailable(bundle[preferred])?preferred:null;
 }
 function tipHTML(r,locale=resolveSummaryLocale(r)){
-  const bundle=summaryBundle(r),s=locale?bundle[locale]:null;if(!summaryAvailable(s))return "";
-  const tabs=SUMMARY_LOCALES.map(code=>`<button type="button" class="summary-tab" data-summary-locale="${code}" aria-pressed="${code===locale}"${summaryAvailable(bundle[code])?"":" disabled"}>${SUMMARY_LOCALE_LABELS.get(code)}</button>`).join("");
-  return `
-  <h2>${esc(r.name)}</h2><p class="tsub">${fmt(r.stars)} ★ · ⑂ ${fmt(r.forks)} · 👥 ${fmt(r.contributors||0)} ${tr("repo.contributors")} · ◎ ${fmt(r.issues||0)} ${tr("repo.issues")} · ${esc(r.lang)}</p>
-  <div class="summary-tabs" role="group" aria-label="${tr("tooltip.language")}">${tabs}</div>
-  <div class="tip-readme-row"><button type="button" class="rdbtn js-readme" data-slug="${r.slug}" data-name="${esc(r.name)}">${tr("readme.view")}</button></div>
+  const bundle=summaryBundle(r),s=locale?bundle[locale]:null;
+  const heading=`<h2>${esc(r.name)}</h2><p class="tsub">${fmt(r.stars)} ★ · ⑂ ${fmt(r.forks)} · 👥 ${fmt(r.contributors||0)} ${tr("repo.contributors")} · ◎ ${fmt(r.issues||0)} ${tr("repo.issues")} · ${esc(r.lang)}</p>`;
+  const readme=`<div class="tip-readme-row"><button type="button" class="rdbtn js-readme" data-slug="${r.slug}" data-name="${esc(r.name)}">${tr("readme.view")}</button></div>`;
+  const actions=`<p class="thint tip-actions"><button type="button" class="rdbtn js-hide-repo" data-slug="${r.slug}">${tr("tooltip.hide")}</button></p>`;
+  if(!summaryAvailable(s))return `${heading}${readme}<p class="tip-unavailable" role="status">${tr("tooltip.unavailable")}</p>${actions}`;
+  return `${heading}${readme}
   <div class="trow"><span class="tlabel">🎯 ${tr("tooltip.goal")}</span><p>${esc(s.goal)}</p></div>
   <div class="trow"><span class="tlabel">🛠 ${tr("tooltip.usage")}</span><p>${esc(s.usage)}</p></div>
   <div class="trow"><span class="tlabel">👍 ${tr("tooltip.pros")}</span><p>${esc(s.pros)}</p></div>
   <div class="trow"><span class="tlabel">👎 ${tr("tooltip.cons")}</span><p>${esc(s.cons)}</p></div>
   <div class="trow"><span class="tlabel">💡 ${tr("tooltip.fit")}</span><p>${esc(s.fit)}</p></div>
   <p class="tip-ai-note">${tr("tooltip.aiNote")}</p>
-  <p class="thint tip-actions"><button type="button" class="rdbtn js-hide-repo" data-slug="${r.slug}">${tr("tooltip.hide")}</button></p>`;
+  ${actions}`;
 }
 
 function newOnlyGate(state,loadState){
@@ -1056,6 +1047,7 @@ const list=document.getElementById("list"),empty=document.getElementById("empty"
 function render(){
   const viewPeriod=period;
   const gainOf=r=>UiMotion.periodGain(r,viewPeriod);
+  const showPeriodSignals=viewPeriod!=="all";
   const newOnlyBlock=newOnlyGate(filterState,membershipLoadState);
   if(newOnlyBlock){
     currentVisibleRepos=[];list.innerHTML="";empty.style.display="grid";
@@ -1085,9 +1077,9 @@ function render(){
     ...(hiddenSet.size?[tr("result.hidden",{count:hiddenSet.size})]:[]),
   ].join(" · ");
   updateHiddenManager();
-  const maxT=Math.max(...items.map(gainOf),1);
+  const maxT=showPeriodSignals?Math.max(...items.map(gainOf),1):1;
   list.innerHTML=items.map((r,i)=>{
-    const unit=tr(viewPeriod==="all"?"period.recent":viewPeriod==="daily"?"period.today":viewPeriod==="weekly"?"period.thisWeek":"period.thisMonth");
+    const unit=showPeriodSignals?tr(viewPeriod==="daily"?"period.today":viewPeriod==="weekly"?"period.thisWeek":"period.thisMonth"):"";
     const faved=favSet.has(r.slug);
     const signal=SIGNALS.get(r.slug);
     const badges=UiMotion.badgeModel(r,signal,viewPeriod);
@@ -1107,9 +1099,9 @@ function render(){
           <span>◎ ${fmt(r.issues||0)} ${tr("repo.issues")}</span>
           ${r.pushed_at?`<span>🕒 ${tr("repo.commit")} ${esc(r.pushed_at)}</span>`:""}
           ${r.latest_release?`<span>🏷 ${tr("repo.release")} ${esc(r.latest_release)}</span>`:""}
-          <span class="today">★ +${fmt(gainOf(r))} <span style="color:var(--text-3);font-weight:400">${unit}</span></span>
+          ${showPeriodSignals?`<span class="today">★ +${fmt(gainOf(r))} <span style="color:var(--text-3);font-weight:400">${unit}</span></span>`:""}
         </div>
-        <div class="spark"><i style="width:${Math.max(4,gainOf(r)/maxT*100)}%"></i></div>
+        ${showPeriodSignals?`<div class="spark"><i style="width:${Math.max(4,gainOf(r)/maxT*100)}%"></i></div>`:""}
         <div class="sparkhist" data-slug="${r.slug}"></div>
       </div>
       <div class="cstat"><div class="stars">${fmt(r.stars)}</div><div class="slabel">${tr("repo.totalStars")}</div></div>
@@ -1381,7 +1373,7 @@ scheduleScrollTopUpdate();
 
 /* 플로팅 툴팁: body 직속 레이어, 카드에 절대 가려지지 않음 */
 const tipLayer=document.getElementById("tipLayer"),listStage=document.getElementById("listStage");
-let hideTimer=null,activeTipIndex=null,activeSummaryLocale=null;
+let hideTimer=null,activeTipIndex=null;
 function touchLayout(){return matchMedia("(hover: none), (pointer: coarse)").matches}
 function railLayout(){return innerWidth>=1100&&!touchLayout()}
 function currentListShift(){
@@ -1396,10 +1388,10 @@ function showTip(card){
   }
   clearTimeout(hideTimer);
   const idx=+card.dataset.idx,r=REPOS[idx];
-  if(!r||!resolveSummaryLocale(r))return;
+  if(!r)return;
   if(activeTipIndex===idx&&tipLayer.classList.contains("on")){positionTip(card);return}
-  activeTipIndex=idx;activeSummaryLocale=resolveSummaryLocale(r);
-  tipLayer.innerHTML=tipHTML(r,activeSummaryLocale);
+  activeTipIndex=idx;
+  tipLayer.innerHTML=tipHTML(r,resolveSummaryLocale(r,siteI18n.locale));
   positionTip(card);
   tipLayer.classList.add("on");
   tipLayer.inert=false;
@@ -1451,16 +1443,6 @@ function touchCardBehindTip(event){
     .find(card=>card&&+card.dataset.idx===activeTipIndex)||null;
 }
 tipLayer.addEventListener("click",e=>{
-  const summaryButton=e.target.closest(".summary-tab");
-  if(summaryButton){
-    e.preventDefault();
-    const r=activeTipIndex===null?null:REPOS[activeTipIndex],nextLocale=summaryButton.dataset.summaryLocale;
-    if(r&&summaryAvailable(summaryBundle(r)[nextLocale])){
-      activeSummaryLocale=nextLocale;tipLayer.innerHTML=tipHTML(r,activeSummaryLocale);
-      tipLayer.querySelector(`[data-summary-locale="${nextLocale}"]`)?.focus();
-    }
-    return;
-  }
   const hideButton=e.target.closest(".js-hide-repo");
   if(hideButton){e.preventDefault();hideRepository(hideButton.dataset.slug,e.detail===0);return}
   const readmeButton=e.target.closest(".js-readme");
@@ -1475,7 +1457,7 @@ window.addEventListener("scroll",()=>{
   const card=activeTipIndex===null?null:document.querySelector(`.card[data-idx="${activeTipIndex}"]`);
   if(card&&tipLayer.classList.contains("on"))positionTip(card);
 },{passive:true});
-function hideTip(){tipLayer.classList.remove("on");tipLayer.setAttribute("aria-hidden","true");tipLayer.inert=true;activeTipIndex=null;activeSummaryLocale=null;listStage.style.transform="";}
+function hideTip(){tipLayer.classList.remove("on");tipLayer.setAttribute("aria-hidden","true");tipLayer.inert=true;activeTipIndex=null;listStage.style.transform="";}
 document.addEventListener("click",e=>{
   if(!touchLayout()||!tipLayer.classList.contains("on"))return;
   if(e.target.closest("#tipLayer")||e.target.closest(".card"))return;

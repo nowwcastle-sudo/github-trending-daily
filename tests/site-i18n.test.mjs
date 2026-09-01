@@ -23,6 +23,8 @@ test("site shell supports the exact five approved locales with complete message 
   assert.ok(englishKeys.length >= 60);
   for (const locale of i18n.SUPPORTED_LOCALES) {
     assert.deepEqual(Object.keys(i18n.MESSAGES[locale]).sort(), englishKeys, `${locale} must not fall back key-by-key`);
+    assert.equal(typeof i18n.MESSAGES[locale]["tooltip.unavailable"], "string");
+    assert.ok(i18n.MESSAGES[locale]["tooltip.unavailable"].trim().length > 0);
   }
 });
 

@@ -23,6 +23,12 @@ function canonicalRepo(overrides = {}) {
     field_tags: ["unclassified"],
     form_tags: [],
     membership_status: "stayed",
+    rank_daily: 1,
+    rank_weekly: 1,
+    rank_monthly: 1,
+    stars_daily: 0,
+    stars_weekly: 0,
+    stars_monthly: 0,
     ...overrides,
   };
 }
@@ -187,6 +193,42 @@ test("new-only filtering includes only exact new membership", async () => {
   );
 });
 
+test("period membership requires a positive rank and a nonnegative finite gain", async () => {
+  const RepoFilters = await loadRepoFilters();
+  const repositories = [
+    canonicalRepo({ slug: "owner/daily-only", rank_weekly: null, stars_weekly: null, rank_monthly: null, stars_monthly: null }),
+    canonicalRepo({ slug: "owner/daily-weekly", rank_daily: 2, stars_daily: 5, rank_weekly: 2, stars_weekly: 0, rank_monthly: null, stars_monthly: null }),
+    canonicalRepo({ slug: "owner/weekly-monthly", rank_daily: null, stars_daily: null, rank_monthly: 2, stars_monthly: 0 }),
+    canonicalRepo({ slug: "owner/monthly-only", rank_daily: null, stars_daily: null, rank_weekly: null, stars_weekly: null, stars_monthly: 9 }),
+    canonicalRepo({ slug: "owner/zero-rank", rank_daily: 0, stars_daily: 10, rank_weekly: null, stars_weekly: null, rank_monthly: null, stars_monthly: null }),
+    canonicalRepo({ slug: "owner/negative-gain", rank_daily: 3, stars_daily: -1, rank_weekly: null, stars_weekly: null, rank_monthly: null, stars_monthly: null }),
+  ];
+  const slugsFor = period => repositories
+    .filter(repository => RepoFilters.matchesRepo(repository, { period }))
+    .map(repository => repository.slug);
+
+  assert.deepEqual(slugsFor("all"), [
+    "owner/daily-only", "owner/daily-weekly", "owner/weekly-monthly", "owner/monthly-only",
+  ]);
+  assert.deepEqual(slugsFor("daily"), ["owner/daily-only", "owner/daily-weekly"]);
+  assert.deepEqual(slugsFor("weekly"), ["owner/daily-weekly", "owner/weekly-monthly"]);
+  assert.deepEqual(slugsFor("monthly"), ["owner/weekly-monthly", "owner/monthly-only"]);
+});
+
+test("embedded snapshot exposes the exact daily weekly and monthly memberships", async () => {
+  const RepoFilters = await loadRepoFilters();
+  const page = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const match = page.match(/\/\/ GENERATED:TRENDING-REPOS:START\s*const REPOS = (\[.*?\]);\s*\/\/ GENERATED:TRENDING-REPOS:END/s);
+  assert.ok(match);
+  const repositories = JSON.parse(match[1]);
+
+  assert.equal(repositories.length, 45);
+  assert.deepEqual(
+    ["all", "daily", "weekly", "monthly"].map(period => repositories.filter(repository => RepoFilters.matchesRepo(repository, { period })).length),
+    [45, 16, 20, 22],
+  );
+});
+
 test("URL sorting is whitelisted, omits the default, and rejects gain for all periods", async () => {
   const RepoFilters = await loadRepoFilters();
 
@@ -199,17 +241,20 @@ test("URL sorting is whitelisted, omits the default, and rejects gain for all pe
   assert.equal(RepoFilters.serializeState({ period: "all", sort: "gain" }), "");
 });
 
-test("sorting keeps Trending order by default and uses original order to break ties", async () => {
+test("Trending uses period rank while All preserves source order", async () => {
   const RepoFilters = await loadRepoFilters();
   const repos = [
-    { slug: "owner/first", stars: 10, pushed_at: "2026-08-20", latest_release: null },
-    { slug: "owner/second", stars: 30, pushed_at: null, latest_release: "2026-08-21" },
-    { slug: "owner/third", stars: 30, pushed_at: "2026-08-25", latest_release: "invalid" },
-    { slug: "owner/fourth", stars: null, pushed_at: "invalid", latest_release: "2026-08-24" },
+    { slug: "owner/first", rank_daily: 3, stars: 10, pushed_at: "2026-08-20", latest_release: null },
+    { slug: "owner/second", rank_daily: 1, stars: 30, pushed_at: null, latest_release: "2026-08-21" },
+    { slug: "owner/third", rank_daily: 2, stars: 30, pushed_at: "2026-08-25", latest_release: "invalid" },
+    { slug: "owner/fourth", rank_daily: null, stars: null, pushed_at: "invalid", latest_release: "2026-08-24" },
   ];
 
-  assert.deepEqual(RepoFilters.sortRepos(repos, "trending", "daily").map(repo => repo.slug), [
+  assert.deepEqual(RepoFilters.sortRepos(repos, "trending", "all").map(repo => repo.slug), [
     "owner/first", "owner/second", "owner/third", "owner/fourth",
+  ]);
+  assert.deepEqual(RepoFilters.sortRepos(repos, "trending", "daily").map(repo => repo.slug), [
+    "owner/second", "owner/third", "owner/first", "owner/fourth",
   ]);
   assert.deepEqual(RepoFilters.sortRepos(repos, "stars", "daily").map(repo => repo.slug), [
     "owner/second", "owner/third", "owner/first", "owner/fourth",

@@ -5,6 +5,7 @@ import sqlite3
 import tempfile
 import traceback
 import unittest
+import xml.etree.ElementTree as ET
 from contextlib import closing, redirect_stdout
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -24,6 +25,7 @@ from scripts.derive_repository_artifacts import (
     hash_pages_artifacts,
     verify_pages_artifacts,
 )
+from scripts.generate_atom_feeds import ATOM_NAMESPACE, generate_atom_feeds_from_timeline
 from scripts.record_repository_observations import (
     PAGES_BASE_ARTIFACT_PATHS,
     _file_sha256,
@@ -629,6 +631,131 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
         with closing(sqlite3.connect(database)) as connection:
             with self.assertRaisesRegex(ValueError, "receipt"):
                 derive_membership_timeline(connection, legacy, 3)
+
+    def test_s1_s2_s3_membership_flows_from_ledger_to_json_atom_and_reentry(self):
+        baselines, _ = writer_legacy_baselines(self.root)
+        legacy = Path(baselines["legacy_trending_membership"])
+        legacy.unlink()
+        legacy_status = self.root / "legacy-membership-status.json"
+        legacy_slugs = tuple(f"legacy/repo-{index}" for index in range(41))
+        for day in range(20, 27):
+            record_membership(legacy, legacy_status, MembershipSnapshot(
+                f"2026-08-{day:02d}T00:00:00.000Z", f"2026-08-{day:02d}", legacy_slugs,
+            ))
+        receipt = measure_legacy_baseline_receipt(baselines)
+
+        def payload(snapshot_id, utc, kst, kind, parent, slugs):
+            value = writer_payload(
+                snapshot_id=snapshot_id, utc=utc, kst=kst, stats_date="2026-08-28",
+                run_kind=kind, parent_snapshot_id=parent,
+            )
+            repository_template = value["repositories"][0]
+            summary_template = value["enrichmentIndex"]["owner/repo"]["summary"]
+            repositories = []
+            summaries = {}
+            for rank, slug in enumerate(slugs, start=1):
+                repository = json.loads(json.dumps(repository_template))
+                repository.update({"slug": slug, "displaySlug": slug, "displayRank": rank, "rankDaily": rank})
+                repository["provenance"]["repository"]["api_path"] = f"/repos/{slug}"
+                repository["provenance"]["contributors"]["api_path"] = f"/repos/{slug}/contributors"
+                repository["provenance"]["default_branch_head"]["api_path"] = f"/repos/{slug}/commits/main"
+                repository["provenance"]["readme"].update({
+                    "api_path": f"/repos/{slug}/readme",
+                    "blob_api_path": f"/repos/{slug}/git/blobs/{sha1('b')}",
+                    "variant_tree_api_path": f"/repos/{slug}/git/trees/{sha1()}",
+                })
+                repository["provenance"]["trending"]["daily"]["rank"] = rank
+                repositories.append(repository)
+                summary = json.loads(json.dumps(summary_template))
+                summary["source"]["slug"] = slug
+                summaries[slug] = {"summary": summary}
+            value["repositories"] = repositories
+            value["enrichmentIndex"] = summaries
+            value["legacyBaselines"], value["legacyBaselineReceipt"] = baselines, receipt
+            return value
+
+        def events(slugs, transitions):
+            return {
+                "heads": [
+                    {"slug": slug, "branch": "main", "headSha": sha1(), "transition": transitions[slug]}
+                    for slug in slugs
+                ],
+                "releases": [], "latestReleaseIds": {slug: None for slug in slugs}, "commits": [],
+                "estimates": [
+                    {"slug": slug, "rows": [], "sourcePayloadSha256": sha256("b"), "publicRows": []}
+                    for slug in slugs
+                ],
+            }
+
+        stable = [f"owner/stable-{index}" for index in range(9)]
+        returning = "owner/returning"
+        newcomer = "owner/newcomer"
+        s1_slugs = [*stable, returning]
+        s2_slugs = [*stable, newcomer]
+        s3_slugs = [*stable, newcomer, returning]
+        times = [
+            ("2026-08-28T01:01:01.001Z", "2026-08-28T10:01:01.001+09:00"),
+            ("2026-08-28T03:01:01.001Z", "2026-08-28T12:01:01.001+09:00"),
+            ("2026-08-28T05:01:01.001Z", "2026-08-28T14:01:01.001+09:00"),
+        ]
+        ids = [
+            f"{''.join(character for character in utc if character.isdigit())[:14]}-{hashlib.sha256(f'{utc}|run-context-v1'.encode()).hexdigest()[:16]}"
+            for utc, _ in times
+        ]
+        candidate = self.root / "s1-s2-s3.sqlite"
+        prepare_candidate_database(self.root / "missing.sqlite", candidate, None)
+        state = {}
+
+        s1_payload = payload(ids[0], *times[0], "migration_baseline", None, s1_slugs)
+        record_writer_snapshot(candidate, s1_payload, events(s1_slugs, {slug: "baseline" for slug in s1_slugs}), state)
+        s1 = derive_candidate_artifacts(candidate, legacy, s1_payload["enrichmentIndex"], ids[0])
+        self.assertTrue(s1["membership_status"]["baseline"])
+        self.assertEqual({row["status"] for row in s1["membership_status"]["current"]}, {"baseline"})
+        self.assertEqual(s1["membership_status"]["exited"], [])
+
+        s2_payload = payload(ids[1], *times[1], "refresh", ids[0], s2_slugs)
+        s2_transitions = {slug: "unchanged" for slug in stable}
+        s2_transitions[newcomer] = "baseline"
+        record_writer_snapshot(candidate, s2_payload, events(s2_slugs, s2_transitions), state)
+        s2 = derive_candidate_artifacts(candidate, legacy, s2_payload["enrichmentIndex"], ids[1])
+        s2_status = {row["slug"]: row["status"] for row in s2["membership_status"]["current"]}
+        self.assertFalse(s2["membership_status"]["baseline"])
+        self.assertEqual(s2_status[newcomer], "new")
+        self.assertEqual({row["slug"] for row in s2["membership_status"]["exited"]}, {returning})
+
+        s3_payload = payload(ids[2], *times[2], "refresh", ids[1], s3_slugs)
+        record_writer_snapshot(candidate, s3_payload, events(s3_slugs, {slug: "unchanged" for slug in s3_slugs}), state)
+        s3 = derive_candidate_artifacts(candidate, legacy, s3_payload["enrichmentIndex"], ids[2])
+        s3_status = {row["slug"]: row["status"] for row in s3["membership_status"]["current"]}
+        self.assertEqual(s3_status[newcomer], "stayed")
+        self.assertEqual(s3_status[returning], "reentered")
+        self.assertEqual(s3["membership_status"]["exited"], [])
+
+        with closing(sqlite3.connect(candidate)) as connection:
+            timeline = derive_membership_timeline(connection, legacy, 3)
+        snapshot = s3["snapshot_export"]
+        latest = {
+            "snapshotId": snapshot["snapshotId"], "generatedAt": snapshot["generatedAt"],
+            "statsDate": snapshot["statsDate"], "count": len(snapshot["repositories"]),
+            "repos": snapshot["repositories"],
+        }
+        page_repositories = [{
+            "slug": repository["slug"], "desc": repository["description"],
+            "tag_rule_version": repository["tag_rule_version"], "field_tags": repository["field_tags"],
+            "form_tags": repository["form_tags"], "_snapshot_id": latest["snapshotId"],
+            "_generated_at": latest["generatedAt"], "_stats_date": latest["statsDate"],
+        } for repository in latest["repos"]]
+        page = f"// GENERATED:TRENDING-REPOS:START\nconst REPOS = {json.dumps(page_repositories)};\n// GENERATED:TRENDING-REPOS:END\n"
+        feed, changes = self.root / "s3-feed.xml", self.root / "s3-changes.xml"
+        self.assertTrue(generate_atom_feeds_from_timeline(page, latest, timeline, feed, changes))
+        namespace = {"atom": ATOM_NAMESPACE}
+        change_rows = {
+            (entry.find("atom:link", namespace).get("href").removeprefix("https://github.com/"),
+             entry.find("atom:category", namespace).get("term"))
+            for entry in ET.parse(changes).getroot().findall("atom:entry", namespace)
+        }
+        self.assertIn((newcomer, "new"), change_rows)
+        self.assertIn((returning, "reentered"), change_rows)
 
     def test_artifacts_and_finalizer_are_complete_atomic_idempotent_and_toctou_safe(self):
         candidate_root = self.root / "candidate"

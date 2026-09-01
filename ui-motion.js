@@ -46,16 +46,11 @@
   }
 
   function periodGain(repo, period) {
-    if (period === "all") {
-      for (const key of ["stars_daily", "stars_weekly", "stars_monthly"]) {
-        if (Number.isFinite(repo?.[key])) return repo[key];
-      }
-      return 0;
-    }
     const key = period === "daily" ? "stars_daily"
       : period === "weekly" ? "stars_weekly"
-        : "stars_monthly";
-    return Number.isFinite(repo?.[key]) ? repo[key] : 0;
+        : period === "monthly" ? "stars_monthly"
+          : null;
+    return key && Number.isFinite(repo?.[key]) ? repo[key] : null;
   }
 
   function badgeModel(repo, signal, period) {

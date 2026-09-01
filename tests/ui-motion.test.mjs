@@ -71,12 +71,24 @@ test("overlay layout stays near the active card when a rail cannot fit", async (
   );
 });
 
-test("badge signals use one non-overlapping gain window", async () => {
+test("period gain preserves source zero and rejects all or missing values", async () => {
   const UiMotion = await loadUiMotion();
-  const repo = { stars_daily: 350, stars_weekly: 1400, stars_monthly: 4200 };
+  const repo = { stars_daily: 0, stars_monthly: 4200 };
 
-  assert.equal(UiMotion.periodGain(repo, "all"), 350);
-  assert.equal(UiMotion.periodGain(repo, "weekly"), 1400);
+  assert.equal(UiMotion.periodGain(repo, "all"), null);
+  assert.equal(UiMotion.periodGain(repo, "daily"), 0);
+  assert.equal(UiMotion.periodGain(repo, "weekly"), null);
+  assert.equal(UiMotion.periodGain(repo, "monthly"), 4200);
+});
+
+test("HOT follows only the selected period gain", async () => {
+  const UiMotion = await loadUiMotion();
+  const repo = { stars_daily: 1400, stars_weekly: 1400, stars_monthly: 4200 };
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(UiMotion.badgeModel(repo, { streakDays: 3, starsChange: 250 }, "all"))),
+    { streakDays: 3, starsChange: 250, hot: false },
+  );
   assert.deepEqual(
     JSON.parse(JSON.stringify(UiMotion.badgeModel(repo, { streakDays: 3, starsChange: 250 }, "weekly"))),
     { streakDays: 3, starsChange: 250, hot: true },

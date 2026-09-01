@@ -24,9 +24,10 @@ The interface screenshots below were captured from the 2026-08-31 source at 1440
 - **Five site languages** — Stable interface text can be switched among English, Korean, Simplified Chinese, Spanish, and Japanese. Repository cards keep their source data and are not mechanically translated on every refresh.
 - **Five-language summary bundles** — Every enriched repository provides English, Korean, Simplified Chinese, Spanish, and Japanese summaries with the same five field roles and README-backed facts. Natural wording, sentence count, emphasis, and total length may differ by language.
 - **The same summary on desktop and mobile** — Responsive layout changes presentation only. It never shortens or weakens the summary on a smaller screen.
-- **Compact Rail navigation** — On desktop, the 64 px Explore rail opens a passive sidebar on hover and a focus-trapped modal when clicked or activated from the keyboard. Mobile keeps an explicit 44 px control and edge-swipe behavior.
+- **Compact Rail navigation** — On desktop, the 64 px Explore rail opens a passive sidebar on hover and a focus-trapped modal when clicked or activated from the keyboard. Mobile uses right-edge swipe to open and left swipe to close; the native Explore button stays visually hidden unless reached by a screen reader or hardware keyboard.
 - **README variants from upstream only** — The viewer lists only README language files that actually exist in the repository. It verifies path, immutable blob SHA, default-branch head SHA, and content SHA-256 before rendering. This project no longer generates or stores full README translations.
-- **Clearer tooltip actions** — Five summary-language controls occupy the first row; **View README** is directly below them, followed by goal, usage, strengths, cautions, and best-fit sections.
+- **Site-bound summary language** — The header language alone selects the tooltip summary. There is no second language selector inside the tooltip; if that exact locale is incomplete, the interface reports it as unavailable instead of falling back silently.
+- **Exact period membership** — Daily, weekly, and monthly show only repositories with a valid rank and gain for that period. Combined is their union and shows total stars without period gain, HOT, or the gain bar.
 
 ## Summary quality contract
 
@@ -46,11 +47,11 @@ The interface describes these summaries accurately as AI-generated from a verifi
 
 ## Features
 
-- Daily, weekly, monthly, and combined GitHub Trending views.
-- Total stars, period gain, forks, issues and pull requests, contributors, recent commits, and releases.
-- Momentum history, consecutive Trending observations, rank change, HOT, new, and re-entered signals.
+- Daily, weekly, monthly, and combined GitHub Trending views with exact period membership.
+- Total stars everywhere; exact period gain and HOT only in daily, weekly, and monthly views, plus forks, issues and pull requests, contributors, recent commits, and releases.
+- Momentum history, consecutive Trending observations, rank change, new, and re-entered signals.
 - Search plus programming-language, field, form, technology, favorites, and AI-exclusion filters.
-- Stable sorting by original Trending order, period gain, total stars, latest push, or latest release.
+- Stable sorting by selected-period Trending rank, period gain, total stars, latest push, or latest release; Combined preserves source order.
 - Shareable URL state for public discovery controls; browser-local hidden repositories are not included.
 - Per-browser **Not interested** with undo and individual or complete recovery.
 - Local favorites when signed out and optional Google-account synchronization when signed in.
@@ -63,7 +64,7 @@ The interface describes these summaries accurately as AI-generated from a verifi
 1. Open the [site](https://nowwcastle-sudo.github.io/github-trending-daily/).
 2. Choose the site language in the header.
 3. Open **Explore** to combine period, sorting, favorites, programming language, field, form, technology, and AI-exclusion filters. Choices use OR within a group and AND between groups.
-4. Hover or focus a card on desktop, or tap it on mobile, to open the complete summary. Select a summary language without losing detail.
+4. Hover or focus a card on desktop, or tap it on mobile, to open the complete summary in the header's selected site language.
 5. Select **View README** to see the verified canonical README and any upstream language variants that the repository actually provides.
 6. Save a favorite locally or sign in with Google to synchronize it. Hiding a repository does not remove its favorite.
 7. Export the current public view as CSV or JSON, copy its URL, or subscribe to an Atom feed.
