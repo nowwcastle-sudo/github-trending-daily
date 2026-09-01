@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { execFile as execFileCallback } from "node:child_process";
 import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
@@ -33,6 +33,59 @@ import { hashCanonicalJson } from "../scripts/collect-repository-events.mjs";
 const fields = ["goal", "usage", "pros", "cons", "fit"];
 const oauthRuntime = { version: "2.1.241", authMethod: "oauth_token", apiProvider: "firstParty" };
 const execFile = promisify(execFileCallback);
+const checkoutRoot = resolve(fileURLToPath(new URL("../", import.meta.url)));
+
+function pathIsInside(target, parent) {
+  const relativePath = relative(resolve(parent), resolve(target));
+  return relativePath === "" || (!relativePath.startsWith(`..${sep}`) && relativePath !== ".." && !isAbsolute(relativePath));
+}
+
+function safePythonCandidate(value) {
+  if (typeof value !== "string" || !value.trim()) return null;
+  const candidate = resolve(value.trim());
+  const windowsApps = process.platform === "win32"
+    ? join(process.env.LOCALAPPDATA ?? "", "Microsoft", "WindowsApps")
+    : null;
+  if (pathIsInside(candidate, checkoutRoot) || (windowsApps && pathIsInside(candidate, windowsApps))) return null;
+  return candidate;
+}
+
+async function resolvePythonCommand(command) {
+  try {
+    const lookup = process.platform === "win32" ? "where.exe" : "which";
+    const { stdout } = await execFile(lookup, [command], { windowsHide: true, maxBuffer: 8 * 1024 });
+    return stdout.split(/\r?\n/).map(value => value.trim()).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+async function resolveVerifiedPythonExecutable({ environment = process.env } = {}) {
+  const candidates = environment.PYTHON ? [environment.PYTHON] : [];
+  if (process.platform === "win32") candidates.push(...await resolvePythonCommand("python.exe"));
+  else {
+    candidates.push(...await resolvePythonCommand("python3"));
+    candidates.push(...await resolvePythonCommand("python"));
+  }
+  const seen = new Set();
+  for (const value of candidates) {
+    const candidate = safePythonCandidate(value);
+    if (!candidate || seen.has(candidate.toLowerCase())) continue;
+    seen.add(candidate.toLowerCase());
+    try {
+      const { stdout } = await execFile(candidate, ["-c", "import sys; print(sys.executable)"], {
+        windowsHide: true,
+        maxBuffer: 8 * 1024,
+      });
+      const executable = stdout.trim();
+      if (!isAbsolute(executable) || !safePythonCandidate(executable)) continue;
+      return resolve(executable);
+    } catch {
+      // Try the next locally resolved executable without invoking a bare command.
+    }
+  }
+  throw new Error("Verified Python executable is unavailable for summary CLI integration");
+}
 
 test("summary producer admission accepts exact Claude and Codex profiles only", () => {
   const claude = { ...CLAUDE_SUMMARY_PRODUCER_PROFILE, cli_version: "2.1.241" };
@@ -453,9 +506,11 @@ test("frozen pipeline imports the exact 42 Claude plus 2 prepared Codex active s
 });
 
 test("prepared Codex missing or extra entries create no candidate cache, source registry, or index", async t => {
-  for (const [name, mutate] of [
-    ["missing", value => { delete value.repositories["kaifcodec/user-scanner"]; }],
-    ["extra", value => { value.repositories["owner/extra"] = structuredClone(value.repositories["kaifcodec/user-scanner"]); }],
+  for (const [name, mutate, expected] of [
+    ["missing", value => { delete value.repositories["kaifcodec/user-scanner"]; }, /prepared Codex summary pending set/i],
+    ["case collision", value => { value.repositories["KAIFCODEC/USER-SCANNER"] = structuredClone(value.repositories["kaifcodec/user-scanner"]); }, /prepared Codex summary pending set/i],
+    ["extra", value => { value.repositories["owner/extra"] = structuredClone(value.repositories["kaifcodec/user-scanner"]); }, /prepared Codex summary pending set/i],
+    ["facts SHA drift", value => { value.facts_sha256 = "e".repeat(64); }, /prepared Codex summary set is invalid/i],
   ]) {
     const fixture = await frozenPipelineFixture(t);
     const prepared = JSON.parse(await readFile(fixture.preparedPath, "utf8"));
@@ -469,7 +524,7 @@ test("prepared Codex missing or extra entries create no candidate cache, source 
         preparedCodexPath: fixture.preparedPath,
         preflight: async () => { preflights += 1; throw new Error("Claude preflight must not run"); },
       }),
-      /prepared Codex summary pending set/i,
+      expected,
       name,
     );
     assert.equal(preflights, 0, name);
@@ -508,9 +563,13 @@ test("summary bundle CLI accepts the optional prepared Codex file", async t => {
   const fixture = await frozenPipelineFixture(t);
   const args = await pipelineArguments(fixture, "cli-candidate");
   const scriptPath = fileURLToPath(new URL("../scripts/generate-summary-bundles.mjs", import.meta.url));
+  const pythonExecutable = await resolveVerifiedPythonExecutable();
+  const unexpectedPythonRoot = join(fixture.root, "Python");
+  assert.equal(isAbsolute(pythonExecutable), true);
+  assert.equal(await exists(unexpectedPythonRoot), false);
   const environment = {
     ...process.env,
-    PYTHON: process.env.PYTHON ?? "python",
+    PYTHON: pythonExecutable,
     ENRICHMENT_DEADLINE_EPOCH_MS: `${Date.now() + 1_000_000}`,
     ENRICHMENT_BUDGET_MODE: "normal",
     INPUT_SOURCE_SHA: fixture.facts.inputSourceSha,
@@ -534,13 +593,14 @@ test("summary bundle CLI accepts the optional prepared Codex file", async t => {
     "--parent-database", args.parentDatabasePath,
     "--failure-diagnostics-out", join(fixture.root, "failure-diagnostics.json"),
     "--prepared-codex", fixture.preparedPath,
-  ], { env: environment });
+  ], { cwd: fixture.root, env: environment });
 
   const result = JSON.parse(stdout);
   assert.equal(result.repositories, 44);
   assert.equal(result.pending, 2);
   assert.equal(result.runtime.provider, "codex-cli");
   assert.equal(result.usage.logicalCalls, 2);
+  assert.equal(await exists(unexpectedPythonRoot), false);
 });
 
 test("summary source uses the exact supported producer profile", () => {
