@@ -666,7 +666,9 @@ if (-not (Test-Path -LiteralPath $actionlintZip)) {
 $digest = (Get-FileHash -LiteralPath $actionlintZip -Algorithm SHA256).Hash.ToLowerInvariant()
 if ($digest -ne '6e7241b51e6817ea6a047693d8e6fed13b31819c9a0dd6c5a726e1592d22f6e9') { throw 'actionlint archive digest mismatch' }
 if (-not (Test-Path -LiteralPath $actionlintRoot)) { Expand-Archive -LiteralPath $actionlintZip -DestinationPath $actionlintRoot }
-& (Join-Path $actionlintRoot 'actionlint.exe') -ignore 'label "github-pages-ubuntu-latest-8-core" is unknown' .github/workflows/*.yml
+$workflowFiles = @(Get-ChildItem -LiteralPath '.github/workflows' -Filter '*.yml' -File | Sort-Object FullName)
+if ($workflowFiles.Count -eq 0) { throw 'No workflow files found' }
+& (Join-Path $actionlintRoot 'actionlint.exe') -ignore 'label "github-pages-ubuntu-latest-8-core" is unknown' -ignore 'label "gh-trending-claude" is unknown' @($workflowFiles.FullName)
 if ($LASTEXITCODE -ne 0) { throw 'actionlint failed' }
 ```
 
