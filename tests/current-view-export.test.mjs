@@ -12,7 +12,16 @@ async function loadCurrentViewExport() {
   return context.CurrentViewExport;
 }
 
+async function loadUiMotion() {
+  const source = await readFile(new URL("../ui-motion.js", import.meta.url), "utf8");
+  const context = { globalThis: null };
+  context.globalThis = context;
+  vm.runInNewContext(source, context);
+  return context.UiMotion;
+}
+
 const CurrentViewExport = await loadCurrentViewExport();
+const UiMotion = await loadUiMotion();
 
 
 function repository(slug, overrides = {}) {
@@ -157,6 +166,21 @@ test("model preserves the exact visible order and exposes only the public contra
   for (const privateValue of ["owner/private", "gh-favs", "gh-hidden"]) {
     assert.doesNotMatch(serialized, new RegExp(privateValue, "i"));
   }
+});
+
+test("All export preserves the rendered order without period gain", () => {
+  const visible = [
+    repository("owner/second", { stars_daily: 22, stars_weekly: 44 }),
+    repository("owner/first", { stars_daily: 11, stars_weekly: 33 }),
+  ];
+  const options = modelOptions(visible);
+  options.state = { ...options.state, period: "all", sort: "trending" };
+  options.sourceUrl = "https://example.test/trending/";
+  options.gainOf = repository => UiMotion.periodGain(repository, options.state.period);
+
+  const model = CurrentViewExport.buildModel(options);
+  assert.deepEqual(model.repositories.map(repository => repository.slug), ["owner/second", "owner/first"]);
+  assert.deepEqual(model.repositories.map(repository => repository.periodGain), [null, null]);
 });
 
 test("empty and 75-item exports keep count and order without coercing public values", () => {

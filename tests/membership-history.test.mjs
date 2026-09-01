@@ -53,6 +53,35 @@ test("membership status accepts new, reentered, stayed, and exited public events
   assert.equal(normalized.exited[0].slug, "owner/gone");
 });
 
+test("S1 S2 and S3 preserve baseline new exited and reentered transitions", async () => {
+  const MembershipHistory = await loadMembershipHistory();
+  const stable = Array.from({ length: 9 }, (_, index) => ({ slug: `owner/stable-${index}`, status: "stayed" }));
+  const s2 = {
+    ...baseline,
+    generatedAt: "2026-08-28T03:01:01.001Z",
+    statsDate: "2026-08-28",
+    baseline: false,
+    current: [...stable, { slug: "owner/newcomer", status: "new" }],
+    exited: [{ slug: "owner/returning", lastSeenAt: baseline.generatedAt, exitedAt: "2026-08-28T03:01:01.001Z" }],
+  };
+  const s3 = {
+    ...s2,
+    generatedAt: "2026-08-28T05:01:01.001Z",
+    current: [
+      ...stable,
+      { slug: "owner/newcomer", status: "stayed" },
+      { slug: "owner/returning", status: "reentered" },
+    ],
+    exited: [],
+  };
+
+  assert.equal(MembershipHistory.normalize(baseline).baseline, true);
+  assert.equal(MembershipHistory.currentStatus(MembershipHistory.normalize(s2)).get("owner/newcomer"), "new");
+  assert.equal(MembershipHistory.normalize(s2).exited[0].slug, "owner/returning");
+  assert.equal(MembershipHistory.currentStatus(MembershipHistory.normalize(s3)).get("owner/newcomer"), "stayed");
+  assert.equal(MembershipHistory.currentStatus(MembershipHistory.normalize(s3)).get("owner/returning"), "reentered");
+});
+
 test("membership status rejects malformed schemas, identities, and baseline lies", async () => {
   const MembershipHistory = await loadMembershipHistory();
   const cases = [

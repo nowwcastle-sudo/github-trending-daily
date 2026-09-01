@@ -30,20 +30,22 @@
 
 이 문서는 2026-08-30 production closure의 최신 정본이다. 오래된 progress·ledger·이전 README 번역 계획보다 현재 사용자 결정, 코드, 테스트, Actions, Pages, production 실측을 우선한다. 원격 자동 갱신이 있을 수 있으므로 push와 배포 직전에 `git fetch --prune origin`으로 좌표를 다시 확정한다.
 
+2026-09-01 후속 계약이 이전 UI 설명을 대체한다. branch `codex/fix-period-locale-sidebar-20260901`, 기준 `HEAD == origin/main == 084a657d1bb36c7a79b3005161c50ddabf4938c0`에서 site locale 단독 summary, hover 0ms close 시작+210ms transition, 모바일 visible button 제거, 실제 period membership/gain/HOT/All, neutral migration baseline과 S1/S2/S3 전이를 구현·국소 검증했다. 아직 uncommitted candidate이며 production 성공·PR 준비·배포 준비로 부르지 않는다. `wait-what` 발동은 0회다.
+
 ## 1. 현재 사용자 결정
 
 1. `README.md`는 영문 정본으로, `README.ko.md`는 전체 한글판으로 유지한다. `README.en.md`는 기존 링크 호환 안내만 둔다.
 2. 사이트의 안정적인 기본 틀은 영어·한국어·중국어 간체·스페인어·일본어 5개 언어로 전환한다. 갱신 때 바뀌는 repository card 원천 데이터는 자동 번역하지 않는다.
 3. repository README 전체 생성 번역은 폐기한다. README viewer에는 upstream 저장소가 실제 제공하는 언어판만 표시한다.
-4. summary tooltip은 영어·한국어·중국어 간체·스페인어·일본어 5개 언어를 원자적 묶음으로 제공한다. 웹과 모바일의 내용·품질은 동일하고 layout만 반응형으로 바뀐다.
-5. summary 언어 버튼은 첫 줄, **View README**는 두 번째 줄, `goal/usage/pros/cons/fit`은 그 아래에 둔다.
-6. sidebar는 사용자가 선택한 B안인 **Compact Rail**로 확정한다. 데스크톱 hover는 비모달, click·keyboard 실행은 focus trap 모달, 모바일은 명시 버튼과 edge swipe를 유지한다.
+4. summary tooltip은 사이트 locale 하나만 따르며 내부 언어 선택 row를 두지 않는다. exact locale bundle이 불완전하면 다른 locale로 fallback하지 않고 localized unavailable을 표시한다.
+5. **View README**와 `goal/usage/pros/cons/fit`은 site locale에 결합된 단일 tooltip content path에 둔다.
+6. sidebar는 사용자가 선택한 B안인 **Compact Rail**로 확정한다. 데스크톱 hover는 비모달이며 결합 영역을 벗어나면 0ms에 210ms close transition을 시작한다. click·keyboard 실행은 focus trap 모달이고, 모바일은 right-edge swipe open·left swipe close가 기본이며 native button은 screen reader·hardware keyboard용 visually-hidden 진입점으로만 유지한다.
 7. summary producer는 Windows self-hosted runner의 `claude -p --model claude-sonnet-5`와 first-party OAuth subscription을 사용한다. direct Anthropic Messages API, API key, dollar-cost planning은 폐기한다.
 8. runner는 repository 전용 label `gh-trending-claude`를 요구하며, 사용자 범위 `CLAUDE_CODE_OAUTH_TOKEN`만 Claude step 안에서 가져온다. Claude 자식 환경은 positive allowlist이고 도구·slash command·Chrome·session persistence를 끈다.
 9. controlled workflow와 Pages 배포는 로컬 검증·비밀값 검사·remote drift·runner online/OAuth preflight가 모두 통과한 뒤 6단계 말미에 수행한다. 사용자는 publication blocker를 역추적해 고친 뒤 전체 workflow와 Pages가 안정적으로 완주할 때까지 필요한 controlled dispatch를 승인했다. 실패 로그를 읽지 않은 blind retry는 금지한다.
 10. repository observation DB에는 README 전체 본문을 저장하지 않는다. source identity, hash, schema, state만 저장한다.
-11. Codex Security Deep Scan `21f276c1-3f0e-4e13-83ae-901cc307a4c6`은 명시적으로 보류한다. 재개·취소·신규 생성·통과 취급을 하지 않고 잔여 보안 위험으로 보고한다.
-12. Deep Scan만 보류한다. CodeQL, 정적·의존성·비밀값 검사, Firestore Rules, 실제 로그인과 나머지 production 인수시험은 생략하지 않는다.
+11. Codex Security Deep Scan은 사용자 결정으로 폐기됐다. 재개·대체·완료 게이트·잔여 위험으로 취급하지 않는다.
+12. CodeQL, 정적·의존성·비밀값 검사, Firestore Rules, 실제 로그인과 나머지 production 인수시험은 생략하지 않는다.
 
 ## 2. production RED 기준선
 
@@ -77,7 +79,7 @@
 ## 4. 구현된 계약
 
 - `site-i18n.js`: exact locales `en`, `ko`, `zh-CN`, `es`, `ja`; 저장값 → browser locale → English 순으로 선택한다.
-- `index.html`: 64px Compact Rail, 5-locale UI, 5개 summary tabs, 두 번째 줄 View README, 동일 field 구조와 AI disclosure.
+- `index.html`: 64px Compact Rail, site locale 단독 summary, 별도 summary tabs 제거, hover 즉시 close, 모바일 hidden keyboard 진입점과 edge swipe, period별 gain/HOT 및 All total-stars-only render.
 - `scripts/readme-variants.mjs`: 같은 디렉터리의 deterministic upstream README aliases만 수집하고 exact path/blob/head/content hash를 검증한다.
 - `scripts/claude-cli-runtime.mjs`: Claude Code 2.1.211 이상, first-party OAuth, positive-allowlist child environment, tool-free structured output, 8 MiB stdin, timeout·output cap·Windows process-tree 강제 종료를 구현한다.
 - `scripts/generate-summary-bundles.mjs`: `claude -p` Sonnet 5, schema v3, prompt schema v3, atomic 5-locale output, 최대 세 번의 targeted quality correction, 전체 retry cap과 CLI/OAuth provenance를 구현한다. normal refresh의 retry cap은 12로 유지하고 승인된 최초 v0 bootstrap만 pending repository당 세 번의 유한 correction capacity를 갖는다. 모델은 `start_line`/`end_line`과 invariant `kind`/`value`만 반환하고, section heading과 invariant field 위치는 frozen README와 실제 5-locale summary에서 결정적으로 파생한다. inference field는 5개 locale 모두 자연어 hedge를 명시해야 하며 누락 시 exact locale/field와 그 언어의 허용 강도 예시를 correction에 전달한다. 한 repository가 영구 실패하면 다른 worker는 새 repository 요청을 시작하지 않는다.
@@ -189,18 +191,15 @@ failure artifact가 보존한 3-byte invariant SHA-256을 frozen README substrin
 
 ## 7. 현재 browser 증거
 
-- 390px: horizontal overflow 없음, mobile toggle 표시, rail 숨김, modal open, focus `sidebarClose`, Escape 후 focus `mobileNavToggle` 복귀.
-- 720px: horizontal overflow 없음, mobile toggle 표시, rail 숨김.
-- 1200/1440px: 64px rail 표시, mobile toggle 숨김.
-- desktop hover: `openMode=hover`, scrim 없음, main inert 아님.
-- desktop click: `openMode=modal`, `aria-modal=true`, scrim on, main inert, focus trap 동작.
-- site locales: English, Korean, Simplified Chinese, Spanish, Japanese의 `html lang`, subtitle, search, Explore label 실제 전환.
-- light/dark: light와 Gruvbox dark의 실제 computed colors 확인.
-- legacy tooltip: 5개 tabs는 보이지만 데이터가 없는 locale은 disabled. production v3 성공으로 세지 않는다.
-- legacy README: provenance가 없어 `README is unavailable`과 direct GitHub link로 안전 실패. upstream variant 성공으로 세지 않는다.
-- export: 공개 필드만 사용한다는 privacy note와 CSV/JSON/link controls 확인.
-- Atom: `feed.xml`, `changes.xml` link와 New/Re-entered badges 확인.
-- console error는 없는 favicon의 local 404 하나뿐이며 application runtime error는 관측되지 않았다.
+- 이 항목은 아직 deploy되지 않은 2026-09-01 local candidate 증거다. current production pass로 세지 않는다.
+- 390/720/1200/1440px 모두 horizontal overflow 0. 390/720은 rail `display:none`, 1200/1440은 64px rail `display:flex`다.
+- 390/720의 mobile native button은 평소 1x1 visually-hidden이며 `tabIndex=0`, screen-reader access가 열려 있다. keyboard focus 시 71x44 fixed control로 나타났고 Enter 후 focus `sidebarClose`, Escape 후 `mobileNavToggle`로 복귀했다. 1200/1440에서는 `tabIndex=-1`, `inert=true`, `aria-hidden=true`다.
+- actual runtime에서 All/daily/weekly/monthly card count는 45/16/20/22다. 기간 rank는 각각 1..N, period gain은 source와 exact 일치하고 export repository array는 rendered card array와 exact 일치한다. All은 gain/HOT/gain bar 0이며 export gain은 전부 null이다.
+- desktop hover는 `openMode=hover`, scrim 없음, main inert 아님이다. rail→sidebar 이동은 open을 유지했고 결합 영역 밖으로 이동한 직후 `open=false`; computed close transition은 `0.21s, 0.21s`다.
+- English, Korean, Simplified Chinese, Spanish, Japanese 모두 `html lang`, subtitle, search placeholder, Explore label이 실제 전환됐다. tooltip summary control은 0개이며 Japanese exact summary를 표시했다. Japanese `fit`을 runtime에서 비운 mutation은 Japanese unavailable을 표시하고 English goal을 포함하지 않았다.
+- reduced-motion emulation에서 sidebar, tooltip, scroll-top transition duration은 모두 0s이고 overflow는 0이다.
+- headless CDP는 coarse pointer와 BFCache 복원을 제공하지 않았다. swipe는 actual page runtime에 touch pointer event를 주입해 right-open/left-close를 확인했고, BFCache는 자동 테스트 GREEN만 있으며 actual browser pass로 세지 않는다.
+- axe-core 4.12.1은 390/1440에서 violations 0을 반환했지만 passes도 0이라 완전한 accessibility clean 근거로 사용하지 않는다. Impeccable detector도 HTML parser dependency 부재로 degraded regex mode였고 findings 0은 undercount다.
 
 ## 8. 종료 조건
 
@@ -214,4 +213,4 @@ failure artifact가 보존한 3-byte invariant SHA-256을 frozen README substrin
 - CodeQL analysis는 matching commit과 results count가 있는 실제 analysis로 확인하며 0 analyses를 통과로 세지 않는다.
 - 실제 Google 계정 persistence·isolation matrix와 나머지 production acceptance를 완료한다.
 - 마지막 clean `HEAD == origin/main == deployed sourceSha`와 schedule 상태를 확인한다.
-- Deep Scan deferred risk를 명시하고 완료 보고에서 멈춘다. L1-L5, M1 재설계, 새 확장 후보를 자동 시작하지 않는다.
+- 폐기된 Deep Scan은 다시 gate나 잔여 위험으로 올리지 않는다. L1-L5, M1 재설계, 새 확장 후보를 자동 시작하지 않는다.

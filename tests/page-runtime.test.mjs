@@ -5,6 +5,7 @@ import vm from "node:vm";
 
 const page = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const uiMotionSource = await readFile(new URL("../ui-motion.js", import.meta.url), "utf8");
+const repoFiltersSource = await readFile(new URL("../repo-filters.js", import.meta.url), "utf8");
 
 function sidebarHarness({ hoverCapable = true } = {}) {
   const start = page.indexOf('const sidebar=document.getElementById("filterSidebar")');
@@ -292,6 +293,59 @@ function renderContractHarness(classification = { forms: [], fields: ["unclassif
   return { context, contract: context.__renderContract };
 }
 
+function cardRenderHarness(period, membership = "stayed") {
+  const start = page.indexOf('const list=document.getElementById("list"),empty=document.getElementById("empty")');
+  const end = page.indexOf("\n/* 즐겨찾기 */", start);
+  assert.ok(start >= 0 && end > start, "card render runtime must be isolated");
+  const nodes = new Map([
+    ["list", { innerHTML: "" }],
+    ["empty", { style: {} }],
+    ["emptyText", { textContent: "" }],
+    ["emptyResetBtn", { hidden: false }],
+    ["emptyManageHiddenBtn", { hidden: false }],
+    ["filterSummary", { textContent: "" }],
+  ]);
+  const repository = {
+    slug: "owner/project", name: "owner / project", desc: "A repository", lang: "JavaScript", color: "#f1e05a",
+    topics: [], tag_rule_version: 1, field_tags: ["unclassified"], form_tags: [], membership_status: membership === "baseline" ? "baseline_present" : membership,
+    rank_daily: 1, stars_daily: 1200, rank_weekly: null, stars_weekly: null, rank_monthly: null, stars_monthly: null,
+    stars: 5000, forks: 20, contributors: 4, issues: 3,
+  };
+  const context = {
+    globalThis: null,
+    URLSearchParams,
+    document: { getElementById(id) { return nodes.get(id); } },
+    period,
+    filterState: { period, sort: "trending", favOnly: false, q: "", lang: "", fields: [], forms: [], excludeAi: false, newOnly: false },
+    membershipLoadState: "ready",
+    currentVisibleRepos: [],
+    REPOS: [repository],
+    favOnly: false,
+    favSet: new Set(),
+    hiddenSet: new Set(),
+    HiddenRepos: { filterRepos(repositories) { return repositories; } },
+    SIGNALS: new Map(),
+    MEMBERSHIP_STATUS: new Map([[repository.slug, membership]]),
+    favoriteBusy: false,
+    newOnlyGate() { return null; },
+    transientMembershipRepo(value) { return value; },
+    updateHiddenManager() {},
+    activeDiscoveryCount() { return 0; },
+    classificationBadges() { return ""; },
+    renderHist() {},
+    esc(value) { return String(value ?? ""); },
+    fmt(value) { return String(value); },
+    tr(key, parameters = {}) { return key === "result.count" ? `${parameters.count} repositories` : key; },
+  };
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(uiMotionSource, context, { filename: "ui-motion-card-fixture.js" });
+  vm.runInContext(repoFiltersSource, context, { filename: "repo-filters-card-fixture.js" });
+  vm.runInContext(`${page.slice(start, end)}\nglobalThis.__render=render;`, context, { filename: "card-render-fixture.js" });
+  context.__render();
+  return { html: nodes.get("list").innerHTML, visible: context.currentVisibleRepos };
+}
+
 function scrollTopHarness({ reducedMotion = false } = {}) {
   const start = page.indexOf("/* scroll-to-top runtime */");
   const end = page.indexOf("/* scroll-to-top runtime end */", start);
@@ -387,14 +441,15 @@ test("repository signals are initialized before rendering and refreshed from the
 
 test("tooltip cleanup and refresh status contain no merged JavaScript tokens", () => {
   assert.doesNotMatch(page, /nulldocument/);
-  assert.match(page, /activeTipIndex=null;activeSummaryLocale=null;listStage\.style\.transform=""/);
+  assert.match(page, /activeTipIndex=null;listStage\.style\.transform=""/);
+  assert.doesNotMatch(page, /activeSummaryLocale/);
   assert.match(page, /id="refreshStatus" class="sidebar-refresh"/);
 });
 
 test("tooltip runtime has one detailed content path", () => {
   assert.match(page, /function tipHTML\(r/);
   assert.match(page, /const bundle=summaryBundle\(r\),s=locale\?bundle\[locale\]:null/);
-  assert.match(page, /tipLayer\.innerHTML=tipHTML\(repo,activeSummaryLocale\)/);
+  assert.match(page, /tipLayer\.innerHTML=tipHTML\(repo,resolveSummaryLocale\(repo,siteI18n\.locale\)\)/);
   assert.doesNotMatch(page, /tipHTML\(r,detailed\)|r\.detail|mobile summary/i);
   assert.doesNotMatch(page, /UiMotion\.mobileTooltipHtml/);
   for (const field of ["goal", "usage", "pros", "cons", "fit"]) {
@@ -403,6 +458,12 @@ test("tooltip runtime has one detailed content path", () => {
   for (const key of ["goal", "usage", "pros", "cons", "fit"]) {
     assert.match(page, new RegExp(`tr\\(\"tooltip\\.${key}\"\\)`));
   }
+});
+
+test("site-locale changes re-render an open tooltip from the one persisted locale", () => {
+  const localeChange = page.match(/document\.addEventListener\("site-locale-change",\(\)=>\{[\s\S]*?\n\}\);/)?.[0] ?? "";
+  assert.match(localeChange, /tipLayer\.innerHTML=tipHTML\(repo,resolveSummaryLocale\(repo,siteI18n\.locale\)\)/);
+  assert.doesNotMatch(localeChange, /activeSummaryLocale/);
 });
 
 test("the refresh status appears once at the top of the sidebar and not in main", () => {
@@ -582,24 +643,27 @@ test("README modal blocks incidental hover and yields to explicit sidebar activa
   assert.equal(harness.sidebar.dataset.openMode, "modal");
 });
 
-test("hover close waits while focus remains inside the sidebar", () => {
+test("hover close starts immediately outside the combined rail and sidebar while preserving focus", () => {
   const harness = sidebarHarness();
   harness.toggle.dispatch("pointerenter");
   harness.sidebar.dispatch("pointerenter");
   harness.sidebar.focusWithin = true;
   harness.sidebar.dispatch("focusin");
-  harness.toggle.dispatch("pointerleave");
+  harness.toggle.dispatch("pointerleave", { relatedTarget: harness.sidebar });
+  assert.equal(harness.sidebar.dataset.openMode, "hover", "rail to sidebar movement must stay open");
   harness.sidebar.dispatch("pointerleave");
-  harness.advance(180);
-  assert.equal(harness.sidebar.dataset.openMode, "hover");
+  assert.equal(harness.sidebar.dataset.openMode, "hover", "focus inside must keep hover mode open");
 
   harness.sidebar.focusWithin = false;
   harness.document.activeElement = harness.outside;
   harness.sidebar.dispatch("focusout", { relatedTarget: harness.outside });
-  harness.advance(0);
-  harness.advance(180);
   assert.equal(harness.sidebar.dataset.openMode, undefined);
   assert.equal(harness.sidebar.classList.contains("open"), false);
+
+  harness.toggle.dispatch("pointerenter");
+  assert.equal(harness.sidebar.dataset.openMode, "hover");
+  harness.toggle.dispatch("pointerleave", { relatedTarget: harness.outside });
+  assert.equal(harness.sidebar.dataset.openMode, undefined, "outside pointerleave must not wait for a timer");
 });
 
 test("click and keyboard activation upgrade hover-open sidebar exactly once", () => {
@@ -679,14 +743,29 @@ test("hover close button restores rail focus before hiding and inerting the side
   assert.equal(harness.sidebar.dataset.openMode, undefined);
 });
 
-test("coarse pointers hide the rail and preserve native vertical touch action", () => {
+test("coarse pointers hide the rail and keep the mobile trigger visually hidden until keyboard focus", () => {
   const coarse = page.match(/@media\(hover:none\),\(pointer:coarse\)\{[\s\S]*?\n\}/)?.[0] ?? "";
   assert.match(coarse, /body\{touch-action:pan-y pinch-zoom\}/);
   assert.match(coarse, /\.nav-rail\{display:none\}/);
-  assert.match(coarse, /\.mobile-nav-toggle\{display:inline-flex\}/);
+  assert.doesNotMatch(coarse, /\.mobile-nav-toggle\{display:inline-flex\}/);
   assert.match(coarse, /\.filter-sidebar\{touch-action:pan-y pinch-zoom\}/);
   assert.match(page, /\.filter-sidebar\.dragging\{transition:none\}/);
-  assert.match(page, /id="mobileNavToggle"/);
+  const mobileButton = page.match(/<button class="mobile-nav-toggle" id="mobileNavToggle"[^>]*>/)?.[0] ?? "";
+  assert.match(mobileButton, /tabindex="-1"/);
+  assert.match(mobileButton, /aria-hidden="true"/);
+  assert.match(mobileButton, /\binert\b/);
+  const baseStyle = page.match(/\.mobile-nav-toggle\{[^}]*\}/)?.[0] ?? "";
+  assert.match(baseStyle, /width:1px/);
+  assert.match(baseStyle, /height:1px/);
+  assert.match(baseStyle, /overflow:hidden/);
+  const focusStyle = page.match(/\.mobile-nav-toggle:focus-visible\{[^}]*\}/)?.[0] ?? "";
+  assert.match(focusStyle, /position:fixed/);
+  assert.match(focusStyle, /min-width:44px/);
+  assert.match(focusStyle, /min-height:44px/);
+  assert.match(page, /function updateMobileNavAccess\(\)/);
+  assert.match(page, /mobileNavToggle\.tabIndex=available\?0:-1/);
+  assert.match(page, /mobileNavToggle\.inert=!available/);
+  assert.match(page, /mobileNavToggle\.setAttribute\("aria-hidden",String\(!available\)\)/);
   assert.doesNotMatch(page, /id="(?:swipeEdge|edgeHitTarget)"|class="[^"]*(?:hamburger|swipe-edge|edge-hit-target)/i);
 });
 
@@ -1319,6 +1398,29 @@ test("current-view export uses the exact rendered array and keeps private state 
   assert.match(page, /CurrentViewExport\.downloadText\(/);
   assert.match(page, /CurrentViewExport\.copyText\(/);
   assert.doesNotMatch(page, /buildModel\(\{[\s\S]{0,500}(?:hiddenSet|favSet|guestFavorites|localStorage)/);
+});
+
+test("All cards render total stars without period gain HOT or the gain bar", () => {
+  const { html, visible } = cardRenderHarness("all");
+
+  assert.deepEqual(visible.map(repository => repository.slug), ["owner/project"]);
+  assert.doesNotMatch(html, /class="today"/);
+  assert.doesNotMatch(html, />HOT</);
+  assert.doesNotMatch(html, /<div class="spark">/);
+  assert.match(html, /<div class="stars">5000<\/div>/);
+  assert.match(html, /class="sparkhist"/);
+});
+
+test("baseline new and reentered membership render only their exact card badges", () => {
+  const baselineHtml = cardRenderHarness("daily", "baseline").html;
+  const newHtml = cardRenderHarness("daily", "new").html;
+  const reenteredHtml = cardRenderHarness("daily", "reentered").html;
+
+  assert.doesNotMatch(baselineHtml, /membership-(?:new|reentered)/);
+  assert.match(newHtml, /class="badge membership-new"[^>]*>badges\.newLabel<\/span>/);
+  assert.doesNotMatch(newHtml, /membership-reentered/);
+  assert.match(reenteredHtml, /class="badge membership-reentered"[^>]*>badges\.reenteredLabel<\/span>/);
+  assert.doesNotMatch(reenteredHtml, /membership-new/);
 });
 
 test("sorting is shareable, stable, and keeps the selected period in favorites", () => {

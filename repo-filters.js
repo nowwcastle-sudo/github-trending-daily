@@ -132,6 +132,13 @@
   function matchesRepo(repo, value = {}) {
     const state = { ...defaultState(), ...value };
     const classification = classifyRepo(repo);
+    const period = PERIODS.has(state.period) ? state.period : "all";
+    const belongsTo = candidate => {
+      const rank = numericValue(repo?.[`rank_${candidate}`]);
+      const gain = numericValue(repo?.[`stars_${candidate}`]);
+      return rank !== null && rank > 0 && gain !== null && gain >= 0;
+    };
+    if (period === "all" ? !["daily", "weekly", "monthly"].some(belongsTo) : !belongsTo(period)) return false;
     if (state.excludeAi && classification.fields.includes("ai-ml")) return false;
     if (state.fields?.length && !state.fields.some(id => classification.fields.includes(id))) return false;
     if (state.forms?.length && !state.forms.some(id => classification.forms.includes(id))) return false;
@@ -158,7 +165,17 @@
     const original = Array.isArray(repos) ? repos.map((repo, index) => ({ repo, index })) : [];
     const safePeriod = PERIODS.has(period) ? period : "all";
     const selected = normalizeSort(sort, safePeriod);
-    if (selected === "trending") return original.map(({ repo }) => repo);
+    if (selected === "trending") {
+      if (safePeriod === "all") return original.map(({ repo }) => repo);
+      return original.sort((left, right) => {
+        const leftRank = numericValue(left.repo?.[`rank_${safePeriod}`]);
+        const rightRank = numericValue(right.repo?.[`rank_${safePeriod}`]);
+        if (leftRank === null && rightRank !== null) return 1;
+        if (leftRank !== null && rightRank === null) return -1;
+        if (leftRank !== rightRank) return leftRank - rightRank;
+        return left.index - right.index;
+      }).map(({ repo }) => repo);
+    }
     const valueOf = selected === "stars" ? repo => numericValue(repo?.stars)
       : selected === "pushed" ? repo => dateValue(repo?.pushed_at)
         : selected === "release" ? repo => dateValue(repo?.latest_release)
