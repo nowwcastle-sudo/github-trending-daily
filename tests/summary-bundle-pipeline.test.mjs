@@ -206,7 +206,6 @@ test("prepared Codex admission requires exact facts, producer, pending set, and 
     ["facts SHA", value => { value.facts_sha256 = "e".repeat(64); }, "f".repeat(64), [staleItem]],
     ["slug missing", value => { delete value.repositories[staleItem.slug]; }, "f".repeat(64), [staleItem]],
     ["extra slug", value => { value.repositories["owner/extra"] = structuredClone(value.repositories[staleItem.slug]); }, "f".repeat(64), [staleItem]],
-    ["case-fold collision", value => { value.repositories["OWNER/STALE"] = structuredClone(value.repositories[staleItem.slug]); }, "f".repeat(64), [staleItem]],
     ["README identity", value => { value.repositories[staleItem.slug].source.blob_sha = "b".repeat(40); }, "f".repeat(64), [staleItem]],
     ["producer model", value => { value.producer.model = "codex-cli/gpt-5.6-terra"; }, "f".repeat(64), [staleItem]],
   ];
@@ -215,6 +214,20 @@ test("prepared Codex admission requires exact facts, producer, pending set, and 
     mutate(value);
     assert.throws(() => admitPreparedCodexSet({ value, factsSha256, pending }), undefined, name);
   }
+
+  const upperCaseStaleItem = { ...staleItem, slug: "OWNER/STALE" };
+  const collidingPrepared = preparedCodexFixture([
+    [staleItem, envelope()],
+    [upperCaseStaleItem, envelope()],
+  ]);
+  assert.throws(
+    () => admitPreparedCodexSet({
+      value: collidingPrepared,
+      factsSha256: "f".repeat(64),
+      pending: [staleItem, upperCaseStaleItem],
+    }),
+    /pending set/i,
+  );
 });
 
 test("summary source uses the exact supported producer profile", () => {

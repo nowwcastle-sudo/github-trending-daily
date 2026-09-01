@@ -729,8 +729,17 @@ export function admitPreparedCodexSet({ value, factsSha256, pending } = {}) {
     throw new Error("Prepared Codex summary set is invalid");
   }
   const pendingKeys = pending.map(item => item.slug);
-  if (new Set(pendingKeys).size !== pendingKeys.length
-      || Object.keys(value.repositories).length !== pendingKeys.length
+  const repositoryKeys = Object.keys(value.repositories);
+  let repositories;
+  try {
+    repositories = caseFoldedEntries(value.repositories);
+  } catch {
+    throw new Error("Prepared Codex summary pending set is invalid");
+  }
+  if (pendingKeys.some(slug => !REPO_RE.test(slug ?? ""))
+      || new Set(pendingKeys.map(slug => slug.toLowerCase())).size !== pendingKeys.length
+      || repositories.size !== repositoryKeys.length
+      || repositoryKeys.length !== pendingKeys.length
       || pendingKeys.some(slug => !Object.hasOwn(value.repositories, slug))) {
     throw new Error("Prepared Codex summary pending set is invalid");
   }
