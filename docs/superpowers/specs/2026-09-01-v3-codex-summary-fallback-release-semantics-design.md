@@ -243,6 +243,7 @@ prompt는 stdin으로 전달한다. JSON event stream은 `events-NNN.jsonl`에 �
 ```text
 node scripts/codex-summary-bundle-adapter.mjs complete
   --facts <frozen facts>
+  --source-root <candidate source>
   --plan <plan.json>
   --responses-dir <response directory>
   --out <prepared-codex.json>
@@ -251,13 +252,15 @@ node scripts/codex-summary-bundle-adapter.mjs complete
 Complete의 순서와 불변식:
 
 1. facts bytes와 plan의 facts SHA를 대조한다.
-2. plan의 pending set, README identity, prompt/schema hash를 재계산한다.
-3. 현재 Codex CLI provenance가 plan과 같은지 다시 측정한다.
-4. 각 JSONL의 성공 종료와 usage를 strict parse한다.
-5. 각 response를 기존 `validateSummaryBundleEnvelope`로 검증한다.
-6. 5 locale·5 field·README evidence·invariants·inference fields를 모두 확인한다.
-7. source를 response가 아니라 local plan identity와 measured provenance로 만든다.
-8. exact pending set 하나의 prepared file을 `wx`로 쓴다.
+2. `--source-root`의 current source cache에서 exact pending을 독립 재계산하고 plan의 pending과 requests를 대조해, 둘을 함께 삭제한 변조도 거부한다.
+3. plan의 README identity와 prompt/schema hash를 재계산한다.
+4. 현재 Codex CLI provenance가 plan과 같은지 다시 측정한다.
+5. 각 JSONL의 성공 종료와 usage를 strict parse한다.
+6. 각 response를 기존 `validateSummaryBundleEnvelope`로 검증한다.
+7. 5 locale·5 field·README evidence·invariants·inference fields를 모두 확인한다.
+8. source를 response가 아니라 local plan identity와 measured provenance로 만든다.
+9. output write 직전에 current source cache를 다시 읽어 준비 중 drift를 거부한다.
+10. exact pending set 하나의 prepared file을 `wx`로 쓴다.
 
 prepared file shape:
 

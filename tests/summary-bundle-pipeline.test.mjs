@@ -81,7 +81,7 @@ async function resolveVerifiedPythonExecutable({ environment = process.env } = {
       if (!isAbsolute(executable) || !safePythonCandidate(executable)) continue;
       return resolve(executable);
     } catch {
-      // Try the next locally resolved executable without invoking a bare command.
+      // bare command를 호출하지 않고 다음 로컬 실행 파일 후보를 시도한다.
     }
   }
   throw new Error("Verified Python executable is unavailable for summary CLI integration");

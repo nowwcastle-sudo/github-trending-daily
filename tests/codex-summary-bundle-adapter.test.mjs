@@ -28,6 +28,9 @@ const producer = {
 };
 const markdown = "# Repository\n\nInstall with `npm install` and run `npm test`. It is designed for source-bound examples.";
 const contentSha256 = createHash("sha256").update(Buffer.from(markdown, "utf8")).digest("hex");
+const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const implementationPlanPath = join(repositoryRoot, "docs", "superpowers", "plans", "2026-09-01-v3-codex-summary-fallback-release-semantics.md");
+const designSpecPath = join(repositoryRoot, "docs", "superpowers", "specs", "2026-09-01-v3-codex-summary-fallback-release-semantics-design.md");
 
 const localeLead = {
   en: "This field explains the repository with concrete technical context for developers evaluating adoption.",
@@ -256,6 +259,59 @@ async function preparedFixture(t) {
   await writeFile(join(responsesDir, "events-000.jsonl"), officialEvents());
   return { ...value, outDir, planPath: join(outDir, "plan.json"), responsesDir };
 }
+
+test("Task 8 Codex runbook separates responses and enters one empty cwd per request", async () => {
+  const plan = await readFile(implementationPlanPath, "utf8");
+  const task8Start = plan.indexOf("### Task 8:");
+  assert.notEqual(task8Start, -1);
+  const task8 = plan.slice(task8Start);
+  const step5Start = task8.indexOf("**Step 5:");
+  const step6Start = task8.indexOf("**Step 6:");
+  const step7Start = task8.indexOf("**Step 7:");
+  assert.ok(step5Start >= 0 && step6Start > step5Start && step7Start > step6Start);
+  const step5 = task8.slice(step5Start, step6Start);
+  const step6 = task8.slice(step6Start, step7Start);
+
+  assert.match(step5, /\$responsesRoot = Join-Path \$refreshRoot 'codex-responses'/);
+  assert.match(step5, /New-Item -ItemType Directory -Path \$responsesRoot \| Out-Null/);
+  assert.match(step5, /\$prompt = Join-Path \$adapterRoot "request-\$suffix-prompt\.txt"/);
+  assert.match(step5, /\$schema = Join-Path \$adapterRoot "request-\$suffix-schema\.json"/);
+  assert.match(step5, /\$response = Join-Path \$responsesRoot "response-\$suffix\.json"/);
+  assert.match(step5, /\$events = Join-Path \$responsesRoot "events-\$suffix\.jsonl"/);
+  assert.doesNotMatch(step5, /\$(?:response|events) = Join-Path \$adapterRoot/);
+
+  const cwdLine = '$codexCwd = Join-Path $refreshRoot "codex-empty-cwd-$suffix"';
+  const mkdirLine = "New-Item -ItemType Directory -Path $codexCwd | Out-Null";
+  const pushLine = "Push-Location -LiteralPath $codexCwd";
+  const tryLine = "try {";
+  const execLine = "codex exec --ephemeral";
+  const finallyLine = "} finally {";
+  const popLine = "Pop-Location";
+  const positions = [cwdLine, mkdirLine, pushLine, tryLine, execLine, finallyLine, popLine]
+    .map(value => step5.indexOf(value));
+  assert.deepEqual(positions.every(value => value >= 0), true);
+  assert.deepEqual([...positions].sort((left, right) => left - right), positions);
+
+  assert.match(step6, /--source-root \(Join-Path \$refreshRoot 'candidate'\)/);
+  assert.match(step6, /--responses-dir \$responsesRoot/);
+  assert.doesNotMatch(step6, /--responses-dir \$adapterRoot/);
+});
+
+test("plan and design document the complete sourceRoot trust boundary", async () => {
+  const [plan, spec] = await Promise.all([
+    readFile(implementationPlanPath, "utf8"),
+    readFile(designSpecPath, "utf8"),
+  ]);
+  const task3 = plan.slice(plan.indexOf("### Task 3:"), plan.indexOf("### Task 4:"));
+  const completeSpec = spec.slice(spec.indexOf("### 5.3 Complete"), spec.indexOf("## 6. Prepared import contract"));
+
+  assert.match(task3, /completeCodexSummaryBundle\(\{ factsPath, sourceRoot, planPath, responsesDir, outPath, preflight \}\)/);
+  assert.match(task3, /complete.*--source-root/);
+  assert.match(task3, /current source cache.*exact pending.*독립/);
+  assert.match(completeSpec, /--source-root <candidate source>/);
+  assert.match(completeSpec, /current source cache.*exact pending.*독립/);
+  assert.match(completeSpec, /plan.*pending.*requests.*함께 삭제.*거부/);
+});
 
 test("official Codex v0.151.0 turn.completed usage is parsed exactly", () => {
   assert.deepEqual(parseCodexTurnEvents(Buffer.from(officialEvents())), { inputTokens: 11, outputTokens: 7 });
