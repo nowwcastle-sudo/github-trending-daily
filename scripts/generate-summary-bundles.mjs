@@ -11,7 +11,10 @@ import {
   parseFrozenFactsBytes,
   verifyFrozenParentInputs,
 } from "./collect-repository-events.mjs";
-import { DEFAULT_ENRICHMENT_MODEL } from "./enrichment-models.mjs";
+import {
+  DEFAULT_ENRICHMENT_MODEL,
+  isSupportedSummaryProducer,
+} from "./enrichment-models.mjs";
 import {
   CLAUDE_REQUEST_FAILURE_CODES,
   MAX_CLAUDE_STDIN_BYTES,
@@ -654,14 +657,16 @@ function applyCorrection(previousOutput, patch, targets) {
   return corrected;
 }
 
-function sourceFor(item, runtime) {
+export function buildSummarySource(item, producer) {
+  checkedItem(item);
+  if (!isSupportedSummaryProducer(producer)) throw new Error("Summary producer provenance is invalid");
   return {
     kind: "readme",
     slug: item.slug.toLowerCase(),
     path: item.readme_path,
     blob_sha: item.readme_blob_sha,
     content_sha256: item.readme_content_sha256,
-    ...runtime,
+    ...producer,
     schema_version: SUMMARY_BUNDLE_SCHEMA_VERSION,
     prompt_schema_version: SUMMARY_PROMPT_SCHEMA_VERSION,
     // Retained only for the existing observation schema. README translation is retired.
@@ -669,13 +674,20 @@ function sourceFor(item, runtime) {
   };
 }
 
-function validSource(value, item, runtime) {
-  const expected = sourceFor(item, runtime);
-  return exactKeys(value, SOURCE_KEYS) && JSON.stringify(value) === JSON.stringify(expected);
+function validSourceIdentity(value, item) {
+  if (!exactKeys(value, SOURCE_KEYS)) return false;
+  const producer = Object.fromEntries([
+    "provider", "interface", "cli_version", "auth_method", "api_provider", "model",
+  ].map(key => [key, value[key]]));
+  try {
+    const expected = buildSummarySource(item, producer);
+    return isSupportedSummaryProducer(producer)
+      && Object.entries(expected).every(([key, expectedValue]) => value[key] === expectedValue);
+  } catch { return false; }
 }
 
-function reusableEntry(value, item, runtime) {
-  if (!exactKeys(value, ["content", "summaries", "evidence", "invariants", "inference_fields", "source"]) || !validSource(value.source, item, runtime)) return null;
+function reusableEntry(value, item) {
+  if (!exactKeys(value, ["content", "summaries", "evidence", "invariants", "inference_fields", "source"]) || !validSourceIdentity(value.source, item)) return null;
   let checked;
   try {
     checked = validateStoredSummaryBundleEnvelope({
@@ -690,6 +702,69 @@ function reusableEntry(value, item, runtime) {
     : null;
 }
 
+export function planSummaryBundleReuse(items, cacheValue) {
+  if (!Array.isArray(items)) throw new Error("Summary bundle items are invalid");
+  const cache = caseFoldedEntries(cacheValue);
+  const retained = new Map();
+  const pending = [];
+  for (const item of items) {
+    const entry = reusableEntry(cache.get(item.slug.toLowerCase()), item);
+    if (entry) retained.set(item.slug.toLowerCase(), entry);
+    else pending.push(item);
+  }
+  return { retained, pending };
+}
+
+export function admitPreparedCodexSet({ value, factsSha256, pending } = {}) {
+  if (!SHA256_RE.test(factsSha256 ?? "") || !Array.isArray(pending)
+      || !exactKeys(value, ["version", "facts_sha256", "producer", "usage", "repositories"])
+      || value.version !== 1 || value.facts_sha256 !== factsSha256
+      || !isSupportedSummaryProducer(value.producer)
+      || value.producer.provider !== "codex-cli"
+      || !exactKeys(value.usage, ["attempts", "input_tokens", "output_tokens"])
+      || !Number.isSafeInteger(value.usage.attempts) || value.usage.attempts < 1
+      || !Number.isSafeInteger(value.usage.input_tokens) || value.usage.input_tokens < 0
+      || !Number.isSafeInteger(value.usage.output_tokens) || value.usage.output_tokens < 0
+      || !value.repositories || Array.isArray(value.repositories) || typeof value.repositories !== "object") {
+    throw new Error("Prepared Codex summary set is invalid");
+  }
+  const pendingKeys = pending.map(item => item.slug);
+  if (new Set(pendingKeys).size !== pendingKeys.length
+      || Object.keys(value.repositories).length !== pendingKeys.length
+      || pendingKeys.some(slug => !Object.hasOwn(value.repositories, slug))) {
+    throw new Error("Prepared Codex summary pending set is invalid");
+  }
+  const results = pending.map(item => {
+    const entry = value.repositories[item.slug];
+    if (!exactKeys(entry, ["content", "summaries", "evidence", "invariants", "inference_fields", "source"])
+        || !validSourceIdentity(entry.source, item)
+        || Object.entries(value.producer).some(([key, expected]) => entry.source[key] !== expected)) {
+      throw new Error(`Prepared Codex summary source is invalid for ${item.slug}`);
+    }
+    const checked = validateStoredSummaryBundleEnvelope({
+      summaries: entry.summaries,
+      evidence: entry.evidence,
+      invariants: entry.invariants,
+      inference_fields: entry.inference_fields,
+    }, item);
+    if (JSON.stringify(entry.content) !== JSON.stringify(checked.summaries.en)) {
+      throw new Error(`Prepared Codex summary content is invalid for ${item.slug}`);
+    }
+    return checked;
+  });
+  return {
+    results,
+    usage: {
+      inputTokens: value.usage.input_tokens,
+      outputTokens: value.usage.output_tokens,
+      logicalCalls: 1,
+      attempts: value.usage.attempts,
+      retries: value.usage.attempts - 1,
+    },
+    runtime: value.producer,
+  };
+}
+
 function caseFoldedEntries(value) {
   if (!value || Array.isArray(value) || typeof value !== "object") throw new Error("Summary cache is invalid");
   const result = new Map();
@@ -699,6 +774,27 @@ function caseFoldedEntries(value) {
     result.set(key, entry);
   }
   return result;
+}
+
+export function summaryItemsFromFacts(facts) {
+  if (!facts || !Array.isArray(facts.repositories) || !facts.readmes || Array.isArray(facts.readmes)
+      || typeof facts.readmes !== "object") {
+    throw new Error("Frozen summary facts are invalid");
+  }
+  return facts.repositories.map(repository => {
+    const readme = facts.readmes[repository.slug?.toLowerCase()];
+    if (repository.readme_status !== "present" || !readme?.markdown) {
+      throw new Error(`Canonical README provenance is unavailable for ${repository.slug}`);
+    }
+    return checkedItem({
+      slug: repository.slug,
+      readme_path: readme.path,
+      readme_blob_sha: readme.blobSha,
+      readme_content_sha256: readme.contentSha256,
+      default_branch_head_sha: repository.default_branch_head_sha,
+      markdown: readme.markdown,
+    });
+  });
 }
 
 function validateEvents(facts, value) {
@@ -1156,21 +1252,8 @@ export async function runFrozenSummaryBundlePipeline({
   ]);
   const facts = parseFrozenFactsBytes(factsBytes);
   const events = validateEvents(facts, parseJsonStrict(eventsBytes, "frozen events", 64 * 1024 * 1024));
-  const priorCache = caseFoldedEntries(parseJsonStrict(cacheBytes, "summary cache", 32 * 1024 * 1024));
-  const items = facts.repositories.map(repository => {
-    const readme = facts.readmes[repository.slug.toLowerCase()];
-    if (repository.readme_status !== "present" || !readme?.markdown) {
-      throw new Error(`Canonical README provenance is unavailable for ${repository.slug}`);
-    }
-    return checkedItem({
-      slug: repository.slug,
-      readme_path: readme.path,
-      readme_blob_sha: readme.blobSha,
-      readme_content_sha256: readme.contentSha256,
-      default_branch_head_sha: repository.default_branch_head_sha,
-      markdown: readme.markdown,
-    });
-  });
+  const priorCache = parseJsonStrict(cacheBytes, "summary cache", 32 * 1024 * 1024);
+  const items = summaryItemsFromFacts(facts);
   const policy = resolveEnrichmentBudgetPolicy(policyContext);
   validateFrozenPolicyBinding(facts, policyContext);
   const [finalFactsBytes, finalEventsBytes, finalCacheBytes] = await Promise.all([
@@ -1182,13 +1265,7 @@ export async function runFrozenSummaryBundlePipeline({
   verifyFrozenParentInputs({ parentDatabasePath, parentEvidencePath, priorHeadsPath });
   const preflightResult = await preflight({ runProcess, environment, cwd });
   const runtime = producerProvenance(preflightResult);
-  const retained = new Map();
-  const pending = [];
-  for (const item of items) {
-    const entry = reusableEntry(priorCache.get(item.slug.toLowerCase()), item, runtime);
-    if (entry) retained.set(item.slug.toLowerCase(), entry);
-    else pending.push(item);
-  }
+  const { retained, pending } = planSummaryBundleReuse(items, priorCache);
   const plan = measureClaudeCliSummaryBundlePlan(pending, {
     retryAttempts: resolveClaudeCliSummaryRetryCap(policy, pending.length),
   });
@@ -1204,7 +1281,7 @@ export async function runFrozenSummaryBundlePipeline({
       evidence: checked.evidence,
       invariants: checked.invariants,
       inference_fields: checked.inference_fields,
-      source: sourceFor(item, completed.runtime),
+      source: buildSummarySource(item, completed.runtime),
     });
   }
   const cache = {};
@@ -1213,7 +1290,7 @@ export async function runFrozenSummaryBundlePipeline({
   for (const item of items) {
     const slug = item.slug.toLowerCase();
     const entry = retained.get(slug);
-    if (!entry || !reusableEntry(entry, item, completed.runtime)) throw new Error(`Summary bundle coverage is incomplete for ${item.slug}`);
+    if (!entry || !reusableEntry(entry, item)) throw new Error(`Summary bundle coverage is incomplete for ${item.slug}`);
     cache[item.slug] = entry;
     sources[item.slug] = entry.source;
     repositories[slug] = {

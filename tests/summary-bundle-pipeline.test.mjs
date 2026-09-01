@@ -6,9 +6,13 @@ import test from "node:test";
 import {
   MAX_FROZEN_FACTS_BYTES,
   SUMMARY_BUNDLE_LOCALES,
+  admitPreparedCodexSet,
   buildSummaryBundleRequest,
+  buildSummarySource,
   measureClaudeCliSummaryBundlePlan,
+  planSummaryBundleReuse,
   runClaudeSummaryBundleRequests,
+  summaryItemsFromFacts,
   validateSummaryBundle,
   validateSummaryBundleEnvelope,
   validateStoredSummaryBundleEnvelope,
@@ -73,6 +77,151 @@ function envelope() {
     inference_fields: [],
   };
 }
+
+function storedEntry(entryItem, producer) {
+  const value = envelope();
+  return {
+    content: value.summaries.en,
+    summaries: value.summaries,
+    evidence: value.evidence,
+    invariants: value.invariants,
+    inference_fields: value.inference_fields,
+    source: {
+      kind: "readme",
+      slug: entryItem.slug.toLowerCase(),
+      path: entryItem.readme_path,
+      blob_sha: entryItem.readme_blob_sha,
+      content_sha256: entryItem.readme_content_sha256,
+      ...producer,
+      schema_version: 3,
+      prompt_schema_version: 3,
+      translation_applicable: false,
+    },
+  };
+}
+
+function preparedCodexFixture(entries) {
+  const producer = {
+    provider: "codex-cli",
+    interface: "codex-exec",
+    cli_version: "0.151.0",
+    auth_method: "chatgpt_session",
+    api_provider: "openai_first_party",
+    model: "codex-cli/gpt-5.6-sol",
+  };
+  return {
+    version: 1,
+    facts_sha256: "f".repeat(64),
+    producer,
+    usage: { attempts: entries.length, input_tokens: 11, output_tokens: 7 },
+    repositories: Object.fromEntries(entries.map(([entryItem, value]) => [entryItem.slug, {
+      content: value.summaries.en,
+      summaries: value.summaries,
+      evidence: value.evidence,
+      invariants: value.invariants,
+      inference_fields: value.inference_fields,
+      source: {
+        kind: "readme",
+        slug: entryItem.slug.toLowerCase(),
+        path: entryItem.readme_path,
+        blob_sha: entryItem.readme_blob_sha,
+        content_sha256: entryItem.readme_content_sha256,
+        ...producer,
+        schema_version: 3,
+        prompt_schema_version: 3,
+        translation_applicable: false,
+      },
+    }])),
+  };
+}
+
+test("summary item projection keeps frozen README identities in repository order", () => {
+  const facts = {
+    repositories: [
+      { slug: "owner/second", readme_status: "present", default_branch_head_sha: "d".repeat(40) },
+      { slug: "owner/first", readme_status: "present", default_branch_head_sha: "c".repeat(40) },
+    ],
+    readmes: {
+      "owner/first": { path: "README.md", blobSha: "a".repeat(40), contentSha256: item.readme_content_sha256, markdown },
+      "owner/second": { path: "docs/README.md", blobSha: "b".repeat(40), contentSha256: item.readme_content_sha256, markdown },
+    },
+  };
+
+  assert.deepEqual(summaryItemsFromFacts(facts).map(value => ({ slug: value.slug, readme_path: value.readme_path })), [
+    { slug: "owner/second", readme_path: "docs/README.md" },
+    { slug: "owner/first", readme_path: "README.md" },
+  ]);
+});
+
+test("source-identical Claude and Codex cache entries are retained while stale entries stay pending", () => {
+  const claudeItem = { ...item, slug: "owner/claude" };
+  const codexItem = { ...item, slug: "owner/codex", readme_blob_sha: "b".repeat(40) };
+  const staleItem = { ...item, slug: "owner/stale", readme_blob_sha: "d".repeat(40) };
+  const claudeProducer = { ...CLAUDE_SUMMARY_PRODUCER_PROFILE, cli_version: "2.1.241" };
+  const codexProducer = { ...CODEX_SUMMARY_PRODUCER_PROFILE, cli_version: "0.151.0" };
+  const staleEntry = storedEntry(staleItem, codexProducer);
+  staleEntry.source.content_sha256 = "e".repeat(64);
+  const planned = planSummaryBundleReuse([claudeItem, codexItem, staleItem], {
+    "OWNER/CLAUDE": storedEntry(claudeItem, claudeProducer),
+    "owner/codex": storedEntry(codexItem, codexProducer),
+    "owner/stale": staleEntry,
+  });
+
+  assert.deepEqual([...planned.retained.keys()], ["owner/claude", "owner/codex"]);
+  assert.deepEqual(planned.pending.map(value => value.slug), ["owner/stale"]);
+  assert.equal(planned.retained.get("owner/codex").source.provider, "codex-cli");
+});
+
+test("cache reuse rejects changed README or Codex model instead of relabeling it", () => {
+  const codexProducer = { ...CODEX_SUMMARY_PRODUCER_PROFILE, cli_version: "0.151.0" };
+  const readmeChanged = { ...item, slug: "owner/readme" };
+  const changedReadmeEntry = storedEntry(readmeChanged, codexProducer);
+  changedReadmeEntry.source.content_sha256 = "f".repeat(64);
+  const changedModel = { ...item, slug: "owner/model", readme_blob_sha: "b".repeat(40) };
+  const changedModelEntry = storedEntry(changedModel, { ...codexProducer, model: "codex-cli/gpt-5.6-terra" });
+
+  assert.deepEqual(planSummaryBundleReuse([readmeChanged], { [readmeChanged.slug]: changedReadmeEntry }).pending, [readmeChanged]);
+  assert.deepEqual(planSummaryBundleReuse([changedModel], { [changedModel.slug]: changedModelEntry }).pending, [changedModel]);
+});
+
+test("prepared Codex admission requires exact facts, producer, pending set, and source identity", () => {
+  const staleItem = { ...item, slug: "owner/stale" };
+  const admitted = admitPreparedCodexSet({
+    value: preparedCodexFixture([[staleItem, envelope()]]),
+    factsSha256: "f".repeat(64),
+    pending: [staleItem],
+  });
+
+  assert.equal(admitted.runtime.provider, "codex-cli");
+  assert.equal(admitted.results.length, 1);
+  assert.deepEqual(admitted.usage, {
+    inputTokens: 11,
+    outputTokens: 7,
+    logicalCalls: 1,
+    attempts: 1,
+    retries: 0,
+  });
+
+  const cases = [
+    ["facts SHA", value => { value.facts_sha256 = "e".repeat(64); }, "f".repeat(64), [staleItem]],
+    ["slug missing", value => { delete value.repositories[staleItem.slug]; }, "f".repeat(64), [staleItem]],
+    ["extra slug", value => { value.repositories["owner/extra"] = structuredClone(value.repositories[staleItem.slug]); }, "f".repeat(64), [staleItem]],
+    ["case-fold collision", value => { value.repositories["OWNER/STALE"] = structuredClone(value.repositories[staleItem.slug]); }, "f".repeat(64), [staleItem]],
+    ["README identity", value => { value.repositories[staleItem.slug].source.blob_sha = "b".repeat(40); }, "f".repeat(64), [staleItem]],
+    ["producer model", value => { value.producer.model = "codex-cli/gpt-5.6-terra"; }, "f".repeat(64), [staleItem]],
+  ];
+  for (const [name, mutate, factsSha256, pending] of cases) {
+    const value = preparedCodexFixture([[staleItem, envelope()]]);
+    mutate(value);
+    assert.throws(() => admitPreparedCodexSet({ value, factsSha256, pending }), undefined, name);
+  }
+});
+
+test("summary source uses the exact supported producer profile", () => {
+  const producer = { ...CODEX_SUMMARY_PRODUCER_PROFILE, cli_version: "0.151.0" };
+  assert.deepEqual(buildSummarySource(item, producer), storedEntry(item, producer).source);
+  assert.throws(() => buildSummarySource(item, { ...producer, model: "codex-cli/gpt-5.6-terra" }), /producer/i);
+});
 
 function modelEnvelope() {
   const value = envelope();
