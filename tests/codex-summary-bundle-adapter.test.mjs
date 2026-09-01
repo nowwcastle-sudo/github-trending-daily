@@ -303,11 +303,27 @@ test("plan and design document the complete sourceRoot trust boundary", async ()
     readFile(designSpecPath, "utf8"),
   ]);
   const task3 = plan.slice(plan.indexOf("### Task 3:"), plan.indexOf("### Task 4:"));
+  const providerSpec = spec.slice(spec.indexOf("### 5.2 Provider execution"), spec.indexOf("### 5.3 Complete"));
   const completeSpec = spec.slice(spec.indexOf("### 5.3 Complete"), spec.indexOf("## 6. Prepared import contract"));
 
   assert.match(task3, /completeCodexSummaryBundle\(\{ factsPath, sourceRoot, planPath, responsesDir, outPath, preflight \}\)/);
   assert.match(task3, /complete.*--source-root/);
   assert.match(task3, /current source cache.*exact pending.*독립/);
+  assert.match(providerSpec, /\$prompt\s*=\s*\[System\.IO\.Path\]::GetFullPath\([^\r\n]*\$adapterRoot/);
+  assert.match(providerSpec, /\$schema\s*=\s*\[System\.IO\.Path\]::GetFullPath\([^\r\n]*\$adapterRoot/);
+  assert.match(providerSpec, /\$response\s*=\s*\[System\.IO\.Path\]::GetFullPath\([^\r\n]*\$responsesRoot/);
+  assert.match(providerSpec, /\$events\s*=\s*\[System\.IO\.Path\]::GetFullPath\([^\r\n]*\$responsesRoot/);
+  assert.doesNotMatch(providerSpec, /\$(?:response|events)\s*=.*\$adapterRoot/);
+  assert.match(providerSpec, /\$codexCwd\s*=.*\$suffix/);
+  const providerPositions = [
+    "Push-Location -LiteralPath $codexCwd",
+    "try {",
+    "codex exec --ephemeral --ignore-user-config --model gpt-5.6-sol --sandbox read-only --output-schema $schema --output-last-message $response --json - 1> $events",
+    "} finally {",
+    "Pop-Location",
+  ].map(value => providerSpec.indexOf(value));
+  assert.deepEqual(providerPositions.every(value => value >= 0), true);
+  assert.deepEqual([...providerPositions].sort((left, right) => left - right), providerPositions);
   assert.match(completeSpec, /--source-root <candidate source>/);
   assert.match(completeSpec, /current source cache.*exact pending.*독립/);
   assert.match(completeSpec, /plan.*pending.*requests.*함께 삭제.*거부/);

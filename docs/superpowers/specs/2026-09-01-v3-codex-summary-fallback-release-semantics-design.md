@@ -223,18 +223,26 @@ Prepare는 model을 호출하지 않고 candidate도 변경하지 않는다.
 각 request는 빈 임시 cwd에서 실행한다.
 
 ```powershell
-codex exec `
-  --ephemeral `
-  --ignore-user-config `
-  --model gpt-5.6-sol `
-  --sandbox read-only `
-  --output-schema request-NNN-schema.json `
-  --output-last-message response-NNN.json `
-  --json `
-  -
+$responsesRoot = Join-Path $refreshRoot 'codex-responses'
+New-Item -ItemType Directory -Path $responsesRoot | Out-Null
+foreach ($suffix in @('000','001')) {
+  $codexCwd = Join-Path $refreshRoot "codex-empty-cwd-$suffix"
+  New-Item -ItemType Directory -Path $codexCwd | Out-Null
+  $prompt = [System.IO.Path]::GetFullPath((Join-Path $adapterRoot "request-$suffix-prompt.txt"))
+  $schema = [System.IO.Path]::GetFullPath((Join-Path $adapterRoot "request-$suffix-schema.json"))
+  $response = [System.IO.Path]::GetFullPath((Join-Path $responsesRoot "response-$suffix.json"))
+  $events = [System.IO.Path]::GetFullPath((Join-Path $responsesRoot "events-$suffix.jsonl"))
+  Push-Location -LiteralPath $codexCwd
+  try {
+    Get-Content -LiteralPath $prompt -Raw | codex exec --ephemeral --ignore-user-config --model gpt-5.6-sol --sandbox read-only --output-schema $schema --output-last-message $response --json - 1> $events
+    if ($LASTEXITCODE -ne 0) { throw "Codex request $suffix failed" }
+  } finally {
+    Pop-Location
+  }
+}
 ```
 
-prompt는 stdin으로 전달한다. JSON event stream은 `events-NNN.jsonl`에 보존하며 token usage·종료 상태의 근거가 된다. stdout이나 log에 credential, raw auth state, 환경변수 값을 기록하지 않는다.
+`$adapterRoot`에는 plan/request만 두고 `$responsesRoot`에는 response/events만 둔다. prompt는 absolute path에서 stdin으로 전달한다. stdout JSON event stream은 absolute events path에 보존하며 token usage·종료 상태의 근거가 된다. stdout이나 log에 credential, raw auth state, 환경변수 값을 기록하지 않는다.
 
 실행 실패, JSONL 완결성 실패, usage 부재, 마지막 message 부재 시 complete로 넘어가지 않는다.
 
