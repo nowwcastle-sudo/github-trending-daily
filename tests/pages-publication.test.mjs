@@ -631,6 +631,20 @@ test("builder hashes only the exact allowlist and exact summary source envelope"
   assert.equal(manifest.files["index.html"], createHash("sha256").update(validPage).digest("hex"));
   await assert.rejects(readFile(join(out, "data", "private.sqlite")));
 
+  const changedPage = validPage.replace("</script>", "</scripT>");
+  assert.equal(Buffer.byteLength(changedPage), Buffer.byteLength(validPage));
+  await writeFile(join(source, "index.html"), changedPage);
+  const oldOut = join(directory, "old-contract");
+  await assert.rejects(
+    buildPagesArtifact({ sourceRoot: source, outDir: oldOut, sourceSha, snapshotId, artifactContract: contract }),
+    /full refresh/i,
+  );
+  await assert.rejects(readFile(join(oldOut, "deployment-manifest.json")));
+  const newContract = await artifactContract(source, latest, sources);
+  const newOut = join(directory, "new-contract");
+  await buildPagesArtifact({ sourceRoot: source, outDir: newOut, sourceSha, snapshotId, artifactContract: newContract });
+  await writeFile(join(source, "index.html"), validPage);
+
   const invalidSources = structuredClone(sources);
   invalidSources.sources["owner/one"].prompt_schema_version = 2;
   await writeFile(join(source, "data", "translation-sources.json"), `${JSON.stringify(invalidSources)}\n`);

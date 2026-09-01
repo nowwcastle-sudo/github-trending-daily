@@ -32,6 +32,13 @@
 
 2026-09-01 후속 계약이 이전 UI 설명을 대체한다. branch `codex/fix-period-locale-sidebar-20260901`, base `084a657d1bb36c7a79b3005161c50ddabf4938c0`에서 site locale 단독 summary, hover 0ms close 시작+210ms transition, 모바일 visible button 제거, 실제 period membership/gain/HOT/All, neutral migration baseline과 S1/S2/S3 전이를 구현·검증해 PR #34를 만들었다. current production 성공·merge 준비·배포 준비로는 아직 부르지 않는다. `wait-what` 발동은 0회다.
 
+### 2026-09-01 release·redeploy 후속 계약
+
+- **Code release**는 현재 Pages code bytes로 새 v1 snapshot을 record, derive, finalize한 뒤 배포한다.
+- **Finalized artifact redeploy**는 이미 finalize된 source와 byte-for-byte 같은 artifact만 다시 배포한다. old finalized contract 아래에서 Pages bytes가 바뀌면 builder는 artifact·manifest 출력 전에 중단하고 full refresh를 요구한다. `.github/workflows/deploy-current-pages.yml`은 refresh, DB write, Claude·Codex 호출 없이 이 재배포만 수행한다.
+- 예약 Daily Refresh의 기본 summary producer는 계속 Claude CLI OAuth `claude-sonnet-5`다. Codex fallback은 같은 frozen input에서 exact pending repository에만 적용하며 이미 완료된 repository를 재생성하거나 예약 기본 producer를 대체하지 않는다.
+- 이 후속 계약은 아래 과거 controlled dispatch·production 성공·실패 기록을 수정하거나 소급 재해석하지 않는다.
+
 ## 1. 현재 사용자 결정
 
 1. `README.md`는 영문 정본으로, `README.ko.md`는 전체 한글판으로 유지한다. `README.en.md`는 기존 링크 호환 안내만 둔다.

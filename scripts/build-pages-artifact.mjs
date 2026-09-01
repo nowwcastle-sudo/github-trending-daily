@@ -297,7 +297,7 @@ function validateArtifactContract(value, snapshotId, paths) {
     safeTarget("/artifact-root", row.artifact_path);
     actual.push(row.artifact_path);
   }
-  if (actual.join("\0") !== expected.join("\0")) throw new Error("finalized artifact path set does not match Pages allowlist");
+  if (actual.join("\0") !== expected.join("\0")) throw new Error("finalized artifact Pages path set changed; a code release requires a full refresh");
   return value.artifacts;
 }
 
@@ -305,8 +305,8 @@ async function verifyArtifactContract(sourceRoot, snapshotId, paths, contract) {
   const rows = validateArtifactContract(contract, snapshotId, paths);
   for (const row of rows) {
     const bytes = await readRegularFile(sourceRoot, row.artifact_path);
-    if (hash(bytes) !== row.sha256) throw new Error(`finalized artifact hash does not match: ${row.artifact_path}`);
-    if (bytes.length !== row.byte_size) throw new Error(`finalized artifact size does not match: ${row.artifact_path}`);
+    if (hash(bytes) !== row.sha256) throw new Error(`finalized artifact Pages bytes changed; a code release requires a full refresh: hash mismatch: ${row.artifact_path}`);
+    if (bytes.length !== row.byte_size) throw new Error(`finalized artifact Pages bytes changed; a code release requires a full refresh: size mismatch: ${row.artifact_path}`);
   }
 }
 
