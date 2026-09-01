@@ -775,7 +775,7 @@ foreach ($suffix in @('000','001')) {
 
 ```powershell
 $prepared = Join-Path $refreshRoot 'prepared-codex.json'
-node scripts/codex-summary-bundle-adapter.mjs complete --facts (Join-Path $refreshRoot 'repository-facts.json') --plan (Join-Path $adapterRoot 'plan.json') --responses-dir $adapterRoot --out $prepared
+node scripts/codex-summary-bundle-adapter.mjs complete --facts (Join-Path $refreshRoot 'repository-facts.json') --source-root (Join-Path $refreshRoot 'candidate') --plan (Join-Path $adapterRoot 'plan.json') --responses-dir $adapterRoot --out $prepared
 ```
 
 그 다음 existing `generate-summary-bundles.mjs` command에 `--prepared-codex $prepared`만 추가한다. 완료 조건은 retained Claude 42, new Codex 2, active 44, locales 220, missing/stale/insufficient source 0이다.
