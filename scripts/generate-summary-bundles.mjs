@@ -1248,6 +1248,7 @@ export async function runFrozenSummaryBundlePipeline({
   executeClaude = runClaudeStructuredRequest,
   sleep,
   now = Date.now,
+  preparedCodexPath,
 } = {}) {
   const factsFile = frozenPath(factsPath, "Frozen facts", { output: true });
   const eventsFile = frozenPath(eventsPath, "Frozen events", { output: true });
@@ -1272,15 +1273,31 @@ export async function runFrozenSummaryBundlePipeline({
     throw new Error("Frozen summary bundle inputs changed after planning");
   }
   verifyFrozenParentInputs({ parentDatabasePath, parentEvidencePath, priorHeadsPath });
-  const preflightResult = await preflight({ runProcess, environment, cwd });
-  const runtime = producerProvenance(preflightResult);
   const { retained, pending } = planSummaryBundleReuse(items, priorCache);
-  const plan = measureClaudeCliSummaryBundlePlan(pending, {
-    retryAttempts: resolveClaudeCliSummaryRetryCap(policy, pending.length),
-  });
-  const completed = await runClaudeSummaryBundleRequests({
-    plan, runProcess, environment, cwd, preflight, preflightResult, executeClaude, sleep, now, deadline,
-  });
+  let completed;
+  if (preparedCodexPath) {
+    const preparedFile = frozenPath(preparedCodexPath, "Prepared Codex summary set");
+    const prepared = parseJsonStrict(await readFile(preparedFile), "prepared Codex summary set", 32 * 1024 * 1024);
+    const admitted = admitPreparedCodexSet({ value: prepared, factsSha256: facts.factsSha256, pending });
+    completed = {
+      ...admitted,
+      usage: {
+        inputTokens: admitted.usage.inputTokens,
+        outputTokens: admitted.usage.outputTokens,
+        logicalCalls: pending.length,
+        attempts: admitted.usage.attempts,
+        retries: 0,
+      },
+    };
+  } else {
+    const preflightResult = await preflight({ runProcess, environment, cwd });
+    const plan = measureClaudeCliSummaryBundlePlan(pending, {
+      retryAttempts: resolveClaudeCliSummaryRetryCap(policy, pending.length),
+    });
+    completed = await runClaudeSummaryBundleRequests({
+      plan, runProcess, environment, cwd, preflight, preflightResult, executeClaude, sleep, now, deadline,
+    });
+  }
   for (let index = 0; index < pending.length; index += 1) {
     const item = pending[index];
     const checked = completed.results[index];
@@ -1331,7 +1348,8 @@ export async function runFrozenSummaryBundlePipeline({
 }
 
 function parseCliArgs(argv) {
-  const allowed = new Set(["--facts", "--events", "--enrichment-index-out", "--source-root", "--output-root", "--prior-heads", "--parent-evidence", "--parent-database", "--failure-diagnostics-out"]);
+  const required = ["--facts", "--events", "--enrichment-index-out", "--source-root", "--output-root", "--prior-heads", "--parent-evidence", "--parent-database", "--failure-diagnostics-out"];
+  const allowed = new Set([...required, "--prepared-codex"]);
   const values = {};
   for (let index = 0; index < argv.length; index += 2) {
     const key = argv[index];
@@ -1339,7 +1357,7 @@ function parseCliArgs(argv) {
     if (!allowed.has(key) || !value || Object.hasOwn(values, key)) throw new Error("Invalid summary bundle CLI arguments");
     values[key] = value;
   }
-  if (Object.keys(values).length !== allowed.size) throw new Error("Invalid summary bundle CLI arguments");
+  if (required.some(key => !Object.hasOwn(values, key))) throw new Error("Invalid summary bundle CLI arguments");
   return values;
 }
 
@@ -1360,6 +1378,7 @@ async function main() {
       priorHeadsPath: args["--prior-heads"],
       parentEvidencePath: args["--parent-evidence"],
       parentDatabasePath: args["--parent-database"],
+      preparedCodexPath: args["--prepared-codex"],
       policyContext: policyContextFromEnvironment(process.env),
       environment: process.env,
       cwd: process.cwd(),
