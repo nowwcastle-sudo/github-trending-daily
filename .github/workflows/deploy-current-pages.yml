@@ -46,7 +46,7 @@ jobs:
           if [ -f data/repository-observations.sqlite ]; then
             SNAPSHOT_ID="$(node --input-type=module -e 'import {readFileSync} from "node:fs"; const value=JSON.parse(readFileSync("data/latest.json","utf8")); if(!/^[0-9]{14}-[a-f0-9]{16}$/.test(value.snapshotId??"")) throw new Error("committed snapshot id is invalid"); process.stdout.write(value.snapshotId);')"
             ARTIFACT_CONTRACT="${RUNNER_TEMP}/artifact-contract.json"
-            python scripts/derive_repository_artifacts.py export-contract --database data/repository-observations.sqlite --snapshot-id "$SNAPSHOT_ID" --contract-out "$ARTIFACT_CONTRACT"
+            python scripts/derive_repository_artifacts.py export-contract --database "${GITHUB_WORKSPACE}/data/repository-observations.sqlite" --snapshot-id "$SNAPSHOT_ID" --contract-out "$ARTIFACT_CONTRACT"
             node scripts/build-pages-artifact.mjs --source "." --out "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "$ARTIFACT_CONTRACT"
             node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "$ARTIFACT_CONTRACT"
             echo "DEPLOYMENT_MODE=v1" >> "$GITHUB_ENV"
