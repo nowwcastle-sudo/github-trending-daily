@@ -110,6 +110,24 @@ function officialEvents() {
   ].map(value => JSON.stringify(value)).join("\n") + "\n";
 }
 
+function eventsWithUsage(usage) {
+  return [
+    { type: "thread.started", thread_id: "thread-1" },
+    { type: "turn.started" },
+    { type: "turn.completed", usage },
+  ].map(value => JSON.stringify(value)).join("\n") + "\n";
+}
+
+function officialUsage() {
+  return {
+    input_tokens: 11,
+    cached_input_tokens: 2,
+    cache_write_input_tokens: 0,
+    output_tokens: 7,
+    reasoning_output_tokens: 3,
+  };
+}
+
 function item(index) {
   return {
     slug: index === 9 ? "owner/stale" : `owner/repo-${index}`,
@@ -200,7 +218,7 @@ async function exists(file) {
   return access(file).then(() => true, () => false);
 }
 
-async function fixture(t) {
+async function fixture(t, { staleSlugs = ["owner/stale"] } = {}) {
   const root = await mkdtemp(join(tmpdir(), "codex-summary-adapter-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   const sourceRoot = join(root, "source");
@@ -208,7 +226,7 @@ async function fixture(t) {
   const items = Array.from({ length: 10 }, (_, index) => item(index));
   const facts = frozenFacts(items);
   const cache = Object.fromEntries(items.map(value => [value.slug, storedEntry(value)]));
-  cache["owner/stale"].source.content_sha256 = "0".repeat(64);
+  for (const slug of staleSlugs) cache[slug].source.content_sha256 = "0".repeat(64);
   await mkdir(join(sourceRoot, "data"), { recursive: true });
   await writeFile(join(sourceRoot, "data", "repo-summaries.json"), `${JSON.stringify(cache)}\n`);
   await writeFile(factsPath, `${JSON.stringify(facts)}\n`);
@@ -249,12 +267,37 @@ test("Codex JSONL rejects incomplete, failed, negative, duplicate-key, and trunc
     ["missing completion", [{ type: "thread.started", thread_id: "thread-1" }, { type: "turn.started" }]
       .map(JSON.stringify).join("\n") + "\n"],
     ["failed turn", `${JSON.stringify({ type: "thread.started", thread_id: "thread-1" })}\n${JSON.stringify({ type: "turn.started" })}\n${JSON.stringify({ type: "turn.failed", error: { message: "failed" } })}\n${completed}\n`],
-    ["negative token", `${JSON.stringify({ type: "turn.completed", usage: { input_tokens: -1, output_tokens: 7 } })}\n`],
+    ["negative token", eventsWithUsage({ ...officialUsage(), input_tokens: -1 })],
     ["duplicate key", '{"type":"turn.completed","usage":{"input_tokens":11,"input_tokens":12,"output_tokens":7}}\n'],
     ["truncated final JSON", `${JSON.stringify({ type: "turn.started" })}\n{"type":"turn.completed","usage":`],
   ];
   for (const [name, events] of cases) {
     assert.throws(() => parseCodexTurnEvents(Buffer.from(events)), undefined, name);
+  }
+});
+
+test("Codex JSONL requires the official lifecycle order and one terminal completion", () => {
+  const completed = { type: "turn.completed", usage: officialUsage() };
+  const cases = [
+    [completed, { type: "thread.started", thread_id: "thread-1" }, { type: "turn.started" }],
+    [{ type: "thread.started", thread_id: "thread-1" }, { type: "turn.started" }, completed, completed],
+  ];
+  for (const events of cases) {
+    const bytes = Buffer.from(events.map(value => JSON.stringify(value)).join("\n") + "\n");
+    assert.throws(() => parseCodexTurnEvents(bytes), /order|sequence|completion/i);
+  }
+});
+
+test("Codex JSONL requires all five official usage fields as safe nonnegative integers", () => {
+  for (const field of [
+    "input_tokens", "cached_input_tokens", "cache_write_input_tokens", "output_tokens", "reasoning_output_tokens",
+  ]) {
+    const negative = officialUsage();
+    negative[field] = -1;
+    assert.throws(() => parseCodexTurnEvents(Buffer.from(eventsWithUsage(negative))), /usage|token/i, `${field} negative`);
+    const missing = officialUsage();
+    delete missing[field];
+    assert.throws(() => parseCodexTurnEvents(Buffer.from(eventsWithUsage(missing))), /usage|token/i, `${field} missing`);
   }
 });
 
@@ -352,11 +395,37 @@ test("prepare rejects existing, checkout-internal, and symlink-parent output pat
   assert.equal(await exists(linkedOutput), false);
 });
 
+test("prepare writes only through the canonical parent captured before an alias swap", async t => {
+  const value = await fixture(t);
+  const safeParent = join(value.root, "safe-parent");
+  const alias = join(value.root, "output-alias");
+  await mkdir(safeParent);
+  await symlink(safeParent, alias, process.platform === "win32" ? "junction" : "dir");
+  const outDir = join(alias, "prepared");
+  const escapedTarget = join(value.sourceRoot, "prepared");
+
+  await prepareCodexSummaryBundle({
+    factsPath: value.factsPath,
+    sourceRoot: value.sourceRoot,
+    outDir,
+    preflight: async () => {
+      await rm(alias, { recursive: true });
+      await symlink(value.sourceRoot, alias, process.platform === "win32" ? "junction" : "dir");
+      return producer;
+    },
+  });
+
+  assert.equal(await exists(join(safeParent, "prepared", "plan.json")), true);
+  assert.equal(await exists(escapedTarget), false);
+  assert.equal(await exists(join(value.sourceRoot, "data", "repo-summaries.json")), true);
+});
+
 test("complete validates the bundle and derives source only from local facts and measured producer", async t => {
   const value = await preparedFixture(t);
   const outPath = join(value.root, "prepared-codex.json");
   const result = await completeCodexSummaryBundle({
     factsPath: value.factsPath,
+    sourceRoot: value.sourceRoot,
     planPath: value.planPath,
     responsesDir: value.responsesDir,
     outPath,
@@ -373,6 +442,28 @@ test("complete validates the bundle and derives source only from local facts and
   assert.deepEqual(output.repositories["owner/stale"].source, literalSource(value.items.at(-1)));
   assert.equal(output.repositories["owner/stale"].source.provider, "codex-cli");
   assert.deepEqual(result, { pending: ["owner/stale"], attempts: 1, inputTokens: 11, outputTokens: 7 });
+});
+
+test("complete independently recomputes exact pending from the current source cache", async t => {
+  const value = await preparedFixture(t);
+  const plan = JSON.parse(await readFile(value.planPath, "utf8"));
+  plan.pending = [];
+  plan.requests = [];
+  const planPath = join(value.outDir, "plan-empty.json");
+  const responsesDir = join(value.root, "empty-responses");
+  const outPath = join(value.root, "empty-prepared.json");
+  await writeFile(planPath, `${JSON.stringify(plan)}\n`);
+  await mkdir(responsesDir);
+
+  await assert.rejects(completeCodexSummaryBundle({
+    factsPath: value.factsPath,
+    sourceRoot: value.sourceRoot,
+    planPath,
+    responsesDir,
+    outPath,
+    preflight: async () => producer,
+  }), /pending|cache|plan/i);
+  assert.equal(await exists(outPath), false);
 });
 
 test("complete rejects plan, request, README, pending, and current CLI drift before output", async t => {
@@ -394,6 +485,7 @@ test("complete rejects plan, request, README, pending, and current CLI drift bef
     await writeFile(planPath, `${JSON.stringify(plan)}\n`);
     await assert.rejects(completeCodexSummaryBundle({
       factsPath: value.factsPath,
+      sourceRoot: value.sourceRoot,
       planPath,
       responsesDir: value.responsesDir,
       outPath,

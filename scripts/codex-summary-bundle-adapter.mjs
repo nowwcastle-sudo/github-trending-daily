@@ -29,6 +29,9 @@ const REQUEST_KEYS = [
   "prompt_sha256", "schema_sha256",
 ];
 const RESPONSE_KEYS = ["summaries", "evidence", "invariants", "inference_fields"];
+const USAGE_KEYS = [
+  "input_tokens", "cached_input_tokens", "cache_write_input_tokens", "output_tokens", "reasoning_output_tokens",
+];
 const HELP_FLAGS = [
   "--ephemeral", "--ignore-user-config", "--output-schema", "--output-last-message", "--json", "--sandbox",
 ];
@@ -79,7 +82,7 @@ async function checkedPrepareOutput(outDir, sourceRoot) {
       || isInside(path.resolve(sourceRoot), output.absolute) || isInside(source, output.canonical)) {
     throw new Error("Codex prepare output must be outside the tracked checkout and source root");
   }
-  return output.absolute;
+  return output.canonical;
 }
 
 async function checkedCompleteOutput(outPath) {
@@ -88,7 +91,7 @@ async function checkedCompleteOutput(outPath) {
   if (isInside(CHECKOUT_ROOT, output.absolute) || isInside(checkout, output.canonical)) {
     throw new Error("Prepared Codex output must be outside the tracked checkout");
   }
-  return output.absolute;
+  return output.canonical;
 }
 
 function checkedProcessResult(value, label) {
@@ -147,30 +150,35 @@ export function parseCodexTurnEvents(bytes) {
   try { text = new TextDecoder("utf-8", { fatal: true }).decode(input); } catch { throw new Error("Codex JSONL is not valid UTF-8"); }
   const lines = text.slice(0, -1).split("\n");
   if (lines.some(line => !line || line.endsWith("\r") && line.length === 1)) throw new Error("Codex JSONL event stream is invalid");
-  let threads = 0;
-  let turns = 0;
+  let state = "thread";
   let completed = null;
   for (const [index, line] of lines.entries()) {
     const event = parseJsonStrict(Buffer.from(line.endsWith("\r") ? line.slice(0, -1) : line), `Codex event ${index}`, MAX_EVENT_BYTES);
     if (!event || Array.isArray(event) || typeof event !== "object" || typeof event.type !== "string") {
       throw new Error("Codex event shape is invalid");
     }
-    if (event.type === "thread.started") threads += 1;
-    if (event.type === "turn.started") turns += 1;
     if (event.type === "turn.failed") throw new Error("Codex turn failed");
-    if (event.type === "turn.completed") {
-      if (completed !== null || !event.usage || Array.isArray(event.usage) || typeof event.usage !== "object") {
-        throw new Error("Codex turn completion is invalid");
+    if (event.type === "thread.started") {
+      if (state !== "thread") throw new Error("Codex event sequence is invalid");
+      state = "turn";
+    } else if (event.type === "turn.started") {
+      if (state !== "turn") throw new Error("Codex event sequence is invalid");
+      state = "running";
+    } else if (event.type === "turn.completed") {
+      if (state !== "running") throw new Error("Codex turn completion order is invalid");
+      if (!exactKeys(event.usage, USAGE_KEYS)
+          || USAGE_KEYS.some(key => !Number.isSafeInteger(event.usage[key]) || event.usage[key] < 0)) {
+        throw new Error("Codex token usage is invalid");
       }
       const inputTokens = event.usage.input_tokens;
       const outputTokens = event.usage.output_tokens;
-      if (!Number.isSafeInteger(inputTokens) || inputTokens < 0 || !Number.isSafeInteger(outputTokens) || outputTokens < 0) {
-        throw new Error("Codex token usage is invalid");
-      }
       completed = { inputTokens, outputTokens };
+      state = "completed";
+    } else if (state !== "running") {
+      throw new Error("Codex event sequence is invalid");
     }
   }
-  if (threads !== 1 || turns !== 1 || completed === null) throw new Error("Codex JSONL event stream is incomplete");
+  if (state !== "completed" || completed === null) throw new Error("Codex JSONL event stream is incomplete");
   return completed;
 }
 
@@ -287,24 +295,31 @@ async function expectedResponseFiles(directory, count) {
 
 export async function completeCodexSummaryBundle({
   factsPath,
+  sourceRoot,
   planPath,
   responsesDir,
   outPath,
   preflight = runCodexSummaryPreflight,
 } = {}) {
-  if ([factsPath, planPath, responsesDir].some(value => typeof value !== "string" || !value)) {
+  if ([factsPath, sourceRoot, planPath, responsesDir].some(value => typeof value !== "string" || !value)) {
     throw new Error("Codex complete inputs are invalid");
   }
   const outputFile = await checkedCompleteOutput(outPath);
   const factsFile = path.resolve(factsPath);
+  const cacheFile = path.join(path.resolve(sourceRoot), "data", "repo-summaries.json");
   const planFile = path.resolve(planPath);
   const responseRoot = path.resolve(responsesDir);
   const requestRoot = path.dirname(planFile);
-  const [factsBytes, planBytes] = await Promise.all([readFile(factsFile), readFile(planFile)]);
+  const [factsBytes, cacheBytes, planBytes] = await Promise.all([readFile(factsFile), readFile(cacheFile), readFile(planFile)]);
   const facts = parseFrozenFactsBytes(factsBytes);
+  const cache = parseJsonStrict(cacheBytes, "summary cache", 32 * 1024 * 1024);
   const plan = checkedPlan(parseJsonStrict(planBytes, "Codex summary plan", MAX_PLAN_BYTES));
   if (plan.facts_sha256 !== facts.factsSha256) throw new Error("Codex summary plan facts changed");
   const items = summaryItemsFromFacts(facts);
+  const expectedPending = planSummaryBundleReuse(items, cache).pending.map(item => item.slug);
+  if (expectedPending.length !== plan.pending.length || expectedPending.some((slug, index) => slug !== plan.pending[index])) {
+    throw new Error("Codex summary plan pending set changed");
+  }
   const bySlug = new Map(items.map(item => [item.slug, item]));
   const artifacts = plan.requests.map((request, index) => {
     const item = bySlug.get(request.slug);
@@ -369,8 +384,9 @@ export async function completeCodexSummaryBundle({
     usage: { attempts: artifacts.length, input_tokens: inputTokens, output_tokens: outputTokens },
     repositories,
   };
-  const [finalFactsBytes, finalPlanBytes, finalRequestBytes, finalResponseBytes] = await Promise.all([
+  const [finalFactsBytes, finalCacheBytes, finalPlanBytes, finalRequestBytes, finalResponseBytes] = await Promise.all([
     readFile(factsFile),
+    readFile(cacheFile),
     readFile(planFile),
     Promise.all(artifacts.flatMap((_, index) => {
       const suffix = String(index).padStart(3, "0");
@@ -388,7 +404,7 @@ export async function completeCodexSummaryBundle({
     })),
   ]);
   await expectedResponseFiles(responseRoot, artifacts.length);
-  if (!factsBytes.equals(finalFactsBytes) || !planBytes.equals(finalPlanBytes)
+  if (!factsBytes.equals(finalFactsBytes) || !cacheBytes.equals(finalCacheBytes) || !planBytes.equals(finalPlanBytes)
       || requestBytes.some((bytes, index) => !bytes.equals(finalRequestBytes[index]))
       || responseBytes.some((bytes, index) => !bytes.equals(finalResponseBytes[index]))) {
     throw new Error("Codex complete inputs changed during validation");
@@ -420,9 +436,10 @@ export async function runCodexSummaryBundleAdapter(argv) {
     });
   }
   if (command === "complete") {
-    const values = parseArgs(args, ["--facts", "--plan", "--responses-dir", "--out"]);
+    const values = parseArgs(args, ["--facts", "--source-root", "--plan", "--responses-dir", "--out"]);
     return completeCodexSummaryBundle({
       factsPath: values["--facts"],
+      sourceRoot: values["--source-root"],
       planPath: values["--plan"],
       responsesDir: values["--responses-dir"],
       outPath: values["--out"],
