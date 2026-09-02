@@ -61,7 +61,7 @@ W1  daily-refresh.yml (cron 7 */2 · dispatch)              W2  star-ticks.yml (
    ├ finalize 19 files (star-history.json 제외)
    ├ validate coverage: verified|retained|held 전수
    └ commit → deploy → verify
-concurrency: 두 workflow 모두 group `daily-refresh` (cancel-in-progress: false), deploy job은 group `pages`
+concurrency: 두 workflow 모두 group `daily-refresh` (cancel-in-progress: false). W2 tick job은 job-level로 group `pages`도 잡는다(redeploy workflow와 배타). W1의 deploy job은 2026-09-03 현재 `pages` group을 잡지 않는다(구현 불일치 기록, 후속)
 ```
 
 ### 4.1 W1 — repository 단위 admission
@@ -171,7 +171,7 @@ repo 항목에 `status: "verified"|"retained"|"held"`, `held_reason`, `defect_co
 | W2 ledger 접두 불일치(재작성 감지) | commit·deploy 중단 |
 | W2 finalized 19파일 hash ≠ snapshot contract | 배포 중단(코드 변경은 W1으로) |
 | W1 실행 중 W2 slot | concurrency group에서 대기. pending은 1건만 유지되므로 유실 = W1 실행 중 지나간 W2 슬롯 수 − 1 (W1 2시간 이내면 ≤ 3 tick) |
-| repo rename(301) | W1은 기존대로 `full_name` 불일치 오류. W2는 옛 slug로 계속 기록되어 이력이 분절될 수 있음 — 허용 리스크(빈도 낮음), 후속에서 `id` 기록 검토 |
+| repo rename(301) | W1은 기존대로 `full_name` 불일치 오류. W2는 응답의 `full_name`이 요청 slug와 다르면 그 tick을 `unavailable`로 기록한다(2026-09-03 구현). 옛 이름이 다른 저장소로 재생성돼도 이어 붙지 않는다. 후속에서 `id` 기록 검토 |
 
 ## 7. 테스트 범위
 

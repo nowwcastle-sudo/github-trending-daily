@@ -105,7 +105,9 @@ jobs:
             exit 0
           fi
           git diff --cached --check
-          if git diff --cached -- data/star-ticks data/star-daily.jsonl | grep -qE '^-[^-]'; then
+          # grep consumes the whole diff (no -q) so pipefail cannot hide a match behind SIGPIPE.
+          REMOVED="$(git diff --cached -- data/star-ticks data/star-daily.jsonl | grep -E '^-[^-]' || true)"
+          if [ -n "$REMOVED" ]; then
             echo "::error::star tick ledgers must be append-only"; exit 1
           fi
           set +e

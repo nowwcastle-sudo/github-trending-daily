@@ -45,7 +45,8 @@ test("star ticks collect with the repository token only, pick the tier from the 
   assert.match(workflow, /TIER="\$\(node scripts\/star-ticks\.mjs tier --event "\$GITHUB_EVENT_NAME" --requested "\$REQUESTED_TIER"\)"/);
   assert.doesNotMatch(workflow, /TIER=ab|date -u \+%H/);
   // Independent append-only check on the staged ledgers before the commit.
-  assert.match(workflow, /git diff --cached -- data\/star-ticks data\/star-daily\.jsonl \| grep -qE '\^-\[\^-\]'/);
+  assert.match(workflow, /REMOVED="\$\(git diff --cached -- data\/star-ticks data\/star-daily\.jsonl \| grep -E '\^-\[\^-\]' \|\| true\)"\n\s+if \[ -n "\$REMOVED" \]; then/);
+  assert.doesNotMatch(workflow, /grep -qE '\^-\[\^-\]'/);
   assert.match(workflow, /star-ticks\.mjs collect --token-env GITHUB_TOKEN --tier "\$TIER" --published data\/latest\.json --ticks-dir data\/star-ticks --daily data\/star-daily\.jsonl --run-id "\$\{\{ github\.run_id \}\}"/);
   assert.match(workflow, /star-ticks\.mjs derive --published data\/latest\.json --ticks-dir data\/star-ticks --daily data\/star-daily\.jsonl --anchors data\/star-anchors\.json --out star-history\.json/);
   assert.match(workflow, /case "\$changed_path" in\n\s+data\/star-ticks\/\*\.jsonl\|data\/star-daily\.jsonl\|star-history\.json\) ;;\n\s+\*\) echo "::error::Unexpected star tick output: \$changed_path"; exit 1 ;;/);
