@@ -76,8 +76,8 @@
 5. README에 실제 있는 핵심 명령만 1~2개 포함한다.
 6. 중립적 기술 문체를 사용하고 홍보성 최상급 표현은 거부한다.
 7. 5개 locale의 command, URL, version, number, product name, warning은 정확히 같아야 한다. *(2026-09-02 보충: cross-locale URL 토큰은 ASCII 구간만 비교하고 끝 문장부호를 제외한다. 비ASCII 경로·IDN 호스트의 꼬리 차이는 이 토큰 비교가 잡지 않는 알려진 트레이드오프이며, 모델이 선언한 URL invariant의 README exact 일치 검사는 그대로다.)*
-8. 5개 언어는 한 묶음이며 한 언어의 결함도 repository와 candidate 전체를 실패시킨다.
-9. `insufficient_source`는 candidate 실패다. metadata fallback이나 “README 참고” 문구로 통과시키지 않는다.
+8. 5개 언어는 한 묶음이며 한 언어의 hard defect는 그 repository를 `held`로 만든다. candidate는 active repository 전부가 `verified`·`retained`·`held` 중 하나이고 `verified`+`retained` ≥ 1이며 `held` 비율 ≤ 50%면 publish된다(2026-09-03 개정, 근거 `docs/superpowers/specs/2026-09-03-per-repo-summary-admission-and-star-ticks-design.md` §4.1. 종전 all-or-nothing은 controlled run 33639446686·33644048203에서 검증 완료 요약 13·17건을 함께 폐기했다).
+9. 품질 교정 소진(`quality_defects`)·retry 상한 소진(`budget_exhausted`)·deadline 소진(`deadline_exhausted`)·bounded 요청 실패(`request_failed`)는 그 repository를 `held`로 만든다. `held` repository는 summary 없이 게시되고 카드에는 locale별 고정 문구(static i18n)만 보인다. retry 상한이 소진되면 교정만 막히고 남은 repository는 초기 시도 1회를 받는다(2026-09-03 사용자 결정. rate limit·deadline 소진은 남은 전부를 미시도 `held`로 둔다). metadata fallback이나 “README 참고” 문구로 통과시키지 않는다(2026-09-03 개정. AUTH·PROCESS·SCHEMA_INVALID 같은 provider 전체 장애는 여전히 run 실패다).
 10. 재시도 상한은 모든 모드에서 `max(12, pending × 3)`이다(2026-09-02 개정, run `33639446686` 근거: pending 37에 고정 12로 소진). 모든 모드에서 repository마다 최대 3회의 품질 교정 capacity를 가진다. deterministic validator가 허용된 locale/field 또는 invariant 선언을 특정하면 해당 위치만 보정 prompt에 전달한다.
 11. 모델은 내부 evidence의 README line range와 invariant의 `kind`/`value`만 반환한다. section heading은 frozen README의 ATX/Setext 구조에서, invariant field 위치는 실제 5-locale summary에서 결정적으로 파생해 저장하며 기존 cache의 파생값이 다르면 거부한다. README 전체 본문은 observation DB에 넣지 않는다.
 12. UI에는 “verified repository README를 바탕으로 AI가 생성”했다고 표시하고 human verified라고 하지 않는다.
@@ -96,7 +96,7 @@
 - `scripts/update-trending.mjs`: v3 source와 exact 5-locale summary bundle만 render하며 metadata fallback을 허용하지 않는다.
 - `scripts/validate-enrichment-coverage.mjs`: active page/facts/cache/source exact set, full envelope, locale completeness, stale/missing/insufficient source, translation residue를 fail closed로 검사한다.
 - `scripts/build-pages-artifact.mjs`: source registry v3와 `site-i18n.js`를 exact artifact에 포함하고 legacy translation artifact를 제외한다.
-- workflow는 GitHub-hosted `prepare` → Windows self-hosted `enrich` → GitHub-hosted `publish`로 분리한다. self-hosted runner는 tracked checkout·DB·page·commit·Pages 권한이 없고 네 개의 allowlisted enrichment 파일만 내보낸다. manual bootstrap gate는 승인 상태이고 schedule은 계속 hold한다. 열일곱 controlled run 모두 publish 전 fail-closed로 종료됐다.
+- workflow는 GitHub-hosted `prepare` → Windows self-hosted `enrich` → GitHub-hosted `publish`로 분리한다. self-hosted runner는 tracked checkout·DB·page·commit·Pages 권한이 없고 네 개의 allowlisted enrichment 파일만 내보낸다. manual bootstrap gate는 승인 상태이고 schedule은 계속 hold한다. held 진단(`enrichment-failure.json`, version 2)은 성공한 run에서도 `refresh-enrichment-failure-<run_id>` artifact로 올라간다(2026-09-03, 업로드 조건 `if: always()`. artifact 이름은 그대로 둔다). 열일곱 controlled run 모두 publish 전 fail-closed로 종료됐다.
 - runner `nasca-gh-trending-claude`는 `C:\actions-runner-gh-trending`의 공식 Actions Runner 2.337.0으로 등록했다. Task Scheduler 경로에서는 listener가 job을 받은 뒤 Worker IPC가 44초간 멈춰 `steps=0`으로 실패했지만, interactive listener에서는 Worker·checkout·Claude step이 정상 실행됐다. 현재 production closure 동안은 interactive listener를 사용하고 schedule은 hold한다.
 - `README.md`, `README.ko.md`, `README.en.md`와 2026-08-31 candidate screenshots를 새 구조에 맞췄다.
 

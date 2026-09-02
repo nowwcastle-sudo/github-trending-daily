@@ -64,6 +64,7 @@ def latest_payload():
             "gains": {"daily": index, "weekly": None, "monthly": None},
             "signal": None,
             "summary": {"goal": "g", "usage": "u", "pros": "p", "cons": "c", "fit": "f"},
+            "summary_status": "verified",
             "tag_rule_version": 1,
             "field_tags": ["dev-tools"],
             "form_tags": ["cli"],
@@ -237,6 +238,16 @@ class AtomFeedTests(unittest.TestCase):
         self.assertEqual(summaries[0], detailed_goal)
         self.assertEqual(summaries[1], "A detailed GitHub description")
         self.assertEqual(tuple_entries(self.changes), LEGACY_TUPLES)
+
+    def test_held_repository_without_description_falls_back_to_its_name(self):
+        latest = copy.deepcopy(self.latest)
+        latest["repos"][0]["description"] = ""
+        latest["repos"][0]["summary"] = None
+        latest["repos"][0]["summary_status"] = "held"
+        page = page_payload(latest)
+        self.assertTrue(generate_atom_feeds_from_timeline(page, latest, self.timeline, self.feed, self.changes))
+        summaries = [entry.findtext("atom:summary", namespaces=ATOM) for entry in entries(self.feed)]
+        self.assertEqual(summaries[0], latest["repos"][0]["name"])
 
     def test_database_events_sort_ahead_of_legacy_and_one_final_cap_is_applied(self):
         value = copy.deepcopy(self.timeline)

@@ -381,7 +381,7 @@ def writer_payload(*, snapshot_id, utc, kst, stats_date, run_kind, parent_snapsh
         "inputSourceSha": sha1(), "inputManifestSha256": sha256(),
         "hydrationSourceSha": sha1(),
         "productionManifestStatus": "verified_v1",
-        "enrichmentIndex": {"owner/repo": {"summary": {
+        "enrichmentIndex": {"owner/repo": {"status": "verified", "summary": {
             "content": {"goal": "g", "usage": "u", "pros": "p", "cons": "c", "fit": "f"},
             "source": source,
         }}},
@@ -410,6 +410,34 @@ def writer_events(*, head, transition, estimate_rows=None):
         "releases": [], "latestReleaseIds": {"owner/repo": None}, "commits": [],
         "estimates": [{"slug": "owner/repo", "rows": rows, "sourcePayloadSha256": sha256("b"), "publicRows": rows[-500:]}],
     }
+
+
+def held_two_repository_inputs(*, readme_absent):
+    """owner/repo is held (README present or absent); other/repo is verified. Ratio 1/2."""
+    payload = writer_payload(snapshot_id="20260828010101-aaaaaaaaaaaaaaaa", utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00", stats_date="2026-08-28", run_kind="migration_baseline")
+    other = json.loads(json.dumps(payload["repositories"][0]))
+    other.update({"slug": "other/repo", "displaySlug": "other/repo", "displayRank": 2, "rankDaily": 2})
+    other["provenance"]["trending"]["daily"]["rank"] = 2
+    payload["repositories"].append(other)
+    verified = json.loads(json.dumps(payload["enrichmentIndex"]["owner/repo"]))
+    verified["summary"]["source"]["slug"] = "other/repo"
+    payload["enrichmentIndex"] = {
+        "owner/repo": {"status": "held", "held_reason": "quality_defects", "defect_codes": ["GENERIC_OR_PLACEHOLDER"], "warnings": []},
+        "other/repo": verified,
+    }
+    if readme_absent:
+        held = payload["repositories"][0]
+        held.update({"readmeStatus": "absent", "readmePath": None, "readmeBlobSha": None, "readmeContentSha256": None, "readmeLocale": None, "readmeVariants": []})
+        held["provenance"]["readme"] = {
+            "api_path": "/repos/owner/repo/readme", "blob_api_path": None, "status": "absent", "path": None,
+            "blob_sha": None, "content_sha256": None, "locale": None, "variant_tree_api_path": None, "variants": [],
+        }
+    events = writer_events(head=sha1(), transition="baseline")
+    events["heads"].append({"slug": "other/repo", "branch": "main", "headSha": sha1(), "transition": "baseline"})
+    events["latestReleaseIds"]["other/repo"] = None
+    events["estimates"].append({"slug": "other/repo", "rows": [], "sourcePayloadSha256": sha256("b"), "publicRows": []})
+    bind_writer_inputs(payload, events)
+    return payload, events
 
 
 def bind_writer_inputs(payload, events):
@@ -441,10 +469,12 @@ def bind_writer_inputs(payload, events):
         "runContextSha256": run_context_sha, "completeSetSha256": events_sha,
     })
     entries = payload["enrichmentIndex"].get("repositories", payload["enrichmentIndex"])
+    held_entries = sum(1 for entry in entries.values() if isinstance(entry, dict) and entry.get("status") == "held")
     payload["enrichmentIndex"] = {
-        "version": 1, "snapshotId": snapshot_id, "activeSetSha256": active_set_sha,
+        "version": 2, "snapshotId": snapshot_id, "activeSetSha256": active_set_sha,
         "factsSha256": facts_sha, "sourceSetSha256": source_set_sha,
-        "runContextSha256": run_context_sha, "eventsSha256": events_sha, "repositories": entries,
+        "runContextSha256": run_context_sha, "eventsSha256": events_sha,
+        "heldRatio": held_entries / len(entries) if entries else 0, "repositories": entries,
     }
     enrichment_sha = canonical_hash(payload["enrichmentIndex"])
     payload.update({
@@ -1356,6 +1386,75 @@ class RepositoryObservationTests(unittest.TestCase):
             self.assertEqual(connection.execute("SELECT membership_status FROM snapshot_items WHERE snapshot_seq=1").fetchone(), ("baseline_present",))
             self.assertEqual(connection.execute("SELECT membership_status FROM snapshot_items WHERE snapshot_seq=2").fetchone(), ("stayed",))
 
+    def test_held_repository_records_sentinel_summary_digests_without_schema_change(self):
+        candidate = Path(self.temporary.name) / "candidate.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing-parent.sqlite", candidate, None)
+        baselines, receipt = writer_legacy_baselines(self.temporary.name)
+        payload, events = held_two_repository_inputs(readme_absent=False)
+        payload["legacyBaselines"], payload["legacyBaselineReceipt"] = baselines, receipt
+        record_writer_snapshot(candidate, payload, events, {})
+        held_source = {"kind": "held", "slug": "owner/repo", "reason": "quality_defects", "schema_version": 3}
+        with closing(sqlite3.connect(candidate)) as connection:
+            row = connection.execute("SELECT summary_source_sha256, summary_content_sha256, summary_envelope_sha256, translation_status FROM snapshot_items WHERE slug = 'owner/repo'").fetchone()
+            count = connection.execute("SELECT COUNT(*) FROM snapshot_items").fetchone()
+        self.assertEqual(count, (2,))
+        self.assertEqual(row, (
+            canonical_hash(held_source),
+            canonical_hash({"status": "held"}),
+            canonical_hash({"content": {"status": "held"}, "source": held_source}),
+            "not_applicable:no_prose",
+        ))
+
+    def test_held_repository_without_readme_records_no_readme_translation_status(self):
+        candidate = Path(self.temporary.name) / "candidate.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing-parent.sqlite", candidate, None)
+        baselines, receipt = writer_legacy_baselines(self.temporary.name)
+        payload, events = held_two_repository_inputs(readme_absent=True)
+        payload["legacyBaselines"], payload["legacyBaselineReceipt"] = baselines, receipt
+        record_writer_snapshot(candidate, payload, events, {})
+        with closing(sqlite3.connect(candidate)) as connection:
+            row = connection.execute("SELECT readme_status, translation_status, translation_source_sha256 FROM snapshot_items WHERE slug = 'owner/repo'").fetchone()
+        self.assertEqual(row, ("absent", "not_applicable:no_readme", None))
+
+    def test_enrichment_index_declared_held_ratio_must_match_its_entries(self):
+        candidate = Path(self.temporary.name) / "candidate.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing-parent.sqlite", candidate, None)
+        baselines, receipt = writer_legacy_baselines(self.temporary.name)
+        payload, events = held_two_repository_inputs(readme_absent=False)
+        payload["legacyBaselines"], payload["legacyBaselineReceipt"] = baselines, receipt
+        payload["enrichmentIndex"]["heldRatio"] = 0
+        payload["enrichmentIndexSha256"] = canonical_hash(payload["enrichmentIndex"])
+        with self.assertRaisesRegex(ValueError, "held ratio"):
+            record_core_snapshot(candidate, payload, events, {})
+
+    def test_enrichment_entry_with_unknown_status_is_rejected(self):
+        candidate = Path(self.temporary.name) / "candidate.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing-parent.sqlite", candidate, None)
+        baselines, receipt = writer_legacy_baselines(self.temporary.name)
+        payload = writer_payload(snapshot_id="20260828010101-aaaaaaaaaaaaaaaa", utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00", stats_date="2026-08-28", run_kind="migration_baseline")
+        payload["enrichmentIndex"]["owner/repo"]["status"] = "bogus"
+        payload["legacyBaselines"], payload["legacyBaselineReceipt"] = baselines, receipt
+        events = writer_events(head=sha1(), transition="baseline")
+        bind_writer_inputs(payload, events)
+        with self.assertRaisesRegex(ValueError, "entry status"):
+            record_core_snapshot(candidate, payload, events, {})
+
+    def test_enrichment_index_held_ratio_above_half_is_rejected_before_binding(self):
+        candidate = Path(self.temporary.name) / "candidate.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing-parent.sqlite", candidate, None)
+        baselines, receipt = writer_legacy_baselines(self.temporary.name)
+        payload = writer_payload(snapshot_id="20260828010101-aaaaaaaaaaaaaaaa", utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00", stats_date="2026-08-28", run_kind="migration_baseline")
+        payload["enrichmentIndex"] = {"owner/repo": {"status": "held", "held_reason": "request_failed", "defect_codes": [], "warnings": []}}
+        payload["legacyBaselines"], payload["legacyBaselineReceipt"] = baselines, receipt
+        events = writer_events(head=sha1(), transition="baseline")
+        bind_writer_inputs(payload, events)
+        payload["enrichmentIndex"]["heldRatio"] = 0.6
+        payload["enrichmentIndexSha256"] = canonical_hash(payload["enrichmentIndex"])
+        with self.assertRaisesRegex(ValueError, "held ratio"):
+            record_core_snapshot(candidate, payload, events, {})
+        with closing(sqlite3.connect(candidate)) as connection:
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM snapshot_runs").fetchone(), (0,))
+
     def test_oss_estimates_preserve_value_change_tombstone_and_reappearance(self):
         candidate = Path(self.temporary.name) / "candidate.sqlite"
         prepare_candidate_database(Path(self.temporary.name) / "missing-parent.sqlite", candidate, None)
@@ -1654,6 +1753,7 @@ class RepositoryObservationTests(unittest.TestCase):
                     "translation_applicable": False,
                 }
                 value["enrichmentIndex"]["other/repo"] = {
+                    "status": "verified",
                     "summary": {
                         "content": {"goal": "g", "usage": "u", "pros": "p", "cons": "c", "fit": "f"},
                         "source": source,

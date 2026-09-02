@@ -701,21 +701,24 @@ test("render-only consumes exact frozen bindings with zero fetches and emits a r
   };
   const events = bindFrozenEventEnvelope(facts, collected);
   const enrichmentIndex = {
-    version: 1,
+    version: 2,
     snapshotId: facts.snapshotId,
     activeSetSha256: facts.activeSetSha256,
     factsSha256: facts.factsSha256,
     sourceSetSha256: facts.sourceSetSha256,
     runContextSha256: facts.runContextSha256,
     eventsSha256: events.completeSetSha256,
+    heldRatio: 0,
     repositories: Object.fromEntries(repositories.map((repository, index) => {
       const cached = cachedEntry(index, repository.slug, { producer: index === 1 ? "codex" : "claude" });
       return [repository.slug, {
+        status: index === 0 ? "verified" : "retained",
         summary: { content: cached.content, source: cached.source },
         summaries: cached.summaries,
         evidence: Object.fromEntries(["goal", "usage", "pros", "cons", "fit"].map(field => [field, []])),
         invariants: [],
         inference_fields: [],
+        warnings: index === 0 ? [{ code: "LENGTH_CONTRACT" }] : [],
       }];
     })),
   };
@@ -784,6 +787,33 @@ test("render-only consumes exact frozen bindings with zero fetches and emits a r
       Object.keys(value).sort().join("\0") === ["cons", "fit", "goal", "pros", "usage"].join("\0")
     )));
   }
+
+  const heldIndex = structuredClone(enrichmentIndex);
+  const heldSlug = repositories[2].slug;
+  heldIndex.repositories[heldSlug] = { status: "held", held_reason: "quality_defects", defect_codes: ["GENERIC_OR_PLACEHOLDER"], warnings: [] };
+  heldIndex.heldRatio = 0.1;
+  await writeFile(indexPath, `${JSON.stringify(heldIndex)}\n`);
+  const heldPageOut = join(directory, "held", "index.html");
+  const heldCacheOut = join(directory, "held", "data", "repo-summaries.json");
+  await renderFrozenCandidate({ factsPath, eventsPath, enrichmentIndexPath: indexPath, pageTemplatePath: templatePath, pageOut: heldPageOut, cacheOut: heldCacheOut, snapshotOut: join(directory, "held-snapshot.json") });
+  const heldPublished = parsePageRepos(await readFile(heldPageOut, "utf8"));
+  const heldPersisted = JSON.parse(await readFile(heldCacheOut, "utf8"));
+  const heldRepo = heldPublished.find(value => value.slug === heldSlug);
+  assert.equal(heldPublished.length, 10);
+  assert.equal(heldRepo.summary_status, "held");
+  assert.equal(heldRepo.held_reason, "quality_defects");
+  assert.equal(heldRepo.summary, null);
+  assert.equal(heldRepo.summaries, null);
+  assert.equal(heldRepo.detail, null);
+  assert.equal(heldPublished.find(value => value.slug === repositories[0].slug).summary_status, "verified");
+  assert.equal(heldPublished.find(value => value.slug === repositories[1].slug).summary_status, "retained");
+  assert.equal(Object.hasOwn(heldPersisted, heldSlug), false);
+  assert.equal(Object.keys(heldPersisted).length, 9);
+
+  const inconsistentIndex = structuredClone(heldIndex);
+  inconsistentIndex.heldRatio = 0;
+  await writeFile(indexPath, `${JSON.stringify(inconsistentIndex)}\n`);
+  await assert.rejects(renderFrozenCandidate({ factsPath, eventsPath, enrichmentIndexPath: indexPath, pageTemplatePath: templatePath, pageOut: join(directory, "held-bad", "index.html"), cacheOut: join(directory, "held-bad", "data", "repo-summaries.json"), snapshotOut: join(directory, "held-bad-snapshot.json") }), /held ratio/);
 
   const hybridProducer = structuredClone(enrichmentIndex);
   hybridProducer.repositories[repositories[1].slug].summary.source.model = "claude-sonnet-5";

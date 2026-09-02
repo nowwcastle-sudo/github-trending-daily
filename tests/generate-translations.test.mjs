@@ -3857,7 +3857,7 @@ test("coverage CLI rejects invalid five-locale bundles and retired translation r
   assert.equal(valid.status, 0, valid.stderr);
   assert.deepEqual(JSON.parse(valid.stdout), {
     repository: 10, valid: 10, locales: 50, missing: 0, stale: 0,
-    insufficient_source: 0, translations: 0,
+    insufficient_source: 0, held: 0, translations: 0,
   });
 });
 

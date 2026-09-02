@@ -919,18 +919,20 @@ function reusableSummaryEntry(value, fact) {
   return frozenSourceMatchesFact(source, fact);
 }
 
-function renderRepositoryFacts(facts, summaryCache, context, latestReleases) {
+function renderRepositoryFacts(facts, summaryCache, context, latestReleases, statuses = new Map()) {
   const { snapshotId, observedAtUtc: generatedAt, statsDateKst: statsDate } = context;
   const summaries = new Map(Object.entries(summaryCache).map(([slug, value]) => [slug.toLowerCase(), value]));
   return facts.map(fact => {
     const gains = Object.fromEntries(["daily", "weekly", "monthly"]
       .map(period => [`stars_${period}`, fact[`gain_${period}`]])
       .filter(([, value]) => value !== null));
-    const cached = summaries.get(fact.slug.toLowerCase());
-    if (!reusableSummaryEntry(cached, fact)) {
+    const admission = statuses.get(fact.slug.toLowerCase()) ?? { status: "verified" };
+    const held = admission.status === "held";
+    const cached = held ? null : summaries.get(fact.slug.toLowerCase());
+    if (!held && !reusableSummaryEntry(cached, fact)) {
       throw new Error(`Detailed enrichment is unavailable for ${fact.slug}`);
     }
-    const content = cached.content;
+    const content = held ? null : cached.content;
     const starsNote = buildTrendNote(fact);
     return {
       slug: fact.slug,
@@ -949,9 +951,11 @@ function renderRepositoryFacts(facts, summaryCache, context, latestReleases) {
       forks: fact.forks,
       ...gains,
       color: fact.language_color ?? "#8b949e",
-      summary: Object.fromEntries(SUMMARY_FIELDS.map(field => [field, content[field]])),
-      summaries: Object.fromEntries(SUMMARY_LOCALES.map(locale => [locale, { ...cached.summaries[locale] }])),
-      detail: { ...Object.fromEntries(SUMMARY_FIELDS.map(field => [field, content[field]])), stars_note: starsNote },
+      summary_status: admission.status,
+      ...(held ? { held_reason: admission.held_reason } : {}),
+      summary: held ? null : Object.fromEntries(SUMMARY_FIELDS.map(field => [field, content[field]])),
+      summaries: held ? null : Object.fromEntries(SUMMARY_LOCALES.map(locale => [locale, { ...cached.summaries[locale] }])),
+      detail: held ? null : { ...Object.fromEntries(SUMMARY_FIELDS.map(field => [field, content[field]])), stars_note: starsNote },
       issues: fact.open_issues_and_pull_requests,
       contributors: fact.contributors,
       pushed_at: fact.pushed_at?.slice(0, 10) ?? null,
@@ -1058,6 +1062,16 @@ function assertCompleteSummary(repo, { snapshotId, generatedAt, statsDate }) {
   if (!gains.length || gains.some(value => !Number.isSafeInteger(value) || value < 0)) {
     throw new Error(`Published ${slug} must have at least one valid period gain`);
   }
+  if (repo.summary_status === "held") {
+    if (repo.summary !== null || repo.summaries !== null || repo.detail !== null || !HELD_REASONS.includes(repo.held_reason)) {
+      throw new Error(`Published ${slug} is held and must not carry a summary`);
+    }
+    if (!hasCanonicalClassification(repo)) throw new Error("Published repository classification is invalid");
+    return slug;
+  }
+  if (repo.summary_status !== undefined && !["verified", "retained"].includes(repo.summary_status)) {
+    throw new Error(`Published ${slug} has an invalid summary status`);
+  }
   const complete = [
     ...SUMMARY_FIELDS.map(field => repo?.summary?.[field]),
     ...SUMMARY_FIELDS.map(field => repo?.detail?.[field]),
@@ -1100,6 +1114,10 @@ function validateSnapshotPair(page, summaryCacheText, statsDate) {
     const key = slug.toLowerCase();
     if (seen.has(key)) throw new Error(`Duplicate published repository: ${slug}`);
     seen.add(key);
+    if (repo.summary_status === "held") {
+      if (cachedBySlug.has(key)) throw new Error(`Held ${slug} must not have a summary cache entry`);
+      continue;
+    }
     const cached = cachedBySlug.get(key);
     const detail = Object.fromEntries(SUMMARY_FIELDS.map(field => [field, repo.detail[field]]));
     if (!cached || JSON.stringify(cached.content) !== JSON.stringify(detail) || !cached.source || typeof cached.source !== "object") {
@@ -1133,6 +1151,11 @@ export function createPageSnapshot({ page, summaryCache, repos, statsDate }) {
     const key = slug.toLowerCase();
     if (seen.has(key)) throw new Error(`Duplicate published repository: ${slug}`);
     seen.add(key);
+    if (repo.summary_status === "held") {
+      const heldKey = cacheKeys.get(key);
+      if (heldKey !== undefined) delete nextCache[heldKey];
+      continue;
+    }
     const cacheKey = cacheKeys.get(key) ?? slug;
     const cached = nextCache[cacheKey];
     const source = cached?.source ?? {
@@ -1381,10 +1404,13 @@ function validateFrozenRenderEvents(facts, events) {
   return events;
 }
 
+const HELD_REASONS = Object.freeze(["quality_defects", "budget_exhausted", "deadline_exhausted", "request_failed"]);
+
 function validateFrozenEnrichmentIndex(facts, events, index) {
-  const expectedKeys = ["version", "snapshotId", "activeSetSha256", "factsSha256", "sourceSetSha256", "runContextSha256", "eventsSha256", "repositories"];
+  const expectedKeys = ["version", "snapshotId", "activeSetSha256", "factsSha256", "sourceSetSha256", "runContextSha256", "eventsSha256", "heldRatio", "repositories"];
   if (!index || Array.isArray(index) || typeof index !== "object"
-      || Object.keys(index).sort().join("\0") !== expectedKeys.sort().join("\0") || index.version !== 1
+      || Object.keys(index).sort().join("\0") !== expectedKeys.sort().join("\0") || index.version !== 2
+      || typeof index.heldRatio !== "number" || !(index.heldRatio >= 0 && index.heldRatio <= 0.5)
       || index.snapshotId !== facts.snapshotId || index.activeSetSha256 !== facts.activeSetSha256
       || index.factsSha256 !== facts.factsSha256
       || index.sourceSetSha256 !== facts.sourceSetSha256 || index.runContextSha256 !== facts.runContextSha256
@@ -1396,16 +1422,29 @@ function validateFrozenEnrichmentIndex(facts, events, index) {
   if (Object.keys(index.repositories).length !== slugs.length || slugs.some(slug => !Object.hasOwn(index.repositories, slug))) {
     throw new Error("Frozen render enrichment active set is incomplete");
   }
+  let heldCount = 0;
   for (const [position, slug] of slugs.entries()) {
     const entry = index.repositories[slug];
+    if (entry && !Array.isArray(entry) && typeof entry === "object" && entry.status === "held") {
+      if (!exactObjectKeys(entry, ["status", "held_reason", "defect_codes", "warnings"])
+          || !HELD_REASONS.includes(entry.held_reason) || !Array.isArray(entry.defect_codes) || !Array.isArray(entry.warnings)) {
+        throw new Error("Frozen render held summary is invalid");
+      }
+      heldCount += 1;
+      continue;
+    }
     if (!entry || Array.isArray(entry) || typeof entry !== "object"
-        || !exactObjectKeys(entry, ["summary", "summaries", "evidence", "invariants", "inference_fields"])
+        || !exactObjectKeys(entry, ["status", "summary", "summaries", "evidence", "invariants", "inference_fields", "warnings"])
+        || !["verified", "retained"].includes(entry.status) || !Array.isArray(entry.warnings)
         || !reusableSummaryEntry({ ...entry.summary, summaries: entry.summaries }, facts.repositories[position])
         || !entry.evidence || Array.isArray(entry.evidence) || typeof entry.evidence !== "object"
         || !Array.isArray(entry.invariants) || !Array.isArray(entry.inference_fields)) {
       throw new Error("Frozen render detailed summary is invalid");
     }
   }
+  // The declared ratio is only trusted when it equals the ratio of the entries themselves.
+  const actualHeldRatio = slugs.length === 0 ? 0 : heldCount / slugs.length;
+  if (actualHeldRatio !== index.heldRatio) throw new Error("Frozen render enrichment held ratio is inconsistent with its entries");
   return index;
 }
 
@@ -1472,18 +1511,24 @@ export async function renderFrozenCandidate({
     parentSourceSha: facts.parentSnapshotId === null ? null : facts.hydrationSourceSha,
   });
   if (canonicalHash(context) !== facts.runContextSha256) throw new Error("Frozen render run context is mismatched");
-  const summaryCache = Object.fromEntries(facts.repositories.map(repository => [
-    repository.slug,
-    {
-      ...index.repositories[repository.slug.toLowerCase()].summary,
-      summaries: index.repositories[repository.slug.toLowerCase()].summaries,
-      evidence: index.repositories[repository.slug.toLowerCase()].evidence,
-      invariants: index.repositories[repository.slug.toLowerCase()].invariants,
-      inference_fields: index.repositories[repository.slug.toLowerCase()].inference_fields,
-    },
-  ]));
+  const statuses = new Map(facts.repositories.map(repository => {
+    const entry = index.repositories[repository.slug.toLowerCase()];
+    return [repository.slug.toLowerCase(), entry.status === "held" ? { status: "held", held_reason: entry.held_reason } : { status: entry.status }];
+  }));
+  const summaryCache = Object.fromEntries(facts.repositories
+    .filter(repository => statuses.get(repository.slug.toLowerCase()).status !== "held")
+    .map(repository => [
+      repository.slug,
+      {
+        ...index.repositories[repository.slug.toLowerCase()].summary,
+        summaries: index.repositories[repository.slug.toLowerCase()].summaries,
+        evidence: index.repositories[repository.slug.toLowerCase()].evidence,
+        invariants: index.repositories[repository.slug.toLowerCase()].invariants,
+        inference_fields: index.repositories[repository.slug.toLowerCase()].inference_fields,
+      },
+    ]));
   const latestReleases = latestReleaseDates(facts, events);
-  const published = renderRepositoryFacts(facts.repositories, summaryCache, context, latestReleases);
+  const published = renderRepositoryFacts(facts.repositories, summaryCache, context, latestReleases, statuses);
   const pageSnapshot = createPageSnapshot({
     page: template,
     summaryCache,

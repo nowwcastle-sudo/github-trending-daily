@@ -74,10 +74,26 @@ export async function validateEnrichmentRoot(root, { factsPath } = {}) {
   const cacheMap = new Map(Object.entries(cache).map(([slug, value]) => [slug.toLowerCase(), { slug, value }]));
   const sourceMap = new Map(Object.entries(sources.sources).map(([slug, value]) => [slug.toLowerCase(), { slug, value }]));
   const slugs = [...activeMap.keys()];
-  if ([factMap, cacheMap, sourceMap].some(map => map.size !== slugs.length || slugs.some(slug => !map.has(slug)))) {
+  // Held repositories are published without a summary: they must be absent from
+  // the cache and the source registry, and every other active repository must be exact.
+  const heldSlugs = slugs.filter(slug => activeMap.get(slug).summary_status === "held");
+  const summarizedSlugs = slugs.filter(slug => activeMap.get(slug).summary_status !== "held");
+  if (heldSlugs.length * 2 > slugs.length) {
+    throw new Error(`Held ratio exceeds 50% of the active set (${heldSlugs.length}/${slugs.length})`);
+  }
+  if (factMap.size !== slugs.length || slugs.some(slug => !factMap.has(slug))) {
     throw new Error("Summary bundle active set is not exact");
   }
-  for (const slug of slugs) {
+  for (const slug of heldSlugs) {
+    const pageRepo = activeMap.get(slug);
+    if (cacheMap.has(slug) || sourceMap.has(slug) || pageRepo.summary !== null || pageRepo.summaries !== null) {
+      throw new Error(`Held repository must not carry a summary: ${pageRepo.slug}`);
+    }
+  }
+  if ([cacheMap, sourceMap].some(map => map.size !== summarizedSlugs.length || summarizedSlugs.some(slug => !map.has(slug)))) {
+    throw new Error("Summary bundle active set is not exact");
+  }
+  for (const slug of summarizedSlugs) {
     const repository = factMap.get(slug);
     const readme = facts.readmes[slug];
     const entry = cacheMap.get(slug).value;
@@ -114,11 +130,12 @@ export async function validateEnrichmentRoot(root, { factsPath } = {}) {
     valid: true,
     counts: {
       repository: slugs.length,
-      valid: slugs.length,
-      locales: slugs.length * 5,
+      valid: summarizedSlugs.length,
+      locales: summarizedSlugs.length * 5,
       missing: 0,
       stale: 0,
       insufficient_source: 0,
+      held: heldSlugs.length,
       translations: 0,
     },
   };
@@ -130,7 +147,7 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
     const result = await validateEnrichmentRoot(args.root, { factsPath: args.facts });
     process.stdout.write(`${JSON.stringify(result.counts)}\n`);
   } catch {
-    process.stdout.write(`${JSON.stringify({ repository: 0, valid: 0, locales: 0, missing: 0, stale: 1, insufficient_source: 0, translations: 0 })}\n`);
+    process.stdout.write(`${JSON.stringify({ repository: 0, valid: 0, locales: 0, missing: 0, stale: 1, insufficient_source: 0, held: 0, translations: 0 })}\n`);
     process.exitCode = 1;
   }
 }

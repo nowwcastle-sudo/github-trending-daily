@@ -18,8 +18,9 @@ const TRACKED_LATEST = fileURLToPath(new URL("../data/latest.json", import.meta.
 const SNAPSHOT_KEYS = ["version", "snapshotId", "generatedAt", "statsDate", "repositories"];
 const REPOSITORY_KEYS = [
   "slug", "name", "description", "lang", "topics", "stars", "forks", "issues", "contributors",
-  "gains", "signal", "summary", "tag_rule_version", "field_tags", "form_tags",
+  "gains", "signal", "summary", "summary_status", "tag_rule_version", "field_tags", "form_tags",
 ];
+const SUMMARY_STATUSES = ["verified", "retained", "held"];
 const SUMMARY_KEYS = ["goal", "usage", "pros", "cons", "fit"];
 const GAIN_KEYS = ["daily", "weekly", "monthly"];
 const SIGNAL_KEYS = ["streakDays", "starsChange"];
@@ -109,7 +110,10 @@ function validateRepository(value) {
     if (!exactKeys(value.signal, SIGNAL_KEYS) || !safeNonnegative(value.signal.streakDays)
       || (value.signal.starsChange !== null && !Number.isSafeInteger(value.signal.starsChange))) fail();
   }
-  if (!exactKeys(value.summary, SUMMARY_KEYS)
+  if (!SUMMARY_STATUSES.includes(value.summary_status)) fail();
+  if (value.summary_status === "held") {
+    if (value.summary !== null) fail();
+  } else if (!exactKeys(value.summary, SUMMARY_KEYS)
     || SUMMARY_KEYS.some(key => typeof value.summary[key] !== "string" || !value.summary[key].trim())) fail();
   if (value.tag_rule_version !== TAG_RULE_VERSION) fail();
   validateOrderedTags(value.field_tags, FIELD_TAG_IDS, { field: true });
@@ -155,7 +159,8 @@ export function buildLatestFeed(snapshotExport) {
       contributors: repository.contributors,
       gains: { ...repository.gains },
       signal: repository.signal === null ? null : { ...repository.signal },
-      summary: { ...repository.summary },
+      summary: repository.summary === null ? null : { ...repository.summary },
+      summary_status: repository.summary_status,
       tag_rule_version: repository.tag_rule_version,
       field_tags: [...repository.field_tags],
       form_tags: [...repository.form_tags],

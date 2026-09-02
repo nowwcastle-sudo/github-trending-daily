@@ -23,6 +23,7 @@ try:
         _file_sha256,
         _legacy_logical_rows,
         _parse_parent_evidence_envelope,
+        held_summary_digests,
         validate_schema,
         verify_core_snapshot,
     )
@@ -35,6 +36,7 @@ except ModuleNotFoundError as error:
         _file_sha256,
         _legacy_logical_rows,
         _parse_parent_evidence_envelope,
+        held_summary_digests,
         validate_schema,
         verify_core_snapshot,
     )
@@ -767,9 +769,17 @@ def verify_parent_inputs(
     return {"verified": True, "version": 1}
 
 
-def _summary_content(index: dict[str, Any], item: dict[str, Any]) -> dict[str, str]:
+def _summary_content(index: dict[str, Any], item: dict[str, Any]) -> tuple[dict[str, str] | None, str]:
     repositories = index.get("repositories")
     entry = repositories.get(item["slug"]) if isinstance(repositories, dict) else None
+    if isinstance(entry, dict) and entry.get("status") == "held":
+        expected = held_summary_digests(item["slug"], entry.get("held_reason"))
+        if expected != (item["summary_source_sha256"], item["summary_content_sha256"], item["summary_envelope_sha256"]):
+            raise ValueError("enrichment summary does not match the recorded snapshot")
+        return None, "held"
+    status = entry.get("status", "verified") if isinstance(entry, dict) else "verified"
+    if status not in ("verified", "retained"):
+        raise ValueError("enrichment summary status is invalid")
     summary = entry.get("summary") if isinstance(entry, dict) else None
     content = summary.get("content") if isinstance(summary, dict) else None
     source = summary.get("source") if isinstance(summary, dict) else None
@@ -783,7 +793,7 @@ def _summary_content(index: dict[str, Any], item: dict[str, Any]) -> dict[str, s
         or _digest({"content": content, "source": source}) != item["summary_envelope_sha256"]
     ):
         raise ValueError("enrichment summary does not match the recorded snapshot")
-    return content
+    return content, status
 
 
 def _json_array(value: str, label: str) -> list[Any]:
@@ -820,7 +830,7 @@ def derive_candidate_artifacts(
             if profile_raw is None:
                 raise ValueError("repository profile is absent")
             profile = dict(zip(profile_columns, profile_raw))
-            summary = _summary_content(enrichment_index, item)
+            summary, summary_status = _summary_content(enrichment_index, item)
             items.append({
                 "slug": profile["display_slug"],
                 "name": profile["display_slug"].replace("/", " / ", 1),
@@ -834,6 +844,7 @@ def derive_candidate_artifacts(
                 "gains": {"daily": item["gain_daily"], "weekly": item["gain_weekly"], "monthly": item["gain_monthly"]},
                 "signal": None,
                 "summary": summary,
+                "summary_status": summary_status,
                 "tag_rule_version": profile["tag_rule_version"],
                 "field_tags": _json_array(profile["field_tags_json"], "repository field tags"),
                 "form_tags": _json_array(profile["form_tags_json"], "repository form tags"),

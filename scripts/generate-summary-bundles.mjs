@@ -42,7 +42,6 @@ const MAX_REQUEST_RETRIES = MAX_REQUEST_ATTEMPTS - 1;
 const MAX_TRANSPORT_RETRIES = 2;
 const SOURCE_KEYS = Object.freeze(["kind", "slug", "path", "blob_sha", "content_sha256", "provider", "interface", "cli_version", "auth_method", "api_provider", "model", "schema_version", "prompt_schema_version", "translation_applicable"]);
 const INVARIANT_KINDS = Object.freeze(["command", "version", "number", "url", "product"]);
-const CANONICAL_NUMBER_INVARIANT_RE = /^\d+(?:\.\d+)*(?:\s?(?:GB|MB|KB|ms|s|%))?$/i;
 const GENERIC_MARKER_RE = /\b(?:TODO|TBD)\b/;
 const GENERIC_SUMMARY_RE = /(?:placeholder|확인\s*필요|자동\s*요약|(?:README|readme)(?:를|에서|\s*원문을)?\s*(?:확인|참고|refer|check)|자세한\s*내용은\s*README|consulte\s+(?:el\s+)?README|README\s*(?:を|をご)?(?:参照|確認)|请(?:查看|参阅)\s*README)/i;
 const HEDGE_SCHEMA_PATTERNS = Object.freeze({
@@ -91,6 +90,7 @@ function checkedSummaryBundle(value) {
   let total = 0;
   const result = {};
   const defects = [];
+  const warnings = [];
   for (const locale of SUMMARY_BUNDLE_LOCALES) {
     const summary = value[locale];
     if (!exactKeys(summary, SUMMARY_BUNDLE_FIELDS)) throw new Error(`Summary bundle schema is invalid for ${locale}`);
@@ -113,18 +113,18 @@ function checkedSummaryBundle(value) {
     const normalized = SUMMARY_BUNDLE_FIELDS.map(field => result[locale][field].toLocaleLowerCase(locale)
       .replace(/[^\p{L}\p{N}]+/gu, " ").trim());
     if (new Set(normalized).size !== normalized.length) {
-      defects.push({ code: "FIELD_REPETITION", message: `Summary bundle repeats a field in ${locale}`, locale });
+      warnings.push({ code: "FIELD_REPETITION", locale });
     }
   }
   const englishWords = result.en ? result.en.goal.concat(" ", result.en.usage, " ", result.en.pros, " ", result.en.cons, " ", result.en.fit)
     .trim().split(/\s+/).filter(Boolean).length : 0;
   if (englishWords < 100 || englishWords > 280) {
-    defects.push({ code: "LENGTH_CONTRACT", message: "English summary bundle must contain 100 to 280 words" });
+    warnings.push({ code: "LENGTH_CONTRACT" });
   }
   if (total > MAX_SUMMARY_BUNDLE_CHARACTERS) {
-    defects.push({ code: "LENGTH_CONTRACT", message: "Summary bundle exceeds the fixed character cap" });
+    warnings.push({ code: "LENGTH_CONTRACT" });
   }
-  return { result, defects };
+  return { result, defects, warnings };
 }
 
 export function validateSummaryBundle(value) {
@@ -202,6 +202,7 @@ function validateSummaryBundleEnvelopeShape(value, item, { stored }) {
   const checkedSummaries = checkedSummaryBundle(value.summaries);
   const summaries = checkedSummaries.result;
   const defects = [...checkedSummaries.defects];
+  const warnings = [...checkedSummaries.warnings];
   if (!exactKeys(value.evidence, SUMMARY_BUNDLE_FIELDS)) throw new Error("Summary bundle evidence schema is invalid");
   const structure = markdownHeadings(source.markdown);
   const evidence = {};
@@ -243,15 +244,6 @@ function validateSummaryBundleEnvelopeShape(value, item, { stored }) {
       continue;
     }
     const exact = invariant.value.trim();
-    if (invariant.kind === "number" && !CANONICAL_NUMBER_INVARIANT_RE.test(exact)) {
-      defects.push({
-        code: "INVARIANT_DECLARATION",
-        message: "Summary bundle number invariant must be a canonical numeric token",
-        invariant: exact,
-        invariantKind: invariant.kind,
-      });
-      continue;
-    }
     const fields = SUMMARY_BUNDLE_FIELDS.filter(field => invariant.kind === "product"
       ? summaries.en[field].toLocaleLowerCase("en").includes(exact.toLocaleLowerCase("en"))
       : summaries.en[field].includes(exact));
@@ -274,14 +266,15 @@ function validateSummaryBundleEnvelopeShape(value, item, { stored }) {
       const fieldsMatch = invariant.kind === "product"
         ? fields.every(field => actual.includes(field))
         : equalTokens(fields, actual);
-      if (!fieldsMatch) {
+      if (!fieldsMatch && !["command", "url"].includes(invariant.kind)) {
+        warnings.push({ code: "INVARIANT_FIELDS_SOFT", locale, invariant: exact });
+      } else if (!fieldsMatch) {
         const invariantFields = { value: exact, locale, expected: [...fields], actual: [...actual] };
         defects.push({
           code: "LOCALE_INVARIANT",
           message: `Summary bundle invariant fields mismatch in ${locale}`,
           locale,
           invariant: exact,
-          ...(invariant.kind === "product" ? { invariantKind: invariant.kind } : {}),
           invariantFields,
         });
       }
@@ -301,8 +294,7 @@ function validateSummaryBundleEnvelopeShape(value, item, { stored }) {
     const reference = invariantTokens(summaries.en[field]);
     for (const locale of SUMMARY_BUNDLE_LOCALES.slice(1)) {
       const actual = invariantTokens(summaries[locale][field]);
-      if (!equalTokens(reference.commands, actual.commands) || !equalTokens(reference.urls, actual.urls)
-          || !equalTokens(reference.numbers, actual.numbers)) {
+      if (!equalTokens(reference.commands, actual.commands) || !equalTokens(reference.urls, actual.urls)) {
         defects.push({
           code: "LOCALE_INVARIANT",
           message: `Summary bundle cross-locale invariant mismatch in ${field}`,
@@ -311,23 +303,20 @@ function validateSummaryBundleEnvelopeShape(value, item, { stored }) {
           expected: reference,
           actual,
         });
+      } else if (!equalTokens(reference.numbers, actual.numbers)) {
+        warnings.push({ code: "LOCALE_INVARIANT_NUMBERS", locale, field });
       }
     }
     if (inferenceFields.includes(field)) {
       for (const locale of SUMMARY_BUNDLE_LOCALES) {
         if (!HEDGE_MARKERS[locale].test(summaries[locale][field])) {
-          defects.push({
-            code: "OUTPUT_SCHEMA",
-            message: `Summary bundle inference strength is missing in ${locale}.${field}`,
-            locale,
-            field,
-          });
+          warnings.push({ code: "INFERENCE_HEDGE", locale, field });
         }
       }
     }
   }
   throwQualityDefects(defects);
-  return { summaries, evidence, invariants, inference_fields: [...value.inference_fields] };
+  return { summaries, evidence, invariants, inference_fields: [...value.inference_fields], warnings };
 }
 
 export function validateSummaryBundleEnvelope(value, item) {
@@ -516,10 +505,6 @@ function correctionTargets(error) {
     summaries.set(locale, selected);
   };
   for (const defect of error.qualityDefects) {
-    if (defect.code === "INVARIANT_DECLARATION") {
-      invariants = true;
-      continue;
-    }
     if (defect.code === "EVIDENCE_BINDING") {
       if (SUMMARY_BUNDLE_FIELDS.includes(defect.field)) evidence.add(defect.field);
       else for (const field of SUMMARY_BUNDLE_FIELDS) evidence.add(field);
@@ -590,10 +575,11 @@ function correctionFieldDescriptions(error) {
 function correctionSchema(targets, error) {
   const full = summarySchema();
   const descriptions = correctionFieldDescriptions(error);
-  const enforcedHedges = new Set((error.qualityDefects ?? [])
-    .filter(defect => defect.code === "OUTPUT_SCHEMA" && SUMMARY_BUNDLE_LOCALES.includes(defect.locale)
-      && SUMMARY_BUNDLE_FIELDS.includes(defect.field))
-    .map(defect => `${defect.locale}.${defect.field}`));
+  // Hedge wording is a warning, not a gate, but a correction that rewrites an
+  // inference field keeps the structural hedge pattern so it does not regress.
+  const inferenceFields = Array.isArray(error.previousOutput?.inference_fields) ? error.previousOutput.inference_fields : [];
+  const enforcedHedges = new Set(Object.entries(targets.summaries)
+    .flatMap(([locale, fields]) => fields.filter(field => inferenceFields.includes(field)).map(field => `${locale}.${field}`)));
   const required = [];
   const properties = {};
   if (Object.keys(targets.summaries).length > 0) {
@@ -701,7 +687,7 @@ function reusableEntry(value, item) {
     }, item);
   } catch { return null; }
   return JSON.stringify(value.content) === JSON.stringify(checked.summaries.en)
-    ? { content: checked.summaries.en, ...checked, source: value.source }
+    ? { content: checked.summaries.en, summaries: checked.summaries, evidence: checked.evidence, invariants: checked.invariants, inference_fields: checked.inference_fields, source: value.source }
     : null;
 }
 
@@ -921,9 +907,6 @@ function qualityFeedbackForDefect(error) {
   const message = String(error?.message ?? "");
   const expectedTokens = exactTokenInventory(error?.expected);
   const actualTokens = exactTokenInventory(error?.actual);
-  if (error?.code === "INVARIANT_DECLARATION" && error?.invariantKind === "number") {
-    return `${qualityCode(error)}. Replace the rejected number invariant ${JSON.stringify(error.invariant)} with only its canonical numeric token, such as "2", "3.13", "20%", or "512MB"; omit surrounding source-language words and do not rewrite any summary field`;
-  }
   if (expectedTokens && actualTokens && SUMMARY_BUNDLE_LOCALES.includes(error?.locale)
       && SUMMARY_BUNDLE_FIELDS.includes(error?.field)) {
     return `${qualityCode(error)} at ${error.locale}.${error.field}. Rewrite only that field and replace its command, URL, and number token inventory with exactly expected_tokens in VALIDATION_DEFECTS_JSON; remove every token present only in actual_tokens and add no other command, URL, or number token`;
@@ -1039,7 +1022,7 @@ async function requestOneWithClaude(request, item, runtime) {
   let currentRequest = request;
   for (let attempt = 0; attempt < MAX_REQUEST_ATTEMPTS; attempt += 1) {
     if (nextKind) {
-      if (runtime.retries >= runtime.retryCap) throw prior;
+      if (runtime.retries >= runtime.retryCap) { prior.budgetExhausted = true; throw prior; }
       const delay = nextKind === "transport" ? RETRY_DELAYS[transportRetries - 1] : 0;
       deadlineRemaining(runtime.now, runtime.deadline, delay + runtime.attemptTimeoutMs);
       runtime.retries += 1;
@@ -1080,7 +1063,15 @@ async function requestOneWithClaude(request, item, runtime) {
       if (attempt === MAX_REQUEST_ATTEMPTS - 1) throw error;
       if (error?.quality === true && qualityCorrections < MAX_REQUEST_RETRIES) {
         qualityCorrections += 1;
-        currentRequest = correctionRequest(request, error, error.previousOutput);
+        try {
+          currentRequest = correctionRequest(request, error, error.previousOutput);
+        } catch (correctionError) {
+          // The correction prompt cannot be built (input byte cap). The repository keeps
+          // its quality defects and is held; it must not abort the whole run.
+          correctionError.quality = true;
+          correctionError.qualityDefects = Array.isArray(error.qualityDefects) ? error.qualityDefects : [];
+          throw correctionError;
+        }
         nextKind = "quality";
       } else if (retryable(error) && transportRetries < MAX_TRANSPORT_RETRIES) {
         transportRetries += 1;
@@ -1120,7 +1111,8 @@ export async function runClaudeSummaryBundleRequests({
     runProcess, environment, cwd, executeClaude, sleep, now, deadline, attemptTimeoutMs,
     retryCap: plan.retryAttempts, retries: 0, attempts: 0, inputTokens: 0, outputTokens: 0,
   };
-  const results = new Array(plan.requests.length);
+  const results = new Array(plan.requests.length).fill(null);
+  const held = new Array(plan.requests.length).fill(null);
   let cursor = 0;
   let fatal = null;
   async function worker() {
@@ -1129,20 +1121,96 @@ export async function runClaudeSummaryBundleRequests({
       const index = cursor;
       cursor += 1;
       if (index >= plan.requests.length) return;
+      const slug = plan.items[index].slug;
+      if (execution.exhausted?.skipRemaining) {
+        held[index] = { slug, reason: execution.exhausted.reason, defect_codes: [], diagnostic: skippedRepositoryDiagnostic(slug, execution.exhausted, execution, provenance) };
+        continue;
+      }
       try {
         results[index] = await requestOneWithClaude(plan.requests[index], plan.items[index], execution);
       } catch (error) {
         const failure = error instanceof Error ? error : new Error("Summary bundle request failed");
         const defectCount = Array.isArray(failure.qualityDefects) ? failure.qualityDefects.length : 0;
-        failure.repositorySlug = plan.items[index].slug;
-        failure.message = `${failure.message} [repository=${plan.items[index].slug}; defects=${defectCount}]`;
-        fatal ??= failure;
-        return;
+        failure.repositorySlug = slug;
+        failure.message = `${failure.message} [repository=${slug}; defects=${defectCount}]`;
+        const reason = heldReason(failure);
+        if (reason === null) {
+          fatal ??= failure;
+          return;
+        }
+        // A rate limit or an exhausted deadline stops every remaining request. A retry
+        // cap exhausted by corrections only blocks further corrections: the remaining
+        // repositories still get their single initial attempt (2026-09-03 decision).
+        if (reason === "budget_exhausted" || reason === "deadline_exhausted") {
+          const skipRemaining = reason === "deadline_exhausted" || failure.failureCode === "CLAUDE_RATE_LIMITED";
+          // The first exhaustion is recorded; a later rate limit or deadline upgrades a
+          // cap-only exhaustion so the remaining repositories stop being attempted.
+          if (!execution.exhausted || (skipRemaining && !execution.exhausted.skipRemaining)) {
+            execution.exhausted = { reason, failure, slug, skipRemaining };
+          }
+        }
+        held[index] = {
+          slug,
+          reason,
+          defect_codes: Array.isArray(failure.qualityDefects) ? failure.qualityDefects.map(defect => defect.code ?? qualityCode(defect)) : [],
+          diagnostic: boundedFailureDiagnostic(failure, slug, execution, provenance),
+        };
       }
     }
   }
   await Promise.all(Array.from({ length: Math.min(concurrency, plan.requests.length) }, () => worker()));
   if (fatal) {
+    fatal.summaryFailureDiagnostic = boundedFailureDiagnostic(fatal, fatal.repositorySlug, execution, provenance);
+    throw fatal;
+  }
+  return {
+    results,
+    held,
+    usage: {
+      inputTokens: execution.inputTokens,
+      outputTokens: execution.outputTokens,
+      logicalCalls: results.length,
+      attempts: execution.attempts,
+      retries: execution.retries,
+    },
+    runtime: provenance,
+  };
+}
+
+// Per-repository terminal failures become `held`; only provider-wide failures
+// (auth, process execution, schema rejection, unknown) stop the whole run.
+const HELD_REQUEST_FAILURE_CODES = Object.freeze(["CLAUDE_TIMEOUT", "CLAUDE_OUTPUT_LIMIT", "CLAUDE_TRANSIENT_PROVIDER_FAILURE", "CLAUDE_REQUEST_FAILED"]);
+function heldReason(failure) {
+  if (failure.failureCode === "CLAUDE_RATE_LIMITED" || failure.budgetExhausted === true) return "budget_exhausted";
+  if (String(failure.message).startsWith("Summary bundle deadline is exhausted")) return "deadline_exhausted";
+  if (failure.quality === true) return "quality_defects";
+  if (HELD_REQUEST_FAILURE_CODES.includes(failure.failureCode)) return "request_failed";
+  return null;
+}
+
+// A repository that was never attempted because an earlier repository exhausted the
+// run budget or deadline has no defects of its own; the diagnostic only names the cause.
+function skippedRepositoryDiagnostic(slug, exhausted, execution, provenance) {
+  return {
+    version: 1,
+    repository: slug,
+    failure_code: exhausted.reason === "budget_exhausted" ? "BUDGET_EXHAUSTED" : "DEADLINE_EXHAUSTED",
+    caused_by: exhausted.slug,
+    defect_count: 0,
+    defects: [],
+    usage: {
+      inputTokens: execution.inputTokens,
+      outputTokens: execution.outputTokens,
+      attempts: execution.attempts,
+      retries: execution.retries,
+    },
+    runtime: provenance,
+  };
+}
+
+function boundedFailureDiagnostic(failure, slug, execution, provenance) {
+  {
+    const fatal = failure;
     const defects = Array.isArray(fatal.qualityDefects) ? fatal.qualityDefects.map(defect => ({
       code: defect.code ?? qualityCode(defect),
       ...(defect.locale ? { locale: defect.locale } : {}),
@@ -1165,9 +1233,9 @@ export async function runClaudeSummaryBundleRequests({
       ...(typeof defect.invariantKind === "string" ? { invariant_kind: defect.invariantKind } : {}),
       ...(tokenMismatchDiagnostic(defect) ? { token_mismatch: tokenMismatchDiagnostic(defect) } : {}),
     })) : [];
-    fatal.summaryFailureDiagnostic = {
+    return {
       version: 1,
-      repository: fatal.repositorySlug,
+      repository: slug,
       failure_code: fatal.quality === true
         ? "QUALITY_VALIDATION_FAILED"
         : CLAUDE_REQUEST_FAILURE_CODES.includes(fatal.failureCode) ? fatal.failureCode : "CLAUDE_REQUEST_FAILED",
@@ -1181,19 +1249,7 @@ export async function runClaudeSummaryBundleRequests({
       },
       runtime: provenance,
     };
-    throw fatal;
   }
-  return {
-    results,
-    usage: {
-      inputTokens: execution.inputTokens,
-      outputTokens: execution.outputTokens,
-      logicalCalls: results.length,
-      attempts: execution.attempts,
-      retries: execution.retries,
-    },
-    runtime: provenance,
-  };
 }
 
 function policyContextFromEnvironment(environment) {
@@ -1301,10 +1357,24 @@ export async function runFrozenSummaryBundlePipeline({
       plan, runProcess, environment, cwd, preflight, preflightResult, executeClaude, sleep, now, deadline,
     });
   }
+  // Repository-level admission: a pending repository whose request ended in a
+  // bounded failure is `held`; verified and retained repositories still publish.
+  const verifiedSlugs = new Set();
+  const warningsBySlug = new Map();
+  const heldBySlug = new Map();
   for (let index = 0; index < pending.length; index += 1) {
     const item = pending[index];
+    const slug = item.slug.toLowerCase();
     const checked = completed.results[index];
-    retained.set(item.slug.toLowerCase(), {
+    if (checked === null || checked === undefined) {
+      const held = completed.held?.[index];
+      if (!held || held.slug !== item.slug) throw new Error(`Summary bundle result is missing for ${item.slug}`);
+      heldBySlug.set(slug, held);
+      continue;
+    }
+    verifiedSlugs.add(slug);
+    warningsBySlug.set(slug, Array.isArray(checked.warnings) ? checked.warnings.map(warning => ({ ...warning })) : []);
+    retained.set(slug, {
       content: checked.summaries.en,
       summaries: checked.summaries,
       evidence: checked.evidence,
@@ -1313,31 +1383,44 @@ export async function runFrozenSummaryBundlePipeline({
       source: buildSummarySource(item, completed.runtime),
     });
   }
+  if (heldBySlug.size * 2 > items.length) {
+    throw new Error(`Summary bundle held ratio exceeds 50% (${heldBySlug.size}/${items.length})`);
+  }
+  if (items.length > 0 && retained.size === 0) throw new Error("Summary bundle candidate has no verified or retained repository");
   const cache = {};
   const sources = {};
   const repositories = {};
   for (const item of items) {
     const slug = item.slug.toLowerCase();
+    const held = heldBySlug.get(slug);
+    if (held) {
+      repositories[slug] = { status: "held", held_reason: held.reason, defect_codes: [...held.defect_codes], warnings: [] };
+      continue;
+    }
     const entry = retained.get(slug);
     if (!entry || !reusableEntry(entry, item)) throw new Error(`Summary bundle coverage is incomplete for ${item.slug}`);
     cache[item.slug] = entry;
     sources[item.slug] = entry.source;
     repositories[slug] = {
+      status: verifiedSlugs.has(slug) ? "verified" : "retained",
       summary: { content: entry.content, source: entry.source },
       summaries: entry.summaries,
       evidence: entry.evidence,
       invariants: entry.invariants,
       inference_fields: entry.inference_fields,
+      warnings: warningsBySlug.get(slug) ?? [],
     };
   }
+  const heldList = pending.map((item, index) => heldBySlug.get(item.slug.toLowerCase()) ?? null).filter(Boolean);
   const index = {
-    version: 1,
+    version: 2,
     snapshotId: facts.snapshotId,
     activeSetSha256: facts.activeSetSha256,
     factsSha256: facts.factsSha256,
     sourceSetSha256: facts.sourceSetSha256,
     runContextSha256: facts.runContextSha256,
     eventsSha256: events.completeSetSha256,
+    heldRatio: items.length === 0 ? 0 : heldBySlug.size / items.length,
     repositories,
   };
   return retireTranslations(candidateRoot, async () => {
@@ -1346,7 +1429,7 @@ export async function runFrozenSummaryBundlePipeline({
       { path: path.join(candidateRoot, "data", "translation-sources.json"), text: `${JSON.stringify({ version: SUMMARY_BUNDLE_SCHEMA_VERSION, sources }, null, 2)}\n` },
       { path: indexFile, text: `${JSON.stringify(index)}\n` },
     ]);
-    return { repositories: items.length, pending: pending.length, usage: completed.usage, runtime: completed.runtime, index };
+    return { repositories: items.length, pending: pending.length, held: heldList, usage: completed.usage, runtime: completed.runtime, index };
   });
 }
 
@@ -1393,7 +1476,11 @@ async function main() {
     }
     throw error;
   }
-  process.stdout.write(`${JSON.stringify({ repositories: result.repositories, pending: result.pending, runtime: result.runtime, usage: result.usage })}\n`);
+  if (result.held.length > 0) {
+    const heldDiagnostics = { version: 2, held: result.held.map(held => ({ slug: held.slug, reason: held.reason, defect_codes: held.defect_codes, diagnostic: held.diagnostic })) };
+    await writeFile(failureDiagnosticsFile, `${JSON.stringify(heldDiagnostics)}\n`, { encoding: "utf8", flag: "wx" });
+  }
+  process.stdout.write(`${JSON.stringify({ repositories: result.repositories, pending: result.pending, held: result.held.length, runtime: result.runtime, usage: result.usage })}\n`);
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {

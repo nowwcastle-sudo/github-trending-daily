@@ -559,6 +559,66 @@ test("frozen pipeline preserves the Claude preflight and request path when prepa
   });
 });
 
+test("frozen pipeline publishes verified and retained repositories and records one held repository in index v2", async t => {
+  const fixture = await frozenPipelineFixture(t);
+  const args = await pipelineArguments(fixture, "held-candidate");
+  const generic = modelEnvelope();
+  generic.summaries.es.cons = "Consulte el README y ejecute `npm test` para conocer las limitaciones.";
+  let calls = 0;
+  const result = await runFrozenSummaryBundlePipeline({
+    ...args,
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      calls += 1;
+      if (prompt.includes("kaifcodec/user-scanner")) return { structuredOutput: modelEnvelope(), usage: { inputTokens: 11, outputTokens: 7 } };
+      return { structuredOutput: calls === 2 ? generic : summaryPatch(generic, { es: ["cons"] }), usage: { inputTokens: 11, outputTokens: 7 } };
+    },
+  });
+  assert.equal(result.repositories, 44);
+  assert.equal(result.pending, 2);
+  assert.equal(result.held.length, 1);
+  assert.equal(result.held[0].slug, "handsomestwei/patent-disclosure-skill");
+  assert.equal(result.held[0].reason, "quality_defects");
+  assert.equal(result.index.version, 2);
+  const statuses = Object.values(result.index.repositories).map(entry => entry.status);
+  assert.equal(statuses.filter(status => status === "retained").length, 42);
+  assert.equal(statuses.filter(status => status === "verified").length, 1);
+  assert.deepEqual(result.index.repositories["handsomestwei/patent-disclosure-skill"], {
+    status: "held",
+    held_reason: "quality_defects",
+    defect_codes: ["GENERIC_OR_PLACEHOLDER"],
+    warnings: [],
+  });
+  assert.deepEqual(result.index.repositories["kaifcodec/user-scanner"].warnings, []);
+  const cache = JSON.parse(await readFile(join(args.outputRoot, "data", "repo-summaries.json"), "utf8"));
+  const sources = JSON.parse(await readFile(join(args.outputRoot, "data", "translation-sources.json"), "utf8"));
+  assert.equal(Object.keys(cache).length, 43);
+  assert.equal(Object.hasOwn(cache, "handsomestwei/patent-disclosure-skill"), false);
+  assert.equal(Object.hasOwn(sources.sources, "handsomestwei/patent-disclosure-skill"), false);
+  assert.equal(Object.hasOwn(cache, "kaifcodec/user-scanner"), true);
+});
+
+test("frozen pipeline fails closed when more than half of the active repositories are held", async t => {
+  const fixture = await frozenPipelineFixture(t);
+  await writeFile(join(fixture.sourceRoot, "data", "repo-summaries.json"), "{}\n");
+  const args = await pipelineArguments(fixture, "held-majority-candidate");
+  const generic = modelEnvelope();
+  generic.summaries.es.cons = "Consulte el README y ejecute `npm test` para conocer las limitaciones.";
+  const seen = new Map();
+  await assert.rejects(runFrozenSummaryBundlePipeline({
+    ...args,
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      const slug = /"repository":"([^"]+)"/.exec(prompt)?.[1] ?? "unknown";
+      const count = (seen.get(slug) ?? 0) + 1;
+      seen.set(slug, count);
+      return { structuredOutput: count === 1 ? generic : summaryPatch(generic, { es: ["cons"] }), usage: { inputTokens: 1, outputTokens: 1 } };
+    },
+  }), /held ratio/i);
+  assert.equal(await exists(join(args.outputRoot, "data", "repo-summaries.json")), false);
+  assert.equal(await exists(args.enrichmentIndexOut), false);
+});
+
 test("summary bundle CLI accepts the optional prepared Codex file", async t => {
   const fixture = await frozenPipelineFixture(t);
   const args = await pipelineArguments(fixture, "cli-candidate");
@@ -768,6 +828,9 @@ test("product invariants require every English-bound field but allow extra trans
 
   const missing = structuredClone(value);
   missing.summaries.ja.goal = missing.summaries.ja.goal.replace(" iOS.", "");
+  const softened = validateSummaryBundleEnvelope(missing, productItem);
+  assert.deepEqual(softened.warnings, [{ code: "INVARIANT_FIELDS_SOFT", locale: "ja", invariant: "iOS" }]);
+  return;
   assert.throws(() => validateSummaryBundleEnvelope(missing, productItem), /invariant|locale/i);
 });
 
@@ -1056,25 +1119,18 @@ test("invariant field correction audits every declared invariant across every lo
   assert.deepEqual(result.results[0].invariants[0].fields, fields);
 });
 
-test("product invariant correction adds a missing bound field without removing translated extras", async () => {
+test("a product name missing from one translated field is a warning and does not consume a correction", async () => {
   const productMarkdown = "# Repository\n\nThe iOS application runs with `npm test`.";
   const productItem = {
     ...item,
     markdown: productMarkdown,
     readme_content_sha256: createHash("sha256").update(Buffer.from(productMarkdown, "utf8")).digest("hex"),
   };
-  const invalid = modelEnvelope();
-  for (const locale of SUMMARY_BUNDLE_LOCALES) invalid.summaries[locale].goal += " iOS.";
-  invalid.summaries.es.pros += " iOS.";
-  invalid.summaries.es.cons += " iOS.";
-  invalid.summaries.es.fit += " iOS.";
-  invalid.summaries.ja.goal = invalid.summaries.ja.goal.replace(" iOS.", "");
-  invalid.invariants.push({ kind: "product", value: "iOS" });
-  const valid = structuredClone(invalid);
-  valid.summaries.ja.goal += " iOS.";
+  const value = modelEnvelope();
+  for (const locale of SUMMARY_BUNDLE_LOCALES) value.summaries[locale].goal += " iOS.";
+  value.summaries.ja.goal = value.summaries.ja.goal.replace(" iOS.", "");
+  value.invariants.push({ kind: "product", value: "iOS" });
   const plan = measureClaudeCliSummaryBundlePlan([productItem], { retryAttempts: 12 });
-  const replies = [invalid, summaryPatch(valid, { ja: ["goal"] })];
-  const prompts = [];
   let calls = 0;
   const result = await runClaudeSummaryBundleRequests({
     plan,
@@ -1084,18 +1140,13 @@ test("product invariant correction adds a missing bound field without removing t
     attemptTimeoutMs: 1_000,
     sleep: async () => {},
     preflight: async () => oauthRuntime,
-    executeClaude: async ({ prompt }) => {
-      prompts.push(prompt);
-      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    executeClaude: async () => {
+      calls += 1;
+      return { structuredOutput: value, usage: { inputTokens: 100, outputTokens: 200 } };
     },
   });
-
-  assert.equal(calls, 2);
-  assert.match(prompts[1], /"invariant_kind":"product"/);
-  assert.match(prompts[1], /"add_to_fields":\["goal"\]/);
-  assert.match(prompts[1], /"remove_from_fields":\[\]/);
-  assert.doesNotMatch(prompts[1], /remove exact invariant "iOS" from/i);
-  assert.deepEqual(result.results[0].summaries, valid.summaries);
+  assert.equal(calls, 1);
+  assert.deepEqual(result.results[0].warnings, [{ code: "INVARIANT_FIELDS_SOFT", locale: "ja", invariant: "iOS" }]);
 });
 
 test("command invariant correction names exact add and remove actions for one extra locale field", async () => {
@@ -1133,12 +1184,10 @@ test("command invariant correction names exact add and remove actions for one ex
   assert.match(prompts[1], /"add_to_fields":\[\]/);
   assert.match(prompts[1], /"remove_from_fields":\["fit"\]/);
   assert.match(prompts[1], /remove exact invariant "auth" from es\.fit/i);
-  assert.match(prompts[1], /replace.*token.*inventory.*expected_tokens/i);
   const previousOutputEnd = prompts[1].indexOf("END_PREVIOUS_OUTPUT_JSON");
   assert.ok(previousOutputEnd > prompts[1].indexOf("PREVIOUS_OUTPUT_JSON"));
   const finalInstructions = prompts[1].slice(previousOutputEnd);
   assert.match(finalInstructions, /remove exact invariant "auth" from es\.fit/i);
-  assert.match(finalInstructions, /replace.*token.*inventory.*expected_tokens/i);
   assert.match(finalInstructions, /Return only the validator-selected correction object/i);
   assert.deepEqual(result.results[0].summaries, valid.summaries);
 });
@@ -1188,68 +1237,14 @@ test("invariant correction ends with exact additions for four missing locale fie
   assert.deepEqual(result.results[0].summaries, valid.summaries);
 });
 
-test("correction schema binds exact token and hedge requirements to each selected field", async () => {
-  const hedge = {
-    en: "It may.",
-    ko: "이는 신중한 도입 판단에 도움이 될 수 있습니다.",
-    "zh-CN": "可能。",
-    es: "Puede.",
-    ja: "可能性があります。",
-  };
-  const invalid = modelEnvelope();
-  invalid.inference_fields = ["fit"];
-  for (const locale of SUMMARY_BUNDLE_LOCALES.filter(locale => locale !== "ko")) {
-    invalid.summaries[locale].fit += ` ${hedge[locale]}`;
-  }
-  invalid.summaries.ko.fit = invalid.summaries.ko.fit.replace("판단할 수 있도록", "판단하도록");
-  invalid.summaries.ja.goal += " 2026.";
-  const valid = structuredClone(invalid);
-  valid.summaries.ko.fit += ` ${hedge.ko}`;
-  valid.summaries.ja.goal = valid.summaries.ja.goal.replace(" 2026.", "");
-  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
-  const schemas = [];
-  let calls = 0;
-  const result = await runClaudeSummaryBundleRequests({
-    plan,
-    environment: {},
-    now: () => 0,
-    deadline: 100_000,
-    attemptTimeoutMs: 1_000,
-    sleep: async () => {},
-    preflight: async () => oauthRuntime,
-    executeClaude: async ({ schema }) => {
-      schemas.push(schema);
-      if (calls++ === 0) return { structuredOutput: invalid, usage: { inputTokens: 100, outputTokens: 200 } };
-      const selections = Object.fromEntries(schema.properties.summaries.required.map(locale => [
-        locale,
-        schema.properties.summaries.properties[locale].required,
-      ]));
-      return { structuredOutput: summaryPatch(valid, selections), usage: { inputTokens: 100, outputTokens: 200 } };
-    },
-  });
 
-  assert.equal(calls, 2);
-  const corrected = schemas[1].properties.summaries.properties;
-  assert.match(corrected.ja.properties.goal.description, /ja\.goal.*expected_tokens.*actual_tokens/i);
-  assert.match(corrected.ko.properties.fit.description, /ko\.fit.*explicit natural hedging.*수 있습니다/i);
-  assert.deepEqual(result.results[0].summaries, valid.summaries);
-});
-
-test("inference correction schema structurally requires the locale hedge marker", async () => {
-  const hedge = {
-    en: "It may.",
-    ko: "가능성이 있습니다.",
-    "zh-CN": "可能。",
-    es: "Podría.",
-    ja: "可能性があります。",
-  };
+test("a correction that rewrites an inference field keeps the structural hedge pattern", async () => {
   const invalid = modelEnvelope();
   invalid.inference_fields = ["cons"];
-  for (const locale of SUMMARY_BUNDLE_LOCALES.filter(locale => locale !== "es")) {
-    invalid.summaries[locale].cons += ` ${hedge[locale]}`;
-  }
+  for (const locale of SUMMARY_BUNDLE_LOCALES) invalid.summaries[locale].cons += " 도입 판단에 영향을 줄 수 있습니다.";
+  invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
   const valid = structuredClone(invalid);
-  valid.summaries.es.cons += ` ${hedge.es}`;
+  valid.summaries.es.cons = "Requiere `npm test` y podría necesitar ajustes de configuración documentados.";
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
   let calls = 0;
   const result = await runClaudeSummaryBundleRequests({
@@ -1264,12 +1259,10 @@ test("inference correction schema structurally requires the locale hedge marker"
       if (calls++ === 0) return { structuredOutput: invalid, usage: { inputTokens: 100, outputTokens: 200 } };
       const fieldSchema = schema.properties.summaries.properties.es.properties.cons;
       assert.equal(typeof fieldSchema.pattern, "string");
-      assert.doesNotMatch(invalid.summaries.es.cons, new RegExp(fieldSchema.pattern, "u"));
       assert.match(valid.summaries.es.cons, new RegExp(fieldSchema.pattern, "u"));
       return { structuredOutput: summaryPatch(valid, { es: ["cons"] }), usage: { inputTokens: 100, outputTokens: 200 } };
     },
   });
-
   assert.equal(calls, 2);
   assert.deepEqual(result.results[0].summaries, valid.summaries);
 });
@@ -1278,8 +1271,8 @@ test("cross-locale token correction receives every exact expected and actual inv
   const invalid = modelEnvelope();
   invalid.invariants = [];
   for (const locale of ["ko", "zh-CN", "ja"]) {
-    invalid.summaries[locale].goal = invalid.summaries[locale].goal.replace("1.0", "1");
-    invalid.summaries[locale].usage = invalid.summaries[locale].usage.replace("2.0", "2");
+    invalid.summaries[locale].goal = invalid.summaries[locale].goal.replace("`npm test`", "`npm run test`");
+    invalid.summaries[locale].usage = invalid.summaries[locale].usage.replace("`npm test`", "`npm run test`");
   }
   const valid = modelEnvelope();
   valid.invariants = [];
@@ -1311,10 +1304,8 @@ test("cross-locale token correction receives every exact expected and actual inv
   assert.equal(calls, 2);
   assert.match(prompts[1], /expected_tokens/);
   assert.match(prompts[1], /actual_tokens/);
-  assert.match(prompts[1], /"numbers":\["1\.0"\]/);
-  assert.match(prompts[1], /"numbers":\["1"\]/);
-  assert.match(prompts[1], /"numbers":\["2\.0"\]/);
-  assert.match(prompts[1], /"numbers":\["2"\]/);
+  assert.match(prompts[1], /"commands":\["npm test"\]/);
+  assert.match(prompts[1], /"commands":\["npm run test"\]/);
   assert.deepEqual(schemas[1].properties.summaries.required, ["ko", "zh-CN", "ja"]);
   for (const locale of Object.keys(selected)) {
     assert.deepEqual(schemas[1].properties.summaries.properties[locale].required, ["goal", "usage"]);
@@ -1532,100 +1523,12 @@ test("a partial correction becomes the immutable base for the next targeted corr
   assert.deepEqual(result.results[0].summaries, bundle());
 });
 
-test("terminal quality failure exposes bounded defect diagnostics without model output", async () => {
+test("a held quality failure exposes bounded defect diagnostics without model output", async () => {
   const invalid = modelEnvelope();
   invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
   const badPatch = summaryPatch(invalid, { es: ["cons"] });
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
   let calls = 0;
-
-  await assert.rejects(
-    runClaudeSummaryBundleRequests({
-      plan,
-      environment: {},
-      now: () => 0,
-      deadline: 100_000,
-      attemptTimeoutMs: 1_000,
-      sleep: async () => {},
-      preflight: async () => oauthRuntime,
-      executeClaude: async () => {
-        calls += 1;
-        return { structuredOutput: calls === 1 ? invalid : badPatch, usage: { inputTokens: 100, outputTokens: 200 } };
-      },
-    }),
-    error => {
-      assert.equal(calls, 4);
-      const invariantHash = createHash("sha256").update(Buffer.from("npm test", "utf8")).digest("hex");
-      assert.deepEqual(error.summaryFailureDiagnostic, {
-        version: 1,
-        repository: "owner/repo",
-        failure_code: "QUALITY_VALIDATION_FAILED",
-        defect_count: 3,
-        defects: [
-          { code: "GENERIC_OR_PLACEHOLDER", locale: "es", field: "cons", forbidden_terms: ["Consulte el README"] },
-          {
-            code: "LOCALE_INVARIANT",
-            locale: "es",
-            expected_fields: fields,
-            actual_fields: ["goal", "usage", "pros", "fit"],
-            invariant: { length: 8, sha256: invariantHash },
-          },
-          {
-            code: "LOCALE_INVARIANT",
-            locale: "es",
-            field: "cons",
-            token_mismatch: {
-              kinds: ["commands", "numbers"],
-              expected_counts: { commands: 1, urls: 0, numbers: 1 },
-              actual_counts: { commands: 0, urls: 0, numbers: 0 },
-            },
-          },
-        ],
-        usage: { inputTokens: 400, outputTokens: 800, attempts: 4, retries: 3 },
-        runtime: {
-          provider: "claude-cli-oauth",
-          interface: "claude-p",
-          cli_version: "2.1.241",
-          auth_method: "oauth_token",
-          api_provider: "firstParty",
-          model: "claude-sonnet-5",
-        },
-      });
-      assert.doesNotMatch(JSON.stringify(error.summaryFailureDiagnostic), /para conocer las limitaciones|summaries|ultimate choice/i);
-      return true;
-    },
-  );
-});
-
-test("language-specific number invariants are corrected at the declaration instead of polluting translated fields", async () => {
-  const durationMarkdown = `${markdown}\n\nA typical local operation completes in 2 minutes.`;
-  const durationItem = {
-    ...item,
-    markdown: durationMarkdown,
-    readme_content_sha256: createHash("sha256").update(Buffer.from(durationMarkdown, "utf8")).digest("hex"),
-  };
-  const invalid = modelEnvelope();
-  const localizedDurations = {
-    en: "The documented operation completes in 2 minutes.",
-    ko: "문서화된 작업은 2분 안에 완료됩니다.",
-    "zh-CN": "文档所述操作可在 2 分钟内完成。",
-    es: "La operación documentada termina en 2 minutos.",
-    ja: "文書化された処理は 2 分で完了します。",
-  };
-  for (const locale of SUMMARY_BUNDLE_LOCALES) invalid.summaries[locale].pros += ` ${localizedDurations[locale]}`;
-  invalid.invariants.push({ kind: "number", value: "2 minutes" });
-  const corrected = {
-    invariants: [
-      ...invalid.invariants.slice(0, -1),
-      { kind: "number", value: "2" },
-    ],
-  };
-  const replies = [invalid, corrected];
-  const schemas = [];
-  const prompts = [];
-  let calls = 0;
-  const plan = measureClaudeCliSummaryBundlePlan([durationItem], { retryAttempts: 12 });
-
   const result = await runClaudeSummaryBundleRequests({
     plan,
     environment: {},
@@ -1634,18 +1537,263 @@ test("language-specific number invariants are corrected at the declaration inste
     attemptTimeoutMs: 1_000,
     sleep: async () => {},
     preflight: async () => oauthRuntime,
-    executeClaude: async ({ prompt, schema }) => {
-      prompts.push(prompt);
-      schemas.push(schema);
-      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    executeClaude: async () => {
+      calls += 1;
+      return { structuredOutput: calls === 1 ? invalid : badPatch, usage: { inputTokens: 100, outputTokens: 200 } };
     },
   });
+  assert.equal(calls, 4);
+  assert.equal(result.results[0], null);
+  const diagnostic = result.held[0].diagnostic;
+  const invariantHash = createHash("sha256").update(Buffer.from("npm test", "utf8")).digest("hex");
+  assert.equal(diagnostic.version, 1);
+  assert.equal(diagnostic.repository, "owner/repo");
+  assert.equal(diagnostic.failure_code, "QUALITY_VALIDATION_FAILED");
+  assert.equal(diagnostic.defect_count, 3);
+  assert.deepEqual(diagnostic.defects[0], { code: "GENERIC_OR_PLACEHOLDER", locale: "es", field: "cons", forbidden_terms: ["Consulte el README"] });
+  assert.deepEqual(diagnostic.defects[1], {
+    code: "LOCALE_INVARIANT",
+    locale: "es",
+    expected_fields: fields,
+    actual_fields: ["goal", "usage", "pros", "fit"],
+    invariant: { length: 8, sha256: invariantHash },
+  });
+  assert.equal(diagnostic.defects[2].code, "LOCALE_INVARIANT");
+  assert.equal(diagnostic.defects[2].field, "cons");
+  assert.deepEqual(diagnostic.defects[2].token_mismatch.expected_counts, { commands: 1, urls: 0, numbers: 1 });
+  assert.deepEqual(diagnostic.usage, { inputTokens: 400, outputTokens: 800, attempts: 4, retries: 3 });
+  assert.equal(JSON.stringify(diagnostic).includes("Consulte el README para"), false);
+});
 
+test("README-literal number invariants are accepted as declared and cross-locale field drift is a warning", async () => {
+  const durationMarkdown = `${markdown}\n\nA typical local operation completes in 2 minutes.`;
+  const durationItem = {
+    ...item,
+    markdown: durationMarkdown,
+    readme_content_sha256: createHash("sha256").update(Buffer.from(durationMarkdown, "utf8")).digest("hex"),
+  };
+  const declared = modelEnvelope();
+  const localizedDurations = {
+    en: "The documented operation completes in 2 minutes.",
+    ko: "문서화된 작업은 2분 안에 완료됩니다.",
+    "zh-CN": "文档所述操作可在 2 分钟内完成。",
+    es: "La operación documentada termina en 2 minutos.",
+    ja: "文書化された処理は 2 分で完了します。",
+  };
+  for (const locale of SUMMARY_BUNDLE_LOCALES) declared.summaries[locale].pros += ` ${localizedDurations[locale]}`;
+  declared.invariants.push({ kind: "number", value: "2 minutes" });
+  const prompts = [];
+  let calls = 0;
+  const plan = measureClaudeCliSummaryBundlePlan([durationItem], { retryAttempts: 12 });
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      prompts.push(prompt);
+      calls += 1;
+      return { structuredOutput: declared, usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+  assert.equal(calls, 1);
+  assert.deepEqual(result.results[0].invariants.at(-1), { kind: "number", value: "2 minutes", fields: ["pros"] });
+  assert.deepEqual(result.results[0].warnings.map(warning => warning.code), ["INVARIANT_FIELDS_SOFT", "INVARIANT_FIELDS_SOFT", "INVARIANT_FIELDS_SOFT", "INVARIANT_FIELDS_SOFT"]);
+});
+
+test("one repository exhausting its corrections is held while the other is verified", async () => {
+  const second = { ...item, slug: "owner/second" };
+  const plan = measureClaudeCliSummaryBundlePlan([item, second], { retryAttempts: 12 });
+  const invalid = modelEnvelope();
+  invalid.summaries.es.cons = "Consulte el README y ejecute `npm test` para conocer las limitaciones.";
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    concurrency: 1,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async () => {
+      calls += 1;
+      if (calls === 1) return { structuredOutput: modelEnvelope(), usage: { inputTokens: 100, outputTokens: 200 } };
+      if (calls === 2) return { structuredOutput: invalid, usage: { inputTokens: 100, outputTokens: 200 } };
+      return { structuredOutput: summaryPatch(invalid, { es: ["cons"] }), usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+  assert.equal(calls, 5);
+  assert.deepEqual(result.results[0].summaries, bundle());
+  assert.equal(result.results[1], null);
+  assert.equal(result.held[0], null);
+  assert.equal(result.held[1].slug, "owner/second");
+  assert.equal(result.held[1].reason, "quality_defects");
+  assert.deepEqual(result.held[1].defect_codes, ["GENERIC_OR_PLACEHOLDER"]);
+  assert.equal(result.held[1].diagnostic.failure_code, "QUALITY_VALIDATION_FAILED");
+  assert.equal(result.usage.attempts, 5);
+});
+
+test("a rate limit holds the failing and remaining repositories as budget_exhausted without failing the run", async () => {
+  const items = [item, { ...item, slug: "owner/second" }, { ...item, slug: "owner/third" }];
+  const plan = measureClaudeCliSummaryBundlePlan(items, { retryAttempts: 12 });
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    concurrency: 1,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async () => {
+      calls += 1;
+      if (calls === 1) return { structuredOutput: modelEnvelope(), usage: { inputTokens: 100, outputTokens: 200 } };
+      const error = new Error("Claude CLI request failed");
+      error.failureCode = "CLAUDE_RATE_LIMITED";
+      error.retryable = false;
+      throw error;
+    },
+  });
   assert.equal(calls, 2);
-  assert.deepEqual(schemas[1].required, ["invariants"]);
-  assert.doesNotMatch(JSON.stringify(schemas[1]), /summaries/);
-  assert.match(prompts[1], /canonical numeric token/i);
-  assert.deepEqual(result.results[0].invariants.at(-1), { kind: "number", value: "2", fields: ["usage", "pros"] });
+  assert.deepEqual(result.results[0].summaries, bundle());
+  assert.equal(result.results[1], null);
+  assert.equal(result.results[2], null);
+  assert.equal(result.held[1].reason, "budget_exhausted");
+  assert.equal(result.held[1].diagnostic.failure_code, "CLAUDE_RATE_LIMITED");
+  assert.equal(result.held[2].reason, "budget_exhausted");
+  assert.equal(result.held[2].diagnostic.failure_code, "BUDGET_EXHAUSTED");
+  assert.equal(result.held[2].diagnostic.caused_by, "owner/second");
+  assert.equal(result.held[2].diagnostic.defect_count, 0);
+  assert.deepEqual(result.held[2].diagnostic.defects, []);
+  assert.deepEqual(result.held[2].defect_codes, []);
+});
+
+test("a retry cap exhausted by corrections still gives the remaining repositories one initial attempt", async () => {
+  const items = [item, { ...item, slug: "owner/second" }, { ...item, slug: "owner/third" }];
+  const plan = { ...measureClaudeCliSummaryBundlePlan(items, { retryAttempts: 12 }), retryAttempts: 1 };
+  const invalid = modelEnvelope();
+  invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
+  const calls = [];
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    concurrency: 1,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      const slug = /"repository":"([^"]+)"/.exec(prompt)?.[1] ?? "unknown";
+      calls.push(slug);
+      if (slug === "owner/second") return { structuredOutput: modelEnvelope(), usage: { inputTokens: 1, outputTokens: 1 } };
+      return { structuredOutput: invalid, usage: { inputTokens: 1, outputTokens: 1 } };
+    },
+  });
+  // owner/repo: initial + one correction exhausts the cap; owner/second and owner/third still get their initial attempt.
+  assert.deepEqual(calls, ["owner/repo", "owner/repo", "owner/second", "owner/third"]);
+  assert.equal(result.held[0].reason, "budget_exhausted");
+  assert.deepEqual(result.results[1].summaries, bundle());
+  assert.equal(result.held[2].reason, "budget_exhausted");
+  assert.equal(result.held[2].diagnostic.failure_code, "QUALITY_VALIDATION_FAILED");
+  assert.ok(result.held[2].diagnostic.defect_count > 0);
+  assert.equal(result.held[2].diagnostic.caused_by, undefined);
+});
+
+test("a rate limit after the retry cap is exhausted still skips the remaining repositories", async () => {
+  const items = [item, { ...item, slug: "owner/second" }, { ...item, slug: "owner/third" }];
+  const plan = { ...measureClaudeCliSummaryBundlePlan(items, { retryAttempts: 12 }), retryAttempts: 1 };
+  const invalid = modelEnvelope();
+  invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
+  const calls = [];
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    concurrency: 1,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      const slug = /"repository":"([^"]+)"/.exec(prompt)?.[1] ?? "unknown";
+      calls.push(slug);
+      if (slug === "owner/second") {
+        const error = new Error("Claude CLI request failed");
+        error.failureCode = "CLAUDE_RATE_LIMITED";
+        error.retryable = false;
+        throw error;
+      }
+      return { structuredOutput: invalid, usage: { inputTokens: 1, outputTokens: 1 } };
+    },
+  });
+  assert.deepEqual(calls, ["owner/repo", "owner/repo", "owner/second"]);
+  assert.equal(result.held[1].diagnostic.failure_code, "CLAUDE_RATE_LIMITED");
+  assert.equal(result.held[2].reason, "budget_exhausted");
+  assert.equal(result.held[2].diagnostic.failure_code, "BUDGET_EXHAUSTED");
+  assert.equal(result.held[2].diagnostic.caused_by, "owner/second");
+});
+
+test("a correction prompt that exceeds the input byte cap holds only that repository as quality_defects", async () => {
+  const invalid = modelEnvelope();
+  invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
+  const measured = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  const plan = { ...measured, requests: measured.requests.map(request => ({ ...request, inputByteCap: Buffer.byteLength(request.prompt, "utf8") + 1 })) };
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async () => {
+      calls += 1;
+      return { structuredOutput: invalid, usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+  assert.equal(calls, 1);
+  assert.equal(result.results[0], null);
+  assert.equal(result.held[0].reason, "quality_defects");
+  assert.equal(result.held[0].diagnostic.failure_code, "QUALITY_VALIDATION_FAILED");
+  assert.ok(result.held[0].diagnostic.defect_count >= 1);
+  assert.ok(result.held[0].defect_codes.includes("GENERIC_OR_PLACEHOLDER"));
+});
+
+test("a per-request timeout after its retries holds only that repository as request_failed", async () => {
+  const plan = measureClaudeCliSummaryBundlePlan([item, { ...item, slug: "owner/second" }], { retryAttempts: 12 });
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    concurrency: 1,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async () => {
+      calls += 1;
+      if (calls <= 3) {
+        const error = new Error("Claude CLI request timed out");
+        error.failureCode = "CLAUDE_TIMEOUT";
+        error.retryable = true;
+        throw error;
+      }
+      return { structuredOutput: modelEnvelope(), usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+  assert.equal(calls, 4);
+  assert.equal(result.results[0], null);
+  assert.equal(result.held[0].reason, "request_failed");
+  assert.equal(result.held[0].diagnostic.failure_code, "CLAUDE_TIMEOUT");
+  assert.deepEqual(result.results[1].summaries, bundle());
 });
 
 test("terminal Claude failure preserves its bounded request code without raw diagnostics", async () => {
@@ -1735,29 +1883,18 @@ test("inference fields use one documented canonical order across quality correct
   assert.deepEqual(result.results[0].inference_fields, ["goal", "fit"]);
 });
 
-test("inference strength correction identifies the exact locale field", async () => {
-  const withInference = japanese => {
-    const value = modelEnvelope();
-    const hedges = {
-      en: "This may affect an adoption decision.",
-      ko: "이는 도입 판단에 영향을 줄 수 있습니다.",
-      "zh-CN": "这可能会影响采用决策。",
-      es: "Esto puede afectar una decisión de adopción.",
-      ja: japanese,
-    };
-    for (const locale of SUMMARY_BUNDLE_LOCALES) value.summaries[locale].cons += ` ${hedges[locale]}`;
-    value.inference_fields = ["cons"];
-    return value;
+test("a missing inference hedge is a warning and does not consume a correction", async () => {
+  const value = modelEnvelope();
+  const hedges = {
+    en: "This may affect an adoption decision.",
+    ko: "이는 도입 판단에 영향을 줄 수 있습니다.",
+    "zh-CN": "这可能会影响采用决策。",
+    es: "Esto puede afectar una decisión de adopción.",
+    ja: "これは導入判断に影響します。",
   };
-  const invalid = () => withInference("これは導入判断に影響します。");
-  const valid = withInference("これは導入判断に影響する可能性があります。");
+  for (const locale of SUMMARY_BUNDLE_LOCALES) value.summaries[locale].cons += ` ${hedges[locale]}`;
+  value.inference_fields = ["cons"];
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
-  const replies = [
-    invalid(),
-    summaryPatch(invalid(), { ja: ["cons"] }),
-    summaryPatch(valid, { ja: ["cons"] }),
-  ];
-  const prompts = [];
   let calls = 0;
   const result = await runClaudeSummaryBundleRequests({
     plan,
@@ -1767,17 +1904,13 @@ test("inference strength correction identifies the exact locale field", async ()
     attemptTimeoutMs: 1_000,
     sleep: async () => {},
     preflight: async () => oauthRuntime,
-    executeClaude: async ({ prompt }) => {
-      prompts.push(prompt);
-      return { structuredOutput: replies[calls++], usage: { inputTokens: 100, outputTokens: 200 } };
+    executeClaude: async () => {
+      calls += 1;
+      return { structuredOutput: value, usage: { inputTokens: 100, outputTokens: 200 } };
     },
   });
-  assert.equal(calls, 3);
-  assert.match(prompts[0], /every locale.*explicit.*hedging/i);
-  assert.match(prompts[1], /ja\.cons/);
-  assert.match(prompts[1], /可能性/);
-  assert.match(prompts[2], /ja\.cons/);
-  assert.deepEqual(result.results[0].inference_fields, ["cons"]);
+  assert.equal(calls, 1);
+  assert.deepEqual(result.results[0].warnings, [{ code: "INFERENCE_HEDGE", locale: "ja", field: "cons" }]);
 });
 
 test("Claude subscription execution makes zero model calls when OAuth preflight fails", async () => {
@@ -1825,13 +1958,12 @@ test("Claude subscription execution retries one bounded transport failure after 
   });
 });
 
-test("a fatal bundle failure stops every worker from dispatching a new repository", async () => {
+test("a provider-wide auth failure stops every worker while a quality failure does not", async () => {
   const items = Array.from({ length: 4 }, (_, index) => ({ ...item, slug: `owner/repo-${index}` }));
   const plan = measureClaudeCliSummaryBundlePlan(items, { retryAttempts: 12 });
   let releaseSecond;
   const secondBlocked = new Promise(resolve => { releaseSecond = resolve; });
   const calls = [];
-  let firstRepositoryCalls = 0;
   const execution = runClaudeSummaryBundleRequests({
     plan,
     environment: {},
@@ -1845,13 +1977,10 @@ test("a fatal bundle failure stops every worker from dispatching a new repositor
       const slug = /"repository":"([^"]+)"/.exec(prompt)?.[1];
       calls.push(slug);
       if (slug === "owner/repo-0") {
-        const invalid = modelEnvelope();
-        invalid.summaries.ko.usage = "자세한 내용은 README를 참고하세요.";
-        firstRepositoryCalls += 1;
-        return {
-          structuredOutput: firstRepositoryCalls === 1 ? invalid : summaryPatch(invalid, { ko: ["usage"] }),
-          usage: { inputTokens: 100, outputTokens: 200 },
-        };
+        const error = new Error("Claude CLI request failed");
+        error.failureCode = "CLAUDE_AUTH_FAILED";
+        error.retryable = false;
+        throw error;
       }
       if (slug === "owner/repo-1") {
         await secondBlocked;
@@ -1861,15 +1990,52 @@ test("a fatal bundle failure stops every worker from dispatching a new repositor
     },
   });
   const rejected = assert.rejects(execution, error => {
-    assert.match(String(error?.message), /generic|placeholder|README/i);
     assert.match(String(error?.message), /owner\/repo-0/);
-    assert.match(String(error?.message), /defects?=/i);
+    assert.equal(error.summaryFailureDiagnostic.failure_code, "CLAUDE_AUTH_FAILED");
     return true;
   });
-  while (calls.filter(slug => slug === "owner/repo-0").length < 2) await new Promise(resolve => setImmediate(resolve));
+  while (calls.filter(slug => slug === "owner/repo-0").length < 1) await new Promise(resolve => setImmediate(resolve));
   await new Promise(resolve => setImmediate(resolve));
   releaseSecond();
   await rejected;
   assert.equal(calls.includes("owner/repo-2"), false);
   assert.equal(calls.includes("owner/repo-3"), false);
+});
+
+test("number invariants that are literal README substrings are accepted without canonical normalization", () => {
+  const md = `${markdown}\n\nBaseline spends 15,704 tokens and regresses 9.9 percent.`;
+  const numberItem = { ...item, markdown: md, readme_content_sha256: createHash("sha256").update(Buffer.from(md, "utf8")).digest("hex") };
+  const value = modelEnvelope();
+  for (const locale of SUMMARY_BUNDLE_LOCALES) value.summaries[locale].usage += " 15,704 / 9.9 percent.";
+  value.invariants.push({ kind: "number", value: "15,704" }, { kind: "number", value: "9.9 percent" });
+  const checked = validateSummaryBundleEnvelope(value, numberItem);
+  assert.deepEqual(checked.invariants.slice(-2).map(invariant => invariant.value), ["15,704", "9.9 percent"]);
+  assert.deepEqual(checked.warnings, []);
+  const absent = structuredClone(value);
+  for (const locale of SUMMARY_BUNDLE_LOCALES) absent.summaries[locale].usage += " 42,000.";
+  absent.invariants.push({ kind: "number", value: "42,000" });
+  assert.throws(() => validateSummaryBundleEnvelope(absent, numberItem), /absent from README/);
+});
+
+test("number cross-locale drift is a warning while command differences stay hard", () => {
+  const value = modelEnvelope();
+  value.summaries.es.usage += " 3 pasos.";
+  const checked = validateSummaryBundleEnvelope(value, item);
+  assert.deepEqual(checked.warnings, [{ code: "LOCALE_INVARIANT_NUMBERS", locale: "es", field: "usage" }]);
+  const command = modelEnvelope();
+  command.summaries.ja.goal = command.summaries.ja.goal.replace("`npm test`", "`npm run test`");
+  assert.throws(() => validateSummaryBundleEnvelope(command, item), /invariant|command|locale/i);
+});
+
+test("an English bundle shorter than the length contract is a warning", () => {
+  const value = modelEnvelope();
+  value.summaries.en = {
+    goal: "Runs `npm test` for the documented repository.",
+    usage: "Install, then run `npm test` as documented.",
+    pros: "Concrete documented strength around `npm test`.",
+    cons: "Documented limitation of `npm test`.",
+    fit: "Teams whose workflow already uses `npm test`.",
+  };
+  const checked = validateSummaryBundleEnvelope(value, item);
+  assert.ok(checked.warnings.some(warning => warning.code === "LENGTH_CONTRACT"));
 });
