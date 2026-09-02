@@ -1319,10 +1319,24 @@ export async function runFrozenSummaryBundlePipeline({
       plan, runProcess, environment, cwd, preflight, preflightResult, executeClaude, sleep, now, deadline,
     });
   }
+  // Repository-level admission: a pending repository whose request ended in a
+  // bounded failure is `held`; verified and retained repositories still publish.
+  const verifiedSlugs = new Set();
+  const warningsBySlug = new Map();
+  const heldBySlug = new Map();
   for (let index = 0; index < pending.length; index += 1) {
     const item = pending[index];
+    const slug = item.slug.toLowerCase();
     const checked = completed.results[index];
-    retained.set(item.slug.toLowerCase(), {
+    if (checked === null || checked === undefined) {
+      const held = completed.held?.[index];
+      if (!held || held.slug !== item.slug) throw new Error(`Summary bundle result is missing for ${item.slug}`);
+      heldBySlug.set(slug, held);
+      continue;
+    }
+    verifiedSlugs.add(slug);
+    warningsBySlug.set(slug, Array.isArray(checked.warnings) ? checked.warnings.map(warning => ({ ...warning })) : []);
+    retained.set(slug, {
       content: checked.summaries.en,
       summaries: checked.summaries,
       evidence: checked.evidence,
@@ -1331,31 +1345,44 @@ export async function runFrozenSummaryBundlePipeline({
       source: buildSummarySource(item, completed.runtime),
     });
   }
+  if (heldBySlug.size * 2 > items.length) {
+    throw new Error(`Summary bundle held ratio exceeds 50% (${heldBySlug.size}/${items.length})`);
+  }
+  if (items.length > 0 && retained.size === 0) throw new Error("Summary bundle candidate has no verified or retained repository");
   const cache = {};
   const sources = {};
   const repositories = {};
   for (const item of items) {
     const slug = item.slug.toLowerCase();
+    const held = heldBySlug.get(slug);
+    if (held) {
+      repositories[slug] = { status: "held", held_reason: held.reason, defect_codes: [...held.defect_codes], warnings: [] };
+      continue;
+    }
     const entry = retained.get(slug);
     if (!entry || !reusableEntry(entry, item)) throw new Error(`Summary bundle coverage is incomplete for ${item.slug}`);
     cache[item.slug] = entry;
     sources[item.slug] = entry.source;
     repositories[slug] = {
+      status: verifiedSlugs.has(slug) ? "verified" : "retained",
       summary: { content: entry.content, source: entry.source },
       summaries: entry.summaries,
       evidence: entry.evidence,
       invariants: entry.invariants,
       inference_fields: entry.inference_fields,
+      warnings: warningsBySlug.get(slug) ?? [],
     };
   }
+  const heldList = pending.map((item, index) => heldBySlug.get(item.slug.toLowerCase()) ?? null).filter(Boolean);
   const index = {
-    version: 1,
+    version: 2,
     snapshotId: facts.snapshotId,
     activeSetSha256: facts.activeSetSha256,
     factsSha256: facts.factsSha256,
     sourceSetSha256: facts.sourceSetSha256,
     runContextSha256: facts.runContextSha256,
     eventsSha256: events.completeSetSha256,
+    heldRatio: items.length === 0 ? 0 : heldBySlug.size / items.length,
     repositories,
   };
   return retireTranslations(candidateRoot, async () => {
@@ -1364,7 +1391,7 @@ export async function runFrozenSummaryBundlePipeline({
       { path: path.join(candidateRoot, "data", "translation-sources.json"), text: `${JSON.stringify({ version: SUMMARY_BUNDLE_SCHEMA_VERSION, sources }, null, 2)}\n` },
       { path: indexFile, text: `${JSON.stringify(index)}\n` },
     ]);
-    return { repositories: items.length, pending: pending.length, usage: completed.usage, runtime: completed.runtime, index };
+    return { repositories: items.length, pending: pending.length, held: heldList, usage: completed.usage, runtime: completed.runtime, index };
   });
 }
 
@@ -1411,7 +1438,11 @@ async function main() {
     }
     throw error;
   }
-  process.stdout.write(`${JSON.stringify({ repositories: result.repositories, pending: result.pending, runtime: result.runtime, usage: result.usage })}\n`);
+  if (result.held.length > 0) {
+    const heldDiagnostics = { version: 2, held: result.held.map(held => ({ slug: held.slug, reason: held.reason, defect_codes: held.defect_codes, diagnostic: held.diagnostic })) };
+    await writeFile(failureDiagnosticsFile, `${JSON.stringify(heldDiagnostics)}\n`, { encoding: "utf8", flag: "wx" });
+  }
+  process.stdout.write(`${JSON.stringify({ repositories: result.repositories, pending: result.pending, held: result.held.length, runtime: result.runtime, usage: result.usage })}\n`);
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {

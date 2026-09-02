@@ -559,6 +559,66 @@ test("frozen pipeline preserves the Claude preflight and request path when prepa
   });
 });
 
+test("frozen pipeline publishes verified and retained repositories and records one held repository in index v2", async t => {
+  const fixture = await frozenPipelineFixture(t);
+  const args = await pipelineArguments(fixture, "held-candidate");
+  const generic = modelEnvelope();
+  generic.summaries.es.cons = "Consulte el README y ejecute `npm test` para conocer las limitaciones.";
+  let calls = 0;
+  const result = await runFrozenSummaryBundlePipeline({
+    ...args,
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      calls += 1;
+      if (prompt.includes("kaifcodec/user-scanner")) return { structuredOutput: modelEnvelope(), usage: { inputTokens: 11, outputTokens: 7 } };
+      return { structuredOutput: calls === 2 ? generic : summaryPatch(generic, { es: ["cons"] }), usage: { inputTokens: 11, outputTokens: 7 } };
+    },
+  });
+  assert.equal(result.repositories, 44);
+  assert.equal(result.pending, 2);
+  assert.equal(result.held.length, 1);
+  assert.equal(result.held[0].slug, "handsomestwei/patent-disclosure-skill");
+  assert.equal(result.held[0].reason, "quality_defects");
+  assert.equal(result.index.version, 2);
+  const statuses = Object.values(result.index.repositories).map(entry => entry.status);
+  assert.equal(statuses.filter(status => status === "retained").length, 42);
+  assert.equal(statuses.filter(status => status === "verified").length, 1);
+  assert.deepEqual(result.index.repositories["handsomestwei/patent-disclosure-skill"], {
+    status: "held",
+    held_reason: "quality_defects",
+    defect_codes: ["GENERIC_OR_PLACEHOLDER"],
+    warnings: [],
+  });
+  assert.deepEqual(result.index.repositories["kaifcodec/user-scanner"].warnings, []);
+  const cache = JSON.parse(await readFile(join(args.outputRoot, "data", "repo-summaries.json"), "utf8"));
+  const sources = JSON.parse(await readFile(join(args.outputRoot, "data", "translation-sources.json"), "utf8"));
+  assert.equal(Object.keys(cache).length, 43);
+  assert.equal(Object.hasOwn(cache, "handsomestwei/patent-disclosure-skill"), false);
+  assert.equal(Object.hasOwn(sources.sources, "handsomestwei/patent-disclosure-skill"), false);
+  assert.equal(Object.hasOwn(cache, "kaifcodec/user-scanner"), true);
+});
+
+test("frozen pipeline fails closed when more than half of the active repositories are held", async t => {
+  const fixture = await frozenPipelineFixture(t);
+  await writeFile(join(fixture.sourceRoot, "data", "repo-summaries.json"), "{}\n");
+  const args = await pipelineArguments(fixture, "held-majority-candidate");
+  const generic = modelEnvelope();
+  generic.summaries.es.cons = "Consulte el README y ejecute `npm test` para conocer las limitaciones.";
+  const seen = new Map();
+  await assert.rejects(runFrozenSummaryBundlePipeline({
+    ...args,
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      const slug = /"repository":"([^"]+)"/.exec(prompt)?.[1] ?? "unknown";
+      const count = (seen.get(slug) ?? 0) + 1;
+      seen.set(slug, count);
+      return { structuredOutput: count === 1 ? generic : summaryPatch(generic, { es: ["cons"] }), usage: { inputTokens: 1, outputTokens: 1 } };
+    },
+  }), /held ratio/i);
+  assert.equal(await exists(join(args.outputRoot, "data", "repo-summaries.json")), false);
+  assert.equal(await exists(args.enrichmentIndexOut), false);
+});
+
 test("summary bundle CLI accepts the optional prepared Codex file", async t => {
   const fixture = await frozenPipelineFixture(t);
   const args = await pipelineArguments(fixture, "cli-candidate");
