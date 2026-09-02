@@ -1122,7 +1122,7 @@ export async function runClaudeSummaryBundleRequests({
       cursor += 1;
       if (index >= plan.requests.length) return;
       const slug = plan.items[index].slug;
-      if (execution.exhausted) {
+      if (execution.exhausted?.skipRemaining) {
         held[index] = { slug, reason: execution.exhausted.reason, defect_codes: [], diagnostic: skippedRepositoryDiagnostic(slug, execution.exhausted, execution, provenance) };
         continue;
       }
@@ -1138,7 +1138,12 @@ export async function runClaudeSummaryBundleRequests({
           fatal ??= failure;
           return;
         }
-        if (reason === "budget_exhausted" || reason === "deadline_exhausted") execution.exhausted ??= { reason, failure, slug };
+        // A rate limit or an exhausted deadline stops every remaining request. A retry
+        // cap exhausted by corrections only blocks further corrections: the remaining
+        // repositories still get their single initial attempt (2026-09-03 decision).
+        if (reason === "budget_exhausted" || reason === "deadline_exhausted") {
+          execution.exhausted ??= { reason, failure, slug, skipRemaining: reason === "deadline_exhausted" || failure.failureCode === "CLAUDE_RATE_LIMITED" };
+        }
         held[index] = {
           slug,
           reason,

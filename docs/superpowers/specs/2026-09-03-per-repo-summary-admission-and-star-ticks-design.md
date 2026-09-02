@@ -70,7 +70,7 @@ concurrency: 두 workflow 모두 group `daily-refresh` (cancel-in-progress: fals
 |---|---|---|
 | `verified` | 이번 run에서 exact v3 bundle이 모든 hard gate 통과 | 5-locale 요약 |
 | `retained` | README identity(path·blob·content sha)가 같아 직전 검증본 재사용 | 직전 요약 |
-| `held` | 초기+3 교정 뒤에도 hard defect 잔존, 또는 run 상한·deadline 소진으로 미시도, 또는 bounded 요청 실패(timeout·output cap·transient provider·request failed) | 요약 필드 없음. 카드에 locale별 고정 문구 "요약 검증 중"(static i18n, LLM 아님) + tooltip에 `held_reason` |
+| `held` | 초기+3 교정 뒤에도 hard defect 잔존, 또는 rate limit·deadline 소진으로 미시도, 또는 retry 상한 소진 뒤 교정 없이 초기 시도만 하고 실패(2026-09-03 결정: 상한 소진은 교정만 막고 초기 시도는 허용), 또는 bounded 요청 실패(timeout·output cap·transient provider·request failed) | 요약 필드 없음. 카드에 locale별 고정 문구 "요약 검증 중"(static i18n, LLM 아님) + tooltip에 `held_reason` |
 
 - `enrichment-index.json`에 repo마다 `status`, `held_reason`(`quality_defects`·`budget_exhausted`·`deadline_exhausted`·`request_failed`. 구현 확정 2026-09-03: `insufficient_source`는 생산 지점이 없어 별도 사유로 두지 않는다), `defect_codes[]`, `warnings[]`를 기록한다. 모델 출력 본문은 기록하지 않는다.
 - candidate 성공 조건: active repo 전부가 세 상태 중 하나이고, `verified`+`retained` ≥ 1이며, `held` 비율 ≤ 50%(초과 시 run 실패 — provider/runner 장애로 해석).
@@ -166,6 +166,7 @@ repo 항목에 `status: "verified"|"retained"|"held"`, `held_reason`, `defect_co
 | repo 1개 hard defect 잔존 | 그 repo `held`, run 계속 |
 | held > 50% | run 실패, publish 0 |
 | `CLAUDE_RATE_LIMITED` / deadline 소진 | 남은 pending 전부 `held(budget_exhausted|deadline_exhausted)`, verified는 publish. 다음 run이 held만 재시도 |
+| retry 상한 소진(교정·transport 재시도 누적) | 남은 repo는 초기 시도 1회만 허용(교정 없음). 초기 시도 실패는 `held(budget_exhausted)` |
 | W2 `rate_limit.remaining < 500` | run 종료(skipped), 다음 30분 재시도 |
 | W2 GitHub 404/451 | 그 repo `unavailable`, 계속. 3회 연속이면 Tier B 제외 |
 | W2 ledger 접두 불일치(재작성 감지) | commit·deploy 중단 |

@@ -1673,6 +1673,38 @@ test("a rate limit holds the failing and remaining repositories as budget_exhaus
   assert.deepEqual(result.held[2].defect_codes, []);
 });
 
+test("a retry cap exhausted by corrections still gives the remaining repositories one initial attempt", async () => {
+  const items = [item, { ...item, slug: "owner/second" }, { ...item, slug: "owner/third" }];
+  const plan = { ...measureClaudeCliSummaryBundlePlan(items, { retryAttempts: 12 }), retryAttempts: 1 };
+  const invalid = modelEnvelope();
+  invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
+  const calls = [];
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    concurrency: 1,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async ({ prompt }) => {
+      const slug = /"repository":"([^"]+)"/.exec(prompt)?.[1] ?? "unknown";
+      calls.push(slug);
+      if (slug === "owner/second") return { structuredOutput: modelEnvelope(), usage: { inputTokens: 1, outputTokens: 1 } };
+      return { structuredOutput: invalid, usage: { inputTokens: 1, outputTokens: 1 } };
+    },
+  });
+  // owner/repo: initial + one correction exhausts the cap; owner/second and owner/third still get their initial attempt.
+  assert.deepEqual(calls, ["owner/repo", "owner/repo", "owner/second", "owner/third"]);
+  assert.equal(result.held[0].reason, "budget_exhausted");
+  assert.deepEqual(result.results[1].summaries, bundle());
+  assert.equal(result.held[2].reason, "budget_exhausted");
+  assert.equal(result.held[2].diagnostic.failure_code, "QUALITY_VALIDATION_FAILED");
+  assert.ok(result.held[2].diagnostic.defect_count > 0);
+  assert.equal(result.held[2].diagnostic.caused_by, undefined);
+});
+
 test("a correction prompt that exceeds the input byte cap holds only that repository as quality_defects", async () => {
   const invalid = modelEnvelope();
   invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
