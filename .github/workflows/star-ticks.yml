@@ -1,0 +1,157 @@
+name: Star ticks
+
+# Observes exact total stars for published repositories every 30 minutes and, once
+# a day, for every repository ever published (within the cap), then commits the
+# append-only ledgers and redeploys the finalized artifact with the refreshed
+# star-history.json overlay. Code changes are never published here: the builder
+# rejects the deploy when the finalized contract paths differ from the snapshot
+# contract, and only the daily refresh workflow may publish those.
+
+on:
+  schedule:
+    - cron: "5,35 * * * *"
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: Observation tier (a = published repositories only, ab = published plus the daily archive tier)
+        required: false
+        default: a
+        type: choice
+        options:
+          - a
+          - ab
+
+permissions: {}
+
+concurrency:
+  group: daily-refresh
+  cancel-in-progress: false
+
+jobs:
+  tick:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && vars.GH_TRENDING_TICKS == 'enabled') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: Bind to exact origin main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          [ "$(git rev-parse HEAD)" = "$(git rev-parse refs/remotes/origin/main)" ] || { echo "::error::checkout is not exact origin/main"; exit 1; }
+          [ -f data/repository-observations.sqlite ] || { echo "::error::star ticks require the version-1 repository database"; exit 1; }
+          npm ci
+      - name: Collect star ticks
+        id: collect
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REQUESTED_TIER: ${{ inputs.tier || '' }}
+        run: |
+          set -euo pipefail
+          TIER=a
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            if [ "$REQUESTED_TIER" = "ab" ]; then TIER=ab; fi
+          else
+            # Tier B (the archive tier) runs once a day in the :35 slot of an odd UTC hour,
+            # away from the refresh workflow's even-hour REST budget window.
+            HOUR=$((10#$(date -u +%H)))
+            MINUTE=$((10#$(date -u +%M)))
+            if [ $((HOUR % 2)) -eq 1 ] && [ "$MINUTE" -ge 20 ]; then TIER=ab; fi
+          fi
+          node scripts/star-ticks.mjs collect --token-env GITHUB_TOKEN --tier "$TIER" --published data/latest.json --ticks-dir data/star-ticks --daily data/star-daily.jsonl --run-id "${{ github.run_id }}" > "${RUNNER_TEMP}/collect.json"
+          cat "${RUNNER_TEMP}/collect.json"
+          SKIPPED="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; process.stdout.write(String(JSON.parse(readFileSync(process.argv[1], "utf8")).skipped === true));' "${RUNNER_TEMP}/collect.json")"
+          echo "skipped=$SKIPPED" >> "$GITHUB_OUTPUT"
+          echo "tier=$TIER" >> "$GITHUB_OUTPUT"
+          if [ "$SKIPPED" = "true" ]; then echo "::notice::star ticks skipped: GitHub rate limit reserve"; fi
+      - name: Derive star history v2
+        if: ${{ steps.collect.outputs.skipped != 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/star-ticks.mjs derive --published data/latest.json --ticks-dir data/star-ticks --daily data/star-daily.jsonl --anchors data/star-anchors.json --out star-history.json
+      - name: Commit star tick ledgers
+        id: commit
+        if: ${{ steps.collect.outputs.skipped != 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          changed_paths="$({ git diff --name-only && git ls-files --others --exclude-standard; } | sort -u)"
+          while IFS= read -r changed_path; do
+            [ -z "$changed_path" ] && continue
+            case "$changed_path" in
+              data/star-ticks/*.jsonl|data/star-daily.jsonl|star-history.json) ;;
+              *) echo "::error::Unexpected star tick output: $changed_path"; exit 1 ;;
+            esac
+          done <<< "$changed_paths"
+          git add -- data/star-ticks data/star-daily.jsonl star-history.json
+          if git diff --cached --quiet; then
+            echo "committed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::star ticks produced no ledger change"
+            exit 0
+          fi
+          git diff --cached --check
+          set +e
+          git grep --cached -qE '(sk-ant-[[:alnum:]_-]{20,}|gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- data/star-ticks data/star-daily.jsonl star-history.json
+          SCAN_STATUS=$?
+          set -e
+          case "$SCAN_STATUS" in
+            0) echo "::error::Potential secret detected in star tick outputs"; exit 1 ;;
+            1) ;;
+            *) echo "::error::Staged secret scan failed"; exit 1 ;;
+          esac
+          git fetch origin main
+          [ "$(git rev-parse HEAD)" = "$(git rev-parse refs/remotes/origin/main)" ] || { echo "::error::origin/main advanced during the run"; exit 1; }
+          TICK_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -q -m "chore: star ticks ${TICK_UTC}"
+          git push origin HEAD:main
+          echo "committed=true" >> "$GITHUB_OUTPUT"
+      - name: Build committed Pages artifact
+        if: ${{ steps.collect.outputs.skipped != 'true' && steps.commit.outputs.committed == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          SNAPSHOT_ID="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value = JSON.parse(readFileSync("data/latest.json", "utf8")); if (!/^[0-9]{14}-[a-f0-9]{16}$/.test(value.snapshotId ?? "")) throw new Error("committed snapshot id is invalid"); process.stdout.write(value.snapshotId);')"
+          ARTIFACT_CONTRACT="${RUNNER_TEMP}/artifact-contract.json"
+          python scripts/derive_repository_artifacts.py export-contract --database "${GITHUB_WORKSPACE}/data/repository-observations.sqlite" --snapshot-id "$SNAPSHOT_ID" --contract-out "$ARTIFACT_CONTRACT"
+          node scripts/build-pages-artifact.mjs --source "." --out "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "$ARTIFACT_CONTRACT"
+          node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "$ARTIFACT_CONTRACT"
+          echo "SOURCE_SHA=$SOURCE_SHA" >> "$GITHUB_ENV"
+          echo "SNAPSHOT_ID=$SNAPSHOT_ID" >> "$GITHUB_ENV"
+          echo "ARTIFACT_CONTRACT=$ARTIFACT_CONTRACT" >> "$GITHUB_ENV"
+      - name: Upload Pages artifact
+        if: ${{ steps.collect.outputs.skipped != 'true' && steps.commit.outputs.committed == 'true' }}
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ${{ runner.temp }}/pages-artifact
+      - name: Deploy Pages artifact
+        if: ${{ steps.collect.outputs.skipped != 'true' && steps.commit.outputs.committed == 'true' }}
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+      - name: Probe deployed Pages artifact
+        if: ${{ steps.collect.outputs.skipped != 'true' && steps.commit.outputs.committed == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/probe-production.mjs --base-url "${{ steps.deployment.outputs.page_url }}" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "$ARTIFACT_CONTRACT"
