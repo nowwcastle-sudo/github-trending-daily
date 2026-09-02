@@ -98,14 +98,15 @@ test("URL invariants ignore trailing sentence punctuation across locales", () =>
 
 - [ ] **Step 2: RED 확인** — Run: `node --test --test-name-pattern="trailing sentence punctuation" tests/summary-bundle-pipeline.test.mjs`. Expected: FAIL with `Summary bundle cross-locale invariant mismatch in usage`.
 
-- [ ] **Step 3: 최소 구현** — `invariantTokens`의 urls 줄을:
+- [ ] **Step 3: 최소 구현** — `invariantTokens`의 urls 줄을 다음과 같이 바꾼다. RED 실행에서 일본어 fixture(`https://example.com/docs、を参照`)가 URL 뒤에 공백 없이 CJK 문자를 붙여 같은 토큰화 문제의 두 번째 양상을 드러냈으므로, URL 토큰을 ASCII(RFC 3986)로 한정하고 끝 문장 부호를 제거한다:
 
 ```js
-    urls: [...text.matchAll(/https?:\/\/[^\s)>\]}]+/g)].map(match => match[0].replace(/[.,;:!?、。]+$/u, "")).sort(),
+const TRAILING_SENTENCE_PUNCTUATION = /[.,;:!?、。]+$/u;
+    urls: [...text.matchAll(/https?:\/\/[^\s)>\]}\u0080-\uffff]+/g)].map(match => match[0].replace(TRAILING_SENTENCE_PUNCTUATION, "")).sort(),
 ```
 
 - [ ] **Step 4: GREEN** — 같은 명령 + `node --test tests/summary-bundle-pipeline.test.mjs`. Expected: 전부 PASS.
-- [ ] **Step 5: mutation** — `.replace(...)`를 제거하면 새 test RED. 원복 후 GREEN.
+- [ ] **Step 5: mutation** — `.replace(...)`를 제거하면 es/ko/zh-CN에서, ASCII 한정(`\u0080-\uffff`)을 제거하면 ja에서 새 test RED. 각각 원복 후 GREEN.
 - [ ] **Step 6: Commit** — `fix: URL invariant 토큰에서 끝 문장 부호를 제거해 locale 구두점 오탐 방지`
 
 ### Task 3: 검증·push·PR·CodeQL → merge 승인 → controlled dispatch 1회
