@@ -1428,10 +1428,33 @@ test("a third targeted quality correction remains bounded and can finish one rep
   assert.deepEqual(result.results[0].summaries, bundle());
 });
 
-test("approved bootstrap retry capacity covers three bounded corrections per pending repository", async () => {
+test("retry capacity covers three bounded corrections per pending repository in every mode", async () => {
   const producer = await import("../scripts/generate-summary-bundles.mjs");
   assert.equal(producer.resolveClaudeCliSummaryRetryCap({ name: "bootstrap_v0_approved", retryAttempts: 12 }, 45), 135);
-  assert.equal(producer.resolveClaudeCliSummaryRetryCap({ name: "normal", retryAttempts: 12 }, 45), 12);
+  assert.equal(producer.resolveClaudeCliSummaryRetryCap({ name: "normal", retryAttempts: 12 }, 45), 135);
+  assert.equal(producer.resolveClaudeCliSummaryRetryCap({ name: "normal", retryAttempts: 12 }, 2), 12);
+});
+
+test("URL invariants ignore trailing sentence punctuation across locales", () => {
+  const urlMarkdown = "# Repository\n\nInstall with `npm install` and run `npm test`. Docs: https://example.com/docs";
+  const urlItem = {
+    ...item,
+    markdown: urlMarkdown,
+    readme_content_sha256: createHash("sha256").update(Buffer.from(urlMarkdown, "utf8")).digest("hex"),
+  };
+  const value = modelEnvelope();
+  value.summaries.en.usage += " Read https://example.com/docs before deploying.";
+  value.summaries.ko.usage += " 배포 전에 https://example.com/docs.";
+  value.summaries["zh-CN"].usage += " 部署前请阅读 https://example.com/docs。";
+  value.summaries.es.usage += " Lea https://example.com/docs.";
+  value.summaries.ja.usage += " https://example.com/docs、を参照してください。";
+
+  const checked = validateSummaryBundleEnvelope(value, urlItem);
+  assert.equal(checked.summaries.es.usage.endsWith("https://example.com/docs."), true);
+
+  const different = structuredClone(value);
+  different.summaries.es.usage = different.summaries.es.usage.replace("https://example.com/docs.", "https://example.com/other.");
+  assert.throws(() => validateSummaryBundleEnvelope(different, urlItem), /invariant|locale/i);
 });
 
 test("quality correction schema exposes only validator-selected defective paths", async () => {

@@ -164,10 +164,13 @@ function markdownHeadings(markdown) {
   return { headings, lineCount: lines.length };
 }
 
+// URL tokens are ASCII (RFC 3986) and the sentence punctuation that trails them in prose is not part of the invariant.
+const TRAILING_SENTENCE_PUNCTUATION = /[.,;:!?]+$/;
+
 function invariantTokens(text) {
   return {
     commands: [...text.matchAll(/`([^`\r\n]+)`/g)].map(match => match[1]).sort(),
-    urls: [...text.matchAll(/https?:\/\/[^\s)>\]}]+/g)].map(match => match[0]).sort(),
+    urls: [...text.matchAll(/https?:\/\/[^\s)>\]}\u0080-\uffff]+/g)].map(match => match[0].replace(TRAILING_SENTENCE_PUNCTUATION, "")).sort(),
     numbers: [...text.matchAll(/\b\d+(?:\.\d+)*(?:\s?(?:GB|MB|KB|ms|s|%))?\b/gi)].map(match => match[0].replace(/\s+/g, "").toLowerCase()).sort(),
   };
 }
@@ -480,9 +483,9 @@ export function resolveClaudeCliSummaryRetryCap(policy, pendingRepositories) {
       || !Number.isSafeInteger(pendingRepositories) || pendingRepositories < 0 || pendingRepositories > MAX_REPOSITORIES) {
     throw new Error("Claude summary retry policy is invalid");
   }
-  return policy.name === "bootstrap_v0_approved"
-    ? Math.max(policy.retryAttempts, pendingRepositories * MAX_REQUEST_RETRIES)
-    : policy.retryAttempts;
+  // 2026-09-02: a refresh after any stall carries bootstrap-scale pending work,
+  // so every mode gets three bounded corrections per pending repository.
+  return Math.max(policy.retryAttempts, pendingRepositories * MAX_REQUEST_RETRIES);
 }
 
 function producerProvenance(value) {
