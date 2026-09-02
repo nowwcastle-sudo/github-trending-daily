@@ -6,7 +6,7 @@
   "use strict";
 
   const REPO_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
-  const EXPLANATION = "GH Archive 기반 과거 추정 · 현재 총 스타는 GitHub 기준";
+  const EXPLANATION = "매일 GitHub에서 직접 관측한 총 스타 추이";
 
   function validDate(value) {
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || "");
