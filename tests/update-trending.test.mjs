@@ -815,6 +815,16 @@ test("render-only consumes exact frozen bindings with zero fetches and emits a r
   await writeFile(indexPath, `${JSON.stringify(inconsistentIndex)}\n`);
   await assert.rejects(renderFrozenCandidate({ factsPath, eventsPath, enrichmentIndexPath: indexPath, pageTemplatePath: templatePath, pageOut: join(directory, "held-bad", "index.html"), cacheOut: join(directory, "held-bad", "data", "repo-summaries.json"), snapshotOut: join(directory, "held-bad-snapshot.json") }), /held ratio/);
 
+  // "todo" is an ordinary Spanish word; only the uppercase placeholder token TODO is generic.
+  const spanishIndex = structuredClone(enrichmentIndex);
+  spanishIndex.repositories[repositories[0].slug].summaries.es.fit = "Se adapta a equipos que despliegan en Kubernetes, todo bajo licencia Apache 2.0.";
+  await writeFile(indexPath, `${JSON.stringify(spanishIndex)}\n`);
+  await renderFrozenCandidate({ factsPath, eventsPath, enrichmentIndexPath: indexPath, pageTemplatePath: templatePath, pageOut: join(directory, "spanish", "index.html"), cacheOut: join(directory, "spanish", "data", "repo-summaries.json"), snapshotOut: join(directory, "spanish-snapshot.json") });
+  const placeholderIndex = structuredClone(enrichmentIndex);
+  placeholderIndex.repositories[repositories[0].slug].summaries.es.fit = "TODO: describir el ajuste.";
+  await writeFile(indexPath, `${JSON.stringify(placeholderIndex)}\n`);
+  await assert.rejects(renderFrozenCandidate({ factsPath, eventsPath, enrichmentIndexPath: indexPath, pageTemplatePath: templatePath, pageOut: join(directory, "placeholder", "index.html"), cacheOut: join(directory, "placeholder", "data", "repo-summaries.json"), snapshotOut: join(directory, "placeholder-snapshot.json") }), /detailed summary/);
+
   const hybridProducer = structuredClone(enrichmentIndex);
   hybridProducer.repositories[repositories[1].slug].summary.source.model = "claude-sonnet-5";
   await writeFile(indexPath, `${JSON.stringify(hybridProducer)}\n`);

@@ -3472,6 +3472,11 @@ test("planning queues placeholder summaries and corrupt reusable translations", 
   for (const translated_markdown of corrupt) {
     assert.deepEqual(planEnrichment([{ ...item, translation_payload: translationPayload(item, translated_markdown) }], cache, sources).map(value => value.slug), [item.slug]);
   }
+  const spanish = { [item.slug]: { content: { ...content, goal: "Ejecuta todo el flujo en la máquina local." }, source } };
+  assert.deepEqual(planEnrichment([{
+    ...item,
+    translation_payload: translationPayload(item, "# 한국어 제목\n\n이 프로젝트는 개발자에게 유용한 명령줄 도구를 제공합니다.\n"),
+  }], spanish, sources).map(value => value.slug), []);
   const placeholder = { [item.slug]: { content: { ...content, goal: "TODO placeholder" }, source } };
   assert.deepEqual(planEnrichment([{
     ...item,
