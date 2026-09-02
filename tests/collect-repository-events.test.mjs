@@ -448,6 +448,20 @@ test("page twenty without next completes, but a next link fails instead of trunc
   );
 });
 
+test("commit records carry the canonical slug and millisecond timestamps like release records", async () => {
+  const prior = sha("a");
+  const newest = sha("c");
+  const events = await collectRepositoryEvents([{ ...repo, slug: "Owner/Repo", default_branch_head_sha: newest }], {
+    previous: { "owner/repo": { branch: "main", headSha: prior } },
+    fetchImpl: successfulFetch({ commits: [{ ...commit(newest, [prior]), html_url: `https://github.com/Owner/Repo/commit/${newest}` }, commit(prior)] }),
+  });
+  assert.equal(events.commits.length, 1);
+  assert.equal(events.commits[0].slug, "owner/repo");
+  assert.equal(events.commits[0].authoredAt, "2026-08-27T00:00:00.000Z");
+  assert.equal(events.commits[0].committedAt, "2026-08-27T00:00:00.000Z");
+  assert.equal(events.commits[0].htmlUrl, `https://github.com/Owner/Repo/commit/${newest}`);
+});
+
 test("future commits retain a backdated fast-forward and a proven rewrite imports no old history", async () => {
   const prior = sha("a");
   const newest = sha("c");

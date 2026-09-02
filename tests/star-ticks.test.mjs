@@ -26,7 +26,7 @@ const seconds = value => value.replace(/\.\d{3}Z$/, "Z");
 
 function repository(overrides = {}) {
   return {
-    slug: "owner/repo", display_slug: "Owner/Repo", stars: 1200,
+    slug: "Owner/Repo", display_slug: "Owner / Repo", stars: 1200,
     gain_daily: 100, gain_weekly: 300, gain_monthly: null, created_at: daysBefore(25),
     ...overrides,
   };
@@ -70,6 +70,7 @@ test("deriveStarAnchors rejects malformed facts instead of guessing", () => {
   assert.throws(() => deriveStarAnchors(facts([repository({ stars: -1 })])), /stars/);
   assert.throws(() => deriveStarAnchors(facts([repository({ gain_daily: 1.5 })])), /gain/);
   assert.throws(() => deriveStarAnchors(facts([repository(), repository()])), /duplicate/);
+  assert.throws(() => deriveStarAnchors(facts([repository({ slug: "Owner / Repo" })])), /slug/);
 });
 
 test("runDeriveStarAnchorsCli writes the anchors file from frozen facts", async t => {
