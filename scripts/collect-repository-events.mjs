@@ -18,18 +18,13 @@ export const EVENT_LIMITS = Object.freeze({
   maxAttempts: 4500,
   requestTimeoutMs: 30_000,
   retryDelaysMs: Object.freeze([2000, 8000]),
-  ossRetryDelaysMs: Object.freeze([2000, 8000, 30_000, 60_000]),
   eventAdmissionReserveMs: 5000,
   eventWindowMs: 15 * 60_000,
-  maxOssBytes: 2 * 1024 * 1024,
-  maxOssRows: 10_000,
-  publicOssRows: 500,
 });
 
 const SHA = /^[a-f0-9]{40}$/;
 const SLUG = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const collectionContexts = new WeakSet();
 const RETRYABLE_RESPONSE_BODY = Symbol("retryable-response-body");
 
@@ -41,6 +36,18 @@ const stableJson = value => {
 };
 export const hashCanonicalJson = value => createHash("sha256").update(stableJson(value)).digest("hex");
 const canonicalHash = hashCanonicalJson;
+// 2026-09-02: OSS Insight declared its event-derived stargazer counts
+// severely degraded since 2026-05-01 (median 14.5x undercount on the active
+// set). Historical estimate collection is discontinued; only exact daily
+// observations are published. The receipt keeps the envelope contract intact.
+export const OSS_ESTIMATE_DISCONTINUATION = Object.freeze({
+  provider: "ossinsight_api",
+  status: "discontinued",
+  decidedOn: "2026-09-02",
+  severelyDegradedSince: "2026-05-01",
+  reason: "OSS Insight data_quality: github_event_derived stargazer counts are lower bounds since 2025-05-23 and severely degraded since 2026-05-01",
+});
+export const OSS_ESTIMATE_DISCONTINUATION_SHA256 = canonicalHash(OSS_ESTIMATE_DISCONTINUATION);
 const exactKeys = (value, keys) => value && !Array.isArray(value) && Object.keys(value).sort().join("\0") === [...keys].sort().join("\0");
 const validTime = (value, nullable = false) => nullable && value === null || (typeof value === "string" && ISO.test(value) && new Date(value).toISOString() === value.replace(/Z$/, ".000Z"));
 const normalizeSlug = slug => {
@@ -182,11 +189,12 @@ const WEAK_ETAG = /^W\/"(?:[\x21\x23-\x7e\x80-\xff])*"$/;
 
 const REQUEST_OPERATIONS = new Set([
   "release inventory", "release revalidation", "latest release", "commit inventory",
-  "commit comparison", "branch continuity", "OSS star history",
+  "commit comparison", "branch continuity",
 ]);
 
-async function request(url, { fetchImpl, sleep, budget, operation, headers = {}, allow304 = false, readResponse = null, retryDelaysMs = EVENT_LIMITS.retryDelaysMs }) {
+async function request(url, { fetchImpl, sleep, budget, operation, headers = {}, allow304 = false, readResponse = null }) {
   if (!REQUEST_OPERATIONS.has(operation)) throw new Error("Event request operation is invalid");
+  const retryDelaysMs = EVENT_LIMITS.retryDelaysMs;
   budget.admitLogical();
   for (let attempt = 0; attempt <= retryDelaysMs.length; attempt += 1) {
     budget.admitAttempt();
@@ -431,47 +439,6 @@ async function collectCommits(repo, previous, context) {
   return { head: { slug, branch, headSha, transition: "fast_forward" }, commits: records };
 }
 
-function ossInteger(value) {
-  if (Number.isSafeInteger(value) && value >= 0) return value;
-  if (typeof value === "string" && /^(0|[1-9][0-9]*)$/.test(value)) {
-    const numeric = Number(value);
-    if (Number.isSafeInteger(numeric)) return numeric;
-  }
-  throw new Error("Invalid OSS Insight stargazers");
-}
-
-export function validateOssInsightResponse(value) {
-  if (!exactKeys(value, ["data", "type"]) || value.type !== "sql_endpoint" || !exactKeys(value.data, ["columns", "result", "rows"])) throw new Error("Invalid OSS Insight envelope");
-  const { columns, result, rows } = value.data;
-  const expectedColumns = [{ col: "date", data_type: "VARCHAR", nullable: true }, { col: "stargazers", data_type: "DECIMAL", nullable: true }];
-  if (stableJson(columns) !== stableJson(expectedColumns) || !exactKeys(result, ["code", "message", "start_ms", "end_ms", "latency", "row_count", "row_affect", "limit"])
-    || result.code !== 200 || typeof result.message !== "string" || !Number.isFinite(result.start_ms) || !Number.isFinite(result.end_ms) || result.start_ms < 0 || result.end_ms < result.start_ms || typeof result.latency !== "string"
-    || !Array.isArray(rows) || result.row_count !== rows.length || result.row_affect !== 0 || !Number.isInteger(result.limit) || result.limit < rows.length || rows.length > EVENT_LIMITS.maxOssRows) throw new Error("Invalid OSS Insight envelope");
-  let previousDate = "";
-  const normalized = rows.map(row => {
-    const date = typeof row?.date === "string" ? new Date(`${row.date}T00:00:00.000Z`) : null;
-    if (!exactKeys(row, ["date", "stargazers"]) || !DATE.test(row.date) || Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== row.date) throw new Error("Invalid OSS Insight row");
-    if (row.date <= previousDate) throw new Error("OSS Insight dates must be ascending unique");
-    previousDate = row.date;
-    return { date: row.date, stars: ossInteger(row.stargazers) };
-  });
-  return { rows: normalized, sourcePayloadSha256: canonicalHash(value), publicRows: normalized.slice(-EVENT_LIMITS.publicOssRows) };
-}
-
-async function collectOss(slug, context) {
-  const [owner, name] = normalizeSlug(slug).split("/");
-  const url = `https://api.ossinsight.io/v1/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/stargazers/history`;
-  const response = await request(url, { ...context, operation: "OSS star history", headers: { Accept: "application/json" }, retryDelaysMs: EVENT_LIMITS.ossRetryDelaysMs });
-  if (!response.ok) throw new Error(`OSS Insight returned ${response.status} for ${slug}`);
-  const contentType = response.headers.get("content-type") ?? "";
-  if (!/^application\/(?:json|[^;]+\+json)(?:;|$)/i.test(contentType)) throw new Error(`Invalid OSS Insight content type for ${slug}`);
-  const bytes = Buffer.from(await response.arrayBuffer());
-  if (bytes.length > EVENT_LIMITS.maxOssBytes) throw new Error(`OSS Insight body exceeds ${EVENT_LIMITS.maxOssBytes} bytes for ${slug}`);
-  let parsed;
-  try { parsed = JSON.parse(bytes.toString("utf8")); } catch { throw new Error(`Invalid OSS Insight JSON for ${slug}`); }
-  return { slug, ...validateOssInsightResponse(parsed) };
-}
-
 export async function collectRepositoryEvents(repositories, {
   previous = {},
   fetchImpl = globalThis.fetch,
@@ -511,7 +478,7 @@ export async function collectRepositoryEvents(repositories, {
     const commitEvents = await collectCommits(repository, previous, context);
     heads.push(commitEvents.head);
     commits.push(...commitEvents.commits);
-    estimates.push(await collectOss(slug, context));
+    estimates.push({ slug, rows: [], sourcePayloadSha256: OSS_ESTIMATE_DISCONTINUATION_SHA256, publicRows: [] });
   }
   return Object.freeze({ releases: Object.freeze(releases), latestReleaseIds, commits: Object.freeze(commits), heads: Object.freeze(heads), estimates: Object.freeze(estimates), budgetReceipt: budget.receipt() });
 }
