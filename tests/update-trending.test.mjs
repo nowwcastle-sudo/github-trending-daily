@@ -828,16 +828,6 @@ test("transactional boundary completes facts and events before paid enrichment",
   const rest = successfulGithubFetch();
   const fetchImpl = async (url, options) => {
     const parsed = new URL(url);
-    if (parsed.hostname === "api.ossinsight.io") {
-      return new Response(JSON.stringify({
-        type: "sql_endpoint",
-        data: {
-          columns: [{ col: "date", data_type: "VARCHAR", nullable: true }, { col: "stargazers", data_type: "DECIMAL", nullable: true }],
-          result: { code: 200, message: "ok", start_ms: 0, end_ms: 1, latency: "1ms", row_count: 0, row_affect: 0, limit: 0 },
-          rows: [],
-        },
-      }), { status: 200, headers: { "content-type": "application/json" } });
-    }
     if (parsed.pathname.endsWith("/releases/latest")) {
       const slug = parsed.pathname.slice("/repos/".length, -"/releases/latest".length);
       return jsonResponse(200, { id: 1, tag_name: "v1", name: "v1", target_commitish: "main", draft: false, prerelease: false, created_at: "2026-08-21T09:08:07Z", published_at: "2026-08-21T09:08:07Z", html_url: `https://github.com/${slug}/releases/tag/v1` });
@@ -854,8 +844,8 @@ test("transactional boundary completes facts and events before paid enrichment",
   assert.equal(result.facts.length, 10);
   assert.equal(result.events.releases.length, 10);
   assert.equal(result.events.estimates.every(value => value.rows.length === 0), true);
-  assert.equal(result.events.budgetReceipt.logicalRequests, 110);
-  assert.equal(result.events.budgetReceipt.httpAttempts, 110);
+  assert.equal(result.events.budgetReceipt.logicalRequests, 100);
+  assert.equal(result.events.budgetReceipt.httpAttempts, 100);
 });
 
 test("transactional facts reject numeric request-budget overrides", async () => {

@@ -89,11 +89,11 @@ GitHub Actions는 다음 세 경우에만 실행한다.
 
 페이지는 `star-history.json`을 한 번만 가져와 slug별 Map으로 만든다. 기존 `sparkline()`을 재사용해 인라인 SVG를 그린다.
 
-- OSS Insight 지점이 둘 이상이면 과거 월별 추이를 표시한다.
+- OSS Insight 지점이 둘 이상이면 과거 월별 추이를 표시한다. *(2026-09-02 §12로 폐기)*
 - 자체 지점만 둘 이상이면 관측 시작일 이후 추이를 표시한다.
 - 지점이 하나면 선을 꾸미지 않고 `관측 데이터 1일`이라고 표시한다.
 - JSON 로드 실패 시 카드와 검색은 그대로 작동하며 `스타 추이를 불러오지 못했어요`라고 표시한다.
-- 그래프 설명은 `GH Archive 기반 과거 추정 · 현재 총 스타는 GitHub 기준`으로 고정한다.
+- 그래프 설명은 `GH Archive 기반 과거 추정 · 현재 총 스타는 GitHub 기준`으로 고정한다. *(2026-09-02 §12로 폐기)*
 - `api.star-history.com` 이미지와 성공처럼 보이는 200 안내 SVG 처리는 제거한다.
 
 ## 6. Google 로그인 및 즐겨찾기 설계
@@ -244,3 +244,7 @@ App Check는 기능 배포와 Security Rules 검증이 끝난 뒤 reCAPTCHA Ente
 - OSS Insight의 성공률 또는 최신성이 지속적으로 기준을 충족하지 못하면 과거 추정 수집을 중단하고 자체 일별 관측만 유지한다.
 - 즐겨찾기를 넘어 사용자 데이터와 복잡한 관계형 질의가 실제 요구되면 Supabase 또는 별도 백엔드를 새 ADR로 재검토한다.
 - Firebase 비용·정책·가용성이 운영 기준을 벗어나면 사용자 데이터 내보내기 후 대체 저장소를 검토한다.
+
+## 12. 2026-09-02 뒤집는 조건 발동 기록
+
+§11 2항이 발동됐다. 2026-09-02 실측에서 active repository 45개 전부의 OSS Insight 응답에 `data_quality`(`status=degraded`, `severely_degraded_since=2026-05-01`)가 추가됐고, GitHub 현재 스타 대비 OSS 최신 추정은 중앙값 14.5배·최대 73.8배 과소였다. 사용자 결정으로 과거 추정 수집을 중단하고 자체 exact 일별 관측만 게시한다. `historical_star_estimates`의 기존 행은 append-only로 보존하며 새 snapshot부터 `ossinsight_api` 점은 tombstone, `legacy_star_history_cache` 점은 표시 선택에서 제외한다. 구현 계획: `docs/superpowers/plans/2026-09-02-discontinue-oss-star-estimates.md`.

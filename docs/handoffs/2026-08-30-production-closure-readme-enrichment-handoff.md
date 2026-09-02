@@ -53,6 +53,7 @@
 10. repository observation DB에는 README 전체 본문을 저장하지 않는다. source identity, hash, schema, state만 저장한다.
 11. Codex Security Deep Scan은 사용자 결정으로 폐기됐다. 재개·대체·완료 게이트·잔여 위험으로 취급하지 않는다.
 12. CodeQL, 정적·의존성·비밀값 검사, Firestore Rules, 실제 로그인과 나머지 production 인수시험은 생략하지 않는다.
+13. OSS Insight 과거 스타 추정치 수집·표시는 2026-09-02 사용자 결정으로 중단했다. events envelope는 repository마다 빈 receipt와 discontinuation 해시를 유지하고, 공개 `estimated`는 새 snapshot부터 빈 배열이다. 근거와 구현은 `docs/superpowers/plans/2026-09-02-discontinue-oss-star-estimates.md`.
 
 ## 2. production RED 기준선
 

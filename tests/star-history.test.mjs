@@ -48,7 +48,8 @@ test("historyHtml uses fixed copy and never interpolates the slug", () => {
     observed: [{ date: "2026-08-22", stars: 10 }],
   });
 
-  assert.match(html, /GH Archive 기반 과거 추정 · 현재 총 스타는 GitHub 기준/);
+  assert.match(html, /매일 GitHub에서 직접 관측한 총 스타 추이/);
+  assert.doesNotMatch(html, /GH Archive|추정/);
   assert.doesNotMatch(html, /<img|onerror|alert/);
 });
 

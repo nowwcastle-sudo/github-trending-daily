@@ -16,7 +16,8 @@ import {
   runFrozenEventCollection,
   verifyFrozenParentInputs,
   validatePriorHeadsPayload,
-  validateOssInsightResponse,
+  OSS_ESTIMATE_DISCONTINUATION,
+  OSS_ESTIMATE_DISCONTINUATION_SHA256,
 } from "../scripts/collect-repository-events.mjs";
 
 const sha = char => char.repeat(40);
@@ -41,20 +42,6 @@ function commit(value, parents = []) {
   };
 }
 
-function oss(rows) {
-  return {
-    type: "sql_endpoint",
-    data: {
-      columns: [
-        { col: "date", data_type: "VARCHAR", nullable: true },
-        { col: "stargazers", data_type: "DECIMAL", nullable: true },
-      ],
-      result: { code: 200, message: "ok", start_ms: 0, end_ms: 1, latency: "1ms", row_count: rows.length, row_affect: 0, limit: rows.length },
-      rows,
-    },
-  };
-}
-
 function assertContentFreeError(error, sentinel) {
   const pattern = new RegExp(sentinel);
   for (let current = error; current; current = current.cause) {
@@ -68,7 +55,7 @@ function assertContentFreeError(error, sentinel) {
   }
 }
 
-function successfulFetch({ releasePages = [[release(1), release(2)]], commits = [], ossRows = [{ date: "2026-08-26", stargazers: "12" }] } = {}) {
+function successfulFetch({ releasePages = [[release(1), release(2)]], commits = [] } = {}) {
   return async (url, options = {}) => {
     const value = new URL(url);
     const requestedSlug = value.pathname.match(/^\/repos\/([^/]+\/[^/]+)\//)?.[1]?.toLowerCase() ?? "owner/repo";
@@ -76,7 +63,7 @@ function successfulFetch({ releasePages = [[release(1), release(2)]], commits = 
       ...item,
       html_url: `https://github.com/${requestedSlug}/releases/tag/${item.tag_name}`,
     });
-    if (value.hostname === "api.ossinsight.io") return response(200, oss(ossRows));
+    if (value.hostname === "api.ossinsight.io") throw new Error("OSS Insight must not be requested");
     if (value.pathname.endsWith("/releases/latest")) return response(200, forRequestedRepository(release(1)));
     if (value.pathname.endsWith("/releases")) {
       const page = Number(value.searchParams.get("page"));
@@ -286,7 +273,7 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
   assert.equal(verifierCalls, 1);
   assert.equal(events.releases.length, 20);
   assert.deepEqual(events.latestReleaseIds, Object.fromEntries(repositories.map(value => [value.slug, 1])));
-  assert.equal(events.budgetReceipt.logicalRequests, 103);
+  assert.equal(events.budgetReceipt.logicalRequests, 93);
   assert.deepEqual(JSON.parse(await readFile(eventsOut, "utf8")), events);
 
   let evidenceSwapFetches = 0;
@@ -483,17 +470,6 @@ test("future commits retain a backdated fast-forward and a proven rewrite import
   assert.deepEqual(rewrite.commits, []);
 });
 
-test("OSS Insight is exact, complete, normalized and is not limited by public display cap", () => {
-  const rows = Array.from({ length: 501 }, (_, index) => ({ date: `2025-01-${String((index % 28) + 1).padStart(2, "0")}`, stargazers: String(index) }));
-  rows.sort((left, right) => left.date.localeCompare(right.date));
-  // Equal dates deliberately demonstrate that duplicate series are rejected.
-  assert.throws(() => validateOssInsightResponse(oss(rows)), /ascending unique/i);
-  const valid = validateOssInsightResponse(oss([{ date: "2025-01-01", stargazers: "0" }, { date: "2025-01-02", stargazers: 1 }]));
-  assert.deepEqual(valid.rows, [{ date: "2025-01-01", stars: 0 }, { date: "2025-01-02", stars: 1 }]);
-  assert.throws(() => validateOssInsightResponse(oss([{ date: "2025-01-01", stargazers: "01" }])), /stargazers/i);
-  assert.throws(() => validateOssInsightResponse(oss([{ date: "2025-01-01", stargazers: "1.5" }])), /stargazers/i);
-});
-
 test("hostile Link and a page-two-only non-ETag mutation both stop the complete event candidate", async () => {
   await assert.rejects(collectRepositoryEvents([repo], {
     fetchImpl: async (url, options) => {
@@ -564,7 +540,7 @@ test("all 75 candidates share bounded requests and an immutable event deadline",
   }), /deadline has insufficient request reserve/);
 });
 
-test("terminal retry counts every attempt and OSS rejects 10,001 rows and malformed numbers", async () => {
+test("terminal retry counts every attempt", async () => {
   let attempts = 0;
   const sleeps = [];
   await assert.rejects(collectRepositoryEvents([repo], {
@@ -576,46 +552,6 @@ test("terminal retry counts every attempt and OSS rejects 10,001 rows and malfor
   }), /release inventory.*503/);
   assert.equal(attempts, 3);
   assert.deepEqual(sleeps, [2000, 8000]);
-  const oversized = Array.from({ length: 10_001 }, (_, index) => {
-    const day = new Date(Date.UTC(2000, 0, 1 + index)).toISOString().slice(0, 10);
-    return { date: day, stargazers: index };
-  });
-  assert.throws(() => validateOssInsightResponse(oss(oversized)), /Invalid OSS Insight envelope/);
-  for (const invalid of ["+1", " 1", "01", "1e2", "9007199254740992", -1, 1.5, null]) {
-    assert.throws(() => validateOssInsightResponse(oss([{ date: "2025-01-01", stargazers: invalid }])), /stargazers/);
-  }
-});
-
-test("OSS Insight alone gets the longer bounded recovery schedule", async () => {
-  const base = successfulFetch();
-  const sleeps = [];
-  let attempts = 0;
-  const events = await collectRepositoryEvents([repo], {
-    fetchImpl: async (url, options) => {
-      if (new URL(url).hostname === "api.ossinsight.io") {
-        attempts += 1;
-        if (attempts < 5) return response(500, { message: "temporary" });
-      }
-      return base(url, options);
-    },
-    sleep: async milliseconds => { sleeps.push(milliseconds); },
-  });
-  assert.equal(events.estimates.length, 1);
-  assert.equal(attempts, 5);
-  assert.deepEqual(sleeps, [2000, 8000, 30_000, 60_000]);
-
-  attempts = 0;
-  await assert.rejects(collectRepositoryEvents([repo], {
-    fetchImpl: async (url, options) => {
-      if (new URL(url).hostname === "api.ossinsight.io") {
-        attempts += 1;
-        return response(500, { message: "temporary" });
-      }
-      return base(url, options);
-    },
-    sleep: async () => {},
-  }), /OSS Insight returned 500/);
-  assert.equal(attempts, 5);
 });
 
 test("truncated release JSON retries within the fixed attempt budget", async () => {
@@ -800,7 +736,6 @@ test("release tag identity accepts exact encoded and GitHub slash paths", async 
       fetchImpl: async (url, options) => {
         const value = new URL(url);
         const exact = { ...tagged, html_url: `https://github.com/owner/repo/releases/tag/${path}` };
-        if (value.hostname === "api.ossinsight.io") return response(200, oss([]));
         if (value.pathname.endsWith("/releases/latest")) return response(200, exact);
         if (value.pathname.endsWith("/releases")) {
           if (options.headers?.["If-None-Match"]) return new Response(null, { status: 304, headers: { etag: '"release"' } });
@@ -820,7 +755,6 @@ test("GitHub HTML URLs compare only owner and repository path casing loosely", a
   const committed = { ...commit(current, [prior]), html_url: `https://github.com/Owner/Repo/commit/${current}` };
   const fetchImpl = async (url, options = {}) => {
     const value = new URL(url);
-    if (value.hostname === "api.ossinsight.io") return response(200, oss([{ date: "2026-08-26", stargazers: "12" }]));
     if (value.pathname.endsWith("/releases/latest")) return response(200, tagged);
     if (value.pathname.endsWith("/releases")) {
       if (options.headers?.["If-None-Match"]) return new Response(null, { status: 304, headers: { etag: '"release"' } });
@@ -871,8 +805,7 @@ test("unquoted Link, a page-one HEAD race, and upstream sentinels fail closed wi
     }], {
       previous: { "owner/repo": { branch: branchSentinel, headSha: sha("a") } },
       fetchImpl: async (url, options) => {
-        if (new URL(url).pathname.endsWith("/releases") || new URL(url).pathname.endsWith("/releases/latest")
-            || new URL(url).hostname === "api.ossinsight.io") return successfulFetch()(url, options);
+        if (new URL(url).pathname.endsWith("/releases") || new URL(url).pathname.endsWith("/releases/latest")) return successfulFetch()(url, options);
         throw Object.assign(new Error(branchSentinel), { name: "TimeoutError" });
       },
       sleep: async () => {},
@@ -880,18 +813,6 @@ test("unquoted Link, a page-one HEAD race, and upstream sentinels fail closed wi
   } catch (error) { caught = error; }
   assert.ok(caught);
   assertContentFreeError(caught, branchSentinel);
-});
-
-test("calendar-valid 501-point OSS history retains full storage and independent public slice", () => {
-  const rows = Array.from({ length: 501 }, (_, index) => {
-    const date = new Date(Date.UTC(2024, 0, index + 1)).toISOString().slice(0, 10);
-    return { date, stargazers: index };
-  });
-  const validated = validateOssInsightResponse(oss(rows));
-  assert.equal(validated.rows.length, 501);
-  assert.equal(validated.publicRows.length, 500);
-  assert.deepEqual(validated.rows.at(-1), { date: "2025-05-15", stars: 500 });
-  assert.throws(() => validateOssInsightResponse(oss([{ date: "2025-02-30", stargazers: 1 }])), /Invalid OSS Insight row/);
 });
 
 test("shared context rejects deadline overrides and a regressing clock", async () => {
@@ -915,7 +836,7 @@ test("collection budget exposes capability methods but no mutable deadline, coun
   const before = budget.receipt();
   await collectRepositoryEvents([repo], { fetchImpl: successfulFetch(), collectionContext: context });
   const after = budget.receipt();
-  assert.equal(after.logicalRequests - before.logicalRequests, 4);
+  assert.equal(after.logicalRequests - before.logicalRequests, 3);
   assert.equal(after.eventDeadlineEpochMs, before.eventDeadlineEpochMs);
 });
 
@@ -952,8 +873,26 @@ test("75-repository worst-case pagination fails at the shared logical cap rather
         const item = Number(value.searchParams.get("page")) === 20 ? commit(sha("a")) : commit(sha("b"));
         return response(200, [{ ...item, html_url: `https://github.com/${requestedSlug}/commit/${item.sha}` }]);
       }
-      if (value.hostname === "api.ossinsight.io") return new Response(JSON.stringify(oss([])), { status: 200, headers: { "content-type": "application/json" } });
       throw new Error("unexpected URL");
     },
   }), /logical request cap exceeded/);
+});
+
+test("historical star estimates are discontinued: no OSS Insight request and one exact empty receipt per repository", async () => {
+  const other = { slug: "owner/other", default_branch: "main", default_branch_head_sha: sha("b") };
+  const events = await collectRepositoryEvents([repo, other], {
+    fetchImpl: async (url, options) => {
+      if (new URL(url).hostname === "api.ossinsight.io") throw new Error("OSS Insight must not be requested");
+      return successfulFetch()(url, options);
+    },
+  });
+  assert.deepEqual(events.estimates, [
+    { slug: "owner/repo", rows: [], sourcePayloadSha256: OSS_ESTIMATE_DISCONTINUATION_SHA256, publicRows: [] },
+    { slug: "owner/other", rows: [], sourcePayloadSha256: OSS_ESTIMATE_DISCONTINUATION_SHA256, publicRows: [] },
+  ]);
+  assert.match(OSS_ESTIMATE_DISCONTINUATION_SHA256, /^[a-f0-9]{64}$/);
+  assert.equal(OSS_ESTIMATE_DISCONTINUATION.provider, "ossinsight_api");
+  assert.equal(OSS_ESTIMATE_DISCONTINUATION.status, "discontinued");
+  assert.equal(OSS_ESTIMATE_DISCONTINUATION.severelyDegradedSince, "2026-05-01");
+  assert.equal(Object.isFrozen(OSS_ESTIMATE_DISCONTINUATION), true);
 });
