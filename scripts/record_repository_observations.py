@@ -1727,8 +1727,9 @@ def _project_commit_rows(
         _exact_alias_keys(event, snake, camel, "commit event")
         slug = _slug_value(event["slug"])
         sha = _sha_text(_value(event, "commit_sha", "sha"), 40, "commit SHA")
-        if event["slug"] != slug or slug not in active_slugs or (slug, sha) in seen:
-            raise ValueError("commit event has duplicate, noncanonical, or inactive slug")
+        # Events carry GitHub's display casing; the ledger keys them by the canonical slug.
+        if slug not in active_slugs or (slug, sha) in seen:
+            raise ValueError("commit event has duplicate or inactive slug")
         seen.add((slug, sha))
         ordinal = _value(event, "first_observed_ordinal", "firstObservedOrdinal")
         branch = _value(event, "branch_name", "branch")
@@ -1744,7 +1745,7 @@ def _project_commit_rows(
             raise ValueError("commit parents are invalid")
         for parent_sha in parents:
             _sha_text(parent_sha, 40, "commit parent SHA")
-        if _github_url(html_url, f"/{slug}/commit/", "commit") != f"https://github.com/{slug}/commit/{sha}":
+        if _github_url(html_url, f"/{slug}/commit/", "commit").casefold() != f"https://github.com/{slug}/commit/{sha}".casefold():
             raise ValueError("commit URL does not bind to commit SHA")
         row = {
             "slug": slug, "commit_sha": sha, "first_observed_snapshot_seq": seq,

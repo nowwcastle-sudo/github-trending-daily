@@ -2292,6 +2292,41 @@ class RepositoryObservationTests(unittest.TestCase):
             )
             self.assertEqual(verify_core_snapshot(connection, 2), result.core_payload_sha256)
 
+    def test_commit_events_accept_display_case_slugs_and_urls_and_store_the_canonical_slug(self):
+        # The collector forwards GitHub's display casing ("Owner/Repo", html_url with the same
+        # case); the ledger keys every event by the canonical lowercase slug.
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        candidate = Path(self.temporary.name) / "commit-display-case.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing.sqlite", candidate, None)
+        state = {}
+        first_id = "20260828010101-aaaaaaaaaaaaaaaa"
+        first = writer_payload(snapshot_id=first_id, utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00", stats_date="2026-08-28", run_kind="migration_baseline")
+        first["legacyBaselines"], first["legacyBaselineReceipt"] = paths, receipt
+        record_writer_snapshot(candidate, first, writer_events(head=sha1("a"), transition="baseline"), state)
+        second = writer_payload(snapshot_id="20260828030101-bbbbbbbbbbbbbbbb", utc="2026-08-28T03:01:01.001Z", kst="2026-08-28T12:01:01.001+09:00", stats_date="2026-08-28", run_kind="refresh", parent_snapshot_id=first_id)
+        second["legacyBaselines"], second["legacyBaselineReceipt"] = paths, receipt
+        second["repositories"][0]["defaultBranchHeadSha"] = sha1("b")
+        second["repositories"][0]["provenance"]["readme"]["variant_tree_api_path"] = f"/repos/owner/repo/git/trees/{sha1('b')}"
+        events = writer_events(head=sha1("b"), transition="fast_forward")
+        events["commits"] = [{
+            "slug": "Owner/Repo", "sha": sha1("b"), "firstObservedOrdinal": 1,
+            "branch": "main", "authoredAt": "2026-08-28T02:01:01.001Z",
+            "committedAt": "2026-08-28T02:01:01.001Z", "authorLogin": "owner",
+            "parentShas": [sha1("a")],
+            "htmlUrl": f"https://github.com/Owner/Repo/commit/{sha1('b')}",
+        }]
+        record_writer_snapshot(candidate, second, events, state)
+        with closing(sqlite3.connect(candidate)) as connection:
+            self.assertEqual(connection.execute("SELECT slug, commit_sha, html_url FROM commit_events").fetchone(), ("owner/repo", sha1("b"), f"https://github.com/Owner/Repo/commit/{sha1('b')}"))
+        other = Path(self.temporary.name) / "commit-display-case-2.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing-2.sqlite", other, None)
+        other_state = {}
+        record_writer_snapshot(other, first, writer_events(head=sha1("a"), transition="baseline"), other_state)
+        mismatched = writer_events(head=sha1("b"), transition="fast_forward")
+        mismatched["commits"] = [dict(events["commits"][0], htmlUrl=f"https://github.com/Owner/Other/commit/{sha1('b')}")]
+        with self.assertRaisesRegex(ValueError, "URL"):
+            record_writer_snapshot(other, second, mismatched, other_state)
+
     def test_fast_forward_rejects_supplied_commit_outside_current_to_prior_graph(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
         candidate = Path(self.temporary.name) / "commit-side-branch.sqlite"

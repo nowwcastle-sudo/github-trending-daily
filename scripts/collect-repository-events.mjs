@@ -387,7 +387,13 @@ function commitRecord(slug, branch, value, ordinal) {
     || (value.author !== null && (typeof value.author !== "object" || (value.author.login !== undefined && typeof value.author.login !== "string")))
     || typeof value.html_url !== "string") throw new Error(`Invalid commit for ${slug}`);
   githubHtmlUrl(value.html_url, `Invalid commit for ${slug}`, `/${normalizeSlug(slug).toLowerCase()}/commit/${sha}`);
-  return { slug, sha, firstObservedOrdinal: ordinal, branch, authoredAt: value.commit.author.date, committedAt: value.commit.committer.date, authorLogin: value.author?.login ?? null, parentShas: parents.map(parent => parent.sha), htmlUrl: value.html_url };
+  // Like release records: canonical lowercase slug and millisecond UTC timestamps,
+  // which is the exact shape the observation ledger stores.
+  return {
+    slug: normalizeSlug(slug).toLowerCase(), sha, firstObservedOrdinal: ordinal, branch,
+    authoredAt: new Date(value.commit.author.date).toISOString(), committedAt: new Date(value.commit.committer.date).toISOString(),
+    authorLogin: value.author?.login ?? null, parentShas: parents.map(parent => parent.sha), htmlUrl: value.html_url,
+  };
 }
 
 async function diagnoseContinuity(slug, branch, priorHead, currentHead, context) {

@@ -2688,8 +2688,17 @@ export async function runEnrichment({
   };
 }
 
+// Placeholder tokens are matched case-sensitively: "todo" is an ordinary Spanish
+// word (2026-09-03 run 33692856720 rejected a valid Spanish summary), while the
+// generic phrases stay case-insensitive.
+const PLACEHOLDER_TOKEN_RE = /\bTODO\b|\bTBD\b/;
+const GENERIC_PHRASE_RE = /placeholder|확인\s*필요|자동\s*요약|구체적인\s*설치\s*및\s*사용\s*절차는\s*저장소\s*README\s*원문을\s*확인한다|README(?:를|에서|\s*원문을)?\s*(?:확인|참고)/i;
+function isPlaceholderOrGenericText(text) {
+  return PLACEHOLDER_TOKEN_RE.test(text) || GENERIC_PHRASE_RE.test(text);
+}
+
 function placeholderSummary(value) {
-  return SUMMARY_KEYS.some(key => /(?:\bTODO\b|\bTBD\b|placeholder|확인\s*필요|자동\s*요약|구체적인\s*설치\s*및\s*사용\s*절차는\s*저장소\s*README\s*원문을\s*확인한다|README(?:를|에서|\s*원문을)?\s*(?:확인|참고))/i.test(value?.[key] ?? ""));
+  return SUMMARY_KEYS.some(key => isPlaceholderOrGenericText(value?.[key] ?? ""));
 }
 
 function translationMap(value) {

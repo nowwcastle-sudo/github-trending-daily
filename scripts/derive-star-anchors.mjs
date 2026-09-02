@@ -31,8 +31,10 @@ export function deriveStarAnchors(facts) {
   const warnings = [];
   const seen = new Set();
   for (const repository of facts.repositories) {
-    const slug = repository?.display_slug ?? repository?.slug;
-    if (typeof slug !== "string" || !slug) throw new Error("repository slug is invalid");
+    // Frozen facts carry the case-preserving canonical slug in `slug` ("Owner/Repo");
+    // `display_slug` is the human label ("Owner / Repo") and is not an identifier.
+    const slug = repository?.slug;
+    if (typeof slug !== "string" || !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(slug)) throw new Error("repository slug is invalid");
     const key = slug.toLowerCase();
     if (seen.has(key)) throw new Error(`duplicate repository: ${slug}`);
     seen.add(key);
