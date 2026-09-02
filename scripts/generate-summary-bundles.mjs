@@ -165,7 +165,7 @@ function markdownHeadings(markdown) {
 }
 
 // URL tokens are ASCII (RFC 3986) and the sentence punctuation that trails them in prose is not part of the invariant.
-const TRAILING_SENTENCE_PUNCTUATION = /[.,;:!?、。]+$/u;
+const TRAILING_SENTENCE_PUNCTUATION = /[.,;:!?]+$/;
 
 function invariantTokens(text) {
   return {

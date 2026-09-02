@@ -101,7 +101,7 @@ test("URL invariants ignore trailing sentence punctuation across locales", () =>
 - [ ] **Step 3: 최소 구현** — `invariantTokens`의 urls 줄을 다음과 같이 바꾼다. RED 실행에서 일본어 fixture(`https://example.com/docs、を参照`)가 URL 뒤에 공백 없이 CJK 문자를 붙여 같은 토큰화 문제의 두 번째 양상을 드러냈으므로, URL 토큰을 ASCII(RFC 3986)로 한정하고 끝 문장 부호를 제거한다:
 
 ```js
-const TRAILING_SENTENCE_PUNCTUATION = /[.,;:!?、。]+$/u;
+const TRAILING_SENTENCE_PUNCTUATION = /[.,;:!?]+$/;
     urls: [...text.matchAll(/https?:\/\/[^\s)>\]}\u0080-\uffff]+/g)].map(match => match[0].replace(TRAILING_SENTENCE_PUNCTUATION, "")).sort(),
 ```
 

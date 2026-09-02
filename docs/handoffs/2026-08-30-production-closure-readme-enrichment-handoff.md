@@ -75,10 +75,10 @@
 4. README 사실과 직접적이고 신중한 함의만 허용한다.
 5. README에 실제 있는 핵심 명령만 1~2개 포함한다.
 6. 중립적 기술 문체를 사용하고 홍보성 최상급 표현은 거부한다.
-7. 5개 locale의 command, URL, version, number, product name, warning은 정확히 같아야 한다.
+7. 5개 locale의 command, URL, version, number, product name, warning은 정확히 같아야 한다. *(2026-09-02 보충: cross-locale URL 토큰은 ASCII 구간만 비교하고 끝 문장부호를 제외한다. 비ASCII 경로·IDN 호스트의 꼬리 차이는 이 토큰 비교가 잡지 않는 알려진 트레이드오프이며, 모델이 선언한 URL invariant의 README exact 일치 검사는 그대로다.)*
 8. 5개 언어는 한 묶음이며 한 언어의 결함도 repository와 candidate 전체를 실패시킨다.
 9. `insufficient_source`는 candidate 실패다. metadata fallback이나 “README 참고” 문구로 통과시키지 않는다.
-10. 재시도 상한은 모든 모드에서 `max(12, pending × 3)`이다(2026-09-02 개정, run `33639446686` 근거: pending 37에 고정 12로 소진). 승인된 최초 v0 bootstrap은 repository마다 최대 3회의 품질 교정을 수행할 수 있도록 pending 수에 비례한 유한 cap을 사용한다. deterministic validator가 허용된 locale/field 또는 invariant 선언을 특정하면 해당 위치만 보정 prompt에 전달한다.
+10. 재시도 상한은 모든 모드에서 `max(12, pending × 3)`이다(2026-09-02 개정, run `33639446686` 근거: pending 37에 고정 12로 소진). 모든 모드에서 repository마다 최대 3회의 품질 교정 capacity를 가진다. deterministic validator가 허용된 locale/field 또는 invariant 선언을 특정하면 해당 위치만 보정 prompt에 전달한다.
 11. 모델은 내부 evidence의 README line range와 invariant의 `kind`/`value`만 반환한다. section heading은 frozen README의 ATX/Setext 구조에서, invariant field 위치는 실제 5-locale summary에서 결정적으로 파생해 저장하며 기존 cache의 파생값이 다르면 거부한다. README 전체 본문은 observation DB에 넣지 않는다.
 12. UI에는 “verified repository README를 바탕으로 AI가 생성”했다고 표시하고 human verified라고 하지 않는다.
 13. reuse는 동일 README blob/content hash, prompt schema, `claude -p` provider/interface, CLI version, OAuth auth method일 때만 허용한다.
