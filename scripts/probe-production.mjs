@@ -9,6 +9,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
   LEGACY_BASE_PATHS,
+  OVERLAY_PATHS,
   expectedVersion1Paths,
   parseEmbeddedRepos,
   parseJsonStrict,
@@ -311,7 +312,10 @@ async function verifyVersion1Payload({ baseUrl, manifest, manifestBytes, gitRoot
   const membership = parseJsonStrict(bodies.get("data/membership-status.json"), "membership JSON");
   const sources = parseJsonStrict(gitBytes(manifest.sourceSha, "data/translation-sources.json", gitRoot, deadline), "translation sources");
   const expectedPaths = expectedVersion1Paths(latest, sources);
-  if (Object.keys(manifest.files).sort().join("\0") !== expectedPaths.join("\0")) throw new Error("manifest contains missing or stale extra artifact paths");
+  // Contract paths are checked against the snapshot contract below; overlay paths
+  // (star-history.json) are only checked against the manifest's own hash above.
+  const expectedManifestPaths = [...expectedPaths, ...OVERLAY_PATHS].sort();
+  if (Object.keys(manifest.files).sort().join("\0") !== expectedManifestPaths.join("\0")) throw new Error("manifest contains missing or stale extra artifact paths");
   const contract = artifactContract ?? await artifactContractFromGit(manifest.sourceSha, manifest.snapshotId, gitRoot, deadline);
   validateArtifactContract(contract, manifest.snapshotId, expectedPaths, bodies);
   if (!exactKeys(latest, ["snapshotId", "generatedAt", "statsDate", "count", "repos"]) || latest.snapshotId !== manifest.snapshotId

@@ -8,7 +8,7 @@ import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
-import { VERSION_1_BASE_PATHS } from "../scripts/build-pages-artifact.mjs";
+import { OVERLAY_PATHS, VERSION_1_BASE_PATHS } from "../scripts/build-pages-artifact.mjs";
 import { assertSourceBoundToRunHead, selectMatchingReceipt, resolveEffectiveReceipt, validateWorkflowRun, verifyRefreshChain } from "../scripts/verify-refresh-chain.mjs";
 
 const expected = {
@@ -207,7 +207,7 @@ async function makeArtifact(directory, sourceSha, snapshotId) {
     model: "claude-sonnet-5", schema_version: 3, prompt_schema_version: 3, translation_applicable: false,
   } } };
   const payloads = new Map();
-  for (const relative of VERSION_1_BASE_PATHS) payloads.set(relative, Buffer.from(`${relative}\n`));
+  for (const relative of [...VERSION_1_BASE_PATHS, ...OVERLAY_PATHS]) payloads.set(relative, Buffer.from(`${relative}\n`));
   const classification = { tag_rule_version: 1, field_tags: ["ai-ml", "dev-tools"], form_tags: ["agent", "library"] };
   payloads.set("index.html", Buffer.from(`<html>\nconst REPOS = [${JSON.stringify({ slug, _snapshot_id: snapshotId, _generated_at: generatedAt, _stats_date: statsDate, ...classification })}];\n</html>\n`));
   payloads.set("data/latest.json", Buffer.from(`${JSON.stringify({ snapshotId, generatedAt, statsDate, count: 1, repos: [{ slug, ...classification }] })}\n`));

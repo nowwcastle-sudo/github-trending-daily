@@ -566,6 +566,16 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "recorded snapshot"):
             repository_artifacts._summary_content(index, mismatched)
 
+    def test_star_history_overlay_is_outside_the_finalized_pages_allowlist(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for relative in (*PAGES_BASE_ARTIFACT_PATHS, "star-history.json"):
+                target = root.joinpath(*relative.split("/"))
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(relative.encode())
+            with self.assertRaisesRegex(ValueError, "allowlist"):
+                hash_pages_artifacts(root, (*PAGES_BASE_ARTIFACT_PATHS, "star-history.json"))
+
     def test_star_history_applies_caps_after_selection(self):
         database = self.root / "ledger.sqlite"
         create_database(database)
@@ -799,6 +809,8 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
             core = connection.execute("SELECT core_payload_sha256,chain_sha256 FROM snapshot_runs").fetchone()
             self.assertEqual(connection.execute("SELECT COUNT(*) FROM repository_insights").fetchone(), (1,))
             self.assertEqual(connection.execute("SELECT COUNT(*) FROM artifact_hashes").fetchone(), (len(PAGES_BASE_ARTIFACT_PATHS),))
+            self.assertEqual(len(PAGES_BASE_ARTIFACT_PATHS), 19)
+            self.assertNotIn("star-history.json", PAGES_BASE_ARTIFACT_PATHS)
         with closing(sqlite3.connect(database)) as connection:
             self.assertEqual(core, connection.execute("SELECT core_payload_sha256,chain_sha256 FROM snapshot_runs").fetchone())
 

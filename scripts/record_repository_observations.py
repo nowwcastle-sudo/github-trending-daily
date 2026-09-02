@@ -43,8 +43,11 @@ PAGES_BASE_ARTIFACT_PATHS = (
     "auth-lifecycle.js", "changes.xml", "current-view-export.js", "data/latest.json", "data/membership-status.json",
     "favorite-sync.js", "favorites.js", "feed.xml", "firebase-client.js", "firebase-config.json",
     "hidden-repos.js", "index.html", "membership-history.js", "readme-markdown.js",
-    "refresh-schedule.js", "repo-filters.js", "site-i18n.js", "star-history.js", "star-history.json", "ui-motion.js",
+    "refresh-schedule.js", "repo-filters.js", "site-i18n.js", "star-history.js", "ui-motion.js",
 )
+# star-history.json is a deploy overlay written by the star-ticks workflow; it is
+# published and recorded in deployment-manifest.json but is not part of the
+# finalized snapshot contract (2026-09-03 design §5.2).
 _SUMMARY_PRODUCER_FIELDS = ("provider", "interface", "auth_method", "api_provider", "model")
 _SUMMARY_PRODUCER_PROFILES = (
     ("claude-cli-oauth", "claude-p", "oauth_token", "firstParty", "claude-sonnet-5"),
