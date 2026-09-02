@@ -73,7 +73,14 @@ test("star ticks deploy the committed tree through the same contract-checked bui
   ]);
   assert.match(workflow, /export-contract --database "\$\{GITHUB_WORKSPACE\}\/data\/repository-observations\.sqlite" --snapshot-id "\$SNAPSHOT_ID" --contract-out "\$ARTIFACT_CONTRACT"/);
   assert.match(workflow, /probe-production\.mjs --base-url "\$\{\{ steps\.deployment\.outputs\.page_url \}\}" --source-sha "\$SOURCE_SHA" --snapshot-id "\$SNAPSHOT_ID" --artifact-contract "\$ARTIFACT_CONTRACT"/);
-  assert.match(workflow, /if: \$\{\{ steps\.collect\.outputs\.skipped != 'true' && steps\.commit\.outputs\.committed == 'true' \}\}/);
+  // Build, upload, deploy, and the production probe are all gated on a committed ledger change.
+  const gated = workflow.match(/if: \$\{\{ steps\.collect\.outputs\.skipped != 'true' && steps\.commit\.outputs\.committed == 'true' \}\}/g) ?? [];
+  assert.equal(gated.length, 4);
+  for (const step of ["- name: Build committed Pages artifact", "- name: Upload Pages artifact", "- name: Deploy Pages artifact", "- name: Probe deployed Pages artifact"]) {
+    const start = workflow.indexOf(step);
+    assert.ok(start >= 0, step);
+    assert.match(workflow.slice(start, start + 200), /\n\s+if: \$\{\{ steps\.collect\.outputs\.skipped != 'true' && steps\.commit\.outputs\.committed == 'true' \}\}/);
+  }
 });
 
 test("the tick ledgers start empty and tracked", async () => {
