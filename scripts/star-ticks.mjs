@@ -29,6 +29,9 @@ export const TICK_WINDOW_DAYS = 14;
 export const GAIN_WINDOW_DAYS = 7;
 export const MAX_OBSERVED_POINTS = 2000;
 export const MAX_ANCHOR_POINTS = 4;
+// Tier B belongs to the :35 slot of odd UTC hours; the scheduler may start a run
+// up to ~15 minutes late, so the slot is recognised from minute 20 onwards.
+export const TIER_B_SLOT_MINUTE = 20;
 
 function exactKeys(value, keys) {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -147,6 +150,16 @@ export function selectWatchSet({ published, dailyRows, cap = DEFAULT_WATCH_CAP, 
   return { tierA: [...published], tierB: candidates.slice(0, room).map(candidate => candidate.slug) };
 }
 
+export function resolveTier({ nowMs, event, requested = "" }) {
+  if (event === "workflow_dispatch") {
+    if (requested === "" || requested === "a") return "a";
+    if (requested === "ab") return "ab";
+    throw new Error("requested tier must be a or ab");
+  }
+  const date = new Date(nowMs);
+  return date.getUTCHours() % 2 === 1 && date.getUTCMinutes() >= TIER_B_SLOT_MINUTE ? "ab" : "a";
+}
+
 export function assertAppendOnly(existingBytes, newBytes) {
   if (newBytes.length < existingBytes.length || !newBytes.subarray(0, existingBytes.length).equals(existingBytes)) {
     throw new Error("ledger is not append-only: existing bytes changed");
@@ -170,6 +183,7 @@ export function rollupDaily(runs, date) {
 
 function validateAnchors(value) {
   if (!exactKeys(value, ["version", "generatedAt", "anchors", "warnings"]) || value.version !== 1
+      || (value.generatedAt !== null && typeof value.generatedAt !== "string")
       || !value.anchors || typeof value.anchors !== "object" || Array.isArray(value.anchors) || !Array.isArray(value.warnings)) {
     throw new Error("star anchors envelope is invalid");
   }
@@ -265,6 +279,9 @@ async function observeRepository({ slug, fetchImpl, token, sleep }) {
     if (status === 200) {
       const body = await response.json();
       if (!validStars(body?.stargazers_count)) throw new Error(`repository payload is invalid: ${slug}`);
+      // A redirect (rename) or a repository recreated under the old name answers with
+      // a different full_name; its stars are not this repository's history.
+      if (typeof body.full_name !== "string" || lower(body.full_name) !== lower(slug)) return { unavailable: true };
       return { stars: body.stargazers_count };
     }
     if (UNAVAILABLE_STATUSES.has(status)) return { unavailable: true };
@@ -378,6 +395,10 @@ export async function runStarTicksCli(argv, { environment = process.env, fetchIm
       dailyPath: path.resolve(args.daily), fetchImpl, token, runId: args["run-id"], now,
     });
   }
+  if (command === "tier") {
+    const args = parseArgs(rest, ["event", "requested"]);
+    return resolveTier({ nowMs: now(), event: args.event, requested: args.requested });
+  }
   if (command === "derive") {
     const args = parseArgs(rest, ["published", "ticks-dir", "daily", "anchors", "out"]);
     const history = deriveStarHistoryV2({
@@ -390,11 +411,11 @@ export async function runStarTicksCli(argv, { environment = process.env, fetchIm
     await writeFile(path.resolve(args.out), `${JSON.stringify(history, null, 2)}\n`);
     return { repositories: history.repositories.length, observed: history.repositories.reduce((sum, repo) => sum + repo.observed.length, 0) };
   }
-  throw new Error("usage: star-ticks.mjs collect|derive ...");
+  throw new Error("usage: star-ticks.mjs tier|collect|derive ...");
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
   runStarTicksCli(process.argv.slice(2))
-    .then(result => console.log(JSON.stringify(result)))
+    .then(result => console.log(typeof result === "string" ? result : JSON.stringify(result)))
     .catch(error => { console.error(error?.message || "star ticks failed"); process.exitCode = 1; });
 }

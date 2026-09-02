@@ -22,6 +22,7 @@ from scripts.derive_repository_artifacts import (
     export_parent_inputs,
     finalize_snapshot_derivatives,
     hash_pages_artifacts,
+    read_finalized_artifact_contract,
     verify_pages_artifacts,
 )
 from scripts.generate_atom_feeds import ATOM_NAMESPACE, generate_atom_feeds_from_timeline
@@ -771,10 +772,20 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "contract"):
             verify_pages_artifacts(database, snapshot_id, candidate_root)
         contract_target.write_bytes(contract_bytes)
+        # A pre-2026-09-03 snapshot also carries a star-history.json row: contract readers
+        # skip it, re-finalization stays idempotent, and the row itself is never rewritten.
+        with closing(sqlite3.connect(database)) as connection:
+            connection.execute("INSERT INTO artifact_hashes VALUES (?, ?, ?, ?)", (1, "star-history.json", "c" * 64, 7))
+            connection.commit()
+        self.assertEqual([row["artifact_path"] for row in verify_pages_artifacts(database, snapshot_id, candidate_root)["artifacts"]], sorted(PAGES_BASE_ARTIFACT_PATHS))
+        self.assertEqual([row["artifact_path"] for row in read_finalized_artifact_contract(database, snapshot_id)["artifacts"]], sorted(PAGES_BASE_ARTIFACT_PATHS))
+        self.assertFalse(finalize_snapshot_derivatives(database, snapshot_id, insights, hashes).changed)
+        with closing(sqlite3.connect(database)) as connection:
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM artifact_hashes WHERE artifact_path='star-history.json'").fetchone(), (1,))
         with closing(sqlite3.connect(database)) as connection:
             core = connection.execute("SELECT core_payload_sha256,chain_sha256 FROM snapshot_runs").fetchone()
             self.assertEqual(connection.execute("SELECT COUNT(*) FROM repository_insights").fetchone(), (1,))
-            self.assertEqual(connection.execute("SELECT COUNT(*) FROM artifact_hashes").fetchone(), (len(PAGES_BASE_ARTIFACT_PATHS),))
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM artifact_hashes").fetchone(), (len(PAGES_BASE_ARTIFACT_PATHS) + 1,))
             self.assertEqual(len(PAGES_BASE_ARTIFACT_PATHS), 19)
             self.assertNotIn("star-history.json", PAGES_BASE_ARTIFACT_PATHS)
         with closing(sqlite3.connect(database)) as connection:

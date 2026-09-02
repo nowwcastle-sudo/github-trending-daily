@@ -31,6 +31,8 @@ test("star ticks run every half hour behind the GH_TRENDING_TICKS variable and s
   assert.match(refresh, /vars\.GH_TRENDING_REFRESH_SCHEDULE == 'enabled'/);
   assert.match(workflow, /^      contents: write\n      pages: write\n      id-token: write$/m);
   assert.match(workflow, /timeout-minutes: 20/);
+  // The job also serializes with the redeploy workflow on the Pages group.
+  assert.match(workflow, /\n    concurrency:\n      group: pages\n      cancel-in-progress: false\n/);
 });
 
 test("star ticks collect with the repository token only, pick the tier from the clock, and commit only the three ledger paths", async () => {
@@ -40,7 +42,10 @@ test("star ticks collect with the repository token only, pick the tier from the 
   assert.deepEqual([...new Set(secrets)], ["GITHUB_TOKEN"]);
   assert.doesNotMatch(workflow, /ANTHROPIC|CLAUDE|CODEX|update-trending|generate-summary-bundles|collect-repository-events|record_repository_observations|self-hosted/);
   assert.match(workflow, /git fetch origin main[\s\S]*git rev-parse HEAD[\s\S]*refs\/remotes\/origin\/main/);
-  assert.match(workflow, /TIER=ab/);
+  assert.match(workflow, /TIER="\$\(node scripts\/star-ticks\.mjs tier --event "\$GITHUB_EVENT_NAME" --requested "\$REQUESTED_TIER"\)"/);
+  assert.doesNotMatch(workflow, /TIER=ab|date -u \+%H/);
+  // Independent append-only check on the staged ledgers before the commit.
+  assert.match(workflow, /git diff --cached -- data\/star-ticks data\/star-daily\.jsonl \| grep -qE '\^-\[\^-\]'/);
   assert.match(workflow, /star-ticks\.mjs collect --token-env GITHUB_TOKEN --tier "\$TIER" --published data\/latest\.json --ticks-dir data\/star-ticks --daily data\/star-daily\.jsonl --run-id "\$\{\{ github\.run_id \}\}"/);
   assert.match(workflow, /star-ticks\.mjs derive --published data\/latest\.json --ticks-dir data\/star-ticks --daily data\/star-daily\.jsonl --anchors data\/star-anchors\.json --out star-history\.json/);
   assert.match(workflow, /case "\$changed_path" in\n\s+data\/star-ticks\/\*\.jsonl\|data\/star-daily\.jsonl\|star-history\.json\) ;;\n\s+\*\) echo "::error::Unexpected star tick output: \$changed_path"; exit 1 ;;/);

@@ -32,6 +32,9 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && vars.GH_TRENDING_TICKS == 'enabled') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     permissions:
       contents: write
       pages: write
@@ -66,16 +69,9 @@ jobs:
           REQUESTED_TIER: ${{ inputs.tier || '' }}
         run: |
           set -euo pipefail
-          TIER=a
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
-            if [ "$REQUESTED_TIER" = "ab" ]; then TIER=ab; fi
-          else
-            # Tier B (the archive tier) runs once a day in the :35 slot of an odd UTC hour,
-            # away from the refresh workflow's even-hour REST budget window.
-            HOUR=$((10#$(date -u +%H)))
-            MINUTE=$((10#$(date -u +%M)))
-            if [ $((HOUR % 2)) -eq 1 ] && [ "$MINUTE" -ge 20 ]; then TIER=ab; fi
-          fi
+          # Tier B (the archive tier) runs once a day in the :35 slot of an odd UTC hour,
+          # away from the refresh workflow's even-hour REST budget window (resolveTier).
+          TIER="$(node scripts/star-ticks.mjs tier --event "$GITHUB_EVENT_NAME" --requested "$REQUESTED_TIER")"
           node scripts/star-ticks.mjs collect --token-env GITHUB_TOKEN --tier "$TIER" --published data/latest.json --ticks-dir data/star-ticks --daily data/star-daily.jsonl --run-id "${{ github.run_id }}" > "${RUNNER_TEMP}/collect.json"
           cat "${RUNNER_TEMP}/collect.json"
           SKIPPED="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; process.stdout.write(String(JSON.parse(readFileSync(process.argv[1], "utf8")).skipped === true));' "${RUNNER_TEMP}/collect.json")"
@@ -109,6 +105,9 @@ jobs:
             exit 0
           fi
           git diff --cached --check
+          if git diff --cached -- data/star-ticks data/star-daily.jsonl | grep -qE '^-[^-]'; then
+            echo "::error::star tick ledgers must be append-only"; exit 1
+          fi
           set +e
           git grep --cached -qE '(sk-ant-[[:alnum:]_-]{20,}|gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- data/star-ticks data/star-daily.jsonl star-history.json
           SCAN_STATUS=$?

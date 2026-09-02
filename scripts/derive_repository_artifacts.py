@@ -18,6 +18,7 @@ from typing import Any, Iterable
 
 try:
     from scripts.record_repository_observations import (
+        LEGACY_OVERLAY_ARTIFACT_PATHS,
         PAGES_BASE_ARTIFACT_PATHS,
         _capture_parent_database,
         _file_sha256,
@@ -31,6 +32,7 @@ except ModuleNotFoundError as error:
     if error.name not in {"scripts", "scripts.record_repository_observations"}:
         raise
     from record_repository_observations import (
+        LEGACY_OVERLAY_ARTIFACT_PATHS,
         PAGES_BASE_ARTIFACT_PATHS,
         _capture_parent_database,
         _file_sha256,
@@ -506,7 +508,7 @@ def finalize_snapshot_derivatives(
                 )]
                 existing_artifacts = [dict(zip(_columns(connection, "artifact_hashes"), row)) for row in connection.execute(
                     "SELECT * FROM artifact_hashes WHERE snapshot_seq=? ORDER BY artifact_path", (snapshot_seq,)
-                )]
+                ) if row[1] not in LEGACY_OVERLAY_ARTIFACT_PATHS]
                 artifact_db_rows = [{"snapshot_seq": snapshot_seq, **row} for row in artifact_hashes]
                 if existing_insights or existing_artifacts:
                     if existing_insights != insights or existing_artifacts != artifact_db_rows:
@@ -857,7 +859,7 @@ def verify_pages_artifacts(database_path: str | Path, snapshot_id: str, candidat
         columns = _columns(connection, "artifact_hashes")
         stored = [dict(zip(columns, row)) for row in connection.execute(
             "SELECT * FROM artifact_hashes WHERE snapshot_seq=? ORDER BY artifact_path", (snapshot_seq,)
-        )]
+        ) if row[columns.index("artifact_path")] not in LEGACY_OVERLAY_ARTIFACT_PATHS]
     expected_rows = [{"snapshot_seq": snapshot_seq, **row} for row in hash_pages_artifacts(root, expected_paths)]
     if stored != expected_rows:
         raise ValueError("finalized Pages artifact contract does not match candidate bytes")
@@ -893,7 +895,7 @@ def read_finalized_artifact_contract(database_path: str | Path, snapshot_id: str
             for row in connection.execute(
                 "SELECT artifact_path,sha256,byte_size FROM artifact_hashes WHERE snapshot_seq=? ORDER BY artifact_path",
                 (snapshot_seq,),
-            )
+            ) if row[0] not in LEGACY_OVERLAY_ARTIFACT_PATHS
         ]
     if [row["artifact_path"] for row in rows] != expected_paths:
         raise ValueError("finalized artifact path set is incomplete")

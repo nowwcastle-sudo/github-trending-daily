@@ -16,6 +16,7 @@ export const MUTABLE_GENERATED_PATHS = Object.freeze([
   "data/translation-sources.json",
   "feed.xml",
   "index.html",
+  "star-history.json",
   "translations",
 ]);
 const FULL_FILE_GENERATED_PATHS = MUTABLE_GENERATED_PATHS.filter(value => value !== "index.html" && value !== "translations");

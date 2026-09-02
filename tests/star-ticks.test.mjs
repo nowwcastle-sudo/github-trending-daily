@@ -12,9 +12,13 @@ import {
   deriveStarHistoryV2,
   parseDailyLedger,
   parseTickLedger,
+  resolveTier,
   rollupDaily,
   selectWatchSet,
 } from "../scripts/star-ticks.mjs";
+
+await import("../star-history.js");
+const StarHistory = globalThis.StarHistory;
 
 const OBSERVED_AT = "2026-09-02T00:02:00.000Z";
 const daysBefore = days => new Date(Date.parse(OBSERVED_AT) - days * 86_400_000).toISOString();
@@ -199,6 +203,20 @@ test("deriveStarHistoryV2 keeps ticks for 14 days, one daily point before, and s
   }]);
   const empty = deriveStarHistoryV2({ published: ["new/repo"], tickRuns, dailyRows, anchors, now });
   assert.deepEqual(empty.repositories, [{ slug: "new/repo", anchors: [], observed: [] }]);
+  // Producer/consumer contract: the page renderer accepts exactly what derive emits.
+  assert.equal(StarHistory.normalizeCache(JSON.parse(JSON.stringify(history))).get("Owner/Repo").observed.length, 5);
+  assert.throws(() => deriveStarHistoryV2({ published: ["Owner/Repo"], tickRuns, dailyRows, anchors: { ...anchors, generatedAt: 5 }, now }), /anchors/);
+});
+
+test("resolveTier observes tier B only in the :35 slot of odd UTC hours on schedule and honours the dispatch input", () => {
+  const at = value => Date.parse(value);
+  assert.equal(resolveTier({ nowMs: at("2026-09-03T01:36:10Z"), event: "schedule" }), "ab");
+  assert.equal(resolveTier({ nowMs: at("2026-09-03T01:20:00Z"), event: "schedule" }), "ab");
+  assert.equal(resolveTier({ nowMs: at("2026-09-03T01:19:59Z"), event: "schedule" }), "a");
+  assert.equal(resolveTier({ nowMs: at("2026-09-03T02:36:10Z"), event: "schedule" }), "a");
+  assert.equal(resolveTier({ nowMs: at("2026-09-03T01:36:10Z"), event: "workflow_dispatch", requested: "" }), "a");
+  assert.equal(resolveTier({ nowMs: at("2026-09-03T02:06:10Z"), event: "workflow_dispatch", requested: "ab" }), "ab");
+  assert.throws(() => resolveTier({ nowMs: at("2026-09-03T02:06:10Z"), event: "workflow_dispatch", requested: "c" }), /tier/);
 });
 
 test("deriveStarHistoryV2 caps observed points at 2000 keeping the most recent", () => {
@@ -282,6 +300,24 @@ test("collect observes tier B in the same run, writes daily rows immediately, an
     '{"date":"2026-10-01","slug":"old/two","stars":8,"tier":"B"}',
   ]);
   assert.ok(!stub.calls.some(call => call.url.endsWith("/repos/old/gone")));
+});
+
+test("collect records a renamed or replaced repository as unavailable and refuses a run older than the ledger", async t => {
+  const fixture = await ticksFixture(t, { ticksByMonth: { "2026-09": '{"at":"2026-09-03T00:35:00Z","run_id":"1"}\n{"slug":"Owner/Repo","stars":10}\n' } });
+  const stub = githubStub({ repos: { "Owner/Repo": ok(12, "NewOwner/Repo") } });
+  const result = await collectStarTicks({ tier: "a", published: ["Owner/Repo"], ticksDir: fixture.ticksDir, dailyPath: fixture.dailyPath, fetchImpl: stub.fetchImpl, token: "t", now: () => Date.parse("2026-09-03T01:05:00Z"), runId: "12", sleep: async () => {} });
+  assert.equal(result.unavailable, 1);
+  assert.match(await readFile(join(fixture.ticksDir, "2026-09.jsonl"), "utf8"), /\{"slug":"Owner\/Repo","unavailable":true\}\n$/);
+  await assert.rejects(collectStarTicks({ tier: "a", published: ["Owner/Repo"], ticksDir: fixture.ticksDir, dailyPath: fixture.dailyPath, fetchImpl: stub.fetchImpl, token: "t", now: () => Date.parse("2026-09-03T00:35:00Z"), runId: "13", sleep: async () => {} }), /later run/);
+});
+
+test("a second tier-B run on the same day observes nothing new", async t => {
+  const fixture = await ticksFixture(t, { daily: dailyText([{ date: "2026-09-01", slug: "old/one", stars: 5, tier: "B" }, { date: "2026-09-03", slug: "old/one", stars: 9, tier: "B" }]) });
+  const stub = githubStub({ repos: { "Owner/Repo": ok(1, "Owner/Repo"), "old/one": ok(10, "old/one") } });
+  const result = await collectStarTicks({ tier: "ab", published: ["Owner/Repo"], ticksDir: fixture.ticksDir, dailyPath: fixture.dailyPath, fetchImpl: stub.fetchImpl, token: "t", now: () => Date.parse("2026-09-03T03:35:00Z"), runId: "14", sleep: async () => {} });
+  assert.equal(result.tierB, 1);
+  assert.equal(result.dailyAppended, 0);
+  assert.ok(!stub.calls.some(call => call.url.endsWith("/repos/old/one")));
 });
 
 test("collect refuses to touch a ledger whose existing bytes changed underneath it", async t => {
