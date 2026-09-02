@@ -311,3 +311,11 @@ test("W1 derives star anchors from frozen facts and no longer generates star-his
   assert.match(workflow, /git add -- [^\n]*data\/star-anchors\.json star-history\.json translations\//);
   await assert.rejects(access("scripts/update-star-history.mjs"), /ENOENT/);
 });
+
+test("the Claude usage receipt carries the held count and the enrich job fails when the receipt validator fails", async () => {
+  const workflow = await workflowText();
+  const receiptChecks = workflow.match(/const keys=\["repositories","pending","held","runtime","usage"\];/g) ?? [];
+  assert.equal(receiptChecks.length, 2);
+  assert.equal((workflow.match(/!Number\.isSafeInteger\(value\.held\)\|\|value\.held<0\|\|value\.held>value\.pending/g) ?? []).length, 2);
+  assert.match(workflow, /const usage=value\?\.usage;[^\n]*enrichment-usage\.json"\)\n\s+if \(\$LASTEXITCODE -ne 0\) \{ throw "Claude usage receipt is invalid" \}/);
+});
