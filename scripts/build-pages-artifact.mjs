@@ -207,13 +207,19 @@ function normalizeSources(value) {
 export function expectedVersion1Paths(latestValue, sourcesValue) {
   const latest = normalizeLatest(latestValue);
   const sources = normalizeSources(sourcesValue);
+  let summarized = 0;
   for (const repo of latest.repos) {
     const entry = sources.get(repo.slug.toLowerCase());
+    if (repo.summary_status === "held") {
+      if (entry) throw new Error(`held repository must not be in the summary source active set: ${repo.slug}`);
+      continue;
+    }
+    summarized += 1;
     if (!entry || !validSource(entry.source) || entry.source.slug !== repo.slug.toLowerCase()) {
       throw new Error(`invalid active summary source: ${repo.slug}`);
     }
   }
-  if (sources.size !== latest.repos.length) throw new Error("summary source active set is not exact");
+  if (sources.size !== summarized) throw new Error("summary source active set is not exact");
   return [...VERSION_1_BASE_PATHS].sort();
 }
 

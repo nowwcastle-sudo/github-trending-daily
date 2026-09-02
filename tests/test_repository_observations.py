@@ -442,9 +442,9 @@ def bind_writer_inputs(payload, events):
     })
     entries = payload["enrichmentIndex"].get("repositories", payload["enrichmentIndex"])
     payload["enrichmentIndex"] = {
-        "version": 1, "snapshotId": snapshot_id, "activeSetSha256": active_set_sha,
+        "version": 2, "snapshotId": snapshot_id, "activeSetSha256": active_set_sha,
         "factsSha256": facts_sha, "sourceSetSha256": source_set_sha,
-        "runContextSha256": run_context_sha, "eventsSha256": events_sha, "repositories": entries,
+        "runContextSha256": run_context_sha, "eventsSha256": events_sha, "heldRatio": 0, "repositories": entries,
     }
     enrichment_sha = canonical_hash(payload["enrichmentIndex"])
     payload.update({
@@ -1355,6 +1355,40 @@ class RepositoryObservationTests(unittest.TestCase):
             self.assertEqual(connection.execute("SELECT COUNT(*) FROM snapshot_runs").fetchone(), (2,))
             self.assertEqual(connection.execute("SELECT membership_status FROM snapshot_items WHERE snapshot_seq=1").fetchone(), ("baseline_present",))
             self.assertEqual(connection.execute("SELECT membership_status FROM snapshot_items WHERE snapshot_seq=2").fetchone(), ("stayed",))
+
+    def test_held_repository_records_sentinel_summary_digests_without_schema_change(self):
+        candidate = Path(self.temporary.name) / "candidate.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing-parent.sqlite", candidate, None)
+        baselines, receipt = writer_legacy_baselines(self.temporary.name)
+        payload = writer_payload(snapshot_id="20260828010101-aaaaaaaaaaaaaaaa", utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00", stats_date="2026-08-28", run_kind="migration_baseline")
+        payload["enrichmentIndex"] = {"owner/repo": {"status": "held", "held_reason": "quality_defects", "defect_codes": ["GENERIC_OR_PLACEHOLDER"], "warnings": []}}
+        payload["legacyBaselines"], payload["legacyBaselineReceipt"] = baselines, receipt
+        record_writer_snapshot(candidate, payload, writer_events(head=sha1(), transition="baseline"), {})
+        held_source = {"kind": "held", "slug": "owner/repo", "reason": "quality_defects", "schema_version": 3}
+        with closing(sqlite3.connect(candidate)) as connection:
+            row = connection.execute("SELECT summary_source_sha256, summary_content_sha256, summary_envelope_sha256, translation_status FROM snapshot_items").fetchone()
+        self.assertEqual(row, (
+            canonical_hash(held_source),
+            canonical_hash({"status": "held"}),
+            canonical_hash({"content": {"status": "held"}, "source": held_source}),
+            "not_applicable:no_prose",
+        ))
+
+    def test_enrichment_index_held_ratio_above_half_is_rejected_before_binding(self):
+        candidate = Path(self.temporary.name) / "candidate.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing-parent.sqlite", candidate, None)
+        baselines, receipt = writer_legacy_baselines(self.temporary.name)
+        payload = writer_payload(snapshot_id="20260828010101-aaaaaaaaaaaaaaaa", utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00", stats_date="2026-08-28", run_kind="migration_baseline")
+        payload["enrichmentIndex"] = {"owner/repo": {"status": "held", "held_reason": "request_failed", "defect_codes": [], "warnings": []}}
+        payload["legacyBaselines"], payload["legacyBaselineReceipt"] = baselines, receipt
+        events = writer_events(head=sha1(), transition="baseline")
+        bind_writer_inputs(payload, events)
+        payload["enrichmentIndex"]["heldRatio"] = 0.6
+        payload["enrichmentIndexSha256"] = canonical_hash(payload["enrichmentIndex"])
+        with self.assertRaisesRegex(ValueError, "held ratio"):
+            record_core_snapshot(candidate, payload, events, {})
+        with closing(sqlite3.connect(candidate)) as connection:
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM snapshot_runs").fetchone(), (0,))
 
     def test_oss_estimates_preserve_value_change_tombstone_and_reappearance(self):
         candidate = Path(self.temporary.name) / "candidate.sqlite"

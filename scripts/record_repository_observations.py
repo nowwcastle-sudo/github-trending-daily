@@ -1318,8 +1318,11 @@ def _validate_production_manifest_evidence(snapshot: dict[str, Any], source_sha:
 
 
 def _validate_cross_input_bindings(snapshot: dict[str, Any], events: dict[str, Any], index: Any, repositories: list[dict[str, Any]]) -> None:
-    if not isinstance(index, dict) or set(index) != {"version", "snapshotId", "activeSetSha256", "factsSha256", "sourceSetSha256", "runContextSha256", "eventsSha256", "repositories"} or index["version"] != 1 or not isinstance(index["repositories"], dict):
+    if not isinstance(index, dict) or set(index) != {"version", "snapshotId", "activeSetSha256", "factsSha256", "sourceSetSha256", "runContextSha256", "eventsSha256", "heldRatio", "repositories"} or index["version"] != 2 or not isinstance(index["repositories"], dict):
         raise ValueError("enrichment index binding envelope is invalid")
+    held_ratio = index["heldRatio"]
+    if isinstance(held_ratio, bool) or not isinstance(held_ratio, (int, float)) or not (0 <= held_ratio <= 0.5):
+        raise ValueError("enrichment index held ratio is invalid")
     snapshot_id = _value(snapshot, "snapshot_id", "snapshotId")
     source_sha = _value(snapshot, "input_source_sha", "inputSourceSha", "sourceSha")
     hydration_source_sha = _exclusive_value(snapshot, "hydration_source_sha", "hydrationSourceSha", label="hydration source SHA")
@@ -1380,9 +1383,27 @@ def _supported_summary_producer(source: Any) -> bool:
             and tuple(source.get(field) for field in _SUMMARY_PRODUCER_FIELDS) in _SUMMARY_PRODUCER_PROFILES)
 
 
+HELD_REASONS = ("quality_defects", "budget_exhausted", "deadline_exhausted", "request_failed")
+
+
+def held_summary_digests(slug: str, reason: str) -> tuple[str, str, str]:
+    """Schema-preserving sentinel digests for a repository whose summary is held."""
+    if reason not in HELD_REASONS:
+        raise ValueError("held summary reason is invalid")
+    source = {"kind": "held", "slug": slug, "reason": reason, "schema_version": 3}
+    content = {"status": "held"}
+    return _digest(source), _digest(content), _digest({"content": content, "source": source})
+
+
 def _enrichment_hashes(repository: dict[str, Any], profile: dict[str, Any], index: Any) -> tuple[str, str, str, str, str | None, str | None]:
     slug = profile["slug"]
     entry = _enrichment_entry(index, slug)
+    if entry.get("status") == "held":
+        if set(entry) != {"status", "held_reason", "defect_codes", "warnings"} or not isinstance(entry["defect_codes"], list) or not isinstance(entry["warnings"], list):
+            raise ValueError("held enrichment entry is invalid")
+        source_digest, content_digest, envelope_digest = held_summary_digests(slug, entry["held_reason"])
+        status = "not_applicable:no_readme" if _value(repository, "readme_path", "readmePath") is None else "not_applicable:no_prose"
+        return source_digest, content_digest, envelope_digest, status, None, None
     summary = _value(entry, "summary", default=entry)
     if not isinstance(summary, dict):
         raise ValueError("summary enrichment is invalid")

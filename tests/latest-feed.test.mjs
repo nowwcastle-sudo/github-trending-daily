@@ -32,6 +32,7 @@ function repository(overrides = {}) {
     gains: { daily: 5, weekly: null, monthly: null },
     signal: { streakDays: 2, starsChange: -1 },
     summary: { goal: "g", usage: "u", pros: "p", cons: "c", fit: "f" },
+    summary_status: "verified",
     tag_rule_version: 1,
     field_tags: ["ai-ml", "dev-tools"],
     form_tags: ["agent", "cli"],
@@ -261,4 +262,15 @@ test("writeLatestFeed reports equivalent no-op and changed publication", async (
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+test("a held repository exports a null summary and keeps its status", () => {
+  const held = repository({ summary: null, summary_status: "held" });
+  const value = snapshot({ repositories: [held] });
+  assert.deepEqual(validateSnapshotExport(value), value);
+  const feed = buildLatestFeed(value);
+  assert.equal(feed.repos[0].summary, null);
+  assert.equal(feed.repos[0].summary_status, "held");
+  assert.throws(() => validateSnapshotExport(snapshot({ repositories: [repository({ summary: null })] })), /invalid/);
+  assert.throws(() => validateSnapshotExport(snapshot({ repositories: [repository({ summary_status: "held" })] })), /invalid/);
 });

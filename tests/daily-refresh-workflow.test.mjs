@@ -109,7 +109,7 @@ test("failed enrichment uploads bounded defect diagnostics without a partial can
     "Upload bounded enrichment failure diagnostics",
     "Upload bounded enrichment output",
   ]);
-  assert.match(workflow, /- name: Upload bounded enrichment failure diagnostics\n\s+if: failure\(\)\n\s+uses: actions\/upload-artifact@[0-9a-f]{40}[\s\S]*name: refresh-enrichment-failure-\$\{\{ github\.run_id \}\}[\s\S]*path: \$\{\{ runner\.temp \}\}\/refresh-input\/enrichment-failure\.json[\s\S]*if-no-files-found: ignore/);
+  assert.match(workflow, /- name: Upload bounded enrichment failure diagnostics\n\s+if: always\(\)\n\s+uses: actions\/upload-artifact@[0-9a-f]{40}[\s\S]*name: refresh-enrichment-failure-\$\{\{ github\.run_id \}\}[\s\S]*path: \$\{\{ runner\.temp \}\}\/refresh-input\/enrichment-failure\.json[\s\S]*if-no-files-found: ignore/);
   const failureUpload = workflow.slice(
     workflow.indexOf("Upload bounded enrichment failure diagnostics"),
     workflow.indexOf("Upload bounded enrichment output"),

@@ -1005,6 +1005,7 @@ function tipHTML(r,locale=resolveSummaryLocale(r)){
   const heading=`<h2>${esc(r.name)}</h2><p class="tsub">${fmt(r.stars)} ★ · ⑂ ${fmt(r.forks)} · 👥 ${fmt(r.contributors||0)} ${tr("repo.contributors")} · ◎ ${fmt(r.issues||0)} ${tr("repo.issues")} · ${esc(r.lang)}</p>`;
   const readme=`<div class="tip-readme-row"><button type="button" class="rdbtn js-readme" data-slug="${r.slug}" data-name="${esc(r.name)}">${tr("readme.view")}</button></div>`;
   const actions=`<p class="thint tip-actions"><button type="button" class="rdbtn js-hide-repo" data-slug="${r.slug}">${tr("tooltip.hide")}</button></p>`;
+  if(r.summary_status==="held")return `${heading}${readme}<p class="tip-unavailable" role="status">${tr("tooltip.held")}</p>${actions}`;
   if(!summaryAvailable(s))return `${heading}${readme}<p class="tip-unavailable" role="status">${tr("tooltip.unavailable")}</p>${actions}`;
   return `${heading}${readme}
   <div class="trow"><span class="tlabel">🎯 ${tr("tooltip.goal")}</span><p>${esc(s.goal)}</p></div>

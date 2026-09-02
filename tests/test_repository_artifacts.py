@@ -552,6 +552,20 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
             ["1" * 64, "2" * 64, "1" * 64],
         )
 
+    def test_summary_content_returns_held_status_for_sentinel_digests(self):
+        held_source = {"kind": "held", "slug": "owner/repo", "reason": "budget_exhausted", "schema_version": 3}
+        item = {
+            "slug": "owner/repo",
+            "summary_source_sha256": digest(held_source),
+            "summary_content_sha256": digest({"status": "held"}),
+            "summary_envelope_sha256": digest({"content": {"status": "held"}, "source": held_source}),
+        }
+        index = {"repositories": {"owner/repo": {"status": "held", "held_reason": "budget_exhausted", "defect_codes": [], "warnings": []}}}
+        self.assertEqual(repository_artifacts._summary_content(index, item), (None, "held"))
+        mismatched = dict(item, summary_content_sha256=digest({"status": "verified"}))
+        with self.assertRaisesRegex(ValueError, "recorded snapshot"):
+            repository_artifacts._summary_content(index, mismatched)
+
     def test_star_history_applies_caps_after_selection(self):
         database = self.root / "ledger.sqlite"
         create_database(database)

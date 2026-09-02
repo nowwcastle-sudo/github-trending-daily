@@ -46,8 +46,9 @@ _DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 _LATEST_KEYS = {"snapshotId", "generatedAt", "statsDate", "count", "repos"}
 _REPOSITORY_KEYS = {
     "slug", "name", "description", "lang", "topics", "stars", "forks", "issues", "contributors",
-    "gains", "signal", "summary", "tag_rule_version", "field_tags", "form_tags",
+    "gains", "signal", "summary", "summary_status", "tag_rule_version", "field_tags", "form_tags",
 }
+_SUMMARY_STATUSES = {"verified", "retained", "held"}
 _SUMMARY_KEYS = {"goal", "usage", "pros", "cons", "fit"}
 _TIMELINE_KEYS = {"version", "targetSnapshotId", "legacySnapshots", "databaseSnapshots", "current", "exited", "events"}
 
@@ -184,7 +185,12 @@ def _validate_repository(repository):
     ):
         raise _input_error()
     summary = repository["summary"]
-    if not _exact(summary, _SUMMARY_KEYS) or any(not isinstance(value, str) or not value.strip() for value in summary.values()):
+    if repository["summary_status"] not in _SUMMARY_STATUSES:
+        raise _input_error()
+    if repository["summary_status"] == "held":
+        if summary is not None:
+            raise _input_error()
+    elif not _exact(summary, _SUMMARY_KEYS) or any(not isinstance(value, str) or not value.strip() for value in summary.values()):
         raise _input_error()
     if repository["tag_rule_version"] != TAG_RULE_VERSION or isinstance(repository["tag_rule_version"], bool):
         raise _input_error()
@@ -413,7 +419,12 @@ def _latest_by_slug(latest):
 
 
 def _current_summary(repository):
-    return repository["description"].strip() or repository["summary"]["goal"]
+    description = repository["description"].strip()
+    if description:
+        return description
+    if repository["summary"] is None:
+        return repository["name"]
+    return repository["summary"]["goal"]
 
 
 def _current_document(latest, timeline):

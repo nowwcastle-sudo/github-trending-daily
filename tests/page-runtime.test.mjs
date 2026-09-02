@@ -460,6 +460,14 @@ test("tooltip runtime has one detailed content path", () => {
   }
 });
 
+test("tooltip renders the fixed held copy instead of a summary for held repositories", async () => {
+  assert.match(page, /r\.summary_status==="held"/);
+  assert.match(page, /tr\("tooltip\.held"\)/);
+  const i18n = await readFile(new URL("../site-i18n.js", import.meta.url), "utf8");
+  assert.equal([...i18n.matchAll(/"tooltip\.held":/g)].length, 5);
+  assert.match(i18n, /"tooltip\.held":"요약 검증 중입니다/);
+});
+
 test("site-locale changes re-render an open tooltip from the one persisted locale", () => {
   const localeChange = page.match(/document\.addEventListener\("site-locale-change",\(\)=>\{[\s\S]*?\n\}\);/)?.[0] ?? "";
   assert.match(localeChange, /tipLayer\.innerHTML=tipHTML\(repo,resolveSummaryLocale\(repo,siteI18n\.locale\)\)/);
