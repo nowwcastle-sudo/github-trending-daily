@@ -673,7 +673,7 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
                 repositories.append(repository)
                 summary = json.loads(json.dumps(summary_template))
                 summary["source"]["slug"] = slug
-                summaries[slug] = {"summary": summary}
+                summaries[slug] = {"status": "verified", "summary": summary}
             value["repositories"] = repositories
             value["enrichmentIndex"] = summaries
             value["legacyBaselines"], value["legacyBaselineReceipt"] = baselines, receipt

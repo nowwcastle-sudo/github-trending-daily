@@ -1323,6 +1323,10 @@ def _validate_cross_input_bindings(snapshot: dict[str, Any], events: dict[str, A
     held_ratio = index["heldRatio"]
     if isinstance(held_ratio, bool) or not isinstance(held_ratio, (int, float)) or not (0 <= held_ratio <= 0.5):
         raise ValueError("enrichment index held ratio is invalid")
+    entries = index["repositories"]
+    held_count = sum(1 for entry in entries.values() if isinstance(entry, dict) and entry.get("status") == "held")
+    if entries and (held_count * 2 > len(entries) or held_count / len(entries) != held_ratio):
+        raise ValueError("enrichment index held ratio is inconsistent with its entries")
     snapshot_id = _value(snapshot, "snapshot_id", "snapshotId")
     source_sha = _value(snapshot, "input_source_sha", "inputSourceSha", "sourceSha")
     hydration_source_sha = _exclusive_value(snapshot, "hydration_source_sha", "hydrationSourceSha", label="hydration source SHA")
@@ -1404,6 +1408,8 @@ def _enrichment_hashes(repository: dict[str, Any], profile: dict[str, Any], inde
         source_digest, content_digest, envelope_digest = held_summary_digests(slug, entry["held_reason"])
         status = "not_applicable:no_readme" if _value(repository, "readme_path", "readmePath") is None else "not_applicable:no_prose"
         return source_digest, content_digest, envelope_digest, status, None, None
+    if entry.get("status") not in ("verified", "retained"):
+        raise ValueError("enrichment entry status is invalid")
     summary = _value(entry, "summary", default=entry)
     if not isinstance(summary, dict):
         raise ValueError("summary enrichment is invalid")

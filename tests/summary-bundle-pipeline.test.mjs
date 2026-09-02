@@ -1666,7 +1666,38 @@ test("a rate limit holds the failing and remaining repositories as budget_exhaus
   assert.equal(result.held[1].reason, "budget_exhausted");
   assert.equal(result.held[1].diagnostic.failure_code, "CLAUDE_RATE_LIMITED");
   assert.equal(result.held[2].reason, "budget_exhausted");
-  assert.equal(result.held[2].diagnostic.failure_code, "CLAUDE_RATE_LIMITED");
+  assert.equal(result.held[2].diagnostic.failure_code, "BUDGET_EXHAUSTED");
+  assert.equal(result.held[2].diagnostic.caused_by, "owner/second");
+  assert.equal(result.held[2].diagnostic.defect_count, 0);
+  assert.deepEqual(result.held[2].diagnostic.defects, []);
+  assert.deepEqual(result.held[2].defect_codes, []);
+});
+
+test("a correction prompt that exceeds the input byte cap holds only that repository as quality_defects", async () => {
+  const invalid = modelEnvelope();
+  invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
+  const measured = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  const plan = { ...measured, requests: measured.requests.map(request => ({ ...request, inputByteCap: Buffer.byteLength(request.prompt, "utf8") + 1 })) };
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async () => {
+      calls += 1;
+      return { structuredOutput: invalid, usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+  assert.equal(calls, 1);
+  assert.equal(result.results[0], null);
+  assert.equal(result.held[0].reason, "quality_defects");
+  assert.equal(result.held[0].diagnostic.failure_code, "QUALITY_VALIDATION_FAILED");
+  assert.ok(result.held[0].diagnostic.defect_count >= 1);
+  assert.ok(result.held[0].defect_codes.includes("GENERIC_OR_PLACEHOLDER"));
 });
 
 test("a per-request timeout after its retries holds only that repository as request_failed", async () => {

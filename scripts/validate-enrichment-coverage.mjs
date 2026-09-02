@@ -78,6 +78,9 @@ export async function validateEnrichmentRoot(root, { factsPath } = {}) {
   // the cache and the source registry, and every other active repository must be exact.
   const heldSlugs = slugs.filter(slug => activeMap.get(slug).summary_status === "held");
   const summarizedSlugs = slugs.filter(slug => activeMap.get(slug).summary_status !== "held");
+  if (heldSlugs.length * 2 > slugs.length) {
+    throw new Error(`Held ratio exceeds 50% of the active set (${heldSlugs.length}/${slugs.length})`);
+  }
   if (factMap.size !== slugs.length || slugs.some(slug => !factMap.has(slug))) {
     throw new Error("Summary bundle active set is not exact");
   }

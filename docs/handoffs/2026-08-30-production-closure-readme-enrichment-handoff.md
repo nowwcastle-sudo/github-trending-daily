@@ -96,7 +96,7 @@
 - `scripts/update-trending.mjs`: v3 source와 exact 5-locale summary bundle만 render하며 metadata fallback을 허용하지 않는다.
 - `scripts/validate-enrichment-coverage.mjs`: active page/facts/cache/source exact set, full envelope, locale completeness, stale/missing/insufficient source, translation residue를 fail closed로 검사한다.
 - `scripts/build-pages-artifact.mjs`: source registry v3와 `site-i18n.js`를 exact artifact에 포함하고 legacy translation artifact를 제외한다.
-- workflow는 GitHub-hosted `prepare` → Windows self-hosted `enrich` → GitHub-hosted `publish`로 분리한다. self-hosted runner는 tracked checkout·DB·page·commit·Pages 권한이 없고 네 개의 allowlisted enrichment 파일만 내보낸다. manual bootstrap gate는 승인 상태이고 schedule은 계속 hold한다. 열일곱 controlled run 모두 publish 전 fail-closed로 종료됐다.
+- workflow는 GitHub-hosted `prepare` → Windows self-hosted `enrich` → GitHub-hosted `publish`로 분리한다. self-hosted runner는 tracked checkout·DB·page·commit·Pages 권한이 없고 네 개의 allowlisted enrichment 파일만 내보낸다. manual bootstrap gate는 승인 상태이고 schedule은 계속 hold한다. held 진단(`enrichment-failure.json`, version 2)은 성공한 run에서도 `refresh-enrichment-failure-<run_id>` artifact로 올라간다(2026-09-03, 업로드 조건 `if: always()`. artifact 이름은 그대로 둔다). 열일곱 controlled run 모두 publish 전 fail-closed로 종료됐다.
 - runner `nasca-gh-trending-claude`는 `C:\actions-runner-gh-trending`의 공식 Actions Runner 2.337.0으로 등록했다. Task Scheduler 경로에서는 listener가 job을 받은 뒤 Worker IPC가 44초간 멈춰 `steps=0`으로 실패했지만, interactive listener에서는 Worker·checkout·Claude step이 정상 실행됐다. 현재 production closure 동안은 interactive listener를 사용하고 schedule은 hold한다.
 - `README.md`, `README.ko.md`, `README.en.md`와 2026-08-31 candidate screenshots를 새 구조에 맞췄다.
 

@@ -707,6 +707,26 @@ test("coverage validator admits exact mixed Claude and Codex sources", async t =
   assert.deepEqual(fixture.pageRepos[1].summary, fixture.cache[fixture.repositories[1].slug].summaries.en);
 });
 
+test("coverage validator rejects a candidate whose held repositories exceed half of the active set", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "held-majority-coverage-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const fixture = await writeMixedSummaryConsumerFixture(directory);
+  const heldSlugs = new Set(fixture.repositories.slice(0, 6).map(repository => repository.slug));
+  const pageRepos = fixture.pageRepos.map(repo => heldSlugs.has(repo.slug)
+    ? { slug: repo.slug, ...validClassification(), summary: null, summaries: null, summary_status: "held", held_reason: "budget_exhausted" }
+    : repo);
+  const cache = { ...fixture.cache };
+  const sources = { version: 3, sources: { ...fixture.sources.sources } };
+  for (const slug of heldSlugs) { delete cache[slug]; delete sources.sources[slug]; }
+  await Promise.all([
+    writeFile(join(fixture.source, "data", "latest.json"), `${JSON.stringify({ snapshotId, repos: pageRepos })}\n`),
+    writeFile(join(fixture.source, "data", "repo-summaries.json"), `${JSON.stringify(cache)}\n`),
+    writeFile(join(fixture.source, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`),
+    writeFile(join(fixture.source, "index.html"), `<script>\n// GENERATED:TRENDING-REPOS:START\nconst REPOS = ${JSON.stringify(pageRepos)};\n// GENERATED:TRENDING-REPOS:END\n</script>\n`),
+  ]);
+  await assert.rejects(validateEnrichmentRoot(fixture.source, { factsPath: fixture.factsPath }), /held ratio/i);
+});
+
 test("coverage validator and Pages builder accept a held repository only when it has no cache or source", async t => {
   const directory = await mkdtemp(join(tmpdir(), "held-summary-coverage-"));
   t.after(() => rm(directory, { recursive: true, force: true }));

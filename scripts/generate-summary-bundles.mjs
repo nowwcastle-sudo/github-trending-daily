@@ -1063,7 +1063,15 @@ async function requestOneWithClaude(request, item, runtime) {
       if (attempt === MAX_REQUEST_ATTEMPTS - 1) throw error;
       if (error?.quality === true && qualityCorrections < MAX_REQUEST_RETRIES) {
         qualityCorrections += 1;
-        currentRequest = correctionRequest(request, error, error.previousOutput);
+        try {
+          currentRequest = correctionRequest(request, error, error.previousOutput);
+        } catch (correctionError) {
+          // The correction prompt cannot be built (input byte cap). The repository keeps
+          // its quality defects and is held; it must not abort the whole run.
+          correctionError.quality = true;
+          correctionError.qualityDefects = Array.isArray(error.qualityDefects) ? error.qualityDefects : [];
+          throw correctionError;
+        }
         nextKind = "quality";
       } else if (retryable(error) && transportRetries < MAX_TRANSPORT_RETRIES) {
         transportRetries += 1;
@@ -1115,7 +1123,7 @@ export async function runClaudeSummaryBundleRequests({
       if (index >= plan.requests.length) return;
       const slug = plan.items[index].slug;
       if (execution.exhausted) {
-        held[index] = { slug, reason: execution.exhausted.reason, defect_codes: [], diagnostic: boundedFailureDiagnostic(execution.exhausted.failure, slug, execution, provenance) };
+        held[index] = { slug, reason: execution.exhausted.reason, defect_codes: [], diagnostic: skippedRepositoryDiagnostic(slug, execution.exhausted, execution, provenance) };
         continue;
       }
       try {
@@ -1130,7 +1138,7 @@ export async function runClaudeSummaryBundleRequests({
           fatal ??= failure;
           return;
         }
-        if (reason === "budget_exhausted" || reason === "deadline_exhausted") execution.exhausted ??= { reason, failure };
+        if (reason === "budget_exhausted" || reason === "deadline_exhausted") execution.exhausted ??= { reason, failure, slug };
         held[index] = {
           slug,
           reason,
@@ -1168,6 +1176,26 @@ function heldReason(failure) {
   if (failure.quality === true) return "quality_defects";
   if (HELD_REQUEST_FAILURE_CODES.includes(failure.failureCode)) return "request_failed";
   return null;
+}
+
+// A repository that was never attempted because an earlier repository exhausted the
+// run budget or deadline has no defects of its own; the diagnostic only names the cause.
+function skippedRepositoryDiagnostic(slug, exhausted, execution, provenance) {
+  return {
+    version: 1,
+    repository: slug,
+    failure_code: exhausted.reason === "budget_exhausted" ? "BUDGET_EXHAUSTED" : "DEADLINE_EXHAUSTED",
+    caused_by: exhausted.slug,
+    defect_count: 0,
+    defects: [],
+    usage: {
+      inputTokens: execution.inputTokens,
+      outputTokens: execution.outputTokens,
+      attempts: execution.attempts,
+      retries: execution.retries,
+    },
+    runtime: provenance,
+  };
 }
 
 function boundedFailureDiagnostic(failure, slug, execution, provenance) {

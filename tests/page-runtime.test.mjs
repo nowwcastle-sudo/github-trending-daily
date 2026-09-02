@@ -468,6 +468,26 @@ test("tooltip renders the fixed held copy instead of a summary for held reposito
   assert.match(i18n, /"tooltip\.held":"요약 검증 중입니다/);
 });
 
+test("tipHTML executes the held branch and the summary branch from the real page source", () => {
+  const start = page.indexOf("const SUMMARY_LOCALES=");
+  const tipStart = page.indexOf("function tipHTML(");
+  const closing = /\r?\n\}\r?\n/.exec(page.slice(tipStart));
+  const end = tipStart + closing.index + closing[0].length;
+  assert.ok(start > 0 && end > start);
+  const context = { siteI18n: { locale: "ko" }, tr: key => key, esc: value => String(value ?? ""), fmt: value => String(value ?? "") };
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(`${page.slice(start, end)}\nglobalThis.__tipHTML=tipHTML;`, context, { filename: "tip-html-fixture.js" });
+  const base = { slug: "owner/repo", name: "owner / repo", stars: 1, forks: 0, contributors: 1, issues: 0, lang: "JavaScript" };
+  const held = context.__tipHTML({ ...base, summary: null, summaries: null, summary_status: "held", held_reason: "quality_defects" });
+  assert.match(held, /tooltip\.held/);
+  assert.doesNotMatch(held, /tooltip\.goal|tooltip\.unavailable/);
+  const bundle = { goal: "g", usage: "u", pros: "p", cons: "c", fit: "f" };
+  const verified = context.__tipHTML({ ...base, summary: bundle, summaries: { en: bundle, ko: bundle, "zh-CN": bundle, es: bundle, ja: bundle }, summary_status: "verified" });
+  assert.match(verified, /tooltip\.goal/);
+  assert.doesNotMatch(verified, /tooltip\.held/);
+});
+
 test("site-locale changes re-render an open tooltip from the one persisted locale", () => {
   const localeChange = page.match(/document\.addEventListener\("site-locale-change",\(\)=>\{[\s\S]*?\n\}\);/)?.[0] ?? "";
   assert.match(localeChange, /tipLayer\.innerHTML=tipHTML\(repo,resolveSummaryLocale\(repo,siteI18n\.locale\)\)/);

@@ -27,7 +27,7 @@
 - Modify: `scripts/validate-enrichment-coverage.mjs` — `--enrichment-index` 인자, held 허용, cache에 held 부재 검사
 - Modify: `scripts/update-trending.mjs` — `renderRepositoryFacts`·`assertCompleteSummary`·`createPageSnapshot`·`validateFrozenEnrichmentIndex`·`renderFrozenCandidate` held 처리
 - Modify: `scripts/record_repository_observations.py` — `_enrichment_hashes` held sentinel
-- Modify: `index.html`(tooltip held 문구), `site-i18n.js`(`summary.held` 5 locale), `current-view-export.js`(summary null 허용)
+- Modify: `index.html`(tooltip held 문구), `site-i18n.js`(`summary.held` 5 locale), `current-view-export.js`는 수정 불필요(구현 시 확인: summary를 읽지 않는다)
 - Modify: `.github/workflows/daily-refresh.yml` — coverage 명령에 `--enrichment-index`, held diagnostics 업로드 조건
 - Tests: `tests/summary-bundle-pipeline.test.mjs`, `tests/update-trending.test.mjs`, `tests/test_repository_observations.py`, `tests/page-runtime.test.mjs`, `tests/pages-publication.test.mjs`, `tests/daily-refresh-workflow.test.mjs`
 - Docs: `docs/handoffs/2026-08-30-production-closure-readme-enrichment-handoff.md` §3 8·9항, 사양서 §4.1 한 문장
@@ -188,7 +188,7 @@ test("a rate limit holds the remaining repositories as budget_exhausted instead 
 
 ### Task 4: 렌더러·페이지·export가 held를 표현한다
 
-**Files:** `scripts/update-trending.mjs:922-960, 1058-1066, 1117-1150, 1396-1410, 1442-1500`; `index.html:995` 근처 tooltip; `site-i18n.js`; `current-view-export.js`; tests `update-trending.test.mjs`, `page-runtime.test.mjs`
+**Files:** `scripts/update-trending.mjs:922-960, 1058-1066, 1117-1150, 1396-1410, 1442-1500`; `index.html:995` 근처 tooltip; `site-i18n.js`; tests `update-trending.test.mjs`, `page-runtime.test.mjs`
 
 **Interfaces:**
 - page REPOS 항목: held면 `summary: null, summaries: null, detail: null, summary_status: "held", held_reason`. verified/retained면 기존 + `summary_status: "verified"|"retained"`.

@@ -1422,6 +1422,7 @@ function validateFrozenEnrichmentIndex(facts, events, index) {
   if (Object.keys(index.repositories).length !== slugs.length || slugs.some(slug => !Object.hasOwn(index.repositories, slug))) {
     throw new Error("Frozen render enrichment active set is incomplete");
   }
+  let heldCount = 0;
   for (const [position, slug] of slugs.entries()) {
     const entry = index.repositories[slug];
     if (entry && !Array.isArray(entry) && typeof entry === "object" && entry.status === "held") {
@@ -1429,6 +1430,7 @@ function validateFrozenEnrichmentIndex(facts, events, index) {
           || !HELD_REASONS.includes(entry.held_reason) || !Array.isArray(entry.defect_codes) || !Array.isArray(entry.warnings)) {
         throw new Error("Frozen render held summary is invalid");
       }
+      heldCount += 1;
       continue;
     }
     if (!entry || Array.isArray(entry) || typeof entry !== "object"
@@ -1440,6 +1442,9 @@ function validateFrozenEnrichmentIndex(facts, events, index) {
       throw new Error("Frozen render detailed summary is invalid");
     }
   }
+  // The declared ratio is only trusted when it equals the ratio of the entries themselves.
+  const actualHeldRatio = slugs.length === 0 ? 0 : heldCount / slugs.length;
+  if (actualHeldRatio !== index.heldRatio) throw new Error("Frozen render enrichment held ratio is inconsistent with its entries");
   return index;
 }
 

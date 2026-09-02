@@ -810,6 +810,11 @@ test("render-only consumes exact frozen bindings with zero fetches and emits a r
   assert.equal(Object.hasOwn(heldPersisted, heldSlug), false);
   assert.equal(Object.keys(heldPersisted).length, 9);
 
+  const inconsistentIndex = structuredClone(heldIndex);
+  inconsistentIndex.heldRatio = 0;
+  await writeFile(indexPath, `${JSON.stringify(inconsistentIndex)}\n`);
+  await assert.rejects(renderFrozenCandidate({ factsPath, eventsPath, enrichmentIndexPath: indexPath, pageTemplatePath: templatePath, pageOut: join(directory, "held-bad", "index.html"), cacheOut: join(directory, "held-bad", "data", "repo-summaries.json"), snapshotOut: join(directory, "held-bad-snapshot.json") }), /held ratio/);
+
   const hybridProducer = structuredClone(enrichmentIndex);
   hybridProducer.repositories[repositories[1].slug].summary.source.model = "claude-sonnet-5";
   await writeFile(indexPath, `${JSON.stringify(hybridProducer)}\n`);
