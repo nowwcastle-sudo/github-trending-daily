@@ -1022,7 +1022,7 @@ async function requestOneWithClaude(request, item, runtime) {
   let currentRequest = request;
   for (let attempt = 0; attempt < MAX_REQUEST_ATTEMPTS; attempt += 1) {
     if (nextKind) {
-      if (runtime.retries >= runtime.retryCap) throw prior;
+      if (runtime.retries >= runtime.retryCap) { prior.budgetExhausted = true; throw prior; }
       const delay = nextKind === "transport" ? RETRY_DELAYS[transportRetries - 1] : 0;
       deadlineRemaining(runtime.now, runtime.deadline, delay + runtime.attemptTimeoutMs);
       runtime.retries += 1;
@@ -1103,7 +1103,8 @@ export async function runClaudeSummaryBundleRequests({
     runProcess, environment, cwd, executeClaude, sleep, now, deadline, attemptTimeoutMs,
     retryCap: plan.retryAttempts, retries: 0, attempts: 0, inputTokens: 0, outputTokens: 0,
   };
-  const results = new Array(plan.requests.length);
+  const results = new Array(plan.requests.length).fill(null);
+  const held = new Array(plan.requests.length).fill(null);
   let cursor = 0;
   let fatal = null;
   async function worker() {
@@ -1112,20 +1113,66 @@ export async function runClaudeSummaryBundleRequests({
       const index = cursor;
       cursor += 1;
       if (index >= plan.requests.length) return;
+      const slug = plan.items[index].slug;
+      if (execution.exhausted) {
+        held[index] = { slug, reason: execution.exhausted.reason, defect_codes: [], diagnostic: boundedFailureDiagnostic(execution.exhausted.failure, slug, execution, provenance) };
+        continue;
+      }
       try {
         results[index] = await requestOneWithClaude(plan.requests[index], plan.items[index], execution);
       } catch (error) {
         const failure = error instanceof Error ? error : new Error("Summary bundle request failed");
         const defectCount = Array.isArray(failure.qualityDefects) ? failure.qualityDefects.length : 0;
-        failure.repositorySlug = plan.items[index].slug;
-        failure.message = `${failure.message} [repository=${plan.items[index].slug}; defects=${defectCount}]`;
-        fatal ??= failure;
-        return;
+        failure.repositorySlug = slug;
+        failure.message = `${failure.message} [repository=${slug}; defects=${defectCount}]`;
+        const reason = heldReason(failure);
+        if (reason === null) {
+          fatal ??= failure;
+          return;
+        }
+        if (reason === "budget_exhausted" || reason === "deadline_exhausted") execution.exhausted ??= { reason, failure };
+        held[index] = {
+          slug,
+          reason,
+          defect_codes: Array.isArray(failure.qualityDefects) ? failure.qualityDefects.map(defect => defect.code ?? qualityCode(defect)) : [],
+          diagnostic: boundedFailureDiagnostic(failure, slug, execution, provenance),
+        };
       }
     }
   }
   await Promise.all(Array.from({ length: Math.min(concurrency, plan.requests.length) }, () => worker()));
   if (fatal) {
+    fatal.summaryFailureDiagnostic = boundedFailureDiagnostic(fatal, fatal.repositorySlug, execution, provenance);
+    throw fatal;
+  }
+  return {
+    results,
+    held,
+    usage: {
+      inputTokens: execution.inputTokens,
+      outputTokens: execution.outputTokens,
+      logicalCalls: results.length,
+      attempts: execution.attempts,
+      retries: execution.retries,
+    },
+    runtime: provenance,
+  };
+}
+
+// Per-repository terminal failures become `held`; only provider-wide failures
+// (auth, process execution, schema rejection, unknown) stop the whole run.
+const HELD_REQUEST_FAILURE_CODES = Object.freeze(["CLAUDE_TIMEOUT", "CLAUDE_OUTPUT_LIMIT", "CLAUDE_TRANSIENT_PROVIDER_FAILURE", "CLAUDE_REQUEST_FAILED"]);
+function heldReason(failure) {
+  if (failure.failureCode === "CLAUDE_RATE_LIMITED" || failure.budgetExhausted === true) return "budget_exhausted";
+  if (String(failure.message).startsWith("Summary bundle deadline is exhausted")) return "deadline_exhausted";
+  if (failure.quality === true) return "quality_defects";
+  if (HELD_REQUEST_FAILURE_CODES.includes(failure.failureCode)) return "request_failed";
+  return null;
+}
+
+function boundedFailureDiagnostic(failure, slug, execution, provenance) {
+  {
+    const fatal = failure;
     const defects = Array.isArray(fatal.qualityDefects) ? fatal.qualityDefects.map(defect => ({
       code: defect.code ?? qualityCode(defect),
       ...(defect.locale ? { locale: defect.locale } : {}),
@@ -1148,9 +1195,9 @@ export async function runClaudeSummaryBundleRequests({
       ...(typeof defect.invariantKind === "string" ? { invariant_kind: defect.invariantKind } : {}),
       ...(tokenMismatchDiagnostic(defect) ? { token_mismatch: tokenMismatchDiagnostic(defect) } : {}),
     })) : [];
-    fatal.summaryFailureDiagnostic = {
+    return {
       version: 1,
-      repository: fatal.repositorySlug,
+      repository: slug,
       failure_code: fatal.quality === true
         ? "QUALITY_VALIDATION_FAILED"
         : CLAUDE_REQUEST_FAILURE_CODES.includes(fatal.failureCode) ? fatal.failureCode : "CLAUDE_REQUEST_FAILED",
@@ -1164,19 +1211,7 @@ export async function runClaudeSummaryBundleRequests({
       },
       runtime: provenance,
     };
-    throw fatal;
   }
-  return {
-    results,
-    usage: {
-      inputTokens: execution.inputTokens,
-      outputTokens: execution.outputTokens,
-      logicalCalls: results.length,
-      attempts: execution.attempts,
-      retries: execution.retries,
-    },
-    runtime: provenance,
-  };
 }
 
 function policyContextFromEnvironment(environment) {

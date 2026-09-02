@@ -1463,69 +1463,46 @@ test("a partial correction becomes the immutable base for the next targeted corr
   assert.deepEqual(result.results[0].summaries, bundle());
 });
 
-test("terminal quality failure exposes bounded defect diagnostics without model output", async () => {
+test("a held quality failure exposes bounded defect diagnostics without model output", async () => {
   const invalid = modelEnvelope();
   invalid.summaries.es.cons = "Consulte el README para conocer las limitaciones.";
   const badPatch = summaryPatch(invalid, { es: ["cons"] });
   const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
   let calls = 0;
-
-  await assert.rejects(
-    runClaudeSummaryBundleRequests({
-      plan,
-      environment: {},
-      now: () => 0,
-      deadline: 100_000,
-      attemptTimeoutMs: 1_000,
-      sleep: async () => {},
-      preflight: async () => oauthRuntime,
-      executeClaude: async () => {
-        calls += 1;
-        return { structuredOutput: calls === 1 ? invalid : badPatch, usage: { inputTokens: 100, outputTokens: 200 } };
-      },
-    }),
-    error => {
-      assert.equal(calls, 4);
-      const invariantHash = createHash("sha256").update(Buffer.from("npm test", "utf8")).digest("hex");
-      assert.deepEqual(error.summaryFailureDiagnostic, {
-        version: 1,
-        repository: "owner/repo",
-        failure_code: "QUALITY_VALIDATION_FAILED",
-        defect_count: 3,
-        defects: [
-          { code: "GENERIC_OR_PLACEHOLDER", locale: "es", field: "cons", forbidden_terms: ["Consulte el README"] },
-          {
-            code: "LOCALE_INVARIANT",
-            locale: "es",
-            expected_fields: fields,
-            actual_fields: ["goal", "usage", "pros", "fit"],
-            invariant: { length: 8, sha256: invariantHash },
-          },
-          {
-            code: "LOCALE_INVARIANT",
-            locale: "es",
-            field: "cons",
-            token_mismatch: {
-              kinds: ["commands", "numbers"],
-              expected_counts: { commands: 1, urls: 0, numbers: 1 },
-              actual_counts: { commands: 0, urls: 0, numbers: 0 },
-            },
-          },
-        ],
-        usage: { inputTokens: 400, outputTokens: 800, attempts: 4, retries: 3 },
-        runtime: {
-          provider: "claude-cli-oauth",
-          interface: "claude-p",
-          cli_version: "2.1.241",
-          auth_method: "oauth_token",
-          api_provider: "firstParty",
-          model: "claude-sonnet-5",
-        },
-      });
-      assert.doesNotMatch(JSON.stringify(error.summaryFailureDiagnostic), /para conocer las limitaciones|summaries|ultimate choice/i);
-      return true;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async () => {
+      calls += 1;
+      return { structuredOutput: calls === 1 ? invalid : badPatch, usage: { inputTokens: 100, outputTokens: 200 } };
     },
-  );
+  });
+  assert.equal(calls, 4);
+  assert.equal(result.results[0], null);
+  const diagnostic = result.held[0].diagnostic;
+  const invariantHash = createHash("sha256").update(Buffer.from("npm test", "utf8")).digest("hex");
+  assert.equal(diagnostic.version, 1);
+  assert.equal(diagnostic.repository, "owner/repo");
+  assert.equal(diagnostic.failure_code, "QUALITY_VALIDATION_FAILED");
+  assert.equal(diagnostic.defect_count, 3);
+  assert.deepEqual(diagnostic.defects[0], { code: "GENERIC_OR_PLACEHOLDER", locale: "es", field: "cons", forbidden_terms: ["Consulte el README"] });
+  assert.deepEqual(diagnostic.defects[1], {
+    code: "LOCALE_INVARIANT",
+    locale: "es",
+    expected_fields: fields,
+    actual_fields: ["goal", "usage", "pros", "fit"],
+    invariant: { length: 8, sha256: invariantHash },
+  });
+  assert.equal(diagnostic.defects[2].code, "LOCALE_INVARIANT");
+  assert.equal(diagnostic.defects[2].field, "cons");
+  assert.deepEqual(diagnostic.defects[2].token_mismatch.expected_counts, { commands: 1, urls: 0, numbers: 1 });
+  assert.deepEqual(diagnostic.usage, { inputTokens: 400, outputTokens: 800, attempts: 4, retries: 3 });
+  assert.equal(JSON.stringify(diagnostic).includes("Consulte el README para"), false);
 });
 
 test("README-literal number invariants are accepted as declared and cross-locale field drift is a warning", async () => {
@@ -1565,6 +1542,101 @@ test("README-literal number invariants are accepted as declared and cross-locale
   assert.equal(calls, 1);
   assert.deepEqual(result.results[0].invariants.at(-1), { kind: "number", value: "2 minutes", fields: ["pros"] });
   assert.deepEqual(result.results[0].warnings.map(warning => warning.code), ["INVARIANT_FIELDS_SOFT", "INVARIANT_FIELDS_SOFT", "INVARIANT_FIELDS_SOFT", "INVARIANT_FIELDS_SOFT"]);
+});
+
+test("one repository exhausting its corrections is held while the other is verified", async () => {
+  const second = { ...item, slug: "owner/second" };
+  const plan = measureClaudeCliSummaryBundlePlan([item, second], { retryAttempts: 12 });
+  const invalid = modelEnvelope();
+  invalid.summaries.es.cons = "Consulte el README y ejecute `npm test` para conocer las limitaciones.";
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    concurrency: 1,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async () => {
+      calls += 1;
+      if (calls === 1) return { structuredOutput: modelEnvelope(), usage: { inputTokens: 100, outputTokens: 200 } };
+      if (calls === 2) return { structuredOutput: invalid, usage: { inputTokens: 100, outputTokens: 200 } };
+      return { structuredOutput: summaryPatch(invalid, { es: ["cons"] }), usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+  assert.equal(calls, 5);
+  assert.deepEqual(result.results[0].summaries, bundle());
+  assert.equal(result.results[1], null);
+  assert.equal(result.held[0], null);
+  assert.equal(result.held[1].slug, "owner/second");
+  assert.equal(result.held[1].reason, "quality_defects");
+  assert.deepEqual(result.held[1].defect_codes, ["GENERIC_OR_PLACEHOLDER"]);
+  assert.equal(result.held[1].diagnostic.failure_code, "QUALITY_VALIDATION_FAILED");
+  assert.equal(result.usage.attempts, 5);
+});
+
+test("a rate limit holds the failing and remaining repositories as budget_exhausted without failing the run", async () => {
+  const items = [item, { ...item, slug: "owner/second" }, { ...item, slug: "owner/third" }];
+  const plan = measureClaudeCliSummaryBundlePlan(items, { retryAttempts: 12 });
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    concurrency: 1,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async () => {
+      calls += 1;
+      if (calls === 1) return { structuredOutput: modelEnvelope(), usage: { inputTokens: 100, outputTokens: 200 } };
+      const error = new Error("Claude CLI request failed");
+      error.failureCode = "CLAUDE_RATE_LIMITED";
+      error.retryable = false;
+      throw error;
+    },
+  });
+  assert.equal(calls, 2);
+  assert.deepEqual(result.results[0].summaries, bundle());
+  assert.equal(result.results[1], null);
+  assert.equal(result.results[2], null);
+  assert.equal(result.held[1].reason, "budget_exhausted");
+  assert.equal(result.held[1].diagnostic.failure_code, "CLAUDE_RATE_LIMITED");
+  assert.equal(result.held[2].reason, "budget_exhausted");
+  assert.equal(result.held[2].diagnostic.failure_code, "CLAUDE_RATE_LIMITED");
+});
+
+test("a per-request timeout after its retries holds only that repository as request_failed", async () => {
+  const plan = measureClaudeCliSummaryBundlePlan([item, { ...item, slug: "owner/second" }], { retryAttempts: 12 });
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    concurrency: 1,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async () => {
+      calls += 1;
+      if (calls <= 3) {
+        const error = new Error("Claude CLI request timed out");
+        error.failureCode = "CLAUDE_TIMEOUT";
+        error.retryable = true;
+        throw error;
+      }
+      return { structuredOutput: modelEnvelope(), usage: { inputTokens: 100, outputTokens: 200 } };
+    },
+  });
+  assert.equal(calls, 4);
+  assert.equal(result.results[0], null);
+  assert.equal(result.held[0].reason, "request_failed");
+  assert.equal(result.held[0].diagnostic.failure_code, "CLAUDE_TIMEOUT");
+  assert.deepEqual(result.results[1].summaries, bundle());
 });
 
 test("terminal Claude failure preserves its bounded request code without raw diagnostics", async () => {
@@ -1729,13 +1801,12 @@ test("Claude subscription execution retries one bounded transport failure after 
   });
 });
 
-test("a fatal bundle failure stops every worker from dispatching a new repository", async () => {
+test("a provider-wide auth failure stops every worker while a quality failure does not", async () => {
   const items = Array.from({ length: 4 }, (_, index) => ({ ...item, slug: `owner/repo-${index}` }));
   const plan = measureClaudeCliSummaryBundlePlan(items, { retryAttempts: 12 });
   let releaseSecond;
   const secondBlocked = new Promise(resolve => { releaseSecond = resolve; });
   const calls = [];
-  let firstRepositoryCalls = 0;
   const execution = runClaudeSummaryBundleRequests({
     plan,
     environment: {},
@@ -1749,13 +1820,10 @@ test("a fatal bundle failure stops every worker from dispatching a new repositor
       const slug = /"repository":"([^"]+)"/.exec(prompt)?.[1];
       calls.push(slug);
       if (slug === "owner/repo-0") {
-        const invalid = modelEnvelope();
-        invalid.summaries.ko.usage = "자세한 내용은 README를 참고하세요.";
-        firstRepositoryCalls += 1;
-        return {
-          structuredOutput: firstRepositoryCalls === 1 ? invalid : summaryPatch(invalid, { ko: ["usage"] }),
-          usage: { inputTokens: 100, outputTokens: 200 },
-        };
+        const error = new Error("Claude CLI request failed");
+        error.failureCode = "CLAUDE_AUTH_FAILED";
+        error.retryable = false;
+        throw error;
       }
       if (slug === "owner/repo-1") {
         await secondBlocked;
@@ -1765,12 +1833,11 @@ test("a fatal bundle failure stops every worker from dispatching a new repositor
     },
   });
   const rejected = assert.rejects(execution, error => {
-    assert.match(String(error?.message), /generic|placeholder|README/i);
     assert.match(String(error?.message), /owner\/repo-0/);
-    assert.match(String(error?.message), /defects?=/i);
+    assert.equal(error.summaryFailureDiagnostic.failure_code, "CLAUDE_AUTH_FAILED");
     return true;
   });
-  while (calls.filter(slug => slug === "owner/repo-0").length < 2) await new Promise(resolve => setImmediate(resolve));
+  while (calls.filter(slug => slug === "owner/repo-0").length < 1) await new Promise(resolve => setImmediate(resolve));
   await new Promise(resolve => setImmediate(resolve));
   releaseSecond();
   await rejected;
