@@ -1142,7 +1142,12 @@ export async function runClaudeSummaryBundleRequests({
         // cap exhausted by corrections only blocks further corrections: the remaining
         // repositories still get their single initial attempt (2026-09-03 decision).
         if (reason === "budget_exhausted" || reason === "deadline_exhausted") {
-          execution.exhausted ??= { reason, failure, slug, skipRemaining: reason === "deadline_exhausted" || failure.failureCode === "CLAUDE_RATE_LIMITED" };
+          const skipRemaining = reason === "deadline_exhausted" || failure.failureCode === "CLAUDE_RATE_LIMITED";
+          // The first exhaustion is recorded; a later rate limit or deadline upgrades a
+          // cap-only exhaustion so the remaining repositories stop being attempted.
+          if (!execution.exhausted || (skipRemaining && !execution.exhausted.skipRemaining)) {
+            execution.exhausted = { reason, failure, slug, skipRemaining };
+          }
         }
         held[index] = {
           slug,
