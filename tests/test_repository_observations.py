@@ -1455,6 +1455,21 @@ class RepositoryObservationTests(unittest.TestCase):
         with closing(sqlite3.connect(candidate)) as connection:
             self.assertEqual(connection.execute("SELECT COUNT(*) FROM snapshot_runs").fetchone(), (0,))
 
+    def test_legacy_star_history_overlay_row_is_accepted_but_other_extra_paths_are_not(self):
+        # Snapshots finalized before 2026-09-03 carry a 20th artifact row for
+        # star-history.json; they stay append-only and must still validate.
+        database = Path(self.temporary.name) / "legacy-overlay.sqlite"
+        create_database(database)
+        with closing(sqlite3.connect(database)) as connection:
+            connection.execute("PRAGMA foreign_keys=ON")
+            complete_fixture(connection)
+            validate_schema(connection)
+            connection.execute("INSERT INTO artifact_hashes VALUES (?, ?, ?, ?)", (1, "star-history.json", sha256("c"), 1))
+            validate_schema(connection)
+            connection.execute("INSERT INTO artifact_hashes VALUES (?, ?, ?, ?)", (1, "data/extra.json", sha256("d"), 1))
+            with self.assertRaisesRegex(ValueError, "allowlist"):
+                validate_schema(connection)
+
     def test_oss_estimates_preserve_value_change_tombstone_and_reappearance(self):
         candidate = Path(self.temporary.name) / "candidate.sqlite"
         prepare_candidate_database(Path(self.temporary.name) / "missing-parent.sqlite", candidate, None)

@@ -10,6 +10,7 @@ import test from "node:test";
 
 import {
   VERSION_1_BASE_PATHS,
+  OVERLAY_PATHS,
   buildLegacyRecoveryArtifact,
   buildPagesArtifact,
   expectedVersion1Paths,
@@ -355,7 +356,7 @@ async function writeMixedSummaryConsumerFixture(directory) {
   const source = join(directory, "source");
   const factsPath = join(directory, "facts.json");
   await mkdir(source);
-  await writeTree(source, VERSION_1_BASE_PATHS);
+  await writeTree(source, [...VERSION_1_BASE_PATHS, ...OVERLAY_PATHS]);
   const context = createRunContext(new Date("2026-08-29T00:07:00.000Z"));
   const repositories = Array.from({ length: 10 }, (_, index) => frozenRepository(context, index));
   const facts = buildFrozenFactsEnvelope({
@@ -436,9 +437,10 @@ test("version-1 artifact path set is exact and contains no full README translati
     "repo-filters.js",
     "site-i18n.js",
     "star-history.js",
-    "star-history.json",
     "ui-motion.js",
   ]);
+  assert.equal(VERSION_1_BASE_PATHS.length, 19);
+  assert.deepEqual(OVERLAY_PATHS, ["star-history.json"]);
   assert.equal(VERSION_1_BASE_PATHS.filter(path => path === "auth-lifecycle.js").length, 1);
   const python = spawnSync(process.env.PYTHON ?? "python", ["-c", "import json; from scripts.record_repository_observations import PAGES_BASE_ARTIFACT_PATHS; print(json.dumps(PAGES_BASE_ARTIFACT_PATHS))"], { cwd: root, encoding: "utf8" });
   assert.equal(python.status, 0, python.stderr);
@@ -619,7 +621,7 @@ test("builder hashes only the exact allowlist and exact summary source envelope"
   const out = join(directory, "out");
   t.after(() => rm(directory, { recursive: true, force: true }));
   await mkdir(source);
-  await writeTree(source, VERSION_1_BASE_PATHS);
+  await writeTree(source, [...VERSION_1_BASE_PATHS, ...OVERLAY_PATHS]);
   const latest = { snapshotId, repos: [{ slug: "owner/one", ...validClassification() }] };
   const sources = { version: 3, sources: { "owner/one": sourceEntry("owner/one") } };
   await writeFile(join(source, "data", "latest.json"), `${JSON.stringify(latest)}\n`);
@@ -630,8 +632,13 @@ test("builder hashes only the exact allowlist and exact summary source envelope"
 
   const contract = await artifactContract(source, latest, sources);
   const manifest = await buildPagesArtifact({ sourceRoot: source, outDir: out, sourceSha, snapshotId, artifactContract: contract });
-  assert.deepEqual(Object.keys(manifest.files), expectedVersion1Paths(latest, sources));
+  // The finalized contract covers 19 paths; the manifest also records the star-history overlay.
+  assert.deepEqual(Object.keys(manifest.files), [...expectedVersion1Paths(latest, sources), ...OVERLAY_PATHS].sort());
+  assert.equal(contract.artifacts.length, expectedVersion1Paths(latest, sources).length);
   assert.equal(manifest.files["index.html"], createHash("sha256").update(validPage).digest("hex"));
+  assert.equal(manifest.files["star-history.json"], createHash("sha256").update("star-history.json\n").digest("hex"));
+  const overlayContract = await artifactContractForPaths(source, [...expectedVersion1Paths(latest, sources), ...OVERLAY_PATHS].sort());
+  await assert.rejects(buildPagesArtifact({ sourceRoot: source, outDir: join(directory, "overlay-in-contract"), sourceSha, snapshotId, artifactContract: overlayContract }), /path set/i);
   await assert.rejects(readFile(join(out, "data", "private.sqlite")));
 
   const changedPage = validPage.replace("</script>", "</scripT>");
@@ -836,7 +843,7 @@ test("builder rejects invalid page/latest classifications and requires exact equ
   const source = join(directory, "source");
   t.after(() => rm(directory, { recursive: true, force: true }));
   await mkdir(source);
-  await writeTree(source, VERSION_1_BASE_PATHS);
+  await writeTree(source, [...VERSION_1_BASE_PATHS, ...OVERLAY_PATHS]);
   const base = { slug: "owner/one", ...validClassification() };
   const sources = { version: 3, sources: { "owner/one": sourceEntry("owner/one") } };
   const page = repo => `<script>\nconst REPOS = ${JSON.stringify([repo])};\n</script>\n`;
@@ -882,7 +889,7 @@ test("builder requires exact DB artifact path hash and size equality", async t =
   const source = join(directory, "source");
   t.after(() => rm(directory, { recursive: true, force: true }));
   await mkdir(source);
-  await writeTree(source, VERSION_1_BASE_PATHS);
+  await writeTree(source, [...VERSION_1_BASE_PATHS, ...OVERLAY_PATHS]);
   const latest = { snapshotId, repos: [{ slug: "owner/one", ...validClassification() }] };
   const sources = { version: 3, sources: { "owner/one": sourceEntry("owner/one") } };
   await writeFile(join(source, "data", "latest.json"), `${JSON.stringify(latest)}\n`);
@@ -1360,7 +1367,7 @@ test("frozen membership and repository ledger produce one candidate Atom identit
   await writeFile(join(directory, "data", "membership-status.json"), await readFile(join(directory, "membership.json")));
   await writeFile(join(directory, "data", "repo-summaries.json"), `${JSON.stringify(summaries)}\n`);
   await writeFile(join(directory, "data", "translation-sources.json"), `${JSON.stringify(sources)}\n`);
-  for (const relative of VERSION_1_BASE_PATHS) {
+  for (const relative of [...VERSION_1_BASE_PATHS, ...OVERLAY_PATHS]) {
     const target = join(directory, ...relative.split("/"));
     try { await readFile(target); } catch {
       await mkdir(join(target, ".."), { recursive: true });

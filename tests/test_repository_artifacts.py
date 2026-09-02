@@ -19,10 +19,10 @@ from scripts.derive_repository_artifacts import (
     derive_candidate_artifacts,
     derive_membership_timeline,
     derive_repository_insights,
-    derive_star_history,
     export_parent_inputs,
     finalize_snapshot_derivatives,
     hash_pages_artifacts,
+    read_finalized_artifact_contract,
     verify_pages_artifacts,
 )
 from scripts.generate_atom_feeds import ATOM_NAMESPACE, generate_atom_feeds_from_timeline
@@ -152,7 +152,6 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
             derive_daily_star_series,
             derive_membership_timeline,
             derive_repository_insights,
-            derive_star_history,
             export_parent_inputs,
             finalize_snapshot_derivatives,
             hash_pages_artifacts,
@@ -164,7 +163,6 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
             derive_candidate_artifacts,
             derive_daily_star_series,
             derive_membership_timeline,
-            derive_star_history,
             hash_pages_artifacts,
             export_parent_inputs,
             verify_pages_artifacts,
@@ -498,7 +496,7 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
         current = next(repo for repo in result["repositories"] if repo["slug"] == "other/repo")["closes"][-1]
         self.assertEqual(current["finalization"], "provisional")
 
-    def test_star_history_applies_as_of_tombstone_ignores_legacy_cache_and_public_exact_precedence(self):
+    def test_daily_star_series_keeps_auxiliary_exact_rows_and_release_inventories_across_reentry(self):
         database = self.root / "ledger.sqlite"
         create_database(database)
         with closing(sqlite3.connect(database)) as connection:
@@ -537,15 +535,8 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
                 "2026-08-20T00:00:00.000Z", None, "https://github.com/owner/repo/releases/tag/v1"))
             for seq, metadata in ((1, hash_a), (2, hash_b), (3, hash_a)):
                 connection.execute("INSERT INTO snapshot_release_items VALUES (?,?,?,?,?)", (seq, "owner/repo", 9, metadata, 0))
-            at_removed = derive_star_history(connection, 3)
-            at_reentry = derive_star_history(connection, 4)
             internal = derive_daily_star_series(connection, 4)
-        self.assertEqual(at_removed["repositories"][0]["estimated"], [])
-        self.assertEqual(at_reentry["repositories"][0]["estimated"], [{"date": "2026-08-01", "stars": 10}])
-        self.assertIn({"date": "2026-08-20", "stars": 90}, at_reentry["repositories"][0]["observed"])
-        self.assertNotIn({"date": "2026-08-20", "stars": 999}, at_reentry["repositories"][0]["observed"])
-        self.assertNotIn({"date": "2026-08-01", "stars": 10}, at_reentry["repositories"][0]["observed"])
-        self.assertEqual(at_reentry["repositories"][0]["slug"], "Owner/Repo")
+        self.assertFalse(hasattr(repository_artifacts, "derive_star_history"))
         self.assertEqual(internal["repositories"][0]["auxiliaryExact"][0]["stars"], 999)
         self.assertEqual(
             [row["inventory"][0]["metadataSha256"] for row in internal["repositories"][0]["releaseInventories"][:3]],
@@ -566,30 +557,15 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "recorded snapshot"):
             repository_artifacts._summary_content(index, mismatched)
 
-    def test_star_history_applies_caps_after_selection(self):
-        database = self.root / "ledger.sqlite"
-        create_database(database)
-        with closing(sqlite3.connect(database)) as connection:
-            connection.execute("PRAGMA foreign_keys=ON")
-            insert_run(connection, 1, "2026-08-28T00:00:00.000Z", "2026-08-28")
-            insert_profile(connection, 1, "owner/repo", "Owner/Repo")
-            insert_item(connection, 1, "owner/repo", 1, stars=1)
-            insert_public_baseline(connection)
-            start = date.fromisoformat("2020-01-01")
-            for index in range(501):
-                point_date = (start + timedelta(days=index)).isoformat()
-                insert_estimate(connection, 1, "owner/repo", index, point_date=point_date)
-            for index in range(731):
-                point_date = (start + timedelta(days=index)).isoformat()
-                stars = index
-                connection.execute("INSERT INTO historical_star_observations VALUES (?,?,?,?,?,?,?,?,?)", (
-                    "legacy_public_star_history", None, "owner/repo", point_date, stars, None, None,
-                    digest({"source": "legacy_public_star_history", "slug": "owner/repo", "observation_date": point_date, "stars": stars}), 1,
-                ))
-            result = derive_star_history(connection, 1)
-            self.assertEqual(len(result["repositories"][0]["estimated"]), 500)
-            self.assertEqual(result["repositories"][0]["estimated"][0], {"date": "2020-01-02", "stars": 1})
-            self.assertEqual(len(result["repositories"][0]["observed"]), 730)
+    def test_star_history_overlay_is_outside_the_finalized_pages_allowlist(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for relative in (*PAGES_BASE_ARTIFACT_PATHS, "star-history.json"):
+                target = root.joinpath(*relative.split("/"))
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(relative.encode())
+            with self.assertRaisesRegex(ValueError, "allowlist"):
+                hash_pages_artifacts(root, (*PAGES_BASE_ARTIFACT_PATHS, "star-history.json"))
 
     def test_membership_verifies_frozen_receipt_and_preserves_exact_contract(self):
         legacy = self.root / "trending-membership.sqlite"
@@ -714,6 +690,7 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
         s1_payload = payload(ids[0], *times[0], "migration_baseline", None, s1_slugs)
         record_writer_snapshot(candidate, s1_payload, events(s1_slugs, {slug: "baseline" for slug in s1_slugs}), state)
         s1 = derive_candidate_artifacts(candidate, legacy, s1_payload["enrichmentIndex"], ids[0])
+        self.assertNotIn("star_history", s1)
         self.assertTrue(s1["membership_status"]["baseline"])
         self.assertEqual({row["status"] for row in s1["membership_status"]["current"]}, {"baseline"})
         self.assertEqual(s1["membership_status"]["exited"], [])
@@ -795,10 +772,22 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "contract"):
             verify_pages_artifacts(database, snapshot_id, candidate_root)
         contract_target.write_bytes(contract_bytes)
+        # A pre-2026-09-03 snapshot also carries a star-history.json row: contract readers
+        # skip it, re-finalization stays idempotent, and the row itself is never rewritten.
+        with closing(sqlite3.connect(database)) as connection:
+            connection.execute("INSERT INTO artifact_hashes VALUES (?, ?, ?, ?)", (1, "star-history.json", "c" * 64, 7))
+            connection.commit()
+        self.assertEqual([row["artifact_path"] for row in verify_pages_artifacts(database, snapshot_id, candidate_root)["artifacts"]], sorted(PAGES_BASE_ARTIFACT_PATHS))
+        self.assertEqual([row["artifact_path"] for row in read_finalized_artifact_contract(database, snapshot_id)["artifacts"]], sorted(PAGES_BASE_ARTIFACT_PATHS))
+        self.assertFalse(finalize_snapshot_derivatives(database, snapshot_id, insights, hashes).changed)
+        with closing(sqlite3.connect(database)) as connection:
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM artifact_hashes WHERE artifact_path='star-history.json'").fetchone(), (1,))
         with closing(sqlite3.connect(database)) as connection:
             core = connection.execute("SELECT core_payload_sha256,chain_sha256 FROM snapshot_runs").fetchone()
             self.assertEqual(connection.execute("SELECT COUNT(*) FROM repository_insights").fetchone(), (1,))
-            self.assertEqual(connection.execute("SELECT COUNT(*) FROM artifact_hashes").fetchone(), (len(PAGES_BASE_ARTIFACT_PATHS),))
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM artifact_hashes").fetchone(), (len(PAGES_BASE_ARTIFACT_PATHS) + 1,))
+            self.assertEqual(len(PAGES_BASE_ARTIFACT_PATHS), 19)
+            self.assertNotIn("star-history.json", PAGES_BASE_ARTIFACT_PATHS)
         with closing(sqlite3.connect(database)) as connection:
             self.assertEqual(core, connection.execute("SELECT core_payload_sha256,chain_sha256 FROM snapshot_runs").fetchone())
 

@@ -97,13 +97,17 @@ export const VERSION_1_BASE_PATHS = Object.freeze([
   "refresh-schedule.js",
   "repo-filters.js",
   "star-history.js",
-  "star-history.json",
   "site-i18n.js",
   "ui-motion.js",
 ].sort());
 
+// Deploy overlays are published and hashed into deployment-manifest.json but are
+// not rows of the finalized snapshot contract: the star-ticks workflow rewrites
+// them between refreshes without a new snapshot (2026-09-03 design §5.2).
+export const OVERLAY_PATHS = Object.freeze(["star-history.json"]);
+
 export const LEGACY_BASE_PATHS = Object.freeze(
-  VERSION_1_BASE_PATHS.filter(value => value !== "readme-markdown.js"),
+  [...VERSION_1_BASE_PATHS, ...OVERLAY_PATHS].filter(value => value !== "readme-markdown.js").sort(),
 );
 
 function exactKeys(value, keys) {
@@ -386,7 +390,7 @@ export async function buildPagesArtifact({ sourceRoot, outDir, sourceSha, snapsh
     }
   }
   await verifyArtifactContract(sourceRoot, snapshotId, paths, artifactContract);
-  return installArtifact({ sourceRoot, outDir, paths, manifest: { version: 1, sourceSha, snapshotId } });
+  return installArtifact({ sourceRoot, outDir, paths: [...paths, ...OVERLAY_PATHS], manifest: { version: 1, sourceSha, snapshotId } });
 }
 
 export async function buildLegacyRecoveryArtifact({ sourceRoot, outDir, sourceSha }) {

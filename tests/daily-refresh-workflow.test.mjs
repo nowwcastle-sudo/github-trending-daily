@@ -298,3 +298,16 @@ test("production preflight distinguishes strict v0 v1 and verified 404", async (
 test("the separate legacy writer workflow is removed", async () => {
   await assert.rejects(access(".github/workflows/update-star-history.yml"), /ENOENT/);
 });
+
+test("W1 derives star anchors from frozen facts and no longer generates star-history.json", async () => {
+  const workflow = await workflowText();
+  assert.match(workflow, /derive-star-anchors\.mjs --facts "\$\{RUNNER_TEMP\}\/repository-facts\.json" --out "\$CANDIDATE\/data\/star-anchors\.json"/);
+  assert.doesNotMatch(workflow, /update-star-history\.mjs|--star-history-out|derived-star-history/);
+  assert.match(workflow, /cp "\$CANDIDATE\/data\/star-anchors\.json" data\/star-anchors\.json/);
+  // W1 re-derives the overlay offline from the tracked ledgers so a publish never ships a stale star history.
+  assert.match(workflow, /derive-star-anchors\.mjs[^\n]*\n\s+node scripts\/star-ticks\.mjs derive --published "\$CANDIDATE\/data\/latest\.json" --ticks-dir data\/star-ticks --daily data\/star-daily\.jsonl --anchors "\$CANDIDATE\/data\/star-anchors\.json" --out "\$CANDIDATE\/star-history\.json"/);
+  assert.match(workflow, /cp "\$CANDIDATE\/star-history\.json" star-history\.json/);
+  assert.match(workflow, /case "\$changed_path" in\n\s+index\.html\|[^\n]*\|data\/star-anchors\.json\|star-history\.json\|translations\/\*\.json\) ;;/);
+  assert.match(workflow, /git add -- [^\n]*data\/star-anchors\.json star-history\.json translations\//);
+  await assert.rejects(access("scripts/update-star-history.mjs"), /ENOENT/);
+});

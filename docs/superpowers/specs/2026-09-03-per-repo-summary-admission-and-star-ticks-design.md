@@ -61,7 +61,7 @@ W1  daily-refresh.yml (cron 7 */2 · dispatch)              W2  star-ticks.yml (
    ├ finalize 19 files (star-history.json 제외)
    ├ validate coverage: verified|retained|held 전수
    └ commit → deploy → verify
-concurrency: 두 workflow 모두 group `daily-refresh` (cancel-in-progress: false), deploy job은 group `pages`
+concurrency: 두 workflow 모두 group `daily-refresh` (cancel-in-progress: false). W2 tick job은 job-level로 group `pages`도 잡는다(redeploy workflow와 배타). W1의 deploy job은 2026-09-03 현재 `pages` group을 잡지 않는다(구현 불일치 기록, 후속)
 ```
 
 ### 4.1 W1 — repository 단위 admission
@@ -96,7 +96,7 @@ warning은 `enrichment-index.json`과 bounded artifact에 code·locale·field만
 
 - 트리거: `schedule: "5,35 * * * *"`, `workflow_dispatch`. 저장소 변수 `GH_TRENDING_TICKS == 'enabled'`일 때만 schedule 실행. 시작 시 `GET /rate_limit`(한도 미차감)으로 `remaining < 500`이면 그 run은 관측 없이 종료(skipped 보고).
 - **Tier A** = main `data/latest.json`의 게시 집합(45~55, 최대 75). 매 run(30분). `GET /repos/{owner}/{repo}` 1회/repo.
-- **Tier B** = 한 번이라도 게시된 slug(`data/star-daily.jsonl`의 전체 slug 합집합) − Tier A. **홀수 UTC시 :35 run에서만**, 상한 `500 − |A|`. W1은 짝수시 :07 시작 후 15분 창에 REST 600~900회를 쓰므로(`EVENT_LIMITS.eventWindowMs`), 롤링 60분 한도 창과 겹치지 않는 시각을 택한다.
+- **Tier B** = 한 번이라도 게시된 slug(`data/star-daily.jsonl`의 전체 slug 합집합) − Tier A. **홀수 UTC시 :35 run에서만**(판정 `resolveTier`: UTC 분 ≥ 20이면 :35 슬롯으로 보아 스케줄러 지연 15분까지 허용), 상한 `500 − |A|`. W1은 짝수시 :07 시작 후 15분 창에 REST 600~900회를 쓰므로(`EVENT_LIMITS.eventWindowMs`), 롤링 60분 한도 창과 겹치지 않는 시각을 택한다.
 - 수집: 404/451(이전·삭제·비공개)은 그 repo tick을 `unavailable`로 기록하고 계속. 5xx·429는 2s/8s 2회 재시도 후 그 repo만 건너뛴다. 순차 호출(2차 한도 900/분·동시 100 이내).
 - **저장 3층**
   - `data/star-ticks/YYYY-MM.jsonl` — Tier A 원시 tick, append-only 텍스트, 월 분할. run 헤더 1줄 `{"at":"…Z","run_id":"…"}` 뒤 repo 줄 `{"slug":"owner/repo","stars":12345}`(≈70 B). 월 파일 ≈ 55×48×30×70 B ≈ 5.3 MiB.
@@ -106,7 +106,7 @@ warning은 `enrichment-index.json`과 bounded artifact에 code·locale·field만
 - **상한과 제외(cap 500)**: 매 Tier B run에 `후보 = star-daily 전체 slug − A`, `유지 = 후보 중 7일 gain(star-daily 기준, 자료가 7일 미만이면 있는 만큼) 상위 (500 − |A|)`. 연속 top-N(배치 100 아님, 상태 파일 없음). 동률은 "star-daily에서 마지막 Tier A 줄 날짜가 늦은 쪽 유지 → slug 오름차순". 게시 중(A)은 절대 제외하지 않는다. star-daily 최근 3줄이 연속 `unavailable`이면 gain 무관하게 제외. 제외돼도 과거 줄은 남고, 재게시되면 A로 들어와 이어 찍힌다. 선택 함수와 RED fixture(501개·동률·404·게시 중 보호)는 Plan B에서 지금 쓴다(신규 유입 8~14/일이면 cap 도달 약 32~56일).
 - 커밋: allowlist는 정확히 `data/star-ticks/**`, `data/star-daily.jsonl`, `star-history.json`. `git diff --check`·비밀값 스캔·"origin/main == checkout" 검사 통과 시 단일 commit `chore: star ticks <UTC>`를 push한다.
 - 배포: 같은 run에서 `build-pages-artifact.mjs`가 finalized 19파일 hash를 snapshot contract와 대조(불일치 = 코드 변경 → 중단, 코드 변경은 W1 publish로만)한 뒤 overlay 포함 artifact를 만들어 deploy. `deployment-manifest.json.files`에는 20+개 경로 hash가 전부 기록되고, `probe-production.mjs`는 contract 경로는 snapshot contract와, `star-history.json`은 manifest 자기 값과 대조한다.
-- 동시성: `concurrency.group: daily-refresh`, `cancel-in-progress: false`. W1 실행 중 W2는 대기(pending 1건만 유지되므로 W1 1회당 tick 유실 ≤ 1). W1의 "exact main 미전진" 검사는 그대로 성립하고, W1 deploy→verify 사이에 W2가 배포해 verify가 실패·recovery로 퇴행하는 경쟁은 발생하지 않는다.
+- 동시성: `concurrency.group: daily-refresh`, `cancel-in-progress: false`. W1 실행 중 W2는 대기(pending은 1건만 유지되므로 W1 1회당 tick 유실 = W1 실행 중 지나간 W2 슬롯 수 − 1). W1의 "exact main 미전진" 검사는 그대로 성립하고, W1 deploy→verify 사이에 W2가 배포해 verify가 실패·recovery로 퇴행하는 경쟁은 발생하지 않는다.
 - 예산(55 A + 445 B 기준): REST ≈ 2,640 + 445 ≈ 3,100/일, 피크 시간(홀수시) ≈ 110 + 445 = 555(`GITHUB_TOKEN` 저장소당 1,000/h). Actions는 공개 저장소라 무료. Pages 빌드 48/일(custom Actions deploy에는 10/h soft limit 미적용). git 증가 ≈ tick 5.3 MiB/월 + daily 1.4 MiB/월.
 - 간격 판단: Tier A 30분 유지(15분은 sparkline 220px에서 시각 이득 없이 커밋 2배, 60분은 "하루 만에 형태" 미달). Tier B는 하루 1회 — 재진입 전 구간은 §5.1 다운샘플로 하루 1점으로만 표시되므로 2시간 관측은 화면 결과가 같고 REST·git만 12배다.
 
@@ -171,8 +171,8 @@ repo 항목에 `status: "verified"|"retained"|"held"`, `held_reason`, `defect_co
 | W2 GitHub 404/451 | 그 repo `unavailable`, 계속. 3회 연속이면 Tier B 제외 |
 | W2 ledger 접두 불일치(재작성 감지) | commit·deploy 중단 |
 | W2 finalized 19파일 hash ≠ snapshot contract | 배포 중단(코드 변경은 W1으로) |
-| W1 실행 중 W2 slot | concurrency group에서 대기(유실 ≤ 1 tick) |
-| repo rename(301) | W1은 기존대로 `full_name` 불일치 오류. W2는 옛 slug로 계속 기록되어 이력이 분절될 수 있음 — 허용 리스크(빈도 낮음), 후속에서 `id` 기록 검토 |
+| W1 실행 중 W2 slot | concurrency group에서 대기. pending은 1건만 유지되므로 유실 = W1 실행 중 지나간 W2 슬롯 수 − 1 (W1 2시간 이내면 ≤ 3 tick) |
+| repo rename(301) | W1은 기존대로 `full_name` 불일치 오류. W2는 응답의 `full_name`이 요청 slug와 다르면 그 tick을 `unavailable`로 기록한다(2026-09-03 구현). 옛 이름이 다른 저장소로 재생성돼도 이어 붙지 않는다. 후속에서 `id` 기록 검토 |
 
 ## 7. 테스트 범위
 

@@ -86,7 +86,7 @@ The workflow is fail closed:
 - Missing or stale README provenance, source mismatch, incomplete chunks, invalid model output, cost-cap breaches, or translation residue stop publication.
 - The browser never receives a provider API key.
 
-Historical star charts show only exact daily GitHub star totals observed by this pipeline; GH Archive-derived estimates were discontinued on 2026-09-02 after the upstream source declared its event-derived counts severely degraded since 2026-05-01. CSV uses a UTF-8 BOM for spreadsheet compatibility, quotes commas, quotes, and line breaks, and prefixes formula-like values with an apostrophe.
+Star history is observed by this site itself: the star-ticks workflow records the exact total stars of every published repository every 30 minutes and, once a day, of every repository ever published (up to 500 repositories, kept by 7-day gain), in append-only ledgers under `data/star-ticks/` and `data/star-daily.jsonl`. Dashed anchors are back-calculated from GitHub Trending period gains (daily, weekly, monthly, plus the creation date for repositories under 30 days old) and are approximations. `star-history.json` covers the published repositories only, is not part of the finalized snapshot contract, and is redeployed by the star-ticks workflow between refreshes. GH Archive-derived estimates were discontinued on 2026-09-02 after the upstream source declared its event-derived counts severely degraded since 2026-05-01. CSV uses a UTF-8 BOM for spreadsheet compatibility, quotes commas, quotes, and line breaks, and prefixes formula-like values with an apostrophe.
 
 ## Local verification
 

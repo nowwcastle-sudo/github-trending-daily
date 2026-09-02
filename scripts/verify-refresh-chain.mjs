@@ -84,7 +84,7 @@ export function validateWorkflowRun(run, expectedRunId, { requireDispatchEvent =
 }
 
 function approvedGeneratedCommitPath(relative) {
-  return ["index.html", "data/repo-summaries.json", "data/repository-observations.sqlite", "data/readme-state.json", "data/membership-status.json", "data/latest.json", "data/translation-sources.json", "feed.xml", "changes.xml", "star-history.json"].includes(relative)
+  return ["index.html", "data/repo-summaries.json", "data/repository-observations.sqlite", "data/readme-state.json", "data/membership-status.json", "data/latest.json", "data/translation-sources.json", "feed.xml", "changes.xml", "data/star-anchors.json", "star-history.json"].includes(relative)
     || /^translations\/[^/]+\.json$/.test(relative);
 }
 

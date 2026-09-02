@@ -43,8 +43,15 @@ PAGES_BASE_ARTIFACT_PATHS = (
     "auth-lifecycle.js", "changes.xml", "current-view-export.js", "data/latest.json", "data/membership-status.json",
     "favorite-sync.js", "favorites.js", "feed.xml", "firebase-client.js", "firebase-config.json",
     "hidden-repos.js", "index.html", "membership-history.js", "readme-markdown.js",
-    "refresh-schedule.js", "repo-filters.js", "site-i18n.js", "star-history.js", "star-history.json", "ui-motion.js",
+    "refresh-schedule.js", "repo-filters.js", "site-i18n.js", "star-history.js", "ui-motion.js",
 )
+# star-history.json is a deploy overlay written by the star-ticks workflow; it is
+# published and recorded in deployment-manifest.json but is not part of the
+# finalized snapshot contract (2026-09-03 design §5.2).
+# Snapshots finalized before 2026-09-03 carry one extra artifact row for the
+# overlay. Those rows are append-only and are tolerated (never rewritten);
+# contract readers skip them.
+LEGACY_OVERLAY_ARTIFACT_PATHS = ("star-history.json",)
 _SUMMARY_PRODUCER_FIELDS = ("provider", "interface", "auth_method", "api_provider", "model")
 _SUMMARY_PRODUCER_PROFILES = (
     ("claude-cli-oauth", "claude-p", "oauth_token", "firstParty", "claude-sonnet-5"),
@@ -666,7 +673,7 @@ def _validate_populated_rows(connection: sqlite3.Connection) -> None:
 
     for snapshot_seq, paths in artifacts_by_snapshot.items():
         expected = set(PAGES_BASE_ARTIFACT_PATHS) | {f"translations/{connection.execute('SELECT display_slug FROM repository_profiles WHERE profile_id = ? AND slug = ?', (item['profile_id'], item['slug'])).fetchone()[0].replace('/', '__')}.json" for item in item_rows if item["snapshot_seq"] == snapshot_seq and item["translation_status"] == "applicable"}
-        if paths != expected:
+        if paths != expected and paths != expected | set(LEGACY_OVERLAY_ARTIFACT_PATHS):
             raise ValueError("artifact paths must equal the exact Pages allowlist")
 
 

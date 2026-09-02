@@ -18,6 +18,7 @@ from typing import Any, Iterable
 
 try:
     from scripts.record_repository_observations import (
+        LEGACY_OVERLAY_ARTIFACT_PATHS,
         PAGES_BASE_ARTIFACT_PATHS,
         _capture_parent_database,
         _file_sha256,
@@ -31,6 +32,7 @@ except ModuleNotFoundError as error:
     if error.name not in {"scripts", "scripts.record_repository_observations"}:
         raise
     from record_repository_observations import (
+        LEGACY_OVERLAY_ARTIFACT_PATHS,
         PAGES_BASE_ARTIFACT_PATHS,
         _capture_parent_database,
         _file_sha256,
@@ -381,59 +383,6 @@ def derive_membership_timeline(connection: sqlite3.Connection, legacy_membership
     }
 
 
-def _selected_estimates(connection: sqlite3.Connection, slug: str, snapshot_seq: int) -> list[dict[str, int | str]]:
-    # 2026-09-02: legacy_star_history_cache rows share the discontinued OSS Insight
-    # provenance and are no longer selected for display. They stay in the ledger
-    # untouched; only the latest present ossinsight_api version per date is shown.
-    latest: dict[str, tuple[int, int | None]] = {}
-    for estimate_date, present, stars in connection.execute(
-        """SELECT estimate_date,is_present,stars
-           FROM historical_star_estimates
-           WHERE source='ossinsight_api' AND slug=? AND first_observed_snapshot_seq<=?
-           ORDER BY estimate_date,first_observed_snapshot_seq""", (slug, snapshot_seq)
-    ):
-        latest[estimate_date] = (present, stars)
-    selected = [
-        {"date": estimate_date, "stars": stars}
-        for estimate_date, (present, stars) in sorted(latest.items())
-        if present
-    ]
-    return selected[-500:]
-
-
-def derive_star_history(connection: sqlite3.Connection, snapshot_seq: int) -> dict[str, Any]:
-    """Return the strict public v1 payload only."""
-    target = _target_run(connection, snapshot_seq)
-    daily = derive_daily_star_series(connection, snapshot_seq)
-    daily_by_slug = {entry["slug"]: entry for entry in daily["repositories"]}
-    repositories = []
-    for slug, display_slug in connection.execute(
-        """SELECT i.slug,p.display_slug FROM snapshot_items i JOIN repository_profiles p
-           ON p.profile_id=i.profile_id AND p.slug=i.slug
-           WHERE i.snapshot_seq=? ORDER BY i.display_rank""", (snapshot_seq,)
-    ):
-        observed: dict[str, int] = {}
-        for point_date, stars in connection.execute(
-            """SELECT observation_date,stars FROM historical_star_observations
-               WHERE source='legacy_public_star_history' AND slug=?
-                 AND first_observed_snapshot_seq<=? ORDER BY observation_date,source_row_sha256""",
-            (slug, snapshot_seq),
-        ):
-            if point_date in observed and observed[point_date] != stars:
-                raise ValueError("legacy public exact observation conflicts")
-            observed[point_date] = stars
-        for close in daily_by_slug[slug]["closes"]:
-            if close["finalization"] == "finalized":
-                observed[close["date"]] = close["stars"]
-        observed_points = [{"date": point_date, "stars": observed[point_date]} for point_date in sorted(observed)][-730:]
-        repositories.append({
-            "slug": display_slug,
-            "estimated": _selected_estimates(connection, slug, snapshot_seq),
-            "observed": observed_points,
-        })
-    return {"version": 1, "generatedAt": target["stats_date_kst"], "repositories": repositories}
-
-
 def _normalized_artifact_paths(expected_paths: Iterable[str]) -> list[str]:
     if isinstance(expected_paths, (str, bytes)):
         raise ValueError("artifact path set is invalid")
@@ -559,7 +508,7 @@ def finalize_snapshot_derivatives(
                 )]
                 existing_artifacts = [dict(zip(_columns(connection, "artifact_hashes"), row)) for row in connection.execute(
                     "SELECT * FROM artifact_hashes WHERE snapshot_seq=? ORDER BY artifact_path", (snapshot_seq,)
-                )]
+                ) if row[1] not in LEGACY_OVERLAY_ARTIFACT_PATHS]
                 artifact_db_rows = [{"snapshot_seq": snapshot_seq, **row} for row in artifact_hashes]
                 if existing_insights or existing_artifacts:
                     if existing_insights != insights or existing_artifacts != artifact_db_rows:
@@ -854,7 +803,6 @@ def derive_candidate_artifacts(
         insights = derive_repository_insights(connection, snapshot_seq)
         daily = derive_daily_star_series(connection, snapshot_seq)
         membership = derive_membership_timeline(connection, legacy_membership_path, snapshot_seq)
-        stars = derive_star_history(connection, snapshot_seq)
     status = {
         "schemaVersion": 1,
         "generatedAt": target["observed_at_utc"],
@@ -878,7 +826,6 @@ def derive_candidate_artifacts(
             "repositories": items,
         },
         "membership_status": status,
-        "star_history": stars,
         "insights": {"version": 1, "snapshotId": target["snapshot_id"], "insights": insights},
         "daily_star_series": daily,
     }
@@ -912,7 +859,7 @@ def verify_pages_artifacts(database_path: str | Path, snapshot_id: str, candidat
         columns = _columns(connection, "artifact_hashes")
         stored = [dict(zip(columns, row)) for row in connection.execute(
             "SELECT * FROM artifact_hashes WHERE snapshot_seq=? ORDER BY artifact_path", (snapshot_seq,)
-        )]
+        ) if row[columns.index("artifact_path")] not in LEGACY_OVERLAY_ARTIFACT_PATHS]
     expected_rows = [{"snapshot_seq": snapshot_seq, **row} for row in hash_pages_artifacts(root, expected_paths)]
     if stored != expected_rows:
         raise ValueError("finalized Pages artifact contract does not match candidate bytes")
@@ -948,7 +895,7 @@ def read_finalized_artifact_contract(database_path: str | Path, snapshot_id: str
             for row in connection.execute(
                 "SELECT artifact_path,sha256,byte_size FROM artifact_hashes WHERE snapshot_seq=? ORDER BY artifact_path",
                 (snapshot_seq,),
-            )
+            ) if row[0] not in LEGACY_OVERLAY_ARTIFACT_PATHS
         ]
     if [row["artifact_path"] for row in rows] != expected_paths:
         raise ValueError("finalized artifact path set is incomplete")
@@ -960,7 +907,6 @@ def _derive_cli(args: argparse.Namespace) -> dict[str, Any]:
     derived = derive_candidate_artifacts(args.database, args.legacy_membership_database, index, args.snapshot_id)
     _write_json_atomic(args.snapshot_export_out, derived["snapshot_export"])
     _write_json_atomic(args.membership_status_out, derived["membership_status"])
-    _write_json_atomic(args.star_history_out, derived["star_history"])
     _write_json_atomic(args.insights_out, derived["insights"])
     return {"snapshot_id": args.snapshot_id, "repository_count": len(derived["snapshot_export"]["repositories"])}
 
@@ -1002,7 +948,6 @@ def _parser() -> argparse.ArgumentParser:
     derive.add_argument("--snapshot-id", required=True)
     derive.add_argument("--snapshot-export-out", required=True)
     derive.add_argument("--membership-status-out", required=True)
-    derive.add_argument("--star-history-out", required=True)
     derive.add_argument("--insights-out", required=True)
     finalize = commands.add_parser("finalize")
     finalize.add_argument("--database", required=True)

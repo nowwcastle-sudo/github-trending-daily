@@ -58,7 +58,7 @@ test("the collector owns the run clock and derivative CLIs require explicit arti
   const [collector, latest, starHistory] = await Promise.all([
     "scripts/update-trending.mjs",
     "scripts/update-latest-feed.mjs",
-    "scripts/update-star-history.mjs",
+    "scripts/derive-star-anchors.mjs",
   ].map(path => readFile(path, "utf8")));
 
   assert.match(collector, /readRunContext\(process\.env\)/);
@@ -67,5 +67,5 @@ test("the collector owns the run clock and derivative CLIs require explicit arti
     assert.doesNotMatch(source, /seoulDate\(new Date\(\)\)/);
   }
   assert.match(latest, /--snapshot-export/);
-  assert.match(starHistory, /--input/);
+  assert.match(starHistory, /--facts/);
 });

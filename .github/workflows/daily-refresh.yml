@@ -427,10 +427,11 @@ jobs:
           CANDIDATE="${RUNNER_TEMP}/candidate"
           cp "${RUNNER_TEMP}/rendered-index.html" "$CANDIDATE/index.html"
           cp "${RUNNER_TEMP}/rendered-repo-summaries.json" "$CANDIDATE/data/repo-summaries.json"
-          python scripts/derive_repository_artifacts.py derive --database "$CANDIDATE/data/repository-observations.sqlite" --legacy-membership-database data/trending-membership.sqlite --enrichment-index "${RUNNER_TEMP}/enrichment-index.json" --snapshot-id "$SNAPSHOT_ID" --snapshot-export-out "${RUNNER_TEMP}/repository-snapshot-export.json" --membership-status-out "$CANDIDATE/data/membership-status.json" --star-history-out "${RUNNER_TEMP}/derived-star-history.json" --insights-out "${RUNNER_TEMP}/repository-insights.json"
+          python scripts/derive_repository_artifacts.py derive --database "$CANDIDATE/data/repository-observations.sqlite" --legacy-membership-database data/trending-membership.sqlite --enrichment-index "${RUNNER_TEMP}/enrichment-index.json" --snapshot-id "$SNAPSHOT_ID" --snapshot-export-out "${RUNNER_TEMP}/repository-snapshot-export.json" --membership-status-out "$CANDIDATE/data/membership-status.json" --insights-out "${RUNNER_TEMP}/repository-insights.json"
           node scripts/update-latest-feed.mjs --snapshot-export "${RUNNER_TEMP}/repository-snapshot-export.json" --latest "$CANDIDATE/data/latest.json"
           python scripts/generate_atom_feeds.py --page "$CANDIDATE/index.html" --latest "$CANDIDATE/data/latest.json" --database "$CANDIDATE/data/repository-observations.sqlite" --legacy-membership-database data/trending-membership.sqlite --feed "$CANDIDATE/feed.xml" --changes "$CANDIDATE/changes.xml"
-          node scripts/update-star-history.mjs --input "${RUNNER_TEMP}/derived-star-history.json" --out "$CANDIDATE/star-history.json"
+          node scripts/derive-star-anchors.mjs --facts "${RUNNER_TEMP}/repository-facts.json" --out "$CANDIDATE/data/star-anchors.json"
+          node scripts/star-ticks.mjs derive --published "$CANDIDATE/data/latest.json" --ticks-dir data/star-ticks --daily data/star-daily.jsonl --anchors "$CANDIDATE/data/star-anchors.json" --out "$CANDIDATE/star-history.json"
       - name: Finalize repository derivatives
         shell: bash
         env:
@@ -490,17 +491,18 @@ jobs:
           cp "$CANDIDATE/data/translation-sources.json" data/translation-sources.json
           cp "$CANDIDATE/feed.xml" feed.xml
           cp "$CANDIDATE/changes.xml" changes.xml
+          cp "$CANDIDATE/data/star-anchors.json" data/star-anchors.json
           cp "$CANDIDATE/star-history.json" star-history.json
           rsync --archive --delete "$CANDIDATE/translations/" translations/
           changed_paths="$({ git diff --name-only && git ls-files --others --exclude-standard; } | sort -u)"
           while IFS= read -r changed_path; do
             [ -z "$changed_path" ] && continue
             case "$changed_path" in
-              index.html|data/repo-summaries.json|data/repository-observations.sqlite|data/readme-state.json|data/membership-status.json|data/latest.json|data/translation-sources.json|feed.xml|changes.xml|star-history.json|translations/*.json) ;;
+              index.html|data/repo-summaries.json|data/repository-observations.sqlite|data/readme-state.json|data/membership-status.json|data/latest.json|data/translation-sources.json|feed.xml|changes.xml|data/star-anchors.json|star-history.json|translations/*.json) ;;
               *) echo "::error::Unexpected generated output: $changed_path"; exit 1 ;;
             esac
           done <<< "$changed_paths"
-          git add -- index.html data/repo-summaries.json data/repository-observations.sqlite data/readme-state.json data/membership-status.json data/latest.json data/translation-sources.json feed.xml changes.xml star-history.json translations/
+          git add -- index.html data/repo-summaries.json data/repository-observations.sqlite data/readme-state.json data/membership-status.json data/latest.json data/translation-sources.json feed.xml changes.xml data/star-anchors.json star-history.json translations/
           if git diff --cached --quiet; then
             echo "::error::version-1 refresh requires one nonempty generated child"
             exit 1
@@ -510,7 +512,7 @@ jobs:
           git show :data/repository-observations.sqlite > "$STAGED_DATABASE"
           python scripts/scan_repository_observations.py --database "$STAGED_DATABASE" --expect-snapshot "$SNAPSHOT_ID"
           set +e
-          git grep --cached -qE '(sk-ant-[[:alnum:]_-]{20,}|gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- index.html data/repo-summaries.json data/readme-state.json data/membership-status.json data/latest.json data/translation-sources.json feed.xml changes.xml star-history.json translations/
+          git grep --cached -qE '(sk-ant-[[:alnum:]_-]{20,}|gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- index.html data/repo-summaries.json data/readme-state.json data/membership-status.json data/latest.json data/translation-sources.json feed.xml changes.xml data/star-anchors.json star-history.json translations/
           SCAN_STATUS=$?
           set -e
           case "$SCAN_STATUS" in
