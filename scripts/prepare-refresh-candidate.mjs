@@ -12,10 +12,10 @@ export const MUTABLE_GENERATED_PATHS = Object.freeze([
   "data/readme-state.json",
   "data/repo-summaries.json",
   "data/repository-observations.sqlite",
+  "data/star-anchors.json",
   "data/translation-sources.json",
   "feed.xml",
   "index.html",
-  "star-history.json",
   "translations",
 ]);
 const FULL_FILE_GENERATED_PATHS = MUTABLE_GENERATED_PATHS.filter(value => value !== "index.html" && value !== "translations");
