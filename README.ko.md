@@ -86,7 +86,7 @@ workflow는 fail-closed입니다.
 - README provenance 누락·stale, source mismatch, incomplete chunk, 모델 출력 오류, 비용 cap 초과, 옛 translation residue는 publication을 막습니다.
 - provider API key는 브라우저에 전달하지 않습니다.
 
-과거 스타 차트는 이 파이프라인이 매일 GitHub에서 직접 관측한 총 스타만 표시합니다. GH Archive 기반 추정치는 출처가 2026-05-01 이후 심각한 과소집계를 스스로 선언해 2026-09-02에 중단했습니다. CSV는 스프레드시트 호환을 위해 UTF-8 BOM을 포함하고 comma·quote·줄바꿈을 quoting하며 수식처럼 실행될 수 있는 값 앞에는 apostrophe를 붙입니다.
+스타 히스토리는 이 사이트가 직접 관측합니다. star-ticks workflow가 게시 중인 저장소의 정확한 총 스타를 30분마다, 한 번이라도 게시된 저장소(7일 증가량 기준 상위 500개)의 총 스타를 하루 1회 기록하며, 기록은 `data/star-ticks/`와 `data/star-daily.jsonl`에 append-only로 쌓입니다. 점선 앵커는 GitHub Trending 기간 집계(일간·주간·월간, 생성 30일 이내 저장소는 생성일 포함)로 역산한 근사치입니다. `star-history.json`은 게시 중인 저장소만 담고 finalized snapshot contract에 포함되지 않으며, 갱신 사이에 star-ticks workflow가 다시 배포합니다. GH Archive 기반 추정치는 출처가 2026-05-01 이후 심각한 과소집계를 스스로 선언해 2026-09-02에 중단했습니다. CSV는 스프레드시트 호환을 위해 UTF-8 BOM을 포함하고 comma·quote·줄바꿈을 quoting하며 수식처럼 실행될 수 있는 값 앞에는 apostrophe를 붙입니다.
 
 ## 로컬 검증
 

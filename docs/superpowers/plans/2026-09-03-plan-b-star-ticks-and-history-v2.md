@@ -66,7 +66,7 @@
 - `appendLedger({ existingBytes, lines })` → 새 bytes; 호출자는 commit 전 `newBytes.subarray(0, existing.length).equals(existing)`를 검사(`assertAppendOnly`).
 - `rollupDaily(tickLines, date)` → 그날 마지막 tick.
 - `deriveStarHistoryV2({ published, tickRowsBySlug, dailyRowsBySlug, anchors, now })` → §5.1 객체: observed = 최근 14일 tick 전부 + 그 이전 daily 1점, 앵커는 관측 있는 날짜 제외, 2,000점 상한.
-- CLI: `collect --token-env GITHUB_TOKEN --tier a|ab --published data/latest.json --ticks-dir data/star-ticks --daily data/star-daily.jsonl --run-id ID`, `derive --published … --ticks-dir … --daily … --anchors data/star-anchors.json --out star-history.json`, `verify-contract --source . --manifest-url URL`(finalized 19 hash 비교).
+- CLI: `collect --token-env GITHUB_TOKEN --tier a|ab --published data/latest.json --ticks-dir data/star-ticks --daily data/star-daily.jsonl --run-id ID`, `derive --published … --ticks-dir … --daily … --anchors data/star-anchors.json --out star-history.json`, ~~`verify-contract --source . --manifest-url URL`~~ — 구현 시 제외(2026-09-03): `deploy-current-pages.yml`과 같은 경로(`export-contract` → `build-pages-artifact` → probe)가 이미 finalized 19 hash를 DB contract와 대조해 불일치 시 빌드를 거부하므로 별도 CLI를 두지 않았다.
 
 - [ ] **Step 1: RED tests**(핵심 5개):
 
@@ -121,7 +121,7 @@ jobs:
       - node scripts/star-ticks.mjs collect --tier $TIER … --run-id ${{ github.run_id }}
       - node scripts/star-ticks.mjs derive …
       - allowlist 검사(`git status --porcelain` ⊆ 3경로) · `git diff --check` · secret scan · origin/main == HEAD 확인 · commit `chore: star ticks <UTC>` · push
-      - node scripts/star-ticks.mjs verify-contract(19 hash == production contract) · build-pages-artifact(v1, overlay 포함) · probe · upload-pages-artifact · deploy-pages · probe deployed
+      - export-contract(committed DB) · build-pages-artifact(v1, contract 19 대조 + overlay 포함) · probe · upload-pages-artifact · deploy-pages · probe deployed  ← verify-contract CLI 대신 builder의 contract 검사를 그대로 사용(2026-09-03)
 ```
 
 - [ ] **Step 1: RED tests** — `daily-refresh-workflow.test.mjs`: 두 workflow의 `concurrency.group` 동일, W2 cron `5,35 * * * *`, `vars.GH_TRENDING_TICKS` 게이트, allowlist 3경로, `GITHUB_TOKEN` 외 secret 참조 없음.
