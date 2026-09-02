@@ -498,7 +498,7 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
         current = next(repo for repo in result["repositories"] if repo["slug"] == "other/repo")["closes"][-1]
         self.assertEqual(current["finalization"], "provisional")
 
-    def test_star_history_applies_as_of_tombstone_and_public_exact_precedence(self):
+    def test_star_history_applies_as_of_tombstone_ignores_legacy_cache_and_public_exact_precedence(self):
         database = self.root / "ledger.sqlite"
         create_database(database)
         with closing(sqlite3.connect(database)) as connection:
@@ -540,8 +540,8 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
             at_removed = derive_star_history(connection, 3)
             at_reentry = derive_star_history(connection, 4)
             internal = derive_daily_star_series(connection, 4)
-        self.assertEqual(at_removed["repositories"][0]["estimated"], [{"date": "2026-07-01", "stars": 7}])
-        self.assertEqual(at_reentry["repositories"][0]["estimated"], [{"date": "2026-07-01", "stars": 7}, {"date": "2026-08-01", "stars": 10}])
+        self.assertEqual(at_removed["repositories"][0]["estimated"], [])
+        self.assertEqual(at_reentry["repositories"][0]["estimated"], [{"date": "2026-08-01", "stars": 10}])
         self.assertIn({"date": "2026-08-20", "stars": 90}, at_reentry["repositories"][0]["observed"])
         self.assertNotIn({"date": "2026-08-20", "stars": 999}, at_reentry["repositories"][0]["observed"])
         self.assertNotIn({"date": "2026-08-01", "stars": 10}, at_reentry["repositories"][0]["observed"])
@@ -552,7 +552,7 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
             ["1" * 64, "2" * 64, "1" * 64],
         )
 
-    def test_star_history_applies_caps_after_selection_and_rejects_per_repo_baseline_hash(self):
+    def test_star_history_applies_caps_after_selection(self):
         database = self.root / "ledger.sqlite"
         create_database(database)
         with closing(sqlite3.connect(database)) as connection:
@@ -564,7 +564,7 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
             start = date.fromisoformat("2020-01-01")
             for index in range(501):
                 point_date = (start + timedelta(days=index)).isoformat()
-                insert_estimate(connection, 1, "owner/repo", index, source="legacy_star_history_cache", point_date=point_date, payload_sha="7" * 64)
+                insert_estimate(connection, 1, "owner/repo", index, point_date=point_date)
             for index in range(731):
                 point_date = (start + timedelta(days=index)).isoformat()
                 stars = index
@@ -574,17 +574,8 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
                 ))
             result = derive_star_history(connection, 1)
             self.assertEqual(len(result["repositories"][0]["estimated"]), 500)
+            self.assertEqual(result["repositories"][0]["estimated"][0], {"date": "2020-01-02", "stars": 1})
             self.assertEqual(len(result["repositories"][0]["observed"]), 730)
-            connection.execute("DROP TRIGGER historical_star_estimates_reject_update")
-            connection.execute(
-                """UPDATE historical_star_estimates SET source_payload_sha256=?
-                   WHERE source='legacy_star_history_cache' AND slug='owner/repo'
-                     AND estimate_date=(SELECT MIN(estimate_date) FROM historical_star_estimates
-                                        WHERE source='legacy_star_history_cache' AND slug='owner/repo')""",
-                ("8" * 64,),
-            )
-            with self.assertRaisesRegex(ValueError, "baseline identity"):
-                derive_star_history(connection, 1)
 
     def test_membership_verifies_frozen_receipt_and_preserves_exact_contract(self):
         legacy = self.root / "trending-membership.sqlite"

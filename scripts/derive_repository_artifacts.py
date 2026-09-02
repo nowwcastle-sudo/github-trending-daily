@@ -380,36 +380,22 @@ def derive_membership_timeline(connection: sqlite3.Connection, legacy_membership
 
 
 def _selected_estimates(connection: sqlite3.Connection, slug: str, snapshot_seq: int) -> list[dict[str, int | str]]:
-    api: dict[str, tuple[int, int, int | None]] = {}
-    for estimate_date, first_seq, present, stars in connection.execute(
-        """SELECT estimate_date,first_observed_snapshot_seq,is_present,stars
+    # 2026-09-02: legacy_star_history_cache rows share the discontinued OSS Insight
+    # provenance and are no longer selected for display. They stay in the ledger
+    # untouched; only the latest present ossinsight_api version per date is shown.
+    latest: dict[str, tuple[int, int | None]] = {}
+    for estimate_date, present, stars in connection.execute(
+        """SELECT estimate_date,is_present,stars
            FROM historical_star_estimates
            WHERE source='ossinsight_api' AND slug=? AND first_observed_snapshot_seq<=?
            ORDER BY estimate_date,first_observed_snapshot_seq""", (slug, snapshot_seq)
     ):
-        api[estimate_date] = (first_seq, present, stars)
-    baseline = connection.execute(
-        """SELECT file_sha256 FROM baseline_sources
-           WHERE source_name='legacy_public_star_history' AND cutover_snapshot_seq<=?""", (snapshot_seq,)
-    ).fetchone()
-    legacy: dict[str, int] = {}
-    for estimate_date, stars, payload_sha in connection.execute(
-        """SELECT estimate_date,stars,source_payload_sha256 FROM historical_star_estimates
-           WHERE source='legacy_star_history_cache' AND slug=? AND is_present=1
-             AND first_observed_snapshot_seq<=? ORDER BY estimate_date,first_observed_snapshot_seq""",
-        (slug, snapshot_seq),
-    ):
-        if baseline is None or payload_sha != baseline[0]:
-            raise ValueError("legacy estimate baseline identity is invalid")
-        legacy[estimate_date] = stars
-    selected = []
-    for estimate_date in sorted(set(api) | set(legacy)):
-        if estimate_date in api:
-            _, present, stars = api[estimate_date]
-            if present:
-                selected.append({"date": estimate_date, "stars": stars})
-        else:
-            selected.append({"date": estimate_date, "stars": legacy[estimate_date]})
+        latest[estimate_date] = (present, stars)
+    selected = [
+        {"date": estimate_date, "stars": stars}
+        for estimate_date, (present, stars) in sorted(latest.items())
+        if present
+    ]
     return selected[-500:]
 
 
