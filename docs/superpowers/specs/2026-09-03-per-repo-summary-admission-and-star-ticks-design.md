@@ -36,7 +36,7 @@
 | 기존 결정 | 새 결정 | 왜 |
 |---|---|---|
 | 정본 §3 8항 "5개 언어는 한 묶음이며 한 언어의 결함도 repository와 candidate 전체를 실패시킨다" | **repository 단위 admission.** 5 locale은 여전히 한 묶음(한 locale 결함 = 그 repo held)이지만 candidate는 실패하지 않는다 | 35회 중 publish 0. 실패 단위가 너무 컸다 |
-| 정본 §3 9항 "`insufficient_source`는 candidate 실패. metadata fallback·'README 참고' 문구 금지" | `insufficient_source`·상한 소진은 **그 repo를 `held`로**. generic fallback 문구 금지는 유지 | 정직한 상태 표시로 대체 |
+| 정본 §3 9항 "`insufficient_source`는 candidate 실패. metadata fallback·'README 참고' 문구 금지" | 품질 교정·상한·deadline 소진과 bounded 요청 실패는 **그 repo를 `held`로**. generic fallback 문구 금지는 유지 | 정직한 상태 표시로 대체 |
 | number/version/product의 cross-locale exact parity와 canonical number 정규식을 hard gate로 | **command(백틱)·URL(ASCII)만 hard.** number/version/product는 README 부분문자열 존재 검사만 hard, cross-locale 비교·hedge·marketing·길이는 **warning** | 잡은 것은 오탐 6건, 확정된 사실 오류 0건 |
 | `star-history.json`은 snapshot에 hash로 묶인 finalized 20파일 중 하나 | **snapshot contract에서 제외**(19파일). `deployment-manifest.json.files`에는 계속 기록되지만 DB `artifact_hashes`와 production-state 검증은 finalized 19만 대조 | 30분 갱신은 snapshot record 없이 배포돼야 한다 |
 | observed 점은 `YYYY-MM-DD` 하루 1점 | **`star-history.json` v2**: 타임스탬프 키 tick + 앵커 | 30분 해상도 |
@@ -70,9 +70,9 @@ concurrency: 두 workflow 모두 group `daily-refresh` (cancel-in-progress: fals
 |---|---|---|
 | `verified` | 이번 run에서 exact v3 bundle이 모든 hard gate 통과 | 5-locale 요약 |
 | `retained` | README identity(path·blob·content sha)가 같아 직전 검증본 재사용 | 직전 요약 |
-| `held` | 초기+3 교정 뒤에도 hard defect 잔존, 또는 `insufficient_source`, 또는 run 상한·deadline 소진으로 미시도 | 요약 필드 없음. 카드에 locale별 고정 문구 "요약 검증 중"(static i18n, LLM 아님) + tooltip에 `held_reason` |
+| `held` | 초기+3 교정 뒤에도 hard defect 잔존, 또는 run 상한·deadline 소진으로 미시도, 또는 bounded 요청 실패(timeout·output cap·transient provider·request failed) | 요약 필드 없음. 카드에 locale별 고정 문구 "요약 검증 중"(static i18n, LLM 아님) + tooltip에 `held_reason` |
 
-- `enrichment-index.json`에 repo마다 `status`, `held_reason`(`quality_defects`·`insufficient_source`·`budget_exhausted`·`deadline_exhausted`), `defect_codes[]`, `warnings[]`를 기록한다. 모델 출력 본문은 기록하지 않는다.
+- `enrichment-index.json`에 repo마다 `status`, `held_reason`(`quality_defects`·`budget_exhausted`·`deadline_exhausted`·`request_failed`. 구현 확정 2026-09-03: `insufficient_source`는 생산 지점이 없어 별도 사유로 두지 않는다), `defect_codes[]`, `warnings[]`를 기록한다. 모델 출력 본문은 기록하지 않는다.
 - candidate 성공 조건: active repo 전부가 세 상태 중 하나이고, `verified`+`retained` ≥ 1이며, `held` 비율 ≤ 50%(초과 시 run 실패 — provider/runner 장애로 해석).
 - README identity가 바뀐 repo가 held면 직전 요약을 stale로 유지하지 않고 `held`로 표시한다(정본 §3 13항 유지).
 - 검증 통과 bundle은 run 종료 시 일괄로 candidate cache(`data/repo-summaries.json`)에 기록한다(admission이 폐기 문제를 해결하므로 즉시 기록은 불필요). run 크래시 시 지속성은 §9 후속. candidate 실패 시 tracked tree 불변은 그대로.
