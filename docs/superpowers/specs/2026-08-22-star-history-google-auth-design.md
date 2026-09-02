@@ -244,3 +244,7 @@ App Check는 기능 배포와 Security Rules 검증이 끝난 뒤 reCAPTCHA Ente
 - OSS Insight의 성공률 또는 최신성이 지속적으로 기준을 충족하지 못하면 과거 추정 수집을 중단하고 자체 일별 관측만 유지한다.
 - 즐겨찾기를 넘어 사용자 데이터와 복잡한 관계형 질의가 실제 요구되면 Supabase 또는 별도 백엔드를 새 ADR로 재검토한다.
 - Firebase 비용·정책·가용성이 운영 기준을 벗어나면 사용자 데이터 내보내기 후 대체 저장소를 검토한다.
+
+## 12. 2026-09-02 뒤집는 조건 발동 기록
+
+§11 2항이 발동됐다. 2026-09-02 실측에서 active repository 45개 전부의 OSS Insight 응답에 `data_quality`(`status=degraded`, `severely_degraded_since=2026-05-01`)가 추가됐고, GitHub 현재 스타 대비 OSS 최신 추정은 중앙값 14.5배·최대 73.8배 과소였다. 사용자 결정으로 과거 추정 수집을 중단하고 자체 exact 일별 관측만 게시한다. `historical_star_estimates`의 기존 행은 append-only로 보존하며 새 snapshot부터 `ossinsight_api` 점은 tombstone, `legacy_star_history_cache` 점은 표시 선택에서 제외한다. 구현 계획: `docs/superpowers/plans/2026-09-02-discontinue-oss-star-estimates.md`.

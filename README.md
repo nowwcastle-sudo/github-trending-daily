@@ -86,7 +86,7 @@ The workflow is fail closed:
 - Missing or stale README provenance, source mismatch, incomplete chunks, invalid model output, cost-cap breaches, or translation residue stop publication.
 - The browser never receives a provider API key.
 
-Historical star charts can include GH Archive-derived estimates; current total stars come from GitHub. CSV uses a UTF-8 BOM for spreadsheet compatibility, quotes commas, quotes, and line breaks, and prefixes formula-like values with an apostrophe.
+Historical star charts show only exact daily GitHub star totals observed by this pipeline; GH Archive-derived estimates were discontinued on 2026-09-02 after the upstream source declared its event-derived counts severely degraded since 2026-05-01. CSV uses a UTF-8 BOM for spreadsheet compatibility, quotes commas, quotes, and line breaks, and prefixes formula-like values with an apostrophe.
 
 ## Local verification
 
