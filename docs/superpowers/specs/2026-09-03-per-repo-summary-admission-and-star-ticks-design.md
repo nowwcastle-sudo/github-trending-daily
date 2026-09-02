@@ -75,7 +75,7 @@ concurrency: 두 workflow 모두 group `daily-refresh` (cancel-in-progress: fals
 - `enrichment-index.json`에 repo마다 `status`, `held_reason`(`quality_defects`·`insufficient_source`·`budget_exhausted`·`deadline_exhausted`), `defect_codes[]`, `warnings[]`를 기록한다. 모델 출력 본문은 기록하지 않는다.
 - candidate 성공 조건: active repo 전부가 세 상태 중 하나이고, `verified`+`retained` ≥ 1이며, `held` 비율 ≤ 50%(초과 시 run 실패 — provider/runner 장애로 해석).
 - README identity가 바뀐 repo가 held면 직전 요약을 stale로 유지하지 않고 `held`로 표시한다(정본 §3 13항 유지).
-- 검증 통과 bundle은 완료 즉시 candidate cache(`data/repo-summaries.json`)에 기록한다(run 끝 일괄 → repo 단위). candidate 실패 시 tracked tree 불변은 그대로.
+- 검증 통과 bundle은 run 종료 시 일괄로 candidate cache(`data/repo-summaries.json`)에 기록한다(admission이 폐기 문제를 해결하므로 즉시 기록은 불필요). run 크래시 시 지속성은 §9 후속. candidate 실패 시 tracked tree 불변은 그대로.
 
 ### 4.2 validator 규칙 재분류
 
@@ -88,7 +88,7 @@ concurrency: 두 workflow 모두 group `daily-refresh` (cancel-in-progress: fals
 | number/version/product cross-locale 개수·필드 분포 비교 | **warning** | 오탐 4건, 사실 오류 0건 |
 | inference field hedge 존재 | **warning** | 초기 프롬프트·correction schema pattern은 유지 |
 | generic/placeholder(`TODO`·"README 참고") | **hard** | 정직성(사용자 결정) |
-| marketing superlative, 영어 환산 길이 180~280단어 | **warning** | 사실을 훼손하지 않음 |
+| marketing superlative, 영어 환산 길이 180~280단어, 필드 간 문장 반복 | **warning** | 사실을 훼손하지 않음 |
 
 warning은 `enrichment-index.json`과 bounded artifact에 code·locale·field만 기록하고 correction을 유발하지 않는다. hard defect는 기존 targeted correction 경로(초기+3) 그대로.
 
