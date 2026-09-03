@@ -130,6 +130,25 @@ test("sidebar mode separates passive hover from modal activation", async () => {
   assert.equal(UiMotion.sidebarMode({ hoverCapable: false, trigger: "pointer" }), "modal");
 });
 
+test("sidebar groups are a closed set and unknown values resolve to explore", async () => {
+  const UiMotion = await loadUiMotion();
+  assert.deepEqual([...UiMotion.SIDEBAR_GROUPS], ["account", "explore", "history", "export"]);
+  assert.equal(typeof UiMotion.resolveSidebarGroup, "function");
+  for (const group of UiMotion.SIDEBAR_GROUPS) assert.equal(UiMotion.resolveSidebarGroup(group), group);
+  for (const bad of [undefined, null, "", "Explore", "filters", 0, {}, ["explore"]]) {
+    assert.equal(UiMotion.resolveSidebarGroup(bad), "explore", `${JSON.stringify(bad)} must fall back to explore`);
+  }
+  // loadUiMotion() runs the module in its own vm context (a separate JS realm), so a thrown
+  // TypeError there is not `instanceof` this file's TypeError even though the name matches -
+  // match by message instead, mirroring the extensible-object pattern used elsewhere in this suite.
+  assert.throws(() => { UiMotion.SIDEBAR_GROUPS.push("extra"); }, /extensible/i);
+});
+
+test("hover close grace is a single exported 500 ms constant", async () => {
+  const UiMotion = await loadUiMotion();
+  assert.equal(UiMotion.SIDEBAR_HOVER_CLOSE_DELAY_MS, 500);
+});
+
 test("mobile gesture starts only in 24px edge and commits after 48px horizontal intent", async () => {
   const UiMotion = await loadUiMotion();
   assert.equal(UiMotion.startEdgeGesture({ x: 25, y: 100, sidebarOpen: false, withinSidebar: false }), null);
