@@ -319,3 +319,14 @@ test("the Claude usage receipt carries the held count and the enrich job fails w
   assert.equal((workflow.match(/!Number\.isSafeInteger\(value\.held\)\|\|value\.held<0\|\|value\.held>value\.pending/g) ?? []).length, 2);
   assert.match(workflow, /const usage=value\?\.usage;[^\n]*enrichment-usage\.json"\)\n\s+if \(\$LASTEXITCODE -ne 0\) \{ throw "Claude usage receipt is invalid" \}/);
 });
+
+test("the deploy and recovery jobs serialize on the Pages concurrency group like the tick and redeploy workflows", async () => {
+  const workflow = await workflowText();
+  for (const job of ["  deploy:", "  recovery:"]) {
+    const start = workflow.indexOf(job + "\n");
+    assert.ok(start >= 0, job);
+    const body = workflow.slice(start, workflow.indexOf("\n  ", start + job.length + 1) + 1);
+    const jobEnd = workflow.indexOf("\n\n", start);
+    assert.match(workflow.slice(start, jobEnd), /\n    concurrency:\n      group: pages\n      cancel-in-progress: false\n/);
+  }
+});
