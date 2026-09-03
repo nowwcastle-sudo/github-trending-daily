@@ -85,10 +85,17 @@ test("tracked production migration gate distinguishes the exact legacy RED from 
     validReadmeProvenance: observed.repository,
     trackedTranslations: 0,
   });
-  assert.deepEqual(Object.keys(sourceRegistry.sources), repositories.map(repository => repository.slug));
+  const heldRepositories = repositories.filter(repository => repository.summary_status === "held");
+  const admittedRepositories = repositories.filter(repository => repository.summary_status !== "held");
+  assert.deepEqual(Object.keys(sourceRegistry.sources), admittedRepositories.map(repository => repository.slug));
+  for (const repository of heldRepositories) {
+    assert.equal(repository.summary, null, `${repository.slug} held must carry no summary`);
+    assert.equal(repository.detail, null, `${repository.slug} held must carry no detail`);
+    assert.equal(sourceRegistry.sources[repository.slug.toLowerCase()], undefined, `${repository.slug} held must have no source entry`);
+  }
   const sourcesByIdentity = new Map(Object.entries(sourceRegistry.sources).map(([slug, source]) => [slug.toLowerCase(), source]));
-  assert.equal(sourcesByIdentity.size, repositories.length, "v3 source identities must be case-insensitively unique");
-  for (const repository of repositories) {
+  assert.equal(sourcesByIdentity.size, admittedRepositories.length, "v3 source identities must be case-insensitively unique");
+  for (const repository of admittedRepositories) {
     assert.ok(exactKeys(repository.summaries, locales), `${repository.slug}: five-locale summary bundle missing`);
     assert.ok(locales.every(locale => validDetailedSummary(repository.summaries[locale])), `${repository.slug}: invalid detailed summary`);
     assert.deepEqual(repository.summary, repository.summaries.en, `${repository.slug}: English default mismatch`);

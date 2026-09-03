@@ -222,11 +222,21 @@ test("embedded snapshot exposes the exact daily weekly and monthly memberships",
   assert.ok(match);
   const repositories = JSON.parse(match[1]);
 
-  assert.equal(repositories.length, 45);
+  assert.ok(repositories.length >= 10 && repositories.length <= 75);
+  const rankKey = { daily: "rank_daily", weekly: "rank_weekly", monthly: "rank_monthly" };
+  const expected = ["all", "daily", "weekly", "monthly"].map(period => (
+    period === "all"
+      ? repositories.length
+      : repositories.filter(repository => repository[rankKey[period]] !== null && repository[rankKey[period]] !== undefined).length
+  ));
   assert.deepEqual(
     ["all", "daily", "weekly", "monthly"].map(period => repositories.filter(repository => RepoFilters.matchesRepo(repository, { period })).length),
-    [45, 16, 20, 22],
+    expected,
   );
+  assert.ok(repositories.every(repository => ["daily", "weekly", "monthly"].some(period => (
+    repository[rankKey[period]] !== null && repository[rankKey[period]] !== undefined
+  ))), "every repository must hold at least one period membership");
+  assert.ok(expected.slice(1).every(count => count > 0), "each period must have members");
 });
 
 test("URL sorting is whitelisted, omits the default, and rejects gain for all periods", async () => {

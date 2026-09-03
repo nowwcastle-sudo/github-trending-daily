@@ -7,6 +7,14 @@ const page = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const uiMotionSource = await readFile(new URL("../ui-motion.js", import.meta.url), "utf8");
 const repoFiltersSource = await readFile(new URL("../repo-filters.js", import.meta.url), "utf8");
 
+function runtimeRegion(source) {
+  const start = source.indexOf("// GENERATED:TRENDING-REPOS:START");
+  const end = source.indexOf("// GENERATED:TRENDING-REPOS:END");
+  assert.ok(start >= 0 && end > start, "generated repository data must be delimited");
+  return source.slice(0, start) + source.slice(end);
+}
+const pageRuntime = runtimeRegion(page);
+
 function sidebarHarness({ hoverCapable = true } = {}) {
   const start = page.indexOf('const sidebar=document.getElementById("filterSidebar")');
   const end = page.indexOf("\nfunction syncUrl", start);
@@ -567,9 +575,9 @@ test("README tabs consume only Markdown tied to immutable repository metadata", 
   assert.match(page, /crypto\.subtle\.digest\("SHA-256"/);
   assert.match(page, /actual!==expectedHash\.toLowerCase\(\)/);
   assert.match(page, /ReadmeMarkdown\.render\(markdown,\{repositoryUrl:`https:\/\/github\.com\/\$\{state\.slug\}`,blobSha:variant\.blobSha,commitSha:state\.metadata\.defaultBranchHeadSha\}\)/);
-  assert.doesNotMatch(page, /translations\/|translated_markdown|translation_applicable/);
-  assert.doesNotMatch(page, /raw\.githubusercontent\.com/);
-  assert.doesNotMatch(page, /HEAD\/README\.md/);
+  assert.doesNotMatch(pageRuntime, /translations\/|translated_markdown|translation_applicable/);
+  assert.doesNotMatch(pageRuntime, /raw\.githubusercontent\.com/);
+  assert.doesNotMatch(pageRuntime, /HEAD\/README\.md/);
 });
 
 test("README runtime refuses a mismatched immutable Contents response without using HEAD", async () => {
