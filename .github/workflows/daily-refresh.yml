@@ -561,6 +561,9 @@ jobs:
     needs: publish
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     permissions:
       pages: write
       id-token: write
@@ -604,6 +607,9 @@ jobs:
     needs: [prepare, publish, deploy, verify]
     if: ${{ always() && needs.verify.result == 'failure' && needs.deploy.result == 'success' }}
     runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     timeout-minutes: 120
     permissions:
       contents: read

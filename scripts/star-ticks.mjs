@@ -24,7 +24,11 @@ const ANCHOR_SOURCES = new Set(["github_created_at", "github_trending_gain_daily
 
 export const DAILY_LEDGER_HEADER = '{"version":1}';
 export const DEFAULT_WATCH_CAP = 500;
-export const RATE_LIMIT_RESERVE = 500;
+// Reserve kept on the shared GITHUB_TOKEN bucket (1,000 requests/hour) before a run
+// starts: Tier A needs at most 75 repository calls plus the gate, Tier B adds up to
+// 425 archive repositories. A single reserve of 500 would have skipped every Tier A
+// tick in the hour after a refresh (2026-09-03 review L3).
+export const RATE_LIMIT_RESERVE = Object.freeze({ a: 100, ab: 550 });
 export const TICK_WINDOW_DAYS = 14;
 export const GAIN_WINDOW_DAYS = 7;
 export const MAX_OBSERVED_POINTS = 2000;
@@ -312,7 +316,8 @@ export async function collectStarTicks({
   if (rateResponse?.status !== 200) throw new Error("rate limit request failed");
   const remaining = (await rateResponse.json())?.resources?.core?.remaining;
   if (!Number.isSafeInteger(remaining)) throw new Error("rate limit payload is invalid");
-  if (remaining < RATE_LIMIT_RESERVE) return { skipped: true, remaining };
+  const reserve = RATE_LIMIT_RESERVE[tier];
+  if (remaining < reserve) return { skipped: true, remaining, reserve };
 
   const dailyBytes = await readLedgerBytes(dailyPath);
   const dailyRows = parseDailyLedger(dailyBytes.toString("utf8"));

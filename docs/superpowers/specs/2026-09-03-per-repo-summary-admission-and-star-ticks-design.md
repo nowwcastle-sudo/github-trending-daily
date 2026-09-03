@@ -61,7 +61,7 @@ W1  daily-refresh.yml (cron 7 */2 · dispatch)              W2  star-ticks.yml (
    ├ finalize 19 files (star-history.json 제외)
    ├ validate coverage: verified|retained|held 전수
    └ commit → deploy → verify
-concurrency: 두 workflow 모두 group `daily-refresh` (cancel-in-progress: false). W2 tick job은 job-level로 group `pages`도 잡는다(redeploy workflow와 배타). W1의 deploy job은 2026-09-03 현재 `pages` group을 잡지 않는다(구현 불일치 기록, 후속)
+concurrency: 두 workflow 모두 group `daily-refresh` (cancel-in-progress: false). W2 tick job은 job-level로 group `pages`도 잡는다(redeploy workflow와 배타). W1의 deploy·recovery job도 job-level로 group `pages`를 잡는다(2026-09-03 후속 반영)
 ```
 
 ### 4.1 W1 — repository 단위 admission
@@ -94,7 +94,7 @@ warning은 `enrichment-index.json`과 bounded artifact에 code·locale·field만
 
 ### 4.3 W2 — 스타 tick (2계층)
 
-- 트리거: `schedule: "5,35 * * * *"`, `workflow_dispatch`. 저장소 변수 `GH_TRENDING_TICKS == 'enabled'`일 때만 schedule 실행. 시작 시 `GET /rate_limit`(한도 미차감)으로 `remaining < 500`이면 그 run은 관측 없이 종료(skipped 보고).
+- 트리거: `schedule: "5,35 * * * *"`, `workflow_dispatch`. 저장소 변수 `GH_TRENDING_TICKS == 'enabled'`일 때만 schedule 실행. 시작 시 `GET /rate_limit`(한도 미차감)으로 remaining이 tier reserve 미만이면 그 run은 관측 없이 종료(skipped 보고). reserve는 Tier A run 100, Tier A+B run 550(2026-09-03 후속: 단일 500은 W1 직후 1시간의 Tier A tick을 매번 건너뛰게 했다).
 - **Tier A** = main `data/latest.json`의 게시 집합(45~55, 최대 75). 매 run(30분). `GET /repos/{owner}/{repo}` 1회/repo.
 - **Tier B** = 한 번이라도 게시된 slug(`data/star-daily.jsonl`의 전체 slug 합집합) − Tier A. **홀수 UTC시 :35 run에서만**(판정 `resolveTier`: UTC 분 ≥ 20이면 :35 슬롯으로 보아 스케줄러 지연 15분까지 허용), 상한 `500 − |A|`. W1은 짝수시 :07 시작 후 15분 창에 REST 600~900회를 쓰므로(`EVENT_LIMITS.eventWindowMs`), 롤링 60분 한도 창과 겹치지 않는 시각을 택한다.
 - 수집: 404/451(이전·삭제·비공개)은 그 repo tick을 `unavailable`로 기록하고 계속. 5xx·429는 2s/8s 2회 재시도 후 그 repo만 건너뛴다. 순차 호출(2차 한도 900/분·동시 100 이내).
@@ -208,7 +208,7 @@ repo 항목에 `status: "verified"|"retained"|"held"`, `held_reason`, `defect_co
 - `held` 비율이 3 run 연속 20%를 넘으면 warning 규칙이 아니라 프롬프트/모델 쪽을 재검토한다.
 - warning으로 내린 규칙에서 **사실 오류가 실제로 게시된 사례**가 확인되면 그 규칙 하나만 hard로 되돌린다.
 - GitHub가 stargazer 타임스탬프 API를 다시 열면 앵커를 실제 타임라인으로 교체한다.
-- W2가 `rate_limit` 종료를 하루 3회 이상 반복하면 Tier B 시각·상한을 조정한다.
+- W2가 `rate_limit` 종료를 하루 3회 이상 반복하면(W1 schedule 재개 뒤 짝수시 :35 Tier A run은 W1 예산 소진으로 skip될 수 있어 예외) Tier B 시각·상한·reserve를 조정한다.
 - 첫 W1 성공 run의 `x-ratelimit-used` 실측이 900을 넘으면 W1 자체의 REST 예산을 먼저 줄인다(75 repo 상한에서 1,000 초과 가능 — 기존 리스크).
 
 ## 11. 롤아웃 순서
