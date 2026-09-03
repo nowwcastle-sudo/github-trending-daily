@@ -765,7 +765,7 @@ def derive_candidate_artifacts(
     for suffix in ("-journal", "-wal", "-shm"):
         if Path(f"{database}{suffix}").exists():
             raise ValueError("candidate database has a pending SQLite sidecar")
-    with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)) as connection:
+    with closing(sqlite3.connect(database.resolve().as_uri() + "?mode=ro", uri=True)) as connection:
         connection.execute("PRAGMA foreign_keys=ON")
         validate_schema(connection)
         snapshot_seq = _snapshot_sequence(connection, snapshot_id, require_latest=True)
@@ -843,7 +843,7 @@ def verify_pages_artifacts(database_path: str | Path, snapshot_id: str, candidat
     for suffix in ("-journal", "-wal", "-shm"):
         if Path(f"{database}{suffix}").exists():
             raise ValueError("candidate database has a pending SQLite sidecar")
-    with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)) as connection:
+    with closing(sqlite3.connect(database.resolve().as_uri() + "?mode=ro", uri=True)) as connection:
         connection.execute("PRAGMA foreign_keys=ON")
         validate_schema(connection)
         if connection.execute("PRAGMA foreign_key_check").fetchone() is not None or connection.execute("PRAGMA integrity_check").fetchone() != ("ok",):
@@ -881,7 +881,7 @@ def read_finalized_artifact_contract(database_path: str | Path, snapshot_id: str
     for suffix in ("-journal", "-wal", "-shm"):
         if Path(f"{database}{suffix}").exists():
             raise ValueError("repository observation database has a pending SQLite sidecar")
-    with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)) as connection:
+    with closing(sqlite3.connect(database.resolve().as_uri() + "?mode=ro", uri=True)) as connection:
         connection.execute("PRAGMA foreign_keys=ON")
         validate_schema(connection)
         if connection.execute("PRAGMA foreign_key_check").fetchone() is not None or connection.execute("PRAGMA integrity_check").fetchone() != ("ok",):
@@ -916,7 +916,7 @@ def _finalize_cli(args: argparse.Namespace) -> dict[str, Any]:
     if not isinstance(envelope, dict) or set(envelope) != {"version", "snapshotId", "insights"} or envelope["version"] != 1 or envelope["snapshotId"] != args.snapshot_id:
         raise ValueError("insight derivation envelope is invalid")
     database = Path(args.database)
-    with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)) as connection:
+    with closing(sqlite3.connect(database.resolve().as_uri() + "?mode=ro", uri=True)) as connection:
         validate_schema(connection)
         seq = _snapshot_sequence(connection, args.snapshot_id, require_latest=True)
         paths = _expected_artifact_paths(connection, seq)

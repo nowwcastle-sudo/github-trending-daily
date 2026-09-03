@@ -788,6 +788,17 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
             connection.commit()
         self.assertEqual([row["artifact_path"] for row in verify_pages_artifacts(database, snapshot_id, candidate_root)["artifacts"]], sorted(PAGES_BASE_ARTIFACT_PATHS))
         self.assertEqual([row["artifact_path"] for row in read_finalized_artifact_contract(database, snapshot_id)["artifacts"]], sorted(PAGES_BASE_ARTIFACT_PATHS))
+        # The verify job and the redeploy path pass checkout-relative database paths.
+        previous_cwd = os.getcwd()
+        os.chdir(candidate_root.parent)
+        try:
+            relative_root = Path(candidate_root.name)
+            relative_database = relative_root / "data" / "repository-observations.sqlite"
+            self.assertEqual(len(read_finalized_artifact_contract(relative_database, snapshot_id)["artifacts"]), 19)
+            self.assertEqual(len(verify_pages_artifacts(relative_database, snapshot_id, relative_root)["artifacts"]), 19)
+            self.assertFalse(finalize_snapshot_derivatives(relative_database, snapshot_id, insights, hashes).changed)
+        finally:
+            os.chdir(previous_cwd)
         self.assertFalse(finalize_snapshot_derivatives(database, snapshot_id, insights, hashes).changed)
         with closing(sqlite3.connect(database)) as connection:
             self.assertEqual(connection.execute("SELECT COUNT(*) FROM artifact_hashes WHERE artifact_path='star-history.json'").fetchone(), (1,))
