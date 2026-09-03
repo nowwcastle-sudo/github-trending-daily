@@ -169,6 +169,8 @@ function setSidebarGroup(group) {
 - `aria-current="true"` marks which group the panel is showing. `aria-expanded` continues to convey open/closed on all five toggles. This keeps one state per attribute; the four buttons are disclosure buttons for one panel, not a tab set.
 - `sidebar.dataset.group` is **sticky across closes** — closing does not clear it, so reopening by edge gesture or by `#mobileNavToggle` returns to the last group.
 
+**Amendment (2026-09-04, Task 7, from the Task 4 review finding F3).** `setSidebarGroup` also relabels the dialog: it sets `sidebar.dataset.i18nAriaLabel` to `SIDEBAR_GROUP_ARIA_KEYS[next]` (`nav.ariaAccount` / `nav.ariaExplore` / `nav.ariaHistory` / `nav.ariaExport`) and `aria-label` to `tr(...)` of that key, so `#filterSidebar` no longer reads "Explore sidebar" for all four groups and a locale switch re-applies the label through the existing `data-i18n-aria-label` pass. The checked-in markup starts at `aria-label="Explore panel" data-i18n-aria-label="nav.ariaExplore"`.
+
 ### 4.5 `openSidebar` and trigger tracking
 
 ```js
@@ -654,6 +656,8 @@ document.addEventListener("keydown", event => {
 - **README modal wins.** While `#readmePanel` is open, group shortcuts are ignored so the panel keeps ownership of the viewport; its own `Escape` handler (index.html:1258) still closes it.
 - **Trigger.** On touch/narrow viewports the rail is `display:none`, so focusing a rail button on close would be a no-op; the mobile toggle is used instead. This is the same media query (`sidebarMobileAccessMedia`) that already governs `#mobileNavToggle` access.
 - Shortcut hints appear in each rail button's `title` via `data-i18n-title` — "Explore (e)", "Login (a)", "History (h)", "Export (x)" — and `site-i18n.js` `apply()` already handles `data-i18n-title` (site-i18n.js:279-282).
+
+**Amendment (2026-09-04, Task 7, from the Task 6 review).** The `#readmePanel` open-check moves out of the listener body and into `shortcutSuppressed`, so it runs *before* the `"/"` branch instead of after it; as written above `/` would `preventDefault()` and focus `#q` while `.wrap` is `inert`, swallowing the keystroke. `shortcutSuppressed` therefore reads: Alt/Ctrl/Meta, then the README-modal open-check, then the `input`/`select`/`textarea`/`contenteditable` target test.
 
 ### 9.4 Item 10 — CI workflow
 

@@ -467,7 +467,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 
 </head>
 <body>
-<div class="filter-sidebar" id="filterSidebar" role="dialog" aria-label="Explore sidebar" data-i18n-aria-label="nav.open" aria-hidden="true" inert data-group="explore">
+<div class="filter-sidebar" id="filterSidebar" role="dialog" aria-label="Explore panel" data-i18n-aria-label="nav.ariaExplore" aria-hidden="true" inert data-group="explore">
   <div class="sidebar-head">
     <h2 data-i18n="sidebar.title">Dashboard menu</h2>
     <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close Explore sidebar" data-i18n-aria-label="sidebar.close">
@@ -755,9 +755,12 @@ function trapFocus(container,event){
 function setSidebarExpandedState(expanded){
   sidebarToggles.forEach(toggle=>toggle.setAttribute("aria-expanded",String(expanded)));
 }
+const SIDEBAR_GROUP_ARIA_KEYS={account:"nav.ariaAccount",explore:"nav.ariaExplore",history:"nav.ariaHistory",export:"nav.ariaExport"};
 function setSidebarGroup(group){
   const next=UiMotion.resolveSidebarGroup(group);
   sidebar.dataset.group=next;
+  sidebar.dataset.i18nAriaLabel=SIDEBAR_GROUP_ARIA_KEYS[next];
+  sidebar.setAttribute("aria-label",tr(SIDEBAR_GROUP_ARIA_KEYS[next]));
   sidebarGroups.forEach(section=>{section.hidden=section.dataset.group!==next});
   railToggles.forEach(toggle=>{
     if(toggle.dataset.group===next)toggle.setAttribute("aria-current","true");
@@ -872,6 +875,23 @@ function updateMobileNavAccess(){
 }
 updateMobileNavAccess();
 sidebarMobileAccessMedia.addEventListener?.("change",updateMobileNavAccess);
+const SIDEBAR_SHORTCUT_GROUPS={e:"explore",a:"account",h:"history",x:"export"};
+function shortcutSuppressed(event){
+  if(event.altKey||event.ctrlKey||event.metaKey)return true;
+  if(document.getElementById("readmePanel").classList.contains("open"))return true;
+  const target=event.target;
+  const tag=String(target?.tagName||"").toLowerCase();
+  return tag==="input"||tag==="select"||tag==="textarea"||target?.isContentEditable===true;
+}
+document.addEventListener("keydown",event=>{
+  if(shortcutSuppressed(event))return;
+  if(event.key==="/"){event.preventDefault();document.getElementById("q").focus();return}
+  const group=SIDEBAR_SHORTCUT_GROUPS[event.key];
+  if(!group)return;
+  event.preventDefault();
+  const trigger=sidebarMobileAccessMedia.matches?mobileNavToggle:railToggles.find(toggle=>toggle.dataset.group===group);
+  openSidebar("modal",trigger,group);
+});
 const sidebarGestureInteractive='button,a,input,select,textarea,[role="button"]';
 let sidebarGesture=null,sidebarGesturePointerId=null,sidebarGestureTarget=null,sidebarGestureClaimed=false,sidebarGestureClickGuard=null;
 function armSidebarGestureClickGuard(pointerId,target){

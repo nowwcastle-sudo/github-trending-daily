@@ -6,6 +6,17 @@ import vm from "node:vm";
 const page = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const uiMotionSource = await readFile(new URL("../ui-motion.js", import.meta.url), "utf8");
 const repoFiltersSource = await readFile(new URL("../repo-filters.js", import.meta.url), "utf8");
+const siteI18nSource = await readFile(new URL("../site-i18n.js", import.meta.url), "utf8");
+
+// setSidebarGroup translates the dialog's per-group aria-label through tr(), so the harness loads
+// the real message catalogue once and asserts the translated string rather than the message key.
+function loadSiteMessages() {
+  const context = { globalThis: {} };
+  vm.createContext(context);
+  vm.runInContext(siteI18nSource, context, { filename: "site-i18n-fixture.js" });
+  return context.globalThis.SiteI18n.MESSAGES;
+}
+const siteMessages = loadSiteMessages();
 
 function runtimeRegion(source) {
   const start = source.indexOf("// GENERATED:TRENDING-REPOS:START");
@@ -156,6 +167,7 @@ function sidebarHarness({ hoverCapable = true } = {}) {
     ["sidebarGroupSeg", new FakeHTMLElement("sidebarGroupSeg")],
     ["readmePanel", new FakeHTMLElement("readmePanel")],
     ["tipLayer", new FakeHTMLElement("tipLayer")],
+    ["q", new FakeHTMLElement("q")],
   ]);
   for (const [id, group] of [["navAccountToggle", "account"], ["navToggle", "explore"], ["navHistoryToggle", "history"], ["navExportToggle", "export"]]) {
     const toggle = nodes.get(id);
@@ -232,7 +244,10 @@ function sidebarHarness({ hoverCapable = true } = {}) {
     window: windowRef,
     HTMLElement: FakeHTMLElement,
     performance: { now: () => now },
-    matchMedia(query) { return { matches: query.includes("pointer:coarse") ? !hoverCapable : hoverCapable }; },
+    matchMedia(query) {
+      if (query.includes("max-width:720px")) return { matches: !hoverCapable, addEventListener() {} };
+      return { matches: query.includes("pointer:coarse") ? !hoverCapable : hoverCapable, addEventListener() {} };
+    },
     closeReadme() { calls.closeReadme += 1; nodes.get("readmePanel").classList.remove("open"); },
     hideTip() {
       calls.hideTip += 1;
@@ -243,7 +258,7 @@ function sidebarHarness({ hoverCapable = true } = {}) {
     },
     setTimeout: setTimer,
     clearTimeout(id) { timers.delete(id); },
-    tr(key) { return key; },
+    tr(key) { return siteMessages.en[key] ?? key; },
   };
   context.globalThis = context;
   context.__repos = [{ summary: { goal: "goal" } }];
@@ -272,6 +287,7 @@ function sidebarHarness({ hoverCapable = true } = {}) {
     sections: sidebarSections,
     sectionsFor(group) { return sidebarSections.filter(section => !section.hidden).map(section => section.id); },
     close: nodes.get("sidebarClose"),
+    search: nodes.get("q"),
     readme: nodes.get("readmePanel"),
     tipLayer: nodes.get("tipLayer"),
     pageMain,
@@ -1413,6 +1429,109 @@ test("F1: hiddenRepoSection stays hidden outside the History group after render(
   assert.equal(harness.hiddenRepoSection.hidden, false, "switching to History must reveal the populated section");
 });
 
+test("slash focuses search and the four letters open their group modally", () => {
+  const harness = sidebarHarness();
+  harness.document.dispatch("keydown", { key: "/", target: harness.body });
+  assert.equal(harness.document.activeElement, harness.search);
+  assert.equal(harness.search.focusCount, 1);
+
+  for (const [key, group, index] of [["a", "account", 0], ["e", "explore", 1], ["h", "history", 2], ["x", "export", 3]]) {
+    const scoped = sidebarHarness();
+    scoped.document.dispatch("keydown", { key, target: scoped.body });
+    assert.equal(scoped.sidebar.dataset.openMode, "modal", `${key} must open the panel modally`);
+    assert.equal(scoped.sidebar.dataset.group, group);
+    scoped.document.dispatch("keydown", { key: "Escape" });
+    assert.equal(scoped.document.activeElement, scoped.railToggles[index], `${key} must restore focus to its own rail button`);
+  }
+});
+
+test("shortcuts are suppressed while typing, under modifiers, and while the README modal owns the page", () => {
+  const typing = sidebarHarness();
+  const input = typing.createTarget("q", { tagName: "INPUT" });
+  typing.document.dispatch("keydown", { key: "e", target: input });
+  assert.equal(typing.sidebar.dataset.openMode, undefined, "typing e in an input must not open the panel");
+  typing.document.dispatch("keydown", { key: "/", target: typing.createTarget("sortSelect", { tagName: "SELECT" }) });
+  assert.equal(typing.search.focusCount, 0, "slash inside a select must not steal focus");
+  typing.document.dispatch("keydown", { key: "e", target: typing.createTarget("note", { tagName: "TEXTAREA" }) });
+  assert.equal(typing.sidebar.dataset.openMode, undefined);
+  typing.document.dispatch("keydown", { key: "e", target: typing.createTarget("editor", { tagName: "DIV", isContentEditable: true }) });
+  assert.equal(typing.sidebar.dataset.openMode, undefined);
+
+  for (const modifier of ["ctrlKey", "metaKey", "altKey"]) {
+    const scoped = sidebarHarness();
+    scoped.document.dispatch("keydown", { key: "h", target: scoped.body, [modifier]: true });
+    assert.equal(scoped.sidebar.dataset.openMode, undefined, `${modifier}+h must be left to the browser`);
+  }
+
+  const readme = sidebarHarness();
+  readme.readme.classList.add("open");
+  readme.document.dispatch("keydown", { key: "x", target: readme.body });
+  assert.equal(readme.sidebar.dataset.openMode, undefined, "the README modal keeps the viewport");
+  // Spec 9.3 amendment: the README check runs before the "/" branch, so slash is not swallowed
+  // by a focus() call into the inert .wrap behind the modal.
+  readme.document.dispatch("keydown", { key: "/", target: readme.body });
+  assert.equal(readme.search.focusCount, 0, "slash must not focus the inert search field behind the README modal");
+
+  const unrelated = sidebarHarness();
+  unrelated.document.dispatch("keydown", { key: "z", target: unrelated.body });
+  assert.equal(unrelated.sidebar.dataset.openMode, undefined);
+  assert.equal(unrelated.search.focusCount, 0);
+});
+
+test("a filter-bar button holding focus does not suppress the group shortcuts", () => {
+  // Task 6 moved #copyLinkBtn and its neighbours into the main tab order. shortcutSuppressed
+  // deliberately does not cover `button`, so this is the intended behaviour, pinned on purpose.
+  const harness = sidebarHarness();
+  const copyLink = harness.createTarget("copyLinkBtn", { tagName: "BUTTON" });
+  harness.document.dispatch("keydown", { key: "x", target: copyLink });
+  assert.equal(harness.sidebar.dataset.openMode, "modal", "x on a filter-bar button must open the Export group");
+  assert.equal(harness.sidebar.dataset.group, "export");
+});
+
+test("touch viewports route shortcut focus restore to the mobile trigger", () => {
+  const harness = sidebarHarness({ hoverCapable: false });
+  harness.document.dispatch("keydown", { key: "h", target: harness.body });
+  assert.equal(harness.sidebar.dataset.openMode, "modal");
+  assert.equal(harness.sidebar.dataset.group, "history");
+  harness.document.dispatch("keydown", { key: "Escape" });
+  assert.equal(harness.document.activeElement, harness.mobileToggle);
+});
+
+test("each rail button advertises its shortcut in the title", () => {
+  for (const [id, key, letter] of [
+    ["navAccountToggle", "nav.titleAccount", "a"],
+    ["navToggle", "nav.titleExplore", "e"],
+    ["navHistoryToggle", "nav.titleHistory", "h"],
+    ["navExportToggle", "nav.titleExport", "x"],
+  ]) {
+    assert.match(page, new RegExp(`id="${id}"[^>]*data-i18n-title="${key.replace(".", "\\.")}"`));
+    const tag = page.match(new RegExp(`<button[^>]*id="${id}"[^>]*>`))?.[0] ?? "";
+    const title = tag.match(/title="([^"]*)"/)?.[1] ?? "";
+    assert.ok(title.endsWith(`(${letter})`), `${id} must advertise its ${letter} shortcut in the title`);
+    for (const locale of Object.keys(siteMessages)) {
+      assert.ok(siteMessages[locale][key].endsWith(`(${letter})`), `${locale} ${key} must keep the (${letter}) hint`);
+    }
+  }
+  assert.match(page, /const SIDEBAR_SHORTCUT_GROUPS=\{e:"explore",a:"account",h:"history",x:"export"\}/);
+});
+
+test("the panel dialog is labelled for the group it is currently showing", () => {
+  const sidebarTag = page.match(/<div[^>]*id="filterSidebar"[^>]*>/)?.[0] ?? "";
+  assert.match(sidebarTag, /aria-label="Explore panel"/);
+  assert.match(sidebarTag, /data-i18n-aria-label="nav\.ariaExplore"/);
+
+  const harness = sidebarHarness();
+  harness.railToggles[2].dispatch("pointerenter");
+  assert.equal(harness.sidebar.dataset.group, "history");
+  assert.equal(harness.sidebar.dataset.i18nAriaLabel, "nav.ariaHistory", "the locale hook must follow the group");
+  assert.equal(harness.sidebar.getAttribute("aria-label"), siteMessages.en["nav.ariaHistory"]);
+
+  harness.railToggles[1].dispatch("pointerenter");
+  assert.equal(harness.sidebar.dataset.group, "explore");
+  assert.equal(harness.sidebar.dataset.i18nAriaLabel, "nav.ariaExplore");
+  assert.equal(harness.sidebar.getAttribute("aria-label"), siteMessages.en["nav.ariaExplore"]);
+});
+
 test("coarse pointers hide the rail and keep the mobile trigger visually hidden until keyboard focus", () => {
   const coarse = page.match(/@media\(hover:none\),\(pointer:coarse\)\{[\s\S]*?\n\}/)?.[0] ?? "";
   assert.match(coarse, /body\{touch-action:pan-y pinch-zoom\}/);
@@ -1698,7 +1817,7 @@ test("responsive sidebar owns account, favorites, and discovery filters", () => 
   assert.match(page, /id="navToggle"[^>]*aria-controls="filterSidebar"[^>]*aria-expanded="false"/);
   const sidebarTag = page.match(/<div[^>]*id="filterSidebar"[^>]*>/)?.[0] ?? "";
   assert.match(sidebarTag, /role="dialog"/);
-  assert.match(sidebarTag, /aria-label="Explore sidebar"/);
+  assert.match(sidebarTag, /aria-label="Explore panel"/);
   assert.match(sidebarTag, /aria-hidden="true" inert/);
   assert.doesNotMatch(sidebarTag, /aria-modal=/);
   const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<nav class="nav-rail"/)?.[0] ?? "";
