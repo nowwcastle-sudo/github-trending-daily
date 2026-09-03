@@ -272,8 +272,9 @@ test("collect skips the run when the rate limit remaining is below the tier rese
   const skippedB = await collectStarTicks({ tier: "ab", published: ["Owner/Repo"], ticksDir: fixture.ticksDir, dailyPath: fixture.dailyPath, fetchImpl: tierB.fetchImpl, token: "t", now: () => Date.parse("2026-09-03T01:35:00Z"), runId: "7b", sleep: async () => {} });
   assert.equal(skippedB.skipped, true);
   assert.equal(skippedB.reserve, 550);
+  const separate = await ticksFixture(t);
   const tierAOk = githubStub({ remaining: 549, repos: { "Owner/Repo": ok(1, "Owner/Repo") } });
-  const ran = await collectStarTicks({ tier: "a", published: ["Owner/Repo"], ticksDir: fixture.ticksDir, dailyPath: fixture.dailyPath, fetchImpl: tierAOk.fetchImpl, token: "t", now: () => Date.parse("2026-09-03T00:35:00Z"), runId: "7c", sleep: async () => {} });
+  const ran = await collectStarTicks({ tier: "a", published: ["Owner/Repo"], ticksDir: separate.ticksDir, dailyPath: separate.dailyPath, fetchImpl: tierAOk.fetchImpl, token: "t", now: () => Date.parse("2026-09-03T00:35:00Z"), runId: "7c", sleep: async () => {} });
   assert.equal(ran.skipped, false);
   assert.equal(await readFile(fixture.dailyPath, "utf8"), '{"version":1}\n');
   await assert.rejects(readFile(join(fixture.ticksDir, "2026-09.jsonl")), error => error.code === "ENOENT");
