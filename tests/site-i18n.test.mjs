@@ -28,6 +28,28 @@ test("site shell supports the exact five approved locales with complete message 
   }
 });
 
+test("every rail group, shortcut hint, and held-retry message exists in all five locales", () => {
+  const i18n = load();
+  const required = [
+    "nav.account", "nav.history", "nav.export",
+    "nav.ariaAccount", "nav.ariaExplore", "nav.ariaHistory", "nav.ariaExport",
+    "nav.titleAccount", "nav.titleExplore", "nav.titleHistory", "nav.titleExport",
+    "nav.groups", "filter.copyLink", "tooltip.heldRetry",
+  ];
+  for (const locale of i18n.SUPPORTED_LOCALES) {
+    for (const key of required) {
+      const value = i18n.MESSAGES[locale][key];
+      assert.equal(typeof value, "string", `${locale} is missing ${key}`);
+      assert.ok(value.trim().length > 0, `${locale} ${key} must not be blank`);
+    }
+  }
+  for (const [key, hint] of [["nav.titleAccount", "(a)"], ["nav.titleExplore", "(e)"], ["nav.titleHistory", "(h)"], ["nav.titleExport", "(x)"]]) {
+    for (const locale of i18n.SUPPORTED_LOCALES) {
+      assert.ok(i18n.MESSAGES[locale][key].endsWith(hint), `${locale} ${key} must end with the ${hint} shortcut hint`);
+    }
+  }
+});
+
 test("locale resolution prefers a saved choice, then browser language, then English", () => {
   const i18n = load();
   const storage = value => ({ getItem() { return value; } });
