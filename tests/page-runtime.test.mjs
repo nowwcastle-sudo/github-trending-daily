@@ -587,6 +587,225 @@ function scrollTopHarness({ reducedMotion = false } = {}) {
   };
 }
 
+function filterUiHarness() {
+  // updateFilterUi + applyFilterState in isolation, per the Task 6 fix-round review's slice
+  // boundaries: "function updateFilterUi(){" through the line before "const seg=...".
+  const start = page.indexOf("function updateFilterUi(){");
+  const end = page.indexOf('\nconst seg=document.getElementById("periodSeg")', start);
+  assert.ok(start >= 0 && end > start, "filter-ui runtime fixture must be isolated");
+
+  class FakeElement {
+    constructor(id) {
+      this.id = id;
+      this.attributes = new Map();
+      this.dataset = {};
+      this.value = "";
+      this.textContent = "";
+    }
+    setAttribute(name, value) { this.attributes.set(name, String(value)); }
+    getAttribute(name) { return this.attributes.get(name) ?? null; }
+  }
+
+  const nodes = new Map([
+    ["q", new FakeElement("q")],
+    ["excludeAi", new FakeElement("excludeAi")],
+    ["newOnly", new FakeElement("newOnly")],
+    ["allReposBtn", new FakeElement("allReposBtn")],
+    ["favOnlyBtn", new FakeElement("favOnlyBtn")],
+    ["filterCount", new FakeElement("filterCount")],
+  ]);
+
+  const gainOption = { disabled: false };
+  const langSel = Object.assign(new FakeElement("lang"), {
+    value: "",
+  });
+  const sortSel = Object.assign(new FakeElement("sort"), {
+    value: "",
+    querySelector(selector) { return selector === '[value="gain"]' ? gainOption : null; },
+  });
+  const periodButtons = ["all", "daily", "weekly", "monthly"].map(period => {
+    const button = new FakeElement(`period-${period}`);
+    button.dataset.period = period;
+    return button;
+  });
+  const seg = { querySelectorAll(selector) { return selector === "button" ? periodButtons : []; } };
+
+  const calls = { moveThumb: 0, render: 0 };
+  const documentRef = {
+    getElementById(id) { return nodes.get(id); },
+    querySelectorAll() { return []; },
+  };
+
+  const context = {
+    document: documentRef,
+    langSel,
+    sortSel,
+    seg,
+    activeDiscoveryCount() { return 0; },
+    moveThumb() { calls.moveThumb += 1; },
+    render() { calls.render += 1; },
+    URLSearchParams,
+  };
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(repoFiltersSource, context, { filename: "filter-ui-repo-filters-fixture.js" });
+  vm.runInContext(`
+    let filterState=null, period=null, favOnly=null;
+    ${page.slice(start, end)}
+    globalThis.__updateFilterUi=updateFilterUi;
+    globalThis.__applyFilterState=applyFilterState;
+  `, context, { filename: "filter-ui-runtime-fixture.js" });
+
+  return {
+    nodes,
+    periodButtons,
+    calls,
+    applyFilterState(next) { context.__applyFilterState(next); },
+    parseState(search) { return context.RepoFilters.parseState(search, []); },
+  };
+}
+
+function filterControlsHarness() {
+  // updateFilterUi glued to the excludeAi/newOnly/clearFiltersBtn click handlers, per the
+  // review's second slice: 'document.getElementById("excludeAi").addEventListener("click"'
+  // through the line before 'document.getElementById("hiddenRepoList")'.
+  const uiStart = page.indexOf("function updateFilterUi(){");
+  const uiEnd = page.indexOf('\nconst seg=document.getElementById("periodSeg")', uiStart);
+  const handlersStart = page.indexOf('document.getElementById("excludeAi").addEventListener("click"');
+  const handlersEnd = page.indexOf('document.getElementById("hiddenRepoList")', handlersStart);
+  assert.ok(uiStart >= 0 && uiEnd > uiStart, "filter-ui runtime fixture must be isolated");
+  assert.ok(handlersStart >= 0 && handlersEnd > handlersStart, "quick-filter handler fixture must be isolated");
+
+  class FakeElement {
+    constructor(id) {
+      this.id = id;
+      this.attributes = new Map();
+      this.dataset = {};
+      this.value = "";
+      this.listeners = new Map();
+    }
+    setAttribute(name, value) { this.attributes.set(name, String(value)); }
+    getAttribute(name) { return this.attributes.get(name) ?? null; }
+    addEventListener(type, listener) {
+      if (!this.listeners.has(type)) this.listeners.set(type, []);
+      this.listeners.get(type).push(listener);
+    }
+    dispatch(type) {
+      for (const listener of this.listeners.get(type) || []) listener({ type, target: this });
+    }
+  }
+
+  const nodes = new Map([
+    ["q", new FakeElement("q")],
+    ["excludeAi", new FakeElement("excludeAi")],
+    ["newOnly", new FakeElement("newOnly")],
+    ["clearFiltersBtn", new FakeElement("clearFiltersBtn")],
+    ["allReposBtn", new FakeElement("allReposBtn")],
+    ["favOnlyBtn", new FakeElement("favOnlyBtn")],
+    ["filterCount", new FakeElement("filterCount")],
+  ]);
+
+  const gainOption = { disabled: false };
+  const langSel = Object.assign(new FakeElement("lang"), { value: "" });
+  const sortSel = Object.assign(new FakeElement("sort"), {
+    value: "",
+    querySelector(selector) { return selector === '[value="gain"]' ? gainOption : null; },
+  });
+  const periodButtons = ["all", "daily", "weekly", "monthly"].map(period => {
+    const button = new FakeElement(`period-${period}`);
+    button.dataset.period = period;
+    return button;
+  });
+  const seg = { querySelectorAll(selector) { return selector === "button" ? periodButtons : []; } };
+
+  const calls = { updateFilterUi: 0, syncUrl: 0, render: 0 };
+  const documentRef = {
+    getElementById(id) { return nodes.get(id); },
+    querySelectorAll() { return []; },
+  };
+
+  const context = {
+    document: documentRef,
+    langSel,
+    sortSel,
+    seg,
+    activeDiscoveryCount() { return 0; },
+    moveThumb() {},
+    syncUrl() { calls.syncUrl += 1; },
+    render() { calls.render += 1; },
+    URLSearchParams,
+  };
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(`
+    let filterState={period:"all",sort:"trending",favOnly:false,q:"",lang:"",fields:[],forms:[],excludeAi:false,newOnly:false};
+    let period="all", favOnly=false;
+    ${page.slice(uiStart, uiEnd)}
+    const __originalUpdateFilterUi=updateFilterUi;
+    updateFilterUi=function(...args){globalThis.__updateFilterUiCalls+=1;return __originalUpdateFilterUi.apply(this,args);};
+    globalThis.__updateFilterUiCalls=0;
+    ${page.slice(handlersStart, handlersEnd)}
+    globalThis.__getState=()=>filterState;
+  `, context, { filename: "filter-controls-runtime-fixture.js" });
+
+  return {
+    nodes,
+    calls,
+    getState() { return context.__getState(); },
+    get updateFilterUiCalls() { return context.__updateFilterUiCalls; },
+  };
+}
+
+function copyLinkHarness() {
+  // setFilterBarStatus + the #copyLinkBtn handler, per the review's third slice:
+  // 'function setFilterBarStatus(message,tone="")' through the line before
+  // '\nfunction downloadCurrentView'.
+  const start = page.indexOf('function setFilterBarStatus(message,tone="")');
+  const end = page.indexOf("\nfunction downloadCurrentView", start);
+  assert.ok(start >= 0 && end > start, "copy-link runtime fixture must be isolated");
+
+  class FakeElement {
+    constructor(id) {
+      this.id = id;
+      this.textContent = "";
+      this.dataset = {};
+      this.listeners = new Map();
+    }
+    addEventListener(type, listener) {
+      if (!this.listeners.has(type)) this.listeners.set(type, []);
+      this.listeners.get(type).push(listener);
+    }
+    dispatch(type) {
+      const results = [];
+      for (const listener of this.listeners.get(type) || []) results.push(listener({ type, target: this }));
+      return Promise.all(results);
+    }
+  }
+
+  const nodes = new Map([
+    ["copyLinkBtn", new FakeElement("copyLinkBtn")],
+    ["filterBarStatus", new FakeElement("filterBarStatus")],
+  ]);
+  const documentRef = { getElementById(id) { return nodes.get(id); } };
+
+  let copyImpl = () => Promise.resolve();
+  const context = {
+    document: documentRef,
+    currentExportUrl() { return "https://example.test/?period=daily"; },
+    tr(key) { return key; },
+    CurrentViewExport: { copyText(url) { return copyImpl(url); } },
+  };
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(page.slice(start, end), context, { filename: "copy-link-runtime-fixture.js" });
+
+  return {
+    status: nodes.get("filterBarStatus"),
+    copyLinkBtn: nodes.get("copyLinkBtn"),
+    setCopyBehavior(fn) { copyImpl = fn; },
+  };
+}
+
 test("the generated page has unique element ids", () => {
   const ids = [...page.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
   const duplicates = [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
@@ -1642,6 +1861,9 @@ test("the filter bar rows never sum past the card column", () => {
   assert.match(page, /\.filter-bar-row>\*\{flex:1 1 calc\(50% - 8px\);max-width:calc\(50% - 8px\);min-width:0\}/);
   assert.match(page, /\.filter-bar-row-3>\*\{flex:1 1 calc\(\(100% - 32px\)\/3\);max-width:calc\(\(100% - 32px\)\/3\)\}/);
   assert.match(page, /@media\(max-width:600px\)\{\.filter-bar-row>\*,\.filter-bar-row-3>\*\{flex:1 1 100%;max-width:100%\}\}/);
+  assert.match(page, /@media\(max-width:760px\)\{\.filter-bar \.seg button\{padding-inline:8px;font-size:12\.5px\}\}/);
+  assert.match(page, /\.filter-bar-status\[data-tone="success"\]\{color:var\(--accent-selected\)\}/);
+  assert.match(page, /\.filter-bar-status\[data-tone="error"\]\{color:var\(--hot\)\}/);
   assert.match(page, /\.filter-toggle\{[^}]*min-height:44px/);
   assert.match(page, /\.filter-toggle:focus-visible\{outline:3px solid var\(--accent\);outline-offset:2px\}/);
   assert.match(page, /\.filter-toggle\[aria-pressed="true"\]\{background:var\(--accent-soft\);color:var\(--accent-selected\);border-color:var\(--accent\)\}/);
@@ -1662,6 +1884,97 @@ test("the filter-bar copy link reuses the export clipboard helper and its own st
   assert.match(page, /function setFilterBarStatus\(message,tone=""\)\{/);
   assert.match(page, /document\.getElementById\("copyLinkBtn"\)\.addEventListener\("click",async\(\)=>\{[\s\S]*?CurrentViewExport\.copyText\(currentExportUrl\(\)\)[\s\S]*?tr\("export\.linkCopied"\)[\s\S]*?tr\("export\.copyFailed"\)/);
   assert.match(page, /id="copyViewUrlBtn"/, "the export panel keeps its own copy button");
+});
+
+test("initial load applies the parsed URL filter state to the toggles before the first render", () => {
+  assert.match(
+    page,
+    /setSidebarGroup\(sidebar\.dataset\.group\);\s*updateFilterUi\(\);\s*requestAnimationFrame\(\(\)=>\{moveThumb\(\);render\(\)\}\);/,
+    "updateFilterUi() must run at initial load, before the first moveThumb/render frame",
+  );
+});
+
+test("the period segment re-measures itself when its own box resizes, not only the window", () => {
+  assert.match(
+    page,
+    /window\.addEventListener\("resize",moveThumb\);\s*if\(typeof ResizeObserver==="function"\)new ResizeObserver\(\(\)=>moveThumb\(\)\)\.observe\(seg\);/,
+  );
+});
+
+test("applyFilterState sets both quick-filter toggles' aria-pressed from a parsed URL state", () => {
+  const harness = filterUiHarness();
+  const filtered = harness.parseState("?exclude=ai&membership=new");
+  harness.applyFilterState({ ...filtered, favOnly: false });
+  assert.equal(harness.nodes.get("excludeAi").getAttribute("aria-pressed"), "true");
+  assert.equal(harness.nodes.get("newOnly").getAttribute("aria-pressed"), "true");
+  assert.equal(harness.calls.moveThumb, 1, "applyFilterState's own moveThumb();render(); tail ran once");
+  assert.equal(harness.calls.render, 1);
+
+  const empty = harness.parseState("");
+  harness.applyFilterState({ ...empty, favOnly: false });
+  assert.equal(harness.nodes.get("excludeAi").getAttribute("aria-pressed"), "false");
+  assert.equal(harness.nodes.get("newOnly").getAttribute("aria-pressed"), "false");
+  assert.equal(harness.calls.moveThumb, 2);
+  assert.equal(harness.calls.render, 2);
+});
+
+test("clicking the quick-filter toggles flips filterState and aria-pressed once per click, and Clear Explore filters resets both", () => {
+  const harness = filterControlsHarness();
+  const excludeAi = harness.nodes.get("excludeAi");
+  const newOnly = harness.nodes.get("newOnly");
+  const clearFiltersBtn = harness.nodes.get("clearFiltersBtn");
+
+  excludeAi.dispatch("click");
+  assert.equal(harness.getState().excludeAi, true);
+  assert.equal(excludeAi.getAttribute("aria-pressed"), "true");
+  assert.equal(harness.updateFilterUiCalls, 1);
+  assert.equal(harness.calls.syncUrl, 1);
+  assert.equal(harness.calls.render, 1);
+
+  excludeAi.dispatch("click");
+  assert.equal(harness.getState().excludeAi, false);
+  assert.equal(excludeAi.getAttribute("aria-pressed"), "false");
+  assert.equal(harness.updateFilterUiCalls, 2);
+  assert.equal(harness.calls.syncUrl, 2);
+  assert.equal(harness.calls.render, 2);
+
+  newOnly.dispatch("click");
+  assert.equal(harness.getState().newOnly, true);
+  assert.equal(newOnly.getAttribute("aria-pressed"), "true");
+  assert.equal(harness.updateFilterUiCalls, 3);
+  assert.equal(harness.calls.syncUrl, 3);
+  assert.equal(harness.calls.render, 3);
+
+  newOnly.dispatch("click");
+  assert.equal(harness.getState().newOnly, false);
+  assert.equal(newOnly.getAttribute("aria-pressed"), "false");
+  assert.equal(harness.updateFilterUiCalls, 4);
+
+  excludeAi.dispatch("click");
+  newOnly.dispatch("click");
+  assert.equal(harness.getState().excludeAi, true);
+  assert.equal(harness.getState().newOnly, true);
+
+  clearFiltersBtn.dispatch("click");
+  assert.equal(harness.getState().excludeAi, false);
+  assert.equal(harness.getState().newOnly, false);
+  assert.equal(excludeAi.getAttribute("aria-pressed"), "false");
+  assert.equal(newOnly.getAttribute("aria-pressed"), "false");
+  assert.equal(harness.updateFilterUiCalls, 7);
+});
+
+test("the copy-link handler writes filter-bar status text and tone from the resolved or rejected clipboard promise", async () => {
+  const harness = copyLinkHarness();
+
+  harness.setCopyBehavior(() => Promise.resolve());
+  await harness.copyLinkBtn.dispatch("click");
+  assert.equal(harness.status.textContent, "export.linkCopied");
+  assert.equal(harness.status.dataset.tone, "success");
+
+  harness.setCopyBehavior(() => Promise.reject(new Error("clipboard failed")));
+  await harness.copyLinkBtn.dispatch("click");
+  assert.equal(harness.status.textContent, "export.copyFailed");
+  assert.equal(harness.status.dataset.tone, "error");
 });
 
 test("new-only waits for membership and fails closed with one canonical baseline boundary", () => {

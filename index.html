@@ -194,9 +194,6 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .filter-chip:hover{border-color:var(--accent);color:var(--accent)}
 .filter-chip:active{transform:scale(.97)}
 .filter-chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
-.filter-switch{display:flex;align-items:center;gap:9px;min-height:44px;color:var(--text);font-size:13px;font-weight:600;cursor:pointer}
-.filter-switch input{width:18px;height:18px;accent-color:var(--accent)}
-.filter-switch-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr));gap:8px;border:0;margin:0;padding:0;min-inline-size:0}
 .clear-filters{border-color:var(--border);text-align:center;color:var(--text-2)}
 .filter-summary{color:var(--text-2);font-size:12px;line-height:1.45}
 #sidebarScrim{position:fixed;inset:0;z-index:310;background:rgba(0,0,0,.34);opacity:0;pointer-events:none;transition:opacity .24s ease-out}
@@ -241,8 +238,10 @@ body.overlay-open{overflow:hidden}
 .filter-bar-row>*{flex:1 1 calc(50% - 8px);max-width:calc(50% - 8px);min-width:0}
 .filter-bar-row-3>*{flex:1 1 calc((100% - 32px)/3);max-width:calc((100% - 32px)/3)}
 .filter-bar-status{color:var(--text-2);font-size:11.5px;line-height:1.45;min-height:1.45em}
-.filter-bar-status:empty{display:none}
+.filter-bar-status[data-tone="success"]{color:var(--accent-selected)}
+.filter-bar-status[data-tone="error"]{color:var(--hot)}
 @media(max-width:600px){.filter-bar-row>*,.filter-bar-row-3>*{flex:1 1 100%;max-width:100%}}
+@media(max-width:760px){.filter-bar .seg button{padding-inline:8px;font-size:12.5px}}
 .filter-toggle{min-height:44px;padding:0 14px;border:1px solid var(--surface-border);border-radius:11px;background:var(--control-solid);color:var(--text);font:inherit;font-size:13px;font-weight:650;cursor:pointer;overflow-wrap:anywhere}
 .filter-toggle:hover{border-color:var(--accent);color:var(--accent)}
 .filter-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
@@ -1034,6 +1033,7 @@ seg.addEventListener("click",e=>{
   if(next)setPeriod(next);
 });
 window.addEventListener("resize",moveThumb);
+if(typeof ResizeObserver==="function")new ResizeObserver(()=>moveThumb()).observe(seg);
 
 /* helpers */
 const fmt=n=>n>=10000?(n/1000).toFixed(0)+"k":n>=1000?(n/1000).toFixed(1)+"k":""+n;

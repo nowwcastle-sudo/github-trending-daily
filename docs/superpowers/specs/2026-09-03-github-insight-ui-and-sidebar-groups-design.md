@@ -351,6 +351,13 @@ Moving `#periodSeg` out of the translated-off-screen panel is a side improvement
 
 Row 1 uses the brief's literal `calc(50% - 8px)` rule. Row 2 carries three items, so with the same 16px gap each item is `(100% - 32px)/3` — written as a division rather than `33.333% - 10.667px` so the sum is exactly `100%` with no rounding slack. `min-width:0` prevents the `<select>` and long localized button labels from forcing overflow. Total width therefore never exceeds the `.wrap` content column, which is the constraint the brief set.
 
+#### Amendments (2026-09-04, Task 6 review)
+
+- **F1** — `#filterBarStatus` now styles its tone: `.filter-bar-status[data-tone="success"]{color:var(--accent-selected)}` and `[data-tone="error"]{color:var(--hot)}`, mirroring `.export-status`, so a failed copy is visibly distinct from a success for sighted users, not only via the live region.
+- **F2** — `.filter-bar-status:empty{display:none}` is removed; the `role="status"` live region stays mounted at page load (its `min-height` already reserved the space), so the first copy-link result is not silently dropped by screen readers that ignore a display:none region.
+- **F3** — added `@media(max-width:760px){.filter-bar .seg button{padding-inline:8px;font-size:12.5px}}` to close the 601–760px band where the period segment's min-content width could exceed its 50% column before the existing 600px stacking rule engaged.
+- **F4** — `#periodSeg` now also re-measures via `if(typeof ResizeObserver==="function")new ResizeObserver(()=>moveThumb()).observe(seg);` alongside the window `resize` listener, so `body.overlay-open` toggling the scrollbar no longer leaves `#segThumb` stale until the next window resize.
+
 ### 6.3 Toggle styling
 
 ```css
