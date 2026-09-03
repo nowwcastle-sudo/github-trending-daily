@@ -182,6 +182,20 @@ test("new-only state accepts and serializes only exact membership new", async ()
   assert.equal(RepoFilters.serializeState({ newOnly: "true" }), "");
 });
 
+test("the moved filter controls do not change the serialized URL state", async () => {
+  const RepoFilters = await loadRepoFilters();
+  const cases = [
+    ["?period=weekly&lang=Rust&exclude=ai&membership=new", "?period=weekly&membership=new&lang=Rust&exclude=ai"],
+    ["?exclude=ai", "?exclude=ai"],
+    ["?membership=new", "?membership=new"],
+    ["?period=daily", "?period=daily"],
+    ["", ""],
+  ];
+  for (const [input, expected] of cases) {
+    assert.equal(RepoFilters.serializeState(RepoFilters.parseState(input, ["Rust"])), expected, `${input} must round trip unchanged`);
+  }
+});
+
 test("new-only filtering includes only exact new membership", async () => {
   const RepoFilters = await loadRepoFilters();
   const repositories = ["new", "reentered", "stayed", "baseline_present", "unknown", undefined]

@@ -16,7 +16,7 @@ function runtimeRegion(source) {
 const pageRuntime = runtimeRegion(page);
 const SIDEBAR_SECTION_GROUPS = [
   ["refreshStatus", "account"], ["accountSection", "account"],
-  ["viewSection", "explore"], ["periodSection", "explore"], ["languageSection", "explore"],
+  ["viewSection", "explore"],
   ["fieldSection", "explore"], ["formSection", "explore"], ["sortSection", "explore"], ["resultSection", "explore"],
   ["hiddenRepoSection", "history"], ["recentExitsSection", "history"],
   ["exportSection", "export"],
@@ -679,7 +679,7 @@ test("the refresh status appears once at the top of the sidebar and not in main"
 test("sidebar sections follow the approved priority and keyboard order", () => {
   const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<nav class="nav-rail"/)?.[0] ?? "";
   const sectionIds = [
-    "refreshStatus", "accountSection", "viewSection", "periodSection", "languageSection",
+    "refreshStatus", "accountSection", "viewSection",
     "fieldSection", "formSection", "sortSection", "resultSection", "hiddenRepoSection",
     "recentExitsSection", "exportSection",
   ];
@@ -692,8 +692,8 @@ test("sidebar sections follow the approved priority and keyboard order", () => {
   }
 
   const focusOrder = [
-    "loginBtn", "logoutBtn", "allReposBtn", "favOnlyBtn", "periodSeg", "lang",
-    "fieldFilters", "excludeAi", "formFilters", "sortSelect", "clearFiltersBtn",
+    "loginBtn", "logoutBtn", "allReposBtn", "favOnlyBtn",
+    "fieldFilters", "formFilters", "sortSelect", "clearFiltersBtn",
     "restoreAllHiddenBtn", "recentExitsList", "exportCsvBtn", "exportJsonBtn", "copyViewUrlBtn",
   ];
   previous = -1;
@@ -1486,10 +1486,8 @@ test("responsive sidebar owns account, favorites, and discovery filters", () => 
   assert.match(sidebar, /id="syncStatus"/);
   assert.match(sidebar, /id="loginBtn"/);
   assert.match(sidebar, /id="favOnlyBtn"/);
-  assert.match(sidebar, /id="lang"/);
   assert.match(sidebar, /id="fieldFilters"/);
   assert.match(sidebar, /id="formFilters"/);
-  assert.match(sidebar, /id="excludeAi"/);
   assert.match(page, /id="sidebarScrim"/);
   assert.match(page, /\.filter-sidebar\{[\s\S]*?transform:translate3d\(-105%,0,0\)/);
   assert.match(page, /\.filter-sidebar\.open\{transform:translate3d\(0,0,0\)/);
@@ -1600,20 +1598,70 @@ test("membership history is loaded before semantic badges and recent exits are r
 });
 
 test("new-only control follows AI exclusion and owns the complete public view state", () => {
-  const fieldSection = page.match(/<section class="sidebar-section" id="fieldSection"[\s\S]*?<\/section>/)?.[0] ?? "";
-  const excludeIndex = fieldSection.indexOf('id="excludeAi"');
-  const newOnlyIndex = fieldSection.indexOf('id="newOnly"');
+  const bar = page.match(/<section class="filter-bar" id="filterBar"[\s\S]*?<\/section>/)?.[0] ?? "";
+  const excludeIndex = bar.indexOf('id="excludeAi"');
+  const newOnlyIndex = bar.indexOf('id="newOnly"');
   assert.ok(excludeIndex >= 0 && excludeIndex < newOnlyIndex);
-  assert.equal([...fieldSection.matchAll(/id="newOnly"/g)].length, 1);
-  assert.match(fieldSection, /<fieldset class="filter-switch-row">[\s\S]*?<legend class="sr-only" data-i18n="field\.quick">Quick filters<\/legend>/);
-  assert.match(fieldSection, /<label class="filter-switch"><input id="newOnly" type="checkbox"> <span data-i18n="field\.newOnly">New repositories only<\/span><\/label>/);
-  assert.match(page, /\.filter-switch-row\{[^}]*grid-template-columns:repeat\(auto-fit,minmax\(min\(140px,100%\),1fr\)\)/);
-  assert.match(page, /document\.getElementById\("newOnly"\)\.checked=filterState\.newOnly/);
+  assert.equal([...page.matchAll(/id="newOnly"/g)].length, 1);
+  assert.match(page, /document\.getElementById\("newOnly"\)\.setAttribute\("aria-pressed",String\(filterState\.newOnly\)\)/);
   assert.match(page, /activeDiscoveryCount\(\)[\s\S]*?\+\(filterState\.newOnly\?1:0\)/);
-  assert.match(page, /document\.getElementById\("newOnly"\)\.addEventListener\("change",event=>\{[\s\S]*?newOnly:event\.target\.checked[\s\S]*?syncUrl\(\);render\(\)/);
   assert.match(page, /clearFiltersBtn[\s\S]*?newOnly:false/);
   assert.match(page, /function currentExportState\(\)\{return \{\.\.\.filterState,period,favOnly\}\}/);
   assert.match(page, /window\.addEventListener\("popstate",\(\)=>applyFilterState\(RepoFilters\.parseState\(location\.search,LANGUAGES\)\)\)/);
+});
+
+test("the filter bar sits under the badge guide and owns period, language, quick filters and copy link", () => {
+  const asideEnd = page.indexOf("</aside>");
+  const hintIndex = page.indexOf('id="cardKeyboardHint"');
+  const barIndex = page.indexOf('id="filterBar"');
+  assert.ok(asideEnd >= 0 && asideEnd < barIndex && barIndex < hintIndex, "the filter bar belongs between the badge guide and the card hint");
+  const bar = page.match(/<section class="filter-bar" id="filterBar"[\s\S]*?<\/section>/)?.[0] ?? "";
+  const order = ["periodSeg", "segThumb", "lang", "excludeAi", "newOnly", "copyLinkBtn", "filterBarStatus"];
+  let previous = -1;
+  for (const id of order) {
+    const position = bar.indexOf(`id="${id}"`);
+    assert.ok(position > previous, `${id} must appear in the approved filter-bar order`);
+    previous = position;
+  }
+  assert.match(bar, /<button type="button" id="excludeAi" class="filter-toggle" aria-pressed="false" data-i18n="field\.excludeAi">/);
+  assert.match(bar, /<button type="button" id="newOnly" class="filter-toggle" aria-pressed="false" data-i18n="field\.newOnly">/);
+  assert.match(bar, /<button type="button" id="copyLinkBtn" class="filter-toggle" data-i18n="filter\.copyLink">/);
+  assert.match(bar, /id="filterBarStatus"[^>]*role="status"[^>]*aria-live="polite"[^>]*aria-atomic="true"/);
+  assert.doesNotMatch(bar, /type="checkbox"/);
+
+  const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<nav class="nav-rail"/)?.[0] ?? "";
+  for (const gone of ["periodSection", "languageSection", "periodSeg", "lang", "excludeAi", "newOnly"]) {
+    assert.equal(sidebar.includes(`id="${gone}"`), false, `${gone} must no longer live in the panel`);
+  }
+  assert.doesNotMatch(page, /<fieldset class="filter-switch-row">/);
+});
+
+test("the filter bar rows never sum past the card column", () => {
+  assert.match(page, /\.filter-bar\{display:flex;flex-direction:column;gap:16px;margin-top:18px\}/);
+  assert.match(page, /\.filter-bar-row\{display:flex;gap:16px;flex-wrap:wrap\}/);
+  assert.match(page, /\.filter-bar-row>\*\{flex:1 1 calc\(50% - 8px\);max-width:calc\(50% - 8px\);min-width:0\}/);
+  assert.match(page, /\.filter-bar-row-3>\*\{flex:1 1 calc\(\(100% - 32px\)\/3\);max-width:calc\(\(100% - 32px\)\/3\)\}/);
+  assert.match(page, /@media\(max-width:600px\)\{\.filter-bar-row>\*,\.filter-bar-row-3>\*\{flex:1 1 100%;max-width:100%\}\}/);
+  assert.match(page, /\.filter-toggle\{[^}]*min-height:44px/);
+  assert.match(page, /\.filter-toggle:focus-visible\{outline:3px solid var\(--accent\);outline-offset:2px\}/);
+  assert.match(page, /\.filter-toggle\[aria-pressed="true"\]\{background:var\(--accent-soft\);color:var\(--accent-selected\);border-color:var\(--accent\)\}/);
+});
+
+test("quick filter toggles round trip through filterState and aria-pressed without touching the URL contract", () => {
+  assert.match(page, /document\.getElementById\("excludeAi"\)\.setAttribute\("aria-pressed",String\(filterState\.excludeAi\)\)/);
+  assert.match(page, /document\.getElementById\("newOnly"\)\.setAttribute\("aria-pressed",String\(filterState\.newOnly\)\)/);
+  assert.match(page, /document\.getElementById\("excludeAi"\)\.addEventListener\("click",\(\)=>\{\s*filterState=\{\.\.\.filterState,excludeAi:!filterState\.excludeAi\};updateFilterUi\(\);syncUrl\(\);render\(\);\s*\}\);/);
+  assert.match(page, /document\.getElementById\("newOnly"\)\.addEventListener\("click",\(\)=>\{\s*filterState=\{\.\.\.filterState,newOnly:!filterState\.newOnly\};updateFilterUi\(\);syncUrl\(\);render\(\);\s*\}\);/);
+  assert.match(page, /clearFiltersBtn[\s\S]*?newOnly:false/);
+  assert.match(page, /activeDiscoveryCount\(\)[\s\S]*?\+\(filterState\.newOnly\?1:0\)/);
+  assert.doesNotMatch(pageRuntime, /getElementById\("excludeAi"\)\.checked/);
+  assert.doesNotMatch(pageRuntime, /getElementById\("newOnly"\)\.checked/);
+});
+
+test("the filter-bar copy link reuses the export clipboard helper and its own status region", () => {
+  assert.match(page, /function setFilterBarStatus\(message,tone=""\)\{/);
+  assert.match(page, /document\.getElementById\("copyLinkBtn"\)\.addEventListener\("click",async\(\)=>\{[\s\S]*?CurrentViewExport\.copyText\(currentExportUrl\(\)\)[\s\S]*?tr\("export\.linkCopied"\)[\s\S]*?tr\("export\.copyFailed"\)/);
+  assert.match(page, /id="copyViewUrlBtn"/, "the export panel keeps its own copy button");
 });
 
 test("new-only waits for membership and fails closed with one canonical baseline boundary", () => {

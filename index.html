@@ -236,6 +236,18 @@ body.overlay-open{overflow:hidden}
 }
 .langsel option{background:var(--control-solid);color:var(--text)}
 .langsel:focus{border-color:var(--accent);box-shadow:0 0 0 3.5px var(--accent-soft)}
+.filter-bar{display:flex;flex-direction:column;gap:16px;margin-top:18px}
+.filter-bar-row{display:flex;gap:16px;flex-wrap:wrap}
+.filter-bar-row>*{flex:1 1 calc(50% - 8px);max-width:calc(50% - 8px);min-width:0}
+.filter-bar-row-3>*{flex:1 1 calc((100% - 32px)/3);max-width:calc((100% - 32px)/3)}
+.filter-bar-status{color:var(--text-2);font-size:11.5px;line-height:1.45;min-height:1.45em}
+.filter-bar-status:empty{display:none}
+@media(max-width:600px){.filter-bar-row>*,.filter-bar-row-3>*{flex:1 1 100%;max-width:100%}}
+.filter-toggle{min-height:44px;padding:0 14px;border:1px solid var(--surface-border);border-radius:11px;background:var(--control-solid);color:var(--text);font:inherit;font-size:13px;font-weight:650;cursor:pointer;overflow-wrap:anywhere}
+.filter-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.filter-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.filter-toggle:active{transform:scale(.98)}
+.filter-toggle[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-selected);border-color:var(--accent)}
 .signal-guide{display:flex;align-items:flex-start;gap:14px;padding:10px 2px 8px;margin-top:4px;
   border-bottom:1px solid var(--hairline);color:var(--text-2);font-size:12.5px;line-height:1.45}
 .signal-guide>strong{flex-shrink:0;color:var(--text);font-size:12.5px;padding-top:2px}
@@ -487,29 +499,10 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <button id="allReposBtn" type="button" aria-pressed="true" data-i18n="view.all">All repositories</button>
     <button id="favOnlyBtn" type="button" aria-pressed="false" data-i18n="view.favorites">Favorites</button>
   </nav>
-  <section class="sidebar-section" id="periodSection" aria-labelledby="periodTitle" data-group="explore">
-    <h3 id="periodTitle" data-i18n="period.title">Period</h3>
-    <div class="seg" id="periodSeg" role="group" aria-label="Period filter" data-i18n-aria-label="period.aria">
-      <span class="seg-thumb" id="segThumb"></span>
-      <button data-period="all" aria-pressed="true" data-i18n="period.all">All</button>
-      <button data-period="daily" aria-pressed="false" data-i18n="period.daily">Daily</button>
-      <button data-period="weekly" aria-pressed="false" data-i18n="period.weekly">Weekly</button>
-      <button data-period="monthly" aria-pressed="false" data-i18n="period.monthly">Monthly</button>
-    </div>
-  </section>
-  <section class="sidebar-section" id="languageSection" aria-labelledby="languageTitle" data-group="explore">
-    <h3 id="languageTitle" data-i18n="language.title">Programming language</h3>
-    <select class="langsel" id="lang" aria-label="Programming language" data-i18n-aria-label="language.title"><option value="" data-i18n="language.all">All languages</option></select>
-  </section>
   <section class="sidebar-section" id="fieldSection" aria-labelledby="fieldTitle" data-group="explore">
     <h3 id="fieldTitle" data-i18n="field.title">Field</h3>
     <p class="sidebar-note" data-i18n="field.note">You can select multiple fields.</p>
     <div class="filter-group" id="fieldFilters"></div>
-    <fieldset class="filter-switch-row">
-      <legend class="sr-only" data-i18n="field.quick">Quick filters</legend>
-      <label class="filter-switch"><input id="excludeAi" type="checkbox"> <span data-i18n="field.excludeAi">Exclude AI</span></label>
-      <label class="filter-switch"><input id="newOnly" type="checkbox"> <span data-i18n="field.newOnly">New repositories only</span></label>
-    </fieldset>
   </section>
   <section class="sidebar-section" id="formSection" aria-labelledby="formTitle" data-group="explore">
     <h3 id="formTitle" data-i18n="form.title">Form and technology</h3>
@@ -607,6 +600,25 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <div><dt><span class="badge membership-reentered" data-i18n="badges.reenteredLabel">Re-entered</span></dt><dd data-i18n="badges.reentered">Returned after leaving the previous list</dd></div>
   </dl>
 </aside>
+
+<section class="filter-bar" id="filterBar" aria-label="Quick filters" data-i18n-aria-label="field.quick">
+  <div class="filter-bar-row">
+    <div class="seg" id="periodSeg" role="group" aria-label="Period filter" data-i18n-aria-label="period.aria">
+      <span class="seg-thumb" id="segThumb"></span>
+      <button data-period="all" aria-pressed="true" data-i18n="period.all">All</button>
+      <button data-period="daily" aria-pressed="false" data-i18n="period.daily">Daily</button>
+      <button data-period="weekly" aria-pressed="false" data-i18n="period.weekly">Weekly</button>
+      <button data-period="monthly" aria-pressed="false" data-i18n="period.monthly">Monthly</button>
+    </div>
+    <select class="langsel" id="lang" aria-label="Programming language" data-i18n-aria-label="language.title"><option value="" data-i18n="language.all">All languages</option></select>
+  </div>
+  <div class="filter-bar-row filter-bar-row-3">
+    <button type="button" id="excludeAi" class="filter-toggle" aria-pressed="false" data-i18n="field.excludeAi">Exclude AI</button>
+    <button type="button" id="newOnly" class="filter-toggle" aria-pressed="false" data-i18n="field.newOnly">New repositories only</button>
+    <button type="button" id="copyLinkBtn" class="filter-toggle" data-i18n="filter.copyLink">Copy link</button>
+  </div>
+  <p class="filter-bar-status" id="filterBarStatus" role="status" aria-live="polite" aria-atomic="true"></p>
+</section>
 
 <p id="cardKeyboardHint" class="sr-only" data-i18n="keyboard.card">When a card is focused, press Delete to hide that repository.</p>
 <div class="list-stage" id="listStage">
@@ -987,8 +999,8 @@ function updateFilterUi(){
   langSel.value=filterState.lang;
   sortSel.value=filterState.sort;
   const gainOption=sortSel.querySelector('[value="gain"]');gainOption.disabled=period==="all";
-  document.getElementById("excludeAi").checked=filterState.excludeAi;
-  document.getElementById("newOnly").checked=filterState.newOnly;
+  document.getElementById("excludeAi").setAttribute("aria-pressed",String(filterState.excludeAi));
+  document.getElementById("newOnly").setAttribute("aria-pressed",String(filterState.newOnly));
   document.querySelectorAll("[data-filter-id]").forEach(button=>{
     const key=button.closest("#fieldFilters")?"fields":"forms";
     button.setAttribute("aria-pressed",filterState[key].includes(button.dataset.filterId));
@@ -1239,11 +1251,11 @@ sortSel.addEventListener("change",()=>{
   const sort=period==="all"&&sortSel.value==="gain"?"trending":sortSel.value;
   filterState={...filterState,sort};updateFilterUi();syncUrl();render();
 });
-document.getElementById("excludeAi").addEventListener("change",event=>{
-  filterState={...filterState,excludeAi:event.target.checked};updateFilterUi();syncUrl();render();
+document.getElementById("excludeAi").addEventListener("click",()=>{
+  filterState={...filterState,excludeAi:!filterState.excludeAi};updateFilterUi();syncUrl();render();
 });
-document.getElementById("newOnly").addEventListener("change",event=>{
-  filterState={...filterState,newOnly:event.target.checked};updateFilterUi();syncUrl();render();
+document.getElementById("newOnly").addEventListener("click",()=>{
+  filterState={...filterState,newOnly:!filterState.newOnly};updateFilterUi();syncUrl();render();
 });
 document.getElementById("clearFiltersBtn").addEventListener("click",()=>{
   filterState={...filterState,lang:"",fields:[],forms:[],excludeAi:false,newOnly:false};
@@ -1279,6 +1291,13 @@ function currentExportModel(){
 function setExportStatus(message,tone=""){
   const status=document.getElementById("exportStatus");status.textContent=message;status.dataset.tone=tone;
 }
+function setFilterBarStatus(message,tone=""){
+  const status=document.getElementById("filterBarStatus");status.textContent=message;status.dataset.tone=tone;
+}
+document.getElementById("copyLinkBtn").addEventListener("click",async()=>{
+  try{await CurrentViewExport.copyText(currentExportUrl());setFilterBarStatus(tr("export.linkCopied"),"success")}
+  catch{setFilterBarStatus(tr("export.copyFailed"),"error")}
+});
 function downloadCurrentView(type){
   try{
     const model=currentExportModel();
