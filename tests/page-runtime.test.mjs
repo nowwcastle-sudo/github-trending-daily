@@ -294,6 +294,127 @@ function sidebarHarness({ hoverCapable = true } = {}) {
   };
 }
 
+function hiddenSectionsGroupHarness() {
+  // Wires the real setSidebarGroup apparatus together with the real updateHiddenManager/
+  // renderRecentExits/render so F1 (history sections leaking into other groups) can be
+  // exercised through the actual call sites rather than by re-implementing the fix.
+  const sidebarGroupStart = page.indexOf('const sidebar=document.getElementById("filterSidebar")');
+  const sidebarGroupEnd = page.indexOf("\nfunction closeSidebar", sidebarGroupStart);
+  const hiddenManagerStart = page.indexOf("function updateHiddenManager(){");
+  const hiddenManagerEnd = page.indexOf("\nfunction showHiddenNotice", hiddenManagerStart);
+  const renderStart = page.indexOf('const list=document.getElementById("list")');
+  const renderEnd = page.indexOf("\n/* 즐겨찾기 */", renderStart);
+  assert.ok(sidebarGroupStart >= 0 && sidebarGroupEnd > sidebarGroupStart, "sidebar group runtime fixture must be isolated");
+  assert.ok(hiddenManagerStart >= 0 && hiddenManagerEnd > hiddenManagerStart, "hidden-manager runtime fixture must be isolated");
+  assert.ok(renderStart >= 0 && renderEnd > renderStart, "render runtime fixture must be isolated");
+
+  class FakeElement {
+    constructor(id, group = null) {
+      this.id = id;
+      this.dataset = group ? { group } : {};
+      this.attributes = new Map();
+      this.hidden = false;
+      this.textContent = "";
+      this.innerHTML = "";
+      this.style = {};
+    }
+    setAttribute(name, value) { this.attributes.set(name, String(value)); }
+    getAttribute(name) { return this.attributes.get(name) ?? null; }
+    removeAttribute(name) { this.attributes.delete(name); }
+    querySelectorAll() { return []; }
+  }
+
+  const sidebarSections = [
+    ["refreshStatus", "account"], ["accountSection", "account"],
+    ["viewSection", "explore"], ["resultSection", "explore"],
+    ["hiddenRepoSection", "history"], ["recentExitsSection", "history"],
+    ["exportSection", "export"],
+  ].map(([id, group]) => new FakeElement(id, group));
+  const segButtons = ["account", "explore", "history", "export"].map(group => new FakeElement(`seg-${group}`, group));
+
+  const nodes = new Map([
+    ["filterSidebar", new FakeElement("filterSidebar")],
+    ["sidebarScrim", new FakeElement("sidebarScrim")],
+    ["navRail", new FakeElement("navRail")],
+    ["mobileNavToggle", new FakeElement("mobileNavToggle")],
+    ["sidebarClose", new FakeElement("sidebarClose")],
+    ["navAccountToggle", new FakeElement("navAccountToggle", "account")],
+    ["navToggle", new FakeElement("navToggle", "explore")],
+    ["navHistoryToggle", new FakeElement("navHistoryToggle", "history")],
+    ["navExportToggle", new FakeElement("navExportToggle", "export")],
+    ["sidebarGroupSeg", new FakeElement("sidebarGroupSeg")],
+    ["list", new FakeElement("list")],
+    ["empty", new FakeElement("empty")],
+    ["emptyText", new FakeElement("emptyText")],
+    ["emptyResetBtn", new FakeElement("emptyResetBtn")],
+    ["emptyManageHiddenBtn", new FakeElement("emptyManageHiddenBtn")],
+    ["filterSummary", new FakeElement("filterSummary")],
+    ["hiddenRepoList", new FakeElement("hiddenRepoList")],
+    ["hiddenRepoCount", new FakeElement("hiddenRepoCount")],
+    ["recentExitsList", new FakeElement("recentExitsList")],
+  ]);
+  for (const section of sidebarSections) nodes.set(section.id, section);
+  nodes.get("filterSidebar").querySelectorAll = selector => (selector === ":scope > [data-group]" ? sidebarSections : []);
+  nodes.get("sidebarGroupSeg").querySelectorAll = selector => (selector === "button[data-group]" ? segButtons : []);
+  const pageMain = new FakeElement("pageMain");
+
+  const documentRef = {
+    getElementById(id) { return nodes.get(id); },
+    querySelector(selector) { return selector === ".wrap" ? pageMain : null; },
+  };
+
+  const context = {
+    document: documentRef,
+    matchMedia() { return { matches: false }; },
+    URLSearchParams,
+    HTMLElement: FakeElement,
+    period: "daily",
+    filterState: { period: "daily", sort: "trending", favOnly: false, q: "", lang: "", fields: [], forms: [], excludeAi: false, newOnly: false },
+    membershipLoadState: "ready",
+    currentVisibleRepos: [],
+    REPOS: [],
+    favOnly: false,
+    favSet: new Set(),
+    hiddenSet: new Set(),
+    HiddenRepos: { filterRepos(repositories) { return repositories; } },
+    SIGNALS: new Map(),
+    MEMBERSHIP_STATUS: new Map(),
+    favoriteBusy: false,
+    newOnlyGate() { return null; },
+    transientMembershipRepo(value) { return value; },
+    activeDiscoveryCount() { return 0; },
+    classificationBadges() { return ""; },
+    renderHist() {},
+    repoLabel(slug) { return slug; },
+    esc(value) { return String(value ?? ""); },
+    fmt(value) { return String(value); },
+    tr(key) { return key; },
+  };
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(uiMotionSource, context, { filename: "hidden-sections-ui-motion-fixture.js" });
+  vm.runInContext(repoFiltersSource, context, { filename: "hidden-sections-repo-filters-fixture.js" });
+  vm.runInContext(`
+    ${page.slice(sidebarGroupStart, sidebarGroupEnd)}
+    ${page.slice(hiddenManagerStart, hiddenManagerEnd)}
+    ${page.slice(renderStart, renderEnd)}
+    globalThis.__setSidebarGroup=setSidebarGroup;
+    globalThis.__updateHiddenManager=updateHiddenManager;
+    globalThis.__renderRecentExits=renderRecentExits;
+    globalThis.__render=render;
+  `, context, { filename: "hidden-sections-runtime-fixture.js" });
+
+  return {
+    sidebar: nodes.get("filterSidebar"),
+    hiddenRepoSection: nodes.get("hiddenRepoSection"),
+    recentExitsSection: nodes.get("recentExitsSection"),
+    setGroup(group) { return context.__setSidebarGroup(group); },
+    hideRepo(slug) { context.hiddenSet = new Set([slug]); },
+    renderRecentExits(exited) { context.__renderRecentExits(exited); },
+    render() { context.__render(); },
+  };
+}
+
 function renderContractHarness(classification = { forms: [], fields: ["unclassified"] }, repos = []) {
   const start = page.indexOf("function newOnlyGate(");
   const end = page.indexOf("\n/* render */", start);
@@ -690,7 +811,7 @@ test("fine pointers expose the selected 64px compact Explore rail", () => {
   assert.match(finePointer, /\.nav-rail\{[^}]*display:flex/);
   assert.match(finePointer, /\.filter-sidebar\{[^}]*left:64px[^}]*width:min\(336px,calc\(100vw - 64px\)\)/);
   assert.match(page, /\.nav-rail\{[^}]*width:64px[^}]*height:100vh[^}]*height:100dvh/);
-  assert.match(page, /\.nav-toggle:hover,\.nav-toggle:focus-visible,[^}]*\.nav-toggle\{[^}]*background:var\(--accent-soft\)[^}]*color:var\(--accent-selected\)/);
+  assert.match(page, /\.nav-toggle:hover,\.nav-toggle:focus-visible,[^}]*\.nav-toggle\[aria-current="true"\]\{[^}]*background:var\(--accent-soft\)[^}]*color:var\(--accent-selected\)/);
 });
 
 test("hover-open sidebar stays passive and exposes non-modal dialog semantics", () => {
@@ -953,6 +1074,25 @@ test("the modal group switcher selects a group and stays out of the hover tab or
   assert.match(seg, /role="group"/);
   assert.match(seg, /data-i18n-aria-label="nav\.groups"/);
   assert.match(seg, /\bhidden\b/);
+});
+
+test("F1: recentExitsSection stays hidden outside the History group after renderRecentExits resolves, and appears on switch", () => {
+  const harness = hiddenSectionsGroupHarness();
+  harness.setGroup("explore");
+  harness.renderRecentExits([{ slug: "octocat/exited" }]);
+  assert.equal(harness.recentExitsSection.hidden, true, "recentExitsSection must stay hidden while Explore is active");
+  harness.setGroup("history");
+  assert.equal(harness.recentExitsSection.hidden, false, "switching to History must reveal the populated section");
+});
+
+test("F1: hiddenRepoSection stays hidden outside the History group after render() calls updateHiddenManager, and appears on switch", () => {
+  const harness = hiddenSectionsGroupHarness();
+  harness.setGroup("explore");
+  harness.hideRepo("octocat/hidden");
+  harness.render();
+  assert.equal(harness.hiddenRepoSection.hidden, true, "hiddenRepoSection must stay hidden while Explore is active");
+  harness.setGroup("history");
+  assert.equal(harness.hiddenRepoSection.hidden, false, "switching to History must reveal the populated section");
 });
 
 test("coarse pointers hide the rail and keep the mobile trigger visually hidden until keyboard focus", () => {

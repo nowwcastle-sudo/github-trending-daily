@@ -92,7 +92,7 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
   display:grid;place-items:center;align-content:center;gap:4px;font:inherit;font-size:10px;font-weight:650;letter-spacing:.01em;
   transition:background-color .16s ease,color .16s ease,transform .1s ease-out;
 }
-.nav-toggle:hover,.nav-toggle:focus-visible,.filter-sidebar.open~.nav-rail .nav-toggle{background:var(--accent-soft);color:var(--accent-selected)}
+.nav-toggle:hover,.nav-toggle:focus-visible,.filter-sidebar.open~.nav-rail .nav-toggle[aria-current="true"]{background:var(--accent-soft);color:var(--accent-selected)}
 .nav-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .nav-toggle:active{transform:scale(.96)}
 .nav-glyph{width:20px;height:17px;border:1.5px solid currentColor;border-radius:4px;position:relative}
@@ -1011,7 +1011,7 @@ const esc=s=>(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&g
 function repoLabel(slug){return REPOS.find(repo=>repo.slug===slug)?.name||slug}
 function updateHiddenManager(){
   const section=document.getElementById("hiddenRepoSection"),listBox=document.getElementById("hiddenRepoList");
-  const slugs=[...hiddenSet];section.hidden=!slugs.length;
+  const slugs=[...hiddenSet];section.hidden=!slugs.length||sidebar.dataset.group!=="history";
   document.getElementById("hiddenRepoCount").textContent=tr("hidden.count",{count:slugs.length});
   listBox.innerHTML=slugs.map(slug=>`<div class="hidden-repo-row"><span class="hidden-repo-name">${esc(repoLabel(slug))}</span><button class="hidden-restore" type="button" data-restore-hidden="${esc(slug)}" aria-label="${esc(tr("hidden.restoreRepo",{name:repoLabel(slug)}))}">${tr("common.restore")}</button></div>`).join("");
 }
@@ -1019,7 +1019,7 @@ let currentRecentExits=[];
 function renderRecentExits(exited=[]){
   currentRecentExits=exited;
   const section=document.getElementById("recentExitsSection"),recentExitsList=document.getElementById("recentExitsList");
-  section.hidden=!exited.length;
+  section.hidden=!exited.length||sidebar.dataset.group!=="history";
   recentExitsList.innerHTML=exited.map(item=>`<a class="recent-exit-link" href="https://github.com/${esc(item.slug)}" target="_blank" rel="noopener">${esc(repoLabel(item.slug))} ↗</a>`).join("");
 }
 function showHiddenNotice(message,{undoSlug=null,tone=""}={}){
