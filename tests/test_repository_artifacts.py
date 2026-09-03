@@ -1,6 +1,7 @@
 import hashlib
 import io
 import json
+import os
 import sqlite3
 import tempfile
 import traceback
@@ -599,6 +600,14 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
             ))
             connection.commit()
             result = derive_membership_timeline(connection, legacy, 3)
+            # The workflow passes the legacy database as a checkout-relative path.
+            previous_cwd = os.getcwd()
+            os.chdir(legacy.parent)
+            try:
+                relative = derive_membership_timeline(connection, Path(legacy.name), 3)
+            finally:
+                os.chdir(previous_cwd)
+            self.assertEqual(relative, result)
         self.assertEqual(set(result), {"version", "targetSnapshotId", "legacySnapshots", "databaseSnapshots", "current", "exited", "events"})
         self.assertEqual(result["targetSnapshotId"], target_id)
         self.assertEqual(len(result["legacySnapshots"]), 7)

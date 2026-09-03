@@ -283,7 +283,7 @@ def derive_membership_timeline(connection: sqlite3.Connection, legacy_membership
     _verify_legacy_membership(connection, path, snapshot_seq)
     legacy_snapshots = []
     legacy_events = []
-    with closing(sqlite3.connect(path.as_uri() + "?mode=ro", uri=True)) as legacy:
+    with closing(sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True)) as legacy:
         seen: set[str] = set()
         previous: set[str] = set()
         for legacy_id, generated_at, stats_date, slug_set_sha, _, _ in legacy.execute(
