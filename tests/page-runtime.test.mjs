@@ -842,27 +842,91 @@ test("README modal blocks incidental hover and yields to explicit sidebar activa
   assert.equal(harness.sidebar.dataset.openMode, "modal");
 });
 
-test("hover close starts immediately outside the combined rail and sidebar while preserving focus", () => {
+test("pointer leave defers the hover close by the exported grace and re-entry cancels it", () => {
   const harness = sidebarHarness();
-  harness.toggle.dispatch("pointerenter");
+  const [, explore] = harness.railToggles;
+  explore.dispatch("pointerenter");
   harness.sidebar.dispatch("pointerenter");
+  explore.dispatch("pointerleave", { relatedTarget: harness.sidebar });
+  assert.equal(harness.sidebar.dataset.openMode, "hover", "rail to sidebar movement must stay open");
+
+  harness.sidebar.dispatch("pointerleave", { relatedTarget: harness.outside });
+  harness.advance(499);
+  assert.equal(harness.sidebar.dataset.openMode, "hover", "the panel must survive 499 ms of the grace window");
+  harness.advance(1);
+  assert.equal(harness.sidebar.dataset.openMode, undefined, "the panel must close at 500 ms");
+  assert.equal(harness.sidebar.classList.contains("open"), false);
+  assert.equal(harness.sidebar.inert, true);
+});
+
+test("re-entering the rail or the panel inside the grace window cancels the pending close", () => {
+  for (const target of ["rail", "panel"]) {
+    const harness = sidebarHarness();
+    const [, explore] = harness.railToggles;
+    explore.dispatch("pointerenter");
+    // As in the previous test, leave the rail button for the panel first so railPointerInside
+    // is cleared like a real pointer move would; otherwise it stays stuck true and the guard
+    // blocks the timer from ever being created, making this test pass without exercising the
+    // cancellation path it claims to cover.
+    explore.dispatch("pointerleave", { relatedTarget: harness.sidebar });
+    harness.sidebar.dispatch("pointerenter");
+    harness.sidebar.dispatch("pointerleave", { relatedTarget: harness.outside });
+    harness.advance(300);
+    if (target === "rail") explore.dispatch("pointerenter");
+    else harness.sidebar.dispatch("pointerenter");
+    harness.advance(5000);
+    assert.equal(harness.sidebar.dataset.openMode, "hover", `${target} re-entry must cancel the pending close`);
+  }
+});
+
+test("focus leaving the hover panel still closes it synchronously", () => {
+  const harness = sidebarHarness();
+  const [, explore] = harness.railToggles;
+  explore.dispatch("pointerenter");
+  // Mirror a real pointer path: the mouse leaves the rail button for the panel before focus
+  // lands inside, which clears railPointerInside the way a physical pointerleave would; without
+  // this, railPointerInside stays stuck true (never reset) and the guard below always blocks the
+  // close, making the final assertion fail regardless of the close implementation.
+  explore.dispatch("pointerleave", { relatedTarget: harness.sidebar });
   harness.sidebar.focusWithin = true;
   harness.sidebar.dispatch("focusin");
-  harness.toggle.dispatch("pointerleave", { relatedTarget: harness.sidebar });
-  assert.equal(harness.sidebar.dataset.openMode, "hover", "rail to sidebar movement must stay open");
-  harness.sidebar.dispatch("pointerleave");
+  harness.sidebar.dispatch("pointerleave", { relatedTarget: harness.outside });
   assert.equal(harness.sidebar.dataset.openMode, "hover", "focus inside must keep hover mode open");
 
   harness.sidebar.focusWithin = false;
   harness.document.activeElement = harness.outside;
   harness.sidebar.dispatch("focusout", { relatedTarget: harness.outside });
-  assert.equal(harness.sidebar.dataset.openMode, undefined);
-  assert.equal(harness.sidebar.classList.contains("open"), false);
+  assert.equal(harness.sidebar.dataset.openMode, undefined, "focusout must not wait for the grace timer");
+});
 
-  harness.toggle.dispatch("pointerenter");
-  assert.equal(harness.sidebar.dataset.openMode, "hover");
-  harness.toggle.dispatch("pointerleave", { relatedTarget: harness.outside });
-  assert.equal(harness.sidebar.dataset.openMode, undefined, "outside pointerleave must not wait for a timer");
+test("upgrading to modal inside the grace window cancels the pending hover close", () => {
+  const harness = sidebarHarness();
+  const [, explore] = harness.railToggles;
+  explore.dispatch("pointerenter");
+  // The pointer leaves the rail button itself (never having entered the panel), which is what
+  // actually schedules the close timer; dispatching pointerleave on the untouched sidebar instead
+  // leaves railPointerInside stuck true, so no timer is ever created and the test below would pass
+  // vacuously regardless of whether the upgrade-to-modal path cancels anything.
+  explore.dispatch("pointerleave", { relatedTarget: harness.outside });
+  harness.advance(200);
+  explore.dispatch("click", { detail: 1 });
+  assert.equal(harness.sidebar.dataset.openMode, "modal");
+  harness.advance(5000);
+  assert.equal(harness.sidebar.dataset.openMode, "modal", "a stale hover timer must never close a modal panel");
+});
+
+// Not in the brief: added because none of the four tests above ever let a scheduled timer fire
+// while closeHoverSidebarNow's own guard is the thing keeping the panel open (every other guard
+// path is pre-empted by a cancelHoverClose() call somewhere before the timer would fire). Without
+// this test, deleting the guard re-check from closeHoverSidebarNow was not caught by the suite.
+test("a stale hover-close timer that fires while focus is inside the panel does not close it", () => {
+  const harness = sidebarHarness();
+  const [, explore] = harness.railToggles;
+  explore.dispatch("pointerenter");
+  explore.dispatch("pointerleave", { relatedTarget: harness.outside });
+  harness.sidebar.focusWithin = true;
+  harness.advance(500);
+  assert.equal(harness.sidebar.dataset.openMode, "hover", "the fired timer must re-check focus-within, not close unconditionally");
 });
 
 test("click and keyboard activation upgrade hover-open sidebar exactly once", () => {

@@ -756,6 +756,7 @@ function setSidebarGroup(group){
   return next;
 }
 function closeSidebar(restoreFocus=true){
+  cancelHoverClose();
   const mode=sidebar.dataset.openMode;if(!mode)return;
   sidebar.classList.remove("open");sidebar.setAttribute("aria-hidden","true");sidebar.inert=true;
   sidebar.removeAttribute("aria-modal");setSidebarExpandedState(false);
@@ -769,6 +770,7 @@ function closeSidebar(restoreFocus=true){
   if(typeof scheduleScrollTopUpdate==="function")scheduleScrollTopUpdate();
 }
 function openSidebar(mode,trigger,group){
+  cancelHoverClose();
   const currentMode=sidebar.dataset.openMode;
   if(currentMode==="modal"||currentMode===mode)return;
   if(mode==="hover"&&document.getElementById("tipLayer").matches(":focus-within"))return;
@@ -796,9 +798,24 @@ function sidebarOwnsTarget(target){
   if(navRail&&(target===navRail||navRail.contains(target)))return true;
   return railToggles.some(toggle=>target===toggle||toggle.contains(target));
 }
+let hoverCloseTimer=null;
+function cancelHoverClose(){if(hoverCloseTimer!==null){clearTimeout(hoverCloseTimer);hoverCloseTimer=null}}
+function hoverSidebarShouldStayOpen(relatedTarget){
+  return sidebar.dataset.openMode!=="hover"
+    ||sidebarOwnsTarget(relatedTarget)
+    ||railPointerInside
+    ||sidebarPointerInside
+    ||sidebar.matches(":focus-within")
+    ||railToggles.some(toggle=>toggle.matches(":focus"));
+}
+function closeHoverSidebarNow(relatedTarget=null){
+  if(hoverSidebarShouldStayOpen(relatedTarget))return;
+  cancelHoverClose();closeSidebar(false);
+}
 function closeHoverSidebarIfOutside(relatedTarget=null){
-  if(sidebar.dataset.openMode!=="hover"||sidebarOwnsTarget(relatedTarget))return;
-  if(!railPointerInside&&!sidebarPointerInside&&!sidebar.matches(":focus-within")&&!navToggle.matches(":focus"))closeSidebar(false);
+  if(hoverSidebarShouldStayOpen(relatedTarget))return;
+  cancelHoverClose();
+  hoverCloseTimer=setTimeout(()=>{hoverCloseTimer=null;closeHoverSidebarNow()},UiMotion.SIDEBAR_HOVER_CLOSE_DELAY_MS);
 }
 function activateSidebar(event){
   const group=UiMotion.resolveSidebarGroup(event.currentTarget?.dataset?.group);
@@ -811,18 +828,19 @@ function activateSidebar(event){
 railToggles.forEach(toggle=>{
   toggle.addEventListener("pointerenter",()=>{
     if(!sidebarHoverMedia.matches)return;
+    cancelHoverClose();
     railPointerInside=true;
     const group=UiMotion.resolveSidebarGroup(toggle.dataset.group);
     if(sidebar.dataset.openMode==="hover")setSidebarGroup(group);
     else openSidebar(UiMotion.sidebarMode({hoverCapable:true,trigger:"pointer"}),toggle,group);
   });
   toggle.addEventListener("pointerleave",event=>{railPointerInside=false;closeHoverSidebarIfOutside(event.relatedTarget)});
-  toggle.addEventListener("focusout",event=>closeHoverSidebarIfOutside(event.relatedTarget));
+  toggle.addEventListener("focusout",event=>closeHoverSidebarNow(event.relatedTarget));
   toggle.addEventListener("click",activateSidebar);
 });
-sidebar.addEventListener("pointerenter",()=>{if(sidebarHoverMedia.matches)sidebarPointerInside=true});
+sidebar.addEventListener("pointerenter",()=>{if(sidebarHoverMedia.matches){cancelHoverClose();sidebarPointerInside=true}});
 sidebar.addEventListener("pointerleave",event=>{sidebarPointerInside=false;closeHoverSidebarIfOutside(event.relatedTarget)});
-sidebar.addEventListener("focusout",event=>closeHoverSidebarIfOutside(event.relatedTarget));
+sidebar.addEventListener("focusout",event=>closeHoverSidebarNow(event.relatedTarget));
 mobileNavToggle.addEventListener("click",activateSidebar);
 sidebarGroupSegButtons.forEach(button=>button.addEventListener("click",()=>setSidebarGroup(button.dataset.group)));
 sidebarClose.addEventListener("click",()=>{
