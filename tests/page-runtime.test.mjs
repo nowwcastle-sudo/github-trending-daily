@@ -14,6 +14,13 @@ function runtimeRegion(source) {
   return source.slice(0, start) + source.slice(end);
 }
 const pageRuntime = runtimeRegion(page);
+const SIDEBAR_SECTION_GROUPS = [
+  ["refreshStatus", "account"], ["accountSection", "account"],
+  ["viewSection", "explore"], ["periodSection", "explore"], ["languageSection", "explore"],
+  ["fieldSection", "explore"], ["formSection", "explore"], ["sortSection", "explore"], ["resultSection", "explore"],
+  ["hiddenRepoSection", "history"], ["recentExitsSection", "history"],
+  ["exportSection", "export"],
+];
 
 function sidebarHarness({ hoverCapable = true } = {}) {
   const start = page.indexOf('const sidebar=document.getElementById("filterSidebar")');
@@ -39,6 +46,7 @@ function sidebarHarness({ hoverCapable = true } = {}) {
       this.classList = new ClassList();
       this.dataset = {};
       this._inert = false;
+      this.hidden = false;
       this.listeners = new Map();
       this.focusCount = 0;
       this.focusWithin = false;
@@ -101,7 +109,14 @@ function sidebarHarness({ hoverCapable = true } = {}) {
       for (let current = node; current; current = current.parentElement) if (current === this) return true;
       return Boolean(node?.withinSidebar);
     }
-    querySelectorAll() { return []; }
+    querySelectorAll(selector) {
+      // Mirrors the real DOM: the switcher buttons live inside #filterSidebar, so a descendant
+      // selector for [data-group] returns them too; only the :scope child selector returns sections alone.
+      if (this.id === "filterSidebar" && selector === ":scope > [data-group]") return sidebarSections;
+      if (this.id === "filterSidebar" && selector === "[data-group]") return [...sidebarSections, ...segButtons];
+      if (this.id === "sidebarGroupSeg" && selector === "button[data-group]") return segButtons;
+      return [];
+    }
     getBoundingClientRect() { return { width: this.width }; }
     setPointerCapture(pointerId) { this.capturedPointer = pointerId; trace.push(`${this.id}:capture:${pointerId}`); }
     hasPointerCapture(pointerId) { return this.capturedPointer === pointerId; }
@@ -118,15 +133,35 @@ function sidebarHarness({ hoverCapable = true } = {}) {
     }
   }
 
+  const sidebarSections = [
+    ["refreshStatus", "account"], ["accountSection", "account"],
+    ["viewSection", "explore"], ["fieldSection", "explore"], ["formSection", "explore"],
+    ["sortSection", "explore"], ["resultSection", "explore"],
+    ["hiddenRepoSection", "history"], ["recentExitsSection", "history"],
+    ["exportSection", "export"],
+  ].map(([id, group]) => { const node = new FakeHTMLElement(id); node.dataset.group = group; return node; });
+  const segButtons = ["account", "explore", "history", "export"].map(group => {
+    const node = new FakeHTMLElement(`seg-${group}`); node.dataset.group = group; node.tagName = "BUTTON"; return node;
+  });
   const nodes = new Map([
     ["filterSidebar", new FakeHTMLElement("filterSidebar")],
     ["sidebarScrim", new FakeHTMLElement("sidebarScrim")],
+    ["navRail", new FakeHTMLElement("navRail")],
+    ["navAccountToggle", new FakeHTMLElement("navAccountToggle")],
     ["navToggle", new FakeHTMLElement("navToggle")],
+    ["navHistoryToggle", new FakeHTMLElement("navHistoryToggle")],
+    ["navExportToggle", new FakeHTMLElement("navExportToggle")],
     ["mobileNavToggle", new FakeHTMLElement("mobileNavToggle")],
     ["sidebarClose", new FakeHTMLElement("sidebarClose")],
+    ["sidebarGroupSeg", new FakeHTMLElement("sidebarGroupSeg")],
     ["readmePanel", new FakeHTMLElement("readmePanel")],
     ["tipLayer", new FakeHTMLElement("tipLayer")],
   ]);
+  for (const [id, group] of [["navAccountToggle", "account"], ["navToggle", "explore"], ["navHistoryToggle", "history"], ["navExportToggle", "export"]]) {
+    const toggle = nodes.get(id);
+    toggle.dataset.group = group;
+    toggle.parentElement = nodes.get("navRail");
+  }
   const pageMain = new FakeHTMLElement("pageMain");
   const outside = new FakeHTMLElement("outside");
   const body = new FakeHTMLElement("body");
@@ -230,6 +265,12 @@ function sidebarHarness({ hoverCapable = true } = {}) {
     sidebar: nodes.get("filterSidebar"),
     scrim: nodes.get("sidebarScrim"),
     toggle: nodes.get("navToggle"),
+    railToggles: ["navAccountToggle", "navToggle", "navHistoryToggle", "navExportToggle"].map(id => nodes.get(id)),
+    mobileToggle: nodes.get("mobileNavToggle"),
+    groupSeg: nodes.get("sidebarGroupSeg"),
+    segButtons,
+    sections: sidebarSections,
+    sectionsFor(group) { return sidebarSections.filter(section => !section.hidden).map(section => section.id); },
     close: nodes.get("sidebarClose"),
     readme: nodes.get("readmePanel"),
     tipLayer: nodes.get("tipLayer"),
@@ -521,6 +562,7 @@ test("sidebar sections follow the approved priority and keyboard order", () => {
     "fieldSection", "formSection", "sortSection", "resultSection", "hiddenRepoSection",
     "recentExitsSection", "exportSection",
   ];
+  assert.ok(sidebar.indexOf('id="sidebarGroupSeg"') >= 0 && sidebar.indexOf('id="sidebarGroupSeg"') < sidebar.indexOf('id="refreshStatus"'), "the group switcher must precede the first section");
   let previous = -1;
   for (const id of sectionIds) {
     const position = sidebar.indexOf(`id="${id}"`);
@@ -777,6 +819,140 @@ test("hover close button restores rail focus before hiding and inerting the side
   assert.ok(focusIndex >= 0 && focusIndex < hiddenIndex && focusIndex < inertIndex);
   assert.equal(harness.document.activeElement, harness.toggle);
   assert.equal(harness.sidebar.dataset.openMode, undefined);
+});
+
+test("the rail exposes four group buttons in the approved order with complete disclosure semantics", () => {
+  const rail = page.match(/<nav class="nav-rail"[\s\S]*?<\/nav>/)?.[0] ?? "";
+  const buttons = [...rail.matchAll(/<button class="nav-toggle" id="(\w+)" type="button"([^>]*)>/g)];
+  assert.deepEqual(buttons.map(match => match[1]), ["navAccountToggle", "navToggle", "navHistoryToggle", "navExportToggle"]);
+  const expected = [
+    ["account", "nav.ariaAccount", "nav.titleAccount", "nav.account"],
+    ["explore", "nav.ariaExplore", "nav.titleExplore", "nav.explore"],
+    ["history", "nav.ariaHistory", "nav.titleHistory", "nav.history"],
+    ["export", "nav.ariaExport", "nav.titleExport", "nav.export"],
+  ];
+  buttons.forEach((match, index) => {
+    const [group, ariaKey, titleKey] = expected[index];
+    assert.match(match[2], new RegExp(`data-group="${group}"`));
+    assert.match(match[2], /aria-controls="filterSidebar"/);
+    assert.match(match[2], /aria-expanded="false"/);
+    assert.match(match[2], new RegExp(`data-i18n-aria-label="${ariaKey}"`));
+    assert.match(match[2], new RegExp(`data-i18n-title="${titleKey}"`));
+  });
+  expected.forEach(([, , , labelKey]) => assert.match(rail, new RegExp(`data-i18n="${labelKey}"`)));
+  assert.match(page, /<nav class="nav-rail" id="navRail"/);
+  assert.match(page, /\.nav-rail\{[^}]*width:64px/);
+  assert.match(page, /\.nav-toggle\{[^}]*width:48px;min-height:60px/);
+  assert.match(page, /\.nav-toggle:focus-visible\{outline:3px solid var\(--accent\);outline-offset:2px\}/);
+});
+
+test("every panel section belongs to exactly one of the four groups and no group is empty", () => {
+  const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<nav class="nav-rail"/)?.[0] ?? "";
+  const sections = [...sidebar.matchAll(/<(?:section|nav)[^>]*id="(\w+)"[^>]*data-group="(\w+)"/g)];
+  assert.deepEqual(sections.map(match => [match[1], match[2]]), SIDEBAR_SECTION_GROUPS);
+  for (const group of ["account", "explore", "history", "export"]) {
+    assert.ok(sections.some(match => match[2] === group), `${group} must own at least one section`);
+  }
+  const groupless = [...sidebar.matchAll(/<(?:section|nav)[^>]*id="(\w+)"/g)]
+    .map(match => match[1])
+    .filter(id => !SIDEBAR_SECTION_GROUPS.some(([sectionId]) => sectionId === id));
+  assert.deepEqual(groupless, [], "every panel section must declare a group");
+  assert.match(page, /\.sidebar-section\[hidden\],\.sidebar-refresh\[hidden\]/);
+  assert.match(page, /id="filterSidebar"[^>]*data-group="explore"/);
+});
+
+test("hovering a second rail button switches the group without closing the panel", () => {
+  const harness = sidebarHarness();
+  const [account, explore, history] = harness.railToggles;
+  explore.dispatch("pointerenter");
+  assert.equal(harness.sidebar.dataset.openMode, "hover");
+  assert.equal(harness.sidebar.dataset.group, "explore");
+  assert.deepEqual(harness.sectionsFor(), ["viewSection", "fieldSection", "formSection", "sortSection", "resultSection"]);
+
+  harness.trace.length = 0;
+  explore.dispatch("pointerleave", { relatedTarget: history });
+  history.dispatch("pointerenter");
+  assert.equal(harness.sidebar.dataset.openMode, "hover", "group switch must not close the panel");
+  assert.equal(harness.sidebar.dataset.group, "history");
+  assert.deepEqual(harness.sectionsFor(), ["hiddenRepoSection", "recentExitsSection"]);
+  assert.equal(harness.trace.includes("filterSidebar:inert:true"), false, "no close cycle during a group switch");
+  assert.equal(history.getAttribute("aria-current"), "true");
+  assert.equal(explore.getAttribute("aria-current"), null);
+
+  account.dispatch("pointerenter");
+  assert.equal(harness.sidebar.dataset.group, "account");
+  assert.deepEqual(harness.sectionsFor(), ["refreshStatus", "accountSection"]);
+});
+
+test("an unknown data-group on a rail button falls back to explore", () => {
+  const harness = sidebarHarness();
+  const rogue = harness.railToggles[2];
+  rogue.dataset.group = "filters";
+  rogue.dispatch("pointerenter");
+  assert.equal(harness.sidebar.dataset.group, "explore");
+  assert.deepEqual(harness.sectionsFor(), ["viewSection", "fieldSection", "formSection", "sortSection", "resultSection"]);
+});
+
+test("keyboard activation opens that group modally and restores focus to the button that opened it", () => {
+  for (const [index, group, sections] of [
+    [0, "account", ["refreshStatus", "accountSection"]],
+    [2, "history", ["hiddenRepoSection", "recentExitsSection"]],
+    [3, "export", ["exportSection"]],
+  ]) {
+    const harness = sidebarHarness();
+    const toggle = harness.railToggles[index];
+    toggle.focus();
+    toggle.dispatch("click", { detail: 0 });
+    assert.equal(harness.sidebar.dataset.openMode, "modal", `${group} keyboard activation must open modal`);
+    assert.equal(harness.sidebar.dataset.group, group);
+    assert.deepEqual(harness.sectionsFor(), sections);
+    assert.equal(harness.groupSeg.hidden, false, "modal mode exposes the group switcher");
+    assert.equal(harness.close.focusCount, 1);
+    assert.equal(harness.pageMain.inert, true);
+    assert.equal(harness.scrim.classList.contains("on"), true);
+
+    harness.document.dispatch("keydown", { key: "Escape" });
+    assert.equal(harness.sidebar.dataset.openMode, undefined);
+    assert.equal(harness.document.activeElement, toggle, `${group} close must restore focus to its own rail button`);
+    assert.equal(harness.groupSeg.hidden, true, "the switcher leaves the tab order when the panel closes");
+  }
+});
+
+test("clicking a different rail button while modal switches the group instead of closing", () => {
+  const harness = sidebarHarness();
+  const [account, , history] = harness.railToggles;
+  account.dispatch("click", { detail: 1 });
+  assert.equal(harness.sidebar.dataset.openMode, "modal");
+  assert.equal(harness.sidebar.dataset.group, "account");
+
+  history.dispatch("click", { detail: 1 });
+  assert.equal(harness.sidebar.dataset.openMode, "modal", "a different group must not close the panel");
+  assert.equal(harness.sidebar.dataset.group, "history");
+
+  history.dispatch("click", { detail: 1 });
+  assert.equal(harness.sidebar.dataset.openMode, undefined, "the same group toggles closed");
+  assert.equal(harness.document.activeElement, history);
+});
+
+test("the modal group switcher selects a group and stays out of the hover tab order", () => {
+  const harness = sidebarHarness();
+  harness.railToggles[1].dispatch("pointerenter");
+  assert.equal(harness.groupSeg.hidden, true, "hover mode keeps the switcher hidden");
+
+  harness.mobileToggle.dispatch("click", { detail: 1 });
+  assert.equal(harness.sidebar.dataset.openMode, "modal");
+  assert.equal(harness.groupSeg.hidden, false);
+  assert.deepEqual(harness.segButtons.map(button => button.getAttribute("aria-pressed")), ["false", "true", "false", "false"]);
+
+  harness.segButtons[3].dispatch("click", { detail: 1 });
+  assert.equal(harness.sidebar.dataset.group, "export");
+  assert.equal(harness.sidebar.dataset.openMode, "modal", "the switcher must not close the panel");
+  assert.deepEqual(harness.segButtons.map(button => button.getAttribute("aria-pressed")), ["false", "false", "false", "true"]);
+  assert.deepEqual(harness.segButtons.map(button => button.hidden), [false, false, false, false], "a group switch must never hide the switcher's own buttons");
+  const seg = page.match(/<div class="seg sidebar-group-seg" id="sidebarGroupSeg"[^>]*>/)?.[0] ?? "";
+  assert.match(seg, /role="group"/);
+  assert.match(seg, /data-i18n-aria-label="nav\.groups"/);
+  assert.match(seg, /\bhidden\b/);
 });
 
 test("coarse pointers hide the rail and keep the mobile trigger visually hidden until keyboard focus", () => {
@@ -1143,7 +1319,7 @@ test("the selected compact Explore rail stays reachable and outside the inert pa
   assert.ok(sidebarIndex >= 0 && sidebarIndex < navIndex && navIndex < scrimIndex && scrimIndex < mainIndex);
   const main = page.match(/<main class="wrap">([\s\S]*?)<\/main>/)?.[1] ?? "";
   assert.doesNotMatch(main, /id="navToggle"/);
-  assert.match(page, /<nav class="nav-rail"[^>]*aria-label="Quick navigation"[^>]*data-i18n-aria-label="nav\.quick">[\s\S]*?class="nav-toggle" id="navToggle"[^>]*aria-label="Open Explore sidebar"[^>]*data-i18n-aria-label="nav\.open"[^>]*aria-controls="filterSidebar"[^>]*aria-expanded="false"/);
+  assert.match(page, /<nav class="nav-rail"[^>]*aria-label="Quick navigation"[^>]*data-i18n-aria-label="nav\.quick">[\s\S]*?class="nav-toggle" id="navToggle"[^>]*aria-label="Explore panel"[^>]*data-i18n-aria-label="nav\.ariaExplore"[^>]*aria-controls="filterSidebar"[^>]*aria-expanded="false"/);
   assert.match(page, /id="navToggle"[\s\S]*?<span class="nav-glyph" aria-hidden="true"><\/span>[\s\S]*?<span class="nav-label" data-i18n="nav\.explore">Explore<\/span>/);
   assert.match(page, /--sidebar-width:min\(360px,calc\(100vw - 44px\)\)/);
   assert.match(page, /\.filter-sidebar\{[\s\S]*?width:var\(--sidebar-width\)/);
@@ -1154,10 +1330,11 @@ test("the selected compact Explore rail stays reachable and outside the inert pa
   assert.match(page, /@media\(max-width:560px\)\{[\s\S]*?h1\{white-space:normal;overflow-wrap:anywhere\}/);
   assert.match(page, /\.repo-link\{[^}]*min-width:0[^}]*overflow-wrap:anywhere[^}]*word-break:break-word/);
   assert.match(page, /@media\(max-width:560px\)\{[\s\S]*?\.undo-bar\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}[\s\S]*?\.undo-bar span\{grid-column:1\/-1;min-width:0\}/);
-  assert.match(page, /setSidebarTriggerState\(tr\("nav\.close"\),true\)/);
-  assert.match(page, /setSidebarTriggerState\(tr\("nav\.open"\),false\)/);
-  assert.match(page, /navToggle\.addEventListener\("pointerenter"/);
-  assert.match(page, /navToggle\.addEventListener\("click",activateSidebar\)/);
+  assert.match(page, /setSidebarExpandedState\(true\)/);
+  assert.match(page, /setSidebarExpandedState\(false\)/);
+  assert.doesNotMatch(page, /setSidebarTriggerState\(/);
+  assert.match(page, /toggle\.addEventListener\("pointerenter"/);
+  assert.match(page, /toggle\.addEventListener\("click",activateSidebar\)/);
   assert.doesNotMatch(page, /navToggle\.addEventListener\("keydown"/);
   assert.match(page, /trigger:event\.detail===0\?"keyboard":"click"/);
   assert.match(page, /if\(readme\.classList\.contains\("open"\)\)[\s\S]*?closeReadme\(false\)/);
