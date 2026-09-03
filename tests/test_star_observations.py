@@ -58,6 +58,14 @@ def ui_repo(index, *, slug=None, date="2026-08-22", stars=None):
     }
 
 
+def held_repo(index, *, slug=None, date="2026-08-22"):
+    repo = ui_repo(index, slug=slug, date=date)
+    repo["summary"] = None
+    repo["detail"] = None
+    repo["summary_status"] = "held"
+    return repo
+
+
 def repo_page(repos):
     return (
         "before\n"
@@ -114,6 +122,20 @@ class RepositoryParserTests(unittest.TestCase):
             with self.subTest(page=page[:80]):
                 with self.assertRaises(ValueError):
                     parse_repositories(page)
+
+    def test_accepts_a_held_repository_with_no_summary(self):
+        repos = [ui_repo(index) for index in range(9)] + [held_repo(9)]
+
+        parsed = parse_repositories(repo_page(repos))
+
+        self.assertEqual(len(parsed), 10)
+        self.assertEqual(parsed[9], RepositoryObservation("owner/repo-9", "2026-08-22", 109))
+
+    def test_rejects_a_null_summary_without_the_held_status(self):
+        repos = [ui_repo(index) for index in range(9)] + [{**held_repo(9), "summary_status": None}]
+
+        with self.assertRaisesRegex(ValueError, "Invalid full UI schema"):
+            parse_repositories(repo_page(repos))
 
 
 class LegacyParserTests(unittest.TestCase):

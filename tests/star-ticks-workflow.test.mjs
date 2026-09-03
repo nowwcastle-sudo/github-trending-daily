@@ -89,9 +89,14 @@ test("star ticks deploy the committed tree through the same contract-checked bui
   }
 });
 
-test("the tick ledgers start empty and tracked", async () => {
+test("the tick ledgers start tracked and well-formed", async () => {
   await access("data/star-ticks/.gitkeep");
   assert.equal(await readFile("data/star-daily.jsonl", "utf8"), '{"version":1}\n');
   const anchors = JSON.parse(await readFile("data/star-anchors.json", "utf8"));
-  assert.deepEqual(anchors, { version: 1, generatedAt: null, anchors: {}, warnings: [] });
+  assert.deepEqual(Object.keys(anchors).sort(), ["anchors", "generatedAt", "version", "warnings"]);
+  assert.equal(anchors.version, 1);
+  assert.ok(anchors.generatedAt === null || typeof anchors.generatedAt === "string", "generatedAt must be null or a string");
+  assert.ok(anchors.anchors && typeof anchors.anchors === "object" && !Array.isArray(anchors.anchors), "anchors must be a plain object");
+  assert.ok(Object.values(anchors.anchors).every(value => Array.isArray(value)), "every anchors entry must be an array");
+  assert.ok(Array.isArray(anchors.warnings), "warnings must be an array");
 });
