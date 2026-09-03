@@ -857,6 +857,9 @@ test("pointer leave defers the hover close by the exported grace and re-entry ca
   assert.equal(harness.sidebar.dataset.openMode, undefined, "the panel must close at 500 ms");
   assert.equal(harness.sidebar.classList.contains("open"), false);
   assert.equal(harness.sidebar.inert, true);
+
+  explore.dispatch("pointerenter");
+  assert.equal(harness.sidebar.dataset.openMode, "hover", "a later pointerenter must reopen in hover mode");
 });
 
 test("re-entering the rail or the panel inside the grace window cancels the pending close", () => {
@@ -877,6 +880,38 @@ test("re-entering the rail or the panel inside the grace window cancels the pend
     harness.advance(5000);
     assert.equal(harness.sidebar.dataset.openMode, "hover", `${target} re-entry must cancel the pending close`);
   }
+});
+
+test("a stale hover-close timer never fires after the pointer returns to the rail or the panel", () => {
+  for (const target of ["rail", "panel"]) {
+    const harness = sidebarHarness();
+    const [account, explore] = harness.railToggles;
+    const navRail = explore.parentElement;
+    account.dispatch("pointerenter");
+    account.dispatch("pointerleave", { relatedTarget: harness.outside });
+    harness.advance(300);
+    if (target === "rail") {
+      explore.dispatch("pointerenter");
+      harness.advance(100);
+      explore.dispatch("pointerleave", { relatedTarget: navRail });
+    } else {
+      harness.sidebar.dispatch("pointerenter");
+      harness.advance(100);
+      harness.sidebar.dispatch("pointerleave", { relatedTarget: navRail });
+    }
+    harness.advance(5000);
+    assert.equal(harness.sidebar.dataset.openMode, "hover", `${target} re-entry must cancel the close scheduled before it`);
+  }
+});
+
+test("a focused rail button keeps the hover panel through the grace window", () => {
+  const harness = sidebarHarness();
+  const [account, explore] = harness.railToggles;
+  explore.dispatch("pointerenter");
+  explore.dispatch("pointerleave", { relatedTarget: harness.outside });
+  harness.document.activeElement = account;
+  harness.advance(5000);
+  assert.equal(harness.sidebar.dataset.openMode, "hover", "any focused rail button must hold the panel open");
 });
 
 test("focus leaving the hover panel still closes it synchronously", () => {
