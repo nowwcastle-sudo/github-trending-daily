@@ -873,6 +873,16 @@ test("tooltip renders the fixed held copy instead of a summary for held reposito
   assert.match(i18n, /"tooltip\.held":"요약 검증 중입니다/);
 });
 
+test("a held repository tooltip states that a retry is scheduled", () => {
+  const tip = page.match(/function tipHTML\(r,locale=resolveSummaryLocale\(r\)\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  const held = tip.match(/if\(r\.summary_status==="held"\)return `[^`]*`/)?.[0] ?? "";
+  assert.match(held, /tr\("tooltip\.held"\)/);
+  assert.match(held, /tr\("tooltip\.heldRetry"\)/);
+  assert.ok(held.indexOf('tr("tooltip.held")') < held.indexOf('tr("tooltip.heldRetry")'), "the retry note follows the held notice");
+  assert.match(held, /class="thint tip-held-retry"/);
+  assert.doesNotMatch(held, /new Date|toISOString|refreshAt/, "the retry note must not compute a time");
+});
+
 test("tipHTML executes the held branch and the summary branch from the real page source", () => {
   const start = page.indexOf("const SUMMARY_LOCALES=");
   const tipStart = page.indexOf("function tipHTML(");

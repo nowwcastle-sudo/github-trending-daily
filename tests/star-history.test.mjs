@@ -103,6 +103,37 @@ test("historyHtml uses fixed copy and never interpolates the slug", () => {
   assert.doesNotMatch(html, /<img|onerror|alert/);
 });
 
+test("the explanation names the first observation time once observations exist", () => {
+  const entry = {
+    slug: "owner/repo",
+    anchors: [{ at: "2026-08-04T00:00:00Z", stars: 100, source: "github_trending_gain_monthly" }],
+    observed: [
+      { at: "2026-09-03T11:58:00Z", stars: 300, source: "github_rest" },
+      { at: "2026-09-03T12:28:00Z", stars: 305, source: "github_rest" },
+    ],
+  };
+  const html = StarHistory.historyHtml("owner/repo", entry);
+  assert.match(html, /관측 시작 2026-09-03 11:58 UTC/);
+  assert.equal([...html.matchAll(/관측 시작 2026-09-03/g)].length, 1);
+  assert.match(html, /<svg/);
+
+  const single = StarHistory.historyHtml("owner/repo", { slug: "owner/repo", anchors: [], observed: [entry.observed[0]] });
+  assert.match(single, /관측 1회/);
+  assert.match(single, /관측 시작 2026-09-03 11:58 UTC/);
+
+  const anchorsOnly = StarHistory.historyHtml("owner/repo", {
+    slug: "owner/repo",
+    anchors: [
+      { at: "2026-08-04T00:00:00Z", stars: 100, source: "github_trending_gain_monthly" },
+      { at: "2026-08-27T00:00:00Z", stars: 200, source: "github_trending_gain_weekly" },
+    ],
+    observed: [],
+  });
+  assert.doesNotMatch(anchorsOnly, /관측 시작 2/, "anchors alone must not claim an observation start");
+
+  assert.equal(StarHistory.historyHtml("owner/repo", { slug: "owner/repo", anchors: [], observed: [] }), '<p class="histnote">📈 관측 시작 대기</p>');
+});
+
 test("load fetches once and returns a normalized map", async () => {
   let requests = 0;
   const map = await StarHistory.load("star-history.json", async url => {

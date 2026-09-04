@@ -17,6 +17,7 @@
   const MAX_OBSERVED = 2000;
   const GAP_MS = 36 * 60 * 60 * 1000;
   const EXPLANATION = "이 사이트가 직접 관측한 총 스타(30분 간격) · 점선은 GitHub Trending 기간 집계로 역산한 앵커";
+  const OBSERVED_SINCE_PREFIX = "관측 시작 ";
 
   function validTime(value) {
     if (typeof value !== "string" || !TIME_RE.test(value)) return false;
@@ -139,12 +140,19 @@
     return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="스타 추이">${parts.join("")}</svg>`;
   }
 
+  function observedStartLabel(points) {
+    const first = points.find(point => point.kind === "observed");
+    return first ? `${OBSERVED_SINCE_PREFIX}${first.at.slice(0, 10)} ${first.at.slice(11, 16)} UTC` : "";
+  }
+
   function historyHtml(slug, entry) {
     const points = displayPoints(entry);
     const observedCount = points.filter(point => point.kind === "observed").length;
     if (points.length === 0 || (observedCount === 0 && points.length < 2)) return '<p class="histnote">📈 관측 시작 대기</p>';
-    if (points.length === 1) return `<p class="histnote">📈 관측 1회 · ${EXPLANATION}</p>`;
-    return `<p class="histnote">📈 스타 히스토리</p>${sparkline(points)}<p class="histnote">${EXPLANATION}</p>`;
+    const since = observedStartLabel(points);
+    const explanation = since ? `${EXPLANATION} · ${since}` : EXPLANATION;
+    if (points.length === 1) return `<p class="histnote">📈 관측 1회 · ${explanation}</p>`;
+    return `<p class="histnote">📈 스타 히스토리</p>${sparkline(points)}<p class="histnote">${explanation}</p>`;
   }
 
   async function load(url, fetchImpl) {
