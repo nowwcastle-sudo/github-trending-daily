@@ -240,6 +240,8 @@ class AtomFeedTests(unittest.TestCase):
         self.assertEqual(tuple_entries(self.changes), LEGACY_TUPLES)
 
     def test_held_repository_without_description_falls_back_to_its_name(self):
+        from scripts.generate_atom_feeds import HELD_SUMMARY_PREFIX
+
         latest = copy.deepcopy(self.latest)
         latest["repos"][0]["description"] = ""
         latest["repos"][0]["summary"] = None
@@ -247,7 +249,25 @@ class AtomFeedTests(unittest.TestCase):
         page = page_payload(latest)
         self.assertTrue(generate_atom_feeds_from_timeline(page, latest, self.timeline, self.feed, self.changes))
         summaries = [entry.findtext("atom:summary", namespaces=ATOM) for entry in entries(self.feed)]
-        self.assertEqual(summaries[0], latest["repos"][0]["name"])
+        self.assertEqual(summaries[0], f"{HELD_SUMMARY_PREFIX}{latest['repos'][0]['name']}")
+        self.assertEqual(
+            validate_atom_publication_from_timeline(page, latest, self.timeline, self.feed, self.changes),
+            {"current": 10, "changes": 10},
+        )
+
+    def test_held_repositories_are_marked_in_the_current_feed_summary(self):
+        from scripts.generate_atom_feeds import HELD_SUMMARY_PREFIX, _current_summary
+
+        self.assertEqual(HELD_SUMMARY_PREFIX, "[요약 검증 중] ")
+        held_with_description = {"summary_status": "held", "description": "  A held project  ", "name": "owner/repo", "summary": None}
+        held_without_description = {"summary_status": "held", "description": "", "name": "owner/repo", "summary": None}
+        verified = {"summary_status": "verified", "description": "A verified project", "name": "owner/repo", "summary": {"goal": "goal"}}
+        verified_without_description = {"summary_status": "verified", "description": "", "name": "owner/repo", "summary": {"goal": "goal text"}}
+
+        self.assertEqual(_current_summary(held_with_description), "[요약 검증 중] A held project")
+        self.assertEqual(_current_summary(held_without_description), "[요약 검증 중] owner/repo")
+        self.assertEqual(_current_summary(verified), "A verified project")
+        self.assertEqual(_current_summary(verified_without_description), "goal text")
 
     def test_database_events_sort_ahead_of_legacy_and_one_final_cap_is_applied(self):
         value = copy.deepcopy(self.timeline)
@@ -435,6 +455,15 @@ class AtomFeedTests(unittest.TestCase):
         self.assertIn('"--legacy-membership-database"', source)
         self.assertNotIn('"--status"', source)
         self.assertNotIn("record_trending_membership", source)
+
+    def test_feed_documents_carry_the_github_insight_name(self):
+        source = (Path(__file__).resolve().parents[1] / "scripts" / "generate_atom_feeds.py").read_text(encoding="utf-8")
+        self.assertIn('"GITHUB INSIGHT — Current repositories"', source)
+        self.assertIn('"GITHUB INSIGHT — New and re-entered repositories"', source)
+        self.assertIn('"GITHUB INSIGHT"', source)
+        self.assertNotIn("GitHub Trending Daily", source)
+        self.assertNotIn("현재 전체", source)
+        self.assertNotIn("신규·재진입", source)
 
 
 if __name__ == "__main__":

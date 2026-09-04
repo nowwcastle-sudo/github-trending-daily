@@ -121,6 +121,17 @@ def _complete_summary(repo: dict) -> bool:
     )
 
 
+def _held_repository(repo: dict) -> bool:
+    """A repository whose summary admission is held back: no summary yet, but otherwise valid."""
+    return (
+        repo.get("summary_status") == "held"
+        and repo.get("summary") is None
+        and repo.get("detail") is None
+        and isinstance(repo.get("held_reason"), str)
+        and repo["held_reason"]
+    )
+
+
 def parse_repositories(page: str) -> list[RepositoryObservation]:
     """Parse the exact generated REPOS region and validate the complete UI boundary."""
     repos = _load_json(_marked_repositories(page))
@@ -149,7 +160,7 @@ def parse_repositories(page: str) -> list[RepositoryObservation]:
             and _valid_text(repo.get("lang"))
             and _valid_text(repo.get("color"))
             and all(_valid_count(repo.get(field)) for field in ("stars", "forks", "issues", "contributors"))
-            and _complete_summary(repo)
+            and (_complete_summary(repo) or _held_repository(repo))
         ):
             raise ValueError(f"Invalid full UI schema for {slug}")
         gains = [repo[field] for field in PERIOD_FIELDS if field in repo]

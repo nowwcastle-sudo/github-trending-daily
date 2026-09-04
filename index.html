@@ -3,9 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GitHub Trending — Insight Dashboard</title>
-<link rel="alternate" type="application/atom+xml" title="GitHub Trending Daily — Current repositories" href="https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml">
-<link rel="alternate" type="application/atom+xml" title="GitHub Trending Daily — New and re-entered repositories" href="https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.gstatic.com https://www.google.com https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://api.github.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://content-firebaseappcheck.googleapis.com https://www.google.com; frame-src https://github-trending-nowwcastle.firebaseapp.com https://www.google.com https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>GITHUB INSIGHT</title>
+<link rel="alternate" type="application/atom+xml" title="GITHUB INSIGHT — Current repositories" href="https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml">
+<link rel="alternate" type="application/atom+xml" title="GITHUB INSIGHT — New and re-entered repositories" href="https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml">
 <style>:root{
   --sidebar-width:min(360px,calc(100vw - 44px));
   --sidebar-open-duration:260ms;--sidebar-close-duration:210ms;--tooltip-duration:160ms;
@@ -47,6 +48,10 @@ body{
 *{scrollbar-color:var(--text-3) transparent;scrollbar-width:thin}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .wrap{max-width:1020px;margin:0 auto;padding:48px 24px 96px}
+/* L2 (re-review 1): the <main> last-resort focus-restore rung (restoreSidebarFocus) gives .wrap a
+   temporary tabindex="-1" so it can take focus when no opener can; suppress the UA default ring on
+   that programmatic focus the same way any other skip-target would. */
+.wrap[tabindex="-1"]:focus{outline:none}
 
 /* ── Header ─────────────────────────── */
 header{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:16px;margin-bottom:8px}
@@ -92,17 +97,35 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
   display:grid;place-items:center;align-content:center;gap:4px;font:inherit;font-size:10px;font-weight:650;letter-spacing:.01em;
   transition:background-color .16s ease,color .16s ease,transform .1s ease-out;
 }
-.nav-toggle:hover,.nav-toggle:focus-visible,.filter-sidebar.open~.nav-rail .nav-toggle{background:var(--accent-soft);color:var(--accent-selected)}
+.nav-toggle:hover,.nav-toggle:focus-visible,.filter-sidebar.open~.nav-rail .nav-toggle[aria-current="true"]{background:var(--accent-soft);color:var(--accent-selected)}
 .nav-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .nav-toggle:active{transform:scale(.96)}
 .nav-glyph{width:20px;height:17px;border:1.5px solid currentColor;border-radius:4px;position:relative}
 .nav-glyph::before{content:"";position:absolute;left:6px;top:0;bottom:0;border-left:1.5px solid currentColor}
+.nav-glyph-user{width:20px;height:17px;position:relative}
+.nav-glyph-user::before{content:"";position:absolute;left:6px;top:0;width:8px;height:8px;border:1.5px solid currentColor;border-radius:99px}
+.nav-glyph-user::after{content:"";position:absolute;left:2px;bottom:0;width:16px;height:7px;border:1.5px solid currentColor;border-bottom:0;border-radius:8px 8px 0 0}
+.nav-glyph-clock{width:17px;height:17px;border:1.5px solid currentColor;border-radius:99px;position:relative}
+.nav-glyph-clock::before{content:"";position:absolute;left:7px;top:3px;width:1.5px;height:6px;background:currentColor}
+.nav-glyph-clock::after{content:"";position:absolute;left:7px;top:7.5px;width:5px;height:1.5px;background:currentColor}
+.nav-glyph-export{width:20px;height:17px;border:1.5px solid currentColor;border-radius:4px;position:relative}
+.nav-glyph-export::before{content:"";position:absolute;left:8.25px;top:3px;width:1.5px;height:8px;background:currentColor}
+.nav-glyph-export::after{content:"";position:absolute;left:6px;top:3px;width:6px;height:6px;border-left:1.5px solid currentColor;border-top:1.5px solid currentColor;transform:rotate(45deg);transform-origin:center}
 .nav-label{line-height:1}
 .nav-rail-spacer{flex:1}
 .nav-rail .filter-count{min-width:20px;padding:2px 6px;font-size:10px;line-height:14px;text-align:center}
 .mobile-nav-toggle{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .mobile-nav-toggle .nav-glyph{width:18px;height:15px}
 .mobile-nav-toggle:focus-visible{position:fixed;z-index:340;top:max(calc(env(safe-area-inset-top) + 12px),12px);right:max(calc(env(safe-area-inset-right) + 12px),12px);width:auto;height:auto;min-width:44px;min-height:44px;margin:0;overflow:visible;clip:auto;white-space:normal;display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--border);border-radius:11px;background:var(--control-solid);color:var(--text);padding:8px 10px;font:inherit;font-size:12px;font-weight:650;cursor:pointer;outline:3px solid var(--accent);outline-offset:2px}
+/* Wherever the rail is unavailable — narrow window OR coarse/hoverless pointer — #mobileNavToggle
+   stops being a keyboard skip link and becomes the real 44px header opener. The condition is the
+   same list as sidebarMobileAccessMedia, which already grants it tabindex/inert access, so the
+   only visible opener and the only operable opener are always the same element. Above it the rail
+   is visible and the toggle stays a skip link. */
+@media(max-width:720px),(hover:none),(pointer:coarse){
+  .mobile-nav-toggle,.mobile-nav-toggle:focus-visible{position:static;top:auto;right:auto;z-index:auto;width:auto;height:auto;min-width:44px;min-height:44px;margin:0;overflow:visible;clip:auto;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--border);border-radius:11px;background:var(--bg-elev);color:var(--text);padding:8px 10px;font:inherit;font-size:12px;font-weight:650;cursor:pointer}
+  .mobile-nav-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+}
 .sidebar-close svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round}
 .filter-count{min-width:20px;padding:2px 6px;border-radius:99px;background:var(--accent-soft);color:var(--accent-selected);font-size:11px;font-variant-numeric:tabular-nums}
 .filter-count:empty{display:none}
@@ -185,9 +208,6 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .filter-chip:hover{border-color:var(--accent);color:var(--accent)}
 .filter-chip:active{transform:scale(.97)}
 .filter-chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
-.filter-switch{display:flex;align-items:center;gap:9px;min-height:44px;color:var(--text);font-size:13px;font-weight:600;cursor:pointer}
-.filter-switch input{width:18px;height:18px;accent-color:var(--accent)}
-.filter-switch-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr));gap:8px;border:0;margin:0;padding:0;min-inline-size:0}
 .clear-filters{border-color:var(--border);text-align:center;color:var(--text-2)}
 .filter-summary{color:var(--text-2);font-size:12px;line-height:1.45}
 #sidebarScrim{position:fixed;inset:0;z-index:310;background:rgba(0,0,0,.34);opacity:0;pointer-events:none;transition:opacity .24s ease-out}
@@ -209,6 +229,9 @@ body.overlay-open{overflow:hidden}
   -webkit-user-select:none;user-select:none;
 }
 .seg button[aria-pressed="true"]{color:var(--seg-text);font-weight:600}
+.sidebar-group-seg{margin-bottom:4px}
+.sidebar-group-seg button[aria-pressed="true"]{background:var(--seg-thumb);border-radius:8px;box-shadow:var(--shadow-card)}
+.nav-toggle[aria-current="true"]{background:var(--accent-soft);color:var(--accent-selected)}
 .search{
   width:100%;min-width:0;background:var(--bg-elev);backdrop-filter:blur(20px) saturate(180%);
   border:1px solid var(--border);border-radius:10px;padding:9px 14px 9px 36px;font:inherit;font-size:14px;
@@ -224,6 +247,20 @@ body.overlay-open{overflow:hidden}
 }
 .langsel option{background:var(--control-solid);color:var(--text)}
 .langsel:focus{border-color:var(--accent);box-shadow:0 0 0 3.5px var(--accent-soft)}
+.filter-bar{display:flex;flex-direction:column;gap:16px;margin-top:18px}
+.filter-bar-row{display:flex;gap:16px;flex-wrap:wrap}
+.filter-bar-row>*{flex:1 1 calc(50% - 8px);max-width:calc(50% - 8px);min-width:0}
+.filter-bar-row-3>*{flex:1 1 calc((100% - 32px)/3);max-width:calc((100% - 32px)/3)}
+.filter-bar-status{color:var(--text-2);font-size:11.5px;line-height:1.45;min-height:1.45em}
+.filter-bar-status[data-tone="success"]{color:var(--accent-selected)}
+.filter-bar-status[data-tone="error"]{color:var(--hot)}
+@media(max-width:600px){.filter-bar-row>*,.filter-bar-row-3>*{flex:1 1 100%;max-width:100%}}
+@media(max-width:760px){.filter-bar .seg button{padding-inline:8px;font-size:12.5px}}
+.filter-toggle{min-height:44px;padding:0 14px;border:1px solid var(--surface-border);border-radius:11px;background:var(--control-solid);color:var(--text);font:inherit;font-size:13px;font-weight:650;cursor:pointer;overflow-wrap:anywhere}
+.filter-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.filter-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.filter-toggle:active{transform:scale(.98)}
+.filter-toggle[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-selected);border-color:var(--accent)}
 .signal-guide{display:flex;align-items:flex-start;gap:14px;padding:10px 2px 8px;margin-top:4px;
   border-bottom:1px solid var(--hairline);color:var(--text-2);font-size:12.5px;line-height:1.45}
 .signal-guide>strong{flex-shrink:0;color:var(--text);font-size:12.5px;padding-top:2px}
@@ -332,7 +369,7 @@ body.overlay-open{overflow:hidden}
 .scroll-top:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .scroll-top svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .scroll-top[hidden]{display:none}
-.sidebar-section[hidden],.undo-bar[hidden],.empty button[hidden]{display:none}
+.sidebar-section[hidden],.sidebar-refresh[hidden],.sidebar-group-seg[hidden],.undo-bar[hidden],.empty button[hidden]{display:none}
 footer{margin-top:56px;text-align:center;color:var(--text-3);font-size:12.5px;line-height:1.8}
 footer a{color:var(--text-2)}
 
@@ -444,19 +481,25 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 
 </head>
 <body>
-<div class="filter-sidebar" id="filterSidebar" role="dialog" aria-label="Explore sidebar" data-i18n-aria-label="nav.open" aria-hidden="true" inert>
+<div class="filter-sidebar" id="filterSidebar" role="dialog" aria-label="Explore panel" data-i18n-aria-label="nav.ariaExplore" aria-hidden="true" inert data-group="explore">
   <div class="sidebar-head">
     <h2 data-i18n="sidebar.title">Dashboard menu</h2>
-    <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close Explore sidebar" data-i18n-aria-label="sidebar.close">
+    <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close panel" data-i18n-aria-label="sidebar.close">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
   </div>
-  <section id="refreshStatus" class="sidebar-refresh" role="status" aria-live="polite" aria-atomic="true">
+  <div class="seg sidebar-group-seg" id="sidebarGroupSeg" role="group" aria-label="Panel section" data-i18n-aria-label="nav.groups" hidden>
+    <button type="button" data-group="account" aria-pressed="false" data-i18n="nav.account">Login</button>
+    <button type="button" data-group="explore" aria-pressed="true" data-i18n="nav.explore">Explore</button>
+    <button type="button" data-group="history" aria-pressed="false" data-i18n="nav.history">History</button>
+    <button type="button" data-group="export" aria-pressed="false" data-i18n="nav.export">Export</button>
+  </div>
+  <section id="refreshStatus" class="sidebar-refresh" role="status" aria-live="polite" aria-atomic="true" data-group="account">
     <p id="luLast" data-i18n="refresh.loading">Last refreshed: loading…</p>
     <p id="luNext" data-i18n="refresh.next">Next refresh: —</p>
     <p id="luCadence" data-i18n="refresh.cadence">Refreshes every 2 hours</p>
   </section>
-  <section class="sidebar-section" id="accountSection" aria-labelledby="accountTitle">
+  <section class="sidebar-section" id="accountSection" aria-labelledby="accountTitle" data-group="account">
     <h3 id="accountTitle" data-i18n="account.title">Account and sync</h3>
     <div class="account-controls">
       <p id="syncStatus" class="sync-status" role="status" aria-live="polite" title="Preparing sign-in." data-i18n-title="account.preparing" aria-label="Browser sync. Preparing sign-in." data-tone="notice" data-i18n="account.preparing">Preparing sign-in.</p>
@@ -464,40 +507,21 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
       <button id="logoutBtn" class="account-btn" type="button" hidden disabled data-i18n="account.logout">Sign out</button>
     </div>
   </section>
-  <nav class="sidebar-section sidebar-nav" id="viewSection" aria-label="Repository view" data-i18n-aria-label="view.aria">
+  <nav class="sidebar-section sidebar-nav" id="viewSection" aria-label="Repository view" data-i18n-aria-label="view.aria" data-group="explore">
     <h3 data-i18n="view.title">My list</h3>
     <button id="allReposBtn" type="button" aria-pressed="true" data-i18n="view.all">All repositories</button>
     <button id="favOnlyBtn" type="button" aria-pressed="false" data-i18n="view.favorites">Favorites</button>
   </nav>
-  <section class="sidebar-section" id="periodSection" aria-labelledby="periodTitle">
-    <h3 id="periodTitle" data-i18n="period.title">Period</h3>
-    <div class="seg" id="periodSeg" role="group" aria-label="Period filter" data-i18n-aria-label="period.aria">
-      <span class="seg-thumb" id="segThumb"></span>
-      <button data-period="all" aria-pressed="true" data-i18n="period.all">All</button>
-      <button data-period="daily" aria-pressed="false" data-i18n="period.daily">Daily</button>
-      <button data-period="weekly" aria-pressed="false" data-i18n="period.weekly">Weekly</button>
-      <button data-period="monthly" aria-pressed="false" data-i18n="period.monthly">Monthly</button>
-    </div>
-  </section>
-  <section class="sidebar-section" id="languageSection" aria-labelledby="languageTitle">
-    <h3 id="languageTitle" data-i18n="language.title">Programming language</h3>
-    <select class="langsel" id="lang" aria-label="Programming language" data-i18n-aria-label="language.title"><option value="" data-i18n="language.all">All languages</option></select>
-  </section>
-  <section class="sidebar-section" id="fieldSection" aria-labelledby="fieldTitle">
+  <section class="sidebar-section" id="fieldSection" aria-labelledby="fieldTitle" data-group="explore">
     <h3 id="fieldTitle" data-i18n="field.title">Field</h3>
     <p class="sidebar-note" data-i18n="field.note">You can select multiple fields.</p>
     <div class="filter-group" id="fieldFilters"></div>
-    <fieldset class="filter-switch-row">
-      <legend class="sr-only" data-i18n="field.quick">Quick filters</legend>
-      <label class="filter-switch"><input id="excludeAi" type="checkbox"> <span data-i18n="field.excludeAi">Exclude AI</span></label>
-      <label class="filter-switch"><input id="newOnly" type="checkbox"> <span data-i18n="field.newOnly">New repositories only</span></label>
-    </fieldset>
   </section>
-  <section class="sidebar-section" id="formSection" aria-labelledby="formTitle">
+  <section class="sidebar-section" id="formSection" aria-labelledby="formTitle" data-group="explore">
     <h3 id="formTitle" data-i18n="form.title">Form and technology</h3>
     <div class="filter-group" id="formFilters"></div>
   </section>
-  <section class="sidebar-section" id="sortSection" aria-labelledby="sortTitle">
+  <section class="sidebar-section" id="sortSection" aria-labelledby="sortTitle" data-group="explore">
     <h3 id="sortTitle" data-i18n="sort.title">Sort</h3>
     <select class="langsel" id="sortSelect" aria-label="Repository sort order" data-i18n-aria-label="sort.aria">
       <option value="trending" data-i18n="sort.original">Original Trending order</option>
@@ -508,22 +532,22 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     </select>
     <p class="sidebar-note" data-i18n="sort.note">Repositories without a value appear last.</p>
   </section>
-  <section class="sidebar-section" id="resultSection">
+  <section class="sidebar-section" id="resultSection" data-group="explore">
     <p class="filter-summary" id="filterSummary" role="status" aria-live="polite" data-i18n="result.all">Showing all repositories.</p>
     <button class="clear-filters" id="clearFiltersBtn" type="button" data-i18n="result.clear">Clear Explore filters</button>
   </section>
-  <section class="sidebar-section" id="hiddenRepoSection" aria-labelledby="hiddenRepoTitle" hidden>
+  <section class="sidebar-section" id="hiddenRepoSection" aria-labelledby="hiddenRepoTitle" data-group="history" hidden>
     <h3 id="hiddenRepoTitle" data-i18n="hidden.title">Manage hidden repositories</h3>
     <p class="sidebar-note" id="hiddenRepoCount"></p>
     <div class="hidden-repo-list" id="hiddenRepoList"></div>
     <button class="clear-filters" id="restoreAllHiddenBtn" type="button" data-i18n="hidden.restoreAll">Restore all</button>
   </section>
-  <section class="sidebar-section" id="recentExitsSection" aria-labelledby="recentExitsTitle" hidden>
+  <section class="sidebar-section" id="recentExitsSection" aria-labelledby="recentExitsTitle" data-group="history" hidden>
     <h3 id="recentExitsTitle" data-i18n="exits.title">Recent exits</h3>
     <p class="sidebar-note" data-i18n="exits.note">Repositories that were in the previous confirmed list but are not in the current list.</p>
     <div class="recent-exit-list" id="recentExitsList"></div>
   </section>
-  <section class="sidebar-section" id="exportSection" aria-labelledby="exportTitle">
+  <section class="sidebar-section" id="exportSection" aria-labelledby="exportTitle" data-group="export">
     <h3 id="exportTitle" data-i18n="export.title">Export current view</h3>
     <p class="sidebar-note" data-i18n="export.note">Saves only public fields for the visible repositories in their current order.</p>
     <div class="export-actions">
@@ -534,10 +558,22 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <p class="export-status" id="exportStatus" role="status" aria-live="polite" aria-atomic="true" data-i18n="export.prompt">Choose an export format.</p>
   </section>
 </div>
-<nav class="nav-rail" aria-label="Quick navigation" data-i18n-aria-label="nav.quick">
-  <button class="nav-toggle" id="navToggle" type="button" aria-label="Open Explore sidebar" data-i18n-aria-label="nav.open" aria-controls="filterSidebar" aria-expanded="false">
+<nav class="nav-rail" id="navRail" aria-label="Quick navigation" data-i18n-aria-label="nav.quick">
+  <button class="nav-toggle" id="navAccountToggle" type="button" data-group="account" aria-label="Account and sync panel" data-i18n-aria-label="nav.ariaAccount" title="Login (a)" data-i18n-title="nav.titleAccount" aria-controls="filterSidebar" aria-expanded="false">
+    <span class="nav-glyph-user" aria-hidden="true"></span>
+    <span class="nav-label" data-i18n="nav.account">Login</span>
+  </button>
+  <button class="nav-toggle" id="navToggle" type="button" data-group="explore" aria-label="Explore panel" data-i18n-aria-label="nav.ariaExplore" title="Explore (e)" data-i18n-title="nav.titleExplore" aria-controls="filterSidebar" aria-expanded="false">
     <span class="nav-glyph" aria-hidden="true"></span>
     <span class="nav-label" data-i18n="nav.explore">Explore</span>
+  </button>
+  <button class="nav-toggle" id="navHistoryToggle" type="button" data-group="history" aria-label="History panel" data-i18n-aria-label="nav.ariaHistory" title="History (h)" data-i18n-title="nav.titleHistory" aria-controls="filterSidebar" aria-expanded="false">
+    <span class="nav-glyph-clock" aria-hidden="true"></span>
+    <span class="nav-label" data-i18n="nav.history">History</span>
+  </button>
+  <button class="nav-toggle" id="navExportToggle" type="button" data-group="export" aria-label="Export panel" data-i18n-aria-label="nav.ariaExport" title="Export (x)" data-i18n-title="nav.titleExport" aria-controls="filterSidebar" aria-expanded="false">
+    <span class="nav-glyph-export" aria-hidden="true"></span>
+    <span class="nav-label" data-i18n="nav.export">Export</span>
   </button>
   <span class="nav-rail-spacer" aria-hidden="true"></span>
   <span class="filter-count" id="filterCount" aria-live="polite"></span>
@@ -546,7 +582,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 <main class="wrap">
 <header>
   <div class="title-box">
-    <h1><button class="title-reset" id="resetBtn" type="button" title="Reset to the initial view" data-i18n-title="header.resetTitle">GitHub Trending</button></h1>
+    <h1><button class="title-reset" id="resetBtn" type="button" title="Reset to the initial view" data-i18n-title="header.resetTitle">GITHUB INSIGHT</button></h1>
     <p class="sub" data-i18n="header.subtitle">Today’s trending repositories with detailed, source-bound summaries — hover or tap a card</p>
   </div>
   <div class="header-actions">
@@ -577,6 +613,25 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <div><dt><span class="badge membership-reentered" data-i18n="badges.reenteredLabel">Re-entered</span></dt><dd data-i18n="badges.reentered">Returned after leaving the previous list</dd></div>
   </dl>
 </aside>
+
+<section class="filter-bar" id="filterBar" aria-label="Quick filters" data-i18n-aria-label="field.quick">
+  <div class="filter-bar-row">
+    <div class="seg" id="periodSeg" role="group" aria-label="Period filter" data-i18n-aria-label="period.aria">
+      <span class="seg-thumb" id="segThumb"></span>
+      <button data-period="all" aria-pressed="true" data-i18n="period.all">All</button>
+      <button data-period="daily" aria-pressed="false" data-i18n="period.daily">Daily</button>
+      <button data-period="weekly" aria-pressed="false" data-i18n="period.weekly">Weekly</button>
+      <button data-period="monthly" aria-pressed="false" data-i18n="period.monthly">Monthly</button>
+    </div>
+    <select class="langsel" id="lang" aria-label="Programming language" data-i18n-aria-label="language.title"><option value="" data-i18n="language.all">All languages</option></select>
+  </div>
+  <div class="filter-bar-row filter-bar-row-3">
+    <button type="button" id="excludeAi" class="filter-toggle" aria-pressed="false" data-i18n="field.excludeAi">Exclude AI</button>
+    <button type="button" id="newOnly" class="filter-toggle" aria-pressed="false" data-i18n="field.newOnly">New repositories only</button>
+    <button type="button" id="copyLinkBtn" class="filter-toggle" data-i18n="filter.copyLink">Copy link</button>
+  </div>
+  <p class="filter-bar-status" id="filterBarStatus" role="status" aria-live="polite" aria-atomic="true" data-i18n="filter.statusPrompt"></p>
+</section>
 
 <p id="cardKeyboardHint" class="sr-only" data-i18n="keyboard.card">When a card is focused, press Delete to hide that repository.</p>
 <div class="list-stage" id="listStage">
@@ -692,8 +747,13 @@ LANGUAGES.forEach(l=>langSel.insertAdjacentHTML("beforeend",`<option>${l}</optio
 
 /* discovery sidebar + shareable URL state */
 const sidebar=document.getElementById("filterSidebar"),sidebarScrim=document.getElementById("sidebarScrim"),pageMain=document.querySelector(".wrap");
-const navToggle=document.getElementById("navToggle"),mobileNavToggle=document.getElementById("mobileNavToggle"),sidebarClose=document.getElementById("sidebarClose");
-const sidebarToggles=[navToggle,mobileNavToggle];
+const navRail=document.getElementById("navRail"),mobileNavToggle=document.getElementById("mobileNavToggle"),sidebarClose=document.getElementById("sidebarClose");
+const navToggle=document.getElementById("navToggle");
+const railToggles=[document.getElementById("navAccountToggle"),navToggle,document.getElementById("navHistoryToggle"),document.getElementById("navExportToggle")];
+const sidebarToggles=[...railToggles,mobileNavToggle];
+const sidebarGroupSeg=document.getElementById("sidebarGroupSeg");
+const sidebarGroupSegButtons=[...sidebarGroupSeg.querySelectorAll("button[data-group]")];
+const sidebarGroups=[...sidebar.querySelectorAll(":scope > [data-group]")];
 const sidebarHoverMedia=matchMedia("(hover:hover) and (pointer:fine)");
 let sidebarTrigger=null,railPointerInside=false,sidebarPointerInside=false;
 function focusableIn(container){
@@ -706,22 +766,75 @@ function trapFocus(container,event){
   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
 }
-function setSidebarTriggerState(label,expanded){
-  sidebarToggles.forEach(toggle=>{toggle.setAttribute("aria-label",label);toggle.setAttribute("aria-expanded",String(expanded))});
+function setSidebarExpandedState(expanded){
+  sidebarToggles.forEach(toggle=>toggle.setAttribute("aria-expanded",String(expanded)));
+}
+const SIDEBAR_GROUP_ARIA_KEYS={account:"nav.ariaAccount",explore:"nav.ariaExplore",history:"nav.ariaHistory",export:"nav.ariaExport"};
+function setSidebarGroup(group,open=Boolean(sidebar.dataset.openMode)){
+  const next=UiMotion.resolveSidebarGroup(group);
+  // Remembered before the hidden sweep: hiding the section that owns focus would drop focus to
+  // <body> and out of the aria-modal dialog (RED1-H1).
+  const focused=document.activeElement;
+  const focusedSection=focused instanceof HTMLElement
+    ?sidebarGroups.find(section=>section===focused||section.contains(focused))
+    :null;
+  sidebar.dataset.group=next;
+  sidebar.dataset.i18nAriaLabel=SIDEBAR_GROUP_ARIA_KEYS[next];
+  sidebar.setAttribute("aria-label",tr(SIDEBAR_GROUP_ARIA_KEYS[next]));
+  sidebarGroups.forEach(section=>{section.hidden=section.dataset.group!==next});
+  railToggles.forEach(toggle=>{
+    // aria-current marks which group the panel is *showing*; a closed panel shows none (RED1-M2).
+    if(open&&toggle.dataset.group===next)toggle.setAttribute("aria-current","true");
+    else toggle.removeAttribute("aria-current");
+  });
+  sidebarGroupSegButtons.forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.group===next)));
+  if(sidebar.dataset.openMode==="modal"&&focused instanceof HTMLElement){
+    const strandedBySweep=Boolean(focusedSection&&focusedSection.hidden);
+    const insideSidebar=focused===sidebar||sidebar.contains(focused);
+    if(strandedBySweep||(insideSidebar&&!focusableIn(sidebar).includes(focused))){
+      const target=sidebarGroupSegButtons.find(button=>button.dataset.group===next);
+      if(target)target.focus();
+      if(document.activeElement!==target)sidebarClose.focus();
+    }
+  }
+  return next;
+}
+function sidebarOpenerUsable(element){
+  return element instanceof HTMLElement&&element.isConnected!==false&&!element.inert&&element.offsetParent!==null;
+}
+// The recorded trigger can have become unfocusable while the panel was open — the viewport
+// crossed 720px and updateMobileNavAccess() inerted #mobileNavToggle, or it narrowed and the rail
+// went display:none. focus() on such an element is a silent no-op, so verify it took and walk a
+// fallback chain rather than leaving activeElement on <body> (RED1-H2).
+function restoreSidebarFocus(group){
+  const candidates=[sidebarTrigger,railToggles.find(toggle=>toggle.dataset.group===group),mobileNavToggle];
+  for(const candidate of candidates){
+    if(!sidebarOpenerUsable(candidate))continue;
+    candidate.focus();
+    if(document.activeElement===candidate)return;
+  }
+  pageMain.setAttribute("tabindex","-1");
+  pageMain.focus({preventScroll:true});
+  pageMain.addEventListener("focusout",()=>pageMain.removeAttribute("tabindex"),{once:true});
 }
 function closeSidebar(restoreFocus=true){
+  cancelHoverClose();
   const mode=sidebar.dataset.openMode;if(!mode)return;
+  const group=sidebar.dataset.group;
   sidebar.classList.remove("open");sidebar.setAttribute("aria-hidden","true");sidebar.inert=true;
-  sidebar.removeAttribute("aria-modal");setSidebarTriggerState(tr("nav.open"),false);
+  sidebar.removeAttribute("aria-modal");setSidebarExpandedState(false);
   delete sidebar.dataset.openMode;
+  sidebarGroupSeg.hidden=true;
+  railToggles.forEach(toggle=>toggle.removeAttribute("aria-current"));
   if(mode==="modal"){
     sidebarScrim.classList.remove("on");pageMain.inert=false;
     if(!document.getElementById("readmePanel").classList.contains("open"))document.body.classList.remove("overlay-open");
-    if(restoreFocus&&sidebarTrigger instanceof HTMLElement)sidebarTrigger.focus();
+    if(restoreFocus)restoreSidebarFocus(group);
   }
   if(typeof scheduleScrollTopUpdate==="function")scheduleScrollTopUpdate();
 }
-function openSidebar(mode,trigger){
+function openSidebar(mode,trigger,group){
+  cancelHoverClose();
   const currentMode=sidebar.dataset.openMode;
   if(currentMode==="modal"||currentMode===mode)return;
   if(mode==="hover"&&document.getElementById("tipLayer").matches(":focus-within"))return;
@@ -729,48 +842,92 @@ function openSidebar(mode,trigger){
   if(mode==="hover"&&readme.classList.contains("open"))return;
   if(readme.classList.contains("open"))closeReadme(false);
   hideTip();
+  setSidebarGroup(group??sidebar.dataset.group,true);
   sidebar.inert=false;sidebar.classList.add("open");sidebar.setAttribute("aria-hidden","false");
   sidebar.dataset.openMode=mode;
+  sidebarGroupSeg.hidden=mode!=="modal";
   if(mode==="modal"){
     sidebarTrigger=trigger instanceof HTMLElement?trigger:document.activeElement;
-    sidebar.setAttribute("aria-modal","true");sidebarScrim.classList.add("on");setSidebarTriggerState(tr("nav.close"),true);pageMain.inert=true;
+    sidebar.setAttribute("aria-modal","true");sidebarScrim.classList.add("on");setSidebarExpandedState(true);pageMain.inert=true;
     document.body.classList.add("overlay-open");sidebarClose.focus();
   }else{
-    sidebar.removeAttribute("aria-modal");setSidebarTriggerState(tr("nav.pin"),true);
+    sidebar.removeAttribute("aria-modal");setSidebarExpandedState(true);
   }
   if(mode==="modal"&&typeof hideScrollTopImmediately==="function")hideScrollTopImmediately();
   else if(typeof scheduleScrollTopUpdate==="function")scheduleScrollTopUpdate();
 }
 function sidebarOwnsTarget(target){
-  return Boolean(target&&(target===navToggle||target===sidebar||navToggle.contains(target)||sidebar.contains(target)));
+  if(!target)return false;
+  if(target===sidebar||sidebar.contains(target))return true;
+  if(navRail&&(target===navRail||navRail.contains(target)))return true;
+  return railToggles.some(toggle=>target===toggle||toggle.contains(target));
+}
+let hoverCloseTimer=null;
+function cancelHoverClose(){if(hoverCloseTimer!==null){clearTimeout(hoverCloseTimer);hoverCloseTimer=null}}
+function hoverSidebarShouldStayOpen(relatedTarget){
+  return sidebar.dataset.openMode!=="hover"
+    ||sidebarOwnsTarget(relatedTarget)
+    ||railPointerInside
+    ||sidebarPointerInside
+    ||sidebar.matches(":focus-within")
+    ||railToggles.some(toggle=>toggle.matches(":focus"));
+}
+function closeHoverSidebarNow(relatedTarget=null){
+  if(hoverSidebarShouldStayOpen(relatedTarget))return;
+  cancelHoverClose();closeSidebar(false);
 }
 function closeHoverSidebarIfOutside(relatedTarget=null){
-  if(sidebar.dataset.openMode!=="hover"||sidebarOwnsTarget(relatedTarget))return;
-  if(!railPointerInside&&!sidebarPointerInside&&!sidebar.matches(":focus-within")&&!navToggle.matches(":focus"))closeSidebar(false);
+  if(hoverSidebarShouldStayOpen(relatedTarget))return;
+  cancelHoverClose();
+  hoverCloseTimer=setTimeout(()=>{hoverCloseTimer=null;closeHoverSidebarNow()},UiMotion.SIDEBAR_HOVER_CLOSE_DELAY_MS);
 }
 function activateSidebar(event){
-  if(sidebar.dataset.openMode==="modal")closeSidebar();
-  else openSidebar(UiMotion.sidebarMode({hoverCapable:sidebarHoverMedia.matches,trigger:event.detail===0?"keyboard":"click"}),event.currentTarget);
+  const group=UiMotion.resolveSidebarGroup(event.currentTarget?.dataset?.group);
+  if(sidebar.dataset.openMode==="modal"){
+    if(sidebar.dataset.group===group){closeSidebar();return}
+    sidebarTrigger=event.currentTarget;setSidebarGroup(group);return;
+  }
+  openSidebar(UiMotion.sidebarMode({hoverCapable:sidebarHoverMedia.matches,trigger:event.detail===0?"keyboard":"click"}),event.currentTarget,group);
 }
-navToggle.addEventListener("pointerenter",()=>{
-  if(!sidebarHoverMedia.matches)return;
-  railPointerInside=true;
-  openSidebar(UiMotion.sidebarMode({hoverCapable:sidebarHoverMedia.matches,trigger:"pointer"}),navToggle);
+railToggles.forEach(toggle=>{
+  toggle.addEventListener("pointerenter",()=>{
+    if(!sidebarHoverMedia.matches)return;
+    cancelHoverClose();
+    railPointerInside=true;
+    const group=UiMotion.resolveSidebarGroup(toggle.dataset.group);
+    if(sidebar.dataset.openMode==="hover")setSidebarGroup(group);
+    else openSidebar(UiMotion.sidebarMode({hoverCapable:true,trigger:"pointer"}),toggle,group);
+  });
+  toggle.addEventListener("pointerleave",event=>{railPointerInside=false;closeHoverSidebarIfOutside(event.relatedTarget)});
+  toggle.addEventListener("focusout",event=>closeHoverSidebarNow(event.relatedTarget));
+  toggle.addEventListener("click",activateSidebar);
 });
-navToggle.addEventListener("pointerleave",event=>{railPointerInside=false;closeHoverSidebarIfOutside(event.relatedTarget)});
-sidebar.addEventListener("pointerenter",()=>{if(sidebarHoverMedia.matches)sidebarPointerInside=true});
+sidebar.addEventListener("pointerenter",()=>{if(sidebarHoverMedia.matches){cancelHoverClose();sidebarPointerInside=true}});
 sidebar.addEventListener("pointerleave",event=>{sidebarPointerInside=false;closeHoverSidebarIfOutside(event.relatedTarget)});
-sidebar.addEventListener("focusout",event=>closeHoverSidebarIfOutside(event.relatedTarget));
-navToggle.addEventListener("focusout",event=>closeHoverSidebarIfOutside(event.relatedTarget));
-navToggle.addEventListener("click",activateSidebar);
+sidebar.addEventListener("focusout",event=>closeHoverSidebarNow(event.relatedTarget));
 mobileNavToggle.addEventListener("click",activateSidebar);
+sidebarGroupSegButtons.forEach(button=>button.addEventListener("click",()=>setSidebarGroup(button.dataset.group)));
 sidebarClose.addEventListener("click",()=>{
-  if(sidebar.dataset.openMode==="hover")navToggle.focus();
+  if(sidebar.dataset.openMode==="hover"){
+    const opener=railToggles.find(toggle=>toggle.dataset.group===sidebar.dataset.group)||navToggle;
+    if(!sidebarOpenerUsable(opener)||(opener.focus(),document.activeElement!==opener))restoreSidebarFocus(sidebar.dataset.group);
+  }
   closeSidebar();
 });
 sidebarScrim.addEventListener("click",()=>closeSidebar());
 sidebar.addEventListener("keydown",event=>{if(sidebar.dataset.openMode==="modal")trapFocus(sidebar,event)});
-document.addEventListener("keydown",event=>{if(event.key==="Escape"&&sidebar.dataset.openMode==="modal")closeSidebar()});
+document.addEventListener("keydown",event=>{
+  if(event.key!=="Escape")return;
+  const mode=sidebar.dataset.openMode;
+  if(mode==="modal"){closeSidebar();return}
+  // A hover panel that owns keyboard focus is a non-modal dialog the user is inside; hoverSidebar-
+  // ShouldStayOpen pins it open while :focus-within, so Escape is the only dismissal (RED1-M1).
+  if(mode==="hover"&&sidebar.matches(":focus-within")){
+    const opener=railToggles.find(toggle=>toggle.dataset.group===sidebar.dataset.group)||navToggle;
+    if(!sidebarOpenerUsable(opener)||(opener.focus(),document.activeElement!==opener))restoreSidebarFocus(sidebar.dataset.group);
+    closeSidebar(false);
+  }
+});
 
 const sidebarCoarseMedia=matchMedia("(hover:none), (pointer:coarse)");
 const sidebarMobileAccessMedia=matchMedia("(max-width:720px), (hover:none), (pointer:coarse)");
@@ -782,6 +939,28 @@ function updateMobileNavAccess(){
 }
 updateMobileNavAccess();
 sidebarMobileAccessMedia.addEventListener?.("change",updateMobileNavAccess);
+const SIDEBAR_SHORTCUT_GROUPS={e:"explore",a:"account",h:"history",x:"export"};
+function shortcutSuppressed(event){
+  if(event.repeat||event.isComposing||event.key==="Process")return true;
+  if(event.altKey||event.ctrlKey||event.metaKey)return true;
+  if(document.getElementById("readmePanel").classList.contains("open"))return true;
+  const target=event.target;
+  const tag=String(target?.tagName||"").toLowerCase();
+  return tag==="input"||tag==="select"||tag==="textarea"||target?.isContentEditable===true;
+}
+document.addEventListener("keydown",event=>{
+  if(shortcutSuppressed(event))return;
+  const modalOpen=sidebar.dataset.openMode==="modal";
+  if(event.key==="/"){if(modalOpen)return;event.preventDefault();document.getElementById("q").focus();return}
+  // Only single-character keys are lowercased, so the "Process" / named-key guards above keep
+  // matching their exact spellings; this makes CapsLock irrelevant to the accelerators (RED1-M4).
+  const group=event.key.length===1?SIDEBAR_SHORTCUT_GROUPS[event.key.toLowerCase()]:undefined;
+  if(!group)return;
+  event.preventDefault();
+  if(modalOpen){setSidebarGroup(group);return}
+  const trigger=sidebarMobileAccessMedia.matches?mobileNavToggle:railToggles.find(toggle=>toggle.dataset.group===group);
+  openSidebar("modal",trigger,group);
+});
 const sidebarGestureInteractive='button,a,input,select,textarea,[role="button"]';
 let sidebarGesture=null,sidebarGesturePointerId=null,sidebarGestureTarget=null,sidebarGestureClaimed=false,sidebarGestureClickGuard=null;
 function armSidebarGestureClickGuard(pointerId,target){
@@ -908,8 +1087,8 @@ function updateFilterUi(){
   langSel.value=filterState.lang;
   sortSel.value=filterState.sort;
   const gainOption=sortSel.querySelector('[value="gain"]');gainOption.disabled=period==="all";
-  document.getElementById("excludeAi").checked=filterState.excludeAi;
-  document.getElementById("newOnly").checked=filterState.newOnly;
+  document.getElementById("excludeAi").setAttribute("aria-pressed",String(filterState.excludeAi));
+  document.getElementById("newOnly").setAttribute("aria-pressed",String(filterState.newOnly));
   document.querySelectorAll("[data-filter-id]").forEach(button=>{
     const key=button.closest("#fieldFilters")?"fields":"forms";
     button.setAttribute("aria-pressed",filterState[key].includes(button.dataset.filterId));
@@ -919,6 +1098,10 @@ function updateFilterUi(){
   seg.querySelectorAll("button").forEach(button=>button.setAttribute("aria-pressed",button.dataset.period===period));
   const count=activeDiscoveryCount();
   document.getElementById("filterCount").textContent=count?String(count):"";
+  // "Copied the current-view link." stops being true the moment the view changes, so the live
+  // region is cleared with the state it described (RED1-M3). The locale half is handled by the
+  // <p>'s data-i18n="filter.statusPrompt", which SiteI18n.apply() resets on every switch.
+  setFilterBarStatus("");
 }
 function applyFilterState(next){
   filterState=next;period=next.period;favOnly=next.favOnly;
@@ -943,6 +1126,7 @@ seg.addEventListener("click",e=>{
   if(next)setPeriod(next);
 });
 window.addEventListener("resize",moveThumb);
+if(typeof ResizeObserver==="function")new ResizeObserver(()=>moveThumb()).observe(seg);
 
 /* helpers */
 const fmt=n=>n>=10000?(n/1000).toFixed(0)+"k":n>=1000?(n/1000).toFixed(1)+"k":""+n;
@@ -950,7 +1134,7 @@ const esc=s=>(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&g
 function repoLabel(slug){return REPOS.find(repo=>repo.slug===slug)?.name||slug}
 function updateHiddenManager(){
   const section=document.getElementById("hiddenRepoSection"),listBox=document.getElementById("hiddenRepoList");
-  const slugs=[...hiddenSet];section.hidden=!slugs.length;
+  const slugs=[...hiddenSet];section.hidden=!slugs.length||sidebar.dataset.group!=="history";
   document.getElementById("hiddenRepoCount").textContent=tr("hidden.count",{count:slugs.length});
   listBox.innerHTML=slugs.map(slug=>`<div class="hidden-repo-row"><span class="hidden-repo-name">${esc(repoLabel(slug))}</span><button class="hidden-restore" type="button" data-restore-hidden="${esc(slug)}" aria-label="${esc(tr("hidden.restoreRepo",{name:repoLabel(slug)}))}">${tr("common.restore")}</button></div>`).join("");
 }
@@ -958,7 +1142,7 @@ let currentRecentExits=[];
 function renderRecentExits(exited=[]){
   currentRecentExits=exited;
   const section=document.getElementById("recentExitsSection"),recentExitsList=document.getElementById("recentExitsList");
-  section.hidden=!exited.length;
+  section.hidden=!exited.length||sidebar.dataset.group!=="history";
   recentExitsList.innerHTML=exited.map(item=>`<a class="recent-exit-link" href="https://github.com/${esc(item.slug)}" target="_blank" rel="noopener">${esc(repoLabel(item.slug))} ↗</a>`).join("");
 }
 function showHiddenNotice(message,{undoSlug=null,tone=""}={}){
@@ -1005,7 +1189,7 @@ function tipHTML(r,locale=resolveSummaryLocale(r)){
   const heading=`<h2>${esc(r.name)}</h2><p class="tsub">${fmt(r.stars)} ★ · ⑂ ${fmt(r.forks)} · 👥 ${fmt(r.contributors||0)} ${tr("repo.contributors")} · ◎ ${fmt(r.issues||0)} ${tr("repo.issues")} · ${esc(r.lang)}</p>`;
   const readme=`<div class="tip-readme-row"><button type="button" class="rdbtn js-readme" data-slug="${r.slug}" data-name="${esc(r.name)}">${tr("readme.view")}</button></div>`;
   const actions=`<p class="thint tip-actions"><button type="button" class="rdbtn js-hide-repo" data-slug="${r.slug}">${tr("tooltip.hide")}</button></p>`;
-  if(r.summary_status==="held")return `${heading}${readme}<p class="tip-unavailable" role="status">${tr("tooltip.held")}</p>${actions}`;
+  if(r.summary_status==="held")return `${heading}${readme}<p class="tip-unavailable" role="status">${tr("tooltip.held")}</p><p class="thint tip-held-retry">${tr("tooltip.heldRetry")}</p>${actions}`;
   if(!summaryAvailable(s))return `${heading}${readme}<p class="tip-unavailable" role="status">${tr("tooltip.unavailable")}</p>${actions}`;
   return `${heading}${readme}
   <div class="trow"><span class="tlabel">🎯 ${tr("tooltip.goal")}</span><p>${esc(s.goal)}</p></div>
@@ -1160,11 +1344,11 @@ sortSel.addEventListener("change",()=>{
   const sort=period==="all"&&sortSel.value==="gain"?"trending":sortSel.value;
   filterState={...filterState,sort};updateFilterUi();syncUrl();render();
 });
-document.getElementById("excludeAi").addEventListener("change",event=>{
-  filterState={...filterState,excludeAi:event.target.checked};updateFilterUi();syncUrl();render();
+document.getElementById("excludeAi").addEventListener("click",()=>{
+  filterState={...filterState,excludeAi:!filterState.excludeAi};updateFilterUi();syncUrl();render();
 });
-document.getElementById("newOnly").addEventListener("change",event=>{
-  filterState={...filterState,newOnly:event.target.checked};updateFilterUi();syncUrl();render();
+document.getElementById("newOnly").addEventListener("click",()=>{
+  filterState={...filterState,newOnly:!filterState.newOnly};updateFilterUi();syncUrl();render();
 });
 document.getElementById("clearFiltersBtn").addEventListener("click",()=>{
   filterState={...filterState,lang:"",fields:[],forms:[],excludeAi:false,newOnly:false};
@@ -1180,7 +1364,7 @@ document.getElementById("restoreAllHiddenBtn").addEventListener("click",()=>{
 document.getElementById("undoHideBtn").addEventListener("click",()=>{if(lastHiddenSlug)restoreRepository(lastHiddenSlug,{focusCard:true})});
 document.getElementById("dismissHiddenNoticeBtn").addEventListener("click",dismissHiddenNotice);
 document.getElementById("emptyManageHiddenBtn").addEventListener("click",event=>{
-  openSidebar("modal",event.currentTarget);requestAnimationFrame(()=>document.querySelector(".hidden-restore")?.focus());
+  openSidebar("modal",event.currentTarget,"history");requestAnimationFrame(()=>document.querySelector(".hidden-restore")?.focus());
 });
 window.addEventListener("popstate",()=>applyFilterState(RepoFilters.parseState(location.search,LANGUAGES)));
 
@@ -1200,6 +1384,13 @@ function currentExportModel(){
 function setExportStatus(message,tone=""){
   const status=document.getElementById("exportStatus");status.textContent=message;status.dataset.tone=tone;
 }
+function setFilterBarStatus(message,tone=""){
+  const status=document.getElementById("filterBarStatus");status.textContent=message;status.dataset.tone=tone;
+}
+document.getElementById("copyLinkBtn").addEventListener("click",async()=>{
+  try{await CurrentViewExport.copyText(currentExportUrl());setFilterBarStatus(tr("export.linkCopied"),"success")}
+  catch{setFilterBarStatus(tr("export.copyFailed"),"error")}
+});
 function downloadCurrentView(type){
   try{
     const model=currentExportModel();
@@ -1227,7 +1418,7 @@ function renderHist(){
   document.querySelectorAll(".sparkhist[data-slug]").forEach(el=>{
     if(historyLoadError){el.innerHTML=`<p class="histnote">${tr("history.failed")}</p>`;return}
     if(!historyBySlug){el.innerHTML=`<p class="histnote">${tr("history.loading")}</p>`;return}
-    el.innerHTML=StarHistory.historyHtml(el.dataset.slug,historyBySlug.get(el.dataset.slug));
+    el.innerHTML=StarHistory.historyHtml(el.dataset.slug,historyBySlug.get(el.dataset.slug),tr);
   });
 }
 
@@ -1467,6 +1658,7 @@ document.addEventListener("click",e=>{
 window.addEventListener("resize",hideTip);
 
 
+setSidebarGroup(sidebar.dataset.group);
 updateFilterUi();
 requestAnimationFrame(()=>{moveThumb();render()});
 MembershipHistory.load("data/membership-status.json",fetch).then(status=>{

@@ -71,6 +71,13 @@
     return hoverCapable && trigger === "pointer" ? "hover" : "modal";
   }
 
+  const SIDEBAR_GROUPS = Object.freeze(["account", "explore", "history", "export"]);
+  const SIDEBAR_HOVER_CLOSE_DELAY_MS = 500;
+
+  function resolveSidebarGroup(value) {
+    return SIDEBAR_GROUPS.includes(value) ? value : "explore";
+  }
+
   function startEdgeGesture({ x, y, sidebarOpen, withinSidebar, sidebarWidth = 1 }) {
     if (![x, y, sidebarWidth].every(Number.isFinite) || sidebarWidth <= 0) return null;
     if ((!sidebarOpen && x > 24) || (sidebarOpen && !withinSidebar)) return null;
@@ -140,6 +147,9 @@
     badgeModel,
     touchCardAction,
     sidebarMode,
+    SIDEBAR_GROUPS,
+    SIDEBAR_HOVER_CLOSE_DELAY_MS,
+    resolveSidebarGroup,
     startEdgeGesture,
     updateEdgeGesture,
     finishEdgeGesture,

@@ -6,7 +6,22 @@ import vm from "node:vm";
 await import("../star-history.js");
 const StarHistory = globalThis.StarHistory;
 
-const anchor = (at, stars, source = "github_trending_gain_daily") => ({ at, stars, source });
+// star-history.js holds no user-visible copy of its own any more: index.html's renderHist hands it
+// the site `tr`. These tests translate through the real shipped catalogue, so a locale that loses a
+// history.* value fails here as well as in tests/site-i18n.test.mjs. `ko` is the reference locale —
+// its rendered output must stay byte-identical to the pre-localisation Korean strings.
+const siteI18nSource = await readFile(new URL("../site-i18n.js", import.meta.url), "utf8");
+function loadSiteMessages() {
+  const context = { globalThis: {} };
+  vm.createContext(context);
+  vm.runInContext(siteI18nSource, context, { filename: "site-i18n-fixture.js" });
+  return context.globalThis.SiteI18n.MESSAGES;
+}
+const MESSAGES = loadSiteMessages();
+const trFor = locale => key => MESSAGES[locale][key] ?? key;
+const ko = trFor("ko");
+
+const anchor =(at, stars, source = "github_trending_gain_daily") => ({ at, stars, source });
 const observed = (at, stars) => ({ at, stars, source: "github_rest" });
 const validRepository = () => ({
   slug: "a/one",
@@ -69,10 +84,10 @@ test("displayPoints merges anchors and observations sorted by time and tags thei
 });
 
 test("historyHtml distinguishes waiting, one observation, and a trend with dashed anchors", () => {
-  assert.match(StarHistory.historyHtml("a/one", null), /관측 시작 대기/);
-  assert.match(StarHistory.historyHtml("a/one", { anchors: [], observed: [] }), /관측 시작 대기/);
-  assert.match(StarHistory.historyHtml("a/one", { anchors: [], observed: [observed("2026-09-02T14:31:02Z", 10)] }), /관측 1회/);
-  const html = StarHistory.historyHtml("a/one", validRepository());
+  assert.match(StarHistory.historyHtml("a/one", null, ko), /관측 시작 대기/);
+  assert.match(StarHistory.historyHtml("a/one", { anchors: [], observed: [] }, ko), /관측 시작 대기/);
+  assert.match(StarHistory.historyHtml("a/one", { anchors: [], observed: [observed("2026-09-02T14:31:02Z", 10)] }, ko), /관측 1회/);
+  const html = StarHistory.historyHtml("a/one", validRepository(), ko);
   assert.match(html, /<svg/);
   assert.match(html, /<polyline[^>]*stroke-dasharray/);
   assert.match(html, /<polyline[^>]*class="hist-observed"/);
@@ -99,8 +114,85 @@ test("sparkline scales by time, breaks observed lines at gaps, and draws anchors
 });
 
 test("historyHtml uses fixed copy and never interpolates the slug", () => {
-  const html = StarHistory.historyHtml('<img src=x onerror="alert(1)">', validRepository());
+  const html = StarHistory.historyHtml('<img src=x onerror="alert(1)">', validRepository(), ko);
   assert.doesNotMatch(html, /<img|onerror|alert/);
+});
+
+test("the explanation names the first observation time once observations exist", () => {
+  const entry = {
+    slug: "owner/repo",
+    anchors: [{ at: "2026-08-04T00:00:00Z", stars: 100, source: "github_trending_gain_monthly" }],
+    observed: [
+      { at: "2026-09-03T11:58:00Z", stars: 300, source: "github_rest" },
+      { at: "2026-09-03T12:28:00Z", stars: 305, source: "github_rest" },
+    ],
+  };
+  const html = StarHistory.historyHtml("owner/repo", entry, ko);
+  assert.match(html, /관측 시작 2026-09-03 11:58 UTC/);
+  assert.equal([...html.matchAll(/관측 시작 2026-09-03/g)].length, 1);
+  assert.match(html, /<svg/);
+
+  const single = StarHistory.historyHtml("owner/repo", { slug: "owner/repo", anchors: [], observed: [entry.observed[0]] }, ko);
+  assert.match(single, /관측 1회/);
+  assert.match(single, /관측 시작 2026-09-03 11:58 UTC/);
+
+  const anchorsOnly = StarHistory.historyHtml("owner/repo", {
+    slug: "owner/repo",
+    anchors: [
+      { at: "2026-08-04T00:00:00Z", stars: 100, source: "github_trending_gain_monthly" },
+      { at: "2026-08-27T00:00:00Z", stars: 200, source: "github_trending_gain_weekly" },
+    ],
+    observed: [],
+  }, ko);
+  assert.doesNotMatch(anchorsOnly, /관측 시작 2/, "anchors alone must not claim an observation start");
+
+  assert.equal(StarHistory.historyHtml("owner/repo", { slug: "owner/repo", anchors: [], observed: [] }, ko), '<p class="histnote">📈 관측 시작 대기</p>');
+});
+
+// RED TEAM 1, H4: before this round the module rendered Korean into every locale — 110 cards of
+// Hangul with an `aria-label="스타 추이"` while document.documentElement.lang was "en" (WCAG 3.1.2).
+test("the sparkline hard-codes no copy and renders every locale, with one shared UTC label", async () => {
+  const source = await readFile(new URL("../star-history.js", import.meta.url), "utf8");
+  const hangul = source.match(/"[^"]*[가-힣][^"]*"/g) ?? [];
+  assert.deepEqual(hangul, [], `star-history.js must hold no hard-coded Korean: ${hangul.join(" | ")}`);
+
+  const entry = {
+    slug: "owner/repo",
+    anchors: [{ at: "2026-08-04T00:00:00Z", stars: 100, source: "github_trending_gain_monthly" }],
+    observed: [
+      { at: "2026-09-03T11:58:00Z", stars: 300, source: "github_rest" },
+      { at: "2026-09-03T12:28:00Z", stars: 305, source: "github_rest" },
+    ],
+  };
+  const empty = { slug: "owner/repo", anchors: [], observed: [] };
+  const single = { slug: "owner/repo", anchors: [], observed: [entry.observed[0]] };
+
+  for (const locale of ["en", "ko", "zh-CN", "es", "ja"]) {
+    const tr = trFor(locale);
+    const html = StarHistory.historyHtml("owner/repo", entry, tr);
+    assert.ok(html.includes(`<p class="histnote">📈 ${tr("history.title")}</p>`), `${locale} title`);
+    assert.ok(html.includes(`aria-label="${tr("history.ariaTrend")}"`), `${locale} svg aria-label`);
+    assert.ok(html.includes(tr("history.explanation")), `${locale} explanation`);
+    // The timestamp stays UTC and is labelled identically everywhere, so the module needs no Intl.
+    assert.ok(html.includes(`${tr("history.observedSince")} 2026-09-03 11:58 UTC`), `${locale} observed-since`);
+    assert.ok(StarHistory.historyHtml("owner/repo", empty, tr).includes(tr("history.waiting")), `${locale} waiting`);
+    assert.ok(StarHistory.historyHtml("owner/repo", single, tr).includes(tr("history.singleObservation")), `${locale} single`);
+    if (locale !== "ko") {
+      assert.doesNotMatch(html, /[가-힣]/, `${locale} must render no Korean`);
+      assert.notEqual(html, StarHistory.historyHtml("owner/repo", entry, ko), `${locale} must differ from ko`);
+    }
+    assert.doesNotMatch(html, /history\.(title|explanation|observedSince|ariaTrend|waiting|singleObservation)/, `${locale} must resolve every key`);
+  }
+
+  // ko is the reference locale: byte-identical to the strings that used to be hard-coded here.
+  assert.equal(
+    StarHistory.historyHtml("owner/repo", entry, ko),
+    '<p class="histnote">📈 스타 히스토리</p>'
+      + StarHistory.sparkline(StarHistory.displayPoints(entry), 220, 40, ko)
+      + '<p class="histnote">이 사이트가 직접 관측한 총 스타(30분 간격) · 점선은 GitHub Trending 기간 집계로 역산한 앵커 · 관측 시작 2026-09-03 11:58 UTC</p>',
+  );
+  assert.equal(StarHistory.historyHtml("owner/repo", empty, ko), '<p class="histnote">📈 관측 시작 대기</p>');
+  assert.match(StarHistory.sparkline(StarHistory.displayPoints(entry), 220, 40, ko), /aria-label="스타 추이"/);
 });
 
 test("load fetches once and returns a normalized map", async () => {

@@ -28,6 +28,10 @@ ATOM_NAMESPACE = "http://www.w3.org/2005/Atom"
 SITE_URL = "https://nowwcastle-sudo.github.io/github-trending-daily/"
 SNAPSHOT_SCHEME = f"{SITE_URL}snapshot"
 STATS_DATE_SCHEME = f"{SITE_URL}stats-date"
+FEED_TITLE_CURRENT = "GITHUB INSIGHT — Current repositories"
+FEED_TITLE_CHANGES = "GITHUB INSIGHT — New and re-entered repositories"
+FEED_AUTHOR_NAME = "GITHUB INSIGHT"
+HELD_SUMMARY_PREFIX = "[요약 검증 중] "
 TAG_RULE_VERSION = 1
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PAGE = REPOSITORY_ROOT / "index.html"
@@ -406,7 +410,7 @@ def _feed(feed_id, title, updated, snapshot_id, stats_date):
     _child(root, "title", title)
     _child(root, "updated", updated)
     author = _child(root, "author")
-    _child(author, "name", "GitHub Trending Daily")
+    _child(author, "name", FEED_AUTHOR_NAME)
     _child(root, "category", scheme=SNAPSHOT_SCHEME, term=snapshot_id)
     _child(root, "category", scheme=STATS_DATE_SCHEME, term=stats_date)
     _child(root, "link", rel="self", type="application/atom+xml", href=feed_id)
@@ -419,16 +423,17 @@ def _latest_by_slug(latest):
 
 
 def _current_summary(repository):
+    prefix = HELD_SUMMARY_PREFIX if repository["summary_status"] == "held" else ""
     description = repository["description"].strip()
     if description:
-        return description
+        return f"{prefix}{description}"
     if repository["summary"] is None:
-        return repository["name"]
-    return repository["summary"]["goal"]
+        return f"{prefix}{repository['name']}"
+    return f"{prefix}{repository['summary']['goal']}"
 
 
 def _current_document(latest, timeline):
-    root = _feed(f"{SITE_URL}feed.xml", "GitHub Trending Daily — 현재 전체", latest["generatedAt"], latest["snapshotId"], latest["statsDate"])
+    root = _feed(f"{SITE_URL}feed.xml", FEED_TITLE_CURRENT, latest["generatedAt"], latest["snapshotId"], latest["statsDate"])
     repositories = _latest_by_slug(latest)
     if [member["slug"] for member in timeline["current"]] != list(repositories):
         raise _input_error()
@@ -452,7 +457,7 @@ def _change_id(event):
 
 
 def _changes_document(latest, events):
-    root = _feed(f"{SITE_URL}changes.xml", "GitHub Trending Daily — 신규·재진입", latest["generatedAt"], latest["snapshotId"], latest["statsDate"])
+    root = _feed(f"{SITE_URL}changes.xml", FEED_TITLE_CHANGES, latest["generatedAt"], latest["snapshotId"], latest["statsDate"])
     labels = {"new": "신규", "reentered": "재진입"}
     summaries = {"new": "baseline 이후 처음 관측된 저장소입니다.", "reentered": "직전 목록에서 빠졌다가 다시 등장한 저장소입니다."}
     for event in events:
@@ -510,7 +515,7 @@ def _validate_header(root, feed_id, title, latest):
     if len(categories) != 2 or {(item.get("scheme"), item.get("term")) for item in categories} != expected:
         raise _input_error()
     names = root.findall(f"{_atom('author')}/{_atom('name')}")
-    if len(names) != 1 or names[0].text != "GitHub Trending Daily":
+    if len(names) != 1 or names[0].text != FEED_AUTHOR_NAME:
         raise _input_error()
     links = {(link.get("rel"), link.get("type"), link.get("href")) for link in root.findall(_atom("link"))}
     if links != {("self", "application/atom+xml", feed_id), ("alternate", "text/html", SITE_URL)}:
@@ -518,8 +523,8 @@ def _validate_header(root, feed_id, title, latest):
 
 
 def _validate_documents(latest, timeline, events, feed_root, changes_root):
-    _validate_header(feed_root, f"{SITE_URL}feed.xml", "GitHub Trending Daily — 현재 전체", latest)
-    _validate_header(changes_root, f"{SITE_URL}changes.xml", "GitHub Trending Daily — 신규·재진입", latest)
+    _validate_header(feed_root, f"{SITE_URL}feed.xml", FEED_TITLE_CURRENT, latest)
+    _validate_header(changes_root, f"{SITE_URL}changes.xml", FEED_TITLE_CHANGES, latest)
     current_entries = feed_root.findall(_atom("entry"))
     if len(current_entries) != len(timeline["current"]):
         raise _input_error()

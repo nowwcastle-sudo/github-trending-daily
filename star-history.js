@@ -16,7 +16,18 @@
   const MAX_ANCHORS = 4;
   const MAX_OBSERVED = 2000;
   const GAP_MS = 36 * 60 * 60 * 1000;
-  const EXPLANATION = "이 사이트가 직접 관측한 총 스타(30분 간격) · 점선은 GitHub Trending 기간 집계로 역산한 앵커";
+  // Every user-visible string is a site-i18n message key resolved through the `tr` the page hands
+  // in (index.html renderHist), so the sparkline follows the active locale like the rest of the
+  // page. The "📈" prefix and the "UTC" suffix stay in code: they are notation, not language, and
+  // keeping them here means no locale can drop them. Timestamps stay in UTC — identically labelled
+  // in all five locales — so this module needs no Intl and its output stays deterministic.
+  const TITLE_KEY = "history.title";
+  const EXPLANATION_KEY = "history.explanation";
+  const OBSERVED_SINCE_KEY = "history.observedSince";
+  const ARIA_TREND_KEY = "history.ariaTrend";
+  const WAITING_KEY = "history.waiting";
+  const SINGLE_OBSERVATION_KEY = "history.singleObservation";
+  const translator = tr => (typeof tr === "function" ? tr : key => key);
 
   function validTime(value) {
     if (typeof value !== "string" || !TIME_RE.test(value)) return false;
@@ -91,7 +102,8 @@
     return points.sort((a, b) => a.at.localeCompare(b.at));
   }
 
-  function sparkline(points, width = 220, height = 40) {
+  function sparkline(points, width = 220, height = 40, tr) {
+    const translate = translator(tr);
     if (!Array.isArray(points) || points.length < 2) return "";
     const w = Number.isFinite(width) && width > 0 ? width : 220;
     const h = Number.isFinite(height) && height > 0 ? height : 40;
@@ -136,15 +148,24 @@
       segment.push(index);
     }
     flush();
-    return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="스타 추이">${parts.join("")}</svg>`;
+    return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${translate(ARIA_TREND_KEY)}">${parts.join("")}</svg>`;
   }
 
-  function historyHtml(slug, entry) {
+  function observedStartLabel(points, translate) {
+    const first = points.find(point => point.kind === "observed");
+    return first ? `${translate(OBSERVED_SINCE_KEY)} ${first.at.slice(0, 10)} ${first.at.slice(11, 16)} UTC` : "";
+  }
+
+  function historyHtml(slug, entry, tr) {
+    const translate = translator(tr);
     const points = displayPoints(entry);
     const observedCount = points.filter(point => point.kind === "observed").length;
-    if (points.length === 0 || (observedCount === 0 && points.length < 2)) return '<p class="histnote">📈 관측 시작 대기</p>';
-    if (points.length === 1) return `<p class="histnote">📈 관측 1회 · ${EXPLANATION}</p>`;
-    return `<p class="histnote">📈 스타 히스토리</p>${sparkline(points)}<p class="histnote">${EXPLANATION}</p>`;
+    if (points.length === 0 || (observedCount === 0 && points.length < 2)) return `<p class="histnote">📈 ${translate(WAITING_KEY)}</p>`;
+    const since = observedStartLabel(points, translate);
+    const base = translate(EXPLANATION_KEY);
+    const explanation = since ? `${base} · ${since}` : base;
+    if (points.length === 1) return `<p class="histnote">📈 ${translate(SINGLE_OBSERVATION_KEY)} · ${explanation}</p>`;
+    return `<p class="histnote">📈 ${translate(TITLE_KEY)}</p>${sparkline(points, 220, 40, tr)}<p class="histnote">${explanation}</p>`;
   }
 
   async function load(url, fetchImpl) {

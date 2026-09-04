@@ -18,7 +18,7 @@ import {
   parseEmbeddedRepos,
 } from "../scripts/build-pages-artifact.mjs";
 import { prepareRefreshCandidate, verifyCandidateMutations } from "../scripts/prepare-refresh-candidate.mjs";
-import { probeArtifactDirectory, probeProduction, validateCurrentAtom } from "../scripts/probe-production.mjs";
+import { probeArtifactDirectory, probeProduction, validateChangesAtom, validateCurrentAtom } from "../scripts/probe-production.mjs";
 import { createRunContext } from "../scripts/run-context.mjs";
 import { bindFrozenEventEnvelope } from "../scripts/collect-repository-events.mjs";
 import { buildLatestFeed } from "../scripts/update-latest-feed.mjs";
@@ -49,7 +49,7 @@ test("current Atom probe keeps a lowercase stable id while preserving GitHub slu
   const xml = `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml</id>
-  <title>GitHub Trending Daily — 현재 전체</title>
+  <title>GITHUB INSIGHT — Current repositories</title>
   <updated>${generatedAt}</updated>
   <category scheme="https://nowwcastle-sudo.github.io/github-trending-daily/snapshot" term="${snapshotId}" />
   <category scheme="https://nowwcastle-sudo.github.io/github-trending-daily/stats-date" term="2026-09-01" />
@@ -67,6 +67,34 @@ test("current Atom probe keeps a lowercase stable id while preserving GitHub slu
   assert.equal(validateCurrentAtom(xml, {
     generatedAt, snapshotId, statsDate: "2026-09-01", repos: [{ slug: mixedCaseSlug }],
   }).length, 1);
+});
+
+test("Atom header validator tolerates the pre-rename title during the release window", () => {
+  const generatedAt = "2026-08-31T23:22:56.651Z";
+  const statsDate = "2026-09-01";
+  const latest = { generatedAt, snapshotId, statsDate, repos: [] };
+  const headerOnlyXml = (kind, title) => {
+    const id = `https://nowwcastle-sudo.github.io/github-trending-daily/${kind === "current" ? "feed.xml" : "changes.xml"}`;
+    return `<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>${id}</id>
+  <title>${title}</title>
+  <updated>${generatedAt}</updated>
+  <category scheme="https://nowwcastle-sudo.github.io/github-trending-daily/snapshot" term="${snapshotId}" />
+  <category scheme="https://nowwcastle-sudo.github.io/github-trending-daily/stats-date" term="${statsDate}" />
+  <link rel="self" type="application/atom+xml" href="${id}" />
+  <link rel="alternate" type="text/html" href="https://nowwcastle-sudo.github.io/github-trending-daily/" />
+</feed>`;
+  };
+  const cases = [
+    { kind: "current", validate: validateCurrentAtom, newTitle: "GITHUB INSIGHT — Current repositories", legacyTitle: "GitHub Trending Daily — 현재 전체" },
+    { kind: "changes", validate: validateChangesAtom, newTitle: "GITHUB INSIGHT — New and re-entered repositories", legacyTitle: "GitHub Trending Daily — 신규·재진입" },
+  ];
+  for (const { kind, validate, newTitle, legacyTitle } of cases) {
+    assert.doesNotThrow(() => validate(headerOnlyXml(kind, newTitle), latest), `${kind}: new title must be accepted`);
+    assert.doesNotThrow(() => validate(headerOnlyXml(kind, legacyTitle), latest), `${kind}: legacy title must be accepted during the release window`);
+    assert.throws(() => validate(headerOnlyXml(kind, "Something else — Current repositories"), latest), new RegExp(`invalid ${kind} Atom header`), `${kind}: an arbitrary third title must still be rejected`);
+  }
 });
 
 test("production state inspection validates v0 v1 explicitly and preserves verified 404", () => {

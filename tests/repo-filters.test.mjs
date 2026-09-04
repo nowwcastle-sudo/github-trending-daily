@@ -182,6 +182,20 @@ test("new-only state accepts and serializes only exact membership new", async ()
   assert.equal(RepoFilters.serializeState({ newOnly: "true" }), "");
 });
 
+test("the moved filter controls do not change the serialized URL state", async () => {
+  const RepoFilters = await loadRepoFilters();
+  const cases = [
+    ["?period=weekly&lang=Rust&exclude=ai&membership=new", "?period=weekly&membership=new&lang=Rust&exclude=ai"],
+    ["?exclude=ai", "?exclude=ai"],
+    ["?membership=new", "?membership=new"],
+    ["?period=daily", "?period=daily"],
+    ["", ""],
+  ];
+  for (const [input, expected] of cases) {
+    assert.equal(RepoFilters.serializeState(RepoFilters.parseState(input, ["Rust"])), expected, `${input} must round trip unchanged`);
+  }
+});
+
 test("new-only filtering includes only exact new membership", async () => {
   const RepoFilters = await loadRepoFilters();
   const repositories = ["new", "reentered", "stayed", "baseline_present", "unknown", undefined]
@@ -222,11 +236,21 @@ test("embedded snapshot exposes the exact daily weekly and monthly memberships",
   assert.ok(match);
   const repositories = JSON.parse(match[1]);
 
-  assert.equal(repositories.length, 45);
+  assert.ok(repositories.length >= 10 && repositories.length <= 75);
+  const rankKey = { daily: "rank_daily", weekly: "rank_weekly", monthly: "rank_monthly" };
+  const expected = ["all", "daily", "weekly", "monthly"].map(period => (
+    period === "all"
+      ? repositories.length
+      : repositories.filter(repository => repository[rankKey[period]] !== null && repository[rankKey[period]] !== undefined).length
+  ));
   assert.deepEqual(
     ["all", "daily", "weekly", "monthly"].map(period => repositories.filter(repository => RepoFilters.matchesRepo(repository, { period })).length),
-    [45, 16, 20, 22],
+    expected,
   );
+  assert.ok(repositories.every(repository => ["daily", "weekly", "monthly"].some(period => (
+    repository[rankKey[period]] !== null && repository[rankKey[period]] !== undefined
+  ))), "every repository must hold at least one period membership");
+  assert.ok(expected.slice(1).every(count => count > 0), "each period must have members");
 });
 
 test("URL sorting is whitelisted, omits the default, and rejects gain for all periods", async () => {

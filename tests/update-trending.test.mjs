@@ -362,11 +362,18 @@ test("seeded cache preserves every detailed content record currently published i
   const cache = JSON.parse(cacheText);
 
   assert.ok(repos.length >= 10 && repos.length <= 75);
-  assert.ok(Object.keys(cache).length >= repos.length);
-  for (const repo of repos) {
+  const admitted = repos.filter(repo => repo.summary_status !== "held");
+  const held = repos.filter(repo => repo.summary_status === "held");
+  assert.ok(Object.keys(cache).length >= admitted.length);
+  for (const repo of admitted) {
     const { stars_note: _starsNote, ...detail } = repo.detail;
     assert.deepEqual(cache[repo.slug].content, detail);
     assert.ok(cache[repo.slug].source && typeof cache[repo.slug].source === "object");
+  }
+  for (const repo of held) {
+    assert.equal(repo.summary, null, `${repo.slug} held must carry no summary`);
+    assert.equal(repo.detail, null, `${repo.slug} held must carry no detail`);
+    assert.equal(cache[repo.slug], undefined, `${repo.slug} held must not be cached`);
   }
 });
 

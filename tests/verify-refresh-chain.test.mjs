@@ -191,7 +191,7 @@ function zipOne(name, body) {
 function atom({ kind, generatedAt, snapshotId, statsDate, slug = null }) {
   const current = kind === "current";
   const id = `https://nowwcastle-sudo.github.io/github-trending-daily/${current ? "feed.xml" : "changes.xml"}`;
-  const title = current ? "GitHub Trending Daily — 현재 전체" : "GitHub Trending Daily — 신규·재진입";
+  const title = current ? "GITHUB INSIGHT — Current repositories" : "GITHUB INSIGHT — New and re-entered repositories";
   const entry = slug ? `<entry><id>https://github.com/${slug}</id><title>${slug}</title><updated>${generatedAt}</updated><link rel="alternate" type="text/html" href="https://github.com/${slug}" /><summary type="text">summary</summary></entry>` : "";
   return `<?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom"><id>${id}</id><title>${title}</title><updated>${generatedAt}</updated><link rel="self" type="application/atom+xml" href="${id}" /><link rel="alternate" type="text/html" href="https://nowwcastle-sudo.github.io/github-trending-daily/" /><category scheme="https://nowwcastle-sudo.github.io/github-trending-daily/snapshot" term="${snapshotId}" /><category scheme="https://nowwcastle-sudo.github.io/github-trending-daily/stats-date" term="${statsDate}" />${entry}</feed>`;
 }
