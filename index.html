@@ -48,6 +48,10 @@ body{
 *{scrollbar-color:var(--text-3) transparent;scrollbar-width:thin}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .wrap{max-width:1020px;margin:0 auto;padding:48px 24px 96px}
+/* L2 (re-review 1): the <main> last-resort focus-restore rung (restoreSidebarFocus) gives .wrap a
+   temporary tabindex="-1" so it can take focus when no opener can; suppress the UA default ring on
+   that programmatic focus the same way any other skip-target would. */
+.wrap[tabindex="-1"]:focus{outline:none}
 
 /* ── Header ─────────────────────────── */
 header{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:16px;margin-bottom:8px}
@@ -810,7 +814,8 @@ function restoreSidebarFocus(group){
     if(document.activeElement===candidate)return;
   }
   pageMain.setAttribute("tabindex","-1");
-  pageMain.focus();
+  pageMain.focus({preventScroll:true});
+  pageMain.addEventListener("focusout",()=>pageMain.removeAttribute("tabindex"),{once:true});
 }
 function closeSidebar(restoreFocus=true){
   cancelHoverClose();
@@ -903,7 +908,10 @@ sidebar.addEventListener("focusout",event=>closeHoverSidebarNow(event.relatedTar
 mobileNavToggle.addEventListener("click",activateSidebar);
 sidebarGroupSegButtons.forEach(button=>button.addEventListener("click",()=>setSidebarGroup(button.dataset.group)));
 sidebarClose.addEventListener("click",()=>{
-  if(sidebar.dataset.openMode==="hover")navToggle.focus();
+  if(sidebar.dataset.openMode==="hover"){
+    const opener=railToggles.find(toggle=>toggle.dataset.group===sidebar.dataset.group)||navToggle;
+    if(!sidebarOpenerUsable(opener)||(opener.focus(),document.activeElement!==opener))restoreSidebarFocus(sidebar.dataset.group);
+  }
   closeSidebar();
 });
 sidebarScrim.addEventListener("click",()=>closeSidebar());
@@ -916,7 +924,7 @@ document.addEventListener("keydown",event=>{
   // ShouldStayOpen pins it open while :focus-within, so Escape is the only dismissal (RED1-M1).
   if(mode==="hover"&&sidebar.matches(":focus-within")){
     const opener=railToggles.find(toggle=>toggle.dataset.group===sidebar.dataset.group)||navToggle;
-    opener.focus();
+    if(!sidebarOpenerUsable(opener)||(opener.focus(),document.activeElement!==opener))restoreSidebarFocus(sidebar.dataset.group);
     closeSidebar(false);
   }
 });

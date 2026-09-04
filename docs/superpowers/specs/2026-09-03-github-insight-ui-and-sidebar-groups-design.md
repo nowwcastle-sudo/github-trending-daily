@@ -75,6 +75,12 @@
 | I9 | The generated `REPOS` blob (index.html line 629, between `// GENERATED:TRENDING-REPOS:START` and `:END`) is never hand-edited and never used as evidence about runtime code | Task 1 rescopes the assertion that violated this |
 | I10 | Code changes reach production only through the W1 `daily-refresh.yml` publish path; no direct Pages deploy from this branch | Delivery sequence §10 |
 
+**Amendment (2026-09-04, re-review 1, finding L4).** I3 and I4 as originally worded overstate what RED TEAM 1's H1/H2 fixes guarantee.
+
+I3 — restore is a fail-safe chain, not always the exact opener: it goes to the element that opened the panel, else a live rail opener for the group the panel was showing, else `#mobileNavToggle`, else `<main>` (`restoreSidebarFocus`, `index.html`), with each candidate verified by `document.activeElement===candidate` after `.focus()` rather than assumed to have taken.
+
+I4 — `focusableIn` excluding off-group controls from the trap is necessary but no longer sufficient on its own: a modal group switch (`setSidebarGroup`) also actively moves focus to `#sidebarGroupSeg`'s button for the new group whenever the previously-focused control's section was just hidden, or the control itself dropped out of `focusableIn(sidebar)` without its section being hidden — otherwise `hidden` alone would let focus land on (or stay on) a now-invisible or unfocusable element instead of the trap ever catching it.
+
 ---
 
 ## 4. Item 1 — four rail buttons, one panel, four groups

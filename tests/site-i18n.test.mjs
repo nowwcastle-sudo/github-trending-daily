@@ -49,6 +49,12 @@ test("every rail group, shortcut hint, and held-retry message exists in all five
     // min-height:1.45em), so this prompt is deliberately the empty string — its job is to let
     // SiteI18n.apply() clear a stale, wrong-language copy-link message on a locale switch.
     assert.equal(i18n.MESSAGES[locale]["filter.statusPrompt"], "", `${locale} filter.statusPrompt must be the empty prompt`);
+    // R1 (re-review 1): the catalogue value alone does not prove what ships. `translate` reads
+    // MESSAGES[locale][key] ?? MESSAGES.en[key] ?? key — an `??`-to-`||` mutation there falls
+    // through the also-empty English string to the literal key, which a live region would then
+    // announce. Render it through the real instance so that mutation is caught.
+    const instance = i18n.create({ document: null, storage: null, navigator: { languages: [locale] } });
+    assert.equal(instance.t("filter.statusPrompt"), "", `${locale} must render the empty prompt, not the key`);
     // RED TEAM 1 L5: #mobileNavToggle is the trigger for Account, History and Export too, so its
     // label must be group-neutral the way sidebar.close already is.
     assert.doesNotMatch(i18n.MESSAGES[locale]["nav.open"], /Explore|탐색|探索|Explorar/, `${locale} nav.open must be group-neutral`);

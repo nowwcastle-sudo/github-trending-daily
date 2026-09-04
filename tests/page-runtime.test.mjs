@@ -1615,11 +1615,17 @@ test("the close button's label names no group, in the static markup and in every
   }
 });
 
-test("coarse pointers hide the rail and keep the mobile trigger visually hidden until keyboard focus", () => {
+test("coarse pointers hide the rail and expose #mobileNavToggle as the header opener", () => {
   const coarse = page.match(/@media\(hover:none\),\(pointer:coarse\)\{[\s\S]*?\n\}/)?.[0] ?? "";
   assert.match(coarse, /body\{touch-action:pan-y pinch-zoom\}/);
   assert.match(coarse, /\.nav-rail\{display:none\}/);
-  assert.doesNotMatch(coarse, /\.mobile-nav-toggle\{display:inline-flex\}/);
+  // RED1-H3: coarse pointers also fall inside the wider mobile-access band (index.html:121), so
+  // #mobileNavToggle is not "visually hidden until keyboard focus" here — it is un-clipped into
+  // the static 44px header opener. Confirmed against the actual band that governs it, not this
+  // coarse-only block (which never declared the rule either way).
+  const mobileAccessBand = page.match(/@media\(max-width:720px\),\(hover:none\),\(pointer:coarse\)\{[\s\S]*?\r?\n\}/)?.[0] ?? "";
+  assert.ok(mobileAccessBand, "the mobile-access band must exist and cover coarse pointers");
+  assert.match(mobileAccessBand, /\.mobile-nav-toggle,\.mobile-nav-toggle:focus-visible\{[^}]*display:inline-flex/);
   assert.match(coarse, /\.filter-sidebar\{touch-action:pan-y pinch-zoom\}/);
   assert.match(page, /\.filter-sidebar\.dragging\{transition:none\}/);
   const mobileButton = page.match(/<button class="mobile-nav-toggle" id="mobileNavToggle"[^>]*>/)?.[0] ?? "";
@@ -2696,6 +2702,40 @@ test("RED1-H1 a group switch never strands focus on a section it just hid", () =
   historySeg.dispatch("click");
   assert.equal(harness.sidebar.dataset.group, "history");
   assert.equal(harness.document.activeElement, historySeg, "a segment-button switch must not steal focus");
+
+  // L3 (re-review 1): the H1 trigger is strandedBySweep||(insideSidebar&&!focusableIn(sidebar)
+  // .includes(focused)) — narrowing it to strandedBySweep alone left every case above green,
+  // because they all hide the focused element's section. Exercise the *other* half: a switch to
+  // the group the focused element already belongs to (so the sweep leaves its section visible),
+  // where the element itself has dropped out of focusableIn (a real <button disabled>, or a
+  // freshly-nested [hidden] wrapper — the harness's focusableIn stub models "not focusable" for
+  // anything inside the sidebar, so `disabled` here documents the real-world trigger).
+  harness.document.dispatch("keydown", { key: "e", target: harness.body });
+  assert.equal(harness.sidebar.dataset.group, "explore");
+  const viewSection = harness.sections.find(section => section.id === "viewSection");
+  // Real parentElement chain, not the harness's blunt withinSidebar flag: that flag answers
+  // "is this node anywhere in the sidebar" for *every* section's .contains() check alike, which
+  // would make focusedSection resolve to the first section in the list instead of viewSection and
+  // accidentally re-trigger strandedBySweep. Chaining viewSection up to the real sidebar node
+  // keeps both sidebar.contains(focused) and viewSection.contains(focused) precise.
+  viewSection.parentElement = harness.sidebar;
+  const disabledButton = harness.createTarget("viewToggleAll", { tagName: "BUTTON", disabled: true });
+  disabledButton.parentElement = viewSection;
+  disabledButton.focus();
+  assert.equal(harness.document.activeElement, disabledButton);
+  harness.document.dispatch("keydown", { key: "e", target: disabledButton });
+  assert.equal(harness.sidebar.dataset.group, "explore", "same-group switch: the sweep must not hide viewSection");
+  assert.equal(viewSection.hidden, false, "the focused element's section stays visible — isolates the clause from strandedBySweep");
+  assert.notEqual(
+    harness.document.activeElement,
+    disabledButton,
+    "a control that fell out of focusableIn must not keep focus even though its section stayed visible",
+  );
+  assert.equal(
+    harness.document.activeElement,
+    harness.segButtons.find(button => button.dataset.group === "explore"),
+    "focus moves to the seg button for the group",
+  );
 });
 
 test("RED1-H2 closing a modal never ends on <body> when the recorded trigger stopped taking focus", () => {
@@ -2726,6 +2766,11 @@ test("RED1-H2 closing a modal never ends on <body> when the recorded trigger sto
   assert.equal(stranded.pageMain.getAttribute("tabindex"), "-1");
   assert.equal(stranded.document.activeElement, stranded.pageMain);
   assert.notEqual(stranded.document.activeElement, stranded.body);
+
+  // L2 (re-review 1): the <main> last-resort rung must not scroll the page, must not paint a UA
+  // focus ring, and must give the tabindex back once focus leaves.
+  assert.match(page, /pageMain\.setAttribute\("tabindex","-1"\);\s*pageMain\.focus\(\{preventScroll:true\}\);\s*pageMain\.addEventListener\("focusout",\(\)=>pageMain\.removeAttribute\("tabindex"\),\{once:true\}\);/);
+  assert.match(page, /\.wrap\[tabindex="-1"\]:focus\{outline:none\}/);
 });
 
 test("RED1-H3 the viewports that hide the rail all render #mobileNavToggle as a real 44px opener", () => {
@@ -2765,6 +2810,33 @@ test("RED1-M1 Escape dismisses a hover panel that owns keyboard focus, and only 
   hovering.railToggles[1].dispatch("pointerenter");
   hovering.document.dispatch("keydown", { key: "Escape" });
   assert.equal(hovering.sidebar.dataset.openMode, "hover");
+});
+
+test("L1 (re-review 1) hover-Escape falls back through the H2 chain instead of dropping to <body> when its opener stops taking focus", () => {
+  const harness = sidebarHarness();
+  harness.railToggles[2].dispatch("pointerenter");
+  assert.equal(harness.sidebar.dataset.openMode, "hover");
+  assert.equal(harness.sidebar.dataset.group, "history");
+  harness.close.focus();
+  harness.sidebar.focusWithin = true;
+  // The rail opener for the shown group can no longer take focus — e.g. the viewport crossed
+  // 720px mid-hover and updateMobileNavAccess()/the display:none rail rule made it unfocusable.
+  // The harness models that as focus() becoming a silent no-op (canFocus=false), the same shape
+  // RED1-H2 already exercises for the recorded trigger.
+  harness.railToggles[2].canFocus = false;
+  harness.document.dispatch("keydown", { key: "Escape" });
+  assert.equal(harness.sidebar.dataset.openMode, undefined, "still closes even though the opener could not take focus");
+  assert.ok(harness.trace.includes("navHistoryToggle:focus-noop"), "the primary opener is still tried first");
+  assert.notEqual(harness.document.activeElement, harness.body, "must not silently drop focus to <body>");
+  // hoverCapable:true means the rail is visible, so #mobileNavToggle is correctly inert
+  // (updateMobileNavAccess) and skipped too — the chain must reach the <main> last resort rather
+  // than stopping on <body>.
+  assert.equal(
+    harness.document.activeElement,
+    harness.pageMain,
+    "falls all the way through to <main>, the terminal rung of restoreSidebarFocus",
+  );
+  assert.equal(harness.pageMain.getAttribute("tabindex"), "-1");
 });
 
 test("RED1-M2 aria-current marks a rail button only while the panel is showing that group", () => {
