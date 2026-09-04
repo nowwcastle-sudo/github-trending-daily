@@ -26,6 +26,24 @@ const PERIODS = {
   weekly: { field: "stars_weekly", label: "this week" },
   monthly: { field: "stars_monthly", label: "this month" },
 };
+
+// Trending candidates whose upstream data cannot be collected at all, so the
+// refresh would fail closed on them every run. Filtered in mergeTrendingPeriods
+// -- before the union size gate, before any facts request, and before the
+// event collector -- so an excluded slug never reaches the frozen facts, the
+// observation ledger, or the page. Nothing here changes a schema or a receipt:
+// an excluded repository is simply never a candidate.
+export const REPOSITORY_EXCLUSIONS = Object.freeze({
+  "clshortfuse/renodx": Object.freeze({
+    reason: "GitHub releases listing returns a deterministic 504: 520 releases, newest release carries 539 assets (~0.9 MB of JSON per release); the full inventory (~443 MiB) cannot be served or fetched inside the 15-minute event window under the per_page=100 contract",
+    decidedOn: "2026-09-05",
+    revisit: "when the rolling snapshot release is pruned or the release-inventory contract changes",
+  }),
+});
+
+export function repositoryExclusion(slug) {
+  return REPOSITORY_EXCLUSIONS[String(slug).toLowerCase()] ?? null;
+}
 const ENRICHMENT_SCHEMA_VERSION = 3;
 const SUMMARY_PROMPT_SCHEMA_VERSION = 3;
 const SUMMARY_FIELDS = ["goal", "usage", "pros", "cons", "fit"];
@@ -148,10 +166,17 @@ export function mergeTrendingPeriods(periods) {
     }
   }
 
-  if (merged.length < 10 || merged.length > 75) {
-    throw new Error(`Trending union size ${merged.length} is outside 10-75`);
+  const admitted = merged.filter(repository => {
+    const exclusion = repositoryExclusion(repository.slug);
+    if (exclusion === null) return true;
+    console.log(`Excluded trending candidate ${repository.slug} (decided ${exclusion.decidedOn}): ${exclusion.reason}`);
+    return false;
+  });
+
+  if (admitted.length < 10 || admitted.length > 75) {
+    throw new Error(`Trending union size ${admitted.length} is outside 10-75`);
   }
-  return merged;
+  return admitted;
 }
 
 class RequestLimitError extends Error {}
