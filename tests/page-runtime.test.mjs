@@ -2592,7 +2592,9 @@ test("a touch tooltip body forwards the covered same-card second tap without ste
 test("the page declares a Content-Security-Policy that covers every origin the code actually uses", async () => {
   const meta = page.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)">/)?.[1] ?? "";
   assert.ok(meta.length > 0, "the CSP meta must exist");
-  assert.ok(page.indexOf('http-equiv="Content-Security-Policy"') < page.indexOf("<style>"), "the policy must precede every style and script");
+  const metaIndex = page.indexOf('http-equiv="Content-Security-Policy"');
+  const firstResourceIndex = Math.min(page.indexOf("<style>"), page.indexOf("<script"), page.indexOf("<link"));
+  assert.ok(metaIndex < firstResourceIndex, "the policy must precede every style, script and link tag");
 
   const policy = Object.fromEntries(meta.split(";").map(part => part.trim()).filter(Boolean).map(part => {
     const [directive, ...values] = part.split(/\s+/);
@@ -2603,7 +2605,7 @@ test("the page declares a Content-Security-Policy that covers every origin the c
     "connect-src", "frame-src", "object-src", "base-uri", "form-action",
   ]);
   assert.deepEqual(policy["default-src"], ["'self'"]);
-  assert.deepEqual(policy["script-src"], ["'self'", "'unsafe-inline'", "'wasm-unsafe-eval'", "https://www.gstatic.com", "https://www.google.com"]);
+  assert.deepEqual(policy["script-src"], ["'self'", "'unsafe-inline'", "'wasm-unsafe-eval'", "https://www.gstatic.com", "https://www.google.com", "https://apis.google.com"]);
   assert.deepEqual(policy["style-src"], ["'self'", "'unsafe-inline'"]);
   assert.deepEqual(policy["img-src"], ["'self'", "data:", "https:"]);
   assert.deepEqual(policy["font-src"], ["'self'"]);
@@ -2621,12 +2623,13 @@ test("the page declares a Content-Security-Policy that covers every origin the c
   assert.doesNotMatch(meta, /'unsafe-eval'/);
   assert.doesNotMatch(meta, /(^|\s)\*(\s|;|$)/);
 
-  const sources = await Promise.all([
-    "../firebase-client.js", "../auth-lifecycle.js", "../favorite-sync.js",
-    "../readme-markdown.js", "../star-history.js", "../current-view-export.js",
-  ].map(name => readFile(new URL(name, import.meta.url), "utf8")));
+  const moduleNames = [...pageRuntime.matchAll(/<script src="([^"]+\.js)"><\/script>/g)].map(m => m[1]);
+  if (!moduleNames.includes("firebase-client.js")) moduleNames.push("firebase-client.js");
+  assert.ok(moduleNames.length >= 13, "the scan must cover every script the page loads");
+  const sources = await Promise.all(moduleNames.map(name => readFile(new URL(`../${name}`, import.meta.url), "utf8")));
   const allowed = new Set(Object.values(policy).flat());
-  const scanned = [pageRuntime, ...sources].join("\n");
+  const runtimeWithoutPolicy = pageRuntime.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, "");
+  const scanned = [runtimeWithoutPolicy, ...sources].join("\n");
   const hosts = new Set([...scanned.matchAll(/https:\/\/([a-z0-9.-]+)/gi)].map(match => match[1].toLowerCase()));
   const imageOnly = new Set(["raw.githubusercontent.com", "camo.githubusercontent.com"]);
   const documentOnly = new Set(["github.com", "nowwcastle-sudo.github.io", "www.w3.org"]);

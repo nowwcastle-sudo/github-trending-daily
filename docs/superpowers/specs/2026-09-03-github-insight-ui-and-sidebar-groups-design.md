@@ -590,6 +590,33 @@ If browser verification (§10 step 4) shows a runtime path that a `*`-free polic
 3. Scans `index.html` (runtime script region only — outside the `GENERATED:TRENDING-REPOS` markers, per I9), `firebase-client.js`, `auth-lifecycle.js`, `favorite-sync.js`, `readme-markdown.js`, `star-history.js`, and `current-view-export.js` for `https://<host>` literals and asserts every distinct host is covered by some directive value (exact host match, or `https:` for `img-src`). This is the assertion that fails when code later introduces an unlisted origin.
 4. Asserts the policy contains neither `'unsafe-eval'` nor a bare `*`.
 
+### 8.6 Amendments (2026-09-04, Task 11 review)
+
+Review of `2a613c9..0873334` (`.superpowers/sdd/2026-09-03-github-insight-ui-and-sidebar-groups/task-11-review.md`) found one §8.2 correction to be wrong and confirmed several other §8.1 details. These amendments supersede the conflicting text above; the prose in §8.1–§8.5 is left as originally written.
+
+1. **§8.2 correction 1 was wrong.** Firebase Auth 12.17.1 (the pinned `firebase-auth.js` version) *does* load `gapi`: `signInWithPopup` drives `browserPopupRedirectResolver`, whose `_openIframe` calls `_loadGapi`, which injects `<script src="https://apis.google.com/js/api.js?onload=...">` into the host document. On Safari, iOS, and mobile browsers this happens eagerly at auth initialization (`_shouldInitProactively`), not only on click. `script-src` therefore needs `https://apis.google.com`; added at `index.html:6` and to `tests/page-runtime.test.mjs`'s `script-src` `deepEqual`. Do not add it to `frame-src` or `connect-src` — gapi's own modules load as `<script>` tags, and the auth iframe is already covered by the pinned `authDomain` host.
+2. **§8.1's Firestore row is corrected.** `firebase-client.js:161` calls `getFirestore(app)`, not `initializeFirestore`; there is no `experimentalForceLongPolling` / `experimentalAutoDetectLongPolling` anywhere in the repo. Firestore's WebChannel transport runs over HTTPS to `firestore.googleapis.com`, which `connect-src` already allows — no `wss:` is needed.
+3. **`https://accounts.google.com` in `frame-src` is believed unnecessary.** The Google consent screen opens in a popup window (`window.open`, a separate top-level browsing context), not an iframe our `frame-src` governs. Not removed in this round — removing a load-bearing token breaks sign-in — kept pending production check 3b below: after a real sign-in, `document.querySelectorAll('iframe[src*="accounts.google.com"]').length` should be `0`; if so, drop the host from `frame-src` and from the test's `frame-src` `deepEqual` in a follow-up.
+4. **Nonce/hash corollary.** This policy carries no nonce and no hash, so `'unsafe-inline'` in `script-src` is honoured. Any future task that adds a nonce or hash to `script-src` silently voids `'unsafe-inline'` and breaks both inline scripts (index.html:669 and :1630 as of this writing) — check for this before hardening `script-src` further.
+5. **`frame-ancestors` residual risk, accepted.** It cannot be delivered via a `<meta>` CSP on GitHub Pages (no response headers), so the page has no clickjacking protection. The only state-changing controls a signed-in visitor has are the favourite/unfavourite toggles, and Firestore security rules scope writes to the user's own document, so the blast radius of a transparent-overlay attack is bounded to a user's own favourites list. Accepted as a known gap; revisit if the site ever moves off GitHub Pages to a host that can set `frame-ancestors`.
+6. **`'wasm-unsafe-eval'` stays provisional**, with a binding exit criterion: production check 2 below must show either a WebAssembly CSP violation (keep the token, strike `[verify]` in §8.1) or none across checks 1–10 (remove it from `index.html:6` and the test's `script-src` `deepEqual`, redeploy, re-run checks 1 and 5).
+
+**Production verification checklist** (from `task-11-review.md`; run once on the deployed W1 page, DevTools Console open, "Preserve log" on):
+
+1. Clean load — zero CSP violations anonymously; repeat on Safari/iOS for the eager gapi-load path.
+2. `'wasm-unsafe-eval'` decision — watch the whole session for a `wasm-eval`/`WebAssembly` violation (binding exit criterion, amendment 6 above).
+3. Sign-in popup completes — Google sign-in succeeds with no `script-src`/`frame-src`/`connect-src` violation.
+   - 3b. `accounts.google.com` minimality — after sign-in, `document.querySelectorAll('iframe[src*="accounts.google.com"]').length` should be `0` (amendment 3 above).
+4. Token refresh — a Firestore write after token expiry does not violate `connect-src` (`securetoken.googleapis.com`).
+5. App Check token obtained — `content-firebaseappcheck.googleapis.com` exchange returns 200 and Firestore reads succeed; watch for a possibly missing `https://www.gstatic.com` in `connect-src` (reCAPTCHA asset fetch).
+6. Firestore read and write — favourite/unfavourite a repository and confirm it persists with no `connect-src` violation.
+7. Export download — no CSP line at all.
+8. Copy link — no CSP line at all.
+9. README modal renders images — a shields.io badge and a relative (`raw.githubusercontent.com`) image both load; no `img-src`/`connect-src` violation.
+10. Star-history renders — inline SVG, no CSP line.
+
+Any violation naming a host that is genuinely required is an inventory correction: add exactly that host to exactly that directive, update the test's `deepEqual`, and record the result in §8.1. A violation that would require `*` or `'unsafe-eval'` means stop and report, per the §8.4 decision gate.
+
 ---
 
 ## 9. Items 9–11 — shortcuts, failing tests, CI
