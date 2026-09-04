@@ -12,7 +12,12 @@ export const MAX_FROZEN_FACTS_BYTES = 320 * 1024 * 1024;
 export const EVENT_LIMITS = Object.freeze({
   maxRepositories: 75,
   maxReleasePages: 20,
-  maxCommitPages: 20,
+  // 80 pages x 100 commits. A fast-forward beyond this window is a fail-closed
+  // "Commit continuity gap" for the whole refresh; 20 pages blocked the
+  // 2026-09-05 refresh when NousResearch/hermes-agent advanced 4,384 commits
+  // in two days. The schema's head_transition enum cannot record a truncated
+  // window, so the window itself must stay ahead of the hottest repository.
+  maxCommitPages: 80,
   maxContinuityDiagnostics: 2,
   maxLogicalRequests: 3600,
   maxAttempts: 4500,
