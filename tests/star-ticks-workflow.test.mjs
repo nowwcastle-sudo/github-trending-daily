@@ -91,7 +91,18 @@ test("star ticks deploy the committed tree through the same contract-checked bui
 
 test("the tick ledgers start tracked and well-formed", async () => {
   await access("data/star-ticks/.gitkeep");
-  assert.equal(await readFile("data/star-daily.jsonl", "utf8"), '{"version":1}\n');
+  // The daily rollup is production data written by the tick workflow: pin its shape, not its contents.
+  const dailyLines = (await readFile("data/star-daily.jsonl", "utf8")).replace(/\r\n/g, "\n").split("\n");
+  assert.equal(dailyLines.at(-1), "", "the daily rollup must end with a newline");
+  assert.equal(dailyLines[0], '{"version":1}', "the daily rollup must start with the version-1 header");
+  for (const line of dailyLines.slice(1, -1)) {
+    const row = JSON.parse(line);
+    assert.deepEqual(Object.keys(row).sort(), ["date", "slug", "stars", "tier"], `unexpected daily row shape: ${line}`);
+    assert.match(row.date, /^\d{4}-\d{2}-\d{2}$/, `daily row date must be YYYY-MM-DD: ${line}`);
+    assert.match(row.slug, /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/, `daily row slug must be owner/repo: ${line}`);
+    assert.ok(Number.isInteger(row.stars) && row.stars >= 0, `daily row stars must be a non-negative integer: ${line}`);
+    assert.ok(["A", "B"].includes(row.tier), `daily row tier must be A or B: ${line}`);
+  }
   const anchors = JSON.parse(await readFile("data/star-anchors.json", "utf8"));
   assert.deepEqual(Object.keys(anchors).sort(), ["anchors", "generatedAt", "version", "warnings"]);
   assert.equal(anchors.version, 1);
