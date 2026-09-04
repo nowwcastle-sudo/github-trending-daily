@@ -72,6 +72,15 @@ test("the checked-in page is English-first and exposes one persisted site-langua
   assert.match(page, /addEventListener\("site-locale-change"/);
 });
 
+test("the product name is GITHUB INSIGHT in every locale", () => {
+  const i18n = load();
+  for (const locale of i18n.SUPPORTED_LOCALES) {
+    assert.equal(i18n.MESSAGES[locale]["document.title"], "GITHUB INSIGHT", locale);
+    assert.equal(i18n.MESSAGES[locale]["feed.current"], "GITHUB INSIGHT — Current repositories", locale);
+    assert.equal(i18n.MESSAGES[locale]["feed.changes"], "GITHUB INSIGHT — New and re-entered repositories", locale);
+  }
+});
+
 test("repository documentation is English-first with a complete Korean counterpart", () => {
   assert.match(readme, /^# GitHub Trending Daily\r?\n\r?\n\[한국어\]\(README\.ko\.md\)/);
   assert.match(readme, /candidate-desktop-1440\.png/);

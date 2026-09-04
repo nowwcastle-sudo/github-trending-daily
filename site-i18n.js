@@ -5,9 +5,9 @@ const STORAGE_KEY="github-trending-site-locale-v1";
 const SUPPORTED_LOCALES=Object.freeze(["en","ko","zh-CN","es","ja"]);
 
 const EN={
-  "document.title":"GitHub Trending — Insight Dashboard",
-  "feed.current":"GitHub Trending Daily — Current repositories",
-  "feed.changes":"GitHub Trending Daily — New and re-entered repositories",
+  "document.title":"GITHUB INSIGHT",
+  "feed.current":"GITHUB INSIGHT — Current repositories",
+  "feed.changes":"GITHUB INSIGHT — New and re-entered repositories",
   "site.language":"Site language",
   "nav.quick":"Quick navigation",
   "nav.open":"Open Explore sidebar",
@@ -163,7 +163,7 @@ const EN={
 };
 
 const KO={
-  "document.title":"GitHub Trending — 인사이트 대시보드","feed.current":"GitHub Trending Daily — 현재 전체","feed.changes":"GitHub Trending Daily — 신규·재진입",
+  "document.title":"GITHUB INSIGHT","feed.current":"GITHUB INSIGHT — Current repositories","feed.changes":"GITHUB INSIGHT — New and re-entered repositories",
   "site.language":"사이트 언어","nav.quick":"빠른 탐색","nav.open":"탐색 사이드바 열기","nav.close":"탐색 사이드바 닫기","nav.pin":"탐색 사이드바 고정","nav.explore":"탐색",
   "nav.account":"로그인","nav.history":"이력","nav.export":"내보내기","nav.ariaAccount":"계정·동기화 패널","nav.ariaExplore":"탐색 패널","nav.ariaHistory":"이력 패널","nav.ariaExport":"내보내기 패널","nav.titleAccount":"로그인 (a)","nav.titleExplore":"탐색 (e)","nav.titleHistory":"이력 (h)","nav.titleExport":"내보내기 (x)","nav.groups":"패널 구획","filter.copyLink":"링크 복사","tooltip.heldRetry":"다음 갱신(약 2시간마다)에 다시 시도합니다.",
   "sidebar.title":"대시보드 메뉴","sidebar.close":"패널 닫기","refresh.loading":"최근 갱신 시각: 불러오는 중…","refresh.next":"다음 갱신 시각: —","refresh.cadence":"2시간마다 갱신",
@@ -182,7 +182,7 @@ const KO={
 };
 
 const ZH={
-  "document.title":"GitHub Trending — 洞察面板","feed.current":"GitHub Trending Daily — 当前仓库","feed.changes":"GitHub Trending Daily — 新增与重新上榜仓库",
+  "document.title":"GITHUB INSIGHT","feed.current":"GITHUB INSIGHT — Current repositories","feed.changes":"GITHUB INSIGHT — New and re-entered repositories",
   "site.language":"网站语言","nav.quick":"快速导航","nav.open":"打开探索侧栏","nav.close":"关闭探索侧栏","nav.pin":"固定探索侧栏","nav.explore":"探索",
   "nav.account":"登录","nav.history":"历史","nav.export":"导出","nav.ariaAccount":"账户与同步面板","nav.ariaExplore":"探索面板","nav.ariaHistory":"历史面板","nav.ariaExport":"导出面板","nav.titleAccount":"登录 (a)","nav.titleExplore":"探索 (e)","nav.titleHistory":"历史 (h)","nav.titleExport":"导出 (x)","nav.groups":"面板分区","filter.copyLink":"复制链接","tooltip.heldRetry":"将在下次刷新（约每 2 小时）时重试。",
   "sidebar.title":"面板菜单","sidebar.close":"关闭面板","refresh.loading":"最近更新：加载中…","refresh.next":"下次更新：—","refresh.cadence":"每 2 小时更新",
@@ -210,7 +210,7 @@ const ZH={
 };
 
 const ES={
-  "document.title":"GitHub Trending — Panel de tendencias","feed.current":"GitHub Trending Daily — Repositorios actuales","feed.changes":"GitHub Trending Daily — Repositorios nuevos y reincorporados",
+  "document.title":"GITHUB INSIGHT","feed.current":"GITHUB INSIGHT — Current repositories","feed.changes":"GITHUB INSIGHT — New and re-entered repositories",
   "site.language":"Idioma del sitio","nav.quick":"Navegación rápida","nav.open":"Abrir barra Explorar","nav.close":"Cerrar barra Explorar","nav.pin":"Fijar barra Explorar","nav.explore":"Explorar",
   "nav.account":"Iniciar sesión","nav.history":"Historial","nav.export":"Exportar","nav.ariaAccount":"Panel de cuenta y sincronización","nav.ariaExplore":"Panel de exploración","nav.ariaHistory":"Panel de historial","nav.ariaExport":"Panel de exportación","nav.titleAccount":"Iniciar sesión (a)","nav.titleExplore":"Explorar (e)","nav.titleHistory":"Historial (h)","nav.titleExport":"Exportar (x)","nav.groups":"Sección del panel","filter.copyLink":"Copiar enlace","tooltip.heldRetry":"Se reintentará en la próxima actualización (aproximadamente cada 2 horas).",
   "sidebar.title":"Menú del panel","sidebar.close":"Cerrar panel","refresh.loading":"Última actualización: cargando…","refresh.next":"Próxima actualización: —","refresh.cadence":"Se actualiza cada 2 horas",
@@ -238,7 +238,7 @@ const ES={
 };
 
 const JA={
-  "document.title":"GitHub Trending — インサイトダッシュボード","feed.current":"GitHub Trending Daily — 現在のリポジトリ","feed.changes":"GitHub Trending Daily — 新規・再登場リポジトリ",
+  "document.title":"GITHUB INSIGHT","feed.current":"GITHUB INSIGHT — Current repositories","feed.changes":"GITHUB INSIGHT — New and re-entered repositories",
   "site.language":"サイトの言語","nav.quick":"クイックナビゲーション","nav.open":"探索サイドバーを開く","nav.close":"探索サイドバーを閉じる","nav.pin":"探索サイドバーを固定","nav.explore":"探索",
   "nav.account":"ログイン","nav.history":"履歴","nav.export":"エクスポート","nav.ariaAccount":"アカウント・同期パネル","nav.ariaExplore":"探索パネル","nav.ariaHistory":"履歴パネル","nav.ariaExport":"エクスポートパネル","nav.titleAccount":"ログイン (a)","nav.titleExplore":"探索 (e)","nav.titleHistory":"履歴 (h)","nav.titleExport":"エクスポート (x)","nav.groups":"パネルセクション","filter.copyLink":"リンクをコピー","tooltip.heldRetry":"次回の更新（約2時間ごと）で再試行します。",
   "sidebar.title":"ダッシュボードメニュー","sidebar.close":"パネルを閉じる","refresh.loading":"最終更新：読み込み中…","refresh.next":"次回更新：—","refresh.cadence":"2時間ごとに更新",

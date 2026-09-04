@@ -49,7 +49,7 @@ test("current Atom probe keeps a lowercase stable id while preserving GitHub slu
   const xml = `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml</id>
-  <title>GitHub Trending Daily — 현재 전체</title>
+  <title>GITHUB INSIGHT — Current repositories</title>
   <updated>${generatedAt}</updated>
   <category scheme="https://nowwcastle-sudo.github.io/github-trending-daily/snapshot" term="${snapshotId}" />
   <category scheme="https://nowwcastle-sudo.github.io/github-trending-daily/stats-date" term="2026-09-01" />

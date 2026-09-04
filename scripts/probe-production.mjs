@@ -236,7 +236,7 @@ function validateAtomHeader(xml, { kind, generatedAt, snapshotId, statsDate }) {
   const entryStart = xml.indexOf("<entry>");
   const header = xml.slice(0, entryStart >= 0 ? entryStart : xml.indexOf("</feed>"));
   const expectedId = `https://nowwcastle-sudo.github.io/github-trending-daily/${kind === "current" ? "feed.xml" : "changes.xml"}`;
-  const expectedTitle = kind === "current" ? "GitHub Trending Daily — 현재 전체" : "GitHub Trending Daily — 신규·재진입";
+  const expectedTitle = kind === "current" ? "GITHUB INSIGHT — Current repositories" : "GITHUB INSIGHT — New and re-entered repositories";
   if (oneMatch(header, /<id>([^<]+)<\/id>/g, `${kind} Atom id`) !== expectedId
       || oneMatch(header, /<title>([^<]+)<\/title>/g, `${kind} Atom title`) !== expectedTitle
       || !header.includes(`<link rel="self" type="application/atom+xml" href="${expectedId}" />`)

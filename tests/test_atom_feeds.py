@@ -436,6 +436,15 @@ class AtomFeedTests(unittest.TestCase):
         self.assertNotIn('"--status"', source)
         self.assertNotIn("record_trending_membership", source)
 
+    def test_feed_documents_carry_the_github_insight_name(self):
+        source = (Path(__file__).resolve().parents[1] / "scripts" / "generate_atom_feeds.py").read_text(encoding="utf-8")
+        self.assertIn('"GITHUB INSIGHT — Current repositories"', source)
+        self.assertIn('"GITHUB INSIGHT — New and re-entered repositories"', source)
+        self.assertIn('"GITHUB INSIGHT"', source)
+        self.assertNotIn("GitHub Trending Daily", source)
+        self.assertNotIn("현재 전체", source)
+        self.assertNotIn("신규·재진입", source)
+
 
 if __name__ == "__main__":
     unittest.main()

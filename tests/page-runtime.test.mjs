@@ -2374,9 +2374,12 @@ test("badge guide descriptions can shrink inside a 200 percent zoom viewport", (
 test("the page head advertises both exact Atom subscription endpoints", () => {
   const alternates = [...page.matchAll(/<link rel="alternate" type="application\/atom\+xml" title="([^"]+)" href="([^"]+)">/g)];
   assert.deepEqual(alternates.map(match => match.slice(1)), [
-    ["GitHub Trending Daily — Current repositories", "https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml"],
-    ["GitHub Trending Daily — New and re-entered repositories", "https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml"],
+    ["GITHUB INSIGHT — Current repositories", "https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml"],
+    ["GITHUB INSIGHT — New and re-entered repositories", "https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml"],
   ]);
+  assert.match(page, /<title>GITHUB INSIGHT<\/title>/);
+  assert.match(page, /<h1><button class="title-reset" id="resetBtn"[^>]*>GITHUB INSIGHT<\/button><\/h1>/);
+  assert.doesNotMatch(pageRuntime, /GitHub Trending Daily/);
 });
 
 test("current-view export uses the exact rendered array and keeps private state out", () => {
