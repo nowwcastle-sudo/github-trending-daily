@@ -176,6 +176,16 @@ export function mergeTrendingPeriods(periods) {
   if (admitted.length < 10 || admitted.length > 75) {
     throw new Error(`Trending union size ${admitted.length} is outside 10-75`);
   }
+  // An exclusion leaves a hole in the source ranks (the excluded repository
+  // held a position on the trending page). The recorder requires every period's
+  // ranks to be gapless per snapshot, so renumber the admitted candidates in
+  // their original order. 2026-09-05: the first refresh with an exclusion failed
+  // in publish with "rank_daily ranks must be gapless per snapshot".
+  for (const period of Object.keys(PERIODS)) {
+    const rankKey = `rank_${period}`;
+    const ranked = admitted.filter(repository => Number.isInteger(repository[rankKey])).sort((a, b) => a[rankKey] - b[rankKey]);
+    ranked.forEach((repository, index) => { repository[rankKey] = index + 1; });
+  }
   return admitted;
 }
 

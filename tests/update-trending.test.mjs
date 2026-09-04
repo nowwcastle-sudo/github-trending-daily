@@ -361,6 +361,12 @@ test("excluded repositories never reach the candidate set", async () => {
     merged.map(repo => repo.slug),
     rows.map(row => row.slug).filter(slug => slug.toLowerCase() !== target),
   );
+  // The excluded slug held position 4 on every period page. The recorder requires
+  // gapless ranks per snapshot, so the admitted candidates are renumbered 1..n in
+  // their original order (2026-09-05 publish failure: "rank_daily ranks must be gapless").
+  for (const period of ["daily", "weekly", "monthly"]) {
+    assert.deepEqual(merged.map(repo => repo[`rank_${period}`]), merged.map((_, index) => index + 1), `${period} ranks are gapless after the exclusion`);
+  }
 
   // The union gate counts admitted candidates, not excluded ones: 10 real plus
   // the excluded slug is still an under-size union.
