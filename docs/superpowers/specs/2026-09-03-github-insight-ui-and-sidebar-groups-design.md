@@ -659,6 +659,8 @@ document.addEventListener("keydown", event => {
 
 **Amendment (2026-09-04, Task 7, from the Task 6 review).** The `#readmePanel` open-check moves out of the listener body and into `shortcutSuppressed`, so it runs *before* the `"/"` branch instead of after it; as written above `/` would `preventDefault()` and focus `#q` while `.wrap` is `inert`, swallowing the keystroke. `shortcutSuppressed` therefore reads: Alt/Ctrl/Meta, then the README-modal open-check, then the `input`/`select`/`textarea`/`contenteditable` target test.
 
+**Amendment (2026-09-04, Task 7 fix round, review F1/F2/F3/F7).** `shortcutSuppressed` gains a first check — `event.repeat || event.isComposing || event.key === "Process"` — so a held key and IME composition no longer re-fire the accelerators; the listener also reads `sidebar.dataset.openMode==="modal"` before acting: `/` returns without `preventDefault()` while the panel is already modal instead of focusing the inert `#q`, and a group letter calls `setSidebarGroup(group)` in place instead of being silently eaten by `openSidebar`'s already-modal early return. Because shortcuts match `event.key` (not `event.code`), they are unavailable while a non-Latin IME layout (Hangul, kana) or CapsLock is active — an accepted limitation (F7), since every group stays reachable by rail button, mobile trigger, and `#sidebarGroupSeg`.
+
 ### 9.4 Item 10 — CI workflow
 
 `.github/workflows/tests.yml`:

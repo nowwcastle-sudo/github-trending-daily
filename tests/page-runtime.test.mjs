@@ -1445,6 +1445,58 @@ test("slash focuses search and the four letters open their group modally", () =>
   }
 });
 
+test("slash does nothing while the sidebar panel is already open modally", () => {
+  // F1: shortcutSuppressed does not know about the sidebar's own modal state, so "/" used to
+  // preventDefault() and focus() #q while #q sits inside the inert .wrap behind the panel.
+  const harness = sidebarHarness();
+  harness.document.dispatch("keydown", { key: "e", target: harness.body });
+  assert.equal(harness.sidebar.dataset.openMode, "modal", "e must open the panel modally first");
+  const slash = harness.document.dispatch("keydown", { key: "/", target: harness.body });
+  assert.equal(harness.search.focusCount, 0, "slash must not focus the inert search field while the panel is modal");
+  assert.equal(slash.defaultPrevented, false, "slash must be left alone while the panel is modal");
+});
+
+test("a group letter switches the group while the panel is already modal", () => {
+  // F2 ruling: switch the group in place rather than silently eating the keystroke.
+  const harness = sidebarHarness();
+  harness.document.dispatch("keydown", { key: "e", target: harness.body });
+  assert.equal(harness.sidebar.dataset.openMode, "modal");
+  assert.equal(harness.sidebar.dataset.group, "explore");
+  const h = harness.document.dispatch("keydown", { key: "h", target: harness.body });
+  assert.equal(harness.sidebar.dataset.group, "history", "h must switch the group while modal");
+  assert.equal(harness.sidebar.dataset.openMode, "modal", "the panel must stay modal, not close or reopen");
+  assert.equal(h.defaultPrevented, true, "the keystroke must be consumed once it switches the group");
+});
+
+test("repeat keydowns and IME composition do not trigger the shortcuts", () => {
+  for (const properties of [{ key: "e", repeat: true }, { key: "e", isComposing: true }, { key: "Process" }]) {
+    const harness = sidebarHarness();
+    harness.document.dispatch("keydown", { target: harness.body, ...properties });
+    assert.equal(harness.sidebar.dataset.openMode, undefined, `${JSON.stringify(properties)} must not open the panel`);
+  }
+});
+
+test("slash preventDefaults and an unrelated key leaves the browser default alone", () => {
+  const harness = sidebarHarness();
+  const slash = harness.document.dispatch("keydown", { key: "/", target: harness.body });
+  assert.equal(slash.defaultPrevented, true, "slash must preventDefault so the browser's own find-in-page does not fire");
+  const unrelated = sidebarHarness();
+  const z = unrelated.document.dispatch("keydown", { key: "z", target: unrelated.body });
+  assert.equal(z.defaultPrevented, false, "an unrelated key must not be swallowed");
+});
+
+test("hovering Explore then pressing h upgrades to modal History and Escape restores focus to the History toggle", () => {
+  const harness = sidebarHarness();
+  harness.railToggles[1].dispatch("pointerenter");
+  assert.equal(harness.sidebar.dataset.openMode, "hover");
+  assert.equal(harness.sidebar.dataset.group, "explore");
+  harness.document.dispatch("keydown", { key: "h", target: harness.body });
+  assert.equal(harness.sidebar.dataset.openMode, "modal", "h must upgrade the hover panel to modal");
+  assert.equal(harness.sidebar.dataset.group, "history");
+  harness.document.dispatch("keydown", { key: "Escape" });
+  assert.equal(harness.document.activeElement, harness.railToggles[2], "focus must restore to the History rail button");
+});
+
 test("shortcuts are suppressed while typing, under modifiers, and while the README modal owns the page", () => {
   const typing = sidebarHarness();
   const input = typing.createTarget("q", { tagName: "INPUT" });
@@ -1530,6 +1582,19 @@ test("the panel dialog is labelled for the group it is currently showing", () =>
   assert.equal(harness.sidebar.dataset.group, "explore");
   assert.equal(harness.sidebar.dataset.i18nAriaLabel, "nav.ariaExplore");
   assert.equal(harness.sidebar.getAttribute("aria-label"), siteMessages.en["nav.ariaExplore"]);
+});
+
+test("the close button's label names no group, in the static markup and in every locale", () => {
+  // F4: before this fix the close button said "Close Explore sidebar" even while the dialog
+  // itself was labelled "History panel" — a contradiction inside one dialog for a screen-reader
+  // user. The fix must be group-neutral, not a per-group relabel.
+  const namedGroups = /Explore|탐색|探索|Explorar/;
+  const closeTag = page.match(/<button class="sidebar-close" id="sidebarClose"[^>]*>/)?.[0] ?? "";
+  assert.match(closeTag, /aria-label="Close panel"/);
+  assert.doesNotMatch(closeTag, namedGroups, "the static close-button label must not name a group");
+  for (const locale of Object.keys(siteMessages)) {
+    assert.doesNotMatch(siteMessages[locale]["sidebar.close"], namedGroups, `${locale} sidebar.close must not name a group`);
+  }
 });
 
 test("coarse pointers hide the rail and keep the mobile trigger visually hidden until keyboard focus", () => {
