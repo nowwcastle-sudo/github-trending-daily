@@ -123,7 +123,13 @@ def _complete_summary(repo: dict) -> bool:
 
 def _held_repository(repo: dict) -> bool:
     """A repository whose summary admission is held back: no summary yet, but otherwise valid."""
-    return repo.get("summary_status") == "held" and repo.get("summary") is None
+    return (
+        repo.get("summary_status") == "held"
+        and repo.get("summary") is None
+        and repo.get("detail") is None
+        and isinstance(repo.get("held_reason"), str)
+        and repo["held_reason"]
+    )
 
 
 def parse_repositories(page: str) -> list[RepositoryObservation]:

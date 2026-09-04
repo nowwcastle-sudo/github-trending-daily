@@ -2110,17 +2110,20 @@ Documents repository-level held admission, 30-minute star ticks into the site's 
 - Modify: `scripts/probe-production.mjs:239-241` (the `validateAtomHeader` tolerance added ahead of Task 8's merge, and its comment)
 - Modify: `tests/pages-publication.test.mjs` — drop the legacy-accept case from "Atom header validator tolerates the pre-rename title during the release window"
 
-**Precondition:** only after a W1 (`daily-refresh`) run has completed successfully and production serves `GITHUB INSIGHT — Current repositories` (i.e. the `verify` job at `daily-refresh.yml:596-603` has gone green against the renamed feeds). Check production's live `feed.xml` `<title>` before starting this task; if it still reads `GitHub Trending Daily — 현재 전체`, W1 has not yet succeeded and this task is not ready.
+**Precondition:** only after a W1 (`daily-refresh`) run has completed successfully, production serves `GITHUB INSIGHT — Current repositories` (i.e. the `verify` job at `daily-refresh.yml:596-603` has gone green against the renamed feeds), **and** production has been OBSERVED WORKING per release-window step 5 below (sign-in and Firestore actually exercised) — a green `verify` alone is not enough. Check production's live `feed.xml` `<title>` before starting this task; if it still reads `GitHub Trending Daily — 현재 전체`, W1 has not yet succeeded and this task is not ready.
 
-**The release-window procedure this precondition depends on** (from the Task 8 review's ruling, steps 3–8 — reproduced here so it lives in the plan, not only in the review):
+**The release-window procedure this precondition depends on** (from the Task 8 review's ruling, steps 3–8, amended after RED TEAM 2 — reproduced here so it lives in the plan, not only in the review):
 
-1. Before merging Task 8, set the repository variable `GH_TRENDING_TICKS` to a value other than `enabled` (e.g. `paused`), suspending scheduled W2 (`star-ticks`) runs for the window.
+Main's test gate has been red since production data changed (five assertions fixed by Task 1 on this branch), so W1 cannot run before the merge and a revert would re-block it; rollback is FIX-FORWARD: hotfix on main, re-run W1. There is no pre-merge rollback-artifact step to run.
+
+1. Before merging Task 8, set the repository variable `GH_TRENDING_TICKS` to a value other than `enabled` (e.g. `paused`), suspending scheduled W2 (`star-ticks`) runs for the window. If the pause was missed, red W2 runs during the window are noise, not damage — do not revert the merge; dispatch W1 and let it land, since the failed ticks' ledger commits are already correct.
 2. Merge `claude/github-insight-ui-20260903` to `main` (after Tasks 9–13 land).
 3. Immediately dispatch W1 (`Trending refresh (2 hours)`, `workflow_dispatch`, no bootstrap SHA).
-4. Watch the `prepare` job: `npm test` passes, then the probe at `daily-refresh.yml:144` passes under the tolerance against the still-old live feeds, then the recovery-artifact probe at `:164` likewise.
-5. Confirm W1's `publish` → `deploy` → `verify` chain goes green. The `verify` job now probes live production carrying the new titles.
+4. Watch the `prepare` job: `npm test` passes; `Resolve verified production state` must resolve `HYDRATION_SOURCE_SHA` to the pre-merge deployed commit (if it resolves to the merge commit instead, production was already redeployed by something else and this whole sequencing assumption is void — stop); the probe at `daily-refresh.yml:144` passes under the tolerance against the still-old live feeds; `Build verified recovery artifact` at `:146-164` must succeed, since it is the run's only automated rollback.
+5. Confirm W1's `publish` → `deploy` → `verify` chain goes green. The `verify` job now probes live production carrying the new titles. After `verify` is green and **before** restoring `GH_TRENDING_TICKS`, run spec §8.6 production checks 1, 3, 3b, 5, and 6 on the live page — sign-in and App Check are the only things this release can break that no probe covers. Checks 2, 7, 8, 9, and 10 can wait.
 6. Restore `GH_TRENDING_TICKS=enabled` so the next W2 tick builds against the new snapshot contract.
-7. Only then start this task (Task 14).
+7. Only then consider Task 14 — and only after production has been OBSERVED WORKING (sign-in and Firestore actually exercised in step 5), not merely green.
+8. After Task 14 and the README task (Task 13) have both landed, create (or set) the repository variable `GH_TRENDING_REFRESH_SCHEDULE` to `enabled` so W1 runs on its daily schedule — per the user's directive recorded in `progress.md`.
 
 **Steps:**
 

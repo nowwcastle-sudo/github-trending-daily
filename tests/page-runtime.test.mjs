@@ -2648,6 +2648,8 @@ test("the page declares a Content-Security-Policy that covers every origin the c
   const hosts = new Set([...scanned.matchAll(/https:\/\/([a-z0-9.-]+)/gi)].map(match => match[1].toLowerCase()));
   const imageOnly = new Set(["raw.githubusercontent.com", "camo.githubusercontent.com"]);
   const documentOnly = new Set(["github.com", "nowwcastle-sudo.github.io", "www.w3.org"]);
+  // This scan sees only source literals. SDK-injected origins such as https://apis.google.com are invisible
+  // to it and are pinned instead by the `deepEqual` assertions above plus the production browser checklist (spec §8.6).
   for (const host of hosts) {
     if (documentOnly.has(host) || imageOnly.has(host)) continue;
     assert.ok(allowed.has(`https://${host}`), `${host} is used by the code but no CSP directive allows it`);

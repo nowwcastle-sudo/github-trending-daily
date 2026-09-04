@@ -330,3 +330,29 @@ test("the deploy and recovery jobs serialize on the Pages concurrency group like
     assert.match(workflow.slice(start, jobEnd), /\n    concurrency:\n      group: pages\n      cancel-in-progress: false\n/);
   }
 });
+
+test("the recovery job installs Python before its probe step, like prepare and verify do", async () => {
+  const workflow = await workflowText();
+  const recoveryStart = workflow.indexOf("  recovery:");
+  assert.ok(recoveryStart >= 0);
+  const setupPythonStart = workflow.indexOf("- uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0", recoveryStart);
+  const probeStep = workflow.indexOf("- name: Verify recovered production", recoveryStart);
+  assert.ok(setupPythonStart > recoveryStart && setupPythonStart < probeStep, "recovery job must install Python before its probe step");
+  assert.match(
+    workflow.slice(setupPythonStart, probeStep),
+    /actions\/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7\.0\.0\n\s+with:\n\s+python-version: "3\.13"/,
+  );
+  // recovery installs Python exactly once, right after actions/setup-node, matching prepare and verify.
+  const setupNodeStart = workflow.lastIndexOf("- uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0", setupPythonStart);
+  assert.ok(setupNodeStart > recoveryStart && setupNodeStart < setupPythonStart);
+});
+
+test("the candidate Pages artifact keeps a week of retention for a fast rollback via a re-run deploy", async () => {
+  const workflow = await workflowText();
+  const uploadStart = workflow.indexOf("- name: Upload candidate Pages artifact");
+  const nextJob = workflow.indexOf("\n  deploy:", uploadStart);
+  const upload = workflow.slice(uploadStart, nextJob);
+  assert.match(upload, /name: github-pages-candidate-\$\{\{ github\.run_id \}\}\n\s+path: \$\{\{ runner\.temp \}\}\/pages-artifact\n\s+retention-days: 7\n/);
+  // the recovery and defect-diagnostics uploads keep their own, unrelated retention values.
+  assert.match(workflow, /name: github-pages-recovery-\$\{\{ github\.run_id \}\}\n\s+path: \$\{\{ runner\.temp \}\}\/recovery-artifact\n\s+retention-days: 2\n/);
+});
