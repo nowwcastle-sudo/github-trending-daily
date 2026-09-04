@@ -2588,3 +2588,52 @@ test("a touch tooltip body forwards the covered same-card second tap without ste
   dispatch(explicitLink);
   assert.equal(calls.opened.length, 1, "an explicit tooltip control must own its tap");
 });
+
+test("the page declares a Content-Security-Policy that covers every origin the code actually uses", async () => {
+  const meta = page.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)">/)?.[1] ?? "";
+  assert.ok(meta.length > 0, "the CSP meta must exist");
+  assert.ok(page.indexOf('http-equiv="Content-Security-Policy"') < page.indexOf("<style>"), "the policy must precede every style and script");
+
+  const policy = Object.fromEntries(meta.split(";").map(part => part.trim()).filter(Boolean).map(part => {
+    const [directive, ...values] = part.split(/\s+/);
+    return [directive, values];
+  }));
+  assert.deepEqual(Object.keys(policy), [
+    "default-src", "script-src", "style-src", "img-src", "font-src",
+    "connect-src", "frame-src", "object-src", "base-uri", "form-action",
+  ]);
+  assert.deepEqual(policy["default-src"], ["'self'"]);
+  assert.deepEqual(policy["script-src"], ["'self'", "'unsafe-inline'", "'wasm-unsafe-eval'", "https://www.gstatic.com", "https://www.google.com"]);
+  assert.deepEqual(policy["style-src"], ["'self'", "'unsafe-inline'"]);
+  assert.deepEqual(policy["img-src"], ["'self'", "data:", "https:"]);
+  assert.deepEqual(policy["font-src"], ["'self'"]);
+  assert.deepEqual(policy["connect-src"], [
+    "'self'", "https://api.github.com", "https://firestore.googleapis.com",
+    "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com",
+    "https://content-firebaseappcheck.googleapis.com", "https://www.google.com",
+  ]);
+  assert.deepEqual(policy["frame-src"], [
+    "https://github-trending-nowwcastle.firebaseapp.com", "https://www.google.com", "https://accounts.google.com",
+  ]);
+  assert.deepEqual(policy["object-src"], ["'none'"]);
+  assert.deepEqual(policy["base-uri"], ["'self'"]);
+  assert.deepEqual(policy["form-action"], ["'self'"]);
+  assert.doesNotMatch(meta, /'unsafe-eval'/);
+  assert.doesNotMatch(meta, /(^|\s)\*(\s|;|$)/);
+
+  const sources = await Promise.all([
+    "../firebase-client.js", "../auth-lifecycle.js", "../favorite-sync.js",
+    "../readme-markdown.js", "../star-history.js", "../current-view-export.js",
+  ].map(name => readFile(new URL(name, import.meta.url), "utf8")));
+  const allowed = new Set(Object.values(policy).flat());
+  const scanned = [pageRuntime, ...sources].join("\n");
+  const hosts = new Set([...scanned.matchAll(/https:\/\/([a-z0-9.-]+)/gi)].map(match => match[1].toLowerCase()));
+  const imageOnly = new Set(["raw.githubusercontent.com", "camo.githubusercontent.com"]);
+  const documentOnly = new Set(["github.com", "nowwcastle-sudo.github.io", "www.w3.org"]);
+  for (const host of hosts) {
+    if (documentOnly.has(host) || imageOnly.has(host)) continue;
+    assert.ok(allowed.has(`https://${host}`), `${host} is used by the code but no CSP directive allows it`);
+  }
+  assert.ok(hosts.has("www.gstatic.com"), "the scan must actually see the Firebase module host");
+  assert.ok(hosts.has("api.github.com"), "the scan must actually see the GitHub API host");
+});
