@@ -22,7 +22,18 @@ export const EVENT_LIMITS = Object.freeze({
   maxLogicalRequests: 3600,
   maxAttempts: 4500,
   requestTimeoutMs: 30_000,
-  retryDelaysMs: Object.freeze([2000, 8000]),
+  // Five attempts, 75s of total backoff. GitHub's gateway sheds load on slow
+  // listings for seconds at a time; 3 attempts inside 10s rode out too little
+  // of that. Bounds that must keep holding:
+  //   - admitSleep(45_000) needs 45+30+5 = 80s of the 900s eventWindowMs, so a
+  //     request that starts too late loses the long tail instead of the window.
+  //   - one request costs at most 5 x 30s timeout + 75s sleep = 225s.
+  //   - maxAttempts - maxLogicalRequests = 900 spare attempts, and a fully
+  //     retrying request spends 4 of them, so 225 such requests stay inside the
+  //     cap - far more than the 15-minute deadline itself allows.
+  // This buys nothing against a deterministic 5xx: a listing that is simply too
+  // large to serve fails closed at attempt 5 exactly as it did at attempt 3.
+  retryDelaysMs: Object.freeze([2000, 8000, 20000, 45000]),
   eventAdmissionReserveMs: 5000,
   eventWindowMs: 15 * 60_000,
 });

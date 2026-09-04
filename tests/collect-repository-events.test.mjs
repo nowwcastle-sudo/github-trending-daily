@@ -564,8 +564,58 @@ test("terminal retry counts every attempt", async () => {
     },
     sleep: async milliseconds => { sleeps.push(milliseconds); },
   }), /release inventory.*503/);
-  assert.equal(attempts, 3);
-  assert.deepEqual(sleeps, [2000, 8000]);
+  assert.equal(attempts, 5);
+  assert.deepEqual(sleeps, [2000, 8000, 20000, 45000]);
+});
+
+test("a transient gateway timeout recovers inside the widened retry budget", async () => {
+  const base = successfulFetch();
+  const sleeps = [];
+  let inventoryAttempts = 0;
+  const events = await collectRepositoryEvents([repo], {
+    fetchImpl: async (url, options) => {
+      if (new URL(url).pathname.endsWith("/releases") && !options.headers?.["If-None-Match"]) {
+        inventoryAttempts += 1;
+        if (inventoryAttempts <= 3) return response(504, { message: "gateway timeout" });
+      }
+      return base(url, options);
+    },
+    sleep: async milliseconds => { sleeps.push(milliseconds); },
+  });
+  assert.equal(inventoryAttempts, 4);
+  assert.deepEqual(sleeps, [2000, 8000, 20000]);
+  assert.equal(events.releases.length, 2);
+  assert.equal(events.budgetReceipt.httpAttempts - events.budgetReceipt.logicalRequests, 3);
+});
+
+test("a deterministic gateway timeout still fails closed at the widened attempt cap", async () => {
+  let attempts = 0;
+  const sleeps = [];
+  await assert.rejects(collectRepositoryEvents([repo], {
+    fetchImpl: async (url, options) => {
+      if (new URL(url).pathname.endsWith("/releases") && !options.headers?.["If-None-Match"]) {
+        attempts += 1;
+        return response(504, { message: "gateway timeout" });
+      }
+      return successfulFetch()(url, options);
+    },
+    sleep: async milliseconds => { sleeps.push(milliseconds); },
+  }), /release inventory.*504/);
+  assert.equal(attempts, 5);
+  assert.deepEqual(sleeps, [2000, 8000, 20000, 45000]);
+});
+
+test("the longest backoff stays inside the immutable event window", async () => {
+  const origin = 1_700_000_000_000;
+  // admitSleep(45_000) needs 45s + the 30s request timeout + the 5s reserve.
+  await assert.rejects(collectRepositoryEvents([repo], {
+    fetchImpl: async (url, options) => new URL(url).pathname.endsWith("/releases") && !options.headers?.["If-None-Match"]
+      ? response(504, { message: "gateway timeout" })
+      : successfulFetch()(url, options),
+    sleep: async () => {},
+    originEpochMs: origin,
+    now: () => origin + 15 * 60_000 - 79_999,
+  }), /deadline has insufficient retry reserve/);
 });
 
 test("truncated release JSON retries within the fixed attempt budget", async () => {
@@ -597,7 +647,7 @@ test("truncated release JSON retries within the fixed attempt budget", async () 
     },
     sleep: async () => {},
   }), /Invalid JSON for release inventory/);
-  assert.equal(terminalAttempts, 3);
+  assert.equal(terminalAttempts, 5);
 });
 
 test("release records normalize the DB identity and weak ETags require byte-equivalent revalidation", async () => {

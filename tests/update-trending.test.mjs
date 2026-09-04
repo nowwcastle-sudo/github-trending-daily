@@ -28,6 +28,8 @@ import {
   parsePageRepos,
   parseTrendingHtml,
   renderFrozenCandidate,
+  REPOSITORY_EXCLUSIONS,
+  repositoryExclusion,
   runTrendingUpdate,
 } from "../scripts/update-trending.mjs";
 
@@ -323,6 +325,54 @@ test("fails closed on malformed, duplicate, and invalid-gain pages", async () =>
     () => parseTrendingHtml(daily.replace("1,234 stars today", "1,234 stars today in docs"), "daily"),
     /invalid daily star gain/i,
   );
+});
+
+test("excluded repositories never reach the candidate set", async () => {
+  const excluded = Object.keys(REPOSITORY_EXCLUSIONS);
+  assert.ok(excluded.length >= 1);
+  for (const slug of excluded) {
+    assert.equal(slug, slug.toLowerCase(), "exclusion keys are canonical lowercase slugs");
+    assert.match(slug, /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/);
+    const entry = REPOSITORY_EXCLUSIONS[slug];
+    assert.equal(typeof entry.reason, "string");
+    assert.ok(entry.reason.length > 20, "an exclusion states why");
+    assert.match(entry.decidedOn, /^\d{4}-\d{2}-\d{2}$/);
+    assert.equal(typeof entry.revisit, "string");
+    assert.ok(Object.isFrozen(entry));
+  }
+  assert.ok(Object.isFrozen(REPOSITORY_EXCLUSIONS));
+  assert.equal(repositoryExclusion("CLShortFuse/RenoDX")?.decidedOn, REPOSITORY_EXCLUSIONS["clshortfuse/renodx"].decidedOn);
+  assert.equal(repositoryExclusion("owner/not-excluded"), null);
+
+  // A trending page that lists an excluded slug yields a candidate set without it,
+  // and the excluded entry does not consume one of the 75 candidate slots.
+  const [target] = excluded;
+  const rows = Array.from({ length: 11 }, (_, index) => ({ slug: `owner/repo-${index}`, stars_daily: 100 - index }));
+  rows.splice(3, 0, { slug: target, stars_daily: 999 });
+  const periods = {
+    daily: rows,
+    weekly: rows.map(({ slug, stars_daily }) => ({ slug, stars_weekly: stars_daily })),
+    monthly: rows.map(({ slug, stars_daily }) => ({ slug, stars_monthly: stars_daily })),
+  };
+  const merged = mergeTrendingPeriods(periods);
+  assert.equal(merged.length, rows.length - 1);
+  assert.equal(merged.some(repo => repo.slug.toLowerCase() === target), false);
+  assert.deepEqual(
+    merged.map(repo => repo.slug),
+    rows.map(row => row.slug).filter(slug => slug.toLowerCase() !== target),
+  );
+
+  // The union gate counts admitted candidates, not excluded ones: 10 real plus
+  // the excluded slug is still an under-size union.
+  const short = [
+    ...Array.from({ length: 9 }, (_, index) => ({ slug: `owner/short-${index}`, stars_daily: 50 - index })),
+    { slug: target, stars_daily: 999 },
+  ];
+  assert.throws(() => mergeTrendingPeriods({
+    daily: short,
+    weekly: short.map(({ slug, stars_daily }) => ({ slug, stars_weekly: stars_daily })),
+    monthly: short.map(({ slug, stars_daily }) => ({ slug, stars_monthly: stars_daily })),
+  }), /union size 9 is outside 10-75/);
 });
 
 test("fails closed when a page or union violates size gates", async () => {
