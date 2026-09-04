@@ -31,6 +31,7 @@ STATS_DATE_SCHEME = f"{SITE_URL}stats-date"
 FEED_TITLE_CURRENT = "GITHUB INSIGHT — Current repositories"
 FEED_TITLE_CHANGES = "GITHUB INSIGHT — New and re-entered repositories"
 FEED_AUTHOR_NAME = "GITHUB INSIGHT"
+HELD_SUMMARY_PREFIX = "[요약 검증 중] "
 TAG_RULE_VERSION = 1
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PAGE = REPOSITORY_ROOT / "index.html"
@@ -422,12 +423,13 @@ def _latest_by_slug(latest):
 
 
 def _current_summary(repository):
+    prefix = HELD_SUMMARY_PREFIX if repository["summary_status"] == "held" else ""
     description = repository["description"].strip()
     if description:
-        return description
+        return f"{prefix}{description}"
     if repository["summary"] is None:
-        return repository["name"]
-    return repository["summary"]["goal"]
+        return f"{prefix}{repository['name']}"
+    return f"{prefix}{repository['summary']['goal']}"
 
 
 def _current_document(latest, timeline):
