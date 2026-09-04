@@ -39,7 +39,7 @@ A compact filter bar sits directly under the badge guide, always visible without
 
 ## Repository admission and held summaries
 
-Each repository is admitted to the page on its own: it either ships with a complete, verified five-language summary, or it is published as **held**. A held repository's card still shows its measured data (stars, forks, activity, rank), but in place of the AI summary it shows a fixed, localized "summary being verified" notice and is retried automatically at the next scheduled refresh (about every two hours). No other repository on the page is affected by one repository being held — GITHUB INSIGHT never falls back to an all-or-nothing publish.
+Each repository is admitted to the page on its own: it either ships with a complete, verified five-language summary, or it is published as **held**. A held repository's card still shows its measured data (stars, forks, activity, rank), but in place of the AI summary it shows a fixed, localized "summary being verified" notice and is retried automatically at the next scheduled daily refresh. No other repository on the page is affected by one repository being held — GITHUB INSIGHT never falls back to an all-or-nothing publish.
 
 ## Star history
 
@@ -103,7 +103,7 @@ The interface describes these summaries accurately as AI-generated from a verifi
 
 ## Refresh and publication safety
 
-When activated, GitHub Actions is scheduled at minute 07 of odd-numbered hours in `Asia/Seoul`, approximately every two hours. The workflow collects and freezes canonical repository and README facts before considering enrichment. It must then complete exact five-language coverage or per-repository `held` admission, provenance validation, rendering, observation recording, and artifact validation before publication.
+When activated, GitHub Actions is scheduled once a day at 09:07 in `Asia/Seoul` (00:07 UTC). The workflow collects and freezes canonical repository and README facts before considering enrichment. It must then complete exact five-language coverage or per-repository `held` admission, provenance validation, rendering, observation recording, and artifact validation before publication.
 
 Scheduled Daily Refresh keeps Claude CLI OAuth with `claude-sonnet-5` as the default summary producer. Codex is a fallback only for the exact repositories that remain pending against the same frozen input; it does not replace the scheduled default or regenerate already complete repositories.
 
