@@ -2104,6 +2104,35 @@ Documents repository-level held admission, 30-minute star ticks into the site's 
 
 ---
 
+### Task 14: Remove the probe's legacy Atom title tolerance
+
+**Files:**
+- Modify: `scripts/probe-production.mjs:239-241` (the `validateAtomHeader` tolerance added ahead of Task 8's merge, and its comment)
+- Modify: `tests/pages-publication.test.mjs` — drop the legacy-accept case from "Atom header validator tolerates the pre-rename title during the release window"
+
+**Precondition:** only after a W1 (`daily-refresh`) run has completed successfully and production serves `GITHUB INSIGHT — Current repositories` (i.e. the `verify` job at `daily-refresh.yml:596-603` has gone green against the renamed feeds). Check production's live `feed.xml` `<title>` before starting this task; if it still reads `GitHub Trending Daily — 현재 전체`, W1 has not yet succeeded and this task is not ready.
+
+**The release-window procedure this precondition depends on** (from the Task 8 review's ruling, steps 3–8 — reproduced here so it lives in the plan, not only in the review):
+
+1. Before merging Task 8, set the repository variable `GH_TRENDING_TICKS` to a value other than `enabled` (e.g. `paused`), suspending scheduled W2 (`star-ticks`) runs for the window.
+2. Merge `claude/github-insight-ui-20260903` to `main` (after Tasks 9–13 land).
+3. Immediately dispatch W1 (`Trending refresh (2 hours)`, `workflow_dispatch`, no bootstrap SHA).
+4. Watch the `prepare` job: `npm test` passes, then the probe at `daily-refresh.yml:144` passes under the tolerance against the still-old live feeds, then the recovery-artifact probe at `:164` likewise.
+5. Confirm W1's `publish` → `deploy` → `verify` chain goes green. The `verify` job now probes live production carrying the new titles.
+6. Restore `GH_TRENDING_TICKS=enabled` so the next W2 tick builds against the new snapshot contract.
+7. Only then start this task (Task 14).
+
+**Steps:**
+
+1. In `scripts/probe-production.mjs`, remove both legacy strings from `validateAtomHeader` and the "Release window only" comment above them; restore a strict single-value check (`expectedTitle` + `!==`), mirroring the pre-Task-8 form.
+2. In `tests/pages-publication.test.mjs`, drop the legacy-title-accepted assertion from the release-window test (keep the new-title-accepted and third-title-rejected assertions, or fold them into the existing per-kind coverage if the test is simplified).
+3. Run `npm test` (PowerShell) and confirm `# fail 0` (Node) and `OK` (Python).
+4. Commit and merge. No W1 dispatch is needed for this change — both the live site and the new `HYDRATION_SOURCE_SHA` (now the W1 publish commit) already carry the new titles, so F3/F4/F5 from the Task 8 review all resolve to the new value without another refresh cycle.
+
+**Rollback note:** if W1's `recovery` job rolled production back to the pre-rename artifact at any point (steps 4–5 above), do **not** run this task. The tolerance is what keeps the recovery path working; keep it in place, diagnose why W1 failed, and re-dispatch W1 before reconsidering Task 14.
+
+---
+
 ## Self-Review
 
 **1. Spec coverage.** Every brief item maps to a task:
