@@ -35,6 +35,9 @@ test("every rail group, shortcut hint, and held-retry message exists in all five
     "nav.ariaAccount", "nav.ariaExplore", "nav.ariaHistory", "nav.ariaExport",
     "nav.titleAccount", "nav.titleExplore", "nav.titleHistory", "nav.titleExport",
     "nav.groups", "filter.copyLink", "tooltip.heldRetry",
+    // RED TEAM 1 H4: star-history.js renders every one of these through the site `tr`.
+    "history.title", "history.explanation", "history.observedSince",
+    "history.ariaTrend", "history.waiting", "history.singleObservation",
   ];
   for (const locale of i18n.SUPPORTED_LOCALES) {
     for (const key of required) {
@@ -42,6 +45,13 @@ test("every rail group, shortcut hint, and held-retry message exists in all five
       assert.equal(typeof value, "string", `${locale} is missing ${key}`);
       assert.ok(value.trim().length > 0, `${locale} ${key} must not be blank`);
     }
+    // RED TEAM 1 M3: the filter-bar live region is empty at rest (.filter-bar-status reserves
+    // min-height:1.45em), so this prompt is deliberately the empty string — its job is to let
+    // SiteI18n.apply() clear a stale, wrong-language copy-link message on a locale switch.
+    assert.equal(i18n.MESSAGES[locale]["filter.statusPrompt"], "", `${locale} filter.statusPrompt must be the empty prompt`);
+    // RED TEAM 1 L5: #mobileNavToggle is the trigger for Account, History and Export too, so its
+    // label must be group-neutral the way sidebar.close already is.
+    assert.doesNotMatch(i18n.MESSAGES[locale]["nav.open"], /Explore|탐색|探索|Explorar/, `${locale} nav.open must be group-neutral`);
   }
   for (const [key, hint] of [["nav.titleAccount", "(a)"], ["nav.titleExplore", "(e)"], ["nav.titleHistory", "(h)"], ["nav.titleExport", "(x)"]]) {
     for (const locale of i18n.SUPPORTED_LOCALES) {

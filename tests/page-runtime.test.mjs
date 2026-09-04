@@ -267,6 +267,9 @@ function sidebarHarness({ hoverCapable = true } = {}) {
   vm.createContext(context);
   vm.runInContext(uiMotionSource, context, { filename: "ui-motion-fixture.js" });
   vm.runInContext(page.slice(start, end), context, { filename: "sidebar-runtime-fixture.js" });
+  // index.html:1592 calls setSidebarGroup(sidebar.dataset.group) at bootstrap, on a *closed*
+  // panel, so the harness needs the same direct entry point to cover that path.
+  vm.runInContext("globalThis.__setSidebarGroup=setSidebarGroup;", context, { filename: "sidebar-exports-fixture.js" });
   vm.runInContext(`
     const REPOS=globalThis.__repos,tipLayer=globalThis.__tipLayer;
     let activeTipIndex=null,hideTimer=null;
@@ -300,6 +303,7 @@ function sidebarHarness({ hoverCapable = true } = {}) {
     trace,
     advance,
     showTip(card = { dataset: { idx: "0" } }) { context.__showTip(card); },
+    setSidebarGroup(group, open) { return open === undefined ? context.__setSidebarGroup(group) : context.__setSidebarGroup(group, open); },
     positionCount() { return context.__positionCount; },
     createTarget(id, options = {}) {
       const target = new FakeHTMLElement(id);
@@ -646,7 +650,7 @@ function filterUiHarness() {
   });
   const seg = { querySelectorAll(selector) { return selector === "button" ? periodButtons : []; } };
 
-  const calls = { moveThumb: 0, render: 0 };
+  const calls = { moveThumb: 0, render: 0, filterBarStatus: [] };
   const documentRef = {
     getElementById(id) { return nodes.get(id); },
     querySelectorAll() { return []; },
@@ -660,6 +664,9 @@ function filterUiHarness() {
     activeDiscoveryCount() { return 0; },
     moveThumb() { calls.moveThumb += 1; },
     render() { calls.render += 1; },
+    // Declared after updateFilterUi in the page, so the real slice would hoist past this fixture's
+    // window; recorded here so the clear-on-state-change contract stays observable.
+    setFilterBarStatus(message, tone = "") { calls.filterBarStatus.push([message, tone]); },
     URLSearchParams,
   };
   context.globalThis = context;
@@ -734,7 +741,7 @@ function filterControlsHarness() {
   });
   const seg = { querySelectorAll(selector) { return selector === "button" ? periodButtons : []; } };
 
-  const calls = { updateFilterUi: 0, syncUrl: 0, render: 0 };
+  const calls = { updateFilterUi: 0, syncUrl: 0, render: 0, filterBarStatus: [] };
   const documentRef = {
     getElementById(id) { return nodes.get(id); },
     querySelectorAll() { return []; },
@@ -749,6 +756,7 @@ function filterControlsHarness() {
     moveThumb() {},
     syncUrl() { calls.syncUrl += 1; },
     render() { calls.render += 1; },
+    setFilterBarStatus(message, tone = "") { calls.filterBarStatus.push([message, tone]); },
     URLSearchParams,
   };
   context.globalThis = context;
@@ -1988,7 +1996,7 @@ test("the selected compact Explore rail stays reachable and outside the inert pa
   assert.doesNotMatch(page, /navToggle\.addEventListener\("keydown"/);
   assert.match(page, /trigger:event\.detail===0\?"keyboard":"click"/);
   assert.match(page, /if\(readme\.classList\.contains\("open"\)\)[\s\S]*?closeReadme\(false\)/);
-  assert.match(page, /if\(restoreFocus&&sidebarTrigger instanceof HTMLElement\)sidebarTrigger\.focus\(\)/);
+  assert.match(page, /if\(restoreFocus\)restoreSidebarFocus\(group\)/);
   assert.match(page, /@media\(prefers-reduced-motion:reduce\)\{[\s\S]*?transition-duration:0ms!important/);
 });
 
@@ -2058,6 +2066,13 @@ test("the filter bar rows never sum past the card column", () => {
   assert.match(page, /@media\(max-width:760px\)\{\.filter-bar \.seg button\{padding-inline:8px;font-size:12\.5px\}\}/);
   assert.match(page, /\.filter-bar-status\[data-tone="success"\]\{color:var\(--accent-selected\)\}/);
   assert.match(page, /\.filter-bar-status\[data-tone="error"\]\{color:var\(--hot\)\}/);
+  // Final review F1: both REQUIRED Task 6 CSS fixes shipped unguarded and survived mutation.
+  // F2 — the aria-live region must stay mounted, so it reserves a line instead of collapsing when
+  // empty; re-adding `:empty{display:none}` would silence the first copy-link announcement.
+  assert.match(page, /\.filter-bar-status\{[^}]*min-height:1\.45em\}/);
+  assert.doesNotMatch(page, /\.filter-bar-status:empty/);
+  // F7 — the dead .filter-switch* CSS was deleted along with its markup.
+  assert.doesNotMatch(page, /\.filter-switch[\s{:.]/);
   assert.match(page, /\.filter-toggle\{[^}]*min-height:44px/);
   assert.match(page, /\.filter-toggle:focus-visible\{outline:3px solid var\(--accent\);outline-offset:2px\}/);
   assert.match(page, /\.filter-toggle\[aria-pressed="true"\]\{background:var\(--accent-soft\);color:var\(--accent-selected\);border-color:var\(--accent\)\}/);
@@ -2639,4 +2654,164 @@ test("the page declares a Content-Security-Policy that covers every origin the c
   }
   assert.ok(hosts.has("www.gstatic.com"), "the scan must actually see the Firebase module host");
   assert.ok(hosts.has("api.github.com"), "the scan must actually see the GitHub API host");
+});
+
+/* ===================== RED TEAM 1 regressions =====================
+   Adapted from the red-team harness. Each one failed against 90f1e6d. */
+
+test("RED1-H1 a group switch never strands focus on a section it just hid", () => {
+  const harness = sidebarHarness();
+  harness.document.dispatch("keydown", { key: "x", target: harness.body });
+  assert.equal(harness.sidebar.dataset.group, "export");
+  assert.equal(harness.sidebar.dataset.openMode, "modal");
+
+  // A control *inside* a panel group — the existing shortcut coverage only ever focused a
+  // filter-bar button, which lives outside the [data-group] sections and is never hidden.
+  const exportSection = harness.sections.find(section => section.id === "exportSection");
+  const csvButton = harness.createTarget("exportCsvBtn", { tagName: "BUTTON" });
+  csvButton.parentElement = exportSection;
+  csvButton.focus();
+  assert.equal(harness.document.activeElement, csvButton);
+
+  harness.document.dispatch("keydown", { key: "e", target: csvButton });
+
+  assert.equal(exportSection.hidden, true, "the group switch hides the section the button lived in");
+  assert.notEqual(
+    harness.document.activeElement,
+    csvButton,
+    "leaving focus on the hidden button drops it to <body> in a real browser and escapes the aria-modal dialog",
+  );
+  assert.equal(
+    harness.document.activeElement,
+    harness.segButtons.find(button => button.dataset.group === "explore"),
+    "focus moves to the new group's #sidebarGroupSeg button, which also announces the group",
+  );
+
+  // The segment button itself is not inside a [data-group] section, so switching by click keeps
+  // focus exactly where the user put it.
+  const historySeg = harness.segButtons.find(button => button.dataset.group === "history");
+  historySeg.focus();
+  historySeg.dispatch("click");
+  assert.equal(harness.sidebar.dataset.group, "history");
+  assert.equal(harness.document.activeElement, historySeg, "a segment-button switch must not steal focus");
+});
+
+test("RED1-H2 closing a modal never ends on <body> when the recorded trigger stopped taking focus", () => {
+  const harness = sidebarHarness({ hoverCapable: false });
+  harness.document.dispatch("keydown", { key: "h", target: harness.body });
+  assert.equal(harness.sidebar.dataset.openMode, "modal");
+  assert.equal(harness.document.activeElement, harness.close);
+
+  // The viewport widened past 720px while the panel was open, so updateMobileNavAccess() inerted
+  // the recorded trigger. focus() on an inert element is a silent no-op.
+  harness.mobileToggle.canFocus = false;
+  harness.document.dispatch("keydown", { key: "Escape" });
+
+  assert.equal(harness.sidebar.dataset.openMode, undefined);
+  assert.ok(harness.trace.includes("mobileNavToggle:focus-noop"), "the recorded trigger is still tried first");
+  assert.equal(
+    harness.document.activeElement,
+    harness.railToggles[2],
+    "focus falls back to a live opener for the same group instead of dropping to <body>",
+  );
+
+  // Last resort: no opener can take focus at all, so <main> is made programmatically focusable.
+  const stranded = sidebarHarness({ hoverCapable: false });
+  stranded.document.dispatch("keydown", { key: "a", target: stranded.body });
+  stranded.mobileToggle.canFocus = false;
+  stranded.railToggles.forEach(toggle => { toggle.canFocus = false; });
+  stranded.document.dispatch("keydown", { key: "Escape" });
+  assert.equal(stranded.pageMain.getAttribute("tabindex"), "-1");
+  assert.equal(stranded.document.activeElement, stranded.pageMain);
+  assert.notEqual(stranded.document.activeElement, stranded.body);
+});
+
+test("RED1-H3 the viewports that hide the rail all render #mobileNavToggle as a real 44px opener", () => {
+  // The rail still hides on width alone and keeps its approved 64px token.
+  assert.match(page, /@media\(max-width:720px\)\{\s*\.nav-rail\{display:none!important\}/);
+  assert.match(page, /\.nav-rail\{[^}]*width:64px/);
+  // Base state is unchanged: a 1px keyboard skip link wherever the rail is visible.
+  assert.match(page, /\.mobile-nav-toggle\{position:absolute;width:1px;height:1px/);
+
+  const band = page.match(/@media\(max-width:720px\),\(hover:none\),\(pointer:coarse\)\{[\s\S]*?\r?\n\}/)?.[0] ?? "";
+  assert.ok(band, "the mobile-access band must have its own rule block");
+  assert.match(band, /\.mobile-nav-toggle,\.mobile-nav-toggle:focus-visible\{[^}]*position:static/);
+  assert.match(band, /\.mobile-nav-toggle,\.mobile-nav-toggle:focus-visible\{[^}]*clip:auto/);
+  assert.match(band, /\.mobile-nav-toggle,\.mobile-nav-toggle:focus-visible\{[^}]*min-width:44px;min-height:44px/);
+  assert.match(band, /\.mobile-nav-toggle:focus-visible\{outline:3px solid var\(--accent\);outline-offset:2px\}/);
+  // The CSS band and the JS access media query must stay the same set, so the only visible opener
+  // and the only operable opener are always the same element.
+  assert.match(page, /const sidebarMobileAccessMedia=matchMedia\("\(max-width:720px\), \(hover:none\), \(pointer:coarse\)"\)/);
+});
+
+test("RED1-M1 Escape dismisses a hover panel that owns keyboard focus, and only then", () => {
+  const focused = sidebarHarness();
+  focused.railToggles[1].dispatch("pointerenter");
+  assert.equal(focused.sidebar.dataset.openMode, "hover");
+  focused.close.focus();
+  focused.sidebar.focusWithin = true;
+  focused.document.dispatch("keydown", { key: "Escape" });
+  assert.equal(focused.sidebar.dataset.openMode, undefined, "a non-modal dialog the user is inside must close on Escape");
+  assert.equal(
+    focused.document.activeElement,
+    focused.railToggles[1],
+    "focus returns to the rail button for the shown group instead of staying in the inert panel",
+  );
+
+  // A hover panel the pointer merely opened is still governed by pointer exit, not Escape.
+  const hovering = sidebarHarness();
+  hovering.railToggles[1].dispatch("pointerenter");
+  hovering.document.dispatch("keydown", { key: "Escape" });
+  assert.equal(hovering.sidebar.dataset.openMode, "hover");
+});
+
+test("RED1-M2 aria-current marks a rail button only while the panel is showing that group", () => {
+  const harness = sidebarHarness();
+  const current = () => harness.railToggles.filter(toggle => toggle.getAttribute("aria-current") === "true").map(toggle => toggle.id);
+
+  // index.html:1592 runs setSidebarGroup on a closed panel at bootstrap. Nothing is being shown,
+  // and the CSS that paints the highlight is scoped to .filter-sidebar.open, so nothing is current.
+  harness.setSidebarGroup("explore");
+  assert.deepEqual(current(), [], "a closed panel must not announce a current group");
+
+  harness.document.dispatch("keydown", { key: "x", target: harness.body });
+  assert.deepEqual(current(), ["navExportToggle"]);
+  harness.document.dispatch("keydown", { key: "h", target: harness.body });
+  assert.deepEqual(current(), ["navHistoryToggle"], "switching groups moves the marker, never duplicates it");
+
+  harness.document.dispatch("keydown", { key: "Escape" });
+  assert.deepEqual(current(), [], "closing the panel clears the marker the CSS has stopped painting");
+});
+
+test("RED1-M4 CapsLock does not disable the group shortcuts, and the named-key guards still hold", () => {
+  const shouted = sidebarHarness();
+  shouted.document.dispatch("keydown", { key: "E", target: shouted.body });
+  assert.equal(shouted.sidebar.dataset.group, "explore");
+  assert.equal(shouted.sidebar.dataset.openMode, "modal", "with CapsLock on the browser reports key='E'");
+
+  const upperExport = sidebarHarness();
+  upperExport.document.dispatch("keydown", { key: "X", target: upperExport.body });
+  assert.equal(upperExport.sidebar.dataset.group, "export");
+
+  // Only single-character keys are lowercased, so the IME and named-key guards keep matching.
+  for (const key of ["Process", "Enter", "Escape", "ArrowLeft"]) {
+    const named = sidebarHarness();
+    named.document.dispatch("keydown", { key, target: named.body });
+    assert.equal(named.sidebar.dataset.openMode, undefined, `${key} must not open the panel`);
+  }
+});
+
+test("RED1-M3 the filter-bar status is cleared by any view change and reset on a locale switch", () => {
+  // The live region carries no data-i18n today, so an English "Could not copy the link…" survived
+  // a switch to 한국어 verbatim; and "Copied the current-view link." outlived the view it described.
+  assert.match(page, /id="filterBarStatus"[^>]*role="status"[^>]*aria-live="polite"[^>]*aria-atomic="true"[^>]*data-i18n="filter\.statusPrompt"/);
+  assert.match(page, /document\.getElementById\("filterCount"\)\.textContent=count\?String\(count\):"";[\s\S]{0,400}?setFilterBarStatus\(""\);\s*\}/);
+
+  const harness = filterUiHarness();
+  harness.applyFilterState({ ...harness.parseState("?exclude=ai"), favOnly: false });
+  assert.deepEqual(harness.calls.filterBarStatus, [["", ""]], "updateFilterUi clears text and tone together");
+
+  const controls = filterControlsHarness();
+  controls.nodes.get("newOnly").dispatch("click");
+  assert.deepEqual(controls.calls.filterBarStatus, [["", ""]], "a quick-filter click clears the stale status too");
 });
