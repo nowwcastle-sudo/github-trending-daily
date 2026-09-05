@@ -49,10 +49,15 @@ body{
 *{scrollbar-color:var(--text-3) transparent;scrollbar-width:thin}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .wrap{max-width:1020px;margin:0 auto;padding:48px 24px 96px}
-/* L2 (re-review 1): the <main> last-resort focus-restore rung (restoreSidebarFocus) gives .wrap a
-   temporary tabindex="-1" so it can take focus when no opener can; suppress the UA default ring on
-   that programmatic focus the same way any other skip-target would. */
+/* L2 (re-review 1): .wrap carries a static tabindex="-1" so it can take focus both as the skip
+   link's target and as the <main> last-resort rung of restoreSidebarFocus when no opener can;
+   suppress the UA default ring on that programmatic focus the way any skip target would. */
 .wrap[tabindex="-1"]:focus{outline:none}
+/* WCAG 2.4.1 Bypass Blocks: four rail buttons and the whole Explore panel precede <main> in tab
+   order, so the first Tab of the document must offer a way past them. Off-screen until focused,
+   then a real 44px target at the top-left corner. */
+.skip-link{position:absolute;left:-9999px;top:auto;z-index:400;min-height:44px;display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:11px;background:var(--control-solid);color:var(--text);padding:10px 14px;font:inherit;font-size:13px;font-weight:650;text-decoration:none}
+.skip-link:focus{left:12px;top:12px;outline:3px solid var(--accent);outline-offset:2px}
 
 /* ── Header ─────────────────────────── */
 header{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:16px;margin-bottom:8px}
@@ -145,6 +150,9 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
   border:1px solid var(--tip-border);border-radius:0 18px 18px 0;box-shadow:var(--shadow-pop);
   color:var(--text);transform:translate3d(-105%,0,0);opacity:.85;
   transition:transform var(--sidebar-close-duration) cubic-bezier(.32,.72,0,1),opacity var(--sidebar-close-duration) ease-out;
+  /* #resultSection is sticky at this panel's bottom edge, so a control scrolled into view by
+     sequential focus navigation would land underneath it. Reserve the strip's height. */
+  scroll-padding-bottom:calc(var(--sidebar-pad-bottom) + 96px);
 }
 .filter-sidebar.open{transform:translate3d(0,0,0);opacity:1;transition-duration:var(--sidebar-open-duration),var(--sidebar-open-duration)}
 .filter-sidebar.dragging{transition:none}
@@ -277,7 +285,7 @@ body.overlay-open{overflow:hidden}
 .signal-guide{display:flex;align-items:flex-start;gap:14px;padding:10px 2px 8px;margin-top:4px;
   border-bottom:1px solid var(--hairline);color:var(--text-2);font-size:12.5px;line-height:1.45}
 .signal-guide-details{flex:1;min-width:0}
-.signal-guide summary{display:flex;align-items:center;min-height:44px;color:var(--text);font-size:12.5px;font-weight:650;cursor:pointer;list-style:none}
+.signal-guide summary{display:flex;align-items:center;gap:6px;min-height:44px;color:var(--text);font-size:12.5px;font-weight:650;cursor:pointer;list-style:none}
 .signal-guide summary::-webkit-details-marker{display:none}
 .signal-guide summary::after{content:"▾";font-size:10px;color:var(--text-3);transition:transform .16s ease}
 .signal-guide-details[open]>summary::after{transform:rotate(180deg)}
@@ -358,7 +366,7 @@ body.overlay-open{overflow:hidden}
 .tip-readme-row .rdbtn{width:100%;justify-content:center}
 .trow{padding:9px 0;border-top:1px solid var(--hairline)}
 .trow:first-of-type{border-top:none;padding-top:2px}
-.tlabel{display:block;font-size:12.5px;font-weight:700;letter-spacing:.05em;color:var(--accent);
+.tlabel{display:block;font-size:12.5px;font-weight:700;letter-spacing:.05em;color:var(--accent-selected);
   text-transform:uppercase;margin-bottom:3px}
 .trow p{font-size:15.5px;line-height:1.55;color:var(--text)}
 .thint{font-size:11.5px;color:var(--text-3);text-align:center;margin-top:12px}
@@ -409,6 +417,8 @@ body.overlay-open{overflow:hidden}
 .sidebar-section[hidden],.sidebar-refresh[hidden],.sidebar-group-seg[hidden],.undo-bar[hidden],.empty button[hidden]{display:none}
 footer{margin-top:56px;text-align:center;color:var(--text-3);font-size:12.5px;line-height:1.8}
 footer a{color:var(--text-2)}
+footer a:hover,footer a:focus-visible{color:var(--accent)}
+footer a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 /* The footer now carries four links on one centred line; at 12.5px/1.8 each anchor is only about
    23px tall, under the 44px touch minimum. Coarse pointers get a real target and room for the
    focus ring; fine pointers keep the compact single-line footer. */
@@ -486,7 +496,7 @@ footer a{color:var(--text-2)}
 #readmePanel #readmeBody code,#readmePanel #readmeBody pre{background:#eceff4;color:#111}
 html[data-theme="dark"] #readmeBody code,html[data-theme="dark"] #readmeBody pre{background:#3c3836;color:#fbf1c7}
 #readmeBody pre code{background:none;padding:0}
-#readmeBody a{color:var(--accent)}
+#readmeBody a{color:var(--accent-selected)}
 #readmeBody img{max-width:100%}
 .rdbtn{background:none;border:1px solid var(--border);color:var(--text-2);font:inherit;font-size:12.5px;
   padding:4px 10px;border-radius:8px;cursor:pointer;flex-shrink:0;transition:border-color .16s ease,color .16s ease,background-color .16s ease,transform .16s ease}
@@ -527,6 +537,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 
 </head>
 <body>
+<a class="skip-link" href="#mainContent" data-i18n="skip.main">Skip to content</a>
 <div class="filter-sidebar" id="filterSidebar" role="dialog" aria-label="Explore panel" data-i18n-aria-label="nav.ariaExplore" aria-hidden="true" inert data-group="explore">
   <div class="sidebar-head">
     <h2 data-i18n="sidebar.title">Dashboard menu</h2>
@@ -605,7 +616,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
   </section>
 </div>
 <nav class="nav-rail" id="navRail" aria-label="Quick navigation" data-i18n-aria-label="nav.quick">
-  <button class="nav-toggle" id="navAccountToggle" type="button" data-group="account" aria-label="Account and sync panel" data-i18n-aria-label="nav.ariaAccount" title="Login (a)" data-i18n-title="nav.titleAccount" aria-controls="filterSidebar" aria-expanded="false">
+  <button class="nav-toggle" id="navAccountToggle" type="button" data-group="account" aria-label="Login — account and sync panel" data-i18n-aria-label="nav.ariaAccount" title="Login (a)" data-i18n-title="nav.titleAccount" aria-controls="filterSidebar" aria-expanded="false">
     <span class="nav-glyph-user" aria-hidden="true"></span>
     <span class="nav-label" data-i18n="nav.account">Login</span>
   </button>
@@ -628,7 +639,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
   <span class="filter-count" id="filterCount" aria-live="polite"></span>
 </nav>
 <div id="sidebarScrim"></div>
-<main class="wrap">
+<main class="wrap" id="mainContent" tabindex="-1">
 <header>
   <div class="title-box">
     <h1><button class="title-reset" id="resetBtn" type="button" title="Reset to the initial view" data-i18n-title="header.resetTitle">GITHUB INSIGHT</button></h1>
@@ -902,9 +913,10 @@ function restoreSidebarFocus(group){
     candidate.focus();
     if(document.activeElement===candidate)return;
   }
-  pageMain.setAttribute("tabindex","-1");
+  // <main> carries tabindex="-1" in the markup (it is also the skip link's target), so this rung
+  // only focuses it — adding and then removing the attribute would leave the skip link inoperable
+  // after the first sidebar close.
   pageMain.focus({preventScroll:true});
-  pageMain.addEventListener("focusout",()=>pageMain.removeAttribute("tabindex"),{once:true});
 }
 function closeSidebar(restoreFocus=true){
   cancelHoverClose();
@@ -1406,8 +1418,8 @@ function render(){
     const badges=UiMotion.badgeModel(r,signal,viewPeriod);
     const membership=MEMBERSHIP_STATUS.get(r.slug.toLowerCase());
     const membershipBadge=membership==="new"?`<span class="badge membership-new" title="${tr("badges.new")}">${tr("badges.newLabel")}</span>`:membership==="reentered"?`<span class="badge membership-reentered" title="${tr("badges.reentered")}">${tr("badges.reenteredLabel")}</span>`:"";
-    return `<article class="card" tabindex="0" data-idx="${REPOS.indexOf(r)}" data-href="https://github.com/${r.slug}" aria-label="${esc(tr("repo.aria",{name:r.name}))}" aria-describedby="cardKeyboardHint" aria-keyshortcuts="Delete">
-      <button type="button" class="favbtn${faved?" on":""}" data-slug="${r.slug}" title="${tr("repo.favorite")}" aria-label="${tr(faved?"repo.favoriteRemove":"repo.favoriteAdd")}" aria-pressed="${faved}"${favoriteBusy?" disabled":""}>${faved?"★":"☆"}</button>
+    return `<article class="card" tabindex="0" data-idx="${REPOS.indexOf(r)}" data-href="https://github.com/${r.slug}" aria-label="${esc(tr("repo.aria",{name:r.name}))}" aria-keyshortcuts="Delete">
+      <button type="button" class="favbtn${faved?" on":""}" data-slug="${r.slug}" title="${tr("repo.favorite")}" aria-label="${esc(tr(faved?"repo.favoriteRemove":"repo.favoriteAdd",{name:r.name}))}" aria-pressed="${faved}"${favoriteBusy?" disabled":""}>${faved?"★":"☆"}</button>
       <div class="rank">${i+1}</div>
       <div class="cbody">
         <div class="cname"><a class="repo-link" href="https://github.com/${r.slug}" target="_blank" rel="noopener">${esc(r.name)}</a>${membershipBadge}${badges.streakDays?`<span class="badge" title="${tr("badges.streak")}">🔥 ${badges.streakDays}</span>`:""}${badges.starsChange!==null?`<span class="rankchg" title="${tr("badges.change")}">${badges.starsChange>0?"↑":"↓"}${fmt(Math.abs(badges.starsChange))}</span>`:""}${badges.hot?`<span class="badge" title="${tr("badges.hot")}">HOT</span>`:""}</div>
@@ -1636,7 +1648,7 @@ async function showReadmeVariant(id,{focus=false}={}){
     state.cache.set(id,html);if(state.currentId===id)setReadmeBody(html);
   }catch{
     if(currentReadme!==state||state.currentId!==id)return;
-    setReadmeBody(`<p>${tr("readme.unavailable")}</p><p><a href="${readmeGithubUrl(state,variant)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">${tr("readme.direct")}</a></p>`);
+    setReadmeBody(`<p>${tr("readme.unavailable")}</p><p><a href="${readmeGithubUrl(state,variant)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-selected)">${tr("readme.direct")}</a></p>`);
   }
 }
 async function openReadme(slug,name){
@@ -1647,7 +1659,7 @@ async function openReadme(slug,name){
   setReadmeBody(tr("readme.loading"),true);panel.inert=false;panel.classList.add("open");panel.setAttribute("aria-hidden","false");scrim.classList.add("on");
   pageMain.classList.add("reading");pageMain.inert=true;document.body.classList.add("overlay-open");document.getElementById("rpClose").focus();
   if(typeof hideScrollTopImmediately==="function")hideScrollTopImmediately();
-  if(!metadata){currentReadme=null;readmeVariantTabs.innerHTML="";setReadmeBody(`<p>${tr("readme.unavailable")}</p><p><a href="https://github.com/${slug}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">${tr("readme.direct")}</a></p>`);return}
+  if(!metadata){currentReadme=null;readmeVariantTabs.innerHTML="";setReadmeBody(`<p>${tr("readme.unavailable")}</p><p><a href="https://github.com/${slug}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-selected)">${tr("readme.direct")}</a></p>`);return}
   const selected=selectedReadmeVariant(metadata);
   currentReadme={slug,name,metadata,currentId:selected.id,cache:new Map()};renderReadmeVariantTabs(currentReadme);await showReadmeVariant(selected.id);
 }

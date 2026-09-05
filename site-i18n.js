@@ -9,6 +9,7 @@ const EN={
   "feed.current":"GITHUB INSIGHT — Current repositories",
   "feed.changes":"GITHUB INSIGHT — New and re-entered repositories",
   "site.language":"Site language",
+  "skip.main":"Skip to content",
   "nav.quick":"Quick navigation",
   "nav.open":"Open panel",
   "nav.close":"Close Explore sidebar",
@@ -17,7 +18,9 @@ const EN={
   "nav.account":"Login",
   "nav.history":"History",
   "nav.export":"Export",
-  "nav.ariaAccount":"Account and sync panel",
+  // WCAG 2.5.3 Label in Name: the rail button renders "Login", so its accessible name must start
+  // with that visible label in every locale.
+  "nav.ariaAccount":"Login — account and sync panel",
   "nav.ariaExplore":"Explore panel",
   "nav.ariaHistory":"History panel",
   "nav.ariaExport":"Export panel",
@@ -171,8 +174,9 @@ const EN={
   "repo.repository":"repository",
   "repo.aria":"{name} repository",
   "repo.favorite":"Favorite",
-  "repo.favoriteAdd":"Add to favorites",
-  "repo.favoriteRemove":"Remove from favorites",
+  // WCAG 4.1.2: 52 cards each carry one of these, so the name has to identify its own repository.
+  "repo.favoriteAdd":"Add {name} to favorites",
+  "repo.favoriteRemove":"Remove {name} from favorites",
   "repo.forks":"forks",
   "repo.totalStars":"total stars",
   "classification.form":"Form","classification.field":"Field and technology","classification.ai":"AI related",
@@ -186,8 +190,8 @@ const EN={
 
 const KO={
   "document.title":"GITHUB INSIGHT","feed.current":"GITHUB INSIGHT — Current repositories","feed.changes":"GITHUB INSIGHT — New and re-entered repositories",
-  "site.language":"사이트 언어","nav.quick":"빠른 탐색","nav.open":"패널 열기","nav.close":"탐색 사이드바 닫기","nav.pin":"탐색 사이드바 고정","nav.explore":"탐색",
-  "nav.account":"로그인","nav.history":"이력","nav.export":"내보내기","nav.ariaAccount":"계정·동기화 패널","nav.ariaExplore":"탐색 패널","nav.ariaHistory":"이력 패널","nav.ariaExport":"내보내기 패널","nav.titleAccount":"로그인 (a)","nav.titleExplore":"탐색 (e)","nav.titleHistory":"이력 (h)","nav.titleExport":"내보내기 (x)","nav.groups":"패널 구획","filter.copyLink":"링크 복사","filter.statusPrompt":"","tooltip.heldRetry":"다음 갱신(6시간마다) 때 다시 시도합니다.",
+  "site.language":"사이트 언어","skip.main":"본문으로 건너뛰기","nav.quick":"빠른 탐색","nav.open":"패널 열기","nav.close":"탐색 사이드바 닫기","nav.pin":"탐색 사이드바 고정","nav.explore":"탐색",
+  "nav.account":"로그인","nav.history":"이력","nav.export":"내보내기","nav.ariaAccount":"로그인 — 계정·동기화 패널","nav.ariaExplore":"탐색 패널","nav.ariaHistory":"이력 패널","nav.ariaExport":"내보내기 패널","nav.titleAccount":"로그인 (a)","nav.titleExplore":"탐색 (e)","nav.titleHistory":"이력 (h)","nav.titleExport":"내보내기 (x)","nav.groups":"패널 구획","filter.copyLink":"링크 복사","filter.statusPrompt":"","tooltip.heldRetry":"다음 갱신(6시간마다) 때 다시 시도합니다.",
   "sidebar.title":"대시보드 메뉴","sidebar.close":"패널 닫기","refresh.loading":"최근 갱신 시각: 불러오는 중…","refresh.next":"다음 갱신 시각: —","refresh.cadence":"6시간마다 갱신",
   "account.title":"계정과 동기화","account.preparing":"로그인 준비 중이에요.","account.syncLabel":"브라우저 동기화. {message}","account.login":"Google로 로그인","account.logout":"로그아웃","account.unavailable":"Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다.",
   "view.aria":"저장소 보기","view.title":"내 목록","view.all":"전체 저장소","view.favorites":"즐겨찾기","period.title":"기간","period.aria":"기간 필터","period.all":"전체","period.daily":"일간","period.weekly":"주간","period.monthly":"월간",
@@ -200,13 +204,13 @@ const KO={
   "keyboard.card":"카드에 초점이 있을 때 Delete 키를 누르면 저장소를 관심 없음 처리할 수 있습니다.","empty.default":"조건에 맞는 저장소가 없어요.","empty.hiddenAll":"현재 조건의 저장소를 모두 숨겼어요.","new.loading":"신규 상태를 불러오는 중…","new.loadingSummary":"신규 상태를 불러오는 중입니다.","new.error":"신규 상태를 불러오지 못해 필터를 적용할 수 없습니다.","empty.reset":"필터 초기화","empty.manage":"숨긴 저장소 관리","common.undo":"되돌리기","common.close":"닫기","common.loading":"불러오는 중…","common.restore":"복구",
   "footer.note":"GitHub Trending 기준 · 요약은 저장소 README에 근거한 AI 분석입니다","footer.subscribe":"구독","footer.feedCurrent":"현재 목록 (Atom)","footer.feedChanges":"신규·재진입 (Atom)","shortcuts.label":"도움말","shortcuts.open":"도움말 — 단축키 (?)","shortcuts.title":"단축키","shortcuts.close":"단축키 닫기","shortcuts.search":"검색창으로 이동","shortcuts.explore":"탐색 패널 열기","shortcuts.account":"로그인 패널 열기","shortcuts.history":"이력 패널 열기","shortcuts.export":"내보내기 패널 열기","shortcuts.delete":"선택한 저장소 숨기기","shortcuts.escape":"열린 패널·대화상자 닫기","shortcuts.help":"이 목록 보기","shortcuts.disable":"한 글자 단축키 사용 안 함","shortcuts.disableNote":"슬래시(/), 물음표(?), Esc는 계속 동작합니다.","scroll.top":"페이지 맨 위로 이동","readme.dialog":"README 뷰어","readme.default":"기본","readme.github":"GitHub ↗","readme.close":"README 뷰어 닫기","readme.loading":"불러오는 중…","readme.view":"README 전체 보기","readme.unavailable":"README를 확인할 수 없어요.","readme.direct":"GitHub에서 직접 보기 ↗",
   "tooltip.dialog":"저장소 요약","tooltip.unavailable":"선택한 사이트 언어의 요약을 확인할 수 없어요.","tooltip.held":"요약 검증 중입니다. 자세한 내용은 README를 여세요.","tooltip.language":"요약 언어","tooltip.aiNote":"검증된 저장소 README를 바탕으로 AI가 생성한 요약","tooltip.goal":"프로젝트 목표","tooltip.usage":"실행 방법","tooltip.pros":"장점","tooltip.cons":"단점·주의점","tooltip.fit":"어울리는 상황","tooltip.trend":"트렌드 한 줄 평","tooltip.hide":"관심 없음",
-  "repo.contributors":"기여자","repo.issues":"열린 이슈·PR","repo.commit":"커밋","repo.release":"릴리스","repo.repository":"저장소","repo.aria":"{name} 저장소","repo.favorite":"즐겨찾기","repo.favoriteAdd":"즐겨찾기 추가","repo.favoriteRemove":"즐겨찾기 해제","repo.forks":"forks","repo.totalStars":"total stars","classification.form":"형태","classification.field":"분야·기술","classification.ai":"AI 관련","history.loading":"📈 스타 추이를 불러오는 중…","history.failed":"📈 스타 추이를 불러오지 못했어요","history.title":"스타 히스토리","history.explanation":"이 사이트가 직접 관측한 총 스타(30분 간격) · 점선은 GitHub Trending 기간 집계로 역산한 앵커","history.observedSince":"관측 시작","history.ariaTrend":"스타 추이","history.waiting":"관측 시작 대기","history.singleObservation":"관측 1회","period.recent":"최근","period.today":"오늘","period.thisWeek":"이번 주","period.thisMonth":"이번 달","refresh.lastAt":"최근 갱신 시각: {time}","refresh.nextAt":"다음 갱신 시각: {time}","refresh.unknown":"확인할 수 없음"
+  "repo.contributors":"기여자","repo.issues":"열린 이슈·PR","repo.commit":"커밋","repo.release":"릴리스","repo.repository":"저장소","repo.aria":"{name} 저장소","repo.favorite":"즐겨찾기","repo.favoriteAdd":"{name} 즐겨찾기 추가","repo.favoriteRemove":"{name} 즐겨찾기 해제","repo.forks":"forks","repo.totalStars":"total stars","classification.form":"형태","classification.field":"분야·기술","classification.ai":"AI 관련","history.loading":"📈 스타 추이를 불러오는 중…","history.failed":"📈 스타 추이를 불러오지 못했어요","history.title":"스타 히스토리","history.explanation":"이 사이트가 직접 관측한 총 스타(30분 간격) · 점선은 GitHub Trending 기간 집계로 역산한 앵커","history.observedSince":"관측 시작","history.ariaTrend":"스타 추이","history.waiting":"관측 시작 대기","history.singleObservation":"관측 1회","period.recent":"최근","period.today":"오늘","period.thisWeek":"이번 주","period.thisMonth":"이번 달","refresh.lastAt":"최근 갱신 시각: {time}","refresh.nextAt":"다음 갱신 시각: {time}","refresh.unknown":"확인할 수 없음"
 };
 
 const ZH={
   "document.title":"GITHUB INSIGHT","feed.current":"GITHUB INSIGHT — Current repositories","feed.changes":"GITHUB INSIGHT — New and re-entered repositories",
-  "site.language":"网站语言","nav.quick":"快速导航","nav.open":"打开面板","nav.close":"关闭探索侧栏","nav.pin":"固定探索侧栏","nav.explore":"探索",
-  "nav.account":"登录","nav.history":"历史","nav.export":"导出","nav.ariaAccount":"账户与同步面板","nav.ariaExplore":"探索面板","nav.ariaHistory":"历史面板","nav.ariaExport":"导出面板","nav.titleAccount":"登录 (a)","nav.titleExplore":"探索 (e)","nav.titleHistory":"历史 (h)","nav.titleExport":"导出 (x)","nav.groups":"面板分区","filter.copyLink":"复制链接","filter.statusPrompt":"","tooltip.heldRetry":"将在下次刷新（每6小时一次）时重试。",
+  "site.language":"网站语言","skip.main":"跳到主要内容","nav.quick":"快速导航","nav.open":"打开面板","nav.close":"关闭探索侧栏","nav.pin":"固定探索侧栏","nav.explore":"探索",
+  "nav.account":"登录","nav.history":"历史","nav.export":"导出","nav.ariaAccount":"登录 — 账户与同步面板","nav.ariaExplore":"探索面板","nav.ariaHistory":"历史面板","nav.ariaExport":"导出面板","nav.titleAccount":"登录 (a)","nav.titleExplore":"探索 (e)","nav.titleHistory":"历史 (h)","nav.titleExport":"导出 (x)","nav.groups":"面板分区","filter.copyLink":"复制链接","filter.statusPrompt":"","tooltip.heldRetry":"将在下次刷新（每6小时一次）时重试。",
   "sidebar.title":"面板菜单","sidebar.close":"关闭面板","refresh.loading":"最近更新：加载中…","refresh.next":"下次更新：—","refresh.cadence":"每6小时更新一次",
   "account.title":"账户与同步","account.preparing":"正在准备登录。","account.syncLabel":"浏览器同步。{message}","account.login":"使用 Google 登录","account.logout":"退出登录",
   "view.aria":"仓库视图","view.title":"我的列表","view.all":"全部仓库","view.favorites":"收藏","period.title":"时间范围","period.aria":"时间范围筛选","period.all":"全部","period.daily":"每日","period.weekly":"每周","period.monthly":"每月",
@@ -227,14 +231,14 @@ const ZH={
   "export.linkCopied":"已复制当前视图链接。","export.copyFailed":"无法将链接复制到剪贴板。","export.downloaded":"已下载当前视图的 {format} 文件。","export.downloadFailed":"无法导出当前视图。",
   "empty.hiddenAll":"符合当前条件的仓库均已隐藏。","new.loading":"正在加载新仓库状态…","new.loadingSummary":"正在加载新仓库状态。","new.error":"无法加载新仓库状态，因此该筛选不可用。",
   "result.count":"{count} 个仓库","result.filters":"{count} 个探索筛选","result.favorites":"收藏视图","result.hidden":"隐藏 {count} 个","tooltip.language":"摘要语言",
-  "repo.aria":"{name} 仓库","repo.favorite":"收藏","repo.favoriteAdd":"添加到收藏","repo.favoriteRemove":"从收藏中移除","repo.forks":"fork","repo.totalStars":"总星标",
+  "repo.aria":"{name} 仓库","repo.favorite":"收藏","repo.favoriteAdd":"将 {name} 添加到收藏","repo.favoriteRemove":"从收藏中移除 {name}","repo.forks":"fork","repo.totalStars":"总星标",
   "classification.form":"形态","classification.field":"领域与技术","classification.ai":"AI 相关","history.loading":"📈 正在加载星标历史…","history.failed":"📈 无法加载星标历史","history.title":"星标历史","history.explanation":"本站直接观测到的星标总数（每 30 分钟一次）· 虚线为根据 GitHub Trending 周期增量反推的锚点","history.observedSince":"观测起始","history.ariaTrend":"星标走势","history.waiting":"等待首次观测","history.singleObservation":"观测 1 次"
 };
 
 const ES={
   "document.title":"GITHUB INSIGHT","feed.current":"GITHUB INSIGHT — Current repositories","feed.changes":"GITHUB INSIGHT — New and re-entered repositories",
-  "site.language":"Idioma del sitio","nav.quick":"Navegación rápida","nav.open":"Abrir panel","nav.close":"Cerrar barra Explorar","nav.pin":"Fijar barra Explorar","nav.explore":"Explorar",
-  "nav.account":"Iniciar sesión","nav.history":"Historial","nav.export":"Exportar","nav.ariaAccount":"Panel de cuenta y sincronización","nav.ariaExplore":"Panel de exploración","nav.ariaHistory":"Panel de historial","nav.ariaExport":"Panel de exportación","nav.titleAccount":"Iniciar sesión (a)","nav.titleExplore":"Explorar (e)","nav.titleHistory":"Historial (h)","nav.titleExport":"Exportar (x)","nav.groups":"Sección del panel","filter.copyLink":"Copiar enlace","filter.statusPrompt":"","tooltip.heldRetry":"Se reintentará en la próxima actualización (cada 6 horas).",
+  "site.language":"Idioma del sitio","skip.main":"Saltar al contenido","nav.quick":"Navegación rápida","nav.open":"Abrir panel","nav.close":"Cerrar barra Explorar","nav.pin":"Fijar barra Explorar","nav.explore":"Explorar",
+  "nav.account":"Iniciar sesión","nav.history":"Historial","nav.export":"Exportar","nav.ariaAccount":"Iniciar sesión — Panel de cuenta y sincronización","nav.ariaExplore":"Panel de exploración","nav.ariaHistory":"Panel de historial","nav.ariaExport":"Panel de exportación","nav.titleAccount":"Iniciar sesión (a)","nav.titleExplore":"Explorar (e)","nav.titleHistory":"Historial (h)","nav.titleExport":"Exportar (x)","nav.groups":"Sección del panel","filter.copyLink":"Copiar enlace","filter.statusPrompt":"","tooltip.heldRetry":"Se reintentará en la próxima actualización (cada 6 horas).",
   "sidebar.title":"Menú del panel","sidebar.close":"Cerrar panel","refresh.loading":"Última actualización: cargando…","refresh.next":"Próxima actualización: —","refresh.cadence":"Se actualiza cada 6 horas",
   "account.title":"Cuenta y sincronización","account.preparing":"Preparando el inicio de sesión.","account.syncLabel":"Sincronización del navegador. {message}","account.login":"Iniciar sesión con Google","account.logout":"Cerrar sesión",
   "view.aria":"Vista de repositorios","view.title":"Mi lista","view.all":"Todos los repositorios","view.favorites":"Favoritos","period.title":"Periodo","period.aria":"Filtro de periodo","period.all":"Todo","period.daily":"Diario","period.weekly":"Semanal","period.monthly":"Mensual",
@@ -255,14 +259,14 @@ const ES={
   "export.linkCopied":"Se copió el enlace de la vista actual.","export.copyFailed":"No se pudo copiar el enlace al portapapeles.","export.downloaded":"Se descargó la vista actual en {format}.","export.downloadFailed":"No se pudo exportar la vista actual.",
   "empty.hiddenAll":"Todos los repositorios que coinciden están ocultos.","new.loading":"Cargando el estado de repositorios nuevos…","new.loadingSummary":"Cargando el estado de repositorios nuevos.","new.error":"No se pudo cargar el estado de repositorios nuevos; este filtro no está disponible.",
   "result.count":"{count} repositorios","result.filters":"{count} filtros de Explorar","result.favorites":"Vista de favoritos","result.hidden":"{count} ocultos","tooltip.language":"Idioma del resumen",
-  "repo.aria":"Repositorio {name}","repo.favorite":"Favorito","repo.favoriteAdd":"Añadir a favoritos","repo.favoriteRemove":"Quitar de favoritos","repo.forks":"forks","repo.totalStars":"estrellas totales",
+  "repo.aria":"Repositorio {name}","repo.favorite":"Favorito","repo.favoriteAdd":"Añadir {name} a favoritos","repo.favoriteRemove":"Quitar {name} de favoritos","repo.forks":"forks","repo.totalStars":"estrellas totales",
   "classification.form":"Formato","classification.field":"Área y tecnología","classification.ai":"Relacionado con IA","history.loading":"📈 Cargando historial de estrellas…","history.failed":"📈 No se pudo cargar el historial de estrellas","history.title":"Historial de estrellas","history.explanation":"Total de estrellas observadas directamente por este sitio (cada 30 minutos) · la línea discontinua marca anclas calculadas a partir de los totales por periodo de GitHub Trending","history.observedSince":"Observando desde","history.ariaTrend":"Tendencia de estrellas","history.waiting":"Esperando la primera observación","history.singleObservation":"1 observación"
 };
 
 const JA={
   "document.title":"GITHUB INSIGHT","feed.current":"GITHUB INSIGHT — Current repositories","feed.changes":"GITHUB INSIGHT — New and re-entered repositories",
-  "site.language":"サイトの言語","nav.quick":"クイックナビゲーション","nav.open":"パネルを開く","nav.close":"探索サイドバーを閉じる","nav.pin":"探索サイドバーを固定","nav.explore":"探索",
-  "nav.account":"ログイン","nav.history":"履歴","nav.export":"エクスポート","nav.ariaAccount":"アカウント・同期パネル","nav.ariaExplore":"探索パネル","nav.ariaHistory":"履歴パネル","nav.ariaExport":"エクスポートパネル","nav.titleAccount":"ログイン (a)","nav.titleExplore":"探索 (e)","nav.titleHistory":"履歴 (h)","nav.titleExport":"エクスポート (x)","nav.groups":"パネルセクション","filter.copyLink":"リンクをコピー","filter.statusPrompt":"","tooltip.heldRetry":"次回の更新（6時間ごと）で再試行します。",
+  "site.language":"サイトの言語","skip.main":"本文へスキップ","nav.quick":"クイックナビゲーション","nav.open":"パネルを開く","nav.close":"探索サイドバーを閉じる","nav.pin":"探索サイドバーを固定","nav.explore":"探索",
+  "nav.account":"ログイン","nav.history":"履歴","nav.export":"エクスポート","nav.ariaAccount":"ログイン — アカウント・同期パネル","nav.ariaExplore":"探索パネル","nav.ariaHistory":"履歴パネル","nav.ariaExport":"エクスポートパネル","nav.titleAccount":"ログイン (a)","nav.titleExplore":"探索 (e)","nav.titleHistory":"履歴 (h)","nav.titleExport":"エクスポート (x)","nav.groups":"パネルセクション","filter.copyLink":"リンクをコピー","filter.statusPrompt":"","tooltip.heldRetry":"次回の更新（6時間ごと）で再試行します。",
   "sidebar.title":"ダッシュボードメニュー","sidebar.close":"パネルを閉じる","refresh.loading":"最終更新：読み込み中…","refresh.next":"次回更新：—","refresh.cadence":"6時間ごとに更新",
   "account.title":"アカウントと同期","account.preparing":"ログインを準備しています。","account.syncLabel":"ブラウザー同期。{message}","account.login":"Googleでログイン","account.logout":"ログアウト",
   "view.aria":"リポジトリ表示","view.title":"マイリスト","view.all":"すべてのリポジトリ","view.favorites":"お気に入り","period.title":"期間","period.aria":"期間フィルター","period.all":"すべて","period.daily":"日間","period.weekly":"週間","period.monthly":"月間",
@@ -283,7 +287,7 @@ const JA={
   "export.linkCopied":"現在の表示リンクをコピーしました。","export.copyFailed":"リンクをクリップボードにコピーできませんでした。","export.downloaded":"現在の表示を{format}でダウンロードしました。","export.downloadFailed":"現在の表示をエクスポートできませんでした。",
   "empty.hiddenAll":"現在の条件に一致するリポジトリはすべて非表示です。","new.loading":"新規リポジトリの状態を読み込み中…","new.loadingSummary":"新規リポジトリの状態を読み込み中です。","new.error":"新規リポジトリの状態を読み込めないため、このフィルターは利用できません。",
   "result.count":"{count}件のリポジトリ","result.filters":"探索フィルター{count}件","result.favorites":"お気に入り表示","result.hidden":"非表示{count}件","tooltip.language":"要約の言語",
-  "repo.aria":"{name}リポジトリ","repo.favorite":"お気に入り","repo.favoriteAdd":"お気に入りに追加","repo.favoriteRemove":"お気に入りから削除","repo.forks":"fork","repo.totalStars":"総スター数",
+  "repo.aria":"{name}リポジトリ","repo.favorite":"お気に入り","repo.favoriteAdd":"{name} をお気に入りに追加","repo.favoriteRemove":"{name} をお気に入りから削除","repo.forks":"fork","repo.totalStars":"総スター数",
   "classification.form":"形態","classification.field":"分野・技術","classification.ai":"AI関連","history.loading":"📈 スター履歴を読み込み中…","history.failed":"📈 スター履歴を読み込めませんでした","history.title":"スター履歴","history.explanation":"このサイトが直接観測したスター総数（30分間隔）· 破線は GitHub Trending の期間集計から逆算したアンカー","history.observedSince":"観測開始","history.ariaTrend":"スター推移","history.waiting":"観測開始待ち","history.singleObservation":"観測1回"
 };
 

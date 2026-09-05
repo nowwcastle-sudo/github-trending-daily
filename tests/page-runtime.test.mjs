@@ -182,6 +182,10 @@ function sidebarHarness({ hoverCapable = true } = {}) {
     toggle.parentElement = nodes.get("navRail");
   }
   const pageMain = new FakeHTMLElement("pageMain");
+  // Task 6: <main class="wrap" id="mainContent" tabindex="-1"> carries the attribute in the
+  // markup now (it is the skip link's target), so the fixture models it as already present rather
+  // than waiting for restoreSidebarFocus to add it.
+  pageMain.attributes.set("tabindex", "-1");
   const outside = new FakeHTMLElement("outside");
   const body = new FakeHTMLElement("body");
   const documentListeners = new Map();
@@ -931,7 +935,7 @@ test("the refresh status appears once at the top of the sidebar and not in main"
   const statusIndex = sidebar.indexOf('id="refreshStatus"');
   const accountIndex = sidebar.indexOf('id="accountSection"');
   assert.ok(statusIndex >= 0 && statusIndex < accountIndex, "refresh status must precede the account section");
-  const main = page.match(/<main class="wrap">([\s\S]*?)<\/main>/)?.[1] ?? "";
+  const main = page.match(/<main class="wrap" id="mainContent" tabindex="-1">([\s\S]*?)<\/main>/)?.[1] ?? "";
   assert.doesNotMatch(main, /id="refreshStatus"/);
   assert.match(page, /\.sidebar-refresh\{[^}]*font-variant-numeric:tabular-nums/);
 });
@@ -1050,8 +1054,8 @@ test("README runtime refuses a mismatched immutable Contents response without us
 });
 
 test("landmarks, form controls, and hidden panels retain accessible boundaries", () => {
-  assert.match(page, /<main class="wrap">[\s\S]*?<\/main>/);
-  const main = page.match(/<main class="wrap">([\s\S]*?)<\/main>/)?.[1] ?? "";
+  assert.match(page, /<main class="wrap" id="mainContent" tabindex="-1">[\s\S]*?<\/main>/);
+  const main = page.match(/<main class="wrap" id="mainContent" tabindex="-1">([\s\S]*?)<\/main>/)?.[1] ?? "";
   assert.match(main, /<div class="list" id="list"><\/div>/);
   assert.match(main, /class="signal-guide"[^>]*aria-label="Badge guide"[^>]*data-i18n-aria-label="badges\.aria"/);
   assert.match(main, /class="list-stage" id="listStage"/);
@@ -1984,7 +1988,10 @@ test("browser-local hidden repositories have tooltip actions, undo, and sidebar 
 
 test("keyboard users can hide the focused card without a permanent card icon", () => {
   assert.match(page, /id="cardKeyboardHint" class="sr-only"/);
-  assert.match(page, /aria-describedby="cardKeyboardHint" aria-keyshortcuts="Delete"/);
+  // Task 6: the hint precedes the list in document order, so pointing all 52 cards at it with
+  // aria-describedby only made a screen reader repeat it 52 times.
+  assert.match(page, /aria-keyshortcuts="Delete"/);
+  assert.doesNotMatch(page, /aria-describedby="cardKeyboardHint"/);
   assert.match(page, /if\(e\.key==="Delete"&&e\.target===card\)/);
   assert.match(page, /hideRepository\(REPOS\[\+card\.dataset\.idx\]\.slug,true\)/);
 });
@@ -2010,9 +2017,9 @@ test("the selected compact Explore rail stays reachable and outside the inert pa
   const sidebarIndex = page.indexOf('id="filterSidebar"');
   const navIndex = page.indexOf('id="navToggle"');
   const scrimIndex = page.indexOf('id="sidebarScrim"');
-  const mainIndex = page.indexOf('<main class="wrap">');
+  const mainIndex = page.indexOf('<main class="wrap" id="mainContent" tabindex="-1">');
   assert.ok(sidebarIndex >= 0 && sidebarIndex < navIndex && navIndex < scrimIndex && scrimIndex < mainIndex);
-  const main = page.match(/<main class="wrap">([\s\S]*?)<\/main>/)?.[1] ?? "";
+  const main = page.match(/<main class="wrap" id="mainContent" tabindex="-1">([\s\S]*?)<\/main>/)?.[1] ?? "";
   assert.doesNotMatch(main, /id="navToggle"/);
   assert.match(page, /<nav class="nav-rail"[^>]*aria-label="Quick navigation"[^>]*data-i18n-aria-label="nav\.quick">[\s\S]*?class="nav-toggle" id="navToggle"[^>]*aria-label="Explore panel"[^>]*data-i18n-aria-label="nav\.ariaExplore"[^>]*aria-controls="filterSidebar"[^>]*aria-expanded="false"/);
   assert.match(page, /id="navToggle"[\s\S]*?<span class="nav-glyph" aria-hidden="true"><\/span>[\s\S]*?<span class="nav-label" data-i18n="nav\.explore">Explore<\/span>/);
@@ -2798,9 +2805,11 @@ test("RED1-H2 closing a modal never ends on <body> when the recorded trigger sto
   assert.equal(stranded.document.activeElement, stranded.pageMain);
   assert.notEqual(stranded.document.activeElement, stranded.body);
 
-  // L2 (re-review 1): the <main> last-resort rung must not scroll the page, must not paint a UA
-  // focus ring, and must give the tabindex back once focus leaves.
-  assert.match(page, /pageMain\.setAttribute\("tabindex","-1"\);\s*pageMain\.focus\(\{preventScroll:true\}\);\s*pageMain\.addEventListener\("focusout",\(\)=>pageMain\.removeAttribute\("tabindex"\),\{once:true\}\);/);
+  // L2 (re-review 1): the <main> last-resort rung must not scroll the page and must not paint a UA
+  // focus ring. Task 6 moved tabindex="-1" into the markup (<main> is the skip link's target too),
+  // so the rung only focuses — handing the attribute back on focusout would break the skip link.
+  assert.match(page, /pageMain\.focus\(\{preventScroll:true\}\);/);
+  assert.doesNotMatch(page, /pageMain\.removeAttribute\("tabindex"\)/);
   assert.match(page, /\.wrap\[tabindex="-1"\]:focus\{outline:none\}/);
 });
 
@@ -3033,4 +3042,74 @@ test("the single-key opt-out suppresses the four letters and never / ? or Escape
   context.shortcutsDisabled = false;
   press("e");
   assert.deepEqual(pressed, ["search", "open:explore"], "turning the opt-out off restores the letters");
+});
+
+test("a skip link is the first focusable element and targets the main region", () => {
+  const body = page.slice(page.indexOf("<body>"));
+  const skipIndex = body.indexOf('<a class="skip-link"');
+  assert.ok(skipIndex >= 0, "the skip link must exist");
+  // Same intent as the brief's arithmetic form of this check, stated directly: the brief's version
+  // measured back to `<a href`, which the skip link's own `<a class=` opening tag never matches, so
+  // it could not pass. The skip link's tag must BE the first focusable start tag in <body>.
+  const firstFocusable = body.search(/<(?:a|button|input|select|textarea)[\s>]/);
+  assert.equal(firstFocusable, skipIndex, "no focusable element may precede the skip link");
+  assert.match(body, /<a class="skip-link" href="#mainContent" data-i18n="skip\.main">Skip to content<\/a>/);
+  assert.match(page, /<main class="wrap" id="mainContent" tabindex="-1">/);
+  assert.match(page, /\.skip-link\{[^}]*position:absolute[^}]*left:-9999px/);
+  assert.match(page, /\.skip-link:focus\{[^}]*left:12px[^}]*top:12px/);
+  // <main> now carries the tabindex statically, so the focus-restore rung no longer adds and
+  // removes it (removing it would break the skip link after one sidebar close).
+  assert.match(page, /pageMain\.focus\(\{preventScroll:true\}\);/);
+  assert.doesNotMatch(page, /pageMain\.removeAttribute\("tabindex"\)/);
+  assert.match(page, /\.wrap\[tabindex="-1"\]:focus\{outline:none\}/);
+});
+
+test("the account rail button's accessible name contains its visible label", () => {
+  const button = page.match(/<button class="nav-toggle" id="navAccountToggle"[^>]*>/)?.[0] ?? "";
+  assert.match(button, /aria-label="Login — account and sync panel"/);
+  assert.match(button, /data-i18n-aria-label="nav\.ariaAccount"/);
+});
+
+test("each favourite button names the repository it belongs to", () => {
+  assert.match(page, /aria-label="\$\{esc\(tr\(faved\?"repo\.favoriteRemove":"repo\.favoriteAdd",\{name:r\.name\}\)\)\}"/);
+});
+
+test("light-theme accent text uses the 4.5:1 token instead of the 4.31:1 one", () => {
+  assert.match(page, /\.tlabel\{[^}]*color:var\(--accent-selected\)/);
+  assert.match(page, /#readmeBody a\{color:var\(--accent-selected\)\}/);
+  const inlineAccent = [...page.matchAll(/style="color:var\(--accent\)"/g)];
+  assert.equal(inlineAccent.length, 0, "no inline style may paint normal-size text with --accent");
+  assert.equal([...page.matchAll(/style="color:var\(--accent-selected\)"/g)].length, 2, "both README fallback links use the accessible token");
+});
+
+test("the Delete-key hint is announced once, not once per card", () => {
+  assert.match(page, /id="cardKeyboardHint" class="sr-only"/);
+  assert.doesNotMatch(page, /aria-describedby="cardKeyboardHint"/);
+  assert.match(page, /aria-keyshortcuts="Delete"/);
+  const hintIndex = page.indexOf('id="cardKeyboardHint"');
+  const listIndex = page.indexOf('class="list-stage" id="listStage"');
+  assert.ok(hintIndex >= 0 && hintIndex < listIndex, "the hint precedes the list in reading order");
+});
+
+/* ── Carry-over corrections from the Tasks 2+3 review ─────────────────────── */
+test("the sticky result strip cannot occlude a control the panel just scrolled to", () => {
+  // #resultSection is position:sticky at the panel's bottom edge, so a scrollIntoView() for a
+  // control below the fold would park it underneath the strip. Reserve the strip's height.
+  assert.match(page, /\.filter-sidebar\{[\s\S]*?scroll-padding-bottom:calc\(var\(--sidebar-pad-bottom\) \+ 96px\)/);
+});
+
+test("#resultSection is the last Explore section in the markup", () => {
+  // The sticky summary only pins to the panel's bottom while nothing in its group follows it.
+  const exploreSections = [...page.matchAll(/id="([A-Za-z]+Section)"[^>]*data-group="explore"/g)].map(match => match[1]);
+  assert.ok(exploreSections.length >= 2, "the Explore group must have sections to order");
+  assert.equal(exploreSections.at(-1), "resultSection", "the sticky summary must be the last Explore section");
+});
+
+test("footer links answer hover and focus with the accent token and a visible ring", () => {
+  assert.match(page, /footer a:hover,footer a:focus-visible\{color:var\(--accent\)\}/);
+  assert.match(page, /footer a:focus-visible\{outline:3px solid var\(--accent\);outline-offset:2px\}/);
+});
+
+test("the badge-guide caret keeps its spacing from the summary label", () => {
+  assert.match(page, /\.signal-guide summary\{[^}]*gap:6px/);
 });

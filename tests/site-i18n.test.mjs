@@ -133,3 +133,23 @@ test("repository documentation is English-first with a complete Korean counterpa
     }
   }
 });
+
+test("the account rail button satisfies Label in Name in every locale", () => {
+  const i18n = load();
+  for (const locale of i18n.SUPPORTED_LOCALES) {
+    const visible = i18n.MESSAGES[locale]["nav.account"];
+    const accessible = i18n.MESSAGES[locale]["nav.ariaAccount"];
+    assert.ok(accessible.startsWith(visible), `${locale}: "${accessible}" must start with the visible label "${visible}"`);
+  }
+});
+
+test("favourite button labels carry the repository name in every locale", () => {
+  const i18n = load();
+  for (const locale of i18n.SUPPORTED_LOCALES) {
+    for (const key of ["repo.favoriteAdd", "repo.favoriteRemove"]) {
+      assert.ok(i18n.MESSAGES[locale][key].includes("{name}"), `${locale} ${key} must interpolate {name}`);
+    }
+    assert.equal(typeof i18n.MESSAGES[locale]["skip.main"], "string");
+    assert.ok(i18n.MESSAGES[locale]["skip.main"].trim().length > 0);
+  }
+});
