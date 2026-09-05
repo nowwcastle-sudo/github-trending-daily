@@ -2901,8 +2901,8 @@ test("the badge guide is a disclosure that starts open on desktop and closed on 
     assert.ok(guide.includes(`data-i18n="${key}"`), `${key} must survive the disclosure wrap`);
   }
   assert.match(page, /\.signal-guide summary\{[^}]*cursor:pointer/);
-  assert.match(page, /const badgeGuideMedia=matchMedia\("\(max-width:560px\)"\);/);
-  assert.match(page, /if\(badgeGuideMedia\.matches\)document\.getElementById\("badgeGuide"\)\.open=false;/);
+  assert.match(page, /const badgeGuide=document\.getElementById\("badgeGuide"\);/);
+  assert.match(page, /if\(badgeGuide&&matchMedia\("\(max-width:560px\)"\)\.matches\)badgeGuide\.open=false;/);
 });
 
 test("the mobile filter toggles sit on one horizontally scrollable row", () => {
@@ -2910,5 +2910,5 @@ test("the mobile filter toggles sit on one horizontally scrollable row", () => {
   const mobile = page.match(/@media\(max-width:560px\)\{[\s\S]*?\r?\n\}/)?.[0] ?? "";
   assert.match(mobile, /\.filter-toggle-row\{[^}]*flex-wrap:nowrap[^}]*overflow-x:auto/);
   assert.match(mobile, /\.filter-toggle-row>\*\{flex:0 0 auto;max-width:none\}/);
-  assert.match(mobile, /\.signal-guide-details\[open\] dl\{margin-top:8px\}/);
+  assert.match(page, /\.signal-guide-details\[open\] dl\{margin-top:8px\}/);
 });

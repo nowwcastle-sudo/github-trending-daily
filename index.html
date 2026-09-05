@@ -264,7 +264,7 @@ body.overlay-open{overflow:hidden}
 .signal-guide{display:flex;align-items:flex-start;gap:14px;padding:10px 2px 8px;margin-top:4px;
   border-bottom:1px solid var(--hairline);color:var(--text-2);font-size:12.5px;line-height:1.45}
 .signal-guide-details{flex:1;min-width:0}
-.signal-guide summary{display:inline-flex;align-items:center;gap:6px;min-height:32px;color:var(--text);font-size:12.5px;font-weight:650;cursor:pointer;list-style:none}
+.signal-guide summary{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:44px;color:var(--text);font-size:12.5px;font-weight:650;cursor:pointer;list-style:none}
 .signal-guide summary::-webkit-details-marker{display:none}
 .signal-guide summary::after{content:"▾";font-size:10px;color:var(--text-3);transition:transform .16s ease}
 .signal-guide-details[open]>summary::after{transform:rotate(180deg)}
@@ -414,10 +414,9 @@ footer a{color:var(--text-2)}
   .seg button{padding-inline:8px;font-size:12.5px}
   .signal-guide{display:block;padding-top:8px}
   .signal-guide dl{display:grid;gap:7px}
-  .filter-toggle-row{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;gap:8px;padding-bottom:4px;scrollbar-width:none}
+  .filter-toggle-row{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;gap:8px;padding:5px 5px 5px 0;margin:-5px 0;scrollbar-width:none}
   .filter-toggle-row::-webkit-scrollbar{display:none}
   .filter-toggle-row>*{flex:0 0 auto;max-width:none}
-  .signal-guide-details[open] dl{margin-top:8px}
 }
 @media(hover:hover) and (pointer:fine) and (min-width:721px) and (max-width:1147px){.wrap{padding-left:calc(env(safe-area-inset-left) + 80px)}}
 
@@ -719,8 +718,8 @@ const storage=localStorage;
 /* The badge guide is notation for cards the phone viewport cannot show yet, so it ships open for
    desktop and no-JS readers and collapses once on load under the mobile breakpoint. The reader
    stays in control afterwards — no resize listener re-opens or re-closes it. */
-const badgeGuideMedia=matchMedia("(max-width:560px)");
-if(badgeGuideMedia.matches)document.getElementById("badgeGuide").open=false;
+const badgeGuide=document.getElementById("badgeGuide");
+if(badgeGuide&&matchMedia("(max-width:560px)").matches)badgeGuide.open=false;
 let hiddenSet=new Set(HiddenRepos.read(storage)),lastHiddenSlug=null;
 let guestFavorites=[];
 try{guestFavorites=Favorites.migrateLegacyFavs(storage)}catch{}
