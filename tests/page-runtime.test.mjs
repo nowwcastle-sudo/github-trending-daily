@@ -1386,7 +1386,9 @@ test("keyboard activation opens that group modally and restores focus to the but
     assert.equal(harness.sidebar.dataset.openMode, "modal", `${group} keyboard activation must open modal`);
     assert.equal(harness.sidebar.dataset.group, group);
     assert.deepEqual(harness.sectionsFor(), sections);
-    assert.equal(harness.groupSeg.hidden, false, "modal mode exposes the group switcher");
+    // Task 5: this harness is hover-capable, so the 64px rail is on screen and already names the
+    // four groups; the in-panel switcher would be a second "you are here" for one location.
+    assert.equal(harness.groupSeg.hidden, true, "the visible rail replaces the in-panel switcher");
     assert.equal(harness.close.focusCount, 1);
     assert.equal(harness.pageMain.inert, true);
     assert.equal(harness.scrim.classList.contains("on"), true);
@@ -1415,10 +1417,13 @@ test("clicking a different rail button while modal switches the group instead of
 });
 
 test("the modal group switcher selects a group and stays out of the hover tab order", () => {
-  const harness = sidebarHarness();
-  harness.railToggles[1].dispatch("pointerenter");
-  assert.equal(harness.groupSeg.hidden, true, "hover mode keeps the switcher hidden");
+  // Task 5: the switcher only appears where the rail is hidden, so the modal half of this test now
+  // runs on a coarse-pointer harness; hover mode itself still needs a hover-capable one to open.
+  const hover = sidebarHarness();
+  hover.railToggles[1].dispatch("pointerenter");
+  assert.equal(hover.groupSeg.hidden, true, "hover mode keeps the switcher hidden");
 
+  const harness = sidebarHarness({ hoverCapable: false });
   harness.mobileToggle.dispatch("click", { detail: 1 });
   assert.equal(harness.sidebar.dataset.openMode, "modal");
   assert.equal(harness.groupSeg.hidden, false);
@@ -1433,6 +1438,25 @@ test("the modal group switcher selects a group and stays out of the hover tab or
   assert.match(seg, /role="group"/);
   assert.match(seg, /data-i18n-aria-label="nav\.groups"/);
   assert.match(seg, /\bhidden\b/);
+});
+
+test("the in-panel group switcher is hidden wherever the nav rail is on screen", () => {
+  assert.match(page, /const sidebarRailVisibleMedia=matchMedia\("\(hover:hover\) and \(pointer:fine\) and \(min-width:721px\)"\);/);
+  assert.match(page, /function sidebarGroupSegVisible\(mode\)\{return mode==="modal"&&!sidebarRailVisibleMedia\.matches\}/);
+  assert.match(page, /sidebarGroupSeg\.hidden=!sidebarGroupSegVisible\(mode\);/);
+  assert.match(page, /sidebarRailVisibleMedia\.addEventListener\?\.\("change",\(\)=>\{sidebarGroupSeg\.hidden=!sidebarGroupSegVisible\(sidebar\.dataset\.openMode\)\}\);/);
+
+  // Desktop (rail visible): opening modally must NOT reveal the switcher.
+  const desktop = sidebarHarness({ hoverCapable: true });
+  desktop.railToggles[1].dispatch("click", { detail: 0 });
+  assert.equal(desktop.sidebar.dataset.openMode, "modal");
+  assert.equal(desktop.groupSeg.hidden, true, "the rail already names the four groups");
+
+  // Coarse pointer (rail hidden): the switcher is the only group navigation, so it must show.
+  const mobile = sidebarHarness({ hoverCapable: false });
+  mobile.railToggles[1].dispatch("click", { detail: 0 });
+  assert.equal(mobile.sidebar.dataset.openMode, "modal");
+  assert.equal(mobile.groupSeg.hidden, false, "without the rail the switcher is the only group navigation");
 });
 
 test("F1: recentExitsSection stays hidden outside the History group after renderRecentExits resolves, and appears on switch", () => {

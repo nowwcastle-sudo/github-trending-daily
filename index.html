@@ -837,6 +837,13 @@ const sidebarGroupSeg=document.getElementById("sidebarGroupSeg");
 const sidebarGroupSegButtons=[...sidebarGroupSeg.querySelectorAll("button[data-group]")];
 const sidebarGroups=[...sidebar.querySelectorAll(":scope > [data-group]")];
 const sidebarHoverMedia=matchMedia("(hover:hover) and (pointer:fine)");
+// The rail is display:flex under (hover:hover) and (pointer:fine) and display:none!important under
+// (max-width:720px) — so "the rail is on screen" is exactly this query. Where it is true the rail
+// already labels and states the four groups, and a second copy inside the panel is two "you are
+// here" indicators for one location. Toggled through the `hidden` property rather than CSS because
+// focusableIn() filters on `hidden`, not on computed style, and the modal focus trap reads it.
+const sidebarRailVisibleMedia=matchMedia("(hover:hover) and (pointer:fine) and (min-width:721px)");
+function sidebarGroupSegVisible(mode){return mode==="modal"&&!sidebarRailVisibleMedia.matches}
 let sidebarTrigger=null,railPointerInside=false,sidebarPointerInside=false;
 function focusableIn(container){
   return [...container.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>!el.hidden&&!el.closest("[hidden]"));
@@ -906,7 +913,7 @@ function closeSidebar(restoreFocus=true){
   sidebar.classList.remove("open");sidebar.setAttribute("aria-hidden","true");sidebar.inert=true;
   sidebar.removeAttribute("aria-modal");setSidebarExpandedState(false);
   delete sidebar.dataset.openMode;
-  sidebarGroupSeg.hidden=true;
+  sidebarGroupSeg.hidden=!sidebarGroupSegVisible(undefined);
   railToggles.forEach(toggle=>toggle.removeAttribute("aria-current"));
   if(mode==="modal"){
     sidebarScrim.classList.remove("on");pageMain.inert=false;
@@ -927,7 +934,7 @@ function openSidebar(mode,trigger,group){
   setSidebarGroup(group??sidebar.dataset.group,true);
   sidebar.inert=false;sidebar.classList.add("open");sidebar.setAttribute("aria-hidden","false");
   sidebar.dataset.openMode=mode;
-  sidebarGroupSeg.hidden=mode!=="modal";
+  sidebarGroupSeg.hidden=!sidebarGroupSegVisible(mode);
   if(mode==="modal"){
     sidebarTrigger=trigger instanceof HTMLElement?trigger:document.activeElement;
     sidebar.setAttribute("aria-modal","true");sidebarScrim.classList.add("on");setSidebarExpandedState(true);pageMain.inert=true;
@@ -1021,6 +1028,7 @@ function updateMobileNavAccess(){
 }
 updateMobileNavAccess();
 sidebarMobileAccessMedia.addEventListener?.("change",updateMobileNavAccess);
+sidebarRailVisibleMedia.addEventListener?.("change",()=>{sidebarGroupSeg.hidden=!sidebarGroupSegVisible(sidebar.dataset.openMode)});
 // WCAG 2.1.4: the four letters are unmodified character-key shortcuts, so they need a way to be
 // turned off. The flag lives in localStorage and is read once at load; "/" (focus search), "?"
 // (this help) and Escape are navigation of last resort and stay live regardless.
