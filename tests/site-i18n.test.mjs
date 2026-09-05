@@ -107,8 +107,8 @@ test("repository documentation is English-first with a complete Korean counterpa
   assert.match(koreanReadme, /최초 관측 후 최소 1일이면 히스토리 확인 가능/);
   assert.match(compatibilityReadme, /canonical English documentation is now \[README\.md\]\(README\.md\)/);
   for (const [document, headings] of [
-    [readme, ["## Planned features", "## Requesting a feature"]],
-    [koreanReadme, ["## 예정된 기능", "## 기능 요청"]],
+    [readme, ["## 🗺️ Planned features", "## 📝 Requesting a feature"]],
+    [koreanReadme, ["## 🗺️ 예정된 기능", "## 📝 기능 요청"]],
   ]) {
     for (const heading of headings) assert.ok(document.includes(heading), `${heading} must exist`);
   }
