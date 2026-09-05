@@ -72,12 +72,23 @@ function childEnv(extra = {}) {
   return env;
 }
 
+// Verified downloads land mode 0444 (the read-only attribute on Windows), and the fake gh copies
+// them into nested directories with that mode intact. Files become writable, directories keep
+// their search bit: on Linux a directory chmod'ed to 0666 loses `x`, and every unlink inside it
+// then fails with EACCES, which is exactly how the first CI run of these tests went red.
+async function makeRemovable(directory) {
+  const entries = await readdir(directory, { withFileTypes: true }).catch(() => []);
+  for (const entry of entries) {
+    const target = join(directory, entry.name);
+    if (entry.isDirectory()) { await chmod(target, 0o777).catch(() => {}); await makeRemovable(target); }
+    else await chmod(target, 0o666).catch(() => {});
+  }
+}
+
 async function scratchDirectory(t, prefix) {
   const directory = await mkdtemp(join(tmpdir(), prefix));
   t.after(async () => {
-    // Verified downloads land mode 0444, which is the read-only attribute on Windows.
-    const entries = await readdir(directory).catch(() => []);
-    for (const entry of entries) await chmod(join(directory, entry), 0o666).catch(() => {});
+    await makeRemovable(directory);
     await rm(directory, { recursive: true, force: true, maxRetries: 5 });
   });
   return directory;
