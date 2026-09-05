@@ -2106,6 +2106,8 @@ Documents repository-level held admission, 30-minute star ticks into the site's 
 
 ### Task 14: Remove the probe's legacy Atom title tolerance
 
+**Status: DONE (2026-09-05).** W1 run `33903312628` deployed successfully; production was verified serving `feed.xml` with `<title>GITHUB INSIGHT — Current repositories</title>` and `changes.xml` with `<title>GITHUB INSIGHT — New and re-entered repositories</title>` (confirmed live via curl on 2026-09-05), and production was OBSERVED WORKING (sign-in, favourites persistence, and a clean console confirmed on production). The tolerance and its comment were removed from `validateAtomHeader`, the release-window test was made strict (legacy title now rejected), and `npm test` is green.
+
 **Files:**
 - Modify: `scripts/probe-production.mjs:239-241` (the `validateAtomHeader` tolerance added ahead of Task 8's merge, and its comment)
 - Modify: `tests/pages-publication.test.mjs` — drop the legacy-accept case from "Atom header validator tolerates the pre-rename title during the release window"

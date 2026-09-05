@@ -236,14 +236,11 @@ function validateAtomHeader(xml, { kind, generatedAt, snapshotId, statsDate }) {
   const entryStart = xml.indexOf("<entry>");
   const header = xml.slice(0, entryStart >= 0 ? entryStart : xml.indexOf("</feed>"));
   const expectedId = `https://nowwcastle-sudo.github.io/github-trending-daily/${kind === "current" ? "feed.xml" : "changes.xml"}`;
-  // Release window only: production still serves the pre-rename feeds until the
-  // first daily-refresh regenerates them. Remove both legacy values, and this
-  // comment, once production carries GITHUB INSIGHT (plan Task 14).
-  const expectedTitles = kind === "current"
-    ? ["GITHUB INSIGHT — Current repositories", "GitHub Trending Daily — 현재 전체"]
-    : ["GITHUB INSIGHT — New and re-entered repositories", "GitHub Trending Daily — 신규·재진입"];
+  const expectedTitle = kind === "current"
+    ? "GITHUB INSIGHT — Current repositories"
+    : "GITHUB INSIGHT — New and re-entered repositories";
   if (oneMatch(header, /<id>([^<]+)<\/id>/g, `${kind} Atom id`) !== expectedId
-      || !expectedTitles.includes(oneMatch(header, /<title>([^<]+)<\/title>/g, `${kind} Atom title`))
+      || oneMatch(header, /<title>([^<]+)<\/title>/g, `${kind} Atom title`) !== expectedTitle
       || !header.includes(`<link rel="self" type="application/atom+xml" href="${expectedId}" />`)
       || !header.includes('<link rel="alternate" type="text/html" href="https://nowwcastle-sudo.github.io/github-trending-daily/" />')) throw new Error(`invalid ${kind} Atom header`);
   const categories = [...header.matchAll(/<category scheme="([^"]+)" term="([^"]+)" \/>/g)].map(match => [match[1], match[2]]);
