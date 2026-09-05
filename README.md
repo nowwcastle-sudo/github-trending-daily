@@ -130,6 +130,8 @@ This is the approved backlog, not a wish list, kept intentionally short:
 
 - **Move the star-observation database out of git if its growth demands it.** The observation ledgers (`data/star-ticks/`, `data/star-daily.jsonl`) are append-only and committed to this repository today; if their growth materially affects repository size or clone/checkout time, moving them to storage outside git is under consideration. Nothing has moved yet, and this repository has no separate database service today. The ledgers stay in git until a move is decided and executed.
 
+**Observation database.** The SQLite database that records every refresh (`repository-observations.sqlite`) is not committed to this repository. Each refresh uploads it as an immutable asset on the month's `observation-db-YYYY-MM` prerelease and commits `data/observation-db.pointer.json`, which names the asset and its SHA-256. Every workflow and the production probe download the asset anonymously and verify the hash before use, so a checkout never contains the database; run `node scripts/observation-db-store.mjs resolve --source-sha "$(git rev-parse HEAD)" --out repository-observations.sqlite` to fetch the one the current commit refers to.
+
 ## 📝 Requesting a feature
 
 If something above does not cover what you need, please [open a feature request](https://github.com/nowwcastle-sudo/github-trending-daily/issues/new/choose) using the **Feature request** issue template. It asks what problem you are hitting, what you would like instead, and what you have already tried, which is enough for a first look. Blank issues are disabled in favor of this structured form.

@@ -90,15 +90,39 @@ test("frozen facts events and enrichment precede core recording and publication"
   assert.doesNotMatch(workflow, /record_star_observations\.py|record_trending_membership\.py/);
 });
 
-test("one create-new parent database capture is reused across every frozen boundary", async () => {
+test("one create-new parent database capture is resolved through the store and reused across every frozen boundary", async () => {
   const workflow = await workflowText();
-  assert.match(workflow, /set -o noclobber[\s\S]*git (?:show|cat-file)[\s\S]*> "\$PARENT_DATABASE"/);
+  assert.match(workflow, /set -o noclobber[\s\S]*observation-db-store\.mjs resolve --source-sha "\$HYDRATION_SOURCE_SHA" --expect-snapshot-id "\$PARENT_SNAPSHOT_ID" --out "\$PARENT_DATABASE"/);
+  assert.doesNotMatch(workflow, /git (?:show|cat-file) (?:blob )?"?\$HYDRATION_SOURCE_SHA:data\/repository-observations\.sqlite/);
   assert.doesNotMatch(workflow, /rm -f "\$PARENT_DATABASE"/);
   assert.equal((workflow.match(/PARENT_DATABASE="\$PARENT_CAPTURE_DIR\/repository-observations\.sqlite"/g) ?? []).length, 1);
+  assert.match(workflow, /pointer\.database\.sha256/);
   assert.match(workflow, /collect-repository-events\.mjs[^\n]*--parent-database "\$PARENT_DATABASE"/);
   assert.match(workflow, /generate-summary-bundles\.mjs[^\n]*--parent-database \$parentDatabase/);
   assert.match(workflow, /frozen-parent-input\/repository-observations\.sqlite/);
   assert.match(workflow, /record_repository_observations\.py[^\n]*--parent-database "\$PARENT_DATABASE"/);
+});
+
+test("production state checks and the recovery build resolve the database through the pointer", async () => {
+  const workflow = await workflowText();
+  assert.equal((workflow.match(/observation-db-store\.mjs resolve --source-sha "\$HYDRATION_SOURCE_SHA" --check/g) ?? []).length, 2);
+  // The v1 branch's check is annotated like the star-ticks one: the bare command already stops the
+  // job under set -e, but only the ::error:: names the fault in the run summary.
+  assert.match(workflow, /node scripts\/observation-db-store\.mjs resolve --source-sha "\$HYDRATION_SOURCE_SHA" --check \|\| \{ echo "::error::verified production source does not carry exactly one observation database representation"; exit 1; \}/);
+  // The v0 bootstrap gate branches on the exit status, never on plain success/failure: exit 0 means
+  // a v0 production is carrying the canonical database, exit 3 is the only status that clears a
+  // bootstrap, and every other status is a real fault that stops the refresh.
+  assert.doesNotMatch(workflow, /if node scripts\/observation-db-store\.mjs resolve[^\n]*--check; then/);
+  assert.match(workflow, /set \+e\n\s+node scripts\/observation-db-store\.mjs resolve --source-sha "\$HYDRATION_SOURCE_SHA" --check\n\s+CHECK_STATUS=\$\?\n\s+set -e\n\s+case "\$CHECK_STATUS" in/);
+  assert.match(workflow, /case "\$CHECK_STATUS" in\n\s+0\)\n\s+echo "::error::v0 production cannot carry the canonical repository database"\n\s+exit 1\n\s+;;\n\s+3\) ;;\n\s+\*\)\n\s+echo "::error::observation database check failed \(exit \$CHECK_STATUS\)"\n\s+exit 1\n\s+;;\n\s+esac/);
+  const buildStart = workflow.indexOf("- name: Build verified recovery artifact");
+  const buildEnd = workflow.indexOf("- name: Prepare isolated refresh candidate", buildStart);
+  assertInOrder(workflow.slice(buildStart, buildEnd), [
+    'git archive --format=tar "$HYDRATION_SOURCE_SHA"',
+    'rm -f "$RECOVERY_SOURCE/data/repository-observations.sqlite"',
+    'observation-db-store.mjs resolve --source-sha "$HYDRATION_SOURCE_SHA" --expect-snapshot-id "$PARENT_SNAPSHOT_ID" --out "$RECOVERY_SOURCE/data/repository-observations.sqlite"',
+    "derive_repository_artifacts.py export-contract",
+  ]);
 });
 
 test("failed enrichment uploads bounded defect diagnostics without a partial candidate", async () => {
@@ -152,40 +176,68 @@ test("parent capture directory is sealed before verification and every possible 
   assert.doesNotMatch(workflow.slice(freezeStart), /chmod [^\n]*[+w7][^\n]*\$PARENT_CAPTURE_DIR/);
 });
 
-test("candidate finalizes before checkout promotion and staged SQLite scanning", async () => {
+test("promotion scans the candidate database, publishes the asset after every local check, and never stages the database", async () => {
   const workflow = await workflowText();
   const finalization = workflow.indexOf("Finalize repository derivatives");
   const validation = workflow.indexOf("Validate whole candidate");
-  const promotion = workflow.indexOf("Promote and scan staged candidate");
-  const add = workflow.indexOf("git add --", promotion);
-  const stagedBlob = workflow.indexOf("git show :data/repository-observations.sqlite", add);
-  const scanner = workflow.indexOf("scan_repository_observations.py", stagedBlob);
-  const commit = workflow.indexOf("git commit -m", scanner);
-  assert.ok(finalization >= 0 && finalization < validation && validation < promotion && promotion < add && add < stagedBlob && stagedBlob < scanner && scanner < commit);
-  for (const checkoutWrite of [
+  const promotionStart = workflow.indexOf("Promote and scan staged candidate");
+  assert.ok(finalization >= 0 && finalization < validation && validation < promotionStart);
+  const promotion = workflow.slice(promotionStart, workflow.indexOf("Publish generated child commit"));
+  assertInOrder(promotion, [
+    'scan_repository_observations.py --database "$CANDIDATE/data/repository-observations.sqlite" --expect-snapshot "$SNAPSHOT_ID" > "${RUNNER_TEMP}/scan-receipt.json"',
     'cp "$CANDIDATE/index.html" index.html',
-    'cp "$CANDIDATE/data/repository-observations.sqlite" data/repository-observations.sqlite',
-    'cp "$CANDIDATE/data/readme-state.json" data/readme-state.json',
-    'rsync --archive --delete "$CANDIDATE/translations/" translations/',
-  ]) {
-    assert.ok(workflow.indexOf(checkoutWrite) > promotion, `checkout promotion occurred before finalization: ${checkoutWrite}`);
-  }
-  assert.match(workflow.slice(finalization, validation), /derive_repository_artifacts\.py finalize/);
-  assert.match(workflow.slice(validation, promotion), /verify-pages/);
-  assert.match(workflow.slice(promotion, add), /git diff --quiet --[\s\S]*git diff --cached --quiet --/);
-  assert.match(workflow.slice(promotion, add), /\[ "\$ORIGINAL_SHA" = "\$\(git rev-parse HEAD\)" \]/);
-  assert.match(workflow.slice(scanner, commit), /git diff --cached --check/);
-  assert.doesNotMatch(workflow, /git add (?:\.|-A|--all)(?:\s|$)/);
-  assert.match(workflow, /if git diff --cached --quiet; then[\s\S]*exit 1/);
-});
-
-test("recurring allowlists contain only the new DB and README state", async () => {
-  const workflow = await workflowText();
-  const promotion = workflow.slice(workflow.indexOf("Promote and scan staged candidate"), workflow.indexOf("Publish generated child commit"));
-  assert.match(promotion, /data\/repository-observations\.sqlite/);
+    "git rm --cached --quiet data/repository-observations.sqlite",
+    "git fetch origin main",
+    "origin/main advanced during refresh",
+    'observation-db-store.mjs publish --database "$CANDIDATE/data/repository-observations.sqlite" --snapshot-id "$SNAPSHOT_ID" --target-sha "$ORIGINAL_SHA" --latest "$CANDIDATE/data/latest.json" --scan-receipt "${RUNNER_TEMP}/scan-receipt.json" --pointer-out data/observation-db.pointer.json',
+    'case "$changed_path" in',
+    "git add --",
+    "git grep --cached -qE",
+    "git diff --cached --check",
+    'git commit -m "chore: refresh trending snapshot"',
+    "git push origin HEAD:main",
+  ]);
+  assert.doesNotMatch(promotion, /cp "\$CANDIDATE\/data\/repository-observations\.sqlite"/);
+  assert.doesNotMatch(promotion, /git show :data\/repository-observations\.sqlite/);
+  assert.match(promotion, /if git ls-files --error-unmatch data\/repository-observations\.sqlite >\/dev\/null 2>&1; then\n\s+git rm --cached --quiet data\/repository-observations\.sqlite\n\s+rm -f data\/repository-observations\.sqlite\n\s+fi/);
+  // The staged deletion of the database has to be visible to the allow-list scan, so changed_paths
+  // reads the index as well as the worktree - `git diff --name-only` alone would miss it.
+  assert.match(promotion, /git diff --name-only && git diff --cached --name-only && git ls-files --others/);
+  assert.match(promotion, /case "\$changed_path" in\n\s+index\.html\|data\/repo-summaries\.json\|data\/observation-db\.pointer\.json\|data\/readme-state\.json[^\n]*\|translations\/\*\.json\|data\/repository-observations\.sqlite\) ;;/);
+  assert.match(promotion, /git add -- index\.html data\/repo-summaries\.json data\/observation-db\.pointer\.json data\/readme-state\.json/);
+  assert.match(promotion, /git grep --cached -qE[^\n]*-- index\.html data\/repo-summaries\.json data\/observation-db\.pointer\.json/);
   assert.match(promotion, /data\/readme-state\.json/);
   assert.doesNotMatch(promotion, /data\/star-observations\.sqlite|data\/trending-membership\.sqlite|data\/legacy-public-star-history\.json|data\/legacy-observation-baseline\.json/);
-  assert.match(workflow, /scan_repository_observations\.py --database/);
+  assert.match(promotion.slice(0, promotion.indexOf("run:")), /GH_TOKEN: \$\{\{ secrets\.GITHUB_TOKEN \}\}/);
+  assert.equal((workflow.match(/GH_TOKEN:/g) ?? []).length, 1);
+  assert.match(promotion, /git diff --quiet --[\s\S]*git diff --cached --quiet --/);
+  assert.match(promotion, /\[ "\$ORIGINAL_SHA" = "\$\(git rev-parse HEAD\)" \]/);
+  assert.match(workflow, /if git diff --cached --quiet; then[\s\S]*exit 1/);
+  assert.doesNotMatch(workflow, /git add (?:\.|-A|--all)(?:\s|$)/);
+  // the throwaway release-tag override belongs to the dispatch-only pre-flight workflow alone.
+  assert.doesNotMatch(workflow, /OBSERVATION_DB_RELEASE_TAG_OVERRIDE/);
+});
+
+test("the committed artifact probe, the verify job and the second copy resolve the published database", async () => {
+  const workflow = await workflowText();
+  const committed = workflow.slice(workflow.indexOf("- name: Build and locally probe committed Pages artifact"), workflow.indexOf("- name: Upload published observation database copy"));
+  assertInOrder(committed, [
+    'git archive --format=tar "$SOURCE_SHA"',
+    'rm -f "$PAGES_SOURCE/data/repository-observations.sqlite"',
+    'observation-db-store.mjs resolve --source-sha "$SOURCE_SHA" --expect-snapshot-id "$SNAPSHOT_ID" --out "$PAGES_SOURCE/data/repository-observations.sqlite"',
+    'cmp "$PAGES_SOURCE/data/repository-observations.sqlite" "${RUNNER_TEMP}/candidate/data/repository-observations.sqlite"',
+    "derive_repository_artifacts.py export-contract",
+  ]);
+  assert.match(workflow, /- name: Upload published observation database copy\n\s+uses: actions\/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a[^\n]*\n\s+with:\n\s+name: observation-db-\$\{\{ github\.run_id \}\}\n\s+path: \$\{\{ runner\.temp \}\}\/candidate\/data\/repository-observations\.sqlite\n\s+if-no-files-found: error\n\s+retention-days: 30\n/);
+  const verify = workflow.slice(workflow.indexOf("  verify:"), workflow.indexOf("  recovery:"));
+  assertInOrder(verify, [
+    "- name: Resolve observation database",
+    'rm -f "${RUNNER_TEMP}/repository-observations.sqlite"',
+    'observation-db-store.mjs resolve --source-sha "$(git rev-parse HEAD)" --expect-snapshot-id "${{ needs.publish.outputs.snapshot_id }}" --out "${RUNNER_TEMP}/repository-observations.sqlite"',
+    "- name: Probe production candidate",
+    'export-contract --database "${RUNNER_TEMP}/repository-observations.sqlite"',
+  ]);
+  assert.doesNotMatch(verify, /export-contract --database data\/repository-observations\.sqlite/);
 });
 
 test("v1 publication is one nonempty generated child and refresh chain is rechecked", async () => {
@@ -271,6 +323,7 @@ test("recovery preserves the verified production manifest version and identity",
   const buildEnd = workflow.indexOf("- name: Prepare isolated refresh candidate", buildStart);
   const recoveryBuild = workflow.slice(buildStart, buildEnd);
   assert.match(recoveryBuild, /if \[ "\$PRODUCTION_VERSION" = "0" \]; then/);
+  assert.match(recoveryBuild, /observation-db-store\.mjs resolve/);
   assert.match(recoveryBuild, /--mode legacy[\s\S]*--legacy-recovery-sha/);
   assert.match(recoveryBuild, /else[\s\S]*derive_repository_artifacts\.py export-contract[\s\S]*--snapshot-id "\$PARENT_SNAPSHOT_ID"/);
   assert.match(recoveryBuild, /build-pages-artifact\.mjs --source[\s\S]*--snapshot-id "\$PARENT_SNAPSHOT_ID"[\s\S]*--artifact-contract "\$RECOVERY_CONTRACT"/);
@@ -307,7 +360,7 @@ test("W1 derives star anchors from frozen facts and no longer generates star-his
   // W1 re-derives the overlay offline from the tracked ledgers so a publish never ships a stale star history.
   assert.match(workflow, /derive-star-anchors\.mjs[^\n]*\n\s+node scripts\/star-ticks\.mjs derive --published "\$CANDIDATE\/data\/latest\.json" --ticks-dir data\/star-ticks --daily data\/star-daily\.jsonl --anchors "\$CANDIDATE\/data\/star-anchors\.json" --out "\$CANDIDATE\/star-history\.json"/);
   assert.match(workflow, /cp "\$CANDIDATE\/star-history\.json" star-history\.json/);
-  assert.match(workflow, /case "\$changed_path" in\n\s+index\.html\|[^\n]*\|data\/star-anchors\.json\|star-history\.json\|translations\/\*\.json\) ;;/);
+  assert.match(workflow, /case "\$changed_path" in\n\s+index\.html\|[^\n]*\|data\/star-anchors\.json\|star-history\.json\|translations\/\*\.json\|data\/repository-observations\.sqlite\) ;;/);
   assert.match(workflow, /git add -- [^\n]*data\/star-anchors\.json star-history\.json translations\//);
   await assert.rejects(access("scripts/update-star-history.mjs"), /ENOENT/);
 });
@@ -355,4 +408,11 @@ test("the candidate Pages artifact keeps a week of retention for a fast rollback
   assert.match(upload, /name: github-pages-candidate-\$\{\{ github\.run_id \}\}\n\s+path: \$\{\{ runner\.temp \}\}\/pages-artifact\n\s+retention-days: 7\n/);
   // the recovery and defect-diagnostics uploads keep their own, unrelated retention values.
   assert.match(workflow, /name: github-pages-recovery-\$\{\{ github\.run_id \}\}\n\s+path: \$\{\{ runner\.temp \}\}\/recovery-artifact\n\s+retention-days: 2\n/);
+});
+
+// The snapshot lives in a release asset now, so a stray working-tree database must never be
+// committed back into the tree the pointer replaced.
+test("the working-tree observation database file stays untracked", async () => {
+  const ignored = (await readFile(".gitignore", "utf8")).replace(/\r\n/g, "\n").split("\n");
+  assert.ok(ignored.includes("data/repository-observations.sqlite"), ".gitignore must ignore data/repository-observations.sqlite");
 });

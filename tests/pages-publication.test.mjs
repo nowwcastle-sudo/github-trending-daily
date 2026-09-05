@@ -1011,6 +1011,75 @@ test("post-generation boundary rejects base-code mutations and sidecar residue",
   await assert.rejects(verifyCandidateMutations({ baselineRoot: baseline, candidateRoot: candidate }), /candidate hardlink rejected/i);
 });
 
+test("verify-generated accepts the recorder's database in the candidate whether or not the baseline tracked one, and reinstates the pointer instead of the blob", async t => {
+  const { MUTABLE_GENERATED_PATHS, CANDIDATE_ONLY_GENERATED_PATHS, verifyCandidateMutations: verify } = await import("../scripts/prepare-refresh-candidate.mjs");
+  assert.ok(MUTABLE_GENERATED_PATHS.includes("data/observation-db.pointer.json"));
+  assert.ok(!MUTABLE_GENERATED_PATHS.includes("data/repository-observations.sqlite"));
+  assert.deepEqual([...CANDIDATE_ONLY_GENERATED_PATHS], ["data/repository-observations.sqlite"]);
+  const directory = await mkdtemp(join(tmpdir(), "candidate-verify-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const baseline = join(directory, "baseline");
+  const candidate = join(directory, "candidate");
+  for (const dir of [baseline, candidate]) {
+    await mkdir(join(dir, "data"), { recursive: true });
+    await writeFile(join(dir, "README.md"), "same");
+  }
+  await writeFile(join(candidate, "data", "repository-observations.sqlite"), "new-db");
+  assert.deepEqual(await verify({ baselineRoot: baseline, candidateRoot: candidate }), { files: 2 });
+  await writeFile(join(baseline, "data", "repository-observations.sqlite"), "old-db");
+  assert.deepEqual(await verify({ baselineRoot: baseline, candidateRoot: candidate }), { files: 2 });
+  await writeFile(join(candidate, "data", "stray.bin"), "x");
+  await assert.rejects(verify({ baselineRoot: baseline, candidateRoot: candidate }), /residue/);
+});
+
+test("candidate preparation tolerates a last-good commit that predates the observation pointer", async t => {
+  const outer = await mkdtemp(join(tmpdir(), "candidate-pointer-transition-"));
+  const directory = join(outer, "checkout");
+  await mkdir(directory);
+  t.after(() => rm(outer, { recursive: true, force: true }));
+  const run = args => spawnSync("git", args, { cwd: directory, encoding: "utf8" });
+  assert.equal(run(["init", "-q"]).status, 0);
+  run(["config", "user.name", "test"]); run(["config", "user.email", "test@example.invalid"]);
+  await mkdir(join(directory, "data"));
+  const page = ["shell", "<!-- GENERATED:TRENDING-DATE:START -->", "date", "<!-- GENERATED:TRENDING-DATE:END -->", "// GENERATED:TRENDING-REPOS:START", "const REPOS = [];", "// GENERATED:TRENDING-REPOS:END", "footer"].join("\n");
+  await writeFile(join(directory, "index.html"), `${page}\n`);
+  await writeFile(join(directory, "data", "latest.json"), "production data\n");
+  run(["add", "--", "index.html", "data/latest.json"]); run(["commit", "-qm", "production"]);
+  const productionSha = run(["rev-parse", "HEAD"]).stdout.trim();
+  await writeFile(join(directory, "data", "observation-db.pointer.json"), `${JSON.stringify({ version: 1 })}\n`);
+  run(["add", "--", "data/observation-db.pointer.json"]); run(["commit", "-qm", "pointer"]);
+  const out = join(outer, "candidate");
+  await prepareRefreshCandidate({ checkoutRoot: directory, outDir: out, lastGoodSha: productionSha });
+  await assert.rejects(readFile(join(out, "data", "observation-db.pointer.json")), /ENOENT/);
+  assert.equal(await readFile(join(out, "data", "latest.json"), "utf8"), "production data\n");
+});
+
+test("reinstatement completeness throws when a last-good generated path was not listed", async t => {
+  const { assertReinstatementIsComplete, existsAtCommit } = await import("../scripts/prepare-refresh-candidate.mjs");
+  const outer = await mkdtemp(join(tmpdir(), "candidate-reinstatement-"));
+  const directory = join(outer, "checkout");
+  await mkdir(directory);
+  t.after(() => rm(outer, { recursive: true, force: true }));
+  const run = args => spawnSync("git", args, { cwd: directory, encoding: "utf8" });
+  assert.equal(run(["init", "-q"]).status, 0);
+  run(["config", "user.name", "test"]); run(["config", "user.email", "test@example.invalid"]);
+  await mkdir(join(directory, "data"));
+  await writeFile(join(directory, "data", "latest.json"), "production data\n");
+  run(["add", "--", "data/latest.json"]); run(["commit", "-qm", "production"]);
+  const lastGoodSha = run(["rev-parse", "HEAD"]).stdout.trim();
+  // Absence stays absence: the pointer never existed at this commit, and git reporting
+  // that must not become an exception.
+  assert.equal(existsAtCommit(directory, lastGoodSha, "data/observation-db.pointer.json"), false);
+  assert.equal(existsAtCommit(directory, lastGoodSha, "data/latest.json"), true);
+  // A tree listing that misses a path present at the last-good commit would silently drop
+  // production state from the candidate, so the guard fails closed instead.
+  assert.throws(
+    () => assertReinstatementIsComplete(directory, lastGoodSha, []),
+    /last-good generated path was not listed: data\/latest\.json/,
+  );
+  assert.equal(assertReinstatementIsComplete(directory, lastGoodSha, [{ path: "data/latest.json" }]), undefined);
+});
+
 test("a version-0 recovery manifest produces the next candidate without bootstrap input", async t => {
   const outer = await mkdtemp(join(tmpdir(), "legacy-next-candidate-"));
   const checkout = join(outer, "checkout");

@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { createReadStream } from "node:fs";
-import { lstat, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { lstat, mkdtemp, readFile, rm } from "node:fs/promises";
 import http from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -27,12 +27,34 @@ function hash(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
+// The snapshot lives in a release asset, not in the tree, so the store resolves it from the
+// pointer at sourceSha (spec 2026-09-05 §6.3). The script is injectable for tests the same way
+// GIT_SCRIPT is, and refused inside Actions for the same reason the store refuses its overrides.
+function resolveObservationDatabase(sourceSha, snapshotId, destination, gitRoot, deadline) {
+  const remaining = deadline - Date.now();
+  if (!Number.isFinite(remaining) || remaining <= 0) throw new Error("production probe deadline exceeded");
+  const override = process.env.OBSERVATION_DB_RESOLVER_SCRIPT;
+  if (override && process.env.GITHUB_ACTIONS === "true") throw new Error("observation database resolver override is refused inside GitHub Actions");
+  const script = override || fileURLToPath(new URL("./observation-db-store.mjs", import.meta.url));
+  try {
+    execFileSync(process.execPath, [script, "resolve", "--source-sha", sourceSha, "--expect-snapshot-id", snapshotId, "--git-root", gitRoot, "--out", destination], {
+      encoding: "utf8", maxBuffer: 1024 * 1024, timeout: Math.max(1, Math.min(600_000, Math.ceil(remaining))), stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (error) {
+    // The store scrubs its own stderr before it leaves the child, so it is safe to surface here, and
+    // on the two contract-less production paths it is the only thing that tells a 404 from a hash
+    // mismatch. The fixed phrase stays in front so callers matching on it keep matching.
+    const detail = String(error.stderr ?? "").trim().slice(0, 500);
+    throw new Error(detail ? `Git repository observation database is unavailable: ${detail}` : "Git repository observation database is unavailable");
+  }
+}
+
 async function artifactContractFromGit(sourceSha, snapshotId, gitRoot, deadline) {
   const temporary = await mkdtemp(path.join(tmpdir(), "repository-artifact-contract-"));
   try {
     const database = path.join(temporary, "repository-observations.sqlite");
     const contract = path.join(temporary, "artifact-contract.json");
-    await writeFile(database, gitBytes(sourceSha, "data/repository-observations.sqlite", gitRoot, deadline));
+    resolveObservationDatabase(sourceSha, snapshotId, database, gitRoot, deadline);
     const remaining = deadline - Date.now();
     if (!Number.isFinite(remaining) || remaining <= 0) throw new Error("production probe deadline exceeded");
     const script = fileURLToPath(new URL("./derive_repository_artifacts.py", import.meta.url));

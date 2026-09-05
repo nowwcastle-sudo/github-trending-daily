@@ -180,6 +180,9 @@ def scan_database(database, expected_snapshot):
             locations=locations,
         )
     return {
+        # The full digest is the identity `observation-db-store.mjs publish` cross-checks the file it
+        # uploads against; the prefix stays for the human-readable workflow log line.
+        "databaseSha256": digest_before,
         "databaseSha256Prefix": digest_before[:12],
         "expectedSnapshotCount": expected_count,
         "logicalCellCount": cell_count,

@@ -342,6 +342,7 @@ test("excluded repositories never reach the candidate set", async () => {
   }
   assert.ok(Object.isFrozen(REPOSITORY_EXCLUSIONS));
   assert.equal(repositoryExclusion("CLShortFuse/RenoDX")?.decidedOn, REPOSITORY_EXCLUSIONS["clshortfuse/renodx"].decidedOn);
+  assert.equal(repositoryExclusion("NousResearch/Hermes-Agent")?.decidedOn, REPOSITORY_EXCLUSIONS["nousresearch/hermes-agent"].decidedOn);
   assert.equal(repositoryExclusion("owner/not-excluded"), null);
 
   // A trending page that lists an excluded slug yields a candidate set without it,

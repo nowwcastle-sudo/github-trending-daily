@@ -3,7 +3,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "test": "node --test && python -m unittest discover -s tests -p \"test_*.py\"",
+    "test": "node --test --test-force-exit --test-timeout=300000 && python -m unittest discover -s tests -p \"test_*.py\"",
     "test:rules": "firebase emulators:exec --only firestore \"node --test tests/firestore.rules.test.mjs\"",
     "test:all": "npm test && npm run test:rules"
   },

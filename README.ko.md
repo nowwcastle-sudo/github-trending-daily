@@ -130,6 +130,8 @@ workflow는 fail-closed입니다.
 
 - **스타 관측 데이터베이스를 필요하면 git 밖으로 옮기는 것을 검토합니다.** observation ledger(`data/star-ticks/`, `data/star-daily.jsonl`)는 append-only이며 현재 이 저장소에 그대로 commit됩니다. 이 증가량이 저장소 크기나 clone/checkout 시간에 실질적인 영향을 주면 git 밖 저장소로 옮기는 방안을 검토 중입니다. 아직 옮긴 것은 없고 별도 데이터베이스 서비스도 없으며, 이관을 결정하고 실행하기 전까지 ledger는 계속 git 안에 남습니다.
 
+**관측 데이터베이스.** 갱신마다 기록되는 SQLite 데이터베이스(`repository-observations.sqlite`)는 이 저장소에 커밋되지 않습니다. 각 갱신은 그 파일을 해당 월의 `observation-db-YYYY-MM` 프리릴리스 자산으로 올리고, 자산 이름과 SHA-256을 담은 `data/observation-db.pointer.json`만 커밋합니다. 모든 워크플로와 운영 점검은 자산을 익명으로 내려받아 해시를 검증한 뒤 사용하므로 체크아웃에는 데이터베이스가 없습니다. 현재 커밋이 가리키는 파일은 `node scripts/observation-db-store.mjs resolve --source-sha "$(git rev-parse HEAD)" --out repository-observations.sqlite`로 받을 수 있습니다.
+
 ## 📝 기능 요청
 
 위 내용이 필요한 것을 다루지 못한다면 **Feature request** issue 템플릿으로 [기능을 요청](https://github.com/nowwcastle-sudo/github-trending-daily/issues/new/choose)해 주세요. 어떤 문제를 겪고 있는지, 대신 어떻게 동작하길 바라는지, 무엇을 이미 시도해봤는지를 물어보며, 첫 검토에는 이것으로 충분합니다. 구조화된 이 양식을 위해 blank issue는 비활성화되어 있습니다.

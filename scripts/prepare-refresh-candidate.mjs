@@ -9,9 +9,9 @@ export const MUTABLE_GENERATED_PATHS = Object.freeze([
   "changes.xml",
   "data/latest.json",
   "data/membership-status.json",
+  "data/observation-db.pointer.json",
   "data/readme-state.json",
   "data/repo-summaries.json",
-  "data/repository-observations.sqlite",
   "data/star-anchors.json",
   "data/translation-sources.json",
   "feed.xml",
@@ -19,7 +19,11 @@ export const MUTABLE_GENERATED_PATHS = Object.freeze([
   "star-history.json",
   "translations",
 ]);
-const FULL_FILE_GENERATED_PATHS = MUTABLE_GENERATED_PATHS.filter(value => value !== "index.html" && value !== "translations");
+// Written by the recorder into the candidate but never tracked by git (the snapshot
+// lives in a release asset; spec 2026-09-05 §6.1). Accepted by --verify-generated,
+// never reinstated from lastGoodSha.
+export const CANDIDATE_ONLY_GENERATED_PATHS = Object.freeze(["data/repository-observations.sqlite"]);
+const FULL_FILE_GENERATED_PATHS = [...MUTABLE_GENERATED_PATHS, ...CANDIDATE_ONLY_GENERATED_PATHS].filter(value => value !== "index.html" && value !== "translations");
 const PAGE_REGIONS = Object.freeze([
   ["<!-- GENERATED:TRENDING-DATE:START -->", "<!-- GENERATED:TRENDING-DATE:END -->"],
   ["// GENERATED:TRENDING-REPOS:START", "// GENERATED:TRENDING-REPOS:END"],
@@ -108,7 +112,11 @@ function git(root, args, options = {}) {
     });
   } catch (error) {
     const message = error?.stderr?.toString().trim();
-    throw new Error(message || "git command failed");
+    const failure = new Error(message || "git command failed");
+    // Callers distinguish "git said no" (exit 1) from "git could not run" (spawn error,
+    // signal, or a fatal usage error), so the exit status must survive the rewrap.
+    failure.status = error?.status;
+    throw failure;
   }
 }
 
@@ -133,6 +141,32 @@ function treeEntries(root, sha, pathspec = []) {
     if (!match) throw new Error("invalid Git tree entry");
     return { mode: match[1], type: match[2], oid: match[3], path: normalizeGitPath(match[4]) };
   });
+}
+
+// Absence is only what git itself reported: `cat-file -e` exits 1 for a resolvable object that is
+// missing, and 128 -- git's generic fatal code, not a "not in the tree" code -- for a path it cannot
+// resolve under the commit. 128 is read as absence here only because the caller has already had the
+// commit validated by the preceding `treeEntries` call, so a bad revision cannot be what produced
+// it. Anything else -- git failing to spawn, a timeout, a signal -- carries no exit status and must
+// not be read as "the path is absent", which would silently drop production state.
+export function existsAtCommit(root, sha, relative) {
+  try {
+    git(root, ["cat-file", "-e", `${sha}:${normalizeGitPath(relative)}`]);
+    return true;
+  } catch (error) {
+    if (error?.status === 1 || error?.status === 128) return false;
+    throw error;
+  }
+}
+
+// A last-good commit can predate a generated path — the observation pointer landed after
+// commits that are still valid recovery points — and reinstating nothing for it is correct.
+// Prove the path really is absent rather than trusting an empty ls-tree pathspec match.
+export function assertReinstatementIsComplete(checkout, lastGoodSha, productionEntries) {
+  for (const generated of MUTABLE_GENERATED_PATHS) {
+    if (productionEntries.some(entry => entry.path === generated || entry.path.startsWith(`${generated}/`))) continue;
+    if (existsAtCommit(checkout, lastGoodSha, generated)) throw new Error(`last-good generated path was not listed: ${generated}`);
+  }
 }
 
 async function rejectLinksAndForbidden(root) {
@@ -171,6 +205,7 @@ export async function prepareRefreshCandidate({ checkoutRoot, outDir, lastGoodSh
 
   const originalEntries = treeEntries(checkout, originalSha);
   const productionEntries = treeEntries(checkout, lastGoodSha, MUTABLE_GENERATED_PATHS);
+  assertReinstatementIsComplete(checkout, lastGoodSha, productionEntries);
   for (const entry of [...originalEntries, ...productionEntries]) {
     if (entry.type !== "blob" || entry.mode === "120000") throw new Error(`Git symlink or non-blob rejected: ${entry.path}`);
     if (entry.path === ".git" || entry.path.startsWith(".git/") || entry.path === "node_modules" || entry.path.startsWith("node_modules/")) {

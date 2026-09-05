@@ -65,11 +65,16 @@ test("star ticks deploy the committed tree through the same contract-checked bui
     assert.ok(pinned, `deploy workflow pin missing for ${action}`);
     assert.match(workflow, new RegExp(`${action.replace("/", "\\/")}${pinned}`));
   }
-  assert.match(workflow, /\[ -f data\/repository-observations\.sqlite \] \|\| \{ echo "::error::star ticks require the version-1 repository database"; exit 1; \}/);
+  assert.match(workflow, /node scripts\/observation-db-store\.mjs resolve --source-sha "\$\(git rev-parse HEAD\)" --check \|\| \{ echo "::error::star ticks require the version-1 repository database"; exit 1; \}/);
+  assert.match(workflow, /- name: Resolve observation database[\s\S]*rm -f "\$\{RUNNER_TEMP\}\/repository-observations\.sqlite"[\s\S]*observation-db-store\.mjs resolve --source-sha "\$SOURCE_SHA" --expect-snapshot-id "\$SNAPSHOT_ID" --out "\$\{RUNNER_TEMP\}\/repository-observations\.sqlite"/);
+  assert.doesNotMatch(workflow, /GH_TOKEN:/);
+  // the throwaway release-tag override belongs to the dispatch-only pre-flight workflow alone.
+  assert.doesNotMatch(workflow, /OBSERVATION_DB_RELEASE_TAG_OVERRIDE/);
   assertInOrder(workflow, [
     "star-ticks.mjs collect",
     "star-ticks.mjs derive",
     "- name: Commit star tick ledgers",
+    "- name: Resolve observation database",
     "derive_repository_artifacts.py export-contract",
     "build-pages-artifact.mjs --source \".\"",
     "probe-production.mjs --artifact-dir",
@@ -77,12 +82,12 @@ test("star ticks deploy the committed tree through the same contract-checked bui
     "actions/deploy-pages@",
     "probe-production.mjs --base-url",
   ]);
-  assert.match(workflow, /export-contract --database "\$\{GITHUB_WORKSPACE\}\/data\/repository-observations\.sqlite" --snapshot-id "\$SNAPSHOT_ID" --contract-out "\$ARTIFACT_CONTRACT"/);
+  assert.match(workflow, /export-contract --database "\$\{RUNNER_TEMP\}\/repository-observations\.sqlite" --snapshot-id "\$SNAPSHOT_ID" --contract-out "\$ARTIFACT_CONTRACT"/);
   assert.match(workflow, /probe-production\.mjs --base-url "\$\{\{ steps\.deployment\.outputs\.page_url \}\}" --source-sha "\$SOURCE_SHA" --snapshot-id "\$SNAPSHOT_ID" --artifact-contract "\$ARTIFACT_CONTRACT"/);
   // Build, upload, deploy, and the production probe are all gated on a committed ledger change.
   const gated = workflow.match(/if: \$\{\{ steps\.collect\.outputs\.skipped != 'true' && steps\.commit\.outputs\.committed == 'true' \}\}/g) ?? [];
-  assert.equal(gated.length, 4);
-  for (const step of ["- name: Build committed Pages artifact", "- name: Upload Pages artifact", "- name: Deploy Pages artifact", "- name: Probe deployed Pages artifact"]) {
+  assert.equal(gated.length, 5);
+  for (const step of ["- name: Resolve observation database", "- name: Build committed Pages artifact", "- name: Upload Pages artifact", "- name: Deploy Pages artifact", "- name: Probe deployed Pages artifact"]) {
     const start = workflow.indexOf(step);
     assert.ok(start >= 0, step);
     assert.match(workflow.slice(start, start + 200), /\n\s+if: \$\{\{ steps\.collect\.outputs\.skipped != 'true' && steps\.commit\.outputs\.committed == 'true' \}\}/);

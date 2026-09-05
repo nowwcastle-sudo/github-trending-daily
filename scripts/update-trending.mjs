@@ -39,6 +39,11 @@ export const REPOSITORY_EXCLUSIONS = Object.freeze({
     decidedOn: "2026-09-05",
     revisit: "when the rolling snapshot release is pruned or the release-inventory contract changes",
   }),
+  "nousresearch/hermes-agent": Object.freeze({
+    reason: "GitHub commit-list API returns a deterministic 500 for this repository: /commits?sha=main pages that include commit positions 31-32, 36-37 and 39-40 fail at every page size down to per_page=1 (2026-09-05 12:38Z and 17:17Z refreshes, reproduced by hand at 05:20 KST 2026-09-06), while GET /commits/{sha} for the same commits succeeds; the collector cannot rebuild the list order from single-commit reads without a graph walk, so the repository is excluded until GitHub serves the list again",
+    decidedOn: "2026-09-06",
+    revisit: "when GET /repos/NousResearch/hermes-agent/commits?sha=main&per_page=100&page=1 returns 200 again, or when the collector gains a single-commit fallback for 5xx list pages",
+  }),
 });
 
 export function repositoryExclusion(slug) {
