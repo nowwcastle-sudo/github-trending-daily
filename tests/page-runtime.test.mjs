@@ -960,13 +960,13 @@ test("sidebar sections follow the approved priority and keyboard order", () => {
   assert.match(page, /filter\(el=>!el\.hidden&&!el\.closest\("\[hidden\]"\)\)/);
 });
 
-test("refresh copy and calculation follow the approved daily schedule", () => {
+test("refresh copy and calculation follow the approved six-hour schedule", () => {
   const refresh = page.match(/<section[^>]*id="refreshStatus"[\s\S]*?<\/section>/)?.[0] ?? "";
   assert.equal([...page.matchAll(/Dashboard menu/g)].length, 1);
   assert.equal([...refresh.matchAll(/<p\b/g)].length, 3);
   assert.match(refresh, /<p id="luLast" data-i18n="refresh\.loading">Last refreshed: loading…<\/p>/);
   assert.match(refresh, /<p id="luNext" data-i18n="refresh\.next">Next refresh: —<\/p>/);
-  assert.match(refresh, /<p id="luCadence" data-i18n="refresh\.cadence">Refreshes once a day<\/p>/);
+  assert.match(refresh, /<p id="luCadence" data-i18n="refresh\.cadence">Refreshes every 6 hours<\/p>/);
   assert.match(page, /<script src="refresh-schedule\.js"><\/script>/);
   assert.match(page, /RefreshSchedule\.nextRefreshTime\(Date\.now\(\)\)/);
   assert.match(page, /function updateRefreshStatus\(nextLastValue\)/);

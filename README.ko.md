@@ -39,7 +39,7 @@ GITHUB INSIGHT는 GitHub Trending(일간·주간·월간)에 오르는 저장소
 
 ## 저장소별 admission과 held 요약
 
-저장소는 하나하나 독립적으로 게시 여부가 결정됩니다. 완전히 검증된 5개 언어 요약을 갖춘 채로 게시되거나, 그렇지 못하면 **held** 상태로 게시됩니다. held 저장소도 카드에는 측정된 데이터(스타, 포크, 활동, 순위)가 그대로 보이지만, AI 요약 대신 고정된 지역화 문구로 "요약 검증 중"임을 안내하고 다음 예약된 하루 한 번 갱신에 자동으로 다시 시도합니다. 저장소 하나가 held여도 다른 저장소는 전혀 영향받지 않습니다 — GITHUB INSIGHT는 all-or-nothing 게시로 되돌아가지 않습니다.
+저장소는 하나하나 독립적으로 게시 여부가 결정됩니다. 완전히 검증된 5개 언어 요약을 갖춘 채로 게시되거나, 그렇지 못하면 **held** 상태로 게시됩니다. held 저장소도 카드에는 측정된 데이터(스타, 포크, 활동, 순위)가 그대로 보이지만, AI 요약 대신 고정된 지역화 문구로 "요약 검증 중"임을 안내하고 다음 예약된 갱신(6시간마다)에 자동으로 다시 시도합니다. 저장소 하나가 held여도 다른 저장소는 전혀 영향받지 않습니다 — GITHUB INSIGHT는 all-or-nothing 게시로 되돌아가지 않습니다.
 
 ## 스타 히스토리
 
@@ -103,7 +103,7 @@ UI에는 “검증된 저장소 README를 바탕으로 AI가 생성했다”고 
 
 ## 갱신·배포 안전장치
 
-활성화된 경우 GitHub Actions는 하루에 한 번, `Asia/Seoul` 기준 09시 07분(UTC 00:07)에 실행됩니다. 먼저 정본 저장소와 README 사실을 수집·동결한 뒤 enrichment 필요 여부를 판정합니다. 그다음 정확한 5개 언어 coverage 또는 저장소별 `held` admission, provenance 검증, 렌더, observation 기록, artifact 검증을 모두 마쳐야 publication으로 넘어갑니다.
+활성화된 경우 GitHub Actions는 하루 네 번, `Asia/Seoul` 기준 00시 07분, 06시 07분, 12시 07분, 18시 07분(UTC 03:07, 09:07, 15:07, 21:07)에 실행됩니다. 먼저 정본 저장소와 README 사실을 수집·동결한 뒤 enrichment 필요 여부를 판정합니다. 그다음 정확한 5개 언어 coverage 또는 저장소별 `held` admission, provenance 검증, 렌더, observation 기록, artifact 검증을 모두 마쳐야 publication으로 넘어갑니다.
 
 예약 Daily Refresh는 Claude CLI OAuth의 `claude-sonnet-5`를 기본 요약 producer로 유지합니다. Codex는 같은 frozen input에서 정확히 pending으로 남은 저장소에만 쓰는 fallback이며, 예약 실행의 기본 producer를 대체하거나 이미 완료된 저장소를 다시 생성하지 않습니다.
 
