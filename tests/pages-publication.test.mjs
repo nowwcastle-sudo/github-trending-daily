@@ -1043,6 +1043,32 @@ test("candidate preparation tolerates a last-good commit that predates the obser
   assert.equal(await readFile(join(out, "data", "latest.json"), "utf8"), "production data\n");
 });
 
+test("reinstatement completeness throws when a last-good generated path was not listed", async t => {
+  const { assertReinstatementIsComplete, existsAtCommit } = await import("../scripts/prepare-refresh-candidate.mjs");
+  const outer = await mkdtemp(join(tmpdir(), "candidate-reinstatement-"));
+  const directory = join(outer, "checkout");
+  await mkdir(directory);
+  t.after(() => rm(outer, { recursive: true, force: true }));
+  const run = args => spawnSync("git", args, { cwd: directory, encoding: "utf8" });
+  assert.equal(run(["init", "-q"]).status, 0);
+  run(["config", "user.name", "test"]); run(["config", "user.email", "test@example.invalid"]);
+  await mkdir(join(directory, "data"));
+  await writeFile(join(directory, "data", "latest.json"), "production data\n");
+  run(["add", "--", "data/latest.json"]); run(["commit", "-qm", "production"]);
+  const lastGoodSha = run(["rev-parse", "HEAD"]).stdout.trim();
+  // Absence stays absence: the pointer never existed at this commit, and git reporting
+  // that must not become an exception.
+  assert.equal(existsAtCommit(directory, lastGoodSha, "data/observation-db.pointer.json"), false);
+  assert.equal(existsAtCommit(directory, lastGoodSha, "data/latest.json"), true);
+  // A tree listing that misses a path present at the last-good commit would silently drop
+  // production state from the candidate, so the guard fails closed instead.
+  assert.throws(
+    () => assertReinstatementIsComplete(directory, lastGoodSha, []),
+    /last-good generated path was not listed: data\/latest\.json/,
+  );
+  assert.equal(assertReinstatementIsComplete(directory, lastGoodSha, [{ path: "data/latest.json" }]), undefined);
+});
+
 test("a version-0 recovery manifest produces the next candidate without bootstrap input", async t => {
   const outer = await mkdtemp(join(tmpdir(), "legacy-next-candidate-"));
   const checkout = join(outer, "checkout");

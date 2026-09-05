@@ -108,7 +108,7 @@ jobs:
           git merge-base --is-ancestor "$HYDRATION_SOURCE_SHA" "$ORIGINAL_SHA"
           if [ "$PRODUCTION_VERSION" = "0" ]; then
             [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] || { echo "::error::migration baseline requires the approved manual gate"; exit 1; }
-            if git cat-file -e "$HYDRATION_SOURCE_SHA:data/repository-observations.sqlite" 2>/dev/null; then
+            if node scripts/observation-db-store.mjs resolve --source-sha "$HYDRATION_SOURCE_SHA" --check; then
               echo "::error::v0 production cannot carry the canonical repository database"
               exit 1
             fi
@@ -133,7 +133,7 @@ jobs:
             fi
           else
             [ -z "$REQUESTED_BOOTSTRAP_SOURCE_SHA" ] || { echo "::error::version-1 refresh forbids a bootstrap source SHA"; exit 1; }
-            git cat-file -e "$HYDRATION_SOURCE_SHA:data/repository-observations.sqlite"
+            node scripts/observation-db-store.mjs resolve --source-sha "$HYDRATION_SOURCE_SHA" --check
             PARENT_SNAPSHOT_ID="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(value.snapshotId ?? "");' "$STATE_FILE")"
             [ -n "$PARENT_SNAPSHOT_ID" ]
             echo "ENRICHMENT_BUDGET_MODE=normal" >> "$GITHUB_ENV"
@@ -158,6 +158,8 @@ jobs:
             node scripts/build-pages-artifact.mjs --mode legacy --source "$RECOVERY_SOURCE" --out "${RUNNER_TEMP}/recovery-artifact" --source-sha "$HYDRATION_SOURCE_SHA"
             node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/recovery-artifact" --legacy-recovery-sha "$HYDRATION_SOURCE_SHA"
           else
+            rm -f "$RECOVERY_SOURCE/data/repository-observations.sqlite"
+            node scripts/observation-db-store.mjs resolve --source-sha "$HYDRATION_SOURCE_SHA" --expect-snapshot-id "$PARENT_SNAPSHOT_ID" --out "$RECOVERY_SOURCE/data/repository-observations.sqlite"
             RECOVERY_CONTRACT="${RUNNER_TEMP}/recovery-artifact-contract.json"
             python scripts/derive_repository_artifacts.py export-contract --database "$RECOVERY_SOURCE/data/repository-observations.sqlite" --snapshot-id "$PARENT_SNAPSHOT_ID" --contract-out "$RECOVERY_CONTRACT"
             node scripts/build-pages-artifact.mjs --source "$RECOVERY_SOURCE" --out "${RUNNER_TEMP}/recovery-artifact" --source-sha "$HYDRATION_SOURCE_SHA" --snapshot-id "$PARENT_SNAPSHOT_ID" --artifact-contract "$RECOVERY_CONTRACT"
@@ -186,7 +188,7 @@ jobs:
           PARENT_DATABASE="$PARENT_CAPTURE_DIR/repository-observations.sqlite"
           if [ "$PRODUCTION_VERSION" = "1" ]; then
             set -o noclobber
-            git cat-file blob "$HYDRATION_SOURCE_SHA:data/repository-observations.sqlite" > "$PARENT_DATABASE"
+            node scripts/observation-db-store.mjs resolve --source-sha "$HYDRATION_SOURCE_SHA" --expect-snapshot-id "$PARENT_SNAPSHOT_ID" --out "$PARENT_DATABASE"
             chmod 0444 "$PARENT_DATABASE"
             EXPECTED_PARENT="$PARENT_SNAPSHOT_ID"
           else
@@ -197,6 +199,10 @@ jobs:
           node --input-type=module -e 'import { appendFileSync, writeFileSync } from "node:fs"; import { createRunContext } from "./scripts/run-context.mjs"; const parent=process.env.PRODUCTION_VERSION === "1" ? {snapshotId:process.env.PARENT_SNAPSHOT_ID,sourceSha:process.env.HYDRATION_SOURCE_SHA} : {snapshotId:null,sourceSha:null}; const context=createRunContext(new Date(Number(process.env.REFRESH_ORIGIN_EPOCH_MS)),parent); const encoded=JSON.stringify(context); writeFileSync(process.argv[1],encoded); appendFileSync(process.env.GITHUB_ENV,`RUN_CONTEXT_JSON=${encoded}\n`); appendFileSync(process.env.GITHUB_OUTPUT,`snapshot_id=${context.snapshotId}\n`);' "${RUNNER_TEMP}/run-context.json"
           python scripts/derive_repository_artifacts.py export-parent-inputs --parent-database "$PARENT_DATABASE" --baseline-receipt data/legacy-observation-baseline.json --expected-parent-snapshot "$EXPECTED_PARENT" --production-source-sha "$HYDRATION_SOURCE_SHA" --parent-evidence-out "${RUNNER_TEMP}/parent-evidence.json" --prior-heads-out "${RUNNER_TEMP}/prior-heads.json"
           python scripts/derive_repository_artifacts.py verify-parent-inputs --parent-database "$PARENT_DATABASE" --parent-evidence "${RUNNER_TEMP}/parent-evidence.json" --prior-heads "${RUNNER_TEMP}/prior-heads.json"
+          if git cat-file -e "$HYDRATION_SOURCE_SHA:data/observation-db.pointer.json" 2>/dev/null; then
+            git show "$HYDRATION_SOURCE_SHA:data/observation-db.pointer.json" > "${RUNNER_TEMP}/parent-pointer.json"
+            node --input-type=module -e 'import { readFileSync } from "node:fs"; const pointer=JSON.parse(readFileSync(process.argv[1],"utf8")); const evidence=JSON.parse(readFileSync(process.argv[2],"utf8")); const declared=evidence?.parent_database?.file_sha256; if(typeof declared!=="string"||declared!==pointer?.database?.sha256) throw new Error("pointer.database.sha256 does not match the parent evidence database hash");' "${RUNNER_TEMP}/parent-pointer.json" "${RUNNER_TEMP}/parent-evidence.json"
+          fi
           echo "PARENT_DATABASE=$PARENT_DATABASE" >> "$GITHUB_ENV"
       - name: Collect frozen repository facts
         id: facts
@@ -473,6 +479,7 @@ jobs:
         env:
           ORIGINAL_SHA: ${{ needs.prepare.outputs.original_sha }}
           SNAPSHOT_ID: ${{ needs.prepare.outputs.snapshot_id }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           CANDIDATE="${RUNNER_TEMP}/candidate"
@@ -483,9 +490,9 @@ jobs:
           [ "$ORIGINAL_SHA" = "$(git rev-parse HEAD)" ] || { echo "::error::checkout HEAD changed during candidate work"; exit 1; }
           git diff --quiet -- || { echo "::error::tracked checkout bytes changed during candidate work"; exit 1; }
           git diff --cached --quiet -- || { echo "::error::checkout index changed during candidate work"; exit 1; }
+          python scripts/scan_repository_observations.py --database "$CANDIDATE/data/repository-observations.sqlite" --expect-snapshot "$SNAPSHOT_ID" > "${RUNNER_TEMP}/scan-receipt.json"
           cp "$CANDIDATE/index.html" index.html
           cp "$CANDIDATE/data/repo-summaries.json" data/repo-summaries.json
-          cp "$CANDIDATE/data/repository-observations.sqlite" data/repository-observations.sqlite
           cp "$CANDIDATE/data/readme-state.json" data/readme-state.json
           cp "$CANDIDATE/data/membership-status.json" data/membership-status.json
           cp "$CANDIDATE/data/latest.json" data/latest.json
@@ -495,25 +502,28 @@ jobs:
           cp "$CANDIDATE/data/star-anchors.json" data/star-anchors.json
           cp "$CANDIDATE/star-history.json" star-history.json
           rsync --archive --delete "$CANDIDATE/translations/" translations/
-          changed_paths="$({ git diff --name-only && git ls-files --others --exclude-standard; } | sort -u)"
+          if git ls-files --error-unmatch data/repository-observations.sqlite >/dev/null 2>&1; then
+            git rm --cached --quiet data/repository-observations.sqlite
+            rm -f data/repository-observations.sqlite
+          fi
+          git fetch origin main
+          [ "$ORIGINAL_SHA" = "$(git rev-parse refs/remotes/origin/main)" ] || { echo "::error::origin/main advanced during refresh"; exit 1; }
+          node scripts/observation-db-store.mjs publish --database "$CANDIDATE/data/repository-observations.sqlite" --snapshot-id "$SNAPSHOT_ID" --target-sha "$ORIGINAL_SHA" --latest "$CANDIDATE/data/latest.json" --scan-receipt "${RUNNER_TEMP}/scan-receipt.json" --pointer-out data/observation-db.pointer.json
+          changed_paths="$({ git diff --name-only && git diff --cached --name-only && git ls-files --others --exclude-standard; } | sort -u)"
           while IFS= read -r changed_path; do
             [ -z "$changed_path" ] && continue
             case "$changed_path" in
-              index.html|data/repo-summaries.json|data/repository-observations.sqlite|data/readme-state.json|data/membership-status.json|data/latest.json|data/translation-sources.json|feed.xml|changes.xml|data/star-anchors.json|star-history.json|translations/*.json) ;;
+              index.html|data/repo-summaries.json|data/observation-db.pointer.json|data/readme-state.json|data/membership-status.json|data/latest.json|data/translation-sources.json|feed.xml|changes.xml|data/star-anchors.json|star-history.json|translations/*.json|data/repository-observations.sqlite) ;;
               *) echo "::error::Unexpected generated output: $changed_path"; exit 1 ;;
             esac
           done <<< "$changed_paths"
-          git add -- index.html data/repo-summaries.json data/repository-observations.sqlite data/readme-state.json data/membership-status.json data/latest.json data/translation-sources.json feed.xml changes.xml data/star-anchors.json star-history.json translations/
+          git add -- index.html data/repo-summaries.json data/observation-db.pointer.json data/readme-state.json data/membership-status.json data/latest.json data/translation-sources.json feed.xml changes.xml data/star-anchors.json star-history.json translations/
           if git diff --cached --quiet; then
             echo "::error::version-1 refresh requires one nonempty generated child"
             exit 1
           fi
-          STAGED_DATABASE="$(mktemp "${RUNNER_TEMP}/staged-repository-observations.XXXXXX.sqlite")"
-          trap 'rm -f "$STAGED_DATABASE"' EXIT
-          git show :data/repository-observations.sqlite > "$STAGED_DATABASE"
-          python scripts/scan_repository_observations.py --database "$STAGED_DATABASE" --expect-snapshot "$SNAPSHOT_ID"
           set +e
-          git grep --cached -qE '(sk-ant-[[:alnum:]_-]{20,}|gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- index.html data/repo-summaries.json data/readme-state.json data/membership-status.json data/latest.json data/translation-sources.json feed.xml changes.xml data/star-anchors.json star-history.json translations/
+          git grep --cached -qE '(sk-ant-[[:alnum:]_-]{20,}|gh[pousr]_[[:alnum:]_]{20,}|github_pat_[[:alnum:]_]{20,}|AIza[[:alnum:]_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- index.html data/repo-summaries.json data/observation-db.pointer.json data/readme-state.json data/membership-status.json data/latest.json data/translation-sources.json feed.xml changes.xml data/star-anchors.json star-history.json translations/
           SCAN_STATUS=$?
           set -e
           case "$SCAN_STATUS" in
@@ -547,9 +557,19 @@ jobs:
           PAGES_SOURCE="${RUNNER_TEMP}/pages-source"
           mkdir "$PAGES_SOURCE"
           git archive --format=tar "$SOURCE_SHA" | tar -x -C "$PAGES_SOURCE"
+          rm -f "$PAGES_SOURCE/data/repository-observations.sqlite"
+          node scripts/observation-db-store.mjs resolve --source-sha "$SOURCE_SHA" --expect-snapshot-id "$SNAPSHOT_ID" --out "$PAGES_SOURCE/data/repository-observations.sqlite"
+          cmp "$PAGES_SOURCE/data/repository-observations.sqlite" "${RUNNER_TEMP}/candidate/data/repository-observations.sqlite"
           python scripts/derive_repository_artifacts.py export-contract --database "$PAGES_SOURCE/data/repository-observations.sqlite" --snapshot-id "$SNAPSHOT_ID" --contract-out "${RUNNER_TEMP}/committed-artifact-contract.json"
           node scripts/build-pages-artifact.mjs --source "$PAGES_SOURCE" --out "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "${RUNNER_TEMP}/committed-artifact-contract.json"
           node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "${RUNNER_TEMP}/committed-artifact-contract.json"
+      - name: Upload published observation database copy
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: observation-db-${{ github.run_id }}
+          path: ${{ runner.temp }}/candidate/data/repository-observations.sqlite
+          if-no-files-found: error
+          retention-days: 30
       - name: Upload candidate Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
@@ -595,12 +615,18 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.13"
+      - name: Resolve observation database
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f "${RUNNER_TEMP}/repository-observations.sqlite"
+          node scripts/observation-db-store.mjs resolve --source-sha "$(git rev-parse HEAD)" --expect-snapshot-id "${{ needs.publish.outputs.snapshot_id }}" --out "${RUNNER_TEMP}/repository-observations.sqlite"
       - name: Probe production candidate
         shell: bash
         run: |
           set -euo pipefail
           CONTRACT="${RUNNER_TEMP}/production-artifact-contract.json"
-          python scripts/derive_repository_artifacts.py export-contract --database data/repository-observations.sqlite --snapshot-id "${{ needs.publish.outputs.snapshot_id }}" --contract-out "$CONTRACT"
+          python scripts/derive_repository_artifacts.py export-contract --database "${RUNNER_TEMP}/repository-observations.sqlite" --snapshot-id "${{ needs.publish.outputs.snapshot_id }}" --contract-out "$CONTRACT"
           node scripts/probe-production.mjs --base-url "$PRODUCTION_BASE_URL" --source-sha "${{ needs.publish.outputs.source_sha }}" --snapshot-id "${{ needs.publish.outputs.snapshot_id }}" --artifact-contract "$CONTRACT"
 
   recovery:

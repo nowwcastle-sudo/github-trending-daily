@@ -112,7 +112,11 @@ function git(root, args, options = {}) {
     });
   } catch (error) {
     const message = error?.stderr?.toString().trim();
-    throw new Error(message || "git command failed");
+    const failure = new Error(message || "git command failed");
+    // Callers distinguish "git said no" (exit 1) from "git could not run" (spawn error,
+    // signal, or a fatal usage error), so the exit status must survive the rewrap.
+    failure.status = error?.status;
+    throw failure;
   }
 }
 
@@ -139,19 +143,24 @@ function treeEntries(root, sha, pathspec = []) {
   });
 }
 
-function existsAtCommit(root, sha, relative) {
+// Absence is only what git itself reported: `cat-file -e` exits 1 for a resolvable
+// object that is missing and 128 for a path that is not in the tree. Anything else --
+// git failing to spawn, a timeout, a signal -- carries no exit status and must not be
+// read as "the path is absent", which would silently drop production state.
+export function existsAtCommit(root, sha, relative) {
   try {
     git(root, ["cat-file", "-e", `${sha}:${normalizeGitPath(relative)}`]);
     return true;
-  } catch {
-    return false;
+  } catch (error) {
+    if (error?.status === 1 || error?.status === 128) return false;
+    throw error;
   }
 }
 
 // A last-good commit can predate a generated path — the observation pointer landed after
 // commits that are still valid recovery points — and reinstating nothing for it is correct.
 // Prove the path really is absent rather than trusting an empty ls-tree pathspec match.
-function assertReinstatementIsComplete(checkout, lastGoodSha, productionEntries) {
+export function assertReinstatementIsComplete(checkout, lastGoodSha, productionEntries) {
   for (const generated of MUTABLE_GENERATED_PATHS) {
     if (productionEntries.some(entry => entry.path === generated || entry.path.startsWith(`${generated}/`))) continue;
     if (existsAtCommit(checkout, lastGoodSha, generated)) throw new Error(`last-good generated path was not listed: ${generated}`);
