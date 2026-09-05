@@ -122,7 +122,11 @@ test("production state checks and the recovery build resolve the database throug
     'rm -f "$RECOVERY_SOURCE/data/repository-observations.sqlite"',
     'observation-db-store.mjs resolve --source-sha "$HYDRATION_SOURCE_SHA" --expect-snapshot-id "$PARENT_SNAPSHOT_ID" --out "$RECOVERY_SOURCE/data/repository-observations.sqlite"',
     "derive_repository_artifacts.py export-contract",
+    'node "$RECOVERY_SOURCE/scripts/build-pages-artifact.mjs" --source "$RECOVERY_SOURCE" --out "${RUNNER_TEMP}/recovery-artifact" --source-sha "$HYDRATION_SOURCE_SHA" --snapshot-id "$PARENT_SNAPSHOT_ID" --artifact-contract "$RECOVERY_CONTRACT"',
   ]);
+  // The version-1 recovery build never runs this checkout's builder against the production tree:
+  // the two disagree on the shipped-file list after any release that adds or removes a file.
+  assert.doesNotMatch(workflow.slice(buildStart, buildEnd), /node scripts\/build-pages-artifact\.mjs --source "\$RECOVERY_SOURCE"[^\n]*--artifact-contract/);
 });
 
 test("failed enrichment uploads bounded defect diagnostics without a partial candidate", async () => {
@@ -326,7 +330,7 @@ test("recovery preserves the verified production manifest version and identity",
   assert.match(recoveryBuild, /observation-db-store\.mjs resolve/);
   assert.match(recoveryBuild, /--mode legacy[\s\S]*--legacy-recovery-sha/);
   assert.match(recoveryBuild, /else[\s\S]*derive_repository_artifacts\.py export-contract[\s\S]*--snapshot-id "\$PARENT_SNAPSHOT_ID"/);
-  assert.match(recoveryBuild, /build-pages-artifact\.mjs --source[\s\S]*--snapshot-id "\$PARENT_SNAPSHOT_ID"[\s\S]*--artifact-contract "\$RECOVERY_CONTRACT"/);
+  assert.match(recoveryBuild, /build-pages-artifact\.mjs" --source[\s\S]*--snapshot-id "\$PARENT_SNAPSHOT_ID"[\s\S]*--artifact-contract "\$RECOVERY_CONTRACT"/);
   assert.match(recoveryBuild, /probe-production\.mjs --artifact-dir[\s\S]*--source-sha "\$HYDRATION_SOURCE_SHA"[\s\S]*--snapshot-id "\$PARENT_SNAPSHOT_ID"[\s\S]*--artifact-contract "\$RECOVERY_CONTRACT"/);
 
   const verifyStart = workflow.indexOf("- name: Verify recovered production");

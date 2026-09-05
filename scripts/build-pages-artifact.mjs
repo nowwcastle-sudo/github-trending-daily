@@ -116,8 +116,9 @@ export const LEGACY_BASE_PATHS = Object.freeze(
 // judges a deployment reads the list from the commit named in its manifest, never from the checkout
 // doing the judging. The two disagree exactly when a release adds a shipped file: production still
 // carries the shorter list of the commit that built it and is still intact (2026-09-06, W1 run
-// 33993892427 refused a sound 20-file production against this checkout's 21). The literal above
-// keeps the one shape this parser accepts: one double-quoted relative path per line, nothing else.
+// 33993892427 refused a sound 20-file production, 19 base paths plus the overlay, against this
+// checkout's 21 base paths). The literal above keeps the one shape this parser accepts: one
+// double-quoted relative path per line, nothing else.
 const VERSION_1_BASE_PATHS_BLOCK_RE = /^export const VERSION_1_BASE_PATHS = Object\.freeze\(\[\n((?:  "[^"\n]+",\n)+)\]\.sort\(\)\);$/m;
 const SHIPPED_PATH_RE = /^(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_-]+(?:\.[A-Za-z0-9]+)+$/;
 

@@ -112,11 +112,15 @@ Only the network push can leave an orphan asset; every other check precedes the 
 ### 6.3 `probe-production.mjs`
 `artifactContractFromGit`: replaces `gitBytes(sourceSha, "data/repository-observations.sqlite")` with a spawn of `observation-db-store.mjs resolve --source-sha <sha> --expect-snapshot-id <snapshotId> --out <temp>`, honouring the same deadline. The spawn target is injectable through `OBSERVATION_DB_RESOLVER_SCRIPT` (mirrors `GIT_SCRIPT`) so tests never touch the network. The operator's local probe now needs network access to github.com when no `--artifact-contract` is given; it needs no `gh` and no token. Tests that pin the old shape and must be rewritten: `tests/verify-refresh-chain.test.mjs:74,305-313`, `tests/daily-refresh-workflow.test.mjs:95-97,156-190,311`, `tests/star-ticks-workflow.test.mjs:68,80`, `tests/deploy-current-pages-workflow.test.mjs:15,17`.
 
+Shipped-file list (added 2026-09-06 after W1 run 33993892427): `verifyVersion1Payload` reads `scripts/build-pages-artifact.mjs` at `manifest.sourceSha` through `gitBytes` and parses `VERSION_1_BASE_PATHS` from it (`parseVersion1BasePaths`, strict literal shape, fail-closed), so a deployment is judged against the list of the commit that built it, never against the checkout running the probe. Without this, the first release that adds or removes a shipped file makes intact production look broken and the refresh cannot start.
+
 ### 6.4 W1 verify job, W2, `deploy-current-pages.yml`
 Each gains one step, `Resolve observation database`, before its `export-contract`: `rm -f "$RUNNER_TEMP/repository-observations.sqlite"; node scripts/observation-db-store.mjs resolve --source-sha "$(git rev-parse HEAD)" --expect-snapshot-id "$SNAPSHOT_ID" --out "$RUNNER_TEMP/repository-observations.sqlite"`, and `export-contract --database` points at that path (`read_finalized_artifact_contract` has no layout requirement). `deploy-current-pages.yml` keeps its v0 branch when `resolve --check` reports neither pointer nor blob. No step other than the promote step exports `GH_TOKEN`; a workflow-shape test asserts this.
 
 ### 6.5 W1 recovery job
 The probe at `:647` runs without a contract and therefore resolves through `artifactContractFromGit` (§6.3). During the transition `RECOVERY_SOURCE_SHA` may predate the pointer; `resolve` handles it.
+
+The version-1 recovery artifact in W1 prepare is rebuilt from the production commit's tree by that commit's own builder (`node "$RECOVERY_SOURCE/scripts/build-pages-artifact.mjs"`), for the same reason: this checkout's builder carries this checkout's shipped-file list.
 
 ### 6.6 `verify-refresh-chain.mjs`
 `approvedGeneratedCommitPath`: add `data/observation-db.pointer.json`; keep `data/repository-observations.sqlite` accepted during the transition because the transition commit deletes it (diff-tree name lists do not distinguish add from delete). The follow-up PR removes the sqlite name.

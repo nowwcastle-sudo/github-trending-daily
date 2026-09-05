@@ -177,7 +177,11 @@ jobs:
             node scripts/observation-db-store.mjs resolve --source-sha "$HYDRATION_SOURCE_SHA" --expect-snapshot-id "$PARENT_SNAPSHOT_ID" --out "$RECOVERY_SOURCE/data/repository-observations.sqlite"
             RECOVERY_CONTRACT="${RUNNER_TEMP}/recovery-artifact-contract.json"
             python scripts/derive_repository_artifacts.py export-contract --database "$RECOVERY_SOURCE/data/repository-observations.sqlite" --snapshot-id "$PARENT_SNAPSHOT_ID" --contract-out "$RECOVERY_CONTRACT"
-            node scripts/build-pages-artifact.mjs --source "$RECOVERY_SOURCE" --out "${RUNNER_TEMP}/recovery-artifact" --source-sha "$HYDRATION_SOURCE_SHA" --snapshot-id "$PARENT_SNAPSHOT_ID" --artifact-contract "$RECOVERY_CONTRACT"
+            # The recovery artifact is the production commit rebuilt from its own tree, so its own
+            # builder does the rebuilding: this checkout's builder carries this checkout's shipped-file
+            # list, which differs from the production commit's after any release that adds or removes
+            # a shipped file. The probe below is this checkout's and judges by the list at the manifest's commit.
+            node "$RECOVERY_SOURCE/scripts/build-pages-artifact.mjs" --source "$RECOVERY_SOURCE" --out "${RUNNER_TEMP}/recovery-artifact" --source-sha "$HYDRATION_SOURCE_SHA" --snapshot-id "$PARENT_SNAPSHOT_ID" --artifact-contract "$RECOVERY_CONTRACT"
             node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/recovery-artifact" --source-sha "$HYDRATION_SOURCE_SHA" --snapshot-id "$PARENT_SNAPSHOT_ID" --artifact-contract "$RECOVERY_CONTRACT"
           fi
       - name: Prepare isolated refresh candidate
