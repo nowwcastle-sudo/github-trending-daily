@@ -50,7 +50,11 @@ PAGES_BASE_ARTIFACT_PATHS = (
 # database carries snapshots from many releases, so the validator accepts any one version per
 # snapshot rather than the current list alone. Adding filter-presets.js and visit-tracker.js on
 # 2026-09-06 made every existing snapshot look incomplete and the refresh could not start. When a
-# release adds or removes a shipped file, append the new list here; a test pins the last entry.
+# release adds or removes a shipped file, append the new list here as a literal: the last entry is
+# a copy of PAGES_BASE_ARTIFACT_PATHS, never the constant itself, so the test comparing the two
+# fails the moment the constant changes without an append. Two shapes are absent on purpose: the
+# 18-entry list (before auth-lifecycle.js) never had a finalized snapshot, and the 20-entry shape
+# with star-history.json is the 19-entry list plus the legacy overlay row tolerated below.
 PAGES_BASE_ARTIFACT_PATH_HISTORY = (
     (
         "auth-lifecycle.js", "changes.xml", "current-view-export.js", "data/latest.json", "data/membership-status.json",
@@ -58,7 +62,12 @@ PAGES_BASE_ARTIFACT_PATH_HISTORY = (
         "hidden-repos.js", "index.html", "membership-history.js", "readme-markdown.js",
         "refresh-schedule.js", "repo-filters.js", "site-i18n.js", "star-history.js", "ui-motion.js",
     ),
-    PAGES_BASE_ARTIFACT_PATHS,
+    (
+        "auth-lifecycle.js", "changes.xml", "current-view-export.js", "data/latest.json", "data/membership-status.json",
+        "favorite-sync.js", "favorites.js", "feed.xml", "filter-presets.js", "firebase-client.js", "firebase-config.json",
+        "hidden-repos.js", "index.html", "membership-history.js", "readme-markdown.js",
+        "refresh-schedule.js", "repo-filters.js", "site-i18n.js", "star-history.js", "ui-motion.js", "visit-tracker.js",
+    ),
 )
 # star-history.json is a deploy overlay written by the star-ticks workflow; it is
 # published and recorded in deployment-manifest.json but is not part of the

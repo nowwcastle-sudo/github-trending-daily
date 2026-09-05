@@ -1012,7 +1012,15 @@ class RepositoryObservationTests(unittest.TestCase):
         # filter-presets.js and visit-tracker.js shipped is exact for that release's list, so the
         # validator accepts every list a release has shipped, and nothing in between. The closed-blob
         # contract reader is covered on a really finalized database in test_repository_artifacts.
+        # The last entry is a literal copy, never a reference to the constant: only then does the
+        # equality fail when the constant changes without a history append (the recurrence path of
+        # 2026-09-06). CPython folds equal constant tuples into one object, so the copy is checked in
+        # the source text rather than by identity.
         self.assertEqual(PAGES_BASE_ARTIFACT_PATH_HISTORY[-1], PAGES_BASE_ARTIFACT_PATHS)
+        source = Path(ledger.__file__).read_text(encoding="utf-8")
+        history_block = source[source.index("PAGES_BASE_ARTIFACT_PATH_HISTORY = ("):]
+        history_block = history_block[:history_block.index("\n)\n")]
+        self.assertNotIn("PAGES_BASE_ARTIFACT_PATHS", history_block)
         self.assertEqual(len(set(PAGES_BASE_ARTIFACT_PATH_HISTORY)), len(PAGES_BASE_ARTIFACT_PATH_HISTORY))
         for version in PAGES_BASE_ARTIFACT_PATH_HISTORY:
             self.assertEqual(list(version), sorted(set(version)))
