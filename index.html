@@ -76,7 +76,7 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .title-box{padding:16px 18px;border:none;border-radius:16px;background:var(--bg)}
 .title-reset{border:0;background:none;color:inherit;padding:0;font:inherit;letter-spacing:inherit;cursor:pointer}
 .title-reset:focus-visible{outline:3px solid var(--accent);outline-offset:4px;border-radius:5px}
-.sub{color:var(--text-2);font-size:15px;margin-top:6px;letter-spacing:.01em;word-break:keep-all;overflow-wrap:normal}
+.sub{color:var(--text-2);font-size:15px;margin-top:6px;letter-spacing:.01em}
 .theme-toggle{
   flex-shrink:0;width:44px;height:44px;border-radius:50%;border:1px solid var(--border);
   background:var(--bg-elev);backdrop-filter:blur(20px) saturate(180%);
@@ -135,6 +135,9 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 /* Korean only: keep-all stops a two-syllable rail label breaking mid-word. Japanese katakana
    labels need the default breaking, so the rule is scoped by document language. */
 html:lang(ko) .nav-label{word-break:keep-all;overflow-wrap:normal}
+/* The subtitle takes the same scoping. As a global rule, keep-all left the Japanese subtitle
+   (one unbroken katakana run) with no break opportunity at all and it overflowed at 390px. */
+html:lang(ko) .sub{word-break:keep-all;overflow-wrap:normal}
 .nav-rail-spacer{flex:1}
 /* WCAG 2.1.4 needs the single-key accelerators to be discoverable and switchable off, so the rail
    carries a persistent "?" opener for the shortcut dialog. 44px minimum target like every control. */
@@ -515,7 +518,10 @@ footer a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   .repo-link{display:inline-block;padding:9px 0}
   #resetBtn{display:inline-block;padding:7px 0}
 }
-@media(hover:hover) and (pointer:fine) and (not (max-width:720px)) and (max-width:1147px){.wrap{padding-left:calc(env(safe-area-inset-left) + 92px)}}
+/* (min-width:721px), not the Media Queries Level 4 (not (max-width:720px)): a browser without
+   MQ4 boolean syntax drops the whole rule, and the fixed 76px rail then overlaps .wrap between
+   721px and ~899px. The JS matchMedia copy above keeps the MQ4 form — it degrades to false. */
+@media(hover:hover) and (pointer:fine) and (min-width:721px) and (max-width:1147px){.wrap{padding-left:calc(env(safe-area-inset-left) + 92px)}}
 
 .favbtn{position:absolute;right:8px;top:7px;width:44px;height:44px;background:none;border:none;color:var(--text-3);
   font-size:20px;cursor:pointer;padding:0;border-radius:10px;line-height:1;display:flex;align-items:center;justify-content:center;
@@ -1030,6 +1036,10 @@ function openSidebar(mode,trigger,group){
   const readme=document.getElementById("readmePanel");
   if(mode==="hover"&&readme.classList.contains("open"))return;
   if(readme.classList.contains("open"))closeReadme(false);
+  // The edge swipe and the rail both reach openSidebar() while the shortcut dialog is up: its
+  // scrim does not cover the screen edge the gesture starts from. Close it here, or the next
+  // closeShortcutHelp() clears pageMain.inert while the sidebar is still the modal on screen.
+  if(shortcutHelp.classList.contains("open"))closeShortcutHelp(false);
   hideTip();
   setSidebarGroup(group??sidebar.dataset.group,true);
   sidebar.inert=false;sidebar.classList.add("open");sidebar.setAttribute("aria-hidden","false");
@@ -1805,6 +1815,9 @@ async function showReadmeVariant(id,{focus=false}={}){
 async function openReadme(slug,name){
   const repoIndex=REPOS.findIndex(repo=>repo.slug===slug),metadata=readmeMetadata(REPOS[repoIndex]);
   readmeTrigger=document.querySelector(`.card[data-idx="${repoIndex}"]`)||document.activeElement;
+  // Same exclusivity rule as openSidebar(): the shortcut dialog goes before the README takes
+  // over pageMain.inert, or closing it later un-inerts the page behind an open README.
+  if(shortcutHelp.classList.contains("open"))closeShortcutHelp(false);
   closeSidebar(false);hideTip();
   document.getElementById("rpTitle").textContent=name;
   setReadmeBody(tr("readme.loading"),true);panel.inert=false;panel.classList.add("open");panel.setAttribute("aria-hidden","false");scrim.classList.add("on");

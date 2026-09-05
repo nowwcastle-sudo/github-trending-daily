@@ -48,7 +48,12 @@
     const previousVisitAt = readLastVisit(storage);
     const seen = readSeen(storage);
     const fresh = previousVisitAt === null ? [] : newSlugs({ slugs: current, seen });
-    const merged = normalizeSlugs([...seen, ...current]);
+    // normalizeSlugs keeps each slug's first-seen position, so appending current unchanged
+    // would leave a repository that shows up every day at the head of the list: the first
+    // entry evicted at the 1000 cap, and then flagged "New to you" again. Move today's slugs
+    // to the tail so the cap drops what has actually not been seen for the longest.
+    const currentSet = new Set(current);
+    const merged = normalizeSlugs([...seen.filter(slug => !currentSet.has(slug)), ...current]);
     const stamp = checkedTime(now);
     try {
       storage.setItem(SEEN_KEY, JSON.stringify(merged));

@@ -1090,6 +1090,7 @@ test("README runtime refuses a mismatched immutable Contents response without us
       body: node(),
     },
     pageMain: node(), sidebar: node(), closeSidebar() {}, hideTip() {}, matchMedia() { return { matches: true }; },
+    shortcutHelp: node(), closeShortcutHelp() {},
     window: { open() {} }, location: { reload() {} },
     ReadmeMarkdown: { render(markdown) { rendered.push(markdown); return `<p>${markdown}</p>`; } },
     SUMMARY_LOCALES: ["en", "ko", "zh-CN", "es", "ja"],
@@ -2083,7 +2084,7 @@ test("the selected compact Explore rail stays reachable and outside the inert pa
   assert.match(page, /\.filter-sidebar\{[\s\S]*?width:var\(--sidebar-width\)/);
   assert.match(page, /\.nav-rail\{[^}]*background:var\(--bg-elev\)[^}]*backdrop-filter:blur\(24px\) saturate\(160%\)/);
   assert.doesNotMatch(page, /\.filter-sidebar\.open~\.nav-toggle\{transform:/);
-  assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(not \(max-width:720px\)\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 92px\)\}\}/);
+  assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(min-width:721px\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 92px\)\}\}/);
   assert.match(page, /id="mobileNavToggle"[^>]*aria-controls="filterSidebar"[^>]*aria-expanded="false"/);
   assert.match(page, /@media\(max-width:560px\)\{[\s\S]*?h1\{white-space:normal;overflow-wrap:anywhere\}/);
   assert.match(page, /\.repo-link\{[^}]*min-width:0[^}]*overflow-wrap:anywhere[^}]*word-break:break-word/);
@@ -3112,6 +3113,39 @@ test("a persistent rail button and the ? key both open the shortcut dialog", () 
   );
 });
 
+test("an open shortcut dialog is closed before the sidebar or a README takes the page", () => {
+  // The edge-swipe gesture listener is on document and its capture path is not covered by the
+  // help scrim, so completeSidebarGesture("open") reaches openSidebar() with the dialog up.
+  // Without the guard, closeShortcutHelp() then clears pageMain.inert under a live modal.
+  const openSidebarSource = page.match(/\nfunction openSidebar\(mode,trigger,group\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.ok(openSidebarSource.length > 0, "openSidebar must be isolatable");
+  assert.ok(
+    openSidebarSource.includes('if(shortcutHelp.classList.contains("open"))closeShortcutHelp(false);'),
+    "openSidebar closes an open shortcut dialog, without restoring focus to its opener",
+  );
+  assert.ok(
+    openSidebarSource.indexOf("closeReadme(false)") < openSidebarSource.indexOf("closeShortcutHelp(false)"),
+    "both dialog guards run before the sidebar claims pageMain.inert",
+  );
+  assert.ok(
+    openSidebarSource.indexOf("closeShortcutHelp(false)") < openSidebarSource.indexOf("pageMain.inert=true"),
+    "the guard runs before openSidebar inerts the page",
+  );
+
+  const openReadmeSource = page.match(/\nasync function openReadme\(slug,name\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.ok(openReadmeSource.length > 0, "openReadme must be isolatable");
+  assert.ok(
+    openReadmeSource.includes('if(shortcutHelp.classList.contains("open"))closeShortcutHelp(false);'),
+    "openReadme closes an open shortcut dialog too",
+  );
+  assert.ok(
+    openReadmeSource.indexOf("closeShortcutHelp(false)") < openReadmeSource.indexOf("pageMain.inert=true"),
+    "the guard runs before the README inerts the page",
+  );
+  // Every exclusivity close passes restoreFocus=false, so focus stays with whatever is opening.
+  assert.match(page, /function closeShortcutHelp\(restoreFocus=true\)\{/);
+  assert.match(page, /if\(restoreFocus&&shortcutHelpTrigger instanceof HTMLElement\)shortcutHelpTrigger\.focus\(\);/);
+});
 test("the single-key opt-out suppresses the four letters and never / ? or Escape", () => {
   const start = page.indexOf("const SIDEBAR_SHORTCUT_GROUPS=");
   const end = page.indexOf("const sidebarGestureInteractive=", start);
@@ -3250,12 +3284,16 @@ test("the History group states its empty conditions instead of rendering dead co
 test("Korean rail labels and the subtitle break between words, not inside them", () => {
   assert.match(page, /\.nav-label\{line-height:1\}/);
   assert.match(page, /html:lang\(ko\) \.nav-label\{word-break:keep-all;overflow-wrap:normal\}/);
-  assert.match(page, /\.sub\{[^}]*word-break:keep-all;overflow-wrap:normal\}/);
+  assert.match(page, /html:lang\(ko\) \.sub\{word-break:keep-all;overflow-wrap:normal\}/);
+  // Globally, keep-all left the Japanese subtitle (one unbroken katakana run) with no break
+  // opportunity and it overflowed a 390px viewport, so .sub carries no CJK breaking of its own.
+  assert.match(page, /\n\.sub\{color:var\(--text-2\);font-size:15px;margin-top:6px;letter-spacing:\.01em\}/);
+  assert.doesNotMatch(page, /\n\.sub\{[^}]*(?:word-break|overflow-wrap)/);
   assert.match(page, /\.nav-rail\{[^}]*width:76px/);
   assert.match(page, /\.nav-toggle\{[^}]*width:60px;min-height:60px/);
   const finePointer = page.match(/@media\(hover:hover\) and \(pointer:fine\)\{[\s\S]*?\n\}/)?.[0] ?? "";
   assert.match(finePointer, /\.filter-sidebar\{[^}]*left:76px[^}]*width:min\(336px,calc\(100vw - 76px\)\)/);
-  assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(not \(max-width:720px\)\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 92px\)\}\}/);
+  assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(min-width:721px\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 92px\)\}\}/);
   assert.doesNotMatch(page, /\.nav-rail\{[^}]*width:64px/);
 });
 

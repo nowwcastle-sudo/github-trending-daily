@@ -64,6 +64,28 @@ test("the seen set is capped at 1000 slugs, keeping the most recent", async () =
   assert.equal(seen.includes("owner/old0"), false, "the oldest entry is dropped, not the newest");
 });
 
+test("a repository seen again today is not the one evicted at the cap", async () => {
+  const VisitTracker = await loadVisitTracker();
+  const storage = memoryStorage();
+  // r0 is the oldest entry by first-seen order, and it is on the page again today. Merging
+  // [...seen, ...current] would keep it at the head and evict it, then flag it "New to you"
+  // on the next visit; r1, which nobody has seen since, is the entry that should go.
+  const seeded = Array.from({ length: VisitTracker.SEEN_LIMIT }, (_, index) => `owner/r${index}`);
+  VisitTracker.recordVisit(storage, { slugs: seeded, now: "2026-09-04T00:00:00.000Z" });
+
+  VisitTracker.recordVisit(storage, { slugs: ["owner/r0", "owner/fresh"], now: "2026-09-05T00:00:00.000Z" });
+  const seen = VisitTracker.readSeen(storage);
+
+  assert.equal(seen.length, VisitTracker.SEEN_LIMIT, "the stored set stays at the cap");
+  assert.equal(seen.includes("owner/r0"), true, "a repository seen today survives the cap");
+  assert.equal(seen.includes("owner/fresh"), true, "today's new repository is recorded");
+  assert.equal(seen.includes("owner/r1"), false, "the least recently seen entry is the one dropped");
+  assert.deepEqual(seen.slice(-2), ["owner/r0", "owner/fresh"], "today's page sits at the tail");
+
+  // The point of keeping it: r0 is not announced as new on the following visit.
+  const summary = VisitTracker.recordVisit(storage, { slugs: ["owner/r0"], now: "2026-09-06T00:00:00.000Z" });
+  assert.deepEqual(summary.newSlugs, []);
+});
 test("malformed slugs, malformed timestamps and unreadable storage never throw", async () => {
   const VisitTracker = await loadVisitTracker();
 
