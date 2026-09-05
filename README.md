@@ -77,6 +77,10 @@ The interface describes these summaries accurately as AI-generated from a verifi
 - README variants from upstream only. The viewer lists only README language files that actually exist in the repository, verified by path, immutable blob SHA, default-branch head SHA, and content SHA-256 before rendering. This project no longer generates or stores full README translations.
 - [feed.xml](https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml) for the current repository set and [changes.xml](https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml) for new and re-entered membership events. Both feeds are titled `GITHUB INSIGHT — Current repositories` and `GITHUB INSIGHT — New and re-entered repositories`.
 - Light and dark themes, keyboard navigation, focus trapping, 44 px touch targets, reduced-motion handling, reduced-transparency handling, BFCache restoration, and responsive layouts.
+- `?` opens a keyboard-shortcut dialog listing `/`, `e`, `a`, `h`, `x`, `Delete`, `Esc`, and `?`, with a checkbox that disables the single-key letter shortcuts for anyone who needs it (WCAG 2.1.4). `/`, `?`, and `Escape` keep working either way.
+- Named, saved filter presets: store the current Explore filters under a name in this browser and re-apply them in one click, up to 20 presets.
+- A compact list mode that collapses card padding and hides the classification badges and sparklines, roughly tripling the repositories on screen; the choice is remembered in this browser.
+- A "new since your last visit" heading and per-card badge, computed in this browser against the repositories it saw last time — separate from the baseline-relative **New** membership badge, which is the same for every visitor.
 
 ## ⚖️ Advantages over other trending sites
 

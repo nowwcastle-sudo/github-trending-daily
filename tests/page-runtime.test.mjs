@@ -28,7 +28,7 @@ const pageRuntime = runtimeRegion(page);
 const SIDEBAR_SECTION_GROUPS = [
   ["refreshStatus", "account"], ["accountSection", "account"],
   ["viewSection", "explore"],
-  ["fieldSection", "explore"], ["formSection", "explore"], ["sortSection", "explore"], ["resultSection", "explore"],
+  ["fieldSection", "explore"], ["formSection", "explore"], ["sortSection", "explore"], ["presetSection", "explore"], ["resultSection", "explore"],
   ["hiddenRepoSection", "history"], ["recentExitsSection", "history"],
   ["exportSection", "export"],
 ];
@@ -135,8 +135,14 @@ function sidebarHarness({ hoverCapable = true } = {}) {
       if (this.capturedPointer === pointerId) this.capturedPointer = null;
       trace.push(`${this.id}:release:${pointerId}`);
     }
+    // A hidden element (or one inside a [hidden] container) is display:none, so .focus() on it
+    // is a silent no-op in a real browser — the same shape as canFocus:false.
+    hiddenByAncestry() {
+      for (let node = this; node; node = node.parentElement) if (node.hidden) return true;
+      return false;
+    }
     focus() {
-      if (!this.canFocus) { trace.push(`${this.id}:focus-noop`); return; }
+      if (!this.canFocus || this.hiddenByAncestry()) { trace.push(`${this.id}:focus-noop`); return; }
       documentRef.activeElement = this;
       this.focusWithin = true;
       this.focusCount += 1;
@@ -147,7 +153,7 @@ function sidebarHarness({ hoverCapable = true } = {}) {
   const sidebarSections = [
     ["refreshStatus", "account"], ["accountSection", "account"],
     ["viewSection", "explore"], ["fieldSection", "explore"], ["formSection", "explore"],
-    ["sortSection", "explore"], ["resultSection", "explore"],
+    ["sortSection", "explore"], ["presetSection", "explore"], ["resultSection", "explore"],
     ["hiddenRepoSection", "history"], ["recentExitsSection", "history"],
     ["exportSection", "export"],
   ].map(([id, group]) => { const node = new FakeHTMLElement(id); node.dataset.group = group; return node; });
@@ -168,13 +174,27 @@ function sidebarHarness({ hoverCapable = true } = {}) {
     ["readmePanel", new FakeHTMLElement("readmePanel")],
     ["tipLayer", new FakeHTMLElement("tipLayer")],
     ["q", new FakeHTMLElement("q")],
+    // Task 4: the shortcut help dialog lives in the same runtime slice as the sidebar, so the
+    // harness has to model its five elements or the slice throws at load.
+    ["shortcutHelp", new FakeHTMLElement("shortcutHelp")],
+    ["shortcutHelpScrim", new FakeHTMLElement("shortcutHelpScrim")],
+    ["shortcutHelpClose", new FakeHTMLElement("shortcutHelpClose")],
+    ["navHelpToggle", new FakeHTMLElement("navHelpToggle")],
+    ["shortcutDisableToggle", new FakeHTMLElement("shortcutDisableToggle")],
   ]);
+  // #sidebarGroupSeg owns the four switcher buttons, so they need a real parent for
+  // hiddenByAncestry() to see the container going hidden wherever the rail is on screen.
+  for (const button of segButtons) button.parentElement = nodes.get("sidebarGroupSeg");
   for (const [id, group] of [["navAccountToggle", "account"], ["navToggle", "explore"], ["navHistoryToggle", "history"], ["navExportToggle", "export"]]) {
     const toggle = nodes.get(id);
     toggle.dataset.group = group;
     toggle.parentElement = nodes.get("navRail");
   }
   const pageMain = new FakeHTMLElement("pageMain");
+  // Task 6: <main class="wrap" id="mainContent" tabindex="-1"> carries the attribute in the
+  // markup now (it is the skip link's target), so the fixture models it as already present rather
+  // than waiting for restoreSidebarFocus to add it.
+  pageMain.attributes.set("tabindex", "-1");
   const outside = new FakeHTMLElement("outside");
   const body = new FakeHTMLElement("body");
   const documentListeners = new Map();
@@ -245,6 +265,11 @@ function sidebarHarness({ hoverCapable = true } = {}) {
     HTMLElement: FakeHTMLElement,
     performance: { now: () => now },
     matchMedia(query) {
+      // The rail-visible query (Task 5) spells the breakpoint as (not (max-width:720px)), so it
+      // has to be answered before the plain max-width branch swallows it with the wrong sign.
+      if (query === "(hover:hover) and (pointer:fine) and (not (max-width:720px))") {
+        return { matches: hoverCapable, addEventListener() {} };
+      }
       if (query.includes("max-width:720px")) return { matches: !hoverCapable, addEventListener() {} };
       return { matches: query.includes("pointer:coarse") ? !hoverCapable : hoverCapable, addEventListener() {} };
     },
@@ -336,6 +361,7 @@ function hiddenSectionsGroupHarness() {
       this.hidden = false;
       this.textContent = "";
       this.innerHTML = "";
+      this.disabled = false;
       this.style = {};
     }
     setAttribute(name, value) { this.attributes.set(name, String(value)); }
@@ -346,7 +372,7 @@ function hiddenSectionsGroupHarness() {
 
   const sidebarSections = [
     ["refreshStatus", "account"], ["accountSection", "account"],
-    ["viewSection", "explore"], ["resultSection", "explore"],
+    ["viewSection", "explore"], ["presetSection", "explore"], ["resultSection", "explore"],
     ["hiddenRepoSection", "history"], ["recentExitsSection", "history"],
     ["exportSection", "export"],
   ].map(([id, group]) => new FakeElement(id, group));
@@ -371,6 +397,7 @@ function hiddenSectionsGroupHarness() {
     ["filterSummary", new FakeElement("filterSummary")],
     ["hiddenRepoList", new FakeElement("hiddenRepoList")],
     ["hiddenRepoCount", new FakeElement("hiddenRepoCount")],
+    ["restoreAllHiddenBtn", new FakeElement("restoreAllHiddenBtn")],
     ["recentExitsList", new FakeElement("recentExitsList")],
   ]);
   for (const section of sidebarSections) nodes.set(section.id, section);
@@ -428,6 +455,8 @@ function hiddenSectionsGroupHarness() {
     sidebar: nodes.get("filterSidebar"),
     hiddenRepoSection: nodes.get("hiddenRepoSection"),
     recentExitsSection: nodes.get("recentExitsSection"),
+    restoreAllHiddenBtn: nodes.get("restoreAllHiddenBtn"),
+    recentExitsList: nodes.get("recentExitsList"),
     setGroup(group) { return context.__setSidebarGroup(group); },
     hideRepo(slug) { context.hiddenSet = new Set([slug]); },
     renderRecentExits(exited) { context.__renderRecentExits(exited); },
@@ -483,7 +512,7 @@ function renderContractHarness(classification = { forms: [], fields: ["unclassif
   return { context, contract: context.__renderContract };
 }
 
-function cardRenderHarness(period, membership = "stayed") {
+function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = new Set()) {
   const start = page.indexOf('const list=document.getElementById("list"),empty=document.getElementById("empty")');
   const end = page.indexOf("\n/* 즐겨찾기 */", start);
   assert.ok(start >= 0 && end > start, "card render runtime must be isolated");
@@ -516,6 +545,9 @@ function cardRenderHarness(period, membership = "stayed") {
     HiddenRepos: { filterRepos(repositories) { return repositories; } },
     SIGNALS: new Map(),
     MEMBERSHIP_STATUS: new Map([[repository.slug, membership]]),
+    // Task 9: the visit badge is page-level state the card template now reads; the default empty
+    // set is the first-visit answer, which keeps the membership assertions about membership alone.
+    newSinceLastVisit,
     favoriteBusy: false,
     newOnlyGate() { return null; },
     transientMembershipRepo(value) { return value; },
@@ -809,6 +841,9 @@ function copyLinkHarness() {
   const nodes = new Map([
     ["copyLinkBtn", new FakeElement("copyLinkBtn")],
     ["filterBarStatus", new FakeElement("filterBarStatus")],
+    // Task 10: the compact toggle registers its listener inside this same slice, so the fixture
+    // has to own a node for it. It is inert here — nothing in this test clicks it.
+    ["compactToggle", new FakeElement("compactToggle")],
   ]);
   const documentRef = { getElementById(id) { return nodes.get(id); } };
 
@@ -924,7 +959,7 @@ test("the refresh status appears once at the top of the sidebar and not in main"
   const statusIndex = sidebar.indexOf('id="refreshStatus"');
   const accountIndex = sidebar.indexOf('id="accountSection"');
   assert.ok(statusIndex >= 0 && statusIndex < accountIndex, "refresh status must precede the account section");
-  const main = page.match(/<main class="wrap">([\s\S]*?)<\/main>/)?.[1] ?? "";
+  const main = page.match(/<main class="wrap" id="mainContent" tabindex="-1">([\s\S]*?)<\/main>/)?.[1] ?? "";
   assert.doesNotMatch(main, /id="refreshStatus"/);
   assert.match(page, /\.sidebar-refresh\{[^}]*font-variant-numeric:tabular-nums/);
 });
@@ -933,7 +968,7 @@ test("sidebar sections follow the approved priority and keyboard order", () => {
   const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<nav class="nav-rail"/)?.[0] ?? "";
   const sectionIds = [
     "refreshStatus", "accountSection", "viewSection",
-    "fieldSection", "formSection", "sortSection", "resultSection", "hiddenRepoSection",
+    "fieldSection", "formSection", "sortSection", "presetSection", "resultSection", "hiddenRepoSection",
     "recentExitsSection", "exportSection",
   ];
   assert.ok(sidebar.indexOf('id="sidebarGroupSeg"') >= 0 && sidebar.indexOf('id="sidebarGroupSeg"') < sidebar.indexOf('id="refreshStatus"'), "the group switcher must precede the first section");
@@ -946,8 +981,8 @@ test("sidebar sections follow the approved priority and keyboard order", () => {
 
   const focusOrder = [
     "loginBtn", "logoutBtn", "allReposBtn", "favOnlyBtn",
-    "fieldFilters", "formFilters", "sortSelect", "clearFiltersBtn",
-    "restoreAllHiddenBtn", "recentExitsList", "exportCsvBtn", "exportJsonBtn", "copyViewUrlBtn",
+    "fieldFilters", "formFilters", "sortSelect", "presetName", "presetSaveBtn", "presetList", "clearFiltersBtn",
+    "restoreAllHiddenBtn", "recentExitsList", "exportCsvBtn", "exportJsonBtn", "copyViewUrlBtn", "exportFavoritesBtn",
   ];
   previous = -1;
   for (const id of focusOrder) {
@@ -958,6 +993,38 @@ test("sidebar sections follow the approved priority and keyboard order", () => {
   assert.match(sidebar, /<section[^>]*id="hiddenRepoSection"[^>]*hidden[\s\S]*?id="restoreAllHiddenBtn"/);
   assert.match(sidebar, /<section[^>]*id="recentExitsSection"[^>]*hidden[\s\S]*?id="recentExitsList"/);
   assert.match(page, /filter\(el=>!el\.hidden&&!el\.closest\("\[hidden\]"\)\)/);
+});
+
+test("the Explore panel saves, lists, applies and deletes named filter presets", () => {
+  assert.match(page, /<script src="filter-presets\.js"><\/script>/);
+  const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<nav class="nav-rail"/)?.[0] ?? "";
+  assert.ok(sidebar.indexOf('id="sortSection"') < sidebar.indexOf('id="presetSection"'), "presets follow Sort");
+  assert.ok(sidebar.indexOf('id="presetSection"') < sidebar.indexOf('id="resultSection"'), "the sticky result strip stays last");
+  assert.match(sidebar, /<section class="sidebar-section" id="presetSection" aria-labelledby="presetTitle" data-group="explore">/);
+  assert.match(sidebar, /<form id="presetForm">/);
+  assert.match(sidebar, /<input class="search preset-name" id="presetName" type="text" maxlength="40" autocomplete="off"/);
+  assert.match(sidebar, /<button class="clear-filters" id="presetSaveBtn" type="submit" data-i18n="preset\.save">Save current filters as preset<\/button>/);
+  assert.match(sidebar, /<div class="preset-list" id="presetList"><\/div>/);
+  assert.match(sidebar, /<p class="sidebar-note" id="presetStatus" role="status" aria-live="polite"><\/p>/);
+  // No window.prompt anywhere: the name is collected by this inline form.
+  assert.doesNotMatch(page, /window\.prompt|[^.\w]prompt\(/);
+
+  assert.match(page, /function renderPresets\(\)\{/);
+  assert.match(page, /FilterPresets\.save\(storage,\{name:document\.getElementById\("presetName"\)\.value,query:RepoFilters\.serializeState\(currentExportState\(\)\)\}\)/);
+  assert.match(page, /applyFilterState\(RepoFilters\.parseState\(preset\.query,LANGUAGES\)\);syncUrl\(\);/);
+  assert.match(page, /FilterPresets\.remove\(storage,button\.dataset\.deletePreset\)/);
+  // Deleting rebuilds #presetList with innerHTML, so focus is placed the way restoreRepository does it.
+  assert.match(page, /renderPresets\(\);setPresetStatus\(tr\("preset\.deleted",\{name\}\)\);\(document\.querySelector\("\.preset-delete"\)\|\|document\.getElementById\("presetName"\)\)\.focus\(\)/);
+  assert.match(page, /catch\(error\)\{setPresetStatus\(error\.message==="presets cannot exceed 20"\?tr\("preset\.limit"\):error\.message==="preset name is required"\?tr\("preset\.nameRequired"\):tr\("preset\.saveError"\)\)\}/);
+});
+
+test("the Export panel says how to export only saved repositories, and does it", () => {
+  const section = page.match(/<section class="sidebar-section" id="exportSection"[\s\S]*?<\/section>/)?.[0] ?? "";
+  assert.match(section, /<p class="sidebar-note" data-i18n="export\.favoritesHint">Switch to Favorites first to export only the repositories you saved\.<\/p>/);
+  assert.match(section, /<button class="clear-filters" id="exportFavoritesBtn" type="button" data-i18n="export\.favoritesSwitch">Switch to Favorites and export<\/button>/);
+  assert.ok(section.indexOf('id="copyViewUrlBtn"') < section.indexOf('id="exportFavoritesBtn"'), "the switch button follows the three export actions");
+
+  assert.match(page, /document\.getElementById\("exportFavoritesBtn"\)\.addEventListener\("click",\(\)=>\{\s*setFavoriteView\(true\);setExportStatus\(""\);\s*requestAnimationFrame\(\(\)=>document\.getElementById\("exportCsvBtn"\)\.focus\(\)\);\s*\}\);/);
 });
 
 test("refresh copy and calculation follow the approved six-hour schedule", () => {
@@ -1023,6 +1090,7 @@ test("README runtime refuses a mismatched immutable Contents response without us
       body: node(),
     },
     pageMain: node(), sidebar: node(), closeSidebar() {}, hideTip() {}, matchMedia() { return { matches: true }; },
+    shortcutHelp: node(), closeShortcutHelp() {},
     window: { open() {} }, location: { reload() {} },
     ReadmeMarkdown: { render(markdown) { rendered.push(markdown); return `<p>${markdown}</p>`; } },
     SUMMARY_LOCALES: ["en", "ko", "zh-CN", "es", "ja"],
@@ -1043,8 +1111,8 @@ test("README runtime refuses a mismatched immutable Contents response without us
 });
 
 test("landmarks, form controls, and hidden panels retain accessible boundaries", () => {
-  assert.match(page, /<main class="wrap">[\s\S]*?<\/main>/);
-  const main = page.match(/<main class="wrap">([\s\S]*?)<\/main>/)?.[1] ?? "";
+  assert.match(page, /<main class="wrap" id="mainContent" tabindex="-1">[\s\S]*?<\/main>/);
+  const main = page.match(/<main class="wrap" id="mainContent" tabindex="-1">([\s\S]*?)<\/main>/)?.[1] ?? "";
   assert.match(main, /<div class="list" id="list"><\/div>/);
   assert.match(main, /class="signal-guide"[^>]*aria-label="Badge guide"[^>]*data-i18n-aria-label="badges\.aria"/);
   assert.match(main, /class="list-stage" id="listStage"/);
@@ -1058,12 +1126,12 @@ test("landmarks, form controls, and hidden panels retain accessible boundaries",
   assert.doesNotMatch(page, /#tipLayer h3|<h3>\$\{esc\(r\.name\)\}<\/h3>/);
 });
 
-test("fine pointers expose the selected 64px compact Explore rail", () => {
+test("fine pointers expose the selected 76px compact Explore rail", () => {
   assert.match(page, /\.filter-sidebar\{[\s\S]*?height:100vh;height:100dvh[\s\S]*?transform:translate3d\(-105%,0,0\)/);
   const finePointer = page.match(/@media\(hover:hover\) and \(pointer:fine\)\{[\s\S]*?\n\}/)?.[0] ?? "";
   assert.match(finePointer, /\.nav-rail\{[^}]*display:flex/);
-  assert.match(finePointer, /\.filter-sidebar\{[^}]*left:64px[^}]*width:min\(336px,calc\(100vw - 64px\)\)/);
-  assert.match(page, /\.nav-rail\{[^}]*width:64px[^}]*height:100vh[^}]*height:100dvh/);
+  assert.match(finePointer, /\.filter-sidebar\{[^}]*left:76px[^}]*width:min\(336px,calc\(100vw - 76px\)\)/);
+  assert.match(page, /\.nav-rail\{[^}]*width:76px[^}]*height:100vh[^}]*height:100dvh/);
   assert.match(page, /\.nav-toggle:hover,\.nav-toggle:focus-visible,[^}]*\.nav-toggle\[aria-current="true"\]\{[^}]*background:var\(--accent-soft\)[^}]*color:var\(--accent-selected\)/);
 });
 
@@ -1314,8 +1382,8 @@ test("the rail exposes four group buttons in the approved order with complete di
   });
   expected.forEach(([, , , labelKey]) => assert.match(rail, new RegExp(`data-i18n="${labelKey}"`)));
   assert.match(page, /<nav class="nav-rail" id="navRail"/);
-  assert.match(page, /\.nav-rail\{[^}]*width:64px/);
-  assert.match(page, /\.nav-toggle\{[^}]*width:48px;min-height:60px/);
+  assert.match(page, /\.nav-rail\{[^}]*width:76px/);
+  assert.match(page, /\.nav-toggle\{[^}]*width:60px;min-height:60px/);
   assert.match(page, /\.nav-toggle:focus-visible\{outline:3px solid var\(--accent\);outline-offset:2px\}/);
 });
 
@@ -1340,7 +1408,7 @@ test("hovering a second rail button switches the group without closing the panel
   explore.dispatch("pointerenter");
   assert.equal(harness.sidebar.dataset.openMode, "hover");
   assert.equal(harness.sidebar.dataset.group, "explore");
-  assert.deepEqual(harness.sectionsFor(), ["viewSection", "fieldSection", "formSection", "sortSection", "resultSection"]);
+  assert.deepEqual(harness.sectionsFor(), ["viewSection", "fieldSection", "formSection", "sortSection", "presetSection", "resultSection"]);
 
   harness.trace.length = 0;
   explore.dispatch("pointerleave", { relatedTarget: history });
@@ -1363,7 +1431,7 @@ test("an unknown data-group on a rail button falls back to explore", () => {
   rogue.dataset.group = "filters";
   rogue.dispatch("pointerenter");
   assert.equal(harness.sidebar.dataset.group, "explore");
-  assert.deepEqual(harness.sectionsFor(), ["viewSection", "fieldSection", "formSection", "sortSection", "resultSection"]);
+  assert.deepEqual(harness.sectionsFor(), ["viewSection", "fieldSection", "formSection", "sortSection", "presetSection", "resultSection"]);
 });
 
 test("keyboard activation opens that group modally and restores focus to the button that opened it", () => {
@@ -1379,7 +1447,9 @@ test("keyboard activation opens that group modally and restores focus to the but
     assert.equal(harness.sidebar.dataset.openMode, "modal", `${group} keyboard activation must open modal`);
     assert.equal(harness.sidebar.dataset.group, group);
     assert.deepEqual(harness.sectionsFor(), sections);
-    assert.equal(harness.groupSeg.hidden, false, "modal mode exposes the group switcher");
+    // Task 5: this harness is hover-capable, so the 76px rail is on screen and already names the
+    // four groups; the in-panel switcher would be a second "you are here" for one location.
+    assert.equal(harness.groupSeg.hidden, true, "the visible rail replaces the in-panel switcher");
     assert.equal(harness.close.focusCount, 1);
     assert.equal(harness.pageMain.inert, true);
     assert.equal(harness.scrim.classList.contains("on"), true);
@@ -1408,10 +1478,13 @@ test("clicking a different rail button while modal switches the group instead of
 });
 
 test("the modal group switcher selects a group and stays out of the hover tab order", () => {
-  const harness = sidebarHarness();
-  harness.railToggles[1].dispatch("pointerenter");
-  assert.equal(harness.groupSeg.hidden, true, "hover mode keeps the switcher hidden");
+  // Task 5: the switcher only appears where the rail is hidden, so the modal half of this test now
+  // runs on a coarse-pointer harness; hover mode itself still needs a hover-capable one to open.
+  const hover = sidebarHarness();
+  hover.railToggles[1].dispatch("pointerenter");
+  assert.equal(hover.groupSeg.hidden, true, "hover mode keeps the switcher hidden");
 
+  const harness = sidebarHarness({ hoverCapable: false });
   harness.mobileToggle.dispatch("click", { detail: 1 });
   assert.equal(harness.sidebar.dataset.openMode, "modal");
   assert.equal(harness.groupSeg.hidden, false);
@@ -1426,6 +1499,25 @@ test("the modal group switcher selects a group and stays out of the hover tab or
   assert.match(seg, /role="group"/);
   assert.match(seg, /data-i18n-aria-label="nav\.groups"/);
   assert.match(seg, /\bhidden\b/);
+});
+
+test("the in-panel group switcher is hidden wherever the nav rail is on screen", () => {
+  assert.match(page, /const sidebarRailVisibleMedia=matchMedia\("\(hover:hover\) and \(pointer:fine\) and \(not \(max-width:720px\)\)"\);/);
+  assert.match(page, /function sidebarGroupSegVisible\(mode\)\{return mode==="modal"&&!sidebarRailVisibleMedia\.matches\}/);
+  assert.match(page, /sidebarGroupSeg\.hidden=!sidebarGroupSegVisible\(mode\);/);
+  assert.match(page, /sidebarRailVisibleMedia\.addEventListener\?\.\("change",\(\)=>\{sidebarGroupSeg\.hidden=!sidebarGroupSegVisible\(sidebar\.dataset\.openMode\)\}\);/);
+
+  // Desktop (rail visible): opening modally must NOT reveal the switcher.
+  const desktop = sidebarHarness({ hoverCapable: true });
+  desktop.railToggles[1].dispatch("click", { detail: 0 });
+  assert.equal(desktop.sidebar.dataset.openMode, "modal");
+  assert.equal(desktop.groupSeg.hidden, true, "the rail already names the four groups");
+
+  // Coarse pointer (rail hidden): the switcher is the only group navigation, so it must show.
+  const mobile = sidebarHarness({ hoverCapable: false });
+  mobile.railToggles[1].dispatch("click", { detail: 0 });
+  assert.equal(mobile.sidebar.dataset.openMode, "modal");
+  assert.equal(mobile.groupSeg.hidden, false, "without the rail the switcher is the only group navigation");
 });
 
 test("F1: recentExitsSection stays hidden outside the History group after renderRecentExits resolves, and appears on switch", () => {
@@ -1953,7 +2045,10 @@ test("browser-local hidden repositories have tooltip actions, undo, and sidebar 
 
 test("keyboard users can hide the focused card without a permanent card icon", () => {
   assert.match(page, /id="cardKeyboardHint" class="sr-only"/);
-  assert.match(page, /aria-describedby="cardKeyboardHint" aria-keyshortcuts="Delete"/);
+  // Task 6: the hint precedes the list in document order, so pointing all 52 cards at it with
+  // aria-describedby only made a screen reader repeat it 52 times.
+  assert.match(page, /aria-keyshortcuts="Delete"/);
+  assert.doesNotMatch(page, /aria-describedby="cardKeyboardHint"/);
   assert.match(page, /if\(e\.key==="Delete"&&e\.target===card\)/);
   assert.match(page, /hideRepository\(REPOS\[\+card\.dataset\.idx\]\.slug,true\)/);
 });
@@ -1979,9 +2074,9 @@ test("the selected compact Explore rail stays reachable and outside the inert pa
   const sidebarIndex = page.indexOf('id="filterSidebar"');
   const navIndex = page.indexOf('id="navToggle"');
   const scrimIndex = page.indexOf('id="sidebarScrim"');
-  const mainIndex = page.indexOf('<main class="wrap">');
+  const mainIndex = page.indexOf('<main class="wrap" id="mainContent" tabindex="-1">');
   assert.ok(sidebarIndex >= 0 && sidebarIndex < navIndex && navIndex < scrimIndex && scrimIndex < mainIndex);
-  const main = page.match(/<main class="wrap">([\s\S]*?)<\/main>/)?.[1] ?? "";
+  const main = page.match(/<main class="wrap" id="mainContent" tabindex="-1">([\s\S]*?)<\/main>/)?.[1] ?? "";
   assert.doesNotMatch(main, /id="navToggle"/);
   assert.match(page, /<nav class="nav-rail"[^>]*aria-label="Quick navigation"[^>]*data-i18n-aria-label="nav\.quick">[\s\S]*?class="nav-toggle" id="navToggle"[^>]*aria-label="Explore panel"[^>]*data-i18n-aria-label="nav\.ariaExplore"[^>]*aria-controls="filterSidebar"[^>]*aria-expanded="false"/);
   assert.match(page, /id="navToggle"[\s\S]*?<span class="nav-glyph" aria-hidden="true"><\/span>[\s\S]*?<span class="nav-label" data-i18n="nav\.explore">Explore<\/span>/);
@@ -1989,7 +2084,7 @@ test("the selected compact Explore rail stays reachable and outside the inert pa
   assert.match(page, /\.filter-sidebar\{[\s\S]*?width:var\(--sidebar-width\)/);
   assert.match(page, /\.nav-rail\{[^}]*background:var\(--bg-elev\)[^}]*backdrop-filter:blur\(24px\) saturate\(160%\)/);
   assert.doesNotMatch(page, /\.filter-sidebar\.open~\.nav-toggle\{transform:/);
-  assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(min-width:721px\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 80px\)\}\}/);
+  assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(min-width:721px\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 92px\)\}\}/);
   assert.match(page, /id="mobileNavToggle"[^>]*aria-controls="filterSidebar"[^>]*aria-expanded="false"/);
   assert.match(page, /@media\(max-width:560px\)\{[\s\S]*?h1\{white-space:normal;overflow-wrap:anywhere\}/);
   assert.match(page, /\.repo-link\{[^}]*min-width:0[^}]*overflow-wrap:anywhere[^}]*word-break:break-word/);
@@ -2067,8 +2162,8 @@ test("the filter bar rows never sum past the card column", () => {
   assert.match(page, /\.filter-bar\{display:flex;flex-direction:column;gap:16px;margin-top:18px\}/);
   assert.match(page, /\.filter-bar-row\{display:flex;gap:16px;flex-wrap:wrap\}/);
   assert.match(page, /\.filter-bar-row>\*\{flex:1 1 calc\(50% - 8px\);max-width:calc\(50% - 8px\);min-width:0\}/);
-  assert.match(page, /\.filter-bar-row-3>\*\{flex:1 1 calc\(\(100% - 32px\)\/3\);max-width:calc\(\(100% - 32px\)\/3\)\}/);
-  assert.match(page, /@media\(max-width:600px\)\{\.filter-bar-row>\*,\.filter-bar-row-3>\*\{flex:1 1 100%;max-width:100%\}\}/);
+  assert.match(page, /\.filter-bar-row-4>\*\{flex:1 1 calc\(\(100% - 48px\)\/4\);max-width:calc\(\(100% - 48px\)\/4\)\}/);
+  assert.match(page, /@media\(max-width:600px\)\{\.filter-bar-row>\*,\.filter-bar-row-4>\*\{flex:1 1 100%;max-width:100%\}\}/);
   assert.match(page, /@media\(max-width:760px\)\{\.filter-bar \.seg button\{padding-inline:8px;font-size:12\.5px\}\}/);
   assert.match(page, /\.filter-bar-status\[data-tone="success"\]\{color:var\(--accent-selected\)\}/);
   assert.match(page, /\.filter-bar-status\[data-tone="error"\]\{color:var\(--hot\)\}/);
@@ -2454,6 +2549,16 @@ test("baseline new and reentered membership render only their exact card badges"
   assert.doesNotMatch(reenteredHtml, /membership-new/);
 });
 
+test("the visit badge renders right after the membership badge, and only for slugs new since the last visit", () => {
+  const seenHtml = cardRenderHarness("daily", "new", new Set(["owner/project"])).html;
+  const firstVisitHtml = cardRenderHarness("daily", "new").html;
+
+  // Order matters: "new to the list" is the older claim and reads first, "new to you" follows it.
+  assert.match(seenHtml, /<span class="badge membership-new" title="badges\.new">badges\.newLabel<\/span><span class="badge visit-new" title="visit\.badgeTitle">visit\.badge<\/span>/);
+  assert.doesNotMatch(firstVisitHtml, /visit-new/);
+  assert.match(firstVisitHtml, /class="badge membership-new"/);
+});
+
 test("sorting is shareable, stable, and keeps the selected period in favorites", () => {
   assert.match(page, /<select class="langsel" id="sortSelect" aria-label="Repository sort order"[^>]*data-i18n-aria-label="sort\.aria"/);
   assert.match(page, /<option value="trending" data-i18n="sort\.original">Original Trending order<\/option>/);
@@ -2668,7 +2773,30 @@ test("the page declares a Content-Security-Policy that covers every origin the c
    Adapted from the red-team harness. Each one failed against 90f1e6d. */
 
 test("RED1-H1 a group switch never strands focus on a section it just hid", () => {
-  const harness = sidebarHarness();
+  // Desktop first (Task 5): the rail is on screen, so #sidebarGroupSeg is hidden and .focus() on
+  // its buttons is a no-op in a real browser — setSidebarGroup's sidebarClose rung is the shipped
+  // rescue here, not the seg button.
+  const desktop = sidebarHarness({ hoverCapable: true });
+  desktop.document.dispatch("keydown", { key: "x", target: desktop.body });
+  assert.equal(desktop.sidebar.dataset.openMode, "modal");
+  assert.equal(desktop.groupSeg.hidden, true, "the visible rail replaces the in-panel switcher");
+  const desktopSection = desktop.sections.find(section => section.id === "exportSection");
+  const desktopButton = desktop.createTarget("exportCsvBtn", { tagName: "BUTTON" });
+  desktopButton.parentElement = desktopSection;
+  desktopButton.focus();
+  assert.equal(desktop.document.activeElement, desktopButton);
+  desktop.document.dispatch("keydown", { key: "e", target: desktopButton });
+  assert.equal(desktopSection.hidden, true);
+  assert.ok(desktop.trace.includes("seg-explore:focus-noop"), "the hidden seg button is still tried first");
+  assert.equal(
+    desktop.document.activeElement,
+    desktop.close,
+    "with the switcher hidden, focus falls back to the panel's close button instead of <body>",
+  );
+
+  // Coarse pointer: the rail is gone, the switcher is the only group navigation, and it is where
+  // rescued focus belongs because it also announces the new group.
+  const harness = sidebarHarness({ hoverCapable: false });
   harness.document.dispatch("keydown", { key: "x", target: harness.body });
   assert.equal(harness.sidebar.dataset.group, "export");
   assert.equal(harness.sidebar.dataset.openMode, "modal");
@@ -2767,16 +2895,18 @@ test("RED1-H2 closing a modal never ends on <body> when the recorded trigger sto
   assert.equal(stranded.document.activeElement, stranded.pageMain);
   assert.notEqual(stranded.document.activeElement, stranded.body);
 
-  // L2 (re-review 1): the <main> last-resort rung must not scroll the page, must not paint a UA
-  // focus ring, and must give the tabindex back once focus leaves.
-  assert.match(page, /pageMain\.setAttribute\("tabindex","-1"\);\s*pageMain\.focus\(\{preventScroll:true\}\);\s*pageMain\.addEventListener\("focusout",\(\)=>pageMain\.removeAttribute\("tabindex"\),\{once:true\}\);/);
+  // L2 (re-review 1): the <main> last-resort rung must not scroll the page and must not paint a UA
+  // focus ring. Task 6 moved tabindex="-1" into the markup (<main> is the skip link's target too),
+  // so the rung only focuses — handing the attribute back on focusout would break the skip link.
+  assert.match(page, /pageMain\.focus\(\{preventScroll:true\}\);/);
+  assert.doesNotMatch(page, /pageMain\.removeAttribute\("tabindex"\)/);
   assert.match(page, /\.wrap\[tabindex="-1"\]:focus\{outline:none\}/);
 });
 
 test("RED1-H3 the viewports that hide the rail all render #mobileNavToggle as a real 44px opener", () => {
-  // The rail still hides on width alone and keeps its approved 64px token.
+  // The rail still hides on width alone and keeps its approved 76px token.
   assert.match(page, /@media\(max-width:720px\)\{\s*\.nav-rail\{display:none!important\}/);
-  assert.match(page, /\.nav-rail\{[^}]*width:64px/);
+  assert.match(page, /\.nav-rail\{[^}]*width:76px/);
   // Base state is unchanged: a 1px keyboard skip link wherever the rail is visible.
   assert.match(page, /\.mobile-nav-toggle\{position:absolute;width:1px;height:1px/);
 
@@ -2888,4 +3018,352 @@ test("RED1-M3 the filter-bar status is cleared by any view change and reset on a
   const controls = filterControlsHarness();
   controls.nodes.get("newOnly").dispatch("click");
   assert.deepEqual(controls.calls.filterBarStatus, [["", ""]], "a quick-filter click clears the stale status too");
+});
+
+test("the badge guide is a disclosure that starts open on desktop and closed on mobile", () => {
+  const guide = page.match(/<aside class="signal-guide"[\s\S]*?<\/aside>/)?.[0] ?? "";
+  assert.match(guide, /aria-label="Badge guide"/);
+  assert.match(guide, /data-i18n-aria-label="badges\.aria"/);
+  assert.match(guide, /<details class="signal-guide-details" id="badgeGuide" open>/);
+  assert.match(guide, /<summary data-i18n="badges\.title">Badge guide<\/summary>/);
+  assert.doesNotMatch(guide, /<strong data-i18n="badges\.title">/);
+  for (const key of ["badges.streak", "badges.change", "badges.hot", "badges.newLabel", "badges.new", "badges.reenteredLabel", "badges.reentered"]) {
+    assert.ok(guide.includes(`data-i18n="${key}"`), `${key} must survive the disclosure wrap`);
+  }
+  assert.match(page, /\.signal-guide summary\{[^}]*cursor:pointer/);
+  assert.match(page, /const badgeGuide=document\.getElementById\("badgeGuide"\);/);
+  assert.match(page, /if\(badgeGuide&&matchMedia\("\(max-width:560px\)"\)\.matches\)badgeGuide\.open=false;/);
+});
+
+test("the mobile filter toggles sit on one horizontally scrollable row", () => {
+  assert.match(page, /<div class="filter-bar-row filter-bar-row-4 filter-toggle-row">/);
+  const mobile = page.match(/@media\(max-width:560px\)\{[\s\S]*?\r?\n\}/)?.[0] ?? "";
+  assert.match(mobile, /\.filter-toggle-row\{[^}]*flex-wrap:nowrap[^}]*overflow-x:auto/);
+  assert.match(mobile, /\.filter-toggle-row>\*\{flex:0 0 auto;max-width:none\}/);
+  assert.match(page, /\.signal-guide-details\[open\] dl\{margin-top:8px\}/);
+});
+
+test("the Explore result count and Clear button stay pinned to the bottom of the panel", () => {
+  assert.match(page, /--sidebar-pad-bottom:calc\(20px \+ env\(safe-area-inset-bottom\)\);/);
+  assert.match(page, /\.filter-sidebar\{[\s\S]*?padding:calc\(20px \+ env\(safe-area-inset-top\)\) 20px var\(--sidebar-pad-bottom\)/);
+  const sticky = page.match(/#resultSection\{[^}]*\}/)?.[0] ?? "";
+  assert.match(sticky, /position:sticky/);
+  assert.match(sticky, /bottom:calc\(-1 \* var\(--sidebar-pad-bottom\)\)/);
+  assert.match(sticky, /background:var\(--control-solid\)/);
+  assert.match(sticky, /border-top:1px solid var\(--surface-border\)/);
+  assert.match(sticky, /padding-bottom:var\(--sidebar-pad-bottom\)/);
+  assert.match(sticky, /margin-bottom:calc\(-1 \* var\(--sidebar-pad-bottom\)\)/);
+  // #filterSummary already carries role="status" aria-live="polite"; this fix is visual only.
+  assert.match(page, /id="filterSummary" role="status" aria-live="polite"/);
+});
+
+test("the footer links both Atom feeds beside the source link", () => {
+  const footer = page.match(/<footer>[\s\S]*?<\/footer>/)?.[0] ?? "";
+  assert.match(footer, /<a href="feed\.xml" data-i18n="footer\.feedCurrent">Current repositories \(Atom\)<\/a>/);
+  assert.match(footer, /<a href="changes\.xml" data-i18n="footer\.feedChanges">New and re-entered \(Atom\)<\/a>/);
+  assert.match(footer, /<span data-i18n="footer\.subscribe">Subscribe<\/span>/);
+  assert.ok(footer.indexOf("source ↗") < footer.indexOf('href="feed.xml"'), "the feeds follow the source link");
+  // The <link rel="alternate"> declarations stay: they are what the titles were taken from.
+  assert.match(page, /<link rel="alternate" type="application\/atom\+xml" title="GITHUB INSIGHT — Current repositories" href="https:\/\/nowwcastle-sudo\.github\.io\/github-trending-daily\/feed\.xml">/);
+  assert.match(page, /<link rel="alternate" type="application\/atom\+xml" title="GITHUB INSIGHT — New and re-entered repositories" href="https:\/\/nowwcastle-sudo\.github\.io\/github-trending-daily\/changes\.xml">/);
+});
+
+test("a persistent rail button and the ? key both open the shortcut dialog", () => {
+  const rail = page.match(/<nav class="nav-rail"[\s\S]*?<\/nav>/)?.[0] ?? "";
+  assert.ok(rail.indexOf('class="nav-rail-spacer"') < rail.indexOf('id="navHelpToggle"'), "the help button sits below the spacer");
+  assert.match(rail, /<button class="nav-help" id="navHelpToggle" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="shortcutHelp" aria-label="Help — keyboard shortcuts \(\?\)" data-i18n-aria-label="shortcuts\.open" title="Help — keyboard shortcuts \(\?\)" data-i18n-title="shortcuts\.open">/);
+  assert.match(rail, /<span class="nav-label" data-i18n="shortcuts\.label">Help<\/span>/);
+  // The four group buttons are still exactly four.
+  const groupButtons = [...rail.matchAll(/<button class="nav-toggle" id="(\w+)" type="button"/g)].map(match => match[1]);
+  assert.deepEqual(groupButtons, ["navAccountToggle", "navToggle", "navHistoryToggle", "navExportToggle"]);
+
+  const dialog = page.match(/<div id="shortcutHelp"[\s\S]*?<\/div>\s*<div id="tipLayer"/)?.[0] ?? "";
+  assert.match(dialog, /role="dialog" aria-modal="true" aria-labelledby="shortcutHelpTitle" aria-hidden="true" inert/);
+  for (const [key, messageKey] of [["/", "shortcuts.search"], ["e", "shortcuts.explore"], ["a", "shortcuts.account"], ["h", "shortcuts.history"], ["x", "shortcuts.export"], ["Delete", "shortcuts.delete"], ["Esc", "shortcuts.escape"], ["?", "shortcuts.help"]]) {
+    assert.ok(dialog.includes(`<kbd>${key}</kbd>`), `${key} must be listed`);
+    assert.ok(dialog.includes(`data-i18n="${messageKey}"`), `${messageKey} must be listed`);
+  }
+  assert.match(dialog, /<input type="checkbox" id="shortcutDisableToggle">/);
+  assert.match(dialog, /data-i18n="shortcuts\.disable"/);
+  assert.match(dialog, /data-i18n="shortcuts\.disableNote"/);
+
+  assert.match(page, /const SHORTCUTS_DISABLED_KEY="gi\.shortcuts\.disabled";/);
+  assert.match(page, /function openShortcutHelp\(trigger\)\{/);
+  assert.match(page, /function closeShortcutHelp\(restoreFocus=true\)\{/);
+  assert.match(page, /shortcutHelp\.addEventListener\("keydown",event=>trapFocus\(shortcutHelp,event\)\);/);
+
+  // The rail paints above the README scrim, so the "?" rail button is clickable under an open
+  // README. Without this guard closeShortcutHelp() would clear pageMain.inert while the README is
+  // still up, un-inerting the page behind a live modal — so mirror openSidebar's README close.
+  const openHelp = page.match(/\nfunction openShortcutHelp\(trigger\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.ok(openHelp.length > 0, "openShortcutHelp must be isolatable");
+  assert.ok(
+    openHelp.includes('if(readme.classList.contains("open"))closeReadme(false);'),
+    "openShortcutHelp closes an open README first",
+  );
+  assert.ok(
+    openHelp.indexOf("closeReadme(false)") < openHelp.indexOf("closeSidebar(false)"),
+    "the README guard runs before closeSidebar, the same order openSidebar uses",
+  );
+  // The ? path always hands over #navHelpToggle, which is display:none wherever the rail is
+  // hidden; recording it would restore focus to nothing on a coarse pointer or below 721px.
+  assert.ok(
+    openHelp.includes("shortcutHelpTrigger=sidebarOpenerUsable(trigger)?trigger:document.activeElement;"),
+    "the restore target is vetted with sidebarOpenerUsable, not just instanceof HTMLElement",
+  );
+});
+
+test("an open shortcut dialog is closed before the sidebar or a README takes the page", () => {
+  // The edge-swipe gesture listener is on document and its capture path is not covered by the
+  // help scrim, so completeSidebarGesture("open") reaches openSidebar() with the dialog up.
+  // Without the guard, closeShortcutHelp() then clears pageMain.inert under a live modal.
+  const openSidebarSource = page.match(/\nfunction openSidebar\(mode,trigger,group\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.ok(openSidebarSource.length > 0, "openSidebar must be isolatable");
+  assert.ok(
+    openSidebarSource.includes('if(shortcutHelp.classList.contains("open"))closeShortcutHelp(false);'),
+    "openSidebar closes an open shortcut dialog, without restoring focus to its opener",
+  );
+  assert.ok(
+    openSidebarSource.indexOf("closeReadme(false)") < openSidebarSource.indexOf("closeShortcutHelp(false)"),
+    "both dialog guards run before the sidebar claims pageMain.inert",
+  );
+  assert.ok(
+    openSidebarSource.indexOf("closeShortcutHelp(false)") < openSidebarSource.indexOf("pageMain.inert=true"),
+    "the guard runs before openSidebar inerts the page",
+  );
+
+  const openReadmeSource = page.match(/\nasync function openReadme\(slug,name\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.ok(openReadmeSource.length > 0, "openReadme must be isolatable");
+  assert.ok(
+    openReadmeSource.includes('if(shortcutHelp.classList.contains("open"))closeShortcutHelp(false);'),
+    "openReadme closes an open shortcut dialog too",
+  );
+  assert.ok(
+    openReadmeSource.indexOf("closeShortcutHelp(false)") < openReadmeSource.indexOf("pageMain.inert=true"),
+    "the guard runs before the README inerts the page",
+  );
+  // Every exclusivity close passes restoreFocus=false, so focus stays with whatever is opening.
+  assert.match(page, /function closeShortcutHelp\(restoreFocus=true\)\{/);
+  assert.match(page, /if\(restoreFocus&&shortcutHelpTrigger instanceof HTMLElement\)shortcutHelpTrigger\.focus\(\);/);
+});
+test("the single-key opt-out suppresses the four letters and never / ? or Escape", () => {
+  const start = page.indexOf("const SIDEBAR_SHORTCUT_GROUPS=");
+  const end = page.indexOf("const sidebarGestureInteractive=", start);
+  assert.ok(start >= 0 && end > start, "the shortcut runtime must be isolated");
+  const source = page.slice(start, end);
+
+  const pressed = [];
+  const context = {
+    shortcutsDisabled: true,
+    document: {
+      getElementById(id) {
+        if (id === "readmePanel") return { classList: { contains() { return false; } } };
+        if (id === "shortcutHelp") return { classList: { contains() { return false; } } };
+        if (id === "q") return { focus() { pressed.push("search"); } };
+        return null;
+      },
+      addEventListener(type, listener) { if (type === "keydown") context.__keydown = listener; },
+    },
+    sidebar: { dataset: {} },
+    railToggles: [],
+    mobileNavToggle: {},
+    sidebarMobileAccessMedia: { matches: false },
+    UiMotion: { resolveSidebarGroup: value => value },
+    setSidebarGroup(group) { pressed.push(`group:${group}`); },
+    openSidebar(mode, trigger, group) { pressed.push(`open:${group}`); },
+  };
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(source, context, { filename: "shortcut-optout-fixture.js" });
+
+  const press = key => context.__keydown({ key, repeat: false, isComposing: false, target: { tagName: "BODY" }, preventDefault() {} });
+  press("e"); press("h"); press("a"); press("x");
+  assert.deepEqual(pressed, [], "no letter shortcut fires while the opt-out is on");
+  press("/");
+  assert.deepEqual(pressed, ["search"], "slash keeps working while the opt-out is on");
+
+  context.shortcutsDisabled = false;
+  press("e");
+  assert.deepEqual(pressed, ["search", "open:explore"], "turning the opt-out off restores the letters");
+});
+
+test("a skip link is the first focusable element and targets the main region", () => {
+  const body = page.slice(page.indexOf("<body>"));
+  const skipIndex = body.indexOf('<a class="skip-link"');
+  assert.ok(skipIndex >= 0, "the skip link must exist");
+  // Same intent as the brief's arithmetic form of this check, stated directly: the brief's version
+  // measured back to `<a href`, which the skip link's own `<a class=` opening tag never matches, so
+  // it could not pass. The skip link's tag must BE the first focusable start tag in <body>.
+  const firstFocusable = body.search(/<(?:a|button|input|select|textarea)[\s>]/);
+  assert.equal(firstFocusable, skipIndex, "no focusable element may precede the skip link");
+  assert.match(body, /<a class="skip-link" href="#mainContent" data-i18n="skip\.main">Skip to content<\/a>/);
+  assert.match(page, /<main class="wrap" id="mainContent" tabindex="-1">/);
+  assert.match(page, /\.skip-link\{[^}]*position:absolute[^}]*left:-9999px/);
+  assert.match(page, /\.skip-link:focus\{[^}]*left:12px[^}]*top:12px/);
+  // <main> now carries the tabindex statically, so the focus-restore rung no longer adds and
+  // removes it (removing it would break the skip link after one sidebar close).
+  assert.match(page, /pageMain\.focus\(\{preventScroll:true\}\);/);
+  assert.doesNotMatch(page, /pageMain\.removeAttribute\("tabindex"\)/);
+  assert.match(page, /\.wrap\[tabindex="-1"\]:focus\{outline:none\}/);
+});
+
+test("the account rail button's accessible name contains its visible label", () => {
+  const button = page.match(/<button class="nav-toggle" id="navAccountToggle"[^>]*>/)?.[0] ?? "";
+  assert.match(button, /aria-label="Login — account and sync panel"/);
+  assert.match(button, /data-i18n-aria-label="nav\.ariaAccount"/);
+});
+
+test("each favourite button names the repository it belongs to", () => {
+  assert.match(page, /aria-label="\$\{esc\(tr\(faved\?"repo\.favoriteRemove":"repo\.favoriteAdd",\{name:r\.name\}\)\)\}"/);
+});
+
+test("light-theme accent text uses the 4.5:1 token instead of the 4.31:1 one", () => {
+  assert.match(page, /\.tlabel\{[^}]*color:var\(--accent-selected\)/);
+  assert.match(page, /#readmeBody a\{color:var\(--accent-selected\)\}/);
+  const inlineAccent = [...page.matchAll(/style="color:var\(--accent\)"/g)];
+  assert.equal(inlineAccent.length, 0, "no inline style may paint normal-size text with --accent");
+  assert.equal([...page.matchAll(/style="color:var\(--accent-selected\)"/g)].length, 2, "both README fallback links use the accessible token");
+});
+
+test("the Delete-key hint is announced once, not once per card", () => {
+  assert.match(page, /id="cardKeyboardHint" class="sr-only"/);
+  assert.doesNotMatch(page, /aria-describedby="cardKeyboardHint"/);
+  assert.match(page, /aria-keyshortcuts="Delete"/);
+  const hintIndex = page.indexOf('id="cardKeyboardHint"');
+  const listIndex = page.indexOf('class="list-stage" id="listStage"');
+  assert.ok(hintIndex >= 0 && hintIndex < listIndex, "the hint precedes the list in reading order");
+});
+
+/* ── Carry-over corrections from the Tasks 2+3 review ─────────────────────── */
+test("the sticky result strip cannot occlude a control the panel just scrolled to", () => {
+  // #resultSection is position:sticky at the panel's bottom edge, so a scrollIntoView() for a
+  // control below the fold would park it underneath the strip. Reserve the strip's height.
+  assert.match(page, /\.filter-sidebar\{[\s\S]*?scroll-padding-bottom:calc\(var\(--sidebar-pad-bottom\) \+ 96px\)/);
+});
+
+test("#resultSection is the last Explore section in the markup", () => {
+  // The sticky summary only pins to the panel's bottom while nothing in its group follows it.
+  const exploreSections = [...page.matchAll(/id="([A-Za-z]+Section)"[^>]*data-group="explore"/g)].map(match => match[1]);
+  assert.ok(exploreSections.length >= 2, "the Explore group must have sections to order");
+  assert.equal(exploreSections.at(-1), "resultSection", "the sticky summary must be the last Explore section");
+});
+
+test("footer links answer hover and focus with the accent token and a visible ring", () => {
+  assert.match(page, /footer a:hover,footer a:focus-visible\{color:var\(--accent-selected\)\}/);
+  assert.match(page, /footer a:focus-visible\{outline:3px solid var\(--accent\);outline-offset:2px\}/);
+});
+
+test("the badge-guide caret keeps its spacing from the summary label", () => {
+  assert.match(page, /\.signal-guide summary\{[^}]*gap:6px/);
+});
+
+test("the card link and the title reset clear 44px on a phone", () => {
+  const mobile = page.match(/@media\(max-width:560px\)\{[\s\S]*?\r?\n\}/)?.[0] ?? "";
+  assert.match(mobile, /\.repo-link\{display:inline-block;padding:9px 0\}/);
+  assert.match(mobile, /#resetBtn\{display:inline-block;padding:7px 0\}/);
+});
+
+test("the History group states its empty conditions instead of rendering dead controls", () => {
+  assert.match(page, /document\.getElementById\("restoreAllHiddenBtn"\)\.disabled=!slugs\.length;/);
+  assert.match(page, /section\.hidden=sidebar\.dataset\.group!=="history";/);
+  assert.match(page, /recentExitsList\.innerHTML=exited\.length\?[\s\S]*?:`<p class="sidebar-note">\$\{esc\(tr\("exits\.empty"\)\)\}<\/p>`;/);
+  assert.match(page, /\.clear-filters:disabled\{opacity:\.5;cursor:not-allowed\}/);
+
+  const harness = hiddenSectionsGroupHarness();
+  harness.setGroup("history");
+  harness.render();
+  assert.equal(harness.restoreAllHiddenBtn.disabled, true, "Restore all is dead at zero hidden repositories");
+  harness.renderRecentExits([]);
+  assert.match(harness.recentExitsList.innerHTML, /exits\.empty/, "an empty exits list says so");
+
+  harness.hideRepo("octocat/hidden");
+  harness.render();
+  assert.equal(harness.restoreAllHiddenBtn.disabled, false, "Restore all works once something is hidden");
+});
+
+test("Korean rail labels and the subtitle break between words, not inside them", () => {
+  assert.match(page, /\.nav-label\{line-height:1\}/);
+  assert.match(page, /html:lang\(ko\) \.nav-label\{word-break:keep-all;overflow-wrap:normal\}/);
+  assert.match(page, /html:lang\(ko\) \.sub\{word-break:keep-all;overflow-wrap:normal\}/);
+  // Globally, keep-all left the Japanese subtitle (one unbroken katakana run) with no break
+  // opportunity and it overflowed a 390px viewport, so .sub carries no CJK breaking of its own.
+  assert.match(page, /\n\.sub\{color:var\(--text-2\);font-size:15px;margin-top:6px;letter-spacing:\.01em\}/);
+  assert.doesNotMatch(page, /\n\.sub\{[^}]*(?:word-break|overflow-wrap)/);
+  assert.match(page, /\.nav-rail\{[^}]*width:76px/);
+  assert.match(page, /\.nav-toggle\{[^}]*width:60px;min-height:60px/);
+  const finePointer = page.match(/@media\(hover:hover\) and \(pointer:fine\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.match(finePointer, /\.filter-sidebar\{[^}]*left:76px[^}]*width:min\(336px,calc\(100vw - 76px\)\)/);
+  assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(min-width:721px\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 92px\)\}\}/);
+  assert.doesNotMatch(page, /\.nav-rail\{[^}]*width:64px/);
+});
+
+test("the head describes the page for crawlers and unfurlers without a new request", () => {
+  const head = page.match(/<head>[\s\S]*?<\/head>/)?.[0] ?? "";
+  assert.match(head, /<meta name="description" content="GITHUB INSIGHT — today’s GitHub Trending repositories with source-bound README summaries, star history, and filters for field, form, language, and period\.">/);
+  assert.match(head, /<meta name="theme-color" content="#f5f5f7" media="\(prefers-color-scheme: light\)">/);
+  assert.match(head, /<meta name="theme-color" content="#282828" media="\(prefers-color-scheme: dark\)">/);
+  assert.match(head, /<meta property="og:type" content="website">/);
+  assert.match(head, /<meta property="og:title" content="GITHUB INSIGHT">/);
+  assert.match(head, /<meta property="og:description" content="Today’s GitHub Trending repositories with source-bound README summaries, star history, and filters for field, form, language, and period\.">/);
+  assert.match(head, /<meta property="og:url" content="https:\/\/nowwcastle-sudo\.github\.io\/github-trending-daily\/">/);
+  // No og:image: it would be a new external request and there is no first-party image to point at.
+  assert.doesNotMatch(head, /og:image/);
+  // The CSP is untouched.
+  assert.match(head, /<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https:\/\/www\.gstatic\.com https:\/\/www\.google\.com https:\/\/apis\.google\.com;/);
+});
+
+test("a script-free visitor is told why the list is empty and where the feeds are", () => {
+  const main = page.match(/<main class="wrap" id="mainContent" tabindex="-1">([\s\S]*?)<\/main>/)?.[1] ?? "";
+  assert.match(main, /<noscript><p class="noscript-note">This page builds its repository list with JavaScript\. Turn JavaScript on, or subscribe to the Atom feeds: <a href="feed\.xml">feed\.xml<\/a> · <a href="changes\.xml">changes\.xml<\/a>\.<\/p><\/noscript>/);
+  assert.match(page, /\.noscript-note\{[^}]*border:1px solid var\(--surface-border\)/);
+});
+
+test("the list carries a heading that reports what is new since the reader's last visit", () => {
+  assert.match(page, /<script src="visit-tracker\.js"><\/script>/);
+  assert.match(page, /<h2 class="list-heading" id="listHeading" data-i18n="visit\.heading">Trending repositories<\/h2>/);
+  const hintIndex = page.indexOf('id="cardKeyboardHint"');
+  const headingIndex = page.indexOf('id="listHeading"');
+  const stageIndex = page.indexOf('class="list-stage" id="listStage"');
+  assert.ok(hintIndex < headingIndex && headingIndex < stageIndex, "the heading sits directly above the list");
+
+  assert.match(page, /const visitSummary=VisitTracker\.recordVisit\(storage,\{slugs:REPOS\.map\(repo=>repo\.slug\),now:new Date\(\)\.toISOString\(\)\}\);/);
+  assert.match(page, /const newSinceLastVisit=new Set\(visitSummary\.newSlugs\);/);
+  assert.match(page, /function updateVisitHeading\(\)\{/);
+  assert.match(page, /tr\("visit\.newSince",\{count:visitSummary\.newSlugs\.length,date\}\)/);
+  assert.match(page, /tr\("visit\.noneSince",\{date\}\)/);
+  assert.match(page, /updateRefreshStatus\(\);renderRecentExits\(currentRecentExits\);renderHist\(\);updateVisitHeading\(\);/);
+
+  // The badge is additive: the baseline-relative membership badge is untouched.
+  assert.match(page, /const visitBadge=newSinceLastVisit\.has\(r\.slug\)\?`<span class="badge visit-new" title="\$\{tr\("visit\.badgeTitle"\)\}">\$\{tr\("visit\.badge"\)\}<\/span>`:"";/);
+  assert.match(page, /\$\{membershipBadge\}\$\{visitBadge\}/);
+  assert.match(page, /membership==="new"\?`<span class="badge membership-new"/);
+  assert.match(page, /\.visit-new\{color:var\(--text\);background:var\(--seg-bg\)\}/);
+  assert.match(page, /\.list-heading\{[^}]*color:var\(--text-2\)/);
+});
+
+test("a compact list mode is a fourth filter-bar toggle persisted per browser", () => {
+  const bar = page.match(/<section class="filter-bar" id="filterBar"[\s\S]*?<\/section>/)?.[0] ?? "";
+  assert.match(bar, /<div class="filter-bar-row filter-bar-row-4 filter-toggle-row">/);
+  assert.match(bar, /<button type="button" id="compactToggle" class="filter-toggle" aria-pressed="false" data-i18n="filter\.compact">Compact list<\/button>/);
+  const order = ["excludeAi", "newOnly", "copyLinkBtn", "compactToggle", "filterBarStatus"];
+  let previous = -1;
+  for (const id of order) {
+    const position = bar.indexOf(`id="${id}"`);
+    assert.ok(position > previous, `${id} must appear in the approved filter-bar order`);
+    previous = position;
+  }
+
+  assert.match(page, /\.filter-bar-row-4>\*\{flex:1 1 calc\(\(100% - 48px\)\/4\);max-width:calc\(\(100% - 48px\)\/4\)\}/);
+  assert.match(page, /@media\(max-width:600px\)\{\.filter-bar-row>\*,\.filter-bar-row-4>\*\{flex:1 1 100%;max-width:100%\}\}/);
+  assert.doesNotMatch(page, /filter-bar-row-3/);
+
+  assert.match(page, /const COMPACT_VIEW_KEY="gi\.view\.compact";/);
+  assert.match(page, /try\{compactView=storage\.getItem\(COMPACT_VIEW_KEY\)==="1"\}catch\{\}/);
+  assert.match(page, /function applyCompactView\(\)\{/);
+  assert.match(page, /document\.body\.classList\.toggle\("compact",compactView\);/);
+  assert.match(page, /document\.getElementById\("compactToggle"\)\.setAttribute\("aria-pressed",String\(compactView\)\);/);
+
+  assert.match(page, /body\.compact \.card\{padding:11px 14px;margin-bottom:7px\}/);
+  assert.match(page, /body\.compact \.cdesc\{-webkit-line-clamp:1;margin:4px 0 6px\}/);
+  assert.match(page, /body\.compact \.category-badges,body\.compact \.spark,body\.compact \.sparkhist\{display:none\}/);
 });

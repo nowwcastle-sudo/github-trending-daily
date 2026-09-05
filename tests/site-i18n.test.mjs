@@ -34,10 +34,21 @@ test("every rail group, shortcut hint, and held-retry message exists in all five
     "nav.account", "nav.history", "nav.export",
     "nav.ariaAccount", "nav.ariaExplore", "nav.ariaHistory", "nav.ariaExport",
     "nav.titleAccount", "nav.titleExplore", "nav.titleHistory", "nav.titleExport",
-    "nav.groups", "filter.copyLink", "tooltip.heldRetry",
+    "nav.groups", "filter.copyLink", "filter.compact", "tooltip.heldRetry",
     // RED TEAM 1 H4: star-history.js renders every one of these through the site `tr`.
     "history.title", "history.explanation", "history.observedSince",
     "history.ariaTrend", "history.waiting", "history.singleObservation",
+    "footer.subscribe", "footer.feedCurrent", "footer.feedChanges",
+    "shortcuts.label", "shortcuts.open", "shortcuts.title", "shortcuts.close",
+    "shortcuts.search", "shortcuts.explore", "shortcuts.account", "shortcuts.history",
+    "shortcuts.export", "shortcuts.delete", "shortcuts.escape", "shortcuts.help",
+    "shortcuts.disable", "shortcuts.disableNote",
+    "exits.empty",
+    "visit.heading", "visit.newSince", "visit.noneSince", "visit.badge", "visit.badgeTitle",
+    "preset.title", "preset.note", "preset.nameLabel", "preset.namePlaceholder", "preset.save",
+    "preset.apply", "preset.delete", "preset.empty", "preset.saved", "preset.deleted",
+    "preset.limit", "preset.nameRequired", "preset.saveError",
+    "export.favoritesHint", "export.favoritesSwitch",
   ];
   for (const locale of i18n.SUPPORTED_LOCALES) {
     for (const key of required) {
@@ -63,6 +74,16 @@ test("every rail group, shortcut hint, and held-retry message exists in all five
     for (const locale of i18n.SUPPORTED_LOCALES) {
       assert.ok(i18n.MESSAGES[locale][key].endsWith(hint), `${locale} ${key} must end with the ${hint} shortcut hint`);
     }
+  }
+});
+
+test("the help button's accessible name contains its visible label in every locale", () => {
+  const i18n = load();
+  for (const locale of i18n.SUPPORTED_LOCALES) {
+    const label = i18n.MESSAGES[locale]["shortcuts.label"];
+    const name = i18n.MESSAGES[locale]["shortcuts.open"];
+    assert.ok(name.startsWith(label), `${locale}: "${name}" must start with the visible label "${label}"`);
+    assert.ok(name.endsWith("(?)"), `${locale} shortcuts.open must end with the (?) hint`);
   }
 });
 
@@ -116,5 +137,47 @@ test("repository documentation is English-first with a complete Korean counterpa
     for (const token of ["Login", "Explore", "History", "Export", "`/`", "`e`", "`a`", "`h`", "`x`", "held"]) {
       assert.ok(document.includes(token), `${token} must be documented`);
     }
+  }
+});
+
+test("both READMEs list the shortcut help, presets, compact mode, and new-since-last-visit", () => {
+  for (const [document, tokens] of [
+    [readme, ["`?` opens a keyboard-shortcut", "saved filter presets", "compact list mode", "new since your last visit"]],
+    [koreanReadme, ["`?` 키로 단축키", "저장한 필터 프리셋", "간단히 보기", "지난 방문 이후 새로 올라온"]],
+  ]) {
+    for (const token of tokens) assert.ok(document.includes(token), `${token} must be documented`);
+  }
+  // Screenshots stay as-is: they are captured from production after deploy.
+  assert.match(readme, /desktop-1440\.png/);
+  assert.match(readme, /mobile-sidebar-390\.png/);
+});
+
+test("the account rail button satisfies Label in Name in every locale", () => {
+  const i18n = load();
+  for (const locale of i18n.SUPPORTED_LOCALES) {
+    const visible = i18n.MESSAGES[locale]["nav.account"];
+    const accessible = i18n.MESSAGES[locale]["nav.ariaAccount"];
+    assert.ok(accessible.startsWith(visible), `${locale}: "${accessible}" must start with the visible label "${visible}"`);
+  }
+});
+
+test("favourite button labels carry the repository name in every locale", () => {
+  const i18n = load();
+  for (const locale of i18n.SUPPORTED_LOCALES) {
+    for (const key of ["repo.favoriteAdd", "repo.favoriteRemove"]) {
+      assert.ok(i18n.MESSAGES[locale][key].includes("{name}"), `${locale} ${key} must interpolate {name}`);
+    }
+    assert.equal(typeof i18n.MESSAGES[locale]["skip.main"], "string");
+    assert.ok(i18n.MESSAGES[locale]["skip.main"].trim().length > 0);
+  }
+});
+
+test("the new-since-last-visit heading interpolates its count and date in every locale", () => {
+  const i18n = load();
+  for (const locale of i18n.SUPPORTED_LOCALES) {
+    assert.ok(i18n.MESSAGES[locale]["visit.newSince"].includes("{count}"), `${locale} visit.newSince needs {count}`);
+    assert.ok(i18n.MESSAGES[locale]["visit.newSince"].includes("{date}"), `${locale} visit.newSince needs {date}`);
+    assert.ok(i18n.MESSAGES[locale]["visit.noneSince"].includes("{date}"), `${locale} visit.noneSince needs {date}`);
+    assert.equal(i18n.MESSAGES[locale]["visit.noneSince"].includes("{count}"), false, `${locale} visit.noneSince must not need {count}`);
   }
 });

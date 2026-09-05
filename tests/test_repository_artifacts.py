@@ -794,8 +794,8 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
         try:
             relative_root = Path(candidate_root.name)
             relative_database = relative_root / "data" / "repository-observations.sqlite"
-            self.assertEqual(len(read_finalized_artifact_contract(relative_database, snapshot_id)["artifacts"]), 19)
-            self.assertEqual(len(verify_pages_artifacts(relative_database, snapshot_id, relative_root)["artifacts"]), 19)
+            self.assertEqual(len(read_finalized_artifact_contract(relative_database, snapshot_id)["artifacts"]), len(PAGES_BASE_ARTIFACT_PATHS))
+            self.assertEqual(len(verify_pages_artifacts(relative_database, snapshot_id, relative_root)["artifacts"]), len(PAGES_BASE_ARTIFACT_PATHS))
             self.assertFalse(finalize_snapshot_derivatives(relative_database, snapshot_id, insights, hashes).changed)
         finally:
             os.chdir(previous_cwd)
@@ -806,7 +806,7 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
             core = connection.execute("SELECT core_payload_sha256,chain_sha256 FROM snapshot_runs").fetchone()
             self.assertEqual(connection.execute("SELECT COUNT(*) FROM repository_insights").fetchone(), (1,))
             self.assertEqual(connection.execute("SELECT COUNT(*) FROM artifact_hashes").fetchone(), (len(PAGES_BASE_ARTIFACT_PATHS) + 1,))
-            self.assertEqual(len(PAGES_BASE_ARTIFACT_PATHS), 19)
+            self.assertEqual(len(PAGES_BASE_ARTIFACT_PATHS), 21)
             self.assertNotIn("star-history.json", PAGES_BASE_ARTIFACT_PATHS)
         with closing(sqlite3.connect(database)) as connection:
             self.assertEqual(core, connection.execute("SELECT core_payload_sha256,chain_sha256 FROM snapshot_runs").fetchone())

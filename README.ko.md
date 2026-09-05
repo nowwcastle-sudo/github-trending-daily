@@ -77,6 +77,10 @@ UI에는 "검증된 저장소 README를 바탕으로 AI가 생성했다"고 정�
 - 상류 저장소 README 언어판만 표시. 저장소에 실제 존재하는 README 언어 파일만 버튼으로 보여주며, path·불변 blob SHA·기본 브랜치 head SHA·content SHA-256을 검증한 뒤 렌더합니다. 전체 README 생성 번역과 저장은 중단했습니다.
 - 현재 저장소 전체 [feed.xml](https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml), 신규·재진입 [changes.xml](https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml). 두 feed의 제목은 각각 `GITHUB INSIGHT — Current repositories`, `GITHUB INSIGHT — New and re-entered repositories`입니다.
 - 라이트·다크 테마, 키보드 탐색, focus trap, 44px 터치 대상, reduced-motion·reduced-transparency, BFCache 복원, 반응형 레이아웃.
+- `?` 키로 단축키 안내 대화상자를 엽니다. `/`, `e`, `a`, `h`, `x`, `Delete`, `Esc`, `?`를 모두 보여주고, 한 글자 단축키를 끄는 체크박스를 함께 제공합니다(WCAG 2.1.4). `/`, `?`, `Escape`는 어느 경우에도 동작합니다.
+- 저장한 필터 프리셋: 지금의 탐색 필터를 이름으로 이 브라우저에 저장해 두고 한 번에 다시 적용합니다. 최대 20개까지 저장할 수 있습니다.
+- 간단히 보기 모드: 카드 여백을 줄이고 분류 배지와 스파크라인을 감춰 한 화면에 보이는 저장소를 약 3배로 늘립니다. 선택은 이 브라우저에 기억됩니다.
+- 지난 방문 이후 새로 올라온 저장소를 목록 제목과 카드 배지로 표시합니다. 이 브라우저가 지난번에 본 목록과 비교한 결과이며, 모든 방문자에게 동일한 기준선 기반 **New** 배지와는 별개입니다.
 
 ## ⚖️ 다른 트렌딩 사이트 대비 장점
 

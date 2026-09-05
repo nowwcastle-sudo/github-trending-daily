@@ -3,12 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- Static English by design: the document is served as <html lang="en"> and crawlers and link
+     unfurlers read these before site-i18n.js hydrates. The two theme-color values are the --bg
+     tokens already in :root and html[data-theme="dark"]. There is deliberately no preview-image
+     tag: it would be a new external request and there is no first-party image to point at. -->
+<meta name="description" content="GITHUB INSIGHT — today’s GitHub Trending repositories with source-bound README summaries, star history, and filters for field, form, language, and period.">
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#282828" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:title" content="GITHUB INSIGHT">
+<meta property="og:description" content="Today’s GitHub Trending repositories with source-bound README summaries, star history, and filters for field, form, language, and period.">
+<meta property="og:url" content="https://nowwcastle-sudo.github.io/github-trending-daily/">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.gstatic.com https://www.google.com https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://api.github.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://content-firebaseappcheck.googleapis.com https://www.google.com; frame-src https://github-trending-nowwcastle.firebaseapp.com https://www.google.com https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <title>GITHUB INSIGHT</title>
 <link rel="alternate" type="application/atom+xml" title="GITHUB INSIGHT — Current repositories" href="https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml">
 <link rel="alternate" type="application/atom+xml" title="GITHUB INSIGHT — New and re-entered repositories" href="https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml">
 <style>:root{
   --sidebar-width:min(360px,calc(100vw - 44px));
+  --sidebar-pad-bottom:calc(20px + env(safe-area-inset-bottom));
   --sidebar-open-duration:260ms;--sidebar-close-duration:210ms;--tooltip-duration:160ms;
   --bg:#f5f5f7; --bg-elev:rgba(255,255,255,.72); --card:rgba(255,255,255,.85);
   --text:#1d1d1f; --text-2:#6e6e73; --text-3:#6e6e73;
@@ -48,10 +60,15 @@ body{
 *{scrollbar-color:var(--text-3) transparent;scrollbar-width:thin}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .wrap{max-width:1020px;margin:0 auto;padding:48px 24px 96px}
-/* L2 (re-review 1): the <main> last-resort focus-restore rung (restoreSidebarFocus) gives .wrap a
-   temporary tabindex="-1" so it can take focus when no opener can; suppress the UA default ring on
-   that programmatic focus the same way any other skip-target would. */
+/* L2 (re-review 1): .wrap carries a static tabindex="-1" so it can take focus both as the skip
+   link's target and as the <main> last-resort rung of restoreSidebarFocus when no opener can;
+   suppress the UA default ring on that programmatic focus the way any skip target would. */
 .wrap[tabindex="-1"]:focus{outline:none}
+/* WCAG 2.4.1 Bypass Blocks: four rail buttons and the whole Explore panel precede <main> in tab
+   order, so the first Tab of the document must offer a way past them. Off-screen until focused,
+   then a real 44px target at the top-left corner. */
+.skip-link{position:absolute;left:-9999px;top:auto;z-index:400;min-height:44px;display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:11px;background:var(--control-solid);color:var(--text);padding:10px 14px;font:inherit;font-size:13px;font-weight:650;text-decoration:none}
+.skip-link:focus{left:12px;top:12px;outline:3px solid var(--accent);outline-offset:2px}
 
 /* ── Header ─────────────────────────── */
 header{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:16px;margin-bottom:8px}
@@ -88,12 +105,12 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .account-btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .theme-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .nav-rail{
-  position:fixed;z-index:330;inset:0 auto 0 0;width:64px;height:100vh;height:100dvh;display:none;flex-direction:column;align-items:center;gap:12px;
+  position:fixed;z-index:330;inset:0 auto 0 0;width:76px;height:100vh;height:100dvh;display:none;flex-direction:column;align-items:center;gap:12px;
   padding:calc(28px + env(safe-area-inset-top)) 8px calc(20px + env(safe-area-inset-bottom));background:var(--bg-elev);backdrop-filter:blur(24px) saturate(160%);
   border-right:1px solid var(--hairline);
 }
 .nav-toggle{
-  position:relative;width:48px;min-height:60px;border:0;border-radius:14px;padding:7px 4px;background:transparent;color:var(--text-2);cursor:pointer;
+  position:relative;width:60px;min-height:60px;border:0;border-radius:14px;padding:7px 4px;background:transparent;color:var(--text-2);cursor:pointer;
   display:grid;place-items:center;align-content:center;gap:4px;font:inherit;font-size:10px;font-weight:650;letter-spacing:.01em;
   transition:background-color .16s ease,color .16s ease,transform .1s ease-out;
 }
@@ -111,8 +128,23 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .nav-glyph-export{width:20px;height:17px;border:1.5px solid currentColor;border-radius:4px;position:relative}
 .nav-glyph-export::before{content:"";position:absolute;left:8.25px;top:3px;width:1.5px;height:8px;background:currentColor}
 .nav-glyph-export::after{content:"";position:absolute;left:6px;top:3px;width:6px;height:6px;border-left:1.5px solid currentColor;border-top:1.5px solid currentColor;transform:rotate(45deg);transform-origin:center}
+/* Korean and Japanese rail labels are single words (내보내기, エクスポート); the default
+   overflow-wrap would split them mid-word inside the rail. keep-all is the correct CJK rule and a
+   no-op for the four Latin locales. */
 .nav-label{line-height:1}
+/* Korean only: keep-all stops a two-syllable rail label breaking mid-word. Japanese katakana
+   labels need the default breaking, so the rule is scoped by document language. */
+html:lang(ko) .nav-label{word-break:keep-all;overflow-wrap:normal}
+/* The subtitle takes the same scoping. As a global rule, keep-all left the Japanese subtitle
+   (one unbroken katakana run) with no break opportunity at all and it overflowed at 390px. */
+html:lang(ko) .sub{word-break:keep-all;overflow-wrap:normal}
 .nav-rail-spacer{flex:1}
+/* WCAG 2.1.4 needs the single-key accelerators to be discoverable and switchable off, so the rail
+   carries a persistent "?" opener for the shortcut dialog. 44px minimum target like every control. */
+.nav-help{width:60px;min-height:44px;border:0;border-radius:14px;padding:6px 4px;background:transparent;color:var(--text-2);cursor:pointer;display:grid;place-items:center;align-content:center;gap:4px;font:inherit;font-size:10px;font-weight:650;transition:background-color .16s ease,color .16s ease}
+.nav-help::before{content:"?";font-size:16px;font-weight:700;line-height:1}
+.nav-help:hover,.nav-help:focus-visible{background:var(--accent-soft);color:var(--accent-selected)}
+.nav-help:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .nav-rail .filter-count{min-width:20px;padding:2px 6px;font-size:10px;line-height:14px;text-align:center}
 .mobile-nav-toggle{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .mobile-nav-toggle .nav-glyph{width:18px;height:15px}
@@ -133,17 +165,20 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 /* ── Discovery sidebar ─────────────── */
 .filter-sidebar{
   position:fixed;z-index:320;display:flex;flex-direction:column;gap:20px;top:0;bottom:0;left:0;
-  width:var(--sidebar-width);height:100vh;height:100dvh;max-height:none;padding:calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;
+  width:var(--sidebar-width);height:100vh;height:100dvh;max-height:none;padding:calc(20px + env(safe-area-inset-top)) 20px var(--sidebar-pad-bottom);overflow-y:auto;overscroll-behavior:contain;
   background:var(--tip-bg);backdrop-filter:blur(28px) saturate(180%);
   border:1px solid var(--tip-border);border-radius:0 18px 18px 0;box-shadow:var(--shadow-pop);
   color:var(--text);transform:translate3d(-105%,0,0);opacity:.85;
   transition:transform var(--sidebar-close-duration) cubic-bezier(.32,.72,0,1),opacity var(--sidebar-close-duration) ease-out;
+  /* #resultSection is sticky at this panel's bottom edge, so a control scrolled into view by
+     sequential focus navigation would land underneath it. Reserve the strip's height. */
+  scroll-padding-bottom:calc(var(--sidebar-pad-bottom) + 96px);
 }
 .filter-sidebar.open{transform:translate3d(0,0,0);opacity:1;transition-duration:var(--sidebar-open-duration),var(--sidebar-open-duration)}
 .filter-sidebar.dragging{transition:none}
 @media(hover:hover) and (pointer:fine){
   .nav-rail{display:flex}
-  .filter-sidebar{left:64px;width:min(336px,calc(100vw - 64px));transform:translate3d(calc(-100% - 64px),0,0)}
+  .filter-sidebar{left:76px;width:min(336px,calc(100vw - 76px));transform:translate3d(calc(-100% - 76px),0,0)}
   .filter-sidebar.open{transform:translate3d(0,0,0)}
 }
 @media(hover:none),(pointer:coarse){
@@ -209,7 +244,26 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .filter-chip:active{transform:scale(.97)}
 .filter-chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .clear-filters{border-color:var(--border);text-align:center;color:var(--text-2)}
+.clear-filters:disabled{opacity:.5;cursor:not-allowed}
 .filter-summary{color:var(--text-2);font-size:12px;line-height:1.45}
+/* The match count is the memory bridge between a 10-option field list at the top of the panel and
+   the decision the reader is making; it must stay on screen while they work above it. The negative
+   bottom/margin pair reaches past the panel's own bottom padding so scrolled content cannot appear
+   underneath. --control-solid, not --tip-bg: the panel background is translucent and would let the
+   scrolling filter list read through the pinned strip. */
+#resultSection{position:sticky;bottom:calc(-1 * var(--sidebar-pad-bottom));z-index:2;background:var(--control-solid);border-top:1px solid var(--surface-border);padding-bottom:var(--sidebar-pad-bottom);margin-bottom:calc(-1 * var(--sidebar-pad-bottom))}
+/* Saved filters sit above the sticky result strip. .search.preset-name carries two classes so the
+   field drops the search glyph and its 36px inset regardless of where this block sits in the
+   sheet; hover text uses --accent-selected, the light-theme text accent. */
+.preset-list{display:grid;gap:7px}
+.preset-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px}
+.preset-apply{min-width:0;min-height:44px;border:1px solid var(--border);border-radius:9px;background:var(--control-solid);color:var(--text);padding:8px 11px;text-align:left;font:inherit;font-size:12.5px;font-weight:650;cursor:pointer;overflow-wrap:anywhere}
+.preset-apply:hover{border-color:var(--accent);color:var(--accent-selected)}
+.preset-apply:focus-visible,.preset-delete:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.preset-delete{min-width:44px;min-height:44px;border:1px solid var(--border);border-radius:9px;background:transparent;color:var(--text-2);font:inherit;font-size:14px;cursor:pointer}
+.preset-delete:hover{border-color:var(--hot);color:var(--hot)}
+.search.preset-name{min-height:44px;padding-left:12px;background-image:none}
+#presetForm{display:grid;gap:7px}
 #sidebarScrim{position:fixed;inset:0;z-index:310;background:rgba(0,0,0,.34);opacity:0;pointer-events:none;transition:opacity .24s ease-out}
 #sidebarScrim.on{opacity:1;pointer-events:auto}
 body.overlay-open{overflow:hidden}
@@ -250,11 +304,11 @@ body.overlay-open{overflow:hidden}
 .filter-bar{display:flex;flex-direction:column;gap:16px;margin-top:18px}
 .filter-bar-row{display:flex;gap:16px;flex-wrap:wrap}
 .filter-bar-row>*{flex:1 1 calc(50% - 8px);max-width:calc(50% - 8px);min-width:0}
-.filter-bar-row-3>*{flex:1 1 calc((100% - 32px)/3);max-width:calc((100% - 32px)/3)}
+.filter-bar-row-4>*{flex:1 1 calc((100% - 48px)/4);max-width:calc((100% - 48px)/4)}
 .filter-bar-status{color:var(--text-2);font-size:11.5px;line-height:1.45;min-height:1.45em}
 .filter-bar-status[data-tone="success"]{color:var(--accent-selected)}
 .filter-bar-status[data-tone="error"]{color:var(--hot)}
-@media(max-width:600px){.filter-bar-row>*,.filter-bar-row-3>*{flex:1 1 100%;max-width:100%}}
+@media(max-width:600px){.filter-bar-row>*,.filter-bar-row-4>*{flex:1 1 100%;max-width:100%}}
 @media(max-width:760px){.filter-bar .seg button{padding-inline:8px;font-size:12.5px}}
 .filter-toggle{min-height:44px;padding:0 14px;border:1px solid var(--surface-border);border-radius:11px;background:var(--control-solid);color:var(--text);font:inherit;font-size:13px;font-weight:650;cursor:pointer;overflow-wrap:anywhere}
 .filter-toggle:hover{border-color:var(--accent);color:var(--accent)}
@@ -263,7 +317,13 @@ body.overlay-open{overflow:hidden}
 .filter-toggle[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-selected);border-color:var(--accent)}
 .signal-guide{display:flex;align-items:flex-start;gap:14px;padding:10px 2px 8px;margin-top:4px;
   border-bottom:1px solid var(--hairline);color:var(--text-2);font-size:12.5px;line-height:1.45}
-.signal-guide>strong{flex-shrink:0;color:var(--text);font-size:12.5px;padding-top:2px}
+.signal-guide-details{flex:1;min-width:0}
+.signal-guide summary{display:flex;align-items:center;gap:6px;min-height:44px;color:var(--text);font-size:12.5px;font-weight:650;cursor:pointer;list-style:none}
+.signal-guide summary::-webkit-details-marker{display:none}
+.signal-guide summary::after{content:"▾";font-size:10px;color:var(--text-3);transition:transform .16s ease}
+.signal-guide-details[open]>summary::after{transform:rotate(180deg)}
+.signal-guide summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+.signal-guide-details[open] dl{margin-top:8px}
 .signal-guide dl{display:flex;align-items:center;gap:10px 18px;flex-wrap:wrap}
 .signal-guide dl>div{display:flex;align-items:center;gap:7px}
 .signal-guide dt{flex-shrink:0}.signal-guide dd{margin:0;min-width:0;overflow-wrap:anywhere}
@@ -298,6 +358,19 @@ body.overlay-open{overflow:hidden}
 .category-badge{display:inline-flex;align-items:center;max-width:100%;overflow-wrap:anywhere;word-break:break-word;white-space:normal}
 .membership-new{color:var(--accent-selected);background:var(--accent-soft)}
 .membership-reentered{color:var(--hot);background:var(--hot-soft)}
+.list-heading{margin-top:18px;color:var(--text-2);font-size:15px;font-weight:650;letter-spacing:-.005em;line-height:1.4}
+/* Deliberately not the membership palette: "new to you" is a different claim from "new to the
+   list", and the two must be distinguishable when a card carries both. */
+.visit-new{color:var(--text);background:var(--seg-bg)}
+/* Compact mode is for the reader who already knows the badge vocabulary: it drops the explanatory
+   rows (classification badges, both sparklines) and the second description line, roughly tripling
+   the repositories per screen. The nodes stay in the DOM, so the exported view keeps them and
+   toggling back needs no re-render, but display:none takes the hidden rows out of both
+   find-in-page and the accessibility tree. The description is only clamped, never hidden, so it
+   stays findable in either mode. */
+body.compact .card{padding:11px 14px;margin-bottom:7px}
+body.compact .cdesc{-webkit-line-clamp:1;margin:4px 0 6px}
+body.compact .category-badges,body.compact .spark,body.compact .sparkhist{display:none}
 .cdesc{color:var(--text-2);font-size:15.5px;line-height:1.5;margin:6px 0 12px;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .cmeta{display:flex;gap:18px;align-items:center;font-size:14px;color:var(--text-2);flex-wrap:wrap}
@@ -339,7 +412,7 @@ body.overlay-open{overflow:hidden}
 .tip-readme-row .rdbtn{width:100%;justify-content:center}
 .trow{padding:9px 0;border-top:1px solid var(--hairline)}
 .trow:first-of-type{border-top:none;padding-top:2px}
-.tlabel{display:block;font-size:12.5px;font-weight:700;letter-spacing:.05em;color:var(--accent);
+.tlabel{display:block;font-size:12.5px;font-weight:700;letter-spacing:.05em;color:var(--accent-selected);
   text-transform:uppercase;margin-bottom:3px}
 .trow p{font-size:15.5px;line-height:1.55;color:var(--text)}
 .thint{font-size:11.5px;color:var(--text-3);text-align:center;margin-top:12px}
@@ -369,15 +442,44 @@ body.overlay-open{overflow:hidden}
 .scroll-top:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .scroll-top svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .scroll-top[hidden]{display:none}
+/* Shortcut help: the same modal contract as #readmePanel — scrim, inert page, focus trap, Escape,
+   focus restore to the opener. */
+#shortcutHelpScrim{position:fixed;inset:0;z-index:340;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .2s ease-out}
+#shortcutHelpScrim.on{opacity:1;pointer-events:auto}
+.shortcut-help{position:fixed;z-index:350;left:50%;top:50%;transform:translate3d(-50%,-46%,0);width:min(420px,calc(100vw - 32px));max-height:calc(100dvh - 48px);overflow-y:auto;display:grid;gap:14px;padding:20px;background:var(--tip-bg);backdrop-filter:blur(28px) saturate(180%);border:1px solid var(--tip-border);border-radius:18px;box-shadow:var(--shadow-pop);color:var(--text);opacity:0;pointer-events:none;transition:opacity .2s ease-out,transform .2s cubic-bezier(.16,1,.3,1)}
+.shortcut-help.open{opacity:1;transform:translate3d(-50%,-50%,0);pointer-events:auto}
+.shortcut-help[inert]{display:none}
+.sh-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sh-head h2{font-size:19px;letter-spacing:-.015em}
+.sh-head .sidebar-close:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.shortcut-list{display:grid;gap:9px}
+.shortcut-list>div{display:grid;grid-template-columns:84px minmax(0,1fr);align-items:center;gap:12px}
+.shortcut-list dt kbd{display:inline-block;min-width:32px;padding:3px 8px;border:1px solid var(--surface-border);border-bottom-width:2px;border-radius:7px;background:var(--control-solid);color:var(--text);font:inherit;font-size:12px;font-weight:650;text-align:center}
+.shortcut-list dd{margin:0;color:var(--text-2);font-size:13px;line-height:1.45;overflow-wrap:anywhere}
+.shortcut-optout{display:flex;align-items:center;gap:9px;min-height:44px;padding-top:12px;border-top:1px solid var(--hairline);font-size:13px}
+.shortcut-optout label{display:flex;align-items:center;gap:9px;min-height:44px;cursor:pointer}
+.shortcut-optout input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+.shortcut-optout input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .sidebar-section[hidden],.sidebar-refresh[hidden],.sidebar-group-seg[hidden],.undo-bar[hidden],.empty button[hidden]{display:none}
 footer{margin-top:56px;text-align:center;color:var(--text-3);font-size:12.5px;line-height:1.8}
 footer a{color:var(--text-2)}
+footer a:hover,footer a:focus-visible{color:var(--accent-selected)}
+footer a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.noscript-note{margin:18px 0;padding:12px 14px;border:1px solid var(--surface-border);border-radius:12px;background:var(--card);color:var(--text-2);font-size:13.5px;line-height:1.5}
+.noscript-note a{color:var(--accent-selected)}
+/* The footer now carries four links on one centred line; at 12.5px/1.8 each anchor is only about
+   23px tall, under the 44px touch minimum. Coarse pointers get a real target and room for the
+   focus ring; fine pointers keep the compact single-line footer. */
+@media(hover:none),(pointer:coarse){
+  footer a{display:inline-flex;align-items:center;min-height:44px;padding-inline:4px}
+}
 
 @media(prefers-reduced-motion:reduce){
   :root{--sidebar-open-duration:0ms;--sidebar-close-duration:0ms;--tooltip-duration:0ms}
   html{scroll-behavior:auto}
   *,*::before,*::after{transition-duration:0ms!important;animation:none!important}
   .filter-sidebar,#tipLayer,.scroll-top{transition:none!important}
+  .shortcut-help,#shortcutHelpScrim{transition:none!important}
   .scroll-top,.scroll-top.visible,.scroll-top.visible:hover,.scroll-top.visible:active{transform:none!important}
 }
 @media(prefers-reduced-transparency:reduce){
@@ -407,10 +509,19 @@ footer a{color:var(--text-2)}
   .controls{position:static}
   .seg button{padding-inline:8px;font-size:12.5px}
   .signal-guide{display:block;padding-top:8px}
-  .signal-guide>strong{display:block;margin-bottom:7px}
   .signal-guide dl{display:grid;gap:7px}
+  .filter-toggle-row{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;gap:8px;padding:5px;margin:-5px 0 -5px -5px;scrollbar-width:none}
+  .filter-toggle-row::-webkit-scrollbar{display:none}
+  .filter-toggle-row>*{flex:0 0 auto;max-width:none}
+  /* The card's terminal action measures 26px tall at 390px and #resetBtn 31px, both under the
+     44px minimum; the padding closes the gap without touching either font size. */
+  .repo-link{display:inline-block;padding:9px 0}
+  #resetBtn{display:inline-block;padding:7px 0}
 }
-@media(hover:hover) and (pointer:fine) and (min-width:721px) and (max-width:1147px){.wrap{padding-left:calc(env(safe-area-inset-left) + 80px)}}
+/* (min-width:721px), not the Media Queries Level 4 (not (max-width:720px)): a browser without
+   MQ4 boolean syntax drops the whole rule, and the fixed 76px rail then overlaps .wrap between
+   721px and ~899px. The JS matchMedia copy above keeps the MQ4 form — it degrades to false. */
+@media(hover:hover) and (pointer:fine) and (min-width:721px) and (max-width:1147px){.wrap{padding-left:calc(env(safe-area-inset-left) + 92px)}}
 
 .favbtn{position:absolute;right:8px;top:7px;width:44px;height:44px;background:none;border:none;color:var(--text-3);
   font-size:20px;cursor:pointer;padding:0;border-radius:10px;line-height:1;display:flex;align-items:center;justify-content:center;
@@ -440,7 +551,7 @@ footer a{color:var(--text-2)}
 #readmePanel #readmeBody code,#readmePanel #readmeBody pre{background:#eceff4;color:#111}
 html[data-theme="dark"] #readmeBody code,html[data-theme="dark"] #readmeBody pre{background:#3c3836;color:#fbf1c7}
 #readmeBody pre code{background:none;padding:0}
-#readmeBody a{color:var(--accent)}
+#readmeBody a{color:var(--accent-selected)}
 #readmeBody img{max-width:100%}
 .rdbtn{background:none;border:1px solid var(--border);color:var(--text-2);font:inherit;font-size:12.5px;
   padding:4px 10px;border-radius:8px;cursor:pointer;flex-shrink:0;transition:border-color .16s ease,color .16s ease,background-color .16s ease,transform .16s ease}
@@ -481,6 +592,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 
 </head>
 <body>
+<a class="skip-link" href="#mainContent" data-i18n="skip.main">Skip to content</a>
 <div class="filter-sidebar" id="filterSidebar" role="dialog" aria-label="Explore panel" data-i18n-aria-label="nav.ariaExplore" aria-hidden="true" inert data-group="explore">
   <div class="sidebar-head">
     <h2 data-i18n="sidebar.title">Dashboard menu</h2>
@@ -532,6 +644,17 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     </select>
     <p class="sidebar-note" data-i18n="sort.note">Repositories without a value appear last.</p>
   </section>
+  <section class="sidebar-section" id="presetSection" aria-labelledby="presetTitle" data-group="explore">
+    <h3 id="presetTitle" data-i18n="preset.title">Saved filters</h3>
+    <p class="sidebar-note" data-i18n="preset.note">Save the current Explore filters under a name and apply them again in one click.</p>
+    <form id="presetForm">
+      <label class="sr-only" for="presetName" data-i18n="preset.nameLabel">Preset name</label>
+      <input class="search preset-name" id="presetName" type="text" maxlength="40" autocomplete="off" aria-label="Preset name" data-i18n-aria-label="preset.nameLabel" placeholder="Rust CLI, weekly" data-i18n-placeholder="preset.namePlaceholder">
+      <button class="clear-filters" id="presetSaveBtn" type="submit" data-i18n="preset.save">Save current filters as preset</button>
+    </form>
+    <div class="preset-list" id="presetList"></div>
+    <p class="sidebar-note" id="presetStatus" role="status" aria-live="polite"></p>
+  </section>
   <section class="sidebar-section" id="resultSection" data-group="explore">
     <p class="filter-summary" id="filterSummary" role="status" aria-live="polite" data-i18n="result.all">Showing all repositories.</p>
     <button class="clear-filters" id="clearFiltersBtn" type="button" data-i18n="result.clear">Clear Explore filters</button>
@@ -555,11 +678,13 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
       <button id="exportJsonBtn" type="button" data-i18n="export.json">Download JSON</button>
       <button id="copyViewUrlBtn" type="button" data-i18n="export.copy">Copy current link</button>
     </div>
+    <p class="sidebar-note" data-i18n="export.favoritesHint">Switch to Favorites first to export only the repositories you saved.</p>
+    <button class="clear-filters" id="exportFavoritesBtn" type="button" data-i18n="export.favoritesSwitch">Switch to Favorites and export</button>
     <p class="export-status" id="exportStatus" role="status" aria-live="polite" aria-atomic="true" data-i18n="export.prompt">Choose an export format.</p>
   </section>
 </div>
 <nav class="nav-rail" id="navRail" aria-label="Quick navigation" data-i18n-aria-label="nav.quick">
-  <button class="nav-toggle" id="navAccountToggle" type="button" data-group="account" aria-label="Account and sync panel" data-i18n-aria-label="nav.ariaAccount" title="Login (a)" data-i18n-title="nav.titleAccount" aria-controls="filterSidebar" aria-expanded="false">
+  <button class="nav-toggle" id="navAccountToggle" type="button" data-group="account" aria-label="Login — account and sync panel" data-i18n-aria-label="nav.ariaAccount" title="Login (a)" data-i18n-title="nav.titleAccount" aria-controls="filterSidebar" aria-expanded="false">
     <span class="nav-glyph-user" aria-hidden="true"></span>
     <span class="nav-label" data-i18n="nav.account">Login</span>
   </button>
@@ -576,10 +701,13 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <span class="nav-label" data-i18n="nav.export">Export</span>
   </button>
   <span class="nav-rail-spacer" aria-hidden="true"></span>
+  <button class="nav-help" id="navHelpToggle" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="shortcutHelp" aria-label="Help — keyboard shortcuts (?)" data-i18n-aria-label="shortcuts.open" title="Help — keyboard shortcuts (?)" data-i18n-title="shortcuts.open">
+    <span class="nav-label" data-i18n="shortcuts.label">Help</span>
+  </button>
   <span class="filter-count" id="filterCount" aria-live="polite"></span>
 </nav>
 <div id="sidebarScrim"></div>
-<main class="wrap">
+<main class="wrap" id="mainContent" tabindex="-1">
 <header>
   <div class="title-box">
     <h1><button class="title-reset" id="resetBtn" type="button" title="Reset to the initial view" data-i18n-title="header.resetTitle">GITHUB INSIGHT</button></h1>
@@ -604,14 +732,16 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 </div>
 
 <aside class="signal-guide" aria-label="Badge guide" data-i18n-aria-label="badges.aria">
-  <strong data-i18n="badges.title">Badge guide</strong>
-  <dl>
-    <div><dt><span class="badge">🔥 N</span></dt><dd data-i18n="badges.streak">Observed on Trending on consecutive dates</dd></div>
-    <div><dt><span class="rankchg">↑/↓ N</span></dt><dd data-i18n="badges.change">Change in total stars since the previous observation date</dd></div>
-    <div><dt><span class="badge">HOT</span></dt><dd data-i18n="badges.hot">At least 1,000 stars gained in the selected period</dd></div>
-    <div><dt><span class="badge membership-new" data-i18n="badges.newLabel">New</span></dt><dd data-i18n="badges.new">First observed after the baseline</dd></div>
-    <div><dt><span class="badge membership-reentered" data-i18n="badges.reenteredLabel">Re-entered</span></dt><dd data-i18n="badges.reentered">Returned after leaving the previous list</dd></div>
-  </dl>
+  <details class="signal-guide-details" id="badgeGuide" open>
+    <summary data-i18n="badges.title">Badge guide</summary>
+    <dl>
+      <div><dt><span class="badge">🔥 N</span></dt><dd data-i18n="badges.streak">Observed on Trending on consecutive dates</dd></div>
+      <div><dt><span class="rankchg">↑/↓ N</span></dt><dd data-i18n="badges.change">Change in total stars since the previous observation date</dd></div>
+      <div><dt><span class="badge">HOT</span></dt><dd data-i18n="badges.hot">At least 1,000 stars gained in the selected period</dd></div>
+      <div><dt><span class="badge membership-new" data-i18n="badges.newLabel">New</span></dt><dd data-i18n="badges.new">First observed after the baseline</dd></div>
+      <div><dt><span class="badge membership-reentered" data-i18n="badges.reenteredLabel">Re-entered</span></dt><dd data-i18n="badges.reentered">Returned after leaving the previous list</dd></div>
+    </dl>
+  </details>
 </aside>
 
 <section class="filter-bar" id="filterBar" aria-label="Quick filters" data-i18n-aria-label="field.quick">
@@ -625,15 +755,18 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     </div>
     <select class="langsel" id="lang" aria-label="Programming language" data-i18n-aria-label="language.title"><option value="" data-i18n="language.all">All languages</option></select>
   </div>
-  <div class="filter-bar-row filter-bar-row-3">
+  <div class="filter-bar-row filter-bar-row-4 filter-toggle-row">
     <button type="button" id="excludeAi" class="filter-toggle" aria-pressed="false" data-i18n="field.excludeAi">Exclude AI</button>
     <button type="button" id="newOnly" class="filter-toggle" aria-pressed="false" data-i18n="field.newOnly">New repositories only</button>
     <button type="button" id="copyLinkBtn" class="filter-toggle" data-i18n="filter.copyLink">Copy link</button>
+    <button type="button" id="compactToggle" class="filter-toggle" aria-pressed="false" data-i18n="filter.compact">Compact list</button>
   </div>
   <p class="filter-bar-status" id="filterBarStatus" role="status" aria-live="polite" aria-atomic="true" data-i18n="filter.statusPrompt"></p>
 </section>
 
+<noscript><p class="noscript-note">This page builds its repository list with JavaScript. Turn JavaScript on, or subscribe to the Atom feeds: <a href="feed.xml">feed.xml</a> · <a href="changes.xml">changes.xml</a>.</p></noscript>
 <p id="cardKeyboardHint" class="sr-only" data-i18n="keyboard.card">When a card is focused, press Delete to hide that repository.</p>
+<h2 class="list-heading" id="listHeading" data-i18n="visit.heading">Trending repositories</h2>
 <div class="list-stage" id="listStage">
   <div class="list" id="list"></div>
   <div class="empty" id="empty"><p id="emptyText" data-i18n="empty.default">No repositories match these conditions.</p><button id="emptyResetBtn" type="button" data-i18n="empty.reset">Reset filters</button><button id="emptyManageHiddenBtn" type="button" hidden data-i18n="empty.manage">Manage hidden repositories</button></div>
@@ -651,6 +784,9 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 <time id="lastUpdated" datetime="2026-09-05">2026-09-05 (Asia/Seoul)</time>
 <!-- GENERATED:TRENDING-DATE:END --><br>
   <a href="https://github.com/nowwcastle-sudo/github-trending-daily" target="_blank" rel="noopener">source ↗</a>
+  · <span data-i18n="footer.subscribe">Subscribe</span>:
+  <a href="feed.xml" data-i18n="footer.feedCurrent">Current repositories (Atom)</a>
+  · <a href="changes.xml" data-i18n="footer.feedChanges">New and re-entered (Atom)</a>
 </footer>
 </main>
 
@@ -665,6 +801,29 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <button class="rdbtn" id="rpOpenGithub" data-i18n="readme.github">GitHub ↗</button><button class="rp-close" id="rpClose" aria-label="Close README viewer" data-i18n-aria-label="readme.close">✕</button></div>
   <div id="readmeBody" data-i18n="readme.loading">Loading…</div>
 </div>
+<div id="shortcutHelpScrim"></div>
+<div id="shortcutHelp" class="shortcut-help" role="dialog" aria-modal="true" aria-labelledby="shortcutHelpTitle" aria-hidden="true" inert>
+  <div class="sh-head">
+    <h2 id="shortcutHelpTitle" data-i18n="shortcuts.title">Keyboard shortcuts</h2>
+    <button class="sidebar-close" id="shortcutHelpClose" type="button" aria-label="Close keyboard shortcuts" data-i18n-aria-label="shortcuts.close">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <dl class="shortcut-list">
+    <div><dt><kbd>/</kbd></dt><dd data-i18n="shortcuts.search">Focus the search box</dd></div>
+    <div><dt><kbd>e</kbd></dt><dd data-i18n="shortcuts.explore">Open the Explore panel</dd></div>
+    <div><dt><kbd>a</kbd></dt><dd data-i18n="shortcuts.account">Open the Login panel</dd></div>
+    <div><dt><kbd>h</kbd></dt><dd data-i18n="shortcuts.history">Open the History panel</dd></div>
+    <div><dt><kbd>x</kbd></dt><dd data-i18n="shortcuts.export">Open the Export panel</dd></div>
+    <div><dt><kbd>Delete</kbd></dt><dd data-i18n="shortcuts.delete">Hide the focused repository</dd></div>
+    <div><dt><kbd>Esc</kbd></dt><dd data-i18n="shortcuts.escape">Close the open panel or dialog</dd></div>
+    <div><dt><kbd>?</kbd></dt><dd data-i18n="shortcuts.help">Show this list</dd></div>
+  </dl>
+  <p class="shortcut-optout">
+    <label><input type="checkbox" id="shortcutDisableToggle"><span data-i18n="shortcuts.disable">Disable single-key shortcuts</span></label>
+  </p>
+  <p class="sidebar-note" data-i18n="shortcuts.disableNote">Slash, question mark, Escape and Delete keep working.</p>
+</div>
 <div id="tipLayer" role="dialog" aria-label="Repository summary" data-i18n-aria-label="tooltip.dialog" aria-hidden="true" inert></div>
 <script src="site-i18n.js"></script>
 <script src="readme-markdown.js"></script>
@@ -677,6 +836,8 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 <script src="refresh-schedule.js"></script>
 <script src="membership-history.js"></script>
 <script src="current-view-export.js"></script>
+<script src="visit-tracker.js"></script>
+<script src="filter-presets.js"></script>
 <!-- Star trend disclosure: 매일 GitHub에서 직접 관측한 총 스타 추이 (GH Archive 추정치는 2026-09-02 중단) -->
 <script src="star-history.js"></script>
 <script>
@@ -694,7 +855,7 @@ document.addEventListener("site-locale-change",()=>{
   if(activeTipIndex!==null&&tipLayer.classList.contains("on")){
     const repo=REPOS[activeTipIndex];tipLayer.innerHTML=tipHTML(repo,resolveSummaryLocale(repo,siteI18n.locale));
   }
-  updateRefreshStatus();renderRecentExits(currentRecentExits);renderHist();
+  updateRefreshStatus();renderRecentExits(currentRecentExits);renderHist();updateVisitHeading();renderPresets();
 });
 const SIGNALS=new Map();
 const MEMBERSHIP_STATUS=new Map();
@@ -705,7 +866,33 @@ let filterState=RepoFilters.parseState(location.search,LANGUAGES);
 let period=filterState.period;
 let favOnly=filterState.favOnly;
 const storage=localStorage;
+/* The badge guide is notation for cards the phone viewport cannot show yet, so it ships open for
+   desktop and no-JS readers and collapses once on load under the mobile breakpoint. The reader
+   stays in control afterwards — no resize listener re-opens or re-closes it. */
+const badgeGuide=document.getElementById("badgeGuide");
+if(badgeGuide&&matchMedia("(max-width:560px)").matches)badgeGuide.open=false;
 let hiddenSet=new Set(HiddenRepos.read(storage)),lastHiddenSlug=null;
+// Recorded once per page load, before the first render, so every render this session sees the same
+// answer. REPOS is the generated data above; the diff is against what this browser last saw.
+const visitSummary=VisitTracker.recordVisit(storage,{slugs:REPOS.map(repo=>repo.slug),now:new Date().toISOString()});
+const newSinceLastVisit=new Set(visitSummary.newSlugs);
+function updateVisitHeading(){
+  const heading=document.getElementById("listHeading");
+  if(!visitSummary.previousVisitAt){heading.textContent=tr("visit.heading");return}
+  const date=visitSummary.previousVisitAt.slice(0,10);
+  heading.textContent=visitSummary.newSlugs.length
+    ?tr("visit.newSince",{count:visitSummary.newSlugs.length,date})
+    :tr("visit.noneSince",{date});
+}
+updateVisitHeading();
+const COMPACT_VIEW_KEY="gi.view.compact";
+let compactView=false;
+try{compactView=storage.getItem(COMPACT_VIEW_KEY)==="1"}catch{}
+function applyCompactView(){
+  document.body.classList.toggle("compact",compactView);
+  document.getElementById("compactToggle").setAttribute("aria-pressed",String(compactView));
+}
+applyCompactView();
 let guestFavorites=[];
 try{guestFavorites=Favorites.migrateLegacyFavs(storage)}catch{}
 let favSet=new Set(guestFavorites),favoriteBusy=false;
@@ -755,6 +942,13 @@ const sidebarGroupSeg=document.getElementById("sidebarGroupSeg");
 const sidebarGroupSegButtons=[...sidebarGroupSeg.querySelectorAll("button[data-group]")];
 const sidebarGroups=[...sidebar.querySelectorAll(":scope > [data-group]")];
 const sidebarHoverMedia=matchMedia("(hover:hover) and (pointer:fine)");
+// The rail is display:flex under (hover:hover) and (pointer:fine) and display:none!important under
+// (max-width:720px) — so "the rail is on screen" is exactly this query. Where it is true the rail
+// already labels and states the four groups, and a second copy inside the panel is two "you are
+// here" indicators for one location. Toggled through the `hidden` property rather than CSS because
+// focusableIn() filters on `hidden`, not on computed style, and the modal focus trap reads it.
+const sidebarRailVisibleMedia=matchMedia("(hover:hover) and (pointer:fine) and (not (max-width:720px))");
+function sidebarGroupSegVisible(mode){return mode==="modal"&&!sidebarRailVisibleMedia.matches}
 let sidebarTrigger=null,railPointerInside=false,sidebarPointerInside=false;
 function focusableIn(container){
   return [...container.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>!el.hidden&&!el.closest("[hidden]"));
@@ -813,9 +1007,10 @@ function restoreSidebarFocus(group){
     candidate.focus();
     if(document.activeElement===candidate)return;
   }
-  pageMain.setAttribute("tabindex","-1");
+  // <main> carries tabindex="-1" in the markup (it is also the skip link's target), so this rung
+  // only focuses it — adding and then removing the attribute would leave the skip link inoperable
+  // after the first sidebar close.
   pageMain.focus({preventScroll:true});
-  pageMain.addEventListener("focusout",()=>pageMain.removeAttribute("tabindex"),{once:true});
 }
 function closeSidebar(restoreFocus=true){
   cancelHoverClose();
@@ -824,7 +1019,7 @@ function closeSidebar(restoreFocus=true){
   sidebar.classList.remove("open");sidebar.setAttribute("aria-hidden","true");sidebar.inert=true;
   sidebar.removeAttribute("aria-modal");setSidebarExpandedState(false);
   delete sidebar.dataset.openMode;
-  sidebarGroupSeg.hidden=true;
+  sidebarGroupSeg.hidden=!sidebarGroupSegVisible(undefined);
   railToggles.forEach(toggle=>toggle.removeAttribute("aria-current"));
   if(mode==="modal"){
     sidebarScrim.classList.remove("on");pageMain.inert=false;
@@ -841,11 +1036,15 @@ function openSidebar(mode,trigger,group){
   const readme=document.getElementById("readmePanel");
   if(mode==="hover"&&readme.classList.contains("open"))return;
   if(readme.classList.contains("open"))closeReadme(false);
+  // The edge swipe and the rail both reach openSidebar() while the shortcut dialog is up: its
+  // scrim does not cover the screen edge the gesture starts from. Close it here, or the next
+  // closeShortcutHelp() clears pageMain.inert while the sidebar is still the modal on screen.
+  if(shortcutHelp.classList.contains("open"))closeShortcutHelp(false);
   hideTip();
   setSidebarGroup(group??sidebar.dataset.group,true);
   sidebar.inert=false;sidebar.classList.add("open");sidebar.setAttribute("aria-hidden","false");
   sidebar.dataset.openMode=mode;
-  sidebarGroupSeg.hidden=mode!=="modal";
+  sidebarGroupSeg.hidden=!sidebarGroupSegVisible(mode);
   if(mode==="modal"){
     sidebarTrigger=trigger instanceof HTMLElement?trigger:document.activeElement;
     sidebar.setAttribute("aria-modal","true");sidebarScrim.classList.add("on");setSidebarExpandedState(true);pageMain.inert=true;
@@ -939,11 +1138,65 @@ function updateMobileNavAccess(){
 }
 updateMobileNavAccess();
 sidebarMobileAccessMedia.addEventListener?.("change",updateMobileNavAccess);
+sidebarRailVisibleMedia.addEventListener?.("change",()=>{sidebarGroupSeg.hidden=!sidebarGroupSegVisible(sidebar.dataset.openMode)});
+// WCAG 2.1.4: the four letters are unmodified character-key shortcuts, so they need a way to be
+// turned off. The flag lives in localStorage and is read once at load; "/" (focus search), "?"
+// (this help) and Escape are navigation of last resort and stay live regardless.
+// The declaration sits above SIDEBAR_SHORTCUT_GROUPS on purpose: the opt-out test slices the page
+// from that constant to sidebarGestureInteractive and injects `shortcutsDisabled` as a context
+// global, which a `let` inside the slice would shadow.
+const SHORTCUTS_DISABLED_KEY="gi.shortcuts.disabled";
+let shortcutsDisabled=false;
+try{shortcutsDisabled=localStorage.getItem(SHORTCUTS_DISABLED_KEY)==="1"}catch{}
+// The dialog runtime is likewise kept out of that slice — it touches five elements the slice
+// fixture does not model. openShortcutHelp is a hoisted function declaration, so the keydown
+// listener below can call it from above.
+const shortcutHelp=document.getElementById("shortcutHelp"),shortcutHelpScrim=document.getElementById("shortcutHelpScrim");
+const shortcutHelpClose=document.getElementById("shortcutHelpClose"),navHelpToggle=document.getElementById("navHelpToggle");
+const shortcutDisableToggle=document.getElementById("shortcutDisableToggle");
+let shortcutHelpTrigger=null;
+shortcutDisableToggle.checked=shortcutsDisabled;
+function openShortcutHelp(trigger){
+  if(shortcutHelp.classList.contains("open"))return;
+  // The rail paints above the README scrim, so the "?" rail button stays clickable while the
+  // README dialog is open. Mirror openSidebar() and close the README first — otherwise
+  // closeShortcutHelp() clears pageMain.inert while the README is still on screen.
+  const readme=document.getElementById("readmePanel");
+  if(readme.classList.contains("open"))closeReadme(false);
+  closeSidebar(false);
+  // The "?" key path always hands over #navHelpToggle, which is display:none wherever the rail
+  // is hidden (coarse pointer, <=720px); focus() on it is a silent no-op, so fall back to
+  // whatever holds focus now rather than recording an opener that cannot take focus back.
+  shortcutHelpTrigger=sidebarOpenerUsable(trigger)?trigger:document.activeElement;
+  shortcutHelp.inert=false;shortcutHelp.classList.add("open");shortcutHelp.setAttribute("aria-hidden","false");
+  shortcutHelpScrim.classList.add("on");pageMain.inert=true;document.body.classList.add("overlay-open");
+  navHelpToggle.setAttribute("aria-expanded","true");
+  shortcutHelpClose.focus();
+}
+function closeShortcutHelp(restoreFocus=true){
+  if(!shortcutHelp.classList.contains("open"))return;
+  shortcutHelp.classList.remove("open");shortcutHelp.setAttribute("aria-hidden","true");shortcutHelp.inert=true;
+  shortcutHelpScrim.classList.remove("on");pageMain.inert=false;
+  navHelpToggle.setAttribute("aria-expanded","false");
+  if(!sidebar.classList.contains("open")&&!document.getElementById("readmePanel").classList.contains("open"))document.body.classList.remove("overlay-open");
+  if(restoreFocus&&shortcutHelpTrigger instanceof HTMLElement)shortcutHelpTrigger.focus();
+}
+navHelpToggle.addEventListener("click",event=>openShortcutHelp(event.currentTarget));
+shortcutHelpClose.addEventListener("click",()=>closeShortcutHelp());
+shortcutHelpScrim.addEventListener("click",()=>closeShortcutHelp());
+shortcutHelp.addEventListener("keydown",event=>trapFocus(shortcutHelp,event));
+document.addEventListener("keydown",event=>{if(event.key==="Escape")closeShortcutHelp()});
+shortcutDisableToggle.addEventListener("change",event=>{
+  shortcutsDisabled=event.currentTarget.checked;
+  try{localStorage.setItem(SHORTCUTS_DISABLED_KEY,shortcutsDisabled?"1":"0")}catch{}
+});
 const SIDEBAR_SHORTCUT_GROUPS={e:"explore",a:"account",h:"history",x:"export"};
 function shortcutSuppressed(event){
   if(event.repeat||event.isComposing||event.key==="Process")return true;
   if(event.altKey||event.ctrlKey||event.metaKey)return true;
   if(document.getElementById("readmePanel").classList.contains("open"))return true;
+  if(document.getElementById("shortcutHelp").classList.contains("open"))return true;
+  if(shortcutsDisabled&&event.key.length===1&&Object.hasOwn(SIDEBAR_SHORTCUT_GROUPS,event.key.toLowerCase()))return true;
   const target=event.target;
   const tag=String(target?.tagName||"").toLowerCase();
   return tag==="input"||tag==="select"||tag==="textarea"||target?.isContentEditable===true;
@@ -952,6 +1205,7 @@ document.addEventListener("keydown",event=>{
   if(shortcutSuppressed(event))return;
   const modalOpen=sidebar.dataset.openMode==="modal";
   if(event.key==="/"){if(modalOpen)return;event.preventDefault();document.getElementById("q").focus();return}
+  if(event.key==="?"){event.preventDefault();openShortcutHelp(document.getElementById("navHelpToggle"));return}
   // Only single-character keys are lowercased, so the "Process" / named-key guards above keep
   // matching their exact spellings; this makes CapsLock irrelevant to the accelerators (RED1-M4).
   const group=event.key.length===1?SIDEBAR_SHORTCUT_GROUPS[event.key.toLowerCase()]:undefined;
@@ -1134,16 +1388,20 @@ const esc=s=>(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&g
 function repoLabel(slug){return REPOS.find(repo=>repo.slug===slug)?.name||slug}
 function updateHiddenManager(){
   const section=document.getElementById("hiddenRepoSection"),listBox=document.getElementById("hiddenRepoList");
-  const slugs=[...hiddenSet];section.hidden=!slugs.length||sidebar.dataset.group!=="history";
+  const slugs=[...hiddenSet];section.hidden=sidebar.dataset.group!=="history";
   document.getElementById("hiddenRepoCount").textContent=tr("hidden.count",{count:slugs.length});
+  // An enabled button that provably cannot do anything teaches the reader that controls here are
+  // unreliable; the count above it already says zero.
+  document.getElementById("restoreAllHiddenBtn").disabled=!slugs.length;
   listBox.innerHTML=slugs.map(slug=>`<div class="hidden-repo-row"><span class="hidden-repo-name">${esc(repoLabel(slug))}</span><button class="hidden-restore" type="button" data-restore-hidden="${esc(slug)}" aria-label="${esc(tr("hidden.restoreRepo",{name:repoLabel(slug)}))}">${tr("common.restore")}</button></div>`).join("");
 }
 let currentRecentExits=[];
 function renderRecentExits(exited=[]){
   currentRecentExits=exited;
   const section=document.getElementById("recentExitsSection"),recentExitsList=document.getElementById("recentExitsList");
-  section.hidden=!exited.length||sidebar.dataset.group!=="history";
-  recentExitsList.innerHTML=exited.map(item=>`<a class="recent-exit-link" href="https://github.com/${esc(item.slug)}" target="_blank" rel="noopener">${esc(repoLabel(item.slug))} ↗</a>`).join("");
+  section.hidden=sidebar.dataset.group!=="history";
+  // A blank region cannot be told apart from a region that failed to load, so say which it is.
+  recentExitsList.innerHTML=exited.length?exited.map(item=>`<a class="recent-exit-link" href="https://github.com/${esc(item.slug)}" target="_blank" rel="noopener">${esc(repoLabel(item.slug))} ↗</a>`).join(""):`<p class="sidebar-note">${esc(tr("exits.empty"))}</p>`;
 }
 function showHiddenNotice(message,{undoSlug=null,tone=""}={}){
   const notice=document.getElementById("hiddenNotice"),undo=document.getElementById("undoHideBtn");
@@ -1270,11 +1528,12 @@ function render(){
     const badges=UiMotion.badgeModel(r,signal,viewPeriod);
     const membership=MEMBERSHIP_STATUS.get(r.slug.toLowerCase());
     const membershipBadge=membership==="new"?`<span class="badge membership-new" title="${tr("badges.new")}">${tr("badges.newLabel")}</span>`:membership==="reentered"?`<span class="badge membership-reentered" title="${tr("badges.reentered")}">${tr("badges.reenteredLabel")}</span>`:"";
-    return `<article class="card" tabindex="0" data-idx="${REPOS.indexOf(r)}" data-href="https://github.com/${r.slug}" aria-label="${esc(tr("repo.aria",{name:r.name}))}" aria-describedby="cardKeyboardHint" aria-keyshortcuts="Delete">
-      <button type="button" class="favbtn${faved?" on":""}" data-slug="${r.slug}" title="${tr("repo.favorite")}" aria-label="${tr(faved?"repo.favoriteRemove":"repo.favoriteAdd")}" aria-pressed="${faved}"${favoriteBusy?" disabled":""}>${faved?"★":"☆"}</button>
+    const visitBadge=newSinceLastVisit.has(r.slug)?`<span class="badge visit-new" title="${tr("visit.badgeTitle")}">${tr("visit.badge")}</span>`:"";
+    return `<article class="card" tabindex="0" data-idx="${REPOS.indexOf(r)}" data-href="https://github.com/${r.slug}" aria-label="${esc(tr("repo.aria",{name:r.name}))}" aria-keyshortcuts="Delete">
+      <button type="button" class="favbtn${faved?" on":""}" data-slug="${r.slug}" title="${tr("repo.favorite")}" aria-label="${esc(tr(faved?"repo.favoriteRemove":"repo.favoriteAdd",{name:r.name}))}" aria-pressed="${faved}"${favoriteBusy?" disabled":""}>${faved?"★":"☆"}</button>
       <div class="rank">${i+1}</div>
       <div class="cbody">
-        <div class="cname"><a class="repo-link" href="https://github.com/${r.slug}" target="_blank" rel="noopener">${esc(r.name)}</a>${membershipBadge}${badges.streakDays?`<span class="badge" title="${tr("badges.streak")}">🔥 ${badges.streakDays}</span>`:""}${badges.starsChange!==null?`<span class="rankchg" title="${tr("badges.change")}">${badges.starsChange>0?"↑":"↓"}${fmt(Math.abs(badges.starsChange))}</span>`:""}${badges.hot?`<span class="badge" title="${tr("badges.hot")}">HOT</span>`:""}</div>
+        <div class="cname"><a class="repo-link" href="https://github.com/${r.slug}" target="_blank" rel="noopener">${esc(r.name)}</a>${membershipBadge}${visitBadge}${badges.streakDays?`<span class="badge" title="${tr("badges.streak")}">🔥 ${badges.streakDays}</span>`:""}${badges.starsChange!==null?`<span class="rankchg" title="${tr("badges.change")}">${badges.starsChange>0?"↑":"↓"}${fmt(Math.abs(badges.starsChange))}</span>`:""}${badges.hot?`<span class="badge" title="${tr("badges.hot")}">HOT</span>`:""}</div>
         <div class="category-badges">${classificationBadges(r)}</div>
         <p class="cdesc">${esc(r.desc)}</p>
         <div class="cmeta">
@@ -1367,6 +1626,43 @@ document.getElementById("emptyManageHiddenBtn").addEventListener("click",event=>
   openSidebar("modal",event.currentTarget,"history");requestAnimationFrame(()=>document.querySelector(".hidden-restore")?.focus());
 });
 window.addEventListener("popstate",()=>applyFilterState(RepoFilters.parseState(location.search,LANGUAGES)));
+/* A preset is a name plus the string RepoFilters.serializeState already produces, so applying one
+   is exactly the popstate path: parseState -> applyFilterState -> syncUrl. No new state model. */
+function setPresetStatus(message){document.getElementById("presetStatus").textContent=message}
+function renderPresets(){
+  const listBox=document.getElementById("presetList"),presets=FilterPresets.read(storage);
+  listBox.innerHTML=presets.length
+    ?presets.map(preset=>`<div class="preset-row"><button class="preset-apply" type="button" data-apply-preset="${esc(preset.name)}" aria-label="${esc(tr("preset.apply",{name:preset.name}))}">${esc(preset.name)}</button><button class="preset-delete" type="button" data-delete-preset="${esc(preset.name)}" aria-label="${esc(tr("preset.delete",{name:preset.name}))}">✕</button></div>`).join("")
+    :`<p class="sidebar-note">${esc(tr("preset.empty"))}</p>`;
+}
+document.getElementById("presetForm").addEventListener("submit",event=>{
+  event.preventDefault();
+  const field=document.getElementById("presetName");
+  try{
+    FilterPresets.save(storage,{name:document.getElementById("presetName").value,query:RepoFilters.serializeState(currentExportState())});
+    const name=FilterPresets.normalizeName(field.value);
+    field.value="";renderPresets();setPresetStatus(tr("preset.saved",{name}));
+  }catch(error){setPresetStatus(error.message==="presets cannot exceed 20"?tr("preset.limit"):error.message==="preset name is required"?tr("preset.nameRequired"):tr("preset.saveError"))}
+});
+document.getElementById("presetList").addEventListener("click",event=>{
+  const applyButton=event.target.closest("[data-apply-preset]");
+  if(applyButton){
+    const preset=FilterPresets.read(storage).find(value=>value.name===applyButton.dataset.applyPreset);
+    if(!preset)return;
+    applyFilterState(RepoFilters.parseState(preset.query,LANGUAGES));syncUrl();
+    setPresetStatus("");
+    return;
+  }
+  const button=event.target.closest("[data-delete-preset]");
+  if(!button)return;
+  const name=button.dataset.deletePreset;
+  /* renderPresets() rebuilds the list with innerHTML, destroying the button that was just
+     activated, so focus would fall to <body>. Same convention as restoreRepository: land on the
+     next delete button, or the name field once the last preset is gone. */
+  try{FilterPresets.remove(storage,button.dataset.deletePreset);renderPresets();setPresetStatus(tr("preset.deleted",{name}));(document.querySelector(".preset-delete")||document.getElementById("presetName")).focus()}
+  catch{setPresetStatus(tr("preset.saveError"))}
+});
+renderPresets();
 
 function currentExportState(){return {...filterState,period,favOnly}}
 function currentExportUrl(){return CurrentViewExport.buildSourceUrl(location,currentExportState(),RepoFilters.serializeState)}
@@ -1391,6 +1687,11 @@ document.getElementById("copyLinkBtn").addEventListener("click",async()=>{
   try{await CurrentViewExport.copyText(currentExportUrl());setFilterBarStatus(tr("export.linkCopied"),"success")}
   catch{setFilterBarStatus(tr("export.copyFailed"),"error")}
 });
+document.getElementById("compactToggle").addEventListener("click",()=>{
+  compactView=!compactView;
+  try{storage.setItem(COMPACT_VIEW_KEY,compactView?"1":"0")}catch{}
+  applyCompactView();
+});
 function downloadCurrentView(type){
   try{
     const model=currentExportModel();
@@ -1407,6 +1708,14 @@ document.getElementById("exportJsonBtn").addEventListener("click",()=>downloadCu
 document.getElementById("copyViewUrlBtn").addEventListener("click",async()=>{
   try{await CurrentViewExport.copyText(currentExportUrl());setExportStatus(tr("export.linkCopied"),"success")}
   catch{setExportStatus(tr("export.copyFailed"),"error")}
+});
+/* Favorites is already a filter, so "export only what I saved" is setFavoriteView(true) followed by
+   the export buttons the panel already has. Focusing #exportCsvBtn is the scroll: the button lives
+   inside the scrollable panel, so focus brings it into view without a scrollIntoView that would
+   fight the sticky #resultSection. */
+document.getElementById("exportFavoritesBtn").addEventListener("click",()=>{
+  setFavoriteView(true);setExportStatus("");
+  requestAnimationFrame(()=>document.getElementById("exportCsvBtn").focus());
 });
 
 let historyBySlug=null,historyLoadError=false;
@@ -1500,18 +1809,21 @@ async function showReadmeVariant(id,{focus=false}={}){
     state.cache.set(id,html);if(state.currentId===id)setReadmeBody(html);
   }catch{
     if(currentReadme!==state||state.currentId!==id)return;
-    setReadmeBody(`<p>${tr("readme.unavailable")}</p><p><a href="${readmeGithubUrl(state,variant)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">${tr("readme.direct")}</a></p>`);
+    setReadmeBody(`<p>${tr("readme.unavailable")}</p><p><a href="${readmeGithubUrl(state,variant)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-selected)">${tr("readme.direct")}</a></p>`);
   }
 }
 async function openReadme(slug,name){
   const repoIndex=REPOS.findIndex(repo=>repo.slug===slug),metadata=readmeMetadata(REPOS[repoIndex]);
   readmeTrigger=document.querySelector(`.card[data-idx="${repoIndex}"]`)||document.activeElement;
+  // Same exclusivity rule as openSidebar(): the shortcut dialog goes before the README takes
+  // over pageMain.inert, or closing it later un-inerts the page behind an open README.
+  if(shortcutHelp.classList.contains("open"))closeShortcutHelp(false);
   closeSidebar(false);hideTip();
   document.getElementById("rpTitle").textContent=name;
   setReadmeBody(tr("readme.loading"),true);panel.inert=false;panel.classList.add("open");panel.setAttribute("aria-hidden","false");scrim.classList.add("on");
   pageMain.classList.add("reading");pageMain.inert=true;document.body.classList.add("overlay-open");document.getElementById("rpClose").focus();
   if(typeof hideScrollTopImmediately==="function")hideScrollTopImmediately();
-  if(!metadata){currentReadme=null;readmeVariantTabs.innerHTML="";setReadmeBody(`<p>${tr("readme.unavailable")}</p><p><a href="https://github.com/${slug}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">${tr("readme.direct")}</a></p>`);return}
+  if(!metadata){currentReadme=null;readmeVariantTabs.innerHTML="";setReadmeBody(`<p>${tr("readme.unavailable")}</p><p><a href="https://github.com/${slug}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-selected)">${tr("readme.direct")}</a></p>`);return}
   const selected=selectedReadmeVariant(metadata);
   currentReadme={slug,name,metadata,currentId:selected.id,cache:new Map()};renderReadmeVariantTabs(currentReadme);await showReadmeVariant(selected.id);
 }
