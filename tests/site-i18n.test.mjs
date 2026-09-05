@@ -99,16 +99,16 @@ test("the product name is GITHUB INSIGHT in every locale", () => {
 
 test("repository documentation is English-first with a complete Korean counterpart", () => {
   assert.match(readme, /^# GITHUB INSIGHT\r?\n\r?\n\[한국어\]\(README\.ko\.md\)/);
-  assert.match(readme, /candidate-desktop-1440\.png/);
-  assert.match(readme, /candidate-mobile-sidebar-390\.png/);
+  assert.match(readme, /desktop-1440\.png/);
+  assert.match(readme, /mobile-sidebar-390\.png/);
   assert.match(readme, /README variants from upstream only/);
   assert.match(koreanReadme, /^# GITHUB INSIGHT\r?\n\r?\n\[English\]\(README\.md\)/);
   assert.match(koreanReadme, /상류 저장소 README 언어판만 표시/);
   assert.match(koreanReadme, /최초 관측 후 최소 1일이면 히스토리 확인 가능/);
   assert.match(compatibilityReadme, /canonical English documentation is now \[README\.md\]\(README\.md\)/);
   for (const [document, headings] of [
-    [readme, ["## Planned features", "## Requesting a feature"]],
-    [koreanReadme, ["## 예정된 기능", "## 기능 요청"]],
+    [readme, ["## 🗺️ Planned features", "## 📝 Requesting a feature"]],
+    [koreanReadme, ["## 🗺️ 예정된 기능", "## 📝 기능 요청"]],
   ]) {
     for (const heading of headings) assert.ok(document.includes(heading), `${heading} must exist`);
   }
