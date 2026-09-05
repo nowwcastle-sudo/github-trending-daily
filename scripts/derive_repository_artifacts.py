@@ -19,6 +19,7 @@ from typing import Any, Iterable
 try:
     from scripts.record_repository_observations import (
         LEGACY_OVERLAY_ARTIFACT_PATHS,
+        PAGES_BASE_ARTIFACT_PATH_HISTORY,
         PAGES_BASE_ARTIFACT_PATHS,
         _capture_parent_database,
         _file_sha256,
@@ -33,6 +34,7 @@ except ModuleNotFoundError as error:
         raise
     from record_repository_observations import (
         LEGACY_OVERLAY_ARTIFACT_PATHS,
+        PAGES_BASE_ARTIFACT_PATH_HISTORY,
         PAGES_BASE_ARTIFACT_PATHS,
         _capture_parent_database,
         _file_sha256,
@@ -383,7 +385,7 @@ def derive_membership_timeline(connection: sqlite3.Connection, legacy_membership
     }
 
 
-def _normalized_artifact_paths(expected_paths: Iterable[str]) -> list[str]:
+def _normalized_artifact_paths(expected_paths: Iterable[str], base_paths: Iterable[str] = PAGES_BASE_ARTIFACT_PATHS) -> list[str]:
     if isinstance(expected_paths, (str, bytes)):
         raise ValueError("artifact path set is invalid")
     paths = list(expected_paths)
@@ -391,7 +393,7 @@ def _normalized_artifact_paths(expected_paths: Iterable[str]) -> list[str]:
         raise ValueError("artifact path set is invalid")
     if len(paths) != len(set(paths)) or len(paths) != len({value.casefold() for value in paths}):
         raise ValueError("artifact path set is ambiguous")
-    base = set(PAGES_BASE_ARTIFACT_PATHS)
+    base = set(base_paths)
     if not base.issubset(paths):
         raise ValueError("artifact path set is incomplete")
     for value in paths:
@@ -438,7 +440,7 @@ def hash_pages_artifacts(candidate_root: str | Path, expected_paths: Iterable[st
     return result
 
 
-def _expected_artifact_paths(connection: sqlite3.Connection, snapshot_seq: int) -> list[str]:
+def _expected_artifact_paths(connection: sqlite3.Connection, snapshot_seq: int, base_paths: Iterable[str] = PAGES_BASE_ARTIFACT_PATHS) -> list[str]:
     translations = [
         f"translations/{display_slug.replace('/', '__')}.json"
         for display_slug, status in connection.execute(
@@ -447,7 +449,7 @@ def _expected_artifact_paths(connection: sqlite3.Connection, snapshot_seq: int) 
                WHERE i.snapshot_seq=? ORDER BY i.display_rank""", (snapshot_seq,)
         ) if status == "applicable"
     ]
-    return _normalized_artifact_paths((*PAGES_BASE_ARTIFACT_PATHS, *translations))
+    return _normalized_artifact_paths((*base_paths, *translations), base_paths)
 
 
 def _exact_rows(value: Any, keys: set[str], label: str) -> list[dict[str, Any]]:
@@ -889,7 +891,10 @@ def read_finalized_artifact_contract(database_path: str | Path, snapshot_id: str
         snapshot_seq = _snapshot_sequence(connection, snapshot_id, require_latest=True)
         for seq, in connection.execute("SELECT snapshot_seq FROM snapshot_runs ORDER BY snapshot_seq"):
             verify_core_snapshot(connection, seq)
-        expected_paths = _expected_artifact_paths(connection, snapshot_seq)
+        # A closed blob may hold a snapshot finalized by an earlier release, whose rows are exact
+        # for that release's shipped-file list; the consumer (the probe, the builder) pins which
+        # list the deployment must match, so this reader accepts any version a release has shipped.
+        accepted_paths = [_expected_artifact_paths(connection, snapshot_seq, base) for base in PAGES_BASE_ARTIFACT_PATH_HISTORY]
         rows = [
             {"artifact_path": row[0], "sha256": row[1], "byte_size": row[2]}
             for row in connection.execute(
@@ -897,7 +902,7 @@ def read_finalized_artifact_contract(database_path: str | Path, snapshot_id: str
                 (snapshot_seq,),
             ) if row[0] not in LEGACY_OVERLAY_ARTIFACT_PATHS
         ]
-    if [row["artifact_path"] for row in rows] != expected_paths:
+    if [row["artifact_path"] for row in rows] not in accepted_paths:
         raise ValueError("finalized artifact path set is incomplete")
     return {"version": 1, "snapshotId": snapshot_id, "artifacts": rows}
 

@@ -45,6 +45,30 @@ PAGES_BASE_ARTIFACT_PATHS = (
     "hidden-repos.js", "index.html", "membership-history.js", "readme-markdown.js",
     "refresh-schedule.js", "repo-filters.js", "site-i18n.js", "star-history.js", "ui-motion.js", "visit-tracker.js",
 )
+# Every shipped-file list a release has finalized snapshots with, oldest first; the last entry is
+# the current list. A snapshot's artifact rows are exact for the release that produced it, and one
+# database carries snapshots from many releases, so the validator accepts any one version per
+# snapshot rather than the current list alone. Adding filter-presets.js and visit-tracker.js on
+# 2026-09-06 made every existing snapshot look incomplete and the refresh could not start. When a
+# release adds or removes a shipped file, append the new list here as a literal: the last entry is
+# a copy of PAGES_BASE_ARTIFACT_PATHS, never the constant itself, so the test comparing the two
+# fails the moment the constant changes without an append. Two shapes are absent on purpose: the
+# 18-entry list (before auth-lifecycle.js) never had a finalized snapshot, and the 20-entry shape
+# with star-history.json is the 19-entry list plus the legacy overlay row tolerated below.
+PAGES_BASE_ARTIFACT_PATH_HISTORY = (
+    (
+        "auth-lifecycle.js", "changes.xml", "current-view-export.js", "data/latest.json", "data/membership-status.json",
+        "favorite-sync.js", "favorites.js", "feed.xml", "firebase-client.js", "firebase-config.json",
+        "hidden-repos.js", "index.html", "membership-history.js", "readme-markdown.js",
+        "refresh-schedule.js", "repo-filters.js", "site-i18n.js", "star-history.js", "ui-motion.js",
+    ),
+    (
+        "auth-lifecycle.js", "changes.xml", "current-view-export.js", "data/latest.json", "data/membership-status.json",
+        "favorite-sync.js", "favorites.js", "feed.xml", "filter-presets.js", "firebase-client.js", "firebase-config.json",
+        "hidden-repos.js", "index.html", "membership-history.js", "readme-markdown.js",
+        "refresh-schedule.js", "repo-filters.js", "site-i18n.js", "star-history.js", "ui-motion.js", "visit-tracker.js",
+    ),
+)
 # star-history.json is a deploy overlay written by the star-ticks workflow; it is
 # published and recorded in deployment-manifest.json but is not part of the
 # finalized snapshot contract (2026-09-03 design §5.2).
@@ -672,8 +696,9 @@ def _validate_populated_rows(connection: sqlite3.Connection) -> None:
             raise ValueError("insight gap or primary deltas are invalid")
 
     for snapshot_seq, paths in artifacts_by_snapshot.items():
-        expected = set(PAGES_BASE_ARTIFACT_PATHS) | {f"translations/{connection.execute('SELECT display_slug FROM repository_profiles WHERE profile_id = ? AND slug = ?', (item['profile_id'], item['slug'])).fetchone()[0].replace('/', '__')}.json" for item in item_rows if item["snapshot_seq"] == snapshot_seq and item["translation_status"] == "applicable"}
-        if paths != expected and paths != expected | set(LEGACY_OVERLAY_ARTIFACT_PATHS):
+        translations = {f"translations/{connection.execute('SELECT display_slug FROM repository_profiles WHERE profile_id = ? AND slug = ?', (item['profile_id'], item['slug'])).fetchone()[0].replace('/', '__')}.json" for item in item_rows if item["snapshot_seq"] == snapshot_seq and item["translation_status"] == "applicable"}
+        expected_sets = [set(base) | translations for base in PAGES_BASE_ARTIFACT_PATH_HISTORY]
+        if paths not in expected_sets and paths not in [expected | set(LEGACY_OVERLAY_ARTIFACT_PATHS) for expected in expected_sets]:
             raise ValueError("artifact paths must equal the exact Pages allowlist")
 
 

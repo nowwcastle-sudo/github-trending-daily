@@ -122,6 +122,8 @@ The probe at `:647` runs without a contract and therefore resolves through `arti
 
 The version-1 recovery artifact in W1 prepare is rebuilt from the production commit's tree by that commit's own builder (`node "$RECOVERY_SOURCE/scripts/build-pages-artifact.mjs"`), for the same reason: this checkout's builder carries this checkout's shipped-file list.
 
+On the Python side, `record_repository_observations.PAGES_BASE_ARTIFACT_PATH_HISTORY` lists every shipped-file list a release has finalized snapshots with; `validate_schema` and `read_finalized_artifact_contract` accept a snapshot whose rows match any one version (one database carries snapshots from many releases), while finalizing and verifying the current candidate stay exact against the current list, and the JS probe and the archive-bound builder pin which version a deployment must match.
+
 ### 6.6 `verify-refresh-chain.mjs`
 `approvedGeneratedCommitPath`: add `data/observation-db.pointer.json`; keep `data/repository-observations.sqlite` accepted during the transition because the transition commit deletes it (diff-tree name lists do not distinguish add from delete). The follow-up PR removes the sqlite name.
 

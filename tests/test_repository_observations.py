@@ -15,6 +15,7 @@ from unittest import mock
 
 from scripts.record_repository_observations import (
     EMPTY_RELEASE_INVENTORY_SHA256,
+    PAGES_BASE_ARTIFACT_PATH_HISTORY,
     PAGES_BASE_ARTIFACT_PATHS,
     SCHEMA_VERSION,
     create_database,
@@ -108,7 +109,7 @@ def copy_item(connection, snapshot_seq, slug="owner/repo", **changes):
     connection.execute(f"INSERT INTO snapshot_items VALUES ({','.join('?' for _ in columns)})", [source[name] for name in columns])
 
 
-def complete_fixture(connection, *, display_slug="owner/repo", applicable=False):
+def complete_fixture(connection, *, display_slug="owner/repo", applicable=False, artifact_paths=PAGES_BASE_ARTIFACT_PATHS):
     baseline_run(connection)
     profile(connection, display_slug=display_slug)
     readme_path, readme_blob, readme_content = ("README.md", sha1("b"), sha256("c")) if applicable else (None, None, None)
@@ -142,7 +143,7 @@ def complete_fixture(connection, *, display_slug="owner/repo", applicable=False)
         "INSERT INTO repository_insights VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (1, "owner/repo", None, None, None, None, None, None, None, "repository-insight-v1", canonical_hash({"snapshot_seq": 1, "slug": "owner/repo", "previous_observed_snapshot_seq": None, "observation_gap_milliseconds": None, "stars_delta_since_previous_observation": None, "display_rank_delta": None, "rank_daily_delta": None, "rank_weekly_delta": None, "rank_monthly_delta": None, "insight_rule_version": "repository-insight-v1"})),
     )
-    for artifact_path in PAGES_BASE_ARTIFACT_PATHS:
+    for artifact_path in artifact_paths:
         connection.execute("INSERT INTO artifact_hashes VALUES (?, ?, ?, ?)", (1, artifact_path, sha256("a"), 1))
     if applicable:
         connection.execute("INSERT INTO artifact_hashes VALUES (?, ?, ?, ?)", (1, f"translations/{display_slug.replace('/', '__')}.json", sha256("b"), 1))
@@ -1005,6 +1006,42 @@ class RepositoryObservationTests(unittest.TestCase):
                     _validate_populated_rows(connection)
                 connection.execute("ROLLBACK TO hash_probe")
                 connection.execute("RELEASE hash_probe")
+
+    def test_artifact_rows_match_any_shipped_list_version(self):
+        # One database carries snapshots from many releases. A snapshot finalized before
+        # filter-presets.js and visit-tracker.js shipped is exact for that release's list, so the
+        # validator accepts every list a release has shipped, and nothing in between. The closed-blob
+        # contract reader is covered on a really finalized database in test_repository_artifacts.
+        # The last entry is a literal copy, never a reference to the constant: only then does the
+        # equality fail when the constant changes without a history append (the recurrence path of
+        # 2026-09-06). CPython folds equal constant tuples into one object, so the copy is checked in
+        # the source text rather than by identity.
+        self.assertEqual(PAGES_BASE_ARTIFACT_PATH_HISTORY[-1], PAGES_BASE_ARTIFACT_PATHS)
+        source = Path(ledger.__file__).read_text(encoding="utf-8")
+        history_block = source[source.index("PAGES_BASE_ARTIFACT_PATH_HISTORY = ("):]
+        history_block = history_block[:history_block.index("\n)\n")]
+        self.assertNotIn("PAGES_BASE_ARTIFACT_PATHS", history_block)
+        self.assertEqual(len(set(PAGES_BASE_ARTIFACT_PATH_HISTORY)), len(PAGES_BASE_ARTIFACT_PATH_HISTORY))
+        for version in PAGES_BASE_ARTIFACT_PATH_HISTORY:
+            self.assertEqual(list(version), sorted(set(version)))
+        older = PAGES_BASE_ARTIFACT_PATH_HISTORY[0]
+        self.assertEqual(sorted(set(PAGES_BASE_ARTIFACT_PATHS) - set(older)), ["filter-presets.js", "visit-tracker.js"])
+        create_database(self.database)
+        with closing(sqlite3.connect(self.database)) as connection:
+            complete_fixture(connection, artifact_paths=older)
+            validate_schema(connection)
+            connection.execute("SAVEPOINT overlay_probe")
+            connection.execute("INSERT INTO artifact_hashes VALUES (?, ?, ?, ?)", (1, "star-history.json", sha256("c"), 1))
+            validate_schema(connection)
+            connection.execute("ROLLBACK TO overlay_probe")
+            connection.execute("RELEASE overlay_probe")
+            connection.execute("SAVEPOINT partial_probe")
+            connection.execute("INSERT INTO artifact_hashes VALUES (?, ?, ?, ?)", (1, "visit-tracker.js", sha256("c"), 1))
+            with self.assertRaisesRegex(ValueError, "exact Pages allowlist"):
+                _validate_populated_rows(connection)
+            connection.execute("ROLLBACK TO partial_probe")
+            connection.execute("RELEASE partial_probe")
+            connection.commit()
 
     def test_release_hash_and_api_merge_parent_order_are_recomputed(self):
         create_database(self.database)
