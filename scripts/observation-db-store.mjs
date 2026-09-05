@@ -42,6 +42,17 @@ function fatalError(message) {
   return error;
 }
 
+// The one resolve failure that is not a defect: a commit from before the observation database
+// existed at all. Callers branch on it - the v0 and bootstrap arms of the two workflows - so it gets
+// its own exit code (3) and a ::notice::, and every other failure keeps exit 1 and ::error::. Folding
+// the two together is what let a corrupt pointer or a git fault read as "no database here yet".
+export const UNTRACKED_CODE = "OBSERVATION_DB_UNTRACKED";
+function untrackedError(message) {
+  const error = new Error(message);
+  error.code = UNTRACKED_CODE;
+  return error;
+}
+
 // The one override honoured inside Actions, and deliberately so: observation-db-preflight.yml has to
 // prove the Actions token can create a release and upload an asset, which no local PAT run can prove,
 // and it must do that against a release nothing else will ever read. The name pattern is the whole
@@ -261,7 +272,7 @@ export async function resolveObservationDatabase({ sourceSha, out = null, expect
   const hasPointer = gitPathExists(sourceSha, POINTER_PATH, options);
   const hasBlob = gitPathExists(sourceSha, DATABASE_PATH, options);
   if (hasPointer && hasBlob) throw new Error(`observation database is ambiguous at ${sourceSha}: both pointer and blob are tracked`);
-  if (!hasPointer && !hasBlob) throw new Error(`observation database is unavailable at ${sourceSha}: neither pointer nor blob is tracked`);
+  if (!hasPointer && !hasBlob) throw untrackedError(`observation database is not tracked at ${sourceSha}: neither pointer nor blob is tracked`);
   if (hasPointer) {
     const pointer = parsePointerBytes(git(["show", `${sourceSha}:${POINTER_PATH}`], options));
     if (expectSnapshotId !== null && pointer.snapshotId !== expectSnapshotId) throw new Error(`pointer snapshot ${pointer.snapshotId} does not match expected ${expectSnapshotId}`);
@@ -441,5 +452,11 @@ export async function main(argv = process.argv.slice(2)) {
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
-  main().then(code => { process.exitCode = code; }, error => { process.stderr.write(`::error::${scrub(error.message)}\n`); process.exitCode = 1; });
+  // Exit 3 means one thing only - nothing is tracked at that commit - and both --check and a real
+  // resolve report it the same way, so a caller can branch on it without parsing any output.
+  main().then(code => { process.exitCode = code; }, error => {
+    const untracked = error.code === UNTRACKED_CODE;
+    process.stderr.write(`${untracked ? "::notice::" : "::error::"}${scrub(error.message)}\n`);
+    process.exitCode = untracked ? 3 : 1;
+  });
 }

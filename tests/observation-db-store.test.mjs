@@ -329,7 +329,7 @@ function runStore(args, env) {
 
 // A real hang is bounded by the child's own OBSERVATION_DB_RESOLVE_DEADLINE_MS (TEST_DEADLINE_MS,
 // 120 s) below, not by this timeout, which only backstops a stall in the runner itself. It is the
-// most generous in the file because this one test spawns ~28 processes - seven CLI runs, each of
+// most generous in the file because this one test spawns ~32 processes - eight CLI runs, each of
 // which runs fake git three times - and process creation is the slow part on a loaded machine.
 test("resolve: pointer only downloads and verifies; blob only uses git; both or neither fail closed; expect-snapshot-id is enforced", { timeout: 300_000 }, async t => {
   const directory = await scratchDirectory(t, "obs-resolve-");
@@ -360,13 +360,23 @@ test("resolve: pointer only downloads and verifies; blob only uses git; both or 
   assert.equal(JSON.parse(blobOnly.stdout).snapshotId, null, "the blob carries no snapshot id to report");
   assert.match(blobOnly.stderr, /::notice::blob fallback cannot verify --expect-snapshot-id/);
 
+  // The two failures a caller has to tell apart. An ambiguous commit is a defect - exit 1, ::error::
+  // - and no workflow may answer it by building the legacy artifact.
   const both = await run({ pointer: pointerFor(), blob: DB });
-  assert.notEqual(both.status, 0); assert.match(both.stderr, /both/i);
+  assert.equal(both.status, 1, both.stderr); assert.match(both.stderr, /::error::[^\n]*both/i);
   assert.equal(existsSync(both.out), false, "a failed resolve leaves no output file");
 
+  // Nothing tracked is the one benign verdict, and it says so in the status rather than only in the
+  // text: exit 3 with a ::notice::, identical whether or not --check was asked for.
   const neither = await run({});
-  assert.notEqual(neither.status, 0); assert.match(neither.stderr, /neither|unavailable/i);
+  assert.equal(neither.status, 3, neither.stderr);
+  assert.match(neither.stderr, /::notice::observation database is not tracked at [a-f0-9]{40}: neither pointer nor blob is tracked/);
+  assert.doesNotMatch(neither.stderr, /::error::/);
   assert.equal(existsSync(neither.out), false, "a failed resolve leaves no output file");
+
+  const neitherCheck = await run({}, ["--check"]);
+  assert.equal(neitherCheck.status, 3, neitherCheck.stderr);
+  assert.match(neitherCheck.stderr, /::notice::observation database is not tracked at [a-f0-9]{40}/);
 
   const wrongSnapshot = await run({ pointer: pointerFor() }, ["--expect-snapshot-id", "20260101000000-0000000000000000"]);
   assert.notEqual(wrongSnapshot.status, 0); assert.match(wrongSnapshot.stderr, /snapshot/i);
@@ -467,13 +477,15 @@ test("resolve reads real git: pointer-only and blob-only commits resolve; both a
   assert.deepEqual(await readFile(blobOnly.out), DB, "cat-file blob must hand back the committed bytes unfiltered");
 
   const both = await run(bothSha, "both.sqlite");
-  assert.notEqual(both.status, 0);
-  assert.match(both.stderr, /both/i);
+  assert.equal(both.status, 1, both.stderr);
+  assert.match(both.stderr, /::error::[^\n]*both/i);
   assert.equal(existsSync(both.out), false, "a failed resolve leaves no output file");
 
+  // Against real git too, and not only the fake: an untracked commit is exit 3 with a ::notice::.
   const neither = await run(neitherSha, "neither.sqlite");
-  assert.notEqual(neither.status, 0);
-  assert.match(neither.stderr, /neither|unavailable/i);
+  assert.equal(neither.status, 3, neither.stderr);
+  assert.match(neither.stderr, /::notice::observation database is not tracked at [a-f0-9]{40}: neither pointer nor blob is tracked/);
+  assert.doesNotMatch(neither.stderr, /::error::/);
   assert.equal(existsSync(neither.out), false, "a failed resolve leaves no output file");
 });
 

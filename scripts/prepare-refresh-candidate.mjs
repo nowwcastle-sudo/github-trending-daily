@@ -143,10 +143,12 @@ function treeEntries(root, sha, pathspec = []) {
   });
 }
 
-// Absence is only what git itself reported: `cat-file -e` exits 1 for a resolvable
-// object that is missing and 128 for a path that is not in the tree. Anything else --
-// git failing to spawn, a timeout, a signal -- carries no exit status and must not be
-// read as "the path is absent", which would silently drop production state.
+// Absence is only what git itself reported: `cat-file -e` exits 1 for a resolvable object that is
+// missing, and 128 -- git's generic fatal code, not a "not in the tree" code -- for a path it cannot
+// resolve under the commit. 128 is read as absence here only because the caller has already had the
+// commit validated by the preceding `treeEntries` call, so a bad revision cannot be what produced
+// it. Anything else -- git failing to spawn, a timeout, a signal -- carries no exit status and must
+// not be read as "the path is absent", which would silently drop production state.
 export function existsAtCommit(root, sha, relative) {
   try {
     git(root, ["cat-file", "-e", `${sha}:${normalizeGitPath(relative)}`]);

@@ -106,6 +106,12 @@ test("one create-new parent database capture is resolved through the store and r
 test("production state checks and the recovery build resolve the database through the pointer", async () => {
   const workflow = await workflowText();
   assert.equal((workflow.match(/observation-db-store\.mjs resolve --source-sha "\$HYDRATION_SOURCE_SHA" --check/g) ?? []).length, 2);
+  // The v0 bootstrap gate branches on the exit status, never on plain success/failure: exit 0 means
+  // a v0 production is carrying the canonical database, exit 3 is the only status that clears a
+  // bootstrap, and every other status is a real fault that stops the refresh.
+  assert.doesNotMatch(workflow, /if node scripts\/observation-db-store\.mjs resolve[^\n]*--check; then/);
+  assert.match(workflow, /set \+e\n\s+node scripts\/observation-db-store\.mjs resolve --source-sha "\$HYDRATION_SOURCE_SHA" --check\n\s+CHECK_STATUS=\$\?\n\s+set -e\n\s+case "\$CHECK_STATUS" in/);
+  assert.match(workflow, /case "\$CHECK_STATUS" in\n\s+0\)\n\s+echo "::error::v0 production cannot carry the canonical repository database"\n\s+exit 1\n\s+;;\n\s+3\) ;;\n\s+\*\)\n\s+echo "::error::observation database check failed \(exit \$CHECK_STATUS\)"\n\s+exit 1\n\s+;;\n\s+esac/);
   const buildStart = workflow.indexOf("- name: Build verified recovery artifact");
   const buildEnd = workflow.indexOf("- name: Prepare isolated refresh candidate", buildStart);
   assertInOrder(workflow.slice(buildStart, buildEnd), [
@@ -191,6 +197,9 @@ test("promotion scans the candidate database, publishes the asset after every lo
   assert.doesNotMatch(promotion, /cp "\$CANDIDATE\/data\/repository-observations\.sqlite"/);
   assert.doesNotMatch(promotion, /git show :data\/repository-observations\.sqlite/);
   assert.match(promotion, /if git ls-files --error-unmatch data\/repository-observations\.sqlite >\/dev\/null 2>&1; then\n\s+git rm --cached --quiet data\/repository-observations\.sqlite\n\s+rm -f data\/repository-observations\.sqlite\n\s+fi/);
+  // The staged deletion of the database has to be visible to the allow-list scan, so changed_paths
+  // reads the index as well as the worktree - `git diff --name-only` alone would miss it.
+  assert.match(promotion, /git diff --name-only && git diff --cached --name-only && git ls-files --others/);
   assert.match(promotion, /case "\$changed_path" in\n\s+index\.html\|data\/repo-summaries\.json\|data\/observation-db\.pointer\.json\|data\/readme-state\.json[^\n]*\|translations\/\*\.json\|data\/repository-observations\.sqlite\) ;;/);
   assert.match(promotion, /git add -- index\.html data\/repo-summaries\.json data\/observation-db\.pointer\.json data\/readme-state\.json/);
   assert.match(promotion, /git grep --cached -qE[^\n]*-- index\.html data\/repo-summaries\.json data\/observation-db\.pointer\.json/);

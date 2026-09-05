@@ -43,22 +43,37 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if node scripts/observation-db-store.mjs resolve --source-sha "$SOURCE_SHA" --check; then
-            SNAPSHOT_ID="$(node --input-type=module -e 'import {readFileSync} from "node:fs"; const value=JSON.parse(readFileSync("data/latest.json","utf8")); if(!/^[0-9]{14}-[a-f0-9]{16}$/.test(value.snapshotId??"")) throw new Error("committed snapshot id is invalid"); process.stdout.write(value.snapshotId);')"
-            rm -f "${RUNNER_TEMP}/repository-observations.sqlite"
-            node scripts/observation-db-store.mjs resolve --source-sha "$SOURCE_SHA" --expect-snapshot-id "$SNAPSHOT_ID" --out "${RUNNER_TEMP}/repository-observations.sqlite"
-            ARTIFACT_CONTRACT="${RUNNER_TEMP}/artifact-contract.json"
-            python scripts/derive_repository_artifacts.py export-contract --database "${RUNNER_TEMP}/repository-observations.sqlite" --snapshot-id "$SNAPSHOT_ID" --contract-out "$ARTIFACT_CONTRACT"
-            node scripts/build-pages-artifact.mjs --source "." --out "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "$ARTIFACT_CONTRACT"
-            node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "$ARTIFACT_CONTRACT"
-            echo "DEPLOYMENT_MODE=v1" >> "$GITHUB_ENV"
-            echo "SNAPSHOT_ID=$SNAPSHOT_ID" >> "$GITHUB_ENV"
-            echo "ARTIFACT_CONTRACT=$ARTIFACT_CONTRACT" >> "$GITHUB_ENV"
-          else
-            node scripts/build-pages-artifact.mjs --mode legacy --source "." --out "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA"
-            node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/pages-artifact" --legacy-recovery-sha "$SOURCE_SHA"
-            echo "DEPLOYMENT_MODE=v0" >> "$GITHUB_ENV"
-          fi
+          # Exit 3 is the store's one benign verdict: nothing is tracked at this commit. Every other
+          # non-zero exit is a real fault - a commit carrying both pointer and blob, a corrupt
+          # pointer, git failing - and answering it with the legacy v0 build would deploy a stale
+          # site over a broken database, so the step is guarded rather than run under `if`.
+          set +e
+          node scripts/observation-db-store.mjs resolve --source-sha "$SOURCE_SHA" --check
+          CHECK_STATUS=$?
+          set -e
+          case "$CHECK_STATUS" in
+            0)
+              SNAPSHOT_ID="$(node --input-type=module -e 'import {readFileSync} from "node:fs"; const value=JSON.parse(readFileSync("data/latest.json","utf8")); if(!/^[0-9]{14}-[a-f0-9]{16}$/.test(value.snapshotId??"")) throw new Error("committed snapshot id is invalid"); process.stdout.write(value.snapshotId);')"
+              rm -f "${RUNNER_TEMP}/repository-observations.sqlite"
+              node scripts/observation-db-store.mjs resolve --source-sha "$SOURCE_SHA" --expect-snapshot-id "$SNAPSHOT_ID" --out "${RUNNER_TEMP}/repository-observations.sqlite"
+              ARTIFACT_CONTRACT="${RUNNER_TEMP}/artifact-contract.json"
+              python scripts/derive_repository_artifacts.py export-contract --database "${RUNNER_TEMP}/repository-observations.sqlite" --snapshot-id "$SNAPSHOT_ID" --contract-out "$ARTIFACT_CONTRACT"
+              node scripts/build-pages-artifact.mjs --source "." --out "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "$ARTIFACT_CONTRACT"
+              node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA" --snapshot-id "$SNAPSHOT_ID" --artifact-contract "$ARTIFACT_CONTRACT"
+              echo "DEPLOYMENT_MODE=v1" >> "$GITHUB_ENV"
+              echo "SNAPSHOT_ID=$SNAPSHOT_ID" >> "$GITHUB_ENV"
+              echo "ARTIFACT_CONTRACT=$ARTIFACT_CONTRACT" >> "$GITHUB_ENV"
+              ;;
+            3)
+              node scripts/build-pages-artifact.mjs --mode legacy --source "." --out "${RUNNER_TEMP}/pages-artifact" --source-sha "$SOURCE_SHA"
+              node scripts/probe-production.mjs --artifact-dir "${RUNNER_TEMP}/pages-artifact" --legacy-recovery-sha "$SOURCE_SHA"
+              echo "DEPLOYMENT_MODE=v0" >> "$GITHUB_ENV"
+              ;;
+            *)
+              echo "::error::observation database check failed (exit $CHECK_STATUS)"
+              exit 1
+              ;;
+          esac
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:

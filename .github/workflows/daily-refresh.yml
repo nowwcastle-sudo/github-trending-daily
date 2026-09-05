@@ -108,10 +108,25 @@ jobs:
           git merge-base --is-ancestor "$HYDRATION_SOURCE_SHA" "$ORIGINAL_SHA"
           if [ "$PRODUCTION_VERSION" = "0" ]; then
             [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] || { echo "::error::migration baseline requires the approved manual gate"; exit 1; }
-            if node scripts/observation-db-store.mjs resolve --source-sha "$HYDRATION_SOURCE_SHA" --check; then
-              echo "::error::v0 production cannot carry the canonical repository database"
-              exit 1
-            fi
+            # Only exit 3 - nothing tracked at this commit - clears a v0 bootstrap. Exit 0 means the
+            # database is there and this is not a migration baseline; anything else is a real fault
+            # (both pointer and blob tracked, a corrupt pointer, git failing) that must stop the run
+            # rather than be read as "no database yet" and waved through as a bootstrap.
+            set +e
+            node scripts/observation-db-store.mjs resolve --source-sha "$HYDRATION_SOURCE_SHA" --check
+            CHECK_STATUS=$?
+            set -e
+            case "$CHECK_STATUS" in
+              0)
+                echo "::error::v0 production cannot carry the canonical repository database"
+                exit 1
+                ;;
+              3) ;;
+              *)
+                echo "::error::observation database check failed (exit $CHECK_STATUS)"
+                exit 1
+                ;;
+            esac
             echo "ENRICHMENT_BUDGET_MODE=$MANUAL_BOOTSTRAP_GATE" >> "$GITHUB_ENV"
             echo "enrichment_budget_mode=$MANUAL_BOOTSTRAP_GATE" >> "$GITHUB_OUTPUT"
             echo "VERIFIED_RECOVERY_VERSION=0" >> "$GITHUB_ENV"
