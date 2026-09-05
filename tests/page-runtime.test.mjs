@@ -2926,3 +2926,14 @@ test("the Explore result count and Clear button stay pinned to the bottom of the
   // #filterSummary already carries role="status" aria-live="polite"; this fix is visual only.
   assert.match(page, /id="filterSummary" role="status" aria-live="polite"/);
 });
+
+test("the footer links both Atom feeds beside the source link", () => {
+  const footer = page.match(/<footer>[\s\S]*?<\/footer>/)?.[0] ?? "";
+  assert.match(footer, /<a href="feed\.xml" data-i18n="footer\.feedCurrent">Current repositories \(Atom\)<\/a>/);
+  assert.match(footer, /<a href="changes\.xml" data-i18n="footer\.feedChanges">New and re-entered \(Atom\)<\/a>/);
+  assert.match(footer, /<span data-i18n="footer\.subscribe">Subscribe<\/span>/);
+  assert.ok(footer.indexOf("source ↗") < footer.indexOf('href="feed.xml"'), "the feeds follow the source link");
+  // The <link rel="alternate"> declarations stay: they are what the titles were taken from.
+  assert.match(page, /<link rel="alternate" type="application\/atom\+xml" title="GITHUB INSIGHT — Current repositories" href="https:\/\/nowwcastle-sudo\.github\.io\/github-trending-daily\/feed\.xml">/);
+  assert.match(page, /<link rel="alternate" type="application\/atom\+xml" title="GITHUB INSIGHT — New and re-entered repositories" href="https:\/\/nowwcastle-sudo\.github\.io\/github-trending-daily\/changes\.xml">/);
+});

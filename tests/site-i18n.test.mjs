@@ -38,6 +38,7 @@ test("every rail group, shortcut hint, and held-retry message exists in all five
     // RED TEAM 1 H4: star-history.js renders every one of these through the site `tr`.
     "history.title", "history.explanation", "history.observedSince",
     "history.ariaTrend", "history.waiting", "history.singleObservation",
+    "footer.subscribe", "footer.feedCurrent", "footer.feedChanges",
   ];
   for (const locale of i18n.SUPPORTED_LOCALES) {
     for (const key of required) {

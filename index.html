@@ -385,6 +385,12 @@ body.overlay-open{overflow:hidden}
 .sidebar-section[hidden],.sidebar-refresh[hidden],.sidebar-group-seg[hidden],.undo-bar[hidden],.empty button[hidden]{display:none}
 footer{margin-top:56px;text-align:center;color:var(--text-3);font-size:12.5px;line-height:1.8}
 footer a{color:var(--text-2)}
+/* The footer now carries four links on one centred line; at 12.5px/1.8 each anchor is only about
+   23px tall, under the 44px touch minimum. Coarse pointers get a real target and room for the
+   focus ring; fine pointers keep the compact single-line footer. */
+@media(hover:none),(pointer:coarse){
+  footer a{display:inline-flex;align-items:center;min-height:44px;padding-inline:4px}
+}
 
 @media(prefers-reduced-motion:reduce){
   :root{--sidebar-open-duration:0ms;--sidebar-close-duration:0ms;--tooltip-duration:0ms}
@@ -668,6 +674,9 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 <time id="lastUpdated" datetime="2026-09-05">2026-09-05 (Asia/Seoul)</time>
 <!-- GENERATED:TRENDING-DATE:END --><br>
   <a href="https://github.com/nowwcastle-sudo/github-trending-daily" target="_blank" rel="noopener">source ↗</a>
+  · <span data-i18n="footer.subscribe">Subscribe</span>:
+  <a href="feed.xml" data-i18n="footer.feedCurrent">Current repositories (Atom)</a>
+  · <a href="changes.xml" data-i18n="footer.feedChanges">New and re-entered (Atom)</a>
 </footer>
 </main>
 
