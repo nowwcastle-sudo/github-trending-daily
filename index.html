@@ -773,7 +773,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
   <p class="shortcut-optout">
     <label><input type="checkbox" id="shortcutDisableToggle"><span data-i18n="shortcuts.disable">Disable single-key shortcuts</span></label>
   </p>
-  <p class="sidebar-note" data-i18n="shortcuts.disableNote">Slash, question mark and Escape keep working.</p>
+  <p class="sidebar-note" data-i18n="shortcuts.disableNote">Slash, question mark, Escape and Delete keep working.</p>
 </div>
 <div id="tipLayer" role="dialog" aria-label="Repository summary" data-i18n-aria-label="tooltip.dialog" aria-hidden="true" inert></div>
 <script src="site-i18n.js"></script>
@@ -875,7 +875,7 @@ const sidebarHoverMedia=matchMedia("(hover:hover) and (pointer:fine)");
 // already labels and states the four groups, and a second copy inside the panel is two "you are
 // here" indicators for one location. Toggled through the `hidden` property rather than CSS because
 // focusableIn() filters on `hidden`, not on computed style, and the modal focus trap reads it.
-const sidebarRailVisibleMedia=matchMedia("(hover:hover) and (pointer:fine) and (min-width:721px)");
+const sidebarRailVisibleMedia=matchMedia("(hover:hover) and (pointer:fine) and (not (max-width:720px))");
 function sidebarGroupSegVisible(mode){return mode==="modal"&&!sidebarRailVisibleMedia.matches}
 let sidebarTrigger=null,railPointerInside=false,sidebarPointerInside=false;
 function focusableIn(container){
@@ -1082,8 +1082,16 @@ let shortcutHelpTrigger=null;
 shortcutDisableToggle.checked=shortcutsDisabled;
 function openShortcutHelp(trigger){
   if(shortcutHelp.classList.contains("open"))return;
+  // The rail paints above the README scrim, so the "?" rail button stays clickable while the
+  // README dialog is open. Mirror openSidebar() and close the README first — otherwise
+  // closeShortcutHelp() clears pageMain.inert while the README is still on screen.
+  const readme=document.getElementById("readmePanel");
+  if(readme.classList.contains("open"))closeReadme(false);
   closeSidebar(false);
-  shortcutHelpTrigger=trigger instanceof HTMLElement?trigger:document.activeElement;
+  // The "?" key path always hands over #navHelpToggle, which is display:none wherever the rail
+  // is hidden (coarse pointer, <=720px); focus() on it is a silent no-op, so fall back to
+  // whatever holds focus now rather than recording an opener that cannot take focus back.
+  shortcutHelpTrigger=sidebarOpenerUsable(trigger)?trigger:document.activeElement;
   shortcutHelp.inert=false;shortcutHelp.classList.add("open");shortcutHelp.setAttribute("aria-hidden","false");
   shortcutHelpScrim.classList.add("on");pageMain.inert=true;document.body.classList.add("overlay-open");
   navHelpToggle.setAttribute("aria-expanded","true");

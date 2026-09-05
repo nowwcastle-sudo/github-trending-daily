@@ -135,8 +135,14 @@ function sidebarHarness({ hoverCapable = true } = {}) {
       if (this.capturedPointer === pointerId) this.capturedPointer = null;
       trace.push(`${this.id}:release:${pointerId}`);
     }
+    // A hidden element (or one inside a [hidden] container) is display:none, so .focus() on it
+    // is a silent no-op in a real browser — the same shape as canFocus:false.
+    hiddenByAncestry() {
+      for (let node = this; node; node = node.parentElement) if (node.hidden) return true;
+      return false;
+    }
     focus() {
-      if (!this.canFocus) { trace.push(`${this.id}:focus-noop`); return; }
+      if (!this.canFocus || this.hiddenByAncestry()) { trace.push(`${this.id}:focus-noop`); return; }
       documentRef.activeElement = this;
       this.focusWithin = true;
       this.focusCount += 1;
@@ -176,6 +182,9 @@ function sidebarHarness({ hoverCapable = true } = {}) {
     ["navHelpToggle", new FakeHTMLElement("navHelpToggle")],
     ["shortcutDisableToggle", new FakeHTMLElement("shortcutDisableToggle")],
   ]);
+  // #sidebarGroupSeg owns the four switcher buttons, so they need a real parent for
+  // hiddenByAncestry() to see the container going hidden wherever the rail is on screen.
+  for (const button of segButtons) button.parentElement = nodes.get("sidebarGroupSeg");
   for (const [id, group] of [["navAccountToggle", "account"], ["navToggle", "explore"], ["navHistoryToggle", "history"], ["navExportToggle", "export"]]) {
     const toggle = nodes.get(id);
     toggle.dataset.group = group;
@@ -256,6 +265,11 @@ function sidebarHarness({ hoverCapable = true } = {}) {
     HTMLElement: FakeHTMLElement,
     performance: { now: () => now },
     matchMedia(query) {
+      // The rail-visible query (Task 5) spells the breakpoint as (not (max-width:720px)), so it
+      // has to be answered before the plain max-width branch swallows it with the wrong sign.
+      if (query === "(hover:hover) and (pointer:fine) and (not (max-width:720px))") {
+        return { matches: hoverCapable, addEventListener() {} };
+      }
       if (query.includes("max-width:720px")) return { matches: !hoverCapable, addEventListener() {} };
       return { matches: query.includes("pointer:coarse") ? !hoverCapable : hoverCapable, addEventListener() {} };
     },
@@ -1449,7 +1463,7 @@ test("the modal group switcher selects a group and stays out of the hover tab or
 });
 
 test("the in-panel group switcher is hidden wherever the nav rail is on screen", () => {
-  assert.match(page, /const sidebarRailVisibleMedia=matchMedia\("\(hover:hover\) and \(pointer:fine\) and \(min-width:721px\)"\);/);
+  assert.match(page, /const sidebarRailVisibleMedia=matchMedia\("\(hover:hover\) and \(pointer:fine\) and \(not \(max-width:720px\)\)"\);/);
   assert.match(page, /function sidebarGroupSegVisible\(mode\)\{return mode==="modal"&&!sidebarRailVisibleMedia\.matches\}/);
   assert.match(page, /sidebarGroupSeg\.hidden=!sidebarGroupSegVisible\(mode\);/);
   assert.match(page, /sidebarRailVisibleMedia\.addEventListener\?\.\("change",\(\)=>\{sidebarGroupSeg\.hidden=!sidebarGroupSegVisible\(sidebar\.dataset\.openMode\)\}\);/);
@@ -2710,7 +2724,30 @@ test("the page declares a Content-Security-Policy that covers every origin the c
    Adapted from the red-team harness. Each one failed against 90f1e6d. */
 
 test("RED1-H1 a group switch never strands focus on a section it just hid", () => {
-  const harness = sidebarHarness();
+  // Desktop first (Task 5): the rail is on screen, so #sidebarGroupSeg is hidden and .focus() on
+  // its buttons is a no-op in a real browser — setSidebarGroup's sidebarClose rung is the shipped
+  // rescue here, not the seg button.
+  const desktop = sidebarHarness({ hoverCapable: true });
+  desktop.document.dispatch("keydown", { key: "x", target: desktop.body });
+  assert.equal(desktop.sidebar.dataset.openMode, "modal");
+  assert.equal(desktop.groupSeg.hidden, true, "the visible rail replaces the in-panel switcher");
+  const desktopSection = desktop.sections.find(section => section.id === "exportSection");
+  const desktopButton = desktop.createTarget("exportCsvBtn", { tagName: "BUTTON" });
+  desktopButton.parentElement = desktopSection;
+  desktopButton.focus();
+  assert.equal(desktop.document.activeElement, desktopButton);
+  desktop.document.dispatch("keydown", { key: "e", target: desktopButton });
+  assert.equal(desktopSection.hidden, true);
+  assert.ok(desktop.trace.includes("seg-explore:focus-noop"), "the hidden seg button is still tried first");
+  assert.equal(
+    desktop.document.activeElement,
+    desktop.close,
+    "with the switcher hidden, focus falls back to the panel's close button instead of <body>",
+  );
+
+  // Coarse pointer: the rail is gone, the switcher is the only group navigation, and it is where
+  // rescued focus belongs because it also announces the new group.
+  const harness = sidebarHarness({ hoverCapable: false });
   harness.document.dispatch("keydown", { key: "x", target: harness.body });
   assert.equal(harness.sidebar.dataset.group, "export");
   assert.equal(harness.sidebar.dataset.openMode, "modal");
@@ -3005,6 +3042,26 @@ test("a persistent rail button and the ? key both open the shortcut dialog", () 
   assert.match(page, /function openShortcutHelp\(trigger\)\{/);
   assert.match(page, /function closeShortcutHelp\(restoreFocus=true\)\{/);
   assert.match(page, /shortcutHelp\.addEventListener\("keydown",event=>trapFocus\(shortcutHelp,event\)\);/);
+
+  // The rail paints above the README scrim, so the "?" rail button is clickable under an open
+  // README. Without this guard closeShortcutHelp() would clear pageMain.inert while the README is
+  // still up, un-inerting the page behind a live modal — so mirror openSidebar's README close.
+  const openHelp = page.match(/\nfunction openShortcutHelp\(trigger\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.ok(openHelp.length > 0, "openShortcutHelp must be isolatable");
+  assert.ok(
+    openHelp.includes('if(readme.classList.contains("open"))closeReadme(false);'),
+    "openShortcutHelp closes an open README first",
+  );
+  assert.ok(
+    openHelp.indexOf("closeReadme(false)") < openHelp.indexOf("closeSidebar(false)"),
+    "the README guard runs before closeSidebar, the same order openSidebar uses",
+  );
+  // The ? path always hands over #navHelpToggle, which is display:none wherever the rail is
+  // hidden; recording it would restore focus to nothing on a coarse pointer or below 721px.
+  assert.ok(
+    openHelp.includes("shortcutHelpTrigger=sidebarOpenerUsable(trigger)?trigger:document.activeElement;"),
+    "the restore target is vetted with sidebarOpenerUsable, not just instanceof HTMLElement",
+  );
 });
 
 test("the single-key opt-out suppresses the four letters and never / ? or Escape", () => {
