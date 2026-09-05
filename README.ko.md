@@ -16,11 +16,11 @@ GITHUB INSIGHT는 GitHub Trending(일간·주간·월간)에 오르는 저장소
 
 다국어 인터페이스, Login(로그인)·Explore(탐색)·History(이력)·Export(내보내기) 4개 그룹의 Compact Rail 탐색, 출처 결합 README 뷰어, 5개 언어 요약 파이프라인은 현재 소스에 구현되어 있습니다. 저장소에는 로컬에서 재현·검증한 45개 저장소 v1 snapshot이 포함되며, 공개 사이트의 정확한 배포 revision은 deployment manifest로 별도 확인합니다. 일반 legacy 요약, README provenance 누락, 일부 언어 요약 누락은 v1 성공 배포로 인정하지 않습니다.
 
-아래 이미지는 2026-08-31 소스를 1440px와 390px에서 캡처한 인터페이스 예시입니다. 현재 소스의 레일은 여기 보이는 단일 Explore 레일이 아니라 Login·Explore·History·Export 4개 버튼입니다. production revision은 스크린샷이 아니라 deployment manifest로 증명합니다.
+아래 이미지는 2026-09-05에 production에서 1440px와 390px로 캡처한 것으로, Login·Explore·History·Export 4개 레일 그룹이 모두 보입니다. production revision은 스크린샷이 아니라 deployment manifest로 증명합니다.
 
-![Compact Rail이 적용된 데스크톱 후보 화면](docs/screenshots/candidate-desktop-1440.png)
+![1440px 데스크톱에서 본 GITHUB INSIGHT](docs/screenshots/desktop-1440.png)
 
-<p align="center"><img src="docs/screenshots/candidate-mobile-sidebar-390.png" width="390" alt="Explore 사이드바를 연 모바일 후보 화면"></p>
+<p align="center"><img src="docs/screenshots/mobile-sidebar-390.png" width="390" alt="패널이 열린 모바일 화면"></p>
 
 ## 네 개의 레일 그룹
 
@@ -59,7 +59,7 @@ GITHUB INSIGHT는 GitHub Trending(일간·주간·월간)에 오르는 저장소
 - “README를 참고하라”는 일반 fallback은 무효입니다. 표현이 다소 주관적이라는 이유만으로 README 근거와 구조가 완전한 요약을 실패시키지는 않습니다.
 - README path·blob·content hash·default-branch head는 공통 정본 출처와 stale 여부를 확인할 뿐, 언어별 문장을 byte 단위나 완전히 같은 의미로 강제하는 값이 아닙니다. 내부 증거는 README 섹션 제목과 줄 범위로 남기며 observation DB에는 README 전체 본문을 저장하지 않습니다.
 - 기존 bounded attempt·token 정책 안에서 저장소별 품질 교정은 최대 3회입니다.
-- 언어 하나 누락, 번역하면 안 되는 값의 잘못된 필드 배치·근거 불일치, 근거 부족, 스키마 오류 중 하나라도 있으면 해당 저장소와 candidate 전체가 실패합니다 — 그 저장소는 대신 `held`로 게시됩니다.
+- 언어 하나 누락, 번역하면 안 되는 값의 잘못된 필드 배치·근거 불일치, 근거 부족, 스키마 오류 중 하나라도 있으면 해당 저장소와 갱신 전체가 실패합니다 — 그 저장소는 대신 `held`로 게시됩니다.
 
 UI에는 “검증된 저장소 README를 바탕으로 AI가 생성했다”고 정확히 표시하며 사람이 검증했다고 과장하지 않습니다.
 
@@ -75,7 +75,7 @@ UI에는 “검증된 저장소 README를 바탕으로 AI가 생성했다”고 
 - 로그아웃 시 로컬 즐겨찾기, 선택적 Google 로그인 시 계정 동기화.
 - 공개 필드만 담는 현재 보기 CSV·JSON과 현재 링크 복사.
 - 상류 저장소 README 언어판만 표시 — 저장소에 실제 존재하는 README 언어 파일만 버튼으로 보여주며, path·불변 blob SHA·기본 브랜치 head SHA·content SHA-256을 검증한 뒤 렌더합니다. 전체 README 생성 번역과 저장은 중단했습니다.
-- 현재 저장소 전체 [feed.xml](https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml), 신규·재진입 [changes.xml](https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml). 두 feed의 제목은 각각 `GITHUB INSIGHT — Current repositories`, `GITHUB INSIGHT — New and re-entered repositories`이며, production은 다음 daily refresh가 feed를 다시 생성한 뒤 이 이름을 서비스합니다.
+- 현재 저장소 전체 [feed.xml](https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml), 신규·재진입 [changes.xml](https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml). 두 feed의 제목은 각각 `GITHUB INSIGHT — Current repositories`, `GITHUB INSIGHT — New and re-entered repositories`입니다.
 - 라이트·다크 테마, 키보드 탐색, focus trap, 44px 터치 대상, reduced-motion·reduced-transparency, BFCache 복원, 반응형 레이아웃.
 
 ## 다른 트렌딩 사이트 대비 장점
@@ -105,7 +105,7 @@ UI에는 “검증된 저장소 README를 바탕으로 AI가 생성했다”고 
 
 활성화된 경우 GitHub Actions는 하루 네 번, `Asia/Seoul` 기준 00시 07분, 06시 07분, 12시 07분, 18시 07분(UTC 03:07, 09:07, 15:07, 21:07)에 실행됩니다. 먼저 정본 저장소와 README 사실을 수집·동결한 뒤 enrichment 필요 여부를 판정합니다. 그다음 정확한 5개 언어 coverage 또는 저장소별 `held` admission, provenance 검증, 렌더, observation 기록, artifact 검증을 모두 마쳐야 publication으로 넘어갑니다.
 
-예약 Daily Refresh는 Claude CLI OAuth의 `claude-sonnet-5`를 기본 요약 producer로 유지합니다. Codex는 같은 frozen input에서 정확히 pending으로 남은 저장소에만 쓰는 fallback이며, 예약 실행의 기본 producer를 대체하거나 이미 완료된 저장소를 다시 생성하지 않습니다.
+예약된 갱신은 Claude CLI OAuth의 `claude-sonnet-5`를 기본 요약 producer로 유지합니다. Codex는 같은 frozen input에서 정확히 pending으로 남은 저장소에만 쓰는 fallback이며, 예약 실행의 기본 producer를 대체하거나 이미 완료된 저장소를 다시 생성하지 않습니다.
 
 - **Code release** — 현재 Pages code bytes로 새 v1 snapshot을 record, derive, finalize한 뒤 배포합니다.
 - **Finalized artifact redeploy** — 이미 finalize된 source와 byte-for-byte 같은 artifact만 다시 배포합니다. old finalized contract 아래에서 Pages bytes가 바뀌면 builder는 artifact나 manifest를 출력하기 전에 중단하고 full refresh를 요구합니다.
@@ -114,7 +114,7 @@ workflow는 fail-closed입니다.
 
 - 수집 실패 시 모델 호출은 0회입니다.
 - enrichment가 불완전하면 observation, 페이지, commit, Pages 배포는 모두 0입니다.
-- candidate 실패 시 tracked tree는 바뀌지 않습니다.
+- 갱신 실패 시 tracked tree는 바뀌지 않습니다.
 - README provenance 누락·stale, source mismatch, incomplete chunk, 모델 출력 오류, 비용 cap 초과, 옛 translation residue는 publication을 막습니다.
 - provider API key는 브라우저에 전달하지 않습니다.
 
@@ -124,7 +124,6 @@ workflow는 fail-closed입니다.
 
 일부러 짧게 유지합니다 — 희망 사항이 아니라 실제로 승인된 backlog만 담습니다.
 
-- **production probe의 release-window Atom 제목 tolerance 제거.** production 배포를 검증하는 probe는 현재 새 이름과 rename 이전 legacy 제목을 모두 허용해, GITHUB INSIGHT rename 직후 production이 아직 옛 제목을 서비스 중이어도 배포가 실패하지 않습니다. production이 daily refresh를 한 번 온전히 마치고 새 제목을 서비스하는 것을 확인하면 이 tolerance를 제거하고 probe는 다시 엄격한 일치 검사로 돌아갑니다.
 - **스타 관측 데이터베이스를 필요하면 git 밖으로 옮기는 것을 검토합니다.** observation ledger(`data/star-ticks/`, `data/star-daily.jsonl`)는 append-only이며 현재 이 저장소에 그대로 commit됩니다. 이 증가량이 저장소 크기나 clone/checkout 시간에 실질적인 영향을 주면 git 밖 저장소로 옮기는 방안을 검토 중입니다. 아직 옮긴 것은 없고 별도 데이터베이스 서비스도 없으며, 이관을 결정하고 실행하기 전까지 ledger는 계속 git 안에 남습니다.
 
 ## 기능 요청

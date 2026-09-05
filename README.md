@@ -16,11 +16,11 @@ GITHUB INSIGHT watches the repositories that appear on GitHub Trending (daily, w
 
 The multilingual interface, four-group Compact Rail navigation, source-bound README viewer, and five-language summary pipeline are implemented in the current source. The repository includes a locally reproduced 45-repository v1 snapshot; the public site's exact deployed revision must still be confirmed from its deployment manifest. Generic legacy summaries, missing README provenance, or incomplete language bundles are never counted as a successful v1 release.
 
-The interface screenshots below were captured from the 2026-08-31 source at 1440 px and 390 px; the rail in the current source has four groups (Login, Explore, History, Export) rather than the single Explore rail shown here. The deployment manifest, rather than a screenshot, is the production revision proof.
+The interface screenshots below were captured on 2026-09-05 from production at 1440 px and 390 px, with all four rail groups (Login, Explore, History, Export) visible. The deployment manifest, rather than a screenshot, is the production revision proof.
 
-![Desktop candidate with the Compact Rail](docs/screenshots/candidate-desktop-1440.png)
+![GITHUB INSIGHT desktop at 1440 px](docs/screenshots/desktop-1440.png)
 
-<p align="center"><img src="docs/screenshots/candidate-mobile-sidebar-390.png" width="390" alt="Mobile candidate with the Explore sidebar open"></p>
+<p align="center"><img src="docs/screenshots/mobile-sidebar-390.png" width="390" alt="Mobile view with the panel open"></p>
 
 ## Four rail groups
 
@@ -59,7 +59,7 @@ Each repository is produced as one atomic five-language bundle:
 - Generic “see the README” fallbacks are invalid. Subjective wording alone does not fail an otherwise source-backed, structurally complete summary.
 - README path, blob, content hash, and default-branch head identify the shared canonical source; they are not used to require byte-for-byte or perfectly equivalent prose across locales. Evidence is retained as README headings and line ranges, while full README bodies are not written to the observation database.
 - Up to three repository-level quality corrections are allowed within the existing bounded attempt and token policy.
-- One missing locale, misplaced or unbacked immutable token, insufficient source, or schema defect fails the entire repository and therefore the candidate — that repository is published `held` instead.
+- One missing locale, misplaced or unbacked immutable token, insufficient source, or schema defect fails the entire repository and therefore the refresh — that repository is published `held` instead.
 
 The interface describes these summaries accurately as AI-generated from a verified repository README; it does not claim human verification.
 
@@ -75,7 +75,7 @@ The interface describes these summaries accurately as AI-generated from a verifi
 - Local favorites when signed out and optional Google-account synchronization when signed in.
 - Current-view CSV and JSON export containing public fields only, plus a copyable discovery URL.
 - README variants from upstream only — the viewer lists only README language files that actually exist in the repository, verified by path, immutable blob SHA, default-branch head SHA, and content SHA-256 before rendering. This project no longer generates or stores full README translations.
-- [feed.xml](https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml) for the current repository set and [changes.xml](https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml) for new and re-entered membership events. Both feeds are titled `GITHUB INSIGHT — Current repositories` and `GITHUB INSIGHT — New and re-entered repositories`; production carries the renamed titles after the next daily refresh regenerates them.
+- [feed.xml](https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml) for the current repository set and [changes.xml](https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml) for new and re-entered membership events. Both feeds are titled `GITHUB INSIGHT — Current repositories` and `GITHUB INSIGHT — New and re-entered repositories`.
 - Light and dark themes, keyboard navigation, focus trapping, 44 px touch targets, reduced-motion handling, reduced-transparency handling, BFCache restoration, and responsive layouts.
 
 ## Advantages over other trending sites
@@ -105,7 +105,7 @@ The interface describes these summaries accurately as AI-generated from a verifi
 
 When activated, GitHub Actions is scheduled four times a day at minute 07 of 00:00, 06:00, 12:00 and 18:00 in `Asia/Seoul` (03:07, 09:07, 15:07 and 21:07 UTC). The workflow collects and freezes canonical repository and README facts before considering enrichment. It must then complete exact five-language coverage or per-repository `held` admission, provenance validation, rendering, observation recording, and artifact validation before publication.
 
-Scheduled Daily Refresh keeps Claude CLI OAuth with `claude-sonnet-5` as the default summary producer. Codex is a fallback only for the exact repositories that remain pending against the same frozen input; it does not replace the scheduled default or regenerate already complete repositories.
+The scheduled refresh keeps Claude CLI OAuth with `claude-sonnet-5` as the default summary producer. Codex is a fallback only for the exact repositories that remain pending against the same frozen input; it does not replace the scheduled default or regenerate already complete repositories.
 
 - **Code release** — Record, derive, and finalize a new v1 snapshot from the current Pages code bytes, then deploy it.
 - **Finalized artifact redeploy** — Redeploy only an artifact that is byte-for-byte identical to the source already finalized. If Pages bytes changed under the old finalized contract, the builder stops before artifact or manifest output and requires a full refresh.
@@ -113,8 +113,8 @@ Scheduled Daily Refresh keeps Claude CLI OAuth with `claude-sonnet-5` as the def
 The workflow is fail closed:
 
 - The model is called zero times if collection fails.
-- An incomplete enrichment candidate writes no observation, page, commit, or Pages deployment.
-- A failed candidate leaves the tracked tree unchanged.
+- An incomplete enrichment refresh writes no observation, page, commit, or Pages deployment.
+- A failed refresh leaves the tracked tree unchanged.
 - Missing or stale README provenance, source mismatch, incomplete chunks, invalid model output, cost-cap breaches, or translation residue stop publication.
 - The browser never receives a provider API key.
 
@@ -124,7 +124,6 @@ Star history is observed by this site itself: the star-ticks workflow records th
 
 This list is deliberately short — it is the actually-approved backlog, not a wish list:
 
-- **Remove the production probe's release-window Atom title tolerance.** The probe that verifies a production deploy currently accepts both the renamed feed titles and the pre-rename legacy titles, so a deploy immediately after the GITHUB INSIGHT rename does not fail while production still serves the old titles. Once production has been observed serving the renamed titles after a full daily refresh, this tolerance is removed and the probe goes back to a strict match.
 - **Move the star-observation database out of git if its growth demands it.** The observation ledgers (`data/star-ticks/`, `data/star-daily.jsonl`) are append-only and committed to this repository today; if their growth materially affects repository size or clone/checkout time, moving them to storage outside git is under consideration. Nothing has moved yet, and this repository has no separate database service today — the ledgers stay in git until a move is decided and executed.
 
 ## Requesting a feature

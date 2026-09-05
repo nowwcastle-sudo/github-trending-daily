@@ -99,8 +99,8 @@ test("the product name is GITHUB INSIGHT in every locale", () => {
 
 test("repository documentation is English-first with a complete Korean counterpart", () => {
   assert.match(readme, /^# GITHUB INSIGHT\r?\n\r?\n\[한국어\]\(README\.ko\.md\)/);
-  assert.match(readme, /candidate-desktop-1440\.png/);
-  assert.match(readme, /candidate-mobile-sidebar-390\.png/);
+  assert.match(readme, /desktop-1440\.png/);
+  assert.match(readme, /mobile-sidebar-390\.png/);
   assert.match(readme, /README variants from upstream only/);
   assert.match(koreanReadme, /^# GITHUB INSIGHT\r?\n\r?\n\[English\]\(README\.md\)/);
   assert.match(koreanReadme, /상류 저장소 README 언어판만 표시/);
