@@ -131,11 +131,14 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 /* Korean and Japanese rail labels are single words (내보내기, エクスポート); the default
    overflow-wrap would split them mid-word inside the rail. keep-all is the correct CJK rule and a
    no-op for the four Latin locales. */
-.nav-label{line-height:1;word-break:keep-all;overflow-wrap:normal}
+.nav-label{line-height:1}
+/* Korean only: keep-all stops a two-syllable rail label breaking mid-word. Japanese katakana
+   labels need the default breaking, so the rule is scoped by document language. */
+html:lang(ko) .nav-label{word-break:keep-all;overflow-wrap:normal}
 .nav-rail-spacer{flex:1}
 /* WCAG 2.1.4 needs the single-key accelerators to be discoverable and switchable off, so the rail
    carries a persistent "?" opener for the shortcut dialog. 44px minimum target like every control. */
-.nav-help{width:48px;min-height:44px;border:0;border-radius:14px;padding:6px 4px;background:transparent;color:var(--text-2);cursor:pointer;display:grid;place-items:center;align-content:center;gap:4px;font:inherit;font-size:10px;font-weight:650;transition:background-color .16s ease,color .16s ease}
+.nav-help{width:60px;min-height:44px;border:0;border-radius:14px;padding:6px 4px;background:transparent;color:var(--text-2);cursor:pointer;display:grid;place-items:center;align-content:center;gap:4px;font:inherit;font-size:10px;font-weight:650;transition:background-color .16s ease,color .16s ease}
 .nav-help::before{content:"?";font-size:16px;font-weight:700;line-height:1}
 .nav-help:hover,.nav-help:focus-visible{background:var(--accent-soft);color:var(--accent-selected)}
 .nav-help:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
@@ -246,6 +249,18 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
    underneath. --control-solid, not --tip-bg: the panel background is translucent and would let the
    scrolling filter list read through the pinned strip. */
 #resultSection{position:sticky;bottom:calc(-1 * var(--sidebar-pad-bottom));z-index:2;background:var(--control-solid);border-top:1px solid var(--surface-border);padding-bottom:var(--sidebar-pad-bottom);margin-bottom:calc(-1 * var(--sidebar-pad-bottom))}
+/* Saved filters sit above the sticky result strip. .search.preset-name carries two classes so the
+   field drops the search glyph and its 36px inset regardless of where this block sits in the
+   sheet; hover text uses --accent-selected, the light-theme text accent. */
+.preset-list{display:grid;gap:7px}
+.preset-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px}
+.preset-apply{min-width:0;min-height:44px;border:1px solid var(--border);border-radius:9px;background:var(--control-solid);color:var(--text);padding:8px 11px;text-align:left;font:inherit;font-size:12.5px;font-weight:650;cursor:pointer;overflow-wrap:anywhere}
+.preset-apply:hover{border-color:var(--accent);color:var(--accent-selected)}
+.preset-apply:focus-visible,.preset-delete:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.preset-delete{min-width:44px;min-height:44px;border:1px solid var(--border);border-radius:9px;background:transparent;color:var(--text-2);font:inherit;font-size:14px;cursor:pointer}
+.preset-delete:hover{border-color:var(--hot);color:var(--hot)}
+.search.preset-name{min-height:44px;padding-left:12px;background-image:none}
+#presetForm{display:grid;gap:7px}
 #sidebarScrim{position:fixed;inset:0;z-index:310;background:rgba(0,0,0,.34);opacity:0;pointer-events:none;transition:opacity .24s ease-out}
 #sidebarScrim.on{opacity:1;pointer-events:auto}
 body.overlay-open{overflow:hidden}
@@ -442,7 +457,7 @@ body.compact .category-badges,body.compact .spark,body.compact .sparkhist{displa
 .sidebar-section[hidden],.sidebar-refresh[hidden],.sidebar-group-seg[hidden],.undo-bar[hidden],.empty button[hidden]{display:none}
 footer{margin-top:56px;text-align:center;color:var(--text-3);font-size:12.5px;line-height:1.8}
 footer a{color:var(--text-2)}
-footer a:hover,footer a:focus-visible{color:var(--accent)}
+footer a:hover,footer a:focus-visible{color:var(--accent-selected)}
 footer a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .noscript-note{margin:18px 0;padding:12px 14px;border:1px solid var(--surface-border);border-radius:12px;background:var(--card);color:var(--text-2);font-size:13.5px;line-height:1.5}
 .noscript-note a{color:var(--accent-selected)}
@@ -497,7 +512,7 @@ footer a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   .repo-link{display:inline-block;padding:9px 0}
   #resetBtn{display:inline-block;padding:7px 0}
 }
-@media(hover:hover) and (pointer:fine) and (min-width:721px) and (max-width:1147px){.wrap{padding-left:calc(env(safe-area-inset-left) + 92px)}}
+@media(hover:hover) and (pointer:fine) and (not (max-width:720px)) and (max-width:1147px){.wrap{padding-left:calc(env(safe-area-inset-left) + 92px)}}
 
 .favbtn{position:absolute;right:8px;top:7px;width:44px;height:44px;background:none;border:none;color:var(--text-3);
   font-size:20px;cursor:pointer;padding:0;border-radius:10px;line-height:1;display:flex;align-items:center;justify-content:center;
@@ -619,6 +634,17 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
       <option value="release" data-i18n="sort.release">Latest release</option>
     </select>
     <p class="sidebar-note" data-i18n="sort.note">Repositories without a value appear last.</p>
+  </section>
+  <section class="sidebar-section" id="presetSection" aria-labelledby="presetTitle" data-group="explore">
+    <h3 id="presetTitle" data-i18n="preset.title">Saved filters</h3>
+    <p class="sidebar-note" data-i18n="preset.note">Save the current Explore filters under a name and apply them again in one click.</p>
+    <form id="presetForm">
+      <label class="sr-only" for="presetName" data-i18n="preset.nameLabel">Preset name</label>
+      <input class="search preset-name" id="presetName" type="text" maxlength="40" autocomplete="off" aria-label="Preset name" data-i18n-aria-label="preset.nameLabel" placeholder="Rust CLI, weekly" data-i18n-placeholder="preset.namePlaceholder">
+      <button class="clear-filters" id="presetSaveBtn" type="submit" data-i18n="preset.save">Save current filters as preset</button>
+    </form>
+    <div class="preset-list" id="presetList"></div>
+    <p class="sidebar-note" id="presetStatus" role="status" aria-live="polite"></p>
   </section>
   <section class="sidebar-section" id="resultSection" data-group="explore">
     <p class="filter-summary" id="filterSummary" role="status" aria-live="polite" data-i18n="result.all">Showing all repositories.</p>
@@ -800,6 +826,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 <script src="membership-history.js"></script>
 <script src="current-view-export.js"></script>
 <script src="visit-tracker.js"></script>
+<script src="filter-presets.js"></script>
 <!-- Star trend disclosure: 매일 GitHub에서 직접 관측한 총 스타 추이 (GH Archive 추정치는 2026-09-02 중단) -->
 <script src="star-history.js"></script>
 <script>
@@ -817,7 +844,7 @@ document.addEventListener("site-locale-change",()=>{
   if(activeTipIndex!==null&&tipLayer.classList.contains("on")){
     const repo=REPOS[activeTipIndex];tipLayer.innerHTML=tipHTML(repo,resolveSummaryLocale(repo,siteI18n.locale));
   }
-  updateRefreshStatus();renderRecentExits(currentRecentExits);renderHist();updateVisitHeading();
+  updateRefreshStatus();renderRecentExits(currentRecentExits);renderHist();updateVisitHeading();renderPresets();
 });
 const SIGNALS=new Map();
 const MEMBERSHIP_STATUS=new Map();
@@ -1584,6 +1611,40 @@ document.getElementById("emptyManageHiddenBtn").addEventListener("click",event=>
   openSidebar("modal",event.currentTarget,"history");requestAnimationFrame(()=>document.querySelector(".hidden-restore")?.focus());
 });
 window.addEventListener("popstate",()=>applyFilterState(RepoFilters.parseState(location.search,LANGUAGES)));
+/* A preset is a name plus the string RepoFilters.serializeState already produces, so applying one
+   is exactly the popstate path: parseState -> applyFilterState -> syncUrl. No new state model. */
+function setPresetStatus(message){document.getElementById("presetStatus").textContent=message}
+function renderPresets(){
+  const listBox=document.getElementById("presetList"),presets=FilterPresets.read(storage);
+  listBox.innerHTML=presets.length
+    ?presets.map(preset=>`<div class="preset-row"><button class="preset-apply" type="button" data-apply-preset="${esc(preset.name)}" aria-label="${esc(tr("preset.apply",{name:preset.name}))}">${esc(preset.name)}</button><button class="preset-delete" type="button" data-delete-preset="${esc(preset.name)}" aria-label="${esc(tr("preset.delete",{name:preset.name}))}">✕</button></div>`).join("")
+    :`<p class="sidebar-note">${esc(tr("preset.empty"))}</p>`;
+}
+document.getElementById("presetForm").addEventListener("submit",event=>{
+  event.preventDefault();
+  const field=document.getElementById("presetName");
+  try{
+    FilterPresets.save(storage,{name:document.getElementById("presetName").value,query:RepoFilters.serializeState(currentExportState())});
+    const name=FilterPresets.normalizeName(field.value);
+    field.value="";renderPresets();setPresetStatus(tr("preset.saved",{name}));
+  }catch(error){setPresetStatus(error.message==="presets cannot exceed 20"?tr("preset.limit"):error.message==="preset name is required"?tr("preset.nameRequired"):tr("preset.saveError"))}
+});
+document.getElementById("presetList").addEventListener("click",event=>{
+  const applyButton=event.target.closest("[data-apply-preset]");
+  if(applyButton){
+    const preset=FilterPresets.read(storage).find(value=>value.name===applyButton.dataset.applyPreset);
+    if(!preset)return;
+    applyFilterState(RepoFilters.parseState(preset.query,LANGUAGES));syncUrl();
+    setPresetStatus("");
+    return;
+  }
+  const button=event.target.closest("[data-delete-preset]");
+  if(!button)return;
+  const name=button.dataset.deletePreset;
+  try{FilterPresets.remove(storage,button.dataset.deletePreset);renderPresets();setPresetStatus(tr("preset.deleted",{name}))}
+  catch{setPresetStatus(tr("preset.saveError"))}
+});
+renderPresets();
 
 function currentExportState(){return {...filterState,period,favOnly}}
 function currentExportUrl(){return CurrentViewExport.buildSourceUrl(location,currentExportState(),RepoFilters.serializeState)}

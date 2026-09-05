@@ -28,7 +28,7 @@ const pageRuntime = runtimeRegion(page);
 const SIDEBAR_SECTION_GROUPS = [
   ["refreshStatus", "account"], ["accountSection", "account"],
   ["viewSection", "explore"],
-  ["fieldSection", "explore"], ["formSection", "explore"], ["sortSection", "explore"], ["resultSection", "explore"],
+  ["fieldSection", "explore"], ["formSection", "explore"], ["sortSection", "explore"], ["presetSection", "explore"], ["resultSection", "explore"],
   ["hiddenRepoSection", "history"], ["recentExitsSection", "history"],
   ["exportSection", "export"],
 ];
@@ -153,7 +153,7 @@ function sidebarHarness({ hoverCapable = true } = {}) {
   const sidebarSections = [
     ["refreshStatus", "account"], ["accountSection", "account"],
     ["viewSection", "explore"], ["fieldSection", "explore"], ["formSection", "explore"],
-    ["sortSection", "explore"], ["resultSection", "explore"],
+    ["sortSection", "explore"], ["presetSection", "explore"], ["resultSection", "explore"],
     ["hiddenRepoSection", "history"], ["recentExitsSection", "history"],
     ["exportSection", "export"],
   ].map(([id, group]) => { const node = new FakeHTMLElement(id); node.dataset.group = group; return node; });
@@ -372,7 +372,7 @@ function hiddenSectionsGroupHarness() {
 
   const sidebarSections = [
     ["refreshStatus", "account"], ["accountSection", "account"],
-    ["viewSection", "explore"], ["resultSection", "explore"],
+    ["viewSection", "explore"], ["presetSection", "explore"], ["resultSection", "explore"],
     ["hiddenRepoSection", "history"], ["recentExitsSection", "history"],
     ["exportSection", "export"],
   ].map(([id, group]) => new FakeElement(id, group));
@@ -968,7 +968,7 @@ test("sidebar sections follow the approved priority and keyboard order", () => {
   const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<nav class="nav-rail"/)?.[0] ?? "";
   const sectionIds = [
     "refreshStatus", "accountSection", "viewSection",
-    "fieldSection", "formSection", "sortSection", "resultSection", "hiddenRepoSection",
+    "fieldSection", "formSection", "sortSection", "presetSection", "resultSection", "hiddenRepoSection",
     "recentExitsSection", "exportSection",
   ];
   assert.ok(sidebar.indexOf('id="sidebarGroupSeg"') >= 0 && sidebar.indexOf('id="sidebarGroupSeg"') < sidebar.indexOf('id="refreshStatus"'), "the group switcher must precede the first section");
@@ -981,7 +981,7 @@ test("sidebar sections follow the approved priority and keyboard order", () => {
 
   const focusOrder = [
     "loginBtn", "logoutBtn", "allReposBtn", "favOnlyBtn",
-    "fieldFilters", "formFilters", "sortSelect", "clearFiltersBtn",
+    "fieldFilters", "formFilters", "sortSelect", "presetName", "presetSaveBtn", "presetList", "clearFiltersBtn",
     "restoreAllHiddenBtn", "recentExitsList", "exportCsvBtn", "exportJsonBtn", "copyViewUrlBtn",
   ];
   previous = -1;
@@ -993,6 +993,27 @@ test("sidebar sections follow the approved priority and keyboard order", () => {
   assert.match(sidebar, /<section[^>]*id="hiddenRepoSection"[^>]*hidden[\s\S]*?id="restoreAllHiddenBtn"/);
   assert.match(sidebar, /<section[^>]*id="recentExitsSection"[^>]*hidden[\s\S]*?id="recentExitsList"/);
   assert.match(page, /filter\(el=>!el\.hidden&&!el\.closest\("\[hidden\]"\)\)/);
+});
+
+test("the Explore panel saves, lists, applies and deletes named filter presets", () => {
+  assert.match(page, /<script src="filter-presets\.js"><\/script>/);
+  const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<nav class="nav-rail"/)?.[0] ?? "";
+  assert.ok(sidebar.indexOf('id="sortSection"') < sidebar.indexOf('id="presetSection"'), "presets follow Sort");
+  assert.ok(sidebar.indexOf('id="presetSection"') < sidebar.indexOf('id="resultSection"'), "the sticky result strip stays last");
+  assert.match(sidebar, /<section class="sidebar-section" id="presetSection" aria-labelledby="presetTitle" data-group="explore">/);
+  assert.match(sidebar, /<form id="presetForm">/);
+  assert.match(sidebar, /<input class="search preset-name" id="presetName" type="text" maxlength="40" autocomplete="off"/);
+  assert.match(sidebar, /<button class="clear-filters" id="presetSaveBtn" type="submit" data-i18n="preset\.save">Save current filters as preset<\/button>/);
+  assert.match(sidebar, /<div class="preset-list" id="presetList"><\/div>/);
+  assert.match(sidebar, /<p class="sidebar-note" id="presetStatus" role="status" aria-live="polite"><\/p>/);
+  // No window.prompt anywhere: the name is collected by this inline form.
+  assert.doesNotMatch(page, /window\.prompt|[^.\w]prompt\(/);
+
+  assert.match(page, /function renderPresets\(\)\{/);
+  assert.match(page, /FilterPresets\.save\(storage,\{name:document\.getElementById\("presetName"\)\.value,query:RepoFilters\.serializeState\(currentExportState\(\)\)\}\)/);
+  assert.match(page, /applyFilterState\(RepoFilters\.parseState\(preset\.query,LANGUAGES\)\);syncUrl\(\);/);
+  assert.match(page, /FilterPresets\.remove\(storage,button\.dataset\.deletePreset\)/);
+  assert.match(page, /catch\(error\)\{setPresetStatus\(error\.message==="presets cannot exceed 20"\?tr\("preset\.limit"\):error\.message==="preset name is required"\?tr\("preset\.nameRequired"\):tr\("preset\.saveError"\)\)\}/);
 });
 
 test("refresh copy and calculation follow the approved six-hour schedule", () => {
@@ -1375,7 +1396,7 @@ test("hovering a second rail button switches the group without closing the panel
   explore.dispatch("pointerenter");
   assert.equal(harness.sidebar.dataset.openMode, "hover");
   assert.equal(harness.sidebar.dataset.group, "explore");
-  assert.deepEqual(harness.sectionsFor(), ["viewSection", "fieldSection", "formSection", "sortSection", "resultSection"]);
+  assert.deepEqual(harness.sectionsFor(), ["viewSection", "fieldSection", "formSection", "sortSection", "presetSection", "resultSection"]);
 
   harness.trace.length = 0;
   explore.dispatch("pointerleave", { relatedTarget: history });
@@ -1398,7 +1419,7 @@ test("an unknown data-group on a rail button falls back to explore", () => {
   rogue.dataset.group = "filters";
   rogue.dispatch("pointerenter");
   assert.equal(harness.sidebar.dataset.group, "explore");
-  assert.deepEqual(harness.sectionsFor(), ["viewSection", "fieldSection", "formSection", "sortSection", "resultSection"]);
+  assert.deepEqual(harness.sectionsFor(), ["viewSection", "fieldSection", "formSection", "sortSection", "presetSection", "resultSection"]);
 });
 
 test("keyboard activation opens that group modally and restores focus to the button that opened it", () => {
@@ -2051,7 +2072,7 @@ test("the selected compact Explore rail stays reachable and outside the inert pa
   assert.match(page, /\.filter-sidebar\{[\s\S]*?width:var\(--sidebar-width\)/);
   assert.match(page, /\.nav-rail\{[^}]*background:var\(--bg-elev\)[^}]*backdrop-filter:blur\(24px\) saturate\(160%\)/);
   assert.doesNotMatch(page, /\.filter-sidebar\.open~\.nav-toggle\{transform:/);
-  assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(min-width:721px\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 92px\)\}\}/);
+  assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(not \(max-width:720px\)\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 92px\)\}\}/);
   assert.match(page, /id="mobileNavToggle"[^>]*aria-controls="filterSidebar"[^>]*aria-expanded="false"/);
   assert.match(page, /@media\(max-width:560px\)\{[\s\S]*?h1\{white-space:normal;overflow-wrap:anywhere\}/);
   assert.match(page, /\.repo-link\{[^}]*min-width:0[^}]*overflow-wrap:anywhere[^}]*word-break:break-word/);
@@ -3173,7 +3194,7 @@ test("#resultSection is the last Explore section in the markup", () => {
 });
 
 test("footer links answer hover and focus with the accent token and a visible ring", () => {
-  assert.match(page, /footer a:hover,footer a:focus-visible\{color:var\(--accent\)\}/);
+  assert.match(page, /footer a:hover,footer a:focus-visible\{color:var\(--accent-selected\)\}/);
   assert.match(page, /footer a:focus-visible\{outline:3px solid var\(--accent\);outline-offset:2px\}/);
 });
 
@@ -3206,13 +3227,14 @@ test("the History group states its empty conditions instead of rendering dead co
 });
 
 test("Korean rail labels and the subtitle break between words, not inside them", () => {
-  assert.match(page, /\.nav-label\{line-height:1;word-break:keep-all;overflow-wrap:normal\}/);
+  assert.match(page, /\.nav-label\{line-height:1\}/);
+  assert.match(page, /html:lang\(ko\) \.nav-label\{word-break:keep-all;overflow-wrap:normal\}/);
   assert.match(page, /\.sub\{[^}]*word-break:keep-all;overflow-wrap:normal\}/);
   assert.match(page, /\.nav-rail\{[^}]*width:76px/);
   assert.match(page, /\.nav-toggle\{[^}]*width:60px;min-height:60px/);
   const finePointer = page.match(/@media\(hover:hover\) and \(pointer:fine\)\{[\s\S]*?\n\}/)?.[0] ?? "";
   assert.match(finePointer, /\.filter-sidebar\{[^}]*left:76px[^}]*width:min\(336px,calc\(100vw - 76px\)\)/);
-  assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(min-width:721px\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 92px\)\}\}/);
+  assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(not \(max-width:720px\)\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 92px\)\}\}/);
   assert.doesNotMatch(page, /\.nav-rail\{[^}]*width:64px/);
 });
 

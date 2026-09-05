@@ -45,6 +45,9 @@ test("every rail group, shortcut hint, and held-retry message exists in all five
     "shortcuts.disable", "shortcuts.disableNote",
     "exits.empty",
     "visit.heading", "visit.newSince", "visit.noneSince", "visit.badge", "visit.badgeTitle",
+    "preset.title", "preset.note", "preset.nameLabel", "preset.namePlaceholder", "preset.save",
+    "preset.apply", "preset.delete", "preset.empty", "preset.saved", "preset.deleted",
+    "preset.limit", "preset.nameRequired", "preset.saveError",
   ];
   for (const locale of i18n.SUPPORTED_LOCALES) {
     for (const key of required) {
