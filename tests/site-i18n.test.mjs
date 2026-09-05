@@ -140,6 +140,18 @@ test("repository documentation is English-first with a complete Korean counterpa
   }
 });
 
+test("both READMEs list the shortcut help, presets, compact mode, and new-since-last-visit", () => {
+  for (const [document, tokens] of [
+    [readme, ["`?` opens a keyboard-shortcut", "saved filter presets", "compact list mode", "new since your last visit"]],
+    [koreanReadme, ["`?` 키로 단축키", "저장한 필터 프리셋", "간단히 보기", "지난 방문 이후 새로 올라온"]],
+  ]) {
+    for (const token of tokens) assert.ok(document.includes(token), `${token} must be documented`);
+  }
+  // Screenshots stay as-is: they are captured from production after deploy.
+  assert.match(readme, /desktop-1440\.png/);
+  assert.match(readme, /mobile-sidebar-390\.png/);
+});
+
 test("the account rail button satisfies Label in Name in every locale", () => {
   const i18n = load();
   for (const locale of i18n.SUPPORTED_LOCALES) {
