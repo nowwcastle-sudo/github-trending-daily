@@ -9,9 +9,9 @@ export const MUTABLE_GENERATED_PATHS = Object.freeze([
   "changes.xml",
   "data/latest.json",
   "data/membership-status.json",
+  "data/observation-db.pointer.json",
   "data/readme-state.json",
   "data/repo-summaries.json",
-  "data/repository-observations.sqlite",
   "data/star-anchors.json",
   "data/translation-sources.json",
   "feed.xml",
@@ -19,7 +19,11 @@ export const MUTABLE_GENERATED_PATHS = Object.freeze([
   "star-history.json",
   "translations",
 ]);
-const FULL_FILE_GENERATED_PATHS = MUTABLE_GENERATED_PATHS.filter(value => value !== "index.html" && value !== "translations");
+// Written by the recorder into the candidate but never tracked by git (the snapshot
+// lives in a release asset; spec 2026-09-05 §6.1). Accepted by --verify-generated,
+// never reinstated from lastGoodSha.
+export const CANDIDATE_ONLY_GENERATED_PATHS = Object.freeze(["data/repository-observations.sqlite"]);
+const FULL_FILE_GENERATED_PATHS = [...MUTABLE_GENERATED_PATHS, ...CANDIDATE_ONLY_GENERATED_PATHS].filter(value => value !== "index.html" && value !== "translations");
 const PAGE_REGIONS = Object.freeze([
   ["<!-- GENERATED:TRENDING-DATE:START -->", "<!-- GENERATED:TRENDING-DATE:END -->"],
   ["// GENERATED:TRENDING-REPOS:START", "// GENERATED:TRENDING-REPOS:END"],
@@ -135,6 +139,25 @@ function treeEntries(root, sha, pathspec = []) {
   });
 }
 
+function existsAtCommit(root, sha, relative) {
+  try {
+    git(root, ["cat-file", "-e", `${sha}:${normalizeGitPath(relative)}`]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// A last-good commit can predate a generated path — the observation pointer landed after
+// commits that are still valid recovery points — and reinstating nothing for it is correct.
+// Prove the path really is absent rather than trusting an empty ls-tree pathspec match.
+function assertReinstatementIsComplete(checkout, lastGoodSha, productionEntries) {
+  for (const generated of MUTABLE_GENERATED_PATHS) {
+    if (productionEntries.some(entry => entry.path === generated || entry.path.startsWith(`${generated}/`))) continue;
+    if (existsAtCommit(checkout, lastGoodSha, generated)) throw new Error(`last-good generated path was not listed: ${generated}`);
+  }
+}
+
 async function rejectLinksAndForbidden(root) {
   async function visit(directory, relative = "") {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -171,6 +194,7 @@ export async function prepareRefreshCandidate({ checkoutRoot, outDir, lastGoodSh
 
   const originalEntries = treeEntries(checkout, originalSha);
   const productionEntries = treeEntries(checkout, lastGoodSha, MUTABLE_GENERATED_PATHS);
+  assertReinstatementIsComplete(checkout, lastGoodSha, productionEntries);
   for (const entry of [...originalEntries, ...productionEntries]) {
     if (entry.type !== "blob" || entry.mode === "120000") throw new Error(`Git symlink or non-blob rejected: ${entry.path}`);
     if (entry.path === ".git" || entry.path.startsWith(".git/") || entry.path === "node_modules" || entry.path.startsWith("node_modules/")) {
