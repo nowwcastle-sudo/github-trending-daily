@@ -1,7 +1,8 @@
 // tests/observation-db-store.test.mjs
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { chmod, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import http from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -10,13 +11,18 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 import {
-  assetNameFor, releaseTagFor, validatePointer, downloadUrlFor, downloadAsset, resolveObservationDatabase,
+  allowedHosts, assetNameFor, downloadAsset, downloadUrlFor, downloadVerified, parsePointerBytes,
+  releaseTagFor, resolveDeadlineMs, resolveObservationDatabase, retryDelays, scrub, validatePointer,
 } from "../scripts/observation-db-store.mjs";
 
 const SNAPSHOT = "20260905024612-0123456789abcdef";
 const SHA = "a".repeat(40);
 const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
 const DB = Buffer.from("SQLite format 3\0" + "x".repeat(4000));
+// The deadline handed to the CLI children and to in-process resolves. Short enough that a hang
+// surfaces in a fifth of the module's 600 s default, generous enough that an ordinary run - which
+// spends nearly all of its time creating processes - never trips it on a loaded machine.
+const TEST_DEADLINE_MS = 120_000;
 const pointerFor = (bytes = DB, overrides = {}) => ({
   version: 1, snapshotId: SNAPSHOT,
   database: { sha256: sha256(bytes), byteSize: bytes.length },
@@ -24,21 +30,92 @@ const pointerFor = (bytes = DB, overrides = {}) => ({
   ...overrides,
 });
 
-test("tag and asset names derive from the snapshot id", () => {
+// Every variable the module reads. CI always sets GITHUB_ACTIONS=true and the module rightly refuses
+// the dev-only overrides there, so each test clears the whole set in its own setup, installs exactly
+// what it needs, and restores the original values afterwards. No test relies on a sibling's cleanup.
+const MANAGED_ENV = [
+  "GITHUB_ACTIONS", "GIT_BIN", "GIT_SCRIPT",
+  "OBSERVATION_DB_DOWNLOAD_BASE_URL", "OBSERVATION_DB_ALLOWED_HOSTS",
+  "OBSERVATION_DB_RETRY_DELAYS_MS", "OBSERVATION_DB_RESOLVE_DEADLINE_MS",
+];
+
+function isolateEnv(t, overrides = {}) {
+  const saved = MANAGED_ENV.map(name => [name, process.env[name]]);
+  for (const name of MANAGED_ENV) delete process.env[name];
+  for (const [name, value] of Object.entries(overrides)) process.env[name] = value;
+  t.after(() => {
+    for (const [name, value] of saved) {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
+  });
+}
+
+// Children inherit the isolated environment, never GITHUB_ACTIONS.
+function childEnv(extra = {}) {
+  const env = { ...process.env, ...extra };
+  delete env.GITHUB_ACTIONS;
+  return env;
+}
+
+async function scratchDirectory(t, prefix) {
+  const directory = await mkdtemp(join(tmpdir(), prefix));
+  t.after(async () => {
+    // Verified downloads land mode 0444, which is the read-only attribute on Windows.
+    const entries = await readdir(directory).catch(() => []);
+    for (const entry of entries) await chmod(join(directory, entry), 0o666).catch(() => {});
+    await rm(directory, { recursive: true, force: true, maxRetries: 5 });
+  });
+  return directory;
+}
+
+test("tag and asset names derive from the snapshot id", { timeout: 60_000 }, t => {
+  isolateEnv(t);
   assert.equal(releaseTagFor(SNAPSHOT), "observation-db-2026-09");
   assert.equal(assetNameFor(SNAPSHOT), `repository-observations-${SNAPSHOT}.sqlite`);
   assert.throws(() => releaseTagFor("2026-09-05"), /snapshot/i);
 });
 
-test("pointer validation is exact and derived fields are re-checked", () => {
+test("pointer validation is exact and derived fields are re-checked", { timeout: 60_000 }, t => {
+  isolateEnv(t);
   assert.deepEqual(validatePointer(pointerFor()), pointerFor());
   assert.throws(() => validatePointer({ ...pointerFor(), producedAt: "x" }), /pointer/i);
   assert.throws(() => validatePointer(pointerFor(DB, { snapshotId: "bad" })), /pointer/i);
   assert.throws(() => validatePointer(pointerFor(DB, { database: { sha256: "0".repeat(63), byteSize: 1 } })), /pointer/i);
   assert.throws(() => validatePointer(pointerFor(DB, { database: { sha256: "0".repeat(64), byteSize: -1 } })), /pointer/i);
+  assert.throws(() => validatePointer(pointerFor(DB, { database: { sha256: 12345, byteSize: 1 } })), /pointer/i);
   assert.throws(() => validatePointer(pointerFor(DB, { asset: { releaseTag: "observation-db-2026-10", name: assetNameFor(SNAPSHOT) } })), /pointer/i);
   assert.throws(() => validatePointer(pointerFor(DB, { asset: { releaseTag: releaseTagFor(SNAPSHOT), name: "other.sqlite" } })), /pointer/i);
   assert.equal(downloadUrlFor(pointerFor()), `https://github.com/nowwcastle-sudo/github-trending-daily/releases/download/observation-db-2026-09/repository-observations-${SNAPSHOT}.sqlite`);
+});
+
+test("parsePointerBytes refuses empty, oversized, non-UTF-8 and malformed input", { timeout: 60_000 }, t => {
+  isolateEnv(t);
+  const encoded = Buffer.from(JSON.stringify(pointerFor()));
+  assert.deepEqual(parsePointerBytes(encoded), pointerFor());
+  assert.throws(() => parsePointerBytes(Buffer.alloc(0)), /pointer/i);
+  assert.throws(() => parsePointerBytes(Buffer.alloc(4097, 0x20)), /pointer/i);
+  assert.throws(() => parsePointerBytes(Buffer.from([0x7b, 0xff, 0xfe, 0x7d])), /pointer/i);
+  assert.throws(() => parsePointerBytes(Buffer.from("{not json")), /pointer/i);
+  assert.throws(() => parsePointerBytes(JSON.stringify(pointerFor())), /pointer/i);
+});
+
+test("scrub redacts every token shape it knows", { timeout: 60_000 }, t => {
+  isolateEnv(t);
+  // Synthetic placeholders built from repeated letters - none of these is, or resembles, a real
+  // credential; they exist only to prove each alternative of TOKEN_RE fires.
+  const synthetic = [
+    `sk-ant-${"a".repeat(40)}`,
+    `ghp_${"b".repeat(30)}`,
+    `github_pat_${"c".repeat(30)}`,
+    `AIza${"d".repeat(35)}`,
+  ];
+  for (const value of synthetic) {
+    assert.equal(scrub(`before ${value} after`), "before [redacted] after");
+  }
+  assert.equal(scrub(`${synthetic[0]} and ${synthetic[1]}`), "[redacted] and [redacted]");
+  assert.equal(scrub("nothing to redact"), "nothing to redact");
+  assert.equal(scrub(null), "");
 });
 
 async function assetServer(handler) {
@@ -54,8 +131,8 @@ async function assetServer(handler) {
   };
 }
 
-test("downloadAsset verifies hash and size, follows one allow-listed redirect, retries 503, refuses oversize and bad hosts", async t => {
-  const directory = await mkdtemp(join(tmpdir(), "obs-store-"));
+test("downloadVerified verifies hash and size, follows one allow-listed redirect, retries 503, refuses oversize and bad hosts", { timeout: 60_000 }, async t => {
+  const directory = await scratchDirectory(t, "obs-store-");
   let attempts = 0;
   const { base, close } = await assetServer((request, response) => {
     if (request.url.endsWith("/redirect.sqlite")) { response.writeHead(302, { location: `${base}/final.sqlite` }); response.end(); return; }
@@ -67,12 +144,15 @@ test("downloadAsset verifies hash and size, follows one allow-listed redirect, r
     response.writeHead(404); response.end();
   });
   t.after(close);
-  process.env.OBSERVATION_DB_DOWNLOAD_BASE_URL = base;
-  process.env.OBSERVATION_DB_ALLOWED_HOSTS = "127.0.0.1";
-  process.env.OBSERVATION_DB_RETRY_DELAYS_MS = "1,1,1";
-  t.after(() => { delete process.env.OBSERVATION_DB_DOWNLOAD_BASE_URL; delete process.env.OBSERVATION_DB_ALLOWED_HOSTS; delete process.env.OBSERVATION_DB_RETRY_DELAYS_MS; });
-  const withName = name => ({ ...pointerFor(), asset: { ...pointerFor().asset, name } });
-  const fetchWith = (name, out) => downloadAsset({ pointer: withName(name), destination: join(directory, out), deadline: Date.now() + 10_000, skipNameCheck: true });
+  isolateEnv(t, {
+    OBSERVATION_DB_DOWNLOAD_BASE_URL: base,
+    OBSERVATION_DB_ALLOWED_HOSTS: "127.0.0.1",
+    OBSERVATION_DB_RETRY_DELAYS_MS: "1,1,1",
+  });
+  const fetchWith = (name, out) => downloadVerified({
+    url: `${base}/${name}`, sha256: sha256(DB), byteSize: DB.length,
+    destination: join(directory, out), deadline: Date.now() + 10_000,
+  });
   const ok = await fetchWith("redirect.sqlite", "a.sqlite");
   assert.equal(ok.sha256, sha256(DB)); assert.equal(ok.byteSize, DB.length);
   assert.deepEqual(await readFile(join(directory, "a.sqlite")), DB);
@@ -82,13 +162,73 @@ test("downloadAsset verifies hash and size, follows one allow-listed redirect, r
   await assert.rejects(fetchWith("wrong.sqlite", "d.sqlite"), /sha256/i);
   await assert.rejects(fetchWith("missing.sqlite", "e.sqlite"), /404/);
   await assert.rejects(fetchWith("evil.sqlite", "f.sqlite"), /redirect|allowed/i);
+  // Only the verified body ever reaches disk.
+  assert.deepEqual((await readdir(directory)).sort(), ["a.sqlite", "b.sqlite"]);
 });
 
-test("download base override is refused inside GitHub Actions", () => {
-  process.env.OBSERVATION_DB_DOWNLOAD_BASE_URL = "http://127.0.0.1:1";
-  process.env.GITHUB_ACTIONS = "true";
-  try { assert.throws(() => downloadUrlFor(pointerFor()), /override/i); }
-  finally { delete process.env.OBSERVATION_DB_DOWNLOAD_BASE_URL; delete process.env.GITHUB_ACTIONS; }
+test("downloadAsset drives downloadVerified from a validated pointer", { timeout: 60_000 }, async t => {
+  const directory = await scratchDirectory(t, "obs-pointer-");
+  const { base, close } = await assetServer((request, response) => {
+    if (request.url.endsWith(assetNameFor(SNAPSHOT))) { response.writeHead(200); response.end(DB); return; }
+    response.writeHead(404); response.end();
+  });
+  t.after(close);
+  isolateEnv(t, {
+    OBSERVATION_DB_DOWNLOAD_BASE_URL: base,
+    OBSERVATION_DB_ALLOWED_HOSTS: "127.0.0.1",
+    OBSERVATION_DB_RETRY_DELAYS_MS: "1",
+  });
+  const destination = join(directory, "db.sqlite");
+  const verified = await downloadAsset({ pointer: pointerFor(), destination, deadline: Date.now() + 10_000 });
+  assert.equal(verified.sha256, sha256(DB));
+  assert.deepEqual(await readFile(destination), DB);
+  // A pointer whose asset name is not derived from the snapshot id never reaches the network.
+  await assert.rejects(
+    downloadAsset({ pointer: pointerFor(DB, { asset: { releaseTag: releaseTagFor(SNAPSHOT), name: "other.sqlite" } }), destination: join(directory, "no.sqlite"), deadline: Date.now() + 10_000 }),
+    /pointer/i);
+});
+
+test("a size mismatch and a non-retryable status are fatal and are not retried", { timeout: 60_000 }, async t => {
+  const directory = await scratchDirectory(t, "obs-fatal-");
+  const requests = { truncated: 0, unimplemented: 0, flaky: 0 };
+  const { base, close } = await assetServer((request, response) => {
+    if (request.url.endsWith("/truncated.sqlite")) { requests.truncated += 1; response.writeHead(200); response.end(DB.subarray(0, 100)); return; }
+    if (request.url.endsWith("/unimplemented.sqlite")) { requests.unimplemented += 1; response.writeHead(501); response.end(); return; }
+    if (request.url.endsWith("/flaky.sqlite")) { requests.flaky += 1; response.writeHead(503); response.end(); return; }
+    response.writeHead(404); response.end();
+  });
+  t.after(close);
+  isolateEnv(t, {
+    OBSERVATION_DB_DOWNLOAD_BASE_URL: base,
+    OBSERVATION_DB_ALLOWED_HOSTS: "127.0.0.1",
+    OBSERVATION_DB_RETRY_DELAYS_MS: "1,1,1",
+  });
+  const fetchWith = (name, out) => downloadVerified({
+    url: `${base}/${name}`, sha256: sha256(DB), byteSize: DB.length,
+    destination: join(directory, out), deadline: Date.now() + 10_000,
+  });
+  await assert.rejects(fetchWith("truncated.sqlite", "t.sqlite"), /size mismatch/i);
+  assert.equal(requests.truncated, 1, "a truncated body is fatal: it must not be requested again");
+  await assert.rejects(fetchWith("unimplemented.sqlite", "u.sqlite"), /501/);
+  assert.equal(requests.unimplemented, 1, "HTTP 501 is fatal: it must not be requested again");
+  // The counter-example: a retryable status really does consume all four attempts.
+  await assert.rejects(fetchWith("flaky.sqlite", "r.sqlite"), /503/);
+  assert.equal(requests.flaky, 4);
+  assert.deepEqual(await readdir(directory), []);
+});
+
+test("dev-only environment overrides are refused inside GitHub Actions", { timeout: 60_000 }, t => {
+  isolateEnv(t, {
+    GITHUB_ACTIONS: "true",
+    OBSERVATION_DB_DOWNLOAD_BASE_URL: "http://127.0.0.1:1",
+    OBSERVATION_DB_ALLOWED_HOSTS: "127.0.0.1",
+    OBSERVATION_DB_RETRY_DELAYS_MS: "1",
+    OBSERVATION_DB_RESOLVE_DEADLINE_MS: "20000",
+  });
+  assert.throws(() => downloadUrlFor(pointerFor()), /override/i);
+  assert.throws(() => allowedHosts(), /override/i);
+  assert.throws(() => retryDelays(), /override/i);
+  assert.throws(() => resolveDeadlineMs(), /override/i);
 });
 
 async function fakeGit(directory, { pointer = null, blob = null }) {
@@ -105,9 +245,18 @@ process.exit(128);`);
   return { GIT_BIN: process.execPath, GIT_SCRIPT: script, FAKE_POINTER: join(directory, "pointer.json"), FAKE_BLOB: join(directory, "blob.sqlite") };
 }
 
+test("the git binary override is refused inside GitHub Actions", { timeout: 60_000 }, async t => {
+  const directory = await scratchDirectory(t, "obs-gitbin-");
+  const fixture = await fakeGit(directory, { pointer: pointerFor() });
+  isolateEnv(t, { GITHUB_ACTIONS: "true", GIT_BIN: fixture.GIT_BIN, GIT_SCRIPT: fixture.GIT_SCRIPT });
+  await assert.rejects(
+    resolveObservationDatabase({ sourceSha: SHA, gitRoot: directory, check: true, deadline: Date.now() + TEST_DEADLINE_MS }),
+    /git binary override is refused/i);
+});
+
 // The CLI child downloads from the asset server that runs in THIS process, so the child must be
 // spawned asynchronously: spawnSync would block this event loop, the server could never answer,
-// and both sides would wait until the resolve deadline (600 s) expired.
+// and both sides would wait until the resolve deadline expired.
 function runStore(args, env) {
   const script = fileURLToPath(new URL("../scripts/observation-db-store.mjs", import.meta.url));
   return new Promise(resolve => {
@@ -123,12 +272,23 @@ function runStore(args, env) {
   });
 }
 
-test("resolve: pointer only downloads and verifies; blob only uses git; both or neither fail closed; expect-snapshot-id is enforced", async t => {
-  const directory = await mkdtemp(join(tmpdir(), "obs-resolve-"));
+// A real hang is bounded by the child's own OBSERVATION_DB_RESOLVE_DEADLINE_MS (TEST_DEADLINE_MS,
+// 20 s) below, not by this timeout, which only backstops a stall in the runner itself. It is the
+// most generous in the file because this one test spawns ~28 processes - seven CLI runs, each of
+// which runs fake git three times - and process creation is the slow part on a loaded machine.
+test("resolve: pointer only downloads and verifies; blob only uses git; both or neither fail closed; expect-snapshot-id is enforced", { timeout: 300_000 }, async t => {
+  const directory = await scratchDirectory(t, "obs-resolve-");
   const { base, close } = await assetServer((request, response) => { if (request.url.endsWith(assetNameFor(SNAPSHOT))) { response.writeHead(200); response.end(DB); } else { response.writeHead(404); response.end(); } });
   t.after(close);
+  isolateEnv(t);
   const run = async (fixture, extra = []) => {
-    const env = { ...process.env, ...(await fakeGit(directory, fixture)), OBSERVATION_DB_DOWNLOAD_BASE_URL: base, OBSERVATION_DB_ALLOWED_HOSTS: "127.0.0.1", OBSERVATION_DB_RETRY_DELAYS_MS: "1" };
+    const env = childEnv({
+      ...(await fakeGit(directory, fixture)),
+      OBSERVATION_DB_DOWNLOAD_BASE_URL: base,
+      OBSERVATION_DB_ALLOWED_HOSTS: "127.0.0.1",
+      OBSERVATION_DB_RETRY_DELAYS_MS: "1",
+      OBSERVATION_DB_RESOLVE_DEADLINE_MS: String(TEST_DEADLINE_MS),
+    });
     const out = join(directory, `${Math.random().toString(16).slice(2)}.sqlite`);
     const result = await runStore(["resolve", "--source-sha", SHA, "--out", out, ...extra], env);
     return { ...result, out };
@@ -136,19 +296,56 @@ test("resolve: pointer only downloads and verifies; blob only uses git; both or 
   const pointerOnly = await run({ pointer: pointerFor() });
   assert.equal(pointerOnly.status, 0, pointerOnly.stderr);
   assert.equal(JSON.parse(pointerOnly.stdout).mode, "pointer");
+  assert.equal(JSON.parse(pointerOnly.stdout).snapshotId, SNAPSHOT);
   assert.deepEqual(await readFile(pointerOnly.out), DB);
+
   const blobOnly = await run({ blob: DB });
   assert.equal(blobOnly.status, 0, blobOnly.stderr);
   assert.equal(JSON.parse(blobOnly.stdout).mode, "blob");
+  assert.equal(JSON.parse(blobOnly.stdout).snapshotId, null, "the blob carries no snapshot id to report");
+  assert.match(blobOnly.stderr, /::notice::blob fallback cannot verify --expect-snapshot-id/);
+
   const both = await run({ pointer: pointerFor(), blob: DB });
   assert.notEqual(both.status, 0); assert.match(both.stderr, /both/i);
+  assert.equal(existsSync(both.out), false, "a failed resolve leaves no output file");
+
   const neither = await run({});
   assert.notEqual(neither.status, 0); assert.match(neither.stderr, /neither|unavailable/i);
+  assert.equal(existsSync(neither.out), false, "a failed resolve leaves no output file");
+
   const wrongSnapshot = await run({ pointer: pointerFor() }, ["--expect-snapshot-id", "20260101000000-0000000000000000"]);
   assert.notEqual(wrongSnapshot.status, 0); assert.match(wrongSnapshot.stderr, /snapshot/i);
+  assert.equal(existsSync(wrongSnapshot.out), false);
+
   const check = await run({ pointer: pointerFor() }, ["--check"]);
   assert.equal(check.status, 0, check.stderr);
   assert.match(check.stdout, /"mode":"pointer"/);
-  const badSource = await run({ pointer: pointerFor() }, ["--source-sha", "nope"]);
-  assert.notEqual(badSource.status, 0);
+  assert.equal(existsSync(check.out), false, "--check must not download to --out");
+
+  const withGitRoot = await run({ pointer: pointerFor() }, ["--git-root", directory]);
+  assert.equal(withGitRoot.status, 0, withGitRoot.stderr);
+  assert.deepEqual(await readFile(withGitRoot.out), DB);
+});
+
+// Seven more CLI spawns; each one fails during argument parsing, before any I/O, so nothing here
+// can hang - the timeout only has to outlast process creation on a loaded machine.
+test("resolve rejects a malformed command line before it touches git", { timeout: 120_000 }, async t => {
+  isolateEnv(t);
+  const env = childEnv();
+  const out = join(tmpdir(), "never-created.sqlite");
+  const cases = [
+    { args: ["resolve", "--source-sha", SHA, "--out", out, "--source-sha", "nope"], expected: /repeated flag/i },
+    { args: ["resolve", "--source-sha", SHA, "--out"], expected: /requires a value/i },
+    { args: ["resolve", "--source-sha", SHA, "--out", "--check"], expected: /requires a value/i },
+    { args: ["resolve", "--source-sha", SHA, "--nonsense", "x"], expected: /unknown flag/i },
+    { args: ["resolve", "extra", "--source-sha", SHA], expected: /unexpected argument/i },
+    { args: ["resolve", "--source-sha", "nope", "--out", out], expected: /source sha/i },
+    { args: ["nonsense"], expected: /unknown command/i },
+  ];
+  for (const { args, expected } of cases) {
+    const result = await runStore(args, env);
+    assert.notEqual(result.status, 0, `expected a non-zero exit for ${args.join(" ")}`);
+    assert.match(result.stderr, expected);
+  }
+  assert.equal(existsSync(out), false);
 });
