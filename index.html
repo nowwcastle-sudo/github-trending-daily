@@ -9,6 +9,7 @@
 <link rel="alternate" type="application/atom+xml" title="GITHUB INSIGHT — New and re-entered repositories" href="https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml">
 <style>:root{
   --sidebar-width:min(360px,calc(100vw - 44px));
+  --sidebar-pad-bottom:calc(20px + env(safe-area-inset-bottom));
   --sidebar-open-duration:260ms;--sidebar-close-duration:210ms;--tooltip-duration:160ms;
   --bg:#f5f5f7; --bg-elev:rgba(255,255,255,.72); --card:rgba(255,255,255,.85);
   --text:#1d1d1f; --text-2:#6e6e73; --text-3:#6e6e73;
@@ -133,7 +134,7 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 /* ── Discovery sidebar ─────────────── */
 .filter-sidebar{
   position:fixed;z-index:320;display:flex;flex-direction:column;gap:20px;top:0;bottom:0;left:0;
-  width:var(--sidebar-width);height:100vh;height:100dvh;max-height:none;padding:calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;
+  width:var(--sidebar-width);height:100vh;height:100dvh;max-height:none;padding:calc(20px + env(safe-area-inset-top)) 20px var(--sidebar-pad-bottom);overflow-y:auto;overscroll-behavior:contain;
   background:var(--tip-bg);backdrop-filter:blur(28px) saturate(180%);
   border:1px solid var(--tip-border);border-radius:0 18px 18px 0;box-shadow:var(--shadow-pop);
   color:var(--text);transform:translate3d(-105%,0,0);opacity:.85;
@@ -210,6 +211,12 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .filter-chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .clear-filters{border-color:var(--border);text-align:center;color:var(--text-2)}
 .filter-summary{color:var(--text-2);font-size:12px;line-height:1.45}
+/* The match count is the memory bridge between a 10-option field list at the top of the panel and
+   the decision the reader is making; it must stay on screen while they work above it. The negative
+   bottom/margin pair reaches past the panel's own bottom padding so scrolled content cannot appear
+   underneath. --control-solid, not --tip-bg: the panel background is translucent and would let the
+   scrolling filter list read through the pinned strip. */
+#resultSection{position:sticky;bottom:calc(-1 * var(--sidebar-pad-bottom));z-index:2;background:var(--control-solid);border-top:1px solid var(--surface-border);padding-bottom:var(--sidebar-pad-bottom);margin-bottom:calc(-1 * var(--sidebar-pad-bottom))}
 #sidebarScrim{position:fixed;inset:0;z-index:310;background:rgba(0,0,0,.34);opacity:0;pointer-events:none;transition:opacity .24s ease-out}
 #sidebarScrim.on{opacity:1;pointer-events:auto}
 body.overlay-open{overflow:hidden}
@@ -264,7 +271,7 @@ body.overlay-open{overflow:hidden}
 .signal-guide{display:flex;align-items:flex-start;gap:14px;padding:10px 2px 8px;margin-top:4px;
   border-bottom:1px solid var(--hairline);color:var(--text-2);font-size:12.5px;line-height:1.45}
 .signal-guide-details{flex:1;min-width:0}
-.signal-guide summary{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:44px;color:var(--text);font-size:12.5px;font-weight:650;cursor:pointer;list-style:none}
+.signal-guide summary{display:flex;align-items:center;min-height:44px;color:var(--text);font-size:12.5px;font-weight:650;cursor:pointer;list-style:none}
 .signal-guide summary::-webkit-details-marker{display:none}
 .signal-guide summary::after{content:"▾";font-size:10px;color:var(--text-3);transition:transform .16s ease}
 .signal-guide-details[open]>summary::after{transform:rotate(180deg)}
@@ -414,7 +421,7 @@ footer a{color:var(--text-2)}
   .seg button{padding-inline:8px;font-size:12.5px}
   .signal-guide{display:block;padding-top:8px}
   .signal-guide dl{display:grid;gap:7px}
-  .filter-toggle-row{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;gap:8px;padding:5px 5px 5px 0;margin:-5px 0;scrollbar-width:none}
+  .filter-toggle-row{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;gap:8px;padding:5px;margin:-5px 0 -5px -5px;scrollbar-width:none}
   .filter-toggle-row::-webkit-scrollbar{display:none}
   .filter-toggle-row>*{flex:0 0 auto;max-width:none}
 }

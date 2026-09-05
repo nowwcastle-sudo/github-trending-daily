@@ -2912,3 +2912,17 @@ test("the mobile filter toggles sit on one horizontally scrollable row", () => {
   assert.match(mobile, /\.filter-toggle-row>\*\{flex:0 0 auto;max-width:none\}/);
   assert.match(page, /\.signal-guide-details\[open\] dl\{margin-top:8px\}/);
 });
+
+test("the Explore result count and Clear button stay pinned to the bottom of the panel", () => {
+  assert.match(page, /--sidebar-pad-bottom:calc\(20px \+ env\(safe-area-inset-bottom\)\);/);
+  assert.match(page, /\.filter-sidebar\{[\s\S]*?padding:calc\(20px \+ env\(safe-area-inset-top\)\) 20px var\(--sidebar-pad-bottom\)/);
+  const sticky = page.match(/#resultSection\{[^}]*\}/)?.[0] ?? "";
+  assert.match(sticky, /position:sticky/);
+  assert.match(sticky, /bottom:calc\(-1 \* var\(--sidebar-pad-bottom\)\)/);
+  assert.match(sticky, /background:var\(--control-solid\)/);
+  assert.match(sticky, /border-top:1px solid var\(--surface-border\)/);
+  assert.match(sticky, /padding-bottom:var\(--sidebar-pad-bottom\)/);
+  assert.match(sticky, /margin-bottom:calc\(-1 \* var\(--sidebar-pad-bottom\)\)/);
+  // #filterSummary already carries role="status" aria-live="polite"; this fix is visual only.
+  assert.match(page, /id="filterSummary" role="status" aria-live="polite"/);
+});
