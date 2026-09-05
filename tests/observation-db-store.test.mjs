@@ -11,9 +11,9 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 import {
-  allowedHosts, assetNameFor, downloadAsset, downloadUrlFor, downloadVerified, parsePointerBytes,
-  publishObservationDatabase, releaseTagFor, resolveDeadlineMs, resolveObservationDatabase,
-  retryDelays, scrub, validatePointer,
+  allowedHosts, assetNameFor, DATABASE_PATH, downloadAsset, downloadUrlFor, downloadVerified,
+  parsePointerBytes, POINTER_PATH, publishObservationDatabase, releaseTagFor, resolveDeadlineMs,
+  resolveObservationDatabase, retryDelays, scrub, validatePointer,
 } from "../scripts/observation-db-store.mjs";
 
 const SNAPSHOT = "20260905024612-0123456789abcdef";
@@ -285,10 +285,15 @@ async function fakeGit(directory, { pointer = null, blob = null }) {
   const script = join(directory, "fake-git.mjs");
   await writeFile(join(directory, "pointer.json"), pointer ? JSON.stringify(pointer) : "");
   await writeFile(join(directory, "blob.sqlite"), blob ?? Buffer.alloc(0));
+  // The presence check reads "ls-tree -z <sha> -- <path>", so this answers it the way the real
+  // binary does: exit 0 whether or not the path is tracked, one NUL-terminated "<mode> blob <oid>"
+  // record for a tracked path and no output at all for an untracked one. The last argument is the
+  // bare path for ls-tree and "<sha>:<path>" for the content commands, which is why the suffix
+  // test does not anchor on the colon.
   await writeFile(script, `import { readFileSync } from "node:fs"; let args = process.argv.slice(2); if (args[0] === "-C") args = args.slice(2);
 const has = { pointer: ${Boolean(pointer)}, blob: ${Boolean(blob)} };
-const spec = args.at(-1); const isPointer = spec.endsWith(":data/observation-db.pointer.json"); const isBlob = spec.endsWith(":data/repository-observations.sqlite");
-if (args[0] === "cat-file" && args[1] === "-e") process.exit((isPointer && has.pointer) || (isBlob && has.blob) ? 0 : 1);
+const spec = args.at(-1); const isPointer = spec.endsWith("data/observation-db.pointer.json"); const isBlob = spec.endsWith("data/repository-observations.sqlite");
+if (args[0] === "ls-tree") { if ((isPointer && has.pointer) || (isBlob && has.blob)) process.stdout.write(\`100644 blob \${"0".repeat(40)}\\t\${spec}\\0\`); process.exit(0); }
 if (args[0] === "cat-file" && args[1] === "blob" && isBlob && has.blob) { process.stdout.write(readFileSync(process.env.FAKE_BLOB)); process.exit(0); }
 if (args[0] === "show" && isPointer && has.pointer) { process.stdout.write(readFileSync(process.env.FAKE_POINTER)); process.exit(0); }
 process.exit(128);`);
@@ -375,6 +380,101 @@ test("resolve: pointer only downloads and verifies; blob only uses git; both or 
   const withGitRoot = await run({ pointer: pointerFor() }, ["--git-root", directory]);
   assert.equal(withGitRoot.status, 0, withGitRoot.stderr);
   assert.deepEqual(await readFile(withGitRoot.out), DB);
+});
+
+// Every git call is given the identity and the newline policy inline: the fixture repository has no
+// config of its own, an inherited user.name is not something a test may rely on, and core.autocrlf
+// is true on Windows developer machines, where it would rewrite the SQLite fixture on the way in.
+const GIT_FIXTURE_CONFIG = Object.freeze([
+  "-c", "user.name=test", "-c", "user.email=test@example.invalid", "-c", "core.autocrlf=false",
+]);
+
+function runGit(cwd, args) {
+  return new Promise((resolve, reject) => {
+    const child = spawn("git", [...GIT_FIXTURE_CONFIG, ...args], { cwd, env: childEnv() });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.setEncoding("utf8");
+    child.stderr.setEncoding("utf8");
+    child.stdout.on("data", chunk => { stdout += chunk; });
+    child.stderr.on("data", chunk => { stderr += chunk; });
+    child.on("error", reject);
+    child.on("close", status => {
+      if (status === 0) resolve(stdout);
+      else reject(new Error(`git ${args.join(" ")} exited ${status}: ${stderr.trim()}`));
+    });
+  });
+}
+
+// The fake git above is one we wrote, so on its own it can only prove the module agrees with our own
+// idea of git. It exited 1 for an absent path; real git exits 128, and the module read 128 as a
+// lookup failure - so a pointer-only commit, which is what every commit after the transition looks
+// like, threw instead of resolving. Nothing but the real binary catches that, so this test takes no
+// GIT_BIN/GIT_SCRIPT override: isolateEnv clears both and the CLI child runs against git itself.
+test("resolve reads real git: pointer-only and blob-only commits resolve; both and neither fail closed", { timeout: 300_000 }, async t => {
+  isolateEnv(t);
+  // Kept out of scratchDirectory: a repository is a tree, and its objects land read-only on Windows,
+  // which that helper's flat chmod pass does not reach. A leftover fixture is cheaper than a red run.
+  const repository = await mkdtemp(join(tmpdir(), "obs-realgit-"));
+  t.after(() => rm(repository, { recursive: true, force: true, maxRetries: 5 }).catch(() => {}));
+  const outputs = await scratchDirectory(t, "obs-realgit-out-");
+  const { base, close } = await assetServer((request, response) => {
+    if (request.url.endsWith(assetNameFor(SNAPSHOT))) { response.writeHead(200); response.end(DB); } else { response.writeHead(404); response.end(); }
+  });
+  t.after(close);
+
+  await runGit(repository, ["init", "-q"]);
+  await mkdir(join(repository, "data"), { recursive: true });
+  // Each commit is built by clearing both tracked paths and writing back only the ones the case
+  // wants, so what the commit carries is its whole tree rather than an accumulation of the last one.
+  const commitTree = async files => {
+    for (const relative of [POINTER_PATH, DATABASE_PATH]) await rm(join(repository, relative), { force: true });
+    for (const [relative, contents] of Object.entries(files)) await writeFile(join(repository, relative), contents);
+    await runGit(repository, ["add", "-A"]);
+    await runGit(repository, ["commit", "-q", "--allow-empty", "-m", "fixture"]);
+    const sha = (await runGit(repository, ["rev-parse", "HEAD"])).trim();
+    assert.match(sha, /^[a-f0-9]{40}$/, "the fixture repository must use 40-hex object names");
+    return sha;
+  };
+  const pointerJson = `${JSON.stringify(pointerFor(), null, 2)}\n`;
+  const pointerSha = await commitTree({ [POINTER_PATH]: pointerJson });
+  const blobSha = await commitTree({ [DATABASE_PATH]: DB });
+  const bothSha = await commitTree({ [POINTER_PATH]: pointerJson, [DATABASE_PATH]: DB });
+  const neitherSha = await commitTree({});
+
+  // Async spawn, never spawnSync: the asset server the child downloads from runs in this process, so
+  // blocking this event loop would deadlock both sides until the resolve deadline expired.
+  const run = async (sourceSha, name) => {
+    const out = join(outputs, name);
+    const result = await runStore(["resolve", "--source-sha", sourceSha, "--out", out, "--git-root", repository], childEnv({
+      OBSERVATION_DB_DOWNLOAD_BASE_URL: base,
+      OBSERVATION_DB_ALLOWED_HOSTS: "127.0.0.1",
+      OBSERVATION_DB_RETRY_DELAYS_MS: "1",
+      OBSERVATION_DB_RESOLVE_DEADLINE_MS: String(TEST_DEADLINE_MS),
+    }));
+    return { ...result, out };
+  };
+
+  const pointerOnly = await run(pointerSha, "pointer.sqlite");
+  assert.equal(pointerOnly.status, 0, pointerOnly.stderr);
+  assert.equal(JSON.parse(pointerOnly.stdout).mode, "pointer");
+  assert.equal(JSON.parse(pointerOnly.stdout).snapshotId, SNAPSHOT);
+  assert.deepEqual(await readFile(pointerOnly.out), DB);
+
+  const blobOnly = await run(blobSha, "blob.sqlite");
+  assert.equal(blobOnly.status, 0, blobOnly.stderr);
+  assert.equal(JSON.parse(blobOnly.stdout).mode, "blob");
+  assert.deepEqual(await readFile(blobOnly.out), DB, "cat-file blob must hand back the committed bytes unfiltered");
+
+  const both = await run(bothSha, "both.sqlite");
+  assert.notEqual(both.status, 0);
+  assert.match(both.stderr, /both/i);
+  assert.equal(existsSync(both.out), false, "a failed resolve leaves no output file");
+
+  const neither = await run(neitherSha, "neither.sqlite");
+  assert.notEqual(neither.status, 0);
+  assert.match(neither.stderr, /neither|unavailable/i);
+  assert.equal(existsSync(neither.out), false, "a failed resolve leaves no output file");
 });
 
 // Nine more CLI spawns; each one fails during argument parsing, before any I/O, so nothing here

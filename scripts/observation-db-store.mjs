@@ -227,15 +227,31 @@ function git(args, { gitRoot, deadline }) {
     encoding: null, maxBuffer: 256 * 1024 * 1024, timeout: Math.min(120_000, remaining), stdio: ["ignore", "pipe", "pipe"],
   });
 }
+// Which mode we resolve in hangs entirely on this answer, so it is read from a command whose
+// "absent" is a successful exit rather than a failure code. `cat-file -e` cannot do that: real git
+// exits 128 for a path that is not in the tree - the shape of every pointer-only commit - and 128 is
+// also what a broken invocation exits with, so absence and failure are indistinguishable. `ls-tree`
+// exits 0 either way and says which it was in its output: no record for an untracked path, one
+// NUL-terminated record for a tracked one. That record also carries the mode, so a symlink or a
+// directory standing where the pointer or the database belongs is refused rather than followed.
 function gitPathExists(sourceSha, relative, options) {
-  try { git(["cat-file", "-e", `${sourceSha}:${relative}`], options); return true; }
+  let stdout;
+  try { stdout = git(["ls-tree", "-z", sourceSha, "--", relative], options); }
   catch (error) {
-    if (error.status === 1) return false;
     // Refusals raised by git() itself (an override inside Actions, the deadline) carry no exit
     // status, so they keep their own message instead of being flattened into a lookup failure.
     if (error.status === undefined && !error.signal) throw error;
     throw new Error(`git lookup failed for ${relative}`);
   }
+  const records = stdout.toString("utf8").split("\0").filter(record => record !== "");
+  if (records.length === 0) return false;
+  // One pathspec naming one file can match one entry only; more than one, or an entry naming
+  // something other than what was asked for, means git answered a question we did not ask.
+  if (records.length !== 1) throw new Error(`git lookup failed for ${relative}`);
+  const entry = /^([0-7]{6}) (blob|tree|commit) [0-9a-f]{40,64}\t([\s\S]+)$/.exec(records[0]);
+  if (!entry || entry[3] !== relative) throw new Error(`git lookup failed for ${relative}`);
+  if (entry[1] !== "100644" && entry[1] !== "100755") throw new Error(`${relative} is not a regular file at ${sourceSha}: mode ${entry[1]}`);
+  return true;
 }
 
 export async function resolveObservationDatabase({ sourceSha, out = null, expectSnapshotId = null, gitRoot = process.cwd(), check = false, deadline = Date.now() + RESOLVE_DEADLINE_MS, fetchImpl = fetch }) {
