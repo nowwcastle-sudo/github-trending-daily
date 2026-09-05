@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import http from "node:http";
 import { spawnSync } from "node:child_process";
-import { link, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { cp, link, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,6 +14,7 @@ import {
   buildLegacyRecoveryArtifact,
   buildPagesArtifact,
   expectedVersion1Paths,
+  parseVersion1BasePaths,
   inspectProductionState,
   parseEmbeddedRepos,
 } from "../scripts/build-pages-artifact.mjs";
@@ -487,6 +488,23 @@ test("version-1 artifact path set is exact and contains no full README translati
   );
   assert.ok(!VERSION_1_BASE_PATHS.some(path => path.endsWith(".sqlite")));
   assert.ok(!VERSION_1_BASE_PATHS.includes("data/translation-sources.json"));
+});
+
+test("the shipped-file list is parsed from builder source exactly as this checkout exports it", async () => {
+  // A Windows checkout may hold CRLF; git blobs and CI checkouts hold LF. Both parse identically.
+  const source = (await readFile(join(root, "scripts", "build-pages-artifact.mjs"), "utf8")).replace(/\r\n/g, "\n");
+  assert.deepEqual(parseVersion1BasePaths(source), VERSION_1_BASE_PATHS);
+  assert.deepEqual(parseVersion1BasePaths(source.replace(/\n/g, "\r\n")), VERSION_1_BASE_PATHS);
+  const block = paths => `export const VERSION_1_BASE_PATHS = Object.freeze([\n${paths.map(path => `  "${path}",\n`).join("")}].sort());`;
+  assert.deepEqual(parseVersion1BasePaths(block(["b.js", "a/c.json"])), ["a/c.json", "b.js"]);
+  assert.throws(() => parseVersion1BasePaths(source.replace("export const VERSION_1_BASE_PATHS", "export const OTHER_PATHS")), /unavailable at source/);
+  assert.throws(() => parseVersion1BasePaths(block([])), /unavailable at source/);
+  assert.throws(() => parseVersion1BasePaths('export const VERSION_1_BASE_PATHS = Object.freeze([\n  "a.js", "b.js",\n].sort());'), /unavailable at source/);
+  assert.throws(() => parseVersion1BasePaths('export const VERSION_1_BASE_PATHS = Object.freeze([\n  "a.js",\n  ...OTHER_PATHS,\n].sort());'), /unavailable at source/);
+  assert.throws(() => parseVersion1BasePaths(block(["a.js", "a.js"])), /malformed/);
+  assert.throws(() => parseVersion1BasePaths(block(["../a.js"])), /malformed/);
+  assert.throws(() => parseVersion1BasePaths(block(["data//a.json"])), /malformed/);
+  assert.throws(() => parseVersion1BasePaths(block(["noextension"])), /malformed/);
 });
 
 test("every local script index.html loads is shipped in the version-1 artifact", async () => {
@@ -1496,6 +1514,11 @@ test("frozen membership and repository ledger produce one candidate Atom identit
     "finalize_snapshot_derivatives(database, snapshot_id, insights, hash_pages_artifacts(candidate_root, paths))",
   ].join("; "), repositoryDatabase, directory, context.snapshotId], { cwd: root, encoding: "utf8" });
   assert.equal(finalized.status, 0, finalized.stderr);
+  // The probe reads the shipped-file list from the manifest's commit, so the fixture commit carries
+  // the builder source that lists it, exactly as the real repository does.
+  await mkdir(join(directory, "scripts"), { recursive: true });
+  const builderSource = (await readFile(join(root, "scripts", "build-pages-artifact.mjs"), "utf8")).replace(/\r\n/g, "\n");
+  await writeFile(join(directory, "scripts", "build-pages-artifact.mjs"), builderSource);
   const git = args => spawnSync("git", args, { cwd: directory, encoding: "utf8" });
   assert.equal(git(["init", "-q"]).status, 0);
   git(["config", "user.name", "test"]); git(["config", "user.email", "test@example.invalid"]);
@@ -1596,4 +1619,41 @@ test("frozen membership and repository ledger produce one candidate Atom identit
     probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: "20260826120700-fedcba9876543210", artifactContract: restoredContract, gitRoot: directory }),
     /manifest identity mismatch/i,
   );
+
+  // A release that adds a shipped file must not make the previous, shorter production look broken:
+  // the expected list is the one at the manifest's own commit, not this checkout's. The older
+  // deployment is the current artifact minus visit-tracker.js, built by a commit that never listed it.
+  const shorterSource = builderSource.replace('  "visit-tracker.js",\n', "");
+  assert.notEqual(shorterSource, builderSource);
+  await writeFile(join(directory, "scripts", "build-pages-artifact.mjs"), shorterSource);
+  git(["add", "scripts/build-pages-artifact.mjs"]); assert.equal(git(["commit", "-qm", "before visit-tracker shipped"]).status, 0);
+  const shorterSourceSha = git(["rev-parse", "HEAD"]).stdout.trim();
+  const olderArtifact = join(directory, "older-artifact");
+  await cp(artifact, olderArtifact, { recursive: true });
+  await rm(join(olderArtifact, "visit-tracker.js"));
+  const olderManifestPath = join(olderArtifact, "deployment-manifest.json");
+  const olderManifest = JSON.parse(await readFile(olderManifestPath, "utf8"));
+  delete olderManifest.files["visit-tracker.js"];
+  olderManifest.sourceSha = shorterSourceSha;
+  await writeFile(olderManifestPath, `${JSON.stringify(olderManifest, null, 2)}\n`);
+  const olderContract = await artifactContractForPaths(olderArtifact, VERSION_1_BASE_PATHS.filter(path => path !== "visit-tracker.js"), context.snapshotId);
+  await probeArtifactDirectory({ artifactDir: olderArtifact, sourceSha: shorterSourceSha, snapshotId: context.snapshotId, artifactContract: olderContract, gitRoot: directory });
+  // The same older artifact judged against the commit that ships visit-tracker.js is incomplete, and
+  // the current artifact judged against the older commit carries a file that commit never shipped.
+  await writeFile(olderManifestPath, `${JSON.stringify({ ...olderManifest, sourceSha: committedSourceSha }, null, 2)}\n`);
+  await assert.rejects(probeArtifactDirectory({ artifactDir: olderArtifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: olderContract, gitRoot: directory }), /missing or stale extra artifact paths/i);
+  const currentManifestPath = join(artifact, "deployment-manifest.json");
+  const currentManifest = JSON.parse(await readFile(currentManifestPath, "utf8"));
+  const probeCurrentAs = sha => writeFile(currentManifestPath, `${JSON.stringify({ ...currentManifest, sourceSha: sha }, null, 2)}\n`)
+    .then(() => probeArtifactDirectory({ artifactDir: artifact, sourceSha: sha, snapshotId: context.snapshotId, artifactContract: contract, gitRoot: directory }));
+  await assert.rejects(probeCurrentAs(shorterSourceSha), /missing or stale extra artifact paths/i);
+  // A commit whose builder source does not carry the list in the one accepted shape, or does not
+  // carry the builder at all, cannot vouch for any deployment.
+  await writeFile(join(directory, "scripts", "build-pages-artifact.mjs"), builderSource.replace("Object.freeze([\n", "Object.freeze([ // reshaped\n"));
+  git(["add", "scripts/build-pages-artifact.mjs"]); assert.equal(git(["commit", "-qm", "reshaped list"]).status, 0);
+  await assert.rejects(probeCurrentAs(git(["rev-parse", "HEAD"]).stdout.trim()), /base path list is unavailable at source/i);
+  assert.equal(git(["rm", "-q", "scripts/build-pages-artifact.mjs"]).status, 0); assert.equal(git(["commit", "-qm", "no builder"]).status, 0);
+  await assert.rejects(probeCurrentAs(git(["rev-parse", "HEAD"]).stdout.trim()), /Git tree path unavailable: scripts\/build-pages-artifact\.mjs/);
+  await writeFile(currentManifestPath, `${JSON.stringify(currentManifest, null, 2)}\n`);
+  await probeArtifactDirectory({ artifactDir: artifact, sourceSha: committedSourceSha, snapshotId: context.snapshotId, artifactContract: contract, gitRoot: directory });
 });

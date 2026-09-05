@@ -327,6 +327,7 @@ else if(args[0]==="merge-base") process.exit(process.env.ANCESTOR==="false"?1:0)
 else if(args[0]==="show"&&args[1]==="-s") { const map=JSON.parse(process.env.PARENT_BY_SOURCE); process.stdout.write((map[args.at(-1)]??"")+"\\n"); }
 else if(args[0]==="diff-tree") { const map=JSON.parse(process.env.DIFF_BY_SOURCE); process.stdout.write((map[args.at(-1)]??"data/latest.json")+"\\n"); }
   else if(args[0]==="show"&&args.at(-1).endsWith(":data/translation-sources.json")) process.stdout.write(readFileSync(process.env.SOURCES_PATH));
+  else if(args[0]==="show"&&args.at(-1).endsWith(":scripts/build-pages-artifact.mjs")) process.stdout.write(readFileSync(process.env.BUILDER_SOURCE_PATH));
   else if(args[0]==="cat-file"&&args[1]==="-e") process.exit(args.at(-1).endsWith(":data/observation-db.pointer.json")?0:1);
   else if(args[0]==="show"&&args.at(-1).endsWith(":data/observation-db.pointer.json")) process.stdout.write(readFileSync(process.env.POINTER_PATH));
 else process.exit(92);`);
@@ -340,7 +341,7 @@ else process.exit(92);`);
   // GITHUB_ACTIONS from a CI run of this suite.
   const childEnv = { ...process.env, GH_BIN: process.execPath, GH_SCRIPT: ghScript, GIT_BIN: process.execPath, GIT_SCRIPT: gitScript, GITHUB_REPOSITORY: "owner/repo",
     GH_CONFIG: configPath, ORIGIN_STATE: statePath, ORIGIN_AFTER: originAfter, SOURCES_PATH: sourcesPath, DATABASE_PATH: databasePath,
-    OBSERVATION_DB_RESOLVER_SCRIPT: resolverScript, POINTER_PATH: pointerPath,
+    OBSERVATION_DB_RESOLVER_SCRIPT: resolverScript, POINTER_PATH: pointerPath, BUILDER_SOURCE_PATH: fileURLToPath(new URL("../scripts/build-pages-artifact.mjs", import.meta.url)),
     PARENT_BY_SOURCE: JSON.stringify(parentBySource), DIFF_BY_SOURCE: JSON.stringify(diffBySource), VERIFY_TIMEOUT_MS: String(timeoutMs) };
   delete childEnv.GITHUB_ACTIONS;
   if (insideActions) childEnv.GITHUB_ACTIONS = "true";
