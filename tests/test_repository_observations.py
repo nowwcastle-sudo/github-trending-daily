@@ -2459,6 +2459,34 @@ class RepositoryObservationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "core payload hash preimage mismatch for snapshot 1"):
                 verify_core_snapshot(connection, 1)
 
+    def test_recording_identical_inputs_is_byte_deterministic(self):
+        # Spec 2026-09-05 (observation database release assets) §6.2 step 7 and §8: a re-run of a
+        # failed publish job rebuilds the database from frozen inputs under the snapshot id that is
+        # already spoken for, and the immutability check compares the rebuild against the asset
+        # already uploaded. Whether that comparison can ever pass is a property of the recorder, so
+        # it is recorded here rather than assumed: same inputs, two fresh candidates, same bytes.
+        root = Path(self.temporary.name)
+        # One set of baseline files for both runs - the payload carries their absolute paths, so a
+        # second set in a second directory would differ for a reason that has nothing to do with the
+        # recorder.
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        payload = writer_payload(
+            snapshot_id="20260828010101-aaaaaaaaaaaaaaaa",
+            utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00",
+            stats_date="2026-08-28", run_kind="migration_baseline",
+        )
+        payload["legacyBaselines"], payload["legacyBaselineReceipt"] = paths, receipt
+        events = writer_events(head=sha1(), transition="baseline")
+        digests = []
+        for name in ("determinism-first.sqlite", "determinism-second.sqlite"):
+            candidate = root / name
+            prepare_candidate_database(root / "missing.sqlite", candidate, None)
+            # record_writer_snapshot binds hashes into the payload and events it is handed, so each
+            # run gets its own copy and both start from the same frozen inputs.
+            record_writer_snapshot(candidate, json.loads(json.dumps(payload)), json.loads(json.dumps(events)), {})
+            digests.append(hashlib.sha256(candidate.read_bytes()).hexdigest())
+        self.assertEqual(digests[0], digests[1])
+
     def test_same_snapshot_id_is_exact_noop_but_changed_fact_conflicts(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
         candidate = Path(self.temporary.name) / "no-op.sqlite"
