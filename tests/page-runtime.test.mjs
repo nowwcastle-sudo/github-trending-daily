@@ -3152,3 +3152,24 @@ test("Korean rail labels and the subtitle break between words, not inside them",
   assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(min-width:721px\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 92px\)\}\}/);
   assert.doesNotMatch(page, /\.nav-rail\{[^}]*width:64px/);
 });
+
+test("the head describes the page for crawlers and unfurlers without a new request", () => {
+  const head = page.match(/<head>[\s\S]*?<\/head>/)?.[0] ?? "";
+  assert.match(head, /<meta name="description" content="GITHUB INSIGHT — today’s GitHub Trending repositories with source-bound README summaries, star history, and filters for field, form, language, and period\.">/);
+  assert.match(head, /<meta name="theme-color" content="#f5f5f7" media="\(prefers-color-scheme: light\)">/);
+  assert.match(head, /<meta name="theme-color" content="#282828" media="\(prefers-color-scheme: dark\)">/);
+  assert.match(head, /<meta property="og:type" content="website">/);
+  assert.match(head, /<meta property="og:title" content="GITHUB INSIGHT">/);
+  assert.match(head, /<meta property="og:description" content="Today’s GitHub Trending repositories with source-bound README summaries, star history, and filters for field, form, language, and period\.">/);
+  assert.match(head, /<meta property="og:url" content="https:\/\/nowwcastle-sudo\.github\.io\/github-trending-daily\/">/);
+  // No og:image: it would be a new external request and there is no first-party image to point at.
+  assert.doesNotMatch(head, /og:image/);
+  // The CSP is untouched.
+  assert.match(head, /<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https:\/\/www\.gstatic\.com https:\/\/www\.google\.com https:\/\/apis\.google\.com;/);
+});
+
+test("a script-free visitor is told why the list is empty and where the feeds are", () => {
+  const main = page.match(/<main class="wrap" id="mainContent" tabindex="-1">([\s\S]*?)<\/main>/)?.[1] ?? "";
+  assert.match(main, /<noscript><p class="noscript-note">This page builds its repository list with JavaScript\. Turn JavaScript on, or subscribe to the Atom feeds: <a href="feed\.xml">feed\.xml<\/a> · <a href="changes\.xml">changes\.xml<\/a>\.<\/p><\/noscript>/);
+  assert.match(page, /\.noscript-note\{[^}]*border:1px solid var\(--surface-border\)/);
+});
