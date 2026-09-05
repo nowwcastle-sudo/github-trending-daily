@@ -28,6 +28,7 @@ from scripts.derive_repository_artifacts import (
 )
 from scripts.generate_atom_feeds import ATOM_NAMESPACE, generate_atom_feeds_from_timeline
 from scripts.record_repository_observations import (
+    PAGES_BASE_ARTIFACT_PATH_HISTORY,
     PAGES_BASE_ARTIFACT_PATHS,
     _file_sha256,
     _legacy_logical_rows,
@@ -787,6 +788,31 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
             connection.execute("INSERT INTO artifact_hashes VALUES (?, ?, ?, ?)", (1, "star-history.json", "c" * 64, 7))
             connection.commit()
         self.assertEqual([row["artifact_path"] for row in verify_pages_artifacts(database, snapshot_id, candidate_root)["artifacts"]], sorted(PAGES_BASE_ARTIFACT_PATHS))
+        self.assertEqual([row["artifact_path"] for row in read_finalized_artifact_contract(database, snapshot_id)["artifacts"]], sorted(PAGES_BASE_ARTIFACT_PATHS))
+        # A blob finalized by an earlier release carries that release's shipped-file list. The rows
+        # are append-only, so the older shape is produced by removing the two 2026-09-06 additions
+        # with the delete guard lifted and restored verbatim; the reader returns exactly the older
+        # list, and a set matching no shipped list is refused.
+        older = PAGES_BASE_ARTIFACT_PATH_HISTORY[0]
+        with closing(sqlite3.connect(database)) as connection:
+            delete_guard = connection.execute("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='artifact_hashes_reject_delete'").fetchone()[0]
+            connection.execute("DROP TRIGGER artifact_hashes_reject_delete")
+            connection.execute("DELETE FROM artifact_hashes WHERE snapshot_seq = 1 AND artifact_path IN ('filter-presets.js', 'visit-tracker.js')")
+            connection.execute(delete_guard)
+            connection.commit()
+        self.assertEqual([row["artifact_path"] for row in read_finalized_artifact_contract(database, snapshot_id)["artifacts"]], sorted(older))
+        with closing(sqlite3.connect(database)) as connection:
+            connection.execute("DROP TRIGGER artifact_hashes_reject_delete")
+            connection.execute("DELETE FROM artifact_hashes WHERE snapshot_seq = 1 AND artifact_path = 'ui-motion.js'")
+            connection.execute(delete_guard)
+            connection.commit()
+        with self.assertRaisesRegex(ValueError, "exact Pages allowlist"):
+            read_finalized_artifact_contract(database, snapshot_id)
+        with closing(sqlite3.connect(database)) as connection:
+            for artifact_path in ("ui-motion.js", "filter-presets.js", "visit-tracker.js"):
+                row = next(row for row in hashes if row["artifact_path"] == artifact_path)
+                connection.execute("INSERT INTO artifact_hashes VALUES (?, ?, ?, ?)", (1, artifact_path, row["sha256"], row["byte_size"]))
+            connection.commit()
         self.assertEqual([row["artifact_path"] for row in read_finalized_artifact_contract(database, snapshot_id)["artifacts"]], sorted(PAGES_BASE_ARTIFACT_PATHS))
         # The verify job and the redeploy path pass checkout-relative database paths.
         previous_cwd = os.getcwd()
