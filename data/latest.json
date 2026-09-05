@@ -1,8 +1,8 @@
 {
-  "snapshotId": "20260904175746-5f8974cb42601396",
-  "generatedAt": "2026-09-04T17:57:46.695Z",
+  "snapshotId": "20260905023543-bbb0035e888cff6b",
+  "generatedAt": "2026-09-05T02:35:43.857Z",
   "statsDate": "2026-09-05",
-  "count": 51,
+  "count": 52,
   "repos": [
     {
       "slug": "mattpocock/skills",
@@ -10,12 +10,12 @@
       "description": "Skills for Real Engineers. Straight from my .agents directory.",
       "lang": "Shell",
       "topics": [],
-      "stars": 249784,
-      "forks": 21113,
-      "issues": 463,
+      "stars": 250515,
+      "forks": 21171,
+      "issues": 465,
       "contributors": 8,
       "gains": {
-        "daily": 2757,
+        "daily": 2758,
         "weekly": null,
         "monthly": null
       },
@@ -54,12 +54,12 @@
         "prompt-engineering",
         "yagni"
       ],
-      "stars": 125128,
-      "forks": 6743,
-      "issues": 207,
+      "stars": 126180,
+      "forks": 6770,
+      "issues": 210,
       "contributors": 64,
       "gains": {
-        "daily": 1683,
+        "daily": 1679,
         "weekly": null,
         "monthly": null
       },
@@ -71,7 +71,7 @@
         "cons": "The Claude Code and Codex plugins rely on two Node.js lifecycle hooks, so Node must be reachable on the shell's PATH (including non-interactive shells for Nix/nvm users); if missing, always-on activation silently stays quiet rather than erroring. Separately, the correctness benchmark's CSV checks require a local `pandas` installation.",
         "fit": "Ponytail targets developers using supported AI coding agent hosts (Claude Code, Codex, GitHub Copilot CLI, OpenCode, Gemini CLI, and others) who want agents to favor minimal, native-feature-based solutions over new dependencies or components, particularly for teams concerned about agent over-building; instruction-only adapters such as Cursor and Windsurf receive the ruleset but not the slash commands."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -101,22 +101,22 @@
         "ranges",
         "unicode"
       ],
-      "stars": 25431,
-      "forks": 3032,
+      "stars": 25480,
+      "forks": 3035,
       "issues": 12,
-      "contributors": 627,
+      "contributors": 629,
       "gains": {
-        "daily": 681,
-        "weekly": 993,
+        "daily": 688,
+        "weekly": 1671,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "{fmt} is described in the README as an open-source C++ formatting library, offering a fast and safe alternative to C stdio and C++ iostreams, including implementations of C++20 std::format and C++23 std::print.",
-        "usage": "Documentation is provided at https://fmt.dev, and basic usage includes calls such as fmt::print(\"Hello, world!\\n\"); for console output, with an optional header-only mode enabled via the FMT_HEADER_ONLY macro.",
-        "pros": "The library is presented as fully type-safe, with format-string errors reported at compile time and automatic memory management said to prevent buffer overflow errors. It has a small, self-contained code base with no external dependencies, an MIT license, and an extensive, continuously fuzzed test suite.",
-        "cons": "In the README's own optimized-build benchmark, compiling with {fmt} took about 5.0 seconds versus 1.6 seconds for printf, suggesting some added compile-time cost relative to raw printf, even though {fmt} compiles faster than the iostreams or Boost Format alternatives shown in the same table.",
-        "fit": "Based on the listed feature set and adopters, {fmt} appears suited to C++ projects wanting faster, type-safe text formatting than iostreams or printf; the README cites projects such as ClickHouse, Envoy, Folly, MariaDB, MongoDB, PyTorch, and Windows Terminal as users."
+        "goal": "{fmt} is an open-source C++ library billed as a fast and safe alternative to C stdio and C++ iostreams; it implements the C++20 std::format and C++23 std::print interfaces.",
+        "usage": "Basic usage includes `#include <fmt/base.h>` with `fmt::print(\"Hello, world!\\n\")` for console output and `fmt::format(\"The answer is {}.\", 42)` to build a string in memory; a separate `fmt/os.h` header adds file-writing via `fmt::output_file`.",
+        "pros": "The README reports better performance than common standard-library implementations of printf, iostreams, to_string, and to_chars, a minimal three-file configuration for small code size, compile-time format-string checking with type safety and automatic memory management, and a permissive MIT license with no external dependencies.",
+        "cons": "The project's own compile-time/code-bloat benchmark lists {fmt} 12.2 at about 4.2 seconds to compile in an optimized build versus 1.2 seconds for plain printf, so adopting {fmt} appears to add measurable compile time relative to bare printf, though still far less than iostreams in the same table.",
+        "fit": "Based on the projects it lists as users—including FoundationDB, ClickHouse, MongoDB, PyTorch, and Windows Terminal—{fmt} seems suited to C++ codebases wanting a printf/iostreams replacement with modern C++20/23 formatting semantics."
       },
       "summary_status": "verified",
       "tag_rule_version": 1,
@@ -142,12 +142,12 @@
         "mcp",
         "productivity"
       ],
-      "stars": 248180,
-      "forks": 37403,
-      "issues": 137,
+      "stars": 248565,
+      "forks": 37466,
+      "issues": 143,
       "contributors": 348,
       "gains": {
-        "daily": 1139,
+        "daily": 1135,
         "weekly": null,
         "monthly": null
       },
@@ -181,12 +181,12 @@
       "topics": [
         "agent-skills"
       ],
-      "stars": 174021,
-      "forks": 20632,
+      "stars": 174156,
+      "forks": 20644,
       "issues": 1208,
       "contributors": 16,
       "gains": {
-        "daily": 512,
+        "daily": 511,
         "weekly": null,
         "monthly": null
       },
@@ -198,7 +198,7 @@
         "cons": "The docx, pdf, pptx, and xlsx skills are described as source-available rather than open source. The maintainers caution that actual Claude behavior may differ from what these skills demonstrate, so implementations should be tested thoroughly before being relied on for critical tasks.",
         "fit": "Based on the installation paths described, this repository appears well suited to developers and teams already using Claude Code, Claude.ai's paid plans, or the Claude API who want to try or reference existing skills, or use the template to build their own custom skills for specialized, repeatable tasks."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml"
@@ -222,12 +222,12 @@
         "prompt-engineering",
         "writing-tools"
       ],
-      "stars": 42478,
-      "forks": 3602,
+      "stars": 42775,
+      "forks": 3612,
       "issues": 33,
       "contributors": 15,
       "gains": {
-        "daily": 1132,
+        "daily": 1130,
         "weekly": null,
         "monthly": null
       },
@@ -269,12 +269,12 @@
         "nous-research",
         "openai"
       ],
-      "stars": 241364,
-      "forks": 49496,
-      "issues": 39547,
-      "contributors": 3299,
+      "stars": 241521,
+      "forks": 49572,
+      "issues": 39758,
+      "contributors": 3300,
       "gains": {
-        "daily": 721,
+        "daily": 720,
         "weekly": null,
         "monthly": null
       },
@@ -312,12 +312,12 @@
         "skill",
         "tokens"
       ],
-      "stars": 103481,
-      "forks": 6006,
-      "issues": 104,
+      "stars": 103597,
+      "forks": 6007,
+      "issues": 107,
       "contributors": 48,
       "gains": {
-        "daily": 503,
+        "daily": 501,
         "weekly": null,
         "monthly": null
       },
@@ -329,7 +329,7 @@
         "cons": "The README notes the skill only shortens output tokens—input and reasoning tokens are unaffected—and the skill's own rules add roughly 1 to 1.5k input tokens per turn, so whole-session savings are lower than the headline table and could even turn negative on tasks that were already terse.",
         "fit": "Caveman appears best suited to developers already using one of its supported agents (Claude Code, Codex, Gemini CLI, and others) who want to cut token costs; the full installer requires Node.js 22.13+, and the proxy's core runtime is licensed under BSL-1.1 rather than a fully open-source license, which may matter for anyone considering hosting it for third parties."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml"
@@ -344,12 +344,12 @@
       "description": "Open source inference server that runs the best local models for your hardware, plugged into the agent you already use. Works with Pi, OpenCode, Hermes, OpenClaw, Codex, Claude Code, Oh My Pi, and Cline.",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 2282,
-      "forks": 160,
-      "issues": 16,
-      "contributors": 5,
+      "stars": 2536,
+      "forks": 185,
+      "issues": 19,
+      "contributors": 6,
       "gains": {
-        "daily": 395,
+        "daily": 391,
         "weekly": null,
         "monthly": null
       },
@@ -361,7 +361,7 @@
         "cons": "Magnitude documents support for macOS and Linux, with Windows usable only through WSL rather than natively, which may add extra setup steps for Windows users.",
         "fit": "Based on the listed integrations, Magnitude may suit developers already using harnesses such as Pi, OpenCode, Hermes, OpenClaw, Codex, Claude Code, Oh My Pi, or Cline who want free, private, offline local-model inference tuned to their own hardware."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -377,12 +377,12 @@
       "description": "A single archive of public exploit PoCs and vulnerability research writeups. At the time I post these, none have been reported. Feel free to report them yourself and take credit for the CVE if handed out lulz. Please do not abuse these. I do this so to allure people into the field, and I've always found this is the most efficient way.",
       "lang": "Python",
       "topics": [],
-      "stars": 4455,
-      "forks": 1238,
+      "stars": 4528,
+      "forks": 1242,
       "issues": 7,
       "contributors": 1,
       "gains": {
-        "daily": 68,
+        "daily": 74,
         "weekly": null,
         "monthly": null
       },
@@ -394,7 +394,7 @@
         "cons": "The author states the repository 'was incomplete when published.' Repository-level metadata such as stars, issues, pull requests, releases, and separate Git history are not carried over from the original standalone repos and remain only in those original repository histories, so some project context may be missing here.",
         "fit": "Given the explicit prohibition on malicious use and the stated good-faith, open-disclosure intent, this archive may fit researchers, students, or practitioners studying vulnerability research and proof-of-concept exploits in an authorized or educational context, rather than users seeking ready-to-run offensive tooling."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "security"
@@ -419,12 +419,12 @@
         "trojan",
         "v2ray"
       ],
-      "stars": 52721,
-      "forks": 8521,
+      "stars": 52807,
+      "forks": 8528,
       "issues": 335,
       "contributors": 3,
       "gains": {
-        "daily": 735,
+        "daily": 730,
         "weekly": null,
         "monthly": null
       },
@@ -436,7 +436,7 @@
         "cons": "The README notes that effectiveness varies by region, network operator, and local blocking conditions, so users are expected to test different tools themselves to find one that works; it also cautions that the downloaded archive must not be run directly and should be extracted to a path free of Chinese characters or spaces, and it indicates the listed support email does not answer questions.",
         "fit": "The README's copyright notice permits free distribution but prohibits commercial use, suggesting the project is intended for individual, non-commercial readers seeking free circumvention guides and tools across common platforms rather than as a packaged commercial product."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "unclassified"
@@ -470,13 +470,13 @@
         "voicestudio",
         "workflow"
       ],
-      "stars": 17494,
-      "forks": 2306,
-      "issues": 21,
+      "stars": 18069,
+      "forks": 2363,
+      "issues": 24,
       "contributors": 39,
       "gains": {
         "daily": 1345,
-        "weekly": 3902,
+        "weekly": 5150,
         "monthly": null
       },
       "signal": null,
@@ -487,7 +487,7 @@
         "cons": "The project is described as an active beta, meaning the main branch may change between releases and only the latest tagged release is presented as stable for production work; Intel Macs also cannot run the local Python backend and instead require a remote backend.",
         "fit": "VoiceStudio appears best suited to private, offline, self-hosted, or high-volume work where users supply their own hardware, as opposed to hosted voice services that offer faster setup without local model management."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -503,24 +503,24 @@
       "description": "TimesFM (Time Series Foundation Model) is a pretrained time-series foundation model developed by Google Research for time-series forecasting.",
       "lang": "Python",
       "topics": [],
-      "stars": 30973,
-      "forks": 2952,
-      "issues": 240,
-      "contributors": 28,
+      "stars": 31071,
+      "forks": 2962,
+      "issues": 236,
+      "contributors": 29,
       "gains": {
-        "daily": 340,
-        "weekly": 2324,
+        "daily": 342,
+        "weekly": 2653,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "TimesFM is a pretrained time-series foundation model developed by Google Research for time-series forecasting, introduced in an ICML 2024 paper (https://arxiv.org/abs/2310.10688). The latest release, TimesFM 3.0, adds native multivariate and univariate forecasting with past-only and past-and-future covariate support for zero-shot forecasting tasks.",
-        "usage": "Install from PyPI with `pip install timesfm[torch]`, or clone the repository via `git clone https://github.com/google-research/timesfm.git` and build a local environment with `uv pip install -e .[torch]`. Python examples then load `TimesFM3Evaluator` and `ModelConfig` to run univariate or multivariate forecasts, optionally passing past-only and past-and-future covariates.",
-        "pros": "TimesFM 3.0 is reported to rank #1 across three benchmarks, including fev-bench, which covers 100 diverse real-world forecasting tasks, alongside the TIME Benchmark and GIFT-Eval. It provides native multivariate and univariate forecasting with covariate support built in, without requiring per-task tuning.",
-        "cons": "TimesFM 3.0 pretrained weights are distributed under the separate timesfm-non-commercial-license-v1.0 license and are restricted to non-commercial, non-production use, so commercial or production deployment of the default weights is not permitted. The README also states this open-source release is not an officially supported Google product.",
-        "fit": "Given the non-commercial license on TimesFM 3.0 weights, this repository appears best suited to research or evaluation use rather than commercial production deployment. Teams needing permissively licensed weights may instead consider the archived versions up to 2.5, whose weights remain under Apache-2.0."
+        "goal": "TimesFM (Time Series Foundation Model) is a pretrained time-series foundation model developed by Google Research for time-series forecasting. The latest version, TimesFM 3.0, introduces native multivariate and univariate forecasting with support for past-only and past-and-future covariates.",
+        "usage": "The package can be installed from PyPI via `pip install timesfm[torch]`, or locally by running `git clone https://github.com/google-research/timesfm.git` and setting up a virtual environment with `uv venv` before installing in editable mode with the `[torch]` extra. Code examples import `TimesFM3Evaluator` and `ModelConfig` from `timesfm3` to run univariate or multivariate forecasts.",
+        "pros": "TimesFM 3.0 reportedly ranks #1 across three benchmarks: fev-bench, the TIME Benchmark, and GIFT-Eval. It natively supports both multivariate and univariate forecasting with past-only and past-and-future covariates without requiring per-task tuning.",
+        "cons": "TimesFM 3.0's pretrained weights are distributed under a separate `timesfm-non-commercial-license-v1.0` license restricted to non-commercial, non-production use; commercial or production use of the default pretrained weights is not permitted, unlike the Apache-2.0 license covering the source code and weights up to version 2.5.",
+        "fit": "Given this licensing restriction, TimesFM 3.0's default weights appear best suited to research, evaluation, or non-commercial forecasting work rather than direct commercial production deployment, though earlier Apache-2.0 licensed versions (up to 2.5) may offer more deployment flexibility."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 1,
       "field_tags": [
         "unclassified"
@@ -533,12 +533,12 @@
       "description": "Miles is an enterprise-facing reinforcement learning framework for LLM and VLM post-training, forked from and co-evolving with slime.",
       "lang": "Python",
       "topics": [],
-      "stars": 2511,
-      "forks": 441,
+      "stars": 2565,
+      "forks": 446,
       "issues": 955,
       "contributors": 119,
       "gains": {
-        "daily": 55,
+        "daily": 64,
         "weekly": null,
         "monthly": null
       },
@@ -550,7 +550,7 @@
         "cons": "The README lists only specific supported hardware, including NVIDIA H100 and AMD MI300X among several other GPU models, which suggests Miles is oriented toward enterprise-scale GPU clusters and may require substantial infrastructure investment rather than being well suited to lightweight or single-GPU setups.",
         "fit": "Given its emphasis on trillion-parameter-scale training, extensive multi-GPU hardware support, and enterprise-grade positioning, Miles appears best suited for organizations or research teams running large-scale reinforcement learning post-training on frontier models, rather than for small-scale or individual experimentation."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -566,12 +566,12 @@
       "description": "The open source coding agent.",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 203934,
-      "forks": 26618,
-      "issues": 5703,
+      "stars": 204163,
+      "forks": 26636,
+      "issues": 5682,
       "contributors": 1010,
       "gains": {
-        "daily": 314,
+        "daily": 345,
         "weekly": null,
         "monthly": null
       },
@@ -583,7 +583,7 @@
         "cons": "The desktop application is explicitly marked BETA, suggesting it may be less stable than the terminal-based install and could see ongoing changes. The install guidance also recommends removing versions older than 0.1.x first, implying upgrade compatibility may require manual cleanup.",
         "fit": "OpenCode appears best suited to developers comfortable with terminal or CLI workflows across macOS, Windows, and Linux who want configurable agent permissions; those needing a fully mature GUI experience may want to wait, since the desktop app is still in beta."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -608,14 +608,14 @@
         "mermaid",
         "svg"
       ],
-      "stars": 30768,
-      "forks": 1975,
+      "stars": 30986,
+      "forks": 1990,
       "issues": 40,
       "contributors": 28,
       "gains": {
-        "daily": 426,
+        "daily": 437,
         "weekly": null,
-        "monthly": 27488
+        "monthly": 27843
       },
       "signal": null,
       "summary": {
@@ -625,7 +625,7 @@
         "cons": "Exporting a diagram to PNG requires a one-time local setup step, `pip install playwright && playwright install chromium`, adding an external dependency beyond simply opening the generated HTML files.",
         "fit": "The skill appears best suited to teams that want editorial-quality technical diagrams produced directly by an AI coding agent, rather than through a separate design tool. Documented guidance suggests it is less appropriate for quick unicode diagrams, simple lists, before/after comparisons, or single-box visuals, where a plain paragraph or table may communicate the same information more directly."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -663,14 +663,14 @@
         "system-design",
         "text-to-diagram"
       ],
-      "stars": 47688,
-      "forks": 3075,
-      "issues": 108,
+      "stars": 48175,
+      "forks": 3111,
+      "issues": 112,
       "contributors": 16,
       "gains": {
         "daily": null,
-        "weekly": 24227,
-        "monthly": 36689
+        "weekly": 21896,
+        "monthly": 38699
       },
       "signal": null,
       "summary": {
@@ -700,14 +700,14 @@
       "description": "Open Multi-Agent Interactive Classroom — Get an immersive, multi-agent learning experience in just one click",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 31411,
-      "forks": 5176,
+      "stars": 31543,
+      "forks": 5188,
       "issues": 217,
       "contributors": 79,
       "gains": {
         "daily": null,
-        "weekly": 10023,
-        "monthly": 10599
+        "weekly": 10274,
+        "monthly": 11020
       },
       "signal": null,
       "summary": {
@@ -746,24 +746,24 @@
         "webgl",
         "worldview"
       ],
-      "stars": 17373,
-      "forks": 3503,
-      "issues": 121,
+      "stars": 17549,
+      "forks": 3540,
+      "issues": 125,
       "contributors": 7,
       "gains": {
         "daily": null,
-        "weekly": 10485,
+        "weekly": 7314,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "God's Eye View is an open-source browser application that renders a photorealistic 3D globe (built with CesiumJS and Vite) displaying live public data feeds—aircraft, ships, satellites, earthquakes, traffic, and public cameras—with optional hands-free voice control through an OpenAI-powered realtime agent.",
-        "usage": "Two install paths are documented: a one-click Pinokio launcher, or a terminal setup running `npm install`, `npm run doctor`, and `npm run dev`, after which the app opens at `http://localhost:4173`. Node.js 24.14.x or 26.x is required (Node 25 is usable but noted as EOL). Optional API keys (e.g., OpenAI, Cesium ion, Google Maps) can be added later inside the running app via a \"POWER UP\" panel rather than by editing files.",
-        "pros": "The keyless globe runs with no account, key, or configuration file, and the project documents 13 live layers, 11 of which need no signup. It is released under the MIT License.",
-        "cons": "Effective use appears to depend on the documented Node.js version requirement, and some features—photorealistic 3D cities, voice control, direct Google Maps search—reportedly require separate API keys with provider-specific quotas. The project describes its status as an evolving client rather than a hardened production service, and cautions that displayed data may be delayed, incomplete, modeled, inferred, or wrong, advising against use for navigation, emergency response, or other safety-critical purposes.",
-        "fit": "Based on this framing, the project appears best suited to hobbyists, developers, and learners exploring geospatial or open-source-intelligence-style visualization, rather than for operational or safety-critical deployments."
+        "goal": "God's Eye View is an open-source, browser-based 3D globe application that visualizes live public data — aircraft, ships, satellites, earthquakes, traffic, and public cameras — alongside an optional voice-controlled AI agent for hands-free interaction. It runs locally in the browser and lets users move between a global view and individual tracked entities.",
+        "usage": "Setup follows two documented paths: install via Pinokio (version 8.2 or later) for a one-click launch, or run locally with `git clone https://github.com/bilawalsidhu/gods-eye-view.git`, `npm ci`, `npm run doctor`, and `npm run dev`, requiring Node.js 24.14.0 or later. The app then opens at `http://localhost:4173`, where users pick a starting mission such as Live Contacts or Explore Manually.",
+        "pros": "11 of the 13 documented data layers work without any API key, and the app is designed to start without an account. It is released under the MIT License, with server-side credential handling for private keys, and each layer exists as its own module, which appears to make adding new data sources straightforward.",
+        "cons": "Some capabilities appear to require paid or quota-limited provider keys — for example, Cesium ion for photorealistic 3D terrain and OpenAI for the voice assistant, reportedly capped at $5 per session. Documentation also indicates that Pinokio version 8.0.40's native credential panel may not save keys correctly, suggesting the app's own Provider Settings panel should be used instead.",
+        "fit": "The project appears to be positioned as an evolving open-source client for exploration and learning rather than a hardened production service, based on how it describes its own status. The documentation explicitly cautions that the visualized data may be delayed, incomplete, or wrong, implying it is likely unsuitable for navigation, emergency response, medical, or investment decisions."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 1,
       "field_tags": [
         "web-app",
@@ -784,13 +784,13 @@
         "cli",
         "coding"
       ],
-      "stars": 32535,
-      "forks": 9041,
-      "issues": 76,
+      "stars": 32585,
+      "forks": 9049,
+      "issues": 79,
       "contributors": 151,
       "gains": {
         "daily": null,
-        "weekly": 1389,
+        "weekly": 1679,
         "monthly": null
       },
       "signal": null,
@@ -821,13 +821,13 @@
         "artificial-intelligence",
         "large-language-model"
       ],
-      "stars": 58472,
-      "forks": 7598,
+      "stars": 58557,
+      "forks": 7608,
       "issues": 60,
       "contributors": 14,
       "gains": {
         "daily": null,
-        "weekly": 3122,
+        "weekly": 3390,
         "monthly": null
       },
       "signal": null,
@@ -838,7 +838,7 @@
         "cons": "The README documents that English-language benchmark scores (e.g., ARC, PIQA, HellaSwag) sit close to random-guess baselines, attributed to training data skewed toward Chinese. It also notes the compact 6,400-token tokenizer, smaller than comparable tokenizers (32K-151K), trades some encoding efficiency for a lighter model footprint, and that MoE inference can run roughly 50% slower than an equivalently sized dense model.",
         "fit": "Given the documented small parameter scale (64M-198M) and comparatively weak English-language benchmark results relative to larger reference models, MiniMind appears best suited to individuals or researchers seeking low-budget, hands-on experimentation with full LLM training pipelines rather than production-grade or multilingual deployment."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml"
@@ -869,13 +869,13 @@
         "scientific-computing",
         "scientific-visualization"
       ],
-      "stars": 42589,
-      "forks": 3894,
+      "stars": 42656,
+      "forks": 3904,
       "issues": 31,
       "contributors": 51,
       "gains": {
         "daily": null,
-        "weekly": 7370,
+        "weekly": 6898,
         "monthly": null
       },
       "signal": null,
@@ -904,13 +904,13 @@
       "description": "",
       "lang": "Swift",
       "topics": [],
-      "stars": 10430,
-      "forks": 1345,
+      "stars": 10522,
+      "forks": 1354,
       "issues": 23,
       "contributors": 38,
       "gains": {
         "daily": null,
-        "weekly": 2137,
+        "weekly": 1982,
         "monthly": null
       },
       "signal": null,
@@ -921,7 +921,7 @@
         "cons": "Running vphone-cli requires relaxing SIP/AMFI protections on the host, which likely represents a meaningful security trade-off since it lowers macOS's built-in protections. The README also documents what appears to be a known upstream bug in ldid-procursus up to version 2.1.5-procursus7 that can hang the `cfw install` step, suggesting that a from-source rebuild (`brew install --HEAD ldid-procursus`) may currently be needed as a workaround.",
         "fit": "Given the stated Apple Silicon and macOS 15+ host prerequisites, along with the required SIP/AMFI relaxation, this tool seems best suited to security researchers or developers already comfortable lowering system protections for research purposes. The README notes that nested virtualization is unsupported, implying it likely cannot run inside another virtual machine."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "dev-tools"
@@ -948,13 +948,13 @@
         "seo-tools",
         "site-audit"
       ],
-      "stars": 16952,
-      "forks": 2097,
-      "issues": 148,
+      "stars": 17036,
+      "forks": 2121,
+      "issues": 150,
       "contributors": 18,
       "gains": {
         "daily": null,
-        "weekly": 2941,
+        "weekly": 2950,
         "monthly": null
       },
       "signal": null,
@@ -988,13 +988,13 @@
         "llm",
         "transformer"
       ],
-      "stars": 30422,
-      "forks": 3365,
+      "stars": 30464,
+      "forks": 3371,
       "issues": 83,
       "contributors": 34,
       "gains": {
         "daily": null,
-        "weekly": 2146,
+        "weekly": 2065,
         "monthly": null
       },
       "signal": null,
@@ -1024,13 +1024,13 @@
         "type-inference",
         "typescript"
       ],
-      "stars": 43830,
-      "forks": 2174,
-      "issues": 56,
+      "stars": 43837,
+      "forks": 2175,
+      "issues": 57,
       "contributors": 588,
       "gains": {
         "daily": null,
-        "weekly": 277,
+        "weekly": 297,
         "monthly": null
       },
       "signal": null,
@@ -1060,13 +1060,13 @@
         "patent",
         "skill"
       ],
-      "stars": 7359,
-      "forks": 810,
+      "stars": 7380,
+      "forks": 816,
       "issues": 7,
       "contributors": 4,
       "gains": {
         "daily": null,
-        "weekly": 1846,
+        "weekly": 1975,
         "monthly": null
       },
       "signal": null,
@@ -1077,7 +1077,7 @@
         "cons": "The patent-reader workflow's full knowledge-graph experience is documented as requiring a separate Obsidian installation. Examination-response draft quality depends on the user's own historical case library, and produces only outline-level drafts when that library is empty. Record search results cover only published or announced filings, not an organization's actual total internal submissions.",
         "fit": "The tool appears aimed at R&D staff and inventors preparing Chinese patent filings, readers wanting condensed interpretations of public patents accumulated into a private Obsidian knowledge base, and users tracking CNIPA examination policy changes; user-facing output defaults to Simplified Chinese."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "unclassified"
@@ -1095,13 +1095,13 @@
         "ai",
         "mcp"
       ],
-      "stars": 94124,
-      "forks": 15631,
-      "issues": 3868,
+      "stars": 94163,
+      "forks": 15651,
+      "issues": 3886,
       "contributors": 3399,
       "gains": {
         "daily": null,
-        "weekly": 1130,
+        "weekly": 1198,
         "monthly": null
       },
       "signal": null,
@@ -1129,13 +1129,13 @@
       "description": "Drop in a screenshot and convert it to clean code (HTML/Tailwind/React/Vue)",
       "lang": "Python",
       "topics": [],
-      "stars": 77633,
-      "forks": 9446,
-      "issues": 141,
+      "stars": 77697,
+      "forks": 9457,
+      "issues": 142,
       "contributors": 29,
       "gains": {
         "daily": null,
-        "weekly": 2412,
+        "weekly": 2372,
         "monthly": null
       },
       "signal": null,
@@ -1168,13 +1168,13 @@
         "mcp-server",
         "puppeteer"
       ],
-      "stars": 50909,
-      "forks": 3571,
-      "issues": 90,
+      "stars": 50943,
+      "forks": 3572,
+      "issues": 92,
       "contributors": 123,
       "gains": {
         "daily": null,
-        "weekly": 1058,
+        "weekly": 1067,
         "monthly": null
       },
       "signal": null,
@@ -1221,13 +1221,13 @@
         "swift",
         "tool"
       ],
-      "stars": 10848,
-      "forks": 908,
+      "stars": 10876,
+      "forks": 910,
       "issues": 29,
       "contributors": 29,
       "gains": {
         "daily": null,
-        "weekly": 847,
+        "weekly": 903,
         "monthly": null
       },
       "signal": null,
@@ -1238,7 +1238,7 @@
         "cons": "Using IPATool requires an Apple ID already configured for App Store access, since the documentation lists this as a requirement rather than something the tool sets up itself. The tool also runs in interactive mode by default, so automated environments must explicitly pass `--non-interactive`.",
         "fit": "IPATool seems best suited to developers or testers who need scriptable App Store retrieval outside Xcode's GUI, given its JSON output and `--non-interactive` flag. Building it from source with `go build -o ipatool` requires the Go toolchain, so teams without Go available may prefer the Homebrew or GitHub release instead."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "web-app",
@@ -1277,13 +1277,13 @@
         "sft",
         "transformers"
       ],
-      "stars": 5249,
-      "forks": 783,
-      "issues": 57,
-      "contributors": 38,
+      "stars": 5305,
+      "forks": 790,
+      "issues": 58,
+      "contributors": 39,
       "gains": {
         "daily": null,
-        "weekly": 1812,
+        "weekly": 1808,
         "monthly": null
       },
       "signal": null,
@@ -1294,7 +1294,7 @@
         "cons": "The layer-streaming feature that enables 4 GB GPU training is opt-in and still labeled BETA. A documented compatibility issue exists where torch>=2.5.0 does not work with trl>=0.29, and Python 3.13 and later are not yet supported.",
         "fit": "Based on the documented VRAM guidance and compatibility with the HuggingFace Hub, Soup appears best suited to developers or researchers with limited local GPU memory, from around 4 GB, who want to fine-tune text-generation models without cloud infrastructure, using Python 3.10-3.12."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -1327,13 +1327,13 @@
         "whisper",
         "windows"
       ],
-      "stars": 6669,
-      "forks": 899,
-      "issues": 319,
-      "contributors": 83,
+      "stars": 6784,
+      "forks": 905,
+      "issues": 322,
+      "contributors": 84,
       "gains": {
         "daily": null,
-        "weekly": 642,
+        "weekly": 794,
         "monthly": null
       },
       "signal": null,
@@ -1344,7 +1344,7 @@
         "cons": "On Intel Macs, live speaker identification and voice fingerprinting are unavailable because they depend on ONNX Runtime, which stopped shipping macOS x86_64 binaries starting version 1.24; notes search falls back to keyword matching instead of semantic search in that case.",
         "fit": "This project appears suited for individuals or teams wanting privacy-conscious voice dictation, meeting transcription, and note-taking with flexibility between local and cloud AI models, though Intel Mac users may face reduced feature parity."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -1360,14 +1360,14 @@
       "description": "Beautiful, Modern & Opinionated Linux",
       "lang": "Shell",
       "topics": [],
-      "stars": 37967,
-      "forks": 4024,
-      "issues": 3067,
+      "stars": 38064,
+      "forks": 4045,
+      "issues": 3115,
       "contributors": 510,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 13597
+        "monthly": 13961
       },
       "signal": null,
       "summary": {
@@ -1390,14 +1390,14 @@
       "description": "A self-improving RLM agent for coding workflows and long-running autonomous tasks.",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 19841,
+      "stars": 19877,
       "forks": 2170,
       "issues": 91,
       "contributors": 222,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 19906
+        "monthly": 19927
       },
       "signal": null,
       "summary": {
@@ -1407,7 +1407,7 @@
         "cons": "The README explicitly warns that Prime Agent executes model-generated Python and project commands with the user's own permissions, and that its worker and kernel process isolation is not a security sandbox, so it advises reviewing changes and limiting use to trusted repositories, instructions, skills, and extensions.",
         "fit": "Based on the README's framing under 'Built for Long-Running Work,' Prime Agent appears best suited to extended, research-oriented tasks such as evaluations, usable both interactively in the TUI and in a bounded `/autonomous` mode governed by configurable turn, token, and time budgets."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -1444,22 +1444,22 @@
         "reasoning",
         "semantic-search"
       ],
-      "stars": 11979,
-      "forks": 1349,
-      "issues": 114,
+      "stars": 12006,
+      "forks": 1353,
+      "issues": 120,
       "contributors": 89,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 10058
+        "monthly": 10154
       },
       "signal": null,
       "summary": {
-        "goal": "Semantica is presented as graph-native infrastructure that ingests enterprise data to build a queryable Context Graph and knowledge graph, adding deterministic reasoning, ontology governance, and decision provenance for AI systems in regulated environments.",
-        "usage": "Install with `pip install semantica`, then verify the installation with `semantica doctor`. A Python API such as `ContextGraph` lets you record decisions, trace causal chains, and query the graph directly in code.",
-        "pros": "It documents W3C PROV-O provenance on every fact, deterministic reasoning engines (forward chaining, Rete, Datalog, SPARQL), polyglot RDF and labeled-property-graph storage, and native integrations with Agno, CrewAI, LangChain, an MCP server, and a REST API.",
-        "cons": "As of the documented v0.6.7 release, the ReteEngine's condition matcher is described as 'intentionally simple,' with the README advising validation before production compliance use; some framework toolkits (e.g., dedicated LlamaIndex and AutoGen integrations) are still listed as upcoming, suggesting the project may still be maturing toward broader framework coverage.",
-        "fit": "It is positioned for high-stakes, regulated domains, including finance, healthcare, legal, and government/defense use cases, particularly where self-hosted deployment and auditable decision trails are required."
+        "goal": "Semantica is an open-source Python infrastructure layer that ingests enterprise data and builds a queryable Context Graph and knowledge graph (KG), governed by ontologies (OWL, SHACL, SKOS), to support deterministic reasoning, decision tracking, and full provenance for AI systems.",
+        "usage": "Install Semantica with `pip install semantica`, then build a graph via `from semantica.context import ContextGraph` and `ContextGraph(advanced_analytics=True)`, using methods like `record_decision()` to log AI decisions. Run `semantica doctor` to verify the installation.",
+        "pros": "Semantica provides deterministic reasoning (forward chaining, Rete, Datalog, SPARQL) that does not require an LLM, plus W3C PROV-O provenance on every fact, conflict detection instead of silent overwrites, and polyglot graph storage (RDF and Labeled Property Graphs) that is swappable without code changes.",
+        "cons": "In Semantica, the Rete engine's alpha-node condition matcher is described as 'intentionally simple' in this release, so validating match_patterns() output before production compliance use is advised; production deployments are also recommended to use Docker or Kubernetes with a persistent backend rather than a local pip install.",
+        "fit": "Based on the target domains listed and the explicit distinction drawn between system-level explainability and foundation-model explainability, Semantica appears best suited for regulated, high-stakes domains such as finance, healthcare, legal, government/defense, law enforcement, and cybersecurity, where auditable decisions matter."
       },
       "summary_status": "verified",
       "tag_rule_version": 1,
@@ -1479,14 +1479,14 @@
       "description": "Community plugin marketplace for Claude Cowork and Claude Code. Read-only mirror — submit plugins at clau.de/plugin-directory-submission.",
       "lang": "Python",
       "topics": [],
-      "stars": 3396,
-      "forks": 258,
+      "stars": 3418,
+      "forks": 260,
       "issues": 43,
       "contributors": 6,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 3067
+        "monthly": 3126
       },
       "signal": null,
       "summary": {
@@ -1526,14 +1526,14 @@
         "rust",
         "smartshift"
       ],
-      "stars": 19220,
-      "forks": 576,
-      "issues": 468,
+      "stars": 19341,
+      "forks": 581,
+      "issues": 472,
       "contributors": 66,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 10662
+        "monthly": 11070
       },
       "signal": null,
       "summary": {
@@ -1563,14 +1563,14 @@
         "dsh-plugin",
         "self-evolving"
       ],
-      "stars": 35477,
-      "forks": 2711,
-      "issues": 627,
+      "stars": 35529,
+      "forks": 2714,
+      "issues": 628,
       "contributors": 252,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 7659
+        "monthly": 7710
       },
       "signal": null,
       "summary": {
@@ -1619,14 +1619,14 @@
         "semantic-search",
         "tree-sitter"
       ],
-      "stars": 4970,
-      "forks": 654,
-      "issues": 113,
+      "stars": 4972,
+      "forks": 658,
+      "issues": 114,
       "contributors": 60,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 2456
+        "monthly": 2480
       },
       "signal": null,
       "summary": {
@@ -1636,7 +1636,7 @@
         "cons": "Running it requires Python 3.12+, Docker, cmake, and ripgrep as prerequisites; three separate version tracks (git tags, GitHub Releases, PyPI) intentionally diverge, which could make it unclear which version is installed without checking; also `--clean` deletes every project in the shared graph, not just the current one.",
         "fit": "Likely suited to teams working across multi-language monorepos who want natural-language code search, editing, and dead-code analysis; enterprise cloud-hosted or on-premise/air-gapped deployment options, with plans and pricing at https://code-graph-rag.com/enterprise, are available for organizations needing managed infrastructure or data sovereignty."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -1664,14 +1664,14 @@
         "skills",
         "workflow-automation"
       ],
-      "stars": 28007,
-      "forks": 2695,
+      "stars": 28042,
+      "forks": 2699,
       "issues": 23,
       "contributors": 5,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 19065
+        "monthly": 19360
       },
       "signal": null,
       "summary": {
@@ -1681,7 +1681,7 @@
         "cons": "Self-hosting the accompanying website requires configuring numerous Vercel environment variables (Supabase, Stripe, Google Analytics) and applying several sequential Supabase SQL migrations, so that part of the project involves nontrivial setup beyond simply browsing prompts.",
         "fit": "The repository appears best suited to prompt engineers, agents, and automation pipelines that need structured, reusable GPT-Image2 prompts rather than one-off examples; since it documents prompts and templates rather than the image model itself, users likely still need separate access to GPT-Image2 generation to actually produce images."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -1701,14 +1701,14 @@
       "description": "Algorithm powering the For You feed on X",
       "lang": "Rust",
       "topics": [],
-      "stars": 32639,
-      "forks": 5359,
-      "issues": 99,
+      "stars": 32662,
+      "forks": 5360,
+      "issues": 105,
       "contributors": 3,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 5828
+        "monthly": 5878
       },
       "signal": null,
       "summary": {
@@ -1718,7 +1718,7 @@
         "cons": "A limited set of files, such as Grox LLM prompts and some botmaker rules, are withheld from the repository to reduce the risk of gaming the system, so the published code may not fully reflect every production rule. Separately, pre-scoring filters drop posts older than 48 hours, so the pipeline is not built to surface older content.",
         "fit": "Given its focus on transparency into ranking and filtering logic rather than turnkey deployment, the project appears best suited to people auditing, studying, or critiquing how X's For You feed selects and orders posts, rather than teams seeking a general-purpose, deployable recommendation system. It is licensed under the Apache License 2.0."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "unclassified"
@@ -1731,14 +1731,14 @@
       "description": "Agent workspace built on Cloudflare Workers for creating documents, building apps, and running agents with your company’s context and systems.",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 9624,
-      "forks": 1131,
-      "issues": 112,
+      "stars": 9646,
+      "forks": 1134,
+      "issues": 108,
       "contributors": 21,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 9562
+        "monthly": 9642
       },
       "signal": null,
       "summary": {
@@ -1748,7 +1748,7 @@
         "cons": "As of the August 2026 release, Cloudflare OS v2 is described as being in heavy development with many rough edges, and is explicitly framed as an early-access release. Running it locally via `pnpm run-local` is explicitly noted as unsuitable for production use. Many Gatekeepers also require obtaining OAuth client credentials for third-party services, which is often not straightforward since OAuth is primarily intended for developers.",
         "fit": "This fits organizations wanting to fork and adapt an internal AI productivity platform combining agent chat, sandboxed app building, and capability-based security, built on Cloudflare Workers primitives such as Durable Objects, though it can also run on the open-source workerd runtime on your own servers. Given its early-access status, it currently seems better suited to evaluation than production deployment."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml"
@@ -1769,14 +1769,14 @@
         "llm",
         "on-device-ai"
       ],
-      "stars": 10253,
+      "stars": 10267,
       "forks": 659,
       "issues": 24,
       "contributors": 23,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 6855
+        "monthly": 6940
       },
       "signal": null,
       "summary": {
@@ -1800,14 +1800,14 @@
       "description": "self-hosted, distributed Durable Objects",
       "lang": "Rust",
       "topics": [],
-      "stars": 4476,
+      "stars": 4487,
       "forks": 156,
       "issues": 12,
       "contributors": 1,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 4425
+        "monthly": 4433
       },
       "signal": null,
       "summary": {
@@ -1817,7 +1817,7 @@
         "cons": "A single-node deployment has each write wait on a bucket round trip, which is described as much slower; achieving faster writes requires running a second node against the same bucket, an added operational component beyond a minimal single-node setup.",
         "fit": "Based on its reliance on self-owned S3-compatible, Google Cloud Storage, or Azure Blob Storage buckets and the absence of a managed control plane, celld appears best suited to teams wanting to self-host Durable Object-style workloads on their own infrastructure rather than depend on a Cloudflare-managed service."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "unclassified"
@@ -1845,14 +1845,14 @@
         "speculative-decoding",
         "speculative-sampling"
       ],
-      "stars": 2040,
-      "forks": 151,
-      "issues": 84,
-      "contributors": 33,
+      "stars": 2052,
+      "forks": 154,
+      "issues": 89,
+      "contributors": 34,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 870
+        "monthly": 922
       },
       "signal": null,
       "summary": {
@@ -1892,10 +1892,10 @@
         "volume-mixer",
         "window-switcher"
       ],
-      "stars": 15202,
-      "forks": 534,
-      "issues": 345,
-      "contributors": 72,
+      "stars": 15283,
+      "forks": 539,
+      "issues": 351,
+      "contributors": 73,
       "gains": {
         "daily": null,
         "weekly": null,
@@ -1903,11 +1903,11 @@
       },
       "signal": null,
       "summary": {
-        "goal": "Vorssaint is a free, open-source macOS menu bar app that consolidates many utilities—per-app volume control, system monitoring, window management, clipboard history, text snippets, a file shelf, and an uninstaller—into a single icon, without requiring an account, telemetry, or subscription.",
-        "usage": "Vorssaint can be installed via Homebrew with `brew install --cask vorssaint`, or by downloading the disk image from https://github.com/vorssaint/vorssaint-utils/releases and dragging it into Applications. Developers can build it from source with `git clone https://github.com/vorssaint/vorssaint-utils.git`, then run `./build.sh` or `./build.sh --install`. To remove it, run `brew uninstall --cask vorssaint` or `./Tools/uninstall.sh`.",
-        "pros": "Vorssaint is local-first with no account, analytics, or tracking, and every permission is optional and explained per feature. It is released under the GPL 3.0 or later license, and individual features can be installed or uninstalled so unused ones consume no CPU, memory, or energy. Builds are signed with an Apple Developer ID and notarized.",
-        "cons": "Vorssaint requires a Mac with Apple Silicon and macOS 14 Sonoma or newer, so older or Intel Macs are unsupported. Some deeper functionality, such as extended cleaner and uninstaller scans or password-free lid toggling, needs optional Full Disk Access or a one-time Administrator permission.",
-        "fit": "Vorssaint appears best suited to Apple Silicon Mac users running macOS 14 or later who want to replace several separate paid utility apps with one free, open-source, privacy-focused menu bar tool."
+        "goal": "Vorssaint is a free, open-source macOS menu-bar application that bundles utilities such as a per-app volume mixer, a system monitor, a window switcher with window snapping, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller into a single icon, aiming to replace several paid Mac utility apps.",
+        "usage": "It can be installed via Homebrew with `brew install --cask vorssaint`, or built from source by running `git clone https://github.com/vorssaint/vorssaint-utils.git` followed by `./build.sh` or `./build.sh --install`. It is removed with `brew uninstall --cask vorssaint` or `./Tools/uninstall.sh`.",
+        "pros": "Individual features can be installed or uninstalled separately, so unused ones consume no CPU, memory, or energy; the app requires no account, telemetry, or subscription; and builds are signed with an Apple Developer ID and notarized.",
+        "cons": "It requires an Apple Silicon Mac running macOS 14 (Sonoma) or newer, which likely excludes Intel-based Macs and older macOS versions. Several features also depend on optional macOS permissions, such as Accessibility, Screen Recording, or Full Disk Access, to function.",
+        "fit": "It appears suited to macOS users on qualifying Apple Silicon hardware who want a single free menu-bar tool consolidating many small utilities instead of separate paid apps, though building it from source additionally requires Xcode Command Line Tools."
       },
       "summary_status": "verified",
       "tag_rule_version": 1,
@@ -1939,14 +1939,14 @@
         "tool-use",
         "typescript"
       ],
-      "stars": 4697,
-      "forks": 445,
-      "issues": 421,
-      "contributors": 112,
+      "stars": 4712,
+      "forks": 446,
+      "issues": 435,
+      "contributors": 113,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 3545
+        "monthly": 3587
       },
       "signal": null,
       "summary": {
@@ -1956,7 +1956,7 @@
         "cons": "The README notes Apache Maka has not made an official Apache release yet, so no signed source archive currently exists as the release artifact. It also states the project is under ASF incubation and active development, so data formats, CLI commands, and experimental capabilities may still change.",
         "fit": "Based on the stated Desktop Nightly platform support (signed macOS Apple Silicon/Intel builds; unsigned Windows x64 and Linux x64/arm64 previews) and the explicit note that Nightly builds are not intended for production use, this suggests best fit for developers and testers building or evaluating agent harnesses locally."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -1981,14 +1981,14 @@
         "mojo",
         "programming-language"
       ],
-      "stars": 29539,
-      "forks": 3146,
+      "stars": 29551,
+      "forks": 3150,
       "issues": 1132,
       "contributors": 468,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 2953
+        "monthly": 2976
       },
       "signal": null,
       "summary": {
@@ -2018,14 +2018,14 @@
         "explanatory-math-videos",
         "python"
       ],
-      "stars": 93045,
-      "forks": 7645,
+      "stars": 93072,
+      "forks": 7650,
       "issues": 494,
       "contributors": 210,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 3988
+        "monthly": 4029
       },
       "signal": null,
       "summary": {
@@ -2043,6 +2043,39 @@
       "form_tags": []
     },
     {
+      "slug": "akitaonrails/ai-memory",
+      "name": "akitaonrails / ai-memory",
+      "description": "Solution for long term memory for agent coding CLIs and to facilitate handoff between different agent vendors",
+      "lang": "Rust",
+      "topics": [],
+      "stars": 5744,
+      "forks": 405,
+      "issues": 7,
+      "contributors": 79,
+      "gains": {
+        "daily": null,
+        "weekly": null,
+        "monthly": 4357
+      },
+      "signal": null,
+      "summary": {
+        "goal": "ai-memory is presented as long-term memory infrastructure for AI coding agents, meant to preserve project context—architecture decisions, failed approaches, and open questions—across sessions, across more than twenty different agent harnesses including Claude Code and Codex, and across machines or team members.",
+        "usage": "Setup options include Arch Linux AUR packages (`yay -S ai-memory-bin`) or a Docker-based install; after the server is running, an agent CLI is wired in with commands such as `ai-memory install-mcp --client claude-code --apply` and `ai-memory install-hooks --agent claude-code --apply`.",
+        "pros": "Documented advantages include shared memory across 20+ agent harnesses with typed, single-claim handoffs, storage as plain git-backed markdown files that can be greped, edited by hand, or rsynced instead of a binary blob, and a default mode that needs zero LLM API calls for capture, search, and handoffs.",
+        "cons": "Native Windows support is listed as Experimental rather than fully supported, so Windows users may need WSL2 for the documented supported path; the project also states a Rust 1.95+ toolchain requirement, and its default quick-start binds the server without authentication, relying on a loopback-only bind until a bearer token is added.",
+        "fit": "This suggests the project fits individuals or teams wanting persistent, cross-agent, cross-machine project memory backed by a self-hosted server, including multi-user setups with built-in per-person attribution and audit logging, rather than users seeking a single-session or single-tool memory feature."
+      },
+      "summary_status": "verified",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools"
+      ],
+      "form_tags": [
+        "agent"
+      ]
+    },
+    {
       "slug": "google/skills",
       "name": "google / skills",
       "description": "Agent Skills for Google products and technologies",
@@ -2052,14 +2085,14 @@
         "googlecloud",
         "skills"
       ],
-      "stars": 19485,
-      "forks": 1562,
+      "stars": 19513,
+      "forks": 1565,
       "issues": 31,
       "contributors": 7,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 4004
+        "monthly": 4015
       },
       "signal": null,
       "summary": {
@@ -2069,7 +2102,7 @@
         "cons": "The README notes the repository is under active development, which suggests skills and structure may still change. Because the installer lets you pick individual skills rather than installing everything by default, users likely need to identify which specific skills are relevant to their workflow.",
         "fit": "This project appears best suited for teams building AI agents that need pre-built skill definitions for Google Cloud and related Google products, particularly when using agent harnesses like Claude Code, Codex, or Antigravity CLI. It may be less relevant for projects unrelated to the Google ecosystem."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml"
