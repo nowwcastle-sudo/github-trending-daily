@@ -114,6 +114,12 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .nav-glyph-export::after{content:"";position:absolute;left:6px;top:3px;width:6px;height:6px;border-left:1.5px solid currentColor;border-top:1.5px solid currentColor;transform:rotate(45deg);transform-origin:center}
 .nav-label{line-height:1}
 .nav-rail-spacer{flex:1}
+/* WCAG 2.1.4 needs the single-key accelerators to be discoverable and switchable off, so the rail
+   carries a persistent "?" opener for the shortcut dialog. 44px minimum target like every control. */
+.nav-help{width:48px;min-height:44px;border:0;border-radius:14px;padding:6px 4px;background:transparent;color:var(--text-2);cursor:pointer;display:grid;place-items:center;align-content:center;gap:4px;font:inherit;font-size:10px;font-weight:650;transition:background-color .16s ease,color .16s ease}
+.nav-help::before{content:"?";font-size:16px;font-weight:700;line-height:1}
+.nav-help:hover,.nav-help:focus-visible{background:var(--accent-soft);color:var(--accent-selected)}
+.nav-help:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .nav-rail .filter-count{min-width:20px;padding:2px 6px;font-size:10px;line-height:14px;text-align:center}
 .mobile-nav-toggle{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .mobile-nav-toggle .nav-glyph{width:18px;height:15px}
@@ -382,6 +388,24 @@ body.overlay-open{overflow:hidden}
 .scroll-top:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .scroll-top svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .scroll-top[hidden]{display:none}
+/* Shortcut help: the same modal contract as #readmePanel — scrim, inert page, focus trap, Escape,
+   focus restore to the opener. */
+#shortcutHelpScrim{position:fixed;inset:0;z-index:340;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .2s ease-out}
+#shortcutHelpScrim.on{opacity:1;pointer-events:auto}
+.shortcut-help{position:fixed;z-index:350;left:50%;top:50%;transform:translate3d(-50%,-46%,0);width:min(420px,calc(100vw - 32px));max-height:calc(100dvh - 48px);overflow-y:auto;display:grid;gap:14px;padding:20px;background:var(--tip-bg);backdrop-filter:blur(28px) saturate(180%);border:1px solid var(--tip-border);border-radius:18px;box-shadow:var(--shadow-pop);color:var(--text);opacity:0;pointer-events:none;transition:opacity .2s ease-out,transform .2s cubic-bezier(.16,1,.3,1)}
+.shortcut-help.open{opacity:1;transform:translate3d(-50%,-50%,0);pointer-events:auto}
+.shortcut-help[inert]{display:none}
+.sh-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sh-head h2{font-size:19px;letter-spacing:-.015em}
+.sh-head .sidebar-close:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.shortcut-list{display:grid;gap:9px}
+.shortcut-list>div{display:grid;grid-template-columns:84px minmax(0,1fr);align-items:center;gap:12px}
+.shortcut-list dt kbd{display:inline-block;min-width:32px;padding:3px 8px;border:1px solid var(--surface-border);border-bottom-width:2px;border-radius:7px;background:var(--control-solid);color:var(--text);font:inherit;font-size:12px;font-weight:650;text-align:center}
+.shortcut-list dd{margin:0;color:var(--text-2);font-size:13px;line-height:1.45;overflow-wrap:anywhere}
+.shortcut-optout{display:flex;align-items:center;gap:9px;min-height:44px;padding-top:12px;border-top:1px solid var(--hairline);font-size:13px}
+.shortcut-optout label{display:flex;align-items:center;gap:9px;min-height:44px;cursor:pointer}
+.shortcut-optout input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+.shortcut-optout input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .sidebar-section[hidden],.sidebar-refresh[hidden],.sidebar-group-seg[hidden],.undo-bar[hidden],.empty button[hidden]{display:none}
 footer{margin-top:56px;text-align:center;color:var(--text-3);font-size:12.5px;line-height:1.8}
 footer a{color:var(--text-2)}
@@ -397,6 +421,7 @@ footer a{color:var(--text-2)}
   html{scroll-behavior:auto}
   *,*::before,*::after{transition-duration:0ms!important;animation:none!important}
   .filter-sidebar,#tipLayer,.scroll-top{transition:none!important}
+  .shortcut-help,#shortcutHelpScrim{transition:none!important}
   .scroll-top,.scroll-top.visible,.scroll-top.visible:hover,.scroll-top.visible:active{transform:none!important}
 }
 @media(prefers-reduced-transparency:reduce){
@@ -597,6 +622,9 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <span class="nav-label" data-i18n="nav.export">Export</span>
   </button>
   <span class="nav-rail-spacer" aria-hidden="true"></span>
+  <button class="nav-help" id="navHelpToggle" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="shortcutHelp" aria-label="Help — keyboard shortcuts (?)" data-i18n-aria-label="shortcuts.open" title="Help — keyboard shortcuts (?)" data-i18n-title="shortcuts.open">
+    <span class="nav-label" data-i18n="shortcuts.label">Help</span>
+  </button>
   <span class="filter-count" id="filterCount" aria-live="polite"></span>
 </nav>
 <div id="sidebarScrim"></div>
@@ -690,6 +718,29 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <div class="rp-tabs" id="readmeVariantTabs"></div>
     <button class="rdbtn" id="rpOpenGithub" data-i18n="readme.github">GitHub ↗</button><button class="rp-close" id="rpClose" aria-label="Close README viewer" data-i18n-aria-label="readme.close">✕</button></div>
   <div id="readmeBody" data-i18n="readme.loading">Loading…</div>
+</div>
+<div id="shortcutHelpScrim"></div>
+<div id="shortcutHelp" class="shortcut-help" role="dialog" aria-modal="true" aria-labelledby="shortcutHelpTitle" aria-hidden="true" inert>
+  <div class="sh-head">
+    <h2 id="shortcutHelpTitle" data-i18n="shortcuts.title">Keyboard shortcuts</h2>
+    <button class="sidebar-close" id="shortcutHelpClose" type="button" aria-label="Close keyboard shortcuts" data-i18n-aria-label="shortcuts.close">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <dl class="shortcut-list">
+    <div><dt><kbd>/</kbd></dt><dd data-i18n="shortcuts.search">Focus the search box</dd></div>
+    <div><dt><kbd>e</kbd></dt><dd data-i18n="shortcuts.explore">Open the Explore panel</dd></div>
+    <div><dt><kbd>a</kbd></dt><dd data-i18n="shortcuts.account">Open the Login panel</dd></div>
+    <div><dt><kbd>h</kbd></dt><dd data-i18n="shortcuts.history">Open the History panel</dd></div>
+    <div><dt><kbd>x</kbd></dt><dd data-i18n="shortcuts.export">Open the Export panel</dd></div>
+    <div><dt><kbd>Delete</kbd></dt><dd data-i18n="shortcuts.delete">Hide the focused repository</dd></div>
+    <div><dt><kbd>Esc</kbd></dt><dd data-i18n="shortcuts.escape">Close the open panel or dialog</dd></div>
+    <div><dt><kbd>?</kbd></dt><dd data-i18n="shortcuts.help">Show this list</dd></div>
+  </dl>
+  <p class="shortcut-optout">
+    <label><input type="checkbox" id="shortcutDisableToggle"><span data-i18n="shortcuts.disable">Disable single-key shortcuts</span></label>
+  </p>
+  <p class="sidebar-note" data-i18n="shortcuts.disableNote">Slash, question mark and Escape keep working.</p>
 </div>
 <div id="tipLayer" role="dialog" aria-label="Repository summary" data-i18n-aria-label="tooltip.dialog" aria-hidden="true" inert></div>
 <script src="site-i18n.js"></script>
@@ -970,11 +1021,56 @@ function updateMobileNavAccess(){
 }
 updateMobileNavAccess();
 sidebarMobileAccessMedia.addEventListener?.("change",updateMobileNavAccess);
+// WCAG 2.1.4: the four letters are unmodified character-key shortcuts, so they need a way to be
+// turned off. The flag lives in localStorage and is read once at load; "/" (focus search), "?"
+// (this help) and Escape are navigation of last resort and stay live regardless.
+// The declaration sits above SIDEBAR_SHORTCUT_GROUPS on purpose: the opt-out test slices the page
+// from that constant to sidebarGestureInteractive and injects `shortcutsDisabled` as a context
+// global, which a `let` inside the slice would shadow.
+const SHORTCUTS_DISABLED_KEY="gi.shortcuts.disabled";
+let shortcutsDisabled=false;
+try{shortcutsDisabled=localStorage.getItem(SHORTCUTS_DISABLED_KEY)==="1"}catch{}
+// The dialog runtime is likewise kept out of that slice — it touches five elements the slice
+// fixture does not model. openShortcutHelp is a hoisted function declaration, so the keydown
+// listener below can call it from above.
+const shortcutHelp=document.getElementById("shortcutHelp"),shortcutHelpScrim=document.getElementById("shortcutHelpScrim");
+const shortcutHelpClose=document.getElementById("shortcutHelpClose"),navHelpToggle=document.getElementById("navHelpToggle");
+const shortcutDisableToggle=document.getElementById("shortcutDisableToggle");
+let shortcutHelpTrigger=null;
+shortcutDisableToggle.checked=shortcutsDisabled;
+function openShortcutHelp(trigger){
+  if(shortcutHelp.classList.contains("open"))return;
+  closeSidebar(false);
+  shortcutHelpTrigger=trigger instanceof HTMLElement?trigger:document.activeElement;
+  shortcutHelp.inert=false;shortcutHelp.classList.add("open");shortcutHelp.setAttribute("aria-hidden","false");
+  shortcutHelpScrim.classList.add("on");pageMain.inert=true;document.body.classList.add("overlay-open");
+  navHelpToggle.setAttribute("aria-expanded","true");
+  shortcutHelpClose.focus();
+}
+function closeShortcutHelp(restoreFocus=true){
+  if(!shortcutHelp.classList.contains("open"))return;
+  shortcutHelp.classList.remove("open");shortcutHelp.setAttribute("aria-hidden","true");shortcutHelp.inert=true;
+  shortcutHelpScrim.classList.remove("on");pageMain.inert=false;
+  navHelpToggle.setAttribute("aria-expanded","false");
+  if(!sidebar.classList.contains("open")&&!document.getElementById("readmePanel").classList.contains("open"))document.body.classList.remove("overlay-open");
+  if(restoreFocus&&shortcutHelpTrigger instanceof HTMLElement)shortcutHelpTrigger.focus();
+}
+navHelpToggle.addEventListener("click",event=>openShortcutHelp(event.currentTarget));
+shortcutHelpClose.addEventListener("click",()=>closeShortcutHelp());
+shortcutHelpScrim.addEventListener("click",()=>closeShortcutHelp());
+shortcutHelp.addEventListener("keydown",event=>trapFocus(shortcutHelp,event));
+document.addEventListener("keydown",event=>{if(event.key==="Escape")closeShortcutHelp()});
+shortcutDisableToggle.addEventListener("change",event=>{
+  shortcutsDisabled=event.currentTarget.checked;
+  try{localStorage.setItem(SHORTCUTS_DISABLED_KEY,shortcutsDisabled?"1":"0")}catch{}
+});
 const SIDEBAR_SHORTCUT_GROUPS={e:"explore",a:"account",h:"history",x:"export"};
 function shortcutSuppressed(event){
   if(event.repeat||event.isComposing||event.key==="Process")return true;
   if(event.altKey||event.ctrlKey||event.metaKey)return true;
   if(document.getElementById("readmePanel").classList.contains("open"))return true;
+  if(document.getElementById("shortcutHelp").classList.contains("open"))return true;
+  if(shortcutsDisabled&&event.key.length===1&&Object.hasOwn(SIDEBAR_SHORTCUT_GROUPS,event.key.toLowerCase()))return true;
   const target=event.target;
   const tag=String(target?.tagName||"").toLowerCase();
   return tag==="input"||tag==="select"||tag==="textarea"||target?.isContentEditable===true;
@@ -983,6 +1079,7 @@ document.addEventListener("keydown",event=>{
   if(shortcutSuppressed(event))return;
   const modalOpen=sidebar.dataset.openMode==="modal";
   if(event.key==="/"){if(modalOpen)return;event.preventDefault();document.getElementById("q").focus();return}
+  if(event.key==="?"){event.preventDefault();openShortcutHelp(document.getElementById("navHelpToggle"));return}
   // Only single-character keys are lowercased, so the "Process" / named-key guards above keep
   // matching their exact spellings; this makes CapsLock irrelevant to the accelerators (RED1-M4).
   const group=event.key.length===1?SIDEBAR_SHORTCUT_GROUPS[event.key.toLowerCase()]:undefined;

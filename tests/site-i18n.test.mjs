@@ -39,6 +39,10 @@ test("every rail group, shortcut hint, and held-retry message exists in all five
     "history.title", "history.explanation", "history.observedSince",
     "history.ariaTrend", "history.waiting", "history.singleObservation",
     "footer.subscribe", "footer.feedCurrent", "footer.feedChanges",
+    "shortcuts.label", "shortcuts.open", "shortcuts.title", "shortcuts.close",
+    "shortcuts.search", "shortcuts.explore", "shortcuts.account", "shortcuts.history",
+    "shortcuts.export", "shortcuts.delete", "shortcuts.escape", "shortcuts.help",
+    "shortcuts.disable", "shortcuts.disableNote",
   ];
   for (const locale of i18n.SUPPORTED_LOCALES) {
     for (const key of required) {
@@ -64,6 +68,16 @@ test("every rail group, shortcut hint, and held-retry message exists in all five
     for (const locale of i18n.SUPPORTED_LOCALES) {
       assert.ok(i18n.MESSAGES[locale][key].endsWith(hint), `${locale} ${key} must end with the ${hint} shortcut hint`);
     }
+  }
+});
+
+test("the help button's accessible name contains its visible label in every locale", () => {
+  const i18n = load();
+  for (const locale of i18n.SUPPORTED_LOCALES) {
+    const label = i18n.MESSAGES[locale]["shortcuts.label"];
+    const name = i18n.MESSAGES[locale]["shortcuts.open"];
+    assert.ok(name.startsWith(label), `${locale}: "${name}" must start with the visible label "${label}"`);
+    assert.ok(name.endsWith("(?)"), `${locale} shortcuts.open must end with the (?) hint`);
   }
 });
 

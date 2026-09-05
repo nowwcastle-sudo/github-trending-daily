@@ -168,6 +168,13 @@ function sidebarHarness({ hoverCapable = true } = {}) {
     ["readmePanel", new FakeHTMLElement("readmePanel")],
     ["tipLayer", new FakeHTMLElement("tipLayer")],
     ["q", new FakeHTMLElement("q")],
+    // Task 4: the shortcut help dialog lives in the same runtime slice as the sidebar, so the
+    // harness has to model its five elements or the slice throws at load.
+    ["shortcutHelp", new FakeHTMLElement("shortcutHelp")],
+    ["shortcutHelpScrim", new FakeHTMLElement("shortcutHelpScrim")],
+    ["shortcutHelpClose", new FakeHTMLElement("shortcutHelpClose")],
+    ["navHelpToggle", new FakeHTMLElement("navHelpToggle")],
+    ["shortcutDisableToggle", new FakeHTMLElement("shortcutDisableToggle")],
   ]);
   for (const [id, group] of [["navAccountToggle", "account"], ["navToggle", "explore"], ["navHistoryToggle", "history"], ["navExportToggle", "export"]]) {
     const toggle = nodes.get(id);
@@ -2936,4 +2943,70 @@ test("the footer links both Atom feeds beside the source link", () => {
   // The <link rel="alternate"> declarations stay: they are what the titles were taken from.
   assert.match(page, /<link rel="alternate" type="application\/atom\+xml" title="GITHUB INSIGHT — Current repositories" href="https:\/\/nowwcastle-sudo\.github\.io\/github-trending-daily\/feed\.xml">/);
   assert.match(page, /<link rel="alternate" type="application\/atom\+xml" title="GITHUB INSIGHT — New and re-entered repositories" href="https:\/\/nowwcastle-sudo\.github\.io\/github-trending-daily\/changes\.xml">/);
+});
+
+test("a persistent rail button and the ? key both open the shortcut dialog", () => {
+  const rail = page.match(/<nav class="nav-rail"[\s\S]*?<\/nav>/)?.[0] ?? "";
+  assert.ok(rail.indexOf('class="nav-rail-spacer"') < rail.indexOf('id="navHelpToggle"'), "the help button sits below the spacer");
+  assert.match(rail, /<button class="nav-help" id="navHelpToggle" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="shortcutHelp" aria-label="Help — keyboard shortcuts \(\?\)" data-i18n-aria-label="shortcuts\.open" title="Help — keyboard shortcuts \(\?\)" data-i18n-title="shortcuts\.open">/);
+  assert.match(rail, /<span class="nav-label" data-i18n="shortcuts\.label">Help<\/span>/);
+  // The four group buttons are still exactly four.
+  const groupButtons = [...rail.matchAll(/<button class="nav-toggle" id="(\w+)" type="button"/g)].map(match => match[1]);
+  assert.deepEqual(groupButtons, ["navAccountToggle", "navToggle", "navHistoryToggle", "navExportToggle"]);
+
+  const dialog = page.match(/<div id="shortcutHelp"[\s\S]*?<\/div>\s*<div id="tipLayer"/)?.[0] ?? "";
+  assert.match(dialog, /role="dialog" aria-modal="true" aria-labelledby="shortcutHelpTitle" aria-hidden="true" inert/);
+  for (const [key, messageKey] of [["/", "shortcuts.search"], ["e", "shortcuts.explore"], ["a", "shortcuts.account"], ["h", "shortcuts.history"], ["x", "shortcuts.export"], ["Delete", "shortcuts.delete"], ["Esc", "shortcuts.escape"], ["?", "shortcuts.help"]]) {
+    assert.ok(dialog.includes(`<kbd>${key}</kbd>`), `${key} must be listed`);
+    assert.ok(dialog.includes(`data-i18n="${messageKey}"`), `${messageKey} must be listed`);
+  }
+  assert.match(dialog, /<input type="checkbox" id="shortcutDisableToggle">/);
+  assert.match(dialog, /data-i18n="shortcuts\.disable"/);
+  assert.match(dialog, /data-i18n="shortcuts\.disableNote"/);
+
+  assert.match(page, /const SHORTCUTS_DISABLED_KEY="gi\.shortcuts\.disabled";/);
+  assert.match(page, /function openShortcutHelp\(trigger\)\{/);
+  assert.match(page, /function closeShortcutHelp\(restoreFocus=true\)\{/);
+  assert.match(page, /shortcutHelp\.addEventListener\("keydown",event=>trapFocus\(shortcutHelp,event\)\);/);
+});
+
+test("the single-key opt-out suppresses the four letters and never / ? or Escape", () => {
+  const start = page.indexOf("const SIDEBAR_SHORTCUT_GROUPS=");
+  const end = page.indexOf("const sidebarGestureInteractive=", start);
+  assert.ok(start >= 0 && end > start, "the shortcut runtime must be isolated");
+  const source = page.slice(start, end);
+
+  const pressed = [];
+  const context = {
+    shortcutsDisabled: true,
+    document: {
+      getElementById(id) {
+        if (id === "readmePanel") return { classList: { contains() { return false; } } };
+        if (id === "shortcutHelp") return { classList: { contains() { return false; } } };
+        if (id === "q") return { focus() { pressed.push("search"); } };
+        return null;
+      },
+      addEventListener(type, listener) { if (type === "keydown") context.__keydown = listener; },
+    },
+    sidebar: { dataset: {} },
+    railToggles: [],
+    mobileNavToggle: {},
+    sidebarMobileAccessMedia: { matches: false },
+    UiMotion: { resolveSidebarGroup: value => value },
+    setSidebarGroup(group) { pressed.push(`group:${group}`); },
+    openSidebar(mode, trigger, group) { pressed.push(`open:${group}`); },
+  };
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(source, context, { filename: "shortcut-optout-fixture.js" });
+
+  const press = key => context.__keydown({ key, repeat: false, isComposing: false, target: { tagName: "BODY" }, preventDefault() {} });
+  press("e"); press("h"); press("a"); press("x");
+  assert.deepEqual(pressed, [], "no letter shortcut fires while the opt-out is on");
+  press("/");
+  assert.deepEqual(pressed, ["search"], "slash keeps working while the opt-out is on");
+
+  context.shortcutsDisabled = false;
+  press("e");
+  assert.deepEqual(pressed, ["search", "open:explore"], "turning the opt-out off restores the letters");
 });
