@@ -13,6 +13,7 @@ import {
   expectedVersion1Paths,
   parseEmbeddedRepos,
   parseJsonStrict,
+  parseVersion1BasePaths,
   validateDeploymentManifest,
 } from "./build-pages-artifact.mjs";
 import { slugToFile } from "./generate-translations.mjs";
@@ -335,7 +336,10 @@ async function verifyVersion1Payload({ baseUrl, manifest, manifestBytes, gitRoot
   const latest = parseJsonStrict(bodies.get("data/latest.json"), "latest JSON");
   const membership = parseJsonStrict(bodies.get("data/membership-status.json"), "membership JSON");
   const sources = parseJsonStrict(gitBytes(manifest.sourceSha, "data/translation-sources.json", gitRoot, deadline), "translation sources");
-  const expectedPaths = expectedVersion1Paths(latest, sources);
+  // The shipped-file list of the commit that built this deployment, not of this checkout: after a
+  // release adds a file, production is still an intact deployment of its own, shorter, list.
+  const basePaths = parseVersion1BasePaths(gitBytes(manifest.sourceSha, "scripts/build-pages-artifact.mjs", gitRoot, deadline).toString("utf8"));
+  const expectedPaths = expectedVersion1Paths(latest, sources, basePaths);
   // Contract paths are checked against the snapshot contract below; overlay paths
   // (star-history.json) are only checked against the manifest's own hash above.
   const expectedManifestPaths = [...expectedPaths, ...OVERLAY_PATHS].sort();

@@ -112,6 +112,25 @@ export const LEGACY_BASE_PATHS = Object.freeze(
   [...VERSION_1_BASE_PATHS, ...OVERLAY_PATHS].filter(value => value !== "readme-markdown.js").sort(),
 );
 
+// A version-1 deployment ships exactly the files the commit that built it listed above, so whoever
+// judges a deployment reads the list from the commit named in its manifest, never from the checkout
+// doing the judging. The two disagree exactly when a release adds a shipped file: production still
+// carries the shorter list of the commit that built it and is still intact (2026-09-06, W1 run
+// 33993892427 refused a sound 20-file production against this checkout's 21). The literal above
+// keeps the one shape this parser accepts: one double-quoted relative path per line, nothing else.
+const VERSION_1_BASE_PATHS_BLOCK_RE = /^export const VERSION_1_BASE_PATHS = Object\.freeze\(\[\n((?:  "[^"\n]+",\n)+)\]\.sort\(\)\);$/m;
+const SHIPPED_PATH_RE = /^(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_-]+(?:\.[A-Za-z0-9]+)+$/;
+
+export function parseVersion1BasePaths(sourceText) {
+  const match = VERSION_1_BASE_PATHS_BLOCK_RE.exec(String(sourceText).replace(/\r\n/g, "\n"));
+  if (!match) throw new Error("version-1 base path list is unavailable at source");
+  const paths = match[1].split("\n").filter(Boolean).map(line => line.slice(3, -2));
+  if (paths.length === 0 || new Set(paths).size !== paths.length || paths.some(value => !SHIPPED_PATH_RE.test(value))) {
+    throw new Error("version-1 base path list at source is malformed");
+  }
+  return Object.freeze([...paths].sort());
+}
+
 function exactKeys(value, keys) {
   return value && typeof value === "object" && !Array.isArray(value)
     && Object.keys(value).sort().join("\0") === [...keys].sort().join("\0");
@@ -210,7 +229,7 @@ function normalizeSources(value) {
   return entries;
 }
 
-export function expectedVersion1Paths(latestValue, sourcesValue) {
+export function expectedVersion1Paths(latestValue, sourcesValue, basePaths = VERSION_1_BASE_PATHS) {
   const latest = normalizeLatest(latestValue);
   const sources = normalizeSources(sourcesValue);
   let summarized = 0;
@@ -226,7 +245,7 @@ export function expectedVersion1Paths(latestValue, sourcesValue) {
     }
   }
   if (sources.size !== summarized) throw new Error("summary source active set is not exact");
-  return [...VERSION_1_BASE_PATHS].sort();
+  return [...basePaths].sort();
 }
 
 function safeTarget(root, relative) {
