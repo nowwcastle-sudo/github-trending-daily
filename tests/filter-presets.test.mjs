@@ -61,6 +61,18 @@ test("names are trimmed to 40 characters and blank names are refused", async () 
   assert.throws(() => FilterPresets.save(storage, { name: "Bad", query: "lang=Rust" }), /invalid preset query/);
 });
 
+test("a pasted name keeps its words but not its newlines or tabs", async () => {
+  const FilterPresets = await loadFilterPresets();
+  const storage = memoryStorage();
+
+  assert.equal(FilterPresets.normalizeName("Rust\n\tCLI  weekly"), "Rust CLI weekly");
+  // The stored name is what the list renders and what the delete lookup matches on, so it has to be
+  // collapsed before it is written, not only when it is displayed.
+  assert.deepEqual(FilterPresets.save(storage, { name: " Rust\tCLI\r\nweekly ", query: "?lang=Rust" }),
+    [{ name: "Rust CLI weekly", query: "?lang=Rust" }]);
+  assert.deepEqual(FilterPresets.remove(storage, "Rust\nCLI weekly"), []);
+});
+
 test("the twenty-first preset is refused rather than silently dropping an older one", async () => {
   const FilterPresets = await loadFilterPresets();
   const storage = memoryStorage();

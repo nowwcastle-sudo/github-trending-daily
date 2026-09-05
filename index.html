@@ -361,7 +361,10 @@ body.overlay-open{overflow:hidden}
 .visit-new{color:var(--text);background:var(--seg-bg)}
 /* Compact mode is for the reader who already knows the badge vocabulary: it drops the explanatory
    rows (classification badges, both sparklines) and the second description line, roughly tripling
-   the repositories per screen. Nothing is removed from the DOM, so Ctrl+F still finds everything. */
+   the repositories per screen. The nodes stay in the DOM, so the exported view keeps them and
+   toggling back needs no re-render, but display:none takes the hidden rows out of both
+   find-in-page and the accessibility tree. The description is only clamped, never hidden, so it
+   stays findable in either mode. */
 body.compact .card{padding:11px 14px;margin-bottom:7px}
 body.compact .cdesc{-webkit-line-clamp:1;margin:4px 0 6px}
 body.compact .category-badges,body.compact .spark,body.compact .sparkhist{display:none}
@@ -1643,7 +1646,10 @@ document.getElementById("presetList").addEventListener("click",event=>{
   const button=event.target.closest("[data-delete-preset]");
   if(!button)return;
   const name=button.dataset.deletePreset;
-  try{FilterPresets.remove(storage,button.dataset.deletePreset);renderPresets();setPresetStatus(tr("preset.deleted",{name}))}
+  /* renderPresets() rebuilds the list with innerHTML, destroying the button that was just
+     activated, so focus would fall to <body>. Same convention as restoreRepository: land on the
+     next delete button, or the name field once the last preset is gone. */
+  try{FilterPresets.remove(storage,button.dataset.deletePreset);renderPresets();setPresetStatus(tr("preset.deleted",{name}));(document.querySelector(".preset-delete")||document.getElementById("presetName")).focus()}
   catch{setPresetStatus(tr("preset.saveError"))}
 });
 renderPresets();

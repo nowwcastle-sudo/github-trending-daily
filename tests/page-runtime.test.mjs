@@ -512,7 +512,7 @@ function renderContractHarness(classification = { forms: [], fields: ["unclassif
   return { context, contract: context.__renderContract };
 }
 
-function cardRenderHarness(period, membership = "stayed") {
+function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = new Set()) {
   const start = page.indexOf('const list=document.getElementById("list"),empty=document.getElementById("empty")');
   const end = page.indexOf("\n/* 즐겨찾기 */", start);
   assert.ok(start >= 0 && end > start, "card render runtime must be isolated");
@@ -545,9 +545,9 @@ function cardRenderHarness(period, membership = "stayed") {
     HiddenRepos: { filterRepos(repositories) { return repositories; } },
     SIGNALS: new Map(),
     MEMBERSHIP_STATUS: new Map([[repository.slug, membership]]),
-    // Task 9: the visit badge is page-level state the card template now reads; an empty set is the
-    // first-visit answer, which keeps these membership assertions about membership alone.
-    newSinceLastVisit: new Set(),
+    // Task 9: the visit badge is page-level state the card template now reads; the default empty
+    // set is the first-visit answer, which keeps the membership assertions about membership alone.
+    newSinceLastVisit,
     favoriteBusy: false,
     newOnlyGate() { return null; },
     transientMembershipRepo(value) { return value; },
@@ -1013,6 +1013,8 @@ test("the Explore panel saves, lists, applies and deletes named filter presets",
   assert.match(page, /FilterPresets\.save\(storage,\{name:document\.getElementById\("presetName"\)\.value,query:RepoFilters\.serializeState\(currentExportState\(\)\)\}\)/);
   assert.match(page, /applyFilterState\(RepoFilters\.parseState\(preset\.query,LANGUAGES\)\);syncUrl\(\);/);
   assert.match(page, /FilterPresets\.remove\(storage,button\.dataset\.deletePreset\)/);
+  // Deleting rebuilds #presetList with innerHTML, so focus is placed the way restoreRepository does it.
+  assert.match(page, /renderPresets\(\);setPresetStatus\(tr\("preset\.deleted",\{name\}\)\);\(document\.querySelector\("\.preset-delete"\)\|\|document\.getElementById\("presetName"\)\)\.focus\(\)/);
   assert.match(page, /catch\(error\)\{setPresetStatus\(error\.message==="presets cannot exceed 20"\?tr\("preset\.limit"\):error\.message==="preset name is required"\?tr\("preset\.nameRequired"\):tr\("preset\.saveError"\)\)\}/);
 });
 
@@ -2544,6 +2546,16 @@ test("baseline new and reentered membership render only their exact card badges"
   assert.doesNotMatch(newHtml, /membership-reentered/);
   assert.match(reenteredHtml, /class="badge membership-reentered"[^>]*>badges\.reenteredLabel<\/span>/);
   assert.doesNotMatch(reenteredHtml, /membership-new/);
+});
+
+test("the visit badge renders right after the membership badge, and only for slugs new since the last visit", () => {
+  const seenHtml = cardRenderHarness("daily", "new", new Set(["owner/project"])).html;
+  const firstVisitHtml = cardRenderHarness("daily", "new").html;
+
+  // Order matters: "new to the list" is the older claim and reads first, "new to you" follows it.
+  assert.match(seenHtml, /<span class="badge membership-new" title="badges\.new">badges\.newLabel<\/span><span class="badge visit-new" title="visit\.badgeTitle">visit\.badge<\/span>/);
+  assert.doesNotMatch(firstVisitHtml, /visit-new/);
+  assert.match(firstVisitHtml, /class="badge membership-new"/);
 });
 
 test("sorting is shareable, stable, and keeps the selected period in favorites", () => {

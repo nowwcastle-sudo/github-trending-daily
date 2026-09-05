@@ -11,7 +11,7 @@
   const QUERY_LIMIT = 512;
 
   function normalizeName(value) {
-    return typeof value === "string" ? value.trim().slice(0, NAME_LIMIT) : "";
+    return typeof value === "string" ? value.trim().replace(/\s+/g, " ").slice(0, NAME_LIMIT) : "";
   }
 
   // A preset is exactly what RepoFilters.serializeState returns: "" for the default view, or a
