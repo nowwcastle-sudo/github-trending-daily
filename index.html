@@ -286,11 +286,11 @@ body.overlay-open{overflow:hidden}
 .filter-bar{display:flex;flex-direction:column;gap:16px;margin-top:18px}
 .filter-bar-row{display:flex;gap:16px;flex-wrap:wrap}
 .filter-bar-row>*{flex:1 1 calc(50% - 8px);max-width:calc(50% - 8px);min-width:0}
-.filter-bar-row-3>*{flex:1 1 calc((100% - 32px)/3);max-width:calc((100% - 32px)/3)}
+.filter-bar-row-4>*{flex:1 1 calc((100% - 48px)/4);max-width:calc((100% - 48px)/4)}
 .filter-bar-status{color:var(--text-2);font-size:11.5px;line-height:1.45;min-height:1.45em}
 .filter-bar-status[data-tone="success"]{color:var(--accent-selected)}
 .filter-bar-status[data-tone="error"]{color:var(--hot)}
-@media(max-width:600px){.filter-bar-row>*,.filter-bar-row-3>*{flex:1 1 100%;max-width:100%}}
+@media(max-width:600px){.filter-bar-row>*,.filter-bar-row-4>*{flex:1 1 100%;max-width:100%}}
 @media(max-width:760px){.filter-bar .seg button{padding-inline:8px;font-size:12.5px}}
 .filter-toggle{min-height:44px;padding:0 14px;border:1px solid var(--surface-border);border-radius:11px;background:var(--control-solid);color:var(--text);font:inherit;font-size:13px;font-weight:650;cursor:pointer;overflow-wrap:anywhere}
 .filter-toggle:hover{border-color:var(--accent);color:var(--accent)}
@@ -344,6 +344,12 @@ body.overlay-open{overflow:hidden}
 /* Deliberately not the membership palette: "new to you" is a different claim from "new to the
    list", and the two must be distinguishable when a card carries both. */
 .visit-new{color:var(--text);background:var(--seg-bg)}
+/* Compact mode is for the reader who already knows the badge vocabulary: it drops the explanatory
+   rows (classification badges, both sparklines) and the second description line, roughly tripling
+   the repositories per screen. Nothing is removed from the DOM, so Ctrl+F still finds everything. */
+body.compact .card{padding:11px 14px;margin-bottom:7px}
+body.compact .cdesc{-webkit-line-clamp:1;margin:4px 0 6px}
+body.compact .category-badges,body.compact .spark,body.compact .sparkhist{display:none}
 .cdesc{color:var(--text-2);font-size:15.5px;line-height:1.5;margin:6px 0 12px;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .cmeta{display:flex;gap:18px;align-items:center;font-size:14px;color:var(--text-2);flex-wrap:wrap}
@@ -712,10 +718,11 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     </div>
     <select class="langsel" id="lang" aria-label="Programming language" data-i18n-aria-label="language.title"><option value="" data-i18n="language.all">All languages</option></select>
   </div>
-  <div class="filter-bar-row filter-bar-row-3 filter-toggle-row">
+  <div class="filter-bar-row filter-bar-row-4 filter-toggle-row">
     <button type="button" id="excludeAi" class="filter-toggle" aria-pressed="false" data-i18n="field.excludeAi">Exclude AI</button>
     <button type="button" id="newOnly" class="filter-toggle" aria-pressed="false" data-i18n="field.newOnly">New repositories only</button>
     <button type="button" id="copyLinkBtn" class="filter-toggle" data-i18n="filter.copyLink">Copy link</button>
+    <button type="button" id="compactToggle" class="filter-toggle" aria-pressed="false" data-i18n="filter.compact">Compact list</button>
   </div>
   <p class="filter-bar-status" id="filterBarStatus" role="status" aria-live="polite" aria-atomic="true" data-i18n="filter.statusPrompt"></p>
 </section>
@@ -840,6 +847,14 @@ function updateVisitHeading(){
     :tr("visit.noneSince",{date});
 }
 updateVisitHeading();
+const COMPACT_VIEW_KEY="gi.view.compact";
+let compactView=false;
+try{compactView=storage.getItem(COMPACT_VIEW_KEY)==="1"}catch{}
+function applyCompactView(){
+  document.body.classList.toggle("compact",compactView);
+  document.getElementById("compactToggle").setAttribute("aria-pressed",String(compactView));
+}
+applyCompactView();
 let guestFavorites=[];
 try{guestFavorites=Favorites.migrateLegacyFavs(storage)}catch{}
 let favSet=new Set(guestFavorites),favoriteBusy=false;
@@ -1592,6 +1607,11 @@ function setFilterBarStatus(message,tone=""){
 document.getElementById("copyLinkBtn").addEventListener("click",async()=>{
   try{await CurrentViewExport.copyText(currentExportUrl());setFilterBarStatus(tr("export.linkCopied"),"success")}
   catch{setFilterBarStatus(tr("export.copyFailed"),"error")}
+});
+document.getElementById("compactToggle").addEventListener("click",()=>{
+  compactView=!compactView;
+  try{storage.setItem(COMPACT_VIEW_KEY,compactView?"1":"0")}catch{}
+  applyCompactView();
 });
 function downloadCurrentView(type){
   try{

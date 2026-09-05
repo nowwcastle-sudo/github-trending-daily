@@ -89,6 +89,7 @@ const EN={
   "export.json":"Download JSON",
   "export.copy":"Copy current link",
   "filter.copyLink":"Copy link",
+  "filter.compact":"Compact list",
   // The filter-bar live region is empty at rest — .filter-bar-status reserves min-height:1.45em so
   // it never collapses. The key exists so SiteI18n.apply() clears a stale copy-link message (and
   // its stale language) on every locale switch, the way export.prompt resets #exportStatus.
@@ -197,7 +198,7 @@ const EN={
 const KO={
   "document.title":"GITHUB INSIGHT","feed.current":"GITHUB INSIGHT — Current repositories","feed.changes":"GITHUB INSIGHT — New and re-entered repositories",
   "site.language":"사이트 언어","skip.main":"본문으로 건너뛰기","nav.quick":"빠른 탐색","nav.open":"패널 열기","nav.close":"탐색 사이드바 닫기","nav.pin":"탐색 사이드바 고정","nav.explore":"탐색",
-  "nav.account":"로그인","nav.history":"이력","nav.export":"내보내기","nav.ariaAccount":"로그인 — 계정·동기화 패널","nav.ariaExplore":"탐색 패널","nav.ariaHistory":"이력 패널","nav.ariaExport":"내보내기 패널","nav.titleAccount":"로그인 (a)","nav.titleExplore":"탐색 (e)","nav.titleHistory":"이력 (h)","nav.titleExport":"내보내기 (x)","nav.groups":"패널 구획","filter.copyLink":"링크 복사","filter.statusPrompt":"","tooltip.heldRetry":"다음 갱신(6시간마다) 때 다시 시도합니다.",
+  "nav.account":"로그인","nav.history":"이력","nav.export":"내보내기","nav.ariaAccount":"로그인 — 계정·동기화 패널","nav.ariaExplore":"탐색 패널","nav.ariaHistory":"이력 패널","nav.ariaExport":"내보내기 패널","nav.titleAccount":"로그인 (a)","nav.titleExplore":"탐색 (e)","nav.titleHistory":"이력 (h)","nav.titleExport":"내보내기 (x)","nav.groups":"패널 구획","filter.copyLink":"링크 복사","filter.compact":"간단히 보기","filter.statusPrompt":"","tooltip.heldRetry":"다음 갱신(6시간마다) 때 다시 시도합니다.",
   "sidebar.title":"대시보드 메뉴","sidebar.close":"패널 닫기","refresh.loading":"최근 갱신 시각: 불러오는 중…","refresh.next":"다음 갱신 시각: —","refresh.cadence":"6시간마다 갱신",
   "account.title":"계정과 동기화","account.preparing":"로그인 준비 중이에요.","account.syncLabel":"브라우저 동기화. {message}","account.login":"Google로 로그인","account.logout":"로그아웃","account.unavailable":"Google 동기화를 사용할 수 없어 이 브라우저에 저장합니다.",
   "view.aria":"저장소 보기","view.title":"내 목록","view.all":"전체 저장소","view.favorites":"즐겨찾기","period.title":"기간","period.aria":"기간 필터","period.all":"전체","period.daily":"일간","period.weekly":"주간","period.monthly":"월간",
@@ -216,7 +217,7 @@ const KO={
 const ZH={
   "document.title":"GITHUB INSIGHT","feed.current":"GITHUB INSIGHT — Current repositories","feed.changes":"GITHUB INSIGHT — New and re-entered repositories",
   "site.language":"网站语言","skip.main":"跳到主要内容","nav.quick":"快速导航","nav.open":"打开面板","nav.close":"关闭探索侧栏","nav.pin":"固定探索侧栏","nav.explore":"探索",
-  "nav.account":"登录","nav.history":"历史","nav.export":"导出","nav.ariaAccount":"登录 — 账户与同步面板","nav.ariaExplore":"探索面板","nav.ariaHistory":"历史面板","nav.ariaExport":"导出面板","nav.titleAccount":"登录 (a)","nav.titleExplore":"探索 (e)","nav.titleHistory":"历史 (h)","nav.titleExport":"导出 (x)","nav.groups":"面板分区","filter.copyLink":"复制链接","filter.statusPrompt":"","tooltip.heldRetry":"将在下次刷新（每6小时一次）时重试。",
+  "nav.account":"登录","nav.history":"历史","nav.export":"导出","nav.ariaAccount":"登录 — 账户与同步面板","nav.ariaExplore":"探索面板","nav.ariaHistory":"历史面板","nav.ariaExport":"导出面板","nav.titleAccount":"登录 (a)","nav.titleExplore":"探索 (e)","nav.titleHistory":"历史 (h)","nav.titleExport":"导出 (x)","nav.groups":"面板分区","filter.copyLink":"复制链接","filter.compact":"紧凑列表","filter.statusPrompt":"","tooltip.heldRetry":"将在下次刷新（每6小时一次）时重试。",
   "sidebar.title":"面板菜单","sidebar.close":"关闭面板","refresh.loading":"最近更新：加载中…","refresh.next":"下次更新：—","refresh.cadence":"每6小时更新一次",
   "account.title":"账户与同步","account.preparing":"正在准备登录。","account.syncLabel":"浏览器同步。{message}","account.login":"使用 Google 登录","account.logout":"退出登录",
   "view.aria":"仓库视图","view.title":"我的列表","view.all":"全部仓库","view.favorites":"收藏","period.title":"时间范围","period.aria":"时间范围筛选","period.all":"全部","period.daily":"每日","period.weekly":"每周","period.monthly":"每月",
@@ -244,7 +245,7 @@ const ZH={
 const ES={
   "document.title":"GITHUB INSIGHT","feed.current":"GITHUB INSIGHT — Current repositories","feed.changes":"GITHUB INSIGHT — New and re-entered repositories",
   "site.language":"Idioma del sitio","skip.main":"Saltar al contenido","nav.quick":"Navegación rápida","nav.open":"Abrir panel","nav.close":"Cerrar barra Explorar","nav.pin":"Fijar barra Explorar","nav.explore":"Explorar",
-  "nav.account":"Iniciar sesión","nav.history":"Historial","nav.export":"Exportar","nav.ariaAccount":"Iniciar sesión — Panel de cuenta y sincronización","nav.ariaExplore":"Panel de exploración","nav.ariaHistory":"Panel de historial","nav.ariaExport":"Panel de exportación","nav.titleAccount":"Iniciar sesión (a)","nav.titleExplore":"Explorar (e)","nav.titleHistory":"Historial (h)","nav.titleExport":"Exportar (x)","nav.groups":"Sección del panel","filter.copyLink":"Copiar enlace","filter.statusPrompt":"","tooltip.heldRetry":"Se reintentará en la próxima actualización (cada 6 horas).",
+  "nav.account":"Iniciar sesión","nav.history":"Historial","nav.export":"Exportar","nav.ariaAccount":"Iniciar sesión — Panel de cuenta y sincronización","nav.ariaExplore":"Panel de exploración","nav.ariaHistory":"Panel de historial","nav.ariaExport":"Panel de exportación","nav.titleAccount":"Iniciar sesión (a)","nav.titleExplore":"Explorar (e)","nav.titleHistory":"Historial (h)","nav.titleExport":"Exportar (x)","nav.groups":"Sección del panel","filter.copyLink":"Copiar enlace","filter.compact":"Lista compacta","filter.statusPrompt":"","tooltip.heldRetry":"Se reintentará en la próxima actualización (cada 6 horas).",
   "sidebar.title":"Menú del panel","sidebar.close":"Cerrar panel","refresh.loading":"Última actualización: cargando…","refresh.next":"Próxima actualización: —","refresh.cadence":"Se actualiza cada 6 horas",
   "account.title":"Cuenta y sincronización","account.preparing":"Preparando el inicio de sesión.","account.syncLabel":"Sincronización del navegador. {message}","account.login":"Iniciar sesión con Google","account.logout":"Cerrar sesión",
   "view.aria":"Vista de repositorios","view.title":"Mi lista","view.all":"Todos los repositorios","view.favorites":"Favoritos","period.title":"Periodo","period.aria":"Filtro de periodo","period.all":"Todo","period.daily":"Diario","period.weekly":"Semanal","period.monthly":"Mensual",
@@ -272,7 +273,7 @@ const ES={
 const JA={
   "document.title":"GITHUB INSIGHT","feed.current":"GITHUB INSIGHT — Current repositories","feed.changes":"GITHUB INSIGHT — New and re-entered repositories",
   "site.language":"サイトの言語","skip.main":"本文へスキップ","nav.quick":"クイックナビゲーション","nav.open":"パネルを開く","nav.close":"探索サイドバーを閉じる","nav.pin":"探索サイドバーを固定","nav.explore":"探索",
-  "nav.account":"ログイン","nav.history":"履歴","nav.export":"エクスポート","nav.ariaAccount":"ログイン — アカウント・同期パネル","nav.ariaExplore":"探索パネル","nav.ariaHistory":"履歴パネル","nav.ariaExport":"エクスポートパネル","nav.titleAccount":"ログイン (a)","nav.titleExplore":"探索 (e)","nav.titleHistory":"履歴 (h)","nav.titleExport":"エクスポート (x)","nav.groups":"パネルセクション","filter.copyLink":"リンクをコピー","filter.statusPrompt":"","tooltip.heldRetry":"次回の更新（6時間ごと）で再試行します。",
+  "nav.account":"ログイン","nav.history":"履歴","nav.export":"エクスポート","nav.ariaAccount":"ログイン — アカウント・同期パネル","nav.ariaExplore":"探索パネル","nav.ariaHistory":"履歴パネル","nav.ariaExport":"エクスポートパネル","nav.titleAccount":"ログイン (a)","nav.titleExplore":"探索 (e)","nav.titleHistory":"履歴 (h)","nav.titleExport":"エクスポート (x)","nav.groups":"パネルセクション","filter.copyLink":"リンクをコピー","filter.compact":"コンパクト表示","filter.statusPrompt":"","tooltip.heldRetry":"次回の更新（6時間ごと）で再試行します。",
   "sidebar.title":"ダッシュボードメニュー","sidebar.close":"パネルを閉じる","refresh.loading":"最終更新：読み込み中…","refresh.next":"次回更新：—","refresh.cadence":"6時間ごとに更新",
   "account.title":"アカウントと同期","account.preparing":"ログインを準備しています。","account.syncLabel":"ブラウザー同期。{message}","account.login":"Googleでログイン","account.logout":"ログアウト",
   "view.aria":"リポジトリ表示","view.title":"マイリスト","view.all":"すべてのリポジトリ","view.favorites":"お気に入り","period.title":"期間","period.aria":"期間フィルター","period.all":"すべて","period.daily":"日間","period.weekly":"週間","period.monthly":"月間",

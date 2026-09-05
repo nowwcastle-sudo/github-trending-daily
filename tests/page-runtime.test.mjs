@@ -841,6 +841,9 @@ function copyLinkHarness() {
   const nodes = new Map([
     ["copyLinkBtn", new FakeElement("copyLinkBtn")],
     ["filterBarStatus", new FakeElement("filterBarStatus")],
+    // Task 10: the compact toggle registers its listener inside this same slice, so the fixture
+    // has to own a node for it. It is inert here — nothing in this test clicks it.
+    ["compactToggle", new FakeElement("compactToggle")],
   ]);
   const documentRef = { getElementById(id) { return nodes.get(id); } };
 
@@ -2126,8 +2129,8 @@ test("the filter bar rows never sum past the card column", () => {
   assert.match(page, /\.filter-bar\{display:flex;flex-direction:column;gap:16px;margin-top:18px\}/);
   assert.match(page, /\.filter-bar-row\{display:flex;gap:16px;flex-wrap:wrap\}/);
   assert.match(page, /\.filter-bar-row>\*\{flex:1 1 calc\(50% - 8px\);max-width:calc\(50% - 8px\);min-width:0\}/);
-  assert.match(page, /\.filter-bar-row-3>\*\{flex:1 1 calc\(\(100% - 32px\)\/3\);max-width:calc\(\(100% - 32px\)\/3\)\}/);
-  assert.match(page, /@media\(max-width:600px\)\{\.filter-bar-row>\*,\.filter-bar-row-3>\*\{flex:1 1 100%;max-width:100%\}\}/);
+  assert.match(page, /\.filter-bar-row-4>\*\{flex:1 1 calc\(\(100% - 48px\)\/4\);max-width:calc\(\(100% - 48px\)\/4\)\}/);
+  assert.match(page, /@media\(max-width:600px\)\{\.filter-bar-row>\*,\.filter-bar-row-4>\*\{flex:1 1 100%;max-width:100%\}\}/);
   assert.match(page, /@media\(max-width:760px\)\{\.filter-bar \.seg button\{padding-inline:8px;font-size:12\.5px\}\}/);
   assert.match(page, /\.filter-bar-status\[data-tone="success"\]\{color:var\(--accent-selected\)\}/);
   assert.match(page, /\.filter-bar-status\[data-tone="error"\]\{color:var\(--hot\)\}/);
@@ -2990,7 +2993,7 @@ test("the badge guide is a disclosure that starts open on desktop and closed on 
 });
 
 test("the mobile filter toggles sit on one horizontally scrollable row", () => {
-  assert.match(page, /<div class="filter-bar-row filter-bar-row-3 filter-toggle-row">/);
+  assert.match(page, /<div class="filter-bar-row filter-bar-row-4 filter-toggle-row">/);
   const mobile = page.match(/@media\(max-width:560px\)\{[\s\S]*?\r?\n\}/)?.[0] ?? "";
   assert.match(mobile, /\.filter-toggle-row\{[^}]*flex-wrap:nowrap[^}]*overflow-x:auto/);
   assert.match(mobile, /\.filter-toggle-row>\*\{flex:0 0 auto;max-width:none\}/);
@@ -3255,4 +3258,31 @@ test("the list carries a heading that reports what is new since the reader's las
   assert.match(page, /membership==="new"\?`<span class="badge membership-new"/);
   assert.match(page, /\.visit-new\{color:var\(--text\);background:var\(--seg-bg\)\}/);
   assert.match(page, /\.list-heading\{[^}]*color:var\(--text-2\)/);
+});
+
+test("a compact list mode is a fourth filter-bar toggle persisted per browser", () => {
+  const bar = page.match(/<section class="filter-bar" id="filterBar"[\s\S]*?<\/section>/)?.[0] ?? "";
+  assert.match(bar, /<div class="filter-bar-row filter-bar-row-4 filter-toggle-row">/);
+  assert.match(bar, /<button type="button" id="compactToggle" class="filter-toggle" aria-pressed="false" data-i18n="filter\.compact">Compact list<\/button>/);
+  const order = ["excludeAi", "newOnly", "copyLinkBtn", "compactToggle", "filterBarStatus"];
+  let previous = -1;
+  for (const id of order) {
+    const position = bar.indexOf(`id="${id}"`);
+    assert.ok(position > previous, `${id} must appear in the approved filter-bar order`);
+    previous = position;
+  }
+
+  assert.match(page, /\.filter-bar-row-4>\*\{flex:1 1 calc\(\(100% - 48px\)\/4\);max-width:calc\(\(100% - 48px\)\/4\)\}/);
+  assert.match(page, /@media\(max-width:600px\)\{\.filter-bar-row>\*,\.filter-bar-row-4>\*\{flex:1 1 100%;max-width:100%\}\}/);
+  assert.doesNotMatch(page, /filter-bar-row-3/);
+
+  assert.match(page, /const COMPACT_VIEW_KEY="gi\.view\.compact";/);
+  assert.match(page, /try\{compactView=storage\.getItem\(COMPACT_VIEW_KEY\)==="1"\}catch\{\}/);
+  assert.match(page, /function applyCompactView\(\)\{/);
+  assert.match(page, /document\.body\.classList\.toggle\("compact",compactView\);/);
+  assert.match(page, /document\.getElementById\("compactToggle"\)\.setAttribute\("aria-pressed",String\(compactView\)\);/);
+
+  assert.match(page, /body\.compact \.card\{padding:11px 14px;margin-bottom:7px\}/);
+  assert.match(page, /body\.compact \.cdesc\{-webkit-line-clamp:1;margin:4px 0 6px\}/);
+  assert.match(page, /body\.compact \.category-badges,body\.compact \.spark,body\.compact \.sparkhist\{display:none\}/);
 });
