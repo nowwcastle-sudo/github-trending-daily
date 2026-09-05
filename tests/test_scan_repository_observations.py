@@ -172,6 +172,7 @@ class RepositoryObservationScannerTests(unittest.TestCase):
             self.assertEqual(receipt["expectedSnapshotCount"], 1)
             self.assertGreater(receipt["rowCount"], 0)
             self.assertGreater(receipt["logicalCellCount"], receipt["rowCount"])
+            self.assertEqual(receipt["databaseSha256"], hashlib.sha256(before).hexdigest())
             self.assertEqual(receipt["databaseSha256Prefix"], hashlib.sha256(before).hexdigest()[:12])
             self.assertEqual(receipt["rawByteSize"], len(before))
             self.assertEqual(database.read_bytes(), before)
