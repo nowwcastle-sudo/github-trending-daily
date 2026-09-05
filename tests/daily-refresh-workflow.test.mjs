@@ -28,7 +28,7 @@ function assertClockAnchorsFirstExecutableStep(workflow) {
 
 test("schedule is held before checkout and the approved manual bootstrap keeps its fail-closed guard", async () => {
   const workflow = await workflowText();
-  assert.match(workflow, /^on:\n  schedule:\n    - cron: "7 \*\/2 \* \* \*"\n  workflow_dispatch:\n    inputs:\n      bootstrap-source-sha:\n        description: [^\n]+\n        required: false\n        type: string$/m);
+  assert.match(workflow, /^on:\n  schedule:\n    - cron: "7 3,9,15,21 \* \* \*"\n  workflow_dispatch:\n    inputs:\n      bootstrap-source-sha:\n        description: [^\n]+\n        required: false\n        type: string$/m);
   assert.match(workflow, /if: \$\{\{ \(github\.event_name == 'schedule' && vars\.GH_TRENDING_REFRESH_SCHEDULE == 'enabled'\) \|\| github\.event_name == 'workflow_dispatch' \}\}/);
   assert.match(workflow, /MANUAL_BOOTSTRAP_GATE: bootstrap_v0_approved/);
   assert.match(workflow, /GITHUB_EVENT_NAME.*workflow_dispatch[\s\S]*MANUAL_BOOTSTRAP_GATE.*bootstrap_v0_pending_approval[\s\S]*exit 1/);
