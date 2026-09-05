@@ -69,7 +69,7 @@ test("current Atom probe keeps a lowercase stable id while preserving GitHub slu
   }).length, 1);
 });
 
-test("Atom header validator tolerates the pre-rename title during the release window", () => {
+test("Atom header validator is strict about the GITHUB INSIGHT title", () => {
   const generatedAt = "2026-08-31T23:22:56.651Z";
   const statsDate = "2026-09-01";
   const latest = { generatedAt, snapshotId, statsDate, repos: [] };
@@ -92,7 +92,7 @@ test("Atom header validator tolerates the pre-rename title during the release wi
   ];
   for (const { kind, validate, newTitle, legacyTitle } of cases) {
     assert.doesNotThrow(() => validate(headerOnlyXml(kind, newTitle), latest), `${kind}: new title must be accepted`);
-    assert.doesNotThrow(() => validate(headerOnlyXml(kind, legacyTitle), latest), `${kind}: legacy title must be accepted during the release window`);
+    assert.throws(() => validate(headerOnlyXml(kind, legacyTitle), latest), new RegExp(`invalid ${kind} Atom header`), `${kind}: the legacy pre-rename title must be rejected`);
     assert.throws(() => validate(headerOnlyXml(kind, "Something else — Current repositories"), latest), new RegExp(`invalid ${kind} Atom header`), `${kind}: an arbitrary third title must still be rejected`);
   }
 });
