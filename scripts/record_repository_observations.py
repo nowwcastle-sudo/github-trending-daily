@@ -41,9 +41,9 @@ FIELD_TAGS = ("ai-ml", "web-app", "dev-tools", "data", "devops", "security", "pr
 FORM_TAGS = ("agent", "mcp", "plugin-skill", "ide", "library", "framework", "cli")
 PAGES_BASE_ARTIFACT_PATHS = (
     "auth-lifecycle.js", "changes.xml", "current-view-export.js", "data/latest.json", "data/membership-status.json",
-    "favorite-sync.js", "favorites.js", "feed.xml", "firebase-client.js", "firebase-config.json",
+    "favorite-sync.js", "favorites.js", "feed.xml", "filter-presets.js", "firebase-client.js", "firebase-config.json",
     "hidden-repos.js", "index.html", "membership-history.js", "readme-markdown.js",
-    "refresh-schedule.js", "repo-filters.js", "site-i18n.js", "star-history.js", "ui-motion.js",
+    "refresh-schedule.js", "repo-filters.js", "site-i18n.js", "star-history.js", "ui-motion.js", "visit-tracker.js",
 )
 # star-history.json is a deploy overlay written by the star-ticks workflow; it is
 # published and recorded in deployment-manifest.json but is not part of the

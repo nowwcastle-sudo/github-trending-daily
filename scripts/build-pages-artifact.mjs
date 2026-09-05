@@ -88,6 +88,7 @@ export const VERSION_1_BASE_PATHS = Object.freeze([
   "favorite-sync.js",
   "favorites.js",
   "feed.xml",
+  "filter-presets.js",
   "firebase-client.js",
   "firebase-config.json",
   "hidden-repos.js",
@@ -99,6 +100,7 @@ export const VERSION_1_BASE_PATHS = Object.freeze([
   "star-history.js",
   "site-i18n.js",
   "ui-motion.js",
+  "visit-tracker.js",
 ].sort());
 
 // Deploy overlays are published and hashed into deployment-manifest.json but are

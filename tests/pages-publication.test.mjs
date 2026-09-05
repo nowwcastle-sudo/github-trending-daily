@@ -455,6 +455,7 @@ test("version-1 artifact path set is exact and contains no full README translati
     "favorite-sync.js",
     "favorites.js",
     "feed.xml",
+    "filter-presets.js",
     "firebase-client.js",
     "firebase-config.json",
     "hidden-repos.js",
@@ -466,8 +467,9 @@ test("version-1 artifact path set is exact and contains no full README translati
     "site-i18n.js",
     "star-history.js",
     "ui-motion.js",
+    "visit-tracker.js",
   ]);
-  assert.equal(VERSION_1_BASE_PATHS.length, 19);
+  assert.equal(VERSION_1_BASE_PATHS.length, 21);
   assert.deepEqual(OVERLAY_PATHS, ["star-history.json"]);
   assert.equal(VERSION_1_BASE_PATHS.filter(path => path === "auth-lifecycle.js").length, 1);
   const python = spawnSync(process.env.PYTHON ?? "python", ["-c", "import json; from scripts.record_repository_observations import PAGES_BASE_ARTIFACT_PATHS; print(json.dumps(PAGES_BASE_ARTIFACT_PATHS))"], { cwd: root, encoding: "utf8" });
@@ -485,6 +487,15 @@ test("version-1 artifact path set is exact and contains no full README translati
   );
   assert.ok(!VERSION_1_BASE_PATHS.some(path => path.endsWith(".sqlite")));
   assert.ok(!VERSION_1_BASE_PATHS.includes("data/translation-sources.json"));
+});
+
+test("every local script index.html loads is shipped in the version-1 artifact", async () => {
+  const html = await readFile(join(root, "index.html"), "utf8");
+  const sources = [...html.matchAll(/<script[\s][^>]*src\s*=\s*"([^"]+)"/gi)].map(match => match[1]);
+  const local = sources.filter(value => !/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(value));
+  assert.ok(local.length >= 10, `expected index.html to load local scripts, saw ${JSON.stringify(sources)}`);
+  const missing = local.filter(value => !VERSION_1_BASE_PATHS.includes(value));
+  assert.deepEqual(missing, [], `index.html loads scripts absent from VERSION_1_BASE_PATHS: ${missing.join(", ")}`);
 });
 
 test("frozen manifest evidence survives the actual render to recorder boundary", async t => {
