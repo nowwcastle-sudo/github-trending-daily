@@ -138,3 +138,7 @@ python -m unittest discover -s tests -p "test_*.py"
 ```
 
 Run these commands from the repository root in PowerShell. Production activation, workflow dispatch, and Pages deployment are separate controlled steps.
+
+## 📄 License
+
+This project is released under the [MIT License](LICENSE). Trending data shown on the site belongs to the respective repository owners and GitHub; the license covers this project's own code, workflows, and generated pages.

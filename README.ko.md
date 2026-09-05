@@ -138,3 +138,7 @@ python -m unittest discover -s tests -p "test_*.py"
 ```
 
 PowerShell에서 저장소 루트로 이동한 뒤 실행합니다. production 활성화, workflow dispatch, Pages 배포는 별도의 통제 단계입니다.
+
+## 📄 라이선스
+
+이 프로젝트는 [MIT 라이선스](LICENSE)로 공개합니다. 사이트에 표시되는 트렌딩 데이터의 권리는 각 저장소 소유자와 GitHub에 있으며, 라이선스는 이 프로젝트의 코드·워크플로·생성 페이지에 적용됩니다.
