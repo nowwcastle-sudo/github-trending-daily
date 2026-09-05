@@ -2889,3 +2889,26 @@ test("RED1-M3 the filter-bar status is cleared by any view change and reset on a
   controls.nodes.get("newOnly").dispatch("click");
   assert.deepEqual(controls.calls.filterBarStatus, [["", ""]], "a quick-filter click clears the stale status too");
 });
+
+test("the badge guide is a disclosure that starts open on desktop and closed on mobile", () => {
+  const guide = page.match(/<aside class="signal-guide"[\s\S]*?<\/aside>/)?.[0] ?? "";
+  assert.match(guide, /aria-label="Badge guide"/);
+  assert.match(guide, /data-i18n-aria-label="badges\.aria"/);
+  assert.match(guide, /<details class="signal-guide-details" id="badgeGuide" open>/);
+  assert.match(guide, /<summary data-i18n="badges\.title">Badge guide<\/summary>/);
+  assert.doesNotMatch(guide, /<strong data-i18n="badges\.title">/);
+  for (const key of ["badges.streak", "badges.change", "badges.hot", "badges.newLabel", "badges.new", "badges.reenteredLabel", "badges.reentered"]) {
+    assert.ok(guide.includes(`data-i18n="${key}"`), `${key} must survive the disclosure wrap`);
+  }
+  assert.match(page, /\.signal-guide summary\{[^}]*cursor:pointer/);
+  assert.match(page, /const badgeGuideMedia=matchMedia\("\(max-width:560px\)"\);/);
+  assert.match(page, /if\(badgeGuideMedia\.matches\)document\.getElementById\("badgeGuide"\)\.open=false;/);
+});
+
+test("the mobile filter toggles sit on one horizontally scrollable row", () => {
+  assert.match(page, /<div class="filter-bar-row filter-bar-row-3 filter-toggle-row">/);
+  const mobile = page.match(/@media\(max-width:560px\)\{[\s\S]*?\r?\n\}/)?.[0] ?? "";
+  assert.match(mobile, /\.filter-toggle-row\{[^}]*flex-wrap:nowrap[^}]*overflow-x:auto/);
+  assert.match(mobile, /\.filter-toggle-row>\*\{flex:0 0 auto;max-width:none\}/);
+  assert.match(mobile, /\.signal-guide-details\[open\] dl\{margin-top:8px\}/);
+});

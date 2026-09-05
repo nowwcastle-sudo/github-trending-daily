@@ -263,7 +263,13 @@ body.overlay-open{overflow:hidden}
 .filter-toggle[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-selected);border-color:var(--accent)}
 .signal-guide{display:flex;align-items:flex-start;gap:14px;padding:10px 2px 8px;margin-top:4px;
   border-bottom:1px solid var(--hairline);color:var(--text-2);font-size:12.5px;line-height:1.45}
-.signal-guide>strong{flex-shrink:0;color:var(--text);font-size:12.5px;padding-top:2px}
+.signal-guide-details{flex:1;min-width:0}
+.signal-guide summary{display:inline-flex;align-items:center;gap:6px;min-height:32px;color:var(--text);font-size:12.5px;font-weight:650;cursor:pointer;list-style:none}
+.signal-guide summary::-webkit-details-marker{display:none}
+.signal-guide summary::after{content:"▾";font-size:10px;color:var(--text-3);transition:transform .16s ease}
+.signal-guide-details[open]>summary::after{transform:rotate(180deg)}
+.signal-guide summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+.signal-guide-details[open] dl{margin-top:8px}
 .signal-guide dl{display:flex;align-items:center;gap:10px 18px;flex-wrap:wrap}
 .signal-guide dl>div{display:flex;align-items:center;gap:7px}
 .signal-guide dt{flex-shrink:0}.signal-guide dd{margin:0;min-width:0;overflow-wrap:anywhere}
@@ -407,8 +413,11 @@ footer a{color:var(--text-2)}
   .controls{position:static}
   .seg button{padding-inline:8px;font-size:12.5px}
   .signal-guide{display:block;padding-top:8px}
-  .signal-guide>strong{display:block;margin-bottom:7px}
   .signal-guide dl{display:grid;gap:7px}
+  .filter-toggle-row{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;gap:8px;padding-bottom:4px;scrollbar-width:none}
+  .filter-toggle-row::-webkit-scrollbar{display:none}
+  .filter-toggle-row>*{flex:0 0 auto;max-width:none}
+  .signal-guide-details[open] dl{margin-top:8px}
 }
 @media(hover:hover) and (pointer:fine) and (min-width:721px) and (max-width:1147px){.wrap{padding-left:calc(env(safe-area-inset-left) + 80px)}}
 
@@ -604,14 +613,16 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 </div>
 
 <aside class="signal-guide" aria-label="Badge guide" data-i18n-aria-label="badges.aria">
-  <strong data-i18n="badges.title">Badge guide</strong>
-  <dl>
-    <div><dt><span class="badge">🔥 N</span></dt><dd data-i18n="badges.streak">Observed on Trending on consecutive dates</dd></div>
-    <div><dt><span class="rankchg">↑/↓ N</span></dt><dd data-i18n="badges.change">Change in total stars since the previous observation date</dd></div>
-    <div><dt><span class="badge">HOT</span></dt><dd data-i18n="badges.hot">At least 1,000 stars gained in the selected period</dd></div>
-    <div><dt><span class="badge membership-new" data-i18n="badges.newLabel">New</span></dt><dd data-i18n="badges.new">First observed after the baseline</dd></div>
-    <div><dt><span class="badge membership-reentered" data-i18n="badges.reenteredLabel">Re-entered</span></dt><dd data-i18n="badges.reentered">Returned after leaving the previous list</dd></div>
-  </dl>
+  <details class="signal-guide-details" id="badgeGuide" open>
+    <summary data-i18n="badges.title">Badge guide</summary>
+    <dl>
+      <div><dt><span class="badge">🔥 N</span></dt><dd data-i18n="badges.streak">Observed on Trending on consecutive dates</dd></div>
+      <div><dt><span class="rankchg">↑/↓ N</span></dt><dd data-i18n="badges.change">Change in total stars since the previous observation date</dd></div>
+      <div><dt><span class="badge">HOT</span></dt><dd data-i18n="badges.hot">At least 1,000 stars gained in the selected period</dd></div>
+      <div><dt><span class="badge membership-new" data-i18n="badges.newLabel">New</span></dt><dd data-i18n="badges.new">First observed after the baseline</dd></div>
+      <div><dt><span class="badge membership-reentered" data-i18n="badges.reenteredLabel">Re-entered</span></dt><dd data-i18n="badges.reentered">Returned after leaving the previous list</dd></div>
+    </dl>
+  </details>
 </aside>
 
 <section class="filter-bar" id="filterBar" aria-label="Quick filters" data-i18n-aria-label="field.quick">
@@ -625,7 +636,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     </div>
     <select class="langsel" id="lang" aria-label="Programming language" data-i18n-aria-label="language.title"><option value="" data-i18n="language.all">All languages</option></select>
   </div>
-  <div class="filter-bar-row filter-bar-row-3">
+  <div class="filter-bar-row filter-bar-row-3 filter-toggle-row">
     <button type="button" id="excludeAi" class="filter-toggle" aria-pressed="false" data-i18n="field.excludeAi">Exclude AI</button>
     <button type="button" id="newOnly" class="filter-toggle" aria-pressed="false" data-i18n="field.newOnly">New repositories only</button>
     <button type="button" id="copyLinkBtn" class="filter-toggle" data-i18n="filter.copyLink">Copy link</button>
@@ -705,6 +716,11 @@ let filterState=RepoFilters.parseState(location.search,LANGUAGES);
 let period=filterState.period;
 let favOnly=filterState.favOnly;
 const storage=localStorage;
+/* The badge guide is notation for cards the phone viewport cannot show yet, so it ships open for
+   desktop and no-JS readers and collapses once on load under the mobile breakpoint. The reader
+   stays in control afterwards — no resize listener re-opens or re-closes it. */
+const badgeGuideMedia=matchMedia("(max-width:560px)");
+if(badgeGuideMedia.matches)document.getElementById("badgeGuide").open=false;
 let hiddenSet=new Set(HiddenRepos.read(storage)),lastHiddenSlug=null;
 let guestFavorites=[];
 try{guestFavorites=Favorites.migrateLegacyFavs(storage)}catch{}
