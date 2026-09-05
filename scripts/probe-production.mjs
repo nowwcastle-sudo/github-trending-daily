@@ -40,8 +40,12 @@ function resolveObservationDatabase(sourceSha, snapshotId, destination, gitRoot,
     execFileSync(process.execPath, [script, "resolve", "--source-sha", sourceSha, "--expect-snapshot-id", snapshotId, "--git-root", gitRoot, "--out", destination], {
       encoding: "utf8", maxBuffer: 1024 * 1024, timeout: Math.max(1, Math.min(600_000, Math.ceil(remaining))), stdio: ["ignore", "pipe", "pipe"],
     });
-  } catch {
-    throw new Error("Git repository observation database is unavailable");
+  } catch (error) {
+    // The store scrubs its own stderr before it leaves the child, so it is safe to surface here, and
+    // on the two contract-less production paths it is the only thing that tells a 404 from a hash
+    // mismatch. The fixed phrase stays in front so callers matching on it keep matching.
+    const detail = String(error.stderr ?? "").trim().slice(0, 500);
+    throw new Error(detail ? `Git repository observation database is unavailable: ${detail}` : "Git repository observation database is unavailable");
   }
 }
 

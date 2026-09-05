@@ -106,6 +106,9 @@ test("one create-new parent database capture is resolved through the store and r
 test("production state checks and the recovery build resolve the database through the pointer", async () => {
   const workflow = await workflowText();
   assert.equal((workflow.match(/observation-db-store\.mjs resolve --source-sha "\$HYDRATION_SOURCE_SHA" --check/g) ?? []).length, 2);
+  // The v1 branch's check is annotated like the star-ticks one: the bare command already stops the
+  // job under set -e, but only the ::error:: names the fault in the run summary.
+  assert.match(workflow, /node scripts\/observation-db-store\.mjs resolve --source-sha "\$HYDRATION_SOURCE_SHA" --check \|\| \{ echo "::error::verified production source does not carry exactly one observation database representation"; exit 1; \}/);
   // The v0 bootstrap gate branches on the exit status, never on plain success/failure: exit 0 means
   // a v0 production is carrying the canonical database, exit 3 is the only status that clears a
   // bootstrap, and every other status is a real fault that stops the refresh.
@@ -405,4 +408,11 @@ test("the candidate Pages artifact keeps a week of retention for a fast rollback
   assert.match(upload, /name: github-pages-candidate-\$\{\{ github\.run_id \}\}\n\s+path: \$\{\{ runner\.temp \}\}\/pages-artifact\n\s+retention-days: 7\n/);
   // the recovery and defect-diagnostics uploads keep their own, unrelated retention values.
   assert.match(workflow, /name: github-pages-recovery-\$\{\{ github\.run_id \}\}\n\s+path: \$\{\{ runner\.temp \}\}\/recovery-artifact\n\s+retention-days: 2\n/);
+});
+
+// The snapshot lives in a release asset now, so a stray working-tree database must never be
+// committed back into the tree the pointer replaced.
+test("the working-tree observation database file stays untracked", async () => {
+  const ignored = (await readFile(".gitignore", "utf8")).replace(/\r\n/g, "\n").split("\n");
+  assert.ok(ignored.includes("data/repository-observations.sqlite"), ".gitignore must ignore data/repository-observations.sqlite");
 });

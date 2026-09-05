@@ -293,7 +293,8 @@ export async function resolveObservationDatabase({ sourceSha, out = null, expect
 }
 
 // Only publish shells out to gh, so it is the only place that needs GH_TOKEN. Every argument is
-// passed as an array element; nothing is ever interpolated into a shell string.
+// passed as an array element; nothing is ever interpolated into a shell string. Every call pins
+// -R OWNER_REPO so which repository is written to never depends on the cwd's origin remote.
 function gh(args, { deadline }) {
   const remaining = deadline - Date.now();
   if (remaining <= 0) throw new Error("observation database publish deadline exceeded");
@@ -308,7 +309,7 @@ function gh(args, { deadline }) {
     });
   } catch (error) {
     // gh prints the token it used on some auth failures, so nothing from it reaches a message unscrubbed.
-    const failure = new Error(`gh ${args[0]} ${args[1]} failed: ${scrub(error.stderr ?? error.message).trim().slice(0, 500)}`);
+    const failure = new Error(`gh ${args[0]} ${args[1]} failed: ${scrub(error.stderr || error.message).trim().slice(0, 500)}`);
     failure.status = error.status;
     failure.stderr = scrub(error.stderr ?? "");
     throw failure;
@@ -317,7 +318,7 @@ function gh(args, { deadline }) {
 
 // Idempotent: the release for this month may already exist, and two refreshes can race to create it.
 function ensureRelease(tag, targetSha, { deadline }) {
-  try { gh(["release", "view", tag, "--json", "tagName"], { deadline }); return; }
+  try { gh(["release", "view", tag, "--json", "tagName", "-R", OWNER_REPO], { deadline }); return; }
   catch (error) {
     // Exit-code contract: `gh release view` exits 1 for a release that does not exist, and also for
     // other API failures (an expired token, a rate limit). Status alone is therefore not enough -
@@ -328,7 +329,8 @@ function ensureRelease(tag, targetSha, { deadline }) {
   try {
     gh(["release", "create", tag, "--target", targetSha, "--prerelease", "--latest=false",
       "--title", `Observation database snapshots ${tag.slice("observation-db-".length)}`,
-      "--notes", "Immutable observation-database snapshots produced by the trending refresh workflow. Each asset is named by its snapshot id and referenced from data/observation-db.pointer.json in the commit that published it."], { deadline });
+      "--notes", "Immutable observation-database snapshots produced by the trending refresh workflow. Each asset is named by its snapshot id and referenced from data/observation-db.pointer.json in the commit that published it.",
+      "-R", OWNER_REPO], { deadline });
   } catch (error) {
     if (!/already_exists|already exists/i.test(error.stderr ?? "")) throw error;
   }
@@ -360,7 +362,7 @@ export async function publishObservationDatabase({ database, snapshotId, targetS
     // an existing name is a conflict to resolve by comparing bytes, never something to overwrite.
     const staged = path.join(staging, pointer.asset.name);
     await copyFile(database, staged);
-    try { gh(["release", "upload", pointer.asset.releaseTag, staged], { deadline }); uploaded = true; }
+    try { gh(["release", "upload", pointer.asset.releaseTag, staged, "-R", OWNER_REPO], { deadline }); uploaded = true; }
     catch (error) { process.stderr.write(`::notice::${collapse(`upload did not complete (${scrub(error.message)}); verifying the served asset instead`)}\n`); }
     // The only proof that matters: what the anonymous URL actually serves hashes to our bytes. This
     // is the one download allowed to retry a 404 - see downloadVerified's retryNotFound.

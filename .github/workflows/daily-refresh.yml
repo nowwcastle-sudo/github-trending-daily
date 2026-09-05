@@ -148,7 +148,7 @@ jobs:
             fi
           else
             [ -z "$REQUESTED_BOOTSTRAP_SOURCE_SHA" ] || { echo "::error::version-1 refresh forbids a bootstrap source SHA"; exit 1; }
-            node scripts/observation-db-store.mjs resolve --source-sha "$HYDRATION_SOURCE_SHA" --check
+            node scripts/observation-db-store.mjs resolve --source-sha "$HYDRATION_SOURCE_SHA" --check || { echo "::error::verified production source does not carry exactly one observation database representation"; exit 1; }
             PARENT_SNAPSHOT_ID="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(value.snapshotId ?? "");' "$STATE_FILE")"
             [ -n "$PARENT_SNAPSHOT_ID" ]
             echo "ENRICHMENT_BUDGET_MODE=normal" >> "$GITHUB_ENV"

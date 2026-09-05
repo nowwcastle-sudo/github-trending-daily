@@ -12,9 +12,19 @@ import test from "node:test";
 
 import {
   allowedHosts, assetNameFor, DATABASE_PATH, downloadAsset, downloadUrlFor, downloadVerified,
-  parsePointerBytes, POINTER_PATH, publishObservationDatabase, releaseTagFor, resolveDeadlineMs,
+  OWNER_REPO, parsePointerBytes, POINTER_PATH, publishObservationDatabase, releaseTagFor, resolveDeadlineMs,
   resolveObservationDatabase, retryDelays, scrub, validatePointer,
 } from "../scripts/observation-db-store.mjs";
+
+// Every gh release call names the repository explicitly, so which repository is written to never
+// depends on whatever origin remote the checkout happens to be carrying.
+const assertRepositoryPinned = calls => {
+  assert.equal(OWNER_REPO, "nowwcastle-sudo/github-trending-daily");
+  for (const call of calls) {
+    const flag = call.indexOf("-R");
+    assert.ok(flag >= 0 && call[flag + 1] === OWNER_REPO, `gh call does not pin the repository: ${JSON.stringify(call)}`);
+  }
+};
 
 const SNAPSHOT = "20260905024612-0123456789abcdef";
 const SHA = "a".repeat(40);
@@ -581,6 +591,9 @@ test("publish: creates the monthly release when missing, uploads, confirms by an
   assert.deepEqual(JSON.parse(await readFile(pointerOut, "utf8")), pointerFor());
   const calls = (await readFile(gh.log, "utf8")).trim().split("\n").map(line => JSON.parse(line));
   assert.deepEqual(calls.map(call => call.slice(0, 2)), [["release", "view"], ["release", "create"], ["release", "upload"]]);
+  assertRepositoryPinned(calls);
+  assert.deepEqual(calls[0], ["release", "view", "observation-db-2026-09", "--json", "tagName", "-R", OWNER_REPO]);
+  assert.deepEqual(calls[2].slice(4), ["-R", OWNER_REPO]);
   assert.ok(calls[1].includes("--target") && calls[1].includes(SHA) && calls[1].includes("--prerelease") && calls[1].includes("--latest=false"));
   assert.equal(calls[2][2], "observation-db-2026-09");
   assert.ok(calls[2][3].endsWith(assetNameFor(SNAPSHOT)));
@@ -689,6 +702,7 @@ test("a release created between our view and our create is tolerated; a view tha
   assert.deepEqual(JSON.parse(await readFile(pointerOut, "utf8")), pointerFor());
   const calls = (await readFile(gh.log, "utf8")).trim().split("\n").map(line => JSON.parse(line));
   assert.deepEqual(calls.map(call => call.slice(0, 2)), [["release", "view"], ["release", "create"], ["release", "upload"]]);
+  assertRepositoryPinned(calls);
 
   // Same exit status 1, different stderr: an auth failure must surface, not be answered by a create.
   gh = await fakeGh(directory, { existingRelease: false, uploadResult: "ok", viewStderr: "HTTP 401: Bad credentials\n" });
