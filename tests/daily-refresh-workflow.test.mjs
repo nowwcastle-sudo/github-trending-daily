@@ -211,6 +211,8 @@ test("promotion scans the candidate database, publishes the asset after every lo
   assert.match(promotion, /\[ "\$ORIGINAL_SHA" = "\$\(git rev-parse HEAD\)" \]/);
   assert.match(workflow, /if git diff --cached --quiet; then[\s\S]*exit 1/);
   assert.doesNotMatch(workflow, /git add (?:\.|-A|--all)(?:\s|$)/);
+  // the throwaway release-tag override belongs to the dispatch-only pre-flight workflow alone.
+  assert.doesNotMatch(workflow, /OBSERVATION_DB_RELEASE_TAG_OVERRIDE/);
 });
 
 test("the committed artifact probe, the verify job and the second copy resolve the published database", async () => {

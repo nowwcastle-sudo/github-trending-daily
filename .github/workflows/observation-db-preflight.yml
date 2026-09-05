@@ -3,7 +3,9 @@ name: Observation database pre-flight and restore
 # Dispatch-only. roundtrip: proves the Actions token can create a release, upload an
 # asset, and that anonymous resolve verifies it, then deletes the throwaway release.
 # restore: re-uploads a lost snapshot from a W1 run's observation-db-<run-id> artifact
-# (spec 2026-09-05 §7, §8).
+# (spec 2026-09-05 §7, §8). Restore only ever re-uploads the snapshot named by the pointer
+# committed at main HEAD - publish cross-checks data/latest.json against that same snapshot id -
+# so restoring an older snapshot is not supported by this workflow.
 
 on:
   workflow_dispatch:
@@ -33,6 +35,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write
+      actions: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -67,9 +70,12 @@ jobs:
             SNAPSHOT_ID="$REQUESTED_SNAPSHOT_ID"
             DATABASE="${RUNNER_TEMP}/restore/repository-observations.sqlite"
             [ -f "$DATABASE" ] || { echo "::error::downloaded artifact does not contain the database"; exit 1; }
-            git show "HEAD:data/observation-db.pointer.json" > "$WORK/pointer.json"
-            git show "HEAD:data/latest.json" > "$WORK/latest.json"
+            git show "HEAD:data/observation-db.pointer.json" > "$WORK/pointer.json" || { echo "::error::committed pointer or latest.json is unavailable at HEAD"; exit 1; }
+            git show "HEAD:data/latest.json" > "$WORK/latest.json" || { echo "::error::committed pointer or latest.json is unavailable at HEAD"; exit 1; }
             python scripts/scan_repository_observations.py --database "$DATABASE" --expect-snapshot "$SNAPSHOT_ID" > "$WORK/scan-receipt.json"
+            # A release asset name can never be reused, so the artifact has to be matched against the
+            # committed pointer before publish uploads anything - after the upload a mismatch is unfixable.
+            node --input-type=module -e 'import { readFileSync } from "node:fs"; const receipt=JSON.parse(readFileSync(process.argv[1], "utf8")); const pointer=JSON.parse(readFileSync(process.argv[2], "utf8")); if (receipt.databaseSha256 !== pointer.database?.sha256 || pointer.snapshotId !== process.argv[3]) process.exit(1);' "$WORK/scan-receipt.json" "$WORK/pointer.json" "$SNAPSHOT_ID" || { echo "::error::artifact does not match the committed pointer"; exit 1; }
             node scripts/observation-db-store.mjs publish --database "$DATABASE" --snapshot-id "$SNAPSHOT_ID" --target-sha "$(git rev-parse HEAD)" --latest "$WORK/latest.json" --scan-receipt "$WORK/scan-receipt.json" --pointer-out "$WORK/republished-pointer.json"
             cmp "$WORK/pointer.json" "$WORK/republished-pointer.json" || { echo "::error::restored asset does not match the committed pointer"; exit 1; }
             exit 0

@@ -22,6 +22,8 @@ test("finalized artifact redeploy workflow publishes one committed v0 or v1 arti
   assert.match(workflow, /export-contract --database "\$\{RUNNER_TEMP\}\/repository-observations\.sqlite"/);
   assert.match(workflow, /observation-db-store\.mjs resolve --source-sha "\$SOURCE_SHA" --expect-snapshot-id "\$SNAPSHOT_ID" --out "\$\{RUNNER_TEMP\}\/repository-observations\.sqlite"/);
   assert.doesNotMatch(workflow, /GH_TOKEN:/);
+  // the throwaway release-tag override belongs to the dispatch-only pre-flight workflow alone.
+  assert.doesNotMatch(workflow, /OBSERVATION_DB_RELEASE_TAG_OVERRIDE/);
   assert.match(workflow, /build-pages-artifact\.mjs --source "\."[\s\S]*--snapshot-id "\$SNAPSHOT_ID"[\s\S]*--artifact-contract "\$ARTIFACT_CONTRACT"/);
   assert.match(workflow, /build-pages-artifact\.mjs --mode legacy[\s\S]*--source "\."[\s\S]*--source-sha "\$SOURCE_SHA"/);
   assert.match(workflow, /probe-production\.mjs --artifact-dir[\s\S]*--source-sha "\$SOURCE_SHA"[\s\S]*--snapshot-id "\$SNAPSHOT_ID"/);

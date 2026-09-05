@@ -68,6 +68,8 @@ test("star ticks deploy the committed tree through the same contract-checked bui
   assert.match(workflow, /node scripts\/observation-db-store\.mjs resolve --source-sha "\$\(git rev-parse HEAD\)" --check \|\| \{ echo "::error::star ticks require the version-1 repository database"; exit 1; \}/);
   assert.match(workflow, /- name: Resolve observation database[\s\S]*rm -f "\$\{RUNNER_TEMP\}\/repository-observations\.sqlite"[\s\S]*observation-db-store\.mjs resolve --source-sha "\$SOURCE_SHA" --expect-snapshot-id "\$SNAPSHOT_ID" --out "\$\{RUNNER_TEMP\}\/repository-observations\.sqlite"/);
   assert.doesNotMatch(workflow, /GH_TOKEN:/);
+  // the throwaway release-tag override belongs to the dispatch-only pre-flight workflow alone.
+  assert.doesNotMatch(workflow, /OBSERVATION_DB_RELEASE_TAG_OVERRIDE/);
   assertInOrder(workflow, [
     "star-ticks.mjs collect",
     "star-ticks.mjs derive",
