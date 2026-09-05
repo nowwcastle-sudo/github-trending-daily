@@ -26,6 +26,9 @@ const HEX64_RE = /^[a-f0-9]{64}$/;
 const TOKEN_RE = /sk-ant-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|AIza[A-Za-z0-9_-]{30,}/g;
 
 export function scrub(text) { return String(text ?? "").replace(TOKEN_RE, "[redacted]"); }
+// A ::notice:: workflow command is one line by definition; an embedded newline would truncate it and
+// leave the remainder loose in the log, so interpolated text is flattened first.
+function collapse(text) { return String(text ?? "").replace(/\s+/g, " ").trim(); }
 function hash(bytes) { return createHash("sha256").update(bytes).digest("hex"); }
 function exactKeys(value, keys) { return value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).sort().join("\0") === [...keys].sort().join("\0"); }
 function inActions() { return process.env.GITHUB_ACTIONS === "true"; }
@@ -150,7 +153,8 @@ async function writeExclusive(destination, chunks) {
 }
 
 // URL-level verified download: nothing reaches disk until both the byte size and the sha256 match.
-export async function downloadVerified({ url, sha256: expectedSha256, byteSize, destination, deadline = Date.now() + RESOLVE_DEADLINE_MS, fetchImpl = fetch }) {
+// `retryNotFound` is opt-in and exists for exactly one caller - see the 404 comment below.
+export async function downloadVerified({ url, sha256: expectedSha256, byteSize, destination, deadline = Date.now() + RESOLVE_DEADLINE_MS, fetchImpl = fetch, retryNotFound = false }) {
   if (typeof url !== "string" || url === "") throw fatalError("invalid download url");
   if (typeof destination !== "string" || destination === "") throw fatalError("invalid download destination");
   if (typeof expectedSha256 !== "string" || !HEX64_RE.test(expectedSha256)) throw fatalError("invalid expected sha256");
@@ -163,7 +167,11 @@ export async function downloadVerified({ url, sha256: expectedSha256, byteSize, 
       if (response.status !== 200) {
         await response.body?.cancel?.();
         const message = `observation database asset download failed: HTTP ${response.status}`;
-        if (!RETRY_STATUSES.has(response.status)) throw fatalError(message);
+        // 404 stays fatal everywhere except the post-upload confirmation: a resolve asking for an
+        // asset that is not there has its answer, but the publisher that just uploaded the file
+        // knows it is supposed to exist, and GitHub sometimes needs a second or two to serve it.
+        const retryable = RETRY_STATUSES.has(response.status) || (retryNotFound && response.status === 404);
+        if (!retryable) throw fatalError(message);
         lastError = new Error(message);
       } else {
         const chunks = []; let total = 0; const digest = createHash("sha256");
@@ -187,11 +195,11 @@ export async function downloadVerified({ url, sha256: expectedSha256, byteSize, 
   throw lastError ?? new Error("observation database asset download failed");
 }
 
-export async function downloadAsset({ pointer, destination, deadline = Date.now() + RESOLVE_DEADLINE_MS, fetchImpl = fetch }) {
+export async function downloadAsset({ pointer, destination, deadline = Date.now() + RESOLVE_DEADLINE_MS, fetchImpl = fetch, retryNotFound = false }) {
   validatePointer(pointer);
   return downloadVerified({
     url: downloadUrlFor(pointer), sha256: pointer.database.sha256, byteSize: pointer.database.byteSize,
-    destination, deadline, fetchImpl,
+    destination, deadline, fetchImpl, retryNotFound,
   });
 }
 
@@ -272,7 +280,13 @@ function gh(args, { deadline }) {
 // Idempotent: the release for this month may already exist, and two refreshes can race to create it.
 function ensureRelease(tag, targetSha, { deadline }) {
   try { gh(["release", "view", tag, "--json", "tagName"], { deadline }); return; }
-  catch (error) { if (error.status !== 1) throw error; }
+  catch (error) {
+    // Exit-code contract: `gh release view` exits 1 for a release that does not exist, and also for
+    // other API failures (an expired token, a rate limit). Status alone is therefore not enough -
+    // "missing" additionally has to say so in stderr, or we would answer an auth failure by trying
+    // to create a release that already exists.
+    if (error.status !== 1 || !/release not found|not found|HTTP 404/i.test(error.stderr ?? "")) throw error;
+  }
   try {
     gh(["release", "create", tag, "--target", targetSha, "--prerelease", "--latest=false",
       "--title", `Observation database snapshots ${tag.slice("observation-db-".length)}`,
@@ -309,18 +323,28 @@ export async function publishObservationDatabase({ database, snapshotId, targetS
     const staged = path.join(staging, pointer.asset.name);
     await copyFile(database, staged);
     try { gh(["release", "upload", pointer.asset.releaseTag, staged], { deadline }); uploaded = true; }
-    catch (error) { process.stderr.write(`::notice::upload did not complete (${scrub(error.message)}); verifying the served asset instead\n`); }
-    // The only proof that matters: what the anonymous URL actually serves hashes to our bytes.
-    await downloadAsset({ pointer, destination: confirmed, deadline, fetchImpl });
+    catch (error) { process.stderr.write(`::notice::${collapse(`upload did not complete (${scrub(error.message)}); verifying the served asset instead`)}\n`); }
+    // The only proof that matters: what the anonymous URL actually serves hashes to our bytes. This
+    // is the one download allowed to retry a 404 - see downloadVerified's retryNotFound.
+    await downloadAsset({ pointer, destination: confirmed, deadline, fetchImpl, retryNotFound: true });
   } finally {
     // A verified download lands mode 0444 - read-only on Windows - so it is made writable before the
-    // recursive delete, and cleanup never masks the publish failure that brought us here.
+    // recursive delete, and cleanup never masks the publish failure that brought us here. It is
+    // still reported: a staging directory left behind is a leak worth one line in the log.
     await chmod(confirmed, 0o600).catch(() => {});
-    await rm(staging, { recursive: true, force: true, maxRetries: 5 }).catch(() => {});
+    await rm(staging, { recursive: true, force: true, maxRetries: 5 })
+      .catch(error => { process.stderr.write(`::notice::${collapse(`staging cleanup failed for ${staging}: ${scrub(error.message)}`)}\n`); });
   }
+  // The pointer is the artefact the commit carries, so it appears whole or not at all. A temp file
+  // left behind by a failed write would fail the exclusive create on every later attempt.
   const temporary = `${pointerOut}.tmp-${process.pid}`;
-  await writeFile(temporary, `${JSON.stringify(pointer, null, 2)}\n`, { flag: "wx" });
-  await rename(temporary, pointerOut);
+  try {
+    await writeFile(temporary, `${JSON.stringify(pointer, null, 2)}\n`, { flag: "wx" });
+    await rename(temporary, pointerOut);
+  } catch (error) {
+    await unlink(temporary).catch(() => {});
+    throw error;
+  }
   return { pointer, uploaded };
 }
 

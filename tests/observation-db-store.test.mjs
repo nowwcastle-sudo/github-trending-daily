@@ -31,13 +31,13 @@ const pointerFor = (bytes = DB, overrides = {}) => ({
   ...overrides,
 });
 
-// Every variable the module reads, plus the three the fake `gh` fixture reads out of its inherited
-// environment. CI always sets GITHUB_ACTIONS=true and the module rightly refuses the dev-only
-// overrides there, so each test clears the whole set in its own setup, installs exactly what it
-// needs, and restores the original values afterwards. No test relies on a sibling's cleanup.
+// Every variable the module reads, plus the ones the fake `git` and fake `gh` fixtures read out of
+// their inherited environment. CI always sets GITHUB_ACTIONS=true and the module rightly refuses the
+// dev-only overrides there, so each test clears the whole set in its own setup, installs exactly what
+// it needs, and restores the original values afterwards. No test relies on a sibling's cleanup.
 const MANAGED_ENV = [
-  "GITHUB_ACTIONS", "GIT_BIN", "GIT_SCRIPT", "GH_BIN", "GH_SCRIPT",
-  "GH_LOG", "GH_STATE", "GH_SERVED_DIR",
+  "GITHUB_ACTIONS", "GIT_BIN", "GIT_SCRIPT", "FAKE_POINTER", "FAKE_BLOB",
+  "GH_BIN", "GH_SCRIPT", "GH_LOG", "GH_STATE", "GH_SERVED_DIR",
   "OBSERVATION_DB_DOWNLOAD_BASE_URL", "OBSERVATION_DB_ALLOWED_HOSTS",
   "OBSERVATION_DB_RETRY_DELAYS_MS", "OBSERVATION_DB_RESOLVE_DEADLINE_MS",
 ];
@@ -382,18 +382,19 @@ test("the CLI rejects a malformed command line before it touches git or gh", { t
 });
 
 // A fake `gh` selected by GH_BIN/GH_SCRIPT, exactly as the fake git is selected by GIT_BIN/GIT_SCRIPT.
-// It logs every argument array it is handed, models the two failures publish has to survive - the
-// release already existing and the asset name already being taken - and, on a successful upload,
-// copies the staged file into the directory the local asset server serves from.
-async function fakeGh(directory, { existingRelease, uploadResult, servedBytes = null }) {
+// It logs every argument array it is handed, models the failures publish has to survive - the release
+// already existing, a `release view` that fails for a reason other than the release being missing,
+// the release appearing between our view and our create, and the asset name already being taken -
+// and, on a successful upload, copies the staged file into the directory the asset server serves from.
+async function fakeGh(directory, { existingRelease, uploadResult, servedBytes = null, createResult = "ok", viewStderr = "release not found\n" }) {
   const script = join(directory, "fake-gh.mjs");
   const log = join(directory, "gh-calls.log");
   await writeFile(log, "");
   await writeFile(script, `import { appendFileSync, copyFileSync } from "node:fs"; import { basename, join } from "node:path";
 const args = process.argv.slice(2); appendFileSync(process.env.GH_LOG, JSON.stringify(args) + "\\n");
 const state = JSON.parse(process.env.GH_STATE);
-if (args[0] === "release" && args[1] === "view") { if (state.existingRelease) { process.stdout.write(JSON.stringify({ tagName: args[2] })); process.exit(0); } process.stderr.write("release not found\\n"); process.exit(1); }
-if (args[0] === "release" && args[1] === "create") { if (state.existingRelease) { process.stderr.write("HTTP 422: Validation Failed (already_exists)\\n"); process.exit(1); } process.exit(0); }
+if (args[0] === "release" && args[1] === "view") { if (state.existingRelease) { process.stdout.write(JSON.stringify({ tagName: args[2] })); process.exit(0); } process.stderr.write(state.viewStderr); process.exit(1); }
+if (args[0] === "release" && args[1] === "create") { if (state.existingRelease || state.createResult === "already_exists") { process.stderr.write("HTTP 422: Validation Failed (already_exists)\\n"); process.exit(1); } process.exit(0); }
 if (args[0] === "release" && args[1] === "upload") { if (state.uploadResult === "fail") { process.stderr.write("HTTP 422: asset already exists\\n"); process.exit(1); } copyFileSync(args[3], join(process.env.GH_SERVED_DIR, basename(args[3]))); process.exit(0); }
 process.exit(91);`);
   const served = join(directory, "served");
@@ -402,7 +403,7 @@ process.exit(91);`);
   return {
     env: {
       GH_BIN: process.execPath, GH_SCRIPT: script, GH_LOG: log,
-      GH_STATE: JSON.stringify({ existingRelease, uploadResult }), GH_SERVED_DIR: served,
+      GH_STATE: JSON.stringify({ existingRelease, uploadResult, createResult, viewStderr }), GH_SERVED_DIR: served,
     },
     log, served,
   };
@@ -476,6 +477,95 @@ test("publish: creates the monthly release when missing, uploads, confirms by an
   await writeFile(receipt, JSON.stringify({ ok: true, databaseSha256: sha256(DB), databaseSha256Prefix: sha256(DB).slice(0, 12), rawByteSize: DB.length }));
   await writeFile(latest, JSON.stringify({ snapshotId: "20260101000000-0000000000000000" }));
   await assert.rejects(publishObservationDatabase(args()), /latest/i);
+  assert.equal(existsSync(pointerOut), false);
+  assert.equal((await readFile(gh.log, "utf8")).trim(), "", "the latest.json check runs before any gh call");
+});
+
+// The asymmetry finding 1 introduced. GitHub accepts an upload before it serves the asset, so the
+// confirmation - and only the confirmation - treats 404 as transient; a resolve asking for an asset
+// that is not there already has its answer and must not spend the backoff discovering it again.
+test("publish confirms through a 404 the release has not caught up with yet; resolve keeps 404 fatal", { timeout: 180_000 }, async t => {
+  const directory = await scratchDirectory(t, "obs-publish-404-");
+  const { database, latest, receipt } = await publishFixture(directory);
+  const gh = await fakeGh(directory, { existingRelease: true, uploadResult: "ok" });
+  let hits = 0;
+  const { base, close } = await assetServer((request, response) => {
+    hits += 1;
+    // Not served yet on the first look, served on the second - what a fresh upload actually does.
+    if (hits === 1) { response.writeHead(404); response.end(); return; }
+    response.writeHead(200); response.end(DB);
+  });
+  t.after(close);
+  isolateEnv(t, {
+    ...gh.env,
+    OBSERVATION_DB_DOWNLOAD_BASE_URL: base,
+    OBSERVATION_DB_ALLOWED_HOSTS: "127.0.0.1",
+    OBSERVATION_DB_RETRY_DELAYS_MS: "1,1,1",
+  });
+  const pointerOut = join(directory, "pointer.json");
+  const result = await publishObservationDatabase({
+    database, snapshotId: SNAPSHOT, targetSha: SHA, latestPath: latest, scanReceiptPath: receipt,
+    pointerOut, deadline: Date.now() + 60_000,
+  });
+  assert.equal(result.uploaded, true);
+  assert.equal(hits, 2, "the confirmation retried the 404 once and then accepted the served asset");
+  assert.deepEqual(JSON.parse(await readFile(pointerOut, "utf8")), pointerFor());
+});
+
+test("resolve does not retry a 404: a missing asset is fatal on the first attempt", { timeout: 120_000 }, async t => {
+  const directory = await scratchDirectory(t, "obs-resolve-404-");
+  let hits = 0;
+  const { base, close } = await assetServer((request, response) => { hits += 1; response.writeHead(404); response.end(); });
+  t.after(close);
+  isolateEnv(t, {
+    ...(await fakeGit(directory, { pointer: pointerFor() })),
+    OBSERVATION_DB_DOWNLOAD_BASE_URL: base,
+    OBSERVATION_DB_ALLOWED_HOSTS: "127.0.0.1",
+    OBSERVATION_DB_RETRY_DELAYS_MS: "1,1,1",
+  });
+  await assert.rejects(resolveObservationDatabase({
+    sourceSha: SHA, out: join(directory, "db.sqlite"), gitRoot: directory, deadline: Date.now() + TEST_DEADLINE_MS,
+  }), /404/);
+  assert.equal(hits, 1, "the retry ladder is not walked for a 404 outside the publish confirmation");
+  assert.equal((await readdir(directory)).includes("db.sqlite"), false, "a failed resolve leaves no output file");
+});
+
+// `gh release view` exits 1 both when the release is missing and when the API call itself failed, so
+// the two halves of that contract are tested together: the race we tolerate, and the failure we must
+// not mistake for it.
+test("a release created between our view and our create is tolerated; a view that failed for another reason is not", { timeout: 180_000 }, async t => {
+  const directory = await scratchDirectory(t, "obs-ensure-release-");
+  const { database, latest, receipt } = await publishFixture(directory);
+  // The racing creator: our view says missing, our create is told the tag already exists.
+  let gh = await fakeGh(directory, { existingRelease: false, createResult: "already_exists", uploadResult: "ok" });
+  const { base, close } = await assetServer((request, response) => {
+    readFile(join(gh.served, request.url.split("/").pop())).then(
+      bytes => { response.writeHead(200); response.end(bytes); },
+      () => { response.writeHead(404); response.end(); });
+  });
+  t.after(close);
+  isolateEnv(t, {
+    ...gh.env,
+    OBSERVATION_DB_DOWNLOAD_BASE_URL: base,
+    OBSERVATION_DB_ALLOWED_HOSTS: "127.0.0.1",
+    OBSERVATION_DB_RETRY_DELAYS_MS: "1",
+  });
+  const pointerOut = join(directory, "pointer.json");
+  const args = () => ({ database, snapshotId: SNAPSHOT, targetSha: SHA, latestPath: latest, scanReceiptPath: receipt, pointerOut, deadline: Date.now() + 60_000 });
+  assert.equal((await publishObservationDatabase(args())).uploaded, true);
+  assert.deepEqual(JSON.parse(await readFile(pointerOut, "utf8")), pointerFor());
+  const calls = (await readFile(gh.log, "utf8")).trim().split("\n").map(line => JSON.parse(line));
+  assert.deepEqual(calls.map(call => call.slice(0, 2)), [["release", "view"], ["release", "create"], ["release", "upload"]]);
+
+  // Same exit status 1, different stderr: an auth failure must surface, not be answered by a create.
+  gh = await fakeGh(directory, { existingRelease: false, uploadResult: "ok", viewStderr: "HTTP 401: Bad credentials\n" });
+  Object.assign(process.env, gh.env);
+  await rm(pointerOut);
+  await assert.rejects(publishObservationDatabase(args()), /gh release view failed/i);
+  assert.deepEqual(
+    (await readFile(gh.log, "utf8")).trim().split("\n").map(line => JSON.parse(line)).map(call => call.slice(0, 2)),
+    [["release", "view"]],
+    "a view failure that is not 'release not found' stops before create");
   assert.equal(existsSync(pointerOut), false);
 });
 
