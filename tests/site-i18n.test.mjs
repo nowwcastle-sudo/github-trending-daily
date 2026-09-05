@@ -44,6 +44,7 @@ test("every rail group, shortcut hint, and held-retry message exists in all five
     "shortcuts.export", "shortcuts.delete", "shortcuts.escape", "shortcuts.help",
     "shortcuts.disable", "shortcuts.disableNote",
     "exits.empty",
+    "visit.heading", "visit.newSince", "visit.noneSince", "visit.badge", "visit.badgeTitle",
   ];
   for (const locale of i18n.SUPPORTED_LOCALES) {
     for (const key of required) {
@@ -152,5 +153,15 @@ test("favourite button labels carry the repository name in every locale", () => 
     }
     assert.equal(typeof i18n.MESSAGES[locale]["skip.main"], "string");
     assert.ok(i18n.MESSAGES[locale]["skip.main"].trim().length > 0);
+  }
+});
+
+test("the new-since-last-visit heading interpolates its count and date in every locale", () => {
+  const i18n = load();
+  for (const locale of i18n.SUPPORTED_LOCALES) {
+    assert.ok(i18n.MESSAGES[locale]["visit.newSince"].includes("{count}"), `${locale} visit.newSince needs {count}`);
+    assert.ok(i18n.MESSAGES[locale]["visit.newSince"].includes("{date}"), `${locale} visit.newSince needs {date}`);
+    assert.ok(i18n.MESSAGES[locale]["visit.noneSince"].includes("{date}"), `${locale} visit.noneSince needs {date}`);
+    assert.equal(i18n.MESSAGES[locale]["visit.noneSince"].includes("{count}"), false, `${locale} visit.noneSince must not need {count}`);
   }
 });

@@ -545,6 +545,9 @@ function cardRenderHarness(period, membership = "stayed") {
     HiddenRepos: { filterRepos(repositories) { return repositories; } },
     SIGNALS: new Map(),
     MEMBERSHIP_STATUS: new Map([[repository.slug, membership]]),
+    // Task 9: the visit badge is page-level state the card template now reads; an empty set is the
+    // first-visit answer, which keeps these membership assertions about membership alone.
+    newSinceLastVisit: new Set(),
     favoriteBusy: false,
     newOnlyGate() { return null; },
     transientMembershipRepo(value) { return value; },
@@ -3229,4 +3232,27 @@ test("a script-free visitor is told why the list is empty and where the feeds ar
   const main = page.match(/<main class="wrap" id="mainContent" tabindex="-1">([\s\S]*?)<\/main>/)?.[1] ?? "";
   assert.match(main, /<noscript><p class="noscript-note">This page builds its repository list with JavaScript\. Turn JavaScript on, or subscribe to the Atom feeds: <a href="feed\.xml">feed\.xml<\/a> · <a href="changes\.xml">changes\.xml<\/a>\.<\/p><\/noscript>/);
   assert.match(page, /\.noscript-note\{[^}]*border:1px solid var\(--surface-border\)/);
+});
+
+test("the list carries a heading that reports what is new since the reader's last visit", () => {
+  assert.match(page, /<script src="visit-tracker\.js"><\/script>/);
+  assert.match(page, /<h2 class="list-heading" id="listHeading" data-i18n="visit\.heading">Trending repositories<\/h2>/);
+  const hintIndex = page.indexOf('id="cardKeyboardHint"');
+  const headingIndex = page.indexOf('id="listHeading"');
+  const stageIndex = page.indexOf('class="list-stage" id="listStage"');
+  assert.ok(hintIndex < headingIndex && headingIndex < stageIndex, "the heading sits directly above the list");
+
+  assert.match(page, /const visitSummary=VisitTracker\.recordVisit\(storage,\{slugs:REPOS\.map\(repo=>repo\.slug\),now:new Date\(\)\.toISOString\(\)\}\);/);
+  assert.match(page, /const newSinceLastVisit=new Set\(visitSummary\.newSlugs\);/);
+  assert.match(page, /function updateVisitHeading\(\)\{/);
+  assert.match(page, /tr\("visit\.newSince",\{count:visitSummary\.newSlugs\.length,date\}\)/);
+  assert.match(page, /tr\("visit\.noneSince",\{date\}\)/);
+  assert.match(page, /updateRefreshStatus\(\);renderRecentExits\(currentRecentExits\);renderHist\(\);updateVisitHeading\(\);/);
+
+  // The badge is additive: the baseline-relative membership badge is untouched.
+  assert.match(page, /const visitBadge=newSinceLastVisit\.has\(r\.slug\)\?`<span class="badge visit-new" title="\$\{tr\("visit\.badgeTitle"\)\}">\$\{tr\("visit\.badge"\)\}<\/span>`:"";/);
+  assert.match(page, /\$\{membershipBadge\}\$\{visitBadge\}/);
+  assert.match(page, /membership==="new"\?`<span class="badge membership-new"/);
+  assert.match(page, /\.visit-new\{color:var\(--text\);background:var\(--seg-bg\)\}/);
+  assert.match(page, /\.list-heading\{[^}]*color:var\(--text-2\)/);
 });

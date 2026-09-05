@@ -340,6 +340,10 @@ body.overlay-open{overflow:hidden}
 .category-badge{display:inline-flex;align-items:center;max-width:100%;overflow-wrap:anywhere;word-break:break-word;white-space:normal}
 .membership-new{color:var(--accent-selected);background:var(--accent-soft)}
 .membership-reentered{color:var(--hot);background:var(--hot-soft)}
+.list-heading{margin-top:18px;color:var(--text-2);font-size:15px;font-weight:650;letter-spacing:-.005em;line-height:1.4}
+/* Deliberately not the membership palette: "new to you" is a different claim from "new to the
+   list", and the two must be distinguishable when a card carries both. */
+.visit-new{color:var(--text);background:var(--seg-bg)}
 .cdesc{color:var(--text-2);font-size:15.5px;line-height:1.5;margin:6px 0 12px;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .cmeta{display:flex;gap:18px;align-items:center;font-size:14px;color:var(--text-2);flex-wrap:wrap}
@@ -718,6 +722,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 
 <noscript><p class="noscript-note">This page builds its repository list with JavaScript. Turn JavaScript on, or subscribe to the Atom feeds: <a href="feed.xml">feed.xml</a> · <a href="changes.xml">changes.xml</a>.</p></noscript>
 <p id="cardKeyboardHint" class="sr-only" data-i18n="keyboard.card">When a card is focused, press Delete to hide that repository.</p>
+<h2 class="list-heading" id="listHeading" data-i18n="visit.heading">Trending repositories</h2>
 <div class="list-stage" id="listStage">
   <div class="list" id="list"></div>
   <div class="empty" id="empty"><p id="emptyText" data-i18n="empty.default">No repositories match these conditions.</p><button id="emptyResetBtn" type="button" data-i18n="empty.reset">Reset filters</button><button id="emptyManageHiddenBtn" type="button" hidden data-i18n="empty.manage">Manage hidden repositories</button></div>
@@ -787,6 +792,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 <script src="refresh-schedule.js"></script>
 <script src="membership-history.js"></script>
 <script src="current-view-export.js"></script>
+<script src="visit-tracker.js"></script>
 <!-- Star trend disclosure: 매일 GitHub에서 직접 관측한 총 스타 추이 (GH Archive 추정치는 2026-09-02 중단) -->
 <script src="star-history.js"></script>
 <script>
@@ -804,7 +810,7 @@ document.addEventListener("site-locale-change",()=>{
   if(activeTipIndex!==null&&tipLayer.classList.contains("on")){
     const repo=REPOS[activeTipIndex];tipLayer.innerHTML=tipHTML(repo,resolveSummaryLocale(repo,siteI18n.locale));
   }
-  updateRefreshStatus();renderRecentExits(currentRecentExits);renderHist();
+  updateRefreshStatus();renderRecentExits(currentRecentExits);renderHist();updateVisitHeading();
 });
 const SIGNALS=new Map();
 const MEMBERSHIP_STATUS=new Map();
@@ -821,6 +827,19 @@ const storage=localStorage;
 const badgeGuide=document.getElementById("badgeGuide");
 if(badgeGuide&&matchMedia("(max-width:560px)").matches)badgeGuide.open=false;
 let hiddenSet=new Set(HiddenRepos.read(storage)),lastHiddenSlug=null;
+// Recorded once per page load, before the first render, so every render this session sees the same
+// answer. REPOS is the generated data above; the diff is against what this browser last saw.
+const visitSummary=VisitTracker.recordVisit(storage,{slugs:REPOS.map(repo=>repo.slug),now:new Date().toISOString()});
+const newSinceLastVisit=new Set(visitSummary.newSlugs);
+function updateVisitHeading(){
+  const heading=document.getElementById("listHeading");
+  if(!visitSummary.previousVisitAt){heading.textContent=tr("visit.heading");return}
+  const date=visitSummary.previousVisitAt.slice(0,10);
+  heading.textContent=visitSummary.newSlugs.length
+    ?tr("visit.newSince",{count:visitSummary.newSlugs.length,date})
+    :tr("visit.noneSince",{date});
+}
+updateVisitHeading();
 let guestFavorites=[];
 try{guestFavorites=Favorites.migrateLegacyFavs(storage)}catch{}
 let favSet=new Set(guestFavorites),favoriteBusy=false;
@@ -1452,11 +1471,12 @@ function render(){
     const badges=UiMotion.badgeModel(r,signal,viewPeriod);
     const membership=MEMBERSHIP_STATUS.get(r.slug.toLowerCase());
     const membershipBadge=membership==="new"?`<span class="badge membership-new" title="${tr("badges.new")}">${tr("badges.newLabel")}</span>`:membership==="reentered"?`<span class="badge membership-reentered" title="${tr("badges.reentered")}">${tr("badges.reenteredLabel")}</span>`:"";
+    const visitBadge=newSinceLastVisit.has(r.slug)?`<span class="badge visit-new" title="${tr("visit.badgeTitle")}">${tr("visit.badge")}</span>`:"";
     return `<article class="card" tabindex="0" data-idx="${REPOS.indexOf(r)}" data-href="https://github.com/${r.slug}" aria-label="${esc(tr("repo.aria",{name:r.name}))}" aria-keyshortcuts="Delete">
       <button type="button" class="favbtn${faved?" on":""}" data-slug="${r.slug}" title="${tr("repo.favorite")}" aria-label="${esc(tr(faved?"repo.favoriteRemove":"repo.favoriteAdd",{name:r.name}))}" aria-pressed="${faved}"${favoriteBusy?" disabled":""}>${faved?"★":"☆"}</button>
       <div class="rank">${i+1}</div>
       <div class="cbody">
-        <div class="cname"><a class="repo-link" href="https://github.com/${r.slug}" target="_blank" rel="noopener">${esc(r.name)}</a>${membershipBadge}${badges.streakDays?`<span class="badge" title="${tr("badges.streak")}">🔥 ${badges.streakDays}</span>`:""}${badges.starsChange!==null?`<span class="rankchg" title="${tr("badges.change")}">${badges.starsChange>0?"↑":"↓"}${fmt(Math.abs(badges.starsChange))}</span>`:""}${badges.hot?`<span class="badge" title="${tr("badges.hot")}">HOT</span>`:""}</div>
+        <div class="cname"><a class="repo-link" href="https://github.com/${r.slug}" target="_blank" rel="noopener">${esc(r.name)}</a>${membershipBadge}${visitBadge}${badges.streakDays?`<span class="badge" title="${tr("badges.streak")}">🔥 ${badges.streakDays}</span>`:""}${badges.starsChange!==null?`<span class="rankchg" title="${tr("badges.change")}">${badges.starsChange>0?"↑":"↓"}${fmt(Math.abs(badges.starsChange))}</span>`:""}${badges.hot?`<span class="badge" title="${tr("badges.hot")}">HOT</span>`:""}</div>
         <div class="category-badges">${classificationBadges(r)}</div>
         <p class="cdesc">${esc(r.desc)}</p>
         <div class="cmeta">
