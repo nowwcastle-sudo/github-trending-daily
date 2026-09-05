@@ -12,9 +12,11 @@ test("finalized artifact redeploy workflow publishes one committed v0 or v1 arti
   assert.match(workflow, /^permissions: \{\}$/m);
   assert.match(workflow, /^      contents: read\n      pages: write\n      id-token: write$/m);
   assert.match(workflow, /git fetch origin main[\s\S]*git rev-parse HEAD[\s\S]*refs\/remotes\/origin\/main/);
-  assert.match(workflow, /if \[ -f data\/repository-observations\.sqlite \]/);
+  assert.match(workflow, /if node scripts\/observation-db-store\.mjs resolve --source-sha "\$SOURCE_SHA" --check; then/);
   assert.match(workflow, /derive_repository_artifacts\.py export-contract[\s\S]*--snapshot-id "\$SNAPSHOT_ID"/);
-  assert.match(workflow, /export-contract --database "\$\{GITHUB_WORKSPACE\}\/data\/repository-observations\.sqlite"/);
+  assert.match(workflow, /export-contract --database "\$\{RUNNER_TEMP\}\/repository-observations\.sqlite"/);
+  assert.match(workflow, /observation-db-store\.mjs resolve --source-sha "\$SOURCE_SHA" --expect-snapshot-id "\$SNAPSHOT_ID" --out "\$\{RUNNER_TEMP\}\/repository-observations\.sqlite"/);
+  assert.doesNotMatch(workflow, /GH_TOKEN:/);
   assert.match(workflow, /build-pages-artifact\.mjs --source "\."[\s\S]*--snapshot-id "\$SNAPSHOT_ID"[\s\S]*--artifact-contract "\$ARTIFACT_CONTRACT"/);
   assert.match(workflow, /build-pages-artifact\.mjs --mode legacy[\s\S]*--source "\."[\s\S]*--source-sha "\$SOURCE_SHA"/);
   assert.match(workflow, /probe-production\.mjs --artifact-dir[\s\S]*--source-sha "\$SOURCE_SHA"[\s\S]*--snapshot-id "\$SNAPSHOT_ID"/);
