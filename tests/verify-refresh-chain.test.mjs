@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 import { OVERLAY_PATHS, VERSION_1_BASE_PATHS } from "../scripts/build-pages-artifact.mjs";
+import { assetNameFor, releaseTagFor } from "../scripts/observation-db-store.mjs";
 import { assertSourceBoundToRunHead, selectMatchingReceipt, resolveEffectiveReceipt, validateWorkflowRun, verifyRefreshChain } from "../scripts/verify-refresh-chain.mjs";
 
 const expected = {
@@ -72,6 +73,7 @@ test("v1 requires one permitted generated child while v0 recovery preserves run-
   assert.throws(() => assertSourceBoundToRunHead(head, head, () => assert.fail("Git must not run")), /generated child/i);
   assert.equal(assertSourceBoundToRunHead(head, head, () => assert.fail("Git must not run"), { version: 0 }), true);
   assert.equal(assertSourceBoundToRunHead(head, child, args => args[0] === "show" ? head : "data/latest.json\ndata/readme-state.json\ndata/repository-observations.sqlite\nindex.html"), true);
+  assert.equal(assertSourceBoundToRunHead(head, child, args => args[0] === "show" ? head : "data/latest.json\ndata/observation-db.pointer.json\nindex.html"), true);
   assert.throws(() => assertSourceBoundToRunHead(head, child, args => args[0] === "show" ? "c".repeat(40) : "data/latest.json"), /direct generated/i);
   assert.throws(() => assertSourceBoundToRunHead(head, child, args => args[0] === "show" ? head : "repo-filters.js"), /non-generated/i);
   assert.throws(() => assertSourceBoundToRunHead(head, child, args => args[0] === "show" ? head : "data/star-observations.sqlite"), /non-generated/i);
@@ -255,9 +257,11 @@ async function startArtifactServer(directory, { delayPath = null, delayMs = 0 } 
   return { baseUrl: `http://127.0.0.1:${server.address().port}/`, close: () => new Promise(resolve => server.close(resolve)) };
 }
 
-async function runVerifier(directory, { artifact, expectedArtifact = artifact, runs = [], views = {}, artifactByRun = {}, originBefore = artifact.sourceSha, originAfter = artifact.sourceSha, parentBySource = {}, diffBySource = {}, currentProduction = false, timeoutMs = 60_000, serverOptions = {} }) {
+async function runVerifier(directory, { artifact, expectedArtifact = artifact, runs = [], views = {}, artifactByRun = {}, originBefore = artifact.sourceSha, originAfter = artifact.sourceSha, parentBySource = {}, diffBySource = {}, currentProduction = false, timeoutMs = 60_000, serverOptions = {}, insideActions = false }) {
   const ghScript = join(directory, "fake-gh.mjs");
   const gitScript = join(directory, "fake-git.mjs");
+  const resolverScript = join(directory, "fake-resolver.mjs");
+  const pointerPath = join(directory, "observation-db.pointer.json");
   const statePath = join(directory, "origin-state");
   const sourcesPath = join(directory, "translation-sources.json");
   const configPath = join(directory, "gh-config.json");
@@ -285,6 +289,20 @@ async function runVerifier(directory, { artifact, expectedArtifact = artifact, r
     "finalize_snapshot_derivatives(database, snapshot_id, insights, hash_pages_artifacts(root, PAGES_BASE_ARTIFACT_PATHS))",
   ].join("; "), directory, artifact.snapshotId], { cwd: fileURLToPath(new URL("..", import.meta.url)), encoding: "utf8" });
   if (database.status !== 0) throw new Error(database.stderr);
+  const databaseBytes = await readFile(databasePath);
+  await writeFile(pointerPath, `${JSON.stringify({
+    version: 1,
+    snapshotId: artifact.snapshotId,
+    database: { sha256: createHash("sha256").update(databaseBytes).digest("hex"), byteSize: databaseBytes.length },
+    asset: { releaseTag: releaseTagFor(artifact.snapshotId), name: assetNameFor(artifact.snapshotId) },
+  })}\n`);
+  // Stands in for scripts/observation-db-store.mjs so the probe never reaches a release
+  // asset over the network, and proves which flags the probe hands the store.
+  await writeFile(resolverScript, `import { copyFileSync } from "node:fs";
+const args=process.argv.slice(2); const flag=name=>{ const index=args.indexOf(name); return index<0?null:args[index+1]; };
+if(args[0]!=="resolve"||!/^[a-f0-9]{40}$/.test(flag("--source-sha")??"")||!/^[0-9]{14}-[a-f0-9]{16}$/.test(flag("--expect-snapshot-id")??"")||!flag("--git-root")||!flag("--out")) process.exit(93);
+copyFileSync(process.env.DATABASE_PATH,flag("--out"));
+process.stdout.write(JSON.stringify({mode:"pointer"})+"\\n");`);
   await writeFile(statePath, originBefore);
   await writeFile(sourcesPath, artifact.sourcesBytes);
   const configuredArtifacts = {};
@@ -309,7 +327,8 @@ else if(args[0]==="merge-base") process.exit(process.env.ANCESTOR==="false"?1:0)
 else if(args[0]==="show"&&args[1]==="-s") { const map=JSON.parse(process.env.PARENT_BY_SOURCE); process.stdout.write((map[args.at(-1)]??"")+"\\n"); }
 else if(args[0]==="diff-tree") { const map=JSON.parse(process.env.DIFF_BY_SOURCE); process.stdout.write((map[args.at(-1)]??"data/latest.json")+"\\n"); }
   else if(args[0]==="show"&&args.at(-1).endsWith(":data/translation-sources.json")) process.stdout.write(readFileSync(process.env.SOURCES_PATH));
-  else if(args[0]==="show"&&args.at(-1).endsWith(":data/repository-observations.sqlite")) process.stdout.write(readFileSync(process.env.DATABASE_PATH));
+  else if(args[0]==="cat-file"&&args[1]==="-e") process.exit(args.at(-1).endsWith(":data/observation-db.pointer.json")?0:1);
+  else if(args[0]==="show"&&args.at(-1).endsWith(":data/observation-db.pointer.json")) process.stdout.write(readFileSync(process.env.POINTER_PATH));
 else process.exit(92);`);
   const server = await startArtifactServer(directory, serverOptions);
   const script = fileURLToPath(new URL("../scripts/verify-refresh-chain.mjs", import.meta.url));
@@ -317,10 +336,16 @@ else process.exit(92);`);
     "--expected-run-id", "20", "--expected-source-sha", expectedArtifact.sourceSha, "--expected-snapshot-id", expectedArtifact.snapshotId,
     "--expected-manifest-sha256", expectedArtifact.manifestSha256, "--base-url", server.baseUrl,
   ];
+  // The probe refuses its resolver override inside Actions, so the child must never inherit
+  // GITHUB_ACTIONS from a CI run of this suite.
+  const childEnv = { ...process.env, GH_BIN: process.execPath, GH_SCRIPT: ghScript, GIT_BIN: process.execPath, GIT_SCRIPT: gitScript, GITHUB_REPOSITORY: "owner/repo",
+    GH_CONFIG: configPath, ORIGIN_STATE: statePath, ORIGIN_AFTER: originAfter, SOURCES_PATH: sourcesPath, DATABASE_PATH: databasePath,
+    OBSERVATION_DB_RESOLVER_SCRIPT: resolverScript, POINTER_PATH: pointerPath,
+    PARENT_BY_SOURCE: JSON.stringify(parentBySource), DIFF_BY_SOURCE: JSON.stringify(diffBySource), VERIFY_TIMEOUT_MS: String(timeoutMs) };
+  delete childEnv.GITHUB_ACTIONS;
+  if (insideActions) childEnv.GITHUB_ACTIONS = "true";
   const child = spawn(process.execPath, [script, ...args], {
-    env: { ...process.env, GH_BIN: process.execPath, GH_SCRIPT: ghScript, GIT_BIN: process.execPath, GIT_SCRIPT: gitScript, GITHUB_REPOSITORY: "owner/repo",
-      GH_CONFIG: configPath, ORIGIN_STATE: statePath, ORIGIN_AFTER: originAfter, SOURCES_PATH: sourcesPath, DATABASE_PATH: databasePath,
-      PARENT_BY_SOURCE: JSON.stringify(parentBySource), DIFF_BY_SOURCE: JSON.stringify(diffBySource), VERIFY_TIMEOUT_MS: String(timeoutMs) },
+    env: childEnv,
     stdio: ["ignore", "pipe", "pipe"],
   });
   let stdout = ""; let stderr = "";
@@ -348,6 +373,10 @@ test("verifier CLI assembles fake GitHub, fake Git, raw artifacts, fresh origin 
   const exactResult = await runVerifier(expectedDir, { artifact: expectedArtifact, runs: pending, views: { 20: run20 }, artifactByRun: { 20: expectedArtifact } });
   assert.equal(exactResult.status, 0, exactResult.stderr);
   assert.equal(JSON.parse(exactResult.stdout).effectiveRunId, 20);
+
+  const inActions = await runVerifier(expectedDir, { artifact: expectedArtifact, runs: pending, views: { 20: run20 }, artifactByRun: { 20: expectedArtifact }, insideActions: true });
+  assert.notEqual(inActions.status, 0);
+  assert.match(inActions.stderr, /resolver override is refused inside GitHub Actions/i);
 
   const laterResult = await runVerifier(productionDir, { artifact: productionArtifact, expectedArtifact, runs: [...pending, run21], views: { 20: run20, 21: run21 }, artifactByRun: { 20: expectedArtifact, 21: productionArtifact } });
   assert.equal(laterResult.status, 0, laterResult.stderr);

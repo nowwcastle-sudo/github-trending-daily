@@ -1,0 +1,101 @@
+name: Observation database pre-flight and restore
+
+# Dispatch-only. roundtrip: proves the Actions token can create a release, upload an
+# asset, and that anonymous resolve verifies it, then deletes the throwaway release.
+# restore: re-uploads a lost snapshot from a W1 run's observation-db-<run-id> artifact
+# (spec 2026-09-05 §7, §8). Restore only ever re-uploads the snapshot named by the pointer
+# committed at main HEAD - publish cross-checks data/latest.json against that same snapshot id -
+# so restoring an older snapshot is not supported by this workflow.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: roundtrip (throwaway test release) or restore (re-upload a lost snapshot asset)
+        required: true
+        default: roundtrip
+        type: choice
+        options:
+          - roundtrip
+          - restore
+      snapshot-id:
+        description: restore only - snapshot id named by the committed pointer
+        required: false
+        type: string
+      run-id:
+        description: restore only - W1 run id whose observation-db-<run-id> artifact holds the database
+        required: false
+        type: string
+
+permissions: {}
+
+jobs:
+  store:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: Download the published database copy
+        if: ${{ inputs.mode == 'restore' }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: observation-db-${{ inputs.run-id }}
+          path: ${{ runner.temp }}/restore
+          run-id: ${{ inputs.run-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish and verify
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MODE: ${{ inputs.mode }}
+          REQUESTED_SNAPSHOT_ID: ${{ inputs.snapshot-id }}
+        run: |
+          set -euo pipefail
+          WORK="${RUNNER_TEMP}/store-work"
+          mkdir "$WORK"
+          if [ "$MODE" = "restore" ]; then
+            [[ "$REQUESTED_SNAPSHOT_ID" =~ ^[0-9]{14}-[a-f0-9]{16}$ ]] || { echo "::error::snapshot-id is required for restore"; exit 1; }
+            SNAPSHOT_ID="$REQUESTED_SNAPSHOT_ID"
+            DATABASE="${RUNNER_TEMP}/restore/repository-observations.sqlite"
+            [ -f "$DATABASE" ] || { echo "::error::downloaded artifact does not contain the database"; exit 1; }
+            git show "HEAD:data/observation-db.pointer.json" > "$WORK/pointer.json" || { echo "::error::committed pointer or latest.json is unavailable at HEAD"; exit 1; }
+            git show "HEAD:data/latest.json" > "$WORK/latest.json" || { echo "::error::committed pointer or latest.json is unavailable at HEAD"; exit 1; }
+            python scripts/scan_repository_observations.py --database "$DATABASE" --expect-snapshot "$SNAPSHOT_ID" > "$WORK/scan-receipt.json"
+            # A release asset name can never be reused, so the artifact has to be matched against the
+            # committed pointer before publish uploads anything - after the upload a mismatch is unfixable.
+            node --input-type=module -e 'import { readFileSync } from "node:fs"; const receipt=JSON.parse(readFileSync(process.argv[1], "utf8")); const pointer=JSON.parse(readFileSync(process.argv[2], "utf8")); if (receipt.databaseSha256 !== pointer.database?.sha256 || pointer.snapshotId !== process.argv[3]) process.exit(1);' "$WORK/scan-receipt.json" "$WORK/pointer.json" "$SNAPSHOT_ID" || { echo "::error::artifact does not match the committed pointer"; exit 1; }
+            node scripts/observation-db-store.mjs publish --database "$DATABASE" --snapshot-id "$SNAPSHOT_ID" --target-sha "$(git rev-parse HEAD)" --latest "$WORK/latest.json" --scan-receipt "$WORK/scan-receipt.json" --pointer-out "$WORK/republished-pointer.json"
+            cmp "$WORK/pointer.json" "$WORK/republished-pointer.json" || { echo "::error::restored asset does not match the committed pointer"; exit 1; }
+            exit 0
+          fi
+          SNAPSHOT_ID="$(date -u +%Y%m%d%H%M%S)-$(head -c 8 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+          TEST_TAG="observation-db-test-$(date -u +%Y%m%d%H%M%S)"
+          DATABASE="$WORK/preflight.sqlite"
+          head -c 65536 /dev/urandom > "$DATABASE"
+          node --input-type=module -e 'import { createHash } from "node:crypto"; import { readFileSync, writeFileSync } from "node:fs"; const bytes=readFileSync(process.argv[1]); const digest=createHash("sha256").update(bytes).digest("hex"); writeFileSync(process.argv[2], JSON.stringify({ ok: true, databaseSha256: digest, databaseSha256Prefix: digest.slice(0,12), rawByteSize: bytes.length }));' "$DATABASE" "$WORK/scan-receipt.json"
+          printf '{"snapshotId":"%s"}\n' "$SNAPSHOT_ID" > "$WORK/latest.json"
+          trap 'gh release delete "$TEST_TAG" --cleanup-tag --yes || echo "::warning::could not delete the test release $TEST_TAG"' EXIT
+          export OBSERVATION_DB_RELEASE_TAG_OVERRIDE="$TEST_TAG"
+          node scripts/observation-db-store.mjs publish --database "$DATABASE" --snapshot-id "$SNAPSHOT_ID" --target-sha "$(git rev-parse HEAD)" --latest "$WORK/latest.json" --scan-receipt "$WORK/scan-receipt.json" --pointer-out "$WORK/pointer.json"
+          PROOF="$WORK/proof"
+          mkdir -p "$PROOF/data"
+          cp "$WORK/pointer.json" "$PROOF/data/observation-db.pointer.json"
+          git -C "$PROOF" init -q
+          git -C "$PROOF" -c user.name=preflight -c user.email=preflight@example.invalid add --all
+          git -C "$PROOF" -c user.name=preflight -c user.email=preflight@example.invalid commit -qm "preflight pointer"
+          PROOF_SHA="$(git -C "$PROOF" rev-parse HEAD)"
+          node scripts/observation-db-store.mjs resolve --source-sha "$PROOF_SHA" --expect-snapshot-id "$SNAPSHOT_ID" --git-root "$PROOF" --out "$WORK/resolved.sqlite"
+          cmp "$DATABASE" "$WORK/resolved.sqlite"
+          echo "round trip verified for $SNAPSHOT_ID on $TEST_TAG"
