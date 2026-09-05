@@ -84,7 +84,9 @@ export function validateWorkflowRun(run, expectedRunId, { requireDispatchEvent =
 }
 
 function approvedGeneratedCommitPath(relative) {
-  return ["index.html", "data/repo-summaries.json", "data/repository-observations.sqlite", "data/readme-state.json", "data/membership-status.json", "data/latest.json", "data/translation-sources.json", "feed.xml", "changes.xml", "data/star-anchors.json", "star-history.json"].includes(relative)
+  // data/repository-observations.sqlite stays accepted only because the transition commit deletes it
+  // (spec 2026-09-05 §6.6); the follow-up PR removes it from this list.
+  return ["index.html", "data/repo-summaries.json", "data/observation-db.pointer.json", "data/repository-observations.sqlite", "data/readme-state.json", "data/membership-status.json", "data/latest.json", "data/translation-sources.json", "feed.xml", "changes.xml", "data/star-anchors.json", "star-history.json"].includes(relative)
     || /^translations\/[^/]+\.json$/.test(relative);
 }
 
