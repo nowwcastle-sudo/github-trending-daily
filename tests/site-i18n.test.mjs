@@ -43,6 +43,7 @@ test("every rail group, shortcut hint, and held-retry message exists in all five
     "shortcuts.search", "shortcuts.explore", "shortcuts.account", "shortcuts.history",
     "shortcuts.export", "shortcuts.delete", "shortcuts.escape", "shortcuts.help",
     "shortcuts.disable", "shortcuts.disableNote",
+    "exits.empty",
   ];
   for (const locale of i18n.SUPPORTED_LOCALES) {
     for (const key of required) {

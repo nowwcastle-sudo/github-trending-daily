@@ -65,7 +65,7 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .title-box{padding:16px 18px;border:none;border-radius:16px;background:var(--bg)}
 .title-reset{border:0;background:none;color:inherit;padding:0;font:inherit;letter-spacing:inherit;cursor:pointer}
 .title-reset:focus-visible{outline:3px solid var(--accent);outline-offset:4px;border-radius:5px}
-.sub{color:var(--text-2);font-size:15px;margin-top:6px;letter-spacing:.01em}
+.sub{color:var(--text-2);font-size:15px;margin-top:6px;letter-spacing:.01em;word-break:keep-all;overflow-wrap:normal}
 .theme-toggle{
   flex-shrink:0;width:44px;height:44px;border-radius:50%;border:1px solid var(--border);
   background:var(--bg-elev);backdrop-filter:blur(20px) saturate(180%);
@@ -94,12 +94,12 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .account-btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .theme-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .nav-rail{
-  position:fixed;z-index:330;inset:0 auto 0 0;width:64px;height:100vh;height:100dvh;display:none;flex-direction:column;align-items:center;gap:12px;
+  position:fixed;z-index:330;inset:0 auto 0 0;width:76px;height:100vh;height:100dvh;display:none;flex-direction:column;align-items:center;gap:12px;
   padding:calc(28px + env(safe-area-inset-top)) 8px calc(20px + env(safe-area-inset-bottom));background:var(--bg-elev);backdrop-filter:blur(24px) saturate(160%);
   border-right:1px solid var(--hairline);
 }
 .nav-toggle{
-  position:relative;width:48px;min-height:60px;border:0;border-radius:14px;padding:7px 4px;background:transparent;color:var(--text-2);cursor:pointer;
+  position:relative;width:60px;min-height:60px;border:0;border-radius:14px;padding:7px 4px;background:transparent;color:var(--text-2);cursor:pointer;
   display:grid;place-items:center;align-content:center;gap:4px;font:inherit;font-size:10px;font-weight:650;letter-spacing:.01em;
   transition:background-color .16s ease,color .16s ease,transform .1s ease-out;
 }
@@ -117,7 +117,10 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .nav-glyph-export{width:20px;height:17px;border:1.5px solid currentColor;border-radius:4px;position:relative}
 .nav-glyph-export::before{content:"";position:absolute;left:8.25px;top:3px;width:1.5px;height:8px;background:currentColor}
 .nav-glyph-export::after{content:"";position:absolute;left:6px;top:3px;width:6px;height:6px;border-left:1.5px solid currentColor;border-top:1.5px solid currentColor;transform:rotate(45deg);transform-origin:center}
-.nav-label{line-height:1}
+/* Korean and Japanese rail labels are single words (내보내기, エクスポート); the default
+   overflow-wrap would split them mid-word inside the rail. keep-all is the correct CJK rule and a
+   no-op for the four Latin locales. */
+.nav-label{line-height:1;word-break:keep-all;overflow-wrap:normal}
 .nav-rail-spacer{flex:1}
 /* WCAG 2.1.4 needs the single-key accelerators to be discoverable and switchable off, so the rail
    carries a persistent "?" opener for the shortcut dialog. 44px minimum target like every control. */
@@ -158,7 +161,7 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .filter-sidebar.dragging{transition:none}
 @media(hover:hover) and (pointer:fine){
   .nav-rail{display:flex}
-  .filter-sidebar{left:64px;width:min(336px,calc(100vw - 64px));transform:translate3d(calc(-100% - 64px),0,0)}
+  .filter-sidebar{left:76px;width:min(336px,calc(100vw - 76px));transform:translate3d(calc(-100% - 76px),0,0)}
   .filter-sidebar.open{transform:translate3d(0,0,0)}
 }
 @media(hover:none),(pointer:coarse){
@@ -224,6 +227,7 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 .filter-chip:active{transform:scale(.97)}
 .filter-chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .clear-filters{border-color:var(--border);text-align:center;color:var(--text-2)}
+.clear-filters:disabled{opacity:.5;cursor:not-allowed}
 .filter-summary{color:var(--text-2);font-size:12px;line-height:1.45}
 /* The match count is the memory bridge between a 10-option field list at the top of the panel and
    the decision the reader is making; it must stay on screen while they work above it. The negative
@@ -465,8 +469,12 @@ footer a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   .filter-toggle-row{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;gap:8px;padding:5px;margin:-5px 0 -5px -5px;scrollbar-width:none}
   .filter-toggle-row::-webkit-scrollbar{display:none}
   .filter-toggle-row>*{flex:0 0 auto;max-width:none}
+  /* The card's terminal action measures 26px tall at 390px and #resetBtn 31px, both under the
+     44px minimum; the padding closes the gap without touching either font size. */
+  .repo-link{display:inline-block;padding:9px 0}
+  #resetBtn{display:inline-block;padding:7px 0}
 }
-@media(hover:hover) and (pointer:fine) and (min-width:721px) and (max-width:1147px){.wrap{padding-left:calc(env(safe-area-inset-left) + 80px)}}
+@media(hover:hover) and (pointer:fine) and (min-width:721px) and (max-width:1147px){.wrap{padding-left:calc(env(safe-area-inset-left) + 92px)}}
 
 .favbtn{position:absolute;right:8px;top:7px;width:44px;height:44px;background:none;border:none;color:var(--text-3);
   font-size:20px;cursor:pointer;padding:0;border-radius:10px;line-height:1;display:flex;align-items:center;justify-content:center;
@@ -1282,16 +1290,20 @@ const esc=s=>(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&g
 function repoLabel(slug){return REPOS.find(repo=>repo.slug===slug)?.name||slug}
 function updateHiddenManager(){
   const section=document.getElementById("hiddenRepoSection"),listBox=document.getElementById("hiddenRepoList");
-  const slugs=[...hiddenSet];section.hidden=!slugs.length||sidebar.dataset.group!=="history";
+  const slugs=[...hiddenSet];section.hidden=sidebar.dataset.group!=="history";
   document.getElementById("hiddenRepoCount").textContent=tr("hidden.count",{count:slugs.length});
+  // An enabled button that provably cannot do anything teaches the reader that controls here are
+  // unreliable; the count above it already says zero.
+  document.getElementById("restoreAllHiddenBtn").disabled=!slugs.length;
   listBox.innerHTML=slugs.map(slug=>`<div class="hidden-repo-row"><span class="hidden-repo-name">${esc(repoLabel(slug))}</span><button class="hidden-restore" type="button" data-restore-hidden="${esc(slug)}" aria-label="${esc(tr("hidden.restoreRepo",{name:repoLabel(slug)}))}">${tr("common.restore")}</button></div>`).join("");
 }
 let currentRecentExits=[];
 function renderRecentExits(exited=[]){
   currentRecentExits=exited;
   const section=document.getElementById("recentExitsSection"),recentExitsList=document.getElementById("recentExitsList");
-  section.hidden=!exited.length||sidebar.dataset.group!=="history";
-  recentExitsList.innerHTML=exited.map(item=>`<a class="recent-exit-link" href="https://github.com/${esc(item.slug)}" target="_blank" rel="noopener">${esc(repoLabel(item.slug))} ↗</a>`).join("");
+  section.hidden=sidebar.dataset.group!=="history";
+  // A blank region cannot be told apart from a region that failed to load, so say which it is.
+  recentExitsList.innerHTML=exited.length?exited.map(item=>`<a class="recent-exit-link" href="https://github.com/${esc(item.slug)}" target="_blank" rel="noopener">${esc(repoLabel(item.slug))} ↗</a>`).join(""):`<p class="sidebar-note">${esc(tr("exits.empty"))}</p>`;
 }
 function showHiddenNotice(message,{undoSlug=null,tone=""}={}){
   const notice=document.getElementById("hiddenNotice"),undo=document.getElementById("undoHideBtn");

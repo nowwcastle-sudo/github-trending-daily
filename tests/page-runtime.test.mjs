@@ -347,6 +347,7 @@ function hiddenSectionsGroupHarness() {
       this.hidden = false;
       this.textContent = "";
       this.innerHTML = "";
+      this.disabled = false;
       this.style = {};
     }
     setAttribute(name, value) { this.attributes.set(name, String(value)); }
@@ -382,6 +383,7 @@ function hiddenSectionsGroupHarness() {
     ["filterSummary", new FakeElement("filterSummary")],
     ["hiddenRepoList", new FakeElement("hiddenRepoList")],
     ["hiddenRepoCount", new FakeElement("hiddenRepoCount")],
+    ["restoreAllHiddenBtn", new FakeElement("restoreAllHiddenBtn")],
     ["recentExitsList", new FakeElement("recentExitsList")],
   ]);
   for (const section of sidebarSections) nodes.set(section.id, section);
@@ -439,6 +441,8 @@ function hiddenSectionsGroupHarness() {
     sidebar: nodes.get("filterSidebar"),
     hiddenRepoSection: nodes.get("hiddenRepoSection"),
     recentExitsSection: nodes.get("recentExitsSection"),
+    restoreAllHiddenBtn: nodes.get("restoreAllHiddenBtn"),
+    recentExitsList: nodes.get("recentExitsList"),
     setGroup(group) { return context.__setSidebarGroup(group); },
     hideRepo(slug) { context.hiddenSet = new Set([slug]); },
     renderRecentExits(exited) { context.__renderRecentExits(exited); },
@@ -1069,12 +1073,12 @@ test("landmarks, form controls, and hidden panels retain accessible boundaries",
   assert.doesNotMatch(page, /#tipLayer h3|<h3>\$\{esc\(r\.name\)\}<\/h3>/);
 });
 
-test("fine pointers expose the selected 64px compact Explore rail", () => {
+test("fine pointers expose the selected 76px compact Explore rail", () => {
   assert.match(page, /\.filter-sidebar\{[\s\S]*?height:100vh;height:100dvh[\s\S]*?transform:translate3d\(-105%,0,0\)/);
   const finePointer = page.match(/@media\(hover:hover\) and \(pointer:fine\)\{[\s\S]*?\n\}/)?.[0] ?? "";
   assert.match(finePointer, /\.nav-rail\{[^}]*display:flex/);
-  assert.match(finePointer, /\.filter-sidebar\{[^}]*left:64px[^}]*width:min\(336px,calc\(100vw - 64px\)\)/);
-  assert.match(page, /\.nav-rail\{[^}]*width:64px[^}]*height:100vh[^}]*height:100dvh/);
+  assert.match(finePointer, /\.filter-sidebar\{[^}]*left:76px[^}]*width:min\(336px,calc\(100vw - 76px\)\)/);
+  assert.match(page, /\.nav-rail\{[^}]*width:76px[^}]*height:100vh[^}]*height:100dvh/);
   assert.match(page, /\.nav-toggle:hover,\.nav-toggle:focus-visible,[^}]*\.nav-toggle\[aria-current="true"\]\{[^}]*background:var\(--accent-soft\)[^}]*color:var\(--accent-selected\)/);
 });
 
@@ -1325,8 +1329,8 @@ test("the rail exposes four group buttons in the approved order with complete di
   });
   expected.forEach(([, , , labelKey]) => assert.match(rail, new RegExp(`data-i18n="${labelKey}"`)));
   assert.match(page, /<nav class="nav-rail" id="navRail"/);
-  assert.match(page, /\.nav-rail\{[^}]*width:64px/);
-  assert.match(page, /\.nav-toggle\{[^}]*width:48px;min-height:60px/);
+  assert.match(page, /\.nav-rail\{[^}]*width:76px/);
+  assert.match(page, /\.nav-toggle\{[^}]*width:60px;min-height:60px/);
   assert.match(page, /\.nav-toggle:focus-visible\{outline:3px solid var\(--accent\);outline-offset:2px\}/);
 });
 
@@ -1390,7 +1394,7 @@ test("keyboard activation opens that group modally and restores focus to the but
     assert.equal(harness.sidebar.dataset.openMode, "modal", `${group} keyboard activation must open modal`);
     assert.equal(harness.sidebar.dataset.group, group);
     assert.deepEqual(harness.sectionsFor(), sections);
-    // Task 5: this harness is hover-capable, so the 64px rail is on screen and already names the
+    // Task 5: this harness is hover-capable, so the 76px rail is on screen and already names the
     // four groups; the in-panel switcher would be a second "you are here" for one location.
     assert.equal(harness.groupSeg.hidden, true, "the visible rail replaces the in-panel switcher");
     assert.equal(harness.close.focusCount, 1);
@@ -2027,7 +2031,7 @@ test("the selected compact Explore rail stays reachable and outside the inert pa
   assert.match(page, /\.filter-sidebar\{[\s\S]*?width:var\(--sidebar-width\)/);
   assert.match(page, /\.nav-rail\{[^}]*background:var\(--bg-elev\)[^}]*backdrop-filter:blur\(24px\) saturate\(160%\)/);
   assert.doesNotMatch(page, /\.filter-sidebar\.open~\.nav-toggle\{transform:/);
-  assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(min-width:721px\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 80px\)\}\}/);
+  assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(min-width:721px\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 92px\)\}\}/);
   assert.match(page, /id="mobileNavToggle"[^>]*aria-controls="filterSidebar"[^>]*aria-expanded="false"/);
   assert.match(page, /@media\(max-width:560px\)\{[\s\S]*?h1\{white-space:normal;overflow-wrap:anywhere\}/);
   assert.match(page, /\.repo-link\{[^}]*min-width:0[^}]*overflow-wrap:anywhere[^}]*word-break:break-word/);
@@ -2814,9 +2818,9 @@ test("RED1-H2 closing a modal never ends on <body> when the recorded trigger sto
 });
 
 test("RED1-H3 the viewports that hide the rail all render #mobileNavToggle as a real 44px opener", () => {
-  // The rail still hides on width alone and keeps its approved 64px token.
+  // The rail still hides on width alone and keeps its approved 76px token.
   assert.match(page, /@media\(max-width:720px\)\{\s*\.nav-rail\{display:none!important\}/);
-  assert.match(page, /\.nav-rail\{[^}]*width:64px/);
+  assert.match(page, /\.nav-rail\{[^}]*width:76px/);
   // Base state is unchanged: a 1px keyboard skip link wherever the rail is visible.
   assert.match(page, /\.mobile-nav-toggle\{position:absolute;width:1px;height:1px/);
 
@@ -3112,4 +3116,39 @@ test("footer links answer hover and focus with the accent token and a visible ri
 
 test("the badge-guide caret keeps its spacing from the summary label", () => {
   assert.match(page, /\.signal-guide summary\{[^}]*gap:6px/);
+});
+
+test("the card link and the title reset clear 44px on a phone", () => {
+  const mobile = page.match(/@media\(max-width:560px\)\{[\s\S]*?\r?\n\}/)?.[0] ?? "";
+  assert.match(mobile, /\.repo-link\{display:inline-block;padding:9px 0\}/);
+  assert.match(mobile, /#resetBtn\{display:inline-block;padding:7px 0\}/);
+});
+
+test("the History group states its empty conditions instead of rendering dead controls", () => {
+  assert.match(page, /document\.getElementById\("restoreAllHiddenBtn"\)\.disabled=!slugs\.length;/);
+  assert.match(page, /section\.hidden=sidebar\.dataset\.group!=="history";/);
+  assert.match(page, /recentExitsList\.innerHTML=exited\.length\?[\s\S]*?:`<p class="sidebar-note">\$\{esc\(tr\("exits\.empty"\)\)\}<\/p>`;/);
+  assert.match(page, /\.clear-filters:disabled\{opacity:\.5;cursor:not-allowed\}/);
+
+  const harness = hiddenSectionsGroupHarness();
+  harness.setGroup("history");
+  harness.render();
+  assert.equal(harness.restoreAllHiddenBtn.disabled, true, "Restore all is dead at zero hidden repositories");
+  harness.renderRecentExits([]);
+  assert.match(harness.recentExitsList.innerHTML, /exits\.empty/, "an empty exits list says so");
+
+  harness.hideRepo("octocat/hidden");
+  harness.render();
+  assert.equal(harness.restoreAllHiddenBtn.disabled, false, "Restore all works once something is hidden");
+});
+
+test("Korean rail labels and the subtitle break between words, not inside them", () => {
+  assert.match(page, /\.nav-label\{line-height:1;word-break:keep-all;overflow-wrap:normal\}/);
+  assert.match(page, /\.sub\{[^}]*word-break:keep-all;overflow-wrap:normal\}/);
+  assert.match(page, /\.nav-rail\{[^}]*width:76px/);
+  assert.match(page, /\.nav-toggle\{[^}]*width:60px;min-height:60px/);
+  const finePointer = page.match(/@media\(hover:hover\) and \(pointer:fine\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.match(finePointer, /\.filter-sidebar\{[^}]*left:76px[^}]*width:min\(336px,calc\(100vw - 76px\)\)/);
+  assert.match(page, /@media\(hover:hover\) and \(pointer:fine\) and \(min-width:721px\) and \(max-width:1147px\)\{\.wrap\{padding-left:calc\(env\(safe-area-inset-left\) \+ 92px\)\}\}/);
+  assert.doesNotMatch(page, /\.nav-rail\{[^}]*width:64px/);
 });
