@@ -40,6 +40,7 @@ const MANAGED_ENV = [
   "GH_BIN", "GH_SCRIPT", "GH_LOG", "GH_STATE", "GH_SERVED_DIR",
   "OBSERVATION_DB_DOWNLOAD_BASE_URL", "OBSERVATION_DB_ALLOWED_HOSTS",
   "OBSERVATION_DB_RETRY_DELAYS_MS", "OBSERVATION_DB_RESOLVE_DEADLINE_MS",
+  "OBSERVATION_DB_RELEASE_TAG_OVERRIDE",
 ];
 
 function isolateEnv(t, overrides = {}) {
@@ -77,6 +78,26 @@ test("tag and asset names derive from the snapshot id", { timeout: 60_000 }, t =
   assert.equal(releaseTagFor(SNAPSHOT), "observation-db-2026-09");
   assert.equal(assetNameFor(SNAPSHOT), `repository-observations-${SNAPSHOT}.sqlite`);
   assert.throws(() => releaseTagFor("2026-09-05"), /snapshot/i);
+});
+
+// The one override the module honours inside Actions: observation-db-preflight.yml runs its round
+// trip against a throwaway release, and only a run under the Actions token proves that token may
+// create a release and upload an asset. The name pattern is what keeps it throwaway - anything that
+// could name a real monthly release is refused everywhere.
+test("the release tag override is accepted only for test tags", { timeout: 60_000 }, t => {
+  isolateEnv(t, { OBSERVATION_DB_RELEASE_TAG_OVERRIDE: "observation-db-test-20260905120000" });
+  assert.equal(releaseTagFor(SNAPSHOT), "observation-db-test-20260905120000");
+  assert.equal(
+    validatePointer({ ...pointerFor(), asset: { releaseTag: "observation-db-test-20260905120000", name: assetNameFor(SNAPSHOT) } }).asset.releaseTag,
+    "observation-db-test-20260905120000",
+  );
+  assert.throws(() => validatePointer({ ...pointerFor(), asset: { releaseTag: "observation-db-2026-09", name: assetNameFor(SNAPSHOT) } }), /pointer/i);
+  process.env.GITHUB_ACTIONS = "true";
+  assert.equal(releaseTagFor(SNAPSHOT), "observation-db-test-20260905120000");
+  process.env.OBSERVATION_DB_RELEASE_TAG_OVERRIDE = "observation-db-2026-01";
+  assert.throws(() => releaseTagFor(SNAPSHOT), /override/i);
+  delete process.env.GITHUB_ACTIONS;
+  assert.throws(() => releaseTagFor(SNAPSHOT), /override/i);
 });
 
 test("pointer validation is exact and derived fields are re-checked", { timeout: 60_000 }, t => {

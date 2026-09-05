@@ -23,6 +23,7 @@ const DEFAULT_ALLOWED_HOSTS = ["github.com", "objects.githubusercontent.com", "r
 const SNAPSHOT_RE = /^[0-9]{14}-[a-f0-9]{16}$/;
 const SHA_RE = /^[a-f0-9]{40}$/;
 const HEX64_RE = /^[a-f0-9]{64}$/;
+const TEST_RELEASE_TAG_RE = /^observation-db-test-[0-9]{14}$/;
 const TOKEN_RE = /sk-ant-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|AIza[A-Za-z0-9_-]{30,}/g;
 
 export function scrub(text) { return String(text ?? "").replace(TOKEN_RE, "[redacted]"); }
@@ -41,8 +42,18 @@ function fatalError(message) {
   return error;
 }
 
+// The one override honoured inside Actions, and deliberately so: observation-db-preflight.yml has to
+// prove the Actions token can create a release and upload an asset, which no local PAT run can prove,
+// and it must do that against a release nothing else will ever read. The name pattern is the whole
+// safety property - a value that could name a real monthly release is refused here, not in the
+// workflow - so it is checked on every call rather than once at startup.
 export function releaseTagFor(snapshotId) {
   if (typeof snapshotId !== "string" || !SNAPSHOT_RE.test(snapshotId)) throw new Error("invalid snapshot id");
+  const override = process.env.OBSERVATION_DB_RELEASE_TAG_OVERRIDE;
+  if (override) {
+    if (!TEST_RELEASE_TAG_RE.test(override)) throw fatalError("release tag override must name a throwaway test release");
+    return override;
+  }
   return `observation-db-${snapshotId.slice(0, 4)}-${snapshotId.slice(4, 6)}`;
 }
 export function assetNameFor(snapshotId) {
