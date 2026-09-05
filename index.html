@@ -669,6 +669,8 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
       <button id="exportJsonBtn" type="button" data-i18n="export.json">Download JSON</button>
       <button id="copyViewUrlBtn" type="button" data-i18n="export.copy">Copy current link</button>
     </div>
+    <p class="sidebar-note" data-i18n="export.favoritesHint">Switch to Favorites first to export only the repositories you saved.</p>
+    <button class="clear-filters" id="exportFavoritesBtn" type="button" data-i18n="export.favoritesSwitch">Switch to Favorites and export</button>
     <p class="export-status" id="exportStatus" role="status" aria-live="polite" aria-atomic="true" data-i18n="export.prompt">Choose an export format.</p>
   </section>
 </div>
@@ -1690,6 +1692,14 @@ document.getElementById("exportJsonBtn").addEventListener("click",()=>downloadCu
 document.getElementById("copyViewUrlBtn").addEventListener("click",async()=>{
   try{await CurrentViewExport.copyText(currentExportUrl());setExportStatus(tr("export.linkCopied"),"success")}
   catch{setExportStatus(tr("export.copyFailed"),"error")}
+});
+/* Favorites is already a filter, so "export only what I saved" is setFavoriteView(true) followed by
+   the export buttons the panel already has. Focusing #exportCsvBtn is the scroll: the button lives
+   inside the scrollable panel, so focus brings it into view without a scrollIntoView that would
+   fight the sticky #resultSection. */
+document.getElementById("exportFavoritesBtn").addEventListener("click",()=>{
+  setFavoriteView(true);setExportStatus("");
+  requestAnimationFrame(()=>document.getElementById("exportCsvBtn").focus());
 });
 
 let historyBySlug=null,historyLoadError=false;

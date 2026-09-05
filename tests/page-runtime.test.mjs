@@ -982,7 +982,7 @@ test("sidebar sections follow the approved priority and keyboard order", () => {
   const focusOrder = [
     "loginBtn", "logoutBtn", "allReposBtn", "favOnlyBtn",
     "fieldFilters", "formFilters", "sortSelect", "presetName", "presetSaveBtn", "presetList", "clearFiltersBtn",
-    "restoreAllHiddenBtn", "recentExitsList", "exportCsvBtn", "exportJsonBtn", "copyViewUrlBtn",
+    "restoreAllHiddenBtn", "recentExitsList", "exportCsvBtn", "exportJsonBtn", "copyViewUrlBtn", "exportFavoritesBtn",
   ];
   previous = -1;
   for (const id of focusOrder) {
@@ -1014,6 +1014,15 @@ test("the Explore panel saves, lists, applies and deletes named filter presets",
   assert.match(page, /applyFilterState\(RepoFilters\.parseState\(preset\.query,LANGUAGES\)\);syncUrl\(\);/);
   assert.match(page, /FilterPresets\.remove\(storage,button\.dataset\.deletePreset\)/);
   assert.match(page, /catch\(error\)\{setPresetStatus\(error\.message==="presets cannot exceed 20"\?tr\("preset\.limit"\):error\.message==="preset name is required"\?tr\("preset\.nameRequired"\):tr\("preset\.saveError"\)\)\}/);
+});
+
+test("the Export panel says how to export only saved repositories, and does it", () => {
+  const section = page.match(/<section class="sidebar-section" id="exportSection"[\s\S]*?<\/section>/)?.[0] ?? "";
+  assert.match(section, /<p class="sidebar-note" data-i18n="export\.favoritesHint">Switch to Favorites first to export only the repositories you saved\.<\/p>/);
+  assert.match(section, /<button class="clear-filters" id="exportFavoritesBtn" type="button" data-i18n="export\.favoritesSwitch">Switch to Favorites and export<\/button>/);
+  assert.ok(section.indexOf('id="copyViewUrlBtn"') < section.indexOf('id="exportFavoritesBtn"'), "the switch button follows the three export actions");
+
+  assert.match(page, /document\.getElementById\("exportFavoritesBtn"\)\.addEventListener\("click",\(\)=>\{\s*setFavoriteView\(true\);setExportStatus\(""\);\s*requestAnimationFrame\(\(\)=>document\.getElementById\("exportCsvBtn"\)\.focus\(\)\);\s*\}\);/);
 });
 
 test("refresh copy and calculation follow the approved six-hour schedule", () => {
