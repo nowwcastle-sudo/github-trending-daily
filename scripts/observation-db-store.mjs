@@ -4,7 +4,8 @@
 // (docs/superpowers/specs/2026-09-05-observation-db-release-assets-design.md).
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { chmod, open, unlink } from "node:fs/promises";
+import { chmod, copyFile, mkdtemp, open, readFile, rename, rm, unlink, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -66,7 +67,9 @@ export function parsePointerBytes(bytes) {
 function downloadBaseOverride() {
   const override = process.env.OBSERVATION_DB_DOWNLOAD_BASE_URL;
   if (!override) return null;
-  if (inActions()) throw new Error("download base override is refused inside GitHub Actions");
+  // Fatal: both this and allowedHosts() are read from inside the download retry loop, and a refused
+  // override is a verdict about the configuration, not a transient failure worth 30 s of backoff.
+  if (inActions()) throw fatalError("download base override is refused inside GitHub Actions");
   return override.replace(/\/+$/, "");
 }
 export function downloadBaseUrl() {
@@ -76,7 +79,7 @@ export function downloadUrlFor(pointer) { return `${downloadBaseUrl()}/${pointer
 
 export function allowedHosts() {
   const override = process.env.OBSERVATION_DB_ALLOWED_HOSTS;
-  if (override && inActions()) throw new Error("allowed host override is refused inside GitHub Actions");
+  if (override && inActions()) throw fatalError("allowed host override is refused inside GitHub Actions");
   return new Set(override ? override.split(",").map(v => v.trim()).filter(Boolean) : DEFAULT_ALLOWED_HOSTS);
 }
 export function retryDelays() {
@@ -243,8 +246,91 @@ export async function resolveObservationDatabase({ sourceSha, out = null, expect
   return { mode: "blob", snapshotId: null, sha256: hash(bytes), byteSize: bytes.length };
 }
 
+// Only publish shells out to gh, so it is the only place that needs GH_TOKEN. Every argument is
+// passed as an array element; nothing is ever interpolated into a shell string.
+function gh(args, { deadline }) {
+  const remaining = deadline - Date.now();
+  if (remaining <= 0) throw new Error("observation database publish deadline exceeded");
+  // gh decides whether a release exists and whether an upload happened, so the test-only binary
+  // override is refused inside Actions exactly like the git and download overrides are.
+  const binOverride = process.env.GH_BIN;
+  const scriptOverride = process.env.GH_SCRIPT;
+  if ((binOverride || scriptOverride) && inActions()) throw fatalError("gh binary override is refused inside GitHub Actions");
+  try {
+    return execFileSync(binOverride || "gh", scriptOverride ? [scriptOverride, ...args] : args, {
+      encoding: "utf8", maxBuffer: 16 * 1024 * 1024, timeout: Math.min(600_000, remaining), stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (error) {
+    // gh prints the token it used on some auth failures, so nothing from it reaches a message unscrubbed.
+    const failure = new Error(`gh ${args[0]} ${args[1]} failed: ${scrub(error.stderr ?? error.message).trim().slice(0, 500)}`);
+    failure.status = error.status;
+    failure.stderr = scrub(error.stderr ?? "");
+    throw failure;
+  }
+}
+
+// Idempotent: the release for this month may already exist, and two refreshes can race to create it.
+function ensureRelease(tag, targetSha, { deadline }) {
+  try { gh(["release", "view", tag, "--json", "tagName"], { deadline }); return; }
+  catch (error) { if (error.status !== 1) throw error; }
+  try {
+    gh(["release", "create", tag, "--target", targetSha, "--prerelease", "--latest=false",
+      "--title", `Observation database snapshots ${tag.slice("observation-db-".length)}`,
+      "--notes", "Immutable observation-database snapshots produced by the trending refresh workflow. Each asset is named by its snapshot id and referenced from data/observation-db.pointer.json in the commit that published it."], { deadline });
+  } catch (error) {
+    if (!/already_exists|already exists/i.test(error.stderr ?? "")) throw error;
+  }
+}
+
+export async function publishObservationDatabase({ database, snapshotId, targetSha, latestPath, scanReceiptPath, pointerOut, deadline = Date.now() + RESOLVE_DEADLINE_MS, fetchImpl = fetch }) {
+  if (typeof snapshotId !== "string" || !SNAPSHOT_RE.test(snapshotId)) throw new Error("invalid snapshot id");
+  if (typeof targetSha !== "string" || !SHA_RE.test(targetSha)) throw new Error("invalid target sha");
+  const bytes = await readFile(database);
+  if (bytes.length === 0 || bytes.length > MAX_ASSET_BYTES) throw new Error("observation database size is out of range for a release asset");
+  const sha256 = hash(bytes);
+  // Both cross-checks run before gh is touched: a mismatch here means the wrong file is about to be
+  // published under a name that can never be taken back, so nothing is created at all.
+  const receipt = JSON.parse(await readFile(scanReceiptPath, "utf8"));
+  if (receipt?.ok !== true || receipt.databaseSha256 !== sha256 || receipt.rawByteSize !== bytes.length) throw new Error("scan receipt does not describe the database being published");
+  const latest = JSON.parse(await readFile(latestPath, "utf8"));
+  if (latest?.snapshotId !== snapshotId) throw new Error("latest.json snapshot id does not match the published snapshot");
+  const pointer = validatePointer({
+    version: 1, snapshotId,
+    database: { sha256, byteSize: bytes.length },
+    asset: { releaseTag: releaseTagFor(snapshotId), name: assetNameFor(snapshotId) },
+  });
+  ensureRelease(pointer.asset.releaseTag, targetSha, { deadline });
+  const staging = await mkdtemp(path.join(tmpdir(), "observation-db-publish-"));
+  const confirmed = path.join(staging, "served.sqlite");
+  let uploaded = false;
+  try {
+    // gh names the asset after the file, so the upload is staged under the asset name. No --clobber:
+    // an existing name is a conflict to resolve by comparing bytes, never something to overwrite.
+    const staged = path.join(staging, pointer.asset.name);
+    await copyFile(database, staged);
+    try { gh(["release", "upload", pointer.asset.releaseTag, staged], { deadline }); uploaded = true; }
+    catch (error) { process.stderr.write(`::notice::upload did not complete (${scrub(error.message)}); verifying the served asset instead\n`); }
+    // The only proof that matters: what the anonymous URL actually serves hashes to our bytes.
+    await downloadAsset({ pointer, destination: confirmed, deadline, fetchImpl });
+  } finally {
+    // A verified download lands mode 0444 - read-only on Windows - so it is made writable before the
+    // recursive delete, and cleanup never masks the publish failure that brought us here.
+    await chmod(confirmed, 0o600).catch(() => {});
+    await rm(staging, { recursive: true, force: true, maxRetries: 5 }).catch(() => {});
+  }
+  const temporary = `${pointerOut}.tmp-${process.pid}`;
+  await writeFile(temporary, `${JSON.stringify(pointer, null, 2)}\n`, { flag: "wx" });
+  await rename(temporary, pointerOut);
+  return { pointer, uploaded };
+}
+
 const RESOLVE_FLAGS = Object.freeze({
   "source-sha": "string", out: "string", "expect-snapshot-id": "string", "git-root": "string", check: "boolean",
+});
+
+const PUBLISH_FLAGS = Object.freeze({
+  database: "string", "snapshot-id": "string", "target-sha": "string",
+  latest: "string", "scan-receipt": "string", "pointer-out": "string",
 });
 
 // Fails closed on anything it does not recognise: an unknown flag, a repeated flag, and a
@@ -266,7 +352,25 @@ function parseArgs(argv, spec) {
   return args;
 }
 
-async function publishFromArgs() { throw new Error("publish is not implemented yet"); } // replaced in Task 2
+// publish has no optional flags: every one of them is part of the cross-check, so a missing one is a
+// weaker publish rather than a smaller one.
+function requireFlags(args, spec) {
+  for (const key of Object.keys(spec)) if (!Object.hasOwn(args, key)) throw new Error(`flag --${key} is required`);
+  return args;
+}
+
+async function publishFromArgs(argv, deadline) {
+  const args = requireFlags(parseArgs(argv, PUBLISH_FLAGS), PUBLISH_FLAGS);
+  const result = await publishObservationDatabase({
+    database: args.database, snapshotId: args["snapshot-id"], targetSha: args["target-sha"],
+    latestPath: args.latest, scanReceiptPath: args["scan-receipt"], pointerOut: args["pointer-out"], deadline,
+  });
+  process.stdout.write(`${JSON.stringify({
+    uploaded: result.uploaded, snapshotId: result.pointer.snapshotId,
+    sha256: result.pointer.database.sha256, byteSize: result.pointer.database.byteSize, asset: result.pointer.asset,
+  })}\n`);
+  return 0;
+}
 
 export async function main(argv = process.argv.slice(2)) {
   const command = argv[0];

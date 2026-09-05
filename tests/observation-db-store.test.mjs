@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { chmod, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import http from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -12,7 +12,8 @@ import test from "node:test";
 
 import {
   allowedHosts, assetNameFor, downloadAsset, downloadUrlFor, downloadVerified, parsePointerBytes,
-  releaseTagFor, resolveDeadlineMs, resolveObservationDatabase, retryDelays, scrub, validatePointer,
+  publishObservationDatabase, releaseTagFor, resolveDeadlineMs, resolveObservationDatabase,
+  retryDelays, scrub, validatePointer,
 } from "../scripts/observation-db-store.mjs";
 
 const SNAPSHOT = "20260905024612-0123456789abcdef";
@@ -30,11 +31,13 @@ const pointerFor = (bytes = DB, overrides = {}) => ({
   ...overrides,
 });
 
-// Every variable the module reads. CI always sets GITHUB_ACTIONS=true and the module rightly refuses
-// the dev-only overrides there, so each test clears the whole set in its own setup, installs exactly
-// what it needs, and restores the original values afterwards. No test relies on a sibling's cleanup.
+// Every variable the module reads, plus the three the fake `gh` fixture reads out of its inherited
+// environment. CI always sets GITHUB_ACTIONS=true and the module rightly refuses the dev-only
+// overrides there, so each test clears the whole set in its own setup, installs exactly what it
+// needs, and restores the original values afterwards. No test relies on a sibling's cleanup.
 const MANAGED_ENV = [
-  "GITHUB_ACTIONS", "GIT_BIN", "GIT_SCRIPT",
+  "GITHUB_ACTIONS", "GIT_BIN", "GIT_SCRIPT", "GH_BIN", "GH_SCRIPT",
+  "GH_LOG", "GH_STATE", "GH_SERVED_DIR",
   "OBSERVATION_DB_DOWNLOAD_BASE_URL", "OBSERVATION_DB_ALLOWED_HOSTS",
   "OBSERVATION_DB_RETRY_DELAYS_MS", "OBSERVATION_DB_RESOLVE_DEADLINE_MS",
 ];
@@ -231,6 +234,32 @@ test("dev-only environment overrides are refused inside GitHub Actions", { timeo
   assert.throws(() => resolveDeadlineMs(), /override/i);
 });
 
+// The two refusals raised from inside the download retry loop. A refusal is a configuration verdict,
+// not a flaky network, so it has to surface at once; if it is merely retried the caller waits out the
+// full production backoff (2 s + 8 s + 20 s) before seeing a message that was never going to change.
+test("override refusals inside the retry loop fail immediately instead of sleeping through the retries", { timeout: 60_000 }, async t => {
+  const directory = await scratchDirectory(t, "obs-refusal-");
+  isolateEnv(t, { GITHUB_ACTIONS: "true" });
+  const attempt = async url => {
+    const started = Date.now();
+    await assert.rejects(downloadVerified({
+      url, sha256: sha256(DB), byteSize: DB.length,
+      destination: join(directory, "never.sqlite"), deadline: Date.now() + 60_000,
+    }), /override/i);
+    return Date.now() - started;
+  };
+  // allowedHosts() refuses before any socket is opened.
+  process.env.OBSERVATION_DB_ALLOWED_HOSTS = "127.0.0.1";
+  const hostRefusal = await attempt("https://github.com/a/b/releases/download/t/n.sqlite");
+  assert.ok(hostRefusal < 2000, `the allowed-host refusal must not be retried (took ${hostRefusal} ms)`);
+  // downloadBaseOverride() refuses from the plain-http transport check.
+  delete process.env.OBSERVATION_DB_ALLOWED_HOSTS;
+  process.env.OBSERVATION_DB_DOWNLOAD_BASE_URL = "http://127.0.0.1:1";
+  const baseRefusal = await attempt("http://github.com/a/b/releases/download/t/n.sqlite");
+  assert.ok(baseRefusal < 2000, `the download-base refusal must not be retried (took ${baseRefusal} ms)`);
+  assert.deepEqual(await readdir(directory), []);
+});
+
 async function fakeGit(directory, { pointer = null, blob = null }) {
   const script = join(directory, "fake-git.mjs");
   await writeFile(join(directory, "pointer.json"), pointer ? JSON.stringify(pointer) : "");
@@ -273,7 +302,7 @@ function runStore(args, env) {
 }
 
 // A real hang is bounded by the child's own OBSERVATION_DB_RESOLVE_DEADLINE_MS (TEST_DEADLINE_MS,
-// 20 s) below, not by this timeout, which only backstops a stall in the runner itself. It is the
+// 120 s) below, not by this timeout, which only backstops a stall in the runner itself. It is the
 // most generous in the file because this one test spawns ~28 processes - seven CLI runs, each of
 // which runs fake git three times - and process creation is the slow part on a loaded machine.
 test("resolve: pointer only downloads and verifies; blob only uses git; both or neither fail closed; expect-snapshot-id is enforced", { timeout: 300_000 }, async t => {
@@ -327,9 +356,9 @@ test("resolve: pointer only downloads and verifies; blob only uses git; both or 
   assert.deepEqual(await readFile(withGitRoot.out), DB);
 });
 
-// Seven more CLI spawns; each one fails during argument parsing, before any I/O, so nothing here
+// Nine more CLI spawns; each one fails during argument parsing, before any I/O, so nothing here
 // can hang - the timeout only has to outlast process creation on a loaded machine.
-test("resolve rejects a malformed command line before it touches git", { timeout: 120_000 }, async t => {
+test("the CLI rejects a malformed command line before it touches git or gh", { timeout: 120_000 }, async t => {
   isolateEnv(t);
   const env = childEnv();
   const out = join(tmpdir(), "never-created.sqlite");
@@ -340,6 +369,8 @@ test("resolve rejects a malformed command line before it touches git", { timeout
     { args: ["resolve", "--source-sha", SHA, "--nonsense", "x"], expected: /unknown flag/i },
     { args: ["resolve", "extra", "--source-sha", SHA], expected: /unexpected argument/i },
     { args: ["resolve", "--source-sha", "nope", "--out", out], expected: /source sha/i },
+    { args: ["publish", "--database", out], expected: /is required/i },
+    { args: ["publish", "--nonsense", "x"], expected: /unknown flag/i },
     { args: ["nonsense"], expected: /unknown command/i },
   ];
   for (const { args, expected } of cases) {
@@ -348,4 +379,116 @@ test("resolve rejects a malformed command line before it touches git", { timeout
     assert.match(result.stderr, expected);
   }
   assert.equal(existsSync(out), false);
+});
+
+// A fake `gh` selected by GH_BIN/GH_SCRIPT, exactly as the fake git is selected by GIT_BIN/GIT_SCRIPT.
+// It logs every argument array it is handed, models the two failures publish has to survive - the
+// release already existing and the asset name already being taken - and, on a successful upload,
+// copies the staged file into the directory the local asset server serves from.
+async function fakeGh(directory, { existingRelease, uploadResult, servedBytes = null }) {
+  const script = join(directory, "fake-gh.mjs");
+  const log = join(directory, "gh-calls.log");
+  await writeFile(log, "");
+  await writeFile(script, `import { appendFileSync, copyFileSync } from "node:fs"; import { basename, join } from "node:path";
+const args = process.argv.slice(2); appendFileSync(process.env.GH_LOG, JSON.stringify(args) + "\\n");
+const state = JSON.parse(process.env.GH_STATE);
+if (args[0] === "release" && args[1] === "view") { if (state.existingRelease) { process.stdout.write(JSON.stringify({ tagName: args[2] })); process.exit(0); } process.stderr.write("release not found\\n"); process.exit(1); }
+if (args[0] === "release" && args[1] === "create") { if (state.existingRelease) { process.stderr.write("HTTP 422: Validation Failed (already_exists)\\n"); process.exit(1); } process.exit(0); }
+if (args[0] === "release" && args[1] === "upload") { if (state.uploadResult === "fail") { process.stderr.write("HTTP 422: asset already exists\\n"); process.exit(1); } copyFileSync(args[3], join(process.env.GH_SERVED_DIR, basename(args[3]))); process.exit(0); }
+process.exit(91);`);
+  const served = join(directory, "served");
+  await mkdir(served, { recursive: true });
+  if (servedBytes) await writeFile(join(served, assetNameFor(SNAPSHOT)), servedBytes);
+  return {
+    env: {
+      GH_BIN: process.execPath, GH_SCRIPT: script, GH_LOG: log,
+      GH_STATE: JSON.stringify({ existingRelease, uploadResult }), GH_SERVED_DIR: served,
+    },
+    log, served,
+  };
+}
+
+// The three inputs publish cross-checks against the database file it is handed.
+async function publishFixture(directory, { db = DB, snapshotId = SNAPSHOT } = {}) {
+  const database = join(directory, "candidate.sqlite");
+  const latest = join(directory, "latest.json");
+  const receipt = join(directory, "scan.json");
+  await writeFile(database, db);
+  await writeFile(latest, JSON.stringify({ snapshotId, generatedAt: "2026-09-05T02:46:12.000Z", statsDate: "2026-09-05", count: 0, repos: [] }));
+  await writeFile(receipt, JSON.stringify({ ok: true, databaseSha256: sha256(db), databaseSha256Prefix: sha256(db).slice(0, 12), rawByteSize: db.length }));
+  return { database, latest, receipt };
+}
+
+// This test drives ~6 `gh` child processes plus in-process downloads, so its timeout is sized for
+// process creation like the resolve test's. The fake gh never calls back into the asset server, so
+// the execFileSync inside publish cannot deadlock this event loop; the served asset is confirmed
+// afterwards through in-process fetch, when no synchronous call is outstanding.
+test("publish: creates the monthly release when missing, uploads, confirms by anonymous download, writes the pointer; re-runs and conflicts fail closed", { timeout: 300_000 }, async t => {
+  const directory = await scratchDirectory(t, "obs-publish-");
+  const { database, latest, receipt } = await publishFixture(directory);
+  let gh = await fakeGh(directory, { existingRelease: false, uploadResult: "ok" });
+  const { base, close } = await assetServer((request, response) => {
+    readFile(join(gh.served, request.url.split("/").pop())).then(
+      bytes => { response.writeHead(200); response.end(bytes); },
+      () => { response.writeHead(404); response.end(); });
+  });
+  t.after(close);
+  isolateEnv(t, {
+    ...gh.env,
+    OBSERVATION_DB_DOWNLOAD_BASE_URL: base,
+    OBSERVATION_DB_ALLOWED_HOSTS: "127.0.0.1",
+    OBSERVATION_DB_RETRY_DELAYS_MS: "1",
+  });
+  const pointerOut = join(directory, "pointer.json");
+  const args = () => ({ database, snapshotId: SNAPSHOT, targetSha: SHA, latestPath: latest, scanReceiptPath: receipt, pointerOut, deadline: Date.now() + 60_000 });
+
+  const result = await publishObservationDatabase(args());
+  assert.equal(result.uploaded, true);
+  assert.deepEqual(JSON.parse(await readFile(pointerOut, "utf8")), pointerFor());
+  const calls = (await readFile(gh.log, "utf8")).trim().split("\n").map(line => JSON.parse(line));
+  assert.deepEqual(calls.map(call => call.slice(0, 2)), [["release", "view"], ["release", "create"], ["release", "upload"]]);
+  assert.ok(calls[1].includes("--target") && calls[1].includes(SHA) && calls[1].includes("--prerelease") && calls[1].includes("--latest=false"));
+  assert.equal(calls[2][2], "observation-db-2026-09");
+  assert.ok(calls[2][3].endsWith(assetNameFor(SNAPSHOT)));
+  assert.ok(!calls[2].includes("--clobber"), "an asset name is never overwritten");
+
+  // Idempotent re-run: the release exists, the upload is refused, the served bytes match - success.
+  gh = await fakeGh(directory, { existingRelease: true, uploadResult: "fail", servedBytes: DB });
+  Object.assign(process.env, gh.env);
+  await rm(pointerOut);
+  assert.equal((await publishObservationDatabase(args())).uploaded, false);
+  assert.deepEqual(JSON.parse(await readFile(pointerOut, "utf8")), pointerFor());
+
+  // The name is taken by different bytes - fail closed rather than point at someone else's file.
+  gh = await fakeGh(directory, { existingRelease: true, uploadResult: "fail", servedBytes: Buffer.from("z".repeat(DB.length)) });
+  Object.assign(process.env, gh.env);
+  await rm(pointerOut);
+  await assert.rejects(publishObservationDatabase(args()), /sha256/i);
+  assert.equal(existsSync(pointerOut), false, "a failed publish writes no pointer");
+
+  // A receipt that does not describe this file is refused before gh is invoked at all.
+  await writeFile(receipt, JSON.stringify({ ok: true, databaseSha256: "0".repeat(64), databaseSha256Prefix: "000000000000", rawByteSize: DB.length }));
+  await writeFile(gh.log, "");
+  await assert.rejects(publishObservationDatabase(args()), /receipt/i);
+  assert.equal((await readFile(gh.log, "utf8")).trim(), "", "the receipt check runs before any gh call");
+
+  // latest.json names a different snapshot than the one being published.
+  await writeFile(receipt, JSON.stringify({ ok: true, databaseSha256: sha256(DB), databaseSha256Prefix: sha256(DB).slice(0, 12), rawByteSize: DB.length }));
+  await writeFile(latest, JSON.stringify({ snapshotId: "20260101000000-0000000000000000" }));
+  await assert.rejects(publishObservationDatabase(args()), /latest/i);
+  assert.equal(existsSync(pointerOut), false);
+});
+
+test("the gh binary override is refused inside GitHub Actions", { timeout: 60_000 }, async t => {
+  const directory = await scratchDirectory(t, "obs-ghbin-");
+  const { database, latest, receipt } = await publishFixture(directory);
+  const gh = await fakeGh(directory, { existingRelease: true, uploadResult: "ok" });
+  isolateEnv(t, { ...gh.env, GITHUB_ACTIONS: "true" });
+  await assert.rejects(
+    publishObservationDatabase({
+      database, snapshotId: SNAPSHOT, targetSha: SHA, latestPath: latest, scanReceiptPath: receipt,
+      pointerOut: join(directory, "pointer.json"), deadline: Date.now() + 10_000,
+    }),
+    /gh binary override is refused/i);
+  assert.equal((await readFile(gh.log, "utf8")).trim(), "", "the refusal happens before gh runs");
 });
