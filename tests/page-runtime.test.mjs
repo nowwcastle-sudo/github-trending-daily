@@ -3556,6 +3556,12 @@ test("the audited focus, hover and description gaps are closed in the shipped sh
   // cards land must not move the centred column, and the empty list must already push the footer below
   // the fold so it does not shift out of view when the list fills.
   assert.match(page, /html\{scroll-behavior:smooth;scrollbar-gutter:stable\}/);
+  // The static markup is English; the early pass right after site-i18n.js translates it before the
+  // repository data is parsed, so the first frame is already in the reader's locale (no reflow).
+  const i18nTag = page.indexOf('<script src="site-i18n.js"></script>');
+  const earlyPass = page.indexOf("try{SiteI18n.create({document,storage:localStorage,navigator})}catch{}");
+  const reposScript = page.indexOf("const REPOS = [");
+  assert.ok(i18nTag >= 0 && earlyPass > i18nTag && earlyPass < reposScript, "early i18n pass sits between site-i18n.js and the data script");
   assert.match(page, /\.list:empty\{min-height:100vh\}/);
   // M3: --accent is 4.31:1 on the light --bg, so hover *text* uses --accent-selected (5.58:1)
   // while the border keeps --accent.

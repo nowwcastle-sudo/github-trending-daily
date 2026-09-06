@@ -862,6 +862,14 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 </div>
 <div id="tipLayer" role="dialog" aria-label="Repository summary" data-i18n-aria-label="tooltip.dialog" aria-hidden="true" inert></div>
 <script src="site-i18n.js"></script>
+<script>
+/* Early translation pass: the static markup above is English, and the main script that owns the
+   page i18n runs only after the repository data below has been parsed, which is after first paint.
+   Translating the static text now keeps the first frame in the reader's locale and stops the
+   badge guide and chips from reflowing when the main pass runs. create() is pure (no listeners),
+   so the main script's own instance re-applies the same locale harmlessly. */
+try{SiteI18n.create({document,storage:localStorage,navigator})}catch{}
+</script>
 <script src="readme-markdown.js"></script>
 <script src="favorites.js"></script>
 <script src="hidden-repos.js"></script>
