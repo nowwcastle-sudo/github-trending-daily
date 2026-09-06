@@ -112,7 +112,8 @@ function rememberAccount() {
 }
 
 function forgetAccount() {
-  try { localStorage.removeItem(ACCOUNT_MARKER_KEY); } catch {}
+  // Idempotent: the explicit sign-out and the null auth state that follows it both call this.
+  try { if (localStorage.getItem(ACCOUNT_MARKER_KEY) !== null) localStorage.removeItem(ACCOUNT_MARKER_KEY); } catch {}
 }
 
 let bootstrapGeneration = 0;
@@ -327,7 +328,7 @@ async function bootstrap() {
       onMessage: message => { setSyncStatus(status, auth.currentUser, message, "notice"); },
     });
     stopAuth = onAuthStateChanged(auth, user => {
-      if (user) rememberAccount();
+      if (user) rememberAccount(); else forgetAccount();
       void applyAuthState(user);
     });
     login.addEventListener("click", onLogin);

@@ -378,13 +378,14 @@ body.overlay-open{overflow:hidden}
 /* ── Cards ──────────────────────────── */
 .list-stage{transform:translate3d(0,0,0);transition:transform .3s cubic-bezier(.32,.72,0,1)}
 .list{margin-top:18px}
-.list:empty{min-height:100vh}
+/* Only before the first render: an empty result after a render must show its message in view. */
+.list:empty:not(.rendered){min-height:100vh}
 /* .controls is sticky at top:0 above this list, so a card scrolled into view by sequential
-   focus navigation would land behind it and hide its focus ring. 77px = the sticky row's own
-   height (14px padding twice around the 37px #q input) plus 12px of clearance; hard-coded
+   focus navigation would land behind it and hide its focus ring. 84px = the sticky row's own
+   height (14px padding twice around the 44px #q input) plus 12px of clearance; hard-coded
    because .controls has no height token. */
 .card{
-  position:relative;display:flex;gap:16px;text-decoration:none;color:inherit;scroll-margin-top:77px;
+  position:relative;display:flex;gap:16px;text-decoration:none;color:inherit;scroll-margin-top:84px;
   background:var(--card);
   border:1px solid var(--surface-border);border-radius:16px;padding:18px 20px;margin-bottom:12px;
   box-shadow:var(--shadow-card);
@@ -1325,7 +1326,7 @@ function openShortcutHelp(trigger){
   // closeShortcutHelp() clears pageMain.inert while the README is still on screen.
   const readme=document.getElementById("readmePanel");
   if(readme.classList.contains("open"))closeReadme(false);
-  closeSidebar(false);
+  closeSidebar(false);hideTip(false);
   // The "?" key path always hands over #navHelpToggle, which is display:none wherever the rail
   // is hidden (coarse pointer, <=720px); focus() on it is a silent no-op, so fall back to
   // whatever holds focus now rather than recording an opener that cannot take focus back.
@@ -1725,6 +1726,7 @@ function histHtml(slug){
   return StarHistory.historyHtml(slug,historyBySlug.get(slug),tr);
 }
 function render(){
+  list.classList?.add("rendered");
   const viewPeriod=period;
   const gainOf=r=>UiMotion.periodGain(r,viewPeriod);
   // "All" is the default period, so without this the daily digest opens showing only cumulative
@@ -1867,7 +1869,16 @@ document.getElementById("clearFiltersBtn").addEventListener("click",()=>{
 for(const containerId of ["activeFilterPills","emptyFilterPills"]){
   document.getElementById(containerId).addEventListener("click",event=>{
     const pill=event.target.closest("[data-remove-filter]");
-    if(pill)removeActiveFilter(pill.dataset.removeFilter,pill.dataset.removeId);
+    if(pill){
+      // The rows are rebuilt with innerHTML, so the pill under the pointer or the keyboard is gone
+      // after removal; keep focus on the pill that took its place, else the last one, else the
+      // nearest control in the same block, so a keyboard user is never dropped to <body>.
+      const box=pill.parentElement,index=box?Array.prototype.indexOf.call(box.children,pill):-1;
+      removeActiveFilter(pill.dataset.removeFilter,pill.dataset.removeId);
+      if(!box)return;
+      const next=box.children[Math.min(index,box.children.length-1)]||box.closest?.(".filter-bar,.empty")?.querySelector("button:not([disabled]),input")||document.getElementById("q");
+      next?.focus?.();
+    }
   });
 }
 document.getElementById("hiddenRepoList").addEventListener("click",event=>{
@@ -2360,11 +2371,22 @@ if(hasAccountMarker(localStorage)){
 }else{
   setSyncMessage("account.guest","notice");
   login.disabled=false;
+  /* The SDK chain behind the popup (Firebase, App Check, reCAPTCHA) takes seconds on a slow link,
+     which can outlive the browser's user-activation window and get the popup blocked. Start the
+     load on intent (pointer over or focus) so the click itself has little left to wait for. When
+     the module has already published its own click handler by the time of the click, that
+     handler owns the popup and this one steps aside. */
+  let clientPromise=null,published=false;
+  const loadClient=()=>clientPromise??=import("./firebase-client.js");
+  const prefetch=()=>{loadClient().then(client=>client.ready).then(ready=>{published=ready===true}).catch(()=>{})};
+  login.addEventListener("pointerenter",prefetch,{once:true});
+  login.addEventListener("focus",prefetch,{once:true});
   login.addEventListener("click",async()=>{
+    if(published)return;
     setSyncMessage("account.preparing","notice");
     login.disabled=true;
     try{
-      const client=await import("./firebase-client.js");
+      const client=await loadClient();
       /* ready is false when the bootstrap fell back to guest mode: it has already written its own
          message and hidden the buttons, so there is no popup left to continue into. */
       if(await client.ready&&!login.hidden)await client.signIn();

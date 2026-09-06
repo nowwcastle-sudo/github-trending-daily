@@ -990,7 +990,12 @@ test("an anonymous visitor gets an enabled Sign-in button that imports the clien
   assert.match(guest, /\},\{once:true\}\);/);
   // The click shows the same pending copy the eager path shows, then continues into the popup.
   assert.match(guest, /setSyncMessage\("account\.preparing","notice"\);\s*\r?\n\s*login\.disabled=true;/);
-  assert.match(guest, /const client=await import\("\.\/firebase-client\.js"\);/);
+  assert.match(guest, /const client=await loadClient\(\);/);
+  // Intent prefetch: the SDK chain starts on pointer-over or focus, and a click after the module
+  // has published its own handler steps aside instead of opening a second popup.
+  assert.match(guest, /login\.addEventListener\("pointerenter",prefetch,\{once:true\}\);/);
+  assert.match(guest, /login\.addEventListener\("focus",prefetch,\{once:true\}\);/);
+  assert.match(guest, /if\(published\)return;/);
   assert.match(guest, /if\(await client\.ready&&!login\.hidden\)await client\.signIn\(\);/);
   // A module that never loads falls back exactly the way the eager path does.
   assert.match(guest, /\}catch\{keepGuestMode\(\)\}/);
@@ -3627,7 +3632,7 @@ test("the theme is stamped on <html> before the first paint, not after the block
 test("the audited focus, hover and description gaps are closed in the shipped sheet", () => {
   // M2: .controls is sticky at top:0 above the list, so a card scrolled into view by sequential
   // focus navigation must clear it or its focus ring is hidden.
-  assert.match(page, /\.card\{[^}]*scroll-margin-top:77px/);
+  assert.match(page, /\.card\{[^}]*scroll-margin-top:84px/);
   // First-frame stability (desktop CLS 0.51 measured on 2026-09-07): the scrollbar that appears once the
   // cards land must not move the centred column, and the empty list must already push the footer below
   // the fold so it does not shift out of view when the list fills.
@@ -3641,7 +3646,9 @@ test("the audited focus, hover and description gaps are closed in the shipped sh
   // The body stays hidden until that pass has run, and only when the head script could add the class.
   assert.match(page, /\r?\n\.i18n-pending body\{visibility:hidden\}\r?\n/);
   assert.match(page, /document\.documentElement\.classList\.add\("i18n-pending"\)\}catch\(e0\)\{\}<\/script>/);
-  assert.match(page, /\.list:empty\{min-height:100vh\}/);
+  assert.match(page, /\.list:empty:not\(\.rendered\)\{min-height:100vh\}/);
+  // render() marks the list so an empty result after a render shows its message in view.
+  assert.match(page, /function render\(\)\{\r?\n  list\.classList\?\.add\("rendered"\);/);
   // M3: --accent is 4.31:1 on the light --bg, so hover *text* uses --accent-selected (5.58:1)
   // while the border keeps --accent.
   for (const selector of [".account-btn:hover", ".hidden-restore:hover", ".filter-chip:hover",
