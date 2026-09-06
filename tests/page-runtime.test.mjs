@@ -3799,7 +3799,7 @@ test("the heading drops its since-last-visit suffix while the empty state is sho
 test("rail labels clear the 11px floor without outgrowing their 60px buttons", () => {
   assert.match(page, /\.nav-toggle\{[^}]*font-size:11px;font-weight:650/);
   assert.match(page, /\.nav-help\{[^}]*font-size:11px;font-weight:650/);
-  assert.match(page, /\.nav-rail \.filter-count\{min-width:20px;padding:2px 6px;font-size:11px;line-height:14px;text-align:center\}/);
+  assert.match(page, /\.nav-rail \.filter-count\{min-width:20px;padding:3px 7px;font-size:11px;line-height:14px;text-align:center\}/);
   assert.doesNotMatch(page, /font-size:10px;font-weight:650/);
 });
 
