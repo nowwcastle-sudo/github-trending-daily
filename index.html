@@ -958,7 +958,8 @@ globalThis.pageI18n=siteI18n;
 const siteLocale=document.getElementById("siteLocale");
 siteLocale.addEventListener("change",event=>siteI18n.setLocale(event.currentTarget.value));
 document.addEventListener("site-locale-change",()=>{
-  updateFilterLabels();
+  // The pills carry translated filter labels, so they belong with the panel chips this refreshes.
+  updateFilterLabels();renderActiveFilterPills();
   render();
   if(activeTipIndex!==null&&tipLayer.classList.contains("on")){
     const repo=REPOS[activeTipIndex];tipLayer.innerHTML=tipHTML(repo,resolveSummaryLocale(repo,siteI18n.locale),tipModal);
@@ -1744,6 +1745,7 @@ function render(){
     </article>`;
   }).join("");
   if(typeof renderHist==="function")renderHist();
+  if(typeof refreshTipDescription==="function")refreshTipDescription();
   updateVisitHeading();
 }
 
@@ -2091,6 +2093,18 @@ function setTipDescription(card){
   if(describedCard&&describedCard!==card)describedCard.removeAttribute("aria-describedby");
   describedCard=card||null;
   if(card)card.setAttribute("aria-describedby","tipSummaryBody");
+}
+// render() rebuilds the whole list with innerHTML, and it runs while a summary is open: a locale
+// switch, a background refresh of data/latest.json, a membership load. The card that was
+// describing the open summary — and, on touch, the card focus has to return to — is replaced by a
+// new node carrying neither. Re-point at the replacement instead of leaving the summary
+// unannounced and the focus restore pointing at a node that is no longer in the document.
+function refreshTipDescription(){
+  if(!tipLayer.classList.contains("on")||activeTipIndex===null)return;
+  const card=document.querySelector(`.card[data-idx="${activeTipIndex}"]`);
+  if(!card)return;
+  setTipDescription(card);
+  if(tipModal)tipTrigger=card;
 }
 // Synchronous, like openReadme's rpClose.focus(): the head exists the moment innerHTML is set,
 // and a requestAnimationFrame here would never run while the tab is in the background.

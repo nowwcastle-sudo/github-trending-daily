@@ -3517,7 +3517,7 @@ test("the heading drops its since-last-visit suffix while the empty state is sho
   assert.match(page, /if\(!visitSummary\.previousVisitAt\|\|!currentVisibleRepos\.length\)\{heading\.textContent=tr\("visit\.heading"\);return\}/);
   // Every render path has to refresh it, including the new-repositories gate's early return.
   assert.match(page, /updateHiddenManager\(\);updateVisitHeading\(\);return;/);
-  assert.match(page, /if\(typeof renderHist==="function"\)renderHist\(\);\r?\n  updateVisitHeading\(\);\r?\n\}/);
+  assert.match(page, /if\(typeof renderHist==="function"\)renderHist\(\);\r?\n(?:  if\(typeof refreshTipDescription==="function"\)refreshTipDescription\(\);\r?\n)?  updateVisitHeading\(\);\r?\n\}/);
   const headingFn = page.indexOf("function updateVisitHeading()");
   const renderFn = page.indexOf("function render(){");
   assert.ok(headingFn >= 0 && headingFn < renderFn, "updateVisitHeading is declared before render reads it");
@@ -3905,4 +3905,54 @@ test("the sparkline provenance is stated once in the badge guide, not under ever
   assert.equal([...page.matchAll(/data-i18n="history\.explanation"/g)].length, 1, "stated once, in the guide");
   // The module no longer holds the key at all, so nothing can re-emit it per card.
   assert.doesNotMatch(page, /histnote">\$\{translate\(EXPLANATION_KEY\)/);
+});
+
+test("a re-render under an open summary re-points the description and the focus target", () => {
+  // render() rebuilds the list with innerHTML and runs while a summary is open — a locale switch,
+  // the data/latest.json refresh, the membership load. Measured before this: switching locale with
+  // the phone overlay up left the card with no aria-describedby and tipTrigger on a detached node,
+  // so closing the overlay dropped focus to <body>.
+  const start = page.indexOf("function refreshTipDescription(){");
+  const end = page.indexOf("\nfunction touchLayout()", start);
+  assert.ok(start >= 0 && end > start, "the re-point helper must be isolated");
+
+  const cards = new Map();
+  const calls = { described: [] };
+  const context = {
+    tipLayer: { classList: { contains(value) { return value === "on" && context.__open; } } },
+    document: { querySelector(selector) { return cards.get(selector) ?? null; } },
+    setTipDescription(card) { calls.described.push(card && card.name); },
+    __open: true,
+  };
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(`
+    let activeTipIndex=globalThis.__activeTipIndex, tipModal=globalThis.__tipModal, tipTrigger=null;
+    ${page.slice(start, end)}
+    globalThis.__refresh=refreshTipDescription;
+    globalThis.__trigger=()=>tipTrigger;
+    globalThis.__setIndex=value=>{activeTipIndex=value};
+  `, Object.assign(context, { __activeTipIndex: 3, __tipModal: true }), { filename: "tip-repoint-fixture.js" });
+
+  const replacement = { name: "card-3-after-render" };
+  cards.set('.card[data-idx="3"]', replacement);
+  context.__refresh();
+  assert.deepEqual(calls.described, ["card-3-after-render"]);
+  assert.equal(context.__trigger(), replacement, "focus restore follows the replacement node");
+
+  // A closed layer, no active card, or a card the re-render filtered away: all no-ops.
+  context.__open = false;
+  context.__refresh();
+  assert.equal(calls.described.length, 1);
+  context.__open = true;
+  context.__setIndex(null);
+  context.__refresh();
+  assert.equal(calls.described.length, 1);
+  context.__setIndex(9);
+  context.__refresh();
+  assert.equal(calls.described.length, 1, "a card that is no longer rendered leaves the state alone");
+
+  assert.match(page, /if\(typeof renderHist==="function"\)renderHist\(\);\r?\n\s*if\(typeof refreshTipDescription==="function"\)refreshTipDescription\(\);/);
+  // A locale switch also has to relabel the pills, which carry translated filter names.
+  assert.match(page, /updateFilterLabels\(\);renderActiveFilterPills\(\);/);
 });
