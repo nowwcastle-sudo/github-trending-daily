@@ -784,6 +784,9 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
       <div><dt><span class="badge">HOT</span></dt><dd data-i18n="badges.hot">At least 1,000 stars gained in the selected period</dd></div>
       <div><dt><span class="badge membership-new" data-i18n="badges.newLabel">New</span></dt><dd data-i18n="badges.new">First observed after the baseline</dd></div>
       <div><dt><span class="badge membership-reentered" data-i18n="badges.reenteredLabel">Re-entered</span></dt><dd data-i18n="badges.reentered">Returned after leaving the previous list</dd></div>
+      <!-- This sentence used to be re-stated under every one of the 51 sparklines, identical every
+           time. It belongs with the rest of the notation, once. -->
+      <div><dt><span class="badge">📈</span></dt><dd data-i18n="history.explanation">Total stars observed directly by this site (every 30 minutes) · the dashed line marks anchors back-calculated from GitHub Trending period totals</dd></div>
     </dl>
   </details>
 </aside>
@@ -1620,15 +1623,18 @@ function tipHTML(r,locale=resolveSummaryLocale(r),head=false){
   const heading=`${title}<p class="tsub">${fmt(r.stars)} ★ · ⑂ ${fmt(r.forks)} · 👥 ${fmt(r.contributors||0)} ${tr("repo.contributors")} · ◎ ${fmt(r.issues||0)} ${tr("repo.issues")} · ${esc(r.lang)}</p>`;
   const readme=`<div class="tip-readme-row"><button type="button" class="rdbtn js-readme" data-slug="${r.slug}" data-name="${esc(r.name)}">${tr("readme.view")}</button></div>`;
   const actions=`<p class="thint tip-actions"><button type="button" class="rdbtn js-hide-repo" data-slug="${r.slug}">${tr("tooltip.hide")}</button></p>`;
-  if(r.summary_status==="held")return `${heading}${readme}<p class="tip-unavailable" role="status">${tr("tooltip.held")}</p><p class="thint tip-held-retry">${tr("tooltip.heldRetry")}</p>${actions}`;
-  if(!summaryAvailable(s))return `${heading}${readme}<p class="tip-unavailable" role="status">${tr("tooltip.unavailable")}</p>${actions}`;
-  return `${heading}${readme}
+  // Every branch wraps its body in #tipSummaryBody, whatever that body turned out to be: a
+  // focused card points aria-describedby at this id, and a card whose summary is held or missing
+  // has to announce that rather than nothing.
+  if(r.summary_status==="held")return `${heading}${readme}<div id="tipSummaryBody"><p class="tip-unavailable" role="status">${tr("tooltip.held")}</p><p class="thint tip-held-retry">${tr("tooltip.heldRetry")}</p></div>${actions}`;
+  if(!summaryAvailable(s))return `${heading}${readme}<div id="tipSummaryBody"><p class="tip-unavailable" role="status">${tr("tooltip.unavailable")}</p></div>${actions}`;
+  return `${heading}${readme}<div id="tipSummaryBody">
   <div class="trow"><span class="tlabel">🎯 ${tr("tooltip.goal")}</span><p>${esc(s.goal)}</p></div>
   <div class="trow"><span class="tlabel">🛠 ${tr("tooltip.usage")}</span><p>${esc(s.usage)}</p></div>
   <div class="trow"><span class="tlabel">👍 ${tr("tooltip.pros")}</span><p>${esc(s.pros)}</p></div>
   <div class="trow"><span class="tlabel">👎 ${tr("tooltip.cons")}</span><p>${esc(s.cons)}</p></div>
   <div class="trow"><span class="tlabel">💡 ${tr("tooltip.fit")}</span><p>${esc(s.fit)}</p></div>
-  <p class="tip-ai-note">${tr("tooltip.aiNote")}</p>
+  <p class="tip-ai-note">${tr("tooltip.aiNote")}</p></div>
   ${actions}`;
 }
 
@@ -2076,6 +2082,16 @@ let hideTimer=null,activeTipIndex=null;
 // Touch only: the layer is a real modal there, so it remembers the card that opened it and takes
 // the page out of the tab order the way #readmePanel and .shortcut-help already do.
 let tipModal=false,tipTrigger=null;
+// Focusing a card opens a summary of well over a thousand characters that a screen reader was
+// never told about: the card had no aria-describedby and the page had no live region for it. The
+// description is attached while the layer is open and detached when it closes, so it never points
+// at an inert layer, and only one card carries it at a time.
+let describedCard=null;
+function setTipDescription(card){
+  if(describedCard&&describedCard!==card)describedCard.removeAttribute("aria-describedby");
+  describedCard=card||null;
+  if(card)card.setAttribute("aria-describedby","tipSummaryBody");
+}
 // Synchronous, like openReadme's rpClose.focus(): the head exists the moment innerHTML is set,
 // and a requestAnimationFrame here would never run while the tab is in the background.
 function focusTipHead(){
@@ -2104,6 +2120,7 @@ function showTip(card){
   tipLayer.classList.add("on");
   tipLayer.inert=false;
   tipLayer.setAttribute("aria-hidden","false");
+  setTipDescription(card);
   if(!modal)return;
   // The same contract the other two dialogs sign: scrim, inert page, focus moved in, focus
   // restored to the card on close. The trigger is remembered before the page goes inert.
@@ -2169,6 +2186,7 @@ window.addEventListener("scroll",()=>{
   if(card&&tipLayer.classList.contains("on"))positionTip(card);
 },{passive:true});
 function hideTip(restoreFocus=true){
+  setTipDescription(null);
   tipLayer.classList.remove("on");tipLayer.setAttribute("aria-hidden","true");tipLayer.inert=true;activeTipIndex=null;listStage.style.transform="";
   if(!tipModal)return;
   tipModal=false;

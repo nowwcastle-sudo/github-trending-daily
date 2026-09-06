@@ -41,7 +41,10 @@ test("every rail group, shortcut hint, and held-retry message exists in all five
     "tooltip.close",
     // RED TEAM 1 H4: star-history.js renders every one of these through the site `tr`.
     "history.title", "history.explanation", "history.observedSince",
-    "history.ariaTrend", "history.waiting", "history.singleObservation",
+    "history.waiting", "history.singleObservation",
+    // Batch E2: the value-free "Star trend" label is replaced by a data-bearing one, with two
+    // span forms so no locale prints "1 days".
+    "history.ariaSummary", "history.ariaSpanDay", "history.ariaSpanDays",
     "footer.subscribe", "footer.feedCurrent", "footer.feedChanges",
     "shortcuts.label", "shortcuts.open", "shortcuts.title", "shortcuts.close",
     "shortcuts.search", "shortcuts.explore", "shortcuts.account", "shortcuts.history",

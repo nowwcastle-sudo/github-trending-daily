@@ -22,12 +22,46 @@
   // keeping them here means no locale can drop them. Timestamps stay in UTC — identically labelled
   // in all five locales — so this module needs no Intl and its output stays deterministic.
   const TITLE_KEY = "history.title";
-  const EXPLANATION_KEY = "history.explanation";
   const OBSERVED_SINCE_KEY = "history.observedSince";
-  const ARIA_TREND_KEY = "history.ariaTrend";
+  const ARIA_SUMMARY_KEY = "history.ariaSummary";
+  const SPAN_DAY_KEY = "history.ariaSpanDay";
+  const SPAN_DAYS_KEY = "history.ariaSpanDays";
   const WAITING_KEY = "history.waiting";
   const SINGLE_OBSERVATION_KEY = "history.singleObservation";
+  const DAY_MS = 24 * 60 * 60 * 1000;
   const translator = tr => (typeof tr === "function" ? tr : key => key);
+
+  // The same thresholds index.html's `fmt` uses, so the figure a reader hears matches the figure
+  // printed on the card rather than being a second rounding of the same number.
+  function formatStars(value) {
+    if (value >= 10000) return `${(value / 1000).toFixed(0)}k`;
+    if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
+    return String(value);
+  }
+  function signedStars(value) {
+    return `${value < 0 ? "-" : "+"}${formatStars(Math.abs(value))}`;
+  }
+  // `role="img" aria-label="Star trend"` told a screen-reader user a chart existed and nothing
+  // about what it showed. The label now carries three numbers, all of them already computed for
+  // the geometry: where the line ends, how long it runs and how far it moved.
+  //
+  // The total is the last drawn point, but the span and the gain are measured across the observed
+  // points alone whenever there are two of them. An anchor is back-calculated from a Trending
+  // period total, so a series that opens on one would otherwise report the distance from an
+  // approximation as if it were a rise this site had watched: 34 days and +254k, when what was
+  // actually observed is 3 days and +4.2k. Only a chart with no two observations to measure
+  // falls back to the dashed series it is actually drawing.
+  function trendLabel(points, translate) {
+    const observed = points.filter(point => point.kind === "observed");
+    const measured = observed.length >= 2 ? observed : points;
+    const last = points[points.length - 1];
+    const days = Math.max(1, Math.round((Date.parse(measured[measured.length - 1].at) - Date.parse(measured[0].at)) / DAY_MS));
+    return translate(ARIA_SUMMARY_KEY, {
+      total: formatStars(last.stars),
+      gain: signedStars(measured[measured.length - 1].stars - measured[0].stars),
+      span: days === 1 ? translate(SPAN_DAY_KEY) : translate(SPAN_DAYS_KEY, { days }),
+    });
+  }
 
   function validTime(value) {
     if (typeof value !== "string" || !TIME_RE.test(value)) return false;
@@ -148,7 +182,7 @@
       segment.push(index);
     }
     flush();
-    return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${translate(ARIA_TREND_KEY)}">${parts.join("")}</svg>`;
+    return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${trendLabel(points, translate)}">${parts.join("")}</svg>`;
   }
 
   function observedStartLabel(points, translate) {
@@ -162,10 +196,14 @@
     const observedCount = points.filter(point => point.kind === "observed").length;
     if (points.length === 0 || (observedCount === 0 && points.length < 2)) return `<p class="histnote">📈 ${translate(WAITING_KEY)}</p>`;
     const since = observedStartLabel(points, translate);
-    const base = translate(EXPLANATION_KEY);
-    const explanation = since ? `${base} · ${since}` : base;
-    if (points.length === 1) return `<p class="histnote">📈 ${translate(SINGLE_OBSERVATION_KEY)} · ${explanation}</p>`;
-    return `<p class="histnote">📈 ${translate(TITLE_KEY)}</p>${sparkline(points, 220, 40, tr)}<p class="histnote">${explanation}</p>`;
+    // The 91-character methodology note used to be emitted under all 51 cards — the same sentence
+    // rendered 51 times and announced 51 times. It states itself once now, in the page's badge
+    // guide. What stays per card is only what is unusual about that card's own window: a single
+    // observation, or none at all. Those two notes stay announced, because on those cards no
+    // sparkline is drawn and the note is the only thing that carries the information.
+    if (points.length === 1) return `<p class="histnote">📈 ${translate(SINGLE_OBSERVATION_KEY)}${since ? ` · ${since}` : ""}</p>`;
+    // The caption is hidden from assistive tech because the SVG's own label now opens with it.
+    return `<p class="histnote" aria-hidden="true">📈 ${translate(TITLE_KEY)}</p>${sparkline(points, 220, 40, tr)}`;
   }
 
   async function load(url, fetchImpl) {

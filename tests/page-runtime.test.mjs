@@ -927,9 +927,19 @@ function copyLinkHarness() {
 }
 
 test("the generated page has unique element ids", () => {
-  const ids = [...page.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
+  // tipHTML has three mutually exclusive return branches — summary, held, unavailable — and each
+  // wraps its body in the one id a focused card describes itself by. Counted once, not three
+  // times; anything else that repeats an id is still a duplicate.
+  const tipStart = page.indexOf("function tipHTML(r,");
+  const tipEnd = page.indexOf("\nfunction newOnlyGate(", tipStart);
+  assert.ok(tipStart >= 0 && tipEnd > tipStart);
+  const tipBranches = page.slice(tipStart, tipEnd);
+  assert.equal([...tipBranches.matchAll(/ id="tipSummaryBody"/g)].length, 3, "every branch must carry the id");
+  const scanned = page.slice(0, tipStart) + tipBranches.replace(/ id="tipSummaryBody"/g, "") + page.slice(tipEnd);
+  const ids = [...scanned.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
   const duplicates = [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
   assert.deepEqual(duplicates, []);
+  assert.equal(ids.filter(id => id === "tipSummaryBody").length, 0);
 });
 
 test("the BFCache lifecycle helper loads before the dynamic Firebase client", () => {
@@ -3721,7 +3731,7 @@ function tipDialogHarness({ modal = true } = {}) {
   const body = element("body");
   body.classList.add("overlay-open");
   const documentRef = element("document");
-  const calls = { focused: [], trapped: 0, scrollTop: 0 };
+  const calls = { focused: [], trapped: 0, scrollTop: 0, described: [] };
   const card = { isConnected: true, focus() { calls.focused.push("card"); } };
 
   const context = {
@@ -3731,6 +3741,7 @@ function tipDialogHarness({ modal = true } = {}) {
     panel: element("readmePanel"),
     HTMLElement: Object.getPrototypeOf(card).constructor,
     trapFocus() { calls.trapped += 1; },
+    setTipDescription(value) { calls.described.push(value); },
     scheduleScrollTopUpdate() { calls.scrollTop += 1; },
   };
   context.globalThis = context;
@@ -3827,4 +3838,71 @@ test("the touch summary is a real dialog: head, scrim, inert page, focus trap, E
   assert.match(page, /\/\/ The sidebar takes focus itself[\s\S]*?hideTip\(false\);/);
   assert.match(page, /closeSidebar\(false\);hideTip\(false\);/);
   assert.match(page, /hideTip\(false\);render\(\);showHiddenNotice\(/);
+});
+
+test("a focused card describes itself by the open summary, and stops when it closes", () => {
+  // "The product is silent": focusing a card opened a summary of well over a thousand characters
+  // that no screen reader was ever told about — the card had no aria-describedby and there was no
+  // live region. The description points at the summary body while the layer is open.
+  const start = page.indexOf("let describedCard=null;");
+  const end = page.indexOf("\nfunction touchLayout()", start);
+  assert.ok(start >= 0 && end > start, "the description helper must be isolated");
+
+  const context = {};
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(`${page.slice(start, end)}\nglobalThis.__set=setTipDescription;globalThis.__described=()=>describedCard;`,
+    context, { filename: "tip-description-fixture.js" });
+
+  function fakeCard(name) {
+    return {
+      name,
+      attributes: new Map(),
+      setAttribute(key, value) { this.attributes.set(key, value); },
+      removeAttribute(key) { this.attributes.delete(key); },
+    };
+  }
+  const first = fakeCard("first"), second = fakeCard("second");
+
+  context.__set(first);
+  assert.equal(first.attributes.get("aria-describedby"), "tipSummaryBody");
+  // Only ever one card at a time: hovering along a list must not leave a trail of descriptions
+  // pointing at a summary that is no longer the one on screen.
+  context.__set(second);
+  assert.equal(first.attributes.has("aria-describedby"), false);
+  assert.equal(second.attributes.get("aria-describedby"), "tipSummaryBody");
+  context.__set(second);
+  assert.equal(second.attributes.get("aria-describedby"), "tipSummaryBody", "re-showing the same card is idempotent");
+  // Cleared on close, so it never points into a layer that is inert and aria-hidden.
+  context.__set(null);
+  assert.equal(second.attributes.has("aria-describedby"), false);
+  assert.equal(context.__described(), null);
+
+  // The description is attached on every showTip and dropped by hideTip's first statement, before
+  // the layer goes inert.
+  assert.match(page, /tipLayer\.setAttribute\("aria-hidden","false"\);\r?\n\s*setTipDescription\(card\);/);
+  assert.match(page, /function hideTip\(restoreFocus=true\)\{\r?\n\s*setTipDescription\(null\);/);
+  // The layer is reachable while it is open — the description would resolve to nothing otherwise.
+  assert.match(page, /tipLayer\.inert=false;\r?\n\s*tipLayer\.setAttribute\("aria-hidden","false"\);/);
+
+  // Every tipHTML branch carries the target, including the two that have no summary to give: a
+  // held or missing summary has to announce that rather than announce nothing.
+  const tipStart = page.indexOf("function tipHTML(r,");
+  const tipEnd = page.indexOf("\nfunction newOnlyGate(", tipStart);
+  const tip = page.slice(tipStart, tipEnd);
+  assert.equal([...tip.matchAll(/<div id="tipSummaryBody">/g)].length, 3);
+  for (const branch of ['tr("tooltip.held")', 'tr("tooltip.unavailable")', 'esc(s.goal)']) {
+    const at = tip.indexOf(branch);
+    assert.ok(at > 0, `${branch} must exist`);
+    assert.ok(tip.lastIndexOf('<div id="tipSummaryBody">', at) > 0, `${branch} must sit inside the described body`);
+  }
+});
+
+test("the sparkline provenance is stated once in the badge guide, not under every card", () => {
+  // P2-7: a 91-character methodology sentence rendered under all 51 cards and announced on all 51.
+  const guide = page.match(/<details class="signal-guide-details" id="badgeGuide" open>[\s\S]*?<\/details>/)?.[0] ?? "";
+  assert.match(guide, /<dd data-i18n="history\.explanation">/);
+  assert.equal([...page.matchAll(/data-i18n="history\.explanation"/g)].length, 1, "stated once, in the guide");
+  // The module no longer holds the key at all, so nothing can re-emit it per card.
+  assert.doesNotMatch(page, /histnote">\$\{translate\(EXPLANATION_KEY\)/);
 });

@@ -18,7 +18,8 @@ function loadSiteMessages() {
   return context.globalThis.SiteI18n.MESSAGES;
 }
 const MESSAGES = loadSiteMessages();
-const trFor = locale => key => MESSAGES[locale][key] ?? key;
+const trFor = locale => (key, parameters = {}) => String(MESSAGES[locale][key] ?? key)
+  .replace(/\{([A-Za-z0-9_]+)\}/g, (_, name) => (Object.hasOwn(parameters, name) ? String(parameters[name]) : `{${name}}`));
 const ko = trFor("ko");
 
 const anchor =(at, stars, source = "github_trending_gain_daily") => ({ at, stars, source });
@@ -92,7 +93,11 @@ test("historyHtml distinguishes waiting, one observation, and a trend with dashe
   assert.match(html, /<polyline[^>]*stroke-dasharray/);
   assert.match(html, /<polyline[^>]*class="hist-observed"/);
   assert.match(html, /<circle[^>]*fill="none"/);
-  assert.match(html, /이 사이트가 직접 관측한 총 스타\(30분 간격\) · 점선은 GitHub Trending 기간 집계로 역산한 앵커/);
+  // P2-7: the 91-character methodology sentence was emitted under every card. It is stated once
+  // now, in index.html's badge guide, and no card repeats it.
+  assert.doesNotMatch(html, /이 사이트가 직접 관측한 총 스타/);
+  assert.equal([...html.matchAll(/class="histnote"/g)].length, 1, "one caption, and it is the title");
+  assert.match(html, /<p class="histnote" aria-hidden="true">📈 스타 히스토리<\/p>/);
   assert.doesNotMatch(html, /GH Archive|추정|매일 GitHub에서 직접 관측/);
 });
 
@@ -127,14 +132,18 @@ test("the explanation names the first observation time once observations exist",
       { at: "2026-09-03T12:28:00Z", stars: 305, source: "github_rest" },
     ],
   };
+  // A card with a drawn line keeps no note at all: its numbers are in the SVG's own label.
   const html = StarHistory.historyHtml("owner/repo", entry, ko);
-  assert.match(html, /관측 시작 2026-09-03 11:58 UTC/);
-  assert.equal([...html.matchAll(/관측 시작 2026-09-03/g)].length, 1);
+  assert.doesNotMatch(html, /관측 시작 2026-09-03/);
   assert.match(html, /<svg/);
 
+  // A single observation is the unusual window the note is kept for, and there it stays announced
+  // — no sparkline is drawn on that card, so the note is the only thing carrying the information.
   const single = StarHistory.historyHtml("owner/repo", { slug: "owner/repo", anchors: [], observed: [entry.observed[0]] }, ko);
   assert.match(single, /관측 1회/);
   assert.match(single, /관측 시작 2026-09-03 11:58 UTC/);
+  assert.doesNotMatch(single, /aria-hidden/);
+  assert.doesNotMatch(single, /이 사이트가 직접 관측한 총 스타/);
 
   const anchorsOnly = StarHistory.historyHtml("owner/repo", {
     slug: "owner/repo",
@@ -170,29 +179,73 @@ test("the sparkline hard-codes no copy and renders every locale, with one shared
   for (const locale of ["en", "ko", "zh-CN", "es", "ja"]) {
     const tr = trFor(locale);
     const html = StarHistory.historyHtml("owner/repo", entry, tr);
-    assert.ok(html.includes(`<p class="histnote">📈 ${tr("history.title")}</p>`), `${locale} title`);
-    assert.ok(html.includes(`aria-label="${tr("history.ariaTrend")}"`), `${locale} svg aria-label`);
-    assert.ok(html.includes(tr("history.explanation")), `${locale} explanation`);
-    // The timestamp stays UTC and is labelled identically everywhere, so the module needs no Intl.
-    assert.ok(html.includes(`${tr("history.observedSince")} 2026-09-03 11:58 UTC`), `${locale} observed-since`);
+    assert.ok(html.includes(`<p class="histnote" aria-hidden="true">📈 ${tr("history.title")}</p>`), `${locale} title`);
+    // The label is data now, not a category name: 300 -> 305 across one calendar day.
+    assert.ok(html.includes(`aria-label="${tr("history.ariaSummary", { total: "305", gain: "+5", span: tr("history.ariaSpanDay") })}"`), `${locale} svg aria-label`);
     assert.ok(StarHistory.historyHtml("owner/repo", empty, tr).includes(tr("history.waiting")), `${locale} waiting`);
-    assert.ok(StarHistory.historyHtml("owner/repo", single, tr).includes(tr("history.singleObservation")), `${locale} single`);
+    const singleHtml = StarHistory.historyHtml("owner/repo", single, tr);
+    assert.ok(singleHtml.includes(tr("history.singleObservation")), `${locale} single`);
+    // The timestamp stays UTC and is labelled identically everywhere, so the module needs no Intl.
+    assert.ok(singleHtml.includes(`${tr("history.observedSince")} 2026-09-03 11:58 UTC`), `${locale} observed-since`);
     if (locale !== "ko") {
       assert.doesNotMatch(html, /[가-힣]/, `${locale} must render no Korean`);
       assert.notEqual(html, StarHistory.historyHtml("owner/repo", entry, ko), `${locale} must differ from ko`);
     }
-    assert.doesNotMatch(html, /history\.(title|explanation|observedSince|ariaTrend|waiting|singleObservation)/, `${locale} must resolve every key`);
+    assert.doesNotMatch(html, /history\.(title|explanation|observedSince|aria[A-Za-z]*|waiting|singleObservation)|\{(total|gain|span|days)\}/, `${locale} must resolve every key`);
   }
 
-  // ko is the reference locale: byte-identical to the strings that used to be hard-coded here.
+  // ko is the reference locale, and this is the whole of what a card with a drawn line emits.
   assert.equal(
     StarHistory.historyHtml("owner/repo", entry, ko),
-    '<p class="histnote">📈 스타 히스토리</p>'
-      + StarHistory.sparkline(StarHistory.displayPoints(entry), 220, 40, ko)
-      + '<p class="histnote">이 사이트가 직접 관측한 총 스타(30분 간격) · 점선은 GitHub Trending 기간 집계로 역산한 앵커 · 관측 시작 2026-09-03 11:58 UTC</p>',
+    '<p class="histnote" aria-hidden="true">📈 스타 히스토리</p>'
+      + StarHistory.sparkline(StarHistory.displayPoints(entry), 220, 40, ko),
   );
   assert.equal(StarHistory.historyHtml("owner/repo", empty, ko), '<p class="histnote">📈 관측 시작 대기</p>');
-  assert.match(StarHistory.sparkline(StarHistory.displayPoints(entry), 220, 40, ko), /aria-label="스타 추이"/);
+  assert.match(StarHistory.sparkline(StarHistory.displayPoints(entry), 220, 40, ko), /aria-label="스타 추이 — 총 스타 305, 1일간 \+5"/);
+});
+
+test("the sparkline label reports the observed window, not the distance from a back-calculated anchor", () => {
+  const en = trFor("en");
+  // A monthly anchor at 100 stars is a back-calculation from a Trending period total. Measuring
+  // the gain from it would announce "+254k over 34 days" for a repository this site has watched
+  // for three days: the total is the last drawn point, but the movement is the observed movement.
+  const anchored = {
+    slug: "owner/repo",
+    anchors: [{ at: "2026-08-04T00:00:00Z", stars: 100, source: "github_trending_gain_monthly" }],
+    observed: [
+      { at: "2026-09-03T11:58:00Z", stars: 250300, source: "github_rest" },
+      { at: "2026-09-06T12:28:00Z", stars: 254500, source: "github_rest" },
+    ],
+  };
+  const label = html => html.match(/aria-label="([^"]+)"/)?.[1] ?? "";
+  assert.equal(label(StarHistory.historyHtml("owner/repo", anchored, en)), "Star trend — 255k total stars, +4.2k over 3 days");
+  // Same thresholds as index.html's fmt, so the figure heard matches the figure printed.
+  assert.match(label(StarHistory.historyHtml("owner/repo", {
+    slug: "owner/repo",
+    anchors: [],
+    observed: [
+      { at: "2026-09-05T00:00:00Z", stars: 900, source: "github_rest" },
+      { at: "2026-09-06T00:00:00Z", stars: 2400, source: "github_rest" },
+    ],
+  }, en)), /2\.4k total stars, \+1\.5k over 1 day/);
+  // A line that only ever falls reports a signed loss rather than an unsigned number.
+  assert.match(label(StarHistory.historyHtml("owner/repo", {
+    slug: "owner/repo",
+    anchors: [],
+    observed: [
+      { at: "2026-09-05T00:00:00Z", stars: 400, source: "github_rest" },
+      { at: "2026-09-07T00:00:00Z", stars: 380, source: "github_rest" },
+    ],
+  }, en)), /380 total stars, -20 over 2 days/);
+  // Only a chart with no two observations to measure falls back to the dashed series it draws.
+  assert.equal(label(StarHistory.historyHtml("owner/repo", {
+    slug: "owner/repo",
+    anchors: [
+      { at: "2026-08-04T00:00:00Z", stars: 100, source: "github_trending_gain_monthly" },
+      { at: "2026-08-27T00:00:00Z", stars: 200, source: "github_trending_gain_weekly" },
+    ],
+    observed: [],
+  }, en)), "Star trend — 200 total stars, +100 over 23 days");
 });
 
 test("load fetches once and returns a normalized map", async () => {
