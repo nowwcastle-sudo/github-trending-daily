@@ -3293,7 +3293,9 @@ test("the History group states its empty conditions instead of rendering dead co
 });
 
 test("Korean rail labels and the subtitle break between words, not inside them", () => {
-  assert.match(page, /\.nav-label\{line-height:1\}/);
+  // 11px labels: ja "エクスポート" and es "Iniciar sesión" wrap inside the 52px content box, so the
+  // line box gets a hair more leading than the 10px single-line assumption allowed.
+  assert.match(page, /\.nav-label\{line-height:1\.1\}/);
   assert.match(page, /html:lang\(ko\) \.nav-label\{word-break:keep-all;overflow-wrap:normal\}/);
   assert.match(page, /html:lang\(ko\) \.sub\{word-break:keep-all;overflow-wrap:normal\}/);
   // Globally, keep-all left the Japanese subtitle (one unbroken katakana run) with no break
@@ -3454,4 +3456,31 @@ test("the heading drops its since-last-visit suffix while the empty state is sho
   const headingFn = page.indexOf("function updateVisitHeading()");
   const renderFn = page.indexOf("function render(){");
   assert.ok(headingFn >= 0 && headingFn < renderFn, "updateVisitHeading is declared before render reads it");
+});
+
+test("rail labels clear the 11px floor without outgrowing their 60px buttons", () => {
+  assert.match(page, /\.nav-toggle\{[^}]*font-size:11px;font-weight:650/);
+  assert.match(page, /\.nav-help\{[^}]*font-size:11px;font-weight:650/);
+  assert.match(page, /\.nav-rail \.filter-count\{min-width:20px;padding:2px 6px;font-size:11px;line-height:14px;text-align:center\}/);
+  assert.doesNotMatch(page, /font-size:10px;font-weight:650/);
+});
+
+test("placeholders, the search field and the README head button clear their contrast and size floors", () => {
+  // WCAG 2.2 SC 1.4.3. Unstyled, both fields inherited the UA rgb(117,117,117): 3.20:1 on the dark
+  // page ground and 4.23:1 on the light one. --text-2 measures 5.71:1 / 4.95:1 in the live page.
+  assert.match(page, /\.search::placeholder\{color:var\(--text-2\);opacity:1\}/);
+  assert.equal([...page.matchAll(/\splaceholder="/g)].length, 2, "only the two .search inputs carry placeholders");
+
+  // The 44px floor this codebase sets for itself: the base rule carries it, so the preset variant
+  // no longer needs its own copy and #q stops being the one field that missed.
+  assert.match(page, /\.search\{[\s\S]{0,400}?min-height:44px/);
+  assert.match(page, /\.search\.preset-name\{padding-left:12px;background-image:none\}/);
+  assert.match(page, /#readmePanel \.rp-head \.rdbtn\{display:inline-flex;align-items:center;min-height:44px\}/);
+});
+
+test("the segmented control and the panel filter chips draw the authored focus ring", () => {
+  // Both families fell back to the UA outline (measured `auto 1px` in Chrome) while every other
+  // control in the first ten tab stops drew the 3px accent ring.
+  assert.match(page, /\.seg button:focus-visible\{position:relative;z-index:1;outline:3px solid var\(--accent\);outline-offset:2px\}/);
+  assert.match(page, /\.filter-chip:focus-visible\{outline:3px solid var\(--accent\);outline-offset:2px\}/);
 });
