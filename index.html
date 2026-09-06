@@ -45,7 +45,7 @@ try{var t0=localStorage.getItem("gh-theme");if(t0!=="dark"&&t0!=="light")t0=matc
   --sidebar-open-duration:260ms;--sidebar-close-duration:210ms;--tooltip-duration:160ms;
   --bg:#f5f5f7; --bg-elev:rgba(255,255,255,.72); --card:rgba(255,255,255,.85);
   --text:#1d1d1f; --text-2:#6e6e73; --text-3:#6e6e73;
-  --border:rgba(0,0,0,.08); --hairline:rgba(0,0,0,.06);
+  --border:rgba(0,0,0,.44); --hairline:rgba(0,0,0,.06);
   --surface-border:rgba(0,0,0,.14); --surface-border-strong:rgba(0,0,0,.24);
   --accent:#0071e3; --accent-selected:#005fc7; --accent-soft:rgba(0,113,227,.10);
   --hot:#a83200; --hot-soft:rgba(168,50,0,.12);
@@ -59,8 +59,8 @@ html[data-theme="dark"]{
   /* gruvbox dark palette */
   --bg:#282828; --bg-elev:rgba(60,56,54,.72); --card:rgba(50,48,47,.85);
   --text:#fbf1c7; --text-2:#bdae93; --text-3:#a89984;
-  --border:rgba(235,219,178,.16); --hairline:rgba(235,219,178,.10);
-  --surface-border:var(--hairline); --surface-border-strong:var(--border);
+  --border:rgba(235,219,178,.44); --hairline:rgba(235,219,178,.10);
+  --surface-border:var(--hairline); --surface-border-strong:rgba(235,219,178,.16);
   --accent:#83a598; --accent-selected:#a7c7bd; --accent-soft:rgba(131,165,152,.18);
   --hot:#ff9e3d; --hot-soft:rgba(254,128,25,.15);
   --seg-bg:rgba(60,56,54,.6); --seg-thumb:#504945; --seg-text:#fbf1c7;
@@ -1476,7 +1476,7 @@ function resolveSummaryLocale(r,preferred=siteI18n.locale){
 }
 function tipHTML(r,locale=resolveSummaryLocale(r)){
   const bundle=summaryBundle(r),s=locale?bundle[locale]:null;
-  const heading=`<h2>${esc(r.name)}</h2><p class="tsub">${fmt(r.stars)} ★ · ⑂ ${fmt(r.forks)} · 👥 ${fmt(r.contributors||0)} ${tr("repo.contributors")} · ◎ ${fmt(r.issues||0)} ${tr("repo.issues")} · ${esc(r.lang)}</p>`;
+  const heading=`<h2 lang="en">${esc(r.name)}</h2><p class="tsub">${fmt(r.stars)} ★ · ⑂ ${fmt(r.forks)} · 👥 ${fmt(r.contributors||0)} ${tr("repo.contributors")} · ◎ ${fmt(r.issues||0)} ${tr("repo.issues")} · ${esc(r.lang)}</p>`;
   const readme=`<div class="tip-readme-row"><button type="button" class="rdbtn js-readme" data-slug="${r.slug}" data-name="${esc(r.name)}">${tr("readme.view")}</button></div>`;
   const actions=`<p class="thint tip-actions"><button type="button" class="rdbtn js-hide-repo" data-slug="${r.slug}">${tr("tooltip.hide")}</button></p>`;
   if(r.summary_status==="held")return `${heading}${readme}<p class="tip-unavailable" role="status">${tr("tooltip.held")}</p><p class="thint tip-held-retry">${tr("tooltip.heldRetry")}</p>${actions}`;
@@ -1572,7 +1572,7 @@ function render(){
       <button type="button" class="favbtn${faved?" on":""}" data-slug="${r.slug}" title="${tr("repo.favorite")}" aria-label="${esc(tr(faved?"repo.favoriteRemove":"repo.favoriteAdd",{name:r.name}))}" aria-pressed="${faved}"${favoriteBusy?" disabled":""}>${faved?"★":"☆"}</button>
       <div class="rank">${i+1}</div>
       <div class="cbody">
-        <div class="cname"><a class="repo-link" href="https://github.com/${r.slug}" target="_blank" rel="noopener">${esc(r.name)}</a>${membershipBadge}${visitBadge}${badges.streakDays?`<span class="badge" title="${tr("badges.streak")}">🔥 ${badges.streakDays}</span>`:""}${badges.starsChange!==null?`<span class="rankchg" title="${tr("badges.change")}">${badges.starsChange>0?"↑":"↓"}${fmt(Math.abs(badges.starsChange))}</span>`:""}${badges.hot?`<span class="badge" title="${tr("badges.hot")}">HOT</span>`:""}</div>
+        <div class="cname"><a class="repo-link" lang="en" href="https://github.com/${r.slug}" target="_blank" rel="noopener">${esc(r.name)}</a>${membershipBadge}${visitBadge}${badges.streakDays?`<span class="badge" title="${tr("badges.streak")}">🔥 ${badges.streakDays}</span>`:""}${badges.starsChange!==null?`<span class="rankchg" title="${tr("badges.change")}">${badges.starsChange>0?"↑":"↓"}${fmt(Math.abs(badges.starsChange))}</span>`:""}${badges.hot?`<span class="badge" title="${tr("badges.hot")}">HOT</span>`:""}</div>
         <div class="category-badges">${classificationBadges(r)}</div>
         <p class="cdesc">${esc(r.desc)}</p>
         <div class="cmeta">
@@ -1833,6 +1833,7 @@ function selectedReadmeVariant(metadata,preferred=siteI18n.locale){return metada
 function readmeGithubUrl(state,variant){return `https://github.com/${state.slug}/blob/${state.metadata.defaultBranchHeadSha}/${encodeReadmePath(variant.path)}`}
 async function showReadmeVariant(id,{focus=false}={}){
   const state=currentReadme,variant=state?.metadata.variants.find(value=>value.id===id);if(!state||!variant)return;
+  readmeBody.lang=variant.locale||"en";
   state.currentId=id;renderReadmeVariantTabs(state);document.getElementById("rpOpenGithub").onclick=()=>window.open(readmeGithubUrl(state,variant),"_blank","noopener");
   if(focus)readmeVariantTabs.querySelector(`[data-readme-variant="${id}"]`)?.focus();
   if(state.cache.has(id)){setReadmeBody(state.cache.get(id));return}
@@ -1857,7 +1858,7 @@ async function openReadme(slug,name){
   // over pageMain.inert, or closing it later un-inerts the page behind an open README.
   if(shortcutHelp.classList.contains("open"))closeShortcutHelp(false);
   closeSidebar(false);hideTip();
-  document.getElementById("rpTitle").textContent=name;
+  document.getElementById("rpTitle").textContent=name;readmeBody.lang="";
   setReadmeBody(tr("readme.loading"),true);panel.inert=false;panel.classList.add("open");panel.setAttribute("aria-hidden","false");scrim.classList.add("on");
   pageMain.classList.add("reading");pageMain.inert=true;document.body.classList.add("overlay-open");document.getElementById("rpClose").focus();
   if(typeof hideScrollTopImmediately==="function")hideScrollTopImmediately();

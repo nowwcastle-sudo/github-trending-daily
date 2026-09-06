@@ -1114,6 +1114,9 @@ test("README runtime refuses a mismatched immutable Contents response without us
   assert.equal(requested.some(url => url.includes("HEAD/README.md")), false);
   assert.deepEqual(rendered, []);
   assert.match(getNode("readmeBody").innerHTML, /README is unavailable\./);
+  // WCAG 3.1.2: the canonical README of a repository with no declared locale reads as English,
+  // whatever <html lang> the site locale has set.
+  assert.equal(getNode("readmeBody").lang, "en");
 });
 
 test("landmarks, form controls, and hidden panels retain accessible boundaries", () => {
@@ -2579,6 +2582,62 @@ test("data/latest.json rides the server cache instead of no-store", () => {
   assert.doesNotMatch(page, /data\/latest\.json",\s*\{cache:"no-store"\}/);
 });
 
+test("repository names declare English inside the four non-English site locales", () => {
+  const { html } = cardRenderHarness("daily");
+  assert.match(html, /<a class="repo-link" lang="en" href="https:\/\/github\.com\/owner\/project"/);
+  assert.match(page, /const heading=`<h2 lang="en">\$\{esc\(r\.name\)\}<\/h2>/);
+});
+
+test("the README panel declares the language of the variant it shows", () => {
+  assert.match(page, /readmeBody\.lang=variant\.locale\|\|"en";/);
+  assert.match(page, /document\.getElementById\("rpTitle"\)\.textContent=name;readmeBody\.lang="";/);
+  const showVariant = page.slice(page.indexOf("async function showReadmeVariant("), page.indexOf("async function openReadme("));
+  assert.ok(showVariant.indexOf('readmeBody.lang=variant.locale||"en";') < showVariant.indexOf("setReadmeBody("),
+    "the language is declared before any body is written");
+});
+
+test("idle control borders clear 3:1 against the page background in both themes", () => {
+  const block = (selector, source) => {
+    const match = source.match(selector);
+    assert.ok(match, `${selector} must be readable`);
+    return match[0];
+  };
+  const token = (source, name) => {
+    const match = source.match(new RegExp(`--${name}:([^;]+);`));
+    assert.ok(match, `--${name} must be declared`);
+    return match[1].trim();
+  };
+  const hex = value => [1, 3, 5].map(index => parseInt(value.slice(index, index + 2), 16));
+  const rgba = value => {
+    const match = value.match(/rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/);
+    assert.ok(match, `${value} must be an rgba() colour`);
+    return { rgb: [Number(match[1]), Number(match[2]), Number(match[3])], alpha: Number(match[4]) };
+  };
+  const channel = value => {
+    const ratio = value / 255;
+    return ratio <= 0.03928 ? ratio / 12.92 : ((ratio + 0.055) / 1.055) ** 2.4;
+  };
+  const luminance = ([r, g, b]) => 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+  const contrast = (a, b) => {
+    const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+    return (high + 0.05) / (low + 0.05);
+  };
+  const flatten = ({ rgb, alpha }, background) => rgb.map((value, index) => value * alpha + background[index] * (1 - alpha));
+
+  const light = block(/<style>:root\{[\s\S]*?\n\}/, page);
+  const dark = block(/html\[data-theme="dark"\]\{[\s\S]*?\n\}/, page);
+  const lightBackground = hex(token(light, "bg"));
+  const darkBackground = hex(token(dark, "bg"));
+  const lightBorder = contrast(flatten(rgba(token(light, "border")), lightBackground), lightBackground);
+  const darkBorder = contrast(flatten(rgba(token(dark, "border")), darkBackground), darkBackground);
+
+  assert.ok(lightBorder >= 3, `light --border is ${lightBorder.toFixed(2)}:1 against --bg, needs 3:1`);
+  assert.ok(darkBorder >= 3, `dark --border is ${darkBorder.toFixed(2)}:1 against --bg, needs 3:1`);
+  // The card hover and focus outline is not a control boundary, so it kept the value it aliased
+  // before --border was raised.
+  assert.match(dark, /--surface-border-strong:rgba\(235,219,178,\.16\);/);
+});
+
 test("baseline new and reentered membership render only their exact card badges", () => {
   const baselineHtml = cardRenderHarness("daily", "baseline").html;
   const newHtml = cardRenderHarness("daily", "new").html;
@@ -2644,7 +2703,7 @@ test("selected discovery controls use an accessible semantic accent text token",
 test("light surfaces use semantic borders while dark and interaction states stay explicit", () => {
   assert.match(page, /--surface-border:rgba\(0,0,0,\.14\)/);
   assert.match(page, /--surface-border-strong:rgba\(0,0,0,\.24\)/);
-  assert.match(page, /html\[data-theme="dark"\]\{[\s\S]*?--surface-border:var\(--hairline\); --surface-border-strong:var\(--border\)/);
+  assert.match(page, /html\[data-theme="dark"\]\{[\s\S]*?--surface-border:var\(--hairline\); --surface-border-strong:rgba\(235,219,178,\.16\)/);
   const title = page.match(/\.title-box\{[^}]*\}/)?.[0] ?? "";
   assert.match(title, /background:var\(--bg\)/);
   assert.match(title, /border:none/);
