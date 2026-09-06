@@ -879,9 +879,72 @@ test("the generated page has unique element ids", () => {
 
 test("the BFCache lifecycle helper loads before the dynamic Firebase client", () => {
   const lifecycle = page.indexOf('<script src="auth-lifecycle.js"></script>');
-  const firebase = page.indexOf('import("./firebase-client.js").catch');
+  const firebase = page.indexOf('import("./firebase-client.js")');
   assert.ok(lifecycle >= 0, "auth lifecycle helper must be loaded by the page");
   assert.ok(firebase >= 0 && lifecycle < firebase, "auth lifecycle helper must load before dynamic Firebase import");
+  assert.match(page, /import\("\.\/firebase-client\.js"\)\.catch\(keepGuestMode\)/);
+});
+
+test("the Firebase client is imported eagerly only for a browser that has signed in before", async () => {
+  const client = await readFile(new URL("../firebase-client.js", import.meta.url), "utf8");
+  const boot = page.slice(page.indexOf('<script type="module">'));
+
+  // One key, two files: the page reads the marker, firebase-client.js writes and clears it.
+  assert.match(boot, /const ACCOUNT_MARKER_KEY="gi\.account\.known";/);
+  assert.match(client, /const ACCOUNT_MARKER_KEY = "gi\.account\.known";/);
+  assert.match(client, /localStorage\.setItem\(ACCOUNT_MARKER_KEY, "1"\)/);
+  assert.match(client, /localStorage\.removeItem\(ACCOUNT_MARKER_KEY\)/);
+  assert.match(client, /onAuthStateChanged\(auth, user => \{\s*\r?\n\s*if \(user\) rememberAccount\(\);/);
+  assert.match(client, /await signOut\(auth\);\s*\r?\n\s*forgetAccount\(\);/);
+  assert.match(client, /bundle\.disposed\) return;\s*\r?\n\s*forgetAccount\(\);/);
+
+  // The marker decides between an eager import and a deferred one; nothing may import before it.
+  const gate = boot.indexOf("if(hasAccountMarker(localStorage)){");
+  const eager = boot.indexOf('import("./firebase-client.js").catch(keepGuestMode)');
+  assert.ok(gate >= 0 && eager > gate, "the marker must be read before the eager import");
+  assert.equal(boot.slice(0, gate).includes('import("./firebase-client.js")'), false,
+    "no import may run before the marker check");
+});
+
+test("an anonymous visitor gets an enabled Sign-in button that imports the client once", () => {
+  const boot = page.slice(page.indexOf('<script type="module">'));
+  const guest = boot.slice(boot.indexOf("}else{"));
+
+  assert.match(guest, /setSyncMessage\("account\.guest","notice"\)/);
+  assert.match(guest, /login\.disabled=false;/);
+  assert.match(guest, /login\.addEventListener\("click",async\(\)=>\{/);
+  assert.match(guest, /\},\{once:true\}\);/);
+  // The click shows the same pending copy the eager path shows, then continues into the popup.
+  assert.match(guest, /setSyncMessage\("account\.preparing","notice"\);\s*\r?\n\s*login\.disabled=true;/);
+  assert.match(guest, /const client=await import\("\.\/firebase-client\.js"\);/);
+  assert.match(guest, /if\(await client\.ready&&!login\.hidden\)await client\.signIn\(\);/);
+  // A module that never loads falls back exactly the way the eager path does.
+  assert.match(guest, /\}catch\{keepGuestMode\(\)\}/);
+  assert.match(boot, /function keepGuestMode\(\)\{[\s\S]*?login\.hidden=true;\s*\r?\n\s*logout\.hidden=true;/);
+
+  // account.guest exists in every locale, so the status never sits on a false "preparing" state.
+  for (const locale of Object.keys(siteMessages)) {
+    assert.equal(typeof siteMessages[locale]["account.guest"], "string");
+    assert.ok(siteMessages[locale]["account.guest"].length > 0, `${locale} needs a guest sync message`);
+  }
+});
+
+test("the account marker reader survives a storage that is empty, stale or throwing", () => {
+  const start = page.indexOf('const ACCOUNT_MARKER_KEY="gi.account.known";');
+  const end = page.indexOf('const status=document.getElementById("syncStatus");', start);
+  assert.ok(start >= 0 && end > start, "the marker reader must be isolated in the bootstrap script");
+  const context = {};
+  vm.createContext(context);
+  vm.runInContext(`${page.slice(start, end)}globalThis.hasAccountMarker=hasAccountMarker;`,
+    context, { filename: "account-marker-fixture.js" });
+  const { hasAccountMarker } = context;
+
+  assert.equal(hasAccountMarker({ getItem: () => "1" }), true);
+  assert.equal(hasAccountMarker({ getItem: () => null }), false);
+  assert.equal(hasAccountMarker({ getItem: () => "0" }), false, "only the written value counts");
+  assert.equal(hasAccountMarker({ getItem: () => true }), false, "a non-string value is not the marker");
+  assert.equal(hasAccountMarker({ getItem() { throw new Error("blocked"); } }), false,
+    "blocked site data must not break the page bootstrap");
 });
 
 test("repository signals are initialized before rendering and refreshed from the feed", () => {

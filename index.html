@@ -2050,11 +2050,33 @@ function updateRefreshStatus(nextLastValue){
 })();
 </script>
 <script type="module">
-import("./firebase-client.js").catch(()=>{
-  const status=document.getElementById("syncStatus");
-  const login=document.getElementById("loginBtn");
-  const logout=document.getElementById("logoutBtn");
+/* Anonymous visitors do not pay for Firebase. The client pulls reCAPTCHA Enterprise (848 KB
+   decoded, larger than this page) and gapi on every load, and their third-party cookies are the
+   whole of this page's Lighthouse best-practices gap. Guest favourites already work from
+   localStorage, so the module is imported eagerly only for a browser that has signed in before,
+   and otherwise on the first Sign-in click. The marker is written by firebase-client.js. */
+const ACCOUNT_MARKER_KEY="gi.account.known";
+function hasAccountMarker(storage){
+  try{return storage.getItem(ACCOUNT_MARKER_KEY)==="1"}catch{return false}
+}
+const status=document.getElementById("syncStatus");
+const login=document.getElementById("loginBtn");
+const logout=document.getElementById("logoutBtn");
+/* data-i18n moves with the message so a later locale switch re-translates the state the visitor
+   is actually in, instead of restoring the static "Preparing sign-in." copy. */
+function setSyncMessage(key,tone){
+  const message=globalThis.pageI18n.t(key);
+  status.dataset.i18n=key;
+  status.dataset.i18nTitle=key;
+  status.textContent=message;
+  status.title=message;
+  status.setAttribute("aria-label",globalThis.pageI18n.t("account.syncLabel",{message}));
+  status.dataset.tone=tone;
+}
+function keepGuestMode(){
   const message=globalThis.pageI18n.t("account.unavailable");
+  status.dataset.i18n="account.unavailable";
+  status.dataset.i18nTitle="account.unavailable";
   status.textContent=message;
   status.title=message;
   status.setAttribute("aria-label",globalThis.pageI18n.t("account.syncLabel",{message}));
@@ -2062,7 +2084,23 @@ import("./firebase-client.js").catch(()=>{
   login.hidden=true;
   logout.hidden=true;
   globalThis.applyFavoriteState({favorites:globalThis.favoriteController.favorites(),busy:false});
-});
+}
+if(hasAccountMarker(localStorage)){
+  import("./firebase-client.js").catch(keepGuestMode);
+}else{
+  setSyncMessage("account.guest","notice");
+  login.disabled=false;
+  login.addEventListener("click",async()=>{
+    setSyncMessage("account.preparing","notice");
+    login.disabled=true;
+    try{
+      const client=await import("./firebase-client.js");
+      /* ready is false when the bootstrap fell back to guest mode: it has already written its own
+         message and hidden the buttons, so there is no popup left to continue into. */
+      if(await client.ready&&!login.hidden)await client.signIn();
+    }catch{keepGuestMode()}
+  },{once:true});
+}
 </script>
 </body>
 </html>
