@@ -513,7 +513,7 @@ function renderContractHarness(classification = { forms: [], fields: ["unclassif
   return { context, contract: context.__renderContract };
 }
 
-function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = new Set()) {
+function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = new Set(), repositoryOverrides = {}) {
   const start = page.indexOf('const list=document.getElementById("list"),empty=document.getElementById("empty")');
   const end = page.indexOf("\n/* 즐겨찾기 */", start);
   assert.ok(start >= 0 && end > start, "card render runtime must be isolated");
@@ -530,6 +530,7 @@ function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = ne
     topics: [], tag_rule_version: 1, field_tags: ["unclassified"], form_tags: [], membership_status: membership === "baseline" ? "baseline_present" : membership,
     rank_daily: 1, stars_daily: 1200, rank_weekly: null, stars_weekly: null, rank_monthly: null, stars_monthly: null,
     stars: 5000, forks: 20, contributors: 4, issues: 3,
+    ...repositoryOverrides,
   };
   const context = {
     globalThis: null,
@@ -2533,15 +2534,22 @@ test("current-view export uses the exact rendered array and keeps private state 
   assert.doesNotMatch(page, /buildModel\(\{[\s\S]{0,500}(?:hiddenSet|favSet|guestFavorites|localStorage)/);
 });
 
-test("All cards render total stars without period gain HOT or the gain bar", () => {
+test("All cards keep the daily gain but drop the proportional bar and the period HOT badge", () => {
   const { html, visible } = cardRenderHarness("all");
 
   assert.deepEqual(visible.map(repository => repository.slug), ["owner/project"]);
-  assert.doesNotMatch(html, /class="today"/);
+  // "All" is the default period, so the daily delta - the reason to come back - has to be
+  // legible without changing the period first. The .spark bar stays gated: it is proportional
+  // to the largest gain in a chosen period and means nothing outside one.
+  assert.match(html, /<span class="today">★ \+1200 <span style="color:var\(--text-3\);font-weight:400">period\.today<\/span><\/span>/);
   assert.doesNotMatch(html, />HOT</);
   assert.doesNotMatch(html, /<div class="spark">/);
   assert.match(html, /<div class="stars">5000<\/div>/);
   assert.match(html, /class="sparkhist"/);
+
+  // A repository with no daily figure renders no gain span rather than a "+null".
+  const missing = cardRenderHarness("all", "stayed", new Set(), { stars_daily: null }).html;
+  assert.doesNotMatch(missing, /class="today"/);
 });
 
 test("baseline new and reentered membership render only their exact card badges", () => {
@@ -3378,7 +3386,12 @@ test("a compact list mode is a fourth filter-bar toggle persisted per browser", 
 
   assert.match(page, /body\.compact \.card\{padding:11px 14px;margin-bottom:7px\}/);
   assert.match(page, /body\.compact \.cdesc\{-webkit-line-clamp:1;margin:4px 0 6px\}/);
-  assert.match(page, /body\.compact \.category-badges,body\.compact \.spark,body\.compact \.sparkhist\{display:none\}/);
+  // Compact keeps the classification badges - the reader filtered by them - as one wrapping row,
+  // and clips the group labels rather than removing them from the accessibility tree.
+  assert.match(page, /body\.compact \.category-badges\{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px\}/);
+  assert.match(page, /body\.compact \.category-label\{position:absolute;[^}]*clip:rect\(0,0,0,0\)[^}]*\}/);
+  assert.match(page, /body\.compact \.spark,body\.compact \.sparkhist\{display:none\}/);
+  assert.doesNotMatch(page, /body\.compact \.category-badges,/);
 });
 
 test("the shipped page carries a static repository list and an ItemList for crawlers", () => {
@@ -3483,4 +3496,24 @@ test("the segmented control and the panel filter chips draw the authored focus r
   // control in the first ten tab stops drew the 3px accent ring.
   assert.match(page, /\.seg button:focus-visible\{position:relative;z-index:1;outline:3px solid var\(--accent\);outline-offset:2px\}/);
   assert.match(page, /\.filter-chip:focus-visible\{outline:3px solid var\(--accent\);outline-offset:2px\}/);
+});
+
+test("wide viewports reserve the tooltip lane instead of sliding the list on hover", () => {
+  // tooltipLayout translates .list-stage by missingRail when the tooltip does not fit beside the
+  // card. At 1440px a centred 780px column produced translate3d(-235px) on every hover; reserving
+  // the lane keeps missingRail at 0 for every viewport this branch covers.
+  const wide = page.match(/@media\(min-width:1400px\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.match(wide, /\.wrap\{max-width:680px;margin-left:clamp\(92px,calc\(100vw - 1274px\),calc\(\(100vw - 680px\) \/ 2\)\)\}/);
+  assert.match(wide, /#tipLayer\{width:560px;max-height:82vh;overflow-y:auto\}/);
+  assert.match(page, /@media\(min-width:1100px\) and \(max-width:1399px\)\{\r?\n  \.wrap\{max-width:680px\}/);
+
+  // The reservation is arithmetic, so it is checked as arithmetic: card.right + gap + tooltip +
+  // edge must not exceed the viewport at any width the branch covers. .wrap is 680 wide with 24px
+  // of padding, tooltipLayout uses gap 18 and edge 16, and the tooltip is 560.
+  const margin = viewport => Math.min(Math.max(92, viewport - 1274), (viewport - 680) / 2);
+  for (const viewport of [1400, 1440, 1500, 1600, 1870, 1920, 2560, 3840]) {
+    const cardRight = margin(viewport) + 680 - 24;
+    assert.ok(cardRight + 18 + 560 + 16 <= viewport, `${viewport}px must leave the tooltip lane unshifted`);
+    assert.ok(margin(viewport) >= 92, `${viewport}px must clear the 76px rail`);
+  }
 });

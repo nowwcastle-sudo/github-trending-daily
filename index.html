@@ -370,15 +370,19 @@ body.overlay-open{overflow:hidden}
 /* Deliberately not the membership palette: "new to you" is a different claim from "new to the
    list", and the two must be distinguishable when a card carries both. */
 .visit-new{color:var(--text);background:var(--seg-bg)}
-/* Compact mode is for the reader who already knows the badge vocabulary: it drops the explanatory
-   rows (classification badges, both sparklines) and the second description line, roughly tripling
-   the repositories per screen. The nodes stay in the DOM, so the exported view keeps them and
-   toggling back needs no re-render, but display:none takes the hidden rows out of both
-   find-in-page and the accessibility tree. The description is only clamped, never hidden, so it
+/* Compact mode is for the reader who already knows the badge vocabulary: it drops the sparklines
+   and the second description line, roughly tripling the repositories per screen. The classification
+   badges stay — they are what the reader filtered by, so a compact list that dropped them could no
+   longer confirm the filter — collapsed from one labelled row per taxonomy to a single wrapping
+   11px row. The group labels are clipped rather than display:none so the group name still reaches
+   assistive tech in both modes; the sparkline nodes stay in the DOM, so the exported view keeps
+   them and toggling back needs no re-render. The description is only clamped, never hidden, so it
    stays findable in either mode. */
 body.compact .card{padding:11px 14px;margin-bottom:7px}
 body.compact .cdesc{-webkit-line-clamp:1;margin:4px 0 6px}
-body.compact .category-badges,body.compact .spark,body.compact .sparkhist{display:none}
+body.compact .category-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+body.compact .category-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+body.compact .spark,body.compact .sparkhist{display:none}
 .cdesc{color:var(--text-2);font-size:15.5px;line-height:1.5;margin:6px 0 12px;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .cmeta{display:flex;gap:18px;align-items:center;font-size:14px;color:var(--text-2);flex-wrap:wrap}
@@ -410,6 +414,16 @@ body.compact .category-badges,body.compact .spark,body.compact .sparkhist{displa
   #tipLayer{width:400px;max-height:82vh;overflow-y:auto}
 }
 @media(min-width:1400px){
+  /* The rail tooltip needs gap 18 + 560 + edge 16 = 594px to the right of the card, and a centred
+     780px column does not leave it: tooltipLayout made up the difference by translating
+     .list-stage (measured -235px at 1440px), sliding the card out from under the pointer while
+     the header stayed put. The lane is reserved instead, so missingRail is 0 and nothing moves.
+     680px is the same column width the 1100-1399px branch already uses. clamp reads
+     outside-in: never left of 92px (the 76px rail plus air), otherwise the widest offset that
+     still clears 594px, and plain centring once the viewport is wide enough to give that for
+     free (about 1870px). The 24px of slack absorbs the scrollbar, which 100vw counts and
+     innerWidth does not. */
+  .wrap{max-width:680px;margin-left:clamp(92px,calc(100vw - 1274px),calc((100vw - 680px) / 2))}
   #tipLayer{width:560px;max-height:82vh;overflow-y:auto}
 }
 #tipLayer h2{font-size:20px;letter-spacing:-.01em;margin-bottom:2px}
@@ -1566,6 +1580,11 @@ const list=document.getElementById("list"),empty=document.getElementById("empty"
 function render(){
   const viewPeriod=period;
   const gainOf=r=>UiMotion.periodGain(r,viewPeriod);
+  // "All" is the default period, so without this the daily digest opens showing only cumulative
+  // totals — numbers identical to yesterday's. The daily gain is always readable as a .cmeta
+  // figure; the proportional .spark bar stays gated on an explicitly chosen period because it is
+  // only meaningful relative to the maximum gain within that period.
+  const dailyGainOf=r=>UiMotion.periodGain(r,"daily");
   const showPeriodSignals=viewPeriod!=="all";
   const newOnlyBlock=newOnlyGate(filterState,membershipLoadState);
   if(newOnlyBlock){
@@ -1619,7 +1638,9 @@ function render(){
           <span>◎ ${fmt(r.issues||0)} ${tr("repo.issues")}</span>
           ${r.pushed_at?`<span>🕒 ${tr("repo.commit")} ${esc(r.pushed_at)}</span>`:""}
           ${r.latest_release?`<span>🏷 ${tr("repo.release")} ${esc(r.latest_release)}</span>`:""}
-          ${showPeriodSignals?`<span class="today">★ +${fmt(gainOf(r))} <span style="color:var(--text-3);font-weight:400">${unit}</span></span>`:""}
+          ${showPeriodSignals
+            ?`<span class="today">★ +${fmt(gainOf(r))} <span style="color:var(--text-3);font-weight:400">${unit}</span></span>`
+            :dailyGainOf(r)===null?"":`<span class="today">★ +${fmt(dailyGainOf(r))} <span style="color:var(--text-3);font-weight:400">${tr("period.today")}</span></span>`}
         </div>
         ${showPeriodSignals?`<div class="spark"><i style="width:${Math.max(4,gainOf(r)/maxT*100)}%"></i></div>`:""}
         <div class="sparkhist" data-slug="${r.slug}"></div>
