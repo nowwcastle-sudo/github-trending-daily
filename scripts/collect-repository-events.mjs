@@ -441,7 +441,19 @@ async function collectCommits(repo, previous, context) {
     const values = await json(await request(url, { ...context, operation: "commit inventory", headers: context.githubHeaders }), `commit inventory for ${slug}`);
     if (!Array.isArray(values)) throw new Error(`Invalid commit inventory for ${slug}`);
     if (page === 1 && !values.length) throw new Error(`Contradictory empty commit page for ${slug}`);
-    for (const value of values) {
+    let listed = values;
+    if (page === 1) {
+      // The facts were frozen at headSha a minute or two before this listing. A repository that
+      // pushed in between lists its newer commits first; they belong to the next refresh, which
+      // starts from headSha as its prior head, so facts and events still describe one instant.
+      // A frozen head that is not on the first page at all (more than a page pushed, or history
+      // rewritten under the run) is still a defect that stops the run.
+      const frozenIndex = values.findIndex(value => value?.sha === headSha);
+      if (frozenIndex === -1) throw new Error(`Current HEAD changed during commit collection for ${slug}`);
+      if (frozenIndex > 0) process.stderr.write(`::notice::${slug}: ${frozenIndex} commit(s) pushed after the frozen head are left for the next refresh\n`);
+      listed = values.slice(frozenIndex);
+    }
+    for (const value of listed) {
       const record = commitRecord(slug, branch, value, records.length + 1);
       // GitHub commit pages can overlap while a branch advances.  The current
       // candidate is deduplicated by SHA; absence of the prior head is still
