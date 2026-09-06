@@ -626,7 +626,8 @@ async function loadFirebaseClientForTest() {
   const runnable = source
     .replace(/import\s*\{[\s\S]*?\}\s*from\s*"https:\/\/www\.gstatic\.com\/firebasejs\/12\.17\.1\/[^\"]+";\s*/g, "")
     .replace(/import\.meta\.url/g, '""')
-    .replace(/\nbootstrap\(\)(?:\.catch\(keepGuestMode\))?;\s*$/m, "")
+    .replace(/\nexport const ready = bootstrap\(\);/m, "")
+    .replace(/^export /gm, "")
     + "\nglobalThis.__client = { createCloudAdapter, authErrorMessage, validateFirebaseConfig, setSyncStatus, syncModeLabel: typeof syncModeLabel === 'function' ? syncModeLabel : undefined };";
   const context = {
     Favorites: globalThis.Favorites,
@@ -807,9 +808,10 @@ async function runFirebaseBootstrap(options = {}) {
   const runnable = source
     .replace(/import\s*\{[\s\S]*?\}\s*from\s*"https:\/\/www\.gstatic\.com\/firebasejs\/12\.17\.1\/[^\"]+";\s*/g, "")
     .replace(/import\.meta\.url/g, '""')
-    .replace(/\nbootstrap\(\);\s*$/m, "\nglobalThis.__bootstrap = bootstrap;");
+    .replace(/\nexport const ready = bootstrap\(\);/m, "\nglobalThis.__bootstrap = bootstrap;")
+    .replace(/^export /gm, "");
   vm.runInNewContext(runnable, runtime.context);
-  runtime.start = () => runtime.context.__bootstrap();
+  runtime.start = () => { runtime.ready = runtime.context.__bootstrap(); return runtime.ready; };
   runtime.start();
   await flushBootstrap();
   return runtime;
@@ -880,7 +882,9 @@ test("a real null auth observer callback visibly restores only the guest list", 
   assert.equal(runtime.context.favoriteController.mode(), "guest");
   assert.deepEqual(JSON.parse(JSON.stringify(runtime.applied.at(-1))), { favorites: ["guest/only"], busy: false });
   assert.equal(runtime.snapshotUnsubscribes, 1);
-  assert.deepEqual(writes, [["gh-favs-cache:alice", '["alice/only"]']]);
+  // The marker is the only write outside the favourites keys: index.html reads it to decide
+  // whether the next visit imports Firebase before the visitor asks for it.
+  assert.deepEqual(writes, [["gi.account.known", "1"], ["gh-favs-cache:alice", '["alice/only"]']]);
   assert.equal(storage.getItem("gh-favs-guest"), '["guest/only"]');
   assert.equal(runtime.elements.loginBtn.hidden, false);
   assert.equal(runtime.elements.loginBtn.disabled, false);
@@ -925,7 +929,9 @@ test("explicit logout publishes a transient same-origin signal after Firebase si
   await flushBootstrap();
 
   assert.deepEqual(order, [
+    ["set", "gi.account.known", "1"],
     ["signOut"],
+    ["remove", "gi.account.known"],
     ["set", "gh-auth-signout", "1"],
     ["remove", "gh-auth-signout"],
   ]);
@@ -987,7 +993,7 @@ test("a real Alice Firestore listener error keeps the cached account list visibl
   assert.equal(runtime.context.favoriteController.mode(), "account");
   assert.equal(auth.currentUser.uid, "alice");
   assert.deepEqual(JSON.parse(JSON.stringify(runtime.applied.at(-1))), { favorites: ["alice/cached"], busy: false });
-  assert.deepEqual(writes, []);
+  assert.deepEqual(writes, [["gi.account.known", "1"]], "a listener failure still leaves the account marker");
   assert.equal(storage.getItem("gh-favs-guest"), '["guest/only"]');
   assert.equal(runtime.elements.syncStatus.textContent, "즐겨찾기 실시간 동기화가 중단되었어요.");
   assert.equal(runtime.elements.syncStatus.title, "즐겨찾기 실시간 동기화가 중단되었어요.");
@@ -1236,7 +1242,8 @@ test("a configuration failure stays on the existing guest controller", async () 
   const source = await readFile(new URL("../firebase-client.js", import.meta.url), "utf8");
   const runnable = source
     .replace(/import\s*\{[\s\S]*?\}\s*from\s*"https:\/\/www\.gstatic\.com\/firebasejs\/12\.17\.1\/[^"]+";\s*/g, "")
-    .replace(/import\.meta\.url/g, '""');
+    .replace(/import\.meta\.url/g, '""')
+    .replace(/^export /gm, "");
   const elements = {
     syncStatus: { textContent: "" },
     loginBtn: { hidden: false },
@@ -1387,6 +1394,69 @@ test("login failures expose their recovery message as visible status text", asyn
 
   assert.equal(element.textContent, "팝업을 허용한 뒤 다시 시도해 주세요.");
   assert.equal(element.dataset.tone, "error");
+});
+
+/* index.html imports this module eagerly only when the marker is set, so the marker is what
+   decides whether a returning visitor pays for reCAPTCHA on first paint. */
+test("a published session writes the account marker and a sign-out clears it", async () => {
+  const runtime = await runFirebaseBootstrap();
+  runtime.persistence.resolve();
+  await flushBootstrap();
+  assert.equal(runtime.storage.getItem("gi.account.known"), null,
+    "an anonymous visit must not mark the browser as one that has signed in");
+
+  const auth = runtime.observers[0].auth;
+  auth.currentUser = { uid: "alice" };
+  runtime.observers[0].callback(auth.currentUser);
+  await flushBootstrap();
+  assert.equal(runtime.storage.getItem("gi.account.known"), "1",
+    "a signed-in user marks the browser so the next visit imports Firebase eagerly");
+
+  await runtime.elements.logoutBtn.click();
+  await flushBootstrap();
+  assert.equal(runtime.storage.getItem("gi.account.known"), null,
+    "signing out returns the browser to the lazy path");
+});
+
+test("a peer tab sign-out clears the account marker in this tab too", async () => {
+  const runtime = await runFirebaseBootstrap();
+  runtime.persistence.resolve();
+  await flushBootstrap();
+  const auth = runtime.observers[0].auth;
+  auth.currentUser = { uid: "alice" };
+  runtime.observers[0].callback(auth.currentUser);
+  await flushBootstrap();
+  assert.equal(runtime.storage.getItem("gi.account.known"), "1");
+
+  runtime.triggerStorage({ key: "gh-auth-signout", newValue: "1" });
+  await flushBootstrap();
+  assert.equal(runtime.storage.getItem("gi.account.known"), null);
+});
+
+test("the module publishes a ready promise and a sign-in entry point for a deferred click", async () => {
+  const source = await readFile(new URL("../firebase-client.js", import.meta.url), "utf8");
+  assert.match(source, /^export const ready = bootstrap\(\);$/m);
+  assert.match(source, /^export async function signIn\(\) \{$/m);
+  // signIn() runs the button's own handler, so a deferred click cannot drift from a real one.
+  assert.match(source, /login\.addEventListener\("click", onLogin\);\s*\r?\n\s*activeSignIn = onLogin;/);
+  assert.match(source, /if \(activeSignIn === onLogin\) activeSignIn = null;/);
+  assert.match(source, /await activeSignIn\(\);/);
+
+  const runtime = await runFirebaseBootstrap();
+  runtime.persistence.resolve();
+  await flushBootstrap();
+  assert.equal(await runtime.ready, true, "a published bootstrap reports success to the deferred click");
+  assert.equal(runtime.elements.loginBtn.listenerCount(), 1);
+});
+
+test("a guest fallback resolves ready as false instead of rejecting", async () => {
+  const runtime = await runFirebaseBootstrap();
+  runtime.persistence.reject(new Error("persistence unavailable"));
+  await flushBootstrap();
+  assert.equal(await runtime.ready, false, "the deferred click must not open a popup after a fallback");
+  assert.equal(runtime.elements.loginBtn.hidden, true);
+  assert.equal(runtime.elements.syncStatus.textContent,
+    "이 브라우저에서 로그인 상태를 저장할 수 없어 브라우저 저장으로 사용합니다.");
 });
 
 test("sync mode exposes only the browser and Google account labels", async () => {

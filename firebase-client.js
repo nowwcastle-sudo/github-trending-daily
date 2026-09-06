@@ -102,7 +102,23 @@ function validateFirebaseConfig(config) {
   return config;
 }
 
+/* Anonymous visitors never load this module: index.html imports it eagerly only when this marker
+   says the browser has signed in before, and otherwise on the first Sign-in click. The same key
+   is a literal in index.html's bootstrap script, and page-runtime pins the two together. */
+const ACCOUNT_MARKER_KEY = "gi.account.known";
+
+function rememberAccount() {
+  try { localStorage.setItem(ACCOUNT_MARKER_KEY, "1"); } catch {}
+}
+
+function forgetAccount() {
+  // Idempotent: the explicit sign-out and the null auth state that follows it both call this.
+  try { if (localStorage.getItem(ACCOUNT_MARKER_KEY) !== null) localStorage.removeItem(ACCOUNT_MARKER_KEY); } catch {}
+}
+
 let bootstrapGeneration = 0;
+/* The popup handler of the published bootstrap, so a deferred first click can continue into it. */
+let activeSignIn = null;
 
 function setAccountPending(status, login, logout) {
   login.hidden = false;
@@ -129,13 +145,13 @@ async function bootstrap() {
   const generation = ++bootstrapGeneration;
   if (typeof authLifecycle?.create !== "function") {
     retainGuestMode(status, login, logout, "로그인 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
-    return;
+    return false;
   }
   setAccountPending(status, login, logout);
 
   if (!globalThis.Favorites || !globalThis.FavoriteSync || !globalThis.favoriteController || !globalThis.applyFavoriteState) {
     retainGuestMode(status, login, logout, "로그인 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
-    return;
+    return false;
   }
 
   let app;
@@ -154,7 +170,7 @@ async function bootstrap() {
     if (generation === bootstrapGeneration) {
       retainGuestMode(status, login, logout, "로그인 보안 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
     }
-    return;
+    return false;
   }
 
   try {
@@ -163,7 +179,7 @@ async function bootstrap() {
     if (generation === bootstrapGeneration) {
       retainGuestMode(status, login, logout, "로그인 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
     }
-    return;
+    return false;
   }
 
   try {
@@ -172,7 +188,7 @@ async function bootstrap() {
     if (generation === bootstrapGeneration) {
       retainGuestMode(status, login, logout, "로그인 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
     }
-    return;
+    return false;
   }
 
   try {
@@ -181,7 +197,7 @@ async function bootstrap() {
     if (generation === bootstrapGeneration) {
       retainGuestMode(status, login, logout, "이 브라우저에서 로그인 상태를 저장할 수 없어 브라우저 저장으로 사용합니다.");
     }
-    return;
+    return false;
   }
 
   let busy = false;
@@ -239,6 +255,7 @@ async function bootstrap() {
     logout.disabled = true;
     try {
       await signOut(auth);
+      forgetAccount();
       try {
         localStorage.setItem(signoutSignalKey, "1");
         localStorage.removeItem(signoutSignalKey);
@@ -251,6 +268,7 @@ async function bootstrap() {
 
   const onPeerSignout = event => {
     if (event?.key !== signoutSignalKey || event.newValue !== "1" || !auth.currentUser || bundle.disposed) return;
+    forgetAccount();
     void signOut(auth).catch(() => {
       if (!bundle.disposed) {
         setSyncStatus(status, auth.currentUser, "로그아웃하지 못했어요. 잠시 후 다시 시도해 주세요.", "error");
@@ -280,6 +298,7 @@ async function bootstrap() {
       stopAuth();
       controller?.dispose();
       login.removeEventListener("click", onLogin);
+      if (activeSignIn === onLogin) activeSignIn = null;
       logout.removeEventListener("click", onLogout);
       globalThis.removeEventListener("storage", onPeerSignout);
       lifecycle?.stop();
@@ -308,8 +327,12 @@ async function bootstrap() {
       },
       onMessage: message => { setSyncStatus(status, auth.currentUser, message, "notice"); },
     });
-    stopAuth = onAuthStateChanged(auth, user => { void applyAuthState(user); });
+    stopAuth = onAuthStateChanged(auth, user => {
+      if (user) rememberAccount(); else forgetAccount();
+      void applyAuthState(user);
+    });
     login.addEventListener("click", onLogin);
+    activeSignIn = onLogin;
     logout.addEventListener("click", onLogout);
     globalThis.addEventListener("storage", onPeerSignout);
     lifecycle = authLifecycle.create({
@@ -323,12 +346,12 @@ async function bootstrap() {
     if (generation === bootstrapGeneration) {
       retainGuestMode(status, login, logout, "로그인 기능을 초기화하지 못해 브라우저 저장으로 사용합니다.");
     }
-    return;
+    return false;
   }
 
   if (generation !== bootstrapGeneration) {
     bundle.dispose();
-    return;
+    return false;
   }
 
   const previous = globalThis.favoriteController;
@@ -337,6 +360,19 @@ async function bootstrap() {
   bundle.published = true;
   restorePublishedState();
   if (hasPendingUser) void applyAuthState(pendingUser);
+  return true;
 }
 
-bootstrap();
+/* Resolves true once the login and logout handlers are attached and the cloud controller is
+   published, and false when the bootstrap fell back to guest mode (which has already written its
+   own status message). It never rejects for a guest fallback, so the eager import keeps today's
+   behaviour: only a failure to load the module itself reaches index.html's catch. */
+export const ready = bootstrap();
+
+/* index.html forwards a deferred first Sign-in click here after awaiting `ready`, so the click
+   runs the same popup path as the button's own listener. */
+export async function signIn() {
+  if (typeof activeSignIn !== "function") return false;
+  await activeSignIn();
+  return true;
+}

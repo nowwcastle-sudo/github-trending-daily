@@ -4,18 +4,39 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <!-- Static English by design: the document is served as <html lang="en"> and crawlers and link
-     unfurlers read these before site-i18n.js hydrates. The two theme-color values are the --bg
-     tokens already in :root and html[data-theme="dark"]. There is deliberately no preview-image
-     tag: it would be a new external request and there is no first-party image to point at. -->
+     unfurlers read this head before site-i18n.js rewrites <html lang> at runtime (site-i18n.js:351).
+     The policy comes first so it governs the inline theme script that follows it; that script is
+     the first thing that runs, so the first paint is already in the reader’s theme, and it and
+     setTheme() are the only writers of the single theme-color meta (the active --bg token). One
+     canonical URL serves every locale, so the head carries no alternate-language links. There is
+     deliberately no preview-image tag — it would be a new external request and there is no
+     first-party image — and the favicon is an inline data-URI SVG for the same reason. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.gstatic.com https://www.google.com https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://api.github.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://content-firebaseappcheck.googleapis.com https://www.google.com; frame-src https://github-trending-nowwcastle.firebaseapp.com https://www.google.com https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="theme-color" id="themeColorMeta" content="#282828">
+<script>/* No-flash theme, and the first script on the page: it runs before the stylesheet, the
+   blocking scripts and the generated data literal, so an OS-dark or stored-dark visitor never
+   sees a light first paint. setTheme() at the bottom stays the owner of the toggle button state
+   and keeps #themeColorMeta in step from load onward. */
+try{var t0=localStorage.getItem("gh-theme");if(t0!=="dark"&&t0!=="light")t0=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t0;var m0=document.getElementById("themeColorMeta");if(m0)m0.content=t0==="dark"?"#282828":"#f5f5f7";document.documentElement.classList.add("i18n-pending")}catch(e0){}</script>
 <meta name="description" content="GITHUB INSIGHT — today’s GitHub Trending repositories with source-bound README summaries, star history, and filters for field, form, language, and period.">
-<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#282828" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="GITHUB INSIGHT">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="ko_KR">
+<meta property="og:locale:alternate" content="zh_CN">
+<meta property="og:locale:alternate" content="es_ES">
+<meta property="og:locale:alternate" content="ja_JP">
 <meta property="og:title" content="GITHUB INSIGHT">
 <meta property="og:description" content="Today’s GitHub Trending repositories with source-bound README summaries, star history, and filters for field, form, language, and period.">
 <meta property="og:url" content="https://nowwcastle-sudo.github.io/github-trending-daily/">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.gstatic.com https://www.google.com https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://api.github.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://content-firebaseappcheck.googleapis.com https://www.google.com; frame-src https://github-trending-nowwcastle.firebaseapp.com https://www.google.com https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self'">
-<title>GITHUB INSIGHT</title>
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="GITHUB INSIGHT">
+<meta name="twitter:description" content="Today’s GitHub Trending repositories with source-bound README summaries, star history, and filters for field, form, language, and period.">
+<title>GITHUB INSIGHT — Daily GitHub Trending Repositories</title>
+<link rel="canonical" href="https://nowwcastle-sudo.github.io/github-trending-daily/">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23282828'/%3E%3Ctext x='32' y='43' font-family='system-ui,sans-serif' font-size='27' font-weight='700' fill='%23f5f5f7' text-anchor='middle'%3EGI%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"GITHUB INSIGHT","url":"https://nowwcastle-sudo.github.io/github-trending-daily/","potentialAction":{"@type":"SearchAction","target":"https://nowwcastle-sudo.github.io/github-trending-daily/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
 <link rel="alternate" type="application/atom+xml" title="GITHUB INSIGHT — Current repositories" href="https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml">
 <link rel="alternate" type="application/atom+xml" title="GITHUB INSIGHT — New and re-entered repositories" href="https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml">
 <style>:root{
@@ -24,7 +45,7 @@
   --sidebar-open-duration:260ms;--sidebar-close-duration:210ms;--tooltip-duration:160ms;
   --bg:#f5f5f7; --bg-elev:rgba(255,255,255,.72); --card:rgba(255,255,255,.85);
   --text:#1d1d1f; --text-2:#6e6e73; --text-3:#6e6e73;
-  --border:rgba(0,0,0,.08); --hairline:rgba(0,0,0,.06);
+  --border:rgba(0,0,0,.44); --hairline:rgba(0,0,0,.06);
   --surface-border:rgba(0,0,0,.14); --surface-border-strong:rgba(0,0,0,.24);
   --accent:#0071e3; --accent-selected:#005fc7; --accent-soft:rgba(0,113,227,.10);
   --hot:#a83200; --hot-soft:rgba(168,50,0,.12);
@@ -38,8 +59,8 @@ html[data-theme="dark"]{
   /* gruvbox dark palette */
   --bg:#282828; --bg-elev:rgba(60,56,54,.72); --card:rgba(50,48,47,.85);
   --text:#fbf1c7; --text-2:#bdae93; --text-3:#a89984;
-  --border:rgba(235,219,178,.16); --hairline:rgba(235,219,178,.10);
-  --surface-border:var(--hairline); --surface-border-strong:var(--border);
+  --border:rgba(235,219,178,.44); --hairline:rgba(235,219,178,.10);
+  --surface-border:var(--hairline); --surface-border-strong:rgba(235,219,178,.16);
   --accent:#83a598; --accent-selected:#a7c7bd; --accent-soft:rgba(131,165,152,.18);
   --hot:#ff9e3d; --hot-soft:rgba(254,128,25,.15);
   --seg-bg:rgba(60,56,54,.6); --seg-thumb:#504945; --seg-text:#fbf1c7;
@@ -49,7 +70,12 @@ html[data-theme="dark"]{
   --tip-bg:rgba(60,56,54,.96); --tip-border:rgba(235,219,178,.20);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+/* The list renders from the script at the end of the document, so the first frame is a short page
+   without a scrollbar and with the footer in view; when the cards land the scrollbar appears and the
+   centred column shifts. A stable gutter and a first-frame list height keep that frame in place. */
+html{scroll-behavior:smooth;scrollbar-gutter:stable}
+/* Set by the head script, cleared by the early translation pass right after site-i18n.js. */
+.i18n-pending body{visibility:hidden}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;
   background:var(--bg);color:var(--text);min-height:100vh;
@@ -100,7 +126,7 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
   padding:7px 11px;font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap;
   transition:border-color .18s ease,color .18s ease,background-color .18s ease,opacity .18s ease
 }
-.account-btn:hover{border-color:var(--accent);color:var(--accent)}
+.account-btn:hover{border-color:var(--accent);color:var(--accent-selected)}
 .account-btn:disabled{cursor:wait;opacity:.55}
 .account-btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .theme-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
@@ -111,7 +137,7 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 }
 .nav-toggle{
   position:relative;width:60px;min-height:60px;border:0;border-radius:14px;padding:7px 4px;background:transparent;color:var(--text-2);cursor:pointer;
-  display:grid;place-items:center;align-content:center;gap:4px;font:inherit;font-size:10px;font-weight:650;letter-spacing:.01em;
+  display:grid;place-items:center;align-content:center;gap:4px;font:inherit;font-size:11px;font-weight:650;letter-spacing:.01em;
   transition:background-color .16s ease,color .16s ease,transform .1s ease-out;
 }
 .nav-toggle:hover,.nav-toggle:focus-visible,.filter-sidebar.open~.nav-rail .nav-toggle[aria-current="true"]{background:var(--accent-soft);color:var(--accent-selected)}
@@ -131,7 +157,7 @@ h1{font-size:clamp(28px,4.5vw,38px);font-weight:700;letter-spacing:-.022em;line-
 /* Korean and Japanese rail labels are single words (내보내기, エクスポート); the default
    overflow-wrap would split them mid-word inside the rail. keep-all is the correct CJK rule and a
    no-op for the four Latin locales. */
-.nav-label{line-height:1}
+.nav-label{line-height:1.1}
 /* Korean only: keep-all stops a two-syllable rail label breaking mid-word. Japanese katakana
    labels need the default breaking, so the rule is scoped by document language. */
 html:lang(ko) .nav-label{word-break:keep-all;overflow-wrap:normal}
@@ -141,11 +167,11 @@ html:lang(ko) .sub{word-break:keep-all;overflow-wrap:normal}
 .nav-rail-spacer{flex:1}
 /* WCAG 2.1.4 needs the single-key accelerators to be discoverable and switchable off, so the rail
    carries a persistent "?" opener for the shortcut dialog. 44px minimum target like every control. */
-.nav-help{width:60px;min-height:44px;border:0;border-radius:14px;padding:6px 4px;background:transparent;color:var(--text-2);cursor:pointer;display:grid;place-items:center;align-content:center;gap:4px;font:inherit;font-size:10px;font-weight:650;transition:background-color .16s ease,color .16s ease}
+.nav-help{width:60px;min-height:44px;border:0;border-radius:14px;padding:6px 4px;background:transparent;color:var(--text-2);cursor:pointer;display:grid;place-items:center;align-content:center;gap:4px;font:inherit;font-size:11px;font-weight:650;transition:background-color .16s ease,color .16s ease}
 .nav-help::before{content:"?";font-size:16px;font-weight:700;line-height:1}
 .nav-help:hover,.nav-help:focus-visible{background:var(--accent-soft);color:var(--accent-selected)}
 .nav-help:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.nav-rail .filter-count{min-width:20px;padding:2px 6px;font-size:10px;line-height:14px;text-align:center}
+.nav-rail .filter-count{min-width:20px;padding:3px 7px;font-size:11px;line-height:14px;text-align:center}
 .mobile-nav-toggle{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .mobile-nav-toggle .nav-glyph{width:18px;height:15px}
 .mobile-nav-toggle:focus-visible{position:fixed;z-index:340;top:max(calc(env(safe-area-inset-top) + 12px),12px);right:max(calc(env(safe-area-inset-right) + 12px),12px);width:auto;height:auto;min-width:44px;min-height:44px;margin:0;overflow:visible;clip:auto;white-space:normal;display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--border);border-radius:11px;background:var(--control-solid);color:var(--text);padding:8px 10px;font:inherit;font-size:12px;font-weight:650;cursor:pointer;outline:3px solid var(--accent);outline-offset:2px}
@@ -159,7 +185,7 @@ html:lang(ko) .sub{word-break:keep-all;overflow-wrap:normal}
   .mobile-nav-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 }
 .sidebar-close svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round}
-.filter-count{min-width:20px;padding:2px 6px;border-radius:99px;background:var(--accent-soft);color:var(--accent-selected);font-size:11px;font-variant-numeric:tabular-nums}
+.filter-count{min-width:20px;padding:3px 7px;border-radius:99px;background:var(--accent-soft);color:var(--accent-selected);font-size:11px;font-variant-numeric:tabular-nums}
 .filter-count:empty{display:none}
 
 /* ── Discovery sidebar ─────────────── */
@@ -187,7 +213,7 @@ html:lang(ko) .sub{word-break:keep-all;overflow-wrap:normal}
   .filter-sidebar{touch-action:pan-y pinch-zoom}
 }
 .sidebar-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.sidebar-head h2{font-size:19px;letter-spacing:-.015em}
+.sidebar-head .sidebar-title{font-size:19px;font-weight:700;letter-spacing:-.015em}
 .sidebar-refresh{display:grid;gap:3px;padding:12px 14px;border:1px solid var(--hairline);border-radius:12px;background:var(--bg-elev);color:var(--text-2);font-size:12px;font-weight:650;line-height:1.45;font-variant-numeric:tabular-nums}
 .sidebar-refresh p{margin:0}
 .sidebar-close{width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:var(--text-2);cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -195,7 +221,7 @@ html:lang(ko) .sub{word-break:keep-all;overflow-wrap:normal}
 .sidebar-close:active{transform:scale(.96)}
 .sidebar-section{display:grid;gap:10px;padding-top:18px;border-top:1px solid var(--hairline)}
 .sidebar-section:first-of-type{padding-top:0;border-top:0}
-.sidebar-section h3{font-size:13px;line-height:1.3;letter-spacing:.01em}
+.sidebar-section .sidebar-group-title{font-size:13px;font-weight:700;line-height:1.3;letter-spacing:.01em}
 .sidebar-note{color:var(--text-2);font-size:11.5px;line-height:1.45}
 .account-controls{display:grid;justify-content:stretch}
 .sync-status{max-width:none}
@@ -216,11 +242,11 @@ html:lang(ko) .sub{word-break:keep-all;overflow-wrap:normal}
   min-width:64px;min-height:44px;border:1px solid var(--border);border-radius:9px;background:var(--control-solid);color:var(--text);
   padding:7px 10px;font:inherit;font-size:12px;font-weight:650;cursor:pointer;
 }
-.hidden-restore:hover{border-color:var(--accent);color:var(--accent)}
+.hidden-restore:hover{border-color:var(--accent);color:var(--accent-selected)}
 .hidden-restore:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .recent-exit-list{display:grid;gap:5px}
 .recent-exit-link{display:flex;align-items:center;min-height:44px;color:var(--text-2);font-size:12px;line-height:1.35;text-decoration:none;overflow-wrap:anywhere}
-.recent-exit-link:hover{color:var(--accent)}
+.recent-exit-link:hover{color:var(--accent-selected)}
 .recent-exit-link:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
 .export-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px}
 .export-actions button{
@@ -240,7 +266,8 @@ html:lang(ko) .sub{word-break:keep-all;overflow-wrap:normal}
   padding:8px 11px;text-align:left;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;
   transition:background-color .16s ease,color .16s ease,border-color .16s ease,transform .1s ease-out;
 }
-.filter-chip:hover{border-color:var(--accent);color:var(--accent)}
+.filter-chip:hover{border-color:var(--accent);color:var(--accent-selected)}
+.filter-chip:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .filter-chip:active{transform:scale(.97)}
 .filter-chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .clear-filters{border-color:var(--border);text-align:center;color:var(--text-2)}
@@ -262,7 +289,7 @@ html:lang(ko) .sub{word-break:keep-all;overflow-wrap:normal}
 .preset-apply:focus-visible,.preset-delete:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .preset-delete{min-width:44px;min-height:44px;border:1px solid var(--border);border-radius:9px;background:transparent;color:var(--text-2);font:inherit;font-size:14px;cursor:pointer}
 .preset-delete:hover{border-color:var(--hot);color:var(--hot)}
-.search.preset-name{min-height:44px;padding-left:12px;background-image:none}
+.search.preset-name{padding-left:12px;background-image:none}
 #presetForm{display:grid;gap:7px}
 #sidebarScrim{position:fixed;inset:0;z-index:310;background:rgba(0,0,0,.34);opacity:0;pointer-events:none;transition:opacity .24s ease-out}
 #sidebarScrim.on{opacity:1;pointer-events:auto}
@@ -282,6 +309,9 @@ body.overlay-open{overflow:hidden}
   min-height:44px;padding:7px 18px;border-radius:8px;cursor:pointer;color:inherit;transition:color .25s;
   -webkit-user-select:none;user-select:none;
 }
+/* The segmented control had no authored ring and fell back to the UA outline. position/z-index
+   lift the focused button over its touching siblings so the 2px offset is not painted under them. */
+.seg button:focus-visible{position:relative;z-index:1;outline:3px solid var(--accent);outline-offset:2px}
 .seg button[aria-pressed="true"]{color:var(--seg-text);font-weight:600}
 .sidebar-group-seg{margin-bottom:4px}
 .sidebar-group-seg button[aria-pressed="true"]{background:var(--seg-thumb);border-radius:8px;box-shadow:var(--shadow-card)}
@@ -289,11 +319,15 @@ body.overlay-open{overflow:hidden}
 .search{
   width:100%;min-width:0;background:var(--bg-elev);backdrop-filter:blur(20px) saturate(180%);
   border:1px solid var(--border);border-radius:10px;padding:9px 14px 9px 36px;font:inherit;font-size:14px;
-  color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;
+  min-height:44px;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.4'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:12px center;
 }
 .search:focus{border-color:var(--accent);box-shadow:0 0 0 3.5px var(--accent-soft)}
+/* WCAG 2.2 SC 1.4.3: unstyled placeholders inherit the UA grey rgb(117,117,117), which measures
+   3.20:1 on the dark field and 4.23:1 on the light one. --text-2 composites to 5.71:1 dark and
+   4.95:1 light over --bg-elev. opacity:1 is for Firefox, which dims ::placeholder by default. */
+.search::placeholder{color:var(--text-2);opacity:1}
 .langsel{
   background:var(--control-solid);border:1px solid var(--border);
   min-height:44px;border-radius:10px;padding:9px 12px;font:inherit;font-size:13.5px;color:var(--text);outline:none;cursor:pointer;
@@ -311,10 +345,22 @@ body.overlay-open{overflow:hidden}
 @media(max-width:600px){.filter-bar-row>*,.filter-bar-row-4>*{flex:1 1 100%;max-width:100%}}
 @media(max-width:760px){.filter-bar .seg button{padding-inline:8px;font-size:12.5px}}
 .filter-toggle{min-height:44px;padding:0 14px;border:1px solid var(--surface-border);border-radius:11px;background:var(--control-solid);color:var(--text);font:inherit;font-size:13px;font-weight:650;cursor:pointer;overflow-wrap:anywhere}
-.filter-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.filter-toggle:hover{border-color:var(--accent);color:var(--accent-selected)}
 .filter-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .filter-toggle:active{transform:scale(.98)}
 .filter-toggle[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-selected);border-color:var(--accent)}
+.filter-toggle:disabled{opacity:.5;cursor:not-allowed}
+.filter-toggle:disabled:hover{border-color:var(--surface-border);color:var(--text)}
+/* Active-filter pills: what the Explore panel did, made visible and removable in the main column.
+   They borrow .filter-toggle wholesale — the same 44px target, the same pressed skin — so nothing
+   new is introduced; only the trailing ✕ is added. The row scrolls sideways under 600px instead of
+   stacking, because a stacked pill per filter would push the first card another screen down. */
+.filter-pill-row{display:flex;gap:8px;flex-wrap:wrap;min-width:0}
+.filter-pill-row:empty{display:none}
+.filter-pill{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;
+  background:var(--accent-soft);color:var(--accent-selected);border-color:var(--accent)}
+.filter-pill-x{font-size:13px;line-height:1}
+@media(max-width:600px){.filter-pill-row{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:2px}}
 .signal-guide{display:flex;align-items:flex-start;gap:14px;padding:10px 2px 8px;margin-top:4px;
   border-bottom:1px solid var(--hairline);color:var(--text-2);font-size:12.5px;line-height:1.45}
 .signal-guide-details{flex:1;min-width:0}
@@ -332,9 +378,15 @@ body.overlay-open{overflow:hidden}
 /* ── Cards ──────────────────────────── */
 .list-stage{transform:translate3d(0,0,0);transition:transform .3s cubic-bezier(.32,.72,0,1)}
 .list{margin-top:18px}
+/* Only before the first render: an empty result after a render must show its message in view. */
+.list:empty:not(.rendered){min-height:100vh}
+/* .controls is sticky at top:0 above this list, so a card scrolled into view by sequential
+   focus navigation would land behind it and hide its focus ring. 84px = the sticky row's own
+   height (14px padding twice around the 44px #q input) plus 12px of clearance; hard-coded
+   because .controls has no height token. */
 .card{
-  position:relative;display:flex;gap:16px;text-decoration:none;color:inherit;
-  background:var(--card);backdrop-filter:blur(20px) saturate(180%);
+  position:relative;display:flex;gap:16px;text-decoration:none;color:inherit;scroll-margin-top:84px;
+  background:var(--card);
   border:1px solid var(--surface-border);border-radius:16px;padding:18px 20px;margin-bottom:12px;
   box-shadow:var(--shadow-card);
   transition:transform .22s cubic-bezier(.32,.72,0,1),box-shadow .22s,border-color .22s;
@@ -362,15 +414,19 @@ body.overlay-open{overflow:hidden}
 /* Deliberately not the membership palette: "new to you" is a different claim from "new to the
    list", and the two must be distinguishable when a card carries both. */
 .visit-new{color:var(--text);background:var(--seg-bg)}
-/* Compact mode is for the reader who already knows the badge vocabulary: it drops the explanatory
-   rows (classification badges, both sparklines) and the second description line, roughly tripling
-   the repositories per screen. The nodes stay in the DOM, so the exported view keeps them and
-   toggling back needs no re-render, but display:none takes the hidden rows out of both
-   find-in-page and the accessibility tree. The description is only clamped, never hidden, so it
+/* Compact mode is for the reader who already knows the badge vocabulary: it drops the sparklines
+   and the second description line, roughly tripling the repositories per screen. The classification
+   badges stay — they are what the reader filtered by, so a compact list that dropped them could no
+   longer confirm the filter — collapsed from one labelled row per taxonomy to a single wrapping
+   11px row. The group labels are clipped rather than display:none so the group name still reaches
+   assistive tech in both modes; the sparkline nodes stay in the DOM, so the exported view keeps
+   them and toggling back needs no re-render. The description is only clamped, never hidden, so it
    stays findable in either mode. */
 body.compact .card{padding:11px 14px;margin-bottom:7px}
 body.compact .cdesc{-webkit-line-clamp:1;margin:4px 0 6px}
-body.compact .category-badges,body.compact .spark,body.compact .sparkhist{display:none}
+body.compact .category-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+body.compact .category-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+body.compact .spark,body.compact .sparkhist{display:none}
 .cdesc{color:var(--text-2);font-size:15.5px;line-height:1.5;margin:6px 0 12px;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .cmeta{display:flex;gap:18px;align-items:center;font-size:14px;color:var(--text-2);flex-wrap:wrap}
@@ -402,9 +458,26 @@ body.compact .category-badges,body.compact .spark,body.compact .sparkhist{displa
   #tipLayer{width:400px;max-height:82vh;overflow-y:auto}
 }
 @media(min-width:1400px){
+  /* The rail tooltip needs gap 18 + 560 + edge 16 = 594px to the right of the card, and a centred
+     780px column does not leave it: tooltipLayout made up the difference by translating
+     .list-stage (measured -235px at 1440px), sliding the card out from under the pointer while
+     the header stayed put. The lane is reserved instead, so missingRail is 0 and nothing moves.
+     680px is the same column width the 1100-1399px branch already uses. clamp reads
+     outside-in: never left of 92px (the 76px rail plus air), otherwise the widest offset that
+     still clears 594px, and plain centring once the viewport is wide enough to give that for
+     free (about 1870px). The 24px of slack absorbs the scrollbar, which 100vw counts and
+     innerWidth does not. */
+  .wrap{max-width:680px;margin-left:clamp(92px,calc(100vw - 1274px),calc((100vw - 680px) / 2))}
   #tipLayer{width:560px;max-height:82vh;overflow-y:auto}
 }
 #tipLayer h2{font-size:20px;letter-spacing:-.01em;margin-bottom:2px}
+/* Touch has no hover, so on a phone the summary is not a tooltip — it is a 94%-of-screen modal
+   that used to have no ✕, no scrim and no Escape, and whose body navigated to github.com on the
+   next tap. It gets the README panel's head instead: the same 44px close glyph, the same scrim
+   material, the same focus trap and focus restore. The negative margins pull the row out through
+   the layer's own 18px/20px padding so it sits flush like #readmePanel .rp-head does. */
+#tipLayer .rp-head{display:flex;align-items:center;gap:10px;margin:-18px -20px 12px;padding:10px 20px;border-bottom:1px solid var(--hairline)}
+#tipLayer .rp-head h2{flex:1;min-width:0;margin-bottom:0;overflow-wrap:anywhere}
 .tsub{font-size:14px;color:var(--text-3);margin-bottom:12px}
 .tip-ai-note{margin:10px 0 2px;color:var(--text-2);font-size:11px;line-height:1.45}
 .tip-unavailable{margin:12px 0;color:var(--text-2);font-size:15.5px;line-height:1.55}
@@ -433,7 +506,7 @@ body.compact .category-badges,body.compact .spark,body.compact .sparkhist{displa
 .undo-bar[data-tone="error"]{border-color:var(--hot)}
 .undo-bar span{flex:1;min-width:180px;overflow-wrap:anywhere}
 .undo-bar button{min-height:44px;border:1px solid var(--border);border-radius:9px;background:transparent;color:var(--text);padding:7px 11px;font:inherit;font-size:12.5px;font-weight:650;cursor:pointer}
-.undo-bar button:hover{border-color:var(--accent);color:var(--accent)}
+.undo-bar button:hover{border-color:var(--accent);color:var(--accent-selected)}
 .undo-bar button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .scroll-top{position:fixed;z-index:240;right:calc(env(safe-area-inset-right) + 16px);bottom:max(calc(env(safe-area-inset-bottom) + 16px),var(--scroll-top-offset,16px));min-width:48px;min-height:48px;border:1px solid var(--surface-border);border-radius:50%;background:var(--control-solid);color:var(--text);box-shadow:var(--shadow-card);display:grid;place-items:center;cursor:pointer;opacity:0;transform:translate3d(0,8px,0);pointer-events:none;transition:opacity .18s ease-out,transform .18s cubic-bezier(.16,1,.3,1)}
 .scroll-top.visible{opacity:1;transform:translate3d(0,0,0);pointer-events:auto}
@@ -540,8 +613,9 @@ footer a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 #readmePanel.open{transform:translate3d(0,0,0)}
 #readmePanel .rp-head{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--hairline)}
 #readmePanel .rp-head h2{flex:1;font-size:17px}
-#readmePanel .rp-close{width:44px;height:44px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-2);padding:0;border-radius:8px;transition:background-color .16s ease,color .16s ease,transform .16s ease}
-#readmePanel .rp-close:hover{background:var(--seg-bg)}
+#readmePanel .rp-head .rdbtn{display:inline-flex;align-items:center;min-height:44px}
+#readmePanel .rp-close,#tipLayer .rp-close{width:44px;height:44px;flex-shrink:0;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-2);padding:0;border-radius:8px;transition:background-color .16s ease,color .16s ease,transform .16s ease}
+#readmePanel .rp-close:hover,#tipLayer .rp-close:hover{background:var(--seg-bg)}
 #readmeBody{flex:1;overflow-y:auto;padding:28px 36px;font-size:18px;line-height:1.75}
 #readmeBody h1{font-size:34px;margin:22px 0 12px}#readmeBody h2{font-size:27px;margin:20px 0 10px}
 #readmeBody h3{font-size:22px;margin:16px 0 8px}
@@ -555,9 +629,11 @@ html[data-theme="dark"] #readmeBody code,html[data-theme="dark"] #readmeBody pre
 #readmeBody img{max-width:100%}
 .rdbtn{background:none;border:1px solid var(--border);color:var(--text-2);font:inherit;font-size:12.5px;
   padding:4px 10px;border-radius:8px;cursor:pointer;flex-shrink:0;transition:border-color .16s ease,color .16s ease,background-color .16s ease,transform .16s ease}
-.rdbtn:hover{border-color:var(--accent);color:var(--accent)}
-#readmeScrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:290;opacity:0;pointer-events:none;transition:opacity .3s cubic-bezier(.16,1,.3,1)}
-#readmeScrim.on{opacity:1;pointer-events:auto}
+.rdbtn:hover{border-color:var(--accent);color:var(--accent-selected)}
+#readmeScrim,#tipScrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:290;opacity:0;pointer-events:none;transition:opacity .3s cubic-bezier(.16,1,.3,1)}
+#readmeScrim.on,#tipScrim.on{opacity:1;pointer-events:auto}
+/* Same material, one layer below #tipLayer (z-index:200) instead of above it. */
+#tipScrim{z-index:190}
 /* star history sparkline */
 .sparkhist{margin-top:10px}
 .sparkhist svg{display:block;width:100%}
@@ -595,7 +671,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 <a class="skip-link" href="#mainContent" data-i18n="skip.main">Skip to content</a>
 <div class="filter-sidebar" id="filterSidebar" role="dialog" aria-label="Explore panel" data-i18n-aria-label="nav.ariaExplore" aria-hidden="true" inert data-group="explore">
   <div class="sidebar-head">
-    <h2 data-i18n="sidebar.title">Dashboard menu</h2>
+    <p class="sidebar-title" data-i18n="sidebar.title">Dashboard menu</p>
     <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close panel" data-i18n-aria-label="sidebar.close">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
@@ -612,7 +688,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <p id="luCadence" data-i18n="refresh.cadence">Refreshes every 6 hours</p>
   </section>
   <section class="sidebar-section" id="accountSection" aria-labelledby="accountTitle" data-group="account">
-    <h3 id="accountTitle" data-i18n="account.title">Account and sync</h3>
+    <p class="sidebar-group-title" id="accountTitle" data-i18n="account.title">Account and sync</p>
     <div class="account-controls">
       <p id="syncStatus" class="sync-status" role="status" aria-live="polite" title="Preparing sign-in." data-i18n-title="account.preparing" aria-label="Browser sync. Preparing sign-in." data-tone="notice" data-i18n="account.preparing">Preparing sign-in.</p>
       <button id="loginBtn" class="account-btn" type="button" disabled data-i18n="account.login">Sign in with Google</button>
@@ -620,21 +696,21 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     </div>
   </section>
   <nav class="sidebar-section sidebar-nav" id="viewSection" aria-label="Repository view" data-i18n-aria-label="view.aria" data-group="explore">
-    <h3 data-i18n="view.title">My list</h3>
+    <p class="sidebar-group-title" data-i18n="view.title">My list</p>
     <button id="allReposBtn" type="button" aria-pressed="true" data-i18n="view.all">All repositories</button>
     <button id="favOnlyBtn" type="button" aria-pressed="false" data-i18n="view.favorites">Favorites</button>
   </nav>
   <section class="sidebar-section" id="fieldSection" aria-labelledby="fieldTitle" data-group="explore">
-    <h3 id="fieldTitle" data-i18n="field.title">Field</h3>
+    <p class="sidebar-group-title" id="fieldTitle" data-i18n="field.title">Field</p>
     <p class="sidebar-note" data-i18n="field.note">You can select multiple fields.</p>
     <div class="filter-group" id="fieldFilters"></div>
   </section>
   <section class="sidebar-section" id="formSection" aria-labelledby="formTitle" data-group="explore">
-    <h3 id="formTitle" data-i18n="form.title">Form and technology</h3>
+    <p class="sidebar-group-title" id="formTitle" data-i18n="form.title">Form and technology</p>
     <div class="filter-group" id="formFilters"></div>
   </section>
   <section class="sidebar-section" id="sortSection" aria-labelledby="sortTitle" data-group="explore">
-    <h3 id="sortTitle" data-i18n="sort.title">Sort</h3>
+    <p class="sidebar-group-title" id="sortTitle" data-i18n="sort.title">Sort</p>
     <select class="langsel" id="sortSelect" aria-label="Repository sort order" data-i18n-aria-label="sort.aria">
       <option value="trending" data-i18n="sort.original">Original Trending order</option>
       <option value="gain" data-i18n="sort.gain">Stars gained in selected period</option>
@@ -645,11 +721,11 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <p class="sidebar-note" data-i18n="sort.note">Repositories without a value appear last.</p>
   </section>
   <section class="sidebar-section" id="presetSection" aria-labelledby="presetTitle" data-group="explore">
-    <h3 id="presetTitle" data-i18n="preset.title">Saved filters</h3>
+    <p class="sidebar-group-title" id="presetTitle" data-i18n="preset.title">Saved filters</p>
     <p class="sidebar-note" data-i18n="preset.note">Save the current Explore filters under a name and apply them again in one click.</p>
     <form id="presetForm">
       <label class="sr-only" for="presetName" data-i18n="preset.nameLabel">Preset name</label>
-      <input class="search preset-name" id="presetName" type="text" maxlength="40" autocomplete="off" aria-label="Preset name" data-i18n-aria-label="preset.nameLabel" placeholder="Rust CLI, weekly" data-i18n-placeholder="preset.namePlaceholder">
+      <input class="search preset-name" id="presetName" type="text" maxlength="40" autocomplete="off" aria-describedby="presetStatus" aria-label="Preset name" data-i18n-aria-label="preset.nameLabel" placeholder="Rust CLI, weekly" data-i18n-placeholder="preset.namePlaceholder">
       <button class="clear-filters" id="presetSaveBtn" type="submit" data-i18n="preset.save">Save current filters as preset</button>
     </form>
     <div class="preset-list" id="presetList"></div>
@@ -660,18 +736,18 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <button class="clear-filters" id="clearFiltersBtn" type="button" data-i18n="result.clear">Clear Explore filters</button>
   </section>
   <section class="sidebar-section" id="hiddenRepoSection" aria-labelledby="hiddenRepoTitle" data-group="history" hidden>
-    <h3 id="hiddenRepoTitle" data-i18n="hidden.title">Manage hidden repositories</h3>
+    <p class="sidebar-group-title" id="hiddenRepoTitle" data-i18n="hidden.title">Manage hidden repositories</p>
     <p class="sidebar-note" id="hiddenRepoCount"></p>
     <div class="hidden-repo-list" id="hiddenRepoList"></div>
     <button class="clear-filters" id="restoreAllHiddenBtn" type="button" data-i18n="hidden.restoreAll">Restore all</button>
   </section>
   <section class="sidebar-section" id="recentExitsSection" aria-labelledby="recentExitsTitle" data-group="history" hidden>
-    <h3 id="recentExitsTitle" data-i18n="exits.title">Recent exits</h3>
+    <p class="sidebar-group-title" id="recentExitsTitle" data-i18n="exits.title">Recent exits</p>
     <p class="sidebar-note" data-i18n="exits.note">Repositories that were in the previous confirmed list but are not in the current list.</p>
     <div class="recent-exit-list" id="recentExitsList"></div>
   </section>
   <section class="sidebar-section" id="exportSection" aria-labelledby="exportTitle" data-group="export">
-    <h3 id="exportTitle" data-i18n="export.title">Export current view</h3>
+    <p class="sidebar-group-title" id="exportTitle" data-i18n="export.title">Export current view</p>
     <p class="sidebar-note" data-i18n="export.note">Saves only public fields for the visible repositories in their current order.</p>
     <div class="export-actions">
       <button id="exportCsvBtn" type="button" data-i18n="export.csv">Download CSV</button>
@@ -704,7 +780,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
   <button class="nav-help" id="navHelpToggle" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="shortcutHelp" aria-label="Help — keyboard shortcuts (?)" data-i18n-aria-label="shortcuts.open" title="Help — keyboard shortcuts (?)" data-i18n-title="shortcuts.open">
     <span class="nav-label" data-i18n="shortcuts.label">Help</span>
   </button>
-  <span class="filter-count" id="filterCount" aria-live="polite"></span>
+  <span class="filter-count" id="filterCount" aria-live="polite" hidden><span class="sr-only" data-i18n="nav.activeFilters">Active filters</span><span id="filterCountValue"></span></span>
 </nav>
 <div id="sidebarScrim"></div>
 <main class="wrap" id="mainContent" tabindex="-1">
@@ -718,7 +794,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <select class="site-locale" id="siteLocale" aria-label="Site language" data-i18n-aria-label="site.language">
       <option value="en">English</option><option value="ko">한국어</option><option value="zh-CN">简体中文</option><option value="es">Español</option><option value="ja">日本語</option>
     </select>
-    <button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-label="Open panel" data-i18n-aria-label="nav.open" aria-controls="filterSidebar" aria-expanded="false" aria-hidden="true" tabindex="-1" inert>
+    <button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-controls="filterSidebar" aria-expanded="false" aria-hidden="true" tabindex="-1" inert>
       <span class="nav-glyph" aria-hidden="true"></span><span data-i18n="nav.explore">Explore</span>
     </button>
     <button class="theme-toggle" id="themeBtn" aria-label="Change theme" data-i18n-aria-label="header.theme"></button>
@@ -740,9 +816,19 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
       <div><dt><span class="badge">HOT</span></dt><dd data-i18n="badges.hot">At least 1,000 stars gained in the selected period</dd></div>
       <div><dt><span class="badge membership-new" data-i18n="badges.newLabel">New</span></dt><dd data-i18n="badges.new">First observed after the baseline</dd></div>
       <div><dt><span class="badge membership-reentered" data-i18n="badges.reenteredLabel">Re-entered</span></dt><dd data-i18n="badges.reentered">Returned after leaving the previous list</dd></div>
+      <!-- This sentence used to be re-stated under every one of the 51 sparklines, identical every
+           time. It belongs with the rest of the notation, once. -->
+      <div><dt><span class="badge">📈</span></dt><dd data-i18n="history.explanation">Total stars observed directly by this site (every 30 minutes) · the dashed line marks anchors back-calculated from GitHub Trending period totals</dd></div>
     </dl>
   </details>
 </aside>
+<script>/* The badge guide is notation for cards the phone viewport cannot show yet, so it ships open
+   for desktop and no-JS readers and collapses once on load under the mobile breakpoint. It runs here,
+   between the <aside> and #filterBar, so the collapse lands in the first layout: doing it from the
+   main script after first paint moved #filterBar up 142px and cost 0.48 CLS on a mobile viewport.
+   The reader stays in control afterwards — no resize listener re-opens or re-closes it. The block
+   keeps badgeGuide out of the scope the main script below shares. */
+{const badgeGuide=document.getElementById("badgeGuide");if(badgeGuide&&matchMedia("(max-width:560px)").matches)badgeGuide.open=false;}</script>
 
 <section class="filter-bar" id="filterBar" aria-label="Quick filters" data-i18n-aria-label="field.quick">
   <div class="filter-bar-row">
@@ -761,15 +847,75 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <button type="button" id="copyLinkBtn" class="filter-toggle" data-i18n="filter.copyLink">Copy link</button>
     <button type="button" id="compactToggle" class="filter-toggle" aria-pressed="false" data-i18n="filter.compact">Compact list</button>
   </div>
+  <div class="filter-pill-row" id="activeFilterPills"></div>
   <p class="filter-bar-status" id="filterBarStatus" role="status" aria-live="polite" aria-atomic="true" data-i18n="filter.statusPrompt"></p>
 </section>
 
-<noscript><p class="noscript-note">This page builds its repository list with JavaScript. Turn JavaScript on, or subscribe to the Atom feeds: <a href="feed.xml">feed.xml</a> · <a href="changes.xml">changes.xml</a>.</p></noscript>
+<noscript><p class="noscript-note">This page builds its repository list with JavaScript. Turn JavaScript on, or subscribe to the Atom feeds: <a href="feed.xml">feed.xml</a> · <a href="changes.xml">changes.xml</a>.</p>
+<!-- GENERATED:TRENDING-NOSCRIPT:START -->
+<ol class="noscript-list">
+<li><a href="https://github.com/mattpocock/skills" rel="noopener">mattpocock / skills</a> — Skills for Real Engineers. Straight from my .agents directory.</li>
+<li><a href="https://github.com/affaan-m/ECC" rel="noopener">affaan-m / ECC</a> — The agent harness performance optimization system. Skills, instincts, memory, security, and research-first development for Claude Code, Codex, Opencode, Cursor…</li>
+<li><a href="https://github.com/DietrichGebert/ponytail" rel="noopener">DietrichGebert / ponytail</a> — Makes your AI agent think like the laziest senior dev in the room. The best code is the code you never wrote.</li>
+<li><a href="https://github.com/fmtlib/fmt" rel="noopener">fmtlib / fmt</a> — A modern formatting library</li>
+<li><a href="https://github.com/anthropics/skills" rel="noopener">anthropics / skills</a> — Public repository for Agent Skills</li>
+<li><a href="https://github.com/cathrynlavery/diagram-design" rel="noopener">cathrynlavery / diagram-design</a> — 38 editorial diagram types for Claude Code, Codex, and Pi. Self-contained HTML + SVG. No shadows. No Mermaid slop.</li>
+<li><a href="https://github.com/anomalyco/opencode" rel="noopener">anomalyco / opencode</a> — The open source coding agent.</li>
+<li><a href="https://github.com/ruvnet/ruflo" rel="noopener">ruvnet / ruflo</a> — 🌊 The original agent meta-harness. Deploy intelligent multi-player swarms, coordinate autonomous workflows, and build conversational AI systems. Features…</li>
+<li><a href="https://github.com/humanlayer/skills" rel="noopener">humanlayer / skills</a></li>
+<li><a href="https://github.com/blader/humanizer" rel="noopener">blader / humanizer</a> — Agent skill that removes signs of AI-generated writing from text</li>
+<li><a href="https://github.com/BraveOPotato/FckSignups" rel="noopener">BraveOPotato / FckSignups</a> — A list of tools that are open-source, in-browser, and require no-signups!</li>
+<li><a href="https://github.com/WorldFlowAI/everything-claude-code" rel="noopener">WorldFlowAI / everything-claude-code</a> — Claude Code toolkit - agents, commands, skills, rules, and hooks for productive AI-assisted development</li>
+<li><a href="https://github.com/magnitudedev/magnitude" rel="noopener">magnitudedev / magnitude</a> — Open source inference server that runs the best local models for your hardware, plugged into the agent you already use. Works with Pi, OpenCode, Hermes,…</li>
+<li><a href="https://github.com/bikini/exploitarium" rel="noopener">bikini / exploitarium</a> — A single archive of public exploit PoCs and vulnerability research writeups. At the time I post these, none have been reported. Feel free to report them…</li>
+<li><a href="https://github.com/nvm-sh/nvm" rel="noopener">nvm-sh / nvm</a> — Node Version Manager - POSIX-compliant bash script to manage multiple active node.js versions. $nvm: 3ArcxqLtXMmBnWbbtfwQgVL3MNnDsggzgGDtXMnjpump</li>
+<li><a href="https://github.com/tt-a1i/archify" rel="noopener">tt-a1i / archify</a> — Agent skill for beautiful, verifiable architecture, workflow, sequence, data-flow, and lifecycle diagrams—self-contained HTML with motion and crisp export.</li>
+<li><a href="https://github.com/THU-MAIC/OpenMAIC" rel="noopener">THU-MAIC / OpenMAIC</a> — Open Multi-Agent Interactive Classroom — Get an immersive, multi-agent learning experience in just one click</li>
+<li><a href="https://github.com/Gitlawb/openclaude" rel="noopener">Gitlawb / openclaude</a> — runs anywhere. uses anything</li>
+<li><a href="https://github.com/google-research/timesfm" rel="noopener">google-research / timesfm</a> — TimesFM (Time Series Foundation Model) is a pretrained time-series foundation model developed by Google Research for time-series forecasting.</li>
+<li><a href="https://github.com/jingyaogong/minimind" rel="noopener">jingyaogong / minimind</a> — 🧠 Train a 64M-parameter LLM from scratch in just 2h!</li>
+<li><a href="https://github.com/tailscale/tailcat" rel="noopener">tailscale / tailcat</a> — like netcat, but over Tailscale's data plane, without Tailscale's control plane</li>
+<li><a href="https://github.com/K-Dense-AI/scientific-agent-skills" rel="noopener">K-Dense-AI / scientific-agent-skills</a> — Turn any AI agent into an AI Scientist. The #1 Agent Skills library for science, used by 190,000+ scientists worldwide. 165 ready-to-use validated skills plus…</li>
+<li><a href="https://github.com/Lakr233/vphone-cli" rel="noopener">Lakr233 / vphone-cli</a></li>
+<li><a href="https://github.com/handsomestWei/patent-disclosure-skill" rel="noopener">handsomestWei / patent-disclosure-skill</a> — 中国专利.skill：专利点挖掘与交底书（发明/实用/外观）编写，通俗解读专利，嗅探政策动向，辅助审查答复。</li>
+<li><a href="https://github.com/debpalash/VoiceStudio" rel="noopener">debpalash / VoiceStudio</a> — VoiceStudio is the open-source, fully-local ElevenLabs alternative — voice cloning, voice design, video dubbing, dictation, transcription &amp; audiobook creation…</li>
+<li><a href="https://github.com/every-app/open-seo" rel="noopener">every-app / open-seo</a> — Open source alternative to Semrush and Ahrefs</li>
+<li><a href="https://github.com/bilawalsidhu/gods-eye-view" rel="noopener">bilawalsidhu / gods-eye-view</a> — A spy satellite simulator in your browser, except the data is real. Live open source spatial intelligence on a photorealistic 3D globe.</li>
+<li><a href="https://github.com/punkpeye/awesome-mcp-servers" rel="noopener">punkpeye / awesome-mcp-servers</a> — A collection of MCP servers.</li>
+<li><a href="https://github.com/p-e-w/heretic" rel="noopener">p-e-w / heretic</a> — Fully automatic censorship removal for language models</li>
+<li><a href="https://github.com/majd/ipatool" rel="noopener">majd / ipatool</a> — Command-line tool that allows searching and downloading app packages (known as ipa files) for iOS, iPadOS, tvOS, and visionOS from the App Store.</li>
+<li><a href="https://github.com/ChromeDevTools/chrome-devtools-mcp" rel="noopener">ChromeDevTools / chrome-devtools-mcp</a> — Chrome DevTools for coding agents</li>
+<li><a href="https://github.com/checkstyle/checkstyle" rel="noopener">checkstyle / checkstyle</a> — Checkstyle is a development tool to help programmers write Java code that adheres to a coding standard. By default it supports the Google Java Style Guide and…</li>
+<li><a href="https://github.com/abi/screenshot-to-code" rel="noopener">abi / screenshot-to-code</a> — Drop in a screenshot and convert it to clean code (HTML/Tailwind/React/Vue)</li>
+<li><a href="https://github.com/omacom/omarchy" rel="noopener">omacom / omarchy</a> — Beautiful, Modern &amp; Opinionated Linux</li>
+<li><a href="https://github.com/semantica-agi/semantica" rel="noopener">semantica-agi / semantica</a> — Graph-Native Infrastructure for Context and Accountable AI Systems</li>
+<li><a href="https://github.com/cursor/plugins" rel="noopener">cursor / plugins</a> — Cursor plugin specification and official plugins</li>
+<li><a href="https://github.com/anthropics/claude-plugins-community" rel="noopener">anthropics / claude-plugins-community</a> — Community plugin marketplace for Claude Cowork and Claude Code. Read-only mirror — submit plugins at clau.de/plugin-directory-submission.</li>
+<li><a href="https://github.com/PrimeIntellect-ai/prime-agent" rel="noopener">PrimeIntellect-ai / prime-agent</a> — A self-improving RLM agent for coding workflows and long-running autonomous tasks.</li>
+<li><a href="https://github.com/AprilNEA/OpenLogi" rel="noopener">AprilNEA / OpenLogi</a> — ⚡️A native, local-first alternative to Logitech Options+, written in Rust 🦀 — remap buttons, DPI, and SmartShift over HID++. No account, no telemetry.</li>
+<li><a href="https://github.com/volcengine/OpenViking" rel="noopener">volcengine / OpenViking</a> — Self-evolving Context Database for AI Agents. Unify Agent Memory, Knowledge RAG and Skills.</li>
+<li><a href="https://github.com/freestylefly/awesome-gpt-image-2" rel="noopener">freestylefly / awesome-gpt-image-2</a> — Prompt as Code | GPT-Image2 工业级提示词引擎与模板库，530+ 个案例逆向工程，20+ 套工业级模板，并提炼出Skills，持续更新中</li>
+<li><a href="https://github.com/xai-org/x-algorithm" rel="noopener">xai-org / x-algorithm</a> — Algorithm powering the For You feed on X</li>
+<li><a href="https://github.com/vitali87/code-graph-rag" rel="noopener">vitali87 / code-graph-rag</a> — The ultimate RAG for your monorepo. Query, understand, and edit multi-language codebases with the power of AI and knowledge graphs</li>
+<li><a href="https://github.com/youssofal/MTPLX" rel="noopener">youssofal / MTPLX</a> — 3x faster speeds on MLX | Qwen 3.8 27B | Native MTP Speculative Decoding On Apple Silicon With No External Drafter.</li>
+<li><a href="https://github.com/cactus-compute/needle" rel="noopener">cactus-compute / needle</a> — 14MB foundation model for tiny devices; phones, wearables, smart home, and robots.</li>
+<li><a href="https://github.com/vorssaint/vorssaint-utils" rel="noopener">vorssaint / vorssaint-utils</a> — Free and open-source macOS menu bar toolkit.</li>
+<li><a href="https://github.com/modular/modular" rel="noopener">modular / modular</a> — The Modular Platform (includes MAX &amp; Mojo)</li>
+<li><a href="https://github.com/apache/maka" rel="noopener">apache / maka</a> — Apache Maka (Incubating) is a high-performance agent workspace that keeps a complete record of everything it did.</li>
+<li><a href="https://github.com/akitaonrails/ai-memory" rel="noopener">akitaonrails / ai-memory</a> — Solution for long term memory for agent coding CLIs and to facilitate handoff between different agent vendors</li>
+<li><a href="https://github.com/3b1b/manim" rel="noopener">3b1b / manim</a> — Animation engine for explanatory math videos</li>
+<li><a href="https://github.com/public-apis/public-apis" rel="noopener">public-apis / public-apis</a> — A collective list of free APIs</li>
+</ol>
+<!-- GENERATED:TRENDING-NOSCRIPT:END -->
+</noscript>
+<!-- GENERATED:TRENDING-JSONLD:START -->
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","name":"GITHUB INSIGHT — Trending repositories","itemListOrder":"https://schema.org/ItemListOrderAscending","numberOfItems":51,"itemListElement":[{"@type":"ListItem","position":1,"url":"https://github.com/mattpocock/skills","name":"mattpocock / skills"},{"@type":"ListItem","position":2,"url":"https://github.com/affaan-m/ECC","name":"affaan-m / ECC"},{"@type":"ListItem","position":3,"url":"https://github.com/DietrichGebert/ponytail","name":"DietrichGebert / ponytail"},{"@type":"ListItem","position":4,"url":"https://github.com/fmtlib/fmt","name":"fmtlib / fmt"},{"@type":"ListItem","position":5,"url":"https://github.com/anthropics/skills","name":"anthropics / skills"},{"@type":"ListItem","position":6,"url":"https://github.com/cathrynlavery/diagram-design","name":"cathrynlavery / diagram-design"},{"@type":"ListItem","position":7,"url":"https://github.com/anomalyco/opencode","name":"anomalyco / opencode"},{"@type":"ListItem","position":8,"url":"https://github.com/ruvnet/ruflo","name":"ruvnet / ruflo"},{"@type":"ListItem","position":9,"url":"https://github.com/humanlayer/skills","name":"humanlayer / skills"},{"@type":"ListItem","position":10,"url":"https://github.com/blader/humanizer","name":"blader / humanizer"},{"@type":"ListItem","position":11,"url":"https://github.com/BraveOPotato/FckSignups","name":"BraveOPotato / FckSignups"},{"@type":"ListItem","position":12,"url":"https://github.com/WorldFlowAI/everything-claude-code","name":"WorldFlowAI / everything-claude-code"},{"@type":"ListItem","position":13,"url":"https://github.com/magnitudedev/magnitude","name":"magnitudedev / magnitude"},{"@type":"ListItem","position":14,"url":"https://github.com/bikini/exploitarium","name":"bikini / exploitarium"},{"@type":"ListItem","position":15,"url":"https://github.com/nvm-sh/nvm","name":"nvm-sh / nvm"},{"@type":"ListItem","position":16,"url":"https://github.com/tt-a1i/archify","name":"tt-a1i / archify"},{"@type":"ListItem","position":17,"url":"https://github.com/THU-MAIC/OpenMAIC","name":"THU-MAIC / OpenMAIC"},{"@type":"ListItem","position":18,"url":"https://github.com/Gitlawb/openclaude","name":"Gitlawb / openclaude"},{"@type":"ListItem","position":19,"url":"https://github.com/google-research/timesfm","name":"google-research / timesfm"},{"@type":"ListItem","position":20,"url":"https://github.com/jingyaogong/minimind","name":"jingyaogong / minimind"},{"@type":"ListItem","position":21,"url":"https://github.com/tailscale/tailcat","name":"tailscale / tailcat"},{"@type":"ListItem","position":22,"url":"https://github.com/K-Dense-AI/scientific-agent-skills","name":"K-Dense-AI / scientific-agent-skills"},{"@type":"ListItem","position":23,"url":"https://github.com/Lakr233/vphone-cli","name":"Lakr233 / vphone-cli"},{"@type":"ListItem","position":24,"url":"https://github.com/handsomestWei/patent-disclosure-skill","name":"handsomestWei / patent-disclosure-skill"},{"@type":"ListItem","position":25,"url":"https://github.com/debpalash/VoiceStudio","name":"debpalash / VoiceStudio"},{"@type":"ListItem","position":26,"url":"https://github.com/every-app/open-seo","name":"every-app / open-seo"},{"@type":"ListItem","position":27,"url":"https://github.com/bilawalsidhu/gods-eye-view","name":"bilawalsidhu / gods-eye-view"},{"@type":"ListItem","position":28,"url":"https://github.com/punkpeye/awesome-mcp-servers","name":"punkpeye / awesome-mcp-servers"},{"@type":"ListItem","position":29,"url":"https://github.com/p-e-w/heretic","name":"p-e-w / heretic"},{"@type":"ListItem","position":30,"url":"https://github.com/majd/ipatool","name":"majd / ipatool"},{"@type":"ListItem","position":31,"url":"https://github.com/ChromeDevTools/chrome-devtools-mcp","name":"ChromeDevTools / chrome-devtools-mcp"},{"@type":"ListItem","position":32,"url":"https://github.com/checkstyle/checkstyle","name":"checkstyle / checkstyle"},{"@type":"ListItem","position":33,"url":"https://github.com/abi/screenshot-to-code","name":"abi / screenshot-to-code"},{"@type":"ListItem","position":34,"url":"https://github.com/omacom/omarchy","name":"omacom / omarchy"},{"@type":"ListItem","position":35,"url":"https://github.com/semantica-agi/semantica","name":"semantica-agi / semantica"},{"@type":"ListItem","position":36,"url":"https://github.com/cursor/plugins","name":"cursor / plugins"},{"@type":"ListItem","position":37,"url":"https://github.com/anthropics/claude-plugins-community","name":"anthropics / claude-plugins-community"},{"@type":"ListItem","position":38,"url":"https://github.com/PrimeIntellect-ai/prime-agent","name":"PrimeIntellect-ai / prime-agent"},{"@type":"ListItem","position":39,"url":"https://github.com/AprilNEA/OpenLogi","name":"AprilNEA / OpenLogi"},{"@type":"ListItem","position":40,"url":"https://github.com/volcengine/OpenViking","name":"volcengine / OpenViking"},{"@type":"ListItem","position":41,"url":"https://github.com/freestylefly/awesome-gpt-image-2","name":"freestylefly / awesome-gpt-image-2"},{"@type":"ListItem","position":42,"url":"https://github.com/xai-org/x-algorithm","name":"xai-org / x-algorithm"},{"@type":"ListItem","position":43,"url":"https://github.com/vitali87/code-graph-rag","name":"vitali87 / code-graph-rag"},{"@type":"ListItem","position":44,"url":"https://github.com/youssofal/MTPLX","name":"youssofal / MTPLX"},{"@type":"ListItem","position":45,"url":"https://github.com/cactus-compute/needle","name":"cactus-compute / needle"},{"@type":"ListItem","position":46,"url":"https://github.com/vorssaint/vorssaint-utils","name":"vorssaint / vorssaint-utils"},{"@type":"ListItem","position":47,"url":"https://github.com/modular/modular","name":"modular / modular"},{"@type":"ListItem","position":48,"url":"https://github.com/apache/maka","name":"apache / maka"},{"@type":"ListItem","position":49,"url":"https://github.com/akitaonrails/ai-memory","name":"akitaonrails / ai-memory"},{"@type":"ListItem","position":50,"url":"https://github.com/3b1b/manim","name":"3b1b / manim"},{"@type":"ListItem","position":51,"url":"https://github.com/public-apis/public-apis","name":"public-apis / public-apis"}]}</script>
+<!-- GENERATED:TRENDING-JSONLD:END -->
 <p id="cardKeyboardHint" class="sr-only" data-i18n="keyboard.card">When a card is focused, press Delete to hide that repository.</p>
 <h2 class="list-heading" id="listHeading" data-i18n="visit.heading">Trending repositories</h2>
 <div class="list-stage" id="listStage">
   <div class="list" id="list"></div>
-  <div class="empty" id="empty"><p id="emptyText" data-i18n="empty.default">No repositories match these conditions.</p><button id="emptyResetBtn" type="button" data-i18n="empty.reset">Reset filters</button><button id="emptyManageHiddenBtn" type="button" hidden data-i18n="empty.manage">Manage hidden repositories</button></div>
+  <div class="empty" id="empty"><p id="emptyText" data-i18n="empty.default">No repositories match these conditions.</p><div class="filter-pill-row" id="emptyFilterPills"></div><button id="emptyResetBtn" type="button" data-i18n="empty.reset">Reset filters</button><button id="emptyManageHiddenBtn" type="button" hidden data-i18n="empty.manage">Manage hidden repositories</button></div>
 </div>
 
 <div class="undo-bar" id="hiddenNotice" aria-live="polite" aria-atomic="true" hidden>
@@ -824,8 +970,19 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
   </p>
   <p class="sidebar-note" data-i18n="shortcuts.disableNote">Slash, question mark, Escape and Delete keep working.</p>
 </div>
+<div id="tipScrim"></div>
 <div id="tipLayer" role="dialog" aria-label="Repository summary" data-i18n-aria-label="tooltip.dialog" aria-hidden="true" inert></div>
 <script src="site-i18n.js"></script>
+<script>
+/* Early translation pass: the static markup above is English, and the main script that owns the
+   page i18n runs only after the repository data below has been parsed, which is after first paint.
+   Translating the static text now keeps the first frame in the reader's locale and stops the
+   badge guide and chips from reflowing when the main pass runs. create() is pure (no listeners),
+   so the main script's own instance re-applies the same locale harmlessly. The head script adds
+   the i18n-pending class that hides the body until this pass has run (or failed), so the English
+   frame is never painted; without JavaScript the class is never added. */
+try{SiteI18n.create({document,storage:localStorage,navigator})}catch{}finally{document.documentElement.classList.remove("i18n-pending")}
+</script>
 <script src="readme-markdown.js"></script>
 <script src="favorites.js"></script>
 <script src="hidden-repos.js"></script>
@@ -850,12 +1007,14 @@ globalThis.pageI18n=siteI18n;
 const siteLocale=document.getElementById("siteLocale");
 siteLocale.addEventListener("change",event=>siteI18n.setLocale(event.currentTarget.value));
 document.addEventListener("site-locale-change",()=>{
-  updateFilterLabels();
+  // The pills carry translated filter labels, so they belong with the panel chips this refreshes.
+  updateFilterLabels();renderActiveFilterPills();
   render();
   if(activeTipIndex!==null&&tipLayer.classList.contains("on")){
-    const repo=REPOS[activeTipIndex];tipLayer.innerHTML=tipHTML(repo,resolveSummaryLocale(repo,siteI18n.locale));
+    const repo=REPOS[activeTipIndex];tipLayer.innerHTML=tipHTML(repo,resolveSummaryLocale(repo,siteI18n.locale),tipModal);
+    if(tipModal)focusTipHead();
   }
-  updateRefreshStatus();renderRecentExits(currentRecentExits);renderHist();updateVisitHeading();renderPresets();
+  updateRefreshStatus();renderRecentExits(currentRecentExits);updateVisitHeading();renderPresets();
 });
 const SIGNALS=new Map();
 const MEMBERSHIP_STATUS=new Map();
@@ -866,11 +1025,6 @@ let filterState=RepoFilters.parseState(location.search,LANGUAGES);
 let period=filterState.period;
 let favOnly=filterState.favOnly;
 const storage=localStorage;
-/* The badge guide is notation for cards the phone viewport cannot show yet, so it ships open for
-   desktop and no-JS readers and collapses once on load under the mobile breakpoint. The reader
-   stays in control afterwards — no resize listener re-opens or re-closes it. */
-const badgeGuide=document.getElementById("badgeGuide");
-if(badgeGuide&&matchMedia("(max-width:560px)").matches)badgeGuide.open=false;
 let hiddenSet=new Set(HiddenRepos.read(storage)),lastHiddenSlug=null;
 // Recorded once per page load, before the first render, so every render this session sees the same
 // answer. REPOS is the generated data above; the diff is against what this browser last saw.
@@ -878,7 +1032,10 @@ const visitSummary=VisitTracker.recordVisit(storage,{slugs:REPOS.map(repo=>repo.
 const newSinceLastVisit=new Set(visitSummary.newSlugs);
 function updateVisitHeading(){
   const heading=document.getElementById("listHeading");
-  if(!visitSummary.previousVisitAt){heading.textContent=tr("visit.heading");return}
+  // With nothing visible the .empty block already says "no repositories match"; a "no new
+  // repositories since <date>" suffix directly above it would contradict that, so the heading
+  // falls back to its plain form until the filters show something again.
+  if(!visitSummary.previousVisitAt||!currentVisibleRepos.length){heading.textContent=tr("visit.heading");return}
   const date=visitSummary.previousVisitAt.slice(0,10);
   heading.textContent=visitSummary.newSlugs.length
     ?tr("visit.newSince",{count:visitSummary.newSlugs.length,date})
@@ -917,10 +1074,15 @@ globalThis.favoriteController=guestController;
 /* theme */
 const btn=document.getElementById("themeBtn");
 const ICONS={light:"☀️",dark:"🌙"};
+const themeColorMeta=document.getElementById("themeColorMeta");
 function setTheme(t){
   document.documentElement.dataset.theme=t;
   localStorage.setItem("gh-theme",t);
   btn.textContent=ICONS[t];
+  // aria-label overrides the emoji, so aria-pressed is the only thing that announces which theme
+  // is active. The single theme-color meta follows the --bg token of the theme just applied.
+  btn.setAttribute("aria-pressed",String(t==="dark"));
+  themeColorMeta.content=t==="dark"?"#282828":"#f5f5f7";
 }
 btn.addEventListener("click",()=>setTheme(document.documentElement.dataset.theme==="dark"?"light":"dark"));
 setTheme(localStorage.getItem("gh-theme") || (matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
@@ -1040,7 +1202,8 @@ function openSidebar(mode,trigger,group){
   // scrim does not cover the screen edge the gesture starts from. Close it here, or the next
   // closeShortcutHelp() clears pageMain.inert while the sidebar is still the modal on screen.
   if(shortcutHelp.classList.contains("open"))closeShortcutHelp(false);
-  hideTip();
+  // The sidebar takes focus itself; letting the tip hand focus back to the card would fight it.
+  hideTip(false);
   setSidebarGroup(group??sidebar.dataset.group,true);
   sidebar.inert=false;sidebar.classList.add("open");sidebar.setAttribute("aria-hidden","false");
   sidebar.dataset.openMode=mode;
@@ -1163,7 +1326,7 @@ function openShortcutHelp(trigger){
   // closeShortcutHelp() clears pageMain.inert while the README is still on screen.
   const readme=document.getElementById("readmePanel");
   if(readme.classList.contains("open"))closeReadme(false);
-  closeSidebar(false);
+  closeSidebar(false);hideTip(false);
   // The "?" key path always hands over #navHelpToggle, which is display:none wherever the rail
   // is hidden (coarse pointer, <=720px); focus() on it is a silent no-op, so fall back to
   // whatever holds focus now rather than recording an opener that cannot take focus back.
@@ -1336,6 +1499,56 @@ updateFilterLabels();
 function activeDiscoveryCount(){
   return filterState.fields.length+filterState.forms.length+(filterState.lang?1:0)+(filterState.excludeAi?1:0)+(filterState.newOnly?1:0);
 }
+// The filter bar says how many repositories survived and how many Explore filters are on, in the
+// two count phrases the sidebar summary already uses. render() writes it on every pass, so the
+// copy-link confirmation holds the region only until the next state change.
+function filterBarSummary(count){
+  const active=activeDiscoveryCount();
+  return active
+    ?`${tr("result.count",{count})} · ${tr("result.filters",{count:active})}`
+    :tr("result.count",{count});
+}
+// One pill per active Explore filter. The set is exactly what activeDiscoveryCount() counts, so the
+// "N Explore filters" in the status line and the number of pills under it can never disagree. Sort
+// order and the favourites view are deliberately not pills: they reorder or scope the list rather
+// than filter it, and neither is part of that count.
+function activeFilterPillModel(){
+  const pills=[];
+  for(const id of filterState.fields)pills.push({kind:"fields",id,label:filterLabel("fields",id)});
+  for(const id of filterState.forms)pills.push({kind:"forms",id,label:filterLabel("forms",id)});
+  if(filterState.lang)pills.push({kind:"lang",id:filterState.lang,label:filterState.lang});
+  if(filterState.excludeAi)pills.push({kind:"excludeAi",id:"excludeAi",label:tr("field.excludeAi")});
+  if(filterState.newOnly)pills.push({kind:"newOnly",id:"newOnly",label:tr("field.newOnly")});
+  return pills;
+}
+function activeFilterPillHtml(){
+  // WCAG 2.5.3: the accessible name opens with the visible label, so "click the AI pill" works by
+  // voice. The ✕ is decoration — "remove" is already in the name.
+  return activeFilterPillModel().map(pill=>`<button type="button" class="filter-toggle filter-pill" data-remove-filter="${esc(pill.kind)}" data-remove-id="${esc(pill.id)}" aria-label="${esc(tr("filter.removePill",{name:pill.label}))}"><span aria-hidden="true">${esc(pill.label)}</span><span class="filter-pill-x" aria-hidden="true">✕</span></button>`).join("");
+}
+function renderActiveFilterPills(){
+  const html=activeFilterPillHtml();
+  for(const id of ["activeFilterPills","emptyFilterPills"]){
+    const box=document.getElementById(id);if(box)box.innerHTML=html;
+  }
+}
+// Every branch ends in the update its own panel control ends in, so the URL, the panel chips and
+// the pills cannot drift apart: fields and forms go through toggleFilter, the rest repeat the
+// assignment their quick-filter handler makes.
+function removeActiveFilter(kind,id){
+  if(kind==="fields"||kind==="forms"){toggleFilter(kind,id);return}
+  if(kind==="lang")filterState={...filterState,lang:""};
+  else if(kind==="excludeAi")filterState={...filterState,excludeAi:false};
+  else if(kind==="newOnly")filterState={...filterState,newOnly:false};
+  else return;
+  updateFilterUi();syncUrl();render();
+}
+// Disable the control that would create the AI contradiction, never the one that would resolve it:
+// a ?field=ai-ml&exclude=ai link arrives with both on, and both must stay pressable to undo.
+function setFilterConflict(button,conflicted,messageKey){
+  button.disabled=conflicted;
+  button.title=conflicted?tr(messageKey):"";
+}
 function updateFilterUi(){
   document.getElementById("q").value=filterState.q;
   langSel.value=filterState.lang;
@@ -1343,15 +1556,22 @@ function updateFilterUi(){
   const gainOption=sortSel.querySelector('[value="gain"]');gainOption.disabled=period==="all";
   document.getElementById("excludeAi").setAttribute("aria-pressed",String(filterState.excludeAi));
   document.getElementById("newOnly").setAttribute("aria-pressed",String(filterState.newOnly));
+  const aiFieldSelected=filterState.fields.includes("ai-ml");
+  setFilterConflict(document.getElementById("excludeAi"),aiFieldSelected&&!filterState.excludeAi,"filter.conflictExcludeAi");
   document.querySelectorAll("[data-filter-id]").forEach(button=>{
     const key=button.closest("#fieldFilters")?"fields":"forms";
     button.setAttribute("aria-pressed",filterState[key].includes(button.dataset.filterId));
+    setFilterConflict(button,key==="fields"&&button.dataset.filterId==="ai-ml"&&filterState.excludeAi&&!aiFieldSelected,"filter.conflictAiField");
   });
   document.getElementById("allReposBtn").setAttribute("aria-pressed",!favOnly);
   document.getElementById("favOnlyBtn").setAttribute("aria-pressed",favOnly);
   seg.querySelectorAll("button").forEach(button=>button.setAttribute("aria-pressed",button.dataset.period===period));
   const count=activeDiscoveryCount();
-  document.getElementById("filterCount").textContent=count?String(count):"";
+  // The badge is a bare numeral, so it needs a name of its own: the .sr-only prefix rides inside
+  // the live region and the region is hidden outright at zero rather than rendering an empty pill.
+  document.getElementById("filterCount").hidden=!count;
+  document.getElementById("filterCountValue").textContent=count?String(count):"";
+  renderActiveFilterPills();
   // "Copied the current-view link." stops being true the moment the view changes, so the live
   // region is cleared with the state it described (RED1-M3). The locale half is handled by the
   // <p>'s data-i18n="filter.statusPrompt", which SiteI18n.apply() resets on every switch.
@@ -1418,7 +1638,7 @@ function hideRepository(slug,focusUndo=false){
   try{
     const alreadyHidden=hiddenSet.has(slug),saved=HiddenRepos.hide(storage,slug);
     hiddenSet=new Set(saved);if(alreadyHidden)return;
-    hideTip();render();showHiddenNotice(tr("hidden.didHide",{name:repo.name}),{undoSlug:slug});
+    hideTip(false);render();showHiddenNotice(tr("hidden.didHide",{name:repo.name}),{undoSlug:slug});
     if(focusUndo)requestAnimationFrame(()=>document.getElementById("undoHideBtn").focus());
   }catch{showHiddenNotice(tr("hidden.saveError"),{tone:"error"})}
 }
@@ -1442,20 +1662,29 @@ function resolveSummaryLocale(r,preferred=siteI18n.locale){
   const bundle=summaryBundle(r);
   return SUMMARY_LOCALES.includes(preferred)&&summaryAvailable(bundle[preferred])?preferred:null;
 }
-function tipHTML(r,locale=resolveSummaryLocale(r)){
+// `head` is the touch layout's modal head: the repository name paired with a 44px close button,
+// exactly the .rp-head row #readmePanel uses. On a hover layout the name stays the bare <h2> it
+// has always been, because there the layer follows the pointer and has no dismiss control at all.
+function tipHTML(r,locale=resolveSummaryLocale(r),head=false){
   const bundle=summaryBundle(r),s=locale?bundle[locale]:null;
-  const heading=`<h2>${esc(r.name)}</h2><p class="tsub">${fmt(r.stars)} ★ · ⑂ ${fmt(r.forks)} · 👥 ${fmt(r.contributors||0)} ${tr("repo.contributors")} · ◎ ${fmt(r.issues||0)} ${tr("repo.issues")} · ${esc(r.lang)}</p>`;
+  const title=head
+    ?`<div class="rp-head"><h2 lang="en">${esc(r.name)}</h2><button type="button" class="rp-close" id="tipCloseBtn" aria-label="${esc(tr("tooltip.close"))}">✕</button></div>`
+    :`<h2 lang="en">${esc(r.name)}</h2>`;
+  const heading=`${title}<p class="tsub">${fmt(r.stars)} ★ · ⑂ ${fmt(r.forks)} · 👥 ${fmt(r.contributors||0)} ${tr("repo.contributors")} · ◎ ${fmt(r.issues||0)} ${tr("repo.issues")} · ${esc(r.lang)}</p>`;
   const readme=`<div class="tip-readme-row"><button type="button" class="rdbtn js-readme" data-slug="${r.slug}" data-name="${esc(r.name)}">${tr("readme.view")}</button></div>`;
   const actions=`<p class="thint tip-actions"><button type="button" class="rdbtn js-hide-repo" data-slug="${r.slug}">${tr("tooltip.hide")}</button></p>`;
-  if(r.summary_status==="held")return `${heading}${readme}<p class="tip-unavailable" role="status">${tr("tooltip.held")}</p><p class="thint tip-held-retry">${tr("tooltip.heldRetry")}</p>${actions}`;
-  if(!summaryAvailable(s))return `${heading}${readme}<p class="tip-unavailable" role="status">${tr("tooltip.unavailable")}</p>${actions}`;
-  return `${heading}${readme}
+  // Every branch wraps its body in #tipSummaryBody, whatever that body turned out to be: a
+  // focused card points aria-describedby at this id, and a card whose summary is held or missing
+  // has to announce that rather than nothing.
+  if(r.summary_status==="held")return `${heading}${readme}<div id="tipSummaryBody"><p class="tip-unavailable" role="status">${tr("tooltip.held")}</p><p class="thint tip-held-retry">${tr("tooltip.heldRetry")}</p></div>${actions}`;
+  if(!summaryAvailable(s))return `${heading}${readme}<div id="tipSummaryBody"><p class="tip-unavailable" role="status">${tr("tooltip.unavailable")}</p></div>${actions}`;
+  return `${heading}${readme}<div id="tipSummaryBody">
   <div class="trow"><span class="tlabel">🎯 ${tr("tooltip.goal")}</span><p>${esc(s.goal)}</p></div>
   <div class="trow"><span class="tlabel">🛠 ${tr("tooltip.usage")}</span><p>${esc(s.usage)}</p></div>
   <div class="trow"><span class="tlabel">👍 ${tr("tooltip.pros")}</span><p>${esc(s.pros)}</p></div>
   <div class="trow"><span class="tlabel">👎 ${tr("tooltip.cons")}</span><p>${esc(s.cons)}</p></div>
   <div class="trow"><span class="tlabel">💡 ${tr("tooltip.fit")}</span><p>${esc(s.fit)}</p></div>
-  <p class="tip-ai-note">${tr("tooltip.aiNote")}</p>
+  <p class="tip-ai-note">${tr("tooltip.aiNote")}</p></div>
   ${actions}`;
 }
 
@@ -1476,7 +1705,9 @@ function membershipStatusForRepos(status){
 }
 function categoryBadgeGroup(category,label,values){
   if(!values.length)return "";
-  return `<div class="category-group" data-category-group="${category}"><span class="category-label" aria-hidden="true">${label}:</span>${values.map(value=>`<span class="badge category-badge" data-category="${category}"><span class="sr-only">${label}: </span>${esc(value)}</span>`).join("")}</div>`;
+  // One announcement per group: the visible label carries the group name for every reader, so the
+  // per-badge .sr-only copy that repeated it once per badge is gone.
+  return `<div class="category-group" data-category-group="${category}"><span class="category-label">${label}:</span>${values.map(value=>`<span class="badge category-badge" data-category="${category}">${esc(value)}</span>`).join("")}</div>`;
 }
 function classificationBadges(repo){
   const {forms,fields}=RepoFilters.classifyRepo(repo);
@@ -1487,9 +1718,22 @@ function classificationBadges(repo){
 }
 /* render */
 const list=document.getElementById("list"),empty=document.getElementById("empty");
+/* The history cell render() inlines and renderHist() rewrites when the data lands late — one
+   builder so the two paths cannot drift. */
+function histHtml(slug){
+  if(historyLoadError)return `<p class="histnote">${tr("history.failed")}</p>`;
+  if(!historyBySlug)return `<p class="histnote">${tr("history.loading")}</p>`;
+  return StarHistory.historyHtml(slug,historyBySlug.get(slug),tr);
+}
 function render(){
+  list.classList?.add("rendered");
   const viewPeriod=period;
   const gainOf=r=>UiMotion.periodGain(r,viewPeriod);
+  // "All" is the default period, so without this the daily digest opens showing only cumulative
+  // totals — numbers identical to yesterday's. The daily gain is always readable as a .cmeta
+  // figure; the proportional .spark bar stays gated on an explicitly chosen period because it is
+  // only meaningful relative to the maximum gain within that period.
+  const dailyGainOf=r=>UiMotion.periodGain(r,"daily");
   const showPeriodSignals=viewPeriod!=="all";
   const newOnlyBlock=newOnlyGate(filterState,membershipLoadState);
   if(newOnlyBlock){
@@ -1498,7 +1742,8 @@ function render(){
     document.getElementById("emptyResetBtn").hidden=false;
     document.getElementById("emptyManageHiddenBtn").hidden=true;
     document.getElementById("filterSummary").textContent=newOnlyBlock.summary;
-    updateHiddenManager();return;
+    setFilterBarStatus(filterBarSummary(0));
+    updateHiddenManager();updateVisitHeading();return;
   }
   let items=REPOS.filter(r=>RepoFilters.matchesRepo(transientMembershipRepo(r),filterState));
   if(favOnly)items=items.filter(r=>favSet.has(r.slug));
@@ -1519,6 +1764,9 @@ function render(){
     ...(favOnly?[tr("result.favorites")]:[]),
     ...(hiddenSet.size?[tr("result.hidden",{count:hiddenSet.size})]:[]),
   ].join(" · ");
+  // P1-1: the panel's effect has to be readable without reopening the panel, and on a phone the
+  // rail badge does not exist at all. This is the only count in main.
+  setFilterBarStatus(filterBarSummary(items.length));
   updateHiddenManager();
   const maxT=showPeriodSignals?Math.max(...items.map(gainOf),1):1;
   list.innerHTML=items.map((r,i)=>{
@@ -1533,7 +1781,7 @@ function render(){
       <button type="button" class="favbtn${faved?" on":""}" data-slug="${r.slug}" title="${tr("repo.favorite")}" aria-label="${esc(tr(faved?"repo.favoriteRemove":"repo.favoriteAdd",{name:r.name}))}" aria-pressed="${faved}"${favoriteBusy?" disabled":""}>${faved?"★":"☆"}</button>
       <div class="rank">${i+1}</div>
       <div class="cbody">
-        <div class="cname"><a class="repo-link" href="https://github.com/${r.slug}" target="_blank" rel="noopener">${esc(r.name)}</a>${membershipBadge}${visitBadge}${badges.streakDays?`<span class="badge" title="${tr("badges.streak")}">🔥 ${badges.streakDays}</span>`:""}${badges.starsChange!==null?`<span class="rankchg" title="${tr("badges.change")}">${badges.starsChange>0?"↑":"↓"}${fmt(Math.abs(badges.starsChange))}</span>`:""}${badges.hot?`<span class="badge" title="${tr("badges.hot")}">HOT</span>`:""}</div>
+        <div class="cname"><a class="repo-link" lang="en" href="https://github.com/${r.slug}" target="_blank" rel="noopener">${esc(r.name)}</a>${membershipBadge}${visitBadge}${badges.streakDays?`<span class="badge" title="${tr("badges.streak")}">🔥 ${badges.streakDays}</span>`:""}${badges.starsChange!==null?`<span class="rankchg" title="${tr("badges.change")}">${badges.starsChange>0?"↑":"↓"}${fmt(Math.abs(badges.starsChange))}</span>`:""}${badges.hot?`<span class="badge" title="${tr("badges.hot")}">HOT</span>`:""}</div>
         <div class="category-badges">${classificationBadges(r)}</div>
         <p class="cdesc">${esc(r.desc)}</p>
         <div class="cmeta">
@@ -1543,15 +1791,18 @@ function render(){
           <span>◎ ${fmt(r.issues||0)} ${tr("repo.issues")}</span>
           ${r.pushed_at?`<span>🕒 ${tr("repo.commit")} ${esc(r.pushed_at)}</span>`:""}
           ${r.latest_release?`<span>🏷 ${tr("repo.release")} ${esc(r.latest_release)}</span>`:""}
-          ${showPeriodSignals?`<span class="today">★ +${fmt(gainOf(r))} <span style="color:var(--text-3);font-weight:400">${unit}</span></span>`:""}
+          ${showPeriodSignals
+            ?`<span class="today">★ +${fmt(gainOf(r))} <span style="color:var(--text-3);font-weight:400">${unit}</span></span>`
+            :dailyGainOf(r)===null?"":`<span class="today">★ +${fmt(dailyGainOf(r))} <span style="color:var(--text-3);font-weight:400">${tr("period.today")}</span></span>`}
         </div>
         ${showPeriodSignals?`<div class="spark"><i style="width:${Math.max(4,gainOf(r)/maxT*100)}%"></i></div>`:""}
-        <div class="sparkhist" data-slug="${r.slug}"></div>
+        <div class="sparkhist" data-slug="${r.slug}">${histHtml(r.slug)}</div>
       </div>
       <div class="cstat"><div class="stars">${fmt(r.stars)}</div><div class="slabel">${tr("repo.totalStars")}</div></div>
     </article>`;
   }).join("");
-  if(typeof renderHist==="function")renderHist();
+  if(typeof refreshTipDescription==="function")refreshTipDescription();
+  updateVisitHeading();
 }
 
 /* 즐겨찾기 */
@@ -1574,11 +1825,11 @@ list.addEventListener("click",async e=>{
     cardIndex:+card.dataset.idx,
     tooltipOpen:tipLayer.classList.contains("on"),
   });
+  // "keep" is the second tap on the card that is already showing: it used to navigate to
+  // github.com, which is why readers left the site by trying to close the summary.
   if(action==="show"){
     e.preventDefault();
     showTip(card);
-  }else{
-    window.open(card.dataset.href,"_blank","noopener");
   }
 });
 list.addEventListener("keydown",e=>{
@@ -1613,6 +1864,23 @@ document.getElementById("clearFiltersBtn").addEventListener("click",()=>{
   filterState={...filterState,lang:"",fields:[],forms:[],excludeAi:false,newOnly:false};
   updateFilterUi();syncUrl();render();
 });
+// One delegate per pill row. The rows are rebuilt with innerHTML on every updateFilterUi(), so the
+// listener has to live on the container, not on the pills.
+for(const containerId of ["activeFilterPills","emptyFilterPills"]){
+  document.getElementById(containerId).addEventListener("click",event=>{
+    const pill=event.target.closest("[data-remove-filter]");
+    if(pill){
+      // The rows are rebuilt with innerHTML, so the pill under the pointer or the keyboard is gone
+      // after removal; keep focus on the pill that took its place, else the last one, else the
+      // nearest control in the same block, so a keyboard user is never dropped to <body>.
+      const box=pill.parentElement,index=box?Array.prototype.indexOf.call(box.children,pill):-1;
+      removeActiveFilter(pill.dataset.removeFilter,pill.dataset.removeId);
+      if(!box)return;
+      const next=box.children[Math.min(index,box.children.length-1)]||box.closest?.(".filter-bar,.empty")?.querySelector("button:not([disabled]),input")||document.getElementById("q");
+      next?.focus?.();
+    }
+  });
+}
 document.getElementById("hiddenRepoList").addEventListener("click",event=>{
   const button=event.target.closest("[data-restore-hidden]");if(button)restoreRepository(button.dataset.restoreHidden,{focusManager:true});
 });
@@ -1723,11 +1991,11 @@ const historyReady=StarHistory.load("star-history.json",fetch)
   .then(map=>{historyBySlug=map;renderHist()})
   .catch(()=>{historyLoadError=true;renderHist()});
 
+/* Only for history that lands after a render; render() inlines the cell itself. */
 function renderHist(){
   document.querySelectorAll(".sparkhist[data-slug]").forEach(el=>{
-    if(historyLoadError){el.innerHTML=`<p class="histnote">${tr("history.failed")}</p>`;return}
-    if(!historyBySlug){el.innerHTML=`<p class="histnote">${tr("history.loading")}</p>`;return}
-    el.innerHTML=StarHistory.historyHtml(el.dataset.slug,historyBySlug.get(el.dataset.slug),tr);
+    const html=histHtml(el.dataset.slug);
+    if(el.innerHTML!==html)el.innerHTML=html;
   });
 }
 
@@ -1795,6 +2063,7 @@ function selectedReadmeVariant(metadata,preferred=siteI18n.locale){return metada
 function readmeGithubUrl(state,variant){return `https://github.com/${state.slug}/blob/${state.metadata.defaultBranchHeadSha}/${encodeReadmePath(variant.path)}`}
 async function showReadmeVariant(id,{focus=false}={}){
   const state=currentReadme,variant=state?.metadata.variants.find(value=>value.id===id);if(!state||!variant)return;
+  readmeBody.lang=variant.locale||"en";
   state.currentId=id;renderReadmeVariantTabs(state);document.getElementById("rpOpenGithub").onclick=()=>window.open(readmeGithubUrl(state,variant),"_blank","noopener");
   if(focus)readmeVariantTabs.querySelector(`[data-readme-variant="${id}"]`)?.focus();
   if(state.cache.has(id)){setReadmeBody(state.cache.get(id));return}
@@ -1818,8 +2087,8 @@ async function openReadme(slug,name){
   // Same exclusivity rule as openSidebar(): the shortcut dialog goes before the README takes
   // over pageMain.inert, or closing it later un-inerts the page behind an open README.
   if(shortcutHelp.classList.contains("open"))closeShortcutHelp(false);
-  closeSidebar(false);hideTip();
-  document.getElementById("rpTitle").textContent=name;
+  closeSidebar(false);hideTip(false);
+  document.getElementById("rpTitle").textContent=name;readmeBody.lang="";
   setReadmeBody(tr("readme.loading"),true);panel.inert=false;panel.classList.add("open");panel.setAttribute("aria-hidden","false");scrim.classList.add("on");
   pageMain.classList.add("reading");pageMain.inert=true;document.body.classList.add("overlay-open");document.getElementById("rpClose").focus();
   if(typeof hideScrollTopImmediately==="function")hideScrollTopImmediately();
@@ -1876,8 +2145,38 @@ scheduleScrollTopUpdate();
 /* scroll-to-top runtime end */
 
 /* 플로팅 툴팁: body 직속 레이어, 카드에 절대 가려지지 않음 */
-const tipLayer=document.getElementById("tipLayer"),listStage=document.getElementById("listStage");
+const tipLayer=document.getElementById("tipLayer"),tipScrim=document.getElementById("tipScrim"),listStage=document.getElementById("listStage");
 let hideTimer=null,activeTipIndex=null;
+// Touch only: the layer is a real modal there, so it remembers the card that opened it and takes
+// the page out of the tab order the way #readmePanel and .shortcut-help already do.
+let tipModal=false,tipTrigger=null;
+// Focusing a card opens a summary of well over a thousand characters that a screen reader was
+// never told about: the card had no aria-describedby and the page had no live region for it. The
+// description is attached while the layer is open and detached when it closes, so it never points
+// at an inert layer, and only one card carries it at a time.
+let describedCard=null;
+function setTipDescription(card){
+  if(describedCard&&describedCard!==card)describedCard.removeAttribute("aria-describedby");
+  describedCard=card||null;
+  if(card)card.setAttribute("aria-describedby","tipSummaryBody");
+}
+// render() rebuilds the whole list with innerHTML, and it runs while a summary is open: a locale
+// switch, a background refresh of data/latest.json, a membership load. The card that was
+// describing the open summary — and, on touch, the card focus has to return to — is replaced by a
+// new node carrying neither. Re-point at the replacement instead of leaving the summary
+// unannounced and the focus restore pointing at a node that is no longer in the document.
+function refreshTipDescription(){
+  if(!tipLayer.classList.contains("on")||activeTipIndex===null)return;
+  const card=document.querySelector(`.card[data-idx="${activeTipIndex}"]`);
+  if(!card)return;
+  setTipDescription(card);
+  if(tipModal)tipTrigger=card;
+}
+// Synchronous, like openReadme's rpClose.focus(): the head exists the moment innerHTML is set,
+// and a requestAnimationFrame here would never run while the tab is in the background.
+function focusTipHead(){
+  document.getElementById("tipCloseBtn")?.focus();
+}
 function touchLayout(){return matchMedia("(hover: none), (pointer: coarse)").matches}
 function railLayout(){return innerWidth>=1100&&!touchLayout()}
 function currentListShift(){
@@ -1895,11 +2194,21 @@ function showTip(card){
   if(!r)return;
   if(activeTipIndex===idx&&tipLayer.classList.contains("on")){positionTip(card);return}
   activeTipIndex=idx;
-  tipLayer.innerHTML=tipHTML(r,resolveSummaryLocale(r,siteI18n.locale));
+  const modal=touchLayout();
+  tipLayer.innerHTML=tipHTML(r,resolveSummaryLocale(r,siteI18n.locale),modal);
   positionTip(card);
   tipLayer.classList.add("on");
   tipLayer.inert=false;
   tipLayer.setAttribute("aria-hidden","false");
+  setTipDescription(card);
+  if(!modal)return;
+  // The same contract the other two dialogs sign: scrim, inert page, focus moved in, focus
+  // restored to the card on close. The trigger is remembered before the page goes inert.
+  tipModal=true;tipTrigger=card;
+  tipLayer.setAttribute("aria-modal","true");
+  tipScrim.classList.add("on");pageMain.inert=true;document.body.classList.add("overlay-open");
+  if(typeof hideScrollTopImmediately==="function")hideScrollTopImmediately();
+  focusTipHead();
 }
 function positionTip(card){
   const rect=card.getBoundingClientRect();
@@ -1940,20 +2249,15 @@ list.addEventListener("mouseleave",e=>{
   hideTimer=setTimeout(hideTip,120);
 });
 tipLayer.addEventListener("mouseenter",()=>clearTimeout(hideTimer));
-function touchCardBehindTip(event){
-  if(!touchLayout()||activeTipIndex===null)return null;
-  return document.elementsFromPoint(event.clientX,event.clientY)
-    .map(element=>element.closest&&element.closest(".card"))
-    .find(card=>card&&+card.dataset.idx===activeTipIndex)||null;
-}
 tipLayer.addEventListener("click",e=>{
+  if(e.target.closest("#tipCloseBtn")){e.preventDefault();hideTip();return}
   const hideButton=e.target.closest(".js-hide-repo");
   if(hideButton){e.preventDefault();hideRepository(hideButton.dataset.slug,e.detail===0);return}
   const readmeButton=e.target.closest(".js-readme");
   if(readmeButton){e.preventDefault();openReadme(readmeButton.dataset.slug,readmeButton.dataset.name);return}
-  if(e.target.closest('button,a,input,select,textarea,[role="button"]'))return;
-  const card=touchCardBehindTip(e);
-  if(card)window.open(card.dataset.href,"_blank","noopener");
+  // A tap on the body used to hit-test through to the card underneath and open github.com
+  // mid-read, with nothing on screen saying so. Navigation belongs to the repository title link
+  // and to "View README"; the body is now just text.
 });
 tipLayer.addEventListener("mouseleave",()=>{hideTimer=setTimeout(hideTip,150)});
 
@@ -1961,13 +2265,29 @@ window.addEventListener("scroll",()=>{
   const card=activeTipIndex===null?null:document.querySelector(`.card[data-idx="${activeTipIndex}"]`);
   if(card&&tipLayer.classList.contains("on"))positionTip(card);
 },{passive:true});
-function hideTip(){tipLayer.classList.remove("on");tipLayer.setAttribute("aria-hidden","true");tipLayer.inert=true;activeTipIndex=null;listStage.style.transform="";}
+function hideTip(restoreFocus=true){
+  setTipDescription(null);
+  tipLayer.classList.remove("on");tipLayer.setAttribute("aria-hidden","true");tipLayer.inert=true;activeTipIndex=null;listStage.style.transform="";
+  if(!tipModal)return;
+  tipModal=false;
+  tipLayer.removeAttribute("aria-modal");
+  tipScrim.classList.remove("on");pageMain.inert=false;
+  if(!sidebar.classList.contains("open")&&!panel.classList.contains("open"))document.body.classList.remove("overlay-open");
+  const trigger=tipTrigger;tipTrigger=null;
+  // A card destroyed by a re-render (hide, filter change) is not a focus target any more; the
+  // caller that re-rendered owns focus in that case.
+  if(restoreFocus&&trigger instanceof HTMLElement&&trigger.isConnected)trigger.focus();
+  if(typeof scheduleScrollTopUpdate==="function")scheduleScrollTopUpdate();
+}
+tipLayer.addEventListener("keydown",event=>{if(tipModal)trapFocus(tipLayer,event)});
+tipScrim.addEventListener("click",()=>hideTip());
+document.addEventListener("keydown",event=>{if(event.key==="Escape"&&tipModal)hideTip()});
 document.addEventListener("click",e=>{
   if(!touchLayout()||!tipLayer.classList.contains("on"))return;
   if(e.target.closest("#tipLayer")||e.target.closest(".card"))return;
   hideTip();
 });
-window.addEventListener("resize",hideTip);
+window.addEventListener("resize",()=>hideTip());
 
 
 setSidebarGroup(sidebar.dataset.group);
@@ -1993,7 +2313,9 @@ function updateRefreshStatus(nextLastValue){
   document.getElementById("luCadence").textContent=tr("refresh.cadence");
 }
 (function(){
-  fetch("data/latest.json",{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject()).then(f=>{
+  /* Default cache mode, not no-store: Pages serves this with max-age=600 and an ETag, and the
+     refresh cadence is 6 hours, so a 10-minute cache is well inside one refresh window. */
+  fetch("data/latest.json").then(r=>r.ok?r.json():Promise.reject()).then(f=>{
     SIGNALS.clear();
     for(const repo of Array.isArray(f.repos)?f.repos:[]){
       const signal=repo?.signal;
@@ -2009,11 +2331,33 @@ function updateRefreshStatus(nextLastValue){
 })();
 </script>
 <script type="module">
-import("./firebase-client.js").catch(()=>{
-  const status=document.getElementById("syncStatus");
-  const login=document.getElementById("loginBtn");
-  const logout=document.getElementById("logoutBtn");
+/* Anonymous visitors do not pay for Firebase. The client pulls reCAPTCHA Enterprise (848 KB
+   decoded, larger than this page) and gapi on every load, and their third-party cookies are the
+   whole of this page's Lighthouse best-practices gap. Guest favourites already work from
+   localStorage, so the module is imported eagerly only for a browser that has signed in before,
+   and otherwise on the first Sign-in click. The marker is written by firebase-client.js. */
+const ACCOUNT_MARKER_KEY="gi.account.known";
+function hasAccountMarker(storage){
+  try{return storage.getItem(ACCOUNT_MARKER_KEY)==="1"}catch{return false}
+}
+const status=document.getElementById("syncStatus");
+const login=document.getElementById("loginBtn");
+const logout=document.getElementById("logoutBtn");
+/* data-i18n moves with the message so a later locale switch re-translates the state the visitor
+   is actually in, instead of restoring the static "Preparing sign-in." copy. */
+function setSyncMessage(key,tone){
+  const message=globalThis.pageI18n.t(key);
+  status.dataset.i18n=key;
+  status.dataset.i18nTitle=key;
+  status.textContent=message;
+  status.title=message;
+  status.setAttribute("aria-label",globalThis.pageI18n.t("account.syncLabel",{message}));
+  status.dataset.tone=tone;
+}
+function keepGuestMode(){
   const message=globalThis.pageI18n.t("account.unavailable");
+  status.dataset.i18n="account.unavailable";
+  status.dataset.i18nTitle="account.unavailable";
   status.textContent=message;
   status.title=message;
   status.setAttribute("aria-label",globalThis.pageI18n.t("account.syncLabel",{message}));
@@ -2021,7 +2365,34 @@ import("./firebase-client.js").catch(()=>{
   login.hidden=true;
   logout.hidden=true;
   globalThis.applyFavoriteState({favorites:globalThis.favoriteController.favorites(),busy:false});
-});
+}
+if(hasAccountMarker(localStorage)){
+  import("./firebase-client.js").catch(keepGuestMode);
+}else{
+  setSyncMessage("account.guest","notice");
+  login.disabled=false;
+  /* The SDK chain behind the popup (Firebase, App Check, reCAPTCHA) takes seconds on a slow link,
+     which can outlive the browser's user-activation window and get the popup blocked. Start the
+     load on intent (pointer over or focus) so the click itself has little left to wait for. When
+     the module has already published its own click handler by the time of the click, that
+     handler owns the popup and this one steps aside. */
+  let clientPromise=null,published=false;
+  const loadClient=()=>clientPromise??=import("./firebase-client.js");
+  const prefetch=()=>{loadClient().then(client=>client.ready).then(ready=>{published=ready===true}).catch(()=>{})};
+  login.addEventListener("pointerenter",prefetch,{once:true});
+  login.addEventListener("focus",prefetch,{once:true});
+  login.addEventListener("click",async()=>{
+    if(published)return;
+    setSyncMessage("account.preparing","notice");
+    login.disabled=true;
+    try{
+      const client=await loadClient();
+      /* ready is false when the bootstrap fell back to guest mode: it has already written its own
+         message and hidden the buttons, so there is no popup left to continue into. */
+      if(await client.ready&&!login.hidden)await client.signIn();
+    }catch{keepGuestMode()}
+  },{once:true});
+}
 </script>
 </body>
 </html>
