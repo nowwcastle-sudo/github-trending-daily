@@ -2754,7 +2754,11 @@ test("the page declares a Content-Security-Policy that covers every origin the c
   assert.ok(moduleNames.length >= 13, "the scan must cover every script the page loads");
   const sources = await Promise.all(moduleNames.map(name => readFile(new URL(`../${name}`, import.meta.url), "utf8")));
   const allowed = new Set(Object.values(policy).flat());
-  const runtimeWithoutPolicy = pageRuntime.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, "");
+  const runtimeWithoutPolicy = pageRuntime
+    .replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, "")
+    // The generated ItemList block is JSON-LD vocabulary, not code: schema.org names the
+    // terms it uses and is never fetched, so it needs no CSP directive.
+    .replace(/<!-- GENERATED:TRENDING-JSONLD:START -->[\s\S]*?<!-- GENERATED:TRENDING-JSONLD:END -->/, "");
   const scanned = [runtimeWithoutPolicy, ...sources].join("\n");
   const hosts = new Set([...scanned.matchAll(/https:\/\/([a-z0-9.-]+)/gi)].map(match => match[1].toLowerCase()));
   const imageOnly = new Set(["raw.githubusercontent.com", "camo.githubusercontent.com"]);
@@ -3314,7 +3318,7 @@ test("the head describes the page for crawlers and unfurlers without a new reque
 
 test("a script-free visitor is told why the list is empty and where the feeds are", () => {
   const main = page.match(/<main class="wrap" id="mainContent" tabindex="-1">([\s\S]*?)<\/main>/)?.[1] ?? "";
-  assert.match(main, /<noscript><p class="noscript-note">This page builds its repository list with JavaScript\. Turn JavaScript on, or subscribe to the Atom feeds: <a href="feed\.xml">feed\.xml<\/a> · <a href="changes\.xml">changes\.xml<\/a>\.<\/p><\/noscript>/);
+  assert.match(main, /<noscript><p class="noscript-note">This page builds its repository list with JavaScript\. Turn JavaScript on, or subscribe to the Atom feeds: <a href="feed\.xml">feed\.xml<\/a> · <a href="changes\.xml">changes\.xml<\/a>\.<\/p>\r?\n/);
   assert.match(page, /\.noscript-note\{[^}]*border:1px solid var\(--surface-border\)/);
 });
 
@@ -3366,4 +3370,26 @@ test("a compact list mode is a fourth filter-bar toggle persisted per browser", 
   assert.match(page, /body\.compact \.card\{padding:11px 14px;margin-bottom:7px\}/);
   assert.match(page, /body\.compact \.cdesc\{-webkit-line-clamp:1;margin:4px 0 6px\}/);
   assert.match(page, /body\.compact \.category-badges,body\.compact \.spark,body\.compact \.sparkhist\{display:none\}/);
+});
+
+test("the shipped page carries a static repository list and an ItemList for crawlers", () => {
+  const repos = JSON.parse(page.match(/\/\/ GENERATED:TRENDING-REPOS:START\s*const REPOS = (\[[\s\S]*?\]);\s*\/\/ GENERATED:TRENDING-REPOS:END/)[1]);
+  assert.ok(repos.length > 0, "the page must embed the day's repositories");
+
+  const noscript = page.match(/<!-- GENERATED:TRENDING-NOSCRIPT:START -->\r?\n([\s\S]*?)\r?\n<!-- GENERATED:TRENDING-NOSCRIPT:END -->/);
+  assert.ok(noscript, "index.html must keep the noscript list markers");
+  assert.match(page, /<noscript><p class="noscript-note">[\s\S]*?<!-- GENERATED:TRENDING-NOSCRIPT:END -->\r?\n<\/noscript>/);
+  assert.match(noscript[1], /^<ol class="noscript-list">\r?\n/);
+  assert.equal(noscript[1].match(/<li>/g).length, repos.length);
+  for (const repo of repos.slice(0, 3)) {
+    assert.ok(noscript[1].includes(`href="https://github.com/${repo.slug}"`), `${repo.slug} must be linked without JavaScript`);
+  }
+
+  const jsonLd = page.match(/<!-- GENERATED:TRENDING-JSONLD:START -->\r?\n<script type="application\/ld\+json">([\s\S]*?)<\/script>\r?\n<!-- GENERATED:TRENDING-JSONLD:END -->/);
+  assert.ok(jsonLd, "index.html must keep the ItemList markers");
+  const itemList = JSON.parse(jsonLd[1]);
+  assert.equal(itemList["@type"], "ItemList");
+  assert.equal(itemList.numberOfItems, repos.length);
+  assert.equal(itemList.itemListElement.length, repos.length);
+  assert.deepEqual(itemList.itemListElement.map(item => item.url), repos.map(repo => `https://github.com/${repo.slug}`));
 });
