@@ -3552,6 +3552,11 @@ test("the audited focus, hover and description gaps are closed in the shipped sh
   // M2: .controls is sticky at top:0 above the list, so a card scrolled into view by sequential
   // focus navigation must clear it or its focus ring is hidden.
   assert.match(page, /\.card\{[^}]*scroll-margin-top:77px/);
+  // First-frame stability (desktop CLS 0.51 measured on 2026-09-07): the scrollbar that appears once the
+  // cards land must not move the centred column, and the empty list must already push the footer below
+  // the fold so it does not shift out of view when the list fills.
+  assert.match(page, /html\{scroll-behavior:smooth;scrollbar-gutter:stable\}/);
+  assert.match(page, /\.list:empty\{min-height:100vh\}/);
   // M3: --accent is 4.31:1 on the light --bg, so hover *text* uses --accent-selected (5.58:1)
   // while the border keeps --accent.
   for (const selector of [".account-btn:hover", ".hidden-restore:hover", ".filter-chip:hover",

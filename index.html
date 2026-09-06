@@ -70,7 +70,10 @@ html[data-theme="dark"]{
   --tip-bg:rgba(60,56,54,.96); --tip-border:rgba(235,219,178,.20);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+/* The list renders from the script at the end of the document, so the first frame is a short page
+   without a scrollbar and with the footer in view; when the cards land the scrollbar appears and the
+   centred column shifts. A stable gutter and a first-frame list height keep that frame in place. */
+html{scroll-behavior:smooth;scrollbar-gutter:stable}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;
   background:var(--bg);color:var(--text);min-height:100vh;
@@ -353,6 +356,7 @@ body.overlay-open{overflow:hidden}
 /* ── Cards ──────────────────────────── */
 .list-stage{transform:translate3d(0,0,0);transition:transform .3s cubic-bezier(.32,.72,0,1)}
 .list{margin-top:18px}
+.list:empty{min-height:100vh}
 /* .controls is sticky at top:0 above this list, so a card scrolled into view by sequential
    focus navigation would land behind it and hide its focus ring. 77px = the sticky row's own
    height (14px padding twice around the 37px #q input) plus 12px of clearance; hard-coded
