@@ -5,7 +5,7 @@ import { existsSync } from "node:fs";
 import { chmod, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import http from "node:http";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
@@ -697,7 +697,17 @@ test("a release created between our view and our create is tolerated; a view tha
   // The racing creator: our view says missing, our create is told the tag already exists.
   let gh = await fakeGh(directory, { existingRelease: false, createResult: "already_exists", uploadResult: "ok" });
   const { base, close } = await assetServer((request, response) => {
-    readFile(join(gh.served, request.url.split("/").pop())).then(
+    const rawSegment = (request.url ?? "").split("/").pop() ?? "";
+    const decodedSegment = (() => {
+      try { return decodeURIComponent(rawSegment); } catch { return ""; }
+    })();
+    const asset = basename(decodedSegment);
+    if (!/^[A-Za-z0-9._-]+$/.test(asset) || asset.length === 0 || asset !== decodedSegment) {
+      response.writeHead(404);
+      response.end();
+      return;
+    }
+    readFile(join(gh.served, asset)).then(
       bytes => { response.writeHead(200); response.end(bytes); },
       () => { response.writeHead(404); response.end(); });
   });
