@@ -187,7 +187,7 @@ html:lang(ko) .sub{word-break:keep-all;overflow-wrap:normal}
   .filter-sidebar{touch-action:pan-y pinch-zoom}
 }
 .sidebar-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.sidebar-head h2{font-size:19px;letter-spacing:-.015em}
+.sidebar-head .sidebar-title{font-size:19px;font-weight:700;letter-spacing:-.015em}
 .sidebar-refresh{display:grid;gap:3px;padding:12px 14px;border:1px solid var(--hairline);border-radius:12px;background:var(--bg-elev);color:var(--text-2);font-size:12px;font-weight:650;line-height:1.45;font-variant-numeric:tabular-nums}
 .sidebar-refresh p{margin:0}
 .sidebar-close{width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:var(--text-2);cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -195,7 +195,7 @@ html:lang(ko) .sub{word-break:keep-all;overflow-wrap:normal}
 .sidebar-close:active{transform:scale(.96)}
 .sidebar-section{display:grid;gap:10px;padding-top:18px;border-top:1px solid var(--hairline)}
 .sidebar-section:first-of-type{padding-top:0;border-top:0}
-.sidebar-section h3{font-size:13px;line-height:1.3;letter-spacing:.01em}
+.sidebar-section .sidebar-group-title{font-size:13px;font-weight:700;line-height:1.3;letter-spacing:.01em}
 .sidebar-note{color:var(--text-2);font-size:11.5px;line-height:1.45}
 .account-controls{display:grid;justify-content:stretch}
 .sync-status{max-width:none}
@@ -595,7 +595,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
 <a class="skip-link" href="#mainContent" data-i18n="skip.main">Skip to content</a>
 <div class="filter-sidebar" id="filterSidebar" role="dialog" aria-label="Explore panel" data-i18n-aria-label="nav.ariaExplore" aria-hidden="true" inert data-group="explore">
   <div class="sidebar-head">
-    <h2 data-i18n="sidebar.title">Dashboard menu</h2>
+    <p class="sidebar-title" data-i18n="sidebar.title">Dashboard menu</p>
     <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close panel" data-i18n-aria-label="sidebar.close">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
@@ -612,7 +612,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <p id="luCadence" data-i18n="refresh.cadence">Refreshes every 6 hours</p>
   </section>
   <section class="sidebar-section" id="accountSection" aria-labelledby="accountTitle" data-group="account">
-    <h3 id="accountTitle" data-i18n="account.title">Account and sync</h3>
+    <p class="sidebar-group-title" id="accountTitle" data-i18n="account.title">Account and sync</p>
     <div class="account-controls">
       <p id="syncStatus" class="sync-status" role="status" aria-live="polite" title="Preparing sign-in." data-i18n-title="account.preparing" aria-label="Browser sync. Preparing sign-in." data-tone="notice" data-i18n="account.preparing">Preparing sign-in.</p>
       <button id="loginBtn" class="account-btn" type="button" disabled data-i18n="account.login">Sign in with Google</button>
@@ -620,21 +620,21 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     </div>
   </section>
   <nav class="sidebar-section sidebar-nav" id="viewSection" aria-label="Repository view" data-i18n-aria-label="view.aria" data-group="explore">
-    <h3 data-i18n="view.title">My list</h3>
+    <p class="sidebar-group-title" data-i18n="view.title">My list</p>
     <button id="allReposBtn" type="button" aria-pressed="true" data-i18n="view.all">All repositories</button>
     <button id="favOnlyBtn" type="button" aria-pressed="false" data-i18n="view.favorites">Favorites</button>
   </nav>
   <section class="sidebar-section" id="fieldSection" aria-labelledby="fieldTitle" data-group="explore">
-    <h3 id="fieldTitle" data-i18n="field.title">Field</h3>
+    <p class="sidebar-group-title" id="fieldTitle" data-i18n="field.title">Field</p>
     <p class="sidebar-note" data-i18n="field.note">You can select multiple fields.</p>
     <div class="filter-group" id="fieldFilters"></div>
   </section>
   <section class="sidebar-section" id="formSection" aria-labelledby="formTitle" data-group="explore">
-    <h3 id="formTitle" data-i18n="form.title">Form and technology</h3>
+    <p class="sidebar-group-title" id="formTitle" data-i18n="form.title">Form and technology</p>
     <div class="filter-group" id="formFilters"></div>
   </section>
   <section class="sidebar-section" id="sortSection" aria-labelledby="sortTitle" data-group="explore">
-    <h3 id="sortTitle" data-i18n="sort.title">Sort</h3>
+    <p class="sidebar-group-title" id="sortTitle" data-i18n="sort.title">Sort</p>
     <select class="langsel" id="sortSelect" aria-label="Repository sort order" data-i18n-aria-label="sort.aria">
       <option value="trending" data-i18n="sort.original">Original Trending order</option>
       <option value="gain" data-i18n="sort.gain">Stars gained in selected period</option>
@@ -645,7 +645,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <p class="sidebar-note" data-i18n="sort.note">Repositories without a value appear last.</p>
   </section>
   <section class="sidebar-section" id="presetSection" aria-labelledby="presetTitle" data-group="explore">
-    <h3 id="presetTitle" data-i18n="preset.title">Saved filters</h3>
+    <p class="sidebar-group-title" id="presetTitle" data-i18n="preset.title">Saved filters</p>
     <p class="sidebar-note" data-i18n="preset.note">Save the current Explore filters under a name and apply them again in one click.</p>
     <form id="presetForm">
       <label class="sr-only" for="presetName" data-i18n="preset.nameLabel">Preset name</label>
@@ -660,18 +660,18 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
     <button class="clear-filters" id="clearFiltersBtn" type="button" data-i18n="result.clear">Clear Explore filters</button>
   </section>
   <section class="sidebar-section" id="hiddenRepoSection" aria-labelledby="hiddenRepoTitle" data-group="history" hidden>
-    <h3 id="hiddenRepoTitle" data-i18n="hidden.title">Manage hidden repositories</h3>
+    <p class="sidebar-group-title" id="hiddenRepoTitle" data-i18n="hidden.title">Manage hidden repositories</p>
     <p class="sidebar-note" id="hiddenRepoCount"></p>
     <div class="hidden-repo-list" id="hiddenRepoList"></div>
     <button class="clear-filters" id="restoreAllHiddenBtn" type="button" data-i18n="hidden.restoreAll">Restore all</button>
   </section>
   <section class="sidebar-section" id="recentExitsSection" aria-labelledby="recentExitsTitle" data-group="history" hidden>
-    <h3 id="recentExitsTitle" data-i18n="exits.title">Recent exits</h3>
+    <p class="sidebar-group-title" id="recentExitsTitle" data-i18n="exits.title">Recent exits</p>
     <p class="sidebar-note" data-i18n="exits.note">Repositories that were in the previous confirmed list but are not in the current list.</p>
     <div class="recent-exit-list" id="recentExitsList"></div>
   </section>
   <section class="sidebar-section" id="exportSection" aria-labelledby="exportTitle" data-group="export">
-    <h3 id="exportTitle" data-i18n="export.title">Export current view</h3>
+    <p class="sidebar-group-title" id="exportTitle" data-i18n="export.title">Export current view</p>
     <p class="sidebar-note" data-i18n="export.note">Saves only public fields for the visible repositories in their current order.</p>
     <div class="export-actions">
       <button id="exportCsvBtn" type="button" data-i18n="export.csv">Download CSV</button>
@@ -704,7 +704,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
   <button class="nav-help" id="navHelpToggle" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="shortcutHelp" aria-label="Help — keyboard shortcuts (?)" data-i18n-aria-label="shortcuts.open" title="Help — keyboard shortcuts (?)" data-i18n-title="shortcuts.open">
     <span class="nav-label" data-i18n="shortcuts.label">Help</span>
   </button>
-  <span class="filter-count" id="filterCount" aria-live="polite"></span>
+  <span class="filter-count" id="filterCount" aria-live="polite" hidden><span class="sr-only" data-i18n="nav.activeFilters">Active filters</span><span id="filterCountValue"></span></span>
 </nav>
 <div id="sidebarScrim"></div>
 <main class="wrap" id="mainContent" tabindex="-1">
@@ -937,7 +937,10 @@ const visitSummary=VisitTracker.recordVisit(storage,{slugs:REPOS.map(repo=>repo.
 const newSinceLastVisit=new Set(visitSummary.newSlugs);
 function updateVisitHeading(){
   const heading=document.getElementById("listHeading");
-  if(!visitSummary.previousVisitAt){heading.textContent=tr("visit.heading");return}
+  // With nothing visible the .empty block already says "no repositories match"; a "no new
+  // repositories since <date>" suffix directly above it would contradict that, so the heading
+  // falls back to its plain form until the filters show something again.
+  if(!visitSummary.previousVisitAt||!currentVisibleRepos.length){heading.textContent=tr("visit.heading");return}
   const date=visitSummary.previousVisitAt.slice(0,10);
   heading.textContent=visitSummary.newSlugs.length
     ?tr("visit.newSince",{count:visitSummary.newSlugs.length,date})
@@ -1410,7 +1413,10 @@ function updateFilterUi(){
   document.getElementById("favOnlyBtn").setAttribute("aria-pressed",favOnly);
   seg.querySelectorAll("button").forEach(button=>button.setAttribute("aria-pressed",button.dataset.period===period));
   const count=activeDiscoveryCount();
-  document.getElementById("filterCount").textContent=count?String(count):"";
+  // The badge is a bare numeral, so it needs a name of its own: the .sr-only prefix rides inside
+  // the live region and the region is hidden outright at zero rather than rendering an empty pill.
+  document.getElementById("filterCount").hidden=!count;
+  document.getElementById("filterCountValue").textContent=count?String(count):"";
   // "Copied the current-view link." stops being true the moment the view changes, so the live
   // region is cleared with the state it described (RED1-M3). The locale half is handled by the
   // <p>'s data-i18n="filter.statusPrompt", which SiteI18n.apply() resets on every switch.
@@ -1535,7 +1541,9 @@ function membershipStatusForRepos(status){
 }
 function categoryBadgeGroup(category,label,values){
   if(!values.length)return "";
-  return `<div class="category-group" data-category-group="${category}"><span class="category-label" aria-hidden="true">${label}:</span>${values.map(value=>`<span class="badge category-badge" data-category="${category}"><span class="sr-only">${label}: </span>${esc(value)}</span>`).join("")}</div>`;
+  // One announcement per group: the visible label carries the group name for every reader, so the
+  // per-badge .sr-only copy that repeated it once per badge is gone.
+  return `<div class="category-group" data-category-group="${category}"><span class="category-label">${label}:</span>${values.map(value=>`<span class="badge category-badge" data-category="${category}">${esc(value)}</span>`).join("")}</div>`;
 }
 function classificationBadges(repo){
   const {forms,fields}=RepoFilters.classifyRepo(repo);
@@ -1557,7 +1565,7 @@ function render(){
     document.getElementById("emptyResetBtn").hidden=false;
     document.getElementById("emptyManageHiddenBtn").hidden=true;
     document.getElementById("filterSummary").textContent=newOnlyBlock.summary;
-    updateHiddenManager();return;
+    updateHiddenManager();updateVisitHeading();return;
   }
   let items=REPOS.filter(r=>RepoFilters.matchesRepo(transientMembershipRepo(r),filterState));
   if(favOnly)items=items.filter(r=>favSet.has(r.slug));
@@ -1611,6 +1619,7 @@ function render(){
     </article>`;
   }).join("");
   if(typeof renderHist==="function")renderHist();
+  updateVisitHeading();
 }
 
 /* 즐겨찾기 */

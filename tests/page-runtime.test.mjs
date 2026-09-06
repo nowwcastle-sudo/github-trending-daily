@@ -432,6 +432,7 @@ function hiddenSectionsGroupHarness() {
     activeDiscoveryCount() { return 0; },
     classificationBadges() { return ""; },
     renderHist() {},
+    updateVisitHeading() {},
     repoLabel(slug) { return slug; },
     esc(value) { return String(value ?? ""); },
     fmt(value) { return String(value); },
@@ -552,6 +553,7 @@ function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = ne
     newOnlyGate() { return null; },
     transientMembershipRepo(value) { return value; },
     updateHiddenManager() {},
+    updateVisitHeading() {},
     activeDiscoveryCount() { return 0; },
     classificationBadges() { return ""; },
     renderHist() {},
@@ -665,6 +667,7 @@ function filterUiHarness() {
     ["allReposBtn", new FakeElement("allReposBtn")],
     ["favOnlyBtn", new FakeElement("favOnlyBtn")],
     ["filterCount", new FakeElement("filterCount")],
+    ["filterCountValue", new FakeElement("filterCountValue")],
   ]);
 
   const gainOption = { disabled: false };
@@ -758,6 +761,7 @@ function filterControlsHarness() {
     ["allReposBtn", new FakeElement("allReposBtn")],
     ["favOnlyBtn", new FakeElement("favOnlyBtn")],
     ["filterCount", new FakeElement("filterCount")],
+    ["filterCountValue", new FakeElement("filterCountValue")],
   ]);
 
   const gainOption = { disabled: false };
@@ -2345,10 +2349,13 @@ test("canonical card badges preserve every form and non-AI field before one AI b
   assert.equal([...html.matchAll(/data-category="form"/g)].length, 2);
   assert.equal([...html.matchAll(/data-category="field"/g)].length, 2);
   assert.equal([...html.matchAll(/data-category="ai"/g)].length, 1);
+  // One announcement per group: the visible label is exposed and the per-badge .sr-only copy,
+  // which repeated the group name once per badge, is gone.
   for (const category of ["Form:", "Field and technology:", "AI related:"]) {
-    assert.match(html, new RegExp(`class="category-label" aria-hidden="true">${category}`));
-    assert.match(html, new RegExp(`class="sr-only">${category} `));
+    assert.match(html, new RegExp(`class="category-label">${category}`));
   }
+  assert.doesNotMatch(html, /aria-hidden="true"/);
+  assert.doesNotMatch(html, /sr-only/);
   assert.doesNotMatch(html, /\+\d|\+N/);
   const helper = page.match(/function classificationBadges\(repo\)\{[\s\S]*?\n\}/)?.[0] ?? "";
   assert.match(helper, /RepoFilters\.classifyRepo\(repo\)/);
@@ -3013,7 +3020,7 @@ test("RED1-M3 the filter-bar status is cleared by any view change and reset on a
   // The live region carries no data-i18n today, so an English "Could not copy the link…" survived
   // a switch to 한국어 verbatim; and "Copied the current-view link." outlived the view it described.
   assert.match(page, /id="filterBarStatus"[^>]*role="status"[^>]*aria-live="polite"[^>]*aria-atomic="true"[^>]*data-i18n="filter\.statusPrompt"/);
-  assert.match(page, /document\.getElementById\("filterCount"\)\.textContent=count\?String\(count\):"";[\s\S]{0,400}?setFilterBarStatus\(""\);\s*\}/);
+  assert.match(page, /document\.getElementById\("filterCount"\)\.hidden=!count;\s*document\.getElementById\("filterCountValue"\)\.textContent=count\?String\(count\):"";[\s\S]{0,400}?setFilterBarStatus\(""\);\s*\}/);
 
   const harness = filterUiHarness();
   harness.applyFilterState({ ...harness.parseState("?exclude=ai"), favOnly: false });
@@ -3392,4 +3399,59 @@ test("the shipped page carries a static repository list and an ItemList for craw
   assert.equal(itemList.numberOfItems, repos.length);
   assert.equal(itemList.itemListElement.length, repos.length);
   assert.deepEqual(itemList.itemListElement.map(item => item.url), repos.map(repo => `https://github.com/${repo.slug}`));
+});
+
+test("the page's first heading in document order is its own <h1>", () => {
+  // axe heading-order: the Explore panel's <h2> and nine <h3> preceded the page title in the DOM,
+  // so a reader navigating by heading met ten panel headings before learning what the page was.
+  const headings = [...page.matchAll(/<h([1-6])[\s>]/g)].map(match => Number(match[1]));
+  assert.ok(headings.length > 0, "the page must carry headings");
+  assert.equal(headings[0], 1, "the <h1> must be the first heading in document order");
+  assert.equal(headings.filter(level => level === 1).length, 1, "exactly one <h1>");
+  assert.ok(headings.every(level => level <= 2), "nothing below <h2> ships any more");
+
+  const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<nav class="nav-rail"/)?.[0] ?? "";
+  assert.doesNotMatch(sidebar, /<h[1-6][\s>]/, "the panel carries no headings at all");
+  assert.match(sidebar, /<p class="sidebar-title" data-i18n="sidebar\.title">Dashboard menu<\/p>/);
+  assert.equal([...sidebar.matchAll(/<p class="sidebar-group-title"/g)].length, 9);
+
+  // The demotion has to be invisible: the paragraphs inherit the UA heading weight explicitly and
+  // keep the sizes the h2/h3 selectors carried.
+  assert.match(page, /\.sidebar-head \.sidebar-title\{font-size:19px;font-weight:700;letter-spacing:-\.015em\}/);
+  assert.match(page, /\.sidebar-section \.sidebar-group-title\{font-size:13px;font-weight:700;line-height:1\.3;letter-spacing:\.01em\}/);
+  assert.doesNotMatch(page, /\.sidebar-head h2|\.sidebar-section h3/);
+
+  // Names still resolve: the dialog keeps its aria-label and every labelled group keeps its id.
+  assert.match(page, /id="filterSidebar" role="dialog" aria-label="Explore panel"/);
+  for (const [section, title] of [
+    ["accountSection", "accountTitle"], ["fieldSection", "fieldTitle"], ["formSection", "formTitle"],
+    ["sortSection", "sortTitle"], ["presetSection", "presetTitle"], ["hiddenRepoSection", "hiddenRepoTitle"],
+    ["recentExitsSection", "recentExitsTitle"], ["exportSection", "exportTitle"],
+  ]) {
+    assert.match(sidebar, new RegExp(`id="${section}" aria-labelledby="${title}"`));
+    assert.match(sidebar, new RegExp(`<p class="sidebar-group-title" id="${title}"`));
+  }
+});
+
+test("the rail's active-filter badge announces more than a bare numeral", () => {
+  // The badge was <span aria-live="polite">1</span>: the announcement was literally "1". The
+  // prefix rides inside the live region, and the region is hidden outright at zero so no empty
+  // pill is painted where the number used to be.
+  assert.match(page, /<span class="filter-count" id="filterCount" aria-live="polite" hidden><span class="sr-only" data-i18n="nav\.activeFilters">Active filters<\/span><span id="filterCountValue"><\/span><\/span>/);
+  for (const locale of ["en", "ko", "zh-CN", "es", "ja"]) {
+    const value = siteMessages[locale]["nav.activeFilters"];
+    assert.equal(typeof value, "string", `${locale} is missing nav.activeFilters`);
+    assert.ok(value.trim().length > 0, `${locale} nav.activeFilters must not be blank`);
+  }
+});
+
+test("the heading drops its since-last-visit suffix while the empty state is showing", () => {
+  // "nothing new since 2026-09-06" sat directly above "No repositories match these conditions."
+  assert.match(page, /if\(!visitSummary\.previousVisitAt\|\|!currentVisibleRepos\.length\)\{heading\.textContent=tr\("visit\.heading"\);return\}/);
+  // Every render path has to refresh it, including the new-repositories gate's early return.
+  assert.match(page, /updateHiddenManager\(\);updateVisitHeading\(\);return;/);
+  assert.match(page, /if\(typeof renderHist==="function"\)renderHist\(\);\r?\n  updateVisitHeading\(\);\r?\n\}/);
+  const headingFn = page.indexOf("function updateVisitHeading()");
+  const renderFn = page.indexOf("function render(){");
+  assert.ok(headingFn >= 0 && headingFn < renderFn, "updateVisitHeading is declared before render reads it");
 });
