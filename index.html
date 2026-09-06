@@ -17,7 +17,7 @@
    blocking scripts and the generated data literal, so an OS-dark or stored-dark visitor never
    sees a light first paint. setTheme() at the bottom stays the owner of the toggle button state
    and keeps #themeColorMeta in step from load onward. */
-try{var t0=localStorage.getItem("gh-theme");if(t0!=="dark"&&t0!=="light")t0=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t0;var m0=document.getElementById("themeColorMeta");if(m0)m0.content=t0==="dark"?"#282828":"#f5f5f7"}catch(e0){}</script>
+try{var t0=localStorage.getItem("gh-theme");if(t0!=="dark"&&t0!=="light")t0=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t0;var m0=document.getElementById("themeColorMeta");if(m0)m0.content=t0==="dark"?"#282828":"#f5f5f7";document.documentElement.classList.add("i18n-pending")}catch(e0){}</script>
 <meta name="description" content="GITHUB INSIGHT — today’s GitHub Trending repositories with source-bound README summaries, star history, and filters for field, form, language, and period.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="GITHUB INSIGHT">
@@ -74,6 +74,8 @@ html[data-theme="dark"]{
    without a scrollbar and with the footer in view; when the cards land the scrollbar appears and the
    centred column shifts. A stable gutter and a first-frame list height keep that frame in place. */
 html{scroll-behavior:smooth;scrollbar-gutter:stable}
+/* Set by the head script, cleared by the early translation pass right after site-i18n.js. */
+.i18n-pending body{visibility:hidden}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;
   background:var(--bg);color:var(--text);min-height:100vh;
@@ -867,8 +869,10 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
    page i18n runs only after the repository data below has been parsed, which is after first paint.
    Translating the static text now keeps the first frame in the reader's locale and stops the
    badge guide and chips from reflowing when the main pass runs. create() is pure (no listeners),
-   so the main script's own instance re-applies the same locale harmlessly. */
-try{SiteI18n.create({document,storage:localStorage,navigator})}catch{}
+   so the main script's own instance re-applies the same locale harmlessly. The head script adds
+   the i18n-pending class that hides the body until this pass has run (or failed), so the English
+   frame is never painted; without JavaScript the class is never added. */
+try{SiteI18n.create({document,storage:localStorage,navigator})}catch{}finally{document.documentElement.classList.remove("i18n-pending")}
 </script>
 <script src="readme-markdown.js"></script>
 <script src="favorites.js"></script>

@@ -3559,9 +3559,12 @@ test("the audited focus, hover and description gaps are closed in the shipped sh
   // The static markup is English; the early pass right after site-i18n.js translates it before the
   // repository data is parsed, so the first frame is already in the reader's locale (no reflow).
   const i18nTag = page.indexOf('<script src="site-i18n.js"></script>');
-  const earlyPass = page.indexOf("try{SiteI18n.create({document,storage:localStorage,navigator})}catch{}");
+  const earlyPass = page.indexOf('try{SiteI18n.create({document,storage:localStorage,navigator})}catch{}finally{document.documentElement.classList.remove("i18n-pending")}');
   const reposScript = page.indexOf("const REPOS = [");
   assert.ok(i18nTag >= 0 && earlyPass > i18nTag && earlyPass < reposScript, "early i18n pass sits between site-i18n.js and the data script");
+  // The body stays hidden until that pass has run, and only when the head script could add the class.
+  assert.match(page, /\r?\n\.i18n-pending body\{visibility:hidden\}\r?\n/);
+  assert.match(page, /document\.documentElement\.classList\.add\("i18n-pending"\)\}catch\(e0\)\{\}<\/script>/);
   assert.match(page, /\.list:empty\{min-height:100vh\}/);
   // M3: --accent is 4.31:1 on the light --bg, so hover *text* uses --accent-selected (5.58:1)
   // while the border keeps --accent.
