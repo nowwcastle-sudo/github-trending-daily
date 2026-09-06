@@ -484,6 +484,41 @@ test("future commits retain a backdated fast-forward and a proven rewrite import
   assert.deepEqual(rewrite.commits, []);
 });
 
+test("a push between the frozen facts and the commit listing leaves the newer commits to the next refresh", async () => {
+  // W1 run 34034341669 (2026-09-06): vorssaint/vorssaint-utils pushed twice inside the two-minute
+  // window between "Collect frozen repository facts" and this listing, and the whole refresh
+  // stopped. The frozen head is still on page one, so collection starts there; the two newer
+  // commits are exactly what the next run collects from this run's head.
+  const prior = sha("a");
+  const frozen = sha("c");
+  const events = await collectRepositoryEvents([{ ...repo, default_branch_head_sha: frozen }], {
+    previous: { "owner/repo": { branch: "main", headSha: prior } },
+    fetchImpl: successfulFetch({ commits: [commit(sha("f"), [sha("e")]), commit(sha("e"), [frozen]), commit(frozen, [sha("d")]), commit(sha("d"), [prior]), commit(prior)] }),
+  });
+  assert.deepEqual(events.heads.map(head => [head.headSha, head.transition]), [[frozen, "fast_forward"]]);
+  assert.deepEqual(events.commits.map(value => [value.sha, value.firstObservedOrdinal]), [[frozen, 1], [sha("d"), 2]]);
+  // Page offsets run over the live listing: a further push between the page-one and page-two
+  // fetches shifts page two so that it re-lists commits that sat above the frozen head. They were
+  // deferred, so they stay deferred; the recorder would otherwise reject the run an hour later.
+  const twoPages = { 1: [commit(sha("f"), [sha("e")]), commit(sha("e"), [frozen]), commit(frozen, [sha("d")])], 2: [commit(sha("e"), [frozen]), commit(frozen, [sha("d")]), commit(sha("d"), [prior]), commit(prior)] };
+  const shifted = await collectRepositoryEvents([{ ...repo, default_branch_head_sha: frozen }], {
+    previous: { "owner/repo": { branch: "main", headSha: prior } },
+    fetchImpl: async (url, options) => {
+      const value = new URL(url);
+      if (value.pathname.endsWith("/commits")) return response(200, twoPages[Number(value.searchParams.get("page"))] ?? []);
+      return successfulFetch()(url, options);
+    },
+  });
+  assert.deepEqual(shifted.commits.map(value => [value.sha, value.firstObservedOrdinal]), [[frozen, 1], [sha("d"), 2]]);
+  // A frozen head that is nowhere on the first page is still a stopped run: either more than a
+  // page was pushed under the run or the branch was rewritten, and neither is a state to record.
+  // (The collector checks no parent links; the recorder does, so the fixtures keep a real chain.)
+  await assert.rejects(collectRepositoryEvents([{ ...repo, default_branch_head_sha: frozen }], {
+    previous: { "owner/repo": { branch: "main", headSha: prior } },
+    fetchImpl: successfulFetch({ commits: [commit(sha("f"), [sha("e")]), commit(sha("e"), [prior]), commit(prior)] }),
+  }), /Current HEAD changed during commit collection/);
+});
+
 test("hostile Link and a page-two-only non-ETag mutation both stop the complete event candidate", async () => {
   await assert.rejects(collectRepositoryEvents([repo], {
     fetchImpl: async (url, options) => {

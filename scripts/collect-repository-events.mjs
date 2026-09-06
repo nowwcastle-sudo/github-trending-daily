@@ -441,13 +441,27 @@ async function collectCommits(repo, previous, context) {
     const values = await json(await request(url, { ...context, operation: "commit inventory", headers: context.githubHeaders }), `commit inventory for ${slug}`);
     if (!Array.isArray(values)) throw new Error(`Invalid commit inventory for ${slug}`);
     if (page === 1 && !values.length) throw new Error(`Contradictory empty commit page for ${slug}`);
-    for (const value of values) {
+    let listed = values;
+    if (page === 1) {
+      // The facts were frozen at headSha a minute or two before this listing. A repository that
+      // pushed in between lists its newer commits first; they belong to the next refresh, which
+      // starts from headSha as its prior head, so facts and events still describe one instant.
+      // A frozen head that is not on the first page at all (more than a page pushed, or history
+      // rewritten under the run) is still a defect that stops the run.
+      const frozenIndex = values.findIndex(value => value?.sha === headSha);
+      if (frozenIndex === -1) throw new Error(`Current HEAD changed during commit collection for ${slug}`);
+      if (frozenIndex > 0) process.stderr.write(`::notice::${slug}: ${frozenIndex} commit(s) pushed after the frozen head are left for the next refresh\n`);
+      // Remembered as seen: page offsets run over the live listing, so a further push between
+      // page fetches re-lists these newer commits lower down, and they must not be recorded here.
+      for (const value of values.slice(0, frozenIndex)) if (typeof value?.sha === "string") seen.add(value.sha);
+      listed = values.slice(frozenIndex);
+    }
+    for (const value of listed) {
       const record = commitRecord(slug, branch, value, records.length + 1);
       // GitHub commit pages can overlap while a branch advances.  The current
       // candidate is deduplicated by SHA; absence of the prior head is still
       // diagnosed below, so overlap cannot make a gap look successful.
       if (seen.has(record.sha)) continue;
-      if (page === 1 && seen.size === 0 && record.sha !== headSha) throw new Error(`Current HEAD changed during commit collection for ${slug}`);
       seen.add(record.sha);
       if (record.sha === prior.headSha) { found = true; break; }
       records.push(record);
