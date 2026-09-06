@@ -25,13 +25,18 @@ export const MUTABLE_GENERATED_PATHS = Object.freeze([
 export const CANDIDATE_ONLY_GENERATED_PATHS = Object.freeze(["data/repository-observations.sqlite"]);
 const FULL_FILE_GENERATED_PATHS = [...MUTABLE_GENERATED_PATHS, ...CANDIDATE_ONLY_GENERATED_PATHS].filter(value => value !== "index.html" && value !== "translations");
 const PAGE_REGIONS = Object.freeze([
-  ["<!-- GENERATED:TRENDING-DATE:START -->", "<!-- GENERATED:TRENDING-DATE:END -->"],
-  ["// GENERATED:TRENDING-REPOS:START", "// GENERATED:TRENDING-REPOS:END"],
+  ["<!-- GENERATED:TRENDING-DATE:START -->", "<!-- GENERATED:TRENDING-DATE:END -->", false],
+  ["// GENERATED:TRENDING-REPOS:START", "// GENERATED:TRENDING-REPOS:END", false],
+  // The crawlable regions shipped after these two. A page published before that carries
+  // neither marker, so a page without them is skipped rather than rejected.
+  ["<!-- GENERATED:TRENDING-NOSCRIPT:START -->", "<!-- GENERATED:TRENDING-NOSCRIPT:END -->", true],
+  ["<!-- GENERATED:TRENDING-JSONLD:START -->", "<!-- GENERATED:TRENDING-JSONLD:END -->", true],
 ]);
 
-function regionBounds(value, start, end) {
+function regionBounds(value, start, end, absentIsTolerated = false) {
   const firstStart = value.indexOf(start);
   const firstEnd = value.indexOf(end, firstStart + start.length);
+  if (absentIsTolerated && firstStart < 0 && value.indexOf(end) < 0) return null;
   if (firstStart < 0 || firstEnd < 0 || value.indexOf(start, firstStart + 1) >= 0 || value.indexOf(end, firstEnd + 1) >= 0 || firstEnd < firstStart) {
     throw new Error("index.html generated markers are missing, duplicated, or out of order");
   }
@@ -45,19 +50,21 @@ function decodeHtml(bytes) {
 export function hydrateCompositeIndex(currentBytes, productionBytes) {
   let result = decodeHtml(currentBytes);
   const production = decodeHtml(productionBytes);
-  for (const [start, end] of PAGE_REGIONS) {
-    const [currentStart, currentEnd] = regionBounds(result, start, end);
-    const [productionStart, productionEnd] = regionBounds(production, start, end);
-    result = `${result.slice(0, currentStart)}${production.slice(productionStart, productionEnd)}${result.slice(currentEnd)}`;
+  for (const [start, end, absentIsTolerated] of PAGE_REGIONS) {
+    const current = regionBounds(result, start, end, absentIsTolerated);
+    const source = regionBounds(production, start, end, absentIsTolerated);
+    if (!current || !source) continue;
+    result = `${result.slice(0, current[0])}${production.slice(source[0], source[1])}${result.slice(current[1])}`;
   }
   return Buffer.from(result, "utf8");
 }
 
 function withoutGeneratedPageRegions(bytes) {
   let value = decodeHtml(bytes);
-  for (const [start, end] of PAGE_REGIONS) {
-    const [regionStart, regionEnd] = regionBounds(value, start, end);
-    value = `${value.slice(0, regionStart)}${start}\n<GENERATED>\n${end}${value.slice(regionEnd)}`;
+  for (const [start, end, absentIsTolerated] of PAGE_REGIONS) {
+    const bounds = regionBounds(value, start, end, absentIsTolerated);
+    if (!bounds) continue;
+    value = `${value.slice(0, bounds[0])}${start}\n<GENERATED>\n${end}${value.slice(bounds[1])}`;
   }
   return value;
 }
