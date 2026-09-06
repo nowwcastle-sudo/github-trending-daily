@@ -28,6 +28,8 @@ import {
   parsePageRepos,
   parseTrendingHtml,
   renderFrozenCandidate,
+  renderItemListJsonLd,
+  renderNoscriptList,
   REPOSITORY_EXCLUSIONS,
   repositoryExclusion,
   runTrendingUpdate,
@@ -1480,6 +1482,12 @@ test("terminal errors do not include the authorization token", async () => {
 });
 
 const markedPage = `<!doctype html>
+<noscript><p class="noscript-note">note</p>
+<!-- GENERATED:TRENDING-NOSCRIPT:START -->
+<!-- GENERATED:TRENDING-NOSCRIPT:END -->
+</noscript>
+<!-- GENERATED:TRENDING-JSONLD:START -->
+<!-- GENERATED:TRENDING-JSONLD:END -->
 <footer>
 <!-- GENERATED:TRENDING-DATE:START -->
 <time id="lastUpdated" datetime="2026-08-22">2026-08-22 (Asia/Seoul)</time>
@@ -1634,7 +1642,9 @@ test("page snapshot changes only marked regions and stores detailed content with
 
   const outsideMarkers = value => value
     .replace(/\/\/ GENERATED:TRENDING-REPOS:START[\s\S]*?\/\/ GENERATED:TRENDING-REPOS:END/, "REPOS")
-    .replace(/<!-- GENERATED:TRENDING-DATE:START -->[\s\S]*?<!-- GENERATED:TRENDING-DATE:END -->/, "DATE");
+    .replace(/<!-- GENERATED:TRENDING-DATE:START -->[\s\S]*?<!-- GENERATED:TRENDING-DATE:END -->/, "DATE")
+    .replace(/<!-- GENERATED:TRENDING-NOSCRIPT:START -->[\s\S]*?<!-- GENERATED:TRENDING-NOSCRIPT:END -->/, "NOSCRIPT")
+    .replace(/<!-- GENERATED:TRENDING-JSONLD:START -->[\s\S]*?<!-- GENERATED:TRENDING-JSONLD:END -->/, "JSONLD");
   assert.equal(outsideMarkers(snapshot.page), outsideMarkers(markedPage));
   assert.match(snapshot.page, /const REPOS = \[\{"slug":"owner\/repo-0"/);
   assert.match(snapshot.page, /datetime="2026-08-23">2026-08-23 \(Asia\/Seoul\)/);
@@ -1690,6 +1700,80 @@ test("page snapshot rejects duplicate markers, invalid dates, and incomplete pub
     }),
     /exactly one.*REPOS/i,
   );
+});
+
+const CRAWL_REPOS = [
+  { slug: "owner/alpha", name: 'owner / al<pha> & "x"', desc: 'Tooling for <script> & "quotes"' },
+  { slug: "owner/beta", name: "owner / </script>", desc: "Closes </script> early" },
+];
+
+test("the static crawl regions render the repositories and escape every interpolated value", () => {
+  assert.equal(renderNoscriptList(CRAWL_REPOS), [
+    '<ol class="noscript-list">',
+    '<li><a href="https://github.com/owner/alpha" rel="noopener">owner / al&lt;pha&gt; &amp; &quot;x&quot;</a> — Tooling for &lt;script&gt; &amp; &quot;quotes&quot;</li>',
+    '<li><a href="https://github.com/owner/beta" rel="noopener">owner / &lt;/script&gt;</a> — Closes &lt;/script&gt; early</li>',
+    "</ol>",
+  ].join("\n"));
+
+  const jsonLd = renderItemListJsonLd(CRAWL_REPOS);
+  assert.equal(jsonLd, '<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","name":"GITHUB INSIGHT — Trending repositories","itemListOrder":"https://schema.org/ItemListOrderAscending","numberOfItems":2,"itemListElement":[{"@type":"ListItem","position":1,"url":"https://github.com/owner/alpha","name":"owner / al<pha> & \\"x\\""},{"@type":"ListItem","position":2,"url":"https://github.com/owner/beta","name":"owner / <\\/script>"}]}</script>');
+
+  const payload = /^<script type="application\/ld\+json">([\s\S]*)<\/script>$/.exec(jsonLd)[1];
+  assert.doesNotMatch(payload, /<\/script>/i);
+  const value = JSON.parse(payload);
+  assert.equal(value.numberOfItems, 2);
+  assert.equal(value.itemListElement[1].name, "owner / </script>");
+});
+
+test("the static list collapses whitespace and trims a long description on a word boundary", () => {
+  const words = Array.from({ length: 25 }, () => "abcdefg");
+  const rendered = renderNoscriptList([{ slug: "owner/long", name: "owner / long", desc: words.join("\n") }]);
+
+  assert.equal(rendered, [
+    '<ol class="noscript-list">',
+    `<li><a href="https://github.com/owner/long" rel="noopener">owner / long</a> — ${words.slice(0, 20).join(" ")}…</li>`,
+    "</ol>",
+  ].join("\n"));
+});
+
+const crawlRegion = (page, name) => (
+  page.match(new RegExp(`<!-- GENERATED:TRENDING-${name}:START -->\r?\n([\\s\\S]*?)\r?\n<!-- GENERATED:TRENDING-${name}:END -->`))[1]
+);
+
+test("page snapshot writes both crawl regions from the published array and repeats identically", () => {
+  const repos = publishableRepos();
+  const first = createPageSnapshot({ page: markedPage, summaryCache: {}, repos, statsDate: "2026-08-23" });
+
+  const noscript = crawlRegion(first.page, "NOSCRIPT");
+  assert.equal(noscript, renderNoscriptList(repos));
+  assert.equal(noscript.match(/<li>/g).length, repos.length);
+  const jsonLd = crawlRegion(first.page, "JSONLD");
+  assert.equal(jsonLd, renderItemListJsonLd(repos));
+  const value = JSON.parse(/^<script type="application\/ld\+json">([\s\S]*)<\/script>$/.exec(jsonLd)[1]);
+  assert.equal(value.numberOfItems, repos.length);
+  assert.deepEqual(value.itemListElement.map(item => item.url), repos.map(repo => `https://github.com/${repo.slug}`));
+
+  const second = createPageSnapshot({
+    page: first.page,
+    summaryCache: JSON.parse(first.summaryCacheText),
+    repos,
+    statsDate: "2026-08-23",
+  });
+  assert.equal(second.page, first.page);
+});
+
+test("page snapshot rejects a page that lost either crawl marker", () => {
+  for (const marker of ["<!-- GENERATED:TRENDING-NOSCRIPT:START -->", "<!-- GENERATED:TRENDING-JSONLD:END -->"]) {
+    assert.throws(
+      () => createPageSnapshot({
+        page: markedPage.replace(marker, ""),
+        summaryCache: {},
+        repos: publishableRepos(),
+        statsDate: "2026-08-23",
+      }),
+      /Expected exactly one .* marker pair/,
+    );
+  }
 });
 
 test("atomic installer restores both tracked files when the second replacement fails", async t => {

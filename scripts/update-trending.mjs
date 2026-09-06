@@ -1025,6 +1025,11 @@ const REPOS_START = "// GENERATED:TRENDING-REPOS:START";
 const REPOS_END = "// GENERATED:TRENDING-REPOS:END";
 const DATE_START = "<!-- GENERATED:TRENDING-DATE:START -->";
 const DATE_END = "<!-- GENERATED:TRENDING-DATE:END -->";
+const NOSCRIPT_START = "<!-- GENERATED:TRENDING-NOSCRIPT:START -->";
+const NOSCRIPT_END = "<!-- GENERATED:TRENDING-NOSCRIPT:END -->";
+const JSONLD_START = "<!-- GENERATED:TRENDING-JSONLD:START -->";
+const JSONLD_END = "<!-- GENERATED:TRENDING-JSONLD:END -->";
+const NOSCRIPT_DESC_LIMIT = 160;
 
 function assertValidDate(value) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value ?? "");
@@ -1147,6 +1152,52 @@ function inlineJson(value) {
     .replaceAll(">", "\\u003e");
 }
 
+// Mirrors the page's own esc() helper so the static list escapes exactly what the
+// client-side cards escape.
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+// Crawlers and unfurlers read the static list, so a long description is cut back to a
+// word boundary near NOSCRIPT_DESC_LIMIT rather than mid-word.
+function shortDescription(value) {
+  const text = String(value ?? "").replace(/\s+/g, " ").trim();
+  if (text.length <= NOSCRIPT_DESC_LIMIT) return text;
+  const clipped = text.slice(0, NOSCRIPT_DESC_LIMIT);
+  const boundary = clipped.lastIndexOf(" ");
+  return `${(boundary > 0 ? clipped.slice(0, boundary) : clipped).trimEnd()}…`;
+}
+
+export function renderNoscriptList(repos) {
+  const items = repos.map(repo => {
+    const description = shortDescription(repo.desc);
+    const link = `<a href="https://github.com/${escapeHtml(repo.slug)}" rel="noopener">${escapeHtml(repo.name)}</a>`;
+    return `<li>${link}${description ? ` — ${escapeHtml(description)}` : ""}</li>`;
+  });
+  return `<ol class="noscript-list">\n${items.join("\n")}\n</ol>`;
+}
+
+export function renderItemListJsonLd(repos) {
+  const value = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "GITHUB INSIGHT — Trending repositories",
+    itemListOrder: "https://schema.org/ItemListOrderAscending",
+    numberOfItems: repos.length,
+    itemListElement: repos.map((repo, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `https://github.com/${repo.slug}`,
+      name: repo.name,
+    })),
+  }).replaceAll("</", "<\\/");
+  return `<script type="application/ld+json">${value}</script>`;
+}
+
 function validateSnapshotPair(page, summaryCacheText, statsDate) {
   assertValidDate(statsDate);
   const repos = parsePageRepos(page);
@@ -1226,6 +1277,10 @@ export function createPageSnapshot({ page, summaryCache, repos, statsDate }) {
   }
 
   let nextPage = replaceMarkedRegion(page, REPOS_START, REPOS_END, "REPOS", `const REPOS = ${inlineJson(repos)};`);
+  // The same array is written again as crawlable markup, so a client without JavaScript
+  // and a link unfurler still see the day's repositories.
+  nextPage = replaceMarkedRegion(nextPage, NOSCRIPT_START, NOSCRIPT_END, "noscript list", renderNoscriptList(repos));
+  nextPage = replaceMarkedRegion(nextPage, JSONLD_START, JSONLD_END, "ItemList", renderItemListJsonLd(repos));
   nextPage = replaceMarkedRegion(
     nextPage,
     DATE_START,

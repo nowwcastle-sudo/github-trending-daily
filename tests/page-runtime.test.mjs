@@ -432,6 +432,9 @@ function hiddenSectionsGroupHarness() {
     activeDiscoveryCount() { return 0; },
     classificationBadges() { return ""; },
     renderHist() {},
+    updateVisitHeading() {},
+    filterBarSummary(count) { return `${count} repositories`; },
+    setFilterBarStatus() {},
     repoLabel(slug) { return slug; },
     esc(value) { return String(value ?? ""); },
     fmt(value) { return String(value); },
@@ -512,7 +515,10 @@ function renderContractHarness(classification = { forms: [], fields: ["unclassif
   return { context, contract: context.__renderContract };
 }
 
-function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = new Set(), { history = null, historyError = false } = {}) {
+function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = new Set(), options = {}) {
+  // Two callers, two shapes: history options ({ history, historyError }) or repository overrides.
+  const { history = null, historyError = false } = options;
+  const repositoryOverrides = options.repositoryOverrides ?? (("history" in options || "historyError" in options) ? {} : options);
   const start = page.indexOf('const list=document.getElementById("list"),empty=document.getElementById("empty")');
   const end = page.indexOf("\n/* 즐겨찾기 */", start);
   assert.ok(start >= 0 && end > start, "card render runtime must be isolated");
@@ -530,7 +536,9 @@ function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = ne
     topics: [], tag_rule_version: 1, field_tags: ["unclassified"], form_tags: [], membership_status: membership === "baseline" ? "baseline_present" : membership,
     rank_daily: 1, stars_daily: 1200, rank_weekly: null, stars_weekly: null, rank_monthly: null, stars_monthly: null,
     stars: 5000, forks: 20, contributors: 4, issues: 3,
+    ...repositoryOverrides,
   };
+  const filterBarStatusWrites = [];
   const context = {
     globalThis: null,
     URLSearchParams,
@@ -553,6 +561,11 @@ function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = ne
     newOnlyGate() { return null; },
     transientMembershipRepo(value) { return value; },
     updateHiddenManager() {},
+    updateVisitHeading() {},
+    // Declared after render() in the page, so the real slice hoists past this fixture's window.
+    // Recorded, because "say in the main column how many repositories survived" is render()'s job.
+    filterBarSummary(count) { return `${count} repositories`; },
+    setFilterBarStatus(message) { filterBarStatusWrites.push(message); },
     activeDiscoveryCount() { return 0; },
     classificationBadges() { return ""; },
     // render() builds the star-history cell itself now, so the harness supplies the state it
@@ -571,7 +584,7 @@ function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = ne
   vm.runInContext(repoFiltersSource, context, { filename: "repo-filters-card-fixture.js" });
   vm.runInContext(`${page.slice(start, end)}\nglobalThis.__render=render;`, context, { filename: "card-render-fixture.js" });
   context.__render();
-  return { html: nodes.get("list").innerHTML, visible: context.currentVisibleRepos, calls };
+  return { html: nodes.get("list").innerHTML, visible: context.currentVisibleRepos, calls, filterBarStatusWrites };
 }
 
 function scrollTopHarness({ reducedMotion = false } = {}) {
@@ -647,8 +660,10 @@ function scrollTopHarness({ reducedMotion = false } = {}) {
 
 function filterUiHarness() {
   // updateFilterUi + applyFilterState in isolation, per the Task 6 fix-round review's slice
-  // boundaries: "function updateFilterUi(){" through the line before "const seg=...".
-  const start = page.indexOf("function updateFilterUi(){");
+  // boundaries — widened in batch E2 to open at "function filterBarSummary(count){" so the
+  // active-filter pill model, the pill renderer, the count phrase and the AI conflict guard that
+  // updateFilterUi now calls come from the real page source instead of a stub.
+  const start = page.indexOf("function activeDiscoveryCount(){");
   const end = page.indexOf('\nconst seg=document.getElementById("periodSeg")', start);
   assert.ok(start >= 0 && end > start, "filter-ui runtime fixture must be isolated");
 
@@ -659,6 +674,9 @@ function filterUiHarness() {
       this.dataset = {};
       this.value = "";
       this.textContent = "";
+      this.innerHTML = "";
+      this.disabled = false;
+      this.title = "";
     }
     setAttribute(name, value) { this.attributes.set(name, String(value)); }
     getAttribute(name) { return this.attributes.get(name) ?? null; }
@@ -671,6 +689,9 @@ function filterUiHarness() {
     ["allReposBtn", new FakeElement("allReposBtn")],
     ["favOnlyBtn", new FakeElement("favOnlyBtn")],
     ["filterCount", new FakeElement("filterCount")],
+    ["filterCountValue", new FakeElement("filterCountValue")],
+    ["activeFilterPills", new FakeElement("activeFilterPills")],
+    ["emptyFilterPills", new FakeElement("emptyFilterPills")],
   ]);
 
   const gainOption = { disabled: false };
@@ -688,7 +709,7 @@ function filterUiHarness() {
   });
   const seg = { querySelectorAll(selector) { return selector === "button" ? periodButtons : []; } };
 
-  const calls = { moveThumb: 0, render: 0, filterBarStatus: [] };
+  const calls = { moveThumb: 0, render: 0, syncUrl: 0, filterBarStatus: [], toggleFilter: [] };
   const documentRef = {
     getElementById(id) { return nodes.get(id); },
     querySelectorAll() { return []; },
@@ -699,12 +720,26 @@ function filterUiHarness() {
     langSel,
     sortSel,
     seg,
-    activeDiscoveryCount() { return 0; },
     moveThumb() { calls.moveThumb += 1; },
     render() { calls.render += 1; },
     // Declared after updateFilterUi in the page, so the real slice would hoist past this fixture's
     // window; recorded here so the clear-on-state-change contract stays observable.
     setFilterBarStatus(message, tone = "") { calls.filterBarStatus.push([message, tone]); },
+    // Declared before the slice: the pill labels and the conflict titles go through them.
+    tr(key, parameters = {}) {
+      const messages = {
+        "result.count": `${parameters.count} repositories`,
+        "result.filters": `${parameters.count} Explore filters`,
+        "filter.removePill": `${parameters.name} filter — remove`,
+        "field.excludeAi": "Exclude AI",
+        "field.newOnly": "New repositories only",
+      };
+      return messages[key] ?? key;
+    },
+    esc(value) { return String(value ?? ""); },
+    filterLabel(kind, id) { return `${kind}:${id}`; },
+    toggleFilter(key, id) { calls.toggleFilter.push([key, id]); },
+    syncUrl() { calls.syncUrl += 1; },
     URLSearchParams,
   };
   context.globalThis = context;
@@ -715,6 +750,9 @@ function filterUiHarness() {
     ${page.slice(start, end)}
     globalThis.__updateFilterUi=updateFilterUi;
     globalThis.__applyFilterState=applyFilterState;
+    globalThis.__filterBarSummary=filterBarSummary;
+    globalThis.__pillModel=activeFilterPillModel;
+    globalThis.__removeActiveFilter=removeActiveFilter;
   `, context, { filename: "filter-ui-runtime-fixture.js" });
 
   return {
@@ -722,15 +760,21 @@ function filterUiHarness() {
     periodButtons,
     calls,
     applyFilterState(next) { context.__applyFilterState(next); },
-    parseState(search) { return context.RepoFilters.parseState(search, []); },
+    filterBarSummary(count) { return context.__filterBarSummary(count); },
+    pillModel() { return context.__pillModel(); },
+    removeActiveFilter(kind, id) { context.__removeActiveFilter(kind, id); },
+    parseState(search, languages = []) { return context.RepoFilters.parseState(search, languages); },
   };
 }
 
 function filterControlsHarness() {
   // updateFilterUi glued to the excludeAi/newOnly/clearFiltersBtn click handlers, per the
   // review's second slice: 'document.getElementById("excludeAi").addEventListener("click"'
-  // through the line before 'document.getElementById("hiddenRepoList")'.
-  const uiStart = page.indexOf("function updateFilterUi(){");
+  // through the line before 'document.getElementById("hiddenRepoList")'. Batch E2 widened the
+  // first slice back to activeDiscoveryCount so removeActiveFilter — which the pill rows in the
+  // second slice delegate to — is the real one, and pushed the second slice's end past the pill
+  // delegates it now has to wire.
+  const uiStart = page.indexOf("function activeDiscoveryCount(){");
   const uiEnd = page.indexOf('\nconst seg=document.getElementById("periodSeg")', uiStart);
   const handlersStart = page.indexOf('document.getElementById("excludeAi").addEventListener("click"');
   const handlersEnd = page.indexOf('document.getElementById("hiddenRepoList")', handlersStart);
@@ -743,6 +787,9 @@ function filterControlsHarness() {
       this.attributes = new Map();
       this.dataset = {};
       this.value = "";
+      this.innerHTML = "";
+      this.disabled = false;
+      this.title = "";
       this.listeners = new Map();
     }
     setAttribute(name, value) { this.attributes.set(name, String(value)); }
@@ -751,8 +798,8 @@ function filterControlsHarness() {
       if (!this.listeners.has(type)) this.listeners.set(type, []);
       this.listeners.get(type).push(listener);
     }
-    dispatch(type) {
-      for (const listener of this.listeners.get(type) || []) listener({ type, target: this });
+    dispatch(type, target = this) {
+      for (const listener of this.listeners.get(type) || []) listener({ type, target });
     }
   }
 
@@ -764,6 +811,9 @@ function filterControlsHarness() {
     ["allReposBtn", new FakeElement("allReposBtn")],
     ["favOnlyBtn", new FakeElement("favOnlyBtn")],
     ["filterCount", new FakeElement("filterCount")],
+    ["filterCountValue", new FakeElement("filterCountValue")],
+    ["activeFilterPills", new FakeElement("activeFilterPills")],
+    ["emptyFilterPills", new FakeElement("emptyFilterPills")],
   ]);
 
   const gainOption = { disabled: false };
@@ -779,7 +829,7 @@ function filterControlsHarness() {
   });
   const seg = { querySelectorAll(selector) { return selector === "button" ? periodButtons : []; } };
 
-  const calls = { updateFilterUi: 0, syncUrl: 0, render: 0, filterBarStatus: [] };
+  const calls = { updateFilterUi: 0, syncUrl: 0, render: 0, filterBarStatus: [], toggleFilter: [] };
   const documentRef = {
     getElementById(id) { return nodes.get(id); },
     querySelectorAll() { return []; },
@@ -790,11 +840,25 @@ function filterControlsHarness() {
     langSel,
     sortSel,
     seg,
-    activeDiscoveryCount() { return 0; },
     moveThumb() {},
     syncUrl() { calls.syncUrl += 1; },
     render() { calls.render += 1; },
     setFilterBarStatus(message, tone = "") { calls.filterBarStatus.push([message, tone]); },
+    tr(key, parameters = {}) {
+      const messages = {
+        "result.count": `${parameters.count} repositories`,
+        "result.filters": `${parameters.count} Explore filters`,
+        "filter.removePill": `${parameters.name} filter — remove`,
+        "field.excludeAi": "Exclude AI",
+        "field.newOnly": "New repositories only",
+      };
+      return messages[key] ?? key;
+    },
+    esc(value) { return String(value ?? ""); },
+    filterLabel(kind, id) { return `${kind}:${id}`; },
+    // Declared before this slice; removeActiveFilter routes field and form pills straight into it,
+    // which is the whole point — the pill and the panel chip take the identical path.
+    toggleFilter(key, id) { calls.toggleFilter.push([key, id]); },
     URLSearchParams,
   };
   context.globalThis = context;
@@ -872,9 +936,19 @@ function copyLinkHarness() {
 }
 
 test("the generated page has unique element ids", () => {
-  const ids = [...page.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
+  // tipHTML has three mutually exclusive return branches — summary, held, unavailable — and each
+  // wraps its body in the one id a focused card describes itself by. Counted once, not three
+  // times; anything else that repeats an id is still a duplicate.
+  const tipStart = page.indexOf("function tipHTML(r,");
+  const tipEnd = page.indexOf("\nfunction newOnlyGate(", tipStart);
+  assert.ok(tipStart >= 0 && tipEnd > tipStart);
+  const tipBranches = page.slice(tipStart, tipEnd);
+  assert.equal([...tipBranches.matchAll(/ id="tipSummaryBody"/g)].length, 3, "every branch must carry the id");
+  const scanned = page.slice(0, tipStart) + tipBranches.replace(/ id="tipSummaryBody"/g, "") + page.slice(tipEnd);
+  const ids = [...scanned.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
   const duplicates = [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
   assert.deepEqual(duplicates, []);
+  assert.equal(ids.filter(id => id === "tipSummaryBody").length, 0);
 });
 
 test("the BFCache lifecycle helper loads before the dynamic Firebase client", () => {
@@ -966,7 +1040,7 @@ test("tooltip cleanup and refresh status contain no merged JavaScript tokens", (
 test("tooltip runtime has one detailed content path", () => {
   assert.match(page, /function tipHTML\(r/);
   assert.match(page, /const bundle=summaryBundle\(r\),s=locale\?bundle\[locale\]:null/);
-  assert.match(page, /tipLayer\.innerHTML=tipHTML\(repo,resolveSummaryLocale\(repo,siteI18n\.locale\)\)/);
+  assert.match(page, /tipLayer\.innerHTML=tipHTML\(repo,resolveSummaryLocale\(repo,siteI18n\.locale\),tipModal\)/);
   assert.doesNotMatch(page, /tipHTML\(r,detailed\)|r\.detail|mobile summary/i);
   assert.doesNotMatch(page, /UiMotion\.mobileTooltipHtml/);
   for (const field of ["goal", "usage", "pros", "cons", "fit"]) {
@@ -986,7 +1060,7 @@ test("tooltip renders the fixed held copy instead of a summary for held reposito
 });
 
 test("a held repository tooltip states that a retry is scheduled", () => {
-  const tip = page.match(/function tipHTML\(r,locale=resolveSummaryLocale\(r\)\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  const tip = page.match(/function tipHTML\(r,locale=resolveSummaryLocale\(r\),head=false\)\{[\s\S]*?\n\}/)?.[0] ?? "";
   const held = tip.match(/if\(r\.summary_status==="held"\)return `[^`]*`/)?.[0] ?? "";
   assert.match(held, /tr\("tooltip\.held"\)/);
   assert.match(held, /tr\("tooltip\.heldRetry"\)/);
@@ -1017,7 +1091,10 @@ test("tipHTML executes the held branch and the summary branch from the real page
 
 test("site-locale changes re-render an open tooltip from the one persisted locale", () => {
   const localeChange = page.match(/document\.addEventListener\("site-locale-change",\(\)=>\{[\s\S]*?\n\}\);/)?.[0] ?? "";
-  assert.match(localeChange, /tipLayer\.innerHTML=tipHTML\(repo,resolveSummaryLocale\(repo,siteI18n\.locale\)\)/);
+  // The head is part of the rendered content, so a locale switch that rebuilds an open modal
+  // rebuilds its close button too — and has to put focus back on it.
+  assert.match(localeChange, /tipLayer\.innerHTML=tipHTML\(repo,resolveSummaryLocale\(repo,siteI18n\.locale\),tipModal\)/);
+  assert.match(localeChange, /if\(tipModal\)focusTipHead\(\)/);
   assert.doesNotMatch(localeChange, /activeSummaryLocale/);
 });
 
@@ -1811,11 +1888,11 @@ test("coarse pointers hide the rail and expose #mobileNavToggle as the header op
   assert.doesNotMatch(page, /id="(?:swipeEdge|edgeHitTarget)"|class="[^"]*(?:hamburger|swipe-edge|edge-hit-target)/i);
 });
 
-test("an unclaimed 24px-edge tap preserves first-detail then same-card navigation", () => {
+test("an unclaimed 24px-edge tap opens the summary and never navigates by itself", () => {
   const harness = sidebarHarness({ hoverCapable: false });
   assert.ok(harness.listenerCount("pointerdown") > 0);
   assert.ok(harness.listenerCount("pointermove") > 0);
-  const state = { activeIndex: null, tooltipOpen: false, visited: [] };
+  const state = { activeIndex: null, tooltipOpen: false, visited: [], kept: [] };
   function card(index) {
     const target = harness.createTarget(`card${index}`);
     target.dataset.idx = String(index);
@@ -1826,8 +1903,8 @@ test("an unclaimed 24px-edge tap preserves first-detail then same-card navigatio
         cardIndex: index,
         tooltipOpen: state.tooltipOpen,
       });
-      if (action === "navigate") state.visited.push(target.href);
-      else { state.activeIndex = index; state.tooltipOpen = true; }
+      if (action === "show") { state.activeIndex = index; state.tooltipOpen = true; }
+      else state.kept.push(target.href);
     });
     return target;
   }
@@ -1844,11 +1921,14 @@ test("an unclaimed 24px-edge tap preserves first-detail then same-card navigatio
   tap(first, 1);
   assert.equal(state.activeIndex, 0);
   assert.deepEqual(state.visited, []);
+  // P1-2: the second tap on the open card used to open github.com, so the natural way to dismiss
+  // the overlay was also the way to leave the site. It is now inert; the head's ✕ closes it.
   tap(first, 2);
-  assert.deepEqual(state.visited, ["https://github.com/owner/repo0"]);
+  assert.deepEqual(state.visited, []);
+  assert.deepEqual(state.kept, ["https://github.com/owner/repo0"]);
   tap(different, 3);
   assert.equal(state.activeIndex, 1);
-  assert.equal(state.visited.length, 1);
+  assert.equal(state.visited.length, 0);
 });
 
 test("pointerdown, vertical intent, x=25, and interactive targets remain unclaimed", () => {
@@ -2210,7 +2290,7 @@ test("the filter bar sits under the badge guide and owns period, language, quick
   const barIndex = page.indexOf('id="filterBar"');
   assert.ok(asideEnd >= 0 && asideEnd < barIndex && barIndex < hintIndex, "the filter bar belongs between the badge guide and the card hint");
   const bar = page.match(/<section class="filter-bar" id="filterBar"[\s\S]*?<\/section>/)?.[0] ?? "";
-  const order = ["periodSeg", "segThumb", "lang", "excludeAi", "newOnly", "copyLinkBtn", "filterBarStatus"];
+  const order = ["periodSeg", "segThumb", "lang", "excludeAi", "newOnly", "copyLinkBtn", "activeFilterPills", "filterBarStatus"];
   let previous = -1;
   for (const id of order) {
     const position = bar.indexOf(`id="${id}"`);
@@ -2417,10 +2497,13 @@ test("canonical card badges preserve every form and non-AI field before one AI b
   assert.equal([...html.matchAll(/data-category="form"/g)].length, 2);
   assert.equal([...html.matchAll(/data-category="field"/g)].length, 2);
   assert.equal([...html.matchAll(/data-category="ai"/g)].length, 1);
+  // One announcement per group: the visible label is exposed and the per-badge .sr-only copy,
+  // which repeated the group name once per badge, is gone.
   for (const category of ["Form:", "Field and technology:", "AI related:"]) {
-    assert.match(html, new RegExp(`class="category-label" aria-hidden="true">${category}`));
-    assert.match(html, new RegExp(`class="sr-only">${category} `));
+    assert.match(html, new RegExp(`class="category-label">${category}`));
   }
+  assert.doesNotMatch(html, /aria-hidden="true"/);
+  assert.doesNotMatch(html, /sr-only/);
   assert.doesNotMatch(html, /\+\d|\+N/);
   const helper = page.match(/function classificationBadges\(repo\)\{[\s\S]*?\n\}/)?.[0] ?? "";
   assert.match(helper, /RepoFilters\.classifyRepo\(repo\)/);
@@ -2598,15 +2681,22 @@ test("current-view export uses the exact rendered array and keeps private state 
   assert.doesNotMatch(page, /buildModel\(\{[\s\S]{0,500}(?:hiddenSet|favSet|guestFavorites|localStorage)/);
 });
 
-test("All cards render total stars without period gain HOT or the gain bar", () => {
+test("All cards keep the daily gain but drop the proportional bar and the period HOT badge", () => {
   const { html, visible } = cardRenderHarness("all");
 
   assert.deepEqual(visible.map(repository => repository.slug), ["owner/project"]);
-  assert.doesNotMatch(html, /class="today"/);
+  // "All" is the default period, so the daily delta - the reason to come back - has to be
+  // legible without changing the period first. The .spark bar stays gated: it is proportional
+  // to the largest gain in a chosen period and means nothing outside one.
+  assert.match(html, /<span class="today">★ \+1200 <span style="color:var\(--text-3\);font-weight:400">period\.today<\/span><\/span>/);
   assert.doesNotMatch(html, />HOT</);
   assert.doesNotMatch(html, /<div class="spark">/);
   assert.match(html, /<div class="stars">5000<\/div>/);
   assert.match(html, /class="sparkhist"/);
+
+  // A repository with no daily figure renders no gain span rather than a "+null".
+  const missing = cardRenderHarness("all", "stayed", new Set(), { stars_daily: null }).html;
+  assert.doesNotMatch(missing, /class="today"/);
 });
 
 test("render writes the star-history cell in its one pass, with no second sparkline write", () => {
@@ -2648,7 +2738,7 @@ test("data/latest.json rides the server cache instead of no-store", () => {
 test("repository names declare English inside the four non-English site locales", () => {
   const { html } = cardRenderHarness("daily");
   assert.match(html, /<a class="repo-link" lang="en" href="https:\/\/github\.com\/owner\/project"/);
-  assert.match(page, /const heading=`<h2 lang="en">\$\{esc\(r\.name\)\}<\/h2>/);
+  assert.match(page, /<h2 lang="en">\$\{esc\(r\.name\)\}<\/h2>/);
 });
 
 test("the README panel declares the language of the variant it shows", () => {
@@ -2786,73 +2876,60 @@ test("cards do not nest favorite buttons inside a full-card anchor", () => {
   assert.match(page, /list\.addEventListener\("keydown"/);
 });
 
-test("touch cards preserve controls and navigate only on the same card's second tap", () => {
+test("a touch card tap only ever opens its summary, and the hover layout still navigates", () => {
   const handler = page.match(/list\.addEventListener\("click",async e=>\{[\s\S]*?\n\}\);/)?.[0] ?? "";
   assert.match(handler, /if\(e\.target\.closest\("\.favbtn,\.js-readme,\.js-hide-repo,button,a"\)\)return/);
   assert.match(handler, /UiMotion\.touchCardAction\(\{[\s\S]*?activeIndex:activeTipIndex,[\s\S]*?cardIndex:\+card\.dataset\.idx,[\s\S]*?tooltipOpen:tipLayer\.classList\.contains\("on"\)/);
-  assert.match(handler, /if\(action==="show"\)\{[\s\S]*?showTip\(card\)[\s\S]*?\}else\{[\s\S]*?window\.open\(card\.dataset\.href,"_blank","noopener"\)/);
+  assert.match(handler, /if\(action==="show"\)\{[\s\S]*?showTip\(card\)[\s\S]*?\}\r?\n\}\);/);
+  // Exactly one window.open survives in the handler: the hover layout's early return, where a
+  // click on a card has always meant "open the repository" and no summary is being read.
+  assert.equal([...handler.matchAll(/window\.open\(/g)].length, 1);
+  assert.match(handler, /if\(!touchLayout\(\)\)\{\r?\n\s*window\.open\(card\.dataset\.href,"_blank","noopener"\);/);
 });
 
-test("a touch tooltip body forwards the covered same-card second tap without stealing explicit controls", () => {
-  const helperStart = page.indexOf("function touchCardBehindTip(event){");
-  const listenerStart = page.indexOf('tipLayer.addEventListener("click",e=>{', helperStart);
+test("the summary body is text: only its own controls act, and the covered card no longer navigates", () => {
+  const listenerStart = page.indexOf('tipLayer.addEventListener("click",e=>{');
   const listenerEnd = page.indexOf('\ntipLayer.addEventListener("mouseleave"', listenerStart);
-  assert.ok(helperStart >= 0 && listenerStart > helperStart && listenerEnd > listenerStart,
-    "touch tooltip second-tap runtime must be isolated");
+  assert.ok(listenerStart >= 0 && listenerEnd > listenerStart, "tooltip click runtime must be isolated");
+  // P1-2: the helper that hit-tested through the overlay to the card underneath is gone, so no
+  // tap on the body can reach window.open any more.
+  assert.doesNotMatch(page, /function touchCardBehindTip\(/);
+  assert.doesNotMatch(page, /elementsFromPoint/);
 
   class TipLayer {
     addEventListener(type, listener) { if (type === "click") this.click = listener; }
   }
   const tipLayer = new TipLayer();
-  const card = {
-    dataset: { idx: "3", href: "https://github.com/owner/repo" },
-    closest(selector) { return selector === ".card" ? this : null; },
-  };
-  const otherCard = {
-    dataset: { idx: "4", href: "https://github.com/owner/other" },
-    closest(selector) { return selector === ".card" ? this : null; },
-  };
   const tooltipParagraph = { closest() { return null; } };
-  const calls = { opened: [], readme: 0, hidden: 0 };
+  const calls = { opened: [], readme: 0, hidden: 0, hidTip: 0 };
   const context = {
-    __touch: true,
-    __stack: [tooltipParagraph, card],
-    __tipLayer: tipLayer,
-    document: { elementsFromPoint() { return context.__stack; } },
     window: { open(href, target, features) { calls.opened.push(`${href}|${target}|${features}`); } },
-    touchLayout() { return context.__touch; },
-    activeTipIndex: 3,
     hideRepository() { calls.hidden += 1; },
     openReadme() { calls.readme += 1; },
+    hideTip() { calls.hidTip += 1; },
+    __tipLayer: tipLayer,
   };
   context.globalThis = context;
   vm.createContext(context);
   vm.runInContext(`
     const tipLayer=globalThis.__tipLayer;
-    let activeTipIndex=globalThis.activeTipIndex;
-    ${page.slice(helperStart, listenerStart)}
     ${page.slice(listenerStart, listenerEnd)}
-  `, context, { filename: "touch-tooltip-second-tap-fixture.js" });
+  `, context, { filename: "tooltip-click-fixture.js" });
 
   function dispatch(target, properties = {}) {
-    const event = { target, clientX: 24, clientY: 180, detail: 1, prevented: false,
-      preventDefault() { this.prevented = true; }, ...properties };
+    const event = { target, detail: 1, prevented: false, preventDefault() { this.prevented = true; }, ...properties };
     tipLayer.click(event);
     return event;
   }
 
   dispatch(tooltipParagraph);
-  assert.deepEqual(calls.opened, ["https://github.com/owner/repo|_blank|noopener"]);
+  assert.deepEqual(calls.opened, [], "a tap on the summary body does nothing at all");
+  assert.equal(calls.hidTip, 0);
 
-  context.__stack = [tooltipParagraph, otherCard];
-  dispatch(tooltipParagraph);
-  assert.equal(calls.opened.length, 1, "a different covered card must not inherit the active card's navigation");
-
-  context.__touch = false;
-  context.__stack = [tooltipParagraph, card];
-  dispatch(tooltipParagraph);
-  assert.equal(calls.opened.length, 1, "desktop tooltip content must retain its existing behavior");
-  context.__touch = true;
+  const closeButton = { closest(selector) { return selector === "#tipCloseBtn" ? this : null; } };
+  const closeEvent = dispatch(closeButton);
+  assert.equal(closeEvent.prevented, true);
+  assert.equal(calls.hidTip, 1, "the head's close button is what dismisses the overlay");
 
   const readmeButton = {
     dataset: { slug: "owner/repo", name: "Repo" },
@@ -2861,7 +2938,6 @@ test("a touch tooltip body forwards the covered same-card second tap without ste
   const readmeEvent = dispatch(readmeButton);
   assert.equal(readmeEvent.prevented, true);
   assert.equal(calls.readme, 1);
-  assert.equal(calls.opened.length, 1);
 
   const hideButton = {
     dataset: { slug: "owner/repo" },
@@ -2870,13 +2946,7 @@ test("a touch tooltip body forwards the covered same-card second tap without ste
   const hideEvent = dispatch(hideButton);
   assert.equal(hideEvent.prevented, true);
   assert.equal(calls.hidden, 1);
-  assert.equal(calls.opened.length, 1);
-
-  const explicitLink = {
-    closest(selector) { return selector.startsWith("button,a,input,select,textarea") ? this : null; },
-  };
-  dispatch(explicitLink);
-  assert.equal(calls.opened.length, 1, "an explicit tooltip control must own its tap");
+  assert.deepEqual(calls.opened, [], "no control in the summary opens a new window on its own");
 });
 
 test("the page declares a Content-Security-Policy that covers every origin the code actually uses", async () => {
@@ -2918,7 +2988,11 @@ test("the page declares a Content-Security-Policy that covers every origin the c
   assert.ok(moduleNames.length >= 13, "the scan must cover every script the page loads");
   const sources = await Promise.all(moduleNames.map(name => readFile(new URL(`../${name}`, import.meta.url), "utf8")));
   const allowed = new Set(Object.values(policy).flat());
-  const runtimeWithoutPolicy = pageRuntime.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, "");
+  const runtimeWithoutPolicy = pageRuntime
+    .replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, "")
+    // The generated ItemList block is JSON-LD vocabulary, not code: schema.org names the
+    // terms it uses and is never fetched, so it needs no CSP directive.
+    .replace(/<!-- GENERATED:TRENDING-JSONLD:START -->[\s\S]*?<!-- GENERATED:TRENDING-JSONLD:END -->/, "");
   const scanned = [runtimeWithoutPolicy, ...sources].join("\n");
   const hosts = new Set([...scanned.matchAll(/https:\/\/([a-z0-9.-]+)/gi)].map(match => match[1].toLowerCase()));
   const imageOnly = new Set(["raw.githubusercontent.com", "camo.githubusercontent.com"]);
@@ -3175,7 +3249,7 @@ test("RED1-M3 the filter-bar status is cleared by any view change and reset on a
   // The live region carries no data-i18n today, so an English "Could not copy the link…" survived
   // a switch to 한국어 verbatim; and "Copied the current-view link." outlived the view it described.
   assert.match(page, /id="filterBarStatus"[^>]*role="status"[^>]*aria-live="polite"[^>]*aria-atomic="true"[^>]*data-i18n="filter\.statusPrompt"/);
-  assert.match(page, /document\.getElementById\("filterCount"\)\.textContent=count\?String\(count\):"";[\s\S]{0,400}?setFilterBarStatus\(""\);\s*\}/);
+  assert.match(page, /document\.getElementById\("filterCount"\)\.hidden=!count;\s*document\.getElementById\("filterCountValue"\)\.textContent=count\?String\(count\):"";[\s\S]{0,400}?setFilterBarStatus\(""\);\s*\}/);
 
   const harness = filterUiHarness();
   harness.applyFilterState({ ...harness.parseState("?exclude=ai"), favOnly: false });
@@ -3458,7 +3532,9 @@ test("the History group states its empty conditions instead of rendering dead co
 });
 
 test("Korean rail labels and the subtitle break between words, not inside them", () => {
-  assert.match(page, /\.nav-label\{line-height:1\}/);
+  // 11px labels: ja "エクスポート" and es "Iniciar sesión" wrap inside the 52px content box, so the
+  // line box gets a hair more leading than the 10px single-line assumption allowed.
+  assert.match(page, /\.nav-label\{line-height:1\.1\}/);
   assert.match(page, /html:lang\(ko\) \.nav-label\{word-break:keep-all;overflow-wrap:normal\}/);
   assert.match(page, /html:lang\(ko\) \.sub\{word-break:keep-all;overflow-wrap:normal\}/);
   // Globally, keep-all left the Japanese subtitle (one unbroken katakana run) with no break
@@ -3584,7 +3660,7 @@ test("the audited focus, hover and description gaps are closed in the shipped sh
 
 test("a script-free visitor is told why the list is empty and where the feeds are", () => {
   const main = page.match(/<main class="wrap" id="mainContent" tabindex="-1">([\s\S]*?)<\/main>/)?.[1] ?? "";
-  assert.match(main, /<noscript><p class="noscript-note">This page builds its repository list with JavaScript\. Turn JavaScript on, or subscribe to the Atom feeds: <a href="feed\.xml">feed\.xml<\/a> · <a href="changes\.xml">changes\.xml<\/a>\.<\/p><\/noscript>/);
+  assert.match(main, /<noscript><p class="noscript-note">This page builds its repository list with JavaScript\. Turn JavaScript on, or subscribe to the Atom feeds: <a href="feed\.xml">feed\.xml<\/a> · <a href="changes\.xml">changes\.xml<\/a>\.<\/p>\r?\n/);
   assert.match(page, /\.noscript-note\{[^}]*border:1px solid var\(--surface-border\)/);
 });
 
@@ -3635,5 +3711,521 @@ test("a compact list mode is a fourth filter-bar toggle persisted per browser", 
 
   assert.match(page, /body\.compact \.card\{padding:11px 14px;margin-bottom:7px\}/);
   assert.match(page, /body\.compact \.cdesc\{-webkit-line-clamp:1;margin:4px 0 6px\}/);
-  assert.match(page, /body\.compact \.category-badges,body\.compact \.spark,body\.compact \.sparkhist\{display:none\}/);
+  // Compact keeps the classification badges - the reader filtered by them - as one wrapping row,
+  // and clips the group labels rather than removing them from the accessibility tree.
+  assert.match(page, /body\.compact \.category-badges\{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px\}/);
+  assert.match(page, /body\.compact \.category-label\{position:absolute;[^}]*clip:rect\(0,0,0,0\)[^}]*\}/);
+  assert.match(page, /body\.compact \.spark,body\.compact \.sparkhist\{display:none\}/);
+  assert.doesNotMatch(page, /body\.compact \.category-badges,/);
+});
+
+test("the shipped page carries a static repository list and an ItemList for crawlers", () => {
+  const repos = JSON.parse(page.match(/\/\/ GENERATED:TRENDING-REPOS:START\s*const REPOS = (\[[\s\S]*?\]);\s*\/\/ GENERATED:TRENDING-REPOS:END/)[1]);
+  assert.ok(repos.length > 0, "the page must embed the day's repositories");
+
+  const noscript = page.match(/<!-- GENERATED:TRENDING-NOSCRIPT:START -->\r?\n([\s\S]*?)\r?\n<!-- GENERATED:TRENDING-NOSCRIPT:END -->/);
+  assert.ok(noscript, "index.html must keep the noscript list markers");
+  assert.match(page, /<noscript><p class="noscript-note">[\s\S]*?<!-- GENERATED:TRENDING-NOSCRIPT:END -->\r?\n<\/noscript>/);
+  assert.match(noscript[1], /^<ol class="noscript-list">\r?\n/);
+  assert.equal(noscript[1].match(/<li>/g).length, repos.length);
+  for (const repo of repos.slice(0, 3)) {
+    assert.ok(noscript[1].includes(`href="https://github.com/${repo.slug}"`), `${repo.slug} must be linked without JavaScript`);
+  }
+
+  const jsonLd = page.match(/<!-- GENERATED:TRENDING-JSONLD:START -->\r?\n<script type="application\/ld\+json">([\s\S]*?)<\/script>\r?\n<!-- GENERATED:TRENDING-JSONLD:END -->/);
+  assert.ok(jsonLd, "index.html must keep the ItemList markers");
+  const itemList = JSON.parse(jsonLd[1]);
+  assert.equal(itemList["@type"], "ItemList");
+  assert.equal(itemList.numberOfItems, repos.length);
+  assert.equal(itemList.itemListElement.length, repos.length);
+  assert.deepEqual(itemList.itemListElement.map(item => item.url), repos.map(repo => `https://github.com/${repo.slug}`));
+});
+
+test("the page's first heading in document order is its own <h1>", () => {
+  // axe heading-order: the Explore panel's <h2> and nine <h3> preceded the page title in the DOM,
+  // so a reader navigating by heading met ten panel headings before learning what the page was.
+  const headings = [...page.matchAll(/<h([1-6])[\s>]/g)].map(match => Number(match[1]));
+  assert.ok(headings.length > 0, "the page must carry headings");
+  assert.equal(headings[0], 1, "the <h1> must be the first heading in document order");
+  assert.equal(headings.filter(level => level === 1).length, 1, "exactly one <h1>");
+  assert.ok(headings.every(level => level <= 2), "nothing below <h2> ships any more");
+
+  const sidebar = page.match(/<div[^>]*id="filterSidebar"[\s\S]*?<\/div>\s*<nav class="nav-rail"/)?.[0] ?? "";
+  assert.doesNotMatch(sidebar, /<h[1-6][\s>]/, "the panel carries no headings at all");
+  assert.match(sidebar, /<p class="sidebar-title" data-i18n="sidebar\.title">Dashboard menu<\/p>/);
+  assert.equal([...sidebar.matchAll(/<p class="sidebar-group-title"/g)].length, 9);
+
+  // The demotion has to be invisible: the paragraphs inherit the UA heading weight explicitly and
+  // keep the sizes the h2/h3 selectors carried.
+  assert.match(page, /\.sidebar-head \.sidebar-title\{font-size:19px;font-weight:700;letter-spacing:-\.015em\}/);
+  assert.match(page, /\.sidebar-section \.sidebar-group-title\{font-size:13px;font-weight:700;line-height:1\.3;letter-spacing:\.01em\}/);
+  assert.doesNotMatch(page, /\.sidebar-head h2|\.sidebar-section h3/);
+
+  // Names still resolve: the dialog keeps its aria-label and every labelled group keeps its id.
+  assert.match(page, /id="filterSidebar" role="dialog" aria-label="Explore panel"/);
+  for (const [section, title] of [
+    ["accountSection", "accountTitle"], ["fieldSection", "fieldTitle"], ["formSection", "formTitle"],
+    ["sortSection", "sortTitle"], ["presetSection", "presetTitle"], ["hiddenRepoSection", "hiddenRepoTitle"],
+    ["recentExitsSection", "recentExitsTitle"], ["exportSection", "exportTitle"],
+  ]) {
+    assert.match(sidebar, new RegExp(`id="${section}" aria-labelledby="${title}"`));
+    assert.match(sidebar, new RegExp(`<p class="sidebar-group-title" id="${title}"`));
+  }
+});
+
+test("the rail's active-filter badge announces more than a bare numeral", () => {
+  // The badge was <span aria-live="polite">1</span>: the announcement was literally "1". The
+  // prefix rides inside the live region, and the region is hidden outright at zero so no empty
+  // pill is painted where the number used to be.
+  assert.match(page, /<span class="filter-count" id="filterCount" aria-live="polite" hidden><span class="sr-only" data-i18n="nav\.activeFilters">Active filters<\/span><span id="filterCountValue"><\/span><\/span>/);
+  for (const locale of ["en", "ko", "zh-CN", "es", "ja"]) {
+    const value = siteMessages[locale]["nav.activeFilters"];
+    assert.equal(typeof value, "string", `${locale} is missing nav.activeFilters`);
+    assert.ok(value.trim().length > 0, `${locale} nav.activeFilters must not be blank`);
+  }
+});
+
+test("the heading drops its since-last-visit suffix while the empty state is showing", () => {
+  // "nothing new since 2026-09-06" sat directly above "No repositories match these conditions."
+  assert.match(page, /if\(!visitSummary\.previousVisitAt\|\|!currentVisibleRepos\.length\)\{heading\.textContent=tr\("visit\.heading"\);return\}/);
+  // Every render path has to refresh it, including the new-repositories gate's early return.
+  assert.match(page, /updateHiddenManager\(\);updateVisitHeading\(\);return;/);
+  assert.match(page, /\}\)\.join\(""\);\r?\n  if\(typeof refreshTipDescription==="function"\)refreshTipDescription\(\);\r?\n  updateVisitHeading\(\);\r?\n\}/);
+  const headingFn = page.indexOf("function updateVisitHeading()");
+  const renderFn = page.indexOf("function render(){");
+  assert.ok(headingFn >= 0 && headingFn < renderFn, "updateVisitHeading is declared before render reads it");
+});
+
+test("rail labels clear the 11px floor without outgrowing their 60px buttons", () => {
+  assert.match(page, /\.nav-toggle\{[^}]*font-size:11px;font-weight:650/);
+  assert.match(page, /\.nav-help\{[^}]*font-size:11px;font-weight:650/);
+  assert.match(page, /\.nav-rail \.filter-count\{min-width:20px;padding:2px 6px;font-size:11px;line-height:14px;text-align:center\}/);
+  assert.doesNotMatch(page, /font-size:10px;font-weight:650/);
+});
+
+test("placeholders, the search field and the README head button clear their contrast and size floors", () => {
+  // WCAG 2.2 SC 1.4.3. Unstyled, both fields inherited the UA rgb(117,117,117): 3.20:1 on the dark
+  // page ground and 4.23:1 on the light one. --text-2 measures 5.71:1 / 4.95:1 in the live page.
+  assert.match(page, /\.search::placeholder\{color:var\(--text-2\);opacity:1\}/);
+  assert.equal([...page.matchAll(/\splaceholder="/g)].length, 2, "only the two .search inputs carry placeholders");
+
+  // The 44px floor this codebase sets for itself: the base rule carries it, so the preset variant
+  // no longer needs its own copy and #q stops being the one field that missed.
+  assert.match(page, /\.search\{[\s\S]{0,400}?min-height:44px/);
+  assert.match(page, /\.search\.preset-name\{padding-left:12px;background-image:none\}/);
+  assert.match(page, /#readmePanel \.rp-head \.rdbtn\{display:inline-flex;align-items:center;min-height:44px\}/);
+});
+
+test("the segmented control and the panel filter chips draw the authored focus ring", () => {
+  // Both families fell back to the UA outline (measured `auto 1px` in Chrome) while every other
+  // control in the first ten tab stops drew the 3px accent ring.
+  assert.match(page, /\.seg button:focus-visible\{position:relative;z-index:1;outline:3px solid var\(--accent\);outline-offset:2px\}/);
+  assert.match(page, /\.filter-chip:focus-visible\{outline:3px solid var\(--accent\);outline-offset:2px\}/);
+});
+
+test("wide viewports reserve the tooltip lane instead of sliding the list on hover", () => {
+  // tooltipLayout translates .list-stage by missingRail when the tooltip does not fit beside the
+  // card. At 1440px a centred 780px column produced translate3d(-235px) on every hover; reserving
+  // the lane keeps missingRail at 0 for every viewport this branch covers.
+  const wide = page.match(/@media\(min-width:1400px\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.match(wide, /\.wrap\{max-width:680px;margin-left:clamp\(92px,calc\(100vw - 1274px\),calc\(\(100vw - 680px\) \/ 2\)\)\}/);
+  assert.match(wide, /#tipLayer\{width:560px;max-height:82vh;overflow-y:auto\}/);
+  assert.match(page, /@media\(min-width:1100px\) and \(max-width:1399px\)\{\r?\n  \.wrap\{max-width:680px\}/);
+
+  // The reservation is arithmetic, so it is checked as arithmetic: card.right + gap + tooltip +
+  // edge must not exceed the viewport at any width the branch covers. .wrap is 680 wide with 24px
+  // of padding, tooltipLayout uses gap 18 and edge 16, and the tooltip is 560.
+  const margin = viewport => Math.min(Math.max(92, viewport - 1274), (viewport - 680) / 2);
+  for (const viewport of [1400, 1440, 1500, 1600, 1870, 1920, 2560, 3840]) {
+    const cardRight = margin(viewport) + 680 - 24;
+    assert.ok(cardRight + 18 + 560 + 16 <= viewport, `${viewport}px must leave the tooltip lane unshifted`);
+    assert.ok(margin(viewport) >= 92, `${viewport}px must clear the 76px rail`);
+  }
+});
+
+test("the filter bar carries the visible count and one dismissible pill per Explore filter", () => {
+  const bar = page.match(/<section class="filter-bar" id="filterBar"[\s\S]*?<\/section>/)?.[0] ?? "";
+  // The pills sit under the chips and above the live region, so the row a reader dismisses from is
+  // the row the count they just heard describes.
+  assert.ok(bar.indexOf('id="activeFilterPills"') > bar.indexOf('id="compactToggle"'));
+  assert.ok(bar.indexOf('id="activeFilterPills"') < bar.indexOf('id="filterBarStatus"'));
+  // The empty state gets the same row, so a 0-result view offers "drop one" beside "reset all".
+  // The empty state now holds a nested <div>, so it is sliced by its neighbours, not by the
+  // first closing tag.
+  const empty = page.slice(page.indexOf('<div class="empty" id="empty">'), page.indexOf('id="hiddenNotice"'));
+  assert.ok(empty.indexOf('id="emptyFilterPills"') > empty.indexOf('id="emptyText"'));
+  assert.ok(empty.indexOf('id="emptyFilterPills"') < empty.indexOf('id="emptyResetBtn"'));
+  // Same pressed skin as .filter-toggle, one 44px target, and a row that scrolls rather than
+  // stacks on a phone.
+  assert.match(page, /\.filter-pill\{[^}]*background:var\(--accent-soft\);color:var\(--accent-selected\);border-color:var\(--accent\)\}/);
+  assert.match(page, /@media\(max-width:600px\)\{\.filter-pill-row\{flex-wrap:nowrap;overflow-x:auto/);
+  assert.match(page, /class="filter-toggle filter-pill"/);
+
+  const harness = filterUiHarness();
+  harness.applyFilterState({ ...harness.parseState("?field=security&tag=mcp&lang=Rust&exclude=ai&membership=new", ["Rust"]), favOnly: false });
+  // The model crosses a vm realm boundary, so it is compared as text rather than by structure.
+  assert.equal(
+    harness.pillModel().map(pill => `${pill.kind}:${pill.id}`).join("|"),
+    "fields:security|forms:mcp|lang:Rust|excludeAi:excludeAi|newOnly:newOnly",
+  );
+  // The pill count and the "N Explore filters" phrase come from one definition, so they cannot
+  // disagree: five pills, five filters, and the rail badge reads five too.
+  assert.equal(harness.pillModel().length, 5);
+  assert.equal(harness.filterBarSummary(3), "3 repositories · 5 Explore filters");
+  assert.equal(harness.filterBarSummary(51), "51 repositories · 5 Explore filters");
+  assert.equal(harness.nodes.get("filterCountValue").textContent, "5");
+
+  const html = harness.nodes.get("activeFilterPills").innerHTML;
+  assert.equal(html, harness.nodes.get("emptyFilterPills").innerHTML, "both rows render the same pills");
+  assert.equal([...html.matchAll(/data-remove-filter="/g)].length, 5);
+  // WCAG 2.5.3: the visible label opens the accessible name, and the glyph is decoration.
+  assert.match(html, /aria-label="fields:security filter — remove"/);
+  assert.match(html, /<span aria-hidden="true">fields:security<\/span>/);
+  assert.match(html, /<span class="filter-pill-x" aria-hidden="true">✕<\/span>/);
+
+  harness.applyFilterState({ ...harness.parseState(""), favOnly: false });
+  assert.equal(harness.pillModel().length, 0);
+  assert.equal(harness.nodes.get("activeFilterPills").innerHTML, "");
+  assert.equal(harness.filterBarSummary(51), "51 repositories");
+});
+
+test("every render writes the count into the filter bar's own live region", () => {
+  // P1-1: applying a panel filter used to leave main byte-identical. render() now writes the
+  // count on every pass, so the copy-link confirmation survives only until the next state change.
+  assert.match(page, /setFilterBarStatus\(filterBarSummary\(items\.length\)\);/);
+  assert.match(page, /setFilterBarStatus\(filterBarSummary\(0\)\);\r?\n\s*updateHiddenManager\(\);updateVisitHeading\(\);return;/);
+  assert.deepEqual(cardRenderHarness("all").filterBarStatusWrites, ["1 repositories"]);
+});
+
+test("a pill removes exactly its own filter through the panel's own state path", () => {
+  const harness = filterControlsHarness();
+  // The rows are rebuilt with innerHTML on every updateFilterUi(), so the delegate has to sit on
+  // the container. Both containers carry one.
+  const pill = (kind, id) => ({ dataset: { removeFilter: kind, removeId: id }, closest(selector) { return selector === "[data-remove-filter]" ? this : null; } });
+  const unrelated = { closest() { return null; } };
+
+  harness.nodes.get("excludeAi").dispatch("click");
+  harness.nodes.get("newOnly").dispatch("click");
+  assert.equal(harness.getState().excludeAi, true);
+  assert.equal(harness.getState().newOnly, true);
+
+  harness.nodes.get("activeFilterPills").dispatch("click", pill("excludeAi", "excludeAi"));
+  assert.equal(harness.getState().excludeAi, false);
+  assert.equal(harness.getState().newOnly, true, "one pill removes one filter, not all of them");
+
+  // The empty-state row shares the behaviour, which is the point of putting it there.
+  harness.nodes.get("emptyFilterPills").dispatch("click", pill("newOnly", "newOnly"));
+  assert.equal(harness.getState().newOnly, false);
+
+  const before = harness.calls.render;
+  harness.nodes.get("activeFilterPills").dispatch("click", unrelated);
+  assert.equal(harness.calls.render, before, "a click that misses a pill changes nothing");
+
+  // Field and form pills take the identical path the panel chips take, so URL state and the
+  // panel's aria-pressed cannot drift from the pills.
+  harness.nodes.get("activeFilterPills").dispatch("click", pill("fields", "ai-ml"));
+  harness.nodes.get("activeFilterPills").dispatch("click", pill("forms", "mcp"));
+  assert.equal(harness.calls.toggleFilter.map(call => call.join(":")).join("|"), "fields:ai-ml|forms:mcp");
+  assert.match(page, /function removeActiveFilter\(kind,id\)\{\r?\n\s*if\(kind==="fields"\|\|kind==="forms"\)\{toggleFilter\(kind,id\);return\}/);
+});
+
+test("the AI contradiction disables the control that would create it, never the one that undoes it", () => {
+  const harness = filterUiHarness();
+  const excludeAi = harness.nodes.get("excludeAi");
+
+  harness.applyFilterState({ ...harness.parseState(""), favOnly: false });
+  assert.equal(excludeAi.disabled, false);
+  assert.equal(excludeAi.title, "");
+
+  // P2-8: field=ai-ml and "Exclude AI" were both pressable, and pressing both emptied the list
+  // with no warning. Selecting the field now closes the door on creating that state.
+  harness.applyFilterState({ ...harness.parseState("?field=ai-ml"), favOnly: false });
+  assert.equal(excludeAi.disabled, true);
+  assert.equal(excludeAi.title, "filter.conflictExcludeAi");
+
+  // A ?field=ai-ml&exclude=ai link still arrives with both on. Both controls stay pressable there,
+  // or the reader would be trapped in the 0-result view with no way back through the controls.
+  harness.applyFilterState({ ...harness.parseState("?field=ai-ml&exclude=ai"), favOnly: false });
+  assert.equal(excludeAi.disabled, false);
+  assert.equal(excludeAi.title, "");
+
+  harness.applyFilterState({ ...harness.parseState("?exclude=ai"), favOnly: false });
+  assert.equal(excludeAi.disabled, false, "the toggle that is on must stay pressable to turn off");
+
+  // The mirror image, on the panel chip, is asserted on the source: the harness's querySelectorAll
+  // returns no chips.
+  assert.match(page, /setFilterConflict\(button,key==="fields"&&button\.dataset\.filterId==="ai-ml"&&filterState\.excludeAi&&!aiFieldSelected,"filter\.conflictAiField"\)/);
+  assert.match(page, /function setFilterConflict\(button,conflicted,messageKey\)\{\r?\n\s*button\.disabled=conflicted;\r?\n\s*button\.title=conflicted\?tr\(messageKey\):"";/);
+  assert.match(page, /\.filter-toggle:disabled\{opacity:\.5;cursor:not-allowed\}/);
+});
+
+// The touch summary signs the same contract #readmePanel and .shortcut-help already sign: scrim,
+// pageMain.inert, focus trap, Escape, focus restore. hideTip is sliced with the three listeners
+// that close it so the whole teardown is exercised, not just asserted on the source.
+function tipDialogHarness({ modal = true } = {}) {
+  const start = page.indexOf("function hideTip(restoreFocus=true){");
+  const end = page.indexOf('\ndocument.addEventListener("click",e=>{', start);
+  assert.ok(start >= 0 && end > start, "tip dialog teardown must be isolated");
+
+  class ClassList {
+    constructor() { this.values = new Set(); }
+    add(value) { this.values.add(value); }
+    remove(value) { this.values.delete(value); }
+    contains(value) { return this.values.has(value); }
+  }
+  function element(id) {
+    return {
+      id,
+      classList: new ClassList(),
+      inert: false,
+      style: {},
+      attributes: new Map(),
+      listeners: new Map(),
+      setAttribute(name, value) { this.attributes.set(name, String(value)); },
+      removeAttribute(name) { this.attributes.delete(name); },
+      getAttribute(name) { return this.attributes.get(name) ?? null; },
+      addEventListener(type, listener) {
+        if (!this.listeners.has(type)) this.listeners.set(type, []);
+        this.listeners.get(type).push(listener);
+      },
+      dispatch(type, event = {}) { for (const listener of this.listeners.get(type) || []) listener({ type, ...event }); },
+    };
+  }
+
+  const tipLayer = element("tipLayer");
+  tipLayer.classList.add("on");
+  tipLayer.setAttribute("aria-modal", "true");
+  const tipScrim = element("tipScrim");
+  tipScrim.classList.add("on");
+  const pageMain = element("pageMain");
+  pageMain.inert = true;
+  const listStage = element("listStage");
+  listStage.style.transform = "translate3d(-235px, 0px, 0px)";
+  const body = element("body");
+  body.classList.add("overlay-open");
+  const documentRef = element("document");
+  const calls = { focused: [], trapped: 0, scrollTop: 0, described: [] };
+  const card = { isConnected: true, focus() { calls.focused.push("card"); } };
+
+  const context = {
+    tipLayer, tipScrim, pageMain, listStage,
+    document: Object.assign(documentRef, { body }),
+    sidebar: element("sidebar"),
+    panel: element("readmePanel"),
+    HTMLElement: Object.getPrototypeOf(card).constructor,
+    trapFocus() { calls.trapped += 1; },
+    setTipDescription(value) { calls.described.push(value); },
+    scheduleScrollTopUpdate() { calls.scrollTop += 1; },
+  };
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(`
+    let tipModal=${modal}, tipTrigger=globalThis.__card, activeTipIndex=3;
+    globalThis.__card=undefined;
+    ${page.slice(start, end)}
+    globalThis.__hideTip=hideTip;
+    globalThis.__state=()=>({tipModal,tipTrigger,activeTipIndex});
+  `, Object.assign(context, { __card: card }), { filename: "tip-dialog-fixture.js" });
+
+  return {
+    tipLayer, tipScrim, pageMain, listStage, body, documentRef, calls, card,
+    hideTip(restoreFocus) { context.__hideTip(restoreFocus); },
+    state() { return context.__state(); },
+  };
+}
+
+test("the touch summary is a real dialog: head, scrim, inert page, focus trap, Escape, restore", () => {
+  // P1-2 measured at 375x812: a 317x784 overlay with no close control, no scrim, no Escape and no
+  // aria-modal, whose only non-navigating exits were an 8px left strip and a 10px bottom strip.
+  assert.match(page, /<div id="tipScrim"><\/div>\r?\n<div id="tipLayer" role="dialog"/);
+  assert.match(page, /#readmeScrim,#tipScrim\{position:fixed;inset:0;background:rgba\(0,0,0,\.35\)/);
+  assert.match(page, /#tipScrim\{z-index:190\}/, "the scrim must sit under #tipLayer's z-index:200, not over it");
+  // One close glyph, one 44px target, shared with the README panel rather than reinvented.
+  assert.match(page, /#readmePanel \.rp-close,#tipLayer \.rp-close\{width:44px;height:44px/);
+  assert.match(page, /<button type="button" class="rp-close" id="tipCloseBtn" aria-label="\$\{esc\(tr\("tooltip\.close"\)\)\}">✕<\/button>/);
+  assert.match(page, /#tipLayer \.rp-head\{display:flex;align-items:center;gap:10px/);
+
+  // The head only exists where there is no hover: on a pointer layout the layer follows the
+  // cursor and has never had a dismiss control.
+  const tipStart = page.indexOf("function tipHTML(r,locale=resolveSummaryLocale(r),head=false){");
+  const tipEnd = page.indexOf("\nfunction newOnlyGate(", tipStart);
+  const tip = page.slice(tipStart, tipEnd);
+  assert.match(tip, /const title=head\r?\n\s*\?`<div class="rp-head">/);
+  assert.match(page, /const modal=touchLayout\(\);\r?\n\s*tipLayer\.innerHTML=tipHTML\(r,resolveSummaryLocale\(r,siteI18n\.locale\),modal\)/);
+  assert.match(page, /if\(!modal\)return;/);
+  assert.match(page, /tipModal=true;tipTrigger=card;/);
+  assert.match(page, /tipLayer\.setAttribute\("aria-modal","true"\);\r?\n\s*tipScrim\.classList\.add\("on"\);pageMain\.inert=true;document\.body\.classList\.add\("overlay-open"\);/);
+  assert.match(page, /tipLayer\.addEventListener\("keydown",event=>\{if\(tipModal\)trapFocus\(tipLayer,event\)\}\)/);
+  assert.match(page, /tipScrim\.addEventListener\("click",\(\)=>hideTip\(\)\)/);
+  assert.match(page, /document\.addEventListener\("keydown",event=>\{if\(event\.key==="Escape"&&tipModal\)hideTip\(\)\}\)/);
+  // hideTip's default restores focus, so the resize listener has to call it, not be it: passing
+  // the resize Event straight through would read as a truthy restoreFocus.
+  assert.match(page, /window\.addEventListener\("resize",\(\)=>hideTip\(\)\)/);
+
+  const harness = tipDialogHarness();
+  harness.hideTip();
+  assert.equal(harness.tipLayer.classList.contains("on"), false);
+  assert.equal(harness.tipLayer.getAttribute("aria-hidden"), "true");
+  assert.equal(harness.tipLayer.inert, true);
+  assert.equal(harness.tipLayer.getAttribute("aria-modal"), null, "aria-modal only holds while it is open");
+  assert.equal(harness.tipScrim.classList.contains("on"), false);
+  assert.equal(harness.pageMain.inert, false);
+  assert.equal(harness.body.classList.contains("overlay-open"), false);
+  assert.equal(harness.listStage.style.transform, "");
+  assert.deepEqual(harness.calls.focused, ["card"], "focus returns to the card that opened it");
+  assert.equal(harness.state().tipModal, false);
+  assert.equal(harness.state().tipTrigger, null);
+  assert.equal(harness.state().activeTipIndex, null);
+
+  // Escape and a scrim tap are the same teardown, and both are exits the overlay simply did not
+  // have before.
+  for (const close of ["escape", "scrim"]) {
+    const fresh = tipDialogHarness();
+    if (close === "escape") fresh.documentRef.dispatch("keydown", { key: "Escape" });
+    else fresh.tipScrim.dispatch("click");
+    assert.equal(fresh.tipLayer.classList.contains("on"), false, `${close} must close the overlay`);
+    assert.deepEqual(fresh.calls.focused, ["card"]);
+  }
+  const notEscape = tipDialogHarness();
+  notEscape.documentRef.dispatch("keydown", { key: "Enter" });
+  assert.equal(notEscape.tipLayer.classList.contains("on"), true);
+
+  // Tab is trapped only while the layer is modal; on a hover layout it is a passive overlay.
+  const hover = tipDialogHarness({ modal: false });
+  hover.tipLayer.dispatch("keydown", { key: "Tab" });
+  assert.equal(hover.calls.trapped, 0);
+  const touch = tipDialogHarness();
+  touch.tipLayer.dispatch("keydown", { key: "Tab" });
+  assert.equal(touch.calls.trapped, 1);
+
+  // A hover-layout hide touches none of the modal machinery, and hideTip(false) is what the
+  // callers that own focus themselves — openSidebar, openReadme, hideRepository — pass.
+  const passive = tipDialogHarness({ modal: false });
+  passive.hideTip();
+  assert.equal(passive.pageMain.inert, true, "a passive overlay never made the page inert");
+  assert.deepEqual(passive.calls.focused, []);
+  const silent = tipDialogHarness();
+  silent.hideTip(false);
+  assert.equal(silent.pageMain.inert, false);
+  assert.deepEqual(silent.calls.focused, [], "the caller that re-rendered owns focus");
+  assert.match(page, /\/\/ The sidebar takes focus itself[\s\S]*?hideTip\(false\);/);
+  assert.match(page, /closeSidebar\(false\);hideTip\(false\);/);
+  assert.match(page, /hideTip\(false\);render\(\);showHiddenNotice\(/);
+});
+
+test("a focused card describes itself by the open summary, and stops when it closes", () => {
+  // "The product is silent": focusing a card opened a summary of well over a thousand characters
+  // that no screen reader was ever told about — the card had no aria-describedby and there was no
+  // live region. The description points at the summary body while the layer is open.
+  const start = page.indexOf("let describedCard=null;");
+  const end = page.indexOf("\nfunction touchLayout()", start);
+  assert.ok(start >= 0 && end > start, "the description helper must be isolated");
+
+  const context = {};
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(`${page.slice(start, end)}\nglobalThis.__set=setTipDescription;globalThis.__described=()=>describedCard;`,
+    context, { filename: "tip-description-fixture.js" });
+
+  function fakeCard(name) {
+    return {
+      name,
+      attributes: new Map(),
+      setAttribute(key, value) { this.attributes.set(key, value); },
+      removeAttribute(key) { this.attributes.delete(key); },
+    };
+  }
+  const first = fakeCard("first"), second = fakeCard("second");
+
+  context.__set(first);
+  assert.equal(first.attributes.get("aria-describedby"), "tipSummaryBody");
+  // Only ever one card at a time: hovering along a list must not leave a trail of descriptions
+  // pointing at a summary that is no longer the one on screen.
+  context.__set(second);
+  assert.equal(first.attributes.has("aria-describedby"), false);
+  assert.equal(second.attributes.get("aria-describedby"), "tipSummaryBody");
+  context.__set(second);
+  assert.equal(second.attributes.get("aria-describedby"), "tipSummaryBody", "re-showing the same card is idempotent");
+  // Cleared on close, so it never points into a layer that is inert and aria-hidden.
+  context.__set(null);
+  assert.equal(second.attributes.has("aria-describedby"), false);
+  assert.equal(context.__described(), null);
+
+  // The description is attached on every showTip and dropped by hideTip's first statement, before
+  // the layer goes inert.
+  assert.match(page, /tipLayer\.setAttribute\("aria-hidden","false"\);\r?\n\s*setTipDescription\(card\);/);
+  assert.match(page, /function hideTip\(restoreFocus=true\)\{\r?\n\s*setTipDescription\(null\);/);
+  // The layer is reachable while it is open — the description would resolve to nothing otherwise.
+  assert.match(page, /tipLayer\.inert=false;\r?\n\s*tipLayer\.setAttribute\("aria-hidden","false"\);/);
+
+  // Every tipHTML branch carries the target, including the two that have no summary to give: a
+  // held or missing summary has to announce that rather than announce nothing.
+  const tipStart = page.indexOf("function tipHTML(r,");
+  const tipEnd = page.indexOf("\nfunction newOnlyGate(", tipStart);
+  const tip = page.slice(tipStart, tipEnd);
+  assert.equal([...tip.matchAll(/<div id="tipSummaryBody">/g)].length, 3);
+  for (const branch of ['tr("tooltip.held")', 'tr("tooltip.unavailable")', 'esc(s.goal)']) {
+    const at = tip.indexOf(branch);
+    assert.ok(at > 0, `${branch} must exist`);
+    assert.ok(tip.lastIndexOf('<div id="tipSummaryBody">', at) > 0, `${branch} must sit inside the described body`);
+  }
+});
+
+test("the sparkline provenance is stated once in the badge guide, not under every card", () => {
+  // P2-7: a 91-character methodology sentence rendered under all 51 cards and announced on all 51.
+  const guide = page.match(/<details class="signal-guide-details" id="badgeGuide" open>[\s\S]*?<\/details>/)?.[0] ?? "";
+  assert.match(guide, /<dd data-i18n="history\.explanation">/);
+  assert.equal([...page.matchAll(/data-i18n="history\.explanation"/g)].length, 1, "stated once, in the guide");
+  // The module no longer holds the key at all, so nothing can re-emit it per card.
+  assert.doesNotMatch(page, /histnote">\$\{translate\(EXPLANATION_KEY\)/);
+});
+
+test("a re-render under an open summary re-points the description and the focus target", () => {
+  // render() rebuilds the list with innerHTML and runs while a summary is open — a locale switch,
+  // the data/latest.json refresh, the membership load. Measured before this: switching locale with
+  // the phone overlay up left the card with no aria-describedby and tipTrigger on a detached node,
+  // so closing the overlay dropped focus to <body>.
+  const start = page.indexOf("function refreshTipDescription(){");
+  const end = page.indexOf("\nfunction touchLayout()", start);
+  assert.ok(start >= 0 && end > start, "the re-point helper must be isolated");
+
+  const cards = new Map();
+  const calls = { described: [] };
+  const context = {
+    tipLayer: { classList: { contains(value) { return value === "on" && context.__open; } } },
+    document: { querySelector(selector) { return cards.get(selector) ?? null; } },
+    setTipDescription(card) { calls.described.push(card && card.name); },
+    __open: true,
+  };
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(`
+    let activeTipIndex=globalThis.__activeTipIndex, tipModal=globalThis.__tipModal, tipTrigger=null;
+    ${page.slice(start, end)}
+    globalThis.__refresh=refreshTipDescription;
+    globalThis.__trigger=()=>tipTrigger;
+    globalThis.__setIndex=value=>{activeTipIndex=value};
+  `, Object.assign(context, { __activeTipIndex: 3, __tipModal: true }), { filename: "tip-repoint-fixture.js" });
+
+  const replacement = { name: "card-3-after-render" };
+  cards.set('.card[data-idx="3"]', replacement);
+  context.__refresh();
+  assert.deepEqual(calls.described, ["card-3-after-render"]);
+  assert.equal(context.__trigger(), replacement, "focus restore follows the replacement node");
+
+  // A closed layer, no active card, or a card the re-render filtered away: all no-ops.
+  context.__open = false;
+  context.__refresh();
+  assert.equal(calls.described.length, 1);
+  context.__open = true;
+  context.__setIndex(null);
+  context.__refresh();
+  assert.equal(calls.described.length, 1);
+  context.__setIndex(9);
+  context.__refresh();
+  assert.equal(calls.described.length, 1, "a card that is no longer rendered leaves the state alone");
+
+  assert.match(page, /\}\)\.join\(""\);\r?\n\s*if\(typeof refreshTipDescription==="function"\)refreshTipDescription\(\);/);
+  // A locale switch also has to relabel the pills, which carry translated filter names.
+  assert.match(page, /updateFilterLabels\(\);renderActiveFilterPills\(\);/);
 });

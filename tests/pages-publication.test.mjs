@@ -1002,6 +1002,34 @@ test("candidate preparation uses current committed code and production generated
   assert.equal(run(["rev-parse", "HEAD"]).stdout.trim(), checkoutSha);
 });
 
+test("index.html hydration carries the crawlable regions and tolerates a production page without them", async () => {
+  const { hydrateCompositeIndex } = await import("../scripts/prepare-refresh-candidate.mjs");
+  const crawlable = body => [
+    "<!-- GENERATED:TRENDING-NOSCRIPT:START -->", `<ol class="noscript-list"><li>${body}</li></ol>`, "<!-- GENERATED:TRENDING-NOSCRIPT:END -->",
+    "<!-- GENERATED:TRENDING-JSONLD:START -->", `<script type="application/ld+json">{"name":"${body}"}</script>`, "<!-- GENERATED:TRENDING-JSONLD:END -->",
+  ];
+  const shell = body => [
+    "shell", "<!-- GENERATED:TRENDING-DATE:START -->", `${body} date`, "<!-- GENERATED:TRENDING-DATE:END -->",
+    "// GENERATED:TRENDING-REPOS:START", "const REPOS = [];", "// GENERATED:TRENDING-REPOS:END",
+  ];
+  const page = (dates, regions) => [...shell(dates), ...crawlable(regions), "footer"].join("\n");
+  const current = page("current", "current");
+
+  const hydrated = hydrateCompositeIndex(Buffer.from(current), Buffer.from(page("production", "production")));
+  assert.equal(hydrated.toString("utf8"), page("production", "production"));
+
+  // A page published before the crawlable regions shipped carries neither marker; the
+  // candidate keeps its own committed body instead of failing the refresh.
+  const legacy = hydrateCompositeIndex(Buffer.from(current), Buffer.from([...shell("production"), "footer"].join("\n")));
+  assert.equal(legacy.toString("utf8"), page("production", "current"));
+
+  // A half-present marker pair is still a malformed page.
+  assert.throws(
+    () => hydrateCompositeIndex(Buffer.from(current), Buffer.from([...shell("production"), "<!-- GENERATED:TRENDING-JSONLD:START -->", "footer"].join("\n"))),
+    /generated markers are missing, duplicated, or out of order/,
+  );
+});
+
 test("post-generation boundary rejects base-code mutations and sidecar residue", async t => {
   const directory = await mkdtemp(join(tmpdir(), "candidate-mutation-boundary-"));
   const baseline = join(directory, "baseline");
