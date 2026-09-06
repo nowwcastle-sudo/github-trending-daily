@@ -78,28 +78,54 @@ test("canonical README rejects a mutable contents/blob mismatch", async () => {
   assert.equal(calls, 2);
 });
 
-test("README variants are frozen from one complete tree and immutable blobs", async () => {
+test("README variants are frozen from the README's own directory tree and immutable blobs", async () => {
+  // The walk is non-recursive: the commit's root tree names the docs subtree, and only that subtree
+  // is listed. A recursive listing of a large repository is truncated by GitHub, which took the
+  // refresh down when llvm/llvm-project entered Trending (2026-09-07).
   const canonical = { status: "present", path: "docs/README.md" };
   const markdown = "# 저장소\n\n한국어 안내";
   const requests = [];
   const variants = await fetchReadmeVariants("Owner/Repo", "b".repeat(40), canonical, {
     fetchImpl: async url => {
       requests.push(url);
-      return url.includes("/git/trees/")
-        ? jsonResponse(200, { truncated: false, tree: [
-          { path: "docs/README.md", mode: "100644", type: "blob", sha: "a".repeat(40) },
-          { path: "docs/README.ko.md", mode: "100644", type: "blob", sha: "c".repeat(40) },
-        ] })
-        : jsonResponse(200, { sha: "c".repeat(40), encoding: "base64", content: Buffer.from(markdown).toString("base64") });
+      if (url.includes(`/git/trees/${"b".repeat(40)}`)) return jsonResponse(200, { truncated: false, tree: [
+        { path: "README.md", mode: "100644", type: "blob", sha: "e".repeat(40) },
+        { path: "docs", mode: "040000", type: "tree", sha: "d".repeat(40) },
+      ] });
+      if (url.includes(`/git/trees/${"d".repeat(40)}`)) return jsonResponse(200, { truncated: false, tree: [
+        { path: "README.md", mode: "100644", type: "blob", sha: "a".repeat(40) },
+        { path: "README.ko.md", mode: "100644", type: "blob", sha: "c".repeat(40) },
+      ] });
+      return jsonResponse(200, { sha: "c".repeat(40), encoding: "base64", content: Buffer.from(markdown).toString("base64") });
     },
   });
   assert.deepEqual(variants, [{
     locale: "ko", path: "docs/README.ko.md", blob_sha: "c".repeat(40),
     content_sha256: createHash("sha256").update(markdown).digest("hex"),
   }]);
-  assert.equal(requests.length, 2);
-  assert.match(requests[0], new RegExp(`/git/trees/${"b".repeat(40)}\\?recursive=1$`));
-  assert.match(requests[1], new RegExp(`/git/blobs/${"c".repeat(40)}$`));
+  assert.equal(requests.length, 3);
+  assert.match(requests[0], new RegExp(`/git/trees/${"b".repeat(40)}$`));
+  assert.match(requests[1], new RegExp(`/git/trees/${"d".repeat(40)}$`));
+  assert.match(requests[2], new RegExp(`/git/blobs/${"c".repeat(40)}$`));
+  // A root-level README needs the root tree only, and a truncated or missing directory still fails closed.
+  const rootRequests = [];
+  const rootVariants = await fetchReadmeVariants("Owner/Repo", "b".repeat(40), { status: "present", path: "README.md" }, {
+    fetchImpl: async url => {
+      rootRequests.push(url);
+      return url.includes("/git/trees/")
+        ? jsonResponse(200, { truncated: false, tree: [{ path: "README.md", mode: "100644", type: "blob", sha: "a".repeat(40) }, { path: "README.ja.md", mode: "100644", type: "blob", sha: "c".repeat(40) }] })
+        : jsonResponse(200, { sha: "c".repeat(40), encoding: "base64", content: Buffer.from(markdown).toString("base64") });
+    },
+  });
+  assert.deepEqual(rootVariants.map(variant => variant.path), ["README.ja.md"]);
+  assert.equal(rootRequests.filter(url => url.includes("/git/trees/")).length, 1);
+  assert.doesNotMatch(rootRequests[0], /recursive/);
+  await assert.rejects(fetchReadmeVariants("Owner/Repo", "b".repeat(40), canonical, {
+    fetchImpl: async () => jsonResponse(200, { truncated: true, tree: [] }),
+  }), /truncated/);
+  await assert.rejects(fetchReadmeVariants("Owner/Repo", "b".repeat(40), canonical, {
+    fetchImpl: async () => jsonResponse(200, { truncated: false, tree: [{ path: "README.md", mode: "100644", type: "blob", sha: "a".repeat(40) }] }),
+  }), /directory is missing/);
 });
 
 test("README 404 is absence but repository 500 cannot reuse stale metadata", async () => {

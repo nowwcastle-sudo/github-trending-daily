@@ -911,14 +911,38 @@ function validSummaryBundle(value) {
     && SUMMARY_LOCALES.every(locale => validDetailedContent(value[locale]));
 }
 
+// The variant detector reads only the canonical README's own directory, so the tree it needs is that
+// directory's, reached by a non-recursive walk from the commit's root tree. A recursive listing of the
+// whole repository was the previous source and GitHub truncates it for large trees (llvm/llvm-project
+// entered Trending on 2026-09-07 and every refresh failed on "README variant tree is truncated"); a
+// single directory is never that large in practice, and if it ever is the detector still fails closed.
+async function fetchReadmeDirectoryTree(client, normalizedSlug, headSha, canonicalPath) {
+  const directory = canonicalPath.includes("/") ? canonicalPath.slice(0, canonicalPath.lastIndexOf("/")) : "";
+  let treePath = githubPath(normalizedSlug, `/git/trees/${headSha}`);
+  let tree = await requireGitHubJson(await client.request(treePath), treePath);
+  // A listing that already names entries under the directory (a recursive tree) is complete as is.
+  const listsDirectory = Array.isArray(tree?.tree) && directory
+    && tree.tree.some(item => item && typeof item.path === "string" && item.path.startsWith(`${directory}/`));
+  if (listsDirectory) return tree;
+  for (const segment of directory ? directory.split("/") : []) {
+    if (!tree || !Array.isArray(tree.tree)) throw new Error("README variant tree is invalid");
+    if (tree.truncated !== false) throw new Error("README variant tree is truncated");
+    const entry = tree.tree.find(item => item && item.type === "tree" && item.path === segment && /^[a-f0-9]{40}$/.test(item.sha ?? ""));
+    if (!entry) throw new Error(`README variant directory is missing for ${normalizedSlug}`);
+    treePath = githubPath(normalizedSlug, `/git/trees/${entry.sha}`);
+    tree = await requireGitHubJson(await client.request(treePath), treePath);
+  }
+  if (!tree || !Array.isArray(tree.tree)) throw new Error("README variant tree is invalid");
+  // Entries of a subtree are named relative to it; the detector compares full paths.
+  return { truncated: tree.truncated, tree: tree.tree.map(item => (item && typeof item.path === "string" && directory ? { ...item, path: `${directory}/${item.path}` } : item)) };
+}
+
 export async function fetchReadmeVariants(slug, headSha, canonicalReadme, options = {}) {
   const normalizedSlug = normalizeSlug(slug);
   if (!/^[a-f0-9]{40}$/.test(headSha ?? "")) throw new Error(`Invalid default branch HEAD for ${normalizedSlug}`);
   if (canonicalReadme?.status !== "present" || typeof canonicalReadme.path !== "string") return [];
   const client = options.client ?? createGitHubClient(options);
-  const treePath = `${githubPath(normalizedSlug, `/git/trees/${headSha}`)}?recursive=1`;
-  const treeResponse = await client.request(treePath);
-  const tree = await requireGitHubJson(treeResponse, treePath);
+  const tree = await fetchReadmeDirectoryTree(client, normalizedSlug, headSha, canonicalReadme.path);
   const detected = detectReadmeVariantPaths(canonicalReadme.path, tree);
   const variants = [];
   for (const variant of detected) {
