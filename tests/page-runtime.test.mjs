@@ -2503,7 +2503,7 @@ test("the page head advertises both exact Atom subscription endpoints", () => {
     ["GITHUB INSIGHT — Current repositories", "https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml"],
     ["GITHUB INSIGHT — New and re-entered repositories", "https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml"],
   ]);
-  assert.match(page, /<title>GITHUB INSIGHT<\/title>/);
+  assert.match(page, /<title>GITHUB INSIGHT — Daily GitHub Trending Repositories<\/title>/);
   assert.match(page, /<h1><button class="title-reset" id="resetBtn"[^>]*>GITHUB INSIGHT<\/button><\/h1>/);
   assert.doesNotMatch(pageRuntime, /GitHub Trending Daily/);
 });
@@ -2758,7 +2758,9 @@ test("the page declares a Content-Security-Policy that covers every origin the c
   const scanned = [runtimeWithoutPolicy, ...sources].join("\n");
   const hosts = new Set([...scanned.matchAll(/https:\/\/([a-z0-9.-]+)/gi)].map(match => match[1].toLowerCase()));
   const imageOnly = new Set(["raw.githubusercontent.com", "camo.githubusercontent.com"]);
-  const documentOnly = new Set(["github.com", "nowwcastle-sudo.github.io", "www.w3.org"]);
+  // schema.org is the JSON-LD @context: a vocabulary identifier the browser never fetches,
+  // the same way www.w3.org is only an XML namespace. Neither needs a CSP directive.
+  const documentOnly = new Set(["github.com", "nowwcastle-sudo.github.io", "www.w3.org", "schema.org"]);
   // This scan sees only source literals. SDK-injected origins such as https://apis.google.com are invisible
   // to it and are pinned instead by the `deepEqual` assertions above plus the production browser checklist (spec §8.6).
   for (const host of hosts) {
@@ -3031,8 +3033,18 @@ test("the badge guide is a disclosure that starts open on desktop and closed on 
     assert.ok(guide.includes(`data-i18n="${key}"`), `${key} must survive the disclosure wrap`);
   }
   assert.match(page, /\.signal-guide summary\{[^}]*cursor:pointer/);
-  assert.match(page, /const badgeGuide=document\.getElementById\("badgeGuide"\);/);
-  assert.match(page, /if\(badgeGuide&&matchMedia\("\(max-width:560px\)"\)\.matches\)badgeGuide\.open=false;/);
+  // The collapse runs from its own inline script between </aside> and #filterBar, not from the
+  // main script at the bottom: doing it after first paint shifted #filterBar up 142px (Lighthouse
+  // mobile CLS 0.48). The block wrapper keeps badgeGuide out of the main script's scope.
+  const collapse = /<\/aside>\r?\n<script>\/\*[\s\S]*?\*\/\r?\n\{const badgeGuide=document\.getElementById\("badgeGuide"\);if\(badgeGuide&&matchMedia\("\(max-width:560px\)"\)\.matches\)badgeGuide\.open=false;\}<\/script>/;
+  assert.match(page, collapse);
+  const collapseAt = page.search(collapse);
+  const asideAt = page.indexOf('<aside class="signal-guide"');
+  const filterBarAt = page.indexOf('<section class="filter-bar" id="filterBar"');
+  assert.ok(asideAt < collapseAt, "the collapse must follow the badge-guide aside it reads");
+  assert.ok(collapseAt < filterBarAt, "the collapse must run before #filterBar is laid out");
+  // Exactly one copy: the old post-paint statement in the main script is gone.
+  assert.equal(page.split('document.getElementById("badgeGuide")').length - 1, 1);
 });
 
 test("the mobile filter toggles sit on one horizontally scrollable row", () => {
@@ -3300,16 +3312,96 @@ test("Korean rail labels and the subtitle break between words, not inside them",
 test("the head describes the page for crawlers and unfurlers without a new request", () => {
   const head = page.match(/<head>[\s\S]*?<\/head>/)?.[0] ?? "";
   assert.match(head, /<meta name="description" content="GITHUB INSIGHT — today’s GitHub Trending repositories with source-bound README summaries, star history, and filters for field, form, language, and period\.">/);
-  assert.match(head, /<meta name="theme-color" content="#f5f5f7" media="\(prefers-color-scheme: light\)">/);
-  assert.match(head, /<meta name="theme-color" content="#282828" media="\(prefers-color-scheme: dark\)">/);
+  // One theme-color meta with an id, set by the early theme script and by setTheme(); the
+  // media-keyed pair is gone.
+  assert.match(head, /<meta name="theme-color" id="themeColorMeta" content="#282828">/);
+  assert.doesNotMatch(head, /theme-color[^>]*media="\(prefers-color-scheme/);
   assert.match(head, /<meta property="og:type" content="website">/);
+  assert.match(head, /<meta property="og:site_name" content="GITHUB INSIGHT">/);
+  assert.match(head, /<meta property="og:locale" content="en_US">/);
+  assert.deepEqual(
+    [...head.matchAll(/<meta property="og:locale:alternate" content="([^"]+)">/g)].map(match => match[1]),
+    ["ko_KR", "zh_CN", "es_ES", "ja_JP"],
+  );
   assert.match(head, /<meta property="og:title" content="GITHUB INSIGHT">/);
   assert.match(head, /<meta property="og:description" content="Today’s GitHub Trending repositories with source-bound README summaries, star history, and filters for field, form, language, and period\.">/);
   assert.match(head, /<meta property="og:url" content="https:\/\/nowwcastle-sudo\.github\.io\/github-trending-daily\/">/);
+  assert.match(head, /<meta name="twitter:card" content="summary">/);
+  assert.match(head, /<meta name="twitter:title" content="GITHUB INSIGHT">/);
+  // The Twitter card reuses the og text verbatim rather than inventing a second description.
+  const ogDescription = head.match(/<meta property="og:description" content="([^"]+)">/)?.[1] ?? "";
+  const twitterDescription = head.match(/<meta name="twitter:description" content="([^"]+)">/)?.[1] ?? "";
+  assert.ok(ogDescription.length > 0);
+  assert.equal(twitterDescription, ogDescription);
   // No og:image: it would be a new external request and there is no first-party image to point at.
   assert.doesNotMatch(head, /og:image/);
+  assert.match(head, /<link rel="canonical" href="https:\/\/nowwcastle-sudo\.github\.io\/github-trending-daily\/">/);
+  // Every locale is served from that one URL, so there is deliberately no hreflang link.
+  assert.doesNotMatch(head, /hreflang="/);
+  // The favicon is an inline data-URI SVG drawn from the page's own tokens: no new request.
+  const favicon = head.match(/<link rel="icon" type="image\/svg\+xml" href="([^"]+)">/)?.[1] ?? "";
+  assert.ok(favicon.startsWith("data:image/svg+xml,%3Csvg "), "the favicon must be an inline SVG");
+  assert.ok(favicon.includes("%23282828") && favicon.includes("%23f5f5f7"), "it uses the --bg tokens");
+  assert.ok(favicon.includes("%3EGI%3C/text%3E"), "it draws the GI monogram");
+  assert.ok(favicon.length < 400, `the favicon data URI is ${favicon.length} bytes, over the 400 budget`);
+  assert.match(head, /<link rel="preconnect" href="https:\/\/www\.gstatic\.com" crossorigin>/);
+  // WebSite + SearchAction is honest here: ?q= really filters the list on load (repo-filters.js).
+  // JSON-LD is data, never executed, so it needs no CSP change.
+  const jsonLd = head.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)?.[1] ?? "";
+  const structured = JSON.parse(jsonLd);
+  assert.equal(structured["@context"], "https://schema.org");
+  assert.equal(structured["@type"], "WebSite");
+  assert.equal(structured.name, "GITHUB INSIGHT");
+  assert.equal(structured.url, "https://nowwcastle-sudo.github.io/github-trending-daily/");
+  assert.equal(structured.potentialAction["@type"], "SearchAction");
+  assert.equal(structured.potentialAction.target, "https://nowwcastle-sudo.github.io/github-trending-daily/?q={search_term_string}");
+  assert.equal(structured.potentialAction["query-input"], "required name=search_term_string");
   // The CSP is untouched.
   assert.match(head, /<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https:\/\/www\.gstatic\.com https:\/\/www\.google\.com https:\/\/apis\.google\.com;/);
+});
+
+test("the theme is stamped on <html> before the first paint, not after the blocking scripts", () => {
+  const head = page.match(/<head>[\s\S]*?<\/head>/)?.[0] ?? "";
+  const early = /<meta name="theme-color" id="themeColorMeta" content="#282828">\r?\n<script>\/\*[\s\S]*?\*\/\r?\n(try\{[^\n]*\}catch\(e0\)\{\})<\/script>/;
+  assert.match(head, early);
+  // The meta it writes is parsed before it runs, so #themeColorMeta is right from the first paint
+  // too, and the CSP above both of them governs this inline script.
+  assert.ok(head.indexOf('http-equiv="Content-Security-Policy"') < head.search(early));
+  const body = head.match(early)?.[1] ?? "";
+  // Stored choice wins; otherwise the OS preference. Both are read inside one try/catch, because a
+  // storage-blocked browser must still paint rather than throw before the stylesheet is parsed.
+  assert.match(body, /localStorage\.getItem\("gh-theme"\)/);
+  assert.match(body, /matchMedia\("\(prefers-color-scheme: dark\)"\)\.matches/);
+  assert.match(body, /document\.documentElement\.dataset\.theme=t0/);
+  assert.match(body, /m0\.content=t0==="dark"\?"#282828":"#f5f5f7"/);
+  // It runs ahead of every blocking script and of the generated data literal.
+  const earlyAt = head.search(early);
+  assert.ok(earlyAt >= 0 && earlyAt < page.indexOf("<style>"), "the hint must precede the stylesheet");
+  assert.ok(earlyAt < page.indexOf('<script src="'), "the hint must precede every external script");
+  // setTheme() stays the single owner of the button state and of the theme-color meta.
+  assert.match(page, /btn\.setAttribute\("aria-pressed",String\(t==="dark"\)\)/);
+  assert.match(page, /const themeColorMeta=document\.getElementById\("themeColorMeta"\);/);
+  assert.match(page, /themeColorMeta\.content=t==="dark"\?"#282828":"#f5f5f7"/);
+});
+
+test("the audited focus, hover and description gaps are closed in the shipped sheet", () => {
+  // M2: .controls is sticky at top:0 above the list, so a card scrolled into view by sequential
+  // focus navigation must clear it or its focus ring is hidden.
+  assert.match(page, /\.card\{[^}]*scroll-margin-top:77px/);
+  // M3: --accent is 4.31:1 on the light --bg, so hover *text* uses --accent-selected (5.58:1)
+  // while the border keeps --accent.
+  for (const selector of [".account-btn:hover", ".hidden-restore:hover", ".filter-chip:hover",
+    ".filter-toggle:hover", ".undo-bar button:hover", ".rdbtn:hover"]) {
+    const rule = page.match(new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\{[^}]*\\}"))?.[0] ?? "";
+    assert.match(rule, /border-color:var\(--accent\)/, `${selector} keeps the --accent border`);
+    assert.match(rule, /color:var\(--accent-selected\)/, `${selector} needs the AA hover text colour`);
+  }
+  assert.match(page, /\.recent-exit-link:hover\{color:var\(--accent-selected\)\}/);
+  // N2: the preset status live region also describes the field it reports on.
+  assert.match(page, /<input class="search preset-name" id="presetName"[^>]*aria-describedby="presetStatus"/);
+  // N3: the global smooth scroll is reset for reduced motion.
+  const reducedMotion = page.match(/@media\(prefers-reduced-motion:reduce\)\{[\s\S]*?\r?\n\}/)?.[0] ?? "";
+  assert.match(reducedMotion, /html\{scroll-behavior:auto\}/);
 });
 
 test("a script-free visitor is told why the list is empty and where the feeds are", () => {
