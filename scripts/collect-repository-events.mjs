@@ -451,6 +451,9 @@ async function collectCommits(repo, previous, context) {
       const frozenIndex = values.findIndex(value => value?.sha === headSha);
       if (frozenIndex === -1) throw new Error(`Current HEAD changed during commit collection for ${slug}`);
       if (frozenIndex > 0) process.stderr.write(`::notice::${slug}: ${frozenIndex} commit(s) pushed after the frozen head are left for the next refresh\n`);
+      // Remembered as seen: page offsets run over the live listing, so a further push between
+      // page fetches re-lists these newer commits lower down, and they must not be recorded here.
+      for (const value of values.slice(0, frozenIndex)) if (typeof value?.sha === "string") seen.add(value.sha);
       listed = values.slice(frozenIndex);
     }
     for (const value of listed) {
@@ -459,7 +462,6 @@ async function collectCommits(repo, previous, context) {
       // candidate is deduplicated by SHA; absence of the prior head is still
       // diagnosed below, so overlap cannot make a gap look successful.
       if (seen.has(record.sha)) continue;
-      if (page === 1 && seen.size === 0 && record.sha !== headSha) throw new Error(`Current HEAD changed during commit collection for ${slug}`);
       seen.add(record.sha);
       if (record.sha === prior.headSha) { found = true; break; }
       records.push(record);
