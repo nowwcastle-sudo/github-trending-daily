@@ -439,6 +439,13 @@ body.compact .spark,body.compact .sparkhist{display:none}
   #tipLayer{width:560px;max-height:82vh;overflow-y:auto}
 }
 #tipLayer h2{font-size:20px;letter-spacing:-.01em;margin-bottom:2px}
+/* Touch has no hover, so on a phone the summary is not a tooltip — it is a 94%-of-screen modal
+   that used to have no ✕, no scrim and no Escape, and whose body navigated to github.com on the
+   next tap. It gets the README panel's head instead: the same 44px close glyph, the same scrim
+   material, the same focus trap and focus restore. The negative margins pull the row out through
+   the layer's own 18px/20px padding so it sits flush like #readmePanel .rp-head does. */
+#tipLayer .rp-head{display:flex;align-items:center;gap:10px;margin:-18px -20px 12px;padding:10px 20px;border-bottom:1px solid var(--hairline)}
+#tipLayer .rp-head h2{flex:1;min-width:0;margin-bottom:0;overflow-wrap:anywhere}
 .tsub{font-size:14px;color:var(--text-3);margin-bottom:12px}
 .tip-ai-note{margin:10px 0 2px;color:var(--text-2);font-size:11px;line-height:1.45}
 .tip-unavailable{margin:12px 0;color:var(--text-2);font-size:15.5px;line-height:1.55}
@@ -575,8 +582,8 @@ footer a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 #readmePanel .rp-head{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--hairline)}
 #readmePanel .rp-head h2{flex:1;font-size:17px}
 #readmePanel .rp-head .rdbtn{display:inline-flex;align-items:center;min-height:44px}
-#readmePanel .rp-close{width:44px;height:44px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-2);padding:0;border-radius:8px;transition:background-color .16s ease,color .16s ease,transform .16s ease}
-#readmePanel .rp-close:hover{background:var(--seg-bg)}
+#readmePanel .rp-close,#tipLayer .rp-close{width:44px;height:44px;flex-shrink:0;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-2);padding:0;border-radius:8px;transition:background-color .16s ease,color .16s ease,transform .16s ease}
+#readmePanel .rp-close:hover,#tipLayer .rp-close:hover{background:var(--seg-bg)}
 #readmeBody{flex:1;overflow-y:auto;padding:28px 36px;font-size:18px;line-height:1.75}
 #readmeBody h1{font-size:34px;margin:22px 0 12px}#readmeBody h2{font-size:27px;margin:20px 0 10px}
 #readmeBody h3{font-size:22px;margin:16px 0 8px}
@@ -591,8 +598,10 @@ html[data-theme="dark"] #readmeBody code,html[data-theme="dark"] #readmeBody pre
 .rdbtn{background:none;border:1px solid var(--border);color:var(--text-2);font:inherit;font-size:12.5px;
   padding:4px 10px;border-radius:8px;cursor:pointer;flex-shrink:0;transition:border-color .16s ease,color .16s ease,background-color .16s ease,transform .16s ease}
 .rdbtn:hover{border-color:var(--accent);color:var(--accent)}
-#readmeScrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:290;opacity:0;pointer-events:none;transition:opacity .3s cubic-bezier(.16,1,.3,1)}
-#readmeScrim.on{opacity:1;pointer-events:auto}
+#readmeScrim,#tipScrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:290;opacity:0;pointer-events:none;transition:opacity .3s cubic-bezier(.16,1,.3,1)}
+#readmeScrim.on,#tipScrim.on{opacity:1;pointer-events:auto}
+/* Same material, one layer below #tipLayer (z-index:200) instead of above it. */
+#tipScrim{z-index:190}
 /* star history sparkline */
 .sparkhist{margin-top:10px}
 .sparkhist svg{display:block;width:100%}
@@ -919,6 +928,7 @@ html[data-theme="dark"] .rankchg{color:#b8bb26}
   </p>
   <p class="sidebar-note" data-i18n="shortcuts.disableNote">Slash, question mark, Escape and Delete keep working.</p>
 </div>
+<div id="tipScrim"></div>
 <div id="tipLayer" role="dialog" aria-label="Repository summary" data-i18n-aria-label="tooltip.dialog" aria-hidden="true" inert></div>
 <script src="site-i18n.js"></script>
 <script src="readme-markdown.js"></script>
@@ -948,7 +958,8 @@ document.addEventListener("site-locale-change",()=>{
   updateFilterLabels();
   render();
   if(activeTipIndex!==null&&tipLayer.classList.contains("on")){
-    const repo=REPOS[activeTipIndex];tipLayer.innerHTML=tipHTML(repo,resolveSummaryLocale(repo,siteI18n.locale));
+    const repo=REPOS[activeTipIndex];tipLayer.innerHTML=tipHTML(repo,resolveSummaryLocale(repo,siteI18n.locale),tipModal);
+    if(tipModal)focusTipHead();
   }
   updateRefreshStatus();renderRecentExits(currentRecentExits);renderHist();updateVisitHeading();renderPresets();
 });
@@ -1138,7 +1149,8 @@ function openSidebar(mode,trigger,group){
   // scrim does not cover the screen edge the gesture starts from. Close it here, or the next
   // closeShortcutHelp() clears pageMain.inert while the sidebar is still the modal on screen.
   if(shortcutHelp.classList.contains("open"))closeShortcutHelp(false);
-  hideTip();
+  // The sidebar takes focus itself; letting the tip hand focus back to the card would fight it.
+  hideTip(false);
   setSidebarGroup(group??sidebar.dataset.group,true);
   sidebar.inert=false;sidebar.classList.add("open");sidebar.setAttribute("aria-hidden","false");
   sidebar.dataset.openMode=mode;
@@ -1573,7 +1585,7 @@ function hideRepository(slug,focusUndo=false){
   try{
     const alreadyHidden=hiddenSet.has(slug),saved=HiddenRepos.hide(storage,slug);
     hiddenSet=new Set(saved);if(alreadyHidden)return;
-    hideTip();render();showHiddenNotice(tr("hidden.didHide",{name:repo.name}),{undoSlug:slug});
+    hideTip(false);render();showHiddenNotice(tr("hidden.didHide",{name:repo.name}),{undoSlug:slug});
     if(focusUndo)requestAnimationFrame(()=>document.getElementById("undoHideBtn").focus());
   }catch{showHiddenNotice(tr("hidden.saveError"),{tone:"error"})}
 }
@@ -1597,9 +1609,15 @@ function resolveSummaryLocale(r,preferred=siteI18n.locale){
   const bundle=summaryBundle(r);
   return SUMMARY_LOCALES.includes(preferred)&&summaryAvailable(bundle[preferred])?preferred:null;
 }
-function tipHTML(r,locale=resolveSummaryLocale(r)){
+// `head` is the touch layout's modal head: the repository name paired with a 44px close button,
+// exactly the .rp-head row #readmePanel uses. On a hover layout the name stays the bare <h2> it
+// has always been, because there the layer follows the pointer and has no dismiss control at all.
+function tipHTML(r,locale=resolveSummaryLocale(r),head=false){
   const bundle=summaryBundle(r),s=locale?bundle[locale]:null;
-  const heading=`<h2>${esc(r.name)}</h2><p class="tsub">${fmt(r.stars)} ★ · ⑂ ${fmt(r.forks)} · 👥 ${fmt(r.contributors||0)} ${tr("repo.contributors")} · ◎ ${fmt(r.issues||0)} ${tr("repo.issues")} · ${esc(r.lang)}</p>`;
+  const title=head
+    ?`<div class="rp-head"><h2>${esc(r.name)}</h2><button type="button" class="rp-close" id="tipCloseBtn" aria-label="${esc(tr("tooltip.close"))}">✕</button></div>`
+    :`<h2>${esc(r.name)}</h2>`;
+  const heading=`${title}<p class="tsub">${fmt(r.stars)} ★ · ⑂ ${fmt(r.forks)} · 👥 ${fmt(r.contributors||0)} ${tr("repo.contributors")} · ◎ ${fmt(r.issues||0)} ${tr("repo.issues")} · ${esc(r.lang)}</p>`;
   const readme=`<div class="tip-readme-row"><button type="button" class="rdbtn js-readme" data-slug="${r.slug}" data-name="${esc(r.name)}">${tr("readme.view")}</button></div>`;
   const actions=`<p class="thint tip-actions"><button type="button" class="rdbtn js-hide-repo" data-slug="${r.slug}">${tr("tooltip.hide")}</button></p>`;
   if(r.summary_status==="held")return `${heading}${readme}<p class="tip-unavailable" role="status">${tr("tooltip.held")}</p><p class="thint tip-held-retry">${tr("tooltip.heldRetry")}</p>${actions}`;
@@ -1743,11 +1761,11 @@ list.addEventListener("click",async e=>{
     cardIndex:+card.dataset.idx,
     tooltipOpen:tipLayer.classList.contains("on"),
   });
+  // "keep" is the second tap on the card that is already showing: it used to navigate to
+  // github.com, which is why readers left the site by trying to close the summary.
   if(action==="show"){
     e.preventDefault();
     showTip(card);
-  }else{
-    window.open(card.dataset.href,"_blank","noopener");
   }
 });
 list.addEventListener("keydown",e=>{
@@ -1995,7 +2013,7 @@ async function openReadme(slug,name){
   // Same exclusivity rule as openSidebar(): the shortcut dialog goes before the README takes
   // over pageMain.inert, or closing it later un-inerts the page behind an open README.
   if(shortcutHelp.classList.contains("open"))closeShortcutHelp(false);
-  closeSidebar(false);hideTip();
+  closeSidebar(false);hideTip(false);
   document.getElementById("rpTitle").textContent=name;
   setReadmeBody(tr("readme.loading"),true);panel.inert=false;panel.classList.add("open");panel.setAttribute("aria-hidden","false");scrim.classList.add("on");
   pageMain.classList.add("reading");pageMain.inert=true;document.body.classList.add("overlay-open");document.getElementById("rpClose").focus();
@@ -2053,8 +2071,16 @@ scheduleScrollTopUpdate();
 /* scroll-to-top runtime end */
 
 /* 플로팅 툴팁: body 직속 레이어, 카드에 절대 가려지지 않음 */
-const tipLayer=document.getElementById("tipLayer"),listStage=document.getElementById("listStage");
+const tipLayer=document.getElementById("tipLayer"),tipScrim=document.getElementById("tipScrim"),listStage=document.getElementById("listStage");
 let hideTimer=null,activeTipIndex=null;
+// Touch only: the layer is a real modal there, so it remembers the card that opened it and takes
+// the page out of the tab order the way #readmePanel and .shortcut-help already do.
+let tipModal=false,tipTrigger=null;
+// Synchronous, like openReadme's rpClose.focus(): the head exists the moment innerHTML is set,
+// and a requestAnimationFrame here would never run while the tab is in the background.
+function focusTipHead(){
+  document.getElementById("tipCloseBtn")?.focus();
+}
 function touchLayout(){return matchMedia("(hover: none), (pointer: coarse)").matches}
 function railLayout(){return innerWidth>=1100&&!touchLayout()}
 function currentListShift(){
@@ -2072,11 +2098,20 @@ function showTip(card){
   if(!r)return;
   if(activeTipIndex===idx&&tipLayer.classList.contains("on")){positionTip(card);return}
   activeTipIndex=idx;
-  tipLayer.innerHTML=tipHTML(r,resolveSummaryLocale(r,siteI18n.locale));
+  const modal=touchLayout();
+  tipLayer.innerHTML=tipHTML(r,resolveSummaryLocale(r,siteI18n.locale),modal);
   positionTip(card);
   tipLayer.classList.add("on");
   tipLayer.inert=false;
   tipLayer.setAttribute("aria-hidden","false");
+  if(!modal)return;
+  // The same contract the other two dialogs sign: scrim, inert page, focus moved in, focus
+  // restored to the card on close. The trigger is remembered before the page goes inert.
+  tipModal=true;tipTrigger=card;
+  tipLayer.setAttribute("aria-modal","true");
+  tipScrim.classList.add("on");pageMain.inert=true;document.body.classList.add("overlay-open");
+  if(typeof hideScrollTopImmediately==="function")hideScrollTopImmediately();
+  focusTipHead();
 }
 function positionTip(card){
   const rect=card.getBoundingClientRect();
@@ -2117,20 +2152,15 @@ list.addEventListener("mouseleave",e=>{
   hideTimer=setTimeout(hideTip,120);
 });
 tipLayer.addEventListener("mouseenter",()=>clearTimeout(hideTimer));
-function touchCardBehindTip(event){
-  if(!touchLayout()||activeTipIndex===null)return null;
-  return document.elementsFromPoint(event.clientX,event.clientY)
-    .map(element=>element.closest&&element.closest(".card"))
-    .find(card=>card&&+card.dataset.idx===activeTipIndex)||null;
-}
 tipLayer.addEventListener("click",e=>{
+  if(e.target.closest("#tipCloseBtn")){e.preventDefault();hideTip();return}
   const hideButton=e.target.closest(".js-hide-repo");
   if(hideButton){e.preventDefault();hideRepository(hideButton.dataset.slug,e.detail===0);return}
   const readmeButton=e.target.closest(".js-readme");
   if(readmeButton){e.preventDefault();openReadme(readmeButton.dataset.slug,readmeButton.dataset.name);return}
-  if(e.target.closest('button,a,input,select,textarea,[role="button"]'))return;
-  const card=touchCardBehindTip(e);
-  if(card)window.open(card.dataset.href,"_blank","noopener");
+  // A tap on the body used to hit-test through to the card underneath and open github.com
+  // mid-read, with nothing on screen saying so. Navigation belongs to the repository title link
+  // and to "View README"; the body is now just text.
 });
 tipLayer.addEventListener("mouseleave",()=>{hideTimer=setTimeout(hideTip,150)});
 
@@ -2138,13 +2168,28 @@ window.addEventListener("scroll",()=>{
   const card=activeTipIndex===null?null:document.querySelector(`.card[data-idx="${activeTipIndex}"]`);
   if(card&&tipLayer.classList.contains("on"))positionTip(card);
 },{passive:true});
-function hideTip(){tipLayer.classList.remove("on");tipLayer.setAttribute("aria-hidden","true");tipLayer.inert=true;activeTipIndex=null;listStage.style.transform="";}
+function hideTip(restoreFocus=true){
+  tipLayer.classList.remove("on");tipLayer.setAttribute("aria-hidden","true");tipLayer.inert=true;activeTipIndex=null;listStage.style.transform="";
+  if(!tipModal)return;
+  tipModal=false;
+  tipLayer.removeAttribute("aria-modal");
+  tipScrim.classList.remove("on");pageMain.inert=false;
+  if(!sidebar.classList.contains("open")&&!panel.classList.contains("open"))document.body.classList.remove("overlay-open");
+  const trigger=tipTrigger;tipTrigger=null;
+  // A card destroyed by a re-render (hide, filter change) is not a focus target any more; the
+  // caller that re-rendered owns focus in that case.
+  if(restoreFocus&&trigger instanceof HTMLElement&&trigger.isConnected)trigger.focus();
+  if(typeof scheduleScrollTopUpdate==="function")scheduleScrollTopUpdate();
+}
+tipLayer.addEventListener("keydown",event=>{if(tipModal)trapFocus(tipLayer,event)});
+tipScrim.addEventListener("click",()=>hideTip());
+document.addEventListener("keydown",event=>{if(event.key==="Escape"&&tipModal)hideTip()});
 document.addEventListener("click",e=>{
   if(!touchLayout()||!tipLayer.classList.contains("on"))return;
   if(e.target.closest("#tipLayer")||e.target.closest(".card"))return;
   hideTip();
 });
-window.addEventListener("resize",hideTip);
+window.addEventListener("resize",()=>hideTip());
 
 
 setSidebarGroup(sidebar.dataset.group);

@@ -63,8 +63,12 @@
     return { streakDays, starsChange, hot: periodGain(repo, period) >= 1000 };
   }
 
+  // A tap on a card either opens that card's summary or, when the summary for that same card is
+  // already up, does nothing. "navigate" was the third outcome: the second tap on an open card
+  // sent the reader to github.com, so the natural way to dismiss the overlay was also the way to
+  // leave the site. Navigation now belongs to the repository title link and to "View README".
   function touchCardAction({ activeIndex, cardIndex, tooltipOpen }) {
-    return tooltipOpen && activeIndex === cardIndex ? "navigate" : "show";
+    return tooltipOpen && activeIndex === cardIndex ? "keep" : "show";
   }
 
   function sidebarMode({ hoverCapable, trigger }) {

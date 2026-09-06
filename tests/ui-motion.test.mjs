@@ -95,7 +95,7 @@ test("HOT follows only the selected period gain", async () => {
   );
 });
 
-test("a touch card opens its summary before the same card is allowed to navigate", async () => {
+test("a touch card tap opens its summary, and never navigates on the second tap", async () => {
   const UiMotion = await loadUiMotion();
   assert.equal(typeof UiMotion.touchCardAction, "function");
 
@@ -104,16 +104,29 @@ test("a touch card opens its summary before the same card is allowed to navigate
     cardIndex: 3,
     tooltipOpen: false,
   }), "show");
+  // P1-2: this used to be "navigate". The overlay covered 94% of the phone screen with no close
+  // control, so the tap a reader made to dismiss it opened github.com instead.
   assert.equal(UiMotion.touchCardAction({
     activeIndex: 3,
     cardIndex: 3,
     tooltipOpen: true,
-  }), "navigate");
+  }), "keep");
   assert.equal(UiMotion.touchCardAction({
     activeIndex: 3,
     cardIndex: 4,
     tooltipOpen: true,
   }), "show");
+  // A closed tooltip on the active card is still a first tap.
+  assert.equal(UiMotion.touchCardAction({
+    activeIndex: 3,
+    cardIndex: 3,
+    tooltipOpen: false,
+  }), "show");
+
+  const source = await readFile(new URL("../ui-motion.js", import.meta.url), "utf8");
+  const body = source.slice(source.indexOf("function touchCardAction("), source.indexOf("function sidebarMode("));
+  assert.ok(body, "touchCardAction must be findable in the source");
+  assert.doesNotMatch(body, /navigate/, "the navigating outcome is gone, not just unused");
 });
 
 test("tooltip content has no viewport-specific formatter API", async () => {

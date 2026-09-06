@@ -958,7 +958,7 @@ test("tooltip cleanup and refresh status contain no merged JavaScript tokens", (
 test("tooltip runtime has one detailed content path", () => {
   assert.match(page, /function tipHTML\(r/);
   assert.match(page, /const bundle=summaryBundle\(r\),s=locale\?bundle\[locale\]:null/);
-  assert.match(page, /tipLayer\.innerHTML=tipHTML\(repo,resolveSummaryLocale\(repo,siteI18n\.locale\)\)/);
+  assert.match(page, /tipLayer\.innerHTML=tipHTML\(repo,resolveSummaryLocale\(repo,siteI18n\.locale\),tipModal\)/);
   assert.doesNotMatch(page, /tipHTML\(r,detailed\)|r\.detail|mobile summary/i);
   assert.doesNotMatch(page, /UiMotion\.mobileTooltipHtml/);
   for (const field of ["goal", "usage", "pros", "cons", "fit"]) {
@@ -978,7 +978,7 @@ test("tooltip renders the fixed held copy instead of a summary for held reposito
 });
 
 test("a held repository tooltip states that a retry is scheduled", () => {
-  const tip = page.match(/function tipHTML\(r,locale=resolveSummaryLocale\(r\)\)\{[\s\S]*?\n\}/)?.[0] ?? "";
+  const tip = page.match(/function tipHTML\(r,locale=resolveSummaryLocale\(r\),head=false\)\{[\s\S]*?\n\}/)?.[0] ?? "";
   const held = tip.match(/if\(r\.summary_status==="held"\)return `[^`]*`/)?.[0] ?? "";
   assert.match(held, /tr\("tooltip\.held"\)/);
   assert.match(held, /tr\("tooltip\.heldRetry"\)/);
@@ -1009,7 +1009,10 @@ test("tipHTML executes the held branch and the summary branch from the real page
 
 test("site-locale changes re-render an open tooltip from the one persisted locale", () => {
   const localeChange = page.match(/document\.addEventListener\("site-locale-change",\(\)=>\{[\s\S]*?\n\}\);/)?.[0] ?? "";
-  assert.match(localeChange, /tipLayer\.innerHTML=tipHTML\(repo,resolveSummaryLocale\(repo,siteI18n\.locale\)\)/);
+  // The head is part of the rendered content, so a locale switch that rebuilds an open modal
+  // rebuilds its close button too — and has to put focus back on it.
+  assert.match(localeChange, /tipLayer\.innerHTML=tipHTML\(repo,resolveSummaryLocale\(repo,siteI18n\.locale\),tipModal\)/);
+  assert.match(localeChange, /if\(tipModal\)focusTipHead\(\)/);
   assert.doesNotMatch(localeChange, /activeSummaryLocale/);
 });
 
@@ -1800,11 +1803,11 @@ test("coarse pointers hide the rail and expose #mobileNavToggle as the header op
   assert.doesNotMatch(page, /id="(?:swipeEdge|edgeHitTarget)"|class="[^"]*(?:hamburger|swipe-edge|edge-hit-target)/i);
 });
 
-test("an unclaimed 24px-edge tap preserves first-detail then same-card navigation", () => {
+test("an unclaimed 24px-edge tap opens the summary and never navigates by itself", () => {
   const harness = sidebarHarness({ hoverCapable: false });
   assert.ok(harness.listenerCount("pointerdown") > 0);
   assert.ok(harness.listenerCount("pointermove") > 0);
-  const state = { activeIndex: null, tooltipOpen: false, visited: [] };
+  const state = { activeIndex: null, tooltipOpen: false, visited: [], kept: [] };
   function card(index) {
     const target = harness.createTarget(`card${index}`);
     target.dataset.idx = String(index);
@@ -1815,8 +1818,8 @@ test("an unclaimed 24px-edge tap preserves first-detail then same-card navigatio
         cardIndex: index,
         tooltipOpen: state.tooltipOpen,
       });
-      if (action === "navigate") state.visited.push(target.href);
-      else { state.activeIndex = index; state.tooltipOpen = true; }
+      if (action === "show") { state.activeIndex = index; state.tooltipOpen = true; }
+      else state.kept.push(target.href);
     });
     return target;
   }
@@ -1833,11 +1836,14 @@ test("an unclaimed 24px-edge tap preserves first-detail then same-card navigatio
   tap(first, 1);
   assert.equal(state.activeIndex, 0);
   assert.deepEqual(state.visited, []);
+  // P1-2: the second tap on the open card used to open github.com, so the natural way to dismiss
+  // the overlay was also the way to leave the site. It is now inert; the head's ✕ closes it.
   tap(first, 2);
-  assert.deepEqual(state.visited, ["https://github.com/owner/repo0"]);
+  assert.deepEqual(state.visited, []);
+  assert.deepEqual(state.kept, ["https://github.com/owner/repo0"]);
   tap(different, 3);
   assert.equal(state.activeIndex, 1);
-  assert.equal(state.visited.length, 1);
+  assert.equal(state.visited.length, 0);
 });
 
 test("pointerdown, vertical intent, x=25, and interactive targets remain unclaimed", () => {
@@ -2693,73 +2699,60 @@ test("cards do not nest favorite buttons inside a full-card anchor", () => {
   assert.match(page, /list\.addEventListener\("keydown"/);
 });
 
-test("touch cards preserve controls and navigate only on the same card's second tap", () => {
+test("a touch card tap only ever opens its summary, and the hover layout still navigates", () => {
   const handler = page.match(/list\.addEventListener\("click",async e=>\{[\s\S]*?\n\}\);/)?.[0] ?? "";
   assert.match(handler, /if\(e\.target\.closest\("\.favbtn,\.js-readme,\.js-hide-repo,button,a"\)\)return/);
   assert.match(handler, /UiMotion\.touchCardAction\(\{[\s\S]*?activeIndex:activeTipIndex,[\s\S]*?cardIndex:\+card\.dataset\.idx,[\s\S]*?tooltipOpen:tipLayer\.classList\.contains\("on"\)/);
-  assert.match(handler, /if\(action==="show"\)\{[\s\S]*?showTip\(card\)[\s\S]*?\}else\{[\s\S]*?window\.open\(card\.dataset\.href,"_blank","noopener"\)/);
+  assert.match(handler, /if\(action==="show"\)\{[\s\S]*?showTip\(card\)[\s\S]*?\}\r?\n\}\);/);
+  // Exactly one window.open survives in the handler: the hover layout's early return, where a
+  // click on a card has always meant "open the repository" and no summary is being read.
+  assert.equal([...handler.matchAll(/window\.open\(/g)].length, 1);
+  assert.match(handler, /if\(!touchLayout\(\)\)\{\r?\n\s*window\.open\(card\.dataset\.href,"_blank","noopener"\);/);
 });
 
-test("a touch tooltip body forwards the covered same-card second tap without stealing explicit controls", () => {
-  const helperStart = page.indexOf("function touchCardBehindTip(event){");
-  const listenerStart = page.indexOf('tipLayer.addEventListener("click",e=>{', helperStart);
+test("the summary body is text: only its own controls act, and the covered card no longer navigates", () => {
+  const listenerStart = page.indexOf('tipLayer.addEventListener("click",e=>{');
   const listenerEnd = page.indexOf('\ntipLayer.addEventListener("mouseleave"', listenerStart);
-  assert.ok(helperStart >= 0 && listenerStart > helperStart && listenerEnd > listenerStart,
-    "touch tooltip second-tap runtime must be isolated");
+  assert.ok(listenerStart >= 0 && listenerEnd > listenerStart, "tooltip click runtime must be isolated");
+  // P1-2: the helper that hit-tested through the overlay to the card underneath is gone, so no
+  // tap on the body can reach window.open any more.
+  assert.doesNotMatch(page, /function touchCardBehindTip\(/);
+  assert.doesNotMatch(page, /elementsFromPoint/);
 
   class TipLayer {
     addEventListener(type, listener) { if (type === "click") this.click = listener; }
   }
   const tipLayer = new TipLayer();
-  const card = {
-    dataset: { idx: "3", href: "https://github.com/owner/repo" },
-    closest(selector) { return selector === ".card" ? this : null; },
-  };
-  const otherCard = {
-    dataset: { idx: "4", href: "https://github.com/owner/other" },
-    closest(selector) { return selector === ".card" ? this : null; },
-  };
   const tooltipParagraph = { closest() { return null; } };
-  const calls = { opened: [], readme: 0, hidden: 0 };
+  const calls = { opened: [], readme: 0, hidden: 0, hidTip: 0 };
   const context = {
-    __touch: true,
-    __stack: [tooltipParagraph, card],
-    __tipLayer: tipLayer,
-    document: { elementsFromPoint() { return context.__stack; } },
     window: { open(href, target, features) { calls.opened.push(`${href}|${target}|${features}`); } },
-    touchLayout() { return context.__touch; },
-    activeTipIndex: 3,
     hideRepository() { calls.hidden += 1; },
     openReadme() { calls.readme += 1; },
+    hideTip() { calls.hidTip += 1; },
+    __tipLayer: tipLayer,
   };
   context.globalThis = context;
   vm.createContext(context);
   vm.runInContext(`
     const tipLayer=globalThis.__tipLayer;
-    let activeTipIndex=globalThis.activeTipIndex;
-    ${page.slice(helperStart, listenerStart)}
     ${page.slice(listenerStart, listenerEnd)}
-  `, context, { filename: "touch-tooltip-second-tap-fixture.js" });
+  `, context, { filename: "tooltip-click-fixture.js" });
 
   function dispatch(target, properties = {}) {
-    const event = { target, clientX: 24, clientY: 180, detail: 1, prevented: false,
-      preventDefault() { this.prevented = true; }, ...properties };
+    const event = { target, detail: 1, prevented: false, preventDefault() { this.prevented = true; }, ...properties };
     tipLayer.click(event);
     return event;
   }
 
   dispatch(tooltipParagraph);
-  assert.deepEqual(calls.opened, ["https://github.com/owner/repo|_blank|noopener"]);
+  assert.deepEqual(calls.opened, [], "a tap on the summary body does nothing at all");
+  assert.equal(calls.hidTip, 0);
 
-  context.__stack = [tooltipParagraph, otherCard];
-  dispatch(tooltipParagraph);
-  assert.equal(calls.opened.length, 1, "a different covered card must not inherit the active card's navigation");
-
-  context.__touch = false;
-  context.__stack = [tooltipParagraph, card];
-  dispatch(tooltipParagraph);
-  assert.equal(calls.opened.length, 1, "desktop tooltip content must retain its existing behavior");
-  context.__touch = true;
+  const closeButton = { closest(selector) { return selector === "#tipCloseBtn" ? this : null; } };
+  const closeEvent = dispatch(closeButton);
+  assert.equal(closeEvent.prevented, true);
+  assert.equal(calls.hidTip, 1, "the head's close button is what dismisses the overlay");
 
   const readmeButton = {
     dataset: { slug: "owner/repo", name: "Repo" },
@@ -2768,7 +2761,6 @@ test("a touch tooltip body forwards the covered same-card second tap without ste
   const readmeEvent = dispatch(readmeButton);
   assert.equal(readmeEvent.prevented, true);
   assert.equal(calls.readme, 1);
-  assert.equal(calls.opened.length, 1);
 
   const hideButton = {
     dataset: { slug: "owner/repo" },
@@ -2777,13 +2769,7 @@ test("a touch tooltip body forwards the covered same-card second tap without ste
   const hideEvent = dispatch(hideButton);
   assert.equal(hideEvent.prevented, true);
   assert.equal(calls.hidden, 1);
-  assert.equal(calls.opened.length, 1);
-
-  const explicitLink = {
-    closest(selector) { return selector.startsWith("button,a,input,select,textarea") ? this : null; },
-  };
-  dispatch(explicitLink);
-  assert.equal(calls.opened.length, 1, "an explicit tooltip control must own its tap");
+  assert.deepEqual(calls.opened, [], "no control in the summary opens a new window on its own");
 });
 
 test("the page declares a Content-Security-Policy that covers every origin the code actually uses", async () => {
@@ -3688,4 +3674,157 @@ test("the AI contradiction disables the control that would create it, never the 
   assert.match(page, /setFilterConflict\(button,key==="fields"&&button\.dataset\.filterId==="ai-ml"&&filterState\.excludeAi&&!aiFieldSelected,"filter\.conflictAiField"\)/);
   assert.match(page, /function setFilterConflict\(button,conflicted,messageKey\)\{\r?\n\s*button\.disabled=conflicted;\r?\n\s*button\.title=conflicted\?tr\(messageKey\):"";/);
   assert.match(page, /\.filter-toggle:disabled\{opacity:\.5;cursor:not-allowed\}/);
+});
+
+// The touch summary signs the same contract #readmePanel and .shortcut-help already sign: scrim,
+// pageMain.inert, focus trap, Escape, focus restore. hideTip is sliced with the three listeners
+// that close it so the whole teardown is exercised, not just asserted on the source.
+function tipDialogHarness({ modal = true } = {}) {
+  const start = page.indexOf("function hideTip(restoreFocus=true){");
+  const end = page.indexOf('\ndocument.addEventListener("click",e=>{', start);
+  assert.ok(start >= 0 && end > start, "tip dialog teardown must be isolated");
+
+  class ClassList {
+    constructor() { this.values = new Set(); }
+    add(value) { this.values.add(value); }
+    remove(value) { this.values.delete(value); }
+    contains(value) { return this.values.has(value); }
+  }
+  function element(id) {
+    return {
+      id,
+      classList: new ClassList(),
+      inert: false,
+      style: {},
+      attributes: new Map(),
+      listeners: new Map(),
+      setAttribute(name, value) { this.attributes.set(name, String(value)); },
+      removeAttribute(name) { this.attributes.delete(name); },
+      getAttribute(name) { return this.attributes.get(name) ?? null; },
+      addEventListener(type, listener) {
+        if (!this.listeners.has(type)) this.listeners.set(type, []);
+        this.listeners.get(type).push(listener);
+      },
+      dispatch(type, event = {}) { for (const listener of this.listeners.get(type) || []) listener({ type, ...event }); },
+    };
+  }
+
+  const tipLayer = element("tipLayer");
+  tipLayer.classList.add("on");
+  tipLayer.setAttribute("aria-modal", "true");
+  const tipScrim = element("tipScrim");
+  tipScrim.classList.add("on");
+  const pageMain = element("pageMain");
+  pageMain.inert = true;
+  const listStage = element("listStage");
+  listStage.style.transform = "translate3d(-235px, 0px, 0px)";
+  const body = element("body");
+  body.classList.add("overlay-open");
+  const documentRef = element("document");
+  const calls = { focused: [], trapped: 0, scrollTop: 0 };
+  const card = { isConnected: true, focus() { calls.focused.push("card"); } };
+
+  const context = {
+    tipLayer, tipScrim, pageMain, listStage,
+    document: Object.assign(documentRef, { body }),
+    sidebar: element("sidebar"),
+    panel: element("readmePanel"),
+    HTMLElement: Object.getPrototypeOf(card).constructor,
+    trapFocus() { calls.trapped += 1; },
+    scheduleScrollTopUpdate() { calls.scrollTop += 1; },
+  };
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(`
+    let tipModal=${modal}, tipTrigger=globalThis.__card, activeTipIndex=3;
+    globalThis.__card=undefined;
+    ${page.slice(start, end)}
+    globalThis.__hideTip=hideTip;
+    globalThis.__state=()=>({tipModal,tipTrigger,activeTipIndex});
+  `, Object.assign(context, { __card: card }), { filename: "tip-dialog-fixture.js" });
+
+  return {
+    tipLayer, tipScrim, pageMain, listStage, body, documentRef, calls, card,
+    hideTip(restoreFocus) { context.__hideTip(restoreFocus); },
+    state() { return context.__state(); },
+  };
+}
+
+test("the touch summary is a real dialog: head, scrim, inert page, focus trap, Escape, restore", () => {
+  // P1-2 measured at 375x812: a 317x784 overlay with no close control, no scrim, no Escape and no
+  // aria-modal, whose only non-navigating exits were an 8px left strip and a 10px bottom strip.
+  assert.match(page, /<div id="tipScrim"><\/div>\r?\n<div id="tipLayer" role="dialog"/);
+  assert.match(page, /#readmeScrim,#tipScrim\{position:fixed;inset:0;background:rgba\(0,0,0,\.35\)/);
+  assert.match(page, /#tipScrim\{z-index:190\}/, "the scrim must sit under #tipLayer's z-index:200, not over it");
+  // One close glyph, one 44px target, shared with the README panel rather than reinvented.
+  assert.match(page, /#readmePanel \.rp-close,#tipLayer \.rp-close\{width:44px;height:44px/);
+  assert.match(page, /<button type="button" class="rp-close" id="tipCloseBtn" aria-label="\$\{esc\(tr\("tooltip\.close"\)\)\}">✕<\/button>/);
+  assert.match(page, /#tipLayer \.rp-head\{display:flex;align-items:center;gap:10px/);
+
+  // The head only exists where there is no hover: on a pointer layout the layer follows the
+  // cursor and has never had a dismiss control.
+  const tipStart = page.indexOf("function tipHTML(r,locale=resolveSummaryLocale(r),head=false){");
+  const tipEnd = page.indexOf("\nfunction newOnlyGate(", tipStart);
+  const tip = page.slice(tipStart, tipEnd);
+  assert.match(tip, /const title=head\r?\n\s*\?`<div class="rp-head">/);
+  assert.match(page, /const modal=touchLayout\(\);\r?\n\s*tipLayer\.innerHTML=tipHTML\(r,resolveSummaryLocale\(r,siteI18n\.locale\),modal\)/);
+  assert.match(page, /if\(!modal\)return;/);
+  assert.match(page, /tipModal=true;tipTrigger=card;/);
+  assert.match(page, /tipLayer\.setAttribute\("aria-modal","true"\);\r?\n\s*tipScrim\.classList\.add\("on"\);pageMain\.inert=true;document\.body\.classList\.add\("overlay-open"\);/);
+  assert.match(page, /tipLayer\.addEventListener\("keydown",event=>\{if\(tipModal\)trapFocus\(tipLayer,event\)\}\)/);
+  assert.match(page, /tipScrim\.addEventListener\("click",\(\)=>hideTip\(\)\)/);
+  assert.match(page, /document\.addEventListener\("keydown",event=>\{if\(event\.key==="Escape"&&tipModal\)hideTip\(\)\}\)/);
+  // hideTip's default restores focus, so the resize listener has to call it, not be it: passing
+  // the resize Event straight through would read as a truthy restoreFocus.
+  assert.match(page, /window\.addEventListener\("resize",\(\)=>hideTip\(\)\)/);
+
+  const harness = tipDialogHarness();
+  harness.hideTip();
+  assert.equal(harness.tipLayer.classList.contains("on"), false);
+  assert.equal(harness.tipLayer.getAttribute("aria-hidden"), "true");
+  assert.equal(harness.tipLayer.inert, true);
+  assert.equal(harness.tipLayer.getAttribute("aria-modal"), null, "aria-modal only holds while it is open");
+  assert.equal(harness.tipScrim.classList.contains("on"), false);
+  assert.equal(harness.pageMain.inert, false);
+  assert.equal(harness.body.classList.contains("overlay-open"), false);
+  assert.equal(harness.listStage.style.transform, "");
+  assert.deepEqual(harness.calls.focused, ["card"], "focus returns to the card that opened it");
+  assert.equal(harness.state().tipModal, false);
+  assert.equal(harness.state().tipTrigger, null);
+  assert.equal(harness.state().activeTipIndex, null);
+
+  // Escape and a scrim tap are the same teardown, and both are exits the overlay simply did not
+  // have before.
+  for (const close of ["escape", "scrim"]) {
+    const fresh = tipDialogHarness();
+    if (close === "escape") fresh.documentRef.dispatch("keydown", { key: "Escape" });
+    else fresh.tipScrim.dispatch("click");
+    assert.equal(fresh.tipLayer.classList.contains("on"), false, `${close} must close the overlay`);
+    assert.deepEqual(fresh.calls.focused, ["card"]);
+  }
+  const notEscape = tipDialogHarness();
+  notEscape.documentRef.dispatch("keydown", { key: "Enter" });
+  assert.equal(notEscape.tipLayer.classList.contains("on"), true);
+
+  // Tab is trapped only while the layer is modal; on a hover layout it is a passive overlay.
+  const hover = tipDialogHarness({ modal: false });
+  hover.tipLayer.dispatch("keydown", { key: "Tab" });
+  assert.equal(hover.calls.trapped, 0);
+  const touch = tipDialogHarness();
+  touch.tipLayer.dispatch("keydown", { key: "Tab" });
+  assert.equal(touch.calls.trapped, 1);
+
+  // A hover-layout hide touches none of the modal machinery, and hideTip(false) is what the
+  // callers that own focus themselves — openSidebar, openReadme, hideRepository — pass.
+  const passive = tipDialogHarness({ modal: false });
+  passive.hideTip();
+  assert.equal(passive.pageMain.inert, true, "a passive overlay never made the page inert");
+  assert.deepEqual(passive.calls.focused, []);
+  const silent = tipDialogHarness();
+  silent.hideTip(false);
+  assert.equal(silent.pageMain.inert, false);
+  assert.deepEqual(silent.calls.focused, [], "the caller that re-rendered owns focus");
+  assert.match(page, /\/\/ The sidebar takes focus itself[\s\S]*?hideTip\(false\);/);
+  assert.match(page, /closeSidebar\(false\);hideTip\(false\);/);
+  assert.match(page, /hideTip\(false\);render\(\);showHiddenNotice\(/);
 });
