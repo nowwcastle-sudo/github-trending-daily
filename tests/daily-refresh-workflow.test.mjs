@@ -108,7 +108,7 @@ test("production state checks and the recovery build resolve the database throug
   assert.equal((workflow.match(/observation-db-store\.mjs resolve --source-sha "\$HYDRATION_SOURCE_SHA" --check/g) ?? []).length, 2);
   // The v1 branch's check is annotated like the star-ticks one: the bare command already stops the
   // job under set -e, but only the ::error:: names the fault in the run summary.
-  assert.match(workflow, /node scripts\/observation-db-store\.mjs resolve --source-sha "\$HYDRATION_SOURCE_SHA" --check \|\| \{ echo "::error::verified production source does not carry exactly one observation database representation"; exit 1; \}/);
+  assert.match(workflow, /node scripts\/observation-db-store\.mjs resolve --source-sha "\$HYDRATION_SOURCE_SHA" --check \|\| \{ echo "::error::verified production source does not carry a pointer-backed observation database"; exit 1; \}/);
   // The v0 bootstrap gate branches on the exit status, never on plain success/failure: exit 0 means
   // a v0 production is carrying the canonical database, exit 3 is the only status that clears a
   // bootstrap, and every other status is a real fault that stops the refresh.
@@ -190,7 +190,6 @@ test("promotion scans the candidate database, publishes the asset after every lo
   assertInOrder(promotion, [
     'scan_repository_observations.py --database "$CANDIDATE/data/repository-observations.sqlite" --expect-snapshot "$SNAPSHOT_ID" > "${RUNNER_TEMP}/scan-receipt.json"',
     'cp "$CANDIDATE/index.html" index.html',
-    "git rm --cached --quiet data/repository-observations.sqlite",
     "git fetch origin main",
     "origin/main advanced during refresh",
     'observation-db-store.mjs publish --database "$CANDIDATE/data/repository-observations.sqlite" --snapshot-id "$SNAPSHOT_ID" --target-sha "$ORIGINAL_SHA" --latest "$CANDIDATE/data/latest.json" --scan-receipt "${RUNNER_TEMP}/scan-receipt.json" --pointer-out data/observation-db.pointer.json',
@@ -203,11 +202,14 @@ test("promotion scans the candidate database, publishes the asset after every lo
   ]);
   assert.doesNotMatch(promotion, /cp "\$CANDIDATE\/data\/repository-observations\.sqlite"/);
   assert.doesNotMatch(promotion, /git show :data\/repository-observations\.sqlite/);
-  assert.match(promotion, /if git ls-files --error-unmatch data\/repository-observations\.sqlite >\/dev\/null 2>&1; then\n\s+git rm --cached --quiet data\/repository-observations\.sqlite\n\s+rm -f data\/repository-observations\.sqlite\n\s+fi/);
-  // The staged deletion of the database has to be visible to the allow-list scan, so changed_paths
-  // reads the index as well as the worktree - `git diff --name-only` alone would miss it.
+  // The transition step that dropped the tracked database is gone (2026-09-06 follow-up); the
+  // database is never a generated output of a refresh commit again.
+  assert.doesNotMatch(promotion, /git rm --cached/);
+  // changed_paths reads the index as well as the worktree, so a staged change never escapes the
+  // allow-list scan.
   assert.match(promotion, /git diff --name-only && git diff --cached --name-only && git ls-files --others/);
-  assert.match(promotion, /case "\$changed_path" in\n\s+index\.html\|data\/repo-summaries\.json\|data\/observation-db\.pointer\.json\|data\/readme-state\.json[^\n]*\|translations\/\*\.json\|data\/repository-observations\.sqlite\) ;;/);
+  assert.match(promotion, /case "\$changed_path" in\n\s+index\.html\|data\/repo-summaries\.json\|data\/observation-db\.pointer\.json\|data\/readme-state\.json[^\n]*\|translations\/\*\.json\) ;;/);
+  assert.doesNotMatch(promotion, /translations\/\*\.json\|data\/repository-observations\.sqlite\)/);
   assert.match(promotion, /git add -- index\.html data\/repo-summaries\.json data\/observation-db\.pointer\.json data\/readme-state\.json/);
   assert.match(promotion, /git grep --cached -qE[^\n]*-- index\.html data\/repo-summaries\.json data\/observation-db\.pointer\.json/);
   assert.match(promotion, /data\/readme-state\.json/);
@@ -364,7 +366,7 @@ test("W1 derives star anchors from frozen facts and no longer generates star-his
   // W1 re-derives the overlay offline from the tracked ledgers so a publish never ships a stale star history.
   assert.match(workflow, /derive-star-anchors\.mjs[^\n]*\n\s+node scripts\/star-ticks\.mjs derive --published "\$CANDIDATE\/data\/latest\.json" --ticks-dir data\/star-ticks --daily data\/star-daily\.jsonl --anchors "\$CANDIDATE\/data\/star-anchors\.json" --out "\$CANDIDATE\/star-history\.json"/);
   assert.match(workflow, /cp "\$CANDIDATE\/star-history\.json" star-history\.json/);
-  assert.match(workflow, /case "\$changed_path" in\n\s+index\.html\|[^\n]*\|data\/star-anchors\.json\|star-history\.json\|translations\/\*\.json\|data\/repository-observations\.sqlite\) ;;/);
+  assert.match(workflow, /case "\$changed_path" in\n\s+index\.html\|[^\n]*\|data\/star-anchors\.json\|star-history\.json\|translations\/\*\.json\) ;;/);
   assert.match(workflow, /git add -- [^\n]*data\/star-anchors\.json star-history\.json translations\//);
   await assert.rejects(access("scripts/update-star-history.mjs"), /ENOENT/);
 });

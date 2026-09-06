@@ -352,7 +352,7 @@ function runStore(args, env) {
 // 120 s) below, not by this timeout, which only backstops a stall in the runner itself. It is the
 // most generous in the file because this one test spawns ~32 processes - eight CLI runs, each of
 // which runs fake git three times - and process creation is the slow part on a loaded machine.
-test("resolve: pointer only downloads and verifies; blob only uses git; both or neither fail closed; expect-snapshot-id is enforced", { timeout: 300_000 }, async t => {
+test("resolve: pointer only downloads and verifies; blob only, both, and neither fail closed; expect-snapshot-id is enforced", { timeout: 300_000 }, async t => {
   const directory = await scratchDirectory(t, "obs-resolve-");
   const { base, close } = await assetServer((request, response) => { if (request.url.endsWith(assetNameFor(SNAPSHOT))) { response.writeHead(200); response.end(DB); } else { response.writeHead(404); response.end(); } });
   t.after(close);
@@ -375,11 +375,12 @@ test("resolve: pointer only downloads and verifies; blob only uses git; both or 
   assert.equal(JSON.parse(pointerOnly.stdout).snapshotId, SNAPSHOT);
   assert.deepEqual(await readFile(pointerOnly.out), DB);
 
+  // The transition fallback that read a blob-only commit out of git is gone: such a commit is a
+  // defect now, exit 1 with an ::error::, and it produces no file.
   const blobOnly = await run({ blob: DB });
-  assert.equal(blobOnly.status, 0, blobOnly.stderr);
-  assert.equal(JSON.parse(blobOnly.stdout).mode, "blob");
-  assert.equal(JSON.parse(blobOnly.stdout).snapshotId, null, "the blob carries no snapshot id to report");
-  assert.match(blobOnly.stderr, /::notice::blob fallback cannot verify --expect-snapshot-id/);
+  assert.equal(blobOnly.status, 1, blobOnly.stderr);
+  assert.match(blobOnly.stderr, /::error::[^\n]*pre-transition blob without a pointer/);
+  assert.equal(existsSync(blobOnly.out), false, "a failed resolve leaves no output file");
 
   // The two failures a caller has to tell apart. An ambiguous commit is a defect - exit 1, ::error::
   // - and no workflow may answer it by building the legacy artifact.
@@ -442,7 +443,7 @@ function runGit(cwd, args) {
 // lookup failure - so a pointer-only commit, which is what every commit after the transition looks
 // like, threw instead of resolving. Nothing but the real binary catches that, so this test takes no
 // GIT_BIN/GIT_SCRIPT override: isolateEnv clears both and the CLI child runs against git itself.
-test("resolve reads real git: pointer-only and blob-only commits resolve; both and neither fail closed", { timeout: 300_000 }, async t => {
+test("resolve reads real git: pointer-only commits resolve; blob-only, both, and neither fail closed", { timeout: 300_000 }, async t => {
   isolateEnv(t);
   // Kept out of scratchDirectory: a repository is a tree, and its objects land read-only on Windows,
   // which that helper's flat chmod pass does not reach. A leftover fixture is cheaper than a red run.
@@ -493,9 +494,9 @@ test("resolve reads real git: pointer-only and blob-only commits resolve; both a
   assert.deepEqual(await readFile(pointerOnly.out), DB);
 
   const blobOnly = await run(blobSha, "blob.sqlite");
-  assert.equal(blobOnly.status, 0, blobOnly.stderr);
-  assert.equal(JSON.parse(blobOnly.stdout).mode, "blob");
-  assert.deepEqual(await readFile(blobOnly.out), DB, "cat-file blob must hand back the committed bytes unfiltered");
+  assert.equal(blobOnly.status, 1, blobOnly.stderr);
+  assert.match(blobOnly.stderr, /::error::[^\n]*pre-transition blob without a pointer/);
+  assert.equal(existsSync(blobOnly.out), false, "a failed resolve leaves no output file");
 
   const both = await run(bothSha, "both.sqlite");
   assert.equal(both.status, 1, both.stderr);

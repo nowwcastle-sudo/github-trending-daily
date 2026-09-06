@@ -44,8 +44,8 @@ jobs:
         run: |
           set -euo pipefail
           # Exit 3 is the store's one benign verdict: nothing is tracked at this commit. Every other
-          # non-zero exit is a real fault - a commit carrying both pointer and blob, a corrupt
-          # pointer, git failing - and answering it with the legacy v0 build would deploy a stale
+          # non-zero exit is a real fault - a commit carrying both pointer and blob, a pre-transition
+          # blob without a pointer, a corrupt pointer, git failing - and answering it with the legacy v0 build would deploy a stale
           # site over a broken database, so the step is guarded rather than run under `if`.
           set +e
           node scripts/observation-db-store.mjs resolve --source-sha "$SOURCE_SHA" --check
