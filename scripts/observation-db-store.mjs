@@ -281,15 +281,10 @@ export async function resolveObservationDatabase({ sourceSha, out = null, expect
     const verified = await downloadAsset({ pointer, destination: path.resolve(out), deadline, fetchImpl });
     return { mode: "pointer", snapshotId: pointer.snapshotId, ...verified };
   }
-  // Transition fallback (spec section 7): the source commit predates the pointer. Deleted by the
-  // follow-up PR. The blob carries no snapshot id, so this mode reports null instead of echoing
-  // back what the caller expected - claiming a verification that never happened would be worse.
-  process.stderr.write("::notice::blob fallback cannot verify --expect-snapshot-id; export-parent-inputs verifies the parent snapshot id\n");
-  if (check) return { mode: "blob", snapshotId: null, sha256: null, byteSize: null };
-  if (!out) throw new Error("--out is required");
-  const bytes = git(["cat-file", "blob", `${sourceSha}:${DATABASE_PATH}`], options);
-  await writeExclusive(path.resolve(out), [bytes]);
-  return { mode: "blob", snapshotId: null, sha256: hash(bytes), byteSize: bytes.length };
+  // A commit that still tracks the blob predates the 2026-09-06 transition (spec section 7). The
+  // fallback that read it out of git was removed after two clean runs; no verified production or
+  // main commit names such a SHA any more, so meeting one is a defect, not a state to serve.
+  throw new Error(`observation database at ${sourceSha} is a pre-transition blob without a pointer`);
 }
 
 // Only publish shells out to gh, so it is the only place that needs GH_TOKEN. Every argument is

@@ -110,7 +110,8 @@ jobs:
             [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] || { echo "::error::migration baseline requires the approved manual gate"; exit 1; }
             # Only exit 3 - nothing tracked at this commit - clears a v0 bootstrap. Exit 0 means the
             # database is there and this is not a migration baseline; anything else is a real fault
-            # (both pointer and blob tracked, a corrupt pointer, git failing) that must stop the run
+            # (both pointer and blob tracked, a pre-transition blob without a pointer, a corrupt pointer,
+            # git failing) that must stop the run
             # rather than be read as "no database yet" and waved through as a bootstrap.
             set +e
             node scripts/observation-db-store.mjs resolve --source-sha "$HYDRATION_SOURCE_SHA" --check
@@ -148,7 +149,7 @@ jobs:
             fi
           else
             [ -z "$REQUESTED_BOOTSTRAP_SOURCE_SHA" ] || { echo "::error::version-1 refresh forbids a bootstrap source SHA"; exit 1; }
-            node scripts/observation-db-store.mjs resolve --source-sha "$HYDRATION_SOURCE_SHA" --check || { echo "::error::verified production source does not carry exactly one observation database representation"; exit 1; }
+            node scripts/observation-db-store.mjs resolve --source-sha "$HYDRATION_SOURCE_SHA" --check || { echo "::error::verified production source does not carry a pointer-backed observation database"; exit 1; }
             PARENT_SNAPSHOT_ID="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; const value=JSON.parse(readFileSync(process.argv[1],"utf8")); process.stdout.write(value.snapshotId ?? "");' "$STATE_FILE")"
             [ -n "$PARENT_SNAPSHOT_ID" ]
             echo "ENRICHMENT_BUDGET_MODE=normal" >> "$GITHUB_ENV"
@@ -521,10 +522,6 @@ jobs:
           cp "$CANDIDATE/data/star-anchors.json" data/star-anchors.json
           cp "$CANDIDATE/star-history.json" star-history.json
           rsync --archive --delete "$CANDIDATE/translations/" translations/
-          if git ls-files --error-unmatch data/repository-observations.sqlite >/dev/null 2>&1; then
-            git rm --cached --quiet data/repository-observations.sqlite
-            rm -f data/repository-observations.sqlite
-          fi
           git fetch origin main
           [ "$ORIGINAL_SHA" = "$(git rev-parse refs/remotes/origin/main)" ] || { echo "::error::origin/main advanced during refresh"; exit 1; }
           node scripts/observation-db-store.mjs publish --database "$CANDIDATE/data/repository-observations.sqlite" --snapshot-id "$SNAPSHOT_ID" --target-sha "$ORIGINAL_SHA" --latest "$CANDIDATE/data/latest.json" --scan-receipt "${RUNNER_TEMP}/scan-receipt.json" --pointer-out data/observation-db.pointer.json
@@ -532,7 +529,7 @@ jobs:
           while IFS= read -r changed_path; do
             [ -z "$changed_path" ] && continue
             case "$changed_path" in
-              index.html|data/repo-summaries.json|data/observation-db.pointer.json|data/readme-state.json|data/membership-status.json|data/latest.json|data/translation-sources.json|feed.xml|changes.xml|data/star-anchors.json|star-history.json|translations/*.json|data/repository-observations.sqlite) ;;
+              index.html|data/repo-summaries.json|data/observation-db.pointer.json|data/readme-state.json|data/membership-status.json|data/latest.json|data/translation-sources.json|feed.xml|changes.xml|data/star-anchors.json|star-history.json|translations/*.json) ;;
               *) echo "::error::Unexpected generated output: $changed_path"; exit 1 ;;
             esac
           done <<< "$changed_paths"

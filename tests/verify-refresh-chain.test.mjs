@@ -72,7 +72,9 @@ test("v1 requires one permitted generated child while v0 recovery preserves run-
   const child = "b".repeat(40);
   assert.throws(() => assertSourceBoundToRunHead(head, head, () => assert.fail("Git must not run")), /generated child/i);
   assert.equal(assertSourceBoundToRunHead(head, head, () => assert.fail("Git must not run"), { version: 0 }), true);
-  assert.equal(assertSourceBoundToRunHead(head, child, args => args[0] === "show" ? head : "data/latest.json\ndata/readme-state.json\ndata/repository-observations.sqlite\nindex.html"), true);
+  // The transition commit that deleted the tracked database was accepted until 2026-09-06; a
+  // generated commit touching the database name is non-generated again.
+  assert.throws(() => assertSourceBoundToRunHead(head, child, args => args[0] === "show" ? head : "data/latest.json\ndata/readme-state.json\ndata/repository-observations.sqlite\nindex.html"), /non-generated/i);
   assert.equal(assertSourceBoundToRunHead(head, child, args => args[0] === "show" ? head : "data/latest.json\ndata/observation-db.pointer.json\nindex.html"), true);
   assert.throws(() => assertSourceBoundToRunHead(head, child, args => args[0] === "show" ? "c".repeat(40) : "data/latest.json"), /direct generated/i);
   assert.throws(() => assertSourceBoundToRunHead(head, child, args => args[0] === "show" ? head : "repo-filters.js"), /non-generated/i);
