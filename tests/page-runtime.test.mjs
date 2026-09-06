@@ -433,6 +433,8 @@ function hiddenSectionsGroupHarness() {
     classificationBadges() { return ""; },
     renderHist() {},
     updateVisitHeading() {},
+    filterBarSummary(count) { return `${count} repositories`; },
+    setFilterBarStatus() {},
     repoLabel(slug) { return slug; },
     esc(value) { return String(value ?? ""); },
     fmt(value) { return String(value); },
@@ -532,6 +534,7 @@ function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = ne
     stars: 5000, forks: 20, contributors: 4, issues: 3,
     ...repositoryOverrides,
   };
+  const filterBarStatusWrites = [];
   const context = {
     globalThis: null,
     URLSearchParams,
@@ -555,6 +558,10 @@ function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = ne
     transientMembershipRepo(value) { return value; },
     updateHiddenManager() {},
     updateVisitHeading() {},
+    // Declared after render() in the page, so the real slice hoists past this fixture's window.
+    // Recorded, because "say in the main column how many repositories survived" is render()'s job.
+    filterBarSummary(count) { return `${count} repositories`; },
+    setFilterBarStatus(message) { filterBarStatusWrites.push(message); },
     activeDiscoveryCount() { return 0; },
     classificationBadges() { return ""; },
     renderHist() {},
@@ -568,7 +575,7 @@ function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = ne
   vm.runInContext(repoFiltersSource, context, { filename: "repo-filters-card-fixture.js" });
   vm.runInContext(`${page.slice(start, end)}\nglobalThis.__render=render;`, context, { filename: "card-render-fixture.js" });
   context.__render();
-  return { html: nodes.get("list").innerHTML, visible: context.currentVisibleRepos };
+  return { html: nodes.get("list").innerHTML, visible: context.currentVisibleRepos, filterBarStatusWrites };
 }
 
 function scrollTopHarness({ reducedMotion = false } = {}) {
@@ -644,8 +651,10 @@ function scrollTopHarness({ reducedMotion = false } = {}) {
 
 function filterUiHarness() {
   // updateFilterUi + applyFilterState in isolation, per the Task 6 fix-round review's slice
-  // boundaries: "function updateFilterUi(){" through the line before "const seg=...".
-  const start = page.indexOf("function updateFilterUi(){");
+  // boundaries — widened in batch E2 to open at "function filterBarSummary(count){" so the
+  // active-filter pill model, the pill renderer, the count phrase and the AI conflict guard that
+  // updateFilterUi now calls come from the real page source instead of a stub.
+  const start = page.indexOf("function activeDiscoveryCount(){");
   const end = page.indexOf('\nconst seg=document.getElementById("periodSeg")', start);
   assert.ok(start >= 0 && end > start, "filter-ui runtime fixture must be isolated");
 
@@ -656,6 +665,9 @@ function filterUiHarness() {
       this.dataset = {};
       this.value = "";
       this.textContent = "";
+      this.innerHTML = "";
+      this.disabled = false;
+      this.title = "";
     }
     setAttribute(name, value) { this.attributes.set(name, String(value)); }
     getAttribute(name) { return this.attributes.get(name) ?? null; }
@@ -669,6 +681,8 @@ function filterUiHarness() {
     ["favOnlyBtn", new FakeElement("favOnlyBtn")],
     ["filterCount", new FakeElement("filterCount")],
     ["filterCountValue", new FakeElement("filterCountValue")],
+    ["activeFilterPills", new FakeElement("activeFilterPills")],
+    ["emptyFilterPills", new FakeElement("emptyFilterPills")],
   ]);
 
   const gainOption = { disabled: false };
@@ -686,7 +700,7 @@ function filterUiHarness() {
   });
   const seg = { querySelectorAll(selector) { return selector === "button" ? periodButtons : []; } };
 
-  const calls = { moveThumb: 0, render: 0, filterBarStatus: [] };
+  const calls = { moveThumb: 0, render: 0, syncUrl: 0, filterBarStatus: [], toggleFilter: [] };
   const documentRef = {
     getElementById(id) { return nodes.get(id); },
     querySelectorAll() { return []; },
@@ -697,12 +711,26 @@ function filterUiHarness() {
     langSel,
     sortSel,
     seg,
-    activeDiscoveryCount() { return 0; },
     moveThumb() { calls.moveThumb += 1; },
     render() { calls.render += 1; },
     // Declared after updateFilterUi in the page, so the real slice would hoist past this fixture's
     // window; recorded here so the clear-on-state-change contract stays observable.
     setFilterBarStatus(message, tone = "") { calls.filterBarStatus.push([message, tone]); },
+    // Declared before the slice: the pill labels and the conflict titles go through them.
+    tr(key, parameters = {}) {
+      const messages = {
+        "result.count": `${parameters.count} repositories`,
+        "result.filters": `${parameters.count} Explore filters`,
+        "filter.removePill": `${parameters.name} filter — remove`,
+        "field.excludeAi": "Exclude AI",
+        "field.newOnly": "New repositories only",
+      };
+      return messages[key] ?? key;
+    },
+    esc(value) { return String(value ?? ""); },
+    filterLabel(kind, id) { return `${kind}:${id}`; },
+    toggleFilter(key, id) { calls.toggleFilter.push([key, id]); },
+    syncUrl() { calls.syncUrl += 1; },
     URLSearchParams,
   };
   context.globalThis = context;
@@ -713,6 +741,9 @@ function filterUiHarness() {
     ${page.slice(start, end)}
     globalThis.__updateFilterUi=updateFilterUi;
     globalThis.__applyFilterState=applyFilterState;
+    globalThis.__filterBarSummary=filterBarSummary;
+    globalThis.__pillModel=activeFilterPillModel;
+    globalThis.__removeActiveFilter=removeActiveFilter;
   `, context, { filename: "filter-ui-runtime-fixture.js" });
 
   return {
@@ -720,15 +751,21 @@ function filterUiHarness() {
     periodButtons,
     calls,
     applyFilterState(next) { context.__applyFilterState(next); },
-    parseState(search) { return context.RepoFilters.parseState(search, []); },
+    filterBarSummary(count) { return context.__filterBarSummary(count); },
+    pillModel() { return context.__pillModel(); },
+    removeActiveFilter(kind, id) { context.__removeActiveFilter(kind, id); },
+    parseState(search, languages = []) { return context.RepoFilters.parseState(search, languages); },
   };
 }
 
 function filterControlsHarness() {
   // updateFilterUi glued to the excludeAi/newOnly/clearFiltersBtn click handlers, per the
   // review's second slice: 'document.getElementById("excludeAi").addEventListener("click"'
-  // through the line before 'document.getElementById("hiddenRepoList")'.
-  const uiStart = page.indexOf("function updateFilterUi(){");
+  // through the line before 'document.getElementById("hiddenRepoList")'. Batch E2 widened the
+  // first slice back to activeDiscoveryCount so removeActiveFilter — which the pill rows in the
+  // second slice delegate to — is the real one, and pushed the second slice's end past the pill
+  // delegates it now has to wire.
+  const uiStart = page.indexOf("function activeDiscoveryCount(){");
   const uiEnd = page.indexOf('\nconst seg=document.getElementById("periodSeg")', uiStart);
   const handlersStart = page.indexOf('document.getElementById("excludeAi").addEventListener("click"');
   const handlersEnd = page.indexOf('document.getElementById("hiddenRepoList")', handlersStart);
@@ -741,6 +778,9 @@ function filterControlsHarness() {
       this.attributes = new Map();
       this.dataset = {};
       this.value = "";
+      this.innerHTML = "";
+      this.disabled = false;
+      this.title = "";
       this.listeners = new Map();
     }
     setAttribute(name, value) { this.attributes.set(name, String(value)); }
@@ -749,8 +789,8 @@ function filterControlsHarness() {
       if (!this.listeners.has(type)) this.listeners.set(type, []);
       this.listeners.get(type).push(listener);
     }
-    dispatch(type) {
-      for (const listener of this.listeners.get(type) || []) listener({ type, target: this });
+    dispatch(type, target = this) {
+      for (const listener of this.listeners.get(type) || []) listener({ type, target });
     }
   }
 
@@ -763,6 +803,8 @@ function filterControlsHarness() {
     ["favOnlyBtn", new FakeElement("favOnlyBtn")],
     ["filterCount", new FakeElement("filterCount")],
     ["filterCountValue", new FakeElement("filterCountValue")],
+    ["activeFilterPills", new FakeElement("activeFilterPills")],
+    ["emptyFilterPills", new FakeElement("emptyFilterPills")],
   ]);
 
   const gainOption = { disabled: false };
@@ -778,7 +820,7 @@ function filterControlsHarness() {
   });
   const seg = { querySelectorAll(selector) { return selector === "button" ? periodButtons : []; } };
 
-  const calls = { updateFilterUi: 0, syncUrl: 0, render: 0, filterBarStatus: [] };
+  const calls = { updateFilterUi: 0, syncUrl: 0, render: 0, filterBarStatus: [], toggleFilter: [] };
   const documentRef = {
     getElementById(id) { return nodes.get(id); },
     querySelectorAll() { return []; },
@@ -789,11 +831,25 @@ function filterControlsHarness() {
     langSel,
     sortSel,
     seg,
-    activeDiscoveryCount() { return 0; },
     moveThumb() {},
     syncUrl() { calls.syncUrl += 1; },
     render() { calls.render += 1; },
     setFilterBarStatus(message, tone = "") { calls.filterBarStatus.push([message, tone]); },
+    tr(key, parameters = {}) {
+      const messages = {
+        "result.count": `${parameters.count} repositories`,
+        "result.filters": `${parameters.count} Explore filters`,
+        "filter.removePill": `${parameters.name} filter — remove`,
+        "field.excludeAi": "Exclude AI",
+        "field.newOnly": "New repositories only",
+      };
+      return messages[key] ?? key;
+    },
+    esc(value) { return String(value ?? ""); },
+    filterLabel(kind, id) { return `${kind}:${id}`; },
+    // Declared before this slice; removeActiveFilter routes field and form pills straight into it,
+    // which is the whole point — the pill and the panel chip take the identical path.
+    toggleFilter(key, id) { calls.toggleFilter.push([key, id]); },
     URLSearchParams,
   };
   context.globalThis = context;
@@ -2143,7 +2199,7 @@ test("the filter bar sits under the badge guide and owns period, language, quick
   const barIndex = page.indexOf('id="filterBar"');
   assert.ok(asideEnd >= 0 && asideEnd < barIndex && barIndex < hintIndex, "the filter bar belongs between the badge guide and the card hint");
   const bar = page.match(/<section class="filter-bar" id="filterBar"[\s\S]*?<\/section>/)?.[0] ?? "";
-  const order = ["periodSeg", "segThumb", "lang", "excludeAi", "newOnly", "copyLinkBtn", "filterBarStatus"];
+  const order = ["periodSeg", "segThumb", "lang", "excludeAi", "newOnly", "copyLinkBtn", "activeFilterPills", "filterBarStatus"];
   let previous = -1;
   for (const id of order) {
     const position = bar.indexOf(`id="${id}"`);
@@ -3516,4 +3572,120 @@ test("wide viewports reserve the tooltip lane instead of sliding the list on hov
     assert.ok(cardRight + 18 + 560 + 16 <= viewport, `${viewport}px must leave the tooltip lane unshifted`);
     assert.ok(margin(viewport) >= 92, `${viewport}px must clear the 76px rail`);
   }
+});
+
+test("the filter bar carries the visible count and one dismissible pill per Explore filter", () => {
+  const bar = page.match(/<section class="filter-bar" id="filterBar"[\s\S]*?<\/section>/)?.[0] ?? "";
+  // The pills sit under the chips and above the live region, so the row a reader dismisses from is
+  // the row the count they just heard describes.
+  assert.ok(bar.indexOf('id="activeFilterPills"') > bar.indexOf('id="compactToggle"'));
+  assert.ok(bar.indexOf('id="activeFilterPills"') < bar.indexOf('id="filterBarStatus"'));
+  // The empty state gets the same row, so a 0-result view offers "drop one" beside "reset all".
+  // The empty state now holds a nested <div>, so it is sliced by its neighbours, not by the
+  // first closing tag.
+  const empty = page.slice(page.indexOf('<div class="empty" id="empty">'), page.indexOf('id="hiddenNotice"'));
+  assert.ok(empty.indexOf('id="emptyFilterPills"') > empty.indexOf('id="emptyText"'));
+  assert.ok(empty.indexOf('id="emptyFilterPills"') < empty.indexOf('id="emptyResetBtn"'));
+  // Same pressed skin as .filter-toggle, one 44px target, and a row that scrolls rather than
+  // stacks on a phone.
+  assert.match(page, /\.filter-pill\{[^}]*background:var\(--accent-soft\);color:var\(--accent-selected\);border-color:var\(--accent\)\}/);
+  assert.match(page, /@media\(max-width:600px\)\{\.filter-pill-row\{flex-wrap:nowrap;overflow-x:auto/);
+  assert.match(page, /class="filter-toggle filter-pill"/);
+
+  const harness = filterUiHarness();
+  harness.applyFilterState({ ...harness.parseState("?field=security&tag=mcp&lang=Rust&exclude=ai&membership=new", ["Rust"]), favOnly: false });
+  // The model crosses a vm realm boundary, so it is compared as text rather than by structure.
+  assert.equal(
+    harness.pillModel().map(pill => `${pill.kind}:${pill.id}`).join("|"),
+    "fields:security|forms:mcp|lang:Rust|excludeAi:excludeAi|newOnly:newOnly",
+  );
+  // The pill count and the "N Explore filters" phrase come from one definition, so they cannot
+  // disagree: five pills, five filters, and the rail badge reads five too.
+  assert.equal(harness.pillModel().length, 5);
+  assert.equal(harness.filterBarSummary(3), "3 repositories · 5 Explore filters");
+  assert.equal(harness.filterBarSummary(51), "51 repositories · 5 Explore filters");
+  assert.equal(harness.nodes.get("filterCountValue").textContent, "5");
+
+  const html = harness.nodes.get("activeFilterPills").innerHTML;
+  assert.equal(html, harness.nodes.get("emptyFilterPills").innerHTML, "both rows render the same pills");
+  assert.equal([...html.matchAll(/data-remove-filter="/g)].length, 5);
+  // WCAG 2.5.3: the visible label opens the accessible name, and the glyph is decoration.
+  assert.match(html, /aria-label="fields:security filter — remove"/);
+  assert.match(html, /<span aria-hidden="true">fields:security<\/span>/);
+  assert.match(html, /<span class="filter-pill-x" aria-hidden="true">✕<\/span>/);
+
+  harness.applyFilterState({ ...harness.parseState(""), favOnly: false });
+  assert.equal(harness.pillModel().length, 0);
+  assert.equal(harness.nodes.get("activeFilterPills").innerHTML, "");
+  assert.equal(harness.filterBarSummary(51), "51 repositories");
+});
+
+test("every render writes the count into the filter bar's own live region", () => {
+  // P1-1: applying a panel filter used to leave main byte-identical. render() now writes the
+  // count on every pass, so the copy-link confirmation survives only until the next state change.
+  assert.match(page, /setFilterBarStatus\(filterBarSummary\(items\.length\)\);/);
+  assert.match(page, /setFilterBarStatus\(filterBarSummary\(0\)\);\r?\n\s*updateHiddenManager\(\);updateVisitHeading\(\);return;/);
+  assert.deepEqual(cardRenderHarness("all").filterBarStatusWrites, ["1 repositories"]);
+});
+
+test("a pill removes exactly its own filter through the panel's own state path", () => {
+  const harness = filterControlsHarness();
+  // The rows are rebuilt with innerHTML on every updateFilterUi(), so the delegate has to sit on
+  // the container. Both containers carry one.
+  const pill = (kind, id) => ({ dataset: { removeFilter: kind, removeId: id }, closest(selector) { return selector === "[data-remove-filter]" ? this : null; } });
+  const unrelated = { closest() { return null; } };
+
+  harness.nodes.get("excludeAi").dispatch("click");
+  harness.nodes.get("newOnly").dispatch("click");
+  assert.equal(harness.getState().excludeAi, true);
+  assert.equal(harness.getState().newOnly, true);
+
+  harness.nodes.get("activeFilterPills").dispatch("click", pill("excludeAi", "excludeAi"));
+  assert.equal(harness.getState().excludeAi, false);
+  assert.equal(harness.getState().newOnly, true, "one pill removes one filter, not all of them");
+
+  // The empty-state row shares the behaviour, which is the point of putting it there.
+  harness.nodes.get("emptyFilterPills").dispatch("click", pill("newOnly", "newOnly"));
+  assert.equal(harness.getState().newOnly, false);
+
+  const before = harness.calls.render;
+  harness.nodes.get("activeFilterPills").dispatch("click", unrelated);
+  assert.equal(harness.calls.render, before, "a click that misses a pill changes nothing");
+
+  // Field and form pills take the identical path the panel chips take, so URL state and the
+  // panel's aria-pressed cannot drift from the pills.
+  harness.nodes.get("activeFilterPills").dispatch("click", pill("fields", "ai-ml"));
+  harness.nodes.get("activeFilterPills").dispatch("click", pill("forms", "mcp"));
+  assert.equal(harness.calls.toggleFilter.map(call => call.join(":")).join("|"), "fields:ai-ml|forms:mcp");
+  assert.match(page, /function removeActiveFilter\(kind,id\)\{\r?\n\s*if\(kind==="fields"\|\|kind==="forms"\)\{toggleFilter\(kind,id\);return\}/);
+});
+
+test("the AI contradiction disables the control that would create it, never the one that undoes it", () => {
+  const harness = filterUiHarness();
+  const excludeAi = harness.nodes.get("excludeAi");
+
+  harness.applyFilterState({ ...harness.parseState(""), favOnly: false });
+  assert.equal(excludeAi.disabled, false);
+  assert.equal(excludeAi.title, "");
+
+  // P2-8: field=ai-ml and "Exclude AI" were both pressable, and pressing both emptied the list
+  // with no warning. Selecting the field now closes the door on creating that state.
+  harness.applyFilterState({ ...harness.parseState("?field=ai-ml"), favOnly: false });
+  assert.equal(excludeAi.disabled, true);
+  assert.equal(excludeAi.title, "filter.conflictExcludeAi");
+
+  // A ?field=ai-ml&exclude=ai link still arrives with both on. Both controls stay pressable there,
+  // or the reader would be trapped in the 0-result view with no way back through the controls.
+  harness.applyFilterState({ ...harness.parseState("?field=ai-ml&exclude=ai"), favOnly: false });
+  assert.equal(excludeAi.disabled, false);
+  assert.equal(excludeAi.title, "");
+
+  harness.applyFilterState({ ...harness.parseState("?exclude=ai"), favOnly: false });
+  assert.equal(excludeAi.disabled, false, "the toggle that is on must stay pressable to turn off");
+
+  // The mirror image, on the panel chip, is asserted on the source: the harness's querySelectorAll
+  // returns no chips.
+  assert.match(page, /setFilterConflict\(button,key==="fields"&&button\.dataset\.filterId==="ai-ml"&&filterState\.excludeAi&&!aiFieldSelected,"filter\.conflictAiField"\)/);
+  assert.match(page, /function setFilterConflict\(button,conflicted,messageKey\)\{\r?\n\s*button\.disabled=conflicted;\r?\n\s*button\.title=conflicted\?tr\(messageKey\):"";/);
+  assert.match(page, /\.filter-toggle:disabled\{opacity:\.5;cursor:not-allowed\}/);
 });

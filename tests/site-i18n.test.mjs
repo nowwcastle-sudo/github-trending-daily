@@ -35,6 +35,8 @@ test("every rail group, shortcut hint, and held-retry message exists in all five
     "nav.ariaAccount", "nav.ariaExplore", "nav.ariaHistory", "nav.ariaExport",
     "nav.titleAccount", "nav.titleExplore", "nav.titleHistory", "nav.titleExport",
     "nav.groups", "filter.copyLink", "filter.compact", "tooltip.heldRetry",
+    // Batch E2: the active-filter pills and the AI contradiction guard.
+    "filter.removePill", "filter.conflictExcludeAi", "filter.conflictAiField",
     // RED TEAM 1 H4: star-history.js renders every one of these through the site `tr`.
     "history.title", "history.explanation", "history.observedSince",
     "history.ariaTrend", "history.waiting", "history.singleObservation",
