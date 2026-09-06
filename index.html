@@ -359,7 +359,7 @@ body.overlay-open{overflow:hidden}
    because .controls has no height token. */
 .card{
   position:relative;display:flex;gap:16px;text-decoration:none;color:inherit;scroll-margin-top:77px;
-  background:var(--card);backdrop-filter:blur(20px) saturate(180%);
+  background:var(--card);
   border:1px solid var(--surface-border);border-radius:16px;padding:18px 20px;margin-bottom:12px;
   box-shadow:var(--shadow-card);
   transition:transform .22s cubic-bezier(.32,.72,0,1),box-shadow .22s,border-color .22s;
@@ -887,7 +887,7 @@ document.addEventListener("site-locale-change",()=>{
   if(activeTipIndex!==null&&tipLayer.classList.contains("on")){
     const repo=REPOS[activeTipIndex];tipLayer.innerHTML=tipHTML(repo,resolveSummaryLocale(repo,siteI18n.locale));
   }
-  updateRefreshStatus();renderRecentExits(currentRecentExits);renderHist();updateVisitHeading();renderPresets();
+  updateRefreshStatus();renderRecentExits(currentRecentExits);updateVisitHeading();renderPresets();
 });
 const SIGNALS=new Map();
 const MEMBERSHIP_STATUS=new Map();
@@ -1519,6 +1519,13 @@ function classificationBadges(repo){
 }
 /* render */
 const list=document.getElementById("list"),empty=document.getElementById("empty");
+/* The history cell render() inlines and renderHist() rewrites when the data lands late — one
+   builder so the two paths cannot drift. */
+function histHtml(slug){
+  if(historyLoadError)return `<p class="histnote">${tr("history.failed")}</p>`;
+  if(!historyBySlug)return `<p class="histnote">${tr("history.loading")}</p>`;
+  return StarHistory.historyHtml(slug,historyBySlug.get(slug),tr);
+}
 function render(){
   const viewPeriod=period;
   const gainOf=r=>UiMotion.periodGain(r,viewPeriod);
@@ -1578,12 +1585,11 @@ function render(){
           ${showPeriodSignals?`<span class="today">★ +${fmt(gainOf(r))} <span style="color:var(--text-3);font-weight:400">${unit}</span></span>`:""}
         </div>
         ${showPeriodSignals?`<div class="spark"><i style="width:${Math.max(4,gainOf(r)/maxT*100)}%"></i></div>`:""}
-        <div class="sparkhist" data-slug="${r.slug}"></div>
+        <div class="sparkhist" data-slug="${r.slug}">${histHtml(r.slug)}</div>
       </div>
       <div class="cstat"><div class="stars">${fmt(r.stars)}</div><div class="slabel">${tr("repo.totalStars")}</div></div>
     </article>`;
   }).join("");
-  if(typeof renderHist==="function")renderHist();
 }
 
 /* 즐겨찾기 */
@@ -1755,11 +1761,11 @@ const historyReady=StarHistory.load("star-history.json",fetch)
   .then(map=>{historyBySlug=map;renderHist()})
   .catch(()=>{historyLoadError=true;renderHist()});
 
+/* Only for history that lands after a render; render() inlines the cell itself. */
 function renderHist(){
   document.querySelectorAll(".sparkhist[data-slug]").forEach(el=>{
-    if(historyLoadError){el.innerHTML=`<p class="histnote">${tr("history.failed")}</p>`;return}
-    if(!historyBySlug){el.innerHTML=`<p class="histnote">${tr("history.loading")}</p>`;return}
-    el.innerHTML=StarHistory.historyHtml(el.dataset.slug,historyBySlug.get(el.dataset.slug),tr);
+    const html=histHtml(el.dataset.slug);
+    if(el.innerHTML!==html)el.innerHTML=html;
   });
 }
 
@@ -2025,7 +2031,9 @@ function updateRefreshStatus(nextLastValue){
   document.getElementById("luCadence").textContent=tr("refresh.cadence");
 }
 (function(){
-  fetch("data/latest.json",{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject()).then(f=>{
+  /* Default cache mode, not no-store: Pages serves this with max-age=600 and an ETag, and the
+     refresh cadence is 6 hours, so a 10-minute cache is well inside one refresh window. */
+  fetch("data/latest.json").then(r=>r.ok?r.json():Promise.reject()).then(f=>{
     SIGNALS.clear();
     for(const repo of Array.isArray(f.repos)?f.repos:[]){
       const signal=repo?.signal;

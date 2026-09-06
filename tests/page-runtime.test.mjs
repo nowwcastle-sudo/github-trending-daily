@@ -512,7 +512,7 @@ function renderContractHarness(classification = { forms: [], fields: ["unclassif
   return { context, contract: context.__renderContract };
 }
 
-function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = new Set()) {
+function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = new Set(), { history = null, historyError = false } = {}) {
   const start = page.indexOf('const list=document.getElementById("list"),empty=document.getElementById("empty")');
   const end = page.indexOf("\n/* 즐겨찾기 */", start);
   assert.ok(start >= 0 && end > start, "card render runtime must be isolated");
@@ -524,6 +524,7 @@ function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = ne
     ["emptyManageHiddenBtn", { hidden: false }],
     ["filterSummary", { textContent: "" }],
   ]);
+  const calls = { renderHist: 0, historyHtml: 0 };
   const repository = {
     slug: "owner/project", name: "owner / project", desc: "A repository", lang: "JavaScript", color: "#f1e05a",
     topics: [], tag_rule_version: 1, field_tags: ["unclassified"], form_tags: [], membership_status: membership === "baseline" ? "baseline_present" : membership,
@@ -554,7 +555,12 @@ function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = ne
     updateHiddenManager() {},
     activeDiscoveryCount() { return 0; },
     classificationBadges() { return ""; },
-    renderHist() {},
+    // render() builds the star-history cell itself now, so the harness supplies the state it
+    // reads and counts both the cell builds and any second pass.
+    historyBySlug: history,
+    historyLoadError: historyError,
+    StarHistory: { historyHtml(slug) { calls.historyHtml += 1; return `<svg data-history="${slug}"></svg>`; } },
+    renderHist() { calls.renderHist += 1; },
     esc(value) { return String(value ?? ""); },
     fmt(value) { return String(value); },
     tr(key, parameters = {}) { return key === "result.count" ? `${parameters.count} repositories` : key; },
@@ -565,7 +571,7 @@ function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = ne
   vm.runInContext(repoFiltersSource, context, { filename: "repo-filters-card-fixture.js" });
   vm.runInContext(`${page.slice(start, end)}\nglobalThis.__render=render;`, context, { filename: "card-render-fixture.js" });
   context.__render();
-  return { html: nodes.get("list").innerHTML, visible: context.currentVisibleRepos };
+  return { html: nodes.get("list").innerHTML, visible: context.currentVisibleRepos, calls };
 }
 
 function scrollTopHarness({ reducedMotion = false } = {}) {
@@ -2537,6 +2543,42 @@ test("All cards render total stars without period gain HOT or the gain bar", () 
   assert.match(html, /class="sparkhist"/);
 });
 
+test("render writes the star-history cell in its one pass, with no second sparkline write", () => {
+  const loading = cardRenderHarness("daily");
+  assert.match(loading.html, /<div class="sparkhist" data-slug="owner\/project"><p class="histnote">history\.loading<\/p><\/div>/);
+  assert.equal(loading.calls.historyHtml, 0, "no history data means no cell is built");
+
+  const loaded = cardRenderHarness("daily", "stayed", new Set(), { history: new Map([["owner/project", { slug: "owner/project" }]]) });
+  assert.match(loaded.html, /<div class="sparkhist" data-slug="owner\/project"><svg data-history="owner\/project"><\/svg><\/div>/);
+  assert.equal(loaded.calls.historyHtml, 1, "one cell built per card per render");
+  assert.equal(loaded.calls.renderHist, 0, "render must not run a second sparkline pass");
+
+  const failed = cardRenderHarness("daily", "stayed", new Set(), { historyError: true });
+  assert.match(failed.html, /<div class="sparkhist" data-slug="owner\/project"><p class="histnote">history\.failed<\/p><\/div>/);
+  assert.equal(failed.calls.historyHtml, 0);
+});
+
+test("renderHist survives only for history that lands after a render, and skips unchanged cells", () => {
+  assert.doesNotMatch(page, /if\(typeof renderHist==="function"\)renderHist\(\);/);
+  assert.match(page, /\.then\(map=>\{historyBySlug=map;renderHist\(\)\}\)/);
+  assert.match(page, /\.catch\(\(\)=>\{historyLoadError=true;renderHist\(\)\}\)/);
+  assert.match(page, /const html=histHtml\(el\.dataset\.slug\);\s*if\(el\.innerHTML!==html\)el\.innerHTML=html;/);
+});
+
+test("list cards drop the backdrop blur that the chrome surfaces keep", () => {
+  const card = page.match(/\.card\{[^}]*\}/)?.[0] ?? "";
+  assert.ok(card, ".card rule must be readable");
+  assert.doesNotMatch(card, /backdrop-filter/, "51 blurred list cards is the most expensive property on the page");
+  assert.match(card, /background:var\(--card\);/);
+  assert.match(page, /\.search\{[\s\S]*?backdrop-filter:blur\(20px\) saturate\(180%\)/, "the search field keeps its blur");
+  assert.match(page, /\.shortcut-help\{[^}]*backdrop-filter:blur\(28px\) saturate\(180%\)/, "the shortcut dialog keeps its blur");
+});
+
+test("data/latest.json rides the server cache instead of no-store", () => {
+  assert.match(page, /fetch\("data\/latest\.json"\)\.then/);
+  assert.doesNotMatch(page, /data\/latest\.json",\s*\{cache:"no-store"\}/);
+});
+
 test("baseline new and reentered membership render only their exact card badges", () => {
   const baselineHtml = cardRenderHarness("daily", "baseline").html;
   const newHtml = cardRenderHarness("daily", "new").html;
@@ -3423,7 +3465,7 @@ test("the list carries a heading that reports what is new since the reader's las
   assert.match(page, /function updateVisitHeading\(\)\{/);
   assert.match(page, /tr\("visit\.newSince",\{count:visitSummary\.newSlugs\.length,date\}\)/);
   assert.match(page, /tr\("visit\.noneSince",\{date\}\)/);
-  assert.match(page, /updateRefreshStatus\(\);renderRecentExits\(currentRecentExits\);renderHist\(\);updateVisitHeading\(\);/);
+  assert.match(page, /updateRefreshStatus\(\);renderRecentExits\(currentRecentExits\);updateVisitHeading\(\);/);
 
   // The badge is additive: the baseline-relative membership badge is untouched.
   assert.match(page, /const visitBadge=newSinceLastVisit\.has\(r\.slug\)\?`<span class="badge visit-new" title="\$\{tr\("visit\.badgeTitle"\)\}">\$\{tr\("visit\.badge"\)\}<\/span>`:"";/);
