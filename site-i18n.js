@@ -148,8 +148,8 @@ const EN={
   "new.loading":"Loading new-repository status…",
   "new.loadingSummary":"Loading new-repository status.",
   "new.error":"New-repository status could not be loaded, so this filter is unavailable.",
-  "result.count":"{count} repositories",
-  "result.filters":"{count} Explore filters",
+  "result.count":"Repositories: {count}",
+  "result.filters":"Explore filters: {count}",
   "result.favorites":"Favorites view",
   "result.hidden":"{count} hidden",
   "empty.reset":"Reset filters",
@@ -303,7 +303,7 @@ const ES={
   "hidden.count":"Ocultos en este navegador: {count}","hidden.restoreRepo":"Restaurar {name}","hidden.didHide":"Se ocultó {name}.","hidden.didRestore":"Se restauró {name}.","hidden.saveError":"No se pudo guardar la lista de ocultos; la vista no cambió.",
   "export.linkCopied":"Se copió el enlace de la vista actual.","export.copyFailed":"No se pudo copiar el enlace al portapapeles.","export.downloaded":"Se descargó la vista actual en {format}.","export.downloadFailed":"No se pudo exportar la vista actual.",
   "empty.hiddenAll":"Todos los repositorios que coinciden están ocultos.","new.loading":"Cargando el estado de repositorios nuevos…","new.loadingSummary":"Cargando el estado de repositorios nuevos.","new.error":"No se pudo cargar el estado de repositorios nuevos; este filtro no está disponible.",
-  "result.count":"{count} repositorios","result.filters":"{count} filtros de Explorar","result.favorites":"Vista de favoritos","result.hidden":"{count} ocultos","tooltip.language":"Idioma del resumen",
+  "result.count":"Repositorios: {count}","result.filters":"Filtros de Explorar: {count}","result.favorites":"Vista de favoritos","result.hidden":"{count} ocultos","tooltip.language":"Idioma del resumen",
   "repo.aria":"Repositorio {name}","repo.favorite":"Favorito","repo.favoriteAdd":"Añadir {name} a favoritos","repo.favoriteRemove":"Quitar {name} de favoritos","repo.forks":"forks","repo.totalStars":"estrellas totales",
   "classification.form":"Formato","classification.field":"Área y tecnología","classification.ai":"Relacionado con IA","history.loading":"📈 Cargando historial de estrellas…","history.failed":"📈 No se pudo cargar el historial de estrellas","history.title":"Historial de estrellas","history.explanation":"Total de estrellas observadas directamente por este sitio (cada 30 minutos) · la línea discontinua marca anclas calculadas a partir de los totales por periodo de GitHub Trending","history.observedSince":"Observando desde","history.ariaSummary":"Tendencia de estrellas — {total} estrellas en total, {gain} en {span}","history.ariaSpanDay":"1 día","history.ariaSpanDays":"{days} días","history.waiting":"Esperando la primera observación","history.singleObservation":"1 observación"
 };
