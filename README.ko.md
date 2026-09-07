@@ -12,11 +12,9 @@
 
 GITHUB INSIGHT는 GitHub Trending(일간·주간·월간)에 오르는 저장소를 지켜보면서, 다른 트렌딩 사이트에는 없는 두 가지를 저장소마다 제공합니다. 하나는 제3자 추정치가 아니라 이 사이트가 직접 측정한 스타 수, 다른 하나는 일반적인 설명이 아니라 그 저장소 자신의 README에서 검증해 생성한 요약입니다. 현재 보기를 필터·정렬·즐겨찾기·내보내기할 수 있고, 매번 직접 확인하는 대신 Atom feed를 구독할 수도 있습니다.
 
-## ✅ 현재 구현 상태
+## 🖥️ 화면
 
-다국어 인터페이스, Login(로그인)·Explore(탐색)·History(이력)·Export(내보내기) 4개 그룹의 Compact Rail 탐색, 출처 결합 README 뷰어, 5개 언어 요약 파이프라인은 현재 소스에 구현되어 있습니다. 저장소에는 로컬에서 재현·검증한 45개 저장소 v1 snapshot이 포함되며, 공개 사이트의 정확한 배포 revision은 deployment manifest로 별도 확인합니다. 일반 legacy 요약, README provenance 누락, 일부 언어 요약 누락은 v1 성공 배포로 인정하지 않습니다.
-
-아래 이미지는 2026-09-05에 production에서 1440px와 390px로 캡처한 것으로, Login·Explore·History·Export 4개 레일 그룹이 모두 보입니다. production revision은 스크린샷이 아니라 deployment manifest로 증명합니다.
+아래 이미지는 실제 사이트를 1440px와 390px로 캡처한 것으로, Login·Explore·History·Export 4개 레일 그룹이 모두 보입니다.
 
 ![1440px 데스크톱에서 본 GITHUB INSIGHT](docs/screenshots/desktop-1440.png)
 
@@ -43,13 +41,13 @@ GITHUB INSIGHT는 GitHub Trending(일간·주간·월간)에 오르는 저장소
 
 ## ⭐ 스타 히스토리
 
-이 사이트의 스타 수는 추정치가 아닙니다. `star-ticks` workflow가 게시 중인 모든 저장소의 정확한 총 스타 수를 GitHub API로 직접 30분마다 측정해, 제3자 서비스의 파생값이 아니라 이 프로젝트 자체 데이터베이스(`data/star-ticks/YYYY-MM.jsonl`, `data/star-daily.jsonl`)에 append-only로 기록합니다.
+이 사이트의 스타 수는 추정치가 아닙니다. 게시 중인 모든 저장소의 정확한 총 스타 수를 30분마다 GitHub API로 직접 측정해, 제3자 서비스의 파생값이 아니라 이 프로젝트 자체 기록에 append-only로 쌓습니다.
 
 카드에서 실선은 이렇게 직접 측정한 히스토리이고, 점선(속이 빈 마커)은 직접 관측이 아직 없는 구간을 GitHub Trending 자체의 기간 증가량(일간·주간·월간, 생성 30일 이내 저장소는 생성일 포함)으로 역산한 앵커로 이어 붙인 것입니다. 그래프는 점 두 개만 있으면 선을 그리므로, 관측 두 번(약 30분 간격)이면 첫 선이 뜰 수 있어 **최초 관측 후 약 1시간이면 첫 선이 보이고**, 하루치 움직임을 의미 있게 담은 곡선은 **최초 관측 후 최소 1일이면 히스토리 확인 가능**할 정도로 대략 첫날에 걸쳐 쌓입니다.
 
 ## 📜 요약 품질 계약
 
-갱신 파이프라인은 Claude CLI OAuth를 통한 `claude-sonnet-5`로 설정되어 있으며 달러 비용 계산 단계는 두지 않습니다. 저장소와 README 수집이 성공하기 전에는 모델을 호출하지 않습니다.
+저장소와 README를 수집·검증하기 전에는 요약을 생성하지 않습니다.
 
 저장소 하나는 5개 언어를 하나의 원자적 묶음으로 생성합니다.
 
@@ -57,8 +55,8 @@ GITHUB INSIGHT는 GitHub Trending(일간·주간·월간)에 오르는 저장소
 - 영어 묶음은 100~280단어를 허용합니다. 다른 언어는 영어와 단어 수·문장 수·표현·정보 순서를 똑같이 맞출 필요가 없습니다.
 - README에 실제 있는 핵심 명령만 1~2개 인용하고, 언어가 달라도 같은 의미 필드에 둡니다.
 - "README를 참고하라"는 일반 fallback은 무효입니다. 표현이 다소 주관적이라는 이유만으로 README 근거와 구조가 완전한 요약을 실패시키지는 않습니다.
-- README path·blob·content hash·default-branch head는 공통 정본 출처와 stale 여부를 확인할 뿐, 언어별 문장을 byte 단위나 완전히 같은 의미로 강제하는 값이 아닙니다. 내부 증거는 README 섹션 제목과 줄 범위로 남기며 observation DB에는 README 전체 본문을 저장하지 않습니다.
-- 기존 bounded attempt·token 정책 안에서 저장소별 품질 교정은 최대 3회입니다.
+- README path·blob·content hash·default-branch head는 공통 정본 출처와 stale 여부를 확인할 뿐, 언어별 문장을 byte 단위나 완전히 같은 의미로 강제하는 값이 아닙니다.
+- 저장소별 품질 교정은 최대 3회입니다.
 - 언어 하나 누락, 번역하면 안 되는 값의 잘못된 필드 배치·근거 불일치, 근거 부족, 스키마 오류 중 하나라도 있으면 해당 저장소와 갱신 전체가 실패합니다. 그 저장소는 대신 `held`로 게시됩니다.
 
 UI에는 "검증된 저장소 README를 바탕으로 AI가 생성했다"고 정확히 표시하며 사람이 검증했다고 과장하지 않습니다.
@@ -107,30 +105,21 @@ UI에는 "검증된 저장소 README를 바탕으로 AI가 생성했다"고 정�
 
 ## 🔄 갱신·배포 안전장치
 
-활성화된 경우 GitHub Actions는 하루 네 번, `Asia/Seoul` 기준 00시 07분, 06시 07분, 12시 07분, 18시 07분(UTC 03:07, 09:07, 15:07, 21:07)에 실행됩니다. 먼저 정본 저장소와 README 사실을 수집·동결한 뒤 enrichment 필요 여부를 판정합니다. 그다음 정확한 5개 언어 coverage 또는 저장소별 `held` admission, provenance 검증, 렌더, observation 기록, artifact 검증을 모두 마쳐야 publication으로 넘어갑니다.
+사이트는 하루 네 번, `Asia/Seoul` 기준 00시 07분, 06시 07분, 12시 07분, 18시 07분(UTC 03:07, 09:07, 15:07, 21:07)에 갱신됩니다. 먼저 정본 저장소와 README 사실을 수집·동결합니다. 그다음 정확한 5개 언어 coverage 또는 저장소별 `held` admission, provenance 검증, 렌더, artifact 검증을 모두 마쳐야 게시로 넘어갑니다.
 
-예약된 갱신은 Claude CLI OAuth의 `claude-sonnet-5`를 기본 요약 producer로 유지합니다. Codex는 같은 frozen input에서 정확히 pending으로 남은 저장소에만 쓰는 fallback이며, 예약 실행의 기본 producer를 대체하거나 이미 완료된 저장소를 다시 생성하지 않습니다.
+갱신은 fail-closed입니다.
 
-- **Code release**는 현재 Pages code bytes로 새 v1 snapshot을 record, derive, finalize한 뒤 배포합니다.
-- **Finalized artifact redeploy**는 이미 finalize된 source와 byte-for-byte 같은 artifact만 다시 배포합니다. old finalized contract 아래에서 Pages bytes가 바뀌면 builder는 artifact나 manifest를 출력하기 전에 중단하고 full refresh를 요구합니다.
+- 수집이 실패하면 요약을 생성하지 않습니다.
+- 갱신이 불완전하면 페이지·commit·배포는 모두 0입니다.
+- 갱신에 실패해도 게시 중인 사이트는 바뀌지 않습니다.
+- README provenance 누락·stale, source mismatch, 근거 부족, 요약 출력 오류, 옛 translation residue는 게시를 막습니다.
+- API 자격 증명은 브라우저에 전달하지 않습니다.
 
-workflow는 fail-closed입니다.
-
-- 수집 실패 시 모델 호출은 0회입니다.
-- enrichment가 불완전하면 observation, 페이지, commit, Pages 배포는 모두 0입니다.
-- 갱신 실패 시 tracked tree는 바뀌지 않습니다.
-- README provenance 누락·stale, source mismatch, incomplete chunk, 모델 출력 오류, 비용 cap 초과, 옛 translation residue는 publication을 막습니다.
-- provider API key는 브라우저에 전달하지 않습니다.
-
-스타 히스토리는 이 사이트가 직접 관측합니다. star-ticks workflow가 게시 중인 저장소의 정확한 총 스타를 30분마다, 한 번이라도 게시된 저장소(7일 증가량 기준 상위 500개)의 총 스타를 하루 1회 기록하며, 기록은 `data/star-ticks/`와 `data/star-daily.jsonl`에 append-only로 쌓입니다. 점선 앵커는 GitHub Trending 기간 집계(일간·주간·월간, 생성 30일 이내 저장소는 생성일 포함)로 역산한 근사치입니다. `star-history.json`은 게시 중인 저장소만 담고 finalized snapshot contract에 포함되지 않으며, 갱신 사이에 star-ticks workflow가 다시 배포합니다. GH Archive 기반 추정치는 출처가 2026-05-01 이후 심각한 과소집계를 스스로 선언해 2026-09-02에 중단했습니다. CSV는 스프레드시트 호환을 위해 UTF-8 BOM을 포함하고 comma·quote·줄바꿈을 quoting하며 수식처럼 실행될 수 있는 값 앞에는 apostrophe를 붙입니다.
+스타 히스토리는 이 사이트가 직접 관측합니다. 게시 중인 저장소의 정확한 총 스타를 30분마다, 한 번이라도 게시된 저장소(7일 증가량 기준 상위 500개)의 총 스타를 하루 1회 기록하며 append-only로 쌓습니다. 점선 앵커는 GitHub Trending 기간 집계(일간·주간·월간, 생성 30일 이내 저장소는 생성일 포함)로 역산한 근사치입니다. GH Archive 기반 추정치는 출처가 2026-05-01 이후 심각한 과소집계를 스스로 선언해 2026-09-02에 중단했습니다. CSV는 스프레드시트 호환을 위해 UTF-8 BOM을 포함하고 comma·quote·줄바꿈을 quoting하며 수식처럼 실행될 수 있는 값 앞에는 apostrophe를 붙입니다.
 
 ## 🗺️ 예정된 기능
 
-희망 사항이 아니라 승인된 backlog이며, 일부러 짧게 유지합니다.
-
-- **스타 관측 데이터베이스를 필요하면 git 밖으로 옮기는 것을 검토합니다.** observation ledger(`data/star-ticks/`, `data/star-daily.jsonl`)는 append-only이며 현재 이 저장소에 그대로 commit됩니다. 이 증가량이 저장소 크기나 clone/checkout 시간에 실질적인 영향을 주면 git 밖 저장소로 옮기는 방안을 검토 중입니다. 아직 옮긴 것은 없고 별도 데이터베이스 서비스도 없으며, 이관을 결정하고 실행하기 전까지 ledger는 계속 git 안에 남습니다.
-
-**관측 데이터베이스.** 갱신마다 기록되는 SQLite 데이터베이스(`repository-observations.sqlite`)는 이 저장소에 커밋되지 않습니다. 각 갱신은 그 파일을 해당 월의 `observation-db-YYYY-MM` 프리릴리스 자산으로 올리고, 자산 이름과 SHA-256을 담은 `data/observation-db.pointer.json`만 커밋합니다. 모든 워크플로와 운영 점검은 자산을 익명으로 내려받아 해시를 검증한 뒤 사용하므로 체크아웃에는 데이터베이스가 없습니다. 현재 커밋이 가리키는 파일은 `node scripts/observation-db-store.mjs resolve --source-sha "$(git rev-parse HEAD)" --out repository-observations.sqlite`로 받을 수 있습니다.
+승인된 backlog는 일부러 짧게 유지하며, 현재 대기 중인 것 중 사이트에 보이는 내용을 바꾸는 것은 없습니다. 이 문서에 없는 것은 기능 요청으로 시작하며, 아래 절이 그 창구입니다.
 
 ## 📝 기능 요청
 
