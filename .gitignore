@@ -30,3 +30,16 @@ ui-debug.log*
 # Screenshots stay tracked because both READMEs embed them.
 docs/*
 !docs/screenshots/
+# The v3 fallback plan and design stay tracked on purpose: two tests in
+# tests/codex-summary-bundle-adapter.test.mjs read them to gate the manual
+# runbook's safety invariants (per-request empty cwd, separated response
+# directory, read-only sandbox, sourceRoot boundary). Untracking them would
+# delete that gate, so they leave only when the runbook itself is retired.
+!docs/superpowers/
+docs/superpowers/*
+!docs/superpowers/plans/
+!docs/superpowers/specs/
+docs/superpowers/plans/*
+docs/superpowers/specs/*
+!docs/superpowers/plans/2026-09-01-v3-codex-summary-fallback-release-semantics.md
+!docs/superpowers/specs/2026-09-01-v3-codex-summary-fallback-release-semantics-design.md
