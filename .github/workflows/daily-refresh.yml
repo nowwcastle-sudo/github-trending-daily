@@ -292,7 +292,7 @@ jobs:
         with:
           name: refresh-input-${{ github.run_id }}
           path: ${{ runner.temp }}/refresh-input
-      - name: Verify isolated Claude runner checkout
+      - name: Verify isolated runner checkout
         shell: pwsh
         env:
           ORIGINAL_SHA: ${{ needs.prepare.outputs.original_sha }}
@@ -314,7 +314,7 @@ jobs:
           if (-not (Test-Path -LiteralPath $seed -PathType Leaf)) { throw "Approved v0 summary seed is unavailable" }
           if (-not (Test-Path -LiteralPath $target -PathType Leaf)) { throw "Frozen candidate summary cache is unavailable" }
           Copy-Item -LiteralPath $seed -Destination $target
-      - name: Generate bound enrichment with Claude OAuth
+      - name: Generate bound enrichment
         shell: pwsh
         env:
           ENRICHMENT_DEADLINE_EPOCH_MS: ${{ needs.prepare.outputs.enrichment_deadline_epoch_ms }}

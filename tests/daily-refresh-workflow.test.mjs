@@ -62,7 +62,7 @@ test("frozen facts events and enrichment precede core recording and publication"
   assertInOrder(workflow, [
     "Collect frozen repository facts",
     "Collect complete repository events",
-    "Generate bound enrichment with Claude OAuth",
+    "Generate bound enrichment",
     "Record core repository snapshot",
     "Derive and render public artifacts",
     "Finalize repository derivatives",
@@ -133,7 +133,7 @@ test("failed enrichment uploads bounded defect diagnostics without a partial can
   const workflow = await workflowText();
   assert.match(workflow, /generate-summary-bundles\.mjs[^\n]*--failure-diagnostics-out \(Join-Path \$root "enrichment-failure\.json"\)/);
   assertInOrder(workflow, [
-    "Generate bound enrichment with Claude OAuth",
+    "Generate bound enrichment",
     "Upload bounded enrichment failure diagnostics",
     "Upload bounded enrichment output",
   ]);
@@ -153,7 +153,7 @@ test("approved v0 bootstrap seeds only the frozen candidate before Claude enrich
   assertInOrder(enrich, [
     "Download frozen enrichment input",
     "Seed approved v0 summary cache",
-    "Generate bound enrichment with Claude OAuth",
+    "Generate bound enrichment",
   ]);
   assert.match(enrich, /- name: Seed approved v0 summary cache\n\s+if: \$\{\{ needs\.prepare\.outputs\.recovery_version == '0' \}\}/);
   assert.match(enrich, /\$seed = Join-Path \$env:GITHUB_WORKSPACE "data\/bootstrap-summary-seed\.json"/);
@@ -280,7 +280,7 @@ test("Claude enrichment is tool-free on the dedicated Windows runner and cannot 
   const publishStart = workflow.indexOf("  publish:");
   const enrich = workflow.slice(enrichStart, publishStart);
   assert.match(enrich, /runs-on: \[self-hosted, Windows, X64, gh-trending-claude\]/);
-  assert.match(enrich, /Generate bound enrichment with Claude OAuth/);
+  assert.match(enrich, /Generate bound enrichment/);
   assert.match(enrich, /GetEnvironmentVariable\("CLAUDE_CODE_OAUTH_TOKEN", "User"\)/);
   assert.match(enrich, /Write-Host "::add-mask::\$oauthToken"/);
   assert.match(enrich, /\$env:CLAUDE_CODE_OAUTH_TOKEN = \$null/);
