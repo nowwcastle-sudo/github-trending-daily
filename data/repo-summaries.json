@@ -422,77 +422,77 @@
   },
   "cathrynlavery/diagram-design": {
     "content": {
-      "goal": "Diagram Design is an Agent Skill that generates 39 editorial diagram types — including architecture, flowchart, sequence, and ER diagrams — as self-contained HTML and SVG files. It targets Claude Code, Codex, Factory Droid, Pi, and other Agent Skills-compatible hosts. Version 2.5.10 added the ten most recent layout types, such as Sankey and UML class diagrams.",
-      "usage": "In Claude Code, install with `/plugin marketplace add cathrynlavery/diagram-design` followed by `/plugin install diagram-design@diagram-design`; Codex, Factory Droid, and Pi document comparable plugin-install commands. Once installed, users can ask the agent in natural language — for example, to build an architecture diagram of frontend, backend, database, and Redis cache components — and the skill generates the HTML output.",
-      "pros": "Generated diagrams are self-contained HTML files with no build step, JavaScript, or external image dependency, and they open directly in a browser. Every diagram template gives its inline SVG an accessible name and description by default. An onboarding flow can read a website's color palette and font stack to brand new diagrams automatically within about a minute.",
-      "cons": "Exporting a diagram to PNG requires a one-time local setup step, `pip install playwright && playwright install chromium`, adding an external dependency beyond simply opening the generated HTML files.",
-      "fit": "The skill appears best suited to teams that want editorial-quality technical diagrams produced directly by an AI coding agent, rather than through a separate design tool. Documented guidance suggests it is less appropriate for quick unicode diagrams, simple lists, before/after comparisons, or single-box visuals, where a plain paragraph or table may communicate the same information more directly."
+      "goal": "Diagram Design is a Claude Code skill, also usable with Codex, Factory Droid, and Pi, that generates editorial-style diagrams. It documents 39 diagram types—including architecture, flowchart, and sequence diagrams—produced as self-contained HTML and SVG files rather than generic Mermaid-style output.",
+      "usage": "Install it in Claude Code by running /plugin marketplace add cathrynlavery/diagram-design followed by /plugin install diagram-design@diagram-design, then request diagrams in natural language or via commands such as /diagram-design:export-diagram. Codex, Factory Droid, Pi, and OpenCode each have separate documented install steps.",
+      "pros": "Diagrams ship as static, self-contained HTML with no build step required to view them, and each SVG includes accessibility attributes such as role=\"img\" and a resolving aria-labelledby. An optional onboarding flow extracts a website's color palette and fonts, checking WCAG AA contrast before applying them to new diagrams.",
+      "cons": "PNG export requires an additional one-time setup step beyond the default HTML output: pip install playwright && playwright install chromium. This dependency is unrelated to viewing or creating the standard self-contained HTML diagrams.",
+      "fit": "The skill fits documentation and technical-diagram workflows for AI coding agents that support Claude's Agent Skills format, matching diagrams to an existing brand's colors and fonts. It is presented as unsuited for quick unicode diagrams, plain lists, before/after comparisons, or single-box diagrams, suggesting narrower use outside structured technical documentation."
     },
     "summaries": {
       "en": {
-        "goal": "Diagram Design is an Agent Skill that generates 39 editorial diagram types — including architecture, flowchart, sequence, and ER diagrams — as self-contained HTML and SVG files. It targets Claude Code, Codex, Factory Droid, Pi, and other Agent Skills-compatible hosts. Version 2.5.10 added the ten most recent layout types, such as Sankey and UML class diagrams.",
-        "usage": "In Claude Code, install with `/plugin marketplace add cathrynlavery/diagram-design` followed by `/plugin install diagram-design@diagram-design`; Codex, Factory Droid, and Pi document comparable plugin-install commands. Once installed, users can ask the agent in natural language — for example, to build an architecture diagram of frontend, backend, database, and Redis cache components — and the skill generates the HTML output.",
-        "pros": "Generated diagrams are self-contained HTML files with no build step, JavaScript, or external image dependency, and they open directly in a browser. Every diagram template gives its inline SVG an accessible name and description by default. An onboarding flow can read a website's color palette and font stack to brand new diagrams automatically within about a minute.",
-        "cons": "Exporting a diagram to PNG requires a one-time local setup step, `pip install playwright && playwright install chromium`, adding an external dependency beyond simply opening the generated HTML files.",
-        "fit": "The skill appears best suited to teams that want editorial-quality technical diagrams produced directly by an AI coding agent, rather than through a separate design tool. Documented guidance suggests it is less appropriate for quick unicode diagrams, simple lists, before/after comparisons, or single-box visuals, where a plain paragraph or table may communicate the same information more directly."
+        "goal": "Diagram Design is a Claude Code skill, also usable with Codex, Factory Droid, and Pi, that generates editorial-style diagrams. It documents 39 diagram types—including architecture, flowchart, and sequence diagrams—produced as self-contained HTML and SVG files rather than generic Mermaid-style output.",
+        "usage": "Install it in Claude Code by running /plugin marketplace add cathrynlavery/diagram-design followed by /plugin install diagram-design@diagram-design, then request diagrams in natural language or via commands such as /diagram-design:export-diagram. Codex, Factory Droid, Pi, and OpenCode each have separate documented install steps.",
+        "pros": "Diagrams ship as static, self-contained HTML with no build step required to view them, and each SVG includes accessibility attributes such as role=\"img\" and a resolving aria-labelledby. An optional onboarding flow extracts a website's color palette and fonts, checking WCAG AA contrast before applying them to new diagrams.",
+        "cons": "PNG export requires an additional one-time setup step beyond the default HTML output: pip install playwright && playwright install chromium. This dependency is unrelated to viewing or creating the standard self-contained HTML diagrams.",
+        "fit": "The skill fits documentation and technical-diagram workflows for AI coding agents that support Claude's Agent Skills format, matching diagrams to an existing brand's colors and fonts. It is presented as unsuited for quick unicode diagrams, plain lists, before/after comparisons, or single-box diagrams, suggesting narrower use outside structured technical documentation."
       },
       "ko": {
-        "goal": "Diagram Design는 아키텍처, 플로우차트, 시퀀스, ER 다이어그램 등 39가지 편집형 다이어그램 유형을 독립형 HTML 및 SVG 파일로 생성하는 Agent Skill입니다. Claude Code, Codex, Factory Droid, Pi 등 Agent Skills 호환 호스트를 대상으로 합니다. 2.5.10 버전에서는 Sankey, UML 클래스 다이어그램 등 최신 레이아웃 유형 10종이 추가되었습니다.",
-        "usage": "Claude Code에서는 `/plugin marketplace add cathrynlavery/diagram-design` 명령을 실행한 뒤 `/plugin install diagram-design@diagram-design` 명령으로 설치합니다. Codex, Factory Droid, Pi도 유사한 플러그인 설치 명령을 제공합니다. 설치 후에는 프런트엔드, 백엔드, 데이터베이스, Redis 캐시로 구성된 아키텍처 다이어그램을 만들어 달라는 식으로 자연어로 요청하면 에이전트가 HTML 결과물을 생성합니다.",
-        "pros": "생성된 다이어그램은 빌드 과정, 자바스크립트, 외부 이미지 의존성이 없는 독립형 HTML 파일로 제공되어 브라우저에서 바로 열립니다. 모든 다이어그램 템플릿은 기본적으로 인라인 SVG에 접근 가능한 이름과 설명을 부여합니다. 온보딩 기능은 웹사이트의 색상 팔레트와 폰트 스택을 약 1분 내에 읽어와 새 다이어그램에 자동으로 반영할 수 있습니다.",
-        "cons": "다이어그램을 PNG로 내보내려면 `pip install playwright && playwright install chromium` 명령으로 한 번의 로컬 설정이 필요하며, 이는 생성된 HTML 파일을 단순히 여는 것 이상의 외부 의존성을 추가합니다.",
-        "fit": "이 스킬은 별도의 디자인 도구 대신 AI 코딩 에이전트로 직접 편집형 품질의 기술 다이어그램을 만들고자 하는 팀에 적합해 보입니다. 문서화된 안내에 따르면 간단한 유니코드 다이어그램, 단순 목록, 전후 비교, 단일 상자 시각화에는 덜 적합할 수 있으며, 이런 경우에는 평범한 문단이나 표가 같은 정보를 더 직접적으로 전달할 수 있습니다."
+        "goal": "Diagram Design는 Claude Code용 스킬로, Codex, Factory Droid, Pi에서도 사용할 수 있으며 편집 스타일의 다이어그램을 생성합니다. 아키텍처, 플로우차트, 시퀀스 다이어그램 등 39가지 다이어그램 유형을 문서화하며, 일반적인 Mermaid 스타일 출력 대신 독립형 HTML과 SVG 파일로 결과물을 만듭니다.",
+        "usage": "/plugin marketplace add cathrynlavery/diagram-design 명령과 /plugin install diagram-design@diagram-design 명령을 Claude Code에서 실행해 설치한 뒤, 자연어로 다이어그램을 요청하거나 /diagram-design:export-diagram 같은 명령을 사용할 수 있습니다. Codex, Factory Droid, Pi, OpenCode는 각각 별도의 설치 절차가 문서화되어 있습니다.",
+        "pros": "다이어그램은 별도의 빌드 과정 없이 볼 수 있는 정적인 독립형 HTML로 제공되며, 각 SVG에는 role=\"img\"와 연결되는 aria-labelledby 같은 접근성 속성이 포함됩니다. 선택적인 온보딩 기능은 웹사이트의 색상 팔레트와 폰트를 추출하고, 새 다이어그램에 적용하기 전에 WCAG AA 대비를 확인합니다.",
+        "cons": "PNG로 내보내려면 기본 HTML 출력과는 별도로 pip install playwright && playwright install chromium이라는 일회성 추가 설치 단계가 필요합니다. 이 의존성은 표준 독립형 HTML 다이어그램을 보거나 만드는 데는 필요하지 않습니다.",
+        "fit": "이 스킬은 Claude의 Agent Skills 형식을 지원하는 AI 코딩 에이전트에서 문서화 및 기술 다이어그램 작업에 적합하며, 기존 브랜드의 색상과 폰트에 맞춰 다이어그램을 조정합니다. 빠른 유니코드 다이어그램, 단순 목록, 전후 비교, 단일 박스 형태의 '다이어그램'에는 적합하지 않은 것으로 소개되어 있어, 체계적인 기술 문서 이외의 용도에서는 활용 범위가 좁을 수 있음을 시사합니다."
       },
       "zh-CN": {
-        "goal": "Diagram Design 是一个 Agent Skill,可生成 39 种编辑式图表类型——包括架构图、流程图、时序图和 ER 图——并输出为独立的 HTML 和 SVG 文件。它面向 Claude Code、Codex、Factory Droid、Pi 及其他兼容 Agent Skills 的宿主。2.5.10 版本新增了最近的十种布局类型,例如 Sankey 图和 UML 类图。",
-        "usage": "在 Claude Code 中,先运行 `/plugin marketplace add cathrynlavery/diagram-design`,再运行 `/plugin install diagram-design@diagram-design` 完成安装;Codex、Factory Droid 和 Pi 也提供类似的插件安装命令。安装后,用户可以用自然语言提出请求——例如要求生成包含前端、后端、数据库和 Redis 缓存的架构图——技能随即生成 HTML 输出。",
-        "pros": "生成的图表是独立的 HTML 文件,不需要构建步骤、JavaScript 或外部图片依赖,可直接在浏览器中打开。默认情况下,每个图表模板都会为内联 SVG 提供可访问的名称和描述。引导流程可以读取网站的配色方案和字体组合,在约一分钟内自动为新图表应用品牌样式。",
-        "cons": "将图表导出为 PNG 需要一次性的本地设置步骤,即运行 `pip install playwright && playwright install chromium`,这在直接打开生成的 HTML 文件之外增加了一项外部依赖。",
-        "fit": "该技能似乎最适合希望由 AI 编码代理直接生成编辑级技术图表、而非依赖单独设计工具的团队。据文档说明,它对快速的 Unicode 图示、简单列表、前后对比或单框可视化可能不太适用,这类场景用一段文字或表格或许能更直接地传达相同信息。"
+        "goal": "Diagram Design 是一个 Claude Code 技能,也可在 Codex、Factory Droid 和 Pi 中使用,用于生成编辑风格的图表。它记录了 39 种图表类型,包括架构图、流程图和时序图,输出为独立的 HTML 和 SVG 文件,而不是常见的 Mermaid 风格输出。",
+        "usage": "在 Claude Code 中运行 /plugin marketplace add cathrynlavery/diagram-design,再运行 /plugin install diagram-design@diagram-design 即可安装,之后可以用自然语言请求图表,或使用诸如 /diagram-design:export-diagram 之类的命令。Codex、Factory Droid、Pi 和 OpenCode 各自都有独立的安装说明文档。",
+        "pros": "图表以静态、独立的 HTML 形式提供,查看时无需构建步骤,每个 SVG 都包含 role=\"img\" 和可解析的 aria-labelledby 等无障碍属性。可选的引导流程会提取网站的配色和字体,并在应用到新图表前检查是否符合 WCAG AA 对比度标准。",
+        "cons": "导出 PNG 需要在默认 HTML 输出之外额外执行一次性设置步骤:pip install playwright && playwright install chromium。查看或生成标准的独立 HTML 图表并不需要这一依赖。",
+        "fit": "该技能适合在支持 Claude 的 Agent Skills 格式的 AI 编程代理中用于文档和技术图表工作流,并能将图表与现有品牌的配色和字体对齐。据介绍它并不适用于快速的 unicode 图表、简单列表、前后对比或单框图表,这似乎意味着它在结构化技术文档之外的适用范围较窄。"
       },
       "es": {
-        "goal": "Diagram Design es un Agent Skill que genera 39 tipos de diagramas editoriales —incluidos arquitectura, diagramas de flujo, secuencia y ER— como archivos HTML y SVG autocontenidos. Está dirigido a Claude Code, Codex, Factory Droid, Pi y otros hosts compatibles con Agent Skills. La versión 2.5.10 añadió los diez tipos de diseño más recientes, como Sankey y diagramas de clases UML.",
-        "usage": "En Claude Code, se instala ejecutando `/plugin marketplace add cathrynlavery/diagram-design` seguido de `/plugin install diagram-design@diagram-design`; Codex, Factory Droid y Pi documentan comandos de instalación de plugins similares. Una vez instalado, los usuarios pueden pedir en lenguaje natural, por ejemplo, un diagrama de arquitectura con frontend, backend, base de datos y caché Redis, y el skill genera la salida HTML.",
-        "pros": "Los diagramas generados son archivos HTML autocontenidos sin paso de compilación, JavaScript ni dependencias de imágenes externas, y se abren directamente en el navegador. Cada plantilla de diagrama otorga por defecto un nombre y una descripción accesibles al SVG en línea. Un flujo de incorporación puede leer la paleta de colores y las fuentes de un sitio web para aplicar automáticamente la marca a los nuevos diagramas en cerca de un minuto.",
-        "cons": "Exportar un diagrama a PNG requiere un paso de configuración local único, `pip install playwright && playwright install chromium`, lo que añade una dependencia externa más allá de simplemente abrir los archivos HTML generados.",
-        "fit": "El skill parece más adecuado para equipos que desean diagramas técnicos de calidad editorial generados directamente por un agente de codificación con IA, en lugar de mediante una herramienta de diseño aparte. Según la guía documentada, podría ser menos apropiado para diagramas rápidos en unicode, listas simples, comparaciones de antes/después o visuales de una sola caja, casos en los que un párrafo o una tabla podrían comunicar la misma información de forma más directa."
+        "goal": "Diagram Design es un skill para Claude Code, también utilizable con Codex, Factory Droid y Pi, que genera diagramas de estilo editorial. Documenta 39 tipos de diagramas —incluyendo arquitectura, diagramas de flujo y de secuencia— producidos como archivos HTML y SVG autocontenidos en lugar de la salida genérica al estilo Mermaid.",
+        "usage": "Se instala en Claude Code ejecutando /plugin marketplace add cathrynlavery/diagram-design seguido de /plugin install diagram-design@diagram-design, y luego se solicitan diagramas en lenguaje natural o mediante comandos como /diagram-design:export-diagram. Codex, Factory Droid, Pi y OpenCode tienen cada uno pasos de instalación documentados por separado.",
+        "pros": "Los diagramas se entregan como HTML estático y autocontenido que no requiere paso de compilación para verse, y cada SVG incluye atributos de accesibilidad como role=\"img\" y un aria-labelledby que se resuelve correctamente. Un flujo de incorporación opcional extrae la paleta de colores y las fuentes de un sitio web, verificando el contraste WCAG AA antes de aplicarlos a los nuevos diagramas.",
+        "cons": "La exportación a PNG requiere un paso de configuración adicional único, además de la salida HTML predeterminada: pip install playwright && playwright install chromium. Esta dependencia no es necesaria para ver o crear los diagramas HTML autocontenidos estándar.",
+        "fit": "El skill se orienta a flujos de trabajo de documentación y diagramas técnicos en agentes de codificación con IA que soportan el formato Agent Skills de Claude, ajustando los diagramas a los colores y fuentes de una marca existente. Se presenta como no apto para diagramas rápidos en unicode, listas simples, comparaciones antes/después o diagramas de una sola caja, lo que sugiere un uso más limitado fuera de la documentación técnica estructurada."
       },
       "ja": {
-        "goal": "Diagram Designは、アーキテクチャ図、フローチャート、シーケンス図、ER図などを含む39種類のエディトリアルなダイアグラムを、自己完結型のHTMLおよびSVGファイルとして生成するAgent Skillです。Claude Code、Codex、Factory Droid、PiなどAgent Skills互換のホストを対象としています。バージョン2.5.10では、SankeyやUMLクラス図など直近の10種類のレイアウトタイプが追加されました。",
-        "usage": "Claude Codeでは、`/plugin marketplace add cathrynlavery/diagram-design` を実行した後に `/plugin install diagram-design@diagram-design` を実行してインストールします。Codex、Factory Droid、Piにも同様のプラグインインストールコマンドが用意されています。インストール後は、たとえばフロントエンド・バックエンド・データベース・Redisキャッシュで構成されるアーキテクチャ図を作成してほしいと自然言語で依頼すると、エージェントがHTML出力を生成します。",
-        "pros": "生成されるダイアグラムはビルド手順、JavaScript、外部画像への依存がない自己完結型のHTMLファイルで、ブラウザで直接開けます。各ダイアグラムテンプレートは、デフォルトでインラインSVGにアクセシブルな名前と説明を付与します。オンボーディング機能はウェブサイトの配色とフォントスタックを約1分で読み取り、新しいダイアグラムに自動でブランドを反映できます。",
-        "cons": "ダイアグラムをPNGとして書き出すには、`pip install playwright && playwright install chromium` という一度限りのローカルセットアップが必要で、生成されたHTMLファイルを単に開く場合以上の外部依存が加わります。",
-        "fit": "このスキルは、別途デザインツールを使うのではなく、AIコーディングエージェントが直接エディトリアル品質の技術図を生成することを望むチームに最も適していると考えられます。文書化されたガイダンスによれば、簡易なUnicode図、単純なリスト、ビフォーアフター比較、単一ボックスの図には、あまり適さない可能性があり、そうした場合は普通の段落や表の方が同じ情報をより直接的に伝えられるでしょう。"
+        "goal": "Diagram Design は Claude Code 向けのスキルで、Codex、Factory Droid、Pi でも利用でき、エディトリアルなスタイルの図を生成します。アーキテクチャ図、フローチャート、シーケンス図など39種類の図の種類が文書化されており、一般的な Mermaid 風の出力ではなく、自己完結した HTML と SVG ファイルとして出力されます。",
+        "usage": "Claude Code では /plugin marketplace add cathrynlavery/diagram-design を実行した後 /plugin install diagram-design@diagram-design を実行してインストールし、その後は自然言語で図を依頼するか、/diagram-design:export-diagram のようなコマンドを使用します。Codex、Factory Droid、Pi、OpenCode にはそれぞれ個別のインストール手順が文書化されています。",
+        "pros": "図はビルド手順なしで表示できる静的で自己完結した HTML として出力され、各 SVG には role=\"img\" や解決可能な aria-labelledby などのアクセシビリティ属性が含まれます。任意のオンボーディング機能はウェブサイトの配色とフォントを抽出し、新しい図に適用する前に WCAG AA コントラストを確認します。",
+        "cons": "PNG へのエクスポートには、デフォルトの HTML 出力とは別に pip install playwright && playwright install chromium という一度限りの追加セットアップ手順が必要です。この依存関係は、標準の自己完結型 HTML 図を表示・作成する際には不要です。",
+        "fit": "このスキルは、Claude の Agent Skills 形式に対応する AI コーディングエージェント上で、ドキュメントや技術図のワークフローに適しており、既存ブランドの配色やフォントに図を合わせられます。素早い Unicode 図、単純なリスト、前後比較、単一ボックスの「図」には向かないとされており、構造化された技術文書以外での用途は限定的である可能性が示唆されます。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 1,
-          "end_line": 3,
-          "section_heading": "Diagram Design"
-        },
-        {
-          "start_line": 15,
-          "end_line": 15,
-          "section_heading": "Diagram Design"
-        },
-        {
           "start_line": 17,
           "end_line": 17,
+          "section_heading": "Diagram Design"
+        },
+        {
+          "start_line": 3,
+          "end_line": 3,
           "section_heading": "Diagram Design"
         }
       ],
       "usage": [
         {
-          "start_line": 111,
-          "end_line": 118,
+          "start_line": 116,
+          "end_line": 117,
           "section_heading": "Install"
         },
         {
-          "start_line": 259,
-          "end_line": 264,
-          "section_heading": "Quickstart"
+          "start_line": 158,
+          "end_line": 158,
+          "section_heading": "Install"
+        },
+        {
+          "start_line": 345,
+          "end_line": 349,
+          "section_heading": "Export to PNG / SVG"
         }
       ],
       "pros": [
@@ -507,34 +507,32 @@
           "section_heading": "Accessible by default"
         },
         {
-          "start_line": 27,
-          "end_line": 27,
-          "section_heading": "Why I built it"
+          "start_line": 226,
+          "end_line": 226,
+          "section_heading": "Contrast checks happen automatically"
         }
       ],
       "cons": [
         {
-          "start_line": 358,
-          "end_line": 358,
+          "start_line": 360,
+          "end_line": 360,
           "section_heading": "Export to PNG / SVG"
         }
       ],
       "fit": [
         {
-          "start_line": 573,
-          "end_line": 580,
+          "start_line": 17,
+          "end_line": 17,
+          "section_heading": "Diagram Design"
+        },
+        {
+          "start_line": 579,
+          "end_line": 586,
           "section_heading": "When *not* to use this skill"
         }
       ]
     },
     "invariants": [
-      {
-        "kind": "product",
-        "value": "Diagram Design",
-        "fields": [
-          "goal"
-        ]
-      },
       {
         "kind": "command",
         "value": "/plugin marketplace add cathrynlavery/diagram-design",
@@ -557,10 +555,10 @@
         ]
       },
       {
-        "kind": "version",
-        "value": "2.5.10",
+        "kind": "command",
+        "value": "/diagram-design:export-diagram",
         "fields": [
-          "goal"
+          "usage"
         ]
       },
       {
@@ -568,6 +566,46 @@
         "value": "39",
         "fields": [
           "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Claude Code",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Codex",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Factory Droid",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Pi",
+        "fields": [
+          "goal",
+          "usage",
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "OpenCode",
+        "fields": [
+          "usage"
         ]
       }
     ],
@@ -578,11 +616,11 @@
       "kind": "readme",
       "slug": "cathrynlavery/diagram-design",
       "path": "README.md",
-      "blob_sha": "53a87e1ec00f4b94530570b701f3a23dfa69fbe6",
-      "content_sha256": "fb87bab7b6682b50dc9d366ca03fd6709acfb2657d1343abc39408d47c39e37f",
+      "blob_sha": "57e70d771fe7803b76dc60798e91a2afc850ae59",
+      "content_sha256": "ce09652d021e7c8595bb57886498ae9d941075a3bd02673d3ad1032c2b555106",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.259",
+      "cli_version": "2.1.263",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -951,47 +989,47 @@
   },
   "blader/humanizer": {
     "content": {
-      "goal": "Humanizer is a Markdown-based skill that rewrites AI-sounding text so it reads as if a person wrote it, without changing the underlying meaning. It targets 35 documented patterns drawn from Wikipedia's \"Signs of AI writing\" guidance, covering content, language, style, chatbot, and filler issues in written text.",
-      "usage": "Users invoke it directly with the command /humanizer followed by pasted text, or ask in plain language to humanize a passage, or give it a file path so it rewrites only the prose while leaving code and links untouched. Installation runs via npx skills add blader/humanizer --global, and Claude Code 2.1.142 or newer can instead run /plugin marketplace add blader/humanizer followed by /plugin install humanizer@humanizer.",
-      "pros": "Before finalizing output, it shows an initial rewrite alongside a short critique of anything that still sounds artificial, making its process visible. It states that it does not invent factual details such as names, dates, or quotes, sourcing them only from the original text or the writer. It can also match a user's own voice if given a writing sample.",
-      "cons": "For personal narrative content, Humanizer reportedly needs the writer to supply missing specifics, such as exact dates or locations, since it is described as asking rather than fabricating them. This suggests occasional back-and-forth may be needed to complete a rewrite when source material is incomplete.",
-      "fit": "Since it is implemented purely as a Markdown skill, it appears usable with any agent that supports skills, though installing it as a plugin rather than via the Skills CLI requires Claude Code 2.1.142 or newer."
+      "goal": "Humanizer is a Markdown-based skill that rewrites AI-sounding text so it reads as if written by a person, without changing the stated content. It is designed to work with any agent that supports the skills format, including Claude Code and Claude Desktop.",
+      "usage": "Install with `npx skills add blader/humanizer --global` (drop `--global` for a project-only install) and reload the agent's skills; the skill responds to `/humanizer`. Text can be pasted directly, requested in plain language, or applied to a file by giving its path. Claude Code 2.1.142 or newer can instead install it as a plugin via `/plugin marketplace add blader/humanizer`.",
+      "pros": "According to the README, Humanizer avoids inventing facts, names, dates, or quotes, asking for missing details instead. When applied to a file, it edits only prose and leaves code, data, frontmatter, and links unchanged. It works across any skill-supporting agent and is released under the MIT license.",
+      "cons": "The plugin installation path works only with Claude Code 2.1.142 or newer; on older versions or other agents, installation must go through the Skills CLI method instead.",
+      "fit": "Based on the documented workflow, Humanizer appears best suited for writers and technical documentation authors who want AI-drafted text reworded in a natural, human-sounding style while keeping factual content and code or data intact, particularly within agent environments that support the skills format."
     },
     "summaries": {
       "en": {
-        "goal": "Humanizer is a Markdown-based skill that rewrites AI-sounding text so it reads as if a person wrote it, without changing the underlying meaning. It targets 35 documented patterns drawn from Wikipedia's \"Signs of AI writing\" guidance, covering content, language, style, chatbot, and filler issues in written text.",
-        "usage": "Users invoke it directly with the command /humanizer followed by pasted text, or ask in plain language to humanize a passage, or give it a file path so it rewrites only the prose while leaving code and links untouched. Installation runs via npx skills add blader/humanizer --global, and Claude Code 2.1.142 or newer can instead run /plugin marketplace add blader/humanizer followed by /plugin install humanizer@humanizer.",
-        "pros": "Before finalizing output, it shows an initial rewrite alongside a short critique of anything that still sounds artificial, making its process visible. It states that it does not invent factual details such as names, dates, or quotes, sourcing them only from the original text or the writer. It can also match a user's own voice if given a writing sample.",
-        "cons": "For personal narrative content, Humanizer reportedly needs the writer to supply missing specifics, such as exact dates or locations, since it is described as asking rather than fabricating them. This suggests occasional back-and-forth may be needed to complete a rewrite when source material is incomplete.",
-        "fit": "Since it is implemented purely as a Markdown skill, it appears usable with any agent that supports skills, though installing it as a plugin rather than via the Skills CLI requires Claude Code 2.1.142 or newer."
+        "goal": "Humanizer is a Markdown-based skill that rewrites AI-sounding text so it reads as if written by a person, without changing the stated content. It is designed to work with any agent that supports the skills format, including Claude Code and Claude Desktop.",
+        "usage": "Install with `npx skills add blader/humanizer --global` (drop `--global` for a project-only install) and reload the agent's skills; the skill responds to `/humanizer`. Text can be pasted directly, requested in plain language, or applied to a file by giving its path. Claude Code 2.1.142 or newer can instead install it as a plugin via `/plugin marketplace add blader/humanizer`.",
+        "pros": "According to the README, Humanizer avoids inventing facts, names, dates, or quotes, asking for missing details instead. When applied to a file, it edits only prose and leaves code, data, frontmatter, and links unchanged. It works across any skill-supporting agent and is released under the MIT license.",
+        "cons": "The plugin installation path works only with Claude Code 2.1.142 or newer; on older versions or other agents, installation must go through the Skills CLI method instead.",
+        "fit": "Based on the documented workflow, Humanizer appears best suited for writers and technical documentation authors who want AI-drafted text reworded in a natural, human-sounding style while keeping factual content and code or data intact, particularly within agent environments that support the skills format."
       },
       "ko": {
-        "goal": "Humanizer는 AI가 쓴 것처럼 보이는 텍스트를 원래 의미를 바꾸지 않으면서 사람이 쓴 것처럼 다시 쓰는 마크다운 기반 스킬입니다. Wikipedia의 \"Signs of AI writing\" 지침에서 가져온 35개의 문서화된 패턴을 대상으로 하며, 콘텐츠, 언어, 문체, 챗봇, 군더더기 표현 문제를 다룹니다.",
-        "usage": "사용자는 /humanizer 명령어 뒤에 텍스트를 붙여넣어 직접 호출하거나, 평범한 언어로 텍스트를 humanize해 달라고 요청하거나, 파일 경로를 지정해 코드와 링크는 그대로 두고 산문만 다시 쓰게 할 수 있습니다. 설치는 npx skills add blader/humanizer --global 명령으로 실행되며, Claude Code 2.1.142 이상에서는 대신 /plugin marketplace add blader/humanizer에 이어 /plugin install humanizer@humanizer를 실행할 수 있습니다.",
-        "pros": "최종본을 내놓기 전에 초안과 함께 여전히 부자연스러운 부분에 대한 짧은 비평을 보여주어 작업 과정을 확인할 수 있습니다. 이름, 날짜, 인용문 같은 사실적 세부 정보를 지어내지 않고 원문이나 작성자로부터만 가져온다고 설명합니다. 글쓰기 샘플을 제공하면 사용자의 문체를 따라갈 수도 있습니다.",
-        "cons": "개인적인 서술형 콘텐츠의 경우, 정확한 날짜나 장소 같은 누락된 세부 정보를 지어내는 대신 작성자에게 물어보도록 되어 있다고 설명되어 있어, 원본 자료가 불완전하면 다시 주고받는 과정이 필요할 수 있음을 시사합니다.",
-        "fit": "순수하게 마크다운 스킬로 구현되어 있어 스킬을 지원하는 어떤 에이전트에서도 사용할 수 있는 것으로 보이지만, Skills CLI 대신 플러그인으로 설치하려면 Claude Code 2.1.142 이상이 필요합니다."
+        "goal": "Humanizer는 AI가 쓴 것처럼 보이는 텍스트를 사람이 쓴 것처럼 자연스럽게 다시 쓰는 마크다운 기반 스킬로, 원문의 내용 자체는 바꾸지 않습니다. Claude Code와 Claude Desktop을 포함해 스킬 형식을 지원하는 모든 에이전트에서 작동하도록 설계되었습니다.",
+        "usage": "`npx skills add blader/humanizer --global` 명령으로 설치하고(프로젝트 단위로만 설치하려면 `--global`을 생략), 에이전트의 스킬을 다시 불러오면 `/humanizer` 명령으로 응답합니다. 텍스트를 직접 붙여넣거나, 평범한 문장으로 요청하거나, 파일 경로를 지정해 적용할 수 있습니다. Claude Code 2.1.142 이상에서는 `/plugin marketplace add blader/humanizer` 명령으로 플러그인 형태로 설치할 수도 있습니다.",
+        "pros": "README에 따르면 Humanizer는 이름, 날짜, 인용문 등의 사실을 지어내지 않고, 부족한 세부 정보가 있으면 대신 물어봅니다. 파일에 적용할 경우 코드, 데이터, 프런트매터, 링크는 그대로 두고 문장만 수정합니다. 스킬을 지원하는 어떤 에이전트에서도 작동하며 MIT 라이선스로 배포됩니다.",
+        "cons": "플러그인 설치 방식은 Claude Code 2.1.142 이상에서만 지원되며, 이전 버전이나 다른 에이전트에서는 Skills CLI 방식을 대신 사용해야 합니다.",
+        "fit": "문서화된 작동 방식을 보면 Humanizer는 AI가 작성한 텍스트를 자연스럽고 사람이 쓴 듯한 문체로 바꾸면서도 사실 정보와 코드·데이터는 그대로 유지하고 싶은 작가나 기술 문서 작성자에게 적합해 보이며, 특히 스킬 형식을 지원하는 에이전트 환경에서 유용할 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "Humanizer 是一个基于 Markdown 的技能,用于在不改变原意的前提下,把带有 AI 痕迹的文本改写得像人写的一样。它针对的是源自维基百科 \"Signs of AI writing\" 指南中记录的 35 种写作模式,涵盖内容、语言、风格、聊天机器人和填充语等问题。",
-        "usage": "用户可以直接使用 /humanizer 命令并粘贴文本来调用它,也可以用日常语言要求它\"humanize\"某段文字,或者提供文件路径,让它只改写散文部分,而保留代码、数据和链接不变。安装可通过 npx skills add blader/humanizer --global 命令完成,Claude Code 2.1.142 及以上版本则可以改为运行 /plugin marketplace add blader/humanizer 和 /plugin install humanizer@humanizer 来安装插件。",
-        "pros": "在给出最终版本之前,它会先展示初稿以及对仍显生硬之处的简短点评,让处理过程可见。文档说明它不会编造姓名、日期、引语等事实细节,而是只从原文或作者那里获取。如果提供写作样本,它还能模仿用户自己的文风。",
-        "cons": "对于个人叙事类内容,文档提到 Humanizer 在缺少具体日期或地点等细节时会向作者询问,而不是自行编造,这意味着当原始素材不完整时,可能需要额外的往返沟通才能完成改写。",
-        "fit": "由于它完全以 Markdown 技能的形式实现,看起来可以在任何支持技能的智能体中使用,不过若要以插件方式而非 Skills CLI 安装,则需要 Claude Code 2.1.142 或更高版本。"
+        "goal": "Humanizer 是一个基于 Markdown 的技能，用于将带有 AI 痕迹的文本改写得像人写的一样，同时不改变原文所陈述的内容。它旨在与任何支持技能格式的智能体协同工作，包括 Claude Code 和 Claude Desktop。",
+        "usage": "使用 `npx skills add blader/humanizer --global` 进行安装（若只想在当前项目中安装，可省略 `--global`），然后重新加载该智能体的技能；该技能会响应 `/humanizer` 命令。用户可以直接粘贴文本、用自然语言提出请求，或指定文件路径来处理该文件。Claude Code 2.1.142 或更新版本还可以通过 `/plugin marketplace add blader/humanizer` 以插件形式安装。",
+        "pros": "根据 README 所述，Humanizer 不会编造姓名、日期或引用等事实，如缺少必要细节会主动询问，而不是凭空捏造。应用于文件时，它只修改散文内容，代码、数据、frontmatter 和链接保持不变。它可在任何支持技能格式的智能体上运行，并以 MIT 许可证发布。",
+        "cons": "插件安装方式仅支持 Claude Code 2.1.142 或更新版本；在更旧版本或其他智能体上，则必须改用 Skills CLI 方式进行安装。",
+        "fit": "根据文档描述的工作流程，Humanizer 似乎更适合希望将 AI 生成文本改写得自然、贴近人类写作风格，同时保留事实内容及代码或数据不受影响的作者和技术文档撰写者，尤其是在支持技能格式的智能体环境中使用。"
       },
       "es": {
-        "goal": "Humanizer es una skill basada en Markdown que reescribe texto con apariencia de IA para que suene como si lo hubiera escrito una persona, sin cambiar su significado original. Se enfoca en 35 patrones documentados tomados de la guía \"Signs of AI writing\" de Wikipedia, que cubren problemas de contenido, lenguaje, estilo, chatbots y relleno.",
-        "usage": "Se puede invocar directamente con el comando /humanizer seguido del texto pegado, pedirle en lenguaje natural que humanice un texto, o indicarle la ruta de un archivo para que reescriba solo la prosa, dejando intactos el código, los datos y los enlaces. La instalación se realiza con npx skills add blader/humanizer --global, y en Claude Code 2.1.142 o posterior se puede instalar como plugin con /plugin marketplace add blader/humanizer seguido de /plugin install humanizer@humanizer.",
-        "pros": "Antes de entregar la versión final, muestra un primer borrador junto con una breve crítica de lo que aún suena artificial, haciendo visible su proceso. Se indica que no inventa detalles factuales como nombres, fechas o citas, tomándolos únicamente del texto original o del autor. También puede imitar la voz propia del usuario si se le proporciona una muestra de escritura.",
-        "cons": "Para contenido narrativo personal, se describe que Humanizer pide al autor los detalles faltantes, como fechas o lugares exactos, en lugar de inventarlos, lo que sugiere que puede requerir varias idas y vueltas cuando el material original está incompleto.",
-        "fit": "Al estar implementado únicamente como una skill en Markdown, parece utilizable con cualquier agente que admita skills, aunque instalarlo como plugin en lugar de mediante la Skills CLI requiere Claude Code 2.1.142 o una versión posterior."
+        "goal": "Humanizer es una skill basada en Markdown que reescribe texto con apariencia de IA para que se lea como si lo hubiera escrito una persona, sin cambiar lo que dice. Está diseñada para funcionar con cualquier agente que admita el formato de skills, incluidos Claude Code y Claude Desktop.",
+        "usage": "Se instala con `npx skills add blader/humanizer --global` (omite `--global` para instalarla solo en el proyecto actual) y luego hay que recargar las skills del agente; la skill responde a `/humanizer`. El texto se puede pegar directamente, pedirse en lenguaje natural o aplicarse a un archivo indicando su ruta. Claude Code 2.1.142 o posterior puede instalarla como plugin mediante `/plugin marketplace add blader/humanizer`.",
+        "pros": "Según el README, Humanizer evita inventar hechos, nombres, fechas o citas, y pregunta en lugar de inventar cuando falta algún detalle. Al aplicarse a un archivo, solo modifica la prosa y deja intactos el código, los datos, el frontmatter y los enlaces. Funciona en cualquier agente compatible con skills y se distribuye bajo licencia MIT.",
+        "cons": "La instalación como plugin solo funciona con Claude Code 2.1.142 o posterior; en versiones anteriores u otros agentes, la instalación debe hacerse mediante el método de Skills CLI.",
+        "fit": "Según el flujo de trabajo documentado, Humanizer parece adecuado para redactores y autores de documentación técnica que quieran dar a texto generado por IA un estilo natural y humano, conservando el contenido factual y el código o los datos intactos, particularmente en entornos de agentes que admiten el formato de skills."
       },
       "ja": {
-        "goal": "Humanizerは、元の意味を変えずにAIが書いたような文章を人が書いたように書き直す、Markdownベースのスキルです。Wikipediaの「Signs of AI writing」ガイドラインに由来する35個の文書化されたパターンを対象とし、内容・言語・文体・チャットボット・冗長表現に関する問題を扱います。",
-        "usage": "ユーザーは/humanizerコマンドの後にテキストを貼り付けて直接呼び出すか、平易な言葉で文章を「humanize」するよう依頼するか、ファイルパスを指定してコードやリンクはそのままに文章部分だけを書き直させることができます。インストールはnpx skills add blader/humanizer --globalコマンドで行い、Claude Code 2.1.142以降では代わりに/plugin marketplace add blader/humanizerに続けて/plugin install humanizer@humanizerを実行してプラグインとしてインストールできます。",
-        "pros": "最終版を提示する前に、最初の書き直し案とまだ不自然な部分についての短い講評を示すため、処理の過程を確認できます。名前・日付・引用などの事実の詳細は捏造せず、原文または執筆者からのみ取得すると説明されています。文章サンプルを提供すれば、ユーザー自身の文体に合わせることもできます。",
-        "cons": "個人的な体験談のようなコンテンツでは、正確な日付や場所といった不足している詳細について、Humanizerが捏造する代わりに執筆者に尋ねると説明されており、元の資料が不完全な場合はやり取りが追加で必要になる可能性が示唆されます。",
-        "fit": "純粋にMarkdownスキルとして実装されているため、スキルに対応する任意のエージェントで利用できると考えられますが、Skills CLIではなくプラグインとしてインストールする場合はClaude Code 2.1.142以降が必要です。"
+        "goal": "Humanizerは、AIが書いたような文章を、内容を変えずに人が書いたように書き直すMarkdownベースのスキルです。Claude CodeやClaude Desktopを含め、スキル形式をサポートする任意のエージェントで動作するよう設計されています。",
+        "usage": "`npx skills add blader/humanizer --global` でインストールし（プロジェクト単位でのみインストールする場合は `--global` を省略）、エージェントのスキルを再読み込みすると `/humanizer` コマンドで応答します。テキストを直接貼り付ける、平易な言葉で依頼する、またはファイルパスを指定して適用することもできます。Claude Code 2.1.142以降では、`/plugin marketplace add blader/humanizer` を使ってプラグインとしてインストールすることもできます。",
+        "pros": "READMEによれば、Humanizerは名前や日付、引用などの事実を捏造せず、不足している詳細があれば代わりに質問します。ファイルに適用した場合、変更するのは文章のみで、コード、データ、フロントマター、リンクはそのまま残ります。スキル形式に対応する任意のエージェントで動作し、MITライセンスで公開されています。",
+        "cons": "プラグインとしてのインストール方法はClaude Code 2.1.142以降でのみ利用でき、それより古いバージョンや他のエージェントではSkills CLIによる方法を使う必要があります。",
+        "fit": "文書化されたワークフローから判断すると、Humanizerは、事実内容やコード・データをそのまま保ちながらAI生成テキストを自然で人間らしい文体に書き直したいライターや技術文書の執筆者に向いていると考えられ、特にスキル形式に対応したエージェント環境での利用に適していると見られます。"
       }
     },
     "evidence": {
@@ -1000,47 +1038,47 @@
           "start_line": 5,
           "end_line": 5,
           "section_heading": "Humanizer"
-        },
-        {
-          "start_line": 9,
-          "end_line": 9,
-          "section_heading": "How it works"
         }
       ],
       "usage": [
         {
-          "start_line": 19,
-          "end_line": 25,
+          "start_line": 9,
+          "end_line": 15,
+          "section_heading": "Installation"
+        },
+        {
+          "start_line": 17,
+          "end_line": 22,
+          "section_heading": "Installation"
+        },
+        {
+          "start_line": 30,
+          "end_line": 36,
           "section_heading": "Usage"
-        },
-        {
-          "start_line": 190,
-          "end_line": 194,
-          "section_heading": "Installation"
-        },
-        {
-          "start_line": 198,
-          "end_line": 203,
-          "section_heading": "Installation"
         }
       ],
       "pros": [
         {
-          "start_line": 13,
-          "end_line": 15,
+          "start_line": 73,
+          "end_line": 73,
           "section_heading": "How it works"
         },
         {
-          "start_line": 41,
-          "end_line": 53,
-          "section_heading": "Match your voice"
+          "start_line": 75,
+          "end_line": 75,
+          "section_heading": "How it works"
+        },
+        {
+          "start_line": 200,
+          "end_line": 202,
+          "section_heading": "License"
         }
       ],
       "cons": [
         {
-          "start_line": 119,
-          "end_line": 119,
-          "section_heading": "Full example"
+          "start_line": 17,
+          "end_line": 22,
+          "section_heading": "Installation"
         }
       ],
       "fit": [
@@ -1050,23 +1088,23 @@
           "section_heading": "Humanizer"
         },
         {
-          "start_line": 198,
-          "end_line": 198,
-          "section_heading": "Installation"
+          "start_line": 75,
+          "end_line": 75,
+          "section_heading": "How it works"
         }
       ]
     },
     "invariants": [
       {
         "kind": "command",
-        "value": "/humanizer",
+        "value": "npx skills add blader/humanizer --global",
         "fields": [
           "usage"
         ]
       },
       {
         "kind": "command",
-        "value": "npx skills add blader/humanizer --global",
+        "value": "/humanizer",
         "fields": [
           "usage"
         ]
@@ -1079,25 +1117,11 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "/plugin install humanizer@humanizer",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
         "kind": "version",
         "value": "2.1.142",
         "fields": [
           "usage",
-          "fit"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "35",
-        "fields": [
-          "goal"
+          "cons"
         ]
       },
       {
@@ -1106,38 +1130,46 @@
         "fields": [
           "goal",
           "usage",
-          "cons"
+          "pros",
+          "fit"
         ]
       },
       {
         "kind": "product",
         "value": "Claude Code",
         "fields": [
+          "goal",
           "usage",
-          "fit"
+          "cons"
         ]
       },
       {
         "kind": "product",
-        "value": "Wikipedia",
+        "value": "Claude Desktop",
         "fields": [
           "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "MIT",
+        "fields": [
+          "pros"
         ]
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "blader/humanizer",
       "path": "README.md",
-      "blob_sha": "aea9a0b49385bf16ebaab073bd458f964d13cfc0",
-      "content_sha256": "d45a4faae168c33c3bce155e9bda14eaafc86a2342d4a9ffac47d35dd7a8a8f0",
+      "blob_sha": "6ffe91a6ddcdaae4667f4a2195ff5f389593e935",
+      "content_sha256": "d546538831ce8423587208d4a86dbe2be1f1f63445505d284dc558e6de86dac0",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.252",
+      "cli_version": "2.1.263",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -2346,53 +2378,53 @@
   },
   "aipoch/open-science": {
     "content": {
-      "goal": "Open Science is an open-source, local-first, model-agnostic AI research workbench developed by AIPOCH for scientists and researchers, aimed at reproducible, inspectable research that combines AI agents, code execution, and scientific data connectors.",
-      "usage": "The README describes downloading a platform installer for macOS, Windows, or Linux from the latest GitHub release, or building from source with `git clone https://github.com/aipoch/open-science.git`, `npm install`, and `npm run dev`. After setup, users create a project and describe a research goal for agents to carry out.",
-      "pros": "Documented capabilities include agent-driven Python/R execution, scientific data connectors, immutable versioned artifacts with provenance tracking, support for multiple model providers, and Apache-2.0 licensing with no seat fees. The README also reports a #1 ranking on the BiomniBench-DA Public 50 benchmark with a score of 79.05.",
-      "cons": "The README states that generated output does not replace expert judgment, statistical review, or validation against primary evidence, indicating that outputs need domain-expert confirmation before being treated as final research conclusions.",
-      "fit": "Based on the disciplines mentioned—machine learning, statistics, life sciences, chemistry, materials science, physics, and environmental science—the tool appears suited to researchers needing a local, traceable workspace for computational and data-intensive analysis rather than casual chat-based assistance."
+      "goal": "Open Science is an open-source, local-first, model-agnostic AI research workbench developed by AIPOCH (https://aipoch.com/open-science) for scientists and researchers. It targets reproducible, inspectable research through AI agents, Python and R code execution, and scientific data connectors, running on macOS, Windows, and Linux (v0.26.0).",
+      "usage": "Download an installer from the latest GitHub release, complete a five-step guided setup (environment, data location, agent runtime, model provider, notebook runtime), then create a project and describe a research goal. For source development: `git clone https://github.com/aipoch/open-science.git`, `cd open-science`, `npm install`, `npm run dev` (Node.js 22 required).",
+      "pros": "Open Science ranked #1 on the BiomniBench-DA Public 50 benchmark with a score of 79.05, and it ships with 22 featured research skills, 24 built-in scientific data connectors, and Apache-2.0 licensing with no seat license.",
+      "cons": "Source development requires Node.js 22 and Git as prerequisites, with Python 3 needed only for notebook execution. Package management for external R runtimes remains manual rather than automated by the app.",
+      "fit": "Given its documented support for disciplines such as life sciences, chemistry, materials science, physics, and environmental science, plus its local-first design, Open Science appears best suited to individual researchers or labs wanting inspectable, self-hosted AI-assisted workflows rather than teams needing a fully managed cloud service."
     },
     "summaries": {
       "en": {
-        "goal": "Open Science is an open-source, local-first, model-agnostic AI research workbench developed by AIPOCH for scientists and researchers, aimed at reproducible, inspectable research that combines AI agents, code execution, and scientific data connectors.",
-        "usage": "The README describes downloading a platform installer for macOS, Windows, or Linux from the latest GitHub release, or building from source with `git clone https://github.com/aipoch/open-science.git`, `npm install`, and `npm run dev`. After setup, users create a project and describe a research goal for agents to carry out.",
-        "pros": "Documented capabilities include agent-driven Python/R execution, scientific data connectors, immutable versioned artifacts with provenance tracking, support for multiple model providers, and Apache-2.0 licensing with no seat fees. The README also reports a #1 ranking on the BiomniBench-DA Public 50 benchmark with a score of 79.05.",
-        "cons": "The README states that generated output does not replace expert judgment, statistical review, or validation against primary evidence, indicating that outputs need domain-expert confirmation before being treated as final research conclusions.",
-        "fit": "Based on the disciplines mentioned—machine learning, statistics, life sciences, chemistry, materials science, physics, and environmental science—the tool appears suited to researchers needing a local, traceable workspace for computational and data-intensive analysis rather than casual chat-based assistance."
+        "goal": "Open Science is an open-source, local-first, model-agnostic AI research workbench developed by AIPOCH (https://aipoch.com/open-science) for scientists and researchers. It targets reproducible, inspectable research through AI agents, Python and R code execution, and scientific data connectors, running on macOS, Windows, and Linux (v0.26.0).",
+        "usage": "Download an installer from the latest GitHub release, complete a five-step guided setup (environment, data location, agent runtime, model provider, notebook runtime), then create a project and describe a research goal. For source development: `git clone https://github.com/aipoch/open-science.git`, `cd open-science`, `npm install`, `npm run dev` (Node.js 22 required).",
+        "pros": "Open Science ranked #1 on the BiomniBench-DA Public 50 benchmark with a score of 79.05, and it ships with 22 featured research skills, 24 built-in scientific data connectors, and Apache-2.0 licensing with no seat license.",
+        "cons": "Source development requires Node.js 22 and Git as prerequisites, with Python 3 needed only for notebook execution. Package management for external R runtimes remains manual rather than automated by the app.",
+        "fit": "Given its documented support for disciplines such as life sciences, chemistry, materials science, physics, and environmental science, plus its local-first design, Open Science appears best suited to individual researchers or labs wanting inspectable, self-hosted AI-assisted workflows rather than teams needing a fully managed cloud service."
       },
       "ko": {
-        "goal": "Open Science는 AIPOCH에서 개발한 오픈소스, 로컬 우선, 모델에 종속되지 않는 AI 연구 워크벤치로, 과학자와 연구자를 위해 재현 가능하고 검증 가능한 연구를 지원하며 AI 에이전트, 코드 실행, 과학 데이터 커넥터를 결합합니다.",
-        "usage": "README에 따르면 최신 GitHub 릴리스에서 macOS, Windows, Linux용 설치 프로그램을 내려받거나, 소스에서 빌드하려면 `git clone https://github.com/aipoch/open-science.git`, `npm install`, `npm run dev` 명령을 사용합니다. 설정 후에는 프로젝트를 생성하고 연구 목표를 설명하면 에이전트가 작업을 수행합니다.",
-        "pros": "문서화된 기능으로는 에이전트 기반 Python/R 실행, 과학 데이터 커넥터, 출처 추적이 가능한 불변 버전 아티팩트, 다중 모델 제공자 지원, 좌석 비용이 없는 Apache-2.0 라이선스가 있습니다. 또한 README는 BiomniBench-DA Public 50 벤치마크에서 79.05점으로 1위를 기록했다고 밝히고 있습니다.",
-        "cons": "README는 생성된 결과물이 전문가의 판단, 통계적 검토, 1차 증거 대비 검증을 대체하지 않는다고 명시하고 있어, 최종 연구 결론으로 사용하기 전에 도메인 전문가의 확인이 필요함을 시사합니다.",
-        "fit": "머신러닝, 통계학, 생명과학, 화학, 재료과학, 물리학, 환경과학 등 문서에 언급된 분야를 볼 때, 이 도구는 단순한 채팅 기반 보조 도구보다는 로컬에서 추적 가능한 방식으로 계산 집약적이고 데이터 집약적인 연구를 수행하려는 연구자에게 적합해 보입니다."
+        "goal": "Open Science는 AIPOCH가 개발한 오픈소스, 로컬 우선, 모델에 종속되지 않는 AI 연구 워크벤치로(https://aipoch.com/open-science), 과학자와 연구자를 대상으로 합니다. AI 에이전트, Python 및 R 코드 실행, 과학 데이터 커넥터를 통해 재현 가능하고 검증 가능한 연구를 지원하며, macOS, Windows, Linux에서 실행됩니다(v0.26.0).",
+        "usage": "최신 GitHub 릴리스에서 설치 파일을 다운로드한 뒤, 5단계 안내 설정(환경, 데이터 위치, 에이전트 런타임, 모델 제공자, 노트북 런타임)을 완료하고 프로젝트를 만들어 연구 목표를 설명합니다. 소스에서 개발하려면 `git clone https://github.com/aipoch/open-science.git`, `cd open-science`, `npm install`, `npm run dev` 명령을 사용하며 Node.js 22가 필요합니다.",
+        "pros": "Open Science는 BiomniBench-DA Public 50 벤치마크에서 79.05점으로 1위를 차지했으며, 22개의 주요 연구 스킬과 24개의 내장 과학 데이터 커넥터를 제공하고, 좌석 라이선스 없이 Apache-2.0 라이선스로 배포됩니다.",
+        "cons": "소스 개발에는 Node.js 22와 Git이 필요하며, Python 3은 노트북 실행에만 필요합니다. 외부 R 런타임의 패키지 관리는 앱이 자동화하지 않고 수동으로 이루어집니다.",
+        "fit": "생명과학, 화학, 재료과학, 물리학, 환경과학 등 문서화된 지원 분야와 로컬 우선 설계를 고려할 때, Open Science는 완전 관리형 클라우드 서비스가 필요한 팀보다는 검증 가능하고 자체 호스팅되는 AI 지원 워크플로를 원하는 개인 연구자나 실험실에 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "Open Science 是由 AIPOCH 开发的开源、本地优先、模型无关的 AI 研究工作台,面向科学家和研究人员,旨在通过 AI 代理、代码执行和科学数据连接器实现可复现、可审查的研究。",
-        "usage": "根据文档,用户可以从最新的 GitHub 发布页下载适用于 macOS、Windows、Linux 的安装程序,或通过源码构建,执行 `git clone https://github.com/aipoch/open-science.git`、`npm install` 和 `npm run dev`。完成设置后,创建项目并描述研究目标,由代理执行任务。",
-        "pros": "文档记录的功能包括代理驱动的 Python/R 执行、科学数据连接器、带溯源信息的不可变版本化产物、支持多个模型提供商,以及不收取席位费的 Apache-2.0 许可证。README 还提到该项目在 BiomniBench-DA Public 50 基准测试中以 79.05 分排名第一。",
-        "cons": "README 指出生成的输出不能替代专家判断、统计审查或与原始证据的验证,这表明在将其作为最终研究结论之前,仍需要领域专家进行确认。",
-        "fit": "根据文档中提及的机器学习、统计学、生命科学、化学、材料科学、物理学和环境科学等领域,该工具似乎更适合需要本地化、可追溯工作空间来进行计算和数据密集型分析的研究人员,而非仅需要聊天式辅助的用户。"
+        "goal": "Open Science 是由 AIPOCH 开发的开源、本地优先、模型无关的 AI 研究工作台(https://aipoch.com/open-science),面向科学家和研究人员。它通过 AI 智能体、Python 与 R 代码执行以及科学数据连接器,支持可复现、可审查的研究,可在 macOS、Windows 和 Linux 上运行(v0.26.0)。",
+        "usage": "从最新的 GitHub 发行版下载安装程序,完成五步引导设置(环境、数据位置、智能体运行时、模型提供商、Notebook 运行时),然后创建项目并描述研究目标。若需从源码开发,可运行 `git clone https://github.com/aipoch/open-science.git`、`cd open-science`、`npm install`、`npm run dev`,需要 Node.js 22。",
+        "pros": "Open Science 在 BiomniBench-DA Public 50 基准测试中以 79.05 分排名第一,并内置 22 个精选研究技能和 24 个内置科学数据连接器,采用 Apache-2.0 许可证且无需按坐席收费。",
+        "cons": "源码开发需要 Node.js 22 和 Git 作为前提条件,而 Python 3 仅在需要 Notebook 执行时才需要。外部 R 运行时的包管理仍需手动进行,应用本身不会自动处理。",
+        "fit": "根据文档中列出的支持学科(生命科学、化学、材料科学、物理学、环境科学)以及本地优先的设计,Open Science 似乎更适合希望获得可审查、自托管 AI 辅助工作流的个人研究者或实验室,而非需要完全托管云服务的团队。"
       },
       "es": {
-        "goal": "Open Science es un banco de trabajo de investigación con IA de código abierto, local-first y agnóstico de modelo, desarrollado por AIPOCH para científicos e investigadores, orientado a una investigación reproducible e inspeccionable mediante agentes de IA, ejecución de código y conectores de datos científicos.",
-        "usage": "Según el documento, se puede descargar un instalador para macOS, Windows o Linux desde la última versión en GitHub, o compilar desde el código fuente con `git clone https://github.com/aipoch/open-science.git`, `npm install` y `npm run dev`. Tras la configuración, se crea un proyecto y se describe el objetivo de investigación para que los agentes lo ejecuten.",
-        "pros": "Las capacidades documentadas incluyen ejecución de Python/R impulsada por agentes, conectores de datos científicos, artefactos versionados e inmutables con procedencia rastreable, soporte para múltiples proveedores de modelos, y licencia Apache-2.0 sin costo por asiento. El README también indica que el proyecto obtuvo el primer puesto en el benchmark BiomniBench-DA Public 50 con una puntuación de 79.05.",
-        "cons": "El README señala que los resultados generados no sustituyen el juicio experto, la revisión estadística ni la validación frente a evidencia primaria, lo que sugiere que se necesita confirmación de un experto del dominio antes de tratarlos como conclusiones finales de investigación.",
-        "fit": "A partir de las disciplinas mencionadas —aprendizaje automático, estadística, ciencias biológicas, química, ciencia de materiales, física y ciencias ambientales—, la herramienta parece adecuada para investigadores que necesitan un espacio de trabajo local y trazable para análisis computacionales y de datos intensivos, más que para asistencia tipo chat casual."
+        "goal": "Open Science es un banco de trabajo de investigación de IA de código abierto, local-first y agnóstico de modelo, desarrollado por AIPOCH (https://aipoch.com/open-science) para científicos e investigadores. Permite investigación reproducible e inspeccionable mediante agentes de IA, ejecución de código Python y R, y conectores de datos científicos, y se ejecuta en macOS, Windows y Linux (v0.26.0).",
+        "usage": "Descargue un instalador desde la última versión de GitHub, complete una configuración guiada de cinco pasos (entorno, ubicación de datos, tiempo de ejecución del agente, proveedor de modelo, tiempo de ejecución de notebook) y luego cree un proyecto y describa un objetivo de investigación. Para desarrollo desde el código fuente: `git clone https://github.com/aipoch/open-science.git`, `cd open-science`, `npm install`, `npm run dev` (requiere Node.js 22).",
+        "pros": "Open Science obtuvo el primer puesto en el benchmark BiomniBench-DA Public 50 con una puntuación de 79.05, e incluye 22 habilidades de investigación destacadas y 24 conectores de datos científicos integrados, bajo licencia Apache-2.0 sin licencia por asiento.",
+        "cons": "El desarrollo desde el código fuente requiere Node.js 22 y Git como prerrequisitos, y Python 3 solo es necesario para la ejecución de notebooks. La gestión de paquetes para entornos R externos sigue siendo manual y no está automatizada por la aplicación.",
+        "fit": "A partir de las disciplinas documentadas que admite (ciencias de la vida, química, ciencia de materiales, física y ciencias ambientales) y de su diseño local-first, Open Science parece adecuarse mejor a investigadores individuales o laboratorios que buscan flujos de trabajo asistidos por IA inspeccionables y autoalojados, más que a equipos que necesiten un servicio en la nube totalmente gestionado."
       },
       "ja": {
-        "goal": "Open Scienceは、AIPOCHが開発したオープンソースでローカルファースト、モデルに依存しないAI研究ワークベンチであり、科学者や研究者向けに、AIエージェント、コード実行、科学データコネクタを組み合わせて再現可能かつ検証可能な研究を支援します。",
-        "usage": "READMEによると、最新のGitHubリリースからmacOS、Windows、Linux向けのインストーラーをダウンロードするか、ソースからビルドする場合は `git clone https://github.com/aipoch/open-science.git`、`npm install`、`npm run dev` を実行します。セットアップ後、プロジェクトを作成し研究目標を記述するとエージェントがタスクを実行します。",
-        "pros": "文書化されている機能には、エージェントによるPython/R実行、科学データコネクタ、来歴を追跡できる不変のバージョン管理された成果物、複数のモデルプロバイダーへの対応、席数課金のないApache-2.0ライセンスが含まれます。READMEはまた、BiomniBench-DA Public 50ベンチマークで79.05のスコアで1位になったと述べています。",
-        "cons": "READMEは、生成された出力が専門家の判断、統計的レビュー、一次証拠との照合の代替にはならないと明記しており、最終的な研究結論として扱う前にドメイン専門家による確認が必要であることを示唆しています。",
-        "fit": "機械学習、統計学、生命科学、化学、材料科学、物理学、環境科学といった文書に記載された分野から判断すると、このツールは単純なチャット型の補助よりも、ローカルで追跡可能な作業空間を必要とする計算集約的・データ集約的な研究を行う研究者に適していると考えられます。"
+        "goal": "Open Scienceは、AIPOCHが開発したオープンソースでローカルファースト、モデルに依存しないAI研究ワークベンチであり(https://aipoch.com/open-science)、科学者や研究者を対象としています。AIエージェント、PythonおよびRのコード実行、科学データコネクタを通じて再現可能で検証可能な研究を支援し、macOS、Windows、Linuxで動作します(v0.26.0)。",
+        "usage": "最新のGitHubリリースからインストーラーをダウンロードし、5段階のガイド付きセットアップ(環境、データ保存場所、エージェントランタイム、モデルプロバイダー、ノートブックランタイム)を完了した後、プロジェクトを作成して研究目標を記述します。ソースからの開発には `git clone https://github.com/aipoch/open-science.git`、`cd open-science`、`npm install`、`npm run dev` を使用し、Node.js 22が必要です。",
+        "pros": "Open ScienceはBiomniBench-DA Public 50ベンチマークでスコア79.05を記録し1位となり、22の主要な研究スキルと24の組み込み科学データコネクタを備え、シート課金のないApache-2.0ライセンスで提供されます。",
+        "cons": "ソースからの開発にはNode.js 22とGitが前提条件として必要で、Python 3はノートブック実行時にのみ必要です。外部Rランタイムのパッケージ管理はアプリによって自動化されず、手動での対応が必要です。",
+        "fit": "生命科学、化学、材料科学、物理学、環境科学といった文書化された対応分野とローカルファースト設計を踏まえると、Open Scienceは完全マネージド型のクラウドサービスを必要とするチームよりも、検証可能でセルフホストのAI支援ワークフローを求める個々の研究者や研究室に適していると考えられます。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 1,
+          "start_line": 4,
           "end_line": 5,
           "section_heading": ""
         },
@@ -2400,31 +2432,31 @@
           "start_line": 46,
           "end_line": 46,
           "section_heading": ""
+        },
+        {
+          "start_line": 50,
+          "end_line": 50,
+          "section_heading": ""
         }
       ],
       "usage": [
         {
           "start_line": 78,
-          "end_line": 89,
+          "end_line": 78,
           "section_heading": "🚀 Quick Start"
         },
         {
-          "start_line": 296,
-          "end_line": 301,
-          "section_heading": "Development & Packaging"
+          "start_line": 97,
+          "end_line": 103,
+          "section_heading": "2. Complete first-time setup"
         },
         {
-          "start_line": 118,
-          "end_line": 126,
-          "section_heading": "3. Start a research project"
+          "start_line": 298,
+          "end_line": 301,
+          "section_heading": "Development & Packaging"
         }
       ],
       "pros": [
-        {
-          "start_line": 190,
-          "end_line": 198,
-          "section_heading": "Why Open Science"
-        },
         {
           "start_line": 174,
           "end_line": 176,
@@ -2434,18 +2466,23 @@
           "start_line": 157,
           "end_line": 159,
           "section_heading": "Scientific skills and data connectors"
+        },
+        {
+          "start_line": 198,
+          "end_line": 198,
+          "section_heading": "Why Open Science"
         }
       ],
       "cons": [
         {
-          "start_line": 212,
-          "end_line": 212,
-          "section_heading": "Design Principles"
+          "start_line": 291,
+          "end_line": 295,
+          "section_heading": "Development & Packaging"
         },
         {
-          "start_line": 376,
-          "end_line": 376,
-          "section_heading": "What This Is Not"
+          "start_line": 227,
+          "end_line": 227,
+          "section_heading": "Core Capabilities"
         }
       ],
       "fit": [
@@ -2453,10 +2490,22 @@
           "start_line": 48,
           "end_line": 48,
           "section_heading": ""
+        },
+        {
+          "start_line": 195,
+          "end_line": 195,
+          "section_heading": "Why Open Science"
         }
       ]
     },
     "invariants": [
+      {
+        "kind": "command",
+        "value": "git clone https://github.com/aipoch/open-science.git",
+        "fields": [
+          "usage"
+        ]
+      },
       {
         "kind": "command",
         "value": "npm install",
@@ -2472,10 +2521,18 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "git clone https://github.com/aipoch/open-science.git",
+        "kind": "version",
+        "value": "v0.26.0",
         "fields": [
-          "usage"
+          "goal"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "Node.js 22",
+        "fields": [
+          "usage",
+          "cons"
         ]
       },
       {
@@ -2486,17 +2543,35 @@
         ]
       },
       {
-        "kind": "url",
-        "value": "https://github.com/aipoch/open-science",
+        "kind": "number",
+        "value": "22",
         "fields": [
-          "usage"
+          "usage",
+          "pros",
+          "cons"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "24",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://aipoch.com/open-science",
+        "fields": [
+          "goal"
         ]
       },
       {
         "kind": "product",
         "value": "Open Science",
         "fields": [
-          "goal"
+          "goal",
+          "pros",
+          "fit"
         ]
       },
       {
@@ -2513,6 +2588,13 @@
         "fields": [
           "pros"
         ]
+      },
+      {
+        "kind": "product",
+        "value": "BiomniBench-DA",
+        "fields": [
+          "pros"
+        ]
       }
     ],
     "inference_fields": [
@@ -2522,8 +2604,8 @@
       "kind": "readme",
       "slug": "aipoch/open-science",
       "path": "README.md",
-      "blob_sha": "ec96a5fcd9957dba2ebbfd8050e6446f19752d3e",
-      "content_sha256": "ba2f7dc6287354ff90ce152fddd63973c695d1a4f0951a659e760d08f2403634",
+      "blob_sha": "074d4209e3c6caa9f3bf9e41d6d59112efd5e9e1",
+      "content_sha256": "441d4160bdc987874ffd28c053a817cf75ac5eee4267fcd728be3b55588f1eba",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -3744,58 +3826,53 @@
   },
   "Gitlawb/openclaude": {
     "content": {
-      "goal": "OpenClaude is an open-source coding-agent command-line interface that works with cloud and local large-language-model providers, including OpenAI-compatible APIs, Gemini, GitHub Models, Codex OAuth, Codex, Ollama, and Atomic Chat, within one terminal-first workflow covering prompts, tools, agents, MCP, slash commands, and streaming output.",
-      "usage": "Install with `npm install -g @gitlawb/openclaude@latest` (Node.js >=22.0.0 required for npm installs), then launch with `openclaude`. Inside the CLI, `/provider` runs guided provider setup and saves profiles, and `/onboard-github` handles GitHub Models onboarding.",
-      "pros": "A single CLI covers many providers without separate per-provider tooling, offers guided setup with saved profiles via `/provider`, bundles a VS Code extension for launch integration and theming, and centralizes coding-agent tools such as bash, file editing, grep, glob, agents, tasks, and MCP.",
-      "cons": "Documented behavior is not identical across providers: Anthropic-specific features may be unavailable elsewhere, tool-calling quality depends on the selected model, smaller local models can struggle with long multi-step tool flows, and some providers impose lower output caps than the CLI's defaults.",
-      "fit": "Given its provider-agnostic CLI design and Node.js >=22.0.0 prerequisite, OpenClaude likely suits developers who want to route coding-agent workflows across multiple cloud and local model backends from one terminal tool, though users needing guaranteed Anthropic-specific behavior may want to verify feature parity for their chosen provider."
+      "goal": "OpenClaude is an open-source coding-agent CLI that connects to cloud and local LLM providers, including OpenAI-compatible APIs, Gemini, GitHub Models, Codex OAuth, Codex, Ollama, and Atomic Chat, offering a single terminal-first workflow with prompts, tools, agents, MCP integration, slash commands, and streaming output.",
+      "usage": "Install globally with `npm install -g @gitlawb/openclaude@latest` (requires Node.js >=22.0.0), then launch the CLI with the `openclaude` command. Inside the CLI, run `/provider` for guided provider setup and saved credential profiles.",
+      "pros": "OpenClaude unifies cloud and local model backends in one CLI without per-provider tooling, offers guided provider setup with saved profiles via `/provider`, bundles coding-agent workflows (bash, file tools, grep, glob, agents, tasks, MCP, web tools) in one place, and ships a companion VS Code extension for launch integration and theming.",
+      "cons": "Provider behavior is not identical across backends: Anthropic-specific features may be unavailable on other providers, tool-calling quality depends heavily on the selected model, and smaller local models can struggle with long multi-step tool flows.",
+      "fit": "OpenClaude appears best suited to developers who want to experiment across multiple cloud and local LLM providers from a single terminal tool, provided they can run Node.js >=22.0.0 and select models with strong tool/function-calling support, since the README indicates results depend on that capability."
     },
     "summaries": {
       "en": {
-        "goal": "OpenClaude is an open-source coding-agent command-line interface that works with cloud and local large-language-model providers, including OpenAI-compatible APIs, Gemini, GitHub Models, Codex OAuth, Codex, Ollama, and Atomic Chat, within one terminal-first workflow covering prompts, tools, agents, MCP, slash commands, and streaming output.",
-        "usage": "Install with `npm install -g @gitlawb/openclaude@latest` (Node.js >=22.0.0 required for npm installs), then launch with `openclaude`. Inside the CLI, `/provider` runs guided provider setup and saves profiles, and `/onboard-github` handles GitHub Models onboarding.",
-        "pros": "A single CLI covers many providers without separate per-provider tooling, offers guided setup with saved profiles via `/provider`, bundles a VS Code extension for launch integration and theming, and centralizes coding-agent tools such as bash, file editing, grep, glob, agents, tasks, and MCP.",
-        "cons": "Documented behavior is not identical across providers: Anthropic-specific features may be unavailable elsewhere, tool-calling quality depends on the selected model, smaller local models can struggle with long multi-step tool flows, and some providers impose lower output caps than the CLI's defaults.",
-        "fit": "Given its provider-agnostic CLI design and Node.js >=22.0.0 prerequisite, OpenClaude likely suits developers who want to route coding-agent workflows across multiple cloud and local model backends from one terminal tool, though users needing guaranteed Anthropic-specific behavior may want to verify feature parity for their chosen provider."
+        "goal": "OpenClaude is an open-source coding-agent CLI that connects to cloud and local LLM providers, including OpenAI-compatible APIs, Gemini, GitHub Models, Codex OAuth, Codex, Ollama, and Atomic Chat, offering a single terminal-first workflow with prompts, tools, agents, MCP integration, slash commands, and streaming output.",
+        "usage": "Install globally with `npm install -g @gitlawb/openclaude@latest` (requires Node.js >=22.0.0), then launch the CLI with the `openclaude` command. Inside the CLI, run `/provider` for guided provider setup and saved credential profiles.",
+        "pros": "OpenClaude unifies cloud and local model backends in one CLI without per-provider tooling, offers guided provider setup with saved profiles via `/provider`, bundles coding-agent workflows (bash, file tools, grep, glob, agents, tasks, MCP, web tools) in one place, and ships a companion VS Code extension for launch integration and theming.",
+        "cons": "Provider behavior is not identical across backends: Anthropic-specific features may be unavailable on other providers, tool-calling quality depends heavily on the selected model, and smaller local models can struggle with long multi-step tool flows.",
+        "fit": "OpenClaude appears best suited to developers who want to experiment across multiple cloud and local LLM providers from a single terminal tool, provided they can run Node.js >=22.0.0 and select models with strong tool/function-calling support, since the README indicates results depend on that capability."
       },
       "ko": {
-        "goal": "OpenClaude는 클라우드 및 로컬 대형 언어 모델 제공업체와 함께 사용할 수 있는 오픈소스 코딩 에이전트 CLI입니다. OpenAI 호환 API, Gemini, GitHub Models, Codex OAuth, Codex, Ollama, Atomic Chat 등을 지원하며, 프롬프트, 도구, 에이전트, MCP, 슬래시 명령, 스트리밍 출력을 하나의 터미널 중심 워크플로우로 제공합니다.",
-        "usage": "`npm install -g @gitlawb/openclaude@latest` 명령으로 설치하며, npm 설치와 실행에는 Node.js >=22.0.0이 필요합니다. 설치 후 `openclaude` 명령으로 실행하고, CLI 내부에서 `/provider` 명령으로 제공업체를 안내에 따라 설정하고 프로필을 저장하며, `/onboard-github` 명령으로 GitHub Models 온보딩을 진행합니다.",
-        "pros": "하나의 CLI로 여러 제공업체를 다룰 수 있어 제공업체별 별도 도구가 필요 없고, `/provider` 명령을 통한 안내형 설정과 프로필 저장 기능을 제공합니다. 또한 실행 연동과 테마를 지원하는 VS Code 확장이 함께 제공되며, bash, 파일 편집, grep, glob, 에이전트, 작업, MCP 같은 코딩 에이전트 도구를 한곳에 모아 제공합니다.",
-        "cons": "문서에 따르면 제공업체마다 동작이 동일하지 않습니다. Anthropic 고유 기능은 다른 제공업체에서 지원되지 않을 수 있고, 도구 호출 품질은 선택한 모델에 따라 달라지며, 소형 로컬 모델은 여러 단계로 이어지는 도구 흐름에서 어려움을 겪을 수 있고, 일부 제공업체는 CLI 기본값보다 낮은 출력 상한을 적용합니다.",
-        "fit": "제공업체에 구애받지 않는 CLI 구조와 Node.js >=22.0.0 요구 사항을 고려할 때, OpenClaude는 하나의 터미널 도구에서 여러 클라우드 및 로컬 모델 백엔드에 걸쳐 코딩 에이전트 작업을 수행하려는 개발자에게 적합할 것으로 보입니다. 다만 Anthropic 고유 동작이 반드시 필요한 사용자는 선택한 제공업체의 기능 지원 여부를 별도로 확인하는 편이 좋을 것입니다."
+        "goal": "OpenClaude는 OpenAI 호환 API, Gemini, GitHub Models, Codex OAuth, Codex, Ollama, Atomic Chat 등 클라우드 및 로컬 LLM 제공자에 연결하는 오픈소스 코딩 에이전트 CLI로, 프롬프트, 도구, 에이전트, MCP 통합, 슬래시 명령, 스트리밍 출력을 하나의 터미널 중심 워크플로우로 제공합니다.",
+        "usage": "`npm install -g @gitlawb/openclaude@latest` 명령으로 전역 설치할 수 있으며 (Node.js >=22.0.0 필요), 이후 `openclaude` 명령으로 CLI를 실행합니다. CLI 내부에서는 `/provider` 명령으로 안내형 제공자 설정과 저장된 자격 증명 프로필을 구성할 수 있습니다.",
+        "pros": "OpenClaude는 별도의 제공자별 도구 없이 클라우드와 로컬 모델 백엔드를 하나의 CLI로 통합하고, `/provider`를 통한 안내형 설정과 저장된 프로필을 제공하며, bash·파일 도구·grep·glob·에이전트·작업·MCP·웹 도구 등 코딩 에이전트 워크플로우를 한곳에 모아두고, 실행 연동과 테마 지원을 위한 VS Code 확장 프로그램도 함께 제공합니다.",
+        "cons": "제공자마다 동작이 동일하지 않습니다. Anthropic 전용 기능은 다른 제공자에서 사용할 수 없을 수 있고, 도구 호출 품질은 선택한 모델에 크게 좌우되며, 소규모 로컬 모델은 여러 단계의 도구 흐름에서 어려움을 겪을 수 있습니다.",
+        "fit": "OpenClaude는 하나의 터미널 도구에서 여러 클라우드 및 로컬 LLM 제공자를 실험하고자 하는 개발자에게 적합해 보이며, 이를 위해서는 Node.js >=22.0.0 실행 환경과 도구/함수 호출을 잘 지원하는 모델 선택이 필요할 것으로 보입니다. README는 결과가 이러한 능력에 좌우된다고 설명합니다."
       },
       "zh-CN": {
-        "goal": "OpenClaude 是一款开源的编码代理命令行工具(CLI),可与云端和本地大语言模型提供方配合使用,支持 OpenAI 兼容 API、Gemini、GitHub Models、Codex OAuth、Codex、Ollama 和 Atomic Chat 等后端,并在同一个以终端为中心的工作流中提供提示词、工具、代理、MCP、斜杠命令和流式输出。",
-        "usage": "可通过 `npm install -g @gitlawb/openclaude@latest` 安装,npm 安装和运行需要 Node.js >=22.0.0。安装后运行 `openclaude` 启动;在 CLI 内部,`/provider` 命令用于引导式配置提供方并保存配置文件,`/onboard-github` 命令用于完成 GitHub Models 的引导设置。",
-        "pros": "单一 CLI 即可覆盖多家提供方,无需为每个提供方单独配置工具;`/provider` 提供引导式设置并保存配置文件;还内置了用于启动集成和主题支持的 VS Code 扩展;并将 bash、文件编辑、grep、glob、代理、任务和 MCP 等编码代理工具集中在同一处。",
-        "cons": "文档说明不同提供方之间的行为并不完全一致:Anthropic 专属功能在其他提供方上可能不可用,工具调用质量取决于所选模型,较小的本地模型在处理长链条多步骤工具流程时可能遇到困难,部分提供方设置的输出上限也低于 CLI 的默认值。",
-        "fit": "考虑到其与提供方无关的 CLI 设计以及 Node.js >=22.0.0 的前提条件,OpenClaude 可能更适合希望在同一终端工具中跨多个云端和本地模型后端运行编码代理工作流的开发者;但如果用户需要确保获得 Anthropic 专属行为,可能需要另行确认所选提供方的功能是否对等。"
+        "goal": "OpenClaude 是一款开源的编码代理 CLI 工具,可连接云端与本地 LLM 提供方,包括 OpenAI 兼容 API、Gemini、GitHub Models、Codex OAuth、Codex、Ollama 和 Atomic Chat,以单一的终端优先工作流提供提示词、工具、代理、MCP 集成、斜杠命令和流式输出。",
+        "usage": "可通过 `npm install -g @gitlawb/openclaude@latest` 进行全局安装(需要 Node.js >=22.0.0),随后使用 `openclaude` 命令启动该 CLI。在 CLI 内部运行 `/provider` 可进行引导式提供方设置并保存凭据配置。",
+        "pros": "OpenClaude 无需为每个提供方单独配置工具,即可在同一 CLI 中统一云端与本地模型后端;通过 `/provider` 提供引导式设置与已保存的配置文件;将 bash、文件工具、grep、glob、代理、任务、MCP、网页工具等编码代理工作流集中于一处;并附带一个用于启动集成和主题支持的 VS Code 扩展。",
+        "cons": "各提供方之间的行为并不完全一致:部分 Anthropic 专属功能可能在其他提供方上不可用,工具调用质量很大程度上取决于所选模型,较小的本地模型在处理多步骤工具流程时可能会遇到困难。",
+        "fit": "OpenClaude 似乎更适合希望在单一终端工具中体验多个云端与本地 LLM 提供方的开发者,前提是能够运行 Node.js >=22.0.0 并选择对工具/函数调用支持较好的模型,因为文档表明效果会因此而异。"
       },
       "es": {
-        "goal": "OpenClaude es una CLI de código abierto para agentes de codificación que funciona con proveedores de modelos de lenguaje en la nube y locales, incluyendo APIs compatibles con OpenAI, Gemini, GitHub Models, Codex OAuth, Codex, Ollama y Atomic Chat, dentro de un flujo de trabajo centrado en la terminal con prompts, herramientas, agentes, MCP, comandos de barra y salida en streaming.",
-        "usage": "Se instala con `npm install -g @gitlawb/openclaude@latest`, y la instalación y ejecución mediante npm requieren Node.js >=22.0.0. Luego se inicia con `openclaude`; dentro de la CLI, el comando `/provider` ejecuta una configuración guiada de proveedores con perfiles guardados, y `/onboard-github` gestiona la incorporación de GitHub Models.",
-        "pros": "Una sola CLI cubre múltiples proveedores sin necesidad de herramientas separadas por proveedor, ofrece configuración guiada con perfiles guardados mediante `/provider`, incluye una extensión de VS Code para integración de lanzamiento y soporte de temas, y centraliza herramientas de agente de codificación como bash, edición de archivos, grep, glob, agentes, tareas y MCP.",
-        "cons": "Según la documentación, el comportamiento no es idéntico entre proveedores: las funciones específicas de Anthropic pueden no estar disponibles en otros proveedores, la calidad de las llamadas a herramientas depende del modelo elegido, los modelos locales más pequeños pueden tener dificultades con flujos de herramientas de varios pasos, y algunos proveedores imponen límites de salida más bajos que los valores predeterminados de la CLI.",
-        "fit": "Dado su diseño de CLI independiente del proveedor y el requisito de Node.js >=22.0.0, OpenClaude parece adecuado para desarrolladores que quieran ejecutar flujos de agentes de codificación en varios backends de modelos en la nube y locales desde una sola herramienta de terminal, aunque quienes necesiten un comportamiento específico de Anthropic garantizado quizá deban verificar la paridad de funciones del proveedor elegido."
+        "goal": "OpenClaude es una CLI de código abierto para un agente de codificación que se conecta a proveedores de LLM en la nube y locales, entre ellos APIs compatibles con OpenAI, Gemini, GitHub Models, Codex OAuth, Codex, Ollama y Atomic Chat, ofreciendo un flujo de trabajo centrado en la terminal con prompts, herramientas, agentes, integración MCP, comandos con barra diagonal y salida en streaming.",
+        "usage": "Se instala globalmente con `npm install -g @gitlawb/openclaude@latest` (requiere Node.js >=22.0.0) y se inicia con el comando `openclaude`. Dentro de la CLI, el comando `/provider` ofrece una configuración guiada de proveedores y perfiles de credenciales guardados.",
+        "pros": "OpenClaude unifica backends de modelos en la nube y locales en una sola CLI sin herramientas separadas por proveedor, ofrece configuración guiada y perfiles guardados mediante `/provider`, agrupa flujos de trabajo de codificación (bash, herramientas de archivos, grep, glob, agentes, tareas, MCP, herramientas web) en un solo lugar, e incluye una extensión de VS Code para integración de lanzamiento y soporte de temas.",
+        "cons": "El comportamiento no es idéntico entre proveedores: las funciones específicas de Anthropic pueden no estar disponibles en otros proveedores, la calidad de la llamada a herramientas depende en gran medida del modelo elegido, y los modelos locales más pequeños pueden tener dificultades con flujos de herramientas de varios pasos.",
+        "fit": "OpenClaude parece adecuado para desarrolladores que quieran experimentar con múltiples proveedores de LLM en la nube y locales desde una sola herramienta de terminal, siempre que puedan ejecutar Node.js >=22.0.0 y elegir modelos con buen soporte de llamada a herramientas/funciones, ya que el documento indica que los resultados dependen de esa capacidad."
       },
       "ja": {
-        "goal": "OpenClaudeは、クラウドおよびローカルの大規模言語モデルプロバイダーと連携できるオープンソースのコーディングエージェントCLIです。OpenAI互換API、Gemini、GitHub Models、Codex OAuth、Codex、Ollama、Atomic Chatなどに対応し、プロンプト、ツール、エージェント、MCP、スラッシュコマンド、ストリーミング出力を一つのターミナル中心のワークフローで提供します。",
-        "usage": "`npm install -g @gitlawb/openclaude@latest` でインストールでき、npmでのインストールと実行にはNode.js >=22.0.0が必要です。インストール後は `openclaude` で起動し、CLI内では `/provider` コマンドでガイド付きのプロバイダー設定とプロファイル保存を行い、`/onboard-github` コマンドでGitHub Modelsのオンボーディングを行います。",
-        "pros": "単一のCLIで複数のプロバイダーを扱えるため、プロバイダーごとの個別ツールが不要になり、`/provider` によるガイド付き設定とプロファイル保存が可能です。また、起動連携とテーマ対応を備えたVS Code拡張機能が同梱されており、bash、ファイル編集、grep、glob、エージェント、タスク、MCPといったコーディングエージェント向けツールが一箇所にまとまっています。",
-        "cons": "ドキュメントによれば、プロバイダー間で動作は完全には一致しません。Anthropic固有の機能は他のプロバイダーでは利用できない場合があり、ツール呼び出しの品質は選択したモデルに依存し、小規模なローカルモデルは長い複数ステップのツールフローで苦労する可能性があり、一部のプロバイダーはCLIのデフォルトより低い出力上限を課しています。",
-        "fit": "プロバイダーに依存しないCLI設計とNode.js >=22.0.0という前提条件を踏まえると、OpenClaudeは一つのターミナルツールから複数のクラウド・ローカルモデルバックエンドにまたがるコーディングエージェント作業を行いたい開発者に向いていると考えられます。ただし、Anthropic固有の動作が確実に必要なユーザーは、選択したプロバイダーでの機能の同等性を別途確認したほうがよいでしょう。"
+        "goal": "OpenClaudeは、OpenAI互換API、Gemini、GitHub Models、Codex OAuth、Codex、Ollama、Atomic ChatなどクラウドおよびローカルのLLMプロバイダーに接続するオープンソースのコーディングエージェントCLIであり、プロンプト、ツール、エージェント、MCP連携、スラッシュコマンド、ストリーミング出力を単一のターミナル中心のワークフローとして提供します。",
+        "usage": "`npm install -g @gitlawb/openclaude@latest` でグローバルにインストールでき(Node.js >=22.0.0が必要)、その後 `openclaude` コマンドでCLIを起動します。CLI内では `/provider` コマンドによりガイド付きのプロバイダー設定と保存された認証情報プロファイルを構成できます。",
+        "pros": "OpenClaudeはプロバイダーごとの個別ツールを必要とせずクラウドとローカルのモデルバックエンドを単一のCLIに統合し、`/provider` によるガイド付き設定と保存済みプロファイルを提供し、bash・ファイルツール・grep・glob・エージェント・タスク・MCP・ウェブツールといったコーディングエージェントのワークフローを一箇所にまとめ、起動連携とテーマ対応のためのVS Code拡張機能も同梱しています。",
+        "cons": "プロバイダー間で動作が完全には一致しません。Anthropic固有の機能は他のプロバイダーでは利用できない場合があり、ツール呼び出しの品質は選択したモデルに大きく依存し、小規模なローカルモデルは複数ステップにわたるツールフローで問題が生じることがあります。",
+        "fit": "OpenClaudeは、単一のターミナルツールから複数のクラウドおよびローカルLLMプロバイダーを試したい開発者に適していると考えられますが、そのためにはNode.js >=22.0.0の実行環境と、ツール/関数呼び出しに強いモデルの選択が必要になる可能性があります。READMEでは結果がその能力に依存すると示されています。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 11,
-          "end_line": 11,
-          "section_heading": ""
-        },
-        {
-          "start_line": 13,
           "end_line": 13,
           "section_heading": ""
         }
@@ -3807,13 +3884,13 @@
           "section_heading": "Install"
         },
         {
-          "start_line": 154,
-          "end_line": 154,
+          "start_line": 153,
+          "end_line": 155,
           "section_heading": "Start"
         },
         {
           "start_line": 159,
-          "end_line": 160,
+          "end_line": 159,
           "section_heading": "Start"
         }
       ],
@@ -3826,46 +3903,25 @@
       ],
       "cons": [
         {
-          "start_line": 369,
+          "start_line": 370,
           "end_line": 374,
           "section_heading": "Provider Notes"
         }
       ],
       "fit": [
         {
-          "start_line": 119,
-          "end_line": 122,
-          "section_heading": "Why OpenClaude"
-        },
-        {
           "start_line": 129,
-          "end_line": 131,
+          "end_line": 129,
           "section_heading": "Install"
         },
         {
-          "start_line": 369,
-          "end_line": 374,
+          "start_line": 382,
+          "end_line": 382,
           "section_heading": "Provider Notes"
         }
       ]
     },
     "invariants": [
-      {
-        "kind": "product",
-        "value": "OpenClaude",
-        "fields": [
-          "goal",
-          "usage",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "@gitlawb/openclaude",
-        "fields": [
-          "usage"
-        ]
-      },
       {
         "kind": "command",
         "value": "npm install -g @gitlawb/openclaude@latest",
@@ -3889,17 +3945,12 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "/onboard-github",
+        "kind": "product",
+        "value": "OpenClaude",
         "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": ">=22.0.0",
-        "fields": [
+          "goal",
           "usage",
+          "pros",
           "fit"
         ]
       }
@@ -3911,11 +3962,11 @@
       "kind": "readme",
       "slug": "gitlawb/openclaude",
       "path": "README.md",
-      "blob_sha": "88820f092b1b48a710792fa3c7cdf580899e08b8",
-      "content_sha256": "b5ba1973682378aae2eb99e855b3c9a9c6472230e84a98b15d649274d1fc549e",
+      "blob_sha": "12f07d065773d77b279a163949709b6f6c4d8860",
+      "content_sha256": "807b9880c5e8b1a5fad0d74866bd6ef8c21a992105ca7e561b97709a4111f4e7",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.259",
+      "cli_version": "2.1.263",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -5039,116 +5090,82 @@
   },
   "handsomestWei/patent-disclosure-skill": {
     "content": {
-      "goal": "patent-disclosure-skill is a documented skill collection for Chinese patent work: mining patentable points and drafting disclosure documents (invention, utility model, design), rewriting existing disclosures into formal application filings, searching published patent records, producing plain-language patent interpretations, generating policy briefings against China's examination standards, and assisting examination responses.",
-      "usage": "Usage centers on invoking one of its sub-skills through natural-language trigger phrasing, such as \"交底书\" (disclosure) or \"读专利\" (read patent), with installation covered in INSTALL.md and the entry point and Agent workflow documented in SKILL.md. The patent-reader sub-skill imports interpreted notes and diagrams into Obsidian to build a personal knowledge base.",
-      "pros": "The project bundles 6 sub-skills — patent-disclosure, patent-application, patent-reader, patent-oa, patent-search, and patent-exam-policy — spanning drafting, application rewriting, search, plain-language reading, policy briefing, and examination response, and it is released under the MIT License.",
-      "cons": "Running the toolkit requires Python 3.9+ and Playwright as prerequisites, which adds setup steps beyond the base skill files, and Obsidian is also needed for patent-reader's knowledge-base features. The documentation is written in Chinese and centers on China's patent-filing practices, so support for other jurisdictions is not documented and may be limited.",
-      "fit": "This project appears best suited to individuals or teams handling Chinese-language patent work: engineers or applicants drafting disclosures, application filings, or examination responses aligned with CNIPA practice, and readers building a searchable personal patent knowledge base; it is also built to the AgentSkills standard for use with Agent-based tools."
+      "goal": "This repository provides 'patent-disclosure-skill', a Chinese-language AI agent skill package (中国专利.skill) for drafting patent disclosure documents covering invention, utility model, and design patents. It supports mining patentable points from existing project materials, converting disclosures into formal application documents, prior-art/citation search, plain-language interpretation of published patents, policy briefings against CNIPA guidance, and assistance with examination-response drafting.",
+      "usage": "The skill is entered via SKILL.md, with detailed setup in INSTALL.md; sub-skills (e.g., patent-disclosure, patent-application, patent-reader) are invoked through natural-language triggers such as '交底书' listed in the skill table. It relies on Python 3.9+ and Playwright, the latter used for mermaid diagram rendering and CNIPA site interaction.",
+      "pros": "It covers an end-to-end workflow from initial point-mining through disclosure writing, filing-document conversion, and examination response, with separate templates for invention, utility model, and design patents. The patent-reader sub-skill can build a searchable personal knowledge base in Obsidian, linking notes, terminology, and diagrams via bi-directional links and graph views.",
+      "cons": "Building the full patent-reader knowledge base appears to require installing Obsidian along with optional community plugins and the Obsidian CLI, per a separate setup guide, suggesting extra configuration beyond the core Python/Playwright environment for that workflow.",
+      "fit": "The skill seems best suited to patent engineers, agents, or technical staff working within the Chinese patent system who need drafting, search, or examination-response support and can run a local Python 3.9+ and Playwright environment."
     },
     "summaries": {
       "en": {
-        "goal": "patent-disclosure-skill is a documented skill collection for Chinese patent work: mining patentable points and drafting disclosure documents (invention, utility model, design), rewriting existing disclosures into formal application filings, searching published patent records, producing plain-language patent interpretations, generating policy briefings against China's examination standards, and assisting examination responses.",
-        "usage": "Usage centers on invoking one of its sub-skills through natural-language trigger phrasing, such as \"交底书\" (disclosure) or \"读专利\" (read patent), with installation covered in INSTALL.md and the entry point and Agent workflow documented in SKILL.md. The patent-reader sub-skill imports interpreted notes and diagrams into Obsidian to build a personal knowledge base.",
-        "pros": "The project bundles 6 sub-skills — patent-disclosure, patent-application, patent-reader, patent-oa, patent-search, and patent-exam-policy — spanning drafting, application rewriting, search, plain-language reading, policy briefing, and examination response, and it is released under the MIT License.",
-        "cons": "Running the toolkit requires Python 3.9+ and Playwright as prerequisites, which adds setup steps beyond the base skill files, and Obsidian is also needed for patent-reader's knowledge-base features. The documentation is written in Chinese and centers on China's patent-filing practices, so support for other jurisdictions is not documented and may be limited.",
-        "fit": "This project appears best suited to individuals or teams handling Chinese-language patent work: engineers or applicants drafting disclosures, application filings, or examination responses aligned with CNIPA practice, and readers building a searchable personal patent knowledge base; it is also built to the AgentSkills standard for use with Agent-based tools."
+        "goal": "This repository provides 'patent-disclosure-skill', a Chinese-language AI agent skill package (中国专利.skill) for drafting patent disclosure documents covering invention, utility model, and design patents. It supports mining patentable points from existing project materials, converting disclosures into formal application documents, prior-art/citation search, plain-language interpretation of published patents, policy briefings against CNIPA guidance, and assistance with examination-response drafting.",
+        "usage": "The skill is entered via SKILL.md, with detailed setup in INSTALL.md; sub-skills (e.g., patent-disclosure, patent-application, patent-reader) are invoked through natural-language triggers such as '交底书' listed in the skill table. It relies on Python 3.9+ and Playwright, the latter used for mermaid diagram rendering and CNIPA site interaction.",
+        "pros": "It covers an end-to-end workflow from initial point-mining through disclosure writing, filing-document conversion, and examination response, with separate templates for invention, utility model, and design patents. The patent-reader sub-skill can build a searchable personal knowledge base in Obsidian, linking notes, terminology, and diagrams via bi-directional links and graph views.",
+        "cons": "Building the full patent-reader knowledge base appears to require installing Obsidian along with optional community plugins and the Obsidian CLI, per a separate setup guide, suggesting extra configuration beyond the core Python/Playwright environment for that workflow.",
+        "fit": "The skill seems best suited to patent engineers, agents, or technical staff working within the Chinese patent system who need drafting, search, or examination-response support and can run a local Python 3.9+ and Playwright environment."
       },
       "ko": {
-        "goal": "patent-disclosure-skill는 중국 특허 업무를 위한 문서화된 스킬 모음으로, 발명·실용신안·외관설계에 대한 특허 포인트 도출과 교저서(개시서) 작성, 기존 개시서의 정식 출원 서류로의 재작성, 공개·공고된 특허 기록 검색, 특허의 평이한 해설 작성, 중국 심사 기준에 대비한 정책 브리핑 생성, 심사 의견 답변 지원을 다룹니다.",
-        "usage": "사용은 \"交底书\"(개시서) 또는 \"读专利\"(특허 읽기)와 같은 자연어 트리거 문구를 통해 하위 스킬 중 하나를 호출하는 방식이며, 설치 방법은 INSTALL.md에, 진입점과 에이전트 워크플로우는 SKILL.md에 문서화되어 있습니다. patent-reader 하위 스킬은 해설한 메모와 다이어그램을 Obsidian으로 가져와 개인 지식 베이스를 구축합니다.",
-        "pros": "이 프로젝트는 patent-disclosure, patent-application, patent-reader, patent-oa, patent-search, patent-exam-policy까지 6개의 하위 스킬을 묶어 작성, 출원 재작성, 검색, 평이한 해설, 정책 브리핑, 심사 답변에 이르는 과정을 다루며, MIT License로 배포됩니다.",
-        "cons": "이 도구 모음을 실행하려면 사전 요건으로 Python 3.9+ 및 Playwright가 필요해 보이며, 이는 기본 스킬 파일 외에 추가 설치 단계를 요구할 수 있고, patent-reader의 지식 베이스 기능을 위해서는 Obsidian도 필요한 것으로 보입니다. 문서는 중국어로 작성되어 중국의 특허 출원 관행에 초점을 맞추고 있어, 다른 관할권에 대한 지원은 문서화되어 있지 않아 제한적일 수 있습니다.",
-        "fit": "이 프로젝트는 중국어 기반 특허 업무를 다루는 개인이나 팀, 즉 CNIPA 심사 관행에 맞춰 개시서·출원 서류·심사 답변을 작성하는 엔지니어나 출원인, 그리고 검색 가능한 개인 특허 지식 베이스를 구축하려는 독자에게 적합한 것으로 보이며, 에이전트 기반 도구와의 연동을 위해 AgentSkills 표준을 따르는 것으로 보입니다."
+        "goal": "이 저장소는 중국 특허(발명/실용신안/디자인) 공개서(交底书) 작성을 지원하는 AI 에이전트 스킬 패키지 '중국专利.skill'을 제공합니다. 기존 프로젝트 자료에서 특허 포인트를 추출하고, 공개서를 출원 서류로 변환하며, 선행기술 검색, 공개 특허의 쉬운 해설, CNIPA 정책 브리핑, 심사 의견 답변 지원 기능을 포함합니다.",
+        "usage": "이 스킬은 SKILL.md를 진입점으로 사용하고 INSTALL.md에 설치 방법이 안내되어 있으며, patent-disclosure·patent-application·patent-reader 등 하위 스킬은 표에 명시된 '交底书'와 같은 자연어 트리거로 호출됩니다. 실행에는 Python 3.9+와 mermaid 다이어그램 렌더링 및 CNIPA 사이트 상호작용에 사용되는 Playwright가 필요합니다.",
+        "pros": "초기 포인트 발굴부터 공개서 작성, 출원 서류 변환, 심사 답변까지 전 과정을 다루며 발명·실용신안·디자인별로 별도 템플릿을 제공합니다. patent-reader 하위 스킬은 Obsidian에서 양방향 링크와 그래프 뷰를 활용해 검색 가능한 개인 특허 지식베이스를 구축할 수 있습니다.",
+        "cons": "patent-reader의 전체 지식베이스 기능을 사용하려면 별도 설치 가이드에 따라 Obsidian과 선택적 커뮤니티 플러그인, Obsidian CLI를 추가로 설치해야 하는 것으로 보이며, 이는 핵심 Python/Playwright 환경 외에 추가 구성이 필요함을 시사합니다.",
+        "fit": "중국 특허 제도 내에서 작업하며 공개서 작성, 검색, 심사 답변 지원이 필요하고 로컬에서 Python 3.9+와 Playwright 환경을 실행할 수 있는 특허 엔지니어나 대리인, 기술 인력에게 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "patent-disclosure-skill 是面向中国专利事务的一套文档化技能集合，涵盖对发明、实用新型、外观设计的专利点挖掘与交底书撰写、将已有交底改写为正式申请文件、检索已公布公告的专利记录、生成专利的通俗解读、针对中国审查口径输出政策简报，以及辅助审查意见答复。",
-        "usage": "使用方式是通过自然语言触发短语调用其中一个子技能，例如\"交底书\"或\"读专利\"，安装说明记录在 INSTALL.md 中，技能入口与 Agent 流程记录在 SKILL.md 中。patent-reader 子技能会将解读笔记与图谱导入 Obsidian，以构建个人知识库。",
-        "pros": "该项目整合了 6 个子技能——patent-disclosure、patent-application、patent-reader、patent-oa、patent-search 与 patent-exam-policy，覆盖从撰写、申请文件改写、检索、通俗解读到政策简报与审查答复的流程，并以 MIT License 发布。",
-        "cons": "运行该技能集看起来需要预先具备 Python 3.9+ 与 Playwright，这可能在基础技能文件之外带来额外的安装步骤；patent-reader 的知识库功能似乎还需要 Obsidian。文档以中文撰写，内容围绕中国的专利申请实践展开，对其他司法辖区的支持未见文档说明，可能存在局限。",
-        "fit": "该项目看起来更适合处理中文专利事务的个人或团队，例如按照 CNIPA 审查实践撰写交底书、申请文件或审查答复的工程师或申请人，以及希望构建可检索的个人专利知识库的读者；它似乎还遵循 AgentSkills 标准，便于与基于 Agent 的工具配合使用。"
+        "goal": "该仓库提供名为「中国专利.skill」的中文 AI 智能体技能包，用于撰写专利交底书，覆盖发明、实用新型和外观设计三种类型。功能包括从已有项目材料中挖掘专利点、将交底书改写为申请文件、进行著录检索、对公开专利进行通俗解读、参照 CNIPA 政策生成简报，以及辅助审查意见答复。",
+        "usage": "该技能以 SKILL.md 作为入口，详细安装步骤见 INSTALL.md；patent-disclosure、patent-application、patent-reader 等子技能通过技能表中列出的自然语言触发词（如“交底书”）调用。运行依赖 Python 3.9+ 与 Playwright，后者用于 mermaid 图渲染及与 CNIPA 网站的交互。",
+        "pros": "该技能覆盖从专利点挖掘、交底书撰写到申请文件转换及审查答复的完整流程，并为发明、实用新型、外观设计分别提供模板。patent-reader 子技能可在 Obsidian 中借助双向链接和图谱视图，构建可检索的个人专利知识库。",
+        "cons": "要使用 patent-reader 的完整知识库功能，似乎需要按照另一份安装指南额外安装 Obsidian、可选社区插件以及 Obsidian CLI，这表明该工作流在核心 Python/Playwright 环境之外还需要额外配置。",
+        "fit": "该技能似乎更适合在中国专利体系内工作、需要交底书撰写、检索或审查答复支持，且能够在本地运行 Python 3.9+ 与 Playwright 环境的专利工程师、代理人或技术人员。"
       },
       "es": {
-        "goal": "patent-disclosure-skill es una colección de habilidades documentada para el trabajo de patentes en China: identificación de puntos patentables y redacción de memorias de divulgación (invención, modelo de utilidad, diseño), reescritura de divulgaciones existentes como documentos de solicitud formales, búsqueda de registros de patentes publicados, elaboración de interpretaciones en lenguaje sencillo de patentes, generación de resúmenes de política frente a los criterios de examen de China, y apoyo en las respuestas a las observaciones de examen.",
-        "usage": "El uso se centra en invocar una de sus subhabilidades mediante frases de activación en lenguaje natural, como \"交底书\" (memoria de divulgación) o \"读专利\" (leer patente); la instalación se describe en INSTALL.md y el punto de entrada junto con el flujo del Agente se documentan en SKILL.md. La subhabilidad patent-reader importa notas interpretadas y diagramas a Obsidian para construir una base de conocimiento personal.",
-        "pros": "El proyecto agrupa 6 subhabilidades —patent-disclosure, patent-application, patent-reader, patent-oa, patent-search y patent-exam-policy— que cubren la redacción, la reescritura de solicitudes, la búsqueda, la lectura en lenguaje sencillo, los resúmenes de política y la respuesta a examen, y se distribuye bajo la MIT License.",
-        "cons": "Ejecutar este conjunto de herramientas parece requerir Python 3.9+ y Playwright como prerrequisitos, lo que añadiría pasos de configuración más allá de los archivos base de la habilidad, y Obsidian también parece necesario para las funciones de base de conocimiento de patent-reader. La documentación está escrita en chino y se centra en las prácticas de tramitación de patentes de China, por lo que el soporte para otras jurisdicciones no está documentado y podría ser limitado.",
-        "fit": "Este proyecto parece adecuado para personas o equipos que gestionan trabajo de patentes en chino: ingenieros o solicitantes que redactan memorias de divulgación, documentos de solicitud o respuestas de examen conforme a la práctica de la CNIPA, y lectores que desean construir una base de conocimiento personal de patentes consultable; también parece seguir el estándar AgentSkills para su uso con herramientas basadas en Agentes."
+        "goal": "Este repositorio ofrece 'patent-disclosure-skill', un paquete de habilidades para agentes de IA en chino (中国专利.skill) para redactar documentos de divulgación de patentes chinas, cubriendo invención, modelo de utilidad y diseño. Incluye extracción de puntos patentables a partir de materiales de proyecto existentes, conversión de divulgaciones en documentos de solicitud, búsqueda de anterioridad, interpretación en lenguaje sencillo de patentes publicadas, resúmenes de política conforme a CNIPA y apoyo para redactar respuestas de examen.",
+        "usage": "La habilidad se accede mediante SKILL.md, con instrucciones detalladas de instalación en INSTALL.md; las subhabilidades (patent-disclosure, patent-application, patent-reader, entre otras) se invocan mediante frases desencadenantes en lenguaje natural, como '交底书', listadas en la tabla de habilidades. Requiere Python 3.9+ y Playwright, este último usado para renderizar diagramas mermaid e interactuar con el sitio de CNIPA.",
+        "pros": "Cubre un flujo de trabajo completo desde la identificación inicial de puntos patentables hasta la redacción de la divulgación, la conversión a documento de solicitud y la respuesta al examen, con plantillas separadas para invención, modelo de utilidad y diseño. La subhabilidad patent-reader puede construir una base de conocimiento personal buscable en Obsidian, enlazando notas, terminología y diagramas mediante enlaces bidireccionales y vistas de grafo.",
+        "cons": "Construir la base de conocimiento completa de patent-reader parece requerir instalar Obsidian junto con complementos de comunidad opcionales y Obsidian CLI, según una guía de configuración aparte, lo que sugiere una configuración adicional más allá del entorno básico de Python/Playwright para ese flujo de trabajo.",
+        "fit": "La habilidad parece más adecuada para ingenieros de patentes, agentes o personal técnico que trabajan dentro del sistema de patentes chino y necesitan apoyo para redacción, búsqueda o respuesta de examen, y que pueden ejecutar localmente un entorno con Python 3.9+ y Playwright."
       },
       "ja": {
-        "goal": "patent-disclosure-skill は、中国の特許業務向けに文書化されたスキル集であり、発明・実用新案・意匠に関する特許ポイントの洗い出しと開示書（交底書）の作成、既存の開示書の正式な出願書類への書き換え、公開・公告された特許記録の検索、特許の平易な解説の作成、中国の審査基準に照らした政策ブリーフィングの生成、審査意見への応答支援を扱います。",
-        "usage": "利用方法は、「交底书」（開示書）や「读专利」（特許を読む）といった自然言語のトリガーフレーズを通じて、いずれかのサブスキルを呼び出すことが中心で、インストール手順は INSTALL.md に、エントリーポイントと Agent のワークフローは SKILL.md に記載されています。patent-reader サブスキルは、解説したメモや図を Obsidian に取り込み、個人用のナレッジベースを構築します。",
-        "pros": "本プロジェクトは、patent-disclosure、patent-application、patent-reader、patent-oa、patent-search、patent-exam-policy という 6 個のサブスキルをまとめており、作成、出願書類の書き換え、検索、平易な解説、政策ブリーフィング、審査応答までの流れをカバーし、MIT License の下で公開されています。",
-        "cons": "このツール群を実行するには、前提として Python 3.9+ と Playwright が必要と見られ、基本的なスキルファイルに加えてセットアップ手順が増える可能性があり、patent-reader のナレッジベース機能には Obsidian も必要と見られます。ドキュメントは中国語で書かれており、中国の特許出願実務を中心としているため、他の法域への対応については記載がなく、限定的である可能性があります。",
-        "fit": "本プロジェクトは、中国語での特許業務を扱う個人やチーム、すなわち CNIPA の審査実務に沿って開示書・出願書類・審査応答を作成するエンジニアや出願人、そして検索可能な個人特許ナレッジベースを構築したい読者に適していると見られ、Agent ベースのツールと連携できるよう AgentSkills 標準に準拠しているとも見られます。"
+        "goal": "本リポジトリは、中国特許（発明・実用新案・意匠）の交底書（開示書）作成を支援する中国語版AIエージェントスキルパッケージ「中国专利.skill」を提供します。既存プロジェクト資料からの特許ポイント抽出、交底書から出願書類への変換、先行技術調査、公開特許の平易な解説、CNIPAの政策に基づくブリーフィング作成、審査意見への応答支援などの機能が含まれます。",
+        "usage": "本スキルはSKILL.mdを起点とし、詳細なインストール手順はINSTALL.mdに記載されています。patent-disclosure、patent-application、patent-readerなどのサブスキルは、スキル一覧表に記載された「交底书」などの自然言語トリガーによって呼び出されます。実行にはPython 3.9+とPlaywrightが必要で、Playwrightはmermaid図の描画およびCNIPAサイトとの連携に使用されます。",
+        "pros": "初期の特許ポイント抽出から交底書作成、出願書類への変換、審査応答まで一連のワークフローをカバーし、発明・実用新案・意匠ごとに個別のテンプレートを備えています。patent-readerサブスキルは、Obsidian上で双方向リンクとグラフビューを用いて検索可能な個人特許知識ベースを構築できます。",
+        "cons": "patent-readerの完全な知識ベース機能を利用するには、別途のセットアップガイドに従ってObsidian本体に加え、任意のコミュニティプラグインやObsidian CLIを追加でインストールする必要があるようで、コアのPython/Playwright環境に加えた追加設定が必要になることを示唆しています。",
+        "fit": "本スキルは、中国の特許制度の下で作業し、交底書作成や検索、審査応答支援を必要とし、ローカルでPython 3.9+とPlaywright環境を実行できる特許エンジニア、代理人、技術担当者に適していると考えられます。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 5,
+          "start_line": 3,
           "end_line": 5,
           "section_heading": "中国专利.skill"
         },
         {
-          "start_line": 24,
-          "end_line": 30,
-          "section_heading": "初衷"
-        },
-        {
-          "start_line": 121,
-          "end_line": 160,
-          "section_heading": "子技能列表"
+          "start_line": 26,
+          "end_line": 36,
+          "section_heading": "专利交底书编写"
         }
       ],
       "usage": [
-        {
-          "start_line": 18,
-          "end_line": 18,
-          "section_heading": "中国专利.skill"
-        },
-        {
-          "start_line": 36,
-          "end_line": 36,
-          "section_heading": "专利通俗解读"
-        },
-        {
-          "start_line": 190,
-          "end_line": 192,
-          "section_heading": "参考文档"
-        }
-      ],
-      "pros": [
         {
           "start_line": 7,
           "end_line": 10,
           "section_heading": "中国专利.skill"
         },
         {
-          "start_line": 121,
-          "end_line": 160,
+          "start_line": 18,
+          "end_line": 18,
+          "section_heading": "中国专利.skill"
+        },
+        {
+          "start_line": 124,
+          "end_line": 124,
           "section_heading": "子技能列表"
         }
       ],
-      "cons": [
+      "pros": [
         {
-          "start_line": 8,
-          "end_line": 9,
-          "section_heading": "中国专利.skill"
-        },
-        {
-          "start_line": 3,
-          "end_line": 5,
-          "section_heading": "中国专利.skill"
-        }
-      ],
-      "fit": [
-        {
-          "start_line": 10,
-          "end_line": 10,
-          "section_heading": "中国专利.skill"
-        },
-        {
-          "start_line": 28,
+          "start_line": 30,
           "end_line": 30,
           "section_heading": "专利交底书编写"
         },
@@ -5157,35 +5174,60 @@
           "end_line": 36,
           "section_heading": "专利通俗解读"
         }
+      ],
+      "cons": [
+        {
+          "start_line": 36,
+          "end_line": 36,
+          "section_heading": "专利通俗解读"
+        },
+        {
+          "start_line": 199,
+          "end_line": 199,
+          "section_heading": "参考文档"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 5,
+          "end_line": 5,
+          "section_heading": "中国专利.skill"
+        },
+        {
+          "start_line": 8,
+          "end_line": 9,
+          "section_heading": "中国专利.skill"
+        },
+        {
+          "start_line": 99,
+          "end_line": 168,
+          "section_heading": "子技能列表"
+        }
       ]
     },
     "invariants": [
       {
-        "kind": "product",
-        "value": "patent-disclosure-skill",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
         "kind": "version",
         "value": "Python 3.9+",
         "fields": [
-          "cons"
+          "usage",
+          "fit"
         ]
       },
       {
         "kind": "product",
         "value": "Playwright",
         "fields": [
-          "cons"
+          "usage",
+          "cons",
+          "fit"
         ]
       },
       {
         "kind": "product",
         "value": "Obsidian",
         "fields": [
-          "usage",
+          "pros",
           "cons"
         ]
       },
@@ -5193,73 +5235,22 @@
         "kind": "product",
         "value": "CNIPA",
         "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "AgentSkills",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "6",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "patent-disclosure",
-        "fields": [
           "goal",
-          "pros"
+          "usage"
         ]
       },
       {
         "kind": "product",
-        "value": "patent-application",
+        "value": "SKILL.md",
         "fields": [
-          "pros"
+          "usage"
         ]
       },
       {
         "kind": "product",
-        "value": "patent-reader",
+        "value": "INSTALL.md",
         "fields": [
-          "usage",
-          "pros",
-          "cons"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "patent-oa",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "patent-search",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "patent-exam-policy",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "MIT License",
-        "fields": [
-          "pros"
+          "usage"
         ]
       }
     ],
@@ -5271,11 +5262,11 @@
       "kind": "readme",
       "slug": "handsomestwei/patent-disclosure-skill",
       "path": "README.md",
-      "blob_sha": "287582e1ba38c529c7d559d3e69b86afed58b5fa",
-      "content_sha256": "3d6ea1abe77628fd8272b56c80b21d755900104d4af6dea72cce7e89615f4333",
+      "blob_sha": "19394b42121fa8c1d5b74ce3e644a626dd5bbaef",
+      "content_sha256": "e0f4c80bf01618dcb082d7b96ebdbdc68bacd9993c92187559aec3428534dafa",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.259",
+      "cli_version": "2.1.263",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -6680,47 +6671,47 @@
   },
   "punkpeye/awesome-mcp-servers": {
     "content": {
-      "goal": "This repository maintains a community-curated list of Model Context Protocol (MCP) servers, an open protocol letting AI models interact with local and remote resources. It documents both production-ready and experimental server implementations that extend AI assistants with file access, database connections, API integrations, and other contextual services.",
-      "usage": "Entries are organized under category anchors (e.g., Databases, Browser Automation, Cloud Platforms) with a legend indicating language, scope, and OS support. A companion web directory at glama.ai/mcp/servers stays synced with the list, and a separate awesome-mcp-clients repository covers MCP-compatible client applications.",
-      "pros": "The list appears to span a very wide range of categories, and its legend marking official implementations, languages, deployment scope, and OS support likely helps readers filter through thousands of entries. A dedicated Frameworks section also points to SDKs such as FastMCP for building new servers.",
-      "cons": "Since only entries marked with the official-implementation icon are maintained by the underlying vendor, most listed servers are likely third-party contributions whose reliability and maintenance status are not verified within the list itself, based on the legend's own official/community distinction.",
-      "fit": "The repository seems best suited for developers looking to discover or contribute MCP servers that extend AI assistants such as Claude Desktop, as well as those building MCP clients or servers who may need the linked frameworks and companion clients directory."
+      "goal": "This repository is a community-curated, categorized directory of Model Context Protocol (MCP) servers—implementations that let AI models securely connect to local and remote resources such as files, databases, and APIs. It aims to help developers discover existing MCP servers instead of building integrations from scratch.",
+      "usage": "Rather than being installed as a single package, the README appears to function as a browsable index: a table of contents links to dozens of category sections (databases, cloud platforms, browser automation, and more), each listing specific MCP servers with their own repositories and install commands. A documented tip suggests adding the official protocol reference at https://modelcontextprotocol.io/llms-full.txt to a Claude project so Claude can answer questions about writing MCP servers.",
+      "pros": "The list is extensively organized with topic-based sections and an emoji legend (language, OS, scope, official-implementation status) to help evaluate entries quickly. A companion web directory at https://glama.ai/mcp/servers stays synced with the repository, and a related awesome-mcp-clients list and a frameworks section (e.g., FastMCP) round out the ecosystem.",
+      "cons": "Because this is an open, community-contributed list, entries likely vary widely in maturity, maintenance, and verification; only a subset carry an 'official implementation' badge, so most third-party servers probably need to be vetted before use. The README also carries a sponsored/ad notice near the top, indicating some promotional content is interspersed with the community listings.",
+      "fit": "This appears best suited for developers and teams building AI agents or MCP-compatible clients who need to locate ready-made integrations (e.g., for databases, cloud infrastructure, or browser automation) rather than a single standalone tool; it seems less useful for anyone seeking one specific, ready-to-use library."
     },
     "summaries": {
       "en": {
-        "goal": "This repository maintains a community-curated list of Model Context Protocol (MCP) servers, an open protocol letting AI models interact with local and remote resources. It documents both production-ready and experimental server implementations that extend AI assistants with file access, database connections, API integrations, and other contextual services.",
-        "usage": "Entries are organized under category anchors (e.g., Databases, Browser Automation, Cloud Platforms) with a legend indicating language, scope, and OS support. A companion web directory at glama.ai/mcp/servers stays synced with the list, and a separate awesome-mcp-clients repository covers MCP-compatible client applications.",
-        "pros": "The list appears to span a very wide range of categories, and its legend marking official implementations, languages, deployment scope, and OS support likely helps readers filter through thousands of entries. A dedicated Frameworks section also points to SDKs such as FastMCP for building new servers.",
-        "cons": "Since only entries marked with the official-implementation icon are maintained by the underlying vendor, most listed servers are likely third-party contributions whose reliability and maintenance status are not verified within the list itself, based on the legend's own official/community distinction.",
-        "fit": "The repository seems best suited for developers looking to discover or contribute MCP servers that extend AI assistants such as Claude Desktop, as well as those building MCP clients or servers who may need the linked frameworks and companion clients directory."
+        "goal": "This repository is a community-curated, categorized directory of Model Context Protocol (MCP) servers—implementations that let AI models securely connect to local and remote resources such as files, databases, and APIs. It aims to help developers discover existing MCP servers instead of building integrations from scratch.",
+        "usage": "Rather than being installed as a single package, the README appears to function as a browsable index: a table of contents links to dozens of category sections (databases, cloud platforms, browser automation, and more), each listing specific MCP servers with their own repositories and install commands. A documented tip suggests adding the official protocol reference at https://modelcontextprotocol.io/llms-full.txt to a Claude project so Claude can answer questions about writing MCP servers.",
+        "pros": "The list is extensively organized with topic-based sections and an emoji legend (language, OS, scope, official-implementation status) to help evaluate entries quickly. A companion web directory at https://glama.ai/mcp/servers stays synced with the repository, and a related awesome-mcp-clients list and a frameworks section (e.g., FastMCP) round out the ecosystem.",
+        "cons": "Because this is an open, community-contributed list, entries likely vary widely in maturity, maintenance, and verification; only a subset carry an 'official implementation' badge, so most third-party servers probably need to be vetted before use. The README also carries a sponsored/ad notice near the top, indicating some promotional content is interspersed with the community listings.",
+        "fit": "This appears best suited for developers and teams building AI agents or MCP-compatible clients who need to locate ready-made integrations (e.g., for databases, cloud infrastructure, or browser automation) rather than a single standalone tool; it seems less useful for anyone seeking one specific, ready-to-use library."
       },
       "ko": {
-        "goal": "이 저장소는 로컬 및 원격 리소스와 AI 모델이 상호작용할 수 있게 해주는 개방형 프로토콜인 Model Context Protocol(MCP)의 서버 목록을 커뮤니티가 큐레이션하여 정리합니다. 파일 접근, 데이터베이스 연결, API 통합 등으로 AI 어시스턴트의 기능을 확장하는 프로덕션급 및 실험적 서버 구현을 모두 문서화합니다.",
-        "usage": "항목들은 데이터베이스, 브라우저 자동화, 클라우드 플랫폼 등 카테고리 앵커로 분류되어 있으며, 언어·범위·OS 지원을 나타내는 범례가 함께 제공됩니다. glama.ai/mcp/servers 에 있는 웹 기반 디렉터리가 목록과 동기화되어 있고, 별도의 awesome-mcp-clients 저장소도 MCP 호환 클라이언트 애플리케이션을 다룹니다.",
-        "pros": "이 목록은 매우 다양한 카테고리를 아우르는 것으로 보이며, 공식 구현 여부·프로그래밍 언어·배포 범위·OS 호환성을 표시하는 범례 덕분에 수천 개의 항목을 빠르게 필터링하는 데 도움이 될 수 있습니다. 또한 FastMCP와 같은 SDK를 안내하는 별도의 Frameworks 섹션도 포함되어 있습니다.",
-        "cons": "공식 구현 아이콘이 표시된 항목만 해당 벤더가 유지 관리하므로, 목록에 있는 대부분의 서버는 서드파티 기여물일 가능성이 높으며 그 신뢰성과 유지 관리 상태는 목록 자체에서 검증되지 않은 것으로 보입니다. 이는 범례가 공식과 커뮤니티 항목을 구분하는 방식에 근거한 추정입니다.",
-        "fit": "이 저장소는 Claude Desktop과 같은 AI 어시스턴트를 확장할 MCP 서버를 찾거나 기여하려는 개발자, 그리고 연결된 프레임워크와 클라이언트 디렉터리를 필요로 할 수 있는 MCP 클라이언트/서버 개발자에게 적합해 보입니다."
+        "goal": "이 저장소는 AI 모델이 파일, 데이터베이스, API 같은 로컬 및 원격 리소스에 안전하게 연결할 수 있게 해주는 모델 컨텍스트 프로토콜(MCP) 서버 구현체들을 카테고리별로 정리한 커뮤니티 큐레이션 목록입니다. 개발자가 직접 통합을 만들기보다 기존에 존재하는 MCP 서버를 쉽게 찾도록 돕는 것이 목적입니다.",
+        "usage": "이 저장소는 단일 패키지로 설치하는 것이 아니라, 목차를 통해 데이터베이스·클라우드 플랫폼·브라우저 자동화 등 수십 개의 카테고리 섹션으로 연결되는 탐색형 색인처럼 기능하는 것으로 보입니다. 각 섹션에는 개별 저장소와 자체 설치 명령을 가진 MCP 서버들이 나열되어 있습니다. 문서화된 팁으로는 공식 프로토콜 참고 자료인 https://modelcontextprotocol.io/llms-full.txt 를 Claude 프로젝트에 추가하면 Claude가 MCP 서버 작성 방법에 대해 답변할 수 있다고 안내합니다.",
+        "pros": "언어, 운영체제, 범위, 공식 구현 여부를 나타내는 이모지 범례와 주제별 섹션으로 매우 체계적으로 정리되어 있어 항목을 빠르게 파악할 수 있습니다. https://glama.ai/mcp/servers 에 있는 연계 웹 디렉터리가 저장소와 동기화되어 있으며, 관련된 awesome-mcp-clients 목록과 FastMCP 같은 프레임워크 섹션도 생태계를 보완합니다.",
+        "cons": "개방형 커뮤니티 기여 목록이다 보니 항목별 성숙도, 유지보수 상태, 검증 수준이 크게 다를 것으로 보이며, '공식 구현' 배지가 붙은 항목은 일부에 불과해 대부분의 서드파티 서버는 사용 전 직접 검토가 필요할 것 같습니다. 또한 README 상단에는 스폰서/광고 안내가 포함되어 있어 커뮤니티 목록 사이에 홍보성 콘텐츠가 섞여 있음을 알 수 있습니다.",
+        "fit": "데이터베이스, 클라우드 인프라, 브라우저 자동화 등을 위한 기성 통합을 찾아야 하는 AI 에이전트나 MCP 호환 클라이언트 개발자·팀에게 적합해 보이며, 특정한 완성형 라이브러리 하나만 찾는 사용자에게는 적합하지 않을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "该仓库维护一个由社区策划的 Model Context Protocol(MCP)服务器列表；MCP 是一种开放协议，使 AI 模型能够与本地和远程资源交互。文档中收录了通过文件访问、数据库连接、API 集成等方式扩展 AI 助手能力的生产就绪型和实验性服务器实现。",
-        "usage": "条目按数据库、浏览器自动化、云平台等类别锚点分类，并配有说明语言、适用范围和操作系统支持的图例。glama.ai/mcp/servers 上的网页版目录与该列表保持同步，同时还有一个独立的 awesome-mcp-clients 仓库，涵盖兼容 MCP 的客户端应用程序。",
-        "pros": "该列表似乎涵盖了非常广泛的类别，其图例标注了是否为官方实现、编程语言、部署范围和操作系统兼容性，这可能有助于读者快速筛选数千条目。此外还设有专门的 Frameworks 部分，指向 FastMCP 等用于构建新服务器的 SDK。",
-        "cons": "由于只有标注官方实现图标的条目才由相应厂商维护，列表中的大多数服务器很可能是第三方贡献，其可靠性和维护状态似乎并未在列表本身中得到验证。这一推断基于图例对官方与社区条目的区分方式。",
-        "fit": "该仓库似乎最适合希望发现或贡献用于扩展 Claude Desktop 等 AI 助手的 MCP 服务器的开发者，也适合可能需要参考所链接框架和配套客户端目录的 MCP 客户端/服务器开发者。"
+        "goal": "该仓库是一个由社区维护、按类别整理的 Model Context Protocol(MCP)服务器目录,这些服务器实现让 AI 模型能够安全地连接本地和远程资源,例如文件、数据库和 API。其目的是帮助开发者发现现成的 MCP 服务器,而不必自己从零构建集成。",
+        "usage": "这个仓库并不是作为单一软件包安装的,它看起来更像一个可浏览的索引:目录链接到数十个分类板块(数据库、云平台、浏览器自动化等),每个板块列出具体的 MCP 服务器及各自的仓库和安装命令。文档中提到的一个技巧是,将官方协议参考文档 https://modelcontextprotocol.io/llms-full.txt 添加到 Claude 项目中,这样 Claude 就能回答关于编写 MCP 服务器的问题。",
+        "pros": "该列表按主题分类组织得非常细致,并配有表示编程语言、操作系统、适用范围及是否为官方实现的表情符号图例,便于快速评估条目。位于 https://glama.ai/mcp/servers 的配套网页目录与本仓库保持同步,相关的 awesome-mcp-clients 列表以及 FastMCP 等框架板块也进一步完善了整个生态。",
+        "cons": "由于这是一个开放的社区贡献列表,各条目在成熟度、维护状态和验证程度上很可能存在较大差异;只有少数条目带有'官方实现'标记,因此大多数第三方服务器在使用前恐怕都需要自行核实。README 顶部还带有赞助/广告提示,说明社区列表中可能夹杂着推广内容。",
+        "fit": "该资源看起来更适合正在构建 AI 代理或兼容 MCP 的客户端、需要查找现成集成方案(例如数据库、云基础设施或浏览器自动化)的开发者和团队,而不太适合只想寻找单一现成库的用户。"
       },
       "es": {
-        "goal": "Este repositorio mantiene una lista curada por la comunidad de servidores del Model Context Protocol (MCP), un protocolo abierto que permite a los modelos de IA interactuar con recursos locales y remotos. Documenta implementaciones de servidores listas para producción y experimentales que amplían las capacidades de los asistentes de IA mediante acceso a archivos, conexiones a bases de datos, integraciones de API y otros servicios contextuales.",
-        "usage": "Las entradas se organizan bajo anclas de categoría (por ejemplo, Bases de datos, Automatización de navegador, Plataformas en la nube) junto con una leyenda que indica el lenguaje, el alcance y la compatibilidad con el sistema operativo. Un directorio web complementario en glama.ai/mcp/servers se mantiene sincronizado con la lista, y un repositorio aparte, awesome-mcp-clients, cubre aplicaciones cliente compatibles con MCP.",
-        "pros": "La lista parece abarcar una amplia variedad de categorías, y su leyenda, que marca las implementaciones oficiales, el lenguaje, el alcance de despliegue y la compatibilidad con el sistema operativo, probablemente ayude a filtrar rápidamente miles de entradas. También incluye una sección dedicada de Frameworks que señala SDKs como FastMCP para crear nuevos servidores.",
-        "cons": "Dado que solo las entradas marcadas con el icono de implementación oficial son mantenidas por el proveedor correspondiente, la mayoría de los servidores listados probablemente sean contribuciones de terceros cuya fiabilidad y estado de mantenimiento no parecen verificarse dentro de la propia lista, según la distinción que hace la leyenda entre entradas oficiales y comunitarias.",
-        "fit": "El repositorio parece más adecuado para desarrolladores que buscan descubrir o contribuir servidores MCP que amplíen asistentes de IA como Claude Desktop, así como para quienes construyen clientes o servidores MCP y puedan necesitar los frameworks enlazados y el directorio complementario awesome-mcp-clients."
+        "goal": "Este repositorio es una lista curada por la comunidad y organizada por categorías de servidores del Model Context Protocol (MCP), implementaciones que permiten a los modelos de IA conectarse de forma segura a recursos locales y remotos como archivos, bases de datos y APIs. Su objetivo es ayudar a los desarrolladores a descubrir servidores MCP existentes en lugar de construir integraciones desde cero.",
+        "usage": "En lugar de instalarse como un único paquete, el README parece funcionar como un índice navegable: una tabla de contenidos enlaza a decenas de secciones por categoría (bases de datos, plataformas en la nube, automatización de navegadores, etc.), cada una con servidores MCP concretos junto con sus propios repositorios y comandos de instalación. Un consejo documentado sugiere añadir la referencia oficial del protocolo, https://modelcontextprotocol.io/llms-full.txt, a un proyecto de Claude para que Claude pueda responder preguntas sobre cómo escribir servidores MCP.",
+        "pros": "La lista está muy bien organizada en secciones temáticas y cuenta con una leyenda de emojis (lenguaje, sistema operativo, alcance, estado de implementación oficial) que ayuda a evaluar rápidamente las entradas. Un directorio web complementario en https://glama.ai/mcp/servers se mantiene sincronizado con el repositorio, y una lista relacionada, awesome-mcp-clients, junto con una sección de frameworks (por ejemplo, FastMCP), completan el ecosistema.",
+        "cons": "Al tratarse de una lista abierta y alimentada por la comunidad, las entradas probablemente varían de forma considerable en madurez, mantenimiento y nivel de verificación; solo una parte lleva la insignia de 'implementación oficial', por lo que la mayoría de los servidores de terceros seguramente deban revisarse antes de usarse. Además, el README incluye un aviso de patrocinio/publicidad cerca del inicio, lo que indica que hay contenido promocional mezclado con los listados de la comunidad.",
+        "fit": "Parece más adecuado para desarrolladores y equipos que construyen agentes de IA o clientes compatibles con MCP y necesitan localizar integraciones ya existentes (por ejemplo, para bases de datos, infraestructura en la nube o automatización de navegadores), y menos indicado para quien busca una única librería concreta y lista para usar."
       },
       "ja": {
-        "goal": "本リポジトリは、AIモデルがローカルおよびリモートのリソースとやり取りできるようにするオープンプロトコルであるModel Context Protocol(MCP)のサーバー一覧を、コミュニティがキュレーションして管理しています。ファイルアクセス、データベース接続、API連携などによりAIアシスタントの機能を拡張する、本番運用向けおよび実験的なサーバー実装の両方を記載しています。",
-        "usage": "各項目はデータベース、ブラウザ自動化、クラウドプラットフォームなどのカテゴリアンカーの下に分類されており、言語・スコープ・対応OSを示す凡例が付いています。glama.ai/mcp/servers にあるWebディレクトリはこの一覧と同期しており、別途 awesome-mcp-clients リポジトリがMCP対応クライアントアプリケーションを扱っています。",
-        "pros": "この一覧は非常に幅広いカテゴリを網羅しているように見え、公式実装かどうか・プログラミング言語・展開範囲・OS互換性を示す凡例により、数千件の項目をすばやく絞り込むのに役立つと考えられます。また、FastMCPなど新しいサーバーを構築するためのSDKを紹介する専用のFrameworksセクションもあります。",
-        "cons": "公式実装アイコンが付いた項目のみが該当ベンダーによって保守されているため、一覧に掲載されているサーバーの大半はサードパーティによる寄稿である可能性が高く、その信頼性や保守状況は一覧自体では検証されていないように見えます。これは凡例が公式項目とコミュニティ項目を区別している点に基づく推測です。",
-        "fit": "本リポジトリは、Claude Desktopなどのアシスタントを拡張するMCPサーバーを探したり貢献したりしたい開発者、またリンクされたフレームワークや付随のawesome-mcp-clientsディレクトリを必要とする可能性のあるMCPクライアント/サーバー開発者に適しているように見えます。"
+        "goal": "このリポジトリは、AIモデルがファイル・データベース・APIなどのローカルおよびリモートリソースに安全に接続できるようにするModel Context Protocol(MCP)サーバーの実装を、カテゴリ別にコミュニティが整理したキュレーションリストです。開発者が統合をゼロから作るのではなく、既存のMCPサーバーを見つけられるようにすることを目的としています。",
+        "usage": "このリポジトリは単一パッケージとしてインストールするものではなく、READMEは目次からデータベース・クラウドプラットフォーム・ブラウザ自動化など数十のカテゴリ節にリンクする、閲覧型のインデックスとして機能しているように見えます。各セクションには個々のリポジトリと独自のインストールコマンドを持つ具体的なMCPサーバーが列挙されています。文書化されたヒントとして、公式プロトコルの参考資料 https://modelcontextprotocol.io/llms-full.txt をClaudeのプロジェクトに追加すると、ClaudeがMCPサーバーの書き方について回答できるようになると案内されています。",
+        "pros": "言語・OS・スコープ・公式実装かどうかを示す絵文字凡例とテーマ別セクションによって、非常に体系的に整理されており、項目を素早く評価しやすくなっています。https://glama.ai/mcp/servers にある連携ウェブディレクトリはリポジトリと同期しており、関連するawesome-mcp-clientsリストやFastMCPなどのフレームワークセクションもエコシステムを補完しています。",
+        "cons": "オープンでコミュニティ主導のリストであるため、各項目の成熟度・保守状況・検証レベルには大きなばらつきがある可能性が高く、「公式実装」バッジが付いているのは一部のみなので、多くのサードパーティ製サーバーは利用前に自分で確認する必要がありそうです。またREADME冒頭にはスポンサー/広告の告知があり、コミュニティ一覧の中に宣伝的なコンテンツが混在していることがうかがえます。",
+        "fit": "データベース・クラウドインフラ・ブラウザ自動化などの既製の統合を探している、AIエージェントやMCP対応クライアントを構築する開発者・チームに向いていると考えられますが、特定の完成されたライブラリを一つだけ探している人にはあまり向かないでしょう。"
       }
     },
     "evidence": {
@@ -6738,13 +6729,20 @@
       ],
       "usage": [
         {
-          "start_line": 33,
-          "end_line": 33,
-          "section_heading": "Clients"
+          "start_line": 18,
+          "end_line": 25,
+          "section_heading": ""
         },
         {
+          "start_line": 4093,
+          "end_line": 4101,
+          "section_heading": "Official prompt to inform LLMs how to use MCP"
+        }
+      ],
+      "pros": [
+        {
           "start_line": 46,
-          "end_line": 67,
+          "end_line": 71,
           "section_heading": "Legend"
         },
         {
@@ -6753,40 +6751,28 @@
           "section_heading": "Server Implementations"
         }
       ],
-      "pros": [
-        {
-          "start_line": 48,
-          "end_line": 66,
-          "section_heading": "Legend"
-        },
-        {
-          "start_line": 3895,
-          "end_line": 3909,
-          "section_heading": "Frameworks"
-        }
-      ],
       "cons": [
         {
+          "start_line": 11,
+          "end_line": 14,
+          "section_heading": ""
+        },
+        {
           "start_line": 48,
-          "end_line": 58,
+          "end_line": 48,
           "section_heading": "Legend"
         }
       ],
       "fit": [
         {
-          "start_line": 16,
-          "end_line": 16,
-          "section_heading": ""
+          "start_line": 29,
+          "end_line": 29,
+          "section_heading": "What is MCP?"
         },
         {
-          "start_line": 39,
-          "end_line": 39,
-          "section_heading": "Tutorials"
-        },
-        {
-          "start_line": 3895,
-          "end_line": 3899,
-          "section_heading": "Frameworks"
+          "start_line": 78,
+          "end_line": 131,
+          "section_heading": "Server Implementations"
         }
       ]
     },
@@ -6800,23 +6786,16 @@
       },
       {
         "kind": "url",
-        "value": "glama.ai/mcp/servers",
+        "value": "https://modelcontextprotocol.io/llms-full.txt",
         "fields": [
           "usage"
         ]
       },
       {
-        "kind": "product",
-        "value": "awesome-mcp-clients",
+        "kind": "url",
+        "value": "https://glama.ai/mcp/servers",
         "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Claude Desktop",
-        "fields": [
-          "fit"
+          "pros"
         ]
       },
       {
@@ -6825,10 +6804,17 @@
         "fields": [
           "pros"
         ]
+      },
+      {
+        "kind": "product",
+        "value": "Claude",
+        "fields": [
+          "usage"
+        ]
       }
     ],
     "inference_fields": [
-      "pros",
+      "usage",
       "cons",
       "fit"
     ],
@@ -6836,11 +6822,11 @@
       "kind": "readme",
       "slug": "punkpeye/awesome-mcp-servers",
       "path": "README.md",
-      "blob_sha": "08f1f3ee3c569360508581570ab579243c2ad938",
-      "content_sha256": "da23ffe6bc53eb237793a349ab644631faaa93b09524a0943759f61f96aeee63",
+      "blob_sha": "569c99b32c240482ee1acd1f56ec0ba5118db9d1",
+      "content_sha256": "2f780043e6c3a60172f7585cd380bd508810af232c885785762448233a5f258d",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.252",
+      "cli_version": "2.1.263",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -7218,60 +7204,55 @@
   },
   "semantica-agi/semantica": {
     "content": {
-      "goal": "Semantica is an MIT-licensed, graph-native infrastructure project that ingests enterprise data to build a Context Graph and knowledge graph, then layers deterministic reasoning, ontology governance (OWL, SHACL, SKOS), and decision provenance on top. It aims to give AI systems traceable, auditable answers to \"why,\" rather than relying only on vector-embedding similarity.",
-      "usage": "Install with `pip install semantica` (Python 3.8+). Use `semantica.context.ContextGraph` to add nodes/edges and call `record_decision()` to log traceable decisions. Run `semantica doctor` to verify the install. The package also ships a CLI, a REST API server (`python -m semantica.server`), and an MCP server (`python -m semantica.mcp_server`) for programmatic or agent-based access.",
-      "pros": "Every fact carries W3C PROV-O provenance, exportable as an audit trail in JSON, CSV, or RDF. Reasoning engines (forward chaining, Rete, Datalog, SPARQL) run deterministically without an LLM. Graph storage is polyglot and swappable — RDF stores and Labeled Property Graph backends like Neo4j — with native LangChain, CrewAI, Agno, and MCP integrations.",
-      "cons": "The README describes the Rete engine's alpha-node condition matcher as 'intentionally simple in this release' and advises validating `match_patterns()` output before wiring it into a production compliance gate, suggesting parts of the deterministic reasoning stack are still maturing ahead of full production hardening.",
-      "fit": "Positioned for regulated, high-stakes domains — finance, healthcare, legal, government/defense — and platform teams wanting a self-hosted, vendor-neutral knowledge and reasoning layer. Documentation stresses this is system-level, not foundation-model, explainability: it does not expose an LLM's internal reasoning, which may matter for teams expecting model-level interpretability."
+      "goal": "Semantica is described as graph-native infrastructure for context and knowledge graphs, combining a deterministic reasoning layer with decision provenance. According to the README, it ingests enterprise data to build a Context Graph and knowledge graph (KG), governed by ontologies (OWL, SHACL, SKOS), with graph analytics, causal reasoning, and full decision traceability, positioned as an alternative to expensive enterprise platforms.",
+      "usage": "Install via `pip install semantica`, then verify the installation with `semantica doctor`. The README's quick-start example uses `ContextGraph` from `semantica.context` to record decisions, trace causal chains, and check compliance rules in Python; a CLI, REST API, and MCP server are also documented for broader access.",
+      "pros": "The README states Semantica provides deterministic reasoning (forward chaining, Rete, Datalog, SPARQL) that does not require an LLM for graph construction or provenance. It offers polyglot graph storage (RDF and labeled property graphs), W3C PROV-O provenance on every fact, automatic conflict detection instead of silent overwrites, and native connectors for Databricks, Snowflake, and SAP.",
+      "cons": "The README notes that ReteEngine's alpha-node condition matcher is 'intentionally simple' in this release, so its rule-matching output should be validated against real rule sets before production compliance use. It also recommends Docker or Kubernetes with a persistent graph/vector store backend for production deployments rather than a local pip install.",
+      "fit": "According to the README, Semantica targets AI/ML platform teams, data platform teams on Databricks or Snowflake, and compliance/audit teams needing explainable decisions. It is positioned for regulated, high-stakes domains such as finance, healthcare, legal, and government/defense, where self-hosted deployment and audit trails matter, requiring Python 3.8+."
     },
     "summaries": {
       "en": {
-        "goal": "Semantica is an MIT-licensed, graph-native infrastructure project that ingests enterprise data to build a Context Graph and knowledge graph, then layers deterministic reasoning, ontology governance (OWL, SHACL, SKOS), and decision provenance on top. It aims to give AI systems traceable, auditable answers to \"why,\" rather than relying only on vector-embedding similarity.",
-        "usage": "Install with `pip install semantica` (Python 3.8+). Use `semantica.context.ContextGraph` to add nodes/edges and call `record_decision()` to log traceable decisions. Run `semantica doctor` to verify the install. The package also ships a CLI, a REST API server (`python -m semantica.server`), and an MCP server (`python -m semantica.mcp_server`) for programmatic or agent-based access.",
-        "pros": "Every fact carries W3C PROV-O provenance, exportable as an audit trail in JSON, CSV, or RDF. Reasoning engines (forward chaining, Rete, Datalog, SPARQL) run deterministically without an LLM. Graph storage is polyglot and swappable — RDF stores and Labeled Property Graph backends like Neo4j — with native LangChain, CrewAI, Agno, and MCP integrations.",
-        "cons": "The README describes the Rete engine's alpha-node condition matcher as 'intentionally simple in this release' and advises validating `match_patterns()` output before wiring it into a production compliance gate, suggesting parts of the deterministic reasoning stack are still maturing ahead of full production hardening.",
-        "fit": "Positioned for regulated, high-stakes domains — finance, healthcare, legal, government/defense — and platform teams wanting a self-hosted, vendor-neutral knowledge and reasoning layer. Documentation stresses this is system-level, not foundation-model, explainability: it does not expose an LLM's internal reasoning, which may matter for teams expecting model-level interpretability."
+        "goal": "Semantica is described as graph-native infrastructure for context and knowledge graphs, combining a deterministic reasoning layer with decision provenance. According to the README, it ingests enterprise data to build a Context Graph and knowledge graph (KG), governed by ontologies (OWL, SHACL, SKOS), with graph analytics, causal reasoning, and full decision traceability, positioned as an alternative to expensive enterprise platforms.",
+        "usage": "Install via `pip install semantica`, then verify the installation with `semantica doctor`. The README's quick-start example uses `ContextGraph` from `semantica.context` to record decisions, trace causal chains, and check compliance rules in Python; a CLI, REST API, and MCP server are also documented for broader access.",
+        "pros": "The README states Semantica provides deterministic reasoning (forward chaining, Rete, Datalog, SPARQL) that does not require an LLM for graph construction or provenance. It offers polyglot graph storage (RDF and labeled property graphs), W3C PROV-O provenance on every fact, automatic conflict detection instead of silent overwrites, and native connectors for Databricks, Snowflake, and SAP.",
+        "cons": "The README notes that ReteEngine's alpha-node condition matcher is 'intentionally simple' in this release, so its rule-matching output should be validated against real rule sets before production compliance use. It also recommends Docker or Kubernetes with a persistent graph/vector store backend for production deployments rather than a local pip install.",
+        "fit": "According to the README, Semantica targets AI/ML platform teams, data platform teams on Databricks or Snowflake, and compliance/audit teams needing explainable decisions. It is positioned for regulated, high-stakes domains such as finance, healthcare, legal, and government/defense, where self-hosted deployment and audit trails matter, requiring Python 3.8+."
       },
       "ko": {
-        "goal": "Semantica는 MIT 라이선스의 그래프 네이티브 인프라 프로젝트로, 기업 데이터를 수집해 Context Graph와 지식 그래프(knowledge graph)를 구축한 뒤, 결정론적 추론과 온톨로지 거버넌스(OWL, SHACL, SKOS), 의사결정 출처 추적(provenance)을 그 위에 계층화합니다. 벡터 임베딩 유사도에만 의존하지 않고, AI 시스템이 '왜'에 대한 추적 가능하고 감사 가능한 답을 제공하는 것을 목표로 합니다.",
-        "usage": "`pip install semantica`로 설치합니다(Python 3.8+ 필요). `semantica.context.ContextGraph`를 사용해 노드/엣지를 추가하고 `record_decision()`으로 추적 가능한 결정을 기록합니다. 설치를 확인하려면 `semantica doctor`를 실행하세요. 이 패키지는 CLI, REST API 서버(`python -m semantica.server`), MCP 서버(`python -m semantica.mcp_server`)도 함께 제공되어 프로그래밍 방식이나 에이전트 기반 접근이 가능합니다.",
-        "pros": "모든 사실에는 W3C PROV-O 출처 정보가 부여되며 JSON, CSV, RDF 형식의 감사 추적(audit trail)으로 내보낼 수 있습니다. 추론 엔진(전방 연쇄, Rete, Datalog, SPARQL)은 LLM 없이 결정론적으로 동작합니다. 그래프 저장소는 다중 형식이며 교체 가능합니다 — RDF 저장소와 Neo4j 같은 Labeled Property Graph 백엔드 — 그리고 LangChain, CrewAI, Agno, MCP와 네이티브로 통합됩니다.",
-        "cons": "README는 Rete 엔진의 알파 노드 조건 매처가 '이번 릴리스에서 의도적으로 단순화'되어 있다고 설명하며, 프로덕션 컴플라이언스 게이트에 연결하기 전에 `match_patterns()` 출력을 검증하라고 권고합니다. 이는 결정론적 추론 스택의 일부가 아직 완전한 프로덕션 수준에 도달하지 않았을 수 있음을 시사합니다.",
-        "fit": "규제 산업이나 고위험 분야 — 금융, 의료, 법률, 정부/국방 — 그리고 자체 호스팅이 가능한 벤더 중립적 지식·추론 레이어를 원하는 플랫폼 팀에 적합해 보입니다. 문서는 이것이 파운데이션 모델 수준이 아닌 시스템 수준의 설명 가능성이라고 강조합니다. 즉 LLM 내부의 추론 과정은 노출하지 않으므로, 모델 수준의 해석 가능성을 기대하는 팀에는 제약이 될 수 있습니다."
+        "goal": "Semantica는 README에서 컨텍스트와 지식 그래프를 위한 그래프 네이티브 인프라로 소개되며, 결정론적 추론 레이어와 의사결정 출처 추적(provenance) 기능을 결합합니다. README에 따르면 기업 데이터를 수집하여 Context Graph와 지식 그래프(KG)를 구축하고, OWL, SHACL, SKOS와 같은 온톨로지로 거버넌스하며, 그래프 분석과 인과 추론, 완전한 의사결정 추적성을 제공하고, 비싼 엔터프라이즈 플랫폼의 대안으로 자리매김하고 있습니다.",
+        "usage": "`pip install semantica`로 설치한 뒤 `semantica doctor`로 설치를 확인합니다. README의 퀵스타트 예제는 `semantica.context`의 `ContextGraph`를 사용해 Python에서 의사결정을 기록하고, 인과 체인을 추적하며, 규정 준수 규칙을 확인합니다. CLI, REST API, MCP 서버도 더 폭넓은 접근 방법으로 문서화되어 있습니다.",
+        "pros": "README에 따르면 Semantica는 그래프 구축이나 출처 추적에 LLM이 필요 없는 결정론적 추론(정방향 체이닝, Rete, Datalog, SPARQL)을 제공합니다. 폴리글랏 그래프 저장소(RDF 및 레이블 속성 그래프), 모든 사실에 대한 W3C PROV-O 출처 정보, 자동 충돌 감지(무단 덮어쓰기 방지), Databricks·Snowflake·SAP용 네이티브 커넥터를 갖추고 있습니다.",
+        "cons": "README는 ReteEngine의 알파 노드 조건 매처가 이번 릴리스에서 '의도적으로 단순하다'고 명시하며, 따라서 실제 규칙 세트로 검증한 후 프로덕션 컴플라이언스 게이트에 연결할 것을 권장합니다. 또한 프로덕션 배포 시 단순 로컬 pip install 대신 영속적인 그래프/벡터 저장소 백엔드를 갖춘 Docker나 Kubernetes 사용을 권장합니다.",
+        "fit": "README에 따르면 Semantica는 AI/ML 플랫폼 팀, Databricks나 Snowflake를 사용하는 데이터 플랫폼 팀, 설명 가능한 의사결정이 필요한 컴플라이언스·감사 팀을 대상으로 합니다. 금융, 의료, 법률, 정부·국방 등 자체 호스팅 배포와 감사 추적이 중요한 규제 산업에 적합하도록 설계되었으며, Python 3.8+ 환경이 필요합니다."
       },
       "zh-CN": {
-        "goal": "Semantica 是一个采用 MIT 许可证的图原生基础设施项目,通过摄取企业数据构建 Context Graph 和知识图谱(knowledge graph),并在其上叠加确定性推理、本体治理(OWL、SHACL、SKOS)以及决策溯源(provenance)。其目标是让 AI 系统对\"为什么\"给出可追溯、可审计的答案,而不仅仅依赖向量嵌入相似度。",
-        "usage": "使用 `pip install semantica` 安装(需要 Python 3.8+)。通过 `semantica.context.ContextGraph` 添加节点/边,并调用 `record_decision()` 记录可追溯的决策。运行 `semantica doctor` 验证安装。该软件包还附带命令行工具、REST API 服务器(`python -m semantica.server`)以及 MCP 服务器(`python -m semantica.mcp_server`),便于程序化或代理方式访问。",
-        "pros": "每一条事实都带有 W3C PROV-O 溯源信息,可导出为 JSON、CSV 或 RDF 格式的审计轨迹。推理引擎(前向链、Rete、Datalog、SPARQL)无需 LLM 即可确定性运行。图存储采用多语言、可替换设计——包括 RDF 存储和 Neo4j 等 Labeled Property Graph 后端——并原生集成 LangChain、CrewAI、Agno 与 MCP。",
-        "cons": "README 指出 Rete 引擎的 alpha 节点条件匹配器在本版本中\"刻意保持简单\",并建议在将其接入生产环境合规检查前先验证 `match_patterns()` 的输出结果,这似乎表明确定性推理栈的部分组件仍在完善中。",
-        "fit": "该项目似乎面向受监管或高风险领域——金融、医疗、法律、政府/国防——以及希望获得可自托管、不锁定供应商的知识与推理层的平台团队。文档强调这是\"系统级\"而非\"基础模型级\"的可解释性:它不会暴露 LLM 内部的推理过程,这对期望模型级可解释性的团队而言可能是一项限制。"
+        "goal": "README将Semantica描述为面向上下文和知识图谱的图原生基础设施,结合了确定性推理层与决策溯源能力。据README所述,它可摄取企业数据以构建Context Graph和知识图谱(KG),由OWL、SHACL、SKOS等本体进行治理,并提供图分析、因果推理和完整的决策可追溯性,被定位为昂贵企业平台的替代方案。",
+        "usage": "通过`pip install semantica`安装,然后使用`semantica doctor`验证安装。README中的快速入门示例使用`semantica.context`模块的`ContextGraph`在Python中记录决策、追踪因果链并检查合规规则;文档还描述了CLI、REST API和MCP服务器等更广泛的访问方式。",
+        "pros": "据README所述,Semantica提供确定性推理(前向链、Rete、Datalog、SPARQL),构建图谱或溯源无需依赖LLM。它支持多语言图存储(RDF与标签属性图)、每条事实的W3C PROV-O溯源信息、自动冲突检测(而非静默覆盖),以及面向Databricks、Snowflake和SAP的原生连接器。",
+        "cons": "README指出,ReteEngine的alpha节点条件匹配器在本版本中'刻意保持简单',因此在将其接入生产合规审核流程前,应针对实际规则集验证match_patterns()的输出。README还建议生产部署应使用配备持久化图/向量存储后端的Docker或Kubernetes,而非仅依赖本地pip install。",
+        "fit": "据README所述,Semantica面向需要结构化、可查询上下文的AI/ML平台团队、使用Databricks或Snowflake的数据平台团队,以及需要可解释决策的合规与审计团队。它被定位用于金融、医疗、法律及政府/国防等受监管、高风险领域,注重自托管部署与审计追踪,运行环境需要Python 3.8+。"
       },
       "es": {
-        "goal": "Semantica es un proyecto de infraestructura nativa de grafos con licencia MIT que ingiere datos empresariales para construir un Context Graph y un grafo de conocimiento (knowledge graph), y añade sobre eso razonamiento determinista, gobernanza de ontologías (OWL, SHACL, SKOS) y procedencia de decisiones. Su objetivo es dar a los sistemas de IA respuestas trazables y auditables al \"por qué\", en lugar de depender solo de la similitud de embeddings vectoriales.",
-        "usage": "Instálalo con `pip install semantica` (requiere Python 3.8+). Usa `semantica.context.ContextGraph` para añadir nodos/aristas y llama a `record_decision()` para registrar decisiones trazables. Ejecuta `semantica doctor` para verificar la instalación. El paquete también incluye una CLI, un servidor REST API (`python -m semantica.server`) y un servidor MCP (`python -m semantica.mcp_server`) para acceso programático o basado en agentes.",
-        "pros": "Cada dato lleva procedencia W3C PROV-O, exportable como rastro de auditoría en JSON, CSV o RDF. Los motores de razonamiento (encadenamiento hacia adelante, Rete, Datalog, SPARQL) funcionan de forma determinista sin necesitar un LLM. El almacenamiento de grafos es poliglota e intercambiable —almacenes RDF y backends de grafo de propiedades etiquetadas como Neo4j— con integraciones nativas para LangChain, CrewAI, Agno y MCP.",
-        "cons": "El README describe el comparador de condiciones de nodo alfa del motor Rete como 'intencionalmente simple en esta versión' y recomienda validar la salida de `match_patterns()` antes de usarlo en una puerta de cumplimiento de producción, lo que sugiere que partes de la pila de razonamiento determinista aún están madurando.",
-        "fit": "Parece pensado para dominios regulados o de alto riesgo —finanzas, salud, legal, gobierno/defensa— y equipos de plataforma que buscan una capa de conocimiento y razonamiento autoalojada y neutral respecto al proveedor. La documentación subraya que se trata de explicabilidad a nivel de sistema, no del modelo fundacional: no expone el razonamiento interno del LLM, lo cual podría ser una limitación para equipos que esperan interpretabilidad a nivel de modelo."
+        "goal": "El README describe a Semantica como una infraestructura nativa de grafos para contexto y grafos de conocimiento, que combina una capa de razonamiento determinista con procedencia de decisiones. Según el README, ingiere datos empresariales para construir un Context Graph y un grafo de conocimiento (KG), gobernado por ontologías (OWL, SHACL, SKOS), con analítica de grafos, razonamiento causal y trazabilidad completa de decisiones, posicionado como alternativa a plataformas empresariales costosas.",
+        "usage": "Instálalo con `pip install semantica` y verifica la instalación con `semantica doctor`. El ejemplo de inicio rápido del README usa `ContextGraph` de `semantica.context` para registrar decisiones, rastrear cadenas causales y comprobar reglas de cumplimiento en Python; también se documentan una CLI, una API REST y un servidor MCP para un acceso más amplio.",
+        "pros": "Según el README, Semantica ofrece razonamiento determinista (encadenamiento hacia adelante, Rete, Datalog, SPARQL) que no requiere un LLM para construir el grafo ni para la procedencia. Incluye almacenamiento de grafos poliglota (RDF y grafos de propiedades etiquetadas), procedencia W3C PROV-O en cada hecho, detección automática de conflictos en lugar de sobrescrituras silenciosas, y conectores nativos para Databricks, Snowflake y SAP.",
+        "cons": "El README señala que el comparador de condiciones de nodo alfa de ReteEngine es 'intencionalmente simple' en esta versión, por lo que su salida debería validarse contra reglas reales antes de usarlo en una puerta de cumplimiento de producción. También recomienda usar Docker o Kubernetes con un almacén de grafos/vectores persistente para despliegues de producción, en lugar de un simple pip install local.",
+        "fit": "Según el README, Semantica está dirigido a equipos de plataformas de IA/ML, equipos de datos que usan Databricks o Snowflake, y equipos de cumplimiento y auditoría que necesitan decisiones explicables. Está pensado para dominios regulados y de alto riesgo como finanzas, salud, legal y gobierno/defensa, donde importan el despliegue autoalojado y las pistas de auditoría, y requiere Python 3.8+."
       },
       "ja": {
-        "goal": "SemanticaはMITライセンスのグラフネイティブなインフラプロジェクトで、企業データを取り込んでContext Graphとナレッジグラフ(knowledge graph)を構築し、その上に決定論的推論、オントロジーガバナンス(OWL、SHACL、SKOS)、意思決定のプロブナンス(provenance)を重ねます。ベクトル埋め込みの類似度だけに頼るのではなく、AIシステムが「なぜ」に対して追跡可能で監査可能な回答を提供することを目指しています。",
-        "usage": "`pip install semantica`でインストールします(Python 3.8+が必要)。`semantica.context.ContextGraph`でノード/エッジを追加し、`record_decision()`で追跡可能な意思決定を記録します。インストールを確認するには`semantica doctor`を実行します。このパッケージにはCLI、REST APIサーバー(`python -m semantica.server`)、MCPサーバー(`python -m semantica.mcp_server`)も同梱されており、プログラムやエージェント経由でのアクセスも可能です。",
-        "pros": "すべての事実にW3C PROV-Oのプロブナンスが付与され、JSON・CSV・RDF形式の監査証跡としてエクスポートできます。推論エンジン(前向き連鎖、Rete、Datalog、SPARQL)はLLMを必要とせず決定論的に動作します。グラフストレージは多言語対応で交換可能です——RDFストアやNeo4jのようなLabeled Property Graphバックエンド——LangChain、CrewAI、Agno、MCPとのネイティブ統合も備えています。",
-        "cons": "READMEはReteエンジンのアルファノード条件マッチャーについて「このリリースでは意図的に単純化されている」と説明し、本番のコンプライアンスゲートに組み込む前に`match_patterns()`の出力を検証するよう推奨しています。これは決定論的推論スタックの一部がまだ成熟途上である可能性を示唆しています。",
-        "fit": "金融、医療、法務、政府・防衛といった規制対象・高リスク分野や、ベンダーに縛られない自己ホスト型のナレッジ・推論レイヤーを求めるプラットフォームチームに向いているようです。ドキュメントはこれが基盤モデルレベルではなくシステムレベルの説明可能性であると強調しています。LLM内部の推論過程は公開されないため、モデルレベルの解釈可能性を期待するチームには制約となる可能性があります。"
+        "goal": "READMEによると、Semanticaはコンテキストと知識グラフのためのグラフネイティブ・インフラストラクチャとされ、決定論的な推論レイヤーと意思決定のプロベナンス(来歴)追跡を組み合わせています。企業データを取り込みContext Graphと知識グラフ(KG)を構築し、OWL・SHACL・SKOSなどのオントロジーで統治し、グラフ分析・因果推論・完全な意思決定トレーサビリティを提供する、高価なエンタープライズ製品の代替として位置付けられています。",
+        "usage": "`pip install semantica`でインストールし、`semantica doctor`でインストールを確認します。READMEのクイックスタート例では、`semantica.context`の`ContextGraph`を使ってPythonで意思決定を記録し、因果チェーンを追跡し、コンプライアンスルールをチェックします。より広いアクセス手段としてCLI、REST API、MCPサーバーも文書化されています。",
+        "pros": "READMEによれば、Semanticaはグラフ構築やプロベナンスにLLMを必要としない決定論的推論(フォワードチェイニング、Rete、Datalog、SPARQL)を提供します。ポリグロットなグラフストレージ(RDFおよびラベル付きプロパティグラフ)、すべての事実に対するW3C PROV-Oプロベナンス、サイレントな上書きではなく自動的な競合検出、Databricks・Snowflake・SAP向けのネイティブコネクタを備えています。",
+        "cons": "READMEでは、ReteEngineのアルファノード条件マッチャーは本リリースでは「意図的にシンプル」であると述べられており、本番のコンプライアンスゲートに組み込む前に実際のルールセットに対して出力を検証すべきだとされています。また本番デプロイでは、単純なローカルpip installではなく、永続的なグラフ/ベクトルストアのバックエンドを備えたDockerまたはKubernetesの使用が推奨されています。",
+        "fit": "READMEによると、SemanticaはAI/MLプラットフォームチーム、DatabricksやSnowflakeを使うデータプラットフォームチーム、説明可能な意思決定を必要とするコンプライアンス・監査チームを対象としています。金融、医療、法律、政府・防衛といった規制の厳しいハイステークス領域向けに位置付けられ、セルフホスト型のデプロイと監査証跡が重視され、Python 3.8+が必要です。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 15,
-          "end_line": 15,
-          "section_heading": "Graph-Native Infrastructure for Context and Accountable AI Systems"
-        },
-        {
-          "start_line": 19,
           "end_line": 19,
-          "section_heading": "*Developer-first, knowledge infrastructure for AI, alternative to expensive enterprise platforms.*"
+          "section_heading": "Graph-Native Infrastructure for Context and Accountable AI Systems"
         },
         {
           "start_line": 65,
@@ -7291,7 +7272,7 @@
           "section_heading": "Quick Start"
         },
         {
-          "start_line": 146,
+          "start_line": 144,
           "end_line": 148,
           "section_heading": "Quick Start"
         }
@@ -7303,8 +7284,8 @@
           "section_heading": "What Semantica Gives You"
         },
         {
-          "start_line": 100,
-          "end_line": 111,
+          "start_line": 113,
+          "end_line": 113,
           "section_heading": "Why Semantica"
         }
       ],
@@ -7313,6 +7294,11 @@
           "start_line": 539,
           "end_line": 539,
           "section_heading": "Module Reference"
+        },
+        {
+          "start_line": 1549,
+          "end_line": 1549,
+          "section_heading": "Installation"
         }
       ],
       "fit": [
@@ -7322,13 +7308,23 @@
           "section_heading": "Built for High-Stakes, Regulated Domains"
         },
         {
-          "start_line": 1499,
-          "end_line": 1511,
+          "start_line": 1502,
+          "end_line": 1512,
           "section_heading": "Built for High-Stakes Domains"
         }
       ]
     },
     "invariants": [
+      {
+        "kind": "product",
+        "value": "Semantica",
+        "fields": [
+          "goal",
+          "usage",
+          "pros",
+          "fit"
+        ]
+      },
       {
         "kind": "command",
         "value": "pip install semantica",
@@ -7344,50 +7340,15 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "python -m semantica.mcp_server",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "python -m semantica.server",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
         "kind": "version",
         "value": "Python 3.8+",
         "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Semantica",
-        "fields": [
-          "goal",
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Neo4j",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "LangChain",
-        "fields": [
-          "pros"
+          "fit"
         ]
       }
     ],
     "inference_fields": [
+      "goal",
       "cons",
       "fit"
     ],
@@ -7395,11 +7356,11 @@
       "kind": "readme",
       "slug": "semantica-agi/semantica",
       "path": "README.md",
-      "blob_sha": "c6f59dd8e79ca37c0c4f1b65de4a9b521fcd2042",
-      "content_sha256": "9beec52ef19dc75855502ce8636c6715e7e79b279ab27e01116ac8607230e789",
+      "blob_sha": "8958f26d48f2c4f52c3dfb1528623d2c8a04e7db",
+      "content_sha256": "4474db832d7508f91d0221f060316825ed5a52d8daa1b3dea7c292a0148811bb",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.259",
+      "cli_version": "2.1.263",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -9028,53 +8989,53 @@
   },
   "vorssaint/vorssaint-utils": {
     "content": {
-      "goal": "Vorssaint is a free, open-source macOS menu bar application that bundles utilities such as a per-app volume mixer, system monitor, app switcher, window snapping, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller into one icon, aiming to replace several separate paid Mac utility apps.",
-      "usage": "Vorssaint can be installed via Homebrew with `brew install --cask vorssaint`, or built from source by running `git clone https://github.com/vorssaint/vorssaint-utils.git`, then `./build.sh` to compile and assemble the app, or `./build.sh --install` to also install it into Applications and launch it.",
-      "pros": "Vorssaint's features are modular: each can be installed or uninstalled independently, and disabled features stop loading, so they use no CPU, memory, or energy. The app is described as local-first with no account, analytics, or tracking, and requests only the specific permissions each enabled feature needs. Builds are signed and notarized.",
-      "cons": "Vorssaint documents macOS 14 Sonoma or newer and Apple Silicon as requirements, which may suggest that Intel-based Macs are not supported, though this isn't explicitly stated. Building it from source additionally requires Xcode Command Line Tools, and official builds are said to come only from the maintainer.",
-      "fit": "Given its Apple Silicon and macOS 14+ requirements, Vorssaint appears best suited to users on relatively recent Macs who want to consolidate multiple separate utility apps into one free, open-source menu bar tool, rather than those running older Intel hardware or earlier macOS versions."
+      "goal": "Vorssaint is a free, open source macOS menu bar app that bundles many utility features (volume mixer, system monitor, window management, clipboard tools, and more) into a single icon, aiming to replace apps users would otherwise buy separately, without requiring an account, telemetry, or subscription.",
+      "usage": "Install via Homebrew with `brew install --cask vorssaint`, or download the disk image from the GitHub releases page and drag it into Applications. To build from source, run `git clone https://github.com/vorssaint/vorssaint-utils.git`, then `./build.sh` (or `./build.sh --install`). To uninstall completely, run `./Tools/uninstall.sh`.",
+      "pros": "Features can be installed or uninstalled individually so unused ones consume no CPU, memory, or energy; the app is local-first with no account, analytics, or tracking, and permissions are optional and explained; builds are signed with an Apple Developer ID and notarized.",
+      "cons": "Vorssaint requires an Apple Silicon Mac running macOS 14 Sonoma or newer, so it appears unsuitable for Intel Macs or older macOS versions; some features, such as deeper cleaner or uninstaller scans and password-free lid toggling, need additional optional permissions like Full Disk Access or Administrator access.",
+      "fit": "Vorssaint appears best suited to Mac users on Apple Silicon running macOS 14 or newer who want to consolidate several separately purchased utility apps into one free, open-source, privacy-conscious tool."
     },
     "summaries": {
       "en": {
-        "goal": "Vorssaint is a free, open-source macOS menu bar application that bundles utilities such as a per-app volume mixer, system monitor, app switcher, window snapping, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller into one icon, aiming to replace several separate paid Mac utility apps.",
-        "usage": "Vorssaint can be installed via Homebrew with `brew install --cask vorssaint`, or built from source by running `git clone https://github.com/vorssaint/vorssaint-utils.git`, then `./build.sh` to compile and assemble the app, or `./build.sh --install` to also install it into Applications and launch it.",
-        "pros": "Vorssaint's features are modular: each can be installed or uninstalled independently, and disabled features stop loading, so they use no CPU, memory, or energy. The app is described as local-first with no account, analytics, or tracking, and requests only the specific permissions each enabled feature needs. Builds are signed and notarized.",
-        "cons": "Vorssaint documents macOS 14 Sonoma or newer and Apple Silicon as requirements, which may suggest that Intel-based Macs are not supported, though this isn't explicitly stated. Building it from source additionally requires Xcode Command Line Tools, and official builds are said to come only from the maintainer.",
-        "fit": "Given its Apple Silicon and macOS 14+ requirements, Vorssaint appears best suited to users on relatively recent Macs who want to consolidate multiple separate utility apps into one free, open-source menu bar tool, rather than those running older Intel hardware or earlier macOS versions."
+        "goal": "Vorssaint is a free, open source macOS menu bar app that bundles many utility features (volume mixer, system monitor, window management, clipboard tools, and more) into a single icon, aiming to replace apps users would otherwise buy separately, without requiring an account, telemetry, or subscription.",
+        "usage": "Install via Homebrew with `brew install --cask vorssaint`, or download the disk image from the GitHub releases page and drag it into Applications. To build from source, run `git clone https://github.com/vorssaint/vorssaint-utils.git`, then `./build.sh` (or `./build.sh --install`). To uninstall completely, run `./Tools/uninstall.sh`.",
+        "pros": "Features can be installed or uninstalled individually so unused ones consume no CPU, memory, or energy; the app is local-first with no account, analytics, or tracking, and permissions are optional and explained; builds are signed with an Apple Developer ID and notarized.",
+        "cons": "Vorssaint requires an Apple Silicon Mac running macOS 14 Sonoma or newer, so it appears unsuitable for Intel Macs or older macOS versions; some features, such as deeper cleaner or uninstaller scans and password-free lid toggling, need additional optional permissions like Full Disk Access or Administrator access.",
+        "fit": "Vorssaint appears best suited to Mac users on Apple Silicon running macOS 14 or newer who want to consolidate several separately purchased utility apps into one free, open-source, privacy-conscious tool."
       },
       "ko": {
-        "goal": "Vorssaint는 앱별 볼륨 믹서, 시스템 모니터, 앱 전환기, 창 스냅, Dock 미리보기, 클립보드 기록, 텍스트 스니펫, 파일 선반, 언인스톨러 등 다양한 유틸리티를 하나의 메뉴 막대 아이콘으로 통합한 무료 오픈소스 macOS 애플리케이션으로, 여러 개의 유료 Mac 유틸리티 앱을 대체하는 것을 목표로 합니다.",
-        "usage": "Vorssaint는 Homebrew를 통해 `brew install --cask vorssaint` 명령으로 설치할 수 있으며, 소스에서 빌드하려면 `git clone https://github.com/vorssaint/vorssaint-utils.git` 실행 후 `./build.sh`로 컴파일하고 앱을 조립하거나, `./build.sh --install`로 Applications에 설치하고 바로 실행할 수 있습니다.",
-        "pros": "Vorssaint의 기능은 모듈식으로 구성되어 각각 독립적으로 설치하거나 제거할 수 있으며, 비활성화된 기능은 로드되지 않아 CPU, 메모리, 에너지를 사용하지 않습니다. 이 앱은 계정, 분석, 추적이 없는 로컬 우선 방식으로 설명되며, 활성화된 각 기능에 필요한 권한만 요청합니다. 빌드는 서명 및 공증되어 있습니다.",
-        "cons": "Vorssaint는 macOS 14 Sonoma 이상과 Apple Silicon을 요구 사항으로 명시하고 있어 인텔 기반 Mac은 지원되지 않을 수 있음을 시사하지만, 이는 명시적으로 언급되어 있지는 않습니다. 소스에서 빌드하려면 Xcode Command Line Tools가 추가로 필요하며, 공식 빌드는 유지관리자만 제공한다고 설명되어 있습니다.",
-        "fit": "Apple Silicon과 macOS 14 이상이라는 요구 사항을 고려할 때, Vorssaint는 여러 개의 개별 유틸리티 앱을 하나의 무료 오픈소스 메뉴 막대 도구로 통합하고자 하는 비교적 최신 Mac 사용자에게 적합해 보이며, 구형 인텔 하드웨어나 이전 macOS 버전을 사용하는 사용자에게는 적합하지 않을 수 있습니다."
+        "goal": "Vorssaint는 볼륨 믹서, 시스템 모니터, 창 관리, 클립보드 도구 등 다양한 유틸리티 기능을 하나의 메뉴 막대 아이콘으로 통합한 무료 오픈소스 macOS 앱으로, 계정, 원격 분석, 구독 없이 여러 유료 앱을 대체하는 것을 목표로 합니다.",
+        "usage": "Homebrew로 `brew install --cask vorssaint` 명령을 실행하거나 GitHub 릴리스 페이지에서 디스크 이미지를 내려받아 Applications 폴더로 드래그해 설치할 수 있습니다. 소스에서 직접 빌드하려면 `git clone https://github.com/vorssaint/vorssaint-utils.git` 후 `./build.sh`(또는 `./build.sh --install`)를 실행하고, 완전히 제거하려면 `./Tools/uninstall.sh`를 사용합니다.",
+        "pros": "기능별로 개별 설치·제거가 가능해 사용하지 않는 기능은 CPU, 메모리, 에너지를 소모하지 않으며, 계정·분석·추적 없이 로컬 우선으로 동작하고 권한은 모두 선택 사항이며 설명이 제공됩니다. 빌드는 Apple 개발자 ID로 서명 및 공증됩니다.",
+        "cons": "Vorssaint는 Apple Silicon Mac과 macOS 14 Sonoma 이상을 요구하므로, Intel Mac이나 이전 macOS 버전에서는 사용할 수 없을 것으로 보입니다. 또한 심층 정리·제거 스캔이나 비밀번호 없는 덮개 닫기 전환 같은 일부 기능은 전체 디스크 접근 권한이나 관리자 권한 같은 추가 선택적 권한이 필요합니다.",
+        "fit": "Vorssaint는 여러 유료 유틸리티 앱을 하나로 통합하고 싶은 Apple Silicon Mac(macOS 14 이상) 사용자에게 적합해 보이며, 무료이고 오픈소스이며 개인정보를 중시하는 도구를 선호하는 사용자에게 맞을 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "Vorssaint 是一款免费开源的 macOS 菜单栏应用程序，将逐应用音量混音器、系统监控、应用切换器、窗口贴靠、Dock 预览、剪贴板历史、文本片段、文件搁架和卸载工具等多种实用功能整合到一个图标中，旨在替代多款独立的付费 Mac 实用工具应用。",
-        "usage": "可以通过 Homebrew 使用 `brew install --cask vorssaint` 命令安装 Vorssaint，也可以从源代码构建：运行 `git clone https://github.com/vorssaint/vorssaint-utils.git`，然后执行 `./build.sh` 编译并组装应用，或执行 `./build.sh --install` 同时将其安装到 Applications 并启动。",
-        "pros": "Vorssaint 的功能是模块化的：每个功能都可以独立安装或卸载，被禁用的功能不会加载，因此不占用 CPU、内存或电量。该应用被描述为本地优先，没有账户、分析或跟踪，并且只请求已启用功能所需的具体权限。构建版本经过签名和公证。",
-        "cons": "Vorssaint 文档中列出的要求是 macOS 14 Sonoma 或更高版本以及 Apple Silicon，这可能意味着基于 Intel 的 Mac 不受支持，不过文档中并未明确说明这一点。从源代码构建还需要 Xcode Command Line Tools，并且据说官方构建仅由维护者提供。",
-        "fit": "鉴于其对 Apple Silicon 和 macOS 14 及以上版本的要求，Vorssaint 似乎更适合使用较新款 Mac、希望将多个独立实用工具整合为一个免费开源菜单栏工具的用户，而不太适合使用较旧 Intel 硬件或更早 macOS 版本的用户。"
+        "goal": "Vorssaint 是一款免费开源的 macOS 菜单栏应用,将音量混音器、系统监视器、窗口管理、剪贴板工具等多种实用功能整合到一个菜单栏图标中,旨在无需账户、遥测或订阅即可替代多款需要单独付费的应用。",
+        "usage": "可以通过 Homebrew 运行 `brew install --cask vorssaint` 安装,或从 GitHub 发布页面下载磁盘映像并拖入 Applications 文件夹。若要从源码构建,先执行 `git clone https://github.com/vorssaint/vorssaint-utils.git`,再运行 `./build.sh`(或 `./build.sh --install`);要完全卸载,可运行 `./Tools/uninstall.sh`。",
+        "pros": "各功能可单独安装或卸载,未安装的功能不会占用 CPU、内存或电量;应用本地优先,没有账户、分析或跟踪,权限均为可选并附有说明;发行版经过 Apple 开发者 ID 签名和公证。",
+        "cons": "Vorssaint 需要 Apple 芯片 Mac 并运行 macOS 14 Sonoma 或更高版本,因此看起来无法在 Intel Mac 或更旧的 macOS 版本上使用。此外,深度清理或卸载扫描以及免密码合盖切换等部分功能还需要额外的可选权限,如完全磁盘访问权限或管理员权限。",
+        "fit": "Vorssaint 看起来更适合使用 Apple 芯片 Mac(macOS 14 及以上)、希望用一款免费开源且注重隐私的工具取代多个付费实用程序应用的用户。"
       },
       "es": {
-        "goal": "Vorssaint es una aplicación de macOS de barra de menú gratuita y de código abierto que reúne utilidades como un mezclador de volumen por aplicación, un monitor del sistema, un selector de aplicaciones, ajuste de ventanas, vistas previas del Dock, historial del portapapeles, fragmentos de texto, un estante de archivos y un desinstalador en un solo icono, con el objetivo de reemplazar varias aplicaciones de utilidades de pago para Mac.",
-        "usage": "Vorssaint se puede instalar mediante Homebrew con `brew install --cask vorssaint`, o compilarse desde el código fuente ejecutando `git clone https://github.com/vorssaint/vorssaint-utils.git` y luego `./build.sh` para compilar y ensamblar la aplicación, o `./build.sh --install` para además instalarla en Applications y ejecutarla.",
-        "pros": "Las funciones de Vorssaint son modulares: cada una puede instalarse o desinstalarse de forma independiente, y las funciones desactivadas dejan de cargarse, por lo que no consumen CPU, memoria ni energía. La aplicación se describe como local-first, sin cuenta, análisis ni seguimiento, y solo solicita los permisos específicos que necesita cada función habilitada. Las compilaciones están firmadas y notarizadas.",
-        "cons": "Vorssaint documenta macOS 14 Sonoma o posterior y Apple Silicon como requisitos, lo que podría sugerir que los Mac basados en Intel no son compatibles, aunque esto no se indica explícitamente. Compilarlo desde el código fuente requiere además Xcode Command Line Tools, y se indica que las compilaciones oficiales provienen únicamente del mantenedor.",
-        "fit": "Dados sus requisitos de Apple Silicon y macOS 14 o superior, Vorssaint parece más adecuado para usuarios con Mac relativamente recientes que deseen consolidar varias aplicaciones de utilidades independientes en una sola herramienta de barra de menú gratuita y de código abierto, en lugar de quienes usan hardware Intel más antiguo o versiones anteriores de macOS."
+        "goal": "Vorssaint es una aplicación gratuita y de código abierto para la barra de menús de macOS que reúne funciones como mezclador de volumen, monitor del sistema, gestión de ventanas y herramientas de portapapeles en un solo icono, con el objetivo de sustituir varias aplicaciones de pago sin necesidad de cuenta, telemetría ni suscripción.",
+        "usage": "Se puede instalar con Homebrew ejecutando `brew install --cask vorssaint`, o descargando la imagen de disco desde la página de releases de GitHub y arrastrándola a Applications. Para compilarlo desde el código fuente, ejecute `git clone https://github.com/vorssaint/vorssaint-utils.git` y luego `./build.sh` (o `./build.sh --install`); para desinstalarlo por completo, use `./Tools/uninstall.sh`.",
+        "pros": "Cada función puede instalarse o desinstalarse por separado, de modo que las que no se usan no consumen CPU, memoria ni energía; la app es local-first, sin cuenta, análisis ni rastreo, y los permisos son opcionales y explicados; las compilaciones están firmadas con un Apple Developer ID y notarizadas.",
+        "cons": "Vorssaint requiere un Mac con Apple Silicon y macOS 14 Sonoma o posterior, por lo que parece no ser compatible con Mac Intel ni versiones anteriores de macOS. Además, algunas funciones, como los escaneos más profundos del limpiador o desinstalador o el cierre de tapa sin contraseña, requieren permisos opcionales adicionales como Acceso completo al disco o administrador.",
+        "fit": "Vorssaint parece adecuado para usuarios de Mac con Apple Silicon (macOS 14 o posterior) que deseen sustituir varias aplicaciones utilitarias de pago por una sola herramienta gratuita, de código abierto y orientada a la privacidad."
       },
       "ja": {
-        "goal": "Vorssaintは、アプリごとの音量ミキサー、システムモニター、アプリスイッチャー、ウィンドウスナップ、Dockプレビュー、クリップボード履歴、テキストスニペット、ファイル置き場、アンインストーラーなど多様なユーティリティを1つのメニューバーアイコンにまとめた、無料でオープンソースのmacOSアプリケーションであり、複数の有料Macユーティリティアプリを置き換えることを目指しています。",
-        "usage": "VorssaintはHomebrewを使って `brew install --cask vorssaint` コマンドでインストールできるほか、ソースからビルドする場合は `git clone https://github.com/vorssaint/vorssaint-utils.git` を実行した後、`./build.sh` でコンパイルしてアプリを組み立てるか、`./build.sh --install` でApplicationsへのインストールと起動まで行うことができます。",
-        "pros": "Vorssaintの機能はモジュール化されており、それぞれ独立してインストール・アンインストールでき、無効化された機能は読み込まれなくなるためCPU、メモリ、エネルギーを消費しません。このアプリはアカウント、解析、追跡のないローカルファーストなものとして説明されており、有効化した各機能に必要な権限のみを要求します。ビルドは署名および公証されています。",
-        "cons": "Vorssaintのドキュメントでは、macOS 14 Sonoma以降とApple Siliconが要件として挙げられており、Intelベースのマシンはサポートされていない可能性を示唆していますが、これは明示的には述べられていません。ソースからのビルドにはさらにXcode Command Line Toolsが必要で、公式ビルドはメンテナーのみが提供するとされています。",
-        "fit": "Apple SiliconとmacOS 14以降という要件を踏まえると、Vorssaintは複数の個別のユーティリティアプリを1つの無料オープンソースのメニューバーツールに統合したい、比較的新しいMacを使うユーザーに適していると考えられ、古いIntelハードウェアや以前のmacOSバージョンを使うユーザーには適さない可能性があります。"
+        "goal": "Vorssaintは、音量ミキサー、システムモニター、ウィンドウ管理、クリップボード履歴などの機能を1つのメニューバーアイコンにまとめた無料・オープンソースのmacOSアプリで、アカウント登録やテレメトリ、サブスクリプションなしに複数の有料アプリを置き換えることを目指しています。",
+        "usage": "Homebrewで`brew install --cask vorssaint`を実行するか、GitHubのリリースページからディスクイメージをダウンロードしてApplicationsフォルダにドラッグしてインストールできます。ソースからビルドする場合は`git clone https://github.com/vorssaint/vorssaint-utils.git`の後に`./build.sh`(または`./build.sh --install`)を実行し、完全にアンインストールするには`./Tools/uninstall.sh`を使用します。",
+        "pros": "機能ごとに個別にインストール・アンインストールでき、使わない機能はCPUやメモリ、電力を消費しません。アプリはローカルファーストでアカウントや解析、追跡がなく、権限はすべて任意で説明が付いており、ビルドはApple Developer IDで署名・公証されています。",
+        "cons": "Vorssaintは Apple SiliconのMacとmacOS 14 Sonoma以降を必要とするため、IntelのMacや古いmacOSバージョンでは利用できない可能性があります。また、深いクリーナー・アンインストーラーのスキャンやパスワード不要のふた閉じ切り替えなど一部の機能には、フルディスクアクセスや管理者権限といった追加の任意権限が必要です。",
+        "fit": "Vorssaintは、複数の有料ユーティリティアプリを1つの無料・オープンソースでプライバシー重視のツールに置き換えたい、Apple SiliconのMac(macOS 14以降)を使うユーザーに適していると考えられます。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 8,
+          "start_line": 11,
           "end_line": 13,
           "section_heading": ""
         },
@@ -9092,13 +9053,18 @@
         },
         {
           "start_line": 213,
-          "end_line": 217,
+          "end_line": 218,
           "section_heading": "Build it yourself"
+        },
+        {
+          "start_line": 180,
+          "end_line": 182,
+          "section_heading": "Uninstall"
         }
       ],
       "pros": [
         {
-          "start_line": 58,
+          "start_line": 60,
           "end_line": 60,
           "section_heading": "Install only what you use"
         },
@@ -9120,21 +9086,21 @@
           "section_heading": "What you need"
         },
         {
-          "start_line": 220,
-          "end_line": 220,
-          "section_heading": "Build it yourself"
+          "start_line": 201,
+          "end_line": 202,
+          "section_heading": "Private by default"
         }
       ],
       "fit": [
         {
-          "start_line": 208,
-          "end_line": 209,
-          "section_heading": "What you need"
-        },
-        {
           "start_line": 11,
           "end_line": 12,
           "section_heading": ""
+        },
+        {
+          "start_line": 208,
+          "end_line": 209,
+          "section_heading": "What you need"
         }
       ]
     },
@@ -9168,6 +9134,13 @@
         ]
       },
       {
+        "kind": "command",
+        "value": "./Tools/uninstall.sh",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
         "kind": "version",
         "value": "macOS 14",
         "fields": [
@@ -9181,9 +9154,15 @@
         "fields": [
           "goal",
           "usage",
-          "pros",
           "cons",
           "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Homebrew",
+        "fields": [
+          "usage"
         ]
       }
     ],
@@ -9195,11 +9174,11 @@
       "kind": "readme",
       "slug": "vorssaint/vorssaint-utils",
       "path": "README.md",
-      "blob_sha": "2afb9bc4778af24e02acdc61d9b97ca93a2ec364",
-      "content_sha256": "b03baf7f645bd96985b2d2a3666060253a4a00444fb1dcada0a9d71389a48017",
+      "blob_sha": "df09e11ca648a836b636c354b350de1880fd2648",
+      "content_sha256": "52f3e51f15239d5734d0ed7b05bc5570d28514d9b07383ea0563f38878b68f8e",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.259",
+      "cli_version": "2.1.263",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -9766,6 +9745,258 @@
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.252",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "akitaonrails/ai-memory": {
+    "content": {
+      "goal": "ai-memory is a long-term memory system for AI coding agents. It lets a task started in one agent, such as Claude Code, be picked up by another, such as Codex, in the same directory without re-explaining prior context, and keeps that memory available across machines and team members via a shared server.",
+      "usage": "ai-memory can be installed from AUR (`yay -S ai-memory-bin`) or run as a container (`docker run -d --name ai-memory`). After the server starts, an agent is connected with `ai-memory install-mcp --client claude-code --apply` and `ai-memory install-hooks --agent claude-code --apply`; the same two-command pattern applies to other supported agents.",
+      "pros": "Memory is captured silently through lifecycle hooks and stored as plain, git-backed markdown files that can be searched with tools like `grep` or edited by hand. The default mode makes zero LLM API calls, so capture, search, and handoffs work without any API key, and the project states a measured write ceiling of about 700 writes per second (~700/s).",
+      "cons": "The documented quick-start Docker deployment binds only to loopback with no authentication enabled, so before the server can be reached from other machines on a LAN, a bearer token or other hardening step must be added manually. Native Windows support is also listed as experimental rather than fully supported.",
+      "fit": "This project fits developers and teams already using one or more of the listed harnesses (including Claude Code, Codex, Cursor, and Gemini CLI) on Linux, macOS, or Windows via WSL2, who want persistent cross-session memory. Running it appears to require either Docker or Podman, or a Rust 1.95+ toolchain if building from source."
+    },
+    "summaries": {
+      "en": {
+        "goal": "ai-memory is a long-term memory system for AI coding agents. It lets a task started in one agent, such as Claude Code, be picked up by another, such as Codex, in the same directory without re-explaining prior context, and keeps that memory available across machines and team members via a shared server.",
+        "usage": "ai-memory can be installed from AUR (`yay -S ai-memory-bin`) or run as a container (`docker run -d --name ai-memory`). After the server starts, an agent is connected with `ai-memory install-mcp --client claude-code --apply` and `ai-memory install-hooks --agent claude-code --apply`; the same two-command pattern applies to other supported agents.",
+        "pros": "Memory is captured silently through lifecycle hooks and stored as plain, git-backed markdown files that can be searched with tools like `grep` or edited by hand. The default mode makes zero LLM API calls, so capture, search, and handoffs work without any API key, and the project states a measured write ceiling of about 700 writes per second (~700/s).",
+        "cons": "The documented quick-start Docker deployment binds only to loopback with no authentication enabled, so before the server can be reached from other machines on a LAN, a bearer token or other hardening step must be added manually. Native Windows support is also listed as experimental rather than fully supported.",
+        "fit": "This project fits developers and teams already using one or more of the listed harnesses (including Claude Code, Codex, Cursor, and Gemini CLI) on Linux, macOS, or Windows via WSL2, who want persistent cross-session memory. Running it appears to require either Docker or Podman, or a Rust 1.95+ toolchain if building from source."
+      },
+      "ko": {
+        "goal": "ai-memory는 AI 코딩 에이전트를 위한 장기 기억 시스템입니다. Claude Code와 같은 하나의 에이전트에서 시작한 작업을 Codex와 같은 다른 에이전트가 같은 디렉터리에서 이어받아, 이전 맥락을 다시 설명하지 않고 여러 기기와 팀원 간에도 공유된 서버를 통해 기억을 유지할 수 있습니다.",
+        "usage": "ai-memory는 AUR에서 `yay -S ai-memory-bin` 명령으로 설치하거나, `docker run -d --name ai-memory` 형태의 컨테이너로 실행할 수 있습니다. 서버가 시작된 후에는 `ai-memory install-mcp --client claude-code --apply`와 `ai-memory install-hooks --agent claude-code --apply` 명령으로 에이전트를 연결하며, 다른 지원 에이전트에도 동일한 두 단계 방식이 적용됩니다.",
+        "pros": "라이프사이클 훅을 통해 작업 내용이 조용히 캡처되어 `grep`으로 검색하거나 직접 편집할 수 있는 일반 텍스트, git 기반 마크다운 파일로 저장됩니다. 기본 모드는 LLM API 호출이 전혀 없어 API 키 없이도 캡처, 검색, 핸드오프가 동작하며, 문서에는 초당 약 700회(~700/s)의 측정된 쓰기 상한이 명시되어 있습니다.",
+        "cons": "문서화된 퀵스타트 Docker 구성은 루프백 전용으로 바인딩되고 인증이 비활성화된 상태로 시작되므로, LAN의 다른 기기에서 서버에 접근하려면 베어러 토큰 등 강화 조치를 수동으로 추가해야 합니다. 네이티브 Windows 지원도 완전 지원이 아닌 실험적(Experimental) 단계로 표시되어 있습니다.",
+        "fit": "이 프로젝트는 Claude Code, Codex, Cursor, Gemini CLI 등 지원 목록에 있는 하네스를 이미 사용 중이며 Linux, macOS 또는 WSL2 기반 Windows에서 세션 간 지속적인 기억을 원하는 개발자와 팀에 적합해 보입니다. 실행하려면 Docker 또는 Podman, 혹은 소스 빌드 시 Rust 1.95+ 툴체인이 필요한 것으로 보입니다."
+      },
+      "zh-CN": {
+        "goal": "ai-memory 是面向 AI 编程代理的长期记忆系统。在 Claude Code 等一个代理中开始的任务,可以由 Codex 等另一个代理在同一目录下无缝接续,无需重新解释此前的上下文,并通过共享服务器在多台机器和团队成员之间保留这些记忆。",
+        "usage": "可以通过 AUR 使用 `yay -S ai-memory-bin` 安装 ai-memory,也可以以容器方式运行,如 `docker run -d --name ai-memory`。服务器启动后,使用 `ai-memory install-mcp --client claude-code --apply` 和 `ai-memory install-hooks --agent claude-code --apply` 命令连接代理,其他受支持的代理也采用相同的两步方式。",
+        "pros": "生命周期钩子会静默捕获工作内容,并以纯文本、基于 git 的 Markdown 文件形式存储,可以用 `grep` 搜索或直接手动编辑。默认模式不产生任何 LLM API 调用,因此无需 API 密钥即可完成捕获、搜索和交接,文档还给出了约每秒 700 次(~700/s)的实测写入上限。",
+        "cons": "文档记录的快速入门 Docker 部署默认仅绑定回环地址且未启用身份验证,因此若要让局域网中的其他机器访问该服务器,需要手动添加持有者令牌等加固措施。原生 Windows 支持也被标记为实验性,而非完全支持。",
+        "fit": "该项目似乎适合已经在使用支持列表中的工具(包括 Claude Code、Codex、Cursor 和 Gemini CLI),并希望在 Linux、macOS 或通过 WSL2 的 Windows 上获得跨会话持久记忆的开发者与团队。运行它似乎需要 Docker 或 Podman,或者在从源码构建时需要 Rust 1.95+ 工具链。"
+      },
+      "es": {
+        "goal": "ai-memory es un sistema de memoria a largo plazo para agentes de codificación con IA. Permite que una tarea iniciada en un agente, como Claude Code, sea retomada por otro, como Codex, en el mismo directorio sin volver a explicar el contexto previo, y mantiene esa memoria disponible entre máquinas y miembros de un equipo mediante un servidor compartido.",
+        "usage": "ai-memory puede instalarse desde AUR con `yay -S ai-memory-bin` o ejecutarse como contenedor con `docker run -d --name ai-memory`. Una vez iniciado el servidor, un agente se conecta con `ai-memory install-mcp --client claude-code --apply` y `ai-memory install-hooks --agent claude-code --apply`; el mismo patrón de dos comandos se aplica a otros agentes compatibles.",
+        "pros": "La memoria se captura de forma silenciosa mediante hooks de ciclo de vida y se almacena como archivos Markdown planos, versionados con git, que pueden buscarse con `grep` o editarse a mano. El modo predeterminado no realiza llamadas a LLM, por lo que la captura, la búsqueda y las entregas funcionan sin ninguna clave de API, y la documentación menciona un límite de escritura medido de aproximadamente 700 por segundo (~700/s).",
+        "cons": "La implementación Docker de inicio rápido documentada se vincula solo a loopback y no tiene autenticación habilitada por defecto, por lo que exponer el servidor en una LAN requiere añadir manualmente un token bearer u otra medida de endurecimiento. El soporte nativo de Windows también figura como experimental en lugar de totalmente compatible.",
+        "fit": "Este proyecto parece adecuado para desarrolladores y equipos que ya usan alguno de los harnesses listados (incluidos Claude Code, Codex, Cursor y Gemini CLI) en Linux, macOS o Windows vía WSL2, y que desean memoria persistente entre sesiones. Ejecutarlo parece requerir Docker o Podman, o bien un toolchain Rust 1.95+ si se compila desde el código fuente."
+      },
+      "ja": {
+        "goal": "ai-memoryは、AIコーディングエージェント向けの長期記憶システムです。Claude Codeなど一つのエージェントで始めた作業を、Codexなど別のエージェントが同じディレクトリで引き継ぎ、以前の文脈を説明し直すことなく、共有サーバーを通じて複数のマシンやチームメンバー間で記憶を保持できます。",
+        "usage": "ai-memoryはAURから `yay -S ai-memory-bin` でインストールするか、`docker run -d --name ai-memory` のようにコンテナとして起動できます。サーバー起動後は `ai-memory install-mcp --client claude-code --apply` と `ai-memory install-hooks --agent claude-code --apply` でエージェントを接続し、他の対応エージェントにも同じ2コマンドの手順が適用されます。",
+        "pros": "ライフサイクルフックにより作業内容が静かにキャプチャされ、`grep`で検索したり手動で編集したりできる、gitで管理されたプレーンなMarkdownファイルとして保存されます。デフォルトモードではLLM APIの呼び出しが一切なく、APIキーなしでキャプチャ・検索・引き継ぎが動作し、文書には毎秒約700回(~700/s)という実測の書き込み上限も記載されています。",
+        "cons": "文書化されたクイックスタートのDocker構成はループバックのみにバインドされ、認証が無効な状態で起動するため、LAN上の他のマシンからサーバーにアクセスするにはベアラートークンなどの強化策を手動で追加する必要があります。ネイティブWindowsサポートも完全対応ではなく実験的(Experimental)と記載されています。",
+        "fit": "このプロジェクトは、Claude Code、Codex、Cursor、Gemini CLIなど対応リストにあるハーネスをすでに使用しており、Linux、macOS、またはWSL2経由のWindowsでセッションをまたいだ永続的な記憶を求める開発者やチームに適しているとみられます。実行にはDockerまたはPodman、あるいはソースからビルドする場合はRust 1.95+ツールチェーンが必要と考えられます。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 8,
+          "end_line": 11,
+          "section_heading": ""
+        },
+        {
+          "start_line": 17,
+          "end_line": 24,
+          "section_heading": "Why ai-memory"
+        },
+        {
+          "start_line": 33,
+          "end_line": 41,
+          "section_heading": "Why ai-memory"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 128,
+          "end_line": 141,
+          "section_heading": "Arch Linux (AUR)"
+        },
+        {
+          "start_line": 193,
+          "end_line": 201,
+          "section_heading": "Docker"
+        },
+        {
+          "start_line": 210,
+          "end_line": 211,
+          "section_heading": "Docker"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 26,
+          "end_line": 31,
+          "section_heading": "Why ai-memory"
+        },
+        {
+          "start_line": 43,
+          "end_line": 47,
+          "section_heading": "Why ai-memory"
+        },
+        {
+          "start_line": 52,
+          "end_line": 59,
+          "section_heading": "Why ai-memory"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 157,
+          "end_line": 160,
+          "section_heading": "Docker"
+        },
+        {
+          "start_line": 91,
+          "end_line": 91,
+          "section_heading": "Support matrix"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 80,
+          "end_line": 84,
+          "section_heading": "Support matrix"
+        },
+        {
+          "start_line": 150,
+          "end_line": 151,
+          "section_heading": "Docker"
+        },
+        {
+          "start_line": 14,
+          "end_line": 14,
+          "section_heading": ""
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "yay -S ai-memory-bin",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "docker run -d --name ai-memory",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "ai-memory install-mcp --client claude-code --apply",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "ai-memory install-hooks --agent claude-code --apply",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "1.95+",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "~700/s",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "ai-memory",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Claude Code",
+        "fields": [
+          "goal",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Codex",
+        "fields": [
+          "goal",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Cursor",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Gemini CLI",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Docker",
+        "fields": [
+          "usage",
+          "cons",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Podman",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Rust",
+        "fields": [
+          "fit"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "akitaonrails/ai-memory",
+      "path": "README.md",
+      "blob_sha": "1c6ff921974cd2a017de0100c4ac180678e963bf",
+      "content_sha256": "ca68b434be46820c8269a6471ff2a365f2aa3d9df88c0f8bc07b372bf6ad0499",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.263",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
