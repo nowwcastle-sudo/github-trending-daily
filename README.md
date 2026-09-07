@@ -12,11 +12,9 @@ No server setup or account is required. Google sign-in is optional and is used o
 
 GITHUB INSIGHT watches the repositories that appear on GitHub Trending (daily, weekly, and monthly) and, for each one, gives you two things other trending pages do not: a star count this site measured itself rather than a third-party estimate, and a verified summary generated from the repository's own README rather than a generic description. You can filter, sort, favorite, and export the current view, and subscribe to Atom feeds instead of checking back manually.
 
-## ✅ Current implementation status
+## 🖥️ Interface
 
-The multilingual interface, four-group Compact Rail navigation, source-bound README viewer, and five-language summary pipeline are implemented in the current source. The repository includes a locally reproduced 45-repository v1 snapshot; the public site's exact deployed revision must still be confirmed from its deployment manifest. Generic legacy summaries, missing README provenance, or incomplete language bundles are never counted as a successful v1 release.
-
-The interface screenshots below were captured on 2026-09-05 from production at 1440 px and 390 px, with all four rail groups (Login, Explore, History, Export) visible. The deployment manifest, rather than a screenshot, is the production revision proof.
+The screenshots below were captured from the live site at 1440 px and 390 px, with all four rail groups (Login, Explore, History, Export) visible.
 
 ![GITHUB INSIGHT desktop at 1440 px](docs/screenshots/desktop-1440.png)
 
@@ -43,13 +41,13 @@ Each repository is admitted to the page on its own: it either ships with a compl
 
 ## ⭐ Star history
 
-Star counts on this site are not estimated. The `star-ticks` workflow records the exact total star count of every published repository every 30 minutes, straight from the GitHub API, into this project's own append-only database (`data/star-ticks/YYYY-MM.jsonl`, `data/star-daily.jsonl`), not a third-party service's derived numbers.
+Star counts on this site are not estimated. Every 30 minutes, the exact total star count of each published repository is recorded straight from the GitHub API into this project's own append-only records, not a third-party service's derived numbers.
 
 On the card, the solid line is that measured history; a dashed line with hollow markers extends it backward using anchors back-calculated from GitHub Trending's own period-gain figures (daily, weekly, monthly, and the creation date for repositories under 30 days old) wherever there is no direct observation yet. Because the chart only needs two points to draw a line, a repository can show its first line after about an hour (two 30-minute observations); a curve that meaningfully covers a full day of movement builds up over roughly the first day of observation.
 
 ## 📜 Summary quality contract
 
-The refresh pipeline is configured for `claude-sonnet-5` through Claude CLI OAuth and has no dollar-cost calculation stage. No model call happens before repository and README collection succeeds.
+No summary is generated before the repository and its README have been collected and verified.
 
 Each repository is produced as one atomic five-language bundle:
 
@@ -57,8 +55,8 @@ Each repository is produced as one atomic five-language bundle:
 - The English bundle may contain 100–280 words. Other locales are not required to match its word count, sentence count, phrasing, or information order.
 - Only commands that appear in the README may be quoted, limited to one or two central commands and retained in the same semantic field across locales.
 - Generic "see the README" fallbacks are invalid. Subjective wording alone does not fail an otherwise source-backed, structurally complete summary.
-- README path, blob, content hash, and default-branch head identify the shared canonical source; they are not used to require byte-for-byte or perfectly equivalent prose across locales. Evidence is retained as README headings and line ranges, while full README bodies are not written to the observation database.
-- Up to three repository-level quality corrections are allowed within the existing bounded attempt and token policy.
+- README path, blob, content hash, and default-branch head identify the shared canonical source; they are not used to require byte-for-byte or perfectly equivalent prose across locales.
+- Up to three quality corrections are allowed per repository.
 - One missing locale, misplaced or unbacked immutable token, insufficient source, or schema defect fails the entire repository and therefore the refresh. That repository is published `held` instead.
 
 The interface describes these summaries accurately as AI-generated from a verified repository README; it does not claim human verification.
@@ -107,30 +105,21 @@ The interface describes these summaries accurately as AI-generated from a verifi
 
 ## 🔄 Refresh and publication safety
 
-When activated, GitHub Actions is scheduled four times a day at minute 07 of 00:00, 06:00, 12:00 and 18:00 in `Asia/Seoul` (03:07, 09:07, 15:07 and 21:07 UTC). The workflow collects and freezes canonical repository and README facts before considering enrichment. It must then complete exact five-language coverage or per-repository `held` admission, provenance validation, rendering, observation recording, and artifact validation before publication.
+The site refreshes four times a day at minute 07 of 00:00, 06:00, 12:00 and 18:00 in `Asia/Seoul` (03:07, 09:07, 15:07 and 21:07 UTC). Canonical repository and README facts are collected and frozen first. Exact five-language coverage or per-repository `held` admission, provenance validation, rendering, and artifact validation must all complete before anything is published.
 
-The scheduled refresh keeps Claude CLI OAuth with `claude-sonnet-5` as the default summary producer. Codex is a fallback only for the exact repositories that remain pending against the same frozen input; it does not replace the scheduled default or regenerate already complete repositories.
+The refresh is fail closed:
 
-- **Code release** records, derives, and finalizes a new v1 snapshot from the current Pages code bytes, then deploys it.
-- **Finalized artifact redeploy** redeploys only an artifact that is byte-for-byte identical to the source already finalized. If Pages bytes changed under the old finalized contract, the builder stops before artifact or manifest output and requires a full refresh.
+- No summary is generated if collection fails.
+- An incomplete refresh writes no page, commit, or deployment.
+- A failed refresh leaves the published site unchanged.
+- Missing or stale README provenance, source mismatch, incomplete source, invalid summary output, or translation residue stop publication.
+- The browser never receives any API credentials.
 
-The workflow is fail closed:
-
-- The model is called zero times if collection fails.
-- An incomplete enrichment refresh writes no observation, page, commit, or Pages deployment.
-- A failed refresh leaves the tracked tree unchanged.
-- Missing or stale README provenance, source mismatch, incomplete chunks, invalid model output, cost-cap breaches, or translation residue stop publication.
-- The browser never receives a provider API key.
-
-Star history is observed by this site itself: the star-ticks workflow records the exact total stars of every published repository every 30 minutes and, once a day, of every repository ever published (up to 500 repositories, kept by 7-day gain), in append-only ledgers under `data/star-ticks/` and `data/star-daily.jsonl`. Dashed anchors are back-calculated from GitHub Trending period gains (daily, weekly, monthly, plus the creation date for repositories under 30 days old) and are approximations. `star-history.json` covers the published repositories only, is not part of the finalized snapshot contract, and is redeployed by the star-ticks workflow between refreshes. GH Archive-derived estimates were discontinued on 2026-09-02 after the upstream source declared its event-derived counts severely degraded since 2026-05-01. CSV uses a UTF-8 BOM for spreadsheet compatibility, quotes commas, quotes, and line breaks, and prefixes formula-like values with an apostrophe.
+Star history is observed by this site itself: the exact total stars of every published repository are recorded every 30 minutes and, once a day, of every repository ever published (up to 500 repositories, kept by 7-day gain). Dashed anchors are back-calculated from GitHub Trending period gains (daily, weekly, monthly, plus the creation date for repositories under 30 days old) and are approximations. GH Archive-derived estimates were discontinued on 2026-09-02 after the upstream source declared its event-derived counts severely degraded since 2026-05-01. CSV uses a UTF-8 BOM for spreadsheet compatibility, quotes commas, quotes, and line breaks, and prefixes formula-like values with an apostrophe.
 
 ## 🗺️ Planned features
 
-This is the approved backlog, not a wish list, kept intentionally short:
-
-- **Move the star-observation database out of git if its growth demands it.** The observation ledgers (`data/star-ticks/`, `data/star-daily.jsonl`) are append-only and committed to this repository today; if their growth materially affects repository size or clone/checkout time, moving them to storage outside git is under consideration. Nothing has moved yet, and this repository has no separate database service today. The ledgers stay in git until a move is decided and executed.
-
-**Observation database.** The SQLite database that records every refresh (`repository-observations.sqlite`) is not committed to this repository. Each refresh uploads it as an immutable asset on the month's `observation-db-YYYY-MM` prerelease and commits `data/observation-db.pointer.json`, which names the asset and its SHA-256. Every workflow and the production probe download the asset anonymously and verify the hash before use, so a checkout never contains the database; run `node scripts/observation-db-store.mjs resolve --source-sha "$(git rev-parse HEAD)" --out repository-observations.sqlite` to fetch the one the current commit refers to.
+The approved backlog is kept intentionally short, and nothing currently queued changes what the site shows. Anything not already on this page starts as a feature request; the section below is the way to ask.
 
 ## 📝 Requesting a feature
 
