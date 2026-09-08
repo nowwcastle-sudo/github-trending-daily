@@ -1881,65 +1881,60 @@
   },
   "bytedance/deer-flow": {
     "content": {
-      "goal": "DeerFlow 2.0 (bytedance/deer-flow) is documented as an open-source \"super agent harness\" that orchestrates sub-agents, memory, and sandboxes, powered by extensible skills. The README states it is a ground-up rewrite sharing no code with the original Deep Research v1 framework, which remains maintained on a separate `1.x` branch.",
-      "usage": "Quick start: clone with `git clone https://github.com/bytedance/deer-flow.git`, then run `make setup` so an interactive wizard configures the LLM provider and safety options. Start locally with `make dev`, in Docker with `make docker-start`, or in production with `make up`; the app is then reachable at http://localhost:2026.",
-      "pros": "The README lists an extensible skill system, sandboxed code execution, MCP server support, long-term memory, sub-agent delegation, and multiple IM channel integrations (Telegram, Slack, Feishu, etc.), plus optional LangSmith/Langfuse/Monocle tracing, all built on LangChain and LangGraph.",
-      "cons": "Documented deployment sizing suggests at least 4 vCPU / 8 GB RAM for local evaluation, and the Docker option requires Docker Compose v2.24+. The Security Notice cautions that DeerFlow is designed by default for a local trusted environment (127.0.0.1 loopback) and that deploying it in untrusted or public-facing environments without additional hardening may introduce security risks.",
-      "fit": "Based on the described capabilities, DeerFlow appears suited to developers building agentic systems that need sandboxed execution, persistent memory, and multi-step task orchestration, provided it is run within a trusted local network or hardened per the README's recommendations before wider exposure."
+      "goal": "DeerFlow 2.0 is an open-source \"super agent harness\" that orchestrates sub-agents, memory, and sandboxes through extensible skills, built on LangGraph and LangChain.",
+      "usage": "Clone the repository with `git clone https://github.com/bytedance/deer-flow.git`, then run `make setup` to configure an LLM provider and safety options via an interactive wizard (about two minutes). Start it locally with `make dev` or via Docker with `make docker-start`/`make up`, then access the app at http://localhost:2026.",
+      "pros": "It is model-agnostic, working with any OpenAI-compatible LLM, and ships with built-in research/report/skill tooling, MCP server support, sandboxed code execution, and persistent long-term memory.",
+      "cons": "DeerFlow is designed by default for local, trusted deployment via the 127.0.0.1 loopback interface; exposing it on LAN or public networks without added authentication and access controls may allow unauthorized invocation of high-privilege operations such as system commands.",
+      "fit": "This suggests DeerFlow fits developers who want a ready-made, extensible agent runtime for research and automation tasks rather than assembling one from scratch, though safe multi-user or internet-facing deployment appears to require additional hardening beyond the documented defaults."
     },
     "summaries": {
       "en": {
-        "goal": "DeerFlow 2.0 (bytedance/deer-flow) is documented as an open-source \"super agent harness\" that orchestrates sub-agents, memory, and sandboxes, powered by extensible skills. The README states it is a ground-up rewrite sharing no code with the original Deep Research v1 framework, which remains maintained on a separate `1.x` branch.",
-        "usage": "Quick start: clone with `git clone https://github.com/bytedance/deer-flow.git`, then run `make setup` so an interactive wizard configures the LLM provider and safety options. Start locally with `make dev`, in Docker with `make docker-start`, or in production with `make up`; the app is then reachable at http://localhost:2026.",
-        "pros": "The README lists an extensible skill system, sandboxed code execution, MCP server support, long-term memory, sub-agent delegation, and multiple IM channel integrations (Telegram, Slack, Feishu, etc.), plus optional LangSmith/Langfuse/Monocle tracing, all built on LangChain and LangGraph.",
-        "cons": "Documented deployment sizing suggests at least 4 vCPU / 8 GB RAM for local evaluation, and the Docker option requires Docker Compose v2.24+. The Security Notice cautions that DeerFlow is designed by default for a local trusted environment (127.0.0.1 loopback) and that deploying it in untrusted or public-facing environments without additional hardening may introduce security risks.",
-        "fit": "Based on the described capabilities, DeerFlow appears suited to developers building agentic systems that need sandboxed execution, persistent memory, and multi-step task orchestration, provided it is run within a trusted local network or hardened per the README's recommendations before wider exposure."
+        "goal": "DeerFlow 2.0 is an open-source \"super agent harness\" that orchestrates sub-agents, memory, and sandboxes through extensible skills, built on LangGraph and LangChain.",
+        "usage": "Clone the repository with `git clone https://github.com/bytedance/deer-flow.git`, then run `make setup` to configure an LLM provider and safety options via an interactive wizard (about two minutes). Start it locally with `make dev` or via Docker with `make docker-start`/`make up`, then access the app at http://localhost:2026.",
+        "pros": "It is model-agnostic, working with any OpenAI-compatible LLM, and ships with built-in research/report/skill tooling, MCP server support, sandboxed code execution, and persistent long-term memory.",
+        "cons": "DeerFlow is designed by default for local, trusted deployment via the 127.0.0.1 loopback interface; exposing it on LAN or public networks without added authentication and access controls may allow unauthorized invocation of high-privilege operations such as system commands.",
+        "fit": "This suggests DeerFlow fits developers who want a ready-made, extensible agent runtime for research and automation tasks rather than assembling one from scratch, though safe multi-user or internet-facing deployment appears to require additional hardening beyond the documented defaults."
       },
       "ko": {
-        "goal": "bytedance/deer-flow의 README에 따르면 DeerFlow 2.0은 서브에이전트, 메모리, 샌드박스를 오케스트레이션하는 오픈소스 \"super agent harness\"이며 확장 가능한 스킬로 구동됩니다. README는 이것이 기존 Deep Research v1 프레임워크와 코드를 공유하지 않는 전면 재작성판이며, v1은 별도의 `1.x` 브랜치에서 계속 유지된다고 명시합니다.",
-        "usage": "빠른 시작: `git clone https://github.com/bytedance/deer-flow.git`으로 클론한 뒤 `make setup`을 실행하면 대화형 마법사가 LLM 제공자와 안전 옵션 설정을 안내합니다. 로컬에서는 `make dev`, Docker 개발 환경에서는 `make docker-start`, 프로덕션에서는 `make up`으로 시작하며, 이후 http://localhost:2026 에서 접근할 수 있습니다.",
-        "pros": "README는 확장 가능한 스킬 시스템, 샌드박스 코드 실행, MCP 서버 지원, 장기 메모리, 서브에이전트 위임, 다수의 메신저 채널 연동(텔레그램, 슬랙, 페이시 등), LangSmith/Langfuse/Monocle 추적 통합을 문서화하며, LangChain과 LangGraph 위에 구축되었습니다.",
-        "cons": "문서화된 배포 규모 가이드는 로컬 평가에 최소 4 vCPU / 8GB RAM을 권장하며, Docker 옵션은 Docker Compose v2.24 이상이 필요합니다. 보안 안내에서는 DeerFlow가 기본적으로 로컬 신뢰 환경(127.0.0.1 루프백)에 배포되도록 설계되었으며, 추가 강화 조치 없이 신뢰할 수 없거나 공개된 환경에 배포하면 보안 위험이 발생할 수 있다고 경고합니다.",
-        "fit": "설명된 기능들을 볼 때 DeerFlow는 샌드박스 실행, 지속적 메모리, 다단계 작업 오케스트레이션이 필요한 에이전트 시스템을 구축하는 개발자에게 적합해 보이나, README의 보안 권장 사항에 따라 신뢰할 수 있는 로컬 네트워크 내에서 배포하거나 노출 전에 강화 조치를 취해야 할 것으로 보입니다."
+        "goal": "DeerFlow 2.0은 서브 에이전트, 메모리, 샌드박스를 확장 가능한 스킬을 통해 조율하는 오픈소스 \"슈퍼 에이전트 하니스\"이며, LangGraph와 LangChain 위에 구축되었습니다.",
+        "usage": "저장소를 `git clone https://github.com/bytedance/deer-flow.git`으로 클론한 뒤 `make setup`을 실행하면 대화형 마법사가 LLM 제공자와 안전 설정을 약 2분 안에 구성합니다. 로컬 개발은 `make dev`, Docker는 `make docker-start` 또는 `make up`으로 시작하며, http://localhost:2026 에서 접속합니다.",
+        "pros": "OpenAI 호환 API를 지원하는 모든 LLM과 함께 작동하는 모델 비종속적 구조이며, 내장 스킬, MCP 서버 지원, 샌드박스 코드 실행, 장기 메모리 기능을 기본 제공합니다.",
+        "cons": "DeerFlow는 기본적으로 127.0.0.1 루프백 인터페이스를 통한 로컬 신뢰 환경 배포를 전제로 설계되었으며, 추가 인증과 접근 제어 없이 LAN이나 공개 네트워크에 노출하면 시스템 명령 실행과 같은 고권한 작업이 무단으로 호출될 위험이 있습니다.",
+        "fit": "이는 처음부터 직접 구축하기보다 연구 및 자동화 작업을 위한 확장 가능한 에이전트 런타임을 원하는 개발자에게 적합해 보이지만, 다중 사용자나 인터넷 노출 배포를 안전하게 하려면 문서화된 기본값 이상의 추가 보안 조치가 필요할 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "根据 bytedance/deer-flow 的 README,DeerFlow 2.0 是一个开源的\"超级智能体框架\"(super agent harness),用于编排子智能体、记忆和沙箱,并由可扩展的技能驱动。README 说明这是对原有 Deep Research v1 框架的从零重写,不共享任何代码,v1 仍在单独的 `1.x` 分支中维护。",
-        "usage": "快速开始:使用 `git clone https://github.com/bytedance/deer-flow.git` 克隆仓库,然后运行 `make setup` 通过交互式向导配置 LLM 提供商与安全选项。本地开发使用 `make dev`,Docker 开发环境使用 `make docker-start`,生产环境使用 `make up` 启动;之后可通过 http://localhost:2026 访问。",
-        "pros": "README 列出了可扩展的技能系统、沙箱代码执行、MCP 服务器支持、长期记忆、子智能体委派、多种即时通讯渠道集成(Telegram、Slack、飞书等),以及可选的 LangSmith/Langfuse/Monocle 追踪集成,整体构建在 LangChain 和 LangGraph 之上。",
-        "cons": "文档中的部署规模建议本地评估至少需要 4 vCPU / 8GB 内存,且 Docker 选项需要 Docker Compose v2.24 及以上版本。安全须知提醒:DeerFlow 默认设计为部署在本地可信环境(仅通过 127.0.0.1 回环接口访问),若在不可信或公开可访问的环境中部署而未采取额外安全措施,可能引入安全风险。",
-        "fit": "根据所描述的能力,DeerFlow 似乎适合需要沙箱执行、持久记忆和多步骤任务编排的智能体系统开发者,但在暴露到不可信网络之前,应按照 README 的安全建议部署在可信本地网络中或进行相应加固。"
+        "goal": "DeerFlow 2.0 是一个开源的\"超级智能体框架\"（super agent harness），通过可扩展的技能编排子智能体、记忆和沙箱，构建于 LangGraph 和 LangChain 之上。",
+        "usage": "使用 `git clone https://github.com/bytedance/deer-flow.git` 克隆仓库后，运行 `make setup` 启动交互式向导，在约两分钟内配置 LLM 提供商和安全选项。本地开发使用 `make dev`，Docker 部署使用 `make docker-start` 或 `make up`，然后通过 http://localhost:2026 访问。",
+        "pros": "它与模型无关，可与任何兼容 OpenAI API 的 LLM 配合使用，并内置技能、MCP 服务器支持、沙箱代码执行以及长期记忆功能。",
+        "cons": "DeerFlow 默认设计为仅通过 127.0.0.1 环回接口在本地可信环境中部署；若在没有额外身份验证和访问控制的情况下暴露到局域网或公网，可能导致系统命令等高权限操作被未授权调用。",
+        "fit": "这似乎适合希望使用现成、可扩展的智能体运行时来完成研究和自动化任务的开发者，而不是从零搭建；但若要安全地进行多用户或面向互联网的部署，似乎需要在文档默认设置之外做额外的安全加固。"
       },
       "es": {
-        "goal": "Según el README de bytedance/deer-flow, DeerFlow 2.0 es un \"super agent harness\" de código abierto que orquesta subagentes, memoria y sandboxes, impulsado por skills extensibles. El README indica que se trata de una reescritura completa que no comparte código con el framework original Deep Research v1, el cual sigue mantenido en una rama `1.x` separada.",
-        "usage": "Inicio rápido: clonar con `git clone https://github.com/bytedance/deer-flow.git`, luego ejecutar `make setup` para que un asistente interactivo configure el proveedor de LLM y las opciones de seguridad. Iniciar localmente con `make dev`, en Docker de desarrollo con `make docker-start`, o en producción con `make up`; luego se accede en http://localhost:2026.",
-        "pros": "El README documenta un sistema de skills extensible, ejecución de código en sandbox, soporte de servidores MCP, memoria a largo plazo, delegación a subagentes, integraciones con múltiples canales de mensajería (Telegram, Slack, Feishu, etc.) y trazado opcional con LangSmith/Langfuse/Monocle, construido sobre LangChain y LangGraph.",
-        "cons": "La guía de dimensionamiento documentada sugiere al menos 4 vCPU / 8 GB de RAM para evaluación local, y la opción Docker requiere Docker Compose v2.24 o superior. El aviso de seguridad advierte que DeerFlow está diseñado por defecto para un entorno local de confianza (interfaz loopback 127.0.0.1), y que desplegarlo en entornos no confiables o accesibles públicamente sin medidas de seguridad adicionales podría introducir riesgos.",
-        "fit": "A partir de las capacidades descritas, DeerFlow parece adecuado para desarrolladores que construyen sistemas de agentes que requieren ejecución en sandbox, memoria persistente y orquestación de tareas de varios pasos, siempre que se despliegue en una red local de confianza o se refuerce la seguridad según las recomendaciones del README antes de exponerlo."
+        "goal": "DeerFlow 2.0 es un \"super agent harness\" de código abierto que orquesta subagentes, memoria y sandboxes mediante habilidades extensibles, construido sobre LangGraph y LangChain.",
+        "usage": "Clona el repositorio con `git clone https://github.com/bytedance/deer-flow.git` y ejecuta `make setup`, que lanza un asistente interactivo para configurar el proveedor de LLM y las opciones de seguridad en unos dos minutos. Inícialo localmente con `make dev`, o mediante Docker con `make docker-start` o `make up`, y accede en http://localhost:2026.",
+        "pros": "Es independiente del modelo, funciona con cualquier LLM compatible con la API de OpenAI, e incluye de fábrica habilidades integradas, soporte de servidores MCP, ejecución de código en sandbox y memoria a largo plazo.",
+        "cons": "DeerFlow está diseñado por defecto para desplegarse en un entorno local de confianza a través de la interfaz de loopback 127.0.0.1; exponerlo en una LAN o red pública sin autenticación y controles de acceso adicionales podría permitir la invocación no autorizada de operaciones de alto privilegio como comandos del sistema.",
+        "fit": "Esto sugiere que es adecuado para desarrolladores que buscan un runtime de agentes extensible y listo para usar en tareas de investigación y automatización, en lugar de construir uno desde cero, aunque un despliegue seguro multiusuario o expuesto a internet parece requerir endurecimiento adicional más allá de los valores predeterminados documentados."
       },
       "ja": {
-        "goal": "bytedance/deer-flow の README によると、DeerFlow 2.0 はサブエージェント、メモリ、サンドボックスをオーケストレーションするオープンソースの「super agent harness」であり、拡張可能なスキルによって駆動されます。README では、これは元の Deep Research v1 フレームワークとコードを共有しないゼロからの書き直しであり、v1 は別の `1.x` ブランチで引き続き保守されていると述べられています。",
-        "usage": "クイックスタート:`git clone https://github.com/bytedance/deer-flow.git` でクローンし、`make setup` を実行すると対話型ウィザードが LLM プロバイダーと安全性オプションの設定を案内します。ローカルでは `make dev`、Docker 開発環境では `make docker-start`、本番環境では `make up` で起動し、その後 http://localhost:2026 でアクセスできます。",
-        "pros": "README には、拡張可能なスキルシステム、サンドボックス内でのコード実行、MCP サーバーサポート、長期メモリ、サブエージェントへの委任、複数のメッセージングチャネル連携(Telegram、Slack、Feishu など)、LangSmith/Langfuse/Monocle によるオプションのトレーシング統合が記載されており、LangChain と LangGraph の上に構築されています。",
-        "cons": "文書化されたデプロイ規模のガイドでは、ローカル評価には少なくとも 4 vCPU / 8GB RAM が推奨されており、Docker オプションには Docker Compose v2.24 以上が必要です。セキュリティ通知では、DeerFlow はデフォルトでローカルの信頼された環境(127.0.0.1 のループバックインターフェース経由のみ)への配置を前提として設計されており、追加の対策なしに信頼できない環境や公開環境に配置すると、セキュリティリスクが生じる可能性があると警告されています。",
-        "fit": "記載された機能から判断すると、DeerFlow はサンドボックス実行、永続的なメモリ、複数ステップのタスクオーケストレーションを必要とするエージェントシステムを構築する開発者に適していると考えられますが、公開する前に README のセキュリティ推奨事項に従って信頼できるローカルネットワーク内で運用するか、強化措置を講じる必要があります。"
+        "goal": "DeerFlow 2.0は、拡張可能なスキルを通じてサブエージェント、メモリ、サンドボックスを統合するオープンソースの「スーパーエージェントハーネス」であり、LangGraphとLangChainの上に構築されています。",
+        "usage": "`git clone https://github.com/bytedance/deer-flow.git` でリポジトリをクローンした後、`make setup` を実行すると対話式ウィザードが約2分でLLMプロバイダーと安全設定を構成します。ローカル開発は `make dev`、Dockerでは `make docker-start` または `make up` で起動し、http://localhost:2026 でアクセスします。",
+        "pros": "モデルに依存せず、OpenAI互換APIを実装する任意のLLMで動作し、組み込みスキル、MCPサーバー対応、サンドボックス内でのコード実行、長期記憶機能を標準搭載しています。",
+        "cons": "DeerFlowはデフォルトで127.0.0.1ループバックインターフェース経由のローカルな信頼環境への配置を前提に設計されており、追加の認証やアクセス制御なしにLANや公開ネットワークに公開すると、システムコマンドなどの高権限操作が不正に呼び出されるリスクがあります。",
+        "fit": "このことから、ゼロから構築するのではなく、研究や自動化タスク向けの拡張可能なエージェントランタイムを求める開発者に適していると考えられますが、マルチユーザーやインターネット公開での安全な運用には、文書化されたデフォルト設定を超える追加のセキュリティ強化が必要になると思われます。"
       }
     },
     "evidence": {
       "goal": [
-        {
-          "start_line": 1,
-          "end_line": 1,
-          "section_heading": "🦌 DeerFlow - 2.0"
-        },
         {
           "start_line": 12,
           "end_line": 12,
           "section_heading": "🦌 DeerFlow - 2.0"
         },
         {
-          "start_line": 16,
-          "end_line": 18,
-          "section_heading": "🦌 DeerFlow - 2.0"
+          "start_line": 879,
+          "end_line": 879,
+          "section_heading": "From Deep Research to Super Agent Harness"
         }
       ],
       "usage": [
@@ -1954,50 +1949,50 @@
           "section_heading": "Option 1: Docker (Recommended)"
         },
         {
-          "start_line": 306,
-          "end_line": 313,
+          "start_line": 307,
+          "end_line": 311,
           "section_heading": "Option 1: Docker (Recommended)"
         }
       ],
       "pros": [
         {
-          "start_line": 883,
-          "end_line": 891,
-          "section_heading": "Core Features"
+          "start_line": 1434,
+          "end_line": 1434,
+          "section_heading": "Recommended Models"
         },
         {
-          "start_line": 1625,
-          "end_line": 1627,
-          "section_heading": "Acknowledgments"
+          "start_line": 491,
+          "end_line": 491,
+          "section_heading": "MCP Server"
         },
         {
-          "start_line": 521,
-          "end_line": 535,
-          "section_heading": "IM Channels"
+          "start_line": 1378,
+          "end_line": 1381,
+          "section_heading": "Long-Term Memory"
         }
       ],
       "cons": [
         {
-          "start_line": 254,
-          "end_line": 268,
-          "section_heading": "Deployment Sizing"
-        },
-        {
-          "start_line": 1552,
-          "end_line": 1557,
+          "start_line": 1554,
+          "end_line": 1559,
           "section_heading": "Improper Deployment May Introduce Security Risks"
         }
       ],
       "fit": [
         {
-          "start_line": 1554,
-          "end_line": 1554,
-          "section_heading": "Improper Deployment May Introduce Security Risks"
-        },
-        {
           "start_line": 12,
           "end_line": 12,
           "section_heading": "🦌 DeerFlow - 2.0"
+        },
+        {
+          "start_line": 1434,
+          "end_line": 1434,
+          "section_heading": "Recommended Models"
+        },
+        {
+          "start_line": 1556,
+          "end_line": 1559,
+          "section_heading": "Improper Deployment May Introduce Security Risks"
         }
       ]
     },
@@ -2038,13 +2033,6 @@
         ]
       },
       {
-        "kind": "version",
-        "value": "Docker Compose v2.24+",
-        "fields": [
-          "cons"
-        ]
-      },
-      {
         "kind": "url",
         "value": "http://localhost:2026",
         "fields": [
@@ -2064,21 +2052,14 @@
         "kind": "product",
         "value": "LangGraph",
         "fields": [
-          "pros"
+          "goal"
         ]
       },
       {
         "kind": "product",
         "value": "LangChain",
         "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "127.0.0.1",
-        "fields": [
-          "cons"
+          "goal"
         ]
       }
     ],
@@ -2089,8 +2070,8 @@
       "kind": "readme",
       "slug": "bytedance/deer-flow",
       "path": "README.md",
-      "blob_sha": "7c71928feff0e63bd540ebbc2f8d22c0158908f6",
-      "content_sha256": "9865b39d8b73c967e88388b473abc00b4de5759f34c793be3de97c8686bd3921",
+      "blob_sha": "3562d4db32afa0a6ec5d927a351b6f49e6765bd5",
+      "content_sha256": "9033d866cad8fcf2d38e45976b512c5639877de89959c3ec27ffda5c35778e7a",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -2271,72 +2252,72 @@
   },
   "lightpanda-io/browser": {
     "content": {
-      "goal": "Lightpanda Browser is a headless browser built from scratch in Zig for AI agents and automation, rather than a fork of Chromium or WebKit.",
-      "usage": "Install the nightly release with `brew install lightpanda-io/browser/lightpanda`, or download a binary from https://github.com/lightpanda-io/browser/releases/tag/nightly. Start a CDP server for tools such as Puppeteer with `./lightpanda serve --obey-robots --log-format pretty  --log-level info --host 127.0.0.1 --port 9222`.",
-      "pros": "In a benchmark of 933 real pages, Lightpanda reported peak memory of 123MB versus 2GB for headless Chrome, and an execution time of 5s versus 46s for 100 pages. It also includes CDP and Webdriver Bidi servers, an MCP server, and an agent mode that supports multiple LLM providers.",
-      "cons": "The documentation states that prebuilt Linux release binaries are linked against glibc, so they fail with 'cannot execute: required file not found' on musl-based distributions such as Alpine unless a glibc-based base image is used or the browser is built from source.",
-      "fit": "Building from source requires Zig 0.15.2 along with v8, Libcurl, and html5ever, which suggests the project may suit automation or AI-agent pipelines wanting Chrome-level JavaScript support with a lighter footprint, though native Windows use appears to depend on running inside WSL2."
+      "goal": "Lightpanda Browser is a headless browser built from scratch in Zig for AI agents and browser automation. It is not a fork of Chromium or a patched version of WebKit, but an entirely new browser engine.",
+      "usage": "Install with `brew install lightpanda-io/browser/lightpanda`, from nightly binaries, or via Docker using `docker run -d --name lightpanda -p 127.0.0.1:9222:9222 lightpanda/browser:nightly`, which exposes a CDP server on port 9222. It can also fetch and dump a URL, serve CDP or WebDriver Bidi, run an LLM-driven agent mode, or act as a native MCP server.",
+      "pros": "Benchmarks against headless Chrome on 933 real web pages using an AWS EC2 m5.large instance report about 16x lower peak memory (123MB vs 2GB) and about 9x faster execution (5s vs 46s) for 100 pages. Implemented features include CORS, a v8 JavaScript engine, DOM APIs, CDP/WebSocket support, cookies, and robots.txt compliance.",
+      "cons": "Linux release binaries are linked against glibc, so on musl-based distributions such as Alpine they fail with a 'cannot execute: required file not found' error unless a glibc-based base image is used or the browser is built from source.",
+      "fit": "This may suit teams building AI-driven web automation or scraping who want lower memory and CPU use than headless Chrome, since it targets headless automation rather than manual browsing. Building from source apparently requires Zig 0.15.2, and Windows use appears to require WSL2, since no native Windows binary is provided."
     },
     "summaries": {
       "en": {
-        "goal": "Lightpanda Browser is a headless browser built from scratch in Zig for AI agents and automation, rather than a fork of Chromium or WebKit.",
-        "usage": "Install the nightly release with `brew install lightpanda-io/browser/lightpanda`, or download a binary from https://github.com/lightpanda-io/browser/releases/tag/nightly. Start a CDP server for tools such as Puppeteer with `./lightpanda serve --obey-robots --log-format pretty  --log-level info --host 127.0.0.1 --port 9222`.",
-        "pros": "In a benchmark of 933 real pages, Lightpanda reported peak memory of 123MB versus 2GB for headless Chrome, and an execution time of 5s versus 46s for 100 pages. It also includes CDP and Webdriver Bidi servers, an MCP server, and an agent mode that supports multiple LLM providers.",
-        "cons": "The documentation states that prebuilt Linux release binaries are linked against glibc, so they fail with 'cannot execute: required file not found' on musl-based distributions such as Alpine unless a glibc-based base image is used or the browser is built from source.",
-        "fit": "Building from source requires Zig 0.15.2 along with v8, Libcurl, and html5ever, which suggests the project may suit automation or AI-agent pipelines wanting Chrome-level JavaScript support with a lighter footprint, though native Windows use appears to depend on running inside WSL2."
+        "goal": "Lightpanda Browser is a headless browser built from scratch in Zig for AI agents and browser automation. It is not a fork of Chromium or a patched version of WebKit, but an entirely new browser engine.",
+        "usage": "Install with `brew install lightpanda-io/browser/lightpanda`, from nightly binaries, or via Docker using `docker run -d --name lightpanda -p 127.0.0.1:9222:9222 lightpanda/browser:nightly`, which exposes a CDP server on port 9222. It can also fetch and dump a URL, serve CDP or WebDriver Bidi, run an LLM-driven agent mode, or act as a native MCP server.",
+        "pros": "Benchmarks against headless Chrome on 933 real web pages using an AWS EC2 m5.large instance report about 16x lower peak memory (123MB vs 2GB) and about 9x faster execution (5s vs 46s) for 100 pages. Implemented features include CORS, a v8 JavaScript engine, DOM APIs, CDP/WebSocket support, cookies, and robots.txt compliance.",
+        "cons": "Linux release binaries are linked against glibc, so on musl-based distributions such as Alpine they fail with a 'cannot execute: required file not found' error unless a glibc-based base image is used or the browser is built from source.",
+        "fit": "This may suit teams building AI-driven web automation or scraping who want lower memory and CPU use than headless Chrome, since it targets headless automation rather than manual browsing. Building from source apparently requires Zig 0.15.2, and Windows use appears to require WSL2, since no native Windows binary is provided."
       },
       "ko": {
-        "goal": "Lightpanda Browser는 Chromium이나 WebKit을 포크한 것이 아니라 Zig 언어로 처음부터 새로 만든 헤드리스 브라우저로, AI 에이전트와 자동화 작업을 위해 설계되었습니다.",
-        "usage": "나이틀리 빌드는 `brew install lightpanda-io/browser/lightpanda` 명령으로 설치하거나 https://github.com/lightpanda-io/browser/releases/tag/nightly 에서 바이너리를 내려받을 수 있습니다. Puppeteer 같은 도구용 CDP 서버는 `./lightpanda serve --obey-robots --log-format pretty  --log-level info --host 127.0.0.1 --port 9222` 명령으로 시작합니다.",
-        "pros": "933개의 실제 페이지를 대상으로 한 벤치마크에서 Lightpanda는 최대 메모리 사용량이 123MB로 헤드리스 Chrome의 2GB보다 적었고, 100개 페이지 실행 시간도 5s로 Chrome의 46s보다 짧았다고 보고됩니다. 또한 CDP와 Webdriver Bidi 서버, MCP 서버, 여러 LLM 제공업체를 지원하는 에이전트 모드도 포함되어 있습니다.",
-        "cons": "문서에 따르면 사전 빌드된 Linux 릴리스 바이너리는 glibc에 링크되어 있어, Alpine 같은 musl 기반 배포판에서는 'cannot execute: required file not found' 오류로 실행이 실패하며, glibc 기반 베이스 이미지를 사용하거나 소스에서 직접 빌드해야 합니다.",
-        "fit": "소스 빌드에는 Zig 0.15.2와 v8, Libcurl, html5ever가 필요하다는 점을 볼 때, 이 프로젝트는 Chromium 수준의 JavaScript 지원을 더 가벼운 형태로 원하는 자동화나 AI 에이전트 파이프라인에 적합할 수 있어 보이며, 네이티브 Windows 사용은 WSL2 내부 실행에 의존하는 것으로 보입니다."
+        "goal": "Lightpanda Browser는 AI 에이전트와 자동화를 위해 Zig 언어로 처음부터 새로 만들어진 헤드리스 브라우저입니다. Chromium을 포크하거나 WebKit을 패치한 것이 아니라 완전히 새로운 브라우저입니다.",
+        "usage": "`brew install lightpanda-io/browser/lightpanda` 명령으로 설치하거나 nightly 바이너리를 내려받거나, `docker run -d --name lightpanda -p 127.0.0.1:9222:9222 lightpanda/browser:nightly` 명령으로 공식 Docker 이미지를 실행해 포트 9222에서 CDP 서버를 열 수 있습니다. URL을 가져와 덤프하거나 CDP·WebDriver Bidi 서버로 동작시키거나 LLM 기반 에이전트 모드를 실행하거나 네이티브 MCP 서버로 사용할 수도 있습니다.",
+        "pros": "AWS EC2 m5.large 인스턴스에서 실제 웹페이지 933개를 대상으로 헤드리스 Chrome과 비교한 벤치마크에 따르면, 최대 메모리 사용량은 약 16배 낮고(123MB 대 2GB) 실행 시간은 약 9배 빠릅니다(100페이지 기준 5s 대 46s). CORS, v8 자바스크립트 엔진, DOM API, CDP/WebSocket 지원, 쿠키, robots.txt 준수 등 다양한 기능이 구현되어 있습니다.",
+        "cons": "Linux용 릴리스 바이너리는 glibc에 링크되어 있어 Alpine과 같은 musl 기반 배포판에서는 'cannot execute: required file not found' 오류로 실패하며, glibc 기반 베이스 이미지를 사용하거나 소스에서 빌드해야 합니다.",
+        "fit": "헤드리스 Chrome보다 메모리와 CPU 사용량이 적은 것을 원하는 AI 기반 웹 자동화나 스크래핑 팀에 적합할 수 있으며, 수동 브라우징보다는 헤드리스 자동화를 목표로 합니다. 소스에서 빌드하려면 Zig 0.15.2가 필요한 것으로 보이고, 네이티브 Windows 바이너리가 제공되지 않아 Windows에서는 WSL2가 필요한 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "Lightpanda Browser 并非 Chromium 或 WebKit 的分支,而是用 Zig 从零构建的无头浏览器,面向 AI 智能体和自动化场景。",
-        "usage": "可以使用 `brew install lightpanda-io/browser/lightpanda` 安装每日构建版本,也可以从 https://github.com/lightpanda-io/browser/releases/tag/nightly 下载二进制文件。可通过 `./lightpanda serve --obey-robots --log-format pretty  --log-level info --host 127.0.0.1 --port 9222` 启动供 Puppeteer 等工具使用的 CDP 服务器。",
-        "pros": "在针对 933 个真实网页的基准测试中,Lightpanda 的峰值内存为 123MB,而无头 Chrome 为 2GB;处理 100 个页面的执行时间为 5s,而 Chrome 为 46s。它还内置了 CDP 与 Webdriver Bidi 服务器、MCP 服务器,以及支持多种 LLM 提供方的智能体模式。",
-        "cons": "文档说明,预编译的 Linux 版本二进制文件链接了 glibc,因此在 Alpine 等基于 musl 的发行版上会因 'cannot execute: required file not found' 而运行失败,除非使用基于 glibc 的基础镜像或从源码自行构建。",
-        "fit": "从源码构建需要 Zig 0.15.2 以及 v8、Libcurl 和 html5ever,这似乎表明该项目可能适合需要类似 Chrome 级 JavaScript 支持、但希望占用更少资源的自动化或 AI 智能体流程,不过原生 Windows 使用看起来依赖于在 WSL2 内运行。"
+        "goal": "Lightpanda Browser 是一款使用 Zig 从零构建的无头浏览器,面向 AI 代理和自动化场景。它不是 Chromium 的分支,也不是对 WebKit 的修补,而是一个全新的浏览器。",
+        "usage": "可通过 `brew install lightpanda-io/browser/lightpanda` 安装,或下载 nightly 二进制文件,也可使用 `docker run -d --name lightpanda -p 127.0.0.1:9222:9222 lightpanda/browser:nightly` 运行官方 Docker 镜像,在 9222 端口暴露 CDP 服务。它还可以抓取并转储 URL、作为 CDP 或 WebDriver Bidi 服务器运行、启用由 LLM 驱动的代理模式,或作为原生 MCP 服务器运行。",
+        "pros": "在 AWS EC2 m5.large 实例上针对 933 个真实网页与无头 Chrome 的对比基准显示,峰值内存约低 16 倍(123MB 对 2GB),处理 100 个页面的执行时间约快 9 倍(5s 对 46s)。已实现的功能包括 CORS、v8 JavaScript 引擎、DOM API、CDP/WebSocket 支持、Cookie 以及 robots.txt 遵循。",
+        "cons": "Linux 版发布二进制文件链接的是 glibc,因此在 Alpine 等基于 musl 的发行版上会因 'cannot execute: required file not found' 错误而无法运行,需要使用基于 glibc 的基础镜像或从源码构建。",
+        "fit": "对于希望比无头 Chrome 占用更少内存和 CPU、需要 AI 驱动的网页自动化或抓取的团队,该项目可能较为合适,因为它面向无头自动化而非手动浏览。从源码构建似乎需要 Zig 0.15.2,而由于未提供原生 Windows 二进制文件,在 Windows 上似乎需要通过 WSL2 运行。"
       },
       "es": {
-        "goal": "Lightpanda Browser no es un fork de Chromium ni de WebKit, sino un navegador headless construido desde cero en Zig, pensado para agentes de IA y automatización.",
-        "usage": "La versión nightly se instala con `brew install lightpanda-io/browser/lightpanda`, o se puede descargar un binario desde https://github.com/lightpanda-io/browser/releases/tag/nightly. Un servidor CDP para herramientas como Puppeteer se inicia con `./lightpanda serve --obey-robots --log-format pretty  --log-level info --host 127.0.0.1 --port 9222`.",
-        "pros": "En un benchmark con 933 páginas reales, Lightpanda registró un pico de memoria de 123MB frente a 2GB en Chrome headless, y un tiempo de ejecución de 5s frente a 46s de Chrome para 100 páginas. También incluye servidores CDP y Webdriver Bidi, un servidor MCP y un modo agente compatible con varios proveedores de LLM.",
-        "cons": "Según la documentación, los binarios precompilados de Linux están enlazados con glibc, por lo que fallan con 'cannot execute: required file not found' en distribuciones basadas en musl como Alpine, a menos que se use una imagen base con glibc o se compile desde el código fuente.",
-        "fit": "Compilarlo desde el código fuente requiere Zig 0.15.2 junto con v8, Libcurl y html5ever, lo que sugiere que el proyecto podría encajar en flujos de automatización o agentes de IA que buscan soporte de JavaScript similar a Chrome con menor huella, aunque el uso nativo en Windows parece depender de ejecutarse dentro de WSL2."
+        "goal": "Lightpanda Browser es un navegador headless construido desde cero en Zig para agentes de IA y automatización. No es un fork de Chromium ni un parche de WebKit, sino un navegador completamente nuevo.",
+        "usage": "Se instala con `brew install lightpanda-io/browser/lightpanda`, descargando binarios nightly, o mediante la imagen oficial de Docker con `docker run -d --name lightpanda -p 127.0.0.1:9222:9222 lightpanda/browser:nightly`, que expone un servidor CDP en el puerto 9222. También puede obtener y volcar una URL, servir CDP o WebDriver Bidi, ejecutar un modo agente impulsado por LLM, o funcionar como servidor MCP nativo.",
+        "pros": "Según las pruebas comparativas frente a Chrome headless, realizadas con 933 páginas web reales en una instancia AWS EC2 m5.large, la memoria máxima es unas 16 veces menor (123MB frente a 2GB) y la ejecución es unas 9 veces más rápida (5s frente a 46s) para 100 páginas. También se documentan funciones implementadas como CORS, el motor JavaScript v8, APIs del DOM, soporte CDP/WebSocket, cookies y cumplimiento de robots.txt.",
+        "cons": "Los binarios de la versión Linux están enlazados contra glibc, por lo que en distribuciones basadas en musl como Alpine fallan con el error 'cannot execute: required file not found', a menos que se use una imagen base basada en glibc o se compile desde el código fuente.",
+        "fit": "Podría convenir a equipos que buscan automatización web o scraping impulsados por IA con menor uso de memoria y CPU que Chrome headless, ya que está orientado a la automatización headless más que a la navegación manual. Compilar desde el código fuente parece requerir Zig 0.15.2, y el uso en Windows parece requerir WSL2, dado que no se ofrece un binario nativo para Windows."
       },
       "ja": {
-        "goal": "Lightpanda Browser は Chromium や WebKit のフォークではなく、Zig でゼロから構築されたヘッドレスブラウザで、AIエージェントと自動化を対象としています。",
-        "usage": "ナイトリー版は `brew install lightpanda-io/browser/lightpanda` でインストールできるほか、https://github.com/lightpanda-io/browser/releases/tag/nightly からバイナリをダウンロードできます。Puppeteer などのツール向けの CDP サーバーは `./lightpanda serve --obey-robots --log-format pretty  --log-level info --host 127.0.0.1 --port 9222` で起動します。",
-        "pros": "933件の実際のページを対象としたベンチマークでは、Lightpanda のピークメモリ使用量は 123MB で、ヘッドレス Chrome の 2GB より少なく、100ページの実行時間も 5s で Chrome の 46s より短かったと報告されています。また CDP と Webdriver Bidi サーバー、MCP サーバー、複数の LLM プロバイダーに対応するエージェントモードも備えています。",
-        "cons": "ドキュメントによると、事前ビルドされた Linux 版バイナリは glibc にリンクされているため、Alpine のような musl 系ディストリビューションでは 'cannot execute: required file not found' というエラーで実行に失敗し、glibc ベースのベースイメージを使うかソースからビルドする必要があります。",
-        "fit": "ソースからのビルドには Zig 0.15.2 に加えて v8、Libcurl、html5ever が必要とされており、これは Chrome 相当の JavaScript サポートを軽量に求める自動化や AI エージェントのパイプラインに適している可能性を示唆していますが、ネイティブ Windows での利用は WSL2 内での実行に依存しているようです。"
+        "goal": "Lightpanda Browser は、AIエージェントと自動化のためにZigでゼロから構築されたヘッドレスブラウザです。Chromiumのフォークでもなく、WebKitへのパッチでもない、まったく新しいブラウザです。",
+        "usage": "`brew install lightpanda-io/browser/lightpanda` でインストールするか、nightlyバイナリをダウンロードするか、`docker run -d --name lightpanda -p 127.0.0.1:9222:9222 lightpanda/browser:nightly` で公式Dockerイメージを実行してポート9222でCDPサーバーを公開できます。URLの取得とダンプ、CDPまたはWebDriver Bidiサーバーとしての起動、LLM駆動のエージェントモード、ネイティブMCPサーバーとしての動作もサポートされています。",
+        "pros": "AWS EC2 m5.largeインスタンス上で実際のWebページ933件を対象にヘッドレスChromeと比較したベンチマークでは、ピークメモリが約16倍少なく(123MB対2GB)、実行時間は100ページで約9倍高速(5s対46s)と報告されています。CORS、v8 JavaScriptエンジン、DOM API、CDP/WebSocketサポート、Cookie、robots.txtの遵守など、実装済みの機能も多く挙げられています。",
+        "cons": "Linux版のリリースバイナリはglibcにリンクされているため、Alpineなどmuslベースのディストリビューションでは 'cannot execute: required file not found' エラーで失敗し、glibcベースのベースイメージを使うかソースからビルドする必要があります。",
+        "fit": "ヘッドレスChromeよりメモリとCPU使用量を抑えたいAI駆動のWeb自動化やスクレイピングを行うチームに適している可能性があり、手動ブラウジングよりヘッドレス自動化を目的としています。ソースからのビルドにはZig 0.15.2が必要と見られ、ネイティブWindowsバイナリが提供されていないため、Windowsでの利用にはWSL2が必要と見られます。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 4,
-          "end_line": 8,
+          "end_line": 7,
           "section_heading": ""
         }
       ],
       "usage": [
         {
-          "start_line": 45,
+          "start_line": 44,
           "end_line": 47,
           "section_heading": "Install"
         },
         {
-          "start_line": 56,
-          "end_line": 58,
+          "start_line": 92,
+          "end_line": 100,
           "section_heading": "Install"
         },
         {
-          "start_line": 116,
-          "end_line": 120,
-          "section_heading": "Start a CDP server"
+          "start_line": 163,
+          "end_line": 169,
+          "section_heading": "Agent mode"
         }
       ],
       "pros": [
@@ -2344,11 +2325,6 @@
           "start_line": 30,
           "end_line": 36,
           "section_heading": "Benchmarks"
-        },
-        {
-          "start_line": 182,
-          "end_line": 188,
-          "section_heading": "Agent mode"
         },
         {
           "start_line": 258,
@@ -2365,38 +2341,49 @@
       ],
       "fit": [
         {
-          "start_line": 283,
-          "end_line": 289,
-          "section_heading": "Prerequisites"
+          "start_line": 6,
+          "end_line": 6,
+          "section_heading": ""
         },
         {
-          "start_line": 85,
+          "start_line": 83,
           "end_line": 90,
           "section_heading": "Install"
+        },
+        {
+          "start_line": 283,
+          "end_line": 285,
+          "section_heading": "Prerequisites"
         }
       ]
     },
     "invariants": [
       {
-        "kind": "product",
-        "value": "Lightpanda Browser",
+        "kind": "command",
+        "value": "brew install lightpanda-io/browser/lightpanda",
         "fields": [
-          "goal"
+          "usage"
         ]
       },
       {
-        "kind": "product",
-        "value": "Zig",
+        "kind": "command",
+        "value": "docker run -d --name lightpanda -p 127.0.0.1:9222:9222 lightpanda/browser:nightly",
         "fields": [
-          "goal",
-          "fit"
+          "usage"
         ]
       },
       {
-        "kind": "version",
-        "value": "0.15.2",
+        "kind": "number",
+        "value": "9222",
         "fields": [
-          "fit"
+          "usage"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "933",
+        "fields": [
+          "pros"
         ]
       },
       {
@@ -2428,22 +2415,45 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "brew install lightpanda-io/browser/lightpanda",
+        "kind": "number",
+        "value": "16x",
         "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "9x",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "0.15.2",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Lightpanda",
+        "fields": [
+          "goal",
           "usage"
         ]
       },
       {
-        "kind": "command",
-        "value": "./lightpanda serve --obey-robots --log-format pretty  --log-level info --host 127.0.0.1 --port 9222",
+        "kind": "product",
+        "value": "Zig",
         "fields": [
-          "usage"
+          "goal",
+          "fit"
         ]
       },
       {
-        "kind": "url",
-        "value": "https://github.com/lightpanda-io/browser/releases/tag/nightly",
+        "kind": "product",
+        "value": "Docker",
         "fields": [
           "usage"
         ]
@@ -2456,8 +2466,8 @@
       "kind": "readme",
       "slug": "lightpanda-io/browser",
       "path": "README.md",
-      "blob_sha": "5e33f8d1a4972c581f5eb3196e82424f6b1440b1",
-      "content_sha256": "4b31a8836bd01729995b614db62a224cc2a73212940c910a6b5a063d76a5dd38",
+      "blob_sha": "264ae424d3788e7b714ed331fb2d61e387c55074",
+      "content_sha256": "dff77ef33f212593f04870c4a43efc14b9b8bfec126f22f760f981a228ba429d",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -2471,65 +2481,65 @@
   },
   "pascalorg/editor": {
     "content": {
-      "goal": "Pascal Editor is a 3D building editor built with React Three Fiber and WebGPU. The repository is organized as a Turborepo monorepo containing reusable packages (@pascal-app/core, @pascal-app/viewer, @pascal-app/editor, @pascal-app/nodes), a standalone Next.js app, a CLI, and an MCP server.",
-      "usage": "The editor can run locally without cloning the repository via `npx @pascal-app/cli editor`, which requires Node.js 22.13 or newer and starts the editor plus an authenticated MCP service on local ports. For development from source, run `bun install` then `bun dev` from the repository root and open http://localhost:3002.",
-      "pros": "Responsibilities are split across dedicated packages for core scene state, 3D rendering (viewer), and editing tools, and new node kinds or side panels can be added through a documented `Plugin` manifest instead of modifying internal APIs. Published packages (@pascal-app/core, @pascal-app/viewer, @pascal-app/editor, @pascal-app/nodes) can also be installed individually via npm.",
-      "cons": "Running the editor locally through the CLI requires Node.js 22.13 or newer as a stated runtime prerequisite. For development from source, `bun dev` must be run from the repository root directory for package hot reload to work correctly.",
-      "fit": "Given its MCP server for AI-host integration and its plugin-based extension model for node kinds and panels, Pascal Editor appears best suited for developers building browser-based 3D building/BIM-style tools or wiring AI agents into a 3D scene-editing workflow, rather than non-technical end users."
+      "goal": "Pascal Editor is a 3D building editor built with React Three Fiber and WebGPU. It is structured as a Turborepo monorepo with reusable packages — core, viewer, editor, nodes, cli, mcp, and ui — plus a standalone Next.js app, and models building scenes as nodes such as sites, buildings, levels, walls, and items.",
+      "usage": "The editor can be run locally without cloning the repository via `npx @pascal-app/cli editor`, which starts the editor plus an authenticated MCP service and stores projects in `~/.pascal/data/pascal.db`. For development from source, contributors run `bun install` then `bun dev` from the repository root, which builds the core and viewer packages and starts the Next.js dev server, documented at http://localhost:3002.",
+      "pros": "The project is MIT-licensed. Responsibilities are clearly separated across packages — core handles schemas and state, viewer handles 3D rendering, editor handles tools and UI, and mcp exposes scene tools to AI hosts. It is extensible through a documented Plugin manifest, the same mechanism used for built-in node kinds, with a worked example plugin referenced.",
+      "cons": "Running the local CLI requires Node.js 22.13 or newer, a version prerequisite documented for developers setting up the editor without that runtime already installed.",
+      "fit": "This appears suited to developers building 3D architectural, interior, or furniture-layout editors, and to teams integrating AI agents with 3D scene editing through the documented MCP service."
     },
     "summaries": {
       "en": {
-        "goal": "Pascal Editor is a 3D building editor built with React Three Fiber and WebGPU. The repository is organized as a Turborepo monorepo containing reusable packages (@pascal-app/core, @pascal-app/viewer, @pascal-app/editor, @pascal-app/nodes), a standalone Next.js app, a CLI, and an MCP server.",
-        "usage": "The editor can run locally without cloning the repository via `npx @pascal-app/cli editor`, which requires Node.js 22.13 or newer and starts the editor plus an authenticated MCP service on local ports. For development from source, run `bun install` then `bun dev` from the repository root and open http://localhost:3002.",
-        "pros": "Responsibilities are split across dedicated packages for core scene state, 3D rendering (viewer), and editing tools, and new node kinds or side panels can be added through a documented `Plugin` manifest instead of modifying internal APIs. Published packages (@pascal-app/core, @pascal-app/viewer, @pascal-app/editor, @pascal-app/nodes) can also be installed individually via npm.",
-        "cons": "Running the editor locally through the CLI requires Node.js 22.13 or newer as a stated runtime prerequisite. For development from source, `bun dev` must be run from the repository root directory for package hot reload to work correctly.",
-        "fit": "Given its MCP server for AI-host integration and its plugin-based extension model for node kinds and panels, Pascal Editor appears best suited for developers building browser-based 3D building/BIM-style tools or wiring AI agents into a 3D scene-editing workflow, rather than non-technical end users."
+        "goal": "Pascal Editor is a 3D building editor built with React Three Fiber and WebGPU. It is structured as a Turborepo monorepo with reusable packages — core, viewer, editor, nodes, cli, mcp, and ui — plus a standalone Next.js app, and models building scenes as nodes such as sites, buildings, levels, walls, and items.",
+        "usage": "The editor can be run locally without cloning the repository via `npx @pascal-app/cli editor`, which starts the editor plus an authenticated MCP service and stores projects in `~/.pascal/data/pascal.db`. For development from source, contributors run `bun install` then `bun dev` from the repository root, which builds the core and viewer packages and starts the Next.js dev server, documented at http://localhost:3002.",
+        "pros": "The project is MIT-licensed. Responsibilities are clearly separated across packages — core handles schemas and state, viewer handles 3D rendering, editor handles tools and UI, and mcp exposes scene tools to AI hosts. It is extensible through a documented Plugin manifest, the same mechanism used for built-in node kinds, with a worked example plugin referenced.",
+        "cons": "Running the local CLI requires Node.js 22.13 or newer, a version prerequisite documented for developers setting up the editor without that runtime already installed.",
+        "fit": "This appears suited to developers building 3D architectural, interior, or furniture-layout editors, and to teams integrating AI agents with 3D scene editing through the documented MCP service."
       },
       "ko": {
-        "goal": "Pascal Editor는 React Three Fiber와 WebGPU로 구축된 3D 빌딩 에디터입니다. 이 저장소는 Turborepo 모노레포로 구성되어 있으며, 재사용 가능한 패키지(@pascal-app/core, @pascal-app/viewer, @pascal-app/editor, @pascal-app/nodes)와 독립형 Next.js 앱, CLI, MCP 서버를 포함합니다.",
-        "usage": "저장소를 클론하지 않고도 `npx @pascal-app/cli editor` 명령으로 에디터를 로컬에서 실행할 수 있으며, 이는 Node.js 22.13 이상이 필요하고 에디터와 인증된 MCP 서비스를 로컬 포트에서 시작합니다. 소스에서 개발하려면 저장소 루트에서 `bun install` 후 `bun dev`를 실행하고 http://localhost:3002 를 엽니다.",
-        "pros": "핵심 씬 상태, 3D 렌더링(viewer), 편집 도구가 각각 별도의 패키지로 분리되어 있으며, 문서화된 `Plugin` 매니페스트를 통해 내부 API 수정 없이 새로운 노드 종류나 사이드 패널을 추가할 수 있습니다. 게시된 패키지(@pascal-app/core, @pascal-app/viewer, @pascal-app/editor, @pascal-app/nodes)는 npm을 통해 개별적으로 설치할 수도 있습니다.",
-        "cons": "CLI를 통해 에디터를 로컬에서 실행하려면 문서에 명시된 대로 Node.js 22.13 이상이 필요합니다. 소스에서 개발할 경우, 패키지 핫 리로드가 올바르게 작동하려면 반드시 저장소 루트 디렉터리에서 `bun dev`를 실행해야 합니다.",
-        "fit": "AI 호스트 연동을 위한 MCP 서버와 노드 종류·패널을 위한 플러그인 기반 확장 모델을 고려할 때, Pascal Editor는 비전문 최종 사용자보다는 브라우저 기반 3D 빌딩/BIM 스타일 도구를 구축하거나 AI 에이전트를 3D 씬 편집 워크플로에 연결하려는 개발자에게 적합해 보입니다."
+        "goal": "Pascal Editor는 React Three Fiber와 WebGPU로 구축된 3D 건물 편집기입니다. 이 저장소는 Turborepo 모노레포로 구성되어 있으며, core, viewer, editor, nodes, cli, mcp, ui 등 재사용 가능한 패키지와 독립형 Next.js 앱을 포함하고, 사이트·건물·층·벽·아이템 같은 노드로 건물 장면을 모델링합니다.",
+        "usage": "저장소를 클론하지 않고도 `npx @pascal-app/cli editor` 명령으로 편집기를 로컬에서 실행할 수 있으며, 이 명령은 편집기와 인증된 MCP 서비스를 시작하고 프로젝트를 `~/.pascal/data/pascal.db`에 저장합니다. 소스에서 개발하려면 저장소 루트에서 `bun install` 후 `bun dev`를 실행하면 core와 viewer 패키지를 빌드하고 http://localhost:3002 에서 Next.js 개발 서버를 시작합니다.",
+        "pros": "이 프로젝트는 MIT 라이선스로 배포됩니다. core는 스키마와 상태, viewer는 3D 렌더링, editor는 도구와 UI, mcp는 AI 호스트용 장면 도구를 담당하는 등 패키지별 책임이 명확히 분리되어 있습니다. 내장 노드 종류와 동일한 Plugin 매니페스트를 통해 확장 가능하며, 예시 플러그인도 함께 제공됩니다.",
+        "cons": "로컬 CLI를 실행하려면 Node.js 22.13 이상이 필요하며, 이는 해당 런타임이 아직 설치되지 않은 개발자에게 문서화된 사전 요구사항입니다.",
+        "fit": "이 프로젝트는 3D 건축·인테리어·가구 배치 편집기를 만드는 개발자, 그리고 문서화된 MCP 서비스를 통해 AI 에이전트를 3D 장면 편집과 통합하려는 팀에 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "Pascal Editor 是一个使用 React Three Fiber 和 WebGPU 构建的 3D 建筑编辑器。该仓库以 Turborepo monorepo 的形式组织,包含可复用的包(@pascal-app/core、@pascal-app/viewer、@pascal-app/editor、@pascal-app/nodes)、一个独立的 Next.js 应用、一个 CLI 以及一个 MCP 服务器。",
-        "usage": "无需克隆仓库,即可通过 `npx @pascal-app/cli editor` 在本地运行编辑器,该命令需要 Node.js 22.13 或更高版本,并会在本地端口启动编辑器和一个经过身份验证的 MCP 服务。若要从源码进行开发,请在仓库根目录依次运行 `bun install` 和 `bun dev`,然后打开 http://localhost:3002。",
-        "pros": "核心场景状态、3D 渲染(viewer)和编辑工具的职责被拆分到各自独立的包中,新的节点类型或侧边面板可以通过文档化的 `Plugin` 清单添加,而无需修改内部 API。已发布的包(@pascal-app/core、@pascal-app/viewer、@pascal-app/editor、@pascal-app/nodes)也可以通过 npm 单独安装。",
-        "cons": "通过 CLI 在本地运行编辑器需要文档中明确说明的 Node.js 22.13 或更高版本作为运行时前提。若从源码进行开发,必须在仓库根目录下运行 `bun dev`,包的热重载才能正常工作。",
-        "fit": "考虑到其面向 AI 主机集成的 MCP 服务器,以及针对节点类型和面板的插件化扩展模式,Pascal Editor 似乎更适合构建基于浏览器的 3D 建筑/BIM 类工具、或将 AI 代理接入 3D 场景编辑工作流的开发者,而非非技术性的终端用户。"
+        "goal": "Pascal Editor 是一个基于 React Three Fiber 和 WebGPU 构建的 3D 建筑编辑器。该仓库采用 Turborepo monorepo 结构,包含 core、viewer、editor、nodes、cli、mcp 和 ui 等可复用包,以及一个独立的 Next.js 应用,并以站点、建筑、楼层、墙体、物品等节点来建模建筑场景。",
+        "usage": "无需克隆仓库,即可通过 `npx @pascal-app/cli editor` 命令在本地运行编辑器,该命令会启动编辑器和一个经过认证的 MCP 服务,并将项目保存在 `~/.pascal/data/pascal.db` 中。若要从源码开发,可在仓库根目录依次运行 `bun install` 和 `bun dev`,构建 core 和 viewer 包并在 http://localhost:3002 启动 Next.js 开发服务器。",
+        "pros": "该项目采用 MIT 许可证。各包职责划分清晰:core 负责模式与状态,viewer 负责 3D 渲染,editor 负责工具与界面,mcp 负责向 AI 主机暴露场景工具。它通过与内置节点类型相同的 Plugin 清单机制实现可扩展性,并附有示例插件。",
+        "cons": "运行本地 CLI 需要 Node.js 22.13 或更高版本,这是文档中针对尚未安装该运行时的开发者列出的前置要求。",
+        "fit": "该项目看起来适合构建 3D 建筑、室内或家具布局编辑器的开发者,也适合希望通过文档中的 MCP 服务将 AI 智能体与 3D 场景编辑集成的团队。"
       },
       "es": {
-        "goal": "Pascal Editor es un editor de edificios en 3D construido con React Three Fiber y WebGPU. El repositorio está organizado como un monorepo de Turborepo que contiene paquetes reutilizables (@pascal-app/core, @pascal-app/viewer, @pascal-app/editor, @pascal-app/nodes), una aplicación Next.js independiente, una CLI y un servidor MCP.",
-        "usage": "El editor puede ejecutarse localmente sin clonar el repositorio mediante `npx @pascal-app/cli editor`, que requiere Node.js 22.13 o superior e inicia el editor junto con un servicio MCP autenticado en puertos locales. Para desarrollar desde el código fuente, ejecute `bun install` y luego `bun dev` desde la raíz del repositorio y abra http://localhost:3002.",
-        "pros": "Las responsabilidades se dividen en paquetes dedicados para el estado del escenario central, el renderizado 3D (viewer) y las herramientas de edición, y se pueden añadir nuevos tipos de nodo o paneles laterales mediante un manifiesto `Plugin` documentado, sin modificar las API internas. Los paquetes publicados (@pascal-app/core, @pascal-app/viewer, @pascal-app/editor, @pascal-app/nodes) también pueden instalarse por separado con npm.",
-        "cons": "Ejecutar el editor localmente mediante la CLI requiere Node.js 22.13 o superior como requisito de tiempo de ejecución indicado explícitamente. Para el desarrollo desde el código fuente, `bun dev` debe ejecutarse desde el directorio raíz del repositorio para que la recarga en caliente de los paquetes funcione correctamente.",
-        "fit": "Dado su servidor MCP para la integración con hosts de IA y su modelo de extensión basado en plugins para tipos de nodo y paneles, Pascal Editor parece más adecuado para desarrolladores que construyen herramientas 3D de tipo BIM/edificación en el navegador o que integran agentes de IA en un flujo de edición de escenas 3D, más que para usuarios finales no técnicos."
+        "goal": "Pascal Editor es un editor de edificios en 3D construido con React Three Fiber y WebGPU. El repositorio está organizado como un monorepo Turborepo con paquetes reutilizables —core, viewer, editor, nodes, cli, mcp y ui— además de una aplicación Next.js independiente, y modela las escenas de edificios como nodos como sitios, edificios, niveles, muros y elementos.",
+        "usage": "El editor puede ejecutarse localmente sin clonar el repositorio mediante el comando `npx @pascal-app/cli editor`, que inicia el editor junto con un servicio MCP autenticado y guarda los proyectos en `~/.pascal/data/pascal.db`. Para desarrollar desde el código fuente, se ejecuta `bun install` y luego `bun dev` desde la raíz del repositorio, lo que compila los paquetes core y viewer e inicia el servidor de desarrollo de Next.js en http://localhost:3002.",
+        "pros": "El proyecto tiene licencia MIT. Las responsabilidades están claramente separadas entre paquetes: core gestiona esquemas y estado, viewer se encarga del renderizado 3D, editor aporta herramientas e interfaz, y mcp expone herramientas de escena a hosts de IA. Es extensible mediante un manifiesto Plugin documentado, el mismo mecanismo usado para los tipos de nodo integrados, con un plugin de ejemplo disponible.",
+        "cons": "Ejecutar la CLI localmente requiere Node.js 22.13 o posterior, un requisito previo documentado para quienes aún no tengan ese entorno instalado.",
+        "fit": "Este proyecto parece adecuado para desarrolladores que construyen editores 3D de arquitectura, interiores o disposición de mobiliario, y para equipos que integran agentes de IA con la edición de escenas 3D mediante el servicio MCP documentado."
       },
       "ja": {
-        "goal": "Pascal Editorは、React Three FiberとWebGPUで構築された3Dビルディングエディタです。このリポジトリはTurborepoモノレポとして構成されており、再利用可能なパッケージ(@pascal-app/core、@pascal-app/viewer、@pascal-app/editor、@pascal-app/nodes)、スタンドアロンのNext.jsアプリ、CLI、MCPサーバーを含みます。",
-        "usage": "リポジトリをクローンしなくても、`npx @pascal-app/cli editor` によってエディタをローカルで実行できます。これにはNode.js 22.13以上が必要で、エディタと認証済みのMCPサービスをローカルポート上で起動します。ソースから開発する場合は、リポジトリのルートで `bun install` の後に `bun dev` を実行し、http://localhost:3002 を開きます。",
-        "pros": "コアのシーン状態、3Dレンダリング(viewer)、編集ツールの責務がそれぞれ独立したパッケージに分かれており、内部APIを変更することなく、ドキュメント化された `Plugin` マニフェストを通じて新しいノード種別やサイドパネルを追加できます。公開パッケージ(@pascal-app/core、@pascal-app/viewer、@pascal-app/editor、@pascal-app/nodes)はnpmで個別にインストールすることも可能です。",
-        "cons": "CLIを介してエディタをローカルで実行するには、明記された前提条件としてNode.js 22.13以上が必要です。ソースから開発する場合、パッケージのホットリロードを正しく機能させるには、リポジトリのルートディレクトリから `bun dev` を実行する必要があります。",
-        "fit": "AIホスト連携のためのMCPサーバーと、ノード種別やパネル向けのプラグインベースの拡張モデルを踏まえると、Pascal Editorは非技術的なエンドユーザーよりも、ブラウザベースの3Dビルディング/BIM系ツールを構築する開発者や、AIエージェントを3Dシーン編集ワークフローに組み込みたい開発者に適していると考えられます。"
+        "goal": "Pascal Editorは、React Three FiberとWebGPUで構築された3Dビルディングエディタです。このリポジトリはTurborepoモノレポとして構成されており、core、viewer、editor、nodes、cli、mcp、uiといった再利用可能なパッケージとスタンドアロンのNext.jsアプリを含み、サイト・建物・階・壁・アイテムなどのノードとして建物シーンをモデル化します。",
+        "usage": "リポジトリをクローンしなくても、`npx @pascal-app/cli editor` コマンドでエディタをローカルに実行でき、このコマンドはエディタと認証済みMCPサービスを起動し、プロジェクトを `~/.pascal/data/pascal.db` に保存します。ソースから開発する場合は、リポジトリのルートで `bun install` の後に `bun dev` を実行すると、coreとviewerパッケージがビルドされ、http://localhost:3002 でNext.js開発サーバーが起動します。",
+        "pros": "本プロジェクトはMITライセンスです。coreはスキーマと状態、viewerは3Dレンダリング、editorはツールとUI、mcpはAIホスト向けのシーンツールを担当するなど、パッケージごとの責務が明確に分離されています。組み込みノード種別と同じPluginマニフェストの仕組みで拡張可能であり、サンプルプラグインも参照できます。",
+        "cons": "ローカルCLIの実行にはNode.js 22.13以降が必要であり、これはそのランタイムが未導入の開発者向けに文書化された前提条件です。",
+        "fit": "本プロジェクトは、3D建築・インテリア・家具レイアウトのエディタを構築する開発者や、文書化されたMCPサービスを通じてAIエージェントを3Dシーン編集と統合しようとするチームに適していると見られます。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 3,
+          "start_line": 1,
           "end_line": 3,
           "section_heading": "Pascal Editor"
         },
         {
-          "start_line": 50,
-          "end_line": 53,
+          "start_line": 110,
+          "end_line": 129,
           "section_heading": "Repository Architecture"
         },
         {
-          "start_line": 60,
-          "end_line": 68,
-          "section_heading": "Repository Architecture"
+          "start_line": 192,
+          "end_line": 202,
+          "section_heading": "Nodes"
         }
       ],
       "usage": [
@@ -2540,30 +2550,30 @@
         },
         {
           "start_line": 23,
-          "end_line": 25,
+          "end_line": 24,
           "section_heading": "Run the Editor Locally"
         },
         {
-          "start_line": 415,
-          "end_line": 426,
+          "start_line": 475,
+          "end_line": 487,
           "section_heading": "Development"
         }
       ],
       "pros": [
         {
-          "start_line": 60,
-          "end_line": 68,
-          "section_heading": "Repository Architecture"
+          "start_line": 5,
+          "end_line": 5,
+          "section_heading": "Pascal Editor"
         },
         {
-          "start_line": 388,
-          "end_line": 391,
+          "start_line": 133,
+          "end_line": 143,
+          "section_heading": "Separation of Concerns"
+        },
+        {
+          "start_line": 446,
+          "end_line": 451,
           "section_heading": "Building a Plugin"
-        },
-        {
-          "start_line": 31,
-          "end_line": 37,
-          "section_heading": "Using Published Packages"
         }
       ],
       "cons": [
@@ -2571,65 +2581,62 @@
           "start_line": 16,
           "end_line": 17,
           "section_heading": "Run the Editor Locally"
-        },
-        {
-          "start_line": 429,
-          "end_line": 429,
-          "section_heading": "Development"
         }
       ],
       "fit": [
         {
-          "start_line": 82,
-          "end_line": 82,
-          "section_heading": "Separation of Concerns"
+          "start_line": 23,
+          "end_line": 28,
+          "section_heading": "Run the Editor Locally"
         },
         {
-          "start_line": 386,
-          "end_line": 391,
-          "section_heading": "Building a Plugin"
+          "start_line": 61,
+          "end_line": 87,
+          "section_heading": "Agent skills"
         }
       ]
     },
     "invariants": [
       {
+        "kind": "command",
+        "value": "npx @pascal-app/cli editor",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "bun install",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "bun dev",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "Node.js 22.13",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "http://localhost:3002",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
         "kind": "product",
         "value": "Pascal Editor",
         "fields": [
-          "goal",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "@pascal-app/core",
-        "fields": [
-          "goal",
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "@pascal-app/viewer",
-        "fields": [
-          "goal",
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "@pascal-app/editor",
-        "fields": [
-          "goal",
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "@pascal-app/nodes",
-        "fields": [
-          "goal",
-          "pros"
+          "goal"
         ]
       },
       {
@@ -2652,51 +2659,8 @@
         "fields": [
           "goal",
           "usage",
+          "pros",
           "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Turborepo",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "npx @pascal-app/cli editor",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "bun install",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "bun dev",
-        "fields": [
-          "usage",
-          "cons"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": "22.13",
-        "fields": [
-          "usage",
-          "cons"
-        ]
-      },
-      {
-        "kind": "url",
-        "value": "http://localhost:3002",
-        "fields": [
-          "usage"
         ]
       }
     ],
@@ -2707,8 +2671,8 @@
       "kind": "readme",
       "slug": "pascalorg/editor",
       "path": "README.md",
-      "blob_sha": "cae0e87e14ed7a2071a248557177b98e4d251e46",
-      "content_sha256": "d54e49b0667ad25c1946d683483b81b5afa31615ce86c71bdf86df2409402c6b",
+      "blob_sha": "a569f07880ffe1cdcc2a2c45e683147bbee0c803",
+      "content_sha256": "d3504cbd6daeabdea76e2fd6f487a6ba96d7d712ccc9e2495c95fcbe49d5a36c",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -2722,118 +2686,113 @@
   },
   "ruvnet/ruflo": {
     "content": {
-      "goal": "Ruflo is presented as an agent meta-harness for Claude Code and Codex — an execution layer that adds specialized agents, swarm coordination, self-learning memory, and federated cross-machine communication, so that agents collaborate rather than run in isolation.",
-      "usage": "Setup starts with `npx ruflo init`, which installs the full CLI stack — agents, commands, hooks, and daemon — for use with Claude Code. Cross-platform users can instead run the interactive `npx ruflo@latest init wizard`. A lighter alternative is installing individual Claude Code plugins through the marketplace, which adds slash commands without the CLI's files or background daemon.",
-      "pros": "The README lists 100+ specialized agents, multiple swarm topologies with consensus, self-learning components (SONA, ReasoningBank), a marketplace of 33 native plugins plus npm plugins, multi-provider LLM routing (Claude, GPT, Gemini, Cohere, Ollama), and security features such as AIDefence and CVE remediation.",
-      "cons": "The full feature set is large — the README itself notes 314 MCP tools and 26 CLI commands — which points to a learning curve beyond the initial `init` step. Windows users are also cautioned that the one-line curl installer requires a POSIX shell and may fail with a 'bash' is not recognized error, requiring the npx-based command instead.",
-      "fit": "Based on the documented install-path comparison, the CLI install is positioned for production use where 'everything works as documented,' while the lighter plugin install is meant for trying a single plugin's commands without committing to the full setup — suggesting Ruflo suits teams already working in Claude Code or Codex who want added orchestration."
+      "goal": "Ruflo is presented as an agent meta-harness for Claude Code and Codex — an execution layer that adds specialized agents, swarm coordination, self-learning memory, and cross-machine agent federation on top of those tools.",
+      "usage": "The core install is `npx ruflo init`, which sets up the full CLI feature set (agents, MCP server, hooks); a lighter option adds Ruflo as a Claude Code plugin via the plugin marketplace. Ruflo can also register as an MCP server with `claude mcp add claude-flow -- npx ruflo@latest mcp start`.",
+      "pros": "The README lists 100+ specialized agents, multiple swarm coordination topologies, self-learning memory backed by an HNSW-indexed AgentDB, a marketplace of 33 native and 21 npm plugins, multi-provider LLM routing (Claude, GPT, Gemini, Cohere, Ollama), and security features such as AIDefence and CVE remediation.",
+      "cons": "The README documents two distinct install paths — a lightweight plugin install versus the full CLI install — with different files, MCP registration, and hooks; it also notes that MCP tool names differ between them (prefixed plugin tool names versus bare CLI tool names), which may require care when applying examples written for one path to the other.",
+      "fit": "Given its stated dependency on Claude Code and Codex and its emphasis on multi-agent orchestration, memory, and federation, Ruflo appears best suited to teams already using those tools who want production-grade coordination features, with the CLI install recommended for full, documented functionality."
     },
     "summaries": {
       "en": {
-        "goal": "Ruflo is presented as an agent meta-harness for Claude Code and Codex — an execution layer that adds specialized agents, swarm coordination, self-learning memory, and federated cross-machine communication, so that agents collaborate rather than run in isolation.",
-        "usage": "Setup starts with `npx ruflo init`, which installs the full CLI stack — agents, commands, hooks, and daemon — for use with Claude Code. Cross-platform users can instead run the interactive `npx ruflo@latest init wizard`. A lighter alternative is installing individual Claude Code plugins through the marketplace, which adds slash commands without the CLI's files or background daemon.",
-        "pros": "The README lists 100+ specialized agents, multiple swarm topologies with consensus, self-learning components (SONA, ReasoningBank), a marketplace of 33 native plugins plus npm plugins, multi-provider LLM routing (Claude, GPT, Gemini, Cohere, Ollama), and security features such as AIDefence and CVE remediation.",
-        "cons": "The full feature set is large — the README itself notes 314 MCP tools and 26 CLI commands — which points to a learning curve beyond the initial `init` step. Windows users are also cautioned that the one-line curl installer requires a POSIX shell and may fail with a 'bash' is not recognized error, requiring the npx-based command instead.",
-        "fit": "Based on the documented install-path comparison, the CLI install is positioned for production use where 'everything works as documented,' while the lighter plugin install is meant for trying a single plugin's commands without committing to the full setup — suggesting Ruflo suits teams already working in Claude Code or Codex who want added orchestration."
+        "goal": "Ruflo is presented as an agent meta-harness for Claude Code and Codex — an execution layer that adds specialized agents, swarm coordination, self-learning memory, and cross-machine agent federation on top of those tools.",
+        "usage": "The core install is `npx ruflo init`, which sets up the full CLI feature set (agents, MCP server, hooks); a lighter option adds Ruflo as a Claude Code plugin via the plugin marketplace. Ruflo can also register as an MCP server with `claude mcp add claude-flow -- npx ruflo@latest mcp start`.",
+        "pros": "The README lists 100+ specialized agents, multiple swarm coordination topologies, self-learning memory backed by an HNSW-indexed AgentDB, a marketplace of 33 native and 21 npm plugins, multi-provider LLM routing (Claude, GPT, Gemini, Cohere, Ollama), and security features such as AIDefence and CVE remediation.",
+        "cons": "The README documents two distinct install paths — a lightweight plugin install versus the full CLI install — with different files, MCP registration, and hooks; it also notes that MCP tool names differ between them (prefixed plugin tool names versus bare CLI tool names), which may require care when applying examples written for one path to the other.",
+        "fit": "Given its stated dependency on Claude Code and Codex and its emphasis on multi-agent orchestration, memory, and federation, Ruflo appears best suited to teams already using those tools who want production-grade coordination features, with the CLI install recommended for full, documented functionality."
       },
       "ko": {
-        "goal": "Ruflo는 README에서 Claude Code와 Codex를 위한 에이전트 메타 하니스로 소개됩니다. 특화된 에이전트, 스웜 조정, 자기 학습 메모리, 여러 기기 간 연합 통신을 추가하는 실행 계층으로, 에이전트들이 독립적으로 동작하는 대신 서로 협업하도록 하는 것이 목표입니다.",
-        "usage": "설치는 `npx ruflo init` 명령으로 시작하며, 이는 Claude Code에서 사용할 전체 CLI 스택(에이전트, 명령어, 훅, 데몬)을 설치합니다. 플랫폼에 관계없이 대화형 `npx ruflo@latest init wizard`를 대신 실행할 수도 있습니다. 더 가벼운 대안으로는 마켓플레이스를 통해 개별 Claude Code 플러그인을 설치하는 방법이 있으며, 이는 CLI의 파일이나 백그라운드 데몬 없이 슬래시 명령어만 추가합니다.",
-        "pros": "README에는 100+ 특화 에이전트, 합의 기능을 갖춘 다양한 스웜 토폴로지, 자기 학습 구성 요소(SONA, ReasoningBank), 33개의 네이티브 플러그인과 npm 플러그인으로 구성된 마켓플레이스, 다중 제공자 LLM 라우팅(Claude, GPT, Gemini, Cohere, Ollama), 그리고 AIDefence 및 CVE 대응과 같은 보안 기능이 나열되어 있습니다.",
-        "cons": "전체 기능 범위가 방대하다는 점이 문서에서 드러나는데, README 자체가 314개의 MCP 도구와 26개의 CLI 명령어를 언급하고 있어 초기 `init` 단계 이후로는 학습 곡선이 있을 것으로 보입니다. 또한 Windows 사용자는 한 줄짜리 curl 설치 스크립트가 POSIX 셸을 필요로 하며 'bash' is not recognized 오류가 발생할 수 있어 대신 npx 기반 명령을 사용해야 한다는 점에 유의해야 합니다.",
-        "fit": "문서화된 설치 경로 비교에 따르면, CLI 설치는 '문서화된 대로 모든 기능이 작동하는' 프로덕션 사용을 위한 것으로 자리매김되어 있고, 더 가벼운 플러그인 설치는 전체 설정에 얽매이지 않고 단일 플러그인의 명령을 시험해보는 용도로 보입니다. 이는 Ruflo가 이미 Claude Code나 Codex를 사용 중이며 추가적인 오케스트레이션을 원하는 팀에 적합할 것임을 시사합니다."
+        "goal": "Ruflo는 Claude Code와 Codex를 위한 에이전트 메타 하니스로 소개되며, 전문화된 에이전트, 스웜 조정, 자가 학습 메모리, 여러 머신 간 에이전트 연합 기능을 추가하는 실행 계층이라고 설명됩니다.",
+        "usage": "핵심 설치 명령은 `npx ruflo init`이며, 전체 CLI 기능(에이전트, MCP 서버, 훅)을 구성합니다. 더 가벼운 방법으로는 Claude Code 플러그인 마켓플레이스를 통해 설치할 수 있으며, `claude mcp add claude-flow -- npx ruflo@latest mcp start` 명령으로 MCP 서버로도 등록할 수 있습니다.",
+        "pros": "README에는 100개 이상의 전문 에이전트, 다양한 스웜 조정 토폴로지, HNSW 색인 AgentDB 기반 자가 학습 메모리, 33개의 네이티브 플러그인과 21개의 npm 플러그인으로 구성된 마켓플레이스, Claude·GPT·Gemini·Cohere·Ollama를 아우르는 멀티 프로바이더 라우팅, AIDefence 및 CVE 대응과 같은 보안 기능이 나열되어 있습니다.",
+        "cons": "README는 파일 구성과 MCP 등록, 훅이 서로 다른 경량 플러그인 설치와 전체 CLI 설치라는 두 가지 경로를 문서화하며, 두 경로 사이에 MCP 도구 이름 체계가 다르다는 점(접두사가 붙은 플러그인 도구 이름과 CLI의 기본 도구 이름)도 언급합니다. 이는 한 경로용 예제를 다른 경로에 적용할 때 주의가 필요할 수 있음을 시사합니다.",
+        "fit": "Claude Code와 Codex에 대한 의존성과 멀티 에이전트 조정·메모리·연합 기능 강조를 고려할 때, Ruflo는 이미 해당 도구를 사용하며 프로덕션급 조정 기능을 원하는 팀에 적합해 보이며, 문서화된 전체 기능을 위해서는 CLI 설치가 권장되는 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "根据 README 描述,Ruflo 是面向 Claude Code 和 Codex 的智能体元框架(agent meta-harness),作为围绕这些工具的执行层,添加了专用智能体、集群协调、自学习记忆以及跨机器的联合通信,目标是让智能体协作而非孤立运行。",
-        "usage": "安装从 `npx ruflo init` 命令开始,该命令会为 Claude Code 安装完整的 CLI 组件(智能体、命令、钩子和守护进程)。跨平台用户也可以改用交互式的 `npx ruflo@latest init wizard`。更轻量的替代方案是通过市场安装单个 Claude Code 插件,这只会添加斜杠命令,而不包含 CLI 的文件或后台守护进程。",
-        "pros": "README 中列出了 100+ 个专用智能体、支持共识机制的多种集群拓扑、自学习组件(SONA、ReasoningBank)、由 33 个原生插件和多个 npm 插件组成的市场、多提供商 LLM 路由(Claude、GPT、Gemini、Cohere、Ollama),以及 AIDefence 和 CVE 修复等安全功能。",
-        "cons": "文档显示整体功能面较大——README 本身提到有 314 个 MCP 工具和 26 个 CLI 命令——这似乎意味着在完成初始 `init` 步骤之后仍存在一定的学习曲线。此外文档也提醒 Windows 用户,单行 curl 安装脚本需要 POSIX shell 环境,可能出现 'bash' is not recognized 的错误,此时需要改用基于 npx 的命令。",
-        "fit": "根据文档中对安装路径的对比,CLI 安装被定位为适合生产环境使用,'一切都按文档所述工作',而更轻量的插件安装则用于在不完全投入的情况下试用单个插件的命令。这似乎表明 Ruflo 更适合已经在使用 Claude Code 或 Codex、并希望获得额外编排能力的团队。"
+        "goal": "README 将 Ruflo 描述为面向 Claude Code 和 Codex 的智能体元框架（meta-harness）——一个在这些工具之上添加专业智能体、集群协调、自学习记忆和跨机器智能体联邦功能的执行层。",
+        "usage": "核心安装命令是 `npx ruflo init`，用于配置完整的 CLI 功能集（智能体、MCP 服务器、钩子）；另有一种较轻量的方式是通过 Claude Code 插件市场添加 Ruflo，也可以使用 `claude mcp add claude-flow -- npx ruflo@latest mcp start` 将其注册为 MCP 服务器。",
+        "pros": "README 列出了 100 多个专业智能体、多种集群协调拓扑、基于 HNSW 索引的 AgentDB 自学习记忆、由 33 个原生插件和 21 个 npm 插件组成的市场、涵盖 Claude、GPT、Gemini、Cohere、Ollama 的多提供商路由，以及 AIDefence 和 CVE 修复等安全功能。",
+        "cons": "README 记录了两种不同的安装路径——轻量级插件安装与完整 CLI 安装——两者在文件结构、MCP 注册和钩子方面有所不同；文档还指出两种路径下 MCP 工具命名也不一致（带前缀的插件工具名与 CLI 的裸工具名），这可能意味着在两种路径之间套用示例时需要格外留意。",
+        "fit": "鉴于其明确依赖 Claude Code 和 Codex，并强调多智能体协调、记忆与联邦功能，Ruflo 似乎更适合已经在使用这些工具、并希望获得生产级协调能力的团队，若需要文档中描述的完整功能，则建议采用 CLI 安装方式。"
       },
       "es": {
-        "goal": "Según el README, Ruflo se presenta como un meta-harness de agentes para Claude Code y Codex: una capa de ejecución que añade agentes especializados, coordinación de enjambres, memoria de autoaprendizaje y comunicación federada entre máquinas, con el objetivo de que los agentes colaboren en lugar de operar de forma aislada.",
-        "usage": "La instalación comienza con el comando `npx ruflo init`, que instala la pila completa de CLI (agentes, comandos, hooks y daemon) para usar con Claude Code. Los usuarios multiplataforma también pueden ejecutar el asistente interactivo `npx ruflo@latest init wizard`. Una alternativa más ligera es instalar plugins individuales de Claude Code desde el marketplace, lo que añade solo comandos de barra diagonal sin los archivos ni el daemon en segundo plano de la CLI.",
-        "pros": "El README enumera 100+ agentes especializados, varias topologías de enjambre con consenso, componentes de autoaprendizaje (SONA, ReasoningBank), un marketplace con 33 plugins nativos más plugins de npm, enrutamiento multiproveedor de LLM (Claude, GPT, Gemini, Cohere, Ollama) y funciones de seguridad como AIDefence y remediación de CVE.",
-        "cons": "El conjunto de funciones es amplio —el propio README menciona 314 herramientas MCP y 26 comandos de CLI—, lo que sugiere una curva de aprendizaje más allá del paso inicial de `init`. Además, se advierte a los usuarios de Windows que el instalador de una línea con curl requiere un shell POSIX y puede fallar con un error de tipo 'bash' is not recognized, por lo que deben usar en su lugar el comando basado en npx.",
-        "fit": "Según la comparación documentada entre las rutas de instalación, la instalación por CLI se presenta como apta para uso en producción, donde 'todo funciona según lo documentado', mientras que la instalación de plugins más ligera está pensada para probar los comandos de un solo plugin sin comprometerse con la configuración completa. Esto sugiere que Ruflo se ajusta a equipos que ya trabajan con Claude Code o Codex y desean orquestación adicional."
+        "goal": "El README presenta Ruflo como un meta-harness de agentes para Claude Code y Codex: una capa de ejecución que añade agentes especializados, coordinación de enjambres, memoria de autoaprendizaje y federación de agentes entre máquinas.",
+        "usage": "La instalación principal es `npx ruflo init`, que configura el conjunto completo de funciones de la CLI (agentes, servidor MCP, hooks); una opción más ligera es añadir Ruflo como plugin de Claude Code desde el marketplace. También puede registrarse como servidor MCP con `claude mcp add claude-flow -- npx ruflo@latest mcp start`.",
+        "pros": "El README enumera más de 100 agentes especializados, varias topologías de coordinación de enjambres, memoria de autoaprendizaje respaldada por un AgentDB indexado con HNSW, un marketplace con 33 plugins nativos y 21 plugins npm, enrutamiento multi-proveedor de LLM (Claude, GPT, Gemini, Cohere, Ollama) y funciones de seguridad como AIDefence y remediación de CVE.",
+        "cons": "El README documenta dos rutas de instalación distintas —una instalación ligera de plugin frente a la instalación completa por CLI— con archivos, registro MCP y hooks diferentes; también señala que los nombres de las herramientas MCP difieren entre ambas (nombres de plugin con prefijo frente a nombres simples de la CLI), lo que podría requerir atención al aplicar ejemplos pensados para una ruta en la otra.",
+        "fit": "Dada su dependencia declarada de Claude Code y Codex, y su énfasis en la orquestación multiagente, la memoria y la federación, Ruflo parece pensado sobre todo para equipos que ya usan esas herramientas y buscan funciones de coordinación de nivel productivo, recomendándose la instalación por CLI para acceder a la funcionalidad completa documentada."
       },
       "ja": {
-        "goal": "READMEによると、RufloはClaude CodeとCodex向けのエージェント・メタハーネスとして紹介されており、専門化されたエージェント、スウォーム調整、自己学習型メモリ、複数マシン間のフェデレーション通信を追加する実行レイヤーであり、エージェントが孤立せず協調して動作することを目指しているとされています。",
-        "usage": "セットアップは `npx ruflo init` コマンドから始まり、Claude Code向けにエージェント・コマンド・フック・デーモンを含む完全なCLIスタックがインストールされます。プラットフォームを問わず、対話形式の `npx ruflo@latest init wizard` を代わりに実行することもできます。より軽量な代替手段として、マーケットプレイス経由で個々のClaude Codeプラグインをインストールする方法もあり、この場合CLIのファイルやバックグラウンドデーモンなしでスラッシュコマンドのみが追加されます。",
-        "pros": "READMEには、100+の専門エージェント、コンセンサス機能を備えた複数のスウォームトポロジー、自己学習コンポーネント(SONA、ReasoningBank)、33のネイティブプラグインとnpmプラグインからなるマーケットプレイス、マルチプロバイダーのLLMルーティング(Claude、GPT、Gemini、Cohere、Ollama)、そしてAIDefenceやCVE対応といったセキュリティ機能が挙げられています。",
-        "cons": "機能全体の規模は大きく、README自体が314のMCPツールと26のCLIコマンドに言及していることから、初回の `init` 以降には一定の学習コストがあると考えられます。また、Windowsユーザーについては、1行のcurlインストーラーがPOSIXシェルを必要とし、'bash' is not recognized というエラーが発生する可能性があるため、代わりにnpxベースのコマンドを使う必要がある旨が注意書きされています。",
-        "fit": "ドキュメント化されたインストール経路の比較によれば、CLIインストールは『すべてがドキュメント通りに動作する』本番利用向けと位置付けられており、より軽量なプラグインインストールは完全な導入をせずに単一プラグインのコマンドを試すためのものとされています。このことから、RufloはすでにClaude CodeまたはCodexを使用しており、追加のオーケストレーションを求めるチームに適していると考えられます。"
+        "goal": "READMEはRufloを、Claude CodeとCodex向けの「エージェント・メタハーネス」として紹介しており、専門エージェント、スウォーム連携、自己学習型メモリ、マシン間のエージェントフェデレーションを追加する実行レイヤーだと説明しています。",
+        "usage": "中心となるインストールコマンドは `npx ruflo init` で、エージェント・MCPサーバー・フックを含む完全なCLI機能一式をセットアップします。より軽量な方法として、Claude Codeのプラグインマーケットプレイス経由でRufloを追加することもでき、`claude mcp add claude-flow -- npx ruflo@latest mcp start` によりMCPサーバーとして登録することも可能です。",
+        "pros": "READMEには、100を超える専門エージェント、複数のスウォーム連携トポロジー、HNSWインデックス付きAgentDBによる自己学習メモリ、ネイティブプラグイン33個とnpmプラグイン21個からなるマーケットプレイス、Claude・GPT・Gemini・Cohere・Ollamaに対応するマルチプロバイダーのルーティング、AIDefenceやCVE対応といったセキュリティ機能が挙げられています。",
+        "cons": "READMEでは、ファイル構成・MCP登録・フックが異なる、軽量なプラグインインストールとフルCLIインストールという2つの導入経路が文書化されており、さらに両者の間でMCPツール名の付け方が異なる（接頭辞付きのプラグインツール名とCLIの素のツール名）ことも指摘されています。これは、一方の経路向けの例をもう一方に適用する際に注意が必要になる可能性を示唆しています。",
+        "fit": "Claude CodeとCodexへの明記された依存関係、およびマルチエージェント連携・メモリ・フェデレーションへの重点を踏まえると、Rufloはこれらのツールを既に利用しており、本番レベルの連携機能を求めるチームに適していると考えられ、文書化された全機能を利用するにはCLIインストールが推奨されているようです。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 22,
+          "start_line": 20,
           "end_line": 22,
           "section_heading": "Ruflo"
         },
         {
-          "start_line": 26,
-          "end_line": 26,
+          "start_line": 31,
+          "end_line": 33,
           "section_heading": "Ruflo"
         }
       ],
       "usage": [
         {
-          "start_line": 28,
-          "end_line": 28,
+          "start_line": 33,
+          "end_line": 33,
           "section_heading": "Ruflo"
         },
         {
-          "start_line": 176,
-          "end_line": 176,
-          "section_heading": "CLI Install"
+          "start_line": 58,
+          "end_line": 66,
+          "section_heading": "Quick Start"
         },
         {
-          "start_line": 63,
-          "end_line": 74,
-          "section_heading": "Path A — Claude Code Plugins (lite, slash commands only)"
+          "start_line": 194,
+          "end_line": 196,
+          "section_heading": "MCP Server"
         }
       ],
       "pros": [
         {
-          "start_line": 200,
-          "end_line": 203,
+          "start_line": 205,
+          "end_line": 209,
           "section_heading": "What You Get"
         },
         {
-          "start_line": 206,
-          "end_line": 208,
-          "section_heading": "What You Get"
-        },
-        {
-          "start_line": 209,
-          "end_line": 212,
+          "start_line": 211,
+          "end_line": 213,
           "section_heading": "What You Get"
         }
       ],
       "cons": [
         {
-          "start_line": 38,
-          "end_line": 38,
-          "section_heading": "Ruflo"
+          "start_line": 58,
+          "end_line": 66,
+          "section_heading": "Quick Start"
         },
         {
-          "start_line": 185,
-          "end_line": 185,
-          "section_heading": "CLI Install"
+          "start_line": 81,
+          "end_line": 81,
+          "section_heading": "Path A — Claude Code Plugins (lite, slash commands only)"
         }
       ],
       "fit": [
         {
-          "start_line": 53,
-          "end_line": 54,
+          "start_line": 60,
+          "end_line": 66,
           "section_heading": "Quick Start"
         },
         {
-          "start_line": 55,
-          "end_line": 61,
-          "section_heading": "Quick Start"
+          "start_line": 31,
+          "end_line": 31,
+          "section_heading": "Ruflo"
         }
       ]
     },
@@ -2847,9 +2806,30 @@
       },
       {
         "kind": "command",
-        "value": "npx ruflo@latest init wizard",
+        "value": "claude mcp add claude-flow -- npx ruflo@latest mcp start",
         "fields": [
           "usage"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "100+",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "33",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "21",
+        "fields": [
+          "pros"
         ]
       },
       {
@@ -2879,24 +2859,10 @@
         ]
       },
       {
-        "kind": "number",
-        "value": "100+",
+        "kind": "product",
+        "value": "AgentDB",
         "fields": [
           "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "314",
-        "fields": [
-          "cons"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "26",
-        "fields": [
-          "cons"
         ]
       }
     ],
@@ -2908,11 +2874,11 @@
       "kind": "readme",
       "slug": "ruvnet/ruflo",
       "path": "README.md",
-      "blob_sha": "92c8620461d17032a87d7c5c395e60fb27e6aafe",
-      "content_sha256": "c7fd1828983ea5a378460432d40a7bb7317e87ae8481ef6f05cc8c90e0baa702",
+      "blob_sha": "ffcad10b1db22f3ff4f092b17107f5347a430f3d",
+      "content_sha256": "4602f42d7e6a7625d4c08bfc81c1f2fdc0eb00a874b202600ca97c7da572d3de",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.259",
+      "cli_version": "2.1.263",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -4638,47 +4604,47 @@
   },
   "fmtlib/fmt": {
     "content": {
-      "goal": "{fmt} is an open-source C++ formatting library offering a fast, safe alternative to C stdio and C++ iostreams. It implements the C++20 std::format and C++23 std::print interfaces with a Python-like format string syntax.",
-      "usage": "The library exposes fmt::print() and fmt::format() functions, e.g. fmt::print(\"Hello, world!\\n\"); and fmt::format(\"The answer is {}.\", 42). Documentation and API reference are published at https://fmt.dev, and an optional header-only mode can be enabled via the FMT_HEADER_ONLY macro.",
-      "pros": "The README reports {fmt} formatting numeric values tens of percent to 20–30 times faster than sprintf and iostreams, plus up to 9 times faster file writes than fprintf. It is described as fully type-safe with compile-time format-string checks, has no external dependencies, ships under the permissive MIT license, and is adopted by projects such as ClickHouse, MongoDB, PyTorch, spdlog, and Windows Terminal.",
-      "cons": "Benchmarks in the README show fmt 12.2 header usage taking about 5.1s to compile versus 1.6s for printf in an optimized build, indicating a compile-time cost trade-off for its added features. The compile-time format-string error example is shown specifically for C++20, suggesting this safety guarantee may not extend to older standards.",
-      "fit": "Given its adoption by large C++ codebases across databases (ClickHouse, MongoDB, MariaDB), ML frameworks (PyTorch), and logging/proxy tools (spdlog, Quill, Envoy), {fmt} appears best suited for performance-sensitive C++ applications seeking safer formatting than printf/iostreams, though this reflects project usage examples rather than an explicit fit statement in the README."
+      "goal": "{fmt} is an open-source C++ formatting library described in its README as a fast and safe alternative to C stdio and C++ iostreams, implementing the C++20 std::format and C++23 std::print interfaces.",
+      "usage": "It is used by including a header such as `#include <fmt/core.h>` and calling functions like `fmt::print(\"Hello, world!\\n\");` to format and print text; documentation is hosted at https://fmt.dev.",
+      "pros": "The README reports fmt can be tens of percent to 20–30 times faster than sprintf and iostreams for numeric formatting, with a single-threaded file-writing example cited as up to 9 times faster than fprintf; it also uses the Dragonbox algorithm for IEEE 754 floating-point formatting with correct rounding, offers compile-time format-string checking, and ships under a permissive MIT license with no external dependencies.",
+      "cons": "Benchmark figures in the README, measured on one specific machine (an Apple M5 Max running macOS 26.6.2 with Apple Clang 21.0.0), show optimized-build compile times of about 5.1 seconds for fmt 12.2 headers versus 1.6 seconds for plain printf and 49.1 seconds for Boost Format 1.92, so fmt adds measurable compile-time overhead compared to printf, though results may differ on other compilers or platforms.",
+      "fit": "Based on the notable adopters it lists, including ClickHouse, MongoDB, PyTorch, and Windows Terminal, fmt appears best suited to C++ projects that need high-performance, type-safe text formatting, though its fit for minimal-footprint or embedded contexts is not directly addressed."
     },
     "summaries": {
       "en": {
-        "goal": "{fmt} is an open-source C++ formatting library offering a fast, safe alternative to C stdio and C++ iostreams. It implements the C++20 std::format and C++23 std::print interfaces with a Python-like format string syntax.",
-        "usage": "The library exposes fmt::print() and fmt::format() functions, e.g. fmt::print(\"Hello, world!\\n\"); and fmt::format(\"The answer is {}.\", 42). Documentation and API reference are published at https://fmt.dev, and an optional header-only mode can be enabled via the FMT_HEADER_ONLY macro.",
-        "pros": "The README reports {fmt} formatting numeric values tens of percent to 20–30 times faster than sprintf and iostreams, plus up to 9 times faster file writes than fprintf. It is described as fully type-safe with compile-time format-string checks, has no external dependencies, ships under the permissive MIT license, and is adopted by projects such as ClickHouse, MongoDB, PyTorch, spdlog, and Windows Terminal.",
-        "cons": "Benchmarks in the README show fmt 12.2 header usage taking about 5.1s to compile versus 1.6s for printf in an optimized build, indicating a compile-time cost trade-off for its added features. The compile-time format-string error example is shown specifically for C++20, suggesting this safety guarantee may not extend to older standards.",
-        "fit": "Given its adoption by large C++ codebases across databases (ClickHouse, MongoDB, MariaDB), ML frameworks (PyTorch), and logging/proxy tools (spdlog, Quill, Envoy), {fmt} appears best suited for performance-sensitive C++ applications seeking safer formatting than printf/iostreams, though this reflects project usage examples rather than an explicit fit statement in the README."
+        "goal": "{fmt} is an open-source C++ formatting library described in its README as a fast and safe alternative to C stdio and C++ iostreams, implementing the C++20 std::format and C++23 std::print interfaces.",
+        "usage": "It is used by including a header such as `#include <fmt/core.h>` and calling functions like `fmt::print(\"Hello, world!\\n\");` to format and print text; documentation is hosted at https://fmt.dev.",
+        "pros": "The README reports fmt can be tens of percent to 20–30 times faster than sprintf and iostreams for numeric formatting, with a single-threaded file-writing example cited as up to 9 times faster than fprintf; it also uses the Dragonbox algorithm for IEEE 754 floating-point formatting with correct rounding, offers compile-time format-string checking, and ships under a permissive MIT license with no external dependencies.",
+        "cons": "Benchmark figures in the README, measured on one specific machine (an Apple M5 Max running macOS 26.6.2 with Apple Clang 21.0.0), show optimized-build compile times of about 5.1 seconds for fmt 12.2 headers versus 1.6 seconds for plain printf and 49.1 seconds for Boost Format 1.92, so fmt adds measurable compile-time overhead compared to printf, though results may differ on other compilers or platforms.",
+        "fit": "Based on the notable adopters it lists, including ClickHouse, MongoDB, PyTorch, and Windows Terminal, fmt appears best suited to C++ projects that need high-performance, type-safe text formatting, though its fit for minimal-footprint or embedded contexts is not directly addressed."
       },
       "ko": {
-        "goal": "{fmt}은 C 표준 stdio 및 C++ iostreams의 빠르고 안전한 대안을 제공하는 오픈소스 C++ 포매팅 라이브러리입니다. C++20의 std::format과 C++23의 std::print를 구현하며, Python과 유사한 포맷 문자열 구문을 사용합니다.",
-        "usage": "라이브러리는 fmt::print()와 fmt::format() 함수를 제공하며, 예를 들어 fmt::print(\"Hello, world!\\n\");와 fmt::format(\"The answer is {}.\", 42)와 같이 사용합니다. 문서와 API 레퍼런스는 https://fmt.dev 에서 제공되며, FMT_HEADER_ONLY 매크로를 통해 선택적으로 헤더 전용 모드를 활성화할 수 있습니다.",
-        "pros": "README에 따르면 {fmt}는 숫자 포매팅에서 sprintf 및 iostreams보다 수십 퍼센트에서 최대 20~30배까지 빠르며, fprintf 대비 최대 9배 빠른 파일 쓰기가 가능하다고 설명합니다. 컴파일 타임에 포맷 문자열 오류를 검사하는 완전한 타입 안전성을 갖추었고, 외부 의존성이 없으며 관대한 MIT 라이선스로 배포되고, ClickHouse, MongoDB, PyTorch, spdlog, Windows Terminal 등의 프로젝트에서 사용됩니다.",
-        "cons": "README의 벤치마크에 따르면 fmt 12.2 헤더 사용 시 최적화 빌드 기준 컴파일 시간이 약 5.1초로, printf의 1.6초보다 길어 기능 추가에 따른 컴파일 시간 트레이드오프가 있는 것으로 보입니다. 또한 컴파일 타임 포맷 문자열 오류 예시가 C++20에 한정되어 제시되어, 이 안전성 보장이 이전 표준에는 적용되지 않을 수 있음을 시사합니다.",
-        "fit": "ClickHouse, MongoDB, MariaDB 같은 데이터베이스, PyTorch 같은 ML 프레임워크, spdlog, Quill, Envoy 같은 로깅/프록시 도구 등 대규모 C++ 코드베이스에서 채택된 사례로 볼 때, {fmt}는 printf나 iostreams보다 안전한 포매팅을 원하는 성능 민감형 C++ 애플리케이션에 적합해 보입니다. 다만 이는 README에 나열된 사용 사례에 근거한 추정이며 명시적인 적합성 서술은 아닙니다."
+        "goal": "{fmt}는 오픈소스 C++ 포맷팅 라이브러리로, README에서는 C 표준 입출력(stdio)과 C++ iostreams에 대한 빠르고 안전한 대안으로 소개되며, C++20의 std::format과 C++23의 std::print 인터페이스를 구현합니다.",
+        "usage": "`#include <fmt/core.h>` 같은 헤더를 포함하고 `fmt::print(\"Hello, world!\\n\");`처럼 함수를 호출해 텍스트를 서식화하고 출력하는 방식으로 사용하며, 문서는 https://fmt.dev 에서 제공됩니다.",
+        "pros": "README에 따르면 fmt는 숫자 포맷팅에서 sprintf와 iostreams보다 수십 퍼센트에서 20–30배까지 빠를 수 있으며, 단일 스레드 파일 쓰기 예제는 fprintf보다 최대 9배 빠르다고 소개됩니다. 또한 IEEE 754 부동소수점 서식화에 정확한 반올림을 제공하는 Dragonbox 알고리즘을 사용하고, 컴파일 타임 서식 문자열 검사를 지원하며, 외부 의존성 없이 관대한 MIT 라이선스로 배포됩니다.",
+        "cons": "README의 벤치마크 수치는 특정 환경(Apple M5 Max, macOS 26.6.2, Apple Clang 21.0.0)에서 측정된 것으로, 최적화 빌드에서 fmt 12.2 헤더의 컴파일 시간은 약 5.1초로 순수 printf의 1.6초, Boost Format 1.92의 49.1초와 비교됩니다. 즉 fmt는 printf 대비 눈에 띄는 컴파일 시간 오버헤드가 있을 수 있으며, 다른 컴파일러나 플랫폼에서는 결과가 달라질 수 있습니다.",
+        "fit": "ClickHouse, MongoDB, PyTorch, Windows Terminal 등 README에 언급된 채택 사례로 미루어 볼 때, fmt는 고성능·타입 안전 텍스트 포맷팅이 필요한 C++ 프로젝트에 적합해 보이지만, 최소 용량이나 임베디드 환경에 대한 적합성은 README에서 직접적으로 다루지 않습니다."
       },
       "zh-CN": {
-        "goal": "{fmt} 是一个开源 C++ 格式化库,旨在为 C 标准 stdio 和 C++ iostreams 提供快速且安全的替代方案。它实现了 C++20 的 std::format 和 C++23 的 std::print,并采用类似 Python 的格式字符串语法。",
-        "usage": "该库提供 fmt::print() 和 fmt::format() 函数,例如 fmt::print(\"Hello, world!\\n\"); 和 fmt::format(\"The answer is {}.\", 42)。文档和 API 参考发布于 https://fmt.dev,并可通过 FMT_HEADER_ONLY 宏启用可选的仅头文件模式。",
-        "pros": "根据 README,{fmt} 在数值格式化方面比 sprintf 和 iostreams 快数十个百分点甚至最多 20 至 30 倍,文件写入速度比 fprintf 最多快 9 倍。它被描述为完全类型安全,支持编译期格式字符串检查,无外部依赖,采用宽松的 MIT 许可证发布,并被 ClickHouse、MongoDB、PyTorch、spdlog、Windows Terminal 等项目采用。",
-        "cons": "README 中的基准测试显示,在优化构建下使用 fmt 12.2 头文件编译耗时约 5.1 秒,而 printf 仅需 1.6 秒,表明为获得额外功能需要付出编译时间上的权衡。此外,编译期格式字符串错误的示例仅针对 C++20 给出,这可能意味着该安全保证未必适用于更早的标准。",
-        "fit": "鉴于 ClickHouse、MongoDB、MariaDB 等数据库、PyTorch 等机器学习框架,以及 spdlog、Quill、Envoy 等日志/代理工具都采用了该库,{fmt} 似乎更适合追求性能且希望获得比 printf 或 iostreams 更安全格式化方式的 C++ 应用。不过这一判断基于 README 列举的使用案例,而非明确的适用性说明。"
+        "goal": "{fmt} 是一个开源 C++ 格式化库,其 README 将其描述为 C 标准 stdio 和 C++ iostreams 的快速、安全替代方案,并实现了 C++20 的 std::format 与 C++23 的 std::print 接口。",
+        "usage": "使用方式是包含头文件,例如 `#include <fmt/core.h>`,并调用诸如 `fmt::print(\"Hello, world!\\n\");` 之类的函数来格式化并输出文本;文档托管在 https://fmt.dev。",
+        "pros": "根据 README,在数值格式化方面 fmt 比 sprintf 和 iostreams 快数十个百分点乃至 20–30 倍,其单线程文件写入示例据称比 fprintf 最多快 9 倍;此外它使用 Dragonbox 算法进行 IEEE 754 浮点数格式化并保证正确舍入,支持编译期格式字符串检查,并以宽松的 MIT 许可证发布,无外部依赖。",
+        "cons": "README 中的基准数据是在特定机器(搭载 Apple Clang 21.0.0 的 macOS 26.6.2 系统上的 Apple M5 Max)上测得的:优化构建下 fmt 12.2 头文件版本编译约需 5.1 秒,而纯 printf 仅需 1.6 秒,Boost Format 1.92 则需 49.1 秒。也就是说,相较 printf,fmt 会带来可观察到的编译时间开销,不过在其他编译器或平台上结果可能有所不同。",
+        "fit": "从 README 列出的采用者来看,包括 ClickHouse、MongoDB、PyTorch 和 Windows Terminal,fmt 似乎更适合需要高性能、类型安全文本格式化的 C++ 项目;不过其对最小体积或嵌入式场景的适用性,README 并未直接说明。"
       },
       "es": {
-        "goal": "{fmt} es una biblioteca de formateo en C++ de código abierto que ofrece una alternativa rápida y segura a stdio de C y a los iostreams de C++. Implementa std::format de C++20 y std::print de C++23, con una sintaxis de cadenas de formato similar a la de Python.",
-        "usage": "La biblioteca expone las funciones fmt::print() y fmt::format(), por ejemplo fmt::print(\"Hello, world!\\n\"); y fmt::format(\"The answer is {}.\", 42). La documentación y la referencia de la API están publicadas en https://fmt.dev, y se puede habilitar opcionalmente un modo solo de encabezados mediante la macro FMT_HEADER_ONLY.",
-        "pros": "Según el README, {fmt} formatea valores numéricos entre decenas de por ciento y hasta 20-30 veces más rápido que sprintf e iostreams, y hasta 9 veces más rápido que fprintf al escribir archivos. Se describe como totalmente segura en tipos, con comprobación de cadenas de formato en tiempo de compilación, sin dependencias externas, bajo la licencia permisiva MIT, y utilizada por proyectos como ClickHouse, MongoDB, PyTorch, spdlog y Windows Terminal.",
-        "cons": "Los benchmarks del README muestran que compilar con los encabezados de fmt 12.2 toma alrededor de 5.1 s en una build optimizada, frente a 1.6 s de printf, lo que indica un compromiso en tiempo de compilación a cambio de sus funciones adicionales. Además, el ejemplo de error de cadena de formato en tiempo de compilación se presenta específicamente para C++20, lo que sugiere que esta garantía podría no extenderse a estándares anteriores.",
-        "fit": "Dada su adopción en bases de código C++ de gran escala como bases de datos (ClickHouse, MongoDB, MariaDB), frameworks de aprendizaje automático (PyTorch) y herramientas de registro/proxy (spdlog, Quill, Envoy), {fmt} parece adecuada para aplicaciones C++ sensibles al rendimiento que buscan un formateo más seguro que printf o iostreams, aunque esto se basa en los ejemplos de uso del README más que en una declaración explícita de idoneidad."
+        "goal": "{fmt} es una biblioteca de formateo de C++ de código abierto que su README describe como una alternativa rápida y segura a stdio de C y a iostreams de C++, e implementa las interfaces std::format de C++20 y std::print de C++23.",
+        "usage": "Se utiliza incluyendo una cabecera como `#include <fmt/core.h>` y llamando a funciones como `fmt::print(\"Hello, world!\\n\");` para dar formato e imprimir texto; la documentación está alojada en https://fmt.dev.",
+        "pros": "Según el README, fmt puede ser entre decenas de por ciento y 20–30 veces más rápido que sprintf e iostreams en el formateo numérico, y un ejemplo de escritura de archivos en un solo hilo se describe como hasta 9 veces más rápido que fprintf; también usa el algoritmo Dragonbox para el formateo de punto flotante IEEE 754 con redondeo correcto, ofrece verificación de cadenas de formato en tiempo de compilación y se distribuye bajo una licencia MIT permisiva sin dependencias externas.",
+        "cons": "Las cifras de referencia del README se midieron en una máquina específica (un Apple M5 Max con macOS 26.6.2 y Apple Clang 21.0.0): en una compilación optimizada, los encabezados de fmt 12.2 tardaron unos 5.1 segundos frente a 1.6 segundos de printf puro y 49.1 segundos de Boost Format 1.92; es decir, fmt añade una sobrecarga de compilación medible respecto a printf, aunque los resultados podrían variar en otros compiladores o plataformas.",
+        "fit": "A juzgar por los adoptantes que menciona, como ClickHouse, MongoDB, PyTorch y Windows Terminal, fmt parece adecuado sobre todo para proyectos de C++ que necesitan formateo de texto de alto rendimiento y con seguridad de tipos, aunque su idoneidad para contextos embebidos o de huella mínima no se aborda directamente."
       },
       "ja": {
-        "goal": "{fmt} は、C の stdio や C++ の iostreams に代わる高速かつ安全な選択肢を提供するオープンソースの C++ フォーマットライブラリです。C++20 の std::format と C++23 の std::print を実装しており、Python に似たフォーマット文字列構文を採用しています。",
-        "usage": "このライブラリは fmt::print() と fmt::format() という関数を提供し、例えば fmt::print(\"Hello, world!\\n\"); や fmt::format(\"The answer is {}.\", 42) のように使用します。ドキュメントと API リファレンスは https://fmt.dev で公開されており、FMT_HEADER_ONLY マクロによってヘッダオンリーモードを任意で有効にできます。",
-        "pros": "README によると、{fmt} は数値フォーマットにおいて sprintf や iostreams より数十パーセントから最大20〜30倍高速であり、fprintf と比べてファイル書き込みが最大9倍速いとされています。コンパイル時にフォーマット文字列をチェックする完全な型安全性を備え、外部依存がなく、寛容な MIT ライセンスで提供され、ClickHouse、MongoDB、PyTorch、spdlog、Windows Terminal などのプロジェクトで採用されています。",
-        "cons": "README のベンチマークでは、最適化ビルドにおいて fmt 12.2 のヘッダを使用した場合のコンパイル時間は約5.1秒で、printf の1.6秒より長く、追加機能と引き換えにコンパイル時間のトレードオフがあることを示しています。また、コンパイル時のフォーマット文字列エラーの例は C++20 に限定して示されており、この安全性保証が旧来の標準には及ばない可能性を示唆しています。",
-        "fit": "ClickHouse、MongoDB、MariaDB といったデータベースや、PyTorch のような機械学習フレームワーク、spdlog、Quill、Envoy などのロギング/プロキシツールなど、大規模な C++ コードベースでの採用例から見て、{fmt} は printf や iostreams よりも安全なフォーマットを求めるパフォーマンス重視の C++ アプリケーションに適していると考えられます。ただしこれは README に挙げられた利用例に基づく推測であり、明示的な適合性の記述ではありません。"
+        "goal": "{fmt} はオープンソースの C++ フォーマットライブラリで、README では C の stdio や C++ の iostreams に代わる高速かつ安全な代替手段として説明されており、C++20 の std::format と C++23 の std::print インターフェースを実装しています。",
+        "usage": "`#include <fmt/core.h>` のようなヘッダーをインクルードし、`fmt::print(\"Hello, world!\\n\");` のような関数を呼び出してテキストを整形・出力する形で利用します。ドキュメントは https://fmt.dev で公開されています。",
+        "pros": "README によると、fmt は数値の書式設定において sprintf や iostreams より数十パーセントから 20–30 倍高速になり得るとされ、シングルスレッドでのファイル書き込み例では fprintf より最大 9 倍高速だと紹介されています。また、IEEE 754 浮動小数点数の書式設定に正しい丸めを保証する Dragonbox アルゴリズムを使用し、コンパイル時のフォーマット文字列チェックに対応し、外部依存のない寛容な MIT ライセンスで配布されています。",
+        "cons": "README のベンチマーク値は特定の環境(Apple Clang 21.0.0 を搭載した macOS 26.6.2 上の Apple M5 Max)で計測されたもので、最適化ビルドでは fmt 12.2 のヘッダー版のコンパイル時間が約 5.1 秒であるのに対し、素の printf は 1.6 秒、Boost Format 1.92 は 49.1 秒とされています。つまり fmt は printf に比べて無視できないコンパイル時間のオーバーヘッドを伴う可能性があり、他のコンパイラやプラットフォームでは結果が異なる可能性があります。",
+        "fit": "README が挙げる採用例(ClickHouse、MongoDB、PyTorch、Windows Terminal など)から判断すると、fmt は高性能かつ型安全なテキスト整形を必要とする C++ プロジェクトに適していると考えられますが、最小フットプリントや組み込み用途への適合性については直接言及されていません。"
       }
     },
     "evidence": {
@@ -4696,53 +4662,58 @@
       ],
       "usage": [
         {
-          "start_line": 85,
-          "end_line": 98,
-          "section_heading": "Examples"
-        },
-        {
           "start_line": 23,
           "end_line": 23,
           "section_heading": ""
         },
         {
-          "start_line": 76,
-          "end_line": 77,
-          "section_heading": "Features"
+          "start_line": 86,
+          "end_line": 86,
+          "section_heading": "Examples"
+        },
+        {
+          "start_line": 89,
+          "end_line": 89,
+          "section_heading": "Examples"
         }
       ],
       "pros": [
         {
-          "start_line": 185,
-          "end_line": 188,
-          "section_heading": "Performance"
-        },
-        {
-          "start_line": 65,
-          "end_line": 70,
+          "start_line": 44,
+          "end_line": 46,
           "section_heading": "Features"
         },
         {
-          "start_line": 244,
-          "end_line": 258,
-          "section_heading": "Projects using {fmt}"
+          "start_line": 161,
+          "end_line": 162,
+          "section_heading": "Examples"
+        },
+        {
+          "start_line": 185,
+          "end_line": 186,
+          "section_heading": "Performance"
         }
       ],
       "cons": [
         {
-          "start_line": 216,
-          "end_line": 227,
+          "start_line": 205,
+          "end_line": 211,
           "section_heading": "Compile time and code bloat"
         },
         {
-          "start_line": 141,
-          "end_line": 148,
-          "section_heading": "Examples"
+          "start_line": 216,
+          "end_line": 224,
+          "section_heading": "Compile time and code bloat"
         }
       ],
       "fit": [
         {
           "start_line": 242,
+          "end_line": 244,
+          "section_heading": "Projects using {fmt}"
+        },
+        {
+          "start_line": 246,
           "end_line": 258,
           "section_heading": "Projects using {fmt}"
         }
@@ -4758,17 +4729,44 @@
       },
       {
         "kind": "command",
-        "value": "fmt::format(\"The answer is {}.\", 42)",
+        "value": "#include <fmt/core.h>",
         "fields": [
           "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "{fmt}",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "std::format",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "std::print",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Dragonbox",
+        "fields": [
+          "pros"
         ]
       },
       {
         "kind": "version",
         "value": "C++20",
         "fields": [
-          "goal",
-          "cons"
+          "goal"
         ]
       },
       {
@@ -4786,17 +4784,10 @@
         ]
       },
       {
-        "kind": "number",
-        "value": "20–30 times faster",
+        "kind": "version",
+        "value": "Boost Format 1.92",
         "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "9 times faster",
-        "fields": [
-          "pros"
+          "cons"
         ]
       },
       {
@@ -4807,14 +4798,18 @@
         ]
       },
       {
-        "kind": "product",
-        "value": "fmt",
+        "kind": "number",
+        "value": "20–30",
         "fields": [
-          "goal",
-          "usage",
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "9",
+        "fields": [
           "pros",
-          "cons",
-          "fit"
+          "cons"
         ]
       }
     ],
@@ -4826,8 +4821,8 @@
       "kind": "readme",
       "slug": "fmtlib/fmt",
       "path": "README.md",
-      "blob_sha": "dea49fbbbdc341c565fa410a4755c644bc0bec76",
-      "content_sha256": "66428cffb0100ff8b324d578ed1291cc06ff3439d8ac40e83b2ccd24b285768a",
+      "blob_sha": "a8a56f17aca2a36d4805d37334fb9992fd130c81",
+      "content_sha256": "d560c28c4649a888af9b725231f828f9475978c146efcc2b0aa1049bc4cf12a8",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -5632,51 +5627,56 @@
   },
   "Imbad0202/academic-research-skills": {
     "content": {
-      "goal": "Academic Research Skills (ARS) for Claude Code is a skill suite usable in Claude Code, VS Code, and JetBrains that covers the academic research pipeline from research through publication. It is framed as a human-in-the-loop tool rather than full automation, handling reference-finding, citation formatting, and consistency checks while leaving question framing, methodology, and interpretation to the researcher.",
-      "usage": "Install it as a plugin with `/plugin marketplace add Imbad0202/academic-research-skills` then `/plugin install academic-research-skills`, supported on Claude Code CLI, VS Code, or JetBrains version v3.7.0+. Afterward, run `/ars-plan` to begin a guided Socratic dialogue on paper structure, or follow the Quick Install section's traditional symlink flow and prerequisites for other setups.",
-      "pros": "ARS documents a 13-agent Deep Research skill, a 12-agent Academic Paper writer, a 7-agent multi-perspective reviewer, and a 10-stage Academic Pipeline orchestrator with integrity checkpoints. It supports five citation formats (APA, Chicago, MLA, IEEE, Vancouver), several paper structures, and features like Style Calibration and citation verification gates.",
-      "cons": "A few optional features—revision-patch mode, submission-package verification, and some cache commands—require a real Python interpreter; on Windows the bundled `python3` command can be a non-functional Microsoft Store stub, and without Git Bash the associated write-scope guard becomes inactive and logs a per-call error instead of failing silently. Live reviewer output is also documented as remaining `NOT_CALIBRATED`.",
-      "fit": "ARS seems suited to researchers who want AI help with citation handling, formatting, and consistency checks while retaining control of research design and argumentation, rather than for those seeking fully automated paper generation. The work is licensed CC BY-NC 4.0, implying non-commercial use under its stated terms."
+      "goal": "Academic Research Skills (ARS) is a suite of Claude Code skills covering the academic research pipeline from initial research to publication, currently at version v3.21.2. It is positioned as a human-in-the-loop tool that automates supporting tasks—reference gathering, citation formatting, and consistency checks—while leaving question framing, methodology choice, and interpretation to the researcher.",
+      "usage": "Install through the Claude Code CLI, VS Code, or JetBrains (Claude Code v3.7.0+) using `/plugin marketplace add Imbad0202/academic-research-skills` followed by `/plugin install academic-research-skills`. Set the `ANTHROPIC_API_KEY` environment variable. After installing, running `/ars-plan` starts a guided Socratic dialogue for structuring a paper; Pandoc and tectonic are optional for DOCX/PDF output.",
+      "pros": "The suite bundles four skills: a 13-agent Deep Research skill with Socratic and PRISMA review modes, a 12-agent Academic Paper writer offering style calibration and LaTeX/APA output, a 7-agent multi-perspective Paper Reviewer, and a 10-stage Pipeline orchestrator with mandatory integrity checkpoints and citation verification against bibliographic indexes such as Semantic Scholar and Crossref.",
+      "cons": "The Paper Reviewer's live output is documented as remaining 'NOT_CALIBRATED,' so no numerical score currently appears to map to accept or reject decisions. The optional reproducibility lockfile is described as configuration documentation rather than a replay guarantee, since LLM outputs are not byte-reproducible, and integrity checks do not appear able to confirm that reported procedures were actually performed.",
+      "fit": "Because the project is released under CC BY-NC 4.0, it appears intended for individual academic researchers and non-commercial use rather than commercial products. Its plugin-based installation suggests it is best suited to users already working inside the Claude Code CLI, VS Code, or JetBrains environment."
     },
     "summaries": {
       "en": {
-        "goal": "Academic Research Skills (ARS) for Claude Code is a skill suite usable in Claude Code, VS Code, and JetBrains that covers the academic research pipeline from research through publication. It is framed as a human-in-the-loop tool rather than full automation, handling reference-finding, citation formatting, and consistency checks while leaving question framing, methodology, and interpretation to the researcher.",
-        "usage": "Install it as a plugin with `/plugin marketplace add Imbad0202/academic-research-skills` then `/plugin install academic-research-skills`, supported on Claude Code CLI, VS Code, or JetBrains version v3.7.0+. Afterward, run `/ars-plan` to begin a guided Socratic dialogue on paper structure, or follow the Quick Install section's traditional symlink flow and prerequisites for other setups.",
-        "pros": "ARS documents a 13-agent Deep Research skill, a 12-agent Academic Paper writer, a 7-agent multi-perspective reviewer, and a 10-stage Academic Pipeline orchestrator with integrity checkpoints. It supports five citation formats (APA, Chicago, MLA, IEEE, Vancouver), several paper structures, and features like Style Calibration and citation verification gates.",
-        "cons": "A few optional features—revision-patch mode, submission-package verification, and some cache commands—require a real Python interpreter; on Windows the bundled `python3` command can be a non-functional Microsoft Store stub, and without Git Bash the associated write-scope guard becomes inactive and logs a per-call error instead of failing silently. Live reviewer output is also documented as remaining `NOT_CALIBRATED`.",
-        "fit": "ARS seems suited to researchers who want AI help with citation handling, formatting, and consistency checks while retaining control of research design and argumentation, rather than for those seeking fully automated paper generation. The work is licensed CC BY-NC 4.0, implying non-commercial use under its stated terms."
+        "goal": "Academic Research Skills (ARS) is a suite of Claude Code skills covering the academic research pipeline from initial research to publication, currently at version v3.21.2. It is positioned as a human-in-the-loop tool that automates supporting tasks—reference gathering, citation formatting, and consistency checks—while leaving question framing, methodology choice, and interpretation to the researcher.",
+        "usage": "Install through the Claude Code CLI, VS Code, or JetBrains (Claude Code v3.7.0+) using `/plugin marketplace add Imbad0202/academic-research-skills` followed by `/plugin install academic-research-skills`. Set the `ANTHROPIC_API_KEY` environment variable. After installing, running `/ars-plan` starts a guided Socratic dialogue for structuring a paper; Pandoc and tectonic are optional for DOCX/PDF output.",
+        "pros": "The suite bundles four skills: a 13-agent Deep Research skill with Socratic and PRISMA review modes, a 12-agent Academic Paper writer offering style calibration and LaTeX/APA output, a 7-agent multi-perspective Paper Reviewer, and a 10-stage Pipeline orchestrator with mandatory integrity checkpoints and citation verification against bibliographic indexes such as Semantic Scholar and Crossref.",
+        "cons": "The Paper Reviewer's live output is documented as remaining 'NOT_CALIBRATED,' so no numerical score currently appears to map to accept or reject decisions. The optional reproducibility lockfile is described as configuration documentation rather than a replay guarantee, since LLM outputs are not byte-reproducible, and integrity checks do not appear able to confirm that reported procedures were actually performed.",
+        "fit": "Because the project is released under CC BY-NC 4.0, it appears intended for individual academic researchers and non-commercial use rather than commercial products. Its plugin-based installation suggests it is best suited to users already working inside the Claude Code CLI, VS Code, or JetBrains environment."
       },
       "ko": {
-        "goal": "Claude Code용 Academic Research Skills(ARS)는 Claude Code, VS Code, JetBrains에서 쓸 수 있는 스킬 모음이며, 연구부터 출판까지 학술 연구 파이프라인 전체를 다룹니다. README에 따르면 이 도구는 완전 자동화가 아니라 human-in-the-loop 방식으로 설계되어, 참고문헌 탐색·인용 형식화·일관성 검사 등의 작업을 대신 처리하고, 질문 설정과 방법론 선택, 해석은 연구자가 담당하도록 남겨둡니다.",
-        "usage": "`/plugin marketplace add Imbad0202/academic-research-skills` 명령어를 실행한 뒤 `/plugin install academic-research-skills`를 실행하면 플러그인으로 설치할 수 있으며, Claude Code CLI, VS Code, JetBrains(버전 v3.7.0+)에서 지원됩니다. 설치 후에는 `/ars-plan`을 실행해 논문 구조에 대한 소크라테스식 안내 대화를 시작하거나, Quick Install 섹션에 설명된 전통적인 심볼릭 링크 설치 방식과 사전 요구 사항을 따를 수 있습니다.",
-        "pros": "ARS는 13개 에이전트로 구성된 Deep Research 스킬, 12개 에이전트의 Academic Paper 작성 스킬, 7개 에이전트의 다중 관점 리뷰어, 그리고 무결성 체크포인트를 갖춘 10단계 Academic Pipeline 오케스트레이터를 문서화하고 있습니다. APA, Chicago, MLA, IEEE, Vancouver 등 다섯 가지 인용 형식과 여러 논문 구조를 지원하며, Style Calibration과 인용 검증 게이트 같은 기능도 포함합니다.",
-        "cons": "리비전 패치 모드, 제출 패키지 검증, 일부 캐시 명령 같은 선택적 기능은 실제 Python 인터프리터를 필요로 하며, Windows에서는 기본 제공되는 `python3`가 작동하지 않는 Microsoft Store 자리표시자일 수 있다고 README는 언급합니다. Git Bash가 없으면 관련 쓰기 범위 가드가 비활성화되어 조용히 실패하는 대신 호출마다 오류를 기록합니다. 또한 현재 라이브 리뷰어 출력은 `NOT_CALIBRATED` 상태로 남아 있다고 문서화되어 있습니다.",
-        "fit": "ARS는 연구 설계와 논증에 대한 통제권은 유지하면서 인용 처리, 서식 지정, 일관성 검사 등에서 AI의 도움을 받고자 하는 연구자에게 적합해 보이며, 완전 자동화된 논문 생성을 원하는 사용자에게는 맞지 않을 수 있습니다. 이 저작물은 CC BY-NC 4.0 라이선스로 배포되어, 명시된 조건에 따라 비상업적 용도로 한정되는 것으로 보입니다."
+        "goal": "Academic Research Skills(ARS)는 Claude Code용 스킬 모음으로, 초기 리서치부터 출판까지 학술 연구 파이프라인 전반을 다루며 현재 버전은 v3.21.2입니다. 이 도구는 인간이 직접 개입하는(human-in-the-loop) 방식으로 설계되어 있으며, 참고문헌 수집, 인용 형식 정리, 일관성 검토 같은 보조 작업을 자동화하는 동시에 질문 설정, 방법론 선택, 결과 해석은 연구자에게 맡깁니다.",
+        "usage": "Claude Code CLI, VS Code, 또는 JetBrains(Claude Code v3.7.0+)에서 `/plugin marketplace add Imbad0202/academic-research-skills` 명령 이후 `/plugin install academic-research-skills` 명령으로 설치합니다. `ANTHROPIC_API_KEY` 환경 변수를 설정해야 합니다. 설치 후 `/ars-plan`을 실행하면 논문 구조를 잡기 위한 소크라테스식 대화가 시작되며, DOCX/PDF 출력을 위해 Pandoc과 tectonic은 선택 사항입니다.",
+        "pros": "이 제품군은 네 가지 스킬로 구성됩니다: 소크라테스식 및 PRISMA 리뷰 모드를 갖춘 13-에이전트 Deep Research, 스타일 캘리브레이션과 LaTeX/APA 출력을 제공하는 12-에이전트 Academic Paper 작성 도구, 다각도 검토를 수행하는 7-에이전트 Paper Reviewer, 그리고 필수 무결성 체크포인트와 Semantic Scholar·Crossref 같은 서지 색인 대조 인용 검증을 갖춘 10단계 Pipeline 오케스트레이터입니다.",
+        "cons": "문서에 따르면 Paper Reviewer의 실사용 출력은 여전히 'NOT_CALIBRATED' 상태로 남아 있어, 현재로서는 어떤 수치 점수도 승인/거절 결정에 매핑되지 않는 것으로 보입니다. 선택적 재현성 락파일은 LLM 출력이 바이트 단위로 재현되지 않기 때문에 재생 보장이 아니라 구성 문서로 설명되어 있으며, 무결성 검사도 보고된 절차가 실제로 수행되었음을 확인해주지는 못하는 것으로 보입니다.",
+        "fit": "CC BY-NC 4.0 라이선스로 배포되는 점을 고려하면, 상업적 제품보다는 개별 학술 연구자와 비상업적 용도에 맞춰진 것으로 보입니다. 플러그인 기반 설치 방식은 이미 Claude Code CLI, VS Code, 또는 JetBrains 환경에서 작업 중인 사용자에게 가장 적합할 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "面向 Claude Code 的 Academic Research Skills(ARS)是一套可在 Claude Code、VS Code 和 JetBrains 中使用的技能集合,涵盖从研究到发表的完整学术研究流程。README 将其定位为 human-in-the-loop 工具而非全自动化方案:它负责查找参考文献、格式化引用和一致性检查等工作,而问题设定、方法选择与结果解读则留给研究者本人。",
-        "usage": "可通过依次运行 `/plugin marketplace add Imbad0202/academic-research-skills` 和 `/plugin install academic-research-skills` 以插件方式安装,支持 Claude Code CLI、VS Code 或 JetBrains(版本 v3.7.0+)。安装后,可运行 `/ars-plan` 开始关于论文结构的引导式苏格拉底式对话,或按照 Quick Install 章节中描述的传统符号链接安装流程及前置条件进行安装。",
-        "pros": "ARS 文档记录了一个 13 智能体的 Deep Research 技能、一个 12 智能体的 Academic Paper 写作技能、一个 7 智能体的多视角评审技能,以及一个带有完整性检查点的 10 阶段 Academic Pipeline 编排器。它支持 APA、Chicago、MLA、IEEE、Vancouver 五种引用格式和多种论文结构,还包含 Style Calibration 与引用核验关卡等功能。",
-        "cons": "部分可选功能——修订补丁模式、投稿包验证以及部分缓存命令——需要真正的 Python 解释器;README 指出,在 Windows 上自带的 `python3` 可能只是一个无法运行的 Microsoft Store 占位程序,若缺少 Git Bash,相关的写入范围防护将处于未激活状态,并且每次调用都会记录错误而非静默失效。文档还说明当前的实时评审输出仍保持 `NOT_CALIBRATED` 状态。",
-        "fit": "ARS 似乎更适合那些希望借助 AI 处理引用整理、格式排版和一致性检查、同时自己把控研究设计与论证的研究者,而非寻求全自动论文生成的用户。该项目采用 CC BY-NC 4.0 许可,按其条款推断仅限非商业用途。"
+        "goal": "Academic Research Skills(ARS)是面向 Claude Code 的技能套件,涵盖从初期研究到发表的学术研究全流程,当前版本为 v3.21.2。它被定位为一种人机协作(human-in-the-loop)工具,自动完成参考文献收集、引用格式化和一致性检查等辅助任务,而将问题设定、方法选择和结果解读留给研究者本人。",
+        "usage": "可在 Claude Code CLI、VS Code 或 JetBrains 中安装(需要 Claude Code v3.7.0+):先执行 `/plugin marketplace add Imbad0202/academic-research-skills`,再执行 `/plugin install academic-research-skills`。需要设置 `ANTHROPIC_API_KEY` 环境变量。安装完成后运行 `/ars-plan` 会启动一段苏格拉底式对话,帮助梳理论文结构;Pandoc 和 tectonic 为可选组件,用于生成 DOCX/PDF。",
+        "pros": "该套件由四个技能组成:拥有苏格拉底式与 PRISMA 综述模式的 13 智能体 Deep Research;提供风格校准与 LaTeX/APA 输出的 12 智能体 Academic Paper 写作工具;进行多视角评审的 7 智能体 Paper Reviewer;以及带有强制完整性检查点、并对照 Semantic Scholar、Crossref 等文献索引进行引用核验的 10 阶段 Pipeline 编排器。",
+        "cons": "文档说明 Paper Reviewer 的实际输出仍处于'NOT_CALIBRATED'状态,这意味着目前似乎还没有任何数值评分被映射到接受或拒绝的决定上。可选的可复现性锁定文件被描述为配置文档而非重放保证,因为 LLM 输出并非逐字节可复现;同时完整性检查看起来也无法确认所报告的流程是否真正被执行过。",
+        "fit": "鉴于项目采用 CC BY-NC 4.0 许可发布,它似乎更适合个人学术研究者及非商业用途,而非商业产品。其基于插件的安装方式表明,该工具可能最适合已经在 Claude Code CLI、VS Code 或 JetBrains 环境中工作的用户。"
       },
       "es": {
-        "goal": "Academic Research Skills (ARS) para Claude Code es un conjunto de habilidades utilizable en Claude Code, VS Code y JetBrains que cubre el flujo de investigación académica desde la investigación hasta la publicación. El README lo presenta como una herramienta human-in-the-loop y no de automatización total: se encarga de tareas como buscar referencias, dar formato a citas y verificar la consistencia, mientras deja al investigador la definición de la pregunta, la elección del método y la interpretación.",
-        "usage": "Se instala como plugin ejecutando `/plugin marketplace add Imbad0202/academic-research-skills` y luego `/plugin install academic-research-skills`, compatible con Claude Code CLI, VS Code o JetBrains (versión v3.7.0+). Después de instalarlo, se puede ejecutar `/ars-plan` para iniciar un diálogo socrático guiado sobre la estructura del artículo, o seguir el flujo tradicional de enlaces simbólicos y los requisitos previos descritos en la sección Quick Install.",
-        "pros": "ARS documenta una habilidad Deep Research de 13 agentes, una habilidad de escritura Academic Paper de 12 agentes, un revisor multi-perspectiva de 7 agentes y un orquestador Academic Pipeline de 10 etapas con puntos de control de integridad. Admite cinco formatos de cita (APA, Chicago, MLA, IEEE, Vancouver) y varias estructuras de artículo, e incluye funciones como Style Calibration y verificación de citas.",
-        "cons": "Algunas funciones opcionales —el modo de parche de revisión, el verificador de paquetes de envío y ciertos comandos de caché— requieren un intérprete real de Python; el README señala que en Windows el `python3` incluido puede ser un marcador de posición no funcional de Microsoft Store, y que sin Git Bash el guardia de alcance de escritura queda inactivo y registra un error por cada llamada en lugar de fallar en silencio. También se documenta que las revisiones en vivo actuales permanecen en estado `NOT_CALIBRATED`.",
-        "fit": "ARS parece adecuado para investigadores que buscan ayuda de la IA en tareas como la gestión de citas, el formato y las verificaciones de consistencia, manteniendo el control sobre el diseño de la investigación y la argumentación, más que para quienes buscan generación de artículos totalmente automatizada. La obra se distribuye bajo licencia CC BY-NC 4.0, lo que según sus términos implica un uso no comercial."
+        "goal": "Academic Research Skills (ARS) es un conjunto de habilidades para Claude Code que cubre el proceso de investigación académica desde la fase inicial hasta la publicación, actualmente en la versión v3.21.2. Está concebido como una herramienta de supervisión humana (human-in-the-loop) que automatiza tareas de apoyo —recopilación de referencias, formato de citas y verificaciones de consistencia— dejando en manos del investigador la formulación de preguntas, la elección de metodología y la interpretación.",
+        "usage": "Se instala desde Claude Code CLI, VS Code o JetBrains (Claude Code v3.7.0+) ejecutando `/plugin marketplace add Imbad0202/academic-research-skills` seguido de `/plugin install academic-research-skills`. Debe configurarse la variable de entorno `ANTHROPIC_API_KEY`. Tras la instalación, ejecutar `/ars-plan` inicia un diálogo socrático guiado para estructurar un artículo; Pandoc y tectonic son opcionales para exportar a DOCX/PDF.",
+        "pros": "El conjunto incluye cuatro habilidades: Deep Research, con 13 agentes y modos socrático y PRISMA; Academic Paper, un redactor de 12 agentes con calibración de estilo y salida LaTeX/APA; Paper Reviewer, una revisión multiperspectiva de 7 agentes; y Pipeline, un orquestador de 10 etapas con puntos de control de integridad obligatorios y verificación de citas frente a índices bibliográficos como Semantic Scholar y Crossref.",
+        "cons": "Según la documentación, la salida en vivo de Paper Reviewer permanece como 'NOT_CALIBRATED', por lo que aparentemente ninguna puntuación numérica se traduce todavía en decisiones de aceptación o rechazo. El archivo de bloqueo de reproducibilidad, opcional, se describe como documentación de configuración y no como garantía de repetición, ya que las salidas de LLM no son reproducibles byte a byte; además, las verificaciones de integridad no parecen poder confirmar que los procedimientos reportados se ejecutaran realmente.",
+        "fit": "Al publicarse bajo licencia CC BY-NC 4.0, el proyecto parece dirigido a investigadores académicos individuales y a usos no comerciales, más que a productos comerciales. Su instalación basada en plugins sugiere que resulta más adecuado para quienes ya trabajan dentro de Claude Code CLI, VS Code o JetBrains."
       },
       "ja": {
-        "goal": "Claude Code 向けの Academic Research Skills(ARS)は、Claude Code、VS Code、JetBrains で利用できるスキル集で、研究から出版までの学術研究パイプライン全体をカバーします。README では、完全自動化ではなく human-in-the-loop のツールと位置付けられており、参考文献の検索、引用の書式整形、整合性チェックなどを担う一方で、問いの設定・手法の選択・解釈は研究者に委ねるとされています。",
-        "usage": "`/plugin marketplace add Imbad0202/academic-research-skills` を実行し、続けて `/plugin install academic-research-skills` を実行することでプラグインとしてインストールでき、Claude Code CLI・VS Code・JetBrains(バージョン v3.7.0+)に対応しています。インストール後は `/ars-plan` を実行すると論文構成についてのソクラテス式ガイド対話が始まります。あるいは Quick Install セクションに記載された従来のシンボリックリンク方式と前提条件に従うこともできます。",
-        "pros": "ARS には、13エージェント構成の Deep Research スキル、12エージェント構成の Academic Paper 執筆スキル、7エージェントによる多視点レビュアー、そして完全性チェックポイントを備えた10段階の Academic Pipeline オーケストレーターが文書化されています。APA・Chicago・MLA・IEEE・Vancouver の5つの引用形式や複数の論文構成に対応し、Style Calibration や引用検証ゲートといった機能も含まれます。",
-        "cons": "リビジョンパッチモード、提出パッケージ検証、一部のキャッシュコマンドなどのオプション機能には実際の Python インタープリタが必要であり、README によれば Windows では同梱の `python3` が動作しない Microsoft Store のプレースホルダーである場合があるとされています。Git Bash が無い場合、関連する write-scope ガードは無効化され、静かに失敗する代わりに呼び出しごとにエラーを記録します。また、現行のライブレビュー出力は `NOT_CALIBRATED` の状態のままであると文書化されています。",
-        "fit": "ARS は、研究設計や論証への統制を保ちながら、引用処理・書式整形・整合性チェックにおいて AI の支援を求める研究者に適していると考えられ、完全自動での論文生成を求めるユーザーには向かない可能性があります。本作品は CC BY-NC 4.0 ライセンスで提供されており、その条項からは非営利用途に限定されると解釈されます。"
+        "goal": "Academic Research Skills(ARS)は Claude Code 向けのスキル集で、初期のリサーチから論文発表までの学術研究パイプライン全体をカバーしており、現在のバージョンは v3.21.2 です。人間参加型(human-in-the-loop)のツールと位置づけられており、参考文献の収集、引用形式の整形、一貫性チェックといった補助作業を自動化する一方で、問いの設定や方法論の選択、結果の解釈は研究者自身に委ねられています。",
+        "usage": "Claude Code CLI、VS Code、または JetBrains(Claude Code v3.7.0+)上で、`/plugin marketplace add Imbad0202/academic-research-skills` を実行した後に `/plugin install academic-research-skills` を実行してインストールします。`ANTHROPIC_API_KEY` 環境変数の設定が必要です。インストール後に `/ars-plan` を実行すると、論文構成を組み立てるためのソクラテス式対話が開始されます。DOCX/PDF 出力には Pandoc と tectonic が任意で利用できます。",
+        "pros": "本スイートは4つのスキルで構成されます。ソクラテス式モードと PRISMA レビューモードを備えた13エージェントの Deep Research、スタイルキャリブレーションと LaTeX/APA 出力に対応する12エージェントの Academic Paper 執筆ツール、多角的な7エージェントの Paper Reviewer、そして必須の整合性チェックポイントと Semantic Scholar や Crossref などの文献索引に照らした引用検証を備えた10段階の Pipeline オーケストレーターです。",
+        "cons": "文書によれば、Paper Reviewer の実運用出力は依然として『NOT_CALIBRATED』のままとされており、現時点では数値スコアが採否判断に対応付けられていないようです。オプションの再現性ロックファイルは、LLM の出力がバイト単位で再現可能ではないため、再実行の保証ではなく構成に関する記録として説明されており、整合性チェックについても報告された手順が実際に行われたことまでは確認できないようです。",
+        "fit": "CC BY-NC 4.0 ライセンスで公開されていることから、商用製品というよりも個々の学術研究者や非営利目的での利用を想定しているように見えます。プラグイン形式でのインストールという性質上、すでに Claude Code CLI、VS Code、JetBrains 環境で作業しているユーザーに最も適していると考えられます。"
       }
     },
     "evidence": {
       "goal": [
+        {
+          "start_line": 1,
+          "end_line": 1,
+          "section_heading": "Academic Research Skills for Claude Code"
+        },
         {
           "start_line": 10,
           "end_line": 10,
@@ -5695,54 +5695,59 @@
           "section_heading": "Academic Research Skills for Claude Code"
         },
         {
-          "start_line": 58,
-          "end_line": 63,
-          "section_heading": "Quick install"
+          "start_line": 19,
+          "end_line": 19,
+          "section_heading": "Academic Research Skills for Claude Code"
         },
         {
-          "start_line": 65,
-          "end_line": 65,
+          "start_line": 53,
+          "end_line": 56,
           "section_heading": "Quick install"
         }
       ],
       "pros": [
         {
-          "start_line": 96,
-          "end_line": 99,
+          "start_line": 98,
+          "end_line": 101,
           "section_heading": "Features at a glance"
         },
         {
-          "start_line": 239,
-          "end_line": 243,
-          "section_heading": "Supported Citation Formats"
+          "start_line": 425,
+          "end_line": 425,
+          "section_heading": "v3.11.0 (2026-06-04) — Deterministic citation verification gate (#182)"
         }
       ],
       "cons": [
         {
-          "start_line": 54,
-          "end_line": 54,
-          "section_heading": "Quick install"
+          "start_line": 100,
+          "end_line": 100,
+          "section_heading": "Features at a glance"
         },
         {
-          "start_line": 98,
-          "end_line": 98,
+          "start_line": 105,
+          "end_line": 105,
+          "section_heading": "Features at a glance"
+        },
+        {
+          "start_line": 110,
+          "end_line": 110,
           "section_heading": "Features at a glance"
         }
       ],
       "fit": [
-        {
-          "start_line": 21,
-          "end_line": 23,
-          "section_heading": "Academic Research Skills for Claude Code"
-        },
         {
           "start_line": 5,
           "end_line": 5,
           "section_heading": "Academic Research Skills for Claude Code"
         },
         {
-          "start_line": 319,
-          "end_line": 328,
+          "start_line": 12,
+          "end_line": 12,
+          "section_heading": "Academic Research Skills for Claude Code"
+        },
+        {
+          "start_line": 321,
+          "end_line": 329,
           "section_heading": "License"
         }
       ]
@@ -5770,6 +5775,20 @@
         ]
       },
       {
+        "kind": "command",
+        "value": "ANTHROPIC_API_KEY",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "v3.21.2",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
         "kind": "version",
         "value": "v3.7.0+",
         "fields": [
@@ -5781,7 +5800,8 @@
         "value": "Claude Code",
         "fields": [
           "goal",
-          "usage"
+          "usage",
+          "fit"
         ]
       },
       {
@@ -5793,14 +5813,15 @@
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "imbad0202/academic-research-skills",
       "path": "README.md",
-      "blob_sha": "2ceaa43026ec2859cdd940cb0bfe54f54469afae",
-      "content_sha256": "49877af907b3298942057ffeb7d8bede2c487ead9c9758091368edb7b92c7f35",
+      "blob_sha": "5e3235b0096aa08c6333cfe4e20fad296a08e5ee",
+      "content_sha256": "7beab3c05d56f85a85f01003dee6f13e5a4d3ad06acbdc2b7dfef6106ce05cfc",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -7012,60 +7033,60 @@
   },
   "semantica-agi/semantica": {
     "content": {
-      "goal": "Semantica is described as graph-native infrastructure for context and knowledge graphs, combining a deterministic reasoning layer with decision provenance. According to the README, it ingests enterprise data to build a Context Graph and knowledge graph (KG), governed by ontologies (OWL, SHACL, SKOS), with graph analytics, causal reasoning, and full decision traceability, positioned as an alternative to expensive enterprise platforms.",
-      "usage": "Install via `pip install semantica`, then verify the installation with `semantica doctor`. The README's quick-start example uses `ContextGraph` from `semantica.context` to record decisions, trace causal chains, and check compliance rules in Python; a CLI, REST API, and MCP server are also documented for broader access.",
-      "pros": "The README states Semantica provides deterministic reasoning (forward chaining, Rete, Datalog, SPARQL) that does not require an LLM for graph construction or provenance. It offers polyglot graph storage (RDF and labeled property graphs), W3C PROV-O provenance on every fact, automatic conflict detection instead of silent overwrites, and native connectors for Databricks, Snowflake, and SAP.",
-      "cons": "The README notes that ReteEngine's alpha-node condition matcher is 'intentionally simple' in this release, so its rule-matching output should be validated against real rule sets before production compliance use. It also recommends Docker or Kubernetes with a persistent graph/vector store backend for production deployments rather than a local pip install.",
-      "fit": "According to the README, Semantica targets AI/ML platform teams, data platform teams on Databricks or Snowflake, and compliance/audit teams needing explainable decisions. It is positioned for regulated, high-stakes domains such as finance, healthcare, legal, and government/defense, where self-hosted deployment and audit trails matter, requiring Python 3.8+."
+      "goal": "Semantica is a graph-native infrastructure library that ingests enterprise data, builds a Context Graph and knowledge graph (KG), and runs deterministic reasoning, ontology management, and decision provenance over it.",
+      "usage": "Install Semantica with `pip install semantica`, then use Python (e.g., `from semantica.context import ContextGraph`) to ingest data, record decisions, and query the graph; run `semantica doctor` to verify the install.",
+      "pros": "Semantica includes deterministic reasoning engines (forward chaining, Rete, Datalog, SPARQL) that work without an LLM, W3C PROV-O provenance on every fact, polyglot RDF/LPG graph storage, and built-in conflict detection and deduplication.",
+      "cons": "Semantica's Rete engine currently uses an alpha-node condition matcher described as intentionally simple, so its output should be validated against your own rule set before use in a production compliance gate.",
+      "fit": "Semantica targets regulated, high-stakes domains such as finance, healthcare, legal, and government, requiring Python 3.8+ and self-hosted deployment (https://github.com/semantica-agi/semantica), positioned as an alternative to enterprise SaaS knowledge platforms."
     },
     "summaries": {
       "en": {
-        "goal": "Semantica is described as graph-native infrastructure for context and knowledge graphs, combining a deterministic reasoning layer with decision provenance. According to the README, it ingests enterprise data to build a Context Graph and knowledge graph (KG), governed by ontologies (OWL, SHACL, SKOS), with graph analytics, causal reasoning, and full decision traceability, positioned as an alternative to expensive enterprise platforms.",
-        "usage": "Install via `pip install semantica`, then verify the installation with `semantica doctor`. The README's quick-start example uses `ContextGraph` from `semantica.context` to record decisions, trace causal chains, and check compliance rules in Python; a CLI, REST API, and MCP server are also documented for broader access.",
-        "pros": "The README states Semantica provides deterministic reasoning (forward chaining, Rete, Datalog, SPARQL) that does not require an LLM for graph construction or provenance. It offers polyglot graph storage (RDF and labeled property graphs), W3C PROV-O provenance on every fact, automatic conflict detection instead of silent overwrites, and native connectors for Databricks, Snowflake, and SAP.",
-        "cons": "The README notes that ReteEngine's alpha-node condition matcher is 'intentionally simple' in this release, so its rule-matching output should be validated against real rule sets before production compliance use. It also recommends Docker or Kubernetes with a persistent graph/vector store backend for production deployments rather than a local pip install.",
-        "fit": "According to the README, Semantica targets AI/ML platform teams, data platform teams on Databricks or Snowflake, and compliance/audit teams needing explainable decisions. It is positioned for regulated, high-stakes domains such as finance, healthcare, legal, and government/defense, where self-hosted deployment and audit trails matter, requiring Python 3.8+."
+        "goal": "Semantica is a graph-native infrastructure library that ingests enterprise data, builds a Context Graph and knowledge graph (KG), and runs deterministic reasoning, ontology management, and decision provenance over it.",
+        "usage": "Install Semantica with `pip install semantica`, then use Python (e.g., `from semantica.context import ContextGraph`) to ingest data, record decisions, and query the graph; run `semantica doctor` to verify the install.",
+        "pros": "Semantica includes deterministic reasoning engines (forward chaining, Rete, Datalog, SPARQL) that work without an LLM, W3C PROV-O provenance on every fact, polyglot RDF/LPG graph storage, and built-in conflict detection and deduplication.",
+        "cons": "Semantica's Rete engine currently uses an alpha-node condition matcher described as intentionally simple, so its output should be validated against your own rule set before use in a production compliance gate.",
+        "fit": "Semantica targets regulated, high-stakes domains such as finance, healthcare, legal, and government, requiring Python 3.8+ and self-hosted deployment (https://github.com/semantica-agi/semantica), positioned as an alternative to enterprise SaaS knowledge platforms."
       },
       "ko": {
-        "goal": "Semantica는 README에서 컨텍스트와 지식 그래프를 위한 그래프 네이티브 인프라로 소개되며, 결정론적 추론 레이어와 의사결정 출처 추적(provenance) 기능을 결합합니다. README에 따르면 기업 데이터를 수집하여 Context Graph와 지식 그래프(KG)를 구축하고, OWL, SHACL, SKOS와 같은 온톨로지로 거버넌스하며, 그래프 분석과 인과 추론, 완전한 의사결정 추적성을 제공하고, 비싼 엔터프라이즈 플랫폼의 대안으로 자리매김하고 있습니다.",
-        "usage": "`pip install semantica`로 설치한 뒤 `semantica doctor`로 설치를 확인합니다. README의 퀵스타트 예제는 `semantica.context`의 `ContextGraph`를 사용해 Python에서 의사결정을 기록하고, 인과 체인을 추적하며, 규정 준수 규칙을 확인합니다. CLI, REST API, MCP 서버도 더 폭넓은 접근 방법으로 문서화되어 있습니다.",
-        "pros": "README에 따르면 Semantica는 그래프 구축이나 출처 추적에 LLM이 필요 없는 결정론적 추론(정방향 체이닝, Rete, Datalog, SPARQL)을 제공합니다. 폴리글랏 그래프 저장소(RDF 및 레이블 속성 그래프), 모든 사실에 대한 W3C PROV-O 출처 정보, 자동 충돌 감지(무단 덮어쓰기 방지), Databricks·Snowflake·SAP용 네이티브 커넥터를 갖추고 있습니다.",
-        "cons": "README는 ReteEngine의 알파 노드 조건 매처가 이번 릴리스에서 '의도적으로 단순하다'고 명시하며, 따라서 실제 규칙 세트로 검증한 후 프로덕션 컴플라이언스 게이트에 연결할 것을 권장합니다. 또한 프로덕션 배포 시 단순 로컬 pip install 대신 영속적인 그래프/벡터 저장소 백엔드를 갖춘 Docker나 Kubernetes 사용을 권장합니다.",
-        "fit": "README에 따르면 Semantica는 AI/ML 플랫폼 팀, Databricks나 Snowflake를 사용하는 데이터 플랫폼 팀, 설명 가능한 의사결정이 필요한 컴플라이언스·감사 팀을 대상으로 합니다. 금융, 의료, 법률, 정부·국방 등 자체 호스팅 배포와 감사 추적이 중요한 규제 산업에 적합하도록 설계되었으며, Python 3.8+ 환경이 필요합니다."
+        "goal": "Semantica는 기업 데이터를 수집하여 컨텍스트 그래프와 지식 그래프(KG)를 구축하고, 그 위에서 결정론적 추론과 온톨로지 관리, 의사결정 출처 추적을 수행하는 그래프 네이티브 인프라 라이브러리입니다.",
+        "usage": "`pip install semantica`로 Semantica를 설치한 뒤, Python에서 `from semantica.context import ContextGraph`와 같이 사용해 데이터를 수집하고 의사결정을 기록하며 그래프를 조회할 수 있습니다. 설치 확인은 `semantica doctor` 명령으로 할 수 있습니다.",
+        "pros": "Semantica는 LLM 없이도 동작하는 결정론적 추론 엔진(정방향 연쇄, Rete, Datalog, SPARQL)을 제공하며, 모든 사실에 W3C PROV-O 출처 정보를 남기고, RDF/LPG를 아우르는 폴리글랏 그래프 저장소와 내장된 충돌 감지·중복 제거 기능을 갖추고 있습니다.",
+        "cons": "Semantica의 Rete 엔진은 현재 알파 노드 조건 매처가 '의도적으로 단순하게' 구현되어 있어, 프로덕션 컴플라이언스 게이트에 사용하기 전에 자신의 규칙 집합에 대해 출력을 검증할 것을 권장합니다.",
+        "fit": "Semantica는 금융, 의료, 법률, 정부 등 규제가 엄격한 고위험 분야를 대상으로 하며, Python 3.8+ 환경과 자체 호스팅 배포(https://github.com/semantica-agi/semantica)를 필요로 하고, 값비싼 엔터프라이즈 SaaS 지식 플랫폼의 대안으로 자리매김하고 있습니다."
       },
       "zh-CN": {
-        "goal": "README将Semantica描述为面向上下文和知识图谱的图原生基础设施,结合了确定性推理层与决策溯源能力。据README所述,它可摄取企业数据以构建Context Graph和知识图谱(KG),由OWL、SHACL、SKOS等本体进行治理,并提供图分析、因果推理和完整的决策可追溯性,被定位为昂贵企业平台的替代方案。",
-        "usage": "通过`pip install semantica`安装,然后使用`semantica doctor`验证安装。README中的快速入门示例使用`semantica.context`模块的`ContextGraph`在Python中记录决策、追踪因果链并检查合规规则;文档还描述了CLI、REST API和MCP服务器等更广泛的访问方式。",
-        "pros": "据README所述,Semantica提供确定性推理(前向链、Rete、Datalog、SPARQL),构建图谱或溯源无需依赖LLM。它支持多语言图存储(RDF与标签属性图)、每条事实的W3C PROV-O溯源信息、自动冲突检测(而非静默覆盖),以及面向Databricks、Snowflake和SAP的原生连接器。",
-        "cons": "README指出,ReteEngine的alpha节点条件匹配器在本版本中'刻意保持简单',因此在将其接入生产合规审核流程前,应针对实际规则集验证match_patterns()的输出。README还建议生产部署应使用配备持久化图/向量存储后端的Docker或Kubernetes,而非仅依赖本地pip install。",
-        "fit": "据README所述,Semantica面向需要结构化、可查询上下文的AI/ML平台团队、使用Databricks或Snowflake的数据平台团队,以及需要可解释决策的合规与审计团队。它被定位用于金融、医疗、法律及政府/国防等受监管、高风险领域,注重自托管部署与审计追踪,运行环境需要Python 3.8+。"
+        "goal": "Semantica 是一个图原生基础设施库,用于摄取企业数据、构建上下文图谱和知识图谱(KG),并在其上运行确定性推理、本体管理和决策溯源。",
+        "usage": "通过 `pip install semantica` 安装 Semantica,然后在 Python 中使用如 `from semantica.context import ContextGraph` 的方式摄取数据、记录决策并查询图谱;运行 `semantica doctor` 可验证安装是否成功。",
+        "pros": "Semantica 提供无需 LLM 即可运行的确定性推理引擎(前向链、Rete、Datalog、SPARQL),为每个事实附加 W3C PROV-O 溯源信息,支持跨 RDF 和 LPG 的多语言图存储,并内置冲突检测与去重功能。",
+        "cons": "Semantica 的 Rete 引擎目前使用的 alpha 节点条件匹配器被描述为'有意保持简单',因此在将其用于生产环境的合规审查之前,建议先针对自己的规则集验证其输出结果。",
+        "fit": "Semantica 面向金融、医疗、法律、政府等受监管的高风险领域,需要 Python 3.8+ 环境并支持自托管部署(https://github.com/semantica-agi/semantica),定位为昂贵企业级 SaaS 知识平台的替代方案。"
       },
       "es": {
-        "goal": "El README describe a Semantica como una infraestructura nativa de grafos para contexto y grafos de conocimiento, que combina una capa de razonamiento determinista con procedencia de decisiones. Según el README, ingiere datos empresariales para construir un Context Graph y un grafo de conocimiento (KG), gobernado por ontologías (OWL, SHACL, SKOS), con analítica de grafos, razonamiento causal y trazabilidad completa de decisiones, posicionado como alternativa a plataformas empresariales costosas.",
-        "usage": "Instálalo con `pip install semantica` y verifica la instalación con `semantica doctor`. El ejemplo de inicio rápido del README usa `ContextGraph` de `semantica.context` para registrar decisiones, rastrear cadenas causales y comprobar reglas de cumplimiento en Python; también se documentan una CLI, una API REST y un servidor MCP para un acceso más amplio.",
-        "pros": "Según el README, Semantica ofrece razonamiento determinista (encadenamiento hacia adelante, Rete, Datalog, SPARQL) que no requiere un LLM para construir el grafo ni para la procedencia. Incluye almacenamiento de grafos poliglota (RDF y grafos de propiedades etiquetadas), procedencia W3C PROV-O en cada hecho, detección automática de conflictos en lugar de sobrescrituras silenciosas, y conectores nativos para Databricks, Snowflake y SAP.",
-        "cons": "El README señala que el comparador de condiciones de nodo alfa de ReteEngine es 'intencionalmente simple' en esta versión, por lo que su salida debería validarse contra reglas reales antes de usarlo en una puerta de cumplimiento de producción. También recomienda usar Docker o Kubernetes con un almacén de grafos/vectores persistente para despliegues de producción, en lugar de un simple pip install local.",
-        "fit": "Según el README, Semantica está dirigido a equipos de plataformas de IA/ML, equipos de datos que usan Databricks o Snowflake, y equipos de cumplimiento y auditoría que necesitan decisiones explicables. Está pensado para dominios regulados y de alto riesgo como finanzas, salud, legal y gobierno/defensa, donde importan el despliegue autoalojado y las pistas de auditoría, y requiere Python 3.8+."
+        "goal": "Semantica es una biblioteca de infraestructura nativa de grafos que ingiere datos empresariales, construye un Context Graph y un grafo de conocimiento (KG), y ejecuta razonamiento determinista, gestión de ontologías y trazabilidad de decisiones sobre ellos.",
+        "usage": "Instale Semantica con `pip install semantica` y luego use Python (por ejemplo, `from semantica.context import ContextGraph`) para ingerir datos, registrar decisiones y consultar el grafo; ejecute `semantica doctor` para verificar la instalación.",
+        "pros": "Semantica incluye motores de razonamiento determinista (encadenamiento hacia adelante, Rete, Datalog, SPARQL) que funcionan sin un LLM, procedencia W3C PROV-O en cada hecho, almacenamiento poliglota RDF/LPG, y detección de conflictos y deduplicación integradas.",
+        "cons": "El motor Rete de Semantica utiliza actualmente un comparador de condiciones de nodo alfa descrito como 'intencionalmente simple', por lo que se recomienda validar su salida contra el propio conjunto de reglas antes de usarlo en una puerta de cumplimiento en producción.",
+        "fit": "Semantica está orientado a dominios regulados y de alto riesgo como finanzas, salud, legal y gobierno, requiere Python 3.8+ y despliegue autoalojado (https://github.com/semantica-agi/semantica), y se posiciona como alternativa a las plataformas SaaS empresariales costosas."
       },
       "ja": {
-        "goal": "READMEによると、Semanticaはコンテキストと知識グラフのためのグラフネイティブ・インフラストラクチャとされ、決定論的な推論レイヤーと意思決定のプロベナンス(来歴)追跡を組み合わせています。企業データを取り込みContext Graphと知識グラフ(KG)を構築し、OWL・SHACL・SKOSなどのオントロジーで統治し、グラフ分析・因果推論・完全な意思決定トレーサビリティを提供する、高価なエンタープライズ製品の代替として位置付けられています。",
-        "usage": "`pip install semantica`でインストールし、`semantica doctor`でインストールを確認します。READMEのクイックスタート例では、`semantica.context`の`ContextGraph`を使ってPythonで意思決定を記録し、因果チェーンを追跡し、コンプライアンスルールをチェックします。より広いアクセス手段としてCLI、REST API、MCPサーバーも文書化されています。",
-        "pros": "READMEによれば、Semanticaはグラフ構築やプロベナンスにLLMを必要としない決定論的推論(フォワードチェイニング、Rete、Datalog、SPARQL)を提供します。ポリグロットなグラフストレージ(RDFおよびラベル付きプロパティグラフ)、すべての事実に対するW3C PROV-Oプロベナンス、サイレントな上書きではなく自動的な競合検出、Databricks・Snowflake・SAP向けのネイティブコネクタを備えています。",
-        "cons": "READMEでは、ReteEngineのアルファノード条件マッチャーは本リリースでは「意図的にシンプル」であると述べられており、本番のコンプライアンスゲートに組み込む前に実際のルールセットに対して出力を検証すべきだとされています。また本番デプロイでは、単純なローカルpip installではなく、永続的なグラフ/ベクトルストアのバックエンドを備えたDockerまたはKubernetesの使用が推奨されています。",
-        "fit": "READMEによると、SemanticaはAI/MLプラットフォームチーム、DatabricksやSnowflakeを使うデータプラットフォームチーム、説明可能な意思決定を必要とするコンプライアンス・監査チームを対象としています。金融、医療、法律、政府・防衛といった規制の厳しいハイステークス領域向けに位置付けられ、セルフホスト型のデプロイと監査証跡が重視され、Python 3.8+が必要です。"
+        "goal": "Semanticaは、企業データを取り込んでコンテキストグラフとナレッジグラフ(KG)を構築し、その上で決定論的推論、オントロジー管理、意思決定の来歴追跡を行うグラフネイティブ基盤ライブラリです。",
+        "usage": "`pip install semantica` でSemanticaをインストールし、Pythonで `from semantica.context import ContextGraph` のように使ってデータの取り込み、意思決定の記録、グラフの照会を行います。`semantica doctor` を実行するとインストールを検証できます。",
+        "pros": "SemanticaはLLMなしで動作する決定論的推論エンジン(前方連鎖、Rete、Datalog、SPARQL)を備え、すべての事実にW3C PROV-Oの来歴情報を付与し、RDFとLPGにまたがるポリグロットなグラフストレージ、組み込みの競合検出・重複排除機能を提供します。",
+        "cons": "SemanticaのReteエンジンは現在、アルファノードの条件マッチャーが『意図的にシンプル』であるとされており、本番のコンプライアンスゲートで使用する前に、自分のルールセットに対して出力を検証することが推奨されています。",
+        "fit": "Semanticaは金融、医療、法律、政府などの規制対象かつハイステークスな領域を対象としており、Python 3.8+環境とセルフホスト型の展開(https://github.com/semantica-agi/semantica)を必要とし、高価なエンタープライズSaaSナレッジプラットフォームの代替として位置づけられています。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 15,
-          "end_line": 19,
+          "end_line": 15,
           "section_heading": "Graph-Native Infrastructure for Context and Accountable AI Systems"
         },
         {
-          "start_line": 65,
-          "end_line": 65,
-          "section_heading": "Built for High-Stakes, Regulated Domains"
+          "start_line": 19,
+          "end_line": 19,
+          "section_heading": "*Developer-first, knowledge infrastructure for AI, alternative to expensive enterprise platforms.*"
         }
       ],
       "usage": [
@@ -7076,7 +7097,7 @@
         },
         {
           "start_line": 123,
-          "end_line": 142,
+          "end_line": 135,
           "section_heading": "Quick Start"
         },
         {
@@ -7087,14 +7108,19 @@
       ],
       "pros": [
         {
-          "start_line": 84,
-          "end_line": 94,
+          "start_line": 65,
+          "end_line": 65,
+          "section_heading": "Built for High-Stakes, Regulated Domains"
+        },
+        {
+          "start_line": 87,
+          "end_line": 89,
           "section_heading": "What Semantica Gives You"
         },
         {
-          "start_line": 113,
-          "end_line": 113,
-          "section_heading": "Why Semantica"
+          "start_line": 92,
+          "end_line": 92,
+          "section_heading": "What Semantica Gives You"
         }
       ],
       "cons": [
@@ -7102,37 +7128,27 @@
           "start_line": 539,
           "end_line": 539,
           "section_heading": "Module Reference"
-        },
-        {
-          "start_line": 1549,
-          "end_line": 1549,
-          "section_heading": "Installation"
         }
       ],
       "fit": [
         {
-          "start_line": 69,
-          "end_line": 76,
+          "start_line": 1510,
+          "end_line": 1520,
+          "section_heading": "Built for High-Stakes Domains"
+        },
+        {
+          "start_line": 29,
+          "end_line": 29,
           "section_heading": "Built for High-Stakes, Regulated Domains"
         },
         {
-          "start_line": 1502,
-          "end_line": 1512,
-          "section_heading": "Built for High-Stakes Domains"
+          "start_line": 17,
+          "end_line": 17,
+          "section_heading": "*Developer-first, knowledge infrastructure for AI, alternative to expensive enterprise platforms.*"
         }
       ]
     },
     "invariants": [
-      {
-        "kind": "product",
-        "value": "Semantica",
-        "fields": [
-          "goal",
-          "usage",
-          "pros",
-          "fit"
-        ]
-      },
       {
         "kind": "command",
         "value": "pip install semantica",
@@ -7153,19 +7169,33 @@
         "fields": [
           "fit"
         ]
+      },
+      {
+        "kind": "product",
+        "value": "Semantica",
+        "fields": [
+          "goal",
+          "usage",
+          "pros",
+          "cons",
+          "fit"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://github.com/semantica-agi/semantica",
+        "fields": [
+          "fit"
+        ]
       }
     ],
-    "inference_fields": [
-      "goal",
-      "cons",
-      "fit"
-    ],
+    "inference_fields": [],
     "source": {
       "kind": "readme",
       "slug": "semantica-agi/semantica",
       "path": "README.md",
-      "blob_sha": "8958f26d48f2c4f52c3dfb1528623d2c8a04e7db",
-      "content_sha256": "4474db832d7508f91d0221f060316825ed5a52d8daa1b3dea7c292a0148811bb",
+      "blob_sha": "59c36a7081ed47520df70f9ebfc96260c3ab8506",
+      "content_sha256": "ecfb053fd7f906f140d34052b3e4a2d5c49774d599fd506f0b9898eb3bee50ac",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -8622,54 +8652,54 @@
   },
   "vorssaint/vorssaint-utils": {
     "content": {
-      "goal": "Vorssaint is a free, open-source macOS menu bar utility that combines volume mixing, system monitoring, window management, clipboard history, and other tools into a single app, aiming to replace multiple paid Mac utilities without requiring an account, subscription, or telemetry.",
-      "usage": "Vorssaint can be installed via Homebrew with `brew install --cask vorssaint`, or by downloading the signed, notarized disk image from the GitHub releases page. Developers can build it from source by cloning the repository and running `./build.sh` (or `./build.sh --install` to also install and launch it).",
-      "pros": "The README describes a modular design where uninstalled features stop consuming CPU, memory, or energy, while reinstalling restores prior settings. It also states the app is local-first with no telemetry, offers granular optional permissions with plain-language explanations, and ships signed and notarized builds.",
-      "cons": "According to the README, Vorssaint requires an Apple Silicon Mac running macOS 14 Sonoma or newer, so Intel Macs and older macOS versions are not supported; building from source additionally requires Xcode Command Line Tools.",
-      "fit": "Based on these requirements, Vorssaint appears best suited for Apple Silicon Mac users who want to consolidate several utility-style apps into one free, privacy-focused tool, though it may not fit users on Intel Macs, older macOS releases, or those needing only a single specific utility."
+      "goal": "Vorssaint is a free, open-source macOS menu bar application that consolidates utilities such as a per-app volume mixer, system monitor, window snapping, app switcher, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller into one icon, aiming to replace several separate paid Mac utility apps.",
+      "usage": "Vorssaint can be installed via Homebrew with `brew install --cask vorssaint`, or by downloading the disk image from https://github.com/vorssaint/vorssaint-utils/releases and dragging it into Applications. Developers can build it from source by cloning the repository and running `./build.sh` (or `./build.sh --install` to also install and launch it); Xcode Command Line Tools are required for building.",
+      "pros": "Individual features can be installed or uninstalled separately, so unused features stop loading and consume no CPU, memory or energy. Permissions are requested only for the features that need them and are explained in plain language. Releases are signed with an Apple Developer ID and notarized, and the project is released under the GPL-3.0-or-later license.",
+      "cons": "Vorssaint requires a Mac with Apple Silicon and macOS 14 Sonoma or newer, so it does not run on older macOS versions or Intel-based Macs. Some functionality also depends on granting macOS permissions such as Accessibility or Screen Recording, and Full Disk Access is needed for deeper cleaner and uninstaller scans.",
+      "fit": "Given its described local-first design with no account, analytics or tracking, the tool appears best suited to privacy-conscious Mac users on recent Apple Silicon hardware who want to replace multiple paid single-purpose utilities with one free, open-source menu bar app. Because of its stated macOS 14+ and Apple Silicon requirements, it likely is not usable on older or Intel-based Macs."
     },
     "summaries": {
       "en": {
-        "goal": "Vorssaint is a free, open-source macOS menu bar utility that combines volume mixing, system monitoring, window management, clipboard history, and other tools into a single app, aiming to replace multiple paid Mac utilities without requiring an account, subscription, or telemetry.",
-        "usage": "Vorssaint can be installed via Homebrew with `brew install --cask vorssaint`, or by downloading the signed, notarized disk image from the GitHub releases page. Developers can build it from source by cloning the repository and running `./build.sh` (or `./build.sh --install` to also install and launch it).",
-        "pros": "The README describes a modular design where uninstalled features stop consuming CPU, memory, or energy, while reinstalling restores prior settings. It also states the app is local-first with no telemetry, offers granular optional permissions with plain-language explanations, and ships signed and notarized builds.",
-        "cons": "According to the README, Vorssaint requires an Apple Silicon Mac running macOS 14 Sonoma or newer, so Intel Macs and older macOS versions are not supported; building from source additionally requires Xcode Command Line Tools.",
-        "fit": "Based on these requirements, Vorssaint appears best suited for Apple Silicon Mac users who want to consolidate several utility-style apps into one free, privacy-focused tool, though it may not fit users on Intel Macs, older macOS releases, or those needing only a single specific utility."
+        "goal": "Vorssaint is a free, open-source macOS menu bar application that consolidates utilities such as a per-app volume mixer, system monitor, window snapping, app switcher, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller into one icon, aiming to replace several separate paid Mac utility apps.",
+        "usage": "Vorssaint can be installed via Homebrew with `brew install --cask vorssaint`, or by downloading the disk image from https://github.com/vorssaint/vorssaint-utils/releases and dragging it into Applications. Developers can build it from source by cloning the repository and running `./build.sh` (or `./build.sh --install` to also install and launch it); Xcode Command Line Tools are required for building.",
+        "pros": "Individual features can be installed or uninstalled separately, so unused features stop loading and consume no CPU, memory or energy. Permissions are requested only for the features that need them and are explained in plain language. Releases are signed with an Apple Developer ID and notarized, and the project is released under the GPL-3.0-or-later license.",
+        "cons": "Vorssaint requires a Mac with Apple Silicon and macOS 14 Sonoma or newer, so it does not run on older macOS versions or Intel-based Macs. Some functionality also depends on granting macOS permissions such as Accessibility or Screen Recording, and Full Disk Access is needed for deeper cleaner and uninstaller scans.",
+        "fit": "Given its described local-first design with no account, analytics or tracking, the tool appears best suited to privacy-conscious Mac users on recent Apple Silicon hardware who want to replace multiple paid single-purpose utilities with one free, open-source menu bar app. Because of its stated macOS 14+ and Apple Silicon requirements, it likely is not usable on older or Intel-based Macs."
       },
       "ko": {
-        "goal": "Vorssaint는 무료 오픈소스 macOS 메뉴바 유틸리티로, 볼륨 믹서, 시스템 모니터, 창 관리, 클립보드 히스토리 등 여러 기능을 하나의 앱으로 통합하여 여러 유료 Mac 앱을 대체하는 것을 목표로 하며, 계정, 구독, 원격 측정 없이 동작한다고 설명합니다.",
-        "usage": "Vorssaint는 Homebrew를 통해 `brew install --cask vorssaint` 명령으로 설치하거나, GitHub 릴리스 페이지에서 서명 및 공증된 디스크 이미지를 내려받아 설치할 수 있습니다. 개발자는 저장소를 클론한 뒤 `./build.sh`(설치와 실행까지 하는 `./build.sh --install`도 가능)를 실행해 소스에서 빌드할 수 있습니다.",
-        "pros": "README에 따르면 사용하지 않는 기능을 제거하면 앱 전체에서 사라져 CPU, 메모리, 에너지를 소모하지 않으며, 다시 설치하면 이전 설정이 복원된다고 합니다. 또한 로컬 우선 방식으로 원격 측정이 없고, 권한은 선택적이며 평이한 언어로 설명되고, 빌드는 서명 및 공증되어 배포된다고 명시합니다.",
-        "cons": "README에 따르면 Vorssaint는 Apple Silicon Mac과 macOS 14 Sonoma 이상을 요구하므로 Intel Mac이나 이전 macOS 버전에서는 사용할 수 없으며, 소스 빌드에는 Xcode Command Line Tools가 추가로 필요합니다.",
-        "fit": "이러한 요구 사항을 고려하면 Vorssaint는 여러 유틸리티 앱을 하나의 무료 프라이버시 중심 도구로 통합하려는 Apple Silicon Mac 사용자에게 적합해 보이지만, Intel Mac이나 구형 macOS 사용자, 혹은 단일 기능만 필요한 사용자에게는 맞지 않을 수 있습니다."
+        "goal": "Vorssaint는 macOS 메뉴 막대 아이콘 하나로 앱별 볼륨 믹서, 시스템 모니터, 창 스냅, 앱 전환기, Dock 미리보기, 클립보드 기록, 텍스트 스니펫, 파일 선반, 제거 도구 등을 통합한 무료 오픈소스 애플리케이션으로, 여러 개의 유료 Mac 유틸리티 앱을 대체하는 것을 목표로 한다고 설명됩니다.",
+        "usage": "Vorssaint는 Homebrew를 사용해 `brew install --cask vorssaint` 명령으로 설치하거나, https://github.com/vorssaint/vorssaint-utils/releases 에서 디스크 이미지를 내려받아 Applications 폴더로 끌어다 놓아 설치할 수 있습니다. 개발자는 저장소를 클론한 뒤 `./build.sh`(또는 설치와 실행까지 함께 하는 `./build.sh --install`)를 실행해 소스에서 직접 빌드할 수 있으며, 빌드에는 Xcode Command Line Tools가 필요합니다.",
+        "pros": "개별 기능을 따로 설치하거나 제거할 수 있어, 사용하지 않는 기능은 로딩되지 않아 CPU, 메모리, 에너지를 소모하지 않는다고 설명됩니다. 권한은 해당 기능에 필요한 경우에만 요청되며 이해하기 쉬운 문구로 설명됩니다. 릴리스는 Apple Developer ID로 서명 및 공증되며, 프로젝트는 GPL-3.0-or-later 라이선스로 배포됩니다.",
+        "cons": "Vorssaint는 Apple Silicon Mac과 macOS 14 Sonoma 이상을 요구하므로, 이전 macOS 버전이나 Intel 기반 Mac에서는 실행되지 않습니다. 일부 기능은 접근성(Accessibility)이나 화면 기록(Screen Recording) 같은 macOS 권한 허용에 의존하며, 더 깊은 정리 및 제거 스캔에는 전체 디스크 접근 권한이 필요합니다.",
+        "fit": "계정, 분석, 추적이 없는 로컬 우선 설계로 설명되는 점을 고려하면, 이 도구는 여러 개의 유료 단일 목적 유틸리티를 하나의 무료 오픈소스 메뉴 막대 앱으로 대체하려는 최신 Apple Silicon Mac 사용자에게 가장 적합해 보입니다. macOS 14 이상과 Apple Silicon이라는 명시된 요구 사항 때문에, 이전 기종이나 Intel 기반 Mac에서는 사용할 수 없을 가능성이 높습니다."
       },
       "zh-CN": {
-        "goal": "Vorssaint 是一款免费开源的 macOS 菜单栏工具,将音量混音器、系统监视器、窗口管理、剪贴板历史等多种功能整合到一个应用中,旨在替代多款付费 Mac 工具,且据说明无需账户、订阅或遥测。",
-        "usage": "可以通过 Homebrew 执行 `brew install --cask vorssaint` 安装 Vorssaint,或从 GitHub 发布页面下载经签名和公证的磁盘映像进行安装。开发者也可以克隆代码仓库后运行 `./build.sh`(或使用 `./build.sh --install` 一并安装并启动)从源码构建。",
-        "pros": "根据说明文档,卸载某项功能后该功能会在整个应用中消失,不再占用 CPU、内存或电量,重新安装时会恢复此前的设置。文档还指出该应用采用本地优先方式,没有遥测,权限均为可选并以简明语言说明,且构建版本经过签名和公证。",
-        "cons": "根据说明文档,Vorssaint 需要 Apple Silicon Mac 并运行 macOS 14 Sonoma 或更高版本,因此不支持 Intel Mac 或更早的 macOS 版本;若从源码构建,还需要额外安装 Xcode Command Line Tools。",
-        "fit": "基于这些要求,Vorssaint 似乎更适合希望将多款实用工具整合为一个免费、注重隐私的应用的 Apple Silicon Mac 用户,但对于 Intel Mac 用户、较旧 macOS 版本的用户,或只需要单一功能的用户而言,可能并不合适。"
+        "goal": "Vorssaint 是一款免费开源的 macOS 菜单栏应用,据介绍它将单应用音量混音器、系统监视器、窗口贴靠、应用切换器、Dock 预览、剪贴板历史、文本片段、文件搁架和卸载工具等功能整合到一个图标中,旨在替代多款需要单独付费的 Mac 工具。",
+        "usage": "可以通过 Homebrew 使用 `brew install --cask vorssaint` 命令安装 Vorssaint,或从 https://github.com/vorssaint/vorssaint-utils/releases 下载磁盘映像后拖入 Applications 文件夹。开发者也可以克隆仓库后运行 `./build.sh`(或同时完成安装与启动的 `./build.sh --install`)从源代码构建,构建过程需要 Xcode Command Line Tools。",
+        "pros": "据介绍,各项功能可单独安装或卸载,未使用的功能不会加载,因而不消耗 CPU、内存或能源。权限仅在相关功能需要时才会请求,并以通俗语言说明用途。发行版使用 Apple Developer ID 签名并经过公证,项目基于 GPL-3.0-or-later 许可证发布。",
+        "cons": "Vorssaint 要求使用 Apple Silicon Mac 并运行 macOS 14 Sonoma 或更高版本,因此无法在较旧的 macOS 版本或基于 Intel 的 Mac 上运行。部分功能还依赖于授予辅助功能(Accessibility)或屏幕录制(Screen Recording)等 macOS 权限,更深入的清理与卸载扫描则需要完全磁盘访问权限。",
+        "fit": "鉴于其被描述为本地优先、不涉及账户、分析或跟踪的设计,该工具似乎最适合使用较新款 Apple Silicon Mac、希望用一款免费开源菜单栏应用取代多款单一用途付费工具的用户。由于文档中明确要求 macOS 14 及以上版本并搭配 Apple Silicon,它很可能无法在较旧机型或基于 Intel 的 Mac 上使用。"
       },
       "es": {
-        "goal": "Vorssaint es una utilidad gratuita y de código abierto para la barra de menús de macOS que combina un mezclador de volumen, monitor del sistema, gestión de ventanas, historial del portapapeles y otras herramientas en una sola app, con el objetivo de reemplazar varias apps de pago para Mac, sin cuenta, suscripción ni telemetría, según se describe.",
-        "usage": "Vorssaint puede instalarse mediante Homebrew con `brew install --cask vorssaint`, o descargando la imagen de disco firmada y notarizada desde la página de releases de GitHub. Los desarrolladores pueden compilarla desde el código fuente clonando el repositorio y ejecutando `./build.sh` (o `./build.sh --install` para instalarla y abrirla de inmediato).",
-        "pros": "Según el README, al desinstalar una función esta desaparece de toda la app y deja de consumir CPU, memoria o energía, y al reinstalarla se recuperan los ajustes previos. También se indica que la app es local-first sin telemetría, que los permisos son opcionales y se explican en lenguaje sencillo, y que las compilaciones están firmadas y notarizadas.",
-        "cons": "Según el README, Vorssaint requiere un Mac con Apple Silicon y macOS 14 Sonoma o posterior, por lo que no es compatible con Mac Intel ni versiones anteriores de macOS; compilarla desde el código fuente requiere además las Xcode Command Line Tools.",
-        "fit": "Con base en estos requisitos, Vorssaint parece adecuada para usuarios de Mac con Apple Silicon que buscan reunir varias utilidades en una sola app gratuita centrada en la privacidad, aunque podría no ajustarse a quienes usan Mac Intel, versiones de macOS más antiguas, o solo necesitan una función puntual."
+        "goal": "Vorssaint es una aplicación gratuita y de código abierto para la barra de menús de macOS que, según se describe, reúne en un solo icono un mezclador de volumen por aplicación, un monitor del sistema, ajuste de ventanas, un selector de aplicaciones, vistas previas del Dock, historial del portapapeles, fragmentos de texto, una bandeja de archivos y un desinstalador, con el objetivo de sustituir varias utilidades de pago para Mac.",
+        "usage": "Vorssaint puede instalarse mediante Homebrew con el comando `brew install --cask vorssaint`, o descargando la imagen de disco desde https://github.com/vorssaint/vorssaint-utils/releases y arrastrándola a Applications. Los desarrolladores también pueden compilarlo desde el código fuente clonando el repositorio y ejecutando `./build.sh` (o `./build.sh --install`, que además instala y abre la app); para compilar se requieren las Xcode Command Line Tools.",
+        "pros": "Según se describe, cada función puede instalarse o desinstalarse por separado, de modo que las funciones no utilizadas dejan de cargarse y no consumen CPU, memoria ni energía. Los permisos solo se solicitan cuando una función los necesita y se explican en lenguaje sencillo. Las versiones se firman con un Apple Developer ID y se notarizan, y el proyecto se publica bajo la licencia GPL-3.0-or-later.",
+        "cons": "Vorssaint requiere un Mac con Apple Silicon y macOS 14 Sonoma o posterior, por lo que no funciona en versiones anteriores de macOS ni en Mac basados en Intel. Algunas funciones también dependen de conceder permisos de macOS como Accesibilidad o Grabación de pantalla, y los análisis más profundos del limpiador y el desinstalador requieren acceso total al disco.",
+        "fit": "Dado su diseño descrito como local-first, sin cuentas, análisis ni rastreo, la herramienta parece más adecuada para usuarios de Mac con Apple Silicon recientes que buscan sustituir varias utilidades de pago de un solo propósito por una única aplicación gratuita y de código abierto en la barra de menús. Debido a sus requisitos declarados de macOS 14 o superior y Apple Silicon, probablemente no pueda usarse en modelos más antiguos o basados en Intel."
       },
       "ja": {
-        "goal": "Vorssaintは、音量ミキサー、システムモニター、ウィンドウ管理、クリップボード履歴などの機能を1つのアプリにまとめた無料でオープンソースのmacOSメニューバー・ユーティリティであり、アカウントやサブスクリプション、テレメトリなしで複数の有料Macアプリを置き換えることを目指していると説明されています。",
-        "usage": "VorssaintはHomebrewを使い `brew install --cask vorssaint` でインストールできるほか、GitHubのリリースページから署名・公証済みのディスクイメージをダウンロードして導入することもできます。開発者はリポジトリをクローンし、`./build.sh`(インストールと起動まで行う `./build.sh --install` も可)を実行してソースからビルドできます。",
-        "pros": "READMEによれば、未使用の機能をアンインストールするとアプリ全体からその機能が消え、CPU・メモリ・電力を消費しなくなり、再インストールすれば以前の設定が復元されるとのことです。また、ローカルファーストでテレメトリがなく、権限はすべて任意で平易な言葉で説明され、ビルドは署名・公証済みであると記載されています。",
-        "cons": "READMEによると、VorssaintはApple SiliconのMacとmacOS 14 Sonoma以降を必要とするため、Intel Macや旧バージョンのmacOSには対応しておらず、ソースからのビルドにはさらにXcode Command Line Toolsが必要です。",
-        "fit": "これらの要件から判断すると、Vorssaintは複数のユーティリティアプリを1つの無料でプライバシー重視のツールにまとめたいApple Silicon Mac利用者に向いていると考えられますが、Intel Macや古いmacOSの利用者、あるいは単一機能のみを必要とするユーザーには合わない可能性があります。"
+        "goal": "Vorssaint は、アプリ別音量ミキサー、システムモニター、ウィンドウのスナップ、アプリスイッチャー、Dock プレビュー、クリップボード履歴、テキストスニペット、ファイル置き場、アンインストーラーなどを1つのメニューバーアイコンにまとめたとされる無料・オープンソースの macOS アプリで、複数の有料 Mac ユーティリティを置き換えることを目的としていると説明されています。",
+        "usage": "Vorssaint は Homebrew を使い `brew install --cask vorssaint` コマンドでインストールするか、https://github.com/vorssaint/vorssaint-utils/releases からディスクイメージをダウンロードして Applications にドラッグしてインストールできます。開発者はリポジトリをクローンした後、`./build.sh`(インストールと起動まで行う `./build.sh --install` も可)を実行してソースからビルドでき、ビルドには Xcode Command Line Tools が必要です。",
+        "pros": "各機能は個別にインストール・アンインストールでき、使用しない機能は読み込まれないため CPU、メモリ、エネルギーを消費しないと説明されています。権限はその機能が必要とする場合にのみ要求され、平易な言葉で説明されます。リリースは Apple Developer ID で署名・公証されており、プロジェクトは GPL-3.0-or-later ライセンスの下で公開されています。",
+        "cons": "Vorssaint は Apple Silicon 搭載 Mac と macOS 14 Sonoma 以降を必要とするため、それより古い macOS バージョンや Intel 搭載 Mac では動作しません。一部の機能はアクセシビリティ(Accessibility)や画面収録(Screen Recording)などの macOS 権限の許可にも依存しており、より詳細なクリーナーおよびアンインストーラーのスキャンにはフルディスクアクセス権限が必要です。",
+        "fit": "アカウント、分析、トラッキングのないローカルファーストな設計とされている点を踏まえると、このツールは複数の有料単機能ユーティリティを1つの無料オープンソースのメニューバーアプリに置き換えたい、比較的新しい Apple Silicon Mac のユーザーに最も適していると考えられます。macOS 14 以降と Apple Silicon という明記された要件のため、より古い機種や Intel 搭載 Mac では使用できない可能性が高いです。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 11,
-          "end_line": 12,
+          "start_line": 10,
+          "end_line": 13,
           "section_heading": ""
         },
         {
@@ -8691,13 +8721,13 @@
         },
         {
           "start_line": 213,
-          "end_line": 218,
+          "end_line": 220,
           "section_heading": "Build it yourself"
         }
       ],
       "pros": [
         {
-          "start_line": 60,
+          "start_line": 58,
           "end_line": 62,
           "section_heading": "Install only what you use"
         },
@@ -8707,52 +8737,37 @@
           "section_heading": "Install"
         },
         {
-          "start_line": 186,
-          "end_line": 188,
-          "section_heading": "Private by default"
+          "start_line": 29,
+          "end_line": 30,
+          "section_heading": ""
         }
       ],
       "cons": [
         {
-          "start_line": 29,
-          "end_line": 29,
-          "section_heading": ""
-        },
-        {
           "start_line": 208,
           "end_line": 209,
           "section_heading": "What you need"
         },
         {
-          "start_line": 220,
-          "end_line": 220,
-          "section_heading": "Build it yourself"
+          "start_line": 194,
+          "end_line": 201,
+          "section_heading": "Private by default"
         }
       ],
       "fit": [
         {
+          "start_line": 186,
+          "end_line": 186,
+          "section_heading": "Private by default"
+        },
+        {
           "start_line": 208,
           "end_line": 209,
           "section_heading": "What you need"
-        },
-        {
-          "start_line": 56,
-          "end_line": 56,
-          "section_heading": ""
         }
       ]
     },
     "invariants": [
-      {
-        "kind": "product",
-        "value": "Vorssaint",
-        "fields": [
-          "goal",
-          "usage",
-          "cons",
-          "fit"
-        ]
-      },
       {
         "kind": "command",
         "value": "brew install --cask vorssaint",
@@ -8768,10 +8783,41 @@
         ]
       },
       {
+        "kind": "command",
+        "value": "./build.sh --install",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
         "kind": "version",
         "value": "macOS 14",
         "fields": [
+          "cons",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Vorssaint",
+        "fields": [
+          "goal",
+          "usage",
           "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Homebrew",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://github.com/vorssaint/vorssaint-utils/releases",
+        "fields": [
+          "usage"
         ]
       }
     ],
@@ -8782,8 +8828,8 @@
       "kind": "readme",
       "slug": "vorssaint/vorssaint-utils",
       "path": "README.md",
-      "blob_sha": "2ec9c61667c139ec1098bca2cfa2566e44d3e705",
-      "content_sha256": "8e4569f8adbb7a90ac3f545c5769d9e85eeadbbad28308a29499ba671c9d4688",
+      "blob_sha": "6515f1a21b00d126f42b8b628d5d1fb3536b8673",
+      "content_sha256": "92a76745ab9514fb3e9b4019c982ad68d309de2f50aa9adce8a4f7a6d5629d17",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -9129,258 +9175,6 @@
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.259",
-      "auth_method": "oauth_token",
-      "api_provider": "firstParty",
-      "model": "claude-sonnet-5",
-      "schema_version": 3,
-      "prompt_schema_version": 3,
-      "translation_applicable": false
-    }
-  },
-  "akitaonrails/ai-memory": {
-    "content": {
-      "goal": "ai-memory is a long-term memory system for AI coding agents. It lets a task started in one agent, such as Claude Code, be picked up by another, such as Codex, in the same directory without re-explaining prior context, and keeps that memory available across machines and team members via a shared server.",
-      "usage": "ai-memory can be installed from AUR (`yay -S ai-memory-bin`) or run as a container (`docker run -d --name ai-memory`). After the server starts, an agent is connected with `ai-memory install-mcp --client claude-code --apply` and `ai-memory install-hooks --agent claude-code --apply`; the same two-command pattern applies to other supported agents.",
-      "pros": "Memory is captured silently through lifecycle hooks and stored as plain, git-backed markdown files that can be searched with tools like `grep` or edited by hand. The default mode makes zero LLM API calls, so capture, search, and handoffs work without any API key, and the project states a measured write ceiling of about 700 writes per second (~700/s).",
-      "cons": "The documented quick-start Docker deployment binds only to loopback with no authentication enabled, so before the server can be reached from other machines on a LAN, a bearer token or other hardening step must be added manually. Native Windows support is also listed as experimental rather than fully supported.",
-      "fit": "This project fits developers and teams already using one or more of the listed harnesses (including Claude Code, Codex, Cursor, and Gemini CLI) on Linux, macOS, or Windows via WSL2, who want persistent cross-session memory. Running it appears to require either Docker or Podman, or a Rust 1.95+ toolchain if building from source."
-    },
-    "summaries": {
-      "en": {
-        "goal": "ai-memory is a long-term memory system for AI coding agents. It lets a task started in one agent, such as Claude Code, be picked up by another, such as Codex, in the same directory without re-explaining prior context, and keeps that memory available across machines and team members via a shared server.",
-        "usage": "ai-memory can be installed from AUR (`yay -S ai-memory-bin`) or run as a container (`docker run -d --name ai-memory`). After the server starts, an agent is connected with `ai-memory install-mcp --client claude-code --apply` and `ai-memory install-hooks --agent claude-code --apply`; the same two-command pattern applies to other supported agents.",
-        "pros": "Memory is captured silently through lifecycle hooks and stored as plain, git-backed markdown files that can be searched with tools like `grep` or edited by hand. The default mode makes zero LLM API calls, so capture, search, and handoffs work without any API key, and the project states a measured write ceiling of about 700 writes per second (~700/s).",
-        "cons": "The documented quick-start Docker deployment binds only to loopback with no authentication enabled, so before the server can be reached from other machines on a LAN, a bearer token or other hardening step must be added manually. Native Windows support is also listed as experimental rather than fully supported.",
-        "fit": "This project fits developers and teams already using one or more of the listed harnesses (including Claude Code, Codex, Cursor, and Gemini CLI) on Linux, macOS, or Windows via WSL2, who want persistent cross-session memory. Running it appears to require either Docker or Podman, or a Rust 1.95+ toolchain if building from source."
-      },
-      "ko": {
-        "goal": "ai-memory는 AI 코딩 에이전트를 위한 장기 기억 시스템입니다. Claude Code와 같은 하나의 에이전트에서 시작한 작업을 Codex와 같은 다른 에이전트가 같은 디렉터리에서 이어받아, 이전 맥락을 다시 설명하지 않고 여러 기기와 팀원 간에도 공유된 서버를 통해 기억을 유지할 수 있습니다.",
-        "usage": "ai-memory는 AUR에서 `yay -S ai-memory-bin` 명령으로 설치하거나, `docker run -d --name ai-memory` 형태의 컨테이너로 실행할 수 있습니다. 서버가 시작된 후에는 `ai-memory install-mcp --client claude-code --apply`와 `ai-memory install-hooks --agent claude-code --apply` 명령으로 에이전트를 연결하며, 다른 지원 에이전트에도 동일한 두 단계 방식이 적용됩니다.",
-        "pros": "라이프사이클 훅을 통해 작업 내용이 조용히 캡처되어 `grep`으로 검색하거나 직접 편집할 수 있는 일반 텍스트, git 기반 마크다운 파일로 저장됩니다. 기본 모드는 LLM API 호출이 전혀 없어 API 키 없이도 캡처, 검색, 핸드오프가 동작하며, 문서에는 초당 약 700회(~700/s)의 측정된 쓰기 상한이 명시되어 있습니다.",
-        "cons": "문서화된 퀵스타트 Docker 구성은 루프백 전용으로 바인딩되고 인증이 비활성화된 상태로 시작되므로, LAN의 다른 기기에서 서버에 접근하려면 베어러 토큰 등 강화 조치를 수동으로 추가해야 합니다. 네이티브 Windows 지원도 완전 지원이 아닌 실험적(Experimental) 단계로 표시되어 있습니다.",
-        "fit": "이 프로젝트는 Claude Code, Codex, Cursor, Gemini CLI 등 지원 목록에 있는 하네스를 이미 사용 중이며 Linux, macOS 또는 WSL2 기반 Windows에서 세션 간 지속적인 기억을 원하는 개발자와 팀에 적합해 보입니다. 실행하려면 Docker 또는 Podman, 혹은 소스 빌드 시 Rust 1.95+ 툴체인이 필요한 것으로 보입니다."
-      },
-      "zh-CN": {
-        "goal": "ai-memory 是面向 AI 编程代理的长期记忆系统。在 Claude Code 等一个代理中开始的任务,可以由 Codex 等另一个代理在同一目录下无缝接续,无需重新解释此前的上下文,并通过共享服务器在多台机器和团队成员之间保留这些记忆。",
-        "usage": "可以通过 AUR 使用 `yay -S ai-memory-bin` 安装 ai-memory,也可以以容器方式运行,如 `docker run -d --name ai-memory`。服务器启动后,使用 `ai-memory install-mcp --client claude-code --apply` 和 `ai-memory install-hooks --agent claude-code --apply` 命令连接代理,其他受支持的代理也采用相同的两步方式。",
-        "pros": "生命周期钩子会静默捕获工作内容,并以纯文本、基于 git 的 Markdown 文件形式存储,可以用 `grep` 搜索或直接手动编辑。默认模式不产生任何 LLM API 调用,因此无需 API 密钥即可完成捕获、搜索和交接,文档还给出了约每秒 700 次(~700/s)的实测写入上限。",
-        "cons": "文档记录的快速入门 Docker 部署默认仅绑定回环地址且未启用身份验证,因此若要让局域网中的其他机器访问该服务器,需要手动添加持有者令牌等加固措施。原生 Windows 支持也被标记为实验性,而非完全支持。",
-        "fit": "该项目似乎适合已经在使用支持列表中的工具(包括 Claude Code、Codex、Cursor 和 Gemini CLI),并希望在 Linux、macOS 或通过 WSL2 的 Windows 上获得跨会话持久记忆的开发者与团队。运行它似乎需要 Docker 或 Podman,或者在从源码构建时需要 Rust 1.95+ 工具链。"
-      },
-      "es": {
-        "goal": "ai-memory es un sistema de memoria a largo plazo para agentes de codificación con IA. Permite que una tarea iniciada en un agente, como Claude Code, sea retomada por otro, como Codex, en el mismo directorio sin volver a explicar el contexto previo, y mantiene esa memoria disponible entre máquinas y miembros de un equipo mediante un servidor compartido.",
-        "usage": "ai-memory puede instalarse desde AUR con `yay -S ai-memory-bin` o ejecutarse como contenedor con `docker run -d --name ai-memory`. Una vez iniciado el servidor, un agente se conecta con `ai-memory install-mcp --client claude-code --apply` y `ai-memory install-hooks --agent claude-code --apply`; el mismo patrón de dos comandos se aplica a otros agentes compatibles.",
-        "pros": "La memoria se captura de forma silenciosa mediante hooks de ciclo de vida y se almacena como archivos Markdown planos, versionados con git, que pueden buscarse con `grep` o editarse a mano. El modo predeterminado no realiza llamadas a LLM, por lo que la captura, la búsqueda y las entregas funcionan sin ninguna clave de API, y la documentación menciona un límite de escritura medido de aproximadamente 700 por segundo (~700/s).",
-        "cons": "La implementación Docker de inicio rápido documentada se vincula solo a loopback y no tiene autenticación habilitada por defecto, por lo que exponer el servidor en una LAN requiere añadir manualmente un token bearer u otra medida de endurecimiento. El soporte nativo de Windows también figura como experimental en lugar de totalmente compatible.",
-        "fit": "Este proyecto parece adecuado para desarrolladores y equipos que ya usan alguno de los harnesses listados (incluidos Claude Code, Codex, Cursor y Gemini CLI) en Linux, macOS o Windows vía WSL2, y que desean memoria persistente entre sesiones. Ejecutarlo parece requerir Docker o Podman, o bien un toolchain Rust 1.95+ si se compila desde el código fuente."
-      },
-      "ja": {
-        "goal": "ai-memoryは、AIコーディングエージェント向けの長期記憶システムです。Claude Codeなど一つのエージェントで始めた作業を、Codexなど別のエージェントが同じディレクトリで引き継ぎ、以前の文脈を説明し直すことなく、共有サーバーを通じて複数のマシンやチームメンバー間で記憶を保持できます。",
-        "usage": "ai-memoryはAURから `yay -S ai-memory-bin` でインストールするか、`docker run -d --name ai-memory` のようにコンテナとして起動できます。サーバー起動後は `ai-memory install-mcp --client claude-code --apply` と `ai-memory install-hooks --agent claude-code --apply` でエージェントを接続し、他の対応エージェントにも同じ2コマンドの手順が適用されます。",
-        "pros": "ライフサイクルフックにより作業内容が静かにキャプチャされ、`grep`で検索したり手動で編集したりできる、gitで管理されたプレーンなMarkdownファイルとして保存されます。デフォルトモードではLLM APIの呼び出しが一切なく、APIキーなしでキャプチャ・検索・引き継ぎが動作し、文書には毎秒約700回(~700/s)という実測の書き込み上限も記載されています。",
-        "cons": "文書化されたクイックスタートのDocker構成はループバックのみにバインドされ、認証が無効な状態で起動するため、LAN上の他のマシンからサーバーにアクセスするにはベアラートークンなどの強化策を手動で追加する必要があります。ネイティブWindowsサポートも完全対応ではなく実験的(Experimental)と記載されています。",
-        "fit": "このプロジェクトは、Claude Code、Codex、Cursor、Gemini CLIなど対応リストにあるハーネスをすでに使用しており、Linux、macOS、またはWSL2経由のWindowsでセッションをまたいだ永続的な記憶を求める開発者やチームに適しているとみられます。実行にはDockerまたはPodman、あるいはソースからビルドする場合はRust 1.95+ツールチェーンが必要と考えられます。"
-      }
-    },
-    "evidence": {
-      "goal": [
-        {
-          "start_line": 8,
-          "end_line": 11,
-          "section_heading": ""
-        },
-        {
-          "start_line": 17,
-          "end_line": 24,
-          "section_heading": "Why ai-memory"
-        },
-        {
-          "start_line": 33,
-          "end_line": 41,
-          "section_heading": "Why ai-memory"
-        }
-      ],
-      "usage": [
-        {
-          "start_line": 128,
-          "end_line": 141,
-          "section_heading": "Arch Linux (AUR)"
-        },
-        {
-          "start_line": 193,
-          "end_line": 201,
-          "section_heading": "Docker"
-        },
-        {
-          "start_line": 210,
-          "end_line": 211,
-          "section_heading": "Docker"
-        }
-      ],
-      "pros": [
-        {
-          "start_line": 26,
-          "end_line": 31,
-          "section_heading": "Why ai-memory"
-        },
-        {
-          "start_line": 43,
-          "end_line": 47,
-          "section_heading": "Why ai-memory"
-        },
-        {
-          "start_line": 52,
-          "end_line": 59,
-          "section_heading": "Why ai-memory"
-        }
-      ],
-      "cons": [
-        {
-          "start_line": 157,
-          "end_line": 160,
-          "section_heading": "Docker"
-        },
-        {
-          "start_line": 91,
-          "end_line": 91,
-          "section_heading": "Support matrix"
-        }
-      ],
-      "fit": [
-        {
-          "start_line": 80,
-          "end_line": 84,
-          "section_heading": "Support matrix"
-        },
-        {
-          "start_line": 150,
-          "end_line": 151,
-          "section_heading": "Docker"
-        },
-        {
-          "start_line": 14,
-          "end_line": 14,
-          "section_heading": ""
-        }
-      ]
-    },
-    "invariants": [
-      {
-        "kind": "command",
-        "value": "yay -S ai-memory-bin",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "docker run -d --name ai-memory",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "ai-memory install-mcp --client claude-code --apply",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "ai-memory install-hooks --agent claude-code --apply",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": "1.95+",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "~700/s",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "ai-memory",
-        "fields": [
-          "goal",
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Claude Code",
-        "fields": [
-          "goal",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Codex",
-        "fields": [
-          "goal",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Cursor",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Gemini CLI",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Docker",
-        "fields": [
-          "usage",
-          "cons",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Podman",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Rust",
-        "fields": [
-          "fit"
-        ]
-      }
-    ],
-    "inference_fields": [
-      "fit"
-    ],
-    "source": {
-      "kind": "readme",
-      "slug": "akitaonrails/ai-memory",
-      "path": "README.md",
-      "blob_sha": "1c6ff921974cd2a017de0100c4ac180678e963bf",
-      "content_sha256": "ca68b434be46820c8269a6471ff2a365f2aa3d9df88c0f8bc07b372bf6ad0499",
-      "provider": "claude-cli-oauth",
-      "interface": "claude-p",
-      "cli_version": "2.1.263",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
