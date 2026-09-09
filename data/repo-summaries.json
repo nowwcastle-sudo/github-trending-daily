@@ -590,130 +590,153 @@
   },
   "pascalorg/editor": {
     "content": {
-      "goal": "Pascal Editor is a 3D building editor built with React Three Fiber and WebGPU, organized as a monorepo containing reusable editor packages (@pascal-app/core, @pascal-app/viewer, @pascal-app/editor, @pascal-app/nodes), a standalone application, an @pascal-app/cli installer, and an @pascal-app/mcp server for AI-host integration.",
-      "usage": "A persistent local installation can be created without cloning the repository by running `npx @pascal-app/cli editor` with Node.js 22.13 or newer, which starts the editor and an authenticated MCP service. For monorepo development, `bun install` followed by `bun dev` builds the packages and starts the editor's development server.",
-      "pros": "The package separation lets @pascal-app/core (schemas and state), @pascal-app/viewer (rendering), @pascal-app/editor (tools and UI), @pascal-app/nodes (built-in definitions), @pascal-app/cli, and @pascal-app/mcp be used or extended independently. The @pascal-app/mcp package exposes scene tools, resources, and prompts to MCP-compatible AI hosts, and the editor supports plugin-based extension using the same manifest format as built-in node kinds.",
-      "cons": "The npm beta tag currently resolves to @pascal-app/cli@1.0.0-beta.1, which predates the read-only furniture candidate feature described in the repository; using that capability requires manually installing a GitHub prerelease archive and verifying its SHA-256 checksum rather than a standard npm install.",
-      "fit": "Given its React Three Fiber and WebGPU rendering, node-based scene model, and MCP-based AI agent tooling, the project appears best suited for developers building or extending 3D architectural or interior layout editors with AI-assisted workflows, rather than general-purpose 3D applications."
+      "goal": "Pascal Editor is an open-source, local-first 3D building editor built with React Three Fiber and WebGPU that runs in the browser or from a CLI and connects AI agents through MCP (Model Context Protocol).",
+      "usage": "With Node.js 22.13 or newer, running `npx @pascal-app/cli editor` creates a persistent local installation without cloning the repository. Packages can also be installed directly with `npm install @pascal-app/core @pascal-app/viewer @pascal-app/editor @pascal-app/nodes`, or the monorepo can be set up for development by running `bun install` followed by `bun dev` from the root directory.",
+      "pros": "The codebase is organized as a Turborepo monorepo that separates reusable packages (core, viewer, editor, nodes, cli, mcp) from the standalone app. It is built on React 19, Next.js 16, Three.js with a WebGPU renderer, and React Three Fiber, and the documentation states that new node kinds can be added as plugins through the same manifest the built-ins use, without a separate internal API.",
+      "cons": "The npm `beta` tag currently resolves to `@pascal-app/cli@1.0.0-beta.1`, which is described as predating a read-only furniture-candidate feature; using that capability appears to require installing a separate GitHub prerelease of `@pascal-app/cli` and verifying its SHA-256 checksum rather than a standard npm install. The documentation also notes that only one active agent client is supported per local CLI service, which may limit concurrent multi-agent use.",
+      "fit": "This project seems best suited to developers building or extending 3D scene or building editors who want local-first data storage with optional AI-agent connectivity via MCP, though teams pursuing hosted MCP endpoints may need additional setup not fully covered here."
     },
     "summaries": {
       "en": {
-        "goal": "Pascal Editor is a 3D building editor built with React Three Fiber and WebGPU, organized as a monorepo containing reusable editor packages (@pascal-app/core, @pascal-app/viewer, @pascal-app/editor, @pascal-app/nodes), a standalone application, an @pascal-app/cli installer, and an @pascal-app/mcp server for AI-host integration.",
-        "usage": "A persistent local installation can be created without cloning the repository by running `npx @pascal-app/cli editor` with Node.js 22.13 or newer, which starts the editor and an authenticated MCP service. For monorepo development, `bun install` followed by `bun dev` builds the packages and starts the editor's development server.",
-        "pros": "The package separation lets @pascal-app/core (schemas and state), @pascal-app/viewer (rendering), @pascal-app/editor (tools and UI), @pascal-app/nodes (built-in definitions), @pascal-app/cli, and @pascal-app/mcp be used or extended independently. The @pascal-app/mcp package exposes scene tools, resources, and prompts to MCP-compatible AI hosts, and the editor supports plugin-based extension using the same manifest format as built-in node kinds.",
-        "cons": "The npm beta tag currently resolves to @pascal-app/cli@1.0.0-beta.1, which predates the read-only furniture candidate feature described in the repository; using that capability requires manually installing a GitHub prerelease archive and verifying its SHA-256 checksum rather than a standard npm install.",
-        "fit": "Given its React Three Fiber and WebGPU rendering, node-based scene model, and MCP-based AI agent tooling, the project appears best suited for developers building or extending 3D architectural or interior layout editors with AI-assisted workflows, rather than general-purpose 3D applications."
+        "goal": "Pascal Editor is an open-source, local-first 3D building editor built with React Three Fiber and WebGPU that runs in the browser or from a CLI and connects AI agents through MCP (Model Context Protocol).",
+        "usage": "With Node.js 22.13 or newer, running `npx @pascal-app/cli editor` creates a persistent local installation without cloning the repository. Packages can also be installed directly with `npm install @pascal-app/core @pascal-app/viewer @pascal-app/editor @pascal-app/nodes`, or the monorepo can be set up for development by running `bun install` followed by `bun dev` from the root directory.",
+        "pros": "The codebase is organized as a Turborepo monorepo that separates reusable packages (core, viewer, editor, nodes, cli, mcp) from the standalone app. It is built on React 19, Next.js 16, Three.js with a WebGPU renderer, and React Three Fiber, and the documentation states that new node kinds can be added as plugins through the same manifest the built-ins use, without a separate internal API.",
+        "cons": "The npm `beta` tag currently resolves to `@pascal-app/cli@1.0.0-beta.1`, which is described as predating a read-only furniture-candidate feature; using that capability appears to require installing a separate GitHub prerelease of `@pascal-app/cli` and verifying its SHA-256 checksum rather than a standard npm install. The documentation also notes that only one active agent client is supported per local CLI service, which may limit concurrent multi-agent use.",
+        "fit": "This project seems best suited to developers building or extending 3D scene or building editors who want local-first data storage with optional AI-agent connectivity via MCP, though teams pursuing hosted MCP endpoints may need additional setup not fully covered here."
       },
       "ko": {
-        "goal": "Pascal Editor는 React Three Fiber와 WebGPU로 구축된 3D 건물 편집기이며, 재사용 가능한 에디터 패키지(@pascal-app/core, @pascal-app/viewer, @pascal-app/editor, @pascal-app/nodes)와 독립 실행형 애플리케이션, @pascal-app/cli 설치 프로그램, AI 호스트 연동을 위한 @pascal-app/mcp 서버로 구성된 모노레포로 정리되어 있습니다.",
-        "usage": "저장소를 클론하지 않고도 Node.js 22.13 이상에서 `npx @pascal-app/cli editor` 명령을 실행하면 에디터와 인증된 MCP 서비스가 함께 시작되는 영구적인 로컬 설치를 만들 수 있습니다. 모노레포 개발의 경우 `bun install` 후 `bun dev`를 실행하면 패키지를 빌드하고 에디터 개발 서버를 시작합니다.",
-        "pros": "패키지 분리 덕분에 @pascal-app/core(스키마 및 상태), @pascal-app/viewer(렌더링), @pascal-app/editor(도구 및 UI), @pascal-app/nodes(내장 정의), @pascal-app/cli, @pascal-app/mcp를 독립적으로 사용하거나 확장할 수 있습니다. @pascal-app/mcp 패키지는 MCP 호환 AI 호스트에 씬 도구, 리소스, 프롬프트를 제공하며, 에디터는 내장 노드와 동일한 매니페스트 형식을 사용하는 플러그인 기반 확장을 지원합니다.",
-        "cons": "npm의 beta 태그는 현재 @pascal-app/cli@1.0.0-beta.1로 연결되는데, 이는 저장소에 설명된 읽기 전용 가구 후보 기능보다 이전 버전입니다. 이 기능을 사용하려면 표준 npm install 대신 GitHub 프리릴리스 아카이브를 수동으로 설치하고 SHA-256 체크섬을 검증해야 합니다.",
-        "fit": "React Three Fiber와 WebGPU 렌더링, 노드 기반 씬 모델, MCP 기반 AI 에이전트 도구를 고려할 때, 이 프로젝트는 범용 3D 애플리케이션보다는 AI 지원 워크플로를 갖춘 3D 건축 또는 인테리어 레이아웃 편집기를 구축하거나 확장하려는 개발자에게 적합해 보입니다."
+        "goal": "Pascal Editor는 React Three Fiber와 WebGPU로 구축된 오픈소스 로컬 우선 3D 빌딩 에디터로 소개되며, 브라우저 또는 CLI에서 실행할 수 있고 MCP(Model Context Protocol)를 통해 AI 에이전트와 연결됩니다.",
+        "usage": "Node.js 22.13 이상에서 `npx @pascal-app/cli editor` 명령을 실행하면 저장소를 클론하지 않고도 영구적인 로컬 설치를 생성할 수 있습니다. 또한 `npm install @pascal-app/core @pascal-app/viewer @pascal-app/editor @pascal-app/nodes` 명령으로 패키지를 직접 설치하거나, 루트 디렉터리에서 `bun install` 다음 `bun dev`를 실행해 모노레포 개발 환경을 구성할 수 있습니다.",
+        "pros": "이 코드베이스는 Turborepo 모노레포로 구성되어 core, viewer, editor, nodes, cli, mcp 같은 재사용 가능한 패키지를 독립형 앱과 분리합니다. React 19, Next.js 16, WebGPU 렌더러를 사용하는 Three.js, React Three Fiber를 기반으로 하며, 문서에 따르면 새로운 노드 종류는 별도의 내부 API 없이 내장 기능과 동일한 매니페스트를 통해 플러그인 형태로 추가할 수 있다고 합니다.",
+        "cons": "npm의 `beta` 태그는 현재 `@pascal-app/cli@1.0.0-beta.1`을 가리키며, 이는 저장소에 설명된 읽기 전용 가구 후보 기능보다 이전 버전으로 보입니다. 이 기능을 사용하려면 표준 npm 설치 대신 별도의 GitHub 프리릴리스 `@pascal-app/cli`를 설치하고 SHA-256 체크섬을 검증해야 하는 것으로 보입니다. 또한 로컬 CLI 서비스당 하나의 활성 에이전트 클라이언트만 지원되는 것으로 문서화되어 있어 동시 다중 에이전트 사용이 제한될 수 있습니다.",
+        "fit": "이 프로젝트는 로컬 우선 데이터 저장과 MCP를 통한 선택적 AI 에이전트 연결을 원하는 3D 장면/빌딩 에디터를 구축하거나 확장하려는 개발자에게 적합해 보입니다. 다만 호스팅된 MCP 엔드포인트를 사용하려는 팀은 문서에 완전히 다루어지지 않은 추가 설정이 필요할 수 있습니다."
       },
       "zh-CN": {
-        "goal": "Pascal Editor 是一款基于 React Three Fiber 和 WebGPU 构建的 3D 建筑编辑器,以 monorepo 形式组织,包含可复用的编辑器包(@pascal-app/core、@pascal-app/viewer、@pascal-app/editor、@pascal-app/nodes)、一个独立应用、@pascal-app/cli 安装程序,以及用于 AI 主机集成的 @pascal-app/mcp 服务器。",
-        "usage": "无需克隆仓库,在 Node.js 22.13 或更高版本下运行 `npx @pascal-app/cli editor` 即可创建持久的本地安装,该命令会同时启动编辑器和经过身份验证的 MCP 服务。对于 monorepo 开发,先执行 `bun install`,再执行 `bun dev`,即可构建各个包并启动编辑器的开发服务器。",
-        "pros": "包的拆分使 @pascal-app/core(模式与状态)、@pascal-app/viewer(渲染)、@pascal-app/editor(工具与界面)、@pascal-app/nodes(内置定义)、@pascal-app/cli 以及 @pascal-app/mcp 可以独立使用或扩展。@pascal-app/mcp 包向兼容 MCP 的 AI 主机公开场景工具、资源和提示词,编辑器还支持使用与内置节点相同的清单格式进行插件式扩展。",
-        "cons": "npm 的 beta 标签目前指向 @pascal-app/cli@1.0.0-beta.1,该版本早于仓库中描述的只读家具候选功能。要使用该功能,需要手动安装 GitHub 预发布压缩包并验证其 SHA-256 校验和,而不能通过标准的 npm install 完成。",
-        "fit": "考虑到其 React Three Fiber 与 WebGPU 渲染、基于节点的场景模型以及基于 MCP 的 AI 代理工具,该项目似乎更适合希望构建或扩展具有 AI 辅助工作流的 3D 建筑或室内布局编辑器的开发者,而非通用型 3D 应用开发者。"
+        "goal": "Pascal Editor 被介绍为一个开源、本地优先的 3D 建筑编辑器,使用 React Three Fiber 和 WebGPU 构建,可在浏览器或 CLI 中运行,并通过 MCP(Model Context Protocol)连接 AI 代理。",
+        "usage": "在 Node.js 22.13 或更高版本下,运行 `npx @pascal-app/cli editor` 即可创建持久化的本地安装,而无需克隆此仓库。也可以直接使用 `npm install @pascal-app/core @pascal-app/viewer @pascal-app/editor @pascal-app/nodes` 安装各个包,或者在根目录下依次运行 `bun install` 和 `bun dev` 来搭建该 monorepo 的开发环境。",
+        "pros": "该代码库以 Turborepo monorepo 的形式组织,将可复用包(core、viewer、editor、nodes、cli、mcp)与独立应用分离。它基于 React 19、Next.js 16、使用 WebGPU 渲染器的 Three.js 以及 React Three Fiber 构建;文档还说明新的节点类型可以通过与内置功能相同的清单以插件形式添加,而无需单独的内部 API。",
+        "cons": "npm 的 `beta` 标签目前指向 `@pascal-app/cli@1.0.0-beta.1`,据描述该版本早于仓库中的只读家具候选功能。要使用该功能,似乎需要安装单独的 GitHub 预发布版 `@pascal-app/cli` 并验证其 SHA-256 校验和,而不是通过标准的 npm 安装。文档还提到每个本地 CLI 服务仅支持一个活跃的代理客户端,这可能会限制并发多代理使用。",
+        "fit": "该项目似乎更适合希望使用本地优先数据存储、并可选择通过 MCP 连接 AI 代理来构建或扩展 3D 场景/建筑编辑器的开发者。不过,若团队计划使用托管的 MCP 端点,可能还需要文档未完全涵盖的额外配置。"
       },
       "es": {
-        "goal": "Pascal Editor es un editor de edificios en 3D construido con React Three Fiber y WebGPU, organizado como un monorepo que contiene paquetes reutilizables del editor (@pascal-app/core, @pascal-app/viewer, @pascal-app/editor, @pascal-app/nodes), una aplicación independiente, un instalador @pascal-app/cli y un servidor @pascal-app/mcp para la integración con hosts de IA.",
-        "usage": "Se puede crear una instalación local persistente sin clonar el repositorio ejecutando `npx @pascal-app/cli editor` con Node.js 22.13 o una versión más reciente, lo que inicia el editor y un servicio MCP autenticado. Para el desarrollo del monorepo, `bun install` seguido de `bun dev` compila los paquetes e inicia el servidor de desarrollo del editor.",
-        "pros": "La separación de paquetes permite usar o extender de forma independiente @pascal-app/core (esquemas y estado), @pascal-app/viewer (renderizado), @pascal-app/editor (herramientas e interfaz), @pascal-app/nodes (definiciones integradas), @pascal-app/cli y @pascal-app/mcp. El paquete @pascal-app/mcp expone herramientas de escena, recursos y prompts a hosts de IA compatibles con MCP, y el editor admite extensión mediante plugins usando el mismo formato de manifiesto que los nodos integrados.",
-        "cons": "La etiqueta beta de npm actualmente apunta a @pascal-app/cli@1.0.0-beta.1, versión anterior a la función de candidato de mobiliario de solo lectura descrita en el repositorio; para usar esa función es necesario instalar manualmente un archivo prerelease de GitHub y verificar su checksum SHA-256, en lugar de un npm install estándar.",
-        "fit": "Dado su renderizado con React Three Fiber y WebGPU, su modelo de escena basado en nodos y sus herramientas de agentes de IA basadas en MCP, el proyecto parece más adecuado para desarrolladores que construyen o amplían editores de diseño arquitectónico o de interiores en 3D con flujos de trabajo asistidos por IA, más que para aplicaciones 3D de propósito general."
+        "goal": "Pascal Editor se presenta como un editor 3D de construcción de código abierto y local-first, construido con React Three Fiber y WebGPU, que se ejecuta en el navegador o desde una CLI y conecta agentes de IA mediante MCP (Model Context Protocol).",
+        "usage": "Con Node.js 22.13 o más reciente, ejecutar `npx @pascal-app/cli editor` crea una instalación local persistente sin necesidad de clonar el repositorio. Los paquetes también pueden instalarse directamente con `npm install @pascal-app/core @pascal-app/viewer @pascal-app/editor @pascal-app/nodes`, o se puede configurar el monorepo para desarrollo ejecutando `bun install` seguido de `bun dev` desde el directorio raíz.",
+        "pros": "El código está organizado como un monorepo de Turborepo que separa los paquetes reutilizables (core, viewer, editor, nodes, cli, mcp) de la aplicación independiente. Está construido sobre React 19, Next.js 16, Three.js con renderizador WebGPU y React Three Fiber, y la documentación indica que los nuevos tipos de nodo pueden añadirse como plugins mediante el mismo manifiesto que usan los componentes integrados, sin una API interna separada.",
+        "cons": "La etiqueta `beta` de npm actualmente apunta a `@pascal-app/cli@1.0.0-beta.1`, que según se describe es anterior a una función de candidatos de mobiliario de solo lectura del repositorio; usar esa función parece requerir instalar una versión preliminar separada de `@pascal-app/cli` desde GitHub y verificar su checksum SHA-256 en lugar de una instalación estándar de npm. La documentación también indica que solo se admite un cliente de agente activo por servicio local de CLI, lo que podría limitar el uso concurrente de múltiples agentes.",
+        "fit": "Este proyecto parece más adecuado para desarrolladores que construyen o amplían editores de escenas o edificios 3D y desean almacenamiento local-first con conectividad opcional de agentes de IA vía MCP, aunque los equipos que busquen usar endpoints MCP alojados podrían necesitar configuración adicional no cubierta por completo aquí."
       },
       "ja": {
-        "goal": "Pascal Editorは、React Three FiberとWebGPUで構築された3Dビルディングエディタであり、再利用可能なエディタパッケージ(@pascal-app/core、@pascal-app/viewer、@pascal-app/editor、@pascal-app/nodes)、スタンドアロンアプリケーション、@pascal-app/cliインストーラー、AIホスト連携のための@pascal-app/mcpサーバーで構成されるモノレポとして整理されています。",
-        "usage": "リポジトリをクローンしなくても、Node.js 22.13以降で `npx @pascal-app/cli editor` を実行すると、エディタと認証済みMCPサービスが起動する永続的なローカルインストールを作成できます。モノレポでの開発では、`bun install` の後に `bun dev` を実行すると、パッケージがビルドされエディタの開発サーバーが起動します。",
-        "pros": "パッケージが分離されているため、@pascal-app/core(スキーマと状態)、@pascal-app/viewer(レンダリング)、@pascal-app/editor(ツールとUI)、@pascal-app/nodes(組み込み定義)、@pascal-app/cli、@pascal-app/mcpを個別に使用または拡張できます。@pascal-app/mcpパッケージはMCP対応のAIホストにシーンツール、リソース、プロンプトを公開し、エディタは組み込みノードと同じマニフェスト形式を使ったプラグインによる拡張をサポートします。",
-        "cons": "npmのbetaタグは現在 @pascal-app/cli@1.0.0-beta.1 を指しており、これはリポジトリに記載されている読み取り専用の家具候補機能より前のバージョンです。この機能を使うには、標準のnpm installではなく、GitHubのプレリリースアーカイブを手動でインストールし、SHA-256チェックサムを検証する必要があります。",
-        "fit": "React Three FiberとWebGPUによるレンダリング、ノードベースのシーンモデル、MCPベースのAIエージェントツールを踏まえると、このプロジェクトは汎用的な3Dアプリケーションというより、AI支援ワークフローを備えた3D建築またはインテリアレイアウトエディタを構築・拡張する開発者に適していると考えられます。"
+        "goal": "Pascal Editorは、React Three FiberとWebGPUで構築されたオープンソースのローカルファースト3D建築エディタとして紹介されており、ブラウザまたはCLIから実行でき、MCP(Model Context Protocol)を通じてAIエージェントと接続します。",
+        "usage": "Node.js 22.13以降であれば、`npx @pascal-app/cli editor` を実行することでリポジトリをクローンせずに永続的なローカルインストールを作成できます。また `npm install @pascal-app/core @pascal-app/viewer @pascal-app/editor @pascal-app/nodes` で各パッケージを直接インストールしたり、ルートディレクトリで `bun install` に続けて `bun dev` を実行してモノレポの開発環境を構築したりすることもできます。",
+        "pros": "このコードベースはTurborepoモノレポとして構成されており、再利用可能なパッケージ(core、viewer、editor、nodes、cli、mcp)をスタンドアロンアプリから分離しています。React 19、Next.js 16、WebGPUレンダラーを使用するThree.js、React Three Fiberの上に構築されており、ドキュメントによれば新しいノード種別は内蔵機能と同じマニフェストを通じて、別個の内部APIなしでプラグインとして追加できるとされています。",
+        "cons": "npmの`beta`タグは現在`@pascal-app/cli@1.0.0-beta.1`を指しており、これはリポジトリに記載されている読み取り専用の家具候補機能より前のバージョンとされています。この機能を利用するには、標準のnpmインストールではなく、別途GitHubのプレリリース版`@pascal-app/cli`をインストールしてSHA-256チェックサムを検証する必要があるようです。また、ローカルCLIサービスごとにアクティブなエージェントクライアントは1つのみサポートされるとドキュメントに記載されており、複数エージェントの同時利用が制限される可能性があります。",
+        "fit": "本プロジェクトは、ローカルファーストのデータ保存とMCP経由の任意のAIエージェント接続を望む、3Dシーンや建築エディタを構築・拡張する開発者に適していると考えられます。ただし、ホスト型MCPエンドポイントの利用を検討するチームは、ここでは十分にカバーされていない追加設定が必要になる場合があります。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 1,
-          "end_line": 3,
+          "end_line": 4,
           "section_heading": "Pascal Editor"
-        },
-        {
-          "start_line": 116,
-          "end_line": 118,
-          "section_heading": "Repository Architecture"
-        },
-        {
-          "start_line": 144,
-          "end_line": 146,
-          "section_heading": "Separation of Concerns"
         }
       ],
       "usage": [
         {
-          "start_line": 16,
-          "end_line": 24,
+          "start_line": 17,
+          "end_line": 21,
           "section_heading": "Run the Editor Locally"
         },
         {
-          "start_line": 479,
-          "end_line": 490,
+          "start_line": 118,
+          "end_line": 118,
+          "section_heading": "Using Published Packages"
+        },
+        {
+          "start_line": 499,
+          "end_line": 502,
           "section_heading": "Development"
         }
       ],
       "pros": [
         {
-          "start_line": 121,
-          "end_line": 133,
+          "start_line": 134,
+          "end_line": 151,
           "section_heading": "Repository Architecture"
         },
         {
-          "start_line": 146,
-          "end_line": 146,
-          "section_heading": "Separation of Concerns"
+          "start_line": 479,
+          "end_line": 483,
+          "section_heading": "Technology Stack"
         },
         {
-          "start_line": 452,
-          "end_line": 452,
+          "start_line": 470,
+          "end_line": 470,
           "section_heading": "Building a Plugin"
         }
       ],
       "cons": [
         {
-          "start_line": 30,
-          "end_line": 32,
+          "start_line": 33,
+          "end_line": 34,
           "section_heading": "Candidate-enabled CLI preview"
         },
         {
-          "start_line": 57,
-          "end_line": 57,
+          "start_line": 58,
+          "end_line": 58,
+          "section_heading": "Candidate-enabled CLI preview"
+        },
+        {
+          "start_line": 60,
+          "end_line": 60,
           "section_heading": "Candidate-enabled CLI preview"
         }
       ],
       "fit": [
         {
-          "start_line": 3,
-          "end_line": 3,
-          "section_heading": "Pascal Editor"
+          "start_line": 60,
+          "end_line": 60,
+          "section_heading": "Candidate-enabled CLI preview"
         },
         {
-          "start_line": 146,
-          "end_line": 146,
-          "section_heading": "Separation of Concerns"
+          "start_line": 100,
+          "end_line": 100,
+          "section_heading": "Agent skills"
         },
         {
-          "start_line": 452,
-          "end_line": 452,
-          "section_heading": "Building a Plugin"
+          "start_line": 102,
+          "end_line": 102,
+          "section_heading": "Agent skills"
         }
       ]
     },
     "invariants": [
       {
+        "kind": "product",
+        "value": "Pascal Editor",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "MCP",
+        "fields": [
+          "goal",
+          "pros",
+          "fit"
+        ]
+      },
+      {
         "kind": "command",
         "value": "npx @pascal-app/cli editor",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "npm install @pascal-app/core @pascal-app/viewer @pascal-app/editor @pascal-app/nodes",
         "fields": [
           "usage"
         ]
@@ -734,101 +757,51 @@
       },
       {
         "kind": "version",
+        "value": "Node.js 22.13",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "React 19",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "Next.js 16",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "version",
         "value": "1.0.0-beta.1",
         "fields": [
           "cons"
         ]
       },
       {
-        "kind": "number",
-        "value": "22.13",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Pascal Editor",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "React Three Fiber",
-        "fields": [
-          "goal",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "WebGPU",
-        "fields": [
-          "goal",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "@pascal-app/core",
-        "fields": [
-          "goal",
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "@pascal-app/viewer",
-        "fields": [
-          "goal",
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "@pascal-app/editor",
-        "fields": [
-          "goal",
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "@pascal-app/nodes",
-        "fields": [
-          "goal",
-          "pros"
-        ]
-      },
-      {
         "kind": "product",
         "value": "@pascal-app/cli",
         "fields": [
-          "goal",
           "usage",
-          "pros",
           "cons"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "@pascal-app/mcp",
-        "fields": [
-          "goal",
-          "pros"
         ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "pascalorg/editor",
       "path": "README.md",
-      "blob_sha": "2aa71da3a204fd75b35656f1d350229df04ac4cf",
-      "content_sha256": "4f46f325fbfd4c41a489995903b6767e5ceb57885cb041bc5d06089ad5a276f8",
+      "blob_sha": "a811248f73c7fe030287eed90217fceb1bd353f3",
+      "content_sha256": "89a0110e76e90f1c896fd5a1af2f3b03cb3331c2f64e028569a0699913299360",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -7886,47 +7859,47 @@
   },
   "debpalash/VoiceStudio": {
     "content": {
-      "goal": "VoiceStudio is a locally run application for cloning voices, dubbing video, dictating text, and producing long-form audio such as stories and audiobooks, running on the user's own hardware (macOS, Windows, Linux, and Docker) without requiring an account, API key, subscription, or usage meter for the local workflow.",
-      "usage": "Users download a packaged release for their platform (macOS 13.3+ Apple Silicon, Windows 10/11 x64, Linux x86_64, or Docker) and follow the platform guide, or run it via Docker with `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable`. To run from source, developers install Node 20+/Bun and Python 3.11+, then `git clone https://github.com/debpalash/VoiceStudio.git`, run `bun install`, and `bun run desktop`; the desktop launcher configures Python dependencies automatically on first run.",
-      "pros": "VoiceStudio offers 16 TTS engines, 11 ASR engines, and a 646-language catalogue, with multiple interfaces including a desktop app, a local REST/SSE/WebSocket API, an OpenAI-compatible audio API, and an MCP server. Storage stays local by default, and the local workflow needs no account, API key, subscription, or usage meter.",
-      "cons": "The default OmniVoice engine's pretrained weights are CC-BY-NC licensed with a separately licensed audio tokenizer, so commercial use of generated audio requires reviewing model-specific terms beyond VoiceStudio's AGPL-3.0 application license.",
-      "fit": "VoiceStudio targets private, offline, self-hosted, or high-volume voice work, contrasted with hosted voice services suited to fast setup without local model management; since users must supply hardware and manage updates and disk themselves, it likely suits those who prioritize local control over managed convenience."
+      "goal": "VoiceStudio (formerly OmniVoice-Studio) is a self-hosted application for cloning voices, dubbing video, dictating, and producing long-form audio on local hardware. It ships with 16 TTS engines, 11 ASR engines, and a catalogue covering 646 languages, running on macOS, Windows, Linux, and Docker without requiring an account, API key, or subscription for the local workflow.",
+      "usage": "Most users download a packaged release from GitHub (macOS DMG, Windows MSI, or Linux AppImage) and follow the platform guide, or run the Docker image with `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable`. Building from source uses `git clone https://github.com/debpalash/VoiceStudio.git`, `bun install`, and `bun run desktop`, after which first launch sets up a managed Python environment and downloads the default model.",
+      "pros": "The application keeps voices, projects, and outputs on the local machine by default, covers a broad set of TTS/ASR engines and 646 languages, exposes an OpenAI-compatible API and an MCP server for integrations, and leaves analytics off unless the user opts in.",
+      "cons": "VoiceStudio is described as an active beta, so the `main` branch may change between releases while the latest tagged release is recommended for stable work. Intel Macs cannot run the local backend and must connect to a remote backend instead. Because the application is licensed under AGPL-3.0, offering a modified version as a network service requires releasing the corresponding source under the same license.",
+      "fit": "VoiceStudio appears best suited to users who want private, offline, self-hosted, or high-volume voice and audio production and can supply their own hardware, rather than those seeking a zero-setup managed cloud service. Teams considering commercial use should note that rights to generated audio may depend on separately licensed model weights, since the default OmniVoice weights are labeled CC-BY-NC and the application license does not override those terms."
     },
     "summaries": {
       "en": {
-        "goal": "VoiceStudio is a locally run application for cloning voices, dubbing video, dictating text, and producing long-form audio such as stories and audiobooks, running on the user's own hardware (macOS, Windows, Linux, and Docker) without requiring an account, API key, subscription, or usage meter for the local workflow.",
-        "usage": "Users download a packaged release for their platform (macOS 13.3+ Apple Silicon, Windows 10/11 x64, Linux x86_64, or Docker) and follow the platform guide, or run it via Docker with `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable`. To run from source, developers install Node 20+/Bun and Python 3.11+, then `git clone https://github.com/debpalash/VoiceStudio.git`, run `bun install`, and `bun run desktop`; the desktop launcher configures Python dependencies automatically on first run.",
-        "pros": "VoiceStudio offers 16 TTS engines, 11 ASR engines, and a 646-language catalogue, with multiple interfaces including a desktop app, a local REST/SSE/WebSocket API, an OpenAI-compatible audio API, and an MCP server. Storage stays local by default, and the local workflow needs no account, API key, subscription, or usage meter.",
-        "cons": "The default OmniVoice engine's pretrained weights are CC-BY-NC licensed with a separately licensed audio tokenizer, so commercial use of generated audio requires reviewing model-specific terms beyond VoiceStudio's AGPL-3.0 application license.",
-        "fit": "VoiceStudio targets private, offline, self-hosted, or high-volume voice work, contrasted with hosted voice services suited to fast setup without local model management; since users must supply hardware and manage updates and disk themselves, it likely suits those who prioritize local control over managed convenience."
+        "goal": "VoiceStudio (formerly OmniVoice-Studio) is a self-hosted application for cloning voices, dubbing video, dictating, and producing long-form audio on local hardware. It ships with 16 TTS engines, 11 ASR engines, and a catalogue covering 646 languages, running on macOS, Windows, Linux, and Docker without requiring an account, API key, or subscription for the local workflow.",
+        "usage": "Most users download a packaged release from GitHub (macOS DMG, Windows MSI, or Linux AppImage) and follow the platform guide, or run the Docker image with `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable`. Building from source uses `git clone https://github.com/debpalash/VoiceStudio.git`, `bun install`, and `bun run desktop`, after which first launch sets up a managed Python environment and downloads the default model.",
+        "pros": "The application keeps voices, projects, and outputs on the local machine by default, covers a broad set of TTS/ASR engines and 646 languages, exposes an OpenAI-compatible API and an MCP server for integrations, and leaves analytics off unless the user opts in.",
+        "cons": "VoiceStudio is described as an active beta, so the `main` branch may change between releases while the latest tagged release is recommended for stable work. Intel Macs cannot run the local backend and must connect to a remote backend instead. Because the application is licensed under AGPL-3.0, offering a modified version as a network service requires releasing the corresponding source under the same license.",
+        "fit": "VoiceStudio appears best suited to users who want private, offline, self-hosted, or high-volume voice and audio production and can supply their own hardware, rather than those seeking a zero-setup managed cloud service. Teams considering commercial use should note that rights to generated audio may depend on separately licensed model weights, since the default OmniVoice weights are labeled CC-BY-NC and the application license does not override those terms."
       },
       "ko": {
-        "goal": "VoiceStudio는 음성 복제, 영상 더빙, 받아쓰기, 그리고 스토리·오디오북 같은 장문 오디오 제작을 사용자 자신의 하드웨어(macOS, Windows, Linux, Docker)에서 로컬로 실행하는 애플리케이션이며, 로컬 워크플로우에는 계정, API 키, 구독, 사용량 측정이 필요하지 않습니다.",
-        "usage": "사용자는 자신의 플랫폼(Apple Silicon macOS 13.3+, Windows 10/11 x64, Linux x86_64, 또는 Docker)에 맞는 패키지를 다운로드해 설치 가이드를 따르거나, `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable` 명령으로 Docker를 통해 실행할 수 있습니다. 소스에서 실행하려면 Node 20+/Bun과 Python 3.11+를 설치한 뒤 `git clone https://github.com/debpalash/VoiceStudio.git`을 실행하고 `bun install`과 `bun run desktop`을 차례로 실행합니다. 데스크톱 런처는 첫 실행 시 Python 종속성을 자동으로 구성합니다.",
-        "pros": "VoiceStudio는 16개의 TTS 엔진, 11개의 ASR 엔진, 646개 언어 카탈로그를 제공하며, 데스크톱 앱, 로컬 REST/SSE/WebSocket API, OpenAI 호환 오디오 API, MCP 서버 등 다양한 인터페이스를 갖추고 있습니다. 저장 데이터는 기본적으로 로컬에 유지되며, 로컬 워크플로우는 계정, API 키, 구독, 사용량 측정이 필요 없습니다.",
-        "cons": "기본 OmniVoice 엔진의 사전 학습 가중치는 CC-BY-NC 라이선스이며 별도 라이선스의 오디오 토크나이저를 포함하므로, 생성된 오디오의 상업적 사용을 위해서는 VoiceStudio의 AGPL-3.0 애플리케이션 라이선스와 별개로 모델별 약관을 검토해야 합니다.",
-        "fit": "VoiceStudio는 비공개, 오프라인, 자체 호스팅 또는 대용량 음성 작업을 대상으로 하며, 로컬 모델 관리 없이 빠르게 설정할 수 있는 호스팅 음성 서비스와 대비됩니다. 사용자가 직접 하드웨어를 마련하고 업데이트와 디스크 관리를 담당해야 하므로, 관리형 편의성보다 로컬 제어를 중시하는 사용자에게 적합할 것으로 보입니다."
+        "goal": "VoiceStudio(이전 명칭 OmniVoice-Studio)는 음성 복제, 영상 더빙, 받아쓰기, 장문 오디오 제작을 로컬 하드웨어에서 수행하는 자체 호스팅 애플리케이션입니다. 16개의 TTS 엔진과 11개의 ASR 엔진, 646개 언어를 아우르는 카탈로그를 제공하며 macOS, Windows, Linux, Docker에서 실행되고, 로컬 워크플로우에는 계정, API 키, 구독이 필요하지 않습니다.",
+        "usage": "대부분의 사용자는 GitHub에서 패키지된 릴리스(macOS DMG, Windows MSI, Linux AppImage)를 내려받아 플랫폼별 안내를 따르거나, `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable` 명령으로 Docker 이미지를 실행합니다. 소스에서 빌드하려면 `git clone https://github.com/debpalash/VoiceStudio.git`, `bun install`, `bun run desktop`을 차례로 실행하며, 최초 실행 시 관리형 Python 환경 구성과 기본 모델 다운로드가 자동으로 이루어집니다.",
+        "pros": "기본적으로 음성, 프로젝트, 출력물을 로컬 머신에 보관하고, 다양한 TTS/ASR 엔진과 646개 언어를 지원하며, 연동을 위한 OpenAI 호환 API와 MCP 서버를 제공하고, 사용자가 동의하지 않는 한 분석 데이터 수집을 기본적으로 끕니다.",
+        "cons": "VoiceStudio는 활성 베타 상태로 설명되어 있어 `main` 브랜치는 릴리스 사이에 변경될 수 있으며 안정적인 작업에는 최신 릴리스 사용이 권장됩니다. Intel Mac은 로컬 백엔드를 실행할 수 없어 원격 백엔드에 연결해야 합니다. 애플리케이션이 AGPL-3.0 라이선스를 따르기 때문에, 수정된 버전을 네트워크 서비스로 제공할 경우 동일 라이선스로 해당 소스코드를 공개해야 합니다.",
+        "fit": "VoiceStudio는 자체 하드웨어를 갖추고 프라이빗, 오프라인, 자체 호스팅 또는 대량 음성·오디오 작업을 원하는 사용자에게 적합해 보이며, 설정이 필요 없는 관리형 클라우드 서비스를 원하는 사용자에게는 덜 적합할 수 있습니다. 상업적 활용을 고려하는 팀은 기본 OmniVoice 가중치가 CC-BY-NC로 표시되어 있고 애플리케이션 라이선스가 이러한 조건을 대체하지 않으므로, 생성된 오디오에 대한 권리가 별도로 라이선스된 모델 가중치에 따라 달라질 수 있음에 유의해야 합니다."
       },
       "zh-CN": {
-        "goal": "VoiceStudio 是一款在用户自有硬件(macOS、Windows、Linux 及 Docker)上本地运行的应用,用于克隆语音、视频配音、听写以及制作故事和有声书等长篇音频内容;本地工作流程无需账户、API 密钥、订阅或用量计费。",
-        "usage": "用户可为所用平台(Apple Silicon macOS 13.3+、Windows 10/11 x64、Linux x86_64 或 Docker)下载安装包并按照平台指南操作,或通过 Docker 运行命令 `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable` 启动。若从源码运行,需先安装 Node 20+/Bun 和 Python 3.11+,然后执行 `git clone https://github.com/debpalash/VoiceStudio.git`,再依次运行 `bun install` 和 `bun run desktop`;桌面启动器会在首次运行时自动配置 Python 依赖。",
-        "pros": "VoiceStudio 提供 16 个 TTS 引擎、11 个 ASR 引擎和涵盖 646 种语言的语言目录,并具备多种接口,包括桌面应用、本地 REST/SSE/WebSocket API、兼容 OpenAI 的音频 API 以及 MCP 服务器。数据默认保存在本地,本地工作流程无需账户、API 密钥、订阅或用量计费。",
-        "cons": "默认的 OmniVoice 引擎预训练权重采用 CC-BY-NC 许可,并附带另行授权的音频分词器,因此生成音频的商业使用需要在 VoiceStudio 的 AGPL-3.0 应用许可之外,另行查看相应模型的许可条款。",
-        "fit": "VoiceStudio 面向私密、离线、自托管或高负载的语音工作场景,与注重快速上手、无需本地模型管理的托管语音服务形成对比。由于用户需自备硬件并自行负责更新和磁盘管理,该项目可能更适合看重本地掌控而非托管便利性的用户。"
+        "goal": "VoiceStudio(原名 OmniVoice-Studio)是一款可在本地硬件上运行的自托管应用,用于声音克隆、视频配音、语音听写和长篇音频制作。它内置16个TTS引擎、11个ASR引擎,覆盖646种语言的目录,可在macOS、Windows、Linux和Docker上运行,本地工作流无需账户、API密钥或订阅。",
+        "usage": "大多数用户从GitHub下载打包发行版(macOS DMG、Windows MSI或Linux AppImage)并按平台指南操作,或使用命令`docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable`运行Docker镜像。若从源码构建,则依次执行`git clone https://github.com/debpalash/VoiceStudio.git`、`bun install`和`bun run desktop`,首次启动会自动配置托管的Python环境并下载默认模型。",
+        "pros": "该应用默认将语音、项目和输出内容保留在本地设备上,支持广泛的TTS/ASR引擎和646种语言,提供与OpenAI兼容的API及MCP服务器以便集成,并且在用户未主动选择开启前,分析数据收集功能默认关闭。",
+        "cons": "VoiceStudio被描述为处于活跃测试阶段,因此`main`分支可能在版本发布之间发生变化,官方建议在需要稳定性的场景下使用最新发行版。Intel芯片的Mac无法运行本地后端,只能连接远程后端。由于应用采用AGPL-3.0许可,若将修改后的版本作为网络服务提供,则需要以相同许可开放对应源代码。",
+        "fit": "VoiceStudio似乎更适合希望进行私密、离线、自托管或大批量语音与音频工作、并能自备硬件的用户,而不太适合寻求零配置托管云服务的用户。计划用于商业用途的团队应注意,生成音频的权利可能取决于单独授权的模型权重,因为默认的OmniVoice权重被标注为CC-BY-NC,应用许可证并不能替代这些条款。"
       },
       "es": {
-        "goal": "VoiceStudio es una aplicación que se ejecuta localmente en el propio hardware del usuario (macOS, Windows, Linux y Docker) para clonar voces, doblar vídeo, dictar texto y producir audio de larga duración como historias y audiolibros, sin necesidad de cuenta, clave de API, suscripción ni medición de uso en el flujo local.",
-        "usage": "Los usuarios descargan un paquete para su plataforma (macOS 13.3+ Apple Silicon, Windows 10/11 x64, Linux x86_64 o Docker) y siguen la guía correspondiente, o lo ejecutan con Docker mediante `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable`. Para ejecutarlo desde el código fuente, se instala Node 20+/Bun y Python 3.11+, luego se ejecuta `git clone https://github.com/debpalash/VoiceStudio.git`, seguido de `bun install` y `bun run desktop`; el lanzador de escritorio configura las dependencias de Python automáticamente en la primera ejecución.",
-        "pros": "VoiceStudio ofrece 16 motores TTS, 11 motores ASR y un catálogo de 646 idiomas, con varias interfaces que incluyen una aplicación de escritorio, una API local REST/SSE/WebSocket, una API de audio compatible con OpenAI y un servidor MCP. El almacenamiento permanece local de forma predeterminada, y el flujo local no requiere cuenta, clave de API, suscripción ni medición de uso.",
-        "cons": "Los pesos preentrenados del motor OmniVoice predeterminado están bajo licencia CC-BY-NC e incluyen un tokenizador de audio con licencia separada, por lo que el uso comercial del audio generado requiere revisar los términos específicos del modelo además de la licencia AGPL-3.0 de la aplicación VoiceStudio.",
-        "fit": "VoiceStudio está orientado a trabajos de voz privados, sin conexión, autoalojados o de gran volumen, en contraste con los servicios de voz alojados que priorizan una configuración rápida sin gestión de modelos locales; como los usuarios deben aportar el hardware y encargarse de actualizaciones y espacio en disco, probablemente resulte más adecuado para quienes priorizan el control local sobre la comodidad gestionada."
+        "goal": "VoiceStudio (antes OmniVoice-Studio) es una aplicación autoalojada para clonar voces, doblar vídeo, dictar y producir audio de larga duración en hardware local. Incluye 16 motores TTS, 11 motores ASR y un catálogo que cubre 646 idiomas, y se ejecuta en macOS, Windows, Linux y Docker sin necesitar cuenta, clave de API ni suscripción para el flujo de trabajo local.",
+        "usage": "La mayoría de los usuarios descargan una versión empaquetada desde GitHub (DMG de macOS, MSI de Windows o AppImage de Linux) y siguen la guía de su plataforma, o ejecutan la imagen de Docker con `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable`. Para compilar desde el código fuente se usa `git clone https://github.com/debpalash/VoiceStudio.git`, `bun install` y `bun run desktop`; el primer arranque configura un entorno Python gestionado y descarga el modelo por defecto.",
+        "pros": "La aplicación mantiene voces, proyectos y salidas en el equipo local por defecto, cubre una amplia variedad de motores TTS/ASR y 646 idiomas, expone una API compatible con OpenAI y un servidor MCP para integraciones, y mantiene la analítica desactivada salvo que el usuario la active explícitamente.",
+        "cons": "VoiceStudio se describe como en beta activa, por lo que la rama `main` puede cambiar entre versiones y se recomienda la última versión publicada para trabajo estable. Los Mac con Intel no pueden ejecutar el backend local y deben conectarse a un backend remoto. Como la aplicación está bajo licencia AGPL-3.0, ofrecer una versión modificada como servicio en red obliga a publicar el código fuente correspondiente bajo la misma licencia.",
+        "fit": "VoiceStudio parece adecuado para usuarios que buscan trabajo privado, sin conexión, autoalojado o de alto volumen de voz y audio y que puedan aportar su propio hardware, más que para quienes buscan un servicio en la nube totalmente gestionado y sin configuración. Los equipos que consideren un uso comercial deben tener en cuenta que los derechos sobre el audio generado pueden depender de los pesos del modelo con licencia independiente, ya que los pesos predeterminados de OmniVoice están etiquetados como CC-BY-NC y la licencia de la aplicación no sustituye esos términos."
       },
       "ja": {
-        "goal": "VoiceStudioは、音声クローニング、動画の吹き替え、ディクテーション、ストーリーやオーディオブックなどの長尺音声制作を、ユーザー自身のハードウェア(macOS、Windows、Linux、Docker)上でローカルに実行するアプリケーションで、ローカルワークフローにはアカウント、APIキー、サブスクリプション、使用量計測が不要です。",
-        "usage": "ユーザーは自分のプラットフォーム(Apple Silicon macOS 13.3+、Windows 10/11 x64、Linux x86_64、またはDocker)向けのパッケージをダウンロードしてガイドに従うか、`docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable` というDockerコマンドで実行できます。ソースから実行する場合はNode 20+/BunとPython 3.11+をインストールした後、`git clone https://github.com/debpalash/VoiceStudio.git` を実行し、続けて `bun install` と `bun run desktop` を実行します。デスクトップランチャーは初回起動時にPythonの依存関係を自動的に構成します。",
-        "pros": "VoiceStudioは16のTTSエンジン、11のASRエンジン、646言語のカタログを備え、デスクトップアプリ、ローカルREST/SSE/WebSocket API、OpenAI互換のオーディオAPI、MCPサーバーなど複数のインターフェースを提供します。ストレージはデフォルトでローカルに保持され、ローカルワークフローにはアカウント、APIキー、サブスクリプション、使用量計測が不要です。",
-        "cons": "デフォルトのOmniVoiceエンジンの事前学習済み重みはCC-BY-NCライセンスで、別ライセンスのオーディオトークナイザーを含むため、生成音声の商用利用にはVoiceStudioのAGPL-3.0アプリケーションライセンスとは別に、モデル固有の利用規約を確認する必要があります。",
-        "fit": "VoiceStudioは、プライベート、オフライン、セルフホスト、または大量処理の音声作業を対象としており、ローカルでのモデル管理を必要としない迅速なセットアップを重視するホスト型音声サービスとは対照的です。ユーザー自身がハードウェアを用意し、更新やディスク管理を担う必要があるため、管理された利便性よりローカルでの制御を重視するユーザーに適していると考えられます。"
+        "goal": "VoiceStudio(旧名OmniVoice-Studio)は、ローカルのハードウェア上で音声クローン、動画の吹き替え、口述筆記、長尺音声の制作を行うセルフホスト型アプリケーションです。16種のTTSエンジン、11種のASRエンジン、646言語をカバーするカタログを備え、macOS、Windows、Linux、Dockerで動作し、ローカルワークフローにはアカウント、APIキー、サブスクリプションを必要としません。",
+        "usage": "多くのユーザーはGitHubからパッケージ化されたリリース(macOS用DMG、Windows用MSI、Linux用AppImage)をダウンロードしてプラットフォーム別ガイドに従うか、`docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable`コマンドでDockerイメージを実行します。ソースからビルドする場合は`git clone https://github.com/debpalash/VoiceStudio.git`、`bun install`、`bun run desktop`の順に実行し、初回起動時に管理されたPython環境の構築とデフォルトモデルのダウンロードが自動で行われます。",
+        "pros": "このアプリケーションはデフォルトで音声、プロジェクト、出力をローカルマシンに保持し、多様なTTS/ASRエンジンと646言語に対応し、連携用にOpenAI互換APIとMCPサーバーを提供し、ユーザーが明示的に同意しない限り分析データ収集は無効になっています。",
+        "cons": "VoiceStudioはアクティブベータと説明されており、`main`ブランチはリリース間で変更される可能性があるため、安定した作業には最新リリースの使用が推奨されています。IntelチップのMacはローカルバックエンドを実行できず、リモートバックエンドへの接続が必要です。アプリケーションはAGPL-3.0ライセンスの下にあるため、改変版をネットワークサービスとして提供する場合は、同一ライセンスの下で対応するソースコードを公開する必要があります。",
+        "fit": "VoiceStudioは、自前のハードウェアを用意でき、プライベート、オフライン、セルフホスト、または大量の音声・オーディオ作業を求めるユーザーに適していると考えられ、設定不要のマネージドクラウドサービスを求めるユーザーにはあまり向いていない可能性があります。商用利用を検討するチームは、デフォルトのOmniVoiceの重みがCC-BY-NCと表示されておりアプリケーションのライセンスがその条件を上書きしないため、生成された音声の権利が別途ライセンスされたモデルの重みに依存し得る点に留意する必要があります。"
       }
     },
     "evidence": {
@@ -7935,22 +7908,27 @@
           "start_line": 8,
           "end_line": 10,
           "section_heading": ""
+        },
+        {
+          "start_line": 51,
+          "end_line": 58,
+          "section_heading": "At a glance"
         }
       ],
       "usage": [
         {
-          "start_line": 70,
-          "end_line": 72,
+          "start_line": 74,
+          "end_line": 74,
           "section_heading": "Install"
         },
         {
-          "start_line": 88,
-          "end_line": 90,
+          "start_line": 90,
+          "end_line": 92,
           "section_heading": "Quick Docker run"
         },
         {
-          "start_line": 114,
-          "end_line": 121,
+          "start_line": 118,
+          "end_line": 123,
           "section_heading": "Run from source"
         }
       ],
@@ -7961,33 +7939,43 @@
           "section_heading": ""
         },
         {
-          "start_line": 56,
-          "end_line": 57,
-          "section_heading": "At a glance"
+          "start_line": 154,
+          "end_line": 154,
+          "section_heading": "Features"
+        },
+        {
+          "start_line": 303,
+          "end_line": 303,
+          "section_heading": "Network boundary"
         }
       ],
       "cons": [
         {
-          "start_line": 222,
-          "end_line": 222,
-          "section_heading": "Text to speech"
+          "start_line": 44,
+          "end_line": 45,
+          "section_heading": ""
         },
         {
-          "start_line": 245,
-          "end_line": 245,
-          "section_heading": "Text to speech"
+          "start_line": 86,
+          "end_line": 86,
+          "section_heading": "Install"
         },
         {
-          "start_line": 437,
-          "end_line": 437,
-          "section_heading": "FAQ"
+          "start_line": 482,
+          "end_line": 482,
+          "section_heading": "License"
         }
       ],
       "fit": [
         {
           "start_line": 172,
-          "end_line": 181,
+          "end_line": 183,
           "section_heading": "Comparison"
+        },
+        {
+          "start_line": 439,
+          "end_line": 439,
+          "section_heading": "FAQ"
         }
       ]
     },
@@ -7998,7 +7986,6 @@
         "fields": [
           "goal",
           "usage",
-          "pros",
           "cons",
           "fit"
         ]
@@ -8039,31 +8026,24 @@
         ]
       },
       {
-        "kind": "version",
-        "value": "CC-BY-NC",
-        "fields": [
-          "cons"
-        ]
-      },
-      {
         "kind": "number",
         "value": "16",
         "fields": [
-          "pros"
+          "goal"
         ]
       },
       {
         "kind": "number",
         "value": "11",
         "fields": [
-          "usage",
-          "pros"
+          "goal"
         ]
       },
       {
         "kind": "number",
         "value": "646",
         "fields": [
+          "goal",
           "pros"
         ]
       },
@@ -8076,14 +8056,218 @@
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "debpalash/voicestudio",
       "path": "README.md",
-      "blob_sha": "78021085dbe3e70fbcd0a21c642f28d00f119963",
-      "content_sha256": "0694f08ab392f3e56ed7c345002df1660b866f0f8d257d72b140e7bc87f23978",
+      "blob_sha": "7a0379673c9760e31fdf6dda5953388b32947525",
+      "content_sha256": "b6cda4be200a130e5be5a05147b77880628430276cdd7e5756d911b8523bd627",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.263",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "akitaonrails/ai-memory": {
+    "content": {
+      "goal": "ai-memory presents itself as a long-term memory system for AI coding agents, letting a user stop one agent mid-task (for example Claude Code) and resume the same project context in a different agent (such as OpenAI Codex) without re-explaining the architecture, prior failed approaches, or open questions.",
+      "usage": "Install via Arch Linux's AUR with `yay -S ai-memory-bin` (prebuilt binary) or run the server as a Docker container using the published `akitaonrails/ai-memory` image, then connect an agent CLI with `ai-memory install-mcp --client claude-code --apply` and `ai-memory install-hooks --agent claude-code --apply`.",
+      "pros": "The README lists support for more than twenty agent harnesses (including Claude Code, Codex, Cursor, and Gemini CLI) sharing one memory store; memory is kept as plain markdown files in a git-backed wiki that can be grepped or hand-edited; the default capture, search, and handoff path is described as requiring zero LLM API calls; and multi-user authentication with per-person attribution is stated to be built in rather than a paid feature.",
+      "cons": "Native Windows support is marked 'Experimental' in the support matrix, while WSL2 is listed as fully supported, suggesting native-Windows users may encounter rougher edges. The documented quick-start configuration also runs with no authentication, binding only to loopback, so adding a bearer token appears to be a required extra step before exposing the server on a LAN.",
+      "fit": "Based on the described setup options, ai-memory appears best suited to individual developers who want continuity across machines and agent tools (single laptop or homelab server), as well as small teams sharing one server per the documented per-project, per-person attribution model; Linux, macOS, and Windows-via-WSL2 are the supported platforms."
+    },
+    "summaries": {
+      "en": {
+        "goal": "ai-memory presents itself as a long-term memory system for AI coding agents, letting a user stop one agent mid-task (for example Claude Code) and resume the same project context in a different agent (such as OpenAI Codex) without re-explaining the architecture, prior failed approaches, or open questions.",
+        "usage": "Install via Arch Linux's AUR with `yay -S ai-memory-bin` (prebuilt binary) or run the server as a Docker container using the published `akitaonrails/ai-memory` image, then connect an agent CLI with `ai-memory install-mcp --client claude-code --apply` and `ai-memory install-hooks --agent claude-code --apply`.",
+        "pros": "The README lists support for more than twenty agent harnesses (including Claude Code, Codex, Cursor, and Gemini CLI) sharing one memory store; memory is kept as plain markdown files in a git-backed wiki that can be grepped or hand-edited; the default capture, search, and handoff path is described as requiring zero LLM API calls; and multi-user authentication with per-person attribution is stated to be built in rather than a paid feature.",
+        "cons": "Native Windows support is marked 'Experimental' in the support matrix, while WSL2 is listed as fully supported, suggesting native-Windows users may encounter rougher edges. The documented quick-start configuration also runs with no authentication, binding only to loopback, so adding a bearer token appears to be a required extra step before exposing the server on a LAN.",
+        "fit": "Based on the described setup options, ai-memory appears best suited to individual developers who want continuity across machines and agent tools (single laptop or homelab server), as well as small teams sharing one server per the documented per-project, per-person attribution model; Linux, macOS, and Windows-via-WSL2 are the supported platforms."
+      },
+      "ko": {
+        "goal": "ai-memory는 AI 코딩 에이전트를 위한 장기 기억 시스템으로 소개되며, 사용자가 작업 도중 한 에이전트(예: Claude Code)를 종료하고 같은 디렉터리에서 다른 에이전트(예: OpenAI Codex)로 전환해도 아키텍처, 이전에 실패한 접근 방식, 미해결 질문을 다시 설명할 필요 없이 이어갈 수 있다고 설명합니다.",
+        "usage": "Arch Linux에서는 AUR을 통해 `yay -S ai-memory-bin`(사전 빌드 바이너리) 명령으로 설치하거나, 공개된 `akitaonrails/ai-memory` Docker 이미지를 사용해 서버를 컨테이너로 실행할 수 있습니다. 이후 `ai-memory install-mcp --client claude-code --apply`와 `ai-memory install-hooks --agent claude-code --apply` 명령으로 에이전트 CLI를 연결합니다.",
+        "pros": "README에 따르면 Claude Code, Codex, Cursor, Gemini CLI 등 20개 이상의 에이전트 하네스가 하나의 메모리를 공유하도록 지원하며, 메모리는 git 기반 위키의 일반 마크다운 파일로 저장되어 grep이나 직접 편집이 가능하다고 합니다. 기본 캡처·검색·핸드오프 경로는 LLM API 호출이 전혀 필요하지 않다고 설명되며, 다중 사용자 인증과 개인별 귀속 기능이 유료 기능이 아니라 기본 포함되어 있다고 명시되어 있습니다.",
+        "cons": "지원 매트릭스에서 네이티브 Windows는 '실험적(Experimental)'으로 표시되어 있는 반면 WSL2는 완전히 지원된다고 되어 있어, 네이티브 Windows 사용자는 다소 불안정할 수 있음을 시사합니다. 또한 문서화된 기본 빠른 시작 구성은 인증 없이 루프백에만 바인딩되어 실행되므로, LAN에 서버를 노출하려면 베어러 토큰 추가가 별도의 필수 단계로 보입니다.",
+        "fit": "문서화된 설치 옵션을 볼 때 ai-memory는 여러 기기와 에이전트 도구 간 연속성을 원하는 개인 개발자(단일 노트북 또는 홈랩 서버)에게 적합해 보이며, 프로젝트별·개인별 귀속 모델을 명시한 점을 고려하면 하나의 서버를 공유하는 소규모 팀에도 맞을 것으로 보입니다. 지원 플랫폼은 Linux, macOS, Windows(WSL2 경유)입니다."
+      },
+      "zh-CN": {
+        "goal": "ai-memory 被介绍为面向 AI 编码代理的长期记忆系统,让用户可以在任务进行到一半时退出某个代理(例如 Claude Code),再在同一目录下切换到另一个代理(例如 OpenAI Codex)继续工作,而无需重新解释架构、此前失败的方案或尚未解决的问题。",
+        "usage": "在 Arch Linux 上,可通过 AUR 使用 `yay -S ai-memory-bin`(预编译二进制)安装,或者使用官方发布的 `akitaonrails/ai-memory` Docker 镜像以容器方式运行服务器;随后通过 `ai-memory install-mcp --client claude-code --apply` 与 `ai-memory install-hooks --agent claude-code --apply` 命令连接代理 CLI。",
+        "pros": "据 README 描述,该项目支持二十多种代理宿主(包括 Claude Code、Codex、Cursor 和 Gemini CLI)共享同一份记忆;记忆以普通 Markdown 文件形式保存在基于 git 的 wiki 中,可直接 grep 或手动编辑;默认的捕获、搜索与交接流程据称完全不需要调用 LLM API;并且多用户认证与按人归属功能被说明为内置能力,而非付费层级。",
+        "cons": "支持矩阵中,原生 Windows 被标记为“实验性(Experimental)”,而通过 WSL2 的 Windows 则列为完全支持,这似乎意味着原生 Windows 用户可能会遇到更多不稳定之处。此外,文档中的默认快速启动配置在没有身份验证的情况下运行,仅绑定到本地回环地址,因此若要将服务器暴露到局域网,添加持有者令牌看起来是一个必需的额外步骤。",
+        "fit": "根据文档中描述的安装选项,ai-memory 看起来更适合希望在多台机器和多种代理工具之间保持连续性的个人开发者(单台笔记本电脑或家庭实验室服务器使用场景),同时鉴于其按项目、按人归属的模型说明,也可能适合共用一台服务器的小团队。文档列出的受支持平台为 Linux、macOS 以及通过 WSL2 的 Windows。"
+      },
+      "es": {
+        "goal": "ai-memory se presenta como un sistema de memoria a largo plazo para agentes de codificación con IA, que permite salir de un agente a mitad de tarea (por ejemplo, Claude Code) y continuar en el mismo directorio con otro agente (como OpenAI Codex) sin tener que reexplicar la arquitectura, los enfoques fallidos anteriores ni las preguntas abiertas.",
+        "usage": "En Arch Linux se instala mediante AUR con `yay -S ai-memory-bin` (binario precompilado), o bien se ejecuta el servidor como contenedor Docker usando la imagen publicada `akitaonrails/ai-memory`; después se conecta un CLI de agente con `ai-memory install-mcp --client claude-code --apply` y `ai-memory install-hooks --agent claude-code --apply`.",
+        "pros": "Según el README, el proyecto admite más de veinte entornos de agentes (incluidos Claude Code, Codex, Cursor y Gemini CLI) compartiendo una única memoria; la memoria se guarda como archivos markdown normales en un wiki respaldado por git, por lo que se puede buscar con grep o editar a mano; se describe que la ruta predeterminada de captura, búsqueda y traspaso no requiere ninguna llamada a una API de LLM; y se indica que la autenticación multiusuario con atribución por persona viene incluida, no como nivel de pago.",
+        "cons": "En la matriz de compatibilidad, el soporte nativo de Windows figura como 'Experimental', mientras que Windows vía WSL2 aparece como totalmente compatible, lo que sugiere que los usuarios de Windows nativo podrían encontrar más inconvenientes. Además, la configuración de inicio rápido documentada se ejecuta sin autenticación, vinculada solo a loopback, por lo que añadir un token portador parece ser un paso adicional necesario antes de exponer el servidor en una LAN.",
+        "fit": "A partir de las opciones de instalación documentadas, ai-memory parece adecuado para desarrolladores individuales que buscan continuidad entre máquinas y herramientas de agentes (un portátil único o un servidor casero), así como para equipos pequeños que comparten un servidor, dado el modelo documentado de atribución por proyecto y por persona. Las plataformas admitidas son Linux, macOS y Windows vía WSL2."
+      },
+      "ja": {
+        "goal": "ai-memoryは、AIコーディングエージェント向けの長期記憶システムとして紹介されており、タスクの途中であるエージェント(例:Claude Code)を終了し、同じディレクトリで別のエージェント(例:OpenAI Codex)に切り替えても、アーキテクチャや過去に失敗したアプローチ、未解決の課題を説明し直すことなく作業を継続できるとされています。",
+        "usage": "Arch Linuxでは、AUR経由で`yay -S ai-memory-bin`(ビルド済みバイナリ)を使ってインストールするか、公開されている`akitaonrails/ai-memory`のDockerイメージを使ってサーバーをコンテナとして実行できます。その後、`ai-memory install-mcp --client claude-code --apply`と`ai-memory install-hooks --agent claude-code --apply`のコマンドでエージェントCLIを接続します。",
+        "pros": "READMEによれば、Claude Code、Codex、Cursor、Gemini CLIなど20種類以上のエージェントハーネスが1つのメモリを共有できるとされ、メモリはgitベースのwiki内に通常のMarkdownファイルとして保存されるため、grepでの検索や手動編集が可能です。デフォルトのキャプチャ・検索・引き継ぎの経路はLLM APIの呼び出しを一切必要としないと説明されており、マルチユーザー認証と個人単位の帰属機能も有料階層ではなく標準搭載とされています。",
+        "cons": "サポートマトリクスでは、ネイティブWindowsは「実験的(Experimental)」と記載されている一方、WSL2経由のWindowsは完全サポートとされており、ネイティブWindows利用者はやや不安定な状態に遭遇する可能性が示唆されます。また、文書化されたデフォルトのクイックスタート構成は認証なしでループバックにのみバインドされて動作するため、サーバーをLANに公開する前にベアラートークンを追加することが必須の追加手順であるように見えます。",
+        "fit": "文書化されたインストール手順から判断すると、ai-memoryは複数のマシンやエージェントツール間で継続性を求める個人開発者(単一のノートPCやホームラボサーバーでの利用)に適していると考えられ、プロジェクト単位・個人単位の帰属モデルが明記されていることから、1台のサーバーを共有する小規模チームにも向いていると思われます。サポート対象プラットフォームはLinux、macOS、およびWSL2経由のWindowsです。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 8,
+          "end_line": 11,
+          "section_heading": ""
+        },
+        {
+          "start_line": 19,
+          "end_line": 24,
+          "section_heading": "Why ai-memory"
+        },
+        {
+          "start_line": 26,
+          "end_line": 31,
+          "section_heading": "Why ai-memory"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 122,
+          "end_line": 131,
+          "section_heading": "Arch Linux (AUR)"
+        },
+        {
+          "start_line": 153,
+          "end_line": 155,
+          "section_heading": "Docker"
+        },
+        {
+          "start_line": 210,
+          "end_line": 211,
+          "section_heading": "Docker"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 26,
+          "end_line": 31,
+          "section_heading": "Why ai-memory"
+        },
+        {
+          "start_line": 43,
+          "end_line": 54,
+          "section_heading": "Why ai-memory"
+        },
+        {
+          "start_line": 38,
+          "end_line": 41,
+          "section_heading": "Why ai-memory"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 88,
+          "end_line": 91,
+          "section_heading": "Support matrix"
+        },
+        {
+          "start_line": 157,
+          "end_line": 160,
+          "section_heading": "Docker"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 88,
+          "end_line": 91,
+          "section_heading": "Support matrix"
+        },
+        {
+          "start_line": 33,
+          "end_line": 36,
+          "section_heading": "Why ai-memory"
+        },
+        {
+          "start_line": 265,
+          "end_line": 270,
+          "section_heading": "Teams and multiple machines"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "yay -S ai-memory-bin",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "ai-memory install-mcp --client claude-code --apply",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "ai-memory install-hooks --agent claude-code --apply",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "ai-memory",
+        "fields": [
+          "goal",
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "akitaonrails/ai-memory",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Claude Code",
+        "fields": [
+          "goal",
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Codex",
+        "fields": [
+          "goal",
+          "pros"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "cons",
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "akitaonrails/ai-memory",
+      "path": "README.md",
+      "blob_sha": "1c6ff921974cd2a017de0100c4ac180678e963bf",
+      "content_sha256": "ca68b434be46820c8269a6471ff2a365f2aa3d9df88c0f8bc07b372bf6ad0499",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -8731,47 +8915,47 @@
   },
   "public-apis/public-apis": {
     "content": {
-      "goal": "The public-apis/public-apis repository is a community-curated, categorized directory of free and public APIs for developers, spanning domains such as Animals, Business, Games & Comics, and Weather, intended to help developers discover public APIs for their own projects.",
-      "usage": "Developers browse the Index to jump to a category section, then follow each listed API's own link for that provider's documentation and signup; contributions follow the Contributing Guide and are submitted via Pull Request, with existing entries tracked through GitHub Issues (https://github.com/public-apis/public-apis/issues) and Pull Requests (https://github.com/public-apis/public-apis/pulls).",
-      "pros": "It covers 51 distinct categories with hundreds of entries, and each entry lists whether an API requires an apiKey or OAuth, supports HTTPS, and supports CORS, letting developers quickly gauge integration requirements before visiting a provider's site.",
-      "cons": "The README does not verify the reliability or terms of individual third-party APIs, and since numerous entries list CORS or Auth as 'Unknown,' documentation completeness across entries may be inconsistent, so users likely need to check each provider's own site before relying on it for production use.",
-      "fit": "This resource appears best suited to developers browsing or prototyping with free public APIs across many domains, rather than teams needing a single vetted, installable dependency, since integration reliability still depends on each individual third-party provider."
+      "goal": "public-apis/public-apis is a community-maintained, manually curated collection of free and public APIs spanning dozens of domains (e.g., Animals, Finance, Government, Weather), intended to help developers find APIs to build into their own products.",
+      "usage": "The README's Index links to category sections; each section is a markdown table listing an API's name, description, required Auth (apiKey, OAuth, or none), HTTPS support, and CORS availability, so developers browse a category and follow the API name link to the provider's own docs. Contributions go through CONTRIBUTING.md, and issues/PRs are filed at https://github.com/public-apis/public-apis/issues.",
+      "pros": "Coverage is broad, spanning dozens of categories (Animals through Weather) and thousands of listed APIs, many marked with 'No' auth, giving developers a single free reference point to scan many domains for candidate APIs.",
+      "cons": "Because entries are community-submitted across many independent third-party services, CORS support is frequently listed as 'Unknown' and Auth/HTTPS requirements vary row by row, so each linked API's actual reliability and access requirements must be verified individually before integrating it.",
+      "fit": "This repository seems best suited as a browsable reference or starting point for developers scouting candidate public APIs for prototypes or side projects, rather than as an SDK, client library, or a service with any uptime guarantee of its own."
     },
     "summaries": {
       "en": {
-        "goal": "The public-apis/public-apis repository is a community-curated, categorized directory of free and public APIs for developers, spanning domains such as Animals, Business, Games & Comics, and Weather, intended to help developers discover public APIs for their own projects.",
-        "usage": "Developers browse the Index to jump to a category section, then follow each listed API's own link for that provider's documentation and signup; contributions follow the Contributing Guide and are submitted via Pull Request, with existing entries tracked through GitHub Issues (https://github.com/public-apis/public-apis/issues) and Pull Requests (https://github.com/public-apis/public-apis/pulls).",
-        "pros": "It covers 51 distinct categories with hundreds of entries, and each entry lists whether an API requires an apiKey or OAuth, supports HTTPS, and supports CORS, letting developers quickly gauge integration requirements before visiting a provider's site.",
-        "cons": "The README does not verify the reliability or terms of individual third-party APIs, and since numerous entries list CORS or Auth as 'Unknown,' documentation completeness across entries may be inconsistent, so users likely need to check each provider's own site before relying on it for production use.",
-        "fit": "This resource appears best suited to developers browsing or prototyping with free public APIs across many domains, rather than teams needing a single vetted, installable dependency, since integration reliability still depends on each individual third-party provider."
+        "goal": "public-apis/public-apis is a community-maintained, manually curated collection of free and public APIs spanning dozens of domains (e.g., Animals, Finance, Government, Weather), intended to help developers find APIs to build into their own products.",
+        "usage": "The README's Index links to category sections; each section is a markdown table listing an API's name, description, required Auth (apiKey, OAuth, or none), HTTPS support, and CORS availability, so developers browse a category and follow the API name link to the provider's own docs. Contributions go through CONTRIBUTING.md, and issues/PRs are filed at https://github.com/public-apis/public-apis/issues.",
+        "pros": "Coverage is broad, spanning dozens of categories (Animals through Weather) and thousands of listed APIs, many marked with 'No' auth, giving developers a single free reference point to scan many domains for candidate APIs.",
+        "cons": "Because entries are community-submitted across many independent third-party services, CORS support is frequently listed as 'Unknown' and Auth/HTTPS requirements vary row by row, so each linked API's actual reliability and access requirements must be verified individually before integrating it.",
+        "fit": "This repository seems best suited as a browsable reference or starting point for developers scouting candidate public APIs for prototypes or side projects, rather than as an SDK, client library, or a service with any uptime guarantee of its own."
       },
       "ko": {
-        "goal": "public-apis/public-apis 저장소는 개발자를 위해 무료 및 공개 API를 카테고리별로 정리한 커뮤니티 큐레이션 목록으로, Animals, Business, Games & Comics, Weather 등 다양한 분야를 다루며 개발자가 자신의 프로젝트에 사용할 공개 API를 찾도록 돕는 것을 목표로 합니다.",
-        "usage": "개발자는 Index를 통해 원하는 카테고리 섹션으로 이동한 뒤, 각 API 항목에 연결된 제공업체 자체 문서와 가입 페이지를 확인합니다. 기여는 Contributing Guide를 따라 Pull Request로 제출하며, 기존 항목은 GitHub Issues(https://github.com/public-apis/public-apis/issues)와 Pull Requests(https://github.com/public-apis/public-apis/pulls)로 추적됩니다.",
-        "pros": "51개의 뚜렷한 카테고리와 다수의 항목을 포함하며, 각 항목은 apiKey 또는 OAuth 필요 여부, HTTPS 지원, CORS 지원 여부를 표시해 개발자가 제공업체 사이트를 방문하기 전에 연동 요건을 빠르게 파악할 수 있게 해줍니다.",
-        "cons": "README는 개별 타사 API의 신뢰성이나 이용 약관을 검증하지 않으며, 다수 항목이 CORS 또는 Auth를 'Unknown'으로 표시하고 있어 항목별 문서화 수준이 일정하지 않을 수 있으므로, 실제 운영에 사용하기 전 각 제공업체 사이트를 직접 확인할 필요가 있어 보입니다.",
-        "fit": "이 자료는 여러 분야의 무료 공개 API를 둘러보거나 프로토타이핑에 활용하려는 개발자에게 적합해 보이며, 단일하게 검증된 설치형 의존성이 필요한 팀보다는 각 타사 제공업체에 따라 연동 신뢰성이 달라지는 점을 감안할 수 있는 사용자에게 더 맞습니다."
+        "goal": "public-apis/public-apis는 커뮤니티가 수작업으로 큐레이션한 무료 공개 API 모음으로, 동물, 금융, 정부, 날씨 등 수십 개 분야를 아우르며 개발자가 자신의 프로젝트에 사용할 API를 찾도록 돕는 것을 목표로 합니다.",
+        "usage": "README의 Index는 카테고리별 섹션으로 연결되며, 각 섹션은 마크다운 표로 API 이름, 설명, 필요한 인증 방식(apiKey, OAuth, 없음), HTTPS 지원 여부, CORS 지원 여부를 나열합니다. 개발자는 해당 카테고리를 살펴본 뒤 API 이름 링크를 눌러 제공자 문서로 이동합니다. 기여는 CONTRIBUTING.md 절차를 따르며, 이슈와 PR은 https://github.com/public-apis/public-apis/issues 에서 관리됩니다.",
+        "pros": "동물부터 날씨까지 수십 개 카테고리와 수천 개의 API 항목을 다루며, 많은 항목이 'No' 인증으로 표시되어 있어 여러 분야를 한 곳에서 무료로 훑어볼 수 있는 폭넓은 참고 자료를 제공합니다.",
+        "cons": "항목들이 서로 다른 수많은 제3자 서비스에 대해 커뮤니티가 제출한 것이기 때문에 CORS 지원은 표에서 자주 'Unknown'으로 표시되고 인증·HTTPS 요구사항도 행마다 다르므로, 실제 연동 전에 각 API의 신뢰성과 접근 요건을 개별적으로 확인해야 합니다.",
+        "fit": "이 저장소는 SDK나 클라이언트 라이브러리, 가동시간을 보장하는 서비스라기보다는 프로토타입이나 사이드 프로젝트에 쓸 만한 공개 API 후보를 탐색하는 개발자를 위한 참고 목록에 가장 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "public-apis/public-apis 仓库是一个由社区维护、按类别整理的免费公共 API 目录,涵盖 Animals、Business、Games & Comics、Weather 等多个领域,旨在帮助开发者为自己的项目发现可用的公共 API。",
-        "usage": "开发者可以通过 Index 跳转到相应类别小节,再点击每个 API 条目自带的链接查看该服务商自己的文档与注册页面;贡献者需按照 Contributing Guide 提交 Pull Request,现有条目通过 GitHub Issues(https://github.com/public-apis/public-apis/issues)和 Pull Requests(https://github.com/public-apis/public-apis/pulls)进行跟踪。",
-        "pros": "该目录涵盖 51 个不同类别,条目数量众多,每条记录都标明是否需要 apiKey 或 OAuth、是否支持 HTTPS 以及是否支持 CORS,便于开发者在访问服务商网站之前快速评估接入要求。",
-        "cons": "README 并未验证各第三方 API 的可靠性或使用条款,由于不少条目将 CORS 或 Auth 标记为 'Unknown',各条目的文档完整程度可能并不一致,因此在用于生产环境前,用户似乎有必要自行核实每个服务商的官方站点。",
-        "fit": "该资源似乎更适合希望浏览或用于原型开发的开发者,用来在众多领域中寻找免费公共 API,而非需要单一、经过验证的可安装依赖项的团队,因为其可靠性最终仍取决于各个第三方服务商。"
+        "goal": "public-apis/public-apis 是一个由社区人工整理的免费公开 API 目录,涵盖动物、金融、政府、天气等数十个领域,旨在帮助开发者为自己的项目发现可用的 API。",
+        "usage": "README 中的 Index 链接到各分类章节,每个章节以 Markdown 表格列出 API 名称、描述、所需鉴权方式(apiKey、OAuth 或无)、是否支持 HTTPS 以及 CORS 情况;开发者浏览相应分类后点击 API 名称链接即可跳转至该提供方的文档。贡献流程遵循 CONTRIBUTING.md,议题与 PR 在 https://github.com/public-apis/public-apis/issues 上跟踪。",
+        "pros": "覆盖范围广泛,涉及从动物到天气等数十个分类和数千条 API 记录,其中许多标注为无需鉴权('No'),为开发者提供了一个可以免费一站式浏览多个领域候选 API 的参考。",
+        "cons": "由于条目是社区针对众多独立第三方服务提交的,表格中 CORS 支持常被标注为'Unknown',各行的鉴权与 HTTPS 要求也各不相同,因此在实际接入前需要逐个核实每个 API 的可靠性与访问条件。",
+        "fit": "该仓库似乎更适合作为开发者为原型或个人项目寻找候选公开 API 的浏览式参考起点,而非本身提供 SDK、客户端库或具备运行时长保证的服务。"
       },
       "es": {
-        "goal": "El repositorio public-apis/public-apis es un directorio de APIs públicas y gratuitas curado por la comunidad y organizado por categorías, que abarca ámbitos como Animals, Business, Games & Comics y Weather, con el objetivo de ayudar a los desarrolladores a descubrir APIs públicas para sus propios proyectos.",
-        "usage": "Los desarrolladores navegan por el Index para saltar a la sección de una categoría y luego siguen el enlace propio de cada API hacia la documentación y el registro del proveedor; las contribuciones se realizan siguiendo la Contributing Guide y se envían mediante Pull Request, mientras que las entradas existentes se rastrean en GitHub Issues (https://github.com/public-apis/public-apis/issues) y Pull Requests (https://github.com/public-apis/public-apis/pulls).",
-        "pros": "Cubre 51 categorías distintas con numerosas entradas, y cada una indica si la API requiere apiKey u OAuth, si admite HTTPS y si admite CORS, lo que permite a los desarrolladores evaluar rápidamente los requisitos de integración antes de visitar el sitio del proveedor.",
-        "cons": "El README no verifica la fiabilidad ni los términos de cada API de terceros, y como numerosas entradas marcan CORS o Auth como 'Unknown', la exhaustividad de la documentación entre entradas podría ser desigual, por lo que parece necesario revisar el sitio de cada proveedor antes de usarlo en producción.",
-        "fit": "Este recurso parece más adecuado para desarrolladores que exploran o prototipan con APIs públicas gratuitas en múltiples ámbitos, más que para equipos que necesitan una única dependencia instalable y verificada, ya que la fiabilidad de la integración sigue dependiendo de cada proveedor externo."
+        "goal": "public-apis/public-apis es una colección de APIs públicas y gratuitas curada manualmente por la comunidad, que abarca decenas de dominios (Animales, Finanzas, Gobierno, Clima, etc.) con el objetivo de ayudar a los desarrolladores a encontrar APIs para sus propios proyectos.",
+        "usage": "El Índice del README enlaza a secciones por categoría; cada sección es una tabla en markdown que lista el nombre de la API, su descripción, el tipo de autenticación requerida (apiKey, OAuth o ninguna), el soporte de HTTPS y la disponibilidad de CORS, de modo que el desarrollador revisa la categoría y sigue el enlace hacia la documentación del proveedor. Las contribuciones siguen CONTRIBUTING.md, y los issues/PRs se gestionan en https://github.com/public-apis/public-apis/issues.",
+        "pros": "La cobertura es amplia, con decenas de categorías (de Animales a Clima) y miles de APIs listadas, muchas marcadas sin autenticación ('No'), lo que ofrece un punto de referencia único y gratuito para explorar candidatos en muchos dominios.",
+        "cons": "Como las entradas son enviadas por la comunidad para numerosos servicios de terceros independientes, el soporte de CORS suele figurar como 'Unknown' y los requisitos de Auth/HTTPS varían fila por fila, por lo que la fiabilidad y los requisitos de acceso de cada API deben verificarse individualmente antes de integrarla.",
+        "fit": "Este repositorio parece más adecuado como referencia navegable o punto de partida para desarrolladores que buscan APIs públicas candidatas para prototipos o proyectos personales, más que como un SDK, una librería cliente o un servicio con garantía de disponibilidad propia."
       },
       "ja": {
-        "goal": "public-apis/public-apis リポジトリは、コミュニティによってキュレーションされたカテゴリ別の無料・公開API一覧であり、Animals、Business、Games & Comics、Weather など多岐にわたる分野を扱い、開発者が自分のプロジェクトで使える公開APIを見つける手助けをすることを目的としています。",
-        "usage": "開発者はIndexから目的のカテゴリセクションへ移動し、各APIエントリに付いたリンクをたどって提供元自身のドキュメントや登録ページを確認します。貢献はContributing Guideに従いPull Requestとして提出し、既存のエントリはGitHub Issues(https://github.com/public-apis/public-apis/issues)とPull Requests(https://github.com/public-apis/public-apis/pulls)で管理されます。",
-        "pros": "51の異なるカテゴリと多数のエントリを網羅しており、各エントリはapiKeyまたはOAuthの要否、HTTPS対応、CORS対応を明記しているため、開発者は提供元サイトを訪れる前に連携要件を素早く把握できます。",
-        "cons": "READMEは個々のサードパーティAPIの信頼性や利用規約を検証しておらず、多くのエントリでCORSやAuthが「Unknown」と表示されていることから、エントリごとのドキュメントの充実度にはばらつきがある可能性があり、本番利用前には各提供元サイトを個別に確認する必要があると考えられます。",
-        "fit": "本リソースは、複数分野にわたる無料の公開APIを閲覧したりプロトタイピングに利用したりしたい開発者に適していると考えられ、単一の検証済みインストール可能な依存関係を必要とするチーム向けではなく、統合の信頼性は結局各サードパーティ提供元に依存する点に留意が必要です。"
+        "goal": "public-apis/public-apis は、動物、金融、政府、天気など数十の分野にわたる無料の公開APIをコミュニティが手作業でキュレーションしたリストであり、開発者が自分のプロジェクトに使えるAPIを見つける手助けをすることを目的としています。",
+        "usage": "READMEのIndexから各カテゴリのセクションにリンクしており、各セクションはMarkdownの表でAPI名、説明、必要な認証方式(apiKey、OAuth、または不要)、HTTPS対応、CORS対応状況を一覧表示しています。開発者は該当カテゴリを閲覧し、API名のリンクから提供元のドキュメントへ移動します。貢献方法はCONTRIBUTING.mdに従い、issueやPRは https://github.com/public-apis/public-apis/issues で管理されています。",
+        "pros": "動物から天気まで数十のカテゴリと数千件のAPIを網羅しており、多くが認証不要('No')と表示されているため、無料で多分野の候補APIを一か所で見渡せる参照先となります。",
+        "cons": "各項目は多数の独立した第三者サービスについてコミュニティが投稿したものであるため、表内のCORS対応は'Unknown'と記載されていることが多く、AuthやHTTPSの要件も行ごとに異なるため、実際に組み込む前に各APIの信頼性やアクセス要件を個別に確認する必要があります。",
+        "fit": "このリポジトリは、SDKやクライアントライブラリ、稼働率を保証するサービスそのものというよりは、プロトタイプや個人プロジェクト向けに候補となる公開APIを探す開発者にとって、閲覧可能な参考資料や出発点として最も適していると考えられます。"
       }
     },
     "evidence": {
@@ -8789,14 +8973,19 @@
       ],
       "usage": [
         {
+          "start_line": 72,
+          "end_line": 74,
+          "section_heading": "Index"
+        },
+        {
+          "start_line": 127,
+          "end_line": 130,
+          "section_heading": "Animals"
+        },
+        {
           "start_line": 64,
           "end_line": 68,
           "section_heading": "Learn more about Public APIs"
-        },
-        {
-          "start_line": 74,
-          "end_line": 124,
-          "section_heading": "Index"
         }
       ],
       "pros": [
@@ -8806,21 +8995,16 @@
           "section_heading": "Index"
         },
         {
-          "start_line": 128,
-          "end_line": 130,
+          "start_line": 130,
+          "end_line": 155,
           "section_heading": "Animals"
         }
       ],
       "cons": [
         {
-          "start_line": 152,
+          "start_line": 130,
           "end_line": 155,
           "section_heading": "Animals"
-        },
-        {
-          "start_line": 165,
-          "end_line": 166,
-          "section_heading": "Anime"
         }
       ],
       "fit": [
@@ -8830,16 +9014,16 @@
           "section_heading": "Try Public APIs for free"
         },
         {
-          "start_line": 64,
-          "end_line": 68,
-          "section_heading": "Learn more about Public APIs"
+          "start_line": 42,
+          "end_line": 44,
+          "section_heading": "APILayer APIs"
         }
       ]
     },
     "invariants": [
       {
         "kind": "product",
-        "value": "public-apis",
+        "value": "public-apis/public-apis",
         "fields": [
           "goal",
           "usage"
@@ -8851,32 +9035,17 @@
         "fields": [
           "usage"
         ]
-      },
-      {
-        "kind": "url",
-        "value": "https://github.com/public-apis/public-apis/pulls",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "51",
-        "fields": [
-          "pros"
-        ]
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "public-apis/public-apis",
       "path": "README.md",
-      "blob_sha": "57f04f4cc274f2899f3f5f94655d4b938212f482",
-      "content_sha256": "2d2b4ee4ebd45625a6ee4bf78344a3a0e797d06f031286785f8d9191bf1e8e1c",
+      "blob_sha": "7e485f6e6bd58f55e6bf711639c76a86f4bc6150",
+      "content_sha256": "46557e4e9dd0af8428b7ccae4306aa385721eaa20ba89584f482d0a3a42f7a9d",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
