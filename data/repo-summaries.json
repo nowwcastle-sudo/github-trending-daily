@@ -590,47 +590,47 @@
   },
   "pascalorg/editor": {
     "content": {
-      "goal": "Pascal Editor is a 3D building editor built with React Three Fiber and WebGPU. The repository is a Turborepo monorepo containing a standalone Next.js editor app, reusable packages (core, viewer, editor, nodes, cli, mcp), and a CLI that distributes them.",
-      "usage": "Running `npx @pascal-app/cli editor` (Node.js 22.13+) creates a persistent local install, starting the editor and an authenticated MCP service on loopback ports, storing projects in `~/.pascal/data/pascal.db`. For source development, `bun install` then `bun dev` builds core and viewer packages and starts the Next.js editor at http://localhost:3002. Packages can also be embedded via `npm install @pascal-app/core @pascal-app/viewer @pascal-app/editor @pascal-app/nodes`.",
-      "pros": "The project is MIT licensed and splits responsibilities across dedicated packages for scene state, rendering, editing tools, and built-in nodes. Scene state persists to IndexedDB with undo/redo across a 50-step history via Zundo, and a documented plugin manifest reportedly allows new node kinds without editing the built-ins.",
-      "cons": "The CLI path requires Node.js 22.13 or newer. The standalone local runtime shares scene state across connected clients, so concurrent independent work reportedly needs separate `PASCAL_HOME` directories. Newer features like the read-only furniture candidate check may be absent from the current npm beta release.",
-      "fit": "The project appears suited to teams embedding 3D/BIM-style editors in React apps, to developers connecting AI agents via its Model Context Protocol server, and to plugin authors extending node kinds through the documented `Plugin` manifest."
+      "goal": "Pascal Editor is a 3D building editor built with React Three Fiber and WebGPU, organized as a monorepo containing reusable editor packages (@pascal-app/core, @pascal-app/viewer, @pascal-app/editor, @pascal-app/nodes), a standalone application, an @pascal-app/cli installer, and an @pascal-app/mcp server for AI-host integration.",
+      "usage": "A persistent local installation can be created without cloning the repository by running `npx @pascal-app/cli editor` with Node.js 22.13 or newer, which starts the editor and an authenticated MCP service. For monorepo development, `bun install` followed by `bun dev` builds the packages and starts the editor's development server.",
+      "pros": "The package separation lets @pascal-app/core (schemas and state), @pascal-app/viewer (rendering), @pascal-app/editor (tools and UI), @pascal-app/nodes (built-in definitions), @pascal-app/cli, and @pascal-app/mcp be used or extended independently. The @pascal-app/mcp package exposes scene tools, resources, and prompts to MCP-compatible AI hosts, and the editor supports plugin-based extension using the same manifest format as built-in node kinds.",
+      "cons": "The npm beta tag currently resolves to @pascal-app/cli@1.0.0-beta.1, which predates the read-only furniture candidate feature described in the repository; using that capability requires manually installing a GitHub prerelease archive and verifying its SHA-256 checksum rather than a standard npm install.",
+      "fit": "Given its React Three Fiber and WebGPU rendering, node-based scene model, and MCP-based AI agent tooling, the project appears best suited for developers building or extending 3D architectural or interior layout editors with AI-assisted workflows, rather than general-purpose 3D applications."
     },
     "summaries": {
       "en": {
-        "goal": "Pascal Editor is a 3D building editor built with React Three Fiber and WebGPU. The repository is a Turborepo monorepo containing a standalone Next.js editor app, reusable packages (core, viewer, editor, nodes, cli, mcp), and a CLI that distributes them.",
-        "usage": "Running `npx @pascal-app/cli editor` (Node.js 22.13+) creates a persistent local install, starting the editor and an authenticated MCP service on loopback ports, storing projects in `~/.pascal/data/pascal.db`. For source development, `bun install` then `bun dev` builds core and viewer packages and starts the Next.js editor at http://localhost:3002. Packages can also be embedded via `npm install @pascal-app/core @pascal-app/viewer @pascal-app/editor @pascal-app/nodes`.",
-        "pros": "The project is MIT licensed and splits responsibilities across dedicated packages for scene state, rendering, editing tools, and built-in nodes. Scene state persists to IndexedDB with undo/redo across a 50-step history via Zundo, and a documented plugin manifest reportedly allows new node kinds without editing the built-ins.",
-        "cons": "The CLI path requires Node.js 22.13 or newer. The standalone local runtime shares scene state across connected clients, so concurrent independent work reportedly needs separate `PASCAL_HOME` directories. Newer features like the read-only furniture candidate check may be absent from the current npm beta release.",
-        "fit": "The project appears suited to teams embedding 3D/BIM-style editors in React apps, to developers connecting AI agents via its Model Context Protocol server, and to plugin authors extending node kinds through the documented `Plugin` manifest."
+        "goal": "Pascal Editor is a 3D building editor built with React Three Fiber and WebGPU, organized as a monorepo containing reusable editor packages (@pascal-app/core, @pascal-app/viewer, @pascal-app/editor, @pascal-app/nodes), a standalone application, an @pascal-app/cli installer, and an @pascal-app/mcp server for AI-host integration.",
+        "usage": "A persistent local installation can be created without cloning the repository by running `npx @pascal-app/cli editor` with Node.js 22.13 or newer, which starts the editor and an authenticated MCP service. For monorepo development, `bun install` followed by `bun dev` builds the packages and starts the editor's development server.",
+        "pros": "The package separation lets @pascal-app/core (schemas and state), @pascal-app/viewer (rendering), @pascal-app/editor (tools and UI), @pascal-app/nodes (built-in definitions), @pascal-app/cli, and @pascal-app/mcp be used or extended independently. The @pascal-app/mcp package exposes scene tools, resources, and prompts to MCP-compatible AI hosts, and the editor supports plugin-based extension using the same manifest format as built-in node kinds.",
+        "cons": "The npm beta tag currently resolves to @pascal-app/cli@1.0.0-beta.1, which predates the read-only furniture candidate feature described in the repository; using that capability requires manually installing a GitHub prerelease archive and verifying its SHA-256 checksum rather than a standard npm install.",
+        "fit": "Given its React Three Fiber and WebGPU rendering, node-based scene model, and MCP-based AI agent tooling, the project appears best suited for developers building or extending 3D architectural or interior layout editors with AI-assisted workflows, rather than general-purpose 3D applications."
       },
       "ko": {
-        "goal": "Pascal Editor는 React Three Fiber와 WebGPU로 구축된 3D 건물 에디터입니다. 저장소는 Turborepo 모노레포로 구성되며, 독립형 Next.js 에디터 앱과 재사용 가능한 패키지(core, viewer, editor, nodes, cli, mcp), 그리고 이를 배포하는 CLI를 포함합니다.",
-        "usage": "`npx @pascal-app/cli editor` 명령을 실행하면(Node.js 22.13 이상 필요) 영구적인 로컬 설치가 생성되며, 에디터와 인증된 MCP 서비스가 루프백 포트에서 시작되고 프로젝트는 `~/.pascal/data/pascal.db`에 저장됩니다. 소스에서 개발하려면 `bun install` 후 `bun dev`를 실행하여 core와 viewer 패키지를 빌드하고 http://localhost:3002 에서 Next.js 에디터를 시작합니다. `npm install @pascal-app/core @pascal-app/viewer @pascal-app/editor @pascal-app/nodes` 명령으로 패키지를 임베드할 수도 있습니다.",
-        "pros": "이 프로젝트는 MIT 라이선스이며 씬 상태, 렌더링, 편집 도구, 내장 노드에 대한 책임을 전용 패키지로 분리합니다. 씬 상태는 IndexedDB에 저장되며 Zundo를 통해 50단계 실행 취소/다시 실행 기록을 지원하고, 문서화된 플러그인 매니페스트를 통해 내장 요소를 수정하지 않고도 새 노드 종류를 추가할 수 있는 것으로 보입니다.",
-        "cons": "CLI 설치 경로는 Node.js 22.13 이상을 필요로 합니다. 독립형 로컬 런타임은 연결된 클라이언트 간에 활성 씬 상태를 공유하므로, 독립적인 동시 작업을 위해서는 별도의 `PASCAL_HOME` 디렉터리가 필요한 것으로 보입니다. 읽기 전용 가구 후보 검사와 같은 최신 기능은 현재 npm 베타 릴리스에서 아직 제공되지 않을 수 있습니다.",
-        "fit": "이 프로젝트는 React 애플리케이션에 3D/BIM 스타일 에디터를 임베드하려는 팀, Model Context Protocol 서버를 통해 AI 에이전트를 연결하려는 개발자, 그리고 문서화된 `Plugin` 매니페스트를 통해 노드 종류를 확장하려는 플러그인 작성자에게 적합해 보입니다."
+        "goal": "Pascal Editor는 React Three Fiber와 WebGPU로 구축된 3D 건물 편집기이며, 재사용 가능한 에디터 패키지(@pascal-app/core, @pascal-app/viewer, @pascal-app/editor, @pascal-app/nodes)와 독립 실행형 애플리케이션, @pascal-app/cli 설치 프로그램, AI 호스트 연동을 위한 @pascal-app/mcp 서버로 구성된 모노레포로 정리되어 있습니다.",
+        "usage": "저장소를 클론하지 않고도 Node.js 22.13 이상에서 `npx @pascal-app/cli editor` 명령을 실행하면 에디터와 인증된 MCP 서비스가 함께 시작되는 영구적인 로컬 설치를 만들 수 있습니다. 모노레포 개발의 경우 `bun install` 후 `bun dev`를 실행하면 패키지를 빌드하고 에디터 개발 서버를 시작합니다.",
+        "pros": "패키지 분리 덕분에 @pascal-app/core(스키마 및 상태), @pascal-app/viewer(렌더링), @pascal-app/editor(도구 및 UI), @pascal-app/nodes(내장 정의), @pascal-app/cli, @pascal-app/mcp를 독립적으로 사용하거나 확장할 수 있습니다. @pascal-app/mcp 패키지는 MCP 호환 AI 호스트에 씬 도구, 리소스, 프롬프트를 제공하며, 에디터는 내장 노드와 동일한 매니페스트 형식을 사용하는 플러그인 기반 확장을 지원합니다.",
+        "cons": "npm의 beta 태그는 현재 @pascal-app/cli@1.0.0-beta.1로 연결되는데, 이는 저장소에 설명된 읽기 전용 가구 후보 기능보다 이전 버전입니다. 이 기능을 사용하려면 표준 npm install 대신 GitHub 프리릴리스 아카이브를 수동으로 설치하고 SHA-256 체크섬을 검증해야 합니다.",
+        "fit": "React Three Fiber와 WebGPU 렌더링, 노드 기반 씬 모델, MCP 기반 AI 에이전트 도구를 고려할 때, 이 프로젝트는 범용 3D 애플리케이션보다는 AI 지원 워크플로를 갖춘 3D 건축 또는 인테리어 레이아웃 편집기를 구축하거나 확장하려는 개발자에게 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "Pascal Editor 是一款使用 React Three Fiber 和 WebGPU 构建的 3D 建筑编辑器。该仓库是一个 Turborepo monorepo,包含独立的 Next.js 编辑器应用、可复用的包(core、viewer、editor、nodes、cli、mcp)以及用于分发它们的 CLI。",
-        "usage": "运行 `npx @pascal-app/cli editor`(需要 Node.js 22.13 或更高版本)可创建持久化的本地安装,启动编辑器和经过身份验证的 MCP 服务,使用回环端口,并将项目存储在 `~/.pascal/data/pascal.db` 中。若从源代码开发,先执行 `bun install` 再执行 `bun dev`,可构建 core 和 viewer 包并在 http://localhost:3002 启动 Next.js 编辑器。也可以通过 `npm install @pascal-app/core @pascal-app/viewer @pascal-app/editor @pascal-app/nodes` 嵌入这些包。",
-        "pros": "该项目采用 MIT 许可证,并将场景状态、渲染、编辑工具和内置节点的职责拆分到独立的包中。场景状态持久化到 IndexedDB,并通过 Zundo 支持 50 步的撤销/重做历史记录;据文档描述,插件清单似乎允许在不修改内置功能的情况下添加新的节点类型。",
-        "cons": "CLI 安装路径要求 Node.js 22.13 或更高版本。独立的本地运行时会在已连接的客户端之间共享活动场景状态,因此独立的并发工作似乎需要单独的 `PASCAL_HOME` 目录。诸如只读家具候选检查之类的较新功能,可能尚未包含在当前的 npm beta 版本中。",
-        "fit": "该项目似乎适合希望在 React 应用中嵌入 3D/BIM 风格编辑器的团队、希望通过其 Model Context Protocol 服务器连接 AI 代理的开发者,以及希望通过文档化的 `Plugin` 清单扩展节点类型的插件作者。"
+        "goal": "Pascal Editor 是一款基于 React Three Fiber 和 WebGPU 构建的 3D 建筑编辑器,以 monorepo 形式组织,包含可复用的编辑器包(@pascal-app/core、@pascal-app/viewer、@pascal-app/editor、@pascal-app/nodes)、一个独立应用、@pascal-app/cli 安装程序,以及用于 AI 主机集成的 @pascal-app/mcp 服务器。",
+        "usage": "无需克隆仓库,在 Node.js 22.13 或更高版本下运行 `npx @pascal-app/cli editor` 即可创建持久的本地安装,该命令会同时启动编辑器和经过身份验证的 MCP 服务。对于 monorepo 开发,先执行 `bun install`,再执行 `bun dev`,即可构建各个包并启动编辑器的开发服务器。",
+        "pros": "包的拆分使 @pascal-app/core(模式与状态)、@pascal-app/viewer(渲染)、@pascal-app/editor(工具与界面)、@pascal-app/nodes(内置定义)、@pascal-app/cli 以及 @pascal-app/mcp 可以独立使用或扩展。@pascal-app/mcp 包向兼容 MCP 的 AI 主机公开场景工具、资源和提示词,编辑器还支持使用与内置节点相同的清单格式进行插件式扩展。",
+        "cons": "npm 的 beta 标签目前指向 @pascal-app/cli@1.0.0-beta.1,该版本早于仓库中描述的只读家具候选功能。要使用该功能,需要手动安装 GitHub 预发布压缩包并验证其 SHA-256 校验和,而不能通过标准的 npm install 完成。",
+        "fit": "考虑到其 React Three Fiber 与 WebGPU 渲染、基于节点的场景模型以及基于 MCP 的 AI 代理工具,该项目似乎更适合希望构建或扩展具有 AI 辅助工作流的 3D 建筑或室内布局编辑器的开发者,而非通用型 3D 应用开发者。"
       },
       "es": {
-        "goal": "Pascal Editor es un editor de edificios en 3D construido con React Three Fiber y WebGPU. El repositorio es un monorepo Turborepo que contiene una aplicación Next.js independiente, paquetes reutilizables (core, viewer, editor, nodes, cli, mcp) y una CLI que los distribuye.",
-        "usage": "Ejecutar `npx @pascal-app/cli editor` (requiere Node.js 22.13 o superior) crea una instalación local persistente, inicia el editor y un servicio MCP autenticado en puertos loopback, y almacena los proyectos en `~/.pascal/data/pascal.db`. Para desarrollar desde el código fuente, `bun install` seguido de `bun dev` compila los paquetes core y viewer y arranca el editor Next.js en http://localhost:3002. Los paquetes también pueden integrarse mediante `npm install @pascal-app/core @pascal-app/viewer @pascal-app/editor @pascal-app/nodes`.",
-        "pros": "El proyecto tiene licencia MIT y separa responsabilidades en paquetes dedicados para el estado de la escena, el renderizado, las herramientas de edición y los nodos incorporados. El estado de la escena persiste en IndexedDB con deshacer/rehacer en un historial de 50 pasos mediante Zundo, y un manifiesto de plugins documentado parece permitir añadir nuevos tipos de nodo sin modificar los elementos incorporados.",
-        "cons": "La vía de instalación por CLI requiere Node.js 22.13 o superior. El runtime local independiente comparte el estado activo de la escena entre los clientes conectados, por lo que el trabajo concurrente independiente parece requerir directorios `PASCAL_HOME` separados. Funciones más recientes, como la verificación de candidatos de mobiliario de solo lectura, podrían no estar aún disponibles en la versión beta actual de npm.",
-        "fit": "El proyecto parece adecuado para equipos que integran editores estilo 3D/BIM en aplicaciones React, para desarrolladores que conectan agentes de IA mediante su servidor Model Context Protocol, y para autores de plugins que amplían tipos de nodo mediante el manifiesto `Plugin` documentado."
+        "goal": "Pascal Editor es un editor de edificios en 3D construido con React Three Fiber y WebGPU, organizado como un monorepo que contiene paquetes reutilizables del editor (@pascal-app/core, @pascal-app/viewer, @pascal-app/editor, @pascal-app/nodes), una aplicación independiente, un instalador @pascal-app/cli y un servidor @pascal-app/mcp para la integración con hosts de IA.",
+        "usage": "Se puede crear una instalación local persistente sin clonar el repositorio ejecutando `npx @pascal-app/cli editor` con Node.js 22.13 o una versión más reciente, lo que inicia el editor y un servicio MCP autenticado. Para el desarrollo del monorepo, `bun install` seguido de `bun dev` compila los paquetes e inicia el servidor de desarrollo del editor.",
+        "pros": "La separación de paquetes permite usar o extender de forma independiente @pascal-app/core (esquemas y estado), @pascal-app/viewer (renderizado), @pascal-app/editor (herramientas e interfaz), @pascal-app/nodes (definiciones integradas), @pascal-app/cli y @pascal-app/mcp. El paquete @pascal-app/mcp expone herramientas de escena, recursos y prompts a hosts de IA compatibles con MCP, y el editor admite extensión mediante plugins usando el mismo formato de manifiesto que los nodos integrados.",
+        "cons": "La etiqueta beta de npm actualmente apunta a @pascal-app/cli@1.0.0-beta.1, versión anterior a la función de candidato de mobiliario de solo lectura descrita en el repositorio; para usar esa función es necesario instalar manualmente un archivo prerelease de GitHub y verificar su checksum SHA-256, en lugar de un npm install estándar.",
+        "fit": "Dado su renderizado con React Three Fiber y WebGPU, su modelo de escena basado en nodos y sus herramientas de agentes de IA basadas en MCP, el proyecto parece más adecuado para desarrolladores que construyen o amplían editores de diseño arquitectónico o de interiores en 3D con flujos de trabajo asistidos por IA, más que para aplicaciones 3D de propósito general."
       },
       "ja": {
-        "goal": "Pascal Editorは、React Three FiberとWebGPUで構築された3D建築エディタです。このリポジトリはTurborepoモノレポとして構成されており、スタンドアロンのNext.jsエディタアプリ、再利用可能なパッケージ(core、viewer、editor、nodes、cli、mcp)、それらを配布するCLIを含みます。",
-        "usage": "`npx @pascal-app/cli editor` を実行すると(Node.js 22.13以上が必要)、永続的なローカルインストールが作成され、エディタと認証付きMCPサービスがループバックポートで起動し、プロジェクトは `~/.pascal/data/pascal.db` に保存されます。ソースから開発する場合は、`bun install` の後に `bun dev` を実行すると core と viewer パッケージがビルドされ、http://localhost:3002 でNext.jsエディタが起動します。`npm install @pascal-app/core @pascal-app/viewer @pascal-app/editor @pascal-app/nodes` によってパッケージを組み込むこともできます。",
-        "pros": "このプロジェクトはMITライセンスで提供されており、シーン状態、レンダリング、編集ツール、組み込みノードの責務を専用パッケージに分離しています。シーン状態はIndexedDBに永続化され、Zundoにより50段階の元に戻す/やり直し履歴がサポートされます。また、文書化されたプラグインマニフェストにより、組み込み機能を変更せずに新しいノード種別を追加できるようです。",
-        "cons": "CLIによるインストールにはNode.js 22.13以上が必要です。スタンドアロンのローカルランタイムは接続されたクライアント間でアクティブなシーン状態を共有するため、独立した並行作業には別々の `PASCAL_HOME` ディレクトリが必要になるようです。読み取り専用の家具候補チェックのような新機能は、現在のnpm betaリリースにはまだ含まれていない可能性があります。",
-        "fit": "このプロジェクトは、ReactアプリケーションにBIM風の3Dエディタを組み込みたいチーム、Model Context Protocolサーバーを介してAIエージェントを接続したい開発者、そして文書化された `Plugin` マニフェストを通じてノード種別を拡張したいプラグイン開発者に適しているようです。"
+        "goal": "Pascal Editorは、React Three FiberとWebGPUで構築された3Dビルディングエディタであり、再利用可能なエディタパッケージ(@pascal-app/core、@pascal-app/viewer、@pascal-app/editor、@pascal-app/nodes)、スタンドアロンアプリケーション、@pascal-app/cliインストーラー、AIホスト連携のための@pascal-app/mcpサーバーで構成されるモノレポとして整理されています。",
+        "usage": "リポジトリをクローンしなくても、Node.js 22.13以降で `npx @pascal-app/cli editor` を実行すると、エディタと認証済みMCPサービスが起動する永続的なローカルインストールを作成できます。モノレポでの開発では、`bun install` の後に `bun dev` を実行すると、パッケージがビルドされエディタの開発サーバーが起動します。",
+        "pros": "パッケージが分離されているため、@pascal-app/core(スキーマと状態)、@pascal-app/viewer(レンダリング)、@pascal-app/editor(ツールとUI)、@pascal-app/nodes(組み込み定義)、@pascal-app/cli、@pascal-app/mcpを個別に使用または拡張できます。@pascal-app/mcpパッケージはMCP対応のAIホストにシーンツール、リソース、プロンプトを公開し、エディタは組み込みノードと同じマニフェスト形式を使ったプラグインによる拡張をサポートします。",
+        "cons": "npmのbetaタグは現在 @pascal-app/cli@1.0.0-beta.1 を指しており、これはリポジトリに記載されている読み取り専用の家具候補機能より前のバージョンです。この機能を使うには、標準のnpm installではなく、GitHubのプレリリースアーカイブを手動でインストールし、SHA-256チェックサムを検証する必要があります。",
+        "fit": "React Three FiberとWebGPUによるレンダリング、ノードベースのシーンモデル、MCPベースのAIエージェントツールを踏まえると、このプロジェクトは汎用的な3Dアプリケーションというより、AI支援ワークフローを備えた3D建築またはインテリアレイアウトエディタを構築・拡張する開発者に適していると考えられます。"
       }
     },
     "evidence": {
@@ -641,81 +641,71 @@
           "section_heading": "Pascal Editor"
         },
         {
-          "start_line": 110,
-          "end_line": 113,
+          "start_line": 116,
+          "end_line": 118,
           "section_heading": "Repository Architecture"
         },
         {
-          "start_line": 116,
-          "end_line": 129,
-          "section_heading": "Repository Architecture"
+          "start_line": 144,
+          "end_line": 146,
+          "section_heading": "Separation of Concerns"
         }
       ],
       "usage": [
         {
-          "start_line": 19,
-          "end_line": 21,
+          "start_line": 16,
+          "end_line": 24,
           "section_heading": "Run the Editor Locally"
         },
         {
-          "start_line": 475,
-          "end_line": 486,
+          "start_line": 479,
+          "end_line": 490,
           "section_heading": "Development"
-        },
-        {
-          "start_line": 95,
-          "end_line": 98,
-          "section_heading": "Using Published Packages"
         }
       ],
       "pros": [
         {
-          "start_line": 5,
-          "end_line": 5,
-          "section_heading": "Pascal Editor"
+          "start_line": 121,
+          "end_line": 133,
+          "section_heading": "Repository Architecture"
         },
         {
-          "start_line": 224,
-          "end_line": 227,
-          "section_heading": "Scene State (Zustand Store)"
+          "start_line": 146,
+          "end_line": 146,
+          "section_heading": "Separation of Concerns"
         },
         {
-          "start_line": 446,
-          "end_line": 451,
+          "start_line": 452,
+          "end_line": 452,
           "section_heading": "Building a Plugin"
         }
       ],
       "cons": [
         {
-          "start_line": 16,
-          "end_line": 17,
-          "section_heading": "Run the Editor Locally"
-        },
-        {
-          "start_line": 57,
-          "end_line": 59,
+          "start_line": 30,
+          "end_line": 32,
           "section_heading": "Candidate-enabled CLI preview"
         },
         {
-          "start_line": 27,
-          "end_line": 32,
-          "section_heading": "Run the Editor Locally"
+          "start_line": 57,
+          "end_line": 57,
+          "section_heading": "Candidate-enabled CLI preview"
         }
       ],
       "fit": [
         {
-          "start_line": 89,
-          "end_line": 93,
-          "section_heading": "Using Published Packages"
+          "start_line": 3,
+          "end_line": 3,
+          "section_heading": "Pascal Editor"
         },
         {
-          "start_line": 61,
-          "end_line": 87,
-          "section_heading": "Agent skills"
+          "start_line": 146,
+          "end_line": 146,
+          "section_heading": "Separation of Concerns"
         },
         {
-          "start_line": 446,
-          "end_line": 451,
+          "start_line": 452,
+          "end_line": 452,
           "section_heading": "Building a Plugin"
         }
       ]
@@ -724,13 +714,6 @@
       {
         "kind": "command",
         "value": "npx @pascal-app/cli editor",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "npm install @pascal-app/core @pascal-app/viewer @pascal-app/editor @pascal-app/nodes",
         "fields": [
           "usage"
         ]
@@ -751,22 +734,14 @@
       },
       {
         "kind": "version",
-        "value": "22.13",
+        "value": "1.0.0-beta.1",
         "fields": [
-          "usage",
           "cons"
         ]
       },
       {
         "kind": "number",
-        "value": "50",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "url",
-        "value": "http://localhost:3002",
+        "value": "22.13",
         "fields": [
           "usage"
         ]
@@ -782,42 +757,78 @@
         "kind": "product",
         "value": "React Three Fiber",
         "fields": [
-          "goal"
+          "goal",
+          "fit"
         ]
       },
       {
         "kind": "product",
         "value": "WebGPU",
         "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Model Context Protocol",
-        "fields": [
+          "goal",
           "fit"
         ]
       },
       {
         "kind": "product",
-        "value": "Zundo",
+        "value": "@pascal-app/core",
         "fields": [
+          "goal",
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "@pascal-app/viewer",
+        "fields": [
+          "goal",
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "@pascal-app/editor",
+        "fields": [
+          "goal",
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "@pascal-app/nodes",
+        "fields": [
+          "goal",
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "@pascal-app/cli",
+        "fields": [
+          "goal",
+          "usage",
+          "pros",
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "@pascal-app/mcp",
+        "fields": [
+          "goal",
           "pros"
         ]
       }
     ],
     "inference_fields": [
-      "pros",
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "pascalorg/editor",
       "path": "README.md",
-      "blob_sha": "a569f07880ffe1cdcc2a2c45e683147bbee0c803",
-      "content_sha256": "d3504cbd6daeabdea76e2fd6f487a6ba96d7d712ccc9e2495c95fcbe49d5a36c",
+      "blob_sha": "2aa71da3a204fd75b35656f1d350229df04ac4cf",
+      "content_sha256": "4f46f325fbfd4c41a489995903b6767e5ceb57885cb041bc5d06089ad5a276f8",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -2191,54 +2202,54 @@
   },
   "vastsa/PI-Desktop": {
     "content": {
-      "goal": "PI-Desktop is a local-first desktop workspace for AI coding agents, letting users bring their own model and open local projects while agents work under the user's control (lines 7-9). It is explicitly labeled an Early Preview, already usable but still evolving (lines 40-43).",
-      "usage": "Users connect a model provider in Settings, open a local project, and choose an Agent, Plan, or Goal mode before reviewing results (lines 99-111). For local development, PI-Desktop's README documents `git clone https://github.com/vastsa/PI-Desktop.git` followed by `pnpm dev`, requiring Node.js >=22.19, pnpm >=10, and a stable Rust toolchain (lines 380-397).",
-      "pros": "PI-Desktop supports multiple model providers, including OpenAI, Anthropic, local gateways like Ollama and LM Studio, and OpenAI-compatible APIs, without locking the agent to one vendor (lines 161-172). It stores conversations and settings locally, keeps credentials in the OS keychain, and reports no telemetry, while Skills, MCP, Subagents, and Plugins allow extension (lines 267-278, 225-263).",
-      "cons": "As an Early Preview, PI-Desktop's APIs, extension interfaces, and desktop behaviors may still change (lines 40-43). Linux builds also require glibc 2.35 or newer, so older releases such as Ubuntu 20.04 or Debian 11 cannot load the bundled host (lines 301-307).",
-      "fit": "PI-Desktop appears suited for developers wanting a provider-agnostic, local coding-agent workspace across macOS, Windows, and Linux under the GNU Lesser General Public License v3.0 (lines 20, 495). Its Early Preview status suggests it may be a less certain fit for teams needing a fully stable interface today (line 43)."
+      "goal": "PI-Desktop is a local-first desktop workspace for AI coding agents that lets users bring their own model and open any local project, without a PI-Desktop account or mandatory relay server. It is currently described as an Early Preview, meaning PI-Desktop's APIs, extension interfaces, and some desktop behaviors may continue to evolve.",
+      "usage": "To get started, a model is connected under Settings → Model configuration, a local project is opened, and Agent, Plan, or Goal mode is chosen before reviewing the result in PI-Desktop. Running PI-Desktop from source uses `git clone https://github.com/vastsa/PI-Desktop.git`, `pnpm install`, `cargo build -p host-core`, and `pnpm dev`; prebuilt packages are available from https://github.com/vastsa/PI-Desktop/releases/latest.",
+      "pros": "PI-Desktop lets users switch between multiple model providers per session, including OpenAI, Anthropic, local models, and OpenAI-compatible APIs, while routing privileged agent actions through a permission layer for review. It also supports extension through Skills, MCP servers, Subagents, and Plugins, letting users add tools, commands, and workspace panels.",
+      "cons": "PI-Desktop is documented as an Early Preview, so its APIs, extension interfaces, and desktop behaviors may continue to change. Linux builds of PI-Desktop require glibc 2.35 or newer (for example Ubuntu 22.04, Debian 12, or Fedora 36), so older distributions cannot load the bundled host.",
+      "fit": "PI-Desktop appears suited to developers wanting a model-agnostic, local-first coding workspace across macOS, Windows, and Linux. Building PI-Desktop from source requires Node.js >=22.19, pnpm >=10, and a stable Rust toolchain, which may add more setup effort than using a prebuilt release package."
     },
     "summaries": {
       "en": {
-        "goal": "PI-Desktop is a local-first desktop workspace for AI coding agents, letting users bring their own model and open local projects while agents work under the user's control (lines 7-9). It is explicitly labeled an Early Preview, already usable but still evolving (lines 40-43).",
-        "usage": "Users connect a model provider in Settings, open a local project, and choose an Agent, Plan, or Goal mode before reviewing results (lines 99-111). For local development, PI-Desktop's README documents `git clone https://github.com/vastsa/PI-Desktop.git` followed by `pnpm dev`, requiring Node.js >=22.19, pnpm >=10, and a stable Rust toolchain (lines 380-397).",
-        "pros": "PI-Desktop supports multiple model providers, including OpenAI, Anthropic, local gateways like Ollama and LM Studio, and OpenAI-compatible APIs, without locking the agent to one vendor (lines 161-172). It stores conversations and settings locally, keeps credentials in the OS keychain, and reports no telemetry, while Skills, MCP, Subagents, and Plugins allow extension (lines 267-278, 225-263).",
-        "cons": "As an Early Preview, PI-Desktop's APIs, extension interfaces, and desktop behaviors may still change (lines 40-43). Linux builds also require glibc 2.35 or newer, so older releases such as Ubuntu 20.04 or Debian 11 cannot load the bundled host (lines 301-307).",
-        "fit": "PI-Desktop appears suited for developers wanting a provider-agnostic, local coding-agent workspace across macOS, Windows, and Linux under the GNU Lesser General Public License v3.0 (lines 20, 495). Its Early Preview status suggests it may be a less certain fit for teams needing a fully stable interface today (line 43)."
+        "goal": "PI-Desktop is a local-first desktop workspace for AI coding agents that lets users bring their own model and open any local project, without a PI-Desktop account or mandatory relay server. It is currently described as an Early Preview, meaning PI-Desktop's APIs, extension interfaces, and some desktop behaviors may continue to evolve.",
+        "usage": "To get started, a model is connected under Settings → Model configuration, a local project is opened, and Agent, Plan, or Goal mode is chosen before reviewing the result in PI-Desktop. Running PI-Desktop from source uses `git clone https://github.com/vastsa/PI-Desktop.git`, `pnpm install`, `cargo build -p host-core`, and `pnpm dev`; prebuilt packages are available from https://github.com/vastsa/PI-Desktop/releases/latest.",
+        "pros": "PI-Desktop lets users switch between multiple model providers per session, including OpenAI, Anthropic, local models, and OpenAI-compatible APIs, while routing privileged agent actions through a permission layer for review. It also supports extension through Skills, MCP servers, Subagents, and Plugins, letting users add tools, commands, and workspace panels.",
+        "cons": "PI-Desktop is documented as an Early Preview, so its APIs, extension interfaces, and desktop behaviors may continue to change. Linux builds of PI-Desktop require glibc 2.35 or newer (for example Ubuntu 22.04, Debian 12, or Fedora 36), so older distributions cannot load the bundled host.",
+        "fit": "PI-Desktop appears suited to developers wanting a model-agnostic, local-first coding workspace across macOS, Windows, and Linux. Building PI-Desktop from source requires Node.js >=22.19, pnpm >=10, and a stable Rust toolchain, which may add more setup effort than using a prebuilt release package."
       },
       "ko": {
-        "goal": "PI-Desktop는 AI 코딩 에이전트를 위한 로컬 우선 데스크톱 워크스페이스로, 사용자가 원하는 모델을 직접 연결하고 로컬 프로젝트를 열어 에이전트가 작업하는 동안 사용자가 통제권을 유지할 수 있다고 설명됩니다(7-9행). README는 이를 명시적으로 Early Preview 단계로 표시하며, 실제 코딩 작업에 이미 사용 가능하지만 API와 데스크톱 동작이 계속 변경될 수 있다고 안내합니다(40-43행).",
-        "usage": "사용자는 설정에서 모델 제공자를 연결하고, 로컬 프로젝트를 열고, Agent·Plan·Goal 모드 중 하나를 선택한 뒤 결과를 검토합니다(99-111행). 로컬 개발을 위해 README는 `git clone https://github.com/vastsa/PI-Desktop.git` 실행 후 `pnpm dev`를 실행하는 절차를 문서화하며, 이는 Node.js >=22.19, pnpm >=10, 안정적인 Rust 툴체인을 필요로 합니다(380-397행).",
-        "pros": "PI-Desktop은 OpenAI, Anthropic, Ollama·LM Studio 같은 로컬 게이트웨이, OpenAI 호환 API 등 여러 모델 제공자를 지원하며 하나의 공급업체에 종속되지 않습니다(161-172행). 대화와 설정을 로컬에 저장하고 자격 증명은 OS 키체인에 보관하며 PI-Desktop 자체 원격 측정(telemetry)이 없다고 명시하고, Skills·MCP·Subagents·Plugins를 통한 확장을 지원합니다(267-278, 225-263행).",
-        "cons": "Early Preview 단계이므로 PI-Desktop의 API, 확장 인터페이스, 일부 데스크톱 동작이 계속 변경될 수 있습니다(40-43행). 또한 Linux 빌드는 glibc 2.35 이상을 요구하여 Ubuntu 20.04나 Debian 11처럼 오래된 배포판에서는 번들된 호스트를 로드할 수 없습니다(301-307행).",
-        "fit": "PI-Desktop은 GNU Lesser General Public License v3.0 하에 macOS, Windows, Linux에서 공급업체에 종속되지 않는 로컬 코딩 에이전트 워크스페이스를 원하는 개발자에게 적합해 보입니다(20, 495행). 다만 Early Preview 상태이므로 지금 당장 완전히 안정적인 인터페이스가 필요한 팀에게는 적합성이 다소 불확실할 수 있습니다(43행)."
+        "goal": "PI-Desktop는 사용자가 자체 AI 모델을 연결하고 로컬 프로젝트를 열어 작업할 수 있는 로컬 우선 데스크톱 워크스페이스입니다. PI-Desktop 계정이나 필수 중계 서버가 필요하지 않으며, 문서에서는 현재 Early Preview 단계로 인터페이스와 동작이 계속 바뀔 수 있다고 설명합니다.",
+        "usage": "모델 연결은 Settings → Model configuration에서 진행하고, 로컬 프로젝트를 연 뒤 Agent, Plan, Goal 모드 중 하나를 선택해 결과를 검토합니다. 소스에서 실행하려면 `git clone https://github.com/vastsa/PI-Desktop.git`, `pnpm install`, `cargo build -p host-core`, `pnpm dev` 명령을 사용하며, 미리 빌드된 패키지는 https://github.com/vastsa/PI-Desktop/releases/latest 에서 받을 수 있습니다.",
+        "pros": "PI-Desktop은 OpenAI, Anthropic, 로컬 모델, OpenAI 호환 API 등 여러 모델 제공자를 세션별로 전환하며 사용할 수 있고, 권한이 필요한 에이전트 작업은 권한 계층을 거쳐 검토됩니다. 또한 Skills, MCP, Subagents, Plugins를 통해 도구, 명령, 워크스페이스 패널 등을 추가하는 확장도 지원합니다.",
+        "cons": "문서에 따르면 PI-Desktop은 아직 Early Preview 단계라 API, 확장 인터페이스, 데스크톱 동작이 계속 변경될 수 있습니다. Linux 빌드는 glibc 2.35 이상(Ubuntu 22.04, Debian 12, Fedora 36 등)이 필요해 이보다 오래된 배포판에서는 번들된 호스트를 불러올 수 없습니다.",
+        "fit": "PI-Desktop은 macOS, Windows, Linux에서 모델을 자유롭게 선택하며 로컬 중심으로 코딩 작업을 하려는 개발자에게 적합해 보입니다. 다만 소스에서 빌드하려면 Node.js >=22.19, pnpm >=10, 안정 버전 Rust 툴체인이 필요해 미리 빌드된 릴리스를 쓰는 것보다 설정 부담이 클 수 있습니다."
       },
       "zh-CN": {
-        "goal": "PI-Desktop 被描述为面向 AI 编程代理的本地优先桌面工作区,用户可以接入自己选择的模型并打开本地项目,在代理工作时保持自己的掌控(第7-9行)。README 明确将其标记为 Early Preview(早期预览)阶段,已可用于实际编码工作流程,但 API 和桌面行为可能会持续演进(第40-43行)。",
-        "usage": "用户在设置中连接模型提供方,打开本地项目,并在 Agent、Plan 或 Goal 三种模式中选择一种,然后查看结果(第99-111行)。对于本地开发,README 记录了先执行 `git clone https://github.com/vastsa/PI-Desktop.git`,再运行 `pnpm dev` 的流程,这需要 Node.js >=22.19、pnpm >=10 以及稳定版 Rust 工具链(第380-397行)。",
-        "pros": "PI-Desktop 支持多个模型提供方,包括 OpenAI、Anthropic、Ollama 和 LM Studio 等本地网关,以及任何兼容 OpenAI 的 API,不会将代理运行时绑定到单一厂商(第161-172行)。它将对话和设置保存在本地,凭证存放在操作系统密钥链中,并声明没有 PI-Desktop 自身的遥测数据,同时支持通过 Skills、MCP、Subagents 和 Plugins 进行扩展(第267-278、225-263行)。",
-        "cons": "由于处于 Early Preview 阶段,PI-Desktop 的 API、扩展接口和部分桌面行为仍可能发生变化(第40-43行)。此外,Linux 版本要求 glibc 2.35 或更高版本,因此 Ubuntu 20.04、Debian 11 等较旧发行版无法加载其内置的宿主程序(第301-307行)。",
-        "fit": "对于希望在 macOS、Windows 和 Linux 上使用不绑定单一厂商的本地编码代理工作区、且认可 GNU Lesser General Public License v3.0 许可的开发者而言,PI-Desktop 看起来较为合适(第20、495行)。但由于其仍处于 Early Preview 阶段,对于目前就需要完全稳定接口的团队来说,适配程度可能还不够确定(第43行)。"
+        "goal": "PI-Desktop 是一款本地优先的桌面工作区,面向 AI 编程代理,用户可以接入自己的模型并打开任意本地项目,无需 PI-Desktop 账号或强制中继服务器。文档说明该项目目前处于 Early Preview 阶段,接口和部分桌面行为可能仍会变化。",
+        "usage": "使用时先在 Settings → Model configuration 中连接模型,再打开本地项目,并在 Agent、Plan、Goal 三种模式中选择后查看结果。若从源码运行,可依次执行 `git clone https://github.com/vastsa/PI-Desktop.git`、`pnpm install`、`cargo build -p host-core`、`pnpm dev`;也可以从 https://github.com/vastsa/PI-Desktop/releases/latest 下载预构建包。",
+        "pros": "PI-Desktop 支持在会话中切换多个模型提供方,包括 OpenAI、Anthropic、本地模型及 OpenAI 兼容 API,涉及权限的代理操作会经过权限层进行审查。此外,还支持通过 Skills、MCP、Subagents 与 Plugins 扩展工具、命令和工作区面板等功能。",
+        "cons": "文档说明 PI-Desktop 目前处于 Early Preview 阶段,API、扩展接口和桌面行为可能继续调整。Linux 版本需要 glibc 2.35 或更高版本(如 Ubuntu 22.04、Debian 12、Fedora 36),更旧的发行版将无法加载内置的宿主程序。",
+        "fit": "对于希望在 macOS、Windows、Linux 上自主选择模型并保持本地控制的开发者,PI-Desktop 看起来较为合适。但从源码构建需要 Node.js >=22.19、pnpm >=10 以及稳定版 Rust 工具链,相比直接使用预构建版本,可能带来额外的配置负担。"
       },
       "es": {
-        "goal": "PI-Desktop se describe como un espacio de trabajo de escritorio local-first para agentes de codificación con IA, que permite a los usuarios conectar su propio modelo y abrir proyectos locales mientras los agentes trabajan bajo su control (líneas 7-9). El README lo marca explícitamente como Early Preview, ya utilizable en flujos de codificación reales, aunque las API y algunos comportamientos del escritorio pueden seguir evolucionando (líneas 40-43).",
-        "usage": "Los usuarios conectan un proveedor de modelo en Settings, abren un proyecto local y eligen el modo Agent, Plan o Goal antes de revisar los resultados (líneas 99-111). Para el desarrollo local, el README documenta clonar el repositorio con `git clone https://github.com/vastsa/PI-Desktop.git` y luego ejecutar `pnpm dev`, lo que requiere Node.js >=22.19, pnpm >=10 y una toolchain estable de Rust (líneas 380-397).",
-        "pros": "PI-Desktop admite múltiples proveedores de modelos, incluyendo OpenAI, Anthropic, gateways locales como Ollama y LM Studio, y cualquier API compatible con OpenAI, sin atar el runtime del agente a un solo proveedor (líneas 161-172). Almacena conversaciones y ajustes localmente, guarda las credenciales en el llavero del sistema operativo, declara no tener telemetría propia de PI-Desktop, y permite extensión mediante Skills, MCP, Subagents y Plugins (líneas 267-278, 225-263).",
-        "cons": "Al estar en Early Preview, las API, las interfaces de extensión y algunos comportamientos del escritorio de PI-Desktop pueden seguir cambiando (líneas 40-43). Además, las compilaciones para Linux requieren glibc 2.35 o superior, por lo que distribuciones más antiguas como Ubuntu 20.04 o Debian 11 no pueden cargar el host incluido (líneas 301-307).",
-        "fit": "PI-Desktop parece adecuado para desarrolladores que buscan un espacio de trabajo local para agentes de codificación, independiente del proveedor, disponible en macOS, Windows y Linux bajo la GNU Lesser General Public License v3.0 (líneas 20, 495). Dado su estado de Early Preview, podría ser una opción menos segura para equipos que necesiten hoy una interfaz totalmente estable (línea 43)."
+        "goal": "PI-Desktop es un espacio de trabajo de escritorio local-first para agentes de codificación con IA, que permite conectar tu propio modelo y abrir cualquier proyecto local sin necesidad de una cuenta de PI-Desktop ni un relé obligatorio. La documentación indica que el proyecto está actualmente en Early Preview, por lo que las interfaces y el comportamiento podrían seguir cambiando.",
+        "usage": "Para empezar, se conecta un modelo desde Settings → Model configuration, se abre un proyecto local y se elige el modo Agent, Plan o Goal antes de revisar el resultado. Para ejecutarlo desde el código fuente: `git clone https://github.com/vastsa/PI-Desktop.git`, `pnpm install`, `cargo build -p host-core` y `pnpm dev`; también hay paquetes preconstruidos en https://github.com/vastsa/PI-Desktop/releases/latest.",
+        "pros": "PI-Desktop permite alternar entre varios proveedores de modelos por sesión (OpenAI, Anthropic, modelos locales, APIs compatibles con OpenAI) y enruta las acciones privilegiadas del agente a través de una capa de permisos para su revisión. También admite extensiones mediante Skills, MCP, Subagents y Plugins, que pueden añadir herramientas, comandos y paneles al espacio de trabajo.",
+        "cons": "Según la documentación, PI-Desktop se encuentra en Early Preview, por lo que las APIs, las interfaces de extensión y el comportamiento del escritorio podrían seguir cambiando. Las compilaciones para Linux requieren glibc 2.35 o superior (por ejemplo, Ubuntu 22.04, Debian 12, Fedora 36), por lo que distribuciones más antiguas no podrían cargar el host incluido.",
+        "fit": "PI-Desktop parece adecuado para desarrolladores que buscan un espacio de trabajo de codificación agnóstico al modelo y centrado en lo local en macOS, Windows y Linux. Compilarlo desde el código fuente requiere Node.js >=22.19, pnpm >=10 y una toolchain estable de Rust, lo que podría suponer más esfuerzo de configuración que usar un paquete ya compilado."
       },
       "ja": {
-        "goal": "PI-Desktopは、AIコーディングエージェント向けのローカルファーストなデスクトップワークスペースであり、ユーザーが自分のモデルを接続し、ローカルプロジェクトを開いてエージェントが作業する間も制御を保てると説明されています(7-9行目)。READMEはこれをEarly Preview段階と明記しており、実際のコーディング作業にすでに利用可能な一方、APIやデスクトップの挙動は今後も変化し得るとしています(40-43行目)。",
-        "usage": "ユーザーはSettingsでモデルプロバイダーを接続し、ローカルプロジェクトを開き、Agent・Plan・Goalのいずれかのモードを選んでから結果を確認します(99-111行目)。ローカル開発については、READMEに`git clone https://github.com/vastsa/PI-Desktop.git`を実行した後`pnpm dev`を実行する手順が記載されており、Node.js >=22.19、pnpm >=10、安定版のRustツールチェーンが必要です(380-397行目)。",
-        "pros": "PI-Desktopは、OpenAI、Anthropic、OllamaやLM Studioなどのローカルゲートウェイ、OpenAI互換APIなど複数のモデルプロバイダーに対応しており、エージェントランタイムを単一のベンダーに固定しません(161-172行目)。会話や設定をローカルに保存し、認証情報はOSのキーチェーンに保管し、PI-Desktop自体のテレメトリはないと述べられており、Skills・MCP・Subagents・Pluginsによる拡張も可能です(267-278、225-263行目)。",
-        "cons": "Early Preview段階であるため、PI-DesktopのAPI、拡張インターフェース、一部のデスクトップの挙動は今後も変わる可能性があります(40-43行目)。また、Linuxビルドはglibc 2.35以降を必要とし、Ubuntu 20.04やDebian 11のような古いディストリビューションでは同梱されたホストを読み込めません(301-307行目)。",
-        "fit": "PI-Desktopは、GNU Lesser General Public License v3.0の下でmacOS・Windows・Linuxに対応した、特定ベンダーに依存しないローカルコーディングエージェントワークスペースを求める開発者に適していると考えられます(20、495行目)。ただしEarly Preview段階であるため、今すぐ完全に安定したインターフェースを必要とするチームにとっては適合性がやや不確実かもしれません(43行目)。"
+        "goal": "PI-Desktopは、AIコーディングエージェント向けのローカルファーストなデスクトップワークスペースで、自分のモデルを接続し、任意のローカルプロジェクトを開いて作業できます。PI-Desktopアカウントや必須の中継サーバーは不要で、ドキュメントによると現在Early Previewの段階であり、インターフェースや一部の動作は今後変わる可能性があるとされています。",
+        "usage": "利用の流れは、Settings → Model configurationでモデルを接続し、ローカルプロジェクトを開き、Agent・Plan・Goalのいずれかのモードを選んで結果を確認するというものです。ソースから実行する場合は `git clone https://github.com/vastsa/PI-Desktop.git`、`pnpm install`、`cargo build -p host-core`、`pnpm dev` を順に実行します。ビルド済みパッケージは https://github.com/vastsa/PI-Desktop/releases/latest から入手できます。",
+        "pros": "PI-Desktopは、OpenAI、Anthropic、ローカルモデル、OpenAI互換APIなど複数のモデルプロバイダーをセッションごとに切り替えて利用でき、権限が必要なエージェントの操作は権限レイヤーを経由してレビューされます。さらに、Skills、MCP、Subagents、Pluginsを通じてツールやコマンド、ワークスペースパネルなどを追加する拡張にも対応しています。",
+        "cons": "ドキュメントによれば、PI-DesktopはまだEarly Previewの段階であり、API、拡張インターフェース、デスクトップの動作は今後も変わる可能性があります。Linux版にはglibc 2.35以降(Ubuntu 22.04、Debian 12、Fedora 36など)が必要で、それより古いディストリビューションでは同梱のホストを読み込めません。",
+        "fit": "PI-Desktopは、macOS、Windows、Linuxでモデルを自由に選びながらローカル中心で開発したい人に向いていると考えられます。ソースからビルドするにはNode.js >=22.19、pnpm >=10、安定版のRustツールチェーンが必要で、ビルド済みリリースを使う場合より設定の手間が増える可能性があります。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 7,
-          "end_line": 9,
+          "end_line": 11,
           "section_heading": "Your local-first desktop workspace for AI coding agents."
         },
         {
@@ -2249,31 +2260,36 @@
       ],
       "usage": [
         {
-          "start_line": 99,
+          "start_line": 101,
           "end_line": 111,
           "section_heading": "From prompt to patch"
         },
         {
-          "start_line": 380,
-          "end_line": 397,
-          "section_heading": "Requirements"
+          "start_line": 400,
+          "end_line": 410,
+          "section_heading": "Run locally"
+        },
+        {
+          "start_line": 296,
+          "end_line": 296,
+          "section_heading": "Download"
         }
       ],
       "pros": [
         {
-          "start_line": 161,
-          "end_line": 172,
-          "section_heading": "Your models, your choice"
+          "start_line": 64,
+          "end_line": 69,
+          "section_heading": "✨ Bring your own model"
         },
         {
-          "start_line": 267,
-          "end_line": 278,
-          "section_heading": "Local-first, precisely"
+          "start_line": 76,
+          "end_line": 80,
+          "section_heading": "🔍 Inspectable by default"
         },
         {
-          "start_line": 225,
-          "end_line": 263,
-          "section_heading": "Extensions without rebuilding the app"
+          "start_line": 85,
+          "end_line": 90,
+          "section_heading": "🧩 Built to extend"
         }
       ],
       "cons": [
@@ -2283,8 +2299,8 @@
           "section_heading": "Your local-first desktop workspace for AI coding agents."
         },
         {
-          "start_line": 301,
-          "end_line": 307,
+          "start_line": 309,
+          "end_line": 315,
           "section_heading": "Linux"
         }
       ],
@@ -2295,21 +2311,48 @@
           "section_heading": "Your local-first desktop workspace for AI coding agents."
         },
         {
-          "start_line": 495,
-          "end_line": 495,
-          "section_heading": "License"
-        },
-        {
-          "start_line": 43,
-          "end_line": 43,
-          "section_heading": "Your local-first desktop workspace for AI coding agents."
+          "start_line": 392,
+          "end_line": 396,
+          "section_heading": "Requirements"
         }
       ]
     },
     "invariants": [
       {
+        "kind": "product",
+        "value": "PI-Desktop",
+        "fields": [
+          "goal",
+          "usage",
+          "pros",
+          "cons",
+          "fit"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://github.com/vastsa/PI-Desktop/releases/latest",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
         "kind": "command",
         "value": "git clone https://github.com/vastsa/PI-Desktop.git",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "pnpm install",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "cargo build -p host-core",
         "fields": [
           "usage"
         ]
@@ -2327,24 +2370,6 @@
         "fields": [
           "cons"
         ]
-      },
-      {
-        "kind": "version",
-        "value": "GNU Lesser General Public License v3.0",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "PI-Desktop",
-        "fields": [
-          "goal",
-          "usage",
-          "pros",
-          "cons",
-          "fit"
-        ]
       }
     ],
     "inference_fields": [
@@ -2354,8 +2379,8 @@
       "kind": "readme",
       "slug": "vastsa/pi-desktop",
       "path": "README.md",
-      "blob_sha": "f7bd6601c23099e880cecf8df5ef7d030c579ba3",
-      "content_sha256": "624a480981d8cd21c60fd342c79344d9a03057beabdb65db8b7b5c6fbe90332e",
+      "blob_sha": "c37dd3ca787b6b35add78f615fd321d5384ca032",
+      "content_sha256": "c2c6a0aaf7789273d2f7b205f4812e3c9b8d6171956d553a33730b5ec0f3af2c",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -2369,58 +2394,58 @@
   },
   "affaan-m/ECC": {
     "content": {
-      "goal": "ECC is an MIT-licensed, open-source system that gives coding agents such as Claude Code a structured engineering workflow: plan, test, implement, review, verify, remember, and improve. It works best with Claude Code, has a supported Codex sync path, and provides capability-limited adapters for other harnesses such as Cursor and OpenCode.",
-      "usage": "Run the guided setup from a terminal with `npx ecc-universal setup`, or use Claude Code's native plugin commands, including `/plugin install ecc@ecc`, after adding the marketplace. This install path requires Node.js 18 or newer, Git, and Claude Code 2.1 or newer. A separate security audit can be run with `npx -y ecc-agentshield scan --path .`.",
-      "pros": "ECC bundles 68 agents, 286 skills, and 94 commands, along with hooks, rules, memory, and AgentShield security scanning. The core plugin is MIT-licensed and documented as free to use.",
-      "cons": "Documented feature parity is uneven: adapters for harnesses such as Cursor, OpenCode, Gemini, Zed, and GitHub Copilot are described as capability-limited or beta, and GitHub Copilot support is stated to exclude ECC hooks and agent delegation. The README also cautions that installing ECC through more than one method into the same harness can duplicate skills, commands, or hooks.",
-      "fit": "Given its Claude Code-first design, ECC appears best suited to teams already standardized on Claude Code who want a shared, reusable agent workflow. Teams relying mainly on other coding agents may get a narrower feature set, and private-repo analysis through the GitHub App appears to require a paid Pro tier starting at $19/seat/mo."
+      "goal": "ECC is an MIT-licensed open-source \"agent harness operating system\" that layers a coordinated engineering workflow (plan, test, implement, review, verify, remember, improve) onto coding agents. It is designed to work best with Claude Code today, includes a supported Codex sync path, and provides capability-limited adapters for other harnesses such as Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, and Qwen.",
+      "usage": "Install by running `npx ecc-universal setup` from a terminal, or from inside Claude Code run `/plugin marketplace add https://github.com/affaan-m/ECC` followed by `/plugin install ecc@ecc`. The universal setup requires Node.js 18 or newer, and the Claude plugin path additionally requires Git and Claude Code 2.1 or newer.",
+      "pros": "ECC bundles 68 specialized agents, 286 reusable skills, and 94 maintained command shims, plus a hooks/memory runtime, selectively installable rule packs, and a built-in AgentShield security scanner covering prompts, hooks, MCP configuration, permissions, and secrets.",
+      "cons": "The README directs users to check a support-status matrix before assuming feature parity across harnesses, and several non-Claude adapters (Cursor, OpenCode, GitHub Copilot, and others) are documented as beta, instruction-only, or experimental/minimal. It also notes the project currently ships weekly from a single maintainer across seven harnesses, which may suggest maintenance capacity is fairly concentrated.",
+      "fit": "ECC appears best suited to teams already using Claude Code who want a structured engineering workflow layered onto agent coding sessions, since that is described as the primary, most stable target. Teams relying mainly on other harnesses will likely get more limited, adapter-based functionality rather than full feature parity."
     },
     "summaries": {
       "en": {
-        "goal": "ECC is an MIT-licensed, open-source system that gives coding agents such as Claude Code a structured engineering workflow: plan, test, implement, review, verify, remember, and improve. It works best with Claude Code, has a supported Codex sync path, and provides capability-limited adapters for other harnesses such as Cursor and OpenCode.",
-        "usage": "Run the guided setup from a terminal with `npx ecc-universal setup`, or use Claude Code's native plugin commands, including `/plugin install ecc@ecc`, after adding the marketplace. This install path requires Node.js 18 or newer, Git, and Claude Code 2.1 or newer. A separate security audit can be run with `npx -y ecc-agentshield scan --path .`.",
-        "pros": "ECC bundles 68 agents, 286 skills, and 94 commands, along with hooks, rules, memory, and AgentShield security scanning. The core plugin is MIT-licensed and documented as free to use.",
-        "cons": "Documented feature parity is uneven: adapters for harnesses such as Cursor, OpenCode, Gemini, Zed, and GitHub Copilot are described as capability-limited or beta, and GitHub Copilot support is stated to exclude ECC hooks and agent delegation. The README also cautions that installing ECC through more than one method into the same harness can duplicate skills, commands, or hooks.",
-        "fit": "Given its Claude Code-first design, ECC appears best suited to teams already standardized on Claude Code who want a shared, reusable agent workflow. Teams relying mainly on other coding agents may get a narrower feature set, and private-repo analysis through the GitHub App appears to require a paid Pro tier starting at $19/seat/mo."
+        "goal": "ECC is an MIT-licensed open-source \"agent harness operating system\" that layers a coordinated engineering workflow (plan, test, implement, review, verify, remember, improve) onto coding agents. It is designed to work best with Claude Code today, includes a supported Codex sync path, and provides capability-limited adapters for other harnesses such as Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, and Qwen.",
+        "usage": "Install by running `npx ecc-universal setup` from a terminal, or from inside Claude Code run `/plugin marketplace add https://github.com/affaan-m/ECC` followed by `/plugin install ecc@ecc`. The universal setup requires Node.js 18 or newer, and the Claude plugin path additionally requires Git and Claude Code 2.1 or newer.",
+        "pros": "ECC bundles 68 specialized agents, 286 reusable skills, and 94 maintained command shims, plus a hooks/memory runtime, selectively installable rule packs, and a built-in AgentShield security scanner covering prompts, hooks, MCP configuration, permissions, and secrets.",
+        "cons": "The README directs users to check a support-status matrix before assuming feature parity across harnesses, and several non-Claude adapters (Cursor, OpenCode, GitHub Copilot, and others) are documented as beta, instruction-only, or experimental/minimal. It also notes the project currently ships weekly from a single maintainer across seven harnesses, which may suggest maintenance capacity is fairly concentrated.",
+        "fit": "ECC appears best suited to teams already using Claude Code who want a structured engineering workflow layered onto agent coding sessions, since that is described as the primary, most stable target. Teams relying mainly on other harnesses will likely get more limited, adapter-based functionality rather than full feature parity."
       },
       "ko": {
-        "goal": "ECC는 MIT 라이선스의 오픈소스 시스템으로, Claude Code와 같은 코딩 에이전트에게 계획(plan), 테스트(test), 구현(implement), 검토(review), 검증(verify), 기억(remember), 개선(improve)으로 이어지는 구조화된 엔지니어링 워크플로를 제공합니다. Claude Code에서 가장 잘 작동하며, 지원되는 Codex 동기화 경로가 있고, Cursor 및 OpenCode 같은 다른 하네스에는 기능이 제한된 어댑터를 제공합니다.",
-        "usage": "터미널에서 `npx ecc-universal setup` 명령으로 안내형 설치를 실행하거나, 마켓플레이스를 추가한 뒤 Claude Code의 네이티브 플러그인 명령인 `/plugin install ecc@ecc`를 사용할 수 있습니다. 이 설치 경로는 Node.js 18 이상, Git, 그리고 Claude Code 2.1 이상을 필요로 합니다. 별도의 보안 점검은 `npx -y ecc-agentshield scan --path .` 명령으로 실행할 수 있습니다.",
-        "pros": "ECC에는 68 agents, 286 skills, 94 commands가 포함되어 있으며, 훅(hooks), 규칙(rules), 메모리, AgentShield 보안 스캔 기능도 함께 제공됩니다. 핵심 플러그인은 MIT 라이선스이며 문서상 무료로 사용할 수 있다고 명시되어 있습니다.",
-        "cons": "문서에 따르면 하네스별 기능 지원 수준이 고르지 않습니다. Cursor, OpenCode, Gemini, Zed, GitHub Copilot용 어댑터는 기능이 제한적이거나 베타 상태로 설명되며, 특히 GitHub Copilot 지원은 ECC 훅과 에이전트 위임 기능을 포함하지 않는다고 명시되어 있습니다. 또한 README는 동일한 하네스에 두 가지 이상의 설치 방식을 함께 사용하면 스킬, 명령어, 훅이 중복될 수 있다고 경고합니다.",
-        "fit": "Claude Code 중심의 설계를 고려할 때, ECC는 이미 Claude Code를 표준으로 사용하며 공유 가능한 재사용형 에이전트 워크플로를 원하는 팀에 적합해 보입니다. 주로 다른 코딩 에이전트를 사용하는 팀은 더 제한된 기능만 이용할 수 있으며, GitHub App을 통한 비공개 저장소 분석은 $19/seat/mo부터 시작하는 유료 Pro 요금제가 필요한 것으로 보입니다."
+        "goal": "ECC는 MIT 라이선스 오픈소스 \"에이전트 하네스 운영 체제\"로, 코딩 에이전트에 계획-테스트-구현-검토-검증-기억-개선이라는 조율된 엔지니어링 워크플로를 추가합니다. 현재 Claude Code와 가장 잘 작동하도록 설계되었으며, 지원되는 Codex 동기화 경로를 제공하고, Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, Qwen 등 다른 하네스에는 기능이 제한된 어댑터를 제공합니다.",
+        "usage": "터미널에서 `npx ecc-universal setup`을 실행하거나, Claude Code 내부에서 `/plugin marketplace add https://github.com/affaan-m/ECC`에 이어 `/plugin install ecc@ecc`를 실행해 설치합니다. 유니버설 설정에는 Node.js 18 이상이 필요하며, Claude 플러그인 경로는 추가로 Git과 Claude Code 2.1 이상을 요구합니다.",
+        "pros": "68개의 전문 에이전트, 286개의 재사용 가능한 스킬, 94개의 유지관리되는 명령 셰임을 제공하며, 후크/메모리 런타임, 선택적으로 설치 가능한 규칙 팩, 그리고 프롬프트·후크·MCP 설정·권한·시크릿을 검사하는 내장 AgentShield 보안 스캐너를 포함합니다.",
+        "cons": "README는 하네스 간 기능 패리티를 가정하기 전에 지원 상태 매트릭스를 확인하라고 안내하며, Cursor, OpenCode, GitHub Copilot 등 여러 비-Claude 어댑터는 베타, 지침 전용, 또는 실험적/최소 기능으로 문서화되어 있습니다. 또한 README에 따르면 현재 단일 유지관리자가 7개 하네스에 걸쳐 매주 배포하고 있어, 유지관리 역량이 상당히 집중되어 있을 수 있음을 시사하는 것으로 보입니다.",
+        "fit": "Claude Code를 이미 사용 중이며 에이전트 코딩 세션 위에 구조화된 엔지니어링 워크플로를 얹고 싶은 팀에 가장 적합해 보입니다. Claude Code가 주요하고 가장 안정적인 대상으로 설명되어 있기 때문입니다. 주로 다른 하네스를 사용하는 팀은 완전한 기능 패리티보다는 상대적으로 제한된 어댑터 기반 기능을 얻을 가능성이 높습니다."
       },
       "zh-CN": {
-        "goal": "ECC 是一个采用 MIT 许可证的开源系统,为 Claude Code 等编码代理提供结构化的工程工作流:plan、test、implement、review、verify、remember、improve。它在 Claude Code 上效果最佳,拥有受支持的 Codex 同步路径,并为 Cursor、OpenCode 等其他工具提供功能有限的适配器。",
-        "usage": "可在终端运行 `npx ecc-universal setup` 进行引导式安装,或在添加市场后使用 Claude Code 的原生插件命令 `/plugin install ecc@ecc`。该安装路径需要 Node.js 18 或更高版本、Git,以及 Claude Code 2.1 或更高版本。也可单独运行 `npx -y ecc-agentshield scan --path .` 进行安全审计。",
-        "pros": "ECC 捆绑了 68 agents、286 skills 和 94 commands,并附带钩子(hooks)、规则(rules)、记忆功能以及 AgentShield 安全扫描。核心插件采用 MIT 许可证,文档说明可免费使用。",
-        "cons": "文档显示各工具的功能对等程度并不一致:Cursor、OpenCode、Gemini、Zed 和 GitHub Copilot 的适配器被描述为功能受限或处于测试阶段,其中 GitHub Copilot 支持明确不包含 ECC 钩子和代理委派功能。README 还提醒,在同一工具中使用一种以上的安装方式可能导致技能、命令或钩子重复。",
-        "fit": "鉴于其以 Claude Code 为核心的设计,ECC 似乎更适合已经将 Claude Code 作为标准工具、希望获得可共享、可复用代理工作流的团队。主要使用其他编码代理的团队可能只能获得较为有限的功能,而通过 GitHub App 访问私有仓库分析看起来需要从 $19/seat/mo 起的付费 Pro 套餐。"
+        "goal": "ECC 是一个 MIT 许可的开源\"智能体工具链操作系统\",为编码智能体叠加了规划-测试-实现-审查-验证-记忆-改进的协同工程工作流。它目前设计为与 Claude Code 配合效果最佳,提供受支持的 Codex 同步路径,并为 Cursor、OpenCode、Gemini、Zed、GitHub Copilot、Antigravity、Qwen 等其他工具链提供功能受限的适配器。",
+        "usage": "在终端运行 `npx ecc-universal setup` 进行安装,或在 Claude Code 内先执行 `/plugin marketplace add https://github.com/affaan-m/ECC`,再执行 `/plugin install ecc@ecc`。通用安装脚本需要 Node.js 18 或更高版本,Claude 插件路径还需要 Git 以及 Claude Code 2.1 或更高版本。",
+        "pros": "ECC 捆绑了 68 个专用智能体、286 个可复用技能和 94 个维护中的命令垫片,并附带钩子/记忆运行时、可选择安装的规则包,以及内置的 AgentShield 安全扫描器,用于检查提示词、钩子、MCP 配置、权限和密钥。",
+        "cons": "README 提示用户在假设各工具链功能对等之前应查看支持状态矩阵,Cursor、OpenCode、GitHub Copilot 等多个非 Claude 适配器被记录为测试版、仅限说明或实验性/最小化实现。README 还提到目前项目由单一维护者每周跨七个工具链发布,这似乎暗示维护资源可能相当集中。",
+        "fit": "该项目似乎最适合已经在使用 Claude Code、希望在智能体编码会话之上叠加结构化工程工作流的团队,因为文档将 Claude Code 描述为主要且最稳定的目标平台。主要使用其他工具链的团队很可能只能获得较为有限的、基于适配器的功能,而非完整的功能对等。"
       },
       "es": {
-        "goal": "ECC es un sistema de código abierto con licencia MIT que ofrece a agentes de codificación como Claude Code un flujo de trabajo de ingeniería estructurado: plan, test, implement, review, verify, remember e improve. Funciona mejor con Claude Code, cuenta con una ruta de sincronización compatible con Codex, y ofrece adaptadores de capacidad limitada para otros entornos como Cursor y OpenCode.",
-        "usage": "Ejecute la instalación guiada desde una terminal con `npx ecc-universal setup`, o utilice los comandos nativos del plugin de Claude Code, incluyendo `/plugin install ecc@ecc`, tras añadir el marketplace. Esta vía de instalación requiere Node.js 18 o superior, Git y Claude Code 2.1 o superior. Puede ejecutarse una auditoría de seguridad aparte con `npx -y ecc-agentshield scan --path .`.",
-        "pros": "ECC incluye 68 agents, 286 skills y 94 commands, junto con hooks, rules, memoria y escaneo de seguridad de AgentShield. El plugin principal tiene licencia MIT y se documenta como de uso gratuito.",
-        "cons": "La paridad de funciones documentada es desigual: los adaptadores para entornos como Cursor, OpenCode, Gemini, Zed y GitHub Copilot se describen como de capacidad limitada o en beta, y el soporte de GitHub Copilot se indica que excluye los hooks de ECC y la delegación de agentes. El README también advierte que instalar ECC mediante más de un método en el mismo entorno puede duplicar skills, commands o hooks.",
-        "fit": "Dado su diseño centrado en Claude Code, ECC parece más adecuado para equipos que ya usan Claude Code como estándar y desean un flujo de trabajo de agentes compartido y reutilizable. Los equipos que dependen principalmente de otros agentes de codificación podrían obtener un conjunto de funciones más limitado, y el análisis de repositorios privados a través de la GitHub App parece requerir un nivel Pro de pago desde $19/seat/mo."
+        "goal": "ECC es un \"sistema operativo de arneses de agentes\" de código abierto con licencia MIT que añade a los agentes de codificación un flujo de trabajo de ingeniería coordinado: planificar, probar, implementar, revisar, verificar, recordar y mejorar. Actualmente está diseñado para funcionar mejor con Claude Code, ofrece una ruta de sincronización compatible con Codex y proporciona adaptadores de capacidad limitada para otros entornos como Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity y Qwen.",
+        "usage": "Se instala ejecutando `npx ecc-universal setup` desde la terminal, o dentro de Claude Code con `/plugin marketplace add https://github.com/affaan-m/ECC` seguido de `/plugin install ecc@ecc`. La configuración universal requiere Node.js 18 o superior, y la ruta del plugin de Claude además requiere Git y Claude Code 2.1 o superior.",
+        "pros": "ECC incluye 68 agentes especializados, 286 habilidades reutilizables y 94 shims de comandos mantenidos, junto con un runtime de hooks/memoria, paquetes de reglas de instalación selectiva y el escáner de seguridad AgentShield integrado para prompts, hooks, configuración MCP, permisos y secretos.",
+        "cons": "El README indica que se debe revisar la matriz de estado de soporte antes de asumir paridad de funciones entre entornos, y varios adaptadores no-Claude (Cursor, OpenCode, GitHub Copilot, entre otros) se documentan como beta, solo de instrucciones, o experimentales/mínimos. También señala que el proyecto lo mantiene actualmente una sola persona que publica semanalmente en siete entornos, lo que podría sugerir que la capacidad de mantenimiento está bastante concentrada.",
+        "fit": "ECC parece más adecuado para equipos que ya usan Claude Code y desean superponer un flujo de trabajo de ingeniería estructurado sobre sus sesiones de codificación con agentes, ya que ese es descrito como el objetivo principal y más estable. Los equipos centrados principalmente en otros entornos probablemente obtendrán una funcionalidad más limitada, basada en adaptadores, en lugar de paridad completa de funciones."
       },
       "ja": {
-        "goal": "ECCはMITライセンスのオープンソースシステムで、Claude Codeのようなコーディングエージェントに、計画(plan)・テスト(test)・実装(implement)・レビュー(review)・検証(verify)・記憶(remember)・改善(improve)という構造化されたエンジニアリングワークフローを提供します。Claude Codeで最も効果を発揮するとされ、サポートされるCodex同期経路を持ち、CursorやOpenCodeなど他のハーネス向けには機能が限定されたアダプターを提供します。",
-        "usage": "ターミナルから `npx ecc-universal setup` を実行するとガイド付きセットアップが行えます。または、マーケットプレイスを追加した後にClaude Codeのネイティブプラグインコマンド `/plugin install ecc@ecc` を使用することもできます。このインストール経路にはNode.js 18以降、Git、Claude Code 2.1以降が必要です。個別にセキュリティ監査を行うには `npx -y ecc-agentshield scan --path .` を実行します。",
-        "pros": "ECCには68 agents、286 skills、94 commandsが同梱されており、hooks、rules、メモリ機能、AgentShieldによるセキュリティスキャンも含まれます。コアとなるプラグインはMITライセンスで、無料で利用できると文書化されています。",
-        "cons": "文書によれば、ハーネスごとの機能対応レベルには差があります。Cursor、OpenCode、Gemini、Zed、GitHub Copilot向けのアダプターは機能が限定的またはベータ版と説明されており、特にGitHub Copilotのサポートには ECCのhooksやエージェント委任機能が含まれないと明記されています。またREADMEでは、同一のハーネスに複数のインストール方法を重ねて適用すると、skills、commands、hooksが重複する可能性があると注意喚起しています。",
-        "fit": "Claude Code中心の設計であることを踏まえると、ECCはすでにClaude Codeを標準として使用し、共有可能で再利用できるエージェントワークフローを求めるチームに適していると考えられます。主に他のコーディングエージェントを利用しているチームは、より限定的な機能セットになる可能性があり、GitHub Appを通じたプライベートリポジトリ分析には、$19/seat/moから始まる有料のProプランが必要と見られます。"
+        "goal": "ECCはMITライセンスのオープンソースの「エージェントハーネス・オペレーティングシステム」で、コーディングエージェントに計画・テスト・実装・レビュー・検証・記憶・改善という連携したエンジニアリングワークフローを追加します。現在はClaude Codeで最も効果的に動作するよう設計されており、サポートされているCodex同期パスを備え、Cursor、OpenCode、Gemini、Zed、GitHub Copilot、Antigravity、Qwenなど他のハーネス向けには機能が限定されたアダプターを提供します。",
+        "usage": "ターミナルで `npx ecc-universal setup` を実行するか、Claude Code内で `/plugin marketplace add https://github.com/affaan-m/ECC` に続けて `/plugin install ecc@ecc` を実行してインストールします。ユニバーサルセットアップにはNode.js 18以上が必要で、Claudeプラグイン経路ではさらにGitとClaude Code 2.1以上が必要です。",
+        "pros": "ECCには68の専門エージェント、286の再利用可能なスキル、94の維持管理されたコマンドシムが含まれ、フック/メモリランタイム、選択的にインストールできるルールパック、そしてプロンプト・フック・MCP設定・権限・シークレットを検査する組み込みのAgentShieldセキュリティスキャナーも備えています。",
+        "cons": "READMEは、ハーネス間の機能パリティを前提とする前にサポート状況マトリクスを確認するよう案内しており、Cursor、OpenCode、GitHub Copilotなど複数のClaude以外のアダプターはベータ、指示のみ、または実験的/最小限の実装として文書化されています。またREADMEによれば、現在プロジェクトは単独のメンテナーが7つのハーネスにわたって毎週リリースを行っているとされ、メンテナンス体制がかなり集中している可能性を示唆しているようです。",
+        "fit": "Claude Codeを主要かつ最も安定した対象として説明していることから、すでにClaude Codeを使用しており、エージェントによるコーディングセッションに構造化されたエンジニアリングワークフローを重ねたいチームに最も適していると考えられます。主に他のハーネスを使用するチームは、完全な機能パリティではなく、アダプターベースのより限定的な機能にとどまる可能性が高いです。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 151,
-          "end_line": 159,
+          "end_line": 153,
           "section_heading": "ECC"
         },
         {
-          "start_line": 163,
+          "start_line": 161,
           "end_line": 163,
           "section_heading": "ECC"
         }
@@ -2449,21 +2474,21 @@
           "section_heading": "ECC"
         },
         {
-          "start_line": 129,
-          "end_line": 129,
-          "section_heading": "Install with Claude Code"
+          "start_line": 167,
+          "end_line": 174,
+          "section_heading": "ECC"
         }
       ],
       "cons": [
         {
-          "start_line": 1590,
-          "end_line": 1595,
-          "section_heading": "Platform Support"
+          "start_line": 129,
+          "end_line": 129,
+          "section_heading": "Install with Claude Code"
         },
         {
-          "start_line": 219,
-          "end_line": 219,
-          "section_heading": "Pick one path only (per harness)"
+          "start_line": 1592,
+          "end_line": 1595,
+          "section_heading": "Platform Support"
         }
       ],
       "fit": [
@@ -2473,9 +2498,9 @@
           "section_heading": "ECC"
         },
         {
-          "start_line": 108,
-          "end_line": 108,
-          "section_heading": "Install with Claude Code"
+          "start_line": 1588,
+          "end_line": 1591,
+          "section_heading": "Platform Support"
         }
       ]
     },
@@ -2489,14 +2514,14 @@
       },
       {
         "kind": "command",
-        "value": "/plugin install ecc@ecc",
+        "value": "/plugin marketplace add https://github.com/affaan-m/ECC",
         "fields": [
           "usage"
         ]
       },
       {
         "kind": "command",
-        "value": "npx -y ecc-agentshield scan --path .",
+        "value": "/plugin install ecc@ecc",
         "fields": [
           "usage"
         ]
@@ -2516,31 +2541,10 @@
         ]
       },
       {
-        "kind": "number",
-        "value": "68 agents",
+        "kind": "url",
+        "value": "https://github.com/affaan-m/ECC",
         "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "286 skills",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "94 commands",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "$19/seat/mo",
-        "fields": [
-          "fit"
+          "usage"
         ]
       },
       {
@@ -2550,16 +2554,6 @@
           "goal",
           "usage",
           "pros",
-          "cons",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Claude Code",
-        "fields": [
-          "goal",
-          "usage",
           "fit"
         ]
       },
@@ -2572,9 +2566,11 @@
       },
       {
         "kind": "product",
-        "value": "ecc-agentshield",
+        "value": "Claude Code",
         "fields": [
-          "usage"
+          "goal",
+          "usage",
+          "fit"
         ]
       }
     ],
@@ -2586,8 +2582,8 @@
       "kind": "readme",
       "slug": "affaan-m/ecc",
       "path": "README.md",
-      "blob_sha": "091836e33c6eb3bfdefa777914c5f6c8bf479d3b",
-      "content_sha256": "56a45e47eef049918382751151d00ca27012b48398ffe137e705e14a28bf29a1",
+      "blob_sha": "73b4aa7f285a63017ce8c3c7c02a0ddeb6dfb4b1",
+      "content_sha256": "7ff351d405e2fa340cb619398f6814a61bd900d03478b25bc69546e93a870435",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -8099,210 +8095,6 @@
       "translation_applicable": false
     }
   },
-  "akitaonrails/ai-memory": {
-    "content": {
-      "goal": "ai-memory (akitaonrails/ai-memory) is a self-hosted long-term memory system for AI coding agents, letting a session started in one tool (e.g. Claude Code) hand off to another (e.g. OpenAI Codex) in the same project directory without re-explaining prior architecture, failed approaches, or open questions.",
-      "usage": "It ships as a single Rust binary usable via AUR packages (yay -S ai-memory-bin) or Docker. A typical setup runs the server (e.g. `docker run -d --name ai-memory ... -p 127.0.0.1:49374:49374 ...`) and wires an agent with `ai-memory install-mcp --client claude-code --apply` and `ai-memory install-hooks --agent claude-code --apply`.",
-      "pros": "Over twenty agent harnesses (Claude Code, Codex, Cursor, Gemini CLI, and others) can share one memory store, and the underlying knowledge is stored as plain git-backed markdown files rather than a proprietary database. The default capture, search, and handoff path requires zero LLM API calls, and multi-user authentication with per-person attribution is included without a paid tier.",
-      "cons": "The documented quick-start binds the server to loopback only with no authentication by default, so exposing it beyond a single machine appears to require manually adding a bearer token or further hardening steps described separately. Native Windows support is also listed as merely experimental rather than fully supported.",
-      "fit": "The project seems best suited to individual developers or teams who want persistent, cross-agent, cross-machine memory for coding projects and are willing to run and maintain their own server (via Docker/Podman or native packages), rather than users seeking a fully managed, zero-setup service."
-    },
-    "summaries": {
-      "en": {
-        "goal": "ai-memory (akitaonrails/ai-memory) is a self-hosted long-term memory system for AI coding agents, letting a session started in one tool (e.g. Claude Code) hand off to another (e.g. OpenAI Codex) in the same project directory without re-explaining prior architecture, failed approaches, or open questions.",
-        "usage": "It ships as a single Rust binary usable via AUR packages (yay -S ai-memory-bin) or Docker. A typical setup runs the server (e.g. `docker run -d --name ai-memory ... -p 127.0.0.1:49374:49374 ...`) and wires an agent with `ai-memory install-mcp --client claude-code --apply` and `ai-memory install-hooks --agent claude-code --apply`.",
-        "pros": "Over twenty agent harnesses (Claude Code, Codex, Cursor, Gemini CLI, and others) can share one memory store, and the underlying knowledge is stored as plain git-backed markdown files rather than a proprietary database. The default capture, search, and handoff path requires zero LLM API calls, and multi-user authentication with per-person attribution is included without a paid tier.",
-        "cons": "The documented quick-start binds the server to loopback only with no authentication by default, so exposing it beyond a single machine appears to require manually adding a bearer token or further hardening steps described separately. Native Windows support is also listed as merely experimental rather than fully supported.",
-        "fit": "The project seems best suited to individual developers or teams who want persistent, cross-agent, cross-machine memory for coding projects and are willing to run and maintain their own server (via Docker/Podman or native packages), rather than users seeking a fully managed, zero-setup service."
-      },
-      "ko": {
-        "goal": "ai-memory(akitaonrails/ai-memory)는 AI 코딩 에이전트를 위한 자체 호스팅 장기 메모리 시스템으로, 예를 들어 Claude Code에서 시작한 작업을 같은 디렉터리에서 OpenAI Codex로 이어받을 때 아키텍처나 실패한 시도, 미해결 질문을 다시 설명할 필요가 없도록 합니다.",
-        "usage": "단일 Rust 바이너리로 배포되며 Arch Linux에서는 AUR 패키지(yay -S ai-memory-bin)로, 그 외에는 Docker로 설치할 수 있습니다. 일반적으로 `docker run -d --name ai-memory ... -p 127.0.0.1:49374:49374 ...`로 서버를 실행한 뒤 `ai-memory install-mcp --client claude-code --apply`와 `ai-memory install-hooks --agent claude-code --apply` 명령으로 에이전트를 연결합니다.",
-        "pros": "Claude Code, Codex, Cursor, Gemini CLI 등 20개 이상의 에이전트 하네스가 하나의 메모리 저장소를 공유할 수 있고, 지식은 독점 데이터베이스가 아니라 git 기반의 일반 마크다운 파일로 저장됩니다. 기본 캡처·검색·핸드오프 경로는 LLM API 호출이 전혀 필요 없으며, 사용자별 귀속이 가능한 다중 사용자 인증도 유료 등급 없이 포함되어 있습니다.",
-        "cons": "문서화된 퀵스타트는 기본적으로 서버를 루프백 전용으로 바인딩하고 인증을 사용하지 않으므로, 단일 기기를 넘어 서버를 노출하려면 별도로 설명된 베어러 토큰 추가 등 강화 작업이 필요해 보입니다. 네이티브 Windows 지원도 완전 지원이 아닌 '실험적' 수준으로 표기되어 있습니다.",
-        "fit": "이 프로젝트는 코딩 프로젝트에서 에이전트와 기기를 넘나드는 지속적인 메모리를 원하고, Docker/Podman이나 네이티브 패키지로 직접 서버를 운영할 의향이 있는 개발자나 팀에 적합해 보이며, 완전 관리형의 설정 없는 서비스를 찾는 사용자에게는 맞지 않을 수 있습니다."
-      },
-      "zh-CN": {
-        "goal": "ai-memory(akitaonrails/ai-memory)是面向 AI 编程代理的自托管长期记忆系统,例如在 Claude Code 中开始的工作可以在同一目录下交给 OpenAI Codex 继续,而无需重新说明架构、失败的尝试或未解决的问题。",
-        "usage": "该项目以单个 Rust 二进制形式发布,可通过 AUR 包(yay -S ai-memory-bin)在 Arch Linux 上安装,也可使用 Docker 安装。典型流程是先运行服务器(如 `docker run -d --name ai-memory ... -p 127.0.0.1:49374:49374 ...`),再用 `ai-memory install-mcp --client claude-code --apply` 和 `ai-memory install-hooks --agent claude-code --apply` 接入某个代理。",
-        "pros": "二十多种代理工具(Claude Code、Codex、Cursor、Gemini CLI 等)可以共享同一个记忆库,底层知识以 git 管理的普通 Markdown 文件保存,而非专有数据库。默认的捕获、搜索与交接流程无需任何 LLM API 调用,并且内置了带有按人归属的多用户认证,而非付费功能。",
-        "cons": "文档中的快速入门默认仅绑定回环地址且不启用认证,如果要将服务器暴露给单机以外的范围,似乎需要另行添加持有者令牌等文档中单独说明的加固步骤。原生 Windows 支持也仅标注为“实验性”,而非完全支持。",
-        "fit": "该项目似乎更适合希望在编码项目中跨代理、跨设备保留持久记忆,并愿意通过 Docker/Podman 或原生软件包自行运行和维护服务器的开发者或团队,而不太适合寻求完全托管、零配置服务的用户。"
-      },
-      "es": {
-        "goal": "ai-memory (akitaonrails/ai-memory) es un sistema de memoria a largo plazo autoalojado para agentes de codificación con IA, que permite que una tarea iniciada en Claude Code, por ejemplo, se retome en OpenAI Codex dentro del mismo directorio sin tener que reexplicar la arquitectura, los enfoques fallidos ni las preguntas abiertas.",
-        "usage": "Se distribuye como un único binario en Rust, instalable mediante paquetes AUR en Arch Linux (yay -S ai-memory-bin) o mediante Docker. Un flujo típico consiste en ejecutar el servidor (por ejemplo, `docker run -d --name ai-memory ... -p 127.0.0.1:49374:49374 ...`) y luego conectar un agente con `ai-memory install-mcp --client claude-code --apply` y `ai-memory install-hooks --agent claude-code --apply`.",
-        "pros": "Más de veinte harnesses de agentes (Claude Code, Codex, Cursor, Gemini CLI, entre otros) pueden compartir un mismo almacén de memoria, y el conocimiento subyacente se guarda como archivos Markdown normales versionados con git, no en una base de datos propietaria. La ruta predeterminada de captura, búsqueda y traspaso no requiere llamadas a ningún LLM, e incluye autenticación multiusuario con atribución por persona sin necesidad de un nivel de pago.",
-        "cons": "Según la configuración rápida documentada, el servidor se vincula por defecto solo a loopback y sin autenticación, por lo que exponerlo más allá de una sola máquina parece requerir pasos adicionales de refuerzo, como añadir un token portador, descritos por separado. El soporte nativo de Windows también figura como experimental, no como totalmente soportado.",
-        "fit": "El proyecto parece más adecuado para desarrolladores o equipos que buscan memoria persistente entre agentes y máquinas en proyectos de código, y que están dispuestos a ejecutar y mantener su propio servidor (vía Docker/Podman o paquetes nativos), en lugar de usuarios que buscan un servicio totalmente gestionado y sin configuración."
-      },
-      "ja": {
-        "goal": "ai-memory(akitaonrails/ai-memory)は、AIコーディングエージェント向けの自己ホスト型長期記憶システムであり、たとえばClaude Codeで開始した作業を同じディレクトリ内でOpenAI Codexに引き継ぐ際に、アーキテクチャや失敗したアプローチ、未解決の疑問を説明し直す必要をなくすものです。",
-        "usage": "単一のRustバイナリとして配布され、Arch LinuxではAURパッケージ(yay -S ai-memory-bin)経由で、それ以外ではDockerでインストールできます。一般的な手順は、まずサーバーを起動し(例:`docker run -d --name ai-memory ... -p 127.0.0.1:49374:49374 ...`)、次に `ai-memory install-mcp --client claude-code --apply` と `ai-memory install-hooks --agent claude-code --apply` でエージェントを接続します。",
-        "pros": "Claude Code、Codex、Cursor、Gemini CLIなど20種類以上のエージェントハーネスが1つの記憶ストアを共有でき、基盤となる知識は専有データベースではなくgit管理された通常のMarkdownファイルとして保存されます。デフォルトのキャプチャ・検索・引き継ぎ経路はLLM APIの呼び出しを一切必要とせず、個人ごとの帰属を伴うマルチユーザー認証も有料プランなしで組み込まれています。",
-        "cons": "文書化されたクイックスタートでは、サーバーはデフォルトでループバックのみにバインドされ認証なしとなっているため、単一マシンを超えて公開するにはベアラートークンの追加など、別途説明されている強化手順が必要になると見られます。ネイティブWindowsサポートも「実験的」とされており、完全なサポートではありません。",
-        "fit": "このプロジェクトは、コーディングプロジェクトにおいてエージェントやマシンをまたいだ永続的な記憶を求め、Docker/Podmanやネイティブパッケージでサーバーを自ら運用・保守する意思のある開発者やチームに適していると考えられ、完全マネージド型の設定不要なサービスを求めるユーザーには向かない可能性があります。"
-      }
-    },
-    "evidence": {
-      "goal": [
-        {
-          "start_line": 8,
-          "end_line": 11,
-          "section_heading": ""
-        },
-        {
-          "start_line": 24,
-          "end_line": 31,
-          "section_heading": "Why ai-memory"
-        }
-      ],
-      "usage": [
-        {
-          "start_line": 128,
-          "end_line": 142,
-          "section_heading": "Arch Linux (AUR)"
-        },
-        {
-          "start_line": 193,
-          "end_line": 212,
-          "section_heading": "Docker"
-        }
-      ],
-      "pros": [
-        {
-          "start_line": 26,
-          "end_line": 47,
-          "section_heading": "Why ai-memory"
-        },
-        {
-          "start_line": 52,
-          "end_line": 54,
-          "section_heading": "Why ai-memory"
-        }
-      ],
-      "cons": [
-        {
-          "start_line": 157,
-          "end_line": 160,
-          "section_heading": "Docker"
-        },
-        {
-          "start_line": 91,
-          "end_line": 91,
-          "section_heading": "Support matrix"
-        }
-      ],
-      "fit": [
-        {
-          "start_line": 265,
-          "end_line": 270,
-          "section_heading": "Teams and multiple machines"
-        },
-        {
-          "start_line": 33,
-          "end_line": 36,
-          "section_heading": "Why ai-memory"
-        }
-      ]
-    },
-    "invariants": [
-      {
-        "kind": "command",
-        "value": "ai-memory install-mcp --client claude-code --apply",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "ai-memory install-hooks --agent claude-code --apply",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "yay -S ai-memory-bin",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "docker run -d --name ai-memory",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "127.0.0.1:49374",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "ai-memory",
-        "fields": [
-          "goal",
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Docker",
-        "fields": [
-          "usage",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Podman",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Claude Code",
-        "fields": [
-          "goal",
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Codex",
-        "fields": [
-          "goal",
-          "pros"
-        ]
-      }
-    ],
-    "inference_fields": [
-      "cons",
-      "fit"
-    ],
-    "source": {
-      "kind": "readme",
-      "slug": "akitaonrails/ai-memory",
-      "path": "README.md",
-      "blob_sha": "1c6ff921974cd2a017de0100c4ac180678e963bf",
-      "content_sha256": "ca68b434be46820c8269a6471ff2a365f2aa3d9df88c0f8bc07b372bf6ad0499",
-      "provider": "claude-cli-oauth",
-      "interface": "claude-p",
-      "cli_version": "2.1.263",
-      "auth_method": "oauth_token",
-      "api_provider": "firstParty",
-      "model": "claude-sonnet-5",
-      "schema_version": 3,
-      "prompt_schema_version": 3,
-      "translation_applicable": false
-    }
-  },
   "marin-community/marin": {
     "content": {
       "goal": "Marin is presented as a research program, software platform, and community for developing foundation models, focused on training large language models across data curation, tokenization, pretraining, posttraining, and evaluation. Current work targets pretraining and posttraining a mixture-of-experts model at 5e24 model-FLOPs with 500 billion+ total parameters, intended for tasks important to scientists and researchers.",
@@ -8939,47 +8731,47 @@
   },
   "public-apis/public-apis": {
     "content": {
-      "goal": "public-apis/public-apis is a community-curated directory of free, publicly available APIs, organized into an Index of categories (e.g., Animals, Business, Finance, Games, Weather) so developers can discover ready-to-use APIs for their own projects.",
-      "usage": "Developers browse the Index (Animals, Anime, ... Weather) to jump to a category section, then read each API's table row - covering Auth (e.g., apiKey, OAuth), HTTPS, and CORS - before following its link; contributions follow CONTRIBUTING.md, with activity tracked via https://github.com/public-apis/public-apis/issues and https://github.com/public-apis/public-apis/pulls.",
-      "pros": "Coverage spans dozens of categories with thousands of entries, and every listing documents 5 attributes (API name, description, Auth, HTTPS, CORS), letting developers quickly compare integration requirements across many free services without registering for a paid platform first.",
-      "cons": "Many rows mark CORS support as 'Unknown', and the README itself does not verify uptime, pricing, or continued availability of the linked third-party services, so an API listed here may still need independent confirmation before production use.",
-      "fit": "This project is best suited for developers seeking a starting point to discover free public APIs for prototypes, learning, or quick integrations rather than a single production-grade API product; teams needing guaranteed SLAs should probably evaluate each linked provider individually."
+      "goal": "The public-apis/public-apis repository is a community-curated, categorized directory of free and public APIs for developers, spanning domains such as Animals, Business, Games & Comics, and Weather, intended to help developers discover public APIs for their own projects.",
+      "usage": "Developers browse the Index to jump to a category section, then follow each listed API's own link for that provider's documentation and signup; contributions follow the Contributing Guide and are submitted via Pull Request, with existing entries tracked through GitHub Issues (https://github.com/public-apis/public-apis/issues) and Pull Requests (https://github.com/public-apis/public-apis/pulls).",
+      "pros": "It covers 51 distinct categories with hundreds of entries, and each entry lists whether an API requires an apiKey or OAuth, supports HTTPS, and supports CORS, letting developers quickly gauge integration requirements before visiting a provider's site.",
+      "cons": "The README does not verify the reliability or terms of individual third-party APIs, and since numerous entries list CORS or Auth as 'Unknown,' documentation completeness across entries may be inconsistent, so users likely need to check each provider's own site before relying on it for production use.",
+      "fit": "This resource appears best suited to developers browsing or prototyping with free public APIs across many domains, rather than teams needing a single vetted, installable dependency, since integration reliability still depends on each individual third-party provider."
     },
     "summaries": {
       "en": {
-        "goal": "public-apis/public-apis is a community-curated directory of free, publicly available APIs, organized into an Index of categories (e.g., Animals, Business, Finance, Games, Weather) so developers can discover ready-to-use APIs for their own projects.",
-        "usage": "Developers browse the Index (Animals, Anime, ... Weather) to jump to a category section, then read each API's table row - covering Auth (e.g., apiKey, OAuth), HTTPS, and CORS - before following its link; contributions follow CONTRIBUTING.md, with activity tracked via https://github.com/public-apis/public-apis/issues and https://github.com/public-apis/public-apis/pulls.",
-        "pros": "Coverage spans dozens of categories with thousands of entries, and every listing documents 5 attributes (API name, description, Auth, HTTPS, CORS), letting developers quickly compare integration requirements across many free services without registering for a paid platform first.",
-        "cons": "Many rows mark CORS support as 'Unknown', and the README itself does not verify uptime, pricing, or continued availability of the linked third-party services, so an API listed here may still need independent confirmation before production use.",
-        "fit": "This project is best suited for developers seeking a starting point to discover free public APIs for prototypes, learning, or quick integrations rather than a single production-grade API product; teams needing guaranteed SLAs should probably evaluate each linked provider individually."
+        "goal": "The public-apis/public-apis repository is a community-curated, categorized directory of free and public APIs for developers, spanning domains such as Animals, Business, Games & Comics, and Weather, intended to help developers discover public APIs for their own projects.",
+        "usage": "Developers browse the Index to jump to a category section, then follow each listed API's own link for that provider's documentation and signup; contributions follow the Contributing Guide and are submitted via Pull Request, with existing entries tracked through GitHub Issues (https://github.com/public-apis/public-apis/issues) and Pull Requests (https://github.com/public-apis/public-apis/pulls).",
+        "pros": "It covers 51 distinct categories with hundreds of entries, and each entry lists whether an API requires an apiKey or OAuth, supports HTTPS, and supports CORS, letting developers quickly gauge integration requirements before visiting a provider's site.",
+        "cons": "The README does not verify the reliability or terms of individual third-party APIs, and since numerous entries list CORS or Auth as 'Unknown,' documentation completeness across entries may be inconsistent, so users likely need to check each provider's own site before relying on it for production use.",
+        "fit": "This resource appears best suited to developers browsing or prototyping with free public APIs across many domains, rather than teams needing a single vetted, installable dependency, since integration reliability still depends on each individual third-party provider."
       },
       "ko": {
-        "goal": "public-apis/public-apis는 Animals, Business, Finance, Games, Weather 등 카테고리별 인덱스로 구성된, 무료로 공개 이용 가능한 API들을 커뮤니티가 큐레이션한 디렉터리로, 개발자가 자신의 프로젝트에 바로 사용할 API를 찾도록 돕습니다.",
-        "usage": "개발자는 인덱스(Animals, Anime, ... Weather)를 훑어 원하는 카테고리로 이동한 뒤, 각 API 행에서 이름·설명과 함께 Auth(예: apiKey, OAuth), HTTPS, CORS 정보를 확인하고 연결된 문서를 따라갑니다. 기여는 CONTRIBUTING.md 절차를 따르며, 활동 내역은 https://github.com/public-apis/public-apis/issues 와 https://github.com/public-apis/public-apis/pulls 에서 추적됩니다.",
-        "pros": "수십 개 카테고리에 걸쳐 수천 개 항목이 있으며, 각 항목이 이름·설명·Auth·HTTPS·CORS의 5가지 속성을 문서화하고 있어, 유료 플랫폼 가입 없이도 여러 무료 서비스의 통합 요건을 빠르게 비교할 수 있습니다.",
-        "cons": "많은 행에서 CORS 지원이 'Unknown'으로 표시되어 있고, README 자체는 링크된 서드파티 서비스의 가동시간, 가격, 지속적인 제공 여부를 검증하지 않으므로, 여기 등재된 API라도 실제 사용 전에는 별도로 상태를 확인해야 할 수 있습니다.",
-        "fit": "이 프로젝트는 단일 프로덕션급 API 제품이라기보다, 프로토타입·학습·빠른 통합을 위한 무료 공개 API를 찾는 출발점으로서 개발자에게 가장 적합해 보이며, 보장된 SLA가 필요한 팀은 연결된 각 제공업체를 개별적으로 검토하는 편이 좋을 수 있습니다."
+        "goal": "public-apis/public-apis 저장소는 개발자를 위해 무료 및 공개 API를 카테고리별로 정리한 커뮤니티 큐레이션 목록으로, Animals, Business, Games & Comics, Weather 등 다양한 분야를 다루며 개발자가 자신의 프로젝트에 사용할 공개 API를 찾도록 돕는 것을 목표로 합니다.",
+        "usage": "개발자는 Index를 통해 원하는 카테고리 섹션으로 이동한 뒤, 각 API 항목에 연결된 제공업체 자체 문서와 가입 페이지를 확인합니다. 기여는 Contributing Guide를 따라 Pull Request로 제출하며, 기존 항목은 GitHub Issues(https://github.com/public-apis/public-apis/issues)와 Pull Requests(https://github.com/public-apis/public-apis/pulls)로 추적됩니다.",
+        "pros": "51개의 뚜렷한 카테고리와 다수의 항목을 포함하며, 각 항목은 apiKey 또는 OAuth 필요 여부, HTTPS 지원, CORS 지원 여부를 표시해 개발자가 제공업체 사이트를 방문하기 전에 연동 요건을 빠르게 파악할 수 있게 해줍니다.",
+        "cons": "README는 개별 타사 API의 신뢰성이나 이용 약관을 검증하지 않으며, 다수 항목이 CORS 또는 Auth를 'Unknown'으로 표시하고 있어 항목별 문서화 수준이 일정하지 않을 수 있으므로, 실제 운영에 사용하기 전 각 제공업체 사이트를 직접 확인할 필요가 있어 보입니다.",
+        "fit": "이 자료는 여러 분야의 무료 공개 API를 둘러보거나 프로토타이핑에 활용하려는 개발자에게 적합해 보이며, 단일하게 검증된 설치형 의존성이 필요한 팀보다는 각 타사 제공업체에 따라 연동 신뢰성이 달라지는 점을 감안할 수 있는 사용자에게 더 맞습니다."
       },
       "zh-CN": {
-        "goal": "public-apis/public-apis 是一个由社区整理的免费公开 API 目录,按 Animals、Business、Finance、Games、Weather 等类别的索引组织,帮助开发者为自己的项目发现可直接使用的 API。",
-        "usage": "开发者浏览索引(Animals、Anime……Weather)跳转到相应类别,然后查看每个 API 条目中的名称、描述以及 Auth(如 apiKey、OAuth)、HTTPS、CORS 信息,再点击链接查看文档;贡献流程遵循 CONTRIBUTING.md,相关活动可在 https://github.com/public-apis/public-apis/issues 和 https://github.com/public-apis/public-apis/pulls 追踪。",
-        "pros": "该列表覆盖数十个类别、数千个条目,每个条目都记录了名称、描述、Auth、HTTPS、CORS 这 5 项属性,使开发者无需先注册付费平台即可快速比较多个免费服务的接入要求。",
-        "cons": "许多条目的 CORS 支持标注为 'Unknown',而且 README 本身并未验证所链接第三方服务的可用性、定价或是否持续维护,因此列表中的某个 API 在投入生产使用前可能仍需单独确认其当前状态。",
-        "fit": "该项目更适合作为开发者寻找免费公开 API 以用于原型、学习或快速集成的起点,而非单一的生产级 API 产品;对可用性有 SLA 要求的团队或许应当分别评估每个所链接的服务提供方。"
+        "goal": "public-apis/public-apis 仓库是一个由社区维护、按类别整理的免费公共 API 目录,涵盖 Animals、Business、Games & Comics、Weather 等多个领域,旨在帮助开发者为自己的项目发现可用的公共 API。",
+        "usage": "开发者可以通过 Index 跳转到相应类别小节,再点击每个 API 条目自带的链接查看该服务商自己的文档与注册页面;贡献者需按照 Contributing Guide 提交 Pull Request,现有条目通过 GitHub Issues(https://github.com/public-apis/public-apis/issues)和 Pull Requests(https://github.com/public-apis/public-apis/pulls)进行跟踪。",
+        "pros": "该目录涵盖 51 个不同类别,条目数量众多,每条记录都标明是否需要 apiKey 或 OAuth、是否支持 HTTPS 以及是否支持 CORS,便于开发者在访问服务商网站之前快速评估接入要求。",
+        "cons": "README 并未验证各第三方 API 的可靠性或使用条款,由于不少条目将 CORS 或 Auth 标记为 'Unknown',各条目的文档完整程度可能并不一致,因此在用于生产环境前,用户似乎有必要自行核实每个服务商的官方站点。",
+        "fit": "该资源似乎更适合希望浏览或用于原型开发的开发者,用来在众多领域中寻找免费公共 API,而非需要单一、经过验证的可安装依赖项的团队,因为其可靠性最终仍取决于各个第三方服务商。"
       },
       "es": {
-        "goal": "public-apis/public-apis es un directorio curado por la comunidad de APIs públicas y gratuitas, organizado mediante un índice de categorías (Animals, Business, Finance, Games, Weather, etc.) para ayudar a los desarrolladores a descubrir APIs listas para usar en sus propios proyectos.",
-        "usage": "Los desarrolladores recorren el índice (Animals, Anime, ... Weather) para saltar a una categoría y luego consultan cada fila de la tabla de APIs, que indica el Auth (por ejemplo, apiKey, OAuth), HTTPS y CORS, antes de seguir el enlace a la documentación; las contribuciones siguen la guía CONTRIBUTING.md, y la actividad se rastrea en https://github.com/public-apis/public-apis/issues y https://github.com/public-apis/public-apis/pulls.",
-        "pros": "La cobertura abarca docenas de categorías con miles de entradas, y cada listado documenta 5 atributos (nombre, descripción, Auth, HTTPS y CORS), lo que permite comparar rápidamente los requisitos de integración de muchos servicios gratuitos sin registrarse antes en una plataforma de pago.",
-        "cons": "Muchas filas marcan el soporte CORS como 'Unknown', y el propio README no verifica el tiempo de actividad, el precio ni la disponibilidad continuada de los servicios de terceros enlazados, por lo que una API listada aquí podría necesitar aún confirmación independiente antes de usarla en producción.",
-        "fit": "Este proyecto parece más adecuado para desarrolladores que buscan un punto de partida para descubrir APIs públicas gratuitas destinadas a prototipos, aprendizaje o integraciones rápidas, más que un único producto de API de nivel productivo; los equipos que necesiten SLAs garantizados probablemente deberían evaluar cada proveedor enlazado por separado."
+        "goal": "El repositorio public-apis/public-apis es un directorio de APIs públicas y gratuitas curado por la comunidad y organizado por categorías, que abarca ámbitos como Animals, Business, Games & Comics y Weather, con el objetivo de ayudar a los desarrolladores a descubrir APIs públicas para sus propios proyectos.",
+        "usage": "Los desarrolladores navegan por el Index para saltar a la sección de una categoría y luego siguen el enlace propio de cada API hacia la documentación y el registro del proveedor; las contribuciones se realizan siguiendo la Contributing Guide y se envían mediante Pull Request, mientras que las entradas existentes se rastrean en GitHub Issues (https://github.com/public-apis/public-apis/issues) y Pull Requests (https://github.com/public-apis/public-apis/pulls).",
+        "pros": "Cubre 51 categorías distintas con numerosas entradas, y cada una indica si la API requiere apiKey u OAuth, si admite HTTPS y si admite CORS, lo que permite a los desarrolladores evaluar rápidamente los requisitos de integración antes de visitar el sitio del proveedor.",
+        "cons": "El README no verifica la fiabilidad ni los términos de cada API de terceros, y como numerosas entradas marcan CORS o Auth como 'Unknown', la exhaustividad de la documentación entre entradas podría ser desigual, por lo que parece necesario revisar el sitio de cada proveedor antes de usarlo en producción.",
+        "fit": "Este recurso parece más adecuado para desarrolladores que exploran o prototipan con APIs públicas gratuitas en múltiples ámbitos, más que para equipos que necesitan una única dependencia instalable y verificada, ya que la fiabilidad de la integración sigue dependiendo de cada proveedor externo."
       },
       "ja": {
-        "goal": "public-apis/public-apis は、Animals、Business、Finance、Games、Weather などのカテゴリ別インデックスで構成された、無料で公開利用できるAPIをコミュニティがキュレーションしたディレクトリであり、開発者が自分のプロジェクトですぐ使えるAPIを見つけられるようにしています。",
-        "usage": "開発者はインデックス(Animals、Anime……Weatherなど)からカテゴリへ移動し、各API行にあるAuth(例: apiKey、OAuth)、HTTPS、CORSの情報を確認したうえでリンク先のドキュメントに進みます。貢献はCONTRIBUTING.mdの手順に従い、活動状況は https://github.com/public-apis/public-apis/issues と https://github.com/public-apis/public-apis/pulls で追跡されます。",
-        "pros": "数十のカテゴリにわたり数千件の項目が掲載されており、各項目は名称・説明・Auth・HTTPS・CORSという5つの属性を文書化しているため、有料プラットフォームに登録する前に多数の無料サービスの統合要件を素早く比較できます。",
-        "cons": "多くの行でCORS対応が『Unknown』と記載されており、README自体はリンク先のサードパーティサービスの稼働状況、料金、継続的な提供の有無を検証していないため、ここに掲載されているAPIでも本番利用前には個別に状況を確認する必要があるかもしれません。",
-        "fit": "本プロジェクトは、単一の本番級APIプロダクトというよりも、プロトタイプや学習、簡単な統合のために無料の公開APIを探す出発点として開発者に最も適していると考えられ、保証されたSLAが必要なチームはリンク先の各提供元を個別に評価したほうがよいでしょう。"
+        "goal": "public-apis/public-apis リポジトリは、コミュニティによってキュレーションされたカテゴリ別の無料・公開API一覧であり、Animals、Business、Games & Comics、Weather など多岐にわたる分野を扱い、開発者が自分のプロジェクトで使える公開APIを見つける手助けをすることを目的としています。",
+        "usage": "開発者はIndexから目的のカテゴリセクションへ移動し、各APIエントリに付いたリンクをたどって提供元自身のドキュメントや登録ページを確認します。貢献はContributing Guideに従いPull Requestとして提出し、既存のエントリはGitHub Issues(https://github.com/public-apis/public-apis/issues)とPull Requests(https://github.com/public-apis/public-apis/pulls)で管理されます。",
+        "pros": "51の異なるカテゴリと多数のエントリを網羅しており、各エントリはapiKeyまたはOAuthの要否、HTTPS対応、CORS対応を明記しているため、開発者は提供元サイトを訪れる前に連携要件を素早く把握できます。",
+        "cons": "READMEは個々のサードパーティAPIの信頼性や利用規約を検証しておらず、多くのエントリでCORSやAuthが「Unknown」と表示されていることから、エントリごとのドキュメントの充実度にはばらつきがある可能性があり、本番利用前には各提供元サイトを個別に確認する必要があると考えられます。",
+        "fit": "本リソースは、複数分野にわたる無料の公開APIを閲覧したりプロトタイピングに利用したりしたい開発者に適していると考えられ、単一の検証済みインストール可能な依存関係を必要とするチーム向けではなく、統合の信頼性は結局各サードパーティ提供元に依存する点に留意が必要です。"
       }
     },
     "evidence": {
@@ -8990,64 +8782,64 @@
           "section_heading": "Try Public APIs for free"
         },
         {
-          "start_line": 72,
-          "end_line": 74,
+          "start_line": 74,
+          "end_line": 124,
           "section_heading": "Index"
         }
       ],
       "usage": [
         {
           "start_line": 64,
-          "end_line": 64,
+          "end_line": 68,
           "section_heading": "Learn more about Public APIs"
         },
         {
-          "start_line": 66,
-          "end_line": 67,
-          "section_heading": "Learn more about Public APIs"
-        },
-        {
-          "start_line": 128,
-          "end_line": 129,
-          "section_heading": "Animals"
+          "start_line": 74,
+          "end_line": 124,
+          "section_heading": "Index"
         }
       ],
       "pros": [
         {
-          "start_line": 128,
-          "end_line": 129,
-          "section_heading": "Animals"
+          "start_line": 74,
+          "end_line": 124,
+          "section_heading": "Index"
         },
         {
-          "start_line": 130,
-          "end_line": 155,
+          "start_line": 128,
+          "end_line": 130,
           "section_heading": "Animals"
         }
       ],
       "cons": [
         {
-          "start_line": 165,
-          "end_line": 165,
-          "section_heading": "Anime"
+          "start_line": 152,
+          "end_line": 155,
+          "section_heading": "Animals"
         },
         {
-          "start_line": 174,
-          "end_line": 176,
+          "start_line": 165,
+          "end_line": 166,
           "section_heading": "Anime"
         }
       ],
       "fit": [
         {
-          "start_line": 24,
+          "start_line": 23,
           "end_line": 24,
           "section_heading": "Try Public APIs for free"
+        },
+        {
+          "start_line": 64,
+          "end_line": 68,
+          "section_heading": "Learn more about Public APIs"
         }
       ]
     },
     "invariants": [
       {
         "kind": "product",
-        "value": "public-apis/public-apis",
+        "value": "public-apis",
         "fields": [
           "goal",
           "usage"
@@ -9069,7 +8861,7 @@
       },
       {
         "kind": "number",
-        "value": "5",
+        "value": "51",
         "fields": [
           "pros"
         ]
@@ -9083,8 +8875,8 @@
       "kind": "readme",
       "slug": "public-apis/public-apis",
       "path": "README.md",
-      "blob_sha": "5c563d47983b514c8a91f36cf5f0bf4ff32c4383",
-      "content_sha256": "dae22c70543238a56d0e26d2eacbf2543f832c0708c6a30ff34ea574c86f2c97",
+      "blob_sha": "57f04f4cc274f2899f3f5f94655d4b938212f482",
+      "content_sha256": "2d2b4ee4ebd45625a6ee4bf78344a3a0e797d06f031286785f8d9191bf1e8e1c",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",

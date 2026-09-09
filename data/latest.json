@@ -1,8 +1,8 @@
 {
-  "snapshotId": "20260909134013-4cee904cbe6d4585",
-  "generatedAt": "2026-09-09T13:40:13.916Z",
-  "statsDate": "2026-09-09",
-  "count": 48,
+  "snapshotId": "20260909183201-0888059b04eb771b",
+  "generatedAt": "2026-09-09T18:32:01.058Z",
+  "statsDate": "2026-09-10",
+  "count": 47,
   "repos": [
     {
       "slug": "ayghri/i-have-adhd",
@@ -17,9 +17,9 @@
         "developer-tools",
         "productivity"
       ],
-      "stars": 33047,
-      "forks": 1962,
-      "issues": 34,
+      "stars": 33907,
+      "forks": 1993,
+      "issues": 36,
       "contributors": 37,
       "gains": {
         "daily": 4624,
@@ -52,12 +52,12 @@
       "description": "Make Every Team AI Native",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 2713,
-      "forks": 171,
-      "issues": 19,
-      "contributors": 38,
+      "stars": 2853,
+      "forks": 180,
+      "issues": 22,
+      "contributors": 39,
       "gains": {
-        "daily": 1083,
+        "daily": 563,
         "weekly": null,
         "monthly": null
       },
@@ -69,7 +69,7 @@
         "cons": "The Team Context and Team Improvement layers are labeled beta, and the Models capability is not implemented for every provider yet, so some functionality may still be evolving or provider-specific coverage may be incomplete.",
         "fit": "The tool appears best suited to teams already working across several of the listed AI agents and git hosts (GitHub, GitLab, GitCode, CNB, TGit, or a private Git service), since setup requires an admin to create a shared repo and grant members write access."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -94,9 +94,9 @@
         "subagent-driven-development",
         "superpowers"
       ],
-      "stars": 283757,
-      "forks": 25398,
-      "issues": 344,
+      "stars": 283903,
+      "forks": 25408,
+      "issues": 345,
       "contributors": 44,
       "gains": {
         "daily": 690,
@@ -142,22 +142,22 @@
         "threejs",
         "typescript"
       ],
-      "stars": 22711,
-      "forks": 2886,
-      "issues": 45,
+      "stars": 22816,
+      "forks": 2892,
+      "issues": 46,
       "contributors": 41,
       "gains": {
-        "daily": 442,
+        "daily": 171,
         "weekly": null,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "Pascal Editor is a 3D building editor built with React Three Fiber and WebGPU. The repository is a Turborepo monorepo containing a standalone Next.js editor app, reusable packages (core, viewer, editor, nodes, cli, mcp), and a CLI that distributes them.",
-        "usage": "Running `npx @pascal-app/cli editor` (Node.js 22.13+) creates a persistent local install, starting the editor and an authenticated MCP service on loopback ports, storing projects in `~/.pascal/data/pascal.db`. For source development, `bun install` then `bun dev` builds core and viewer packages and starts the Next.js editor at http://localhost:3002. Packages can also be embedded via `npm install @pascal-app/core @pascal-app/viewer @pascal-app/editor @pascal-app/nodes`.",
-        "pros": "The project is MIT licensed and splits responsibilities across dedicated packages for scene state, rendering, editing tools, and built-in nodes. Scene state persists to IndexedDB with undo/redo across a 50-step history via Zundo, and a documented plugin manifest reportedly allows new node kinds without editing the built-ins.",
-        "cons": "The CLI path requires Node.js 22.13 or newer. The standalone local runtime shares scene state across connected clients, so concurrent independent work reportedly needs separate `PASCAL_HOME` directories. Newer features like the read-only furniture candidate check may be absent from the current npm beta release.",
-        "fit": "The project appears suited to teams embedding 3D/BIM-style editors in React apps, to developers connecting AI agents via its Model Context Protocol server, and to plugin authors extending node kinds through the documented `Plugin` manifest."
+        "goal": "Pascal Editor is a 3D building editor built with React Three Fiber and WebGPU, organized as a monorepo containing reusable editor packages (@pascal-app/core, @pascal-app/viewer, @pascal-app/editor, @pascal-app/nodes), a standalone application, an @pascal-app/cli installer, and an @pascal-app/mcp server for AI-host integration.",
+        "usage": "A persistent local installation can be created without cloning the repository by running `npx @pascal-app/cli editor` with Node.js 22.13 or newer, which starts the editor and an authenticated MCP service. For monorepo development, `bun install` followed by `bun dev` builds the packages and starts the editor's development server.",
+        "pros": "The package separation lets @pascal-app/core (schemas and state), @pascal-app/viewer (rendering), @pascal-app/editor (tools and UI), @pascal-app/nodes (built-in definitions), @pascal-app/cli, and @pascal-app/mcp be used or extended independently. The @pascal-app/mcp package exposes scene tools, resources, and prompts to MCP-compatible AI hosts, and the editor supports plugin-based extension using the same manifest format as built-in node kinds.",
+        "cons": "The npm beta tag currently resolves to @pascal-app/cli@1.0.0-beta.1, which predates the read-only furniture candidate feature described in the repository; using that capability requires manually installing a GitHub prerelease archive and verifying its SHA-256 checksum rather than a standard npm install.",
+        "fit": "Given its React Three Fiber and WebGPU rendering, node-based scene model, and MCP-based AI agent tooling, the project appears best suited for developers building or extending 3D architectural or interior layout editors with AI-assisted workflows, rather than general-purpose 3D applications."
       },
       "summary_status": "verified",
       "tag_rule_version": 1,
@@ -185,8 +185,8 @@
         "stp",
         "text-to-cad"
       ],
-      "stars": 14868,
-      "forks": 1558,
+      "stars": 14956,
+      "forks": 1560,
       "issues": 14,
       "contributors": 23,
       "gains": {
@@ -202,7 +202,7 @@
         "cons": "`npx skills update` only refreshes skills already in the lockfile, so it can silently miss skills added in newer releases; `npx skills add` covers updates instead (lines 101-105). The Codex plugin path requires Codex 0.142.0 or newer, with older versions skipping it silently (lines 118, 123-125).",
         "fit": "Given its plugin installs for Codex, Claude Code, and Grok Build, the project seems aimed at teams using AI coding agents for CAD and robot-description work (lines 112-115). The CAD skill's dependencies are pinned for Python 3.11+ (line 25) under the MIT license (line 23)."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -229,8 +229,8 @@
         "mermaid",
         "svg"
       ],
-      "stars": 36091,
-      "forks": 2270,
+      "stars": 36369,
+      "forks": 2290,
       "issues": 37,
       "contributors": 34,
       "gains": {
@@ -269,12 +269,12 @@
         "multiagent",
         "trading"
       ],
-      "stars": 103624,
-      "forks": 19933,
+      "stars": 103791,
+      "forks": 19955,
       "issues": 364,
       "contributors": 21,
       "gains": {
-        "daily": 506,
+        "daily": 367,
         "weekly": null,
         "monthly": null
       },
@@ -286,7 +286,7 @@
         "cons": "Because it is LLM-driven, the README states two runs on the same ticker/date can differ due to non-deterministic sampling and changing live news/social data; lowering temperature helps only with non-reasoning models, since curated reasoning models largely ignore it. TradingAgents is described as research-oriented and explicitly not financial, investment, or trading advice (https://tauric.ai/disclaimer/).",
         "fit": "TradingAgents seems best suited to researchers and developers exploring multi-agent LLM trading analysis rather than users wanting a production strategy with guaranteed returns. Backtest results are stated as not guaranteed to match any published figure, so performance-critical or real-money use would likely need further validation."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -303,8 +303,8 @@
       "description": "Notes of the book System Desgin Interview - An Insider's Guide",
       "lang": null,
       "topics": [],
-      "stars": 17597,
-      "forks": 3349,
+      "stars": 17846,
+      "forks": 3390,
       "issues": 5,
       "contributors": 4,
       "gains": {
@@ -333,8 +333,8 @@
       "description": "OpenAI Plugins",
       "lang": "JavaScript",
       "topics": [],
-      "stars": 6072,
-      "forks": 813,
+      "stars": 6130,
+      "forks": 821,
       "issues": 38,
       "contributors": 61,
       "gains": {
@@ -376,8 +376,8 @@
         "skills",
         "workflow-automation"
       ],
-      "stars": 29720,
-      "forks": 2857,
+      "stars": 29925,
+      "forks": 2888,
       "issues": 23,
       "contributors": 5,
       "gains": {
@@ -393,7 +393,7 @@
         "cons": "Enabling the companion website's generation and auth features requires a nontrivial setup: multiple sequential Supabase SQL migrations plus Vercel environment variables for Supabase, Stripe, and Google Analytics. The README also notes the GPT Image 2.5 spotlight section only demonstrates recreated examples and 'does not add live 2.5 image generation,' and that original generation conditions for those examples remain unverified.",
         "fit": "Given its structured, agent-oriented prompt format, the project appears best suited to teams or individual developers building repeatable, script- or agent-driven GPT-Image2 image-generation workflows rather than users seeking a ready-to-run hosted generation service without additional backend setup."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -434,12 +434,12 @@
         "tutorial",
         "typescript"
       ],
-      "stars": 53398,
-      "forks": 9351,
+      "stars": 53557,
+      "forks": 9365,
       "issues": 105,
       "contributors": 17,
       "gains": {
-        "daily": 356,
+        "daily": 382,
         "weekly": null,
         "monthly": null
       },
@@ -451,7 +451,7 @@
         "cons": "The included Claude Certification Academy is described as independent study material based on public exam objectives; it states it is not affiliated with Anthropic, does not reproduce live exam questions, and cannot guarantee a passing score, so results may vary for certification preparation.",
         "fit": "A background-to-starting-point table suggests entry points ranging from Phase 0 (new programmers, ~306 hours) to Phase 14 (experienced engineers wanting agent engineering, ~60 hours), which appears to indicate the material is intended to suit learners at varied experience levels rather than beginners only."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -485,9 +485,9 @@
         "rust",
         "typescript"
       ],
-      "stars": 1474,
-      "forks": 145,
-      "issues": 48,
+      "stars": 1574,
+      "forks": 149,
+      "issues": 46,
       "contributors": 19,
       "gains": {
         "daily": 393,
@@ -496,11 +496,11 @@
       },
       "signal": null,
       "summary": {
-        "goal": "PI-Desktop is a local-first desktop workspace for AI coding agents, letting users bring their own model and open local projects while agents work under the user's control (lines 7-9). It is explicitly labeled an Early Preview, already usable but still evolving (lines 40-43).",
-        "usage": "Users connect a model provider in Settings, open a local project, and choose an Agent, Plan, or Goal mode before reviewing results (lines 99-111). For local development, PI-Desktop's README documents `git clone https://github.com/vastsa/PI-Desktop.git` followed by `pnpm dev`, requiring Node.js >=22.19, pnpm >=10, and a stable Rust toolchain (lines 380-397).",
-        "pros": "PI-Desktop supports multiple model providers, including OpenAI, Anthropic, local gateways like Ollama and LM Studio, and OpenAI-compatible APIs, without locking the agent to one vendor (lines 161-172). It stores conversations and settings locally, keeps credentials in the OS keychain, and reports no telemetry, while Skills, MCP, Subagents, and Plugins allow extension (lines 267-278, 225-263).",
-        "cons": "As an Early Preview, PI-Desktop's APIs, extension interfaces, and desktop behaviors may still change (lines 40-43). Linux builds also require glibc 2.35 or newer, so older releases such as Ubuntu 20.04 or Debian 11 cannot load the bundled host (lines 301-307).",
-        "fit": "PI-Desktop appears suited for developers wanting a provider-agnostic, local coding-agent workspace across macOS, Windows, and Linux under the GNU Lesser General Public License v3.0 (lines 20, 495). Its Early Preview status suggests it may be a less certain fit for teams needing a fully stable interface today (line 43)."
+        "goal": "PI-Desktop is a local-first desktop workspace for AI coding agents that lets users bring their own model and open any local project, without a PI-Desktop account or mandatory relay server. It is currently described as an Early Preview, meaning PI-Desktop's APIs, extension interfaces, and some desktop behaviors may continue to evolve.",
+        "usage": "To get started, a model is connected under Settings → Model configuration, a local project is opened, and Agent, Plan, or Goal mode is chosen before reviewing the result in PI-Desktop. Running PI-Desktop from source uses `git clone https://github.com/vastsa/PI-Desktop.git`, `pnpm install`, `cargo build -p host-core`, and `pnpm dev`; prebuilt packages are available from https://github.com/vastsa/PI-Desktop/releases/latest.",
+        "pros": "PI-Desktop lets users switch between multiple model providers per session, including OpenAI, Anthropic, local models, and OpenAI-compatible APIs, while routing privileged agent actions through a permission layer for review. It also supports extension through Skills, MCP servers, Subagents, and Plugins, letting users add tools, commands, and workspace panels.",
+        "cons": "PI-Desktop is documented as an Early Preview, so its APIs, extension interfaces, and desktop behaviors may continue to change. Linux builds of PI-Desktop require glibc 2.35 or newer (for example Ubuntu 22.04, Debian 12, or Fedora 36), so older distributions cannot load the bundled host.",
+        "fit": "PI-Desktop appears suited to developers wanting a model-agnostic, local-first coding workspace across macOS, Windows, and Linux. Building PI-Desktop from source requires Node.js >=22.19, pnpm >=10, and a stable Rust toolchain, which may add more setup effort than using a prebuilt release package."
       },
       "summary_status": "verified",
       "tag_rule_version": 1,
@@ -531,10 +531,10 @@
         "mcp",
         "productivity"
       ],
-      "stars": 254799,
-      "forks": 38168,
-      "issues": 197,
-      "contributors": 349,
+      "stars": 254993,
+      "forks": 38201,
+      "issues": 184,
+      "contributors": 351,
       "gains": {
         "daily": 1151,
         "weekly": 8527,
@@ -542,13 +542,13 @@
       },
       "signal": null,
       "summary": {
-        "goal": "ECC is an MIT-licensed, open-source system that gives coding agents such as Claude Code a structured engineering workflow: plan, test, implement, review, verify, remember, and improve. It works best with Claude Code, has a supported Codex sync path, and provides capability-limited adapters for other harnesses such as Cursor and OpenCode.",
-        "usage": "Run the guided setup from a terminal with `npx ecc-universal setup`, or use Claude Code's native plugin commands, including `/plugin install ecc@ecc`, after adding the marketplace. This install path requires Node.js 18 or newer, Git, and Claude Code 2.1 or newer. A separate security audit can be run with `npx -y ecc-agentshield scan --path .`.",
-        "pros": "ECC bundles 68 agents, 286 skills, and 94 commands, along with hooks, rules, memory, and AgentShield security scanning. The core plugin is MIT-licensed and documented as free to use.",
-        "cons": "Documented feature parity is uneven: adapters for harnesses such as Cursor, OpenCode, Gemini, Zed, and GitHub Copilot are described as capability-limited or beta, and GitHub Copilot support is stated to exclude ECC hooks and agent delegation. The README also cautions that installing ECC through more than one method into the same harness can duplicate skills, commands, or hooks.",
-        "fit": "Given its Claude Code-first design, ECC appears best suited to teams already standardized on Claude Code who want a shared, reusable agent workflow. Teams relying mainly on other coding agents may get a narrower feature set, and private-repo analysis through the GitHub App appears to require a paid Pro tier starting at $19/seat/mo."
+        "goal": "ECC is an MIT-licensed open-source \"agent harness operating system\" that layers a coordinated engineering workflow (plan, test, implement, review, verify, remember, improve) onto coding agents. It is designed to work best with Claude Code today, includes a supported Codex sync path, and provides capability-limited adapters for other harnesses such as Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, and Qwen.",
+        "usage": "Install by running `npx ecc-universal setup` from a terminal, or from inside Claude Code run `/plugin marketplace add https://github.com/affaan-m/ECC` followed by `/plugin install ecc@ecc`. The universal setup requires Node.js 18 or newer, and the Claude plugin path additionally requires Git and Claude Code 2.1 or newer.",
+        "pros": "ECC bundles 68 specialized agents, 286 reusable skills, and 94 maintained command shims, plus a hooks/memory runtime, selectively installable rule packs, and a built-in AgentShield security scanner covering prompts, hooks, MCP configuration, permissions, and secrets.",
+        "cons": "The README directs users to check a support-status matrix before assuming feature parity across harnesses, and several non-Claude adapters (Cursor, OpenCode, GitHub Copilot, and others) are documented as beta, instruction-only, or experimental/minimal. It also notes the project currently ships weekly from a single maintainer across seven harnesses, which may suggest maintenance capacity is fairly concentrated.",
+        "fit": "ECC appears best suited to teams already using Claude Code who want a structured engineering workflow layered onto agent coding sessions, since that is described as the primary, most stable target. Teams relying mainly on other harnesses will likely get more limited, adapter-based functionality rather than full feature parity."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -579,9 +579,9 @@
         "prompt-engineering",
         "yagni"
       ],
-      "stars": 132972,
-      "forks": 7115,
-      "issues": 243,
+      "stars": 133225,
+      "forks": 7131,
+      "issues": 244,
       "contributors": 65,
       "gains": {
         "daily": null,
@@ -626,9 +626,9 @@
         "ranges",
         "unicode"
       ],
-      "stars": 25693,
-      "forks": 3053,
-      "issues": 11,
+      "stars": 25695,
+      "forks": 3054,
+      "issues": 10,
       "contributors": 636,
       "gains": {
         "daily": null,
@@ -679,9 +679,9 @@
         "system-design",
         "text-to-diagram"
       ],
-      "stars": 55633,
-      "forks": 3643,
-      "issues": 144,
+      "stars": 55888,
+      "forks": 3653,
+      "issues": 145,
       "contributors": 22,
       "gains": {
         "daily": null,
@@ -716,9 +716,9 @@
       "description": "Skills for Real Engineers. Straight from my .agents directory.",
       "lang": "Shell",
       "topics": [],
-      "stars": 257525,
-      "forks": 21705,
-      "issues": 480,
+      "stars": 257747,
+      "forks": 21721,
+      "issues": 482,
       "contributors": 8,
       "gains": {
         "daily": null,
@@ -757,8 +757,8 @@
         "prompt-engineering",
         "writing-tools"
       ],
-      "stars": 45783,
-      "forks": 3758,
+      "stars": 45898,
+      "forks": 3763,
       "issues": 8,
       "contributors": 19,
       "gains": {
@@ -799,8 +799,8 @@
         "mcp-server",
         "puppeteer"
       ],
-      "stars": 51430,
-      "forks": 3615,
+      "stars": 51458,
+      "forks": 3617,
       "issues": 106,
       "contributors": 123,
       "gains": {
@@ -846,9 +846,9 @@
         "typescript",
         "video"
       ],
-      "stars": 48246,
-      "forks": 4420,
-      "issues": 92,
+      "stars": 48332,
+      "forks": 4426,
+      "issues": 93,
       "contributors": 63,
       "gains": {
         "daily": null,
@@ -902,9 +902,9 @@
         "skills",
         "zed-extension"
       ],
-      "stars": 21607,
-      "forks": 1555,
-      "issues": 224,
+      "stars": 21673,
+      "forks": 1557,
+      "issues": 226,
       "contributors": 110,
       "gains": {
         "daily": null,
@@ -938,8 +938,8 @@
       "description": "Skills Catalog for Codex",
       "lang": "Python",
       "topics": [],
-      "stars": 26739,
-      "forks": 1793,
+      "stars": 26755,
+      "forks": 1795,
       "issues": 294,
       "contributors": 35,
       "gains": {
@@ -974,8 +974,8 @@
         "codex",
         "marketing"
       ],
-      "stars": 49149,
-      "forks": 7512,
+      "stars": 49202,
+      "forks": 7520,
       "issues": 108,
       "contributors": 23,
       "gains": {
@@ -1008,9 +1008,9 @@
       "description": "Open Multi-Agent Interactive Classroom — Get an immersive, multi-agent learning experience in just one click",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 34165,
-      "forks": 5492,
-      "issues": 257,
+      "stars": 34284,
+      "forks": 5506,
+      "issues": 259,
       "contributors": 81,
       "gains": {
         "daily": null,
@@ -1050,8 +1050,8 @@
         "peer-review",
         "prompt-engineering"
       ],
-      "stars": 47212,
-      "forks": 3693,
+      "stars": 47248,
+      "forks": 3697,
       "issues": 26,
       "contributors": 18,
       "gains": {
@@ -1094,8 +1094,8 @@
         "seo-tools",
         "site-audit"
       ],
-      "stars": 18038,
-      "forks": 2268,
+      "stars": 18079,
+      "forks": 2277,
       "issues": 160,
       "contributors": 18,
       "gains": {
@@ -1151,8 +1151,8 @@
         "swarm-intelligence",
         "typescript"
       ],
-      "stars": 71749,
-      "forks": 8493,
+      "stars": 71788,
+      "forks": 8494,
       "issues": 958,
       "contributors": 40,
       "gains": {
@@ -1190,10 +1190,10 @@
       "description": "The LLVM Project is a collection of modular and reusable compiler and toolchain technologies.",
       "lang": "LLVM",
       "topics": [],
-      "stars": 40360,
-      "forks": 18595,
-      "issues": 38998,
-      "contributors": 9657,
+      "stars": 40366,
+      "forks": 18597,
+      "issues": 38992,
+      "contributors": 9659,
       "gains": {
         "daily": null,
         "weekly": 304,
@@ -1220,8 +1220,8 @@
       "description": "Removes 20+ patterns of AI slop from any piece of writing.",
       "lang": "Python",
       "topics": [],
-      "stars": 7718,
-      "forks": 581,
+      "stars": 7773,
+      "forks": 585,
       "issues": 22,
       "contributors": 2,
       "gains": {
@@ -1237,7 +1237,7 @@
         "cons": "The detection mode appears to deliberately avoid judging whether AI actually wrote the text, focusing only on flagging slop patterns, which suggests it may not function as a general AI-content detector.",
         "fit": "Based on its install paths, the skill seems intended for writers who already use ChatGPT, Claude Code, Codex, or a comparable coding agent, since setup depends on one of those tools or on npx."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml"
@@ -1250,9 +1250,9 @@
       "description": "Beautiful, Modern & Opinionated Linux",
       "lang": "Shell",
       "topics": [],
-      "stars": 39609,
-      "forks": 4301,
-      "issues": 3644,
+      "stars": 39692,
+      "forks": 4316,
+      "issues": 3681,
       "contributors": 516,
       "gains": {
         "daily": null,
@@ -1280,8 +1280,8 @@
       "description": "Cursor plugin specification and official plugins",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 7205,
-      "forks": 624,
+      "stars": 7230,
+      "forks": 627,
       "issues": 110,
       "contributors": 14,
       "gains": {
@@ -1312,8 +1312,8 @@
       "description": "Community plugin marketplace for Claude Cowork and Claude Code. Read-only mirror — submit plugins at clau.de/plugin-directory-submission.",
       "lang": "Python",
       "topics": [],
-      "stars": 3662,
-      "forks": 282,
+      "stars": 3679,
+      "forks": 281,
       "issues": 44,
       "contributors": 6,
       "gains": {
@@ -1359,10 +1359,10 @@
         "rust",
         "smartshift"
       ],
-      "stars": 20279,
-      "forks": 626,
-      "issues": 496,
-      "contributors": 75,
+      "stars": 20322,
+      "forks": 627,
+      "issues": 494,
+      "contributors": 77,
       "gains": {
         "daily": null,
         "weekly": null,
@@ -1376,7 +1376,7 @@
         "cons": "The project is explicitly marked as under active development and not yet stable, meaning features and configuration format may change before a stable release. Pre-built Linux packages require GLIBC 2.35 or newer (an Ubuntu 22.04 baseline), which could limit compatibility with older Linux distributions.",
         "fit": "OpenLogi may suit users who want a native, open-source, cross-platform replacement for Logitech Options+ with scriptable configuration, particularly on Linux where Options+ has no official client. It is not affiliated with Logitech, so it could be less suitable for users who need official vendor support or a fully stabilized release."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "security"
@@ -1396,9 +1396,9 @@
         "dsh-plugin",
         "self-evolving"
       ],
-      "stars": 36234,
-      "forks": 2768,
-      "issues": 698,
+      "stars": 36268,
+      "forks": 2773,
+      "issues": 699,
       "contributors": 255,
       "gains": {
         "daily": null,
@@ -1452,9 +1452,9 @@
         "reasoning",
         "semantic-search"
       ],
-      "stars": 12483,
-      "forks": 1401,
-      "issues": 100,
+      "stars": 12506,
+      "forks": 1402,
+      "issues": 97,
       "contributors": 99,
       "gains": {
         "daily": null,
@@ -1487,8 +1487,8 @@
       "description": "Algorithm powering the For You feed on X",
       "lang": "Rust",
       "topics": [],
-      "stars": 32969,
-      "forks": 5376,
+      "stars": 32992,
+      "forks": 5375,
       "issues": 99,
       "contributors": 3,
       "gains": {
@@ -1534,9 +1534,9 @@
         "volume-mixer",
         "window-switcher"
       ],
-      "stars": 17615,
-      "forks": 616,
-      "issues": 416,
+      "stars": 17716,
+      "forks": 620,
+      "issues": 423,
       "contributors": 76,
       "gains": {
         "daily": null,
@@ -1574,9 +1574,9 @@
         "mojo",
         "programming-language"
       ],
-      "stars": 29641,
-      "forks": 3162,
-      "issues": 1136,
+      "stars": 29645,
+      "forks": 3164,
+      "issues": 1137,
       "contributors": 472,
       "gains": {
         "daily": null,
@@ -1612,8 +1612,8 @@
         "llm",
         "on-device-ai"
       ],
-      "stars": 10652,
-      "forks": 679,
+      "stars": 10672,
+      "forks": 682,
       "issues": 29,
       "contributors": 25,
       "gains": {
@@ -1664,9 +1664,9 @@
         "voicestudio",
         "workflow"
       ],
-      "stars": 21660,
-      "forks": 2674,
-      "issues": 115,
+      "stars": 21753,
+      "forks": 2685,
+      "issues": 117,
       "contributors": 45,
       "gains": {
         "daily": null,
@@ -1692,48 +1692,15 @@
       ]
     },
     {
-      "slug": "akitaonrails/ai-memory",
-      "name": "akitaonrails / ai-memory",
-      "description": "Solution for long term memory for agent coding CLIs and to facilitate handoff between different agent vendors",
-      "lang": "Rust",
-      "topics": [],
-      "stars": 6185,
-      "forks": 427,
-      "issues": 6,
-      "contributors": 88,
-      "gains": {
-        "daily": null,
-        "weekly": null,
-        "monthly": 4716
-      },
-      "signal": null,
-      "summary": {
-        "goal": "ai-memory (akitaonrails/ai-memory) is a self-hosted long-term memory system for AI coding agents, letting a session started in one tool (e.g. Claude Code) hand off to another (e.g. OpenAI Codex) in the same project directory without re-explaining prior architecture, failed approaches, or open questions.",
-        "usage": "It ships as a single Rust binary usable via AUR packages (yay -S ai-memory-bin) or Docker. A typical setup runs the server (e.g. `docker run -d --name ai-memory ... -p 127.0.0.1:49374:49374 ...`) and wires an agent with `ai-memory install-mcp --client claude-code --apply` and `ai-memory install-hooks --agent claude-code --apply`.",
-        "pros": "Over twenty agent harnesses (Claude Code, Codex, Cursor, Gemini CLI, and others) can share one memory store, and the underlying knowledge is stored as plain git-backed markdown files rather than a proprietary database. The default capture, search, and handoff path requires zero LLM API calls, and multi-user authentication with per-person attribution is included without a paid tier.",
-        "cons": "The documented quick-start binds the server to loopback only with no authentication by default, so exposing it beyond a single machine appears to require manually adding a bearer token or further hardening steps described separately. Native Windows support is also listed as merely experimental rather than fully supported.",
-        "fit": "The project seems best suited to individual developers or teams who want persistent, cross-agent, cross-machine memory for coding projects and are willing to run and maintain their own server (via Docker/Podman or native packages), rather than users seeking a fully managed, zero-setup service."
-      },
-      "summary_status": "retained",
-      "tag_rule_version": 1,
-      "field_tags": [
-        "ai-ml",
-        "dev-tools"
-      ],
-      "form_tags": [
-        "agent"
-      ]
-    },
-    {
       "slug": "marin-community/marin",
       "name": "marin-community / marin",
       "description": "Open-source framework for the research and development of foundation models.",
       "lang": "Python",
       "topics": [],
-      "stars": 3547,
+      "stars": 3556,
       "forks": 286,
-      "issues": 607,
-      "contributors": 103,
+      "issues": 617,
+      "contributors": 104,
       "gains": {
         "daily": null,
         "weekly": null,
@@ -1747,7 +1714,7 @@
         "cons": "The README's example script imports several external packages alongside Marin's own modules, including fray.cluster and levanter.optim, suggesting that adopting Marin requires installing and coordinating multiple interdependent libraries rather than a single self-contained package.",
         "fit": "Marin appears best suited to research teams pursuing large-scale foundation-model pretraining with access to substantial compute, since current work targets multi-hundred-billion-parameter mixture-of-experts models. Core contributors are affiliated with Stanford CRFM and Open Athena, suggesting an academic, open-research orientation rather than a turnkey commercial product."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "unclassified"
@@ -1777,10 +1744,10 @@
         "tool-use",
         "typescript"
       ],
-      "stars": 5115,
+      "stars": 5125,
       "forks": 476,
-      "issues": 450,
-      "contributors": 117,
+      "issues": 445,
+      "contributors": 118,
       "gains": {
         "daily": null,
         "weekly": null,
@@ -1811,8 +1778,8 @@
       "description": "",
       "lang": "Swift",
       "topics": [],
-      "stars": 11346,
-      "forks": 1439,
+      "stars": 11375,
+      "forks": 1441,
       "issues": 23,
       "contributors": 39,
       "gains": {
@@ -1857,10 +1824,10 @@
         "resources",
         "software"
       ],
-      "stars": 477925,
-      "forks": 52763,
-      "issues": 1929,
-      "contributors": 1706,
+      "stars": 478047,
+      "forks": 52770,
+      "issues": 1933,
+      "contributors": 1707,
       "gains": {
         "daily": null,
         "weekly": null,
@@ -1868,13 +1835,13 @@
       },
       "signal": null,
       "summary": {
-        "goal": "public-apis/public-apis is a community-curated directory of free, publicly available APIs, organized into an Index of categories (e.g., Animals, Business, Finance, Games, Weather) so developers can discover ready-to-use APIs for their own projects.",
-        "usage": "Developers browse the Index (Animals, Anime, ... Weather) to jump to a category section, then read each API's table row - covering Auth (e.g., apiKey, OAuth), HTTPS, and CORS - before following its link; contributions follow CONTRIBUTING.md, with activity tracked via https://github.com/public-apis/public-apis/issues and https://github.com/public-apis/public-apis/pulls.",
-        "pros": "Coverage spans dozens of categories with thousands of entries, and every listing documents 5 attributes (API name, description, Auth, HTTPS, CORS), letting developers quickly compare integration requirements across many free services without registering for a paid platform first.",
-        "cons": "Many rows mark CORS support as 'Unknown', and the README itself does not verify uptime, pricing, or continued availability of the linked third-party services, so an API listed here may still need independent confirmation before production use.",
-        "fit": "This project is best suited for developers seeking a starting point to discover free public APIs for prototypes, learning, or quick integrations rather than a single production-grade API product; teams needing guaranteed SLAs should probably evaluate each linked provider individually."
+        "goal": "The public-apis/public-apis repository is a community-curated, categorized directory of free and public APIs for developers, spanning domains such as Animals, Business, Games & Comics, and Weather, intended to help developers discover public APIs for their own projects.",
+        "usage": "Developers browse the Index to jump to a category section, then follow each listed API's own link for that provider's documentation and signup; contributions follow the Contributing Guide and are submitted via Pull Request, with existing entries tracked through GitHub Issues (https://github.com/public-apis/public-apis/issues) and Pull Requests (https://github.com/public-apis/public-apis/pulls).",
+        "pros": "It covers 51 distinct categories with hundreds of entries, and each entry lists whether an API requires an apiKey or OAuth, supports HTTPS, and supports CORS, letting developers quickly gauge integration requirements before visiting a provider's site.",
+        "cons": "The README does not verify the reliability or terms of individual third-party APIs, and since numerous entries list CORS or Auth as 'Unknown,' documentation completeness across entries may be inconsistent, so users likely need to check each provider's own site before relying on it for production use.",
+        "fit": "This resource appears best suited to developers browsing or prototyping with free public APIs across many domains, rather than teams needing a single vetted, installable dependency, since integration reliability still depends on each individual third-party provider."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 1,
       "field_tags": [
         "dev-tools",
@@ -1904,8 +1871,8 @@
         "trio",
         "twitter"
       ],
-      "stars": 14810,
-      "forks": 1881,
+      "stars": 14817,
+      "forks": 1882,
       "issues": 117,
       "contributors": 32,
       "gains": {
@@ -1939,8 +1906,8 @@
         "explanatory-math-videos",
         "python"
       ],
-      "stars": 93596,
-      "forks": 7686,
+      "stars": 93624,
+      "forks": 7688,
       "issues": 498,
       "contributors": 210,
       "gains": {
@@ -1989,7 +1956,7 @@
         "openclaw",
         "opencode"
       ],
-      "stars": 24480,
+      "stars": 24508,
       "forks": 2135,
       "issues": 34,
       "contributors": 4,
@@ -2006,7 +1973,7 @@
         "cons": "Because this branch is an unreleased Developer Preview with no tagged release or npm package yet, setup may still change; the Legacy Skill compatibility mode on the dot-skill branch is an explicit, separate file-based fallback rather than an automatic one, and it reportedly does not share a supported data model with the Plugin.",
         "fit": "Distilly seems best suited to Codex users, where the Plugin flow is fully verified, while OpenClaw 2026.3.24 and Hermes v0.9.0 have recorded transport-capacity fixtures but pending lifecycle checks; other hosts such as Claude Code, DeepSeek Harness, Pi agent, Grok Build, OpenCode, and Grok Bot appear to rely on community bindings that are still planned or partial."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
