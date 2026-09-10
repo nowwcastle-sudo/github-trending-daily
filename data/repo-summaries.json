@@ -1351,47 +1351,47 @@
   },
   "cathrynlavery/diagram-design": {
     "content": {
-      "goal": "Diagram Design is a Claude Code skill also compatible with Codex, Factory Droid, Pi, and other Agent Skills-compatible hosts. It generates 39 editorial diagram types as self-contained HTML and SVG files, offered as an alternative to generic AI-drawn diagrams or manual Figma work. Semantic behavior patterns are handled separately from visual layout, and output is static by default with optional accessible motion.",
-      "usage": "In Claude Code, install with `/plugin marketplace add cathrynlavery/diagram-design` then `/plugin install diagram-design@diagram-design`; Codex, Factory Droid, and Pi have equivalent marketplace commands. Users request diagrams in natural language or open the bundled gallery at skills/diagram-design/assets/index.html. Exporting diagrams to PNG requires a one-time setup: `pip install playwright && playwright install chromium`.",
-      "pros": "Diagrams ship as single self-contained HTML files with no build step, JavaScript, or external image dependency. Accessibility is built in, with WCAG AA contrast checks and ARIA labeling for screen readers. The skill can also redraw existing draw.io, Mermaid, or Excalidraw diagrams into the same visual system.",
-      "cons": "Style-guide customizations made through a managed install may not persist, since package updates can overwrite edits to style-guide.md, so preserving custom changes appears to require cloning the repository for an editable local install.",
-      "fit": "The project appears best suited to developers and technical writers producing architecture, flowchart, or data-model diagrams within supported agent hosts, rather than for simple visuals. It is explicitly not intended for quick unicode diagrams, plain lists, or single-box diagrams, where a plain paragraph or table would suffice."
+      "goal": "Diagram Design is an Agent Skill that generates 39 editorial-style diagram types (architecture, flowcharts, sequence diagrams, and more) as self-contained HTML and SVG for Claude Code, Codex, Factory Droid, Pi, and other Agent Skills-compatible hosts. It appears to target developers and writers who want on-brand, non-generic diagrams without relying on Figma or default AI-generated styling.",
+      "usage": "Install via `/plugin marketplace add cathrynlavery/diagram-design` followed by `/plugin install diagram-design@diagram-design` in Claude Code (similar commands exist for Codex, GitHub Copilot, Factory Droid, and Pi). After installing, users can open `skills/diagram-design/assets/index.html` to browse all 39 diagrams, or ask the agent in natural language to produce a specific diagram type.",
+      "pros": "Diagrams ship as a single self-contained HTML file with no build step, JavaScript, or external image dependency. Accessibility is built in by default (ARIA roles, resolving accessible names, WCAG AA contrast checks), and the skill can also redraw existing draw.io, Mermaid, or Excalidraw sources while producing a fidelity ledger of what changed.",
+      "cons": "PNG export requires a one-time separate setup step (`pip install playwright && playwright install chromium`), which adds an external dependency beyond the core skill install. Auto-update for third-party marketplaces is also disabled by default in Claude Code, requiring a manual toggle to keep the plugin current.",
+      "fit": "Documented use cases where this skill is not recommended include quick unicode diagrams for tweets or terminals, plain lists, before/after comparisons, and single-box diagrams, suggesting it fits multi-node, structured diagrams rather than simple content. It seems best suited for teams that want diagrams matching their website's brand colors and fonts through the onboarding flow."
     },
     "summaries": {
       "en": {
-        "goal": "Diagram Design is a Claude Code skill also compatible with Codex, Factory Droid, Pi, and other Agent Skills-compatible hosts. It generates 39 editorial diagram types as self-contained HTML and SVG files, offered as an alternative to generic AI-drawn diagrams or manual Figma work. Semantic behavior patterns are handled separately from visual layout, and output is static by default with optional accessible motion.",
-        "usage": "In Claude Code, install with `/plugin marketplace add cathrynlavery/diagram-design` then `/plugin install diagram-design@diagram-design`; Codex, Factory Droid, and Pi have equivalent marketplace commands. Users request diagrams in natural language or open the bundled gallery at skills/diagram-design/assets/index.html. Exporting diagrams to PNG requires a one-time setup: `pip install playwright && playwright install chromium`.",
-        "pros": "Diagrams ship as single self-contained HTML files with no build step, JavaScript, or external image dependency. Accessibility is built in, with WCAG AA contrast checks and ARIA labeling for screen readers. The skill can also redraw existing draw.io, Mermaid, or Excalidraw diagrams into the same visual system.",
-        "cons": "Style-guide customizations made through a managed install may not persist, since package updates can overwrite edits to style-guide.md, so preserving custom changes appears to require cloning the repository for an editable local install.",
-        "fit": "The project appears best suited to developers and technical writers producing architecture, flowchart, or data-model diagrams within supported agent hosts, rather than for simple visuals. It is explicitly not intended for quick unicode diagrams, plain lists, or single-box diagrams, where a plain paragraph or table would suffice."
+        "goal": "Diagram Design is an Agent Skill that generates 39 editorial-style diagram types (architecture, flowcharts, sequence diagrams, and more) as self-contained HTML and SVG for Claude Code, Codex, Factory Droid, Pi, and other Agent Skills-compatible hosts. It appears to target developers and writers who want on-brand, non-generic diagrams without relying on Figma or default AI-generated styling.",
+        "usage": "Install via `/plugin marketplace add cathrynlavery/diagram-design` followed by `/plugin install diagram-design@diagram-design` in Claude Code (similar commands exist for Codex, GitHub Copilot, Factory Droid, and Pi). After installing, users can open `skills/diagram-design/assets/index.html` to browse all 39 diagrams, or ask the agent in natural language to produce a specific diagram type.",
+        "pros": "Diagrams ship as a single self-contained HTML file with no build step, JavaScript, or external image dependency. Accessibility is built in by default (ARIA roles, resolving accessible names, WCAG AA contrast checks), and the skill can also redraw existing draw.io, Mermaid, or Excalidraw sources while producing a fidelity ledger of what changed.",
+        "cons": "PNG export requires a one-time separate setup step (`pip install playwright && playwright install chromium`), which adds an external dependency beyond the core skill install. Auto-update for third-party marketplaces is also disabled by default in Claude Code, requiring a manual toggle to keep the plugin current.",
+        "fit": "Documented use cases where this skill is not recommended include quick unicode diagrams for tweets or terminals, plain lists, before/after comparisons, and single-box diagrams, suggesting it fits multi-node, structured diagrams rather than simple content. It seems best suited for teams that want diagrams matching their website's brand colors and fonts through the onboarding flow."
       },
       "ko": {
-        "goal": "Diagram Design는 Claude Code용 스킬이며 Codex, Factory Droid, Pi 등 Agent Skills 호환 호스트에서도 사용할 수 있습니다. 39가지 편집 스타일 다이어그램 유형을 독립 실행형 HTML 및 SVG 파일로 생성하며, 일반적인 AI 생성 다이어그램이나 수작업 Figma 작업의 대안으로 제공됩니다. 의미론적 동작 패턴은 시각적 레이아웃과 별도로 처리되며, 기본 출력은 정적이고 접근 가능한 모션은 선택 사항입니다.",
-        "usage": "Claude Code에서는 `/plugin marketplace add cathrynlavery/diagram-design` 실행 후 `/plugin install diagram-design@diagram-design`으로 설치합니다. Codex, Factory Droid, Pi에도 동일한 마켓플레이스 명령이 있습니다. 사용자는 자연어로 다이어그램을 요청하거나 skills/diagram-design/assets/index.html에 포함된 갤러리를 열어볼 수 있습니다. PNG로 내보내려면 `pip install playwright && playwright install chromium`으로 최초 1회 설정이 필요합니다.",
-        "pros": "다이어그램은 빌드 단계, JavaScript, 외부 이미지 의존성 없이 독립 실행형 HTML 파일 하나로 제공됩니다. WCAG AA 대비 검사와 스크린리더용 ARIA 레이블링 등 접근성 기능이 기본 내장되어 있습니다. 또한 기존 draw.io, Mermaid, Excalidraw 다이어그램을 동일한 시각 시스템으로 다시 그릴 수 있습니다.",
-        "cons": "관리형 설치 환경에서 스타일 가이드를 직접 수정하더라도 패키지 업데이트가 style-guide.md에 가한 변경 사항을 덮어쓸 수 있어, 사용자 지정 내용을 유지하려면 저장소를 클론하여 편집 가능한 로컬 설치를 사용해야 하는 것으로 보입니다.",
-        "fit": "이 도구는 지원되는 에이전트 호스트 내에서 아키텍처, 흐름도, 데이터 모델 다이어그램을 제작하는 개발자와 기술 문서 작성자에게 가장 적합해 보입니다. 반면 간단한 유니코드 다이어그램, 단순 목록, 단일 상자 형태의 '다이어그램'과 같이 문단이나 표로 충분한 경우에는 적합하지 않은 것으로 명시되어 있습니다."
+        "goal": "Diagram Design는 Claude Code, Codex, Factory Droid, Pi 및 기타 Agent Skills 호환 호스트에서 39가지 편집 스타일 다이어그램 유형(아키텍처, 플로차트, 시퀀스 다이어그램 등)을 독립 실행형 HTML과 SVG로 생성하는 Agent Skill입니다. Figma나 기본 AI 생성 스타일에 의존하지 않고 브랜드에 맞는 다이어그램을 원하는 개발자와 작성자를 대상으로 하는 것으로 보입니다.",
+        "usage": "Claude Code에서는 `/plugin marketplace add cathrynlavery/diagram-design` 명령 후 `/plugin install diagram-design@diagram-design` 명령으로 설치합니다(Codex, GitHub Copilot, Factory Droid, Pi용 유사한 명령도 제공됩니다). 설치 후에는 `skills/diagram-design/assets/index.html`을 열어 39개 다이어그램을 모두 살펴보거나, 자연어로 원하는 다이어그램 유형을 요청할 수 있습니다.",
+        "pros": "다이어그램은 빌드 단계, JavaScript, 외부 이미지 의존성 없이 하나의 독립 실행형 HTML 파일로 제공됩니다. ARIA 역할, 확인 가능한 접근 가능한 이름, WCAG AA 대비 검사 등 접근성이 기본으로 내장되어 있으며, 기존 draw.io, Mermaid, Excalidraw 소스를 다시 그리면서 변경 사항을 담은 충실도 목록(fidelity ledger)도 제공합니다.",
+        "cons": "PNG 내보내기에는 `pip install playwright && playwright install chromium`이라는 별도의 일회성 설정 단계가 필요해 핵심 스킬 설치 외에 추가 외부 의존성이 생깁니다. 또한 Claude Code에서는 서드파티 마켓플레이스의 자동 업데이트가 기본적으로 비활성화되어 있어, 플러그인을 최신 상태로 유지하려면 수동으로 전환해야 합니다.",
+        "fit": "이 스킬 사용이 권장되지 않는 사례로 트윗/터미널용 간단한 유니코드 다이어그램, 단순 목록, 전후 비교, 단일 박스 다이어그램 등이 문서화되어 있어, 단순한 콘텐츠보다는 다중 노드의 구조화된 다이어그램에 적합한 것으로 보입니다. 온보딩 기능을 통해 웹사이트의 브랜드 색상과 글꼴에 맞춘 다이어그램을 원하는 팀에 가장 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "Diagram Design 是一款面向 Claude Code 的技能,也兼容 Codex、Factory Droid、Pi 及其他兼容 Agent Skills 的宿主环境。它可生成 39 种编辑风格的图表类型,输出为独立的 HTML 和 SVG 文件,定位为通用 AI 生成图表或手动 Figma 制图的替代方案。语义行为模式与视觉布局分开处理,默认输出为静态图表,可选启用无障碍动效。",
-        "usage": "在 Claude Code 中,先运行 `/plugin marketplace add cathrynlavery/diagram-design`,再运行 `/plugin install diagram-design@diagram-design` 完成安装;Codex、Factory Droid 和 Pi 也提供相应的市场安装命令。用户可以用自然语言请求生成图表,或打开内置图库 skills/diagram-design/assets/index.html。将图表导出为 PNG 需要一次性设置:`pip install playwright && playwright install chromium`。",
-        "pros": "图表以单个独立 HTML 文件形式交付,无需构建步骤、JavaScript 或外部图像依赖。项目内置无障碍支持,包括 WCAG AA 对比度检查和面向屏幕阅读器的 ARIA 标注。该技能还可以将现有的 draw.io、Mermaid 或 Excalidraw 图表重新绘制为同一视觉体系下的作品。",
-        "cons": "在托管安装方式下直接修改样式指南可能无法持久保留,因为软件包更新可能覆盖对 style-guide.md 所做的更改,因此若要保留自定义内容,似乎需要克隆仓库并使用可编辑的本地安装方式。",
-        "fit": "该工具似乎最适合在受支持的智能体宿主环境中制作架构图、流程图或数据模型图的开发者和技术文档撰写者使用;而对于简单的 Unicode 图示、纯列表或单一方框式的“图表”等一段文字或表格即可满足的场景,则明确不适用。"
+        "goal": "Diagram Design 是一个 Agent Skill,可在 Claude Code、Codex、Factory Droid、Pi 及其他兼容 Agent Skills 的宿主环境中生成 39 种编辑风格的图表类型(架构图、流程图、时序图等),输出为独立的 HTML 和 SVG 文件。它似乎面向希望获得符合品牌风格、而非通用 AI 生成样式图表的开发者和写作者,且无需依赖 Figma。",
+        "usage": "在 Claude Code 中,先运行 `/plugin marketplace add cathrynlavery/diagram-design`,再运行 `/plugin install diagram-design@diagram-design` 进行安装(Codex、GitHub Copilot、Factory Droid 和 Pi 也提供类似命令)。安装后,可以打开 `skills/diagram-design/assets/index.html` 浏览全部 39 种图表,也可以用自然语言向代理请求特定类型的图表。",
+        "pros": "图表以单个独立 HTML 文件形式交付,无需构建步骤、JavaScript 或外部图片依赖。该工具默认内置无障碍支持(ARIA 角色、可解析的无障碍名称、WCAG AA 对比度检查),还能重新绘制现有的 draw.io、Mermaid 或 Excalidraw 源文件,并生成记录改动内容的保真度清单。",
+        "cons": "PNG 导出需要额外的一次性设置步骤(`pip install playwright && playwright install chromium`),这在核心技能安装之外增加了外部依赖。此外,Claude Code 默认禁用第三方市场的自动更新,需要手动切换才能保持插件为最新版本。",
+        "fit": "该技能不建议使用的场景包括用于推文或终端的快速 unicode 图表、简单列表、前后对比及单框图表,这表明它更适合多节点、结构化的图表,而非简单内容。通过引导流程,它似乎最适合希望图表匹配自身网站品牌颜色与字体的团队。"
       },
       "es": {
-        "goal": "Diagram Design es una skill para Claude Code, también compatible con Codex, Factory Droid, Pi y otros hosts compatibles con Agent Skills. Genera 39 tipos de diagramas de estilo editorial como archivos HTML y SVG autocontenidos, presentada como alternativa a los diagramas genéricos generados por IA o al trabajo manual en Figma. Los patrones de comportamiento semántico se gestionan por separado del diseño visual, y la salida predeterminada es estática, con movimiento accesible opcional.",
-        "usage": "En Claude Code, instálalo con `/plugin marketplace add cathrynlavery/diagram-design` y luego `/plugin install diagram-design@diagram-design`; Codex, Factory Droid y Pi cuentan con comandos de marketplace equivalentes. Los usuarios pueden solicitar diagramas en lenguaje natural o abrir la galería incluida en skills/diagram-design/assets/index.html. Exportar diagramas a PNG requiere una configuración única: `pip install playwright && playwright install chromium`.",
-        "pros": "Los diagramas se entregan como un único archivo HTML autocontenido, sin paso de compilación, JavaScript ni dependencias de imágenes externas. La accesibilidad viene integrada, con comprobaciones de contraste WCAG AA y etiquetado ARIA para lectores de pantalla. La skill también puede redibujar diagramas existentes de draw.io, Mermaid o Excalidraw dentro del mismo sistema visual.",
-        "cons": "Las personalizaciones de la guía de estilo hechas en una instalación gestionada podrían no persistir, ya que las actualizaciones del paquete pueden sobrescribir los cambios en style-guide.md, por lo que conservar la personalización parece requerir clonar el repositorio para una instalación local editable.",
-        "fit": "El proyecto parece más adecuado para desarrolladores y redactores técnicos que producen diagramas de arquitectura, flujo o modelos de datos dentro de los hosts de agentes compatibles, más que para gráficos simples. Explícitamente no está pensado para diagramas rápidos en unicode, listas simples o 'diagramas' de una sola caja, casos en los que bastaría un párrafo o una tabla."
+        "goal": "Diagram Design es un Agent Skill que genera 39 tipos de diagramas de estilo editorial (arquitectura, diagramas de flujo, diagramas de secuencia, etc.) como HTML y SVG autocontenidos para Claude Code, Codex, Factory Droid, Pi y otros hosts compatibles con Agent Skills. Parece dirigido a desarrolladores y redactores que buscan diagramas acordes a su marca sin depender de Figma ni de estilos genéricos generados por IA.",
+        "usage": "En Claude Code se instala ejecutando `/plugin marketplace add cathrynlavery/diagram-design` seguido de `/plugin install diagram-design@diagram-design` (existen comandos similares para Codex, GitHub Copilot, Factory Droid y Pi). Tras instalarlo, se puede abrir `skills/diagram-design/assets/index.html` para explorar los 39 diagramas, o pedirle al agente en lenguaje natural un tipo de diagrama concreto.",
+        "pros": "Los diagramas se entregan como un único archivo HTML autocontenido sin paso de compilación, JavaScript ni dependencias de imágenes externas. La accesibilidad viene incorporada por defecto (roles ARIA, nombres accesibles resolubles, verificaciones de contraste WCAG AA), y el skill también puede redibujar fuentes existentes de draw.io, Mermaid o Excalidraw generando un registro de fidelidad con los cambios.",
+        "cons": "La exportación a PNG requiere un paso de configuración único y separado (`pip install playwright && playwright install chromium`), lo que añade una dependencia externa más allá de la instalación básica del skill. Además, la actualización automática de mercados de terceros viene desactivada por defecto en Claude Code, por lo que hay que activarla manualmente para mantener el plugin actualizado.",
+        "fit": "Los casos documentados en los que no se recomienda este skill incluyen diagramas rápidos en unicode para tuits o terminal, listas simples, comparaciones de antes/después y diagramas de una sola caja, lo que sugiere que encaja mejor con diagramas estructurados de múltiples nodos que con contenido simple. Parece más adecuado para equipos que quieren diagramas alineados con los colores y tipografías de su sitio web mediante el flujo de incorporación de marca."
       },
       "ja": {
-        "goal": "Diagram Designは Claude Code 向けのスキルであり、Codex、Factory Droid、Pi、その他 Agent Skills 対応ホストでも利用できます。39種類のエディトリアルなダイアグラムタイプを、単一のHTMLおよびSVGファイルとして生成し、一般的なAI生成図や手作業のFigma作業の代替として提供されます。意味的な振る舞いパターンは視覚的レイアウトとは別に扱われ、既定の出力は静的で、アクセシブルなモーションはオプションです。",
-        "usage": "Claude Codeでは `/plugin marketplace add cathrynlavery/diagram-design` を実行した後 `/plugin install diagram-design@diagram-design` でインストールします。Codex、Factory Droid、Piにも同様のマーケットプレイスコマンドがあります。ユーザーは自然言語でダイアグラムを依頼するか、同梱のギャラリー skills/diagram-design/assets/index.html を開いて閲覧できます。PNGへのエクスポートには初回のみ `pip install playwright && playwright install chromium` の設定が必要です。",
-        "pros": "ダイアグラムはビルド手順、JavaScript、外部画像依存なしの単一の自己完結型HTMLファイルとして出力されます。WCAG AAコントラストチェックやスクリーンリーダー向けARIAラベリングなど、アクセシビリティ機能が標準で組み込まれています。既存のdraw.io、Mermaid、Excalidrawの図を同じビジュアルシステムで再描画することも可能です。",
-        "cons": "管理されたインストールでスタイルガイドを直接カスタマイズしても、パッケージの更新が style-guide.md への変更を上書きしてしまう可能性があり、カスタマイズを維持するにはリポジトリをクローンして編集可能なローカルインストールを使う必要があるようです。",
-        "fit": "このツールは、対応するエージェントホスト内でアーキテクチャ図、フローチャート、データモデル図を作成する開発者やテクニカルライターに最も適していると考えられます。一方、簡易なUnicode図、単純なリスト、単一ボックスの『ダイアグラム』など、段落や表で十分な場合には明確に不向きとされています。"
+        "goal": "Diagram Designは、Claude Code、Codex、Factory Droid、Pi、その他Agent Skills対応ホスト向けに、39種類のエディトリアルスタイルの図(アーキテクチャ図、フローチャート、シーケンス図など)を自己完結型のHTMLとSVGとして生成するAgent Skillです。Figmaや汎用的なAI生成スタイルに頼らず、ブランドに合った図を求める開発者やライターを対象としているようです。",
+        "usage": "Claude Codeでは `/plugin marketplace add cathrynlavery/diagram-design` を実行した後に `/plugin install diagram-design@diagram-design` を実行してインストールします(Codex、GitHub Copilot、Factory Droid、Pi向けにも同様のコマンドがあります)。インストール後は `skills/diagram-design/assets/index.html` を開いて39種類の図をすべて閲覧するか、自然言語でエージェントに特定の図の作成を依頼できます。",
+        "pros": "図はビルド手順、JavaScript、外部画像依存なしで、単一の自己完結型HTMLファイルとして出力されます。ARIAロール、解決可能なアクセシブルネーム、WCAG AAコントラストチェックといったアクセシビリティ機能が標準で組み込まれており、既存のdraw.io、Mermaid、Excalidrawのソースを再描画し、変更内容を記した忠実度台帳(fidelity ledger)も生成します。",
+        "cons": "PNGエクスポートには `pip install playwright && playwright install chromium` という別途一度限りのセットアップ手順が必要で、スキル本体のインストールに加えて外部依存が発生します。また、Claude Codeではサードパーティのマーケットプレイスの自動更新がデフォルトで無効になっており、プラグインを最新に保つには手動での切り替えが必要です。",
+        "fit": "このスキルの使用が推奨されないケースとして、ツイートやターミナル向けの簡易的なUnicode図、単純なリスト、前後比較、単一ボックスの図などが挙げられており、単純なコンテンツよりも多ノードの構造化された図に適していると考えられます。オンボーディング機能により、自社サイトのブランドカラーやフォントに合わせた図を求めるチームに最も適しているようです。"
       }
     },
     "evidence": {
@@ -1407,26 +1407,21 @@
           "section_heading": "Diagram Design"
         },
         {
-          "start_line": 13,
-          "end_line": 13,
-          "section_heading": "Diagram Design"
+          "start_line": 25,
+          "end_line": 27,
+          "section_heading": "Why I built it"
         }
       ],
       "usage": [
         {
-          "start_line": 120,
+          "start_line": 118,
           "end_line": 123,
           "section_heading": "Install"
         },
         {
-          "start_line": 259,
-          "end_line": 267,
+          "start_line": 269,
+          "end_line": 280,
           "section_heading": "Quickstart"
-        },
-        {
-          "start_line": 367,
-          "end_line": 367,
-          "section_heading": "Export to PNG / SVG"
         }
       ],
       "pros": [
@@ -1436,33 +1431,38 @@
           "section_heading": "What it makes"
         },
         {
-          "start_line": 231,
-          "end_line": 235,
+          "start_line": 241,
+          "end_line": 241,
           "section_heading": "Contrast checks happen automatically"
         },
         {
-          "start_line": 292,
-          "end_line": 292,
-          "section_heading": "Import from draw.io, Mermaid, or Excalidraw"
+          "start_line": 245,
+          "end_line": 245,
+          "section_heading": "Accessible by default"
         }
       ],
       "cons": [
         {
-          "start_line": 167,
-          "end_line": 169,
-          "section_heading": "Editable install"
+          "start_line": 376,
+          "end_line": 377,
+          "section_heading": "Export to PNG / SVG"
+        },
+        {
+          "start_line": 125,
+          "end_line": 125,
+          "section_heading": "Install"
         }
       ],
       "fit": [
         {
-          "start_line": 600,
-          "end_line": 607,
+          "start_line": 610,
+          "end_line": 617,
           "section_heading": "When *not* to use this skill"
         },
         {
-          "start_line": 25,
-          "end_line": 27,
-          "section_heading": "Why I built it"
+          "start_line": 205,
+          "end_line": 207,
+          "section_heading": "Onboarding — make it look like *your* brand"
         }
       ]
     },
@@ -1485,21 +1485,15 @@
         "kind": "command",
         "value": "pip install playwright && playwright install chromium",
         "fields": [
-          "usage"
+          "cons"
         ]
       },
       {
         "kind": "number",
         "value": "39",
         "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Diagram Design",
-        "fields": [
-          "goal"
+          "goal",
+          "usage"
         ]
       },
       {
@@ -1507,7 +1501,8 @@
         "value": "Claude Code",
         "fields": [
           "goal",
-          "usage"
+          "usage",
+          "cons"
         ]
       },
       {
@@ -1531,41 +1526,28 @@
         "value": "Pi",
         "fields": [
           "goal",
+          "usage",
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "diagram-design",
+        "fields": [
           "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Mermaid",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "draw.io",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Excalidraw",
-        "fields": [
-          "pros"
         ]
       }
     ],
     "inference_fields": [
-      "cons",
+      "goal",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "cathrynlavery/diagram-design",
       "path": "README.md",
-      "blob_sha": "8f1929036cff8e0026194c412641cac165424ebd",
-      "content_sha256": "5ac37af3267c2d2529aecb7c5eb038a2f44a3229ba620c99d4cd6f662d5db2f2",
+      "blob_sha": "a3d8d47863f50f74f2b31f5fac78adefef23c2d3",
+      "content_sha256": "0c4983c9ee6387e382e7840990bcc8c9ca7f438e21586ce7f6e7c3581a9152cb",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -3315,59 +3297,64 @@
   },
   "affaan-m/ECC": {
     "content": {
-      "goal": "ECC is documented as 'the agent harness operating system,' an MIT-licensed open-source project that gives a coding agent a coordinated engineering workflow. Per the README, it plans before building, verifies changes with tests, reviews its own work from a fresh context, retains memory across sessions, and turns repeated wins into reusable skills, following the stated sequence: plan -> test -> implement -> review -> verify -> remember -> improve.",
-      "usage": "Guided setup runs via `npx ecc-universal@2.2.1 setup`, which the README states requires Node.js 18 or newer; Claude plugin setup additionally requires Git and Claude Code 2.1 or newer on PATH. As an alternative, Claude Code's native plugin commands `/plugin marketplace add https://github.com/affaan-m/ECC` and `/plugin install ecc@ecc` install the same `ecc@ecc` plugin.",
-      "pros": "The README lists 68 agents, 291 skills, and 94 legacy command shims, alongside hooks, rules, memory, continuous learning, and AgentShield security scanning. A comparison table states that with ECC, plans become editable artifacts, TDD runs as a gated RED-GREEN-REFACTOR workflow with evidence, a fresh-context reviewer checks for regressions, and AgentShield scans the agent harness itself as an attack surface.",
-      "cons": "Support is not uniform across platforms: the platform-support table notes that the standalone GAN shell path is currently incompatible with macOS's system Bash 3.2, and Windows-native continuous-learning v2 has open defects, which suggests some optional capabilities may depend on the operating system and available shell tooling.",
-      "fit": "The README states that ECC 'works best with Claude Code today,' has a supported Codex sync path, and offers only capability-limited adapters for Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, Qwen, and other harnesses, implying that full feature parity outside Claude Code should not be assumed."
+      "goal": "ECC (affaan-m/ECC) is presented as an agent harness operating system built around Claude Code. It plans before implementing, verifies changes with tests, reviews work from a fresh context, remembers relevant history, and turns repeated results into reusable skills, following a documented plan → test → implement → review → verify → remember → improve workflow, instead of rebuilding that process in every prompt.",
+      "usage": "The recommended path runs `npx ecc-universal@2.2.1 setup` (ecc-universal), which needs Node.js 18 or newer; Claude Code plugin setup additionally needs Git and Claude Code 2.1 or newer on PATH. Inside Claude Code, native commands add the marketplace at https://github.com/affaan-m/ECC and then run `/plugin install ecc@ecc`; the README instructs picking one install method per harness rather than stacking both.",
+      "pros": "ECC bundles 68 agents, 291 skills, and 94 legacy command shims, alongside hooks, rules, memory, continuous learning, and AgentShield, which scans prompts, hooks, MCP configuration, permissions, secrets, and agent files.",
+      "cons": "Feature parity is not guaranteed outside Claude Code and Codex: other harness adapters are described as capability-limited, and GitHub Copilot support explicitly excludes ECC's hooks and subagent delegation, since Copilot lacks a hook system and subagent API. This suggests some functionality may require per-harness verification before adoption.",
+      "fit": "ECC appears best suited to teams centered on Claude Code, with Codex offered as a secondary supported path; other editors receive lighter, capability-limited integrations. The project also documents ECC Pro, a hosted GitHub App reachable via https://ecc.tools, for private-repository scanning."
     },
     "summaries": {
       "en": {
-        "goal": "ECC is documented as 'the agent harness operating system,' an MIT-licensed open-source project that gives a coding agent a coordinated engineering workflow. Per the README, it plans before building, verifies changes with tests, reviews its own work from a fresh context, retains memory across sessions, and turns repeated wins into reusable skills, following the stated sequence: plan -> test -> implement -> review -> verify -> remember -> improve.",
-        "usage": "Guided setup runs via `npx ecc-universal@2.2.1 setup`, which the README states requires Node.js 18 or newer; Claude plugin setup additionally requires Git and Claude Code 2.1 or newer on PATH. As an alternative, Claude Code's native plugin commands `/plugin marketplace add https://github.com/affaan-m/ECC` and `/plugin install ecc@ecc` install the same `ecc@ecc` plugin.",
-        "pros": "The README lists 68 agents, 291 skills, and 94 legacy command shims, alongside hooks, rules, memory, continuous learning, and AgentShield security scanning. A comparison table states that with ECC, plans become editable artifacts, TDD runs as a gated RED-GREEN-REFACTOR workflow with evidence, a fresh-context reviewer checks for regressions, and AgentShield scans the agent harness itself as an attack surface.",
-        "cons": "Support is not uniform across platforms: the platform-support table notes that the standalone GAN shell path is currently incompatible with macOS's system Bash 3.2, and Windows-native continuous-learning v2 has open defects, which suggests some optional capabilities may depend on the operating system and available shell tooling.",
-        "fit": "The README states that ECC 'works best with Claude Code today,' has a supported Codex sync path, and offers only capability-limited adapters for Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, Qwen, and other harnesses, implying that full feature parity outside Claude Code should not be assumed."
+        "goal": "ECC (affaan-m/ECC) is presented as an agent harness operating system built around Claude Code. It plans before implementing, verifies changes with tests, reviews work from a fresh context, remembers relevant history, and turns repeated results into reusable skills, following a documented plan → test → implement → review → verify → remember → improve workflow, instead of rebuilding that process in every prompt.",
+        "usage": "The recommended path runs `npx ecc-universal@2.2.1 setup` (ecc-universal), which needs Node.js 18 or newer; Claude Code plugin setup additionally needs Git and Claude Code 2.1 or newer on PATH. Inside Claude Code, native commands add the marketplace at https://github.com/affaan-m/ECC and then run `/plugin install ecc@ecc`; the README instructs picking one install method per harness rather than stacking both.",
+        "pros": "ECC bundles 68 agents, 291 skills, and 94 legacy command shims, alongside hooks, rules, memory, continuous learning, and AgentShield, which scans prompts, hooks, MCP configuration, permissions, secrets, and agent files.",
+        "cons": "Feature parity is not guaranteed outside Claude Code and Codex: other harness adapters are described as capability-limited, and GitHub Copilot support explicitly excludes ECC's hooks and subagent delegation, since Copilot lacks a hook system and subagent API. This suggests some functionality may require per-harness verification before adoption.",
+        "fit": "ECC appears best suited to teams centered on Claude Code, with Codex offered as a secondary supported path; other editors receive lighter, capability-limited integrations. The project also documents ECC Pro, a hosted GitHub App reachable via https://ecc.tools, for private-repository scanning."
       },
       "ko": {
-        "goal": "ECC는 README에서 '에이전트 하네스 운영체제'로 소개되는 MIT 라이선스 오픈소스 프로젝트로, 코딩 에이전트에게 체계적인 엔지니어링 워크플로우를 제공합니다. README에 따르면 ECC는 구현 전에 계획을 세우고, 테스트로 변경 사항을 검증하고, 새로운 컨텍스트에서 자체 작업을 검토하고, 세션 간 기억을 유지하며, 반복된 성공을 재사용 가능한 스킬로 전환합니다. 명시된 순서는 plan -> test -> implement -> review -> verify -> remember -> improve 입니다.",
-        "usage": "가이드 설치는 `npx ecc-universal@2.2.1 setup` 명령으로 실행하며, README는 이를 위해 Node.js 18 이상이 필요하다고 명시합니다. Claude 플러그인 설치는 추가로 PATH에 Git과 Claude Code 2.1 이상이 있어야 합니다. 대안으로 Claude Code의 네이티브 플러그인 명령인 `/plugin marketplace add https://github.com/affaan-m/ECC`와 `/plugin install ecc@ecc`를 사용하면 동일한 `ecc@ecc` 플러그인이 설치됩니다.",
-        "pros": "README는 68개 에이전트, 291개 스킬, 94개의 레거시 명령 셰임과 함께 훅, 규칙, 메모리, 지속 학습, AgentShield 보안 스캔을 포함한다고 설명합니다. 비교 표에 따르면 ECC를 사용하면 계획이 편집 가능한 산출물이 되고, TDD가 증거를 남기는 RED-GREEN-REFACTOR 워크플로우로 강제되며, 새 컨텍스트의 검토자가 회귀를 점검하고, AgentShield가 에이전트 하네스 자체를 공격 표면으로 스캔합니다.",
-        "cons": "플랫폼 지원은 균일하지 않습니다. 플랫폼 지원 표에 따르면 독립 실행형 GAN 셸 경로는 현재 macOS의 시스템 Bash 3.2와 호환되지 않으며, Windows 네이티브 환경의 continuous-learning v2에는 알려진 결함이 있습니다. 이는 일부 선택적 기능이 운영체제와 사용 가능한 셸 도구에 따라 달라질 수 있음을 시사합니다.",
-        "fit": "README는 ECC가 '오늘날 Claude Code에서 가장 잘 작동'하며, 지원되는 Codex 동기화 경로가 있고, Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, Qwen 등 다른 하네스에는 '기능이 제한된 어댑터'만 제공한다고 명시합니다. 이는 Claude Code 외부에서는 완전한 기능 동등성을 가정해서는 안 된다는 것을 암시합니다."
+        "goal": "ECC(affaan-m/ECC)는 Claude Code를 중심으로 만들어진 에이전트 하네스 운영체제로 소개됩니다. 구현 전에 계획을 세우고, 테스트로 변경 사항을 검증하며, 새로운 컨텍스트에서 작업을 검토하고, 관련 이력을 기억하며, 반복되는 결과를 재사용 가능한 스킬로 전환합니다. 매 프롬프트마다 이 과정을 다시 만드는 대신, plan → test → implement → review → verify → remember → improve 워크플로를 문서화된 형태로 제공합니다.",
+        "usage": "권장 설치 경로는 `npx ecc-universal@2.2.1 setup`(ecc-universal) 명령을 실행하는 것이며, 이는 Node.js 18 이상이 필요합니다. Claude Code 플러그인 설정에는 추가로 Git과 PATH에 등록된 Claude Code 2.1 이상이 필요합니다. Claude Code 내부에서는 네이티브 명령으로 https://github.com/affaan-m/ECC 마켓플레이스를 추가한 뒤 `/plugin install ecc@ecc`를 실행합니다. README는 하네스마다 두 방식을 중복 적용하지 말고 하나만 선택하라고 안내합니다.",
+        "pros": "ECC에는 68개의 에이전트, 291개의 스킬, 94개의 레거시 명령 셰임이 포함되며, 여기에 훅, 규칙, 메모리, 지속 학습, 그리고 프롬프트·훅·MCP 설정·권한·비밀정보·에이전트 파일을 스캔하는 AgentShield가 함께 제공됩니다.",
+        "cons": "Claude Code와 Codex 외의 하네스에서는 기능 동등성이 보장되지 않습니다. 다른 하네스용 어댑터는 기능이 제한적이라고 설명되어 있으며, GitHub Copilot 지원은 Copilot에 훅 시스템과 서브에이전트 API가 없기 때문에 ECC의 훅과 서브에이전트 위임을 명시적으로 제외합니다. 이는 도입 전에 하네스별 검증이 필요할 수 있음을 시사합니다.",
+        "fit": "ECC는 Claude Code를 중심으로 사용하는 팀에 가장 적합해 보이며, Codex는 보조로 지원되는 경로로 제공됩니다. 다른 에디터들은 더 가볍고 기능이 제한된 통합을 받습니다. 이 프로젝트는 또한 비공개 저장소 스캔을 위해 https://ecc.tools 에서 접근 가능한 호스팅 GitHub 앱인 ECC Pro를 문서화하고 있습니다."
       },
       "zh-CN": {
-        "goal": "README 将 ECC 描述为「agent harness operating system」(智能体框架操作系统),是一个 MIT 许可的开源项目,为编码智能体提供协调一致的工程工作流程。根据 README,它在构建前先制定计划,通过测试验证更改,在全新上下文中审查自身工作,在会话之间保留记忆,并将重复的成功转化为可复用的技能,遵循所述顺序:plan -> test -> implement -> review -> verify -> remember -> improve。",
-        "usage": "引导式安装通过 `npx ecc-universal@2.2.1 setup` 运行,README 说明该命令需要 Node.js 18 或更高版本;Claude 插件设置还需要 PATH 中存在 Git 和 Claude Code 2.1 或更高版本。作为替代方案,Claude Code 的原生插件命令 `/plugin marketplace add https://github.com/affaan-m/ECC` 和 `/plugin install ecc@ecc` 会安装同一个 `ecc@ecc` 插件。",
-        "pros": "README 列出了 68 个智能体、291 个技能和 94 个旧版命令垫片,以及钩子、规则、记忆、持续学习和 AgentShield 安全扫描。对比表指出,使用 ECC 后,计划会成为可编辑的产物,TDD 会作为带证据的 RED-GREEN-REFACTOR 门控工作流程执行,全新上下文的审查者会检查回归问题,AgentShield 会将智能体框架本身作为攻击面进行扫描。",
-        "cons": "各平台的支持并不一致:平台支持表指出,独立的 GAN shell 路径目前与 macOS 系统自带的 Bash 3.2 不兼容,且 Windows 原生环境下的 continuous-learning v2 存在未解决的缺陷,这表明部分可选功能可能取决于操作系统及可用的 shell 工具。",
-        "fit": "README 声明 ECC「目前在 Claude Code 上效果最佳」,拥有受支持的 Codex 同步路径,而对 Cursor、OpenCode、Gemini、Zed、GitHub Copilot、Antigravity、Qwen 等其他工具仅提供「能力受限的适配器」,这意味着在 Claude Code 之外不应假定具有完全相同的功能对等性。"
+        "goal": "ECC(affaan-m/ECC)被介绍为围绕 Claude Code 构建的智能体工具链操作系统。它在实现前先制定计划,用测试验证改动,在全新上下文中审查工作,记住相关历史,并把重复出现的成果转化为可复用的技能,遵循文档化的 plan → test → implement → review → verify → remember → improve 工作流,而不必在每次提示中重新搭建这一流程。",
+        "usage": "推荐的安装方式是运行 `npx ecc-universal@2.2.1 setup`(ecc-universal 包),该命令需要 Node.js 18 或更高版本;Claude Code 插件设置还需要 Git,以及 PATH 中的 Claude Code 2.1 或更高版本。在 Claude Code 内部,可使用原生命令先添加 https://github.com/affaan-m/ECC 市场,再运行 `/plugin install ecc@ecc`。README 建议每种工具只选择一种安装方式,不要叠加使用。",
+        "pros": "ECC 包含 68 个智能体、291 个技能和 94 个旧版命令垫片,并附带钩子、规则、记忆、持续学习功能,以及可扫描提示词、钩子、MCP 配置、权限、密钥和智能体文件的 AgentShield。",
+        "cons": "在 Claude Code 和 Codex 之外,功能对等性并未得到保证。文档将其他工具的适配器描述为能力有限,而 GitHub Copilot 支持明确不包含 ECC 的钩子和子智能体委派,因为 Copilot 本身没有钩子系统和子智能体 API。这似乎意味着在采用前可能需要针对具体工具进行验证。",
+        "fit": "ECC 似乎最适合以 Claude Code 为核心的团队,Codex 作为受支持的次要路径提供。其他编辑器获得的集成更轻量、能力也更有限。该项目还记录了 ECC Pro,这是一款可通过 https://ecc.tools 访问的托管 GitHub 应用,用于私有仓库扫描。"
       },
       "es": {
-        "goal": "ECC se describe en el README como «el sistema operativo del harness de agentes», un proyecto de código abierto con licencia MIT que dota a un agente de codificación de un flujo de trabajo de ingeniería coordinado. Según el README, planifica antes de construir, verifica los cambios con pruebas, revisa su propio trabajo desde un contexto nuevo, conserva la memoria entre sesiones y convierte los aciertos repetidos en habilidades reutilizables, siguiendo la secuencia indicada: plan -> test -> implement -> review -> verify -> remember -> improve.",
-        "usage": "La instalación guiada se ejecuta con `npx ecc-universal@2.2.1 setup`, que según el README requiere Node.js 18 o posterior; la configuración del plugin de Claude además requiere Git y Claude Code 2.1 o posterior en el PATH. Como alternativa, los comandos nativos del plugin de Claude Code `/plugin marketplace add https://github.com/affaan-m/ECC` e `/plugin install ecc@ecc` instalan el mismo plugin `ecc@ecc`.",
-        "pros": "El README enumera 68 agentes, 291 habilidades y 94 shims de comandos heredados, junto con hooks, reglas, memoria, aprendizaje continuo y el escaneo de seguridad de AgentShield. Una tabla comparativa indica que con ECC los planes se convierten en artefactos editables, el TDD se aplica como un flujo RED-GREEN-REFACTOR con evidencia, un revisor con contexto nuevo detecta regresiones, y AgentShield escanea el propio harness de agentes como superficie de ataque.",
-        "cons": "El soporte no es uniforme entre plataformas: la tabla de soporte de plataformas indica que la ruta independiente de shell GAN es actualmente incompatible con el Bash 3.2 del sistema en macOS, y que continuous-learning v2 tiene defectos abiertos en Windows nativo, lo que sugiere que algunas capacidades opcionales podrían depender del sistema operativo y de las herramientas de shell disponibles.",
-        "fit": "El README afirma que ECC «funciona mejor con Claude Code hoy en día», cuenta con una ruta de sincronización compatible con Codex, y ofrece solo «adaptadores de capacidad limitada» para Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, Qwen y otros harnesses, lo que implica que no debería asumirse una paridad de funciones completa fuera de Claude Code."
+        "goal": "ECC (affaan-m/ECC) se presenta como un sistema operativo de arneses de agentes construido en torno a Claude Code. Planifica antes de implementar, verifica los cambios con pruebas, revisa el trabajo desde un contexto nuevo, recuerda el historial relevante y convierte los resultados repetidos en habilidades reutilizables, siguiendo el flujo documentado plan → test → implement → review → verify → remember → improve, en lugar de reconstruir ese proceso en cada instrucción.",
+        "usage": "La vía recomendada ejecuta `npx ecc-universal@2.2.1 setup` (ecc-universal), que requiere Node.js 18 o posterior; la configuración del plugin de Claude Code también requiere Git y Claude Code 2.1 o posterior en el PATH. Dentro de Claude Code, los comandos nativos añaden el mercado en https://github.com/affaan-m/ECC y luego ejecutan `/plugin install ecc@ecc`. El README indica elegir un único método de instalación por herramienta, sin combinar ambos.",
+        "pros": "ECC incluye 68 agentes, 291 habilidades y 94 shims de comandos heredados, junto con hooks, reglas, memoria, aprendizaje continuo y AgentShield, que escanea prompts, hooks, configuración MCP, permisos, secretos y archivos de agentes.",
+        "cons": "La paridad de funciones no está garantizada fuera de Claude Code y Codex: los adaptadores para otras herramientas se describen como de capacidad limitada, y el soporte de GitHub Copilot excluye explícitamente los hooks y la delegación a subagentes de ECC, ya que Copilot carece de sistema de hooks y de API de subagentes. Esto sugiere que podría ser necesaria una verificación específica por herramienta antes de adoptarlo.",
+        "fit": "ECC parece más adecuado para equipos centrados en Claude Code, con Codex ofrecido como vía secundaria compatible; otros editores reciben integraciones más ligeras y de capacidad limitada. El proyecto también documenta ECC Pro, una app de GitHub alojada accesible en https://ecc.tools, para el análisis de repositorios privados."
       },
       "ja": {
-        "goal": "README では ECC は「エージェントハーネスのオペレーティングシステム」と説明されており、MIT ライセンスのオープンソースプロジェクトとして、コーディングエージェントに協調的なエンジニアリングワークフローを与えます。README によれば、構築前に計画を立て、テストで変更を検証し、新しいコンテキストで自身の作業をレビューし、セッション間で記憶を保持し、繰り返し得られた成功を再利用可能なスキルに変換します。明示された順序は plan -> test -> implement -> review -> verify -> remember -> improve です。",
-        "usage": "ガイド付きセットアップは `npx ecc-universal@2.2.1 setup` で実行し、README はこれに Node.js 18 以降が必要と記載しています。Claude プラグインのセットアップにはさらに、PATH 上に Git と Claude Code 2.1 以降が必要です。代替として、Claude Code のネイティブプラグインコマンド `/plugin marketplace add https://github.com/affaan-m/ECC` と `/plugin install ecc@ecc` を使うと、同じ `ecc@ecc` プラグインがインストールされます。",
-        "pros": "README には 68 個のエージェント、291 個のスキル、94 個のレガシーコマンドシムに加え、フック、ルール、メモリ、継続学習、AgentShield によるセキュリティスキャンが含まれると記載されています。比較表によると、ECC を使うと計画は編集可能な成果物になり、TDD は証拠を伴う RED-GREEN-REFACTOR のゲート付きワークフローとして実行され、新しいコンテキストのレビュアーが回帰を確認し、AgentShield がエージェントハーネス自体を攻撃対象としてスキャンします。",
-        "cons": "プラットフォーム間のサポートは均一ではありません。プラットフォームサポート表によると、スタンドアロンの GAN シェルパスは現在 macOS のシステム Bash 3.2 と互換性がなく、Windows ネイティブ環境の continuous-learning v2 には未解決の不具合があるとされており、一部のオプション機能は OS や利用可能なシェルツールに依存する可能性があることを示唆しています。",
-        "fit": "README では ECC は「今日のところ Claude Code で最もよく機能する」とされ、サポートされる Codex 同期パスを持ち、Cursor、OpenCode、Gemini、Zed、GitHub Copilot、Antigravity、Qwen などの他のハーネスには「能力が制限されたアダプター」しか提供しないと明記されています。これは Claude Code 以外では完全な機能同等性を前提とすべきではないことを示唆しています。"
+        "goal": "ECC(affaan-m/ECC)は、Claude Code を中心に構築されたエージェントハーネス・オペレーティングシステムとして紹介されています。実装前に計画を立て、テストで変更を検証し、新しいコンテキストから作業をレビューし、関連する履歴を記憶し、繰り返し得られた成果を再利用可能なスキルへと変換します。毎回のプロンプトでこのプロセスを再構築する代わりに、plan → test → implement → review → verify → remember → improve という文書化されたワークフローに従います。",
+        "usage": "推奨される導入方法は `npx ecc-universal@2.2.1 setup`(ecc-universal)の実行で、Node.js 18 以降が必要です。Claude Code プラグインのセットアップにはさらに Git と、PATH 上の Claude Code 2.1 以降が必要です。Claude Code 内では、ネイティブコマンドで https://github.com/affaan-m/ECC のマーケットプレイスを追加した後、`/plugin install ecc@ecc` を実行します。README は、両方の方式を重ねず、ハーネスごとに一つの導入方法だけを選ぶよう案内しています。",
+        "pros": "ECC には 68 個のエージェント、291 個のスキル、94 個のレガシーコマンドシムが含まれ、さらにフック、ルール、メモリ、継続学習、そしてプロンプト・フック・MCP 設定・権限・シークレット・エージェントファイルをスキャンする AgentShield が付属します。",
+        "cons": "Claude Code と Codex 以外では機能の同等性は保証されていません。他のハーネス向けアダプターは能力が限定的であると説明されており、GitHub Copilot サポートは、Copilot にフックシステムとサブエージェント API が存在しないため、ECC のフックとサブエージェント委任を明示的に除外しています。これは、導入前にハーネスごとの検証が必要になる場合があることを示唆しています。",
+        "fit": "ECC は Claude Code を中心に利用するチームに最も適していると考えられ、Codex は対応する副次的な経路として提供されています。その他のエディタには、より軽量で能力が限定された統合が提供されます。このプロジェクトはまた、プライベートリポジトリのスキャン向けに https://ecc.tools からアクセスできるホスト型 GitHub アプリ ECC Pro についても記載しています。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 2,
-          "end_line": 2,
-          "section_heading": ""
-        },
-        {
           "start_line": 127,
           "end_line": 131,
+          "section_heading": "ECC"
+        },
+        {
+          "start_line": 137,
+          "end_line": 137,
+          "section_heading": "ECC"
+        },
+        {
+          "start_line": 139,
+          "end_line": 139,
           "section_heading": "ECC"
         }
       ],
@@ -3378,12 +3365,12 @@
           "section_heading": "Install ECC"
         },
         {
-          "start_line": 171,
+          "start_line": 170,
           "end_line": 172,
           "section_heading": "Recommended: universal guided setup"
         },
         {
-          "start_line": 260,
+          "start_line": 259,
           "end_line": 262,
           "section_heading": "Claude Code details"
         }
@@ -3395,16 +3382,21 @@
           "section_heading": "ECC"
         },
         {
-          "start_line": 1153,
-          "end_line": 1160,
-          "section_heading": "Why Choose ECC?"
+          "start_line": 141,
+          "end_line": 148,
+          "section_heading": "ECC"
         }
       ],
       "cons": [
         {
-          "start_line": 1246,
-          "end_line": 1251,
-          "section_heading": "Platform Support"
+          "start_line": 137,
+          "end_line": 137,
+          "section_heading": "ECC"
+        },
+        {
+          "start_line": 1651,
+          "end_line": 1652,
+          "section_heading": "Feature coverage"
         }
       ],
       "fit": [
@@ -3412,6 +3404,16 @@
           "start_line": 137,
           "end_line": 137,
           "section_heading": "ECC"
+        },
+        {
+          "start_line": 39,
+          "end_line": 39,
+          "section_heading": ""
+        },
+        {
+          "start_line": 1959,
+          "end_line": 1961,
+          "section_heading": "Community and Project"
         }
       ]
     },
@@ -3419,13 +3421,6 @@
       {
         "kind": "command",
         "value": "npx ecc-universal@2.2.1 setup",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "/plugin marketplace add https://github.com/affaan-m/ECC",
         "fields": [
           "usage"
         ]
@@ -3460,21 +3455,21 @@
       },
       {
         "kind": "number",
-        "value": "68 agents",
+        "value": "68",
         "fields": [
           "pros"
         ]
       },
       {
         "kind": "number",
-        "value": "291 skills",
+        "value": "291",
         "fields": [
           "pros"
         ]
       },
       {
         "kind": "number",
-        "value": "94 legacy command shims",
+        "value": "94",
         "fields": [
           "pros"
         ]
@@ -3487,12 +3482,20 @@
         ]
       },
       {
+        "kind": "url",
+        "value": "https://ecc.tools",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
         "kind": "product",
         "value": "ECC",
         "fields": [
           "goal",
           "usage",
           "pros",
+          "cons",
           "fit"
         ]
       },
@@ -3500,22 +3503,18 @@
         "kind": "product",
         "value": "Claude Code",
         "fields": [
+          "goal",
           "usage",
+          "cons",
           "fit"
         ]
       },
       {
         "kind": "product",
-        "value": "ecc-universal",
+        "value": "Codex",
         "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "ecc@ecc",
-        "fields": [
-          "usage"
+          "cons",
+          "fit"
         ]
       },
       {
@@ -3523,6 +3522,13 @@
         "value": "AgentShield",
         "fields": [
           "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "ecc-universal",
+        "fields": [
+          "usage"
         ]
       }
     ],
@@ -3534,8 +3540,8 @@
       "kind": "readme",
       "slug": "affaan-m/ecc",
       "path": "README.md",
-      "blob_sha": "0fa1fd55eef2712b4bd63f07c186c3f2ea5cc3e5",
-      "content_sha256": "6eace6f0257d035bce34129283a3e27bdd8612535294c48359651ac24d04b799",
+      "blob_sha": "9e4126dd3a969529aabef6620310affc082c8cf5",
+      "content_sha256": "a3c37e15abee7ac58dd0986c16fdb9cfab6dd20d4649e50fb3ac68396cfbf8fa",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -5196,47 +5202,47 @@
   },
   "heygen-com/hyperframes": {
     "content": {
-      "goal": "HyperFrames is an open-source framework for turning HTML, CSS, media, and seekable animations into deterministic MP4 videos. It can be used locally via a CLI, invoked by AI coding agents through skills, or embedded as the rendering core behind hosted authoring workflows.",
-      "usage": "Get started with `npx hyperframes init my-video`, then `npx hyperframes preview` to preview in the browser and `npx hyperframes render` to produce an MP4. AI coding agents can instead run `npx skills add heygen-com/hyperframes` to install HyperFrames skills. Requirements: Node.js 22+ and FFmpeg.",
-      "pros": "Compositions are plain HTML with data attributes, requiring no React and no build step—an index.html file plays as-is in a browser. Rendering is deterministic (same input yields the same output), animation can use adapters like GSAP, CSS, Lottie, Three.js, Anime.js, or WAAPI, and the project is released under the Apache 2.0 license with no per-render fees or commercial-use thresholds.",
-      "cons": "The Studio component, a browser surface for previewing and editing compositions, is listed as 'Available, evolving,' which suggests this part of the stack may still be maturing rather than fully stable.",
-      "fit": "HyperFrames appears best suited to developers and teams already using HTML/CSS and AI coding agents such as Claude Code, Cursor, Gemini CLI, or Codex who want deterministic, code-driven video generation; teams preferring a React-based authoring model may find Remotion, which HyperFrames is explicitly compared against, a closer fit."
+      "goal": "HyperFrames is an open-source (Apache 2.0) framework for turning HTML, CSS, media, and seekable animations into deterministic MP4 videos, usable locally through a CLI, through AI coding agent skills, or as the rendering core behind hosted authoring workflows.",
+      "usage": "Agents typically install the core skill set with `npx skills add heygen-com/hyperframes`, while manual use starts a project with `npx hyperframes init my-video`, then previews and renders it with `npx hyperframes preview` and `npx hyperframes render` to produce an MP4 locally.",
+      "pros": "HyperFrames compositions are authored as plain HTML with data attributes rather than React, rendering is deterministic so identical input yields the same output, the CLI is non-interactive by default for agent workflows, and the project ships 20 packaged skills plus a components catalog covering common needs like captions, charts, and transitions.",
+      "cons": "Running HyperFrames locally requires Node.js 22+ and FFmpeg as prerequisites, and cloning the full repository for development additionally requires Git LFS, since the golden regression-test baselines add roughly 240 MB of .mp4 files that must be fetched separately.",
+      "fit": "Based on its HTML-first, agent-friendly design and deterministic rendering, HyperFrames seems best suited to developers and AI agents automating CI or pipeline video generation, whereas teams already committed to Remotion's React-based authoring model may find switching authoring paradigms less straightforward."
     },
     "summaries": {
       "en": {
-        "goal": "HyperFrames is an open-source framework for turning HTML, CSS, media, and seekable animations into deterministic MP4 videos. It can be used locally via a CLI, invoked by AI coding agents through skills, or embedded as the rendering core behind hosted authoring workflows.",
-        "usage": "Get started with `npx hyperframes init my-video`, then `npx hyperframes preview` to preview in the browser and `npx hyperframes render` to produce an MP4. AI coding agents can instead run `npx skills add heygen-com/hyperframes` to install HyperFrames skills. Requirements: Node.js 22+ and FFmpeg.",
-        "pros": "Compositions are plain HTML with data attributes, requiring no React and no build step—an index.html file plays as-is in a browser. Rendering is deterministic (same input yields the same output), animation can use adapters like GSAP, CSS, Lottie, Three.js, Anime.js, or WAAPI, and the project is released under the Apache 2.0 license with no per-render fees or commercial-use thresholds.",
-        "cons": "The Studio component, a browser surface for previewing and editing compositions, is listed as 'Available, evolving,' which suggests this part of the stack may still be maturing rather than fully stable.",
-        "fit": "HyperFrames appears best suited to developers and teams already using HTML/CSS and AI coding agents such as Claude Code, Cursor, Gemini CLI, or Codex who want deterministic, code-driven video generation; teams preferring a React-based authoring model may find Remotion, which HyperFrames is explicitly compared against, a closer fit."
+        "goal": "HyperFrames is an open-source (Apache 2.0) framework for turning HTML, CSS, media, and seekable animations into deterministic MP4 videos, usable locally through a CLI, through AI coding agent skills, or as the rendering core behind hosted authoring workflows.",
+        "usage": "Agents typically install the core skill set with `npx skills add heygen-com/hyperframes`, while manual use starts a project with `npx hyperframes init my-video`, then previews and renders it with `npx hyperframes preview` and `npx hyperframes render` to produce an MP4 locally.",
+        "pros": "HyperFrames compositions are authored as plain HTML with data attributes rather than React, rendering is deterministic so identical input yields the same output, the CLI is non-interactive by default for agent workflows, and the project ships 20 packaged skills plus a components catalog covering common needs like captions, charts, and transitions.",
+        "cons": "Running HyperFrames locally requires Node.js 22+ and FFmpeg as prerequisites, and cloning the full repository for development additionally requires Git LFS, since the golden regression-test baselines add roughly 240 MB of .mp4 files that must be fetched separately.",
+        "fit": "Based on its HTML-first, agent-friendly design and deterministic rendering, HyperFrames seems best suited to developers and AI agents automating CI or pipeline video generation, whereas teams already committed to Remotion's React-based authoring model may find switching authoring paradigms less straightforward."
       },
       "ko": {
-        "goal": "HyperFrames는 HTML, CSS, 미디어, 시크 가능한 애니메이션을 결정론적 MP4 비디오로 변환하는 오픈소스 프레임워크입니다. CLI를 통해 로컬에서 사용하거나, 스킬을 통해 AI 코딩 에이전트에서 호출하거나, 호스팅된 제작 워크플로우 뒤의 렌더링 코어로 사용할 수 있습니다.",
-        "usage": "`npx hyperframes init my-video`로 시작한 다음 `npx hyperframes preview`로 브라우저에서 미리보고 `npx hyperframes render`로 MP4를 렌더링합니다. AI 코딩 에이전트는 대신 `npx skills add heygen-com/hyperframes`를 실행해 HyperFrames 스킬을 설치할 수 있습니다. 요구 사항: Node.js 22+ 및 FFmpeg.",
-        "pros": "구성은 데이터 속성이 있는 순수 HTML로 작성되어 React나 빌드 단계가 필요 없으며, index.html 파일은 브라우저에서 그대로 재생됩니다. 렌더링은 결정론적이며(동일 입력은 동일 출력을 생성), GSAP, CSS, Lottie, Three.js, Anime.js, WAAPI 같은 어댑터로 애니메이션을 구현할 수 있고, Apache 2.0 라이선스로 배포되어 렌더링당 수수료나 상업적 사용 제한이 없습니다.",
-        "cons": "구성 미리보기 및 편집용 브라우저 화면인 Studio 구성 요소는 'Available, evolving(사용 가능하나 발전 중)'으로 표기되어 있어, 스택의 이 부분이 아직 완전히 안정화되지 않았을 수 있음을 시사합니다.",
-        "fit": "HyperFrames는 이미 HTML/CSS와 Claude Code, Cursor, Gemini CLI, Codex 같은 AI 코딩 에이전트를 사용하며 결정론적이고 코드 기반의 비디오 생성을 원하는 개발자 및 팀에 적합해 보입니다. React 기반 제작 모델을 선호하는 팀은 HyperFrames가 명시적으로 비교하는 Remotion이 더 적합할 수 있습니다."
+        "goal": "하이퍼프레임즈(HyperFrames)는 HTML, CSS, 미디어, 탐색 가능한(seekable) 애니메이션을 결정론적 MP4 영상으로 변환하는 오픈소스(Apache 2.0) 프레임워크로, CLI를 통해 로컬에서 사용하거나 AI 코딩 에이전트 스킬을 통해, 또는 호스팅된 제작 워크플로우의 렌더링 코어로 사용할 수 있습니다.",
+        "usage": "에이전트는 보통 `npx skills add heygen-com/hyperframes` 명령으로 핵심 스킬 세트를 설치하며, 수동으로 사용할 경우 `npx hyperframes init my-video`로 프로젝트를 만든 뒤 `npx hyperframes preview`와 `npx hyperframes render` 명령으로 미리보기와 로컬 MP4 렌더링을 수행합니다.",
+        "pros": "구성 파일은 React 대신 데이터 속성이 붙은 일반 HTML로 작성되며, 렌더링은 동일한 입력이 동일한 출력을 낸다는 의미에서 결정론적이라고 설명되고, CLI는 기본적으로 비대화형이라 에이전트 워크플로우에 적합하며, 20개의 스킬과 캡션·차트·전환 효과 등을 다루는 컴포넌트 카탈로그가 함께 제공됩니다.",
+        "cons": "로컬에서 실행하려면 Node.js 22 이상과 FFmpeg가 선행 조건으로 필요하며, 개발용으로 전체 저장소를 클론할 경우 회귀 테스트 기준 파일(.mp4)이 약 240MB에 달해 Git LFS 설치가 추가로 필요합니다.",
+        "fit": "HTML 우선의 에이전트 친화적 설계와 결정론적 렌더링 방식을 고려할 때, 하이퍼프레임즈는 CI나 파이프라인 자동화를 위한 영상 생성 작업을 하는 개발자와 AI 에이전트에게 적합해 보이며, 이미 Remotion의 React 기반 저작 방식에 익숙한 팀에는 전환 부담이 있을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "HyperFrames 是一个开源框架,用于将 HTML、CSS、媒体和可寻址动画转换为确定性的 MP4 视频。它可以通过 CLI 在本地使用,通过技能由 AI 编程代理调用,或作为托管创作工作流背后的渲染核心。",
-        "usage": "先运行 `npx hyperframes init my-video`,然后用 `npx hyperframes preview` 在浏览器中预览,再用 `npx hyperframes render` 渲染为 MP4。AI 编程代理可改为运行 `npx skills add heygen-com/hyperframes` 来安装 HyperFrames 技能。要求:Node.js 22+ 和 FFmpeg。",
-        "pros": "组合由带有数据属性的纯 HTML 构成,无需 React,也无需构建步骤——index.html 文件可直接在浏览器中播放。渲染是确定性的(相同输入产生相同输出),动画可使用 GSAP、CSS、Lottie、Three.js、Anime.js 或 WAAPI 等适配器实现,项目基于 Apache 2.0 许可证发布,没有按渲染收费或商业使用门槛。",
-        "cons": "用于预览和编辑组合的浏览器界面 Studio 组件被标注为 'Available, evolving'(可用但仍在演进),这表明该部分技术栈可能尚未完全稳定。",
-        "fit": "HyperFrames 似乎最适合已经在使用 HTML/CSS 以及 Claude Code、Cursor、Gemini CLI 或 Codex 等 AI 编程代理、并希望获得确定性、代码驱动视频生成的开发者和团队。偏好基于 React 的创作模式的团队可能会发现 HyperFrames 明确对比的 Remotion 更适合。"
+        "goal": "HyperFrames 是一个开源(Apache 2.0)框架,用于将 HTML、CSS、媒体和可寻址(seekable)动画转换为确定性的 MP4 视频,可通过 CLI 在本地使用,也可通过 AI 编码代理技能使用,或作为托管创作工作流背后的渲染核心。",
+        "usage": "代理通常使用 `npx skills add heygen-com/hyperframes` 安装核心技能集,手动使用时先通过 `npx hyperframes init my-video` 创建项目,再用 `npx hyperframes preview` 和 `npx hyperframes render` 在本地预览并渲染出 MP4。",
+        "pros": "项目以带数据属性的普通 HTML 而非 React 编写合成内容,渲染被描述为确定性的(相同输入产生相同输出),CLI 默认非交互式,便于代理工作流,并附带 20 个技能以及涵盖字幕、图表、转场等常见需求的组件目录。",
+        "cons": "在本地运行需要 Node.js 22 及以上版本和 FFmpeg 作为前置条件,若为开发目的克隆完整仓库,还需要额外安装 Git LFS,因为回归测试基准文件(.mp4)总计约 240MB。",
+        "fit": "基于其 HTML 优先、对代理友好的设计以及确定性渲染,HyperFrames 看起来更适合需要在 CI 或流水线中自动生成视频的开发者和 AI 代理,而已经采用 Remotion 的基于 React 创作模式的团队可能需要额外的迁移成本。"
       },
       "es": {
-        "goal": "HyperFrames es un framework de código abierto para convertir HTML, CSS, medios y animaciones con posicionamiento temporal en videos MP4 deterministas. Se puede usar localmente mediante una CLI, invocar desde agentes de codificación con IA mediante skills, o emplear como núcleo de renderizado detrás de flujos de creación alojados.",
-        "usage": "Comience con `npx hyperframes init my-video`, luego `npx hyperframes preview` para previsualizar en el navegador y `npx hyperframes render` para generar un MP4. Los agentes de codificación con IA pueden en su lugar ejecutar `npx skills add heygen-com/hyperframes` para instalar las skills de HyperFrames. Requisitos: Node.js 22+ y FFmpeg.",
-        "pros": "Las composiciones son HTML plano con atributos de datos, sin necesitar React ni paso de compilación: un archivo index.html se reproduce tal cual en el navegador. El renderizado es determinista (la misma entrada produce la misma salida), la animación puede usar adaptadores como GSAP, CSS, Lottie, Three.js, Anime.js o WAAPI, y el proyecto se publica bajo licencia Apache 2.0 sin tarifas por renderizado ni umbrales de uso comercial.",
-        "cons": "El componente Studio, la superficie del navegador para previsualizar y editar composiciones, figura como 'Available, evolving' (disponible, en evolución), lo que sugiere que esta parte del stack podría no estar todavía totalmente estable.",
-        "fit": "HyperFrames parece más adecuado para desarrolladores y equipos que ya usan HTML/CSS y agentes de codificación con IA como Claude Code, Cursor, Gemini CLI o Codex, y que buscan generación de video determinista basada en código; los equipos que prefieren un modelo de autoría basado en React podrían encontrar más adecuado Remotion, con el que HyperFrames se compara explícitamente."
+        "goal": "HyperFrames es un framework de código abierto (Apache 2.0) que convierte HTML, CSS, medios y animaciones navegables (seekable) en videos MP4 deterministas, utilizable localmente mediante la CLI, a través de habilidades para agentes de codificación con IA, o como núcleo de renderizado detrás de flujos de creación alojados.",
+        "usage": "Los agentes suelen instalar el conjunto principal de habilidades con `npx skills add heygen-com/hyperframes`, mientras que el uso manual comienza un proyecto con `npx hyperframes init my-video` y luego lo previsualiza y renderiza localmente con `npx hyperframes preview` y `npx hyperframes render`.",
+        "pros": "Las composiciones se escriben como HTML plano con atributos de datos en lugar de React, el renderizado se describe como determinista (la misma entrada produce la misma salida), la CLI es no interactiva por defecto para flujos con agentes, y el proyecto incluye 20 habilidades junto con un catálogo de componentes para subtítulos, gráficos y transiciones.",
+        "cons": "Ejecutar HyperFrames localmente requiere Node.js 22 o superior y FFmpeg como prerrequisitos, y clonar el repositorio completo para desarrollo requiere además Git LFS, ya que las líneas base de pruebas de regresión suman aproximadamente 240MB de archivos .mp4.",
+        "fit": "Dado su diseño centrado en HTML y amigable con agentes junto con el renderizado determinista, HyperFrames parece más adecuado para desarrolladores y agentes de IA que automatizan la generación de video en CI o canalizaciones, mientras que los equipos ya comprometidos con el modelo de autoría basado en React de Remotion podrían enfrentar una transición menos directa."
       },
       "ja": {
-        "goal": "HyperFramesは、HTML、CSS、メディア、シーク可能なアニメーションを決定論的なMP4動画に変換するためのオープンソースフレームワークです。CLIを使ってローカルで利用するほか、スキルを介してAIコーディングエージェントから呼び出したり、ホスティングされた制作ワークフローの背後にあるレンダリングコアとして利用したりできます。",
-        "usage": "`npx hyperframes init my-video` で開始し、`npx hyperframes preview` でブラウザ上にプレビューし、`npx hyperframes render` でMP4にレンダリングします。AIコーディングエージェントは代わりに `npx skills add heygen-com/hyperframes` を実行してHyperFramesのスキルをインストールできます。必要環境: Node.js 22以上およびFFmpeg。",
-        "pros": "コンポジションはデータ属性を持つ純粋なHTMLで構成されるため、Reactもビルドステップも不要で、index.htmlファイルはそのままブラウザで再生されます。レンダリングは決定論的(同じ入力からは同じ出力が得られる)で、GSAP、CSS、Lottie、Three.js、Anime.js、WAAPIなどのアダプターでアニメーションを実装でき、Apache 2.0ライセンスの下で公開されており、レンダリングごとの課金や商用利用のしきい値はありません。",
-        "cons": "コンポジションのプレビューと編集用のブラウザ画面であるStudioコンポーネントは「Available, evolving(利用可能だが発展途上)」と記載されており、スタックのこの部分はまだ完全には安定していない可能性が示唆されています。",
-        "fit": "HyperFramesは、すでにHTML/CSSやClaude Code、Cursor、Gemini CLI、CodexなどのAIコーディングエージェントを使用しており、決定論的でコード駆動の動画生成を求める開発者やチームに適していると考えられます。Reactベースの制作モデルを好むチームには、HyperFramesが明示的に比較対象としているRemotionの方が適している可能性があります。"
+        "goal": "HyperFrames は、HTML、CSS、メディア、シーク可能なアニメーションを決定論的な MP4 動画に変換するオープンソース(Apache 2.0)フレームワークで、CLI によるローカル利用、AIコーディングエージェント向けスキルでの利用、あるいはホスト型制作ワークフローのレンダリングコアとしての利用が想定されています。",
+        "usage": "エージェントは通常 `npx skills add heygen-com/hyperframes` でコアスキルセットをインストールし、手動利用の場合は `npx hyperframes init my-video` でプロジェクトを作成した後、`npx hyperframes preview` と `npx hyperframes render` でプレビューとローカルでの MP4 レンダリングを行います。",
+        "pros": "構成は React ではなくデータ属性付きの通常の HTML として記述され、レンダリングは同一入力から同一出力が得られるという意味で決定論的とされ、CLI はエージェント向けにデフォルトで非対話型であり、字幕・チャート・トランジションなどをカバーする20個のスキルとコンポーネントカタログが付属します。",
+        "cons": "ローカルでの実行には Node.js 22 以上と FFmpeg が前提条件として必要で、開発用にリポジトリ全体をクローンする場合、回帰テストの基準ファイル(.mp4)が合計で約240MBに達するため、追加で Git LFS のインストールが必要です。",
+        "fit": "HTML優先でエージェントに配慮した設計と決定論的レンダリングを踏まえると、HyperFrames は CI やパイプラインでの動画生成を自動化する開発者やAIエージェントに適していると考えられる一方、すでに Remotion の React ベースの制作モデルに慣れているチームにとっては移行の手間が伴う可能性があります。"
       }
     },
     "evidence": {
@@ -5247,21 +5253,21 @@
           "section_heading": ""
         },
         {
-          "start_line": 236,
-          "end_line": 236,
-          "section_heading": "HyperFrames Stack"
+          "start_line": 12,
+          "end_line": 12,
+          "section_heading": ""
         }
       ],
       "usage": [
         {
-          "start_line": 113,
-          "end_line": 120,
-          "section_heading": "Manually with the CLI"
-        },
-        {
-          "start_line": 40,
+          "start_line": 41,
           "end_line": 42,
           "section_heading": "With an AI coding agent"
+        },
+        {
+          "start_line": 114,
+          "end_line": 118,
+          "section_heading": "Manually with the CLI"
         }
       ],
       "pros": [
@@ -5269,39 +5275,47 @@
           "start_line": 263,
           "end_line": 268,
           "section_heading": "Why HyperFrames?"
+        },
+        {
+          "start_line": 232,
+          "end_line": 232,
+          "section_heading": "How It Works"
+        },
+        {
+          "start_line": 56,
+          "end_line": 58,
+          "section_heading": "Skills"
         }
       ],
       "cons": [
         {
-          "start_line": 244,
-          "end_line": 244,
-          "section_heading": "HyperFrames Stack"
+          "start_line": 120,
+          "end_line": 120,
+          "section_heading": "Manually with the CLI"
+        },
+        {
+          "start_line": 322,
+          "end_line": 322,
+          "section_heading": "Development Note"
         }
       ],
       "fit": [
         {
-          "start_line": 52,
-          "end_line": 52,
-          "section_heading": "With an AI coding agent"
+          "start_line": 270,
+          "end_line": 272,
+          "section_heading": "HyperFrames vs Remotion"
         },
         {
-          "start_line": 270,
-          "end_line": 281,
-          "section_heading": "HyperFrames vs Remotion"
+          "start_line": 312,
+          "end_line": 312,
+          "section_heading": "Community"
         }
       ]
     },
     "invariants": [
       {
         "kind": "command",
-        "value": "npx hyperframes init my-video",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "npx hyperframes preview",
+        "value": "npx skills add heygen-com/hyperframes",
         "fields": [
           "usage"
         ]
@@ -5315,14 +5329,7 @@
       },
       {
         "kind": "command",
-        "value": "npx skills add heygen-com/hyperframes",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": "Node.js 22+",
+        "value": "npx hyperframes init my-video",
         "fields": [
           "usage"
         ]
@@ -5331,7 +5338,28 @@
         "kind": "version",
         "value": "Apache 2.0",
         "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "Node.js 22+",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "20",
+        "fields": [
           "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "240 MB",
+        "fields": [
+          "cons"
         ]
       },
       {
@@ -5340,6 +5368,8 @@
         "fields": [
           "goal",
           "usage",
+          "pros",
+          "cons",
           "fit"
         ]
       },
@@ -5349,25 +5379,17 @@
         "fields": [
           "fit"
         ]
-      },
-      {
-        "kind": "product",
-        "value": "FFmpeg",
-        "fields": [
-          "usage"
-        ]
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "heygen-com/hyperframes",
       "path": "README.md",
-      "blob_sha": "14da79e9f74591549f58eb1a8cff47ecb0c7f943",
-      "content_sha256": "f040188b33cb623866b64ade4ce4038c4492157c439ef9ea39b553e1ae074ba1",
+      "blob_sha": "fa9805507dc4fb4ddf14bcc26a43cf329757d0d2",
+      "content_sha256": "9907b9f61fe5e8d04afdf52dd6c9e42fda4c09cf530f5aa322e67ce030847a80",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -7030,47 +7052,47 @@
   },
   "cursor/plugins": {
     "content": {
-      "goal": "cursor/plugins is the official marketplace repository for Cursor plugins that add support for developer tools, frameworks, and SaaS products. Each plugin lives in its own standalone directory at the repository root, with the root `.cursor-plugin/marketplace.json` file listing all available plugins.",
-      "usage": "The README documents the file layout rather than an install command: a top-level `.cursor-plugin/marketplace.json` registers all plugins, and each plugin directory holds its own `.cursor-plugin/plugin.json` manifest along with `skills/`, `rules/`, `mcp.json`, `README.md`, and `CHANGELOG.md`. Plugins are likely added to Cursor through this marketplace manifest, though the root README does not spell out a specific setup command.",
-      "pros": "The repository bundles a wide range of plugins spanning Developer Tools, Productivity, Integrations, and Utilities categories, including connectors for Gmail, Google Drive, Salesforce, GitHub, and Playwright, alongside developer-workflow plugins like Thermos and Cursor Team Kit. Each plugin is self-contained with its own manifest, README, and changelog, keeping individual plugins independently documented and versioned.",
-      "cons": "The root README itself provides no installation or run command, only the manifest and directory structure, so setup detail depends on each plugin's own README and CHANGELOG. Because many listed integrations connect to third-party SaaS accounts (e.g., Salesforce, HubSpot, Brex), using them will likely require separate account credentials or API access that the root README does not describe.",
-      "fit": "Given its Developer Tools and Integrations categories, the repository appears aimed at teams already using Cursor who want to extend agent workflows with SaaS connectors (CRM, calendar, email, HR, meetings) or developer-process plugins (CI, code review, branch auditing). It is licensed under MIT."
+      "goal": "The cursor/plugins repository documents an official marketplace of Cursor plugins covering developer tools, frameworks, and SaaS products. Each plugin resides in its own directory with a `.cursor-plugin/plugin.json` manifest, spanning categories like Developer Tools, Productivity, Integrations, and Utilities.",
+      "usage": "Based on the documented structure, plugins are organized under a root `.cursor-plugin/marketplace.json` that lists all plugins, with each plugin folder containing its own `plugin.json` manifest and optional `skills/`, `rules/`, and `mcp.json` files. The README does not spell out a separate install or run command, so usage appears to rely on referencing these manifest and configuration files directly.",
+      "pros": "The repository bundles dozens of official integrations — for email, calendars, CRM, finance, meetings, forms, and more — each following a consistent manifest and folder layout (plugin.json, skills/, rules/, mcp.json), which makes individual plugins easy to locate and inspect.",
+      "cons": "The README documents the file and directory layout and manifest format but does not appear to include an explicit installation or execution command, so how a plugin is deployed or activated within Cursor is not fully spelled out.",
+      "fit": "This repository, released under the MIT license, likely suits developers or teams already working within Cursor's plugin/agent ecosystem who want ready-made, officially maintained integrations — including MCP server definitions — rather than building custom connectors from scratch."
     },
     "summaries": {
       "en": {
-        "goal": "cursor/plugins is the official marketplace repository for Cursor plugins that add support for developer tools, frameworks, and SaaS products. Each plugin lives in its own standalone directory at the repository root, with the root `.cursor-plugin/marketplace.json` file listing all available plugins.",
-        "usage": "The README documents the file layout rather than an install command: a top-level `.cursor-plugin/marketplace.json` registers all plugins, and each plugin directory holds its own `.cursor-plugin/plugin.json` manifest along with `skills/`, `rules/`, `mcp.json`, `README.md`, and `CHANGELOG.md`. Plugins are likely added to Cursor through this marketplace manifest, though the root README does not spell out a specific setup command.",
-        "pros": "The repository bundles a wide range of plugins spanning Developer Tools, Productivity, Integrations, and Utilities categories, including connectors for Gmail, Google Drive, Salesforce, GitHub, and Playwright, alongside developer-workflow plugins like Thermos and Cursor Team Kit. Each plugin is self-contained with its own manifest, README, and changelog, keeping individual plugins independently documented and versioned.",
-        "cons": "The root README itself provides no installation or run command, only the manifest and directory structure, so setup detail depends on each plugin's own README and CHANGELOG. Because many listed integrations connect to third-party SaaS accounts (e.g., Salesforce, HubSpot, Brex), using them will likely require separate account credentials or API access that the root README does not describe.",
-        "fit": "Given its Developer Tools and Integrations categories, the repository appears aimed at teams already using Cursor who want to extend agent workflows with SaaS connectors (CRM, calendar, email, HR, meetings) or developer-process plugins (CI, code review, branch auditing). It is licensed under MIT."
+        "goal": "The cursor/plugins repository documents an official marketplace of Cursor plugins covering developer tools, frameworks, and SaaS products. Each plugin resides in its own directory with a `.cursor-plugin/plugin.json` manifest, spanning categories like Developer Tools, Productivity, Integrations, and Utilities.",
+        "usage": "Based on the documented structure, plugins are organized under a root `.cursor-plugin/marketplace.json` that lists all plugins, with each plugin folder containing its own `plugin.json` manifest and optional `skills/`, `rules/`, and `mcp.json` files. The README does not spell out a separate install or run command, so usage appears to rely on referencing these manifest and configuration files directly.",
+        "pros": "The repository bundles dozens of official integrations — for email, calendars, CRM, finance, meetings, forms, and more — each following a consistent manifest and folder layout (plugin.json, skills/, rules/, mcp.json), which makes individual plugins easy to locate and inspect.",
+        "cons": "The README documents the file and directory layout and manifest format but does not appear to include an explicit installation or execution command, so how a plugin is deployed or activated within Cursor is not fully spelled out.",
+        "fit": "This repository, released under the MIT license, likely suits developers or teams already working within Cursor's plugin/agent ecosystem who want ready-made, officially maintained integrations — including MCP server definitions — rather than building custom connectors from scratch."
       },
       "ko": {
-        "goal": "cursor/plugins는 개발자 도구, 프레임워크, SaaS 제품용 Cursor 플러그인을 모아놓은 공식 마켓플레이스 저장소입니다. 각 플러그인은 저장소 루트에 독립된 디렉터리로 존재하며, 루트의 `.cursor-plugin/marketplace.json` 파일이 모든 플러그인 목록을 관리합니다.",
-        "usage": "README는 설치 명령어 대신 파일 구조를 설명합니다. 최상위 `.cursor-plugin/marketplace.json`이 모든 플러그인을 등록하고, 각 플러그인 디렉터리에는 자체 `.cursor-plugin/plugin.json` 매니페스트와 `skills/`, `rules/`, `mcp.json`, `README.md`, `CHANGELOG.md`가 포함됩니다. 이 마켓플레이스 매니페스트를 통해 Cursor에 플러그인을 추가하는 것으로 보이지만, 루트 README에 구체적인 설정 명령은 명시되어 있지 않습니다.",
-        "pros": "이 저장소는 Developer Tools, Productivity, Integrations, Utilities 범주에 걸쳐 Gmail, Google Drive, Salesforce, GitHub, Playwright 커넥터부터 Thermos, Cursor Team Kit 같은 개발 워크플로 플러그인까지 다양한 플러그인을 제공합니다. 각 플러그인은 자체 매니페스트, README, CHANGELOG를 갖춘 독립적인 구조라서 개별적으로 문서화되고 버전 관리됩니다.",
-        "cons": "루트 README 자체는 설치나 실행 명령을 제공하지 않고 매니페스트와 디렉터리 구조만 설명하므로, 구체적인 설정 방법은 각 플러그인의 README와 CHANGELOG에 의존해야 합니다. Salesforce, HubSpot, Brex 등 다수의 통합 플러그인은 서드파티 SaaS 계정과 연결되므로, 별도의 계정 자격 증명이나 API 접근이 필요할 가능성이 있으며 이는 루트 README에 설명되어 있지 않습니다.",
-        "fit": "Developer Tools 및 Integrations 범주로 볼 때, 이미 Cursor를 사용 중이며 CRM, 캘린더, 이메일, HR, 회의 등 SaaS 커넥터나 CI·코드 리뷰·브랜치 감사 같은 개발 프로세스 플러그인으로 에이전트 워크플로를 확장하려는 팀에 적합해 보입니다. 라이선스는 MIT입니다."
+        "goal": "cursor/plugins 저장소는 개발자 도구, 프레임워크, SaaS 제품을 위한 공식 Cursor 플러그인 마켓플레이스를 문서화합니다. 각 플러그인은 자체 `.cursor-plugin/plugin.json` 매니페스트를 가진 별도 디렉터리에 위치하며, Developer Tools, Productivity, Integrations, Utilities 등의 카테고리로 구분됩니다.",
+        "usage": "문서화된 구조에 따르면, 루트의 `.cursor-plugin/marketplace.json`이 모든 플러그인을 나열하고, 각 플러그인 폴더는 자체 `plugin.json` 매니페스트와 선택적으로 `skills/`, `rules/`, `mcp.json` 파일을 포함합니다. README에는 별도의 설치나 실행 명령이 명시되어 있지 않아, 사용 방식은 이러한 매니페스트와 설정 파일을 직접 참조하는 것으로 보입니다.",
+        "pros": "이 저장소는 이메일, 캘린더, CRM, 재무, 회의, 양식 등 수십 개의 공식 통합을 묶어 제공하며, 각각 plugin.json, skills/, rules/, mcp.json으로 이어지는 일관된 매니페스트와 폴더 구조를 따르고 있어 개별 플러그인을 찾고 살펴보기가 용이합니다.",
+        "cons": "README는 파일 및 디렉터리 구조와 매니페스트 형식은 설명하지만, 명시적인 설치나 실행 명령은 포함하지 않는 것으로 보이며, 이에 따라 플러그인을 Cursor 내에서 어떻게 배포하거나 활성화하는지는 완전히 설명되어 있지 않습니다.",
+        "fit": "MIT 라이선스로 배포되는 이 저장소는, 직접 커넥터를 만들기보다 MCP 서버 정의를 포함해 이미 준비된 공식 통합을 원하는 Cursor 플러그인/에이전트 생태계 사용자에게 적합할 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "cursor/plugins 是官方的 Cursor 插件市场仓库,汇集了面向开发者工具、框架和 SaaS 产品的插件。每个插件都是仓库根目录下的独立目录,根目录的 `.cursor-plugin/marketplace.json` 文件列出了所有插件。",
-        "usage": "README 说明的是文件结构而非安装命令:顶层的 `.cursor-plugin/marketplace.json` 注册所有插件,每个插件目录下都有自己的 `.cursor-plugin/plugin.json` 清单以及 `skills/`、`rules/`、`mcp.json`、`README.md`、`CHANGELOG.md`。插件似乎是通过这个市场清单添加到 Cursor 中的,但根目录 README 并未给出具体的设置命令。",
-        "pros": "该仓库涵盖 Developer Tools、Productivity、Integrations、Utilities 等多个分类,提供 Gmail、Google Drive、Salesforce、GitHub、Playwright 等连接器,以及 Thermos、Cursor Team Kit 等开发工作流插件。每个插件都自带清单、README 和 CHANGELOG,结构独立,便于分别记录文档和版本。",
-        "cons": "根目录 README 本身没有提供安装或运行命令,只描述了清单和目录结构,具体设置细节要依赖各插件自己的 README 和 CHANGELOG。由于 Salesforce、HubSpot、Brex 等多个集成插件需要连接第三方 SaaS 账户,使用它们可能需要单独的账户凭证或 API 访问权限,而这一点根目录 README 并未说明。",
-        "fit": "从 Developer Tools 和 Integrations 分类来看,该仓库似乎面向已经在使用 Cursor 的团队,他们希望通过 CRM、日历、邮件、HR、会议等 SaaS 连接器,或 CI、代码审查、分支审计等开发流程插件来扩展代理工作流。该仓库采用 MIT 许可证。"
+        "goal": "cursor/plugins 仓库记录了一个面向开发者工具、框架和 SaaS 产品的官方 Cursor 插件市场。每个插件都位于独立目录中,并带有自己的 `.cursor-plugin/plugin.json` 清单文件,涵盖 Developer Tools、Productivity、Integrations 和 Utilities 等类别。",
+        "usage": "根据文档描述的结构,根目录下的 `.cursor-plugin/marketplace.json` 会列出所有插件,每个插件文件夹都包含自己的 `plugin.json` 清单,以及可选的 `skills/`、`rules/` 和 `mcp.json` 文件。README 并未给出单独的安装或运行命令,因此使用方式看起来是直接引用这些清单和配置文件。",
+        "pros": "该仓库汇集了数十个官方集成,涵盖邮件、日历、CRM、财务、会议、表单等领域,每个插件都遵循 plugin.json、skills/、rules/、mcp.json 这样一致的清单和目录结构,便于查找和查看单个插件。",
+        "cons": "README 只说明了文件与目录结构以及清单格式,似乎并未包含明确的安装或执行命令,因此插件在 Cursor 中具体如何部署或激活并未完全说明。",
+        "fit": "该仓库以 MIT 许可证发布,可能适合已经在 Cursor 插件/代理生态系统中工作、希望获得包含 MCP 服务器定义在内的现成官方集成、而不必自行构建连接器的开发者或团队。"
       },
       "es": {
-        "goal": "cursor/plugins es el repositorio oficial de marketplace de plugins de Cursor para herramientas de desarrollo, frameworks y productos SaaS. Cada plugin se encuentra en su propio directorio independiente en la raíz del repositorio, y el archivo raíz `.cursor-plugin/marketplace.json` enumera todos los plugins disponibles.",
-        "usage": "El README documenta la estructura de archivos en lugar de un comando de instalación: el `.cursor-plugin/marketplace.json` de nivel superior registra todos los plugins, y cada directorio de plugin contiene su propio manifiesto `.cursor-plugin/plugin.json` junto con `skills/`, `rules/`, `mcp.json`, `README.md` y `CHANGELOG.md`. Los plugins probablemente se añaden a Cursor a través de este manifiesto de marketplace, aunque el README raíz no detalla un comando de configuración concreto.",
-        "pros": "El repositorio reúne una amplia variedad de plugins en las categorías Developer Tools, Productivity, Integrations y Utilities, incluyendo conectores para Gmail, Google Drive, Salesforce, GitHub y Playwright, junto con plugins de flujo de trabajo de desarrollo como Thermos y Cursor Team Kit. Cada plugin es autocontenido con su propio manifiesto, README y changelog, lo que permite documentarlos y versionarlos de forma independiente.",
-        "cons": "El README raíz no ofrece por sí mismo un comando de instalación o ejecución, solo describe el manifiesto y la estructura de directorios, por lo que los detalles de configuración dependen del README y CHANGELOG de cada plugin. Como varias integraciones listadas, como Salesforce, HubSpot y Brex, se conectan a cuentas SaaS de terceros, probablemente su uso requiera credenciales de cuenta o acceso a la API que el README raíz no describe.",
-        "fit": "Según sus categorías Developer Tools e Integrations, el repositorio parece dirigido a equipos que ya usan Cursor y quieren extender sus flujos de trabajo de agentes con conectores SaaS (CRM, calendario, correo, RR. HH., reuniones) o plugins de proceso de desarrollo (CI, revisión de código, auditoría de ramas). Se distribuye bajo licencia MIT."
+        "goal": "El repositorio cursor/plugins documenta un mercado oficial de plugins de Cursor para herramientas de desarrollo, frameworks y productos SaaS. Cada plugin reside en su propio directorio con un manifiesto `.cursor-plugin/plugin.json`, y abarca categorías como Developer Tools, Productivity, Integrations y Utilities.",
+        "usage": "Según la estructura documentada, un `.cursor-plugin/marketplace.json` raíz enumera todos los plugins, y cada carpeta de plugin contiene su propio manifiesto `plugin.json` junto con archivos opcionales `skills/`, `rules/` y `mcp.json`. El README no detalla un comando de instalación o ejecución independiente, por lo que el uso parece basarse en referenciar directamente estos manifiestos y archivos de configuración.",
+        "pros": "El repositorio reúne decenas de integraciones oficiales —para correo, calendarios, CRM, finanzas, reuniones, formularios y más— cada una siguiendo una estructura de manifiesto y carpetas consistente (plugin.json, skills/, rules/, mcp.json), lo que facilita localizar e inspeccionar cada plugin.",
+        "cons": "El README documenta la disposición de archivos y directorios y el formato del manifiesto, pero no parece incluir un comando explícito de instalación o ejecución, por lo que no queda del todo claro cómo se despliega o activa un plugin dentro de Cursor.",
+        "fit": "Este repositorio, distribuido bajo licencia MIT, probablemente sea adecuado para desarrolladores o equipos que ya trabajan dentro del ecosistema de plugins/agentes de Cursor y buscan integraciones oficiales ya preparadas —incluyendo definiciones de servidor MCP— en lugar de construir conectores personalizados desde cero."
       },
       "ja": {
-        "goal": "cursor/plugins は、開発者向けツール、フレームワーク、SaaS製品向けのCursor公式プラグインを集めたマーケットプレイスリポジトリです。各プラグインはリポジトリルートにある独立したディレクトリとして存在し、ルートの `.cursor-plugin/marketplace.json` がすべてのプラグインを一覧化しています。",
-        "usage": "READMEはインストールコマンドではなくファイル構造を説明しています。トップレベルの `.cursor-plugin/marketplace.json` が全プラグインを登録し、各プラグインディレクトリには独自の `.cursor-plugin/plugin.json` マニフェストと `skills/`、`rules/`、`mcp.json`、`README.md`、`CHANGELOG.md` が含まれます。このマーケットプレイスのマニフェストを通じてCursorにプラグインが追加されると考えられますが、ルートのREADMEには具体的な設定コマンドは示されていません。",
-        "pros": "このリポジトリは Developer Tools、Productivity、Integrations、Utilities の各カテゴリにわたり、Gmail、Google Drive、Salesforce、GitHub、Playwright向けのコネクタから、ThermosやCursor Team Kitのような開発ワークフロー用プラグインまで幅広く提供しています。各プラグインは独自のマニフェスト、README、CHANGELOGを備えた自己完結型の構造になっており、個別に文書化・バージョン管理されています。",
-        "cons": "ルートのREADME自体はインストールや実行コマンドを示さず、マニフェストとディレクトリ構造のみを説明しているため、具体的な設定方法は各プラグインのREADMEとCHANGELOGに依存します。Salesforce、HubSpot、Brexなど多くの連携プラグインはサードパーティのSaaSアカウントに接続するため、利用には個別のアカウント資格情報やAPIアクセスが必要になる可能性があり、この点はルートのREADMEには説明されていません。",
-        "fit": "Developer ToolsおよびIntegrationsのカテゴリから判断すると、このリポジトリは既にCursorを使用しているチームが、CRM・カレンダー・メール・HR・会議などのSaaSコネクタや、CI・コードレビュー・ブランチ監査といった開発プロセス用プラグインでエージェントのワークフローを拡張することを想定していると考えられます。ライセンスはMITです。"
+        "goal": "cursor/plugins リポジトリは、開発者ツール、フレームワーク、SaaS製品向けの公式Cursorプラグインマーケットプレイスを記載しています。各プラグインは独自の`.cursor-plugin/plugin.json`マニフェストを持つ個別のディレクトリに配置され、Developer Tools、Productivity、Integrations、Utilitiesなどのカテゴリにまたがっています。",
+        "usage": "文書化された構造によると、ルートの`.cursor-plugin/marketplace.json`がすべてのプラグインを一覧化し、各プラグインフォルダーは独自の`plugin.json`マニフェストと、任意で`skills/`、`rules/`、`mcp.json`ファイルを含みます。READMEには個別のインストールや実行コマンドは明記されておらず、利用方法はこれらのマニフェストや設定ファイルを直接参照することのようです。",
+        "pros": "本リポジトリはメール、カレンダー、CRM、財務、会議、フォームなど数十件の公式インテグレーションをまとめており、それぞれがplugin.json、skills/、rules/、mcp.jsonという一貫したマニフェストとフォルダー構成に従っているため、個々のプラグインを見つけて確認しやすくなっています。",
+        "cons": "READMEはファイル・ディレクトリ構成とマニフェスト形式については説明していますが、明示的なインストールや実行コマンドは含まれていないようで、プラグインをCursor内でどのように展開・有効化するかは十分に説明されていません。",
+        "fit": "MITライセンスで配布されるこのリポジトリは、独自にコネクタを構築するのではなく、MCPサーバー定義を含む用意済みの公式インテグレーションを求める、Cursorのプラグイン/エージェントエコシステムで既に作業している開発者やチームに適していると考えられます。"
       }
     },
     "evidence": {
@@ -7079,63 +7101,48 @@
           "start_line": 1,
           "end_line": 3,
           "section_heading": "Cursor plugins"
-        },
-        {
-          "start_line": 80,
-          "end_line": 80,
-          "section_heading": "Repository structure"
         }
       ],
       "usage": [
         {
-          "start_line": 80,
-          "end_line": 80,
-          "section_heading": "Repository structure"
-        },
-        {
-          "start_line": 82,
-          "end_line": 96,
+          "start_line": 87,
+          "end_line": 103,
           "section_heading": "Repository structure"
         }
       ],
       "pros": [
         {
-          "start_line": 9,
-          "end_line": 23,
+          "start_line": 7,
+          "end_line": 82,
           "section_heading": "Plugins"
         },
         {
-          "start_line": 24,
-          "end_line": 75,
-          "section_heading": "Plugins"
-        },
-        {
-          "start_line": 86,
-          "end_line": 96,
+          "start_line": 93,
+          "end_line": 101,
           "section_heading": "Repository structure"
         }
       ],
       "cons": [
         {
-          "start_line": 82,
-          "end_line": 96,
+          "start_line": 87,
+          "end_line": 103,
           "section_heading": "Repository structure"
-        },
-        {
-          "start_line": 24,
-          "end_line": 75,
-          "section_heading": "Plugins"
         }
       ],
       "fit": [
         {
-          "start_line": 9,
-          "end_line": 75,
-          "section_heading": "Plugins"
+          "start_line": 3,
+          "end_line": 3,
+          "section_heading": "Cursor plugins"
         },
         {
-          "start_line": 100,
-          "end_line": 100,
+          "start_line": 98,
+          "end_line": 98,
+          "section_heading": "Repository structure"
+        },
+        {
+          "start_line": 105,
+          "end_line": 107,
           "section_heading": "License"
         }
       ]
@@ -7147,78 +7154,23 @@
         "fields": [
           "goal",
           "usage",
-          "pros",
+          "cons",
           "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Gmail",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Google Drive",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Salesforce",
-        "fields": [
-          "pros",
-          "cons"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "GitHub",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Playwright",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Thermos",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Cursor Team Kit",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "HubSpot",
-        "fields": [
-          "cons"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Brex",
-        "fields": [
-          "cons"
         ]
       },
       {
         "kind": "product",
         "value": "MIT",
         "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "MCP",
+        "fields": [
+          "usage",
+          "pros",
           "fit"
         ]
       }
@@ -7232,8 +7184,8 @@
       "kind": "readme",
       "slug": "cursor/plugins",
       "path": "README.md",
-      "blob_sha": "c239f85640bdac9aaa9fce5a9c36946141dd1de8",
-      "content_sha256": "795ef0caad99611f495419aa66dfe244c08cd6575fc4ad76b78f1df0c95ab685",
+      "blob_sha": "6cff83a321bfacf0bb0adfcec8e3d01131b3a8d6",
+      "content_sha256": "2025b6cc9eaee97af45551b93187d30e32560ce4342f26343728bd4ab70d585a",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -8292,47 +8244,47 @@
   },
   "semantica-agi/semantica": {
     "content": {
-      "goal": "Semantica is presented as graph-native infrastructure for building a Context Graph and knowledge graph (KG) from enterprise data, adding deterministic reasoning, ontology management (OWL, SHACL, SKOS), and decision provenance so AI agent decisions become traceable and explainable rather than opaque similarity scores.",
-      "usage": "Requires Python 3.8+; install with `pip install semantica`, then use the Python API (for example `from semantica.context import ContextGraph`) to build a graph and record decisions. Run `semantica doctor` to verify the install, or browse the source and docs at https://github.com/semantica-agi/semantica. A CLI, REST API, and MCP server are also documented.",
-      "pros": "Core reasoning, knowledge-graph construction, and provenance run deterministically without requiring an LLM; storage is polyglot across RDF and labeled property graphs; the v0.6.8 release added signed releases and new LLM-provider wrappers; a cited benchmark reports sub-millisecond node search on a 118,000-node graph.",
-      "cons": "ReteEngine's condition matcher is documented as intentionally simple in this release, with a caution to validate `match_patterns()` output before relying on it for a production compliance gate; several ingestors (DuckDB, Elasticsearch, Google Drive, HuggingFace, MongoDB, Pandas) are not yet re-exported from the top-level ingest module and require direct imports; cited deduplication performance figures are historical changelog measurements rather than automated benchmark assertions.",
-      "fit": "It targets AI/ML platform teams, enterprise data teams on Databricks, Snowflake, or SAP, and compliance/risk/audit teams, plus regulated industries such as finance, healthcare, legal, government, and defense that need self-hosted, vendor-neutral, auditable knowledge infrastructure instead of a third-party SaaS black box."
+      "goal": "Semantica is described as graph-native infrastructure for context and accountable AI systems: it ingests enterprise data, extracts entities/relations, and builds a structured Context Graph and knowledge graph (KG), then runs graph analytics and deterministic reasoning over it with decision provenance built in.",
+      "usage": "Install with `pip install semantica`, then use the Python API centered on `ContextGraph` (e.g. `from semantica.context import ContextGraph`) to build graphs and record decisions; running `semantica doctor` verifies the install in about five seconds.",
+      "pros": "Documented capabilities include first-class Context Graphs, decision intelligence with causal links, W3C PROV-O provenance on every fact, deterministic reasoning engines (forward chaining, Rete, Datalog, SPARQL), and polyglot storage across RDF and labeled property graph backends, with LLM use described as optional rather than required.",
+      "cons": "The bundled `ReteEngine` alpha-node condition matcher is documented as intentionally simple in this release, and the README advises validating its output against an actual rule set before relying on it for a production compliance gate, suggesting some reasoning components may still need extra verification for critical workflows.",
+      "fit": "The README states this targets AI/ML platform teams, enterprise data teams on Databricks/Snowflake/SAP, compliance and audit teams, and regulated enterprises wanting a self-hosted, vendor-neutral KG and reasoning stack, implying it may be a less direct fit for teams preferring a fully managed, no-setup SaaS alternative."
     },
     "summaries": {
       "en": {
-        "goal": "Semantica is presented as graph-native infrastructure for building a Context Graph and knowledge graph (KG) from enterprise data, adding deterministic reasoning, ontology management (OWL, SHACL, SKOS), and decision provenance so AI agent decisions become traceable and explainable rather than opaque similarity scores.",
-        "usage": "Requires Python 3.8+; install with `pip install semantica`, then use the Python API (for example `from semantica.context import ContextGraph`) to build a graph and record decisions. Run `semantica doctor` to verify the install, or browse the source and docs at https://github.com/semantica-agi/semantica. A CLI, REST API, and MCP server are also documented.",
-        "pros": "Core reasoning, knowledge-graph construction, and provenance run deterministically without requiring an LLM; storage is polyglot across RDF and labeled property graphs; the v0.6.8 release added signed releases and new LLM-provider wrappers; a cited benchmark reports sub-millisecond node search on a 118,000-node graph.",
-        "cons": "ReteEngine's condition matcher is documented as intentionally simple in this release, with a caution to validate `match_patterns()` output before relying on it for a production compliance gate; several ingestors (DuckDB, Elasticsearch, Google Drive, HuggingFace, MongoDB, Pandas) are not yet re-exported from the top-level ingest module and require direct imports; cited deduplication performance figures are historical changelog measurements rather than automated benchmark assertions.",
-        "fit": "It targets AI/ML platform teams, enterprise data teams on Databricks, Snowflake, or SAP, and compliance/risk/audit teams, plus regulated industries such as finance, healthcare, legal, government, and defense that need self-hosted, vendor-neutral, auditable knowledge infrastructure instead of a third-party SaaS black box."
+        "goal": "Semantica is described as graph-native infrastructure for context and accountable AI systems: it ingests enterprise data, extracts entities/relations, and builds a structured Context Graph and knowledge graph (KG), then runs graph analytics and deterministic reasoning over it with decision provenance built in.",
+        "usage": "Install with `pip install semantica`, then use the Python API centered on `ContextGraph` (e.g. `from semantica.context import ContextGraph`) to build graphs and record decisions; running `semantica doctor` verifies the install in about five seconds.",
+        "pros": "Documented capabilities include first-class Context Graphs, decision intelligence with causal links, W3C PROV-O provenance on every fact, deterministic reasoning engines (forward chaining, Rete, Datalog, SPARQL), and polyglot storage across RDF and labeled property graph backends, with LLM use described as optional rather than required.",
+        "cons": "The bundled `ReteEngine` alpha-node condition matcher is documented as intentionally simple in this release, and the README advises validating its output against an actual rule set before relying on it for a production compliance gate, suggesting some reasoning components may still need extra verification for critical workflows.",
+        "fit": "The README states this targets AI/ML platform teams, enterprise data teams on Databricks/Snowflake/SAP, compliance and audit teams, and regulated enterprises wanting a self-hosted, vendor-neutral KG and reasoning stack, implying it may be a less direct fit for teams preferring a fully managed, no-setup SaaS alternative."
       },
       "ko": {
-        "goal": "Semantica는 엔터프라이즈 데이터로부터 컨텍스트 그래프와 지식 그래프(KG)를 구축하는 그래프 네이티브 인프라로 소개되며, 결정론적 추론, 온톨로지 관리(OWL, SHACL, SKOS), 의사결정 출처 추적 기능을 통해 AI 에이전트의 결정을 불투명한 유사도 점수 대신 추적 가능하고 설명 가능하게 만듭니다.",
-        "usage": "Python 3.8+ 이상이 필요하며, `pip install semantica`로 설치한 뒤 `from semantica.context import ContextGraph`와 같은 파이썬 API로 그래프를 구축하고 결정을 기록할 수 있습니다. 설치를 확인하려면 `semantica doctor`를 실행하거나 https://github.com/semantica-agi/semantica 에서 소스와 문서를 확인할 수 있습니다. CLI, REST API, MCP 서버도 문서화되어 있습니다.",
-        "pros": "핵심 추론, 지식 그래프 구축, 출처 추적은 LLM 없이 결정론적으로 동작하며, 저장소는 RDF와 레이블 속성 그래프(LPG)를 아우르는 폴리글랏 방식입니다. v0.6.8 릴리스에서는 서명된 릴리스와 새로운 LLM 제공자 래퍼가 추가되었고, 인용된 벤치마크는 118,000개 노드 그래프에서 밀리초 미만의 노드 검색 성능을 보고합니다.",
-        "cons": "ReteEngine의 조건 매처는 이번 릴리스에서 의도적으로 단순하게 구현되어 있다고 문서화되어 있으며, 프로덕션 컴플라이언스 게이트에 사용하기 전에 `match_patterns()` 출력을 검증하라는 주의가 있습니다. 또한 DuckDB, Elasticsearch, Google Drive, HuggingFace, MongoDB, Pandas 등 일부 수집기는 아직 최상위 ingest 모듈에서 재노출되지 않아 직접 임포트가 필요하며, 인용된 중복 제거 성능 수치는 자동화된 벤치마크가 아니라 변경 이력에 기록된 과거 측정값입니다.",
-        "fit": "AI/ML 플랫폼 팀, Databricks·Snowflake·SAP를 사용하는 엔터프라이즈 데이터 팀, 컴플라이언스·리스크·감사 팀, 그리고 금융·의료·법률·정부·국방 등 규제 산업을 대상으로 하며, 서드파티 SaaS 블랙박스 대신 자체 호스팅되는 벤더 중립적이고 감사 가능한 지식 인프라가 필요한 조직에 적합합니다."
+        "goal": "Semantica는 컨텍스트 및 책임성 있는 AI 시스템을 위한 그래프 네이티브 인프라로 소개되며, 엔터프라이즈 데이터를 수집하고 엔티티/관계를 추출해 구조화된 Context Graph와 지식 그래프(KG)를 구축한 뒤, 결정 출처(provenance) 기능을 내장한 그래프 분석과 결정론적 추론을 수행합니다.",
+        "usage": "`pip install semantica`로 설치한 후 `ContextGraph`를 중심으로 한 파이썬 API(예: `from semantica.context import ContextGraph`)를 사용해 그래프를 만들고 결정을 기록하며, `semantica doctor` 명령을 실행하면 약 5초 만에 설치 상태를 확인할 수 있습니다.",
+        "pros": "문서화된 기능으로는 1급 객체로 다뤄지는 Context Graph, 인과관계를 포함한 결정 인텔리전스, 모든 사실에 대한 W3C PROV-O 출처 정보, 결정론적 추론 엔진(전방 연쇄, Rete, Datalog, SPARQL), 그리고 RDF와 레이블 속성 그래프 백엔드를 아우르는 폴리글랏 저장소가 있으며, LLM 사용은 필수가 아니라 선택 사항으로 설명됩니다.",
+        "cons": "번들로 제공되는 `ReteEngine`의 알파 노드 조건 매처는 이번 릴리스에서 의도적으로 단순하게 만들어졌다고 문서화되어 있으며, README는 이를 프로덕션 컴플라이언스 게이트에 사용하기 전에 실제 규칙 세트에 대해 출력을 검증하라고 권고합니다. 이는 일부 추론 구성 요소가 중요한 워크플로에서 여전히 추가 검증이 필요할 수 있음을 시사합니다.",
+        "fit": "README에 따르면 이 도구는 AI/ML 플랫폼 팀, Databricks/Snowflake/SAP를 사용하는 엔터프라이즈 데이터 팀, 컴플라이언스 및 감사 팀, 그리고 자체 호스팅되는 벤더 중립적 KG 및 추론 스택을 원하는 규제 산업 기업을 대상으로 하며, 이는 완전 관리형의 설정이 필요 없는 SaaS 대안을 선호하는 팀에게는 상대적으로 덜 적합할 수 있음을 암시합니다."
       },
       "zh-CN": {
-        "goal": "Semantica 被定位为一种图原生基础设施,用于从企业数据构建上下文图谱和知识图谱(KG),并加入确定性推理、本体管理(OWL、SHACL、SKOS)和决策溯源功能,使 AI 智能体的决策变得可追溯、可解释,而不是不透明的相似度分数。",
-        "usage": "该项目需要 Python 3.8+,可通过 `pip install semantica` 安装,然后使用 Python API(例如 `from semantica.context import ContextGraph`)构建图谱并记录决策。运行 `semantica doctor` 可验证安装,也可以在 https://github.com/semantica-agi/semantica 查看源码和文档。文档中还提供了 CLI、REST API 和 MCP 服务器。",
-        "pros": "核心推理、知识图谱构建和溯源功能均以确定性方式运行,无需依赖 LLM;存储方面支持 RDF 与标签属性图(LPG)的多语言(polyglot)方案;v0.6.8 版本增加了签名发布和新的 LLM 供应商封装;引用的基准测试显示在一个包含 118,000 个节点的图谱上实现了亚毫秒级的节点搜索。",
-        "cons": "文档说明 ReteEngine 的条件匹配器在本版本中被有意设计得较为简单,并提醒在将其用于生产环境的合规关卡之前应先验证 `match_patterns()` 的输出;另外,DuckDB、Elasticsearch、Google Drive、HuggingFace、MongoDB、Pandas 等部分数据摄取器尚未在顶层 ingest 模块中重新导出,需要直接导入;所引用的去重性能数据是记录在变更日志中的历史测量值,而非自动化基准测试断言。",
-        "fit": "该项目面向 AI/ML 平台团队、使用 Databricks、Snowflake 或 SAP 的企业数据团队、合规/风险/审计团队,以及金融、医疗、法律、政府和国防等受监管行业,这些机构需要自托管、供应商中立且可审计的知识基础设施,而非依赖第三方 SaaS 黑箱。"
+        "goal": "README 将 Semantica 描述为面向上下文与可问责 AI 系统的图原生基础设施:它可摄取企业数据、抽取实体与关系,构建结构化的 Context Graph 与知识图谱(KG),并在其上运行图分析与确定性推理,同时内置决策溯源能力。",
+        "usage": "通过 `pip install semantica` 安装后,可使用以 `ContextGraph` 为核心的 Python API(如 `from semantica.context import ContextGraph`)构建图谱并记录决策;运行 `semantica doctor` 可在约五秒内验证安装是否成功。",
+        "pros": "文档中列出的能力包括作为一等对象的 Context Graph、带因果链接的决策智能、每个事实都附带的 W3C PROV-O 溯源信息、确定性推理引擎(前向链、Rete、Datalog、SPARQL),以及跨 RDF 与标签属性图后端的多元存储,同时说明 LLM 的使用是可选的而非必需。",
+        "cons": "文档说明,内置的 `ReteEngine` 的 alpha 节点条件匹配器在当前版本中被有意设计得比较简单,README 建议在将其用于生产环境的合规关卡之前,先针对实际规则集验证其输出结果,这提示部分推理组件在关键业务流程中可能仍需额外验证。",
+        "fit": "README 指出该项目面向 AI/ML 平台团队、使用 Databricks/Snowflake/SAP 的企业数据团队、合规与审计团队,以及希望采用自托管、厂商中立的 KG 与推理技术栈的受监管企业,这也暗示对于偏好完全托管、免部署 SaaS 方案的团队来说,它可能不是最直接的选择。"
       },
       "es": {
-        "goal": "Semantica se presenta como una infraestructura nativa de grafos para construir un Context Graph y un grafo de conocimiento (KG) a partir de datos empresariales, añadiendo razonamiento determinista, gestión de ontologías (OWL, SHACL, SKOS) y procedencia de decisiones, de modo que las decisiones de los agentes de IA sean trazables y explicables en lugar de puntuaciones de similitud opacas.",
-        "usage": "Requiere Python 3.8+; se instala con `pip install semantica` y luego se usa la API de Python (por ejemplo, `from semantica.context import ContextGraph`) para construir un grafo y registrar decisiones. Ejecute `semantica doctor` para verificar la instalación, o consulte el código fuente y la documentación en https://github.com/semantica-agi/semantica. También se documentan una CLI, una API REST y un servidor MCP.",
-        "pros": "El razonamiento principal, la construcción del grafo de conocimiento y la procedencia funcionan de forma determinista sin requerir un LLM; el almacenamiento es políglota, abarcando RDF y grafos de propiedades etiquetadas (LPG); la versión v0.6.8 añadió lanzamientos firmados y nuevos wrappers de proveedores de LLM; un benchmark citado reporta búsquedas de nodos en submilisegundos sobre un grafo de 118,000 nodos.",
-        "cons": "Se documenta que el comparador de condiciones de ReteEngine es intencionalmente simple en esta versión, con la advertencia de validar la salida de `match_patterns()` antes de usarlo en una puerta de cumplimiento en producción; además, varios ingestores (DuckDB, Elasticsearch, Google Drive, HuggingFace, MongoDB, Pandas) todavía no se reexportan desde el módulo ingest de nivel superior y requieren importación directa; las cifras de rendimiento de deduplicación citadas son mediciones históricas registradas en el changelog, no aserciones de benchmark automatizadas.",
-        "fit": "Está dirigido a equipos de plataformas de IA/ML, equipos de datos empresariales que usan Databricks, Snowflake o SAP, equipos de cumplimiento/riesgo/auditoría, y sectores regulados como finanzas, salud, legal, gobierno y defensa que necesitan infraestructura de conocimiento autoalojada, neutral respecto al proveedor y auditable, en lugar de una caja negra SaaS de terceros."
+        "goal": "Semantica se describe como una infraestructura nativa de grafos para contexto y sistemas de IA responsables: ingiere datos empresariales, extrae entidades y relaciones, y construye un Context Graph y un grafo de conocimiento (KG) estructurado, sobre el cual ejecuta análisis de grafos y razonamiento determinista con procedencia de decisiones integrada.",
+        "usage": "Se instala con `pip install semantica`, y luego se usa la API de Python centrada en `ContextGraph` (por ejemplo, `from semantica.context import ContextGraph`) para construir grafos y registrar decisiones; ejecutar `semantica doctor` verifica la instalación en unos cinco segundos.",
+        "pros": "Entre las capacidades documentadas están los Context Graphs como objetos de primera clase, inteligencia de decisiones con enlaces causales, procedencia W3C PROV-O en cada hecho, motores de razonamiento determinista (encadenamiento hacia adelante, Rete, Datalog, SPARQL) y almacenamiento poliglota entre backends RDF y de grafos de propiedades etiquetadas, describiéndose el uso de LLM como opcional en lugar de obligatorio.",
+        "cons": "El comparador de condiciones de nodo alfa del `ReteEngine` incluido se documenta como intencionalmente simple en esta versión, y el README recomienda validar su salida contra un conjunto de reglas real antes de depender de él para una puerta de cumplimiento en producción, lo que sugiere que algunos componentes de razonamiento podrían aún requerir verificación adicional en flujos críticos.",
+        "fit": "El README indica que está dirigido a equipos de plataforma de IA/ML, equipos de datos empresariales en Databricks/Snowflake/SAP, equipos de cumplimiento y auditoría, y empresas reguladas que buscan una pila de KG y razonamiento autoalojada y neutral respecto al proveedor, lo que sugiere que podría encajar menos directamente con equipos que prefieren una alternativa SaaS totalmente gestionada y sin configuración."
       },
       "ja": {
-        "goal": "Semantica は、企業データからコンテキストグラフとナレッジグラフ(KG)を構築するグラフネイティブなインフラとして紹介されており、決定論的推論、オントロジー管理(OWL、SHACL、SKOS)、意思決定の来歴追跡を追加することで、AI エージェントの意思決定を不透明な類似度スコアではなく追跡可能かつ説明可能にします。",
-        "usage": "Python 3.8+ が必要で、`pip install semantica` でインストールした後、`from semantica.context import ContextGraph` のような Python API を使ってグラフを構築し、意思決定を記録できます。インストールを確認するには `semantica doctor` を実行するか、https://github.com/semantica-agi/semantica でソースコードとドキュメントを確認してください。CLI、REST API、MCP サーバーについても文書化されています。",
-        "pros": "中核となる推論、ナレッジグラフ構築、来歴追跡は LLM を必要とせず決定論的に動作し、ストレージは RDF とラベル付きプロパティグラフ(LPG)にまたがるポリグロット方式です。v0.6.8 リリースでは署名付きリリースと新しい LLM プロバイダーラッパーが追加され、引用されたベンチマークでは 118,000 ノードのグラフでミリ秒未満のノード検索性能が報告されています。",
-        "cons": "ReteEngine の条件マッチャーは本リリースでは意図的に単純化されていると文書化されており、本番環境のコンプライアンスゲートで使用する前に `match_patterns()` の出力を検証するよう注意が示されています。また、DuckDB、Elasticsearch、Google Drive、HuggingFace、MongoDB、Pandas などの一部の取り込みコネクタはまだトップレベルの ingest モジュールから再エクスポートされておらず、直接インポートが必要です。引用されている重複排除の性能値は自動化されたベンチマーク検証ではなく、変更履歴に記録された過去の測定値です。",
-        "fit": "AI/ML プラットフォームチーム、Databricks・Snowflake・SAP を利用するエンタープライズデータチーム、コンプライアンス・リスク・監査チーム、そして金融・医療・法務・政府・防衛などの規制産業を対象としており、サードパーティの SaaS ブラックボックスではなく、セルフホスト型でベンダーに依存しない監査可能なナレッジ基盤を必要とする組織に適しています。"
+        "goal": "Semanticaは、コンテキストおよび説明責任のあるAIシステムのためのグラフネイティブなインフラストラクチャとして説明されており、企業データを取り込みエンティティや関係を抽出して構造化されたContext Graphと知識グラフ(KG)を構築し、その上で決定の来歴情報を組み込んだグラフ分析と決定論的推論を実行します。",
+        "usage": "`pip install semantica`でインストールした後、`ContextGraph`を中心としたPython API(例:`from semantica.context import ContextGraph`)を使ってグラフを構築し決定を記録します。`semantica doctor`を実行すると約5秒でインストールを検証できます。",
+        "pros": "文書化されている機能には、第一級オブジェクトとして扱われるContext Graph、因果関係を持つ決定インテリジェンス、すべての事実に付与されるW3C PROV-Oの来歴情報、決定論的な推論エンジン(前向き連鎖、Rete、Datalog、SPARQL)、そしてRDFとラベル付きプロパティグラフの両バックエンドにまたがる多言語ストレージが含まれ、LLMの利用は必須ではなくオプションとされています。",
+        "cons": "付属の`ReteEngine`のアルファノード条件マッチャーは、このリリースでは意図的にシンプルに作られていると文書化されており、READMEは本番のコンプライアンスゲートに使用する前に実際のルールセットに対して出力を検証するよう推奨しています。これは、一部の推論コンポーネントが重要なワークフローではまだ追加検証を必要とする可能性を示唆しています。",
+        "fit": "READMEによれば、対象はAI/MLプラットフォームチーム、Databricks/Snowflake/SAPを利用する企業データチーム、コンプライアンス・監査チーム、そして自己ホスト型でベンダー中立なKGおよび推論スタックを求める規制業界の企業とされており、完全マネージドで設定不要なSaaS代替を好むチームにはやや適合しにくい可能性が示唆されています。"
       }
     },
     "evidence": {
@@ -8343,8 +8295,8 @@
           "section_heading": "Graph-Native Infrastructure for Context and Accountable AI Systems"
         },
         {
-          "start_line": 65,
-          "end_line": 67,
+          "start_line": 69,
+          "end_line": 71,
           "section_heading": "Built for High-Stakes, Regulated Domains"
         }
       ],
@@ -8355,64 +8307,52 @@
           "section_heading": "Built for High-Stakes, Regulated Domains"
         },
         {
-          "start_line": 128,
-          "end_line": 146,
-          "section_heading": "Quick Start"
-        },
-        {
           "start_line": 151,
-          "end_line": 153,
+          "end_line": 155,
           "section_heading": "Quick Start"
         }
       ],
       "pros": [
         {
-          "start_line": 87,
-          "end_line": 99,
+          "start_line": 91,
+          "end_line": 101,
           "section_heading": "What Semantica Gives You"
         },
         {
-          "start_line": 1162,
-          "end_line": 1170,
-          "section_heading": "Performance"
-        },
-        {
-          "start_line": 1488,
-          "end_line": 1493,
-          "section_heading": "What's New in v0.6.8"
+          "start_line": 120,
+          "end_line": 120,
+          "section_heading": "Why Semantica"
         }
       ],
       "cons": [
         {
-          "start_line": 412,
-          "end_line": 412,
+          "start_line": 546,
+          "end_line": 546,
           "section_heading": "Module Reference"
-        },
-        {
-          "start_line": 544,
-          "end_line": 544,
-          "section_heading": "Module Reference"
-        },
-        {
-          "start_line": 1171,
-          "end_line": 1171,
-          "section_heading": "Performance"
         }
       ],
       "fit": [
         {
-          "start_line": 74,
-          "end_line": 81,
+          "start_line": 76,
+          "end_line": 83,
           "section_heading": "Built for High-Stakes, Regulated Domains"
         },
         {
-          "start_line": 1570,
-          "end_line": 1572,
-          "section_heading": "Enterprise"
+          "start_line": 23,
+          "end_line": 23,
+          "section_heading": "*Developer-first, knowledge infrastructure for AI, alternative to expensive enterprise platforms.*"
         }
       ]
     },
     "invariants": [
+      {
+        "kind": "product",
+        "value": "Semantica",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
       {
         "kind": "command",
         "value": "pip install semantica",
@@ -8426,51 +8366,18 @@
         "fields": [
           "usage"
         ]
-      },
-      {
-        "kind": "version",
-        "value": "Python 3.8+",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": "v0.6.8",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "118,000",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "url",
-        "value": "https://github.com/semantica-agi/semantica",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Semantica",
-        "fields": [
-          "goal",
-          "usage"
-        ]
       }
     ],
-    "inference_fields": [],
+    "inference_fields": [
+      "cons",
+      "fit"
+    ],
     "source": {
       "kind": "readme",
       "slug": "semantica-agi/semantica",
       "path": "README.md",
-      "blob_sha": "dcd6ce2e26197c458879e04c1e021ec2c5de6487",
-      "content_sha256": "c795d27eeeca1f1346a54d1db73e932ffa2dad62af710eb12142de4e9c41f282",
+      "blob_sha": "66a6f6dbff7667641a343d1e4098d17d405b4ff5",
+      "content_sha256": "a60fea0ff0427f99f4335de42809ddf296232a0a26f7b02228b7bcc9dc21353a",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -8682,53 +8589,53 @@
   },
   "vorssaint/vorssaint-utils": {
     "content": {
-      "goal": "Vorssaint is a free, open-source macOS menu bar application that consolidates utilities such as a per-app volume mixer, system monitor, window snapping, app switcher, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller into one icon, aiming to replace several separate paid Mac utility apps.",
-      "usage": "Vorssaint can be installed via Homebrew with `brew install --cask vorssaint`, or by downloading the disk image from https://github.com/vorssaint/vorssaint-utils/releases and dragging it into Applications. Developers can build it from source by cloning the repository and running `./build.sh` (or `./build.sh --install` to also install and launch it); Xcode Command Line Tools are required for building.",
-      "pros": "Individual features can be installed or uninstalled separately, so unused features stop loading and consume no CPU, memory or energy. Permissions are requested only for the features that need them and are explained in plain language. Releases are signed with an Apple Developer ID and notarized, and the project is released under the GPL-3.0-or-later license.",
-      "cons": "Vorssaint requires a Mac with Apple Silicon and macOS 14 Sonoma or newer, so it does not run on older macOS versions or Intel-based Macs. Some functionality also depends on granting macOS permissions such as Accessibility or Screen Recording, and Full Disk Access is needed for deeper cleaner and uninstaller scans.",
-      "fit": "Given its described local-first design with no account, analytics or tracking, the tool appears best suited to privacy-conscious Mac users on recent Apple Silicon hardware who want to replace multiple paid single-purpose utilities with one free, open-source menu bar app. Because of its stated macOS 14+ and Apple Silicon requirements, it likely is not usable on older or Intel-based Macs."
+      "goal": "Vorssaint is a free, open-source macOS menu bar application that consolidates utilities normally sold as separate paid apps, including a per-app volume mixer, system monitor, window snapping, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller, all running locally on the user's Mac.",
+      "usage": "Vorssaint can be installed via Homebrew with `brew install --cask vorssaint`, or by downloading the disk image from the GitHub releases page (https://github.com/vorssaint/vorssaint-utils/releases) and dragging it into Applications. To build from source, run `git clone https://github.com/vorssaint/vorssaint-utils.git`, then `./build.sh`, or `./build.sh --install` to also install and launch it.",
+      "pros": "Features are modular: users install only the bundles or individual features they need from the Features page, and uninstalled features stop loading entirely, described as saving CPU, memory, and energy. The app is local-first with no account, analytics, or tracking, and every macOS permission is optional and explained in plain terms.",
+      "cons": "Vorssaint requires macOS 14 Sonoma or newer running on Apple Silicon, so it likely cannot be installed on Intel-based Macs or older macOS versions. Some capabilities, such as Fan Control, are labeled beta, suggesting they may still be subject to change.",
+      "fit": "Given its menu-bar-based utility bundle and stated aim of replacing many single-purpose paid Mac apps, Vorssaint appears best suited for Apple Silicon Mac users on macOS 14 or newer who want consolidated system, window, and clipboard tools without subscriptions or accounts."
     },
     "summaries": {
       "en": {
-        "goal": "Vorssaint is a free, open-source macOS menu bar application that consolidates utilities such as a per-app volume mixer, system monitor, window snapping, app switcher, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller into one icon, aiming to replace several separate paid Mac utility apps.",
-        "usage": "Vorssaint can be installed via Homebrew with `brew install --cask vorssaint`, or by downloading the disk image from https://github.com/vorssaint/vorssaint-utils/releases and dragging it into Applications. Developers can build it from source by cloning the repository and running `./build.sh` (or `./build.sh --install` to also install and launch it); Xcode Command Line Tools are required for building.",
-        "pros": "Individual features can be installed or uninstalled separately, so unused features stop loading and consume no CPU, memory or energy. Permissions are requested only for the features that need them and are explained in plain language. Releases are signed with an Apple Developer ID and notarized, and the project is released under the GPL-3.0-or-later license.",
-        "cons": "Vorssaint requires a Mac with Apple Silicon and macOS 14 Sonoma or newer, so it does not run on older macOS versions or Intel-based Macs. Some functionality also depends on granting macOS permissions such as Accessibility or Screen Recording, and Full Disk Access is needed for deeper cleaner and uninstaller scans.",
-        "fit": "Given its described local-first design with no account, analytics or tracking, the tool appears best suited to privacy-conscious Mac users on recent Apple Silicon hardware who want to replace multiple paid single-purpose utilities with one free, open-source menu bar app. Because of its stated macOS 14+ and Apple Silicon requirements, it likely is not usable on older or Intel-based Macs."
+        "goal": "Vorssaint is a free, open-source macOS menu bar application that consolidates utilities normally sold as separate paid apps, including a per-app volume mixer, system monitor, window snapping, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller, all running locally on the user's Mac.",
+        "usage": "Vorssaint can be installed via Homebrew with `brew install --cask vorssaint`, or by downloading the disk image from the GitHub releases page (https://github.com/vorssaint/vorssaint-utils/releases) and dragging it into Applications. To build from source, run `git clone https://github.com/vorssaint/vorssaint-utils.git`, then `./build.sh`, or `./build.sh --install` to also install and launch it.",
+        "pros": "Features are modular: users install only the bundles or individual features they need from the Features page, and uninstalled features stop loading entirely, described as saving CPU, memory, and energy. The app is local-first with no account, analytics, or tracking, and every macOS permission is optional and explained in plain terms.",
+        "cons": "Vorssaint requires macOS 14 Sonoma or newer running on Apple Silicon, so it likely cannot be installed on Intel-based Macs or older macOS versions. Some capabilities, such as Fan Control, are labeled beta, suggesting they may still be subject to change.",
+        "fit": "Given its menu-bar-based utility bundle and stated aim of replacing many single-purpose paid Mac apps, Vorssaint appears best suited for Apple Silicon Mac users on macOS 14 or newer who want consolidated system, window, and clipboard tools without subscriptions or accounts."
       },
       "ko": {
-        "goal": "Vorssaint는 macOS 메뉴 막대 아이콘 하나로 앱별 볼륨 믹서, 시스템 모니터, 창 스냅, 앱 전환기, Dock 미리보기, 클립보드 기록, 텍스트 스니펫, 파일 선반, 제거 도구 등을 통합한 무료 오픈소스 애플리케이션으로, 여러 개의 유료 Mac 유틸리티 앱을 대체하는 것을 목표로 한다고 설명됩니다.",
-        "usage": "Vorssaint는 Homebrew를 사용해 `brew install --cask vorssaint` 명령으로 설치하거나, https://github.com/vorssaint/vorssaint-utils/releases 에서 디스크 이미지를 내려받아 Applications 폴더로 끌어다 놓아 설치할 수 있습니다. 개발자는 저장소를 클론한 뒤 `./build.sh`(또는 설치와 실행까지 함께 하는 `./build.sh --install`)를 실행해 소스에서 직접 빌드할 수 있으며, 빌드에는 Xcode Command Line Tools가 필요합니다.",
-        "pros": "개별 기능을 따로 설치하거나 제거할 수 있어, 사용하지 않는 기능은 로딩되지 않아 CPU, 메모리, 에너지를 소모하지 않는다고 설명됩니다. 권한은 해당 기능에 필요한 경우에만 요청되며 이해하기 쉬운 문구로 설명됩니다. 릴리스는 Apple Developer ID로 서명 및 공증되며, 프로젝트는 GPL-3.0-or-later 라이선스로 배포됩니다.",
-        "cons": "Vorssaint는 Apple Silicon Mac과 macOS 14 Sonoma 이상을 요구하므로, 이전 macOS 버전이나 Intel 기반 Mac에서는 실행되지 않습니다. 일부 기능은 접근성(Accessibility)이나 화면 기록(Screen Recording) 같은 macOS 권한 허용에 의존하며, 더 깊은 정리 및 제거 스캔에는 전체 디스크 접근 권한이 필요합니다.",
-        "fit": "계정, 분석, 추적이 없는 로컬 우선 설계로 설명되는 점을 고려하면, 이 도구는 여러 개의 유료 단일 목적 유틸리티를 하나의 무료 오픈소스 메뉴 막대 앱으로 대체하려는 최신 Apple Silicon Mac 사용자에게 가장 적합해 보입니다. macOS 14 이상과 Apple Silicon이라는 명시된 요구 사항 때문에, 이전 기종이나 Intel 기반 Mac에서는 사용할 수 없을 가능성이 높습니다."
+        "goal": "Vorssaint는 메뉴 바 아이콘 하나로 여러 유료 Mac 앱이 제공하던 기능—앱별 볼륨 믹서, 시스템 모니터, 창 스냅, Dock 미리보기, 클립보드 기록, 텍스트 스니펫, 파일 보관함, 언인스톨러 등—을 통합한 무료 오픈소스 macOS 애플리케이션이며, 모든 기능은 사용자의 Mac에서 로컬로 실행된다.",
+        "usage": "Homebrew를 사용해 `brew install --cask vorssaint` 명령으로 설치하거나, GitHub 릴리스 페이지(https://github.com/vorssaint/vorssaint-utils/releases)에서 디스크 이미지를 내려받아 Applications 폴더로 옮길 수 있다. 소스에서 직접 빌드하려면 `git clone https://github.com/vorssaint/vorssaint-utils.git` 후 `./build.sh`, 또는 설치와 실행까지 함께 수행하는 `./build.sh --install`을 사용한다.",
+        "pros": "기능은 모듈식으로 구성되어 있어 Features 페이지에서 필요한 번들이나 개별 기능만 설치할 수 있으며, 제거한 기능은 완전히 로드되지 않아 CPU·메모리·에너지를 절약한다고 설명된다. 앱은 로컬 우선 방식으로 계정, 분석, 추적이 없고, 모든 macOS 권한은 선택 사항이며 평이한 언어로 설명된다.",
+        "cons": "Vorssaint는 macOS 14 Sonoma 이상과 Apple Silicon을 요구하므로, Intel 기반 Mac이나 이전 버전의 macOS에서는 설치가 어려울 가능성이 있다. Fan Control과 같은 일부 기능은 베타로 표시되어 있어 아직 변경될 여지가 있는 것으로 보인다.",
+        "fit": "메뉴 바 기반의 통합 유틸리티 구성과 여러 유료 Mac 앱을 대체한다는 설명을 볼 때, Vorssaint는 구독이나 계정 없이 시스템·창·클립보드 도구를 한데 모으고자 하는 macOS 14 이상 Apple Silicon Mac 사용자에게 적합해 보인다."
       },
       "zh-CN": {
-        "goal": "Vorssaint 是一款免费开源的 macOS 菜单栏应用,据介绍它将单应用音量混音器、系统监视器、窗口贴靠、应用切换器、Dock 预览、剪贴板历史、文本片段、文件搁架和卸载工具等功能整合到一个图标中,旨在替代多款需要单独付费的 Mac 工具。",
-        "usage": "可以通过 Homebrew 使用 `brew install --cask vorssaint` 命令安装 Vorssaint,或从 https://github.com/vorssaint/vorssaint-utils/releases 下载磁盘映像后拖入 Applications 文件夹。开发者也可以克隆仓库后运行 `./build.sh`(或同时完成安装与启动的 `./build.sh --install`)从源代码构建,构建过程需要 Xcode Command Line Tools。",
-        "pros": "据介绍,各项功能可单独安装或卸载,未使用的功能不会加载,因而不消耗 CPU、内存或能源。权限仅在相关功能需要时才会请求,并以通俗语言说明用途。发行版使用 Apple Developer ID 签名并经过公证,项目基于 GPL-3.0-or-later 许可证发布。",
-        "cons": "Vorssaint 要求使用 Apple Silicon Mac 并运行 macOS 14 Sonoma 或更高版本,因此无法在较旧的 macOS 版本或基于 Intel 的 Mac 上运行。部分功能还依赖于授予辅助功能(Accessibility)或屏幕录制(Screen Recording)等 macOS 权限,更深入的清理与卸载扫描则需要完全磁盘访问权限。",
-        "fit": "鉴于其被描述为本地优先、不涉及账户、分析或跟踪的设计,该工具似乎最适合使用较新款 Apple Silicon Mac、希望用一款免费开源菜单栏应用取代多款单一用途付费工具的用户。由于文档中明确要求 macOS 14 及以上版本并搭配 Apple Silicon,它很可能无法在较旧机型或基于 Intel 的 Mac 上使用。"
+        "goal": "Vorssaint 是一款免费开源的 macOS 菜单栏应用,将原本需要多款付费 Mac 应用才能实现的功能整合在一起,包括分应用音量混音器、系统监视器、窗口贴靠、Dock 预览、剪贴板历史、文本片段、文件搁架和卸载工具,所有功能均在用户本机运行。",
+        "usage": "可以通过 Homebrew 使用 `brew install --cask vorssaint` 命令安装,也可以从 GitHub 发布页面(https://github.com/vorssaint/vorssaint-utils/releases)下载磁盘映像并拖入 Applications 文件夹。若要从源码构建,可执行 `git clone https://github.com/vorssaint/vorssaint-utils.git`,然后运行 `./build.sh`,或使用 `./build.sh --install` 一并完成安装并启动。",
+        "pros": "功能采用模块化设计,用户可在 Features 页面仅安装所需的套件或单项功能,据说卸载的功能会完全停止加载,从而节省 CPU、内存和电量。该应用采用本地优先模式,不含账户、分析或跟踪,且每项 macOS 权限均为可选并以通俗语言说明。",
+        "cons": "Vorssaint 需要 macOS 14 Sonoma 或更新版本,并且仅支持 Apple Silicon,因此可能无法在基于 Intel 的 Mac 或更旧版本的 macOS 上安装。部分功能(如 Fan Control)被标注为测试版,这似乎意味着其功能仍可能发生变化。",
+        "fit": "从其菜单栏式的整合工具集以及旨在替代多款付费 Mac 应用的定位来看,Vorssaint 似乎更适合希望在无需订阅或账户的情况下集中获得系统、窗口和剪贴板工具的 macOS 14 及以上版本 Apple Silicon Mac 用户。"
       },
       "es": {
-        "goal": "Vorssaint es una aplicación gratuita y de código abierto para la barra de menús de macOS que, según se describe, reúne en un solo icono un mezclador de volumen por aplicación, un monitor del sistema, ajuste de ventanas, un selector de aplicaciones, vistas previas del Dock, historial del portapapeles, fragmentos de texto, una bandeja de archivos y un desinstalador, con el objetivo de sustituir varias utilidades de pago para Mac.",
-        "usage": "Vorssaint puede instalarse mediante Homebrew con el comando `brew install --cask vorssaint`, o descargando la imagen de disco desde https://github.com/vorssaint/vorssaint-utils/releases y arrastrándola a Applications. Los desarrolladores también pueden compilarlo desde el código fuente clonando el repositorio y ejecutando `./build.sh` (o `./build.sh --install`, que además instala y abre la app); para compilar se requieren las Xcode Command Line Tools.",
-        "pros": "Según se describe, cada función puede instalarse o desinstalarse por separado, de modo que las funciones no utilizadas dejan de cargarse y no consumen CPU, memoria ni energía. Los permisos solo se solicitan cuando una función los necesita y se explican en lenguaje sencillo. Las versiones se firman con un Apple Developer ID y se notarizan, y el proyecto se publica bajo la licencia GPL-3.0-or-later.",
-        "cons": "Vorssaint requiere un Mac con Apple Silicon y macOS 14 Sonoma o posterior, por lo que no funciona en versiones anteriores de macOS ni en Mac basados en Intel. Algunas funciones también dependen de conceder permisos de macOS como Accesibilidad o Grabación de pantalla, y los análisis más profundos del limpiador y el desinstalador requieren acceso total al disco.",
-        "fit": "Dado su diseño descrito como local-first, sin cuentas, análisis ni rastreo, la herramienta parece más adecuada para usuarios de Mac con Apple Silicon recientes que buscan sustituir varias utilidades de pago de un solo propósito por una única aplicación gratuita y de código abierto en la barra de menús. Debido a sus requisitos declarados de macOS 14 o superior y Apple Silicon, probablemente no pueda usarse en modelos más antiguos o basados en Intel."
+        "goal": "Vorssaint es una aplicación de barra de menús para macOS, gratuita y de código abierto, que reúne funciones que normalmente requieren varias aplicaciones de pago para Mac, entre ellas un mezclador de volumen por aplicación, un monitor del sistema, ajuste de ventanas, vistas previas del Dock, historial del portapapeles, fragmentos de texto, una bandeja de archivos y un desinstalador, todo ejecutado localmente en el Mac del usuario.",
+        "usage": "Se puede instalar con Homebrew mediante el comando `brew install --cask vorssaint`, o descargando la imagen de disco desde la página de lanzamientos de GitHub (https://github.com/vorssaint/vorssaint-utils/releases) y arrastrándola a Aplicaciones. Para compilarlo desde el código fuente, se usa `git clone https://github.com/vorssaint/vorssaint-utils.git` seguido de `./build.sh`, o `./build.sh --install` para además instalarlo y ejecutarlo.",
+        "pros": "Las funciones son modulares: desde la página Features se puede instalar solo el paquete o las funciones individuales necesarias, y las funciones desinstaladas dejan de cargarse por completo, lo que según se describe ahorra CPU, memoria y energía. La aplicación es local-first, sin cuenta, análisis ni rastreo, y cada permiso de macOS es opcional y se explica en lenguaje sencillo.",
+        "cons": "Vorssaint requiere macOS 14 Sonoma o posterior junto con Apple Silicon, por lo que probablemente no pueda instalarse en Mac con procesador Intel ni en versiones anteriores de macOS. Algunas funciones, como Fan Control, se describen como beta, lo que sugiere que aún podrían cambiar.",
+        "fit": "Dado su conjunto de utilidades integradas en la barra de menús y su propósito declarado de sustituir varias aplicaciones de pago, Vorssaint parece adecuado para usuarios de Mac con Apple Silicon y macOS 14 o posterior que buscan herramientas de sistema, ventanas y portapapeles sin suscripciones ni cuentas."
       },
       "ja": {
-        "goal": "Vorssaint は、アプリ別音量ミキサー、システムモニター、ウィンドウのスナップ、アプリスイッチャー、Dock プレビュー、クリップボード履歴、テキストスニペット、ファイル置き場、アンインストーラーなどを1つのメニューバーアイコンにまとめたとされる無料・オープンソースの macOS アプリで、複数の有料 Mac ユーティリティを置き換えることを目的としていると説明されています。",
-        "usage": "Vorssaint は Homebrew を使い `brew install --cask vorssaint` コマンドでインストールするか、https://github.com/vorssaint/vorssaint-utils/releases からディスクイメージをダウンロードして Applications にドラッグしてインストールできます。開発者はリポジトリをクローンした後、`./build.sh`(インストールと起動まで行う `./build.sh --install` も可)を実行してソースからビルドでき、ビルドには Xcode Command Line Tools が必要です。",
-        "pros": "各機能は個別にインストール・アンインストールでき、使用しない機能は読み込まれないため CPU、メモリ、エネルギーを消費しないと説明されています。権限はその機能が必要とする場合にのみ要求され、平易な言葉で説明されます。リリースは Apple Developer ID で署名・公証されており、プロジェクトは GPL-3.0-or-later ライセンスの下で公開されています。",
-        "cons": "Vorssaint は Apple Silicon 搭載 Mac と macOS 14 Sonoma 以降を必要とするため、それより古い macOS バージョンや Intel 搭載 Mac では動作しません。一部の機能はアクセシビリティ(Accessibility)や画面収録(Screen Recording)などの macOS 権限の許可にも依存しており、より詳細なクリーナーおよびアンインストーラーのスキャンにはフルディスクアクセス権限が必要です。",
-        "fit": "アカウント、分析、トラッキングのないローカルファーストな設計とされている点を踏まえると、このツールは複数の有料単機能ユーティリティを1つの無料オープンソースのメニューバーアプリに置き換えたい、比較的新しい Apple Silicon Mac のユーザーに最も適していると考えられます。macOS 14 以降と Apple Silicon という明記された要件のため、より古い機種や Intel 搭載 Mac では使用できない可能性が高いです。"
+        "goal": "Vorssaintは、アプリ別音量ミキサー、システムモニター、ウィンドウのスナップ、Dockプレビュー、クリップボード履歴、テキストスニペット、ファイル置き場、アンインストーラーなど、通常は複数の有料Macアプリで提供される機能を1つのメニューバーアイコンにまとめた、無料でオープンソースのmacOSアプリケーションであり、すべてユーザーのMac上でローカルに動作する。",
+        "usage": "Homebrewを使い `brew install --cask vorssaint` コマンドでインストールできるほか、GitHubのリリースページ(https://github.com/vorssaint/vorssaint-utils/releases)からディスクイメージをダウンロードしてApplicationsフォルダにドラッグする方法もある。ソースからビルドする場合は `git clone https://github.com/vorssaint/vorssaint-utils.git` を実行した後、`./build.sh`、または同時にインストールと起動まで行う `./build.sh --install` を使用する。",
+        "pros": "機能はモジュール化されており、Featuresページから必要なバンドルや個別機能のみをインストールできる。アンインストールした機能は完全に読み込まれなくなり、CPU・メモリ・電力を節約すると説明されている。アプリはローカルファーストで、アカウント・解析・追跡がなく、macOSの各権限はすべて任意で平易な言葉で説明される。",
+        "cons": "Vorssaintの利用にはmacOS 14 Sonoma以降とApple Siliconが必要とされており、Intel搭載Macや旧バージョンのmacOSにはインストールできない可能性があると考えられる。Fan Controlなど一部機能はベータ版とされており、今後変更される可能性があることがうかがえる。",
+        "fit": "メニューバーを中心とした統合ユーティリティ構成と、複数の有料Macアプリを置き換えるという記載内容から判断すると、Vorssaintはサブスクリプションやアカウントなしでシステム・ウィンドウ・クリップボード関連のツールをまとめて使いたい、macOS 14以降のApple Silicon Mac利用者に適していると考えられる。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 10,
+          "start_line": 8,
           "end_line": 13,
           "section_heading": ""
         },
@@ -8740,7 +8647,7 @@
       ],
       "usage": [
         {
-          "start_line": 162,
+          "start_line": 160,
           "end_line": 164,
           "section_heading": "Install"
         },
@@ -8751,25 +8658,20 @@
         },
         {
           "start_line": 213,
-          "end_line": 220,
+          "end_line": 217,
           "section_heading": "Build it yourself"
         }
       ],
       "pros": [
         {
-          "start_line": 58,
+          "start_line": 60,
           "end_line": 62,
           "section_heading": "Install only what you use"
         },
         {
-          "start_line": 168,
-          "end_line": 168,
-          "section_heading": "Install"
-        },
-        {
-          "start_line": 29,
-          "end_line": 30,
-          "section_heading": ""
+          "start_line": 186,
+          "end_line": 188,
+          "section_heading": "Private by default"
         }
       ],
       "cons": [
@@ -8779,16 +8681,16 @@
           "section_heading": "What you need"
         },
         {
-          "start_line": 194,
-          "end_line": 201,
-          "section_heading": "Private by default"
+          "start_line": 82,
+          "end_line": 82,
+          "section_heading": "Know what your Mac is doing"
         }
       ],
       "fit": [
         {
-          "start_line": 186,
-          "end_line": 186,
-          "section_heading": "Private by default"
+          "start_line": 11,
+          "end_line": 12,
+          "section_heading": ""
         },
         {
           "start_line": 208,
@@ -8799,8 +8701,25 @@
     },
     "invariants": [
       {
+        "kind": "product",
+        "value": "Vorssaint",
+        "fields": [
+          "goal",
+          "usage",
+          "cons",
+          "fit"
+        ]
+      },
+      {
         "kind": "command",
         "value": "brew install --cask vorssaint",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "git clone https://github.com/vorssaint/vorssaint-utils.git",
         "fields": [
           "usage"
         ]
@@ -8820,46 +8739,31 @@
         ]
       },
       {
+        "kind": "url",
+        "value": "https://github.com/vorssaint/vorssaint-utils/releases",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
         "kind": "version",
         "value": "macOS 14",
         "fields": [
           "cons",
           "fit"
         ]
-      },
-      {
-        "kind": "product",
-        "value": "Vorssaint",
-        "fields": [
-          "goal",
-          "usage",
-          "cons"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Homebrew",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "url",
-        "value": "https://github.com/vorssaint/vorssaint-utils/releases",
-        "fields": [
-          "usage"
-        ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "vorssaint/vorssaint-utils",
       "path": "README.md",
-      "blob_sha": "6515f1a21b00d126f42b8b628d5d1fb3536b8673",
-      "content_sha256": "92a76745ab9514fb3e9b4019c982ad68d309de2f50aa9adce8a4f7a6d5629d17",
+      "blob_sha": "53f54aae62f608d68f6fa2125bdd9064d5761c99",
+      "content_sha256": "763edf07756b5515c6efefd16a646bd7a2d909602f515caa7bd23c6dd92504cf",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -9278,6 +9182,211 @@
       "translation_applicable": false
     }
   },
+  "akitaonrails/ai-memory": {
+    "content": {
+      "goal": "ai-memory provides long-term, shared memory for AI coding agents. It captures work across sessions so a different agent or harness—such as Claude Code, Codex, Cursor, or Gemini CLI—can resume a task with a handoff describing prior progress, failed approaches, and open questions, instead of losing context when switching tools or machines.",
+      "usage": "The project is installed via Docker/Podman, a native binary built with Rust 1.95+, or an Arch Linux AUR package, then wired to an agent CLI. Two commands connect an agent: `ai-memory install-mcp --client claude-code --apply` and `ai-memory install-hooks --agent claude-code --apply`. The Docker quick-start runs the server bound to `127.0.0.1:49374`.",
+      "pros": "Memory is stored as plain, git-backed markdown files that can be searched with `grep`, opened in Obsidian, or rebuilt from disk rather than kept in a proprietary database. The default configuration works with zero LLM API calls for capture, search, and handoffs. Multi-user authentication, per-person attribution, and an audit log are included without a separate paid tier.",
+      "cons": "The project documents a measured write-throughput ceiling of about `700/s` rather than unlimited capacity, and native Windows support is listed as 'Experimental,' unlike the fully supported Linux, macOS, and WSL2 environments. Users running heavy write workloads or native Windows may accordingly encounter documented limits.",
+      "fit": "This tool seems best suited to developers or small teams using multiple AI coding agents who want continuity across sessions, machines, or teammates. It likely requires Docker or a native install and, per the support matrix, full support currently centers on Linux, macOS, and WSL2 environments."
+    },
+    "summaries": {
+      "en": {
+        "goal": "ai-memory provides long-term, shared memory for AI coding agents. It captures work across sessions so a different agent or harness—such as Claude Code, Codex, Cursor, or Gemini CLI—can resume a task with a handoff describing prior progress, failed approaches, and open questions, instead of losing context when switching tools or machines.",
+        "usage": "The project is installed via Docker/Podman, a native binary built with Rust 1.95+, or an Arch Linux AUR package, then wired to an agent CLI. Two commands connect an agent: `ai-memory install-mcp --client claude-code --apply` and `ai-memory install-hooks --agent claude-code --apply`. The Docker quick-start runs the server bound to `127.0.0.1:49374`.",
+        "pros": "Memory is stored as plain, git-backed markdown files that can be searched with `grep`, opened in Obsidian, or rebuilt from disk rather than kept in a proprietary database. The default configuration works with zero LLM API calls for capture, search, and handoffs. Multi-user authentication, per-person attribution, and an audit log are included without a separate paid tier.",
+        "cons": "The project documents a measured write-throughput ceiling of about `700/s` rather than unlimited capacity, and native Windows support is listed as 'Experimental,' unlike the fully supported Linux, macOS, and WSL2 environments. Users running heavy write workloads or native Windows may accordingly encounter documented limits.",
+        "fit": "This tool seems best suited to developers or small teams using multiple AI coding agents who want continuity across sessions, machines, or teammates. It likely requires Docker or a native install and, per the support matrix, full support currently centers on Linux, macOS, and WSL2 environments."
+      },
+      "ko": {
+        "goal": "ai-memory는 AI 코딩 에이전트를 위한 장기적이고 공유 가능한 메모리를 제공합니다. Claude Code, Codex, Cursor, Gemini CLI 등 서로 다른 에이전트나 하네스가 세션 간 작업 내용을 이어받아, 도구나 머신을 전환할 때 이전 진행 상황, 실패한 접근법, 미해결 질문에 대한 핸드오프를 통해 작업을 계속할 수 있게 합니다.",
+        "usage": "이 프로젝트는 Docker/Podman, Rust 1.95+로 빌드된 네이티브 바이너리, 또는 Arch Linux AUR 패키지를 통해 설치한 뒤 에이전트 CLI와 연결합니다. 에이전트를 연결하는 두 명령은 `ai-memory install-mcp --client claude-code --apply`와 `ai-memory install-hooks --agent claude-code --apply`입니다. Docker 빠른 시작에서는 서버가 `127.0.0.1:49374`에 바인딩되어 실행됩니다.",
+        "pros": "메모리는 독점 데이터베이스가 아니라 `grep`으로 검색하거나 Obsidian에서 열거나 디스크에서 재구축할 수 있는 일반 git 기반 마크다운 파일로 저장됩니다. 기본 구성은 캡처, 검색, 핸드오프 모두 LLM API 호출 없이 작동합니다. 다중 사용자 인증, 개인별 기여 추적, 감사 로그가 별도 유료 등급 없이 포함되어 있습니다.",
+        "cons": "문서에는 무제한 용량이 아니라 약 `700/s`로 측정된 쓰기 처리량 한계가 명시되어 있으며, 네이티브 Windows 지원은 Linux, macOS, WSL2와 달리 완전 지원이 아닌 '실험적(Experimental)'으로 표시되어 있습니다. 쓰기 부하가 큰 작업이나 네이티브 Windows 환경에서는 이러한 문서화된 한계에 부딪힐 수 있을 것으로 보입니다.",
+        "fit": "이 도구는 여러 AI 코딩 에이전트를 사용하며 세션, 머신, 팀원 간 연속성을 원하는 개발자나 소규모 팀에 적합해 보입니다. Docker나 네이티브 설치가 필요할 가능성이 높으며, 지원 매트릭스에 따르면 현재 완전한 지원은 Linux, macOS, WSL2 환경에 집중되어 있습니다."
+      },
+      "zh-CN": {
+        "goal": "ai-memory 为 AI 编程代理提供长期、可共享的记忆。当在 Claude Code、Codex、Cursor、Gemini CLI 等不同代理或工具之间切换时,新会话可以通过交接记录接续此前的进度、失败的尝试和尚未解决的问题,而不会丢失上下文。",
+        "usage": "该项目可通过 Docker/Podman、使用 Rust 1.95+ 构建的原生二进制文件,或 Arch Linux AUR 包进行安装,然后与代理 CLI 对接。连接代理需要两条命令:`ai-memory install-mcp --client claude-code --apply` 和 `ai-memory install-hooks --agent claude-code --apply`。Docker 快速启动方式会将服务器绑定到 `127.0.0.1:49374`。",
+        "pros": "记忆以普通的、由 git 管理的 Markdown 文件形式存储,可以用 `grep` 搜索、在 Obsidian 中打开,或从磁盘重建,而不是锁在专有数据库中。默认配置下,捕获、搜索和交接全部无需调用 LLM API。多用户身份验证、按人归属记录以及审计日志均已内置,且无需额外付费层级。",
+        "cons": "文档说明了一个约 `700/s` 的实测写入吞吐上限,而非无限容量;此外,与已获完整支持的 Linux、macOS 和 WSL2 不同,原生 Windows 支持被标注为“实验性(Experimental)”。写入负载较高的场景或原生 Windows 环境似乎可能会遇到这些已记录的限制。",
+        "fit": "该工具似乎更适合使用多个 AI 编程代理、希望在会话、设备或团队成员之间保持连续性的开发者或小团队。它很可能需要 Docker 或原生安装;根据支持矩阵,目前完整支持主要集中在 Linux、macOS 和 WSL2 环境。"
+      },
+      "es": {
+        "goal": "ai-memory ofrece una memoria compartida y de largo plazo para agentes de codificación con IA. Permite que un agente o herramienta distinto —como Claude Code, Codex, Cursor o Gemini CLI— retome el trabajo mediante un traspaso que describe el progreso previo, los enfoques fallidos y las preguntas abiertas, en lugar de perder el contexto al cambiar de herramienta o de máquina.",
+        "usage": "El proyecto se instala mediante Docker/Podman, un binario nativo compilado con Rust 1.95+, o un paquete AUR de Arch Linux, y luego se conecta a un CLI de agente. Dos comandos conectan un agente: `ai-memory install-mcp --client claude-code --apply` y `ai-memory install-hooks --agent claude-code --apply`. El inicio rápido con Docker ejecuta el servidor enlazado a `127.0.0.1:49374`.",
+        "pros": "La memoria se guarda como archivos markdown planos y versionados con git, que pueden buscarse con `grep`, abrirse en Obsidian o reconstruirse desde el disco, en lugar de depender de una base de datos propietaria. La configuración predeterminada funciona sin llamadas a una API de LLM para capturar, buscar y traspasar. La autenticación multiusuario, la atribución por persona y un registro de auditoría vienen incluidos sin un nivel de pago aparte.",
+        "cons": "La documentación indica un límite de escritura medido de aproximadamente `700/s`, en lugar de una capacidad ilimitada, y el soporte nativo de Windows figura como 'Experimental', a diferencia del soporte completo en Linux, macOS y WSL2. Es posible que las cargas de escritura intensas o el uso nativo en Windows encuentren estas limitaciones documentadas.",
+        "fit": "Esta herramienta parece adecuada para desarrolladores o equipos pequeños que usan varios agentes de codificación con IA y buscan continuidad entre sesiones, máquinas o compañeros de equipo. Probablemente requiera Docker o una instalación nativa y, según la matriz de compatibilidad, el soporte completo actual se concentra en entornos Linux, macOS y WSL2."
+      },
+      "ja": {
+        "goal": "ai-memoryは、AIコーディングエージェント向けの長期的かつ共有可能なメモリを提供します。Claude Code、Codex、Cursor、Gemini CLIなど異なるエージェントやツールに切り替えても、以前の進捗、失敗したアプローチ、未解決の課題を記したハンドオフによって作業を引き継げるようにします。",
+        "usage": "本プロジェクトはDocker/Podman、Rust 1.95+でビルドされたネイティブバイナリ、またはArch LinuxのAURパッケージ経由でインストールし、その後エージェントCLIに接続します。エージェントを接続する主なコマンドは `ai-memory install-mcp --client claude-code --apply` と `ai-memory install-hooks --agent claude-code --apply` の2つです。Dockerによるクイックスタートでは、サーバーが `127.0.0.1:49374` にバインドされて起動します。",
+        "pros": "メモリは専有データベースではなく、`grep`で検索したり、Obsidianで開いたり、ディスクから再構築したりできる、gitで管理された通常のMarkdownファイルとして保存されます。デフォルト設定では、キャプチャ・検索・ハンドオフすべてがLLM APIの呼び出しなしで動作します。マルチユーザー認証、個人ごとの帰属記録、監査ログが、別途の有料プランなしで組み込まれています。",
+        "cons": "ドキュメントには無制限の容量ではなく、約`700/s`という実測の書き込みスループット上限が記載されており、ネイティブWindowsのサポートはLinux・macOS・WSL2の完全サポートとは異なり「Experimental(実験的)」と表示されています。書き込み負荷の大きい用途やネイティブWindows環境では、こうした文書化された制限に直面する可能性があると考えられます。",
+        "fit": "このツールは、複数のAIコーディングエージェントを使い、セッションやマシン、チームメンバー間での継続性を求める開発者や小規模チームに適していると考えられます。Dockerまたはネイティブインストールがおそらく必要であり、サポートマトリクスによれば、現時点での完全サポートは主にLinux・macOS・WSL2環境に集中しています。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 8,
+          "end_line": 11,
+          "section_heading": ""
+        },
+        {
+          "start_line": 19,
+          "end_line": 24,
+          "section_heading": "Why ai-memory"
+        },
+        {
+          "start_line": 26,
+          "end_line": 31,
+          "section_heading": "Why ai-memory"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 193,
+          "end_line": 201,
+          "section_heading": "Docker"
+        },
+        {
+          "start_line": 210,
+          "end_line": 211,
+          "section_heading": "Docker"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 43,
+          "end_line": 47,
+          "section_heading": "Why ai-memory"
+        },
+        {
+          "start_line": 52,
+          "end_line": 54,
+          "section_heading": "Why ai-memory"
+        },
+        {
+          "start_line": 38,
+          "end_line": 41,
+          "section_heading": "Why ai-memory"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 56,
+          "end_line": 59,
+          "section_heading": "Why ai-memory"
+        },
+        {
+          "start_line": 90,
+          "end_line": 91,
+          "section_heading": "Support matrix"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 150,
+          "end_line": 151,
+          "section_heading": "Docker"
+        },
+        {
+          "start_line": 88,
+          "end_line": 91,
+          "section_heading": "Support matrix"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "ai-memory install-mcp --client claude-code --apply",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "ai-memory install-hooks --agent claude-code --apply",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "1.95+",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "700/s",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "127.0.0.1:49374",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "ai-memory",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Claude Code",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Codex",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Docker",
+        "fields": [
+          "usage",
+          "fit"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "cons",
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "akitaonrails/ai-memory",
+      "path": "README.md",
+      "blob_sha": "1c6ff921974cd2a017de0100c4ac180678e963bf",
+      "content_sha256": "ca68b434be46820c8269a6471ff2a365f2aa3d9df88c0f8bc07b372bf6ad0499",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.263",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
   "Lakr233/vphone-cli": {
     "content": {
       "goal": "vphone-cli boots a virtual iPhone using Apple's Virtualization.framework, built on PCC research VM infrastructure. It targets Apple Silicon Macs running macOS 15+ (Sequoia).",
@@ -9482,77 +9591,77 @@
   },
   "public-apis/public-apis": {
     "content": {
-      "goal": "public-apis/public-apis is a community-maintained, manually curated collection of free and public APIs spanning dozens of domains (e.g., Animals, Finance, Government, Weather), intended to help developers find APIs to build into their own products.",
-      "usage": "The README's Index links to category sections; each section is a markdown table listing an API's name, description, required Auth (apiKey, OAuth, or none), HTTPS support, and CORS availability, so developers browse a category and follow the API name link to the provider's own docs. Contributions go through CONTRIBUTING.md, and issues/PRs are filed at https://github.com/public-apis/public-apis/issues.",
-      "pros": "Coverage is broad, spanning dozens of categories (Animals through Weather) and thousands of listed APIs, many marked with 'No' auth, giving developers a single free reference point to scan many domains for candidate APIs.",
-      "cons": "Because entries are community-submitted across many independent third-party services, CORS support is frequently listed as 'Unknown' and Auth/HTTPS requirements vary row by row, so each linked API's actual reliability and access requirements must be verified individually before integrating it.",
-      "fit": "This repository seems best suited as a browsable reference or starting point for developers scouting candidate public APIs for prototypes or side projects, rather than as an SDK, client library, or a service with any uptime guarantee of its own."
+      "goal": "public-apis/public-apis maintains a community-curated, categorized index of free and freemium public APIs. The Index lists 51 categories, from Animals and Anime to Weather and Vehicle, each linking to a table of entries with Description, Auth, HTTPS, and CORS columns.",
+      "usage": "Browse the Index to jump to a category's table, then read each row for the API name, description, and required Auth type before visiting the provider's site directly, since the README itself has no install or run commands. It also promotes APILayer's own bundled APIs, with sign-up at https://app.apilayer.com. Contributions follow CONTRIBUTING.md, and issues or pull requests are tracked at https://github.com/public-apis/public-apis/issues and https://github.com/public-apis/public-apis/pulls.",
+      "pros": "Coverage spans dozens of domains—including Finance, Government, Health, and Transportation—with thousands of individually documented entries, and each row states whether HTTPS and CORS are supported, letting developers filter candidates by transport security and browser-callability before adopting one.",
+      "cons": "Many table rows mark CORS support as 'Unknown' rather than confirmed Yes/No, so browser-side compatibility for a chosen API often cannot be verified from the README alone and likely needs checking against the provider's own documentation.",
+      "fit": "Released under the MIT license, the list suits developers scouting a specific public API or exploring options within a domain; as a discovery index rather than a maintained SDK, it probably is not intended for teams needing guaranteed uptime or vetted integration support for the linked third-party services."
     },
     "summaries": {
       "en": {
-        "goal": "public-apis/public-apis is a community-maintained, manually curated collection of free and public APIs spanning dozens of domains (e.g., Animals, Finance, Government, Weather), intended to help developers find APIs to build into their own products.",
-        "usage": "The README's Index links to category sections; each section is a markdown table listing an API's name, description, required Auth (apiKey, OAuth, or none), HTTPS support, and CORS availability, so developers browse a category and follow the API name link to the provider's own docs. Contributions go through CONTRIBUTING.md, and issues/PRs are filed at https://github.com/public-apis/public-apis/issues.",
-        "pros": "Coverage is broad, spanning dozens of categories (Animals through Weather) and thousands of listed APIs, many marked with 'No' auth, giving developers a single free reference point to scan many domains for candidate APIs.",
-        "cons": "Because entries are community-submitted across many independent third-party services, CORS support is frequently listed as 'Unknown' and Auth/HTTPS requirements vary row by row, so each linked API's actual reliability and access requirements must be verified individually before integrating it.",
-        "fit": "This repository seems best suited as a browsable reference or starting point for developers scouting candidate public APIs for prototypes or side projects, rather than as an SDK, client library, or a service with any uptime guarantee of its own."
+        "goal": "public-apis/public-apis maintains a community-curated, categorized index of free and freemium public APIs. The Index lists 51 categories, from Animals and Anime to Weather and Vehicle, each linking to a table of entries with Description, Auth, HTTPS, and CORS columns.",
+        "usage": "Browse the Index to jump to a category's table, then read each row for the API name, description, and required Auth type before visiting the provider's site directly, since the README itself has no install or run commands. It also promotes APILayer's own bundled APIs, with sign-up at https://app.apilayer.com. Contributions follow CONTRIBUTING.md, and issues or pull requests are tracked at https://github.com/public-apis/public-apis/issues and https://github.com/public-apis/public-apis/pulls.",
+        "pros": "Coverage spans dozens of domains—including Finance, Government, Health, and Transportation—with thousands of individually documented entries, and each row states whether HTTPS and CORS are supported, letting developers filter candidates by transport security and browser-callability before adopting one.",
+        "cons": "Many table rows mark CORS support as 'Unknown' rather than confirmed Yes/No, so browser-side compatibility for a chosen API often cannot be verified from the README alone and likely needs checking against the provider's own documentation.",
+        "fit": "Released under the MIT license, the list suits developers scouting a specific public API or exploring options within a domain; as a discovery index rather than a maintained SDK, it probably is not intended for teams needing guaranteed uptime or vetted integration support for the linked third-party services."
       },
       "ko": {
-        "goal": "public-apis/public-apis는 커뮤니티가 수작업으로 큐레이션한 무료 공개 API 모음으로, 동물, 금융, 정부, 날씨 등 수십 개 분야를 아우르며 개발자가 자신의 프로젝트에 사용할 API를 찾도록 돕는 것을 목표로 합니다.",
-        "usage": "README의 Index는 카테고리별 섹션으로 연결되며, 각 섹션은 마크다운 표로 API 이름, 설명, 필요한 인증 방식(apiKey, OAuth, 없음), HTTPS 지원 여부, CORS 지원 여부를 나열합니다. 개발자는 해당 카테고리를 살펴본 뒤 API 이름 링크를 눌러 제공자 문서로 이동합니다. 기여는 CONTRIBUTING.md 절차를 따르며, 이슈와 PR은 https://github.com/public-apis/public-apis/issues 에서 관리됩니다.",
-        "pros": "동물부터 날씨까지 수십 개 카테고리와 수천 개의 API 항목을 다루며, 많은 항목이 'No' 인증으로 표시되어 있어 여러 분야를 한 곳에서 무료로 훑어볼 수 있는 폭넓은 참고 자료를 제공합니다.",
-        "cons": "항목들이 서로 다른 수많은 제3자 서비스에 대해 커뮤니티가 제출한 것이기 때문에 CORS 지원은 표에서 자주 'Unknown'으로 표시되고 인증·HTTPS 요구사항도 행마다 다르므로, 실제 연동 전에 각 API의 신뢰성과 접근 요건을 개별적으로 확인해야 합니다.",
-        "fit": "이 저장소는 SDK나 클라이언트 라이브러리, 가동시간을 보장하는 서비스라기보다는 프로토타입이나 사이드 프로젝트에 쓸 만한 공개 API 후보를 탐색하는 개발자를 위한 참고 목록에 가장 적합해 보입니다."
+        "goal": "public-apis/public-apis는 무료 및 프리미엄 공용 API를 분류해 정리한 커뮤니티 큐레이션 색인을 제공합니다. 색인(Index)에는 Animals와 Anime부터 Weather, Vehicle까지 51개 카테고리가 나열되어 있으며, 각 카테고리는 Description, Auth, HTTPS, CORS 열을 가진 표로 연결됩니다.",
+        "usage": "Index에서 원하는 카테고리 표로 이동한 뒤, 각 행에서 API 이름, 설명, 필요한 Auth 유형을 확인하고 제공업체 사이트를 직접 방문해 사용하면 됩니다. README 자체에는 설치나 실행 명령이 없습니다. 또한 APILayer의 자체 번들 API도 소개되며 https://app.apilayer.com 에서 가입할 수 있습니다. 기여는 CONTRIBUTING.md 절차를 따르며, 이슈와 풀 리퀘스트는 https://github.com/public-apis/public-apis/issues 및 https://github.com/public-apis/public-apis/pulls 에서 추적됩니다.",
+        "pros": "Finance, Government, Health, Transportation 등 수십 개 분야에 걸쳐 수천 개 항목이 개별적으로 문서화되어 있고, 각 행마다 HTTPS와 CORS 지원 여부가 표시되어 있어 개발자가 전송 보안성과 브라우저 호출 가능성을 기준으로 후보를 미리 걸러낼 수 있습니다.",
+        "cons": "많은 표 행에서 CORS 지원 여부가 확정된 Yes/No 대신 'Unknown'으로 표시되어 있어, 선택한 API의 브라우저 측 호환성을 README만으로는 확인할 수 없는 경우가 많고 제공업체 자체 문서를 추가로 확인해야 할 가능성이 큽니다.",
+        "fit": "MIT 라이선스로 배포되는 이 목록은 특정 공용 API를 찾거나 특정 분야의 선택지를 탐색하려는 개발자에게 적합하며, 관리되는 SDK가 아니라 발견용 색인이므로 연결된 제3자 서비스에 대한 가동 시간 보장이나 검증된 통합 지원이 필요한 팀에는 아마 적합하지 않을 것입니다."
       },
       "zh-CN": {
-        "goal": "public-apis/public-apis 是一个由社区人工整理的免费公开 API 目录,涵盖动物、金融、政府、天气等数十个领域,旨在帮助开发者为自己的项目发现可用的 API。",
-        "usage": "README 中的 Index 链接到各分类章节,每个章节以 Markdown 表格列出 API 名称、描述、所需鉴权方式(apiKey、OAuth 或无)、是否支持 HTTPS 以及 CORS 情况;开发者浏览相应分类后点击 API 名称链接即可跳转至该提供方的文档。贡献流程遵循 CONTRIBUTING.md,议题与 PR 在 https://github.com/public-apis/public-apis/issues 上跟踪。",
-        "pros": "覆盖范围广泛,涉及从动物到天气等数十个分类和数千条 API 记录,其中许多标注为无需鉴权('No'),为开发者提供了一个可以免费一站式浏览多个领域候选 API 的参考。",
-        "cons": "由于条目是社区针对众多独立第三方服务提交的,表格中 CORS 支持常被标注为'Unknown',各行的鉴权与 HTTPS 要求也各不相同,因此在实际接入前需要逐个核实每个 API 的可靠性与访问条件。",
-        "fit": "该仓库似乎更适合作为开发者为原型或个人项目寻找候选公开 API 的浏览式参考起点,而非本身提供 SDK、客户端库或具备运行时长保证的服务。"
+        "goal": "public-apis/public-apis 维护着一份由社区整理、按类别划分的免费及增值公共 API 索引。索引(Index)列出了从 Animals、Anime 到 Weather、Vehicle 的 51 个分类,每个分类都链接到包含 Description、Auth、HTTPS 和 CORS 列的表格。",
+        "usage": "先在 Index 中跳转到某个分类的表格,查看每一行的 API 名称、描述及所需的 Auth 类型,然后直接访问对应服务商网站进行使用;README 本身不包含安装或运行命令。它还推广了 APILayer 自家打包的 API,可在 https://app.apilayer.com 注册。贡献流程遵循 CONTRIBUTING.md,议题和拉取请求分别在 https://github.com/public-apis/public-apis/issues 和 https://github.com/public-apis/public-apis/pulls 中跟踪。",
+        "pros": "覆盖了 Finance、Government、Health、Transportation 等数十个领域,收录了数千条经过单独说明的条目,且每一行都标注了是否支持 HTTPS 和 CORS,便于开发者在采用之前按传输安全性和浏览器可调用性筛选候选项。",
+        "cons": "许多表格行将 CORS 支持标记为“Unknown”而非明确的 Yes/No,因此仅凭 README 往往无法确认所选 API 的浏览器端兼容性,很可能还需要查阅服务商自身的文档。",
+        "fit": "该列表以 MIT 许可证发布,适合希望寻找特定公共 API 或探索某一领域可选项的开发者;由于它是一份发现型索引而非受维护的 SDK,对于需要对所链接第三方服务提供正常运行时间保证或经过验证的集成支持的团队,可能并不适合。"
       },
       "es": {
-        "goal": "public-apis/public-apis es una colección de APIs públicas y gratuitas curada manualmente por la comunidad, que abarca decenas de dominios (Animales, Finanzas, Gobierno, Clima, etc.) con el objetivo de ayudar a los desarrolladores a encontrar APIs para sus propios proyectos.",
-        "usage": "El Índice del README enlaza a secciones por categoría; cada sección es una tabla en markdown que lista el nombre de la API, su descripción, el tipo de autenticación requerida (apiKey, OAuth o ninguna), el soporte de HTTPS y la disponibilidad de CORS, de modo que el desarrollador revisa la categoría y sigue el enlace hacia la documentación del proveedor. Las contribuciones siguen CONTRIBUTING.md, y los issues/PRs se gestionan en https://github.com/public-apis/public-apis/issues.",
-        "pros": "La cobertura es amplia, con decenas de categorías (de Animales a Clima) y miles de APIs listadas, muchas marcadas sin autenticación ('No'), lo que ofrece un punto de referencia único y gratuito para explorar candidatos en muchos dominios.",
-        "cons": "Como las entradas son enviadas por la comunidad para numerosos servicios de terceros independientes, el soporte de CORS suele figurar como 'Unknown' y los requisitos de Auth/HTTPS varían fila por fila, por lo que la fiabilidad y los requisitos de acceso de cada API deben verificarse individualmente antes de integrarla.",
-        "fit": "Este repositorio parece más adecuado como referencia navegable o punto de partida para desarrolladores que buscan APIs públicas candidatas para prototipos o proyectos personales, más que como un SDK, una librería cliente o un servicio con garantía de disponibilidad propia."
+        "goal": "public-apis/public-apis mantiene un índice de APIs públicas gratuitas y freemium, organizado por categorías y curado por la comunidad. El Index enumera 51 categorías, desde Animals y Anime hasta Weather y Vehicle, cada una enlazada a una tabla con columnas Description, Auth, HTTPS y CORS.",
+        "usage": "Se navega por el Index hasta la tabla de una categoría, se revisa cada fila para conocer el nombre de la API, su descripción y el tipo de Auth requerido, y luego se visita directamente el sitio del proveedor, ya que el propio README no incluye comandos de instalación ni ejecución. También promociona las APIs propias agrupadas de APILayer, con registro en https://app.apilayer.com. Las contribuciones siguen CONTRIBUTING.md, y los issues y pull requests se rastrean en https://github.com/public-apis/public-apis/issues y https://github.com/public-apis/public-apis/pulls.",
+        "pros": "La cobertura abarca decenas de dominios —incluidos Finance, Government, Health y Transportation— con miles de entradas documentadas individualmente, y cada fila indica si se admite HTTPS y CORS, lo que permite filtrar candidatos por seguridad de transporte y posibilidad de llamada desde el navegador antes de adoptarlos.",
+        "cons": "Muchas filas de las tablas marcan el soporte de CORS como 'Unknown' en lugar de un Yes/No confirmado, por lo que la compatibilidad del lado del navegador para una API elegida a menudo no puede verificarse solo con el README y probablemente requiera consultar la documentación propia del proveedor.",
+        "fit": "Publicada bajo licencia MIT, la lista es adecuada para desarrolladores que buscan una API pública concreta o exploran opciones dentro de un dominio; al ser un índice de descubrimiento y no un SDK mantenido, probablemente no esté pensada para equipos que necesiten garantías de disponibilidad o soporte de integración verificado para los servicios de terceros enlazados."
       },
       "ja": {
-        "goal": "public-apis/public-apis は、動物、金融、政府、天気など数十の分野にわたる無料の公開APIをコミュニティが手作業でキュレーションしたリストであり、開発者が自分のプロジェクトに使えるAPIを見つける手助けをすることを目的としています。",
-        "usage": "READMEのIndexから各カテゴリのセクションにリンクしており、各セクションはMarkdownの表でAPI名、説明、必要な認証方式(apiKey、OAuth、または不要)、HTTPS対応、CORS対応状況を一覧表示しています。開発者は該当カテゴリを閲覧し、API名のリンクから提供元のドキュメントへ移動します。貢献方法はCONTRIBUTING.mdに従い、issueやPRは https://github.com/public-apis/public-apis/issues で管理されています。",
-        "pros": "動物から天気まで数十のカテゴリと数千件のAPIを網羅しており、多くが認証不要('No')と表示されているため、無料で多分野の候補APIを一か所で見渡せる参照先となります。",
-        "cons": "各項目は多数の独立した第三者サービスについてコミュニティが投稿したものであるため、表内のCORS対応は'Unknown'と記載されていることが多く、AuthやHTTPSの要件も行ごとに異なるため、実際に組み込む前に各APIの信頼性やアクセス要件を個別に確認する必要があります。",
-        "fit": "このリポジトリは、SDKやクライアントライブラリ、稼働率を保証するサービスそのものというよりは、プロトタイプや個人プロジェクト向けに候補となる公開APIを探す開発者にとって、閲覧可能な参考資料や出発点として最も適していると考えられます。"
+        "goal": "public-apis/public-apisは、無料およびフリーミアムの公開APIをコミュニティが整理・分類したインデックスを維持しています。Indexには、AnimalsやAnimeからWeather、Vehicleまで51のカテゴリが列挙されており、それぞれDescription、Auth、HTTPS、CORS列を持つ表にリンクしています。",
+        "usage": "Indexから目的のカテゴリの表に移動し、各行でAPI名、説明、必要なAuthの種類を確認したうえで、提供元サイトへ直接アクセスして利用します。README自体にはインストールや実行コマンドは含まれていません。また、APILayer独自のバンドルAPIも紹介されており、https://app.apilayer.com で登録できます。貢献はCONTRIBUTING.mdの手順に従い、issueやプルリクエストは https://github.com/public-apis/public-apis/issues および https://github.com/public-apis/public-apis/pulls で管理されています。",
+        "pros": "Finance、Government、Health、Transportationなど数十の分野にまたがり、個別に説明された数千件のエントリが収録されており、各行にHTTPSとCORSの対応有無が示されているため、採用前に通信の安全性とブラウザからの呼び出し可否で候補を絞り込めます。",
+        "cons": "多くの表の行でCORS対応が確定的なYes/Noではなく「Unknown」と記載されているため、選んだAPIのブラウザ側での互換性はREADMEだけでは確認できないことが多く、提供元自身のドキュメントを別途確認する必要がある可能性が高いです。",
+        "fit": "MITライセンスで公開されているこのリストは、特定の公開APIを探したり、ある分野の選択肢を調べたりする開発者に適しています。維持管理されたSDKではなく発見用のインデックスであるため、リンク先のサードパーティサービスについて稼働時間保証や検証済みの統合サポートを必要とするチームには、おそらく適していません。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 23,
-          "end_line": 24,
-          "section_heading": "Try Public APIs for free"
-        },
-        {
           "start_line": 74,
           "end_line": 124,
           "section_heading": "Index"
+        },
+        {
+          "start_line": 24,
+          "end_line": 24,
+          "section_heading": "Try Public APIs for free"
         }
       ],
       "usage": [
         {
-          "start_line": 72,
-          "end_line": 74,
-          "section_heading": "Index"
+          "start_line": 5,
+          "end_line": 7,
+          "section_heading": "APILayer Unified Suite in now Live! 🎉 🥳"
+        },
+        {
+          "start_line": 62,
+          "end_line": 68,
+          "section_heading": "Learn more about Public APIs"
         },
         {
           "start_line": 127,
           "end_line": 130,
           "section_heading": "Animals"
-        },
-        {
-          "start_line": 64,
-          "end_line": 68,
-          "section_heading": "Learn more about Public APIs"
         }
       ],
       "pros": [
@@ -9562,28 +9671,38 @@
           "section_heading": "Index"
         },
         {
-          "start_line": 130,
+          "start_line": 128,
           "end_line": 155,
           "section_heading": "Animals"
         }
       ],
       "cons": [
         {
-          "start_line": 130,
+          "start_line": 152,
+          "end_line": 152,
+          "section_heading": "Animals"
+        },
+        {
+          "start_line": 155,
           "end_line": 155,
           "section_heading": "Animals"
+        },
+        {
+          "start_line": 165,
+          "end_line": 165,
+          "section_heading": "Anime"
         }
       ],
       "fit": [
         {
-          "start_line": 23,
-          "end_line": 24,
-          "section_heading": "Try Public APIs for free"
+          "start_line": 2266,
+          "end_line": 2267,
+          "section_heading": "License"
         },
         {
-          "start_line": 42,
-          "end_line": 44,
-          "section_heading": "APILayer APIs"
+          "start_line": 24,
+          "end_line": 24,
+          "section_heading": "Try Public APIs for free"
         }
       ]
     },
@@ -9597,22 +9716,65 @@
         ]
       },
       {
+        "kind": "number",
+        "value": "51",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "MIT",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://app.apilayer.com",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
         "kind": "url",
         "value": "https://github.com/public-apis/public-apis/issues",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://github.com/public-apis/public-apis/pulls",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "CONTRIBUTING.md",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "APILayer",
         "fields": [
           "usage"
         ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "public-apis/public-apis",
       "path": "README.md",
-      "blob_sha": "7e485f6e6bd58f55e6bf711639c76a86f4bc6150",
-      "content_sha256": "46557e4e9dd0af8428b7ccae4306aa385721eaa20ba89584f482d0a3a42f7a9d",
+      "blob_sha": "b32de6594d7495856ec8bf9c32e6a1c42135596c",
+      "content_sha256": "c0a7a882f443f017367981d71ec7fbfe669358def6bd2008f149fa261acfed3c",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
