@@ -596,92 +596,87 @@
   },
   "alsk1992/CloddsBot": {
     "content": {
-      "goal": "Clodds is documented as a personal AI trading terminal for prediction markets, crypto spot, perpetual futures with leverage, token launches, and Bittensor subnet mining, run on the user's own machine and controlled through natural conversation. It is powered by Claude and lists support for 21 messaging platforms, 10 prediction markets, and 7 futures exchanges.",
-      "usage": "Setup uses `npm install -g clodds --loglevel=error` followed by `clodds onboard`, which runs an interactive wizard for the API key and messaging channel and starts the gateway; the built-in WebChat then opens at `http://localhost:18789/webchat`. An alternative from-source workflow via `git clone https://github.com/alsk1992/CloddsBot.git` is also documented.",
-      "pros": "Documented capabilities include broad platform coverage (21 messaging channels, 10 prediction markets, 7 futures exchanges), a bundled skills system with lazy-loaded extensions to avoid dependency crashes, and a unified risk engine with circuit breakers, VaR/CVaR, and Kelly sizing.",
-      "cons": "Running Clodds requires Node.js >=22, TypeScript 5.3 tooling, and an ANTHROPIC_API_KEY plus per-platform credentials for trading; the documented arbitrage feature also defaults to dry-run mode, and cross-platform arbitrage is noted to carry currency/settlement complexity.",
-      "fit": "Because Clodds is described as a personal, self-hosted terminal with locally stored data, it appears best suited to individual traders or agent operators comfortable running Node.js and managing their own API keys, rather than a managed multi-user service."
+      "goal": "Clodds is a personal, self-hosted AI trading terminal powered by Claude for prediction markets, crypto spot, and leveraged perpetual futures, with support for Solana token launches and Bittensor subnet mining, operated entirely through natural-language chat.",
+      "usage": "Install with `npm install -g clodds --loglevel=error`, then run `clodds onboard` to complete the interactive setup wizard (API key and messaging channel); a browser-based WebChat interface becomes available at http://localhost:18789/webchat.",
+      "pros": "Documented breadth includes 21 messaging channels, 10 prediction-market platforms, 7 perpetual-futures exchanges, and 118+ trading strategies, backed by a unified risk engine with circuit breaker, VaR/CVaR, and Kelly sizing controls.",
+      "cons": "The README states that arbitrage detection defaults to dry-run mode and that cross-platform arbitrage involves currency and settlement complexity, an operational trade-off for anyone enabling live cross-platform execution.",
+      "fit": "It targets individual users willing to self-host a Node.js >=22 / TypeScript 5.3 application with an Anthropic API key; since it was built in 12 days for the Colosseum Agent Hackathon on Solana, it may be best regarded as an early-stage project rather than a production-hardened trading system."
     },
     "summaries": {
       "en": {
-        "goal": "Clodds is documented as a personal AI trading terminal for prediction markets, crypto spot, perpetual futures with leverage, token launches, and Bittensor subnet mining, run on the user's own machine and controlled through natural conversation. It is powered by Claude and lists support for 21 messaging platforms, 10 prediction markets, and 7 futures exchanges.",
-        "usage": "Setup uses `npm install -g clodds --loglevel=error` followed by `clodds onboard`, which runs an interactive wizard for the API key and messaging channel and starts the gateway; the built-in WebChat then opens at `http://localhost:18789/webchat`. An alternative from-source workflow via `git clone https://github.com/alsk1992/CloddsBot.git` is also documented.",
-        "pros": "Documented capabilities include broad platform coverage (21 messaging channels, 10 prediction markets, 7 futures exchanges), a bundled skills system with lazy-loaded extensions to avoid dependency crashes, and a unified risk engine with circuit breakers, VaR/CVaR, and Kelly sizing.",
-        "cons": "Running Clodds requires Node.js >=22, TypeScript 5.3 tooling, and an ANTHROPIC_API_KEY plus per-platform credentials for trading; the documented arbitrage feature also defaults to dry-run mode, and cross-platform arbitrage is noted to carry currency/settlement complexity.",
-        "fit": "Because Clodds is described as a personal, self-hosted terminal with locally stored data, it appears best suited to individual traders or agent operators comfortable running Node.js and managing their own API keys, rather than a managed multi-user service."
+        "goal": "Clodds is a personal, self-hosted AI trading terminal powered by Claude for prediction markets, crypto spot, and leveraged perpetual futures, with support for Solana token launches and Bittensor subnet mining, operated entirely through natural-language chat.",
+        "usage": "Install with `npm install -g clodds --loglevel=error`, then run `clodds onboard` to complete the interactive setup wizard (API key and messaging channel); a browser-based WebChat interface becomes available at http://localhost:18789/webchat.",
+        "pros": "Documented breadth includes 21 messaging channels, 10 prediction-market platforms, 7 perpetual-futures exchanges, and 118+ trading strategies, backed by a unified risk engine with circuit breaker, VaR/CVaR, and Kelly sizing controls.",
+        "cons": "The README states that arbitrage detection defaults to dry-run mode and that cross-platform arbitrage involves currency and settlement complexity, an operational trade-off for anyone enabling live cross-platform execution.",
+        "fit": "It targets individual users willing to self-host a Node.js >=22 / TypeScript 5.3 application with an Anthropic API key; since it was built in 12 days for the Colosseum Agent Hackathon on Solana, it may be best regarded as an early-stage project rather than a production-hardened trading system."
       },
       "ko": {
-        "goal": "Clodds는 예측 시장, 크립토 현물, 레버리지 무기한 선물, 토큰 발행, Bittensor 서브넷 마이닝을 위한 개인용 AI 트레이딩 터미널로 문서화되어 있으며, 사용자의 로컬 머신에서 실행되고 자연어 대화로 제어됩니다. Claude 기반이며 21개 메시징 플랫폼, 10개 예측 시장, 7개 선물 거래소 지원을 명시하고 있습니다.",
-        "usage": "설치는 `npm install -g clodds --loglevel=error` 실행 후 `clodds onboard`로 진행되며, 이 대화형 마법사가 API 키와 메시징 채널을 설정하고 게이트웨이를 시작합니다. 이후 내장 WebChat이 `http://localhost:18789/webchat`에서 열립니다. `git clone https://github.com/alsk1992/CloddsBot.git`을 이용한 소스 빌드 방식도 문서화되어 있습니다.",
-        "pros": "문서에 따르면 21개 메시징 채널, 10개 예측 시장, 7개 선물 거래소에 걸친 폭넓은 플랫폼 지원과, 의존성 누락으로 인한 충돌을 방지하도록 지연 로드되는 확장 기능을 갖춘 스킬 시스템, 서킷 브레이커·VaR/CVaR·켈리 사이징을 포함한 통합 리스크 엔진이 제공됩니다.",
-        "cons": "Clodds를 실행하려면 Node.js >=22, TypeScript 5.3 도구, ANTHROPIC_API_KEY, 그리고 거래를 위한 플랫폼별 자격 증명이 필요합니다. 또한 문서에 따르면 차익거래 기능은 기본적으로 드라이런 모드로 동작하며, 플랫폼 간 차익거래는 통화/정산 복잡성이 있다고 명시되어 있습니다.",
-        "fit": "Clodds는 데이터를 로컬에 저장하는 개인용 자체 호스팅 터미널로 설명되어 있어, 관리형 다중 사용자 서비스라기보다는 Node.js 실행과 자체 API 키 관리에 익숙한 개인 트레이더나 에이전트 운영자에게 적합해 보입니다."
+        "goal": "Clodds는 Claude 기반으로 예측 시장, 암호화폐 현물 거래, 레버리지 무기한 선물 거래를 지원하며, Solana 토큰 발행과 Bittensor 서브넷 마이닝 기능도 포함한 개인용 셀프 호스팅 AI 트레이딩 터미널입니다. 모든 기능은 자연어 채팅으로 조작됩니다.",
+        "usage": "`npm install -g clodds --loglevel=error` 명령으로 설치한 뒤 `clodds onboard`를 실행하면 API 키와 메시징 채널을 설정하는 대화형 마법사가 진행되며, 이후 http://localhost:18789/webchat 에서 브라우저 기반 WebChat을 사용할 수 있습니다.",
+        "pros": "문서에 따르면 21개의 메시징 채널, 10개의 예측 시장 플랫폼, 7개의 무기한 선물 거래소, 118개 이상의 트레이딩 전략을 지원하며, 서킷 브레이커·VaR/CVaR·켈리 사이징을 포함한 통합 리스크 엔진을 갖추고 있습니다.",
+        "cons": "README에 따르면 차익거래 탐지 기능은 기본적으로 드라이런(dry-run) 모드로 동작하며, 플랫폼 간 차익거래는 통화 및 정산 관련 복잡성을 수반한다고 명시되어 있어, 실거래로 전환할 때 운영상 주의가 필요합니다.",
+        "fit": "Node.js >=22 및 TypeScript 5.3 환경에서 Anthropic API 키를 사용해 직접 호스팅할 의향이 있는 개인 사용자에게 적합해 보입니다. 다만 Solana 기반 Colosseum Agent Hackathon을 위해 12일 만에 개발되었다고 명시되어 있어, 상용 수준의 검증된 트레이딩 시스템이라기보다는 초기 단계 프로젝트로 볼 여지가 있습니다."
       },
       "zh-CN": {
-        "goal": "Clodds 是一款文档中描述的个人 AI 交易终端,面向预测市场、加密货币现货、带杠杆的永续期货、代币发行以及 Bittensor 子网挖矿,可在用户自己的机器上运行,并通过自然语言对话进行控制。它由 Claude 驱动,文档列出支持 21 个消息平台、10 个预测市场和 7 个期货交易所。",
-        "usage": "安装方式为先执行 `npm install -g clodds --loglevel=error`,再运行 `clodds onboard` 启动交互式向导,配置 API 密钥和消息渠道并启动网关;随后内置 WebChat 会在 `http://localhost:18789/webchat` 打开。文档中还提到可通过 `git clone https://github.com/alsk1992/CloddsBot.git` 从源码构建的替代方式。",
-        "pros": "文档描述的功能包括覆盖 21 个消息渠道、10 个预测市场和 7 个期货交易所的广泛平台支持,一个采用延迟加载扩展以避免依赖缺失导致崩溃的技能系统,以及包含熔断机制、VaR/CVaR 和凯利仓位管理的统一风险引擎。",
-        "cons": "运行 Clodds 需要 Node.js >=22、TypeScript 5.3 工具链以及 ANTHROPIC_API_KEY,交易还需要各平台各自的凭证;文档还说明套利检测功能默认处于模拟运行(dry-run)模式,且跨平台套利存在货币/结算方面的复杂性。",
-        "fit": "由于文档将 Clodds 描述为数据本地存储的个人自托管终端,它似乎更适合习惯运行 Node.js 并自行管理 API 密钥的个人交易者或代理运营者,而非托管式多用户服务。"
+        "goal": "Clodds 是一款基于 Claude 的个人自托管 AI 交易终端,支持预测市场、加密货币现货以及带杠杆的永续合约交易,并具备 Solana 代币发行和 Bittensor 子网挖矿功能,全部通过自然语言聊天完成操作。",
+        "usage": "先执行 `npm install -g clodds --loglevel=error` 安装,再运行 `clodds onboard` 完成交互式设置向导(配置 API 密钥和消息渠道);随后可在 http://localhost:18789/webchat 使用基于浏览器的 WebChat 界面。",
+        "pros": "文档显示其支持 21 个消息渠道、10 个预测市场平台、7 个永续合约交易所以及 118 个以上的交易策略,并配备包含熔断机制、VaR/CVaR 与凯利仓位管理的统一风险引擎。",
+        "cons": "README 中说明套利检测功能默认处于 dry-run(模拟)模式,且跨平台套利涉及货币和结算方面的复杂性,这意味着若要启用实盘跨平台执行,需要额外的运营考量。",
+        "fit": "该项目更适合愿意自行托管 Node.js >=22 / TypeScript 5.3 应用并持有 Anthropic API 密钥的个人用户;由于文档说明它是为 Solana 上的 Colosseum Agent Hackathon 在 12 天内开发完成的,或许更适合被视为早期阶段项目,而非已经过生产环境充分打磨的交易系统。"
       },
       "es": {
-        "goal": "Clodds se documenta como una terminal de trading con IA personal para mercados de predicción, spot de criptomonedas, futuros perpetuos con apalancamiento, lanzamientos de tokens y minería de subredes de Bittensor, que se ejecuta en la propia máquina del usuario y se controla mediante conversación natural. Funciona con Claude y menciona soporte para 21 plataformas de mensajería, 10 mercados de predicción y 7 exchanges de futuros.",
-        "usage": "La instalación consiste en ejecutar `npm install -g clodds --loglevel=error` y luego `clodds onboard`, que lanza un asistente interactivo para configurar la clave API y el canal de mensajería, además de iniciar el gateway; el WebChat integrado se abre después en `http://localhost:18789/webchat`. También se documenta una alternativa desde el código fuente mediante `git clone https://github.com/alsk1992/CloddsBot.git`.",
-        "pros": "Entre las funciones documentadas están una amplia cobertura de plataformas (21 canales de mensajería, 10 mercados de predicción, 7 exchanges de futuros), un sistema de skills con extensiones de carga diferida para evitar fallos por dependencias faltantes, y un motor de riesgo unificado con circuit breaker, VaR/CVaR y dimensionamiento Kelly.",
-        "cons": "Ejecutar Clodds requiere Node.js >=22, herramientas de TypeScript 5.3 y una clave ANTHROPIC_API_KEY, además de credenciales específicas por plataforma para operar; la función de detección de arbitraje documentada también funciona por defecto en modo dry-run, y el arbitraje entre plataformas se señala como complejo en cuanto a moneda y liquidación.",
-        "fit": "Dado que Clodds se describe como una terminal personal autoalojada con datos almacenados localmente, parece orientarse a traders individuales u operadores de agentes cómodos ejecutando Node.js y gestionando sus propias claves API, más que a un servicio gestionado multiusuario."
+        "goal": "Clodds es una terminal de trading con IA personal y autoalojada, impulsada por Claude, para mercados de predicción, spot de criptomonedas y futuros perpetuos apalancados, con soporte para lanzamientos de tokens en Solana y minería de subredes de Bittensor, todo mediante chat en lenguaje natural.",
+        "usage": "Se instala con `npm install -g clodds --loglevel=error` y luego se ejecuta `clodds onboard` para completar el asistente interactivo (clave API y canal de mensajería); después queda disponible una interfaz WebChat en el navegador en http://localhost:18789/webchat.",
+        "pros": "Según la documentación, incluye 21 canales de mensajería, 10 plataformas de mercados de predicción, 7 exchanges de futuros perpetuos y más de 118 estrategias de trading, respaldadas por un motor de riesgo unificado con circuit breaker, VaR/CVaR y dimensionamiento Kelly.",
+        "cons": "El README indica que la detección de arbitraje funciona por defecto en modo dry-run y que el arbitraje entre plataformas implica complejidad de divisas y liquidación, lo cual supone una consideración operativa al habilitar la ejecución real entre plataformas.",
+        "fit": "Parece pensado para usuarios individuales dispuestos a autoalojar una aplicación Node.js >=22 / TypeScript 5.3 con una clave API de Anthropic; dado que se desarrolló en 12 días para el Colosseum Agent Hackathon en Solana, podría considerarse un proyecto en etapa temprana más que un sistema de trading ya probado en producción."
       },
       "ja": {
-        "goal": "Cloddsは、予測市場、暗号資産の現物取引、レバレッジ付き無期限先物、トークン発行、Bittensorサブネットマイニングに対応する個人向けAIトレーディングターミナルとして文書化されており、ユーザー自身のマシン上で動作し、自然な対話で操作します。Claudeを基盤とし、21のメッセージングプラットフォーム、10の予測市場、7の先物取引所への対応が記載されています。",
-        "usage": "セットアップは `npm install -g clodds --loglevel=error` を実行した後、`clodds onboard` を実行する形で行われ、対話形式のウィザードがAPIキーとメッセージングチャンネルを設定してゲートウェイを起動します。その後、組み込みのWebChatが `http://localhost:18789/webchat` で開きます。`git clone https://github.com/alsk1992/CloddsBot.git` によるソースからのビルド方法も文書化されています。",
-        "pros": "文書によれば、21のメッセージングチャンネル、10の予測市場、7の先物取引所という幅広いプラットフォーム対応、依存関係欠如によるクラッシュを防ぐ遅延読み込み拡張を備えたスキルシステム、サーキットブレーカーやVaR/CVaR、ケリー基準サイジングを含む統合リスクエンジンが提供されています。",
-        "cons": "Cloddsの実行にはNode.js >=22、TypeScript 5.3のツールチェーン、ANTHROPIC_API_KEY、および取引のためのプラットフォームごとの認証情報が必要です。また、文書によるとアービトラージ検出機能はデフォルトでドライランモードで動作し、プラットフォーム間のアービトラージには通貨・決済上の複雑さがあるとされています。",
-        "fit": "Cloddsはデータをローカルに保存する個人向けの自己ホスト型ターミナルとして説明されているため、マネージド型のマルチユーザーサービスというよりは、Node.jsの実行や自身でのAPIキー管理に慣れた個人トレーダーやエージェント運用者に向いていると考えられます。"
+        "goal": "Clodds は Claude を基盤とする個人向けセルフホスト型 AI トレーディングターミナルで、予測市場、暗号資産の現物取引、レバレッジ付き無期限先物取引に対応し、Solana でのトークン発行や Bittensor サブネットマイニング機能も備え、すべて自然言語のチャットで操作します。",
+        "usage": "`npm install -g clodds --loglevel=error` でインストール後、`clodds onboard` を実行すると API キーとメッセージングチャネルを設定する対話型ウィザードが進み、その後ブラウザベースの WebChat が http://localhost:18789/webchat で利用可能になります。",
+        "pros": "ドキュメントによれば、21 のメッセージングチャネル、10 の予測市場プラットフォーム、7 の無期限先物取引所、118 以上のトレーディング戦略に対応し、サーキットブレーカーや VaR/CVaR、ケリー基準によるサイジングを含む統合リスクエンジンを備えています。",
+        "cons": "README には、裁定取引検出機能はデフォルトでドライラン(模擬)モードで動作し、プラットフォーム間の裁定取引には通貨および決済に関する複雑さが伴うと記載されており、実運用でクロスプラットフォーム実行を有効にする際には運用上の注意が必要です。",
+        "fit": "Anthropic の API キーを用いて Node.js >=22 / TypeScript 5.3 のアプリケーションを自分でホストする意思のある個人ユーザー向けと考えられます。ただし、本プロジェクトは Solana 上の Colosseum Agent Hackathon のために 12 日間で開発されたと記載されているため、本番運用で十分に検証されたトレーディングシステムというよりは、初期段階のプロジェクトとみなすのが妥当かもしれません。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 43,
-          "end_line": 43,
+          "start_line": 6,
+          "end_line": 6,
           "section_heading": ""
         },
         {
-          "start_line": 45,
-          "end_line": 45,
+          "start_line": 43,
+          "end_line": 43,
           "section_heading": ""
         }
       ],
       "usage": [
         {
           "start_line": 53,
-          "end_line": 58,
+          "end_line": 56,
           "section_heading": "Quick Start"
         },
         {
-          "start_line": 63,
-          "end_line": 68,
+          "start_line": 58,
+          "end_line": 58,
           "section_heading": "Quick Start"
         }
       ],
       "pros": [
         {
-          "start_line": 139,
-          "end_line": 151,
+          "start_line": 141,
+          "end_line": 144,
+          "section_heading": "At a Glance"
+        },
+        {
+          "start_line": 146,
+          "end_line": 147,
           "section_heading": "At a Glance"
         }
       ],
       "cons": [
-        {
-          "start_line": 17,
-          "end_line": 17,
-          "section_heading": ""
-        },
-        {
-          "start_line": 438,
-          "end_line": 438,
-          "section_heading": "Configuration"
-        },
         {
           "start_line": 271,
           "end_line": 271,
@@ -695,9 +690,9 @@
           "section_heading": ""
         },
         {
-          "start_line": 449,
-          "end_line": 449,
-          "section_heading": "Configuration"
+          "start_line": 47,
+          "end_line": 47,
+          "section_heading": ""
         }
       ]
     },
@@ -717,38 +712,6 @@
         ]
       },
       {
-        "kind": "version",
-        "value": "5.3",
-        "fields": [
-          "cons"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "21",
-        "fields": [
-          "goal",
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "10",
-        "fields": [
-          "goal",
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "7",
-        "fields": [
-          "goal",
-          "usage",
-          "pros"
-        ]
-      },
-      {
         "kind": "url",
         "value": "http://localhost:18789/webchat",
         "fields": [
@@ -756,10 +719,32 @@
         ]
       },
       {
-        "kind": "url",
-        "value": "https://github.com/alsk1992/CloddsBot.git",
+        "kind": "number",
+        "value": "21",
         "fields": [
-          "usage"
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "10",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "7",
+        "fields": [
+          "usage",
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "118+",
+        "fields": [
+          "pros"
         ]
       },
       {
@@ -767,9 +752,7 @@
         "value": "Clodds",
         "fields": [
           "goal",
-          "usage",
-          "cons",
-          "fit"
+          "usage"
         ]
       },
       {
@@ -777,6 +760,21 @@
         "value": "Claude",
         "fields": [
           "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Colosseum Agent Hackathon",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Solana",
+        "fields": [
+          "goal",
+          "fit"
         ]
       }
     ],
@@ -787,8 +785,8 @@
       "kind": "readme",
       "slug": "alsk1992/cloddsbot",
       "path": "README.md",
-      "blob_sha": "07cbb93e592fe0c5e736e5db5e6cc37f092c47db",
-      "content_sha256": "5d5bbffce22e97a90b3845ad2e4cac8bf6cb0993c6a194d9b48c7767066456ac",
+      "blob_sha": "e6942234a3f815f6243326c0070348dd5589519a",
+      "content_sha256": "e7c8c2327f8c00bb537715af3de2b83481c082f10b6cb0f67938e022f5074c31",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -1041,60 +1039,55 @@
   },
   "AlexsJones/llmfit": {
     "content": {
-      "goal": "llmfit is a command-line and TUI tool that inspects a machine's CPU, system RAM, GPU(s), VRAM, and accelerator configuration to recommend which open-source Large Language Models (LLMs) can run well across common quantization formats such as GGUF, AWQ, GPTQ, and EXL2.",
-      "usage": "Install via `scoop install llmfit` (Windows), `brew install AlexsJones/llmfit/llmfit` (macOS/Linux), or `uv tool install -U llmfit`. Run `llmfit` with no flags to open the interactive TUI, or use `llmfit recommend --json` and `llmfit serve --host 0.0.0.0 --port 8787` for scripted output and a REST API server; a Docker image is also available.",
-      "pros": "Offers hardware auto-detection across NVIDIA CUDA, Apple Silicon, AMD ROCm, and Intel OneAPI, runs on macOS, Linux, and Windows, and provides both a lightweight TUI and a web dashboard. A benchmarking feature lets users submit real tok/s measurements as a PR directly from the TUI, and the documentation states the program does not transfer information to external services unless a feature explicitly requiring it is used.",
-      "cons": "Speed figures are estimates derived from a memory-bandwidth model combined with community measurements rather than guaranteed results, and the README suggests users may need to run `llmfit info` to see what a given estimate assumes and how to verify it on their own hardware; community-submitted benchmark results also only become available once merged into a subsequent release.",
-      "fit": "Given its CLI, TUI, JSON output, and REST API endpoints, llmfit appears oriented toward developers, hobbyists, and automated pipelines that need to select and size LLMs for local or self-hosted deployment across varied hardware, including multi-GPU and MoE-model setups."
+      "goal": "llmfit is a tool that inspects a computer's CPU, system RAM, GPU(s), VRAM, and accelerator configuration to recommend which open-source Large Language Models (LLMs) it can comfortably run across popular quantizations.",
+      "usage": "llmfit installs via package managers such as Scoop (`scoop install llmfit` on Windows), Homebrew, MacPorts, a curl script, or uv/pip, and container images are published too. Running `llmfit` alone opens the interactive TUI showing detected hardware and ranked models, while `llmfit serve --host 0.0.0.0 --port 8787` starts the REST API and web dashboard.",
+      "pros": "llmfit auto-detects CPU cores, RAM, GPUs, VRAM, and unified memory across NVIDIA CUDA, Apple Silicon, AMD ROCm, and Intel OneAPI, then scores models on quality, speed, fit, and context. It recognizes GGUF, AWQ, GPTQ, and EXL2 formats, offers a TUI and REST API, runs on macOS, Linux, and Windows, and lets users contribute measured benchmarks back to the project.",
+      "cons": "Default speed figures come from a memory-bandwidth estimation model rather than measured runs, so they may not always match real-world performance until a user runs the benchmarking feature — which requires downloading and serving a model locally — to get a measured result for their own hardware.",
+      "fit": "llmfit appears best suited for developers choosing which open-source LLM to run locally via Ollama, llama.cpp, MLX, Docker Model Runner, or LM Studio, and for teams wanting scriptable hardware reports through its REST API; it may be less useful for anyone targeting only remote or cloud-hosted inference."
     },
     "summaries": {
       "en": {
-        "goal": "llmfit is a command-line and TUI tool that inspects a machine's CPU, system RAM, GPU(s), VRAM, and accelerator configuration to recommend which open-source Large Language Models (LLMs) can run well across common quantization formats such as GGUF, AWQ, GPTQ, and EXL2.",
-        "usage": "Install via `scoop install llmfit` (Windows), `brew install AlexsJones/llmfit/llmfit` (macOS/Linux), or `uv tool install -U llmfit`. Run `llmfit` with no flags to open the interactive TUI, or use `llmfit recommend --json` and `llmfit serve --host 0.0.0.0 --port 8787` for scripted output and a REST API server; a Docker image is also available.",
-        "pros": "Offers hardware auto-detection across NVIDIA CUDA, Apple Silicon, AMD ROCm, and Intel OneAPI, runs on macOS, Linux, and Windows, and provides both a lightweight TUI and a web dashboard. A benchmarking feature lets users submit real tok/s measurements as a PR directly from the TUI, and the documentation states the program does not transfer information to external services unless a feature explicitly requiring it is used.",
-        "cons": "Speed figures are estimates derived from a memory-bandwidth model combined with community measurements rather than guaranteed results, and the README suggests users may need to run `llmfit info` to see what a given estimate assumes and how to verify it on their own hardware; community-submitted benchmark results also only become available once merged into a subsequent release.",
-        "fit": "Given its CLI, TUI, JSON output, and REST API endpoints, llmfit appears oriented toward developers, hobbyists, and automated pipelines that need to select and size LLMs for local or self-hosted deployment across varied hardware, including multi-GPU and MoE-model setups."
+        "goal": "llmfit is a tool that inspects a computer's CPU, system RAM, GPU(s), VRAM, and accelerator configuration to recommend which open-source Large Language Models (LLMs) it can comfortably run across popular quantizations.",
+        "usage": "llmfit installs via package managers such as Scoop (`scoop install llmfit` on Windows), Homebrew, MacPorts, a curl script, or uv/pip, and container images are published too. Running `llmfit` alone opens the interactive TUI showing detected hardware and ranked models, while `llmfit serve --host 0.0.0.0 --port 8787` starts the REST API and web dashboard.",
+        "pros": "llmfit auto-detects CPU cores, RAM, GPUs, VRAM, and unified memory across NVIDIA CUDA, Apple Silicon, AMD ROCm, and Intel OneAPI, then scores models on quality, speed, fit, and context. It recognizes GGUF, AWQ, GPTQ, and EXL2 formats, offers a TUI and REST API, runs on macOS, Linux, and Windows, and lets users contribute measured benchmarks back to the project.",
+        "cons": "Default speed figures come from a memory-bandwidth estimation model rather than measured runs, so they may not always match real-world performance until a user runs the benchmarking feature — which requires downloading and serving a model locally — to get a measured result for their own hardware.",
+        "fit": "llmfit appears best suited for developers choosing which open-source LLM to run locally via Ollama, llama.cpp, MLX, Docker Model Runner, or LM Studio, and for teams wanting scriptable hardware reports through its REST API; it may be less useful for anyone targeting only remote or cloud-hosted inference."
       },
       "ko": {
-        "goal": "llmfit는 CPU, 시스템 RAM, GPU, VRAM 및 가속기 구성을 검사하여 GGUF, AWQ, GPTQ, EXL2 등 일반적인 양자화 형식에서 어떤 오픈소스 대형 언어 모델(LLM)이 원활하게 실행될 수 있는지 추천하는 명령줄 및 TUI 도구입니다.",
-        "usage": "Windows에서는 `scoop install llmfit`, macOS/Linux에서는 `brew install AlexsJones/llmfit/llmfit` 또는 `uv tool install -U llmfit`로 설치할 수 있습니다. 플래그 없이 `llmfit`를 실행하면 대화형 TUI가 열리며, `llmfit recommend --json`과 `llmfit serve --host 0.0.0.0 --port 8787` 명령으로 스크립트용 출력과 REST API 서버를 사용할 수 있고, Docker 이미지도 제공됩니다.",
-        "pros": "NVIDIA CUDA, Apple Silicon, AMD ROCm, Intel OneAPI 전반의 하드웨어 자동 감지 기능을 제공하며 macOS, Linux, Windows를 지원하고, 가벼운 TUI와 웹 대시보드를 모두 제공합니다. 벤치마크 기능을 통해 TUI에서 바로 실제 tok/s 측정값을 PR로 제출할 수 있으며, 문서에 따르면 사용자가 명시적으로 요청하는 기능을 사용하지 않는 한 외부 서비스로 정보를 전송하지 않습니다.",
-        "cons": "속도 수치는 메모리 대역폭 모델과 커뮤니티 측정값을 결합한 추정치이며 보장된 결과가 아니므로, README에 따르면 사용자는 `llmfit info`를 실행해 특정 추정치가 무엇을 가정하는지와 자신의 하드웨어에서 어떻게 검증하는지 확인해야 할 수 있습니다. 또한 커뮤니티가 제출한 벤치마크 결과는 다음 릴리스에 병합된 이후에야 사용할 수 있습니다.",
-        "fit": "CLI, TUI, JSON 출력, REST API 엔드포인트를 갖추고 있어 llmfit은 다중 GPU 및 MoE 모델 구성을 포함해 다양한 하드웨어에서 로컬 또는 자체 호스팅 환경에 맞춰 LLM을 선택하고 크기를 조정해야 하는 개발자, 애호가, 자동화 파이프라인에 적합한 것으로 보입니다."
+        "goal": "llmfit는 컴퓨터의 CPU, 시스템 RAM, GPU, VRAM, 가속기 구성을 검사하여 다양한 양자화(quantization) 형식으로 무리 없이 실행할 수 있는 오픈소스 대형 언어 모델(LLM)을 추천하는 도구입니다.",
+        "usage": "llmfit는 Scoop(`scoop install llmfit`, Windows), Homebrew, MacPorts, curl 설치 스크립트, uv/pip 등 패키지 매니저로 설치할 수 있으며 컨테이너 이미지도 제공됩니다. 플래그 없이 `llmfit`를 실행하면 감지된 하드웨어와 적합도 순으로 정렬된 모델을 보여주는 대화형 TUI가 열리고, `llmfit serve --host 0.0.0.0 --port 8787` 명령은 REST API와 웹 대시보드를 시작합니다.",
+        "pros": "llmfit는 NVIDIA CUDA, Apple Silicon, AMD ROCm, Intel OneAPI 환경에서 CPU 코어, RAM, GPU, VRAM, 통합 메모리를 자동으로 감지하고 품질, 속도, 적합도, 컨텍스트 기준으로 모델 점수를 매깁니다. GGUF, AWQ, GPTQ, EXL2 양자화 형식을 인식하며 TUI와 REST API를 함께 제공하고 macOS, Linux, Windows에서 동작하며, 사용자가 측정한 벤치마크 결과를 프로젝트에 기여할 수 있습니다.",
+        "cons": "기본 속도 수치는 실제 측정이 아니라 메모리 대역폭 추정 모델에서 산출되므로, 사용자가 벤치마크 기능(로컬에서 모델을 다운로드하고 서빙해야 함)을 실행해 자신의 하드웨어에 대한 측정값으로 대체하기 전까지는 실제 성능과 정확히 일치하지 않을 수 있습니다.",
+        "fit": "llmfit는 Ollama, llama.cpp, MLX, Docker Model Runner, LM Studio 같은 도구로 로컬에서 실행할 오픈소스 LLM을 선택하려는 개발자나, REST API로 스크립트화된 하드웨어 보고서를 원하는 팀에 적합해 보입니다. 원격 또는 클라우드 기반 추론만을 목표로 하는 사용자에게는 유용성이 낮을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "llmfit 是一款命令行与 TUI 工具,通过检测 CPU、系统内存、GPU、显存及加速器配置,推荐哪些开源大语言模型(LLM)能够在 GGUF、AWQ、GPTQ、EXL2 等常见量化格式下良好运行。",
-        "usage": "Windows 上可使用 `scoop install llmfit` 安装,macOS/Linux 上可使用 `brew install AlexsJones/llmfit/llmfit` 或 `uv tool install -U llmfit` 安装。不带任何参数运行 `llmfit` 即可打开交互式 TUI;使用 `llmfit recommend --json` 和 `llmfit serve --host 0.0.0.0 --port 8787` 可分别获取脚本化输出和启动 REST API 服务器,项目也提供 Docker 镜像。",
-        "pros": "该工具支持 NVIDIA CUDA、Apple Silicon、AMD ROCm 和 Intel OneAPI 的硬件自动检测,兼容 macOS、Linux 与 Windows,并同时提供轻量级 TUI 与网页仪表盘。其基准测试功能允许用户直接从 TUI 提交真实的 tok/s 测量结果作为 PR;文档说明除非用户主动使用需要联网的功能,否则程序不会向外部服务传输信息。",
-        "cons": "速度数值是基于内存带宽模型并结合社区实测数据得出的估算值,而非保证结果,README 表明用户可能需要运行 `llmfit info` 来查看某项估算所依赖的假设,并在自己的硬件上加以验证。此外,社区提交的基准测试结果需等到相应提交被合并进后续版本后才能使用。",
-        "fit": "凭借其 CLI、TUI、JSON 输出及 REST API 端点,llmfit 看起来适合需要在包括多 GPU 与 MoE 模型在内的多样硬件上,为本地或自托管部署选择并适配 LLM 规模的开发者、爱好者及自动化流水线使用。"
+        "goal": "llmfit 是一款工具,通过检测计算机的 CPU、系统内存、GPU、显存(VRAM)及加速器配置,推荐哪些开源大语言模型(LLM)可以在多种量化格式下流畅运行。",
+        "usage": "llmfit 可通过 Scoop(Windows 上使用 `scoop install llmfit`)、Homebrew、MacPorts、curl 安装脚本或 uv/pip 等包管理器安装,也提供容器镜像。不带参数运行 `llmfit` 会打开交互式 TUI,显示检测到的硬件信息及按适配度排序的模型;`llmfit serve --host 0.0.0.0 --port 8787` 命令则启动 REST API 与网页控制台。",
+        "pros": "llmfit 可在 NVIDIA CUDA、Apple Silicon、AMD ROCm、Intel OneAPI 等环境下自动检测 CPU 核心数、内存、GPU、显存及统一内存,并按质量、速度、适配度和上下文长度对模型评分。它支持 GGUF、AWQ、GPTQ、EXL2 等量化格式,同时提供 TUI 与 REST API,可在 macOS、Linux、Windows 上运行,用户还可以将实测的基准结果贡献回项目。",
+        "cons": "默认的速度数值来自基于内存带宽的估算模型,而非实际测量结果,因此在用户运行基准测试功能(需要在本地下载并运行相应模型)以获得自己硬件的实测数据之前,这些数值可能与真实性能不完全一致。",
+        "fit": "llmfit 似乎更适合希望通过 Ollama、llama.cpp、MLX、Docker Model Runner 或 LM Studio 等方式在本地运行开源 LLM 的开发者,以及希望通过其 REST API 获取可脚本化硬件报告的团队;对于只针对远程或云端推理的用户,其实用性可能有限。"
       },
       "es": {
-        "goal": "llmfit es una herramienta de línea de comandos y TUI que inspecciona la CPU, la RAM del sistema, la(s) GPU(s), la VRAM y la configuración del acelerador para recomendar qué modelos de lenguaje grande (LLM) de código abierto pueden ejecutarse bien en formatos de cuantización comunes como GGUF, AWQ, GPTQ y EXL2.",
-        "usage": "Se instala con `scoop install llmfit` en Windows, `brew install AlexsJones/llmfit/llmfit` o `uv tool install -U llmfit` en macOS/Linux. Ejecutar `llmfit` sin opciones abre la TUI interactiva, mientras que `llmfit recommend --json` y `llmfit serve --host 0.0.0.0 --port 8787` permiten obtener salida para scripts y levantar un servidor REST API; también existe una imagen Docker.",
-        "pros": "Ofrece detección automática de hardware para NVIDIA CUDA, Apple Silicon, AMD ROCm e Intel OneAPI, es compatible con macOS, Linux y Windows, y ofrece tanto una TUI ligera como un panel web. Su función de benchmarking permite enviar mediciones reales de tok/s como PR directamente desde la TUI, y la documentación indica que el programa no transfiere información a servicios externos salvo que se use explícitamente una función que lo requiera.",
-        "cons": "Las cifras de velocidad son estimaciones derivadas de un modelo de ancho de banda de memoria combinado con mediciones de la comunidad, no resultados garantizados, y el README sugiere que puede ser necesario ejecutar `llmfit info` para ver qué asume una estimación concreta y cómo verificarla en el propio hardware. Además, los resultados de benchmarks enviados por la comunidad solo están disponibles una vez integrados en una versión posterior.",
-        "fit": "Con su CLI, TUI, salida JSON y puntos de acceso REST API, llmfit parece orientado a desarrolladores, aficionados y flujos automatizados que necesitan elegir y dimensionar LLM para despliegues locales o autoalojados en hardware variado, incluidas configuraciones con múltiples GPU y modelos MoE."
+        "goal": "llmfit es una herramienta que inspecciona la CPU, la RAM del sistema, la(s) GPU, la VRAM y la configuración del acelerador de un equipo para recomendar qué modelos de lenguaje grandes (LLM) de código abierto puede ejecutar con soltura en distintos formatos de cuantización.",
+        "usage": "llmfit se instala mediante gestores de paquetes como Scoop (`scoop install llmfit` en Windows), Homebrew, MacPorts, un script de instalación con curl o uv/pip, y también hay imágenes de contenedor disponibles. Ejecutar `llmfit` sin argumentos abre la TUI interactiva que muestra el hardware detectado y los modelos ordenados por compatibilidad, mientras que `llmfit serve --host 0.0.0.0 --port 8787` inicia la API REST y el panel web.",
+        "pros": "llmfit detecta automáticamente núcleos de CPU, RAM, GPU, VRAM y memoria unificada en entornos NVIDIA CUDA, Apple Silicon, AMD ROCm e Intel OneAPI, y puntúa los modelos según calidad, velocidad, compatibilidad y contexto. Reconoce los formatos de cuantización GGUF, AWQ, GPTQ y EXL2, ofrece TUI y API REST, funciona en macOS, Linux y Windows, y permite a los usuarios aportar resultados de benchmarks medidos al proyecto.",
+        "cons": "Como las cifras de velocidad predeterminadas provienen de un modelo de estimación basado en el ancho de banda de memoria y no de mediciones reales, podrían no coincidir exactamente con el rendimiento real hasta que el usuario ejecute la función de benchmarking -que requiere descargar y servir un modelo localmente- para obtener un resultado medido en su propio hardware.",
+        "fit": "llmfit parece adecuado para desarrolladores que deciden qué LLM de código abierto ejecutar localmente con proveedores como Ollama, llama.cpp, MLX, Docker Model Runner o LM Studio, y para equipos que buscan informes de hardware programables mediante su API REST; podría ser menos útil para quienes solo buscan inferencia remota o en la nube."
       },
       "ja": {
-        "goal": "llmfit は、CPU・システムRAM・GPU・VRAM・アクセラレータ構成を検査し、GGUF、AWQ、GPTQ、EXL2 といった一般的な量子化形式においてどのオープンソース大規模言語モデル(LLM)が快適に動作するかを推奨する、コマンドラインおよびTUIツールです。",
-        "usage": "Windows では `scoop install llmfit`、macOS/Linux では `brew install AlexsJones/llmfit/llmfit` または `uv tool install -U llmfit` でインストールできます。オプションを付けずに `llmfit` を実行すると対話型TUIが開き、`llmfit recommend --json` と `llmfit serve --host 0.0.0.0 --port 8787` によりスクリプト向け出力やREST APIサーバーの起動が可能で、Dockerイメージも提供されています。",
-        "pros": "NVIDIA CUDA、Apple Silicon、AMD ROCm、Intel OneAPI にわたるハードウェア自動検出に対応し、macOS・Linux・Windows をサポートするほか、軽量なTUIとWebダッシュボードの両方を備えています。ベンチマーク機能により、TUIから直接実測のtok/s値をPRとして提出でき、ユーザーが明示的に必要とする機能を使わない限り外部サービスへ情報を送信しないとドキュメントに記載されています。",
-        "cons": "速度の数値はメモリ帯域幅モデルとコミュニティの実測値を組み合わせた推定であり保証された結果ではないため、README によれば `llmfit info` を実行して特定の推定値が何を前提としているか、自分のハードウェアでどう検証できるかを確認する必要がある場合があるとされています。また、コミュニティが提出したベンチマーク結果は、後続リリースにマージされて初めて利用可能になります。",
-        "fit": "CLI、TUI、JSON出力、REST APIエンドポイントを備えていることから、llmfit はマルチGPUやMoEモデル構成を含む多様なハードウェア上でローカルまたは自己ホスト型のLLM選定・サイジングを必要とする開発者、愛好家、自動化パイプライン向けと考えられます。"
+        "goal": "llmfit は、コンピュータの CPU、システム RAM、GPU、VRAM、アクセラレーター構成を検査し、さまざまな量子化形式で快適に実行できるオープンソースの大規模言語モデル(LLM)を推奨するツールです。",
+        "usage": "llmfit は Scoop(Windows では `scoop install llmfit`)、Homebrew、MacPorts、curl インストールスクリプト、uv/pip などのパッケージマネージャーからインストールでき、コンテナイメージも提供されています。引数なしで `llmfit` を実行すると、検出したハードウェアと適合度順に並んだモデルを表示する対話型 TUI が開き、`llmfit serve --host 0.0.0.0 --port 8787` コマンドは REST API と Web ダッシュボードを起動します。",
+        "pros": "llmfit は NVIDIA CUDA、Apple Silicon、AMD ROCm、Intel OneAPI 環境で CPU コア数、RAM、GPU、VRAM、統合メモリを自動検出し、品質・速度・適合度・コンテキストの観点でモデルを評価します。GGUF、AWQ、GPTQ、EXL2 の量子化形式に対応し、TUI と REST API を備え、macOS、Linux、Windows で動作するほか、ユーザーが計測したベンチマーク結果をプロジェクトに還元できます。",
+        "cons": "既定の速度値は実測ではなくメモリ帯域幅に基づく推定モデルから算出されるため、ユーザーがベンチマーク機能(ローカルでモデルをダウンロードしサーブする必要があります)を実行して自分のハードウェアの実測値に置き換えるまでは、実際の性能と完全には一致しない可能性があります。",
+        "fit": "llmfit は、Ollama、llama.cpp、MLX、Docker Model Runner、LM Studio などでローカルにオープンソース LLM を実行したい開発者や、REST API を通じてスクリプト化可能なハードウェアレポートを求めるチームに適していると考えられます。リモートまたはクラウドでの推論のみを対象とするユーザーには有用性が低い可能性があります。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 20,
-          "end_line": 20,
+          "start_line": 23,
+          "end_line": 23,
           "section_heading": "llmfit"
-        },
-        {
-          "start_line": 29,
-          "end_line": 29,
-          "section_heading": "Features"
         }
       ],
       "usage": [
@@ -1104,31 +1097,26 @@
           "section_heading": "Windows"
         },
         {
-          "start_line": 103,
-          "end_line": 111,
-          "section_heading": "uv / pip"
+          "start_line": 163,
+          "end_line": 169,
+          "section_heading": "Terminal Interface (TUI)"
         },
         {
-          "start_line": 182,
-          "end_line": 197,
+          "start_line": 189,
+          "end_line": 191,
           "section_heading": "Command Line Options"
         }
       ],
       "pros": [
         {
           "start_line": 28,
-          "end_line": 30,
+          "end_line": 33,
           "section_heading": "Features"
         },
         {
-          "start_line": 22,
-          "end_line": 22,
+          "start_line": 25,
+          "end_line": 25,
           "section_heading": "llmfit"
-        },
-        {
-          "start_line": 282,
-          "end_line": 282,
-          "section_heading": "Code signing"
         }
       ],
       "cons": [
@@ -1138,32 +1126,42 @@
           "section_heading": "How it works"
         },
         {
-          "start_line": 22,
-          "end_line": 22,
+          "start_line": 25,
+          "end_line": 25,
           "section_heading": "llmfit"
         }
       ],
       "fit": [
         {
-          "start_line": 31,
-          "end_line": 31,
+          "start_line": 37,
+          "end_line": 37,
           "section_heading": "Features"
         },
         {
-          "start_line": 37,
-          "end_line": 37,
+          "start_line": 31,
+          "end_line": 31,
           "section_heading": "Features"
         }
       ]
     },
     "invariants": [
       {
+        "kind": "product",
+        "value": "llmfit",
+        "fields": [
+          "goal",
+          "usage",
+          "pros",
+          "fit"
+        ]
+      },
+      {
         "kind": "command",
         "value": "llmfit",
         "fields": [
           "goal",
           "usage",
-          "cons",
+          "pros",
           "fit"
         ]
       },
@@ -1176,37 +1174,9 @@
       },
       {
         "kind": "command",
-        "value": "brew install AlexsJones/llmfit/llmfit",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "uv tool install -U llmfit",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "llmfit recommend --json",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
         "value": "llmfit serve --host 0.0.0.0 --port 8787",
         "fields": [
           "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "llmfit info",
-        "fields": [
-          "cons"
         ]
       },
       {
@@ -1214,65 +1184,6 @@
         "value": "8787",
         "fields": [
           "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "llmfit",
-        "fields": [
-          "goal",
-          "usage",
-          "cons",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Docker",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "GGUF",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "AWQ",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "GPTQ",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "EXL2",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "NVIDIA CUDA",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Apple Silicon",
-        "fields": [
-          "pros"
         ]
       }
     ],
@@ -1284,8 +1195,8 @@
       "kind": "readme",
       "slug": "alexsjones/llmfit",
       "path": "README.md",
-      "blob_sha": "54325ed1899dc1636d4d4bc000c209e01210b348",
-      "content_sha256": "897b92a04d76e0eb58302549a149ab0526840290b6b6ff4edb0452418b58845d",
+      "blob_sha": "5ec32d944447cdeda3e1098b11bc90da9a5843ef",
+      "content_sha256": "db90c2a42cfcb82836cb547c8ba0043006679e4cc7ee41a97d60bf0bb939a1f9",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -3204,47 +3115,47 @@
   },
   "vastsa/PI-Desktop": {
     "content": {
-      "goal": "PI-Desktop is a local-first desktop workspace for AI coding agents that lets users bring their own model — OpenAI, Anthropic, local models, or any OpenAI-compatible API — and open local project directories without a mandatory PI-Desktop account or relay. It is currently described as an Early Preview under active development.",
-      "usage": "Users can download prebuilt PI-Desktop releases for macOS, Windows, or Linux from https://github.com/vastsa/PI-Desktop/releases/latest. It can also be run from source by cloning the repository with `git clone https://github.com/vastsa/PI-Desktop.git`, installing dependencies, building the Rust host core, and then starting the app with `pnpm dev`. Inside the application, users connect a model under Settings → Model configuration, open a local project, and choose Agent, Plan, or Goal mode for each task.",
-      "pros": "The workspace supports multiple model providers with per-session switching, includes a permission layer so users can review diffs and command output before privileged actions run, and can be extended through Skills, MCP servers, Subagents, and Plugins. Conversations and settings are stored locally, and the documentation states there is no PI-Desktop telemetry.",
-      "cons": "PI-Desktop is described as an Early Preview, so its APIs, extension interfaces, and desktop behaviors may still change before a stable release. Linux builds also require glibc 2.35 or newer, meaning older distributions such as Ubuntu 20.04 or Debian 11 reportedly cannot load the bundled host.",
-      "fit": "PI-Desktop appears best suited to developers wanting a vendor-neutral, cross-platform (macOS, Windows, Linux) coding-agent workspace that keeps data local. It is distributed under the GNU Lesser General Public License v3.0, with the documented current release line at 0.14.x."
+      "goal": "PI-Desktop is described as a local-first desktop workspace for AI coding agents, letting users bring their own model and open any local project. The README states it requires no PI-Desktop account and no mandatory relay between the machine and the model provider.",
+      "usage": "Getting started involves connecting a model in Settings → Model configuration, opening a local project, and choosing Agent, Plan, or Goal mode before reviewing results in the Review panel. To run PI-Desktop from source, the README documents `git clone https://github.com/vastsa/PI-Desktop.git`, `pnpm install`, `cargo build -p host-core`, `pnpm build:js`, and `pnpm dev`; it also requires Node.js >=22.19 and pnpm >=10, and prebuilt versions can instead be downloaded from https://github.com/vastsa/PI-Desktop/releases/latest.",
+      "pros": "Documented advantages include support for multiple model providers such as OpenAI, Anthropic, and local gateways like Ollama and LM Studio, switchable per session. Privileged agent actions such as file edits and command execution pass through a permission layer for review, and the workspace can be extended with Skills, MCP servers, Subagents, and installable Plugins.",
+      "cons": "PI-Desktop is explicitly labeled an Early Preview, with APIs, extension interfaces, and some desktop behaviors noted as still evolving. Linux x64 packages additionally require glibc 2.35 or newer, so older distributions such as Ubuntu 20.04 or Debian 11 cannot load the bundled host.",
+      "fit": "Based on the described feature set, PI-Desktop appears best suited for developers who want a provider-agnostic, desktop-based AI coding agent workspace across macOS, Windows, and Linux without editor lock-in. Given its Early Preview status and current 0.14.x line, it may not yet suit production-critical workflows, though this is not explicitly stated."
     },
     "summaries": {
       "en": {
-        "goal": "PI-Desktop is a local-first desktop workspace for AI coding agents that lets users bring their own model — OpenAI, Anthropic, local models, or any OpenAI-compatible API — and open local project directories without a mandatory PI-Desktop account or relay. It is currently described as an Early Preview under active development.",
-        "usage": "Users can download prebuilt PI-Desktop releases for macOS, Windows, or Linux from https://github.com/vastsa/PI-Desktop/releases/latest. It can also be run from source by cloning the repository with `git clone https://github.com/vastsa/PI-Desktop.git`, installing dependencies, building the Rust host core, and then starting the app with `pnpm dev`. Inside the application, users connect a model under Settings → Model configuration, open a local project, and choose Agent, Plan, or Goal mode for each task.",
-        "pros": "The workspace supports multiple model providers with per-session switching, includes a permission layer so users can review diffs and command output before privileged actions run, and can be extended through Skills, MCP servers, Subagents, and Plugins. Conversations and settings are stored locally, and the documentation states there is no PI-Desktop telemetry.",
-        "cons": "PI-Desktop is described as an Early Preview, so its APIs, extension interfaces, and desktop behaviors may still change before a stable release. Linux builds also require glibc 2.35 or newer, meaning older distributions such as Ubuntu 20.04 or Debian 11 reportedly cannot load the bundled host.",
-        "fit": "PI-Desktop appears best suited to developers wanting a vendor-neutral, cross-platform (macOS, Windows, Linux) coding-agent workspace that keeps data local. It is distributed under the GNU Lesser General Public License v3.0, with the documented current release line at 0.14.x."
+        "goal": "PI-Desktop is described as a local-first desktop workspace for AI coding agents, letting users bring their own model and open any local project. The README states it requires no PI-Desktop account and no mandatory relay between the machine and the model provider.",
+        "usage": "Getting started involves connecting a model in Settings → Model configuration, opening a local project, and choosing Agent, Plan, or Goal mode before reviewing results in the Review panel. To run PI-Desktop from source, the README documents `git clone https://github.com/vastsa/PI-Desktop.git`, `pnpm install`, `cargo build -p host-core`, `pnpm build:js`, and `pnpm dev`; it also requires Node.js >=22.19 and pnpm >=10, and prebuilt versions can instead be downloaded from https://github.com/vastsa/PI-Desktop/releases/latest.",
+        "pros": "Documented advantages include support for multiple model providers such as OpenAI, Anthropic, and local gateways like Ollama and LM Studio, switchable per session. Privileged agent actions such as file edits and command execution pass through a permission layer for review, and the workspace can be extended with Skills, MCP servers, Subagents, and installable Plugins.",
+        "cons": "PI-Desktop is explicitly labeled an Early Preview, with APIs, extension interfaces, and some desktop behaviors noted as still evolving. Linux x64 packages additionally require glibc 2.35 or newer, so older distributions such as Ubuntu 20.04 or Debian 11 cannot load the bundled host.",
+        "fit": "Based on the described feature set, PI-Desktop appears best suited for developers who want a provider-agnostic, desktop-based AI coding agent workspace across macOS, Windows, and Linux without editor lock-in. Given its Early Preview status and current 0.14.x line, it may not yet suit production-critical workflows, though this is not explicitly stated."
       },
       "ko": {
-        "goal": "PI-Desktop는 AI 코딩 에이전트를 위한 로컬 우선 데스크톱 워크스페이스로, 사용자가 OpenAI, Anthropic, 로컬 모델, 또는 OpenAI 호환 API 중에서 원하는 모델을 직접 연결하고 로컬 프로젝트 디렉터리를 열 수 있게 해줍니다. 필수 계정이나 중계 서버 없이 사용할 수 있으며, 현재 문서상 Early Preview(초기 프리뷰) 단계로 활발히 개발되고 있습니다.",
-        "usage": "사용자는 https://github.com/vastsa/PI-Desktop/releases/latest 에서 macOS, Windows, Linux용 사전 빌드된 릴리스를 다운로드할 수 있습니다. 소스에서 직접 실행하려면 `git clone https://github.com/vastsa/PI-Desktop.git`로 저장소를 클론한 뒤 의존성을 설치하고 Rust 호스트 코어를 빌드한 다음 `pnpm dev`로 앱을 시작합니다. 앱 내부에서는 Settings → Model configuration에서 모델을 연결하고, 프로젝트를 열고, 각 작업에 맞춰 Agent, Plan, Goal 모드 중 하나를 선택합니다.",
-        "pros": "이 워크스페이스는 여러 모델 제공자를 지원하며 세션별로 전환할 수 있고, 특권 작업이 실행되기 전에 diff와 명령 출력을 검토할 수 있는 권한 계층을 포함하며, Skills, MCP 서버, Subagents, Plugins를 통해 확장할 수 있습니다. 대화와 설정은 로컬에 저장되며, 문서에 따르면 PI-Desktop 자체 텔레메트리는 없습니다.",
-        "cons": "PI-Desktop는 Early Preview로 설명되어 있어 API, 확장 인터페이스, 데스크톱 동작이 안정 버전 이전까지 계속 바뀔 수 있습니다. 또한 Linux 빌드는 glibc 2.35 이상을 필요로 하여, Ubuntu 20.04나 Debian 11 같은 이전 배포판에서는 번들된 호스트를 로드하지 못하는 것으로 보입니다.",
-        "fit": "PI-Desktop는 데이터를 로컬에 유지하면서 macOS, Windows, Linux를 아우르는 벤더 중립적인 코딩 에이전트 워크스페이스를 원하는 개발자에게 적합해 보입니다. GNU Lesser General Public License v3.0 하에 배포되며, 문서화된 현재 릴리스 라인은 0.14.x입니다."
+        "goal": "README는 PI-Desktop을 AI 코딩 에이전트를 위한 로컬 우선(local-first) 데스크톱 워크스페이스로 소개하며, 사용자가 원하는 모델을 직접 연결하고 로컬 프로젝트를 열 수 있다고 설명합니다. PI-Desktop 계정이나 필수 중계 서버 없이 사용할 수 있다고 명시되어 있습니다.",
+        "usage": "시작 방법은 설정 → 모델 구성에서 모델을 연결하고, 로컬 프로젝트를 연 뒤 Agent, Plan, Goal 모드 중 하나를 선택하고 Review 패널에서 결과를 확인하는 순서로 설명되어 있습니다. 소스에서 직접 실행하려면 README에 `git clone https://github.com/vastsa/PI-Desktop.git`, `pnpm install`, `cargo build -p host-core`, `pnpm build:js`, `pnpm dev` 명령이 문서화되어 있으며 Node.js >=22.19와 pnpm >=10이 필요하고, 빌드된 버전은 https://github.com/vastsa/PI-Desktop/releases/latest 에서 내려받을 수 있습니다.",
+        "pros": "문서화된 장점으로는 OpenAI, Anthropic, 그리고 Ollama나 LM Studio 같은 로컬 게이트웨이를 포함한 다양한 모델 제공자를 세션별로 전환하며 사용할 수 있다는 점이 있습니다. 파일 편집이나 명령 실행 같은 권한이 필요한 에이전트 작업은 권한 계층을 거쳐 검토할 수 있으며, Skills, MCP 서버, Subagents, 설치 가능한 Plugins를 통해 워크스페이스를 확장할 수 있습니다.",
+        "cons": "PI-Desktop은 명시적으로 얼리 프리뷰(Early Preview)로 표시되어 있으며, API, 확장 인터페이스, 일부 데스크톱 동작이 아직 변화할 수 있다고 안내되어 있습니다. 또한 Linux x64 패키지는 glibc 2.35 이상이 필요해 Ubuntu 20.04나 Debian 11 같은 이전 배포판에서는 번들된 호스트를 로드할 수 없습니다.",
+        "fit": "설명된 기능들을 볼 때 PI-Desktop은 에디터에 종속되지 않고 macOS, Windows, Linux에서 특정 모델 제공자에 구애받지 않는 데스크톱 기반 AI 코딩 에이전트 환경을 원하는 개발자에게 적합해 보입니다. 다만 현재 0.14.x 버전대의 얼리 프리뷰 상태를 고려하면 프로덕션 핵심 워크플로에는 아직 적합하지 않을 수 있으며, 이는 명시적으로 언급되어 있지는 않습니다."
       },
       "zh-CN": {
-        "goal": "PI-Desktop 是一个面向 AI 编码代理的本地优先桌面工作区,允许用户自带模型——OpenAI、Anthropic、本地模型或任何兼容 OpenAI 的 API——并打开本地项目目录,无需强制性的 PI-Desktop 账户或中继服务。文档将其描述为处于 Early Preview(早期预览)阶段,目前正在积极开发中。",
-        "usage": "用户可以从 https://github.com/vastsa/PI-Desktop/releases/latest 下载适用于 macOS、Windows 或 Linux 的预构建版本。若要从源码运行,可使用 `git clone https://github.com/vastsa/PI-Desktop.git` 克隆仓库,安装依赖并构建 Rust host core,然后通过 `pnpm dev` 启动应用。在应用内,用户可在 Settings → Model configuration 中连接模型、打开项目,并为每个任务选择 Agent、Plan 或 Goal 模式。",
-        "pros": "该工作区支持多个模型提供方并可按会话切换,内置权限层可在特权操作执行前审查差异和命令输出,并可通过 Skills、MCP 服务器、Subagents 和 Plugins 进行扩展。对话和设置均保存在本地,文档称 PI-Desktop 本身不收集遥测数据。",
-        "cons": "由于 PI-Desktop 被描述为 Early Preview,其 API、扩展接口和桌面行为在正式稳定发布前可能仍会发生变化。此外,Linux 版本需要 glibc 2.35 或更高版本,这意味着 Ubuntu 20.04、Debian 11 等较旧发行版据称无法加载内置的宿主程序。",
-        "fit": "PI-Desktop 似乎更适合希望获得跨平台(macOS、Windows、Linux)且厂商中立、数据保留在本地的编码代理工作区的开发者。它基于 GNU Lesser General Public License v3.0 发布,文档记录的当前发布线为 0.14.x。"
+        "goal": "README 将 PI-Desktop 描述为一个面向 AI 编码代理的本地优先(local-first)桌面工作区,用户可以自带模型并打开任意本地项目。文档指出使用时无需 PI-Desktop 账户,也不需要强制的中继服务。",
+        "usage": "上手流程包括在设置 → 模型配置中连接模型、打开本地项目,然后选择 Agent、Plan 或 Goal 模式,并在 Review 面板中查看结果。若要从源码运行,README 记录了 `git clone https://github.com/vastsa/PI-Desktop.git`、`pnpm install`、`cargo build -p host-core`、`pnpm build:js` 和 `pnpm dev` 等命令,并要求 Node.js >=22.19 与 pnpm >=10;预构建版本也可从 https://github.com/vastsa/PI-Desktop/releases/latest 下载。",
+        "pros": "文档中列出的优点包括支持 OpenAI、Anthropic 以及 Ollama、LM Studio 等本地网关在内的多种模型提供方,并可按会话切换。文件编辑、命令执行等具有特权的代理操作会经过权限层供审查,且工作区可通过 Skills、MCP 服务器、Subagents 和可安装的 Plugins 进行扩展。",
+        "cons": "PI-Desktop 被明确标注为早期预览(Early Preview),文档说明其 API、扩展接口以及部分桌面行为仍可能继续演变。此外,Linux x64 软件包需要 glibc 2.35 或更新版本,因此 Ubuntu 20.04、Debian 11 等较旧的发行版无法加载其中打包的宿主程序。",
+        "fit": "根据所描述的功能,PI-Desktop 似乎更适合希望在 macOS、Windows 和 Linux 上使用不受编辑器锁定、且不局限于特定模型提供方的桌面版 AI 编码代理环境的开发者。考虑到其目前处于 0.14.x 系列的早期预览阶段,它可能尚不适合对生产环境要求严格的工作流,不过文档并未对此明确说明。"
       },
       "es": {
-        "goal": "PI-Desktop es un espacio de trabajo de escritorio local-first para agentes de codificación con IA que permite a los usuarios conectar su propio modelo —OpenAI, Anthropic, modelos locales o cualquier API compatible con OpenAI— y abrir directorios de proyectos locales sin necesidad de una cuenta obligatoria de PI-Desktop ni de un servicio de retransmisión. Se describe como una Early Preview (vista previa temprana) en desarrollo activo.",
-        "usage": "Los usuarios pueden descargar compilaciones prediseñadas de PI-Desktop para macOS, Windows o Linux desde https://github.com/vastsa/PI-Desktop/releases/latest. También puede ejecutarse desde el código fuente clonando el repositorio con `git clone https://github.com/vastsa/PI-Desktop.git`, instalando las dependencias, compilando el núcleo Rust del host y, finalmente, iniciando la aplicación con `pnpm dev`. Dentro de la aplicación, los usuarios conectan un modelo en Settings → Model configuration, abren un proyecto y eligen el modo Agent, Plan o Goal para cada tarea.",
-        "pros": "El espacio de trabajo admite múltiples proveedores de modelos con cambio por sesión, incluye una capa de permisos que permite revisar diffs y la salida de comandos antes de ejecutar acciones privilegiadas, y puede ampliarse mediante Skills, servidores MCP, Subagents y Plugins. Las conversaciones y la configuración se almacenan localmente, y según la documentación PI-Desktop no recopila telemetría propia.",
-        "cons": "Como PI-Desktop se describe como una Early Preview, sus API, interfaces de extensión y comportamientos de escritorio podrían seguir cambiando antes de alcanzar una versión estable. Además, las compilaciones de Linux requieren glibc 2.35 o superior, por lo que distribuciones más antiguas como Ubuntu 20.04 o Debian 11 aparentemente no pueden cargar el host incluido.",
-        "fit": "PI-Desktop parece más adecuado para desarrolladores que buscan un espacio de trabajo de agentes de codificación multiplataforma (macOS, Windows, Linux) y neutral respecto al proveedor, manteniendo los datos en local. Se distribuye bajo la GNU Lesser General Public License v3.0, con la línea de versión actual documentada como 0.14.x."
+        "goal": "El README describe PI-Desktop como un espacio de trabajo de escritorio local-first para agentes de codificación con IA, que permite a los usuarios conectar su propio modelo y abrir cualquier proyecto local. Según el documento, no requiere una cuenta de PI-Desktop ni un relay obligatorio.",
+        "usage": "Los primeros pasos consisten en conectar un modelo en Configuración → Configuración de modelo, abrir un proyecto local y elegir el modo Agent, Plan o Goal antes de revisar los resultados en el panel Review. Para ejecutarlo desde el código fuente, el README documenta `git clone https://github.com/vastsa/PI-Desktop.git`, `pnpm install`, `cargo build -p host-core`, `pnpm build:js` y `pnpm dev`, y requiere Node.js >=22.19 y pnpm >=10; las compilaciones ya construidas también pueden descargarse desde https://github.com/vastsa/PI-Desktop/releases/latest.",
+        "pros": "Entre las ventajas documentadas está el soporte para múltiples proveedores de modelos, como OpenAI, Anthropic y pasarelas locales como Ollama y LM Studio, intercambiables por sesión. Las acciones con privilegios, como editar archivos o ejecutar comandos, pasan por una capa de permisos para su revisión, y el espacio de trabajo puede ampliarse con Skills, servidores MCP, Subagents y Plugins instalables.",
+        "cons": "PI-Desktop está etiquetado explícitamente como Early Preview (vista previa temprana), y se indica que las API, las interfaces de extensión y algunos comportamientos de escritorio todavía pueden evolucionar. Además, los paquetes Linux x64 requieren glibc 2.35 o posterior, por lo que distribuciones más antiguas como Ubuntu 20.04 o Debian 11 no pueden cargar el host incluido.",
+        "fit": "Según las funciones descritas, PI-Desktop parece más adecuado para desarrolladores que buscan un entorno de escritorio para agentes de codificación con IA, independiente del proveedor y sin dependencia de un editor concreto, disponible en macOS, Windows y Linux. Dado su estado de Early Preview y la serie actual 0.14.x, podría no ser aún idóneo para flujos de trabajo críticos en producción, aunque esto no se afirma explícitamente."
       },
       "ja": {
-        "goal": "PI-Desktopは、AIコーディングエージェント向けのローカルファーストなデスクトップワークスペースで、OpenAI、Anthropic、ローカルモデル、またはOpenAI互換APIなど、好きなモデルを自分で接続し、ローカルのプロジェクトディレクトリを開くことができます。必須のPI-Desktopアカウントや中継サービスは不要で、現在はEarly Preview(早期プレビュー)段階として活発に開発が進められていると説明されています。",
-        "usage": "ユーザーはhttps://github.com/vastsa/PI-Desktop/releases/latestから、macOS、Windows、Linux向けのビルド済みリリースをダウンロードできます。ソースから実行する場合は、`git clone https://github.com/vastsa/PI-Desktop.git`でリポジトリをクローンし、依存関係をインストールしてRustのホストコアをビルドした後、`pnpm dev`でアプリを起動します。アプリ内では、Settings → Model configurationでモデルを接続し、プロジェクトを開き、タスクごとにAgent、Plan、Goalのいずれかのモードを選択します。",
-        "pros": "このワークスペースは複数のモデルプロバイダーに対応し、セッションごとに切り替えが可能です。特権操作が実行される前に差分やコマンド出力を確認できる権限レイヤーを備え、Skills、MCPサーバー、Subagents、Pluginsによって拡張できます。会話や設定はローカルに保存され、文書によるとPI-Desktop自体のテレメトリは収集されないとされています。",
-        "cons": "PI-DesktopはEarly Previewと説明されているため、API、拡張インターフェース、デスクトップの挙動は安定版に達するまで変わる可能性があります。また、Linux版にはglibc 2.35以降が必要とされており、Ubuntu 20.04やDebian 11などの古いディストリビューションではバンドルされたホストを読み込めないとされています。",
-        "fit": "PI-Desktopは、データをローカルに保ちながらmacOS・Windows・Linuxに対応するベンダー非依存のコーディングエージェント用ワークスペースを求める開発者に適していると考えられます。GNU Lesser General Public License v3.0の下で配布されており、文書化された現在のリリースラインは0.14.xです。"
+        "goal": "README では PI-Desktop は AI コーディングエージェント向けのローカルファースト(local-first)なデスクトップワークスペースとして説明されており、ユーザーは自分のモデルを接続し、任意のローカルプロジェクトを開けるとされています。PI-Desktop アカウントや必須の中継は不要であると記載されています。",
+        "usage": "利用の流れとして、設定 → モデル設定でモデルを接続し、ローカルプロジェクトを開いた後、Agent・Plan・Goal のいずれかのモードを選び、Review パネルで結果を確認する手順が説明されています。ソースから実行する場合、README には `git clone https://github.com/vastsa/PI-Desktop.git`、`pnpm install`、`cargo build -p host-core`、`pnpm build:js`、`pnpm dev` というコマンドが記載されており、Node.js >=22.19 と pnpm >=10 が必要です。ビルド済みのものは https://github.com/vastsa/PI-Desktop/releases/latest からダウンロードできます。",
+        "pros": "文書化された利点として、OpenAI や Anthropic、Ollama や LM Studio のようなローカルゲートウェイを含む複数のモデルプロバイダーをセッションごとに切り替えて使えることが挙げられます。ファイル編集やコマンド実行のような権限を伴うエージェント操作は権限レイヤーを通じてレビューされ、Skills、MCP サーバー、Subagents、インストール可能な Plugins によってワークスペースを拡張できます。",
+        "cons": "PI-Desktop は明示的に Early Preview(初期プレビュー)と位置付けられており、API、拡張インターフェース、一部のデスクトップの挙動が今後も変化しうると記載されています。また、Linux x64 パッケージには glibc 2.35 以降が必要なため、Ubuntu 20.04 や Debian 11 のような古いディストリビューションではバンドルされたホストを読み込めません。",
+        "fit": "記載されている機能から判断すると、PI-Desktop は macOS・Windows・Linux 上でエディタに縛られず、特定のモデルプロバイダーにも依存しないデスクトップ型 AI コーディングエージェント環境を求める開発者に適していると考えられます。現在 0.14.x 系列の Early Preview 段階であることを踏まえると、本番環境での重要なワークフローにはまだ適さない可能性がありますが、この点は明示的には述べられていません。"
       }
     },
     "evidence": {
@@ -3253,33 +3164,23 @@
           "start_line": 7,
           "end_line": 11,
           "section_heading": "Your local-first desktop workspace for AI coding agents."
-        },
-        {
-          "start_line": 40,
-          "end_line": 43,
-          "section_heading": "Your local-first desktop workspace for AI coding agents."
-        },
-        {
-          "start_line": 45,
-          "end_line": 49,
-          "section_heading": "Why PI-Desktop?"
         }
       ],
       "usage": [
         {
-          "start_line": 296,
-          "end_line": 296,
-          "section_heading": "Download"
-        },
-        {
-          "start_line": 401,
-          "end_line": 409,
-          "section_heading": "Run locally"
-        },
-        {
           "start_line": 101,
           "end_line": 111,
           "section_heading": "From prompt to patch"
+        },
+        {
+          "start_line": 402,
+          "end_line": 406,
+          "section_heading": "Requirements"
+        },
+        {
+          "start_line": 410,
+          "end_line": 420,
+          "section_heading": "Run locally"
         }
       ],
       "pros": [
@@ -3289,43 +3190,38 @@
           "section_heading": "✨ Bring your own model"
         },
         {
-          "start_line": 76,
-          "end_line": 90,
+          "start_line": 78,
+          "end_line": 80,
           "section_heading": "🔍 Inspectable by default"
         },
         {
-          "start_line": 279,
-          "end_line": 288,
-          "section_heading": "Local-first, precisely"
+          "start_line": 87,
+          "end_line": 89,
+          "section_heading": "🧩 Built to extend"
         }
       ],
       "cons": [
         {
-          "start_line": 41,
+          "start_line": 40,
           "end_line": 43,
           "section_heading": "Your local-first desktop workspace for AI coding agents."
         },
         {
-          "start_line": 309,
-          "end_line": 315,
+          "start_line": 319,
+          "end_line": 325,
           "section_heading": "Linux"
         }
       ],
       "fit": [
         {
-          "start_line": 20,
-          "end_line": 20,
-          "section_heading": "Your local-first desktop workspace for AI coding agents."
+          "start_line": 45,
+          "end_line": 49,
+          "section_heading": "Why PI-Desktop?"
         },
         {
-          "start_line": 374,
-          "end_line": 374,
+          "start_line": 382,
+          "end_line": 384,
           "section_heading": "Project status"
-        },
-        {
-          "start_line": 507,
-          "end_line": 507,
-          "section_heading": "License"
         }
       ]
     },
@@ -3336,7 +3232,6 @@
         "fields": [
           "goal",
           "usage",
-          "pros",
           "cons",
           "fit"
         ]
@@ -3350,6 +3245,27 @@
       },
       {
         "kind": "command",
+        "value": "pnpm install",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "cargo build -p host-core",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "pnpm build:js",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
         "value": "pnpm dev",
         "fields": [
           "usage"
@@ -3357,16 +3273,16 @@
       },
       {
         "kind": "version",
-        "value": "0.14.x",
+        "value": "glibc 2.35",
         "fields": [
-          "fit"
+          "cons"
         ]
       },
       {
         "kind": "version",
-        "value": "glibc 2.35",
+        "value": "0.14.x",
         "fields": [
-          "cons"
+          "fit"
         ]
       },
       {
@@ -3378,15 +3294,14 @@
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "vastsa/pi-desktop",
       "path": "README.md",
-      "blob_sha": "f08d9c26e99fb36cac0318cbf6f7d1a1d3540d46",
-      "content_sha256": "554dd876174827fdc73f1dfacac43c18c825543bd43f3fcfd1f1c6297b49e6e3",
+      "blob_sha": "f125a6e0b20e021588a913e46302d11c1f87c415",
+      "content_sha256": "436ca50084d816f97a724a54ad8e0292b8487439df1a4e92331de4a83e6fc0bc",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -3400,75 +3315,75 @@
   },
   "affaan-m/ECC": {
     "content": {
-      "goal": "ECC is an MIT-licensed, open-source 'agent harness operating system' for Claude Code and other coding agents. It documents a repeatable engineering workflow — plan, test, implement, review, verify, remember, improve — backed by a catalog of 68 specialized agents and 289 reusable skills, plus hooks, rules, memory, and AgentShield security scanning.",
-      "usage": "Install the plugin with the guided setup command `npx ecc-universal@2.2.1 setup`, or, inside Claude Code, run `/plugin install ecc@ecc` after adding the ECC marketplace. The universal package requires Node.js 18 or newer, and Claude plugin setup additionally requires Git and Claude Code 2.1 or newer on PATH.",
-      "pros": "ECC packages agents, skills, hooks, rules, and AgentShield scanning together, turning ad-hoc instructions like 'use TDD' into a gated RED->GREEN->REFACTOR workflow with evidence. A fresh-context reviewer step is documented to catch regressions that the original coding context might miss.",
-      "cons": "Outside Claude Code, adapters for harnesses such as Cursor, OpenCode, Gemini, Zed, and GitHub Copilot are documented as capability-limited, and GitHub Copilot specifically has no hook system or subagent API. Installing ECC through more than one method into the same harness can duplicate skills, commands, or hooks.",
-      "fit": "ECC states it works best with Claude Code today, so it appears best suited to teams already standardized on Claude Code who want a documented, repeatable engineering process. For other listed harnesses, the support matrix suggests capability differences worth checking before assuming equivalent functionality."
+      "goal": "ECC is documented as 'the agent harness operating system,' an MIT-licensed open-source project that gives a coding agent a coordinated engineering workflow. Per the README, it plans before building, verifies changes with tests, reviews its own work from a fresh context, retains memory across sessions, and turns repeated wins into reusable skills, following the stated sequence: plan -> test -> implement -> review -> verify -> remember -> improve.",
+      "usage": "Guided setup runs via `npx ecc-universal@2.2.1 setup`, which the README states requires Node.js 18 or newer; Claude plugin setup additionally requires Git and Claude Code 2.1 or newer on PATH. As an alternative, Claude Code's native plugin commands `/plugin marketplace add https://github.com/affaan-m/ECC` and `/plugin install ecc@ecc` install the same `ecc@ecc` plugin.",
+      "pros": "The README lists 68 agents, 291 skills, and 94 legacy command shims, alongside hooks, rules, memory, continuous learning, and AgentShield security scanning. A comparison table states that with ECC, plans become editable artifacts, TDD runs as a gated RED-GREEN-REFACTOR workflow with evidence, a fresh-context reviewer checks for regressions, and AgentShield scans the agent harness itself as an attack surface.",
+      "cons": "Support is not uniform across platforms: the platform-support table notes that the standalone GAN shell path is currently incompatible with macOS's system Bash 3.2, and Windows-native continuous-learning v2 has open defects, which suggests some optional capabilities may depend on the operating system and available shell tooling.",
+      "fit": "The README states that ECC 'works best with Claude Code today,' has a supported Codex sync path, and offers only capability-limited adapters for Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, Qwen, and other harnesses, implying that full feature parity outside Claude Code should not be assumed."
     },
     "summaries": {
       "en": {
-        "goal": "ECC is an MIT-licensed, open-source 'agent harness operating system' for Claude Code and other coding agents. It documents a repeatable engineering workflow — plan, test, implement, review, verify, remember, improve — backed by a catalog of 68 specialized agents and 289 reusable skills, plus hooks, rules, memory, and AgentShield security scanning.",
-        "usage": "Install the plugin with the guided setup command `npx ecc-universal@2.2.1 setup`, or, inside Claude Code, run `/plugin install ecc@ecc` after adding the ECC marketplace. The universal package requires Node.js 18 or newer, and Claude plugin setup additionally requires Git and Claude Code 2.1 or newer on PATH.",
-        "pros": "ECC packages agents, skills, hooks, rules, and AgentShield scanning together, turning ad-hoc instructions like 'use TDD' into a gated RED->GREEN->REFACTOR workflow with evidence. A fresh-context reviewer step is documented to catch regressions that the original coding context might miss.",
-        "cons": "Outside Claude Code, adapters for harnesses such as Cursor, OpenCode, Gemini, Zed, and GitHub Copilot are documented as capability-limited, and GitHub Copilot specifically has no hook system or subagent API. Installing ECC through more than one method into the same harness can duplicate skills, commands, or hooks.",
-        "fit": "ECC states it works best with Claude Code today, so it appears best suited to teams already standardized on Claude Code who want a documented, repeatable engineering process. For other listed harnesses, the support matrix suggests capability differences worth checking before assuming equivalent functionality."
+        "goal": "ECC is documented as 'the agent harness operating system,' an MIT-licensed open-source project that gives a coding agent a coordinated engineering workflow. Per the README, it plans before building, verifies changes with tests, reviews its own work from a fresh context, retains memory across sessions, and turns repeated wins into reusable skills, following the stated sequence: plan -> test -> implement -> review -> verify -> remember -> improve.",
+        "usage": "Guided setup runs via `npx ecc-universal@2.2.1 setup`, which the README states requires Node.js 18 or newer; Claude plugin setup additionally requires Git and Claude Code 2.1 or newer on PATH. As an alternative, Claude Code's native plugin commands `/plugin marketplace add https://github.com/affaan-m/ECC` and `/plugin install ecc@ecc` install the same `ecc@ecc` plugin.",
+        "pros": "The README lists 68 agents, 291 skills, and 94 legacy command shims, alongside hooks, rules, memory, continuous learning, and AgentShield security scanning. A comparison table states that with ECC, plans become editable artifacts, TDD runs as a gated RED-GREEN-REFACTOR workflow with evidence, a fresh-context reviewer checks for regressions, and AgentShield scans the agent harness itself as an attack surface.",
+        "cons": "Support is not uniform across platforms: the platform-support table notes that the standalone GAN shell path is currently incompatible with macOS's system Bash 3.2, and Windows-native continuous-learning v2 has open defects, which suggests some optional capabilities may depend on the operating system and available shell tooling.",
+        "fit": "The README states that ECC 'works best with Claude Code today,' has a supported Codex sync path, and offers only capability-limited adapters for Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, Qwen, and other harnesses, implying that full feature parity outside Claude Code should not be assumed."
       },
       "ko": {
-        "goal": "ECC는 Claude Code 및 기타 코딩 에이전트를 위한 MIT 라이선스 오픈소스 '에이전트 하니스 운영체제'입니다. 계획(plan) → 테스트(test) → 구현(implement) → 검토(review) → 검증(verify) → 기억(remember) → 개선(improve)으로 이어지는 반복 가능한 엔지니어링 워크플로우를 제공하며, 68개의 전문 에이전트와 289개의 재사용 가능한 스킬, 그리고 훅, 규칙, 메모리, AgentShield 보안 스캔을 포함합니다.",
-        "usage": "가이드 설치 명령어 `npx ecc-universal@2.2.1 setup`으로 플러그인을 설치하거나, Claude Code 내부에서 ECC 마켓플레이스를 추가한 후 `/plugin install ecc@ecc`를 실행합니다. 유니버설 패키지는 Node.js 18 이상이 필요하며, Claude 플러그인 설정은 추가로 Git과 PATH에 있는 Claude Code 2.1 이상이 필요합니다.",
-        "pros": "ECC는 에이전트, 스킬, 훅, 규칙, AgentShield 스캔을 하나로 묶어, 'TDD를 사용하라' 같은 임시 지시를 증거 기반의 RED→GREEN→REFACTOR 게이트 워크플로우로 전환합니다. 또한 원래 코딩 맥락에서 놓칠 수 있는 회귀를 잡기 위한 새 맥락 리뷰어 단계가 문서화되어 있습니다.",
-        "cons": "Claude Code 외의 Cursor, OpenCode, Gemini, Zed, GitHub Copilot 등의 하네스용 어댑터는 기능이 제한적이라고 문서화되어 있으며, 특히 GitHub Copilot은 훅 시스템이나 서브에이전트 API가 전혀 없습니다. 동일한 하네스에 두 가지 이상의 방법으로 ECC를 설치하면 스킬, 명령어, 훅이 중복될 수 있습니다.",
-        "fit": "ECC가 '오늘날 Claude Code에서 가장 잘 작동한다'고 명시하는 것으로 보아, 이미 Claude Code를 표준으로 사용 중이며 문서화된 반복 가능한 엔지니어링 프로세스를 원하는 팀에 가장 적합할 것으로 보입니다. 다른 지원 하네스의 경우, 지원 매트릭스가 기능 차이를 시사하므로 동등한 기능을 가정하기 전에 확인이 필요할 수 있습니다."
+        "goal": "ECC는 README에서 '에이전트 하네스 운영체제'로 소개되는 MIT 라이선스 오픈소스 프로젝트로, 코딩 에이전트에게 체계적인 엔지니어링 워크플로우를 제공합니다. README에 따르면 ECC는 구현 전에 계획을 세우고, 테스트로 변경 사항을 검증하고, 새로운 컨텍스트에서 자체 작업을 검토하고, 세션 간 기억을 유지하며, 반복된 성공을 재사용 가능한 스킬로 전환합니다. 명시된 순서는 plan -> test -> implement -> review -> verify -> remember -> improve 입니다.",
+        "usage": "가이드 설치는 `npx ecc-universal@2.2.1 setup` 명령으로 실행하며, README는 이를 위해 Node.js 18 이상이 필요하다고 명시합니다. Claude 플러그인 설치는 추가로 PATH에 Git과 Claude Code 2.1 이상이 있어야 합니다. 대안으로 Claude Code의 네이티브 플러그인 명령인 `/plugin marketplace add https://github.com/affaan-m/ECC`와 `/plugin install ecc@ecc`를 사용하면 동일한 `ecc@ecc` 플러그인이 설치됩니다.",
+        "pros": "README는 68개 에이전트, 291개 스킬, 94개의 레거시 명령 셰임과 함께 훅, 규칙, 메모리, 지속 학습, AgentShield 보안 스캔을 포함한다고 설명합니다. 비교 표에 따르면 ECC를 사용하면 계획이 편집 가능한 산출물이 되고, TDD가 증거를 남기는 RED-GREEN-REFACTOR 워크플로우로 강제되며, 새 컨텍스트의 검토자가 회귀를 점검하고, AgentShield가 에이전트 하네스 자체를 공격 표면으로 스캔합니다.",
+        "cons": "플랫폼 지원은 균일하지 않습니다. 플랫폼 지원 표에 따르면 독립 실행형 GAN 셸 경로는 현재 macOS의 시스템 Bash 3.2와 호환되지 않으며, Windows 네이티브 환경의 continuous-learning v2에는 알려진 결함이 있습니다. 이는 일부 선택적 기능이 운영체제와 사용 가능한 셸 도구에 따라 달라질 수 있음을 시사합니다.",
+        "fit": "README는 ECC가 '오늘날 Claude Code에서 가장 잘 작동'하며, 지원되는 Codex 동기화 경로가 있고, Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, Qwen 등 다른 하네스에는 '기능이 제한된 어댑터'만 제공한다고 명시합니다. 이는 Claude Code 외부에서는 완전한 기능 동등성을 가정해서는 안 된다는 것을 암시합니다."
       },
       "zh-CN": {
-        "goal": "ECC 是一款 MIT 许可的开源“智能体工具链操作系统”,面向 Claude Code 及其他编码智能体。它记录了一套可重复的工程工作流——计划(plan)→测试(test)→实现(implement)→审查(review)→验证(verify)→记忆(remember)→改进(improve),并提供 68 个专业智能体、289 个可复用技能,以及钩子(hooks)、规则、记忆功能和 AgentShield 安全扫描。",
-        "usage": "使用引导式安装命令 `npx ecc-universal@2.2.1 setup` 安装插件,或者在 Claude Code 内添加 ECC 市场后运行 `/plugin install ecc@ecc`。通用软件包需要 Node.js 18 或更高版本,Claude 插件安装还需要 Git 以及 PATH 中的 Claude Code 2.1 或更高版本。",
-        "pros": "ECC 将智能体、技能、钩子、规则和 AgentShield 扫描打包在一起,把“请使用 TDD”这类临时指令变成有证据支撑、受门控的 RED→GREEN→REFACTOR 工作流。文档中还描述了一个全新上下文的审查步骤,用于捕捉原始编码上下文可能遗漏的回归问题。",
-        "cons": "文档说明,除 Claude Code 之外,针对 Cursor、OpenCode、Gemini、Zed、GitHub Copilot 等工具的适配器功能有限,其中 GitHub Copilot 明确没有钩子系统或子智能体 API。若在同一工具中通过多种方式安装 ECC,可能导致技能、命令或钩子重复。",
-        "fit": "由于文档表示 ECC“目前在 Claude Code 上效果最佳”,它似乎最适合已经以 Claude Code 为标准、希望获得文档化、可重复工程流程的团队。对于其他受支持的工具,支持矩阵表明存在功能差异,在假设功能对等之前可能需要先加以核实。"
+        "goal": "README 将 ECC 描述为「agent harness operating system」(智能体框架操作系统),是一个 MIT 许可的开源项目,为编码智能体提供协调一致的工程工作流程。根据 README,它在构建前先制定计划,通过测试验证更改,在全新上下文中审查自身工作,在会话之间保留记忆,并将重复的成功转化为可复用的技能,遵循所述顺序:plan -> test -> implement -> review -> verify -> remember -> improve。",
+        "usage": "引导式安装通过 `npx ecc-universal@2.2.1 setup` 运行,README 说明该命令需要 Node.js 18 或更高版本;Claude 插件设置还需要 PATH 中存在 Git 和 Claude Code 2.1 或更高版本。作为替代方案,Claude Code 的原生插件命令 `/plugin marketplace add https://github.com/affaan-m/ECC` 和 `/plugin install ecc@ecc` 会安装同一个 `ecc@ecc` 插件。",
+        "pros": "README 列出了 68 个智能体、291 个技能和 94 个旧版命令垫片,以及钩子、规则、记忆、持续学习和 AgentShield 安全扫描。对比表指出,使用 ECC 后,计划会成为可编辑的产物,TDD 会作为带证据的 RED-GREEN-REFACTOR 门控工作流程执行,全新上下文的审查者会检查回归问题,AgentShield 会将智能体框架本身作为攻击面进行扫描。",
+        "cons": "各平台的支持并不一致:平台支持表指出,独立的 GAN shell 路径目前与 macOS 系统自带的 Bash 3.2 不兼容,且 Windows 原生环境下的 continuous-learning v2 存在未解决的缺陷,这表明部分可选功能可能取决于操作系统及可用的 shell 工具。",
+        "fit": "README 声明 ECC「目前在 Claude Code 上效果最佳」,拥有受支持的 Codex 同步路径,而对 Cursor、OpenCode、Gemini、Zed、GitHub Copilot、Antigravity、Qwen 等其他工具仅提供「能力受限的适配器」,这意味着在 Claude Code 之外不应假定具有完全相同的功能对等性。"
       },
       "es": {
-        "goal": "ECC es un 'sistema operativo de harness de agentes' de código abierto con licencia MIT para Claude Code y otros agentes de codificación. Documenta un flujo de trabajo de ingeniería repetible —planificar, probar, implementar, revisar, verificar, recordar, mejorar— respaldado por un catálogo de 68 agentes especializados y 289 habilidades reutilizables, además de hooks, reglas, memoria y escaneo de seguridad AgentShield.",
-        "usage": "Instala el plugin con el comando de configuración guiada `npx ecc-universal@2.2.1 setup`, o bien, dentro de Claude Code, ejecuta `/plugin install ecc@ecc` tras añadir el marketplace de ECC. El paquete universal requiere Node.js 18 o superior, y la configuración del plugin de Claude además requiere Git y Claude Code 2.1 o superior en el PATH.",
-        "pros": "ECC empaqueta agentes, habilidades, hooks, reglas y el escaneo de AgentShield, convirtiendo instrucciones informales como 'usa TDD' en un flujo de trabajo controlado RED→GREEN→REFACTOR respaldado por evidencia. También documenta un paso de revisión con contexto nuevo para detectar regresiones que el contexto de codificación original podría pasar por alto.",
-        "cons": "Fuera de Claude Code, los adaptadores para plataformas como Cursor, OpenCode, Gemini, Zed y GitHub Copilot se describen como de capacidad limitada, y GitHub Copilot en particular no tiene sistema de hooks ni API de subagentes. Instalar ECC mediante más de un método en la misma plataforma puede duplicar habilidades, comandos o hooks.",
-        "fit": "Dado que se indica que ECC 'funciona mejor con Claude Code hoy en día', parece ser más adecuado para equipos que ya estandarizaron Claude Code y buscan un proceso de ingeniería documentado y repetible. Para las demás plataformas admitidas, la matriz de soporte sugiere diferencias de capacidad que conviene revisar antes de asumir una funcionalidad equivalente."
+        "goal": "ECC se describe en el README como «el sistema operativo del harness de agentes», un proyecto de código abierto con licencia MIT que dota a un agente de codificación de un flujo de trabajo de ingeniería coordinado. Según el README, planifica antes de construir, verifica los cambios con pruebas, revisa su propio trabajo desde un contexto nuevo, conserva la memoria entre sesiones y convierte los aciertos repetidos en habilidades reutilizables, siguiendo la secuencia indicada: plan -> test -> implement -> review -> verify -> remember -> improve.",
+        "usage": "La instalación guiada se ejecuta con `npx ecc-universal@2.2.1 setup`, que según el README requiere Node.js 18 o posterior; la configuración del plugin de Claude además requiere Git y Claude Code 2.1 o posterior en el PATH. Como alternativa, los comandos nativos del plugin de Claude Code `/plugin marketplace add https://github.com/affaan-m/ECC` e `/plugin install ecc@ecc` instalan el mismo plugin `ecc@ecc`.",
+        "pros": "El README enumera 68 agentes, 291 habilidades y 94 shims de comandos heredados, junto con hooks, reglas, memoria, aprendizaje continuo y el escaneo de seguridad de AgentShield. Una tabla comparativa indica que con ECC los planes se convierten en artefactos editables, el TDD se aplica como un flujo RED-GREEN-REFACTOR con evidencia, un revisor con contexto nuevo detecta regresiones, y AgentShield escanea el propio harness de agentes como superficie de ataque.",
+        "cons": "El soporte no es uniforme entre plataformas: la tabla de soporte de plataformas indica que la ruta independiente de shell GAN es actualmente incompatible con el Bash 3.2 del sistema en macOS, y que continuous-learning v2 tiene defectos abiertos en Windows nativo, lo que sugiere que algunas capacidades opcionales podrían depender del sistema operativo y de las herramientas de shell disponibles.",
+        "fit": "El README afirma que ECC «funciona mejor con Claude Code hoy en día», cuenta con una ruta de sincronización compatible con Codex, y ofrece solo «adaptadores de capacidad limitada» para Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, Qwen y otros harnesses, lo que implica que no debería asumirse una paridad de funciones completa fuera de Claude Code."
       },
       "ja": {
-        "goal": "ECCはClaude Codeなどのコーディングエージェント向けのMITライセンスのオープンソース「エージェントハーネスOS」です。計画(plan)→テスト(test)→実装(implement)→レビュー(review)→検証(verify)→記憶(remember)→改善(improve)という繰り返し可能なエンジニアリングワークフローを備え、68体の専門エージェントと289のスキル、さらにフック、ルール、メモリ、AgentShieldセキュリティスキャンを提供します。",
-        "usage": "ガイド付きセットアップコマンド `npx ecc-universal@2.2.1 setup` でプラグインをインストールするか、Claude Code内でECCマーケットプレイスを追加した後に `/plugin install ecc@ecc` を実行します。ユニバーサルパッケージにはNode.js 18以降が必要で、Claudeプラグインのセットアップにはさらに、PATH上のGitとClaude Code 2.1以降が必要です。",
-        "pros": "ECCはエージェント、スキル、フック、ルール、AgentShieldスキャンをひとつにまとめ、「TDDを使う」といった場当たり的な指示を、証拠に基づくゲート式のRED→GREEN→REFACTORワークフローに変えます。また、元のコーディングコンテキストでは見落としがちな回帰を捉えるための、新しいコンテキストでのレビューステップも文書化されています。",
-        "cons": "Claude Code以外では、Cursor、OpenCode、Gemini、Zed、GitHub Copilotなどのハーネス向けアダプタは機能が限定的であると説明されており、特にGitHub Copilotにはフックシステムやサブエージェントのapiが一切ありません。同じハーネスに複数の方法でECCをインストールすると、スキルやコマンド、フックが重複する可能性があります。",
-        "fit": "ECCは「現時点でClaude Codeと組み合わせたときに最も効果を発揮する」とされていることから、すでにClaude Codeを標準として使用しており、文書化された繰り返し可能なエンジニアリングプロセスを求めるチームに最も適していると考えられます。その他の対応ハーネスについては、サポートマトリックスが機能差を示唆しているため、同等の機能を前提とする前に確認が必要と思われます。"
+        "goal": "README では ECC は「エージェントハーネスのオペレーティングシステム」と説明されており、MIT ライセンスのオープンソースプロジェクトとして、コーディングエージェントに協調的なエンジニアリングワークフローを与えます。README によれば、構築前に計画を立て、テストで変更を検証し、新しいコンテキストで自身の作業をレビューし、セッション間で記憶を保持し、繰り返し得られた成功を再利用可能なスキルに変換します。明示された順序は plan -> test -> implement -> review -> verify -> remember -> improve です。",
+        "usage": "ガイド付きセットアップは `npx ecc-universal@2.2.1 setup` で実行し、README はこれに Node.js 18 以降が必要と記載しています。Claude プラグインのセットアップにはさらに、PATH 上に Git と Claude Code 2.1 以降が必要です。代替として、Claude Code のネイティブプラグインコマンド `/plugin marketplace add https://github.com/affaan-m/ECC` と `/plugin install ecc@ecc` を使うと、同じ `ecc@ecc` プラグインがインストールされます。",
+        "pros": "README には 68 個のエージェント、291 個のスキル、94 個のレガシーコマンドシムに加え、フック、ルール、メモリ、継続学習、AgentShield によるセキュリティスキャンが含まれると記載されています。比較表によると、ECC を使うと計画は編集可能な成果物になり、TDD は証拠を伴う RED-GREEN-REFACTOR のゲート付きワークフローとして実行され、新しいコンテキストのレビュアーが回帰を確認し、AgentShield がエージェントハーネス自体を攻撃対象としてスキャンします。",
+        "cons": "プラットフォーム間のサポートは均一ではありません。プラットフォームサポート表によると、スタンドアロンの GAN シェルパスは現在 macOS のシステム Bash 3.2 と互換性がなく、Windows ネイティブ環境の continuous-learning v2 には未解決の不具合があるとされており、一部のオプション機能は OS や利用可能なシェルツールに依存する可能性があることを示唆しています。",
+        "fit": "README では ECC は「今日のところ Claude Code で最もよく機能する」とされ、サポートされる Codex 同期パスを持ち、Cursor、OpenCode、Gemini、Zed、GitHub Copilot、Antigravity、Qwen などの他のハーネスには「能力が制限されたアダプター」しか提供しないと明記されています。これは Claude Code 以外では完全な機能同等性を前提とすべきではないことを示唆しています。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 125,
-          "end_line": 131,
-          "section_heading": "ECC"
+          "start_line": 2,
+          "end_line": 2,
+          "section_heading": ""
         },
         {
-          "start_line": 139,
-          "end_line": 139,
+          "start_line": 127,
+          "end_line": 131,
           "section_heading": "ECC"
         }
       ],
       "usage": [
         {
-          "start_line": 161,
+          "start_line": 163,
           "end_line": 164,
           "section_heading": "Install ECC"
         },
         {
-          "start_line": 170,
+          "start_line": 171,
           "end_line": 172,
           "section_heading": "Recommended: universal guided setup"
         },
         {
-          "start_line": 259,
+          "start_line": 260,
           "end_line": 262,
           "section_heading": "Claude Code details"
         }
@@ -3487,19 +3402,9 @@
       ],
       "cons": [
         {
-          "start_line": 137,
-          "end_line": 137,
-          "section_heading": "ECC"
-        },
-        {
-          "start_line": 1651,
-          "end_line": 1651,
-          "section_heading": "Feature coverage"
-        },
-        {
-          "start_line": 249,
-          "end_line": 249,
-          "section_heading": "Pick one path only (per harness)"
+          "start_line": 1246,
+          "end_line": 1251,
+          "section_heading": "Platform Support"
         }
       ],
       "fit": [
@@ -3507,11 +3412,6 @@
           "start_line": 137,
           "end_line": 137,
           "section_heading": "ECC"
-        },
-        {
-          "start_line": 1255,
-          "end_line": 1262,
-          "section_heading": "Platform Support"
         }
       ]
     },
@@ -3519,6 +3419,13 @@
       {
         "kind": "command",
         "value": "npx ecc-universal@2.2.1 setup",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/plugin marketplace add https://github.com/affaan-m/ECC",
         "fields": [
           "usage"
         ]
@@ -3553,16 +3460,30 @@
       },
       {
         "kind": "number",
-        "value": "68",
+        "value": "68 agents",
         "fields": [
-          "goal"
+          "pros"
         ]
       },
       {
         "kind": "number",
-        "value": "289",
+        "value": "291 skills",
         "fields": [
-          "goal"
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "94 legacy command shims",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://github.com/affaan-m/ECC",
+        "fields": [
+          "usage"
         ]
       },
       {
@@ -3572,7 +3493,6 @@
           "goal",
           "usage",
           "pros",
-          "cons",
           "fit"
         ]
       },
@@ -3580,22 +3500,42 @@
         "kind": "product",
         "value": "Claude Code",
         "fields": [
-          "goal",
           "usage",
-          "cons",
           "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "ecc-universal",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "ecc@ecc",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "AgentShield",
+        "fields": [
+          "pros"
         ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "affaan-m/ecc",
       "path": "README.md",
-      "blob_sha": "ae9c2efda46f2ed6aa4030bd3a63ed74911190ed",
-      "content_sha256": "3fcc80de96b8017b60bfd33d98a761918694142ed91964063920fc97c7cd3716",
+      "blob_sha": "0fa1fd55eef2712b4bd63f07c186c3f2ea5cc3e5",
+      "content_sha256": "6eace6f0257d035bce34129283a3e27bdd8612535294c48359651ac24d04b799",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -7090,108 +7030,113 @@
   },
   "cursor/plugins": {
     "content": {
-      "goal": "cursor/plugins is an official Cursor repository providing plugins for popular developer tools, frameworks, and SaaS products. Each plugin is a standalone directory at the repository root with its own `.cursor-plugin/plugin.json` manifest, and the project is structured as a multi-plugin marketplace listing dozens of individual plugins.",
-      "usage": "The root `.cursor-plugin/marketplace.json` file lists every plugin, while each plugin folder holds its own manifest plus optional `skills/` (agent skills), `rules/` (Cursor rules), and `mcp.json` (MCP server definitions) used to configure that plugin's behavior inside Cursor.",
-      "pros": "The marketplace spans three categories — Developer Tools, Productivity, and Integrations — combining Cursor-native utilities with third-party SaaS connectors such as GitHub and Salesforce, giving broad coverage for coding, collaboration, and business workflows in one place.",
-      "cons": "Installation, authentication, and credential requirements for the third-party integrations are not specified, so connecting a given SaaS product likely requires extra configuration steps beyond adding the plugin.",
-      "fit": "Released under the MIT license, this repository appears best suited to developers and teams already using Cursor who want ready-made, reusable plugins for coding workflows and SaaS integrations."
+      "goal": "cursor/plugins is the official marketplace repository for Cursor plugins that add support for developer tools, frameworks, and SaaS products. Each plugin lives in its own standalone directory at the repository root, with the root `.cursor-plugin/marketplace.json` file listing all available plugins.",
+      "usage": "The README documents the file layout rather than an install command: a top-level `.cursor-plugin/marketplace.json` registers all plugins, and each plugin directory holds its own `.cursor-plugin/plugin.json` manifest along with `skills/`, `rules/`, `mcp.json`, `README.md`, and `CHANGELOG.md`. Plugins are likely added to Cursor through this marketplace manifest, though the root README does not spell out a specific setup command.",
+      "pros": "The repository bundles a wide range of plugins spanning Developer Tools, Productivity, Integrations, and Utilities categories, including connectors for Gmail, Google Drive, Salesforce, GitHub, and Playwright, alongside developer-workflow plugins like Thermos and Cursor Team Kit. Each plugin is self-contained with its own manifest, README, and changelog, keeping individual plugins independently documented and versioned.",
+      "cons": "The root README itself provides no installation or run command, only the manifest and directory structure, so setup detail depends on each plugin's own README and CHANGELOG. Because many listed integrations connect to third-party SaaS accounts (e.g., Salesforce, HubSpot, Brex), using them will likely require separate account credentials or API access that the root README does not describe.",
+      "fit": "Given its Developer Tools and Integrations categories, the repository appears aimed at teams already using Cursor who want to extend agent workflows with SaaS connectors (CRM, calendar, email, HR, meetings) or developer-process plugins (CI, code review, branch auditing). It is licensed under MIT."
     },
     "summaries": {
       "en": {
-        "goal": "cursor/plugins is an official Cursor repository providing plugins for popular developer tools, frameworks, and SaaS products. Each plugin is a standalone directory at the repository root with its own `.cursor-plugin/plugin.json` manifest, and the project is structured as a multi-plugin marketplace listing dozens of individual plugins.",
-        "usage": "The root `.cursor-plugin/marketplace.json` file lists every plugin, while each plugin folder holds its own manifest plus optional `skills/` (agent skills), `rules/` (Cursor rules), and `mcp.json` (MCP server definitions) used to configure that plugin's behavior inside Cursor.",
-        "pros": "The marketplace spans three categories — Developer Tools, Productivity, and Integrations — combining Cursor-native utilities with third-party SaaS connectors such as GitHub and Salesforce, giving broad coverage for coding, collaboration, and business workflows in one place.",
-        "cons": "Installation, authentication, and credential requirements for the third-party integrations are not specified, so connecting a given SaaS product likely requires extra configuration steps beyond adding the plugin.",
-        "fit": "Released under the MIT license, this repository appears best suited to developers and teams already using Cursor who want ready-made, reusable plugins for coding workflows and SaaS integrations."
+        "goal": "cursor/plugins is the official marketplace repository for Cursor plugins that add support for developer tools, frameworks, and SaaS products. Each plugin lives in its own standalone directory at the repository root, with the root `.cursor-plugin/marketplace.json` file listing all available plugins.",
+        "usage": "The README documents the file layout rather than an install command: a top-level `.cursor-plugin/marketplace.json` registers all plugins, and each plugin directory holds its own `.cursor-plugin/plugin.json` manifest along with `skills/`, `rules/`, `mcp.json`, `README.md`, and `CHANGELOG.md`. Plugins are likely added to Cursor through this marketplace manifest, though the root README does not spell out a specific setup command.",
+        "pros": "The repository bundles a wide range of plugins spanning Developer Tools, Productivity, Integrations, and Utilities categories, including connectors for Gmail, Google Drive, Salesforce, GitHub, and Playwright, alongside developer-workflow plugins like Thermos and Cursor Team Kit. Each plugin is self-contained with its own manifest, README, and changelog, keeping individual plugins independently documented and versioned.",
+        "cons": "The root README itself provides no installation or run command, only the manifest and directory structure, so setup detail depends on each plugin's own README and CHANGELOG. Because many listed integrations connect to third-party SaaS accounts (e.g., Salesforce, HubSpot, Brex), using them will likely require separate account credentials or API access that the root README does not describe.",
+        "fit": "Given its Developer Tools and Integrations categories, the repository appears aimed at teams already using Cursor who want to extend agent workflows with SaaS connectors (CRM, calendar, email, HR, meetings) or developer-process plugins (CI, code review, branch auditing). It is licensed under MIT."
       },
       "ko": {
-        "goal": "cursor/plugins는 인기 있는 개발자 도구, 프레임워크, SaaS 제품을 위한 공식 Cursor 플러그인을 제공하는 저장소입니다. 각 플러그인은 저장소 루트에 독립된 디렉터리로 존재하며 자체 `.cursor-plugin/plugin.json` 매니페스트를 가지고 있고, 전체 프로젝트는 여러 개의 플러그인을 나열하는 멀티 플러그인 마켓플레이스 형태로 구성되어 있습니다.",
-        "usage": "루트의 `.cursor-plugin/marketplace.json` 파일이 모든 플러그인을 나열하며, 각 플러그인 폴더는 자체 매니페스트와 함께 선택적으로 `skills/`(에이전트 스킬), `rules/`(Cursor 규칙), `mcp.json`(MCP 서버 정의)을 포함해 Cursor 내에서 해당 플러그인의 동작을 구성합니다.",
-        "pros": "이 마켓플레이스는 Developer Tools, Productivity, Integrations 세 가지 카테고리를 아우르며, Cursor 자체 유틸리티와 GitHub, Salesforce 같은 서드파티 SaaS 커넥터를 결합해 코딩, 협업, 비즈니스 워크플로를 한곳에서 폭넓게 지원합니다.",
-        "cons": "서드파티 통합에 대한 설치, 인증, 자격 증명 요구 사항이 명시되어 있지 않아, 특정 SaaS 제품을 연결하려면 플러그인 추가 외에 추가 설정이 필요할 가능성이 있습니다.",
-        "fit": "MIT 라이선스로 배포되는 이 저장소는 이미 Cursor를 사용 중이며 코딩 워크플로와 SaaS 통합을 위한 완성된 재사용 가능한 플러그인을 원하는 개발자와 팀에게 적합해 보입니다."
+        "goal": "cursor/plugins는 개발자 도구, 프레임워크, SaaS 제품용 Cursor 플러그인을 모아놓은 공식 마켓플레이스 저장소입니다. 각 플러그인은 저장소 루트에 독립된 디렉터리로 존재하며, 루트의 `.cursor-plugin/marketplace.json` 파일이 모든 플러그인 목록을 관리합니다.",
+        "usage": "README는 설치 명령어 대신 파일 구조를 설명합니다. 최상위 `.cursor-plugin/marketplace.json`이 모든 플러그인을 등록하고, 각 플러그인 디렉터리에는 자체 `.cursor-plugin/plugin.json` 매니페스트와 `skills/`, `rules/`, `mcp.json`, `README.md`, `CHANGELOG.md`가 포함됩니다. 이 마켓플레이스 매니페스트를 통해 Cursor에 플러그인을 추가하는 것으로 보이지만, 루트 README에 구체적인 설정 명령은 명시되어 있지 않습니다.",
+        "pros": "이 저장소는 Developer Tools, Productivity, Integrations, Utilities 범주에 걸쳐 Gmail, Google Drive, Salesforce, GitHub, Playwright 커넥터부터 Thermos, Cursor Team Kit 같은 개발 워크플로 플러그인까지 다양한 플러그인을 제공합니다. 각 플러그인은 자체 매니페스트, README, CHANGELOG를 갖춘 독립적인 구조라서 개별적으로 문서화되고 버전 관리됩니다.",
+        "cons": "루트 README 자체는 설치나 실행 명령을 제공하지 않고 매니페스트와 디렉터리 구조만 설명하므로, 구체적인 설정 방법은 각 플러그인의 README와 CHANGELOG에 의존해야 합니다. Salesforce, HubSpot, Brex 등 다수의 통합 플러그인은 서드파티 SaaS 계정과 연결되므로, 별도의 계정 자격 증명이나 API 접근이 필요할 가능성이 있으며 이는 루트 README에 설명되어 있지 않습니다.",
+        "fit": "Developer Tools 및 Integrations 범주로 볼 때, 이미 Cursor를 사용 중이며 CRM, 캘린더, 이메일, HR, 회의 등 SaaS 커넥터나 CI·코드 리뷰·브랜치 감사 같은 개발 프로세스 플러그인으로 에이전트 워크플로를 확장하려는 팀에 적합해 보입니다. 라이선스는 MIT입니다."
       },
       "zh-CN": {
-        "goal": "cursor/plugins 是官方 Cursor 插件仓库,为常见的开发者工具、框架和 SaaS 产品提供插件。每个插件都是仓库根目录下的独立文件夹,拥有自己的 `.cursor-plugin/plugin.json` 清单文件,整个项目以多插件市场的形式组织,列出了数十个独立插件。",
-        "usage": "根目录下的 `.cursor-plugin/marketplace.json` 文件列出所有插件,每个插件文件夹都包含自己的清单文件,并可选地包含 `skills/`(智能体技能)、`rules/`(Cursor 规则)和 `mcp.json`(MCP 服务器定义),用于在 Cursor 中配置该插件的行为。",
-        "pros": "该市场涵盖 Developer Tools、Productivity 和 Integrations 三大类别,将 Cursor 原生实用工具与 GitHub、Salesforce 等第三方 SaaS 连接器结合在一起,为编码、协作和业务工作流提供了广泛的覆盖。",
-        "cons": "文档中没有说明这些第三方集成的安装、身份验证或凭据要求,因此连接某个具体的 SaaS 产品可能需要在添加插件之外进行额外配置。",
-        "fit": "该仓库以 MIT 许可证发布,看起来最适合已经在使用 Cursor、希望获得可直接复用的插件来支持编码工作流和 SaaS 集成的开发者与团队。"
+        "goal": "cursor/plugins 是官方的 Cursor 插件市场仓库,汇集了面向开发者工具、框架和 SaaS 产品的插件。每个插件都是仓库根目录下的独立目录,根目录的 `.cursor-plugin/marketplace.json` 文件列出了所有插件。",
+        "usage": "README 说明的是文件结构而非安装命令:顶层的 `.cursor-plugin/marketplace.json` 注册所有插件,每个插件目录下都有自己的 `.cursor-plugin/plugin.json` 清单以及 `skills/`、`rules/`、`mcp.json`、`README.md`、`CHANGELOG.md`。插件似乎是通过这个市场清单添加到 Cursor 中的,但根目录 README 并未给出具体的设置命令。",
+        "pros": "该仓库涵盖 Developer Tools、Productivity、Integrations、Utilities 等多个分类,提供 Gmail、Google Drive、Salesforce、GitHub、Playwright 等连接器,以及 Thermos、Cursor Team Kit 等开发工作流插件。每个插件都自带清单、README 和 CHANGELOG,结构独立,便于分别记录文档和版本。",
+        "cons": "根目录 README 本身没有提供安装或运行命令,只描述了清单和目录结构,具体设置细节要依赖各插件自己的 README 和 CHANGELOG。由于 Salesforce、HubSpot、Brex 等多个集成插件需要连接第三方 SaaS 账户,使用它们可能需要单独的账户凭证或 API 访问权限,而这一点根目录 README 并未说明。",
+        "fit": "从 Developer Tools 和 Integrations 分类来看,该仓库似乎面向已经在使用 Cursor 的团队,他们希望通过 CRM、日历、邮件、HR、会议等 SaaS 连接器,或 CI、代码审查、分支审计等开发流程插件来扩展代理工作流。该仓库采用 MIT 许可证。"
       },
       "es": {
-        "goal": "cursor/plugins es un repositorio oficial de complementos de Cursor para herramientas de desarrollo, frameworks y productos SaaS populares. Cada complemento es un directorio independiente en la raíz del repositorio con su propio manifiesto `.cursor-plugin/plugin.json`, y el proyecto está organizado como un mercado multi-complemento que enumera docenas de complementos individuales.",
-        "usage": "El archivo raíz `.cursor-plugin/marketplace.json` enumera todos los complementos, mientras que cada carpeta de complemento contiene su propio manifiesto además de, opcionalmente, `skills/` (habilidades del agente), `rules/` (reglas de Cursor) y `mcp.json` (definiciones de servidores MCP) usados para configurar el comportamiento de ese complemento dentro de Cursor.",
-        "pros": "El mercado abarca tres categorías —Developer Tools, Productivity e Integrations— combinando utilidades nativas de Cursor con conectores SaaS de terceros como GitHub y Salesforce, lo que ofrece una amplia cobertura para flujos de trabajo de programación, colaboración y negocio en un solo lugar.",
-        "cons": "Los requisitos de instalación, autenticación y credenciales para las integraciones de terceros no se especifican, por lo que conectar un producto SaaS concreto probablemente requiera configuración adicional más allá de añadir el complemento.",
-        "fit": "Publicado bajo la licencia MIT, este repositorio parece más adecuado para desarrolladores y equipos que ya usan Cursor y desean complementos reutilizables y listos para usar en flujos de trabajo de programación e integraciones SaaS."
+        "goal": "cursor/plugins es el repositorio oficial de marketplace de plugins de Cursor para herramientas de desarrollo, frameworks y productos SaaS. Cada plugin se encuentra en su propio directorio independiente en la raíz del repositorio, y el archivo raíz `.cursor-plugin/marketplace.json` enumera todos los plugins disponibles.",
+        "usage": "El README documenta la estructura de archivos en lugar de un comando de instalación: el `.cursor-plugin/marketplace.json` de nivel superior registra todos los plugins, y cada directorio de plugin contiene su propio manifiesto `.cursor-plugin/plugin.json` junto con `skills/`, `rules/`, `mcp.json`, `README.md` y `CHANGELOG.md`. Los plugins probablemente se añaden a Cursor a través de este manifiesto de marketplace, aunque el README raíz no detalla un comando de configuración concreto.",
+        "pros": "El repositorio reúne una amplia variedad de plugins en las categorías Developer Tools, Productivity, Integrations y Utilities, incluyendo conectores para Gmail, Google Drive, Salesforce, GitHub y Playwright, junto con plugins de flujo de trabajo de desarrollo como Thermos y Cursor Team Kit. Cada plugin es autocontenido con su propio manifiesto, README y changelog, lo que permite documentarlos y versionarlos de forma independiente.",
+        "cons": "El README raíz no ofrece por sí mismo un comando de instalación o ejecución, solo describe el manifiesto y la estructura de directorios, por lo que los detalles de configuración dependen del README y CHANGELOG de cada plugin. Como varias integraciones listadas, como Salesforce, HubSpot y Brex, se conectan a cuentas SaaS de terceros, probablemente su uso requiera credenciales de cuenta o acceso a la API que el README raíz no describe.",
+        "fit": "Según sus categorías Developer Tools e Integrations, el repositorio parece dirigido a equipos que ya usan Cursor y quieren extender sus flujos de trabajo de agentes con conectores SaaS (CRM, calendario, correo, RR. HH., reuniones) o plugins de proceso de desarrollo (CI, revisión de código, auditoría de ramas). Se distribuye bajo licencia MIT."
       },
       "ja": {
-        "goal": "cursor/plugins は、人気の開発者ツール、フレームワーク、SaaS製品向けの公式Cursorプラグインを提供するリポジトリです。各プラグインはリポジトリのルートに独立したディレクトリとして存在し、それぞれ独自の `.cursor-plugin/plugin.json` マニフェストを持ち、プロジェクト全体は数十個のプラグインを一覧するマルチプラグイン・マーケットプレイスとして構成されています。",
-        "usage": "ルートの `.cursor-plugin/marketplace.json` ファイルがすべてのプラグインを一覧し、各プラグインフォルダには独自のマニフェストに加えて、任意で `skills/`(エージェントスキル)、`rules/`(Cursorルール)、`mcp.json`(MCPサーバー定義)が含まれ、Cursor内でそのプラグインの動作を設定します。",
-        "pros": "このマーケットプレイスは Developer Tools、Productivity、Integrations の3つのカテゴリーにまたがり、Cursor独自のユーティリティと GitHub や Salesforce のようなサードパーティSaaSコネクタを組み合わせることで、コーディング、コラボレーション、ビジネスのワークフローを幅広くカバーしています。",
-        "cons": "サードパーティ連携のインストール、認証、資格情報の要件は明記されておらず、特定のSaaS製品を接続するにはプラグインの追加以外に追加設定が必要になる可能性があります。",
-        "fit": "MITライセンスで公開されているこのリポジトリは、すでにCursorを利用しており、コーディングのワークフローやSaaS連携向けにすぐ使える再利用可能なプラグインを求める開発者やチームに適していると考えられます。"
+        "goal": "cursor/plugins は、開発者向けツール、フレームワーク、SaaS製品向けのCursor公式プラグインを集めたマーケットプレイスリポジトリです。各プラグインはリポジトリルートにある独立したディレクトリとして存在し、ルートの `.cursor-plugin/marketplace.json` がすべてのプラグインを一覧化しています。",
+        "usage": "READMEはインストールコマンドではなくファイル構造を説明しています。トップレベルの `.cursor-plugin/marketplace.json` が全プラグインを登録し、各プラグインディレクトリには独自の `.cursor-plugin/plugin.json` マニフェストと `skills/`、`rules/`、`mcp.json`、`README.md`、`CHANGELOG.md` が含まれます。このマーケットプレイスのマニフェストを通じてCursorにプラグインが追加されると考えられますが、ルートのREADMEには具体的な設定コマンドは示されていません。",
+        "pros": "このリポジトリは Developer Tools、Productivity、Integrations、Utilities の各カテゴリにわたり、Gmail、Google Drive、Salesforce、GitHub、Playwright向けのコネクタから、ThermosやCursor Team Kitのような開発ワークフロー用プラグインまで幅広く提供しています。各プラグインは独自のマニフェスト、README、CHANGELOGを備えた自己完結型の構造になっており、個別に文書化・バージョン管理されています。",
+        "cons": "ルートのREADME自体はインストールや実行コマンドを示さず、マニフェストとディレクトリ構造のみを説明しているため、具体的な設定方法は各プラグインのREADMEとCHANGELOGに依存します。Salesforce、HubSpot、Brexなど多くの連携プラグインはサードパーティのSaaSアカウントに接続するため、利用には個別のアカウント資格情報やAPIアクセスが必要になる可能性があり、この点はルートのREADMEには説明されていません。",
+        "fit": "Developer ToolsおよびIntegrationsのカテゴリから判断すると、このリポジトリは既にCursorを使用しているチームが、CRM・カレンダー・メール・HR・会議などのSaaSコネクタや、CI・コードレビュー・ブランチ監査といった開発プロセス用プラグインでエージェントのワークフローを拡張することを想定していると考えられます。ライセンスはMITです。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 3,
+          "start_line": 1,
           "end_line": 3,
           "section_heading": "Cursor plugins"
         },
         {
-          "start_line": 79,
-          "end_line": 79,
+          "start_line": 80,
+          "end_line": 80,
           "section_heading": "Repository structure"
         }
       ],
       "usage": [
         {
-          "start_line": 79,
-          "end_line": 84,
+          "start_line": 80,
+          "end_line": 80,
           "section_heading": "Repository structure"
         },
         {
-          "start_line": 85,
-          "end_line": 90,
+          "start_line": 82,
+          "end_line": 96,
           "section_heading": "Repository structure"
         }
       ],
       "pros": [
         {
-          "start_line": 7,
-          "end_line": 9,
+          "start_line": 9,
+          "end_line": 23,
           "section_heading": "Plugins"
         },
         {
-          "start_line": 28,
-          "end_line": 28,
+          "start_line": 24,
+          "end_line": 75,
           "section_heading": "Plugins"
         },
         {
-          "start_line": 30,
-          "end_line": 30,
-          "section_heading": "Plugins"
+          "start_line": 86,
+          "end_line": 96,
+          "section_heading": "Repository structure"
         }
       ],
       "cons": [
         {
-          "start_line": 27,
-          "end_line": 34,
+          "start_line": 82,
+          "end_line": 96,
+          "section_heading": "Repository structure"
+        },
+        {
+          "start_line": 24,
+          "end_line": 75,
           "section_heading": "Plugins"
         }
       ],
       "fit": [
         {
-          "start_line": 99,
-          "end_line": 99,
-          "section_heading": "License"
+          "start_line": 9,
+          "end_line": 75,
+          "section_heading": "Plugins"
         },
         {
-          "start_line": 3,
-          "end_line": 3,
-          "section_heading": "Cursor plugins"
+          "start_line": 100,
+          "end_line": 100,
+          "section_heading": "License"
         }
       ]
     },
@@ -7208,9 +7153,24 @@
       },
       {
         "kind": "product",
-        "value": "MIT",
+        "value": "Gmail",
         "fields": [
-          "fit"
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Google Drive",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Salesforce",
+        "fields": [
+          "pros",
+          "cons"
         ]
       },
       {
@@ -7222,34 +7182,49 @@
       },
       {
         "kind": "product",
-        "value": "Salesforce",
+        "value": "Playwright",
         "fields": [
           "pros"
         ]
       },
       {
-        "kind": "command",
-        "value": ".cursor-plugin/plugin.json",
+        "kind": "product",
+        "value": "Thermos",
         "fields": [
-          "goal"
+          "pros"
         ]
       },
       {
-        "kind": "command",
-        "value": ".cursor-plugin/marketplace.json",
+        "kind": "product",
+        "value": "Cursor Team Kit",
         "fields": [
-          "usage"
+          "pros"
         ]
       },
       {
-        "kind": "command",
-        "value": "mcp.json",
+        "kind": "product",
+        "value": "HubSpot",
         "fields": [
-          "usage"
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Brex",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "MIT",
+        "fields": [
+          "fit"
         ]
       }
     ],
     "inference_fields": [
+      "usage",
       "cons",
       "fit"
     ],
@@ -7257,8 +7232,8 @@
       "kind": "readme",
       "slug": "cursor/plugins",
       "path": "README.md",
-      "blob_sha": "d2b9333ca730b502cafea61aaa560bf45eeed57a",
-      "content_sha256": "09868214c0d66d7758b8cb24f2745b3edf90ce6f736eb717d79b02e2f0cdf041",
+      "blob_sha": "c239f85640bdac9aaa9fce5a9c36946141dd1de8",
+      "content_sha256": "795ef0caad99611f495419aa66dfe244c08cd6575fc4ad76b78f1df0c95ab685",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -9292,209 +9267,6 @@
       "path": "README.md",
       "blob_sha": "10bba8f238a615b1d06c352b757ccc4af4dc3fd4",
       "content_sha256": "cfb74e49685c37d3b63b776cc47066c329407f1b0a0b7f9bba9918ae4fe1bda9",
-      "provider": "claude-cli-oauth",
-      "interface": "claude-p",
-      "cli_version": "2.1.263",
-      "auth_method": "oauth_token",
-      "api_provider": "firstParty",
-      "model": "claude-sonnet-5",
-      "schema_version": 3,
-      "prompt_schema_version": 3,
-      "translation_applicable": false
-    }
-  },
-  "akitaonrails/ai-memory": {
-    "content": {
-      "goal": "ai-memory presents itself as a long-term memory system for AI coding agents, letting a user stop one agent mid-task (for example Claude Code) and resume the same project context in a different agent (such as OpenAI Codex) without re-explaining the architecture, prior failed approaches, or open questions.",
-      "usage": "Install via Arch Linux's AUR with `yay -S ai-memory-bin` (prebuilt binary) or run the server as a Docker container using the published `akitaonrails/ai-memory` image, then connect an agent CLI with `ai-memory install-mcp --client claude-code --apply` and `ai-memory install-hooks --agent claude-code --apply`.",
-      "pros": "The README lists support for more than twenty agent harnesses (including Claude Code, Codex, Cursor, and Gemini CLI) sharing one memory store; memory is kept as plain markdown files in a git-backed wiki that can be grepped or hand-edited; the default capture, search, and handoff path is described as requiring zero LLM API calls; and multi-user authentication with per-person attribution is stated to be built in rather than a paid feature.",
-      "cons": "Native Windows support is marked 'Experimental' in the support matrix, while WSL2 is listed as fully supported, suggesting native-Windows users may encounter rougher edges. The documented quick-start configuration also runs with no authentication, binding only to loopback, so adding a bearer token appears to be a required extra step before exposing the server on a LAN.",
-      "fit": "Based on the described setup options, ai-memory appears best suited to individual developers who want continuity across machines and agent tools (single laptop or homelab server), as well as small teams sharing one server per the documented per-project, per-person attribution model; Linux, macOS, and Windows-via-WSL2 are the supported platforms."
-    },
-    "summaries": {
-      "en": {
-        "goal": "ai-memory presents itself as a long-term memory system for AI coding agents, letting a user stop one agent mid-task (for example Claude Code) and resume the same project context in a different agent (such as OpenAI Codex) without re-explaining the architecture, prior failed approaches, or open questions.",
-        "usage": "Install via Arch Linux's AUR with `yay -S ai-memory-bin` (prebuilt binary) or run the server as a Docker container using the published `akitaonrails/ai-memory` image, then connect an agent CLI with `ai-memory install-mcp --client claude-code --apply` and `ai-memory install-hooks --agent claude-code --apply`.",
-        "pros": "The README lists support for more than twenty agent harnesses (including Claude Code, Codex, Cursor, and Gemini CLI) sharing one memory store; memory is kept as plain markdown files in a git-backed wiki that can be grepped or hand-edited; the default capture, search, and handoff path is described as requiring zero LLM API calls; and multi-user authentication with per-person attribution is stated to be built in rather than a paid feature.",
-        "cons": "Native Windows support is marked 'Experimental' in the support matrix, while WSL2 is listed as fully supported, suggesting native-Windows users may encounter rougher edges. The documented quick-start configuration also runs with no authentication, binding only to loopback, so adding a bearer token appears to be a required extra step before exposing the server on a LAN.",
-        "fit": "Based on the described setup options, ai-memory appears best suited to individual developers who want continuity across machines and agent tools (single laptop or homelab server), as well as small teams sharing one server per the documented per-project, per-person attribution model; Linux, macOS, and Windows-via-WSL2 are the supported platforms."
-      },
-      "ko": {
-        "goal": "ai-memory는 AI 코딩 에이전트를 위한 장기 기억 시스템으로 소개되며, 사용자가 작업 도중 한 에이전트(예: Claude Code)를 종료하고 같은 디렉터리에서 다른 에이전트(예: OpenAI Codex)로 전환해도 아키텍처, 이전에 실패한 접근 방식, 미해결 질문을 다시 설명할 필요 없이 이어갈 수 있다고 설명합니다.",
-        "usage": "Arch Linux에서는 AUR을 통해 `yay -S ai-memory-bin`(사전 빌드 바이너리) 명령으로 설치하거나, 공개된 `akitaonrails/ai-memory` Docker 이미지를 사용해 서버를 컨테이너로 실행할 수 있습니다. 이후 `ai-memory install-mcp --client claude-code --apply`와 `ai-memory install-hooks --agent claude-code --apply` 명령으로 에이전트 CLI를 연결합니다.",
-        "pros": "README에 따르면 Claude Code, Codex, Cursor, Gemini CLI 등 20개 이상의 에이전트 하네스가 하나의 메모리를 공유하도록 지원하며, 메모리는 git 기반 위키의 일반 마크다운 파일로 저장되어 grep이나 직접 편집이 가능하다고 합니다. 기본 캡처·검색·핸드오프 경로는 LLM API 호출이 전혀 필요하지 않다고 설명되며, 다중 사용자 인증과 개인별 귀속 기능이 유료 기능이 아니라 기본 포함되어 있다고 명시되어 있습니다.",
-        "cons": "지원 매트릭스에서 네이티브 Windows는 '실험적(Experimental)'으로 표시되어 있는 반면 WSL2는 완전히 지원된다고 되어 있어, 네이티브 Windows 사용자는 다소 불안정할 수 있음을 시사합니다. 또한 문서화된 기본 빠른 시작 구성은 인증 없이 루프백에만 바인딩되어 실행되므로, LAN에 서버를 노출하려면 베어러 토큰 추가가 별도의 필수 단계로 보입니다.",
-        "fit": "문서화된 설치 옵션을 볼 때 ai-memory는 여러 기기와 에이전트 도구 간 연속성을 원하는 개인 개발자(단일 노트북 또는 홈랩 서버)에게 적합해 보이며, 프로젝트별·개인별 귀속 모델을 명시한 점을 고려하면 하나의 서버를 공유하는 소규모 팀에도 맞을 것으로 보입니다. 지원 플랫폼은 Linux, macOS, Windows(WSL2 경유)입니다."
-      },
-      "zh-CN": {
-        "goal": "ai-memory 被介绍为面向 AI 编码代理的长期记忆系统,让用户可以在任务进行到一半时退出某个代理(例如 Claude Code),再在同一目录下切换到另一个代理(例如 OpenAI Codex)继续工作,而无需重新解释架构、此前失败的方案或尚未解决的问题。",
-        "usage": "在 Arch Linux 上,可通过 AUR 使用 `yay -S ai-memory-bin`(预编译二进制)安装,或者使用官方发布的 `akitaonrails/ai-memory` Docker 镜像以容器方式运行服务器;随后通过 `ai-memory install-mcp --client claude-code --apply` 与 `ai-memory install-hooks --agent claude-code --apply` 命令连接代理 CLI。",
-        "pros": "据 README 描述,该项目支持二十多种代理宿主(包括 Claude Code、Codex、Cursor 和 Gemini CLI)共享同一份记忆;记忆以普通 Markdown 文件形式保存在基于 git 的 wiki 中,可直接 grep 或手动编辑;默认的捕获、搜索与交接流程据称完全不需要调用 LLM API;并且多用户认证与按人归属功能被说明为内置能力,而非付费层级。",
-        "cons": "支持矩阵中,原生 Windows 被标记为“实验性(Experimental)”,而通过 WSL2 的 Windows 则列为完全支持,这似乎意味着原生 Windows 用户可能会遇到更多不稳定之处。此外,文档中的默认快速启动配置在没有身份验证的情况下运行,仅绑定到本地回环地址,因此若要将服务器暴露到局域网,添加持有者令牌看起来是一个必需的额外步骤。",
-        "fit": "根据文档中描述的安装选项,ai-memory 看起来更适合希望在多台机器和多种代理工具之间保持连续性的个人开发者(单台笔记本电脑或家庭实验室服务器使用场景),同时鉴于其按项目、按人归属的模型说明,也可能适合共用一台服务器的小团队。文档列出的受支持平台为 Linux、macOS 以及通过 WSL2 的 Windows。"
-      },
-      "es": {
-        "goal": "ai-memory se presenta como un sistema de memoria a largo plazo para agentes de codificación con IA, que permite salir de un agente a mitad de tarea (por ejemplo, Claude Code) y continuar en el mismo directorio con otro agente (como OpenAI Codex) sin tener que reexplicar la arquitectura, los enfoques fallidos anteriores ni las preguntas abiertas.",
-        "usage": "En Arch Linux se instala mediante AUR con `yay -S ai-memory-bin` (binario precompilado), o bien se ejecuta el servidor como contenedor Docker usando la imagen publicada `akitaonrails/ai-memory`; después se conecta un CLI de agente con `ai-memory install-mcp --client claude-code --apply` y `ai-memory install-hooks --agent claude-code --apply`.",
-        "pros": "Según el README, el proyecto admite más de veinte entornos de agentes (incluidos Claude Code, Codex, Cursor y Gemini CLI) compartiendo una única memoria; la memoria se guarda como archivos markdown normales en un wiki respaldado por git, por lo que se puede buscar con grep o editar a mano; se describe que la ruta predeterminada de captura, búsqueda y traspaso no requiere ninguna llamada a una API de LLM; y se indica que la autenticación multiusuario con atribución por persona viene incluida, no como nivel de pago.",
-        "cons": "En la matriz de compatibilidad, el soporte nativo de Windows figura como 'Experimental', mientras que Windows vía WSL2 aparece como totalmente compatible, lo que sugiere que los usuarios de Windows nativo podrían encontrar más inconvenientes. Además, la configuración de inicio rápido documentada se ejecuta sin autenticación, vinculada solo a loopback, por lo que añadir un token portador parece ser un paso adicional necesario antes de exponer el servidor en una LAN.",
-        "fit": "A partir de las opciones de instalación documentadas, ai-memory parece adecuado para desarrolladores individuales que buscan continuidad entre máquinas y herramientas de agentes (un portátil único o un servidor casero), así como para equipos pequeños que comparten un servidor, dado el modelo documentado de atribución por proyecto y por persona. Las plataformas admitidas son Linux, macOS y Windows vía WSL2."
-      },
-      "ja": {
-        "goal": "ai-memoryは、AIコーディングエージェント向けの長期記憶システムとして紹介されており、タスクの途中であるエージェント(例:Claude Code)を終了し、同じディレクトリで別のエージェント(例:OpenAI Codex)に切り替えても、アーキテクチャや過去に失敗したアプローチ、未解決の課題を説明し直すことなく作業を継続できるとされています。",
-        "usage": "Arch Linuxでは、AUR経由で`yay -S ai-memory-bin`(ビルド済みバイナリ)を使ってインストールするか、公開されている`akitaonrails/ai-memory`のDockerイメージを使ってサーバーをコンテナとして実行できます。その後、`ai-memory install-mcp --client claude-code --apply`と`ai-memory install-hooks --agent claude-code --apply`のコマンドでエージェントCLIを接続します。",
-        "pros": "READMEによれば、Claude Code、Codex、Cursor、Gemini CLIなど20種類以上のエージェントハーネスが1つのメモリを共有できるとされ、メモリはgitベースのwiki内に通常のMarkdownファイルとして保存されるため、grepでの検索や手動編集が可能です。デフォルトのキャプチャ・検索・引き継ぎの経路はLLM APIの呼び出しを一切必要としないと説明されており、マルチユーザー認証と個人単位の帰属機能も有料階層ではなく標準搭載とされています。",
-        "cons": "サポートマトリクスでは、ネイティブWindowsは「実験的(Experimental)」と記載されている一方、WSL2経由のWindowsは完全サポートとされており、ネイティブWindows利用者はやや不安定な状態に遭遇する可能性が示唆されます。また、文書化されたデフォルトのクイックスタート構成は認証なしでループバックにのみバインドされて動作するため、サーバーをLANに公開する前にベアラートークンを追加することが必須の追加手順であるように見えます。",
-        "fit": "文書化されたインストール手順から判断すると、ai-memoryは複数のマシンやエージェントツール間で継続性を求める個人開発者(単一のノートPCやホームラボサーバーでの利用)に適していると考えられ、プロジェクト単位・個人単位の帰属モデルが明記されていることから、1台のサーバーを共有する小規模チームにも向いていると思われます。サポート対象プラットフォームはLinux、macOS、およびWSL2経由のWindowsです。"
-      }
-    },
-    "evidence": {
-      "goal": [
-        {
-          "start_line": 8,
-          "end_line": 11,
-          "section_heading": ""
-        },
-        {
-          "start_line": 19,
-          "end_line": 24,
-          "section_heading": "Why ai-memory"
-        },
-        {
-          "start_line": 26,
-          "end_line": 31,
-          "section_heading": "Why ai-memory"
-        }
-      ],
-      "usage": [
-        {
-          "start_line": 122,
-          "end_line": 131,
-          "section_heading": "Arch Linux (AUR)"
-        },
-        {
-          "start_line": 153,
-          "end_line": 155,
-          "section_heading": "Docker"
-        },
-        {
-          "start_line": 210,
-          "end_line": 211,
-          "section_heading": "Docker"
-        }
-      ],
-      "pros": [
-        {
-          "start_line": 26,
-          "end_line": 31,
-          "section_heading": "Why ai-memory"
-        },
-        {
-          "start_line": 43,
-          "end_line": 54,
-          "section_heading": "Why ai-memory"
-        },
-        {
-          "start_line": 38,
-          "end_line": 41,
-          "section_heading": "Why ai-memory"
-        }
-      ],
-      "cons": [
-        {
-          "start_line": 88,
-          "end_line": 91,
-          "section_heading": "Support matrix"
-        },
-        {
-          "start_line": 157,
-          "end_line": 160,
-          "section_heading": "Docker"
-        }
-      ],
-      "fit": [
-        {
-          "start_line": 88,
-          "end_line": 91,
-          "section_heading": "Support matrix"
-        },
-        {
-          "start_line": 33,
-          "end_line": 36,
-          "section_heading": "Why ai-memory"
-        },
-        {
-          "start_line": 265,
-          "end_line": 270,
-          "section_heading": "Teams and multiple machines"
-        }
-      ]
-    },
-    "invariants": [
-      {
-        "kind": "command",
-        "value": "yay -S ai-memory-bin",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "ai-memory install-mcp --client claude-code --apply",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "ai-memory install-hooks --agent claude-code --apply",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "ai-memory",
-        "fields": [
-          "goal",
-          "usage",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "akitaonrails/ai-memory",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Claude Code",
-        "fields": [
-          "goal",
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Codex",
-        "fields": [
-          "goal",
-          "pros"
-        ]
-      }
-    ],
-    "inference_fields": [
-      "cons",
-      "fit"
-    ],
-    "source": {
-      "kind": "readme",
-      "slug": "akitaonrails/ai-memory",
-      "path": "README.md",
-      "blob_sha": "1c6ff921974cd2a017de0100c4ac180678e963bf",
-      "content_sha256": "ca68b434be46820c8269a6471ff2a365f2aa3d9df88c0f8bc07b372bf6ad0499",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
