@@ -805,78 +805,83 @@
   },
   "vastsa/PI-Desktop": {
     "content": {
-      "goal": "PI-Desktop is described as a local-first desktop workspace for AI coding agents, letting users bring their own model and open any local project. The README states it requires no PI-Desktop account and no mandatory relay between the machine and the model provider.",
-      "usage": "Getting started involves connecting a model in Settings → Model configuration, opening a local project, and choosing Agent, Plan, or Goal mode before reviewing results in the Review panel. To run PI-Desktop from source, the README documents `git clone https://github.com/vastsa/PI-Desktop.git`, `pnpm install`, `cargo build -p host-core`, `pnpm build:js`, and `pnpm dev`; it also requires Node.js >=22.19 and pnpm >=10, and prebuilt versions can instead be downloaded from https://github.com/vastsa/PI-Desktop/releases/latest.",
-      "pros": "Documented advantages include support for multiple model providers such as OpenAI, Anthropic, and local gateways like Ollama and LM Studio, switchable per session. Privileged agent actions such as file edits and command execution pass through a permission layer for review, and the workspace can be extended with Skills, MCP servers, Subagents, and installable Plugins.",
-      "cons": "PI-Desktop is explicitly labeled an Early Preview, with APIs, extension interfaces, and some desktop behaviors noted as still evolving. Linux x64 packages additionally require glibc 2.35 or newer, so older distributions such as Ubuntu 20.04 or Debian 11 cannot load the bundled host.",
-      "fit": "Based on the described feature set, PI-Desktop appears best suited for developers who want a provider-agnostic, desktop-based AI coding agent workspace across macOS, Windows, and Linux without editor lock-in. Given its Early Preview status and current 0.14.x line, it may not yet suit production-critical workflows, though this is not explicitly stated."
+      "goal": "PI-Desktop is described as a local-first desktop workspace for AI coding agents. It lets users bring their own model — including OpenAI, Anthropic, local models, or OpenAI-compatible APIs — and open any local project directory, without requiring a PI-Desktop account or a mandatory relay service.",
+      "usage": "Users connect a model through Settings → Model configuration, open a local project from the sidebar, then choose Agent, Plan, or Goal mode and review results in the Review panel. For local development, the repository is cloned with `git clone https://github.com/vastsa/PI-Desktop.git` and started with `pnpm dev` after installing dependencies, while prebuilt releases are available at https://github.com/vastsa/PI-Desktop/releases/latest.",
+      "pros": "PI-Desktop supports multiple model providers and local gateways such as Ollama and LM Studio, and models can be switched per session without recreating it. Privileged agent actions like file edits and command execution pass through a permission layer, and the workspace can be extended with Skills, MCP servers, Subagents, and Plugins.",
+      "cons": "PI-Desktop is currently described as an Early Preview, so its APIs, extension interfaces, and some desktop behaviors may continue to evolve. Linux x64 packages require glibc 2.35 or newer, so older distributions such as Ubuntu 20.04 or Debian 11 cannot load the bundled host.",
+      "fit": "PI-Desktop appears best suited to developers who want a single desktop workspace for managing multiple local projects, sessions, and coding agents, rather than working through one terminal or editor extension. Since model requests are sent directly to the configured provider, it may also suit users who want to choose their own model while keeping other data local."
     },
     "summaries": {
       "en": {
-        "goal": "PI-Desktop is described as a local-first desktop workspace for AI coding agents, letting users bring their own model and open any local project. The README states it requires no PI-Desktop account and no mandatory relay between the machine and the model provider.",
-        "usage": "Getting started involves connecting a model in Settings → Model configuration, opening a local project, and choosing Agent, Plan, or Goal mode before reviewing results in the Review panel. To run PI-Desktop from source, the README documents `git clone https://github.com/vastsa/PI-Desktop.git`, `pnpm install`, `cargo build -p host-core`, `pnpm build:js`, and `pnpm dev`; it also requires Node.js >=22.19 and pnpm >=10, and prebuilt versions can instead be downloaded from https://github.com/vastsa/PI-Desktop/releases/latest.",
-        "pros": "Documented advantages include support for multiple model providers such as OpenAI, Anthropic, and local gateways like Ollama and LM Studio, switchable per session. Privileged agent actions such as file edits and command execution pass through a permission layer for review, and the workspace can be extended with Skills, MCP servers, Subagents, and installable Plugins.",
-        "cons": "PI-Desktop is explicitly labeled an Early Preview, with APIs, extension interfaces, and some desktop behaviors noted as still evolving. Linux x64 packages additionally require glibc 2.35 or newer, so older distributions such as Ubuntu 20.04 or Debian 11 cannot load the bundled host.",
-        "fit": "Based on the described feature set, PI-Desktop appears best suited for developers who want a provider-agnostic, desktop-based AI coding agent workspace across macOS, Windows, and Linux without editor lock-in. Given its Early Preview status and current 0.14.x line, it may not yet suit production-critical workflows, though this is not explicitly stated."
+        "goal": "PI-Desktop is described as a local-first desktop workspace for AI coding agents. It lets users bring their own model — including OpenAI, Anthropic, local models, or OpenAI-compatible APIs — and open any local project directory, without requiring a PI-Desktop account or a mandatory relay service.",
+        "usage": "Users connect a model through Settings → Model configuration, open a local project from the sidebar, then choose Agent, Plan, or Goal mode and review results in the Review panel. For local development, the repository is cloned with `git clone https://github.com/vastsa/PI-Desktop.git` and started with `pnpm dev` after installing dependencies, while prebuilt releases are available at https://github.com/vastsa/PI-Desktop/releases/latest.",
+        "pros": "PI-Desktop supports multiple model providers and local gateways such as Ollama and LM Studio, and models can be switched per session without recreating it. Privileged agent actions like file edits and command execution pass through a permission layer, and the workspace can be extended with Skills, MCP servers, Subagents, and Plugins.",
+        "cons": "PI-Desktop is currently described as an Early Preview, so its APIs, extension interfaces, and some desktop behaviors may continue to evolve. Linux x64 packages require glibc 2.35 or newer, so older distributions such as Ubuntu 20.04 or Debian 11 cannot load the bundled host.",
+        "fit": "PI-Desktop appears best suited to developers who want a single desktop workspace for managing multiple local projects, sessions, and coding agents, rather than working through one terminal or editor extension. Since model requests are sent directly to the configured provider, it may also suit users who want to choose their own model while keeping other data local."
       },
       "ko": {
-        "goal": "README는 PI-Desktop을 AI 코딩 에이전트를 위한 로컬 우선(local-first) 데스크톱 워크스페이스로 소개하며, 사용자가 원하는 모델을 직접 연결하고 로컬 프로젝트를 열 수 있다고 설명합니다. PI-Desktop 계정이나 필수 중계 서버 없이 사용할 수 있다고 명시되어 있습니다.",
-        "usage": "시작 방법은 설정 → 모델 구성에서 모델을 연결하고, 로컬 프로젝트를 연 뒤 Agent, Plan, Goal 모드 중 하나를 선택하고 Review 패널에서 결과를 확인하는 순서로 설명되어 있습니다. 소스에서 직접 실행하려면 README에 `git clone https://github.com/vastsa/PI-Desktop.git`, `pnpm install`, `cargo build -p host-core`, `pnpm build:js`, `pnpm dev` 명령이 문서화되어 있으며 Node.js >=22.19와 pnpm >=10이 필요하고, 빌드된 버전은 https://github.com/vastsa/PI-Desktop/releases/latest 에서 내려받을 수 있습니다.",
-        "pros": "문서화된 장점으로는 OpenAI, Anthropic, 그리고 Ollama나 LM Studio 같은 로컬 게이트웨이를 포함한 다양한 모델 제공자를 세션별로 전환하며 사용할 수 있다는 점이 있습니다. 파일 편집이나 명령 실행 같은 권한이 필요한 에이전트 작업은 권한 계층을 거쳐 검토할 수 있으며, Skills, MCP 서버, Subagents, 설치 가능한 Plugins를 통해 워크스페이스를 확장할 수 있습니다.",
-        "cons": "PI-Desktop은 명시적으로 얼리 프리뷰(Early Preview)로 표시되어 있으며, API, 확장 인터페이스, 일부 데스크톱 동작이 아직 변화할 수 있다고 안내되어 있습니다. 또한 Linux x64 패키지는 glibc 2.35 이상이 필요해 Ubuntu 20.04나 Debian 11 같은 이전 배포판에서는 번들된 호스트를 로드할 수 없습니다.",
-        "fit": "설명된 기능들을 볼 때 PI-Desktop은 에디터에 종속되지 않고 macOS, Windows, Linux에서 특정 모델 제공자에 구애받지 않는 데스크톱 기반 AI 코딩 에이전트 환경을 원하는 개발자에게 적합해 보입니다. 다만 현재 0.14.x 버전대의 얼리 프리뷰 상태를 고려하면 프로덕션 핵심 워크플로에는 아직 적합하지 않을 수 있으며, 이는 명시적으로 언급되어 있지는 않습니다."
+        "goal": "PI-Desktop는 AI 코딩 에이전트를 위한 로컬 우선 데스크톱 워크스페이스로 소개됩니다. 사용자는 OpenAI, Anthropic, 로컬 모델, OpenAI 호환 API 등 원하는 모델을 직접 연결하고, PI-Desktop 계정이나 필수 중계 서버 없이 로컬 프로젝트 디렉터리를 열 수 있습니다.",
+        "usage": "Settings → Model configuration에서 모델을 연결하고, 사이드바에서 로컬 프로젝트를 연 뒤 Agent, Plan, Goal 모드 중 하나를 선택하고 Review 패널에서 결과를 확인합니다. 로컬 개발 시에는 `git clone https://github.com/vastsa/PI-Desktop.git` 명령으로 저장소를 클론한 뒤 의존성 설치 후 `pnpm dev`로 실행하며, 빌드된 릴리스는 https://github.com/vastsa/PI-Desktop/releases/latest 에서 받을 수 있습니다.",
+        "pros": "PI-Desktop는 여러 모델 제공자와 Ollama, LM Studio 같은 로컬 게이트웨이를 지원하며, 세션을 다시 만들지 않고도 모델을 전환할 수 있습니다. 파일 편집이나 명령 실행 같은 권한이 필요한 작업은 권한 계층을 거치며, Skills, MCP 서버, Subagents, Plugins로 워크스페이스를 확장할 수 있습니다.",
+        "cons": "PI-Desktop는 현재 Early Preview 단계로 설명되어 있어 API, 확장 인터페이스, 일부 데스크톱 동작이 계속 변경될 수 있습니다. Linux x64 패키지는 glibc 2.35 이상이 필요하므로 Ubuntu 20.04나 Debian 11 같은 이전 배포판에서는 번들된 호스트를 로드할 수 없습니다.",
+        "fit": "PI-Desktop는 하나의 터미널이나 에디터 확장에 의존하기보다 여러 로컬 프로젝트, 세션, 코딩 에이전트를 한 데스크톱 워크스페이스에서 관리하려는 개발자에게 적합해 보입니다. 모델 요청이 설정된 제공자로 직접 전송되므로, 다른 데이터는 로컬에 유지하면서 원하는 모델을 선택하려는 사용자에게도 맞을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "README 将 PI-Desktop 描述为一个面向 AI 编码代理的本地优先(local-first)桌面工作区,用户可以自带模型并打开任意本地项目。文档指出使用时无需 PI-Desktop 账户,也不需要强制的中继服务。",
-        "usage": "上手流程包括在设置 → 模型配置中连接模型、打开本地项目,然后选择 Agent、Plan 或 Goal 模式,并在 Review 面板中查看结果。若要从源码运行,README 记录了 `git clone https://github.com/vastsa/PI-Desktop.git`、`pnpm install`、`cargo build -p host-core`、`pnpm build:js` 和 `pnpm dev` 等命令,并要求 Node.js >=22.19 与 pnpm >=10;预构建版本也可从 https://github.com/vastsa/PI-Desktop/releases/latest 下载。",
-        "pros": "文档中列出的优点包括支持 OpenAI、Anthropic 以及 Ollama、LM Studio 等本地网关在内的多种模型提供方,并可按会话切换。文件编辑、命令执行等具有特权的代理操作会经过权限层供审查,且工作区可通过 Skills、MCP 服务器、Subagents 和可安装的 Plugins 进行扩展。",
-        "cons": "PI-Desktop 被明确标注为早期预览(Early Preview),文档说明其 API、扩展接口以及部分桌面行为仍可能继续演变。此外,Linux x64 软件包需要 glibc 2.35 或更新版本,因此 Ubuntu 20.04、Debian 11 等较旧的发行版无法加载其中打包的宿主程序。",
-        "fit": "根据所描述的功能,PI-Desktop 似乎更适合希望在 macOS、Windows 和 Linux 上使用不受编辑器锁定、且不局限于特定模型提供方的桌面版 AI 编码代理环境的开发者。考虑到其目前处于 0.14.x 系列的早期预览阶段,它可能尚不适合对生产环境要求严格的工作流,不过文档并未对此明确说明。"
+        "goal": "PI-Desktop 被介绍为一个面向 AI 编程代理的本地优先桌面工作区。用户可以接入自己选择的模型,包括 OpenAI、Anthropic、本地模型或兼容 OpenAI 的 API,并打开任意本地项目目录,无需 PI-Desktop 账号,也不需要强制的中继服务。",
+        "usage": "用户通过 Settings → Model configuration 连接模型,从侧边栏打开本地项目,然后选择 Agent、Plan 或 Goal 模式,并在 Review 面板中查看结果。本地开发时,先使用 `git clone https://github.com/vastsa/PI-Desktop.git` 克隆仓库,安装依赖后再用 `pnpm dev` 启动;预构建的发行版可从 https://github.com/vastsa/PI-Desktop/releases/latest 获取。",
+        "pros": "PI-Desktop 支持多个模型提供方以及 Ollama、LM Studio 等本地网关,并且可以在不重建会话的情况下按需切换模型。文件编辑、命令执行等具有特权的代理操作需要经过权限层,工作区还可以通过 Skills、MCP 服务器、Subagents 和 Plugins 进行扩展。",
+        "cons": "PI-Desktop 目前被描述为早期预览版,其 API、扩展接口以及部分桌面行为可能会持续变化。Linux x64 软件包需要 glibc 2.35 或更新版本,因此 Ubuntu 20.04、Debian 11 等较旧的发行版无法加载其内置的宿主程序。",
+        "fit": "PI-Desktop 看起来更适合希望在单一桌面工作区中管理多个本地项目、会话和编码代理的开发者,而不是依赖单一终端或编辑器插件。由于模型请求会直接发送给所配置的提供方,它也可能适合那些希望自由选择模型、同时让其他数据保留在本地的用户。"
       },
       "es": {
-        "goal": "El README describe PI-Desktop como un espacio de trabajo de escritorio local-first para agentes de codificación con IA, que permite a los usuarios conectar su propio modelo y abrir cualquier proyecto local. Según el documento, no requiere una cuenta de PI-Desktop ni un relay obligatorio.",
-        "usage": "Los primeros pasos consisten en conectar un modelo en Configuración → Configuración de modelo, abrir un proyecto local y elegir el modo Agent, Plan o Goal antes de revisar los resultados en el panel Review. Para ejecutarlo desde el código fuente, el README documenta `git clone https://github.com/vastsa/PI-Desktop.git`, `pnpm install`, `cargo build -p host-core`, `pnpm build:js` y `pnpm dev`, y requiere Node.js >=22.19 y pnpm >=10; las compilaciones ya construidas también pueden descargarse desde https://github.com/vastsa/PI-Desktop/releases/latest.",
-        "pros": "Entre las ventajas documentadas está el soporte para múltiples proveedores de modelos, como OpenAI, Anthropic y pasarelas locales como Ollama y LM Studio, intercambiables por sesión. Las acciones con privilegios, como editar archivos o ejecutar comandos, pasan por una capa de permisos para su revisión, y el espacio de trabajo puede ampliarse con Skills, servidores MCP, Subagents y Plugins instalables.",
-        "cons": "PI-Desktop está etiquetado explícitamente como Early Preview (vista previa temprana), y se indica que las API, las interfaces de extensión y algunos comportamientos de escritorio todavía pueden evolucionar. Además, los paquetes Linux x64 requieren glibc 2.35 o posterior, por lo que distribuciones más antiguas como Ubuntu 20.04 o Debian 11 no pueden cargar el host incluido.",
-        "fit": "Según las funciones descritas, PI-Desktop parece más adecuado para desarrolladores que buscan un entorno de escritorio para agentes de codificación con IA, independiente del proveedor y sin dependencia de un editor concreto, disponible en macOS, Windows y Linux. Dado su estado de Early Preview y la serie actual 0.14.x, podría no ser aún idóneo para flujos de trabajo críticos en producción, aunque esto no se afirma explícitamente."
+        "goal": "PI-Desktop se presenta como un espacio de trabajo de escritorio local-first para agentes de codificación con IA. Permite a los usuarios conectar su propio modelo, incluidos OpenAI, Anthropic, modelos locales o APIs compatibles con OpenAI, y abrir cualquier proyecto local sin necesitar una cuenta de PI-Desktop ni un relé obligatorio.",
+        "usage": "Los usuarios conectan un modelo desde Settings → Model configuration, abren un proyecto local desde la barra lateral y luego eligen el modo Agent, Plan o Goal, revisando los resultados en el panel Review. Para el desarrollo local, el repositorio se clona con `git clone https://github.com/vastsa/PI-Desktop.git` y se inicia con `pnpm dev` tras instalar las dependencias, mientras que las versiones compiladas están disponibles en https://github.com/vastsa/PI-Desktop/releases/latest.",
+        "pros": "PI-Desktop admite múltiples proveedores de modelos y pasarelas locales como Ollama y LM Studio, y los modelos pueden cambiarse por sesión sin recrearla. Las acciones privilegiadas del agente, como editar archivos o ejecutar comandos, pasan por una capa de permisos, y el espacio de trabajo puede ampliarse con Skills, servidores MCP, Subagents y Plugins.",
+        "cons": "PI-Desktop se describe actualmente como en vista previa temprana (Early Preview), por lo que sus API, interfaces de extensión y algunos comportamientos del escritorio pueden seguir evolucionando. Los paquetes Linux x64 requieren glibc 2.35 o posterior, por lo que distribuciones más antiguas como Ubuntu 20.04 o Debian 11 no pueden cargar el host incluido.",
+        "fit": "PI-Desktop parece adecuado para desarrolladores que desean gestionar varios proyectos locales, sesiones y agentes de codificación desde un único espacio de escritorio, en lugar de depender de una sola terminal o extensión de editor. Como las solicitudes al modelo se envían directamente al proveedor configurado, también podría convenir a quienes quieren elegir su propio modelo mientras mantienen el resto de los datos en local."
       },
       "ja": {
-        "goal": "README では PI-Desktop は AI コーディングエージェント向けのローカルファースト(local-first)なデスクトップワークスペースとして説明されており、ユーザーは自分のモデルを接続し、任意のローカルプロジェクトを開けるとされています。PI-Desktop アカウントや必須の中継は不要であると記載されています。",
-        "usage": "利用の流れとして、設定 → モデル設定でモデルを接続し、ローカルプロジェクトを開いた後、Agent・Plan・Goal のいずれかのモードを選び、Review パネルで結果を確認する手順が説明されています。ソースから実行する場合、README には `git clone https://github.com/vastsa/PI-Desktop.git`、`pnpm install`、`cargo build -p host-core`、`pnpm build:js`、`pnpm dev` というコマンドが記載されており、Node.js >=22.19 と pnpm >=10 が必要です。ビルド済みのものは https://github.com/vastsa/PI-Desktop/releases/latest からダウンロードできます。",
-        "pros": "文書化された利点として、OpenAI や Anthropic、Ollama や LM Studio のようなローカルゲートウェイを含む複数のモデルプロバイダーをセッションごとに切り替えて使えることが挙げられます。ファイル編集やコマンド実行のような権限を伴うエージェント操作は権限レイヤーを通じてレビューされ、Skills、MCP サーバー、Subagents、インストール可能な Plugins によってワークスペースを拡張できます。",
-        "cons": "PI-Desktop は明示的に Early Preview(初期プレビュー)と位置付けられており、API、拡張インターフェース、一部のデスクトップの挙動が今後も変化しうると記載されています。また、Linux x64 パッケージには glibc 2.35 以降が必要なため、Ubuntu 20.04 や Debian 11 のような古いディストリビューションではバンドルされたホストを読み込めません。",
-        "fit": "記載されている機能から判断すると、PI-Desktop は macOS・Windows・Linux 上でエディタに縛られず、特定のモデルプロバイダーにも依存しないデスクトップ型 AI コーディングエージェント環境を求める開発者に適していると考えられます。現在 0.14.x 系列の Early Preview 段階であることを踏まえると、本番環境での重要なワークフローにはまだ適さない可能性がありますが、この点は明示的には述べられていません。"
+        "goal": "PI-Desktopは、AIコーディングエージェントのためのローカルファーストなデスクトップワークスペースとして紹介されています。ユーザーはOpenAI、Anthropic、ローカルモデル、OpenAI互換APIなど好みのモデルを接続でき、PI-Desktopアカウントや必須の中継サービスなしに任意のローカルプロジェクトを開くことができます。",
+        "usage": "Settings → Model configuration からモデルを接続し、サイドバーからローカルプロジェクトを開いた後、Agent、Plan、Goalのいずれかのモードを選び、Reviewパネルで結果を確認します。ローカル開発では `git clone https://github.com/vastsa/PI-Desktop.git` でリポジトリを取得し、依存関係をインストールした後 `pnpm dev` で起動します。ビルド済みリリースは https://github.com/vastsa/PI-Desktop/releases/latest から入手できます。",
+        "pros": "PI-Desktopは複数のモデルプロバイダーやOllama、LM Studioなどのローカルゲートウェイに対応し、セッションを再作成せずにモデルを切り替えられます。ファイル編集やコマンド実行といった特権的なエージェント操作は権限レイヤーを経由し、Skills、MCPサーバー、Subagents、Pluginsによってワークスペースを拡張できます。",
+        "cons": "PI-Desktopは現在Early Previewと説明されており、APIや拡張インターフェース、一部のデスクトップ動作は今後も変化する可能性があります。Linux x64パッケージにはglibc 2.35以降が必要なため、Ubuntu 20.04やDebian 11などの古いディストリビューションでは同梱されたホストを読み込めません。",
+        "fit": "PI-Desktopは、単一のターミナルやエディタ拡張に頼るのではなく、複数のローカルプロジェクト、セッション、コーディングエージェントを一つのデスクトップワークスペースで管理したい開発者に向いていると考えられます。モデルへのリクエストは設定したプロバイダーへ直接送られるため、他のデータをローカルに保ちながら任意のモデルを選びたいユーザーにも合う可能性があります。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 7,
+          "start_line": 5,
           "end_line": 11,
-          "section_heading": "Your local-first desktop workspace for AI coding agents."
+          "section_heading": "PI-Desktop"
+        },
+        {
+          "start_line": 66,
+          "end_line": 67,
+          "section_heading": "✨ Bring your own model"
         }
       ],
       "usage": [
         {
-          "start_line": 101,
+          "start_line": 99,
           "end_line": 111,
           "section_heading": "From prompt to patch"
         },
         {
-          "start_line": 402,
-          "end_line": 406,
-          "section_heading": "Requirements"
+          "start_line": 412,
+          "end_line": 422,
+          "section_heading": "Run locally"
         },
         {
-          "start_line": 410,
-          "end_line": 420,
-          "section_heading": "Run locally"
+          "start_line": 306,
+          "end_line": 306,
+          "section_heading": "Download"
         }
       ],
       "pros": [
         {
           "start_line": 66,
-          "end_line": 68,
+          "end_line": 70,
           "section_heading": "✨ Bring your own model"
         },
         {
@@ -885,8 +890,8 @@
           "section_heading": "🔍 Inspectable by default"
         },
         {
-          "start_line": 87,
-          "end_line": 89,
+          "start_line": 85,
+          "end_line": 90,
           "section_heading": "🧩 Built to extend"
         }
       ],
@@ -904,14 +909,14 @@
       ],
       "fit": [
         {
-          "start_line": 45,
-          "end_line": 49,
+          "start_line": 47,
+          "end_line": 59,
           "section_heading": "Why PI-Desktop?"
         },
         {
-          "start_line": 382,
-          "end_line": 384,
-          "section_heading": "Project status"
+          "start_line": 285,
+          "end_line": 300,
+          "section_heading": "Local-first, precisely"
         }
       ]
     },
@@ -922,6 +927,7 @@
         "fields": [
           "goal",
           "usage",
+          "pros",
           "cons",
           "fit"
         ]
@@ -929,27 +935,6 @@
       {
         "kind": "command",
         "value": "git clone https://github.com/vastsa/PI-Desktop.git",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "pnpm install",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "cargo build -p host-core",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "pnpm build:js",
         "fields": [
           "usage"
         ]
@@ -969,13 +954,6 @@
         ]
       },
       {
-        "kind": "version",
-        "value": "0.14.x",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
         "kind": "url",
         "value": "https://github.com/vastsa/PI-Desktop/releases/latest",
         "fields": [
@@ -990,8 +968,8 @@
       "kind": "readme",
       "slug": "vastsa/pi-desktop",
       "path": "README.md",
-      "blob_sha": "f125a6e0b20e021588a913e46302d11c1f87c415",
-      "content_sha256": "436ca50084d816f97a724a54ad8e0292b8487439df1a4e92331de4a83e6fc0bc",
+      "blob_sha": "040f43a5797db30deac6b93a8f85a70d3bc343af",
+      "content_sha256": "fa4346c1b58524c56af4ac2f3f4a9e6db488b6ca9735a209f82d17b5389541ca",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -2271,47 +2249,47 @@
   },
   "p1neappleXpress/OpenFlux": {
     "content": {
-      "goal": "OpenFlux is presented as a network stack research tool implementing a TCP tunnel with pluggable transport backends. Per the documented architecture, a client-side SOCKS5 proxy sends traffic through a selected transport (Yandex Docs cursor messages or WebRTC DataChannel via Max) to an exit node that forwards it to the internet.",
-      "usage": "The desktop client/exit-node binary is built with `go build -o universal-bypass-tool .` (Golang 1.26.3+ required). The exit node needs root access and an iptables rule before starting; the client is launched with `./universal-bypass-tool --client --url \"YOUR_YANDEX_DOC_URL\" --socks5 :1080 --debug`, after which a browser can be pointed to the resulting SOCKS5 proxy at localhost:1080.",
-      "pros": "The pluggable Transport interface and support for building desktop, Android, and iOS client binaries suggest the project may offer flexibility for experimenting with alternative transport backends and custom implementations across multiple platforms.",
-      "cons": "Running an exit node reportedly requires root access and manual iptables configuration, and the MAX/WebRTC transport is explicitly labeled experimental; documented warnings note that resulting account restrictions may persist even after stopping OpenFlux.",
-      "fit": "Licensed under GPL-3.0-or-later and described for educational use on one's own machines and networks, OpenFlux appears best suited to developers or researchers exploring transport-tunneling techniques rather than for production or unauthorized use."
+      "goal": "OpenFlux is presented as a network stack research tool that implements a TCP tunnel with pluggable transports. Traffic flows from a SOCKS5 client through a selected transport to an exit node, which forwards packets to the internet.",
+      "usage": "Building the desktop client/exit-node binary requires `go mod tidy` followed by `go build -o universal-bypass-tool .`. The resulting `universal-bypass-tool` binary runs as a client via `./universal-bypass-tool --client --url \"YOUR_YANDEX_DOC_URL\" --socks5 :1080 --debug`, starting a local SOCKS5 proxy on port :1080; running it as an exit node instead requires root access on a Linux VPS/VDS host.",
+      "pros": "The project ships prebuilt clients: an Android APK at https://github.com/p1neappleXpress/OpenFluxAndroid and an iOS TestFlight beta at https://testflight.apple.com/join/BwnAcdus, alongside the Golang-based desktop/exit-node binary. Its Transport interface lets developers implement and register custom transports, and the two included transports (Yandex Docs cursor messages, MAX WebRTC DataChannel) offer different network-stack approaches.",
+      "cons": "Building the project requires specific toolchain versions — Golang 1.26.3+, Android NDK 27.0.12077973+, and XCode 26.6+ — which may limit use to environments with matching versions available. Running an exit node also requires root access and manual iptables configuration to suppress kernel-generated TCP RST packets, a workaround that can affect scanned-port behavior if applied host-wide instead of scoped to a dedicated IP.",
+      "fit": "OpenFlux is licensed under the GNU General Public License v3.0 or later and describes itself as educational and non-commercial, with no paid features. It appears best suited to users comfortable self-hosting a Linux exit node and configuring firewall rules, rather than as a turnkey consumer VPN, since the author disclaims responsibility for how OpenFlux is applied by others."
     },
     "summaries": {
       "en": {
-        "goal": "OpenFlux is presented as a network stack research tool implementing a TCP tunnel with pluggable transport backends. Per the documented architecture, a client-side SOCKS5 proxy sends traffic through a selected transport (Yandex Docs cursor messages or WebRTC DataChannel via Max) to an exit node that forwards it to the internet.",
-        "usage": "The desktop client/exit-node binary is built with `go build -o universal-bypass-tool .` (Golang 1.26.3+ required). The exit node needs root access and an iptables rule before starting; the client is launched with `./universal-bypass-tool --client --url \"YOUR_YANDEX_DOC_URL\" --socks5 :1080 --debug`, after which a browser can be pointed to the resulting SOCKS5 proxy at localhost:1080.",
-        "pros": "The pluggable Transport interface and support for building desktop, Android, and iOS client binaries suggest the project may offer flexibility for experimenting with alternative transport backends and custom implementations across multiple platforms.",
-        "cons": "Running an exit node reportedly requires root access and manual iptables configuration, and the MAX/WebRTC transport is explicitly labeled experimental; documented warnings note that resulting account restrictions may persist even after stopping OpenFlux.",
-        "fit": "Licensed under GPL-3.0-or-later and described for educational use on one's own machines and networks, OpenFlux appears best suited to developers or researchers exploring transport-tunneling techniques rather than for production or unauthorized use."
+        "goal": "OpenFlux is presented as a network stack research tool that implements a TCP tunnel with pluggable transports. Traffic flows from a SOCKS5 client through a selected transport to an exit node, which forwards packets to the internet.",
+        "usage": "Building the desktop client/exit-node binary requires `go mod tidy` followed by `go build -o universal-bypass-tool .`. The resulting `universal-bypass-tool` binary runs as a client via `./universal-bypass-tool --client --url \"YOUR_YANDEX_DOC_URL\" --socks5 :1080 --debug`, starting a local SOCKS5 proxy on port :1080; running it as an exit node instead requires root access on a Linux VPS/VDS host.",
+        "pros": "The project ships prebuilt clients: an Android APK at https://github.com/p1neappleXpress/OpenFluxAndroid and an iOS TestFlight beta at https://testflight.apple.com/join/BwnAcdus, alongside the Golang-based desktop/exit-node binary. Its Transport interface lets developers implement and register custom transports, and the two included transports (Yandex Docs cursor messages, MAX WebRTC DataChannel) offer different network-stack approaches.",
+        "cons": "Building the project requires specific toolchain versions — Golang 1.26.3+, Android NDK 27.0.12077973+, and XCode 26.6+ — which may limit use to environments with matching versions available. Running an exit node also requires root access and manual iptables configuration to suppress kernel-generated TCP RST packets, a workaround that can affect scanned-port behavior if applied host-wide instead of scoped to a dedicated IP.",
+        "fit": "OpenFlux is licensed under the GNU General Public License v3.0 or later and describes itself as educational and non-commercial, with no paid features. It appears best suited to users comfortable self-hosting a Linux exit node and configuring firewall rules, rather than as a turnkey consumer VPN, since the author disclaims responsibility for how OpenFlux is applied by others."
       },
       "ko": {
-        "goal": "OpenFlux는 플러그형 전송 백엔드를 갖춘 TCP 터널을 구현하는 네트워크 스택 연구 도구로 소개됩니다. 문서화된 아키텍처에 따르면 클라이언트 측 SOCKS5 프록시가 선택된 전송(Yandex Docs 커서 메시지 또는 Max를 통한 WebRTC DataChannel)을 통해 트래픽을 종료 노드(exit node)로 보내고, 이 노드가 인터넷으로 전달합니다.",
-        "usage": "데스크톱 클라이언트/종료 노드 바이너리는 `go build -o universal-bypass-tool .` 명령으로 빌드하며, Golang 1.26.3+ 버전이 필요합니다. 종료 노드는 시작 전 root 권한과 iptables 규칙 설정이 필요하고, 클라이언트는 `./universal-bypass-tool --client --url \"YOUR_YANDEX_DOC_URL\" --socks5 :1080 --debug` 명령으로 실행한 뒤 브라우저에서 localhost:1080의 SOCKS5 프록시를 설정할 수 있습니다.",
-        "pros": "플러그형 Transport 인터페이스와 데스크톱, Android, iOS 클라이언트 바이너리 빌드 지원은 여러 플랫폼에서 대체 전송 백엔드와 커스텀 구현을 실험할 수 있는 유연성을 제공하는 것으로 보입니다.",
-        "cons": "종료 노드 실행에는 root 권한과 수동 iptables 설정이 필요한 것으로 보이며, MAX/WebRTC 전송은 명시적으로 실험적(experimental)으로 표시되어 있고, 이를 사용할 경우 발생하는 계정 제한이 OpenFlux 중지 후에도 지속될 수 있다는 경고가 문서화되어 있습니다.",
-        "fit": "GPL-3.0-or-later 라이선스이며 자신의 기기와 네트워크에서 교육 목적으로 사용하도록 설명되어 있어, OpenFlux는 프로덕션 환경이나 무단 사용보다는 전송 터널링 기법을 탐구하는 개발자나 연구자에게 더 적합해 보입니다."
+        "goal": "OpenFlux는 플러그형 전송 계층을 가진 TCP 터널을 구현하는 네트워크 스택 연구 도구로 소개됩니다. 트래픽은 SOCKS5 클라이언트에서 선택된 전송 계층을 거쳐 출구 노드로 전달된 뒤 인터넷으로 나갑니다.",
+        "usage": "데스크톱 클라이언트/출구 노드 바이너리를 빌드하려면 `go mod tidy`를 실행한 뒤 `go build -o universal-bypass-tool .`를 실행합니다. 생성된 `universal-bypass-tool` 바이너리는 `./universal-bypass-tool --client --url \"YOUR_YANDEX_DOC_URL\" --socks5 :1080 --debug` 명령으로 클라이언트로 실행되어 :1080 포트에서 로컬 SOCKS5 프록시를 시작하며, 출구 노드로 실행하려면 Linux VPS/VDS 호스트에서 루트 권한이 필요합니다.",
+        "pros": "이 프로젝트는 Android APK(https://github.com/p1neappleXpress/OpenFluxAndroid)와 iOS TestFlight 베타(https://testflight.apple.com/join/BwnAcdus)를 미리 빌드된 클라이언트로 제공하며, Golang 기반 데스크톱/출구 노드 바이너리도 함께 제공합니다. Transport 인터페이스를 통해 개발자가 사용자 지정 전송을 구현·등록할 수 있고, 기본 제공되는 두 가지 전송(Yandex Docs 커서 메시지, MAX WebRTC DataChannel)은 서로 다른 네트워크 스택 접근 방식을 보여줍니다.",
+        "cons": "빌드에는 Golang 1.26.3+, Android NDK 27.0.12077973+, XCode 26.6+ 등 특정 버전의 툴체인이 필요하여, 해당 버전을 갖춘 환경으로 사용이 제한될 수 있습니다. 출구 노드를 실행하려면 루트 권한과 함께, 커널이 생성하는 TCP RST 패킷을 억제하기 위한 iptables 수동 설정이 필요하며, 이를 전용 IP로 범위를 한정하지 않고 호스트 전체에 적용하면 스캔 시 포트 상태가 달라질 수 있습니다.",
+        "fit": "OpenFlux는 GNU General Public License v3.0 or later 하에 배포되며, 교육용이자 비상업적이고 유료 기능이 없다고 설명됩니다. 저자가 타인의 사용 방식에 대한 책임을 지지 않는다고 명시한 점을 고려하면, 완제품 형태의 소비자용 VPN이라기보다는 Linux 출구 노드를 직접 운영하고 방화벽 규칙을 설정할 수 있는 사용자에게 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "OpenFlux 被描述为一个网络协议栈研究工具,实现了带有可插拔传输后端的 TCP 隧道。根据文档中的架构,客户端侧的 SOCKS5 代理通过所选传输方式(Yandex Docs 光标消息或通过 Max 的 WebRTC DataChannel)将流量发送到出口节点(exit node),再由该节点转发至互联网。",
-        "usage": "桌面客户端/出口节点二进制文件通过 `go build -o universal-bypass-tool .` 命令构建,需要 Golang 1.26.3+ 版本。出口节点在启动前需要 root 权限并配置 iptables 规则,客户端则使用 `./universal-bypass-tool --client --url \"YOUR_YANDEX_DOC_URL\" --socks5 :1080 --debug` 命令运行,之后可在浏览器中配置指向 localhost:1080 的 SOCKS5 代理。",
-        "pros": "可插拔的 Transport 接口以及对桌面、Android 和 iOS 客户端二进制文件构建的支持,似乎为在多个平台上试验替代传输后端和自定义实现提供了一定灵活性。",
-        "cons": "运行出口节点似乎需要 root 权限并手动配置 iptables,而 MAX/WebRTC 传输被明确标注为实验性(experimental),文档中提醒使用该传输可能导致的账号限制在停止 OpenFlux 后仍可能持续存在。",
-        "fit": "该项目采用 GPL-3.0-or-later 许可,并说明仅用于在自有设备和网络上进行教育用途,因此 OpenFlux 似乎更适合探索传输隧道技术的开发者或研究人员,而非用于生产环境或未经授权的用途。"
+        "goal": "OpenFlux 被介绍为一款网络协议栈研究工具，实现了具有可插拔传输层的 TCP 隧道。流量从 SOCKS5 客户端经所选传输层发送到出口节点，再转发至互联网。",
+        "usage": "构建桌面客户端/出口节点二进制文件需要先运行 `go mod tidy`，再运行 `go build -o universal-bypass-tool .`。生成的 `universal-bypass-tool` 二进制文件可通过类似 `./universal-bypass-tool --client --url \"YOUR_YANDEX_DOC_URL\" --socks5 :1080 --debug` 的命令以客户端模式运行，在 :1080 端口启动本地 SOCKS5 代理；若作为出口节点运行，则需要在 Linux VPS/VDS 主机上拥有 root 权限。",
+        "pros": "该项目提供预构建客户端：Android APK（https://github.com/p1neappleXpress/OpenFluxAndroid）和 iOS TestFlight 测试版（https://testflight.apple.com/join/BwnAcdus），并附带基于 Golang 的桌面/出口节点二进制文件。其 Transport 接口允许开发者实现并注册自定义传输方式，内置的两种传输方式（Yandex Docs 光标消息、MAX WebRTC DataChannel）展示了不同的网络栈实现思路。",
+        "cons": "构建该项目需要特定版本的工具链——Golang 1.26.3+、Android NDK 27.0.12077973+ 以及 XCode 26.6+——这可能将使用范围限制在具备相应版本的环境中。运行出口节点还需要 root 权限，并需手动配置 iptables 以抑制内核生成的 TCP RST 数据包；若将该规则应用于整台主机而非限定在专用 IP 上，可能会影响扫描时端口的表现状态。",
+        "fit": "OpenFlux 根据 GNU General Public License v3.0 or later 发布，并称自身用于教育目的、非商业性质，不含付费功能。鉴于作者声明不对他人如何使用 OpenFlux 负责，该项目看起来更适合愿意自行搭建 Linux 出口节点并配置防火墙规则的用户，而非作为一款开箱即用的消费级 VPN。"
       },
       "es": {
-        "goal": "OpenFlux se presenta como una herramienta de investigación de la pila de red que implementa un túnel TCP con backends de transporte conectables. Según la arquitectura documentada, un proxy SOCKS5 del lado del cliente envía el tráfico a través de un transporte seleccionado (mensajes de cursor de Yandex Docs o WebRTC DataChannel vía Max) hacia un nodo de salida (exit node), que lo reenvía a internet.",
-        "usage": "El binario de cliente de escritorio/nodo de salida se compila con `go build -o universal-bypass-tool .`, para lo cual se requiere Golang 1.26.3+. El nodo de salida necesita acceso root y una regla de iptables antes de iniciarse; el cliente se ejecuta con `./universal-bypass-tool --client --url \"YOUR_YANDEX_DOC_URL\" --socks5 :1080 --debug`, tras lo cual se puede configurar un navegador para usar el proxy SOCKS5 resultante en localhost:1080.",
-        "pros": "La interfaz de Transport conectable y la posibilidad de compilar binarios de cliente para escritorio, Android e iOS sugieren que el proyecto podría ofrecer flexibilidad para experimentar con backends de transporte alternativos e implementaciones personalizadas en varias plataformas.",
-        "cons": "Ejecutar un nodo de salida aparentemente requiere acceso root y configuración manual de iptables, y el transporte MAX/WebRTC está explícitamente etiquetado como experimental; se advierte de forma documentada que las restricciones de cuenta derivadas de su uso podrían persistir incluso después de detener OpenFlux.",
-        "fit": "Licenciado bajo GPL-3.0-or-later y descrito para uso educativo en las propias máquinas y redes del usuario, OpenFlux parece más adecuado para desarrolladores o investigadores que exploran técnicas de tunelización de transporte que para un uso en producción o no autorizado."
+        "goal": "OpenFlux se presenta como una herramienta de investigación de la pila de red que implementa un túnel TCP con transportes conectables. El tráfico va desde un cliente SOCKS5, a través de un transporte seleccionado, hasta un nodo de salida que lo reenvía a internet.",
+        "usage": "Para compilar el binario de cliente de escritorio/nodo de salida se requiere ejecutar `go mod tidy` seguido de `go build -o universal-bypass-tool .`. El binario resultante `universal-bypass-tool` puede ejecutarse como cliente con un comando como `./universal-bypass-tool --client --url \"YOUR_YANDEX_DOC_URL\" --socks5 :1080 --debug`, que inicia un proxy SOCKS5 local en el puerto :1080; ejecutarlo como nodo de salida requiere en cambio acceso root en un host Linux VPS/VDS.",
+        "pros": "El proyecto ofrece clientes preconstruidos: un APK de Android en https://github.com/p1neappleXpress/OpenFluxAndroid y una beta de TestFlight para iOS en https://testflight.apple.com/join/BwnAcdus, junto con el binario de escritorio/nodo de salida basado en Golang. Su interfaz Transport permite a los desarrolladores implementar y registrar transportes personalizados, y los dos transportes incluidos (mensajes de cursor de Yandex Docs, WebRTC DataChannel de MAX) ofrecen enfoques distintos de pila de red.",
+        "cons": "Compilar el proyecto requiere versiones específicas de herramientas —Golang 1.26.3+, Android NDK 27.0.12077973+ y XCode 26.6+—, lo que podría limitar su uso a entornos que dispongan de esas versiones. Ejecutar un nodo de salida también requiere acceso root y una configuración manual de iptables para suprimir los paquetes TCP RST generados por el kernel, una solución que, si se aplica a todo el host en lugar de a una IP dedicada, podría alterar el comportamiento observado al escanear puertos.",
+        "fit": "OpenFlux se distribuye bajo la GNU General Public License v3.0 or later y se describe como educativo, no comercial y sin funciones de pago. Dado que el autor declina responsabilidad sobre cómo terceros aplican OpenFlux, el proyecto parece más adecuado para usuarios cómodos autoalojando un nodo de salida en Linux y configurando reglas de firewall que como una VPN de consumo lista para usar."
       },
       "ja": {
-        "goal": "OpenFluxは、プラグ可能なトランスポートバックエンドを備えたTCPトンネルを実装するネットワークスタック研究ツールとして紹介されています。文書化されたアーキテクチャによれば、クライアント側のSOCKS5プロキシが選択したトランスポート(Yandex Docsのカーソルメッセージ、またはMax経由のWebRTC DataChannel)を通じてトラフィックをエグジットノード(exit node)へ送り、そこからインターネットへ転送されます。",
-        "usage": "デスクトップクライアント/エグジットノードのバイナリは `go build -o universal-bypass-tool .` コマンドでビルドされ、Golang 1.26.3+ が必要です。エグジットノードは起動前にroot権限とiptablesルールの設定が必要で、クライアントは `./universal-bypass-tool --client --url \"YOUR_YANDEX_DOC_URL\" --socks5 :1080 --debug` コマンドで実行した後、ブラウザでlocalhost:1080のSOCKS5プロキシを設定できます。",
-        "pros": "プラグ可能なTransportインターフェースと、デスクトップ・Android・iOS向けクライアントバイナリのビルドサポートは、複数のプラットフォームで代替トランスポートバックエンドやカスタム実装を試すための柔軟性を提供している可能性があります。",
-        "cons": "エグジットノードの実行にはroot権限と手動でのiptables設定が必要と見られ、MAX/WebRTCトランスポートは明示的に実験的(experimental)と位置付けられており、この使用によるアカウント制限がOpenFluxの停止後も持続する可能性があると文書内で注意喚起されています。",
-        "fit": "GPL-3.0-or-laterの下でライセンスされ、自身のマシンとネットワークでの教育目的の利用として説明されていることから、OpenFluxは本番利用や無許可の利用よりも、トランスポートトンネリング技術を探求する開発者や研究者に適していると考えられます。"
+        "goal": "OpenFluxは、プラガブルなトランスポートを備えたTCPトンネルを実装するネットワークスタック研究ツールとして紹介されています。トラフィックはSOCKS5クライアントから選択されたトランスポートを経由し、出口ノードを通ってインターネットへ転送されます。",
+        "usage": "デスクトップクライアント／出口ノード用バイナリをビルドするには、`go mod tidy` を実行した後に `go build -o universal-bypass-tool .` を実行します。生成された `universal-bypass-tool` バイナリは、`./universal-bypass-tool --client --url \"YOUR_YANDEX_DOC_URL\" --socks5 :1080 --debug` のようなコマンドでクライアントとして実行でき、ポート :1080 でローカルSOCKS5プロキシが起動します。出口ノードとして実行する場合はLinux VPS/VDSホスト上でroot権限が必要です。",
+        "pros": "本プロジェクトは、Android APK（https://github.com/p1neappleXpress/OpenFluxAndroid）とiOS TestFlightベータ（https://testflight.apple.com/join/BwnAcdus）というビルド済みクライアントを提供し、Golangベースのデスクトップ／出口ノードバイナリも備えています。Transportインターフェースにより開発者は独自のトランスポートを実装・登録でき、標準搭載の2種類のトランスポート（Yandex Docsのカーソルメッセージ、MAXのWebRTC DataChannel）は異なるネットワークスタックの手法を示しています。",
+        "cons": "ビルドにはGolang 1.26.3+、Android NDK 27.0.12077973+、XCode 26.6+という特定バージョンのツールチェーンが必要であり、対応バージョンを備えた環境に利用が限られる可能性があります。出口ノードの実行にはroot権限に加え、カーネルが生成するTCP RSTパケットを抑制するためのiptablesの手動設定が必要で、この設定を専用IPに限定せずホスト全体に適用すると、スキャン時のポートの見え方に影響する可能性があります。",
+        "fit": "OpenFluxはGNU General Public License v3.0 or laterの下で提供されており、教育目的かつ非商業的で、有料機能はないとされています。作者は第三者によるOpenFluxの利用方法について責任を負わないと明記していることから、すぐに使える一般消費者向けVPNというより、Linuxの出口ノードを自前で運用しファイアウォール規則を設定できるユーザーに向いていると考えられます。"
       }
     },
     "evidence": {
@@ -2322,90 +2300,84 @@
           "section_heading": "OpenFlux"
         },
         {
-          "start_line": 29,
-          "end_line": 29,
+          "start_line": 36,
+          "end_line": 39,
           "section_heading": "Overview"
         }
       ],
       "usage": [
         {
-          "start_line": 73,
-          "end_line": 75,
+          "start_line": 87,
+          "end_line": 90,
           "section_heading": "Build (desktop client / exit-node binary)"
         },
         {
-          "start_line": 104,
-          "end_line": 106,
+          "start_line": 138,
+          "end_line": 139,
           "section_heading": "1. Setting up desktop client:"
         },
         {
-          "start_line": 108,
-          "end_line": 108,
-          "section_heading": "1. Setting up desktop client:"
+          "start_line": 106,
+          "end_line": 107,
+          "section_heading": "1. Setting up exit node"
         }
       ],
       "pros": [
         {
-          "start_line": 40,
-          "end_line": 42,
-          "section_heading": "Overview"
+          "start_line": 27,
+          "end_line": 30,
+          "section_heading": "Clients"
         },
         {
-          "start_line": 123,
-          "end_line": 125,
+          "start_line": 157,
+          "end_line": 159,
           "section_heading": "Implementing custom transports"
         },
         {
-          "start_line": 33,
-          "end_line": 35,
-          "section_heading": "Requirements"
+          "start_line": 49,
+          "end_line": 51,
+          "section_heading": "Overview"
         }
       ],
       "cons": [
         {
-          "start_line": 92,
-          "end_line": 92,
+          "start_line": 42,
+          "end_line": 44,
+          "section_heading": "Requirements"
+        },
+        {
+          "start_line": 110,
+          "end_line": 116,
           "section_heading": "1. Setting up exit node"
         },
         {
-          "start_line": 43,
-          "end_line": 48,
-          "section_heading": "Overview"
+          "start_line": 129,
+          "end_line": 131,
+          "section_heading": "1. Setting up exit node"
         }
       ],
       "fit": [
         {
-          "start_line": 129,
-          "end_line": 129,
+          "start_line": 163,
+          "end_line": 163,
           "section_heading": "License"
         },
         {
-          "start_line": 136,
-          "end_line": 136,
+          "start_line": 168,
+          "end_line": 170,
+          "section_heading": "Disclaimer"
+        },
+        {
+          "start_line": 12,
+          "end_line": 12,
           "section_heading": "Disclaimer"
         }
       ]
     },
     "invariants": [
       {
-        "kind": "product",
-        "value": "OpenFlux",
-        "fields": [
-          "goal",
-          "cons",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "universal-bypass-tool",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": "1.26.3",
+        "kind": "command",
+        "value": "go mod tidy",
         "fields": [
           "usage"
         ]
@@ -2425,15 +2397,59 @@
         ]
       },
       {
+        "kind": "version",
+        "value": "GNU General Public License v3.0 or later",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://github.com/p1neappleXpress/OpenFluxAndroid",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://testflight.apple.com/join/BwnAcdus",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "OpenFlux",
+        "fields": [
+          "goal",
+          "pros",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "universal-bypass-tool",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "SOCKS5",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
+      {
         "kind": "number",
-        "value": "1080",
+        "value": ":1080",
         "fields": [
           "usage"
         ]
       }
     ],
     "inference_fields": [
-      "pros",
       "cons",
       "fit"
     ],
@@ -2441,8 +2457,8 @@
       "kind": "readme",
       "slug": "p1neapplexpress/openflux",
       "path": "README.md",
-      "blob_sha": "61978bc10b522971fee4d9ad9fac71e4164c76a3",
-      "content_sha256": "6eee383f0da95ed0058ee58f4055f9920626314a6bcf6fb28e234e7e8b52e0de",
+      "blob_sha": "b49bd1429b7214a464807789072424c48930d2b4",
+      "content_sha256": "66ce8633b32fd8ef7ef7a48eca452048e3615670f52f4fe2c4505d6a52162af7",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -8894,47 +8910,47 @@
   },
   "vorssaint/vorssaint-utils": {
     "content": {
-      "goal": "Vorssaint is a free, open-source macOS menu bar application that consolidates numerous Mac utilities—including a per-app volume mixer, system monitor, window snapping, an app switcher, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller—into a single icon, aiming to replace utilities users would otherwise buy separately.",
-      "usage": "Install via Homebrew with `brew install --cask vorssaint`, or download the disk image from the GitHub releases page. To build from source: `git clone https://github.com/vorssaint/vorssaint-utils.git`, then run `./build.sh` (or `./build.sh --install` to also install and launch). Removal is available via `brew uninstall --cask vorssaint` or the bundled `./Tools/uninstall.sh` script.",
-      "pros": "Individual features can be installed or removed independently via a Features hub, so unused functionality consumes no CPU, memory, or energy; settings persist even when uninstalled. The app operates without an account, analytics, or tracking, and it documents which permissions each feature uses. It is released under the GPL-3.0-or-later license.",
-      "cons": "Documented hardware requirements are a Mac with Apple Silicon and macOS 14 Sonoma or newer; no mention is made of Intel-based Mac support, so compatibility for those systems remains unclear.",
-      "fit": "This tool appears suited to macOS users on Apple Silicon hardware who want to consolidate several utility functions—audio, window management, clipboard, and system monitoring—into one menu bar app without paid subscriptions or telemetry."
+      "goal": "Vorssaint is a free, open-source (GPL-3.0-or-later) macOS menu bar application that bundles utilities such as a per-app volume mixer, system monitor, window snapping, app switcher, clipboard history, text snippets, and an uninstaller into one icon.",
+      "usage": "Install via Homebrew with `brew install --cask vorssaint`, or download the disk image from the GitHub releases page. Building from source requires Xcode Command Line Tools: run `git clone https://github.com/vorssaint/vorssaint-utils.git` then `./build.sh` (or `./build.sh --install`). Individual features can be installed or removed later from Settings.",
+      "pros": "Users install only the features they need; uninstalled features stop consuming CPU, memory and energy while settings are kept for reinstallation. The app runs locally with no account, no telemetry and no subscription, and every macOS permission is optional and explained within the app.",
+      "cons": "Vorssaint requires a Mac with Apple Silicon running macOS 14 Sonoma or newer, so Intel Macs and older macOS versions are unsupported. Several features, such as the app switcher and screen capture tools, depend on granting Accessibility or Screen Recording permissions, without which those features stay off.",
+      "fit": "This tool appears best suited to macOS users on newer Apple Silicon hardware who want to consolidate several utility apps into one; it likely offers less value to Intel Mac owners or those needing cross-platform support, since no such compatibility is documented."
     },
     "summaries": {
       "en": {
-        "goal": "Vorssaint is a free, open-source macOS menu bar application that consolidates numerous Mac utilities—including a per-app volume mixer, system monitor, window snapping, an app switcher, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller—into a single icon, aiming to replace utilities users would otherwise buy separately.",
-        "usage": "Install via Homebrew with `brew install --cask vorssaint`, or download the disk image from the GitHub releases page. To build from source: `git clone https://github.com/vorssaint/vorssaint-utils.git`, then run `./build.sh` (or `./build.sh --install` to also install and launch). Removal is available via `brew uninstall --cask vorssaint` or the bundled `./Tools/uninstall.sh` script.",
-        "pros": "Individual features can be installed or removed independently via a Features hub, so unused functionality consumes no CPU, memory, or energy; settings persist even when uninstalled. The app operates without an account, analytics, or tracking, and it documents which permissions each feature uses. It is released under the GPL-3.0-or-later license.",
-        "cons": "Documented hardware requirements are a Mac with Apple Silicon and macOS 14 Sonoma or newer; no mention is made of Intel-based Mac support, so compatibility for those systems remains unclear.",
-        "fit": "This tool appears suited to macOS users on Apple Silicon hardware who want to consolidate several utility functions—audio, window management, clipboard, and system monitoring—into one menu bar app without paid subscriptions or telemetry."
+        "goal": "Vorssaint is a free, open-source (GPL-3.0-or-later) macOS menu bar application that bundles utilities such as a per-app volume mixer, system monitor, window snapping, app switcher, clipboard history, text snippets, and an uninstaller into one icon.",
+        "usage": "Install via Homebrew with `brew install --cask vorssaint`, or download the disk image from the GitHub releases page. Building from source requires Xcode Command Line Tools: run `git clone https://github.com/vorssaint/vorssaint-utils.git` then `./build.sh` (or `./build.sh --install`). Individual features can be installed or removed later from Settings.",
+        "pros": "Users install only the features they need; uninstalled features stop consuming CPU, memory and energy while settings are kept for reinstallation. The app runs locally with no account, no telemetry and no subscription, and every macOS permission is optional and explained within the app.",
+        "cons": "Vorssaint requires a Mac with Apple Silicon running macOS 14 Sonoma or newer, so Intel Macs and older macOS versions are unsupported. Several features, such as the app switcher and screen capture tools, depend on granting Accessibility or Screen Recording permissions, without which those features stay off.",
+        "fit": "This tool appears best suited to macOS users on newer Apple Silicon hardware who want to consolidate several utility apps into one; it likely offers less value to Intel Mac owners or those needing cross-platform support, since no such compatibility is documented."
       },
       "ko": {
-        "goal": "Vorssaint는 macOS용 무료 오픈소스 메뉴 막대 애플리케이션으로, 앱별 볼륨 믹서, 시스템 모니터, 창 스냅, 앱 전환기, Dock 미리보기, 클립보드 기록, 텍스트 스니펫, 파일 선반, 언인스톨러 등 다양한 Mac 유틸리티를 하나의 아이콘으로 통합합니다.",
-        "usage": "Homebrew를 통해 `brew install --cask vorssaint` 명령으로 설치하거나, GitHub 릴리스 페이지에서 디스크 이미지를 내려받을 수 있습니다. 소스에서 빌드하려면 `git clone https://github.com/vorssaint/vorssaint-utils.git` 후 `./build.sh`(설치까지 하려면 `./build.sh --install`)를 실행합니다. 제거는 `brew uninstall --cask vorssaint` 또는 `./Tools/uninstall.sh` 스크립트로 가능합니다.",
-        "pros": "Features 허브에서 기능을 개별적으로 설치·제거할 수 있어 사용하지 않는 기능은 CPU, 메모리, 에너지를 소비하지 않으며, 제거 후에도 설정이 유지됩니다. 계정, 분석, 추적 없이 동작하며 각 기능이 사용하는 권한을 명시합니다. GPL-3.0-or-later 라이선스로 배포됩니다.",
-        "cons": "문서화된 하드웨어 요구사항은 Apple Silicon Mac과 macOS 14 Sonoma 이상이며, Intel 기반 Mac에 대한 지원은 언급되어 있지 않아 해당 기종에서의 호환성은 불분명해 보입니다.",
-        "fit": "Apple Silicon 기반 macOS 사용자 중 오디오, 창 관리, 클립보드, 시스템 모니터링 등 여러 유틸리티 기능을 유료 구독이나 추적 없이 하나의 메뉴 막대 앱으로 통합하고자 하는 사용자에게 적합해 보입니다."
+        "goal": "Vorssaint는 앱별 볼륨 믹서, 시스템 모니터, 창 스냅, 앱 전환기, 클립보드 기록, 텍스트 스니펫, 언인스톨러 등 여러 유틸리티를 하나의 아이콘으로 묶은 무료 오픈소스(GPL-3.0-or-later) macOS 메뉴 막대 앱이다.",
+        "usage": "Homebrew로 `brew install --cask vorssaint` 명령을 실행해 설치하거나, GitHub 릴리스 페이지에서 디스크 이미지를 내려받아 설치할 수 있다. 소스에서 직접 빌드하려면 Xcode Command Line Tools가 필요하며, `git clone https://github.com/vorssaint/vorssaint-utils.git` 후 `./build.sh`(또는 `./build.sh --install`)를 실행한다. 개별 기능은 이후 설정에서 설치·제거할 수 있다.",
+        "pros": "필요한 기능만 설치할 수 있어 제거한 기능은 CPU·메모리·에너지를 소비하지 않으며, 설정은 남아 있어 재설치 시 복원된다. 계정, 원격 분석, 구독 없이 로컬에서 동작하며, 모든 macOS 권한은 선택 사항이고 앱 내에서 설명된다.",
+        "cons": "Vorssaint는 Apple Silicon Mac과 macOS 14 Sonoma 이상을 요구하므로 Intel Mac이나 이전 macOS 버전에서는 사용할 수 없다. 앱 전환기나 화면 캡처 같은 일부 기능은 손쉬운 사용 또는 화면 기록 권한 허용이 필요하며, 허용하지 않으면 해당 기능이 꺼진 상태로 유지된다.",
+        "fit": "최신 Apple Silicon 기기를 사용하며 여러 유틸리티 앱을 하나로 통합하려는 macOS 사용자에게 적합해 보인다. Intel Mac 사용자나 다른 운영체제 호환성이 필요한 경우에는 해당 지원이 문서화되어 있지 않아 적합성이 낮을 것으로 보인다."
       },
       "zh-CN": {
-        "goal": "Vorssaint 是一款免费开源的 macOS 菜单栏应用,将应用级音量混音器、系统监视器、窗口吸附、应用切换器、Dock 预览、剪贴板历史、文本片段、文件搁架和卸载工具等多种 Mac 实用工具整合到一个图标中。",
-        "usage": "可通过 Homebrew 运行 `brew install --cask vorssaint` 安装,或从 GitHub 发布页面下载磁盘映像。若从源码构建,可执行 `git clone https://github.com/vorssaint/vorssaint-utils.git`,然后运行 `./build.sh`(如需同时安装并启动,使用 `./build.sh --install`)。卸载可通过 `brew uninstall --cask vorssaint` 或内置脚本 `./Tools/uninstall.sh` 完成。",
-        "pros": "用户可在 Features 面板中单独安装或卸载功能,未使用的功能不会占用 CPU、内存或电量,卸载后设置仍会保留。应用无需账户、不含分析或追踪,并会说明每项功能所需的权限。项目采用 GPL-3.0-or-later 许可证发布。",
-        "cons": "文档中列出的硬件要求为搭载 Apple Silicon 芯片、运行 macOS 14 Sonoma 或更新版本的 Mac,未提及对 Intel 芯片 Mac 的支持,因此该机型上的兼容性似乎尚不明确。",
-        "fit": "该工具看起来适合使用 Apple Silicon 芯片 Mac 的用户,他们希望把音频、窗口管理、剪贴板和系统监控等多项实用功能整合到一个菜单栏应用中,而无需付费订阅或被追踪。"
+        "goal": "Vorssaint 是一款免费开源(GPL-3.0-or-later)的 macOS 菜单栏应用,将应用音量混音器、系统监视器、窗口贴靠、应用切换器、剪贴板历史、文本片段和卸载工具等多种实用功能整合到一个图标中。",
+        "usage": "可通过 Homebrew 使用 `brew install --cask vorssaint` 安装,也可从 GitHub 发布页面下载磁盘映像进行安装。若要自行构建,需要 Xcode 命令行工具:先执行 `git clone https://github.com/vorssaint/vorssaint-utils.git`,再运行 `./build.sh`(或 `./build.sh --install`)。各功能可在设置中随时安装或卸载。",
+        "pros": "用户只需安装所需的功能,卸载后的功能不再占用 CPU、内存或电量,同时设置会被保留以便重新安装时恢复。应用完全在本地运行,无需账户、无遥测、无订阅,且每项 macOS 权限均为可选并在应用内说明用途。",
+        "cons": "Vorssaint 要求搭载 Apple Silicon 的 Mac 并运行 macOS 14 Sonoma 或更高版本,因此不支持 Intel Mac 或更旧的系统版本。应用切换器、屏幕截图等部分功能依赖辅助功能或屏幕录制权限,若未授权,相关功能将保持关闭。",
+        "fit": "该工具看起来更适合使用较新 Apple Silicon 设备、希望用一个应用整合多种实用工具的 macOS 用户;对于 Intel Mac 用户或需要跨平台支持的场景,由于文档未提及相应兼容性,适用性可能较低。"
       },
       "es": {
-        "goal": "Vorssaint es una aplicación gratuita y de código abierto para la barra de menús de macOS que reúne numerosas utilidades de Mac —como un mezclador de volumen por aplicación, un monitor del sistema, ajuste de ventanas, un selector de aplicaciones, vistas previas del Dock, historial del portapapeles, fragmentos de texto, una bandeja de archivos y un desinstalador— en un solo icono.",
-        "usage": "Se instala mediante Homebrew con `brew install --cask vorssaint`, o descargando la imagen de disco desde la página de lanzamientos de GitHub. Para compilar desde el código fuente: `git clone https://github.com/vorssaint/vorssaint-utils.git` y luego `./build.sh` (o `./build.sh --install` para instalarla y abrirla). Se desinstala con `brew uninstall --cask vorssaint` o el script incluido `./Tools/uninstall.sh`.",
-        "pros": "Las funciones se pueden instalar o quitar de forma individual desde el panel de Features, de modo que las que no se usan no consumen CPU, memoria ni energía, y la configuración se conserva tras desinstalarlas. La app funciona sin cuenta, análisis ni rastreo, y documenta qué permisos usa cada función. Se distribuye bajo la licencia GPL-3.0-or-later.",
-        "cons": "Los requisitos de hardware documentados son un Mac con Apple Silicon y macOS 14 Sonoma o posterior; no se menciona compatibilidad con Mac basados en Intel, por lo que su funcionamiento en esos equipos no queda claro.",
-        "fit": "Parece adecuada para usuarios de macOS con Apple Silicon que buscan reunir varias utilidades —audio, gestión de ventanas, portapapeles y monitoreo del sistema— en una sola app de la barra de menús, sin suscripciones de pago ni rastreo."
+        "goal": "Vorssaint es una aplicación gratuita y de código abierto (GPL-3.0-or-later) para la barra de menús de macOS que agrupa utilidades como un mezclador de volumen por app, un monitor del sistema, ajuste de ventanas, un selector de apps, historial de portapapeles, fragmentos de texto y un desinstalador en un solo icono.",
+        "usage": "Se instala mediante Homebrew con `brew install --cask vorssaint`, o descargando la imagen de disco desde la página de releases de GitHub. Para compilarlo desde el código fuente se necesitan las Xcode Command Line Tools: ejecutar `git clone https://github.com/vorssaint/vorssaint-utils.git` y luego `./build.sh` (o `./build.sh --install`). Cada función puede instalarse o desinstalarse después desde Ajustes.",
+        "pros": "Permite instalar solo las funciones que se usan; las desinstaladas dejan de consumir CPU, memoria y energía, mientras la configuración se conserva para restaurarla al reinstalar. Funciona de forma local sin cuenta, sin telemetría y sin suscripción, y cada permiso de macOS es opcional y se explica dentro de la app.",
+        "cons": "Vorssaint requiere un Mac con Apple Silicon y macOS 14 Sonoma o posterior, por lo que no es compatible con Mac Intel ni versiones anteriores de macOS. Varias funciones, como el selector de apps o las herramientas de captura de pantalla, dependen de conceder permisos de Accesibilidad o Grabación de pantalla, sin los cuales permanecen desactivadas.",
+        "fit": "Esta herramienta parece más adecuada para usuarios de macOS con hardware Apple Silicon reciente que buscan reunir varias apps de utilidades en una sola; su utilidad podría ser menor para quienes tienen Mac Intel o necesitan compatibilidad multiplataforma, ya que no se documenta dicho soporte."
       },
       "ja": {
-        "goal": "Vorssaintは、アプリごとの音量ミキサー、システムモニター、ウィンドウスナップ、アプリスイッチャー、Dockプレビュー、クリップボード履歴、テキストスニペット、ファイル一時置き場、アンインストーラーなど、多数のMacユーティリティを1つのメニューバーアイコンにまとめた、無料でオープンソースのmacOSアプリです。",
-        "usage": "Homebrewで `brew install --cask vorssaint` を実行するか、GitHubのリリースページからディスクイメージをダウンロードしてインストールできます。ソースからビルドする場合は `git clone https://github.com/vorssaint/vorssaint-utils.git` の後に `./build.sh`(インストールと起動まで行う場合は `./build.sh --install`)を実行します。アンインストールは `brew uninstall --cask vorssaint` または付属の `./Tools/uninstall.sh` スクリプトで行えます。",
-        "pros": "Featuresハブから機能を個別にインストール・アンインストールでき、使わない機能はCPUやメモリ、電力を消費しません。アンインストール後も設定は保持されます。アカウント登録や解析、トラッキングなしで動作し、各機能が使用する権限を明示します。ライセンスはGPL-3.0-or-laterです。",
-        "cons": "文書化されているハードウェア要件はApple SiliconのMacとmacOS 14 Sonoma以降であり、Intel搭載Macへの対応については言及がなく、その互換性は不明瞭なようです。",
-        "fit": "Apple SiliconのMacを使用し、音声、ウィンドウ管理、クリップボード、システム監視といった複数のユーティリティ機能を、有料サブスクリプションやトラッキングなしで1つのメニューバーアプリにまとめたいユーザーに向いていると考えられます。"
+        "goal": "Vorssaintは、アプリ別音量ミキサー、システムモニター、ウィンドウスナップ、アプリスイッチャー、クリップボード履歴、テキストスニペット、アンインストーラーなど複数のユーティリティを一つのアイコンにまとめた、無料かつオープンソース(GPL-3.0-or-later)のmacOSメニューバーアプリである。",
+        "usage": "Homebrewで `brew install --cask vorssaint` を実行するか、GitHubのリリースページからディスクイメージをダウンロードしてインストールできる。ソースからビルドするにはXcode Command Line Toolsが必要で、`git clone https://github.com/vorssaint/vorssaint-utils.git` の後に `./build.sh`(または `./build.sh --install`)を実行する。個々の機能は後から設定画面でインストール・削除できる。",
+        "pros": "必要な機能だけをインストールでき、アンインストールした機能はCPU・メモリ・電力を消費しなくなる一方、設定は保持され再インストール時に復元される。アカウント登録やテレメトリ、サブスクリプションなしでローカルに動作し、macOSの各権限はすべて任意でアプリ内で説明される。",
+        "cons": "VorssaintはApple Silicon搭載MacかつmacOS 14 Sonoma以降を必要とするため、Intel Macや古いmacOSバージョンには対応していない。アプリスイッチャーや画面キャプチャツールなど一部機能はアクセシビリティや画面収録の権限付与に依存しており、許可しない場合はそれらの機能が無効のままとなる。",
+        "fit": "本ツールは、最新のApple Siliconを搭載したMacで複数のユーティリティアプリを一本化したいmacOSユーザーに向いていると考えられる。Intel Macのユーザーやクロスプラットフォーム対応が必要な場合は、そうした対応が文書化されていないため適合度が低い可能性がある。"
       }
     },
     "evidence": {
@@ -8958,7 +8974,7 @@
         },
         {
           "start_line": 213,
-          "end_line": 217,
+          "end_line": 218,
           "section_heading": "Build it yourself"
         }
       ],
@@ -8972,11 +8988,6 @@
           "start_line": 186,
           "end_line": 188,
           "section_heading": "Private by default"
-        },
-        {
-          "start_line": 30,
-          "end_line": 30,
-          "section_heading": ""
         }
       ],
       "cons": [
@@ -8984,17 +8995,22 @@
           "start_line": 208,
           "end_line": 209,
           "section_heading": "What you need"
+        },
+        {
+          "start_line": 196,
+          "end_line": 197,
+          "section_heading": "Private by default"
         }
       ],
       "fit": [
         {
-          "start_line": 208,
+          "start_line": 206,
           "end_line": 209,
           "section_heading": "What you need"
         },
         {
-          "start_line": 11,
-          "end_line": 12,
+          "start_line": 56,
+          "end_line": 56,
           "section_heading": ""
         }
       ]
@@ -9003,13 +9019,6 @@
       {
         "kind": "command",
         "value": "brew install --cask vorssaint",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "brew uninstall --cask vorssaint",
         "fields": [
           "usage"
         ]
@@ -9036,13 +9045,6 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "./Tools/uninstall.sh",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
         "kind": "version",
         "value": "macOS 14",
         "fields": [
@@ -9054,7 +9056,8 @@
         "value": "Vorssaint",
         "fields": [
           "goal",
-          "usage"
+          "usage",
+          "cons"
         ]
       },
       {
@@ -9063,18 +9066,24 @@
         "fields": [
           "usage"
         ]
+      },
+      {
+        "kind": "url",
+        "value": "https://github.com/vorssaint/vorssaint-utils.git",
+        "fields": [
+          "usage"
+        ]
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "vorssaint/vorssaint-utils",
       "path": "README.md",
-      "blob_sha": "1d1701f72fc56cf5a7bd5d16a9c94d3dd0a3b590",
-      "content_sha256": "7d8d7847b4741df14ec8b8481261c1a944a7da8098b7386c1d7ab83afeead6a9",
+      "blob_sha": "33f898273838065eb89030d27f53b8f4b1114f43",
+      "content_sha256": "5c06e47969a5dd46f05230fbc1a1764067a14ad08a9937b005e2119e21f1dbce",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
