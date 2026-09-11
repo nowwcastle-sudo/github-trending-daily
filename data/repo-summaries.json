@@ -596,103 +596,118 @@
   },
   "alsk1992/CloddsBot": {
     "content": {
-      "goal": "Clodds is a personal, self-hosted AI trading terminal powered by Claude for prediction markets, crypto spot, and leveraged perpetual futures, with support for Solana token launches and Bittensor subnet mining, operated entirely through natural-language chat.",
-      "usage": "Install with `npm install -g clodds --loglevel=error`, then run `clodds onboard` to complete the interactive setup wizard (API key and messaging channel); a browser-based WebChat interface becomes available at http://localhost:18789/webchat.",
-      "pros": "Documented breadth includes 21 messaging channels, 10 prediction-market platforms, 7 perpetual-futures exchanges, and 118+ trading strategies, backed by a unified risk engine with circuit breaker, VaR/CVaR, and Kelly sizing controls.",
-      "cons": "The README states that arbitrage detection defaults to dry-run mode and that cross-platform arbitrage involves currency and settlement complexity, an operational trade-off for anyone enabling live cross-platform execution.",
-      "fit": "It targets individual users willing to self-host a Node.js >=22 / TypeScript 5.3 application with an Anthropic API key; since it was built in 12 days for the Colosseum Agent Hackathon on Solana, it may be best regarded as an early-stage project rather than a production-hardened trading system."
+      "goal": "Clodds is presented as a personal AI trading terminal for prediction markets, crypto spot trading, perpetual futures with leverage, token launches, and Bittensor subnet mining, run on the user's own machine and controlled via chat across 21 messaging platforms. It is described as powered by Claude with 118+ trading strategies, and built for the Colosseum Agent Hackathon on Solana, developed in 12 days.",
+      "usage": "Install with `npm install -g clodds --loglevel=error`, then run `clodds onboard`, which walks through API key and messaging channel setup and starts the gateway; WebChat then opens at `http://localhost:18789/webchat`. An alternative source build is documented: `git clone https://github.com/alsk1992/CloddsBot.git && cd CloddsBot`, `npm install && cp .env.example .env`, add an `ANTHROPIC_API_KEY`, then `npm run build && npm start`.",
+      "pros": "It combines 119 bundled skills with 21 messaging channels, 10 prediction markets, and 7 perpetual futures exchanges, plus Solana and EVM DeFi integrations. It also includes a built-in WebChat with unlimited, paginated conversation history and automatic context compacting, and a unified risk engine featuring a circuit breaker, VaR/CVaR, Kelly sizing, daily loss limits, and a kill switch.",
+      "cons": "Arbitrage detection defaults to dry-run mode, and cross-platform arbitrage is documented as involving currency and settlement complexity — indicating this feature needs additional care before enabling live execution.",
+      "fit": "Based on its self-hosted setup, chat-driven configuration, and exposure to leveraged futures (documented up to 200x on some exchanges) and crypto markets, Clodds appears best suited to technically comfortable users willing to manage API keys and credentials themselves, rather than those seeking a no-setup, fully managed trading product."
     },
     "summaries": {
       "en": {
-        "goal": "Clodds is a personal, self-hosted AI trading terminal powered by Claude for prediction markets, crypto spot, and leveraged perpetual futures, with support for Solana token launches and Bittensor subnet mining, operated entirely through natural-language chat.",
-        "usage": "Install with `npm install -g clodds --loglevel=error`, then run `clodds onboard` to complete the interactive setup wizard (API key and messaging channel); a browser-based WebChat interface becomes available at http://localhost:18789/webchat.",
-        "pros": "Documented breadth includes 21 messaging channels, 10 prediction-market platforms, 7 perpetual-futures exchanges, and 118+ trading strategies, backed by a unified risk engine with circuit breaker, VaR/CVaR, and Kelly sizing controls.",
-        "cons": "The README states that arbitrage detection defaults to dry-run mode and that cross-platform arbitrage involves currency and settlement complexity, an operational trade-off for anyone enabling live cross-platform execution.",
-        "fit": "It targets individual users willing to self-host a Node.js >=22 / TypeScript 5.3 application with an Anthropic API key; since it was built in 12 days for the Colosseum Agent Hackathon on Solana, it may be best regarded as an early-stage project rather than a production-hardened trading system."
+        "goal": "Clodds is presented as a personal AI trading terminal for prediction markets, crypto spot trading, perpetual futures with leverage, token launches, and Bittensor subnet mining, run on the user's own machine and controlled via chat across 21 messaging platforms. It is described as powered by Claude with 118+ trading strategies, and built for the Colosseum Agent Hackathon on Solana, developed in 12 days.",
+        "usage": "Install with `npm install -g clodds --loglevel=error`, then run `clodds onboard`, which walks through API key and messaging channel setup and starts the gateway; WebChat then opens at `http://localhost:18789/webchat`. An alternative source build is documented: `git clone https://github.com/alsk1992/CloddsBot.git && cd CloddsBot`, `npm install && cp .env.example .env`, add an `ANTHROPIC_API_KEY`, then `npm run build && npm start`.",
+        "pros": "It combines 119 bundled skills with 21 messaging channels, 10 prediction markets, and 7 perpetual futures exchanges, plus Solana and EVM DeFi integrations. It also includes a built-in WebChat with unlimited, paginated conversation history and automatic context compacting, and a unified risk engine featuring a circuit breaker, VaR/CVaR, Kelly sizing, daily loss limits, and a kill switch.",
+        "cons": "Arbitrage detection defaults to dry-run mode, and cross-platform arbitrage is documented as involving currency and settlement complexity — indicating this feature needs additional care before enabling live execution.",
+        "fit": "Based on its self-hosted setup, chat-driven configuration, and exposure to leveraged futures (documented up to 200x on some exchanges) and crypto markets, Clodds appears best suited to technically comfortable users willing to manage API keys and credentials themselves, rather than those seeking a no-setup, fully managed trading product."
       },
       "ko": {
-        "goal": "Clodds는 Claude 기반으로 예측 시장, 암호화폐 현물 거래, 레버리지 무기한 선물 거래를 지원하며, Solana 토큰 발행과 Bittensor 서브넷 마이닝 기능도 포함한 개인용 셀프 호스팅 AI 트레이딩 터미널입니다. 모든 기능은 자연어 채팅으로 조작됩니다.",
-        "usage": "`npm install -g clodds --loglevel=error` 명령으로 설치한 뒤 `clodds onboard`를 실행하면 API 키와 메시징 채널을 설정하는 대화형 마법사가 진행되며, 이후 http://localhost:18789/webchat 에서 브라우저 기반 WebChat을 사용할 수 있습니다.",
-        "pros": "문서에 따르면 21개의 메시징 채널, 10개의 예측 시장 플랫폼, 7개의 무기한 선물 거래소, 118개 이상의 트레이딩 전략을 지원하며, 서킷 브레이커·VaR/CVaR·켈리 사이징을 포함한 통합 리스크 엔진을 갖추고 있습니다.",
-        "cons": "README에 따르면 차익거래 탐지 기능은 기본적으로 드라이런(dry-run) 모드로 동작하며, 플랫폼 간 차익거래는 통화 및 정산 관련 복잡성을 수반한다고 명시되어 있어, 실거래로 전환할 때 운영상 주의가 필요합니다.",
-        "fit": "Node.js >=22 및 TypeScript 5.3 환경에서 Anthropic API 키를 사용해 직접 호스팅할 의향이 있는 개인 사용자에게 적합해 보입니다. 다만 Solana 기반 Colosseum Agent Hackathon을 위해 12일 만에 개발되었다고 명시되어 있어, 상용 수준의 검증된 트레이딩 시스템이라기보다는 초기 단계 프로젝트로 볼 여지가 있습니다."
+        "goal": "Clodds는 예측 시장, 암호화폐 현물 거래, 레버리지 무기한 선물, 토큰 발행, 그리고 Bittensor 서브넷 채굴을 위한 개인용 AI 트레이딩 터미널로 소개되며, 사용자 자신의 컴퓨터에서 실행되고 21개 메시징 플랫폼을 통한 채팅으로 제어됩니다. Claude 기반으로 118+ 개의 트레이딩 전략을 제공한다고 설명되어 있으며, Solana 기반 Colosseum Agent Hackathon을 위해 12일 만에 개발된 것으로 소개됩니다.",
+        "usage": "`npm install -g clodds --loglevel=error` 명령으로 설치한 뒤 `clodds onboard`를 실행하면 API 키와 메시징 채널 설정을 안내하는 마법사가 실행되고 게이트웨이가 시작되며, 이후 WebChat이 `http://localhost:18789/webchat`에서 열립니다. 소스에서 빌드하는 대안도 문서화되어 있습니다: `git clone https://github.com/alsk1992/CloddsBot.git && cd CloddsBot` 실행 후 `npm install && cp .env.example .env`로 `ANTHROPIC_API_KEY`를 추가하고 `npm run build && npm start`로 실행합니다.",
+        "pros": "119개의 번들 스킬과 21개 메시징 채널, 10개 예측 시장, 7개 무기한 선물 거래소, 그리고 Solana 및 EVM DeFi 연동을 결합하고 있습니다. 또한 무제한 페이지네이션 대화 기록과 자동 컨텍스트 압축 기능을 갖춘 내장 WebChat, 그리고 서킷 브레이커, VaR/CVaR, 켈리 사이징, 일일 손실 한도, 킬 스위치를 포함한 통합 리스크 엔진을 제공합니다.",
+        "cons": "차익거래 감지 기능은 기본적으로 드라이런(dry-run) 모드로 동작하며, 플랫폼 간 차익거래는 통화 및 정산 복잡성을 수반한다고 명시되어 있어 실거래 실행 전 추가적인 주의가 필요함을 시사합니다.",
+        "fit": "자체 호스팅 설정, 채팅 기반 구성, 그리고 일부 거래소에서 최대 200x로 문서화된 레버리지 선물 및 암호화폐 시장 노출을 고려할 때, Clodds는 API 키와 자격 증명을 직접 관리할 의향이 있는 기술에 능숙한 사용자에게 적합해 보이며, 설정이 필요 없는 완전 관리형 트레이딩 제품을 찾는 사용자에게는 적합하지 않을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "Clodds 是一款基于 Claude 的个人自托管 AI 交易终端,支持预测市场、加密货币现货以及带杠杆的永续合约交易,并具备 Solana 代币发行和 Bittensor 子网挖矿功能,全部通过自然语言聊天完成操作。",
-        "usage": "先执行 `npm install -g clodds --loglevel=error` 安装,再运行 `clodds onboard` 完成交互式设置向导(配置 API 密钥和消息渠道);随后可在 http://localhost:18789/webchat 使用基于浏览器的 WebChat 界面。",
-        "pros": "文档显示其支持 21 个消息渠道、10 个预测市场平台、7 个永续合约交易所以及 118 个以上的交易策略,并配备包含熔断机制、VaR/CVaR 与凯利仓位管理的统一风险引擎。",
-        "cons": "README 中说明套利检测功能默认处于 dry-run(模拟)模式,且跨平台套利涉及货币和结算方面的复杂性,这意味着若要启用实盘跨平台执行,需要额外的运营考量。",
-        "fit": "该项目更适合愿意自行托管 Node.js >=22 / TypeScript 5.3 应用并持有 Anthropic API 密钥的个人用户;由于文档说明它是为 Solana 上的 Colosseum Agent Hackathon 在 12 天内开发完成的,或许更适合被视为早期阶段项目,而非已经过生产环境充分打磨的交易系统。"
+        "goal": "Clodds 被介绍为一款个人 AI 交易终端,用于预测市场、加密货币现货交易、带杠杆的永续期货、代币发行以及 Bittensor 子网挖矿,可在用户自己的电脑上运行,并通过 21 个消息平台以聊天方式控制。据称由 Claude 驱动,提供 118+ 种交易策略,并且是为 Solana 上的 Colosseum Agent Hackathon 在 12 天内开发完成的。",
+        "usage": "使用 `npm install -g clodds --loglevel=error` 安装,然后运行 `clodds onboard`,该向导会引导完成 API 密钥和消息渠道设置并启动网关,随后 WebChat 会在 `http://localhost:18789/webchat` 打开。文档中还记录了另一种从源码构建的方式: `git clone https://github.com/alsk1992/CloddsBot.git && cd CloddsBot`,接着 `npm install && cp .env.example .env`,添加 `ANTHROPIC_API_KEY`,再执行 `npm run build && npm start`。",
+        "pros": "它整合了 119 个内置技能、21 个消息渠道、10 个预测市场和 7 个永续期货交易所,并支持 Solana 和 EVM DeFi 集成。此外还提供内置 WebChat,具备无限分页对话历史和自动上下文压缩功能,以及包含熔断机制、VaR/CVaR、凯利公式仓位管理、每日亏损限额和紧急停止开关的统一风险引擎。",
+        "cons": "套利检测功能默认以模拟运行(dry-run)模式运作,文档说明跨平台套利涉及货币和结算方面的复杂性,这表明在启用实盘执行前需要格外谨慎。",
+        "fit": "考虑到其自托管部署方式、基于聊天的配置流程,以及文档中提到的部分交易所最高 200x 杠杆期货和加密货币市场敞口,Clodds 似乎更适合愿意自行管理 API 密钥和凭证的技术型用户,而非寻求免设置、全托管交易产品的用户。"
       },
       "es": {
-        "goal": "Clodds es una terminal de trading con IA personal y autoalojada, impulsada por Claude, para mercados de predicción, spot de criptomonedas y futuros perpetuos apalancados, con soporte para lanzamientos de tokens en Solana y minería de subredes de Bittensor, todo mediante chat en lenguaje natural.",
-        "usage": "Se instala con `npm install -g clodds --loglevel=error` y luego se ejecuta `clodds onboard` para completar el asistente interactivo (clave API y canal de mensajería); después queda disponible una interfaz WebChat en el navegador en http://localhost:18789/webchat.",
-        "pros": "Según la documentación, incluye 21 canales de mensajería, 10 plataformas de mercados de predicción, 7 exchanges de futuros perpetuos y más de 118 estrategias de trading, respaldadas por un motor de riesgo unificado con circuit breaker, VaR/CVaR y dimensionamiento Kelly.",
-        "cons": "El README indica que la detección de arbitraje funciona por defecto en modo dry-run y que el arbitraje entre plataformas implica complejidad de divisas y liquidación, lo cual supone una consideración operativa al habilitar la ejecución real entre plataformas.",
-        "fit": "Parece pensado para usuarios individuales dispuestos a autoalojar una aplicación Node.js >=22 / TypeScript 5.3 con una clave API de Anthropic; dado que se desarrolló en 12 días para el Colosseum Agent Hackathon en Solana, podría considerarse un proyecto en etapa temprana más que un sistema de trading ya probado en producción."
+        "goal": "Clodds se presenta como una terminal de trading con IA de uso personal para mercados de predicción, trading spot de criptomonedas, futuros perpetuos con apalancamiento, lanzamientos de tokens y minería de subredes de Bittensor, que se ejecuta en el propio equipo del usuario y se controla por chat a través de 21 plataformas de mensajería. Se describe como impulsada por Claude con 118+ estrategias de trading, y desarrollada en 12 días para el Colosseum Agent Hackathon en Solana.",
+        "usage": "Se instala con `npm install -g clodds --loglevel=error` y luego se ejecuta `clodds onboard`, que guía la configuración de la clave API y del canal de mensajería y arranca el gateway; después, WebChat se abre en `http://localhost:18789/webchat`. También se documenta una alternativa desde el código fuente: `git clone https://github.com/alsk1992/CloddsBot.git && cd CloddsBot`, luego `npm install && cp .env.example .env`, añadiendo una `ANTHROPIC_API_KEY`, y finalmente `npm run build && npm start`.",
+        "pros": "Combina 119 habilidades integradas con 21 canales de mensajería, 10 mercados de predicción y 7 exchanges de futuros perpetuos, además de integraciones DeFi en Solana y EVM. También incluye un WebChat integrado con historial de conversación ilimitado y paginado, compactación automática de contexto, y un motor de riesgo unificado con disyuntor de circuito, VaR/CVaR, dimensionamiento Kelly, límites de pérdida diaria e interruptor de emergencia.",
+        "cons": "La detección de arbitraje funciona por defecto en modo dry-run, y se documenta que el arbitraje entre plataformas implica complejidad de divisas y liquidación, lo que indica que esta función requiere precaución adicional antes de habilitar la ejecución en vivo.",
+        "fit": "Dada su configuración autoalojada, su ajuste mediante chat y la exposición a futuros apalancados (documentados hasta 200x en algunos exchanges) y mercados cripto, Clodds parece más adecuada para usuarios con conocimientos técnicos dispuestos a gestionar por sí mismos claves API y credenciales, más que para quienes buscan un producto de trading totalmente gestionado y sin configuración."
       },
       "ja": {
-        "goal": "Clodds は Claude を基盤とする個人向けセルフホスト型 AI トレーディングターミナルで、予測市場、暗号資産の現物取引、レバレッジ付き無期限先物取引に対応し、Solana でのトークン発行や Bittensor サブネットマイニング機能も備え、すべて自然言語のチャットで操作します。",
-        "usage": "`npm install -g clodds --loglevel=error` でインストール後、`clodds onboard` を実行すると API キーとメッセージングチャネルを設定する対話型ウィザードが進み、その後ブラウザベースの WebChat が http://localhost:18789/webchat で利用可能になります。",
-        "pros": "ドキュメントによれば、21 のメッセージングチャネル、10 の予測市場プラットフォーム、7 の無期限先物取引所、118 以上のトレーディング戦略に対応し、サーキットブレーカーや VaR/CVaR、ケリー基準によるサイジングを含む統合リスクエンジンを備えています。",
-        "cons": "README には、裁定取引検出機能はデフォルトでドライラン(模擬)モードで動作し、プラットフォーム間の裁定取引には通貨および決済に関する複雑さが伴うと記載されており、実運用でクロスプラットフォーム実行を有効にする際には運用上の注意が必要です。",
-        "fit": "Anthropic の API キーを用いて Node.js >=22 / TypeScript 5.3 のアプリケーションを自分でホストする意思のある個人ユーザー向けと考えられます。ただし、本プロジェクトは Solana 上の Colosseum Agent Hackathon のために 12 日間で開発されたと記載されているため、本番運用で十分に検証されたトレーディングシステムというよりは、初期段階のプロジェクトとみなすのが妥当かもしれません。"
+        "goal": "Cloddsは、予測市場、暗号資産の現物取引、レバレッジ付き無期限先物、トークン発行、Bittensorサブネットマイニングのための個人用AIトレーディングターミナルとして紹介されており、ユーザー自身のマシン上で動作し、21のメッセージングプラットフォームを介したチャットで操作できるとされています。Claudeを基盤とし118+のトレーディング戦略を備えると説明されており、Solana上のColosseum Agent Hackathon向けに12日間で開発されたとされています。",
+        "usage": "`npm install -g clodds --loglevel=error` でインストールし、`clodds onboard` を実行すると、APIキーとメッセージングチャネルの設定を案内するウィザードが起動してゲートウェイが立ち上がり、その後WebChatが `http://localhost:18789/webchat` で開きます。ソースからのビルドという代替手順も記載されています: `git clone https://github.com/alsk1992/CloddsBot.git && cd CloddsBot` の後、`npm install && cp .env.example .env` を実行し、`ANTHROPIC_API_KEY` を追加してから `npm run build && npm start` を行います。",
+        "pros": "119個の組み込みスキルに加え、21のメッセージングチャネル、10の予測市場、7つの無期限先物取引所、SolanaおよびEVMのDeFi連携を組み合わせています。さらに、無制限かつページネーション対応の会話履歴と自動コンテキスト圧縮を備えた組み込みWebChat、そしてサーキットブレーカー、VaR/CVaR、ケリー基準によるサイジング、日次損失限度額、キルスイッチを含む統合リスクエンジンも提供します。",
+        "cons": "アービトラージ検出機能はデフォルトでドライラン(模擬実行)モードで動作し、プラットフォーム間のアービトラージには通貨および決済面の複雑さが伴うと記載されており、実弾取引を有効にする前に追加の注意が必要であることを示唆しています。",
+        "fit": "セルフホスト型のセットアップ、チャットによる設定、そして一部取引所で最大200xと記載されるレバレッジ先物や暗号資産市場へのエクスポージャーを踏まえると、Cloddsは自らAPIキーや認証情報を管理する意思のある技術に慣れたユーザーに適していると考えられ、設定不要のフルマネージド型トレーディング製品を求めるユーザーには向かない可能性があります。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 6,
-          "end_line": 6,
+          "start_line": 44,
+          "end_line": 44,
           "section_heading": ""
         },
         {
-          "start_line": 43,
-          "end_line": 43,
+          "start_line": 46,
+          "end_line": 46,
+          "section_heading": ""
+        },
+        {
+          "start_line": 48,
+          "end_line": 48,
           "section_heading": ""
         }
       ],
       "usage": [
         {
-          "start_line": 53,
-          "end_line": 56,
+          "start_line": 54,
+          "end_line": 59,
           "section_heading": "Quick Start"
         },
         {
-          "start_line": 58,
-          "end_line": 58,
+          "start_line": 65,
+          "end_line": 68,
           "section_heading": "Quick Start"
         }
       ],
       "pros": [
         {
-          "start_line": 141,
-          "end_line": 144,
+          "start_line": 142,
+          "end_line": 145,
           "section_heading": "At a Glance"
         },
         {
-          "start_line": 146,
-          "end_line": 147,
+          "start_line": 102,
+          "end_line": 105,
+          "section_heading": "WebChat"
+        },
+        {
+          "start_line": 148,
+          "end_line": 148,
           "section_heading": "At a Glance"
         }
       ],
       "cons": [
         {
-          "start_line": 271,
-          "end_line": 271,
+          "start_line": 272,
+          "end_line": 272,
           "section_heading": "Arbitrage Detection"
         }
       ],
       "fit": [
         {
-          "start_line": 43,
-          "end_line": 43,
+          "start_line": 44,
+          "end_line": 44,
           "section_heading": ""
         },
         {
-          "start_line": 47,
-          "end_line": 47,
-          "section_heading": ""
+          "start_line": 59,
+          "end_line": 59,
+          "section_heading": "Quick Start"
+        },
+        {
+          "start_line": 145,
+          "end_line": 145,
+          "section_heading": "At a Glance"
         }
       ]
     },
@@ -712,6 +727,20 @@
         ]
       },
       {
+        "kind": "command",
+        "value": "git clone https://github.com/alsk1992/CloddsBot.git && cd CloddsBot",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "ANTHROPIC_API_KEY",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
         "kind": "url",
         "value": "http://localhost:18789/webchat",
         "fields": [
@@ -722,6 +751,7 @@
         "kind": "number",
         "value": "21",
         "fields": [
+          "goal",
           "pros"
         ]
       },
@@ -742,9 +772,23 @@
       },
       {
         "kind": "number",
-        "value": "118+",
+        "value": "119",
         "fields": [
           "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "118+",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "200x",
+        "fields": [
+          "fit"
         ]
       },
       {
@@ -752,7 +796,8 @@
         "value": "Clodds",
         "fields": [
           "goal",
-          "usage"
+          "usage",
+          "fit"
         ]
       },
       {
@@ -761,32 +806,18 @@
         "fields": [
           "goal"
         ]
-      },
-      {
-        "kind": "product",
-        "value": "Colosseum Agent Hackathon",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Solana",
-        "fields": [
-          "goal",
-          "fit"
-        ]
       }
     ],
     "inference_fields": [
+      "goal",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "alsk1992/cloddsbot",
       "path": "README.md",
-      "blob_sha": "e6942234a3f815f6243326c0070348dd5589519a",
-      "content_sha256": "e7c8c2327f8c00bb537715af3de2b83481c082f10b6cb0f67938e022f5074c31",
+      "blob_sha": "fc85a482ff4d0b587fbe030a957317cdb0309103",
+      "content_sha256": "be2d1553916db9c5cd03ad097417fcd8fd05d9d46e18fe60dd34d8c84f7ae9a3",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -800,51 +831,56 @@
   },
   "Tencent/teamai-cli": {
     "content": {
-      "goal": "TeamAI-cli (Tencent/teamai-cli) is a command-line tool that manages a team's skills, rules, MCP configuration, and knowledge across multiple AI coding agents — including Claude Code, Codex, CodeBuddy, WorkBuddy, OpenCode, and Cursor — keeping them synchronized through a shared git repository.",
-      "usage": "Install globally with `npm install -g teamai-cli`. An admin creates a shared git repository, grants members write access, and runs `teamai init https://github.com/yourorg/yourrepo`; members run the same command in their project (or add `--scope user`). After initialization, each AI session automatically pulls the latest skills and rules via a SessionStart hook, with no manual sync needed.",
-      "pros": "Once initialized, skills, rules, hooks, and MCP settings are pushed to all supported agents without manual syncing. Admins can further scope distribution using role-based namespaces, tags, and subscriptions to other teams' or the org's shared repos, so members only sync what applies to their role.",
-      "cons": "The Team Context and Team Improvement layers — knowledge recall, the codebase graph, and usage dashboards — are documented as beta. Recall is off by default and must be enabled explicitly; the codebase graph's AST-based analysis covers only TypeScript/JavaScript, Python, and Go, falling back to regex heuristics elsewhere.",
-      "fit": "This tool likely fits teams that already rely on several AI coding agents and want a git-based review workflow (push, review, merge, pull) for centrally distributing shared skills, rules, and knowledge. It requires a shared git repository hosted on GitHub, GitLab, GitCode, CNB, TGit, or a private git service."
+      "goal": "TeamAI, distributed as the teamai-cli npm package, is a command-line tool for managing a team's skills, rules, MCP configuration, and knowledge across multiple AI coding agents, including Claude Code, Codex, CodeBuddy, WorkBuddy, OpenCode, and Cursor.",
+      "usage": "Install globally with `npm install -g teamai-cli`. A team admin creates a shared git repository (GitHub, GitLab, GitCode, CNB, TGit, or a private Git service) and runs `teamai init https://github.com/yourorg/yourrepo`; team members run the same init command at project or user scope, then use `teamai pull` and `teamai push` to sync resources.",
+      "pros": "Resources such as skills, rules, docs, hooks, and MCP settings are pushed through a branch-review-merge flow and pulled automatically into each member's AI tools, with distribution controls for projects, roles, tags, and subscribed sources so members receive only what's relevant to them.",
+      "cons": "The Team Context and Team Improvement layers, including knowledge recall and the codebase graph, are labeled beta, the 'Models' resource is described as not implemented for every provider yet, and automatic knowledge recall is off by default and must be explicitly enabled in configuration.",
+      "fit": "This appears best suited to teams already standardized on a shared git host and one or more of the listed AI coding agents who want centralized, version-controlled distribution of skills, rules, and accumulated knowledge rather than ad hoc per-tool configuration."
     },
     "summaries": {
       "en": {
-        "goal": "TeamAI-cli (Tencent/teamai-cli) is a command-line tool that manages a team's skills, rules, MCP configuration, and knowledge across multiple AI coding agents — including Claude Code, Codex, CodeBuddy, WorkBuddy, OpenCode, and Cursor — keeping them synchronized through a shared git repository.",
-        "usage": "Install globally with `npm install -g teamai-cli`. An admin creates a shared git repository, grants members write access, and runs `teamai init https://github.com/yourorg/yourrepo`; members run the same command in their project (or add `--scope user`). After initialization, each AI session automatically pulls the latest skills and rules via a SessionStart hook, with no manual sync needed.",
-        "pros": "Once initialized, skills, rules, hooks, and MCP settings are pushed to all supported agents without manual syncing. Admins can further scope distribution using role-based namespaces, tags, and subscriptions to other teams' or the org's shared repos, so members only sync what applies to their role.",
-        "cons": "The Team Context and Team Improvement layers — knowledge recall, the codebase graph, and usage dashboards — are documented as beta. Recall is off by default and must be enabled explicitly; the codebase graph's AST-based analysis covers only TypeScript/JavaScript, Python, and Go, falling back to regex heuristics elsewhere.",
-        "fit": "This tool likely fits teams that already rely on several AI coding agents and want a git-based review workflow (push, review, merge, pull) for centrally distributing shared skills, rules, and knowledge. It requires a shared git repository hosted on GitHub, GitLab, GitCode, CNB, TGit, or a private git service."
+        "goal": "TeamAI, distributed as the teamai-cli npm package, is a command-line tool for managing a team's skills, rules, MCP configuration, and knowledge across multiple AI coding agents, including Claude Code, Codex, CodeBuddy, WorkBuddy, OpenCode, and Cursor.",
+        "usage": "Install globally with `npm install -g teamai-cli`. A team admin creates a shared git repository (GitHub, GitLab, GitCode, CNB, TGit, or a private Git service) and runs `teamai init https://github.com/yourorg/yourrepo`; team members run the same init command at project or user scope, then use `teamai pull` and `teamai push` to sync resources.",
+        "pros": "Resources such as skills, rules, docs, hooks, and MCP settings are pushed through a branch-review-merge flow and pulled automatically into each member's AI tools, with distribution controls for projects, roles, tags, and subscribed sources so members receive only what's relevant to them.",
+        "cons": "The Team Context and Team Improvement layers, including knowledge recall and the codebase graph, are labeled beta, the 'Models' resource is described as not implemented for every provider yet, and automatic knowledge recall is off by default and must be explicitly enabled in configuration.",
+        "fit": "This appears best suited to teams already standardized on a shared git host and one or more of the listed AI coding agents who want centralized, version-controlled distribution of skills, rules, and accumulated knowledge rather than ad hoc per-tool configuration."
       },
       "ko": {
-        "goal": "TeamAI-cli(Tencent/teamai-cli)는 Claude Code, Codex, CodeBuddy, WorkBuddy, OpenCode, Cursor 등 여러 AI 코딩 에이전트에 걸쳐 팀의 스킬, 규칙, MCP 설정, 지식을 관리하는 커맨드라인 도구입니다. 공유 git 저장소를 통해 이를 동기화합니다.",
-        "usage": "`npm install -g teamai-cli` 명령으로 전역 설치합니다. 관리자는 공유 git 저장소를 만들고 팀원에게 쓰기 권한을 부여한 뒤 `teamai init https://github.com/yourorg/yourrepo`를 실행합니다. 팀원은 프로젝트 디렉터리에서 동일한 명령을 실행하거나(`--scope user`를 추가해 사용자 범위로 설치) 합니다. 초기화 후에는 SessionStart 훅을 통해 매 AI 세션이 최신 스킬과 규칙을 자동으로 가져오므로 별도의 수동 동기화가 필요 없습니다.",
-        "pros": "초기화 이후에는 스킬, 규칙, 훅, MCP 설정이 지원되는 모든 에이전트에 자동으로 배포되어 수동 동기화가 필요 없습니다. 관리자는 역할 기반 네임스페이스, 태그, 다른 팀이나 조직 공유 저장소 구독을 통해 배포 범위를 세밀하게 제어할 수 있어 팀원은 자신의 역할에 맞는 항목만 동기화합니다.",
-        "cons": "지식 리콜, 코드베이스 지식 그래프, 사용량 대시보드를 포함한 Team Context 및 Team Improvement 계층은 베타로 문서화되어 있습니다. 리콜 기능은 기본적으로 꺼져 있어 명시적으로 활성화해야 하며, 코드베이스 그래프의 정밀한 AST 기반 분석은 TypeScript/JavaScript, Python, Go만 지원하고 그 외 언어는 정규식 기반 휴리스틱으로 대체됩니다.",
-        "fit": "이 도구는 이미 여러 AI 코딩 에이전트를 사용 중이며 push-review-merge-pull 형태의 git 기반 워크플로로 공유 스킬, 규칙, 지식을 중앙에서 배포하고자 하는 팀에 적합할 것으로 보입니다. GitHub, GitLab, GitCode, CNB, TGit 또는 사설 git 서비스에 호스팅된 공유 저장소가 필요합니다."
+        "goal": "TeamAI(teamai-cli 패키지로 배포)는 Claude Code, Codex, CodeBuddy, WorkBuddy, OpenCode, Cursor 등 여러 AI 코딩 에이전트에 걸쳐 팀의 스킬, 규칙, MCP 설정, 지식을 관리하는 CLI 도구입니다.",
+        "usage": "`npm install -g teamai-cli`로 전역 설치한 뒤, 팀 관리자가 GitHub, GitLab, GitCode, CNB, TGit 또는 사설 Git 서비스에 공유 저장소를 만들고 `teamai init https://github.com/yourorg/yourrepo`를 실행합니다. 팀원은 프로젝트 또는 사용자 범위로 동일한 init 명령을 실행한 뒤 `teamai pull`과 `teamai push`로 리소스를 동기화합니다.",
+        "pros": "스킬, 규칙, 문서, 훅, MCP 설정 등의 리소스가 브랜치-리뷰-머지 흐름을 통해 푸시되고 각 팀원의 AI 도구에 자동으로 풀되며, 프로젝트·역할·태그·구독 소스별 배포 제어 기능으로 필요한 리소스만 받을 수 있습니다.",
+        "cons": "팀 컨텍스트와 팀 개선 계층(지식 리콜, 코드베이스 그래프 포함)은 베타로 표시되어 있고, 'Models' 리소스는 아직 모든 제공자에서 구현되지 않았다고 명시되어 있으며, 자동 지식 리콜 기능은 기본적으로 꺼져 있어 설정에서 명시적으로 활성화해야 합니다.",
+        "fit": "이미 공유 Git 호스트와 목록에 있는 AI 코딩 에이전트 중 하나 이상을 표준으로 사용 중이며, 도구별 임시 설정 대신 스킬·규칙·축적된 지식을 중앙에서 버전 관리하며 배포하고자 하는 팀에 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "TeamAI-cli(Tencent/teamai-cli)是一个命令行工具,用于在 Claude Code、Codex、CodeBuddy、WorkBuddy、OpenCode 和 Cursor 等多个 AI 编码代理之间管理团队的技能、规则、MCP 配置和知识,并通过共享 git 仓库保持同步。",
-        "usage": "使用 `npm install -g teamai-cli` 进行全局安装。管理员创建共享 git 仓库,授予团队成员写权限,然后运行 `teamai init https://github.com/yourorg/yourrepo`;成员在项目目录中运行相同命令(或添加 `--scope user` 进行用户范围安装)。初始化后,每次 AI 会话都会通过 SessionStart 钩子自动拉取最新的技能和规则,无需手动同步。",
-        "pros": "初始化后,技能、规则、钩子和 MCP 设置会自动分发到所有受支持的代理,无需手动同步。管理员还可以通过基于角色的命名空间、标签以及订阅其他团队或组织内共享仓库来细化分发范围,使成员只同步与自己角色相关的内容。",
-        "cons": "文档将 Team Context 与 Team Improvement 层(包括知识回溯、代码库知识图谱和使用仪表盘)标注为 beta 阶段。回溯功能默认关闭,需要显式启用;代码库图谱的精确 AST 分析仅覆盖 TypeScript/JavaScript、Python 和 Go,其他语言则退回到基于正则的启发式提取。",
-        "fit": "该工具似乎更适合已经在使用多个 AI 编码代理、并希望通过“推送-审核-合并-拉取”式 git 工作流集中分发共享技能、规则和知识的团队。它需要一个托管在 GitHub、GitLab、GitCode、CNB、TGit 或私有 Git 服务上的共享仓库。"
+        "goal": "TeamAI(以 teamai-cli 包分发)是一款命令行工具,用于在 Claude Code、Codex、CodeBuddy、WorkBuddy、OpenCode 和 Cursor 等多个 AI 编码代理之间管理团队的技能、规则、MCP 配置和知识。",
+        "usage": "使用 `npm install -g teamai-cli` 全局安装后,团队管理员在 GitHub、GitLab、GitCode、CNB、TGit 或私有 Git 服务上创建共享仓库,并运行 `teamai init https://github.com/yourorg/yourrepo`;团队成员以项目或用户范围运行相同的 init 命令,再通过 `teamai pull` 和 `teamai push` 同步资源。",
+        "pros": "技能、规则、文档、钩子和 MCP 等资源通过分支-评审-合并流程推送,并自动拉取到每位成员的 AI 工具中,同时提供按项目、角色、标签和订阅来源的分发控制,使成员只接收与自己相关的资源。",
+        "cons": "团队上下文与团队改进两层(包括知识召回和代码库图谱)均标注为测试版(beta),'Models' 资源被说明尚未在所有提供方中实现,且自动知识召回功能默认关闭,需要在配置中显式启用。",
+        "fit": "该工具似乎更适合已经在共享 Git 主机上标准化、并使用列表中一种或多种 AI 编码代理的团队,他们希望集中、版本化地分发技能、规则和积累的知识,而不是按工具零散配置。"
       },
       "es": {
-        "goal": "TeamAI-cli (Tencent/teamai-cli) es una herramienta de línea de comandos que gestiona las habilidades, reglas, configuración de MCP y conocimiento de un equipo en varios agentes de codificación con IA, entre ellos Claude Code, Codex, CodeBuddy, WorkBuddy, OpenCode y Cursor, manteniéndolos sincronizados mediante un repositorio git compartido.",
-        "usage": "Instálalo globalmente con `npm install -g teamai-cli`. Un administrador crea un repositorio git compartido, otorga acceso de escritura a los miembros del equipo y ejecuta `teamai init https://github.com/yourorg/yourrepo`; los miembros ejecutan el mismo comando dentro de su proyecto (o añaden `--scope user` para una instalación a nivel de usuario). Tras la inicialización, cada sesión de IA descarga automáticamente las últimas habilidades y reglas mediante un hook SessionStart, sin necesidad de sincronización manual.",
-        "pros": "Una vez inicializado, las habilidades, reglas, hooks y ajustes de MCP se distribuyen automáticamente a todos los agentes compatibles, sin sincronización manual. Los administradores pueden además delimitar la distribución mediante espacios de nombres por rol, etiquetas y suscripciones a repositorios compartidos de otros equipos u organizaciones, de modo que cada miembro sincronice solo lo relevante para su rol.",
-        "cons": "Las capas Team Context y Team Improvement —que incluyen la recuperación de conocimiento, el grafo de conocimiento del código y los paneles de uso— están documentadas como beta. La recuperación (recall) está desactivada de forma predeterminada y debe habilitarse explícitamente; el análisis preciso basado en AST del grafo de código solo cubre TypeScript/JavaScript, Python y Go, recurriendo a heurísticas basadas en expresiones regulares para el resto de lenguajes.",
-        "fit": "Esta herramienta probablemente resulte adecuada para equipos que ya usan varios agentes de codificación con IA y desean un flujo de trabajo basado en git (push, revisión, fusión, pull) para distribuir de forma centralizada habilidades, reglas y conocimiento compartidos. Requiere un repositorio git compartido alojado en GitHub, GitLab, GitCode, CNB, TGit o un servicio Git privado."
+        "goal": "TeamAI (distribuido como el paquete teamai-cli) es una herramienta de línea de comandos para gestionar las habilidades, reglas, configuración MCP y conocimiento de un equipo en varios agentes de codificación con IA, incluidos Claude Code, Codex, CodeBuddy, WorkBuddy, OpenCode y Cursor.",
+        "usage": "Instálalo globalmente con `npm install -g teamai-cli`. Un administrador del equipo crea un repositorio Git compartido (GitHub, GitLab, GitCode, CNB, TGit o un servicio Git privado) y ejecuta `teamai init https://github.com/yourorg/yourrepo`; los miembros del equipo ejecutan el mismo comando init en el ámbito de proyecto o de usuario, y luego usan `teamai pull` y `teamai push` para sincronizar recursos.",
+        "pros": "Recursos como habilidades, reglas, documentos, hooks y ajustes MCP se envían mediante un flujo de rama-revisión-fusión y se extraen automáticamente a las herramientas de IA de cada miembro, con controles de distribución por proyecto, rol, etiqueta y fuente suscrita para que cada persona reciba solo lo relevante.",
+        "cons": "Las capas de Contexto de Equipo y Mejora de Equipo, incluidos el recall de conocimiento y el grafo de código, están marcadas como beta; el recurso 'Models' se describe como no implementado aún para todos los proveedores, y la función de recall automático de conocimiento está desactivada por defecto y debe habilitarse explícitamente en la configuración.",
+        "fit": "Parece más adecuado para equipos que ya usan un host Git compartido y uno o más de los agentes de codificación con IA mencionados, y que buscan distribuir de forma centralizada y versionada sus habilidades, reglas y conocimiento acumulado, en lugar de configurar cada herramienta por separado."
       },
       "ja": {
-        "goal": "TeamAI-cli(Tencent/teamai-cli)は、Claude Code、Codex、CodeBuddy、WorkBuddy、OpenCode、Cursor など複数の AI コーディングエージェントにまたがってチームのスキル、ルール、MCP 設定、ナレッジを管理し、共有 git リポジトリを通じて同期させるコマンドラインツールです。",
-        "usage": "`npm install -g teamai-cli` でグローバルインストールします。管理者は共有 git リポジトリを作成してチームメンバーに書き込み権限を付与し、`teamai init https://github.com/yourorg/yourrepo` を実行します。メンバーはプロジェクト内で同じコマンドを実行するか(ユーザースコープでインストールする場合は `--scope user` を付加)します。初期化後は、SessionStart フックにより各 AI セッションが最新のスキルとルールを自動的に取得するため、手動同期は不要です。",
-        "pros": "初期化後は、スキル、ルール、フック、MCP 設定が対応する各エージェントへ自動的に配布され、手動同期が不要になります。管理者はロールベースの名前空間、タグ、他チームや組織内の共有リポジトリへの購読を用いて配布範囲をさらに細かく制御でき、メンバーは自分の役割に関係するものだけを同期できます。",
-        "cons": "ナレッジリコール、コードベースのナレッジグラフ、使用状況ダッシュボードを含む Team Context および Team Improvement 層はベータ版として文書化されています。リコール機能はデフォルトで無効になっており明示的な有効化が必要で、コードベースグラフの正確な AST ベース解析は TypeScript/JavaScript、Python、Go のみをカバーし、それ以外の言語は正規表現ベースのヒューリスティックにフォールバックします。",
-        "fit": "このツールは、すでに複数の AI コーディングエージェントを利用しており、push・レビュー・マージ・pull という git ベースのワークフローで共有スキル、ルール、ナレッジを一元的に配布したいチームに適していると考えられます。GitHub、GitLab、GitCode、CNB、TGit、またはプライベート Git サービス上にホストされた共有リポジトリが必要です。"
+        "goal": "TeamAI(teamai-cliパッケージとして配布)は、Claude Code、Codex、CodeBuddy、WorkBuddy、OpenCode、Cursorなど複数のAIコーディングエージェント間でチームのスキル、ルール、MCP設定、ナレッジを管理するCLIツールです。",
+        "usage": "`npm install -g teamai-cli` でグローバルインストールした後、チーム管理者がGitHub、GitLab、GitCode、CNB、TGitまたはプライベートGitサービス上に共有リポジトリを作成し、`teamai init https://github.com/yourorg/yourrepo` を実行します。メンバーはプロジェクトスコープまたはユーザースコープで同じinitコマンドを実行し、`teamai pull` と `teamai push` でリソースを同期します。",
+        "pros": "スキル、ルール、ドキュメント、フック、MCP設定などのリソースはブランチ→レビュー→マージのフローでプッシュされ、各メンバーのAIツールへ自動的にプルされます。さらにプロジェクト、ロール、タグ、購読ソース単位の配信制御により、メンバーは自分に関係あるリソースだけを受け取れます。",
+        "cons": "ナレッジリコールやコードベースグラフを含むTeam ContextとTeam Improvementの各層はベータと明記されており、「Models」リソースはまだ全プロバイダーに実装されていないと説明され、自動ナレッジリコール機能はデフォルトで無効になっており設定で明示的に有効化する必要があります。",
+        "fit": "共有Gitホストと、記載されているAIコーディングエージェントのいずれかをすでに標準採用しているチームで、ツールごとの個別設定ではなく、スキル・ルール・蓄積されたナレッジを一元的かつバージョン管理された形で配布したい場合に適していると考えられます。"
       }
     },
     "evidence": {
       "goal": [
+        {
+          "start_line": 5,
+          "end_line": 5,
+          "section_heading": "TeamAI — Make Every Team AI Native"
+        },
         {
           "start_line": 14,
           "end_line": 14,
@@ -858,51 +894,51 @@
           "section_heading": "Install"
         },
         {
-          "start_line": 34,
-          "end_line": 53,
+          "start_line": 36,
+          "end_line": 36,
           "section_heading": "Team admin / solo user"
         },
         {
-          "start_line": 116,
-          "end_line": 122,
-          "section_heading": "How It Works"
+          "start_line": 47,
+          "end_line": 51,
+          "section_heading": "Team members"
         }
       ],
       "pros": [
         {
-          "start_line": 53,
-          "end_line": 53,
-          "section_heading": "Team members"
+          "start_line": 63,
+          "end_line": 63,
+          "section_heading": "Product architecture"
         },
         {
-          "start_line": 100,
-          "end_line": 108,
+          "start_line": 104,
+          "end_line": 109,
           "section_heading": "Distribution Controls"
+        },
+        {
+          "start_line": 117,
+          "end_line": 117,
+          "section_heading": "Team Execution"
         }
       ],
       "cons": [
         {
           "start_line": 59,
-          "end_line": 65,
+          "end_line": 59,
           "section_heading": "Product architecture"
         },
         {
-          "start_line": 166,
-          "end_line": 166,
-          "section_heading": "Team Knowledge Recall"
+          "start_line": 143,
+          "end_line": 143,
+          "section_heading": "What Gets Shared"
         },
         {
-          "start_line": 204,
-          "end_line": 207,
-          "section_heading": "Codebase Knowledge Graph"
+          "start_line": 169,
+          "end_line": 169,
+          "section_heading": "Team Knowledge Recall"
         }
       ],
       "fit": [
-        {
-          "start_line": 110,
-          "end_line": 114,
-          "section_heading": "Team Execution"
-        },
         {
           "start_line": 36,
           "end_line": 36,
@@ -917,6 +953,42 @@
     },
     "invariants": [
       {
+        "kind": "command",
+        "value": "npm install -g teamai-cli",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "teamai init https://github.com/yourorg/yourrepo",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "teamai pull",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "teamai push",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "TeamAI",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
+      {
         "kind": "product",
         "value": "teamai-cli",
         "fields": [
@@ -930,91 +1002,6 @@
         "fields": [
           "goal"
         ]
-      },
-      {
-        "kind": "product",
-        "value": "Codex",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "CodeBuddy",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "WorkBuddy",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "OpenCode",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Cursor",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "GitHub",
-        "fields": [
-          "usage",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "GitLab",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "GitCode",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "CNB",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "TGit",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "npm install -g teamai-cli",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "teamai init https://github.com/yourorg/yourrepo",
-        "fields": [
-          "usage"
-        ]
       }
     ],
     "inference_fields": [
@@ -1024,8 +1011,8 @@
       "kind": "readme",
       "slug": "tencent/teamai-cli",
       "path": "README.md",
-      "blob_sha": "229884bfce44d389a3111f3e2e4743193bfa765d",
-      "content_sha256": "c759934461b0e7f5ee35e4fbb04c1406a05f473e28831c7ce341b6e0a249ab62",
+      "blob_sha": "7c0815bd35277c0ef5c6688dcc68c99ee0240ce6",
+      "content_sha256": "fbb08f3b65f8ddc34ae48afd435b87cec3770028389ee8ea779debe85e2194d6",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -7578,47 +7565,47 @@
   },
   "volcengine/OpenViking": {
     "content": {
-      "goal": "OpenViking is an open-source context database for AI agents that stores memories, resources, and skills as a virtual filesystem under the viking:// protocol. Agents browse context with commands like ls, tree, and find, and content is processed into three tiers—L0 abstract, L1 overview, and L2 details—loaded only as deep as a task requires, with each retrieval leaving an observable trajectory.",
-      "usage": "Installation requires Python 3.10 or higher. The documented quick start is `pip install openviking --upgrade` followed by `openviking-server init` to configure providers and models, then starting the server. An `ov` client CLI ships with the install, offering commands such as `ov status` to inspect state and `ov ls` to browse the viking:// filesystem.",
-      "pros": "OpenViking 0.3.22 was benchmarked on long-conversation memory (LoCoMo) and multi-turn agent tasks (tau2-bench). Reported results show three agent integrations reaching 80–83% accuracy versus 24–57% on native memory, with input tokens reduced by 34.3–91.0% and query latency reduced by 58.45–66.10%. The open-source edition is licensed under AGPLv3 with no feature gates.",
-      "cons": "The README states the project is 'still in its early stages, and there is plenty left to build,' suggesting ongoing gaps in maturity and feature completeness. The desktop OpenViking Helper console is explicitly marked Beta and currently limited to macOS and Windows x64, so broader platform support may not yet be available.",
-      "fit": "OpenViking appears suited to developers building AI agents that need structured, inspectable memory and resource retrieval rather than opaque vector search, particularly given documented integrations with Claude Code, Codex, and Cursor. Given its early-stage status, teams requiring fully mature, battle-tested infrastructure may want to evaluate readiness carefully before production use."
+      "goal": "OpenViking is an open-source context database for AI agents. It stores memories, resources, and skills as a virtual filesystem under the viking:// protocol, processing content into three loading tiers (L0 abstract, L1 overview, L2 details) with observable retrieval trajectories.",
+      "usage": "Install via pip install openviking --upgrade (requires Python 3.10 or higher), then run openviking-server init to configure providers and openviking-server doctor to validate setup. The bundled ov client CLI offers commands like ov status and ov find for browsing content.",
+      "pros": "Documented benchmarks report OpenViking 0.3.22 raising LoCoMo memory accuracy from 24-57% to 80-83% across three agent integrations, alongside reduced token usage and lower query latency. The open-source edition includes no feature gates, no required account, and no activation key.",
+      "cons": "OpenViking is documented as still in its early stages, with plenty left to build, suggesting some features or APIs may continue to evolve. The OpenViking Helper desktop console is currently in beta, limited to macOS and Windows x64.",
+      "fit": "Given its filesystem-style context browsing and integrations with tools like Claude Code, Codex, and Cursor, OpenViking appears best suited for developers building AI agents that need persistent, cross-session memory and context management, though this application is inferred from the documented integrations."
     },
     "summaries": {
       "en": {
-        "goal": "OpenViking is an open-source context database for AI agents that stores memories, resources, and skills as a virtual filesystem under the viking:// protocol. Agents browse context with commands like ls, tree, and find, and content is processed into three tiers—L0 abstract, L1 overview, and L2 details—loaded only as deep as a task requires, with each retrieval leaving an observable trajectory.",
-        "usage": "Installation requires Python 3.10 or higher. The documented quick start is `pip install openviking --upgrade` followed by `openviking-server init` to configure providers and models, then starting the server. An `ov` client CLI ships with the install, offering commands such as `ov status` to inspect state and `ov ls` to browse the viking:// filesystem.",
-        "pros": "OpenViking 0.3.22 was benchmarked on long-conversation memory (LoCoMo) and multi-turn agent tasks (tau2-bench). Reported results show three agent integrations reaching 80–83% accuracy versus 24–57% on native memory, with input tokens reduced by 34.3–91.0% and query latency reduced by 58.45–66.10%. The open-source edition is licensed under AGPLv3 with no feature gates.",
-        "cons": "The README states the project is 'still in its early stages, and there is plenty left to build,' suggesting ongoing gaps in maturity and feature completeness. The desktop OpenViking Helper console is explicitly marked Beta and currently limited to macOS and Windows x64, so broader platform support may not yet be available.",
-        "fit": "OpenViking appears suited to developers building AI agents that need structured, inspectable memory and resource retrieval rather than opaque vector search, particularly given documented integrations with Claude Code, Codex, and Cursor. Given its early-stage status, teams requiring fully mature, battle-tested infrastructure may want to evaluate readiness carefully before production use."
+        "goal": "OpenViking is an open-source context database for AI agents. It stores memories, resources, and skills as a virtual filesystem under the viking:// protocol, processing content into three loading tiers (L0 abstract, L1 overview, L2 details) with observable retrieval trajectories.",
+        "usage": "Install via pip install openviking --upgrade (requires Python 3.10 or higher), then run openviking-server init to configure providers and openviking-server doctor to validate setup. The bundled ov client CLI offers commands like ov status and ov find for browsing content.",
+        "pros": "Documented benchmarks report OpenViking 0.3.22 raising LoCoMo memory accuracy from 24-57% to 80-83% across three agent integrations, alongside reduced token usage and lower query latency. The open-source edition includes no feature gates, no required account, and no activation key.",
+        "cons": "OpenViking is documented as still in its early stages, with plenty left to build, suggesting some features or APIs may continue to evolve. The OpenViking Helper desktop console is currently in beta, limited to macOS and Windows x64.",
+        "fit": "Given its filesystem-style context browsing and integrations with tools like Claude Code, Codex, and Cursor, OpenViking appears best suited for developers building AI agents that need persistent, cross-session memory and context management, though this application is inferred from the documented integrations."
       },
       "ko": {
-        "goal": "OpenViking은 AI 에이전트를 위한 오픈소스 컨텍스트 데이터베이스로, 메모리·리소스·스킬을 viking:// 프로토콜 기반의 가상 파일시스템으로 저장합니다. 에이전트는 ls, tree, find와 같은 명령으로 컨텍스트를 탐색하며, 콘텐츠는 L0(요약), L1(개요), L2(상세) 세 단계로 처리되어 필요한 만큼만 로드되고, 각 검색 과정은 추적 가능하게 기록됩니다.",
-        "usage": "설치에는 Python 3.10 이상이 필요합니다. 문서에 제시된 빠른 시작 방법은 `pip install openviking --upgrade`를 실행한 뒤 `openviking-server init`으로 공급자와 모델을 설정하고 서버를 시작하는 것입니다. 설치 시 함께 제공되는 `ov` 클라이언트 CLI를 통해 `ov status`로 상태를 확인하거나 `ov ls`로 viking:// 파일시스템을 탐색할 수 있습니다.",
-        "pros": "OpenViking 0.3.22 버전은 장기 대화 메모리(LoCoMo)와 다중 턴 에이전트 작업(tau2-bench)에서 벤치마크되었습니다. 보고된 결과에 따르면 세 가지 에이전트 통합에서 기존 24–57%였던 정확도가 80–83%로 상승했고, 입력 토큰은 34.3–91.0%, 쿼리 지연 시간은 58.45–66.10% 감소했습니다. 오픈소스 버전은 기능 제한 없이 AGPLv3 라이선스로 제공됩니다.",
-        "cons": "README에는 프로젝트가 '아직 초기 단계이며 구축할 부분이 많이 남아 있다'고 명시되어 있어, 성숙도와 기능 완성도 측면에서 지속적인 공백이 있을 수 있음을 시사합니다. 데스크톱 애플리케이션인 OpenViking Helper는 명시적으로 베타 상태이며 현재 macOS와 Windows x64로 제한되어 있어, 더 넓은 플랫폼 지원은 아직 제공되지 않을 수 있습니다.",
-        "fit": "OpenViking은 불투명한 벡터 검색 대신 구조화되고 점검 가능한 메모리 및 리소스 검색이 필요한 AI 에이전트 개발자에게 적합해 보이며, Claude Code, Codex, Cursor 등과의 문서화된 통합이 이를 뒷받침합니다. 다만 초기 단계 상태를 고려할 때, 완전히 성숙하고 검증된 인프라가 필요한 팀은 프로덕션 도입 전에 준비 상태를 신중히 평가해야 할 수 있습니다."
+        "goal": "OpenViking는 AI 에이전트를 위한 오픈소스 컨텍스트 데이터베이스입니다. 메모리, 리소스, 스킬을 viking:// 프로토콜 하에서 가상 파일시스템으로 저장하며, 콘텐츠를 L0(요약), L1(개요), L2(상세) 세 단계로 처리하고 검색 경로를 관찰할 수 있게 합니다.",
+        "usage": "Python 3.10 이상이 필요하며, pip install openviking --upgrade 로 설치한 뒤 openviking-server init 으로 공급자를 설정하고 openviking-server doctor 로 설정을 검증합니다. 함께 제공되는 ov 클라이언트 CLI는 ov status, ov find 같은 명령을 제공합니다.",
+        "pros": "문서화된 벤치마크에 따르면 OpenViking 0.3.22는 LoCoMo 메모리 정확도를 세 가지 에이전트 통합에서 24-57%에서 80-83%로 끌어올리며 토큰 사용량과 쿼리 지연 시간도 줄였습니다. 오픈소스 에디션에는 기능 제한, 계정 요구, 활성화 키가 없습니다.",
+        "cons": "OpenViking은 아직 초기 단계이며 구축할 것이 많이 남아있다고 문서화되어 있어, 일부 기능과 API가 계속 변화할 수 있음을 시사합니다. 데스크톱 콘솔인 OpenViking Helper는 현재 베타이며 macOS와 Windows x64로 제한됩니다.",
+        "fit": "viking:// 방식의 파일시스템형 컨텍스트 탐색과 Claude Code, Codex, Cursor 등과의 통합을 고려할 때, OpenViking은 세션 간 지속적인 메모리와 컨텍스트 관리가 필요한 AI 에이전트 개발자에게 적합해 보이나, 이는 문서화된 통합 정보로부터의 추정입니다."
       },
       "zh-CN": {
-        "goal": "OpenViking 是一个面向 AI 智能体的开源上下文数据库,将记忆、资源和技能存储为基于 viking:// 协议的虚拟文件系统。智能体可以使用 ls、tree、find 等命令浏览上下文,内容被处理为 L0(摘要)、L1(概览)、L2(详情)三个层级,按需加载,并且每次检索都会留下可观察的轨迹。",
-        "usage": "安装需要 Python 3.10 或更高版本。文档给出的快速开始方式是先运行 `pip install openviking --upgrade`,再通过 `openviking-server init` 配置提供商和模型并启动服务。安装包中自带 `ov` 客户端 CLI,可使用 `ov status` 查看状态,或使用 `ov ls` 浏览 viking:// 文件系统。",
-        "pros": "OpenViking 0.3.22 版本在长对话记忆(LoCoMo)和多轮智能体任务(tau2-bench)上进行了基准测试。报告结果显示,三种智能体集成的准确率从原生的 24–57% 提升到 80–83%,输入 token 减少 34.3–91.0%,查询延迟降低 58.45–66.10%。开源版本采用 AGPLv3 许可,不设功能限制。",
-        "cons": "README 中提到该项目'仍处于早期阶段,还有很多工作要做',这似乎表明其成熟度和功能完整性方面可能存在持续的空白。桌面应用 OpenViking Helper 被明确标注为测试版(Beta),目前仅支持 macOS 和 Windows x64,更广泛的平台支持可能尚未提供。",
-        "fit": "对于需要结构化、可检查的记忆和资源检索而非依赖不透明向量搜索的 AI 智能体开发者而言,OpenViking 似乎较为适用,文档中列出的与 Claude Code、Codex、Cursor 等的集成也支持这一点。但考虑到其早期阶段的状态,需要完全成熟、经过充分验证的基础设施的团队在投入生产前可能需要仔细评估其就绪程度。"
+        "goal": "OpenViking 是一个面向 AI 智能体的开源上下文数据库。它将记忆、资源和技能以 viking:// 协议下的虚拟文件系统形式存储,将内容处理为 L0(摘要)、L1(概览)、L2(详情)三层,并可观察检索轨迹。",
+        "usage": "需要 Python 3.10 或更高版本,先执行 pip install openviking --upgrade 安装,再运行 openviking-server init 配置提供商,并用 openviking-server doctor 验证配置。安装包中自带 ov 客户端 CLI,提供 ov status、ov find 等命令。",
+        "pros": "文档记录的基准测试显示,OpenViking 0.3.22 在三种智能体集成中将 LoCoMo 记忆准确率从 24-57% 提升到 80-83%,同时降低了 token 用量和查询延迟。开源版本没有功能限制、无需账号、也不需要激活密钥。",
+        "cons": "文档记录显示 OpenViking 仍处于早期阶段,还有许多工作需要完成,这提示部分功能或接口可能仍在演变。其桌面控制台 OpenViking Helper 目前处于测试版,仅支持 macOS 和 Windows x64。",
+        "fit": "考虑到其类似文件系统的上下文浏览方式以及与 Claude Code、Codex、Cursor 等工具的集成,OpenViking 似乎更适合需要跨会话持久记忆和上下文管理的 AI 智能体开发者,不过这一适用场景是根据文档中的集成信息推断得出的。"
       },
       "es": {
-        "goal": "OpenViking es una base de datos de contexto de código abierto para agentes de IA que almacena memorias, recursos y habilidades como un sistema de archivos virtual bajo el protocolo viking://. Los agentes exploran el contexto con comandos como ls, tree y find, y el contenido se procesa en tres niveles —L0 resumen, L1 visión general y L2 detalles— que se cargan solo hasta la profundidad necesaria, dejando cada recuperación una trayectoria observable.",
-        "usage": "La instalación requiere Python 3.10 o superior. El inicio rápido documentado es ejecutar `pip install openviking --upgrade`, seguido de `openviking-server init` para configurar proveedores y modelos, y luego iniciar el servidor. La instalación incluye la CLI de cliente `ov`, con comandos como `ov status` para verificar el estado y `ov ls` para explorar el sistema de archivos viking://.",
-        "pros": "OpenViking 0.3.22 fue evaluado en memoria de conversaciones largas (LoCoMo) y tareas de agentes multi-turno (tau2-bench). Los resultados reportados muestran que tres integraciones de agentes alcanzan una precisión de 80–83%, frente al 24–57% con memoria nativa, con una reducción de tokens de entrada de 34.3–91.0% y de latencia de consulta de 58.45–66.10%. La edición de código abierto se licencia bajo AGPLv3 sin restricciones de funciones.",
-        "cons": "El README indica que el proyecto está 'todavía en sus primeras etapas, y queda mucho por construir', lo que sugiere posibles vacíos continuos en madurez y completitud de funciones. La aplicación de escritorio OpenViking Helper está marcada explícitamente como Beta y actualmente limitada a macOS y Windows x64, por lo que un soporte de plataforma más amplio podría no estar aún disponible.",
-        "fit": "OpenViking parece adecuado para desarrolladores que construyen agentes de IA que necesitan memoria y recuperación de recursos estructuradas e inspeccionables en lugar de una búsqueda vectorial opaca, respaldado por las integraciones documentadas con Claude Code, Codex y Cursor. Dado su estado inicial, los equipos que requieran una infraestructura completamente madura y probada podrían necesitar evaluar cuidadosamente su preparación antes de usarlo en producción."
+        "goal": "OpenViking es una base de datos de contexto de código abierto para agentes de IA. Almacena memorias, recursos y habilidades como un sistema de archivos virtual bajo el protocolo viking://, procesando el contenido en tres niveles (L0 resumen, L1 visión general, L2 detalles) con trayectorias de recuperación observables.",
+        "usage": "Requiere Python 3.10 o superior. Se instala con pip install openviking --upgrade, luego se ejecuta openviking-server init para configurar proveedores y openviking-server doctor para validar la configuración. La CLI cliente ov incluida ofrece comandos como ov status y ov find.",
+        "pros": "Según los benchmarks documentados, OpenViking 0.3.22 eleva la precisión de memoria LoCoMo de 24-57% a 80-83% en tres integraciones de agentes, reduciendo también el uso de tokens y la latencia de consultas. La edición de código abierto no tiene restricciones de funciones, ni requiere cuenta ni clave de activación.",
+        "cons": "Se documenta que OpenViking aún está en sus primeras etapas y queda mucho por construir, lo que sugiere que algunas funciones o la API podrían seguir cambiando. La consola de escritorio OpenViking Helper está actualmente en beta, limitada a macOS y Windows x64.",
+        "fit": "Dada su navegación de contexto al estilo de sistema de archivos y sus integraciones con herramientas como Claude Code, Codex y Cursor, OpenViking parece adecuado para desarrolladores que construyen agentes de IA que necesitan memoria y gestión de contexto persistentes entre sesiones, aunque esta aplicación se infiere de las integraciones documentadas."
       },
       "ja": {
-        "goal": "OpenVikingは、メモリ・リソース・スキルをviking://プロトコル上の仮想ファイルシステムとして保存する、AIエージェント向けのオープンソースコンテキストデータベースです。エージェントはls、tree、findといったコマンドでコンテキストを閲覧でき、コンテンツはL0(概要)、L1(概観)、L2(詳細)の3層に処理され、必要な深さまでのみ読み込まれ、各検索は観察可能な軌跡を残します。",
-        "usage": "インストールにはPython 3.10以上が必要です。ドキュメントに記載されたクイックスタートは、`pip install openviking --upgrade`を実行した後、`openviking-server init`でプロバイダーとモデルを設定し、サーバーを起動する流れです。インストールには`ov`クライアントCLIが同梱されており、`ov status`で状態を確認したり、`ov ls`でviking://ファイルシステムを閲覧したりできます。",
-        "pros": "OpenViking 0.3.22は、長期会話メモリ(LoCoMo)とマルチターンエージェントタスク(tau2-bench)でベンチマークされました。報告された結果では、3つのエージェント統合においてネイティブメモリの24〜57%から80〜83%へ精度が向上し、入力トークンが34.3〜91.0%、クエリ遅延が58.45〜66.10%削減されています。オープンソース版はAGPLv3ライセンスで、機能制限はありません。",
-        "cons": "READMEには、プロジェクトが「まだ初期段階であり、構築すべきことが多く残っている」と記載されており、成熟度や機能の完成度において継続的なギャップがある可能性を示唆しています。デスクトップアプリのOpenViking Helperは明示的にベータ版とされ、現在はmacOSとWindows x64のみに限定されているため、より広範なプラットフォーム対応はまだ提供されていない可能性があります。",
-        "fit": "OpenVikingは、不透明なベクトル検索ではなく構造化され検証可能なメモリおよびリソース検索を必要とするAIエージェント開発者に適していると考えられ、Claude Code、Codex、Cursorなどとの統合が文書化されている点がそれを裏付けています。ただし初期段階であることを踏まえると、完全に成熟し実績のあるインフラを必要とするチームは、本番導入前に準備状況を慎重に評価する必要があるかもしれません。"
+        "goal": "OpenVikingはAIエージェント向けのオープンソースコンテキストデータベースです。記憶・リソース・スキルをviking://プロトコル下の仮想ファイルシステムとして保存し、コンテンツをL0(要約)、L1(概要)、L2(詳細)の3階層で処理し、検索の軌跡を観察できます。",
+        "usage": "Python 3.10以上が必要です。pip install openviking --upgradeでインストールし、openviking-server initでプロバイダーを設定し、openviking-server doctorで設定を検証します。付属のovクライアントCLIにはov statusやov findといったコマンドがあります。",
+        "pros": "文書化されたベンチマークによると、OpenViking 0.3.22は3種類のエージェント統合においてLoCoMoの記憶精度を24-57%から80-83%まで向上させ、トークン使用量とクエリ遅延も削減しました。オープンソース版には機能制限、アカウント要求、アクティベーションキーがありません。",
+        "cons": "OpenVikingはまだ初期段階にあり、構築すべきことが多く残っていると記載されており、一部の機能やAPIが今後変化する可能性を示唆しています。デスクトップコンソールのOpenViking Helperは現在ベータ版で、macOSとWindows x64に限定されています。",
+        "fit": "viking://によるファイルシステム風のコンテキスト閲覧やClaude Code、Codex、Cursorなどとの統合を踏まえると、OpenVikingはセッションをまたぐ永続的な記憶とコンテキスト管理を必要とするAIエージェント開発者に適していると考えられますが、これは文書化された統合情報からの推測です。"
       }
     },
     "evidence": {
@@ -7646,50 +7633,45 @@
           "section_heading": "Quick start"
         },
         {
-          "start_line": 124,
+          "start_line": 122,
           "end_line": 133,
           "section_heading": "Quick start"
         }
       ],
       "pros": [
         {
-          "start_line": 95,
-          "end_line": 95,
-          "section_heading": "Proof it works"
-        },
-        {
           "start_line": 104,
-          "end_line": 104,
+          "end_line": 105,
           "section_heading": "Proof it works"
         },
         {
-          "start_line": 190,
-          "end_line": 190,
+          "start_line": 239,
+          "end_line": 239,
           "section_heading": "Commercial editions"
         }
       ],
       "cons": [
         {
-          "start_line": 252,
-          "end_line": 252,
+          "start_line": 315,
+          "end_line": 315,
           "section_heading": "Community & contributing"
         },
         {
-          "start_line": 160,
-          "end_line": 160,
+          "start_line": 209,
+          "end_line": 209,
           "section_heading": "OpenViking Helper (Beta)"
         }
       ],
       "fit": [
         {
           "start_line": 140,
-          "end_line": 154,
+          "end_line": 142,
           "section_heading": "Use it with your agent"
         },
         {
-          "start_line": 252,
-          "end_line": 252,
-          "section_heading": "Community & contributing"
+          "start_line": 235,
+          "end_line": 235,
+          "section_heading": "Deploy in production"
         }
       ]
     },
@@ -7710,6 +7692,13 @@
       },
       {
         "kind": "command",
+        "value": "openviking-server doctor",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
         "value": "ov status",
         "fields": [
           "usage"
@@ -7717,7 +7706,7 @@
       },
       {
         "kind": "command",
-        "value": "ov ls",
+        "value": "ov find",
         "fields": [
           "usage"
         ]
@@ -7737,34 +7726,6 @@
         ]
       },
       {
-        "kind": "number",
-        "value": "80–83%",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "24–57%",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "34.3–91.0%",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "58.45–66.10%",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
         "kind": "product",
         "value": "OpenViking",
         "fields": [
@@ -7772,34 +7733,6 @@
           "usage",
           "pros",
           "cons",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "AGPLv3",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Claude Code",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Codex",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Cursor",
-        "fields": [
           "fit"
         ]
       },
@@ -7819,8 +7752,8 @@
       "kind": "readme",
       "slug": "volcengine/openviking",
       "path": "README.md",
-      "blob_sha": "d0f4846916a3b9a28e6c8c986365ef90209e289a",
-      "content_sha256": "a7ad47a8100edb9ed9ae062b2540a5d2fd31c255fd5d22463df08b3232d5fe05",
+      "blob_sha": "4944cd3d46d7be0f90f57e5a6f05ce75fc4d5e20",
+      "content_sha256": "255e7d94e726dded189e8deebd7698060126fd6620ab716e3b597b2257fd7d5c",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -8589,47 +8522,47 @@
   },
   "vorssaint/vorssaint-utils": {
     "content": {
-      "goal": "Vorssaint is a free, open-source macOS menu bar application that consolidates utilities normally sold as separate paid apps, including a per-app volume mixer, system monitor, window snapping, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller, all running locally on the user's Mac.",
-      "usage": "Vorssaint can be installed via Homebrew with `brew install --cask vorssaint`, or by downloading the disk image from the GitHub releases page (https://github.com/vorssaint/vorssaint-utils/releases) and dragging it into Applications. To build from source, run `git clone https://github.com/vorssaint/vorssaint-utils.git`, then `./build.sh`, or `./build.sh --install` to also install and launch it.",
-      "pros": "Features are modular: users install only the bundles or individual features they need from the Features page, and uninstalled features stop loading entirely, described as saving CPU, memory, and energy. The app is local-first with no account, analytics, or tracking, and every macOS permission is optional and explained in plain terms.",
-      "cons": "Vorssaint requires macOS 14 Sonoma or newer running on Apple Silicon, so it likely cannot be installed on Intel-based Macs or older macOS versions. Some capabilities, such as Fan Control, are labeled beta, suggesting they may still be subject to change.",
-      "fit": "Given its menu-bar-based utility bundle and stated aim of replacing many single-purpose paid Mac apps, Vorssaint appears best suited for Apple Silicon Mac users on macOS 14 or newer who want consolidated system, window, and clipboard tools without subscriptions or accounts."
+      "goal": "Vorssaint is a free, open-source macOS menu bar application that consolidates numerous Mac utilities—including a per-app volume mixer, system monitor, window snapping, an app switcher, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller—into a single icon, aiming to replace utilities users would otherwise buy separately.",
+      "usage": "Install via Homebrew with `brew install --cask vorssaint`, or download the disk image from the GitHub releases page. To build from source: `git clone https://github.com/vorssaint/vorssaint-utils.git`, then run `./build.sh` (or `./build.sh --install` to also install and launch). Removal is available via `brew uninstall --cask vorssaint` or the bundled `./Tools/uninstall.sh` script.",
+      "pros": "Individual features can be installed or removed independently via a Features hub, so unused functionality consumes no CPU, memory, or energy; settings persist even when uninstalled. The app operates without an account, analytics, or tracking, and it documents which permissions each feature uses. It is released under the GPL-3.0-or-later license.",
+      "cons": "Documented hardware requirements are a Mac with Apple Silicon and macOS 14 Sonoma or newer; no mention is made of Intel-based Mac support, so compatibility for those systems remains unclear.",
+      "fit": "This tool appears suited to macOS users on Apple Silicon hardware who want to consolidate several utility functions—audio, window management, clipboard, and system monitoring—into one menu bar app without paid subscriptions or telemetry."
     },
     "summaries": {
       "en": {
-        "goal": "Vorssaint is a free, open-source macOS menu bar application that consolidates utilities normally sold as separate paid apps, including a per-app volume mixer, system monitor, window snapping, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller, all running locally on the user's Mac.",
-        "usage": "Vorssaint can be installed via Homebrew with `brew install --cask vorssaint`, or by downloading the disk image from the GitHub releases page (https://github.com/vorssaint/vorssaint-utils/releases) and dragging it into Applications. To build from source, run `git clone https://github.com/vorssaint/vorssaint-utils.git`, then `./build.sh`, or `./build.sh --install` to also install and launch it.",
-        "pros": "Features are modular: users install only the bundles or individual features they need from the Features page, and uninstalled features stop loading entirely, described as saving CPU, memory, and energy. The app is local-first with no account, analytics, or tracking, and every macOS permission is optional and explained in plain terms.",
-        "cons": "Vorssaint requires macOS 14 Sonoma or newer running on Apple Silicon, so it likely cannot be installed on Intel-based Macs or older macOS versions. Some capabilities, such as Fan Control, are labeled beta, suggesting they may still be subject to change.",
-        "fit": "Given its menu-bar-based utility bundle and stated aim of replacing many single-purpose paid Mac apps, Vorssaint appears best suited for Apple Silicon Mac users on macOS 14 or newer who want consolidated system, window, and clipboard tools without subscriptions or accounts."
+        "goal": "Vorssaint is a free, open-source macOS menu bar application that consolidates numerous Mac utilities—including a per-app volume mixer, system monitor, window snapping, an app switcher, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller—into a single icon, aiming to replace utilities users would otherwise buy separately.",
+        "usage": "Install via Homebrew with `brew install --cask vorssaint`, or download the disk image from the GitHub releases page. To build from source: `git clone https://github.com/vorssaint/vorssaint-utils.git`, then run `./build.sh` (or `./build.sh --install` to also install and launch). Removal is available via `brew uninstall --cask vorssaint` or the bundled `./Tools/uninstall.sh` script.",
+        "pros": "Individual features can be installed or removed independently via a Features hub, so unused functionality consumes no CPU, memory, or energy; settings persist even when uninstalled. The app operates without an account, analytics, or tracking, and it documents which permissions each feature uses. It is released under the GPL-3.0-or-later license.",
+        "cons": "Documented hardware requirements are a Mac with Apple Silicon and macOS 14 Sonoma or newer; no mention is made of Intel-based Mac support, so compatibility for those systems remains unclear.",
+        "fit": "This tool appears suited to macOS users on Apple Silicon hardware who want to consolidate several utility functions—audio, window management, clipboard, and system monitoring—into one menu bar app without paid subscriptions or telemetry."
       },
       "ko": {
-        "goal": "Vorssaint는 메뉴 바 아이콘 하나로 여러 유료 Mac 앱이 제공하던 기능—앱별 볼륨 믹서, 시스템 모니터, 창 스냅, Dock 미리보기, 클립보드 기록, 텍스트 스니펫, 파일 보관함, 언인스톨러 등—을 통합한 무료 오픈소스 macOS 애플리케이션이며, 모든 기능은 사용자의 Mac에서 로컬로 실행된다.",
-        "usage": "Homebrew를 사용해 `brew install --cask vorssaint` 명령으로 설치하거나, GitHub 릴리스 페이지(https://github.com/vorssaint/vorssaint-utils/releases)에서 디스크 이미지를 내려받아 Applications 폴더로 옮길 수 있다. 소스에서 직접 빌드하려면 `git clone https://github.com/vorssaint/vorssaint-utils.git` 후 `./build.sh`, 또는 설치와 실행까지 함께 수행하는 `./build.sh --install`을 사용한다.",
-        "pros": "기능은 모듈식으로 구성되어 있어 Features 페이지에서 필요한 번들이나 개별 기능만 설치할 수 있으며, 제거한 기능은 완전히 로드되지 않아 CPU·메모리·에너지를 절약한다고 설명된다. 앱은 로컬 우선 방식으로 계정, 분석, 추적이 없고, 모든 macOS 권한은 선택 사항이며 평이한 언어로 설명된다.",
-        "cons": "Vorssaint는 macOS 14 Sonoma 이상과 Apple Silicon을 요구하므로, Intel 기반 Mac이나 이전 버전의 macOS에서는 설치가 어려울 가능성이 있다. Fan Control과 같은 일부 기능은 베타로 표시되어 있어 아직 변경될 여지가 있는 것으로 보인다.",
-        "fit": "메뉴 바 기반의 통합 유틸리티 구성과 여러 유료 Mac 앱을 대체한다는 설명을 볼 때, Vorssaint는 구독이나 계정 없이 시스템·창·클립보드 도구를 한데 모으고자 하는 macOS 14 이상 Apple Silicon Mac 사용자에게 적합해 보인다."
+        "goal": "Vorssaint는 macOS용 무료 오픈소스 메뉴 막대 애플리케이션으로, 앱별 볼륨 믹서, 시스템 모니터, 창 스냅, 앱 전환기, Dock 미리보기, 클립보드 기록, 텍스트 스니펫, 파일 선반, 언인스톨러 등 다양한 Mac 유틸리티를 하나의 아이콘으로 통합합니다.",
+        "usage": "Homebrew를 통해 `brew install --cask vorssaint` 명령으로 설치하거나, GitHub 릴리스 페이지에서 디스크 이미지를 내려받을 수 있습니다. 소스에서 빌드하려면 `git clone https://github.com/vorssaint/vorssaint-utils.git` 후 `./build.sh`(설치까지 하려면 `./build.sh --install`)를 실행합니다. 제거는 `brew uninstall --cask vorssaint` 또는 `./Tools/uninstall.sh` 스크립트로 가능합니다.",
+        "pros": "Features 허브에서 기능을 개별적으로 설치·제거할 수 있어 사용하지 않는 기능은 CPU, 메모리, 에너지를 소비하지 않으며, 제거 후에도 설정이 유지됩니다. 계정, 분석, 추적 없이 동작하며 각 기능이 사용하는 권한을 명시합니다. GPL-3.0-or-later 라이선스로 배포됩니다.",
+        "cons": "문서화된 하드웨어 요구사항은 Apple Silicon Mac과 macOS 14 Sonoma 이상이며, Intel 기반 Mac에 대한 지원은 언급되어 있지 않아 해당 기종에서의 호환성은 불분명해 보입니다.",
+        "fit": "Apple Silicon 기반 macOS 사용자 중 오디오, 창 관리, 클립보드, 시스템 모니터링 등 여러 유틸리티 기능을 유료 구독이나 추적 없이 하나의 메뉴 막대 앱으로 통합하고자 하는 사용자에게 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "Vorssaint 是一款免费开源的 macOS 菜单栏应用,将原本需要多款付费 Mac 应用才能实现的功能整合在一起,包括分应用音量混音器、系统监视器、窗口贴靠、Dock 预览、剪贴板历史、文本片段、文件搁架和卸载工具,所有功能均在用户本机运行。",
-        "usage": "可以通过 Homebrew 使用 `brew install --cask vorssaint` 命令安装,也可以从 GitHub 发布页面(https://github.com/vorssaint/vorssaint-utils/releases)下载磁盘映像并拖入 Applications 文件夹。若要从源码构建,可执行 `git clone https://github.com/vorssaint/vorssaint-utils.git`,然后运行 `./build.sh`,或使用 `./build.sh --install` 一并完成安装并启动。",
-        "pros": "功能采用模块化设计,用户可在 Features 页面仅安装所需的套件或单项功能,据说卸载的功能会完全停止加载,从而节省 CPU、内存和电量。该应用采用本地优先模式,不含账户、分析或跟踪,且每项 macOS 权限均为可选并以通俗语言说明。",
-        "cons": "Vorssaint 需要 macOS 14 Sonoma 或更新版本,并且仅支持 Apple Silicon,因此可能无法在基于 Intel 的 Mac 或更旧版本的 macOS 上安装。部分功能(如 Fan Control)被标注为测试版,这似乎意味着其功能仍可能发生变化。",
-        "fit": "从其菜单栏式的整合工具集以及旨在替代多款付费 Mac 应用的定位来看,Vorssaint 似乎更适合希望在无需订阅或账户的情况下集中获得系统、窗口和剪贴板工具的 macOS 14 及以上版本 Apple Silicon Mac 用户。"
+        "goal": "Vorssaint 是一款免费开源的 macOS 菜单栏应用,将应用级音量混音器、系统监视器、窗口吸附、应用切换器、Dock 预览、剪贴板历史、文本片段、文件搁架和卸载工具等多种 Mac 实用工具整合到一个图标中。",
+        "usage": "可通过 Homebrew 运行 `brew install --cask vorssaint` 安装,或从 GitHub 发布页面下载磁盘映像。若从源码构建,可执行 `git clone https://github.com/vorssaint/vorssaint-utils.git`,然后运行 `./build.sh`(如需同时安装并启动,使用 `./build.sh --install`)。卸载可通过 `brew uninstall --cask vorssaint` 或内置脚本 `./Tools/uninstall.sh` 完成。",
+        "pros": "用户可在 Features 面板中单独安装或卸载功能,未使用的功能不会占用 CPU、内存或电量,卸载后设置仍会保留。应用无需账户、不含分析或追踪,并会说明每项功能所需的权限。项目采用 GPL-3.0-or-later 许可证发布。",
+        "cons": "文档中列出的硬件要求为搭载 Apple Silicon 芯片、运行 macOS 14 Sonoma 或更新版本的 Mac,未提及对 Intel 芯片 Mac 的支持,因此该机型上的兼容性似乎尚不明确。",
+        "fit": "该工具看起来适合使用 Apple Silicon 芯片 Mac 的用户,他们希望把音频、窗口管理、剪贴板和系统监控等多项实用功能整合到一个菜单栏应用中,而无需付费订阅或被追踪。"
       },
       "es": {
-        "goal": "Vorssaint es una aplicación de barra de menús para macOS, gratuita y de código abierto, que reúne funciones que normalmente requieren varias aplicaciones de pago para Mac, entre ellas un mezclador de volumen por aplicación, un monitor del sistema, ajuste de ventanas, vistas previas del Dock, historial del portapapeles, fragmentos de texto, una bandeja de archivos y un desinstalador, todo ejecutado localmente en el Mac del usuario.",
-        "usage": "Se puede instalar con Homebrew mediante el comando `brew install --cask vorssaint`, o descargando la imagen de disco desde la página de lanzamientos de GitHub (https://github.com/vorssaint/vorssaint-utils/releases) y arrastrándola a Aplicaciones. Para compilarlo desde el código fuente, se usa `git clone https://github.com/vorssaint/vorssaint-utils.git` seguido de `./build.sh`, o `./build.sh --install` para además instalarlo y ejecutarlo.",
-        "pros": "Las funciones son modulares: desde la página Features se puede instalar solo el paquete o las funciones individuales necesarias, y las funciones desinstaladas dejan de cargarse por completo, lo que según se describe ahorra CPU, memoria y energía. La aplicación es local-first, sin cuenta, análisis ni rastreo, y cada permiso de macOS es opcional y se explica en lenguaje sencillo.",
-        "cons": "Vorssaint requiere macOS 14 Sonoma o posterior junto con Apple Silicon, por lo que probablemente no pueda instalarse en Mac con procesador Intel ni en versiones anteriores de macOS. Algunas funciones, como Fan Control, se describen como beta, lo que sugiere que aún podrían cambiar.",
-        "fit": "Dado su conjunto de utilidades integradas en la barra de menús y su propósito declarado de sustituir varias aplicaciones de pago, Vorssaint parece adecuado para usuarios de Mac con Apple Silicon y macOS 14 o posterior que buscan herramientas de sistema, ventanas y portapapeles sin suscripciones ni cuentas."
+        "goal": "Vorssaint es una aplicación gratuita y de código abierto para la barra de menús de macOS que reúne numerosas utilidades de Mac —como un mezclador de volumen por aplicación, un monitor del sistema, ajuste de ventanas, un selector de aplicaciones, vistas previas del Dock, historial del portapapeles, fragmentos de texto, una bandeja de archivos y un desinstalador— en un solo icono.",
+        "usage": "Se instala mediante Homebrew con `brew install --cask vorssaint`, o descargando la imagen de disco desde la página de lanzamientos de GitHub. Para compilar desde el código fuente: `git clone https://github.com/vorssaint/vorssaint-utils.git` y luego `./build.sh` (o `./build.sh --install` para instalarla y abrirla). Se desinstala con `brew uninstall --cask vorssaint` o el script incluido `./Tools/uninstall.sh`.",
+        "pros": "Las funciones se pueden instalar o quitar de forma individual desde el panel de Features, de modo que las que no se usan no consumen CPU, memoria ni energía, y la configuración se conserva tras desinstalarlas. La app funciona sin cuenta, análisis ni rastreo, y documenta qué permisos usa cada función. Se distribuye bajo la licencia GPL-3.0-or-later.",
+        "cons": "Los requisitos de hardware documentados son un Mac con Apple Silicon y macOS 14 Sonoma o posterior; no se menciona compatibilidad con Mac basados en Intel, por lo que su funcionamiento en esos equipos no queda claro.",
+        "fit": "Parece adecuada para usuarios de macOS con Apple Silicon que buscan reunir varias utilidades —audio, gestión de ventanas, portapapeles y monitoreo del sistema— en una sola app de la barra de menús, sin suscripciones de pago ni rastreo."
       },
       "ja": {
-        "goal": "Vorssaintは、アプリ別音量ミキサー、システムモニター、ウィンドウのスナップ、Dockプレビュー、クリップボード履歴、テキストスニペット、ファイル置き場、アンインストーラーなど、通常は複数の有料Macアプリで提供される機能を1つのメニューバーアイコンにまとめた、無料でオープンソースのmacOSアプリケーションであり、すべてユーザーのMac上でローカルに動作する。",
-        "usage": "Homebrewを使い `brew install --cask vorssaint` コマンドでインストールできるほか、GitHubのリリースページ(https://github.com/vorssaint/vorssaint-utils/releases)からディスクイメージをダウンロードしてApplicationsフォルダにドラッグする方法もある。ソースからビルドする場合は `git clone https://github.com/vorssaint/vorssaint-utils.git` を実行した後、`./build.sh`、または同時にインストールと起動まで行う `./build.sh --install` を使用する。",
-        "pros": "機能はモジュール化されており、Featuresページから必要なバンドルや個別機能のみをインストールできる。アンインストールした機能は完全に読み込まれなくなり、CPU・メモリ・電力を節約すると説明されている。アプリはローカルファーストで、アカウント・解析・追跡がなく、macOSの各権限はすべて任意で平易な言葉で説明される。",
-        "cons": "Vorssaintの利用にはmacOS 14 Sonoma以降とApple Siliconが必要とされており、Intel搭載Macや旧バージョンのmacOSにはインストールできない可能性があると考えられる。Fan Controlなど一部機能はベータ版とされており、今後変更される可能性があることがうかがえる。",
-        "fit": "メニューバーを中心とした統合ユーティリティ構成と、複数の有料Macアプリを置き換えるという記載内容から判断すると、Vorssaintはサブスクリプションやアカウントなしでシステム・ウィンドウ・クリップボード関連のツールをまとめて使いたい、macOS 14以降のApple Silicon Mac利用者に適していると考えられる。"
+        "goal": "Vorssaintは、アプリごとの音量ミキサー、システムモニター、ウィンドウスナップ、アプリスイッチャー、Dockプレビュー、クリップボード履歴、テキストスニペット、ファイル一時置き場、アンインストーラーなど、多数のMacユーティリティを1つのメニューバーアイコンにまとめた、無料でオープンソースのmacOSアプリです。",
+        "usage": "Homebrewで `brew install --cask vorssaint` を実行するか、GitHubのリリースページからディスクイメージをダウンロードしてインストールできます。ソースからビルドする場合は `git clone https://github.com/vorssaint/vorssaint-utils.git` の後に `./build.sh`(インストールと起動まで行う場合は `./build.sh --install`)を実行します。アンインストールは `brew uninstall --cask vorssaint` または付属の `./Tools/uninstall.sh` スクリプトで行えます。",
+        "pros": "Featuresハブから機能を個別にインストール・アンインストールでき、使わない機能はCPUやメモリ、電力を消費しません。アンインストール後も設定は保持されます。アカウント登録や解析、トラッキングなしで動作し、各機能が使用する権限を明示します。ライセンスはGPL-3.0-or-laterです。",
+        "cons": "文書化されているハードウェア要件はApple SiliconのMacとmacOS 14 Sonoma以降であり、Intel搭載Macへの対応については言及がなく、その互換性は不明瞭なようです。",
+        "fit": "Apple SiliconのMacを使用し、音声、ウィンドウ管理、クリップボード、システム監視といった複数のユーティリティ機能を、有料サブスクリプションやトラッキングなしで1つのメニューバーアプリにまとめたいユーザーに向いていると考えられます。"
       }
     },
     "evidence": {
@@ -8652,11 +8585,6 @@
           "section_heading": "Install"
         },
         {
-          "start_line": 166,
-          "end_line": 166,
-          "section_heading": "Install"
-        },
-        {
           "start_line": 213,
           "end_line": 217,
           "section_heading": "Build it yourself"
@@ -8665,13 +8593,18 @@
       "pros": [
         {
           "start_line": 60,
-          "end_line": 62,
+          "end_line": 60,
           "section_heading": "Install only what you use"
         },
         {
           "start_line": 186,
           "end_line": 188,
           "section_heading": "Private by default"
+        },
+        {
+          "start_line": 30,
+          "end_line": 30,
+          "section_heading": ""
         }
       ],
       "cons": [
@@ -8679,40 +8612,32 @@
           "start_line": 208,
           "end_line": 209,
           "section_heading": "What you need"
-        },
-        {
-          "start_line": 82,
-          "end_line": 82,
-          "section_heading": "Know what your Mac is doing"
         }
       ],
       "fit": [
         {
-          "start_line": 11,
-          "end_line": 12,
-          "section_heading": ""
-        },
-        {
           "start_line": 208,
           "end_line": 209,
           "section_heading": "What you need"
+        },
+        {
+          "start_line": 11,
+          "end_line": 12,
+          "section_heading": ""
         }
       ]
     },
     "invariants": [
       {
-        "kind": "product",
-        "value": "Vorssaint",
+        "kind": "command",
+        "value": "brew install --cask vorssaint",
         "fields": [
-          "goal",
-          "usage",
-          "cons",
-          "fit"
+          "usage"
         ]
       },
       {
         "kind": "command",
-        "value": "brew install --cask vorssaint",
+        "value": "brew uninstall --cask vorssaint",
         "fields": [
           "usage"
         ]
@@ -8739,8 +8664,8 @@
         ]
       },
       {
-        "kind": "url",
-        "value": "https://github.com/vorssaint/vorssaint-utils/releases",
+        "kind": "command",
+        "value": "./Tools/uninstall.sh",
         "fields": [
           "usage"
         ]
@@ -8749,8 +8674,22 @@
         "kind": "version",
         "value": "macOS 14",
         "fields": [
-          "cons",
-          "fit"
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Vorssaint",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Homebrew",
+        "fields": [
+          "usage"
         ]
       }
     ],
@@ -8762,8 +8701,8 @@
       "kind": "readme",
       "slug": "vorssaint/vorssaint-utils",
       "path": "README.md",
-      "blob_sha": "53f54aae62f608d68f6fa2125bdd9064d5761c99",
-      "content_sha256": "763edf07756b5515c6efefd16a646bd7a2d909602f515caa7bd23c6dd92504cf",
+      "blob_sha": "1d1701f72fc56cf5a7bd5d16a9c94d3dd0a3b590",
+      "content_sha256": "7d8d7847b4741df14ec8b8481261c1a944a7da8098b7386c1d7ab83afeead6a9",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -8952,122 +8891,117 @@
   },
   "debpalash/VoiceStudio": {
     "content": {
-      "goal": "VoiceStudio is a locally-run application for voice cloning, video dubbing, dictation, and long-form audio production such as stories and audiobooks, running on macOS, Windows, Linux, and Docker. It includes 16 TTS engines, 11 ASR engines, and a 646-language catalogue; the documented local workflow needs no account, API key, subscription, or usage meter.",
-      "usage": "Users download a package from the latest GitHub release and follow a platform guide, or run `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable`. Building from source uses `git clone https://github.com/debpalash/VoiceStudio.git` followed by `bun install` and `bun run desktop`. A local REST/SSE/WebSocket API and OpenAI-compatible audio API are exposed at localhost:3900.",
-      "pros": "Voices, projects, settings, and outputs stay on the local machine by default, with network-backed features described as explicit opt-ins. Multiple compute backends are supported — CUDA, Apple Silicon MPS/MLX, ROCm, and CPU — and AudioSeal watermarking is included by default to help identify synthetic speech.",
-      "cons": "The application itself is licensed AGPL-3.0, but downloaded models keep separate upstream terms — the default OmniVoice weights are documented as CC-BY-NC — so commercial use likely requires checking each selected model's license separately. Docker images are documented as linux/amd64 only, so Apple Silicon/ARM64 users may need the native macOS app or extra setup steps.",
-      "fit": "The README positions VoiceStudio for private, offline, self-hosted, or high-volume work where users supply their own hardware, contrasted with hosted voice services offering faster setup but provider-managed compute. This suggests it may suit users who prioritize local control over convenience, though performance depends on the user's own hardware."
+      "goal": "VoiceStudio is a locally-run application for voice cloning, video dubbing, dictation, and long-form audio production, using 16 TTS engines, 11 ASR engines, and a catalogue spanning 646 languages, with no account or subscription required for the local workflow.",
+      "usage": "Users install VoiceStudio by downloading a package from the latest GitHub release, or run it via Docker with `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable`. Running from source needs Node 20+/Bun and Python 3.11+, then `git clone https://github.com/debpalash/VoiceStudio.git`, `bun install`, and `bun run desktop`.",
+      "pros": "VoiceStudio keeps voices, projects, and outputs on the local machine by default, describes its source, engines, models, API, and routing as open, and provides an OpenAI-compatible API and an MCP server for integrations.",
+      "cons": "VoiceStudio's main branch is described as active beta software that may change between releases, and Intel Macs cannot run its local Python backend, requiring a remote backend instead.",
+      "fit": "VoiceStudio appears best suited for private, offline, self-hosted, or high-volume use where the user supplies the hardware, licensed under AGPL-3.0, in contrast to hosted voice services that manage compute via subscription."
     },
     "summaries": {
       "en": {
-        "goal": "VoiceStudio is a locally-run application for voice cloning, video dubbing, dictation, and long-form audio production such as stories and audiobooks, running on macOS, Windows, Linux, and Docker. It includes 16 TTS engines, 11 ASR engines, and a 646-language catalogue; the documented local workflow needs no account, API key, subscription, or usage meter.",
-        "usage": "Users download a package from the latest GitHub release and follow a platform guide, or run `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable`. Building from source uses `git clone https://github.com/debpalash/VoiceStudio.git` followed by `bun install` and `bun run desktop`. A local REST/SSE/WebSocket API and OpenAI-compatible audio API are exposed at localhost:3900.",
-        "pros": "Voices, projects, settings, and outputs stay on the local machine by default, with network-backed features described as explicit opt-ins. Multiple compute backends are supported — CUDA, Apple Silicon MPS/MLX, ROCm, and CPU — and AudioSeal watermarking is included by default to help identify synthetic speech.",
-        "cons": "The application itself is licensed AGPL-3.0, but downloaded models keep separate upstream terms — the default OmniVoice weights are documented as CC-BY-NC — so commercial use likely requires checking each selected model's license separately. Docker images are documented as linux/amd64 only, so Apple Silicon/ARM64 users may need the native macOS app or extra setup steps.",
-        "fit": "The README positions VoiceStudio for private, offline, self-hosted, or high-volume work where users supply their own hardware, contrasted with hosted voice services offering faster setup but provider-managed compute. This suggests it may suit users who prioritize local control over convenience, though performance depends on the user's own hardware."
+        "goal": "VoiceStudio is a locally-run application for voice cloning, video dubbing, dictation, and long-form audio production, using 16 TTS engines, 11 ASR engines, and a catalogue spanning 646 languages, with no account or subscription required for the local workflow.",
+        "usage": "Users install VoiceStudio by downloading a package from the latest GitHub release, or run it via Docker with `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable`. Running from source needs Node 20+/Bun and Python 3.11+, then `git clone https://github.com/debpalash/VoiceStudio.git`, `bun install`, and `bun run desktop`.",
+        "pros": "VoiceStudio keeps voices, projects, and outputs on the local machine by default, describes its source, engines, models, API, and routing as open, and provides an OpenAI-compatible API and an MCP server for integrations.",
+        "cons": "VoiceStudio's main branch is described as active beta software that may change between releases, and Intel Macs cannot run its local Python backend, requiring a remote backend instead.",
+        "fit": "VoiceStudio appears best suited for private, offline, self-hosted, or high-volume use where the user supplies the hardware, licensed under AGPL-3.0, in contrast to hosted voice services that manage compute via subscription."
       },
       "ko": {
-        "goal": "VoiceStudio는 음성 복제, 영상 더빙, 받아쓰기, 스토리·오디오북 등 장편 오디오 제작을 로컬 환경에서 수행하는 애플리케이션으로 macOS, Windows, Linux, Docker에서 실행됩니다. 16개의 TTS 엔진, 11개의 ASR 엔진, 646개 언어 카탈로그를 포함하며, 문서에 따르면 로컬 워크플로우에는 계정, API 키, 구독, 사용량 측정이 필요하지 않습니다.",
-        "usage": "사용자는 최신 GitHub 릴리스에서 패키지를 다운로드한 뒤 플랫폼 가이드를 따르거나, `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable` 명령을 실행할 수 있습니다. 소스에서 빌드하려면 `git clone https://github.com/debpalash/VoiceStudio.git` 후 `bun install`, `bun run desktop`을 실행합니다. 로컬 REST/SSE/WebSocket API와 OpenAI 호환 오디오 API는 localhost:3900에서 제공됩니다.",
-        "pros": "음성, 프로젝트, 설정, 출력물은 기본적으로 로컬 머신에 저장되며, 네트워크 기반 기능은 명시적 옵트인으로 설명됩니다. CUDA, Apple Silicon MPS/MLX, ROCm, CPU 등 다양한 연산 백엔드를 지원하며, 합성 음성 식별을 돕기 위해 AudioSeal 워터마킹이 기본 포함되어 있습니다.",
-        "cons": "애플리케이션 자체는 AGPL-3.0 라이선스를 사용하지만, 다운로드된 모델은 별도의 상위 라이선스 조건을 유지합니다 — 기본 OmniVoice 가중치는 CC-BY-NC로 문서화되어 있어, 상업적 사용 시에는 선택한 각 모델의 라이선스를 개별적으로 확인해야 할 가능성이 높습니다. Docker 이미지는 linux/amd64 전용으로 문서화되어 있어, Apple Silicon/ARM64 사용자는 네이티브 macOS 앱이나 추가 설정 단계가 필요할 수 있습니다.",
-        "fit": "README는 VoiceStudio를 사용자가 직접 하드웨어를 제공하는 비공개, 오프라인, 자체 호스팅 또는 대용량 작업에 적합하다고 소개하며, 이를 제공업체가 연산을 관리하는 더 빠른 설정의 호스팅 음성 서비스와 대비시킵니다. 이는 편의성보다 로컬 제어를 우선시하는 사용자에게 적합할 수 있음을 시사하지만, 성능은 사용자 자신의 하드웨어에 따라 달라집니다."
+        "goal": "VoiceStudio는 음성 복제, 영상 더빙, 받아쓰기, 장편 오디오 제작을 로컬 하드웨어에서 수행하는 애플리케이션으로, 16개의 TTS 엔진과 11개의 ASR 엔진, 646개 언어를 포괄하는 카탈로그를 제공하며 로컬 워크플로우에는 계정이나 구독이 필요하지 않습니다.",
+        "usage": "사용자는 최신 GitHub 릴리스에서 패키지를 다운로드하여 VoiceStudio를 설치하거나, `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable` 명령으로 Docker에서 실행할 수 있습니다. 소스에서 실행하려면 Node 20+/Bun과 Python 3.11+가 필요하며, 이후 `git clone https://github.com/debpalash/VoiceStudio.git`, `bun install`, `bun run desktop`을 순서대로 실행합니다.",
+        "pros": "VoiceStudio는 기본적으로 음성, 프로젝트, 출력 결과를 로컬 머신에 보관하며, 소스·엔진·모델·API·라우팅을 개방형으로 설명하고, OpenAI 호환 API와 MCP 서버를 제공하여 통합을 지원합니다.",
+        "cons": "VoiceStudio의 main 브랜치는 활성 베타 소프트웨어로 설명되며 릴리스 사이에 변경될 수 있고, 인텔 Mac은 로컬 Python 백엔드를 실행할 수 없어 원격 백엔드가 필요합니다.",
+        "fit": "VoiceStudio는 비공개, 오프라인, 자체 호스팅 또는 대용량 작업에 적합해 보이며, 사용자가 직접 하드웨어를 제공하고 AGPL-3.0 라이선스를 따르는 반면, 호스팅형 음성 서비스는 구독을 통해 컴퓨팅을 관리합니다."
       },
       "zh-CN": {
-        "goal": "VoiceStudio 是一款可在本地运行的应用程序,用于语音克隆、视频配音、听写以及故事、有声书等长篇音频制作,支持 macOS、Windows、Linux 和 Docker。它包含 16 个 TTS 引擎、11 个 ASR 引擎和 646 种语言的目录;文档说明本地工作流无需账户、API 密钥、订阅或用量计量。",
-        "usage": "用户可以从最新的 GitHub 发行版下载安装包并按照平台指南操作,或运行命令 `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable`。从源码构建则需先执行 `git clone https://github.com/debpalash/VoiceStudio.git`,然后依次运行 `bun install` 和 `bun run desktop`。本地 REST/SSE/WebSocket API 以及兼容 OpenAI 的音频 API 通过 localhost:3900 提供。",
-        "pros": "语音、项目、设置和输出内容默认保留在本地机器上,联网相关功能被描述为需要显式选择启用。系统支持多种计算后端,包括 CUDA、Apple Silicon MPS/MLX、ROCm 和 CPU,并默认集成 AudioSeal 水印以帮助识别合成语音。",
-        "cons": "应用程序本身采用 AGPL-3.0 许可证,但下载的模型保留各自独立的上游条款——默认的 OmniVoice 权重文档标注为 CC-BY-NC——因此商业使用很可能需要单独核实所选每个模型的许可条款。Docker 镜像文档说明仅支持 linux/amd64,因此 Apple Silicon/ARM64 用户可能需要使用原生 macOS 应用或额外的设置步骤。",
-        "fit": "README 将 VoiceStudio 定位为适合私密、离线、自托管或大批量工作的方案,用户需自行提供硬件,这与提供更快设置但由服务商管理算力的托管语音服务形成对比。这表明它可能更适合优先考虑本地控制而非便利性的用户,不过其性能取决于用户自身的硬件配置。"
+        "goal": "VoiceStudio 是一款在本地硬件上运行的应用程序,用于语音克隆、视频配音、听写和长篇音频制作,提供16个TTS引擎、11个ASR引擎以及涵盖646种语言的目录,本地工作流程无需账户或订阅。",
+        "usage": "用户可以从最新的GitHub发行版下载安装包来安装VoiceStudio,或使用命令 `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable` 通过Docker运行。若从源码运行,需要Node 20+/Bun和Python 3.11+,随后依次执行 `git clone https://github.com/debpalash/VoiceStudio.git`、`bun install`、`bun run desktop`。",
+        "pros": "VoiceStudio 默认将语音、项目和输出结果保存在本地设备上,其源代码、引擎、模型、API和路由被描述为开放的,并提供兼容OpenAI的API和MCP服务器以支持集成。",
+        "cons": "VoiceStudio 的main分支被描述为活跃测试版软件,可能在版本发布之间发生变化;此外,Intel芯片Mac无法运行本地Python后端,需要改用远程后端。",
+        "fit": "VoiceStudio 看起来更适合私密、离线、自托管或高负载的使用场景,需要用户自备硬件,并采用AGPL-3.0许可;相比之下,托管型语音服务通过订阅方式管理算力。"
       },
       "es": {
-        "goal": "VoiceStudio es una aplicación que se ejecuta localmente para clonación de voz, doblaje de video, dictado y producción de audio de larga duración, como historias y audiolibros, disponible en macOS, Windows, Linux y Docker. Incluye 16 motores TTS, 11 motores ASR y un catálogo de 646 idiomas; según la documentación, el flujo de trabajo local no requiere cuenta, clave API, suscripción ni medición de uso.",
-        "usage": "Los usuarios descargan un paquete desde la última versión de GitHub y siguen la guía de la plataforma correspondiente, o ejecutan `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable`. Para compilar desde el código fuente se usa `git clone https://github.com/debpalash/VoiceStudio.git`, seguido de `bun install` y `bun run desktop`. Una API local REST/SSE/WebSocket y una API de audio compatible con OpenAI se exponen en localhost:3900.",
-        "pros": "Las voces, proyectos, configuraciones y salidas permanecen en la máquina local de forma predeterminada, y las funciones basadas en red se describen como opciones explícitas de suscripción voluntaria. Se admiten varios backends de cómputo —CUDA, Apple Silicon MPS/MLX, ROCm y CPU— e incluye por defecto el watermarking AudioSeal para ayudar a identificar voz sintética.",
-        "cons": "La aplicación en sí está licenciada bajo AGPL-3.0, pero los modelos descargados mantienen términos ascendentes separados —los pesos predeterminados de OmniVoice están documentados como CC-BY-NC—, por lo que el uso comercial probablemente requiera revisar por separado la licencia de cada modelo seleccionado. Las imágenes de Docker están documentadas como exclusivas para linux/amd64, por lo que los usuarios de Apple Silicon/ARM64 podrían necesitar la app nativa de macOS o pasos de configuración adicionales.",
-        "fit": "El README posiciona a VoiceStudio para trabajo privado, sin conexión, autoalojado o de alto volumen en el que el usuario aporta su propio hardware, en contraste con los servicios de voz alojados que ofrecen una configuración más rápida pero con cómputo gestionado por el proveedor. Esto sugiere que podría ser más adecuado para usuarios que priorizan el control local sobre la conveniencia, aunque el rendimiento depende del hardware propio del usuario."
+        "goal": "VoiceStudio es una aplicación que se ejecuta localmente para clonación de voz, doblaje de video, dictado y producción de audio de larga duración, con 16 motores TTS, 11 motores ASR y un catálogo que abarca 646 idiomas, sin necesidad de cuenta ni suscripción para el flujo de trabajo local.",
+        "usage": "Los usuarios instalan VoiceStudio descargando un paquete desde la última versión de GitHub, o lo ejecutan mediante Docker con `docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable`. Para ejecutarlo desde el código fuente se necesitan Node 20+/Bun y Python 3.11+, y luego `git clone https://github.com/debpalash/VoiceStudio.git`, `bun install` y `bun run desktop`.",
+        "pros": "VoiceStudio mantiene voces, proyectos y salidas en la máquina local de forma predeterminada, describe su código fuente, motores, modelos, API y enrutamiento como abiertos, y ofrece una API compatible con OpenAI y un servidor MCP para integraciones.",
+        "cons": "La rama main de VoiceStudio se describe como software en beta activa que puede cambiar entre versiones, y los Mac con Intel no pueden ejecutar el backend local de Python, por lo que requieren un backend remoto.",
+        "fit": "VoiceStudio parece adecuado para uso privado, sin conexión, autoalojado o de alto volumen donde el usuario aporta el hardware, bajo licencia AGPL-3.0, a diferencia de los servicios de voz alojados que gestionan el cómputo mediante suscripción."
       },
       "ja": {
-        "goal": "VoiceStudio は、音声クローニング、動画の吹き替え、口述筆記、ストーリーやオーディオブックなどの長尺音声制作をローカル環境で行うアプリケーションで、macOS、Windows、Linux、Docker に対応しています。16 種類の TTS エンジン、11 種類の ASR エンジン、646 言語のカタログを含み、文書によればローカルワークフローにはアカウント、API キー、サブスクリプション、使用量計測が不要とされています。",
-        "usage": "ユーザーは最新の GitHub リリースからパッケージをダウンロードしてプラットフォームガイドに従うか、`docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable` を実行します。ソースからビルドする場合は `git clone https://github.com/debpalash/VoiceStudio.git` の後に `bun install`、`bun run desktop` を実行します。ローカルの REST/SSE/WebSocket API と OpenAI 互換オーディオ API は localhost:3900 で公開されます。",
-        "pros": "音声、プロジェクト、設定、出力はデフォルトでローカルマシンに保存され、ネットワーク関連機能は明示的なオプトインとして説明されています。CUDA、Apple Silicon の MPS/MLX、ROCm、CPU など複数の計算バックエンドに対応し、合成音声の識別を助けるため AudioSeal の透かしがデフォルトで組み込まれています。",
-        "cons": "アプリケーション自体は AGPL-3.0 でライセンスされていますが、ダウンロードされるモデルはそれぞれ別の上流ライセンス条件を保持しており——デフォルトの OmniVoice の重みは CC-BY-NC と文書化されています——そのため商用利用には選択した各モデルのライセンスを個別に確認する必要がある可能性が高いです。Docker イメージは linux/amd64 専用と文書化されているため、Apple Silicon/ARM64 ユーザーはネイティブ macOS アプリや追加のセットアップ手順が必要になる場合があります。",
-        "fit": "README は VoiceStudio を、ユーザー自身がハードウェアを用意するプライベート、オフライン、セルフホスト、または大量処理向けの用途に位置付けており、プロバイダーが計算資源を管理するホスト型音声サービスのより迅速なセットアップと対比しています。これは利便性よりもローカルでの制御を重視するユーザーに適している可能性を示唆していますが、性能はユーザー自身のハードウェアに依存します。"
+        "goal": "VoiceStudioはローカルハードウェア上で動作するアプリケーションで、音声クローニング、動画吹き替え、ディクテーション、長尺音声制作を行い、16のTTSエンジン、11のASRエンジン、646言語にわたるカタログを備え、ローカルワークフローにアカウントやサブスクリプションは不要です。",
+        "usage": "ユーザーは最新のGitHubリリースからパッケージをダウンロードしてVoiceStudioをインストールするか、`docker run -d -p 127.0.0.1:3900:3900 -v omnivoice-data:/app/omnivoice_data --name voicestudio palashdeb/omnivoice-studio:stable` コマンドでDockerから実行できます。ソースから実行する場合はNode 20+/BunとPython 3.11+が必要で、その後 `git clone https://github.com/debpalash/VoiceStudio.git`、`bun install`、`bun run desktop` を順に実行します。",
+        "pros": "VoiceStudioはデフォルトで音声、プロジェクト、出力をローカルマシンに保持し、ソース・エンジン・モデル・API・ルーティングがオープンであると説明されており、OpenAI互換APIとMCPサーバーを提供して連携を支援します。",
+        "cons": "VoiceStudioのmainブランチはアクティブなベータ版ソフトウェアとされ、リリース間で変更される可能性があり、Intel MacはローカルPythonバックエンドを実行できないためリモートバックエンドが必要です。",
+        "fit": "VoiceStudioはプライベート、オフライン、セルフホスト、または大量処理の用途に適していると見られ、ユーザー自身がハードウェアを用意しAGPL-3.0ライセンスの下で提供される一方、ホスト型音声サービスはサブスクリプションでコンピューティングを管理します。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 8,
-          "end_line": 10,
+          "start_line": 11,
+          "end_line": 13,
           "section_heading": ""
-        },
-        {
-          "start_line": 51,
-          "end_line": 58,
-          "section_heading": "At a glance"
         }
       ],
       "usage": [
         {
-          "start_line": 95,
-          "end_line": 97,
+          "start_line": 75,
+          "end_line": 77,
+          "section_heading": "Install"
+        },
+        {
+          "start_line": 98,
+          "end_line": 100,
           "section_heading": "Quick Docker run"
         },
         {
-          "start_line": 123,
-          "end_line": 128,
+          "start_line": 126,
+          "end_line": 131,
           "section_heading": "Run from source"
-        },
-        {
-          "start_line": 316,
-          "end_line": 319,
-          "section_heading": "Local speech platform and OpenAI-compatible API"
         }
       ],
       "pros": [
         {
-          "start_line": 57,
-          "end_line": 58,
+          "start_line": 59,
+          "end_line": 59,
           "section_heading": "At a glance"
         },
         {
-          "start_line": 159,
-          "end_line": 159,
-          "section_heading": "Features"
+          "start_line": 60,
+          "end_line": 61,
+          "section_heading": "At a glance"
         },
         {
-          "start_line": 482,
-          "end_line": 482,
-          "section_heading": "Responsible use and safety"
+          "start_line": 190,
+          "end_line": 190,
+          "section_heading": "Comparison"
         }
       ],
       "cons": [
         {
-          "start_line": 90,
-          "end_line": 93,
-          "section_heading": "Quick Docker run"
+          "start_line": 47,
+          "end_line": 48,
+          "section_heading": ""
         },
         {
-          "start_line": 229,
-          "end_line": 229,
-          "section_heading": "Text to speech"
-        },
-        {
-          "start_line": 444,
-          "end_line": 444,
-          "section_heading": "FAQ"
+          "start_line": 88,
+          "end_line": 89,
+          "section_heading": "Install"
         }
       ],
       "fit": [
         {
-          "start_line": 179,
-          "end_line": 181,
+          "start_line": 61,
+          "end_line": 61,
+          "section_heading": "At a glance"
+        },
+        {
+          "start_line": 184,
+          "end_line": 184,
           "section_heading": "Comparison"
         },
         {
-          "start_line": 185,
-          "end_line": 188,
+          "start_line": 186,
+          "end_line": 186,
           "section_heading": "Comparison"
         }
       ]
@@ -9105,14 +9039,14 @@
         "kind": "version",
         "value": "AGPL-3.0",
         "fields": [
-          "cons"
+          "fit"
         ]
       },
       {
         "kind": "version",
-        "value": "CC-BY-NC",
+        "value": "Python 3.11+",
         "fields": [
-          "cons"
+          "usage"
         ]
       },
       {
@@ -9126,7 +9060,8 @@
         "kind": "number",
         "value": "11",
         "fields": [
-          "goal"
+          "goal",
+          "usage"
         ]
       },
       {
@@ -9138,7 +9073,7 @@
       },
       {
         "kind": "url",
-        "value": "localhost:3900",
+        "value": "https://github.com/debpalash/VoiceStudio.git",
         "fields": [
           "usage"
         ]
@@ -9149,28 +9084,21 @@
         "fields": [
           "goal",
           "usage",
+          "pros",
+          "cons",
           "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "OmniVoice",
-        "fields": [
-          "usage",
-          "cons"
         ]
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "debpalash/voicestudio",
       "path": "README.md",
-      "blob_sha": "10bba8f238a615b1d06c352b757ccc4af4dc3fd4",
-      "content_sha256": "cfb74e49685c37d3b63b776cc47066c329407f1b0a0b7f9bba9918ae4fe1bda9",
+      "blob_sha": "cb8d6cdf297f4c34c333bcb43445e224e62db571",
+      "content_sha256": "becb2974292e1df43950580bb09c75929c7c1cfa5a7c06211e73d5ea509e4c66",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
