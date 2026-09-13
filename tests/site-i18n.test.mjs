@@ -35,6 +35,7 @@ test("every rail group, shortcut hint, and held-retry message exists in all five
     "nav.ariaAccount", "nav.ariaExplore", "nav.ariaHistory", "nav.ariaExport",
     "nav.titleAccount", "nav.titleExplore", "nav.titleHistory", "nav.titleExport",
     "nav.groups", "filter.copyLink", "filter.compact", "tooltip.heldRetry",
+    "account.retry",
     // Batch E2: the active-filter pills and the AI contradiction guard.
     "filter.removePill", "filter.conflictExcludeAi", "filter.conflictAiField",
     // Batch E2: the touch summary is a modal, so it needs a close button with a name.

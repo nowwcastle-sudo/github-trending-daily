@@ -986,19 +986,20 @@ test("an anonymous visitor gets an enabled Sign-in button that imports the clien
 
   assert.match(guest, /setSyncMessage\("account\.guest","notice"\)/);
   assert.match(guest, /login\.disabled=false;/);
-  assert.match(guest, /login\.addEventListener\("click",async\(\)=>\{/);
+  assert.match(guest, /login\.addEventListener\("click",\(\)=>\{/);
   assert.match(guest, /\},\{once:true\}\);/);
-  // The click shows the same pending copy the eager path shows, then continues into the popup.
+  // The first click prepares the SDK, then a later click owns the popup while user activation is fresh.
   assert.match(guest, /setSyncMessage\("account\.preparing","notice"\);\s*\r?\n\s*login\.disabled=true;/);
-  assert.match(guest, /const client=await loadClient\(\);/);
+  assert.match(guest, /const prepareClient=\(\)=>loadClient\(\)\.then/);
   // Intent prefetch: the SDK chain starts on pointer-over or focus, and a click after the module
   // has published its own handler steps aside instead of opening a second popup.
   assert.match(guest, /login\.addEventListener\("pointerenter",prefetch,\{once:true\}\);/);
   assert.match(guest, /login\.addEventListener\("focus",prefetch,\{once:true\}\);/);
   assert.match(guest, /if\(published\)return;/);
-  assert.match(guest, /if\(await client\.ready&&!login\.hidden\)await client\.signIn\(\);/);
+  assert.doesNotMatch(guest, /client\.signIn\(\)/);
+  assert.match(guest, /setSyncMessage\("account\.retry","notice"\)/);
   // A module that never loads falls back exactly the way the eager path does.
-  assert.match(guest, /\}catch\{keepGuestMode\(\)\}/);
+  assert.match(guest, /prepareClient\(\)\.catch\(keepGuestMode\)/);
   assert.match(boot, /function keepGuestMode\(\)\{[\s\S]*?login\.hidden=true;\s*\r?\n\s*logout\.hidden=true;/);
 
   // account.guest exists in every locale, so the status never sits on a false "preparing" state.
@@ -1006,6 +1007,91 @@ test("an anonymous visitor gets an enabled Sign-in button that imports the clien
     assert.equal(typeof siteMessages[locale]["account.guest"], "string");
     assert.ok(siteMessages[locale]["account.guest"].length > 0, `${locale} needs a guest sync message`);
   }
+});
+
+test("an anonymous first click only prepares Firebase and leaves popup launch to the next click", async () => {
+  const scriptTag = '<script type="module">';
+  const start = page.indexOf(scriptTag);
+  const sourceStart = start + scriptTag.length;
+  const end = page.indexOf("</script>", sourceStart);
+  assert.ok(start >= 0 && end > sourceStart, "the deferred auth entry must be isolated");
+
+  function button(hidden = false) {
+    const listeners = [];
+    return {
+      hidden,
+      disabled: false,
+      textContent: "Google로 로그인",
+      title: "",
+      dataset: {},
+      addEventListener(type, listener, options = {}) {
+        listeners.push({ type, listener, once: Boolean(options.once) });
+      },
+      removeEventListener(type, listener) {
+        const index = listeners.findIndex(item => item.type === type && item.listener === listener);
+        if (index >= 0) listeners.splice(index, 1);
+      },
+      dispatch(type) {
+        for (const item of [...listeners]) {
+          if (item.type !== type) continue;
+          if (item.once) this.removeEventListener(type, item.listener);
+          item.listener({ currentTarget: this, target: this, type });
+        }
+      },
+      setAttribute(name, value) { this[name] = String(value); },
+    };
+  }
+
+  const elements = {
+    syncStatus: button(),
+    loginBtn: button(),
+    logoutBtn: button(true),
+  };
+  const storage = {
+    values: new Map(),
+    getItem(key) { return this.values.get(key) ?? null; },
+    setItem(key, value) { this.values.set(key, String(value)); },
+    removeItem(key) { this.values.delete(key); },
+  };
+  const client = {
+    ready: Promise.resolve(true),
+    signInCalls: 0,
+    signIn() { this.signInCalls += 1; return Promise.resolve(); },
+  };
+  let resolveClient;
+  const clientPromise = new Promise(resolve => { resolveClient = resolve; });
+  const context = {
+    document: { getElementById: id => elements[id] },
+    localStorage: storage,
+    pageI18n: { t: key => key },
+    favoriteController: { favorites: () => [] },
+    applyFavoriteState() {},
+    loadFirebaseClient: () => clientPromise,
+    globalThis: null,
+  };
+  context.globalThis = context;
+
+  const source = page.slice(sourceStart, end)
+    .replaceAll('import("./firebase-client.js")', "loadFirebaseClient()");
+  vm.runInNewContext(source, context, { filename: "deferred-auth-entry-fixture.js" });
+
+  elements.loginBtn.dispatch("click");
+  assert.equal(client.signInCalls, 0);
+  assert.equal(elements.loginBtn.disabled, true);
+
+  // Dynamic import evaluation publishes the real module click handler before its ready promise.
+  elements.loginBtn.addEventListener("click", () => client.signIn());
+  resolveClient(client);
+  await new Promise(resolve => setImmediate(resolve));
+  await new Promise(resolve => setImmediate(resolve));
+
+  assert.equal(client.signInCalls, 0);
+  assert.equal(elements.loginBtn.disabled, false);
+  assert.equal(elements.syncStatus.textContent, "account.retry");
+
+  elements.loginBtn.dispatch("click");
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(client.signInCalls, 1);
 });
 
 test("the account marker reader survives a storage that is empty, stale or throwing", () => {

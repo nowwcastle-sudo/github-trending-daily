@@ -2381,19 +2381,23 @@ if(hasAccountMarker(localStorage)){
      handler owns the popup and this one steps aside. */
   let clientPromise=null,published=false;
   const loadClient=()=>clientPromise??=import("./firebase-client.js");
-  const prefetch=()=>{loadClient().then(client=>client.ready).then(ready=>{published=ready===true}).catch(()=>{})};
+  const prepareClient=()=>loadClient().then(async client=>{
+    const ready=await client.ready;
+    if(ready===true&&!login.hidden){
+      published=true;
+      login.disabled=false;
+      setSyncMessage("account.retry","notice");
+    }
+    return ready;
+  });
+  const prefetch=()=>{prepareClient().catch(()=>{})};
   login.addEventListener("pointerenter",prefetch,{once:true});
   login.addEventListener("focus",prefetch,{once:true});
-  login.addEventListener("click",async()=>{
+  login.addEventListener("click",()=>{
     if(published)return;
     setSyncMessage("account.preparing","notice");
     login.disabled=true;
-    try{
-      const client=await loadClient();
-      /* ready is false when the bootstrap fell back to guest mode: it has already written its own
-         message and hidden the buttons, so there is no popup left to continue into. */
-      if(await client.ready&&!login.hidden)await client.signIn();
-    }catch{keepGuestMode()}
+    prepareClient().catch(keepGuestMode);
   },{once:true});
 }
 </script>

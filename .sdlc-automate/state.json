@@ -1,0 +1,91 @@
+{
+  "version": 3,
+  "lane": "bugfix",
+  "size": "small",
+  "stage": "S6",
+  "substage": "verification",
+  "productSurface": "github-insight-login",
+  "designSurface": "bounded-first-click-auth-recovery",
+  "intentPath": "INTENT.md",
+  "graph": {
+    "dir": ".ua",
+    "status": "stale_reused_source_verified",
+    "commit": "232e1a3a155c0b1c428ee2f58b0c1f1ee4e707b4",
+    "mode": "incremental-preflight-full-update-recommended",
+    "lastRun": "2026-09-13T11:34:22+09:00",
+    "note": "Understand Anything 2.9.6 scanned 136 files and classified the stale graph as FULL_UPDATE; auth-related nodes and edges were checked against current source. A full graph rebuild was not run because the scope gate reports 69 files to analyze and this bounded login fix does not need a whole-project graph rewrite."
+  },
+  "ux": {
+    "status": "not_applicable",
+    "reason": "Existing account panel and controls are retained; the change only makes the deferred login recovery state explicit."
+  },
+  "approved": {
+    "design": true,
+    "source": "user message: 진행, 2026-09-13"
+  },
+  "validation": {
+    "status": "pending_release",
+    "personaReview": {
+      "status": "not_applicable",
+      "reason": "Bounded authentication timing fix; no new product surface or persona contract."
+    },
+    "closeout": {
+      "status": "pending"
+    }
+  },
+  "artifacts": {
+    "intent": "INTENT.md",
+    "regressionTest": "tests/page-runtime.test.mjs",
+    "localeTest": "tests/site-i18n.test.mjs"
+  },
+  "evidence": [
+    {
+      "stage": "S0",
+      "at": "2026-09-13T11:36:45.9034555+09:00",
+      "kind": "intent",
+      "detail": "Bounded first-click login stability fix; popup, auth architecture, and external release are explicitly separated."
+    },
+    {
+      "stage": "S1",
+      "at": "2026-09-13T11:34:22+09:00",
+      "kind": "graph",
+      "detail": "Existing .ua graph at 232e1a3 was read; auth-lifecycle.js, firebase-client.js, index.html, site-i18n.js, favorite-sync tests, and page-runtime tests were verified against current source."
+    },
+    {
+      "stage": "S2",
+      "at": "2026-09-13T11:20:00+09:00",
+      "kind": "repro",
+      "detail": "Public first-click flow reproduced twice without a popup; pointer-prefetched flow opened Google auth and cancellation recovered."
+    },
+    {
+      "stage": "S3",
+      "at": "2026-09-13T11:30:00+09:00",
+      "kind": "approval",
+      "detail": "User approved the bounded prepare-on-first-click, popup-on-next-click design and official plugin repair."
+    },
+    {
+      "stage": "S5",
+      "at": "2026-09-13T11:36:00+09:00",
+      "kind": "red-green",
+      "detail": "New regression first failed with signInCalls 1 !== 0, then focused auth/page/locale tests passed 243/243 after the minimal boundary change."
+    },
+    {
+      "stage": "S6",
+      "at": "2026-09-13T11:46:57.9338237+09:00",
+      "kind": "verify",
+      "detail": "npm test passed with Node 803 pass and 12 skipped plus Python 167 pass; npm run test:rules passed 9/9 in the Firestore emulator; diff, syntax, and added-line credential scans passed."
+    },
+    {
+      "stage": "S6",
+      "at": "2026-09-13T11:46:57.9338237+09:00",
+      "kind": "browser",
+      "detail": "Patched localhost browser flow left the first click without a popup and returned an enabled button; the second click reached the Firebase popup path and failed only because localhost is not an authorized production domain. No Google credentials were submitted."
+    },
+    {
+      "stage": "S6",
+      "at": "2026-09-13T11:46:57.9338237+09:00",
+      "kind": "tooling",
+      "detail": "Official mattpocock-skills user plugin was backed up, uninstalled, reinstalled at v1.2.3, and read back as enabled with 25 skills including ask-matt."
+    }
+  ]
+}
