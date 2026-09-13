@@ -2,8 +2,8 @@
   "version": 3,
   "lane": "bugfix",
   "size": "small",
-  "stage": "S6",
-  "substage": "verification",
+  "stage": "S8",
+  "substage": "handoff",
   "productSurface": "github-insight-login",
   "designSurface": "bounded-first-click-auth-recovery",
   "intentPath": "INTENT.md",
@@ -24,13 +24,13 @@
     "source": "user message: 진행, 2026-09-13"
   },
   "validation": {
-    "status": "pending_release",
+    "status": "passed",
     "personaReview": {
       "status": "not_applicable",
       "reason": "Bounded authentication timing fix; no new product surface or persona contract."
     },
     "closeout": {
-      "status": "pending"
+      "status": "complete"
     }
   },
   "artifacts": {
@@ -92,6 +92,30 @@
       "at": "2026-09-13T11:50:13.9887927+09:00",
       "kind": "post-commit-verify",
       "detail": "Commit b551fcf85130733234daf0b2288f31dbe00536dd is clean; post-commit npm test passed 803/803 executed Node tests with 12 skipped and 167/167 Python tests, and post-commit npm run test:rules passed 9/9."
+    },
+    {
+      "stage": "S6",
+      "at": "2026-09-14T03:02:54+09:00",
+      "kind": "operational-hardening",
+      "detail": "Release blockers were handled without weakening fail-closed gates: ever-co/ever-gauzy was excluded after a measured 43-page release inventory, the self-hosted enrichment path stopped using the hanging setup-python installer, the post-enrichment tracked checkout check no longer scans untracked files with a hanging git status, and production probe retries include Node undici ERR_ASSERTION transport disconnects."
+    },
+    {
+      "stage": "S7",
+      "at": "2026-09-14T03:02:54+09:00",
+      "kind": "release",
+      "detail": "Full refresh run 34771612069 completed successfully: prepare, source-bound enrichment, candidate validation, generated child publish at 22479337e2d63da0a2da0937571d13edeeaf0d08, Pages deployment, and production candidate probe all passed."
+    },
+    {
+      "stage": "S8",
+      "at": "2026-09-14T03:02:54+09:00",
+      "kind": "production",
+      "detail": "Follow-on star-ticks run 34773121484 completed successfully through ledger commit, artifact build, Pages deployment, and production probe; current manifest is HTTP 200 version 1 at source 7c25bdfcb0fe7bbed2d5bf05502a96836d073e01 with snapshot 20260913172649-42c29e611b14a98b. Public index is HTTP 200 and contains prepareClient and account.retry."
+    },
+    {
+      "stage": "S8",
+      "at": "2026-09-14T03:02:54+09:00",
+      "kind": "browser",
+      "detail": "Isolated public browser smoke passed: first anonymous click entered the preparation state, the prepared button enabled, second click opened the Google OAuth popup, and closing it restored the actionable cancellation state. No Google credentials were submitted."
     }
   ]
 }
