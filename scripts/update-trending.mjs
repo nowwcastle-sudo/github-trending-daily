@@ -44,6 +44,11 @@ export const REPOSITORY_EXCLUSIONS = Object.freeze({
     decidedOn: "2026-09-06",
     revisit: "when GET /repos/NousResearch/hermes-agent/commits?sha=main&per_page=100&page=1 returns 200 again, or when the collector gains a single-commit fallback for 5xx list pages",
   }),
+  "ever-co/ever-gauzy": Object.freeze({
+    reason: "GitHub releases listing currently advertises 43 pages at per_page=100 (page 20 still has rel=next page 21), exceeding the collector's 20-page release-inventory contract; the full inventory cannot be collected within the bounded event run",
+    decidedOn: "2026-09-13",
+    revisit: "when the releases listing is pruned below 20 pages or the release-inventory contract changes",
+  }),
 });
 
 export function repositoryExclusion(slug) {

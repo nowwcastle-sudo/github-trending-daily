@@ -766,7 +766,9 @@ export function verifyFrozenParentInputs({
     cwd: path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."),
     encoding: "utf8",
     windowsHide: true,
-    timeout: 120_000,
+    // The immutable SQLite parent evidence is ~36 MB in production; keep a bounded
+    // five-minute ceiling for the Windows self-hosted runner's verification pass.
+    timeout: 300_000,
     maxBuffer: 64 * 1024,
   });
   if (result.error || result.status !== 0 || !/^\{"verified":true,"version":1\}\r?\n$/.test(result.stdout ?? "")) {
