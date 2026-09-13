@@ -197,7 +197,8 @@ async function fetchBytes(url, { expectedStatus = 200, deadline = Date.now() + 1
       }
       return { bytes, contentType: response.headers.get("content-type") ?? "", status: response.status };
     } catch (error) {
-      const transport = ["AbortError", "TimeoutError", "TypeError"].includes(error?.name);
+      const transport = ["AbortError", "TimeoutError", "TypeError"].includes(error?.name)
+        || error?.code === "ERR_ASSERTION";
       if (attempt >= FETCH_RETRY_DELAYS_MS.length || (error?.transient !== true && !transport)) throw error;
       const delay = FETCH_RETRY_DELAYS_MS[attempt];
       if (deadline - Date.now() <= delay) throw new Error("production probe deadline exceeded");
