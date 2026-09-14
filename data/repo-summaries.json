@@ -1,47 +1,47 @@
 {
   "JustVugg/colibri": {
     "content": {
-      "goal": "Colibrì is an inference engine that runs frontier Mixture-of-Experts (MoE) models ranging from 744B to 2.8T parameters on consumer and heterogeneous hardware. It is written in pure C with zero engine dependencies and treats storage, RAM, and VRAM as a single inference hierarchy (AI memory multitiering) to reduce the hardware requirements of large models.",
-      "usage": "Users can download a prebuilt release and run commands like `./coli chat`, `./coli serve`, or `./coli web`, or build from source via `git clone https://github.com/JustVugg/colibri && cd colibri/c` followed by `./setup.sh`. A model, such as the roughly 372 GB GLM-5.2 int4 container, must be obtained separately before running the engine.",
-      "pros": "The engine supports nine model families (e.g., GLM-5.2, Kimi K3, OLMoE) through one C file per architecture sharing a common front end, requires no GPU for most models, and includes a learning cache that reportedly speeds up over repeated use by pinning frequently routed experts.",
-      "cons": "Documentation states there is no service-level guarantee on speed, since throughput depends heavily on disk and hardware; measured decode speeds range from about 0.05 tok/s on a 25 GB dev box to roughly 6.8 tok/s on a 6× RTX 5090 setup, and the reference GLM-5.2 model alone requires around 372 GB of storage.",
-      "fit": "Based on the documented hardware tiers and community-driven benchmarking approach, Colibrì seems best suited for individuals or researchers experimenting with running very large MoE models locally on limited or heterogeneous hardware, rather than for production deployments requiring guaranteed latency."
+      "goal": "Colibrì is a pure-C inference engine designed to run frontier Mixture-of-Experts (MoE) models ranging from 744B to 2.8T parameters on consumer and heterogeneous hardware. It treats storage, RAM, and VRAM as a single inference memory hierarchy, and is described as both a usable engine and an open research platform for inference-side performance work.",
+      "usage": "Users can download a prebuilt release or build from source with `git clone https://github.com/JustVugg/colibri && cd colibri/c` followed by `./setup.sh`. After obtaining a converted model (e.g., a ~372GB GLM-5.2 container from Hugging Face), the engine is run with commands such as `./coli chat`, `./coli serve`, or `./coli web`.",
+      "pros": "Nine model families (including GLM-5.2, Kimi K3, and OLMoE) share the same `coli chat`/`coli serve`/`coli web` front end, and none of the supported models requires a GPU. A learning cache records routing history so the engine becomes faster the more it is used, and an optional dual-SSD setup can increase aggregate read bandwidth for streaming experts.",
+      "cons": "Model weights are large -- the reference GLM-5.2 container is about 372GB, and other families range up to roughly 1.6TB for Kimi K3, so a sizeable, ideally fast, disk appears to be a prerequisite. The README also states there is no SLA on inference speed, only a guarantee on model semantics, so performance may vary with available fast memory and drive characteristics such as O_DIRECT support.",
+      "fit": "This project appears best suited to users who already own consumer or heterogeneous hardware (CPU, optional GPU, and adequate disk) and want to run very large MoE models locally rather than through a hosted API. It may also suit those interested in contributing to or experimenting with inference-systems research, given its stated role as an open research platform."
     },
     "summaries": {
       "en": {
-        "goal": "Colibrì is an inference engine that runs frontier Mixture-of-Experts (MoE) models ranging from 744B to 2.8T parameters on consumer and heterogeneous hardware. It is written in pure C with zero engine dependencies and treats storage, RAM, and VRAM as a single inference hierarchy (AI memory multitiering) to reduce the hardware requirements of large models.",
-        "usage": "Users can download a prebuilt release and run commands like `./coli chat`, `./coli serve`, or `./coli web`, or build from source via `git clone https://github.com/JustVugg/colibri && cd colibri/c` followed by `./setup.sh`. A model, such as the roughly 372 GB GLM-5.2 int4 container, must be obtained separately before running the engine.",
-        "pros": "The engine supports nine model families (e.g., GLM-5.2, Kimi K3, OLMoE) through one C file per architecture sharing a common front end, requires no GPU for most models, and includes a learning cache that reportedly speeds up over repeated use by pinning frequently routed experts.",
-        "cons": "Documentation states there is no service-level guarantee on speed, since throughput depends heavily on disk and hardware; measured decode speeds range from about 0.05 tok/s on a 25 GB dev box to roughly 6.8 tok/s on a 6× RTX 5090 setup, and the reference GLM-5.2 model alone requires around 372 GB of storage.",
-        "fit": "Based on the documented hardware tiers and community-driven benchmarking approach, Colibrì seems best suited for individuals or researchers experimenting with running very large MoE models locally on limited or heterogeneous hardware, rather than for production deployments requiring guaranteed latency."
+        "goal": "Colibrì is a pure-C inference engine designed to run frontier Mixture-of-Experts (MoE) models ranging from 744B to 2.8T parameters on consumer and heterogeneous hardware. It treats storage, RAM, and VRAM as a single inference memory hierarchy, and is described as both a usable engine and an open research platform for inference-side performance work.",
+        "usage": "Users can download a prebuilt release or build from source with `git clone https://github.com/JustVugg/colibri && cd colibri/c` followed by `./setup.sh`. After obtaining a converted model (e.g., a ~372GB GLM-5.2 container from Hugging Face), the engine is run with commands such as `./coli chat`, `./coli serve`, or `./coli web`.",
+        "pros": "Nine model families (including GLM-5.2, Kimi K3, and OLMoE) share the same `coli chat`/`coli serve`/`coli web` front end, and none of the supported models requires a GPU. A learning cache records routing history so the engine becomes faster the more it is used, and an optional dual-SSD setup can increase aggregate read bandwidth for streaming experts.",
+        "cons": "Model weights are large -- the reference GLM-5.2 container is about 372GB, and other families range up to roughly 1.6TB for Kimi K3, so a sizeable, ideally fast, disk appears to be a prerequisite. The README also states there is no SLA on inference speed, only a guarantee on model semantics, so performance may vary with available fast memory and drive characteristics such as O_DIRECT support.",
+        "fit": "This project appears best suited to users who already own consumer or heterogeneous hardware (CPU, optional GPU, and adequate disk) and want to run very large MoE models locally rather than through a hosted API. It may also suit those interested in contributing to or experimenting with inference-systems research, given its stated role as an open research platform."
       },
       "ko": {
-        "goal": "Colibrì는 744B에서 2.8T 파라미터에 이르는 프런티어 MoE(Mixture-of-Experts) 모델을 소비자용 및 이기종 하드웨어에서 실행하는 추론 엔진입니다. 순수 C로 작성되어 엔진 의존성이 없으며, 스토리지·RAM·VRAM을 하나의 추론 계층(AI 메모리 멀티티어링)으로 취급하여 대형 모델의 하드웨어 요구사항을 낮춥니다.",
-        "usage": "사전 빌드된 릴리스를 내려받아 `./coli chat`, `./coli serve`, `./coli web` 같은 명령을 실행하거나, `git clone https://github.com/JustVugg/colibri && cd colibri/c` 후 `./setup.sh`로 소스에서 직접 빌드할 수 있습니다. 실행 전에 약 372GB 크기의 GLM-5.2 int4 모델 등 별도의 모델 파일을 준비해야 합니다.",
-        "pros": "GLM-5.2, Kimi K3, OLMoE 등 아홉 개 모델 계열을 아키텍처별 단일 C 파일과 공통 프런트엔드로 지원하며, 대부분의 모델에 GPU가 필요하지 않고, 자주 라우팅되는 전문가(expert)를 고정시켜 반복 사용할수록 속도가 향상된다고 문서화된 학습 캐시를 포함합니다.",
-        "cons": "문서에는 속도에 대한 서비스 수준 보장이 없다고 명시되어 있으며, 처리량은 디스크와 하드웨어에 크게 좌우됩니다. 측정된 디코드 속도는 25GB 개발용 PC에서 약 0.05 tok/s부터 6× RTX 5090 구성에서 약 6.8 tok/s까지 편차가 크고, 기준 모델인 GLM-5.2 하나만으로도 약 372GB의 저장공간이 필요합니다.",
-        "fit": "문서화된 하드웨어 계층 구조와 커뮤니티 중심의 벤치마킹 방식을 볼 때, Colibrì는 지연 시간 보장이 필요한 프로덕션 배포보다는 제한적이거나 이기종인 하드웨어에서 대형 MoE 모델을 로컬로 실험하려는 개인 또는 연구자에게 적합해 보입니다."
+        "goal": "Colibrì는 744B에서 2.8T 파라미터에 이르는 최첨단 Mixture-of-Experts(MoE) 모델을 소비자용 및 이기종 하드웨어에서 실행하도록 설계된 순수 C 추론 엔진입니다. 스토리지, RAM, VRAM을 하나의 추론 메모리 계층으로 취급하며, 사용 가능한 엔진이자 추론 성능 연구를 위한 오픈 플랫폼으로 소개됩니다.",
+        "usage": "미리 빌드된 릴리스를 다운로드하거나, `git clone https://github.com/JustVugg/colibri && cd colibri/c` 후 `./setup.sh`를 실행해 소스에서 빌드할 수 있습니다. Hugging Face에서 변환된 모델(예: 약 372GB의 GLM-5.2 컨테이너)을 받은 뒤, `./coli chat`, `./coli serve`, `./coli web` 명령으로 엔진을 실행합니다.",
+        "pros": "GLM-5.2, Kimi K3, OLMoE를 포함한 9개 모델 패밀리가 동일한 `coli chat`/`coli serve`/`coli web` 프런트엔드를 공유하며, 지원되는 모델 중 GPU가 필수인 것은 없습니다. 라우팅 이력을 기록하는 학습 캐시 덕분에 사용할수록 엔진이 빨라지며, 선택적인 듀얼 SSD 구성으로 전문가 스트리밍의 합산 대역폭을 높일 수 있습니다.",
+        "cons": "기준 모델인 GLM-5.2 컨테이너만 해도 약 372GB이며 Kimi K3 같은 다른 패밀리는 최대 약 1.6TB에 달해, 크고 가급적 빠른 디스크가 전제 조건으로 보입니다. 또한 README는 속도에 대한 SLA는 없고 모델 의미론에 대한 보장만 있다고 명시하므로, 성능은 가용 고속 메모리와 O_DIRECT 지원 여부 같은 드라이브 특성에 따라 달라질 수 있습니다.",
+        "fit": "이 프로젝트는 이미 소비자용 또는 이기종 하드웨어(CPU, 선택적 GPU, 충분한 디스크)를 보유하고 호스팅된 API 대신 대형 MoE 모델을 로컬에서 실행하려는 사용자에게 적합해 보입니다. 추론 시스템 연구에 기여하거나 실험하고자 하는 이들에게도 맞을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "Colibrì 是一个推理引擎,可在消费级和异构硬件上运行参数量从 744B 到 2.8T 的前沿混合专家(MoE)模型。它完全用纯 C 编写,没有引擎依赖,将存储、RAM 和 VRAM 视为单一推理层级(AI 内存多层管理),以降低运行大模型所需的硬件门槛。",
-        "usage": "用户可以下载预编译发行版并运行诸如 `./coli chat`、`./coli serve`、`./coli web` 之类的命令,也可以通过 `git clone https://github.com/JustVugg/colibri && cd colibri/c` 后执行 `./setup.sh` 从源码构建。运行前需要单独获取模型文件,例如约 372 GB 的 GLM-5.2 int4 容器。",
-        "pros": "该引擎通过每个架构一个 C 文件并共享统一前端的方式支持九个模型系列(如 GLM-5.2、Kimi K3、OLMoE),大多数模型无需 GPU,并包含一个学习型缓存,文档称其会随着重复使用而固定常用专家、从而提升速度。",
-        "cons": "文档明确说明速度没有服务级别保证,吞吐量在很大程度上取决于磁盘和硬件配置;实测解码速度差异很大,从 25 GB 开发机上约 0.05 tok/s 到 6×RTX 5090 配置下约 6.8 tok/s 不等,仅参考模型 GLM-5.2 就需要约 372 GB 存储空间。",
-        "fit": "根据文档描述的硬件分层和社区驱动的基准测试方式来看,Colibrì 似乎更适合希望在有限或异构硬件上本地实验超大型 MoE 模型的个人或研究者,而非需要保证延迟的生产环境部署。"
+        "goal": "Colibrì 是一款纯 C 语言编写的推理引擎,旨在让参数量从 744B 到 2.8T 的前沿混合专家(MoE)模型能够在消费级及异构硬件上运行。它将存储、RAM 和 VRAM 视为单一的推理内存层级,并被描述为既可直接使用的引擎,也是推理性能研究的开放平台。",
+        "usage": "用户可以下载预编译版本,或通过 `git clone https://github.com/JustVugg/colibri && cd colibri/c` 后执行 `./setup.sh` 从源码构建。获取转换后的模型(例如 Hugging Face 上约 372GB 的 GLM-5.2 容器)后,可使用 `./coli chat`、`./coli serve` 或 `./coli web` 命令运行引擎。",
+        "pros": "包括 GLM-5.2、Kimi K3 和 OLMoE 在内的九个模型家族共享同一套 `coli chat`/`coli serve`/`coli web` 前端,且所支持的模型均不需要 GPU。学习缓存会记录路由历史,使引擎随着使用而变快;可选的双 SSD 配置还能提升专家流式读取的总带宽。",
+        "cons": "仅参考模型 GLM-5.2 的容器就约为 372GB,而 Kimi K3 等其他家族体积可达约 1.6TB,这意味着需要较大且最好较快的磁盘作为前提条件。README 还说明速度没有 SLA 保证,只保证模型语义不变,因此性能可能因可用高速内存及磁盘特性(如是否支持 O_DIRECT)而有所不同。",
+        "fit": "该项目看起来更适合已拥有消费级或异构硬件(CPU、可选 GPU 及足够磁盘空间)、希望在本地而非通过托管 API 运行大型 MoE 模型的用户。对于有意参与或试验推理系统研究的人来说,也可能是合适的选择。"
       },
       "es": {
-        "goal": "Colibrì es un motor de inferencia que ejecuta modelos MoE (Mixture-of-Experts) de vanguardia, de 744B a 2.8T de parámetros, en hardware de consumo y heterogéneo. Está escrito en C puro sin dependencias del motor y trata el almacenamiento, la RAM y la VRAM como una única jerarquía de inferencia (multitiering de memoria de IA) para reducir los requisitos de hardware de los modelos grandes.",
-        "usage": "Los usuarios pueden descargar una versión precompilada y ejecutar comandos como `./coli chat`, `./coli serve` o `./coli web`, o compilar desde el código fuente con `git clone https://github.com/JustVugg/colibri && cd colibri/c` seguido de `./setup.sh`. Antes de ejecutarlo hay que obtener por separado un modelo, como el contenedor GLM-5.2 int4 de unos 372 GB.",
-        "pros": "El motor admite nueve familias de modelos (por ejemplo GLM-5.2, Kimi K3, OLMoE) mediante un archivo C por arquitectura que comparte un frontend común, no necesita GPU para la mayoría de los modelos, e incluye una caché de aprendizaje que, según la documentación, acelera el rendimiento con el uso repetido al fijar los expertos enrutados con más frecuencia.",
-        "cons": "La documentación indica que no existe una garantía de nivel de servicio sobre la velocidad, ya que el rendimiento depende en gran medida del disco y del hardware; las velocidades de decodificación medidas van desde unos 0.05 tok/s en un equipo de desarrollo de 25 GB hasta unos 6.8 tok/s en una configuración con 6× RTX 5090, y el modelo de referencia GLM-5.2 por sí solo requiere unos 372 GB de almacenamiento.",
-        "fit": "A partir de los niveles de hardware documentados y del enfoque de evaluación comparativa impulsado por la comunidad, Colibrì parece más adecuado para personas o investigadores que experimentan con modelos MoE muy grandes de forma local en hardware limitado o heterogéneo, en lugar de para despliegues de producción que requieran latencia garantizada."
+        "goal": "Colibrì es un motor de inferencia escrito en C puro, diseñado para ejecutar modelos Mixture-of-Experts (MoE) de vanguardia, de 744B a 2.8T parámetros, en hardware de consumo y heterogéneo. Trata el almacenamiento, la RAM y la VRAM como una única jerarquía de memoria de inferencia, y se presenta tanto como un motor utilizable como una plataforma de investigación abierta.",
+        "usage": "Se puede descargar una versión prediseñada o compilar desde el código fuente con `git clone https://github.com/JustVugg/colibri && cd colibri/c` seguido de `./setup.sh`. Tras obtener un modelo convertido (por ejemplo, un contenedor GLM-5.2 de unos 372GB en Hugging Face), el motor se ejecuta con comandos como `./coli chat`, `./coli serve` o `./coli web`.",
+        "pros": "Nueve familias de modelos, incluyendo GLM-5.2, Kimi K3 y OLMoE, comparten el mismo front-end `coli chat`/`coli serve`/`coli web`, y ninguno de los modelos soportados requiere GPU. Una caché de aprendizaje registra el historial de enrutamiento para que el motor se vuelva más rápido cuanto más se use, y una configuración opcional de doble SSD puede aumentar el ancho de banda agregado al transmitir los expertos.",
+        "cons": "Solo el contenedor de referencia GLM-5.2 ocupa unos 372GB, y otras familias como Kimi K3 pueden llegar a alrededor de 1.6TB, por lo que un disco grande y preferiblemente rápido parece ser un requisito previo. El README también indica que no hay un SLA de velocidad, solo una garantía sobre la semántica del modelo, por lo que el rendimiento puede variar según la memoria rápida disponible y características del disco como el soporte de O_DIRECT.",
+        "fit": "Este proyecto parece más adecuado para usuarios que ya cuentan con hardware de consumo o heterogéneo (CPU, GPU opcional y espacio en disco suficiente) y desean ejecutar modelos MoE grandes localmente en lugar de a través de una API alojada. También podría interesar a quienes quieran contribuir o experimentar con investigación en sistemas de inferencia."
       },
       "ja": {
-        "goal": "Colibrìは、744Bから2.8Tパラメータに及ぶ最先端のMoE(Mixture-of-Experts)モデルを、コンシューマー向けおよび異種混在ハードウェア上で実行する推論エンジンです。純粋なCで書かれエンジン依存関係がなく、ストレージ・RAM・VRAMを単一の推論階層(AIメモリのマルチティア化)として扱うことで、大規模モデルに必要なハードウェア要件を下げます。",
-        "usage": "ユーザーはビルド済みリリースをダウンロードして `./coli chat`、`./coli serve`、`./coli web` などのコマンドを実行するか、`git clone https://github.com/JustVugg/colibri && cd colibri/c` の後に `./setup.sh` を実行してソースからビルドできます。実行前には、約372GBのGLM-5.2 int4コンテナのようなモデルを別途用意する必要があります。",
-        "pros": "このエンジンはアーキテクチャごとに1つのCファイルと共通のフロントエンドを通じて9つのモデルファミリー(GLM-5.2、Kimi K3、OLMoEなど)をサポートし、ほとんどのモデルでGPUを必要とせず、頻繁にルーティングされるエキスパートを固定することで繰り返し使用するほど高速化すると文書化された学習キャッシュを備えています。",
-        "cons": "ドキュメントには速度に関するサービスレベル保証はないと明記されており、スループットはディスクとハードウェアに大きく依存します。実測されたデコード速度は、25GBの開発機で約0.05 tok/sから、6× RTX 5090構成で約6.8 tok/sまで大きくばらつき、リファレンスモデルのGLM-5.2だけでも約372GBのストレージが必要です。",
-        "fit": "文書化されたハードウェア階層とコミュニティ主導のベンチマーク方式から判断すると、Colibrìは保証された遅延を必要とする本番環境向けというよりも、限られた、あるいは異種混在のハードウェア上で非常に大規模なMoEモデルをローカルで試したい個人や研究者に適していると考えられます。"
+        "goal": "Colibrìは、744Bから2.8Tパラメータに及ぶ最先端のMixture-of-Experts(MoE)モデルを、コンシューマー向けおよび異機種混在ハードウェア上で実行するために設計された、純粋なC言語製の推論エンジンです。ストレージ、RAM、VRAMを単一の推論メモリ階層として扱い、実用エンジンであると同時にオープンな研究プラットフォームとして紹介されています。",
+        "usage": "ビルド済みリリースをダウンロードするか、`git clone https://github.com/JustVugg/colibri && cd colibri/c` の後に `./setup.sh` を実行してソースからビルドできます。Hugging Face上の変換済みモデル(例:約372GBのGLM-5.2コンテナ)を取得した後、`./coli chat`、`./coli serve`、`./coli web` といったコマンドでエンジンを実行します。",
+        "pros": "GLM-5.2、Kimi K3、OLMoEを含む9つのモデルファミリーが同じ`coli chat`/`coli serve`/`coli web`フロントエンドを共有し、サポートされるモデルのいずれもGPUを必須としません。ルーティング履歴を記録する学習キャッシュにより使うほどエンジンが高速化し、任意のデュアルSSD構成によりエキスパートのストリーミング時の合計帯域幅を高められます。",
+        "cons": "基準モデルであるGLM-5.2のコンテナだけでも約372GBあり、Kimi K3など他のファミリーは最大約1.6TBに達するため、大容量でできれば高速なディスクが前提条件になると考えられます。READMEには速度に関するSLAはなく、モデルの意味論に関する保証のみがあると記載されており、性能は利用可能な高速メモリやO_DIRECT対応などドライブの特性によって変わる可能性があります。",
+        "fit": "本プロジェクトは、すでにコンシューマー向けまたは異機種混在ハードウェア(CPU、任意のGPU、十分なディスク)を持ち、ホスト型APIではなくローカルで大規模MoEモデルを実行したいユーザーに適していると考えられます。推論システム研究への貢献や実験に関心がある人にも向く可能性があります。"
       }
     },
     "evidence": {
@@ -52,16 +52,16 @@
           "section_heading": ""
         },
         {
-          "start_line": 21,
-          "end_line": 25,
+          "start_line": 28,
+          "end_line": 32,
           "section_heading": ""
         }
       ],
       "usage": [
         {
-          "start_line": 341,
+          "start_line": 337,
           "end_line": 350,
-          "section_heading": "1. Get colibri"
+          "section_heading": "Get started"
         },
         {
           "start_line": 361,
@@ -76,14 +76,9 @@
       ],
       "pros": [
         {
-          "start_line": 166,
-          "end_line": 168,
-          "section_heading": "The idea"
-        },
-        {
-          "start_line": 393,
-          "end_line": 403,
-          "section_heading": "Other supported models"
+          "start_line": 21,
+          "end_line": 26,
+          "section_heading": ""
         },
         {
           "start_line": 239,
@@ -98,14 +93,14 @@
           "section_heading": ""
         },
         {
-          "start_line": 337,
-          "end_line": 339,
-          "section_heading": "Get started"
+          "start_line": 282,
+          "end_line": 287,
+          "section_heading": "Never wait for the disk twice"
         },
         {
-          "start_line": 322,
-          "end_line": 328,
-          "section_heading": "What it achieves"
+          "start_line": 411,
+          "end_line": 411,
+          "section_heading": "Other supported models"
         }
       ],
       "fit": [
@@ -122,23 +117,6 @@
       ]
     },
     "invariants": [
-      {
-        "kind": "product",
-        "value": "colibrì",
-        "fields": [
-          "goal",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "GLM-5.2",
-        "fields": [
-          "usage",
-          "pros",
-          "cons"
-        ]
-      },
       {
         "kind": "command",
         "value": "./coli chat",
@@ -189,30 +167,54 @@
         ]
       },
       {
-        "kind": "number",
-        "value": "372 GB",
-        "fields": [
-          "usage",
-          "cons"
-        ]
-      },
-      {
         "kind": "url",
         "value": "https://github.com/JustVugg/colibri",
         "fields": [
           "usage"
         ]
+      },
+      {
+        "kind": "product",
+        "value": "colibri",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "GLM-5.2",
+        "fields": [
+          "usage",
+          "pros",
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Kimi K3",
+        "fields": [
+          "pros",
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "OLMoE",
+        "fields": [
+          "pros"
+        ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "justvugg/colibri",
       "path": "README.md",
-      "blob_sha": "7cb05c9c5dec1da2230fc58eb8262e57aed16bb2",
-      "content_sha256": "4eb99e781b97f08c959eab1b6911cfd12fe9f6a7df38dc0c23da5c0281f6e918",
+      "blob_sha": "f204abccbc587a69effc923042cc2b448eaada51",
+      "content_sha256": "7bcdf06bb42a102ef6c57f924bb6d494ecd85a965f7a666acab1237d5b05b44a",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -226,47 +228,47 @@
   },
   "bilawalsidhu/gods-eye-view": {
     "content": {
-      "goal": "God's Eye View is a browser-based 3D globe application that aggregates public live-data feeds—aircraft, ships, satellites, earthquakes, traffic, and public cameras—into a single explorable interface, with optional hands-free voice control via a realtime AI agent.",
-      "usage": "It can be installed with Pinokio (version 8.2 or later) for one-click setup, or run locally via `git clone https://github.com/bilawalsidhu/gods-eye-view.git`, `npm ci`, and `npm run dev`, then opened at `http://localhost:4173`. Node.js 24.x (24.14.0 or later) or 26.x is required. Optional API keys (Cesium ion, Google Maps, OpenAI) can be added afterward inside the app.",
-      "pros": "The app starts without any API keys, offering Esri satellite imagery and keyless terrain by default. Eleven of thirteen documented data layers—including flights, military traffic, satellites, earthquakes, and public cameras—work without signup. It's released under the MIT License, and configured keys are handled server-side.",
-      "cons": "Some data layers are approximations rather than direct observations: traffic is simulated along real roads from aggregate location data, and CCTV camera poses are coarse estimates requiring manual calibration. Voice features require a paid OpenAI key, and Node.js 25 is explicitly unsupported, flagged as end-of-life by the setup doctor.",
-      "fit": "The README describes this as an evolving open-source client 'for exploration and learning' rather than a hardened production service, suggesting it is best suited to developers, hobbyists, and researchers exploring geospatial data rather than safety-critical operational use. The documentation explicitly warns against relying on it for flight or maritime navigation, emergency response, or other safety-critical decisions, since underlying data may be delayed, incomplete, or wrong."
+      "goal": "God's Eye View is a browser-based, photorealistic 3D globe that visualizes live public data streams, including aircraft, ships, satellites, earthquakes, traffic, and public cameras, alongside a voice-controlled AI agent for hands-free navigation.",
+      "usage": "Install via Pinokio (8.2 or later) with one click, or run locally: `git clone https://github.com/bilawalsidhu/gods-eye-view.git`, `cd gods-eye-view`, `npm ci`, `npm run doctor`, `npm run dev`, then open `http://localhost:4173`. Node.js 24.14.0+ or 26.x is required.",
+      "pros": "Most layers, including flights, ships, satellites, earthquakes, and public cameras, work without any API keys. Sensitive credentials are brokered through a server-side proxy rather than exposed to the browser, and the project is released under the MIT License.",
+      "cons": "Photorealistic 3D rendering requires a free Cesium ion token or a metered Google Maps key, both subject to provider quotas and terms; Node.js 25 is explicitly unsupported (flagged as end-of-life by the setup doctor), and voice features depend on a metered OpenAI key with associated per-minute costs.",
+      "fit": "Based on the README's framing, this project appears best suited for developers, hobbyists, and researchers exploring geospatial visualization and public data feeds; it does not appear intended for safety-critical or production deployments, as the README explicitly warns against use for navigation, emergency response, medical, or investment purposes."
     },
     "summaries": {
       "en": {
-        "goal": "God's Eye View is a browser-based 3D globe application that aggregates public live-data feeds—aircraft, ships, satellites, earthquakes, traffic, and public cameras—into a single explorable interface, with optional hands-free voice control via a realtime AI agent.",
-        "usage": "It can be installed with Pinokio (version 8.2 or later) for one-click setup, or run locally via `git clone https://github.com/bilawalsidhu/gods-eye-view.git`, `npm ci`, and `npm run dev`, then opened at `http://localhost:4173`. Node.js 24.x (24.14.0 or later) or 26.x is required. Optional API keys (Cesium ion, Google Maps, OpenAI) can be added afterward inside the app.",
-        "pros": "The app starts without any API keys, offering Esri satellite imagery and keyless terrain by default. Eleven of thirteen documented data layers—including flights, military traffic, satellites, earthquakes, and public cameras—work without signup. It's released under the MIT License, and configured keys are handled server-side.",
-        "cons": "Some data layers are approximations rather than direct observations: traffic is simulated along real roads from aggregate location data, and CCTV camera poses are coarse estimates requiring manual calibration. Voice features require a paid OpenAI key, and Node.js 25 is explicitly unsupported, flagged as end-of-life by the setup doctor.",
-        "fit": "The README describes this as an evolving open-source client 'for exploration and learning' rather than a hardened production service, suggesting it is best suited to developers, hobbyists, and researchers exploring geospatial data rather than safety-critical operational use. The documentation explicitly warns against relying on it for flight or maritime navigation, emergency response, or other safety-critical decisions, since underlying data may be delayed, incomplete, or wrong."
+        "goal": "God's Eye View is a browser-based, photorealistic 3D globe that visualizes live public data streams, including aircraft, ships, satellites, earthquakes, traffic, and public cameras, alongside a voice-controlled AI agent for hands-free navigation.",
+        "usage": "Install via Pinokio (8.2 or later) with one click, or run locally: `git clone https://github.com/bilawalsidhu/gods-eye-view.git`, `cd gods-eye-view`, `npm ci`, `npm run doctor`, `npm run dev`, then open `http://localhost:4173`. Node.js 24.14.0+ or 26.x is required.",
+        "pros": "Most layers, including flights, ships, satellites, earthquakes, and public cameras, work without any API keys. Sensitive credentials are brokered through a server-side proxy rather than exposed to the browser, and the project is released under the MIT License.",
+        "cons": "Photorealistic 3D rendering requires a free Cesium ion token or a metered Google Maps key, both subject to provider quotas and terms; Node.js 25 is explicitly unsupported (flagged as end-of-life by the setup doctor), and voice features depend on a metered OpenAI key with associated per-minute costs.",
+        "fit": "Based on the README's framing, this project appears best suited for developers, hobbyists, and researchers exploring geospatial visualization and public data feeds; it does not appear intended for safety-critical or production deployments, as the README explicitly warns against use for navigation, emergency response, medical, or investment purposes."
       },
       "ko": {
-        "goal": "God's Eye View는 항공기, 선박, 위성, 지진, 교통, 공공 카메라 등 공개된 실시간 데이터를 하나의 탐색 가능한 3D 지구본 인터페이스로 통합하는 브라우저 기반 애플리케이션입니다. 실시간 AI 에이전트를 통한 핸즈프리 음성 제어도 선택적으로 제공됩니다.",
-        "usage": "Pinokio(8.2 이상)를 통해 원클릭으로 설치하거나, `git clone https://github.com/bilawalsidhu/gods-eye-view.git`, `npm ci`, `npm run dev` 명령으로 로컬에서 실행한 뒤 `http://localhost:4173`에서 열 수 있습니다. Node.js 24.x(24.14.0 이상) 또는 26.x가 필요합니다. Cesium ion, Google Maps, OpenAI 등 선택적 API 키는 앱 내부에서 나중에 추가할 수 있습니다.",
-        "pros": "API 키 없이도 Esri 위성 이미지와 키 없는 지형으로 앱을 시작할 수 있습니다. 문서화된 13개 데이터 레이어 중 항공기, 군용 항공, 위성, 지진, 공공 카메라를 포함한 11개는 가입 없이 사용할 수 있습니다. MIT 라이선스로 배포되며, 설정된 키는 서버 측에서 처리됩니다.",
-        "cons": "일부 데이터 레이어는 실제 관측이 아닌 근사치입니다. 교통은 집계된 위치 데이터를 이용해 실제 도로 위에서 시뮬레이션되며, CCTV 카메라 위치는 대략적인 추정치로 수동 보정이 필요합니다. 음성 기능은 유료 OpenAI 키가 필요하며, Node.js 25는 설정 진단 도구에서 수명 종료로 명시적으로 표시되어 지원되지 않습니다.",
-        "fit": "README는 이 프로젝트를 '탐색과 학습'을 위한 발전 중인 오픈소스 클라이언트라고 설명하며, 이는 안전이 중요한 운영 환경보다는 지리공간 데이터를 탐구하는 개발자, 취미 사용자, 연구자에게 적합할 수 있음을 시사합니다. 문서는 데이터가 지연되거나 불완전하거나 잘못될 수 있으므로 항공·해상 항법, 응급 대응 등 안전이 중요한 의사결정에 사용하지 말라고 명확히 경고합니다."
+        "goal": "God's Eye View는 브라우저에서 실행되는 사실적인 3D 지구본으로, 항공기, 선박, 위성, 지진, 교통, 공개 카메라 등 실시간 공개 데이터를 시각화하며, 음성으로 제어되는 AI 에이전트를 통한 핸즈프리 탐색 기능을 제공합니다.",
+        "usage": "Pinokio(8.2 이상)를 통해 원클릭으로 설치하거나, 터미널에서 `git clone https://github.com/bilawalsidhu/gods-eye-view.git`, `cd gods-eye-view`, `npm ci`, `npm run doctor`, `npm run dev`를 실행한 뒤 `http://localhost:4173`을 엽니다. Node.js 24.14.0 이상 또는 26.x가 필요합니다.",
+        "pros": "항공편, 선박, 위성, 지진, 공개 카메라 등 대부분의 레이어는 API 키 없이 작동합니다. 민감한 자격 증명은 브라우저에 노출되지 않고 서버 측 프록시를 통해 중개되며, 이 프로젝트는 MIT 라이선스로 배포됩니다.",
+        "cons": "사실적인 3D 렌더링을 사용하려면 무료 Cesium ion 토큰 또는 종량제 Google Maps 키가 필요하며, 둘 다 제공업체의 할당량과 약관이 적용됩니다. Node.js 25는 설치 점검 도구에서 수명 종료로 명시적으로 표시되어 지원되지 않으며, 음성 기능은 분당 비용이 발생하는 종량제 OpenAI 키에 의존합니다.",
+        "fit": "README의 설명에 따르면 이 프로젝트는 지리공간 시각화와 공개 데이터 피드를 탐구하는 개발자, 취미 사용자, 연구자에게 적합해 보이며, 항법·응급 대응·의료·투자 등 안전에 중요한 용도로는 사용하지 말라고 명시하고 있어 프로덕션 배포용으로는 의도되지 않은 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "God's Eye View 是一个基于浏览器的 3D 地球应用,将飞机、船只、卫星、地震、交通和公共摄像头等公开实时数据整合到一个可探索的界面中,并可选通过实时 AI 代理实现免提语音控制。",
-        "usage": "可通过 Pinokio(8.2 或更高版本)一键安装,或在本地运行 `git clone https://github.com/bilawalsidhu/gods-eye-view.git`、`npm ci` 和 `npm run dev`,然后在 `http://localhost:4173` 打开。需要 Node.js 24.x(24.14.0 或更高)或 26.x。Cesium ion、Google Maps、OpenAI 等可选 API 密钥可稍后在应用内添加。",
-        "pros": "该应用无需任何 API 密钥即可启动,默认提供 Esri 卫星影像和免密钥地形。文档中列出的 13 个数据层中有 11 个(包括航班、军事交通、卫星、地震和公共摄像头)无需注册即可使用。项目以 MIT 许可证发布,已配置的密钥通过服务器端处理。",
-        "cons": "部分数据层是近似值而非直接观测:交通是根据汇总位置数据在真实道路上模拟的,CCTV 摄像头姿态是粗略估计,需要手动校准。语音功能需要付费的 OpenAI 密钥,且设置诊断工具明确标注 Node.js 25 已停止维护,不受支持。",
-        "fit": "README 将该项目描述为用于“探索和学习”的持续演进的开源客户端,而非经过强化的生产级服务,这表明它更适合探索地理空间数据的开发者、爱好者和研究人员,而非安全关键的运营场景。文档明确警告,由于数据可能延迟、不完整或有误,不应将其用于航空或海事导航、应急响应等安全关键决策。"
+        "goal": "God's Eye View 是一款基于浏览器的逼真3D地球可视化工具,可展示飞机、船舶、卫星、地震、交通和公共摄像头等实时公开数据,并配备可语音控制的AI代理以实现免提导航。",
+        "usage": "可通过 Pinokio(8.2 或更高版本)一键安装,或在终端中依次运行 `git clone https://github.com/bilawalsidhu/gods-eye-view.git`、`cd gods-eye-view`、`npm ci`、`npm run doctor`、`npm run dev`,然后打开 `http://localhost:4173`。需要 Node.js 24.14.0 或更高版本,或 26.x 版本。",
+        "pros": "大多数图层,包括航班、船舶、卫星、地震和公共摄像头,无需任何API密钥即可使用。敏感凭证通过服务器端代理中转,不会暴露给浏览器,项目采用MIT许可证发布。",
+        "cons": "逼真3D渲染需要免费的 Cesium ion 令牌或按量计费的 Google Maps 密钥,两者均受提供商配额和条款限制。安装检查工具明确将 Node.js 25 标记为生命周期结束、不受支持,而语音功能依赖按分钟计费的 OpenAI 密钥。",
+        "fit": "根据README的描述,该项目似乎更适合探索地理空间可视化和公开数据源的开发者、爱好者和研究人员;由于文档明确警告不要将其用于导航、应急响应、医疗或投资等安全关键场景,它看起来并非面向生产部署而设计。"
       },
       "es": {
-        "goal": "God's Eye View es una aplicación de globo terráqueo 3D basada en el navegador que reúne datos públicos en tiempo real —aviones, barcos, satélites, terremotos, tráfico y cámaras públicas— en una única interfaz explorable, con control por voz manos libres opcional mediante un agente de IA en tiempo real.",
-        "usage": "Se puede instalar con Pinokio (versión 8.2 o posterior) con un solo clic, o ejecutar localmente con `git clone https://github.com/bilawalsidhu/gods-eye-view.git`, `npm ci` y `npm run dev`, abriendo después `http://localhost:4173`. Se requiere Node.js 24.x (24.14.0 o posterior) o 26.x. Las claves de API opcionales (Cesium ion, Google Maps, OpenAI) pueden añadirse después dentro de la app.",
-        "pros": "La aplicación se inicia sin ninguna clave de API, con imágenes satelitales de Esri y terreno sin clave por defecto. Once de las trece capas de datos documentadas —incluyendo vuelos, tráfico militar, satélites, terremotos y cámaras públicas— funcionan sin registro. Se distribuye bajo la licencia MIT, y las claves configuradas se gestionan del lado del servidor.",
-        "cons": "Algunas capas de datos son aproximaciones y no observaciones directas: el tráfico se simula sobre carreteras reales usando datos de ubicación agregados, y las posiciones de las cámaras CCTV son estimaciones aproximadas que requieren calibración manual. Las funciones de voz requieren una clave de OpenAI de pago, y Node.js 25 queda explícitamente sin soporte, señalado como fin de vida por la herramienta de diagnóstico de configuración.",
-        "fit": "El README describe el proyecto como un cliente de código abierto en evolución 'para exploración y aprendizaje', y no como un servicio de producción reforzado, lo que sugiere que resulta más adecuado para desarrolladores, aficionados e investigadores que exploran datos geoespaciales que para entornos operativos críticos para la seguridad. La documentación advierte explícitamente contra su uso en navegación aérea o marítima, respuesta a emergencias u otras decisiones críticas para la seguridad, dado que los datos pueden estar retrasados, incompletos o ser incorrectos."
+        "goal": "God's Eye View es un globo 3D fotorrealista basado en navegador que visualiza flujos de datos públicos en tiempo real, incluyendo aviones, barcos, satélites, terremotos, tráfico y cámaras públicas, junto con un agente de IA controlado por voz para navegación manos libres.",
+        "usage": "Instálelo con un clic mediante Pinokio (versión 8.2 o posterior), o ejecútelo localmente: `git clone https://github.com/bilawalsidhu/gods-eye-view.git`, `cd gods-eye-view`, `npm ci`, `npm run doctor`, `npm run dev`, y luego abra `http://localhost:4173`. Se requiere Node.js 24.14.0 o superior, o la versión 26.x.",
+        "pros": "La mayoría de las capas, incluidas vuelos, barcos, satélites, terremotos y cámaras públicas, funcionan sin ninguna clave de API. Las credenciales sensibles se gestionan mediante un proxy del lado del servidor en lugar de exponerse al navegador, y el proyecto se publica bajo la Licencia MIT.",
+        "cons": "El renderizado 3D fotorrealista requiere un token gratuito de Cesium ion o una clave de Google Maps de pago por uso, ambos sujetos a cuotas y términos del proveedor. Node.js 25 no es compatible explícitamente, según señala el asistente de instalación, que lo marca como fin de vida útil, y las funciones de voz dependen de una clave de OpenAI de pago por uso con costos por minuto.",
+        "fit": "Según la descripción del README, este proyecto parece adecuado para desarrolladores, aficionados e investigadores que exploran visualización geoespacial y fuentes de datos públicas; no parece estar destinado a implementaciones de producción, ya que se advierte explícitamente contra su uso para navegación, respuesta de emergencia, decisiones médicas o de inversión."
       },
       "ja": {
-        "goal": "God's Eye Viewは、航空機、船舶、衛星、地震、交通、公開カメラなどの公開されたリアルタイムデータを1つの探索可能な3D地球儀インターフェースにまとめたブラウザベースのアプリケーションで、リアルタイムAIエージェントによるハンズフリー音声操作もオプションで利用できます。",
-        "usage": "Pinokio(8.2以降)を使ってワンクリックでインストールするか、`git clone https://github.com/bilawalsidhu/gods-eye-view.git`、`npm ci`、`npm run dev` を実行してローカルで起動し、`http://localhost:4173` を開いて利用します。Node.js 24.x(24.14.0以降)または26.xが必要です。Cesium ion、Google Maps、OpenAIなどのオプションのAPIキーは、後からアプリ内で追加できます。",
-        "pros": "APIキーなしでアプリを起動でき、デフォルトでEsriの衛星画像とキー不要の地形が利用できます。文書化された13のデータレイヤーのうち、フライト、軍用トラフィック、衛星、地震、公開カメラを含む11レイヤーは登録なしで利用可能です。MITライセンスで公開されており、設定済みのキーはサーバー側で処理されます。",
-        "cons": "一部のデータレイヤーは直接観測ではなく近似値です。交通は集計された位置データを用いて実際の道路上でシミュレートされ、CCTVカメラの姿勢は大まかな推定値であり手動での調整が必要です。音声機能には有料のOpenAIキーが必要で、Node.js 25はセットアップ診断ツールによってサポート終了と明示的に警告されており、サポート対象外です。",
-        "fit": "READMEはこのプロジェクトを「探索と学習のため」の発展途上のオープンソースクライアントであり、堅牢な本番サービスではないと説明しており、これは安全性が重要な運用環境よりも、地理空間データを探求する開発者、愛好家、研究者に向いている可能性を示唆しています。ドキュメントは、データが遅延・不完全・誤りである可能性があるため、航空・海上ナビゲーション、緊急対応などの安全性が重要な意思決定には使用しないよう明確に警告しています。"
+        "goal": "God's Eye Viewは、航空機、船舶、衛星、地震、交通、公開カメラなどのライブ公開データを可視化する、ブラウザ上で動くフォトリアルな3D地球儀であり、ハンズフリーナビゲーションのための音声制御AIエージェントを備えています。",
+        "usage": "Pinokio(バージョン8.2以降)でワンクリックインストールするか、ターミナルで `git clone https://github.com/bilawalsidhu/gods-eye-view.git`、`cd gods-eye-view`、`npm ci`、`npm run doctor`、`npm run dev` を実行し、`http://localhost:4173` を開きます。Node.js 24.14.0以降または26.xが必要です。",
+        "pros": "フライト、船舶、衛星、地震、公開カメラなど、ほとんどのレイヤーはAPIキーなしで動作します。機密性の高い認証情報はブラウザに露出せずサーバー側プロキシを経由して処理され、本プロジェクトはMITライセンスで公開されています。",
+        "cons": "フォトリアルな3D表示には無料のCesium ionトークンまたは従量課金のGoogle Mapsキーが必要で、いずれもプロバイダーのクォータと利用規約の対象となります。セットアップ診断ツールはNode.js 25をサポート対象外(サポート終了)と明示しており、音声機能は分単位で課金される従量制のOpenAIキーに依存します。",
+        "fit": "READMEの記述からは、地理空間の可視化や公開データフィードの探求に関心のある開発者、愛好家、研究者に適していると思われますが、ナビゲーション、緊急対応、医療、投資などの安全に関わる用途には使用しないよう明示的に警告されており、本番デプロイを意図したものではないと考えられます。"
       }
     },
     "evidence": {
@@ -277,7 +279,7 @@
           "section_heading": "A spy-satellite simulator in your browser — then you realize the sources are public and the data is real."
         },
         {
-          "start_line": 45,
+          "start_line": 43,
           "end_line": 47,
           "section_heading": "🌍 Why This Exists"
         }
@@ -289,33 +291,38 @@
           "section_heading": "Path 1 — One click, no terminal"
         },
         {
-          "start_line": 115,
-          "end_line": 124,
+          "start_line": 110,
+          "end_line": 121,
           "section_heading": "Path 2 — Terminal / coding agent"
         },
         {
-          "start_line": 112,
-          "end_line": 113,
+          "start_line": 123,
+          "end_line": 124,
           "section_heading": "Path 2 — Terminal / coding agent"
         }
       ],
       "pros": [
         {
-          "start_line": 86,
+          "start_line": 89,
           "end_line": 89,
           "section_heading": "⚡ Quick Start"
         },
         {
-          "start_line": 265,
-          "end_line": 267,
-          "section_heading": "🛰️ What's on the Globe"
+          "start_line": 147,
+          "end_line": 150,
+          "section_heading": "Then power it up — in the app, not in a file"
+        },
+        {
+          "start_line": 477,
+          "end_line": 477,
+          "section_heading": "📋 Responsible & Open"
         }
       ],
       "cons": [
         {
-          "start_line": 51,
-          "end_line": 53,
-          "section_heading": "🌍 Why This Exists"
+          "start_line": 91,
+          "end_line": 94,
+          "section_heading": "⚡ Quick Start"
         },
         {
           "start_line": 112,
@@ -323,15 +330,20 @@
           "section_heading": "Path 2 — Terminal / coding agent"
         },
         {
-          "start_line": 278,
-          "end_line": 278,
-          "section_heading": "🛰️ What's on the Globe"
+          "start_line": 442,
+          "end_line": 442,
+          "section_heading": "💸 What it actually costs"
         }
       ],
       "fit": [
         {
-          "start_line": 469,
-          "end_line": 471,
+          "start_line": 452,
+          "end_line": 454,
+          "section_heading": "🧗 The floor is low on purpose"
+        },
+        {
+          "start_line": 477,
+          "end_line": 477,
           "section_heading": "📋 Responsible & Open"
         },
         {
@@ -358,7 +370,28 @@
       },
       {
         "kind": "command",
+        "value": "npm run doctor",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
         "value": "npm run dev",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "24.14.0",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "8.2",
         "fields": [
           "usage"
         ]
@@ -371,17 +404,24 @@
         ]
       },
       {
-        "kind": "version",
-        "value": "Node.js 24.x (24.14.0 or later) or 26.x",
+        "kind": "product",
+        "value": "Cesium ion",
         "fields": [
-          "usage"
+          "cons"
         ]
       },
       {
-        "kind": "number",
-        "value": "8.2",
+        "kind": "product",
+        "value": "Google Maps",
         "fields": [
-          "usage"
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "OpenAI",
+        "fields": [
+          "cons"
         ]
       },
       {
@@ -389,42 +429,6 @@
         "value": "Pinokio",
         "fields": [
           "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "God's Eye View",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Cesium ion",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Google Maps",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "OpenAI",
-        "fields": [
-          "usage",
-          "cons"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "MIT License",
-        "fields": [
-          "pros"
         ]
       }
     ],
@@ -435,8 +439,8 @@
       "kind": "readme",
       "slug": "bilawalsidhu/gods-eye-view",
       "path": "README.md",
-      "blob_sha": "4135028b558cccca9a0a7b26c9f72735bbd3399d",
-      "content_sha256": "5d59ad5812010a7620276bce7bad44fc25e2887d1148b0d104d68aca4486a0fe",
+      "blob_sha": "af5121e2c6370096679051c9608da7558d824b4b",
+      "content_sha256": "40c2b76633440b33786db4f3d55728960eb33b2e9440181c004780c61234b584",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -1061,47 +1065,47 @@
   },
   "asgeirtj/system_prompts_leaks": {
     "content": {
-      "goal": "This repository, system_prompts_leaks by asgeirtj, is a curated collection of leaked system prompts — the hidden instructions given to AI chatbots such as ChatGPT, Claude, Gemini, and Grok before a user's first message. It aggregates these prompts, captured verbatim, across many providers and products.",
-      "usage": "The README organizes prompts into per-provider tables with direct links to individual markdown files, for example the Claude Code headless (Fable 5.1) prompt or the Claude Opus 5 prompt. There are no installation or build commands documented; using the repository consists of browsing these tables to locate the relevant prompt file.",
-      "pros": "It aggregates prompts from a wide range of vendors and products, including Anthropic, OpenAI, Google, xAI, Perplexity, Microsoft, Meta, and Mistral, with a table tracking the most recent additions and their dates. The project also displays a 'PRs welcome' badge, indicating openness to community contributions.",
-      "cons": "Because the content consists of leaked or captured prompts rather than official releases, the README does not describe a consistent verification process for every entry — one entry (GLM) explicitly notes it is 'verified & documented,' which suggests this level of verification may not be documented uniformly for other listed prompts.",
-      "fit": "The repository appears suited for researchers, engineers, or hobbyists studying how commercial AI systems are configured via system prompts; it is a static documentation/reference set of files rather than an installable software library or tool."
+      "goal": "This repository, system_prompts_leaks, collects leaked system prompts captured verbatim from AI chatbot products including ChatGPT, Claude, Gemini, and Grok, among others (lines 23-24).",
+      "usage": "The README presents prompts organized in tables by provider (e.g., Anthropic, OpenAI, Google, xAI), with each entry linking to a markdown file; contributions can be submitted as pull requests, noted as 'PRs welcome' linking to http://makeapullrequest.com (line 29).",
+      "pros": "Coverage spans many providers and products, including chat, coding-agent, and API variants, with a frequently updated 'Most recent additions/changes' table (lines 34-58); the project has reportedly been referenced by outside publications such as The Washington Post and CEPS' AI World (lines 20, 22).",
+      "cons": "Because entries are described as leaked prompts, the README does not document an independent verification process confirming each file's authenticity or that a given prompt remains current for its product (inference).",
+      "fit": "This resource appears suited to researchers, prompt engineers, and AI practitioners studying system prompt structure and conventions across products, rather than to those seeking an installable tool or software library (inference)."
     },
     "summaries": {
       "en": {
-        "goal": "This repository, system_prompts_leaks by asgeirtj, is a curated collection of leaked system prompts — the hidden instructions given to AI chatbots such as ChatGPT, Claude, Gemini, and Grok before a user's first message. It aggregates these prompts, captured verbatim, across many providers and products.",
-        "usage": "The README organizes prompts into per-provider tables with direct links to individual markdown files, for example the Claude Code headless (Fable 5.1) prompt or the Claude Opus 5 prompt. There are no installation or build commands documented; using the repository consists of browsing these tables to locate the relevant prompt file.",
-        "pros": "It aggregates prompts from a wide range of vendors and products, including Anthropic, OpenAI, Google, xAI, Perplexity, Microsoft, Meta, and Mistral, with a table tracking the most recent additions and their dates. The project also displays a 'PRs welcome' badge, indicating openness to community contributions.",
-        "cons": "Because the content consists of leaked or captured prompts rather than official releases, the README does not describe a consistent verification process for every entry — one entry (GLM) explicitly notes it is 'verified & documented,' which suggests this level of verification may not be documented uniformly for other listed prompts.",
-        "fit": "The repository appears suited for researchers, engineers, or hobbyists studying how commercial AI systems are configured via system prompts; it is a static documentation/reference set of files rather than an installable software library or tool."
+        "goal": "This repository, system_prompts_leaks, collects leaked system prompts captured verbatim from AI chatbot products including ChatGPT, Claude, Gemini, and Grok, among others (lines 23-24).",
+        "usage": "The README presents prompts organized in tables by provider (e.g., Anthropic, OpenAI, Google, xAI), with each entry linking to a markdown file; contributions can be submitted as pull requests, noted as 'PRs welcome' linking to http://makeapullrequest.com (line 29).",
+        "pros": "Coverage spans many providers and products, including chat, coding-agent, and API variants, with a frequently updated 'Most recent additions/changes' table (lines 34-58); the project has reportedly been referenced by outside publications such as The Washington Post and CEPS' AI World (lines 20, 22).",
+        "cons": "Because entries are described as leaked prompts, the README does not document an independent verification process confirming each file's authenticity or that a given prompt remains current for its product (inference).",
+        "fit": "This resource appears suited to researchers, prompt engineers, and AI practitioners studying system prompt structure and conventions across products, rather than to those seeking an installable tool or software library (inference)."
       },
       "ko": {
-        "goal": "이 저장소(system_prompts_leaks, 소유자 asgeirtj)는 ChatGPT, Claude, Gemini, Grok 등 여러 AI 챗봇이 사용자 메시지 이전에 받는 숨겨진 시스템 프롬프트를 그대로 캡처하여 모아놓은 컬렉션입니다.",
-        "usage": "README는 공급업체별 표로 구성되어 있으며, 예를 들어 Claude Code headless (Fable 5.1) 프롬프트나 Claude Opus 5 프롬프트처럼 각 markdown 파일로 바로 연결되는 링크를 제공합니다. 별도의 설치나 빌드 명령은 문서화되어 있지 않으며, 사용은 이러한 표를 탐색해 원하는 프롬프트 파일을 찾는 방식입니다.",
-        "pros": "Anthropic, OpenAI, Google, xAI, Perplexity, Microsoft, Meta, Mistral 등 다양한 공급업체와 제품의 프롬프트를 폭넓게 모아두었고, 최신 추가/변경 내역을 날짜와 함께 정리한 표도 제공합니다. 또한 'PRs welcome' 배지를 통해 커뮤니티 기여를 받고 있음을 보여줍니다.",
-        "cons": "이 저장소의 내용은 공식 배포물이 아니라 유출/캡처된 프롬프트로 구성되어 있으며, README는 모든 항목에 대해 일관된 검증 절차를 설명하지 않습니다. 예를 들어 GLM 항목만 '검증되고 문서화됨'이라고 명시되어 있어, 다른 항목들은 이러한 수준의 검증이 동일하게 문서화되어 있지 않을 수 있음을 시사합니다.",
-        "fit": "이 저장소는 상용 AI 시스템이 시스템 프롬프트를 통해 어떻게 구성되는지를 연구하는 연구자, 엔지니어, 애호가에게 적합할 것으로 보이며, 설치 가능한 소프트웨어 라이브러리나 도구라기보다는 정적인 문서/참고 자료 모음입니다."
+        "goal": "이 저장소 system_prompts_leaks는 ChatGPT, Claude, Gemini, Grok 등 여러 AI 챗봇 제품에서 그대로 캡처된 유출 시스템 프롬프트를 모아 놓은 것입니다 (23-24행).",
+        "usage": "README는 제공업체별(Anthropic, OpenAI, Google, xAI 등) 표로 프롬프트를 정리하며, 각 항목은 마크다운 파일로 연결됩니다. 기여는 풀 리퀘스트로 제출할 수 있으며 'PRs welcome'과 함께 http://makeapullrequest.com 링크가 표시되어 있습니다 (29행).",
+        "pros": "채팅, 코딩 에이전트, API 변형 등 다양한 제품과 제공업체를 폭넓게 다루며, 자주 업데이트되는 '최신 추가/변경' 표가 있습니다 (34-58행). 또한 The Washington Post와 CEPS의 AI World 같은 외부 매체에서 인용되었다고 언급되어 있습니다 (20, 22행).",
+        "cons": "항목들이 유출된 프롬프트로 설명되어 있어, README에는 각 파일의 진위 여부나 특정 프롬프트가 해당 제품에 대해 여전히 최신 상태인지 확인하는 독립적인 검증 절차가 문서화되어 있지 않은 것으로 보입니다 (추정).",
+        "fit": "이 자료는 설치 가능한 도구나 소프트웨어 라이브러리를 찾는 사용자보다는, 여러 제품에 걸친 시스템 프롬프트의 구조와 관례를 연구하는 연구자, 프롬프트 엔지니어, AI 실무자에게 적합해 보입니다 (추정)."
       },
       "zh-CN": {
-        "goal": "该仓库(system_prompts_leaks,所有者 asgeirtj)是一个收集 ChatGPT、Claude、Gemini、Grok 等多种 AI 聊天机器人在用户发送第一条消息之前所接收到的隐藏系统提示词的合集,内容按原文逐字记录。",
-        "usage": "README 按提供商组织成多个表格,并直接链接到各个 markdown 文件,例如 Claude Code headless (Fable 5.1) 提示词或 Claude Opus 5 提示词。文档中没有说明任何安装或构建命令,使用方式就是浏览这些表格以找到所需的提示词文件。",
-        "pros": "该仓库汇集了 Anthropic、OpenAI、Google、xAI、Perplexity、Microsoft、Meta、Mistral 等众多厂商和产品的提示词,并提供了按日期记录最新新增/变更内容的表格。仓库还展示了'PRs welcome'徽章,表明其对社区贡献持开放态度。",
-        "cons": "由于内容属于泄露或抓取而来的提示词而非官方发布内容,README 并未对每个条目说明一致的验证流程;例如仅 GLM 条目明确标注为'已验证并记录',这似乎表明其他条目未必具有同等程度的记录验证。",
-        "fit": "该仓库可能适合研究人员、工程师或爱好者用于研究商业 AI 系统如何通过系统提示词进行配置,它是一组静态的文档/参考文件,而非可安装的软件库或工具。"
+        "goal": "该仓库 system_prompts_leaks 收集了来自 ChatGPT、Claude、Gemini、Grok 等多种 AI 聊天机器人产品的逐字泄露系统提示词（第23-24行）。",
+        "usage": "README 按提供商（如 Anthropic、OpenAI、Google、xAI）以表格形式整理提示词，每个条目链接到一个 Markdown 文件；可以通过提交 Pull Request 来贡献内容，标注为 'PRs welcome' 并链接到 http://makeapullrequest.com（第29行）。",
+        "pros": "覆盖范围广，涵盖聊天、编码代理和 API 变体等多种产品和提供商，并附有经常更新的最新添加/更改表格（第34-58行）；据称该项目还被《华盛顿邮报》和 CEPS 的 AI World 等外部媒体引用（第20、22行）。",
+        "cons": "由于条目被描述为泄露的提示词，README 中并未说明用于确认每个文件真实性或某条提示词对其产品是否仍然最新的独立验证流程（推测）。",
+        "fit": "该资源似乎更适合研究系统提示词在不同产品中的结构与惯例的研究人员、提示工程师和 AI 从业者，而非寻找可安装工具或软件库的用户（推测）。"
       },
       "es": {
-        "goal": "Este repositorio (system_prompts_leaks, de asgeirtj) es una colección de prompts de sistema filtrados —las instrucciones ocultas que reciben chatbots de IA como ChatGPT, Claude, Gemini y Grok antes del primer mensaje del usuario— capturados de forma literal.",
-        "usage": "El README organiza los prompts en tablas por proveedor, con enlaces directos a archivos markdown individuales, como el prompt de Claude Code headless (Fable 5.1) o el de Claude Opus 5. No se documentan comandos de instalación o compilación; el uso consiste en navegar estas tablas para localizar el archivo de prompt deseado.",
-        "pros": "Reúne prompts de una amplia variedad de proveedores y productos, incluyendo Anthropic, OpenAI, Google, xAI, Perplexity, Microsoft, Meta y Mistral, con una tabla que registra las adiciones más recientes junto con sus fechas. También muestra una insignia 'PRs welcome', lo que indica apertura a contribuciones de la comunidad.",
-        "cons": "Dado que el contenido consiste en prompts filtrados o capturados y no en publicaciones oficiales, el README no describe un proceso de verificación uniforme para cada entrada; por ejemplo, solo la entrada de GLM se indica explícitamente como 'verificada y documentada', lo que sugiere que otras entradas podrían no contar con ese mismo nivel de documentación de verificación.",
-        "fit": "El repositorio parece adecuado para investigadores, ingenieros o aficionados que estudian cómo se configuran los sistemas de IA comerciales mediante prompts de sistema; se trata de un conjunto estático de documentación/referencia y no de una biblioteca o herramienta de software instalable."
+        "goal": "Este repositorio, system_prompts_leaks, recopila prompts de sistema filtrados y capturados textualmente de varios productos de chatbots de IA, incluidos ChatGPT, Claude, Gemini y Grok, entre otros (líneas 23-24).",
+        "usage": "El README presenta los prompts organizados en tablas por proveedor (por ejemplo, Anthropic, OpenAI, Google, xAI), y cada entrada enlaza a un archivo markdown; las contribuciones pueden enviarse como pull requests, indicado como 'PRs welcome' con enlace a http://makeapullrequest.com (línea 29).",
+        "pros": "La cobertura abarca muchos proveedores y productos, incluidas variantes de chat, agentes de codificación y API, con una tabla de 'adiciones/cambios más recientes' actualizada con frecuencia (líneas 34-58); el proyecto habría sido mencionado por medios externos como The Washington Post y CEPS' AI World (líneas 20, 22).",
+        "cons": "Dado que las entradas se describen como prompts filtrados, el README no documenta un proceso de verificación independiente que confirme la autenticidad de cada archivo ni que un prompt determinado siga vigente para su producto (inferencia).",
+        "fit": "Este recurso parece adecuado para investigadores, ingenieros de prompts y profesionales de IA que estudian la estructura y las convenciones de los prompts de sistema en distintos productos, más que para quienes buscan una herramienta instalable o una biblioteca de software (inferencia)."
       },
       "ja": {
-        "goal": "このリポジトリ(system_prompts_leaks、所有者 asgeirtj)は、ChatGPT、Claude、Gemini、Grok など複数の AI チャットボットがユーザーの最初のメッセージより前に受け取る、隠されたシステムプロンプトをそのまま収集したコレクションです。",
-        "usage": "README はプロバイダーごとの表で構成されており、例えば Claude Code headless (Fable 5.1) のプロンプトや Claude Opus 5 のプロンプトなど、各 markdown ファイルへの直接リンクが提供されています。インストールやビルドのコマンドは記載されておらず、利用方法はこれらの表を閲覧して目的のプロンプトファイルを見つけることです。",
-        "pros": "Anthropic、OpenAI、Google、xAI、Perplexity、Microsoft、Meta、Mistral など幅広いプロバイダーと製品のプロンプトを収集しており、最新の追加・変更内容を日付とともにまとめた表もあります。また『PRs welcome』バッジを掲げ、コミュニティからの貢献を受け入れる姿勢を示しています。",
-        "cons": "内容は公式リリースではなく流出・キャプチャされたプロンプトであるため、README はすべての項目について一貫した検証プロセスを説明していません。例えば GLM の項目のみ『検証済み・文書化済み』と明記されており、他の項目は同水準の検証が同じように文書化されていない可能性を示唆しています。",
-        "fit": "このリポジトリは、商用 AI システムがシステムプロンプトを通じてどのように構成されているかを研究する研究者、エンジニア、愛好家に適していると考えられ、インストール可能なソフトウェアライブラリやツールというよりは静的なドキュメント/参考資料集です。"
+        "goal": "このリポジトリ system_prompts_leaks は、ChatGPT、Claude、Gemini、Grok などさまざまなAIチャットボット製品から、そのままの形で取得された流出システムプロンプトを収集しています（23〜24行目）。",
+        "usage": "READMEでは、プロバイダー（Anthropic、OpenAI、Google、xAI など）ごとに表形式でプロンプトが整理されており、各項目はMarkdownファイルにリンクしています。貢献はプルリクエストとして提出でき、'PRs welcome' と共に http://makeapullrequest.com へのリンクが記載されています（29行目）。",
+        "pros": "チャット、コーディングエージェント、API バリアントなど多数の製品・プロバイダーを幅広くカバーし、頻繁に更新される「最新の追加・変更」表があります（34〜58行目）。また、The Washington Post や CEPS の AI World といった外部メディアで取り上げられたと記載されています（20、22行目）。",
+        "cons": "各項目は流出したプロンプトとされているため、READMEには各ファイルの真正性や、特定のプロンプトがその製品にとって現在も最新であるかを確認する独立した検証プロセスは記載されていないようです（推測）。",
+        "fit": "この資料は、インストール可能なツールやソフトウェアライブラリを求める人よりも、複数製品にわたるシステムプロンプトの構造や慣習を研究する研究者、プロンプトエンジニア、AI実務者に適していると考えられます（推測）。"
       }
     },
     "evidence": {
@@ -1114,33 +1118,33 @@
       ],
       "usage": [
         {
-          "start_line": 34,
-          "end_line": 38,
-          "section_heading": "Most recent additions/changes"
-        },
-        {
-          "start_line": 62,
-          "end_line": 64,
-          "section_heading": "Anthropic — Claude system prompts"
-        }
-      ],
-      "pros": [
-        {
-          "start_line": 28,
+          "start_line": 29,
           "end_line": 29,
           "section_heading": "System Prompts Leaks"
         },
         {
-          "start_line": 34,
+          "start_line": 36,
           "end_line": 38,
           "section_heading": "Most recent additions/changes"
         }
       ],
+      "pros": [
+        {
+          "start_line": 34,
+          "end_line": 58,
+          "section_heading": "Most recent additions/changes"
+        },
+        {
+          "start_line": 20,
+          "end_line": 22,
+          "section_heading": "[Open Source Agent Analytics](https://go.asgeirtj.workers.dev/latitude)"
+        }
+      ],
       "cons": [
         {
-          "start_line": 268,
-          "end_line": 268,
-          "section_heading": "Z.ai — GLM"
+          "start_line": 24,
+          "end_line": 24,
+          "section_heading": "System Prompts Leaks"
         }
       ],
       "fit": [
@@ -1148,11 +1152,6 @@
           "start_line": 23,
           "end_line": 24,
           "section_heading": "System Prompts Leaks"
-        },
-        {
-          "start_line": 62,
-          "end_line": 64,
-          "section_heading": "Anthropic — Claude system prompts"
         }
       ]
     },
@@ -1168,8 +1167,7 @@
         "kind": "product",
         "value": "Claude",
         "fields": [
-          "goal",
-          "usage"
+          "goal"
         ]
       },
       {
@@ -1185,6 +1183,20 @@
         "fields": [
           "goal"
         ]
+      },
+      {
+        "kind": "product",
+        "value": "system_prompts_leaks",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "http://makeapullrequest.com",
+        "fields": [
+          "usage"
+        ]
       }
     ],
     "inference_fields": [
@@ -1195,8 +1207,8 @@
       "kind": "readme",
       "slug": "asgeirtj/system_prompts_leaks",
       "path": "README.md",
-      "blob_sha": "a83879f9eb4ccb6d26eb1c823b57d0247a19eaa9",
-      "content_sha256": "56561de0db21b9c49748c18e077041c7ce9fc74cbfc636d0335c2a5aae97fc90",
+      "blob_sha": "a57af2f066c9ced6d7947a2e8f47ac54a231406a",
+      "content_sha256": "8ce38a30c466ff7c941f072c528250d9a0ba4283d6b8f13b0aaf1ab3634551d5",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -1774,47 +1786,47 @@
   },
   "alphaXiv/OpenResearch": {
     "content": {
-      "goal": "OpenResearch is described as a local-first workspace for research agents and autoresearch, turning Claude Code, Codex, OpenCode, or Cursor into agents that review literature, develop hypotheses, run experiments, and produce research artifacts.",
-      "usage": "Install the CLI on macOS or Linux with `curl -LsSf https://openresearch.sh/install.sh | sh` and run `orx up`, which opens a local dashboard at `http://127.0.0.1:4791`; a desktop app and a Windows Releases build are also documented.",
-      "pros": "Documented capabilities include parallel exploration via isolated git worktrees per agent session, a git-native experiment tree for reproducible runs, evidence (logs, diffs, artifacts) kept in context, choice of agent and compute backend, and local ownership of projects and code.",
-      "cons": "Running the workspace remotely via `orx up --remote user@host` binds the service to loopback with no application-level authentication, meaning other users on that host can reach it; Windows support is also noted as still in beta and requires Git for Windows.",
-      "fit": "This suggests a fit for individuals or teams already using Claude Code, Codex, OpenCode, or Cursor who want to run research experiments locally or via SSH, Slurm, Kubernetes, Ray, Hugging Face Jobs, Modal, Tinker, or managed OpenResearch compute, while keeping code local by default."
+      "goal": "OpenResearch is described as a local-first workspace for research agents and autoresearch, letting coding agents such as Claude Code, Codex, OpenCode, or Cursor review literature, develop hypotheses, run experiments, and produce research artifacts.",
+      "usage": "Install with `curl -LsSf https://openresearch.sh/install.sh | sh` and run `orx up`, which opens a local dashboard at `http://127.0.0.1:4791`; remote GPU sessions start with `orx up --remote user@host`, and `orx install-skills` installs the OpenResearch skill into supported agents.",
+      "pros": "It runs locally by default with a local SQLite store on 127.0.0.1, keeping projects, conversations, experiments, and artifacts on the user's machine; it gives each research direction an isolated git worktree and agent session; and the same committed snapshot can run on SSH, Slurm, Kubernetes, Ray, Hugging Face Jobs, Modal, or Tinker without requiring the repository to be published.",
+      "cons": "In remote SSH mode the service binds to loopback but has no application-level authentication, so other users on that host can reach it; Windows support is described as beta and requires separately installing Git for Windows.",
+      "fit": "Based on the README, it appears suited to developers and researchers who want to run research or coding agents locally or on remote compute while keeping code and experiment data locally owned; official release builds also send opt-out, coarse usage telemetry tied to a random installation ID unless disabled."
     },
     "summaries": {
       "en": {
-        "goal": "OpenResearch is described as a local-first workspace for research agents and autoresearch, turning Claude Code, Codex, OpenCode, or Cursor into agents that review literature, develop hypotheses, run experiments, and produce research artifacts.",
-        "usage": "Install the CLI on macOS or Linux with `curl -LsSf https://openresearch.sh/install.sh | sh` and run `orx up`, which opens a local dashboard at `http://127.0.0.1:4791`; a desktop app and a Windows Releases build are also documented.",
-        "pros": "Documented capabilities include parallel exploration via isolated git worktrees per agent session, a git-native experiment tree for reproducible runs, evidence (logs, diffs, artifacts) kept in context, choice of agent and compute backend, and local ownership of projects and code.",
-        "cons": "Running the workspace remotely via `orx up --remote user@host` binds the service to loopback with no application-level authentication, meaning other users on that host can reach it; Windows support is also noted as still in beta and requires Git for Windows.",
-        "fit": "This suggests a fit for individuals or teams already using Claude Code, Codex, OpenCode, or Cursor who want to run research experiments locally or via SSH, Slurm, Kubernetes, Ray, Hugging Face Jobs, Modal, Tinker, or managed OpenResearch compute, while keeping code local by default."
+        "goal": "OpenResearch is described as a local-first workspace for research agents and autoresearch, letting coding agents such as Claude Code, Codex, OpenCode, or Cursor review literature, develop hypotheses, run experiments, and produce research artifacts.",
+        "usage": "Install with `curl -LsSf https://openresearch.sh/install.sh | sh` and run `orx up`, which opens a local dashboard at `http://127.0.0.1:4791`; remote GPU sessions start with `orx up --remote user@host`, and `orx install-skills` installs the OpenResearch skill into supported agents.",
+        "pros": "It runs locally by default with a local SQLite store on 127.0.0.1, keeping projects, conversations, experiments, and artifacts on the user's machine; it gives each research direction an isolated git worktree and agent session; and the same committed snapshot can run on SSH, Slurm, Kubernetes, Ray, Hugging Face Jobs, Modal, or Tinker without requiring the repository to be published.",
+        "cons": "In remote SSH mode the service binds to loopback but has no application-level authentication, so other users on that host can reach it; Windows support is described as beta and requires separately installing Git for Windows.",
+        "fit": "Based on the README, it appears suited to developers and researchers who want to run research or coding agents locally or on remote compute while keeping code and experiment data locally owned; official release builds also send opt-out, coarse usage telemetry tied to a random installation ID unless disabled."
       },
       "ko": {
-        "goal": "OpenResearch는 로컬 우선 연구 에이전트 및 자동연구(autoresearch) 워크스페이스로 소개되며, Claude Code, Codex, OpenCode, Cursor를 문헌 검토, 가설 개발, 실험 실행, 연구 산출물 생성이 가능한 연구 에이전트로 전환한다고 설명된다.",
-        "usage": "macOS 또는 Linux에서는 `curl -LsSf https://openresearch.sh/install.sh | sh` 명령으로 CLI를 설치한 뒤 `orx up`을 실행하면 `http://127.0.0.1:4791`에서 로컬 대시보드가 열리며, 데스크톱 앱과 Windows용 Releases 빌드도 문서화되어 있다.",
-        "pros": "문서화된 기능으로는 에이전트 세션별 독립된 git worktree를 통한 병렬 탐색, 재현 가능한 실행을 위한 git 기반 실험 트리, 컨텍스트에 유지되는 로그·diff·산출물 등 근거 자료, 에이전트 및 컴퓨트 선택의 자유, 프로젝트와 코드의 로컬 소유권이 포함된다.",
-        "cons": "`orx up --remote user@host`로 원격 실행 시 서비스가 loopback에 바인딩되며 애플리케이션 수준 인증이 없어 해당 호스트의 다른 사용자가 접근할 수 있다고 명시되어 있으며, Windows 지원은 여전히 베타 단계이며 Git for Windows가 필요하다고 안내된다.",
-        "fit": "이는 이미 Claude Code, Codex, OpenCode, Cursor를 사용 중이며 로컬 또는 SSH, Slurm, Kubernetes, Ray, Hugging Face Jobs, Modal, Tinker, 관리형 OpenResearch 컴퓨트를 통해 연구 실험을 실행하면서 코드를 기본적으로 로컬에 유지하고자 하는 개인이나 팀에 적합할 것으로 보인다."
+        "goal": "OpenResearch는 로컬 우선(local-first) 연구 에이전트 및 자동연구(autoresearch) 작업공간으로 소개되며, Claude Code, Codex, OpenCode, Cursor 같은 코딩 에이전트가 문헌을 검토하고 가설을 세우고 실험을 실행하며 연구 산출물을 만들 수 있도록 지원합니다.",
+        "usage": "`curl -LsSf https://openresearch.sh/install.sh | sh` 명령으로 설치한 뒤 `orx up`을 실행하면 `http://127.0.0.1:4791`에서 로컬 대시보드가 열리며, 원격 GPU 세션은 `orx up --remote user@host`로, 에이전트에 스킬을 설치할 때는 `orx install-skills`로 진행합니다.",
+        "pros": "기본적으로 127.0.0.1에서 로컬 SQLite 저장소로 동작하여 프로젝트·대화·실험·산출물을 사용자 기기에 보관하고, 각 연구 방향마다 독립된 git worktree와 에이전트 세션을 부여하며, 저장소를 공개하지 않고도 SSH, Slurm, Kubernetes, Ray, Hugging Face Jobs, Modal, Tinker 등에서 동일한 커밋 스냅샷을 실행할 수 있습니다.",
+        "cons": "원격 SSH 모드에서는 서비스가 루프백에 바인딩되지만 애플리케이션 수준 인증이 없어 같은 호스트의 다른 사용자가 접근할 수 있으며, Windows 지원은 베타 단계로 별도로 Git for Windows 설치가 필요합니다.",
+        "fit": "README에 따르면 코드와 실험 데이터를 로컬에 유지하면서 로컬 또는 원격 컴퓨팅에서 연구·코딩 에이전트를 운영하려는 개발자와 연구자에게 적합해 보이며, 공식 릴리스 빌드는 비활성화하지 않는 한 무작위 설치 ID에 연결된 옵트아웃 방식의 대략적인 사용 텔레메트리를 전송합니다."
       },
       "zh-CN": {
-        "goal": "OpenResearch 被描述为面向研究智能体和自动研究(autoresearch)的本地优先工作区,可将 Claude Code、Codex、OpenCode 或 Cursor 转变为能够审阅文献、提出假设、运行实验并产出研究成果的智能体。",
-        "usage": "在 macOS 或 Linux 上,可通过 `curl -LsSf https://openresearch.sh/install.sh | sh` 安装 CLI,再运行 `orx up`,该命令会在 `http://127.0.0.1:4791` 打开本地仪表盘;文档中还提到了桌面应用以及适用于 Windows 的 Releases 版本。",
-        "pros": "文档列出的能力包括:通过每个智能体会话独立的 git worktree 实现并行探索、基于 git 的实验树以支持可复现的运行、将日志、差异和产出物等证据保留在上下文中、可自由选择智能体和计算后端,以及项目和代码的本地所有权。",
-        "cons": "文档说明通过 `orx up --remote user@host` 远程运行时,服务绑定在 loopback 上且没有应用层身份验证,这意味着该主机上的其他用户可以访问它;此外 Windows 支持仍处于测试阶段,并且需要 Git for Windows。",
-        "fit": "这似乎适合已经在使用 Claude Code、Codex、OpenCode 或 Cursor,并希望在本地或通过 SSH、Slurm、Kubernetes、Ray、Hugging Face Jobs、Modal、Tinker 或托管的 OpenResearch 计算资源运行研究实验,同时默认将代码保留在本地的个人或团队。"
+        "goal": "OpenResearch 被介绍为面向研究代理与自动研究(autoresearch)的本地优先工作空间,使 Claude Code、Codex、OpenCode 或 Cursor 等编码代理能够查阅文献、提出假设、运行实验并产出研究成果。",
+        "usage": "先执行 `curl -LsSf https://openresearch.sh/install.sh | sh` 安装,再运行 `orx up` 即可在 `http://127.0.0.1:4791` 打开本地仪表盘;使用 `orx up --remote user@host` 可启动远程 GPU 会话,使用 `orx install-skills` 可将 OpenResearch 技能安装到受支持的代理中。",
+        "pros": "系统默认在 127.0.0.1 上以本地 SQLite 存储运行,将项目、对话、实验和产出物保留在用户本机;每个研究方向都拥有独立的 git 工作树和代理会话;同一个已提交的代码快照可在 SSH、Slurm、Kubernetes、Ray、Hugging Face Jobs、Modal、Tinker 等环境运行,且无需公开仓库。",
+        "cons": "在远程 SSH 模式下,服务虽绑定到回环地址,但没有应用层身份验证,同一主机上的其他用户可能因此访问该服务;Windows 支持处于测试(beta)阶段,且需要另行安装 Git for Windows。",
+        "fit": "根据 README 描述,该项目似乎适合希望在本地或远程算力上运行研究/编码代理、同时将代码与实验数据保留在本地的开发者与研究人员;官方发行版会发送不含代码或提示内容、与随机安装 ID 关联的可选择退出的粗粒度使用遥测数据,除非手动关闭。"
       },
       "es": {
-        "goal": "OpenResearch se describe como un espacio de trabajo local-first para agentes de investigación y autoresearch, que convierte a Claude Code, Codex, OpenCode o Cursor en agentes capaces de revisar literatura, desarrollar hipótesis, ejecutar experimentos y producir artefactos de investigación.",
-        "usage": "En macOS o Linux, se instala la CLI con `curl -LsSf https://openresearch.sh/install.sh | sh` y luego se ejecuta `orx up`, que abre un panel local en `http://127.0.0.1:4791`; también se documentan una app de escritorio y una compilación de Releases para Windows.",
-        "pros": "Entre las capacidades documentadas están la exploración paralela mediante worktrees de git aisladas por sesión de agente, un árbol de experimentos nativo de git para ejecuciones reproducibles, evidencia (registros, diffs, artefactos) mantenida en contexto, libertad para elegir agente y backend de cómputo, y propiedad local de proyectos y código.",
-        "cons": "Ejecutar el espacio de trabajo de forma remota con `orx up --remote user@host` vincula el servicio a loopback sin autenticación a nivel de aplicación, lo que significa que otros usuarios de ese host podrían acceder a él; además, el soporte para Windows aún se indica como beta y requiere Git for Windows.",
-        "fit": "Esto sugiere que resulta adecuado para personas o equipos que ya usan Claude Code, Codex, OpenCode o Cursor y desean ejecutar experimentos de investigación de forma local o a través de SSH, Slurm, Kubernetes, Ray, Hugging Face Jobs, Modal, Tinker o cómputo gestionado de OpenResearch, manteniendo el código local por defecto."
+        "goal": "OpenResearch se presenta como un entorno de trabajo local-first para agentes de investigación y autoresearch, que permite a agentes de codificación como Claude Code, Codex, OpenCode o Cursor revisar literatura, desarrollar hipótesis, ejecutar experimentos y producir artefactos de investigación.",
+        "usage": "Se instala con `curl -LsSf https://openresearch.sh/install.sh | sh` y luego se ejecuta `orx up`, que abre un panel local en `http://127.0.0.1:4791`; las sesiones remotas con GPU se inician con `orx up --remote user@host`, y las habilidades de OpenResearch se instalan en agentes compatibles con `orx install-skills`.",
+        "pros": "Funciona por defecto en 127.0.0.1 con un almacén SQLite local, manteniendo proyectos, conversaciones, experimentos y artefactos en la máquina del usuario; asigna a cada dirección de investigación un worktree de git y una sesión de agente aislados; y puede ejecutar la misma instantánea confirmada en SSH, Slurm, Kubernetes, Ray, Hugging Face Jobs, Modal o Tinker sin necesidad de publicar el repositorio.",
+        "cons": "En el modo remoto por SSH, el servicio se vincula a loopback pero carece de autenticación a nivel de aplicación, por lo que otros usuarios del mismo host podrían acceder a él; el soporte para Windows se describe como beta y requiere instalar Git for Windows por separado.",
+        "fit": "Según el README, parece adecuado para desarrolladores e investigadores que quieran ejecutar agentes de investigación o codificación en local o en cómputo remoto conservando la propiedad local del código y los datos de experimentos; las compilaciones oficiales envían telemetría de uso agregada, opcional (opt-out) y vinculada a un ID de instalación aleatorio, salvo que se desactive."
       },
       "ja": {
-        "goal": "OpenResearchは、Claude Code、Codex、OpenCode、Cursorを、文献レビュー、仮説立案、実験実行、研究成果物の作成を行うリサーチエージェントに変える、ローカルファーストなリサーチエージェント/自動研究(autoresearch)ワークスペースとして紹介されている。",
-        "usage": "macOSまたはLinuxでは `curl -LsSf https://openresearch.sh/install.sh | sh` でCLIをインストールし、`orx up` を実行すると `http://127.0.0.1:4791` にローカルダッシュボードが開くと説明されている。デスクトップアプリやWindows向けReleasesビルドも文書化されている。",
-        "pros": "文書化された機能には、エージェントセッションごとに独立したgit worktreeによる並列探索、再現可能な実行のためのgitネイティブな実験ツリー、コンテキストに保持されるログ・diff・成果物などのエビデンス、エージェントおよび計算基盤を選択できる自由、プロジェクトとコードのローカル所有権が含まれる。",
-        "cons": "`orx up --remote user@host` でリモート実行する場合、サービスはloopbackにバインドされアプリケーションレベルの認証がないため、同一ホスト上の他のユーザーがアクセスできる可能性があると記載されている。また、Windowsサポートは依然としてベータ段階であり、Git for Windowsが必要とされている。",
-        "fit": "これは、すでにClaude Code、Codex、OpenCode、Cursorを使用しており、ローカル環境またはSSH、Slurm、Kubernetes、Ray、Hugging Face Jobs、Modal、Tinker、あるいはマネージドのOpenResearchコンピュートを通じて研究実験を実行しつつ、コードを既定でローカルに保持したい個人やチームに適していると考えられる。"
+        "goal": "OpenResearchは、研究エージェントとautoresearch(自動研究)のためのローカルファーストなワークスペースとして紹介されており、Claude Code、Codex、OpenCode、Cursorなどのコーディングエージェントが文献レビュー、仮説立案、実験実行、研究成果物の作成を行えるようにするとされています。",
+        "usage": "`curl -LsSf https://openresearch.sh/install.sh | sh` でインストールした後 `orx up` を実行すると `http://127.0.0.1:4791` でローカルダッシュボードが開き、リモートGPUセッションは `orx up --remote user@host`、対応エージェントへのスキル導入は `orx install-skills` で行えます。",
+        "pros": "デフォルトで 127.0.0.1 上のローカルSQLiteストアで動作し、プロジェクト・会話・実験・成果物をユーザーのマシンに保持すること、各研究方向に独立したgit worktreeとエージェントセッションを割り当てること、リポジトリを公開せずに同一のコミット済みスナップショットをSSH、Slurm、Kubernetes、Ray、Hugging Face Jobs、Modal、Tinkerなどで実行できることが挙げられます。",
+        "cons": "リモートSSHモードではサービスがループバックにバインドされるもののアプリケーションレベルの認証がなく、同じホスト上の他のユーザーがアクセスできる可能性があり、Windows対応はベータとされ別途Git for Windowsのインストールが必要です。",
+        "fit": "READMEの記述によれば、コードと実験データをローカルに保持しながらローカルまたはリモートの計算資源で研究・コーディングエージェントを運用したい開発者や研究者に適していると考えられ、公式リリースビルドは無効化しない限りランダムなインストールIDに紐づくオプトアウト可能な粗粒度の利用テレメトリを送信します。"
       }
     },
     "evidence": {
@@ -1827,45 +1839,50 @@
       ],
       "usage": [
         {
-          "start_line": 21,
-          "end_line": 30,
+          "start_line": 32,
+          "end_line": 42,
           "section_heading": "Get started"
         },
         {
-          "start_line": 32,
-          "end_line": 35,
-          "section_heading": "Get started"
+          "start_line": 76,
+          "end_line": 78,
+          "section_heading": "Run anywhere"
+        },
+        {
+          "start_line": 86,
+          "end_line": 89,
+          "section_heading": "CLI and agent integration"
         }
       ],
       "pros": [
         {
-          "start_line": 47,
-          "end_line": 52,
+          "start_line": 54,
+          "end_line": 59,
           "section_heading": "Built for research agents"
+        },
+        {
+          "start_line": 70,
+          "end_line": 72,
+          "section_heading": "Run anywhere"
         }
       ],
       "cons": [
         {
-          "start_line": 73,
-          "end_line": 75,
+          "start_line": 80,
+          "end_line": 82,
           "section_heading": "Run anywhere"
         },
         {
-          "start_line": 34,
-          "end_line": 35,
+          "start_line": 39,
+          "end_line": 40,
           "section_heading": "Get started"
         }
       ],
       "fit": [
         {
-          "start_line": 61,
-          "end_line": 65,
-          "section_heading": "Run anywhere"
-        },
-        {
-          "start_line": 99,
-          "end_line": 104,
-          "section_heading": "Local by default"
+          "start_line": 113,
+          "end_line": 122,
+          "section_heading": "Usage analytics"
         }
       ]
     },
@@ -1881,15 +1898,28 @@
         "kind": "command",
         "value": "orx up",
         "fields": [
-          "usage",
-          "cons"
+          "usage"
         ]
       },
       {
         "kind": "command",
         "value": "orx up --remote user@host",
         "fields": [
-          "cons"
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "orx install-skills",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://openresearch.sh",
+        "fields": [
+          "usage"
         ]
       },
       {
@@ -1904,47 +1934,42 @@
         "value": "OpenResearch",
         "fields": [
           "goal",
-          "usage",
-          "fit"
+          "usage"
         ]
       },
       {
         "kind": "product",
         "value": "Claude Code",
         "fields": [
-          "goal",
-          "fit"
+          "goal"
         ]
       },
       {
         "kind": "product",
         "value": "Codex",
         "fields": [
-          "goal",
-          "fit"
+          "goal"
         ]
       },
       {
         "kind": "product",
         "value": "OpenCode",
         "fields": [
-          "goal",
-          "fit"
+          "goal"
         ]
       },
       {
         "kind": "product",
         "value": "Cursor",
         "fields": [
-          "goal",
-          "fit"
+          "goal"
         ]
       },
       {
-        "kind": "number",
-        "value": "4791",
+        "kind": "product",
+        "value": "SQLite",
         "fields": [
-          "usage"
+          "pros"
         ]
       }
     ],
@@ -1955,8 +1980,8 @@
       "kind": "readme",
       "slug": "alphaxiv/openresearch",
       "path": "README.md",
-      "blob_sha": "cde65cd794b8df6040462e018de0b19bb1290d83",
-      "content_sha256": "c24dda222454af5b973214ff779c4c8dfbdf42e8d8685ab733ccb622e6f3888e",
+      "blob_sha": "a181d6185a1e7d9f8647e58aae6de827a29c3e21",
+      "content_sha256": "0c9042c88d535e3d061dd16e7a3a672ba3e06f25026ab81a92c6b48692bde752",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -3560,134 +3585,134 @@
   },
   "ayghri/i-have-adhd": {
     "content": {
-      "goal": "i-have-adhd is a skill/plugin for coding assistants such as Claude Code, designed to make responses action-first: leading with the next step, numbering multi-step tasks, and cutting filler such as 'Hope this helps!' instead of burying the actual answer in preamble.",
-      "usage": "Install by copying the prompt that references https://github.com/ayghri/i-have-adhd and the repo's AGENTS.md into a CLI, or follow INSTALL.md; within Claude Code the skill can also be installed with `claude plugin install i-have-adhd@i-have-adhd` and invoked with `/i-have-adhd`.",
-      "pros": "Behavior is governed by 10 explicit rules documented in SKILL.md, such as leading with the next action, numbering steps, and capping lists at 5 items, which likely produces predictable, terse output formatting.",
-      "cons": "Effective use appears to presume an environment that supports Claude Code-style skills/plugins, since installation and tuning rely on AGENTS.md and marketplace commands, so applicability outside that ecosystem or with other coding assistants is not fully detailed.",
-      "fit": "This seems best suited for developers using Claude Code who want concise, action-first assistant replies rather than conversational preamble; those preferring more explanatory responses may find the terse style less suitable."
+      "goal": "i-have-adhd is a skill/plugin for coding assistants designed to prevent responses from burying the answer, prioritizing an action-first format with numbered steps and no closing pleasantries such as \"Hope this helps!\"",
+      "usage": "Installation is done by copying a CLI prompt that references https://github.com/ayghri/i-have-adhd and the repository's AGENTS.md file, or by following INSTALL.md. To customize it, users fork the repo, edit skills/i-have-adhd/SKILL.md, then run commands such as `claude plugin marketplace add <your-username>/i-have-adhd` and `claude plugin install i-have-adhd@i-have-adhd`, restart Claude Code, and re-invoke `/i-have-adhd`.",
+      "pros": "The skill enforces 10 documented rules, including leading with the next action, numbering multi-step tasks, ending with one concrete next step, suppressing tangents, and capping lists to 5 items; the README illustrates this with a before/after example contrasting a verbose response with a terse, actionable one.",
+      "cons": "Customizing the skill requires forking the repository and manually running uninstall/marketplace-remove/add/install commands, since the fork and upstream share the same plugin name. The README also notes the approach is adapted for how an LLM should respond, not for how a person should organize their day, suggesting it may not function as a general ADHD management tool despite its name.",
+      "fit": "The plugin appears best suited for developers using AI coding assistants such as Claude Code who want concise, action-first responses rather than exploratory or hedged explanations; it does not appear intended as a clinical or personal ADHD support tool."
     },
     "summaries": {
       "en": {
-        "goal": "i-have-adhd is a skill/plugin for coding assistants such as Claude Code, designed to make responses action-first: leading with the next step, numbering multi-step tasks, and cutting filler such as 'Hope this helps!' instead of burying the actual answer in preamble.",
-        "usage": "Install by copying the prompt that references https://github.com/ayghri/i-have-adhd and the repo's AGENTS.md into a CLI, or follow INSTALL.md; within Claude Code the skill can also be installed with `claude plugin install i-have-adhd@i-have-adhd` and invoked with `/i-have-adhd`.",
-        "pros": "Behavior is governed by 10 explicit rules documented in SKILL.md, such as leading with the next action, numbering steps, and capping lists at 5 items, which likely produces predictable, terse output formatting.",
-        "cons": "Effective use appears to presume an environment that supports Claude Code-style skills/plugins, since installation and tuning rely on AGENTS.md and marketplace commands, so applicability outside that ecosystem or with other coding assistants is not fully detailed.",
-        "fit": "This seems best suited for developers using Claude Code who want concise, action-first assistant replies rather than conversational preamble; those preferring more explanatory responses may find the terse style less suitable."
+        "goal": "i-have-adhd is a skill/plugin for coding assistants designed to prevent responses from burying the answer, prioritizing an action-first format with numbered steps and no closing pleasantries such as \"Hope this helps!\"",
+        "usage": "Installation is done by copying a CLI prompt that references https://github.com/ayghri/i-have-adhd and the repository's AGENTS.md file, or by following INSTALL.md. To customize it, users fork the repo, edit skills/i-have-adhd/SKILL.md, then run commands such as `claude plugin marketplace add <your-username>/i-have-adhd` and `claude plugin install i-have-adhd@i-have-adhd`, restart Claude Code, and re-invoke `/i-have-adhd`.",
+        "pros": "The skill enforces 10 documented rules, including leading with the next action, numbering multi-step tasks, ending with one concrete next step, suppressing tangents, and capping lists to 5 items; the README illustrates this with a before/after example contrasting a verbose response with a terse, actionable one.",
+        "cons": "Customizing the skill requires forking the repository and manually running uninstall/marketplace-remove/add/install commands, since the fork and upstream share the same plugin name. The README also notes the approach is adapted for how an LLM should respond, not for how a person should organize their day, suggesting it may not function as a general ADHD management tool despite its name.",
+        "fit": "The plugin appears best suited for developers using AI coding assistants such as Claude Code who want concise, action-first responses rather than exploratory or hedged explanations; it does not appear intended as a clinical or personal ADHD support tool."
       },
       "ko": {
-        "goal": "i-have-adhd는 Claude Code와 같은 코딩 어시스턴트를 위한 스킬/플러그인으로, 다음 행동을 먼저 제시하고 여러 단계를 번호로 나열하며 'Hope this helps!' 같은 군더더기를 없애 답변이 서두에 묻히지 않도록 설계되었습니다.",
-        "usage": "설치는 https://github.com/ayghri/i-have-adhd 와 저장소의 AGENTS.md를 참조하는 프롬프트를 CLI에 붙여넣거나 INSTALL.md를 따르면 되며, Claude Code 내에서는 `claude plugin install i-have-adhd@i-have-adhd` 명령으로 설치하고 `/i-have-adhd`로 호출할 수도 있습니다.",
-        "pros": "동작은 SKILL.md에 문서화된 10개의 명시적 규칙(다음 행동 먼저 제시, 단계 번호 매기기, 목록 5개 항목으로 제한 등)에 따라 정해지며, 이는 예측 가능하고 간결한 출력 형식을 만들어낼 가능성이 있습니다.",
-        "cons": "설치와 커스터마이징이 AGENTS.md와 마켓플레이스 명령에 의존하는 것으로 보아, 이 도구는 Claude Code 방식의 스킬/플러그인을 지원하는 환경을 전제로 하는 것으로 보이며, 다른 코딩 어시스턴트나 그 생태계 밖에서의 적용 가능성은 자세히 설명되어 있지 않습니다.",
-        "fit": "이 도구는 대화형 서두 대신 간결하고 행동 중심적인 답변을 원하는 Claude Code 사용 개발자에게 적합해 보이며, 더 설명적인 답변을 선호하는 사용자에게는 간결한 스타일이 덜 맞을 수 있습니다."
+        "goal": "i-have-adhd는 코딩 어시스턴트용 스킬/플러그인으로, 답변이 장황해지는 것을 막고 다음 행동을 먼저 제시하며 여러 단계를 번호로 매기고 'Hope this helps!' 같은 상투적 마무리 문구를 없애는 것을 목표로 합니다.",
+        "usage": "설치는 https://github.com/ayghri/i-have-adhd 와 저장소의 AGENTS.md를 참조하는 CLI 프롬프트를 복사해 붙여넣거나 INSTALL.md의 안내를 따르는 방식으로 이루어집니다. 커스터마이징하려면 저장소를 포크하고 skills/i-have-adhd/SKILL.md를 수정한 뒤 `claude plugin marketplace add <your-username>/i-have-adhd`와 `claude plugin install i-have-adhd@i-have-adhd` 같은 명령을 실행하고, Claude Code를 재시작한 뒤 `/i-have-adhd`를 다시 호출합니다.",
+        "pros": "이 스킬은 다음 행동으로 시작하기, 다단계 작업 번호 매기기, 하나의 구체적인 다음 단계로 마무리하기, 곁가지 억제하기, 목록을 5개로 제한하기 등 문서화된 10개 규칙을 적용하며, README는 장황한 응답과 간결하고 실행 가능한 응답을 대조하는 전/후 예시로 이를 보여줍니다.",
+        "cons": "스킬을 커스터마이징하려면 저장소를 포크한 뒤 plugin uninstall/marketplace-remove/add/install 명령을 수동으로 실행해야 하는데, 이는 포크와 원본이 동일한 플러그인 이름을 공유하기 때문입니다. 또한 README는 이 접근 방식이 사람이 하루를 어떻게 조직해야 하는지가 아니라 LLM이 어떻게 응답해야 하는지에 맞춰 각색된 것이라고 명시하고 있어, 이름과 달리 일반적인 ADHD 관리 도구로 기능하지 않을 수 있음을 시사합니다.",
+        "fit": "이 플러그인은 탐색적이거나 완곡한 설명보다 간결하고 행동 중심적인 응답을 원하는 Claude Code 같은 AI 코딩 어시스턴트 사용자에게 적합해 보이며, 임상적이거나 개인적인 ADHD 지원 도구로 의도된 것으로는 보이지 않습니다."
       },
       "zh-CN": {
-        "goal": "i-have-adhd 是一个面向 Claude Code 等编码助手的 skill/plugin,旨在让回复以行动为先:先给出下一步操作、为多步骤任务编号,并去除诸如 'Hope this helps!' 之类的冗余用语,避免答案被埋没在铺垫之中。",
-        "usage": "安装方式是将引用 https://github.com/ayghri/i-have-adhd 和仓库 AGENTS.md 的提示粘贴到 CLI 中,或参照 INSTALL.md;在 Claude Code 中也可以使用 `claude plugin install i-have-adhd@i-have-adhd` 命令安装,并通过 `/i-have-adhd` 调用。",
-        "pros": "其行为由 SKILL.md 中记录的 10 条明确规则约束,例如优先给出下一步行动、为步骤编号、将列表限制在 5 项以内,这很可能带来可预测且简洁的输出格式。",
-        "cons": "由于安装和调整依赖 AGENTS.md 与市场(marketplace)命令,该工具似乎默认需要一个支持 Claude Code 式 skill/plugin 的环境,因此在该生态之外或搭配其他编码助手使用时的适用性并未详细说明。",
-        "fit": "该项目似乎更适合使用 Claude Code、希望获得简洁、以行动为先的助手回复的开发者;偏好更具解释性、对话式回复的用户可能会觉得这种简洁风格不太适合。"
+        "goal": "i-have-adhd 是一款面向编码助手的技能/插件,旨在防止回答被淹没在冗长内容中,优先采用以行动为先、步骤编号的格式,并省去诸如'Hope this helps!'之类的结束语。",
+        "usage": "安装方式是将引用 https://github.com/ayghri/i-have-adhd 及仓库 AGENTS.md 的 CLI 提示语复制粘贴使用,或按照 INSTALL.md 中的说明操作。若要自定义,需先 fork 仓库并编辑 skills/i-have-adhd/SKILL.md,随后运行诸如 `claude plugin marketplace add <your-username>/i-have-adhd` 和 `claude plugin install i-have-adhd@i-have-adhd` 的命令,再重启 Claude Code 并重新调用 `/i-have-adhd`。",
+        "pros": "该技能执行文档中列出的10条规则,包括以下一步行动开头、为多步骤任务编号、以一个具体的下一步结束、抑制离题内容、将列表限制在5项以内等,README 还通过对比冗长回答与简洁可执行回答的前后示例加以说明。",
+        "cons": "自定义该技能需要先 fork 仓库,再手动运行 plugin uninstall/marketplace-remove/add/install 等命令,因为 fork 版本与上游共用同一插件名称。README 还说明该方法是为 LLM 应如何回应而改编的,而非为人应如何安排一天而设计,这提示它可能并不能作为通用的 ADHD 管理工具,尽管其名称如此。",
+        "fit": "该插件似乎更适合使用 Claude Code 等 AI 编码助手、希望获得简洁、以行动为先回答而非探索性或含糊解释的开发者,看起来并非意在成为临床或个人 ADHD 支持工具。"
       },
       "es": {
-        "goal": "i-have-adhd es una skill/plugin para asistentes de programación como Claude Code, diseñada para que las respuestas prioricen la acción: indicando primero el siguiente paso, numerando tareas de varios pasos y eliminando relleno como 'Hope this helps!', en lugar de enterrar la respuesta real en un preámbulo.",
-        "usage": "Se instala copiando el mensaje que hace referencia a https://github.com/ayghri/i-have-adhd y al AGENTS.md del repositorio en una CLI, o siguiendo INSTALL.md; dentro de Claude Code también puede instalarse con `claude plugin install i-have-adhd@i-have-adhd` e invocarse con `/i-have-adhd`.",
-        "pros": "Su comportamiento está regido por 10 reglas explícitas documentadas en SKILL.md, como priorizar la siguiente acción, numerar los pasos y limitar las listas a 5 elementos, lo que probablemente produce un formato de salida predecible y conciso.",
-        "cons": "El uso efectivo parece presuponer un entorno compatible con skills/plugins al estilo Claude Code, ya que la instalación y el ajuste dependen de AGENTS.md y de comandos de marketplace, por lo que su aplicabilidad fuera de ese ecosistema o con otros asistentes de código no se detalla por completo.",
-        "fit": "Parece más adecuado para desarrolladores que usan Claude Code y desean respuestas concisas y centradas en la acción en lugar de preámbulos conversacionales; quienes prefieran respuestas más explicativas podrían encontrar este estilo terso menos adecuado."
+        "goal": "i-have-adhd es una skill/plugin para asistentes de codificación diseñada para evitar que las respuestas oculten la respuesta principal, priorizando un formato centrado en la acción con pasos numerados y sin frases de cierre como 'Hope this helps!'.",
+        "usage": "La instalación se realiza copiando y pegando un prompt de CLI que hace referencia a https://github.com/ayghri/i-have-adhd y al archivo AGENTS.md del repositorio, o siguiendo las instrucciones de INSTALL.md. Para personalizarla, se debe hacer fork del repositorio, editar skills/i-have-adhd/SKILL.md y luego ejecutar comandos como `claude plugin marketplace add <your-username>/i-have-adhd` y `claude plugin install i-have-adhd@i-have-adhd`, reiniciar Claude Code y volver a invocar `/i-have-adhd`.",
+        "pros": "La skill aplica 10 reglas documentadas, entre ellas empezar con la siguiente acción, numerar tareas de varios pasos, terminar con un paso concreto, suprimir digresiones y limitar las listas a 5 elementos, lo que el README ilustra con un ejemplo de antes/después que contrasta respuestas extensas con otras breves y accionables.",
+        "cons": "Personalizar la skill requiere hacer fork del repositorio y ejecutar manualmente comandos de uninstall/marketplace-remove/add/install, ya que el fork y el original comparten el mismo nombre de plugin. El README también indica que el enfoque está adaptado para cómo debería responder un LLM, no para cómo debería organizar su día una persona, lo que sugiere que podría no funcionar como una herramienta general de gestión del TDAH pese a su nombre.",
+        "fit": "El plugin parece más adecuado para desarrolladores que usan asistentes de codificación con IA como Claude Code y desean respuestas concisas y centradas en la acción en lugar de explicaciones exploratorias o matizadas; no parece pensado como una herramienta clínica o de apoyo personal para el TDAH."
       },
       "ja": {
-        "goal": "i-have-adhd は Claude Code などのコーディングアシスタント向けのスキル/プラグインであり、次に取るべき行動を先に示し、複数ステップのタスクに番号を振り、『Hope this helps!』のような余分な言葉を省くことで、回答が前置きに埋もれないように設計されています。",
-        "usage": "インストールは、https://github.com/ayghri/i-have-adhd とリポジトリの AGENTS.md を参照するプロンプトを CLI に貼り付けるか、INSTALL.md に従って行います。Claude Code 内では `claude plugin install i-have-adhd@i-have-adhd` コマンドでインストールし、`/i-have-adhd` で呼び出すこともできます。",
-        "pros": "その動作は SKILL.md に文書化された 10 個の明確なルール(次の行動を先に示す、ステップに番号を振る、リストを5項目以内に抑えるなど)によって規定されており、これはおそらく予測可能で簡潔な出力形式をもたらします。",
-        "cons": "インストールや調整が AGENTS.md やマーケットプレイスコマンドに依存していることから、このツールは Claude Code 方式のスキル/プラグインをサポートする環境を前提としているように見え、そのエコシステム外や他のコーディングアシスタントでの適用可能性については詳しく説明されていません。",
-        "fit": "会話的な前置きではなく、簡潔で行動重視のアシスタント応答を求める Claude Code 利用者に適していると思われる一方、より説明的な応答を好む人にはこの簡潔なスタイルが合わない可能性があります。"
+        "goal": "i-have-adhdはコーディングアシスタント向けのスキル/プラグインで、回答が埋もれてしまうのを防ぎ、行動を最初に示し、複数ステップに番号を振り、『Hope this helps!』のような締めの決まり文句を排した形式を優先することを目指しています。",
+        "usage": "インストールは、https://github.com/ayghri/i-have-adhd とリポジトリのAGENTS.mdを参照するCLIプロンプトをコピー&ペーストするか、INSTALL.mdの手順に従うことで行います。カスタマイズするには、リポジトリをフォークしてskills/i-have-adhd/SKILL.mdを編集した後、`claude plugin marketplace add <your-username>/i-have-adhd` や `claude plugin install i-have-adhd@i-have-adhd` などのコマンドを実行し、Claude Codeを再起動してから`/i-have-adhd`を再度呼び出します。",
+        "pros": "このスキルは、次の行動から始める、複数ステップのタスクに番号を振る、具体的な次の一手で締めくくる、脱線を抑える、リストを5項目までに制限するなど、文書化された10のルールを適用しており、READMEは冗長な回答と簡潔で実行可能な回答を対比するビフォーアフター例でこれを示しています。",
+        "cons": "このスキルをカスタマイズするには、リポジトリをフォークした上でplugin uninstall/marketplace-remove/add/installコマンドを手動で実行する必要があります。これは、フォーク版と元のリポジトリが同じプラグイン名を共有しているためです。またREADMEでは、この手法は人が一日をどう組み立てるべきかではなく、LLMがどう応答すべきかに合わせて調整されたものだと述べており、名称に反して一般的なADHD管理ツールとしては機能しない可能性が示唆されています。",
+        "fit": "このプラグインは、探索的で曖昧な説明よりも簡潔で行動中心の回答を求める、Claude CodeのようなAIコーディングアシスタントの利用者に適しているように見え、臨床的または個人的なADHD支援ツールとして意図されたものではないようです。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 5,
-          "end_line": 5,
-          "section_heading": ""
-        },
-        {
-          "start_line": 32,
-          "end_line": 34,
+          "start_line": 33,
+          "end_line": 35,
           "section_heading": "What it does"
         }
       ],
       "usage": [
         {
-          "start_line": 26,
-          "end_line": 28,
+          "start_line": 25,
+          "end_line": 31,
           "section_heading": "Install"
         },
         {
-          "start_line": 89,
-          "end_line": 91,
+          "start_line": 87,
+          "end_line": 92,
           "section_heading": "Tune it"
         },
         {
           "start_line": 93,
-          "end_line": 93,
+          "end_line": 94,
           "section_heading": "Tune it"
         }
       ],
       "pros": [
         {
-          "start_line": 69,
-          "end_line": 69,
+          "start_line": 70,
+          "end_line": 81,
           "section_heading": "The rules"
         },
         {
-          "start_line": 71,
-          "end_line": 80,
-          "section_heading": "The rules"
+          "start_line": 45,
+          "end_line": 47,
+          "section_heading": "Before"
+        },
+        {
+          "start_line": 53,
+          "end_line": 61,
+          "section_heading": "After"
         }
       ],
       "cons": [
         {
-          "start_line": 27,
-          "end_line": 27,
-          "section_heading": "Install"
+          "start_line": 87,
+          "end_line": 92,
+          "section_heading": "Tune it"
         },
         {
-          "start_line": 86,
-          "end_line": 90,
-          "section_heading": "Tune it"
+          "start_line": 98,
+          "end_line": 98,
+          "section_heading": "Credits"
         }
       ],
       "fit": [
         {
-          "start_line": 34,
-          "end_line": 34,
-          "section_heading": "What it does"
+          "start_line": 87,
+          "end_line": 94,
+          "section_heading": "Tune it"
         },
         {
-          "start_line": 97,
-          "end_line": 97,
+          "start_line": 98,
+          "end_line": 98,
           "section_heading": "Credits"
         }
       ]
     },
     "invariants": [
       {
-        "kind": "command",
-        "value": "claude plugin install i-have-adhd@i-have-adhd",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "/i-have-adhd",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
         "kind": "url",
         "value": "https://github.com/ayghri/i-have-adhd",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "claude plugin marketplace add <your-username>/i-have-adhd",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "claude plugin install i-have-adhd@i-have-adhd",
         "fields": [
           "usage"
         ]
@@ -3711,15 +3736,12 @@
         "kind": "product",
         "value": "Claude Code",
         "fields": [
-          "goal",
           "usage",
-          "cons",
           "fit"
         ]
       }
     ],
     "inference_fields": [
-      "pros",
       "cons",
       "fit"
     ],
@@ -3727,8 +3749,8 @@
       "kind": "readme",
       "slug": "ayghri/i-have-adhd",
       "path": "README.md",
-      "blob_sha": "e56f9641bd903337197a5acd5e5422c3fa8055c0",
-      "content_sha256": "df3ba2657a4c6be2eb1dc8189fdce5ba5001a19e1711fefc68e04613da90e1d6",
+      "blob_sha": "ade33c1c6ec46d8e45790e89dea567ec2618cbef",
+      "content_sha256": "cd83c450c40cd0f4c09279f37597302a77d580ec63e8a827353f83c86b9db39f",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -8960,47 +8982,47 @@
   },
   "vorssaint/vorssaint-utils": {
     "content": {
-      "goal": "Vorssaint is a free, open-source (GPL-3.0-or-later) macOS menu bar application that bundles utilities such as a per-app volume mixer, system monitor, window snapping, app switcher, clipboard history, text snippets, and an uninstaller into one icon.",
-      "usage": "Install via Homebrew with `brew install --cask vorssaint`, or download the disk image from the GitHub releases page. Building from source requires Xcode Command Line Tools: run `git clone https://github.com/vorssaint/vorssaint-utils.git` then `./build.sh` (or `./build.sh --install`). Individual features can be installed or removed later from Settings.",
-      "pros": "Users install only the features they need; uninstalled features stop consuming CPU, memory and energy while settings are kept for reinstallation. The app runs locally with no account, no telemetry and no subscription, and every macOS permission is optional and explained within the app.",
-      "cons": "Vorssaint requires a Mac with Apple Silicon running macOS 14 Sonoma or newer, so Intel Macs and older macOS versions are unsupported. Several features, such as the app switcher and screen capture tools, depend on granting Accessibility or Screen Recording permissions, without which those features stay off.",
-      "fit": "This tool appears best suited to macOS users on newer Apple Silicon hardware who want to consolidate several utility apps into one; it likely offers less value to Intel Mac owners or those needing cross-platform support, since no such compatibility is documented."
+      "goal": "Vorssaint is a free, open-source macOS menu bar app that bundles utilities such as a volume mixer, system monitor, window manager, app switcher, clipboard history, text snippets, a file shelf, and an uninstaller into one icon, aiming to replace several separately purchased Mac apps.",
+      "usage": "Install with Homebrew via `brew install --cask vorssaint`, or download the disk image from the GitHub releases page (https://github.com/vorssaint/vorssaint-utils/releases) and drag Vorssaint into Applications. Individual features can be installed or removed separately from a Features page. To build from source: `git clone https://github.com/vorssaint/vorssaint-utils.git`, then run `./build.sh`.",
+      "pros": "The app requires no account, telemetry, or subscription; uninstalled features stop loading entirely so they use no CPU, memory, or energy; and permissions are requested only for enabled features, with each one explained and revocable in Settings.",
+      "cons": "It requires an Apple Silicon Mac running macOS 14 Sonoma or newer, so it likely cannot run on Intel-based Macs or earlier macOS versions. The GPL-3.0-or-later license covers only the source code, while the Vorssaint name, icon, and look are separately trademarked, meaning forks would need their own identity.",
+      "fit": "This tool appears best suited for Apple Silicon Mac users on macOS 14 or later who want a single, local-first, privacy-conscious app consolidating many everyday utilities; it does not appear to fit Intel Mac users or those on older macOS releases."
     },
     "summaries": {
       "en": {
-        "goal": "Vorssaint is a free, open-source (GPL-3.0-or-later) macOS menu bar application that bundles utilities such as a per-app volume mixer, system monitor, window snapping, app switcher, clipboard history, text snippets, and an uninstaller into one icon.",
-        "usage": "Install via Homebrew with `brew install --cask vorssaint`, or download the disk image from the GitHub releases page. Building from source requires Xcode Command Line Tools: run `git clone https://github.com/vorssaint/vorssaint-utils.git` then `./build.sh` (or `./build.sh --install`). Individual features can be installed or removed later from Settings.",
-        "pros": "Users install only the features they need; uninstalled features stop consuming CPU, memory and energy while settings are kept for reinstallation. The app runs locally with no account, no telemetry and no subscription, and every macOS permission is optional and explained within the app.",
-        "cons": "Vorssaint requires a Mac with Apple Silicon running macOS 14 Sonoma or newer, so Intel Macs and older macOS versions are unsupported. Several features, such as the app switcher and screen capture tools, depend on granting Accessibility or Screen Recording permissions, without which those features stay off.",
-        "fit": "This tool appears best suited to macOS users on newer Apple Silicon hardware who want to consolidate several utility apps into one; it likely offers less value to Intel Mac owners or those needing cross-platform support, since no such compatibility is documented."
+        "goal": "Vorssaint is a free, open-source macOS menu bar app that bundles utilities such as a volume mixer, system monitor, window manager, app switcher, clipboard history, text snippets, a file shelf, and an uninstaller into one icon, aiming to replace several separately purchased Mac apps.",
+        "usage": "Install with Homebrew via `brew install --cask vorssaint`, or download the disk image from the GitHub releases page (https://github.com/vorssaint/vorssaint-utils/releases) and drag Vorssaint into Applications. Individual features can be installed or removed separately from a Features page. To build from source: `git clone https://github.com/vorssaint/vorssaint-utils.git`, then run `./build.sh`.",
+        "pros": "The app requires no account, telemetry, or subscription; uninstalled features stop loading entirely so they use no CPU, memory, or energy; and permissions are requested only for enabled features, with each one explained and revocable in Settings.",
+        "cons": "It requires an Apple Silicon Mac running macOS 14 Sonoma or newer, so it likely cannot run on Intel-based Macs or earlier macOS versions. The GPL-3.0-or-later license covers only the source code, while the Vorssaint name, icon, and look are separately trademarked, meaning forks would need their own identity.",
+        "fit": "This tool appears best suited for Apple Silicon Mac users on macOS 14 or later who want a single, local-first, privacy-conscious app consolidating many everyday utilities; it does not appear to fit Intel Mac users or those on older macOS releases."
       },
       "ko": {
-        "goal": "Vorssaint는 앱별 볼륨 믹서, 시스템 모니터, 창 스냅, 앱 전환기, 클립보드 기록, 텍스트 스니펫, 언인스톨러 등 여러 유틸리티를 하나의 아이콘으로 묶은 무료 오픈소스(GPL-3.0-or-later) macOS 메뉴 막대 앱이다.",
-        "usage": "Homebrew로 `brew install --cask vorssaint` 명령을 실행해 설치하거나, GitHub 릴리스 페이지에서 디스크 이미지를 내려받아 설치할 수 있다. 소스에서 직접 빌드하려면 Xcode Command Line Tools가 필요하며, `git clone https://github.com/vorssaint/vorssaint-utils.git` 후 `./build.sh`(또는 `./build.sh --install`)를 실행한다. 개별 기능은 이후 설정에서 설치·제거할 수 있다.",
-        "pros": "필요한 기능만 설치할 수 있어 제거한 기능은 CPU·메모리·에너지를 소비하지 않으며, 설정은 남아 있어 재설치 시 복원된다. 계정, 원격 분석, 구독 없이 로컬에서 동작하며, 모든 macOS 권한은 선택 사항이고 앱 내에서 설명된다.",
-        "cons": "Vorssaint는 Apple Silicon Mac과 macOS 14 Sonoma 이상을 요구하므로 Intel Mac이나 이전 macOS 버전에서는 사용할 수 없다. 앱 전환기나 화면 캡처 같은 일부 기능은 손쉬운 사용 또는 화면 기록 권한 허용이 필요하며, 허용하지 않으면 해당 기능이 꺼진 상태로 유지된다.",
-        "fit": "최신 Apple Silicon 기기를 사용하며 여러 유틸리티 앱을 하나로 통합하려는 macOS 사용자에게 적합해 보인다. Intel Mac 사용자나 다른 운영체제 호환성이 필요한 경우에는 해당 지원이 문서화되어 있지 않아 적합성이 낮을 것으로 보인다."
+        "goal": "Vorssaint는 볼륨 믹서, 시스템 모니터, 창 관리자, 앱 전환기, 클립보드 기록, 텍스트 스니펫, 파일 셸프, 언인스톨러 등의 유틸리티를 하나의 메뉴 바 아이콘으로 모은 무료 오픈소스 macOS 앱으로, 여러 개별 구매형 Mac 앱을 대체하는 것을 목표로 합니다.",
+        "usage": "Homebrew로 `brew install --cask vorssaint` 명령을 실행해 설치하거나, GitHub 릴리스 페이지(https://github.com/vorssaint/vorssaint-utils/releases)에서 디스크 이미지를 내려받아 Applications 폴더로 끌어다 놓으면 됩니다. Features 페이지에서 개별 기능을 따로 설치하거나 제거할 수 있습니다. 소스에서 직접 빌드하려면 `git clone https://github.com/vorssaint/vorssaint-utils.git` 후 `./build.sh`를 실행합니다.",
+        "pros": "계정, 텔레메트리, 구독이 필요 없으며, 제거한 기능은 완전히 로딩이 중단되어 CPU·메모리·에너지를 소비하지 않습니다. 또한 활성화된 기능에 대해서만 권한을 요청하며, 각 권한은 Settings에서 설명과 함께 철회할 수 있습니다.",
+        "cons": "Apple Silicon Mac에서 macOS 14 Sonoma 이상이 필요하므로, Intel 기반 Mac이나 이전 macOS 버전에서는 실행되지 않을 가능성이 있습니다. GPL-3.0-or-later 라이선스는 소스 코드에만 적용되고 Vorssaint 이름, 아이콘, 디자인은 별도의 상표로 보호되어 포크는 자체 브랜딩이 필요할 것으로 보입니다.",
+        "fit": "macOS 14 이상을 사용하는 Apple Silicon Mac 사용자 중 로컬 우선이며 프라이버시를 중시하는 통합 유틸리티 앱을 원하는 이들에게 적합해 보이며, Intel Mac이나 구버전 macOS 사용자에게는 맞지 않는 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "Vorssaint 是一款免费开源(GPL-3.0-or-later)的 macOS 菜单栏应用,将应用音量混音器、系统监视器、窗口贴靠、应用切换器、剪贴板历史、文本片段和卸载工具等多种实用功能整合到一个图标中。",
-        "usage": "可通过 Homebrew 使用 `brew install --cask vorssaint` 安装,也可从 GitHub 发布页面下载磁盘映像进行安装。若要自行构建,需要 Xcode 命令行工具:先执行 `git clone https://github.com/vorssaint/vorssaint-utils.git`,再运行 `./build.sh`(或 `./build.sh --install`)。各功能可在设置中随时安装或卸载。",
-        "pros": "用户只需安装所需的功能,卸载后的功能不再占用 CPU、内存或电量,同时设置会被保留以便重新安装时恢复。应用完全在本地运行,无需账户、无遥测、无订阅,且每项 macOS 权限均为可选并在应用内说明用途。",
-        "cons": "Vorssaint 要求搭载 Apple Silicon 的 Mac 并运行 macOS 14 Sonoma 或更高版本,因此不支持 Intel Mac 或更旧的系统版本。应用切换器、屏幕截图等部分功能依赖辅助功能或屏幕录制权限,若未授权,相关功能将保持关闭。",
-        "fit": "该工具看起来更适合使用较新 Apple Silicon 设备、希望用一个应用整合多种实用工具的 macOS 用户;对于 Intel Mac 用户或需要跨平台支持的场景,由于文档未提及相应兼容性,适用性可能较低。"
+        "goal": "Vorssaint 是一款免费开源的 macOS 菜单栏应用,将音量混音器、系统监视器、窗口管理器、应用切换器、剪贴板历史、文本片段、文件搁架和卸载工具等多种功能整合到一个图标中,旨在替代多款需单独购买的 Mac 应用。",
+        "usage": "可通过 Homebrew 执行 `brew install --cask vorssaint` 安装,或从 GitHub 发布页面(https://github.com/vorssaint/vorssaint-utils/releases)下载磁盘映像后将 Vorssaint 拖入 Applications 文件夹。各项功能可在 Features 页面单独安装或卸载。若要从源码构建,先执行 `git clone https://github.com/vorssaint/vorssaint-utils.git`,再运行 `./build.sh`。",
+        "pros": "该应用无需账号、遥测或订阅;被卸载的功能会完全停止加载,因此不占用 CPU、内存或电量;权限仅在对应功能启用时才会被请求,且每项权限都有说明并可在 Settings 中撤销。",
+        "cons": "该应用要求使用运行 macOS 14 Sonoma 或更新版本的 Apple Silicon Mac,因此很可能无法在基于 Intel 的 Mac 或更早版本的 macOS 上运行。GPL-3.0-or-later 许可证仅覆盖源代码,而 Vorssaint 的名称、图标和外观另受商标保护,这意味着分支项目需要使用自己的标识。",
+        "fit": "该工具似乎更适合运行 macOS 14 及以上版本的 Apple Silicon Mac 用户,他们希望获得一款本地优先、注重隐私的多功能整合应用;对于 Intel Mac 用户或使用较旧 macOS 版本的用户而言,似乎并不适用。"
       },
       "es": {
-        "goal": "Vorssaint es una aplicación gratuita y de código abierto (GPL-3.0-or-later) para la barra de menús de macOS que agrupa utilidades como un mezclador de volumen por app, un monitor del sistema, ajuste de ventanas, un selector de apps, historial de portapapeles, fragmentos de texto y un desinstalador en un solo icono.",
-        "usage": "Se instala mediante Homebrew con `brew install --cask vorssaint`, o descargando la imagen de disco desde la página de releases de GitHub. Para compilarlo desde el código fuente se necesitan las Xcode Command Line Tools: ejecutar `git clone https://github.com/vorssaint/vorssaint-utils.git` y luego `./build.sh` (o `./build.sh --install`). Cada función puede instalarse o desinstalarse después desde Ajustes.",
-        "pros": "Permite instalar solo las funciones que se usan; las desinstaladas dejan de consumir CPU, memoria y energía, mientras la configuración se conserva para restaurarla al reinstalar. Funciona de forma local sin cuenta, sin telemetría y sin suscripción, y cada permiso de macOS es opcional y se explica dentro de la app.",
-        "cons": "Vorssaint requiere un Mac con Apple Silicon y macOS 14 Sonoma o posterior, por lo que no es compatible con Mac Intel ni versiones anteriores de macOS. Varias funciones, como el selector de apps o las herramientas de captura de pantalla, dependen de conceder permisos de Accesibilidad o Grabación de pantalla, sin los cuales permanecen desactivadas.",
-        "fit": "Esta herramienta parece más adecuada para usuarios de macOS con hardware Apple Silicon reciente que buscan reunir varias apps de utilidades en una sola; su utilidad podría ser menor para quienes tienen Mac Intel o necesitan compatibilidad multiplataforma, ya que no se documenta dicho soporte."
+        "goal": "Vorssaint es una aplicación gratuita y de código abierto para la barra de menús de macOS que reúne utilidades como un mezclador de volumen, monitor del sistema, gestor de ventanas, cambiador de aplicaciones, historial del portapapeles, fragmentos de texto, una bandeja de archivos y un desinstalador en un solo ícono, con el objetivo de sustituir varias aplicaciones de Mac compradas por separado.",
+        "usage": "Se instala con Homebrew mediante `brew install --cask vorssaint`, o descargando la imagen de disco desde la página de lanzamientos de GitHub (https://github.com/vorssaint/vorssaint-utils/releases) y arrastrando Vorssaint a Applications. Cada función puede instalarse o eliminarse por separado desde una página de Features. Para compilar desde el código fuente: `git clone https://github.com/vorssaint/vorssaint-utils.git` y luego `./build.sh`.",
+        "pros": "No requiere cuenta, telemetría ni suscripción; las funciones desinstaladas dejan de cargarse por completo, por lo que no consumen CPU, memoria ni energía; y los permisos solo se solicitan para las funciones habilitadas, cada uno explicado y revocable desde Settings.",
+        "cons": "Requiere un Mac con Apple Silicon con macOS 14 Sonoma o posterior, por lo que probablemente no funcione en Mac con procesador Intel ni en versiones anteriores de macOS. La licencia GPL-3.0-or-later cubre solo el código fuente, mientras que el nombre, ícono y aspecto de Vorssaint están protegidos por marca registrada aparte, lo que implica que los forks necesitarían su propia identidad visual.",
+        "fit": "Esta herramienta parece adecuada para usuarios de Mac con Apple Silicon y macOS 14 o superior que buscan una aplicación local, centrada en la privacidad, que unifique numerosas utilidades cotidianas; no parece adecuada para usuarios de Mac con Intel ni versiones anteriores de macOS."
       },
       "ja": {
-        "goal": "Vorssaintは、アプリ別音量ミキサー、システムモニター、ウィンドウスナップ、アプリスイッチャー、クリップボード履歴、テキストスニペット、アンインストーラーなど複数のユーティリティを一つのアイコンにまとめた、無料かつオープンソース(GPL-3.0-or-later)のmacOSメニューバーアプリである。",
-        "usage": "Homebrewで `brew install --cask vorssaint` を実行するか、GitHubのリリースページからディスクイメージをダウンロードしてインストールできる。ソースからビルドするにはXcode Command Line Toolsが必要で、`git clone https://github.com/vorssaint/vorssaint-utils.git` の後に `./build.sh`(または `./build.sh --install`)を実行する。個々の機能は後から設定画面でインストール・削除できる。",
-        "pros": "必要な機能だけをインストールでき、アンインストールした機能はCPU・メモリ・電力を消費しなくなる一方、設定は保持され再インストール時に復元される。アカウント登録やテレメトリ、サブスクリプションなしでローカルに動作し、macOSの各権限はすべて任意でアプリ内で説明される。",
-        "cons": "VorssaintはApple Silicon搭載MacかつmacOS 14 Sonoma以降を必要とするため、Intel Macや古いmacOSバージョンには対応していない。アプリスイッチャーや画面キャプチャツールなど一部機能はアクセシビリティや画面収録の権限付与に依存しており、許可しない場合はそれらの機能が無効のままとなる。",
-        "fit": "本ツールは、最新のApple Siliconを搭載したMacで複数のユーティリティアプリを一本化したいmacOSユーザーに向いていると考えられる。Intel Macのユーザーやクロスプラットフォーム対応が必要な場合は、そうした対応が文書化されていないため適合度が低い可能性がある。"
+        "goal": "Vorssaintは、ボリュームミキサー、システムモニター、ウィンドウ管理、アプリスイッチャー、クリップボード履歴、テキストスニペット、ファイルシェルフ、アンインストーラーなどの機能を1つのメニューバーアイコンにまとめた無料のオープンソースmacOSアプリで、複数の有料Macアプリを置き換えることを目指しています。",
+        "usage": "Homebrewで `brew install --cask vorssaint` を実行するか、GitHubのリリースページ(https://github.com/vorssaint/vorssaint-utils/releases)からディスクイメージをダウンロードしてVorssaintをApplicationsフォルダにドラッグしてインストールできます。各機能はFeaturesページから個別にインストール・削除が可能です。ソースからビルドする場合は `git clone https://github.com/vorssaint/vorssaint-utils.git` の後に `./build.sh` を実行します。",
+        "pros": "アカウント、テレメトリ、サブスクリプションは不要で、アンインストールした機能は完全に読み込まれなくなるためCPU・メモリ・電力を消費しません。また権限は有効化した機能に対してのみ要求され、各権限はSettingsで説明を確認し取り消すことができます。",
+        "cons": "Apple Silicon搭載MacでmacOS 14 Sonoma以降が必要なため、Intel搭載Macや旧バージョンのmacOSでは動作しない可能性が高いと考えられます。GPL-3.0-or-later ライセンスはソースコードのみを対象としており、Vorssaintの名称・アイコン・デザインは別途商標で保護されているため、フォークには独自のブランディングが必要になると見られます。",
+        "fit": "このツールは、macOS 14以降を搭載したApple Silicon Macユーザーで、ローカル優先かつプライバシー重視の統合ユーティリティアプリを求める人に適していると考えられますが、Intel搭載Macや旧バージョンのmacOSを使うユーザーには適さないと見られます。"
       }
     },
     "evidence": {
@@ -9014,48 +9036,63 @@
           "start_line": 56,
           "end_line": 56,
           "section_heading": ""
+        },
+        {
+          "start_line": 58,
+          "end_line": 60,
+          "section_heading": "Install only what you use"
         }
       ],
       "usage": [
         {
-          "start_line": 160,
-          "end_line": 164,
+          "start_line": 161,
+          "end_line": 165,
           "section_heading": "Install"
         },
         {
-          "start_line": 213,
-          "end_line": 218,
-          "section_heading": "Build it yourself"
+          "start_line": 167,
+          "end_line": 167,
+          "section_heading": "Install"
+        },
+        {
+          "start_line": 210,
+          "end_line": 222,
+          "section_heading": "What you need"
         }
       ],
       "pros": [
+        {
+          "start_line": 56,
+          "end_line": 56,
+          "section_heading": ""
+        },
         {
           "start_line": 60,
           "end_line": 60,
           "section_heading": "Install only what you use"
         },
         {
-          "start_line": 186,
-          "end_line": 188,
+          "start_line": 187,
+          "end_line": 189,
           "section_heading": "Private by default"
         }
       ],
       "cons": [
         {
-          "start_line": 208,
-          "end_line": 209,
+          "start_line": 212,
+          "end_line": 213,
           "section_heading": "What you need"
         },
         {
-          "start_line": 196,
-          "end_line": 197,
-          "section_heading": "Private by default"
+          "start_line": 224,
+          "end_line": 224,
+          "section_heading": "Build it yourself"
         }
       ],
       "fit": [
         {
-          "start_line": 206,
-          "end_line": 209,
+          "start_line": 210,
+          "end_line": 213,
           "section_heading": "What you need"
         },
         {
@@ -9075,13 +9112,6 @@
       },
       {
         "kind": "command",
-        "value": "git clone https://github.com/vorssaint/vorssaint-utils.git",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
         "value": "./build.sh",
         "fields": [
           "usage"
@@ -9089,7 +9119,7 @@
       },
       {
         "kind": "command",
-        "value": "./build.sh --install",
+        "value": "git clone https://github.com/vorssaint/vorssaint-utils.git",
         "fields": [
           "usage"
         ]
@@ -9098,7 +9128,8 @@
         "kind": "version",
         "value": "macOS 14",
         "fields": [
-          "cons"
+          "cons",
+          "fit"
         ]
       },
       {
@@ -9119,21 +9150,22 @@
       },
       {
         "kind": "url",
-        "value": "https://github.com/vorssaint/vorssaint-utils.git",
+        "value": "https://github.com/vorssaint/vorssaint-utils/releases",
         "fields": [
           "usage"
         ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "vorssaint/vorssaint-utils",
       "path": "README.md",
-      "blob_sha": "33f898273838065eb89030d27f53b8f4b1114f43",
-      "content_sha256": "5c06e47969a5dd46f05230fbc1a1764067a14ad08a9937b005e2119e21f1dbce",
+      "blob_sha": "5dc6228706c689e53bf36a29d9b93d8cc6f22434",
+      "content_sha256": "3b4e6e9ea54775eb7b87de26ce2506178f978bcb54f99452d7890ec8ae4d2f12",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -9312,6 +9344,187 @@
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.252",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "akitaonrails/ai-memory": {
+    "content": {
+      "goal": "ai-memory is described as long-term memory for AI coding agents, letting a session started in Claude Code continue in another agent such as OpenAI Codex in the same directory without re-explaining the architecture, failed approaches, or open questions.",
+      "usage": "Quick start uses Docker: run `docker run -d --name ai-memory --restart unless-stopped -p 127.0.0.1:49374:49374 -v ai-memory-data:/data docker.io/akitaonrails/ai-memory:latest` to start the server, then `ai-memory install-mcp --client claude-code --apply` and `ai-memory install-hooks --agent claude-code --apply` to wire in an agent CLI.",
+      "pros": "According to the documentation, its source of truth is plain markdown files in a git-backed wiki, and the default path is said to use zero LLM calls, so capture, search, and handoffs reportedly work without any API key.",
+      "cons": "The documented quick-start default runs with no authentication and binds only to loopback, so exposing the server on a LAN reportedly requires adding a bearer token as an extra step; native Windows support is listed as experimental rather than fully supported.",
+      "fit": "The project appears suited to both a single-user workstation and teams running a shared server, and setup requires Docker/Podman or, on Arch Linux, AUR packages."
+    },
+    "summaries": {
+      "en": {
+        "goal": "ai-memory is described as long-term memory for AI coding agents, letting a session started in Claude Code continue in another agent such as OpenAI Codex in the same directory without re-explaining the architecture, failed approaches, or open questions.",
+        "usage": "Quick start uses Docker: run `docker run -d --name ai-memory --restart unless-stopped -p 127.0.0.1:49374:49374 -v ai-memory-data:/data docker.io/akitaonrails/ai-memory:latest` to start the server, then `ai-memory install-mcp --client claude-code --apply` and `ai-memory install-hooks --agent claude-code --apply` to wire in an agent CLI.",
+        "pros": "According to the documentation, its source of truth is plain markdown files in a git-backed wiki, and the default path is said to use zero LLM calls, so capture, search, and handoffs reportedly work without any API key.",
+        "cons": "The documented quick-start default runs with no authentication and binds only to loopback, so exposing the server on a LAN reportedly requires adding a bearer token as an extra step; native Windows support is listed as experimental rather than fully supported.",
+        "fit": "The project appears suited to both a single-user workstation and teams running a shared server, and setup requires Docker/Podman or, on Arch Linux, AUR packages."
+      },
+      "ko": {
+        "goal": "ai-memory는 AI 코딩 에이전트를 위한 장기 기억 저장소로 소개되며, Claude Code에서 시작한 세션을 같은 디렉터리에서 OpenAI Codex와 같은 다른 에이전트로 이어가면서 아키텍처, 실패한 접근법, 미해결 질문을 다시 설명하지 않아도 된다고 설명되어 있습니다.",
+        "usage": "빠른 시작은 Docker를 사용하며, `docker run -d --name ai-memory --restart unless-stopped -p 127.0.0.1:49374:49374 -v ai-memory-data:/data docker.io/akitaonrails/ai-memory:latest` 명령으로 서버를 실행한 뒤, `ai-memory install-mcp --client claude-code --apply`와 `ai-memory install-hooks --agent claude-code --apply` 명령으로 에이전트 CLI를 연결합니다.",
+        "pros": "문서에 따르면 데이터의 근거는 git 기반 위키의 일반 마크다운 파일이며, 기본 경로는 LLM 호출이 전혀 없다고 설명되어 있어 캡처, 검색, 핸드오프가 API 키 없이도 작동한다고 언급됩니다.",
+        "cons": "문서상 빠른 시작 기본값은 인증이 없고 루프백에만 바인딩되므로 LAN에 서버를 노출하려면 베어러 토큰 추가가 필요한 것으로 보이며, 네이티브 Windows 지원은 완전 지원이 아닌 실험적 단계로 기재되어 있습니다.",
+        "fit": "이 프로젝트는 단일 사용자 워크스테이션뿐 아니라 공유 서버를 운영하는 팀에도 적합해 보이며, 설치에는 Docker/Podman 또는 Arch Linux의 경우 AUR 패키지가 필요합니다."
+      },
+      "zh-CN": {
+        "goal": "ai-memory 被描述为面向 AI 编程代理的长期记忆系统,据文档所述,可以让在 Claude Code 中开始的会话在同一目录下由 OpenAI Codex 等其他代理继续,而无需重新解释架构、失败的尝试或尚未解决的问题。",
+        "usage": "快速开始使用 Docker,先运行 `docker run -d --name ai-memory --restart unless-stopped -p 127.0.0.1:49374:49374 -v ai-memory-data:/data docker.io/akitaonrails/ai-memory:latest` 启动服务器,再用 `ai-memory install-mcp --client claude-code --apply` 和 `ai-memory install-hooks --agent claude-code --apply` 接入代理 CLI。",
+        "pros": "文档称其数据的真实来源是 git 托管 wiki 中的普通 Markdown 文件,默认路径据称零 LLM 调用,因此捕获、搜索和交接据称无需任何 API 密钥即可工作。",
+        "cons": "据文档记载,快速开始的默认配置没有身份验证且仅绑定回环地址,若要在局域网上暴露服务器,似乎需要额外添加持有者令牌;原生 Windows 支持被列为实验性而非完全支持。",
+        "fit": "该项目似乎既适合单用户工作站,也适合运行共享服务器的团队,安装需要 Docker/Podman,或在 Arch Linux 上使用 AUR 软件包。"
+      },
+      "es": {
+        "goal": "ai-memory se describe como memoria a largo plazo para agentes de codificación con IA, permitiendo que una sesión iniciada en Claude Code continúe en otro agente, como OpenAI Codex, en el mismo directorio sin reexplicar la arquitectura, los enfoques fallidos ni las preguntas abiertas.",
+        "usage": "El inicio rápido usa Docker: se ejecuta `docker run -d --name ai-memory --restart unless-stopped -p 127.0.0.1:49374:49374 -v ai-memory-data:/data docker.io/akitaonrails/ai-memory:latest` para iniciar el servidor, seguido de `ai-memory install-mcp --client claude-code --apply` y `ai-memory install-hooks --agent claude-code --apply` para conectar la CLI del agente.",
+        "pros": "Según la documentación, la fuente de verdad son archivos markdown comunes en un wiki respaldado por git, y la ruta predeterminada usaría cero llamadas a LLM, por lo que la captura, búsqueda y traspasos aparentemente funcionan sin ninguna clave de API.",
+        "cons": "Según lo documentado, el valor predeterminado de inicio rápido no tiene autenticación y solo se vincula a loopback, por lo que exponer el servidor en una LAN parece requerir añadir un token portador; el soporte nativo de Windows figura como experimental y no como totalmente compatible.",
+        "fit": "El proyecto parece adecuado tanto para una estación de trabajo de un solo usuario como para equipos que ejecutan un servidor compartido, y la instalación requiere Docker/Podman o, en Arch Linux, paquetes AUR."
+      },
+      "ja": {
+        "goal": "ai-memoryはAIコーディングエージェント向けの長期記憶として説明されており、Claude Codeで開始したセッションを同じディレクトリ内でOpenAI Codexなど別のエージェントに引き継ぎ、アーキテクチャや失敗したアプローチ、未解決の課題を再説明せずに続けられるとされています。",
+        "usage": "クイックスタートではDockerを使用し、`docker run -d --name ai-memory --restart unless-stopped -p 127.0.0.1:49374:49374 -v ai-memory-data:/data docker.io/akitaonrails/ai-memory:latest` でサーバーを起動した後、`ai-memory install-mcp --client claude-code --apply` と `ai-memory install-hooks --agent claude-code --apply` でエージェントCLIを接続します。",
+        "pros": "文書によれば、データの正本はgitで管理されたwiki内の通常のMarkdownファイルであり、デフォルト経路はLLM呼び出しがゼロとされているため、キャプチャ・検索・引き継ぎはAPIキーなしでも動作すると述べられています。",
+        "cons": "文書上、クイックスタートの既定設定は認証なしでループバックのみにバインドされるため、LANにサーバーを公開するにはベアラートークンの追加が必要になるとみられ、ネイティブWindowsサポートは完全対応ではなく実験的と記載されています。",
+        "fit": "本プロジェクトはシングルユーザーのワークステーションにも、共有サーバーを運用するチームにも適していると見られ、導入にはDocker/Podman、またはArch LinuxではAURパッケージが必要です。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 8,
+          "end_line": 11,
+          "section_heading": ""
+        },
+        {
+          "start_line": 26,
+          "end_line": 31,
+          "section_heading": "Why ai-memory"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 194,
+          "end_line": 202,
+          "section_heading": "Docker"
+        },
+        {
+          "start_line": 211,
+          "end_line": 212,
+          "section_heading": "Docker"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 43,
+          "end_line": 47,
+          "section_heading": "Why ai-memory"
+        },
+        {
+          "start_line": 52,
+          "end_line": 54,
+          "section_heading": "Why ai-memory"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 158,
+          "end_line": 161,
+          "section_heading": "Docker"
+        },
+        {
+          "start_line": 91,
+          "end_line": 91,
+          "section_heading": "Support matrix"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 149,
+          "end_line": 152,
+          "section_heading": "Docker"
+        },
+        {
+          "start_line": 33,
+          "end_line": 36,
+          "section_heading": "Why ai-memory"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "docker run -d --name ai-memory",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "ai-memory install-mcp --client claude-code --apply",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "ai-memory install-hooks --agent claude-code --apply",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "49374",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Claude Code",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Codex",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Docker",
+        "fields": [
+          "usage",
+          "fit"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "pros",
+      "cons",
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "akitaonrails/ai-memory",
+      "path": "README.md",
+      "blob_sha": "6b1d5fdbd5d547f375e320992325c445e8cbbd61",
+      "content_sha256": "8829fc45b455c87d464dd3ae0b37d3dde22e7f6a2ab097193e4de238aaeca553",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.263",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
