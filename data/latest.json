@@ -1,8 +1,8 @@
 {
-  "snapshotId": "20260914084922-ec8e4bcbc02cb8a1",
-  "generatedAt": "2026-09-14T08:49:22.622Z",
-  "statsDate": "2026-09-14",
-  "count": 52,
+  "snapshotId": "20260915095819-b25e1cdee21c553d",
+  "generatedAt": "2026-09-15T09:58:19.784Z",
+  "statsDate": "2026-09-15",
+  "count": 55,
   "repos": [
     {
       "slug": "JustVugg/colibri",
@@ -10,12 +10,12 @@
       "description": "Run frontier MoE models on hardware you already own — pure C, zero deps, experts streamed from disk. Tiny engine, immense model. 🐦",
       "lang": "C",
       "topics": [],
-      "stars": 30687,
-      "forks": 3298,
+      "stars": 32869,
+      "forks": 3452,
       "issues": 127,
       "contributors": 149,
       "gains": {
-        "daily": 868,
+        "daily": 2173,
         "weekly": null,
         "monthly": null
       },
@@ -27,7 +27,7 @@
         "cons": "Model weights are large -- the reference GLM-5.2 container is about 372GB, and other families range up to roughly 1.6TB for Kimi K3, so a sizeable, ideally fast, disk appears to be a prerequisite. The README also states there is no SLA on inference speed, only a guarantee on model semantics, so performance may vary with available fast memory and drive characteristics such as O_DIRECT support.",
         "fit": "This project appears best suited to users who already own consumer or heterogeneous hardware (CPU, optional GPU, and adequate disk) and want to run very large MoE models locally rather than through a hosted API. It may also suit those interested in contributing to or experimenting with inference-systems research, given its stated role as an open research platform."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "systems"
@@ -35,310 +35,44 @@
       "form_tags": []
     },
     {
-      "slug": "bilawalsidhu/gods-eye-view",
-      "name": "bilawalsidhu / gods-eye-view",
-      "description": "A spy satellite simulator in your browser, except the data is real. Live open source spatial intelligence on a photorealistic 3D globe.",
-      "lang": "JavaScript",
-      "topics": [
-        "3d-globe",
-        "cesium",
-        "flight-tracking",
-        "geospatial",
-        "geospatial-intelligence",
-        "gis",
-        "osint",
-        "photogrammetry",
-        "satellite-tracking",
-        "spatial-intelligence",
-        "webgl",
-        "worldview"
-      ],
-      "stars": 32643,
-      "forks": 6519,
-      "issues": 200,
-      "contributors": 17,
-      "gains": {
-        "daily": 2680,
-        "weekly": 12931,
-        "monthly": null
-      },
-      "signal": null,
-      "summary": {
-        "goal": "God's Eye View is a browser-based, photorealistic 3D globe that visualizes live public data streams, including aircraft, ships, satellites, earthquakes, traffic, and public cameras, alongside a voice-controlled AI agent for hands-free navigation.",
-        "usage": "Install via Pinokio (8.2 or later) with one click, or run locally: `git clone https://github.com/bilawalsidhu/gods-eye-view.git`, `cd gods-eye-view`, `npm ci`, `npm run doctor`, `npm run dev`, then open `http://localhost:4173`. Node.js 24.14.0+ or 26.x is required.",
-        "pros": "Most layers, including flights, ships, satellites, earthquakes, and public cameras, work without any API keys. Sensitive credentials are brokered through a server-side proxy rather than exposed to the browser, and the project is released under the MIT License.",
-        "cons": "Photorealistic 3D rendering requires a free Cesium ion token or a metered Google Maps key, both subject to provider quotas and terms; Node.js 25 is explicitly unsupported (flagged as end-of-life by the setup doctor), and voice features depend on a metered OpenAI key with associated per-minute costs.",
-        "fit": "Based on the README's framing, this project appears best suited for developers, hobbyists, and researchers exploring geospatial visualization and public data feeds; it does not appear intended for safety-critical or production deployments, as the README explicitly warns against use for navigation, emergency response, medical, or investment purposes."
-      },
-      "summary_status": "verified",
-      "tag_rule_version": 1,
-      "field_tags": [
-        "web-app",
-        "data",
-        "security"
-      ],
-      "form_tags": []
-    },
-    {
-      "slug": "tech-leads-club/agent-skills",
-      "name": "tech-leads-club / agent-skills",
-      "description": "The secure, validated skill registry for professional AI coding agents. Extend Antigravity, Claude Code, Cursor, Copilot and more with absolute confidence.",
-      "lang": "TypeScript",
-      "topics": [
-        "agent",
-        "ai",
-        "antigravity",
-        "claude-code",
-        "copilot",
-        "cursor",
-        "skills"
-      ],
-      "stars": 5845,
-      "forks": 505,
-      "issues": 31,
-      "contributors": 16,
-      "gains": {
-        "daily": 265,
-        "weekly": null,
-        "monthly": null
-      },
-      "signal": null,
-      "summary": {
-        "goal": "Agent Skills is an npm-distributed registry of curated, security-reviewed skills — packaged instructions and resources — that extend AI coding agents such as Claude Code, Cursor, and others with new workflows and specialized knowledge.",
-        "usage": "Skills are installed by running `npx @tech-leads-club/agent-skills`, which launches an interactive wizard for choosing skills, target agents, install method (copy or symlink), and scope. Direct CLI commands are also available, e.g. `agent-skills install -s tlc-spec-driven`, alongside list, update, remove, cache, and audit subcommands; skills can also be served to MCP-compatible clients via the `@tech-leads-club/agent-skills-mcp` server.",
-        "pros": "Every skill is scanned with Snyk Agent Scan before publishing, the CLI applies defense-in-depth measures (sanitization, path isolation, symlink guards, atomic lockfile, audit trail), the codebase is stated to be 100% open source with CI static analysis, and it supports a wide range of Tier 1-3 agents including Claude Code, Cursor, and GitHub Copilot.",
-        "cons": "Node.js >=22 is required, and using the skills catalog requires mandatory attribution to Tech Leads Club regardless of context; third-party skills retain separate licenses that need individual checking.",
-        "fit": "Given its broad multi-agent support and stated security tooling, it may suit teams or developers already using agents like Claude Code or Cursor who want a centrally managed, vetted source of reusable skills rather than an open marketplace."
-      },
-      "summary_status": "retained",
-      "tag_rule_version": 1,
-      "field_tags": [
-        "ai-ml",
-        "dev-tools"
-      ],
-      "form_tags": [
-        "agent",
-        "plugin-skill"
-      ]
-    },
-    {
-      "slug": "melgarafael/DeskcommCRM",
-      "name": "melgarafael / DeskcommCRM",
-      "description": "Open-source AI sales OS — self-hosted CRM with native AI agents + WhatsApp (WAHA). Open alternative to Kommo, Octadesk & Intercom for any business that sells by chat. MCP-ready, multi-tenant, LGPD.",
-      "lang": "TypeScript",
-      "topics": [
-        "ai",
-        "ai-agents",
-        "chatbot",
-        "crm",
-        "customer-support",
-        "ecommerce",
-        "lgpd",
-        "mcp",
-        "multi-tenant",
-        "nextjs",
-        "nuvemshop",
-        "open-source",
-        "rag",
-        "sales-automation",
-        "self-hosted",
-        "supabase",
-        "typescript",
-        "waha",
-        "whatsapp",
-        "whatsapp-api"
-      ],
-      "stars": 2380,
-      "forks": 610,
-      "issues": 149,
-      "contributors": 45,
-      "gains": {
-        "daily": 432,
-        "weekly": null,
-        "monthly": null
-      },
-      "signal": null,
-      "summary": {
-        "goal": "DeskcommCRM is described as an open-source, self-hosted 'AI Sales Operating System' for WhatsApp, combining a CRM with AI agents that attend, qualify, and sell, positioned as an alternative to Kommo, Octadesk, and Intercom.",
-        "usage": "The README documents installing on a VPS with a single command — either a guided setup script or `git clone https://github.com/melgarafael/DeskcommCRM.git` followed by `bash hostgator-setup-kit/install.sh`. Setup requires a domain, a Supabase account, and an AI provider key; WhatsApp connects via QR code (WAHA) or Meta's official channel.",
-        "pros": "Documented features include AI agents with per-tenant RAG that operate the CRM, automatic follow-ups for stalled leads, multi-tenant row-level security isolation, configurable vocabulary per business niche, and a Next.js 16 frontend stack, all under MIT licensing with no paid tier or locked features.",
-        "cons": "Support is described as community-based and provided 'as-is' with no guaranteed SLA. Additionally, the Supabase free tier does not include automatic backups, so scheduling the backup script is documented as advisable.",
-        "fit": "This appears suited for businesses selling via WhatsApp (e-commerce, clinics, real estate, agencies) that want self-hosted control of their data on a VPS with Docker, with 4 GB RAM recommended for installation."
-      },
-      "summary_status": "retained",
-      "tag_rule_version": 1,
-      "field_tags": [
-        "ai-ml",
-        "web-app",
-        "dev-tools",
-        "productivity"
-      ],
-      "form_tags": [
-        "agent",
-        "mcp",
-        "cli"
-      ]
-    },
-    {
-      "slug": "calesthio/OpenMontage",
-      "name": "calesthio / OpenMontage",
-      "description": "World's first open-source, agentic video production system. 12 production pipelines, 100+ tools, 700+ agent skill and production-knowledge files. Turn your AI coding assistant into a full video production studio.",
-      "lang": "Python",
-      "topics": [
-        "agent",
-        "agentic-ai",
-        "ai",
-        "claude",
-        "copilot",
-        "cursor",
-        "elevenlabs",
-        "ffmpeg",
-        "flux",
-        "image-generation",
-        "open-source",
-        "openai",
-        "python",
-        "remotion",
-        "stable-diffusion",
-        "text-to-speech",
-        "text-to-video",
-        "video-generation",
-        "video-production"
-      ],
-      "stars": 58840,
-      "forks": 7387,
-      "issues": 320,
-      "contributors": 52,
-      "gains": {
-        "daily": 380,
-        "weekly": null,
-        "monthly": null
-      },
-      "signal": null,
-      "summary": {
-        "goal": "OpenMontage is described as an open-source, agentic video production system that turns an AI coding assistant into a video production studio, handling research, scripting, asset generation, editing, and final composition from plain-language descriptions.",
-        "usage": "Install by running `git clone https://github.com/calesthio/OpenMontage.git`, `cd OpenMontage`, and `make setup`, which requires Python 3.10+, FFmpeg, Node.js 18+, and a supported AI coding assistant (Claude Code, Cursor, Copilot, Windsurf, or Codex). Afterward, the user describes the desired video in plain language inside the assistant to trigger a production pipeline.",
-        "pros": "The README states that zero API keys are needed to produce real videos using free tools such as Piper TTS, Archive.org/NASA/Wikimedia footage, Remotion, and FFmpeg. It also documents 10+ production pipelines, 100+ tools, 60+ provider integrations, plus built-in quality gates and budget controls (default $10 cap, $0.50 approval threshold).",
-        "cons": "Full operation depends on several prerequisites — Python, FFmpeg, Node.js, and a separately maintained AI coding assistant — and cloud-provider-based videos incur real costs, evidenced by the documented default per-action approval threshold of $0.50 and total budget cap of $10. The README also notes that local LLM support via Ollama/LM Studio is only 'coming soon,' suggesting a cloud-based AI assistant is presently required.",
-        "fit": "This project appears best suited to developers who already use one of the supported AI coding assistants and want to generate short videos (explainers, documentaries, trailers, social clips) through natural-language prompts rather than manual editing tools."
-      },
-      "summary_status": "retained",
-      "tag_rule_version": 1,
-      "field_tags": [
-        "ai-ml",
-        "dev-tools"
-      ],
-      "form_tags": [
-        "agent",
-        "plugin-skill"
-      ]
-    },
-    {
-      "slug": "asgeirtj/system_prompts_leaks",
-      "name": "asgeirtj / system_prompts_leaks",
-      "description": "Extracted system prompts from Anthropic - Claude Fable 5.1, Opus 5, Claude Design, Claude Code. OpenAI - ChatGPT GPT-6-Astra, Codex. Google - Gemini 3.8 Flash, 3.1 Pro, Antigravity. xAI - Grok, Grok Bot, Cursor, Kimi and more! Updated regularly.",
-      "lang": "JavaScript",
-      "topics": [
-        "ai",
-        "ai-agents",
-        "ai-prompts",
-        "anthropic",
-        "chatbot",
-        "chatgpt",
-        "claude",
-        "claude-code",
-        "codex",
-        "cursor",
-        "gemini",
-        "generative-ai",
-        "google",
-        "grok",
-        "llm",
-        "openai",
-        "prompt",
-        "prompt-engineering",
-        "system-prompt",
-        "system-prompts"
-      ],
-      "stars": 66361,
-      "forks": 10833,
-      "issues": 56,
-      "contributors": 25,
-      "gains": {
-        "daily": 706,
-        "weekly": null,
-        "monthly": null
-      },
-      "signal": null,
-      "summary": {
-        "goal": "This repository, system_prompts_leaks, collects leaked system prompts captured verbatim from AI chatbot products including ChatGPT, Claude, Gemini, and Grok, among others (lines 23-24).",
-        "usage": "The README presents prompts organized in tables by provider (e.g., Anthropic, OpenAI, Google, xAI), with each entry linking to a markdown file; contributions can be submitted as pull requests, noted as 'PRs welcome' linking to http://makeapullrequest.com (line 29).",
-        "pros": "Coverage spans many providers and products, including chat, coding-agent, and API variants, with a frequently updated 'Most recent additions/changes' table (lines 34-58); the project has reportedly been referenced by outside publications such as The Washington Post and CEPS' AI World (lines 20, 22).",
-        "cons": "Because entries are described as leaked prompts, the README does not document an independent verification process confirming each file's authenticity or that a given prompt remains current for its product (inference).",
-        "fit": "This resource appears suited to researchers, prompt engineers, and AI practitioners studying system prompt structure and conventions across products, rather than to those seeking an installable tool or software library (inference)."
-      },
-      "summary_status": "verified",
-      "tag_rule_version": 1,
-      "field_tags": [
-        "ai-ml"
-      ],
-      "form_tags": [
-        "agent"
-      ]
-    },
-    {
-      "slug": "vxcontrol/pentagi",
-      "name": "vxcontrol / pentagi",
-      "description": "Fully autonomous AI Agents system capable of performing complex penetration testing tasks",
+      "slug": "alibaba/open-code-review",
+      "name": "alibaba / open-code-review",
+      "description": "Fast, efficient, battle-tested at Alibaba's scale. Hybrid architecture code review tool: deterministic pipelines + LLM Agent, precise line-level comments, built-in multi-language ruleset (NPE, thread-safety, XSS, SQL injection), OpenAI & Anthropic compatible.",
       "lang": "Go",
       "topics": [
-        "ai-agents",
-        "ai-security-tool",
-        "anthropic",
-        "autonomous-agents",
-        "golang",
-        "gpt",
-        "graphql",
-        "multi-agent-system",
-        "offensive-security",
-        "open-source",
-        "openai",
-        "penetration-testing",
-        "penetration-testing-tools",
-        "react",
-        "security-automation",
-        "security-testing",
-        "security-tools",
-        "self-hosted"
+        "agent",
+        "agent-skills",
+        "code-review",
+        "code-review-assistant",
+        "harness",
+        "repository-level-context"
       ],
-      "stars": 24255,
-      "forks": 3115,
-      "issues": 62,
-      "contributors": 17,
+      "stars": 26865,
+      "forks": 1925,
+      "issues": 156,
+      "contributors": 164,
       "gains": {
-        "daily": 590,
-        "weekly": null,
+        "daily": 1571,
+        "weekly": 2709,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "PentAGI is an autonomous, self-hosted security testing platform that uses AI agents to plan and execute penetration testing tasks inside sandboxed Docker environments, producing vulnerability reports with exploitation guides.",
-        "usage": "Deployment starts by creating a working directory (`mkdir -p pentagi && cd pentagi`), then either running the interactive installer (`./installer`) or configuring a `.env` file and running `docker compose up -d`; the web UI is then reached at https://localhost:8443 with default credentials admin@pentagi.com/admin.",
-        "pros": "It bundles 20+ built-in security tools (nmap, metasploit, sqlmap), long-term memory storage, an optional Graphiti/Neo4j knowledge graph, REST and GraphQL APIs with Bearer-token auth, and flexible support for 10+ LLM providers including OpenAI, Anthropic, and Ollama.",
-        "cons": "The README describes PentAGI as an autonomous/assistant-guided platform rather than a CALDERA-style BAS tool with predefined attack campaigns, and states that JSON flow-report export is not documented as a supported output format today.",
-        "fit": "With minimum requirements of 2 vCPU, 4GB RAM, and 20GB disk plus at least one configured LLM provider, PentAGI may suit security teams or researchers comfortable with Docker and API-based LLM costs rather than casual, no-setup users."
+        "goal": "Open Code Review (ocr) is an AI-powered code review command-line tool originally built internally at Alibaba Group and later open-sourced; it reads Git diffs and sends changed files to a configurable LLM via an agent to generate structured, line-level review comments, with an additional `ocr scan` command for reviewing entire files or directories without a diff.",
+        "usage": "Install globally with `npm install -g @alibaba-group/open-code-review`, then run `ocr config provider` and `ocr config model` to set up an LLM (unless using Delegation Mode). Reviews are run with commands such as `ocr review` for workspace or branch-range changes, `ocr review --commit <id>` for a single commit, and `ocr scan` for full-file audits of a repository or directory.",
+        "pros": "The design combines deterministic engineering (precise file selection, smart file bundling, rule matching, positioning/reflection modules) with an agent for dynamic decisions, aiming for more stable and predictable review quality than general-purpose agents. On the documented AACR-Bench benchmark (50 repos, 200 PRs, 10 languages, 1,505 annotated issues), it reports higher Precision and F1 than Claude Code using the same model, while consuming roughly 1/9 of the tokens and completing reviews faster.",
+        "cons": "The same AACR-Bench results show lower Recall than general-purpose agents; this is documented as a deliberate trade-off favoring precision over noise, meaning some real defects may go unreported compared to broader-coverage tools.",
+        "fit": "Based on the documented CLI commands, benchmark comparisons, and integrations, the tool appears best suited for teams wanting automated, git-native code review in CI/CD pipelines or alongside coding agents such as Claude Code, Codex, and Cursor, though this fit is inferred from the documented features and integrations rather than explicitly stated."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
-        "web-app",
-        "dev-tools",
-        "security"
+        "data"
       ],
       "form_tags": [
         "agent",
-        "cli"
+        "plugin-skill"
       ]
     },
     {
@@ -359,100 +93,28 @@
         "style-transfers",
         "voice-cloning"
       ],
-      "stars": 7985,
-      "forks": 881,
-      "issues": 15,
+      "stars": 8764,
+      "forks": 939,
+      "issues": 22,
       "contributors": 9,
       "gains": {
-        "daily": 487,
+        "daily": 559,
         "weekly": null,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "YuE2 is a music generation system that unifies symbolic (melody-and-chord) planning with audio synthesis, turning lyrics and a style prompt into a complete song with vocals and accompaniment, while also supporting zero-shot covers and agentic editing of compositions.",
-        "usage": "Installation follows `git clone https://github.com/multimodal-art-projection/YuE.git`, `cd YuE`, and `python -m pip install .` inside a Python 3.12 virtual environment; a first song can then be produced with `python examples/generate.py --output outputs/first-song`. The staged Python API exposes plan(), generate_semantic(), synthesize(), and decode() via the YuE2Pipeline class, with model weights such as m-a-p/YuE2-3B downloaded from Hugging Face on first use.",
-        "pros": "YuE2 is reported to be competitive with Suno v5/v6 on the WildSongBench benchmark, with a best-of-8 setting achieving 6.9632 SongBench Avg, described as the highest observed mean among evaluated settings. Its symbolic planning stage makes melody and chords explicit and editable before audio rendering, and the same checkpoint reportedly supports zero-shot covers and agentic editing.",
-        "cons": "Running YuE2 requires a Linux system with an NVIDIA GPU supporting BF16 and 24 GB VRAM, which may limit accessibility on lower-end or non-Linux hardware. The documentation also notes that the small gap between top benchmark scores does not establish statistical significance, so any performance edge may not be fully conclusive.",
-        "fit": "YuE2 appears suited for developers and researchers who have GPU-backed infrastructure and want an inspectable, editable composition stage rather than a purely end-to-end black-box generator for music-generation or AI-agent workflows."
-      },
-      "summary_status": "retained",
-      "tag_rule_version": 1,
-      "field_tags": [
-        "ai-ml",
-        "learning"
-      ],
-      "form_tags": [
-        "agent"
-      ]
-    },
-    {
-      "slug": "yuliskov/SmartTube",
-      "name": "yuliskov / SmartTube",
-      "description": "Browse media content with your own rules on Android TV",
-      "lang": "Java",
-      "topics": [
-        "android",
-        "android-tv",
-        "android-tv-box",
-        "java",
-        "kotlin",
-        "retrofit2",
-        "rxjava-android"
-      ],
-      "stars": 33562,
-      "forks": 2041,
-      "issues": 714,
-      "contributors": 35,
-      "gains": {
-        "daily": 233,
-        "weekly": null,
-        "monthly": null
-      },
-      "signal": null,
-      "summary": {
-        "goal": "SmartTube is a free, open-source media client for Android TVs and TV boxes (line 27), built on the official Android TV app template, offering a TV-optimized interface for browsing and playing content from public sources.",
-        "usage": "Because SmartTube is not distributed through app stores, installation requires sideloading. The documented easiest method installs the Downloader by AFTVnews app and enters `kutt.to/stn_beta` or `kutt.to/stn_stable` (line 71). Building from source uses `git clone https://github.com/yuliskov/SmartTube.git` followed by `gradlew clean installStstableDebug`, and the README states OpenJDK 14 or older is required (lines 235-243).",
-        "pros": "Documented features include a clean interface, SponsorBlock sponsor-segment skipping, adjustable playback speed, 8K resolution support, 60fps playback, HDR compatibility, and operation without Google Services (lines 30-38).",
-        "cons": "The app is not supported on phones or tablets and comment functionality is described as unstable (lines 42-43); the README also discloses that the developer's environment was previously infected with malicious software, so builds are now scanned with VirusTotal, which may suggest users should stay attentive to update announcements.",
-        "fit": "Given its Android TV focus and reliance on sideloading rather than app-store distribution, SmartTube appears best suited to users comfortable installing APKs outside official stores on Android TV hardware, and likely less suitable for those wanting official-app-style support or phone/tablet use."
-      },
-      "summary_status": "retained",
-      "tag_rule_version": 1,
-      "field_tags": [
-        "web-app",
-        "productivity"
-      ],
-      "form_tags": []
-    },
-    {
-      "slug": "alphaXiv/OpenResearch",
-      "name": "alphaXiv / OpenResearch",
-      "description": "Turn your coding agents into research agents",
-      "lang": "Rust",
-      "topics": [],
-      "stars": 2306,
-      "forks": 153,
-      "issues": 21,
-      "contributors": 7,
-      "gains": {
-        "daily": 289,
-        "weekly": null,
-        "monthly": null
-      },
-      "signal": null,
-      "summary": {
-        "goal": "OpenResearch is described as a local-first workspace for research agents and autoresearch, letting coding agents such as Claude Code, Codex, OpenCode, or Cursor review literature, develop hypotheses, run experiments, and produce research artifacts.",
-        "usage": "Install with `curl -LsSf https://openresearch.sh/install.sh | sh` and run `orx up`, which opens a local dashboard at `http://127.0.0.1:4791`; remote GPU sessions start with `orx up --remote user@host`, and `orx install-skills` installs the OpenResearch skill into supported agents.",
-        "pros": "It runs locally by default with a local SQLite store on 127.0.0.1, keeping projects, conversations, experiments, and artifacts on the user's machine; it gives each research direction an isolated git worktree and agent session; and the same committed snapshot can run on SSH, Slurm, Kubernetes, Ray, Hugging Face Jobs, Modal, or Tinker without requiring the repository to be published.",
-        "cons": "In remote SSH mode the service binds to loopback but has no application-level authentication, so other users on that host can reach it; Windows support is described as beta and requires separately installing Git for Windows.",
-        "fit": "Based on the README, it appears suited to developers and researchers who want to run research or coding agents locally or on remote compute while keeping code and experiment data locally owned; official release builds also send opt-out, coarse usage telemetry tied to a random installation ID unless disabled."
+        "goal": "YuE2 is a music generation project aiming to unify symbolic (score-based) and audio music generation. Given lyrics and a style prompt, it produces an editable melody-and-chord plan, then renders that plan into a complete song with vocals and accompaniment.",
+        "usage": "After cloning the repository, users create a Python 3.12 virtual environment, run `python -m pip install .`, and execute `python examples/generate.py --output outputs/first-song`. A staged Python API (plan → generate_semantic → synthesize → decode) using `YuE2Pipeline.from_pretrained(\"m-a-p/YuE2-3B\")` is also documented, and model files download from Hugging Face on first use.",
+        "pros": "The README reports YuE2 (best-of-8) achieving a 6.9632 SongBench Avg on WildSongBench, described as the highest observed mean among evaluated settings, and states it is competitive with Suno v5/v6. It also highlights an editable symbolic score as a white-box interface for inspecting and revising a composition before audio rendering.",
+        "cons": "Quick start requires a Linux system with an NVIDIA GPU supporting BF16 and 24 GB VRAM, which likely limits usability on lower-end or non-Linux hardware. Editing a composition also generates an entirely new recording rather than preserving the original waveform outside the edited section.",
+        "fit": "This project appears suited for users or agents wanting controllable, score-based song generation, zero-shot covers, and iterative musical editing via an agent skill, rather than simple one-shot audio generation without inspectable intermediate structure."
       },
       "summary_status": "verified",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
-        "dev-tools"
+        "learning"
       ],
       "form_tags": [
         "agent"
@@ -485,14 +147,14 @@
         "voicestudio",
         "workflow"
       ],
-      "stars": 27807,
-      "forks": 3423,
-      "issues": 51,
+      "stars": 30046,
+      "forks": 3623,
+      "issues": 91,
       "contributors": 56,
       "gains": {
-        "daily": 2632,
+        "daily": 2776,
         "weekly": null,
-        "monthly": 15895
+        "monthly": 18692
       },
       "signal": null,
       "summary": {
@@ -513,114 +175,146 @@
       ]
     },
     {
-      "slug": "SnailSploit/Claude-Red",
-      "name": "SnailSploit / Claude-Red",
-      "description": "claude-red is a curated library of offensive security skills designed for the Claude skills system. Each skill is a structured SKILL.md file that primes Claude with expert-level methodology for a specific attack surface — from SQLi to shellcode, EDR evasion to exploit development.",
+      "slug": "666ghj/MiroFish",
+      "name": "666ghj / MiroFish",
+      "description": "A Simple and Universal Swarm Intelligence Engine, Predicting Anything. 简洁通用的群体智能引擎，预测万物",
       "lang": "Python",
       "topics": [
-        "claude-ai",
-        "claude-pt",
-        "claude-skills",
-        "redteam",
-        "redteam-tools",
-        "skills"
+        "agent-memory",
+        "financial-forecasting",
+        "future-prediction",
+        "knowledge-graph",
+        "llms",
+        "multi-agent-simulation",
+        "public-opinion-analysis",
+        "python3",
+        "social-prediction",
+        "swarm-intelligence"
       ],
-      "stars": 4362,
-      "forks": 606,
-      "issues": 13,
-      "contributors": 5,
+      "stars": 73523,
+      "forks": 11310,
+      "issues": 135,
+      "contributors": 19,
       "gains": {
-        "daily": 506,
+        "daily": 560,
         "weekly": null,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "claude-red is a curated library of offensive security skills for the Claude Skills system, distributed as SKILL.md files. Each skill primes Claude with methodology for a specific attack surface, from SQL injection to shellcode and EDR evasion. Stated use cases include authorized red team engagements, bug bounty triage, security research, CTF preparation, and operator training.",
-        "usage": "Install by cloning the repository into the Claude Skills directory with `git clone https://github.com/SnailSploit/claude-red ~/.claude/skills/claude-red`, after which skills auto-load based on conversational triggers. An interactive `./install.sh` script also supports targeted or category-specific installs, and individual SKILL.md files can be piped into Claude Code or pasted into Claude.ai project prompts.",
-        "pros": "The library currently ships 78 skills across 23 categories covering web, wireless, cloud, Active Directory, exploit development, and more. Skills reportedly load on demand, so unused skills do not consume context.",
-        "cons": "Roadmap phases 1, 2, 4, 5, and 6 are still listed as 'Planned,' so some announced coverage (e.g., cloud identity, additional web fundamentals) appears not yet implemented despite a stated target of roughly 130 skills. Effective use likely also depends on familiarity with the Claude Skills system's SKILL.md conventions.",
-        "fit": "This project appears best suited to security practitioners already working within the Claude Skills ecosystem or Claude Code who need structured, on-demand offensive methodology for authorized testing, research, or CTF contexts."
+        "goal": "MiroFish is presented as a next-generation, multi-agent AI prediction engine. It reportedly extracts seed information from real-world sources (such as news, policy drafts, or financial signals) and builds a simulated digital world where many independent agents interact, allowing users to inject variables and observe projected outcomes.",
+        "usage": "Source deployment requires Node.js 18+, Python between 3.11 and 3.12, and the uv package manager. Setup involves copying `.env.example` to `.env` with API keys, then running `npm run setup:all` to install dependencies and `npm run dev` to start the frontend (http://localhost:3000) and backend (http://localhost:5001). A Docker option is also available via `docker compose up -d`.",
+        "pros": "The documented workflow spans graph building, environment setup, simulation, report generation, and deep interaction with simulated agents. It supports any LLM API using the OpenAI SDK format, and its simulation engine is built on the open-source OASIS project from the CAMEL-AI team.",
+        "cons": "Setup requires configuring both an LLM API key and a Zep Cloud API key before use. The README also notes that simulations can be resource-intensive, recommending users first try runs of fewer than 40 rounds due to high consumption.",
+        "fit": "Based on its stated vision, MiroFish may suit decision-makers wanting to rehearse policies or public relations scenarios, as well as individual users exploring creative or speculative simulations, though the README does not specify infrastructure needs for larger-scale deployments."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 1,
       "field_tags": [
-        "ai-ml",
-        "security"
+        "ai-ml"
       ],
       "form_tags": [
-        "plugin-skill",
-        "library"
+        "agent"
       ]
     },
     {
-      "slug": "alibaba/open-code-review",
-      "name": "alibaba / open-code-review",
-      "description": "Fast, efficient, battle-tested at Alibaba's scale. Hybrid architecture code review tool: deterministic pipelines + LLM Agent, precise line-level comments, built-in multi-language ruleset (NPE, thread-safety, XSS, SQL injection), OpenAI & Anthropic compatible.",
-      "lang": "Go",
+      "slug": "Panniantong/Agent-Reach",
+      "name": "Panniantong / Agent-Reach",
+      "description": "Give your AI agent eyes to see the entire internet. Read & search Twitter, Reddit, YouTube, GitHub, Bilibili, XiaoHongShu — one CLI, zero API fees.",
+      "lang": "Python",
       "topics": [
-        "agent",
-        "agent-skills",
-        "code-review",
-        "code-review-assistant",
-        "harness",
-        "repository-level-context"
+        "agent-infrastructure",
+        "ai-agent",
+        "ai-search",
+        "automation",
+        "bilibili",
+        "claude-code",
+        "cli",
+        "cursor",
+        "free-api",
+        "llm-tools",
+        "mcp",
+        "python",
+        "reddit-scraper",
+        "twitter-scraper",
+        "web-scraper",
+        "xiaohongshu",
+        "youtube-transcript"
       ],
-      "stars": 24024,
-      "forks": 1770,
-      "issues": 146,
-      "contributors": 157,
+      "stars": 81782,
+      "forks": 7113,
+      "issues": 138,
+      "contributors": 35,
       "gains": {
-        "daily": 443,
+        "daily": 651,
         "weekly": null,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "Open Code Review is an AI-powered code review CLI tool that reads Git diffs and sends changed files to a configurable LLM through an agent with tool-use capabilities, producing structured, line-level review comments. `ocr scan` additionally reviews whole files for auditing codebases without a meaningful diff.",
-        "usage": "Requires Git >= 2.41. Install with `npm install -g @alibaba-group/open-code-review`, then configure a provider and model with `ocr config provider` and `ocr config model` (unless using Delegation Mode), and run reviews with commands such as `ocr review` or `ocr scan`.",
-        "pros": "Per the README, on the AACR-Bench benchmark (50 repositories, 200 PRs, 10 languages, 1,505 annotated issues), the tool reports higher Precision and F1 than a general-purpose agent (Claude Code) using the same underlying model, while consuming about 1/9 of the tokens and completing reviews faster. Its 'deterministic engineering + agent' design is presented as addressing incomplete coverage, position drift, and unstable quality issues attributed to purely language-driven agents.",
-        "cons": "The benchmark shows lower Recall than general-purpose agents, described as a deliberate trade-off favoring precision over noise, which suggests some real defects may be missed. Running the default mode requires configuring an LLM, though Delegation Mode avoids this step.",
-        "fit": "The tool appears suited for teams wanting precision-focused code review integrated with CI/CD (GitHub Actions, GitLab CI, etc.) across Windows, macOS, and Linux, with integrations for coding agents such as Claude Code, Codex, and Cursor."
+        "goal": "Agent Reach is documented as a capability layer that equips shell-capable AI agents (e.g., Claude Code, OpenClaw, Cursor, Windsurf) with internet access — reading web pages, YouTube subtitles, GitHub repositories, Twitter/X, Reddit, Bilibili, RSS, and more — by selecting, installing, and health-checking the most stable integration method for each platform.",
+        "usage": "To install, the README instructs copying the message '帮我安装 Agent Reach：https://raw.githubusercontent.com/Panniantong/agent-reach/main/docs/install.md' to a shell-capable AI agent, which runs the setup. Installation status can be checked with `agent-reach doctor`, and the tool can be removed with `agent-reach uninstall`.",
+        "pros": "All tools and APIs are described as free and open source, with credentials stored only locally rather than uploaded. Each platform reportedly uses a prioritized list of primary and backup backends, so if one integration breaks the tool can switch to another without user intervention, and `agent-reach doctor` reports each channel's current backend status.",
+        "cons": "Several platforms — including Reddit, Facebook, Instagram, and Xiaohongshu — reportedly have no zero-configuration path and require login via a desktop OpenCLI browser session or manually exported cookies. The README also cautions that cookie-based logins on platforms like Twitter and Xiaohongshu carry a risk of account suspension, recommending dedicated secondary accounts rather than primary ones.",
+        "fit": "This appears suited for users operating a shell-capable AI agent (e.g., Claude Code, OpenClaw, Cursor) who want to add internet-reading and search abilities without manually configuring each platform's API. It requires Python 3.10+, and server deployments reportedly need a proxy costing about $1/month, while local use reportedly does not."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
-        "data"
+        "web-app",
+        "dev-tools",
+        "devops"
       ],
       "form_tags": [
         "agent",
-        "plugin-skill"
+        "mcp",
+        "cli"
       ]
     },
     {
-      "slug": "jihe520/MathModelAgent",
-      "name": "jihe520 / MathModelAgent",
-      "description": "🤖📐专为数学建模设计的 Agent & skills ,自动完成数学建模，生成一份完整的可以直接提交的论文。 An Agent Designed for Mathematical Modeling ,Automatically complete mathmodel and generate a complete paper ready for submission.",
-      "lang": "Python",
+      "slug": "asgeirtj/system_prompts_leaks",
+      "name": "asgeirtj / system_prompts_leaks",
+      "description": "Extracted system prompts from Anthropic - Claude Fable 5.1, Opus 5, Claude Design, Claude Code. OpenAI - ChatGPT GPT-6-Astra, Codex. Google - Gemini 3.8 Flash, 3.1 Pro, Antigravity. xAI - Grok, Grok Bot, Cursor, Kimi and more! Updated regularly.",
+      "lang": "JavaScript",
       "topics": [
-        "agent",
+        "ai",
+        "ai-agents",
+        "ai-prompts",
+        "anthropic",
+        "chatbot",
+        "chatgpt",
+        "claude",
+        "claude-code",
+        "codex",
+        "cursor",
+        "gemini",
+        "generative-ai",
+        "google",
+        "grok",
         "llm",
-        "mathmodel",
-        "skills"
+        "openai",
+        "prompt",
+        "prompt-engineering",
+        "system-prompt",
+        "system-prompts"
       ],
-      "stars": 5490,
-      "forks": 414,
-      "issues": 43,
-      "contributors": 11,
+      "stars": 67066,
+      "forks": 10891,
+      "issues": 54,
+      "contributors": 25,
       "gains": {
-        "daily": 246,
+        "daily": 764,
         "weekly": null,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "MathModelAgent is a SKILL-driven automation tool built for mathematical modeling competitions. It analyzes a modeling problem, writes and debugs code, and produces a formatted paper intended to be submission-ready, running inside a Harness such as Claude Code or Codex. Its stated vision is to shorten a typical 3-day competition to about 1 hour, which reads as an aspirational goal rather than a guaranteed outcome.",
-        "usage": "Two setup paths are documented. A desktop app can be downloaded from https://github.com/jihe520/MathModelAgent/releases/latest and requires no separate Python, Node.js, or Redis install. Alternatively, developers can install the SKILL with `npx skills add jihe520/MathModelAgent --all`, then run it inside Claude Code via `claude --dangerously-skip-permissions` followed by the `/1start-mathmodel` command, or inside Codex via `codex --yolo`.",
-        "pros": "Listed capabilities include a multi-agent workflow with separate modeling, coding, and writing agents, support for any LLM via litellm, both local (Jupyter) and cloud (E2B, Daytona) code interpreters, 17 built-in Typst paper templates for major competitions, and a 9-step automated paper verification process.",
-        "cons": "The project's roadmap lists several advertised capabilities—full human-in-the-loop workflow integration, feedback-based rerun, RAG retrieval, and automatic model fallback—as still incomplete, and the project is described as being in an experimental development stage with known bugs being fixed, so production-grade reliability may not yet be fully established.",
-        "fit": "The project appears best suited to individuals preparing for math modeling competitions such as MCM/ICM, with the desktop app aimed at non-technical users and the SKILL-based setup aimed at developers who want to self-host or customize behavior. The license permits personal, non-commercial use only, with commercial use requiring direct contact with the author."
+        "goal": "This repository, system_prompts_leaks, collects leaked system prompts captured verbatim from AI chatbot products including ChatGPT, Claude, Gemini, and Grok, among others (lines 23-24).",
+        "usage": "The README presents prompts organized in tables by provider (e.g., Anthropic, OpenAI, Google, xAI), with each entry linking to a markdown file; contributions can be submitted as pull requests, noted as 'PRs welcome' linking to http://makeapullrequest.com (line 29).",
+        "pros": "Coverage spans many providers and products, including chat, coding-agent, and API variants, with a frequently updated 'Most recent additions/changes' table (lines 34-58); the project has reportedly been referenced by outside publications such as The Washington Post and CEPS' AI World (lines 20, 22).",
+        "cons": "Because entries are described as leaked prompts, the README does not document an independent verification process confirming each file's authenticity or that a given prompt remains current for its product (inference).",
+        "fit": "This resource appears suited to researchers, prompt engineers, and AI practitioners studying system prompt structure and conventions across products, rather than to those seeking an installable tool or software library (inference)."
       },
       "summary_status": "retained",
       "tag_rule_version": 1,
@@ -628,129 +322,309 @@
         "ai-ml"
       ],
       "form_tags": [
+        "agent"
+      ]
+    },
+    {
+      "slug": "rlaope/oh-my-hermes",
+      "name": "rlaope / oh-my-hermes",
+      "description": "All in one plugin for Hermes Agent ⚚ the coding intelligence, a long-term memory system and model optimized workflow packages",
+      "lang": "Python",
+      "topics": [
+        "agent",
+        "ai",
+        "ai-agent",
+        "ai-tools",
+        "claude-code",
+        "codex",
+        "hermes-agent",
+        "hermes-skill",
+        "skills"
+      ],
+      "stars": 2305,
+      "forks": 174,
+      "issues": 48,
+      "contributors": 18,
+      "gains": {
+        "daily": 77,
+        "weekly": null,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "oh-my-hermes (OMH) is described as an operating layer installed on top of Hermes Agent (NousResearch) that adds planning, research, coding handoffs, operations, and project memory with explicit evidence boundaries, aiming to turn a Hermes Agent request into a clear capability, a concrete next step, and an honest record of what happened.",
+        "usage": "Installation uses a shell script (curl -fsSL https://raw.githubusercontent.com/rlaope/oh-my-hermes/main/install.sh | sh) on macOS/Linux or a PowerShell command (irm https://raw.githubusercontent.com/rlaope/oh-my-hermes/main/install.ps1 | iex) on Windows, followed by the required omh setup step; omh update refreshes the installed command, managed skills, and Hermes registration afterward.",
+        "pros": "Documented capabilities include mixture-of-models routing across nine editable categories, a catalog of 108 omh-* specialist skills, nine ulw- workflow engines, a file-backed long-term memory system kept separate from Hermes' own memory, and an evidence-status table that distinguishes an executor reporting completion from a verified, gate-checked result.",
+        "cons": "As stated in the README, no measured benchmark run comparing Hermes alone against Hermes through OMH has been published yet, so the claimed cost and speed differences from that comparison are not yet backed by public results; alternative installers via Homebrew, Bun, and npm are noted as public only starting from v1.0.6.",
+        "fit": "Since OMH is presented as an addition that runs alongside Hermes Agent rather than replacing it, it appears intended for existing Hermes Agent users seeking a governed routing, coding-delegation, and memory layer rather than as a standalone alternative."
+      },
+      "summary_status": "verified",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools",
+        "productivity"
+      ],
+      "form_tags": [
+        "agent",
+        "plugin-skill",
+        "cli"
+      ]
+    },
+    {
+      "slug": "localsend/localsend",
+      "name": "localsend / localsend",
+      "description": "An open-source cross-platform alternative to AirDrop",
+      "lang": "Dart",
+      "topics": [
+        "dart",
+        "file-sharing",
+        "flutter",
+        "flutter-apps"
+      ],
+      "stars": 91566,
+      "forks": 5107,
+      "issues": 1119,
+      "contributors": 242,
+      "gains": {
+        "daily": 251,
+        "weekly": null,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "LocalSend is documented as a free, open-source, cross-platform app that lets users securely share files and messages with nearby devices over a local network without needing an internet connection, using a REST API secured by HTTPS with certificates generated on the fly on each device.",
+        "usage": "It is recommended to install LocalSend from an app store or package manager. A terminal client is also documented: run `localsend-cli send report.pdf photo.jpg ./project-backup` to send files/directories, optionally adding `--to \"Cute Tomato\"` or `--to 192.168.27.26` to target a specific device by alias or IP address.",
+        "pros": "The README lists support for many platforms in one project (Windows, macOS, Linux, Android, iOS, Fire OS), operation without an internet connection or third-party servers, and signed Windows binaries.",
+        "cons": "The README notes the app has no auto-update, so users are advised to reinstall via an app store or package manager for updates; it also documents that firewall configuration (allowing TCP/UDP port 53317) may be required for sending and receiving to work correctly.",
+        "fit": "Based on the README, LocalSend appears best suited for offline, local-network file and message transfers between nearby devices, rather than transfers over the internet or to remote destinations."
+      },
+      "summary_status": "verified",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "unclassified"
+      ],
+      "form_tags": []
+    },
+    {
+      "slug": "dani-garcia/vaultwarden",
+      "name": "dani-garcia / vaultwarden",
+      "description": "Unofficial Bitwarden compatible server written in Rust, formerly known as bitwarden_rs",
+      "lang": "Rust",
+      "topics": [
+        "bitwarden",
+        "bitwarden-rs",
+        "docker",
+        "rocket",
+        "rust",
+        "vaultwarden"
+      ],
+      "stars": 67618,
+      "forks": 3214,
+      "issues": 78,
+      "contributors": 203,
+      "gains": {
+        "daily": 115,
+        "weekly": null,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "Vaultwarden is an alternative server implementation of the Bitwarden Client API, written in Rust, compatible with official Bitwarden clients, and intended for self-hosted deployment as a lighter alternative to the official, more resource-heavy service.",
+        "usage": "The recommended installation method is via container images published to ghcr.io, docker.io, and quay.io. A typical setup uses `docker pull vaultwarden/server:latest` followed by `docker run --detach --name vaultwarden --env DOMAIN=\"https://vw.domain.tld\" --volume /vw-data/:/data/ --restart unless-stopped --publish 127.0.0.1:8000:80 vaultwarden/server:latest`.",
+        "pros": "The README documents a nearly complete implementation of the Bitwarden Client API, including personal vaults, Send, attachments, organizations, multi-factor authentication, emergency access, and an admin backend, alongside active community channels (Matrix, GitHub Discussions, Discourse).",
+        "cons": "The documentation states HTTPS and a secure context are required for the web-vault's Web Crypto API to function, so a reverse proxy or other HTTPS setup appears to be a prerequisite for full usability, which may add operational complexity for self-hosters.",
+        "fit": "Maintainers describe the project as focused on serving the self-hosting community, including individuals, families, and small organizations, though it is explicitly not associated with Bitwarden, Inc., cautiously suggesting it best suits users comfortable managing their own infrastructure and backups."
+      },
+      "summary_status": "verified",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "devops"
+      ],
+      "form_tags": []
+    },
+    {
+      "slug": "TauricResearch/TradingAgents",
+      "name": "TauricResearch / TradingAgents",
+      "description": "TradingAgents: Multi-Agents LLM Financial Trading Framework",
+      "lang": "Python",
+      "topics": [
+        "agent",
+        "finance",
+        "llm",
+        "multiagent",
+        "trading"
+      ],
+      "stars": 106450,
+      "forks": 20348,
+      "issues": 345,
+      "contributors": 21,
+      "gains": {
+        "daily": 745,
+        "weekly": null,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "TradingAgents is a multi-agent LLM-based financial trading framework built with LangGraph. It coordinates specialized agents — fundamentals, sentiment, news, and technical analysts, bullish/bearish researchers, a trader, and a risk-management/portfolio-manager team — to evaluate market conditions and produce trading decisions. The README states the framework is designed for research purposes and is not intended as financial, investment, or trading advice.",
+        "usage": "Install by cloning the repository (`git clone https://github.com/TauricResearch/TradingAgents.git`) and running `pip install .` inside it, optionally in a Python 3.12 virtual environment. Launch the interactive CLI with `tradingagents` (or `python -m cli.main`) to pick tickers, analysis date, LLM provider, and research depth. It can also be used directly in Python via the `TradingAgentsGraph` class and its `.propagate()` method, or run via Docker.",
+        "pros": "The framework supports numerous LLM providers (OpenAI, Google, Anthropic, xAI, DeepSeek, Qwen, GLM, MiniMax, OpenRouter, Ollama, Azure), works across multiple markets and asset types using Yahoo Finance tickers, and persists a decision log across runs plus offers opt-in checkpoint resume — features that appear to add resilience for longer or repeated analyses.",
+        "cons": "Because output is LLM-driven, two runs on the same ticker and date can differ due to non-deterministic model sampling and live news/social data changing over time; the current curated models are described as reasoning-first and largely ignoring temperature settings, so tighter reproducibility likely requires explicitly selecting a non-reasoning model.",
+        "fit": "The README frames this as a research scaffold for studying multi-agent market analysis rather than a strategy with a fixed, replicable return, suggesting it is best suited to research and experimentation contexts rather than production trading decisions."
+      },
+      "summary_status": "verified",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "productivity"
+      ],
+      "form_tags": [
+        "agent",
+        "framework"
+      ]
+    },
+    {
+      "slug": "ruvnet/RuView",
+      "name": "ruvnet / RuView",
+      "description": "π RuView turns commodity WiFi signals into real-time spatial intelligence, vital sign monitoring, and presence detection — all without a single pixel of video.",
+      "lang": "Rust",
+      "topics": [
+        "awesome",
+        "claude",
+        "densepose",
+        "esp32",
+        "firmware",
+        "home-assistant",
+        "home-automation",
+        "iot",
+        "monitoring",
+        "networking",
+        "npm",
+        "pose-estimation",
+        "react",
+        "rf",
+        "self-learning",
+        "skills",
+        "spatial-intelligence",
+        "typescript",
+        "wifi",
+        "wifi-security"
+      ],
+      "stars": 94045,
+      "forks": 12443,
+      "issues": 711,
+      "contributors": 39,
+      "gains": {
+        "daily": 383,
+        "weekly": null,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "RuView is presented as a WiFi sensing platform that converts ordinary WiFi radio signals into spatial intelligence. It uses Channel State Information (CSI) captured by ESP32 sensors to detect presence, breathing rate, heart rate, activity, and body pose without cameras or wearables.",
+        "usage": "Documented setup options include Python packages via `pip install ruview` (or alias `wifi-densepose`), a Docker image (`docker pull ruvnet/wifi-densepose:latest`) for simulated-data evaluation, and a companion CLI invoked with `npx @ruvnet/ruview@0.4.0 doctor`. The platform is described as integrating with Home Assistant via MQTT, and with Apple Home, Google Home, and Alexa through the same bridge or a Matter endpoint.",
+        "pros": "The README lists an MIT license, a Rust 1.85+ toolchain, 1463 passing tests, and multi-architecture Docker support (amd64/arm64) as project attributes. It also cites low per-zone hardware costs (roughly $0-$9), no camera requirement, ability to sense through walls and in darkness, and use of already-deployed WiFi infrastructure.",
+        "cons": "The project is labeled 'Beta software' under active development, with documented limitations: ESP32-C3 and original ESP32 boards are unsupported, single-node deployments have limited spatial resolution, and camera-free pose accuracy is currently low (PCK@20 ≈ 2.5%), with further data-collection and evaluation phases still pending.",
+        "fit": "The README states these are research and prototype applications, not medical devices, emergency systems, or safety-certified controls, and that CSI-capable hardware such as ESP32-S3 is recommended for full sensing capability; this suggests the platform may suit hobbyist and research use more than production safety-critical deployments, though this framing is a cautious inference rather than an explicit README claim."
+      },
+      "summary_status": "verified",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "web-app",
+        "dev-tools",
+        "security",
+        "learning"
+      ],
+      "form_tags": [
+        "plugin-skill",
+        "cli"
+      ]
+    },
+    {
+      "slug": "tech-leads-club/agent-skills",
+      "name": "tech-leads-club / agent-skills",
+      "description": "The secure, validated skill registry for professional AI coding agents. Extend Antigravity, Claude Code, Cursor, Copilot and more with absolute confidence.",
+      "lang": "TypeScript",
+      "topics": [
+        "agent",
+        "ai",
+        "antigravity",
+        "claude-code",
+        "copilot",
+        "cursor",
+        "skills"
+      ],
+      "stars": 6203,
+      "forks": 523,
+      "issues": 32,
+      "contributors": 16,
+      "gains": {
+        "daily": 512,
+        "weekly": null,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "Agent Skills is an npm-distributed registry of curated, security-reviewed skills — packaged instructions and resources — that extend AI coding agents such as Claude Code, Cursor, and others with new workflows and specialized knowledge.",
+        "usage": "Skills are installed by running `npx @tech-leads-club/agent-skills`, which launches an interactive wizard for choosing skills, target agents, install method (copy or symlink), and scope. Direct CLI commands are also available, e.g. `agent-skills install -s tlc-spec-driven`, alongside list, update, remove, cache, and audit subcommands; skills can also be served to MCP-compatible clients via the `@tech-leads-club/agent-skills-mcp` server.",
+        "pros": "Every skill is scanned with Snyk Agent Scan before publishing, the CLI applies defense-in-depth measures (sanitization, path isolation, symlink guards, atomic lockfile, audit trail), the codebase is stated to be 100% open source with CI static analysis, and it supports a wide range of Tier 1-3 agents including Claude Code, Cursor, and GitHub Copilot.",
+        "cons": "Node.js >=22 is required, and using the skills catalog requires mandatory attribution to Tech Leads Club regardless of context; third-party skills retain separate licenses that need individual checking.",
+        "fit": "Given its broad multi-agent support and stated security tooling, it may suit teams or developers already using agents like Claude Code or Cursor who want a centrally managed, vetted source of reusable skills rather than an open marketplace."
+      },
+      "summary_status": "retained",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools"
+      ],
+      "form_tags": [
         "agent",
         "plugin-skill"
       ]
     },
     {
-      "slug": "tonhowtf/omniget",
-      "name": "tonhowtf / omniget",
-      "description": "Download Udemy and Hotmart courses, YouTube videos, music and books — 1,800+ sites, no terminal. Free open-source desktop app for Windows, macOS and Linux, with a built-in course player, PDF/EPUB reader and music library. Powered by yt-dlp. Your files stay on your computer.",
-      "lang": "Rust",
-      "topics": [
-        "bilibili-downloader",
-        "course-downloader",
-        "download-manager",
-        "downloader",
-        "epub-reader",
-        "hotmart-downloader",
-        "instagram-downloader",
-        "media-downloader",
-        "reddit-downloader",
-        "spaced-repetition",
-        "subtitle-downloader",
-        "telegram-downloader",
-        "tiktok-downloader",
-        "twitch-downloader",
-        "twitter-downloader",
-        "udemy-downloader",
-        "video-downloader",
-        "youtube-downloader",
-        "yt-dlp",
-        "yt-dlp-gui"
-      ],
-      "stars": 12099,
-      "forks": 1045,
-      "issues": 39,
-      "contributors": 20,
-      "gains": {
-        "daily": 507,
-        "weekly": null,
-        "monthly": null
-      },
-      "signal": null,
-      "summary": {
-        "goal": "OmniGet is described as a free, open-source desktop app for Windows, macOS and Linux that downloads courses, videos and posts from sites like Udemy, YouTube, Instagram, X and Pinterest via yt-dlp, then lets users transcribe, convert and study saved files.",
-        "usage": "Installers are available per OS from the GitHub Releases page, or via `winget install -e --id tonhowtf.OmniGet` on Windows or `brew install --cask tonhowtf/tap/omniget` on macOS. Users paste a link into the app to download; a CLI (`omniget download <url> -q 1080 -o ~/Videos`) and source build (`git clone https://github.com/tonhowtf/omniget.git`, `pnpm install`, `pnpm tauri dev`) are also documented.",
-        "pros": "OmniGet is GPL-3.0 licensed with no account, ads or telemetry on downloads. It includes 108 tools across 16 categories, resumable/retrying downloads, and a browser extension for cookie-based access to logged-in content.",
-        "cons": "Because the app lacks a paid signing certificate, Windows SmartScreen and macOS Gatekeeper show first-launch warnings requiring manual steps, including terminal commands on macOS. Several tools are marked beta or planned, suggesting incomplete testing or functionality, and the app is not published on Flathub.",
-        "fit": "OmniGet appears aimed at users wanting one desktop app for multiple download sources and basic study tools without a terminal, though building it from source requires Rust, Node.js 18+ and pnpm."
-      },
-      "summary_status": "retained",
-      "tag_rule_version": 1,
-      "field_tags": [
-        "productivity",
-        "systems",
-        "learning"
-      ],
-      "form_tags": [
-        "library"
-      ]
-    },
-    {
-      "slug": "jiji262/douyin-downloader",
-      "name": "jiji262 / douyin-downloader",
-      "description": "A practical Douyin downloader for both single-item and profile batch downloads, with progress display, retries, SQLite deduplication, and browser fallback support. 抖音批量下载工具，去水印，支持视频、图集、合集、音乐(原声)。",
+      "slug": "OpenBMB/VoxCPM",
+      "name": "OpenBMB / VoxCPM",
+      "description": "VoxCPM2: Tokenizer-Free TTS for Multilingual Speech Generation, Creative Voice Design, and True-to-Life Cloning",
       "lang": "Python",
-      "topics": [],
-      "stars": 11628,
-      "forks": 1771,
-      "issues": 41,
-      "contributors": 1,
-      "gains": {
-        "daily": 452,
-        "weekly": null,
-        "monthly": null
-      },
-      "signal": null,
-      "summary": {
-        "goal": "Douyin Downloader V2.0 is a Python-based tool for batch downloading Douyin videos, image-notes, collections, music, favorites, and creator profiles. A closed-beta desktop GUI called Douzy, built on the same backend, additionally covers TikTok and YouTube workspaces.",
-        "usage": "Requires Python 3.8+ on macOS/Linux/Windows. Install dependencies with `pip install -r requirements.txt`, then run the tool with `python run.py -c config.yml` after copying the example config file. Optional Docker deployment is also documented.",
-        "pros": "Documented capabilities include no-watermark-preferred downloads, highest-quality source selection, configurable concurrent downloads (default 5), retry with exponential backoff, SQLite-based history and deduplication, download integrity checks, live stream recording, comment collection, hot-search/keyword search, a REST API server mode, and notification push via Bark, Telegram, or Webhook.",
-        "cons": "Some features carry documented limitations: browser fallback for pagination is fully validated only for the `post` mode, with `like/mix/music` relying on API pagination instead; HLS live streams only save the playlist rather than a directly playable file; and the webcast room endpoint is described as not verified against every live scenario.",
-        "fit": "Based on the disclaimer, the project appears intended for personal technical research and data management rather than commercial or unauthorized redistribution use, though this framing reflects the README's stated usage guidance rather than an enforced restriction."
-      },
-      "summary_status": "retained",
-      "tag_rule_version": 1,
-      "field_tags": [
-        "web-app"
-      ],
-      "form_tags": []
-    },
-    {
-      "slug": "Swordfish90/cool-retro-term",
-      "name": "Swordfish90 / cool-retro-term",
-      "description": "A good looking terminal emulator which mimics the old cathode display...",
-      "lang": "QML",
       "topics": [
-        "linux",
-        "macos",
-        "qml",
-        "qt",
-        "retro",
-        "terminal"
+        "audio",
+        "deeplearning",
+        "minicpm",
+        "multilingual",
+        "python",
+        "pytorch",
+        "speech",
+        "speech-synthesis",
+        "text-to-speech",
+        "tts",
+        "tts-model",
+        "voice-cloning",
+        "voice-design",
+        "voxcpm"
       ],
-      "stars": 26332,
-      "forks": 1020,
-      "issues": 567,
-      "contributors": 71,
+      "stars": 37518,
+      "forks": 4257,
+      "issues": 118,
+      "contributors": 32,
       "gains": {
-        "daily": 57,
+        "daily": 216,
         "weekly": null,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "cool-retro-term is a terminal emulator designed to mimic the look and feel of old cathode-ray tube screens, aiming to be eye-candy, customizable, and reasonably lightweight.",
-        "usage": "Users can get the latest version from the project's Releases page as an AppImage (Linux) or dmg (macOS), or install it via distribution repositories such as Ubuntu, Fedora, or Arch. Settings like colors, fonts, and effects are accessed through a context menu.",
-        "pros": "It offers eye-candy visual effects while remaining customizable and reasonably lightweight, and it is already packaged in official repositories of several major distributions, simplifying installation for many users.",
-        "cons": "The README states it works under Linux and macOS and requires Qt6, so it appears Windows is not a supported platform; running it likely depends on having a compatible Qt6 environment available, which may add a prerequisite for some users.",
-        "fit": "Based on the documented platform support, it appears best suited for Linux or macOS users seeking a visually styled retro terminal emulator, though its fit for other platforms or minimal-dependency setups is not addressed."
+        "goal": "VoxCPM2 is a tokenizer-free, diffusion autoregressive Text-to-Speech (TTS) system from OpenBMB. It is a 2B-parameter model trained on over 2 million hours of multilingual speech data, supporting 30 languages, natural-language Voice Design, Controllable Voice Cloning, and 48kHz studio-quality audio output.",
+        "usage": "Install with `pip install voxcpm`, then load the model in Python via `VoxCPM.from_pretrained(\"openbmb/VoxCPM2\", load_denoiser=False)` and call `model.generate(text=...)` to synthesize speech, saving output with `soundfile`. A CLI (`voxcpm design`, `voxcpm clone`) and a web demo (`python app.py`) are also documented.",
+        "pros": "Highlighted capabilities include 30-language synthesis without language tags, voice design from text descriptions with no reference audio, controllable cloning with style guidance, and real-time streaming with reported RTF as low as ~0.3 on an RTX 4090 (~0.13 with accelerated serving). Weights and code are released under the Apache-2.0 license for commercial use.",
+        "cons": "Requirements include Python ≥3.10 (<3.13), PyTorch ≥2.5.0, and CUDA ≥12.0, which may limit compatibility with older environments. The README also notes that Voice Design and Controllable Voice Cloning results can vary between runs, sometimes requiring 1-3 generation attempts to obtain the desired output.",
+        "fit": "The project appears suited for multilingual speech synthesis, voice cloning, and voice design applications, with documented production deployment paths via Nano-vLLM, vLLM-Omni, or llama.cpp-omni for GPU or on-device serving, and supports SFT/LoRA fine-tuning with as little as 5-10 minutes of audio."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 1,
       "field_tags": [
-        "systems"
+        "unclassified"
       ],
       "form_tags": []
     },
@@ -780,12 +654,12 @@
         "transformer",
         "vlm"
       ],
-      "stars": 165741,
-      "forks": 34568,
-      "issues": 2442,
-      "contributors": 4109,
+      "stars": 166147,
+      "forks": 34586,
+      "issues": 2435,
+      "contributors": 4113,
       "gains": {
-        "daily": 152,
+        "daily": 536,
         "weekly": null,
         "monthly": null
       },
@@ -808,6 +682,156 @@
       ]
     },
     {
+      "slug": "Crosstalk-Solutions/project-nomad",
+      "name": "Crosstalk-Solutions / project-nomad",
+      "description": "Project NOMAD is an offline-first knowledge and education server. Wikipedia, thousands of books, courses, maps, and optional local AI, all running on hardware you own with no internet required.",
+      "lang": "TypeScript",
+      "topics": [],
+      "stars": 37074,
+      "forks": 3696,
+      "issues": 93,
+      "contributors": 37,
+      "gains": {
+        "daily": 40,
+        "weekly": null,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "Project NOMAD is described as a self-contained, offline-first knowledge and education server that bundles tools, reference content, and AI features to keep users informed without requiring an internet connection.",
+        "usage": "It installs on Debian-based systems (Ubuntu 26.04 LTS recommended, with 24.04 LTS and Debian 12 also supported) via a terminal-based quick-install script ending in `sudo bash install_nomad.sh`, run with sudo/root privileges. Afterward, the Command Center is reached in a browser at `http://localhost:8080`. An advanced route using `docker compose up -d` is also documented for users who prefer manual Docker configuration.",
+        "pros": "Documented built-in capabilities include AI chat with document upload and semantic search (via Ollama and Qdrant), an offline Wikipedia/reference library (Kiwix), an education platform with Khan Academy content (Kolibri), offline regional maps (ProtoMaps), data analysis tools (CyberChef), note-taking (FlatNotes), a hardware benchmark with community leaderboard, and a one-click app catalog alongside support for custom Docker containers.",
+        "cons": "By design NOMAD includes no built-in authentication, so an instance exposed to a network reportedly needs the user to manage access through network-level controls such as port blocking. The README also notes AI tools are best run on GPU-backed hardware, suggesting full AI functionality may be constrained on lightweight, minimum-spec systems.",
+        "fit": "Given its terminal-based, sudo-driven, Docker-oriented installation on Debian-based OSes, NOMAD seems best suited to users comfortable with Linux command-line setup and container concepts seeking an offline reference and AI toolkit, rather than a plug-and-play appliance for non-technical users."
+      },
+      "summary_status": "verified",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "systems"
+      ],
+      "form_tags": []
+    },
+    {
+      "slug": "reconurge/flowsint",
+      "name": "reconurge / flowsint",
+      "description": "A modern platform for visual, flexible, and extensible graph-based investigations. For cybersecurity analysts and investigators.",
+      "lang": "TypeScript",
+      "topics": [
+        "investigation",
+        "osint",
+        "python",
+        "recon"
+      ],
+      "stars": 8514,
+      "forks": 1036,
+      "issues": 52,
+      "contributors": 22,
+      "gains": {
+        "daily": 280,
+        "weekly": null,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "Flowsint is described as an open-source OSINT graph exploration tool designed for ethical investigation, transparency, and verification, providing a visual graph interface and automated enrichers to explore relationships between entities.",
+        "usage": "Setup instructions include installing Docker and Make, then running `git clone https://github.com/reconurge/flowsint.git`, `cd flowsint`, and `make prod` on Linux/macOS, or using `docker compose -f docker-compose.prod.yml up -d` after copying env files on Windows. The app becomes accessible at http://localhost:5173/register to create an account.",
+        "pros": "The README lists a wide range of enrichers spanning domain, IP, ASN, CIDR, social media, organization, cryptocurrency, website, email, phone, and individual categories. It also states the frontend is built for performance, with no lag even on thousands of nodes, and that data is stored on the user's machine for privacy.",
+        "cons": "The README states the project is still in early development and needs community help, and each module's test suite is explicitly noted as incomplete. Before exposing an installation to a network, users must manually change default secrets such as AUTH_SECRET and MASTER_VAULT_KEY_V1 in .env, suggesting default configurations may not be safe for network deployment without modification.",
+        "fit": "According to the README, Flowsint was created to assist cybersecurity researchers and analysts, journalists and OSINT investigators, law enforcement or fraud investigation teams, and organizations conducting internal threat intelligence. It explicitly states the tool must not be used for unauthorized intrusion, surveillance, harassment, doxxing, or privacy law violations."
+      },
+      "summary_status": "verified",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "security"
+      ],
+      "form_tags": []
+    },
+    {
+      "slug": "peetzweg/opendisplay",
+      "name": "peetzweg / opendisplay",
+      "description": "Free, open-source Sidecar/Duet alternative — use your iPhone or iPad as a true second monitor for your Mac over USB or WiFi. Low latency H.264, Retina HiDPI, touch input.",
+      "lang": "Swift",
+      "topics": [
+        "duet-display",
+        "external-display",
+        "ipad",
+        "iphone",
+        "macos",
+        "screen-extension",
+        "screencapturekit",
+        "second-monitor",
+        "sidecar",
+        "swift",
+        "videotoolbox",
+        "virtual-display"
+      ],
+      "stars": 3796,
+      "forks": 258,
+      "issues": 143,
+      "contributors": 6,
+      "gains": {
+        "daily": 229,
+        "weekly": null,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "OpenDisplay turns spare iPhones, iPads, or Macs into second monitors for a Mac, positioned as a free, open-source, self-hosted alternative to Apple Sidecar, Duet Display, and Luna Display, providing true extended-display support rather than mirroring.",
+        "usage": "Users install a Mac sender app and an iOS (or OpenDisplay Receiver) app. Prebuilt DMGs come from the latest release at https://github.com/peetzweg/opendisplay/releases/latest, and the iOS app can be joined via TestFlight at https://testflight.apple.com/join/3NYaY11c. Building from source uses `brew install xcodegen`, `git clone https://github.com/peetzweg/opendisplay.git`, then `./generate.sh` and `./run.sh`; connections run over USB or WiFi via Bonjour, with the receiver on port 9000.",
+        "pros": "Documented features include true display extension (not just mirroring), USB-wired low-latency streaming with no extra network tools, zero-config WiFi discovery, Retina/HiDPI pixel matching, built-in touch and scroll input, and self-hosted operation with no servers or accounts.",
+        "cons": "Because the virtual-display feature relies on the private CGVirtualDisplay API, the README notes it could break on a macOS update, a risk it says applies to comparable virtual-display products; WiFi mode also requires Local Network permission on both devices, which can fail silently if not granted.",
+        "fit": "It appears suited to Mac users with a spare iPhone, iPad, or older Mac who want an extended display without a subscription or dongle; the Receiver app needs macOS 12 or newer, the sending Mac needs macOS 14, and compatible receiver devices run iOS 16.4+."
+      },
+      "summary_status": "verified",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "unclassified"
+      ],
+      "form_tags": []
+    },
+    {
+      "slug": "SnailSploit/Claude-Red",
+      "name": "SnailSploit / Claude-Red",
+      "description": "claude-red is a curated library of offensive security skills designed for the Claude skills system. Each skill is a structured SKILL.md file that primes Claude with expert-level methodology for a specific attack surface — from SQLi to shellcode, EDR evasion to exploit development.",
+      "lang": "Python",
+      "topics": [
+        "claude-ai",
+        "claude-pt",
+        "claude-skills",
+        "redteam",
+        "redteam-tools",
+        "skills"
+      ],
+      "stars": 5107,
+      "forks": 662,
+      "issues": 18,
+      "contributors": 5,
+      "gains": {
+        "daily": 579,
+        "weekly": null,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "claude-red is a curated library of offensive security skills for the Claude Skills system, distributed as SKILL.md files. Each skill primes Claude with methodology for a specific attack surface, from SQL injection to shellcode and EDR evasion. Stated use cases include authorized red team engagements, bug bounty triage, security research, CTF preparation, and operator training.",
+        "usage": "Install by cloning the repository into the Claude Skills directory with `git clone https://github.com/SnailSploit/claude-red ~/.claude/skills/claude-red`, after which skills auto-load based on conversational triggers. An interactive `./install.sh` script also supports targeted or category-specific installs, and individual SKILL.md files can be piped into Claude Code or pasted into Claude.ai project prompts.",
+        "pros": "The library currently ships 78 skills across 23 categories covering web, wireless, cloud, Active Directory, exploit development, and more. Skills reportedly load on demand, so unused skills do not consume context.",
+        "cons": "Roadmap phases 1, 2, 4, 5, and 6 are still listed as 'Planned,' so some announced coverage (e.g., cloud identity, additional web fundamentals) appears not yet implemented despite a stated target of roughly 130 skills. Effective use likely also depends on familiarity with the Claude Skills system's SKILL.md conventions.",
+        "fit": "This project appears best suited to security practitioners already working within the Claude Skills ecosystem or Claude Code who need structured, on-demand offensive methodology for authorized testing, research, or CTF contexts."
+      },
+      "summary_status": "retained",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "security"
+      ],
+      "form_tags": [
+        "plugin-skill",
+        "library"
+      ]
+    },
+    {
       "slug": "ayghri/i-have-adhd",
       "name": "ayghri / i-have-adhd",
       "description": "A skill to stop your coding agent from burying the answer. ADHD-friendly output.",
@@ -820,14 +844,14 @@
         "developer-tools",
         "productivity"
       ],
-      "stars": 44795,
-      "forks": 2580,
-      "issues": 65,
+      "stars": 45818,
+      "forks": 2660,
+      "issues": 67,
       "contributors": 45,
       "gains": {
         "daily": null,
-        "weekly": 16740,
-        "monthly": 24025
+        "weekly": 17658,
+        "monthly": 24963
       },
       "signal": null,
       "summary": {
@@ -837,7 +861,7 @@
         "cons": "Customizing the skill requires forking the repository and manually running uninstall/marketplace-remove/add/install commands, since the fork and upstream share the same plugin name. The README also notes the approach is adapted for how an LLM should respond, not for how a person should organize their day, suggesting it may not function as a general ADHD management tool despite its name.",
         "fit": "The plugin appears best suited for developers using AI coding assistants such as Claude Code who want concise, action-first responses rather than exploratory or hedged explanations; it does not appear intended as a clinical or personal ADHD support tool."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -848,6 +872,51 @@
         "agent",
         "plugin-skill"
       ]
+    },
+    {
+      "slug": "bilawalsidhu/gods-eye-view",
+      "name": "bilawalsidhu / gods-eye-view",
+      "description": "A spy satellite simulator in your browser, except the data is real. Live open source spatial intelligence on a photorealistic 3D globe.",
+      "lang": "JavaScript",
+      "topics": [
+        "3d-globe",
+        "cesium",
+        "flight-tracking",
+        "geospatial",
+        "geospatial-intelligence",
+        "gis",
+        "osint",
+        "photogrammetry",
+        "satellite-tracking",
+        "spatial-intelligence",
+        "webgl",
+        "worldview"
+      ],
+      "stars": 34090,
+      "forks": 6800,
+      "issues": 271,
+      "contributors": 17,
+      "gains": {
+        "daily": null,
+        "weekly": 14403,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "God's Eye View is an open-source browser application that renders a photorealistic 3D globe showing live public data streams — aircraft, ships, satellites, earthquakes, traffic, and public cameras — with an optional voice-controlled AI agent for navigation and queries.",
+        "usage": "It can be installed via Pinokio with one click, or run locally by cloning the repository (`git clone https://github.com/bilawalsidhu/gods-eye-view.git`), then running `npm ci` and `npm run dev`, after which the app opens at `http://localhost:4173`. Node.js 24.x (24.14.0 or later) or 26.x is required; API keys for services like Cesium ion, Google Maps, or OpenAI can be added afterward inside the app to unlock additional features.",
+        "pros": "The app starts without any API keys or account, using free Esri satellite imagery and OSM as fallback, and includes fourteen data layers, twelve of which work keylessly. It is released under the MIT License, so the source is inspectable and extensible.",
+        "cons": "Several optional integrations (Cesium ion, Google Maps, OpenAI voice) carry provider quotas or metered billing that the app's own throttles do not replace, so budget alerts must be configured separately. Sharing the server on a LAN exposes configured API keys to anyone who can reach it unless additional safeguards, such as per-IP rate limits, are configured separately.",
+        "fit": "Based on its documentation, the project appears suited to exploration, learning, and hacking on geospatial/OSINT-style tooling rather than production or safety-critical use, since it explicitly cautions against relying on it for navigation, emergency response, or other operational decisions."
+      },
+      "summary_status": "verified",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "web-app",
+        "data",
+        "security"
+      ],
+      "form_tags": []
     },
     {
       "slug": "affaan-m/ECC",
@@ -864,13 +933,13 @@
         "mcp",
         "productivity"
       ],
-      "stars": 257972,
-      "forks": 38581,
-      "issues": 204,
+      "stars": 258651,
+      "forks": 38683,
+      "issues": 210,
       "contributors": 359,
       "gains": {
         "daily": null,
-        "weekly": 7264,
+        "weekly": 6085,
         "monthly": null
       },
       "signal": null,
@@ -901,13 +970,13 @@
       "description": "OpenAI Plugins",
       "lang": "JavaScript",
       "topics": [],
-      "stars": 6656,
-      "forks": 875,
+      "stars": 6741,
+      "forks": 883,
       "issues": 38,
       "contributors": 61,
       "gains": {
         "daily": null,
-        "weekly": 1181,
+        "weekly": 1233,
         "monthly": null
       },
       "signal": null,
@@ -924,6 +993,51 @@
         "dev-tools"
       ],
       "form_tags": [
+        "plugin-skill"
+      ]
+    },
+    {
+      "slug": "DietrichGebert/ponytail",
+      "name": "DietrichGebert / ponytail",
+      "description": "Makes your AI agent think like the laziest senior dev in the room. The best code is the code you never wrote.",
+      "lang": "JavaScript",
+      "topics": [
+        "agent-skills",
+        "ai-agents",
+        "claude",
+        "claude-code",
+        "claude-code-plugin",
+        "cursor-rules",
+        "developer-tools",
+        "llm",
+        "prompt-engineering",
+        "yagni"
+      ],
+      "stars": 138899,
+      "forks": 7460,
+      "issues": 271,
+      "contributors": 65,
+      "gains": {
+        "daily": null,
+        "weekly": 7722,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "Ponytail is a skill/plugin for AI coding agents (including Claude Code, Codex, and GitHub Copilot CLI) that guides agents to write minimal code by following a documented decision ladder — checking whether code is needed, reusable, or solvable via the standard library, a native platform feature, or an installed dependency — before writing anything new, while explicitly preserving validation, error handling, security, and accessibility.",
+        "usage": "In Claude Code, install by sending `/plugin marketplace add DietrichGebert/ponytail` and `/plugin install ponytail@ponytail` as two separate prompts. Once active, commands like `/ponytail-review`, `/ponytail-audit`, and `/ponytail lite|full|ultra|off` review diffs for over-engineering or adjust the intensity level.",
+        "pros": "In a documented benchmark using a headless Claude Code session (Haiku 4.5, n=4, 12 feature tasks), Ponytail reportedly cut lines of code by about 54% (up to 94% on some tasks), cost by about 20%, and time by about 27% versus the same agent without the skill, while holding 100% on a separate safety measure.",
+        "cons": "Using the plugin and hook-based install paths (Claude Code, Codex, Cursor) requires `node` on the PATH; without it, the skills still work but the always-on activation hooks stay silent instead of running.",
+        "fit": "The project states it works with 20 agents, listing adapters for tools including Claude Code, Codex, GitHub Copilot CLI, Cursor, and Gemini CLI, suggesting it may fit varied AI-agent coding workflows, though documentation notes command support depth differs by host."
+      },
+      "summary_status": "verified",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools"
+      ],
+      "form_tags": [
+        "agent",
         "plugin-skill"
       ]
     },
@@ -954,13 +1068,13 @@
         "skills",
         "zed-extension"
       ],
-      "stars": 22724,
-      "forks": 1641,
-      "issues": 242,
+      "stars": 22969,
+      "forks": 1658,
+      "issues": 245,
       "contributors": 110,
       "gains": {
         "daily": null,
-        "weekly": 2102,
+        "weekly": 2241,
         "monthly": null
       },
       "signal": null,
@@ -985,38 +1099,39 @@
       ]
     },
     {
-      "slug": "DietrichGebert/ponytail",
-      "name": "DietrichGebert / ponytail",
-      "description": "Makes your AI agent think like the laziest senior dev in the room. The best code is the code you never wrote.",
-      "lang": "JavaScript",
+      "slug": "heygen-com/hyperframes",
+      "name": "heygen-com / hyperframes",
+      "description": "Write HTML. Render video. Built for agents.",
+      "lang": "TypeScript",
       "topics": [
-        "agent-skills",
-        "ai-agents",
-        "claude",
-        "claude-code",
-        "claude-code-plugin",
-        "cursor-rules",
-        "developer-tools",
-        "llm",
-        "prompt-engineering",
-        "yagni"
+        "ai",
+        "animation",
+        "ffmpeg",
+        "framework",
+        "gsap",
+        "html",
+        "mcp",
+        "puppeteer",
+        "rendering",
+        "typescript",
+        "video"
       ],
-      "stars": 137739,
-      "forks": 7390,
-      "issues": 264,
+      "stars": 50224,
+      "forks": 4580,
+      "issues": 144,
       "contributors": 65,
       "gains": {
         "daily": null,
-        "weekly": 8444,
+        "weekly": 5052,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "Ponytail is a rule-set/plugin for AI coding agents such as Claude Code and Codex that guides them toward minimal, non-over-engineered code. Before writing new code, it follows a priority ladder — skip unneeded code (YAGNI), reuse existing code, use the standard library, native platform features, or an installed dependency, or write one line — while never cutting validation, error handling, security, or accessibility.",
-        "usage": "Installation is host-specific; for Claude Code it requires two separate prompts: `/plugin marketplace add DietrichGebert/ponytail` followed by `/plugin install ponytail@ponytail`. Other hosts, such as Codex and GitHub Copilot CLI, have their own install commands. Slash commands like `/ponytail` and `/ponytail-review` switch between lite, full, ultra, and off intensity levels; a `PONYTAIL_DEFAULT_MODE` environment variable can set the default (full by default).",
-        "pros": "Benchmarks against a no-skill baseline, run on a real FastAPI + React repo using Claude Code with Haiku 4.5, report ponytail cutting lines of code by 54%, cost by 20%, and time by 27%, while keeping 100% safety — better than a bare 'YAGNI + one-liners' prompt, which dropped to 95% safety.",
-        "cons": "The Claude Code and Codex plugins rely on two Node.js lifecycle hooks, so `node` must be on PATH or always-on activation stays silent instead of erroring. The headline benchmark numbers come from a small sample (n=4) on one model (Haiku 4.5) and one repo, so the measured gains may not generalize to other codebases or models.",
-        "fit": "The project reportedly works with 20 agent hosts per its badge, including Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and OpenCode. The `/ponytail` slash commands need a 'skill-capable host'; instruction-only adapters like Cursor, Windsurf, Cline, Copilot Chat, Kiro, and Antigravity load the always-on ruleset but without the commands."
+        "goal": "HyperFrames is an open-source (Apache 2.0) framework for turning HTML, CSS, media, and seekable animations into deterministic MP4 videos, usable locally through a CLI, through AI coding agent skills, or as the rendering core behind hosted authoring workflows.",
+        "usage": "Agents typically install the core skill set with `npx skills add heygen-com/hyperframes`, while manual use starts a project with `npx hyperframes init my-video`, then previews and renders it with `npx hyperframes preview` and `npx hyperframes render` to produce an MP4 locally.",
+        "pros": "HyperFrames compositions are authored as plain HTML with data attributes rather than React, rendering is deterministic so identical input yields the same output, the CLI is non-interactive by default for agent workflows, and the project ships 20 packaged skills plus a components catalog covering common needs like captions, charts, and transitions.",
+        "cons": "Running HyperFrames locally requires Node.js 22+ and FFmpeg as prerequisites, and cloning the full repository for development additionally requires Git LFS, since the golden regression-test baselines add roughly 240 MB of .mp4 files that must be fetched separately.",
+        "fit": "Based on its HTML-first, agent-friendly design and deterministic rendering, HyperFrames seems best suited to developers and AI agents automating CI or pipeline video generation, whereas teams already committed to Remotion's React-based authoring model may find switching authoring paradigms less straightforward."
       },
       "summary_status": "retained",
       "tag_rule_version": 1,
@@ -1026,7 +1141,8 @@
       ],
       "form_tags": [
         "agent",
-        "plugin-skill"
+        "mcp",
+        "framework"
       ]
     },
     {
@@ -1056,24 +1172,24 @@
         "system-design",
         "text-to-diagram"
       ],
-      "stars": 61415,
-      "forks": 4043,
-      "issues": 170,
-      "contributors": 24,
+      "stars": 62895,
+      "forks": 4172,
+      "issues": 168,
+      "contributors": 29,
       "gains": {
         "daily": null,
-        "weekly": 10132,
-        "monthly": 48808
+        "weekly": 9868,
+        "monthly": 49900
       },
       "signal": null,
       "summary": {
-        "goal": "Archify is a Node.js rendering and validation system for AI coding agents (Cursor, Claude Code, Codex CLI, and OpenCode) that turns a codebase or system description into an interactive system map directly in chat. Agents produce typed JSON IR that Archify deterministically compiles into HTML/SVG diagrams.",
-        "usage": "Install globally with `npx skills add tt-a1i/archify -g`, then describe a system in an agent chat (no repository required) or ask the agent to analyze a repository and generate an architecture diagram. The CLI also offers commands such as `node archify/bin/archify.mjs guide \"Show an API request with Redis cache miss\"` for choosing a diagram type.",
-        "pros": "Output passes atomic checks (schema, layout, HTML/SVG, routing) before delivery, and interactions like tracing reach or routes reuse only authored data rather than inventing topology. Results are portable as a single self-contained HTML file, with optional PNG, SVG, WebM, and share-card exports, plus an Architecture Delta mode that compares Before/After snapshots for review.",
-        "cons": "Archify explicitly excludes automatic Mermaid parsing, general-purpose auto-layout, hosted sharing, and WYSIWYG editing, positioning it as neither a general drawing editor nor a Mermaid theme. Some features, such as the deployment-ownership profile, fail closed and require explicitly authored data (owners, region, database scope) rather than inspecting live infrastructure.",
-        "fit": "Archify appears suited to developers using supported agent CLIs/IDEs (Cursor, Claude Code, Codex CLI, OpenCode, and via ZIP, Claude.ai or Raven) who want agent-generated architecture, workflow, sequence, data-flow, or lifecycle diagrams for documentation or pre-merge review, rather than teams needing a general-purpose interactive diagram editor."
+        "goal": "Archify is a Node.js rendering and validation system for Cursor, Claude Code, Codex CLI, and OpenCode that turns a codebase or system description into a polished, interactive system map directly in chat, using typed JSON IR compiled deterministically into HTML/SVG.",
+        "usage": "Install globally with `npx skills add tt-a1i/archify -g`, then describe a system in agent chat with no repository required. The bundled CLI also supports commands such as `node archify/bin/archify.mjs compare architecture base.json head.json architecture-delta.html --json` for comparing architecture snapshots before merge.",
+        "pros": "It offers five diagram types and four presets with dark/light themes, produces a self-contained HTML file plus PNG, SVG, WebM, and 1200×630 share-card exports, and runs atomic schema, layout, and route validation before delivering output.",
+        "cons": "The README states that automatic Mermaid parsing, general-purpose auto-layout, hosted sharing, and WYSIWYG editing are intentionally outside current scope, so teams needing those capabilities may find the tool insufficient on its own.",
+        "fit": "This appears best suited to teams already using Cursor, Claude Code, Codex CLI, or OpenCode who want agent-generated, validated architecture diagrams rather than a general-purpose drawing editor; the current development version is v2.17.0-dev.1, released under the MIT license."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -1093,13 +1209,13 @@
       "description": "Skills Catalog for Codex",
       "lang": "Python",
       "topics": [],
-      "stars": 27136,
-      "forks": 1811,
+      "stars": 27233,
+      "forks": 1818,
       "issues": 297,
       "contributors": 35,
       "gains": {
         "daily": null,
-        "weekly": 1622,
+        "weekly": 1350,
         "monthly": null
       },
       "signal": null,
@@ -1120,53 +1236,6 @@
       ]
     },
     {
-      "slug": "heygen-com/hyperframes",
-      "name": "heygen-com / hyperframes",
-      "description": "Write HTML. Render video. Built for agents.",
-      "lang": "TypeScript",
-      "topics": [
-        "ai",
-        "animation",
-        "ffmpeg",
-        "framework",
-        "gsap",
-        "html",
-        "mcp",
-        "puppeteer",
-        "rendering",
-        "typescript",
-        "video"
-      ],
-      "stars": 49784,
-      "forks": 4544,
-      "issues": 130,
-      "contributors": 64,
-      "gains": {
-        "daily": null,
-        "weekly": 5146,
-        "monthly": null
-      },
-      "signal": null,
-      "summary": {
-        "goal": "HyperFrames is an open-source (Apache 2.0) framework for turning HTML, CSS, media, and seekable animations into deterministic MP4 videos, usable locally through a CLI, through AI coding agent skills, or as the rendering core behind hosted authoring workflows.",
-        "usage": "Agents typically install the core skill set with `npx skills add heygen-com/hyperframes`, while manual use starts a project with `npx hyperframes init my-video`, then previews and renders it with `npx hyperframes preview` and `npx hyperframes render` to produce an MP4 locally.",
-        "pros": "HyperFrames compositions are authored as plain HTML with data attributes rather than React, rendering is deterministic so identical input yields the same output, the CLI is non-interactive by default for agent workflows, and the project ships 20 packaged skills plus a components catalog covering common needs like captions, charts, and transitions.",
-        "cons": "Running HyperFrames locally requires Node.js 22+ and FFmpeg as prerequisites, and cloning the full repository for development additionally requires Git LFS, since the golden regression-test baselines add roughly 240 MB of .mp4 files that must be fetched separately.",
-        "fit": "Based on its HTML-first, agent-friendly design and deterministic rendering, HyperFrames seems best suited to developers and AI agents automating CI or pipeline video generation, whereas teams already committed to Remotion's React-based authoring model may find switching authoring paradigms less straightforward."
-      },
-      "summary_status": "retained",
-      "tag_rule_version": 1,
-      "field_tags": [
-        "ai-ml",
-        "dev-tools"
-      ],
-      "form_tags": [
-        "agent",
-        "mcp",
-        "framework"
-      ]
-    },
-    {
       "slug": "microsoft/markitdown",
       "name": "microsoft / markitdown",
       "description": "Python tool for converting files and office documents to Markdown.",
@@ -1180,13 +1249,13 @@
         "openai",
         "pdf"
       ],
-      "stars": 183770,
-      "forks": 13525,
-      "issues": 649,
+      "stars": 184158,
+      "forks": 13567,
+      "issues": 662,
       "contributors": 129,
       "gains": {
         "daily": null,
-        "weekly": 5191,
+        "weekly": 4604,
         "monthly": null
       },
       "signal": null,
@@ -1219,13 +1288,13 @@
         "subagent-driven-development",
         "superpowers"
       ],
-      "stars": 286387,
-      "forks": 25621,
-      "issues": 364,
+      "stars": 286892,
+      "forks": 25656,
+      "issues": 366,
       "contributors": 44,
       "gains": {
         "daily": null,
-        "weekly": 4068,
+        "weekly": 4124,
         "monthly": null
       },
       "signal": null,
@@ -1249,219 +1318,6 @@
       ]
     },
     {
-      "slug": "coreyhaines31/marketingskills",
-      "name": "coreyhaines31 / marketingskills",
-      "description": "Marketing skills for Claude Code and AI agents. CRO, copywriting, SEO, analytics, and growth engineering.",
-      "lang": "JavaScript",
-      "topics": [
-        "claude",
-        "codex",
-        "marketing"
-      ],
-      "stars": 50096,
-      "forks": 7597,
-      "issues": 112,
-      "contributors": 23,
-      "gains": {
-        "daily": null,
-        "weekly": 2678,
-        "monthly": null
-      },
-      "signal": null,
-      "summary": {
-        "goal": "This repository offers a collection of AI agent skills for marketing tasks—conversion optimization, copywriting, SEO, analytics, and growth engineering. It targets technical marketers and founders using AI coding agents such as Claude Code, OpenAI Codex, Cursor, or Windsurf, and works with agents that support its skill format. Built by Corey Haines, it is MIT-licensed.",
-        "usage": "Skills install via `npx skills add coreyhaines31/marketingskills`, or through Claude Code's plugin system using `/plugin marketplace add coreyhaines31/marketingskills` followed by `/plugin install marketing-skills`. Once installed, users ask their agent for marketing help or invoke a skill directly, such as `/cro`.",
-        "pros": "The collection organizes 50 skills across categories like conversion optimization, copy, SEO, paid distribution, and retention. A `product-marketing` skill serves as a shared foundation other skills reportedly check first, suggesting the skills form an interconnected system rather than standalone scripts. It is free and MIT-licensed.",
-        "cons": "Upgrading from v1.x to v2.0 requires manually deleting stale old-named skill folders, since 17 skills were renamed and `page-cro` (plus `form-cro`) merged into `cro`, and the installer adds new skills alongside old ones instead of replacing them. Moving an existing product marketing context file to its new location and filename is also a manual step, though old paths reportedly still work as a fallback.",
-        "fit": "The skills suit technical marketers and founders using AI coding agents for marketing execution; a companion guide targets those newer to terminals and coding agents. Because installation steps focus mainly on Claude Code and a shared universal directory, support depth for other listed agents may vary in the documentation."
-      },
-      "summary_status": "retained",
-      "tag_rule_version": 1,
-      "field_tags": [
-        "ai-ml",
-        "data"
-      ],
-      "form_tags": [
-        "agent",
-        "plugin-skill"
-      ]
-    },
-    {
-      "slug": "ChromeDevTools/chrome-devtools-mcp",
-      "name": "ChromeDevTools / chrome-devtools-mcp",
-      "description": "Chrome DevTools for coding agents",
-      "lang": "TypeScript",
-      "topics": [
-        "browser",
-        "chrome",
-        "chrome-devtools",
-        "debugging",
-        "devtools",
-        "mcp",
-        "mcp-server",
-        "puppeteer"
-      ],
-      "stars": 51877,
-      "forks": 3644,
-      "issues": 111,
-      "contributors": 125,
-      "gains": {
-        "daily": null,
-        "weekly": 736,
-        "monthly": null
-      },
-      "signal": null,
-      "summary": {
-        "goal": "chrome-devtools-mcp (Chrome DevTools for agents) is a Model-Context-Protocol (MCP) server that lets coding agents such as Antigravity, Claude, Cursor, or Copilot control and inspect a live Chrome browser, with a CLI also provided for use without MCP.",
-        "usage": "An MCP client is configured to run `npx -y chrome-devtools-mcp@latest` to start the chrome-devtools-mcp server; for basic browser tasks only, the `--slim` and `--headless` flags can be added. A first test prompt asking to check the performance of a URL confirms the browser opens and records a trace.",
-        "pros": "chrome-devtools-mcp uses Chrome DevTools to record traces and extract performance insights, supports advanced browser debugging such as analyzing network requests, screenshots, and source-mapped console messages, and relies on Puppeteer for reliable automation that automatically waits for action results.",
-        "cons": "Using chrome-devtools-mcp requires Node.js LTS, a current stable version of Chrome, and npm installed beforehand, and it officially supports only Google Chrome and Chrome for Testing, so other Chromium-based browsers may show unexpected behavior.",
-        "fit": "chrome-devtools-mcp appears suited for developers building agentic tooling who want an integrated browser subagent for automation, debugging, and performance analysis, though by default it collects usage statistics and can send trace URLs to Google's CrUX API unless disabled with flags."
-      },
-      "summary_status": "retained",
-      "tag_rule_version": 1,
-      "field_tags": [
-        "ai-ml",
-        "web-app",
-        "dev-tools"
-      ],
-      "form_tags": [
-        "agent",
-        "mcp"
-      ]
-    },
-    {
-      "slug": "cathrynlavery/diagram-design",
-      "name": "cathrynlavery / diagram-design",
-      "description": "38 editorial diagram types for Claude Code, Codex, and Pi. Self-contained HTML + SVG. No shadows. No Mermaid slop.",
-      "lang": "HTML",
-      "topics": [
-        "agent-skills",
-        "claude-code",
-        "codex",
-        "data-visualization",
-        "diagrams",
-        "drawio",
-        "mermaid",
-        "svg"
-      ],
-      "stars": 39490,
-      "forks": 2501,
-      "issues": 42,
-      "contributors": 38,
-      "gains": {
-        "daily": null,
-        "weekly": 7129,
-        "monthly": 26213
-      },
-      "signal": null,
-      "summary": {
-        "goal": "Diagram Design is an Agent Skill that generates 39 editorial-style diagram types (architecture, flowcharts, sequence diagrams, and more) as self-contained HTML and SVG for Claude Code, Codex, Factory Droid, Pi, and other Agent Skills-compatible hosts. It appears to target developers and writers who want on-brand, non-generic diagrams without relying on Figma or default AI-generated styling.",
-        "usage": "Install via `/plugin marketplace add cathrynlavery/diagram-design` followed by `/plugin install diagram-design@diagram-design` in Claude Code (similar commands exist for Codex, GitHub Copilot, Factory Droid, and Pi). After installing, users can open `skills/diagram-design/assets/index.html` to browse all 39 diagrams, or ask the agent in natural language to produce a specific diagram type.",
-        "pros": "Diagrams ship as a single self-contained HTML file with no build step, JavaScript, or external image dependency. Accessibility is built in by default (ARIA roles, resolving accessible names, WCAG AA contrast checks), and the skill can also redraw existing draw.io, Mermaid, or Excalidraw sources while producing a fidelity ledger of what changed.",
-        "cons": "PNG export requires a one-time separate setup step (`pip install playwright && playwright install chromium`), which adds an external dependency beyond the core skill install. Auto-update for third-party marketplaces is also disabled by default in Claude Code, requiring a manual toggle to keep the plugin current.",
-        "fit": "Documented use cases where this skill is not recommended include quick unicode diagrams for tweets or terminals, plain lists, before/after comparisons, and single-box diagrams, suggesting it fits multi-node, structured diagrams rather than simple content. It seems best suited for teams that want diagrams matching their website's brand colors and fonts through the onboarding flow."
-      },
-      "summary_status": "retained",
-      "tag_rule_version": 1,
-      "field_tags": [
-        "ai-ml",
-        "data"
-      ],
-      "form_tags": [
-        "agent",
-        "plugin-skill"
-      ]
-    },
-    {
-      "slug": "THU-MAIC/OpenMAIC",
-      "name": "THU-MAIC / OpenMAIC",
-      "description": "Open Multi-Agent Interactive Classroom — Get an immersive, multi-agent learning experience in just one click",
-      "lang": "TypeScript",
-      "topics": [],
-      "stars": 36653,
-      "forks": 5802,
-      "issues": 266,
-      "contributors": 87,
-      "gains": {
-        "daily": null,
-        "weekly": 4202,
-        "monthly": 15888
-      },
-      "signal": null,
-      "summary": {
-        "goal": "OpenMAIC (Open Multi-Agent Interactive Classroom) is an open-source AI platform that turns a topic or document into an interactive classroom, generating slides, quizzes, simulations, and project-based learning activities delivered by AI teachers and classmates. Released August 27, 2026, v1.0.0 adds a chat-based Pro workbench that plans, builds, and revises whole courses alongside the original one-click generator.",
-        "usage": "To run locally, clone the repo with `git clone https://github.com/THU-MAIC/OpenMAIC.git` and run `pnpm install`. Copy `.env.example` to `.env.local` and set at least one LLM provider API key. Start it with `pnpm dev` and open http://localhost:3000. Node.js >= 22.19 and pnpm >= 10 are required; Docker and Vercel deployment are also documented.",
-        "pros": "It combines slides, quizzes, interactive HTML simulations, and PBL activities with real-time multi-agent discussion, whiteboard drawing, and text-to-speech. Lessons export as editable .pptx or self-contained HTML, and offline exports inline external assets for air-gapped playback. The interface supports 12 locales, and an OpenMAIC Skill lets it be triggered from agent workbenches like OpenClaw, Codex, DeepSeek, or WorkBuddy.",
-        "cons": "Using OpenMAIC requires configuring at least one LLM provider API key, since none is bundled by default. Optional features like MP4 video export, local FunASR speech recognition, or MinerU parsing each need separate services or extra setup rather than working out of the box.",
-        "fit": "Based on its use-case examples — generating lessons on programming, game rules, or research papers — OpenMAIC seems best suited to individual learners, educators, and developers wanting to self-host or extend an AI-driven course-authoring platform, rather than users seeking a fully managed, zero-configuration service."
-      },
-      "summary_status": "retained",
-      "tag_rule_version": 1,
-      "field_tags": [
-        "ai-ml",
-        "learning"
-      ],
-      "form_tags": [
-        "agent"
-      ]
-    },
-    {
-      "slug": "Tencent/WeKnora",
-      "name": "Tencent / WeKnora",
-      "description": "Open-source LLM knowledge platform: turn raw documents into a queryable RAG, an autonomous reasoning agent, and a self-maintaining Wiki.",
-      "lang": "Go",
-      "topics": [
-        "agent",
-        "agentic",
-        "ai",
-        "chatbot",
-        "dsh-plugin",
-        "embeddings",
-        "evaluation",
-        "generative-ai",
-        "golang",
-        "knowledge-base",
-        "llm",
-        "multi-tenant",
-        "ollama",
-        "openai",
-        "question-answering",
-        "rag",
-        "reranking",
-        "semantic-search",
-        "vector-search",
-        "wiki"
-      ],
-      "stars": 23017,
-      "forks": 3283,
-      "issues": 762,
-      "contributors": 222,
-      "gains": {
-        "daily": null,
-        "weekly": 1302,
-        "monthly": null
-      },
-      "signal": null,
-      "summary": {
-        "goal": "WeKnora is an open-source, LLM-powered knowledge framework (version 0.8.0) built for enterprise-grade document understanding, semantic retrieval, and autonomous reasoning. It combines RAG-based Quick Q&A, a ReAct Agent that orchestrates retrieval and tools, and a Wiki Mode that turns raw documents into an interlinked, self-maintaining markdown knowledge base.",
-        "usage": "Set up by running `git clone https://github.com/Tencent/WeKnora.git`, then `cd WeKnora` and `docker compose up -d` to start core services (Docker, Docker Compose, and Git are listed prerequisites). The Web UI is then reachable at `http://localhost`. Optional Docker Compose profiles such as `neo4j`, `minio`, and `langfuse` can enable additional components.",
-        "pros": "The README documents support for 20+ LLM providers (including OpenAI, DeepSeek, and Ollama), 10+ document formats, multiple vector databases and object-storage backends, and several IM channel integrations. It is released under the MIT License and describes a fully modular, self-hostable architecture where LLMs, vector stores, and storage can be swapped.",
-        "cons": "The project's Security Notice advises deploying WeKnora within an internal or private network rather than exposing it directly to the public internet, implying that additional hardening (firewalls, access controls) beyond the built-in login authentication added since v0.1.3 is expected for production use.",
-        "fit": "Given its stated emphasis on local or private-cloud deployment and full data sovereignty, WeKnora seems best suited for organizations seeking a self-hosted, enterprise document Q&A and knowledge-base platform rather than a ready-made managed cloud service."
-      },
-      "summary_status": "retained",
-      "tag_rule_version": 1,
-      "field_tags": [
-        "ai-ml",
-        "dev-tools"
-      ],
-      "form_tags": [
-        "agent",
-        "plugin-skill"
-      ]
-    },
-    {
       "slug": "blader/humanizer",
       "name": "blader / humanizer",
       "description": "Agent skill that removes signs of AI-generated writing from text",
@@ -1475,13 +1331,13 @@
         "prompt-engineering",
         "writing-tools"
       ],
-      "stars": 47855,
-      "forks": 3894,
-      "issues": 11,
+      "stars": 48321,
+      "forks": 3932,
+      "issues": 14,
       "contributors": 19,
       "gains": {
         "daily": null,
-        "weekly": 3673,
+        "weekly": 3201,
         "monthly": null
       },
       "signal": null,
@@ -1515,13 +1371,13 @@
         "git",
         "worktrees"
       ],
-      "stars": 7574,
-      "forks": 271,
-      "issues": 41,
+      "stars": 7727,
+      "forks": 273,
+      "issues": 43,
       "contributors": 73,
       "gains": {
         "daily": null,
-        "weekly": 588,
+        "weekly": 761,
         "monthly": null
       },
       "signal": null,
@@ -1544,34 +1400,215 @@
       ]
     },
     {
-      "slug": "humanlayer/skills",
-      "name": "humanlayer / skills",
-      "description": "",
+      "slug": "THU-MAIC/OpenMAIC",
+      "name": "THU-MAIC / OpenMAIC",
+      "description": "Open Multi-Agent Interactive Classroom — Get an immersive, multi-agent learning experience in just one click",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 4034,
-      "forks": 123,
-      "issues": 8,
-      "contributors": 2,
+      "stars": 36985,
+      "forks": 5836,
+      "issues": 260,
+      "contributors": 91,
       "gains": {
         "daily": null,
-        "weekly": 1004,
-        "monthly": null
+        "weekly": 3950,
+        "monthly": 16207
       },
       "signal": null,
       "summary": {
-        "goal": "skills is a collection of Claude Code skills published by HumanLayer (https://humanlayer.dev), distributed for installation into a project.",
-        "usage": "Skills are installed with `npx skills add humanlayer/skills --skill SKILLNAME`, substituting SKILLNAME with a listed skill name such as improve-claude-md, narrow-react-prop-types, build-iterated-agentic-loop, design-control-loop, or show-me; each is then invoked in the project with its own slash command, for example `/improve-claude-md` or `/show-me`.",
-        "pros": "The repository offers five distinct skills: tuning CLAUDE.md instruction adherence, narrowing React prop types to live code paths, scaffolding an iterated coding-agent GitHub Actions workflow, interactively designing an agentic control loop, and producing concise explanatory diagrams or HTML artifacts.",
-        "cons": "Installing skills requires a Node.js environment capable of running `npx skills add humanlayer/skills --skill SKILLNAME`; the README does not describe alternative installation methods or indicate compatibility with non-npm workflows.",
-        "fit": "This project appears suited for developers already using Claude Code who want ready-made, narrowly scoped skills for documentation tuning, React typing, agentic workflow scaffolding, or visual explanations, rather than a general-purpose standalone tool."
+        "goal": "OpenMAIC (Open Multi-Agent Interactive Classroom) is an open-source AI platform that turns a topic or uploaded documents into an interactive classroom with slides, quizzes, simulations, and project-based learning (PBL), delivered by AI teachers and classmates (lines 70-72). The documentation indicates the v1.0.0 release appears to add a chat-based 'Pro workbench' agent that plans, builds, and revises courses (lines 45-47).",
+        "usage": "Documented setup: run git clone https://github.com/THU-MAIC/OpenMAIC.git, cd OpenMAIC, pnpm install; then cp .env.example .env.local and fill in at least one LLM provider API key; finally run pnpm dev and open http://localhost:3000.",
+        "pros": "The README lists a chat-first multi-agent workbench, durable sessions, session material uploads, and 20 built-in skills. It documents support for numerous LLM/TTS/ASR/image providers described as 'neutral by design,' offline-capable classroom export via inlined assets, and an interface offered in 12 locales across 11 languages.",
+        "cons": "Running the project requires Node.js >= 22.19 and pnpm >= 10. MP4 video export needs a separate render-service container with Chromium and FFmpeg, opted into via a Docker Compose profile. The optional Pro workbench's PostgreSQL persistence tokens are documented as not secret in any meaningful sense and suitable only for localhost or trusted-network deployments, suggesting production use likely needs additional hardening.",
+        "fit": "Based on documented features, OpenMAIC appears suited to educators or teams wanting a self-hosted or hosted (open.maic.chat) AI course generator built on Next.js/React/TypeScript. The Pro agent workbench and server-backed persistence are optional and off by default, and the README's own security caveats suggest production deployment likely requires further authentication hardening."
+      },
+      "summary_status": "verified",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "learning"
+      ],
+      "form_tags": [
+        "agent"
+      ]
+    },
+    {
+      "slug": "cathrynlavery/diagram-design",
+      "name": "cathrynlavery / diagram-design",
+      "description": "38 editorial diagram types for Claude Code, Codex, and Pi. Self-contained HTML + SVG. No shadows. No Mermaid slop.",
+      "lang": "HTML",
+      "topics": [
+        "agent-skills",
+        "claude-code",
+        "codex",
+        "data-visualization",
+        "diagrams",
+        "drawio",
+        "mermaid",
+        "svg"
+      ],
+      "stars": 40044,
+      "forks": 2544,
+      "issues": 42,
+      "contributors": 39,
+      "gains": {
+        "daily": null,
+        "weekly": 6604,
+        "monthly": 23268
+      },
+      "signal": null,
+      "summary": {
+        "goal": "Diagram Design is an Agent Skill that generates 39 editorial-style diagram types (architecture, flowcharts, sequence diagrams, and more) as self-contained HTML and SVG for Claude Code, Codex, Factory Droid, Pi, and other Agent Skills-compatible hosts. It appears to target developers and writers who want on-brand, non-generic diagrams without relying on Figma or default AI-generated styling.",
+        "usage": "Install via `/plugin marketplace add cathrynlavery/diagram-design` followed by `/plugin install diagram-design@diagram-design` in Claude Code (similar commands exist for Codex, GitHub Copilot, Factory Droid, and Pi). After installing, users can open `skills/diagram-design/assets/index.html` to browse all 39 diagrams, or ask the agent in natural language to produce a specific diagram type.",
+        "pros": "Diagrams ship as a single self-contained HTML file with no build step, JavaScript, or external image dependency. Accessibility is built in by default (ARIA roles, resolving accessible names, WCAG AA contrast checks), and the skill can also redraw existing draw.io, Mermaid, or Excalidraw sources while producing a fidelity ledger of what changed.",
+        "cons": "PNG export requires a one-time separate setup step (`pip install playwright && playwright install chromium`), which adds an external dependency beyond the core skill install. Auto-update for third-party marketplaces is also disabled by default in Claude Code, requiring a manual toggle to keep the plugin current.",
+        "fit": "Documented use cases where this skill is not recommended include quick unicode diagrams for tweets or terminals, plain lists, before/after comparisons, and single-box diagrams, suggesting it fits multi-node, structured diagrams rather than simple content. It seems best suited for teams that want diagrams matching their website's brand colors and fonts through the onboarding flow."
       },
       "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
-        "unclassified"
+        "ai-ml",
+        "data"
       ],
       "form_tags": [
+        "agent",
+        "plugin-skill"
+      ]
+    },
+    {
+      "slug": "ChromeDevTools/chrome-devtools-mcp",
+      "name": "ChromeDevTools / chrome-devtools-mcp",
+      "description": "Chrome DevTools for coding agents",
+      "lang": "TypeScript",
+      "topics": [
+        "browser",
+        "chrome",
+        "chrome-devtools",
+        "debugging",
+        "devtools",
+        "mcp",
+        "mcp-server",
+        "puppeteer"
+      ],
+      "stars": 52022,
+      "forks": 3656,
+      "issues": 104,
+      "contributors": 126,
+      "gains": {
+        "daily": null,
+        "weekly": 702,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "chrome-devtools-mcp (Chrome DevTools for agents) is a Model-Context-Protocol (MCP) server that lets coding agents such as Antigravity, Claude, Cursor, or Copilot control and inspect a live Chrome browser, with a CLI also provided for use without MCP.",
+        "usage": "An MCP client is configured to run `npx -y chrome-devtools-mcp@latest` to start the chrome-devtools-mcp server; for basic browser tasks only, the `--slim` and `--headless` flags can be added. A first test prompt asking to check the performance of a URL confirms the browser opens and records a trace.",
+        "pros": "chrome-devtools-mcp uses Chrome DevTools to record traces and extract performance insights, supports advanced browser debugging such as analyzing network requests, screenshots, and source-mapped console messages, and relies on Puppeteer for reliable automation that automatically waits for action results.",
+        "cons": "Using chrome-devtools-mcp requires Node.js LTS, a current stable version of Chrome, and npm installed beforehand, and it officially supports only Google Chrome and Chrome for Testing, so other Chromium-based browsers may show unexpected behavior.",
+        "fit": "chrome-devtools-mcp appears suited for developers building agentic tooling who want an integrated browser subagent for automation, debugging, and performance analysis, though by default it collects usage statistics and can send trace URLs to Google's CrUX API unless disabled with flags."
+      },
+      "summary_status": "retained",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "web-app",
+        "dev-tools"
+      ],
+      "form_tags": [
+        "agent",
+        "mcp"
+      ]
+    },
+    {
+      "slug": "Tencent/WeKnora",
+      "name": "Tencent / WeKnora",
+      "description": "Open-source LLM knowledge platform: turn raw documents into a queryable RAG, an autonomous reasoning agent, and a self-maintaining Wiki.",
+      "lang": "Go",
+      "topics": [
+        "agent",
+        "agentic",
+        "ai",
+        "chatbot",
+        "dsh-plugin",
+        "embeddings",
+        "evaluation",
+        "generative-ai",
+        "golang",
+        "knowledge-base",
+        "llm",
+        "multi-tenant",
+        "ollama",
+        "openai",
+        "question-answering",
+        "rag",
+        "reranking",
+        "semantic-search",
+        "vector-search",
+        "wiki"
+      ],
+      "stars": 23591,
+      "forks": 3332,
+      "issues": 657,
+      "contributors": 226,
+      "gains": {
+        "daily": null,
+        "weekly": 1460,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "WeKnora is an open-source, LLM-powered knowledge framework described as built for enterprise-grade document understanding, semantic retrieval, and autonomous reasoning. It combines RAG-based Q&A, a ReAct Agent that orchestrates retrieval, MCP tools, and web search, and a Wiki Mode that turns documents into an interlinked, self-maintaining knowledge base with a knowledge graph.",
+        "usage": "To run WeKnora, clone the repository with `git clone https://github.com/Tencent/WeKnora.git`, then `cd WeKnora`, copy `.env.example` to `.env`, and start services with `docker compose pull` followed by `docker compose up -d`. Once started, the Web UI is reachable at `http://localhost`. Docker, Docker Compose, and Git are listed as prerequisites.",
+        "pros": "The README describes a fully modular pipeline where LLMs, vector databases, and storage backends are swappable, with support for local or private-cloud deployment for data sovereignty. It documents integrations with 20+ LLM providers, multiple vector database backends, and multi-source data ingestion (e.g., Feishu, GitLab, Notion, Yuque).",
+        "cons": "Running WeKnora depends on having Docker, Docker Compose, and Git installed as prerequisites, which adds setup overhead compared to a hosted service. The README's security notice recommends deploying internally rather than on the public internet, suggesting that a production rollout may require additional network and access-control hardening.",
+        "fit": "Given its self-hosted, modular design and document-ingestion/RAG focus, WeKnora could suit organizations wanting an on-premises or private-cloud knowledge base and Q&A system with data sovereignty, though teams without Docker-based infrastructure may find the setup less immediately accessible."
+      },
+      "summary_status": "verified",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools"
+      ],
+      "form_tags": [
+        "agent",
+        "plugin-skill"
+      ]
+    },
+    {
+      "slug": "coreyhaines31/marketingskills",
+      "name": "coreyhaines31 / marketingskills",
+      "description": "Marketing skills for Claude Code and AI agents. CRO, copywriting, SEO, analytics, and growth engineering.",
+      "lang": "JavaScript",
+      "topics": [
+        "claude",
+        "codex",
+        "marketing"
+      ],
+      "stars": 50386,
+      "forks": 7625,
+      "issues": 113,
+      "contributors": 23,
+      "gains": {
+        "daily": null,
+        "weekly": 2344,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "This repository offers a collection of AI agent skills for marketing tasks—conversion optimization, copywriting, SEO, analytics, and growth engineering. It targets technical marketers and founders using AI coding agents such as Claude Code, OpenAI Codex, Cursor, or Windsurf, and works with agents that support its skill format. Built by Corey Haines, it is MIT-licensed.",
+        "usage": "Skills install via `npx skills add coreyhaines31/marketingskills`, or through Claude Code's plugin system using `/plugin marketplace add coreyhaines31/marketingskills` followed by `/plugin install marketing-skills`. Once installed, users ask their agent for marketing help or invoke a skill directly, such as `/cro`.",
+        "pros": "The collection organizes 50 skills across categories like conversion optimization, copy, SEO, paid distribution, and retention. A `product-marketing` skill serves as a shared foundation other skills reportedly check first, suggesting the skills form an interconnected system rather than standalone scripts. It is free and MIT-licensed.",
+        "cons": "Upgrading from v1.x to v2.0 requires manually deleting stale old-named skill folders, since 17 skills were renamed and `page-cro` (plus `form-cro`) merged into `cro`, and the installer adds new skills alongside old ones instead of replacing them. Moving an existing product marketing context file to its new location and filename is also a manual step, though old paths reportedly still work as a fallback.",
+        "fit": "The skills suit technical marketers and founders using AI coding agents for marketing execution; a companion guide targets those newer to terminals and coding agents. Because installation steps focus mainly on Claude Code and a shared universal directory, support depth for other listed agents may vary in the documentation."
+      },
+      "summary_status": "retained",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "ai-ml",
+        "data"
+      ],
+      "form_tags": [
+        "agent",
         "plugin-skill"
       ]
     },
@@ -1591,13 +1628,13 @@
         "stp",
         "text-to-cad"
       ],
-      "stars": 15678,
-      "forks": 1617,
-      "issues": 24,
+      "stars": 15838,
+      "forks": 1643,
+      "issues": 25,
       "contributors": 23,
       "gains": {
         "daily": null,
-        "weekly": 1054,
+        "weekly": 1194,
         "monthly": null
       },
       "signal": null,
@@ -1626,13 +1663,13 @@
       "description": "Removes 20+ patterns of AI slop from any piece of writing.",
       "lang": "Python",
       "topics": [],
-      "stars": 9314,
-      "forks": 676,
+      "stars": 9698,
+      "forks": 692,
       "issues": 22,
       "contributors": 2,
       "gains": {
         "daily": null,
-        "weekly": 1668,
+        "weekly": 1946,
         "monthly": null
       },
       "signal": null,
@@ -1664,13 +1701,13 @@
         "spec",
         "spec-driven"
       ],
-      "stars": 136575,
-      "forks": 12258,
-      "issues": 323,
+      "stars": 136909,
+      "forks": 12271,
+      "issues": 329,
       "contributors": 294,
       "gains": {
         "daily": null,
-        "weekly": 2642,
+        "weekly": 2952,
         "monthly": null
       },
       "signal": null,
@@ -1696,24 +1733,24 @@
       "description": "Talk to one agent. Ship with a crew.",
       "lang": "Shell",
       "topics": [],
-      "stars": 5825,
-      "forks": 1802,
-      "issues": 1358,
-      "contributors": 59,
+      "stars": 6008,
+      "forks": 1846,
+      "issues": 1391,
+      "contributors": 63,
       "gains": {
         "daily": null,
-        "weekly": 778,
+        "weekly": 978,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "firstmate is documented as an agent distro for running a crew of AI coding agents. Instead of operating one agent directly, users chat with a single 'first mate' that spawns and supervises autonomous 'crewmate' agents, each working in an isolated git worktree, returning finished pull requests, approved local merges, or investigation reports.",
-        "usage": "Setup starts with `git clone https://github.com/kunchenguid/firstmate`, `cd firstmate`, and GitHub authentication via `gh auth login`. A supported primary harness such as Claude Code is then launched (e.g. `claude`), which reads `AGENTS.md` and instantiates the first mate; tasks are given via natural-language chat and return PR links or reports.",
-        "pros": "Each task runs in its own disposable git worktree so parallel work never collides, and every crewmate's session is visible in its own tmux window or equivalent backend tab that a user can watch or type into. Supervision is described as event-driven and zero-token, and state persists on disk so the fleet can recover after a session is killed.",
-        "cons": "Because firstmate has no separate installer and functions as the cloned repository itself, some harnesses likely require trusting and pre-approving project-level hooks. For instance, Grok needs a one-time `--trust` flag per clone, and Pi requires approving a one-time trust prompt per clone before its hooks auto-load.",
-        "fit": "Given its reliance on a verified primary agent harness, Git, and the GitHub CLI, firstmate appears best suited to developers already using tools like Claude Code, Grok, or Pi who want to coordinate multiple parallel coding tasks across isolated worktrees rather than run a single agent session."
+        "goal": "firstmate is documented as an agent distro—not a model, harness, skill, MCP server, or CLI—that lets a single primary agent (the 'first mate') dispatch tasks to a crew of autonomous coding agents ('crewmates'), each working in an isolated git worktree, producing pull requests, approved local merges, or investigation reports.",
+        "usage": "Setup requires git, the GitHub CLI authenticated via `gh auth login`, and a supported harness such as Claude Code, Grok, or Pi. Installation is `git clone https://github.com/kunchenguid/firstmate` followed by `cd firstmate`, then launching a harness like `claude`, after which AGENTS.md guides the session.",
+        "pros": "Documented benefits include a single point of contact (the first mate) instead of juggling multiple terminals, a visible crew running in tmux windows or other backend tabs, disposable per-task git worktrees via treehouse, event-driven zero-token supervision, and restart-proof state that persists on disk.",
+        "cons": "Running a primary session depends on a verified harness with its own setup, such as Grok needing `--trust` once per clone or Cursor Agent CLI needing `--trust` and lacking a turn-end hook in headless mode. The Codex App backend is explicitly documented as not yet a supported runtime backend.",
+        "fit": "Based on its described features, firstmate appears best suited to developers on macOS or Linux who want to run multiple coding tasks in parallel across a GitHub repository, though its practical value likely depends on which harness and backend they already use."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml"
@@ -1728,14 +1765,14 @@
       "description": "Beautiful, Modern & Opinionated Linux",
       "lang": "Shell",
       "topics": [],
-      "stars": 40946,
-      "forks": 4596,
-      "issues": 4259,
+      "stars": 41167,
+      "forks": 4640,
+      "issues": 4346,
       "contributors": 518,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 16489
+        "monthly": 16712
       },
       "signal": null,
       "summary": {
@@ -1758,14 +1795,14 @@
       "description": "Community plugin marketplace for Claude Cowork and Claude Code. Read-only mirror — submit plugins at clau.de/plugin-directory-submission.",
       "lang": "Python",
       "topics": [],
-      "stars": 3969,
-      "forks": 292,
+      "stars": 4055,
+      "forks": 298,
       "issues": 46,
       "contributors": 6,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 3635
+        "monthly": 3715
       },
       "signal": null,
       "summary": {
@@ -1805,14 +1842,14 @@
         "rust",
         "smartshift"
       ],
-      "stars": 20990,
-      "forks": 674,
-      "issues": 538,
-      "contributors": 77,
+      "stars": 21129,
+      "forks": 680,
+      "issues": 544,
+      "contributors": 79,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 12557
+        "monthly": 12695
       },
       "signal": null,
       "summary": {
@@ -1835,24 +1872,24 @@
       "description": "Cursor plugin specification and official plugins",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 7654,
-      "forks": 677,
-      "issues": 121,
+      "stars": 7793,
+      "forks": 694,
+      "issues": 124,
       "contributors": 15,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 4967
+        "monthly": 5026
       },
       "signal": null,
       "summary": {
-        "goal": "This repository, cursor/plugins, is a marketplace of official Cursor plugins for developer tools, frameworks, and SaaS products. Each plugin lives in its own directory at the repository root containing a `.cursor-plugin/plugin.json` manifest, with a root `.cursor-plugin/marketplace.json` listing all plugins.",
-        "usage": "Each plugin directory includes its own `.cursor-plugin/plugin.json` manifest along with `skills/`, `rules/`, `mcp.json`, `README.md`, `CHANGELOG.md`, and `LICENSE` files; the root `.cursor-plugin/marketplace.json` aggregates all plugin listings for the Cursor marketplace.",
-        "pros": "The collection spans over sixty plugins across categories such as Developer Tools, Productivity, and Integrations, covering tools like GitHub, Gmail, Google Drive, Salesforce, and Playwright, each maintained as a standalone package with its own documentation and license.",
-        "cons": "Because most plugins live under `third_party/` and connect to external SaaS products such as Gmail, Salesforce, and HubSpot, using them likely requires separate accounts or credentials for each connected service, a detail the README does not elaborate on.",
-        "fit": "This repository appears best suited for teams already using the Cursor editor who want to extend its agents with a broad set of developer-tool and SaaS integrations, rather than users seeking a standalone application."
+        "goal": "This repository hosts official Cursor plugins for popular developer tools, frameworks, and SaaS products. Each plugin lives in its own standalone directory at the repository root, defined by a `.cursor-plugin/plugin.json` manifest, and covers categories such as Developer Tools, Productivity, and Integrations.",
+        "usage": "The repository follows a multi-plugin marketplace layout: the root `.cursor-plugin/marketplace.json` file lists all plugins, while each plugin directory contains its own `.cursor-plugin/plugin.json` manifest along with optional `skills/`, `rules/`, and `mcp.json` files, plus its own README, CHANGELOG, and LICENSE.",
+        "pros": "The collection spans dozens of plugins, including developer-focused tools like GitHub, Playwright, and Cursor SDK, alongside productivity and SaaS integrations such as Gmail, Google Calendar, Salesforce, and HubSpot, offering broad coverage across coding, collaboration, and business workflows.",
+        "cons": "Because each plugin targets a distinct third-party service or tool with its own manifest and likely its own authentication requirements, adopting multiple plugins may involve separate per-service setup; the README does not detail these individual configuration steps.",
+        "fit": "This repository appears best suited for teams and developers already using the Cursor platform who want to extend it with additional developer-tool or SaaS integrations, rather than as a standalone application."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 1,
       "field_tags": [
         "dev-tools"
@@ -1874,14 +1911,14 @@
         "dsh-plugin",
         "self-evolving"
       ],
-      "stars": 37119,
-      "forks": 2853,
-      "issues": 725,
-      "contributors": 261,
+      "stars": 37376,
+      "forks": 2874,
+      "issues": 730,
+      "contributors": 263,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 8745
+        "monthly": 8921
       },
       "signal": null,
       "summary": {
@@ -1920,14 +1957,14 @@
         "skills",
         "workflow-automation"
       ],
-      "stars": 31769,
-      "forks": 3071,
+      "stars": 32010,
+      "forks": 3080,
       "issues": 32,
       "contributors": 5,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 21897
+        "monthly": 22081
       },
       "signal": null,
       "summary": {
@@ -1974,24 +2011,18 @@
         "volume-mixer",
         "window-switcher"
       ],
-      "stars": 18847,
-      "forks": 676,
-      "issues": 473,
-      "contributors": 79,
+      "stars": 19104,
+      "forks": 681,
+      "issues": 463,
+      "contributors": 82,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 13520
+        "monthly": 13706
       },
       "signal": null,
-      "summary": {
-        "goal": "Vorssaint is a free, open-source macOS menu bar app that bundles utilities such as a volume mixer, system monitor, window manager, app switcher, clipboard history, text snippets, a file shelf, and an uninstaller into one icon, aiming to replace several separately purchased Mac apps.",
-        "usage": "Install with Homebrew via `brew install --cask vorssaint`, or download the disk image from the GitHub releases page (https://github.com/vorssaint/vorssaint-utils/releases) and drag Vorssaint into Applications. Individual features can be installed or removed separately from a Features page. To build from source: `git clone https://github.com/vorssaint/vorssaint-utils.git`, then run `./build.sh`.",
-        "pros": "The app requires no account, telemetry, or subscription; uninstalled features stop loading entirely so they use no CPU, memory, or energy; and permissions are requested only for enabled features, with each one explained and revocable in Settings.",
-        "cons": "It requires an Apple Silicon Mac running macOS 14 Sonoma or newer, so it likely cannot run on Intel-based Macs or earlier macOS versions. The GPL-3.0-or-later license covers only the source code, while the Vorssaint name, icon, and look are separately trademarked, meaning forks would need their own identity.",
-        "fit": "This tool appears best suited for Apple Silicon Mac users on macOS 14 or later who want a single, local-first, privacy-conscious app consolidating many everyday utilities; it does not appear to fit Intel Mac users or those on older macOS releases."
-      },
-      "summary_status": "verified",
+      "summary": null,
+      "summary_status": "held",
       "tag_rule_version": 1,
       "field_tags": [
         "unclassified"
@@ -2014,10 +2045,10 @@
         "mojo",
         "programming-language"
       ],
-      "stars": 29736,
-      "forks": 3169,
-      "issues": 1147,
-      "contributors": 475,
+      "stars": 29756,
+      "forks": 3173,
+      "issues": 1150,
+      "contributors": 474,
       "gains": {
         "daily": null,
         "weekly": null,
@@ -2046,14 +2077,14 @@
       "description": "Solution for long term memory for agent coding CLIs and to facilitate handoff between different agent vendors",
       "lang": "Rust",
       "topics": [],
-      "stars": 6731,
-      "forks": 454,
-      "issues": 9,
+      "stars": 6864,
+      "forks": 460,
+      "issues": 24,
       "contributors": 96,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 5269
+        "monthly": 5351
       },
       "signal": null,
       "summary": {
@@ -2063,7 +2094,7 @@
         "cons": "The documented quick-start default runs with no authentication and binds only to loopback, so exposing the server on a LAN reportedly requires adding a bearer token as an extra step; native Windows support is listed as experimental rather than fully supported.",
         "fit": "The project appears suited to both a single-user workstation and teams running a shared server, and setup requires Docker/Podman or, on Arch Linux, AUR packages."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 1,
       "field_tags": [
         "ai-ml",
@@ -2079,14 +2110,14 @@
       "description": "",
       "lang": "Swift",
       "topics": [],
-      "stars": 11873,
-      "forks": 1498,
-      "issues": 28,
+      "stars": 12489,
+      "forks": 1541,
+      "issues": 29,
       "contributors": 39,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 4221
+        "monthly": 4310
       },
       "signal": null,
       "summary": {
@@ -2126,14 +2157,14 @@
         "tool-use",
         "typescript"
       ],
-      "stars": 5374,
-      "forks": 499,
-      "issues": 489,
-      "contributors": 124,
+      "stars": 5430,
+      "forks": 502,
+      "issues": 498,
+      "contributors": 125,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 4056
+        "monthly": 4111
       },
       "signal": null,
       "summary": {
@@ -2155,42 +2186,110 @@
       ]
     },
     {
-      "slug": "cordiverse/cordis",
-      "name": "cordiverse / cordis",
-      "description": "Meta-Framework of Spatiotemporal Composability",
-      "lang": "TypeScript",
-      "topics": [
-        "effect",
-        "framework",
-        "nodejs",
-        "plugin"
-      ],
-      "stars": 8478,
-      "forks": 530,
-      "issues": 48,
-      "contributors": 12,
+      "slug": "microsoft/data-formulator",
+      "name": "microsoft / data-formulator",
+      "description": "🪄 Data Formulator is an interactive AI-powered data analysis system makes it easy to connect, explore and visualize data.",
+      "lang": "Python",
+      "topics": [],
+      "stars": 17211,
+      "forks": 1672,
+      "issues": 105,
+      "contributors": 37,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 7887
+        "monthly": 1158
       },
       "signal": null,
       "summary": {
-        "goal": "Cordis (cordiverse/cordis) presents itself as 'A Meta-Framework of Spatiotemporal Composability.' Its underlying design is detailed in an accompanying paper, 'A Programming Paradigm for Spatiotemporal Composability' (arXiv:2608.25512), with the paper's own source hosted at https://github.com/cordiverse/paper.",
-        "usage": "The README does not list installation or execution commands. Current entry points are the arXiv paper (https://arxiv.org/abs/2608.25512) and a documentation page at https://deepseek-harness.github.io/deepseek-harness/reference/cordis-primer, so hands-on usage likely depends on materials not yet fully published.",
-        "pros": "Having a dedicated paper describing the framework's design may help developers evaluate its architecture before adoption, and a separate paper repository (https://github.com/cordiverse/paper) suggests the underlying research is maintained independently.",
-        "cons": "The project is explicitly marked as under active development, and the README warns the API 'is not yet stable and may change without notice.' The official documentation is also still under construction, which may limit reliable day-to-day usage guidance for now.",
-        "fit": "Given the stated instability and incomplete documentation, Cordis currently appears better suited to developers tracking early-stage research or willing to accommodate breaking API changes than to teams needing a production-ready dependency."
+        "goal": "Data Formulator is a Microsoft Research project for AI-powered data visualization, combining UI interactions with natural language so analysts can explore data, branch into alternative analyses, and share results, starting from formats such as screenshots, text, CSV, or databases.",
+        "usage": "It can be installed and run locally via `uvx data_formulator` or `pip install data_formulator` followed by `python -m data_formulator`, which opens automatically at http://localhost:5567; a Docker option (`docker compose up --build`) is also documented, and unsigned preview desktop builds for Windows and macOS are available from CI artifacts.",
+        "pros": "The tool provides data connectors for multiple sources with a shared data memory, and 'Data Threads' that let users branch into different questions and compare paths without losing context. Charts are powered by the open-source Flint visualization language, and model support reportedly includes OpenAI, Azure, Ollama, and Anthropic via LiteLLM.",
+        "cons": "The downloadable desktop builds are described as automated preview builds that are not code-signed or notarized, so users must manually bypass Windows SmartScreen or macOS Gatekeeper warnings, and are advised to only do so when the archive came directly from the repository's workflow artifacts or releases.",
+        "fit": "Given its reliance on Python packaging tools (uv or pip) or Docker, and its browser-based interface, Data Formulator appears best suited for individual analysts or teams comfortable with local Python environments or containerized setups rather than a fully managed hosted product."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 1,
       "field_tags": [
-        "dev-tools"
+        "ai-ml",
+        "data"
       ],
-      "form_tags": [
-        "plugin-skill",
-        "framework"
-      ]
+      "form_tags": []
+    },
+    {
+      "slug": "public-apis/public-apis",
+      "name": "public-apis / public-apis",
+      "description": "A collective list of free APIs",
+      "lang": "Python",
+      "topics": [
+        "api",
+        "apis",
+        "dataset",
+        "development",
+        "free",
+        "list",
+        "lists",
+        "open-source",
+        "public",
+        "public-api",
+        "public-apis",
+        "resources",
+        "software"
+      ],
+      "stars": 480400,
+      "forks": 53000,
+      "issues": 1939,
+      "contributors": 1761,
+      "gains": {
+        "daily": null,
+        "weekly": null,
+        "monthly": 23551
+      },
+      "signal": null,
+      "summary": {
+        "goal": "The public-apis/public-apis repository curates and categorizes free, public HTTP APIs across dozens of domains (from Animals to Weather) so developers can discover suitable APIs for their own projects.",
+        "usage": "Developers browse the category Index and the corresponding tables, each listing an API's name, description, required Auth type, HTTPS support, and CORS support, to find and integrate a fitting API; issues and pull requests are tracked at https://github.com/public-apis/public-apis/issues for community contributions.",
+        "pros": "The list is manually curated by community members and APILayer contributors, spans an extensive range of domains, and each entry documents authentication method, HTTPS availability, and CORS support, making it easier to compare candidate APIs before use.",
+        "cons": "Many entries mark CORS support as 'Unknown', so that compatibility detail may not be documented for every listed API, and users likely need to verify pricing, rate limits, and current availability directly with each third-party provider.",
+        "fit": "This resource suits developers and hobbyists searching for a specific type of free or freemium API (e.g., geocoding, currency exchange) rather than users needing a single, ready-to-use SDK or endpoint themselves, since it is only an index, not an API."
+      },
+      "summary_status": "verified",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "dev-tools",
+        "learning"
+      ],
+      "form_tags": []
+    },
+    {
+      "slug": "google-research/timesfm",
+      "name": "google-research / timesfm",
+      "description": "TimesFM (Time Series Foundation Model) is a pretrained time-series foundation model developed by Google Research for time-series forecasting.",
+      "lang": "Python",
+      "topics": [],
+      "stars": 32552,
+      "forks": 3116,
+      "issues": 246,
+      "contributors": 30,
+      "gains": {
+        "daily": null,
+        "weekly": null,
+        "monthly": 5252
+      },
+      "signal": null,
+      "summary": {
+        "goal": "TimesFM is a pretrained time-series foundation model developed by Google Research for time-series forecasting, described in an ICML 2024 paper (https://arxiv.org/abs/2310.10688). The latest version, TimesFM 3.0, adds native multivariate forecasting and support for past-only and past-and-future covariates.",
+        "usage": "Install with pip install timesfm[torch] (or pip install timesfm[mlx] for Apple silicon), or run git clone https://github.com/google-research/timesfm.git for a local install. The README shows Python examples using the google/timesfm-3.0-pytorch checkpoint via TimesFM3Evaluator and ModelConfig for univariate and multivariate forecasting.",
+        "pros": "TimesFM 3.0 is documented as ranking #1 on the fev-bench, TIME Benchmark, and GIFT-Eval time-series foundation model benchmarks, and supports flexible covariate-based forecasting without per-task tuning.",
+        "cons": "TimesFM 3.0 pretrained weights are distributed under a separate license, timesfm-non-commercial-license-v1.0, restricted to non-commercial, non-production use, so commercial or production use of the default weights is not permitted; source code and weights up to version 2.5 remain Apache-2.0.",
+        "fit": "This project appears suited to researchers and developers exploring time-series forecasting, including multivariate and covariate-based use cases, though commercial or production deployments would likely need to account for the non-commercial licensing of the TimesFM 3.0 weights, and the repository states it is not an officially supported Google product."
+      },
+      "summary_status": "verified",
+      "tag_rule_version": 1,
+      "field_tags": [
+        "unclassified"
+      ],
+      "form_tags": []
     }
   ]
 }
