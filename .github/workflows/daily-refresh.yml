@@ -271,6 +271,57 @@ jobs:
           path: ${{ runner.temp }}/recovery-artifact
           retention-days: 2
 
+  queue-guard:
+    name: Bound the enrichment queue wait
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      actions: write
+    steps:
+      # Enrichment runs on one self-hosted runner. While that runner is away the job simply stays
+      # queued - 5h57m on 2026-09-16, 18h52m on 2026-09-15 - and every summary request is already
+      # past the deadline this run anchored by the time it starts, so the cycle is lost either way.
+      # The expensive part is what the waiting costs meanwhile: the run holds the `daily-refresh`
+      # concurrency group, and each half-hourly star tick queued behind it is cancelled by the next
+      # one. Nothing is published before enrichment, so cancelling the run at its own deadline
+      # costs nothing already earned and gives the ticks their queue back.
+      - name: Cancel the run when enrichment has not started by its deadline
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ENRICHMENT_DEADLINE_EPOCH_MS: ${{ needs.prepare.outputs.enrichment_deadline_epoch_ms }}
+          ENRICH_JOB_NAME: Generate source-bound summaries
+        run: |
+          set -euo pipefail
+          case "$ENRICHMENT_DEADLINE_EPOCH_MS" in
+            ''|*[!0-9]*) echo "::error::enrichment deadline is not an epoch in milliseconds"; exit 1 ;;
+          esac
+          jobs_file="${RUNNER_TEMP}/run-jobs.json"
+          seen=0
+          while :; do
+            gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100" > "$jobs_file"
+            status="$(jq -r --arg name "$ENRICH_JOB_NAME" '[.jobs[] | select(.name == $name)] | first | .status // "absent"' "$jobs_file")"
+            if [ "$status" != "absent" ]; then
+              seen=1
+              if [ "$status" != "queued" ]; then
+                echo "::notice::enrichment left the queue with status ${status}"
+                exit 0
+              fi
+            fi
+            NOW_MS="$(printf '%s' "$EPOCHREALTIME" | tr -d '.' | cut -c1-13)"
+            [ "$NOW_MS" -lt "$ENRICHMENT_DEADLINE_EPOCH_MS" ] || break
+            sleep 60
+          done
+          # A rename would make every run look stalled, so an enrichment job that was never once
+          # observed is reported as a stale guard instead of cancelling anything.
+          if [ "$seen" -eq 0 ]; then
+            echo "::error::job \"${ENRICH_JOB_NAME}\" never appeared in run ${GITHUB_RUN_ID}; the guard is stale and must be fixed before it can cancel anything"
+            exit 1
+          fi
+          echo "::notice::enrichment is still queued at its own deadline; cancelling run ${GITHUB_RUN_ID} so the next cycle and the star ticks start clean"
+          gh run cancel "${GITHUB_RUN_ID}"
+
   enrich:
     name: Generate source-bound summaries
     needs: prepare

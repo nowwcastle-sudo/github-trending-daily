@@ -422,3 +422,39 @@ test("the working-tree observation database file stays untracked", async () => {
   const ignored = (await readFile(".gitignore", "utf8")).replace(/\r\n/g, "\n").split("\n");
   assert.ok(ignored.includes("data/repository-observations.sqlite"), ".gitignore must ignore data/repository-observations.sqlite");
 });
+
+// A refresh whose enrichment job never reaches the one self-hosted runner used to hold the
+// `daily-refresh` concurrency group for as long as the runner stayed away - 5h57m on 2026-09-16,
+// 18h52m on 2026-09-15 - and then failed anyway, because every summary request was already past
+// the deadline the run anchored. Every half-hourly star tick queued behind it was cancelled by
+// the next one meanwhile. The guard ends that wait at the deadline the run itself set.
+test("a queued enrichment job cannot outlive the deadline its own run anchored", async () => {
+  const workflow = await workflowText();
+  const guardStart = workflow.indexOf("  queue-guard:");
+  const enrichStart = workflow.indexOf("\n  enrich:");
+  assert.ok(guardStart > 0 && guardStart < enrichStart);
+  const guard = workflow.slice(guardStart, enrichStart);
+  // The guard runs beside enrichment on a GitHub-hosted runner, so an absent self-hosted runner
+  // can never keep the guard itself from starting.
+  assert.match(guard, /\n    needs: prepare\n/);
+  assert.match(guard, /\n    runs-on: ubuntu-latest\n/);
+  assert.match(guard, /\n    permissions:\n      actions: write\n/);
+  assert.match(guard, /ENRICHMENT_DEADLINE_EPOCH_MS: \$\{\{ needs\.prepare\.outputs\.enrichment_deadline_epoch_ms \}\}/);
+  assert.match(guard, /ENRICH_JOB_NAME: Generate source-bound summaries/);
+  assertInOrder(guard, [
+    'case "$ENRICHMENT_DEADLINE_EPOCH_MS" in',
+    "gh api",
+    '[ "$NOW_MS" -lt "$ENRICHMENT_DEADLINE_EPOCH_MS" ] || break',
+    "sleep 60",
+    'if [ "$seen" -eq 0 ]; then',
+    "the guard is stale and must be fixed before it can cancel anything",
+    'gh run cancel "${GITHUB_RUN_ID}"',
+  ]);
+  // Acquiring a runner is the only exit that leaves the run alone; a renamed enrichment job stops
+  // the guard instead of letting it cancel every refresh.
+  assert.match(guard, /if \[ "\$status" != "queued" \]; then\n\s+echo "::notice::enrichment left the queue with status \$\{status\}"\n\s+exit 0/);
+  // The guard never publishes, so it holds no push token: the promotion step keeps the only one.
+  assert.doesNotMatch(guard, /GH_TOKEN:/);
+  // The enrichment job itself stays on the dedicated runner and is not made to wait differently.
+  assert.match(workflow.slice(enrichStart), /\n    runs-on: \[self-hosted, Windows, X64, gh-trending-claude\]\n/);
+});
