@@ -446,13 +446,26 @@ test("a queued enrichment job cannot outlive the deadline its own run anchored",
     "gh api",
     '[ "$NOW_MS" -lt "$ENRICHMENT_DEADLINE_EPOCH_MS" ] || break',
     "sleep 60",
+    'if [ "$listed" -eq 0 ]; then',
     'if [ "$seen" -eq 0 ]; then',
     "the guard is stale and must be fixed before it can cancel anything",
-    'gh run cancel "${GITHUB_RUN_ID}"',
+    'gh run cancel "${GITHUB_RUN_ID}" --repo "$GITHUB_REPOSITORY"',
   ]);
+  // queue-guard has no checkout, so gh cannot read a base repository from a git remote and exits
+  // "failed to determine base repo" - during the outage the guard exists for. GITHUB_REPOSITORY is
+  // not consulted for that; only --repo (or GH_REPO) is.
+  assert.doesNotMatch(guard, /gh run cancel "\$\{GITHUB_RUN_ID\}"\s*$/m);
+  // One transient API or network fault must not be the reason the only guard stops watching, so an
+  // unreadable poll falls through to the next minute and the deadline alone ends the loop.
+  assert.match(guard, /if gh api "repos\/\$\{GITHUB_REPOSITORY\}\/actions\/runs\/\$\{GITHUB_RUN_ID\}\/jobs\?per_page=100" > "\$jobs_file"; then/);
+  assert.match(guard, /status=unreadable\n/);
+  assert.match(guard, /unreadable\) echo "::notice::the job list was unreadable this minute; retrying while the deadline allows" ;;/);
+  // Cancelling on no evidence would be worse than the stall it replaces: never having read a job
+  // list is reported apart from having read one that never carried this job.
+  assert.match(guard, /the job list of run \$\{GITHUB_RUN_ID\} was never read; cancelling on no evidence is not safe/);
   // Acquiring a runner is the only exit that leaves the run alone; a renamed enrichment job stops
   // the guard instead of letting it cancel every refresh.
-  assert.match(guard, /if \[ "\$status" != "queued" \]; then\n\s+echo "::notice::enrichment left the queue with status \$\{status\}"\n\s+exit 0/);
+  assert.match(guard, /\*\)\n\s+seen=1\n\s+echo "::notice::enrichment left the queue with status \$\{status\}"\n\s+exit 0\n\s+;;/);
   // The guard never publishes, so it holds no push token: the promotion step keeps the only one.
   assert.doesNotMatch(guard, /GH_TOKEN:/);
   // The enrichment job itself stays on the dedicated runner and is not made to wait differently.

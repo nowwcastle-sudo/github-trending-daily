@@ -298,29 +298,46 @@ jobs:
             ''|*[!0-9]*) echo "::error::enrichment deadline is not an epoch in milliseconds"; exit 1 ;;
           esac
           jobs_file="${RUNNER_TEMP}/run-jobs.json"
+          listed=0
           seen=0
           while :; do
-            gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100" > "$jobs_file"
-            status="$(jq -r --arg name "$ENRICH_JOB_NAME" '[.jobs[] | select(.name == $name)] | first | .status // "absent"' "$jobs_file")"
-            if [ "$status" != "absent" ]; then
-              seen=1
-              if [ "$status" != "queued" ]; then
+            # A poll that fails is a poll, not a verdict: one transient API or network fault must
+            # never be the reason the only guard stops watching. Every unreadable answer falls
+            # through to the next minute, and the deadline alone ends the loop.
+            status=unreadable
+            if gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100" > "$jobs_file"; then
+              status="$(jq -r --arg name "$ENRICH_JOB_NAME" '[.jobs[] | select(.name == $name)] | first | .status // "absent"' "$jobs_file" || echo unreadable)"
+              [ "$status" = "unreadable" ] || listed=1
+            fi
+            case "$status" in
+              unreadable) echo "::notice::the job list was unreadable this minute; retrying while the deadline allows" ;;
+              absent) ;;
+              queued) seen=1 ;;
+              *)
+                seen=1
                 echo "::notice::enrichment left the queue with status ${status}"
                 exit 0
-              fi
-            fi
+                ;;
+            esac
             NOW_MS="$(printf '%s' "$EPOCHREALTIME" | tr -d '.' | cut -c1-13)"
             [ "$NOW_MS" -lt "$ENRICHMENT_DEADLINE_EPOCH_MS" ] || break
             sleep 60
           done
-          # A rename would make every run look stalled, so an enrichment job that was never once
-          # observed is reported as a stale guard instead of cancelling anything.
+          # Cancelling on no information would be worse than the stall it replaces, so the two ways
+          # of knowing nothing are reported apart: a job list never read at all, and a job list read
+          # that never carried this job - which is what a rename looks like.
+          if [ "$listed" -eq 0 ]; then
+            echo "::error::the job list of run ${GITHUB_RUN_ID} was never read; cancelling on no evidence is not safe"
+            exit 1
+          fi
           if [ "$seen" -eq 0 ]; then
             echo "::error::job \"${ENRICH_JOB_NAME}\" never appeared in run ${GITHUB_RUN_ID}; the guard is stale and must be fixed before it can cancel anything"
             exit 1
           fi
           echo "::notice::enrichment is still queued at its own deadline; cancelling run ${GITHUB_RUN_ID} so the next cycle and the star ticks start clean"
-          gh run cancel "${GITHUB_RUN_ID}"
+          # This job has no checkout, so gh cannot infer a base repository from a git remote and
+          # would exit "failed to determine base repo" in exactly the outage this guard exists for.
+          gh run cancel "${GITHUB_RUN_ID}" --repo "$GITHUB_REPOSITORY"
 
   enrich:
     name: Generate source-bound summaries
