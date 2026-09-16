@@ -312,11 +312,17 @@ jobs:
             case "$status" in
               unreadable) echo "::notice::the job list was unreadable this minute; retrying while the deadline allows" ;;
               absent) ;;
-              queued) seen=1 ;;
-              *)
+              in_progress|completed)
                 seen=1
-                echo "::notice::enrichment left the queue with status ${status}"
+                echo "::notice::enrichment reached ${status}; a runner has it and the guard stands down"
                 exit 0
+                ;;
+              *)
+                # queued, waiting, requested, pending, and any state added to the schema later: the
+                # job exists but nothing here shows it running, so keep watching. Standing down is
+                # reserved for the two states that prove execution began, because a wildcard that
+                # stands down on "not queued" reads a job still waiting as a job under way.
+                seen=1
                 ;;
             esac
             NOW_MS="$(printf '%s' "$EPOCHREALTIME" | tr -d '.' | cut -c1-13)"
@@ -335,9 +341,28 @@ jobs:
             exit 1
           fi
           echo "::notice::enrichment is still queued at its own deadline; cancelling run ${GITHUB_RUN_ID} so the next cycle and the star ticks start clean"
-          # This job has no checkout, so gh cannot infer a base repository from a git remote and
-          # would exit "failed to determine base repo" in exactly the outage this guard exists for.
-          gh run cancel "${GITHUB_RUN_ID}" --repo "$GITHUB_REPOSITORY"
+          # The cancellation is the whole payload of this job, and one transient fault on it would
+          # leave the run holding the group exactly as before. --repo is required: this job has no
+          # checkout, so gh has no git remote to infer a base repository from and would exit
+          # "failed to determine base repo" during the very outage the guard exists for.
+          for attempt in 1 2 3 4 5; do
+            if gh run cancel "${GITHUB_RUN_ID}" --repo "$GITHUB_REPOSITORY"; then
+              echo "::notice::cancellation accepted on attempt ${attempt}"
+              exit 0
+            fi
+            # A run that finished on its own between the deadline check and this request cannot be
+            # cancelled and does not need to be, so read the run rather than retry a request that
+            # can never succeed.
+            run_status="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" --jq '.status' || echo unreadable)"
+            if [ "$run_status" = "completed" ]; then
+              echo "::notice::run ${GITHUB_RUN_ID} finished on its own; there is nothing left to cancel"
+              exit 0
+            fi
+            echo "::notice::cancellation attempt ${attempt} failed with the run in status ${run_status}; retrying"
+            sleep 20
+          done
+          echo "::error::run ${GITHUB_RUN_ID} is still uncancelled after 5 attempts; its enrichment queue wait is unbounded for the rest of the run"
+          exit 1
 
   enrich:
     name: Generate source-bound summaries

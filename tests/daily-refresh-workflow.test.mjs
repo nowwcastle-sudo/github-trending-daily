@@ -449,6 +449,7 @@ test("a queued enrichment job cannot outlive the deadline its own run anchored",
     'if [ "$listed" -eq 0 ]; then',
     'if [ "$seen" -eq 0 ]; then',
     "the guard is stale and must be fixed before it can cancel anything",
+    "for attempt in 1 2 3 4 5; do",
     'gh run cancel "${GITHUB_RUN_ID}" --repo "$GITHUB_REPOSITORY"',
   ]);
   // queue-guard has no checkout, so gh cannot read a base repository from a git remote and exits
@@ -465,7 +466,18 @@ test("a queued enrichment job cannot outlive the deadline its own run anchored",
   assert.match(guard, /the job list of run \$\{GITHUB_RUN_ID\} was never read; cancelling on no evidence is not safe/);
   // Acquiring a runner is the only exit that leaves the run alone; a renamed enrichment job stops
   // the guard instead of letting it cancel every refresh.
-  assert.match(guard, /\*\)\n\s+seen=1\n\s+echo "::notice::enrichment left the queue with status \$\{status\}"\n\s+exit 0\n\s+;;/);
+  // Only a state that proves execution began stands the guard down. `queued` is not the only
+  // nonterminal state a workflow job can report - `waiting`, `requested` and `pending` are in
+  // the schema too - so a wildcard on "not queued" would read a job still waiting as a job
+  // under way and retire the guard while the stall is still ahead of it.
+  assert.match(guard, /\n\s+in_progress\|completed\)\n\s+seen=1\n\s+echo "::notice::enrichment reached \$\{status\}[^"]*"\n\s+exit 0\n\s+;;/);
+  assert.doesNotMatch(guard, /"\$status" != "queued"/);
+  // The cancellation is this job's whole payload: one transient fault on it would leave the run
+  // holding the group exactly as before, so it is retried, and a run that finished on its own
+  // is read rather than retried at.
+  assert.match(guard, /for attempt in 1 2 3 4 5; do\n\s+if gh run cancel/);
+  assert.match(guard, /if \[ "\$run_status" = "completed" \]; then/);
+  assert.match(guard, /is still uncancelled after 5 attempts/);
   // The guard never publishes, so it holds no push token: the promotion step keeps the only one.
   assert.doesNotMatch(guard, /GH_TOKEN:/);
   // The enrichment job itself stays on the dedicated runner and is not made to wait differently.
