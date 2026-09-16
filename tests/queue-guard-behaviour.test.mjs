@@ -11,6 +11,11 @@ import test from "node:test";
 const workflowPath = ".github/workflows/daily-refresh.yml";
 const ENRICH_JOB_NAME = "Generate source-bound summaries";
 const BLOCK_INDENT = " ".repeat(10);
+// A broken guard would poll until the real deadline; the stub stops it long before that, and
+// the child gets a wall-clock timeout as well for a hang that never calls gh at all.
+const POLL_CAP = 50;
+const POLL_CAP_EXIT = 97;
+const CHILD_TIMEOUT_MS = 30000;
 
 async function guardScript() {
   const workflow = (await readFile(workflowPath, "utf8")).replace(/\r\n/g, "\n");
@@ -42,13 +47,17 @@ poll=0
 cancels=0
 cancel_without_repo=0
 run_status_reads=0
+unexpected_gh=0
 
-trap 'printf "HARNESS polls=%d cancels=%d cancel_without_repo=%d run_status_reads=%d\\n" "$poll" "$cancels" "$cancel_without_repo" "$run_status_reads"' EXIT
+trap 'printf "HARNESS polls=%d cancels=%d cancel_without_repo=%d run_status_reads=%d unexpected_gh=%d\\n" "$poll" "$cancels" "$cancel_without_repo" "$run_status_reads" "$unexpected_gh"' EXIT
 
 gh() {
   if [ "$1" = "api" ]; then
     case "$2" in
-      */jobs\\?*)
+      "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs?per_page=100")
+        # A guard that stops recognising its exit states would poll until the real deadline, and
+        # spawnSync cannot be interrupted by the test runner, so the stub ends the run itself.
+        if [ "$poll" -ge ${POLL_CAP} ]; then exit ${POLL_CAP_EXIT}; fi
         local token="\${statuses[$poll]:-\${statuses[\${#statuses[@]}-1]}}"
         poll=$(( poll + 1 ))
         case "$token" in
@@ -59,11 +68,22 @@ gh() {
         esac
         return 0
         ;;
-      *)
+      "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID")
+        # The guard must ask this endpoint for the run's scalar status. A catch-all here would keep
+        # the finished-run scenario green even after the read stopped returning a bare status, and
+        # production would then retry a cancellation that can never succeed.
+        case "$*" in
+          *"--jq .status"*) ;;
+          *) unexpected_gh=$(( unexpected_gh + 1 )); return 64 ;;
+        esac
         run_status_reads=$(( run_status_reads + 1 ))
         [ "$T_RUN_STATUS" = "FAIL" ] && return 1
         printf '%s\\n' "$T_RUN_STATUS"
         return 0
+        ;;
+      *)
+        unexpected_gh=$(( unexpected_gh + 1 ))
+        return 64
         ;;
     esac
   fi
@@ -77,6 +97,7 @@ gh() {
     [ "$token" = "ok" ] && return 0
     return 1
   fi
+  unexpected_gh=$(( unexpected_gh + 1 ))
   return 64
 }
 
@@ -89,6 +110,7 @@ const ready = bashAvailable.status === 0 && bashAvailable.stdout.trim() === "rea
 function runGuard(script, { statuses, cancels = "ok", runStatus = "in_progress", deadlineOffsetMs = -1000, deadline }) {
   const result = spawnSync("bash", ["-c", `${STUBS}\n${script}`], {
     encoding: "utf8",
+    timeout: CHILD_TIMEOUT_MS,
     env: {
       ...process.env,
       T_JOB_STATUSES: statuses,
@@ -102,8 +124,11 @@ function runGuard(script, { statuses, cancels = "ok", runStatus = "in_progress",
     },
   });
   const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
-  const counters = /HARNESS polls=(\d+) cancels=(\d+) cancel_without_repo=(\d+) run_status_reads=(\d+)/.exec(output);
+  assert.equal(result.signal, null, `the guard was still running after ${CHILD_TIMEOUT_MS}ms:\n${output}`);
+  assert.notEqual(result.status, POLL_CAP_EXIT, `the guard polled ${POLL_CAP} times without reaching an exit:\n${output}`);
+  const counters = /HARNESS polls=(\d+) cancels=(\d+) cancel_without_repo=(\d+) run_status_reads=(\d+) unexpected_gh=(\d+)/.exec(output);
   assert.ok(counters, `the harness never reported its counters:\n${output}`);
+  assert.equal(Number(counters[5]), 0, `the guard called gh in a way the stub does not expect:\n${output}`);
   return {
     status: result.status,
     output,
