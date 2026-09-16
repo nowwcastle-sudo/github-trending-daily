@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
+import { TIER_A_CRONS, TIER_B_CRON } from "../scripts/star-ticks.mjs";
+
 const workflowPath = ".github/workflows/star-ticks.yml";
 const refreshPath = ".github/workflows/daily-refresh.yml";
 const deployPath = ".github/workflows/deploy-current-pages.yml";
@@ -22,7 +24,21 @@ function assertInOrder(value, fragments) {
 test("star ticks run every half hour behind the GH_TRENDING_TICKS variable and share the refresh concurrency group", async () => {
   const [workflow, refresh] = await Promise.all([text(workflowPath), text(refreshPath)]);
   assert.match(workflow, /^name: Star ticks$/m);
-  assert.match(workflow, /^on:\n  schedule:\n    - cron: "5,35 \* \* \* \*"\n  workflow_dispatch:/m);
+  const schedule = /^on:\n  schedule:\n((?:    - cron: "[^"]+"\n)+)  workflow_dispatch:/m.exec(workflow);
+  assert.ok(schedule, "the tick schedule is not a list of cron entries");
+  const crons = [...schedule[1].matchAll(/- cron: "([^"]+)"/g)].map(match => match[1]);
+  // Every entry the workflow fires on must be one the tier resolver knows, and every entry the
+  // resolver knows must be scheduled. A cron added to either side alone would reach resolveTier as
+  // an unknown expression and fail the tick closed.
+  assert.deepEqual([...crons].sort(), [...TIER_A_CRONS, TIER_B_CRON].sort());
+  const minutes = crons.map(cron => Number(cron.split(" ")[0]));
+  // GitHub drops scheduled events under load and names the start of every hour as a high-load
+  // window, so no entry sits in the first ten minutes.
+  for (const minute of minutes) assert.ok(minute >= 10, `the :${minute} tick is inside the top-of-hour load window`);
+  // Two observations an hour, half an hour apart, is the published cadence.
+  assert.deepEqual([...new Set(minutes)].sort((left, right) => left - right).map((minute, index, all) => index === 0 ? 30 : minute - all[index - 1]), [30, 30]);
+  // Tier B is one slot a day: the odd hours of one entry, and nothing else.
+  assert.equal(TIER_B_CRON.split(" ")[1], "1,3,5,7,9,11,13,15,17,19,21,23");
   assert.match(workflow, /^permissions: \{\}$/m);
   assert.match(workflow, /if: \$\{\{ github\.event_name == 'workflow_dispatch' \|\| \(github\.event_name == 'schedule' && vars\.GH_TRENDING_TICKS == 'enabled'\) \}\}/);
   const concurrency = /^concurrency:\n  group: ([^\n]+)\n  cancel-in-progress: false$/m;
@@ -42,7 +58,9 @@ test("star ticks collect with the repository token only, pick the tier from the 
   assert.deepEqual([...new Set(secrets)], ["GITHUB_TOKEN"]);
   assert.doesNotMatch(workflow, /ANTHROPIC|CLAUDE|CODEX|update-trending|generate-summary-bundles|collect-repository-events|record_repository_observations|self-hosted/);
   assert.match(workflow, /git fetch origin main[\s\S]*git rev-parse HEAD[\s\S]*refs\/remotes\/origin\/main/);
-  assert.match(workflow, /TIER="\$\(node scripts\/star-ticks\.mjs tier --event "\$GITHUB_EVENT_NAME" --requested "\$REQUESTED_TIER"\)"/);
+  assert.match(workflow, /TIER="\$\(node scripts\/star-ticks\.mjs tier --event "\$GITHUB_EVENT_NAME" --requested "\$REQUESTED_TIER" --schedule "\$EVENT_SCHEDULE"\)"/);
+  // The cron entry that fired is what decides the tier, so it has to reach the resolver.
+  assert.match(workflow, /^          EVENT_SCHEDULE: \$\{\{ github\.event\.schedule \|\| '' \}\}$/m);
   assert.doesNotMatch(workflow, /TIER=ab|date -u \+%H/);
   // Independent append-only check on the staged ledgers before the commit.
   assert.match(workflow, /REMOVED="\$\(git diff --cached -- data\/star-ticks data\/star-daily\.jsonl \| grep -E '\^-\[\^-\]' \|\| true\)"\n\s+if \[ -n "\$REMOVED" \]; then/);

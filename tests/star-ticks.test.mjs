@@ -14,6 +14,8 @@ import {
   parseTickLedger,
   RATE_LIMIT_RESERVE,
   resolveTier,
+  TIER_A_CRONS,
+  TIER_B_CRON,
   rollupDaily,
   selectWatchSet,
 } from "../scripts/star-ticks.mjs";
@@ -210,15 +212,21 @@ test("deriveStarHistoryV2 keeps ticks for 14 days, one daily point before, and s
   assert.throws(() => deriveStarHistoryV2({ published: ["Owner/Repo"], tickRuns, dailyRows, anchors: { ...anchors, generatedAt: 5 }, now }), /anchors/);
 });
 
-test("resolveTier observes tier B only in the :35 slot of odd UTC hours on schedule and honours the dispatch input", () => {
-  const at = value => Date.parse(value);
-  assert.equal(resolveTier({ nowMs: at("2026-09-03T01:36:10Z"), event: "schedule" }), "ab");
-  assert.equal(resolveTier({ nowMs: at("2026-09-03T01:20:00Z"), event: "schedule" }), "ab");
-  assert.equal(resolveTier({ nowMs: at("2026-09-03T01:19:59Z"), event: "schedule" }), "a");
-  assert.equal(resolveTier({ nowMs: at("2026-09-03T02:36:10Z"), event: "schedule" }), "a");
-  assert.equal(resolveTier({ nowMs: at("2026-09-03T01:36:10Z"), event: "workflow_dispatch", requested: "" }), "a");
-  assert.equal(resolveTier({ nowMs: at("2026-09-03T02:06:10Z"), event: "workflow_dispatch", requested: "ab" }), "ab");
-  assert.throws(() => resolveTier({ nowMs: at("2026-09-03T02:06:10Z"), event: "workflow_dispatch", requested: "c" }), /tier/);
+test("resolveTier reads the tier off the cron entry that fired, not the clock, and honours the dispatch input", () => {
+  assert.equal(resolveTier({ event: "schedule", schedule: TIER_B_CRON }), "ab");
+  for (const cron of TIER_A_CRONS) assert.equal(resolveTier({ event: "schedule", schedule: cron }), "a");
+  // The whole point of reading the slot rather than the clock: a run delayed past the hour
+  // keeps the tier its schedule gave it, so the day's archive observation cannot be lost to
+  // lateness, and a late Tier A run cannot claim the archive tier's larger reserve.
+  assert.equal(resolveTier({ event: "schedule", schedule: TIER_B_CRON, nowMs: Date.parse("2026-09-03T02:00:00Z") }), "ab");
+  assert.equal(resolveTier({ event: "schedule", schedule: TIER_A_CRONS[0], nowMs: Date.parse("2026-09-03T01:59:00Z") }), "a");
+  // A schedule this resolver does not know is a schedule that changed without it.
+  assert.throws(() => resolveTier({ event: "schedule", schedule: "5,35 * * * *" }), /cron/);
+  assert.throws(() => resolveTier({ event: "schedule", schedule: "" }), /cron/);
+  assert.throws(() => resolveTier({ event: "push", schedule: TIER_B_CRON }), /event/);
+  assert.equal(resolveTier({ event: "workflow_dispatch", requested: "" }), "a");
+  assert.equal(resolveTier({ event: "workflow_dispatch", requested: "ab" }), "ab");
+  assert.throws(() => resolveTier({ event: "workflow_dispatch", requested: "c" }), /tier/);
 });
 
 test("deriveStarHistoryV2 caps observed points at 2000 keeping the most recent", () => {
