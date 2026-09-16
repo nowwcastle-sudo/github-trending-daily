@@ -422,3 +422,64 @@ test("the working-tree observation database file stays untracked", async () => {
   const ignored = (await readFile(".gitignore", "utf8")).replace(/\r\n/g, "\n").split("\n");
   assert.ok(ignored.includes("data/repository-observations.sqlite"), ".gitignore must ignore data/repository-observations.sqlite");
 });
+
+// A refresh whose enrichment job never reaches the one self-hosted runner used to hold the
+// `daily-refresh` concurrency group for as long as the runner stayed away - 5h57m on 2026-09-16,
+// 18h52m on 2026-09-15 - and then failed anyway, because every summary request was already past
+// the deadline the run anchored. Every half-hourly star tick queued behind it was cancelled by
+// the next one meanwhile. The guard ends that wait at the deadline the run itself set.
+test("a queued enrichment job cannot outlive the deadline its own run anchored", async () => {
+  const workflow = await workflowText();
+  const guardStart = workflow.indexOf("  queue-guard:");
+  const enrichStart = workflow.indexOf("\n  enrich:");
+  assert.ok(guardStart > 0 && guardStart < enrichStart);
+  const guard = workflow.slice(guardStart, enrichStart);
+  // The guard runs beside enrichment on a GitHub-hosted runner, so an absent self-hosted runner
+  // can never keep the guard itself from starting.
+  assert.match(guard, /\n    needs: prepare\n/);
+  assert.match(guard, /\n    runs-on: ubuntu-latest\n/);
+  assert.match(guard, /\n    permissions:\n      actions: write\n/);
+  assert.match(guard, /ENRICHMENT_DEADLINE_EPOCH_MS: \$\{\{ needs\.prepare\.outputs\.enrichment_deadline_epoch_ms \}\}/);
+  assert.match(guard, /ENRICH_JOB_NAME: Generate source-bound summaries/);
+  assertInOrder(guard, [
+    'case "$ENRICHMENT_DEADLINE_EPOCH_MS" in',
+    "gh api",
+    '[ "$NOW_MS" -lt "$ENRICHMENT_DEADLINE_EPOCH_MS" ] || break',
+    "sleep 60",
+    'if [ "$listed" -eq 0 ]; then',
+    'if [ "$seen" -eq 0 ]; then',
+    "the guard is stale and must be fixed before it can cancel anything",
+    "for attempt in 1 2 3 4 5; do",
+    'gh run cancel "${GITHUB_RUN_ID}" --repo "$GITHUB_REPOSITORY"',
+  ]);
+  // queue-guard has no checkout, so gh cannot read a base repository from a git remote and exits
+  // "failed to determine base repo" - during the outage the guard exists for. GITHUB_REPOSITORY is
+  // not consulted for that; only --repo (or GH_REPO) is.
+  assert.doesNotMatch(guard, /gh run cancel "\$\{GITHUB_RUN_ID\}"\s*$/m);
+  // One transient API or network fault must not be the reason the only guard stops watching, so an
+  // unreadable poll falls through to the next minute and the deadline alone ends the loop.
+  assert.match(guard, /if gh api "repos\/\$\{GITHUB_REPOSITORY\}\/actions\/runs\/\$\{GITHUB_RUN_ID\}\/jobs\?per_page=100" > "\$jobs_file"; then/);
+  assert.match(guard, /status=unreadable\n/);
+  assert.match(guard, /unreadable\) echo "::notice::the job list was unreadable this minute; retrying while the deadline allows" ;;/);
+  // Cancelling on no evidence would be worse than the stall it replaces: never having read a job
+  // list is reported apart from having read one that never carried this job.
+  assert.match(guard, /the job list of run \$\{GITHUB_RUN_ID\} was never read; cancelling on no evidence is not safe/);
+  // Acquiring a runner is the only exit that leaves the run alone; a renamed enrichment job stops
+  // the guard instead of letting it cancel every refresh.
+  // Only a state that proves execution began stands the guard down. `queued` is not the only
+  // nonterminal state a workflow job can report - `waiting`, `requested` and `pending` are in
+  // the schema too - so a wildcard on "not queued" would read a job still waiting as a job
+  // under way and retire the guard while the stall is still ahead of it.
+  assert.match(guard, /\n\s+in_progress\|completed\)\n\s+seen=1\n\s+echo "::notice::enrichment reached \$\{status\}[^"]*"\n\s+exit 0\n\s+;;/);
+  assert.doesNotMatch(guard, /"\$status" != "queued"/);
+  // The cancellation is this job's whole payload: one transient fault on it would leave the run
+  // holding the group exactly as before, so it is retried, and a run that finished on its own
+  // is read rather than retried at.
+  assert.match(guard, /for attempt in 1 2 3 4 5; do\n\s+if gh run cancel/);
+  assert.match(guard, /if \[ "\$run_status" = "completed" \]; then/);
+  assert.match(guard, /is still uncancelled after 5 attempts/);
+  // The guard never publishes, so it holds no push token: the promotion step keeps the only one.
+  assert.doesNotMatch(guard, /GH_TOKEN:/);
+  // The enrichment job itself stays on the dedicated runner and is not made to wait differently.
+  assert.match(workflow.slice(enrichStart), /\n    runs-on: \[self-hosted, Windows, X64, gh-trending-claude\]\n/);
+});

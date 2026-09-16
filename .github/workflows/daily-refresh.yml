@@ -271,6 +271,99 @@ jobs:
           path: ${{ runner.temp }}/recovery-artifact
           retention-days: 2
 
+  queue-guard:
+    name: Bound the enrichment queue wait
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      actions: write
+    steps:
+      # Enrichment runs on one self-hosted runner. While that runner is away the job simply stays
+      # queued - 5h57m on 2026-09-16, 18h52m on 2026-09-15 - and every summary request is already
+      # past the deadline this run anchored by the time it starts, so the cycle is lost either way.
+      # The expensive part is what the waiting costs meanwhile: the run holds the `daily-refresh`
+      # concurrency group, and each half-hourly star tick queued behind it is cancelled by the next
+      # one. Nothing is published before enrichment, so cancelling the run at its own deadline
+      # costs nothing already earned and gives the ticks their queue back.
+      - name: Cancel the run when enrichment has not started by its deadline
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ENRICHMENT_DEADLINE_EPOCH_MS: ${{ needs.prepare.outputs.enrichment_deadline_epoch_ms }}
+          ENRICH_JOB_NAME: Generate source-bound summaries
+        run: |
+          set -euo pipefail
+          case "$ENRICHMENT_DEADLINE_EPOCH_MS" in
+            ''|*[!0-9]*) echo "::error::enrichment deadline is not an epoch in milliseconds"; exit 1 ;;
+          esac
+          jobs_file="${RUNNER_TEMP}/run-jobs.json"
+          listed=0
+          seen=0
+          while :; do
+            # A poll that fails is a poll, not a verdict: one transient API or network fault must
+            # never be the reason the only guard stops watching. Every unreadable answer falls
+            # through to the next minute, and the deadline alone ends the loop.
+            status=unreadable
+            if gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100" > "$jobs_file"; then
+              status="$(jq -r --arg name "$ENRICH_JOB_NAME" '[.jobs[] | select(.name == $name)] | first | .status // "absent"' "$jobs_file" || echo unreadable)"
+              [ "$status" = "unreadable" ] || listed=1
+            fi
+            case "$status" in
+              unreadable) echo "::notice::the job list was unreadable this minute; retrying while the deadline allows" ;;
+              absent) ;;
+              in_progress|completed)
+                seen=1
+                echo "::notice::enrichment reached ${status}; a runner has it and the guard stands down"
+                exit 0
+                ;;
+              *)
+                # queued, waiting, requested, pending, and any state added to the schema later: the
+                # job exists but nothing here shows it running, so keep watching. Standing down is
+                # reserved for the two states that prove execution began, because a wildcard that
+                # stands down on "not queued" reads a job still waiting as a job under way.
+                seen=1
+                ;;
+            esac
+            NOW_MS="$(printf '%s' "$EPOCHREALTIME" | tr -d '.' | cut -c1-13)"
+            [ "$NOW_MS" -lt "$ENRICHMENT_DEADLINE_EPOCH_MS" ] || break
+            sleep 60
+          done
+          # Cancelling on no information would be worse than the stall it replaces, so the two ways
+          # of knowing nothing are reported apart: a job list never read at all, and a job list read
+          # that never carried this job - which is what a rename looks like.
+          if [ "$listed" -eq 0 ]; then
+            echo "::error::the job list of run ${GITHUB_RUN_ID} was never read; cancelling on no evidence is not safe"
+            exit 1
+          fi
+          if [ "$seen" -eq 0 ]; then
+            echo "::error::job \"${ENRICH_JOB_NAME}\" never appeared in run ${GITHUB_RUN_ID}; the guard is stale and must be fixed before it can cancel anything"
+            exit 1
+          fi
+          echo "::notice::enrichment is still queued at its own deadline; cancelling run ${GITHUB_RUN_ID} so the next cycle and the star ticks start clean"
+          # The cancellation is the whole payload of this job, and one transient fault on it would
+          # leave the run holding the group exactly as before. --repo is required: this job has no
+          # checkout, so gh has no git remote to infer a base repository from and would exit
+          # "failed to determine base repo" during the very outage the guard exists for.
+          for attempt in 1 2 3 4 5; do
+            if gh run cancel "${GITHUB_RUN_ID}" --repo "$GITHUB_REPOSITORY"; then
+              echo "::notice::cancellation accepted on attempt ${attempt}"
+              exit 0
+            fi
+            # A run that finished on its own between the deadline check and this request cannot be
+            # cancelled and does not need to be, so read the run rather than retry a request that
+            # can never succeed.
+            run_status="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" --jq '.status' || echo unreadable)"
+            if [ "$run_status" = "completed" ]; then
+              echo "::notice::run ${GITHUB_RUN_ID} finished on its own; there is nothing left to cancel"
+              exit 0
+            fi
+            echo "::notice::cancellation attempt ${attempt} failed with the run in status ${run_status}; retrying"
+            sleep 20
+          done
+          echo "::error::run ${GITHUB_RUN_ID} is still uncancelled after 5 attempts; its enrichment queue wait is unbounded for the rest of the run"
+          exit 1
+
   enrich:
     name: Generate source-bound summaries
     needs: prepare
