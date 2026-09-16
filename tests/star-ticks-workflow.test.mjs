@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
+import { TIER_B_SLOT_MINUTE } from "../scripts/star-ticks.mjs";
+
 const workflowPath = ".github/workflows/star-ticks.yml";
 const refreshPath = ".github/workflows/daily-refresh.yml";
 const deployPath = ".github/workflows/deploy-current-pages.yml";
@@ -22,7 +24,18 @@ function assertInOrder(value, fragments) {
 test("star ticks run every half hour behind the GH_TRENDING_TICKS variable and share the refresh concurrency group", async () => {
   const [workflow, refresh] = await Promise.all([text(workflowPath), text(refreshPath)]);
   assert.match(workflow, /^name: Star ticks$/m);
-  assert.match(workflow, /^on:\n  schedule:\n    - cron: "5,35 \* \* \* \*"\n  workflow_dispatch:/m);
+  const cron = /^on:\n  schedule:\n    - cron: "(\d+),(\d+) \* \* \* \*"\n  workflow_dispatch:/m.exec(workflow);
+  assert.ok(cron, "the tick schedule is not two minute offsets of every hour");
+  const [first, second] = [Number(cron[1]), Number(cron[2])];
+  assert.equal(second - first, 30, "the two offsets must stay half an hour apart");
+  // GitHub drops scheduled events under load and names the start of every hour as a high-load
+  // window, so neither offset sits in the first ten minutes.
+  assert.ok(first >= 10, `the first tick offset :${first} is inside the top-of-hour load window`);
+  // The offsets and the Tier B boundary are one design: the first must stay below it with room
+  // to start late, or a Tier A tick would demand the archive tier's reserve and skip entirely;
+  // the second must never fall below it.
+  assert.ok(first + 15 < TIER_B_SLOT_MINUTE, `the :${first} tick has under 15 minutes before the Tier B boundary at :${TIER_B_SLOT_MINUTE}`);
+  assert.ok(second >= TIER_B_SLOT_MINUTE, `the :${second} tick starts before the Tier B boundary at :${TIER_B_SLOT_MINUTE}`);
   assert.match(workflow, /^permissions: \{\}$/m);
   assert.match(workflow, /if: \$\{\{ github\.event_name == 'workflow_dispatch' \|\| \(github\.event_name == 'schedule' && vars\.GH_TRENDING_TICKS == 'enabled'\) \}\}/);
   const concurrency = /^concurrency:\n  group: ([^\n]+)\n  cancel-in-progress: false$/m;

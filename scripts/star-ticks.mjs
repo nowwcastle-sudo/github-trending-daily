@@ -33,9 +33,12 @@ export const TICK_WINDOW_DAYS = 14;
 export const GAIN_WINDOW_DAYS = 7;
 export const MAX_OBSERVED_POINTS = 2000;
 export const MAX_ANCHOR_POINTS = 4;
-// Tier B belongs to the :35 slot of odd UTC hours; the scheduler may start a run
-// up to ~15 minutes late, so the slot is recognised from minute 20 onwards.
-export const TIER_B_SLOT_MINUTE = 20;
+// Tier B belongs to the :43 slot of odd UTC hours; the scheduler may start a run
+// late, so the slot is recognised from minute 30 onwards. The boundary moves with the
+// slots: a :13 tick read as Tier B would demand the 550-request reserve and skip the
+// whole tick, Tier A included, which is the regression the split reserve exists to
+// prevent, so it keeps 17 minutes of lateness - more than the :05/:20 pair it replaces.
+export const TIER_B_SLOT_MINUTE = 30;
 
 function exactKeys(value, keys) {
   return value && typeof value === "object" && !Array.isArray(value)

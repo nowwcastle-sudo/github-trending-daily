@@ -1,6 +1,8 @@
 name: Star ticks
 
-# Observes exact total stars for published repositories every 30 minutes and, once
+# Observes exact total stars for published repositories every 30 minutes, on offsets
+# kept away from the start of the hour because GitHub drops scheduled events under
+# load and names that as a high-load window, and, once
 # a day, for every repository ever published (within the cap), then commits the
 # append-only ledgers and redeploys the finalized artifact with the refreshed
 # star-history.json overlay. Code changes are never published here: the builder
@@ -9,7 +11,7 @@ name: Star ticks
 
 on:
   schedule:
-    - cron: "5,35 * * * *"
+    - cron: "13,43 * * * *"
   workflow_dispatch:
     inputs:
       tier:
@@ -69,7 +71,7 @@ jobs:
           REQUESTED_TIER: ${{ inputs.tier || '' }}
         run: |
           set -euo pipefail
-          # Tier B (the archive tier) runs once a day in the :35 slot of an odd UTC hour,
+          # Tier B (the archive tier) runs once a day in the :43 slot of an odd UTC hour,
           # away from the refresh workflow's even-hour REST budget window (resolveTier).
           TIER="$(node scripts/star-ticks.mjs tier --event "$GITHUB_EVENT_NAME" --requested "$REQUESTED_TIER")"
           node scripts/star-ticks.mjs collect --token-env GITHUB_TOKEN --tier "$TIER" --published data/latest.json --ticks-dir data/star-ticks --daily data/star-daily.jsonl --run-id "${{ github.run_id }}" > "${RUNNER_TEMP}/collect.json"

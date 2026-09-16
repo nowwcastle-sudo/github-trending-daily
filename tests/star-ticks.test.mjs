@@ -210,11 +210,14 @@ test("deriveStarHistoryV2 keeps ticks for 14 days, one daily point before, and s
   assert.throws(() => deriveStarHistoryV2({ published: ["Owner/Repo"], tickRuns, dailyRows, anchors: { ...anchors, generatedAt: 5 }, now }), /anchors/);
 });
 
-test("resolveTier observes tier B only in the :35 slot of odd UTC hours on schedule and honours the dispatch input", () => {
+test("resolveTier observes tier B only in the :43 slot of odd UTC hours on schedule and honours the dispatch input", () => {
   const at = value => Date.parse(value);
-  assert.equal(resolveTier({ nowMs: at("2026-09-03T01:36:10Z"), event: "schedule" }), "ab");
-  assert.equal(resolveTier({ nowMs: at("2026-09-03T01:20:00Z"), event: "schedule" }), "ab");
-  assert.equal(resolveTier({ nowMs: at("2026-09-03T01:19:59Z"), event: "schedule" }), "a");
+  assert.equal(resolveTier({ nowMs: at("2026-09-03T01:43:10Z"), event: "schedule" }), "ab");
+  assert.equal(resolveTier({ nowMs: at("2026-09-03T01:30:00Z"), event: "schedule" }), "ab");
+  assert.equal(resolveTier({ nowMs: at("2026-09-03T01:29:59Z"), event: "schedule" }), "a");
+  // A :13 tick keeps 17 minutes of lateness before it would be read as the Tier B slot and
+  // skipped for want of the larger reserve.
+  assert.equal(resolveTier({ nowMs: at("2026-09-03T01:13:00Z"), event: "schedule" }), "a");
   assert.equal(resolveTier({ nowMs: at("2026-09-03T02:36:10Z"), event: "schedule" }), "a");
   assert.equal(resolveTier({ nowMs: at("2026-09-03T01:36:10Z"), event: "workflow_dispatch", requested: "" }), "a");
   assert.equal(resolveTier({ nowMs: at("2026-09-03T02:06:10Z"), event: "workflow_dispatch", requested: "ab" }), "ab");
