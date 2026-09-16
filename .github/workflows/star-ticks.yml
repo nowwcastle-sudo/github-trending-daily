@@ -11,7 +11,9 @@ name: Star ticks
 
 on:
   schedule:
-    - cron: "13,43 * * * *"
+    - cron: "13 * * * *"
+    - cron: "43 0,2,4,6,8,10,12,14,16,18,20,22 * * *"
+    - cron: "43 1,3,5,7,9,11,13,15,17,19,21,23 * * *"
   workflow_dispatch:
     inputs:
       tier:
@@ -69,11 +71,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REQUESTED_TIER: ${{ inputs.tier || '' }}
+          EVENT_SCHEDULE: ${{ github.event.schedule || '' }}
         run: |
           set -euo pipefail
-          # Tier B (the archive tier) runs once a day in the :43 slot of an odd UTC hour,
-          # away from the refresh workflow's even-hour REST budget window (resolveTier).
-          TIER="$(node scripts/star-ticks.mjs tier --event "$GITHUB_EVENT_NAME" --requested "$REQUESTED_TIER")"
+          # The tier comes from the cron entry that fired, never from the clock: this workflow
+          # is delayed routinely, and a run that rolls past the hour would otherwise change
+          # tiers and drop the day's archive observation (resolveTier).
+          TIER="$(node scripts/star-ticks.mjs tier --event "$GITHUB_EVENT_NAME" --requested "$REQUESTED_TIER" --schedule "$EVENT_SCHEDULE")"
           node scripts/star-ticks.mjs collect --token-env GITHUB_TOKEN --tier "$TIER" --published data/latest.json --ticks-dir data/star-ticks --daily data/star-daily.jsonl --run-id "${{ github.run_id }}" > "${RUNNER_TEMP}/collect.json"
           cat "${RUNNER_TEMP}/collect.json"
           SKIPPED="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; process.stdout.write(String(JSON.parse(readFileSync(process.argv[1], "utf8")).skipped === true));' "${RUNNER_TEMP}/collect.json")"

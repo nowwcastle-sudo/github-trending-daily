@@ -33,12 +33,14 @@ export const TICK_WINDOW_DAYS = 14;
 export const GAIN_WINDOW_DAYS = 7;
 export const MAX_OBSERVED_POINTS = 2000;
 export const MAX_ANCHOR_POINTS = 4;
-// Tier B belongs to the :43 slot of odd UTC hours; the scheduler may start a run
-// late, so the slot is recognised from minute 30 onwards. The boundary moves with the
-// slots: a :13 tick read as Tier B would demand the 550-request reserve and skip the
-// whole tick, Tier A included, which is the regression the split reserve exists to
-// prevent, so it keeps 17 minutes of lateness - more than the :05/:20 pair it replaces.
-export const TIER_B_SLOT_MINUTE = 30;
+// The tier belongs to a scheduled slot, and the slot says so itself: GitHub reports the cron
+// entry that fired, and that is exact however late the run starts. Reading it off the clock
+// instead made lateness change the tier in both directions - a Tier A run that crossed a
+// boundary would demand the archive tier's larger reserve and skip the whole tick, and a
+// Tier B run that rolled past the hour would land in an even hour and silently drop the
+// day's archive observation. This workflow is delayed routinely, so neither is hypothetical.
+export const TIER_B_CRON = "43 1,3,5,7,9,11,13,15,17,19,21,23 * * *";
+export const TIER_A_CRONS = Object.freeze(["13 * * * *", "43 0,2,4,6,8,10,12,14,16,18,20,22 * * *"]);
 
 function exactKeys(value, keys) {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -157,14 +159,18 @@ export function selectWatchSet({ published, dailyRows, cap = DEFAULT_WATCH_CAP, 
   return { tierA: [...published], tierB: candidates.slice(0, room).map(candidate => candidate.slug) };
 }
 
-export function resolveTier({ nowMs, event, requested = "" }) {
+export function resolveTier({ event, requested = "", schedule = "" }) {
   if (event === "workflow_dispatch") {
     if (requested === "" || requested === "a") return "a";
     if (requested === "ab") return "ab";
     throw new Error("requested tier must be a or ab");
   }
-  const date = new Date(nowMs);
-  return date.getUTCHours() % 2 === 1 && date.getUTCMinutes() >= TIER_B_SLOT_MINUTE ? "ab" : "a";
+  if (event !== "schedule") throw new Error("tier requires a schedule or workflow_dispatch event");
+  // An unknown cron is a schedule that changed without this resolver: guessing a tier there
+  // would either skip the archive for the day or claim the larger reserve for every tick.
+  if (schedule === TIER_B_CRON) return "ab";
+  if (TIER_A_CRONS.includes(schedule)) return "a";
+  throw new Error("scheduled tier requires a cron entry this resolver knows");
 }
 
 export function assertAppendOnly(existingBytes, newBytes) {
@@ -404,8 +410,8 @@ export async function runStarTicksCli(argv, { environment = process.env, fetchIm
     });
   }
   if (command === "tier") {
-    const args = parseArgs(rest, ["event", "requested"]);
-    return resolveTier({ nowMs: now(), event: args.event, requested: args.requested });
+    const args = parseArgs(rest, ["event", "requested", "schedule"]);
+    return resolveTier({ event: args.event, requested: args.requested, schedule: args.schedule });
   }
   if (command === "derive") {
     const args = parseArgs(rest, ["published", "ticks-dir", "daily", "anchors", "out"]);
