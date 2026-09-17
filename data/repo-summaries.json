@@ -1728,47 +1728,47 @@
   },
   "abue-ammar/tinycast": {
     "content": {
-      "goal": "Tinycast is presented as a tiny, fully native macOS launcher activated by a single hotkey, built with SwiftUI and AppKit with zero third-party dependencies, no Electron, and no telemetry, and it is said to run real Raycast extensions rendered natively in SwiftUI.",
-      "usage": "Installation is done via Homebrew: first run `brew tap abue-ammar/tinycast`, then run `brew install --cask tinycast` for Apple silicon on macOS 26+ (Intel and macOS 15 Sequoia variants are also documented). Afterward, a global hotkey is recorded in Settings to summon the command palette.",
-      "pros": "Documented features include an app launcher, clipboard history, a calculator, quicklinks, snippets, custom shell commands, and window management with 34 Rectangle-style actions, plus calendar/meeting integration and an emoji picker, all reportedly running under 100 MB of RAM.",
-      "cons": "The README states that macOS 15 Sequoia support 'is no longer maintained,' and installing via DMG rather than Homebrew requires manually clearing the quarantine flag because the app is self-signed; contributing also requires an approved issue before a PR is accepted, suggesting the feature set is deliberately kept closed.",
-      "fit": "Given its macOS 26+ requirement (with limited Intel/Sequoia support) and a stated sub-100MB memory footprint, Tinycast appears best suited to macOS users seeking a lightweight, native Raycast-style launcher rather than cross-platform users."
+      "goal": "Tinycast is described as a fully native macOS launcher built with SwiftUI and AppKit using Swift 6.0, summoned by a global hotkey, and documented as using under 100 MB of RAM.",
+      "usage": "Installed via Homebrew: first run `brew tap abue-ammar/tinycast`, then `brew install --cask tinycast` (Apple silicon, macOS 26 or newer) or `brew install --cask tinycast-universal` (Intel, macOS 26). After installing, a global shortcut is set under Settings → General to summon the palette.",
+      "pros": "Documented features include app launching, clipboard history, a calculator, Quicklinks, Apple Shortcuts integration, Snippets, custom shell commands, window management with 34 Rectangle-style actions, and the ability to run existing Raycast extensions natively as SwiftUI. The README also states it has zero third-party dependencies and no telemetry.",
+      "cons": "The README specifies macOS 26 or later is required, which may exclude users on older macOS versions. DMG downloads from Releases are also self-signed and require manually clearing the quarantine flag (`xattr -dr com.apple.quarantine \"/Applications/Tinycast.app\"`), an extra step not needed with the Homebrew install.",
+      "fit": "Tinycast appears suited to Apple silicon or Intel Mac users running macOS 26 or later who want a lightweight native launcher and may already use Raycast extensions; it is distributed free under the AGPL-3.0 license."
     },
     "summaries": {
       "en": {
-        "goal": "Tinycast is presented as a tiny, fully native macOS launcher activated by a single hotkey, built with SwiftUI and AppKit with zero third-party dependencies, no Electron, and no telemetry, and it is said to run real Raycast extensions rendered natively in SwiftUI.",
-        "usage": "Installation is done via Homebrew: first run `brew tap abue-ammar/tinycast`, then run `brew install --cask tinycast` for Apple silicon on macOS 26+ (Intel and macOS 15 Sequoia variants are also documented). Afterward, a global hotkey is recorded in Settings to summon the command palette.",
-        "pros": "Documented features include an app launcher, clipboard history, a calculator, quicklinks, snippets, custom shell commands, and window management with 34 Rectangle-style actions, plus calendar/meeting integration and an emoji picker, all reportedly running under 100 MB of RAM.",
-        "cons": "The README states that macOS 15 Sequoia support 'is no longer maintained,' and installing via DMG rather than Homebrew requires manually clearing the quarantine flag because the app is self-signed; contributing also requires an approved issue before a PR is accepted, suggesting the feature set is deliberately kept closed.",
-        "fit": "Given its macOS 26+ requirement (with limited Intel/Sequoia support) and a stated sub-100MB memory footprint, Tinycast appears best suited to macOS users seeking a lightweight, native Raycast-style launcher rather than cross-platform users."
+        "goal": "Tinycast is described as a fully native macOS launcher built with SwiftUI and AppKit using Swift 6.0, summoned by a global hotkey, and documented as using under 100 MB of RAM.",
+        "usage": "Installed via Homebrew: first run `brew tap abue-ammar/tinycast`, then `brew install --cask tinycast` (Apple silicon, macOS 26 or newer) or `brew install --cask tinycast-universal` (Intel, macOS 26). After installing, a global shortcut is set under Settings → General to summon the palette.",
+        "pros": "Documented features include app launching, clipboard history, a calculator, Quicklinks, Apple Shortcuts integration, Snippets, custom shell commands, window management with 34 Rectangle-style actions, and the ability to run existing Raycast extensions natively as SwiftUI. The README also states it has zero third-party dependencies and no telemetry.",
+        "cons": "The README specifies macOS 26 or later is required, which may exclude users on older macOS versions. DMG downloads from Releases are also self-signed and require manually clearing the quarantine flag (`xattr -dr com.apple.quarantine \"/Applications/Tinycast.app\"`), an extra step not needed with the Homebrew install.",
+        "fit": "Tinycast appears suited to Apple silicon or Intel Mac users running macOS 26 or later who want a lightweight native launcher and may already use Raycast extensions; it is distributed free under the AGPL-3.0 license."
       },
       "ko": {
-        "goal": "Tinycast는 단일 단축키로 실행되는 초경량 macOS 전용 네이티브 런처로 소개되며, SwiftUI와 AppKit으로 제작되어 서드파티 의존성, Electron, 텔레메트리가 전혀 없고, 실제 Raycast 확장 프로그램을 네이티브 SwiftUI로 렌더링하여 실행한다고 설명된다.",
-        "usage": "설치는 Homebrew를 통해 이루어지며, 먼저 `brew tap abue-ammar/tinycast`를 실행한 뒤 Apple 실리콘·macOS 26 이상 사용자는 `brew install --cask tinycast`를 실행한다(Intel 및 macOS 15 Sequoia용 변형도 문서화됨). 이후 설정에서 글로벌 단축키를 등록해 팔레트를 호출한다.",
-        "pros": "앱 런처, 클립보드 기록, 계산기, 퀵링크, 스니펫, 사용자 지정 셸 명령, 34개의 Rectangle 스타일 창 관리 동작, 캘린더/회의 통합, 이모지 선택기 등의 기능이 100MB 미만의 RAM에서 동작한다고 문서화되어 있다.",
-        "cons": "README에는 macOS 15 Sequoia 지원이 '더 이상 유지되지 않는다'고 명시되어 있고, Homebrew가 아닌 DMG로 설치할 경우 앱이 자체 서명되어 있어 격리 플래그를 수동으로 해제해야 한다. 또한 승인된 이슈 없이는 PR이 수락되지 않는다는 규정이 있어 기능 범위가 의도적으로 제한적으로 유지되는 것으로 보인다.",
-        "fit": "macOS 26 이상을 요구하고(Intel/Sequoia 지원은 제한적) 100MB 미만의 메모리 사용을 명시한 점으로 볼 때, Tinycast는 크로스플랫폼 사용자보다는 가볍고 네이티브한 Raycast 대안을 원하는 macOS 사용자에게 적합해 보인다."
+        "goal": "Tinycast는 SwiftUI와 AppKit으로 만들어진 완전한 네이티브 macOS 런처로, Swift 6.0을 사용하며 단축키로 실행되고 램 사용량이 100MB 미만이라고 문서화되어 있습니다.",
+        "usage": "Homebrew로 설치하며, 먼저 `brew tap abue-ammar/tinycast`를 실행한 뒤 `brew install --cask tinycast`(Apple 실리콘, macOS 26 이상) 또는 `brew install --cask tinycast-universal`(Intel, macOS 26)을 실행합니다. 설치 후 설정 → 일반에서 전역 단축키를 지정해 팔레트를 불러옵니다.",
+        "pros": "앱 실행, 클립보드 기록, 계산기, Quicklinks, Apple 단축어 연동, 스니펫, 사용자 지정 셸 명령, 34가지 Rectangle 스타일 창 관리 동작, 기존 Raycast 확장 프로그램을 네이티브 SwiftUI로 실행하는 기능이 문서화되어 있습니다. 서드파티 종속성이 없고 텔레메트리가 없다고도 명시되어 있습니다.",
+        "cons": "문서에 따르면 macOS 26 이상이 필요하여 이전 버전 macOS 사용자는 이용하지 못할 수 있습니다. 또한 Releases에서 받은 DMG는 자체 서명되어 있어 격리 플래그를 수동으로 해제해야 합니다(`xattr -dr com.apple.quarantine \"/Applications/Tinycast.app\"`), Homebrew 설치에는 필요 없는 추가 단계입니다.",
+        "fit": "Tinycast는 macOS 26 이상을 실행하는 Apple 실리콘 또는 Intel Mac 사용자, 특히 가벼운 네이티브 런처와 기존 Raycast 확장 프로그램 활용을 원하는 사용자에게 적합할 것으로 보이며, AGPL-3.0 라이선스로 무료 제공됩니다."
       },
       "zh-CN": {
-        "goal": "文档将 Tinycast 描述为一款体积极小的原生 macOS 启动器,通过单一快捷键调用,使用 SwiftUI 和 AppKit 构建,不依赖任何第三方库、不使用 Electron、也无遥测功能,并能以原生 SwiftUI 方式渲染并运行真实的 Raycast 扩展。",
-        "usage": "安装通过 Homebrew 完成:先执行 `brew tap abue-ammar/tinycast`,再针对 Apple 芯片及 macOS 26 及以上机型执行 `brew install --cask tinycast`(另有 Intel 与 macOS 15 Sequoia 的变体);随后在设置中录制全局快捷键以调出面板。",
-        "pros": "文档列出的功能包括应用启动器、剪贴板历史、计算器、快速链接、代码片段、自定义 shell 命令,以及包含 34 个 Rectangle 风格动作的窗口管理功能、日历/会议集成和表情选择器,且据称内存占用不足 100MB。",
-        "cons": "README 说明 macOS 15 Sequoia 支持“已不再维护”,且若通过 DMG(而非 Homebrew)安装,由于应用为自签名,需要手动清除隔离标记;此外贡献规则要求在提交 PR 前必须先获得已批准的 issue,否则 PR 不会被接受,这似乎表明其功能范围是有意保持封闭的。",
-        "fit": "鉴于其要求 macOS 26 及以上(对 Intel/Sequoia 的支持有限)且宣称内存占用低于 100MB,Tinycast 似乎更适合追求轻量级原生 Raycast 替代方案的 macOS 用户,而非跨平台用户。"
+        "goal": "Tinycast被描述为一款使用SwiftUI和AppKit构建、采用Swift 6.0的完全原生macOS启动器,通过快捷键调用,文档称其内存占用低于100MB。",
+        "usage": "通过Homebrew安装:先执行`brew tap abue-ammar/tinycast`,再根据机型执行`brew install --cask tinycast`(Apple芯片,macOS 26及以上)或`brew install --cask tinycast-universal`(Intel,macOS 26)。安装后在“设置→通用”中设置全局快捷键以呼出面板。",
+        "pros": "文档列出的功能包括应用启动、剪贴板历史、计算器、Quicklinks、Apple快捷指令集成、代码片段、自定义shell命令、34种Rectangle风格的窗口管理操作,以及以原生SwiftUI方式运行现有Raycast扩展的能力。README还说明其没有第三方依赖,也没有遥测。",
+        "cons": "README说明需要macOS 26或更高版本,这可能使运行较旧macOS版本的用户无法使用。此外,从Releases下载的DMG为自签名,需要手动清除隔离标志(`xattr -dr com.apple.quarantine \"/Applications/Tinycast.app\"`),这是Homebrew安装所不需要的额外步骤。",
+        "fit": "Tinycast似乎适合运行macOS 26及以上系统的Apple芯片或Intel Mac用户,尤其是希望使用轻量级原生启动器并可能已在使用Raycast扩展的用户;该项目基于AGPL-3.0许可,免费提供。"
       },
       "es": {
-        "goal": "Tinycast se presenta como un lanzador nativo para macOS extremadamente ligero, activado con una sola tecla de acceso rápido, construido con SwiftUI y AppKit sin dependencias de terceros, sin Electron y sin telemetría, y capaz de ejecutar extensiones reales de Raycast renderizadas de forma nativa en SwiftUI.",
-        "usage": "La instalación se realiza mediante Homebrew: primero se ejecuta `brew tap abue-ammar/tinycast` y luego `brew install --cask tinycast` para Apple Silicon en macOS 26 o superior (existen variantes documentadas para Intel y macOS 15 Sequoia). Después se configura un atajo global en Ajustes para invocar la paleta.",
-        "pros": "Entre las funciones documentadas están el lanzador de aplicaciones, historial de portapapeles, calculadora, quicklinks, snippets, comandos de shell personalizados y gestión de ventanas con 34 acciones al estilo Rectangle, además de integración de calendario/reuniones y un selector de emojis, todo ello con un uso de memoria declarado por debajo de 100 MB.",
-        "cons": "El README señala que el soporte para macOS 15 Sequoia 'ya no se mantiene', y que instalar mediante DMG en lugar de Homebrew exige quitar manualmente la marca de cuarentena porque la app está autofirmada; además, las contribuciones requieren un issue aprobado antes de que se acepte un PR, lo que sugiere un alcance de funciones deliberadamente cerrado.",
-        "fit": "Dado su requisito de macOS 26 o superior (con soporte limitado para Intel/Sequoia) y un uso de memoria declarado por debajo de 100 MB, Tinycast parece orientado a usuarios de macOS que buscan una alternativa nativa y ligera a Raycast, más que a usuarios multiplataforma."
+        "goal": "Tinycast se describe como un lanzador nativo para macOS construido con SwiftUI y AppKit, con Swift 6.0, que se invoca mediante una tecla de acceso rápido y que, según la documentación, usa menos de 100 MB de RAM.",
+        "usage": "Se instala mediante Homebrew: primero se ejecuta `brew tap abue-ammar/tinycast` y luego, según el equipo, `brew install --cask tinycast` (Apple silicon, macOS 26 o posterior) o `brew install --cask tinycast-universal` (Intel, macOS 26). Tras la instalación, se configura un atajo global en Ajustes → General para invocar la paleta.",
+        "pros": "Las funciones documentadas incluyen lanzador de aplicaciones, historial del portapapeles, calculadora, Quicklinks, integración con Atajos de Apple, fragmentos de texto, comandos de shell personalizados, gestión de ventanas con 34 acciones al estilo Rectangle, y la capacidad de ejecutar extensiones existentes de Raycast de forma nativa en SwiftUI. El README también indica que no tiene dependencias de terceros ni telemetría.",
+        "cons": "El README especifica que se requiere macOS 26 o posterior, lo que podría excluir a usuarios con versiones anteriores de macOS. Además, los DMG descargados desde Releases están autofirmados y requieren eliminar manualmente el indicador de cuarentena (`xattr -dr com.apple.quarantine \"/Applications/Tinycast.app\"`), un paso adicional que no es necesario con la instalación vía Homebrew.",
+        "fit": "Tinycast parece adecuado para usuarios de Mac con Apple silicon o Intel que ejecuten macOS 26 o posterior y busquen un lanzador nativo ligero, posiblemente ya familiarizados con extensiones de Raycast; se distribuye de forma gratuita bajo la licencia AGPL-3.0."
       },
       "ja": {
-        "goal": "Tinycastは、単一のホットキーで呼び出せる非常に軽量なネイティブmacOSランチャーとして紹介されており、SwiftUIとAppKitで構築され、サードパーティ依存やElectron、テレメトリを一切使わず、実際のRaycast拡張機能をネイティブSwiftUIとしてレンダリングして実行するとされている。",
-        "usage": "インストールはHomebrew経由で行われ、まず `brew tap abue-ammar/tinycast` を実行し、続いてApple silicon・macOS 26以降であれば `brew install --cask tinycast` を実行する(IntelやmacOS 15 Sequoia向けの派生版も記載されている)。その後、設定画面でグローバルショートカットを登録してパレットを呼び出す。",
-        "pros": "文書化されている機能には、アプリランチャー、クリップボード履歴、電卓、クイックリンク、スニペット、カスタムシェルコマンド、34種類のRectangle風アクションを備えたウィンドウ管理、カレンダー/会議連携、絵文字ピッカーなどがあり、これらはメモリ使用量100MB未満で動作するとされている。",
-        "cons": "READMEにはmacOS 15 Sequoiaのサポートは「もはやメンテナンスされていない」と明記されており、Homebrewではなく DMGでインストールする場合、アプリが自己署名であるため隔離フラグを手動で解除する必要がある。また、承認済みのissueがない状態ではPRが受理されないという規定があり、機能範囲は意図的に限定されているようだ。",
-        "fit": "macOS 26以降を必要とし(Intel/Sequoiaへの対応は限定的)、メモリ使用量が100MB未満とされていることから、Tinycastはクロスプラットフォーム利用者よりも、軽量でネイティブなRaycast代替を求めるmacOSユーザーに向いていると考えられる。"
+        "goal": "TinycastはSwiftUIとAppKitで構築されたSwift 6.0採用の完全ネイティブmacOSランチャーとされ、ホットキーで呼び出され、ドキュメントによるとRAM使用量は100MB未満とされています。",
+        "usage": "Homebrewでインストールします。まず`brew tap abue-ammar/tinycast`を実行し、機種に応じて`brew install --cask tinycast`(Apple silicon、macOS 26以降)または`brew install --cask tinycast-universal`(Intel、macOS 26)を実行します。インストール後は設定→一般でグローバルショートカットを登録してパレットを呼び出します。",
+        "pros": "ドキュメントに記載されている機能には、アプリランチャー、クリップボード履歴、計算機、Quicklinks、Apple ショートカット連携、スニペット、カスタムシェルコマンド、34種類のRectangle風ウィンドウ管理操作、既存のRaycast拡張機能をネイティブSwiftUIとして実行する機能などがあります。READMEにはサードパーティ依存がなく、テレメトリもないとも記載されています。",
+        "cons": "READMEによるとmacOS 26以降が必要とされており、これより古いmacOSのユーザーは利用できない可能性があります。また、Releasesからダウンロードしたdmgは自己署名のため、隔離フラグを手動で解除する必要があります(`xattr -dr com.apple.quarantine \"/Applications/Tinycast.app\"`)。これはHomebrewインストールでは不要な追加手順です。",
+        "fit": "TinycastはmacOS 26以降を実行するApple siliconまたはIntel Macのユーザー、特に軽量なネイティブランチャーを求め、Raycast拡張機能をすでに利用している可能性のあるユーザーに適していると考えられ、AGPL-3.0ライセンスの下で無料で提供されています。"
       }
     },
     "evidence": {
@@ -1776,6 +1776,11 @@
         {
           "start_line": 3,
           "end_line": 4,
+          "section_heading": "Tinycast"
+        },
+        {
+          "start_line": 10,
+          "end_line": 11,
           "section_heading": "Tinycast"
         },
         {
@@ -1787,47 +1792,37 @@
       "usage": [
         {
           "start_line": 80,
-          "end_line": 83,
+          "end_line": 90,
           "section_heading": "Install"
         },
         {
-          "start_line": 89,
-          "end_line": 89,
-          "section_heading": "Install"
+          "start_line": 112,
+          "end_line": 113,
+          "section_heading": "Using it"
         }
       ],
       "pros": [
         {
           "start_line": 47,
-          "end_line": 48,
+          "end_line": 74,
           "section_heading": "Features"
         },
         {
-          "start_line": 62,
-          "end_line": 63,
-          "section_heading": "Features"
-        },
-        {
-          "start_line": 53,
-          "end_line": 53,
-          "section_heading": "Features"
+          "start_line": 25,
+          "end_line": 26,
+          "section_heading": "Tinycast"
         }
       ],
       "cons": [
         {
-          "start_line": 91,
-          "end_line": 91,
+          "start_line": 92,
+          "end_line": 96,
           "section_heading": "Install"
         },
         {
-          "start_line": 99,
-          "end_line": 102,
+          "start_line": 98,
+          "end_line": 101,
           "section_heading": "Install"
-        },
-        {
-          "start_line": 127,
-          "end_line": 134,
-          "section_heading": "Contributing"
         }
       ],
       "fit": [
@@ -1840,6 +1835,11 @@
           "start_line": 3,
           "end_line": 4,
           "section_heading": "Tinycast"
+        },
+        {
+          "start_line": 144,
+          "end_line": 144,
+          "section_heading": "License"
         }
       ]
     },
@@ -1860,9 +1860,17 @@
       },
       {
         "kind": "version",
+        "value": "Swift 6.0",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "version",
         "value": "macOS 26",
         "fields": [
           "usage",
+          "cons",
           "fit"
         ]
       },
@@ -1870,7 +1878,7 @@
         "kind": "number",
         "value": "100 MB",
         "fields": [
-          "pros"
+          "goal"
         ]
       },
       {
@@ -1886,6 +1894,7 @@
         "fields": [
           "goal",
           "usage",
+          "cons",
           "fit"
         ]
       },
@@ -1893,16 +1902,8 @@
         "kind": "product",
         "value": "Raycast",
         "fields": [
-          "goal",
+          "pros",
           "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Homebrew",
-        "fields": [
-          "usage",
-          "cons"
         ]
       }
     ],
@@ -1914,8 +1915,197 @@
       "kind": "readme",
       "slug": "abue-ammar/tinycast",
       "path": "README.md",
-      "blob_sha": "e2a6216aee0abdea840a017973c5c1a3d43c2a18",
-      "content_sha256": "a27b149fa5383baf2aa685f04e35eceada06333f954a2cae1ff06815c08237ca",
+      "blob_sha": "2160bc402c839aac38453371059c4894450c5512",
+      "content_sha256": "adaa40160d15a8e0093841af56904c8d67e5dd0d74a064dfff14c0f2f1ee8cd3",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.263",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "cilium/cilium": {
+    "content": {
+      "goal": "Cilium is a networking, observability, and security solution built on an eBPF-based dataplane. It provides a flat Layer 3 network across single or multiple clusters using native routing or overlay mode, and enforces identity-based security policies across L3-L7 that are decoupled from network addressing.",
+      "usage": "Cilium is deployed as a CNI plugin for Kubernetes clusters, following the installation guide linked from the 'Installing Cilium' section. Stable images are published, for example, as quay.io/cilium/cilium:v1.20.2, with documented maintained branches v1.20, v1.19, and v1.18.",
+      "pros": "eBPF-based distributed load balancing can fully replace kube-proxy; identity-based L3-L7 network policies support DNS- and HTTP-aware rules; Cluster Mesh enables multi-cluster connectivity; and built-in observability via Hubble integrates with Prometheus/Grafana.",
+      "cons": "Native routing mode requires the underlying network to be able to route application container IP addresses directly, which may limit deployment options depending on existing infrastructure. Additionally, only the last three minor Cilium versions receive maintained stable releases, with older versions considered EOL.",
+      "fit": "Cilium appears well suited for Kubernetes and multi-cluster environments needing eBPF-based networking, L7-aware security policy enforcement, and service mesh capabilities; images are distributed for AMD64 and AArch64 architectures."
+    },
+    "summaries": {
+      "en": {
+        "goal": "Cilium is a networking, observability, and security solution built on an eBPF-based dataplane. It provides a flat Layer 3 network across single or multiple clusters using native routing or overlay mode, and enforces identity-based security policies across L3-L7 that are decoupled from network addressing.",
+        "usage": "Cilium is deployed as a CNI plugin for Kubernetes clusters, following the installation guide linked from the 'Installing Cilium' section. Stable images are published, for example, as quay.io/cilium/cilium:v1.20.2, with documented maintained branches v1.20, v1.19, and v1.18.",
+        "pros": "eBPF-based distributed load balancing can fully replace kube-proxy; identity-based L3-L7 network policies support DNS- and HTTP-aware rules; Cluster Mesh enables multi-cluster connectivity; and built-in observability via Hubble integrates with Prometheus/Grafana.",
+        "cons": "Native routing mode requires the underlying network to be able to route application container IP addresses directly, which may limit deployment options depending on existing infrastructure. Additionally, only the last three minor Cilium versions receive maintained stable releases, with older versions considered EOL.",
+        "fit": "Cilium appears well suited for Kubernetes and multi-cluster environments needing eBPF-based networking, L7-aware security policy enforcement, and service mesh capabilities; images are distributed for AMD64 and AArch64 architectures."
+      },
+      "ko": {
+        "goal": "Cilium은 eBPF 기반 데이터플레인을 사용하는 네트워킹, 관찰성(observability), 보안 솔루션입니다. 단일 또는 다중 클러스터에 걸쳐 평면적인 Layer 3 네트워크를 네이티브 라우팅 또는 오버레이 모드로 제공하며, 네트워크 주소와 분리된 신원 기반 보안 모델로 L3-L7 정책을 시행합니다.",
+        "usage": "Cilium은 Kubernetes 클러스터의 CNI 플러그인으로 배포되며, 'Installing Cilium' 섹션에 링크된 설치 가이드를 따릅니다. 예를 들어 안정 버전 이미지는 quay.io/cilium/cilium:v1.20.2로 제공되며, 문서화된 유지 관리 브랜치는 v1.20, v1.19, v1.18입니다.",
+        "pros": "eBPF 기반의 분산 로드밸런싱으로 kube-proxy를 완전히 대체할 수 있고, DNS 및 HTTP 인식 규칙을 포함한 신원 기반 L3-L7 네트워크 정책, 다중 클러스터 연결을 위한 Cluster Mesh, Prometheus/Grafana와 연동되는 Hubble 기반 관찰성을 제공합니다.",
+        "cons": "네이티브 라우팅 모드는 기본 네트워크가 애플리케이션 컨테이너의 IP 주소를 직접 라우팅할 수 있어야 하므로, 기존 인프라에 따라 배포 옵션이 제한될 수 있습니다. 또한 최근 세 개의 마이너 버전만 유지 관리되는 안정 릴리스로 지원되며, 이전 버전은 EOL(수명 종료)로 간주됩니다.",
+        "fit": "Cilium은 eBPF 기반 네트워킹, L7 인식 보안 정책 시행, 서비스 메시 기능이 필요한 Kubernetes 및 다중 클러스터 환경에 적합해 보이며, 이미지는 AMD64 및 AArch64 아키텍처로 배포됩니다."
+      },
+      "zh-CN": {
+        "goal": "Cilium 是一个基于 eBPF 数据平面的网络、可观测性与安全解决方案,可在单集群或跨多集群提供扁平的第 3 层网络,支持原生路由或覆盖网络模式,并使用与网络地址解耦的基于身份的安全模型在 L3-L7 层实施策略。",
+        "usage": "Cilium 作为 CNI 插件部署在 Kubernetes 集群中,可按照 'Installing Cilium' 部分链接的安装指南进行配置;例如稳定版镜像发布为 quay.io/cilium/cilium:v1.20.2,记录在案的维护分支为 v1.20、v1.19 和 v1.18。",
+        "pros": "基于 eBPF 的分布式负载均衡可完全替代 kube-proxy,支持包含 DNS 与 HTTP 感知规则的基于身份的 L3-L7 网络策略,提供用于多集群互联的 Cluster Mesh,并通过 Hubble 结合 Prometheus/Grafana 提供内置可观测性。",
+        "cons": "原生路由模式要求底层网络能够直接路由应用容器的 IP 地址,这可能根据现有基础设施限制部署选项。此外,仅最近三个次要版本获得持续维护的稳定发行版,更早版本被视为已停止支持(EOL)。",
+        "fit": "Cilium 似乎更适合需要基于 eBPF 的网络、L7 感知安全策略实施和服务网格能力的 Kubernetes 及多集群环境,镜像面向 AMD64 与 AArch64 架构发布。"
+      },
+      "es": {
+        "goal": "Cilium es una solución de redes, observabilidad y seguridad basada en un plano de datos eBPF. Ofrece una red plana de Capa 3 en uno o varios clústeres mediante enrutamiento nativo o modo overlay, y aplica políticas de seguridad basadas en identidad en L3-L7, desacopladas del direccionamiento de red.",
+        "usage": "Cilium se implementa como plugin CNI para clústeres de Kubernetes, siguiendo la guía de instalación enlazada en la sección 'Installing Cilium'; por ejemplo, las imágenes estables se publican como quay.io/cilium/cilium:v1.20.2, y las ramas de mantenimiento documentadas son v1.20, v1.19 y v1.18.",
+        "pros": "El balanceo de carga distribuido basado en eBPF puede reemplazar completamente a kube-proxy, admite políticas de red L3-L7 basadas en identidad con reglas conscientes de DNS y HTTP, ofrece Cluster Mesh para conectividad multiclúster, y observabilidad integrada mediante Hubble con integración a Prometheus/Grafana.",
+        "cons": "El modo de enrutamiento nativo requiere que la red subyacente pueda enrutar directamente las direcciones IP de los contenedores de aplicaciones, lo que podría limitar las opciones de implementación según la infraestructura existente. Además, solo se mantienen versiones estables para las últimas tres versiones menores de Cilium, considerándose EOL las anteriores.",
+        "fit": "Cilium parece adecuado para entornos de Kubernetes y multiclúster que requieren redes basadas en eBPF, aplicación de políticas de seguridad conscientes de L7 y capacidades de malla de servicios; las imágenes se distribuyen para arquitecturas AMD64 y AArch64."
+      },
+      "ja": {
+        "goal": "Cilium は eBPF ベースのデータプレーンを用いたネットワーキング、可観測性、セキュリティのソリューションです。単一または複数のクラスタにまたがるフラットな Layer 3 ネットワークを、ネイティブルーティングまたはオーバーレイモードで提供し、ネットワークアドレスから切り離されたアイデンティティベースのセキュリティモデルで L3-L7 のポリシーを適用します。",
+        "usage": "Cilium は Kubernetes クラスタ向けの CNI プラグインとしてデプロイされ、'Installing Cilium' セクションにリンクされたインストールガイドに従って構成します。例えば安定版イメージは quay.io/cilium/cilium:v1.20.2 として公開され、文書化されているメンテナンスブランチは v1.20、v1.19、v1.18 です。",
+        "pros": "eBPF ベースの分散ロードバランシングにより kube-proxy を完全に置き換えることができ、DNS および HTTP 対応ルールを含むアイデンティティベースの L3-L7 ネットワークポリシー、マルチクラスタ接続のための Cluster Mesh、Prometheus/Grafana と連携する Hubble による組み込みの可観測性を提供します。",
+        "cons": "ネイティブルーティングモードでは、基盤となるネットワークがアプリケーションコンテナの IP アドレスを直接ルーティングできる必要があり、既存のインフラストラクチャによっては展開オプションが制限される可能性があります。また、直近の3つのマイナーバージョンのみが安定版として保守され、それ以前のバージョンは EOL とみなされます。",
+        "fit": "Cilium は eBPF ベースのネットワーキング、L7 対応のセキュリティポリシー適用、サービスメッシュ機能を必要とする Kubernetes およびマルチクラスタ環境に適していると考えられ、イメージは AMD64 および AArch64 アーキテクチャ向けに配布されます。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 10,
+          "end_line": 14,
+          "section_heading": ""
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 58,
+          "end_line": 64,
+          "section_heading": "Stable Releases"
+        },
+        {
+          "start_line": 236,
+          "end_line": 244,
+          "section_heading": "Getting Started"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 139,
+          "end_line": 146,
+          "section_heading": "Load Balancing"
+        },
+        {
+          "start_line": 164,
+          "end_line": 193,
+          "section_heading": "Network Policy"
+        },
+        {
+          "start_line": 223,
+          "end_line": 233,
+          "section_heading": "Observability and Troubleshooting"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 118,
+          "end_line": 121,
+          "section_heading": "CNI (Container Network Interface)"
+        },
+        {
+          "start_line": 49,
+          "end_line": 51,
+          "section_heading": "Stable Releases"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 66,
+          "end_line": 69,
+          "section_heading": "Architectures"
+        },
+        {
+          "start_line": 147,
+          "end_line": 153,
+          "section_heading": "Cluster Mesh"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "product",
+        "value": "Cilium",
+        "fields": [
+          "goal",
+          "usage",
+          "cons",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "quay.io/cilium/cilium:v1.20.2",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "v1.20",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "v1.19",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "v1.18",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Hubble",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "kube-proxy",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Cluster Mesh",
+        "fields": [
+          "pros"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "cons",
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "cilium/cilium",
+      "path": "README.rst",
+      "blob_sha": "89e1c3798d88b4f685840a717686f76c97b00ba9",
+      "content_sha256": "e9e50bdafcee30394949bbd81201909afa55a13865eb9ef1d9dec065fd13af41",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -7560,47 +7750,47 @@
   },
   "vorssaint/vorssaint-utils": {
     "content": {
-      "goal": "Vorssaint is a free, open-source macOS menu bar utility bundling tools such as per-app volume mixing, a system monitor, window snapping, an app switcher, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller into one icon, replacing utilities Mac users otherwise buy separately, without account, telemetry, or subscription.",
-      "usage": "Install with Homebrew via `brew install --cask vorssaint`, or download the disk image from the GitHub releases page. To build from source, run `git clone https://github.com/vorssaint/vorssaint-utils.git` then `./build.sh` (or `./build.sh --install` to install and launch). Remove it with `brew uninstall --cask vorssaint` or `./Tools/uninstall.sh` for full removal of settings and permissions.",
-      "pros": "Features install and uninstall independently, so unused ones stop consuming CPU, memory, or energy. The README describes it as local-first with no account, analytics, or tracking, with optional, plainly explained permissions. Builds are signed with an Apple Developer ID and notarized.",
-      "cons": "It requires an Apple Silicon Mac running macOS 14 Sonoma or newer, which implies Intel Macs and older macOS versions are not supported. Building from source needs Xcode Command Line Tools. One optional feature, online lyric lookup, sends track metadata externally, an exception to its otherwise local-first network approach.",
-      "fit": "This appears to suit Apple Silicon Mac users on macOS 14+ who want to consolidate several paid utility-app categories into one free, open-source menu bar tool, particularly those valuing modular installs and transparent permissions; it likely does not fit users on Intel hardware or older macOS releases."
+      "goal": "Vorssaint is a free, open-source macOS menu bar utility application that bundles many small tools — a per-app volume mixer, a system monitor, an app switcher, window snapping, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller — behind one icon, positioned as a substitute for buying several separate paid Mac utilities.",
+      "usage": "Vorssaint can be installed with Homebrew using `brew install --cask vorssaint`, or by downloading a disk image from the GitHub releases page (https://github.com/vorssaint/vorssaint-utils/releases). To build from source: `git clone https://github.com/vorssaint/vorssaint-utils.git`, then run `./build.sh` to compile and assemble the app, or `./build.sh --install` to also install it into Applications.",
+      "pros": "The app requires no account, runs with no telemetry and no subscription, and individual features can be installed or uninstalled independently so unused ones stop consuming resources. Permissions are optional and each one is explained in the app. Distributed builds are signed with an Apple Developer ID and notarized.",
+      "cons": "Because Vorssaint targets macOS 14 (Sonoma) or newer on Apple Silicon Macs, it likely does not support older macOS versions or Intel-based Macs, though the README does not state this explicitly. Building the app from source also requires Xcode Command Line Tools to be installed.",
+      "fit": "Vorssaint appears best suited to users on Apple Silicon Macs running macOS 14 or later who want to consolidate several separate menu bar utilities into one modular, permission-transparent app rather than users on older or Intel-based Macs."
     },
     "summaries": {
       "en": {
-        "goal": "Vorssaint is a free, open-source macOS menu bar utility bundling tools such as per-app volume mixing, a system monitor, window snapping, an app switcher, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller into one icon, replacing utilities Mac users otherwise buy separately, without account, telemetry, or subscription.",
-        "usage": "Install with Homebrew via `brew install --cask vorssaint`, or download the disk image from the GitHub releases page. To build from source, run `git clone https://github.com/vorssaint/vorssaint-utils.git` then `./build.sh` (or `./build.sh --install` to install and launch). Remove it with `brew uninstall --cask vorssaint` or `./Tools/uninstall.sh` for full removal of settings and permissions.",
-        "pros": "Features install and uninstall independently, so unused ones stop consuming CPU, memory, or energy. The README describes it as local-first with no account, analytics, or tracking, with optional, plainly explained permissions. Builds are signed with an Apple Developer ID and notarized.",
-        "cons": "It requires an Apple Silicon Mac running macOS 14 Sonoma or newer, which implies Intel Macs and older macOS versions are not supported. Building from source needs Xcode Command Line Tools. One optional feature, online lyric lookup, sends track metadata externally, an exception to its otherwise local-first network approach.",
-        "fit": "This appears to suit Apple Silicon Mac users on macOS 14+ who want to consolidate several paid utility-app categories into one free, open-source menu bar tool, particularly those valuing modular installs and transparent permissions; it likely does not fit users on Intel hardware or older macOS releases."
+        "goal": "Vorssaint is a free, open-source macOS menu bar utility application that bundles many small tools — a per-app volume mixer, a system monitor, an app switcher, window snapping, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller — behind one icon, positioned as a substitute for buying several separate paid Mac utilities.",
+        "usage": "Vorssaint can be installed with Homebrew using `brew install --cask vorssaint`, or by downloading a disk image from the GitHub releases page (https://github.com/vorssaint/vorssaint-utils/releases). To build from source: `git clone https://github.com/vorssaint/vorssaint-utils.git`, then run `./build.sh` to compile and assemble the app, or `./build.sh --install` to also install it into Applications.",
+        "pros": "The app requires no account, runs with no telemetry and no subscription, and individual features can be installed or uninstalled independently so unused ones stop consuming resources. Permissions are optional and each one is explained in the app. Distributed builds are signed with an Apple Developer ID and notarized.",
+        "cons": "Because Vorssaint targets macOS 14 (Sonoma) or newer on Apple Silicon Macs, it likely does not support older macOS versions or Intel-based Macs, though the README does not state this explicitly. Building the app from source also requires Xcode Command Line Tools to be installed.",
+        "fit": "Vorssaint appears best suited to users on Apple Silicon Macs running macOS 14 or later who want to consolidate several separate menu bar utilities into one modular, permission-transparent app rather than users on older or Intel-based Macs."
       },
       "ko": {
-        "goal": "Vorssaint는 볼륨 믹서, 시스템 모니터, 창 스냅, 앱 전환기, Dock 미리보기, 클립보드 기록, 텍스트 스니펫, 파일 선반, 제거 도구 등을 하나의 메뉴 막대 아이콘에 모은 무료 오픈소스 macOS 유틸리티로, 계정·원격 측정·구독 없이 여러 유료 앱을 대체하는 것을 목표로 한다.",
-        "usage": "Homebrew로 `brew install --cask vorssaint` 명령을 실행하거나 GitHub 릴리스 페이지에서 디스크 이미지를 내려받아 설치할 수 있다. 소스에서 빌드하려면 `git clone https://github.com/vorssaint/vorssaint-utils.git` 후 `./build.sh`(설치와 실행까지 하려면 `./build.sh --install`)를 실행한다. 제거는 `brew uninstall --cask vorssaint` 또는 설정과 권한까지 완전히 지우는 `./Tools/uninstall.sh`로 한다.",
-        "pros": "각 기능을 개별적으로 설치·제거할 수 있어 사용하지 않는 기능은 CPU·메모리·에너지를 소모하지 않는다. README에 따르면 계정, 분석, 추적 없이 로컬 우선으로 동작하며 권한은 선택적이고 기능별로 명확히 설명된다. 빌드는 Apple Developer ID로 서명되고 공증을 받는다.",
-        "cons": "Apple Silicon Mac에서 macOS 14 Sonoma 이상이 필요하다고 명시되어 있어, 이는 인텔 Mac과 이전 macOS 버전은 지원되지 않음을 시사한다. 소스 빌드에는 Xcode Command Line Tools가 필요하다. 선택 기능인 온라인 가사 조회는 트랙 메타데이터를 외부로 전송하는데, 이는 로컬 우선 방식의 예외로 보인다.",
-        "fit": "Apple Silicon Mac을 macOS 14 이상에서 사용하며 여러 유료 유틸리티 앱 기능을 하나의 무료 오픈소스 메뉴 막대 도구로 통합하고 싶은 사용자, 특히 모듈식 설치와 투명한 권한 처리를 중시하는 사용자에게 적합해 보인다. 인텔 하드웨어나 이전 macOS를 사용하는 사용자에게는 맞지 않을 가능성이 크다."
+        "goal": "Vorssaint는 무료 오픈소스 macOS 메뉴바 유틸리티 애플리케이션으로, 앱별 볼륨 믹서, 시스템 모니터, 앱 전환기, 창 스냅, Dock 미리보기, 클립보드 기록, 텍스트 스니펫, 파일 선반, 제거 도구 등 여러 소규모 도구를 하나의 아이콘 아래 묶어 제공하며, 여러 유료 Mac 유틸리티를 대체하는 것을 목표로 하는 것으로 보입니다.",
+        "usage": "Vorssaint는 Homebrew로 `brew install --cask vorssaint` 명령을 실행하거나, GitHub 릴리스 페이지(https://github.com/vorssaint/vorssaint-utils/releases)에서 디스크 이미지를 내려받아 설치할 수 있습니다. 소스에서 직접 빌드하려면 `git clone https://github.com/vorssaint/vorssaint-utils.git` 후 `./build.sh`로 컴파일 및 앱 구성을 하거나, `./build.sh --install`로 Applications 폴더에 설치까지 진행할 수 있습니다.",
+        "pros": "계정이 필요 없고 원격 측정(텔레메트리)이나 구독이 없으며, 개별 기능을 따로 설치·제거할 수 있어 사용하지 않는 기능은 리소스를 소모하지 않습니다. 권한은 모두 선택 사항이며 앱 내에서 각각 설명됩니다. 배포되는 빌드는 Apple Developer ID로 서명되고 공증(notarize)되어 있습니다.",
+        "cons": "Vorssaint는 macOS 14(Sonoma) 이상 및 Apple Silicon Mac을 대상으로 하므로, README에 명시되어 있지는 않지만 이전 macOS 버전이나 Intel 기반 Mac은 지원하지 않을 가능성이 있습니다. 또한 소스에서 직접 빌드하려면 Xcode Command Line Tools 설치가 필요합니다.",
+        "fit": "Vorssaint는 macOS 14 이상을 실행하는 Apple Silicon Mac 사용자가 여러 개별 메뉴바 유틸리티를 하나의 모듈형, 권한 투명성을 갖춘 앱으로 통합하고자 할 때 적합해 보이며, 이전 버전이나 Intel 기반 Mac 사용자에게는 적합하지 않을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "Vorssaint 是一款免费开源的 macOS 菜单栏工具，将逐应用音量混音、系统监视器、窗口贴靠、应用切换器、Dock 预览、剪贴板历史、文本片段、文件搁架和卸载工具等功能整合到一个图标中，旨在替代用户原本需要分别购买的多款实用工具，且无需账户、遥测或订阅。",
-        "usage": "可通过 Homebrew 执行 `brew install --cask vorssaint` 安装，或从 GitHub 发布页面下载磁盘映像。若要从源码构建，先运行 `git clone https://github.com/vorssaint/vorssaint-utils.git`，再执行 `./build.sh`（若要同时安装并启动则用 `./build.sh --install`）。卸载可使用 `brew uninstall --cask vorssaint`，或运行 `./Tools/uninstall.sh` 以彻底清除设置和权限。",
-        "pros": "各功能可独立安装或卸载，未使用的功能不会占用 CPU、内存或电量。README 称其以本地优先运行，不含账户、分析或追踪，权限均为可选且按功能明确说明。构建版本使用 Apple Developer ID 签名并经过公证。",
-        "cons": "文档明确要求 Apple Silicon Mac 并运行 macOS 14 Sonoma 或更新版本，这意味着英特尔 Mac 及更旧的 macOS 版本可能不受支持。从源码构建还需要 Xcode 命令行工具。其中一个可选功能——在线歌词查询——会向外部发送曲目元数据，这是其本地优先网络行为的一个例外。",
-        "fit": "该工具似乎适合使用运行 macOS 14 及以上系统的 Apple Silicon Mac、希望将多种付费实用工具功能整合进一个免费开源菜单栏应用的用户，尤其是重视模块化安装和权限透明度的用户；对于使用英特尔硬件或较旧 macOS 系统的用户，可能并不适用。"
+        "goal": "Vorssaint 是一款免费开源的 macOS 菜单栏工具应用,将多种小型工具——包括分应用音量混合器、系统监视器、应用切换器、窗口贴靠、Dock 预览、剪贴板历史、文本片段、文件搁架和卸载工具——集中在一个图标之下,其定位是替代多款需要单独购买的付费 Mac 工具。",
+        "usage": "可以通过 Homebrew 执行 `brew install --cask vorssaint` 进行安装,也可以从 GitHub 发布页面(https://github.com/vorssaint/vorssaint-utils/releases)下载磁盘映像安装。若要从源码构建,可运行 `git clone https://github.com/vorssaint/vorssaint-utils.git`,然后执行 `./build.sh` 编译并生成应用,或执行 `./build.sh --install` 编译后直接安装到应用程序文件夹。",
+        "pros": "该应用无需账户、不含遥测且无订阅费用,各功能可独立安装或卸载,未启用的功能不会占用资源。权限均为可选项,应用内会对每项权限进行说明。发布的构建版本经过 Apple Developer ID 签名及公证。",
+        "cons": "由于 Vorssaint 面向 macOS 14(Sonoma)及更新版本、且仅限 Apple Silicon Mac,虽然自述文件未明确说明,但它很可能不支持更旧的 macOS 版本或基于 Intel 的 Mac。此外,从源码构建还需要预先安装 Xcode 命令行工具。",
+        "fit": "Vorssaint 似乎更适合运行 macOS 14 或更高版本的 Apple Silicon Mac 用户,他们希望将多个独立的菜单栏工具整合为一个模块化、权限透明的应用,而非旧版或 Intel Mac 用户。"
       },
       "es": {
-        "goal": "Vorssaint es una utilidad de barra de menú para macOS, gratuita y de código abierto, que agrupa herramientas como mezclador de volumen por app, monitor del sistema, ajuste de ventanas, selector de apps, vistas previas del Dock, historial del portapapeles, fragmentos de texto, un estante de archivos y un desinstalador en un solo icono, con el objetivo de sustituir utilidades que normalmente se comprarían por separado, sin cuenta, telemetría ni suscripción.",
-        "usage": "Se instala con Homebrew mediante `brew install --cask vorssaint`, o descargando la imagen de disco desde la página de lanzamientos de GitHub. Para compilarlo desde el código fuente, ejecuta `git clone https://github.com/vorssaint/vorssaint-utils.git` y luego `./build.sh` (o `./build.sh --install` para instalarlo y abrirlo). Se desinstala con `brew uninstall --cask vorssaint` o con `./Tools/uninstall.sh` para eliminar por completo ajustes y permisos.",
-        "pros": "Cada función se puede instalar o desinstalar de forma independiente, de modo que las no usadas dejan de consumir CPU, memoria o energía. Según el README, funciona de forma local sin cuenta, análisis ni rastreo, y los permisos son opcionales y se explican por función. Las compilaciones están firmadas con un Apple Developer ID y notarizadas.",
-        "cons": "Requiere un Mac con Apple Silicon y macOS 14 Sonoma o posterior, lo que sugiere que los Mac Intel y versiones anteriores de macOS no son compatibles. Compilar desde el código fuente exige además las Herramientas de línea de comandos de Xcode. Una función opcional, la búsqueda de letras en línea, envía metadatos de la pista a un servicio externo, una excepción a su comportamiento local por defecto.",
-        "fit": "Parece adecuado para usuarios de Mac con Apple Silicon en macOS 14 o superior que quieran consolidar varias categorías de utilidades de pago en una sola herramienta gratuita y de código abierto, especialmente quienes valoran la instalación modular y la transparencia en los permisos; probablemente no sea adecuado para usuarios con hardware Intel o versiones anteriores de macOS."
+        "goal": "Vorssaint es una aplicación gratuita y de código abierto para la barra de menú de macOS que reúne varias herramientas pequeñas —un mezclador de volumen por aplicación, un monitor del sistema, un selector de aplicaciones, ajuste de ventanas, vistas previas del Dock, historial del portapapeles, fragmentos de texto, una bandeja de archivos y un desinstalador— bajo un solo ícono, presentándose como una alternativa a comprar varias utilidades de Mac por separado.",
+        "usage": "Vorssaint puede instalarse con Homebrew ejecutando `brew install --cask vorssaint`, o descargando una imagen de disco desde la página de lanzamientos de GitHub (https://github.com/vorssaint/vorssaint-utils/releases). Para compilarlo desde el código fuente: `git clone https://github.com/vorssaint/vorssaint-utils.git`, luego `./build.sh` para compilar y ensamblar la app, o `./build.sh --install` para además instalarla en Applications.",
+        "pros": "La aplicación no requiere cuenta, no incluye telemetría ni suscripción, y cada función puede instalarse o desinstalarse de forma independiente, de modo que las funciones no usadas no consumen recursos. Los permisos son opcionales y cada uno se explica dentro de la app. Las compilaciones distribuidas están firmadas con un Apple Developer ID y notarizadas.",
+        "cons": "Dado que Vorssaint está dirigido a macOS 14 (Sonoma) o posterior en Macs con Apple Silicon, es probable que no admita versiones anteriores de macOS ni Macs basados en Intel, aunque el README no lo indica explícitamente. Compilar la app desde el código fuente también requiere tener instaladas las Xcode Command Line Tools.",
+        "fit": "Vorssaint parece más adecuado para usuarios de Macs con Apple Silicon que ejecutan macOS 14 o posterior y desean consolidar varias utilidades independientes de la barra de menú en una sola aplicación modular con permisos transparentes, más que para usuarios de Macs antiguos o basados en Intel."
       },
       "ja": {
-        "goal": "Vorssaintは、アプリ別音量ミキサー、システムモニター、ウィンドウスナップ、アプリスイッチャー、Dockプレビュー、クリップボード履歴、テキストスニペット、ファイルシェルフ、アンインストーラーなどを1つのメニューバーアイコンにまとめた、無料でオープンソースのmacOSユーティリティであり、アカウント・テレメトリー・サブスクリプションなしで、通常個別に購入する複数の有料アプリを置き換えることを目指している。",
-        "usage": "Homebrewで `brew install --cask vorssaint` を実行するか、GitHubのリリースページからディスクイメージをダウンロードしてインストールできる。ソースからビルドする場合は `git clone https://github.com/vorssaint/vorssaint-utils.git` の後に `./build.sh`（インストールと起動まで行う場合は `./build.sh --install`）を実行する。アンインストールは `brew uninstall --cask vorssaint`、または設定と権限を完全に削除する `./Tools/uninstall.sh` で行う。",
-        "pros": "各機能は個別にインストール・アンインストールでき、使用していない機能はCPU・メモリ・エネルギーを消費しない。READMEによれば、アカウント・分析・追跡なしのローカル優先で動作し、権限はすべてオプションで機能ごとに明確に説明される。ビルドはApple Developer IDで署名され、公証も受けている。",
-        "cons": "Apple Silicon搭載MacでmacOS 14 Sonoma以降が必要とされており、これはIntel Macや旧バージョンのmacOSがサポート対象外であることを示唆している。ソースからのビルドにはXcode Command Line Toolsも必要となる。オプション機能であるオンライン歌詞検索は、トラックのメタデータを外部に送信するため、ローカル優先というネットワーク方針の例外となっている。",
-        "fit": "macOS 14以降を搭載したApple Silicon Macを使用し、複数の有料ユーティリティアプリの機能を1つの無料オープンソースのメニューバーツールにまとめたいユーザー、特にモジュール式インストールと権限の透明性を重視するユーザーに適していると考えられる。Intelハードウェアや旧バージョンのmacOSを使用するユーザーには適さない可能性が高い。"
+        "goal": "Vorssaintは、アプリ別音量ミキサー、システムモニター、アプリスイッチャー、ウィンドウスナップ、Dockプレビュー、クリップボード履歴、テキストスニペット、ファイル棚、アンインストーラーなど多数の小規模ツールを一つのアイコンにまとめた、無料でオープンソースのmacOSメニューバーユーティリティアプリであり、複数の有料Macユーティリティを購入する代わりとなることを目指しているようです。",
+        "usage": "VorssaintはHomebrewで `brew install --cask vorssaint` を実行してインストールできるほか、GitHubのリリースページ(https://github.com/vorssaint/vorssaint-utils/releases)からディスクイメージをダウンロードしてインストールすることもできます。ソースからビルドする場合は `git clone https://github.com/vorssaint/vorssaint-utils.git` の後、`./build.sh` でコンパイルしてアプリを組み立てるか、`./build.sh --install` を使うとApplicationsフォルダへのインストールまで行われます。",
+        "pros": "アカウント不要、テレメトリーなし、サブスクリプションなしで利用でき、各機能は個別にインストール・アンインストールでき、使わない機能はリソースを消費しません。権限はすべて任意で、アプリ内でそれぞれ説明が表示されます。配布されるビルドはApple Developer IDで署名され、公証(notarize)されています。",
+        "cons": "VorssaintはmacOS 14(Sonoma)以降かつApple Silicon Macを対象としているため、READMEに明記はされていないものの、古いmacOSバージョンやIntel搭載Macには対応していない可能性があります。また、ソースからのビルドにはXcode Command Line Toolsのインストールが別途必要です。",
+        "fit": "Vorssaintは、macOS 14以降を搭載したApple Silicon Macのユーザーが、複数の独立したメニューバーユーティリティを一つのモジュール式で権限が明示されたアプリに統合したい場合に適していると考えられ、旧型やIntel搭載Macのユーザーには不向きである可能性があります。"
       }
     },
     "evidence": {
@@ -7626,11 +7816,6 @@
           "start_line": 217,
           "end_line": 222,
           "section_heading": "Build it yourself"
-        },
-        {
-          "start_line": 175,
-          "end_line": 182,
-          "section_heading": "Uninstall"
         }
       ],
       "pros": [
@@ -7640,7 +7825,7 @@
           "section_heading": "Install only what you use"
         },
         {
-          "start_line": 187,
+          "start_line": 189,
           "end_line": 189,
           "section_heading": "Private by default"
         },
@@ -7660,11 +7845,6 @@
           "start_line": 224,
           "end_line": 224,
           "section_heading": "Build it yourself"
-        },
-        {
-          "start_line": 132,
-          "end_line": 132,
-          "section_heading": "Everyday tools"
         }
       ],
       "fit": [
@@ -7672,11 +7852,6 @@
           "start_line": 212,
           "end_line": 213,
           "section_heading": "What you need"
-        },
-        {
-          "start_line": 60,
-          "end_line": 60,
-          "section_heading": "Install only what you use"
         }
       ]
     },
@@ -7684,20 +7859,6 @@
       {
         "kind": "command",
         "value": "brew install --cask vorssaint",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "brew uninstall --cask vorssaint",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "./Tools/uninstall.sh",
         "fields": [
           "usage"
         ]
@@ -7736,12 +7897,21 @@
         "value": "Vorssaint",
         "fields": [
           "goal",
-          "usage"
+          "usage",
+          "cons",
+          "fit"
         ]
       },
       {
         "kind": "product",
         "value": "Homebrew",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://github.com/vorssaint/vorssaint-utils/releases",
         "fields": [
           "usage"
         ]
@@ -7755,8 +7925,8 @@
       "kind": "readme",
       "slug": "vorssaint/vorssaint-utils",
       "path": "README.md",
-      "blob_sha": "838488bbeb29abdc0bdf7085cfe746a6ea43432c",
-      "content_sha256": "07434962502a0fbd30dd1955509b8175432ee5aa035f38cf2cb812ce883ef6af",
+      "blob_sha": "9a130e3e3ef7039518941ba094ee5098367ca5c3",
+      "content_sha256": "fcf224273ee7db397b6dd29996d5c9987b0c2f462d65795e704929a362f748d5",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
