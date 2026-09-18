@@ -2116,6 +2116,208 @@
       "translation_applicable": false
     }
   },
+  "tradesdontlie/tradingview-mcp": {
+    "content": {
+      "goal": "TradingView MCP Bridge is a Model Context Protocol (MCP) server that connects Claude Code to a locally running TradingView Desktop application via the Chrome DevTools Protocol, supporting AI-assisted chart analysis, Pine Script development, and chart workflow automation.",
+      "usage": "Install by pasting an install prompt into Claude Code, or manually: clone https://github.com/tradesdontlie/tradingview-mcp.git, run `npm install`, launch TradingView Desktop with `--remote-debugging-port=9222`, add the server to a Claude Code MCP config file (e.g. ~/.claude/.mcp.json), and verify the connection by asking Claude to run `tv_health_check`.",
+      "pros": "It exposes dozens of MCP tools covering chart reading, Pine Script injection/compilation, drawing, alerts, replay mode, and multi-pane layouts, each also available as a `tv` CLI command with JSON output for piping; the README states all data processing happens locally without transmitting TradingView data externally.",
+      "cons": "The tool requires a valid TradingView subscription and installed Desktop app, and it relies on undocumented internal TradingView APIs via the Electron debug interface that may change or break without notice after a TradingView update; the README itself cites differing tool counts (78 in one section, 84 in another), which may indicate a minor documentation inconsistency.",
+      "fit": "Based on the described scope, it seems intended for developers and researchers using Claude Code who want AI assistance on charts they already have open locally, rather than for automated trading, data redistribution, or bypassing TradingView's subscription controls, which the README explicitly states are out of scope."
+    },
+    "summaries": {
+      "en": {
+        "goal": "TradingView MCP Bridge is a Model Context Protocol (MCP) server that connects Claude Code to a locally running TradingView Desktop application via the Chrome DevTools Protocol, supporting AI-assisted chart analysis, Pine Script development, and chart workflow automation.",
+        "usage": "Install by pasting an install prompt into Claude Code, or manually: clone https://github.com/tradesdontlie/tradingview-mcp.git, run `npm install`, launch TradingView Desktop with `--remote-debugging-port=9222`, add the server to a Claude Code MCP config file (e.g. ~/.claude/.mcp.json), and verify the connection by asking Claude to run `tv_health_check`.",
+        "pros": "It exposes dozens of MCP tools covering chart reading, Pine Script injection/compilation, drawing, alerts, replay mode, and multi-pane layouts, each also available as a `tv` CLI command with JSON output for piping; the README states all data processing happens locally without transmitting TradingView data externally.",
+        "cons": "The tool requires a valid TradingView subscription and installed Desktop app, and it relies on undocumented internal TradingView APIs via the Electron debug interface that may change or break without notice after a TradingView update; the README itself cites differing tool counts (78 in one section, 84 in another), which may indicate a minor documentation inconsistency.",
+        "fit": "Based on the described scope, it seems intended for developers and researchers using Claude Code who want AI assistance on charts they already have open locally, rather than for automated trading, data redistribution, or bypassing TradingView's subscription controls, which the README explicitly states are out of scope."
+      },
+      "ko": {
+        "goal": "TradingView MCP Bridge는 Chrome DevTools Protocol을 통해 로컬에서 실행 중인 TradingView Desktop 애플리케이션과 Claude Code를 연결하는 Model Context Protocol(MCP) 서버로, AI 기반 차트 분석, Pine Script 개발, 차트 워크플로 자동화를 지원합니다.",
+        "usage": "Claude Code에 설치 프롬프트를 붙여넣거나, 수동으로 https://github.com/tradesdontlie/tradingview-mcp.git 을 클론한 뒤 `npm install`을 실행하고, `--remote-debugging-port=9222` 옵션으로 TradingView Desktop을 실행하고, 서버를 Claude Code MCP 설정 파일(예: ~/.claude/.mcp.json)에 추가한 후 `tv_health_check`로 연결을 확인합니다.",
+        "pros": "차트 읽기, Pine Script 삽입/컴파일, 그리기, 알림, 리플레이 모드, 멀티 패널 레이아웃을 다루는 다수의 MCP 도구를 제공하며, 각 도구는 JSON 출력을 파이프할 수 있는 `tv` CLI 명령으로도 사용 가능합니다. README에 따르면 모든 데이터 처리는 로컬에서 이루어지며 TradingView 데이터를 외부로 전송하지 않는다고 합니다.",
+        "cons": "이 도구는 유효한 TradingView 구독과 설치된 Desktop 앱을 필요로 하며, Electron 디버그 인터페이스를 통해 문서화되지 않은 내부 TradingView API에 의존하므로 TradingView 업데이트 이후 사전 예고 없이 변경되거나 작동을 멈출 수 있습니다. 또한 README 내에서 도구 개수가 78개와 84개로 서로 다르게 언급되어 있어, 문서에 약간의 불일치가 있을 가능성이 있습니다.",
+        "fit": "설명된 범위로 볼 때, 이미 로컬에서 열려 있는 차트에 대해 AI 지원을 받고자 하는 Claude Code 사용 개발자 및 연구자에게 적합해 보이며, README에서 명시적으로 범위 밖이라고 밝힌 자동매매, 데이터 재배포, TradingView 구독 제한 우회 목적에는 적합하지 않은 것으로 보입니다."
+      },
+      "zh-CN": {
+        "goal": "TradingView MCP Bridge 是一个 Model Context Protocol(MCP)服务器,通过 Chrome DevTools Protocol 将 Claude Code 与本地运行的 TradingView Desktop 应用程序连接起来,支持 AI 辅助图表分析、Pine Script 开发以及图表工作流自动化。",
+        "usage": "可将安装提示粘贴到 Claude Code 中自动完成安装,或手动操作:克隆 https://github.com/tradesdontlie/tradingview-mcp.git,运行 `npm install`,以 `--remote-debugging-port=9222` 参数启动 TradingView Desktop,将服务器添加到 Claude Code 的 MCP 配置文件(如 ~/.claude/.mcp.json)中,并让 Claude 运行 `tv_health_check` 验证连接。",
+        "pros": "该项目提供了涵盖图表读取、Pine Script 注入/编译、绘图、警报、回放模式和多面板布局的众多 MCP 工具,每个工具也可作为 `tv` CLI 命令使用并支持 JSON 输出以便管道处理;README 声明所有数据处理均在本地完成,不会将 TradingView 数据对外传输。",
+        "cons": "使用该工具需要有效的 TradingView 订阅及已安装的 Desktop 应用,并且它依赖通过 Electron 调试接口访问的未文档化 TradingView 内部 API,在 TradingView 更新后可能在没有预先通知的情况下发生变化或失效;README 本身在不同章节给出的工具数量不一致(一处为 78 个,另一处为 84 个),这可能表明文档存在轻微不一致之处。",
+        "fit": "从所描述的范围来看,该工具似乎适合已经在本地打开图表、希望借助 Claude Code 获得 AI 辅助的开发者与研究人员使用,而不适合用于自动化交易、数据再分发或规避 TradingView 订阅限制,README 明确表示这些用途不在其范围内。"
+      },
+      "es": {
+        "goal": "TradingView MCP Bridge es un servidor de Model Context Protocol (MCP) que conecta Claude Code con una aplicación TradingView Desktop en ejecución local mediante Chrome DevTools Protocol, permitiendo análisis de gráficos asistido por IA, desarrollo de Pine Script y automatización del flujo de trabajo de gráficos.",
+        "usage": "Se instala pegando una instrucción de instalación en Claude Code, o manualmente: clonando https://github.com/tradesdontlie/tradingview-mcp.git, ejecutando `npm install`, iniciando TradingView Desktop con `--remote-debugging-port=9222`, añadiendo el servidor al archivo de configuración MCP de Claude Code (por ejemplo ~/.claude/.mcp.json) y verificando la conexión pidiendo a Claude que ejecute `tv_health_check`.",
+        "pros": "Ofrece numerosas herramientas MCP para lectura de gráficos, inyección/compilación de Pine Script, dibujo, alertas, modo de repetición y diseños multi-panel, cada una disponible también como comando CLI `tv` con salida JSON encauzable; el README indica que todo el procesamiento de datos ocurre localmente sin transmitir datos de TradingView al exterior.",
+        "cons": "Requiere una suscripción válida de TradingView y la aplicación Desktop instalada, y depende de APIs internas no documentadas de TradingView accedidas mediante la interfaz de depuración de Electron, que pueden cambiar o dejar de funcionar sin previo aviso tras una actualización de TradingView; el propio README cita cifras distintas de herramientas (78 en una sección, 84 en otra), lo que podría indicar una pequeña inconsistencia en la documentación.",
+        "fit": "Según el alcance descrito, parece orientado a desarrolladores e investigadores que usan Claude Code y desean asistencia de IA sobre gráficos que ya tienen abiertos localmente, y no para trading automatizado, redistribución de datos o evasión de las restricciones de suscripción de TradingView, usos que el README indica explícitamente que quedan fuera de su alcance."
+      },
+      "ja": {
+        "goal": "TradingView MCP Bridgeは、Chrome DevTools Protocolを介してClaude Codeをローカルで実行中のTradingView Desktopアプリケーションに接続するModel Context Protocol(MCP)サーバーであり、AI支援によるチャート分析、Pine Script開発、チャートワークフローの自動化をサポートします。",
+        "usage": "Claude Codeにインストール用プロンプトを貼り付けるか、手動で https://github.com/tradesdontlie/tradingview-mcp.git をクローンし、`npm install` を実行し、`--remote-debugging-port=9222` オプションでTradingView Desktopを起動し、サーバーをClaude CodeのMCP設定ファイル(例:~/.claude/.mcp.json)に追加した後、Claudeに `tv_health_check` を実行させて接続を確認します。",
+        "pros": "チャート読み取り、Pine Scriptの挿入・コンパイル、描画、アラート、リプレイモード、マルチペインレイアウトを扱う多数のMCPツールを提供し、各ツールはJSON出力をパイプ可能な `tv` CLIコマンドとしても利用できます。READMEによれば、すべてのデータ処理はローカルで行われ、TradingViewのデータが外部に送信されることはないとされています。",
+        "cons": "有効なTradingViewサブスクリプションとインストール済みのDesktopアプリが必要であり、Electronデバッグインターフェース経由で文書化されていないTradingView内部APIに依存しているため、TradingViewのアップデート後に予告なく変更または動作しなくなる可能性があります。また、READMEの中でツール数が78個と84個という異なる記載があり、ドキュメントにわずかな不整合がある可能性が示唆されます。",
+        "fit": "記載された範囲から判断すると、すでにローカルで開いているチャートに対してAI支援を求める、Claude Codeを利用する開発者や研究者向けと考えられ、README中で明示的に対象外とされている自動売買、データの再配布、TradingViewのサブスクリプション制限の回避には適さないと見られます。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 5,
+          "end_line": 5,
+          "section_heading": "TradingView MCP Bridge"
+        },
+        {
+          "start_line": 19,
+          "end_line": 23,
+          "section_heading": "How It Works (and why it's safe to run)"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 75,
+          "end_line": 77,
+          "section_heading": "Install with Claude Code"
+        },
+        {
+          "start_line": 85,
+          "end_line": 93,
+          "section_heading": "1. Install"
+        },
+        {
+          "start_line": 135,
+          "end_line": 137,
+          "section_heading": "4. Verify"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 61,
+          "end_line": 71,
+          "section_heading": "What It Does"
+        },
+        {
+          "start_line": 220,
+          "end_line": 220,
+          "section_heading": "Tool Reference (78 MCP tools)"
+        },
+        {
+          "start_line": 356,
+          "end_line": 356,
+          "section_heading": "Architecture"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 17,
+          "end_line": 17,
+          "section_heading": "TradingView MCP Bridge"
+        },
+        {
+          "start_line": 220,
+          "end_line": 220,
+          "section_heading": "Tool Reference (78 MCP tools)"
+        },
+        {
+          "start_line": 356,
+          "end_line": 356,
+          "section_heading": "Architecture"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 27,
+          "end_line": 32,
+          "section_heading": "What This Tool Does Not Do"
+        },
+        {
+          "start_line": 380,
+          "end_line": 386,
+          "section_heading": "Disclaimer"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "npm install",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "--remote-debugging-port=9222",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "tv_health_check",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://github.com/tradesdontlie/tradingview-mcp.git",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "TradingView",
+        "fields": [
+          "goal",
+          "usage",
+          "pros",
+          "cons",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Claude Code",
+        "fields": [
+          "goal",
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "MCP",
+        "fields": [
+          "goal",
+          "usage",
+          "pros"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "cons",
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "tradesdontlie/tradingview-mcp",
+      "path": "README.md",
+      "blob_sha": "7d5840b931a2056f2d0e05da8a1e4fc6a8ee2f34",
+      "content_sha256": "c52470ccb9d7c55c57a2e9b41127ad5f9297eea3171282640b290a43e073f30e",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.263",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
   "rustfs/rustfs": {
     "content": {
       "goal": "RustFS is a distributed object storage system written in Rust, offering broad S3 API compatibility and licensed under Apache 2.0. It targets data lake, AI, and big data workloads.",
@@ -7616,129 +7818,112 @@
   },
   "cathrynlavery/diagram-design": {
     "content": {
-      "goal": "Diagram Design is a skill package that provides 39 editorial diagram types (architecture, flowcharts, sequence diagrams, ER, timelines, and more) for AI coding agents, producing self-contained HTML+SVG output as an alternative to generic Mermaid-style diagrams.",
-      "usage": "Install in Claude Code with `/plugin marketplace add cathrynlavery/diagram-design` followed by `/plugin install diagram-design@diagram-design` (similar commands exist for Codex, Copilot, Factory Droid, and Pi). Once installed, ask the agent in natural language for a diagram, or browse examples at https://cathrynlavery.github.io/diagram-design/ or the local index.html gallery.",
-      "pros": "Output diagrams are static, accessible SVG with ARIA labels and WCAG AA contrast checks built in, and a one-time onboarding flow can pull a website's colors and fonts to brand every diagram automatically. Version 2.5.10 added ten more layout types, and the skill can also redraw existing draw.io, Mermaid, or Excalidraw files into the same style.",
-      "cons": "Exporting diagrams to PNG requires a one-time extra setup step — installing Playwright and Chromium via `pip install playwright && playwright install chromium` — and customizing the style guide directly generally calls for an editable, cloned install rather than the managed plugin, since managed updates may overwrite local style-guide edits.",
-      "fit": "The project appears aimed at teams using AI coding agents such as Codex, Factory Droid, and Pi (alongside Claude Code) who want editorial, on-brand diagrams generated inline without relying on Figma or generic diagramming defaults."
+      "goal": "Diagram Design is an Agent Skill that generates editorial-style diagrams as self-contained HTML+SVG files for Claude Code, Codex, Factory Droid, Pi, and other Agent Skills-compatible hosts. It also redraws existing draw.io, Mermaid, or Excalidraw diagrams into the same design system at a chosen format, size, and detail level.",
+      "usage": "Install in Claude Code with `/plugin marketplace add cathrynlavery/diagram-design` followed by `/plugin install diagram-design@diagram-design` (similar commands exist for Codex, Copilot, Factory Droid, Pi, Kiro, and OpenCode). Once installed, ask the agent in natural language for a diagram, such as an architecture or sequence diagram, and it selects a type and produces an HTML file.",
+      "pros": "The skill covers over 30 diagram types (v2.5.10 added ten, including Sankey and UML class), ships each as static minimal-light, minimal-dark, and full-editorial HTML with no build step or external dependencies, and can match a project's colors and fonts to a website's brand within about 60 seconds of onboarding.",
+      "cons": "Customizing the working style guide (`references/style-guide.md`) in a managed install may be overwritten by package updates, so users who want to edit it directly are directed to clone the repository for a local, editable install. PNG export additionally requires a one-time setup step: `pip install playwright && playwright install chromium`.",
+      "fit": "This may suit developers or teams already using Claude Code, Codex, Factory Droid, or Pi who need consistent, editorial-quality diagrams generated or redrawn from existing sources. It appears less suited for quick unicode diagrams, simple lists, before/after comparisons, or single-box diagrams, where a table or a short sentence may work better instead."
     },
     "summaries": {
       "en": {
-        "goal": "Diagram Design is a skill package that provides 39 editorial diagram types (architecture, flowcharts, sequence diagrams, ER, timelines, and more) for AI coding agents, producing self-contained HTML+SVG output as an alternative to generic Mermaid-style diagrams.",
-        "usage": "Install in Claude Code with `/plugin marketplace add cathrynlavery/diagram-design` followed by `/plugin install diagram-design@diagram-design` (similar commands exist for Codex, Copilot, Factory Droid, and Pi). Once installed, ask the agent in natural language for a diagram, or browse examples at https://cathrynlavery.github.io/diagram-design/ or the local index.html gallery.",
-        "pros": "Output diagrams are static, accessible SVG with ARIA labels and WCAG AA contrast checks built in, and a one-time onboarding flow can pull a website's colors and fonts to brand every diagram automatically. Version 2.5.10 added ten more layout types, and the skill can also redraw existing draw.io, Mermaid, or Excalidraw files into the same style.",
-        "cons": "Exporting diagrams to PNG requires a one-time extra setup step — installing Playwright and Chromium via `pip install playwright && playwright install chromium` — and customizing the style guide directly generally calls for an editable, cloned install rather than the managed plugin, since managed updates may overwrite local style-guide edits.",
-        "fit": "The project appears aimed at teams using AI coding agents such as Codex, Factory Droid, and Pi (alongside Claude Code) who want editorial, on-brand diagrams generated inline without relying on Figma or generic diagramming defaults."
+        "goal": "Diagram Design is an Agent Skill that generates editorial-style diagrams as self-contained HTML+SVG files for Claude Code, Codex, Factory Droid, Pi, and other Agent Skills-compatible hosts. It also redraws existing draw.io, Mermaid, or Excalidraw diagrams into the same design system at a chosen format, size, and detail level.",
+        "usage": "Install in Claude Code with `/plugin marketplace add cathrynlavery/diagram-design` followed by `/plugin install diagram-design@diagram-design` (similar commands exist for Codex, Copilot, Factory Droid, Pi, Kiro, and OpenCode). Once installed, ask the agent in natural language for a diagram, such as an architecture or sequence diagram, and it selects a type and produces an HTML file.",
+        "pros": "The skill covers over 30 diagram types (v2.5.10 added ten, including Sankey and UML class), ships each as static minimal-light, minimal-dark, and full-editorial HTML with no build step or external dependencies, and can match a project's colors and fonts to a website's brand within about 60 seconds of onboarding.",
+        "cons": "Customizing the working style guide (`references/style-guide.md`) in a managed install may be overwritten by package updates, so users who want to edit it directly are directed to clone the repository for a local, editable install. PNG export additionally requires a one-time setup step: `pip install playwright && playwright install chromium`.",
+        "fit": "This may suit developers or teams already using Claude Code, Codex, Factory Droid, or Pi who need consistent, editorial-quality diagrams generated or redrawn from existing sources. It appears less suited for quick unicode diagrams, simple lists, before/after comparisons, or single-box diagrams, where a table or a short sentence may work better instead."
       },
       "ko": {
-        "goal": "Diagram Design는 AI 코딩 에이전트를 위해 39가지 편집 스타일 다이어그램 유형(아키텍처, 플로차트, 시퀀스 다이어그램, ER, 타임라인 등)을 제공하는 스킬 패키지로, Mermaid 스타일의 일반적인 다이어그램 대신 독립 실행형 HTML+SVG 출력을 생성합니다.",
-        "usage": "Claude Code에서는 `/plugin marketplace add cathrynlavery/diagram-design` 명령 후 `/plugin install diagram-design@diagram-design` 명령으로 설치할 수 있으며, Codex, Copilot, Factory Droid, Pi에도 유사한 명령이 있습니다. 설치 후에는 자연어로 다이어그램을 요청하거나 https://cathrynlavery.github.io/diagram-design/ 갤러리 또는 로컬 index.html에서 예시를 볼 수 있습니다.",
-        "pros": "출력되는 다이어그램은 ARIA 레이블과 WCAG AA 대비 검사를 갖춘 정적 접근성 SVG이며, 한 번의 온보딩 과정을 통해 웹사이트의 색상과 글꼴을 가져와 모든 다이어그램에 자동으로 브랜드를 적용할 수 있습니다. 버전 2.5.10에서는 레이아웃 유형이 10개 추가되었고, 기존 draw.io, Mermaid, Excalidraw 파일을 같은 스타일로 다시 그릴 수도 있습니다.",
-        "cons": "PNG로 내보내려면 `pip install playwright && playwright install chromium` 명령으로 Playwright와 Chromium을 한 번 추가 설치해야 하며, 스타일 가이드를 직접 커스터마이즈하려면 관리형 플러그인 대신 클론한 편집 가능한 설치본이 일반적으로 필요합니다. 관리형 업데이트가 로컬 스타일 가이드 수정을 덮어쓸 수 있기 때문입니다.",
-        "fit": "이 프로젝트는 Claude Code뿐 아니라 Codex, Factory Droid, Pi와 같은 AI 코딩 에이전트를 사용하며 Figma나 일반적인 다이어그램 기본값에 의존하지 않고 인라인으로 편집 스타일의 브랜드 다이어그램을 생성하려는 팀을 대상으로 하는 것으로 보입니다."
+        "goal": "Diagram Design는 Claude Code, Codex, Factory Droid, Pi 및 기타 Agent Skills 호환 호스트를 위해 편집 스타일의 다이어그램을 독립형 HTML+SVG 파일로 생성하는 Agent Skill입니다. 또한 기존 draw.io, Mermaid, Excalidraw 다이어그램을 선택한 형식, 크기, 세부 수준으로 동일한 디자인 시스템에 맞춰 다시 그려줍니다.",
+        "usage": "Claude Code에서는 `/plugin marketplace add cathrynlavery/diagram-design`을 실행한 뒤 `/plugin install diagram-design@diagram-design`으로 설치합니다(Codex, Copilot, Factory Droid, Pi, Kiro, OpenCode에도 유사한 명령이 있습니다). 설치 후에는 자연어로 에이전트에게 아키텍처나 시퀀스 다이어그램 같은 요청을 하면, 적절한 유형을 골라 HTML 파일을 생성합니다.",
+        "pros": "이 스킬은 30종 이상의 다이어그램 유형을 지원하며(v2.5.10에서 Sankey, UML 클래스 등 10종이 추가됨), 각 유형을 빌드 과정이나 외부 의존성 없이 정적 minimal-light, minimal-dark, full-editorial HTML로 제공하고, 약 60초의 온보딩만으로 웹사이트 브랜드에 맞춰 색상과 글꼴을 일치시킬 수 있습니다.",
+        "cons": "관리형 설치에서 작업 스타일 가이드(`references/style-guide.md`)를 직접 수정하면 패키지 업데이트로 덮어써질 수 있어, 직접 편집하려는 사용자는 저장소를 클론하여 로컬 편집 가능 설치를 사용하도록 안내됩니다. 또한 PNG 내보내기에는 `pip install playwright && playwright install chromium`이라는 일회성 설정 단계가 필요합니다.",
+        "fit": "이미 Claude Code, Codex, Factory Droid, Pi를 사용하며 기존 소스로부터 일관되고 편집 품질의 다이어그램을 생성하거나 다시 그려야 하는 개발자나 팀에 적합할 수 있습니다. 반면 간단한 유니코드 다이어그램, 단순 목록, 전후 비교, 단일 박스 다이어그램에는 표나 짧은 문장이 더 나을 수 있어 다소 적합하지 않아 보입니다."
       },
       "zh-CN": {
-        "goal": "Diagram Design 是一个技能包，为 AI 编码代理提供 39 种编辑风格的图表类型（架构图、流程图、时序图、ER 图、时间线等），生成独立的 HTML+SVG 输出，作为通用 Mermaid 风格图表的替代方案。",
-        "usage": "在 Claude Code 中，可通过 `/plugin marketplace add cathrynlavery/diagram-design` 后接 `/plugin install diagram-design@diagram-design` 进行安装；Codex、Copilot、Factory Droid 和 Pi 也有类似命令。安装后，可用自然语言向代理请求图表，或在 https://cathrynlavery.github.io/diagram-design/ 图库或本地 index.html 中浏览示例。",
-        "pros": "生成的图表是带有 ARIA 标签和 WCAG AA 对比度检查的静态可访问 SVG，一次性引导流程可以从网站中提取颜色和字体，自动为所有图表打上品牌风格。2.5.10 版本新增了十种布局类型，该技能还能将现有的 draw.io、Mermaid 或 Excalidraw 文件按同一风格重新绘制。",
-        "cons": "导出为 PNG 需要一次性额外设置——通过 `pip install playwright && playwright install chromium` 安装 Playwright 和 Chromium；若要直接自定义样式指南，通常需要克隆的可编辑安装而非托管插件，因为托管更新可能会覆盖本地的样式指南修改。",
-        "fit": "该项目似乎面向使用 AI 编码代理（如 Codex、Factory Droid、Pi，以及 Claude Code）的团队，这些团队希望内联生成编辑风格、符合品牌的图表，而不依赖 Figma 或通用的图表默认样式。"
+        "goal": "Diagram Design 是一个 Agent Skill，可为 Claude Code、Codex、Factory Droid、Pi 及其他兼容 Agent Skills 的宿主生成独立的 HTML+SVG 编辑风格图表。它还能将现有的 draw.io、Mermaid 或 Excalidraw 图表按选定的格式、尺寸和细节级别重新绘制为同一设计体系。",
+        "usage": "在 Claude Code 中，先运行 `/plugin marketplace add cathrynlavery/diagram-design`，再运行 `/plugin install diagram-design@diagram-design` 完成安装（Codex、Copilot、Factory Droid、Pi、Kiro 和 OpenCode 也有类似命令）。安装后，用自然语言向代理请求诸如架构图或时序图之类的图表，它会选择合适的类型并生成 HTML 文件。",
+        "pros": "该技能覆盖 30 多种图表类型（v2.5.10 新增十种，包括 Sankey 图和 UML 类图），每种类型均以静态的 minimal-light、minimal-dark 和 full-editorial HTML 形式交付，无需构建步骤或外部依赖，并且大约 60 秒的引导流程即可将项目配色和字体与网站品牌相匹配。",
+        "cons": "在托管安装中直接修改工作样式指南（`references/style-guide.md`）可能会被后续软件包更新覆盖，因此希望直接编辑的用户被建议克隆仓库以进行可本地编辑的安装。此外，导出 PNG 还需要一次性设置步骤：`pip install playwright && playwright install chromium`。",
+        "fit": "这可能适合已经在使用 Claude Code、Codex、Factory Droid 或 Pi、且需要从现有来源生成或重绘一致的编辑质量图表的开发者或团队。对于快速的 unicode 图、简单列表、前后对比或单框图表，似乎不太合适，这些场景用表格或一句简短的文字可能更好。"
       },
       "es": {
-        "goal": "Diagram Design es un paquete de habilidades que ofrece 39 tipos de diagramas editoriales (arquitectura, diagramas de flujo, diagramas de secuencia, ER, líneas de tiempo, etc.) para agentes de codificación con IA, generando salida HTML+SVG autocontenida como alternativa a los diagramas genéricos estilo Mermaid.",
-        "usage": "Se instala en Claude Code con `/plugin marketplace add cathrynlavery/diagram-design` seguido de `/plugin install diagram-design@diagram-design` (existen comandos similares para Codex, Copilot, Factory Droid y Pi). Una vez instalado, se puede pedir un diagrama en lenguaje natural al agente, o explorar ejemplos en https://cathrynlavery.github.io/diagram-design/ o en el archivo local index.html.",
-        "pros": "Los diagramas resultantes son SVG estáticos y accesibles, con etiquetas ARIA y comprobaciones de contraste WCAG AA integradas, y un flujo de incorporación único puede extraer los colores y las fuentes de un sitio web para aplicar la marca automáticamente a cada diagrama. La versión 2.5.10 añadió diez tipos de diseño más, y la habilidad también puede volver a dibujar archivos existentes de draw.io, Mermaid o Excalidraw con el mismo estilo.",
-        "cons": "Exportar a PNG requiere un paso de configuración adicional único —instalar Playwright y Chromium con `pip install playwright && playwright install chromium`— y personalizar la guía de estilo directamente generalmente requiere una instalación editable y clonada en lugar del plugin gestionado, ya que las actualizaciones gestionadas pueden sobrescribir las modificaciones locales de la guía de estilo.",
-        "fit": "El proyecto parece dirigido a equipos que usan agentes de codificación con IA como Codex, Factory Droid y Pi (además de Claude Code) que desean generar diagramas editoriales acordes a su marca de forma integrada, sin depender de Figma ni de los valores predeterminados genéricos de diagramación."
+        "goal": "Diagram Design es una Agent Skill que genera diagramas de estilo editorial como archivos HTML+SVG autocontenidos para Claude Code, Codex, Factory Droid, Pi y otros hosts compatibles con Agent Skills. También redibuja diagramas existentes de draw.io, Mermaid o Excalidraw dentro del mismo sistema de diseño, según el formato, tamaño y nivel de detalle elegidos.",
+        "usage": "Instálalo en Claude Code con `/plugin marketplace add cathrynlavery/diagram-design` seguido de `/plugin install diagram-design@diagram-design` (existen comandos similares para Codex, Copilot, Factory Droid, Pi, Kiro y OpenCode). Una vez instalado, pide al agente un diagrama en lenguaje natural, como uno de arquitectura o de secuencia, y este elegirá el tipo y generará un archivo HTML.",
+        "pros": "La skill cubre más de 30 tipos de diagramas (la v2.5.10 añadió diez, incluidos Sankey y UML de clases), entrega cada uno como HTML estático en variantes minimal-light, minimal-dark y full-editorial sin paso de compilación ni dependencias externas, y puede adaptar colores y tipografías de un proyecto a la marca de un sitio web en aproximadamente 60 segundos de onboarding.",
+        "cons": "Personalizar la guía de estilo de trabajo (`references/style-guide.md`) en una instalación gestionada puede ser sobrescrito por actualizaciones del paquete, por lo que a quienes deseen editarla directamente se les indica clonar el repositorio para una instalación local editable. Además, exportar a PNG requiere un paso de configuración único: `pip install playwright && playwright install chromium`.",
+        "fit": "Esto podría convenir a desarrolladores o equipos que ya usan Claude Code, Codex, Factory Droid o Pi y necesitan diagramas coherentes de calidad editorial, generados o redibujados a partir de fuentes existentes. Parece menos adecuado para diagramas rápidos en unicode, listas simples, comparaciones de antes/después o diagramas de una sola caja, donde una tabla o una frase breve podría funcionar mejor."
       },
       "ja": {
-        "goal": "Diagram Design は、AIコーディングエージェント向けに39種類のエディトリアルなダイアグラムタイプ（アーキテクチャ図、フローチャート、シーケンス図、ER図、タイムラインなど）を提供するスキルパッケージで、一般的なMermaid風の図の代わりに自己完結型のHTML+SVG出力を生成します。",
-        "usage": "Claude Codeでは `/plugin marketplace add cathrynlavery/diagram-design` に続けて `/plugin install diagram-design@diagram-design` を実行してインストールします（Codex、Copilot、Factory Droid、Piにも同様のコマンドがあります）。インストール後は自然言語でエージェントに図を依頼するか、https://cathrynlavery.github.io/diagram-design/ のギャラリーやローカルのindex.htmlで例を確認できます。",
-        "pros": "出力される図はARIAラベルとWCAG AAコントラストチェックを備えた静的でアクセシブルなSVGであり、一度のオンボーディングでウェブサイトの色とフォントを取り込み、すべての図に自動的にブランドを適用できます。バージョン2.5.10ではレイアウトタイプが10種類追加され、既存のdraw.io、Mermaid、Excalidrawファイルを同じスタイルで再描画することもできます。",
-        "cons": "PNGへのエクスポートには、`pip install playwright && playwright install chromium` によるPlaywrightとChromiumの追加インストールが一度必要で、スタイルガイドを直接カスタマイズするには、マネージドプラグインではなくクローンした編集可能なインストールが一般的に必要です。マネージド更新がローカルのスタイルガイド変更を上書きする可能性があるためです。",
-        "fit": "このプロジェクトは、Claude Codeに加えてCodex、Factory Droid、Piなどのコーディング用AIエージェントを使用し、Figmaや汎用的な図表のデフォルトに頼らずにインラインでブランドに合ったエディトリアルな図を生成したいチームを対象としているように見受けられます。"
+        "goal": "Diagram Design は、Claude Code、Codex、Factory Droid、Pi、その他 Agent Skills 対応ホスト向けに、編集スタイルの図をスタンドアロンの HTML+SVG ファイルとして生成する Agent Skill です。既存の draw.io、Mermaid、Excalidraw の図も、選択したフォーマット・サイズ・詳細レベルで同じデザインシステムに描き直すことができます。",
+        "usage": "Claude Code では `/plugin marketplace add cathrynlavery/diagram-design` を実行した後、`/plugin install diagram-design@diagram-design` でインストールします（Codex、Copilot、Factory Droid、Pi、Kiro、OpenCode にも同様のコマンドがあります）。インストール後は、アーキテクチャ図やシーケンス図などを自然言語でエージェントに依頼すると、種類を選んで HTML ファイルを生成します。",
+        "pros": "このスキルは30種類以上の図表タイプに対応しており（v2.5.10 で Sankey 図や UML クラス図を含む10種類が追加）、各タイプを minimal-light、minimal-dark、full-editorial の静的 HTML として、ビルド不要・外部依存なしで提供します。また約60秒のオンボーディングで、プロジェクトの配色とフォントをウェブサイトのブランドに合わせられます。",
+        "cons": "管理されたインストールで作業用スタイルガイド（`references/style-guide.md`）を直接カスタマイズすると、パッケージ更新によって上書きされる可能性があるため、直接編集したいユーザーはリポジトリをクローンしてローカルの編集可能インストールを使うよう案内されています。さらに、PNG エクスポートには `pip install playwright && playwright install chromium` という一度限りのセットアップ手順が必要です。",
+        "fit": "すでに Claude Code、Codex、Factory Droid、Pi を使用しており、既存のソースから一貫した編集品質の図を生成・再描画したい開発者やチームに向いている可能性があります。一方で、簡易な unicode 図、単純なリスト、前後比較、単一ボックスの図には不向きと思われ、それらには表や短い文章の方が適しているかもしれません。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 3,
-          "end_line": 3,
+          "start_line": 17,
+          "end_line": 17,
           "section_heading": "Diagram Design"
         },
         {
-          "start_line": 17,
-          "end_line": 19,
-          "section_heading": "Diagram Design"
+          "start_line": 302,
+          "end_line": 302,
+          "section_heading": "Import from draw.io, Mermaid, or Excalidraw"
         }
       ],
       "usage": [
         {
-          "start_line": 118,
+          "start_line": 120,
           "end_line": 123,
           "section_heading": "Install"
         },
         {
-          "start_line": 267,
+          "start_line": 274,
           "end_line": 277,
           "section_heading": "Quickstart"
-        },
-        {
-          "start_line": 112,
-          "end_line": 112,
-          "section_heading": "What it makes"
         }
       ],
       "pros": [
         {
-          "start_line": 243,
-          "end_line": 245,
-          "section_heading": "Accessible by default"
+          "start_line": 15,
+          "end_line": 15,
+          "section_heading": "Diagram Design"
+        },
+        {
+          "start_line": 35,
+          "end_line": 35,
+          "section_heading": "What it makes"
         },
         {
           "start_line": 207,
           "end_line": 207,
           "section_heading": "Onboarding — make it look like *your* brand"
-        },
-        {
-          "start_line": 300,
-          "end_line": 302,
-          "section_heading": "Import from draw.io, Mermaid, or Excalidraw"
         }
       ],
       "cons": [
         {
+          "start_line": 178,
+          "end_line": 178,
+          "section_heading": "Editable install"
+        },
+        {
           "start_line": 377,
           "end_line": 377,
           "section_heading": "Export to PNG / SVG"
-        },
-        {
-          "start_line": 176,
-          "end_line": 178,
-          "section_heading": "Editable install"
         }
       ],
       "fit": [
         {
-          "start_line": 17,
-          "end_line": 19,
-          "section_heading": "Diagram Design"
-        },
-        {
-          "start_line": 205,
-          "end_line": 205,
-          "section_heading": "Onboarding — make it look like *your* brand"
+          "start_line": 610,
+          "end_line": 617,
+          "section_heading": "When *not* to use this skill"
         }
       ]
     },
     "invariants": [
-      {
-        "kind": "product",
-        "value": "Diagram Design",
-        "fields": [
-          "goal"
-        ]
-      },
       {
         "kind": "command",
         "value": "/plugin marketplace add cathrynlavery/diagram-design",
@@ -7761,13 +7946,6 @@
         ]
       },
       {
-        "kind": "number",
-        "value": "39",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
         "kind": "version",
         "value": "2.5.10",
         "fields": [
@@ -7775,16 +7953,10 @@
         ]
       },
       {
-        "kind": "url",
-        "value": "https://cathrynlavery.github.io/diagram-design/",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
         "kind": "product",
         "value": "Claude Code",
         "fields": [
+          "goal",
           "usage",
           "fit"
         ]
@@ -7793,6 +7965,7 @@
         "kind": "product",
         "value": "Codex",
         "fields": [
+          "goal",
           "usage",
           "fit"
         ]
@@ -7801,6 +7974,7 @@
         "kind": "product",
         "value": "Factory Droid",
         "fields": [
+          "goal",
           "usage",
           "fit"
         ]
@@ -7809,22 +7983,29 @@
         "kind": "product",
         "value": "Pi",
         "fields": [
+          "goal",
           "usage",
           "cons",
           "fit"
         ]
+      },
+      {
+        "kind": "product",
+        "value": "diagram-design",
+        "fields": [
+          "usage"
+        ]
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "cathrynlavery/diagram-design",
       "path": "README.md",
-      "blob_sha": "178798cf1c700012869b33d8787f529378c8e9de",
-      "content_sha256": "134b685b3ba91de4c469f4c6d691b6bd7093f30ebcc1dcc0c2f91dfde01bceba",
+      "blob_sha": "7a12a615e11d9507cebfc6de621665183baa00c6",
+      "content_sha256": "a36aa0b061c53d34500c77fe8ecee959e1b1f5bde767d0b2cafaa4ee6ddd1a53",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
