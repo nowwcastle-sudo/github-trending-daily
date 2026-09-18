@@ -1,9 +1,12 @@
 name: Retry an unacquired refresh
 
-# A scheduled refresh can fail without ever running: the self-hosted runner stays online but its
-# acquirejob request times out, so no step starts and the server cancels the job after ~14 minutes.
-# That loses a whole six-hour cycle to a transient network fault. This workflow dispatches one
-# replacement run for exactly that failure shape, and for nothing else.
+# A scheduled refresh can fail without its enrichment job ever running a step, and then nothing the
+# refresh did can be the cause. Two such shapes are known. The self-hosted runner stays online but
+# its acquirejob request times out, so the server cancels the job after ~14 minutes. Or the runner
+# acquires the job on a starved host, cannot hand it to its own worker process within the ~30
+# seconds it allows, kills that worker, and GitHub reports the runner lost (twice on 2026-09-17).
+# Either way a whole six-hour cycle goes to a transient fault. This workflow dispatches one
+# replacement run for exactly those shapes, and for nothing else.
 
 on:
   workflow_run:
@@ -27,7 +30,7 @@ jobs:
     permissions:
       actions: write
     steps:
-      - name: Dispatch one replacement only when the enrichment job never started
+      - name: Dispatch one replacement only when the enrichment job ran no step
         env:
           GH_TOKEN: ${{ github.token }}
           FAILED_RUN_ID: ${{ github.event.workflow_run.id }}
@@ -46,12 +49,25 @@ jobs:
           runner_name=$(printf '%s' "$enrich" | jq -r '.runner_name // ""')
           started_steps=$(printf '%s' "$enrich" | jq '[.steps[]? | select(.status != "queued" and .status != "pending")] | length')
           echo "conclusion=${conclusion} runner=[${runner_name}] started_steps=${started_steps}"
-          # The signature of a lost job: cancelled, no runner ever recorded, not one step started.
-          # Every other failure is a real one - bad source data, a contract breach, a failing gate -
-          # and repeating it would only hide it.
-          if [ "$conclusion" != "cancelled" ] || [ -n "$runner_name" ] || [ "$started_steps" -ne 0 ]; then
-            echo "::notice::run ${FAILED_RUN_ID} failed after the job was acquired; leaving it failed to be read"
+          # Every failure that ran even one step is a real one - bad source data, a contract breach, a
+          # failing gate - and repeating it would only hide it.
+          if [ "$started_steps" -ne 0 ]; then
+            echo "::notice::run ${FAILED_RUN_ID} failed after the enrichment job ran a step; leaving it failed to be read"
             exit 0
           fi
-          echo "::notice::run ${FAILED_RUN_ID} lost its job before any step ran; dispatching one replacement refresh on ${TARGET_REF}"
-          gh workflow run daily-refresh.yml --ref "$TARGET_REF"
+          # With no step run, the two known shapes are told apart by whether a runner was recorded.
+          # Anything else - skipped because prepare failed, or a conclusion not seen before - is left
+          # alone rather than guessed at.
+          if [ "$conclusion" = "cancelled" ] && [ -z "$runner_name" ]; then
+            reason="lost its job before any step ran"
+          elif [ "$conclusion" = "failure" ] && [ -n "$runner_name" ]; then
+            reason="lost runner ${runner_name} before any step ran"
+          else
+            echo "::notice::run ${FAILED_RUN_ID} enrichment ended ${conclusion:-with no conclusion} on runner [${runner_name}] with no step run; not a shape this retries, leaving it failed to be read"
+            exit 0
+          fi
+          echo "::notice::run ${FAILED_RUN_ID} ${reason}; dispatching one replacement refresh on ${TARGET_REF}"
+          # --repo is required: this job has no checkout, so gh has no git remote to infer a repository
+          # from and exits "not a git repository". Without it this dispatch could never have succeeded,
+          # and nothing showed that, because no run had ever reached this line.
+          gh workflow run daily-refresh.yml --ref "$TARGET_REF" --repo "$GITHUB_REPOSITORY"
