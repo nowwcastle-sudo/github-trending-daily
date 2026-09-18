@@ -1206,47 +1206,47 @@
   },
   "TencentCloud/Octop": {
     "content": {
-      "goal": "Octop is described as an open-source, self-hosted AI assistant with a multi-agent architecture intended for households, families, and small teams, aiming to keep conversations, workspaces, and credentials on the user's own machine.",
-      "usage": "Install with the one-line script `curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.sh | bash` (macOS/Linux; PyPI, Docker, and Windows installers are also documented), then initialize with `octop init` and start the service with `octop run`, after which the dashboard is reachable at http://127.0.0.1:8088.",
-      "pros": "The README lists built-in security controls (JWT multi-user isolation, tool approval, shell guardrails, PII redaction), a connector ecosystem with OAuth/MCP, and pluggable storage backends including local disk, Docker, PostgreSQL, and COS/S3.",
-      "cons": "Running the single process requires a modern multi-core CPU with a few GB of RAM plus sufficient disk space for the database, workspaces, and document corpora, which suggests it may not suit very low-resource environments; the roadmap is also explicitly noted as indicative and subject to change.",
-      "fit": "Given the self-hosted, single-process design and stated focus on households/small teams and per-user agent workspaces, Octop appears best suited to individuals or small groups wanting local control rather than large-scale enterprise deployments."
+      "goal": "Octop is an open-source, self-hosted, multi-user, multi-agent AI assistant (MIT licensed, currently version 1.0.1) that runs as a single process serving a web dashboard, CLI, and IM integrations, with all data kept under ~/.octop/ on the user's own machine.",
+      "usage": "Octop can be installed on macOS/Linux via `curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.sh | bash` or via `pip install octop`, requires Python 3.12+, and is started with `octop init` followed by `octop run`, after which the dashboard is reachable at http://127.0.0.1:8088.",
+      "pros": "Documented strengths include built-in JWT-based multi-user isolation, tool-approval guardrails, and PII redaction; pluggable storage backends (local disk, Docker, PostgreSQL, COS/S3); a knowledge base with RAG-based semantic retrieval; and bidirectional ACP integration for delegating to external coding agents like OpenCode and Claude Code.",
+      "cons": "The README notes that the underlying harness-* runtime components (harness-agent, harness-gateway, harness-memory, harness-browser) are still being prepared for open-sourcing, so their repositories are not yet published, and interactive API docs are disabled by default unless enabled in config.json.",
+      "fit": "Based on the documented use cases (personal assistant, family sharing, team helper scenarios), Octop appears suited to individuals, families, and small teams wanting a self-hosted personal assistant, shared household agent access, or IM-routed team task delegation."
     },
     "summaries": {
       "en": {
-        "goal": "Octop is described as an open-source, self-hosted AI assistant with a multi-agent architecture intended for households, families, and small teams, aiming to keep conversations, workspaces, and credentials on the user's own machine.",
-        "usage": "Install with the one-line script `curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.sh | bash` (macOS/Linux; PyPI, Docker, and Windows installers are also documented), then initialize with `octop init` and start the service with `octop run`, after which the dashboard is reachable at http://127.0.0.1:8088.",
-        "pros": "The README lists built-in security controls (JWT multi-user isolation, tool approval, shell guardrails, PII redaction), a connector ecosystem with OAuth/MCP, and pluggable storage backends including local disk, Docker, PostgreSQL, and COS/S3.",
-        "cons": "Running the single process requires a modern multi-core CPU with a few GB of RAM plus sufficient disk space for the database, workspaces, and document corpora, which suggests it may not suit very low-resource environments; the roadmap is also explicitly noted as indicative and subject to change.",
-        "fit": "Given the self-hosted, single-process design and stated focus on households/small teams and per-user agent workspaces, Octop appears best suited to individuals or small groups wanting local control rather than large-scale enterprise deployments."
+        "goal": "Octop is an open-source, self-hosted, multi-user, multi-agent AI assistant (MIT licensed, currently version 1.0.1) that runs as a single process serving a web dashboard, CLI, and IM integrations, with all data kept under ~/.octop/ on the user's own machine.",
+        "usage": "Octop can be installed on macOS/Linux via `curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.sh | bash` or via `pip install octop`, requires Python 3.12+, and is started with `octop init` followed by `octop run`, after which the dashboard is reachable at http://127.0.0.1:8088.",
+        "pros": "Documented strengths include built-in JWT-based multi-user isolation, tool-approval guardrails, and PII redaction; pluggable storage backends (local disk, Docker, PostgreSQL, COS/S3); a knowledge base with RAG-based semantic retrieval; and bidirectional ACP integration for delegating to external coding agents like OpenCode and Claude Code.",
+        "cons": "The README notes that the underlying harness-* runtime components (harness-agent, harness-gateway, harness-memory, harness-browser) are still being prepared for open-sourcing, so their repositories are not yet published, and interactive API docs are disabled by default unless enabled in config.json.",
+        "fit": "Based on the documented use cases (personal assistant, family sharing, team helper scenarios), Octop appears suited to individuals, families, and small teams wanting a self-hosted personal assistant, shared household agent access, or IM-routed team task delegation."
       },
       "ko": {
-        "goal": "Octop는 오픈소스, 셀프호스팅 방식의 AI 어시스턴트로 소개되며, 멀티 에이전트 아키텍처를 통해 가정과 소규모 팀을 대상으로 대화·워크스페이스·자격 증명을 사용자 자신의 기기에 유지하는 것을 목표로 한다고 문서에 명시되어 있습니다.",
-        "usage": "macOS/Linux에서는 `curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.sh | bash` 한 줄 설치 스크립트를 사용하고(PyPI, Docker, Windows용 설치 방법도 문서화됨), 이후 `octop init`으로 초기화한 뒤 `octop run`으로 실행하면 대시보드는 http://127.0.0.1:8088 에서 접속할 수 있습니다.",
-        "pros": "README에는 JWT 기반 다중 사용자 격리, 도구 승인, 셸 가드레일, PII 마스킹 등 내장 보안 기능과 OAuth/MCP 커넥터 생태계, 로컬 디스크·Docker·PostgreSQL·COS/S3 등 교체 가능한 저장소 백엔드가 명시되어 있습니다.",
-        "cons": "단일 프로세스를 실행하려면 데이터베이스, 워크스페이스, 문서 코퍼스를 위한 충분한 디스크 공간과 함께 몇 GB의 RAM을 갖춘 최신 멀티코어 CPU가 필요하다고 명시되어 있어, 자원이 매우 제한된 환경에는 적합하지 않을 수 있음을 시사합니다. 또한 로드맵은 명시적으로 '지침용일 뿐'이라고 표시되어 있어 변경될 수 있습니다.",
-        "fit": "셀프호스팅·단일 프로세스 설계와 가정/소규모 팀, 사용자별 에이전트 워크스페이스에 초점을 맞춘 문서 내용을 볼 때, Octop은 대규모 엔터프라이즈 배포보다는 로컬 제어를 원하는 개인이나 소규모 그룹에 더 적합해 보입니다."
+        "goal": "Octop은 오픈소스로 자체 호스팅 가능한 멀티유저, 멀티에이전트 AI 어시스턴트로, MIT 라이선스이며 현재 버전은 1.0.1입니다. 단일 프로세스로 웹 대시보드, CLI, IM 연동을 제공하며 모든 데이터는 사용자 자신의 머신의 ~/.octop/ 아래에 저장됩니다.",
+        "usage": "macOS/Linux에서는 `curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.sh | bash` 명령으로, 또는 `pip install octop`으로 설치할 수 있으며 Python 3.12 이상이 필요합니다. `octop init`으로 초기화한 뒤 `octop run`으로 실행하면 http://127.0.0.1:8088 에서 대시보드에 접속할 수 있습니다.",
+        "pros": "문서에 따르면 JWT 기반 멀티유저 격리, 도구 승인 가드레일, PII 마스킹이 기본 제공되며, 로컬 디스크·Docker·PostgreSQL·COS/S3 등 다양한 저장소 백엔드를 지원합니다. 또한 RAG 기반 시맨틱 검색을 지원하는 지식베이스와, OpenCode·Claude Code 같은 외부 코딩 에이전트에 위임 가능한 양방향 ACP 통합을 제공합니다.",
+        "cons": "README에는 기반이 되는 harness-* 런타임 구성요소(harness-agent, harness-gateway, harness-memory, harness-browser)가 아직 오픈소스화 준비 중이라 저장소가 공개되지 않았다고 명시되어 있으며, 대화형 API 문서도 config.json에서 별도로 활성화하지 않는 한 기본적으로 비활성화되어 있습니다.",
+        "fit": "문서화된 사용 사례(개인 비서, 가족 공유, 팀 도우미 시나리오)를 볼 때, Octop은 자체 호스팅 방식의 개인 비서, 가정 내 공유 에이전트, 또는 IM을 통한 팀 작업 위임을 원하는 개인·가족·소규모 팀에 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "文档将 Octop 描述为一款开源、自托管的 AI 助手，采用多智能体架构，面向家庭和小型团队，旨在将对话、工作区和凭据保留在用户自己的设备上。",
-        "usage": "可在 macOS/Linux 上使用一键安装脚本 `curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.sh | bash`（文档同时记录了 PyPI、Docker 及 Windows 安装方式），随后运行 `octop init` 完成初始化，再执行 `octop run` 启动服务，此后可通过 http://127.0.0.1:8088 访问仪表盘。",
-        "pros": "README 中列出了内置安全控制（基于 JWT 的多用户隔离、工具审批、Shell 防护规则、PII 脱敏）、支持 OAuth/MCP 的连接器生态，以及本地磁盘、Docker、PostgreSQL、COS/S3 等可插拔存储后端。",
-        "cons": "文档指出运行该单进程需要具备几 GB 内存的现代多核 CPU，并需要足够磁盘空间来存放数据库、工作区和文档语料，这提示它可能不太适合资源非常有限的环境；此外路线图被明确标注为仅供参考，可能发生变化。",
-        "fit": "从其自托管、单进程的设计以及文档中强调的家庭/小团队和按用户划分的智能体工作区来看，Octop 似乎更适合希望本地掌控的个人或小型团体，而非大规模企业部署。"
+        "goal": "Octop 是一个开源、可自托管的多用户、多智能体 AI 助手,采用 MIT 许可证,当前版本为 1.0.1。它以单一进程运行,提供网页仪表盘、命令行工具及即时通讯集成,所有数据都保存在用户本机的 ~/.octop/ 目录下。",
+        "usage": "在 macOS/Linux 上可通过命令 `curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.sh | bash` 安装,也可使用 `pip install octop` 安装,需要 Python 3.12 及以上版本。先运行 `octop init` 完成初始化,再运行 `octop run` 启动服务,随后可通过 http://127.0.0.1:8088 访问仪表盘。",
+        "pros": "据文档介绍,该项目内置基于 JWT 的多用户隔离、工具审批防护和 PII 脱敏机制,并支持本地磁盘、Docker、PostgreSQL、COS/S3 等多种可插拔存储后端。此外还提供基于 RAG 的语义检索知识库,以及可将任务委派给 OpenCode、Claude Code 等外部编码代理的双向 ACP 集成。",
+        "cons": "README 说明,其底层依赖的 harness-* 运行时组件(harness-agent、harness-gateway、harness-memory、harness-browser)仍在准备开源,相关仓库尚未公开;此外交互式 API 文档默认处于关闭状态,需要在 config.json 中手动启用。",
+        "fit": "根据文档中列出的使用场景(个人助理、家庭共享、团队协作),Octop 看起来适合希望自托管个人助理、家庭共享代理或通过即时通讯路由团队任务的个人、家庭及小型团队。"
       },
       "es": {
-        "goal": "El README describe a Octop como un asistente de IA de código abierto y autoalojado con una arquitectura multiagente, orientado a hogares y equipos pequeños, con el objetivo declarado de mantener conversaciones, espacios de trabajo y credenciales en la propia máquina del usuario.",
-        "usage": "Se instala con el script de una línea `curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.sh | bash` en macOS/Linux (también se documentan instaladores para PyPI, Docker y Windows); luego se inicializa con `octop init` y se arranca con `octop run`, tras lo cual el panel queda disponible en http://127.0.0.1:8088.",
-        "pros": "El README enumera controles de seguridad integrados (aislamiento multiusuario por JWT, aprobación de herramientas, protecciones de shell, redacción de PII), un ecosistema de conectores con OAuth/MCP, y backends de almacenamiento intercambiables como disco local, Docker, PostgreSQL y COS/S3.",
-        "cons": "Ejecutar el proceso único requiere, según el documento, una CPU multinúcleo moderna con varios GB de RAM y suficiente espacio en disco para la base de datos, los espacios de trabajo y los corpus documentales, lo que sugiere que podría no ser adecuado para entornos con recursos muy limitados; además, la hoja de ruta se indica explícitamente como orientativa y sujeta a cambios.",
-        "fit": "Dado su diseño autoalojado y de proceso único, junto con el enfoque declarado en hogares/equipos pequeños y espacios de trabajo de agentes por usuario, Octop parece más adecuado para individuos o grupos reducidos que buscan control local, más que para despliegues empresariales a gran escala."
+        "goal": "Octop es un asistente de IA de código abierto, autoalojado, multiusuario y multiagente, bajo licencia MIT y actualmente en la versión 1.0.1. Se ejecuta como un único proceso que ofrece un panel web, una CLI e integraciones de mensajería, y guarda todos los datos bajo ~/.octop/ en la propia máquina del usuario.",
+        "usage": "En macOS/Linux se puede instalar con el comando `curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.sh | bash`, o alternativamente con `pip install octop`; requiere Python 3.12 o superior. Se inicializa con `octop init` y se arranca con `octop run`, tras lo cual el panel queda disponible en http://127.0.0.1:8088.",
+        "pros": "Según la documentación, incluye aislamiento multiusuario basado en JWT, controles de aprobación de herramientas y redacción de PII de forma nativa, además de backends de almacenamiento intercambiables (disco local, Docker, PostgreSQL, COS/S3). También ofrece una base de conocimiento con recuperación semántica basada en RAG y una integración ACP bidireccional para delegar tareas a agentes de codificación externos como OpenCode y Claude Code.",
+        "cons": "El README indica que los componentes de runtime harness-* subyacentes (harness-agent, harness-gateway, harness-memory, harness-browser) aún están en preparación para su publicación como código abierto, por lo que sus repositorios todavía no están disponibles; además, la documentación interactiva de la API está deshabilitada por defecto salvo que se active en config.json.",
+        "fit": "A partir de los casos de uso documentados (asistente personal, uso familiar compartido, apoyo a equipos), Octop parece adecuado para personas, familias y equipos pequeños que buscan un asistente autoalojado, acceso compartido de agentes en el hogar o delegación de tareas de equipo a través de mensajería."
       },
       "ja": {
-        "goal": "READMEによると、Octopはオープンソースでセルフホスト型のAIアシスタントであり、マルチエージェント構成を採用し、家庭や小規模チーム向けに、会話・ワークスペース・認証情報をユーザー自身のマシン上に保持することを目指しているとされています。",
-        "usage": "macOS/Linuxではワンライナーのインストールスクリプト `curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.sh | bash` を使用でき（PyPI、Docker、Windows向けの手順も記載）、続いて `octop init` で初期化し、`octop run` で起動すると、ダッシュボードは http://127.0.0.1:8088 でアクセス可能になります。",
-        "pros": "READMEには、JWTによるマルチユーザー分離、ツール承認、シェルガードレール、PIIのマスキングといった組み込みセキュリティ機能、OAuth/MCP対応のコネクタエコシステム、そしてローカルディスク・Docker・PostgreSQL・COS/S3などの切り替え可能なストレージバックエンドが挙げられています。",
-        "cons": "単一プロセスの実行には、データベース・ワークスペース・ドキュメントコーパス用の十分なディスク容量に加え、数GBのRAMを備えた最新のマルチコアCPUが必要とされており、リソースが非常に限られた環境には向かない可能性が示唆されます。また、ロードマップは明示的に「参考程度」とされており、変更される可能性があります。",
-        "fit": "セルフホスト・単一プロセス設計であること、また家庭/小規模チームやユーザーごとのエージェントワークスペースに重点を置いていると記載されていることから、Octopは大規模なエンタープライズ展開よりも、ローカルでの管理を求める個人や小グループに適していると考えられます。"
+        "goal": "Octopは、オープンソースでセルフホスト可能なマルチユーザー・マルチエージェント型AIアシスタントであり、MITライセンスのもと現在バージョン1.0.1として公開されています。単一プロセスでWebダッシュボード、CLI、IM連携を提供し、すべてのデータはユーザー自身のマシン上の~/.octop/配下に保存されます。",
+        "usage": "macOS/Linuxでは`curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.sh | bash`でインストールでき、`pip install octop`でも導入可能です。Python 3.12以上が必要で、`octop init`で初期化した後`octop run`で起動すると、http://127.0.0.1:8088 でダッシュボードにアクセスできます。",
+        "pros": "ドキュメントによれば、JWTベースのマルチユーザー分離、ツール承認によるガードレール、PIIのレダクションが標準搭載されており、ローカルディスク・Docker・PostgreSQL・COS/S3など複数のストレージバックエンドに対応しています。さらにRAGによる意味検索を用いたナレッジベースや、OpenCodeやClaude Codeなど外部のコーディングエージェントへタスクを委譲できる双方向のACP連携も備えています。",
+        "cons": "READMEには、基盤となるharness-*ランタイムコンポーネント(harness-agent、harness-gateway、harness-memory、harness-browser)がまだオープンソース公開の準備段階にあり、リポジトリが未公開であることが記されています。また対話型APIドキュメントはconfig.jsonで有効化しない限りデフォルトで無効になっています。",
+        "fit": "ドキュメントに記載された利用例(個人アシスタント、家族での共有利用、チームサポート)を踏まえると、Octopはセルフホスト型の個人アシスタント、家庭内でのエージェント共有、あるいはIM経由でのチームタスク委譲を求める個人・家族・小規模チームに適していると考えられます。"
       }
     },
     "evidence": {
@@ -1269,63 +1269,59 @@
       ],
       "usage": [
         {
-          "start_line": 174,
+          "start_line": 175,
           "end_line": 176,
           "section_heading": "1. Install"
         },
         {
-          "start_line": 239,
-          "end_line": 256,
+          "start_line": 240,
+          "end_line": 249,
           "section_heading": "2. Initialize"
         },
         {
-          "start_line": 401,
-          "end_line": 401,
-          "section_heading": "🖥️ Web dashboard"
+          "start_line": 258,
+          "end_line": 258,
+          "section_heading": "3. Run"
         }
       ],
       "pros": [
         {
           "start_line": 52,
-          "end_line": 56,
+          "end_line": 52,
+          "section_heading": "✨ Highlights"
+        },
+        {
+          "start_line": 54,
+          "end_line": 54,
+          "section_heading": "✨ Highlights"
+        },
+        {
+          "start_line": 56,
+          "end_line": 58,
           "section_heading": "✨ Highlights"
         }
       ],
       "cons": [
         {
-          "start_line": 166,
-          "end_line": 168,
-          "section_heading": "Prerequisites"
+          "start_line": 526,
+          "end_line": 526,
+          "section_heading": "🔗 Related projects"
         },
         {
-          "start_line": 160,
-          "end_line": 160,
-          "section_heading": "🧭 Roadmap"
+          "start_line": 110,
+          "end_line": 110,
+          "section_heading": "Server & auth"
         }
       ],
       "fit": [
         {
-          "start_line": 66,
-          "end_line": 68,
-          "section_heading": "📌 Overview"
-        },
-        {
           "start_line": 73,
-          "end_line": 76,
+          "end_line": 78,
           "section_heading": "📌 Overview"
         }
       ]
     },
     "invariants": [
-      {
-        "kind": "product",
-        "value": "Octop",
-        "fields": [
-          "goal",
-          "usage",
-          "fit"
-        ]
-      },
       {
         "kind": "command",
         "value": "octop init",
@@ -1342,7 +1338,28 @@
       },
       {
         "kind": "command",
-        "value": "curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.sh | bash",
+        "value": "pip install octop",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "3.12",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "1.0.1",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.sh",
         "fields": [
           "usage"
         ]
@@ -1355,23 +1372,59 @@
         ]
       },
       {
+        "kind": "number",
+        "value": "8088",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Octop",
+        "fields": [
+          "goal",
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "MIT License",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
         "kind": "product",
         "value": "PostgreSQL",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "OpenCode",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Claude Code",
         "fields": [
           "pros"
         ]
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "tencentcloud/octop",
       "path": "README.md",
-      "blob_sha": "efbdd065d44a9fcf209c8dba36add2a2c099e106",
-      "content_sha256": "49da304758f448a2196cc2a92b1bfca9a999e13ea66325f75eae24d116e0717e",
+      "blob_sha": "a2dc451e541bf1f2115c19b404370536bebcf886",
+      "content_sha256": "e223834edb2bc9f8a64f6c87937eb9a48ed959b3a082f875d19f51e06115c953",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -6970,47 +7023,47 @@
   },
   "cursor/plugins": {
     "content": {
-      "goal": "This repository hosts official Cursor plugins for popular developer tools, frameworks, and SaaS products. Each plugin lives in its own standalone directory at the repository root, defined by a `.cursor-plugin/plugin.json` manifest, and covers categories such as Developer Tools, Productivity, and Integrations.",
-      "usage": "The repository follows a multi-plugin marketplace layout: the root `.cursor-plugin/marketplace.json` file lists all plugins, while each plugin directory contains its own `.cursor-plugin/plugin.json` manifest along with optional `skills/`, `rules/`, and `mcp.json` files, plus its own README, CHANGELOG, and LICENSE.",
-      "pros": "The collection spans dozens of plugins, including developer-focused tools like GitHub, Playwright, and Cursor SDK, alongside productivity and SaaS integrations such as Gmail, Google Calendar, Salesforce, and HubSpot, offering broad coverage across coding, collaboration, and business workflows.",
-      "cons": "Because each plugin targets a distinct third-party service or tool with its own manifest and likely its own authentication requirements, adopting multiple plugins may involve separate per-service setup; the README does not detail these individual configuration steps.",
-      "fit": "This repository appears best suited for teams and developers already using the Cursor platform who want to extend it with additional developer-tool or SaaS integrations, rather than as a standalone application."
+      "goal": "cursor/plugins is a repository of official Cursor plugins covering developer tools, frameworks, and SaaS products. Each plugin lives in its own standalone directory at the repository root, described by a `.cursor-plugin/plugin.json` manifest.",
+      "usage": "The root `.cursor-plugin/marketplace.json` file lists all plugins, while each plugin directory holds its own manifest, skills, rules, and an `mcp.json` MCP server definition. The README does not document an install or run command, so usage likely happens through Cursor's own plugin/marketplace mechanism rather than a standalone CLI.",
+      "pros": "The marketplace table documents dozens of ready-made plugins across categories such as Developer Tools, Productivity, and Integrations, including tools like GitHub, Salesforce, Gmail, and Google Calendar, giving broad out-of-the-box coverage for common workflows.",
+      "cons": "Beyond describing the manifest and directory layout, the README gives no explicit setup or execution commands, so users may need prior familiarity with how Cursor loads plugins from a marketplace manifest.",
+      "fit": "This repository appears best suited for teams already using the Cursor editor who want a curated set of first- and third-party integrations rather than building custom plugins from scratch."
     },
     "summaries": {
       "en": {
-        "goal": "This repository hosts official Cursor plugins for popular developer tools, frameworks, and SaaS products. Each plugin lives in its own standalone directory at the repository root, defined by a `.cursor-plugin/plugin.json` manifest, and covers categories such as Developer Tools, Productivity, and Integrations.",
-        "usage": "The repository follows a multi-plugin marketplace layout: the root `.cursor-plugin/marketplace.json` file lists all plugins, while each plugin directory contains its own `.cursor-plugin/plugin.json` manifest along with optional `skills/`, `rules/`, and `mcp.json` files, plus its own README, CHANGELOG, and LICENSE.",
-        "pros": "The collection spans dozens of plugins, including developer-focused tools like GitHub, Playwright, and Cursor SDK, alongside productivity and SaaS integrations such as Gmail, Google Calendar, Salesforce, and HubSpot, offering broad coverage across coding, collaboration, and business workflows.",
-        "cons": "Because each plugin targets a distinct third-party service or tool with its own manifest and likely its own authentication requirements, adopting multiple plugins may involve separate per-service setup; the README does not detail these individual configuration steps.",
-        "fit": "This repository appears best suited for teams and developers already using the Cursor platform who want to extend it with additional developer-tool or SaaS integrations, rather than as a standalone application."
+        "goal": "cursor/plugins is a repository of official Cursor plugins covering developer tools, frameworks, and SaaS products. Each plugin lives in its own standalone directory at the repository root, described by a `.cursor-plugin/plugin.json` manifest.",
+        "usage": "The root `.cursor-plugin/marketplace.json` file lists all plugins, while each plugin directory holds its own manifest, skills, rules, and an `mcp.json` MCP server definition. The README does not document an install or run command, so usage likely happens through Cursor's own plugin/marketplace mechanism rather than a standalone CLI.",
+        "pros": "The marketplace table documents dozens of ready-made plugins across categories such as Developer Tools, Productivity, and Integrations, including tools like GitHub, Salesforce, Gmail, and Google Calendar, giving broad out-of-the-box coverage for common workflows.",
+        "cons": "Beyond describing the manifest and directory layout, the README gives no explicit setup or execution commands, so users may need prior familiarity with how Cursor loads plugins from a marketplace manifest.",
+        "fit": "This repository appears best suited for teams already using the Cursor editor who want a curated set of first- and third-party integrations rather than building custom plugins from scratch."
       },
       "ko": {
-        "goal": "이 저장소는 인기 있는 개발자 도구, 프레임워크, SaaS 제품을 위한 공식 Cursor 플러그인을 제공합니다. 각 플러그인은 저장소 루트에 독립된 디렉터리로 존재하며 `.cursor-plugin/plugin.json` 매니페스트로 정의되고, Developer Tools, Productivity, Integrations 등의 카테고리로 분류됩니다.",
-        "usage": "저장소는 다중 플러그인 마켓플레이스 구조를 따릅니다. 루트의 `.cursor-plugin/marketplace.json` 파일이 모든 플러그인을 나열하며, 각 플러그인 디렉터리는 자체 `.cursor-plugin/plugin.json` 매니페스트와 함께 `skills/`, `rules/`, `mcp.json` 파일, 그리고 개별 README, CHANGELOG, LICENSE를 포함할 수 있습니다.",
-        "pros": "GitHub, Playwright, Cursor SDK 같은 개발자 도구부터 Gmail, Google Calendar, Salesforce, HubSpot 같은 생산성 및 SaaS 통합까지 수십 개의 플러그인을 제공하여 코딩, 협업, 업무 워크플로우 전반에 걸쳐 폭넓은 범위를 다룹니다.",
-        "cons": "각 플러그인이 개별 타사 서비스나 도구를 대상으로 하며 자체 매니페스트와 아마도 별도의 인증 절차가 필요할 것으로 보이므로, 여러 플러그인을 도입하려면 서비스별로 별도 설정이 필요할 수 있습니다. README에는 이러한 개별 설정 단계가 구체적으로 설명되어 있지 않습니다.",
-        "fit": "이 저장소는 이미 Cursor 플랫폼을 사용 중이며 추가 개발자 도구나 SaaS 통합으로 기능을 확장하려는 팀과 개발자에게 적합해 보이며, 독립 실행형 애플리케이션으로 보기는 어렵습니다."
+        "goal": "cursor/plugins는 개발자 도구, 프레임워크, SaaS 제품을 위한 공식 Cursor 플러그인 모음입니다. 각 플러그인은 저장소 루트에 독립된 디렉터리로 존재하며 `.cursor-plugin/plugin.json` 매니페스트로 설명됩니다.",
+        "usage": "루트의 `.cursor-plugin/marketplace.json` 파일이 모든 플러그인을 나열하고, 각 플러그인 디렉터리에는 자체 매니페스트, skills, rules, `mcp.json` MCP 서버 정의가 포함됩니다. README에는 별도의 설치나 실행 명령이 문서화되어 있지 않아, 아마도 독립 실행형 CLI가 아니라 Cursor 자체의 플러그인/마켓플레이스 메커니즘을 통해 사용되는 것으로 보입니다.",
+        "pros": "마켓플레이스 표에는 Developer Tools, Productivity, Integrations 등 다양한 범주에 걸쳐 수십 개의 준비된 플러그인이 문서화되어 있으며, GitHub, Salesforce, Gmail, Google Calendar 같은 도구도 포함되어 일반적인 워크플로에 폭넓은 기본 지원을 제공합니다.",
+        "cons": "매니페스트와 디렉터리 구조 설명 외에는 명시적인 설치나 실행 명령이 제공되지 않아, 사용자는 Cursor가 마켓플레이스 매니페스트에서 플러그인을 불러오는 방식에 어느 정도 익숙해야 할 수도 있습니다.",
+        "fit": "이 저장소는 처음부터 커스텀 플러그인을 만들기보다는, 이미 Cursor 에디터를 사용하며 엄선된 자체 및 서드파티 통합 세트를 원하는 팀에 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "该仓库提供适用于常见开发者工具、框架和 SaaS 产品的官方 Cursor 插件。每个插件在仓库根目录下都是一个独立目录,由 `.cursor-plugin/plugin.json` 清单定义,并分为 Developer Tools、Productivity、Integrations 等类别。",
-        "usage": "该仓库采用多插件市场结构:根目录下的 `.cursor-plugin/marketplace.json` 文件列出所有插件,每个插件目录都包含自己的 `.cursor-plugin/plugin.json` 清单,以及可能的 `skills/`、`rules/`、`mcp.json` 文件,还有各自的 README、CHANGELOG 和 LICENSE。",
-        "pros": "该集合涵盖数十个插件,既有 GitHub、Playwright、Cursor SDK 等面向开发者的工具,也有 Gmail、Google Calendar、Salesforce、HubSpot 等生产力与 SaaS 集成,覆盖编码、协作和业务流程等广泛场景。",
-        "cons": "由于每个插件针对不同的第三方服务或工具,各自拥有独立清单,可能还需要单独的身份验证,采用多个插件可能需要逐个进行服务端配置;README 并未详细说明这些具体配置步骤。",
-        "fit": "该仓库似乎更适合已经在使用 Cursor 平台、希望通过额外的开发者工具或 SaaS 集成来扩展功能的团队和开发者,而非作为独立应用使用。"
+        "goal": "cursor/plugins 是面向开发者工具、框架和 SaaS 产品的官方 Cursor 插件集合。每个插件都是仓库根目录下的独立目录,并通过 `.cursor-plugin/plugin.json` 清单文件进行描述。",
+        "usage": "根目录下的 `.cursor-plugin/marketplace.json` 文件列出了所有插件,每个插件目录都包含自己的清单、skills、rules 以及 `mcp.json` MCP 服务器定义。README 并未记录具体的安装或运行命令,因此使用方式很可能是通过 Cursor 自身的插件/市场机制,而非独立的命令行工具。",
+        "pros": "市场表格中记录了数十个开箱即用的插件,涵盖 Developer Tools、Productivity、Integrations 等多个类别,其中包括 GitHub、Salesforce、Gmail、Google Calendar 等工具,为常见工作流提供了较为广泛的现成支持。",
+        "cons": "除了清单与目录结构的说明外,README 并未给出明确的安装或执行命令,用户可能需要预先了解 Cursor 如何从市场清单加载插件。",
+        "fit": "该仓库看起来更适合已经在使用 Cursor 编辑器、希望获得一套精选的官方及第三方集成而非从零构建自定义插件的团队。"
       },
       "es": {
-        "goal": "Este repositorio ofrece plugins oficiales de Cursor para herramientas de desarrollo, frameworks y productos SaaS populares. Cada plugin es un directorio independiente en la raíz del repositorio, definido por un manifiesto `.cursor-plugin/plugin.json`, y se clasifica en categorías como Developer Tools, Productivity e Integrations.",
-        "usage": "El repositorio sigue una estructura de mercado multi-plugin: el archivo raíz `.cursor-plugin/marketplace.json` enumera todos los plugins, mientras que cada directorio de plugin contiene su propio manifiesto `.cursor-plugin/plugin.json`, junto con archivos opcionales `skills/`, `rules/` y `mcp.json`, además de su propio README, CHANGELOG y LICENSE.",
-        "pros": "La colección abarca decenas de plugins, incluidas herramientas orientadas a desarrolladores como GitHub, Playwright y Cursor SDK, junto con integraciones de productividad y SaaS como Gmail, Google Calendar, Salesforce y HubSpot, ofreciendo amplia cobertura en codificación, colaboración y flujos de trabajo empresariales.",
-        "cons": "Dado que cada plugin se dirige a un servicio o herramienta de terceros distinto con su propio manifiesto y probablemente requisitos de autenticación propios, adoptar varios plugins puede implicar una configuración independiente por servicio; el README no detalla estos pasos de configuración individuales.",
-        "fit": "Este repositorio parece más adecuado para equipos y desarrolladores que ya usan la plataforma Cursor y desean extenderla con integraciones adicionales de herramientas de desarrollo o SaaS, en lugar de funcionar como una aplicación independiente."
+        "goal": "cursor/plugins es una colección de plugins oficiales de Cursor para herramientas de desarrollo, frameworks y productos SaaS. Cada plugin es un directorio independiente en la raíz del repositorio, descrito mediante un manifiesto `.cursor-plugin/plugin.json`.",
+        "usage": "El archivo raíz `.cursor-plugin/marketplace.json` enumera todos los plugins, y cada directorio de plugin contiene su propio manifiesto, skills, rules y una definición de servidor MCP en `mcp.json`. El README no documenta un comando de instalación o ejecución explícito, por lo que el uso probablemente ocurre a través del propio mecanismo de plugins/marketplace de Cursor en lugar de una CLI independiente.",
+        "pros": "La tabla del marketplace documenta docenas de plugins listos para usar en categorías como Developer Tools, Productivity e Integrations, incluyendo herramientas como GitHub, Salesforce, Gmail y Google Calendar, lo que ofrece una cobertura amplia para flujos de trabajo comunes.",
+        "cons": "Más allá de describir el manifiesto y la estructura de directorios, el README no ofrece comandos explícitos de instalación o ejecución, por lo que los usuarios podrían necesitar cierta familiaridad previa con la forma en que Cursor carga los plugins desde un manifiesto de marketplace.",
+        "fit": "Este repositorio parece más adecuado para equipos que ya usan el editor Cursor y desean un conjunto curado de integraciones propias y de terceros, en lugar de construir plugins personalizados desde cero."
       },
       "ja": {
-        "goal": "このリポジトリは、人気の開発ツール、フレームワーク、SaaS製品向けの公式Cursorプラグインを提供します。各プラグインはリポジトリのルートに独立したディレクトリとして存在し、`.cursor-plugin/plugin.json`マニフェストで定義され、Developer Tools、Productivity、Integrationsなどのカテゴリに分類されます。",
-        "usage": "リポジトリはマルチプラグインのマーケットプレイス構造を採用しています。ルートの`.cursor-plugin/marketplace.json`ファイルがすべてのプラグインを一覧化し、各プラグインディレクトリには独自の`.cursor-plugin/plugin.json`マニフェストに加え、`skills/`、`rules/`、`mcp.json`ファイル、さらに個別のREADME、CHANGELOG、LICENSEが含まれます。",
-        "pros": "本コレクションには、GitHub、Playwright、Cursor SDKなど開発者向けツールから、Gmail、Google Calendar、Salesforce、HubSpotなどの生産性・SaaS統合まで数十のプラグインが揃っており、コーディング、コラボレーション、業務ワークフロー全般を幅広くカバーしています。",
-        "cons": "各プラグインは異なるサードパーティのサービスやツールを対象とし、それぞれ独自のマニフェストとおそらく個別の認証要件を持つと考えられるため、複数のプラグインを導入する際にはサービスごとに個別の設定が必要になる可能性があります。READMEにはこれら個別の設定手順の詳細は記載されていません。",
-        "fit": "このリポジトリは、すでにCursorプラットフォームを利用しており、追加の開発ツールやSaaS統合で機能を拡張したいチームや開発者に適していると考えられ、単体アプリケーションとしての利用には向かないようです。"
+        "goal": "cursor/plugins は、開発者ツール、フレームワーク、SaaS 製品向けの公式 Cursor プラグイン集です。各プラグインはリポジトリのルートに独立したディレクトリとして配置され、`.cursor-plugin/plugin.json` マニフェストで説明されます。",
+        "usage": "ルートの `.cursor-plugin/marketplace.json` がすべてのプラグインを一覧化し、各プラグインディレクトリには独自のマニフェスト、skills、rules、`mcp.json` による MCP サーバー定義が含まれます。README には明示的なインストールや実行コマンドが記載されていないため、独立した CLI ではなく Cursor 自体のプラグイン/マーケットプレイス機構を通じて利用される可能性が高いと考えられます。",
+        "pros": "マーケットプレイスの表には、Developer Tools、Productivity、Integrations などのカテゴリにわたる数十のプラグインが記載されており、GitHub、Salesforce、Gmail、Google Calendar といったツールも含まれるため、一般的なワークフローに対する幅広い既製の対応が期待できます。",
+        "cons": "マニフェストとディレクトリ構成の説明以外に、README には明確なインストールや実行コマンドが示されていないため、Cursor がマーケットプレイスのマニフェストからプラグインを読み込む仕組みについて、ある程度の事前知識が必要になる可能性があります。",
+        "fit": "このリポジトリは、ゼロからカスタムプラグインを構築するよりも、すでに Cursor エディタを使用しており、厳選された自社およびサードパーティ統合のセットを求めるチームに適していると考えられます。"
       }
     },
     "evidence": {
@@ -7019,36 +7072,31 @@
           "start_line": 1,
           "end_line": 3,
           "section_heading": "Cursor plugins"
-        },
-        {
-          "start_line": 9,
-          "end_line": 9,
-          "section_heading": "Plugins"
         }
       ],
       "usage": [
         {
-          "start_line": 89,
-          "end_line": 105,
+          "start_line": 90,
+          "end_line": 106,
           "section_heading": "Repository structure"
         }
       ],
       "pros": [
         {
           "start_line": 9,
-          "end_line": 84,
+          "end_line": 23,
+          "section_heading": "Plugins"
+        },
+        {
+          "start_line": 24,
+          "end_line": 85,
           "section_heading": "Plugins"
         }
       ],
       "cons": [
         {
-          "start_line": 24,
-          "end_line": 84,
-          "section_heading": "Plugins"
-        },
-        {
-          "start_line": 96,
-          "end_line": 97,
+          "start_line": 90,
+          "end_line": 106,
           "section_heading": "Repository structure"
         }
       ],
@@ -7059,8 +7107,8 @@
           "section_heading": "Cursor plugins"
         },
         {
-          "start_line": 9,
-          "end_line": 84,
+          "start_line": 24,
+          "end_line": 85,
           "section_heading": "Plugins"
         }
       ]
@@ -7072,12 +7120,13 @@
         "fields": [
           "goal",
           "usage",
-          "pros",
+          "cons",
           "fit"
         ]
       }
     ],
     "inference_fields": [
+      "usage",
       "cons",
       "fit"
     ],
@@ -7085,8 +7134,8 @@
       "kind": "readme",
       "slug": "cursor/plugins",
       "path": "README.md",
-      "blob_sha": "75c92cf5bcd0f0e3b5ae1b793d7dd870d6258540",
-      "content_sha256": "b34db2167c2eab0cbd8a2819bab93689b98f24e88b3661b88e10c24705c82932",
+      "blob_sha": "21772a15fdca5d7f7c7bf19817f4e591ce31caa5",
+      "content_sha256": "6bd737a80502980a28489a899eb048915b065c207c1414ed64322bea63bd9e08",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -8955,53 +9004,53 @@
   },
   "abue-ammar/tinycast": {
     "content": {
-      "goal": "Tinycast is presented as a tiny, fully native macOS launcher summoned by a single hotkey, with a stated aim of staying under 100 MB of RAM. It is built with SwiftUI and AppKit, has zero third-party dependencies, no Electron, and no telemetry, and can run real Raycast extensions rendered natively.",
-      "usage": "Install via Homebrew: run `brew tap abue-ammar/tinycast`, then either `brew install --cask tinycast` (Apple silicon, macOS 26+) or `brew install --cask tinycast-universal` (Intel, macOS 26). After installation, set a global hotkey under Settings → General to summon the command palette.",
-      "pros": "It bundles many built-in tools in one palette: an app launcher, clipboard history, calculator, snippets, custom shell commands, window management, and calendar integration. It is free, open source under AGPL-3.0, and can natively run existing Raycast extensions.",
-      "cons": "Accessibility permission must be granted for Tinycast to paste or expand text into other apps, and snippet-based keyword expansion ships disabled by default until enabled. This is a required setup step rather than an automatic capability out of the box.",
-      "fit": "Based on its macOS 26 requirement and native, dependency-free design, Tinycast appears aimed at macOS users on Apple silicon or Intel Macs who want a lightweight, privacy-conscious alternative to Electron-based launchers, though this fit is a reasonable inference rather than an explicit claim."
+      "goal": "Tinycast is described as a fully native macOS application launcher activated by a single hotkey, built with SwiftUI and AppKit and reportedly using under 100 MB of RAM. It is presented as free, open source software (AGPL-3.0) that can also run existing Raycast extensions natively as SwiftUI.",
+      "usage": "Installation is via Homebrew: after adding the tap with `brew tap abue-ammar/tinycast`, users run `brew install --cask tinycast` (or the tinycast-universal cask on Intel Macs). Once installed, users set a global shortcut in Settings → General to summon the launcher palette and can filter/launch items with keyboard navigation.",
+      "pros": "Documented features include an app launcher with fuzzy search, per-app hotkeys, clipboard history, a calculator, Quicklinks, Apple Shortcuts integration, window management (34 actions), and native rendering of existing Raycast extensions. The README states it has zero third-party dependencies, no Electron, and no telemetry.",
+      "cons": "The software appears to require macOS 26 or later, which, given today's date, suggests it targets a very recent macOS release and may not run on older systems. Users who download a DMG directly (rather than via Homebrew) must manually clear the macOS quarantine flag since the app is self-signed.",
+      "fit": "Given its native Raycast-extension support and launcher feature set, Tinycast may suit macOS users seeking a lightweight, open-source alternative to Raycast, though its AGPL-3.0 license and issue-first contribution policy could matter for teams evaluating adoption or forking."
     },
     "summaries": {
       "en": {
-        "goal": "Tinycast is presented as a tiny, fully native macOS launcher summoned by a single hotkey, with a stated aim of staying under 100 MB of RAM. It is built with SwiftUI and AppKit, has zero third-party dependencies, no Electron, and no telemetry, and can run real Raycast extensions rendered natively.",
-        "usage": "Install via Homebrew: run `brew tap abue-ammar/tinycast`, then either `brew install --cask tinycast` (Apple silicon, macOS 26+) or `brew install --cask tinycast-universal` (Intel, macOS 26). After installation, set a global hotkey under Settings → General to summon the command palette.",
-        "pros": "It bundles many built-in tools in one palette: an app launcher, clipboard history, calculator, snippets, custom shell commands, window management, and calendar integration. It is free, open source under AGPL-3.0, and can natively run existing Raycast extensions.",
-        "cons": "Accessibility permission must be granted for Tinycast to paste or expand text into other apps, and snippet-based keyword expansion ships disabled by default until enabled. This is a required setup step rather than an automatic capability out of the box.",
-        "fit": "Based on its macOS 26 requirement and native, dependency-free design, Tinycast appears aimed at macOS users on Apple silicon or Intel Macs who want a lightweight, privacy-conscious alternative to Electron-based launchers, though this fit is a reasonable inference rather than an explicit claim."
+        "goal": "Tinycast is described as a fully native macOS application launcher activated by a single hotkey, built with SwiftUI and AppKit and reportedly using under 100 MB of RAM. It is presented as free, open source software (AGPL-3.0) that can also run existing Raycast extensions natively as SwiftUI.",
+        "usage": "Installation is via Homebrew: after adding the tap with `brew tap abue-ammar/tinycast`, users run `brew install --cask tinycast` (or the tinycast-universal cask on Intel Macs). Once installed, users set a global shortcut in Settings → General to summon the launcher palette and can filter/launch items with keyboard navigation.",
+        "pros": "Documented features include an app launcher with fuzzy search, per-app hotkeys, clipboard history, a calculator, Quicklinks, Apple Shortcuts integration, window management (34 actions), and native rendering of existing Raycast extensions. The README states it has zero third-party dependencies, no Electron, and no telemetry.",
+        "cons": "The software appears to require macOS 26 or later, which, given today's date, suggests it targets a very recent macOS release and may not run on older systems. Users who download a DMG directly (rather than via Homebrew) must manually clear the macOS quarantine flag since the app is self-signed.",
+        "fit": "Given its native Raycast-extension support and launcher feature set, Tinycast may suit macOS users seeking a lightweight, open-source alternative to Raycast, though its AGPL-3.0 license and issue-first contribution policy could matter for teams evaluating adoption or forking."
       },
       "ko": {
-        "goal": "Tinycast는 단축키 하나로 실행되는 완전 네이티브 macOS 런처로 소개되며, RAM 사용량을 100MB 미만으로 유지하는 것을 목표로 한다고 명시되어 있습니다. SwiftUI와 AppKit으로 제작되었고 서드파티 의존성이 전혀 없으며, Electron이나 텔레메트리도 사용하지 않고, 실제 Raycast 확장 프로그램을 네이티브로 실행할 수 있습니다.",
-        "usage": "Homebrew로 설치합니다: 먼저 `brew tap abue-ammar/tinycast`를 실행한 뒤, Apple 실리콘·macOS 26 이상에서는 `brew install --cask tinycast`를, Intel·macOS 26에서는 `brew install --cask tinycast-universal`을 실행합니다. 설치 후에는 Settings → General에서 팔레트를 호출할 전역 단축키를 지정합니다.",
-        "pros": "앱 실행기, 클립보드 기록, 계산기, 스니펫, 사용자 지정 셸 명령, 창 관리, 캘린더 연동 등 다양한 기능을 하나의 팔레트에서 제공합니다. 무료이며 AGPL-3.0 오픈소스 라이선스이고, 기존 Raycast 확장 프로그램을 네이티브로 실행할 수 있습니다.",
-        "cons": "Tinycast가 다른 앱에 텍스트를 붙여넣거나 확장하려면 손쉬운 사용(Accessibility) 권한을 부여해야 하며, 스니펫 키워드 확장 기능은 기본적으로 비활성화된 상태로 제공되어 별도로 활성화해야 합니다. 이는 즉시 사용 가능한 기능이 아니라 사전 설정이 필요한 부분입니다.",
-        "fit": "macOS 26 요구 사항과 네이티브·무의존성 설계를 고려할 때, Tinycast는 Apple 실리콘 또는 Intel Mac 사용자 중 Electron 기반 런처 대신 가볍고 프라이버시를 중시하는 대안을 원하는 사람에게 적합해 보이지만, 이는 명시적 주장이라기보다 합리적인 추정입니다."
+        "goal": "Tinycast는 SwiftUI와 AppKit으로 제작된 완전 네이티브 macOS 앱 런처로, 단일 단축키로 실행되며 RAM 사용량이 100 MB 미만이라고 설명되어 있습니다. 무료 오픈소스 소프트웨어(AGPL-3.0)이며 기존 Raycast 확장 프로그램을 네이티브 SwiftUI로 실행할 수 있다고 소개됩니다.",
+        "usage": "설치는 Homebrew를 통해 이루어집니다. `brew tap abue-ammar/tinycast`로 탭을 추가한 뒤 `brew install --cask tinycast` 명령을 실행합니다(Intel Mac에서는 tinycast-universal 캐스크 사용). 설치 후에는 Settings → General에서 전역 단축키를 설정해 런처 팔레트를 호출하고, 키보드로 항목을 필터링/실행합니다.",
+        "pros": "문서화된 기능으로는 퍼지 검색 앱 런처, 앱별 단축키, 클립보드 기록, 계산기, Quicklinks, Apple Shortcuts 연동, 윈도우 관리(34개 동작), 기존 Raycast 확장 프로그램의 네이티브 렌더링이 있습니다. README는 타사 종속성이 전혀 없고 Electron과 텔레메트리가 없다고 명시합니다.",
+        "cons": "이 소프트웨어는 macOS 26 이상을 요구하는 것으로 보이며, 오늘 날짜를 고려하면 매우 최신 macOS 릴리스를 대상으로 하여 이전 시스템에서는 실행되지 않을 수 있습니다. Homebrew 대신 DMG를 직접 다운로드하는 사용자는 앱이 자체 서명되어 있으므로 macOS 격리(quarantine) 플래그를 수동으로 해제해야 합니다.",
+        "fit": "네이티브 Raycast 확장 지원과 런처 기능 구성을 고려할 때, Tinycast는 가볍고 오픈소스인 Raycast 대안을 찾는 macOS 사용자에게 적합할 수 있으나, AGPL-3.0 라이선스와 이슈 우선 기여 정책은 도입이나 포크를 검토하는 팀에게 고려 사항이 될 수 있습니다."
       },
       "zh-CN": {
-        "goal": "Tinycast 被介绍为一款体积极小、完全原生的 macOS 启动器,通过单一快捷键调用,并声称致力于将内存占用控制在 100 MB 以下。它基于 SwiftUI 和 AppKit 构建,零第三方依赖,不使用 Electron,也不含遥测,并且能够以原生方式运行真实的 Raycast 扩展。",
-        "usage": "通过 Homebrew 安装:先运行 `brew tap abue-ammar/tinycast`,然后根据设备选择执行 `brew install --cask tinycast`(Apple 芯片,macOS 26 及以上)或 `brew install --cask tinycast-universal`(Intel,macOS 26)。安装完成后,在 Settings → General 中设置全局快捷键以调出命令面板。",
-        "pros": "它在同一个面板中集成了多项内置功能,包括应用启动器、剪贴板历史、计算器、片段(Snippets)、自定义 shell 命令、窗口管理以及日历集成。该软件免费、开源,采用 AGPL-3.0 许可证,并能原生运行已有的 Raycast 扩展。",
-        "cons": "若要让 Tinycast 在其他应用中粘贴或展开文本,必须授予辅助功能(Accessibility)权限,而片段关键词展开功能默认处于关闭状态,需要手动启用。这是一项必要的前置设置,而非开箱即用的能力。",
-        "fit": "根据其对 macOS 26 的版本要求以及原生、无依赖的设计,Tinycast 似乎面向希望使用轻量级、注重隐私的 Electron 启动器替代方案的 Apple 芯片或 Intel Mac 用户,不过这一适用性判断属于合理推测,而非明确声明。"
+        "goal": "Tinycast 被描述为一款完全原生的 macOS 应用启动器,通过单一快捷键启动,采用 SwiftUI 与 AppKit 构建,据称内存占用低于 100 MB。README 将其呈现为免费开源软件(AGPL-3.0),并可原生运行现有的 Raycast 扩展。",
+        "usage": "安装通过 Homebrew 完成:先用 `brew tap abue-ammar/tinycast` 添加 tap,再运行 `brew install --cask tinycast`(Intel Mac 使用 tinycast-universal cask)。安装后,在 Settings → General 中设置全局快捷键以唤出启动器面板,并可用键盘筛选和启动项目。",
+        "pros": "文档列出的功能包括支持模糊搜索的应用启动器、按应用设置的快捷键、剪贴板历史、计算器、Quicklinks、Apple Shortcuts 集成、窗口管理(34 项操作),以及原生渲染现有 Raycast 扩展的能力。README 声明它零第三方依赖、不使用 Electron 且无遥测。",
+        "cons": "该软件似乎要求 macOS 26 或更高版本,结合当前日期来看,这意味着它面向非常新的 macOS 版本,可能无法在较旧系统上运行。若用户直接下载 DMG 而非通过 Homebrew 安装,由于应用为自签名,需要手动清除 macOS 隔离(quarantine)标记。",
+        "fit": "鉴于其原生 Raycast 扩展支持和启动器功能集,Tinycast 可能适合寻找轻量级开源 Raycast 替代品的 macOS 用户,不过其 AGPL-3.0 许可证以及需先开 issue 的贡献政策,对于评估采用或分叉的团队而言可能是需要考虑的因素。"
       },
       "es": {
-        "goal": "Tinycast se presenta como un lanzador para macOS diminuto y totalmente nativo, invocado con una sola tecla de acceso rápido, con el objetivo declarado de mantenerse por debajo de 100 MB de RAM. Está construido con SwiftUI y AppKit, sin dependencias de terceros, sin Electron ni telemetría, y puede ejecutar extensiones reales de Raycast de forma nativa.",
-        "usage": "Se instala mediante Homebrew: primero se ejecuta `brew tap abue-ammar/tinycast`, y luego, según el equipo, `brew install --cask tinycast` (Apple silicon, macOS 26 o superior) o `brew install --cask tinycast-universal` (Intel, macOS 26). Tras la instalación, se define un atajo global en Settings → General para invocar la paleta de comandos.",
-        "pros": "Reúne numerosas herramientas integradas en una sola paleta: lanzador de aplicaciones, historial de portapapeles, calculadora, fragmentos (snippets), comandos de shell personalizados, gestión de ventanas e integración de calendario. Es gratuito, de código abierto bajo licencia AGPL-3.0, y puede ejecutar extensiones de Raycast existentes de forma nativa.",
-        "cons": "Es necesario conceder el permiso de Accesibilidad para que Tinycast pueda pegar o expandir texto en otras aplicaciones, y la expansión de palabras clave mediante snippets viene deshabilitada de forma predeterminada. Se trata de un paso de configuración previo, no de una capacidad activa desde el primer uso.",
-        "fit": "Dado su requisito de macOS 26 y su diseño nativo sin dependencias, Tinycast parece orientado a usuarios de Mac con Apple silicon o Intel que buscan una alternativa ligera y respetuosa con la privacidad frente a los lanzadores basados en Electron, aunque esta idoneidad es una inferencia razonable y no una afirmación explícita."
+        "goal": "Tinycast se describe como un lanzador de aplicaciones para macOS totalmente nativo, activado con una sola tecla de acceso rápido, construido con SwiftUI y AppKit, y que según se indica usa menos de 100 MB de RAM. Se presenta como software gratuito y de código abierto (AGPL-3.0) capaz de ejecutar extensiones de Raycast existentes de forma nativa.",
+        "usage": "La instalación se realiza mediante Homebrew: tras añadir el tap con `brew tap abue-ammar/tinycast`, se ejecuta `brew install --cask tinycast` (o el cask tinycast-universal en Macs Intel). Una vez instalado, se configura un atajo global en Settings → General para invocar la paleta del lanzador y filtrar/lanzar elementos con el teclado.",
+        "pros": "Entre las funciones documentadas figuran un lanzador de apps con búsqueda difusa, atajos por aplicación, historial de portapapeles, calculadora, Quicklinks, integración con Apple Shortcuts, gestión de ventanas (34 acciones) y renderizado nativo de extensiones de Raycast existentes. El README afirma que no tiene dependencias de terceros, no usa Electron y no incluye telemetría.",
+        "cons": "El software parece requerir macOS 26 o posterior, lo que, dada la fecha actual, sugiere que apunta a una versión muy reciente de macOS y podría no funcionar en sistemas más antiguos. Quienes descarguen el DMG directamente (en lugar de usar Homebrew) deben eliminar manualmente la marca de cuarentena de macOS, ya que la app está autofirmada.",
+        "fit": "Dado su soporte nativo de extensiones de Raycast y su conjunto de funciones de lanzador, Tinycast podría convenir a usuarios de macOS que buscan una alternativa ligera y de código abierto a Raycast, aunque su licencia AGPL-3.0 y su política de contribución basada en issues previos podrían ser relevantes para equipos que evalúen adoptarlo o bifurcarlo."
       },
       "ja": {
-        "goal": "Tinycastは、単一のホットキーで呼び出せる、完全ネイティブの小型macOSランチャーとして紹介されており、RAM使用量を100MB未満に抑えることを目標として明記されています。SwiftUIとAppKitで構築され、サードパーティ依存関係がゼロで、Electronもテレメトリも使用せず、実際のRaycast拡張機能をネイティブに実行できます。",
-        "usage": "Homebrewでインストールします。まず `brew tap abue-ammar/tinycast` を実行し、その後、機種に応じて `brew install --cask tinycast`(Apple silicon、macOS 26以降)または `brew install --cask tinycast-universal`(Intel、macOS 26)を実行します。インストール後は、Settings → Generalでパレットを呼び出すグローバルホットキーを設定します。",
-        "pros": "アプリランチャー、クリップボード履歴、電卓、スニペット、カスタムシェルコマンド、ウィンドウ管理、カレンダー連携など、多数の機能を1つのパレットにまとめています。無料でAGPL-3.0のオープンソースであり、既存のRaycast拡張機能をネイティブに実行できます。",
-        "cons": "Tinycastが他のアプリにテキストを貼り付けたり展開したりするには、アクセシビリティ権限を付与する必要があり、スニペットによるキーワード展開機能はデフォルトで無効になっているため、有効化する手順が必要です。これは即座に使える機能ではなく、事前設定が必要な点です。",
-        "fit": "macOS 26以降という要件とネイティブかつ依存関係のない設計から、TinycastはApple siliconまたはIntel MacでElectronベースのランチャーに代わる軽量でプライバシーに配慮した選択肢を求めるユーザーに向いていると考えられますが、これは明示的な記載ではなく合理的な推測です。"
+        "goal": "Tinycastは、単一のホットキーで起動する完全ネイティブなmacOSランチャーとして説明されており、SwiftUIとAppKitで構築され、RAM使用量は100 MB未満とされています。無料のオープンソースソフトウェア(AGPL-3.0)として提示されており、既存のRaycast拡張機能をネイティブに実行できるとされています。",
+        "usage": "インストールはHomebrew経由で行います。`brew tap abue-ammar/tinycast`でtapを追加した後、`brew install --cask tinycast`を実行します(Intel Macではtinycast-universal caskを使用)。インストール後は、Settings → Generalでグローバルショートカットを設定してランチャーパレットを呼び出し、キーボードで項目を絞り込み・起動します。",
+        "pros": "記載されている機能には、あいまい検索によるアプリランチャー、アプリ別ホットキー、クリップボード履歴、電卓、Quicklinks、Apple Shortcuts連携、ウィンドウ管理(34の操作)、既存Raycast拡張機能のネイティブ描画が含まれます。READMEではサードパーティ依存関係が一切なく、Electronやテレメトリも使用しないと述べられています。",
+        "cons": "本ソフトウェアはmacOS 26以降を要求するようで、本日の日付を踏まえると非常に新しいmacOSリリースを対象としている可能性があり、古いシステムでは動作しない可能性があります。Homebrewを使わずDMGを直接ダウンロードする場合、アプリが自己署名であるため、macOSの隔離(quarantine)フラグを手動で解除する必要があります。",
+        "fit": "ネイティブなRaycast拡張機能サポートとランチャー機能セットを踏まえると、Tinycastは軽量でオープンソースなRaycastの代替を求めるmacOSユーザーに適している可能性がありますが、AGPL-3.0ライセンスとissue優先の貢献ポリシーは、導入やフォークを検討するチームにとって考慮点となり得ます。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 1,
+          "start_line": 3,
           "end_line": 4,
           "section_heading": "Tinycast"
         },
@@ -9013,55 +9062,60 @@
       ],
       "usage": [
         {
-          "start_line": 80,
+          "start_line": 82,
           "end_line": 92,
           "section_heading": "Install"
         },
         {
-          "start_line": 112,
-          "end_line": 114,
+          "start_line": 114,
+          "end_line": 118,
           "section_heading": "Using it"
         }
       ],
       "pros": [
         {
           "start_line": 47,
-          "end_line": 76,
+          "end_line": 65,
           "section_heading": "Features"
         },
         {
-          "start_line": 26,
-          "end_line": 26,
-          "section_heading": "Tinycast"
-        },
-        {
-          "start_line": 146,
-          "end_line": 146,
-          "section_heading": "License"
-        }
-      ],
-      "cons": [
-        {
-          "start_line": 107,
-          "end_line": 110,
-          "section_heading": "Permissions"
-        }
-      ],
-      "fit": [
-        {
-          "start_line": 12,
-          "end_line": 13,
-          "section_heading": "Tinycast"
+          "start_line": 75,
+          "end_line": 76,
+          "section_heading": "Features"
         },
         {
           "start_line": 25,
           "end_line": 25,
           "section_heading": "Tinycast"
-        },
+        }
+      ],
+      "cons": [
         {
-          "start_line": 89,
+          "start_line": 91,
           "end_line": 92,
           "section_heading": "Install"
+        },
+        {
+          "start_line": 100,
+          "end_line": 103,
+          "section_heading": "Install"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 25,
+          "end_line": 26,
+          "section_heading": "Tinycast"
+        },
+        {
+          "start_line": 128,
+          "end_line": 135,
+          "section_heading": "Contributing"
+        },
+        {
+          "start_line": 156,
+          "end_line": 156,
+          "section_heading": "License"
         }
       ]
     },
@@ -9081,17 +9135,17 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "brew install --cask tinycast-universal",
+        "kind": "version",
+        "value": "macOS 26",
         "fields": [
-          "usage"
+          "cons"
         ]
       },
       {
         "kind": "version",
-        "value": "macOS 26",
+        "value": "AGPL-3.0",
         "fields": [
-          "usage",
+          "goal",
           "fit"
         ]
       },
@@ -9108,7 +9162,6 @@
         "fields": [
           "goal",
           "usage",
-          "cons",
           "fit"
         ]
       },
@@ -9117,26 +9170,21 @@
         "value": "Raycast",
         "fields": [
           "goal",
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "AGPL-3.0",
-        "fields": [
-          "pros"
+          "pros",
+          "fit"
         ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "abue-ammar/tinycast",
       "path": "README.md",
-      "blob_sha": "f3fda0445d00615eef53b5afc26c6dde51de116d",
-      "content_sha256": "75ba70a4f10ecac70592ae8d244afaeafe5b01db4f1165b50a0615c8fc766a09",
+      "blob_sha": "cfdc4b3a63a32a336e302fa61b5dcf45a641d655",
+      "content_sha256": "245c99276e45ac89df2117405b20c66936d520f54efe113ba0c970f5a84c7d46",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
