@@ -403,47 +403,47 @@
   },
   "addyosmani/agent-skills": {
     "content": {
-      "goal": "Agent Skills is a collection of 25 structured engineering workflows ('skills') plus 9 slash commands (/spec, /plan, /build, /test, /constraints, /review, /webperf, /code-simplify, /ship) that guide AI coding agents through spec-writing, planning, implementation, testing, review, and shipping, encoding practices senior engineers use in production software.",
-      "usage": "Install every skill into 70+ supported agents with `npx skills add addyosmani/agent-skills`, or add it as a Claude Code plugin by running `/plugin marketplace add addyosmani/agent-skills` followed by `/plugin install agent-skills@addy-agent-skills`; individual skills can also be installed separately.",
-      "pros": "Skills activate automatically based on the task at hand, and the `/build auto` command can generate a plan and implement every task in one approved pass while still requiring tests and per-task commits; the pack works across many agent tools and is MIT licensed.",
-      "cons": "Installing a single skill with npx copies only that skill's folder, not the shared `references/` directory, so supplementary checklists that skill references become unavailable unless the whole repo is used instead. This portability gap is tracked as an open issue (#361).",
-      "fit": "This project appears suited to teams that want AI coding agents to follow consistent, verifiable engineering discipline (specs, tests, reviews) across tools like Claude Code, Cursor, Codex, and Copilot, and may be especially useful in the Claude Code integration the README recommends."
+      "goal": "Agent Skills (addyosmani/agent-skills) packages 25 structured workflows, or \"skills,\" meant to guide AI coding agents through phases of software development—defining, planning, building, testing, reviewing, and shipping—documenting practices intended to reflect how senior engineers work.",
+      "usage": "The documentation describes installing all skills into 70+ supported agents with `npx skills add addyosmani/agent-skills`, or installing directly into Claude Code using `/plugin marketplace add addyosmani/agent-skills`. Individual skills can also be installed selectively with a similar npx command.",
+      "pros": "The pack defines 9 slash commands mapped to lifecycle stages such as /spec, /build, /test, and /ship, and states that every skill ends with verification requirements—such as passing tests or build output—rather than accepting unverified claims of completion.",
+      "cons": "Installing a single skill via the per-skill npx command reportedly does not copy the repository's shared `references/` directory, leaving supplementary checklists unavailable unless a whole-repo install or manual copy is performed (tracked as issue #361). Marketplace installation into Claude Code also clones via SSH, which can fail without configured GitHub SSH keys.",
+      "fit": "This project appears intended for teams or individuals using one of the documented AI coding agents (including Claude Code, Cursor, Codex, and GitHub Copilot) who want enforced, structured development workflows rather than unstructured prompting; using it seems to require one of the listed host integrations."
     },
     "summaries": {
       "en": {
-        "goal": "Agent Skills is a collection of 25 structured engineering workflows ('skills') plus 9 slash commands (/spec, /plan, /build, /test, /constraints, /review, /webperf, /code-simplify, /ship) that guide AI coding agents through spec-writing, planning, implementation, testing, review, and shipping, encoding practices senior engineers use in production software.",
-        "usage": "Install every skill into 70+ supported agents with `npx skills add addyosmani/agent-skills`, or add it as a Claude Code plugin by running `/plugin marketplace add addyosmani/agent-skills` followed by `/plugin install agent-skills@addy-agent-skills`; individual skills can also be installed separately.",
-        "pros": "Skills activate automatically based on the task at hand, and the `/build auto` command can generate a plan and implement every task in one approved pass while still requiring tests and per-task commits; the pack works across many agent tools and is MIT licensed.",
-        "cons": "Installing a single skill with npx copies only that skill's folder, not the shared `references/` directory, so supplementary checklists that skill references become unavailable unless the whole repo is used instead. This portability gap is tracked as an open issue (#361).",
-        "fit": "This project appears suited to teams that want AI coding agents to follow consistent, verifiable engineering discipline (specs, tests, reviews) across tools like Claude Code, Cursor, Codex, and Copilot, and may be especially useful in the Claude Code integration the README recommends."
+        "goal": "Agent Skills (addyosmani/agent-skills) packages 25 structured workflows, or \"skills,\" meant to guide AI coding agents through phases of software development—defining, planning, building, testing, reviewing, and shipping—documenting practices intended to reflect how senior engineers work.",
+        "usage": "The documentation describes installing all skills into 70+ supported agents with `npx skills add addyosmani/agent-skills`, or installing directly into Claude Code using `/plugin marketplace add addyosmani/agent-skills`. Individual skills can also be installed selectively with a similar npx command.",
+        "pros": "The pack defines 9 slash commands mapped to lifecycle stages such as /spec, /build, /test, and /ship, and states that every skill ends with verification requirements—such as passing tests or build output—rather than accepting unverified claims of completion.",
+        "cons": "Installing a single skill via the per-skill npx command reportedly does not copy the repository's shared `references/` directory, leaving supplementary checklists unavailable unless a whole-repo install or manual copy is performed (tracked as issue #361). Marketplace installation into Claude Code also clones via SSH, which can fail without configured GitHub SSH keys.",
+        "fit": "This project appears intended for teams or individuals using one of the documented AI coding agents (including Claude Code, Cursor, Codex, and GitHub Copilot) who want enforced, structured development workflows rather than unstructured prompting; using it seems to require one of the listed host integrations."
       },
       "ko": {
-        "goal": "Agent Skills는 AI 코딩 에이전트가 스펙 작성, 계획, 구현, 테스트, 검토, 배포 과정을 거치도록 안내하는 25개의 구조화된 엔지니어링 워크플로우('스킬')와 9개의 슬래시 명령어(/spec, /plan, /build, /test, /constraints, /review, /webperf, /code-simplify, /ship)로 구성되어 있으며, 시니어 엔지니어가 실무에서 사용하는 관행을 담고 있습니다.",
-        "usage": "`npx skills add addyosmani/agent-skills` 명령으로 70개 이상의 지원 에이전트에 전체 스킬을 설치하거나, Claude Code 플러그인으로 `/plugin marketplace add addyosmani/agent-skills`와 `/plugin install agent-skills@addy-agent-skills` 명령을 차례로 실행하여 추가할 수 있으며, 개별 스킬만 따로 설치하는 것도 가능합니다.",
-        "pros": "스킬은 수행 중인 작업에 따라 자동으로 활성화되며, `/build auto` 명령은 계획을 생성하고 승인 한 번으로 모든 작업을 구현하면서도 테스트와 작업 단위 커밋을 유지합니다. 이 패키지는 여러 에이전트 도구에서 작동하며 MIT 라이선스로 제공됩니다.",
-        "cons": "npx로 스킬 하나만 설치하면 해당 스킬 폴더만 복사되고 공유 `references/` 디렉터리는 포함되지 않아, 그 스킬이 참조하는 보조 체크리스트를 사용할 수 없게 됩니다. 이는 진행 중인 이슈(#361)로 추적되는 이식성 격차입니다.",
-        "fit": "명세, 테스트, 검토와 같은 일관되고 검증 가능한 엔지니어링 규율을 Claude Code, Cursor, Codex, Copilot 등 다양한 도구에서 AI 코딩 에이전트에 적용하려는 팀에 적합할 것으로 보이며, 특히 권장되는 Claude Code 통합에서 더 유용할 수 있습니다."
+        "goal": "Agent Skills(addyosmani/agent-skills)는 소프트웨어 개발의 여러 단계—정의, 계획, 빌드, 테스트, 리뷰, 배포—를 안내하도록 설계된 25개의 구조화된 워크플로(\"스킬\") 모음이며, 시니어 엔지니어가 사용하는 관행을 반영하도록 문서화되어 있습니다.",
+        "usage": "문서에 따르면 `npx skills add addyosmani/agent-skills` 명령으로 70개 이상의 지원 에이전트에 모든 스킬을 설치할 수 있으며, Claude Code에는 `/plugin marketplace add addyosmani/agent-skills` 명령으로 직접 설치할 수 있습니다. 개별 스킬도 유사한 npx 명령으로 선택 설치할 수 있습니다.",
+        "pros": "이 패키지는 /spec, /build, /test, /ship 등 개발 단계에 매핑된 9개의 슬래시 명령을 제공하며, 모든 스킬이 테스트 통과나 빌드 결과 같은 검증 요건으로 끝난다고 명시되어 있어 검증되지 않은 완료 주장을 허용하지 않습니다.",
+        "cons": "문서에 따르면 개별 스킬 단위 npx 설치는 저장소 공유 `references/` 디렉터리를 복사하지 않아, 전체 저장소 설치나 수동 복사를 하지 않으면 보조 체크리스트를 사용할 수 없을 수 있습니다(이슈 #361로 추적됨). 또한 Claude Code 마켓플레이스 설치는 SSH로 클론되므로 GitHub SSH 키가 설정되어 있지 않으면 실패할 수 있습니다.",
+        "fit": "이 프로젝트는 Claude Code, Cursor, Codex, GitHub Copilot 등 문서화된 AI 코딩 에이전트를 사용하며 임시적인 프롬프트 작성 대신 구조화되고 강제된 개발 워크플로를 원하는 팀이나 개인에게 적합해 보이며, 문서화된 호스트 통합 중 하나를 사용해야 할 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "Agent Skills 提供 25 个结构化的工程工作流(“技能”)以及 9 个斜杠命令(/spec、/plan、/build、/test、/constraints、/review、/webperf、/code-simplify、/ship),引导 AI 编码代理完成规范编写、规划、实现、测试、评审和上线等阶段,并融入了高级工程师在生产环境中使用的实践。",
-        "usage": "可以使用 `npx skills add addyosmani/agent-skills` 命令将全部技能安装到 70 多个受支持的代理中,也可以作为 Claude Code 插件依次运行 `/plugin marketplace add addyosmani/agent-skills` 和 `/plugin install agent-skills@addy-agent-skills` 进行安装,单个技能也可以单独安装。",
-        "pros": "技能会根据当前任务自动激活,`/build auto` 命令可以在一次批准后生成计划并实现所有任务,同时仍要求测试通过并按任务单独提交。该软件包可在多种代理工具中使用,并采用 MIT 许可证。",
-        "cons": "通过 npx 仅安装单个技能时,只会复制该技能所在的文件夹,不会包含共享的 `references/` 目录,导致该技能所引用的辅助检查清单无法使用。此可移植性差距被记录为一个仍在跟踪的问题(#361)。",
-        "fit": "该项目似乎适合希望在 Claude Code、Cursor、Codex、Copilot 等多种工具中,让 AI 编码代理遵循一致且可验证的工程规范(如规范、测试、评审)的团队,在推荐的 Claude Code 集成中可能尤为实用。"
+        "goal": "Agent Skills(addyosmani/agent-skills)是一套包含25个结构化工作流(\"技能\")的集合,旨在指导AI编码代理完成软件开发的各个阶段——定义、规划、构建、测试、审查和发布——并记录了旨在反映资深工程师做法的实践。",
+        "usage": "文档说明可以使用命令 `npx skills add addyosmani/agent-skills` 将全部技能安装到70多个受支持的代理中,也可以使用 `/plugin marketplace add addyosmani/agent-skills` 直接安装到Claude Code中。也可以使用类似的npx命令有选择地安装单个技能。",
+        "pros": "该软件包定义了9个与开发生命周期阶段(如/spec、/build、/test、/ship)对应的斜杠命令,并声明每个技能最终都有验证要求(如测试通过或构建输出),而不接受未经验证的完成声明。",
+        "cons": "文档指出,通过单技能npx命令安装时不会复制仓库共享的`references/`目录,因此除非进行整仓库安装或手动复制,否则补充检查清单可能无法使用(该问题在issue #361中被追踪)。此外,Claude Code的市场安装通过SSH克隆仓库,如果未配置GitHub SSH密钥,可能会安装失败。",
+        "fit": "该项目似乎更适合使用文档中列出的AI编码代理(包括Claude Code、Cursor、Codex和GitHub Copilot)、希望获得结构化、强制执行的开发工作流而非临时提示的团队或个人;使用它似乎需要采用文档列出的某种主机集成方式。"
       },
       "es": {
-        "goal": "Agent Skills ofrece 25 flujos de trabajo de ingeniería estructurados ('skills') y 9 comandos de barra (/spec, /plan, /build, /test, /constraints, /review, /webperf, /code-simplify, /ship) que guían a los agentes de codificación de IA a través de la especificación, planificación, implementación, pruebas, revisión y despliegue, incorporando prácticas que usan los ingenieros senior en producción.",
-        "usage": "Se pueden instalar todas las skills en más de 70 agentes compatibles con el comando `npx skills add addyosmani/agent-skills`, o añadirlas como plugin de Claude Code ejecutando sucesivamente `/plugin marketplace add addyosmani/agent-skills` y `/plugin install agent-skills@addy-agent-skills`; también es posible instalar skills individuales por separado.",
-        "pros": "Las skills se activan automáticamente según la tarea en curso, y el comando `/build auto` puede generar el plan e implementar todas las tareas en una sola pasada aprobada, manteniendo pruebas y commits por tarea. El paquete funciona en múltiples herramientas de agentes y se distribuye bajo licencia MIT.",
-        "cons": "Instalar una sola skill con npx copia solo la carpeta de esa skill, sin incluir el directorio compartido `references/`, por lo que las listas de verificación complementarias que esa skill referencia dejan de estar disponibles. Esta brecha de portabilidad se registra como un issue abierto (#361).",
-        "fit": "Este proyecto parece adecuado para equipos que buscan que sus agentes de codificación de IA sigan una disciplina de ingeniería coherente y verificable (especificaciones, pruebas, revisiones) en herramientas como Claude Code, Cursor, Codex y Copilot, y podría resultar especialmente útil en la integración con Claude Code que se recomienda."
+        "goal": "Agent Skills (addyosmani/agent-skills) reúne 25 flujos de trabajo estructurados, llamados \"skills\", pensados para guiar a agentes de codificación con IA a través de las fases del desarrollo de software —definir, planificar, construir, probar, revisar y publicar— documentando prácticas destinadas a reflejar el trabajo de ingenieros senior.",
+        "usage": "Según la documentación, todas las skills pueden instalarse en más de 70 agentes compatibles con el comando `npx skills add addyosmani/agent-skills`, o instalarse directamente en Claude Code con `/plugin marketplace add addyosmani/agent-skills`. También es posible instalar skills individuales con un comando npx similar.",
+        "pros": "El paquete define 9 comandos de barra diagonal asociados a etapas del ciclo de vida, como /spec, /build, /test y /ship, y establece que cada skill finaliza con requisitos de verificación —como pruebas superadas o resultados de compilación— en lugar de aceptar afirmaciones de finalización sin verificar.",
+        "cons": "La documentación señala que instalar una sola skill mediante el comando npx individual no copia el directorio compartido `references/` del repositorio, por lo que las listas de verificación complementarias pueden quedar inaccesibles a menos que se realice una instalación completa del repositorio o una copia manual (situación registrada como el issue #361). Además, la instalación desde el marketplace de Claude Code clona por SSH, lo que puede fallar si no hay claves SSH de GitHub configuradas.",
+        "fit": "Este proyecto parece adecuado para equipos o personas que usan alguno de los agentes de codificación con IA documentados (como Claude Code, Cursor, Codex y GitHub Copilot) y que buscan flujos de trabajo de desarrollo estructurados y forzados en lugar de instrucciones improvisadas; su uso parece requerir alguna de las integraciones de host documentadas."
       },
       "ja": {
-        "goal": "Agent Skills は、AIコーディングエージェントが仕様策定、計画、実装、テスト、レビュー、リリースを進める際に活用できる25個の構造化されたエンジニアリングワークフロー(「スキル」)と9個のスラッシュコマンド(/spec、/plan、/build、/test、/constraints、/review、/webperf、/code-simplify、/ship)を提供し、シニアエンジニアが本番運用で用いる実践を組み込んでいます。",
-        "usage": "`npx skills add addyosmani/agent-skills` コマンドで70以上の対応エージェントに全スキルをインストールできるほか、Claude Code のプラグインとして `/plugin marketplace add addyosmani/agent-skills` と `/plugin install agent-skills@addy-agent-skills` を順に実行して追加することも可能で、個別のスキルのみをインストールすることもできます。",
-        "pros": "スキルは実行中のタスクに応じて自動的に有効化され、`/build auto` コマンドは一度の承認で計画を生成しすべてのタスクを実装しつつ、テストとタスクごとのコミットを維持します。このパッケージは複数のエージェントツールで動作し、MITライセンスで提供されています。",
-        "cons": "npx で単一のスキルのみをインストールすると、そのスキルのフォルダのみがコピーされ、共有の `references/` ディレクトリは含まれないため、そのスキルが参照する補助チェックリストが利用できなくなります。この移植性の課題は未解決のissue(#361)として追跡されています。",
-        "fit": "仕様策定・テスト・レビューといった一貫性のある検証可能なエンジニアリング規律を、Claude Code、Cursor、Codex、Copilot など複数のツール上でAIコーディングエージェントに適用したいチームに適していると考えられ、特に推奨されているClaude Code統合において有用である可能性があります。"
+        "goal": "Agent Skills(addyosmani/agent-skills)は、ソフトウェア開発の各段階——定義、計画、構築、テスト、レビュー、出荷——にわたってAIコーディングエージェントを導くことを目的とした、25個の構造化されたワークフロー(「スキル」)の集合であり、シニアエンジニアの実践を反映することを意図した内容が文書化されています。",
+        "usage": "ドキュメントによると、`npx skills add addyosmani/agent-skills` コマンドで70以上の対応エージェントに全スキルをインストールでき、Claude Codeには `/plugin marketplace add addyosmani/agent-skills` コマンドで直接インストールできます。個々のスキルも同様のnpxコマンドで選択的にインストールできます。",
+        "pros": "本パッケージは/spec、/build、/test、/shipなど開発ライフサイクルの各段階に対応する9個のスラッシュコマンドを定義しており、すべてのスキルはテスト合格やビルド出力といった検証要件で終わると明記されているため、未検証の完了主張を許容しない仕組みになっています。",
+        "cons": "ドキュメントによれば、単一スキルのnpxコマンドによるインストールではリポジトリ共有の`references/`ディレクトリがコピーされないため、リポジトリ全体のインストールまたは手動コピーを行わない限り、補足チェックリストが利用できなくなる可能性があります(この点はissue #361として追跡されています)。また、Claude CodeのマーケットプレイスインストールはSSH経由でクローンするため、GitHubのSSHキーが設定されていない場合は失敗する可能性があります。",
+        "fit": "本プロジェクトは、Claude Code、Cursor、Codex、GitHub Copilotなど文書化されたAIコーディングエージェントを使用し、その場しのぎのプロンプトではなく構造化され強制力のある開発ワークフローを求めるチームや個人に適していると考えられ、利用には文書化されたホスト統合のいずれかが必要と見られます。"
       }
     },
     "evidence": {
@@ -454,14 +454,9 @@
           "section_heading": "Agent Skills"
         },
         {
-          "start_line": 22,
-          "end_line": 24,
-          "section_heading": "Commands"
-        },
-        {
-          "start_line": 222,
+          "start_line": 224,
           "end_line": 224,
-          "section_heading": "All 24 Skills"
+          "section_heading": "All 25 Skills"
         }
       ],
       "usage": [
@@ -478,19 +473,14 @@
       ],
       "pros": [
         {
-          "start_line": 38,
-          "end_line": 40,
+          "start_line": 24,
+          "end_line": 38,
           "section_heading": "Commands"
         },
         {
-          "start_line": 46,
-          "end_line": 46,
-          "section_heading": "Quick Start"
-        },
-        {
-          "start_line": 408,
-          "end_line": 408,
-          "section_heading": "License"
+          "start_line": 343,
+          "end_line": 346,
+          "section_heading": "How Skills Work"
         }
       ],
       "cons": [
@@ -498,18 +488,23 @@
           "start_line": 61,
           "end_line": 66,
           "section_heading": "Quick Start"
+        },
+        {
+          "start_line": 80,
+          "end_line": 89,
+          "section_heading": "Quick Start"
         }
       ],
       "fit": [
         {
-          "start_line": 71,
-          "end_line": 71,
-          "section_heading": "Quick Start"
-        },
-        {
           "start_line": 46,
           "end_line": 46,
           "section_heading": "Quick Start"
+        },
+        {
+          "start_line": 372,
+          "end_line": 374,
+          "section_heading": "Why Agent Skills?"
         }
       ]
     },
@@ -529,13 +524,6 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "/plugin install agent-skills@addy-agent-skills",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
         "kind": "number",
         "value": "25",
         "fields": [
@@ -546,7 +534,7 @@
         "kind": "number",
         "value": "9",
         "fields": [
-          "goal"
+          "pros"
         ]
       },
       {
@@ -558,29 +546,23 @@
       },
       {
         "kind": "product",
-        "value": "Agent Skills",
+        "value": "agent-skills",
         "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Claude Code",
-        "fields": [
-          "usage",
-          "fit"
+          "goal",
+          "usage"
         ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "addyosmani/agent-skills",
       "path": "README.md",
-      "blob_sha": "aa6872d677ef7c8eab7d00a6fdca106ffa9502b0",
-      "content_sha256": "6f48c235841ebc78e963da01ecc83337fee26a6126d0d1409a239e3e2d4a9da2",
+      "blob_sha": "6361def414ade46622e6cd527d1faeea2b234224",
+      "content_sha256": "0956874d6ba30f65d45ff90a9d51e615627a836e22745f43b7aece14537bb028",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -1728,47 +1710,47 @@
   },
   "abue-ammar/tinycast": {
     "content": {
-      "goal": "Tinycast is described as a fully native macOS launcher built with SwiftUI and AppKit using Swift 6.0, summoned by a global hotkey, and documented as using under 100 MB of RAM.",
-      "usage": "Installed via Homebrew: first run `brew tap abue-ammar/tinycast`, then `brew install --cask tinycast` (Apple silicon, macOS 26 or newer) or `brew install --cask tinycast-universal` (Intel, macOS 26). After installing, a global shortcut is set under Settings → General to summon the palette.",
-      "pros": "Documented features include app launching, clipboard history, a calculator, Quicklinks, Apple Shortcuts integration, Snippets, custom shell commands, window management with 34 Rectangle-style actions, and the ability to run existing Raycast extensions natively as SwiftUI. The README also states it has zero third-party dependencies and no telemetry.",
-      "cons": "The README specifies macOS 26 or later is required, which may exclude users on older macOS versions. DMG downloads from Releases are also self-signed and require manually clearing the quarantine flag (`xattr -dr com.apple.quarantine \"/Applications/Tinycast.app\"`), an extra step not needed with the Homebrew install.",
-      "fit": "Tinycast appears suited to Apple silicon or Intel Mac users running macOS 26 or later who want a lightweight native launcher and may already use Raycast extensions; it is distributed free under the AGPL-3.0 license."
+      "goal": "Tinycast is presented as a tiny, fully native macOS launcher built with SwiftUI, AppKit, and Swift 6.0, offering one global hotkey to reach everyday tools while claiming to run under 100 MB of RAM with zero third-party dependencies, no Electron, and no telemetry. It also runs real Raycast extensions natively and is free, open-source software under the AGPL-3.0 license.",
+      "usage": "Add the Homebrew tap with `brew trust --tap abue-ammar/tinycast` and `brew tap abue-ammar/tinycast`. On Apple silicon Macs with macOS 26 or newer, run `brew install --cask tinycast`; on Intel Macs with macOS 26, run `brew install --cask tinycast-universal`. Afterward, record a global shortcut in Settings → General to summon the palette.",
+      "pros": "Documented features include a fuzzy-search app launcher, per-app hotkeys, clipboard history, an inline calculator with currency conversions, custom shell commands, and 34 window-management actions, all delivered without third-party dependencies or telemetry.",
+      "cons": "Tinycast requires macOS 26 or later, and installing from a downloaded DMG rather than Homebrew requires manually clearing the quarantine flag via a terminal command since the app is self-signed, suggesting the DMG path is likely less turnkey than the Homebrew cask install.",
+      "fit": "Given its macOS 26+ requirement and separate Apple silicon and Intel Homebrew casks, Tinycast appears best suited to users on recent Macs wanting a lightweight, native, dependency-free launcher, particularly those already using Raycast extensions."
     },
     "summaries": {
       "en": {
-        "goal": "Tinycast is described as a fully native macOS launcher built with SwiftUI and AppKit using Swift 6.0, summoned by a global hotkey, and documented as using under 100 MB of RAM.",
-        "usage": "Installed via Homebrew: first run `brew tap abue-ammar/tinycast`, then `brew install --cask tinycast` (Apple silicon, macOS 26 or newer) or `brew install --cask tinycast-universal` (Intel, macOS 26). After installing, a global shortcut is set under Settings → General to summon the palette.",
-        "pros": "Documented features include app launching, clipboard history, a calculator, Quicklinks, Apple Shortcuts integration, Snippets, custom shell commands, window management with 34 Rectangle-style actions, and the ability to run existing Raycast extensions natively as SwiftUI. The README also states it has zero third-party dependencies and no telemetry.",
-        "cons": "The README specifies macOS 26 or later is required, which may exclude users on older macOS versions. DMG downloads from Releases are also self-signed and require manually clearing the quarantine flag (`xattr -dr com.apple.quarantine \"/Applications/Tinycast.app\"`), an extra step not needed with the Homebrew install.",
-        "fit": "Tinycast appears suited to Apple silicon or Intel Mac users running macOS 26 or later who want a lightweight native launcher and may already use Raycast extensions; it is distributed free under the AGPL-3.0 license."
+        "goal": "Tinycast is presented as a tiny, fully native macOS launcher built with SwiftUI, AppKit, and Swift 6.0, offering one global hotkey to reach everyday tools while claiming to run under 100 MB of RAM with zero third-party dependencies, no Electron, and no telemetry. It also runs real Raycast extensions natively and is free, open-source software under the AGPL-3.0 license.",
+        "usage": "Add the Homebrew tap with `brew trust --tap abue-ammar/tinycast` and `brew tap abue-ammar/tinycast`. On Apple silicon Macs with macOS 26 or newer, run `brew install --cask tinycast`; on Intel Macs with macOS 26, run `brew install --cask tinycast-universal`. Afterward, record a global shortcut in Settings → General to summon the palette.",
+        "pros": "Documented features include a fuzzy-search app launcher, per-app hotkeys, clipboard history, an inline calculator with currency conversions, custom shell commands, and 34 window-management actions, all delivered without third-party dependencies or telemetry.",
+        "cons": "Tinycast requires macOS 26 or later, and installing from a downloaded DMG rather than Homebrew requires manually clearing the quarantine flag via a terminal command since the app is self-signed, suggesting the DMG path is likely less turnkey than the Homebrew cask install.",
+        "fit": "Given its macOS 26+ requirement and separate Apple silicon and Intel Homebrew casks, Tinycast appears best suited to users on recent Macs wanting a lightweight, native, dependency-free launcher, particularly those already using Raycast extensions."
       },
       "ko": {
-        "goal": "Tinycast는 SwiftUI와 AppKit으로 만들어진 완전한 네이티브 macOS 런처로, Swift 6.0을 사용하며 단축키로 실행되고 램 사용량이 100MB 미만이라고 문서화되어 있습니다.",
-        "usage": "Homebrew로 설치하며, 먼저 `brew tap abue-ammar/tinycast`를 실행한 뒤 `brew install --cask tinycast`(Apple 실리콘, macOS 26 이상) 또는 `brew install --cask tinycast-universal`(Intel, macOS 26)을 실행합니다. 설치 후 설정 → 일반에서 전역 단축키를 지정해 팔레트를 불러옵니다.",
-        "pros": "앱 실행, 클립보드 기록, 계산기, Quicklinks, Apple 단축어 연동, 스니펫, 사용자 지정 셸 명령, 34가지 Rectangle 스타일 창 관리 동작, 기존 Raycast 확장 프로그램을 네이티브 SwiftUI로 실행하는 기능이 문서화되어 있습니다. 서드파티 종속성이 없고 텔레메트리가 없다고도 명시되어 있습니다.",
-        "cons": "문서에 따르면 macOS 26 이상이 필요하여 이전 버전 macOS 사용자는 이용하지 못할 수 있습니다. 또한 Releases에서 받은 DMG는 자체 서명되어 있어 격리 플래그를 수동으로 해제해야 합니다(`xattr -dr com.apple.quarantine \"/Applications/Tinycast.app\"`), Homebrew 설치에는 필요 없는 추가 단계입니다.",
-        "fit": "Tinycast는 macOS 26 이상을 실행하는 Apple 실리콘 또는 Intel Mac 사용자, 특히 가벼운 네이티브 런처와 기존 Raycast 확장 프로그램 활용을 원하는 사용자에게 적합할 것으로 보이며, AGPL-3.0 라이선스로 무료 제공됩니다."
+        "goal": "Tinycast는 SwiftUI, AppKit, Swift 6.0으로 제작된 작고 완전히 네이티브인 macOS 런처로 소개되며, 하나의 전역 단축키로 일상 도구에 접근할 수 있고 RAM 사용량이 100 MB 미만이라고 명시되어 있습니다. 서드파티 의존성이 전혀 없고 Electron과 텔레메트리도 사용하지 않으며, 실제 Raycast 확장 프로그램을 네이티브로 실행합니다. AGPL-3.0 라이선스의 무료 오픈소스 소프트웨어입니다.",
+        "usage": "먼저 `brew trust --tap abue-ammar/tinycast`와 `brew tap abue-ammar/tinycast`로 Homebrew tap을 추가합니다. macOS 26 이상의 Apple 실리콘 Mac에서는 `brew install --cask tinycast`를, macOS 26의 Intel Mac에서는 `brew install --cask tinycast-universal`을 실행합니다. 설치 후 설정 → 일반에서 전역 단축키를 등록해 팔레트를 불러올 수 있습니다.",
+        "pros": "문서화된 기능으로는 퍼지 검색 앱 런처, 앱별 단축키, 클립보드 기록, 통화 변환이 포함된 인라인 계산기, 사용자 지정 셸 명령, 34가지 창 관리 동작 등이 있으며, 이 모든 것이 서드파티 의존성이나 텔레메트리 없이 제공됩니다.",
+        "cons": "Tinycast는 macOS 26 이상이 필요하며, Homebrew 대신 다운로드한 DMG로 설치할 경우 앱이 자체 서명되어 있어 터미널 명령으로 격리(quarantine) 플래그를 수동으로 해제해야 할 수 있어, DMG 설치 경로가 Homebrew cask 설치보다 덜 간편할 수 있습니다.",
+        "fit": "macOS 26 이상 요구 사항과 Apple 실리콘/Intel용으로 분리된 Homebrew cask를 고려할 때, Tinycast는 가볍고 네이티브이며 의존성이 없는 런처를 원하는 최신 Mac 사용자, 특히 이미 Raycast 확장 프로그램을 사용 중인 사용자에게 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "Tinycast被描述为一款使用SwiftUI和AppKit构建、采用Swift 6.0的完全原生macOS启动器,通过快捷键调用,文档称其内存占用低于100MB。",
-        "usage": "通过Homebrew安装:先执行`brew tap abue-ammar/tinycast`,再根据机型执行`brew install --cask tinycast`(Apple芯片,macOS 26及以上)或`brew install --cask tinycast-universal`(Intel,macOS 26)。安装后在“设置→通用”中设置全局快捷键以呼出面板。",
-        "pros": "文档列出的功能包括应用启动、剪贴板历史、计算器、Quicklinks、Apple快捷指令集成、代码片段、自定义shell命令、34种Rectangle风格的窗口管理操作,以及以原生SwiftUI方式运行现有Raycast扩展的能力。README还说明其没有第三方依赖,也没有遥测。",
-        "cons": "README说明需要macOS 26或更高版本,这可能使运行较旧macOS版本的用户无法使用。此外,从Releases下载的DMG为自签名,需要手动清除隔离标志(`xattr -dr com.apple.quarantine \"/Applications/Tinycast.app\"`),这是Homebrew安装所不需要的额外步骤。",
-        "fit": "Tinycast似乎适合运行macOS 26及以上系统的Apple芯片或Intel Mac用户,尤其是希望使用轻量级原生启动器并可能已在使用Raycast扩展的用户;该项目基于AGPL-3.0许可,免费提供。"
+        "goal": "Tinycast 被介绍为一款使用 SwiftUI、AppKit 和 Swift 6.0 构建的小巧、完全原生的 macOS 启动器,通过单一全局快捷键访问日常工具,据称内存占用低于 100 MB。它没有任何第三方依赖,不使用 Electron 也不含遥测,并能原生运行真正的 Raycast 扩展。该软件基于 AGPL-3.0 许可证免费开源。",
+        "usage": "首先添加 Homebrew tap:`brew trust --tap abue-ammar/tinycast` 和 `brew tap abue-ammar/tinycast`。在运行 macOS 26 或更高版本的 Apple 芯片 Mac 上执行 `brew install --cask tinycast`;在运行 macOS 26 的 Intel Mac 上执行 `brew install --cask tinycast-universal`。安装完成后,可在“设置 → 通用”中录制全局快捷键以呼出命令面板。",
+        "pros": "文档中列出的功能包括模糊搜索应用启动器、按应用绑定的快捷键、剪贴板历史、带货币换算的内联计算器、自定义 shell 命令,以及 34 种窗口管理操作,且均在无第三方依赖或遥测的情况下提供。",
+        "cons": "Tinycast 需要 macOS 26 或更高版本,若通过下载的 DMG 而非 Homebrew 安装,由于应用为自签名,可能需要手动使用终端命令清除隔离标记,这意味着 DMG 安装方式可能不如 Homebrew cask 安装便捷。",
+        "fit": "考虑到其 macOS 26 及以上的版本要求,以及分别针对 Apple 芯片和 Intel 的独立 Homebrew cask,Tinycast 似乎更适合使用较新 Mac、希望获得轻量级原生且无依赖启动器的用户,尤其是已经在使用 Raycast 扩展的用户。"
       },
       "es": {
-        "goal": "Tinycast se describe como un lanzador nativo para macOS construido con SwiftUI y AppKit, con Swift 6.0, que se invoca mediante una tecla de acceso rápido y que, según la documentación, usa menos de 100 MB de RAM.",
-        "usage": "Se instala mediante Homebrew: primero se ejecuta `brew tap abue-ammar/tinycast` y luego, según el equipo, `brew install --cask tinycast` (Apple silicon, macOS 26 o posterior) o `brew install --cask tinycast-universal` (Intel, macOS 26). Tras la instalación, se configura un atajo global en Ajustes → General para invocar la paleta.",
-        "pros": "Las funciones documentadas incluyen lanzador de aplicaciones, historial del portapapeles, calculadora, Quicklinks, integración con Atajos de Apple, fragmentos de texto, comandos de shell personalizados, gestión de ventanas con 34 acciones al estilo Rectangle, y la capacidad de ejecutar extensiones existentes de Raycast de forma nativa en SwiftUI. El README también indica que no tiene dependencias de terceros ni telemetría.",
-        "cons": "El README especifica que se requiere macOS 26 o posterior, lo que podría excluir a usuarios con versiones anteriores de macOS. Además, los DMG descargados desde Releases están autofirmados y requieren eliminar manualmente el indicador de cuarentena (`xattr -dr com.apple.quarantine \"/Applications/Tinycast.app\"`), un paso adicional que no es necesario con la instalación vía Homebrew.",
-        "fit": "Tinycast parece adecuado para usuarios de Mac con Apple silicon o Intel que ejecuten macOS 26 o posterior y busquen un lanzador nativo ligero, posiblemente ya familiarizados con extensiones de Raycast; se distribuye de forma gratuita bajo la licencia AGPL-3.0."
+        "goal": "Tinycast se presenta como un lanzador nativo y ligero para macOS, construido con SwiftUI, AppKit y Swift 6.0, que ofrece un atajo global único para acceder a herramientas cotidianas y afirma usar menos de 100 MB de RAM. No tiene dependencias de terceros, no usa Electron ni telemetría, y ejecuta extensiones reales de Raycast de forma nativa. Es software libre y de código abierto bajo la licencia AGPL-3.0.",
+        "usage": "Primero se añade el tap de Homebrew con `brew trust --tap abue-ammar/tinycast` y `brew tap abue-ammar/tinycast`. En Macs con Apple silicon y macOS 26 o posterior, se ejecuta `brew install --cask tinycast`; en Macs Intel con macOS 26, `brew install --cask tinycast-universal`. Después, se puede registrar un atajo global en Settings → General para invocar la paleta.",
+        "pros": "Entre las funciones documentadas están un lanzador de aplicaciones con búsqueda difusa, atajos por app, historial de portapapeles, una calculadora en línea con conversión de divisas, comandos de shell personalizados y 34 acciones de gestión de ventanas, todo sin dependencias de terceros ni telemetría.",
+        "cons": "Tinycast requiere macOS 26 o posterior, y al instalarlo desde un DMG descargado en lugar de Homebrew, puede ser necesario limpiar manualmente el indicador de cuarentena mediante un comando de terminal, ya que la app está firmada de forma independiente, lo que sugiere que esa vía de instalación podría ser menos directa que el cask de Homebrew.",
+        "fit": "Dado el requisito de macOS 26 o superior y los casks separados de Homebrew para Apple silicon e Intel, Tinycast parece más adecuado para usuarios de Macs recientes que buscan un lanzador ligero, nativo y sin dependencias, especialmente quienes ya usan extensiones de Raycast."
       },
       "ja": {
-        "goal": "TinycastはSwiftUIとAppKitで構築されたSwift 6.0採用の完全ネイティブmacOSランチャーとされ、ホットキーで呼び出され、ドキュメントによるとRAM使用量は100MB未満とされています。",
-        "usage": "Homebrewでインストールします。まず`brew tap abue-ammar/tinycast`を実行し、機種に応じて`brew install --cask tinycast`(Apple silicon、macOS 26以降)または`brew install --cask tinycast-universal`(Intel、macOS 26)を実行します。インストール後は設定→一般でグローバルショートカットを登録してパレットを呼び出します。",
-        "pros": "ドキュメントに記載されている機能には、アプリランチャー、クリップボード履歴、計算機、Quicklinks、Apple ショートカット連携、スニペット、カスタムシェルコマンド、34種類のRectangle風ウィンドウ管理操作、既存のRaycast拡張機能をネイティブSwiftUIとして実行する機能などがあります。READMEにはサードパーティ依存がなく、テレメトリもないとも記載されています。",
-        "cons": "READMEによるとmacOS 26以降が必要とされており、これより古いmacOSのユーザーは利用できない可能性があります。また、Releasesからダウンロードしたdmgは自己署名のため、隔離フラグを手動で解除する必要があります(`xattr -dr com.apple.quarantine \"/Applications/Tinycast.app\"`)。これはHomebrewインストールでは不要な追加手順です。",
-        "fit": "TinycastはmacOS 26以降を実行するApple siliconまたはIntel Macのユーザー、特に軽量なネイティブランチャーを求め、Raycast拡張機能をすでに利用している可能性のあるユーザーに適していると考えられ、AGPL-3.0ライセンスの下で無料で提供されています。"
+        "goal": "TinycastはSwiftUI、AppKit、Swift 6.0で構築された小型で完全ネイティブなmacOSランチャーとされ、単一のグローバルホットキーで日常的なツールにアクセスでき、RAM使用量は100MB未満とされています。サードパーティ依存関係はなく、Electronもテレメトリも使用せず、実際のRaycast拡張機能をネイティブに実行します。AGPL-3.0ライセンスの無料オープンソースソフトウェアです。",
+        "usage": "まず `brew trust --tap abue-ammar/tinycast` と `brew tap abue-ammar/tinycast` でHomebrew tapを追加します。macOS 26以降のApple SiliconのMacでは `brew install --cask tinycast` を、macOS 26のIntel Macでは `brew install --cask tinycast-universal` を実行します。インストール後は設定→一般でグローバルショートカットを登録してパレットを呼び出せます。",
+        "pros": "文書化された機能には、あいまい検索によるアプリランチャー、アプリごとのホットキー、クリップボード履歴、通貨換算付きのインライン電卓、カスタムシェルコマンド、34種類のウィンドウ管理アクションなどがあり、これらはすべてサードパーティ依存関係やテレメトリなしで提供されます。",
+        "cons": "Tinycastの利用にはmacOS 26以降が必要で、Homebrewではなくダウンロードした DMG からインストールする場合、アプリが自己署名であるため、ターミナルコマンドで隔離フラグを手動で解除する必要がある可能性があり、DMG経由のインストールはHomebrew caskインストールほど簡単ではないと考えられます。",
+        "fit": "macOS 26以降という要件と、Apple Silicon用・Intel用に分かれたHomebrew caskを踏まえると、Tinycastは軽量でネイティブかつ依存関係のないランチャーを求める最新Macのユーザー、特にすでにRaycast拡張機能を利用しているユーザーに適していると考えられます。"
       }
     },
     "evidence": {
@@ -1779,49 +1761,64 @@
           "section_heading": "Tinycast"
         },
         {
-          "start_line": 10,
-          "end_line": 11,
-          "section_heading": "Tinycast"
-        },
-        {
           "start_line": 25,
           "end_line": 26,
           "section_heading": "Tinycast"
+        },
+        {
+          "start_line": 144,
+          "end_line": 146,
+          "section_heading": "License"
         }
       ],
       "usage": [
         {
-          "start_line": 80,
-          "end_line": 90,
+          "start_line": 82,
+          "end_line": 85,
           "section_heading": "Install"
         },
         {
-          "start_line": 112,
-          "end_line": 113,
+          "start_line": 89,
+          "end_line": 92,
+          "section_heading": "Install"
+        },
+        {
+          "start_line": 114,
+          "end_line": 115,
           "section_heading": "Using it"
         }
       ],
       "pros": [
         {
           "start_line": 47,
-          "end_line": 74,
+          "end_line": 48,
           "section_heading": "Features"
         },
         {
-          "start_line": 25,
-          "end_line": 26,
-          "section_heading": "Tinycast"
+          "start_line": 55,
+          "end_line": 56,
+          "section_heading": "Features"
+        },
+        {
+          "start_line": 63,
+          "end_line": 65,
+          "section_heading": "Features"
         }
       ],
       "cons": [
         {
-          "start_line": 92,
-          "end_line": 96,
+          "start_line": 12,
+          "end_line": 13,
+          "section_heading": "Tinycast"
+        },
+        {
+          "start_line": 94,
+          "end_line": 98,
           "section_heading": "Install"
         },
         {
-          "start_line": 98,
-          "end_line": 101,
+          "start_line": 100,
+          "end_line": 103,
           "section_heading": "Install"
         }
       ],
@@ -1832,18 +1829,25 @@
           "section_heading": "Tinycast"
         },
         {
-          "start_line": 3,
-          "end_line": 4,
-          "section_heading": "Tinycast"
+          "start_line": 91,
+          "end_line": 92,
+          "section_heading": "Install"
         },
         {
-          "start_line": 144,
-          "end_line": 144,
-          "section_heading": "License"
+          "start_line": 25,
+          "end_line": 26,
+          "section_heading": "Tinycast"
         }
       ]
     },
     "invariants": [
+      {
+        "kind": "command",
+        "value": "brew trust --tap abue-ammar/tinycast",
+        "fields": [
+          "usage"
+        ]
+      },
       {
         "kind": "command",
         "value": "brew tap abue-ammar/tinycast",
@@ -1854,6 +1858,13 @@
       {
         "kind": "command",
         "value": "brew install --cask tinycast",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "brew install --cask tinycast-universal",
         "fields": [
           "usage"
         ]
@@ -1882,13 +1893,6 @@
         ]
       },
       {
-        "kind": "number",
-        "value": "34",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
         "kind": "product",
         "value": "Tinycast",
         "fields": [
@@ -1902,8 +1906,15 @@
         "kind": "product",
         "value": "Raycast",
         "fields": [
-          "pros",
+          "goal",
           "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "AGPL-3.0",
+        "fields": [
+          "goal"
         ]
       }
     ],
@@ -1915,8 +1926,8 @@
       "kind": "readme",
       "slug": "abue-ammar/tinycast",
       "path": "README.md",
-      "blob_sha": "2160bc402c839aac38453371059c4894450c5512",
-      "content_sha256": "adaa40160d15a8e0093841af56904c8d67e5dd0d74a064dfff14c0f2f1ee8cd3",
+      "blob_sha": "01242a9715d2d879780418d51ff14e57dc4baa81",
+      "content_sha256": "5512a3ac3d837bb4d39303945341f79cefa147c8dc580ca7eb9588ae90a97533",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -4472,82 +4483,87 @@
   },
   "max-sixty/worktrunk": {
     "content": {
-      "goal": "Worktrunk is a command-line tool for managing git worktrees, built for running multiple AI coding agents (such as Claude Code and Codex) in parallel. It provides three core commands intended to make working with worktrees as straightforward as working with branches.",
-      "usage": "Worktrunk can be installed via Homebrew with `brew install worktrunk && wt config shell install`, or via Cargo with `cargo install worktrunk && wt config shell install` (Windows, Arch Linux, and Conda/Pixi installs are also documented). A typical workflow starts a worktree with `wt switch --create feature-auth`, then inspects worktrees with `wt list`.",
-      "pros": "The README documents features such as hooks for automating setup at various workflow stages, LLM-generated commit messages, a merge workflow that squashes and rebases in one command, an interactive picker with diff/log previews, shared build caches across worktrees, and PR checkout support.",
-      "cons": "Shell integration must be explicitly installed via `wt config shell install` for commands to change directories, and on Windows the `wt` command name conflicts with Windows Terminal's own command, requiring installation as `git-wt` instead unless that alias is disabled.",
-      "fit": "Worktrunk appears best suited for developers who run several AI coding agents in parallel using git worktrees and want a CLI to reduce the manual steps git worktree normally requires; it documents support for macOS, Linux, Windows, and Arch Linux."
+      "goal": "Worktrunk is a command-line tool for managing git worktrees, built specifically for running multiple AI coding agents (such as Claude Code and Codex) in parallel, giving each agent its own working directory.",
+      "usage": "Install with `brew install worktrunk && wt config shell install` (Cargo, Winget, Pacman, and Conda/Pixi are also documented). Create and switch to a new worktree with `wt switch --create feature-auth`, then manage worktrees with `wt list`, `wt merge`, and `wt remove`.",
+      "pros": "Three core commands replace multi-step plain-git worktree sequences, and additional features include hooks for automating setup, LLM-generated commit messages, an interactive picker showing CI status and diffs, PR checkout, and shared build caches across worktrees.",
+      "cons": "Shell integration must be installed separately via `wt config shell install` before commands can change directories, and the shared build-cache feature only works on APFS, btrfs, and XFS filesystems.",
+      "fit": "Best suited for developers coordinating several parallel git worktree workflows, especially those running multiple concurrent AI agents; less relevant for single-branch, sequential work."
     },
     "summaries": {
       "en": {
-        "goal": "Worktrunk is a command-line tool for managing git worktrees, built for running multiple AI coding agents (such as Claude Code and Codex) in parallel. It provides three core commands intended to make working with worktrees as straightforward as working with branches.",
-        "usage": "Worktrunk can be installed via Homebrew with `brew install worktrunk && wt config shell install`, or via Cargo with `cargo install worktrunk && wt config shell install` (Windows, Arch Linux, and Conda/Pixi installs are also documented). A typical workflow starts a worktree with `wt switch --create feature-auth`, then inspects worktrees with `wt list`.",
-        "pros": "The README documents features such as hooks for automating setup at various workflow stages, LLM-generated commit messages, a merge workflow that squashes and rebases in one command, an interactive picker with diff/log previews, shared build caches across worktrees, and PR checkout support.",
-        "cons": "Shell integration must be explicitly installed via `wt config shell install` for commands to change directories, and on Windows the `wt` command name conflicts with Windows Terminal's own command, requiring installation as `git-wt` instead unless that alias is disabled.",
-        "fit": "Worktrunk appears best suited for developers who run several AI coding agents in parallel using git worktrees and want a CLI to reduce the manual steps git worktree normally requires; it documents support for macOS, Linux, Windows, and Arch Linux."
+        "goal": "Worktrunk is a command-line tool for managing git worktrees, built specifically for running multiple AI coding agents (such as Claude Code and Codex) in parallel, giving each agent its own working directory.",
+        "usage": "Install with `brew install worktrunk && wt config shell install` (Cargo, Winget, Pacman, and Conda/Pixi are also documented). Create and switch to a new worktree with `wt switch --create feature-auth`, then manage worktrees with `wt list`, `wt merge`, and `wt remove`.",
+        "pros": "Three core commands replace multi-step plain-git worktree sequences, and additional features include hooks for automating setup, LLM-generated commit messages, an interactive picker showing CI status and diffs, PR checkout, and shared build caches across worktrees.",
+        "cons": "Shell integration must be installed separately via `wt config shell install` before commands can change directories, and the shared build-cache feature only works on APFS, btrfs, and XFS filesystems.",
+        "fit": "Best suited for developers coordinating several parallel git worktree workflows, especially those running multiple concurrent AI agents; less relevant for single-branch, sequential work."
       },
       "ko": {
-        "goal": "Worktrunk은 git worktree를 관리하기 위한 명령줄 도구로, Claude Code나 Codex 같은 AI 코딩 에이전트를 여러 개 병렬로 실행하는 용도로 만들어졌습니다. 세 가지 핵심 명령으로 worktree 작업을 브랜치 작업만큼 간단하게 만드는 것을 목표로 합니다.",
-        "usage": "Homebrew에서는 `brew install worktrunk && wt config shell install` 명령으로, Cargo에서는 `cargo install worktrunk && wt config shell install` 명령으로 설치할 수 있습니다(Windows, Arch Linux, Conda/Pixi 설치 방법도 문서화되어 있음). 일반적인 흐름은 `wt switch --create feature-auth`로 worktree를 만들고 `wt list`로 목록을 확인하는 것입니다.",
-        "pros": "README에는 워크플로 단계별로 설정을 자동화하는 훅, LLM 기반 커밋 메시지 생성, 스쿼시·리베이스·머지를 한 명령으로 처리하는 머지 워크플로, diff/log 미리보기가 있는 대화형 선택기, worktree 간 빌드 캐시 공유, PR 체크아웃 지원 등의 기능이 나와 있습니다.",
-        "cons": "명령이 디렉터리를 변경하려면 `wt config shell install`로 셸 통합을 별도로 설치해야 하며, Windows에서는 `wt` 명령 이름이 Windows Terminal 자체 명령과 충돌해 별칭을 해제하지 않는 한 `git-wt`로 설치해야 합니다.",
-        "fit": "Worktrunk는 git worktree를 사용해 여러 AI 코딩 에이전트를 병렬로 운영하며 git worktree의 번거로운 수작업을 줄이고자 하는 개발자에게 적합해 보이며, macOS, Linux, Windows, Arch Linux 지원이 문서화되어 있습니다."
+        "goal": "Worktrunk은 git worktree를 관리하는 커맨드라인 도구로, Claude Code나 Codex 같은 여러 AI 코딩 에이전트를 병렬로 실행하기 위해 각 에이전트에 독립된 작업 디렉터리를 제공하도록 설계되었습니다.",
+        "usage": "`brew install worktrunk && wt config shell install`로 설치할 수 있습니다(Cargo, Winget, Pacman, Conda/Pixi도 문서화되어 있음). `wt switch --create feature-auth` 명령으로 새 worktree를 생성하고 전환한 뒤, `wt list`, `wt merge`, `wt remove`로 관리합니다.",
+        "pros": "세 가지 핵심 명령이 여러 단계로 이루어진 일반 git worktree 명령을 대체하며, 설정 자동화용 훅, LLM 기반 커밋 메시지 생성, CI 상태와 diff를 보여주는 대화형 선택기, PR 체크아웃, worktree 간 빌드 캐시 공유 같은 기능도 제공합니다.",
+        "cons": "디렉터리 전환 명령이 작동하려면 `wt config shell install`로 셸 통합을 별도로 설치해야 하며, 빌드 캐시 공유 기능은 APFS, btrfs, XFS 파일시스템에서만 동작합니다.",
+        "fit": "여러 병렬 git worktree 작업, 특히 다수의 AI 에이전트를 동시에 실행하는 개발자에게 적합하며, 단일 브랜치의 순차 작업에는 상대적으로 유용성이 낮습니다."
       },
       "zh-CN": {
-        "goal": "Worktrunk 是一个用于管理 git worktree 的命令行工具,旨在支持并行运行多个 AI 编程代理(如 Claude Code 和 Codex)。它提供三个核心命令,力求让 worktree 的使用像分支一样简单。",
-        "usage": "可以通过 Homebrew 使用 `brew install worktrunk && wt config shell install` 安装,或通过 Cargo 使用 `cargo install worktrunk && wt config shell install` 安装(文档中还说明了 Windows、Arch Linux 和 Conda/Pixi 的安装方式)。典型流程是先用 `wt switch --create feature-auth` 创建一个 worktree,再用 `wt list` 查看所有 worktree。",
-        "pros": "README 中列出了多项功能,包括在工作流不同阶段自动执行设置的钩子、由 LLM 生成提交信息、可在一条命令中完成压缩合并与变基的合并流程、带 diff/日志预览的交互式选择器、跨 worktree 共享构建缓存,以及 PR 检出支持。",
-        "cons": "要让命令能够切换目录,必须通过 `wt config shell install` 单独安装 shell 集成;在 Windows 上,`wt` 命令名与 Windows Terminal 自带命令冲突,除非禁用该别名,否则需要以 `git-wt` 的名称安装。",
-        "fit": "Worktrunk 似乎更适合那些使用 git worktree 并行运行多个 AI 编程代理、希望减少 git worktree 手动操作步骤的开发者,文档中说明了对 macOS、Linux、Windows 和 Arch Linux 的支持。"
+        "goal": "Worktrunk 是一款用于管理 git worktree 的命令行工具,专为并行运行多个 AI 编码代理(如 Claude Code 和 Codex)而设计,为每个代理提供独立的工作目录。",
+        "usage": "可通过 `brew install worktrunk && wt config shell install` 安装(文档中还提供了 Cargo、Winget、Pacman 及 Conda/Pixi 方式)。使用 `wt switch --create feature-auth` 创建并切换到新的 worktree,再用 `wt list`、`wt merge`、`wt remove` 进行管理。",
+        "pros": "三个核心命令取代了原生 git worktree 中多步骤的操作,还提供自动化设置的钩子(hooks)、由 LLM 生成提交消息、显示 CI 状态与差异的交互式选择器、PR 检出功能,以及跨 worktree 共享构建缓存等特性。",
+        "cons": "命令要实现目录切换前,必须先通过 `wt config shell install` 单独安装 shell 集成,而共享构建缓存功能仅支持 APFS、btrfs 和 XFS 文件系统。",
+        "fit": "最适合需要协调多个并行 git worktree 工作流的开发者,尤其是同时运行多个 AI 代理的场景;对单分支的顺序开发工作则相关性较低。"
       },
       "es": {
-        "goal": "Worktrunk es una herramienta de línea de comandos para gestionar worktrees de git, pensada para ejecutar en paralelo varios agentes de codificación con IA (como Claude Code y Codex). Ofrece tres comandos principales con los que busca que trabajar con worktrees sea tan sencillo como trabajar con ramas.",
-        "usage": "Se puede instalar con Homebrew mediante `brew install worktrunk && wt config shell install`, o con Cargo mediante `cargo install worktrunk && wt config shell install` (también se documentan instalaciones para Windows, Arch Linux y Conda/Pixi). Un flujo típico crea un worktree con `wt switch --create feature-auth` y luego lista los worktrees con `wt list`.",
-        "pros": "El README documenta funciones como hooks para automatizar la configuración en distintas etapas del flujo de trabajo, mensajes de commit generados por LLM, un flujo de fusión que combina squash y rebase en un solo comando, un selector interactivo con vistas previas de diff/log, cachés de compilación compartidas entre worktrees y soporte para checkout de PR.",
-        "cons": "Para que los comandos puedan cambiar de directorio es necesario instalar por separado la integración de shell con `wt config shell install`, y en Windows el nombre de comando `wt` entra en conflicto con el propio comando de Windows Terminal, por lo que se instala como `git-wt` a menos que se desactive ese alias.",
-        "fit": "Worktrunk parece adecuado para desarrolladores que ejecutan varios agentes de codificación con IA en paralelo usando worktrees de git y buscan reducir los pasos manuales que normalmente exige git worktree; se documenta compatibilidad con macOS, Linux, Windows y Arch Linux."
+        "goal": "Worktrunk es una herramienta de línea de comandos para gestionar worktrees de git, diseñada específicamente para ejecutar en paralelo varios agentes de codificación con IA (como Claude Code y Codex), dando a cada agente su propio directorio de trabajo.",
+        "usage": "Se instala con `brew install worktrunk && wt config shell install` (también se documentan Cargo, Winget, Pacman y Conda/Pixi). Se crea y cambia a un nuevo worktree con `wt switch --create feature-auth`, y luego se gestiona con `wt list`, `wt merge` y `wt remove`.",
+        "pros": "Tres comandos principales sustituyen las secuencias de varios pasos de git worktree tradicional, e incluye funciones adicionales como hooks para automatizar la configuración, mensajes de commit generados por LLM, un selector interactivo con estado de CI y diffs, checkout de PR, y cachés de compilación compartidas entre worktrees.",
+        "cons": "La integración con el shell debe instalarse por separado mediante `wt config shell install` para que los comandos puedan cambiar de directorio, y la función de caché de compilación compartida solo funciona en sistemas de archivos APFS, btrfs y XFS.",
+        "fit": "Resulta más adecuado para desarrolladores que coordinan varios flujos de trabajo paralelos con worktrees de git, especialmente quienes ejecutan múltiples agentes de IA a la vez; es menos relevante para trabajo secuencial en una sola rama."
       },
       "ja": {
-        "goal": "Worktrunkは、Claude CodeやCodexのようなAIコーディングエージェントを並行して複数実行することを想定して作られた、git worktreeを管理するためのコマンドラインツールです。3つの主要コマンドにより、worktreeの操作をブランチ操作と同程度に簡単にすることを目指しています。",
-        "usage": "Homebrewでは `brew install worktrunk && wt config shell install`、Cargoでは `cargo install worktrunk && wt config shell install` でインストールできます(Windows、Arch Linux、Conda/Pixi向けのインストール方法も記載されています)。典型的な流れとしては、`wt switch --create feature-auth` でworktreeを作成し、`wt list` で一覧を確認します。",
-        "pros": "READMEには、ワークフローの各段階でセットアップを自動化するフック、LLMによるコミットメッセージ生成、squashとrebaseを1つのコマンドでまとめるマージワークフロー、diff/logプレビュー付きの対話型ピッカー、worktree間でのビルドキャッシュ共有、PRチェックアウト対応などの機能が挙げられています。",
-        "cons": "コマンドがディレクトリを変更できるようにするには `wt config shell install` によるシェル統合の別途インストールが必要で、Windowsでは `wt` というコマンド名がWindows Terminal自体のコマンドと競合するため、そのエイリアスを無効化しない限り `git-wt` としてインストールする必要があります。",
-        "fit": "Worktrunkは、git worktreeを使って複数のAIコーディングエージェントを並行運用し、git worktreeの手作業を減らしたい開発者に向いていると考えられ、macOS、Linux、Windows、Arch Linuxへの対応が記載されています。"
+        "goal": "Worktrunkは、git worktreeを管理するためのコマンドラインツールで、Claude CodeやCodexのような複数のAIコーディングエージェントを並行実行するために、各エージェントに独立した作業ディレクトリを与えることを目的として設計されています。",
+        "usage": "`brew install worktrunk && wt config shell install` でインストールできます(Cargo、Winget、Pacman、Conda/Pixiによる方法もドキュメントに記載されています)。`wt switch --create feature-auth` で新しいworktreeを作成して切り替え、その後 `wt list`、`wt merge`、`wt remove` で管理します。",
+        "pros": "3つの主要コマンドが、通常のgit worktreeで必要となる複数手順の操作を代替し、さらにセットアップを自動化するフック、LLMによるコミットメッセージ生成、CI状態や差分を表示する対話型ピッカー、PRチェックアウト、worktree間でのビルドキャッシュ共有といった機能も備えています。",
+        "cons": "ディレクトリを変更するコマンドを使うには、`wt config shell install` によるシェル統合を別途インストールする必要があり、ビルドキャッシュ共有機能はAPFS、btrfs、XFSファイルシステムでのみ動作します。",
+        "fit": "複数の並行するgit worktreeワークフロー、特に複数のAIエージェントを同時に実行する開発者に適しており、単一ブランチでの逐次的な作業にはあまり関連性がありません。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 18,
-          "end_line": 20,
+          "end_line": 18,
           "section_heading": ""
+        },
+        {
+          "start_line": 32,
+          "end_line": 35,
+          "section_heading": "Context: git worktrees"
         }
       ],
       "usage": [
         {
-          "start_line": 110,
-          "end_line": 122,
+          "start_line": 112,
+          "end_line": 114,
           "section_heading": "Install"
         },
         {
           "start_line": 158,
-          "end_line": 161,
+          "end_line": 160,
           "section_heading": "Quick start"
         },
         {
-          "start_line": 165,
-          "end_line": 167,
+          "start_line": 163,
+          "end_line": 163,
           "section_heading": "Quick start"
         }
       ],
       "pros": [
         {
-          "start_line": 89,
-          "end_line": 93,
+          "start_line": 47,
+          "end_line": 66,
           "section_heading": "Worktrunk makes git worktrees as easy as branches"
         },
         {
-          "start_line": 94,
+          "start_line": 89,
           "end_line": 97,
           "section_heading": "Worktrunk makes git worktrees as easy as branches"
         }
@@ -4559,9 +4575,9 @@
           "section_heading": "Install"
         },
         {
-          "start_line": 127,
-          "end_line": 134,
-          "section_heading": "Install"
+          "start_line": 93,
+          "end_line": 93,
+          "section_heading": "Worktrunk makes git worktrees as easy as branches"
         }
       ],
       "fit": [
@@ -4571,14 +4587,9 @@
           "section_heading": "Context: git worktrees"
         },
         {
-          "start_line": 110,
-          "end_line": 110,
-          "section_heading": "Install"
-        },
-        {
-          "start_line": 124,
-          "end_line": 141,
-          "section_heading": "Install"
+          "start_line": 100,
+          "end_line": 100,
+          "section_heading": "Worktrunk makes git worktrees as easy as branches"
         }
       ]
     },
@@ -4588,8 +4599,7 @@
         "value": "Worktrunk",
         "fields": [
           "goal",
-          "usage",
-          "fit"
+          "usage"
         ]
       },
       {
@@ -4601,42 +4611,19 @@
       },
       {
         "kind": "command",
-        "value": "cargo install worktrunk && wt config shell install",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
         "value": "wt switch --create feature-auth",
         "fields": [
           "usage"
         ]
-      },
-      {
-        "kind": "command",
-        "value": "wt list",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "git-wt",
-        "fields": [
-          "cons"
-        ]
       }
     ],
-    "inference_fields": [
-      "fit"
-    ],
+    "inference_fields": [],
     "source": {
       "kind": "readme",
       "slug": "max-sixty/worktrunk",
       "path": "README.md",
-      "blob_sha": "4520253af0aa82698be81f568e31da72cb15fe30",
-      "content_sha256": "1fcd367d4ff3d8dfad2a580b7d543781216df77bba246c8fd7ee2d67d16d85e4",
+      "blob_sha": "578d36a7afdf0121a908833cca266b18a02ff462",
+      "content_sha256": "fb2a1bf82481c234cf292218423a385c13e6e3853a7fb3ff20cdfbc783195540",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -7750,47 +7737,47 @@
   },
   "vorssaint/vorssaint-utils": {
     "content": {
-      "goal": "Vorssaint is a free, open-source macOS menu bar utility application that bundles many small tools — a per-app volume mixer, a system monitor, an app switcher, window snapping, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller — behind one icon, positioned as a substitute for buying several separate paid Mac utilities.",
-      "usage": "Vorssaint can be installed with Homebrew using `brew install --cask vorssaint`, or by downloading a disk image from the GitHub releases page (https://github.com/vorssaint/vorssaint-utils/releases). To build from source: `git clone https://github.com/vorssaint/vorssaint-utils.git`, then run `./build.sh` to compile and assemble the app, or `./build.sh --install` to also install it into Applications.",
-      "pros": "The app requires no account, runs with no telemetry and no subscription, and individual features can be installed or uninstalled independently so unused ones stop consuming resources. Permissions are optional and each one is explained in the app. Distributed builds are signed with an Apple Developer ID and notarized.",
-      "cons": "Because Vorssaint targets macOS 14 (Sonoma) or newer on Apple Silicon Macs, it likely does not support older macOS versions or Intel-based Macs, though the README does not state this explicitly. Building the app from source also requires Xcode Command Line Tools to be installed.",
-      "fit": "Vorssaint appears best suited to users on Apple Silicon Macs running macOS 14 or later who want to consolidate several separate menu bar utilities into one modular, permission-transparent app rather than users on older or Intel-based Macs."
+      "goal": "Vorssaint is a free, open-source macOS menu bar app bundling volume mixing, a system monitor, window management, clipboard history, and other utilities normally sold as separate paid apps into one icon, with no account or subscription required.",
+      "usage": "Install with Homebrew via `brew install --cask vorssaint`, or download the disk image from the GitHub releases page. To build from source, run `git clone https://github.com/vorssaint/vorssaint-utils.git` then `./build.sh` (add `--install` to also install and launch it). Uninstall with `brew uninstall --cask vorssaint`, or run `./Tools/uninstall.sh` for complete removal of settings and permissions.",
+      "pros": "Individual features install and uninstall separately, so unused tools stop consuming CPU, memory, and energy, while settings return if reinstalled. The app is free and open source under GPL-3.0-or-later, and is described as local-first with no account, analytics, or tracking.",
+      "cons": "Documented support covers only Apple Silicon Macs running macOS 14 (Sonoma) or newer, suggesting Intel Macs and older macOS versions are unsupported. Building from source requires Xcode Command Line Tools, and official signed builds come only from the maintainer, since the project name, icon, and look are covered by separate trademark terms that forks must avoid using.",
+      "fit": "Based on its feature list, Vorssaint appears best suited to Mac users wanting to replace several paid utility apps (volume control, window management, clipboard tools, screen capture) with one free, locally-run menu bar tool, though this intended audience is inferred rather than explicitly stated."
     },
     "summaries": {
       "en": {
-        "goal": "Vorssaint is a free, open-source macOS menu bar utility application that bundles many small tools — a per-app volume mixer, a system monitor, an app switcher, window snapping, Dock previews, clipboard history, text snippets, a file shelf, and an uninstaller — behind one icon, positioned as a substitute for buying several separate paid Mac utilities.",
-        "usage": "Vorssaint can be installed with Homebrew using `brew install --cask vorssaint`, or by downloading a disk image from the GitHub releases page (https://github.com/vorssaint/vorssaint-utils/releases). To build from source: `git clone https://github.com/vorssaint/vorssaint-utils.git`, then run `./build.sh` to compile and assemble the app, or `./build.sh --install` to also install it into Applications.",
-        "pros": "The app requires no account, runs with no telemetry and no subscription, and individual features can be installed or uninstalled independently so unused ones stop consuming resources. Permissions are optional and each one is explained in the app. Distributed builds are signed with an Apple Developer ID and notarized.",
-        "cons": "Because Vorssaint targets macOS 14 (Sonoma) or newer on Apple Silicon Macs, it likely does not support older macOS versions or Intel-based Macs, though the README does not state this explicitly. Building the app from source also requires Xcode Command Line Tools to be installed.",
-        "fit": "Vorssaint appears best suited to users on Apple Silicon Macs running macOS 14 or later who want to consolidate several separate menu bar utilities into one modular, permission-transparent app rather than users on older or Intel-based Macs."
+        "goal": "Vorssaint is a free, open-source macOS menu bar app bundling volume mixing, a system monitor, window management, clipboard history, and other utilities normally sold as separate paid apps into one icon, with no account or subscription required.",
+        "usage": "Install with Homebrew via `brew install --cask vorssaint`, or download the disk image from the GitHub releases page. To build from source, run `git clone https://github.com/vorssaint/vorssaint-utils.git` then `./build.sh` (add `--install` to also install and launch it). Uninstall with `brew uninstall --cask vorssaint`, or run `./Tools/uninstall.sh` for complete removal of settings and permissions.",
+        "pros": "Individual features install and uninstall separately, so unused tools stop consuming CPU, memory, and energy, while settings return if reinstalled. The app is free and open source under GPL-3.0-or-later, and is described as local-first with no account, analytics, or tracking.",
+        "cons": "Documented support covers only Apple Silicon Macs running macOS 14 (Sonoma) or newer, suggesting Intel Macs and older macOS versions are unsupported. Building from source requires Xcode Command Line Tools, and official signed builds come only from the maintainer, since the project name, icon, and look are covered by separate trademark terms that forks must avoid using.",
+        "fit": "Based on its feature list, Vorssaint appears best suited to Mac users wanting to replace several paid utility apps (volume control, window management, clipboard tools, screen capture) with one free, locally-run menu bar tool, though this intended audience is inferred rather than explicitly stated."
       },
       "ko": {
-        "goal": "Vorssaint는 무료 오픈소스 macOS 메뉴바 유틸리티 애플리케이션으로, 앱별 볼륨 믹서, 시스템 모니터, 앱 전환기, 창 스냅, Dock 미리보기, 클립보드 기록, 텍스트 스니펫, 파일 선반, 제거 도구 등 여러 소규모 도구를 하나의 아이콘 아래 묶어 제공하며, 여러 유료 Mac 유틸리티를 대체하는 것을 목표로 하는 것으로 보입니다.",
-        "usage": "Vorssaint는 Homebrew로 `brew install --cask vorssaint` 명령을 실행하거나, GitHub 릴리스 페이지(https://github.com/vorssaint/vorssaint-utils/releases)에서 디스크 이미지를 내려받아 설치할 수 있습니다. 소스에서 직접 빌드하려면 `git clone https://github.com/vorssaint/vorssaint-utils.git` 후 `./build.sh`로 컴파일 및 앱 구성을 하거나, `./build.sh --install`로 Applications 폴더에 설치까지 진행할 수 있습니다.",
-        "pros": "계정이 필요 없고 원격 측정(텔레메트리)이나 구독이 없으며, 개별 기능을 따로 설치·제거할 수 있어 사용하지 않는 기능은 리소스를 소모하지 않습니다. 권한은 모두 선택 사항이며 앱 내에서 각각 설명됩니다. 배포되는 빌드는 Apple Developer ID로 서명되고 공증(notarize)되어 있습니다.",
-        "cons": "Vorssaint는 macOS 14(Sonoma) 이상 및 Apple Silicon Mac을 대상으로 하므로, README에 명시되어 있지는 않지만 이전 macOS 버전이나 Intel 기반 Mac은 지원하지 않을 가능성이 있습니다. 또한 소스에서 직접 빌드하려면 Xcode Command Line Tools 설치가 필요합니다.",
-        "fit": "Vorssaint는 macOS 14 이상을 실행하는 Apple Silicon Mac 사용자가 여러 개별 메뉴바 유틸리티를 하나의 모듈형, 권한 투명성을 갖춘 앱으로 통합하고자 할 때 적합해 보이며, 이전 버전이나 Intel 기반 Mac 사용자에게는 적합하지 않을 수 있습니다."
+        "goal": "Vorssaint는 macOS 메뉴 바에서 실행되는 무료 오픈소스 유틸리티 앱으로, 볼륨 믹서, 시스템 모니터, 창 관리, 클립보드 기록 등 보통 별도로 판매되는 여러 유료 앱의 기능을 하나의 아이콘으로 묶었으며, 계정이나 구독이 필요 없다고 설명합니다.",
+        "usage": "Homebrew로 `brew install --cask vorssaint` 명령을 실행하거나 GitHub 릴리스 페이지에서 디스크 이미지를 내려받아 설치할 수 있습니다. 소스에서 빌드하려면 `git clone https://github.com/vorssaint/vorssaint-utils.git` 후 `./build.sh`를 실행하고(설치와 실행까지 하려면 `--install` 추가), 제거는 `brew uninstall --cask vorssaint` 또는 설정과 권한까지 완전히 지우는 `./Tools/uninstall.sh`로 할 수 있습니다.",
+        "pros": "각 기능을 개별적으로 설치·제거할 수 있어 사용하지 않는 기능은 CPU, 메모리, 전력을 소모하지 않으며, 다시 설치하면 이전 설정이 복원됩니다. 앱은 무료이며 GPL-3.0-or-later 라이선스의 오픈소스이고, 계정, 분석, 추적이 없는 로컬 우선 방식이라고 설명합니다.",
+        "cons": "문서에 따르면 지원 대상은 macOS 14(Sonoma) 이상을 실행하는 Apple Silicon Mac으로 한정되어 있어, 인텔 Mac이나 이전 macOS 버전에서는 사용할 수 없는 것으로 보입니다. 소스 빌드에는 Xcode Command Line Tools가 필요하며, 공식 서명된 빌드는 유지관리자만 제공하고, 프로젝트 이름·아이콘·디자인은 별도 상표 조건의 적용을 받아 포크가 이를 사용할 수 없습니다.",
+        "fit": "기능 목록을 볼 때 Vorssaint는 볼륨 제어, 창 관리, 클립보드 도구, 화면 캡처 등 여러 유료 유틸리티 앱을 하나의 무료 로컬 실행 메뉴 바 도구로 대체하려는 Mac 사용자에게 적합해 보이지만, 이는 명시적으로 언급되지 않은 추론입니다."
       },
       "zh-CN": {
-        "goal": "Vorssaint 是一款免费开源的 macOS 菜单栏工具应用,将多种小型工具——包括分应用音量混合器、系统监视器、应用切换器、窗口贴靠、Dock 预览、剪贴板历史、文本片段、文件搁架和卸载工具——集中在一个图标之下,其定位是替代多款需要单独购买的付费 Mac 工具。",
-        "usage": "可以通过 Homebrew 执行 `brew install --cask vorssaint` 进行安装,也可以从 GitHub 发布页面(https://github.com/vorssaint/vorssaint-utils/releases)下载磁盘映像安装。若要从源码构建,可运行 `git clone https://github.com/vorssaint/vorssaint-utils.git`,然后执行 `./build.sh` 编译并生成应用,或执行 `./build.sh --install` 编译后直接安装到应用程序文件夹。",
-        "pros": "该应用无需账户、不含遥测且无订阅费用,各功能可独立安装或卸载,未启用的功能不会占用资源。权限均为可选项,应用内会对每项权限进行说明。发布的构建版本经过 Apple Developer ID 签名及公证。",
-        "cons": "由于 Vorssaint 面向 macOS 14(Sonoma)及更新版本、且仅限 Apple Silicon Mac,虽然自述文件未明确说明,但它很可能不支持更旧的 macOS 版本或基于 Intel 的 Mac。此外,从源码构建还需要预先安装 Xcode 命令行工具。",
-        "fit": "Vorssaint 似乎更适合运行 macOS 14 或更高版本的 Apple Silicon Mac 用户,他们希望将多个独立的菜单栏工具整合为一个模块化、权限透明的应用,而非旧版或 Intel Mac 用户。"
+        "goal": "Vorssaint 是一款免费开源的 macOS 菜单栏工具应用,将音量混音器、系统监视器、窗口管理、剪贴板历史等通常需要分别购买的多款付费应用功能整合到一个图标中,文档说明无需账户或订阅。",
+        "usage": "可通过 Homebrew 运行 `brew install --cask vorssaint` 安装,或从 GitHub 发布页面下载磁盘映像。若从源码构建,先执行 `git clone https://github.com/vorssaint/vorssaint-utils.git`,再运行 `./build.sh`(加上 `--install` 可同时安装并启动)。卸载可使用 `brew uninstall --cask vorssaint`,或运行 `./Tools/uninstall.sh` 以彻底删除设置和权限。",
+        "pros": "各项功能可单独安装或卸载,未使用的功能不会占用 CPU、内存或电量,重新安装后设置会恢复。该应用免费且以 GPL-3.0-or-later 许可证开源,文档称其为本地优先,不涉及账户、分析或跟踪。",
+        "cons": "文档说明其支持范围仅限运行 macOS 14 (Sonoma) 或更高版本的 Apple Silicon Mac,这意味着英特尔 Mac 及更旧版本 macOS 可能不受支持。从源码构建需要 Xcode 命令行工具,且官方签名版本仅由维护者提供,因为项目名称、图标和外观受到单独商标条款保护,分支项目不得使用。",
+        "fit": "从功能列表看,Vorssaint 似乎更适合希望用一个免费、本地运行的菜单栏工具取代多款付费实用工具(音量控制、窗口管理、剪贴板工具、屏幕截图)的 Mac 用户,不过这一目标受众是推断得出,而非文档明确说明。"
       },
       "es": {
-        "goal": "Vorssaint es una aplicación gratuita y de código abierto para la barra de menú de macOS que reúne varias herramientas pequeñas —un mezclador de volumen por aplicación, un monitor del sistema, un selector de aplicaciones, ajuste de ventanas, vistas previas del Dock, historial del portapapeles, fragmentos de texto, una bandeja de archivos y un desinstalador— bajo un solo ícono, presentándose como una alternativa a comprar varias utilidades de Mac por separado.",
-        "usage": "Vorssaint puede instalarse con Homebrew ejecutando `brew install --cask vorssaint`, o descargando una imagen de disco desde la página de lanzamientos de GitHub (https://github.com/vorssaint/vorssaint-utils/releases). Para compilarlo desde el código fuente: `git clone https://github.com/vorssaint/vorssaint-utils.git`, luego `./build.sh` para compilar y ensamblar la app, o `./build.sh --install` para además instalarla en Applications.",
-        "pros": "La aplicación no requiere cuenta, no incluye telemetría ni suscripción, y cada función puede instalarse o desinstalarse de forma independiente, de modo que las funciones no usadas no consumen recursos. Los permisos son opcionales y cada uno se explica dentro de la app. Las compilaciones distribuidas están firmadas con un Apple Developer ID y notarizadas.",
-        "cons": "Dado que Vorssaint está dirigido a macOS 14 (Sonoma) o posterior en Macs con Apple Silicon, es probable que no admita versiones anteriores de macOS ni Macs basados en Intel, aunque el README no lo indica explícitamente. Compilar la app desde el código fuente también requiere tener instaladas las Xcode Command Line Tools.",
-        "fit": "Vorssaint parece más adecuado para usuarios de Macs con Apple Silicon que ejecutan macOS 14 o posterior y desean consolidar varias utilidades independientes de la barra de menú en una sola aplicación modular con permisos transparentes, más que para usuarios de Macs antiguos o basados en Intel."
+        "goal": "Vorssaint es una aplicación gratuita y de código abierto para la barra de menú de macOS que reúne mezclador de volumen, monitor del sistema, gestión de ventanas, historial de portapapeles y otras herramientas normalmente vendidas como apps de pago independientes, en un solo icono, sin necesidad de cuenta ni suscripción, según se indica.",
+        "usage": "Se instala con Homebrew mediante `brew install --cask vorssaint`, o descargando la imagen de disco desde la página de releases de GitHub. Para compilar desde el código fuente, ejecute `git clone https://github.com/vorssaint/vorssaint-utils.git` y luego `./build.sh` (agregue `--install` para instalarla y abrirla). Para desinstalar, use `brew uninstall --cask vorssaint` o `./Tools/uninstall.sh` para eliminar por completo ajustes y permisos.",
+        "pros": "Cada función puede instalarse o desinstalarse por separado, de modo que las herramientas no usadas dejan de consumir CPU, memoria o energía, y los ajustes se restauran si se reinstalan. La app es gratuita y de código abierto bajo GPL-3.0-or-later, y se describe como local-first, sin cuenta, análisis ni rastreo.",
+        "cons": "La documentación indica compatibilidad solo con Mac Apple Silicon que ejecuten macOS 14 (Sonoma) o posterior, lo que sugiere que los Mac Intel y versiones anteriores de macOS no están soportados. Compilar desde el código fuente requiere Xcode Command Line Tools, y las compilaciones oficiales firmadas provienen únicamente del mantenedor, ya que el nombre, icono y aspecto del proyecto están cubiertos por términos de marca aparte que los forks no pueden usar.",
+        "fit": "A partir de su lista de funciones, Vorssaint parece adecuada para usuarios de Mac que buscan sustituir varias apps de utilidades de pago (control de volumen, gestión de ventanas, herramientas de portapapeles, capturas de pantalla) por una sola herramienta gratuita de barra de menú que se ejecuta localmente, aunque este público objetivo es una inferencia y no se indica explícitamente."
       },
       "ja": {
-        "goal": "Vorssaintは、アプリ別音量ミキサー、システムモニター、アプリスイッチャー、ウィンドウスナップ、Dockプレビュー、クリップボード履歴、テキストスニペット、ファイル棚、アンインストーラーなど多数の小規模ツールを一つのアイコンにまとめた、無料でオープンソースのmacOSメニューバーユーティリティアプリであり、複数の有料Macユーティリティを購入する代わりとなることを目指しているようです。",
-        "usage": "VorssaintはHomebrewで `brew install --cask vorssaint` を実行してインストールできるほか、GitHubのリリースページ(https://github.com/vorssaint/vorssaint-utils/releases)からディスクイメージをダウンロードしてインストールすることもできます。ソースからビルドする場合は `git clone https://github.com/vorssaint/vorssaint-utils.git` の後、`./build.sh` でコンパイルしてアプリを組み立てるか、`./build.sh --install` を使うとApplicationsフォルダへのインストールまで行われます。",
-        "pros": "アカウント不要、テレメトリーなし、サブスクリプションなしで利用でき、各機能は個別にインストール・アンインストールでき、使わない機能はリソースを消費しません。権限はすべて任意で、アプリ内でそれぞれ説明が表示されます。配布されるビルドはApple Developer IDで署名され、公証(notarize)されています。",
-        "cons": "VorssaintはmacOS 14(Sonoma)以降かつApple Silicon Macを対象としているため、READMEに明記はされていないものの、古いmacOSバージョンやIntel搭載Macには対応していない可能性があります。また、ソースからのビルドにはXcode Command Line Toolsのインストールが別途必要です。",
-        "fit": "Vorssaintは、macOS 14以降を搭載したApple Silicon Macのユーザーが、複数の独立したメニューバーユーティリティを一つのモジュール式で権限が明示されたアプリに統合したい場合に適していると考えられ、旧型やIntel搭載Macのユーザーには不向きである可能性があります。"
+        "goal": "Vorssaintは、音量ミキサー、システムモニター、ウィンドウ管理、クリップボード履歴など、通常は個別に販売される複数の有料アプリの機能を1つのアイコンにまとめた、無料でオープンソースのmacOSメニューバーアプリで、アカウントやサブスクリプションは不要とされています。",
+        "usage": "Homebrewで `brew install --cask vorssaint` を実行するか、GitHubのリリースページからディスクイメージをダウンロードしてインストールできます。ソースからビルドする場合は `git clone https://github.com/vorssaint/vorssaint-utils.git` の後に `./build.sh` を実行します(インストールと起動も行うには `--install` を追加)。アンインストールは `brew uninstall --cask vorssaint`、または設定と権限を完全に削除する `./Tools/uninstall.sh` で行えます。",
+        "pros": "各機能は個別にインストール・アンインストールでき、使わない機能はCPU、メモリ、電力を消費せず、再インストールすると設定が復元されます。アプリは無料でGPL-3.0-or-laterのオープンソースであり、アカウント、解析、追跡のないローカルファーストとされています。",
+        "cons": "ドキュメントによると、対応はmacOS 14(Sonoma)以降を実行するApple Silicon搭載Macに限られており、Intel Macや古いmacOSバージョンではサポートされない可能性があります。ソースからのビルドにはXcode Command Line Toolsが必要で、公式の署名済みビルドはメンテナーのみが提供し、プロジェクト名・アイコン・見た目は別途商標条項の対象となるため、フォークはこれらを使用できません。",
+        "fit": "機能一覧から見ると、Vorssaintは複数の有料ユーティリティアプリ(音量制御、ウィンドウ管理、クリップボードツール、スクリーンキャプチャ)を1つの無料でローカル実行のメニューバーツールに置き換えたいMacユーザーに適していると考えられますが、この対象ユーザー像は明示されておらず推測です。"
       }
     },
     "evidence": {
@@ -7808,9 +7795,14 @@
       ],
       "usage": [
         {
-          "start_line": 161,
+          "start_line": 163,
           "end_line": 165,
           "section_heading": "Install"
+        },
+        {
+          "start_line": 175,
+          "end_line": 182,
+          "section_heading": "Uninstall"
         },
         {
           "start_line": 217,
@@ -7825,14 +7817,14 @@
           "section_heading": "Install only what you use"
         },
         {
-          "start_line": 189,
-          "end_line": 189,
-          "section_heading": "Private by default"
+          "start_line": 56,
+          "end_line": 56,
+          "section_heading": ""
         },
         {
-          "start_line": 169,
-          "end_line": 169,
-          "section_heading": "Install"
+          "start_line": 187,
+          "end_line": 187,
+          "section_heading": "Private by default"
         }
       ],
       "cons": [
@@ -7849,6 +7841,11 @@
       ],
       "fit": [
         {
+          "start_line": 56,
+          "end_line": 56,
+          "section_heading": ""
+        },
+        {
           "start_line": 212,
           "end_line": 213,
           "section_heading": "What you need"
@@ -7859,6 +7856,13 @@
       {
         "kind": "command",
         "value": "brew install --cask vorssaint",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "brew uninstall --cask vorssaint",
         "fields": [
           "usage"
         ]
@@ -7879,7 +7883,7 @@
       },
       {
         "kind": "command",
-        "value": "./build.sh --install",
+        "value": "./Tools/uninstall.sh",
         "fields": [
           "usage"
         ]
@@ -7888,8 +7892,7 @@
         "kind": "version",
         "value": "macOS 14",
         "fields": [
-          "cons",
-          "fit"
+          "cons"
         ]
       },
       {
@@ -7898,7 +7901,6 @@
         "fields": [
           "goal",
           "usage",
-          "cons",
           "fit"
         ]
       },
@@ -7911,7 +7913,7 @@
       },
       {
         "kind": "url",
-        "value": "https://github.com/vorssaint/vorssaint-utils/releases",
+        "value": "https://github.com/vorssaint/vorssaint-utils",
         "fields": [
           "usage"
         ]
@@ -7925,8 +7927,8 @@
       "kind": "readme",
       "slug": "vorssaint/vorssaint-utils",
       "path": "README.md",
-      "blob_sha": "9a130e3e3ef7039518941ba094ee5098367ca5c3",
-      "content_sha256": "fcf224273ee7db397b6dd29996d5c9987b0c2f462d65795e704929a362f748d5",
+      "blob_sha": "81d86a3fb1cd836119b7fc31b832082efd42d068",
+      "content_sha256": "2f1461958af80e65b3291a7d601481f230994c92c504c4d0dc221cd8f07b10ab",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -7940,47 +7942,47 @@
   },
   "debpalash/VoiceStudio": {
     "content": {
-      "goal": "VoiceStudio is described as an open source voice cloning and workflow engine intended for local, on-device use. The default engine, also named VoiceStudio, is powered by k2-fsa/OmniVoice, and the README states other engines can be selected via a documented feature catalog.",
-      "usage": "Per the README, users download a release from GitHub and follow a platform-specific install guide (macOS, Windows, Linux, or Docker), then open the Voice cloning workspace, select or add a reference voice, enter text, and generate, installing the required model when prompted. To run the Electron preview from source, the documented commands are: `git clone https://github.com/debpalash/VoiceStudio.git`, `cd VoiceStudio`, `bun install`, and `bun run dev`.",
-      "pros": "The README lists capabilities including voice cloning, voice design, video dubbing with timed speech, a floating dictation widget, story/audiobook and batch generation, and a local API with MCP support for agents. Local workflows run on the user's own hardware, remote services are optional, and usage analytics reportedly requires consent.",
-      "cons": "The project is licensed under AGPL-3.0, but the README notes that individual models carry their own separate licenses that should be reviewed before commercial use, and that voice cloning requires permission from the voice owner — suggesting some legal/compliance overhead beyond the core software license.",
-      "fit": "Given its emphasis on local execution, optional remote workers, and an Electron-based desktop app (with a final Tauri build noted as being sunset), VoiceStudio appears best suited to developers and users wanting a locally run, extensible voice tool rather than a purely cloud-hosted service; hardware requirements reportedly vary by engine."
+      "goal": "VoiceStudio is described as an open source voice cloning and workflow engine for building voice-related applications locally. It supports voice cloning, custom voice design, video dubbing with timed speech, and audiobook/story production, defaulting to an engine powered by k2-fsa/OmniVoice.",
+      "usage": "Users download the packaged app from the GitHub Releases page and follow platform-specific install guides for macOS, Windows, Linux, or Docker. To run the Electron preview from source, the README documents `git clone https://github.com/debpalash/VoiceStudio.git`, then `cd VoiceStudio`, `bun install`, and `bun run dev`; this source path presumably targets developers rather than end users.",
+      "pros": "The project emphasizes local, hardware-based workflows with optional remote worker support, and offers a local API plus MCP integration for connecting automation agents. Usage analytics is described as consent-based rather than mandatory.",
+      "cons": "As of version 0.5.3, Electron replaced Tauri as the primary desktop app, so existing Tauri users must install Electron separately via a migration guide; this suggests a transition period where compatibility or workflow adjustments may be needed for prior users.",
+      "fit": "The tool is licensed under AGPL-3.0, while bundled or downloadable models carry their own separate licenses that should be reviewed before commercial use. It appears best suited for users who want local control over voice cloning and are prepared to verify licensing and obtain permission before cloning voices."
     },
     "summaries": {
       "en": {
-        "goal": "VoiceStudio is described as an open source voice cloning and workflow engine intended for local, on-device use. The default engine, also named VoiceStudio, is powered by k2-fsa/OmniVoice, and the README states other engines can be selected via a documented feature catalog.",
-        "usage": "Per the README, users download a release from GitHub and follow a platform-specific install guide (macOS, Windows, Linux, or Docker), then open the Voice cloning workspace, select or add a reference voice, enter text, and generate, installing the required model when prompted. To run the Electron preview from source, the documented commands are: `git clone https://github.com/debpalash/VoiceStudio.git`, `cd VoiceStudio`, `bun install`, and `bun run dev`.",
-        "pros": "The README lists capabilities including voice cloning, voice design, video dubbing with timed speech, a floating dictation widget, story/audiobook and batch generation, and a local API with MCP support for agents. Local workflows run on the user's own hardware, remote services are optional, and usage analytics reportedly requires consent.",
-        "cons": "The project is licensed under AGPL-3.0, but the README notes that individual models carry their own separate licenses that should be reviewed before commercial use, and that voice cloning requires permission from the voice owner — suggesting some legal/compliance overhead beyond the core software license.",
-        "fit": "Given its emphasis on local execution, optional remote workers, and an Electron-based desktop app (with a final Tauri build noted as being sunset), VoiceStudio appears best suited to developers and users wanting a locally run, extensible voice tool rather than a purely cloud-hosted service; hardware requirements reportedly vary by engine."
+        "goal": "VoiceStudio is described as an open source voice cloning and workflow engine for building voice-related applications locally. It supports voice cloning, custom voice design, video dubbing with timed speech, and audiobook/story production, defaulting to an engine powered by k2-fsa/OmniVoice.",
+        "usage": "Users download the packaged app from the GitHub Releases page and follow platform-specific install guides for macOS, Windows, Linux, or Docker. To run the Electron preview from source, the README documents `git clone https://github.com/debpalash/VoiceStudio.git`, then `cd VoiceStudio`, `bun install`, and `bun run dev`; this source path presumably targets developers rather than end users.",
+        "pros": "The project emphasizes local, hardware-based workflows with optional remote worker support, and offers a local API plus MCP integration for connecting automation agents. Usage analytics is described as consent-based rather than mandatory.",
+        "cons": "As of version 0.5.3, Electron replaced Tauri as the primary desktop app, so existing Tauri users must install Electron separately via a migration guide; this suggests a transition period where compatibility or workflow adjustments may be needed for prior users.",
+        "fit": "The tool is licensed under AGPL-3.0, while bundled or downloadable models carry their own separate licenses that should be reviewed before commercial use. It appears best suited for users who want local control over voice cloning and are prepared to verify licensing and obtain permission before cloning voices."
       },
       "ko": {
-        "goal": "README에 따르면 VoiceStudio는 로컬에서 실행되는 오픈소스 음성 복제 및 워크플로우 엔진입니다. 기본 엔진인 VoiceStudio(k2-fsa/OmniVoice 기반)를 사용하거나 문서화된 기능 카탈로그를 통해 다른 엔진을 선택할 수 있다고 설명되어 있습니다.",
-        "usage": "README에 따르면 사용자는 GitHub 릴리스에서 다운로드한 후 플랫폼별 설치 가이드(macOS, Windows, Linux, Docker)를 따르고, Voice cloning 화면에서 참조 음성을 선택하거나 추가하고 텍스트를 입력해 생성하며, 필요한 모델은 프롬프트가 뜰 때 설치합니다. 소스에서 Electron 프리뷰를 실행하려면 `git clone https://github.com/debpalash/VoiceStudio.git`, `cd VoiceStudio`, `bun install`, `bun run dev` 명령을 사용한다고 문서화되어 있습니다.",
-        "pros": "README는 음성 복제, 음성 디자인, 타이밍이 맞춰진 비디오 더빙, 플로팅 받아쓰기 위젯, 스토리/오디오북 및 배치 작업, 에이전트를 위한 로컬 API 및 MCP 지원 기능을 나열합니다. 로컬 워크플로우는 사용자 하드웨어에서 실행되고 원격 서비스는 선택 사항이며 사용 분석에는 동의가 필요하다고 명시되어 있습니다.",
-        "cons": "라이선스는 AGPL-3.0이지만, README는 각 모델이 별도의 라이선스를 가지므로 상업적 사용 전에 검토가 필요하며 음성 복제에는 소유자의 허가가 필요하다고 명시합니다. 이는 핵심 소프트웨어 라이선스 외에 추가적인 법적/컴플라이언스 검토가 필요할 수 있음을 시사합니다.",
-        "fit": "로컬 실행, 선택적 원격 워커, Electron 기반 데스크톱 앱(마지막 Tauri 빌드는 단종 예정으로 언급됨)을 강조하는 점을 볼 때, VoiceStudio는 순수 클라우드 서비스보다 로컬에서 실행되는 확장 가능한 음성 도구를 원하는 개발자와 사용자에게 적합해 보입니다. 하드웨어 요구 사항은 엔진에 따라 다르다고 합니다."
+        "goal": "VoiceStudio는 로컬 환경에서 음성 클로닝과 워크플로우를 구축할 수 있는 오픈소스 엔진으로 소개됩니다. 음성 복제, 맞춤 음성 디자인, 타이밍이 맞춰진 더빙, 스토리/오디오북 제작 기능을 제공하며 기본 엔진은 k2-fsa/OmniVoice 기반입니다.",
+        "usage": "사용자는 GitHub Releases 페이지에서 앱을 다운로드한 뒤 macOS, Windows, Linux, Docker용 플랫폼별 설치 가이드를 따릅니다. 소스에서 Electron 미리보기를 실행하려면 README에 따라 `git clone https://github.com/debpalash/VoiceStudio.git` 후 `cd VoiceStudio`, `bun install`, `bun run dev`를 실행하는데, 이 경로는 최종 사용자보다는 개발자를 대상으로 하는 것으로 보입니다.",
+        "pros": "로컬 하드웨어 기반 워크플로우를 강조하며 선택적으로 원격 워커를 지원하고, 에이전트 연동을 위한 로컬 API와 MCP를 제공합니다. 사용 분석은 필수가 아닌 동의 기반으로 설명됩니다.",
+        "cons": "버전 0.5.3부터 Electron이 Tauri를 대체해 기본 데스크톱 앱이 되었으므로, 기존 Tauri 사용자는 마이그레이션 가이드를 통해 Electron을 별도로 설치해야 합니다. 이는 기존 사용자에게 전환 기간 동안 워크플로우 조정이 필요할 수 있음을 시사합니다.",
+        "fit": "이 도구는 AGPL-3.0 라이선스를 따르며, 번들되거나 다운로드되는 모델은 별도의 라이선스를 가지므로 상업적 사용 전에 검토가 필요합니다. 음성 클로닝에 대한 로컬 제어를 원하고 라이선스 확인 및 음성 사용 허가 절차를 감수할 수 있는 사용자에게 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "根据README,VoiceStudio被描述为一个开源的语音克隆与工作流引擎,面向本地运行设计。默认引擎同样名为VoiceStudio,基于k2-fsa/OmniVoice,文档说明用户也可通过功能目录选择其他引擎。",
-        "usage": "根据README,用户从GitHub发布页下载后,按平台安装指南(macOS、Windows、Linux或Docker)操作,然后在Voice cloning工作区选择或添加参考录音、输入文本并生成,并在提示时安装所需模型。若要从源码运行Electron预览版,文档给出的命令为:`git clone https://github.com/debpalash/VoiceStudio.git`、`cd VoiceStudio`、`bun install`、`bun run dev`。",
-        "pros": "README列出的功能包括语音克隆、语音设计、带时间轴的视频配音、悬浮听写小部件、故事/有声书及批量任务,以及面向智能体的本地API与MCP支持。本地工作流在用户自有硬件上运行,远程服务为可选项,且使用分析据称需征得同意。",
-        "cons": "该项目采用AGPL-3.0许可,但README说明各模型拥有各自独立的许可证,商用前应予以审阅,且语音克隆据称需征得声音所有者许可。这提示除核心软件许可外,可能还存在额外的法律/合规审查工作。",
-        "fit": "鉴于其强调本地执行、可选远程工作节点,以及以Electron为主的桌面应用(文档提到最后一个Tauri版本将被淘汰),VoiceStudio看起来更适合希望使用本地运行、可扩展语音工具而非纯云端服务的开发者和用户;据称硬件需求因引擎而异。"
+        "goal": "VoiceStudio 被介绍为一个开源的语音克隆与工作流引擎,可在本地构建相关应用。它支持语音克隆、自定义语音设计、带时间轴的视频配音以及故事/有声书制作,默认引擎基于 k2-fsa/OmniVoice。",
+        "usage": "用户可从 GitHub Releases 页面下载应用,并按照 macOS、Windows、Linux 或 Docker 的平台安装指南操作。若要从源码运行 Electron 预览版,README 中给出的步骤是先执行 `git clone https://github.com/debpalash/VoiceStudio.git`,再执行 `cd VoiceStudio`、`bun install` 和 `bun run dev`,这一路径看起来更适合开发者而非普通终端用户。",
+        "pros": "该项目强调基于本地硬件的工作流,并可选支持远程工作节点,同时提供本地 API 与 MCP 以便与自动化代理集成。使用分析被描述为需征得同意,而非强制启用。",
+        "cons": "自 0.5.3 版本起,Electron 取代 Tauri 成为主要桌面应用,现有 Tauri 用户需按照迁移指南单独安装 Electron。这似乎意味着在过渡期间,原有用户可能需要调整其使用流程。",
+        "fit": "该项目采用 AGPL-3.0 许可,而随附或下载的模型拥有各自独立的许可协议,在商业使用前应加以审查。它似乎更适合希望在本地掌控语音克隆流程、并愿意核实许可及获得语音使用授权的用户。"
       },
       "es": {
-        "goal": "Según el README, VoiceStudio se describe como un motor de clonación de voz y flujo de trabajo de código abierto pensado para ejecutarse localmente. El motor por defecto, también llamado VoiceStudio, está impulsado por k2-fsa/OmniVoice, y el documento indica que se pueden elegir otros motores mediante un catálogo de funciones documentado.",
-        "usage": "Según el README, los usuarios descargan una versión desde GitHub Releases y siguen la guía de instalación de su plataforma (macOS, Windows, Linux o Docker); luego abren el espacio de Voice cloning, seleccionan o añaden una grabación de referencia, escriben el texto y generan el audio, instalando el modelo requerido cuando se les solicita. Para ejecutar la vista previa de Electron desde el código fuente, los comandos documentados son: `git clone https://github.com/debpalash/VoiceStudio.git`, `cd VoiceStudio`, `bun install` y `bun run dev`.",
-        "pros": "El README enumera funciones como clonación de voz, diseño de voz, doblaje de video con temporización, un widget de dictado flotante, generación de historias/audiolibros y tareas por lotes, además de una API local con soporte MCP para agentes. Los flujos locales se ejecutan en el hardware del usuario, los servicios remotos son opcionales y el análisis de uso requiere consentimiento, según se indica.",
-        "cons": "El proyecto usa la licencia AGPL-3.0, pero el README señala que cada modelo tiene su propia licencia independiente que debe revisarse antes de un uso comercial, y que clonar voces requiere permiso del propietario. Esto sugiere una carga adicional de revisión legal/de cumplimiento más allá de la licencia principal del software.",
-        "fit": "Dado su énfasis en la ejecución local, los workers remotos opcionales y una aplicación de escritorio basada en Electron (con una última compilación de Tauri señalada como en retirada), VoiceStudio parece más adecuado para desarrolladores y usuarios que buscan una herramienta de voz local y extensible en lugar de un servicio puramente en la nube; los requisitos de hardware, según se indica, varían según el motor."
+        "goal": "VoiceStudio se describe como un motor de clonación de voz y flujo de trabajo de código abierto para construir aplicaciones localmente. Ofrece clonación de voz, diseño de voces personalizadas, doblaje de video con temporización y producción de historias/audiolibros, con un motor predeterminado basado en k2-fsa/OmniVoice.",
+        "usage": "Los usuarios descargan la aplicación desde la página de Releases de GitHub y siguen las guías de instalación específicas para macOS, Windows, Linux o Docker. Para ejecutar la vista previa de Electron desde el código fuente, el README indica `git clone https://github.com/debpalash/VoiceStudio.git`, luego `cd VoiceStudio`, `bun install` y `bun run dev`; esta vía parece pensada para desarrolladores más que para usuarios finales.",
+        "pros": "El proyecto destaca los flujos de trabajo locales basados en hardware propio, con soporte opcional para trabajadores remotos, además de una API local y MCP para conectar agentes de automatización. El análisis de uso se describe como basado en consentimiento, no obligatorio.",
+        "cons": "Desde la versión 0.5.3, Electron reemplazó a Tauri como la aplicación de escritorio principal, por lo que los usuarios existentes de Tauri deben instalar Electron por separado siguiendo una guía de migración. Esto sugiere un período de transición en el que los usuarios previos podrían necesitar ajustar su flujo de trabajo.",
+        "fit": "La herramienta está licenciada bajo AGPL-3.0, mientras que los modelos incluidos o descargables tienen sus propias licencias que conviene revisar antes de un uso comercial. Parece adecuada para quienes buscan control local sobre la clonación de voz y están dispuestos a verificar licencias y obtener permiso antes de clonar voces."
       },
       "ja": {
-        "goal": "READMEによると、VoiceStudioはローカルで動作するオープンソースの音声クローン・ワークフローエンジンとして説明されています。デフォルトエンジンも同じくVoiceStudioと呼ばれ、k2-fsa/OmniVoiceを基盤としており、文書化された機能カタログから他のエンジンを選択できるとされています。",
-        "usage": "READMEによれば、ユーザーはGitHubのリリースからダウンロードし、プラットフォーム別のインストールガイド(macOS、Windows、Linux、Docker)に従います。その後Voice cloningワークスペースで参照音声を選択または追加し、テキストを入力して生成し、必要に応じて表示されるモデルをインストールします。ソースからElectronプレビューを実行する際の文書化されたコマンドは、`git clone https://github.com/debpalash/VoiceStudio.git`、`cd VoiceStudio`、`bun install`、`bun run dev`です。",
-        "pros": "READMEには、音声クローン、音声デザイン、タイミング調整済みの動画吹き替え、フローティング音声入力ウィジェット、ストーリー/オーディオブックおよびバッチ処理、エージェント向けのローカルAPIとMCPサポートといった機能が挙げられています。ローカルのワークフローはユーザー自身のハードウェア上で動作し、リモートサービスは任意で、利用状況分析には同意が必要とされています。",
-        "cons": "本プロジェクトはAGPL-3.0ライセンスですが、READMEでは各モデルが独自の別ライセンスを持ち、商用利用前にはその確認が必要であること、また音声クローンには所有者の許可が必要であることが述べられています。これはソフトウェア本体のライセンス以外にも、法的・コンプライアンス上の追加確認が必要になりうることを示唆しています。",
-        "fit": "ローカル実行、任意のリモートワーカー、Electronベースのデスクトップアプリ(最後のTauriビルドは終息予定と記載)を重視している点から、VoiceStudioは純粋なクラウドサービスよりも、ローカルで動作する拡張可能な音声ツールを求める開発者やユーザーに適していると考えられます。ハードウェア要件はエンジンによって異なるとされています。"
+        "goal": "VoiceStudioは、ローカルで音声関連アプリを構築するためのオープンソースの音声クローニング・ワークフローエンジンとして紹介されています。音声クローン、カスタム音声デザイン、タイミング付き動画吹き替え、ストーリー/オーディオブック制作を提供し、デフォルトエンジンはk2-fsa/OmniVoiceを基盤としています。",
+        "usage": "ユーザーはGitHubのReleasesページからアプリをダウンロードし、macOS、Windows、Linux、Dockerそれぞれのプラットフォーム別インストールガイドに従います。ソースからElectronプレビューを実行するには、READMEに従い `git clone https://github.com/debpalash/VoiceStudio.git` の後に `cd VoiceStudio`、`bun install`、`bun run dev` を実行しますが、この経路は一般ユーザーよりも開発者向けと思われます。",
+        "pros": "本プロジェクトはローカルハードウェアに基づくワークフローを重視しつつ、オプションでリモートワーカーもサポートし、エージェント連携用のローカルAPIとMCPを提供します。使用状況の分析は必須ではなく同意に基づくものとして説明されています。",
+        "cons": "バージョン0.5.3以降、ElectronがTauriに代わって主要なデスクトップアプリとなったため、既存のTauriユーザーは移行ガイドに従ってElectronを別途インストールする必要があります。これは移行期間中、既存ユーザーがワークフローの調整を迫られる可能性を示唆しています。",
+        "fit": "本ツールはAGPL-3.0ライセンスの下で提供される一方、同梱またはダウンロードされるモデルはそれぞれ独自のライセンスを持ち、商用利用前に確認が必要です。音声クローニングをローカルで制御したいユーザーで、ライセンス確認や音声使用許可の取得を厭わない場合に適していると考えられます。"
       }
     },
     "evidence": {
@@ -7991,6 +7993,11 @@
           "section_heading": ""
         },
         {
+          "start_line": 27,
+          "end_line": 30,
+          "section_heading": "Your voice. Your workflow."
+        },
+        {
           "start_line": 32,
           "end_line": 32,
           "section_heading": "Your voice. Your workflow."
@@ -7998,19 +8005,19 @@
       ],
       "usage": [
         {
-          "start_line": 56,
-          "end_line": 62,
+          "start_line": 58,
+          "end_line": 60,
           "section_heading": "Get started"
         },
         {
-          "start_line": 67,
-          "end_line": 72,
-          "section_heading": "Get started"
+          "start_line": 100,
+          "end_line": 105,
+          "section_heading": "Let your agent set it up"
         }
       ],
       "pros": [
         {
-          "start_line": 27,
+          "start_line": 29,
           "end_line": 30,
           "section_heading": "Your voice. Your workflow."
         },
@@ -8022,21 +8029,16 @@
       ],
       "cons": [
         {
-          "start_line": 99,
-          "end_line": 101,
-          "section_heading": "License & responsible use"
+          "start_line": 111,
+          "end_line": 111,
+          "section_heading": "Let your agent set it up"
         }
       ],
       "fit": [
         {
-          "start_line": 78,
-          "end_line": 78,
-          "section_heading": "Get started"
-        },
-        {
-          "start_line": 62,
-          "end_line": 62,
-          "section_heading": "Get started"
+          "start_line": 132,
+          "end_line": 134,
+          "section_heading": "License & responsible use"
         }
       ]
     },
@@ -8044,13 +8046,6 @@
       {
         "kind": "command",
         "value": "git clone https://github.com/debpalash/VoiceStudio.git",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "cd VoiceStudio",
         "fields": [
           "usage"
         ]
@@ -8071,7 +8066,7 @@
       },
       {
         "kind": "version",
-        "value": "AGPL-3.0",
+        "value": "0.5.3",
         "fields": [
           "cons"
         ]
@@ -8081,8 +8076,7 @@
         "value": "VoiceStudio",
         "fields": [
           "goal",
-          "usage",
-          "fit"
+          "usage"
         ]
       },
       {
@@ -8090,14 +8084,14 @@
         "value": "Electron",
         "fields": [
           "usage",
-          "fit"
+          "cons"
         ]
       },
       {
         "kind": "product",
         "value": "Tauri",
         "fields": [
-          "fit"
+          "cons"
         ]
       },
       {
@@ -8106,9 +8100,17 @@
         "fields": [
           "goal"
         ]
+      },
+      {
+        "kind": "version",
+        "value": "AGPL-3.0",
+        "fields": [
+          "fit"
+        ]
       }
     ],
     "inference_fields": [
+      "usage",
       "cons",
       "fit"
     ],
@@ -8116,8 +8118,8 @@
       "kind": "readme",
       "slug": "debpalash/voicestudio",
       "path": "README.md",
-      "blob_sha": "d46562ef5ba2231c4b38dbebc8f4575ee1f14a98",
-      "content_sha256": "27bb8dd4c1d362382e4714ce2bbc4e799f47c41a59df34f6cc0a7138bc5b6083",
+      "blob_sha": "7f59be51ea2c0b09ed0e157e226f10e8516e114b",
+      "content_sha256": "33ab0a5723fb421b6f9605ab13efc03f217a0f4a26a5b041063a4f14e07fc4af",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
