@@ -28,20 +28,25 @@ test("only a failed scheduled cycle is retried, so a retry can never trigger ano
     /if: \$\{\{ github\.event\.workflow_run\.conclusion == 'failure' && github\.event\.workflow_run\.event == 'schedule' \}\}/,
   );
   // The replacement is dispatched, and a workflow_dispatch run cannot satisfy the condition above.
-  assert.match(workflow, /gh workflow run daily-refresh\.yml --ref "\$TARGET_REF"/);
+  assert.match(workflow, /gh workflow run daily-refresh\.yml --ref "\$TARGET_REF" --repo "\$GITHUB_REPOSITORY"/);
   assert.doesNotMatch(workflow, /gh run rerun/);
 });
 
-test("the retry fires only for a job that was never acquired, and stays silent on every real failure", async () => {
+test("the retry fires only when the enrichment job ran no step, and stays silent on every real failure", async () => {
   const workflow = await read(retryPath);
   // All three conditions are read from the failed run itself, not assumed.
   assert.match(workflow, /conclusion=\$\(printf '%s' "\$enrich" \| jq -r '\.conclusion \/\/ ""'\)/);
   assert.match(workflow, /runner_name=\$\(printf '%s' "\$enrich" \| jq -r '\.runner_name \/\/ ""'\)/);
   assert.match(workflow, /started_steps=\$\(printf '%s' "\$enrich" \| jq '\[\.steps\[\]\? \| select\(\.status != "queued" and \.status != "pending"\)\] \| length'\)/);
+  // A step that ran means the failure is the refresh's own, so that test comes first and alone.
   assert.match(
     workflow,
-    /if \[ "\$conclusion" != "cancelled" \] \|\| \[ -n "\$runner_name" \] \|\| \[ "\$started_steps" -ne 0 \]; then\n\s+echo "::notice::[^\n]*leaving it failed to be read"\n\s+exit 0\n\s+fi/,
+    /if \[ "\$started_steps" -ne 0 \]; then\n\s+echo "::notice::[^\n]*leaving it failed to be read"\n\s+exit 0\n\s+fi/,
   );
+  // With no step run, exactly two shapes are retried, and everything else is left alone.
+  assert.match(workflow, /if \[ "\$conclusion" = "cancelled" \] && \[ -z "\$runner_name" \]; then/);
+  assert.match(workflow, /elif \[ "\$conclusion" = "failure" \] && \[ -n "\$runner_name" \]; then/);
+  assert.match(workflow, /else\n\s+echo "::notice::[^\n]*not a shape this retries, leaving it failed to be read"\n\s+exit 0\n\s+fi/);
   assert.match(workflow, /^          set -euo pipefail$/m);
 });
 
