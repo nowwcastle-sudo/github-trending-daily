@@ -424,6 +424,41 @@ async function diagnoseContinuity(slug, branch, priorHead, currentHead, context)
   throw new Error(`Commit continuity gap for ${slug}`);
 }
 
+// GitHub lists commits newest first by committer date, which is not a topological order:
+// a parent whose committer date is later than its child's -- a rebase, an amended date, a
+// skewed clock on the machine that wrote it -- is listed above that child. The observation
+// ledger requires every parent to be recorded after the commit that reaches it and rejects
+// the whole refresh otherwise, so order the collected set by the graph, not by the dates.
+// Seeding in listing order keeps a linear history exactly as GitHub returned it, which is
+// every ordinary refresh: this reorders only the listings that would be rejected.
+function reverseTopologicalOrder(records, headSha, slug) {
+  const bySha = new Map(records.map(record => [record.sha, record]));
+  const unplacedChildren = new Map([...bySha.keys()].map(value => [value, 0]));
+  for (const record of records) {
+    for (const parent of record.parentShas) {
+      if (bySha.has(parent)) unplacedChildren.set(parent, unplacedChildren.get(parent) + 1);
+    }
+  }
+  const ready = records.filter(record => unplacedChildren.get(record.sha) === 0);
+  const ordered = [];
+  for (let index = 0; index < ready.length; index += 1) {
+    const record = ready[index];
+    ordered.push(record);
+    for (const parent of record.parentShas) {
+      if (!bySha.has(parent)) continue;
+      const remaining = unplacedChildren.get(parent) - 1;
+      unplacedChildren.set(parent, remaining);
+      if (remaining === 0) ready.push(bySha.get(parent));
+    }
+  }
+  // A commit graph cannot contain a cycle, and the collection walks back from the frozen
+  // head, so either of these means the listing is not the history it claims to be.
+  if (ordered.length !== records.length) throw new Error(`Cyclic commit graph for ${slug}`);
+  if (ordered.length && ordered[0].sha !== headSha) throw new Error(`Commit order does not start at the frozen head for ${slug}`);
+  ordered.forEach((record, index) => { record.firstObservedOrdinal = index + 1; });
+  return ordered;
+}
+
 async function collectCommits(repo, previous, context) {
   const slug = normalizeSlug(repo.slug);
   const branch = repo.default_branch;
@@ -472,7 +507,7 @@ async function collectCommits(repo, previous, context) {
     const transition = await diagnoseContinuity(slug, branch, prior.headSha, headSha, context);
     return { head: { slug, branch, headSha, transition }, commits: [] };
   }
-  return { head: { slug, branch, headSha, transition: "fast_forward" }, commits: records };
+  return { head: { slug, branch, headSha, transition: "fast_forward" }, commits: reverseTopologicalOrder(records, headSha, slug) };
 }
 
 export async function collectRepositoryEvents(repositories, {

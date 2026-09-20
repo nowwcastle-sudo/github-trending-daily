@@ -995,3 +995,49 @@ test("historical star estimates are discontinued: no OSS Insight request and one
   assert.equal(OSS_ESTIMATE_DISCONTINUATION.severelyDegradedSince, "2026-05-01");
   assert.equal(Object.isFrozen(OSS_ESTIMATE_DISCONTINUATION), true);
 });
+
+test("commits are ordinalled by the graph, not by the dates GitHub sorts on", async () => {
+  // Refresh run 191 (2026-09-20) died in the recorder with "fast_forward commit graph order
+  // is invalid": the ledger requires every parent to be recorded after the commit that
+  // reaches it, and GitHub's listing is newest-first by committer date, not topological. A
+  // parent whose committer date is later than its child's -- a rebase, an amended date, a
+  // skewed clock -- is listed above that child, below the frozen head where the collector
+  // cannot mistake it for a push that landed after the facts were frozen.
+  const prior = sha("a");
+  const head = sha("c");
+  const middle = sha("d");
+  const oldest = sha("e");
+  // History is head -> middle -> oldest -> prior; the listing puts `oldest` above `middle`.
+  const listing = [
+    commit(head, [middle]),
+    commit(oldest, [prior]),
+    commit(middle, [oldest]),
+    commit(prior),
+  ];
+  const events = await collectRepositoryEvents([{ ...repo, default_branch_head_sha: head }], {
+    previous: { "owner/repo": { branch: "main", headSha: prior } },
+    fetchImpl: successfulFetch({ commits: listing }),
+  });
+  assert.deepEqual(events.commits.map(value => [value.sha, value.firstObservedOrdinal]),
+    [[head, 1], [middle, 2], [oldest, 3]]);
+  const ordinals = new Map(events.commits.map(value => [value.sha, value.firstObservedOrdinal]));
+  for (const record of events.commits) {
+    for (const parent of record.parentShas) {
+      if (!ordinals.has(parent)) continue;
+      assert.ok(ordinals.get(parent) > ordinals.get(record.sha),
+        `${parent} must be recorded after its child ${record.sha}`);
+    }
+  }
+});
+
+test("a linear history keeps the exact order GitHub returned", async () => {
+  // The reordering must be invisible to every ordinary refresh, or it would rewrite
+  // ordinals that the append-only ledger has already bound for unchanged history.
+  const prior = sha("a");
+  const head = sha("c");
+  const events = await collectRepositoryEvents([{ ...repo, default_branch_head_sha: head }], {
+    previous: { "owner/repo": { branch: "main", headSha: prior } },
+    fetchImpl: successfulFetch({ commits: [commit(head, [sha("d")]), commit(sha("d"), [prior]), commit(prior)] }),
+  });
+  assert.deepEqual(events.commits.map(value => [value.sha, value.firstObservedOrdinal]), [[head, 1], [sha("d"), 2]]);
+});

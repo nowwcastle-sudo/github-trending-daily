@@ -1842,7 +1842,9 @@ def _project_commit_rows(
                 or any(parent in ordinals and ordinals[parent] <= row["first_observed_ordinal"] for parent in json.loads(row["parent_shas_json"]))
                 for row in rows
             ):
-                raise ValueError("fast_forward commit graph order is invalid")
+                # Naming the repository costs nothing here and is the difference between
+                # a diagnosable refresh and another full cycle spent finding out which one.
+                raise ValueError(f"fast_forward commit graph order is invalid for {slug}")
         elif transition == "history_rewritten":
             if current_branch != prior_branch or current_head == prior_head or rows:
                 raise ValueError("history_rewritten head transition is contradictory")
