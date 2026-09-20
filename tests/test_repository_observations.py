@@ -389,7 +389,7 @@ def writer_payload(*, snapshot_id, utc, kst, stats_date, run_kind, parent_snapsh
         "repositories": [{
             "slug": "owner/repo", "displaySlug": "owner/repo", "description": None,
             "primaryLanguage": None, "topics": [], "licenseSpdx": None,
-            "archived": False, "isFork": False,
+            "archived": False, "isFork": False, "classificationStatus": "verified",
             "fieldTags": ["unclassified"], "formTags": [], "tagRuleVersion": 2,
             "defaultBranch": "main", "defaultBranchHeadSha": sha1(),
             "createdAt": utc, "displayRank": 1,
@@ -2777,6 +2777,48 @@ class RepositoryObservationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, message):
                 record_writer_snapshot(candidate, payload, writer_events(head=sha1(), transition="baseline"), {})
 
+    def test_repository_fact_requires_a_known_classification_status(self):
+        # The refresh now classifies with an outside judgment service, so every fact
+        # carries whether that classification succeeded. Recording a fact without the
+        # field, or with a status the renderer cannot act on, fails the whole refresh
+        # rather than silently publishing tags nothing stands behind.
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        for index, (mutate, error) in enumerate((
+            (lambda fact: fact.pop("classificationStatus"), "exact allowlist"),
+            (lambda fact: fact.update({"classificationStatus": "held"}), "classification status is invalid"),
+            (lambda fact: fact.update({"classificationStatus": None}), "classification status is invalid"),
+            (lambda fact: fact.update({"classificationStatus": "verified "}), "classification status is invalid"),
+        )):
+            with self.subTest(index=index, error=error):
+                candidate = Path(self.temporary.name) / f"collector-status-{index}.sqlite"
+                prepare_candidate_database(Path(self.temporary.name) / "missing.sqlite", candidate, None)
+                payload = writer_payload(
+                    snapshot_id="20260828010101-aaaaaaaaaaaaaaaa",
+                    utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00",
+                    stats_date="2026-08-28", run_kind="migration_baseline",
+                )
+                mutate(payload["repositories"][0])
+                payload["legacyBaselines"], payload["legacyBaselineReceipt"] = paths, receipt
+                with self.assertRaisesRegex(ValueError, error):
+                    record_writer_snapshot(candidate, payload, writer_events(head=sha1(), transition="baseline"), {})
+
+    def test_repository_fact_records_an_unavailable_classification(self):
+        # An outage at the judgment service holds the repository; the fact still has to
+        # record, because the hold is published alongside the measured data.
+        paths, receipt = writer_legacy_baselines(self.temporary.name)
+        candidate = Path(self.temporary.name) / "collector-unavailable.sqlite"
+        prepare_candidate_database(Path(self.temporary.name) / "missing.sqlite", candidate, None)
+        payload = writer_payload(
+            snapshot_id="20260828010101-aaaaaaaaaaaaaaaa",
+            utc="2026-08-28T01:01:01.001Z", kst="2026-08-28T10:01:01.001+09:00",
+            stats_date="2026-08-28", run_kind="migration_baseline",
+        )
+        payload["repositories"][0]["classificationStatus"] = "unavailable"
+        payload["legacyBaselines"], payload["legacyBaselineReceipt"] = paths, receipt
+        result = record_writer_snapshot(candidate, payload, writer_events(head=sha1(), transition="baseline"), {})
+        with closing(sqlite3.connect(candidate)) as connection:
+            self.assertEqual(verify_core_snapshot(connection, 1), result.core_payload_sha256)
+
     def test_repository_fact_accepts_the_exact_task2_snake_shape(self):
         paths, receipt = writer_legacy_baselines(self.temporary.name)
         candidate = Path(self.temporary.name) / "collector-snake.sqlite"
@@ -2787,6 +2829,7 @@ class RepositoryObservationTests(unittest.TestCase):
             stats_date="2026-08-28", run_kind="migration_baseline",
         )
         camel_to_snake = {
+            "classificationStatus": "classification_status",
             "createdAt": "created_at", "defaultBranch": "default_branch",
             "defaultBranchHeadSha": "default_branch_head_sha", "displayRank": "display_rank",
             "displaySlug": "display_slug", "fieldTags": "field_tags", "formTags": "form_tags",

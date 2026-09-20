@@ -1137,7 +1137,8 @@ def _sha_text(value: Any, length: int, label: str) -> str:
 
 
 _REPOSITORY_FACT_SNAKE_KEYS = {
-    "archived", "contributors", "created_at", "default_branch", "default_branch_head_sha",
+    "archived", "classification_status", "contributors", "created_at", "default_branch",
+    "default_branch_head_sha",
     "description", "display_rank", "display_slug", "field_tags", "forks", "form_tags",
     "gain_daily", "gain_monthly", "gain_weekly", "is_fork", "language_color",
     "license_spdx", "open_issues_and_pull_requests", "primary_language", "provenance",
@@ -1146,6 +1147,7 @@ _REPOSITORY_FACT_SNAKE_KEYS = {
     "subscribers", "tag_rule_version", "topics", "updated_at", "watchers_count",
 }
 _REPOSITORY_FACT_CAMEL_NAMES = {
+    "classification_status": "classificationStatus",
     "created_at": "createdAt", "default_branch": "defaultBranch",
     "default_branch_head_sha": "defaultBranchHeadSha", "display_rank": "displayRank",
     "display_slug": "displaySlug", "field_tags": "fieldTags", "form_tags": "formTags",
@@ -1236,6 +1238,12 @@ def _validate_repository_fact(repository: Any) -> None:
         raise ValueError("repository archived must be a boolean")
     if type(_value(repository, "is_fork", "isFork")) is not bool:
         raise ValueError("repository is_fork must be a boolean")
+    # The refresh classifies with an outside judgment service. "unavailable" is the
+    # outage signal the renderer turns into a hold, so the value is part of the record
+    # and an unknown one must not pass as if the classification had succeeded.
+    status = _value(repository, "classification_status", "classificationStatus")
+    if status not in ("verified", "unavailable"):
+        raise ValueError("repository classification status is invalid")
     for field, camel in (("topics", "topics"), ("field_tags", "fieldTags"), ("form_tags", "formTags")):
         value = _value(repository, field, camel)
         if not isinstance(value, list):

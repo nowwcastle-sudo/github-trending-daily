@@ -327,6 +327,9 @@ function frozenRepository(context, index) {
   const factSha = createHash("sha256").update(`fact-${index}`).digest("hex");
   return {
     ...profile,
+    // Not part of `profile`: the recorder's profile digest covers what the repository
+    // is, while this records whether this run's classification reached the service.
+    classification_status: "verified",
     default_branch_head_sha: (index + 1).toString(16).padStart(40, "0"),
     display_rank: index + 1,
     rank_daily: index + 1,
