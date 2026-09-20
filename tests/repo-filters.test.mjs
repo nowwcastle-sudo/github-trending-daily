@@ -93,16 +93,6 @@ test("classification rejects missing, unknown, duplicate, unordered, and mismatc
   }
 });
 
-test("the migration window accepts the previous published version and nothing older", async () => {
-  const RepoFilters = await loadRepoFilters();
-  // Delete this test together with the window in repo-filters.js once the
-  // published artifacts carry version 2.
-  assert.deepEqual(RepoFilters.classifyRepo(canonicalRepo({ tag_rule_version: 1 })),
-    RepoFilters.classifyRepo(canonicalRepo({ tag_rule_version: 2 })));
-  assert.throws(() => RepoFilters.classifyRepo(canonicalRepo({ tag_rule_version: 0 })), /invalid repository classification/);
-  assert.throws(() => RepoFilters.classifyRepo(canonicalRepo({ tag_rule_version: 3 })), /invalid repository classification/);
-});
-
 test("classification and AI filtering never infer from repository or LLM prose", async () => {
   const RepoFilters = await loadRepoFilters();
   const ordinary = canonicalRepo({ field_tags: ["productivity"], form_tags: ["library"] });

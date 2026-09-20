@@ -11,12 +11,6 @@ const SNAPSHOT_RE = /^[0-9]{14}-[a-f0-9]{16}$/;
 const SOURCE_KEYS = ["kind", "slug", "path", "blob_sha", "content_sha256", "provider", "interface", "cli_version", "auth_method", "api_provider", "model", "schema_version", "prompt_schema_version", "translation_applicable"];
 const SUMMARY_PRODUCER_KEYS = ["provider", "interface", "cli_version", "auth_method", "api_provider", "model"];
 const TAG_RULE_VERSION = 2;
-// MIGRATION WINDOW -- remove once the published artifacts carry version 2.
-// normalizeLatest() validates the LIVE published latest.json, which the production
-// probe reads before a refresh may proceed. Accepting only the current version
-// makes the probe reject the very artifact the refresh exists to replace, so the
-// refresh can never get far enough to replace it. Drop 1 in the follow-up change.
-const ACCEPTED_TAG_RULE_VERSIONS = [1, TAG_RULE_VERSION];
 const FIELD_TAG_IDS = ["ai-ml", "web-app", "dev-tools", "data", "devops", "security", "productivity", "systems", "learning"];
 const FORM_TAG_IDS = ["agent", "mcp", "plugin-skill", "ide", "library", "framework", "cli"];
 
@@ -170,7 +164,7 @@ function hasCanonicalTags(value, allowed, { field = false } = {}) {
 }
 
 function hasCanonicalClassification(value) {
-  return ACCEPTED_TAG_RULE_VERSIONS.includes(value?.tag_rule_version)
+  return value?.tag_rule_version === TAG_RULE_VERSION
     && hasCanonicalTags(value.field_tags, FIELD_TAG_IDS, { field: true })
     && hasCanonicalTags(value.form_tags, FORM_TAG_IDS);
 }
