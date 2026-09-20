@@ -5,7 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { parseJsonStrict } from "./build-pages-artifact.mjs";
 
-export const TAG_RULE_VERSION = 1;
+export const TAG_RULE_VERSION = 2;
 export const FIELD_TAG_IDS = Object.freeze([
   "ai-ml", "web-app", "dev-tools", "data", "devops", "security", "productivity", "systems", "learning",
 ]);

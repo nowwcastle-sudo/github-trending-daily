@@ -1,3 +1,4 @@
+import "./typesafe-stub.mjs";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import http from "node:http";
@@ -252,7 +253,7 @@ function storedSummaryBundle() {
 }
 
 const validClassification = () => ({
-  tag_rule_version: 1,
+  tag_rule_version: 2,
   field_tags: ["ai-ml", "dev-tools"],
   form_tags: ["agent", "library"],
 });
@@ -267,7 +268,7 @@ const classificationMutations = [
   ["out-of-order field tags", repo => { repo.field_tags = ["dev-tools", "ai-ml"]; }],
   ["out-of-order form tags", repo => { repo.form_tags = ["library", "agent"]; }],
   ["mixed unclassified", repo => { repo.field_tags = ["unclassified", "ai-ml"]; }],
-  ["drifted version", repo => { repo.tag_rule_version = 2; }],
+  ["drifted version", repo => { repo.tag_rule_version = 1; }],
 ];
 
 test("synthetic provenance-less v0 page is rejected as a v1 classification candidate", () => {
@@ -311,7 +312,7 @@ function frozenRepository(context, index) {
     created_at: context.observedAtUtc,
     field_tags: ["unclassified"],
     form_tags: [],
-    tag_rule_version: 1,
+    tag_rule_version: 2,
   };
   const factSha = createHash("sha256").update(`fact-${index}`).digest("hex");
   return {
@@ -1447,13 +1448,13 @@ test("frozen membership and repository ledger produce one candidate Atom identit
       signal: null,
       summary: repo.summary,
       summary_status: "verified",
-      tag_rule_version: 1,
+      tag_rule_version: 2,
       field_tags: ["dev-tools"],
       form_tags: ["library"],
     })),
   };
   const latest = buildLatestFeed(snapshotExport);
-  const pageFor = identity => ["<html>", "// GENERATED:TRENDING-REPOS:START", `const REPOS = ${JSON.stringify(repos.map(repo => ({ slug: repo.slug, desc: repo.desc, tag_rule_version: 1, field_tags: ["dev-tools"], form_tags: ["library"], _stats_date: identity.statsDateKst, _snapshot_id: identity.snapshotId, _generated_at: identity.observedAtUtc })))};`, "// GENERATED:TRENDING-REPOS:END", "</html>"].join("\n");
+  const pageFor = identity => ["<html>", "// GENERATED:TRENDING-REPOS:START", `const REPOS = ${JSON.stringify(repos.map(repo => ({ slug: repo.slug, desc: repo.desc, tag_rule_version: 2, field_tags: ["dev-tools"], form_tags: ["library"], _stats_date: identity.statsDateKst, _snapshot_id: identity.snapshotId, _generated_at: identity.observedAtUtc })))};`, "// GENERATED:TRENDING-REPOS:END", "</html>"].join("\n");
   const page = pageFor(context);
   await writeFile(join(directory, "index.html"), page);
   await writeFile(join(directory, "latest.json"), `${JSON.stringify(latest)}\n`);

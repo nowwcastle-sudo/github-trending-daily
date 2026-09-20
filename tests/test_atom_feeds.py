@@ -65,7 +65,7 @@ def latest_payload():
             "signal": None,
             "summary": {"goal": "g", "usage": "u", "pros": "p", "cons": "c", "fit": "f"},
             "summary_status": "verified",
-            "tag_rule_version": 1,
+            "tag_rule_version": 2,
             "field_tags": ["dev-tools"],
             "form_tags": ["cli"],
         })
@@ -342,7 +342,7 @@ class AtomFeedTests(unittest.TestCase):
             generate_atom_feeds_from_timeline(cross_page, self.latest, self.timeline, self.feed, self.changes)
         self.assertFalse(self.feed.exists())
         for field, replacement in (
-            ("tag_rule_version", 2),
+            ("tag_rule_version", 1),
             ("field_tags", ["dev-tools", "ai-ml"]),
             ("form_tags", ["cli", "agent"]),
         ):

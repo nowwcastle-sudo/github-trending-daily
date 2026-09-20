@@ -20,6 +20,7 @@ import {
 import { parseJsonStrict } from "./build-pages-artifact.mjs";
 import { isEnrichmentModel, isSupportedSummaryProducer } from "./enrichment-models.mjs";
 import { detectReadmeVariantPaths, inferReadmeLocale, isReadmeVariantSet } from "./readme-variants.mjs";
+import { classifyRepository as classifyRepositoryWithJev, unavailableClassification } from "./typesafe-client.mjs";
 
 const PERIODS = {
   daily: { field: "stars_daily", label: "today" },
@@ -206,7 +207,7 @@ const defaultSleep = milliseconds => new Promise(resolve => setTimeout(resolve, 
 const GITHUB_REQUESTS_PER_REPOSITORY = 11;
 const DEFAULT_MAX_ATTEMPTS = 3;
 const DEFAULT_MAX_REQUESTS = 75 * GITHUB_REQUESTS_PER_REPOSITORY * DEFAULT_MAX_ATTEMPTS;
-const TAG_RULE_VERSION = 1;
+const TAG_RULE_VERSION = 2;
 const FIELD_RULES = [
   ["ai-ml", /\b(ai|artificial[- ]intelligence|machine[- ]learning|deep[- ]learning|llms?|gpt|claude|codex|agents?|agentic|rag|inference|neural|generative[- ]ai|computer[- ]vision|nlp)\b/i],
   ["web-app", /\b(web|frontend|react|vue|svelte|next\.?js|mobile|android|ios|browser|webapp)\b/i],
@@ -445,11 +446,14 @@ function decodeUtf8Strict(bytes) {
   return text;
 }
 
-function classifyRepository({ slug, display_slug, description, primary_language, topics }) {
-  const text = [slug, display_slug, description, primary_language, ...topics].filter(value => typeof value === "string").join(" ");
-  const field_tags = FIELD_RULES.filter(([, pattern]) => pattern.test(text)).map(([id]) => id);
-  const form_tags = FORM_RULES.filter(([, pattern]) => pattern.test(text)).map(([id]) => id);
-  return { field_tags: field_tags.length ? field_tags : ["unclassified"], form_tags };
+// Tags come from TypeSafe judgments over the repository's own text rather than from
+// keyword matches over its GitHub topics. When the service cannot answer, the caller
+// holds the repository and the next scheduled refresh retries it.
+async function classifyRepositoryFacts({ slug, description, primary_language, topics, readme }, options) {
+  const outcome = await classifyRepositoryWithJev({ slug, description, primary_language, topics, readme },
+    { typeSafeClient: options?.typeSafeClient, threshold: options?.classificationThreshold });
+  if (outcome.status === "verified") return { classification_status: "verified", ...outcome.tags };
+  return { classification_status: "unavailable", ...unavailableClassification() };
 }
 
 export async function fetchCanonicalReadme(slug, options = {}) {
@@ -607,7 +611,13 @@ export async function fetchRepositoryFacts(slug, options = {}) {
     language_color: languageColor,
   };
   const display = { display_rank: displayRank, display_slug: `${owner} / ${name}` };
-  const tags = classifyRepository({ slug: normalizedSlug, ...display, ...repositoryFacts });
+  const tags = await classifyRepositoryFacts({
+    slug: normalizedSlug,
+    description: repositoryFacts.description,
+    primary_language: repositoryFacts.primary_language,
+    topics: repositoryFacts.topics,
+    readme: readme.markdown,
+  }, options);
   const readmeFacts = {
     readme_blob_sha: readme.blobSha,
     readme_content_sha256: readme.contentSha256,
@@ -668,6 +678,7 @@ export async function fetchRepositoryFacts(slug, options = {}) {
     default_branch_head_sha: repositoryFacts.default_branch_head_sha,
     description: repositoryFacts.description,
     display_rank: display.display_rank,
+    classification_status: tags.classification_status,
     display_slug: display.display_slug,
     field_tags: tags.field_tags,
     forks: repositoryFacts.forks,
@@ -1004,7 +1015,10 @@ function renderRepositoryFacts(facts, summaryCache, context, latestReleases, sta
     const gains = Object.fromEntries(["daily", "weekly", "monthly"]
       .map(period => [`stars_${period}`, fact[`gain_${period}`]])
       .filter(([, value]) => value !== null));
-    const admission = statuses.get(fact.slug.toLowerCase()) ?? { status: "verified" };
+    const enrichment = statuses.get(fact.slug.toLowerCase()) ?? { status: "verified" };
+    const admission = fact.classification_status === "unavailable"
+      ? { status: "held", held_reason: "request_failed" }
+      : enrichment;
     const held = admission.status === "held";
     const cached = held ? null : summaries.get(fact.slug.toLowerCase());
     if (!held && !reusableSummaryEntry(cached, fact)) {

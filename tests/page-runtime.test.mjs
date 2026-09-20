@@ -533,7 +533,7 @@ function cardRenderHarness(period, membership = "stayed", newSinceLastVisit = ne
   const calls = { renderHist: 0, historyHtml: 0 };
   const repository = {
     slug: "owner/project", name: "owner / project", desc: "A repository", lang: "JavaScript", color: "#f1e05a",
-    topics: [], tag_rule_version: 1, field_tags: ["unclassified"], form_tags: [], membership_status: membership === "baseline" ? "baseline_present" : membership,
+    topics: [], tag_rule_version: 2, field_tags: ["unclassified"], form_tags: [], membership_status: membership === "baseline" ? "baseline_present" : membership,
     rank_daily: 1, stars_daily: 1200, rank_weekly: null, stars_weekly: null, rank_monthly: null, stars_monthly: null,
     stars: 5000, forks: 20, contributors: 4, issues: 3,
     ...repositoryOverrides,

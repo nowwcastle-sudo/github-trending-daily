@@ -84,12 +84,12 @@ def profile(connection, *, profile_id=1, slug="owner/repo", display_slug="owner/
         "primary_language": None, "topics": json.loads(topics), "license_spdx": None,
         "archived": False, "is_fork": False, "default_branch": "main",
         "created_at": "2026-08-28T01:01:01.001Z", "field_tags": json.loads(fields),
-        "form_tags": json.loads(forms), "tag_rule_version": 1,
+        "form_tags": json.loads(forms), "tag_rule_version": 2,
     }, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     connection.execute(
         """INSERT INTO repository_profiles VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (profile_id, slug, display_slug, 1, None, None, topics, None, 0, 0, "main",
-         "2026-08-28T01:01:01.001Z", fields, forms, 1, digest),
+         "2026-08-28T01:01:01.001Z", fields, forms, 2, digest),
     )
 
 
@@ -350,7 +350,7 @@ def writer_payload(*, snapshot_id, utc, kst, stats_date, run_kind, parent_snapsh
         "slug": "owner/repo", "display_slug": "owner/repo", "description": None,
         "primary_language": None, "topics": [], "license_spdx": None, "archived": False,
         "is_fork": False, "default_branch": "main", "created_at": utc,
-        "field_tags": ["unclassified"], "form_tags": [], "tag_rule_version": 1,
+        "field_tags": ["unclassified"], "form_tags": [], "tag_rule_version": 2,
     }
     source = json.loads(json.dumps(summary_source)) if summary_source is not None else {
         "kind": "readme", "slug": "owner/repo", "path": "README.md",
@@ -390,7 +390,7 @@ def writer_payload(*, snapshot_id, utc, kst, stats_date, run_kind, parent_snapsh
             "slug": "owner/repo", "displaySlug": "owner/repo", "description": None,
             "primaryLanguage": None, "topics": [], "licenseSpdx": None,
             "archived": False, "isFork": False,
-            "fieldTags": ["unclassified"], "formTags": [], "tagRuleVersion": 1,
+            "fieldTags": ["unclassified"], "formTags": [], "tagRuleVersion": 2,
             "defaultBranch": "main", "defaultBranchHeadSha": sha1(),
             "createdAt": utc, "displayRank": 1,
             "rankDaily": 1, "gainDaily": 0, "rankWeekly": None, "gainWeekly": None,

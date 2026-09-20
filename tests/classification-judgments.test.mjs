@@ -25,7 +25,7 @@ function declaredRuleIds(name) {
 test("judgments cover the published taxonomy in its canonical order", () => {
   assert.deepEqual(FIELD_TAG_IDS, declaredRuleIds("FIELD_RULES"));
   assert.deepEqual(FORM_TAG_IDS, declaredRuleIds("FORM_RULES"));
-  assert.ok(TAG_RULE_VERSION > Number(trendingSource.match(/const TAG_RULE_VERSION = (\d+);/)[1]));
+  assert.equal(TAG_RULE_VERSION, Number(trendingSource.match(/const TAG_RULE_VERSION = (\d+);/)[1]));
 });
 
 test("every judgment states its meaning without relying on its question id", () => {

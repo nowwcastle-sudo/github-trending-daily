@@ -19,7 +19,7 @@ function canonicalRepo(overrides = {}) {
     lang: "Python",
     topics: [],
     summary: { goal: "A goal", fit: "A fit" },
-    tag_rule_version: 1,
+    tag_rule_version: 2,
     field_tags: ["unclassified"],
     form_tags: [],
     membership_status: "stayed",
@@ -74,7 +74,7 @@ test("classification accepts only canonical field and form facts", async () => {
 test("classification rejects missing, unknown, duplicate, unordered, and mismatched canonical facts", async () => {
   const RepoFilters = await loadRepoFilters();
   const invalid = [
-    canonicalRepo({ tag_rule_version: 2 }),
+    canonicalRepo({ tag_rule_version: 3 }),
     canonicalRepo({ tag_rule_version: "1" }),
     canonicalRepo({ field_tags: undefined }),
     canonicalRepo({ field_tags: [] }),
@@ -91,6 +91,16 @@ test("classification rejects missing, unknown, duplicate, unordered, and mismatc
   for (const repository of invalid) {
     assert.throws(() => RepoFilters.classifyRepo(repository), /invalid repository classification/);
   }
+});
+
+test("the migration window accepts the previous published version and nothing older", async () => {
+  const RepoFilters = await loadRepoFilters();
+  // Delete this test together with the window in repo-filters.js once the
+  // published artifacts carry version 2.
+  assert.deepEqual(RepoFilters.classifyRepo(canonicalRepo({ tag_rule_version: 1 })),
+    RepoFilters.classifyRepo(canonicalRepo({ tag_rule_version: 2 })));
+  assert.throws(() => RepoFilters.classifyRepo(canonicalRepo({ tag_rule_version: 0 })), /invalid repository classification/);
+  assert.throws(() => RepoFilters.classifyRepo(canonicalRepo({ tag_rule_version: 3 })), /invalid repository classification/);
 });
 
 test("classification and AI filtering never infer from repository or LLM prose", async () => {

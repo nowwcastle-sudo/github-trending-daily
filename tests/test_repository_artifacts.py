@@ -82,12 +82,12 @@ def insert_profile(connection, profile_id, slug, display_slug=None):
         "slug": slug, "display_slug": display_slug, "description": None, "primary_language": None,
         "topics": [], "license_spdx": None, "archived": False, "is_fork": False,
         "default_branch": "main", "created_at": "2026-01-01T00:00:00.000Z",
-        "field_tags": ["unclassified"], "form_tags": [], "tag_rule_version": 1,
+        "field_tags": ["unclassified"], "form_tags": [], "tag_rule_version": 2,
     }
     connection.execute(
         "INSERT INTO repository_profiles VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         (profile_id, slug, display_slug, 1, None, None, "[]", None, 0, 0, "main",
-         value["created_at"], '["unclassified"]', "[]", 1, digest(value)),
+         value["created_at"], '["unclassified"]', "[]", 2, digest(value)),
     )
 
 
