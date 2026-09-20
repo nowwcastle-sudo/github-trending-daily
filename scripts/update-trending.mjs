@@ -18,6 +18,10 @@ import {
   parseFrozenFactsBytes,
 } from "./collect-repository-events.mjs";
 import { parseJsonStrict } from "./build-pages-artifact.mjs";
+// The taxonomy and its version live with the judgments that produce them. Until this
+// module classified with TypeSafe it kept its own regex table, whose ids doubled as
+// the taxonomy; the regexes stopped deciding anything and the copy was left to drift.
+import { FIELD_TAG_IDS, FORM_TAG_IDS, TAG_RULE_VERSION } from "./classification-judgments.mjs";
 import { isEnrichmentModel, isSupportedSummaryProducer } from "./enrichment-models.mjs";
 import { detectReadmeVariantPaths, inferReadmeLocale, isReadmeVariantSet } from "./readme-variants.mjs";
 import { classifyRepository as classifyRepositoryWithJev, unavailableClassification } from "./typesafe-client.mjs";
@@ -207,29 +211,6 @@ const defaultSleep = milliseconds => new Promise(resolve => setTimeout(resolve, 
 const GITHUB_REQUESTS_PER_REPOSITORY = 11;
 const DEFAULT_MAX_ATTEMPTS = 3;
 const DEFAULT_MAX_REQUESTS = 75 * GITHUB_REQUESTS_PER_REPOSITORY * DEFAULT_MAX_ATTEMPTS;
-const TAG_RULE_VERSION = 2;
-const FIELD_RULES = [
-  ["ai-ml", /\b(ai|artificial[- ]intelligence|machine[- ]learning|deep[- ]learning|llms?|gpt|claude|codex|agents?|agentic|rag|inference|neural|generative[- ]ai|computer[- ]vision|nlp)\b/i],
-  ["web-app", /\b(web|frontend|react|vue|svelte|next\.?js|mobile|android|ios|browser|webapp)\b/i],
-  ["dev-tools", /\b(developer[- ]tools?|devtools?|coding|programming|compiler|sdk|ide|cli|automation|api|mcp|plugins?)\b/i],
-  ["data", /\b(data|database|sql|analytics|warehouse|vector[- ]database|data[- ]engineering)\b/i],
-  ["devops", /\b(devops|cloud|kubernetes|k8s|docker|infrastructure|ci[- /]?cd|observability|deployment)\b/i],
-  ["security", /\b(security|privacy|pentest|osint|vulnerabilit(?:y|ies)|authentication|authorization|password|secrets?)\b/i],
-  ["productivity", /\b(productivity|project[- ]management|note[- ]taking|knowledge[- ]management|job[- ]search|workflow|crm|finance|media|desktop[- ]app)\b/i],
-  ["systems", /\b(linux|operating[- ]system|kernel|embedded|hardware|robotics?|on[- ]device|wearables?|smart[- ]home)\b/i],
-  ["learning", /\b(awesome|learn|learning|tutorial|course|book|beginners?|curriculum|resources?)\b/i],
-];
-const FORM_RULES = [
-  ["agent", /\b(agents?|agentic)\b/i],
-  ["mcp", /\bmcp\b/i],
-  ["plugin-skill", /\b(plugins?|skills?)\b/i],
-  ["ide", /\b(ide|code[- ]editor|coding[- ]environment)\b/i],
-  ["library", /\b(library|libraries|sdk|toolkit|package)\b/i],
-  ["framework", /\bframeworks?\b/i],
-  ["cli", /\b(cli|command[- ]line|automation|workflow)\b/i],
-];
-const FIELD_TAG_IDS = FIELD_RULES.map(([id]) => id);
-const FORM_TAG_IDS = FORM_RULES.map(([id]) => id);
 
 function hasCanonicalTags(value, allowed, { field = false } = {}) {
   if (!Array.isArray(value) || value.some(item => typeof item !== "string") || new Set(value).size !== value.length) return false;
