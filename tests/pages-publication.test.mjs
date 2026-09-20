@@ -1,3 +1,4 @@
+import "./typesafe-stub.mjs";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import http from "node:http";
@@ -267,7 +268,7 @@ const classificationMutations = [
   ["out-of-order field tags", repo => { repo.field_tags = ["dev-tools", "ai-ml"]; }],
   ["out-of-order form tags", repo => { repo.form_tags = ["library", "agent"]; }],
   ["mixed unclassified", repo => { repo.field_tags = ["unclassified", "ai-ml"]; }],
-  ["drifted version", repo => { repo.tag_rule_version = 2; }],
+  ["drifted version", repo => { repo.tag_rule_version = 1; }],
 ];
 
 test("synthetic provenance-less v0 page is rejected as a v1 classification candidate", () => {

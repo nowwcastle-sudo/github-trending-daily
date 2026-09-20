@@ -450,7 +450,8 @@ function decodeUtf8Strict(bytes) {
 // keyword matches over its GitHub topics. When the service cannot answer, the caller
 // holds the repository and the next scheduled refresh retries it.
 async function classifyRepositoryFacts({ slug, description, primary_language, topics, readme }, options) {
-  const outcome = await classifyRepositoryWithJev({ slug, description, primary_language, topics, readme }, options);
+  const outcome = await classifyRepositoryWithJev({ slug, description, primary_language, topics, readme },
+    { typeSafeClient: options?.typeSafeClient, threshold: options?.classificationThreshold });
   if (outcome.status === "verified") return { classification_status: "verified", ...outcome.tags };
   return { classification_status: "unavailable", ...unavailableClassification() };
 }

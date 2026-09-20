@@ -1,3 +1,4 @@
+import "./typesafe-stub.mjs";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
@@ -52,7 +53,7 @@ function snapshot(overrides = {}) {
 }
 
 test("pinned tag constants match the recorder definition order", async () => {
-  assert.equal(TAG_RULE_VERSION, 1);
+  assert.equal(TAG_RULE_VERSION, 2);
   assert.deepEqual(FIELD_TAG_IDS, ["ai-ml", "web-app", "dev-tools", "data", "devops", "security", "productivity", "systems", "learning"]);
   assert.deepEqual(FORM_TAG_IDS, ["agent", "mcp", "plugin-skill", "ide", "library", "framework", "cli"]);
   const recorder = await readFile(join(root, "scripts", "record_repository_observations.py"), "utf8");
@@ -73,7 +74,7 @@ test("snapshot export becomes latest without losing existing fields or exact tag
   assert.equal(latest.repos[0].description, "A public repository");
   assert.deepEqual(latest.repos[0].gains, { daily: 5, weekly: null, monthly: null });
   assert.deepEqual(latest.repos[0].signal, { streakDays: 2, starsChange: -1 });
-  assert.equal(latest.repos[0].tag_rule_version, 1);
+  assert.equal(latest.repos[0].tag_rule_version, 2);
   assert.deepEqual(latest.repos[0].field_tags, ["ai-ml", "dev-tools"]);
   assert.deepEqual(latest.repos[0].form_tags, ["agent", "cli"]);
 });
@@ -105,7 +106,7 @@ test("snapshot export rejects missing extra duplicate unknown unordered and drif
     { ...snapshot(), repositories: [repository({ field_tags: ["unclassified", "ai-ml"] })] },
     { ...snapshot(), repositories: [repository({ form_tags: ["cli", "agent"] })] },
     { ...snapshot(), repositories: [repository({ tag_rule_version: "1" })] },
-    { ...snapshot(), repositories: [repository({ tag_rule_version: 2 })] },
+    { ...snapshot(), repositories: [repository({ tag_rule_version: 1 })] },
     { ...snapshot(), repositories: [repository({ form_tags: ["agent", "agent"] })] },
   ];
   for (const value of invalid) assert.throws(() => validateSnapshotExport(value), /snapshot export is invalid/);

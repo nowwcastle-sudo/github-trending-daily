@@ -1,3 +1,4 @@
+import "./typesafe-stub.mjs";
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";

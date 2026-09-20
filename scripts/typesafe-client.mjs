@@ -32,15 +32,22 @@ const CLASSIFICATION_QUESTIONS = Object.freeze(Object.fromEntries(
 let cached = null;
 
 export function typeSafeClient(options = {}) {
-  if (options.client) return options.client;
+  if (options.typeSafeClient) return options.typeSafeClient;
   if (!cached) cached = new TypeSafeClient();
   return cached;
 }
 
-// Exposed so tests can drive the pipeline without a network or a key.
+// Exposed so tests can drive the pipeline without a network or a key. A stub must
+// answer systemOne the way the service does: one noul per question id.
+export function setTypeSafeClient(client) {
+  cached = client;
+}
+
 export function resetTypeSafeClient() {
   cached = null;
 }
+
+export const CLASSIFICATION_QUESTION_IDS = Object.freeze(Object.keys(CLASSIFICATION_QUESTIONS));
 
 export function typeSafeConfigured() {
   return Boolean(process.env.TYPESAFE_API_KEY?.trim());
