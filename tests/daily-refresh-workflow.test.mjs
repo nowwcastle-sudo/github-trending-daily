@@ -483,3 +483,18 @@ test("a queued enrichment job cannot outlive the deadline its own run anchored",
   // The enrichment job itself stays on the dedicated runner and is not made to wait differently.
   assert.match(workflow.slice(enrichStart), /\n    runs-on: \[self-hosted, Windows, X64, gh-trending-claude\]\n/);
 });
+
+test("the enrichment runner reads the TypeSafe key from its own user environment", async () => {
+  // The key is never handed to this job by GitHub: it is set on the runner's own
+  // account, like the Claude token, so it does not travel out of the machine that
+  // needs it. A missing key stops the run rather than silently dropping the
+  // judgment on every repository, and it is masked and cleared like the token.
+  const workflow = await workflowText();
+  const enrich = workflow.slice(workflow.indexOf("  enrich:"), workflow.indexOf("  publish:"));
+  assert.match(enrich, /GetEnvironmentVariable\("TYPESAFE_API_KEY", "User"\)/);
+  assert.match(enrich, /throw "TypeSafe API key is unavailable for the runner user"/);
+  assert.match(enrich, /Write-Host "::add-mask::\$typeSafeKey"/);
+  assert.match(enrich, /\$env:TYPESAFE_API_KEY = \$null/);
+  assert.doesNotMatch(enrich, /secrets\.TYPESAFE_API_KEY/);
+  assert.doesNotMatch(enrich, /Write-(?:Output|Host)[^\n]*\$typeSafeKey(?!")|echo[^\n]*typeSafeKey/i);
+});

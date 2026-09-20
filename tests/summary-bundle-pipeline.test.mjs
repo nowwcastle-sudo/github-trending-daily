@@ -2039,3 +2039,84 @@ test("an English bundle shorter than the length contract is a warning", () => {
   const checked = validateSummaryBundleEnvelope(value, item);
   assert.ok(checked.warnings.some(warning => warning.code === "LENGTH_CONTRACT"));
 });
+
+test("a judged defect drives the same bounded correction the phrase lists drive", async () => {
+  // The judgment replaces a fixed phrase list, so it has to reach the rewrite loop the
+  // same way: this English goal says nothing about the repository, which no phrase list
+  // can see, and the repair prompt must still name en.goal.
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  const replies = [modelEnvelope(), summaryPatch(modelEnvelope(), { en: ["goal"] })];
+  const prompts = [];
+  let judged = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: { TYPESAFE_API_KEY: "test-key" },
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    judgeQuality: async (slug, fields) => {
+      judged += 1;
+      assert.equal(slug, item.slug);
+      assert.deepEqual(Object.keys(fields).sort(), ["cons", "fit", "goal", "pros", "usage"]);
+      const clean = { defers_goal: 0.01, defers_usage: 0.01, defers_pros: 0.01, defers_cons: 0.01, defers_fit: 0.01,
+        qualified_goal: 0.99, qualified_usage: 0.99, qualified_pros: 0.99, qualified_cons: 0.99, qualified_fit: 0.99,
+        usage_role: 0.99 };
+      return { status: "verified", probabilities: judged === 1 ? { ...clean, defers_goal: 0.96 } : clean };
+    },
+    executeClaude: async ({ prompt }) => {
+      prompts.push(prompt);
+      return { structuredOutput: replies[prompts.length - 1], usage: { inputTokens: 10, outputTokens: 20 } };
+    },
+  });
+  assert.equal(judged, 2, "the rewritten bundle is judged again, not waved through");
+  assert.equal(prompts.length, 2);
+  assert.match(prompts[1], /GENERIC_OR_PLACEHOLDER at en\.goal/);
+  assert.equal(result.results[0].warnings.some(warning => warning.code === "QUALITY_JUDGMENT_UNAVAILABLE"), false);
+});
+
+test("a TypeSafe outage warns once per repository and never holds it", async () => {
+  // Holding on an outage would breach the held-ratio invariant and void the whole
+  // publication. The phrase lists have already run, so the floor is unchanged.
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  let calls = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: { TYPESAFE_API_KEY: "test-key" },
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    judgeQuality: async () => ({ status: "unavailable", reason: "connect ECONNREFUSED" }),
+    executeClaude: async () => {
+      calls += 1;
+      return { structuredOutput: modelEnvelope(), usage: { inputTokens: 10, outputTokens: 20 } };
+    },
+  });
+  assert.equal(calls, 1, "an outage must not consume a correction");
+  assert.deepEqual(result.results[0].warnings.filter(warning => warning.code === "QUALITY_JUDGMENT_UNAVAILABLE"),
+    [{ code: "QUALITY_JUDGMENT_UNAVAILABLE", locale: "en" }]);
+});
+
+test("an unconfigured deployment is judged by the phrase lists alone, silently", async () => {
+  // Not having the credential is a fact about the deployment, not an event in any
+  // repository's data, so it earns no per-repository warning. The refresh workflow
+  // asserts the credential; a local run keeps working without one.
+  const plan = measureClaudeCliSummaryBundlePlan([item], { retryAttempts: 12 });
+  let judged = 0;
+  const result = await runClaudeSummaryBundleRequests({
+    plan,
+    environment: {},
+    now: () => 0,
+    deadline: 100_000,
+    attemptTimeoutMs: 1_000,
+    sleep: async () => {},
+    preflight: async () => oauthRuntime,
+    judgeQuality: async () => { judged += 1; return { status: "verified", probabilities: {} }; },
+    executeClaude: async () => ({ structuredOutput: modelEnvelope(), usage: { inputTokens: 10, outputTokens: 20 } }),
+  });
+  assert.equal(judged, 0, "no credential means no call at all");
+  assert.deepEqual(result.results[0].warnings.filter(warning => warning.code === "QUALITY_JUDGMENT_UNAVAILABLE"), []);
+});

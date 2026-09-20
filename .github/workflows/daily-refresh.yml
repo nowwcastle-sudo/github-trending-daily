@@ -428,6 +428,14 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($oauthToken)) { throw "Claude OAuth token is unavailable for the runner user" }
           Write-Host "::add-mask::$oauthToken"
           $env:CLAUDE_CODE_OAUTH_TOKEN = $oauthToken
+          # Read from the runner user's own environment, like the Claude token above:
+          # the key never travels from GitHub to this machine. A missing key is a
+          # misconfigured deployment, not an outage, so it stops the run here rather
+          # than silently dropping the judgment on every repository.
+          $typeSafeKey = [Environment]::GetEnvironmentVariable("TYPESAFE_API_KEY", "User")
+          if ([string]::IsNullOrWhiteSpace($typeSafeKey)) { throw "TypeSafe API key is unavailable for the runner user" }
+          Write-Host "::add-mask::$typeSafeKey"
+          $env:TYPESAFE_API_KEY = $typeSafeKey
           try {
             $root = Join-Path $env:RUNNER_TEMP "refresh-input"
             $candidate = Join-Path $root "candidate"
@@ -454,6 +462,8 @@ jobs:
           } finally {
             $env:CLAUDE_CODE_OAUTH_TOKEN = $null
             $oauthToken = $null
+            $env:TYPESAFE_API_KEY = $null
+            $typeSafeKey = $null
           }
       - name: Upload bounded enrichment failure diagnostics
         if: always()
