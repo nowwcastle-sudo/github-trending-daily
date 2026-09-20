@@ -74,7 +74,7 @@ test("classification accepts only canonical field and form facts", async () => {
 test("classification rejects missing, unknown, duplicate, unordered, and mismatched canonical facts", async () => {
   const RepoFilters = await loadRepoFilters();
   const invalid = [
-    canonicalRepo({ tag_rule_version: 2 }),
+    canonicalRepo({ tag_rule_version: 1 }),
     canonicalRepo({ tag_rule_version: "1" }),
     canonicalRepo({ field_tags: undefined }),
     canonicalRepo({ field_tags: [] }),

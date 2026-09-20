@@ -87,7 +87,7 @@ def insert_profile(connection, profile_id, slug, display_slug=None):
     connection.execute(
         "INSERT INTO repository_profiles VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         (profile_id, slug, display_slug, 1, None, None, "[]", None, 0, 0, "main",
-         value["created_at"], '["unclassified"]', "[]", 1, digest(value)),
+         value["created_at"], '["unclassified"]', "[]", 2, digest(value)),
     )
 
 

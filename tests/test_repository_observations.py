@@ -89,7 +89,7 @@ def profile(connection, *, profile_id=1, slug="owner/repo", display_slug="owner/
     connection.execute(
         """INSERT INTO repository_profiles VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (profile_id, slug, display_slug, 1, None, None, topics, None, 0, 0, "main",
-         "2026-08-28T01:01:01.001Z", fields, forms, 1, digest),
+         "2026-08-28T01:01:01.001Z", fields, forms, 2, digest),
     )
 
 
@@ -390,7 +390,7 @@ def writer_payload(*, snapshot_id, utc, kst, stats_date, run_kind, parent_snapsh
             "slug": "owner/repo", "displaySlug": "owner/repo", "description": None,
             "primaryLanguage": None, "topics": [], "licenseSpdx": None,
             "archived": False, "isFork": False,
-            "fieldTags": ["unclassified"], "formTags": [], "tagRuleVersion": 1,
+            "fieldTags": ["unclassified"], "formTags": [], "tagRuleVersion": 2,
             "defaultBranch": "main", "defaultBranchHeadSha": sha1(),
             "createdAt": utc, "displayRank": 1,
             "rankDaily": 1, "gainDaily": 0, "rankWeekly": None, "gainWeekly": None,
