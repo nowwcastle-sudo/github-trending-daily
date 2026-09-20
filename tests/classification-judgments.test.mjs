@@ -31,10 +31,10 @@ test("judgments cover the published taxonomy in its canonical order", () => {
 test("every judgment states its meaning without relying on its question id", () => {
   for (const judgment of [...FIELD_JUDGMENTS, ...FORM_JUDGMENTS]) {
     assert.ok(judgment.instructions.length > 40, `${judgment.id} needs instructions that carry the judgment`);
-    assert.ok(judgment.criteria.yes.length > 40, `${judgment.id} needs a yes criterion`);
+    assert.ok(judgment.criteria.true.length > 40, `${judgment.id} needs a yes criterion`);
     // Each no-criterion must rule something out; the regex classifier's failures were
     // all false positives from topic vocabulary, so exclusions are the point.
-    assert.ok(judgment.criteria.no.length > 40, `${judgment.id} needs a no criterion`);
+    assert.ok(judgment.criteria.false.length > 40, `${judgment.id} needs a no criterion`);
   }
 });
 
