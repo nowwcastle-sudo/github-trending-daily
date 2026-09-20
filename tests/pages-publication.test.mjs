@@ -268,7 +268,7 @@ const classificationMutations = [
   ["out-of-order field tags", repo => { repo.field_tags = ["dev-tools", "ai-ml"]; }],
   ["out-of-order form tags", repo => { repo.form_tags = ["library", "agent"]; }],
   ["mixed unclassified", repo => { repo.field_tags = ["unclassified", "ai-ml"]; }],
-  ["drifted version", repo => { repo.tag_rule_version = 1; }],
+  ["drifted version", repo => { repo.tag_rule_version = 3; }],
 ];
 
 test("synthetic provenance-less v0 page is rejected as a v1 classification candidate", () => {
@@ -277,6 +277,16 @@ test("synthetic provenance-less v0 page is rejected as a v1 classification candi
     () => parseEmbeddedRepos(rawV0Page, "synthetic raw v0 page REPOS", { requireClassification: true }),
     /classification/i,
   );
+});
+
+test("the migration window lets the validators read a published version-1 artifact", () => {
+  // Delete this together with the window in build-pages-artifact.js once the
+  // published artifacts carry version 2. The production probe reads the LIVE
+  // latest.json, so rejecting version 1 here blocks the refresh that replaces it.
+  const lagging = { slug: "owner/one", ...validClassification(), tag_rule_version: 1 };
+  assert.doesNotThrow(() => expectedVersion1Paths({ repos: [{ ...lagging, summary_status: "held" }] }, { version: 3, sources: {} }));
+  const older = { ...lagging, tag_rule_version: 0, summary_status: "held" };
+  assert.throws(() => expectedVersion1Paths({ repos: [older] }, { version: 3, sources: {} }), /classification/i);
 });
 
 test("version-1 page REPOS and latest validators reject incomplete or noncanonical classifications", () => {
