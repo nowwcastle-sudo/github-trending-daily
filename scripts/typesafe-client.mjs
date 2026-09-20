@@ -62,6 +62,11 @@ export function typeSafeConfigured() {
 export async function classifyRepository(repository, options = {}) {
   const state = buildClassificationState(repository);
   const threshold = options.threshold ?? DEFAULT_TAG_THRESHOLD;
+  // A missing key is a misconfigured deployment, not an outage. Holding on it would
+  // hold every repository on the page, silently and indefinitely, so fail loudly.
+  if (!cached && !options.typeSafeClient && !typeSafeConfigured()) {
+    throw new Error("TYPESAFE_API_KEY is not set; refusing to hold every repository on a configuration error");
+  }
   try {
     const { answers } = await typeSafeClient(options).systemOne({ state, questions: CLASSIFICATION_QUESTIONS });
     const probabilities = Object.fromEntries(Object.entries(answers).map(([id, answer]) => [id, answer.noul]));
