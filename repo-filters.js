@@ -6,6 +6,14 @@
   "use strict";
 
   const TAG_RULE_VERSION = 2;
+  // MIGRATION WINDOW -- remove once the published artifacts carry version 2.
+  // The refresh gates itself on `npm test`, so a reader that accepts only the
+  // current version deadlocks the one run that would produce it: the page stays
+  // at version 1, the test fails, the refresh aborts before generating anything.
+  // Accepting the immediately previous version breaks that cycle and costs
+  // nothing at runtime, because a deployment serves its own page and script
+  // together. Drop version 1 from this list in the follow-up change.
+  const ACCEPTED_TAG_RULE_VERSIONS = [1, TAG_RULE_VERSION];
   const FIELD_DEFINITIONS = [
     ["ai-ml", "AI·머신러닝"],
     ["web-app", "웹·앱 개발"],
@@ -69,7 +77,7 @@
   }
 
   function classifyRepo(repo) {
-    if (!repo || repo.tag_rule_version !== TAG_RULE_VERSION) throw new Error("invalid repository classification");
+    if (!repo || !ACCEPTED_TAG_RULE_VERSIONS.includes(repo.tag_rule_version)) throw new Error("invalid repository classification");
     const fields = canonicalTags(repo.field_tags, FIELD_IDS, FIELD_ORDER, true);
     const forms = canonicalTags(repo.form_tags, FORM_IDS, FORM_ORDER);
     if (fields.includes("unclassified") && fields.length !== 1) throw new Error("invalid repository classification");
