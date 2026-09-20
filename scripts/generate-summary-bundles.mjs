@@ -1038,6 +1038,55 @@ async function judgeValidatedQuality(validated, item, runtime) {
   throwQualityDefects(defects);
 }
 
+// A cached summary is reused without ever reaching Claude, so nothing judged the
+// ones written before this gate existed -- and those are exactly the summaries a
+// phrase list passed. Judge them too, and hand a failing one back to `pending` so
+// Claude rewrites it. That is what `reusableEntry` already does when the phrase
+// list rejects a cached bundle: a quality failure re-generates, it never holds.
+//
+// An outage requeues nothing. Regenerating every repository because the judgment
+// service is unreachable would burn the enrichment budget on work no defect asked
+// for, so the phrase lists stay the floor and the warning records the gap.
+const RETAINED_JUDGMENT_RESERVE_MS = 900_000;
+const RETAINED_JUDGMENT_CONCURRENCY = 4;
+
+async function judgeRetainedSummaries(items, retained, pending, options) {
+  const warningsBySlug = new Map();
+  if (!summaryQualityConfigured(options.environment) || retained.size === 0) return warningsBySlug;
+  // Never spend the budget generation needs: the judgment raises the floor, it is
+  // not a precondition for publishing.
+  if (options.deadline !== undefined && options.now() + RETAINED_JUDGMENT_RESERVE_MS > options.deadline) return warningsBySlug;
+  const queue = items.filter(item => retained.has(item.slug.toLowerCase()));
+  const regenerate = new Set();
+  let cursor = 0;
+  async function worker() {
+    while (cursor < queue.length) {
+      const item = queue[cursor++];
+      const slug = item.slug.toLowerCase();
+      const entry = retained.get(slug);
+      const outcome = await options.judgeQuality(item.slug, entry.content, { environment: options.environment });
+      if (outcome.status !== "verified") {
+        warningsBySlug.set(slug, [{ code: "QUALITY_JUDGMENT_UNAVAILABLE", locale: "en" }]);
+        continue;
+      }
+      const { defects, warnings } = summaryQualityFindings(outcome.probabilities, { inferenceFields: entry.inference_fields });
+      warningsBySlug.set(slug, warnings);
+      if (defects.length > 0) regenerate.add(slug);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(RETAINED_JUDGMENT_CONCURRENCY, queue.length) }, worker));
+  if (regenerate.size > 0) {
+    for (const slug of regenerate) retained.delete(slug);
+    // `pending` is read positionally downstream, so rebuild it in the collector's
+    // order rather than appending the requeued repositories to the end.
+    const queued = new Set(pending.map(item => item.slug.toLowerCase()));
+    const ordered = items.filter(item => queued.has(item.slug.toLowerCase()) || regenerate.has(item.slug.toLowerCase()));
+    pending.length = 0;
+    pending.push(...ordered);
+  }
+  return warningsBySlug;
+}
+
 async function requestOneWithClaude(request, item, runtime) {
   let prior = null;
   let nextKind = null;
@@ -1361,6 +1410,7 @@ export async function runFrozenSummaryBundlePipeline({
   }
   verifyFrozenParentInputs({ parentDatabasePath, parentEvidencePath, priorHeadsPath });
   const { retained, pending } = planSummaryBundleReuse(items, priorCache);
+  const retainedWarnings = await judgeRetainedSummaries(items, retained, pending, { judgeQuality, environment, deadline, now });
   let completed;
   if (preparedCodexPath) {
     const preparedFile = frozenPath(preparedCodexPath, "Prepared Codex summary set");
@@ -1388,7 +1438,9 @@ export async function runFrozenSummaryBundlePipeline({
   // Repository-level admission: a pending repository whose request ended in a
   // bounded failure is `held`; verified and retained repositories still publish.
   const verifiedSlugs = new Set();
-  const warningsBySlug = new Map();
+  // Seeded from the retained judgment; a repository the judgment sent back to Claude
+  // is verified below and overwrites its entry with the warnings of the new bundle.
+  const warningsBySlug = new Map(retainedWarnings);
   const heldBySlug = new Map();
   for (let index = 0; index < pending.length; index += 1) {
     const item = pending[index];

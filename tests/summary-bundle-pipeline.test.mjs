@@ -2120,3 +2120,84 @@ test("an unconfigured deployment is judged by the phrase lists alone, silently",
   assert.equal(judged, 0, "no credential means no call at all");
   assert.deepEqual(result.results[0].warnings.filter(warning => warning.code === "QUALITY_JUDGMENT_UNAVAILABLE"), []);
 });
+
+const CLEAN_JUDGMENT = Object.freeze({
+  defers_goal: 0.01, defers_usage: 0.01, defers_pros: 0.01, defers_cons: 0.01, defers_fit: 0.01,
+  qualified_goal: 0.99, qualified_usage: 0.99, qualified_pros: 0.99, qualified_cons: 0.99, qualified_fit: 0.99,
+  usage_role: 0.99,
+});
+
+test("a cached summary the judgment rejects goes back to Claude, not to a hold", async t => {
+  // Nothing judged the summaries written before this gate existed, and those are
+  // exactly the ones a phrase list passed. Reuse is where they can still be caught.
+  // `reusableEntry` already re-generates a cached bundle the phrase list rejects, so
+  // a judged defect takes the same road: regeneration, never a hold.
+  const fixture = await frozenPipelineFixture(t);
+  const target = fixture.items[0].slug;
+  const seen = new Map();
+  let generated = 0;
+  const result = await runFrozenSummaryBundlePipeline({
+    ...await pipelineArguments(fixture, "judged-retained"),
+    environment: { TYPESAFE_API_KEY: "test-key" },
+    preflight: async () => oauthRuntime,
+    judgeQuality: async (slug, fields) => {
+      assert.deepEqual(Object.keys(fields).sort(), ["cons", "fit", "goal", "pros", "usage"]);
+      const count = (seen.get(slug) ?? 0) + 1;
+      seen.set(slug, count);
+      // Only the cached bundle is rejected; the rewrite Claude returns is accepted,
+      // which is what makes this a regeneration rather than a correction loop.
+      const dirty = slug === target && count === 1;
+      return { status: "verified", probabilities: dirty ? { ...CLEAN_JUDGMENT, defers_goal: 0.96 } : CLEAN_JUDGMENT };
+    },
+    executeClaude: async () => {
+      generated += 1;
+      return { structuredOutput: modelEnvelope(), usage: { inputTokens: 1, outputTokens: 1 } };
+    },
+  });
+  // Every repository is judged once: the 42 cached ones in the reuse pass and the 2
+  // stale ones when Claude generates them. The rejected one is judged a second time,
+  // on the bundle Claude rewrote.
+  assert.equal(seen.size, fixture.items.length);
+  assert.equal(seen.get(target), 2);
+  assert.equal([...seen.values()].filter(count => count > 1).length, 1);
+  assert.equal(result.index.repositories[target.toLowerCase()].status, "verified",
+    "the rejected repository was regenerated, not retained and not held");
+  assert.equal(result.held.length, 0);
+  assert.equal(result.pending, fixture.staleItems.length + 1);
+});
+
+test("a TypeSafe outage leaves every cached summary retained", async t => {
+  // Regenerating every repository because the service is unreachable would burn the
+  // enrichment budget on work no defect asked for.
+  const fixture = await frozenPipelineFixture(t);
+  const result = await runFrozenSummaryBundlePipeline({
+    ...await pipelineArguments(fixture, "outage-retained"),
+    environment: { TYPESAFE_API_KEY: "test-key" },
+    preflight: async () => oauthRuntime,
+    judgeQuality: async () => ({ status: "unavailable", reason: "connect ECONNREFUSED" }),
+    executeClaude: async () => ({ structuredOutput: modelEnvelope(), usage: { inputTokens: 1, outputTokens: 1 } }),
+  });
+  assert.equal(result.pending, fixture.staleItems.length, "nothing is requeued on an outage");
+  const retained = Object.values(result.index.repositories).filter(entry => entry.status === "retained");
+  assert.equal(retained.length, fixture.items.length - fixture.staleItems.length);
+  for (const entry of retained) {
+    assert.deepEqual(entry.warnings, [{ code: "QUALITY_JUDGMENT_UNAVAILABLE", locale: "en" }]);
+  }
+});
+
+test("an unconfigured deployment judges no cached summary at all", async t => {
+  const fixture = await frozenPipelineFixture(t);
+  let judged = 0;
+  const result = await runFrozenSummaryBundlePipeline({
+    ...await pipelineArguments(fixture, "unconfigured-retained"),
+    environment: {},
+    preflight: async () => oauthRuntime,
+    judgeQuality: async () => { judged += 1; return { status: "verified", probabilities: CLEAN_JUDGMENT }; },
+    executeClaude: async () => ({ structuredOutput: modelEnvelope(), usage: { inputTokens: 1, outputTokens: 1 } }),
+  });
+  assert.equal(judged, 0);
+  assert.equal(result.pending, fixture.staleItems.length);
+  for (const entry of Object.values(result.index.repositories)) {
+    assert.equal(entry.warnings.some(warning => warning.code === "QUALITY_JUDGMENT_UNAVAILABLE"), false);
+  }
+});
