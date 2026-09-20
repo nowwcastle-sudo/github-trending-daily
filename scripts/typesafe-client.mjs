@@ -5,8 +5,6 @@
 // therefore never throw into the pipeline — it must produce a hold. Every entry
 // point here returns an outcome, and reserves exceptions for programming errors.
 
-import { TypeSafeClient } from "@typesafe-ai/sdk";
-
 import {
   DEFAULT_TAG_THRESHOLD,
   FIELD_JUDGMENTS,
@@ -31,9 +29,17 @@ const CLASSIFICATION_QUESTIONS = Object.freeze(Object.fromEntries(
 
 let cached = null;
 
-export function typeSafeClient(options = {}) {
+// The SDK is loaded here rather than at module scope. update-trending.mjs is in the
+// import graph of the enrichment entry point, and the self-hosted runner that
+// generates summaries checks the repository out without installing dependencies --
+// a static import makes merely loading this module fail there with
+// ERR_MODULE_NOT_FOUND, even though that path never classifies anything.
+export async function typeSafeClient(options = {}) {
   if (options.typeSafeClient) return options.typeSafeClient;
-  if (!cached) cached = new TypeSafeClient();
+  if (!cached) {
+    const { TypeSafeClient } = await import("@typesafe-ai/sdk");
+    cached = new TypeSafeClient();
+  }
   return cached;
 }
 
@@ -68,7 +74,8 @@ export async function classifyRepository(repository, options = {}) {
     throw new Error("TYPESAFE_API_KEY is not set; refusing to hold every repository on a configuration error");
   }
   try {
-    const { answers } = await typeSafeClient(options).systemOne({ state, questions: CLASSIFICATION_QUESTIONS });
+    const client = await typeSafeClient(options);
+    const { answers } = await client.systemOne({ state, questions: CLASSIFICATION_QUESTIONS });
     const probabilities = Object.fromEntries(Object.entries(answers).map(([id, answer]) => [id, answer.noul]));
     const { field_tags, form_tags } = resolveTags(probabilities, { threshold });
     return { status: "verified", tags: { tag_rule_version: TAG_RULE_VERSION, field_tags, form_tags } };

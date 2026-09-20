@@ -15,6 +15,7 @@ import {
 } from "../scripts/classification-judgments.mjs";
 
 const trendingSource = await readFile(new URL("../scripts/update-trending.mjs", import.meta.url), "utf8");
+const clientSource = await readFile(new URL("../scripts/typesafe-client.mjs", import.meta.url), "utf8");
 
 function declaredRuleIds(name) {
   const block = trendingSource.match(new RegExp(`const ${name} = \\[([\\s\\S]*?)\\n\\];`));
@@ -113,4 +114,16 @@ test("a missing or malformed probability fails loudly instead of dropping a tag"
   assert.throws(() => resolveTags(answers), /systems/);
   assert.throws(() => resolveTags({ ...answers, systems: 1.4 }), /systems/);
   assert.throws(() => resolveTags({ ...answers, systems: Number.NaN }), /systems/);
+});
+
+test("the SDK is never a static import of the pipeline's module graph", () => {
+  // update-trending.mjs reaches the enrichment entry point through
+  // generate-translations.mjs, and the self-hosted runner that generates summaries
+  // checks the repository out without installing dependencies. A top-level import
+  // of the SDK there fails that runner with ERR_MODULE_NOT_FOUND on a path that
+  // never classifies anything, which is exactly how refresh run 186 died.
+  assert.doesNotMatch(clientSource, /^import\s[^\n]*@typesafe-ai\/sdk/m,
+    "load @typesafe-ai/sdk with a dynamic import() inside the call that needs it");
+  assert.match(clientSource, /await import\("@typesafe-ai\/sdk"\)/,
+    "the SDK must still be loaded lazily where a classification actually runs");
 });
