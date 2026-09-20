@@ -19,7 +19,7 @@ function canonicalRepo(overrides = {}) {
     lang: "Python",
     topics: [],
     summary: { goal: "A goal", fit: "A fit" },
-    tag_rule_version: 1,
+    tag_rule_version: 2,
     field_tags: ["unclassified"],
     form_tags: [],
     membership_status: "stayed",

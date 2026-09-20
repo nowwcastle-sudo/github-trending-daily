@@ -159,7 +159,7 @@ test("README 404 is absence but repository 500 cannot reuse stale metadata", asy
 
 test("repository facts expose the complete allowlist and no private fields", async () => {
   const expectedRepositoryFactKeys = [
-    "archived", "contributors", "created_at", "default_branch", "default_branch_head_sha",
+    "archived", "classification_status", "contributors", "created_at", "default_branch", "default_branch_head_sha",
     "description", "display_rank", "display_slug", "field_tags", "forks", "form_tags",
     "gain_daily", "gain_monthly", "gain_weekly", "is_fork", "language_color",
     "license_spdx", "open_issues_and_pull_requests", "primary_language", "provenance", "readme_blob_sha",
@@ -1536,7 +1536,7 @@ function publishableRepo(index, statsDate = "2026-08-23") {
     desc: `Description ${index}`,
     lang: "JavaScript",
     topics: ["developer-tools"],
-    tag_rule_version: 1,
+    tag_rule_version: 2,
     field_tags: ["ai-ml", "dev-tools"],
     form_tags: ["agent", "library"],
     stars: 100 + index,

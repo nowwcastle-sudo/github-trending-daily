@@ -5,7 +5,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  const TAG_RULE_VERSION = 1;
+  const TAG_RULE_VERSION = 2;
   const FIELD_DEFINITIONS = [
     ["ai-ml", "AI·머신러닝"],
     ["web-app", "웹·앱 개발"],

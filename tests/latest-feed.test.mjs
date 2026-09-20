@@ -33,7 +33,7 @@ function repository(overrides = {}) {
     signal: { streakDays: 2, starsChange: -1 },
     summary: { goal: "g", usage: "u", pros: "p", cons: "c", fit: "f" },
     summary_status: "verified",
-    tag_rule_version: 1,
+    tag_rule_version: 2,
     field_tags: ["ai-ml", "dev-tools"],
     form_tags: ["agent", "cli"],
     ...overrides,

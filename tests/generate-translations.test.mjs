@@ -230,7 +230,7 @@ function frozenPipelineFixture(root) {
     created_at: "2020-01-02T03:04:05Z",
     field_tags: ["development"],
     form_tags: ["library"],
-    tag_rule_version: 1,
+    tag_rule_version: 2,
     readme_status: "present",
     readme_path: "README.md",
     readme_blob_sha: index.toString(16).padStart(40, "a").slice(-40),
