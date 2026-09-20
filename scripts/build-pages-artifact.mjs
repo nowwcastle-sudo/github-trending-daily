@@ -4,15 +4,14 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { isSupportedSummaryProducer } from "./enrichment-models.mjs";
+// One taxonomy, defined where the judgments that produce it are defined.
+import { FIELD_TAG_IDS, FORM_TAG_IDS, TAG_RULE_VERSION } from "./classification-judgments.mjs";
 
 const SHA_RE = /^[a-f0-9]{40}$/;
 const SHA256_RE = /^[a-f0-9]{64}$/;
 const SNAPSHOT_RE = /^[0-9]{14}-[a-f0-9]{16}$/;
 const SOURCE_KEYS = ["kind", "slug", "path", "blob_sha", "content_sha256", "provider", "interface", "cli_version", "auth_method", "api_provider", "model", "schema_version", "prompt_schema_version", "translation_applicable"];
 const SUMMARY_PRODUCER_KEYS = ["provider", "interface", "cli_version", "auth_method", "api_provider", "model"];
-const TAG_RULE_VERSION = 2;
-const FIELD_TAG_IDS = ["ai-ml", "web-app", "dev-tools", "data", "devops", "security", "productivity", "systems", "learning"];
-const FORM_TAG_IDS = ["agent", "mcp", "plugin-skill", "ide", "library", "framework", "cli"];
 
 export function parseJsonStrict(input, label = "JSON", maxBytes = 16 * 1024 * 1024) {
   const bytes = Buffer.isBuffer(input) ? input : Buffer.from(input);

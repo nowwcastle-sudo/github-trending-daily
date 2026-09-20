@@ -1509,8 +1509,23 @@ export async function runFrozenSummaryBundlePipeline({
       { path: path.join(candidateRoot, "data", "translation-sources.json"), text: `${JSON.stringify({ version: SUMMARY_BUNDLE_SCHEMA_VERSION, sources }, null, 2)}\n` },
       { path: indexFile, text: `${JSON.stringify(index)}\n` },
     ]);
+    reportQualityWarnings(index);
     return { repositories: items.length, pending: pending.length, held: heldList, usage: completed.usage, runtime: completed.runtime, index };
   });
+}
+
+// The enrichment index records every warning, but it only ever reaches a build
+// artifact, so nobody reads it without downloading and unpacking a zip. One line on
+// stderr puts the run's quality shape in the job log, where it is actually looked at.
+function reportQualityWarnings(index) {
+  const counts = new Map();
+  for (const entry of Object.values(index.repositories)) {
+    for (const warning of entry.warnings ?? []) counts.set(warning.code, (counts.get(warning.code) ?? 0) + 1);
+  }
+  const total = Object.keys(index.repositories).length;
+  const summary = [...counts].sort(([left], [right]) => left.localeCompare(right))
+    .map(([code, count]) => `${code}=${count}`).join(" ");
+  process.stderr.write(`::notice::summary quality over ${total} repositories: ${summary || "no warnings"}\n`);
 }
 
 function parseCliArgs(argv) {

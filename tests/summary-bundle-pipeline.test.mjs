@@ -2201,3 +2201,24 @@ test("an unconfigured deployment judges no cached summary at all", async t => {
     assert.equal(entry.warnings.some(warning => warning.code === "QUALITY_JUDGMENT_UNAVAILABLE"), false);
   }
 });
+
+test("the run's quality shape is written where the job log shows it", async t => {
+  // The enrichment index carries every warning, but it only reaches a build artifact,
+  // so nobody reads it without downloading and unpacking a zip. Refresh run 195 judged
+  // 50 repositories and its warning distribution could not be read at all.
+  const fixture = await frozenPipelineFixture(t);
+  const written = [];
+  const stderr = t.mock.method(process.stderr, "write", value => { written.push(value); return true; });
+  t.after(() => stderr.mock.restore());
+  await runFrozenSummaryBundlePipeline({
+    ...await pipelineArguments(fixture, "warning-notice"),
+    environment: { TYPESAFE_API_KEY: "test-key" },
+    preflight: async () => oauthRuntime,
+    judgeQuality: async () => ({ status: "verified", probabilities: { ...CLEAN_JUDGMENT, usage_role: 0.02 } }),
+    executeClaude: async () => ({ structuredOutput: modelEnvelope(), usage: { inputTokens: 1, outputTokens: 1 } }),
+  });
+  const notice = written.find(line => line.includes("summary quality over"));
+  assert.ok(notice, "the pipeline must report its quality shape on stderr");
+  assert.match(notice, /^::notice::summary quality over \d+ repositories: /);
+  assert.match(notice, /USAGE_ROLE=\d+/, "a warning every repository earned must be counted");
+});

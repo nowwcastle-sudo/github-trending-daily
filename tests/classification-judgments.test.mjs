@@ -14,19 +14,53 @@ import {
   resolveTags,
 } from "../scripts/classification-judgments.mjs";
 
-const trendingSource = await readFile(new URL("../scripts/update-trending.mjs", import.meta.url), "utf8");
 const clientSource = await readFile(new URL("../scripts/typesafe-client.mjs", import.meta.url), "utf8");
+const filtersSource = await readFile(new URL("../repo-filters.js", import.meta.url), "utf8");
+const recorderSource = await readFile(new URL("../scripts/record_repository_observations.py", import.meta.url), "utf8");
 
-function declaredRuleIds(name) {
-  const block = trendingSource.match(new RegExp(`const ${name} = \\[([\\s\\S]*?)\\n\\];`));
-  assert.ok(block, `${name} must still be declared in update-trending.mjs`);
+function jsListedIds(source, name) {
+  const block = source.match(new RegExp(`${name} = \\[([\\s\\S]*?)\\n\\s*\\];`));
+  assert.ok(block, `${name} must still be declared`);
   return [...block[1].matchAll(/\["([a-z-]+)",/g)].map(match => match[1]);
 }
 
-test("judgments cover the published taxonomy in its canonical order", () => {
-  assert.deepEqual(FIELD_TAG_IDS, declaredRuleIds("FIELD_RULES"));
-  assert.deepEqual(FORM_TAG_IDS, declaredRuleIds("FORM_RULES"));
-  assert.equal(TAG_RULE_VERSION, Number(trendingSource.match(/const TAG_RULE_VERSION = (\d+);/)[1]));
+function pythonListedIds(source, name) {
+  const block = source.match(new RegExp(`^${name} = \\(([^)]*)\\)`, "m"));
+  assert.ok(block, `${name} must still be declared`);
+  return [...block[1].matchAll(/"([a-z-]+)"/g)].map(match => match[1]);
+}
+
+// The pipeline modules import this taxonomy, so they cannot drift from it. Two copies
+// cannot: repo-filters.js is a browser UMD that also carries the Korean labels, and the
+// recorder is Python. Both validate published data against their own list, so a tag added
+// here and not there is rejected at publish time -- by the validator, not by a reader.
+test("the copies that cannot import the taxonomy still match it exactly", () => {
+  assert.deepEqual(jsListedIds(filtersSource, "const FIELD_DEFINITIONS"),
+    [...FIELD_TAG_IDS, "unclassified"], "repo-filters.js field definitions");
+  assert.deepEqual(jsListedIds(filtersSource, "const FORM_DEFINITIONS"),
+    [...FORM_TAG_IDS], "repo-filters.js form definitions");
+  assert.deepEqual(pythonListedIds(recorderSource, "FIELD_TAGS"), [...FIELD_TAG_IDS],
+    "record_repository_observations.py field tags");
+  assert.deepEqual(pythonListedIds(recorderSource, "FORM_TAGS"), [...FORM_TAG_IDS],
+    "record_repository_observations.py form tags");
+  assert.equal(Number(filtersSource.match(/const TAG_RULE_VERSION = (\d+);/)[1]), TAG_RULE_VERSION,
+    "repo-filters.js tag rule version");
+});
+
+test("no module keeps its own copy of the taxonomy any more", async () => {
+  // update-trending.mjs classified with a regex table whose ids doubled as the taxonomy.
+  // The regexes stopped deciding anything when TypeSafe took over; leaving them in place
+  // left a fourth definition free to drift from the judgments that actually decide.
+  const trending = await readFile(new URL("../scripts/update-trending.mjs", import.meta.url), "utf8");
+  const artifact = await readFile(new URL("../scripts/build-pages-artifact.mjs", import.meta.url), "utf8");
+  for (const [name, source] of [["update-trending.mjs", trending], ["build-pages-artifact.mjs", artifact]]) {
+    assert.doesNotMatch(source, /const (?:FIELD|FORM)_(?:RULES|TAG_IDS) = \[/,
+      `${name} must import the taxonomy, not restate it`);
+    assert.doesNotMatch(source, /^const TAG_RULE_VERSION = \d+;/m,
+      `${name} must import the tag rule version, not restate it`);
+    assert.match(source, /from "\.\/classification-judgments\.mjs"/,
+      `${name} must import from the judgments`);
+  }
 });
 
 test("every judgment states its meaning without relying on its question id", () => {
