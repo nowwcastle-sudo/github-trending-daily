@@ -21,6 +21,7 @@ import {
   runClaudeOAuthPreflight,
   runClaudeStructuredRequest,
 } from "./claude-cli-runtime.mjs";
+import { judgeSummaryQuality, summaryQualityConfigured, summaryQualityFindings } from "./summary-quality.mjs";
 import {
   installEnrichmentSet,
   resolveEnrichmentBudgetPolicy,
@@ -1014,6 +1015,29 @@ function deadlineRemaining(now, deadline, required) {
   }
 }
 
+// The phrase lists catch a fixed vocabulary; this asks whether the English fields
+// actually do their job. A defect is raised with the message the repair dispatcher
+// already routes on, so the rewrite prompt needs no new wiring. An outage adds a
+// warning and nothing else: holding every repository on it would breach the
+// held-ratio invariant and void the publication, and the phrase lists have already
+// run, so the floor this raises is never lowered.
+async function judgeValidatedQuality(validated, item, runtime) {
+  // An unconfigured deployment is not a per-repository event, so it earns no
+  // per-repository warning: the refresh workflow asserts the credential the same
+  // way it asserts the Claude token, and a local run without one keeps the phrase
+  // lists. A configured deployment that cannot reach the service is an outage, and
+  // that is worth recording against every repository it silently stopped judging.
+  if (!summaryQualityConfigured(runtime.environment)) return;
+  const outcome = await runtime.judgeQuality(item.slug, validated.summaries.en, { environment: runtime.environment });
+  if (outcome.status !== "verified") {
+    validated.warnings.push({ code: "QUALITY_JUDGMENT_UNAVAILABLE", locale: "en" });
+    return;
+  }
+  const { defects, warnings } = summaryQualityFindings(outcome.probabilities, { inferenceFields: validated.inference_fields });
+  validated.warnings.push(...warnings);
+  throwQualityDefects(defects);
+}
+
 async function requestOneWithClaude(request, item, runtime) {
   let prior = null;
   let nextKind = null;
@@ -1052,7 +1076,9 @@ async function requestOneWithClaude(request, item, runtime) {
         output = currentRequest.correctionTargets
           ? applyCorrection(currentRequest.previousOutput, response.structuredOutput, currentRequest.correctionTargets)
           : response.structuredOutput;
-        return validateSummaryBundleEnvelope(output, item);
+        const validated = validateSummaryBundleEnvelope(output, item);
+        await judgeValidatedQuality(validated, item, runtime);
+        return validated;
       } catch (error) {
         error.quality = true;
         error.previousOutput = output ?? currentRequest.previousOutput ?? response.structuredOutput;
@@ -1090,6 +1116,7 @@ export async function runClaudeSummaryBundleRequests({
   preflight = runClaudeOAuthPreflight,
   preflightResult,
   executeClaude = runClaudeStructuredRequest,
+  judgeQuality = judgeSummaryQuality,
   sleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds)),
   now = Date.now,
   deadline,
@@ -1098,7 +1125,7 @@ export async function runClaudeSummaryBundleRequests({
 } = {}) {
   if (!plan || !Array.isArray(plan.requests) || !Array.isArray(plan.items)
       || plan.provider !== "claude-cli-oauth" || plan.model !== DEFAULT_ENRICHMENT_MODEL
-      || typeof preflight !== "function" || typeof executeClaude !== "function"
+      || typeof preflight !== "function" || typeof executeClaude !== "function" || typeof judgeQuality !== "function"
       || typeof sleep !== "function" || typeof now !== "function" || !Number.isSafeInteger(concurrency)
       || concurrency < 1 || concurrency > 4 || !Number.isSafeInteger(attemptTimeoutMs) || attemptTimeoutMs < 1) {
     throw new Error("Claude summary bundle execution configuration is invalid");
@@ -1108,7 +1135,7 @@ export async function runClaudeSummaryBundleRequests({
     return { results: [], usage: { inputTokens: 0, outputTokens: 0, logicalCalls: 0, attempts: 0, retries: 0 }, runtime: provenance };
   }
   const execution = {
-    runProcess, environment, cwd, executeClaude, sleep, now, deadline, attemptTimeoutMs,
+    runProcess, environment, cwd, executeClaude, sleep, now, deadline, attemptTimeoutMs, judgeQuality,
     retryCap: plan.retryAttempts, retries: 0, attempts: 0, inputTokens: 0, outputTokens: 0,
   };
   const results = new Array(plan.requests.length).fill(null);
@@ -1305,6 +1332,7 @@ export async function runFrozenSummaryBundlePipeline({
   cwd = process.cwd(),
   preflight = runClaudeOAuthPreflight,
   executeClaude = runClaudeStructuredRequest,
+  judgeQuality = judgeSummaryQuality,
   sleep,
   now = Date.now,
   preparedCodexPath,
@@ -1354,7 +1382,7 @@ export async function runFrozenSummaryBundlePipeline({
       retryAttempts: resolveClaudeCliSummaryRetryCap(policy, pending.length),
     });
     completed = await runClaudeSummaryBundleRequests({
-      plan, runProcess, environment, cwd, preflight, preflightResult, executeClaude, sleep, now, deadline,
+      plan, runProcess, environment, cwd, preflight, preflightResult, executeClaude, judgeQuality, sleep, now, deadline,
     });
   }
   // Repository-level admission: a pending repository whose request ended in a
