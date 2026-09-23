@@ -205,7 +205,7 @@ function pipelineItem(slug, index) {
   };
 }
 
-function frozenPipelineFacts(items) {
+function frozenPipelineFacts(items, { unavailable = [] } = {}) {
   const snapshotId = "20260901000000-aaaaaaaaaaaaaaaa";
   const parentSnapshotId = "20260831000000-bbbbbbbbbbbbbbbb";
   const observedAtUtc = "2026-09-01T00:00:00Z";
@@ -222,6 +222,7 @@ function frozenPipelineFacts(items) {
     readme_locale: null,
     readme_variants: [],
     default_branch_head_sha: value.default_branch_head_sha,
+    ...(unavailable.includes(value.slug) ? { classification_status: "unavailable" } : {}),
   }));
   const runContextSha256 = hashCanonicalJson({
     observedAtUtc,
@@ -313,7 +314,7 @@ async function exists(target) {
   return access(target).then(() => true, () => false);
 }
 
-async function frozenPipelineFixture(t) {
+async function frozenPipelineFixture(t, { unavailable = [] } = {}) {
   const root = await mkdtemp(join(tmpdir(), "summary-bundle-pipeline-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   const retainedItems = Array.from({ length: 42 }, (_, index) => pipelineItem(`owner/repo-${String(index).padStart(2, "0")}`, index));
@@ -322,7 +323,7 @@ async function frozenPipelineFixture(t) {
     pipelineItem("handsomestwei/patent-disclosure-skill", 43),
   ];
   const items = [...retainedItems, ...staleItems];
-  const facts = frozenPipelineFacts(items);
+  const facts = frozenPipelineFacts(items, { unavailable });
   const sourceRoot = join(root, "source");
   const factsPath = join(root, "facts.json");
   const eventsPath = join(root, "events.json");
@@ -596,6 +597,25 @@ test("frozen pipeline publishes verified and retained repositories and records o
   assert.equal(Object.hasOwn(cache, "handsomestwei/patent-disclosure-skill"), false);
   assert.equal(Object.hasOwn(sources.sources, "handsomestwei/patent-disclosure-skill"), false);
   assert.equal(Object.hasOwn(cache, "kaifcodec/user-scanner"), true);
+});
+
+test("a repository the render holds for a classification outage is held in the enrichment output too", async t => {
+  // Run 35880470404 (2026-09-23): Jev could not classify melgarafael/DeskcommCRM, so the render held it,
+  // but this step still wrote its retained summary into translation-sources.json, and publication
+  // failed with "Held repository must not carry a summary".
+  const fixture = await frozenPipelineFixture(t, { unavailable: ["owner/repo-00"] });
+  const args = await pipelineArguments(fixture, "classification-held-candidate");
+  const result = await runFrozenSummaryBundlePipeline({
+    ...args,
+    preflight: async () => oauthRuntime,
+    executeClaude: async () => ({ structuredOutput: modelEnvelope(), usage: { inputTokens: 11, outputTokens: 7 } }),
+  });
+  assert.deepEqual(result.index.repositories["owner/repo-00"], { status: "held", held_reason: "request_failed", defect_codes: [], warnings: [] });
+  const cache = JSON.parse(await readFile(join(args.outputRoot, "data", "repo-summaries.json"), "utf8"));
+  const sources = JSON.parse(await readFile(join(args.outputRoot, "data", "translation-sources.json"), "utf8"));
+  assert.equal(Object.hasOwn(cache, "owner/repo-00"), false);
+  assert.equal(Object.hasOwn(sources.sources, "owner/repo-00"), false);
+  assert.equal(Object.hasOwn(sources.sources, "owner/repo-01"), true);
 });
 
 test("frozen pipeline fails closed when more than half of the active repositories are held", async t => {
