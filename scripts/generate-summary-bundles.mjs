@@ -1463,6 +1463,14 @@ export async function runFrozenSummaryBundlePipeline({
       source: buildSummarySource(item, completed.runtime),
     });
   }
+  // The render holds a repository Jev could not classify (update-trending.mjs renderRepositoryFacts).
+  // Held here too, so its summary stays out of translation-sources.json, which the render never filters.
+  for (const repository of facts.repositories) {
+    const slug = repository.slug.toLowerCase();
+    if (repository.classification_status === "unavailable" && !heldBySlug.has(slug)) {
+      heldBySlug.set(slug, { slug: repository.slug, reason: "request_failed", defect_codes: [], diagnostic: null });
+    }
+  }
   if (heldBySlug.size * 2 > items.length) {
     throw new Error(`Summary bundle held ratio exceeds 50% (${heldBySlug.size}/${items.length})`);
   }
