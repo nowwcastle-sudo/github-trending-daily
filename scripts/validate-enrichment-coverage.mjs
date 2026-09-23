@@ -146,7 +146,8 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
     const args = parseArgs(process.argv.slice(2));
     const result = await validateEnrichmentRoot(args.root, { factsPath: args.facts });
     process.stdout.write(`${JSON.stringify(result.counts)}\n`);
-  } catch {
+  } catch (error) {
+    process.stderr.write(`validate-enrichment-coverage: ${String(error?.message ?? error).split("\n")[0]}\n`);
     process.stdout.write(`${JSON.stringify({ repository: 0, valid: 0, locales: 0, missing: 0, stale: 1, insufficient_source: 0, held: 0, translations: 0 })}\n`);
     process.exitCode = 1;
   }
