@@ -54,6 +54,11 @@ export const REPOSITORY_EXCLUSIONS = Object.freeze({
     decidedOn: "2026-09-13",
     revisit: "when the releases listing is pruned below 20 pages or the release-inventory contract changes",
   }),
+  "builderio/agent-native": Object.freeze({
+    reason: "GitHub releases listing advertises 26 pages at per_page=100 (about 2,600 releases since 2026-03-24, roughly four new pages a month), exceeding the collector's 20-page release-inventory contract; it stopped seven scheduled refreshes 2026-09-20 13:33Z to 2026-09-22 08:27Z with \"Release page cap exceeded\"",
+    decidedOn: "2026-09-23",
+    revisit: "when the releases listing is pruned below 20 pages or the release-inventory contract changes",
+  }),
 });
 
 export function repositoryExclusion(slug) {
