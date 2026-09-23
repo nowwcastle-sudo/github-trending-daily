@@ -3856,8 +3856,13 @@ function runCoverageCli(fixture) {
 
 test("coverage CLI rejects invalid five-locale bundles and retired translation residue", () => {
   for (const fixture of ["placeholder", "stale", "missing", "page-stale", "residue", "malformed"]) {
-    assert.notEqual(runCoverageCli(writeCoverageRoot(fixture)).status, 0, fixture);
+    const rejected = runCoverageCli(writeCoverageRoot(fixture));
+    assert.notEqual(rejected.status, 0, fixture);
+    // The counts line stays fixed for the workflow; the reason goes to stderr so a failed run can be
+    // read without replaying its artifacts (run 35880470404 printed only "stale: 1").
+    assert.match(rejected.stderr, /^validate-enrichment-coverage: \S.*\n$/, fixture);
   }
+  assert.match(runCoverageCli(writeCoverageRoot("residue")).stderr, /Retired README translation residue is present/);
   const valid = runCoverageCli(writeCoverageRoot("valid"));
   assert.equal(valid.status, 0, valid.stderr);
   assert.deepEqual(JSON.parse(valid.stdout), {

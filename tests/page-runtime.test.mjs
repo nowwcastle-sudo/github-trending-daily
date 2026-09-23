@@ -3083,7 +3083,10 @@ test("the page declares a Content-Security-Policy that covers every origin the c
     .replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, "")
     // The generated ItemList block is JSON-LD vocabulary, not code: schema.org names the
     // terms it uses and is never fetched, so it needs no CSP directive.
-    .replace(/<!-- GENERATED:TRENDING-JSONLD:START -->[\s\S]*?<!-- GENERATED:TRENDING-JSONLD:END -->/, "");
+    .replace(/<!-- GENERATED:TRENDING-JSONLD:START -->[\s\S]*?<!-- GENERATED:TRENDING-JSONLD:END -->/, "")
+    // The generated noscript list is repository data, not code: a description that quotes a URL
+    // (HKUDS/CLI-Anything's "https://clianything.cc/", 2026-09-23) is text, never fetched.
+    .replace(/<!-- GENERATED:TRENDING-NOSCRIPT:START -->[\s\S]*?<!-- GENERATED:TRENDING-NOSCRIPT:END -->/, "");
   const scanned = [runtimeWithoutPolicy, ...sources].join("\n");
   const hosts = new Set([...scanned.matchAll(/https:\/\/([a-z0-9.-]+)/gi)].map(match => match[1].toLowerCase()));
   const imageOnly = new Set(["raw.githubusercontent.com", "camo.githubusercontent.com"]);
