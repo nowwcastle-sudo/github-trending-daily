@@ -484,6 +484,36 @@ test("future commits retain a backdated fast-forward and a proven rewrite import
   assert.deepEqual(rewrite.commits, []);
 });
 
+test("a branch rewritten onto unrelated history is a rewrite of that repository, not a failed refresh", async () => {
+  // Runs 35737260269..35837442954 (2026-09-22/23): magnitudedev/magnitude replaced main with a history
+  // sharing no commit with the recorded head 4f5d96ee. GitHub answers that comparison with 404
+  // "No common ancestor", and the whole refresh stopped on one repository.
+  const prior = sha("a");
+  const newest = sha("c");
+  const other = { ...repo, slug: "other/repo", default_branch_head_sha: sha("e") };
+  const rewriteFetch = branchHead => async (url, options) => {
+    const value = new URL(url);
+    if (value.pathname === "/repos/owner/repo/commits") return response(200, [commit(newest)]);
+    if (value.pathname.includes("/compare/")) return response(404, { message: `No common ancestor between ${prior} and ${newest}.` });
+    if (value.pathname === "/repos/owner/repo/git/ref/heads/main") return response(200, { object: { sha: branchHead } });
+    return successfulFetch()(url, options);
+  };
+  const events = await collectRepositoryEvents([{ ...repo, default_branch_head_sha: newest }, other], {
+    previous: { "owner/repo": { branch: "main", headSha: prior } },
+    fetchImpl: rewriteFetch(newest),
+  });
+  assert.deepEqual(events.heads.map(head => [head.slug, head.transition]), [["owner/repo", "history_rewritten"], ["other/repo", "baseline"]]);
+  assert.deepEqual(events.commits, []);
+  // The 404 alone proves nothing: a branch that no longer resolves to the frozen head still stops the run.
+  await assert.rejects(
+    collectRepositoryEvents([{ ...repo, default_branch_head_sha: newest }], {
+      previous: { "owner/repo": { branch: "main", headSha: prior } },
+      fetchImpl: rewriteFetch(sha("d")),
+    }),
+    /Ambiguous commit continuity/,
+  );
+});
+
 test("a push between the frozen facts and the commit listing leaves the newer commits to the next refresh", async () => {
   // W1 run 34034341669 (2026-09-06): vorssaint/vorssaint-utils pushed twice inside the two-minute
   // window between "Collect frozen repository facts" and this listing, and the whole refresh

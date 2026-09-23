@@ -415,7 +415,12 @@ function commitRecord(slug, branch, value, ordinal) {
 async function diagnoseContinuity(slug, branch, priorHead, currentHead, context) {
   const base = `https://api.github.com${repoPath(slug)}`;
   const compare = await request(`${base}/compare/${priorHead}...${currentHead}`, { ...context, operation: "commit comparison", headers: context.githubHeaders });
-  const result = await json(compare, `commit continuity for ${slug}`);
+  // GitHub answers 404 "No common ancestor" when the branch was replaced by an unrelated history
+  // (magnitudedev/magnitude, 2026-09-22), and also when the old head was collected after a force
+  // push. Either way the prior head cannot be an ancestor: a rewrite, once the branch ref below
+  // proves the repository still resolves to the frozen head.
+  const unrelated = compare?.status === 404;
+  const result = unrelated ? { status: "diverged" } : await json(compare, `commit continuity for ${slug}`);
   if (!result || typeof result !== "object" || !["ahead", "behind", "diverged", "identical"].includes(result.status)) throw new Error(`Ambiguous commit continuity for ${slug}`);
   const ref = await request(`${base}/git/ref/heads/${encodeURIComponent(branch)}`, { ...context, operation: "branch continuity", headers: context.githubHeaders });
   const head = await json(ref, `branch continuity for ${slug}`);
