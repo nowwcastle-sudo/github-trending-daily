@@ -21,11 +21,14 @@ test("the retry workflow watches the refresh workflow and asks for no permission
   assert.match(workflow, /^concurrency:\n  group: refresh-retry\n  cancel-in-progress: false$/m);
 });
 
-test("only a failed scheduled cycle is retried, so a retry can never trigger another retry", async () => {
+test("only a failed or guard-cancelled scheduled cycle is retried, so a retry can never trigger another retry", async () => {
   const workflow = await read(retryPath);
+  // Run 35870775198 (2026-09-23): acquirejob answered 409 "already acquired" after its first response
+  // was lost, the job stayed queued, and the queue guard cancelled the run at its deadline. That run
+  // concludes cancelled, not failure, so the retry must look at cancelled runs too.
   assert.match(
     workflow,
-    /if: \$\{\{ github\.event\.workflow_run\.conclusion == 'failure' && github\.event\.workflow_run\.event == 'schedule' \}\}/,
+    /if: \$\{\{ \(github\.event\.workflow_run\.conclusion == 'failure' \|\| github\.event\.workflow_run\.conclusion == 'cancelled'\) && github\.event\.workflow_run\.event == 'schedule' \}\}/,
   );
   // The replacement is dispatched, and a workflow_dispatch run cannot satisfy the condition above.
   assert.match(workflow, /gh workflow run daily-refresh\.yml --ref "\$TARGET_REF" --repo "\$GITHUB_REPOSITORY"/);

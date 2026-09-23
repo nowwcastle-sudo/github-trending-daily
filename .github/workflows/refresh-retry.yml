@@ -23,8 +23,11 @@ jobs:
   retry:
     # Only a scheduled cycle is retried. The replacement is a workflow_dispatch run, so it can never
     # satisfy this condition itself: at most one retry per scheduled cycle, and a failing retry stays
-    # failed and visible.
-    if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.event == 'schedule' }}
+    # failed and visible. A cancelled cycle counts too: when acquirejob answers 409 "already acquired"
+    # after losing its first response (2026-09-23), the job stays queued until the queue guard cancels
+    # the run at its deadline. The step below still retries only an enrichment job that ran no step.
+    # ponytail: a scheduled run cancelled by hand while enrichment is queued also gets one replacement.
+    if: ${{ (github.event.workflow_run.conclusion == 'failure' || github.event.workflow_run.conclusion == 'cancelled') && github.event.workflow_run.event == 'schedule' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
