@@ -177,6 +177,184 @@
       "translation_applicable": false
     }
   },
+  "vectorize-io/hindsight": {
+    "content": {
+      "goal": "Hindsight is an agent memory system designed to help AI agents learn over time rather than simply recall conversation history, addressing limitations the README attributes to RAG and knowledge-graph approaches.",
+      "usage": "The Python client installs with `pip install hindsight-client -U`, or the server can run standalone via `pip install hindsight-api`. Once installed, calls such as `client.retain(bank_id=\"my-bank\", content=\"Alice works at Google as a software engineer\")`, `client.recall()`, and `client.reflect()` operate against a running Hindsight server, which can also be started via Docker using the `ghcr.io/vectorize-io/hindsight:latest` image.",
+      "pros": "According to the README, Hindsight supports 25+ LLM providers—hosted, local, and gateway options—and existing subscriptions such as ChatGPT Plus/Pro or Claude Pro/Max can be used without a separate API key. It also documents multilingual handling that keeps facts and entity names in their original language and script, plus an opt-in Memory Defense feature that scans retained content against 45 patterns for secrets and PII.",
+      "cons": "The README notes that benchmark comparisons include scores 'self-reported by software vendors,' apart from figures independently reproduced by Virginia Tech's Sanghani Center and The Washington Post, so cross-vendor comparisons should probably be read cautiously. Separately, bare-metal (pip) installation on Intel-based macOS is only partially supported, requiring the `hindsight-all-slim` package as a workaround.",
+      "fit": "Per the README, Hindsight appears suited to conversational and autonomous agents that need to adapt from feedback and handle open-ended tasks, such as AI employees automating complex work. It explicitly states Hindsight 'may be overkill' for simpler AI workflows, such as those built with tools like n8n."
+    },
+    "summaries": {
+      "en": {
+        "goal": "Hindsight is an agent memory system designed to help AI agents learn over time rather than simply recall conversation history, addressing limitations the README attributes to RAG and knowledge-graph approaches.",
+        "usage": "The Python client installs with `pip install hindsight-client -U`, or the server can run standalone via `pip install hindsight-api`. Once installed, calls such as `client.retain(bank_id=\"my-bank\", content=\"Alice works at Google as a software engineer\")`, `client.recall()`, and `client.reflect()` operate against a running Hindsight server, which can also be started via Docker using the `ghcr.io/vectorize-io/hindsight:latest` image.",
+        "pros": "According to the README, Hindsight supports 25+ LLM providers—hosted, local, and gateway options—and existing subscriptions such as ChatGPT Plus/Pro or Claude Pro/Max can be used without a separate API key. It also documents multilingual handling that keeps facts and entity names in their original language and script, plus an opt-in Memory Defense feature that scans retained content against 45 patterns for secrets and PII.",
+        "cons": "The README notes that benchmark comparisons include scores 'self-reported by software vendors,' apart from figures independently reproduced by Virginia Tech's Sanghani Center and The Washington Post, so cross-vendor comparisons should probably be read cautiously. Separately, bare-metal (pip) installation on Intel-based macOS is only partially supported, requiring the `hindsight-all-slim` package as a workaround.",
+        "fit": "Per the README, Hindsight appears suited to conversational and autonomous agents that need to adapt from feedback and handle open-ended tasks, such as AI employees automating complex work. It explicitly states Hindsight 'may be overkill' for simpler AI workflows, such as those built with tools like n8n."
+      },
+      "ko": {
+        "goal": "Hindsight는 AI 에이전트가 단순히 대화 기록을 기억하는 것이 아니라 시간이 지남에 따라 학습하도록 돕기 위해 설계된 에이전트 메모리 시스템이며, README에서는 RAG 및 지식 그래프 방식의 한계를 극복한다고 설명합니다.",
+        "usage": "Python 클라이언트는 `pip install hindsight-client -U`로 설치하거나 서버는 `pip install hindsight-api`로 단독 실행할 수 있습니다. 설치 후 `client.retain(bank_id=\"my-bank\", content=\"Alice works at Google as a software engineer\")`, `client.recall()`, `client.reflect()` 호출로 동작하며, `ghcr.io/vectorize-io/hindsight:latest` 이미지를 사용해 Docker로도 서버를 시작할 수 있습니다.",
+        "pros": "README에 따르면 Hindsight는 25개 이상의 LLM 제공업체(호스팅형, 로컬형, 게이트웨이 포함)를 지원하며 ChatGPT Plus/Pro나 Claude Pro/Max 같은 기존 구독을 별도 API 키 없이 사용할 수 있습니다. 또한 원본 언어와 표기를 유지하는 다국어 처리와, 저장 전 콘텐츠를 45개 패턴으로 검사하는 옵트인 Memory Defense 기능도 문서화되어 있습니다.",
+        "cons": "README는 벤치마크 비교 중 일부 점수가 'software vendors가 자체 보고한' 것이라고 명시하며, Virginia Tech Sanghani Center와 The Washington Post가 독립적으로 재현한 결과와는 구분되므로 벤더 간 비교는 신중하게 해석해야 할 것으로 보입니다. 별도로, Intel 기반 macOS에서의 베어메탈(pip) 설치는 부분적으로만 지원되어 `hindsight-all-slim` 패키지를 대안으로 사용해야 합니다.",
+        "fit": "README에 따르면 Hindsight는 피드백에 따라 행동을 조정하고 개방형 작업을 처리해야 하는 대화형 및 자율 에이전트, 예를 들어 복잡한 업무를 자동화하는 AI 직원에게 적합해 보입니다. 다만 n8n과 같은 도구로 만든 단순한 AI 워크플로에는 '과할 수 있다'고 명시되어 있습니다."
+      },
+      "zh-CN": {
+        "goal": "Hindsight 是一个智能体记忆系统,旨在帮助 AI 智能体随时间学习,而不仅仅是回忆对话历史;README 称其克服了 RAG 和知识图谱方法的一些局限性。",
+        "usage": "Python 客户端可通过 `pip install hindsight-client -U` 安装,服务器也可通过 `pip install hindsight-api` 独立运行。安装后可调用 `client.retain(bank_id=\"my-bank\", content=\"Alice works at Google as a software engineer\")`、`client.recall()` 和 `client.reflect()`,也可使用 `ghcr.io/vectorize-io/hindsight:latest` 镜像通过 Docker 启动服务器。",
+        "pros": "根据 README,Hindsight 支持 25 个以上的 LLM 提供商(包括托管、本地和网关方式),且可直接使用 ChatGPT Plus/Pro 或 Claude Pro/Max 等现有订阅而无需单独的 API 密钥。文档还提到多语言处理会保留原始语言和文字,并有一项可选的 Memory Defense 功能,会按 45 种模式扫描待存储内容中的秘密信息和 PII。",
+        "cons": "README 指出,部分基准对比分数是'软件供应商自行报告的',与弗吉尼亚理工 Sanghani 中心及《华盛顿邮报》独立复现的结果不同,因此跨供应商比较似乎应谨慎看待。另外,在基于 Intel 的 macOS 上,裸机(pip)安装仅部分受支持,需要使用 `hindsight-all-slim` 包作为替代方案。",
+        "fit": "据 README 描述,Hindsight 适合需要根据反馈调整行为、处理开放式任务的对话式和自主智能体,例如自动化复杂工作的 AI 员工。但文档也明确指出,对于像 n8n 这类简单 AI 工作流而言,它'可能显得过重'。"
+      },
+      "es": {
+        "goal": "Hindsight es un sistema de memoria para agentes diseñado para ayudar a los agentes de IA a aprender con el tiempo, en lugar de solo recordar el historial de conversación; el README indica que supera limitaciones atribuidas a los enfoques de RAG y grafos de conocimiento.",
+        "usage": "El cliente de Python se instala con `pip install hindsight-client -U`, o el servidor puede ejecutarse de forma independiente con `pip install hindsight-api`. Una vez instalado, se puede llamar a `client.retain(bank_id=\"my-bank\", content=\"Alice works at Google as a software engineer\")`, `client.recall()` y `client.reflect()`, y el servidor también puede iniciarse con Docker usando la imagen `ghcr.io/vectorize-io/hindsight:latest`.",
+        "pros": "Según el README, Hindsight admite más de 25 proveedores de LLM (alojados, locales y mediante gateways) y permite usar suscripciones existentes como ChatGPT Plus/Pro o Claude Pro/Max sin necesidad de una clave API aparte. También documenta un manejo multilingüe que conserva el idioma y la escritura originales, además de una función opcional Memory Defense que analiza el contenido antes de guardarlo contra 45 patrones.",
+        "cons": "El README señala que algunas comparaciones de referencia incluyen puntuaciones 'auto-reportadas por proveedores de software', a diferencia de las cifras reproducidas de forma independiente por el Sanghani Center de Virginia Tech y The Washington Post, por lo que las comparaciones entre proveedores probablemente deban interpretarse con cautela. Por separado, la instalación bare-metal (pip) en macOS basado en Intel solo cuenta con soporte parcial, y requiere el paquete `hindsight-all-slim` como alternativa.",
+        "fit": "Según el README, Hindsight está pensado para agentes conversacionales y autónomos que necesitan adaptar su comportamiento a partir de retroalimentación y gestionar tareas abiertas, como empleados de IA que automatizan trabajo complejo. Sin embargo, el propio README indica que 'puede ser excesivo' para flujos de trabajo de IA más simples, como los creados con n8n."
+      },
+      "ja": {
+        "goal": "Hindsightは、単に会話履歴を記憶するだけでなく、AIエージェントが時間とともに学習できるよう設計されたエージェント向けメモリシステムであり、READMEによればRAGやナレッジグラフ方式の限界を克服するとされています。",
+        "usage": "Pythonクライアントは `pip install hindsight-client -U` でインストールでき、サーバー自体は `pip install hindsight-api` で単独実行できます。インストール後は `client.retain(bank_id=\"my-bank\", content=\"Alice works at Google as a software engineer\")`、`client.recall()`、`client.reflect()` を呼び出して利用でき、`ghcr.io/vectorize-io/hindsight:latest` イメージを使ってDockerでサーバーを起動することもできます。",
+        "pros": "READMEによると、Hindsightはホスト型・ローカル型・ゲートウェイ型を含む25以上のLLMプロバイダーに対応し、ChatGPT Plus/ProやClaude Pro/Maxなど既存のサブスクリプションを別途APIキーなしで利用できます。また、元の言語や文字表記を保持する多言語処理や、保存前のコンテンツを45のパターンでスキャンするオプトインのMemory Defense機能も記載されています。",
+        "cons": "READMEは、一部のベンチマーク比較のスコアが『ソフトウェアベンダーによる自己報告』であると述べており、Virginia TechのSanghani CenterやThe Washington Postが独自に再現した結果とは区別されているため、ベンダー間比較は慎重に受け止めるべきと考えられます。また、Intelベースのmacintosh上でのベアメタル(pip)インストールは部分的にしかサポートされておらず、代替として `hindsight-all-slim` パッケージが必要です。",
+        "fit": "READMEによれば、Hindsightはフィードバックに応じて行動を調整し、複雑な業務を自動化するAI従業員のような、オープンエンドなタスクを扱う対話型・自律型エージェント向けとされています。ただし、n8nのようなツールで構築されたシンプルなAIワークフローには『過剰かもしれない』と明記されています。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 22,
+          "end_line": 28,
+          "section_heading": "What is Hindsight?"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 98,
+          "end_line": 101,
+          "section_heading": "Bare metal (pip)"
+        },
+        {
+          "start_line": 124,
+          "end_line": 124,
+          "section_heading": "2. Connect a client"
+        },
+        {
+          "start_line": 137,
+          "end_line": 144,
+          "section_heading": "Python"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 82,
+          "end_line": 82,
+          "section_heading": "Docker (recommended)"
+        },
+        {
+          "start_line": 368,
+          "end_line": 369,
+          "section_heading": "Memory Banks"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 50,
+          "end_line": 50,
+          "section_heading": "Memory Performance & Accuracy"
+        },
+        {
+          "start_line": 172,
+          "end_line": 175,
+          "section_heading": "Supported Platforms"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 375,
+          "end_line": 375,
+          "section_heading": "Use Cases"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "pip install hindsight-client -U",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "pip install hindsight-api",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "client.retain(bank_id=\"my-bank\", content=\"Alice works at Google as a software engineer\")",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Hindsight",
+        "fields": [
+          "goal",
+          "usage",
+          "pros",
+          "cons",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "ghcr.io/vectorize-io/hindsight:latest",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "25+",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "45",
+        "fields": [
+          "pros"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "cons",
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "vectorize-io/hindsight",
+      "path": "README.md",
+      "blob_sha": "50346aa10e74ac9ed3af6eebe525a748bb7ba6dc",
+      "content_sha256": "376c6b0b83bd2be65a2d1c843680c56a7cc1bc4d8553dee9f227074e59239a6f",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.263",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
   "dream-num/univer": {
     "content": {
       "goal": "Univer is an open-source SDK (Apache-2.0) for building embeddable office applications, including spreadsheets, documents, and presentations, without requiring a hosted app or fixed UI. It runs isomorphically in the browser and on Node.js, sharing the same plugin-based architecture (dream-num/univer).",
@@ -1948,47 +2126,47 @@
   },
   "julyx10/lap": {
     "content": {
-      "goal": "Lap is an open-source, local-first desktop photo manager for macOS, Windows, and Linux that lets users browse, organize, and search personal photo and video libraries offline without uploading them to the cloud.",
-      "usage": "Users download a platform-specific installer from the GitHub releases page (https://github.com/julyx10/lap/releases), or on macOS run `brew tap julyx10/lap` and `brew install --cask lap`. Building from source requires Node.js 20+, pnpm, and Rust stable, then cloning the repository and running `cargo tauri dev`.",
-      "pros": "It works directly with existing folders instead of importing into a closed database, runs AI-powered search, similarity, tagging, and face recognition locally, and is free, open-source (GPL-3.0-or-later) software built to handle large libraries of 100k+ files.",
-      "cons": "Organizational data such as collections, tags, ratings, and AI/face index information is stored only in Lap's local database rather than embedded in file metadata, so it does not travel with files copied or moved outside Lap; renaming or moving files outside the app can disrupt that organization, which likely means users who also manage files with other tools should keep backups.",
-      "fit": "Lap appears best suited to people wanting a privacy-focused, offline alternative to cloud photo services who are comfortable with a folder-based workflow, though it may require extra care when files are also managed by tools outside Lap."
+      "goal": "Lap is an open-source, local-first photo manager for macOS, Windows, and Linux, presented as a privacy-focused alternative to cloud photo services with no forced upload and local AI search.",
+      "usage": "Users can download a platform-specific installer from the latest release page (https://github.com/julyx10/lap/releases/latest), or on macOS install it via `brew install --cask lap`. Building from source requires Node.js 20+, pnpm, and Rust stable, then running `git clone --recursive https://github.com/julyx10/lap.git` followed by `cargo tauri dev`.",
+      "pros": "The README lists a folder-first workflow with no library lock-in, local AI search including similarity and face clustering, Smart Albums, RAW+JPEG pairing, duplicate cleanup, and support for 60+ photo, RAW, and video formats, offered as free open source software with no subscription.",
+      "cons": "The Windows package is described as unsigned, so Microsoft SmartScreen may block the download and require the user to click 'Keep anyway' during installation.",
+      "fit": "Given its emphasis on offline, local-first management of large personal collections (100k+ files) with local AI processing, Lap appears best suited to individuals wanting private, self-managed photo libraries rather than cloud-synced or team-oriented workflows, though the README does not explicitly state a target audience."
     },
     "summaries": {
       "en": {
-        "goal": "Lap is an open-source, local-first desktop photo manager for macOS, Windows, and Linux that lets users browse, organize, and search personal photo and video libraries offline without uploading them to the cloud.",
-        "usage": "Users download a platform-specific installer from the GitHub releases page (https://github.com/julyx10/lap/releases), or on macOS run `brew tap julyx10/lap` and `brew install --cask lap`. Building from source requires Node.js 20+, pnpm, and Rust stable, then cloning the repository and running `cargo tauri dev`.",
-        "pros": "It works directly with existing folders instead of importing into a closed database, runs AI-powered search, similarity, tagging, and face recognition locally, and is free, open-source (GPL-3.0-or-later) software built to handle large libraries of 100k+ files.",
-        "cons": "Organizational data such as collections, tags, ratings, and AI/face index information is stored only in Lap's local database rather than embedded in file metadata, so it does not travel with files copied or moved outside Lap; renaming or moving files outside the app can disrupt that organization, which likely means users who also manage files with other tools should keep backups.",
-        "fit": "Lap appears best suited to people wanting a privacy-focused, offline alternative to cloud photo services who are comfortable with a folder-based workflow, though it may require extra care when files are also managed by tools outside Lap."
+        "goal": "Lap is an open-source, local-first photo manager for macOS, Windows, and Linux, presented as a privacy-focused alternative to cloud photo services with no forced upload and local AI search.",
+        "usage": "Users can download a platform-specific installer from the latest release page (https://github.com/julyx10/lap/releases/latest), or on macOS install it via `brew install --cask lap`. Building from source requires Node.js 20+, pnpm, and Rust stable, then running `git clone --recursive https://github.com/julyx10/lap.git` followed by `cargo tauri dev`.",
+        "pros": "The README lists a folder-first workflow with no library lock-in, local AI search including similarity and face clustering, Smart Albums, RAW+JPEG pairing, duplicate cleanup, and support for 60+ photo, RAW, and video formats, offered as free open source software with no subscription.",
+        "cons": "The Windows package is described as unsigned, so Microsoft SmartScreen may block the download and require the user to click 'Keep anyway' during installation.",
+        "fit": "Given its emphasis on offline, local-first management of large personal collections (100k+ files) with local AI processing, Lap appears best suited to individuals wanting private, self-managed photo libraries rather than cloud-synced or team-oriented workflows, though the README does not explicitly state a target audience."
       },
       "ko": {
-        "goal": "Lap는 macOS, Windows, Linux용 오픈소스 로컬 우선 데스크톱 사진 관리자로, 사용자가 개인 사진 및 동영상 라이브러리를 클라우드에 업로드하지 않고 오프라인으로 탐색, 정리, 검색할 수 있게 해줍니다.",
-        "usage": "사용자는 GitHub 릴리스 페이지(https://github.com/julyx10/lap/releases)에서 플랫폼별 설치 파일을 내려받거나, macOS에서는 `brew tap julyx10/lap`과 `brew install --cask lap`을 실행할 수 있습니다. 소스에서 빌드하려면 Node.js 20+, pnpm, 안정 버전 Rust가 필요하며, 저장소를 클론한 뒤 `cargo tauri dev`를 실행합니다.",
-        "pros": "닫힌 데이터베이스로 가져오는 대신 기존 폴더를 직접 사용하고, AI 기반 검색·유사도 분석·태깅·얼굴 인식을 로컬에서 실행하며, 100k+ 파일 규모의 대형 라이브러리를 위해 설계된 무료 오픈소스(GPL-3.0-or-later) 소프트웨어입니다.",
-        "cons": "컬렉션, 태그, 평점, AI/얼굴 인덱스 같은 정리 정보는 파일 메타데이터에 내장되지 않고 Lap의 로컬 데이터베이스에만 저장되므로, 파일을 Lap 밖에서 복사하거나 이동해도 함께 따라가지 않습니다. 앱 외부에서 파일 이름을 바꾸거나 이동하면 이러한 정리 정보가 손상될 수 있어, 다른 도구로도 파일을 관리하는 사용자는 백업을 유지하는 것이 바람직해 보입니다.",
-        "fit": "Lap은 클라우드 사진 서비스 대신 프라이버시 중심의 오프라인 대안을 원하고 폴더 기반 워크플로에 익숙한 사용자에게 적합해 보이지만, Lap 외부의 다른 도구로도 파일을 관리할 경우 추가적인 주의가 필요할 수 있습니다."
+        "goal": "Lap은 macOS, Windows, Linux용 오픈소스 로컬 우선 사진 관리 프로그램으로, 클라우드 업로드를 강제하지 않고 로컬 AI 검색을 제공하는 클라우드 사진 서비스의 프라이버시 중심 대안으로 소개됩니다.",
+        "usage": "최신 릴리스 페이지(https://github.com/julyx10/lap/releases/latest)에서 플랫폼에 맞는 설치 파일을 내려받거나, macOS에서는 `brew install --cask lap` 명령으로 설치할 수 있습니다. 소스에서 빌드하려면 Node.js 20+, pnpm, Rust stable이 필요하며 `git clone --recursive https://github.com/julyx10/lap.git` 실행 후 `cargo tauri dev`로 빌드합니다.",
+        "pros": "README에는 폴더 우선 작업 방식, 로컬 AI 검색(유사도 및 얼굴 클러스터링 포함), 스마트 앨범, RAW+JPEG 페어링, 중복 정리, 60+ 사진/RAW/동영상 포맷 지원이 나열되어 있으며, 구독 없이 무료로 제공되는 오픈소스입니다.",
+        "cons": "Windows 패키지는 서명되지 않은 것으로 설명되어 있어, Microsoft SmartScreen이 다운로드를 차단할 수 있고 설치 시 사용자가 'Keep anyway'를 클릭해야 할 수 있습니다.",
+        "fit": "100k+ 파일로 구성된 대규모 개인 컬렉션을 오프라인에서 로컬 AI로 관리하는 데 중점을 두고 있어, 클라우드 동기화나 팀 협업보다는 프라이버시를 중시하는 개인 사용자에게 적합해 보이지만, README에 명시적인 대상 사용자층이 언급되어 있지는 않습니다."
       },
       "zh-CN": {
-        "goal": "Lap 是一款面向 macOS、Windows 和 Linux 的开源本地优先桌面照片管理器，可让用户在离线状态下浏览、整理和搜索个人照片及视频库，而无需上传到云端。",
-        "usage": "用户可以从 GitHub 发布页面（https://github.com/julyx10/lap/releases）下载对应平台的安装包，也可以在 macOS 上运行 `brew tap julyx10/lap` 和 `brew install --cask lap`。从源代码构建需要 Node.js 20+、pnpm 和稳定版 Rust，然后克隆仓库并运行 `cargo tauri dev`。",
-        "pros": "它直接使用现有文件夹而不是导入到封闭数据库中，在本地运行 AI 驱动的搜索、相似度分析、标签和人脸识别，并且是面向 100k+ 文件规模大型库设计的免费开源（GPL-3.0-or-later）软件。",
-        "cons": "集合、标签、评分以及 AI/人脸索引等组织信息仅存储在 Lap 的本地数据库中，而不会嵌入文件元数据，因此当文件被复制或移动到 Lap 之外时这些信息不会随之保留；在应用之外重命名或移动文件可能会破坏这种组织结构，这可能意味着同时使用其他工具管理文件的用户应保留备份。",
-        "fit": "Lap 似乎最适合那些希望用注重隐私的离线方案替代云端照片服务、并习惯基于文件夹工作流程的用户，不过在文件也由 Lap 之外的其他工具管理时可能需要格外小心。"
+        "goal": "Lap 是一款面向 macOS、Windows 和 Linux 的开源本地优先照片管理工具,被描述为云端照片服务的隐私替代方案,无需强制上传并支持本地 AI 搜索。",
+        "usage": "用户可从最新发布页面(https://github.com/julyx10/lap/releases/latest)下载对应平台的安装包,macOS 上也可通过 `brew install --cask lap` 安装。若从源码构建,需要 Node.js 20+、pnpm 和 Rust stable,先执行 `git clone --recursive https://github.com/julyx10/lap.git`,再运行 `cargo tauri dev`。",
+        "pros": "README 列出了文件夹优先的工作方式、本地 AI 搜索(含相似度与人脸聚类)、智能相册、RAW+JPEG 配对、重复文件清理,以及对 60+ 种照片、RAW 和视频格式的支持,并且是免费开源、无需订阅。",
+        "cons": "文档说明 Windows 安装包未签名,因此 Microsoft SmartScreen 可能会拦截下载,安装时用户可能需要点击“仍要保留”。",
+        "fit": "考虑到该工具强调离线状态下对 100k+ 文件规模的大型个人照片库进行本地 AI 管理,Lap 似乎更适合注重隐私、自行管理照片库的个人用户,而非依赖云同步或团队协作的场景,不过 README 并未明确说明目标用户群体。"
       },
       "es": {
-        "goal": "Lap es un gestor de fotos de escritorio de código abierto y \"local-first\" para macOS, Windows y Linux que permite explorar, organizar y buscar bibliotecas personales de fotos y videos sin conexión, sin subirlas a la nube.",
-        "usage": "Los usuarios pueden descargar un instalador específico para su plataforma desde la página de lanzamientos de GitHub (https://github.com/julyx10/lap/releases), o en macOS ejecutar `brew tap julyx10/lap` y `brew install --cask lap`. Para compilar desde el código fuente se necesita Node.js 20+, pnpm y Rust estable, luego clonar el repositorio y ejecutar `cargo tauri dev`.",
-        "pros": "Trabaja directamente con las carpetas existentes en lugar de importar todo a una base de datos cerrada, ejecuta búsqueda, similitud, etiquetado con IA y reconocimiento facial de forma local, y es software gratuito y de código abierto (GPL-3.0-or-later) pensado para bibliotecas grandes de 100k+ archivos.",
-        "cons": "Datos organizativos como colecciones, etiquetas, valoraciones e índices de IA/rostros se almacenan solo en la base de datos local de Lap y no se incrustan en los metadatos del archivo, por lo que no acompañan a los archivos copiados o movidos fuera de Lap; renombrar o mover archivos fuera de la aplicación podría alterar esa organización, lo que probablemente implica que quienes también gestionan archivos con otras herramientas deberían mantener copias de seguridad.",
-        "fit": "Lap parece más adecuado para personas que buscan una alternativa offline y centrada en la privacidad frente a los servicios de fotos en la nube y que se sienten cómodas con un flujo de trabajo basado en carpetas, aunque podría requerir cuidado adicional cuando los archivos también se gestionan con otras herramientas fuera de Lap."
+        "goal": "Lap es un gestor de fotos de código abierto y local-first para macOS, Windows y Linux, presentado como una alternativa centrada en la privacidad frente a los servicios de fotos en la nube, sin subida forzada y con búsqueda por IA local.",
+        "usage": "Los usuarios pueden descargar el instalador correspondiente desde la página de la última versión (https://github.com/julyx10/lap/releases/latest), o en macOS instalarlo con `brew install --cask lap`. Para compilar desde el código fuente se requieren Node.js 20+, pnpm y Rust stable, ejecutando `git clone --recursive https://github.com/julyx10/lap.git` y luego `cargo tauri dev`.",
+        "pros": "El README menciona un flujo de trabajo basado en carpetas, búsqueda por IA local (incluida similitud y agrupación de rostros), Álbumes inteligentes, emparejamiento RAW+JPEG, limpieza de duplicados y compatibilidad con 60+ formatos de foto, RAW y vídeo, todo ello gratuito y de código abierto sin suscripción.",
+        "cons": "El paquete de Windows se describe como no firmado, por lo que Microsoft SmartScreen podría bloquear la descarga y requerir que el usuario haga clic en 'Keep anyway' durante la instalación.",
+        "fit": "Dado su énfasis en la gestión local y sin conexión de colecciones personales grandes (100k+ archivos) con procesamiento de IA local, Lap parece adecuado para usuarios individuales que buscan privacidad en lugar de sincronización en la nube o uso en equipo, aunque el README no especifica explícitamente un público objetivo."
       },
       "ja": {
-        "goal": "Lapは、macOS、Windows、Linux向けのオープンソースかつローカルファーストのデスクトップ写真管理ソフトで、個人の写真や動画のライブラリをクラウドにアップロードせずオフラインで閲覧・整理・検索できます。",
-        "usage": "ユーザーはGitHubのリリースページ（https://github.com/julyx10/lap/releases）からプラットフォームに合ったインストーラーをダウンロードするか、macOSでは `brew tap julyx10/lap` と `brew install --cask lap` を実行できます。ソースからビルドする場合はNode.js 20+、pnpm、安定版Rustが必要で、リポジトリをクローンした後 `cargo tauri dev` を実行します。",
-        "pros": "閉じたデータベースに取り込むのではなく既存フォルダを直接扱い、AIによる検索・類似画像検索・タグ付け・顔認識をローカルで実行し、100k+ファイル規模の大規模ライブラリ向けに設計された無料のオープンソース（GPL-3.0-or-later）ソフトウェアです。",
-        "cons": "コレクション、タグ、評価、AI/顔インデックスなどの整理情報はファイルのメタデータには埋め込まれず、Lapのローカルデータベースにのみ保存されるため、Lap外でコピーや移動されたファイルにはこれらの情報が伴いません。アプリの外でファイル名を変更したり移動したりすると整理情報が崩れる可能性があるため、他のツールでもファイルを管理するユーザーはバックアップを保持することが望ましいと考えられます。",
-        "fit": "Lapは、クラウド写真サービスに代わるプライバシー重視のオフラインの選択肢を求め、フォルダベースのワークフローに抵抗がない人に適していると考えられますが、Lap以外のツールでもファイルを管理する場合は追加の注意が必要になる可能性があります。"
+        "goal": "Lapは、macOS、Windows、Linux向けのオープンソースなローカルファースト写真管理アプリで、強制的なアップロードがなくローカルAI検索を備えた、クラウド写真サービスに代わるプライバシー重視の選択肢として紹介されています。",
+        "usage": "ユーザーは最新リリースページ(https://github.com/julyx10/lap/releases/latest)からプラットフォームに合ったインストーラーをダウンロードするか、macOSでは `brew install --cask lap` でインストールできます。ソースからビルドする場合はNode.js 20+、pnpm、Rust stableが必要で、`git clone --recursive https://github.com/julyx10/lap.git` を実行した後 `cargo tauri dev` でビルドします。",
+        "pros": "READMEには、フォルダ優先のワークフロー、類似検索や顔クラスタリングを含むローカルAI検索、スマートアルバム、RAW+JPEGのペア表示、重複整理、60+の写真・RAW・動画フォーマット対応が挙げられており、サブスクリプションなしの無料オープンソースとして提供されています。",
+        "cons": "Windows版のパッケージは署名されていないと説明されており、Microsoft SmartScreenがダウンロードをブロックし、インストール時に「保持」をクリックする必要が生じる場合があります。",
+        "fit": "オフラインで100k+のファイルからなる大規模な個人コレクションをローカルAIで管理することに重点が置かれているため、Lapはクラウド同期やチーム利用よりも、プライバシーを重視する個人ユーザーに適していると考えられますが、READMEには対象ユーザー層が明示的には記載されていません。"
       }
     },
     "evidence": {
@@ -1999,57 +2177,57 @@
           "section_heading": ""
         },
         {
-          "start_line": 14,
-          "end_line": 15,
+          "start_line": 17,
+          "end_line": 18,
           "section_heading": ""
         }
       ],
       "usage": [
         {
-          "start_line": 19,
-          "end_line": 19,
+          "start_line": 22,
+          "end_line": 22,
           "section_heading": "Download Lap"
         },
         {
-          "start_line": 31,
-          "end_line": 33,
+          "start_line": 33,
+          "end_line": 36,
           "section_heading": "macOS with Homebrew"
         },
         {
-          "start_line": 168,
-          "end_line": 175,
+          "start_line": 174,
+          "end_line": 178,
           "section_heading": "Build from Source"
         }
       ],
       "pros": [
         {
-          "start_line": 44,
-          "end_line": 48,
+          "start_line": 47,
+          "end_line": 51,
           "section_heading": "Why Lap"
         },
         {
-          "start_line": 219,
-          "end_line": 219,
-          "section_heading": "License"
+          "start_line": 55,
+          "end_line": 63,
+          "section_heading": "Features"
         }
       ],
       "cons": [
         {
-          "start_line": 82,
-          "end_line": 92,
-          "section_heading": "What is stored locally by Lap"
+          "start_line": 27,
+          "end_line": 27,
+          "section_heading": "Download Lap"
         }
       ],
       "fit": [
         {
-          "start_line": 15,
-          "end_line": 15,
-          "section_heading": ""
+          "start_line": 50,
+          "end_line": 50,
+          "section_heading": "Why Lap"
         },
         {
-          "start_line": 90,
-          "end_line": 94,
-          "section_heading": "Working with files outside Lap"
+          "start_line": 17,
+          "end_line": 18,
+          "section_heading": ""
         }
       ]
     },
@@ -2063,16 +2241,16 @@
       },
       {
         "kind": "command",
-        "value": "cargo tauri dev",
+        "value": "git clone --recursive https://github.com/julyx10/lap.git",
         "fields": [
           "usage"
         ]
       },
       {
-        "kind": "version",
-        "value": "GPL-3.0-or-later",
+        "kind": "command",
+        "value": "cargo tauri dev",
         "fields": [
-          "pros"
+          "usage"
         ]
       },
       {
@@ -2086,12 +2264,19 @@
         "kind": "number",
         "value": "100k+",
         "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "60+",
+        "fields": [
           "pros"
         ]
       },
       {
         "kind": "url",
-        "value": "https://github.com/julyx10/lap/releases",
+        "value": "https://github.com/julyx10/lap/releases/latest",
         "fields": [
           "usage"
         ]
@@ -2102,35 +2287,19 @@
         "fields": [
           "goal",
           "usage",
-          "cons",
           "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Tauri",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Rust",
-        "fields": [
-          "usage"
         ]
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "julyx10/lap",
       "path": "README.md",
-      "blob_sha": "5e23efcc8bbfd18d0c90aca668c44ba2f0f4c1c3",
-      "content_sha256": "d8dd873ad577ecbda2544d704712711b4cf9485fdcc49abf2a06de642875767d",
+      "blob_sha": "428e6e03519a6d08765d5d61e7f2b3878a0970b2",
+      "content_sha256": "12d7095c3cc91d23d62fc217005f0220ff48dc40a59ac38a2c4ce4f39a78d2fb",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -2144,58 +2313,53 @@
   },
   "superdesigndev/treg": {
     "content": {
-      "goal": "Treg (superdesigndev/treg) is described as \"OpenRouter, but for agent tools instead of models\" — a proxy letting an AI agent reach 3,000+ catalogued endpoints across 60+ providers (SEO, backlinks, social/trends, enrichment, ads, scraping, image/video generation) through one base URL and token, billed per call from a cent, alongside a team's own registered keys, skills, and CLIs.",
-      "usage": "Install with `curl -fsSL https://treg.to/install.sh | sh`, authenticate with `treg login`, then discover and call tools via commands such as `treg catalog search` and `treg call`; it can also be added as a Claude Code plugin (`/plugin install treg@treg`), and the hosted service runs at `https://treg.to`.",
-      "pros": "Catalog endpoints require no separate provider signup since Treg holds the upstream accounts and injects credentials server-side; a team's own connected key always takes priority over Treg's and those calls are described as unmetered, so credentials never need to leave the server.",
-      "cons": "Self-hosting a full registry server (rather than just the CLI) needs the extra dependency set via `pip install \"tools-registry[server]\"` for FastAPI, database drivers, and encryption; catalogued calls without a provider key draw down a prepaid balance, and exhausting it returns an HTTP 402 response.",
-      "fit": "Based on the documented feature set, Treg appears best suited to teams building AI agents that need broad, pay-per-call access to many third-party tool providers without managing individual vendor subscriptions; it is distributed under Apache 2.0 with additional terms and self-hosting is presented as a supported option."
+      "goal": "Treg positions itself as \"OpenRouter for Tools\": a proxy/registry giving an agent a single base URL and token to call over 3,000 catalogued endpoints across 60+ providers (SEO, social, enrichment, ads, scraping, media generation), priced per call from a cent, alongside a team's own registered keys, skills, and CLIs.",
+      "usage": "Install via `curl -fsSL https://treg.to/install.sh | sh`, then run `treg login`, and immediately try commands like `treg catalog search \"backlinks for a domain\"` or `treg call <tool>` without registering a key. Self-hosting the server requires `pip install \"tools-registry[server]\"`, while `pip install tools-registry` alone installs just the CLI.",
+      "pros": "The catalog lets an agent call vendor endpoints without individual provider signups or accounts, with per-call pricing from a cent. Team-registered keys always take priority over treg's own and are documented as unmetered, and the proxy is described as relaying (not modeling) upstream APIs while injecting authentication server-side.",
+      "cons": "Running Treg as a self-hosted registry (not just the CLI) requires installing the additional \"server\" extra, which the README states adds FastAPI, database drivers, and encryption dependencies not included in the base package. The documentation also warns that losing the Fernet secret key makes stored secrets unrecoverable, suggesting credential backups may be an operational necessity.",
+      "fit": "Treg appears best suited to teams wanting shared, centrally billed access to many third-party APIs without each member holding individual accounts, and it can be self-hosted under an Apache 2.0 license with additional terms restricting redistribution as a competing hosted registry service."
     },
     "summaries": {
       "en": {
-        "goal": "Treg (superdesigndev/treg) is described as \"OpenRouter, but for agent tools instead of models\" — a proxy letting an AI agent reach 3,000+ catalogued endpoints across 60+ providers (SEO, backlinks, social/trends, enrichment, ads, scraping, image/video generation) through one base URL and token, billed per call from a cent, alongside a team's own registered keys, skills, and CLIs.",
-        "usage": "Install with `curl -fsSL https://treg.to/install.sh | sh`, authenticate with `treg login`, then discover and call tools via commands such as `treg catalog search` and `treg call`; it can also be added as a Claude Code plugin (`/plugin install treg@treg`), and the hosted service runs at `https://treg.to`.",
-        "pros": "Catalog endpoints require no separate provider signup since Treg holds the upstream accounts and injects credentials server-side; a team's own connected key always takes priority over Treg's and those calls are described as unmetered, so credentials never need to leave the server.",
-        "cons": "Self-hosting a full registry server (rather than just the CLI) needs the extra dependency set via `pip install \"tools-registry[server]\"` for FastAPI, database drivers, and encryption; catalogued calls without a provider key draw down a prepaid balance, and exhausting it returns an HTTP 402 response.",
-        "fit": "Based on the documented feature set, Treg appears best suited to teams building AI agents that need broad, pay-per-call access to many third-party tool providers without managing individual vendor subscriptions; it is distributed under Apache 2.0 with additional terms and self-hosting is presented as a supported option."
+        "goal": "Treg positions itself as \"OpenRouter for Tools\": a proxy/registry giving an agent a single base URL and token to call over 3,000 catalogued endpoints across 60+ providers (SEO, social, enrichment, ads, scraping, media generation), priced per call from a cent, alongside a team's own registered keys, skills, and CLIs.",
+        "usage": "Install via `curl -fsSL https://treg.to/install.sh | sh`, then run `treg login`, and immediately try commands like `treg catalog search \"backlinks for a domain\"` or `treg call <tool>` without registering a key. Self-hosting the server requires `pip install \"tools-registry[server]\"`, while `pip install tools-registry` alone installs just the CLI.",
+        "pros": "The catalog lets an agent call vendor endpoints without individual provider signups or accounts, with per-call pricing from a cent. Team-registered keys always take priority over treg's own and are documented as unmetered, and the proxy is described as relaying (not modeling) upstream APIs while injecting authentication server-side.",
+        "cons": "Running Treg as a self-hosted registry (not just the CLI) requires installing the additional \"server\" extra, which the README states adds FastAPI, database drivers, and encryption dependencies not included in the base package. The documentation also warns that losing the Fernet secret key makes stored secrets unrecoverable, suggesting credential backups may be an operational necessity.",
+        "fit": "Treg appears best suited to teams wanting shared, centrally billed access to many third-party APIs without each member holding individual accounts, and it can be self-hosted under an Apache 2.0 license with additional terms restricting redistribution as a competing hosted registry service."
       },
       "ko": {
-        "goal": "Treg(superdesigndev/treg)는 \"모델이 아닌 에이전트 도구를 위한 OpenRouter\"로 소개되며, 하나의 base URL과 토큰으로 60개 이상의 제공업체에 걸친 3,000개 이상의 카탈로그화된 엔드포인트(SEO, 백링크, 소셜/트렌드, 기업 정보 보강, 광고, 스크래핑, 이미지/영상 생성 등)에 접근할 수 있는 프록시이며, 팀 자체의 키·스킬·CLI도 함께 등록해 사용할 수 있습니다.",
-        "usage": "`curl -fsSL https://treg.to/install.sh | sh` 명령으로 설치하고 `treg login`으로 로그인한 뒤, `treg catalog search`나 `treg call` 같은 명령으로 도구를 탐색하고 호출합니다. Claude Code 플러그인(`/plugin install treg@treg`)으로도 설치할 수 있으며, 호스팅 서비스는 `https://treg.to`에서 제공됩니다.",
-        "pros": "카탈로그 엔드포인트는 Treg가 상위 계정을 대신 보유하고 서버 측에서 자격 증명을 주입하므로 별도의 제공업체 가입이 필요 없으며, 팀이 직접 연결한 키는 항상 Treg의 키보다 우선하고 해당 호출은 과금되지 않는 것으로 설명되어 있어 자격 증명이 서버 밖으로 나갈 필요가 없습니다.",
-        "cons": "CLI만이 아니라 전체 레지스트리 서버를 자체 호스팅하려면 `pip install \"tools-registry[server]\"`로 FastAPI, 데이터베이스 드라이버, 암호화 기능이 포함된 추가 패키지를 설치해야 하며, 제공업체 키 없이 카탈로그를 호출하면 선불 잔액이 차감되고 잔액이 소진되면 HTTP 402 응답이 반환됩니다.",
-        "fit": "문서화된 기능을 근거로 볼 때, Treg는 개별 공급업체 구독을 각각 관리하지 않고도 다수의 서드파티 도구에 종량제로 폭넓게 접근해야 하는 AI 에이전트를 구축하는 팀에 적합해 보입니다. Apache 2.0 라이선스에 추가 조항이 붙어 배포되며 자체 호스팅도 지원되는 옵션으로 제시됩니다."
+        "goal": "Treg는 \"도구를 위한 OpenRouter\"를 표방하는 프록시/레지스트리로, 에이전트가 단일 기본 URL과 토큰으로 60개 이상 공급자에 걸친 3,000개 이상의 카탈로그 엔드포인트(SEO, 소셜, 정보 보강, 광고, 스크래핑, 미디어 생성 등)를 호출할 수 있게 하며, 건당 1센트부터 과금되고 팀 자체 키·스킬·CLI도 함께 등록할 수 있다.",
+        "usage": "`curl -fsSL https://treg.to/install.sh | sh`로 설치한 뒤 `treg login`으로 로그인하고, `treg catalog search \"backlinks for a domain\"`이나 `treg call <tool>` 같은 명령을 키 등록 없이 바로 실행할 수 있다. 서버를 자체 호스팅하려면 `pip install \"tools-registry[server]\"`가 필요하며, `pip install tools-registry`만 설치하면 CLI만 제공된다.",
+        "pros": "카탈로그를 통해 개별 공급자 가입이나 계정 없이 벤더 엔드포인트를 호출할 수 있고 건당 요금은 1센트부터 시작한다. 팀이 등록한 자체 키는 항상 treg의 키보다 우선되며 과금되지 않는다고 문서화되어 있고, 프록시는 업스트림 API를 \"모델링하지 않고 중계\"하며 인증은 서버 측에서 주입한다고 설명된다.",
+        "cons": "CLI만이 아니라 자체 호스팅 레지스트리로 실행하려면 \"server\" 추가 패키지 설치가 필요하며, README에 따르면 이는 기본 패키지에 없는 FastAPI, 데이터베이스 드라이버, 암호화 관련 의존성을 추가한다. 또한 Fernet 비밀 키를 분실하면 저장된 비밀 정보가 복구 불가능해진다고 경고하고 있어, 자격 증명 백업이 운영상 필수적일 수 있음을 시사한다.",
+        "fit": "Treg는 각 팀원이 개별 계정을 보유하지 않고도 여러 타사 API에 공유·중앙 과금 방식으로 접근하려는 팀에 적합해 보이며, 경쟁 호스팅 레지스트리 서비스로의 재배포를 제한하는 추가 조항이 포함된 Apache 2.0 라이선스 하에 자체 호스팅도 가능한 것으로 보인다."
       },
       "zh-CN": {
-        "goal": "Treg(superdesigndev/treg)被描述为“面向智能体工具而非模型的 OpenRouter”——一个代理服务，让 AI 智能体可通过单一 base URL 和令牌访问跨 60 多家服务商的 3,000 多个已编目端点（涵盖 SEO、外链、社交/趋势、信息增强、广告、抓取、图像/视频生成等），按调用计费最低一美分起，同时也支持团队自有的密钥、技能和 CLI。",
-        "usage": "使用 `curl -fsSL https://treg.to/install.sh | sh` 安装，随后运行 `treg login` 登录，再通过 `treg catalog search`、`treg call` 等命令查找并调用工具；也可作为 Claude Code 插件安装（`/plugin install treg@treg`），托管服务地址为 `https://treg.to`。",
-        "pros": "由于 Treg 代为持有上游账户并在服务端注入凭据，编目端点无需单独向服务商注册；团队自行接入的密钥始终优先于 Treg 自带的密钥，且文档说明此类调用不计费，因此凭据无需离开服务器。",
-        "cons": "若要自行托管完整的注册中心服务端（而非仅 CLI），需通过 `pip install \"tools-registry[server]\"` 安装包含 FastAPI、数据库驱动和加密支持的附加依赖；未使用服务商密钥的编目调用会消耗预付余额，余额耗尽时会返回 HTTP 402 响应。",
-        "fit": "根据文档所述功能，Treg 似乎更适合需要按调用付费、广泛接入多家第三方工具而无需分别管理各供应商订阅的智能体开发团队；项目基于附加条款的 Apache 2.0 许可发布，并将自托管列为受支持的选项。"
+        "goal": "Treg 自称为\"面向工具的 OpenRouter\",是一个代理/注册中心,让智能体只需一个基础 URL 和令牌,即可调用横跨 60 多家供应商的 3000 多个已编目端点(涵盖 SEO、社交、信息补充、广告、抓取、媒体生成等),按次计费最低一美分起,同时也可登记团队自有的密钥、技能和 CLI。",
+        "usage": "通过 `curl -fsSL https://treg.to/install.sh | sh` 安装,随后运行 `treg login` 登录,即可直接尝试如 `treg catalog search \"backlinks for a domain\"` 或 `treg call <tool>` 等命令,无需预先注册密钥。若要自托管服务器,需要 `pip install \"tools-registry[server]\"`;仅执行 `pip install tools-registry` 则只安装 CLI。",
+        "pros": "通过目录,智能体无需为各供应商单独注册账号即可调用其端点,按次计费最低一美分起。文档说明团队自行注册的密钥始终优先于 treg 自身密钥且不计费,代理被描述为\"中继而非建模\"上游 API,并在服务器端注入认证信息。",
+        "cons": "若要将 Treg 作为自托管注册中心运行(而不仅是 CLI),需要额外安装 \"server\" 扩展包,README 说明这会添加基础包中不包含的 FastAPI、数据库驱动和加密相关依赖。文档还提醒,一旦丢失 Fernet 密钥,已存储的密钥将无法恢复,这似乎意味着凭证备份在运维上是必要的。",
+        "fit": "Treg 似乎更适合希望以共享、集中计费方式访问多个第三方 API、而无需每位成员各自开户的团队;它可在附加条款的 Apache 2.0 许可下自托管,但该条款限制将其重新分发为竞争性的托管注册服务。"
       },
       "es": {
-        "goal": "Treg (superdesigndev/treg) se describe como \"OpenRouter, pero para herramientas de agentes en lugar de modelos\": un proxy que permite a un agente de IA acceder a más de 3.000 endpoints catalogados en más de 60 proveedores (SEO, backlinks, redes sociales/tendencias, enriquecimiento, publicidad, scraping, generación de imagen/vídeo) mediante una única URL base y token, facturado por llamada desde un centavo, junto con las claves, skills y CLIs propias del equipo.",
-        "usage": "Se instala con `curl -fsSL https://treg.to/install.sh | sh`, se inicia sesión con `treg login`, y luego se descubren y llaman herramientas con comandos como `treg catalog search` y `treg call`; también puede añadirse como plugin de Claude Code (`/plugin install treg@treg`), y el servicio alojado está disponible en `https://treg.to`.",
-        "pros": "Los endpoints del catálogo no requieren registro aparte con el proveedor porque Treg mantiene las cuentas y inyecta las credenciales del lado del servidor; una clave propia conectada por el equipo siempre tiene prioridad sobre la de Treg y esas llamadas se describen como no medidas, de modo que las credenciales no necesitan salir del servidor.",
-        "cons": "Autoalojar un servidor completo del registro (no solo la CLI) requiere instalar el extra `pip install \"tools-registry[server]\"` para FastAPI, controladores de base de datos y cifrado; las llamadas catalogadas sin clave propia de proveedor consumen un saldo prepagado, y agotarlo devuelve una respuesta HTTP 402.",
-        "fit": "Según las funciones documentadas, Treg parece adecuado para equipos que construyen agentes de IA con necesidad de acceso amplio y facturado por llamada a numerosos proveedores de herramientas externas, sin gestionar suscripciones individuales; se distribuye bajo Apache 2.0 con términos adicionales y el autoalojamiento se presenta como una opción admitida."
+        "goal": "Treg se presenta como \"OpenRouter para herramientas\": un proxy/registro que permite a un agente usar una única URL base y un token para llamar a más de 3.000 endpoints catalogados en más de 60 proveedores (SEO, redes sociales, enriquecimiento de datos, anuncios, scraping, generación de medios), con precios por llamada desde un centavo, además de las propias claves, skills y CLIs del equipo.",
+        "usage": "Se instala con `curl -fsSL https://treg.to/install.sh | sh`, luego se ejecuta `treg login`, y de inmediato se pueden probar comandos como `treg catalog search \"backlinks for a domain\"` o `treg call <tool>` sin registrar ninguna clave. Para autoalojar el servidor se requiere `pip install \"tools-registry[server]\"`, mientras que `pip install tools-registry` por sí solo instala únicamente la CLI.",
+        "pros": "El catálogo permite llamar a endpoints de proveedores sin necesidad de crear cuenta individual con cada uno, con precios desde un centavo por llamada. Las claves propias del equipo siempre tienen prioridad sobre las de treg y, según la documentación, esas llamadas no se facturan; el proxy se describe como un relé fiel (no un modelo) de las APIs upstream, que inyecta la autenticación en el servidor.",
+        "cons": "Ejecutar Treg como registro autoalojado (no solo la CLI) requiere instalar el extra \"server\", que según el README añade FastAPI, controladores de base de datos y cifrado que no vienen en el paquete base. La documentación también advierte que perder la clave Fernet vuelve irrecuperables los secretos almacenados, lo que sugiere que respaldar las credenciales podría ser una necesidad operativa.",
+        "fit": "Treg parece adecuado para equipos que buscan acceso compartido y facturado centralmente a múltiples APIs de terceros sin que cada miembro necesite cuentas individuales, y puede autoalojarse bajo una licencia Apache 2.0 con términos adicionales que restringen su redistribución como servicio de registro alojado competidor."
       },
       "ja": {
-        "goal": "Treg（superdesigndev/treg）は「モデルではなくエージェント向けツールのための OpenRouter」と説明されており、1つのベース URL とトークンで60以上のプロバイダーにまたがる3,000以上のカタログ化されたエンドポイント（SEO、被リンク、ソーシャル/トレンド、企業・人物のエンリッチメント、広告、スクレイピング、画像/動画生成など）にアクセスできるプロキシです。呼び出しごとに数セントから課金され、チーム独自のキー・スキル・CLI も併せて登録できます。",
-        "usage": "`curl -fsSL https://treg.to/install.sh | sh` でインストールし、`treg login` でサインインした後、`treg catalog search` や `treg call` などのコマンドでツールを検索・呼び出します。Claude Code プラグイン（`/plugin install treg@treg`）としても導入でき、ホスト版サービスは `https://treg.to` で提供されています。",
-        "pros": "カタログのエンドポイントは Treg が上流アカウントを保持しサーバー側で認証情報を注入するため、個別のプロバイダー登録は不要とされています。チームが自ら接続したキーは常に Treg 自身のキーより優先され、その呼び出しは課金対象外と説明されているため、認証情報がサーバー外へ出る必要がありません。",
-        "cons": "CLI だけでなくレジストリサーバー全体を自前でホストする場合は、`pip install \"tools-registry[server]\"` により FastAPI・データベースドライバ・暗号化機能を含む追加パッケージが必要です。プロバイダー固有のキーを持たないカタログ呼び出しは前払い残高を消費し、残高が尽きると HTTP 402 応答が返されます。",
-        "fit": "ドキュメント化された機能から判断すると、Treg は個々のベンダー契約を管理せずに多数のサードパーティツールへ従量課金で幅広くアクセスしたい AI エージェント開発チームに適していると考えられます。追加条項付きの Apache 2.0 ライセンスで配布されており、セルフホスティングもサポートされる選択肢として示されています。"
+        "goal": "Treg は「ツールのための OpenRouter」を謳うプロキシ/レジストリで、エージェントが単一のベース URL とトークンだけで、60 以上のプロバイダーにまたがる 3,000 以上のカタログ化されたエンドポイント(SEO、ソーシャル、情報エンリッチメント、広告、スクレイピング、メディア生成など)を呼び出せるとされ、料金は 1 コールあたり1セントから、さらにチーム自身の鍵・スキル・CLI も登録できる。",
+        "usage": "`curl -fsSL https://treg.to/install.sh | sh` でインストールし、`treg login` でサインインした後、`treg catalog search \"backlinks for a domain\"` や `treg call <tool>` などのコマンドを鍵登録なしですぐに試せる。サーバーを自前でホストするには `pip install \"tools-registry[server]\"` が必要で、`pip install tools-registry` のみではCLIのみがインストールされる。",
+        "pros": "カタログを使えば、各プロバイダーへの個別登録なしにベンダーのエンドポイントを呼び出すことができ、料金は1コールあたり1セントから始まる。チームが登録した独自キーは常に treg 自身のキーより優先され、課金されないと説明されており、プロキシは上流 API を「モデル化せず中継する」ものであり、認証はサーバー側で注入されると記載されている。",
+        "cons": "CLI だけでなく自前ホストのレジストリとして実行するには \"server\" 拡張パッケージの追加インストールが必要で、README によれば基本パッケージには含まれない FastAPI、データベースドライバ、暗号化関連の依存関係が追加されるとのことです。また、Fernet 秘密鍵を紛失すると保存された秘密情報が復元不能になると警告されており、認証情報のバックアップが運用上必要になる可能性を示唆しています。",
+        "fit": "Treg は、各メンバーが個別にアカウントを持たずに複数のサードパーティ API へ共有・一元課金でアクセスしたいチームに適していると思われ、競合するホスト型レジストリサービスとしての再配布を制限する追加条項付き Apache 2.0 ライセンスの下で自前ホストも可能なようです。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 1,
-          "end_line": 1,
-          "section_heading": "Treg (OpenRouter for Tools)"
-        },
-        {
-          "start_line": 5,
           "end_line": 10,
           "section_heading": "Treg (OpenRouter for Tools)"
         }
@@ -2207,9 +2371,9 @@
           "section_heading": "Quickstart"
         },
         {
-          "start_line": 94,
-          "end_line": 96,
-          "section_heading": "Or install it as a Claude Code plugin"
+          "start_line": 317,
+          "end_line": 320,
+          "section_heading": "Run it locally"
         }
       ],
       "pros": [
@@ -2219,21 +2383,21 @@
           "section_heading": "Two kinds of tool, one token"
         },
         {
-          "start_line": 8,
-          "end_line": 8,
-          "section_heading": "Treg (OpenRouter for Tools)"
+          "start_line": 43,
+          "end_line": 44,
+          "section_heading": "Two kinds of tool, one token"
         }
       ],
       "cons": [
         {
-          "start_line": 316,
-          "end_line": 319,
+          "start_line": 317,
+          "end_line": 320,
           "section_heading": "Run it locally"
         },
         {
-          "start_line": 149,
-          "end_line": 150,
-          "section_heading": "Call a tool you don't have a key for"
+          "start_line": 351,
+          "end_line": 353,
+          "section_heading": "Configuration"
         }
       ],
       "fit": [
@@ -2243,8 +2407,8 @@
           "section_heading": "Treg (OpenRouter for Tools)"
         },
         {
-          "start_line": 437,
-          "end_line": 442,
+          "start_line": 438,
+          "end_line": 443,
           "section_heading": "License"
         }
       ]
@@ -2266,9 +2430,30 @@
       },
       {
         "kind": "command",
+        "value": "treg catalog search \"backlinks for a domain\"",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "treg call",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
         "value": "pip install \"tools-registry[server]\"",
         "fields": [
-          "cons"
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "pip install tools-registry",
+        "fields": [
+          "usage"
         ]
       },
       {
@@ -2280,23 +2465,9 @@
       },
       {
         "kind": "number",
-        "value": "3,000+",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "number",
         "value": "60+",
         "fields": [
           "goal"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "402",
-        "fields": [
-          "cons"
         ]
       },
       {
@@ -2306,19 +2477,28 @@
           "goal",
           "usage",
           "pros",
+          "cons",
           "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "OpenRouter",
+        "fields": [
+          "goal"
         ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "superdesigndev/treg",
       "path": "README.md",
-      "blob_sha": "927ade69bf2f132f88bb5432f3291574405453fb",
-      "content_sha256": "64d1ae9ab75056d03994678d3ef2616e2feb1e04b433440b8581a430bd797b7d",
+      "blob_sha": "b554ef1e010c1cccf227fe5e8f2238424c5d1f1e",
+      "content_sha256": "7340c2bf1bb7139a7cd4b75592373635648ae8325a5e4a980ce44485bbbf421e",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -2879,68 +3059,68 @@
   },
   "affaan-m/ECC": {
     "content": {
-      "goal": "ECC is an open-source toolbox that adds a coordinated engineering workflow—plan, test, implement, review, verify, remember, improve—to coding agents. It documents working best with Claude Code, a supported Codex sync path, and capability-limited adapters for other harnesses.",
-      "usage": "Install with the guided command `npx ecc-universal@2.2.2 setup`, or inside Claude Code run `/plugin marketplace add https://github.com/affaan-m/ECC` then `/plugin install ecc@ecc`. The README states the universal package requires Node.js 18+, and Claude plugin setup additionally requires Git and Claude Code 2.1 or newer.",
-      "pros": "The distribution bundles 68 agents, 292 skills, and 94 legacy command shims, plus hooks, rules, memory, continuous learning, and AgentShield security scanning. The documented workflow chains planning, test-driven development, and fresh-context review, and hooks can enforce checks outside the model's prompt.",
-      "cons": "The README states optional capabilities lack full parity across platforms: GitHub Copilot has no hook system or subagent API, and Windows native has open defects in continuous-learning v2's observer daemon and memory-vault writes. It also warns against stacking multiple install methods on one harness, since that can duplicate skills, commands, or hooks.",
-      "fit": "Based on the documented support matrix, ECC seems best suited to teams centered on Claude Code, listed as the stable primary harness, while Codex, Cursor, and other integrations are described as partial, beta, or experimental adapters without claimed feature parity."
+      "goal": "ECC is an MIT-licensed open-source engineering system for coding agents that adds a structured plan -> test -> implement -> review -> verify -> remember -> improve workflow. The README states it works best with Claude Code, has a supported Codex sync path, and provides capability-limited adapters for other harnesses such as Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, and Qwen.",
+      "usage": "Recommended setup runs `npx ecc-universal@2.2.2 setup`, which requires Node.js 18+ and, for the Claude plugin path, also Git and Claude Code 2.1+ on PATH. Alternatively, Claude Code users can run the native plugin commands `/plugin marketplace add https://github.com/affaan-m/ECC` and `/plugin install ecc@ecc`. The README instructs choosing only one install method per harness.",
+      "pros": "The project bundles 68 specialized agents, 292 skills, and 94 legacy command shims, along with hooks, rules, memory, and continuous learning, plus included AgentShield security scanning covering prompts, hooks, MCP configuration, permissions, and secrets.",
+      "cons": "The documented platform support matrix indicates feature parity is not guaranteed outside Claude Code: several harnesses are listed as beta, experimental, or instruction-only, and Windows-native paths have open defects (issues #2489 and #2626) affecting the continuous-learning observer daemon and memory-vault writes.",
+      "fit": "Given the stated dependency on Node.js 18+, Git, and Claude Code 2.1+, and its description as working best with Claude Code, ECC appears best suited for teams primarily using Claude Code, with Codex as a secondary supported path and other editors receiving more limited adapter support."
     },
     "summaries": {
       "en": {
-        "goal": "ECC is an open-source toolbox that adds a coordinated engineering workflow—plan, test, implement, review, verify, remember, improve—to coding agents. It documents working best with Claude Code, a supported Codex sync path, and capability-limited adapters for other harnesses.",
-        "usage": "Install with the guided command `npx ecc-universal@2.2.2 setup`, or inside Claude Code run `/plugin marketplace add https://github.com/affaan-m/ECC` then `/plugin install ecc@ecc`. The README states the universal package requires Node.js 18+, and Claude plugin setup additionally requires Git and Claude Code 2.1 or newer.",
-        "pros": "The distribution bundles 68 agents, 292 skills, and 94 legacy command shims, plus hooks, rules, memory, continuous learning, and AgentShield security scanning. The documented workflow chains planning, test-driven development, and fresh-context review, and hooks can enforce checks outside the model's prompt.",
-        "cons": "The README states optional capabilities lack full parity across platforms: GitHub Copilot has no hook system or subagent API, and Windows native has open defects in continuous-learning v2's observer daemon and memory-vault writes. It also warns against stacking multiple install methods on one harness, since that can duplicate skills, commands, or hooks.",
-        "fit": "Based on the documented support matrix, ECC seems best suited to teams centered on Claude Code, listed as the stable primary harness, while Codex, Cursor, and other integrations are described as partial, beta, or experimental adapters without claimed feature parity."
+        "goal": "ECC is an MIT-licensed open-source engineering system for coding agents that adds a structured plan -> test -> implement -> review -> verify -> remember -> improve workflow. The README states it works best with Claude Code, has a supported Codex sync path, and provides capability-limited adapters for other harnesses such as Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, and Qwen.",
+        "usage": "Recommended setup runs `npx ecc-universal@2.2.2 setup`, which requires Node.js 18+ and, for the Claude plugin path, also Git and Claude Code 2.1+ on PATH. Alternatively, Claude Code users can run the native plugin commands `/plugin marketplace add https://github.com/affaan-m/ECC` and `/plugin install ecc@ecc`. The README instructs choosing only one install method per harness.",
+        "pros": "The project bundles 68 specialized agents, 292 skills, and 94 legacy command shims, along with hooks, rules, memory, and continuous learning, plus included AgentShield security scanning covering prompts, hooks, MCP configuration, permissions, and secrets.",
+        "cons": "The documented platform support matrix indicates feature parity is not guaranteed outside Claude Code: several harnesses are listed as beta, experimental, or instruction-only, and Windows-native paths have open defects (issues #2489 and #2626) affecting the continuous-learning observer daemon and memory-vault writes.",
+        "fit": "Given the stated dependency on Node.js 18+, Git, and Claude Code 2.1+, and its description as working best with Claude Code, ECC appears best suited for teams primarily using Claude Code, with Codex as a secondary supported path and other editors receiving more limited adapter support."
       },
       "ko": {
-        "goal": "ECC는 코딩 에이전트에 계획-테스트-구현-리뷰-검증-기억-개선으로 이어지는 통합 엔지니어링 워크플로를 더하는 오픈소스 도구 모음입니다. 문서에 따르면 Claude Code와 가장 잘 작동하며, 지원되는 Codex 동기화 경로와 다른 하니스를 위한 기능 제한적 어댑터를 제공합니다.",
-        "usage": "설치는 안내형 명령어 `npx ecc-universal@2.2.2 setup`을 사용하거나, Claude Code 내부에서 `/plugin marketplace add https://github.com/affaan-m/ECC`를 실행한 뒤 `/plugin install ecc@ecc`를 실행합니다. README에 따르면 유니버설 패키지는 Node.js 18 이상이 필요하며, Claude 플러그인 설치는 추가로 Git과 Claude Code 2.1 이상을 요구합니다.",
-        "pros": "이 배포판에는 68개 에이전트, 292개 스킬, 94개의 레거시 명령어 shim이 포함되며, 훅, 규칙, 메모리, 지속 학습, AgentShield 보안 스캐닝도 함께 제공됩니다. 문서화된 워크플로는 계획, 테스트 주도 개발, 새 컨텍스트에서의 리뷰를 연결하며, 훅은 프롬프트 밖에서 검사를 강제할 수 있습니다.",
-        "cons": "README는 플랫폼 간 선택적 기능이 완전히 동등하지 않다고 명시합니다. 예를 들어 GitHub Copilot에는 훅 시스템이나 서브에이전트 API가 없고, Windows 네이티브에는 continuous-learning v2의 옵저버 데몬과 memory-vault 쓰기에 알려진 결함이 있습니다. 또한 한 하니스에 여러 설치 방식을 겹쳐 쓰지 말라고 경고하는데, 이는 스킬, 명령어, 훅이 중복될 수 있기 때문입니다.",
-        "fit": "문서화된 지원 매트릭스를 볼 때, ECC는 Claude Code를 중심으로 사용하는 팀에 가장 적합해 보입니다. Claude Code는 '안정적인 기본' 하니스로 분류되는 반면, Codex, Cursor 및 기타 통합은 부분적이거나 베타/실험적 어댑터로 설명되며 기능 동등성은 주장되지 않습니다."
+        "goal": "ECC는 MIT 라이선스 오픈소스 프로젝트로, 코딩 에이전트에 plan -> test -> implement -> review -> verify -> remember -> improve 워크플로우를 제공하는 엔지니어링 시스템입니다. 문서에 따르면 Claude Code와 함께 사용할 때 가장 잘 작동하며, Codex 동기화 경로를 지원하고, Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, Qwen 등 다른 하네스에는 기능이 제한된 어댑터를 제공합니다.",
+        "usage": "권장 설치 방법은 `npx ecc-universal@2.2.2 setup` 명령을 실행하는 것이며, 이는 Node.js 18 이상이 필요하고 Claude 플러그인 경로의 경우 Git과 PATH에 등록된 Claude Code 2.1 이상이 추가로 필요합니다. Claude Code 사용자는 대신 네이티브 플러그인 명령인 `/plugin marketplace add https://github.com/affaan-m/ECC`와 `/plugin install ecc@ecc`를 실행할 수 있습니다. 문서는 하네스별로 설치 방법을 하나만 선택하라고 안내합니다.",
+        "pros": "ECC는 68개의 전문 에이전트, 292개의 스킬, 94개의 레거시 명령 셰임을 제공하며, 훅, 규칙, 메모리, 지속 학습 기능과 함께 프롬프트·훅·MCP 설정·권한·비밀정보를 검사하는 AgentShield 보안 스캐닝이 포함되어 있습니다.",
+        "cons": "문서화된 플랫폼 지원 매트릭스에 따르면 Claude Code 외의 환경에서는 기능 동등성이 보장되지 않으며, 일부 하네스는 베타, 실험적, 또는 지시문 전용으로 분류되어 있습니다. 또한 Windows 네이티브 환경에서는 지속 학습 관찰자 데몬과 메모리 볼트 쓰기 작업에 미해결 결함(#2489, #2626)이 있는 것으로 보입니다.",
+        "fit": "Node.js 18 이상, Git, Claude Code 2.1 이상이라는 명시된 요구사항과 Claude Code에서 가장 잘 작동한다는 설명을 고려할 때, ECC는 주로 Claude Code를 사용하는 팀에 적합해 보이며, Codex는 보조 지원 경로로, 다른 에디터는 더 제한된 어댑터 지원을 받는 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "ECC 是一个开源工具集,为编码代理添加了计划-测试-实现-审查-验证-记忆-改进的协同工程工作流。文档说明它与 Claude Code 配合效果最佳,提供受支持的 Codex 同步路径,以及针对其他工具链的功能受限适配器。",
-        "usage": "可通过引导式命令 `npx ecc-universal@2.2.2 setup` 安装,或在 Claude Code 内运行 `/plugin marketplace add https://github.com/affaan-m/ECC` 后再运行 `/plugin install ecc@ecc`。README 指出通用软件包需要 Node.js 18 或更高版本,Claude 插件安装还需要 Git 以及 Claude Code 2.1 或更高版本。",
-        "pros": "该发行版包含 68 个代理、292 个技能以及 94 个旧版命令垫片,并配备钩子、规则、记忆、持续学习和 AgentShield 安全扫描。文档化的工作流将计划、测试驱动开发和全新上下文审查串联起来,钩子可以在提示之外强制执行检查。",
-        "cons": "README 说明各平台上的可选功能并非完全对等:例如 GitHub Copilot 没有钩子系统或子代理 API,而 Windows 原生环境中持续学习 v2 的观察守护进程和 memory-vault 写入存在已知缺陷。文档还警告不要在同一工具链上叠加多种安装方式,因为这可能导致技能、命令或钩子重复。",
-        "fit": "根据文档化的支持矩阵,ECC 似乎最适合以 Claude Code 为核心的团队,因为它被列为“稳定主力”工具链,而 Codex、Cursor 及其他集成则被描述为部分支持或处于测试/实验阶段的适配器,并未声称功能对等。"
+        "goal": "ECC 是一个 MIT 许可的开源工程系统,为编码代理提供 plan -> test -> implement -> review -> verify -> remember -> improve 的工作流程。文档说明它与 Claude Code 配合效果最佳,提供受支持的 Codex 同步路径,并为 Cursor、OpenCode、Gemini、Zed、GitHub Copilot、Antigravity、Qwen 等其他工具提供功能受限的适配器。",
+        "usage": "推荐的安装方式是运行 `npx ecc-universal@2.2.2 setup`,该方式需要 Node.js 18 或更高版本;若走 Claude 插件路径,还需要 Git 以及已加入 PATH 的 Claude Code 2.1 或更高版本。Claude Code 用户也可以运行原生插件命令 `/plugin marketplace add https://github.com/affaan-m/ECC` 和 `/plugin install ecc@ecc`。文档建议每个工具只选择一种安装方式。",
+        "pros": "ECC 内置 68 个专用代理、292 个技能和 94 个旧版命令垫片,并附带钩子、规则、记忆、持续学习功能,以及内置的 AgentShield 安全扫描,可检查提示词、钩子、MCP 配置、权限和密钥。",
+        "cons": "文档记录的平台支持矩阵表明,除 Claude Code 外的功能对等性并不保证,部分工具被标注为测试版、实验性或仅限指令层。此外,Windows 原生环境下的持续学习观察守护进程和记忆库写入功能似乎存在未解决的缺陷(#2489、#2626)。",
+        "fit": "考虑到文档中明确要求 Node.js 18 及以上版本、Git 以及 Claude Code 2.1 及以上版本,并且强调与 Claude Code 配合效果最佳,ECC 似乎最适合主要使用 Claude Code 的团队,Codex 作为次要受支持路径,而其他编辑器获得的适配器支持则较为有限。"
       },
       "es": {
-        "goal": "ECC es un conjunto de herramientas de código abierto que añade un flujo de trabajo de ingeniería coordinado -planificar, probar, implementar, revisar, verificar, recordar, mejorar- a los agentes de codificación. El documento indica que funciona mejor con Claude Code, cuenta con una ruta de sincronización compatible con Codex y adaptadores de capacidad limitada para otros entornos.",
-        "usage": "Se instala con el comando guiado `npx ecc-universal@2.2.2 setup`, o dentro de Claude Code ejecutando `/plugin marketplace add https://github.com/affaan-m/ECC` seguido de `/plugin install ecc@ecc`. El README indica que el paquete universal requiere Node.js 18 o superior, y que la instalación del plugin de Claude además requiere Git y Claude Code 2.1 o superior.",
-        "pros": "La distribución incluye 68 agentes, 292 habilidades y 94 shims de comandos heredados, además de hooks, reglas, memoria, aprendizaje continuo y escaneo de seguridad AgentShield. El flujo documentado encadena planificación, desarrollo guiado por pruebas y revisión con contexto nuevo, y los hooks pueden forzar comprobaciones fuera del prompt.",
-        "cons": "El README indica que las capacidades opcionales no tienen paridad total entre plataformas: por ejemplo, GitHub Copilot carece de sistema de hooks o API de subagentes, y Windows nativo tiene defectos abiertos en el demonio observador de continuous-learning v2 y en las escrituras del memory-vault. También advierte contra apilar varios métodos de instalación en el mismo entorno, ya que eso puede duplicar habilidades, comandos o hooks.",
-        "fit": "Según la matriz de soporte documentada, ECC parece ajustarse mejor a equipos centrados en Claude Code, listado como el entorno 'estable primario', mientras que Codex, Cursor y otras integraciones se describen como adaptadores parciales, beta o experimentales sin paridad de funciones declarada."
+        "goal": "ECC es un sistema de ingeniería de código abierto con licencia MIT que añade a los agentes de codificación un flujo de trabajo plan -> test -> implement -> review -> verify -> remember -> improve. Según la documentación, funciona mejor con Claude Code, cuenta con una ruta de sincronización compatible para Codex y ofrece adaptadores de capacidad limitada para otros entornos como Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity y Qwen.",
+        "usage": "La instalación recomendada consiste en ejecutar `npx ecc-universal@2.2.2 setup`, que requiere Node.js 18 o superior y, para la ruta del plugin de Claude, también Git y Claude Code 2.1 o superior en el PATH. Los usuarios de Claude Code también pueden ejecutar los comandos nativos del plugin `/plugin marketplace add https://github.com/affaan-m/ECC` y `/plugin install ecc@ecc`. La documentación indica elegir un único método de instalación por entorno.",
+        "pros": "ECC incluye 68 agentes especializados, 292 skills y 94 shims de comandos heredados, junto con hooks, reglas, memoria y aprendizaje continuo, además del escaneo de seguridad AgentShield incluido para prompts, hooks, configuración MCP, permisos y secretos.",
+        "cons": "La matriz de soporte de plataformas documentada indica que la paridad de funciones no está garantizada fuera de Claude Code: varios entornos figuran como beta, experimentales o solo de instrucciones, y las rutas nativas de Windows presentan defectos abiertos (issues #2489 y #2626) que afectan al demonio observador del aprendizaje continuo y a las escrituras del memory vault.",
+        "fit": "Dado el requisito documentado de Node.js 18+, Git y Claude Code 2.1+, y su descripción como la mejor opción con Claude Code, ECC parece más adecuado para equipos que usan principalmente Claude Code, con Codex como ruta secundaria compatible y otros editores recibiendo un soporte de adaptador más limitado."
       },
       "ja": {
-        "goal": "ECCは、計画・テスト・実装・レビュー・検証・記憶・改善という連携したエンジニアリングワークフローをコーディングエージェントに追加するオープンソースのツール群です。READMEによれば Claude Code で最も効果を発揮し、サポートされる Codex 同期パスと、他のハーネス向けの機能制限付きアダプタを備えています。",
-        "usage": "インストールはガイド付きコマンド `npx ecc-universal@2.2.2 setup` を使うか、Claude Code 内で `/plugin marketplace add https://github.com/affaan-m/ECC` を実行した後に `/plugin install ecc@ecc` を実行します。READMEでは、ユニバーサルパッケージには Node.js 18 以上が必要であり、Claude プラグインのセットアップにはさらに Git と Claude Code 2.1 以上が必要だと述べられています。",
-        "pros": "この配布物には 68 のエージェント、292 のスキル、94 のレガシーコマンドシムが含まれ、さらにフック、ルール、メモリ、継続学習、AgentShield セキュリティスキャンも備わっています。文書化されたワークフローは計画、テスト駆動開発、新しいコンテキストでのレビューを連結し、フックはプロンプトの外でチェックを強制できます。",
-        "cons": "READMEによれば、プラットフォーム間でオプション機能の完全な対等性はありません。たとえば GitHub Copilot にはフックシステムやサブエージェント API がなく、Windows ネイティブでは continuous-learning v2 のオブザーバーデーモンと memory-vault の書き込みに既知の不具合があります。また、同じハーネスに複数のインストール方法を重ねないよう警告しており、スキルやコマンド、フックが重複する可能性があるためです。",
-        "fit": "文書化されたサポートマトリックスから判断すると、ECC は Claude Code を中心に使うチームに最も適していると考えられます。Claude Code は「安定した主要」ハーネスとされる一方、Codex、Cursor、その他の統合は部分的、ベータ、または実験的なアダプタとされ、機能の対等性は謳われていません。"
+        "goal": "ECC はMITライセンスのオープンソースエンジニアリングシステムで、コーディングエージェントに plan -> test -> implement -> review -> verify -> remember -> improve というワークフローを提供します。ドキュメントによれば、Claude Code との組み合わせで最も効果を発揮し、Codex 向けのサポートされた同期パスを持ち、Cursor、OpenCode、Gemini、Zed、GitHub Copilot、Antigravity、Qwen などの他のハーネスには機能が限定されたアダプターを提供します。",
+        "usage": "推奨されるセットアップは `npx ecc-universal@2.2.2 setup` を実行することで、これには Node.js 18 以上が必要です。Claude プラグイン経路の場合はさらに Git と、PATH 上の Claude Code 2.1 以上が必要です。Claude Code ユーザーはネイティブプラグインコマンド `/plugin marketplace add https://github.com/affaan-m/ECC` と `/plugin install ecc@ecc` を実行することもできます。ドキュメントはハーネスごとに1つのインストール方法だけを選ぶよう案内しています。",
+        "pros": "ECC には68個の専門エージェント、292個のスキル、94個のレガシーコマンドシムが含まれ、フック、ルール、メモリ、継続学習機能に加え、プロンプト・フック・MCP設定・権限・シークレットを検査する AgentShield セキュリティスキャンが標準搭載されています。",
+        "cons": "文書化されたプラットフォームサポートマトリックスによれば、Claude Code 以外での機能の同等性は保証されておらず、一部のハーネスはベータ、実験的、または指示のみとされています。また、Windows ネイティブ環境では継続学習のオブザーバーデーモンとメモリボルトの書き込みに未解決の不具合(#2489、#2626)があるとされています。",
+        "fit": "Node.js 18以上、Git、Claude Code 2.1以上という明記された要件と、Claude Code との組み合わせが最も効果的であるという説明を踏まえると、ECC は主に Claude Code を利用するチームに適していると考えられ、Codex は補助的にサポートされた経路として、他のエディタはより限定的なアダプターサポートを受けるようです。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 129,
-          "end_line": 129,
+          "end_line": 133,
           "section_heading": "ECC"
         },
         {
           "start_line": 139,
           "end_line": 139,
           "section_heading": "ECC"
-        },
-        {
-          "start_line": 141,
-          "end_line": 141,
-          "section_heading": "ECC"
         }
       ],
       "usage": [
+        {
+          "start_line": 163,
+          "end_line": 166,
+          "section_heading": "Install ECC"
+        },
         {
           "start_line": 172,
           "end_line": 174,
@@ -2950,45 +3130,20 @@
           "start_line": 286,
           "end_line": 289,
           "section_heading": "Claude Code details"
-        },
-        {
-          "start_line": 163,
-          "end_line": 166,
-          "section_heading": "Install ECC"
         }
       ],
       "pros": [
         {
           "start_line": 141,
-          "end_line": 141,
+          "end_line": 150,
           "section_heading": "ECC"
-        },
-        {
-          "start_line": 1181,
-          "end_line": 1188,
-          "section_heading": "Why Choose ECC?"
-        },
-        {
-          "start_line": 1819,
-          "end_line": 1819,
-          "section_heading": "Security"
         }
       ],
       "cons": [
         {
           "start_line": 1272,
-          "end_line": 1272,
-          "section_heading": "Platform Support"
-        },
-        {
-          "start_line": 1279,
           "end_line": 1279,
           "section_heading": "Platform Support"
-        },
-        {
-          "start_line": 276,
-          "end_line": 276,
-          "section_heading": "Pick one path only (per harness)"
         }
       ],
       "fit": [
@@ -2999,66 +3154,12 @@
         },
         {
           "start_line": 1283,
-          "end_line": 1283,
-          "section_heading": "Platform Support"
-        },
-        {
-          "start_line": 1285,
           "end_line": 1290,
           "section_heading": "Platform Support"
         }
       ]
     },
     "invariants": [
-      {
-        "kind": "command",
-        "value": "npx ecc-universal@2.2.2 setup",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "/plugin install ecc@ecc",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "/plugin marketplace add https://github.com/affaan-m/ECC",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": "2.2.2",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "68",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "292",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "94",
-        "fields": [
-          "pros"
-        ]
-      },
       {
         "kind": "product",
         "value": "ECC",
@@ -3074,7 +3175,51 @@
         "fields": [
           "goal",
           "usage",
+          "cons",
           "fit"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "npx ecc-universal@2.2.2 setup",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/plugin marketplace add https://github.com/affaan-m/ECC",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/plugin install ecc@ecc",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "2.2.2",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "Claude Code 2.1",
+        "fields": [
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "292 skills",
+        "fields": [
+          "pros"
         ]
       },
       {
@@ -3086,14 +3231,15 @@
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "affaan-m/ecc",
       "path": "README.md",
-      "blob_sha": "9156c729a2fd2eac97ca33e297ff0deee63e600c",
-      "content_sha256": "dcbf0fed53414a8061996ee47610c79926687402aee140c0f89ebc7677adbabc",
+      "blob_sha": "117552c2bc78b4ed5897eacec23a173b2b4e5e8e",
+      "content_sha256": "6f6bc61fa36232cfd35af70a525b002d1b3c8ee5ccf8814e8657927b01b3d17d",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -7317,47 +7463,47 @@
   },
   "Lakr233/vphone-cli": {
     "content": {
-      "goal": "vphone-cli boots a virtual iPhone on macOS by combining Apple's Virtualization.framework with PCC research VM infrastructure. The supported firmware flow is JB-only: it applies required system patches and installs vphoned for host control.",
-      "usage": "A VM is created with `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` and started with `vphone-cli vm launch myphone`. This requires an Apple Silicon Mac running macOS 15 or newer, with host setup permitting PV=3 research guests and private entitlements on `vphone-vm` before the first boot.",
-      "pros": "The guest user environment is left untouched, with no package manager, SSH server, VNC server, or first-boot bootstrap installed. Everyday commands cover listing, inspecting, launching, stopping, exporting, and importing VMs, and the built VPhone.bundle itself ships with no app launcher, installer, privileged service, or password prompt.",
-      "cons": "Version 2.0 is described as under construction, so users needing a stable release are directed to `git checkout 1.0.14` at https://github.com/Lakr233/vphone-cli/tree/1.0.14. Also, v2.0.0 only starts newly created VMs using schemaVersion=2, and VMs from earlier releases must be recreated since there is no in-place upgrade path.",
-      "fit": "This appears suited to users testing or researching iOS internals on Apple Silicon Macs running macOS 15 or newer with host configuration for PV=3 research guests. Local validation reportedly succeeded only with iPhone17,3 firmware 26.6.2 (23G90) and 27.0 (24A435) paired with cloudOS 26.4 (23E5207q), so support for other firmware combinations is not confirmed."
+      "goal": "vphone-cli boots a virtual iPhone on macOS using Apple's Virtualization.framework combined with PCC research VM infrastructure. The supported firmware flow is described as JB (jailbreak) only, applying required system patches and installing vphoned for host control.",
+      "usage": "Documented usage runs `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` followed by `vphone-cli vm launch myphone`. It requires an Apple Silicon Mac running macOS 15 or newer, with the host permitting PV=3 research guests and private entitlements on vphone-vm.",
+      "pros": "The README lists everyday commands for listing, inspecting, launching, stopping, exporting, and importing VMs. It also states the guest user environment is left untouched, with no package manager, SSH server, VNC server, or first-boot bootstrap installed.",
+      "cons": "The documentation notes version 2.0 is still under construction, and this release only starts newly created VMs with schemaVersion=2; VMs from earlier releases must be recreated since there is no in-place upgrade path. This suggests existing users may face migration effort.",
+      "fit": "Because it requires PV=3 research guest support, private entitlements, and cannot boot inside another VM, the tool appears best suited to security/firmware researchers with a qualifying Apple Silicon host rather than general users."
     },
     "summaries": {
       "en": {
-        "goal": "vphone-cli boots a virtual iPhone on macOS by combining Apple's Virtualization.framework with PCC research VM infrastructure. The supported firmware flow is JB-only: it applies required system patches and installs vphoned for host control.",
-        "usage": "A VM is created with `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` and started with `vphone-cli vm launch myphone`. This requires an Apple Silicon Mac running macOS 15 or newer, with host setup permitting PV=3 research guests and private entitlements on `vphone-vm` before the first boot.",
-        "pros": "The guest user environment is left untouched, with no package manager, SSH server, VNC server, or first-boot bootstrap installed. Everyday commands cover listing, inspecting, launching, stopping, exporting, and importing VMs, and the built VPhone.bundle itself ships with no app launcher, installer, privileged service, or password prompt.",
-        "cons": "Version 2.0 is described as under construction, so users needing a stable release are directed to `git checkout 1.0.14` at https://github.com/Lakr233/vphone-cli/tree/1.0.14. Also, v2.0.0 only starts newly created VMs using schemaVersion=2, and VMs from earlier releases must be recreated since there is no in-place upgrade path.",
-        "fit": "This appears suited to users testing or researching iOS internals on Apple Silicon Macs running macOS 15 or newer with host configuration for PV=3 research guests. Local validation reportedly succeeded only with iPhone17,3 firmware 26.6.2 (23G90) and 27.0 (24A435) paired with cloudOS 26.4 (23E5207q), so support for other firmware combinations is not confirmed."
+        "goal": "vphone-cli boots a virtual iPhone on macOS using Apple's Virtualization.framework combined with PCC research VM infrastructure. The supported firmware flow is described as JB (jailbreak) only, applying required system patches and installing vphoned for host control.",
+        "usage": "Documented usage runs `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` followed by `vphone-cli vm launch myphone`. It requires an Apple Silicon Mac running macOS 15 or newer, with the host permitting PV=3 research guests and private entitlements on vphone-vm.",
+        "pros": "The README lists everyday commands for listing, inspecting, launching, stopping, exporting, and importing VMs. It also states the guest user environment is left untouched, with no package manager, SSH server, VNC server, or first-boot bootstrap installed.",
+        "cons": "The documentation notes version 2.0 is still under construction, and this release only starts newly created VMs with schemaVersion=2; VMs from earlier releases must be recreated since there is no in-place upgrade path. This suggests existing users may face migration effort.",
+        "fit": "Because it requires PV=3 research guest support, private entitlements, and cannot boot inside another VM, the tool appears best suited to security/firmware researchers with a qualifying Apple Silicon host rather than general users."
       },
       "ko": {
-        "goal": "vphone-cli는 Apple의 Virtualization.framework와 PCC 연구용 VM 인프라를 결합하여 macOS에서 가상 iPhone을 부팅하는 도구입니다. 지원되는 펌웨어 플로우는 JB 전용으로, 필요한 시스템 패치를 적용하고 호스트 제어를 위한 vphoned를 설치합니다.",
-        "usage": "`vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` 명령으로 VM을 생성하고, `vphone-cli vm launch myphone`으로 실행합니다. macOS 15 이상을 실행하는 Apple Silicon Mac이 필요하며, 첫 부팅 전에 PV=3 연구용 게스트와 `vphone-vm`의 비공개 엔타이틀먼트를 허용하도록 호스트를 설정해야 합니다.",
-        "pros": "게스트 사용자 환경은 그대로 유지되며 패키지 관리자, SSH 서버, VNC 서버, 최초 부팅 시 부트스트랩이 설치되지 않습니다. 일상적인 명령어로 VM 목록 조회, 정보 확인, 실행, 중지, 내보내기, 가져오기가 가능하며, 빌드된 VPhone.bundle 자체에도 앱 런처, 설치 프로그램, 권한 상승 서비스, 비밀번호 프롬프트가 포함되어 있지 않습니다.",
-        "cons": "버전 2.0은 아직 개발 중인 것으로 설명되어 있어, 안정 버전이 필요한 사용자는 https://github.com/Lakr233/vphone-cli/tree/1.0.14 의 `git checkout 1.0.14`를 사용하도록 안내됩니다. 또한 v2.0.0은 schemaVersion=2를 사용하는 새로 생성된 VM만 시작할 수 있어, 이전 릴리스로 만든 VM은 제자리 업그레이드 경로가 없어 다시 생성해야 합니다.",
-        "fit": "macOS 15 이상을 실행하는 Apple Silicon Mac에서 PV=3 연구용 게스트를 허용하도록 호스트를 설정한 뒤 iOS 내부를 테스트하거나 연구하려는 사용자에게 적합해 보입니다. 로컬 검증은 iPhone17,3 펌웨어 26.6.2 (23G90) 및 27.0 (24A435)과 cloudOS 26.4 (23E5207q) 조합에서만 성공한 것으로 보고되어, 다른 펌웨어 조합에 대한 지원은 확인되지 않았습니다."
+        "goal": "vphone-cli는 Apple의 Virtualization.framework와 PCC 리서치 VM 인프라를 활용해 macOS에서 가상 iPhone을 부팅하는 도구입니다. 지원되는 펌웨어 플로우는 JB(탈옥) 전용으로, 필요한 시스템 패치를 적용하고 호스트 제어를 위해 vphoned를 설치합니다.",
+        "usage": "설치 및 실행은 `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` 명령 이후 `vphone-cli vm launch myphone`을 실행하는 방식입니다. Apple Silicon Mac에서 macOS 15 이상이 필요하며, 호스트가 PV=3 리서치 게스트와 vphone-vm에 대한 프라이빗 엔타이틀먼트를 허용해야 합니다.",
+        "pros": "README는 VM 목록 조회, 검사, 실행, 중지, 내보내기, 가져오기 등 일상적인 명령어들을 제공한다고 설명합니다. 또한 게스트 사용자 환경은 그대로 유지되어 패키지 관리자, SSH 서버, VNC 서버, 최초 부팅 부트스트랩이 설치되지 않는다고 명시합니다.",
+        "cons": "문서에 따르면 버전 2.0은 아직 개발 중이며, 이번 릴리스는 schemaVersion=2로 새로 생성된 VM만 시작할 수 있고 이전 릴리스로 만든 VM은 다시 생성해야 합니다(인플레이스 업그레이드 없음). 이는 기존 사용자에게 마이그레이션 부담이 있을 수 있음을 시사합니다.",
+        "fit": "PV=3 리서치 게스트 지원과 프라이빗 엔타이틀먼트가 필요하고 다른 VM 내부에서는 부팅할 수 없다는 점에서, 이 도구는 일반 사용자보다는 Apple Silicon 호스트를 갖춘 보안/펌웨어 연구자에게 더 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "vphone-cli 通过结合 Apple 的 Virtualization.framework 与 PCC 研究用虚拟机基础设施,在 macOS 上启动虚拟 iPhone。支持的固件流程仅限越狱(JB),会应用所需的系统补丁并安装 vphoned 以实现主机控制。",
-        "usage": "使用 `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` 创建虚拟机,再用 `vphone-cli vm launch myphone` 启动。这需要运行 macOS 15 或更高版本的 Apple Silicon Mac,并在首次启动前配置主机以允许 PV=3 研究客体以及 `vphone-vm` 上的私有权限。",
-        "pros": "客体用户环境保持不变,不会安装包管理器、SSH 服务器、VNC 服务器或首次启动引导脚本。日常命令涵盖列出、查看、启动、停止、导出和导入虚拟机,构建出的 VPhone.bundle 本身也不包含应用启动器、安装程序、特权服务或密码提示。",
-        "cons": "文档说明 2.0 版本仍在开发中,因此需要稳定版本的用户会被引导至 https://github.com/Lakr233/vphone-cli/tree/1.0.14 执行 `git checkout 1.0.14`。此外,v2.0.0 仅能启动使用 schemaVersion=2 新创建的虚拟机,早期版本创建的虚拟机必须重新创建,因为不存在原地升级路径。",
-        "fit": "这似乎适合在运行 macOS 15 或更高版本的 Apple Silicon Mac 上、并已配置主机以允许 PV=3 研究客体的用户,用于测试或研究 iOS 内部机制。据报告,本地验证仅在 iPhone17,3 固件 26.6.2 (23G90) 和 27.0 (24A435) 搭配 cloudOS 26.4 (23E5207q) 的组合下成功,其他固件组合的支持情况尚未得到确认。"
+        "goal": "vphone-cli 是一款借助 Apple 的 Virtualization.framework 与 PCC 研究虚拟机基础设施，在 macOS 上启动虚拟 iPhone 的工具。文档说明其支持的固件流程仅限 JB（越狱），会应用所需的系统补丁并安装 vphoned 以供主机控制。",
+        "usage": "使用方式是先运行 `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw`，再执行 `vphone-cli vm launch myphone`。该工具需要运行 macOS 15 或更高版本的 Apple Silicon Mac，且主机必须允许 PV=3 研究客体以及针对 vphone-vm 的私有权限（entitlements）。",
+        "pros": "README 列出了一系列日常命令，包括列出、查看、启动、停止、导出和导入虚拟机。文档还说明该工具不会改动客体用户环境——不会安装包管理器、SSH 服务器、VNC 服务器或首次启动引导脚本。",
+        "cons": "文档提到 2.0 版本仍在开发中，且此版本仅能启动 schemaVersion=2 的新建虚拟机，早期版本创建的虚拟机需要重新创建，没有原地升级路径。这似乎意味着现有用户可能需要进行迁移。",
+        "fit": "由于该工具需要 PV=3 研究客体支持和私有权限，且无法在另一台虚拟机内部启动，它似乎更适合拥有 Apple Silicon 主机的安全/固件研究人员，而非普通用户。"
       },
       "es": {
-        "goal": "vphone-cli arranca un iPhone virtual en macOS combinando el Virtualization.framework de Apple con la infraestructura de VM de investigación PCC. El flujo de firmware admitido es solo JB: aplica los parches de sistema necesarios e instala vphoned para el control desde el host.",
-        "usage": "Una VM se crea con `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` y se inicia con `vphone-cli vm launch myphone`. Esto requiere un Mac Apple Silicon con macOS 15 o posterior, con el host configurado para permitir invitados de investigación PV=3 y los derechos privados en `vphone-vm` antes del primer arranque.",
-        "pros": "El entorno de usuario del invitado se deja intacto, sin instalar gestor de paquetes, servidor SSH, servidor VNC ni bootstrap de primer arranque. Los comandos habituales permiten listar, inspeccionar, iniciar, detener, exportar e importar VMs, y el propio VPhone.bundle compilado no incluye lanzador de app, instalador, servicio privilegiado ni solicitud de contraseña.",
-        "cons": "La versión 2.0 se describe como en construcción, por lo que a quienes necesiten una versión estable se les dirige a `git checkout 1.0.14` en https://github.com/Lakr233/vphone-cli/tree/1.0.14. Además, v2.0.0 solo inicia VMs recién creadas con schemaVersion=2, y las VMs de versiones anteriores deben recrearse porque no existe una ruta de actualización in situ.",
-        "fit": "Parece adecuado para usuarios que prueban o investigan aspectos internos de iOS en Mac Apple Silicon con macOS 15 o posterior y un host configurado para invitados de investigación PV=3. Según se informa, la validación local solo tuvo éxito con el firmware iPhone17,3 26.6.2 (23G90) y 27.0 (24A435) junto con cloudOS 26.4 (23E5207q), por lo que no se confirma el soporte de otras combinaciones de firmware."
+        "goal": "vphone-cli es una herramienta que arranca un iPhone virtual en macOS utilizando el Virtualization.framework de Apple junto con la infraestructura de VM de investigación PCC. El flujo de firmware compatible se describe como exclusivo para JB (jailbreak), aplicando los parches del sistema necesarios e instalando vphoned para el control desde el host.",
+        "usage": "El uso documentado incluye ejecutar `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` y luego `vphone-cli vm launch myphone`. Se requiere un Mac Apple Silicon con macOS 15 o posterior, y el host debe permitir invitados de investigación PV=3 y los derechos privados sobre vphone-vm.",
+        "pros": "El README enumera comandos habituales para listar, inspeccionar, iniciar, detener, exportar e importar máquinas virtuales. También indica que el entorno de usuario del invitado se mantiene intacto, sin instalar gestor de paquetes, servidor SSH, servidor VNC ni script de arranque inicial.",
+        "cons": "Según el documento, la versión 2.0 aún está en construcción y esta versión solo inicia VMs nuevas creadas con schemaVersion=2; las VMs de versiones anteriores deben recrearse, ya que no existe una ruta de actualización in situ. Esto sugiere que los usuarios existentes podrían enfrentar una carga de migración.",
+        "fit": "Dado que requiere soporte de invitados de investigación PV=3, derechos privados y no puede arrancar dentro de otra VM, la herramienta parece orientada a investigadores de seguridad/firmware con hosts Apple Silicon adecuados, más que a usuarios generales."
       },
       "ja": {
-        "goal": "vphone-cliは、AppleのVirtualization.frameworkとPCCリサーチ用VMインフラを組み合わせて、macOS上で仮想iPhoneを起動します。サポートされるファームウェアフローはJB専用で、必要なシステムパッチを適用し、ホスト制御用のvphonedをインストールします。",
-        "usage": "`vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` でVMを作成し、`vphone-cli vm launch myphone` で起動します。macOS 15以降を実行するApple Silicon Macが必要で、初回起動前にPV=3リサーチゲストと`vphone-vm`のプライベートエンタイトルメントを許可するようホスト側の設定が必要です。",
-        "pros": "ゲストのユーザー環境には手を加えず、パッケージマネージャー、SSHサーバー、VNCサーバー、初回起動時のブートストラップはインストールされません。日常的なコマンドではVMの一覧表示、確認、起動、停止、エクスポート、インポートが可能で、ビルドされたVPhone.bundle自体もアプリランチャー、インストーラー、特権サービス、パスワードプロンプトを含みません。",
-        "cons": "バージョン2.0は開発中と説明されており、安定版が必要なユーザーは https://github.com/Lakr233/vphone-cli/tree/1.0.14 の `git checkout 1.0.14` の使用を案内されています。さらにv2.0.0はschemaVersion=2を使う新規作成VMのみを起動でき、以前のリリースで作成したVMはその場でのアップグレード経路がないため再作成が必要です。",
-        "fit": "macOS 15以降を実行するApple Silicon Macで、PV=3リサーチゲストを許可するようホストを設定した上でiOSの内部動作をテスト・研究するユーザーに適していると考えられます。ローカル検証ではiPhone17,3ファームウェア26.6.2 (23G90) および27.0 (24A435) とcloudOS 26.4 (23E5207q) の組み合わせでのみ成功したと報告されており、他のファームウェアの組み合わせについてのサポートは確認されていません。"
+        "goal": "vphone-cliは、AppleのVirtualization.frameworkとPCCリサーチVMインフラを用いてmacOS上で仮想iPhoneを起動するツールです。対応するファームウェアフローはJB(脱獄)専用とされており、必要なシステムパッチを適用し、ホスト制御用にvphonedをインストールします。",
+        "usage": "利用方法として、`vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` を実行した後に `vphone-cli vm launch myphone` を実行する流れが示されています。Apple Silicon Mac でmacOS 15以降が必要で、ホストがPV=3リサーチゲストと vphone-vm への private entitlements を許可している必要があります。",
+        "pros": "READMEには、VMの一覧表示、確認、起動、停止、エクスポート、インポートなどの日常コマンドが列挙されています。また、ゲストのユーザー環境には手を加えず、パッケージマネージャーやSSHサーバー、VNCサーバー、初回起動ブートストラップはインストールされないと記載されています。",
+        "cons": "文書によれば、バージョン2.0はまだ開発中であり、本リリースはschemaVersion=2で新規作成されたVMのみを起動でき、以前のリリースで作成されたVMは再作成が必要で、インプレースアップグレードはないとされています。これは既存ユーザーに移行の手間が生じる可能性を示唆しています。",
+        "fit": "PV=3リサーチゲストのサポートやprivate entitlementsが必要で、他のVM内では起動できないという制約から、一般ユーザーよりもApple Siliconホストを備えたセキュリティ/ファームウェア研究者向けと考えられます。"
       }
     },
     "evidence": {
@@ -7375,18 +7521,13 @@
       ],
       "usage": [
         {
-          "start_line": 22,
-          "end_line": 28,
-          "section_heading": "Quick start"
-        },
-        {
           "start_line": 16,
           "end_line": 16,
           "section_heading": "Quick start"
         },
         {
-          "start_line": 34,
-          "end_line": 34,
+          "start_line": 22,
+          "end_line": 27,
           "section_heading": "Quick start"
         }
       ],
@@ -7397,14 +7538,9 @@
           "section_heading": "vphone-cli"
         },
         {
-          "start_line": 70,
+          "start_line": 68,
           "end_line": 79,
           "section_heading": "Everyday commands"
-        },
-        {
-          "start_line": 46,
-          "end_line": 48,
-          "section_heading": "Build the bundle"
         }
       ],
       "cons": [
@@ -7426,8 +7562,8 @@
           "section_heading": "Quick start"
         },
         {
-          "start_line": 42,
-          "end_line": 42,
+          "start_line": 40,
+          "end_line": 40,
           "section_heading": "Quick start"
         }
       ]
@@ -7435,58 +7571,44 @@
     "invariants": [
       {
         "kind": "command",
-        "value": "vphone-cli vm create",
+        "value": "vphone-cli vm create myphone",
         "fields": [
           "usage"
         ]
       },
       {
         "kind": "command",
-        "value": "vphone-cli vm launch",
+        "value": "vphone-cli vm launch myphone",
         "fields": [
           "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "git checkout 1.0.14",
-        "fields": [
-          "cons"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": "1.0.14",
-        "fields": [
-          "cons"
         ]
       },
       {
         "kind": "version",
         "value": "macOS 15",
         "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "2.0",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "schemaVersion=2",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "PV=3",
+        "fields": [
           "usage",
-          "fit"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": "26.6.2 (23G90)",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": "27.0 (24A435)",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": "26.4 (23E5207q)",
-        "fields": [
           "fit"
         ]
       },
@@ -7495,8 +7617,7 @@
         "value": "vphone-cli",
         "fields": [
           "goal",
-          "usage",
-          "cons"
+          "usage"
         ]
       },
       {
@@ -7514,22 +7635,23 @@
         ]
       },
       {
-        "kind": "url",
-        "value": "https://github.com/Lakr233/vphone-cli/tree/1.0.14",
+        "kind": "product",
+        "value": "vphone-vm",
         "fields": [
-          "cons"
+          "usage"
         ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "lakr233/vphone-cli",
       "path": "README.md",
-      "blob_sha": "18b1ea0914f728e6e6a09c05d6afc4ab473f0e53",
-      "content_sha256": "276e6748b8504fdc26b0c5e05ffbd0aded460838201c96ed66c1ff838af2d91e",
+      "blob_sha": "91a31fc8bbff1b3175a96726277a39cdc9370c04",
+      "content_sha256": "39de55e797921c3ab68735045af0188f32e480cfb640750cdc882a22ac249409",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
