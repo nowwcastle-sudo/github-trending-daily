@@ -201,47 +201,47 @@
   },
   "google/ax": {
     "content": {
-      "goal": "AX is described as a high-throughput, declarative orchestrator for running large numbers of autonomous agent workloads in a cluster. It builds on Agent Substrate for sandboxed execution and organizes work into four primitives: Task, Workspace, Gateway, and Model.",
-      "usage": "Install the CLI with `go install github.com/google/ax/cmd/ax@latest`. On a Kubernetes cluster with `ko` and a container registry, deploy the control plane with `make deploy AX_IMAGE_REPO=<your-registry>`, then apply manifests with `ax apply -f task.yaml` and inspect them with `ax get tasks`, `ax watch`, or `ax ssh`.",
-      "pros": "The CLI mirrors `kubectl` verbs (apply, get, describe, watch, delete), sandboxes untrusted agent code with resource limits, restricts outbound network traffic through Gateway allowlists, and supports suspending and resuming tasks with checkpointed state.",
-      "cons": "The README's warning notes that core concepts, protocols, and specifications are still being actively refined, and major breaking changes are likely before a stable release; running AX also requires an existing Kubernetes cluster, `ko`, a container registry, and a reachable Agent Substrate Control API.",
-      "fit": "Given its Kubernetes-native deployment and kubectl-like CLI, AX appears best suited for teams already operating Kubernetes clusters who want to orchestrate many sandboxed, autonomous agent tasks, though its pre-stable status suggests caution for production use."
+      "goal": "AX is a declarative orchestrator for running large numbers of autonomous agent workloads in a Kubernetes-like cluster. It builds on Agent Substrate (https://github.com/agent-substrate/substrate) for sandboxed execution and lets users declare workspaces, gateways, and models through YAML manifests under the ax.io/v1alpha1 API.",
+      "usage": "Install the CLI with `go install github.com/google/ax/cmd/ax@latest`, then deploy the control plane on a Kubernetes cluster (with ko from https://ko.build/ and a container registry configured) using `make deploy AX_IMAGE_REPO=<your-registry>`. Tasks are launched by applying YAML manifests, e.g. `ax apply -f task.yaml`, and monitored with `ax watch` or `ax ssh`.",
+      "pros": "AX provides four declarative primitives—Task, Workspace, Gateway, and Model—covering sandbox isolation, pre-wired repos/MCP servers, network allowlisting, and LLM credentials. Its CLI is deliberately kubectl-shaped (apply, get, describe, watch, delete) and works with kubectx, so it can follow the active Kubernetes context across clusters.",
+      "cons": "The README states the project is still actively refining its core concepts, protocols, and specifications, and warns that major breaking changes are likely before a stable release. Deployment also appears to require a Kubernetes cluster, the ko tool, a pullable container registry, and a reachable Agent Substrate Control API.",
+      "fit": "AX seems intended for teams already operating Kubernetes infrastructure who need to run many sandboxed, network-restricted agent workloads at scale. Given its pre-stable status and breaking-change warning, it appears best suited to early adopters and experimentation rather than production deployments."
     },
     "summaries": {
       "en": {
-        "goal": "AX is described as a high-throughput, declarative orchestrator for running large numbers of autonomous agent workloads in a cluster. It builds on Agent Substrate for sandboxed execution and organizes work into four primitives: Task, Workspace, Gateway, and Model.",
-        "usage": "Install the CLI with `go install github.com/google/ax/cmd/ax@latest`. On a Kubernetes cluster with `ko` and a container registry, deploy the control plane with `make deploy AX_IMAGE_REPO=<your-registry>`, then apply manifests with `ax apply -f task.yaml` and inspect them with `ax get tasks`, `ax watch`, or `ax ssh`.",
-        "pros": "The CLI mirrors `kubectl` verbs (apply, get, describe, watch, delete), sandboxes untrusted agent code with resource limits, restricts outbound network traffic through Gateway allowlists, and supports suspending and resuming tasks with checkpointed state.",
-        "cons": "The README's warning notes that core concepts, protocols, and specifications are still being actively refined, and major breaking changes are likely before a stable release; running AX also requires an existing Kubernetes cluster, `ko`, a container registry, and a reachable Agent Substrate Control API.",
-        "fit": "Given its Kubernetes-native deployment and kubectl-like CLI, AX appears best suited for teams already operating Kubernetes clusters who want to orchestrate many sandboxed, autonomous agent tasks, though its pre-stable status suggests caution for production use."
+        "goal": "AX is a declarative orchestrator for running large numbers of autonomous agent workloads in a Kubernetes-like cluster. It builds on Agent Substrate (https://github.com/agent-substrate/substrate) for sandboxed execution and lets users declare workspaces, gateways, and models through YAML manifests under the ax.io/v1alpha1 API.",
+        "usage": "Install the CLI with `go install github.com/google/ax/cmd/ax@latest`, then deploy the control plane on a Kubernetes cluster (with ko from https://ko.build/ and a container registry configured) using `make deploy AX_IMAGE_REPO=<your-registry>`. Tasks are launched by applying YAML manifests, e.g. `ax apply -f task.yaml`, and monitored with `ax watch` or `ax ssh`.",
+        "pros": "AX provides four declarative primitives—Task, Workspace, Gateway, and Model—covering sandbox isolation, pre-wired repos/MCP servers, network allowlisting, and LLM credentials. Its CLI is deliberately kubectl-shaped (apply, get, describe, watch, delete) and works with kubectx, so it can follow the active Kubernetes context across clusters.",
+        "cons": "The README states the project is still actively refining its core concepts, protocols, and specifications, and warns that major breaking changes are likely before a stable release. Deployment also appears to require a Kubernetes cluster, the ko tool, a pullable container registry, and a reachable Agent Substrate Control API.",
+        "fit": "AX seems intended for teams already operating Kubernetes infrastructure who need to run many sandboxed, network-restricted agent workloads at scale. Given its pre-stable status and breaking-change warning, it appears best suited to early adopters and experimentation rather than production deployments."
       },
       "ko": {
-        "goal": "AX는 클러스터에서 대량의 자율 에이전트 워크로드를 실행하기 위한 고처리량 선언형 오케스트레이터로 소개됩니다. Agent Substrate 위에서 샌드박스 실행을 수행하며, Task, Workspace, Gateway, Model이라는 네 가지 기본 요소로 작업을 구성합니다.",
-        "usage": "`go install github.com/google/ax/cmd/ax@latest` 명령으로 CLI를 설치합니다. `ko`와 컨테이너 레지스트리가 준비된 Kubernetes 클러스터에서 `make deploy AX_IMAGE_REPO=<your-registry>`로 컨트롤 플레인을 배포한 뒤, `ax apply -f task.yaml`로 매니페스트를 적용하고 `ax get tasks`, `ax watch`, `ax ssh`로 상태를 확인합니다.",
-        "pros": "CLI는 `kubectl`의 동사(apply, get, describe, watch, delete)를 그대로 따르며, 신뢰할 수 없는 에이전트 코드를 리소스 제한과 함께 샌드박스에서 실행하고, Gateway 허용 목록으로 아웃바운드 트래픽을 제한하며, 체크포인트를 통한 작업 일시 중지 및 재개를 지원합니다.",
-        "cons": "README의 경고에 따르면 핵심 개념, 프로토콜, 사양이 여전히 활발히 다듬어지는 중이며 안정 버전 이전에 주요한 호환성 파괴 변경이 있을 가능성이 있습니다. 또한 AX를 실행하려면 기존 Kubernetes 클러스터, `ko`, 컨테이너 레지스트리, 접근 가능한 Agent Substrate Control API가 필요합니다.",
-        "fit": "Kubernetes 네이티브 배포 방식과 kubectl과 유사한 CLI를 고려할 때, AX는 이미 Kubernetes 클러스터를 운영 중이며 다수의 샌드박스 자율 에이전트 작업을 오케스트레이션하려는 팀에 적합해 보이지만, 아직 안정화 이전 단계라는 점에서 프로덕션 사용에는 주의가 필요할 것으로 보입니다."
+        "goal": "AX는 Kubernetes와 유사한 클러스터에서 대량의 자율 에이전트 워크로드를 실행하기 위한 선언적 오케스트레이터입니다. 샌드박스 실행을 위해 Agent Substrate(https://github.com/agent-substrate/substrate) 위에서 동작하며, ax.io/v1alpha1 API 기반 YAML 매니페스트로 워크스페이스, 게이트웨이, 모델을 선언할 수 있습니다.",
+        "usage": "`go install github.com/google/ax/cmd/ax@latest` 명령으로 CLI를 설치한 뒤, Kubernetes 클러스터에서 ko(https://ko.build/)와 컨테이너 레지스트리를 준비하고 `make deploy AX_IMAGE_REPO=<your-registry>`로 컨트롤 플레인을 배포합니다. 작업은 `ax apply -f task.yaml`처럼 YAML 매니페스트를 적용해 실행하며 `ax watch`나 `ax ssh`로 모니터링합니다.",
+        "pros": "AX는 Task, Workspace, Gateway, Model이라는 네 가지 선언적 프리미티브를 제공하여 샌드박스 격리, 사전 연결된 저장소/MCP 서버, 네트워크 허용 목록, LLM 자격 증명을 다룹니다. CLI는 kubectl 형태(apply, get, describe, watch, delete)로 설계되었고 kubectx와 함께 작동하여 활성 Kubernetes 컨텍스트를 따라갈 수 있습니다.",
+        "cons": "README에 따르면 프로젝트는 핵심 개념, 프로토콜, 사양을 아직 적극적으로 다듬는 중이며 안정 버전 이전에 주요 breaking change가 발생할 가능성이 있다고 명시되어 있습니다. 또한 배포에는 Kubernetes 클러스터, ko 도구, 접근 가능한 컨테이너 레지스트리, 도달 가능한 Agent Substrate Control API가 필요한 것으로 보입니다.",
+        "fit": "AX는 이미 Kubernetes 인프라를 운영 중이며 샌드박스화되고 네트워크가 제한된 에이전트 워크로드를 대규모로 실행해야 하는 팀에 적합해 보입니다. 아직 안정화되지 않은 상태와 breaking change 경고를 고려하면 프로덕션보다는 초기 도입자나 실험적 용도에 더 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "AX 被描述为一个高吞吐量的声明式编排器，用于在集群中运行大规模自主智能体工作负载。它基于 Agent Substrate 实现沙箱化执行，并通过 Task、Workspace、Gateway 和 Model 四种基本资源来组织工作。",
-        "usage": "使用 `go install github.com/google/ax/cmd/ax@latest` 安装 CLI。在配备 `ko` 和容器镜像仓库的 Kubernetes 集群上，通过 `make deploy AX_IMAGE_REPO=<your-registry>` 部署控制平面，然后使用 `ax apply -f task.yaml` 应用清单，并用 `ax get tasks`、`ax watch`、`ax ssh` 查看状态。",
-        "pros": "该 CLI 沿用了 `kubectl` 的动词（apply、get、describe、watch、delete），可在带资源限制的沙箱中运行不受信任的智能体代码，通过 Gateway 白名单限制出站流量，并支持基于检查点的任务挂起与恢复。",
-        "cons": "README 中的警告说明核心概念、协议和规范仍在积极调整中，在正式稳定版发布之前很可能会引入重大不兼容变更；此外，运行 AX 还需要已有的 Kubernetes 集群、`ko`、容器镜像仓库以及可访问的 Agent Substrate Control API。",
-        "fit": "鉴于其基于 Kubernetes 的部署方式和类 kubectl 的命令行体验，AX 看起来更适合已经在运维 Kubernetes 集群、希望编排大量沙箱化自主智能体任务的团队，但由于项目仍处于预稳定阶段，用于生产环境时可能需要谨慎评估。"
+        "goal": "AX 是一个声明式编排器,用于在类似 Kubernetes 的集群中运行大量自主智能体工作负载。它基于 Agent Substrate(https://github.com/agent-substrate/substrate)实现沙箱化执行,并允许用户通过 ax.io/v1alpha1 API 的 YAML 清单声明工作区、网关和模型。",
+        "usage": "使用 `go install github.com/google/ax/cmd/ax@latest` 安装 CLI,然后在配置好 ko(https://ko.build/)和容器镜像仓库的 Kubernetes 集群上,使用 `make deploy AX_IMAGE_REPO=<your-registry>` 部署控制平面。通过应用 YAML 清单启动任务,例如 `ax apply -f task.yaml`,并使用 `ax watch` 或 `ax ssh` 进行监控。",
+        "pros": "AX 提供四个声明式原语——Task、Workspace、Gateway 和 Model——分别处理沙箱隔离、预连接的代码仓库/MCP 服务器、网络白名单以及 LLM 凭证。其 CLI 刻意采用 kubectl 风格(apply、get、describe、watch、delete),并可与 kubectx 配合使用,从而跟随当前激活的 Kubernetes 上下文。",
+        "cons": "README 指出该项目仍在积极完善其核心概念、协议和规范,并警告在正式稳定版本发布之前很可能会引入重大破坏性变更。部署似乎还需要一个 Kubernetes 集群、ko 工具、可拉取的容器镜像仓库,以及可访问的 Agent Substrate Control API。",
+        "fit": "AX 似乎适合已经运营 Kubernetes 基础设施、需要大规模运行沙箱化且受网络限制的智能体工作负载的团队。鉴于其尚未稳定的状态以及破坏性变更警告,它看起来更适合早期采用者和实验性用途,而非生产环境部署。"
       },
       "es": {
-        "goal": "AX se describe como un orquestador declarativo de alto rendimiento para ejecutar grandes cantidades de cargas de trabajo de agentes autónomos en un clúster. Se apoya en Agent Substrate para la ejecución en sandbox y organiza el trabajo en cuatro primitivas: Task, Workspace, Gateway y Model.",
-        "usage": "Instala la CLI con `go install github.com/google/ax/cmd/ax@latest`. En un clúster de Kubernetes con `ko` y un registro de contenedores, despliega el plano de control con `make deploy AX_IMAGE_REPO=<your-registry>`, luego aplica manifiestos con `ax apply -f task.yaml` e inspecciónalos con `ax get tasks`, `ax watch` o `ax ssh`.",
-        "pros": "La CLI imita los verbos de `kubectl` (apply, get, describe, watch, delete), aísla código de agentes no confiable en sandboxes con límites de recursos, restringe el tráfico saliente mediante listas de permitidos de Gateway, y admite suspender y reanudar tareas con estado guardado.",
-        "cons": "La advertencia del README indica que los conceptos, protocolos y especificaciones centrales aún se están refinando activamente, y es probable que haya cambios importantes que rompan compatibilidad antes de una versión estable; además, ejecutar AX requiere un clúster de Kubernetes existente, `ko`, un registro de contenedores y una API de Control de Agent Substrate accesible.",
-        "fit": "Dado su despliegue nativo de Kubernetes y su CLI similar a kubectl, AX parece más adecuado para equipos que ya operan clústeres de Kubernetes y desean orquestar muchas tareas de agentes autónomos en sandbox, aunque su estado previo a la estabilidad sugiere precaución para uso en producción."
+        "goal": "AX es un orquestador declarativo para ejecutar grandes cantidades de cargas de trabajo de agentes autónomos en un clúster similar a Kubernetes. Se apoya en Agent Substrate (https://github.com/agent-substrate/substrate) para la ejecución en sandbox y permite declarar workspaces, gateways y modelos mediante manifiestos YAML bajo la API ax.io/v1alpha1.",
+        "usage": "Instale el CLI con `go install github.com/google/ax/cmd/ax@latest`, luego despliegue el plano de control en un clúster de Kubernetes (con ko desde https://ko.build/ y un registro de contenedores configurado) usando `make deploy AX_IMAGE_REPO=<your-registry>`. Las tareas se inician aplicando manifiestos YAML, por ejemplo `ax apply -f task.yaml`, y se supervisan con `ax watch` o `ax ssh`.",
+        "pros": "AX ofrece cuatro primitivas declarativas —Task, Workspace, Gateway y Model— que cubren el aislamiento en sandbox, repositorios/servidores MCP preconectados, listas blancas de red y credenciales de LLM. Su CLI está deliberadamente diseñada al estilo de kubectl (apply, get, describe, watch, delete) y funciona con kubectx, por lo que puede seguir el contexto de Kubernetes activo.",
+        "cons": "El README indica que el proyecto todavía está refinando activamente sus conceptos, protocolos y especificaciones centrales, y advierte que es probable que se introduzcan cambios importantes que rompan la compatibilidad antes de una versión estable. El despliegue también parece requerir un clúster de Kubernetes, la herramienta ko, un registro de contenedores accesible y una API de Control de Agent Substrate alcanzable.",
+        "fit": "AX parece pensado para equipos que ya operan infraestructura de Kubernetes y necesitan ejecutar muchas cargas de trabajo de agentes en sandbox y con restricciones de red a gran escala. Dado su estado previo a la estabilidad y la advertencia de cambios disruptivos, parece más adecuado para primeros usuarios y experimentación que para despliegues en producción."
       },
       "ja": {
-        "goal": "AXは、クラスタ内で大量の自律エージェントワークロードを実行するための高スループットな宣言型オーケストレーターとして説明されています。Agent Substrate上でサンドボックス実行を行い、Task、Workspace、Gateway、Modelという4つのプリミティブで作業を構成します。",
-        "usage": "`go install github.com/google/ax/cmd/ax@latest` でCLIをインストールします。`ko` とコンテナレジストリを備えたKubernetesクラスタ上で `make deploy AX_IMAGE_REPO=<your-registry>` によりコントロールプレーンをデプロイし、その後 `ax apply -f task.yaml` でマニフェストを適用し、`ax get tasks`、`ax watch`、`ax ssh` で状態を確認します。",
-        "pros": "CLIは `kubectl` の動詞（apply、get、describe、watch、delete）を踏襲しており、信頼できないエージェントコードをリソース制限付きのサンドボックスで実行し、Gatewayの許可リストで送信トラフィックを制限し、チェックポイントによるタスクの一時停止と再開をサポートします。",
-        "cons": "READMEの警告によれば、コアとなる概念、プロトコル、仕様は現在も活発に見直されており、安定版リリース前に大きな破壊的変更が加わる可能性が高いとされています。また、AXの実行には既存のKubernetesクラスタ、`ko`、コンテナレジストリ、到達可能なAgent Substrate Control APIが必要です。",
-        "fit": "Kubernetesネイティブなデプロイ方式とkubectlに似たCLIを踏まえると、AXはすでにKubernetesクラスタを運用しており、サンドボックス化された多数の自律エージェントタスクをオーケストレーションしたいチームに適していると考えられますが、安定版に至る前の段階であるため本番利用には注意が必要と思われます。"
+        "goal": "AX は、Kubernetes に似たクラスタ内で大量の自律エージェントワークロードを実行するための宣言型オーケストレーターです。サンドボックス実行には Agent Substrate(https://github.com/agent-substrate/substrate)を基盤とし、ax.io/v1alpha1 API に基づく YAML マニフェストでワークスペース、ゲートウェイ、モデルを宣言できます。",
+        "usage": "`go install github.com/google/ax/cmd/ax@latest` で CLI をインストールし、ko(https://ko.build/)とコンテナレジストリを準備した Kubernetes クラスタ上で `make deploy AX_IMAGE_REPO=<your-registry>` を実行してコントロールプレーンをデプロイします。タスクは `ax apply -f task.yaml` のように YAML マニフェストを適用して起動し、`ax watch` や `ax ssh` で監視します。",
+        "pros": "AX は Task、Workspace、Gateway、Model という4つの宣言型プリミティブを提供し、それぞれサンドボックス分離、事前接続されたリポジトリ/MCP サーバー、ネットワーク許可リスト、LLM 資格情報を扱います。CLI は意図的に kubectl 形式(apply、get、describe、watch、delete)で設計されており、kubectx と連携してアクティブな Kubernetes コンテキストに追従できます。",
+        "cons": "README によれば、プロジェクトはコアとなる概念・プロトコル・仕様をまだ積極的に見直している段階であり、安定版リリース前に大きな破壊的変更が入る可能性が高いと警告されています。デプロイには Kubernetes クラスタ、ko ツール、プル可能なコンテナレジストリ、到達可能な Agent Substrate Control API も必要になるようです。",
+        "fit": "AX は、すでに Kubernetes インフラを運用しており、サンドボックス化されネットワーク制限されたエージェントワークロードを大規模に実行する必要があるチームに向いていると考えられます。安定版に達していない状態と破壊的変更の警告を踏まえると、本番運用よりも初期採用者による実験的な利用に適しているように見えます。"
       }
     },
     "evidence": {
@@ -250,11 +250,6 @@
           "start_line": 11,
           "end_line": 13,
           "section_heading": ""
-        },
-        {
-          "start_line": 47,
-          "end_line": 54,
-          "section_heading": "Why?"
         }
       ],
       "usage": [
@@ -270,25 +265,25 @@
         },
         {
           "start_line": 82,
-          "end_line": 92,
+          "end_line": 84,
           "section_heading": "3. Run your first task"
         }
       ],
       "pros": [
         {
-          "start_line": 51,
+          "start_line": 49,
           "end_line": 56,
           "section_heading": "Why?"
         },
         {
-          "start_line": 108,
-          "end_line": 110,
+          "start_line": 111,
+          "end_line": 111,
           "section_heading": "CLI usage"
         },
         {
-          "start_line": 118,
-          "end_line": 131,
-          "section_heading": "Everyday commands"
+          "start_line": 160,
+          "end_line": 162,
+          "section_heading": "Works with `kubectx`"
         }
       ],
       "cons": [
@@ -305,19 +300,14 @@
       ],
       "fit": [
         {
-          "start_line": 13,
+          "start_line": 11,
           "end_line": 13,
           "section_heading": ""
         },
         {
-          "start_line": 70,
-          "end_line": 72,
-          "section_heading": "2. Deploy the control plane"
-        },
-        {
-          "start_line": 110,
-          "end_line": 110,
-          "section_heading": "CLI usage"
+          "start_line": 6,
+          "end_line": 9,
+          "section_heading": ""
         }
       ]
     },
@@ -344,12 +334,33 @@
         ]
       },
       {
+        "kind": "version",
+        "value": "ax.io/v1alpha1",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://github.com/agent-substrate/substrate",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://ko.build/",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
         "kind": "product",
         "value": "AX",
         "fields": [
           "goal",
           "usage",
-          "cons",
+          "pros",
           "fit"
         ]
       },
@@ -357,7 +368,9 @@
         "kind": "product",
         "value": "Kubernetes",
         "fields": [
+          "goal",
           "usage",
+          "pros",
           "cons",
           "fit"
         ]
@@ -387,8 +400,8 @@
       "kind": "readme",
       "slug": "google/ax",
       "path": "README.md",
-      "blob_sha": "27e220270c9e48da63968ae3b39063df324e3bf7",
-      "content_sha256": "95d27df32ff26887224cdde472b890952b192ae1fb169f40963c3feefb679db1",
+      "blob_sha": "e96c95302d12029ba8908543354f2ba123c2ef09",
+      "content_sha256": "b6f15742225de723202484a8ab68f334e03a665414eba7d528f236cc29b3786f",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -784,59 +797,54 @@
   },
   "dream-num/univer": {
     "content": {
-      "goal": "Univer (dream-num/univer) is an open-source SDK, licensed under Apache-2.0, for building embeddable office applications—spreadsheets, documents, presentations, and more—inside custom products. It provides a plugin architecture, Canvas-based rendering, a formula engine, and a unified Facade API that works in both browser and Node.js environments. See https://univer.ai/ for the broader product family.",
-      "usage": "The README documents two installation paths. Plugin Mode installs individual packages for granular control, while Preset Mode uses `pnpm add @univerjs/presets @univerjs/preset-sheets-core` for a quicker curated setup. To develop the monorepo itself: `git clone https://github.com/dream-num/univer.git`, then `pnpm install`, then `pnpm dev` (requires Node.js >=22.18). Further guides are at https://docs.univer.ai.",
-      "pros": "Highlighted strengths include a plugin-first architecture that lets features be added, removed, or lazy-loaded; an isomorphic design that runs in browsers and headless in Node.js; a unified Facade API spanning workbooks, ranges, formulas, and documents; and dark-mode-ready UI components.",
-      "cons": "Univer relies on `Intl.Segmenter` and may need a polyfill on runtimes lacking native support. The README states Sheets is the most mature product surface while Docs and Slides 'continue to evolve,' which could suggest those areas are comparatively less complete. It is also compiled with a Chrome 88 target, and advanced features like collaboration, import/export, and server-side calculation sit behind the separate commercial Univer Pro layer.",
-      "fit": "Suited for teams embedding spreadsheet or document editing into SaaS products, internal tools, BI workflows, or AI applications, and for running workbook/document processing server-side with the same architecture used in the browser."
+      "goal": "Univer is an open-source SDK (Apache-2.0) for building embeddable office applications, including spreadsheets, documents, and presentations, without requiring a hosted app or fixed UI. It runs isomorphically in the browser and on Node.js, sharing the same plugin-based architecture (dream-num/univer).",
+      "usage": "Installation follows two paths: Plugin Mode, which composes individual @univerjs/* packages and calls registerPlugin, or Preset Mode, which installs curated packages like @univerjs/presets and calls createUniver. For local development, the README documents cloning the repo (git clone https://github.com/dream-num/univer.git), then running `pnpm install` and `pnpm dev` to start the workbench.",
+      "pros": "Univer offers a plugin-first architecture so features can be added, replaced, or lazy-loaded; a Canvas-based rendering engine for large document surfaces; a dedicated formula engine; and a unified Facade API for workbooks, ranges, formulas, and documents across browser and Node.js. UI components also support dark mode.",
+      "cons": "Browser support depends on `Intl.Segmenter`, so targets lacking it appear to need a polyfill such as `@formatjs/intl-segmenter`. Developing the monorepo itself requires Node.js >=22.18, while headless Univer only requires Node.js >=18.17.0. Advanced capabilities such as real-time collaboration, import/export, and charts seem reserved for the separately licensed Univer Pro layer.",
+      "fit": "The SDK appears best suited to teams embedding spreadsheet or document editing into SaaS products, internal tools, or AI-driven applications, since Sheets is described as the most mature surface while Docs and Slides are still evolving. Server-side or headless workflows also seem supported for automation use cases."
     },
     "summaries": {
       "en": {
-        "goal": "Univer (dream-num/univer) is an open-source SDK, licensed under Apache-2.0, for building embeddable office applications—spreadsheets, documents, presentations, and more—inside custom products. It provides a plugin architecture, Canvas-based rendering, a formula engine, and a unified Facade API that works in both browser and Node.js environments. See https://univer.ai/ for the broader product family.",
-        "usage": "The README documents two installation paths. Plugin Mode installs individual packages for granular control, while Preset Mode uses `pnpm add @univerjs/presets @univerjs/preset-sheets-core` for a quicker curated setup. To develop the monorepo itself: `git clone https://github.com/dream-num/univer.git`, then `pnpm install`, then `pnpm dev` (requires Node.js >=22.18). Further guides are at https://docs.univer.ai.",
-        "pros": "Highlighted strengths include a plugin-first architecture that lets features be added, removed, or lazy-loaded; an isomorphic design that runs in browsers and headless in Node.js; a unified Facade API spanning workbooks, ranges, formulas, and documents; and dark-mode-ready UI components.",
-        "cons": "Univer relies on `Intl.Segmenter` and may need a polyfill on runtimes lacking native support. The README states Sheets is the most mature product surface while Docs and Slides 'continue to evolve,' which could suggest those areas are comparatively less complete. It is also compiled with a Chrome 88 target, and advanced features like collaboration, import/export, and server-side calculation sit behind the separate commercial Univer Pro layer.",
-        "fit": "Suited for teams embedding spreadsheet or document editing into SaaS products, internal tools, BI workflows, or AI applications, and for running workbook/document processing server-side with the same architecture used in the browser."
+        "goal": "Univer is an open-source SDK (Apache-2.0) for building embeddable office applications, including spreadsheets, documents, and presentations, without requiring a hosted app or fixed UI. It runs isomorphically in the browser and on Node.js, sharing the same plugin-based architecture (dream-num/univer).",
+        "usage": "Installation follows two paths: Plugin Mode, which composes individual @univerjs/* packages and calls registerPlugin, or Preset Mode, which installs curated packages like @univerjs/presets and calls createUniver. For local development, the README documents cloning the repo (git clone https://github.com/dream-num/univer.git), then running `pnpm install` and `pnpm dev` to start the workbench.",
+        "pros": "Univer offers a plugin-first architecture so features can be added, replaced, or lazy-loaded; a Canvas-based rendering engine for large document surfaces; a dedicated formula engine; and a unified Facade API for workbooks, ranges, formulas, and documents across browser and Node.js. UI components also support dark mode.",
+        "cons": "Browser support depends on `Intl.Segmenter`, so targets lacking it appear to need a polyfill such as `@formatjs/intl-segmenter`. Developing the monorepo itself requires Node.js >=22.18, while headless Univer only requires Node.js >=18.17.0. Advanced capabilities such as real-time collaboration, import/export, and charts seem reserved for the separately licensed Univer Pro layer.",
+        "fit": "The SDK appears best suited to teams embedding spreadsheet or document editing into SaaS products, internal tools, or AI-driven applications, since Sheets is described as the most mature surface while Docs and Slides are still evolving. Server-side or headless workflows also seem supported for automation use cases."
       },
       "ko": {
-        "goal": "Univer(dream-num/univer)는 Apache-2.0 라이선스로 제공되는 오픈소스 SDK로, 스프레드시트, 문서, 프레젠테이션 등 임베디드 오피스 애플리케이션을 자체 제품 안에 구축할 수 있게 해줍니다. 플러그인 아키텍처, Canvas 기반 렌더링, 수식 엔진, 그리고 브라우저와 Node.js 모두에서 동작하는 통합 Facade API를 제공합니다. 더 넓은 제품군은 https://univer.ai/ 에서 확인할 수 있습니다.",
-        "usage": "README는 두 가지 설치 방식을 설명합니다. Plugin Mode는 세밀한 제어를 위해 개별 패키지를 설치하며, Preset Mode는 `pnpm add @univerjs/presets @univerjs/preset-sheets-core` 명령으로 더 빠르게 구성할 수 있습니다. 모노레포 자체를 개발하려면 `git clone https://github.com/dream-num/univer.git` 이후 `pnpm install`, `pnpm dev`를 실행하며(Node.js >=22.18 필요), 자세한 가이드는 https://docs.univer.ai 에 있습니다.",
-        "pros": "주요 장점으로는 기능을 추가·제거·지연 로드할 수 있는 플러그인 우선 아키텍처, 브라우저와 Node.js에서 헤드리스로 모두 동작하는 동형(isomorphic) 설계, 워크북·범위·수식·문서를 아우르는 통합 Facade API, 다크 모드를 지원하는 UI 컴포넌트가 있습니다.",
-        "cons": "Univer는 `Intl.Segmenter`에 의존하므로 이를 기본 지원하지 않는 런타임에서는 폴리필이 필요할 수 있습니다. README는 Sheets가 가장 성숙한 제품 영역이며 Docs와 Slides는 '계속 발전 중'이라고 명시하는데, 이는 해당 영역이 상대적으로 덜 완성되어 있을 수 있음을 시사합니다. 또한 Chrome 88을 타깃으로 컴파일되며, 협업·가져오기/내보내기·서버 측 계산 같은 고급 기능은 별도의 상용 Univer Pro 계층에 포함되어 있습니다.",
-        "fit": "스프레드시트나 문서 편집 기능을 SaaS 제품, 내부 도구, BI 워크플로, AI 애플리케이션에 임베드하려는 팀이나, 브라우저와 동일한 아키텍처로 서버에서 워크북/문서 처리를 수행하려는 경우에 적합합니다."
+        "goal": "Univer는 스프레드시트, 문서, 프레젠테이션을 포함한 임베디드 오피스 애플리케이션을 구축하기 위한 오픈소스 SDK(Apache-2.0)로, 호스팅된 앱이나 고정 UI 없이도 사용할 수 있습니다. 브라우저와 Node.js에서 동일한 플러그인 기반 아키텍처로 동형(isomorphic)으로 실행됩니다 (dream-num/univer).",
+        "usage": "설치는 두 가지 방식을 따릅니다. 개별 @univerjs/* 패키지를 조합하고 registerPlugin을 호출하는 Plugin Mode, 또는 @univerjs/presets 같은 선별된 패키지를 설치하고 createUniver를 호출하는 Preset Mode입니다. 로컬 개발을 위해서는 저장소를 클론(git clone https://github.com/dream-num/univer.git)한 뒤 `pnpm install`과 `pnpm dev`를 실행해 워크벤치를 시작한다고 문서에 나와 있습니다.",
+        "pros": "Univer는 기능을 추가·교체·지연 로드할 수 있는 플러그인 우선 아키텍처, 대형 문서 화면을 위한 Canvas 기반 렌더링 엔진, 전용 수식 엔진, 그리고 브라우저와 Node.js 전반에서 워크북·범위·수식·문서를 다루는 통합 Facade API를 제공합니다. UI 컴포넌트는 다크 모드도 지원합니다.",
+        "cons": "브라우저 지원은 `Intl.Segmenter`에 의존하므로, 이를 제공하지 않는 대상에는 `@formatjs/intl-segmenter` 같은 폴리필이 필요할 것으로 보입니다. 모노레포 자체 개발에는 Node.js >=22.18이 필요하며, 헤드리스 Univer는 Node.js >=18.17.0만 요구합니다. 실시간 협업, 가져오기/내보내기, 차트 같은 고급 기능은 별도 라이선스인 Univer Pro 계층에 예약되어 있는 것으로 보입니다.",
+        "fit": "Sheets가 가장 성숙한 영역으로 설명되고 Docs와 Slides는 아직 발전 중인 점을 고려하면, 이 SDK는 SaaS 제품, 내부 도구, AI 기반 애플리케이션에 스프레드시트나 문서 편집 기능을 임베드하려는 팀에 적합할 것으로 보입니다. 서버 사이드 또는 헤드리스 워크플로도 자동화 용도로 지원되는 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "Univer(dream-num/univer)是一款采用 Apache-2.0 许可证的开源 SDK,用于在自有产品内构建可嵌入的办公应用,包括电子表格、文档、演示文稿等。它提供插件架构、基于 Canvas 的渲染、公式引擎,以及可同时运行于浏览器和 Node.js 的统一 Facade API。更广泛的产品体系可参见 https://univer.ai/。",
-        "usage": "README 描述了两种安装方式。Plugin Mode 通过逐个安装包实现精细控制;Preset Mode 使用 `pnpm add @univerjs/presets @univerjs/preset-sheets-core` 命令快速搭建。若要开发该单体仓库本身,可依次执行 `git clone https://github.com/dream-num/univer.git`、`pnpm install`、`pnpm dev`(需要 Node.js >=22.18)。更多指南参见 https://docs.univer.ai。",
-        "pros": "文档列出的优势包括:插件优先架构,可自由添加、移除或懒加载功能;同构设计,可在浏览器运行也可在 Node.js 中无头运行;覆盖工作簿、区域、公式和文档的统一 Facade API;以及支持深色模式的 UI 组件。",
-        "cons": "Univer 依赖 `Intl.Segmenter`,在不原生支持该特性的运行环境中可能需要引入 polyfill。README 指出 Sheets 是目前最成熟的产品面,而 Docs 和 Slides 仍在“持续演进”,这或许暗示这些领域相对不够完善。此外,项目以 Chrome 88 为编译目标,而协作、导入/导出、服务端计算等高级功能则归入单独的商业 Univer Pro 层。",
-        "fit": "适合需要将电子表格或文档编辑功能嵌入 SaaS 产品、内部工具、BI 工作流或 AI 应用的团队,也适合需要以与浏览器相同架构在服务端进行工作簿/文档处理的场景。"
+        "goal": "Univer 是一个开源 SDK(Apache-2.0),用于构建可嵌入的办公应用,包括电子表格、文档和演示文稿,无需依赖托管应用或固定 UI。它在浏览器和 Node.js 上以同构方式运行,共享同一套基于插件的架构(dream-num/univer)。",
+        "usage": "安装遵循两种方式:组合单独的 @univerjs/* 包并调用 registerPlugin 的 Plugin Mode,或安装 @univerjs/presets 等精选包并调用 createUniver 的 Preset Mode。文档中说明,本地开发需先克隆仓库(git clone https://github.com/dream-num/univer.git),再运行 `pnpm install` 和 `pnpm dev` 启动工作台。",
+        "pros": "Univer 提供插件优先架构,可添加、替换或懒加载功能;基于 Canvas 的渲染引擎,适合大型文档界面;专用公式引擎;以及跨浏览器和 Node.js 统一处理工作簿、区域、公式和文档的 Facade API。UI 组件还支持暗色模式。",
+        "cons": "浏览器支持依赖 `Intl.Segmenter`,对于不提供该特性的目标环境,似乎需要添加诸如 `@formatjs/intl-segmenter` 的 polyfill。开发该单体仓库本身需要 Node.js >=22.18,而无头版 Univer 仅需 Node.js >=18.17.0。实时协作、导入/导出、图表等高级能力似乎被保留给单独授权的 Univer Pro 层。",
+        "fit": "鉴于文档将 Sheets 描述为最成熟的产品面,而 Docs 和 Slides 仍在演进中,该 SDK 似乎更适合希望将电子表格或文档编辑嵌入 SaaS 产品、内部工具或 AI 应用的团队。服务器端或无头工作流也被支持,用于自动化场景。"
       },
       "es": {
-        "goal": "Univer (dream-num/univer) es un SDK de código abierto bajo licencia Apache-2.0 para crear aplicaciones ofimáticas integrables —hojas de cálculo, documentos, presentaciones y más— dentro de productos propios. Ofrece una arquitectura de plugins, renderizado basado en Canvas, un motor de fórmulas y una API Facade unificada que funciona tanto en el navegador como en Node.js. La familia de productos más amplia se puede consultar en https://univer.ai/.",
-        "usage": "El README documenta dos formas de instalación. Plugin Mode instala paquetes individuales para un control detallado, mientras que Preset Mode usa `pnpm add @univerjs/presets @univerjs/preset-sheets-core` para una configuración curada más rápida. Para desarrollar el propio monorepo: `git clone https://github.com/dream-num/univer.git`, luego `pnpm install`, luego `pnpm dev` (requiere Node.js >=22.18). Hay más guías en https://docs.univer.ai.",
-        "pros": "Entre las ventajas destacadas están una arquitectura orientada a plugins que permite añadir, quitar o cargar funciones de forma diferida; un diseño isomórfico que se ejecuta en el navegador y de forma headless en Node.js; una API Facade unificada para libros, rangos, fórmulas y documentos; y componentes de interfaz compatibles con modo oscuro.",
-        "cons": "Univer depende de `Intl.Segmenter` y podría necesitar un polyfill en entornos que no lo soporten de forma nativa. El README indica que Sheets es la superficie de producto más madura, mientras que Docs y Slides 'continúan evolucionando', lo que podría sugerir que esas áreas están relativamente menos completas. Además, se compila con Chrome 88 como objetivo, y funciones avanzadas como colaboración, importación/exportación y cálculo en servidor forman parte de la capa comercial independiente Univer Pro.",
-        "fit": "Es adecuado para equipos que quieran integrar edición de hojas de cálculo o documentos en productos SaaS, herramientas internas, flujos de BI o aplicaciones de IA, así como para procesar libros o documentos en el servidor con la misma arquitectura usada en el navegador."
+        "goal": "Univer es un SDK de código abierto (Apache-2.0) para crear aplicaciones ofimáticas embebibles, incluidas hojas de cálculo, documentos y presentaciones, sin necesidad de una app alojada o una interfaz fija. Se ejecuta de forma isomórfica en el navegador y en Node.js, compartiendo la misma arquitectura basada en plugins (dream-num/univer).",
+        "usage": "La instalación sigue dos vías: el Plugin Mode, que combina paquetes individuales @univerjs/* y llama a registerPlugin, o el Preset Mode, que instala paquetes seleccionados como @univerjs/presets y llama a createUniver. Para el desarrollo local, la documentación describe clonar el repositorio (git clone https://github.com/dream-num/univer.git) y luego ejecutar `pnpm install` y `pnpm dev` para iniciar el workbench.",
+        "pros": "Univer ofrece una arquitectura orientada a plugins que permite añadir, reemplazar o cargar funciones de forma diferida; un motor de renderizado basado en Canvas para superficies documentales grandes; un motor de fórmulas dedicado; y una Facade API unificada para libros, rangos, fórmulas y documentos tanto en el navegador como en Node.js. Los componentes de UI también admiten modo oscuro.",
+        "cons": "El soporte en navegador depende de `Intl.Segmenter`, por lo que los entornos que no lo ofrezcan probablemente necesiten un polyfill como `@formatjs/intl-segmenter`. Desarrollar el propio monorepo requiere Node.js >=22.18, mientras que Univer headless solo exige Node.js >=18.17.0. Capacidades avanzadas como la colaboración en tiempo real, importación/exportación y gráficos parecen reservadas a la capa Univer Pro, con licencia independiente.",
+        "fit": "Dado que la documentación describe Sheets como la superficie más madura, mientras Docs y Slides aún están evolucionando, este SDK parece adecuado para equipos que buscan integrar edición de hojas de cálculo o documentos en productos SaaS, herramientas internas o aplicaciones de IA. También se admiten flujos de trabajo headless o del lado del servidor para casos de automatización."
       },
       "ja": {
-        "goal": "Univer(dream-num/univer)はApache-2.0ライセンスのオープンソースSDKで、スプレッドシート、ドキュメント、プレゼンテーションなど、組み込み可能なオフィスアプリケーションを自社製品内に構築できます。プラグインアーキテクチャ、Canvasベースのレンダリング、数式エンジン、ブラウザとNode.jsの両方で動作する統一Facade APIを提供します。より広い製品群については https://univer.ai/ を参照できます。",
-        "usage": "READMEには2つのインストール方法が記載されています。Plugin Modeは個別パッケージをインストールして細かく制御でき、Preset Modeは `pnpm add @univerjs/presets @univerjs/preset-sheets-core` コマンドで素早くセットアップできます。モノレポ自体を開発する場合は `git clone https://github.com/dream-num/univer.git` の後に `pnpm install`、`pnpm dev` を実行します(Node.js >=22.18が必要)。詳細ガイドは https://docs.univer.ai にあります。",
-        "pros": "主な利点として、機能の追加・削除・遅延読み込みが可能なプラグイン優先アーキテクチャ、ブラウザとNode.js上のヘッドレスの両方で動くアイソモーフィック設計、ワークブック・範囲・数式・ドキュメントを横断する統一Facade API、ダークモード対応のUIコンポーネントが挙げられます。",
-        "cons": "Univerは `Intl.Segmenter` に依存しており、これをネイティブサポートしないランタイムではポリフィルが必要になる場合があります。READMEによるとSheetsが最も成熟した製品領域であり、DocsとSlidesは「引き続き進化中」とされており、これらの領域が相対的に未完成である可能性を示唆しているとも読めます。また、Chrome 88をターゲットにコンパイルされており、コラボレーションやインポート/エクスポート、サーバー側計算といった高度な機能は、別途商用のUniver Proレイヤーに含まれています。",
-        "fit": "スプレッドシートやドキュメント編集機能をSaaS製品、社内ツール、BIワークフロー、AIアプリケーションに組み込みたいチームや、ブラウザと同じアーキテクチャでサーバー側のワークブック/ドキュメント処理を行いたい場合に適しています。"
+        "goal": "Univerは、スプレッドシート、ドキュメント、プレゼンテーションを含む埋め込み型オフィスアプリケーションを構築するためのオープンソースSDK(Apache-2.0)であり、ホスティングされたアプリや固定UIを必要としません。ブラウザとNode.jsの両方で同じプラグインベースのアーキテクチャによりアイソモーフィックに動作します(dream-num/univer)。",
+        "usage": "インストールには2つの方法があります。個別の@univerjs/*パッケージを組み合わせてregisterPluginを呼び出すPlugin Mode、または@univerjs/presetsなど厳選されたパッケージをインストールしてcreateUniverを呼び出すPreset Modeです。ローカル開発では、リポジトリをクローン(git clone https://github.com/dream-num/univer.git)した後、`pnpm install`と`pnpm dev`を実行してワークベンチを起動すると文書に記載されています。",
+        "pros": "Univerは、機能の追加・置換・遅延読み込みが可能なプラグイン優先アーキテクチャ、大規模なドキュメント画面向けのCanvasベースのレンダリングエンジン、専用の数式エンジン、そしてブラウザとNode.js全体でワークブック・範囲・数式・ドキュメントを扱う統一Facade APIを提供します。UIコンポーネントはダークモードにも対応しています。",
+        "cons": "ブラウザサポートは`Intl.Segmenter`に依存しているため、これを提供しない環境では`@formatjs/intl-segmenter`のようなポリフィルが必要になると考えられます。モノレポ自体の開発にはNode.js >=22.18が必要である一方、ヘッドレス版Univerが必要とするのはNode.js >=18.17.0のみです。リアルタイムコラボレーション、インポート/エクスポート、チャートなどの高度な機能は、別途ライセンスされるUniver Pro層に予約されているようです。",
+        "fit": "SheetsがドキュメントSurface内で最も成熟していると説明される一方、DocsとSlidesはまだ発展途上であることを踏まえると、このSDKはSaaS製品、社内ツール、AI駆動アプリケーションにスプレッドシートやドキュメント編集を組み込みたいチームに適していると考えられます。サーバーサイドやヘッドレスのワークフローも自動化用途としてサポートされています。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 5,
-          "end_line": 5,
-          "section_heading": ""
-        },
-        {
-          "start_line": 9,
-          "end_line": 12,
+          "end_line": 13,
           "section_heading": ""
         },
         {
@@ -847,43 +855,38 @@
       ],
       "usage": [
         {
-          "start_line": 134,
-          "end_line": 136,
+          "start_line": 152,
+          "end_line": 154,
           "section_heading": "⚡ Quick Start"
         },
         {
-          "start_line": 214,
-          "end_line": 216,
+          "start_line": 232,
+          "end_line": 234,
           "section_heading": "⚡ Quick Start"
         },
         {
-          "start_line": 338,
-          "end_line": 343,
+          "start_line": 356,
+          "end_line": 361,
           "section_heading": "🧑‍💻 Development"
         }
       ],
       "pros": [
         {
-          "start_line": 107,
-          "end_line": 113,
+          "start_line": 125,
+          "end_line": 131,
           "section_heading": "🚀 Why Univer?"
         }
       ],
       "cons": [
         {
-          "start_line": 265,
-          "end_line": 265,
+          "start_line": 282,
+          "end_line": 286,
           "section_heading": "🧭 Compatibility"
         },
         {
-          "start_line": 281,
-          "end_line": 281,
-          "section_heading": "🛠️ What You Can Build"
-        },
-        {
-          "start_line": 264,
-          "end_line": 264,
-          "section_heading": "🧭 Compatibility"
+          "start_line": 301,
+          "end_line": 303,
+          "section_heading": "🔓 Open Source and Pro"
         }
       ],
       "fit": [
@@ -891,36 +894,25 @@
           "start_line": 41,
           "end_line": 46,
           "section_heading": "✨ What is Univer?"
+        },
+        {
+          "start_line": 299,
+          "end_line": 299,
+          "section_heading": "🛠️ What You Can Build"
         }
       ]
     },
     "invariants": [
       {
-        "kind": "product",
-        "value": "Univer",
+        "kind": "command",
+        "value": "pnpm dev",
         "fields": [
-          "goal",
-          "usage",
-          "cons"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Apache-2.0",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "url",
-        "value": "https://univer.ai/",
-        "fields": [
-          "goal"
+          "usage"
         ]
       },
       {
         "kind": "command",
-        "value": "pnpm add @univerjs/presets @univerjs/preset-sheets-core",
+        "value": "pnpm install",
         "fields": [
           "usage"
         ]
@@ -933,23 +925,26 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "pnpm dev",
+        "kind": "version",
+        "value": "Apache-2.0",
         "fields": [
-          "usage"
+          "goal"
         ]
       },
       {
         "kind": "url",
-        "value": "https://docs.univer.ai",
+        "value": "https://github.com/dream-num/univer",
         "fields": [
           "usage"
         ]
       },
       {
-        "kind": "number",
-        "value": "88",
+        "kind": "product",
+        "value": "Univer",
         "fields": [
+          "goal",
+          "usage",
+          "pros",
           "cons"
         ]
       },
@@ -962,14 +957,15 @@
       }
     ],
     "inference_fields": [
-      "cons"
+      "cons",
+      "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "dream-num/univer",
       "path": "README.md",
-      "blob_sha": "9ef8f319de8fb92b7e4ac0c727f5fe5789acb1fb",
-      "content_sha256": "b28e262802e70d923bfb3c11aada4b200aa9d2e7077a3fcf7cfbafb0ef09fe49",
+      "blob_sha": "296bc326a07ade65bd9485af1ccbfcf0a2bc42ae",
+      "content_sha256": "a9a1e3b3b734a44ea2ff258679515eda3ed8b46c9be24987f15d4b68cacf3ebb",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -983,123 +979,123 @@
   },
   "Open-Dev-Society/OpenStock": {
     "content": {
-      "goal": "OpenStock is presented as an open-source, free alternative to paid market platforms, aiming to provide real-time price tracking, personalized alerts, and detailed company insights. The README notes it is community-built, not a brokerage, and does not offer financial advice.",
-      "usage": "Quick start: run `git clone https://github.com/Open-Dev-Society/OpenStock.git`, then `pnpm install` or `npm install`, followed by `pnpm dev` or `npm run dev` to start the Next.js 15 (Turbopack) dev server. It can also run via Docker Compose with `docker compose up -d mongodb && docker compose up -d --build`.",
-      "pros": "Built on Next.js 15, React 19, TypeScript, Tailwind CSS v4, shadcn/ui, and Better Auth, it includes global search/command palette, per-user watchlists stored in MongoDB, TradingView chart widgets, and AI-personalized welcome emails via Inngest and Gemini.",
-      "cons": "On the Finnhub free tier, real-time data for non-US stocks is delayed by 15+ minutes, and TradingView's free tier restricts some emerging markets such as India's NSE and Vietnam.",
-      "fit": "Given the AGPL-3.0 license, which requires releasing source code upon redistribution or deployment, and reliance on free-tier APIs with data delays, OpenStock may cautiously be inferred to suit developers or learners exploring open-source fintech tooling rather than teams needing guaranteed real-time institutional-grade data, though this is not explicitly stated."
+      "goal": "OpenStock is an open-source stock market web app positioned as a free alternative to costly market platforms, offering real-time price tracking, personalized alerts, and company insights. The README states it is community-built, not a brokerage, and notes market data may be delayed and is not financial advice.",
+      "usage": "Setup involves cloning the repo (git clone https://github.com/Open-Dev-Society/OpenStock.git), installing with pnpm install or npm install, then running pnpm dev or npm run dev and opening http://localhost:3000. A Docker Compose alternative runs the app with MongoDB via docker compose up -d mongodb && docker compose up -d --build.",
+      "pros": "The stack pairs Next.js 15 and React 19 with TypeScript, Tailwind CSS v4, shadcn/ui, and Radix primitives, plus Better Auth, MongoDB, and Finnhub/TradingView integrations. Documented features include global search with a Command+K palette, per-user watchlists, AI-personalized welcome emails via Inngest, and a default dark theme.",
+      "cons": "The README notes Finnhub's free tier can return delayed quotes and TradingView's free tier restricts some emerging markets like India's NSE and Vietnam, with non-US real-time data delayed 15+ minutes. Running the project also requires several external accounts and keys, including MongoDB, Finnhub, and Gmail, before use.",
+      "fit": "Given the documented prerequisites, OpenStock seems suited to developers familiar with Node.js 20+, MongoDB, and Next.js who want a self-hosted, open-source stock-tracking app rather than a production brokerage system. Since it is licensed under AGPL-3.0, modified or redistributed deployments likely must also be released under that same license."
     },
     "summaries": {
       "en": {
-        "goal": "OpenStock is presented as an open-source, free alternative to paid market platforms, aiming to provide real-time price tracking, personalized alerts, and detailed company insights. The README notes it is community-built, not a brokerage, and does not offer financial advice.",
-        "usage": "Quick start: run `git clone https://github.com/Open-Dev-Society/OpenStock.git`, then `pnpm install` or `npm install`, followed by `pnpm dev` or `npm run dev` to start the Next.js 15 (Turbopack) dev server. It can also run via Docker Compose with `docker compose up -d mongodb && docker compose up -d --build`.",
-        "pros": "Built on Next.js 15, React 19, TypeScript, Tailwind CSS v4, shadcn/ui, and Better Auth, it includes global search/command palette, per-user watchlists stored in MongoDB, TradingView chart widgets, and AI-personalized welcome emails via Inngest and Gemini.",
-        "cons": "On the Finnhub free tier, real-time data for non-US stocks is delayed by 15+ minutes, and TradingView's free tier restricts some emerging markets such as India's NSE and Vietnam.",
-        "fit": "Given the AGPL-3.0 license, which requires releasing source code upon redistribution or deployment, and reliance on free-tier APIs with data delays, OpenStock may cautiously be inferred to suit developers or learners exploring open-source fintech tooling rather than teams needing guaranteed real-time institutional-grade data, though this is not explicitly stated."
+        "goal": "OpenStock is an open-source stock market web app positioned as a free alternative to costly market platforms, offering real-time price tracking, personalized alerts, and company insights. The README states it is community-built, not a brokerage, and notes market data may be delayed and is not financial advice.",
+        "usage": "Setup involves cloning the repo (git clone https://github.com/Open-Dev-Society/OpenStock.git), installing with pnpm install or npm install, then running pnpm dev or npm run dev and opening http://localhost:3000. A Docker Compose alternative runs the app with MongoDB via docker compose up -d mongodb && docker compose up -d --build.",
+        "pros": "The stack pairs Next.js 15 and React 19 with TypeScript, Tailwind CSS v4, shadcn/ui, and Radix primitives, plus Better Auth, MongoDB, and Finnhub/TradingView integrations. Documented features include global search with a Command+K palette, per-user watchlists, AI-personalized welcome emails via Inngest, and a default dark theme.",
+        "cons": "The README notes Finnhub's free tier can return delayed quotes and TradingView's free tier restricts some emerging markets like India's NSE and Vietnam, with non-US real-time data delayed 15+ minutes. Running the project also requires several external accounts and keys, including MongoDB, Finnhub, and Gmail, before use.",
+        "fit": "Given the documented prerequisites, OpenStock seems suited to developers familiar with Node.js 20+, MongoDB, and Next.js who want a self-hosted, open-source stock-tracking app rather than a production brokerage system. Since it is licensed under AGPL-3.0, modified or redistributed deployments likely must also be released under that same license."
       },
       "ko": {
-        "goal": "OpenStock는 유료 시장 플랫폼의 오픈소스 대안으로 소개되며, 실시간 시세 추적, 맞춤 알림, 기업 상세 정보 제공을 목표로 합니다. 커뮤니티 기반 프로젝트이며 증권사가 아니고 투자 자문을 제공하지 않는다고 명시되어 있습니다.",
-        "usage": "`git clone https://github.com/Open-Dev-Society/OpenStock.git` 후 `pnpm install` 또는 `npm install`을 실행하고, `pnpm dev` 또는 `npm run dev`로 Next.js 15(Turbopack) 개발 서버를 시작합니다. Docker Compose를 사용할 경우 `docker compose up -d mongodb && docker compose up -d --build` 명령으로 실행할 수 있습니다.",
-        "pros": "Next.js 15, React 19, TypeScript, Tailwind CSS v4, shadcn/ui, Better Auth 기반이며, 전역 검색/커맨드 팔레트, MongoDB 기반 사용자별 워치리스트, TradingView 차트 위젯, Inngest·Gemini를 통한 AI 맞춤 환영 이메일 기능을 포함합니다.",
-        "cons": "Finnhub 무료 티어에서는 미국 외 종목의 실시간 데이터가 15분 이상 지연되며, TradingView 무료 티어는 인도 NSE, 베트남 등 일부 신흥 시장에 제한이 있습니다.",
-        "fit": "AGPL-3.0 라이선스로 재배포나 배포 시 소스 공개가 요구되고 무료 API 티어의 데이터 지연이 있다는 점에서, 실시간 기관급 데이터가 필수적인 팀보다는 오픈소스 핀테크 학습이나 실험을 원하는 개발자에게 더 적합할 것으로 조심스럽게 추정되나, 이는 명시적으로 서술되어 있지 않습니다."
+        "goal": "OpenStock는 비싼 상용 증권 플랫폼의 무료 대안으로 소개되는 오픈소스 주식 시장 웹 애플리케이션으로, 실시간 가격 추적, 개인화된 알림, 기업 정보 제공을 목표로 합니다. README에 따르면 커뮤니티가 만든 프로젝트이며 증권사가 아니고, 시장 데이터가 지연될 수 있으며 투자 자문이 아니라고 명시되어 있습니다.",
+        "usage": "설치는 저장소를 클론(git clone https://github.com/Open-Dev-Society/OpenStock.git)한 뒤 pnpm install 또는 npm install로 의존성을 설치하고, pnpm dev 또는 npm run dev로 개발 서버를 실행해 http://localhost:3000에서 확인합니다. Docker Compose를 사용할 경우 docker compose up -d mongodb && docker compose up -d --build 명령으로 앱과 MongoDB를 함께 실행할 수 있습니다.",
+        "pros": "기술 스택은 Next.js 15와 React 19에 TypeScript, Tailwind CSS v4, shadcn/ui, Radix 프리미티브를 결합하며, Better Auth, MongoDB, Finnhub/TradingView 연동도 포함됩니다. 문서화된 기능으로는 Command+K 팔레트를 갖춘 전역 검색, 사용자별 워치리스트, Inngest를 통한 AI 개인화 환영 이메일, 기본 다크 테마가 있습니다.",
+        "cons": "README에는 Finnhub 무료 티어가 지연된 시세를 반환할 수 있고 TradingView 무료 티어는 인도 NSE, 베트남 등 일부 신흥 시장에 제한이 있으며, 미국 외 실시간 데이터는 15분 이상 지연된다고 명시되어 있습니다. 또한 실행 전에 MongoDB, Finnhub, Gmail 등 여러 외부 계정과 키가 필요합니다.",
+        "fit": "문서화된 전제 조건을 볼 때, OpenStock은 Node.js 20+, MongoDB, Next.js에 익숙한 개발자가 실제 증권사 시스템이 아닌 자체 호스팅 오픈소스 주식 추적 앱을 원할 때 적합해 보입니다. AGPL-3.0 라이선스이므로 수정하거나 재배포하는 배포본도 동일 라이선스로 공개해야 할 가능성이 큽니다."
       },
       "zh-CN": {
-        "goal": "OpenStock 被描述为付费市场平台的开源替代方案,旨在提供实时价格追踪、个性化提醒和详细的公司信息。文档说明该项目由社区构建,并非经纪商,也不提供投资建议。",
-        "usage": "先执行 `git clone https://github.com/Open-Dev-Society/OpenStock.git`,再运行 `pnpm install` 或 `npm install`,然后通过 `pnpm dev` 或 `npm run dev` 启动基于 Turbopack 的 Next.js 15 开发服务器;也可使用 Docker Compose,执行 `docker compose up -d mongodb && docker compose up -d --build`。",
-        "pros": "项目基于 Next.js 15、React 19、TypeScript、Tailwind CSS v4、shadcn/ui 与 Better Auth 构建,包含全局搜索/命令面板、存储于 MongoDB 的用户专属关注列表、TradingView 图表组件,以及通过 Inngest 与 Gemini 实现的 AI 个性化欢迎邮件。",
-        "cons": "在 Finnhub 免费套餐下,非美国股票的实时数据会延迟 15 分钟以上,而 TradingView 免费套餐对印度 NSE、越南等部分新兴市场存在限制。",
-        "fit": "鉴于其 AGPL-3.0 许可要求在再分发或部署时公开源代码,且依赖存在数据延迟的免费层 API,该项目或可谨慎推断更适合希望学习或实验开源金融科技工具的开发者,而非需要有保障的实时机构级数据的团队,不过文档并未明确说明这一点。"
+        "goal": "OpenStock 是一个开源股票市场网页应用,被定位为昂贵市场平台的免费替代方案,提供实时价格追踪、个性化提醒和公司资讯。README 说明该项目由社区构建,不是券商,市场数据可能存在延迟,且内容不构成投资建议。",
+        "usage": "安装流程为先克隆仓库(git clone https://github.com/Open-Dev-Society/OpenStock.git),再用 pnpm install 或 npm install 安装依赖,然后运行 pnpm dev 或 npm run dev 启动开发服务器,在 http://localhost:3000 查看。也可以使用 Docker Compose,通过 docker compose up -d mongodb && docker compose up -d --build 一起启动应用与 MongoDB。",
+        "pros": "技术栈将 Next.js 15 与 React 19、TypeScript、Tailwind CSS v4、shadcn/ui 及 Radix 组件结合,并集成 Better Auth、MongoDB 以及 Finnhub/TradingView。文档记录的功能包括带 Command+K 面板的全局搜索、按用户区分的关注列表、通过 Inngest 发送的 AI 个性化欢迎邮件,以及默认深色主题。",
+        "cons": "README 指出 Finnhub 免费层可能返回延迟报价,TradingView 免费层对印度 NSE、越南等部分新兴市场有限制,美国以外的实时数据延迟可达 15 分钟以上。运行该项目前还需要准备 MongoDB、Finnhub、Gmail 等多个外部账户和密钥。",
+        "fit": "根据文档中列出的前提条件,OpenStock 似乎更适合熟悉 Node.js 20+、MongoDB 和 Next.js 的开发者,用于自托管的开源股票追踪应用,而非生产级券商系统。由于采用 AGPL-3.0 许可,修改或再分发的部署很可能也需要以相同许可开源。"
       },
       "es": {
-        "goal": "OpenStock se presenta como una alternativa de código abierto a las plataformas de mercado de pago, con el objetivo de ofrecer seguimiento de precios en tiempo real, alertas personalizadas e información detallada de empresas. Se indica que es un proyecto construido por la comunidad, que no es una correduría y que no ofrece asesoría financiera.",
-        "usage": "El inicio rápido consiste en ejecutar `git clone https://github.com/Open-Dev-Society/OpenStock.git`, luego `pnpm install` o `npm install`, y después `pnpm dev` o `npm run dev` para levantar el servidor de desarrollo Next.js 15 con Turbopack. También puede ejecutarse con Docker Compose mediante `docker compose up -d mongodb && docker compose up -d --build`.",
-        "pros": "Está construido sobre Next.js 15, React 19, TypeScript, Tailwind CSS v4, shadcn/ui y Better Auth, e incluye búsqueda global/paleta de comandos, listas de seguimiento por usuario en MongoDB, widgets de gráficos de TradingView y correos de bienvenida personalizados por IA mediante Inngest y Gemini.",
-        "cons": "Con el nivel gratuito de Finnhub, los datos en tiempo real de acciones no estadounidenses se retrasan 15 minutos o más, y el nivel gratuito de TradingView restringe algunos mercados emergentes como la NSE de India y Vietnam.",
-        "fit": "Dado que su licencia AGPL-3.0 exige divulgar el código fuente al redistribuir o desplegar el proyecto, y que depende de niveles gratuitos de API con retrasos de datos, cabe inferir con cautela que OpenStock resulta más adecuado para desarrolladores o estudiantes que exploran herramientas fintech de código abierto que para equipos que necesitan datos en tiempo real de nivel institucional garantizados, aunque esto no se declara explícitamente."
+        "goal": "OpenStock es una aplicación web de mercado de valores de código abierto, presentada como una alternativa gratuita a plataformas de mercado costosas, que ofrece seguimiento de precios en tiempo real, alertas personalizadas e información detallada de empresas. El README indica que está construida por la comunidad, no es una correduría, y que los datos de mercado pueden estar retrasados y no constituyen asesoría financiera.",
+        "usage": "La instalación consiste en clonar el repositorio (git clone https://github.com/Open-Dev-Society/OpenStock.git), instalar dependencias con pnpm install o npm install, y luego ejecutar pnpm dev o npm run dev para abrir http://localhost:3000. También existe una vía con Docker Compose, usando docker compose up -d mongodb && docker compose up -d --build para levantar la app junto con MongoDB.",
+        "pros": "La pila combina Next.js 15 y React 19 con TypeScript, Tailwind CSS v4, shadcn/ui y primitivas de Radix, además de Better Auth, MongoDB e integraciones con Finnhub/TradingView. Entre las funciones documentadas están la búsqueda global con paleta Command+K, listas de seguimiento por usuario, correos de bienvenida personalizados por IA vía Inngest, y un tema oscuro por defecto.",
+        "cons": "El README señala que el nivel gratuito de Finnhub puede devolver cotizaciones retrasadas y que el nivel gratuito de TradingView restringe algunos mercados emergentes como la NSE de India o Vietnam, con datos en tiempo real fuera de EE. UU. retrasados 15 minutos o más. Además, ejecutar el proyecto requiere varias cuentas y claves externas, como MongoDB, Finnhub y Gmail, antes de poder usarlo.",
+        "fit": "Según los requisitos previos documentados, OpenStock parece adecuado para desarrolladores familiarizados con Node.js 20+, MongoDB y Next.js que buscan una app de seguimiento de acciones autoalojada y de código abierto, más que un sistema de corretaje en producción. Al estar bajo licencia AGPL-3.0, es probable que los despliegues modificados o redistribuidos también deban publicarse bajo la misma licencia."
       },
       "ja": {
-        "goal": "OpenStockは有料の市場プラットフォームに代わるオープンソースの選択肢として紹介されており、リアルタイムの価格追跡、カスタムアラート、詳細な企業情報の提供を目的としています。コミュニティによって構築されたプロジェクトであり、証券会社ではなく、投資助言も行わないと明記されています。",
-        "usage": "`git clone https://github.com/Open-Dev-Society/OpenStock.git` を実行した後、`pnpm install` または `npm install` を行い、続けて `pnpm dev` または `npm run dev` でTurbopackベースのNext.js 15開発サーバーを起動します。Docker Composeを使う場合は `docker compose up -d mongodb && docker compose up -d --build` で起動できます。",
-        "pros": "Next.js 15、React 19、TypeScript、Tailwind CSS v4、shadcn/ui、Better Authを基盤とし、グローバル検索/コマンドパレット、MongoDBに保存されるユーザーごとのウォッチリスト、TradingViewのチャートウィジェット、InngestとGeminiによるAI個別化ウェルカムメールなどの機能を備えています。",
-        "cons": "Finnhubの無料ティアでは米国外銘柄のリアルタイムデータが15分以上遅延し、TradingViewの無料ティアではインドのNSEやベトナムなど一部の新興市場に制限があります。",
-        "fit": "AGPL-3.0ライセンスにより再配布やデプロイ時にソースコードの公開が求められ、データ遅延のある無料APIティアに依存している点を踏まえると、リアルタイムの機関投資家向けデータが必須のチームよりも、オープンソースのフィンテックツールを学習・実験したい開発者に適していると慎重に推測されますが、この点はドキュメントに明示されてはいません。"
+        "goal": "OpenStockは、高額な市場向けプラットフォームの無料の代替として位置づけられたオープンソースの株式市場向けWebアプリで、リアルタイムの価格追跡、個別アラート、企業情報の提供を目的としています。READMEによれば、コミュニティによって構築されており証券会社ではなく、市場データが遅延する場合があり、投資助言ではないと明記されています。",
+        "usage": "セットアップは、リポジトリをクローンし(git clone https://github.com/Open-Dev-Society/OpenStock.git)、pnpm install または npm install で依存関係をインストールし、pnpm dev または npm run dev で開発サーバーを起動して http://localhost:3000 を開く流れです。Docker Composeを使う方法もあり、docker compose up -d mongodb && docker compose up -d --build でアプリとMongoDBを一緒に起動できます。",
+        "pros": "技術スタックはNext.js 15とReact 19にTypeScript、Tailwind CSS v4、shadcn/ui、Radixのプリミティブを組み合わせ、さらにBetter Auth、MongoDB、Finnhub/TradingView連携を含みます。ドキュメント化された機能には、Command+Kパレット付きのグローバル検索、ユーザーごとのウォッチリスト、Inngest経由のAIによる個別化されたウェルカムメール、デフォルトのダークテーマがあります。",
+        "cons": "READMEでは、Finnhubの無料プランでは遅延した相場が返される場合があり、TradingViewの無料プランではインドのNSEやベトナムなど一部の新興市場に制限があること、米国以外のリアルタイムデータは15分以上遅延することが記されています。また、実行前にMongoDB、Finnhub、Gmailなど複数の外部アカウントとキーが必要です。",
+        "fit": "文書化された前提条件を踏まえると、OpenStockはNode.js 20+、MongoDB、Next.jsに慣れた開発者が、本番の証券システムではなく自己ホスト型のオープンソース株式追跡アプリを求める場合に適していると考えられます。AGPL-3.0でライセンスされているため、改変または再配布したデプロイも同じライセンスで公開する必要がある可能性が高いです。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 47,
-          "end_line": 49,
+          "start_line": 49,
+          "end_line": 51,
           "section_heading": "OpenStock"
         },
         {
-          "start_line": 51,
-          "end_line": 51,
-          "section_heading": "OpenStock"
+          "start_line": 73,
+          "end_line": 73,
+          "section_heading": "✨ Introduction <a name=\"introduction\"></a>"
         }
       ],
       "usage": [
         {
-          "start_line": 151,
-          "end_line": 160,
+          "start_line": 153,
+          "end_line": 159,
           "section_heading": "🤸 Quick Start <a name=\"quick-start\"></a>"
         },
         {
           "start_line": 172,
-          "end_line": 177,
+          "end_line": 191,
           "section_heading": "🤸 Quick Start <a name=\"quick-start\"></a>"
         },
         {
           "start_line": 209,
-          "end_line": 212,
+          "end_line": 211,
           "section_heading": "🐳 Docker Setup <a name=\"docker-setup\"></a>"
         }
       ],
       "pros": [
         {
-          "start_line": 115,
-          "end_line": 141,
-          "section_heading": "🔋 Features <a name=\"features\"></a>"
-        },
-        {
-          "start_line": 94,
-          "end_line": 110,
+          "start_line": 95,
+          "end_line": 99,
           "section_heading": "⚙️ Tech Stack <a name=\"tech-stack\"></a>"
         },
         {
-          "start_line": 133,
-          "end_line": 135,
+          "start_line": 101,
+          "end_line": 109,
+          "section_heading": "⚙️ Tech Stack <a name=\"tech-stack\"></a>"
+        },
+        {
+          "start_line": 117,
+          "end_line": 140,
           "section_heading": "🔋 Features <a name=\"features\"></a>"
         }
       ],
       "cons": [
         {
+          "start_line": 144,
+          "end_line": 149,
+          "section_heading": "🤸 Quick Start <a name=\"quick-start\"></a>"
+        },
+        {
           "start_line": 415,
           "end_line": 416,
           "section_heading": "🌍 Market Support <a name=\"market-support\"></a>"
-        },
-        {
-          "start_line": 147,
-          "end_line": 147,
-          "section_heading": "🤸 Quick Start <a name=\"quick-start\"></a>"
         }
       ],
       "fit": [
         {
-          "start_line": 27,
-          "end_line": 27,
-          "section_heading": ""
-        },
-        {
-          "start_line": 411,
-          "end_line": 416,
-          "section_heading": "🌍 Market Support <a name=\"market-support\"></a>"
+          "start_line": 144,
+          "end_line": 149,
+          "section_heading": "🤸 Quick Start <a name=\"quick-start\"></a>"
         },
         {
           "start_line": 461,
           "end_line": 461,
           "section_heading": "📜 License <a name=\"license\"></a>"
+        },
+        {
+          "start_line": 27,
+          "end_line": 27,
+          "section_heading": ""
         }
       ]
     },
@@ -1120,7 +1116,21 @@
       },
       {
         "kind": "command",
+        "value": "npm install",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
         "value": "pnpm dev",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "npm run dev",
         "fields": [
           "usage"
         ]
@@ -1133,10 +1143,16 @@
         ]
       },
       {
+        "kind": "url",
+        "value": "http://localhost:3000",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
         "kind": "version",
         "value": "Next.js 15",
         "fields": [
-          "usage",
           "pros"
         ]
       },
@@ -1156,6 +1172,13 @@
       },
       {
         "kind": "version",
+        "value": "Node.js 20+",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "version",
         "value": "AGPL-3.0",
         "fields": [
           "fit"
@@ -1163,38 +1186,25 @@
       },
       {
         "kind": "number",
-        "value": "15+ minutes",
+        "value": "15+",
         "fields": [
           "cons"
         ]
       },
       {
-        "kind": "url",
-        "value": "https://github.com/Open-Dev-Society/OpenStock.git",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
         "kind": "product",
-        "value": "Next.js",
+        "value": "OpenStock",
         "fields": [
+          "goal",
           "usage",
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "MongoDB",
-        "fields": [
-          "usage",
-          "pros"
+          "fit"
         ]
       },
       {
         "kind": "product",
         "value": "Finnhub",
         "fields": [
+          "pros",
           "cons"
         ]
       },
@@ -1205,13 +1215,6 @@
           "pros",
           "cons"
         ]
-      },
-      {
-        "kind": "product",
-        "value": "Better Auth",
-        "fields": [
-          "pros"
-        ]
       }
     ],
     "inference_fields": [
@@ -1221,8 +1224,8 @@
       "kind": "readme",
       "slug": "open-dev-society/openstock",
       "path": "README.md",
-      "blob_sha": "9907d884cb72a8c6dcd833349ce25d3834cb206f",
-      "content_sha256": "9a339e76756e5211106c91430e103bcb376318485450594af684b0eafb1a2409",
+      "blob_sha": "d2bba526c73b643fcb5394cce5a9c66723d479a3",
+      "content_sha256": "a39ede8116a389a8863cca2a19a08d9b3be8f2a8099e522c5ce18634d6964705",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -1236,47 +1239,47 @@
   },
   "agent-substrate/substrate": {
     "content": {
-      "goal": "Agent Substrate is a secure-by-default runtime for executing large numbers of AI agent sandboxes, aiming for higher density than standard container runtimes with fast suspend/resume cycles and kernel/network isolation via microVMs or gVisor. It multiplexes many idle 'actor' applications onto a smaller pool of Kubernetes-backed workers.",
-      "usage": "Development quickstart requires Go, kubectl, and Docker; setup runs `hack/create-kind-cluster.sh` to create a local kind cluster and `hack/install-ate-kind.sh --deploy-ate-system` to install the core system, PostgreSQL, and rustfs, followed by deploying demo actors and forwarding a local port to interact via HTTP.",
-      "pros": "It is framework-agnostic, documented to support ADK, LangChain, Claude Code, CodeX, Antigravity, and MCP-based agents since it manages standard OCI containers at the kernel level. It builds on Kubernetes Pods and autoscaling for consistent infrastructure management, and the demo reports around 250 stateful actors multiplexed across 8 physical pods with sub-second resume.",
-      "cons": "The project is explicitly described as early development, not ready for production use, with APIs likely to change and no backward-compatibility guarantees at this stage.",
-      "fit": "Because it layers on Kubernetes Pods, kubectl, and GKE tooling, it appears best suited to teams already operating Kubernetes infrastructure rather than standalone deployments; it is also not an officially supported Google product and is excluded from Google's Open Source Software Vulnerability Rewards Program."
+      "goal": "Agent Substrate is a secure-by-default agent execution runtime designed to run many sandboxed workloads with high density; it is not an SDK for building agents but a system for running them at scale.",
+      "usage": "Quickstart involves running `hack/create-kind-cluster.sh` to create a local kind cluster and registry, then `hack/install-ate-kind.sh --deploy-ate-system` to install the ATE system, followed by creating actors via kubectl-ate and port-forwarding the network router.",
+      "pros": "It supports multiple sandbox technologies including microVMs and gVisor, offers sub-500ms resume operations with zero-trust kernel and network isolation, and is framework-agnostic, working with ADK, LangChain, Claude Code, and MCP-based agents.",
+      "cons": "The project is explicitly described as being in early development, not ready for production use, with APIs likely to change and no backward-compatibility guarantees at this stage.",
+      "fit": "This may suit teams already using Kubernetes who want to experiment with running many stateful agent sandboxes, though the stated lack of production readiness suggests it does not yet fit teams needing stable, production-grade deployments."
     },
     "summaries": {
       "en": {
-        "goal": "Agent Substrate is a secure-by-default runtime for executing large numbers of AI agent sandboxes, aiming for higher density than standard container runtimes with fast suspend/resume cycles and kernel/network isolation via microVMs or gVisor. It multiplexes many idle 'actor' applications onto a smaller pool of Kubernetes-backed workers.",
-        "usage": "Development quickstart requires Go, kubectl, and Docker; setup runs `hack/create-kind-cluster.sh` to create a local kind cluster and `hack/install-ate-kind.sh --deploy-ate-system` to install the core system, PostgreSQL, and rustfs, followed by deploying demo actors and forwarding a local port to interact via HTTP.",
-        "pros": "It is framework-agnostic, documented to support ADK, LangChain, Claude Code, CodeX, Antigravity, and MCP-based agents since it manages standard OCI containers at the kernel level. It builds on Kubernetes Pods and autoscaling for consistent infrastructure management, and the demo reports around 250 stateful actors multiplexed across 8 physical pods with sub-second resume.",
-        "cons": "The project is explicitly described as early development, not ready for production use, with APIs likely to change and no backward-compatibility guarantees at this stage.",
-        "fit": "Because it layers on Kubernetes Pods, kubectl, and GKE tooling, it appears best suited to teams already operating Kubernetes infrastructure rather than standalone deployments; it is also not an officially supported Google product and is excluded from Google's Open Source Software Vulnerability Rewards Program."
+        "goal": "Agent Substrate is a secure-by-default agent execution runtime designed to run many sandboxed workloads with high density; it is not an SDK for building agents but a system for running them at scale.",
+        "usage": "Quickstart involves running `hack/create-kind-cluster.sh` to create a local kind cluster and registry, then `hack/install-ate-kind.sh --deploy-ate-system` to install the ATE system, followed by creating actors via kubectl-ate and port-forwarding the network router.",
+        "pros": "It supports multiple sandbox technologies including microVMs and gVisor, offers sub-500ms resume operations with zero-trust kernel and network isolation, and is framework-agnostic, working with ADK, LangChain, Claude Code, and MCP-based agents.",
+        "cons": "The project is explicitly described as being in early development, not ready for production use, with APIs likely to change and no backward-compatibility guarantees at this stage.",
+        "fit": "This may suit teams already using Kubernetes who want to experiment with running many stateful agent sandboxes, though the stated lack of production readiness suggests it does not yet fit teams needing stable, production-grade deployments."
       },
       "ko": {
-        "goal": "Agent Substrate는 다수의 AI 에이전트 샌드박스를 실행하기 위한 보안 우선 런타임으로, 표준 컨테이너 런타임보다 높은 밀도와 빠른 suspend/resume 주기, microVM 또는 gVisor를 통한 커널·네트워크 격리를 목표로 합니다. 유휴 상태가 많은 'actor' 애플리케이션들을 Kubernetes 기반의 더 작은 워커 풀에 멀티플렉싱합니다.",
-        "usage": "개발 퀵스타트에는 Go, kubectl, Docker가 필요하며, `hack/create-kind-cluster.sh`로 로컬 kind 클러스터를 만들고 `hack/install-ate-kind.sh --deploy-ate-system`으로 핵심 시스템, PostgreSQL, rustfs를 설치한 뒤 데모 액터를 배포하고 로컬 포트를 포워딩해 HTTP로 상호작용합니다.",
-        "pros": "커널 수준에서 표준 OCI 컨테이너를 관리하므로 프레임워크에 구애받지 않으며, ADK, LangChain, Claude Code, CodeX, Antigravity, MCP 기반 에이전트를 지원한다고 문서화되어 있습니다. Kubernetes Pod와 오토스케일링 위에 구축되어 있으며, 데모에서는 약 250개의 상태 유지 액터를 8개의 물리 파드에 멀티플렉싱하고 서브초 단위 재개를 보여줍니다.",
-        "cons": "프로젝트는 초기 개발 단계로 명시되어 있으며 프로덕션 사용에 준비되지 않았고, API가 변경될 가능성이 높으며 현재 단계에서는 하위 호환성이 보장되지 않습니다.",
-        "fit": "Kubernetes Pod, kubectl, GKE 도구 위에 구축되어 있어 이미 Kubernetes 인프라를 운영 중인 팀에 더 적합해 보이며, 공식 지원되는 Google 제품이 아니고 Google 오픈소스 소프트웨어 취약점 보상 프로그램 대상에서도 제외됩니다."
+        "goal": "Agent Substrate는 보안 기본 설계(secure-by-default) 에이전트 실행 런타임으로, 다수의 샌드박스를 고밀도로 실행하도록 설계되었으며, 에이전트를 만드는 SDK가 아니라 대규모로 실행하기 위한 시스템입니다.",
+        "usage": "빠른 시작은 `hack/create-kind-cluster.sh`로 로컬 kind 클러스터와 레지스트리를 생성한 뒤, `hack/install-ate-kind.sh --deploy-ate-system`으로 ATE 시스템을 설치하고, kubectl-ate로 액터를 생성한 후 네트워크 라우터를 포트포워딩하는 과정으로 진행됩니다.",
+        "pros": "microVM과 gVisor 등 여러 샌드박스 기술을 지원하고, 500ms 이하의 재개(resume) 작업과 제로 트러스트 커널/네트워크 격리를 제공하며, ADK, LangChain, Claude Code, MCP 기반 에이전트와도 호환되는 프레임워크 독립적 구조를 갖추고 있습니다.",
+        "cons": "이 프로젝트는 초기 개발 단계로 명시되어 있으며, 프로덕션 사용에는 적합하지 않고 API가 변경될 가능성이 높으며 현재로서는 하위 호환성이 보장되지 않습니다.",
+        "fit": "이미 Kubernetes를 사용 중이며 다수의 상태 저장 에이전트 샌드박스를 실험적으로 운영하려는 팀에 적합할 수 있지만, 프로덕션 준비가 되지 않았다는 점에서 안정적인 상용 배포가 필요한 팀에는 아직 맞지 않을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "Agent Substrate 是一个默认安全的运行时,用于执行大量 AI 智能体沙箱,目标是比标准容器运行时实现更高的密度,并通过 microVM 或 gVisor 提供快速的挂起/恢复周期以及内核与网络隔离。它将大多处于空闲状态的“actor”应用复用到基于 Kubernetes 的较小工作节点池上。",
-        "usage": "开发快速上手需要安装 Go、kubectl 和 Docker,通过运行 `hack/create-kind-cluster.sh` 创建本地 kind 集群,再运行 `hack/install-ate-kind.sh --deploy-ate-system` 安装核心系统、PostgreSQL 和 rustfs,随后部署演示 actor 并转发本地端口以通过 HTTP 交互。",
-        "pros": "由于在内核层面管理标准 OCI 容器,该项目文档中说明其与框架无关,支持 ADK、LangChain、Claude Code、CodeX、Antigravity 以及基于 MCP 的智能体。它构建在 Kubernetes Pod 和自动扩缩容之上,演示中展示了约 250 个有状态 actor 在 8 个物理 Pod 上复用,并实现亚秒级恢复。",
-        "cons": "文档明确说明该项目处于早期开发阶段,尚未准备好用于生产环境,API 很可能发生变化,且现阶段不保证向后兼容性。",
-        "fit": "由于依赖 Kubernetes Pod、kubectl 和 GKE 工具链,该项目似乎更适合已经在运营 Kubernetes 基础设施的团队,而非独立部署场景;同时它并非 Google 官方支持的产品,也不在 Google 开源软件漏洞奖励计划的适用范围内。"
+        "goal": "Agent Substrate 是一个默认安全的智能体执行运行时,旨在以高密度运行大量沙箱工作负载;它不是用于构建智能体的 SDK,而是用于大规模运行智能体的系统。",
+        "usage": "快速开始时先运行 `hack/create-kind-cluster.sh` 创建本地 kind 集群和镜像仓库,再运行 `hack/install-ate-kind.sh --deploy-ate-system` 安装 ATE 系统,随后通过 kubectl-ate 创建 actor 并对网络路由器进行端口转发。",
+        "pros": "它支持 microVM 和 gVisor 等多种沙箱技术,提供低于 500 毫秒的恢复操作和零信任内核/网络隔离,并且与框架无关,可兼容 ADK、LangChain、Claude Code 以及基于 MCP 的智能体。",
+        "cons": "文档明确说明该项目仍处于早期开发阶段,尚不适合生产环境使用,API 很可能发生变化,目前也不保证向后兼容性。",
+        "fit": "该项目可能适合已经使用 Kubernetes 并希望试验运行大量有状态智能体沙箱的团队,但由于其明确声明尚未准备好用于生产,可能还不适合需要稳定生产级部署的团队。"
       },
       "es": {
-        "goal": "Agent Substrate es un runtime seguro por defecto para ejecutar grandes cantidades de sandboxes de agentes de IA, con el objetivo de lograr mayor densidad que los runtimes de contenedores estándar, junto con ciclos rápidos de suspensión/reanudación y aislamiento de kernel y red mediante microVMs o gVisor. Multiplexa aplicaciones 'actor', que suelen estar inactivas la mayor parte del tiempo, sobre un grupo más pequeño de workers basados en Kubernetes.",
-        "usage": "El inicio rápido de desarrollo requiere Go, kubectl y Docker; la configuración ejecuta `hack/create-kind-cluster.sh` para crear un clúster kind local y `hack/install-ate-kind.sh --deploy-ate-system` para instalar el sistema principal, PostgreSQL y rustfs, seguido del despliegue de actores de demostración y el reenvío de un puerto local para interactuar por HTTP.",
-        "pros": "Es independiente del framework, ya que gestiona contenedores OCI estándar a nivel de kernel, y la documentación indica soporte para agentes ADK, LangChain, Claude Code, CodeX, Antigravity y basados en MCP. Se construye sobre Pods de Kubernetes y su autoescalado, y la demo reporta alrededor de 250 actores con estado multiplexados en 8 pods físicos con reanudación en menos de un segundo.",
-        "cons": "El proyecto se describe explícitamente como en desarrollo temprano, no listo para uso en producción, con APIs que probablemente cambiarán y sin garantías de compatibilidad hacia atrás en esta etapa.",
-        "fit": "Al apoyarse en Pods de Kubernetes, kubectl y herramientas de GKE, parece más adecuado para equipos que ya operan infraestructura Kubernetes que para despliegues independientes; además, no es un producto oficialmente soportado por Google y queda excluido del Programa de Recompensas por Vulnerabilidades de Software de Código Abierto de Google."
+        "goal": "Agent Substrate es un entorno de ejecución de agentes seguro por defecto, diseñado para ejecutar muchas cargas de trabajo en sandbox con alta densidad; no es un SDK para crear agentes, sino un sistema para ejecutarlos a gran escala.",
+        "usage": "El inicio rápido consiste en ejecutar `hack/create-kind-cluster.sh` para crear un clúster kind local y un registro, luego `hack/install-ate-kind.sh --deploy-ate-system` para instalar el sistema ATE, y después crear actores con kubectl-ate y reenviar el puerto del enrutador de red.",
+        "pros": "Admite varias tecnologías de sandbox como microVMs y gVisor, ofrece operaciones de reanudación por debajo de 500 ms y aislamiento de kernel/red de confianza cero, además de ser independiente del framework, compatible con ADK, LangChain, Claude Code y agentes basados en MCP.",
+        "cons": "El proyecto se describe explícitamente como en fase temprana de desarrollo, no apto para producción, con APIs que probablemente cambiarán y sin garantías de compatibilidad hacia atrás por ahora.",
+        "fit": "Podría ser adecuado para equipos que ya usan Kubernetes y desean experimentar con muchos sandboxes de agentes con estado, aunque su falta declarada de preparación para producción sugiere que aún no encaja en despliegues productivos estables."
       },
       "ja": {
-        "goal": "Agent Substrateは、大量のAIエージェントサンドボックスを実行するためのセキュアバイデフォルトのランタイムであり、標準的なコンテナランタイムより高い密度と、microVMまたはgVisorによる高速なサスペンド/レジューム、カーネル・ネットワーク分離を目指しています。ほとんどの時間アイドル状態にある「actor」アプリケーションを、Kubernetesベースのより小さなワーカープールに多重化します。",
-        "usage": "開発用クイックスタートにはGo、kubectl、Dockerが必要で、`hack/create-kind-cluster.sh`でローカルのkindクラスタを作成し、`hack/install-ate-kind.sh --deploy-ate-system`でコアシステム、PostgreSQL、rustfsをインストールした後、デモactorをデプロイしローカルポートをフォワードしてHTTPで操作します。",
-        "pros": "カーネルレベルで標準的なOCIコンテナを管理するためフレームワークに依存せず、ADK、LangChain、Claude Code、CodeX、Antigravity、MCPベースのエージェントをサポートすると文書化されています。Kubernetes Podとオートスケーリングの上に構築されており、デモでは約250のステートフルなactorが8個の物理Podに多重化され、サブ秒単位のレジュームが示されています。",
-        "cons": "プロジェクトは初期開発段階にあり、本番利用には対応しておらず、APIは変更される可能性が高く、この段階では後方互換性は保証されないと明記されています。",
-        "fit": "Kubernetes Pod、kubectl、GKEツール群の上に構築されているため、すでにKubernetesインフラを運用しているチームに適していると考えられ、独立したデプロイ用途には不向きな可能性があります。また、Googleが公式にサポートする製品ではなく、GoogleのOSS脆弱性報奨プログラムの対象からも除外されています。"
+        "goal": "Agent Substrateはデフォルトで安全な(secure-by-default)エージェント実行ランタイムであり、多数のサンドボックスを高密度で実行するために設計されている。エージェントを構築するためのSDKではなく、大規模に実行するためのシステムである。",
+        "usage": "クイックスタートでは、まず `hack/create-kind-cluster.sh` を実行してローカルのkindクラスタとレジストリを作成し、次に `hack/install-ate-kind.sh --deploy-ate-system` でATEシステムをインストールし、その後kubectl-ateでアクターを作成し、ネットワークルーターをポートフォワードする。",
+        "pros": "microVMやgVisorなど複数のサンドボックス技術に対応し、500ミリ秒未満の再開処理とゼロトラストのカーネル/ネットワーク分離を提供する。またフレームワークに依存せず、ADK、LangChain、Claude Code、MCPベースのエージェントとも互換性がある。",
+        "cons": "このプロジェクトは初期開発段階にあると明記されており、本番環境での使用には適しておらず、APIが変更される可能性が高く、現時点では後方互換性は保証されていない。",
+        "fit": "すでにKubernetesを利用しており、多数のステートフルなエージェントサンドボックスを試験的に運用したいチームには適している可能性があるが、本番運用への準備が整っていないと明記されているため、安定した本番デプロイを必要とするチームにはまだ適さない可能性がある。"
       }
     },
     "evidence": {
@@ -1287,11 +1290,6 @@
           "section_heading": "What is Agent Substrate?"
         },
         {
-          "start_line": 12,
-          "end_line": 12,
-          "section_heading": "What is Agent Substrate?"
-        },
-        {
           "start_line": 14,
           "end_line": 14,
           "section_heading": "What is Agent Substrate?"
@@ -1299,31 +1297,26 @@
       ],
       "usage": [
         {
-          "start_line": 90,
-          "end_line": 90,
+          "start_line": 92,
+          "end_line": 98,
           "section_heading": "Quickstart (Development)"
         },
         {
-          "start_line": 93,
-          "end_line": 98,
+          "start_line": 108,
+          "end_line": 111,
           "section_heading": "Quickstart (Development)"
         }
       ],
       "pros": [
-        {
-          "start_line": 37,
-          "end_line": 42,
-          "section_heading": "Framework Agnostic & Compatibility"
-        },
         {
           "start_line": 10,
           "end_line": 10,
           "section_heading": "What is Agent Substrate?"
         },
         {
-          "start_line": 23,
-          "end_line": 29,
-          "section_heading": "Demo"
+          "start_line": 37,
+          "end_line": 42,
+          "section_heading": "Framework Agnostic & Compatibility"
         }
       ],
       "cons": [
@@ -1340,14 +1333,9 @@
           "section_heading": "What is Agent Substrate?"
         },
         {
-          "start_line": 56,
-          "end_line": 58,
-          "section_heading": "Supported Kubernetes Releases"
-        },
-        {
-          "start_line": 5,
-          "end_line": 6,
-          "section_heading": "Agent Substrate"
+          "start_line": 51,
+          "end_line": 54,
+          "section_heading": "Status and compatibility"
         }
       ]
     },
@@ -1367,20 +1355,6 @@
         ]
       },
       {
-        "kind": "number",
-        "value": "250",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "8",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
         "kind": "product",
         "value": "Agent Substrate",
         "fields": [
@@ -1391,9 +1365,14 @@
         "kind": "product",
         "value": "Kubernetes",
         "fields": [
-          "goal",
-          "pros",
           "fit"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "500ms",
+        "fields": [
+          "pros"
         ]
       }
     ],
@@ -1404,8 +1383,8 @@
       "kind": "readme",
       "slug": "agent-substrate/substrate",
       "path": "README.md",
-      "blob_sha": "10bf6ce44426c93793abd0f32878eb811f9786b9",
-      "content_sha256": "7e0a509b8f54933cf3313210c0132388a040252537f2f55a5ca06fe12769bbfb",
+      "blob_sha": "f831b9d649e2350ef68612699a921a3f0c8ec0d9",
+      "content_sha256": "89a032c5ccbf8206bdcdf9010744afc369e9e683944eae128533c59d4b245868",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -3097,47 +3076,47 @@
   },
   "alibaba/open-code-review": {
     "content": {
-      "goal": "Open Code Review (OCR) is an AI-powered code review CLI tool, originally built internally at Alibaba Group, that reads Git diffs, sends changed files to a configurable LLM via a tool-using agent, and produces structured, line-level review comments. Beyond diffs, `ocr scan` reviews whole files for auditing codebases with no meaningful diff. More details: https://open-codereview.ai.",
-      "usage": "Install globally with `npm install -g @alibaba-group/open-code-review`, then configure a provider and model via `ocr config provider` and `ocr config model` (skippable in Delegation Mode). Run `ocr review` for workspace, branch-range, or commit reviews, or `ocr scan` to review whole files/directories without git history; output can be saved as JSON.",
-      "pros": "Per the documented benchmark (50 repositories, 200 pull requests, 10 languages, 1,505 annotated ground-truth issues), Open Code Review reports significantly higher Precision and F1 than general-purpose agents like Claude Code on the same model, while using only about ~1/9 of the tokens and finishing faster.",
-      "cons": "The same benchmark documentation states Recall is lower than general-purpose agents, a deliberate trade-off favoring precision over noise, implying some real defects may be missed.",
-      "fit": "It requires Git >= 2.41 and, outside Delegation Mode, a configured LLM provider; it seems best suited for teams reviewing diffs, PRs, or unfamiliar codebases, with integrations for Claude Code, Codex, Cursor, Kimi Code, and CI/CD pipelines."
+      "goal": "Open Code Review is an AI-powered code review CLI tool that originated as Alibaba Group's internal review assistant before being open-sourced. It reads Git diffs and sends changed files to a configurable LLM through an agent with tool-use capabilities, producing structured, line-level review comments; `ocr scan` extends this to full-file review for codebases without a meaningful diff.",
+      "usage": "Install with `npm install -g @alibaba-group/open-code-review`, then configure a provider and model, and run `ocr review` for diff-based reviews of staged/branch/commit changes or `ocr scan` to review entire files or directories.",
+      "pros": "Per the README's benchmark (50 repositories, 200 pull requests, 10 languages, 1,505 annotated issues), the tool reports higher precision and F1 than a general-purpose agent (Claude Code) on the same model while consuming about 1/9 of the tokens.",
+      "cons": "The README states Recall is lower than general-purpose agents, described as a deliberate trade-off favoring precision over noise; using the tool also requires Git >= 2.41 as a prerequisite.",
+      "fit": "It appears suited to teams wanting token-efficient, structured diff or full-file reviews via CLI or CI/CD, and its delegation mode reportedly lets a coding agent perform reviews without configuring an OCR-managed LLM, though this depends on the chosen execution mode."
     },
     "summaries": {
       "en": {
-        "goal": "Open Code Review (OCR) is an AI-powered code review CLI tool, originally built internally at Alibaba Group, that reads Git diffs, sends changed files to a configurable LLM via a tool-using agent, and produces structured, line-level review comments. Beyond diffs, `ocr scan` reviews whole files for auditing codebases with no meaningful diff. More details: https://open-codereview.ai.",
-        "usage": "Install globally with `npm install -g @alibaba-group/open-code-review`, then configure a provider and model via `ocr config provider` and `ocr config model` (skippable in Delegation Mode). Run `ocr review` for workspace, branch-range, or commit reviews, or `ocr scan` to review whole files/directories without git history; output can be saved as JSON.",
-        "pros": "Per the documented benchmark (50 repositories, 200 pull requests, 10 languages, 1,505 annotated ground-truth issues), Open Code Review reports significantly higher Precision and F1 than general-purpose agents like Claude Code on the same model, while using only about ~1/9 of the tokens and finishing faster.",
-        "cons": "The same benchmark documentation states Recall is lower than general-purpose agents, a deliberate trade-off favoring precision over noise, implying some real defects may be missed.",
-        "fit": "It requires Git >= 2.41 and, outside Delegation Mode, a configured LLM provider; it seems best suited for teams reviewing diffs, PRs, or unfamiliar codebases, with integrations for Claude Code, Codex, Cursor, Kimi Code, and CI/CD pipelines."
+        "goal": "Open Code Review is an AI-powered code review CLI tool that originated as Alibaba Group's internal review assistant before being open-sourced. It reads Git diffs and sends changed files to a configurable LLM through an agent with tool-use capabilities, producing structured, line-level review comments; `ocr scan` extends this to full-file review for codebases without a meaningful diff.",
+        "usage": "Install with `npm install -g @alibaba-group/open-code-review`, then configure a provider and model, and run `ocr review` for diff-based reviews of staged/branch/commit changes or `ocr scan` to review entire files or directories.",
+        "pros": "Per the README's benchmark (50 repositories, 200 pull requests, 10 languages, 1,505 annotated issues), the tool reports higher precision and F1 than a general-purpose agent (Claude Code) on the same model while consuming about 1/9 of the tokens.",
+        "cons": "The README states Recall is lower than general-purpose agents, described as a deliberate trade-off favoring precision over noise; using the tool also requires Git >= 2.41 as a prerequisite.",
+        "fit": "It appears suited to teams wanting token-efficient, structured diff or full-file reviews via CLI or CI/CD, and its delegation mode reportedly lets a coding agent perform reviews without configuring an OCR-managed LLM, though this depends on the chosen execution mode."
       },
       "ko": {
-        "goal": "Open Code Review(OCR)는 알리바바 그룹 내부에서 개발된 AI 기반 코드 리뷰 CLI 도구로, Git diff를 읽고 변경된 파일을 도구 사용이 가능한 에이전트를 통해 설정 가능한 LLM에 전달하여 라인 단위의 구조화된 리뷰 코멘트를 생성합니다. diff 외에도 `ocr scan`은 의미 있는 diff가 없는 코드베이스를 감사하기 위해 전체 파일을 검토합니다. 자세한 내용은 https://open-codereview.ai 에서 확인할 수 있습니다.",
-        "usage": "`npm install -g @alibaba-group/open-code-review` 명령으로 전역 설치한 뒤, `ocr config provider`와 `ocr config model`로 제공자와 모델을 설정합니다(Delegation Mode 사용 시 생략 가능). `ocr review`로 워크스페이스, 브랜치 범위 또는 커밋 리뷰를 실행하거나, `ocr scan`으로 git 기록 없이 전체 파일/디렉터리를 검토할 수 있으며 결과는 JSON으로 저장할 수 있습니다.",
-        "pros": "문서화된 벤치마크(오픈소스 저장소 50개, 실제 풀 리퀘스트 200개, 프로그래밍 언어 10종, 주석이 달린 정답 이슈 1,505건)에 따르면, Open Code Review는 동일한 모델을 사용할 때 Claude Code와 같은 범용 에이전트보다 Precision과 F1이 훨씬 높다고 보고되며, 토큰 사용량은 약 ~1/9에 불과하고 리뷰 속도도 더 빠릅니다.",
-        "cons": "같은 벤치마크 문서에 따르면 Recall은 범용 에이전트보다 낮으며, 이는 노이즈보다 정밀도를 우선시하는 의도적인 트레이드오프로 설명되어 있어 일부 실제 결함이 누락될 수 있음을 시사합니다.",
-        "fit": "Git >= 2.41이 필요하며, Delegation Mode를 사용하지 않는 경우 LLM 제공자 설정이 필요합니다. diff, PR 또는 낯선 코드베이스를 검토하는 팀에 적합해 보이며, Claude Code, Codex, Cursor, Kimi Code 및 CI/CD 파이프라인과의 통합을 지원합니다."
+        "goal": "Open Code Review는 알리바바 그룹 내부 리뷰 어시스턴트에서 출발해 오픈소스로 공개된 AI 기반 코드 리뷰 CLI 도구입니다. Git diff를 읽고 변경된 파일을 도구 사용이 가능한 에이전트를 통해 설정 가능한 LLM에 전달하여 라인 단위의 구조화된 리뷰 코멘트를 생성하며, `ocr scan`은 의미 있는 diff가 없는 코드베이스 전체 파일 리뷰로 이를 확장합니다.",
+        "usage": "`npm install -g @alibaba-group/open-code-review`로 설치한 뒤 provider와 model을 설정하고, staged/branch/commit 변경 사항을 리뷰하려면 `ocr review`를, 전체 파일이나 디렉터리를 리뷰하려면 `ocr scan`을 실행합니다.",
+        "pros": "README의 벤치마크(저장소 50개, 풀 리퀘스트 200개, 언어 10종, 주석된 이슈 1,505건)에 따르면 동일 모델 기준 범용 에이전트(Claude Code)보다 높은 Precision과 F1을 보이면서 토큰 소비는 약 1/9에 그친다고 보고됩니다.",
+        "cons": "README는 Recall이 범용 에이전트보다 낮다고 명시하며, 이는 노이즈보다 정밀도를 우선하는 의도된 트레이드오프라고 설명합니다. 또한 사용을 위해서는 Git >= 2.41이 필요합니다.",
+        "fit": "CLI나 CI/CD를 통해 토큰 효율적이고 구조화된 diff 또는 전체 파일 리뷰를 원하는 팀에 적합해 보이며, delegation 모드를 사용하면 OCR용 LLM을 설정하지 않고도 코딩 에이전트가 리뷰를 수행할 수 있다고 하나 이는 선택한 실행 모드에 따라 달라질 수 있습니다."
       },
       "zh-CN": {
-        "goal": "Open Code Review(OCR)是一款由阿里巴巴集团内部孵化的人工智能代码评审命令行工具,能够读取 Git diff,通过具备工具调用能力的智能体将变更文件发送给可配置的 LLM,并生成结构化、行级精度的评审意见。除 diff 评审外,`ocr scan` 还可用于审计没有明显 diff 的代码库,评审整个文件。更多信息见 https://open-codereview.ai。",
-        "usage": "使用 `npm install -g @alibaba-group/open-code-review` 进行全局安装,然后通过 `ocr config provider` 和 `ocr config model` 配置提供商和模型(使用 Delegation Mode 时可跳过)。运行 `ocr review` 对工作区、分支范围或单次提交进行评审,或使用 `ocr scan` 在没有 git 历史的情况下评审整个文件或目录,结果可保存为 JSON。",
-        "pros": "根据文档中的基准测试(50 个开源仓库、200 个真实 Pull Request、10 种编程语言、1,505 条标注的真实问题),在使用相同底层模型的情况下,Open Code Review 的 Precision 和 F1 明显高于 Claude Code 等通用智能体,同时 token 消耗仅约为其 ~1/9,评审速度也更快。",
-        "cons": "同一份基准文档指出,其 Recall 低于通用智能体,文档将其描述为在精确率与噪声之间做出的有意权衡,这意味着可能会漏报部分真实缺陷。",
-        "fit": "该工具需要 Git >= 2.41,且在不使用 Delegation Mode 的情况下需要配置 LLM 提供商;它似乎更适合需要评审 diff、PR 或审计陌生代码库的团队,并可与 Claude Code、Codex、Cursor、Kimi Code 及 CI/CD 流水线集成。"
+        "goal": "Open Code Review 是一款 AI 驱动的代码评审 CLI 工具,最初是阿里巴巴集团内部的评审助手,后来开源。它读取 Git diff,通过具备工具调用能力的智能体将变更文件发送给可配置的 LLM,生成行级精度的结构化评审意见;`ocr scan` 将此扩展为对没有明显 diff 的代码库进行整文件评审。",
+        "usage": "先执行 `npm install -g @alibaba-group/open-code-review` 安装,然后配置 provider 与 model,使用 `ocr review` 对暂存区、分支或提交的变更进行评审,或使用 `ocr scan` 评审整个文件或目录。",
+        "pros": "根据 README 中的基准测试(50 个仓库、200 个 Pull Request、10 种编程语言、1,505 条标注问题),在相同模型下,该工具相较通用型智能体(Claude Code)报告了更高的 Precision 和 F1,同时消耗的 token 约为其 1/9。",
+        "cons": "README 指出其 Recall 低于通用型智能体,并说明这是为了优先保证精确度、减少噪声而做出的取舍;使用该工具还需要 Git >= 2.41 作为前提条件。",
+        "fit": "该工具看起来适合希望通过 CLI 或 CI/CD 进行高效、结构化的 diff 或整文件评审的团队;其委托(delegation)模式据称可让编码智能体自行完成评审而无需配置 OCR 管理的 LLM,不过具体情况取决于所选执行模式。"
       },
       "es": {
-        "goal": "Open Code Review (OCR) es una herramienta de línea de comandos de revisión de código impulsada por IA, originada internamente en Alibaba Group, que lee diffs de Git, envía los archivos modificados a un LLM configurable mediante un agente con capacidad de uso de herramientas, y genera comentarios de revisión estructurados con precisión a nivel de línea. Además de los diffs, `ocr scan` revisa archivos completos para auditar bases de código sin un diff significativo. Más detalles en https://open-codereview.ai.",
-        "usage": "Instálalo globalmente con `npm install -g @alibaba-group/open-code-review`, luego configura un proveedor y un modelo con `ocr config provider` y `ocr config model` (se puede omitir en Delegation Mode). Ejecuta `ocr review` para revisar el espacio de trabajo, un rango de ramas o un commit, o `ocr scan` para revisar archivos/directorios completos sin historial de git; los resultados se pueden guardar como JSON.",
-        "pros": "Según el benchmark documentado (50 repositorios, 200 pull requests, 10 lenguajes de programación, 1,505 incidencias anotadas), Open Code Review reporta una Precision y F1 significativamente más altas que agentes de propósito general como Claude Code usando el mismo modelo, consumiendo solo cerca de ~1/9 de los tokens y completando revisiones más rápido.",
-        "cons": "El mismo documento del benchmark señala que el Recall es menor que en agentes de propósito general, descrito como un compromiso deliberado que favorece la precisión sobre el ruido, lo que sugiere que algunos defectos reales podrían no reportarse.",
-        "fit": "Requiere Git >= 2.41 y, fuera de Delegation Mode, un proveedor de LLM configurado; parece más adecuado para equipos que revisan diffs, pull requests o bases de código desconocidas, con integraciones para Claude Code, Codex, Cursor, Kimi Code y pipelines de CI/CD."
+        "goal": "Open Code Review es una herramienta CLI de revisión de código impulsada por IA que se originó como el asistente interno de revisión de Alibaba Group antes de ser liberada como código abierto. Lee diffs de Git y envía los archivos modificados a un LLM configurable mediante un agente con capacidad de uso de herramientas, generando comentarios de revisión estructurados con precisión a nivel de línea; `ocr scan` extiende esto a la revisión de archivos completos en repositorios sin un diff significativo.",
+        "usage": "Instálala con `npm install -g @alibaba-group/open-code-review`, configura un proveedor y un modelo, y ejecuta `ocr review` para revisar cambios en staging, ramas o commits, o `ocr scan` para revisar archivos o directorios completos.",
+        "pros": "Según el benchmark del README (50 repositorios, 200 pull requests, 10 lenguajes, 1.505 incidencias anotadas), la herramienta reporta mayor Precision y F1 que un agente de propósito general (Claude Code) con el mismo modelo, consumiendo aproximadamente 1/9 de los tokens.",
+        "cons": "El README indica que el Recall es menor que el de agentes de propósito general, descrito como una compensación deliberada que prioriza la precisión sobre el ruido; usar la herramienta también requiere Git >= 2.41 como prerrequisito.",
+        "fit": "Parece adecuada para equipos que buscan revisiones de diff o de archivos completos estructuradas y eficientes en tokens vía CLI o CI/CD; su modo de delegación permitiría, según el README, que un agente de codificación realice la revisión sin configurar un LLM gestionado por OCR, aunque esto depende del modo de ejecución elegido."
       },
       "ja": {
-        "goal": "Open Code Review(OCR)は、アリババグループ社内で生まれたAI駆動のコードレビューCLIツールで、Gitのdiffを読み取り、ツール使用能力を持つエージェントを介して変更されたファイルを設定可能なLLMに送信し、行単位で構造化されたレビューコメントを生成します。diffレビューに加えて、`ocr scan`は意味のあるdiffがないコードベースを監査するためにファイル全体をレビューできます。詳細はhttps://open-codereview.aiを参照してください。",
-        "usage": "`npm install -g @alibaba-group/open-code-review` でグローバルインストールした後、`ocr config provider` と `ocr config model` でプロバイダーとモデルを設定します(Delegation Mode使用時は省略可能)。`ocr review` でワークスペース、ブランチ範囲、またはコミットのレビューを実行するか、`ocr scan` でgit履歴なしにファイルやディレクトリ全体をレビューでき、結果はJSONとして保存できます。",
-        "pros": "ドキュメント化されたベンチマーク(50のオープンソースリポジトリ、200件の実際のプルリクエスト、10のプログラミング言語、1,505件の注釈付き正解イシュー)によると、Open Code Reviewは同じ基盤モデルを使用した場合、Claude Codeのような汎用エージェントよりもPrecisionとF1が大幅に高く、トークン消費量は約~1/9に抑えられ、レビューも高速に完了すると報告されています。",
-        "cons": "同じベンチマーク文書では、Recallは汎用エージェントより低いとされており、これはノイズよりも精度を優先する意図的なトレードオフと説明されているため、一部の実際の欠陥が見逃される可能性があることを示唆しています。",
-        "fit": "Git >= 2.41が必要であり、Delegation Modeを使用しない場合はLLMプロバイダーの設定が必要です。diffやPR、不慣れなコードベースをレビューするチームに適していると考えられ、Claude Code、Codex、Cursor、Kimi Code、CI/CDパイプラインとの統合が可能です。"
+        "goal": "Open Code Reviewは、アリババグループの社内レビューアシスタントを起源とし、その後オープンソース化されたAI駆動のコードレビューCLIツールです。Git diffを読み取り、ツール使用機能を持つエージェントを介して変更ファイルを設定可能なLLMに送信し、行単位で精度の高い構造化されたレビューコメントを生成します。`ocr scan`は、意味のあるdiffがないコードベースに対してファイル全体をレビューする形にこれを拡張します。",
+        "usage": "`npm install -g @alibaba-group/open-code-review`でインストールした後、providerとmodelを設定し、ステージ・ブランチ・コミットの変更をレビューするには`ocr review`を、ファイルやディレクトリ全体をレビューするには`ocr scan`を実行します。",
+        "pros": "READMEのベンチマーク(リポジトリ50件、プルリクエスト200件、10言語、注釈付き問題1,505件)によると、同一モデルにおいて汎用エージェント(Claude Code)と比較してPrecisionとF1が高く、消費トークンは約1/9に抑えられると報告されています。",
+        "cons": "READMEではRecallが汎用エージェントより低いと明記されており、これはノイズよりも精度を優先する意図的なトレードオフであると説明されています。また利用にはGit >= 2.41が前提条件として必要です。",
+        "fit": "CLIやCI/CDを通じてトークン効率の良い構造化されたdiffレビューやファイル全体レビューを求めるチームに向いていると考えられ、delegationモードを使うとOCR管理のLLMを設定せずにコーディングエージェント自身がレビューを実行できるとされていますが、これは選択した実行モードによって異なります。"
       }
     },
     "evidence": {
@@ -3145,11 +3124,6 @@
         {
           "start_line": 45,
           "end_line": 47,
-          "section_heading": "What is Open Code Review?"
-        },
-        {
-          "start_line": 49,
-          "end_line": 49,
           "section_heading": "What is Open Code Review?"
         }
       ],
@@ -3160,24 +3134,19 @@
           "section_heading": "Install"
         },
         {
-          "start_line": 127,
+          "start_line": 128,
           "end_line": 130,
           "section_heading": "Quick Start"
         },
         {
-          "start_line": 140,
-          "end_line": 168,
+          "start_line": 144,
+          "end_line": 157,
           "section_heading": "Quick Start"
         }
       ],
       "pros": [
         {
           "start_line": 55,
-          "end_line": 55,
-          "section_heading": "Benchmark"
-        },
-        {
-          "start_line": 57,
           "end_line": 57,
           "section_heading": "Benchmark"
         }
@@ -3187,22 +3156,27 @@
           "start_line": 55,
           "end_line": 55,
           "section_heading": "Benchmark"
+        },
+        {
+          "start_line": 107,
+          "end_line": 107,
+          "section_heading": "Prerequisites"
         }
       ],
       "fit": [
-        {
-          "start_line": 105,
-          "end_line": 107,
-          "section_heading": "Prerequisites"
-        },
         {
           "start_line": 125,
           "end_line": 125,
           "section_heading": "Quick Start"
         },
         {
-          "start_line": 172,
-          "end_line": 194,
+          "start_line": 164,
+          "end_line": 166,
+          "section_heading": "Quick Start"
+        },
+        {
+          "start_line": 189,
+          "end_line": 191,
           "section_heading": "Documentation"
         }
       ]
@@ -3231,24 +3205,17 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "ocr config provider",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "ocr config model",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
         "kind": "version",
         "value": "Git >= 2.41",
         "fields": [
-          "fit"
+          "cons"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "1,505",
+        "fields": [
+          "pros"
         ]
       },
       {
@@ -3266,60 +3233,29 @@
         ]
       },
       {
-        "kind": "number",
-        "value": "10",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "1,505",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "~1/9",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "url",
-        "value": "https://open-codereview.ai",
+        "kind": "product",
+        "value": "Open Code Review",
         "fields": [
           "goal"
         ]
       },
       {
         "kind": "product",
-        "value": "Open Code Review",
-        "fields": [
-          "goal",
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
         "value": "Claude Code",
         "fields": [
-          "pros",
-          "fit"
+          "pros"
         ]
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "alibaba/open-code-review",
       "path": "README.md",
-      "blob_sha": "a8d2c1d908d266f189ae288171fe6982b9bba3af",
-      "content_sha256": "9dd403b069e64856091ae6ed3c7e7b21e7e1b35818325919c1ecfd9fe4ed5b67",
+      "blob_sha": "45618b0b4a0e4549e3fc3371cb5b075b225b5cc4",
+      "content_sha256": "76228cb397c4e64a13fa03ee893ae8a46df310f7073bd690e7ad0dc6cfc1aa43",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -3674,6 +3610,234 @@
       "path": "README.md",
       "blob_sha": "5a7822987471c9bc67459799ba38fa7e77c12b94",
       "content_sha256": "bff11524e5fa0c913189c21c851547c279ec9335755c8763d43ae7cac25e9476",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.263",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "affaan-m/ECC": {
+    "content": {
+      "goal": "ECC is an open-source toolbox that adds a coordinated engineering workflow—plan, test, implement, review, verify, remember, improve—to coding agents. It documents working best with Claude Code, a supported Codex sync path, and capability-limited adapters for other harnesses.",
+      "usage": "Install with the guided command `npx ecc-universal@2.2.2 setup`, or inside Claude Code run `/plugin marketplace add https://github.com/affaan-m/ECC` then `/plugin install ecc@ecc`. The README states the universal package requires Node.js 18+, and Claude plugin setup additionally requires Git and Claude Code 2.1 or newer.",
+      "pros": "The distribution bundles 68 agents, 292 skills, and 94 legacy command shims, plus hooks, rules, memory, continuous learning, and AgentShield security scanning. The documented workflow chains planning, test-driven development, and fresh-context review, and hooks can enforce checks outside the model's prompt.",
+      "cons": "The README states optional capabilities lack full parity across platforms: GitHub Copilot has no hook system or subagent API, and Windows native has open defects in continuous-learning v2's observer daemon and memory-vault writes. It also warns against stacking multiple install methods on one harness, since that can duplicate skills, commands, or hooks.",
+      "fit": "Based on the documented support matrix, ECC seems best suited to teams centered on Claude Code, listed as the stable primary harness, while Codex, Cursor, and other integrations are described as partial, beta, or experimental adapters without claimed feature parity."
+    },
+    "summaries": {
+      "en": {
+        "goal": "ECC is an open-source toolbox that adds a coordinated engineering workflow—plan, test, implement, review, verify, remember, improve—to coding agents. It documents working best with Claude Code, a supported Codex sync path, and capability-limited adapters for other harnesses.",
+        "usage": "Install with the guided command `npx ecc-universal@2.2.2 setup`, or inside Claude Code run `/plugin marketplace add https://github.com/affaan-m/ECC` then `/plugin install ecc@ecc`. The README states the universal package requires Node.js 18+, and Claude plugin setup additionally requires Git and Claude Code 2.1 or newer.",
+        "pros": "The distribution bundles 68 agents, 292 skills, and 94 legacy command shims, plus hooks, rules, memory, continuous learning, and AgentShield security scanning. The documented workflow chains planning, test-driven development, and fresh-context review, and hooks can enforce checks outside the model's prompt.",
+        "cons": "The README states optional capabilities lack full parity across platforms: GitHub Copilot has no hook system or subagent API, and Windows native has open defects in continuous-learning v2's observer daemon and memory-vault writes. It also warns against stacking multiple install methods on one harness, since that can duplicate skills, commands, or hooks.",
+        "fit": "Based on the documented support matrix, ECC seems best suited to teams centered on Claude Code, listed as the stable primary harness, while Codex, Cursor, and other integrations are described as partial, beta, or experimental adapters without claimed feature parity."
+      },
+      "ko": {
+        "goal": "ECC는 코딩 에이전트에 계획-테스트-구현-리뷰-검증-기억-개선으로 이어지는 통합 엔지니어링 워크플로를 더하는 오픈소스 도구 모음입니다. 문서에 따르면 Claude Code와 가장 잘 작동하며, 지원되는 Codex 동기화 경로와 다른 하니스를 위한 기능 제한적 어댑터를 제공합니다.",
+        "usage": "설치는 안내형 명령어 `npx ecc-universal@2.2.2 setup`을 사용하거나, Claude Code 내부에서 `/plugin marketplace add https://github.com/affaan-m/ECC`를 실행한 뒤 `/plugin install ecc@ecc`를 실행합니다. README에 따르면 유니버설 패키지는 Node.js 18 이상이 필요하며, Claude 플러그인 설치는 추가로 Git과 Claude Code 2.1 이상을 요구합니다.",
+        "pros": "이 배포판에는 68개 에이전트, 292개 스킬, 94개의 레거시 명령어 shim이 포함되며, 훅, 규칙, 메모리, 지속 학습, AgentShield 보안 스캐닝도 함께 제공됩니다. 문서화된 워크플로는 계획, 테스트 주도 개발, 새 컨텍스트에서의 리뷰를 연결하며, 훅은 프롬프트 밖에서 검사를 강제할 수 있습니다.",
+        "cons": "README는 플랫폼 간 선택적 기능이 완전히 동등하지 않다고 명시합니다. 예를 들어 GitHub Copilot에는 훅 시스템이나 서브에이전트 API가 없고, Windows 네이티브에는 continuous-learning v2의 옵저버 데몬과 memory-vault 쓰기에 알려진 결함이 있습니다. 또한 한 하니스에 여러 설치 방식을 겹쳐 쓰지 말라고 경고하는데, 이는 스킬, 명령어, 훅이 중복될 수 있기 때문입니다.",
+        "fit": "문서화된 지원 매트릭스를 볼 때, ECC는 Claude Code를 중심으로 사용하는 팀에 가장 적합해 보입니다. Claude Code는 '안정적인 기본' 하니스로 분류되는 반면, Codex, Cursor 및 기타 통합은 부분적이거나 베타/실험적 어댑터로 설명되며 기능 동등성은 주장되지 않습니다."
+      },
+      "zh-CN": {
+        "goal": "ECC 是一个开源工具集,为编码代理添加了计划-测试-实现-审查-验证-记忆-改进的协同工程工作流。文档说明它与 Claude Code 配合效果最佳,提供受支持的 Codex 同步路径,以及针对其他工具链的功能受限适配器。",
+        "usage": "可通过引导式命令 `npx ecc-universal@2.2.2 setup` 安装,或在 Claude Code 内运行 `/plugin marketplace add https://github.com/affaan-m/ECC` 后再运行 `/plugin install ecc@ecc`。README 指出通用软件包需要 Node.js 18 或更高版本,Claude 插件安装还需要 Git 以及 Claude Code 2.1 或更高版本。",
+        "pros": "该发行版包含 68 个代理、292 个技能以及 94 个旧版命令垫片,并配备钩子、规则、记忆、持续学习和 AgentShield 安全扫描。文档化的工作流将计划、测试驱动开发和全新上下文审查串联起来,钩子可以在提示之外强制执行检查。",
+        "cons": "README 说明各平台上的可选功能并非完全对等:例如 GitHub Copilot 没有钩子系统或子代理 API,而 Windows 原生环境中持续学习 v2 的观察守护进程和 memory-vault 写入存在已知缺陷。文档还警告不要在同一工具链上叠加多种安装方式,因为这可能导致技能、命令或钩子重复。",
+        "fit": "根据文档化的支持矩阵,ECC 似乎最适合以 Claude Code 为核心的团队,因为它被列为“稳定主力”工具链,而 Codex、Cursor 及其他集成则被描述为部分支持或处于测试/实验阶段的适配器,并未声称功能对等。"
+      },
+      "es": {
+        "goal": "ECC es un conjunto de herramientas de código abierto que añade un flujo de trabajo de ingeniería coordinado -planificar, probar, implementar, revisar, verificar, recordar, mejorar- a los agentes de codificación. El documento indica que funciona mejor con Claude Code, cuenta con una ruta de sincronización compatible con Codex y adaptadores de capacidad limitada para otros entornos.",
+        "usage": "Se instala con el comando guiado `npx ecc-universal@2.2.2 setup`, o dentro de Claude Code ejecutando `/plugin marketplace add https://github.com/affaan-m/ECC` seguido de `/plugin install ecc@ecc`. El README indica que el paquete universal requiere Node.js 18 o superior, y que la instalación del plugin de Claude además requiere Git y Claude Code 2.1 o superior.",
+        "pros": "La distribución incluye 68 agentes, 292 habilidades y 94 shims de comandos heredados, además de hooks, reglas, memoria, aprendizaje continuo y escaneo de seguridad AgentShield. El flujo documentado encadena planificación, desarrollo guiado por pruebas y revisión con contexto nuevo, y los hooks pueden forzar comprobaciones fuera del prompt.",
+        "cons": "El README indica que las capacidades opcionales no tienen paridad total entre plataformas: por ejemplo, GitHub Copilot carece de sistema de hooks o API de subagentes, y Windows nativo tiene defectos abiertos en el demonio observador de continuous-learning v2 y en las escrituras del memory-vault. También advierte contra apilar varios métodos de instalación en el mismo entorno, ya que eso puede duplicar habilidades, comandos o hooks.",
+        "fit": "Según la matriz de soporte documentada, ECC parece ajustarse mejor a equipos centrados en Claude Code, listado como el entorno 'estable primario', mientras que Codex, Cursor y otras integraciones se describen como adaptadores parciales, beta o experimentales sin paridad de funciones declarada."
+      },
+      "ja": {
+        "goal": "ECCは、計画・テスト・実装・レビュー・検証・記憶・改善という連携したエンジニアリングワークフローをコーディングエージェントに追加するオープンソースのツール群です。READMEによれば Claude Code で最も効果を発揮し、サポートされる Codex 同期パスと、他のハーネス向けの機能制限付きアダプタを備えています。",
+        "usage": "インストールはガイド付きコマンド `npx ecc-universal@2.2.2 setup` を使うか、Claude Code 内で `/plugin marketplace add https://github.com/affaan-m/ECC` を実行した後に `/plugin install ecc@ecc` を実行します。READMEでは、ユニバーサルパッケージには Node.js 18 以上が必要であり、Claude プラグインのセットアップにはさらに Git と Claude Code 2.1 以上が必要だと述べられています。",
+        "pros": "この配布物には 68 のエージェント、292 のスキル、94 のレガシーコマンドシムが含まれ、さらにフック、ルール、メモリ、継続学習、AgentShield セキュリティスキャンも備わっています。文書化されたワークフローは計画、テスト駆動開発、新しいコンテキストでのレビューを連結し、フックはプロンプトの外でチェックを強制できます。",
+        "cons": "READMEによれば、プラットフォーム間でオプション機能の完全な対等性はありません。たとえば GitHub Copilot にはフックシステムやサブエージェント API がなく、Windows ネイティブでは continuous-learning v2 のオブザーバーデーモンと memory-vault の書き込みに既知の不具合があります。また、同じハーネスに複数のインストール方法を重ねないよう警告しており、スキルやコマンド、フックが重複する可能性があるためです。",
+        "fit": "文書化されたサポートマトリックスから判断すると、ECC は Claude Code を中心に使うチームに最も適していると考えられます。Claude Code は「安定した主要」ハーネスとされる一方、Codex、Cursor、その他の統合は部分的、ベータ、または実験的なアダプタとされ、機能の対等性は謳われていません。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 129,
+          "end_line": 129,
+          "section_heading": "ECC"
+        },
+        {
+          "start_line": 139,
+          "end_line": 139,
+          "section_heading": "ECC"
+        },
+        {
+          "start_line": 141,
+          "end_line": 141,
+          "section_heading": "ECC"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 172,
+          "end_line": 174,
+          "section_heading": "Recommended: universal guided setup"
+        },
+        {
+          "start_line": 286,
+          "end_line": 289,
+          "section_heading": "Claude Code details"
+        },
+        {
+          "start_line": 163,
+          "end_line": 166,
+          "section_heading": "Install ECC"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 141,
+          "end_line": 141,
+          "section_heading": "ECC"
+        },
+        {
+          "start_line": 1181,
+          "end_line": 1188,
+          "section_heading": "Why Choose ECC?"
+        },
+        {
+          "start_line": 1819,
+          "end_line": 1819,
+          "section_heading": "Security"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 1272,
+          "end_line": 1272,
+          "section_heading": "Platform Support"
+        },
+        {
+          "start_line": 1279,
+          "end_line": 1279,
+          "section_heading": "Platform Support"
+        },
+        {
+          "start_line": 276,
+          "end_line": 276,
+          "section_heading": "Pick one path only (per harness)"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 139,
+          "end_line": 139,
+          "section_heading": "ECC"
+        },
+        {
+          "start_line": 1283,
+          "end_line": 1283,
+          "section_heading": "Platform Support"
+        },
+        {
+          "start_line": 1285,
+          "end_line": 1290,
+          "section_heading": "Platform Support"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "npx ecc-universal@2.2.2 setup",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/plugin install ecc@ecc",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/plugin marketplace add https://github.com/affaan-m/ECC",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "2.2.2",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "68",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "292",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "94",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "ECC",
+        "fields": [
+          "goal",
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Claude Code",
+        "fields": [
+          "goal",
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://github.com/affaan-m/ECC",
+        "fields": [
+          "usage"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "affaan-m/ecc",
+      "path": "README.md",
+      "blob_sha": "9156c729a2fd2eac97ca33e297ff0deee63e600c",
+      "content_sha256": "dcbf0fed53414a8061996ee47610c79926687402aee140c0f89ebc7677adbabc",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -4442,106 +4606,101 @@
   },
   "stablyai/orca": {
     "content": {
-      "goal": "Orca is a desktop application described as 'the AI Orchestrator for 100x builders' that lets developers run multiple CLI coding agents such as Claude Code, Codex, OpenCode, or Pi side by side, each in its own git worktree, tracked from a single interface.",
-      "usage": "Orca is installed by downloading from onorca.dev/download, via platform builds for macOS, Windows, and Linux, or via package managers with commands such as `brew install --cask stablyai/orca/orca` (macOS) or `yay -S stably-orca-bin` (Arch Linux). An `orca` CLI is also available, offering commands like `orca worktree create` and `orca serve` for headless Linux server use.",
-      "pros": "The README documents support for many CLI agents (including Claude Code, Codex, Cursor, and GitHub Copilot), parallel worktree comparison across multiple agents, SSH-based remote worktrees, and a mobile companion app (iOS App Store, TestFlight, Android APK 0.0.50) for monitoring agents remotely, plus native GitHub and Linear integration.",
-      "cons": "The documentation notes that Orca collects anonymous usage data by default, with an opt-out described in its telemetry docs, which may be a consideration for privacy-sensitive teams. The Android build is also distributed as a direct APK download rather than through an app store, which could suggest a less streamlined installation path on that platform.",
-      "fit": "Based on its feature set, Orca appears best suited for developers already working with one or more CLI-based coding agents who want a unified interface for managing parallel git worktrees, remote SSH sessions, and mobile oversight, rather than users seeking a single embedded AI model."
+      "goal": "Orca is presented as an AI orchestrator that runs multiple coding agents such as Claude Code, Codex, OpenCode, or Pi side by side, each in an isolated git worktree, tracked from one interface (lines 19-20). It reportedly works with \"any CLI agent\" that runs in a terminal (line 173), implying its core purpose is coordinating parallel AI coding sessions.",
+      "usage": "Orca is a desktop app for macOS, Windows, and Linux. It can be installed with `brew install --cask stablyai/orca/orca` on macOS, `yay -S stably-orca-bin` on Arch Linux, or downloaded from https://onorca.dev/download. A companion CLI lets agents script workflows using commands like `orca worktree create`, `snapshot`, `click`, and `fill`.",
+      "pros": "Documented features include parallel git worktrees for comparing agent outputs, WebGL-rendered terminal splits, native GitHub and Linear browsing, SSH-based remote worktrees, and a mobile companion app (iOS App Store, TestFlight, Android APK 0.0.50) for remote monitoring. The README also lists support for a broad range of CLI agents beyond the four highlighted in its tagline.",
+      "cons": "The README states its feature list is 'perpetually behind' what has shipped, pointing to the GitHub releases changelog as the more current reference (lines 166-167) — a documentation gap it acknowledges itself. It also notes Orca collects anonymous usage/telemetry data by default, with opt-out handled through separate privacy documentation rather than in-app during setup.",
+      "fit": "Given its focus on parallel worktrees, SSH-based remote agent execution, and a mobile companion app, Orca seems oriented toward developers coordinating multiple AI coding agents across local and remote environments, rather than those wanting a minimal single-agent terminal wrapper."
     },
     "summaries": {
       "en": {
-        "goal": "Orca is a desktop application described as 'the AI Orchestrator for 100x builders' that lets developers run multiple CLI coding agents such as Claude Code, Codex, OpenCode, or Pi side by side, each in its own git worktree, tracked from a single interface.",
-        "usage": "Orca is installed by downloading from onorca.dev/download, via platform builds for macOS, Windows, and Linux, or via package managers with commands such as `brew install --cask stablyai/orca/orca` (macOS) or `yay -S stably-orca-bin` (Arch Linux). An `orca` CLI is also available, offering commands like `orca worktree create` and `orca serve` for headless Linux server use.",
-        "pros": "The README documents support for many CLI agents (including Claude Code, Codex, Cursor, and GitHub Copilot), parallel worktree comparison across multiple agents, SSH-based remote worktrees, and a mobile companion app (iOS App Store, TestFlight, Android APK 0.0.50) for monitoring agents remotely, plus native GitHub and Linear integration.",
-        "cons": "The documentation notes that Orca collects anonymous usage data by default, with an opt-out described in its telemetry docs, which may be a consideration for privacy-sensitive teams. The Android build is also distributed as a direct APK download rather than through an app store, which could suggest a less streamlined installation path on that platform.",
-        "fit": "Based on its feature set, Orca appears best suited for developers already working with one or more CLI-based coding agents who want a unified interface for managing parallel git worktrees, remote SSH sessions, and mobile oversight, rather than users seeking a single embedded AI model."
+        "goal": "Orca is presented as an AI orchestrator that runs multiple coding agents such as Claude Code, Codex, OpenCode, or Pi side by side, each in an isolated git worktree, tracked from one interface (lines 19-20). It reportedly works with \"any CLI agent\" that runs in a terminal (line 173), implying its core purpose is coordinating parallel AI coding sessions.",
+        "usage": "Orca is a desktop app for macOS, Windows, and Linux. It can be installed with `brew install --cask stablyai/orca/orca` on macOS, `yay -S stably-orca-bin` on Arch Linux, or downloaded from https://onorca.dev/download. A companion CLI lets agents script workflows using commands like `orca worktree create`, `snapshot`, `click`, and `fill`.",
+        "pros": "Documented features include parallel git worktrees for comparing agent outputs, WebGL-rendered terminal splits, native GitHub and Linear browsing, SSH-based remote worktrees, and a mobile companion app (iOS App Store, TestFlight, Android APK 0.0.50) for remote monitoring. The README also lists support for a broad range of CLI agents beyond the four highlighted in its tagline.",
+        "cons": "The README states its feature list is 'perpetually behind' what has shipped, pointing to the GitHub releases changelog as the more current reference (lines 166-167) — a documentation gap it acknowledges itself. It also notes Orca collects anonymous usage/telemetry data by default, with opt-out handled through separate privacy documentation rather than in-app during setup.",
+        "fit": "Given its focus on parallel worktrees, SSH-based remote agent execution, and a mobile companion app, Orca seems oriented toward developers coordinating multiple AI coding agents across local and remote environments, rather than those wanting a minimal single-agent terminal wrapper."
       },
       "ko": {
-        "goal": "Orca는 '100배 빌더를 위한 AI 오케스트레이터'로 소개되는 데스크톱 애플리케이션으로, 개발자가 Claude Code, Codex, OpenCode, Pi 등 여러 CLI 코딩 에이전트를 각각 독립된 git worktree에서 동시에 실행하고 하나의 화면에서 추적할 수 있게 합니다.",
-        "usage": "Orca는 onorca.dev/download 에서 다운로드하거나 macOS, Windows, Linux용 빌드로 설치할 수 있으며, 패키지 매니저를 사용할 경우 macOS에서는 `brew install --cask stablyai/orca/orca`, Arch Linux에서는 `yay -S stably-orca-bin` 명령을 사용합니다. 설치 후에는 `orca` CLI를 통해 헤드리스 Linux 서버에서 `orca serve` 명령을, 또 `orca worktree create`와 같은 명령도 사용할 수 있습니다.",
-        "pros": "README에는 Claude Code, Codex, Cursor, GitHub Copilot 등 다양한 CLI 에이전트 지원, 여러 에이전트의 결과를 비교하는 병렬 worktree 기능, SSH 기반 원격 worktree, 원격에서 에이전트를 모니터링할 수 있는 모바일 동반 앱(iOS 앱스토어, TestFlight, 안드로이드 APK 0.0.50), GitHub 및 Linear 네이티브 통합이 문서화되어 있습니다.",
-        "cons": "문서에 따르면 Orca는 기본적으로 익명 사용 데이터를 수집하며 텔레메트리 문서에 옵트아웃 방법이 설명되어 있어, 개인정보에 민감한 팀에는 고려 사항이 될 수 있습니다. 또한 안드로이드 앱은 앱스토어가 아닌 APK 직접 다운로드 형태로 배포되어, 해당 플랫폼에서는 설치 과정이 다소 번거로울 수 있어 보입니다.",
-        "fit": "기능 구성을 볼 때 Orca는 이미 하나 이상의 CLI 기반 코딩 에이전트를 사용하고 있으며 병렬 git worktree, 원격 SSH 세션, 모바일 모니터링을 통합된 화면에서 관리하려는 개발자에게 적합해 보이며, 단일 내장 AI 모델을 찾는 사용자에게는 맞지 않을 수 있습니다."
+        "goal": "Orca는 Claude Code, Codex, OpenCode, Pi와 같은 여러 코딩 에이전트를 나란히 실행하며, 각각 독립된 git worktree에서 하나의 인터페이스로 추적하는 AI 오케스트레이터로 소개됩니다(19-20번째 줄). 터미널에서 실행되는 '모든 CLI 에이전트'와 작동한다고 언급되어(173번째 줄), 핵심 목적은 병렬 AI 코딩 세션을 조율하는 것으로 보입니다.",
+        "usage": "Orca는 macOS, Windows, Linux용 데스크톱 앱입니다. macOS에서는 `brew install --cask stablyai/orca/orca`, Arch Linux에서는 `yay -S stably-orca-bin` 명령으로 설치하거나 https://onorca.dev/download 에서 직접 내려받을 수 있습니다. 동반 CLI를 통해 에이전트가 `orca worktree create`, `snapshot`, `click`, `fill` 같은 명령으로 워크플로를 스크립트화할 수 있습니다.",
+        "pros": "문서화된 기능으로는 에이전트 결과를 비교할 수 있는 병렬 git worktree, WebGL 렌더링 기반 터미널 분할, GitHub 및 Linear 네이티브 탐색, SSH 기반 원격 worktree, 그리고 원격 모니터링을 위한 모바일 동반 앱(iOS App Store, TestFlight, Android APK 0.0.50)이 있습니다. README는 태그라인에 언급된 네 가지 외에도 폭넓은 CLI 에이전트 지원을 나열합니다.",
+        "cons": "README는 자체적으로 기능 목록이 실제 출시 내용보다 '항상 뒤처져 있다'고 밝히며, 더 최신 정보로 GitHub 릴리스 변경 로그를 참고하라고 안내합니다(166-167번째 줄). 또한 Orca가 기본적으로 익명 사용/텔레메트리 데이터를 수집하며, 옵트아웃은 앱 내 설정이 아닌 별도의 개인정보 문서를 통해 이루어진다고 명시합니다.",
+        "fit": "병렬 worktree, SSH 기반 원격 에이전트 실행, 모바일 동반 앱에 중점을 둔 점을 고려할 때, Orca는 단일 에이전트용 간단한 터미널 래퍼보다는 로컬과 원격 환경에서 여러 AI 코딩 에이전트를 조율하려는 개발자에게 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "Orca 是一款被称为“面向 100 倍效率构建者的 AI 编排器”的桌面应用程序，让开发者可以在各自独立的 git worktree 中并行运行 Claude Code、Codex、OpenCode 或 Pi 等多个 CLI 编码代理，并在同一界面中进行统一跟踪。",
-        "usage": "Orca 可通过 onorca.dev/download 下载，也可使用 macOS、Windows、Linux 平台专用安装包，或通过包管理器安装，例如在 macOS 上运行 `brew install --cask stablyai/orca/orca`，在 Arch Linux 上运行 `yay -S stably-orca-bin`。安装完成后可使用 `orca` 命令行工具，在无图形界面的 Linux 服务器上运行 `orca serve`，此外还提供如 `orca worktree create` 等命令。",
-        "pros": "README 文档说明 Orca 支持多种 CLI 代理（包括 Claude Code、Codex、Cursor、GitHub Copilot 等），提供跨多个代理比较结果的并行 worktree 功能、基于 SSH 的远程 worktree、用于远程监控代理的移动伴侣应用（iOS App Store、TestFlight、Android APK 0.0.50），以及与 GitHub 和 Linear 的原生集成。",
-        "cons": "文档提到 Orca 默认会收集匿名使用数据，其遥测文档中说明了退出方式，这对注重隐私的团队而言可能是需要考虑的因素。此外，Android 版本以直接下载 APK 的方式提供，而非通过应用商店发布，这似乎意味着该平台上的安装流程可能不够便捷。",
-        "fit": "从其功能来看，Orca 似乎更适合已经在使用一个或多个基于 CLI 的编码代理、并希望通过统一界面管理并行 git worktree、远程 SSH 会话和移动端监控的开发者，而非寻求单一内置 AI 模型的用户。"
+        "goal": "README 将 Orca 描述为一个 AI 编排工具,可并行运行 Claude Code、Codex、OpenCode 或 Pi 等多个编码代理,每个代理在独立的 git worktree 中运行,并统一在一个界面中追踪(第19-20行)。文档提到它可与在终端中运行的“任意 CLI 代理”配合使用(第173行),暗示其核心目的是协调并行的 AI 编码会话。",
+        "usage": "Orca 是面向 macOS、Windows 和 Linux 的桌面应用。可在 macOS 上通过 `brew install --cask stablyai/orca/orca` 安装,在 Arch Linux 上通过 `yay -S stably-orca-bin` 安装,或直接从 https://onorca.dev/download 下载。配套的 CLI 允许代理通过 `orca worktree create`、`snapshot`、`click`、`fill` 等命令编写工作流脚本。",
+        "pros": "文档记录的功能包括用于比较代理输出的并行 git worktree、采用 WebGL 渲染的终端分屏、原生的 GitHub 与 Linear 浏览、基于 SSH 的远程 worktree,以及用于远程监控的移动伴侣应用(iOS App Store、TestFlight、Android APK 0.0.50)。README 还列出了除标语中四个代理之外的更广泛 CLI 代理支持。",
+        "cons": "README 自称其功能列表“永远落后于”实际发布内容,并建议以 GitHub releases 更新日志作为更权威的参考(第166-167行),这是文档自身承认的一处空白。此外文档说明 Orca 默认会收集匿名使用/遥测数据,选择退出需要查阅单独的隐私文档,而非在应用内设置中完成。",
+        "fit": "考虑到其对并行 worktree、基于 SSH 的远程代理执行以及移动伴侣应用的侧重,Orca 似乎更适合需要在本地和远程环境中协调多个 AI 编码代理的开发者,而非只想要一个简单单代理终端封装工具的用户。"
       },
       "es": {
-        "goal": "Orca es una aplicación de escritorio descrita como 'el orquestador de IA para constructores 100x', que permite a los desarrolladores ejecutar varios agentes de codificación CLI, como Claude Code, Codex, OpenCode o Pi, en paralelo, cada uno en su propio worktree de git, y seguirlos desde una sola interfaz.",
-        "usage": "Orca se instala descargándolo desde onorca.dev/download, mediante compilaciones específicas para macOS, Windows y Linux, o a través de gestores de paquetes, por ejemplo con `brew install --cask stablyai/orca/orca` en macOS o `yay -S stably-orca-bin` en Arch Linux. Una vez instalado, se puede usar la CLI `orca`, con comandos como `orca worktree create`, y `orca serve` para servidores Linux sin interfaz gráfica.",
-        "pros": "El README documenta soporte para numerosos agentes CLI (incluidos Claude Code, Codex, Cursor y GitHub Copilot), comparación en paralelo de worktrees entre varios agentes, worktrees remotos mediante SSH, una aplicación móvil complementaria (App Store de iOS, TestFlight, APK de Android 0.0.50) para monitorear agentes de forma remota, e integración nativa con GitHub y Linear.",
-        "cons": "La documentación indica que Orca recopila datos de uso anónimos de forma predeterminada, con una opción de exclusión descrita en su documentación de telemetría, lo cual podría ser relevante para equipos sensibles a la privacidad. Además, la aplicación de Android se distribuye como un APK de descarga directa en lugar de a través de una tienda de aplicaciones, lo que sugiere un proceso de instalación potencialmente menos directo en esa plataforma.",
-        "fit": "Según su conjunto de funciones, Orca parece más adecuado para desarrolladores que ya usan uno o más agentes de codificación basados en CLI y desean una interfaz unificada para gestionar worktrees de git en paralelo, sesiones SSH remotas y supervisión móvil, más que para quienes buscan un único modelo de IA integrado."
+        "goal": "El README presenta a Orca como un orquestador de IA que ejecuta varios agentes de codificación, como Claude Code, Codex, OpenCode o Pi, en paralelo, cada uno en su propio worktree de git, todo rastreado desde una sola interfaz (líneas 19-20). Se indica que funciona con 'cualquier agente CLI' que se ejecute en una terminal (línea 173), lo que sugiere que su propósito principal es coordinar sesiones de codificación con IA en paralelo.",
+        "usage": "Orca es una aplicación de escritorio para macOS, Windows y Linux. Puede instalarse con `brew install --cask stablyai/orca/orca` en macOS, `yay -S stably-orca-bin` en Arch Linux, o descargarse directamente desde https://onorca.dev/download. Una CLI complementaria permite a los agentes automatizar flujos de trabajo con comandos como `orca worktree create`, `snapshot`, `click` y `fill`.",
+        "pros": "Entre las funciones documentadas están los worktrees de git en paralelo para comparar resultados de agentes, divisiones de terminal con renderizado WebGL, navegación nativa de GitHub y Linear, worktrees remotos mediante SSH, y una app móvil complementaria (iOS App Store, TestFlight, APK de Android 0.0.50) para monitoreo remoto. El README también menciona compatibilidad con una amplia lista de agentes CLI más allá de los cuatro destacados en su eslogan.",
+        "cons": "El README reconoce que su lista de funciones está 'perpetuamente atrasada' respecto a lo realmente lanzado, y remite al registro de cambios de GitHub releases como referencia más actualizada (líneas 166-167), una brecha documental que admite explícitamente. También señala que Orca recopila datos de uso/telemetría anónimos por defecto, y que la exclusión voluntaria se gestiona mediante documentación de privacidad separada, no durante la configuración dentro de la app.",
+        "fit": "Dado su énfasis en worktrees paralelos, ejecución remota de agentes vía SSH y una app móvil complementaria, Orca parece orientado a desarrolladores que coordinan múltiples agentes de codificación con IA en entornos locales y remotos, más que a quienes buscan un simple envoltorio de terminal para un único agente."
       },
       "ja": {
-        "goal": "Orca は「100 倍のビルダーのための AI オーケストレーター」と説明されるデスクトップアプリケーションで、開発者が Claude Code、Codex、OpenCode、Pi などの複数の CLI コーディングエージェントを、それぞれ独立した git worktree 上で並行実行し、単一の画面から追跡できるようにします。",
-        "usage": "Orca は onorca.dev/download からダウンロードするか、macOS、Windows、Linux 向けのビルドを使ってインストールできます。パッケージマネージャーを使う場合は、macOS で `brew install --cask stablyai/orca/orca`、Arch Linux で `yay -S stably-orca-bin` を実行します。インストール後は `orca` CLI を使用でき、ヘッドレスの Linux サーバーでは `orca serve` コマンドを、また `orca worktree create` のようなコマンドも利用できます。",
-        "pros": "README には、Claude Code、Codex、Cursor、GitHub Copilot など多数の CLI エージェントへの対応、複数エージェントの結果を比較できる並列 worktree 機能、SSH 経由のリモート worktree、リモートでエージェントを監視できるモバイルコンパニオンアプリ（iOS App Store、TestFlight、Android APK 0.0.50）、GitHub と Linear のネイティブ統合が記載されています。",
-        "cons": "ドキュメントによると、Orca はデフォルトで匿名の使用データを収集しており、テレメトリ文書にオプトアウト方法が記載されています。これはプライバシーに敏感なチームにとって考慮点になる可能性があります。また、Android 版はアプリストアではなく APK の直接ダウンロードという形で配布されており、このプラットフォームではインストール手順がやや煩雑になる可能性があるように見受けられます。",
-        "fit": "機能構成から判断すると、Orca はすでに 1 つ以上の CLI ベースのコーディングエージェントを利用しており、並列 git worktree、リモート SSH セッション、モバイルでの監視を単一のインターフェースで管理したい開発者に適していると考えられ、単一の組み込み AI モデルを求めるユーザーには合わない可能性があります。"
+        "goal": "READMEでは、OrcaはClaude Code、Codex、OpenCode、Piなど複数のコーディングエージェントを並行して実行し、それぞれ独立したgit worktreeで動かしながら一つのインターフェースで追跡するAIオーケストレーターとして紹介されています(19〜20行目)。ターミナルで動作する「任意のCLIエージェント」に対応すると記載されており(173行目)、主な目的は並行するAIコーディングセッションの調整にあると考えられます。",
+        "usage": "Orcaはmacos、Windows、Linux向けのデスクトップアプリです。macOSでは `brew install --cask stablyai/orca/orca`、Arch Linuxでは `yay -S stably-orca-bin` でインストールでき、https://onorca.dev/download から直接ダウンロードすることもできます。付属のCLIを使うと、エージェントが `orca worktree create`、`snapshot`、`click`、`fill` などのコマンドでワークフローをスクリプト化できます。",
+        "pros": "文書化されている機能には、エージェントの出力を比較できる並行git worktree、WebGLレンダリングによるターミナル分割、GitHubとLinearのネイティブ閲覧、SSH経由のリモートworktree、そしてリモート監視用のモバイルコンパニオンアプリ(iOS App Store、TestFlight、Android APK 0.0.50)が含まれます。READMEはキャッチフレーズで挙げた4つ以外にも幅広いCLIエージェント対応を記載しています。",
+        "cons": "READMEは自らの機能リストが実際のリリースに対して「常に遅れている」と述べ、より新しい情報源としてGitHub releasesの変更履歴を参照するよう案内しています(166〜167行目)。これは文書自体が認めているギャップです。また、Orcaはデフォルトで匿名の使用状況・テレメトリーデータを収集し、オプトアウトはアプリ内設定ではなく別のプライバシー文書を通じて行うと記載されています。",
+        "fit": "並行worktree、SSH経由のリモートエージェント実行、モバイルコンパニオンアプリを重視している点から、Orcaは単一エージェント向けの簡易なターミナルラッパーを求めるユーザーよりも、ローカルおよびリモート環境で複数のAIコーディングエージェントを調整したい開発者に適していると考えられます。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 18,
+          "start_line": 19,
           "end_line": 21,
           "section_heading": ""
         },
         {
-          "start_line": 2,
-          "end_line": 3,
-          "section_heading": ""
+          "start_line": 173,
+          "end_line": 173,
+          "section_heading": "Supported Agents"
         }
       ],
       "usage": [
         {
-          "start_line": 213,
-          "end_line": 229,
+          "start_line": 212,
+          "end_line": 228,
           "section_heading": "Install"
         },
         {
-          "start_line": 145,
+          "start_line": 147,
           "end_line": 151,
-          "section_heading": "Drag Files to Agents"
-        },
-        {
-          "start_line": 219,
-          "end_line": 219,
-          "section_heading": "Desktop — macOS, Windows, Linux"
+          "section_heading": "Orca CLI"
         }
       ],
       "pros": [
-        {
-          "start_line": 171,
-          "end_line": 173,
-          "section_heading": "Supported Agents"
-        },
         {
           "start_line": 49,
           "end_line": 53,
           "section_heading": "Parallel Worktrees"
         },
         {
-          "start_line": 105,
+          "start_line": 104,
           "end_line": 109,
-          "section_heading": "SSH Worktrees"
+          "section_heading": "GitHub &amp; Linear, Native"
+        },
+        {
+          "start_line": 234,
+          "end_line": 235,
+          "section_heading": "Mobile Companion — iOS, Android"
         }
       ],
       "cons": [
         {
-          "start_line": 249,
-          "end_line": 249,
-          "section_heading": "Community &amp; Support"
+          "start_line": 166,
+          "end_line": 167,
+          "section_heading": "Orca CLI"
         },
         {
-          "start_line": 236,
-          "end_line": 236,
-          "section_heading": "Mobile Companion — iOS, Android"
+          "start_line": 247,
+          "end_line": 248,
+          "section_heading": "Community &amp; Support"
         }
       ],
       "fit": [
@@ -4551,23 +4710,18 @@
           "section_heading": ""
         },
         {
-          "start_line": 171,
-          "end_line": 173,
-          "section_heading": "Supported Agents"
+          "start_line": 104,
+          "end_line": 109,
+          "section_heading": "GitHub &amp; Linear, Native"
+        },
+        {
+          "start_line": 230,
+          "end_line": 235,
+          "section_heading": "Mobile Companion — iOS, Android"
         }
       ]
     },
     "invariants": [
-      {
-        "kind": "product",
-        "value": "Orca",
-        "fields": [
-          "goal",
-          "usage",
-          "cons",
-          "fit"
-        ]
-      },
       {
         "kind": "command",
         "value": "brew install --cask stablyai/orca/orca",
@@ -4590,13 +4744,6 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "orca serve",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
         "kind": "version",
         "value": "0.0.50",
         "fields": [
@@ -4605,18 +4752,26 @@
       },
       {
         "kind": "product",
-        "value": "Claude Code",
+        "value": "Orca",
         "fields": [
           "goal",
-          "pros"
+          "usage",
+          "cons",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Claude Code",
+        "fields": [
+          "goal"
         ]
       },
       {
         "kind": "product",
         "value": "Codex",
         "fields": [
-          "goal",
-          "pros"
+          "goal"
         ]
       },
       {
@@ -4630,21 +4785,28 @@
         "kind": "product",
         "value": "Pi",
         "fields": [
-          "goal",
-          "pros"
+          "goal"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://onorca.dev/download",
+        "fields": [
+          "usage"
         ]
       }
     ],
     "inference_fields": [
-      "cons",
+      "goal",
+      "pros",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "stablyai/orca",
       "path": "README.md",
-      "blob_sha": "fb1776ea629603ad70256c97a872d4838401aca7",
-      "content_sha256": "05d4797479617513263b43010df5096580cbcdd28917e4740c5f1404a284bf6d",
+      "blob_sha": "5f02638d9c47998b89f89255a9c5cd70393fbfa1",
+      "content_sha256": "2403408d1cc07e01de3f310e0c510b450fb1b3b62f4d84973e00d4f724c6cc20",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -4887,73 +5049,73 @@
       "translation_applicable": false
     }
   },
-  "danny-avila/LibreChat": {
+  "LibreChat-AI/LibreChat": {
     "content": {
-      "goal": "LibreChat is documented as a self-hosted, open-source AI chat platform (currently at v0.8.8-rc4) that unifies major AI providers—including OpenAI, Anthropic (Claude), AWS Bedrock, Azure OpenAI, Google, and Vertex AI—in a single interface, adding features like AI Agents, Model Context Protocol (MCP) support, and Code Interpreter.",
-      "usage": "Deployment is documented through one-click buttons linking to Railway, Zeabur, and Sealos hosting platforms, and the project publishes further documentation at https://docs.librechat.ai. The Admin Panel is described as bundled with the Docker Compose stacks, enabling one-command setup and browser-based management of users, groups, roles, and configuration overrides.",
-      "pros": "Documented capabilities include no-code agent creation, an Agent Marketplace, multi-provider AI model selection, a sandboxed Code Interpreter supporting multiple languages, resumable streaming responses, and a multilingual UI covering over 20 languages.",
-      "cons": "Several newer capabilities, such as Attached Workspaces and Agent Plugins, are explicitly labeled 'highly experimental' in the README, and the changelog explicitly warns to check for breaking changes before updating.",
-      "fit": "Given its emphasis on self-hosting, multi-user secure authentication (OAuth2, LDAP, email login), and admin-panel role/permission management, LibreChat appears suited for teams or organizations seeking direct control over their AI infrastructure rather than quick individual use."
+      "goal": "LibreChat is a self-hosted, open-source AI chat platform that unifies major AI providers—including OpenAI, Anthropic (Claude), Azure OpenAI, Google, Vertex AI, and AWS Bedrock—in a single privacy-focused interface, while also offering AI Agents, Model Context Protocol (MCP) support, Artifacts, Code Interpreter, and enterprise-ready multi-user authentication.",
+      "usage": "LibreChat can be deployed with one-click buttons for Railway, Zeabur, and Sealos, or self-hosted using Docker Compose stacks that bundle the Admin Panel for one-command setup; documentation is published at https://librechat.ai/docs. Because Custom Endpoints, MCP servers, and Skills are configurable components, a working deployment may require setting provider API keys and endpoint configuration beyond the deploy buttons themselves.",
+      "pros": "Documented strengths include broad AI provider and Custom Endpoint compatibility, an Agents & Tools system with MCP support and Skills, a sandboxed multi-language Code Interpreter, resumable streams that reconnect after a dropped connection, and a browser-based Admin Panel for live configuration changes.",
+      "cons": "The current v0.8.8-rc4 release explicitly labels its new 'Attached workspaces' feature as 'highly experimental,' and the README cautions users to check the changelog for breaking changes before updating, indicating the project is under active, fast-moving development.",
+      "fit": "Given its self-hosting focus, multi-user authentication, and admin controls, LibreChat appears best suited to teams or individuals wanting direct control over their AI infrastructure rather than users seeking a fully managed, zero-configuration hosted chat service."
     },
     "summaries": {
       "en": {
-        "goal": "LibreChat is documented as a self-hosted, open-source AI chat platform (currently at v0.8.8-rc4) that unifies major AI providers—including OpenAI, Anthropic (Claude), AWS Bedrock, Azure OpenAI, Google, and Vertex AI—in a single interface, adding features like AI Agents, Model Context Protocol (MCP) support, and Code Interpreter.",
-        "usage": "Deployment is documented through one-click buttons linking to Railway, Zeabur, and Sealos hosting platforms, and the project publishes further documentation at https://docs.librechat.ai. The Admin Panel is described as bundled with the Docker Compose stacks, enabling one-command setup and browser-based management of users, groups, roles, and configuration overrides.",
-        "pros": "Documented capabilities include no-code agent creation, an Agent Marketplace, multi-provider AI model selection, a sandboxed Code Interpreter supporting multiple languages, resumable streaming responses, and a multilingual UI covering over 20 languages.",
-        "cons": "Several newer capabilities, such as Attached Workspaces and Agent Plugins, are explicitly labeled 'highly experimental' in the README, and the changelog explicitly warns to check for breaking changes before updating.",
-        "fit": "Given its emphasis on self-hosting, multi-user secure authentication (OAuth2, LDAP, email login), and admin-panel role/permission management, LibreChat appears suited for teams or organizations seeking direct control over their AI infrastructure rather than quick individual use."
+        "goal": "LibreChat is a self-hosted, open-source AI chat platform that unifies major AI providers—including OpenAI, Anthropic (Claude), Azure OpenAI, Google, Vertex AI, and AWS Bedrock—in a single privacy-focused interface, while also offering AI Agents, Model Context Protocol (MCP) support, Artifacts, Code Interpreter, and enterprise-ready multi-user authentication.",
+        "usage": "LibreChat can be deployed with one-click buttons for Railway, Zeabur, and Sealos, or self-hosted using Docker Compose stacks that bundle the Admin Panel for one-command setup; documentation is published at https://librechat.ai/docs. Because Custom Endpoints, MCP servers, and Skills are configurable components, a working deployment may require setting provider API keys and endpoint configuration beyond the deploy buttons themselves.",
+        "pros": "Documented strengths include broad AI provider and Custom Endpoint compatibility, an Agents & Tools system with MCP support and Skills, a sandboxed multi-language Code Interpreter, resumable streams that reconnect after a dropped connection, and a browser-based Admin Panel for live configuration changes.",
+        "cons": "The current v0.8.8-rc4 release explicitly labels its new 'Attached workspaces' feature as 'highly experimental,' and the README cautions users to check the changelog for breaking changes before updating, indicating the project is under active, fast-moving development.",
+        "fit": "Given its self-hosting focus, multi-user authentication, and admin controls, LibreChat appears best suited to teams or individuals wanting direct control over their AI infrastructure rather than users seeking a fully managed, zero-configuration hosted chat service."
       },
       "ko": {
-        "goal": "LibreChat는 자체 호스팅형 오픈소스 AI 채팅 플랫폼(v0.8.8-rc4 기준)으로, OpenAI, Anthropic(Claude), AWS Bedrock, Azure OpenAI, Google, Vertex AI 등 주요 AI 제공업체를 하나의 인터페이스로 통합하며, AI 에이전트, Model Context Protocol(MCP) 지원, Code Interpreter 같은 기능을 추가한다고 문서화되어 있습니다.",
-        "usage": "배포는 Railway, Zeabur, Sealos용 원클릭 버튼을 통해 문서화되어 있으며, 더 일반적인 설정 안내는 프로젝트 문서(https://docs.librechat.ai)에서 참조하도록 되어 있습니다. 관리자 패널은 원커맨드 설정을 위해 Docker Compose 스택에 번들로 제공된다고 설명되어 있습니다.",
-        "pros": "문서화된 기능으로는 코드 없이 에이전트를 만드는 기능, 에이전트 마켓플레이스, 다중 공급자 AI 모델 선택, 여러 언어를 지원하는 샌드박스 Code Interpreter, 재개 가능한 스트리밍 응답, 20개 이상의 언어를 지원하는 다국어 UI 등이 있습니다.",
-        "cons": "첨부 워크스페이스(Attached Workspaces)와 에이전트 플러그인(Agent Plugins) 같은 일부 최신 기능은 README에서 명시적으로 '매우 실험적'이라고 표시되어 있으며, 체인지로그에서는 업데이트 전 breaking change 여부를 확인하라고 명확히 경고하고 있습니다.",
-        "fit": "자체 호스팅, OAuth2·LDAP·이메일 로그인을 포함한 다중 사용자 보안 인증, 관리자 패널을 통한 역할/권한 관리 등을 강조하는 점으로 볼 때, LibreChat은 간단한 개인 사용보다는 AI 인프라를 직접 통제하려는 팀이나 조직에 더 적합해 보입니다."
+        "goal": "LibreChat는 OpenAI, Anthropic(Claude), Azure OpenAI, Google, Vertex AI, AWS Bedrock 등 주요 AI 제공업체를 하나의 프라이버시 중심 인터페이스로 통합하는 셀프호스팅 오픈소스 AI 채팅 플랫폼입니다. AI 에이전트, Model Context Protocol(MCP) 지원, Artifacts, Code Interpreter, 엔터프라이즈급 다중 사용자 인증 기능도 제공합니다.",
+        "usage": "README는 Railway, Zeabur, Sealos용 원클릭 배포 버튼과 Docker Compose 스택을 통한 셀프호스팅을 언급하며, 문서는 https://librechat.ai/docs 에서 확인할 수 있습니다. 다만 구체적인 설치 명령어는 이 README 발췌본에 명시되어 있지 않아, 실제 설정 절차는 추가 자료를 참고해야 할 수 있습니다.",
+        "pros": "문서화된 장점으로는 다양한 AI 제공업체 및 커스텀 엔드포인트 호환성, MCP와 Skills를 지원하는 에이전트 및 도구 시스템, 여러 언어를 지원하는 샌드박스 Code Interpreter, 연결이 끊겨도 재개되는 Resumable Streams, 실시간 설정이 가능한 브라우저 기반 Admin Panel이 있습니다.",
+        "cons": "v0.8.8-rc4 버전은 새로운 'Attached workspaces' 기능을 '매우 실험적(highly experimental)'이라고 명시하고 있으며, README는 업데이트 전 changelog에서 호환성이 깨지는 변경 사항을 확인하라고 안내하고 있어, 프로젝트가 빠르게 발전 중임을 시사합니다.",
+        "fit": "셀프호스팅, 다중 사용자 인증, 관리자 제어 기능에 중점을 둔 점을 고려하면 LibreChat는 완전 관리형의 설정 없는 호스팅 채팅 서비스를 찾는 사용자보다는, 자체 AI 인프라를 직접 통제하려는 팀이나 개인에게 더 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "根据文档,LibreChat 是一个自托管的开源 AI 聊天平台(当前版本为 v0.8.8-rc4),将 OpenAI、Anthropic(Claude)、AWS Bedrock、Azure OpenAI、Google、Vertex AI 等主要 AI 提供商整合到同一界面中,并加入了 AI 智能体(Agents)、Model Context Protocol(MCP)支持以及 Code Interpreter 等功能。",
-        "usage": "文档中说明可通过 Railway、Zeabur、Sealos 的一键部署按钮进行部署,更一般的搭建说明可参考项目文档 https://docs.librechat.ai。管理面板据称随 Docker Compose 堆栈一起提供,以实现一条命令即可完成设置。",
-        "pros": "文档记录的功能包括无需编写代码即可创建智能体、智能体市场、多提供商 AI 模型选择、支持多种语言的沙箱化 Code Interpreter、可恢复的流式响应,以及覆盖 20 多种语言的多语言界面。",
-        "cons": "README 中明确将“附加工作区(Attached Workspaces)”和“智能体插件(Agent Plugins)”等较新功能标注为“高度实验性”,更新日志也明确提醒在更新前需检查是否存在重大变更(breaking changes)。",
-        "fit": "从其强调自托管、包含 OAuth2、LDAP 与邮箱登录的多用户安全认证,以及通过管理面板进行角色/权限管理等特点来看,LibreChat 似乎更适合希望直接掌控自身 AI 基础设施的团队或组织,而非追求简单快速的个人使用场景。"
+        "goal": "LibreChat 是一个自托管的开源 AI 聊天平台，将 OpenAI、Anthropic（Claude）、Azure OpenAI、Google、Vertex AI 和 AWS Bedrock 等主要 AI 提供商整合到一个注重隐私的统一界面中，同时提供 AI 智能体（Agents）、Model Context Protocol（MCP）支持、Artifacts、Code Interpreter 以及企业级多用户身份验证功能。",
+        "usage": "README 提到了 Railway、Zeabur 和 Sealos 的一键部署按钮，并说明可通过 Docker Compose 堆栈进行自托管；文档地址为 https://librechat.ai/docs。不过该 README 片段并未给出具体的安装命令，实际部署步骤可能需要参考其他资料。",
+        "pros": "文档中提到的优点包括广泛的 AI 提供商及自定义端点兼容性、支持 MCP 和 Skills 的智能体与工具系统、支持多语言的沙盒化 Code Interpreter、连接断开后可自动恢复的 Resumable Streams，以及可实时调整配置的浏览器端 Admin Panel。",
+        "cons": "v0.8.8-rc4 版本明确将新的 'Attached workspaces' 功能标注为“高度实验性”（highly experimental），README 还提醒用户在更新前查看 changelog 中的破坏性变更，表明该项目仍在快速迭代之中。",
+        "fit": "鉴于其自托管定位、多用户身份验证与管理控制功能，LibreChat 似乎更适合希望直接掌控自身 AI 基础设施的团队或个人，而非寻求完全托管、零配置聊天服务的用户。"
       },
       "es": {
-        "goal": "Según la documentación, LibreChat es una plataforma de chat con IA de código abierto y autoalojada (actualmente en la versión v0.8.8-rc4) que unifica los principales proveedores de IA —incluyendo OpenAI, Anthropic (Claude), AWS Bedrock, Azure OpenAI, Google y Vertex AI— en una sola interfaz, añadiendo funciones como Agentes de IA, soporte para Model Context Protocol (MCP) y Code Interpreter.",
-        "usage": "La implementación está documentada mediante botones de un clic para Railway, Zeabur y Sealos, y una guía de configuración más general se referencia en la documentación del proyecto en https://docs.librechat.ai. Se describe que el Panel de Administración viene incluido con las pilas de Docker Compose para una configuración en un solo comando.",
-        "pros": "Entre las capacidades documentadas se incluyen la creación de agentes sin código, un mercado de agentes (Agent Marketplace), selección de modelos de IA de múltiples proveedores, un Code Interpreter aislado (sandboxed) compatible con varios lenguajes, respuestas en streaming reanudables y una interfaz multilingüe que cubre más de 20 idiomas.",
-        "cons": "Varias funciones más recientes, como los espacios de trabajo adjuntos (Attached Workspaces) y los complementos de agentes (Agent Plugins), están etiquetadas explícitamente como 'altamente experimentales' en el README, y el registro de cambios advierte explícitamente que se revisen posibles cambios incompatibles antes de actualizar.",
-        "fit": "Dado su énfasis en el autoalojamiento, la autenticación segura multiusuario (OAuth2, LDAP, inicio de sesión por correo) y la gestión de roles/permisos mediante el Panel de Administración, LibreChat parece más adecuado para equipos u organizaciones que buscan control directo sobre su infraestructura de IA, más que para un uso individual rápido."
+        "goal": "LibreChat es una plataforma de chat de IA de código abierto y autoalojada que unifica los principales proveedores de IA —incluidos OpenAI, Anthropic (Claude), Azure OpenAI, Google, Vertex AI y AWS Bedrock— en una única interfaz centrada en la privacidad, además de ofrecer Agentes de IA, soporte para Model Context Protocol (MCP), Artifacts, Code Interpreter y autenticación multiusuario de nivel empresarial.",
+        "usage": "El README menciona botones de despliegue con un clic para Railway, Zeabur y Sealos, y señala que el proyecto puede autoalojarse, por ejemplo mediante stacks de Docker Compose; la documentación está disponible en https://librechat.ai/docs. Sin embargo, este fragmento no detalla un comando de instalación específico, por lo que los pasos exactos de configuración probablemente requieran consultar guías adicionales.",
+        "pros": "Entre las fortalezas documentadas se incluyen una amplia compatibilidad con proveedores de IA y endpoints personalizados, un sistema de Agentes y Herramientas con soporte MCP y Skills, un Code Interpreter en sandbox para múltiples lenguajes, Resumable Streams que reconectan tras una caída de conexión, y un Admin Panel basado en navegador para configuración en tiempo real.",
+        "cons": "La versión v0.8.8-rc4 etiqueta explícitamente su nueva función 'Attached workspaces' como 'highly experimental', y el README advierte que se debe revisar el changelog por cambios incompatibles antes de actualizar, lo que indica un desarrollo activo y de ritmo acelerado.",
+        "fit": "Dado su enfoque en el autoalojamiento, la autenticación multiusuario y los controles de administración, LibreChat parece más adecuado para equipos o personas que buscan control directo sobre su infraestructura de IA, en lugar de usuarios que buscan un servicio de chat totalmente gestionado y sin configuración."
       },
       "ja": {
-        "goal": "READMEによると、LibreChatはセルフホスト型のオープンソースAIチャットプラットフォーム(現バージョンv0.8.8-rc4)であり、OpenAI、Anthropic(Claude)、AWS Bedrock、Azure OpenAI、Google、Vertex AIなど主要なAIプロバイダーを単一のインターフェースに統合し、AIエージェント、Model Context Protocol(MCP)対応、Code Interpreterなどの機能を追加していると説明されています。",
-        "usage": "デプロイについては、Railway、Zeabur、Sealos向けのワンクリックボタンが文書化されており、より一般的なセットアップ手順はプロジェクトのドキュメント(https://docs.librechat.ai)を参照するとされています。管理者パネルはワンコマンドセットアップのためDocker Composeスタックに同梱されていると記載されています。",
-        "pros": "文書化された機能には、コード不要でのエージェント作成、エージェントマーケットプレイス、複数プロバイダーにまたがるAIモデル選択、複数言語に対応したサンドボックス化されたCode Interpreter、再開可能なストリーミング応答、20以上の言語に対応した多言語UIなどが含まれます。",
-        "cons": "Attached Workspaces(アタッチされたワークスペース)やAgent Plugins(エージェントプラグイン)といった一部の新しい機能は、READMEで明示的に『非常に実験的』とラベル付けされており、変更履歴では更新前に破壊的変更の有無を確認するよう明確に注意喚起されています。",
-        "fit": "セルフホスティング、OAuth2・LDAP・メールログインを含むマルチユーザーの安全な認証、管理者パネルによるロール/権限管理が強調されている点から見て、LibreChatは個人の手軽な利用よりも、自社のAIインフラを直接管理したいチームや組織に適していると考えられます。"
+        "goal": "LibreChatは、OpenAI、Anthropic（Claude）、Azure OpenAI、Google、Vertex AI、AWS Bedrockなど主要なAIプロバイダーを、プライバシーを重視した単一のインターフェースに統合する、セルフホスト型のオープンソースAIチャットプラットフォームです。AIエージェント、Model Context Protocol（MCP）サポート、Artifacts、Code Interpreter、エンタープライズ向けマルチユーザー認証も提供しています。",
+        "usage": "READMEには、Railway、Zeabur、Sealos向けのワンクリックデプロイボタンと、Docker Composeスタックを用いたセルフホスティングの記載があり、ドキュメントは https://librechat.ai/docs で公開されています。ただし、このREADMEの抜粋には具体的なインストールコマンドは記載されていないため、実際のセットアップ手順は追加の資料を確認する必要があるとみられます。",
+        "pros": "ドキュメントに記載されている利点として、幅広いAIプロバイダーおよびカスタムエンドポイントとの互換性、MCPとSkillsに対応したエージェント・ツールシステム、複数言語に対応したサンドボックス型Code Interpreter、接続切断後も再開できるResumable Streams、ライブで設定変更が可能なブラウザベースのAdmin Panelなどが挙げられます。",
+        "cons": "v0.8.8-rc4リリースでは、新機能「Attached workspaces」が明示的に「highly experimental（非常に実験的）」とラベル付けされており、READMEは更新前にchangelogで破壊的変更を確認するよう注意喚起しています。これはプロジェクトが活発かつ急速に開発が進んでいることを示唆しています。",
+        "fit": "セルフホスティング、マルチユーザー認証、管理者による制御に重点が置かれていることから、LibreChatは、完全マネージド型で設定不要なホスト型チャットサービスを求めるユーザーよりも、AIインフラを自らコントロールしたいチームや個人に適していると考えられます。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 54,
-          "end_line": 54,
-          "section_heading": "🚀 What's New in v0.8.8-rc4"
-        },
-        {
-          "start_line": 70,
-          "end_line": 72,
-          "section_heading": "✨ Features"
-        },
-        {
           "start_line": 180,
+          "end_line": 180,
+          "section_heading": "🪶 All-In-One AI Conversations with LibreChat"
+        },
+        {
+          "start_line": 182,
           "end_line": 182,
           "section_heading": "🪶 All-In-One AI Conversations with LibreChat"
+        },
+        {
+          "start_line": 71,
+          "end_line": 71,
+          "section_heading": "✨ Features"
         }
       ],
       "usage": [
         {
-          "start_line": 34,
-          "end_line": 44,
+          "start_line": 35,
+          "end_line": 43,
           "section_heading": ""
         },
         {
@@ -4962,7 +5124,7 @@
           "section_heading": "✨ Features"
         },
         {
-          "start_line": 196,
+          "start_line": 195,
           "end_line": 196,
           "section_heading": "🌐 Resources"
         }
@@ -4974,8 +5136,8 @@
           "section_heading": "✨ Features"
         },
         {
-          "start_line": 125,
-          "end_line": 129,
+          "start_line": 77,
+          "end_line": 81,
           "section_heading": "✨ Features"
         },
         {
@@ -4991,8 +5153,8 @@
           "section_heading": "🚀 What's New in v0.8.8-rc4"
         },
         {
-          "start_line": 90,
-          "end_line": 90,
+          "start_line": 93,
+          "end_line": 93,
           "section_heading": "✨ Features"
         },
         {
@@ -5004,6 +5166,11 @@
       "fit": [
         {
           "start_line": 158,
+          "end_line": 160,
+          "section_heading": "✨ Features"
+        },
+        {
+          "start_line": 162,
           "end_line": 165,
           "section_heading": "✨ Features"
         },
@@ -5028,23 +5195,38 @@
         "kind": "version",
         "value": "v0.8.8-rc4",
         "fields": [
-          "goal"
+          "cons"
         ]
       },
       {
         "kind": "url",
-        "value": "https://docs.librechat.ai",
+        "value": "https://librechat.ai/docs",
         "fields": [
           "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Docker Compose",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Model Context Protocol (MCP)",
+        "fields": [
+          "goal"
         ]
       }
     ],
     "inference_fields": [
+      "usage",
       "fit"
     ],
     "source": {
       "kind": "readme",
-      "slug": "danny-avila/librechat",
+      "slug": "librechat-ai/librechat",
       "path": "README.md",
       "blob_sha": "9aabda45e46042fa4fc5d9e93713d1b2d8529d94",
       "content_sha256": "0ab2e9465f8e75c9981e21240dd0bc4891cd1402674945a8feae022380e3e82b",
@@ -7494,115 +7676,132 @@
   },
   "Lakr233/vphone-cli": {
     "content": {
-      "goal": "vphone-cli is a command-line tool that boots a virtual iPhone using Apple's Virtualization.framework, leveraging PCC (Private Cloud Compute) research VM infrastructure, according to the README's opening description.",
-      "usage": "Install via `brew install zqxwce/tap/vphone-cli`, or build from source with `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` followed by the setup and build scripts. A virtual iPhone can then be created and launched with `vphone-cli vm create myphone -V jb` and `vphone-cli vm launch myphone`.",
-      "pros": "The tool offers five firmware patch variants (less, regular, dev, jb, exp) ranging from no patches to a full jailbreak, with the exp variant applying 141 patches plus anti-VM-detection research patches. It also provides VM management commands (list, clone, export/import) and a host control socket for programmatic screenshot/touch automation, including MCP server integration.",
-      "cons": "Setup requires relaxing macOS SIP/AMFI protections to run unsigned binaries with private entitlements, and the README documents a known bug in ldid-procursus up to version 2.1.5-procursus7 that can cause the `cfw install` command to hang with unbounded memory growth, requiring a from-source rebuild as a workaround.",
-      "fit": "Given its Apple Silicon and macOS 15+ requirements, SIP/AMFI relaxation, and jailbreak/CFW-oriented tooling, this project appears best suited for security researchers and developers exploring iOS internals rather than general end users."
+      "goal": "vphone-cli boots a virtual iPhone using Apple's Virtualization.framework together with PCC research VM infrastructure. The supported firmware flow is JB only: it applies required system patches and installs vphoned for host control, leaving the guest user environment otherwise unmodified (no package manager, SSH, VNC, or bootstrap).",
+      "usage": "Quick start requires an Apple Silicon Mac running macOS 15 or newer, with the host permitting PV=3 research guests. A VM is created with `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` and then started with `vphone-cli vm launch myphone`. Building from source uses `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` followed by `make build`.",
+      "pros": "The distributed .app runs using macOS system tools and bundled binaries, without needing Homebrew, Python, or Xcode. Everyday operation is covered by a documented command set (vm list, vm info, vm launch, vm stop, vm export/import, fw catalog, host preflight), and environment variables like VPHONE_ROOT and VPHONE_LIBRARY_ROOT let users relocate the VM storage tree.",
+      "cons": "The `vm create` flow needs network access for Apple's restore ticket and requires administrator authentication during CFW installation; it also stops at a verification boot, so `vphone-cli vm launch` must be run separately to keep using the VM. Rebuilt binaries with a new signed cdhash likely require rerunning `make amfi_allow` on hosts using the AMFI allowlist.",
+      "fit": "This tool appears best suited to users with Apple Silicon Macs on macOS 15+ engaged in JB research VM work, since local validation is documented only for iPhone17,3 with firmware 26.6.2 (23G90) and 27.0 (24A435) alongside cloudOS 26.4 (23E5207q); other firmware combinations are not implied to work. It cannot run on a Mac already running inside another VM."
     },
     "summaries": {
       "en": {
-        "goal": "vphone-cli is a command-line tool that boots a virtual iPhone using Apple's Virtualization.framework, leveraging PCC (Private Cloud Compute) research VM infrastructure, according to the README's opening description.",
-        "usage": "Install via `brew install zqxwce/tap/vphone-cli`, or build from source with `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` followed by the setup and build scripts. A virtual iPhone can then be created and launched with `vphone-cli vm create myphone -V jb` and `vphone-cli vm launch myphone`.",
-        "pros": "The tool offers five firmware patch variants (less, regular, dev, jb, exp) ranging from no patches to a full jailbreak, with the exp variant applying 141 patches plus anti-VM-detection research patches. It also provides VM management commands (list, clone, export/import) and a host control socket for programmatic screenshot/touch automation, including MCP server integration.",
-        "cons": "Setup requires relaxing macOS SIP/AMFI protections to run unsigned binaries with private entitlements, and the README documents a known bug in ldid-procursus up to version 2.1.5-procursus7 that can cause the `cfw install` command to hang with unbounded memory growth, requiring a from-source rebuild as a workaround.",
-        "fit": "Given its Apple Silicon and macOS 15+ requirements, SIP/AMFI relaxation, and jailbreak/CFW-oriented tooling, this project appears best suited for security researchers and developers exploring iOS internals rather than general end users."
+        "goal": "vphone-cli boots a virtual iPhone using Apple's Virtualization.framework together with PCC research VM infrastructure. The supported firmware flow is JB only: it applies required system patches and installs vphoned for host control, leaving the guest user environment otherwise unmodified (no package manager, SSH, VNC, or bootstrap).",
+        "usage": "Quick start requires an Apple Silicon Mac running macOS 15 or newer, with the host permitting PV=3 research guests. A VM is created with `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` and then started with `vphone-cli vm launch myphone`. Building from source uses `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` followed by `make build`.",
+        "pros": "The distributed .app runs using macOS system tools and bundled binaries, without needing Homebrew, Python, or Xcode. Everyday operation is covered by a documented command set (vm list, vm info, vm launch, vm stop, vm export/import, fw catalog, host preflight), and environment variables like VPHONE_ROOT and VPHONE_LIBRARY_ROOT let users relocate the VM storage tree.",
+        "cons": "The `vm create` flow needs network access for Apple's restore ticket and requires administrator authentication during CFW installation; it also stops at a verification boot, so `vphone-cli vm launch` must be run separately to keep using the VM. Rebuilt binaries with a new signed cdhash likely require rerunning `make amfi_allow` on hosts using the AMFI allowlist.",
+        "fit": "This tool appears best suited to users with Apple Silicon Macs on macOS 15+ engaged in JB research VM work, since local validation is documented only for iPhone17,3 with firmware 26.6.2 (23G90) and 27.0 (24A435) alongside cloudOS 26.4 (23E5207q); other firmware combinations are not implied to work. It cannot run on a Mac already running inside another VM."
       },
       "ko": {
-        "goal": "vphone-cli는 Apple의 Virtualization.framework를 사용해 가상 iPhone을 부팅하는 커맨드라인 도구로, README에 따르면 PCC 연구용 VM 인프라를 활용합니다.",
-        "usage": "설치는 `brew install zqxwce/tap/vphone-cli` 명령으로 가능하며, 소스에서 빌드하려면 `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git`로 저장소를 받은 뒤 설정/빌드 스크립트를 실행합니다. 이후 `vphone-cli vm create myphone -V jb`와 `vphone-cli vm launch myphone` 명령으로 가상 iPhone을 생성하고 실행할 수 있습니다.",
-        "pros": "less, regular, dev, jb, exp의 5가지 펌웨어 패치 변형을 제공하며, exp 변형은 141개의 패치와 안티-VM 탐지 연구 패치를 포함합니다. 또한 VM 목록/복제/내보내기 등 관리 명령과, 스크린샷·터치 자동화를 위한 호스트 제어 소켓, MCP 서버 연동을 제공합니다.",
-        "cons": "설정 과정에서 SIP/AMFI 보호 기능을 완화해야 서명되지 않은 바이너리와 사설 엔타이틀먼트 실행이 가능하며, README에는 ldid-procursus 2.1.5-procursus7까지에서 `cfw install` 명령이 멈추고 메모리가 무한정 증가할 수 있는 알려진 버그가 문서화되어 있어, 소스에서 재빌드하는 우회 방법이 필요합니다.",
-        "fit": "Apple Silicon과 macOS 15+ 요구 사항, SIP/AMFI 완화, 탈옥/CFW 도구라는 특성상 이 프로젝트는 일반 사용자보다는 iOS 내부 구조를 연구하는 보안 연구자나 개발자에게 더 적합한 것으로 보입니다."
+        "goal": "vphone-cli는 Apple의 Virtualization.framework와 PCC 연구용 VM 인프라를 사용해 가상 iPhone을 부팅합니다. 지원되는 펌웨어 흐름은 JB 전용이며, 필요한 시스템 패치를 적용하고 호스트 제어를 위한 vphoned를 설치합니다. 게스트 사용자 환경 자체는 건드리지 않아 패키지 관리자, SSH, VNC, 부트스트랩이 설치되지 않습니다.",
+        "usage": "빠른 시작에는 macOS 15 이상을 실행하는 Apple Silicon Mac이 필요하며, 호스트가 PV=3 연구용 게스트를 허용해야 합니다. `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` 명령으로 VM을 생성한 뒤 `vphone-cli vm launch myphone`으로 실행합니다. 소스 빌드는 `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` 후 `make build`를 사용합니다.",
+        "pros": "배포된 .app은 macOS 시스템 도구와 자체 번들 바이너리를 사용하므로 Homebrew, Python, Xcode가 필요 없습니다. vm list, vm info, vm launch, vm stop, vm export/import, fw catalog, host preflight 등 일상적인 명령 세트가 문서화되어 있으며, VPHONE_ROOT와 VPHONE_LIBRARY_ROOT 환경 변수로 VM 저장 위치를 옮길 수 있습니다.",
+        "cons": "`vm create` 과정은 Apple의 복원 티켓을 위한 네트워크 접근과 CFW 설치 중 관리자 인증을 필요로 하며, 검증 부팅 단계에서 멈추므로 VM을 계속 사용하려면 별도로 `vphone-cli vm launch`를 실행해야 합니다. 재빌드 시 서명된 cdhash가 바뀌므로 AMFI allowlist를 사용하는 호스트는 `make amfi_allow`를 다시 실행해야 할 가능성이 있습니다.",
+        "fit": "이 도구는 macOS 15 이상의 Apple Silicon Mac에서 JB 연구용 VM 작업을 하는 사용자에게 적합해 보이며, 로컬 검증은 iPhone17,3의 26.6.2 (23G90)와 27.0 (24A435), cloudOS 26.4 (23E5207q) 조합에 대해서만 문서화되어 있어 다른 펌웨어 조합이 동작한다고 보장되지는 않는 것으로 보입니다. 다른 VM 내부에서 실행 중인 Mac에서는 부팅할 수 없습니다."
       },
       "zh-CN": {
-        "goal": "vphone-cli 是一个命令行工具,使用 Apple 的 Virtualization.framework 启动虚拟 iPhone,据 README 描述,它借助了 PCC 研究用虚拟机基础设施。",
-        "usage": "可通过 `brew install zqxwce/tap/vphone-cli` 安装,或使用 `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` 克隆源码后运行安装与构建脚本进行源码构建。之后可用 `vphone-cli vm create myphone -V jb` 和 `vphone-cli vm launch myphone` 创建并启动虚拟 iPhone。",
-        "pros": "该工具提供 less、regular、dev、jb、exp 五种固件补丁变体,其中 exp 变体包含 141 个补丁,并附带反虚拟机检测的研究性补丁;此外还提供虚拟机列表/克隆/导入导出等管理命令,以及用于截图和触控自动化的主机控制套接字,并可与 MCP 服务器集成。",
-        "cons": "配置过程需要放宽 SIP/AMFI 保护以运行未签名二进制文件及私有权限,README 还记录了 ldid-procursus 2.1.5-procursus7 及更早版本中的一个已知缺陷,该缺陷可能导致 `cfw install` 命令挂起并使内存无限增长,需要从源码重新构建作为规避方法。",
-        "fit": "鉴于其对 Apple Silicon 与 macOS 15+ 的要求、SIP/AMFI 放宽需求以及越狱/CFW 相关工具特性,该项目似乎更适合研究 iOS 内部机制的安全研究人员和开发者,而非普通终端用户。"
+        "goal": "vphone-cli 使用 Apple 的 Virtualization.framework 与 PCC 研究用虚拟机基础设施来启动虚拟 iPhone。目前支持的固件流程仅限 JB：它会应用所需的系统补丁并安装 vphoned 以供主机控制,而客户机用户环境本身不做改动(不安装包管理器、SSH、VNC 或首次启动脚本)。",
+        "usage": "快速开始需要运行 macOS 15 或更高版本的 Apple Silicon Mac,且主机需允许 PV=3 研究客户机。使用 `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` 创建虚拟机,然后用 `vphone-cli vm launch myphone` 启动。从源码构建则使用 `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git`,再执行 `make build`。",
+        "pros": "发行版 .app 使用 macOS 系统工具和自带的二进制文件运行,无需 Homebrew、Python 或 Xcode。日常操作有文档化的命令集覆盖,包括 vm list、vm info、vm launch、vm stop、vm export/import、fw catalog 和 host preflight,并可通过 VPHONE_ROOT 与 VPHONE_LIBRARY_ROOT 环境变量迁移虚拟机存储位置。",
+        "cons": "`vm create` 流程需要网络访问以获取 Apple 的恢复凭据,并在 CFW 安装过程中需要管理员身份验证;该流程会在验证启动阶段停止,因此需要单独运行 `vphone-cli vm launch` 才能继续使用虚拟机。重新构建后签名的 cdhash 会发生变化,使用 AMFI allowlist 的主机很可能需要重新运行 `make amfi_allow`。",
+        "fit": "该工具看起来更适合在 macOS 15 及以上版本的 Apple Silicon Mac 上从事 JB 研究虚拟机工作的用户,因为本地验证仅记录了 iPhone17,3 搭配固件 26.6.2 (23G90) 和 27.0 (24A435)、以及 cloudOS 26.4 (23E5207q) 的组合,并不意味着其他固件组合同样可行。它无法在已运行于另一个虚拟机内部的 Mac 上启动。"
       },
       "es": {
-        "goal": "vphone-cli es una herramienta de línea de comandos que arranca un iPhone virtual usando Virtualization.framework de Apple, apoyándose, según el README, en la infraestructura de máquinas virtuales de investigación de PCC.",
-        "usage": "Se instala con `brew install zqxwce/tap/vphone-cli`, o bien se compila desde el código fuente clonando con `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` y ejecutando los scripts de configuración y build. Después, un iPhone virtual se crea y se inicia con `vphone-cli vm create myphone -V jb` y `vphone-cli vm launch myphone`.",
-        "pros": "Ofrece cinco variantes de parcheo de firmware (less, regular, dev, jb, exp), siendo exp la más completa con 141 parches e incluyendo parches de investigación contra la detección de VM; además incluye comandos de gestión de VMs (listar, clonar, exportar/importar) y un socket de control del host para automatizar capturas de pantalla y toques, con integración mediante un servidor MCP.",
-        "cons": "La configuración requiere relajar las protecciones SIP/AMFI de macOS para ejecutar binarios sin firmar con entitlements privados, y el README documenta un error conocido en ldid-procursus hasta la versión 2.1.5-procursus7 que puede hacer que el comando `cfw install` se cuelgue con un crecimiento de memoria sin límite, requiriendo recompilar desde el código fuente como solución alternativa.",
-        "fit": "Dados sus requisitos de Apple Silicon y macOS 15+, la necesidad de relajar SIP/AMFI y sus herramientas orientadas a jailbreak/CFW, el proyecto parece pensado más para investigadores de seguridad y desarrolladores que exploran internamente iOS que para usuarios finales generales."
+        "goal": "vphone-cli arranca un iPhone virtual usando Virtualization.framework de Apple junto con la infraestructura de VM de investigación PCC. El flujo de firmware soportado es solo JB: aplica los parches de sistema necesarios e instala vphoned para el control desde el host, sin modificar el entorno de usuario invitado (no instala gestor de paquetes, servidor SSH, VNC ni script de arranque inicial).",
+        "usage": "El inicio rápido requiere un Mac Apple Silicon con macOS 15 o superior, y el host debe permitir invitados de investigación PV=3. La VM se crea con `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` y se inicia con `vphone-cli vm launch myphone`. Compilar desde el código fuente usa `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` seguido de `make build`.",
+        "pros": "La .app distribuida se ejecuta con herramientas del sistema macOS y binarios incluidos, sin necesitar Homebrew, Python ni Xcode. El uso diario está cubierto por un conjunto de comandos documentado (vm list, vm info, vm launch, vm stop, vm export/import, fw catalog, host preflight), y las variables VPHONE_ROOT y VPHONE_LIBRARY_ROOT permiten reubicar el almacenamiento de las VM.",
+        "cons": "El flujo `vm create` necesita acceso a red para el ticket de restauración de Apple y requiere autenticación de administrador durante la instalación de CFW; además se detiene en un arranque de verificación, por lo que hay que ejecutar `vphone-cli vm launch` aparte para seguir usando la VM. Tras cada recompilación cambia el cdhash firmado, por lo que un host que use la lista de permitidos de AMFI probablemente deba volver a ejecutar `make amfi_allow`.",
+        "fit": "Esta herramienta parece adecuada para usuarios con Mac Apple Silicon en macOS 15 o superior que trabajen en investigación de VM JB, ya que la validación local solo está documentada para iPhone17,3 con firmware 26.6.2 (23G90) y 27.0 (24A435) junto con cloudOS 26.4 (23E5207q); no se implica que otras combinaciones de firmware funcionen. No puede arrancar en un Mac que ya se ejecute dentro de otra VM."
       },
       "ja": {
-        "goal": "vphone-cliは、AppleのVirtualization.frameworkを用いて仮想iPhoneを起動するコマンドラインツールで、READMEの説明によればPCCリサーチ用VMインフラを利用しています。",
-        "usage": "インストールは `brew install zqxwce/tap/vphone-cli` で行うか、`git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` でソースを取得しセットアップ・ビルドスクリプトを実行してソースからビルドします。その後 `vphone-cli vm create myphone -V jb` と `vphone-cli vm launch myphone` で仮想iPhoneを作成・起動できます。",
-        "pros": "less、regular、dev、jb、expの5種類のファームウェアパッチバリアントを提供し、expバリアントは141個のパッチと反VM検出用の研究パッチを含みます。さらにVMの一覧・複製・インポート/エクスポートなどの管理コマンドや、スクリーンショット・タッチ操作を自動化するホスト制御ソケット、MCPサーバーとの連携も提供されます。",
-        "cons": "セットアップにはSIP/AMFI保護を緩和して署名なしバイナリと非公開エンタイトルメントを実行できるようにする必要があり、READMEにはldid-procursus 2.1.5-procursus7までに存在する既知のバグが記載されています。このバグは `cfw install` コマンドがハングしメモリが無限に増加する可能性があり、回避策としてソースからの再ビルドが必要です。",
-        "fit": "Apple SiliconとmacOS 15+の要件、SIP/AMFIの緩和、脱獄/CFW関連ツールという性質から、このプロジェクトは一般ユーザーよりもiOS内部を研究するセキュリティ研究者や開発者に適していると考えられます。"
+        "goal": "vphone-cliは、AppleのVirtualization.frameworkとPCC研究用VMインフラストラクチャを使って仮想iPhoneを起動します。サポートされるファームウェアフローはJBのみで、必要なシステムパッチを適用し、ホスト制御用のvphonedをインストールします。ゲストのユーザー環境自体には手を加えず、パッケージマネージャ、SSHサーバー、VNCサーバー、初回起動ブートストラップは導入されません。",
+        "usage": "クイックスタートにはmacOS 15以降を実行するApple Silicon Macが必要で、ホストはPV=3の研究用ゲストを許可している必要があります。`vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` でVMを作成し、`vphone-cli vm launch myphone` で起動します。ソースからビルドする場合は `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` の後に `make build` を実行します。",
+        "pros": "配布される.appはmacOSのシステムツールと同梱バイナリで動作するため、Homebrew、Python、Xcodeを必要としません。日常操作はvm list、vm info、vm launch、vm stop、vm export/import、fw catalog、host preflightといった文書化されたコマンド群でカバーされ、VPHONE_ROOTとVPHONE_LIBRARY_ROOT環境変数でVMの保存先を変更できます。",
+        "cons": "`vm create` フローはAppleの復元チケット取得のためにネットワークアクセスを必要とし、CFWインストール中に管理者認証を求められます。また検証用ブートの時点で処理が止まるため、VMを使い続けるには別途 `vphone-cli vm launch` を実行する必要があります。再ビルドのたびに署名済みcdhashが変わるため、AMFI allowlistを使うホストでは `make amfi_allow` の再実行がおそらく必要になります。",
+        "fit": "このツールは、macOS 15以降のApple Silicon MacでJB研究用VM作業を行うユーザーに適していると考えられます。ローカル検証はiPhone17,3のファームウェア26.6.2 (23G90)と27.0 (24A435)、cloudOS 26.4 (23E5207q)の組み合わせについてのみ文書化されており、他のファームウェアの組み合わせが動作するとは示唆されていません。すでに別のVM内で動作しているMac上では起動できません。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 3,
-          "end_line": 3,
+          "start_line": 5,
+          "end_line": 5,
           "section_heading": "vphone-cli"
         },
         {
-          "start_line": 5,
-          "end_line": 5,
+          "start_line": 9,
+          "end_line": 9,
           "section_heading": "vphone-cli"
         }
       ],
       "usage": [
         {
-          "start_line": 27,
-          "end_line": 27,
-          "section_heading": "Install"
+          "start_line": 13,
+          "end_line": 13,
+          "section_heading": "Quick start"
         },
         {
-          "start_line": 33,
-          "end_line": 36,
-          "section_heading": "Build"
+          "start_line": 16,
+          "end_line": 20,
+          "section_heading": "Quick start"
         },
         {
-          "start_line": 46,
-          "end_line": 50,
-          "section_heading": "Quick Start"
+          "start_line": 34,
+          "end_line": 37,
+          "section_heading": "Install or build"
         }
       ],
       "pros": [
         {
-          "start_line": 90,
-          "end_line": 99,
-          "section_heading": "Firmware Variants"
+          "start_line": 29,
+          "end_line": 29,
+          "section_heading": "Install or build"
         },
         {
-          "start_line": 196,
-          "end_line": 198,
-          "section_heading": "Automation"
+          "start_line": 44,
+          "end_line": 53,
+          "section_heading": "Everyday commands"
+        },
+        {
+          "start_line": 55,
+          "end_line": 55,
+          "section_heading": "Everyday commands"
         }
       ],
       "cons": [
         {
-          "start_line": 16,
-          "end_line": 16,
-          "section_heading": "Prerequisites"
+          "start_line": 23,
+          "end_line": 23,
+          "section_heading": "Quick start"
         },
         {
-          "start_line": 194,
-          "end_line": 194,
-          "section_heading": "FAQ"
+          "start_line": 40,
+          "end_line": 40,
+          "section_heading": "Install or build"
         }
       ],
       "fit": [
         {
-          "start_line": 11,
-          "end_line": 16,
-          "section_heading": "Prerequisites"
+          "start_line": 13,
+          "end_line": 13,
+          "section_heading": "Quick start"
+        },
+        {
+          "start_line": 25,
+          "end_line": 25,
+          "section_heading": "Quick start"
         }
       ]
     },
     "invariants": [
       {
         "kind": "command",
-        "value": "brew install zqxwce/tap/vphone-cli",
+        "value": "vphone-cli vm create myphone",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "vphone-cli vm launch myphone",
         "fields": [
           "usage"
         ]
@@ -7616,37 +7815,52 @@
       },
       {
         "kind": "command",
-        "value": "vphone-cli vm create myphone -V jb",
+        "value": "make build",
         "fields": [
           "usage"
         ]
       },
       {
         "kind": "command",
-        "value": "vphone-cli vm launch myphone",
+        "value": "make amfi_allow",
         "fields": [
-          "usage"
+          "cons"
         ]
       },
       {
         "kind": "version",
-        "value": "macOS 15+",
+        "value": "macOS 15",
+        "fields": [
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "26.6.2 (23G90)",
         "fields": [
           "fit"
         ]
       },
       {
         "kind": "version",
-        "value": "2.1.5-procursus7",
+        "value": "27.0 (24A435)",
         "fields": [
-          "cons"
+          "fit"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "26.4 (23E5207q)",
+        "fields": [
+          "fit"
         ]
       },
       {
         "kind": "number",
-        "value": "141",
+        "value": "PV=3",
         "fields": [
-          "pros"
+          "usage"
         ]
       },
       {
@@ -7661,7 +7875,15 @@
         "value": "vphone-cli",
         "fields": [
           "goal",
-          "usage"
+          "usage",
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "vphoned",
+        "fields": [
+          "goal"
         ]
       },
       {
@@ -7670,24 +7892,18 @@
         "fields": [
           "goal"
         ]
-      },
-      {
-        "kind": "product",
-        "value": "ldid-procursus",
-        "fields": [
-          "cons"
-        ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "lakr233/vphone-cli",
       "path": "README.md",
-      "blob_sha": "22212fe81388fe886f37340938c47368e9c2da31",
-      "content_sha256": "89a1460fed61aa75c1250ec3d1b28b1db8c994baca1c1227a1c3a8e19ccd583f",
+      "blob_sha": "66df0433dd84484624a64282dd7f74710c645b87",
+      "content_sha256": "267aa6bdc57b24e433a7c2b5077d1b7d0c31a258b6889acbbbd6e9a41a0be0d0",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -9238,6 +9454,201 @@
       "path": "README.md",
       "blob_sha": "906646c8bce300272b471ca5d587fd077122f7c5",
       "content_sha256": "d81f605b83c30fff32b144479284299303d832ef87487a9908a09d5d42c81af4",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.263",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "melgarafael/DeskcommCRM": {
+    "content": {
+      "goal": "DeskcommCRM is an open-source, self-hosted CRM platform combining WhatsApp messaging with AI agents that can attend to, qualify, and move leads through a sales pipeline. It is presented as an open alternative to Kommo, Octadesk, and Intercom, licensed under MIT.",
+      "usage": "Users install it on a VPS with Docker by cloning the repo and running `bash hostgator-setup-kit/install.sh`, or by piping a setup script via `curl -fsSL https://raw.githubusercontent.com/melgarafael/DeskcommCRM/main/hostgator-setup-kit/comecar.sh | bash` to get hosting-plan guidance. Updates run via `bash hostgator-setup-kit/update.sh`, which backs up the database before applying changes.",
+      "pros": "The project is free with no locked-away paid tiers, keeps all data on the operator's own server, and install/update scripts are documented as idempotent, so re-running them should not duplicate resources. It also includes automated HTTPS setup and post-install health checks.",
+      "cons": "The installer expects a VPS with Docker and recommends 4 GB of RAM. Supabase's free database tier does not include automatic backups, so operators should schedule `backup.sh` themselves. Support is community-based and offered \"as-is,\" without a guaranteed SLA.",
+      "fit": "Given its WhatsApp focus and multi-niche vocabulary options, it seems best suited to businesses selling through WhatsApp (e-commerce, clinics, real estate, and similar) that are comfortable managing their own server, rather than teams wanting a fully managed SaaS."
+    },
+    "summaries": {
+      "en": {
+        "goal": "DeskcommCRM is an open-source, self-hosted CRM platform combining WhatsApp messaging with AI agents that can attend to, qualify, and move leads through a sales pipeline. It is presented as an open alternative to Kommo, Octadesk, and Intercom, licensed under MIT.",
+        "usage": "Users install it on a VPS with Docker by cloning the repo and running `bash hostgator-setup-kit/install.sh`, or by piping a setup script via `curl -fsSL https://raw.githubusercontent.com/melgarafael/DeskcommCRM/main/hostgator-setup-kit/comecar.sh | bash` to get hosting-plan guidance. Updates run via `bash hostgator-setup-kit/update.sh`, which backs up the database before applying changes.",
+        "pros": "The project is free with no locked-away paid tiers, keeps all data on the operator's own server, and install/update scripts are documented as idempotent, so re-running them should not duplicate resources. It also includes automated HTTPS setup and post-install health checks.",
+        "cons": "The installer expects a VPS with Docker and recommends 4 GB of RAM. Supabase's free database tier does not include automatic backups, so operators should schedule `backup.sh` themselves. Support is community-based and offered \"as-is,\" without a guaranteed SLA.",
+        "fit": "Given its WhatsApp focus and multi-niche vocabulary options, it seems best suited to businesses selling through WhatsApp (e-commerce, clinics, real estate, and similar) that are comfortable managing their own server, rather than teams wanting a fully managed SaaS."
+      },
+      "ko": {
+        "goal": "DeskcommCRM은 WhatsApp 메시징과 리드를 응대·검증하고 영업 파이프라인을 이동시키는 AI 에이전트를 결합한 오픈소스 자체 호스팅 CRM 플랫폼입니다. Kommo, Octadesk, Intercom에 대한 개방형 대안으로 소개되며 MIT 라이선스로 배포됩니다.",
+        "usage": "Docker가 설치된 VPS에서 저장소를 클론한 뒤 `bash hostgator-setup-kit/install.sh`를 실행하거나, `curl -fsSL https://raw.githubusercontent.com/melgarafael/DeskcommCRM/main/hostgator-setup-kit/comecar.sh | bash` 스크립트를 실행해 호스팅 플랜 안내를 받을 수 있습니다. 업데이트는 `bash hostgator-setup-kit/update.sh`로 진행되며, 변경 사항을 적용하기 전에 데이터베이스를 백업합니다.",
+        "pros": "이 프로젝트는 잠긴 유료 등급 없이 무료로 제공되며, 모든 데이터를 운영자 자신의 서버에 보관하고, 설치·업데이트 스크립트가 멱등적(idempotent)으로 문서화되어 있어 다시 실행해도 리소스가 중복 생성되지 않는다고 합니다. 또한 자동 HTTPS 설정과 설치 후 상태 점검 기능도 포함됩니다.",
+        "cons": "설치 프로그램은 Docker가 설치된 VPS를 필요로 하며 4 GB RAM을 권장합니다. Supabase 무료 요금제는 자동 백업을 제공하지 않으므로 운영자가 직접 `backup.sh`를 예약해야 합니다. 지원은 커뮤니티 기반이며 \"있는 그대로\" 제공되어 보장된 SLA가 없습니다.",
+        "fit": "WhatsApp 중심 기능과 다양한 업종별 용어 설정 옵션을 고려할 때, 완전 관리형 SaaS를 원하는 팀보다는 자체 서버 운영에 익숙하며 WhatsApp으로 판매하는 비즈니스(전자상거래, 클리닉, 부동산 등)에 더 적합해 보입니다."
+      },
+      "zh-CN": {
+        "goal": "DeskcommCRM 是一个开源的自托管 CRM 平台,结合了 WhatsApp 消息功能与能够接待、筛选潜在客户并推动其在销售漏斗中前进的 AI 代理。它被定位为 Kommo、Octadesk 和 Intercom 的开放替代方案,采用 MIT 许可证。",
+        "usage": "用户可以在装有 Docker 的 VPS 上克隆代码仓库并运行 `bash hostgator-setup-kit/install.sh` 进行安装,或者运行 `curl -fsSL https://raw.githubusercontent.com/melgarafael/DeskcommCRM/main/hostgator-setup-kit/comecar.sh | bash` 脚本以获取托管方案建议。更新则通过 `bash hostgator-setup-kit/update.sh` 执行,该脚本会在应用更改前备份数据库。",
+        "pros": "该项目免费提供,没有被锁定的付费功能层级,所有数据保留在运营者自己的服务器上,安装/更新脚本据文档说明具有幂等性,因此重复运行不应导致资源重复创建。它还包含自动 HTTPS 配置和安装后的健康检查。",
+        "cons": "安装程序需要一台装有 Docker 的 VPS,并建议配备 4 GB 内存。Supabase 的免费数据库套餐不包含自动备份,因此运营者需要自行安排 `backup.sh` 的定期执行。支持是社区性质的,按“现状”提供,没有保证的 SLA。",
+        "fit": "鉴于其对 WhatsApp 的专注以及多行业词汇配置选项,该项目似乎更适合通过 WhatsApp 销售的企业(如电商、诊所、房地产等),且这些企业愿意自行管理服务器,而非寻求完全托管型 SaaS 的团队。"
+      },
+      "es": {
+        "goal": "DeskcommCRM es una plataforma CRM de código abierto y autoalojada que combina mensajería de WhatsApp con agentes de IA capaces de atender, calificar y mover leads dentro de un embudo de ventas. Se presenta como una alternativa abierta a Kommo, Octadesk e Intercom, bajo licencia MIT.",
+        "usage": "Se instala en una VPS con Docker clonando el repositorio y ejecutando `bash hostgator-setup-kit/install.sh`, o ejecutando un script de configuración con `curl -fsSL https://raw.githubusercontent.com/melgarafael/DeskcommCRM/main/hostgator-setup-kit/comecar.sh | bash` para recibir orientación sobre el plan de hosting. Las actualizaciones se aplican con `bash hostgator-setup-kit/update.sh`, que respalda la base de datos antes de aplicar cambios.",
+        "pros": "El proyecto es gratuito, sin niveles de pago bloqueados, mantiene todos los datos en el servidor propio del operador, y los scripts de instalación/actualización se documentan como idempotentes, por lo que volver a ejecutarlos no debería duplicar recursos. También incluye configuración automática de HTTPS y verificaciones de salud tras la instalación.",
+        "cons": "El instalador espera una VPS con Docker y recomienda 4 GB de RAM. El plan gratuito de Supabase no incluye copias de seguridad automáticas, por lo que los operadores deberían programar `backup.sh` ellos mismos. El soporte es comunitario y se ofrece \"tal cual\", sin un SLA garantizado.",
+        "fit": "Dado su enfoque en WhatsApp y las opciones de vocabulario multi-nicho, parece más adecuado para negocios que venden por WhatsApp (comercio electrónico, clínicas, inmobiliarias y similares) cómodos administrando su propio servidor, más que para equipos que buscan un SaaS totalmente gestionado."
+      },
+      "ja": {
+        "goal": "DeskcommCRMは、WhatsAppメッセージングと、リードへの対応・選別・営業パイプライン内での移動を行うAIエージェントを組み合わせた、オープンソースのセルフホスト型CRMプラットフォームです。Kommo、Octadesk、Intercomに代わるオープンな選択肢として位置づけられており、MITライセンスで提供されています。",
+        "usage": "Dockerを備えたVPS上でリポジトリをクローンし、`bash hostgator-setup-kit/install.sh` を実行してインストールするか、`curl -fsSL https://raw.githubusercontent.com/melgarafael/DeskcommCRM/main/hostgator-setup-kit/comecar.sh | bash` を実行してホスティングプランの案内を受けることができます。更新は `bash hostgator-setup-kit/update.sh` で行われ、変更を適用する前にデータベースをバックアップします。",
+        "pros": "本プロジェクトは無料で提供され、機能がロックされた有料プランはなく、すべてのデータは運用者自身のサーバーに保持されます。インストール/更新スクリプトはドキュメント上べき等であるとされており、再実行してもリソースが重複しないとされています。また、自動HTTPS設定とインストール後のヘルスチェックも含まれます。",
+        "cons": "インストーラーはDockerを備えたVPSを前提としており、4GBのRAMが推奨されています。Supabaseの無料データベースプランには自動バックアップが含まれないため、運用者は自ら `backup.sh` をスケジュールする必要があります。サポートはコミュニティベースで「現状のまま」提供され、保証されたSLAはありません。",
+        "fit": "WhatsAppへの重点と業種別語彙設定オプションを踏まえると、完全マネージドなSaaSを求めるチームよりも、WhatsApp経由で販売を行う事業者(EC、クリニック、不動産など)で、自らサーバーを運用することに抵抗がない場合に適しているように見受けられます。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 10,
+          "end_line": 13,
+          "section_heading": "🛠️ DeskcommCRM — o Sistema Operacional de Vendas com IA, open source, pro WhatsApp"
+        },
+        {
+          "start_line": 20,
+          "end_line": 20,
+          "section_heading": "🛠️ DeskcommCRM — o Sistema Operacional de Vendas com IA, open source, pro WhatsApp"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 41,
+          "end_line": 43,
+          "section_heading": "🛠️ DeskcommCRM — o Sistema Operacional de Vendas com IA, open source, pro WhatsApp"
+        },
+        {
+          "start_line": 74,
+          "end_line": 78,
+          "section_heading": "2. Rode o instalador"
+        },
+        {
+          "start_line": 181,
+          "end_line": 184,
+          "section_heading": "Pelo terminal"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 12,
+          "end_line": 13,
+          "section_heading": "🛠️ DeskcommCRM — o Sistema Operacional de Vendas com IA, open source, pro WhatsApp"
+        },
+        {
+          "start_line": 105,
+          "end_line": 110,
+          "section_heading": "O que o instalador faz por você"
+        },
+        {
+          "start_line": 269,
+          "end_line": 269,
+          "section_heading": "Diferenciais"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 87,
+          "end_line": 87,
+          "section_heading": "O que você precisa ter em mãos"
+        },
+        {
+          "start_line": 226,
+          "end_line": 227,
+          "section_heading": "Outros comandos do kit"
+        },
+        {
+          "start_line": 527,
+          "end_line": 530,
+          "section_heading": "🛟 Suporte & responsabilidades (self-host)"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 257,
+          "end_line": 257,
+          "section_heading": "✨ O que é"
+        },
+        {
+          "start_line": 264,
+          "end_line": 264,
+          "section_heading": "Diferenciais"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "product",
+        "value": "DeskcommCRM",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Supabase",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "WhatsApp",
+        "fields": [
+          "goal",
+          "fit"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "bash hostgator-setup-kit/install.sh",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "bash hostgator-setup-kit/update.sh",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "curl -fsSL https://raw.githubusercontent.com/melgarafael/DeskcommCRM/main/hostgator-setup-kit/comecar.sh | bash",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "4 GB",
+        "fields": [
+          "cons"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "melgarafael/deskcommcrm",
+      "path": "README.md",
+      "blob_sha": "41f78fcc490be2d0295e780ff56564a68539207b",
+      "content_sha256": "5897a5bbf49ba4e2948126b99cda2f5e5c829315445ac80fe68de3a67429d0bf",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
