@@ -2528,54 +2528,54 @@
   },
   "harry7557558/spirula-studio": {
     "content": {
-      "goal": "Spirula Studio (GPLv3-licensed) is a self-contained tool for training 3D Gaussian Splatting models, taking raw photos or video through splat generation to a textured mesh in a single binary, without requiring a separate Python/PyTorch stack or COLMAP installation.",
-      "usage": "Precompiled binaries for Windows, Linux, and macOS are downloaded from the Releases page (https://github.com/harry7557558/spirula-studio/releases/) and launched as a GUI; for remote or cloud GPUs, the CLI can be used instead, for example `spirula --help`, and the `spirula train` command serves a web viewer over an HTTP port that can be forwarded over SSH.",
-      "pros": "It runs on NVIDIA, AMD, Intel, and Apple GPUs via Vulkan, can train up to 10 million full-SH Gaussians within 8 GB VRAM, and natively supports fisheye and 360°/equirectangular cameras without manual undistortion.",
-      "cons": "Enabling the `-DSS_ENABLE_PATENTED=ON` build option speeds up frame extraction via GPU video decoding, but pulls in AVC/HEVC bitstream parsers with third-party patent exposure, leaving compliance with local patent laws to the user.",
-      "fit": "It seems suited to users wanting a locally run, cross-vendor 3D Gaussian Splatting pipeline without assembling a separate Python/ML toolchain, including remote/cloud training via SSH-forwarded viewing; the project is described as developed and maintained almost entirely by one person, which may cautiously suggest slower turnaround on issues."
+      "goal": "Spirula Studio is a self-contained binary application for training 3D Gaussian Splatting (3DGS) models, covering the full pipeline from raw photo or video input to a trained splat and textured mesh.",
+      "usage": "Users download a prebuilt Windows, Linux, or macOS binary from the GitHub Releases page and run the GUI, or use the CLI for remote/cloud GPU training with `spirula --help` and `spirula train` (which serves a viewer over an HTTP port). Building from source uses either a Vulkan or CUDA backend, e.g. `.\\build_develop.bat -DSS_BACKEND=vulkan -DSS_ENABLE_PATENTED=ON` on Windows.",
+      "pros": "It requires no separate Python/PyTorch or COLMAP installation, runs across NVIDIA, AMD, Intel, and Apple GPUs via Vulkan, and the README states it can train up to 10 million full-SH Gaussians in 8 GB VRAM. It also includes native fisheye/360° camera support and built-in SfM and AI masking.",
+      "cons": "Enabling the `-DSS_ENABLE_PATENTED=ON` build option turns on GPU-based AVC/HEVC video decoding, which the README notes carries third-party patent exposure that users must handle themselves for compliance. Masking also requires downloading a separate SAM checkpoint under Meta's licensing terms on first use.",
+      "fit": "This suggests the project fits users wanting a dependency-light, cross-vendor 3DGS training tool, including on remote/cloud GPUs via CLI with browser-based viewing, though patent-sensitive builds and third-party model licensing require user attention."
     },
     "summaries": {
       "en": {
-        "goal": "Spirula Studio (GPLv3-licensed) is a self-contained tool for training 3D Gaussian Splatting models, taking raw photos or video through splat generation to a textured mesh in a single binary, without requiring a separate Python/PyTorch stack or COLMAP installation.",
-        "usage": "Precompiled binaries for Windows, Linux, and macOS are downloaded from the Releases page (https://github.com/harry7557558/spirula-studio/releases/) and launched as a GUI; for remote or cloud GPUs, the CLI can be used instead, for example `spirula --help`, and the `spirula train` command serves a web viewer over an HTTP port that can be forwarded over SSH.",
-        "pros": "It runs on NVIDIA, AMD, Intel, and Apple GPUs via Vulkan, can train up to 10 million full-SH Gaussians within 8 GB VRAM, and natively supports fisheye and 360°/equirectangular cameras without manual undistortion.",
-        "cons": "Enabling the `-DSS_ENABLE_PATENTED=ON` build option speeds up frame extraction via GPU video decoding, but pulls in AVC/HEVC bitstream parsers with third-party patent exposure, leaving compliance with local patent laws to the user.",
-        "fit": "It seems suited to users wanting a locally run, cross-vendor 3D Gaussian Splatting pipeline without assembling a separate Python/ML toolchain, including remote/cloud training via SSH-forwarded viewing; the project is described as developed and maintained almost entirely by one person, which may cautiously suggest slower turnaround on issues."
+        "goal": "Spirula Studio is a self-contained binary application for training 3D Gaussian Splatting (3DGS) models, covering the full pipeline from raw photo or video input to a trained splat and textured mesh.",
+        "usage": "Users download a prebuilt Windows, Linux, or macOS binary from the GitHub Releases page and run the GUI, or use the CLI for remote/cloud GPU training with `spirula --help` and `spirula train` (which serves a viewer over an HTTP port). Building from source uses either a Vulkan or CUDA backend, e.g. `.\\build_develop.bat -DSS_BACKEND=vulkan -DSS_ENABLE_PATENTED=ON` on Windows.",
+        "pros": "It requires no separate Python/PyTorch or COLMAP installation, runs across NVIDIA, AMD, Intel, and Apple GPUs via Vulkan, and the README states it can train up to 10 million full-SH Gaussians in 8 GB VRAM. It also includes native fisheye/360° camera support and built-in SfM and AI masking.",
+        "cons": "Enabling the `-DSS_ENABLE_PATENTED=ON` build option turns on GPU-based AVC/HEVC video decoding, which the README notes carries third-party patent exposure that users must handle themselves for compliance. Masking also requires downloading a separate SAM checkpoint under Meta's licensing terms on first use.",
+        "fit": "This suggests the project fits users wanting a dependency-light, cross-vendor 3DGS training tool, including on remote/cloud GPUs via CLI with browser-based viewing, though patent-sensitive builds and third-party model licensing require user attention."
       },
       "ko": {
-        "goal": "Spirula Studio(GPLv3 라이선스)는 별도의 Python/PyTorch 스택이나 COLMAP 설치 없이, 원본 사진이나 동영상을 스플랫 생성을 거쳐 텍스처가 입혀진 메시로 변환하는 3D Gaussian Splatting 모델 학습용 단일 바이너리 도구입니다.",
-        "usage": "Windows, Linux, macOS용 사전 빌드 바이너리는 Releases 페이지(https://github.com/harry7557558/spirula-studio/releases/)에서 내려받아 GUI로 실행할 수 있으며, 원격/클라우드 GPU에서는 대신 CLI를 사용할 수 있습니다. 예를 들어 `spirula --help`를 실행하고, `spirula train` 명령은 SSH로 포워딩 가능한 HTTP 포트로 웹 뷰어를 제공합니다.",
-        "pros": "NVIDIA, AMD, Intel, Apple GPU에서 Vulkan을 통해 동작하며, 8 GB VRAM 내에서 최대 10 million개의 full-SH 가우시안을 학습할 수 있고, 별도의 왜곡 보정 없이 fisheye 및 360°/등장방형 카메라를 기본 지원합니다.",
-        "cons": "`-DSS_ENABLE_PATENTED=ON` 빌드 옵션을 켜면 GPU 비디오 디코딩으로 프레임 추출 속도가 빨라지지만, AVC/HEVC 비트스트림 파서가 포함되어 제3자 특허 문제가 발생할 수 있으며, 관련 지역 특허법 준수 책임은 사용자에게 있습니다.",
-        "fit": "별도의 Python/ML 툴체인 구성 없이 로컬에서 여러 GPU 벤더를 아우르는 3D Gaussian Splatting 파이프라인을 원하는 사용자, SSH로 포워딩되는 뷰어를 통한 원격/클라우드 학습 시나리오에 적합해 보입니다. 다만 이 프로젝트는 거의 한 사람이 개발·유지보수하는 것으로 설명되어 있어, 이슈 대응 속도가 느릴 수 있음을 조심스럽게 시사합니다."
+        "goal": "Spirula Studio는 원본 사진이나 영상에서 학습된 스플랫과 텍스처 메시까지 이어지는 전체 파이프라인을 하나의 독립 실행형 바이너리로 제공하는 3D Gaussian Splatting(3DGS) 모델 학습 도구입니다.",
+        "usage": "사용자는 GitHub Releases 페이지에서 Windows, Linux, macOS용 사전 빌드 바이너리를 내려받아 GUI로 실행하거나, 원격/클라우드 GPU 학습 시 `spirula --help`와 `spirula train` 명령을 사용하는 CLI를 이용할 수 있으며, 이 명령은 HTTP 포트로 뷰어를 제공합니다. 소스에서 빌드할 때는 Vulkan 또는 CUDA 백엔드를 선택하며, Windows에서는 `.\\build_develop.bat -DSS_BACKEND=vulkan -DSS_ENABLE_PATENTED=ON` 명령을 사용합니다.",
+        "pros": "README에 따르면 별도의 Python/PyTorch나 COLMAP 설치가 필요 없고, Vulkan을 통해 NVIDIA, AMD, Intel, Apple GPU에서 동작하며, 최대 8GB VRAM에서 1000만 개의 full-SH 가우시안을 학습할 수 있다고 설명합니다. 또한 어안 렌즈와 360도 카메라를 기본 지원하고 SfM 및 AI 마스킹 기능이 내장되어 있습니다.",
+        "cons": "`-DSS_ENABLE_PATENTED=ON` 빌드 옵션을 활성화하면 GPU 기반 AVC/HEVC 영상 디코딩이 켜지는데, README는 이로 인한 제3자 특허 문제가 있으며 준수 여부는 사용자 책임이라고 명시합니다. 또한 마스킹 기능은 처음 사용할 때 Meta의 라이선스 조건에 따른 별도 SAM 체크포인트 다운로드가 필요합니다.",
+        "fit": "이러한 내용을 보면 이 프로젝트는 의존성이 적고 여러 GPU 벤더를 지원하는 3DGS 학습 도구가 필요하며, CLI와 브라우저 뷰어를 통한 원격/클라우드 GPU 학습도 고려하는 사용자에게 적합할 것으로 보이나, 특허 관련 빌드 옵션과 제3자 모델 라이선스에는 주의가 필요합니다."
       },
       "zh-CN": {
-        "goal": "Spirula Studio(GPLv3 许可)是一个用于训练 3D Gaussian Splatting 模型的独立工具,可将原始照片或视频经过生成 splat 转换为带纹理的网格,全部在单一二进制文件中完成,无需单独安装 Python/PyTorch 或 COLMAP。",
-        "usage": "适用于 Windows、Linux、macOS 的预编译二进制文件可从 Releases 页面(https://github.com/harry7557558/spirula-studio/releases/)下载并以 GUI 方式启动;若在远程或云端 GPU 上使用,也可改用 CLI,例如运行 `spirula --help`,而 `spirula train` 命令会在可通过 SSH 转发的 HTTP 端口上提供网页查看器。",
-        "pros": "它通过 Vulkan 在 NVIDIA、AMD、Intel 和 Apple GPU 上运行,可在 8 GB 显存内训练多达 10 million 个 full-SH 高斯,并原生支持鱼眼与 360°/等距柱状相机,无需手动去畸变。",
-        "cons": "启用 `-DSS_ENABLE_PATENTED=ON` 构建选项可通过 GPU 视频解码加快帧提取速度,但会引入带有第三方专利风险的 AVC/HEVC 码流解析器,遵守当地专利法的责任由用户自行承担。",
-        "fit": "该项目似乎适合希望在本地跨多种 GPU 厂商运行 3D Gaussian Splatting 流程、又不想搭建独立 Python/ML 工具链的用户,也适用于通过 SSH 转发查看器的远程/云端训练场景;不过文档说明该项目几乎由一人开发和维护,这或许谨慎地暗示问题响应速度可能较慢。"
+        "goal": "Spirula Studio 是一个独立可执行的二进制程序,用于训练 3D Gaussian Splatting(3DGS)模型,涵盖从原始照片/视频到训练出的 splat 及带纹理网格的完整流程。",
+        "usage": "用户可以从 GitHub Releases 页面下载适用于 Windows、Linux 或 macOS 的预编译二进制文件并通过 GUI 运行,或者在远程/云端 GPU 上使用 CLI,通过 `spirula --help` 和 `spirula train` 命令进行训练,该命令会在一个 HTTP 端口上提供查看器。从源代码构建时可选择 Vulkan 或 CUDA 后端,例如在 Windows 上运行 `.\\build_develop.bat -DSS_BACKEND=vulkan -DSS_ENABLE_PATENTED=ON`。",
+        "pros": "根据 README 描述,该项目不需要单独安装 Python/PyTorch 或 COLMAP,通过 Vulkan 可在 NVIDIA、AMD、Intel 和 Apple GPU 上运行,并可在 8GB 显存下训练最多 1000 万个 full-SH 高斯点。它还原生支持鱼眼和 360° 相机,并内置 SfM 与 AI 遮罩功能。",
+        "cons": "启用 `-DSS_ENABLE_PATENTED=ON` 构建选项会开启基于 GPU 的 AVC/HEVC 视频解码,README 指出这会带来第三方专利风险,合规与否需由用户自行负责。此外,遮罩功能在首次使用时需要下载单独的 SAM 检查点,并遵循 Meta 的许可条款。",
+        "fit": "这些信息表明,该项目可能适合需要少依赖、跨 GPU 厂商的 3DGS 训练工具的用户,也适用于通过 CLI 和浏览器查看器在远程/云端 GPU 上训练的场景,但涉及专利的构建选项和第三方模型许可仍需用户留意。"
       },
       "es": {
-        "goal": "Spirula Studio (con licencia GPLv3) es una herramienta autocontenida para entrenar modelos de 3D Gaussian Splatting, que convierte fotos o vídeo sin procesar en un splat y luego en una malla texturizada, todo en un único binario, sin necesitar una instalación aparte de Python/PyTorch ni de COLMAP.",
-        "usage": "Los binarios precompilados para Windows, Linux y macOS se descargan desde la página de Releases (https://github.com/harry7557558/spirula-studio/releases/) y se ejecutan como una GUI; para GPU remotas o en la nube se puede usar en su lugar la CLI, por ejemplo `spirula --help`, y el comando `spirula train` sirve un visor web en un puerto HTTP que puede reenviarse por SSH.",
-        "pros": "Funciona en GPU NVIDIA, AMD, Intel y Apple mediante Vulkan, puede entrenar hasta 10 million de gaussianas full-SH dentro de 8 GB de VRAM, y admite de forma nativa cámaras fisheye y 360°/equirectangulares sin necesidad de corregir la distorsión manualmente.",
-        "cons": "Activar la opción de compilación `-DSS_ENABLE_PATENTED=ON` acelera la extracción de fotogramas mediante decodificación de vídeo por GPU, pero incorpora analizadores de flujo AVC/HEVC con exposición a patentes de terceros, dejando en manos del usuario el cumplimiento de las leyes de patentes locales.",
-        "fit": "Parece adecuado para quienes buscan un flujo de trabajo de 3D Gaussian Splatting local y compatible con varios fabricantes de GPU sin montar un stack de Python/ML aparte, incluyendo escenarios de entrenamiento remoto o en la nube mediante un visor reenviado por SSH; el proyecto se describe como desarrollado y mantenido casi enteramente por una sola persona, lo que podría sugerir con cautela una respuesta más lenta a los problemas reportados."
+        "goal": "Spirula Studio es un binario autónomo para entrenar modelos de 3D Gaussian Splatting (3DGS), que cubre todo el proceso desde una foto o video original hasta un splat entrenado y una malla con textura.",
+        "usage": "Los usuarios pueden descargar un binario precompilado para Windows, Linux o macOS desde la página de Releases de GitHub y ejecutarlo mediante la GUI, o usar la CLI para entrenar en GPU remotas/en la nube con `spirula --help` y `spirula train`, que sirve un visor a través de un puerto HTTP. Para compilar desde el código fuente se elige entre el backend Vulkan o CUDA, por ejemplo con `.\\build_develop.bat -DSS_BACKEND=vulkan -DSS_ENABLE_PATENTED=ON` en Windows.",
+        "pros": "Según el README, no requiere instalar Python/PyTorch ni COLMAP por separado, funciona en GPU NVIDIA, AMD, Intel y Apple mediante Vulkan, y permite entrenar hasta 10 millones de gaussianas full-SH en 8 GB de VRAM. También incluye soporte nativo para cámaras ojo de pez y 360°, además de SfM y enmascarado por IA integrados.",
+        "cons": "Activar la opción de compilación `-DSS_ENABLE_PATENTED=ON` habilita la decodificación de video por GPU para AVC/HEVC, lo cual, según el README, implica exposición a patentes de terceros cuyo cumplimiento es responsabilidad del usuario. Además, la función de enmascarado necesita descargar un checkpoint SAM aparte en el primer uso, bajo las licencias de Meta.",
+        "fit": "Esto sugiere que el proyecto puede resultar adecuado para quienes buscan una herramienta de entrenamiento 3DGS con pocas dependencias y compatible con varios fabricantes de GPU, incluyendo entrenamiento remoto/en la nube mediante CLI y un visor en el navegador, aunque conviene prestar atención a la opción de compilación relacionada con patentes y a las licencias de modelos de terceros."
       },
       "ja": {
-        "goal": "Spirula Studio(GPLv3ライセンス)は、生の写真や動画をスプラット生成を経てテクスチャ付きメッシュへと変換する、3D Gaussian Splattingモデルの学習用スタンドアロンツールであり、単一のバイナリで動作し、別途Python/PyTorchやCOLMAPのインストールを必要としません。",
-        "usage": "Windows、Linux、macOS向けのビルド済みバイナリはReleasesページ(https://github.com/harry7557558/spirula-studio/releases/)からダウンロードしGUIとして起動できます。リモートやクラウドのGPUを使う場合はCLIも利用可能で、例えば`spirula --help`を実行し、`spirula train`コマンドはSSH経由でポート転送可能なHTTPポート上でWebビューアを提供します。",
-        "pros": "VulkanによりNVIDIA、AMD、Intel、Apple各社のGPUで動作し、8GBのVRAM内で最大10 million個のfull-SHガウシアンを学習でき、手動の歪み補正なしにフィッシュアイおよび360°/正距円筒カメラをネイティブにサポートします。",
-        "cons": "`-DSS_ENABLE_PATENTED=ON`ビルドオプションを有効にするとGPUによる動画デコードでフレーム抽出が高速化されますが、第三者特許のリスクを伴うAVC/HEVCビットストリームパーサーが組み込まれるため、各地域の特許法遵守はユーザーの責任とされています。",
-        "fit": "個別にPython/MLツールチェーンを構築せずに、ローカル環境で複数のGPUベンダーに対応した3D Gaussian Splattingパイプラインを求めるユーザーや、SSH転送ビューアを用いたリモート/クラウド学習に適しているように見えます。なお、本プロジェクトはほぼ一人で開発・保守されていると説明されており、これは課題対応の速度が遅くなる可能性を控えめに示唆しているかもしれません。"
+        "goal": "Spirula Studioは、生の写真や動画から学習済みのスプラットおよびテクスチャ付きメッシュまでの一連の工程を、単一の自己完結型バイナリでカバーする3D Gaussian Splatting(3DGS)モデルの学習ツールです。",
+        "usage": "ユーザーはGitHubのReleasesページからWindows、Linux、macOS向けのビルド済みバイナリをダウンロードしてGUIで実行するか、リモート/クラウドGPUでの学習にはCLIを使用し、`spirula --help`や`spirula train`コマンドを利用できます。このコマンドはHTTPポートでビューアーを提供します。ソースからビルドする場合はVulkanまたはCUDAバックエンドを選択し、例えばWindowsでは`.\\build_develop.bat -DSS_BACKEND=vulkan -DSS_ENABLE_PATENTED=ON`を実行します。",
+        "pros": "READMEによると、別途Python/PyTorchやCOLMAPをインストールする必要がなく、Vulkanを通じてNVIDIA、AMD、Intel、AppleのGPUで動作し、8GBのVRAMで最大1000万個のfull-SHガウシアンを学習できるとされています。また魚眼レンズや360度カメラをネイティブに対応し、SfMやAIマスキング機能も内蔵しています。",
+        "cons": "`-DSS_ENABLE_PATENTED=ON`ビルドオプションを有効にすると、GPUによるAVC/HEVC動画デコードが有効になりますが、READMEはこれに第三者の特許リスクが伴い、法令順守はユーザー自身の責任であると明記しています。また、マスキング機能は初回使用時にMetaのライセンス条件に基づく別途のSAMチェックポイントのダウンロードが必要です。",
+        "fit": "これらの内容から、依存関係が少なく複数のGPUベンダーに対応した3DGS学習ツールを求めるユーザーや、CLIとブラウザビューアーを使ったリモート/クラウドGPUでの学習を検討するユーザーに適している可能性がありますが、特許に関わるビルドオプションや第三者モデルのライセンスには注意が必要と考えられます。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 7,
-          "end_line": 7,
+          "start_line": 5,
+          "end_line": 5,
           "section_heading": "Spirula Studio"
         },
         {
@@ -2586,14 +2586,14 @@
       ],
       "usage": [
         {
-          "start_line": 11,
-          "end_line": 11,
-          "section_heading": "Spirula Studio"
+          "start_line": 59,
+          "end_line": 61,
+          "section_heading": "Download"
         },
         {
-          "start_line": 61,
-          "end_line": 63,
-          "section_heading": "Download"
+          "start_line": 90,
+          "end_line": 92,
+          "section_heading": "Windows with MSVC:"
         }
       ],
       "pros": [
@@ -2615,6 +2615,11 @@
       ],
       "cons": [
         {
+          "start_line": 130,
+          "end_line": 130,
+          "section_heading": "Notes regarding third-party licensing"
+        },
+        {
           "start_line": 132,
           "end_line": 132,
           "section_heading": "Notes regarding third-party licensing"
@@ -2622,14 +2627,14 @@
       ],
       "fit": [
         {
-          "start_line": 63,
-          "end_line": 63,
+          "start_line": 61,
+          "end_line": 61,
           "section_heading": "Download"
         },
         {
-          "start_line": 185,
-          "end_line": 185,
-          "section_heading": "Trivia"
+          "start_line": 74,
+          "end_line": 77,
+          "section_heading": "Build from source"
         }
       ]
     },
@@ -2642,22 +2647,16 @@
         ]
       },
       {
-        "kind": "url",
-        "value": "https://github.com/harry7557558/spirula-studio/releases/",
+        "kind": "product",
+        "value": "Vulkan",
         "fields": [
-          "usage"
+          "usage",
+          "pros"
         ]
       },
       {
-        "kind": "command",
-        "value": "spirula --help",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "spirula train",
+        "kind": "product",
+        "value": "CUDA",
         "fields": [
           "usage"
         ]
@@ -2677,10 +2676,24 @@
         ]
       },
       {
-        "kind": "version",
-        "value": "GPLv3",
+        "kind": "command",
+        "value": "spirula --help",
         "fields": [
-          "goal"
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "spirula train",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": ".\\build_develop.bat -DSS_BACKEND=vulkan -DSS_ENABLE_PATENTED=ON",
+        "fields": [
+          "usage"
         ]
       }
     ],
@@ -2691,8 +2704,8 @@
       "kind": "readme",
       "slug": "harry7557558/spirula-studio",
       "path": "README.md",
-      "blob_sha": "a835c9057cf5948342f3676b7bf50cb7735caa9b",
-      "content_sha256": "29ced958b703efab22d582e7f27fb733eeb1c2fde31fe3ba6cdb35806207cc93",
+      "blob_sha": "c3f1c2e9b48aa954d7a87e33f54b8851fee977e1",
+      "content_sha256": "7afcc97ab6fd487ed0afebd6255e3962093c026b4497a73859537e0affe2dea9",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -3453,55 +3466,55 @@
   },
   "Tencent/WeKnora": {
     "content": {
-      "goal": "WeKnora (version 0.8.0), from Tencent, is described as an open-source, LLM-powered knowledge framework for document understanding, semantic retrieval, and autonomous reasoning, organized around three capabilities: RAG-based Quick Q&A, a ReAct Agent for multi-step tasks, and a Wiki Mode that turns raw documents into an interlinked markdown knowledge base.",
-      "usage": "Setup is documented via Docker Compose: run `git clone https://github.com/Tencent/WeKnora.git`, then `cp .env.example .env` and `docker compose up -d` to start core services, then visit `http://localhost`. Docker, Docker Compose, and Git are listed as prerequisites.",
-      "pros": "The README lists a modular architecture letting LLMs, vector databases, and storage backends be swapped, 20+ LLM provider integrations, multiple data-source connectors (Feishu, GitLab, Notion, Yuque), and features such as chunk-level revision history, workspace RBAC, and Langfuse observability.",
-      "cons": "Since v0.1.3 WeKnora ships login authentication, and the README's Security Notice recommends deploying it only on internal/private networks with firewall rules rather than exposing it to the public internet, suggesting production use requires deliberate network hardening beyond the default setup.",
-      "fit": "Based on its self-hostable design and emphasis on data sovereignty, WeKnora appears best suited to teams wanting a private, on-premises RAG/agent knowledge platform rather than a fully managed SaaS solution, though this fit depends on the operator's own security configuration."
+      "goal": "WeKnora is an open-source, LLM-powered knowledge framework described for enterprise-grade document understanding, semantic retrieval, and autonomous reasoning, organized around RAG-based Q&A, a ReAct Agent, and a Wiki Mode that turns raw documents into an interlinked knowledge base.",
+      "usage": "The README documents cloning the repository with `git clone https://github.com/Tencent/WeKnora.git`, copying `.env.example` to `.env`, then running `docker compose pull` and `docker compose up -d` to start core services (current documented version `0.8.2`), after which the Web UI is reached at `http://localhost`.",
+      "pros": "It documents a modular pipeline covering document parsing, vectorization, retrieval, and LLM inference, with each component described as swappable, plus compatibility with multiple LLM providers, vector databases, and storage backends for local or private-cloud deployment.",
+      "cons": "The Security Notice recommends deploying WeKnora within an internal/private network rather than exposing it directly to the public internet, suggesting production use may require additional firewall and access-control configuration beyond the default setup.",
+      "fit": "Given its self-hosted, modular design and multi-source document ingestion, WeKnora appears suited to teams wanting an on-premises or private-cloud knowledge/Q&A system rather than a fully managed hosted service."
     },
     "summaries": {
       "en": {
-        "goal": "WeKnora (version 0.8.0), from Tencent, is described as an open-source, LLM-powered knowledge framework for document understanding, semantic retrieval, and autonomous reasoning, organized around three capabilities: RAG-based Quick Q&A, a ReAct Agent for multi-step tasks, and a Wiki Mode that turns raw documents into an interlinked markdown knowledge base.",
-        "usage": "Setup is documented via Docker Compose: run `git clone https://github.com/Tencent/WeKnora.git`, then `cp .env.example .env` and `docker compose up -d` to start core services, then visit `http://localhost`. Docker, Docker Compose, and Git are listed as prerequisites.",
-        "pros": "The README lists a modular architecture letting LLMs, vector databases, and storage backends be swapped, 20+ LLM provider integrations, multiple data-source connectors (Feishu, GitLab, Notion, Yuque), and features such as chunk-level revision history, workspace RBAC, and Langfuse observability.",
-        "cons": "Since v0.1.3 WeKnora ships login authentication, and the README's Security Notice recommends deploying it only on internal/private networks with firewall rules rather than exposing it to the public internet, suggesting production use requires deliberate network hardening beyond the default setup.",
-        "fit": "Based on its self-hostable design and emphasis on data sovereignty, WeKnora appears best suited to teams wanting a private, on-premises RAG/agent knowledge platform rather than a fully managed SaaS solution, though this fit depends on the operator's own security configuration."
+        "goal": "WeKnora is an open-source, LLM-powered knowledge framework described for enterprise-grade document understanding, semantic retrieval, and autonomous reasoning, organized around RAG-based Q&A, a ReAct Agent, and a Wiki Mode that turns raw documents into an interlinked knowledge base.",
+        "usage": "The README documents cloning the repository with `git clone https://github.com/Tencent/WeKnora.git`, copying `.env.example` to `.env`, then running `docker compose pull` and `docker compose up -d` to start core services (current documented version `0.8.2`), after which the Web UI is reached at `http://localhost`.",
+        "pros": "It documents a modular pipeline covering document parsing, vectorization, retrieval, and LLM inference, with each component described as swappable, plus compatibility with multiple LLM providers, vector databases, and storage backends for local or private-cloud deployment.",
+        "cons": "The Security Notice recommends deploying WeKnora within an internal/private network rather than exposing it directly to the public internet, suggesting production use may require additional firewall and access-control configuration beyond the default setup.",
+        "fit": "Given its self-hosted, modular design and multi-source document ingestion, WeKnora appears suited to teams wanting an on-premises or private-cloud knowledge/Q&A system rather than a fully managed hosted service."
       },
       "ko": {
-        "goal": "WeKnora(버전 0.8.0)는 Tencent가 공개한 오픈소스 LLM 기반 지식 프레임워크로, 문서 이해, 시맨틱 검색, 자율적 추론을 위해 설계되었다고 소개된다. RAG 기반 빠른 Q&A, 다단계 작업을 처리하는 ReAct 에이전트, 문서를 상호 연결된 마크다운 지식베이스로 변환하는 Wiki 모드라는 세 가지 핵심 기능을 중심으로 구성된다.",
-        "usage": "설치는 Docker Compose를 통해 문서화되어 있다: `git clone https://github.com/Tencent/WeKnora.git` 실행 후 `cp .env.example .env`, `docker compose up -d`로 핵심 서비스를 시작하고 `http://localhost`에 접속한다. Docker, Docker Compose, Git이 사전 요구사항으로 명시되어 있다.",
-        "pros": "README에는 LLM, 벡터 데이터베이스, 스토리지 백엔드를 교체할 수 있는 모듈형 아키텍처, 20개 이상의 LLM 제공업체 통합, Feishu·GitLab·Notion·Yuque 등 다양한 데이터 소스 커넥터, 청크 단위 수정 이력, 워크스페이스 RBAC, Langfuse 관측성 같은 기능이 나열되어 있다.",
-        "cons": "v0.1.3부터 로그인 인증 기능이 포함되었으며, README의 보안 공지는 공개 인터넷에 노출하지 말고 내부·사설 네트워크에 배포하며 방화벽 규칙을 구성할 것을 권장하고 있어, 운영 환경 적용 시 기본 설정 이상의 네트워크 보안 조치가 필요할 수 있음을 시사한다.",
-        "fit": "자체 호스팅 가능한 구조와 데이터 주권 강조를 볼 때, WeKnora는 완전관리형 SaaS보다는 사내·온프레미스 환경에서 RAG·에이전트 지식 플랫폼을 운영하려는 팀에 적합해 보이며, 실제 적합성은 운영자가 구성하는 보안 설정에 따라 달라질 수 있다."
+        "goal": "WeKnora는 문서 이해, 시맨틱 검색, 자율적 추론을 위한 엔터프라이즈급 오픈소스 LLM 기반 지식 프레임워크로 소개되며, RAG 기반 빠른 질의응답, ReAct 에이전트, 그리고 원본 문서를 상호 연결된 지식 베이스로 변환하는 Wiki 모드를 중심으로 구성됩니다.",
+        "usage": "README에는 `git clone https://github.com/Tencent/WeKnora.git`로 저장소를 클론하고, `.env.example`을 `.env`로 복사한 뒤 `docker compose pull`과 `docker compose up -d`를 실행해 핵심 서비스를 시작하는 절차가 문서화되어 있으며(문서상 현재 버전은 `0.8.2`), 이후 웹 UI는 `http://localhost`에서 접속할 수 있습니다.",
+        "pros": "문서에는 문서 파싱, 벡터화, 검색, LLM 추론에 이르는 모듈형 파이프라인이 설명되어 있으며 각 구성 요소가 교체 가능하다고 명시되어 있고, 여러 LLM 공급자, 벡터 데이터베이스, 스토리지 백엔드와의 호환성이 로컬 또는 프라이빗 클라우드 배포를 지원합니다.",
+        "cons": "보안 공지에서는 WeKnora를 공용 인터넷에 직접 노출하기보다 내부/프라이빗 네트워크 환경에 배포할 것을 권장하고 있어, 프로덕션 운영 시 기본 설정 이상의 방화벽 및 접근 제어 구성이 필요할 수 있음을 시사합니다.",
+        "fit": "셀프 호스팅 가능한 모듈형 설계와 다중 소스 문서 수집 기능을 고려할 때, WeKnora는 완전 관리형 호스팅 서비스보다는 온프레미스 또는 프라이빗 클라우드 지식/질의응답 시스템을 원하는 팀에 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "WeKnora(版本 0.8.0)是腾讯发布的一个开源、基于大语言模型的知识框架，据介绍用于企业级文档理解、语义检索和自主推理，围绕三大核心能力组织：基于 RAG 的快速问答、处理多步骤任务的 ReAct 智能体，以及将原始文档转化为互相关联的 Markdown 知识库的 Wiki 模式。",
-        "usage": "文档给出的部署方式基于 Docker Compose：执行 `git clone https://github.com/Tencent/WeKnora.git`，然后 `cp .env.example .env` 并运行 `docker compose up -d` 启动核心服务，再访问 `http://localhost`。前置条件列出了 Docker、Docker Compose 和 Git。",
-        "pros": "README 列出了可替换 LLM、向量数据库和存储后端的模块化架构、20 个以上的 LLM 提供商集成、飞书/GitLab/Notion/语雀等多种数据源连接器，以及分块级修订历史、工作区 RBAC、Langfuse 可观测性等功能。",
-        "cons": "自 v0.1.3 起 WeKnora 内置登录认证功能，README 的安全提示建议将其部署在内部/私有网络中而非直接暴露在公网，并配置防火墙规则，这似乎意味着生产环境使用需要在默认配置之外额外加固网络安全。",
-        "fit": "从其可自托管的架构和对数据主权的强调来看，WeKnora 似乎更适合希望在内部或私有云环境中运行 RAG/智能体知识平台的团队，而非完全托管的 SaaS 方案，不过实际适配程度取决于运营方自行配置的安全措施。"
+        "goal": "WeKnora 被介绍为一个开源的、由大语言模型驱动的知识框架,面向企业级文档理解、语义检索和自主推理,围绕基于 RAG 的快速问答、ReAct 智能体以及将原始文档转化为互连知识库的 Wiki 模式构建。",
+        "usage": "README 中记录了通过 `git clone https://github.com/Tencent/WeKnora.git` 克隆仓库,将 `.env.example` 复制为 `.env`,然后运行 `docker compose pull` 和 `docker compose up -d` 启动核心服务的步骤(文档记录的当前版本为 `0.8.2`),之后可通过 `http://localhost` 访问 Web 界面。",
+        "pros": "文档描述了一个涵盖文档解析、向量化、检索到大模型推理的模块化流水线,并说明每个组件均可替换,同时兼容多种大模型提供商、向量数据库和存储后端,支持本地或私有云部署。",
+        "cons": "安全提示建议将 WeKnora 部署在内部/私有网络环境中,而非直接暴露于公共互联网,这表明生产环境使用可能需要在默认配置之外额外配置防火墙和访问控制。",
+        "fit": "考虑到其可自托管的模块化设计以及多来源文档接入能力,WeKnora 似乎更适合希望采用本地部署或私有云知识/问答系统的团队,而非完全托管的服务。"
       },
       "es": {
-        "goal": "WeKnora (versión 0.8.0), de Tencent, se presenta como un framework de conocimiento de código abierto basado en LLM para comprensión de documentos, recuperación semántica y razonamiento autónomo, organizado en torno a tres capacidades: preguntas y respuestas rápidas basadas en RAG, un agente ReAct para tareas de varios pasos, y un Modo Wiki que convierte documentos en una base de conocimiento markdown interconectada.",
-        "usage": "La instalación se documenta mediante Docker Compose: ejecutar `git clone https://github.com/Tencent/WeKnora.git`, luego `cp .env.example .env` y `docker compose up -d` para iniciar los servicios principales, y visitar `http://localhost`. Docker, Docker Compose y Git figuran como prerrequisitos.",
-        "pros": "El README enumera una arquitectura modular que permite intercambiar LLM, bases de datos vectoriales y backends de almacenamiento, más de 20 integraciones de proveedores de LLM, conectores de fuentes de datos como Feishu, GitLab, Notion y Yuque, e historial de revisión a nivel de fragmento, RBAC por espacio de trabajo y observabilidad con Langfuse.",
-        "cons": "Desde la v0.1.3 WeKnora incluye autenticación de inicio de sesión, y el aviso de seguridad del README recomienda desplegarlo solo en redes internas/privadas con reglas de firewall en lugar de exponerlo a internet público, lo que sugiere que el uso en producción requiere un endurecimiento de red más allá de la configuración predeterminada.",
-        "fit": "Dado su diseño autoalojable y el énfasis en la soberanía de datos, WeKnora parece adecuado para equipos que buscan una plataforma de conocimiento RAG/agentes privada y local antes que una solución SaaS totalmente gestionada, aunque esta idoneidad depende de la configuración de seguridad que aplique cada operador."
+        "goal": "WeKnora se describe como un marco de conocimiento de código abierto impulsado por LLM, orientado a la comprensión de documentos, la recuperación semántica y el razonamiento autónomo a nivel empresarial, organizado en torno a preguntas y respuestas rápidas basadas en RAG, un agente ReAct y un modo Wiki que convierte documentos en una base de conocimiento interconectada.",
+        "usage": "El README documenta clonar el repositorio con `git clone https://github.com/Tencent/WeKnora.git`, copiar `.env.example` a `.env`, y luego ejecutar `docker compose pull` y `docker compose up -d` para iniciar los servicios principales (la versión documentada actual es `0.8.2`), tras lo cual la interfaz web se accede en `http://localhost`.",
+        "pros": "El documento describe una canalización modular que abarca el análisis de documentos, la vectorización, la recuperación y la inferencia con LLM, indicando que cada componente es intercambiable, además de compatibilidad con múltiples proveedores de LLM, bases de datos vectoriales y backends de almacenamiento para despliegues locales o en nube privada.",
+        "cons": "El aviso de seguridad recomienda desplegar WeKnora en una red interna/privada en lugar de exponerlo directamente a internet público, lo que sugiere que el uso en producción podría requerir configuración adicional de cortafuegos y control de acceso más allá de la configuración predeterminada.",
+        "fit": "Dado su diseño modular autoalojable y la ingesta de documentos de múltiples fuentes, WeKnora parece adecuado para equipos que buscan un sistema de conocimiento/preguntas y respuestas local o en nube privada, en lugar de un servicio totalmente gestionado."
       },
       "ja": {
-        "goal": "WeKnora（バージョン0.8.0）はTencentが公開するオープンソースのLLMベース知識フレームワークで、文書理解、セマンティック検索、自律的推論を目的とすると説明されている。RAGベースのクイックQ&A、複数ステップのタスクを処理するReActエージェント、文書を相互リンクしたMarkdown知識ベースに変換するWikiモードという3つの中核機能を中心に構成される。",
-        "usage": "セットアップはDocker Composeで文書化されている：`git clone https://github.com/Tencent/WeKnora.git` を実行し、`cp .env.example .env` の後 `docker compose up -d` でコアサービスを起動し、`http://localhost` にアクセスする。前提条件としてDocker、Docker Compose、Gitが挙げられている。",
-        "pros": "READMEには、LLM・ベクトルデータベース・ストレージバックエンドを差し替え可能なモジュール式アーキテクチャ、20以上のLLMプロバイダー統合、Feishu・GitLab・Notion・Yuqueなど複数のデータソースコネクタ、チャンク単位の改訂履歴、ワークスペースRBAC、Langfuseによる可観測性などの機能が列挙されている。",
-        "cons": "v0.1.3以降ログイン認証機能が搭載されており、READMEのセキュリティ通知では公開インターネットに直接さらすのではなく社内・プライベートネットワークに配置しファイアウォールルールを設定するよう推奨されている。これは本番利用にはデフォルト設定を超えたネットワーク強化が必要になり得ることを示唆している。",
-        "fit": "自己ホスト可能な設計とデータ主権の重視を踏まえると、WeKnoraは完全マネージドのSaaSというより、社内・オンプレミス環境でRAG/エージェント型知識プラットフォームを運用したいチームに適していると考えられるが、実際の適合度は運用者が構成するセキュリティ設定に依存する。"
+        "goal": "WeKnoraは、企業向けの文書理解、セマンティック検索、自律的推論を目的としたオープンソースのLLM駆動型知識フレームワークとして紹介されており、RAGベースのクイックQ&A、ReActエージェント、そして生の文書を相互リンクされたナレッジベースに変換するWikiモードを中心に構成されています。",
+        "usage": "READMEには、`git clone https://github.com/Tencent/WeKnora.git` でリポジトリをクローンし、`.env.example` を `.env` にコピーしたうえで `docker compose pull` と `docker compose up -d` を実行してコアサービスを起動する手順が記載されており(文書化されている現在のバージョンは `0.8.2`)、その後Web UIは `http://localhost` でアクセスできます。",
+        "pros": "文書では、文書解析からベクトル化、検索、LLM推論に至るモジュール型パイプラインが説明されており、各コンポーネントが交換可能であると記されているほか、複数のLLMプロバイダー、ベクトルデータベース、ストレージバックエンドとの互換性がローカルまたはプライベートクラウド展開を支えています。",
+        "cons": "セキュリティ通知では、WeKnoraを公共インターネットに直接公開するのではなく、内部/プライベートネットワーク環境に展開することが推奨されており、本番運用にはデフォルト設定以上のファイアウォールやアクセス制御の追加設定が必要となる可能性が示唆されています。",
+        "fit": "セルフホスト可能なモジュール型設計と複数ソースからの文書取り込みを踏まえると、WeKnoraは完全マネージド型のホスティングサービスよりも、オンプレミスまたはプライベートクラウドでのナレッジ/Q&Aシステムを求めるチームに適していると考えられます。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 50,
+          "start_line": 54,
           "end_line": 54,
-          "section_heading": "💡 WeKnora — Turn Documents into Living Knowledge with RAG, Agents and Auto-Wiki"
+          "section_heading": "📌 Overview"
         },
         {
           "start_line": 60,
@@ -3511,52 +3524,64 @@
       ],
       "usage": [
         {
-          "start_line": 241,
-          "end_line": 248,
+          "start_line": 245,
+          "end_line": 252,
           "section_heading": "📦 Installation & Launch"
-        },
-        {
-          "start_line": 235,
-          "end_line": 236,
-          "section_heading": "🛠 Prerequisites"
         }
       ],
       "pros": [
-        {
-          "start_line": 60,
-          "end_line": 62,
-          "section_heading": "📌 Overview"
-        },
-        {
-          "start_line": 175,
-          "end_line": 179,
-          "section_heading": "🧩 Feature Overview"
-        }
-      ],
-      "cons": [
-        {
-          "start_line": 373,
-          "end_line": 378,
-          "section_heading": "🔒 Security Notice"
-        }
-      ],
-      "fit": [
         {
           "start_line": 62,
           "end_line": 62,
           "section_heading": "📌 Overview"
         },
         {
-          "start_line": 373,
-          "end_line": 378,
+          "start_line": 120,
+          "end_line": 120,
+          "section_heading": "🏗️ Architecture"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 377,
+          "end_line": 382,
           "section_heading": "🔒 Security Notice"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 60,
+          "end_line": 62,
+          "section_heading": "📌 Overview"
+        },
+        {
+          "start_line": 120,
+          "end_line": 120,
+          "section_heading": "🏗️ Architecture"
         }
       ]
     },
     "invariants": [
       {
+        "kind": "product",
+        "value": "WeKnora",
+        "fields": [
+          "goal",
+          "usage",
+          "cons",
+          "fit"
+        ]
+      },
+      {
         "kind": "command",
         "value": "git clone https://github.com/Tencent/WeKnora.git",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "docker compose pull",
         "fields": [
           "usage"
         ]
@@ -3569,34 +3594,24 @@
         ]
       },
       {
-        "kind": "url",
-        "value": "http://localhost",
+        "kind": "version",
+        "value": "0.8.2",
         "fields": [
           "usage"
         ]
       },
       {
-        "kind": "version",
-        "value": "0.8.0",
+        "kind": "url",
+        "value": "https://github.com/Tencent/WeKnora.git",
         "fields": [
-          "goal"
+          "usage"
         ]
       },
       {
-        "kind": "product",
-        "value": "WeKnora",
+        "kind": "url",
+        "value": "http://localhost",
         "fields": [
-          "goal",
-          "usage",
-          "cons",
-          "fit"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "20+",
-        "fields": [
-          "pros"
+          "usage"
         ]
       }
     ],
@@ -3608,8 +3623,8 @@
       "kind": "readme",
       "slug": "tencent/weknora",
       "path": "README.md",
-      "blob_sha": "5a7822987471c9bc67459799ba38fa7e77c12b94",
-      "content_sha256": "bff11524e5fa0c913189c21c851547c279ec9335755c8763d43ae7cac25e9476",
+      "blob_sha": "8b9ce408eef690db6babc9f4de36a4a590f917b7",
+      "content_sha256": "01127e0a972678b77c326bd9bf0ca4cbed1d895ae2ac91f77dd2a8e16ecc4081",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -4604,220 +4619,6 @@
       "translation_applicable": false
     }
   },
-  "stablyai/orca": {
-    "content": {
-      "goal": "Orca is presented as an AI orchestrator that runs multiple coding agents such as Claude Code, Codex, OpenCode, or Pi side by side, each in an isolated git worktree, tracked from one interface (lines 19-20). It reportedly works with \"any CLI agent\" that runs in a terminal (line 173), implying its core purpose is coordinating parallel AI coding sessions.",
-      "usage": "Orca is a desktop app for macOS, Windows, and Linux. It can be installed with `brew install --cask stablyai/orca/orca` on macOS, `yay -S stably-orca-bin` on Arch Linux, or downloaded from https://onorca.dev/download. A companion CLI lets agents script workflows using commands like `orca worktree create`, `snapshot`, `click`, and `fill`.",
-      "pros": "Documented features include parallel git worktrees for comparing agent outputs, WebGL-rendered terminal splits, native GitHub and Linear browsing, SSH-based remote worktrees, and a mobile companion app (iOS App Store, TestFlight, Android APK 0.0.50) for remote monitoring. The README also lists support for a broad range of CLI agents beyond the four highlighted in its tagline.",
-      "cons": "The README states its feature list is 'perpetually behind' what has shipped, pointing to the GitHub releases changelog as the more current reference (lines 166-167) — a documentation gap it acknowledges itself. It also notes Orca collects anonymous usage/telemetry data by default, with opt-out handled through separate privacy documentation rather than in-app during setup.",
-      "fit": "Given its focus on parallel worktrees, SSH-based remote agent execution, and a mobile companion app, Orca seems oriented toward developers coordinating multiple AI coding agents across local and remote environments, rather than those wanting a minimal single-agent terminal wrapper."
-    },
-    "summaries": {
-      "en": {
-        "goal": "Orca is presented as an AI orchestrator that runs multiple coding agents such as Claude Code, Codex, OpenCode, or Pi side by side, each in an isolated git worktree, tracked from one interface (lines 19-20). It reportedly works with \"any CLI agent\" that runs in a terminal (line 173), implying its core purpose is coordinating parallel AI coding sessions.",
-        "usage": "Orca is a desktop app for macOS, Windows, and Linux. It can be installed with `brew install --cask stablyai/orca/orca` on macOS, `yay -S stably-orca-bin` on Arch Linux, or downloaded from https://onorca.dev/download. A companion CLI lets agents script workflows using commands like `orca worktree create`, `snapshot`, `click`, and `fill`.",
-        "pros": "Documented features include parallel git worktrees for comparing agent outputs, WebGL-rendered terminal splits, native GitHub and Linear browsing, SSH-based remote worktrees, and a mobile companion app (iOS App Store, TestFlight, Android APK 0.0.50) for remote monitoring. The README also lists support for a broad range of CLI agents beyond the four highlighted in its tagline.",
-        "cons": "The README states its feature list is 'perpetually behind' what has shipped, pointing to the GitHub releases changelog as the more current reference (lines 166-167) — a documentation gap it acknowledges itself. It also notes Orca collects anonymous usage/telemetry data by default, with opt-out handled through separate privacy documentation rather than in-app during setup.",
-        "fit": "Given its focus on parallel worktrees, SSH-based remote agent execution, and a mobile companion app, Orca seems oriented toward developers coordinating multiple AI coding agents across local and remote environments, rather than those wanting a minimal single-agent terminal wrapper."
-      },
-      "ko": {
-        "goal": "Orca는 Claude Code, Codex, OpenCode, Pi와 같은 여러 코딩 에이전트를 나란히 실행하며, 각각 독립된 git worktree에서 하나의 인터페이스로 추적하는 AI 오케스트레이터로 소개됩니다(19-20번째 줄). 터미널에서 실행되는 '모든 CLI 에이전트'와 작동한다고 언급되어(173번째 줄), 핵심 목적은 병렬 AI 코딩 세션을 조율하는 것으로 보입니다.",
-        "usage": "Orca는 macOS, Windows, Linux용 데스크톱 앱입니다. macOS에서는 `brew install --cask stablyai/orca/orca`, Arch Linux에서는 `yay -S stably-orca-bin` 명령으로 설치하거나 https://onorca.dev/download 에서 직접 내려받을 수 있습니다. 동반 CLI를 통해 에이전트가 `orca worktree create`, `snapshot`, `click`, `fill` 같은 명령으로 워크플로를 스크립트화할 수 있습니다.",
-        "pros": "문서화된 기능으로는 에이전트 결과를 비교할 수 있는 병렬 git worktree, WebGL 렌더링 기반 터미널 분할, GitHub 및 Linear 네이티브 탐색, SSH 기반 원격 worktree, 그리고 원격 모니터링을 위한 모바일 동반 앱(iOS App Store, TestFlight, Android APK 0.0.50)이 있습니다. README는 태그라인에 언급된 네 가지 외에도 폭넓은 CLI 에이전트 지원을 나열합니다.",
-        "cons": "README는 자체적으로 기능 목록이 실제 출시 내용보다 '항상 뒤처져 있다'고 밝히며, 더 최신 정보로 GitHub 릴리스 변경 로그를 참고하라고 안내합니다(166-167번째 줄). 또한 Orca가 기본적으로 익명 사용/텔레메트리 데이터를 수집하며, 옵트아웃은 앱 내 설정이 아닌 별도의 개인정보 문서를 통해 이루어진다고 명시합니다.",
-        "fit": "병렬 worktree, SSH 기반 원격 에이전트 실행, 모바일 동반 앱에 중점을 둔 점을 고려할 때, Orca는 단일 에이전트용 간단한 터미널 래퍼보다는 로컬과 원격 환경에서 여러 AI 코딩 에이전트를 조율하려는 개발자에게 적합해 보입니다."
-      },
-      "zh-CN": {
-        "goal": "README 将 Orca 描述为一个 AI 编排工具,可并行运行 Claude Code、Codex、OpenCode 或 Pi 等多个编码代理,每个代理在独立的 git worktree 中运行,并统一在一个界面中追踪(第19-20行)。文档提到它可与在终端中运行的“任意 CLI 代理”配合使用(第173行),暗示其核心目的是协调并行的 AI 编码会话。",
-        "usage": "Orca 是面向 macOS、Windows 和 Linux 的桌面应用。可在 macOS 上通过 `brew install --cask stablyai/orca/orca` 安装,在 Arch Linux 上通过 `yay -S stably-orca-bin` 安装,或直接从 https://onorca.dev/download 下载。配套的 CLI 允许代理通过 `orca worktree create`、`snapshot`、`click`、`fill` 等命令编写工作流脚本。",
-        "pros": "文档记录的功能包括用于比较代理输出的并行 git worktree、采用 WebGL 渲染的终端分屏、原生的 GitHub 与 Linear 浏览、基于 SSH 的远程 worktree,以及用于远程监控的移动伴侣应用(iOS App Store、TestFlight、Android APK 0.0.50)。README 还列出了除标语中四个代理之外的更广泛 CLI 代理支持。",
-        "cons": "README 自称其功能列表“永远落后于”实际发布内容,并建议以 GitHub releases 更新日志作为更权威的参考(第166-167行),这是文档自身承认的一处空白。此外文档说明 Orca 默认会收集匿名使用/遥测数据,选择退出需要查阅单独的隐私文档,而非在应用内设置中完成。",
-        "fit": "考虑到其对并行 worktree、基于 SSH 的远程代理执行以及移动伴侣应用的侧重,Orca 似乎更适合需要在本地和远程环境中协调多个 AI 编码代理的开发者,而非只想要一个简单单代理终端封装工具的用户。"
-      },
-      "es": {
-        "goal": "El README presenta a Orca como un orquestador de IA que ejecuta varios agentes de codificación, como Claude Code, Codex, OpenCode o Pi, en paralelo, cada uno en su propio worktree de git, todo rastreado desde una sola interfaz (líneas 19-20). Se indica que funciona con 'cualquier agente CLI' que se ejecute en una terminal (línea 173), lo que sugiere que su propósito principal es coordinar sesiones de codificación con IA en paralelo.",
-        "usage": "Orca es una aplicación de escritorio para macOS, Windows y Linux. Puede instalarse con `brew install --cask stablyai/orca/orca` en macOS, `yay -S stably-orca-bin` en Arch Linux, o descargarse directamente desde https://onorca.dev/download. Una CLI complementaria permite a los agentes automatizar flujos de trabajo con comandos como `orca worktree create`, `snapshot`, `click` y `fill`.",
-        "pros": "Entre las funciones documentadas están los worktrees de git en paralelo para comparar resultados de agentes, divisiones de terminal con renderizado WebGL, navegación nativa de GitHub y Linear, worktrees remotos mediante SSH, y una app móvil complementaria (iOS App Store, TestFlight, APK de Android 0.0.50) para monitoreo remoto. El README también menciona compatibilidad con una amplia lista de agentes CLI más allá de los cuatro destacados en su eslogan.",
-        "cons": "El README reconoce que su lista de funciones está 'perpetuamente atrasada' respecto a lo realmente lanzado, y remite al registro de cambios de GitHub releases como referencia más actualizada (líneas 166-167), una brecha documental que admite explícitamente. También señala que Orca recopila datos de uso/telemetría anónimos por defecto, y que la exclusión voluntaria se gestiona mediante documentación de privacidad separada, no durante la configuración dentro de la app.",
-        "fit": "Dado su énfasis en worktrees paralelos, ejecución remota de agentes vía SSH y una app móvil complementaria, Orca parece orientado a desarrolladores que coordinan múltiples agentes de codificación con IA en entornos locales y remotos, más que a quienes buscan un simple envoltorio de terminal para un único agente."
-      },
-      "ja": {
-        "goal": "READMEでは、OrcaはClaude Code、Codex、OpenCode、Piなど複数のコーディングエージェントを並行して実行し、それぞれ独立したgit worktreeで動かしながら一つのインターフェースで追跡するAIオーケストレーターとして紹介されています(19〜20行目)。ターミナルで動作する「任意のCLIエージェント」に対応すると記載されており(173行目)、主な目的は並行するAIコーディングセッションの調整にあると考えられます。",
-        "usage": "Orcaはmacos、Windows、Linux向けのデスクトップアプリです。macOSでは `brew install --cask stablyai/orca/orca`、Arch Linuxでは `yay -S stably-orca-bin` でインストールでき、https://onorca.dev/download から直接ダウンロードすることもできます。付属のCLIを使うと、エージェントが `orca worktree create`、`snapshot`、`click`、`fill` などのコマンドでワークフローをスクリプト化できます。",
-        "pros": "文書化されている機能には、エージェントの出力を比較できる並行git worktree、WebGLレンダリングによるターミナル分割、GitHubとLinearのネイティブ閲覧、SSH経由のリモートworktree、そしてリモート監視用のモバイルコンパニオンアプリ(iOS App Store、TestFlight、Android APK 0.0.50)が含まれます。READMEはキャッチフレーズで挙げた4つ以外にも幅広いCLIエージェント対応を記載しています。",
-        "cons": "READMEは自らの機能リストが実際のリリースに対して「常に遅れている」と述べ、より新しい情報源としてGitHub releasesの変更履歴を参照するよう案内しています(166〜167行目)。これは文書自体が認めているギャップです。また、Orcaはデフォルトで匿名の使用状況・テレメトリーデータを収集し、オプトアウトはアプリ内設定ではなく別のプライバシー文書を通じて行うと記載されています。",
-        "fit": "並行worktree、SSH経由のリモートエージェント実行、モバイルコンパニオンアプリを重視している点から、Orcaは単一エージェント向けの簡易なターミナルラッパーを求めるユーザーよりも、ローカルおよびリモート環境で複数のAIコーディングエージェントを調整したい開発者に適していると考えられます。"
-      }
-    },
-    "evidence": {
-      "goal": [
-        {
-          "start_line": 19,
-          "end_line": 21,
-          "section_heading": ""
-        },
-        {
-          "start_line": 173,
-          "end_line": 173,
-          "section_heading": "Supported Agents"
-        }
-      ],
-      "usage": [
-        {
-          "start_line": 212,
-          "end_line": 228,
-          "section_heading": "Install"
-        },
-        {
-          "start_line": 147,
-          "end_line": 151,
-          "section_heading": "Orca CLI"
-        }
-      ],
-      "pros": [
-        {
-          "start_line": 49,
-          "end_line": 53,
-          "section_heading": "Parallel Worktrees"
-        },
-        {
-          "start_line": 104,
-          "end_line": 109,
-          "section_heading": "GitHub &amp; Linear, Native"
-        },
-        {
-          "start_line": 234,
-          "end_line": 235,
-          "section_heading": "Mobile Companion — iOS, Android"
-        }
-      ],
-      "cons": [
-        {
-          "start_line": 166,
-          "end_line": 167,
-          "section_heading": "Orca CLI"
-        },
-        {
-          "start_line": 247,
-          "end_line": 248,
-          "section_heading": "Community &amp; Support"
-        }
-      ],
-      "fit": [
-        {
-          "start_line": 19,
-          "end_line": 21,
-          "section_heading": ""
-        },
-        {
-          "start_line": 104,
-          "end_line": 109,
-          "section_heading": "GitHub &amp; Linear, Native"
-        },
-        {
-          "start_line": 230,
-          "end_line": 235,
-          "section_heading": "Mobile Companion — iOS, Android"
-        }
-      ]
-    },
-    "invariants": [
-      {
-        "kind": "command",
-        "value": "brew install --cask stablyai/orca/orca",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "yay -S stably-orca-bin",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "orca worktree create",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": "0.0.50",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Orca",
-        "fields": [
-          "goal",
-          "usage",
-          "cons",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Claude Code",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Codex",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "OpenCode",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Pi",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "url",
-        "value": "https://onorca.dev/download",
-        "fields": [
-          "usage"
-        ]
-      }
-    ],
-    "inference_fields": [
-      "goal",
-      "pros",
-      "fit"
-    ],
-    "source": {
-      "kind": "readme",
-      "slug": "stablyai/orca",
-      "path": "README.md",
-      "blob_sha": "5f02638d9c47998b89f89255a9c5cd70393fbfa1",
-      "content_sha256": "2403408d1cc07e01de3f310e0c510b450fb1b3b62f4d84973e00d4f724c6cc20",
-      "provider": "claude-cli-oauth",
-      "interface": "claude-p",
-      "cli_version": "2.1.263",
-      "auth_method": "oauth_token",
-      "api_provider": "firstParty",
-      "model": "claude-sonnet-5",
-      "schema_version": 3,
-      "prompt_schema_version": 3,
-      "translation_applicable": false
-    }
-  },
   "cloudflare/quiche": {
     "content": {
       "goal": "quiche is described as an implementation of the QUIC transport protocol and HTTP/3, as specified by the IETF. It provides a low-level API for processing QUIC packets and handling connection state, while the application supplies its own I/O handling and event loop with timers.",
@@ -5038,198 +4839,6 @@
       "path": "README.md",
       "blob_sha": "a012b1abd95171f0be75b1166febec22f2da26f3",
       "content_sha256": "b508071b040d926dbd06ef71535cb9d06e649dcbb317390bade2013449152b86",
-      "provider": "claude-cli-oauth",
-      "interface": "claude-p",
-      "cli_version": "2.1.263",
-      "auth_method": "oauth_token",
-      "api_provider": "firstParty",
-      "model": "claude-sonnet-5",
-      "schema_version": 3,
-      "prompt_schema_version": 3,
-      "translation_applicable": false
-    }
-  },
-  "LibreChat-AI/LibreChat": {
-    "content": {
-      "goal": "LibreChat is a self-hosted, open-source AI chat platform that unifies major AI providers—including OpenAI, Anthropic (Claude), Azure OpenAI, Google, Vertex AI, and AWS Bedrock—in a single privacy-focused interface, while also offering AI Agents, Model Context Protocol (MCP) support, Artifacts, Code Interpreter, and enterprise-ready multi-user authentication.",
-      "usage": "LibreChat can be deployed with one-click buttons for Railway, Zeabur, and Sealos, or self-hosted using Docker Compose stacks that bundle the Admin Panel for one-command setup; documentation is published at https://librechat.ai/docs. Because Custom Endpoints, MCP servers, and Skills are configurable components, a working deployment may require setting provider API keys and endpoint configuration beyond the deploy buttons themselves.",
-      "pros": "Documented strengths include broad AI provider and Custom Endpoint compatibility, an Agents & Tools system with MCP support and Skills, a sandboxed multi-language Code Interpreter, resumable streams that reconnect after a dropped connection, and a browser-based Admin Panel for live configuration changes.",
-      "cons": "The current v0.8.8-rc4 release explicitly labels its new 'Attached workspaces' feature as 'highly experimental,' and the README cautions users to check the changelog for breaking changes before updating, indicating the project is under active, fast-moving development.",
-      "fit": "Given its self-hosting focus, multi-user authentication, and admin controls, LibreChat appears best suited to teams or individuals wanting direct control over their AI infrastructure rather than users seeking a fully managed, zero-configuration hosted chat service."
-    },
-    "summaries": {
-      "en": {
-        "goal": "LibreChat is a self-hosted, open-source AI chat platform that unifies major AI providers—including OpenAI, Anthropic (Claude), Azure OpenAI, Google, Vertex AI, and AWS Bedrock—in a single privacy-focused interface, while also offering AI Agents, Model Context Protocol (MCP) support, Artifacts, Code Interpreter, and enterprise-ready multi-user authentication.",
-        "usage": "LibreChat can be deployed with one-click buttons for Railway, Zeabur, and Sealos, or self-hosted using Docker Compose stacks that bundle the Admin Panel for one-command setup; documentation is published at https://librechat.ai/docs. Because Custom Endpoints, MCP servers, and Skills are configurable components, a working deployment may require setting provider API keys and endpoint configuration beyond the deploy buttons themselves.",
-        "pros": "Documented strengths include broad AI provider and Custom Endpoint compatibility, an Agents & Tools system with MCP support and Skills, a sandboxed multi-language Code Interpreter, resumable streams that reconnect after a dropped connection, and a browser-based Admin Panel for live configuration changes.",
-        "cons": "The current v0.8.8-rc4 release explicitly labels its new 'Attached workspaces' feature as 'highly experimental,' and the README cautions users to check the changelog for breaking changes before updating, indicating the project is under active, fast-moving development.",
-        "fit": "Given its self-hosting focus, multi-user authentication, and admin controls, LibreChat appears best suited to teams or individuals wanting direct control over their AI infrastructure rather than users seeking a fully managed, zero-configuration hosted chat service."
-      },
-      "ko": {
-        "goal": "LibreChat는 OpenAI, Anthropic(Claude), Azure OpenAI, Google, Vertex AI, AWS Bedrock 등 주요 AI 제공업체를 하나의 프라이버시 중심 인터페이스로 통합하는 셀프호스팅 오픈소스 AI 채팅 플랫폼입니다. AI 에이전트, Model Context Protocol(MCP) 지원, Artifacts, Code Interpreter, 엔터프라이즈급 다중 사용자 인증 기능도 제공합니다.",
-        "usage": "README는 Railway, Zeabur, Sealos용 원클릭 배포 버튼과 Docker Compose 스택을 통한 셀프호스팅을 언급하며, 문서는 https://librechat.ai/docs 에서 확인할 수 있습니다. 다만 구체적인 설치 명령어는 이 README 발췌본에 명시되어 있지 않아, 실제 설정 절차는 추가 자료를 참고해야 할 수 있습니다.",
-        "pros": "문서화된 장점으로는 다양한 AI 제공업체 및 커스텀 엔드포인트 호환성, MCP와 Skills를 지원하는 에이전트 및 도구 시스템, 여러 언어를 지원하는 샌드박스 Code Interpreter, 연결이 끊겨도 재개되는 Resumable Streams, 실시간 설정이 가능한 브라우저 기반 Admin Panel이 있습니다.",
-        "cons": "v0.8.8-rc4 버전은 새로운 'Attached workspaces' 기능을 '매우 실험적(highly experimental)'이라고 명시하고 있으며, README는 업데이트 전 changelog에서 호환성이 깨지는 변경 사항을 확인하라고 안내하고 있어, 프로젝트가 빠르게 발전 중임을 시사합니다.",
-        "fit": "셀프호스팅, 다중 사용자 인증, 관리자 제어 기능에 중점을 둔 점을 고려하면 LibreChat는 완전 관리형의 설정 없는 호스팅 채팅 서비스를 찾는 사용자보다는, 자체 AI 인프라를 직접 통제하려는 팀이나 개인에게 더 적합해 보입니다."
-      },
-      "zh-CN": {
-        "goal": "LibreChat 是一个自托管的开源 AI 聊天平台，将 OpenAI、Anthropic（Claude）、Azure OpenAI、Google、Vertex AI 和 AWS Bedrock 等主要 AI 提供商整合到一个注重隐私的统一界面中，同时提供 AI 智能体（Agents）、Model Context Protocol（MCP）支持、Artifacts、Code Interpreter 以及企业级多用户身份验证功能。",
-        "usage": "README 提到了 Railway、Zeabur 和 Sealos 的一键部署按钮，并说明可通过 Docker Compose 堆栈进行自托管；文档地址为 https://librechat.ai/docs。不过该 README 片段并未给出具体的安装命令，实际部署步骤可能需要参考其他资料。",
-        "pros": "文档中提到的优点包括广泛的 AI 提供商及自定义端点兼容性、支持 MCP 和 Skills 的智能体与工具系统、支持多语言的沙盒化 Code Interpreter、连接断开后可自动恢复的 Resumable Streams，以及可实时调整配置的浏览器端 Admin Panel。",
-        "cons": "v0.8.8-rc4 版本明确将新的 'Attached workspaces' 功能标注为“高度实验性”（highly experimental），README 还提醒用户在更新前查看 changelog 中的破坏性变更，表明该项目仍在快速迭代之中。",
-        "fit": "鉴于其自托管定位、多用户身份验证与管理控制功能，LibreChat 似乎更适合希望直接掌控自身 AI 基础设施的团队或个人，而非寻求完全托管、零配置聊天服务的用户。"
-      },
-      "es": {
-        "goal": "LibreChat es una plataforma de chat de IA de código abierto y autoalojada que unifica los principales proveedores de IA —incluidos OpenAI, Anthropic (Claude), Azure OpenAI, Google, Vertex AI y AWS Bedrock— en una única interfaz centrada en la privacidad, además de ofrecer Agentes de IA, soporte para Model Context Protocol (MCP), Artifacts, Code Interpreter y autenticación multiusuario de nivel empresarial.",
-        "usage": "El README menciona botones de despliegue con un clic para Railway, Zeabur y Sealos, y señala que el proyecto puede autoalojarse, por ejemplo mediante stacks de Docker Compose; la documentación está disponible en https://librechat.ai/docs. Sin embargo, este fragmento no detalla un comando de instalación específico, por lo que los pasos exactos de configuración probablemente requieran consultar guías adicionales.",
-        "pros": "Entre las fortalezas documentadas se incluyen una amplia compatibilidad con proveedores de IA y endpoints personalizados, un sistema de Agentes y Herramientas con soporte MCP y Skills, un Code Interpreter en sandbox para múltiples lenguajes, Resumable Streams que reconectan tras una caída de conexión, y un Admin Panel basado en navegador para configuración en tiempo real.",
-        "cons": "La versión v0.8.8-rc4 etiqueta explícitamente su nueva función 'Attached workspaces' como 'highly experimental', y el README advierte que se debe revisar el changelog por cambios incompatibles antes de actualizar, lo que indica un desarrollo activo y de ritmo acelerado.",
-        "fit": "Dado su enfoque en el autoalojamiento, la autenticación multiusuario y los controles de administración, LibreChat parece más adecuado para equipos o personas que buscan control directo sobre su infraestructura de IA, en lugar de usuarios que buscan un servicio de chat totalmente gestionado y sin configuración."
-      },
-      "ja": {
-        "goal": "LibreChatは、OpenAI、Anthropic（Claude）、Azure OpenAI、Google、Vertex AI、AWS Bedrockなど主要なAIプロバイダーを、プライバシーを重視した単一のインターフェースに統合する、セルフホスト型のオープンソースAIチャットプラットフォームです。AIエージェント、Model Context Protocol（MCP）サポート、Artifacts、Code Interpreter、エンタープライズ向けマルチユーザー認証も提供しています。",
-        "usage": "READMEには、Railway、Zeabur、Sealos向けのワンクリックデプロイボタンと、Docker Composeスタックを用いたセルフホスティングの記載があり、ドキュメントは https://librechat.ai/docs で公開されています。ただし、このREADMEの抜粋には具体的なインストールコマンドは記載されていないため、実際のセットアップ手順は追加の資料を確認する必要があるとみられます。",
-        "pros": "ドキュメントに記載されている利点として、幅広いAIプロバイダーおよびカスタムエンドポイントとの互換性、MCPとSkillsに対応したエージェント・ツールシステム、複数言語に対応したサンドボックス型Code Interpreter、接続切断後も再開できるResumable Streams、ライブで設定変更が可能なブラウザベースのAdmin Panelなどが挙げられます。",
-        "cons": "v0.8.8-rc4リリースでは、新機能「Attached workspaces」が明示的に「highly experimental（非常に実験的）」とラベル付けされており、READMEは更新前にchangelogで破壊的変更を確認するよう注意喚起しています。これはプロジェクトが活発かつ急速に開発が進んでいることを示唆しています。",
-        "fit": "セルフホスティング、マルチユーザー認証、管理者による制御に重点が置かれていることから、LibreChatは、完全マネージド型で設定不要なホスト型チャットサービスを求めるユーザーよりも、AIインフラを自らコントロールしたいチームや個人に適していると考えられます。"
-      }
-    },
-    "evidence": {
-      "goal": [
-        {
-          "start_line": 180,
-          "end_line": 180,
-          "section_heading": "🪶 All-In-One AI Conversations with LibreChat"
-        },
-        {
-          "start_line": 182,
-          "end_line": 182,
-          "section_heading": "🪶 All-In-One AI Conversations with LibreChat"
-        },
-        {
-          "start_line": 71,
-          "end_line": 71,
-          "section_heading": "✨ Features"
-        }
-      ],
-      "usage": [
-        {
-          "start_line": 35,
-          "end_line": 43,
-          "section_heading": ""
-        },
-        {
-          "start_line": 165,
-          "end_line": 165,
-          "section_heading": "✨ Features"
-        },
-        {
-          "start_line": 195,
-          "end_line": 196,
-          "section_heading": "🌐 Resources"
-        }
-      ],
-      "pros": [
-        {
-          "start_line": 83,
-          "end_line": 95,
-          "section_heading": "✨ Features"
-        },
-        {
-          "start_line": 77,
-          "end_line": 81,
-          "section_heading": "✨ Features"
-        },
-        {
-          "start_line": 141,
-          "end_line": 144,
-          "section_heading": "✨ Features"
-        }
-      ],
-      "cons": [
-        {
-          "start_line": 57,
-          "end_line": 57,
-          "section_heading": "🚀 What's New in v0.8.8-rc4"
-        },
-        {
-          "start_line": 93,
-          "end_line": 93,
-          "section_heading": "✨ Features"
-        },
-        {
-          "start_line": 207,
-          "end_line": 207,
-          "section_heading": "📝 Changelog"
-        }
-      ],
-      "fit": [
-        {
-          "start_line": 158,
-          "end_line": 160,
-          "section_heading": "✨ Features"
-        },
-        {
-          "start_line": 162,
-          "end_line": 165,
-          "section_heading": "✨ Features"
-        },
-        {
-          "start_line": 184,
-          "end_line": 184,
-          "section_heading": "🪶 All-In-One AI Conversations with LibreChat"
-        }
-      ]
-    },
-    "invariants": [
-      {
-        "kind": "product",
-        "value": "LibreChat",
-        "fields": [
-          "goal",
-          "usage",
-          "fit"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": "v0.8.8-rc4",
-        "fields": [
-          "cons"
-        ]
-      },
-      {
-        "kind": "url",
-        "value": "https://librechat.ai/docs",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Docker Compose",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Model Context Protocol (MCP)",
-        "fields": [
-          "goal"
-        ]
-      }
-    ],
-    "inference_fields": [
-      "usage",
-      "fit"
-    ],
-    "source": {
-      "kind": "readme",
-      "slug": "librechat-ai/librechat",
-      "path": "README.md",
-      "blob_sha": "9aabda45e46042fa4fc5d9e93713d1b2d8529d94",
-      "content_sha256": "0ab2e9465f8e75c9981e21240dd0bc4891cd1402674945a8feae022380e3e82b",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -7676,53 +7285,53 @@
   },
   "Lakr233/vphone-cli": {
     "content": {
-      "goal": "vphone-cli boots a virtual iPhone using Apple's Virtualization.framework together with PCC research VM infrastructure. The supported firmware flow is JB only: it applies required system patches and installs vphoned for host control, leaving the guest user environment otherwise unmodified (no package manager, SSH, VNC, or bootstrap).",
-      "usage": "Quick start requires an Apple Silicon Mac running macOS 15 or newer, with the host permitting PV=3 research guests. A VM is created with `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` and then started with `vphone-cli vm launch myphone`. Building from source uses `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` followed by `make build`.",
-      "pros": "The distributed .app runs using macOS system tools and bundled binaries, without needing Homebrew, Python, or Xcode. Everyday operation is covered by a documented command set (vm list, vm info, vm launch, vm stop, vm export/import, fw catalog, host preflight), and environment variables like VPHONE_ROOT and VPHONE_LIBRARY_ROOT let users relocate the VM storage tree.",
-      "cons": "The `vm create` flow needs network access for Apple's restore ticket and requires administrator authentication during CFW installation; it also stops at a verification boot, so `vphone-cli vm launch` must be run separately to keep using the VM. Rebuilt binaries with a new signed cdhash likely require rerunning `make amfi_allow` on hosts using the AMFI allowlist.",
-      "fit": "This tool appears best suited to users with Apple Silicon Macs on macOS 15+ engaged in JB research VM work, since local validation is documented only for iPhone17,3 with firmware 26.6.2 (23G90) and 27.0 (24A435) alongside cloudOS 26.4 (23E5207q); other firmware combinations are not implied to work. It cannot run on a Mac already running inside another VM."
+      "goal": "vphone-cli boots a virtual iPhone on macOS using Apple's Virtualization.framework combined with PCC research VM infrastructure. The supported firmware flow is JB (jailbreak) only, applying required system patches and installing vphoned for host-side control, while leaving the guest user environment untouched (no package manager, SSH, VNC, or bootstrap).",
+      "usage": "Quick start requires an Apple Silicon Mac running macOS 15 or newer, with a host that permits PV=3 research guests. Create a VM with `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw`, then start it with `vphone-cli vm launch myphone`. Building from source uses `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` followed by `zsh scripts/build.sh`, and requires Xcode with the iPhoneOS SDK.",
+      "pros": "The distributed `.app` runs with macOS system tools and its own bundled binaries, so it doesn't need Homebrew, Python, or Xcode to run. It also keeps the guest environment minimal, without installing a package manager, SSH server, VNC server, or first-boot bootstrap.",
+      "cons": "The host must explicitly permit PV=3 research guests and the private entitlements on vphone-vm, and a Mac running inside another VM cannot boot this guest, which may narrow where it can be used. After every rebuild, hosts using an AMFI allowlist must re-approve the newly signed binaries since their cdhashes change.",
+      "fit": "This tool appears suited to researchers or developers who need a jailbroken virtual iPhone environment on Apple Silicon hardware. Local validation is documented only for iPhone17,3 26.6.2 (23G90) and 27.0 (24A435) with cloudOS 26.4 (23E5207q), so other firmware combinations aren't confirmed by this evidence."
     },
     "summaries": {
       "en": {
-        "goal": "vphone-cli boots a virtual iPhone using Apple's Virtualization.framework together with PCC research VM infrastructure. The supported firmware flow is JB only: it applies required system patches and installs vphoned for host control, leaving the guest user environment otherwise unmodified (no package manager, SSH, VNC, or bootstrap).",
-        "usage": "Quick start requires an Apple Silicon Mac running macOS 15 or newer, with the host permitting PV=3 research guests. A VM is created with `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` and then started with `vphone-cli vm launch myphone`. Building from source uses `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` followed by `make build`.",
-        "pros": "The distributed .app runs using macOS system tools and bundled binaries, without needing Homebrew, Python, or Xcode. Everyday operation is covered by a documented command set (vm list, vm info, vm launch, vm stop, vm export/import, fw catalog, host preflight), and environment variables like VPHONE_ROOT and VPHONE_LIBRARY_ROOT let users relocate the VM storage tree.",
-        "cons": "The `vm create` flow needs network access for Apple's restore ticket and requires administrator authentication during CFW installation; it also stops at a verification boot, so `vphone-cli vm launch` must be run separately to keep using the VM. Rebuilt binaries with a new signed cdhash likely require rerunning `make amfi_allow` on hosts using the AMFI allowlist.",
-        "fit": "This tool appears best suited to users with Apple Silicon Macs on macOS 15+ engaged in JB research VM work, since local validation is documented only for iPhone17,3 with firmware 26.6.2 (23G90) and 27.0 (24A435) alongside cloudOS 26.4 (23E5207q); other firmware combinations are not implied to work. It cannot run on a Mac already running inside another VM."
+        "goal": "vphone-cli boots a virtual iPhone on macOS using Apple's Virtualization.framework combined with PCC research VM infrastructure. The supported firmware flow is JB (jailbreak) only, applying required system patches and installing vphoned for host-side control, while leaving the guest user environment untouched (no package manager, SSH, VNC, or bootstrap).",
+        "usage": "Quick start requires an Apple Silicon Mac running macOS 15 or newer, with a host that permits PV=3 research guests. Create a VM with `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw`, then start it with `vphone-cli vm launch myphone`. Building from source uses `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` followed by `zsh scripts/build.sh`, and requires Xcode with the iPhoneOS SDK.",
+        "pros": "The distributed `.app` runs with macOS system tools and its own bundled binaries, so it doesn't need Homebrew, Python, or Xcode to run. It also keeps the guest environment minimal, without installing a package manager, SSH server, VNC server, or first-boot bootstrap.",
+        "cons": "The host must explicitly permit PV=3 research guests and the private entitlements on vphone-vm, and a Mac running inside another VM cannot boot this guest, which may narrow where it can be used. After every rebuild, hosts using an AMFI allowlist must re-approve the newly signed binaries since their cdhashes change.",
+        "fit": "This tool appears suited to researchers or developers who need a jailbroken virtual iPhone environment on Apple Silicon hardware. Local validation is documented only for iPhone17,3 26.6.2 (23G90) and 27.0 (24A435) with cloudOS 26.4 (23E5207q), so other firmware combinations aren't confirmed by this evidence."
       },
       "ko": {
-        "goal": "vphone-cli는 Apple의 Virtualization.framework와 PCC 연구용 VM 인프라를 사용해 가상 iPhone을 부팅합니다. 지원되는 펌웨어 흐름은 JB 전용이며, 필요한 시스템 패치를 적용하고 호스트 제어를 위한 vphoned를 설치합니다. 게스트 사용자 환경 자체는 건드리지 않아 패키지 관리자, SSH, VNC, 부트스트랩이 설치되지 않습니다.",
-        "usage": "빠른 시작에는 macOS 15 이상을 실행하는 Apple Silicon Mac이 필요하며, 호스트가 PV=3 연구용 게스트를 허용해야 합니다. `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` 명령으로 VM을 생성한 뒤 `vphone-cli vm launch myphone`으로 실행합니다. 소스 빌드는 `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` 후 `make build`를 사용합니다.",
-        "pros": "배포된 .app은 macOS 시스템 도구와 자체 번들 바이너리를 사용하므로 Homebrew, Python, Xcode가 필요 없습니다. vm list, vm info, vm launch, vm stop, vm export/import, fw catalog, host preflight 등 일상적인 명령 세트가 문서화되어 있으며, VPHONE_ROOT와 VPHONE_LIBRARY_ROOT 환경 변수로 VM 저장 위치를 옮길 수 있습니다.",
-        "cons": "`vm create` 과정은 Apple의 복원 티켓을 위한 네트워크 접근과 CFW 설치 중 관리자 인증을 필요로 하며, 검증 부팅 단계에서 멈추므로 VM을 계속 사용하려면 별도로 `vphone-cli vm launch`를 실행해야 합니다. 재빌드 시 서명된 cdhash가 바뀌므로 AMFI allowlist를 사용하는 호스트는 `make amfi_allow`를 다시 실행해야 할 가능성이 있습니다.",
-        "fit": "이 도구는 macOS 15 이상의 Apple Silicon Mac에서 JB 연구용 VM 작업을 하는 사용자에게 적합해 보이며, 로컬 검증은 iPhone17,3의 26.6.2 (23G90)와 27.0 (24A435), cloudOS 26.4 (23E5207q) 조합에 대해서만 문서화되어 있어 다른 펌웨어 조합이 동작한다고 보장되지는 않는 것으로 보입니다. 다른 VM 내부에서 실행 중인 Mac에서는 부팅할 수 없습니다."
+        "goal": "vphone-cli는 Apple의 Virtualization.framework와 PCC 연구용 VM 인프라를 결합하여 macOS에서 가상 iPhone을 부팅합니다. 지원되는 펌웨어 플로우는 JB(탈옥) 전용이며, 필요한 시스템 패치를 적용하고 호스트 제어를 위한 vphoned를 설치하지만, 게스트 사용자 환경은 그대로 두어 패키지 관리자, SSH, VNC, 최초 부팅 부트스트랩을 설치하지 않습니다.",
+        "usage": "빠른 시작을 위해서는 macOS 15 이상을 실행하는 Apple Silicon Mac과 PV=3 연구용 게스트를 허용하는 호스트가 필요합니다. `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` 명령으로 VM을 생성한 뒤 `vphone-cli vm launch myphone`으로 시작합니다. 소스에서 빌드하려면 `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` 후 `zsh scripts/build.sh`를 실행해야 하며 iPhoneOS SDK가 포함된 Xcode가 필요합니다.",
+        "pros": "배포된 `.app`은 macOS 시스템 도구와 자체 번들 바이너리로 실행되어 Homebrew, Python, Xcode 없이도 실행할 수 있습니다. 또한 패키지 관리자, SSH 서버, VNC 서버, 최초 부팅 부트스트랩을 설치하지 않아 게스트 환경을 최소한으로 유지합니다.",
+        "cons": "호스트는 PV=3 연구용 게스트와 vphone-vm의 비공개 엔타이틀먼트를 명시적으로 허용해야 하며, 다른 VM 내부에서 실행 중인 Mac은 이 게스트를 부팅할 수 없어 사용 가능한 환경이 제한될 수 있습니다. 재빌드할 때마다 cdhash가 변경되므로 AMFI 허용 목록을 사용하는 호스트는 새로 서명된 바이너리를 다시 승인해야 합니다.",
+        "fit": "이 도구는 Apple Silicon 하드웨어에서 탈옥된 가상 iPhone 환경이 필요한 연구자나 개발자에게 적합해 보입니다. 로컬 검증은 iPhone17,3 26.6.2 (23G90)과 27.0 (24A435), cloudOS 26.4 (23E5207q) 조합에 대해서만 문서화되어 있어 다른 펌웨어 조합은 이 근거로 확인되지 않습니다."
       },
       "zh-CN": {
-        "goal": "vphone-cli 使用 Apple 的 Virtualization.framework 与 PCC 研究用虚拟机基础设施来启动虚拟 iPhone。目前支持的固件流程仅限 JB：它会应用所需的系统补丁并安装 vphoned 以供主机控制,而客户机用户环境本身不做改动(不安装包管理器、SSH、VNC 或首次启动脚本)。",
-        "usage": "快速开始需要运行 macOS 15 或更高版本的 Apple Silicon Mac,且主机需允许 PV=3 研究客户机。使用 `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` 创建虚拟机,然后用 `vphone-cli vm launch myphone` 启动。从源码构建则使用 `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git`,再执行 `make build`。",
-        "pros": "发行版 .app 使用 macOS 系统工具和自带的二进制文件运行,无需 Homebrew、Python 或 Xcode。日常操作有文档化的命令集覆盖,包括 vm list、vm info、vm launch、vm stop、vm export/import、fw catalog 和 host preflight,并可通过 VPHONE_ROOT 与 VPHONE_LIBRARY_ROOT 环境变量迁移虚拟机存储位置。",
-        "cons": "`vm create` 流程需要网络访问以获取 Apple 的恢复凭据,并在 CFW 安装过程中需要管理员身份验证;该流程会在验证启动阶段停止,因此需要单独运行 `vphone-cli vm launch` 才能继续使用虚拟机。重新构建后签名的 cdhash 会发生变化,使用 AMFI allowlist 的主机很可能需要重新运行 `make amfi_allow`。",
-        "fit": "该工具看起来更适合在 macOS 15 及以上版本的 Apple Silicon Mac 上从事 JB 研究虚拟机工作的用户,因为本地验证仅记录了 iPhone17,3 搭配固件 26.6.2 (23G90) 和 27.0 (24A435)、以及 cloudOS 26.4 (23E5207q) 的组合,并不意味着其他固件组合同样可行。它无法在已运行于另一个虚拟机内部的 Mac 上启动。"
+        "goal": "vphone-cli 结合 Apple 的 Virtualization.framework 与 PCC 研究用 VM 基础设施,在 macOS 上启动虚拟 iPhone。目前支持的固件流程仅限 JB(越狱),会应用所需的系统补丁并安装 vphoned 以供主机端控制,同时不改动客户机的用户环境,不安装包管理器、SSH、VNC 或首次启动引导程序。",
+        "usage": "快速开始需要运行 macOS 15 或更高版本的 Apple Silicon Mac,且主机需允许 PV=3 研究客户机。使用 `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` 创建虚拟机,再用 `vphone-cli vm launch myphone` 启动。从源代码构建需先执行 `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git`,再运行 `zsh scripts/build.sh`,并需要包含 iPhoneOS SDK 的 Xcode。",
+        "pros": "发行版 `.app` 使用 macOS 系统工具和自带的二进制文件运行,无需 Homebrew、Python 或 Xcode 即可运行。它还使客户机环境保持精简,不会安装包管理器、SSH 服务器、VNC 服务器或首次启动引导程序。",
+        "cons": "主机必须明确允许 PV=3 研究客户机以及 vphone-vm 的私有权限(entitlements),而且在另一台虚拟机内运行的 Mac 无法启动此客户机,这可能限制其可用的运行环境。每次重新构建后,由于 cdhash 会发生变化,使用 AMFI 白名单的主机必须重新批准新签名的二进制文件。",
+        "fit": "该工具似乎更适合需要在 Apple Silicon 硬件上运行越狱虚拟 iPhone 环境的研究人员或开发者。文档中的本地验证仅涉及 iPhone17,3 26.6.2 (23G90) 与 27.0 (24A435) 搭配 cloudOS 26.4 (23E5207q) 的组合,因此其他固件组合未获得该证据的确认。"
       },
       "es": {
-        "goal": "vphone-cli arranca un iPhone virtual usando Virtualization.framework de Apple junto con la infraestructura de VM de investigación PCC. El flujo de firmware soportado es solo JB: aplica los parches de sistema necesarios e instala vphoned para el control desde el host, sin modificar el entorno de usuario invitado (no instala gestor de paquetes, servidor SSH, VNC ni script de arranque inicial).",
-        "usage": "El inicio rápido requiere un Mac Apple Silicon con macOS 15 o superior, y el host debe permitir invitados de investigación PV=3. La VM se crea con `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` y se inicia con `vphone-cli vm launch myphone`. Compilar desde el código fuente usa `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` seguido de `make build`.",
-        "pros": "La .app distribuida se ejecuta con herramientas del sistema macOS y binarios incluidos, sin necesitar Homebrew, Python ni Xcode. El uso diario está cubierto por un conjunto de comandos documentado (vm list, vm info, vm launch, vm stop, vm export/import, fw catalog, host preflight), y las variables VPHONE_ROOT y VPHONE_LIBRARY_ROOT permiten reubicar el almacenamiento de las VM.",
-        "cons": "El flujo `vm create` necesita acceso a red para el ticket de restauración de Apple y requiere autenticación de administrador durante la instalación de CFW; además se detiene en un arranque de verificación, por lo que hay que ejecutar `vphone-cli vm launch` aparte para seguir usando la VM. Tras cada recompilación cambia el cdhash firmado, por lo que un host que use la lista de permitidos de AMFI probablemente deba volver a ejecutar `make amfi_allow`.",
-        "fit": "Esta herramienta parece adecuada para usuarios con Mac Apple Silicon en macOS 15 o superior que trabajen en investigación de VM JB, ya que la validación local solo está documentada para iPhone17,3 con firmware 26.6.2 (23G90) y 27.0 (24A435) junto con cloudOS 26.4 (23E5207q); no se implica que otras combinaciones de firmware funcionen. No puede arrancar en un Mac que ya se ejecute dentro de otra VM."
+        "goal": "vphone-cli arranca un iPhone virtual en macOS combinando el Virtualization.framework de Apple con la infraestructura de VM de investigación PCC. El flujo de firmware admitido es solo JB (jailbreak), que aplica los parches de sistema necesarios e instala vphoned para el control desde el host, sin modificar el entorno de usuario del invitado (sin gestor de paquetes, SSH, VNC ni bootstrap de primer arranque).",
+        "usage": "Para el inicio rápido se necesita un Mac Apple Silicon con macOS 15 o posterior, y un host que permita invitados de investigación PV=3. Cree una VM con `vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` y luego inícela con `vphone-cli vm launch myphone`. Compilar desde el código fuente requiere `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` seguido de `zsh scripts/build.sh`, además de Xcode con el SDK de iPhoneOS.",
+        "pros": "La `.app` distribuida se ejecuta con herramientas del sistema macOS y sus propios binarios incluidos, por lo que no necesita Homebrew, Python ni Xcode para funcionar. También mantiene mínimo el entorno del invitado, sin instalar gestor de paquetes, servidor SSH, servidor VNC ni bootstrap de primer arranque.",
+        "cons": "El host debe permitir explícitamente los invitados de investigación PV=3 y los entitlements privados en vphone-vm, y un Mac que se ejecute dentro de otra VM no puede arrancar este invitado, lo que puede limitar dónde se puede usar. Tras cada recompilación, los hosts que usan una lista de permitidos AMFI deben volver a aprobar los binarios recién firmados porque sus cdhashes cambian.",
+        "fit": "Esta herramienta parece adecuada para investigadores o desarrolladores que necesiten un entorno de iPhone virtual con jailbreak en hardware Apple Silicon. La validación local documentada cubre solo iPhone17,3 26.6.2 (23G90) y 27.0 (24A435) con cloudOS 26.4 (23E5207q), por lo que otras combinaciones de firmware no quedan confirmadas por esta evidencia."
       },
       "ja": {
-        "goal": "vphone-cliは、AppleのVirtualization.frameworkとPCC研究用VMインフラストラクチャを使って仮想iPhoneを起動します。サポートされるファームウェアフローはJBのみで、必要なシステムパッチを適用し、ホスト制御用のvphonedをインストールします。ゲストのユーザー環境自体には手を加えず、パッケージマネージャ、SSHサーバー、VNCサーバー、初回起動ブートストラップは導入されません。",
-        "usage": "クイックスタートにはmacOS 15以降を実行するApple Silicon Macが必要で、ホストはPV=3の研究用ゲストを許可している必要があります。`vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` でVMを作成し、`vphone-cli vm launch myphone` で起動します。ソースからビルドする場合は `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` の後に `make build` を実行します。",
-        "pros": "配布される.appはmacOSのシステムツールと同梱バイナリで動作するため、Homebrew、Python、Xcodeを必要としません。日常操作はvm list、vm info、vm launch、vm stop、vm export/import、fw catalog、host preflightといった文書化されたコマンド群でカバーされ、VPHONE_ROOTとVPHONE_LIBRARY_ROOT環境変数でVMの保存先を変更できます。",
-        "cons": "`vm create` フローはAppleの復元チケット取得のためにネットワークアクセスを必要とし、CFWインストール中に管理者認証を求められます。また検証用ブートの時点で処理が止まるため、VMを使い続けるには別途 `vphone-cli vm launch` を実行する必要があります。再ビルドのたびに署名済みcdhashが変わるため、AMFI allowlistを使うホストでは `make amfi_allow` の再実行がおそらく必要になります。",
-        "fit": "このツールは、macOS 15以降のApple Silicon MacでJB研究用VM作業を行うユーザーに適していると考えられます。ローカル検証はiPhone17,3のファームウェア26.6.2 (23G90)と27.0 (24A435)、cloudOS 26.4 (23E5207q)の組み合わせについてのみ文書化されており、他のファームウェアの組み合わせが動作するとは示唆されていません。すでに別のVM内で動作しているMac上では起動できません。"
+        "goal": "vphone-cliは、AppleのVirtualization.frameworkとPCCリサーチ用VMインフラを組み合わせて、macOS上で仮想iPhoneを起動します。サポートされるファームウェアフローはJB(脱獄)専用で、必要なシステムパッチを適用し、ホスト側制御のためのvphonedをインストールしますが、ゲストのユーザー環境には手を加えず、パッケージマネージャー、SSH、VNC、初回起動ブートストラップは導入されません。",
+        "usage": "クイックスタートには、macOS 15以降を実行するApple Silicon Macと、PV=3リサーチゲストを許可するホストが必要です。`vphone-cli vm create myphone --iphone-source /path/to/iPhone17,3_Restore.ipsw --cloudos-source /path/to/cloudOS.ipsw` でVMを作成し、`vphone-cli vm launch myphone` で起動します。ソースからビルドする場合は `git clone --recurse-submodules https://github.com/Lakr233/vphone-cli.git` の後に `zsh scripts/build.sh` を実行し、iPhoneOS SDKを含むXcodeが必要です。",
+        "pros": "配布されている `.app` はmacOSのシステムツールと同梱バイナリで動作するため、実行にHomebrew、Python、Xcodeを必要としません。また、パッケージマネージャー、SSHサーバー、VNCサーバー、初回起動ブートストラップをインストールしないため、ゲスト環境を最小限に保ちます。",
+        "cons": "ホストはPV=3リサーチゲストとvphone-vmのプライベートエンタイトルメントを明示的に許可する必要があり、別のVM内で動作しているMacはこのゲストを起動できないため、利用できる環境が制限される可能性があります。再ビルドのたびにcdhashが変わるため、AMFIアローリストを使用するホストは新しく署名されたバイナリを再承認する必要があります。",
+        "fit": "このツールは、Apple Siliconハードウェア上で脱獄済みの仮想iPhone環境を必要とする研究者や開発者に適していると考えられます。ローカル検証はiPhone17,3 26.6.2 (23G90)および27.0 (24A435)とcloudOS 26.4 (23E5207q)の組み合わせについてのみ文書化されており、他のファームウェアの組み合わせはこの証拠では確認されていません。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 5,
+          "start_line": 3,
           "end_line": 5,
           "section_heading": "vphone-cli"
         },
@@ -7734,47 +7343,42 @@
       ],
       "usage": [
         {
-          "start_line": 13,
-          "end_line": 13,
-          "section_heading": "Quick start"
-        },
-        {
           "start_line": 16,
-          "end_line": 20,
+          "end_line": 21,
           "section_heading": "Quick start"
         },
         {
-          "start_line": 34,
-          "end_line": 37,
+          "start_line": 27,
+          "end_line": 27,
+          "section_heading": "Quick start"
+        },
+        {
+          "start_line": 44,
+          "end_line": 47,
           "section_heading": "Install or build"
         }
       ],
       "pros": [
         {
-          "start_line": 29,
-          "end_line": 29,
+          "start_line": 9,
+          "end_line": 9,
+          "section_heading": "vphone-cli"
+        },
+        {
+          "start_line": 39,
+          "end_line": 39,
           "section_heading": "Install or build"
-        },
-        {
-          "start_line": 44,
-          "end_line": 53,
-          "section_heading": "Everyday commands"
-        },
-        {
-          "start_line": 55,
-          "end_line": 55,
-          "section_heading": "Everyday commands"
         }
       ],
       "cons": [
         {
-          "start_line": 23,
-          "end_line": 23,
+          "start_line": 13,
+          "end_line": 13,
           "section_heading": "Quick start"
         },
         {
-          "start_line": 40,
-          "end_line": 40,
+          "start_line": 50,
+          "end_line": 50,
           "section_heading": "Install or build"
         }
       ],
@@ -7785,8 +7389,8 @@
           "section_heading": "Quick start"
         },
         {
-          "start_line": 25,
-          "end_line": 25,
+          "start_line": 35,
+          "end_line": 35,
           "section_heading": "Quick start"
         }
       ]
@@ -7815,24 +7419,45 @@
       },
       {
         "kind": "command",
-        "value": "make build",
+        "value": "zsh scripts/build.sh",
         "fields": [
           "usage"
         ]
       },
       {
-        "kind": "command",
-        "value": "make amfi_allow",
+        "kind": "url",
+        "value": "https://github.com/Lakr233/vphone-cli.git",
         "fields": [
-          "cons"
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "vphone-cli",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "vphoned",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Virtualization.framework",
+        "fields": [
+          "goal"
         ]
       },
       {
         "kind": "version",
         "value": "macOS 15",
         "fields": [
-          "usage",
-          "fit"
+          "usage"
         ]
       },
       {
@@ -7855,43 +7480,6 @@
         "fields": [
           "fit"
         ]
-      },
-      {
-        "kind": "number",
-        "value": "PV=3",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "url",
-        "value": "https://github.com/Lakr233/vphone-cli.git",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "vphone-cli",
-        "fields": [
-          "goal",
-          "usage",
-          "cons"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "vphoned",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Virtualization.framework",
-        "fields": [
-          "goal"
-        ]
       }
     ],
     "inference_fields": [
@@ -7902,8 +7490,8 @@
       "kind": "readme",
       "slug": "lakr233/vphone-cli",
       "path": "README.md",
-      "blob_sha": "66df0433dd84484624a64282dd7f74710c645b87",
-      "content_sha256": "267aa6bdc57b24e433a7c2b5077d1b7d0c31a258b6889acbbbd6e9a41a0be0d0",
+      "blob_sha": "cdb4e8612a656806a458cd65c287f5a8bb699b5e",
+      "content_sha256": "99e46c4d5b6f9d4621b48a1cfeabce1ea2aaa346a8565d15ac3c543b12377d04",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
@@ -7917,47 +7505,47 @@
   },
   "freestylefly/awesome-gpt-image-2": {
     "content": {
-      "goal": "awesome-gpt-image-2 is a prompt-engineering repository built around GPT-Image2, offering a reverse-engineered case gallery of 500+ (specifically 544) examples and 20+ industrial prompt templates. It aims to convert prose-style prompts into structured, reusable \"Prompt-as-Code\" protocols for agents, scripts, and automation workflows rather than one-off image prompts.",
-      "usage": "Cases are organized in docs/gallery.md (544 entries split across docs/gallery-part-1.md for cases 1-165 and docs/gallery-part-2.md for cases 166-544) and browsable on gpt-image2.canghe.ai, where prompts can be copied and filtered by style or scenario. Matching prompt templates live in docs/templates.md, split into four category pages (Design & Information, Commerce & Space, Imaging & Characters, Narrative & Extensions). To add the GPT-Image2 style-library agent skill, run `npx skills add freestylefly/awesome-gpt-image-2 --skill gpt-image-2-style-library --agent claude-code codex --global --yes --copy`, or inside Claude Code run `/plugin marketplace add freestylefly/awesome-gpt-image-2` followed by `/plugin install gpt-image-2-style-library@awesome-gpt-image-2`. Once installed, the skill can be invoked with a request such as \"Use gpt-image-2-style-library to create an infographic prompt about Codex.\"",
-      "pros": "The repository organizes cases into clear categories (UI, infographics, posters, products, branding, architecture, photography, illustration, characters, scenes, history, documents) with counts like 90 poster cases and 73 UI cases, and provides an atomic schema splitting subjects, lighting, materials, and layout for better controllability and batch generation.",
-      "cons": "The GPT Image 2.5 spotlight section notes that original generation conditions and exact tool model IDs for its 4 real recreation examples remain unverified, and the spotlight itself does not add live 2.5 image generation, so some documented capabilities are demonstration-only rather than integrated features.",
-      "fit": "This project likely suits teams or individuals building repeatable, agent-driven image-generation workflows who need structured prompt templates rather than isolated examples, though the presence of a paid community feature and Supabase/Stripe-based website auth suggests parts of the ecosystem involve external services beyond the core repository."
+      "goal": "This repository, awesome-gpt-image-2, documents itself as a 'Prompt as Code' industrial prompt engine and template library for GPT-Image2. It compiles 500+ reverse-engineered cases (544 cataloged in the full gallery) and 20+ industrial prompt templates, aiming to turn prose-style prompts into structured, reusable protocols for batch generation and automation workflows.",
+      "usage": "Browse the gallery and template docs (docs/gallery.md, docs/templates.md), or install the gpt-image-2-style-library agent skill via `npx skills add freestylefly/awesome-gpt-image-2 --skill gpt-image-2-style-library --agent claude-code codex --global --yes --copy`, or run `npm install -g gpt-image-2-style-library` then `gpt-image-2-style-library install all` to add it to local Claude Code/Codex skill folders.",
+      "pros": "Prompts are broken into an atomic schema covering subjects, lighting, materials, layout, and visual details, which the README describes as workflow-friendly for agents and automation scripts and intended to improve controllability of layout, copy, and information hierarchy. The case library also spans many categories (UI, posters, products, branding, and more).",
+      "cons": "Enabling the website's direct APIMart image generation and paid features requires applying numerous Supabase SQL migrations and configuring Stripe, GA4, and Google OAuth environment variables, suggesting that this part of the project carries real setup overhead beyond the core prompt library. Separately, the GPT Image 2.5 spotlight explicitly does not add live 2.5 image generation.",
+      "fit": "The project appears best suited for prompt engineers or teams who want a structured, reusable prompt reference for GPT-Image2 and for integrating prompt selection into agent tooling like Claude Code or Codex; it seems less suited as a standalone hosted image-generation service, since the generation website's advanced features require separate backend setup."
     },
     "summaries": {
       "en": {
-        "goal": "awesome-gpt-image-2 is a prompt-engineering repository built around GPT-Image2, offering a reverse-engineered case gallery of 500+ (specifically 544) examples and 20+ industrial prompt templates. It aims to convert prose-style prompts into structured, reusable \"Prompt-as-Code\" protocols for agents, scripts, and automation workflows rather than one-off image prompts.",
-        "usage": "Cases are organized in docs/gallery.md (544 entries split across docs/gallery-part-1.md for cases 1-165 and docs/gallery-part-2.md for cases 166-544) and browsable on gpt-image2.canghe.ai, where prompts can be copied and filtered by style or scenario. Matching prompt templates live in docs/templates.md, split into four category pages (Design & Information, Commerce & Space, Imaging & Characters, Narrative & Extensions). To add the GPT-Image2 style-library agent skill, run `npx skills add freestylefly/awesome-gpt-image-2 --skill gpt-image-2-style-library --agent claude-code codex --global --yes --copy`, or inside Claude Code run `/plugin marketplace add freestylefly/awesome-gpt-image-2` followed by `/plugin install gpt-image-2-style-library@awesome-gpt-image-2`. Once installed, the skill can be invoked with a request such as \"Use gpt-image-2-style-library to create an infographic prompt about Codex.\"",
-        "pros": "The repository organizes cases into clear categories (UI, infographics, posters, products, branding, architecture, photography, illustration, characters, scenes, history, documents) with counts like 90 poster cases and 73 UI cases, and provides an atomic schema splitting subjects, lighting, materials, and layout for better controllability and batch generation.",
-        "cons": "The GPT Image 2.5 spotlight section notes that original generation conditions and exact tool model IDs for its 4 real recreation examples remain unverified, and the spotlight itself does not add live 2.5 image generation, so some documented capabilities are demonstration-only rather than integrated features.",
-        "fit": "This project likely suits teams or individuals building repeatable, agent-driven image-generation workflows who need structured prompt templates rather than isolated examples, though the presence of a paid community feature and Supabase/Stripe-based website auth suggests parts of the ecosystem involve external services beyond the core repository."
+        "goal": "This repository, awesome-gpt-image-2, documents itself as a 'Prompt as Code' industrial prompt engine and template library for GPT-Image2. It compiles 500+ reverse-engineered cases (544 cataloged in the full gallery) and 20+ industrial prompt templates, aiming to turn prose-style prompts into structured, reusable protocols for batch generation and automation workflows.",
+        "usage": "Browse the gallery and template docs (docs/gallery.md, docs/templates.md), or install the gpt-image-2-style-library agent skill via `npx skills add freestylefly/awesome-gpt-image-2 --skill gpt-image-2-style-library --agent claude-code codex --global --yes --copy`, or run `npm install -g gpt-image-2-style-library` then `gpt-image-2-style-library install all` to add it to local Claude Code/Codex skill folders.",
+        "pros": "Prompts are broken into an atomic schema covering subjects, lighting, materials, layout, and visual details, which the README describes as workflow-friendly for agents and automation scripts and intended to improve controllability of layout, copy, and information hierarchy. The case library also spans many categories (UI, posters, products, branding, and more).",
+        "cons": "Enabling the website's direct APIMart image generation and paid features requires applying numerous Supabase SQL migrations and configuring Stripe, GA4, and Google OAuth environment variables, suggesting that this part of the project carries real setup overhead beyond the core prompt library. Separately, the GPT Image 2.5 spotlight explicitly does not add live 2.5 image generation.",
+        "fit": "The project appears best suited for prompt engineers or teams who want a structured, reusable prompt reference for GPT-Image2 and for integrating prompt selection into agent tooling like Claude Code or Codex; it seems less suited as a standalone hosted image-generation service, since the generation website's advanced features require separate backend setup."
       },
       "ko": {
-        "goal": "awesome-gpt-image-2는 GPT-Image2를 중심으로 한 프롬프트 엔지니어링 저장소로, 역설계된 544개의 사례 갤러리와 20개 이상의 산업용 프롬프트 템플릿을 제공합니다. 목적은 산문형 프롬프트를 에이전트와 자동화 워크플로에서 재사용 가능한 구조화된 \"Prompt-as-Code\" 프로토콜로 전환하는 것입니다.",
-        "usage": "docs/gallery.md 또는 gpt-image2.canghe.ai 사이트에서 사례를 탐색한 뒤 docs/templates.md의 템플릿을 적용합니다. 에이전트 스킬은 `npx skills add freestylefly/awesome-gpt-image-2 --skill gpt-image-2-style-library --agent claude-code codex --global --yes --copy` 명령으로 설치하거나, Claude Code 플러그인 마켓플레이스 명령 `/plugin marketplace add freestylefly/awesome-gpt-image-2`와 `/plugin install gpt-image-2-style-library@awesome-gpt-image-2`를 통해 설치할 수 있습니다.",
-        "pros": "저장소는 UI, 인포그래픽, 포스터, 제품, 브랜딩, 건축, 사진, 일러스트, 캐릭터, 장면, 역사, 문서 등 명확한 카테고리로 사례를 정리하며 포스터 90건, UI 73건 등의 수치를 제공하고, 피사체·조명·재질·레이아웃을 분리하는 원자적 스키마로 제어 가능성과 배치 생성을 지원합니다.",
-        "cons": "GPT Image 2.5 스포트라이트 섹션에 따르면 4개의 실제 재현 예시에 대한 원본 생성 조건과 정확한 도구 모델 ID는 검증되지 않았으며, 스포트라이트 자체는 실시간 2.5 이미지 생성 기능을 추가하지 않으므로 일부 문서화된 기능은 시연용에 그칠 수 있습니다.",
-        "fit": "개별 예시보다 구조화된 프롬프트 템플릿이 필요한, 반복 가능한 에이전트 기반 이미지 생성 워크플로를 구축하려는 팀이나 개인에게 적합해 보이지만, 유료 커뮤니티 기능과 Supabase/Stripe 기반 웹사이트 인증이 존재한다는 점에서 일부 생태계 요소는 저장소 자체를 넘어선 외부 서비스와 연동될 수 있습니다."
+        "goal": "이 저장소(awesome-gpt-image-2)는 GPT-Image2를 위한 'Prompt as Code' 방식의 산업용 프롬프트 엔진 및 템플릿 라이브러리라고 소개합니다. 500개 이상의 역설계 사례(전체 갤러리에는 544건 수록)와 20개 이상의 산업용 프롬프트 템플릿을 정리하여, 산문형 프롬프트를 구조화되고 재사용 가능한 프로토콜로 전환하는 것을 목표로 합니다.",
+        "usage": "저장소는 갤러리 및 템플릿 문서(docs/gallery.md, docs/templates.md)를 통해 탐색할 수 있습니다. 또한 gpt-image-2-style-library라는 에이전트 스킬을 제공하며, `npx skills add freestylefly/awesome-gpt-image-2 --skill gpt-image-2-style-library --agent claude-code codex --global --yes --copy` 명령으로 설치하거나, `npm install -g gpt-image-2-style-library` 실행 후 `gpt-image-2-style-library install all`을 실행해 로컬 Claude Code/Codex 스킬 폴더에 설치할 수 있습니다.",
+        "pros": "프롬프트는 주제, 조명, 재질, 레이아웃, 시각적 디테일 등으로 나뉜 원자적 스키마로 구성되며, README에 따르면 이는 에이전트와 자동화 스크립트에 적합하고 레이아웃·카피·정보 위계의 제어성을 높이도록 설계되었습니다. 사례 라이브러리는 UI, 포스터, 제품, 브랜드 등 다양한 카테고리를 포괄합니다.",
+        "cons": "웹사이트의 APIMart 직접 이미지 생성 및 유료 기능을 활성화하려면 다수의 Supabase SQL 마이그레이션을 적용하고 Stripe, GA4, Google OAuth 환경 변수를 구성해야 한다고 명시되어 있어, 핵심 프롬프트 라이브러리 외에 해당 부분은 적지 않은 설정 부담이 따르는 것으로 보입니다. 또한 GPT Image 2.5 스포트라이트는 실시간 2.5 이미지 생성 기능을 추가하지 않는다고 명시되어 있습니다.",
+        "fit": "이 프로젝트는 GPT-Image2를 위한 구조화되고 재사용 가능한 프롬프트 참조 자료가 필요하거나, Claude Code나 Codex 같은 에이전트 도구에 프롬프트 선택 기능을 통합하려는 프롬프트 엔지니어나 팀에 적합해 보입니다. 반면 생성 웹사이트의 고급 기능은 별도의 백엔드 설정이 필요하므로, 독립형 호스팅 이미지 생성 서비스로는 다소 적합하지 않아 보입니다."
       },
       "zh-CN": {
-        "goal": "awesome-gpt-image-2 是围绕 GPT-Image2 构建的提示词工程仓库,提供逆向解析的 544 个案例库和 20 多个工业级提示词模板。其目标是把散文式提示词转化为结构化、可复用的“Prompt-as-Code”协议,供智能体、脚本和自动化工作流使用,而不只是孤立的一次性示例。",
-        "usage": "可通过 docs/gallery.md 或 gpt-image2.canghe.ai 网站浏览案例,再套用 docs/templates.md 中的模板。可使用命令 `npx skills add freestylefly/awesome-gpt-image-2 --skill gpt-image-2-style-library --agent claude-code codex --global --yes --copy` 安装智能体技能,或在 Claude Code 插件市场中执行 `/plugin marketplace add freestylefly/awesome-gpt-image-2` 与 `/plugin install gpt-image-2-style-library@awesome-gpt-image-2`。",
-        "pros": "仓库将案例按 UI、图表信息图、海报、产品、品牌、建筑、摄影、插画、角色、场景、历史、文档等类别清晰整理,并给出如海报 90 例、UI 73 例等数量,同时采用拆分主体、光照、材质与布局的原子化结构,提升可控性和批量生成能力。",
-        "cons": "README 中的 GPT Image 2.5 专题说明,其 4 个真实复刻案例的原始生成条件和确切工具模型 ID 尚未得到验证,且该专题本身并未加入实时的 2.5 图像生成功能,说明部分文档化能力仅为演示性质,而非集成功能。",
-        "fit": "该项目似乎更适合需要结构化提示词模板、构建可重复的智能体驱动图像生成工作流的团队或个人,而非依赖零散示例;但其付费社区功能以及基于 Supabase/Stripe 的网站鉴权表明,生态系统的部分内容依赖仓库之外的外部服务。"
+        "goal": "该仓库(awesome-gpt-image-2)自述为面向 GPT-Image2 的\"Prompt as Code\"工业级提示词引擎与模板库,收录了 500+ 个逆向解析案例(完整画廊中共 544 个)以及 20+ 个工业模板,旨在把散文式提示词转化为结构化、可复用的协议。",
+        "usage": "可通过画廊和模板文档(docs/gallery.md、docs/templates.md)浏览内容,也可以安装配套的 gpt-image-2-style-library 智能体技能:使用命令 `npx skills add freestylefly/awesome-gpt-image-2 --skill gpt-image-2-style-library --agent claude-code codex --global --yes --copy`,或先运行 `npm install -g gpt-image-2-style-library` 再执行 `gpt-image-2-style-library install all`,将技能写入本地 Claude Code/Codex 技能目录。",
+        "pros": "提示词被拆分为主体、光照、材质、布局和视觉细节等原子化模式,README 称其对智能体和自动化脚本较为友好,并有助于提升布局、文案与信息层级的可控性。案例库还覆盖 UI、海报、产品、品牌等多个类别。",
+        "cons": "若要启用网站的 APIMart 直接生成及付费功能,据文档需要应用多个 Supabase SQL 迁移,并配置 Stripe、GA4 与 Google OAuth 等环境变量,这似乎表明核心提示词库之外的这部分存在不小的配置成本。另外,GPT Image 2.5 专题明确说明并未加入实时的 2.5 图像生成能力。",
+        "fit": "该项目看起来更适合需要面向 GPT-Image2 的结构化、可复用提示词参考资料的提示词工程师或团队,以及希望把提示词选择集成到 Claude Code、Codex 等智能体工具中的使用场景;由于生成网站的高级功能需要额外的后端搭建,它似乎不太适合作为独立的托管图像生成服务使用。"
       },
       "es": {
-        "goal": "awesome-gpt-image-2 es un repositorio de ingeniería de prompts centrado en GPT-Image2, que ofrece una galería de 544 casos obtenidos por ingeniería inversa y más de 20 plantillas de prompts industriales. Su objetivo es convertir prompts en prosa en protocolos estructurados y reutilizables de \"Prompt-as-Code\" para agentes, scripts y flujos de automatización.",
-        "usage": "Los casos se pueden explorar en docs/gallery.md o en el sitio web gpt-image2.canghe.ai, aplicando luego las plantillas de docs/templates.md. La skill de agente se instala con `npx skills add freestylefly/awesome-gpt-image-2 --skill gpt-image-2-style-library --agent claude-code codex --global --yes --copy`, o mediante el marketplace de plugins de Claude Code con `/plugin marketplace add freestylefly/awesome-gpt-image-2` y `/plugin install gpt-image-2-style-library@awesome-gpt-image-2`.",
-        "pros": "El repositorio organiza los casos en categorías claras (UI, infografías, pósters, productos, marca, arquitectura, fotografía, ilustración, personajes, escenas, historia, documentos), con cifras como 90 casos de pósters y 73 de UI, y usa un esquema atómico que separa sujeto, iluminación, materiales y layout para mejorar la controlabilidad y la generación por lotes.",
-        "cons": "La sección sobre GPT Image 2.5 indica que las condiciones originales de generación y los IDs exactos del modelo usado en sus 4 recreaciones reales no están verificados, y que esa sección no añade generación de imágenes 2.5 en vivo, por lo que parte de lo documentado es solo demostrativo.",
-        "fit": "Parece adecuado para equipos o individuos que buscan flujos de generación de imágenes repetibles y basados en agentes con plantillas estructuradas, aunque la existencia de una función de comunidad de pago y de autenticación web basada en Supabase/Stripe sugiere que partes del ecosistema dependen de servicios externos al repositorio."
+        "goal": "Este repositorio (awesome-gpt-image-2) se describe como un motor de prompts industrial y biblioteca de plantillas de tipo 'Prompt as Code' para GPT-Image2. Reúne más de 500 casos obtenidos por ingeniería inversa (544 catalogados en la galería completa) y más de 20 plantillas industriales, con el objetivo de convertir prompts en prosa en protocolos estructurados y reutilizables.",
+        "usage": "El repositorio se explora mediante su galería y documentación de plantillas (docs/gallery.md, docs/templates.md). También incluye una skill de agente, gpt-image-2-style-library, instalable con `npx skills add freestylefly/awesome-gpt-image-2 --skill gpt-image-2-style-library --agent claude-code codex --global --yes --copy`, o bien ejecutando `npm install -g gpt-image-2-style-library` seguido de `gpt-image-2-style-library install all`, que copia la skill a las carpetas locales de Claude Code/Codex.",
+        "pros": "Los prompts se descomponen en un esquema atómico que cubre sujeto, iluminación, materiales, composición y detalles visuales, lo que el README describe como adecuado para agentes y scripts de automatización, orientado a mejorar el control sobre la composición, el texto y la jerarquía de información. La biblioteca de casos también abarca categorías como UI, pósteres, productos y marca.",
+        "cons": "Activar la generación directa vía APIMart y las funciones de pago del sitio web requiere, según se indica, aplicar varias migraciones SQL de Supabase y configurar variables de entorno de Stripe, GA4 y Google OAuth, lo que sugiere una carga de configuración considerable más allá de la biblioteca de prompts principal. Además, el spotlight de GPT Image 2.5 indica explícitamente que no añade generación de imágenes en vivo con 2.5.",
+        "fit": "El proyecto parece más adecuado para ingenieros de prompts o equipos que buscan una referencia estructurada y reutilizable para GPT-Image2, o que desean integrar la selección de prompts en herramientas de agentes como Claude Code o Codex; parece menos adecuado como servicio autónomo de generación de imágenes alojado, ya que las funciones avanzadas del sitio de generación requieren una configuración de backend independiente."
       },
       "ja": {
-        "goal": "awesome-gpt-image-2はGPT-Image2を中心としたプロンプトエンジニアリングのリポジトリで、リバースエンジニアリングされた544件の事例集と20種類以上の業務用プロンプトテンプレートを提供します。目的は散文的なプロンプトを、エージェントや自動化ワークフローで再利用できる構造化された「Prompt-as-Code」プロトコルに変換することです。",
-        "usage": "docs/gallery.mdまたはgpt-image2.canghe.aiサイトで事例を閲覧し、docs/templates.mdのテンプレートを適用します。エージェントスキルは`npx skills add freestylefly/awesome-gpt-image-2 --skill gpt-image-2-style-library --agent claude-code codex --global --yes --copy`でインストールでき、Claude Codeプラグインマーケットプレイスでは`/plugin marketplace add freestylefly/awesome-gpt-image-2`と`/plugin install gpt-image-2-style-library@awesome-gpt-image-2`が利用できます。",
-        "pros": "リポジトリはUI、インフォグラフィック、ポスター、製品、ブランド、建築、写真、イラスト、キャラクター、シーン、歴史、文書といった明確なカテゴリで事例を整理しており、ポスター90件、UI 73件などの件数が示されています。また被写体・照明・素材・レイアウトを分解する原子的なスキーマにより、制御性とバッチ生成が向上します。",
-        "cons": "GPT Image 2.5スポットライトの説明によれば、4件の実際の再現事例における元の生成条件や正確なツールのモデルIDは未検証のままであり、このスポットライト自体はリアルタイムの2.5画像生成機能を追加するものではないため、文書化された機能の一部はあくまでデモンストレーションにとどまる可能性があります。",
-        "fit": "個別の事例ではなく構造化されたプロンプトテンプレートを必要とする、再現性のあるエージェント駆動の画像生成ワークフローを構築したいチームや個人に向いていると考えられますが、有料コミュニティ機能やSupabase/Stripeベースのウェブサイト認証の存在から、エコシステムの一部はリポジトリ外部のサービスに依存している点には留意が必要です。"
+        "goal": "本リポジトリ(awesome-gpt-image-2)は、GPT-Image2向けの「Prompt as Code」型インダストリアル・プロンプトエンジン兼テンプレートライブラリと自己紹介されています。500件以上のリバースエンジニアリング事例(完全なギャラリーには544件収録)と20種類以上の業務用テンプレートをまとめ、散文的なプロンプトを構造化・再利用可能なプロトコルへ変換することを目指しています。",
+        "usage": "ギャラリーおよびテンプレート文書(docs/gallery.md、docs/templates.md)から閲覧できます。また付属のエージェントスキル gpt-image-2-style-library は、`npx skills add freestylefly/awesome-gpt-image-2 --skill gpt-image-2-style-library --agent claude-code codex --global --yes --copy` コマンド、または `npm install -g gpt-image-2-style-library` の実行後に `gpt-image-2-style-library install all` を実行することでインストールでき、ローカルのClaude Code/Codexスキルフォルダに配置されます。",
+        "pros": "プロンプトは被写体、照明、素材、レイアウト、視覚的ディテールなどに分解された原子的スキーマで構成され、READMEによればエージェントや自動化スクリプトに適し、レイアウト・コピー・情報階層の制御性を高めるよう設計されています。事例ライブラリはUI、ポスター、製品、ブランドなど多岐にわたるカテゴリーを網羅しています。",
+        "cons": "ウェブサイトのAPIMart直接生成機能や有料機能を有効化するには、複数のSupabase SQLマイグレーションの適用と、Stripe・GA4・Google OAuthの環境変数設定が必要と記載されており、コアのプロンプトライブラリ以外のこの部分には相応のセットアップ負荷があるとみられます。また、GPT Image 2.5スポットライトはリアルタイムの2.5画像生成機能を追加しないと明記されています。",
+        "fit": "本プロジェクトは、GPT-Image2向けの構造化された再利用可能なプロンプト資料を必要とするプロンプトエンジニアやチーム、またはClaude CodeやCodexなどのエージェントツールにプロンプト選択機能を組み込みたい用途に適していると考えられます。一方、生成用ウェブサイトの高度な機能には別途バックエンド構築が必要なため、単独のホスト型画像生成サービスとしてはやや不向きと考えられます。"
       }
     },
     "evidence": {
@@ -7968,50 +7556,50 @@
           "section_heading": ""
         },
         {
-          "start_line": 75,
-          "end_line": 77,
+          "start_line": 76,
+          "end_line": 78,
           "section_heading": "⚡️ Project Vision"
+        },
+        {
+          "start_line": 8,
+          "end_line": 8,
+          "section_heading": ""
         }
       ],
       "usage": [
         {
-          "start_line": 85,
-          "end_line": 88,
-          "section_heading": "📖 Quick Links"
-        },
-        {
-          "start_line": 267,
-          "end_line": 269,
+          "start_line": 264,
+          "end_line": 270,
           "section_heading": "Quick Install for Agent Skills"
         },
         {
-          "start_line": 281,
-          "end_line": 284,
-          "section_heading": "Claude Code Plugin Marketplace"
+          "start_line": 291,
+          "end_line": 293,
+          "section_heading": "npm CLI"
+        },
+        {
+          "start_line": 310,
+          "end_line": 310,
+          "section_heading": "npm CLI"
         }
       ],
       "pros": [
         {
-          "start_line": 79,
-          "end_line": 81,
+          "start_line": 80,
+          "end_line": 82,
           "section_heading": "⚡️ Project Vision"
         },
         {
-          "start_line": 102,
-          "end_line": 102,
-          "section_heading": "🖼️ Case Album"
-        },
-        {
-          "start_line": 114,
-          "end_line": 114,
-          "section_heading": "🖼️ Case Album"
+          "start_line": 94,
+          "end_line": 98,
+          "section_heading": "🗂️ Category Overview"
         }
       ],
       "cons": [
         {
-          "start_line": 29,
-          "end_line": 29,
-          "section_heading": "GPT Image 2.5 Spotlight"
+          "start_line": 331,
+          "end_line": 368,
+          "section_heading": "🔐 Website Auth & Generation"
         },
         {
           "start_line": 31,
@@ -8021,18 +7609,18 @@
       ],
       "fit": [
         {
-          "start_line": 75,
-          "end_line": 77,
+          "start_line": 76,
+          "end_line": 78,
           "section_heading": "⚡️ Project Vision"
         },
         {
-          "start_line": 353,
-          "end_line": 353,
-          "section_heading": "🔐 Website Auth & Generation"
+          "start_line": 264,
+          "end_line": 270,
+          "section_heading": "Quick Install for Agent Skills"
         },
         {
-          "start_line": 328,
-          "end_line": 328,
+          "start_line": 327,
+          "end_line": 329,
           "section_heading": "🔐 Website Auth & Generation"
         }
       ]
@@ -8043,22 +7631,14 @@
         "value": "GPT-Image2",
         "fields": [
           "goal",
-          "usage"
+          "fit"
         ]
       },
       {
-        "kind": "number",
-        "value": "544",
+        "kind": "product",
+        "value": "gpt-image-2-style-library",
         "fields": [
-          "goal",
           "usage"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "20+",
-        "fields": [
-          "goal"
         ]
       },
       {
@@ -8070,16 +7650,37 @@
       },
       {
         "kind": "command",
-        "value": "/plugin marketplace add freestylefly/awesome-gpt-image-2",
+        "value": "npm install -g gpt-image-2-style-library",
         "fields": [
           "usage"
         ]
       },
       {
         "kind": "command",
-        "value": "/plugin install gpt-image-2-style-library@awesome-gpt-image-2",
+        "value": "gpt-image-2-style-library install all",
         "fields": [
           "usage"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "544",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "500+",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "20+",
+        "fields": [
+          "goal"
         ]
       }
     ],
@@ -8091,8 +7692,8 @@
       "kind": "readme",
       "slug": "freestylefly/awesome-gpt-image-2",
       "path": "README.md",
-      "blob_sha": "17de22997c982d14bfd19dc3dce642cd04d21bc3",
-      "content_sha256": "e60d642df4bb9ca1c9d104b735b754106c14d6261b3c2d341f3d0dbc0f55e9d8",
+      "blob_sha": "76ff77eac9157e539f6926bc2fa0de54317d919a",
+      "content_sha256": "11c4202e08b10f7eb6a3e9967c9b9aa8e6bd5ee16e7d9d795216d3fcb1cb4d29",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
