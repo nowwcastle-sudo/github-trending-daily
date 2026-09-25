@@ -1,6 +1,6 @@
 {
-  "snapshotId": "20260924235118-35fd6a8f3842603b",
-  "generatedAt": "2026-09-24T23:51:18.953Z",
+  "snapshotId": "20260925084517-e4ed2382836c2022",
+  "generatedAt": "2026-09-25T08:45:17.556Z",
   "statsDate": "2026-09-25",
   "count": 49,
   "repos": [
@@ -31,24 +31,24 @@
         "tutorial",
         "typescript"
       ],
-      "stars": 56526,
-      "forks": 9926,
-      "issues": 43,
+      "stars": 56947,
+      "forks": 9966,
+      "issues": 42,
       "contributors": 21,
       "gains": {
-        "daily": 310,
+        "daily": 347,
         "weekly": null,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "AI Engineering from Scratch is a free, open-source curriculum teaching AI engineering from math foundations to production agents. It spans 20 phases and 523 lessons (~342 hours) in Python, TypeScript, Rust, and Julia, with each lesson producing a reusable artifact such as a prompt, skill, agent, or MCP server.",
-        "usage": "Clone the repository with `git clone https://github.com/rohitg00/ai-engineering-from-scratch.git` and run lesson scripts such as `python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route beginner` from the repository root. Alternatively, install the learning-skill tutor into a compatible coding agent with `npx skills add rohitg00/ai-engineering-from-scratch`, which requires Node.js and npx but not a clone.",
-        "pros": "Each lesson follows a consistent 'Build It / Use It' structure: implement the algorithm from scratch first, then run the same thing through a production library. The curriculum covers four programming languages and remains free under the MIT license, with released EPUB/PDF book volumes.",
-        "cons": "Executable MCP or Agent Skills labs and copied repository code commands require a local clone rather than just the skills installer. Non-English lesson pages are machine-translated on a separate `translations` branch, while only landing pages are committed to the main repository.",
-        "fit": "The material appears best suited to people who can already write code and want to understand how AI systems work internally rather than only call APIs, given the large estimated time investment — roughly 60 to 306 hours depending on starting background."
+        "goal": "This repository is a free, MIT-licensed curriculum for AI engineering, organized into 20 phases containing 523 lessons totaling roughly 342 hours. It covers math foundations through agent engineering in Python, TypeScript, Rust, and Julia, with each lesson producing a reusable artifact such as a prompt, skill, agent, or MCP server.",
+        "usage": "Clone the repository with `git clone https://github.com/rohitg00/ai-engineering-from-scratch.git`, then run individual lesson scripts with python3 from the repo root. Alternatively, install an AI tutor into a compatible coding agent with `npx skills add rohitg00/ai-engineering-from-scratch` and invoke skills like start-learning; lessons can also be read at https://aiengineeringfromscratch.com without cloning.",
+        "pros": "Each lesson follows a build-it/use-it structure, implementing an algorithm from scratch before using the equivalent production library, and produces a reusable artifact under outputs/. The core curriculum also compiles into a six-volume EPUB/PDF book series built by CI, and dedicated tracks prepare learners for Claude and MCP Associate certifications.",
+        "cons": "Completing the full curriculum is documented at roughly 342 hours, and running lesson code requires python3 while installing the AI tutor skills requires Node.js and npx plus a skill-capable host. The certification tracks are described as independent study material not affiliated with Anthropic or the Linux Foundation, and the README states they cannot guarantee a passing score.",
+        "fit": "The curriculum appears best suited to learners who can already write some code and want to understand AI systems from underlying math and algorithms rather than just call existing APIs, since the README lists coding ability as a prerequisite. It seems less suited to those wanting a quick, API-only introduction."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -69,13 +69,13 @@
         "ai-memory",
         "memory"
       ],
-      "stars": 27753,
-      "forks": 2680,
-      "issues": 191,
+      "stars": 28359,
+      "forks": 2817,
+      "issues": 205,
       "contributors": 246,
       "gains": {
-        "daily": 1607,
-        "weekly": 3181,
+        "daily": 1668,
+        "weekly": 3363,
         "monthly": null
       },
       "signal": null,
@@ -93,6 +93,7 @@
         "dev-tools"
       ],
       "form_tags": [
+        "mcp",
         "library"
       ]
     },
@@ -122,12 +123,12 @@
         "wordprocessor",
         "xlsx"
       ],
-      "stars": 17568,
-      "forks": 1516,
-      "issues": 141,
+      "stars": 18020,
+      "forks": 1547,
+      "issues": 142,
       "contributors": 78,
       "gains": {
-        "daily": 1060,
+        "daily": 1082,
         "weekly": null,
         "monthly": null
       },
@@ -156,24 +157,24 @@
       "description": "Google's open agentic orchestration runtime",
       "lang": "Go",
       "topics": [],
-      "stars": 10388,
-      "forks": 501,
-      "issues": 40,
-      "contributors": 11,
+      "stars": 10903,
+      "forks": 528,
+      "issues": 44,
+      "contributors": 13,
       "gains": {
-        "daily": 1376,
+        "daily": 1373,
         "weekly": null,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "AX is a declarative orchestrator for running large numbers of autonomous agent workloads in a Kubernetes-like cluster. It builds on Agent Substrate (https://github.com/agent-substrate/substrate) for sandboxed execution and lets users declare workspaces, gateways, and models through YAML manifests under the ax.io/v1alpha1 API.",
-        "usage": "Install the CLI with `go install github.com/google/ax/cmd/ax@latest`, then deploy the control plane on a Kubernetes cluster (with ko from https://ko.build/ and a container registry configured) using `make deploy AX_IMAGE_REPO=<your-registry>`. Tasks are launched by applying YAML manifests, e.g. `ax apply -f task.yaml`, and monitored with `ax watch` or `ax ssh`.",
-        "pros": "AX provides four declarative primitives—Task, Workspace, Gateway, and Model—covering sandbox isolation, pre-wired repos/MCP servers, network allowlisting, and LLM credentials. Its CLI is deliberately kubectl-shaped (apply, get, describe, watch, delete) and works with kubectx, so it can follow the active Kubernetes context across clusters.",
-        "cons": "The README states the project is still actively refining its core concepts, protocols, and specifications, and warns that major breaking changes are likely before a stable release. Deployment also appears to require a Kubernetes cluster, the ko tool, a pullable container registry, and a reachable Agent Substrate Control API.",
-        "fit": "AX seems intended for teams already operating Kubernetes infrastructure who need to run many sandboxed, network-restricted agent workloads at scale. Given its pre-stable status and breaking-change warning, it appears best suited to early adopters and experimentation rather than production deployments."
+        "goal": "AX is a declarative orchestrator, described in the google/ax README, for running large numbers of autonomous agent workloads in a Kubernetes cluster. It defines agentic tasks through Workspace, Task, and Model manifests (apiVersion ax.io/v1alpha1) and runs on top of Agent Substrate for sandboxed execution, aiming to support billions of tasks per cluster.",
+        "usage": "Setup requires a Kubernetes cluster with Agent Substrate already installed, plus Go, kubectl, and ko. The CLI is installed via `go install github.com/google/ax/cmd/ax@latest`, and the control plane is deployed with `make deploy AX_IMAGE_REPO=<your-registry>`.",
+        "pros": "AX offers three primitives: Task for isolated sandboxed execution with CPU/memory limits, Workspace for pre-wiring Git repos, MCP servers, and skill packages, and Model for configuring the LLM used by the platform. It also provides `ax suspend`/`ax resume` to checkpoint and resume idle agents and `ax ssh` to shell into running agents, plus integration with `kubectx` so switching clusters automatically retargets the CLI.",
+        "cons": "The README states the project is still actively refining its core concepts and specifications, and warns that major breaking changes are likely before a stable release. It also requires Agent Substrate to already be running in the cluster before AX can be deployed, which appears to be a prerequisite worth considering carefully.",
+        "fit": "Given its Kubernetes-like design and stated goal of running billions of agent tasks per cluster, AX appears best suited for teams already operating Kubernetes infrastructure who want to orchestrate large-scale autonomous agent workloads, rather than for simple or small-scale single-agent use cases."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -182,7 +183,6 @@
       ],
       "form_tags": [
         "agent",
-        "framework",
         "cli"
       ]
     },
@@ -192,12 +192,12 @@
       "description": "A unified library of SOTA model optimization techniques like quantization, distillation, pruning, neural architecture search, speculative decoding, etc. It compresses deep learning models for downstream deployment frameworks like TensorRT-LLM, TensorRT, vLLM, etc. to optimize inference speed.",
       "lang": "Python",
       "topics": [],
-      "stars": 4064,
-      "forks": 628,
+      "stars": 4203,
+      "forks": 636,
       "issues": 417,
       "contributors": 92,
       "gains": {
-        "daily": 22,
+        "daily": 44,
         "weekly": null,
         "monthly": null
       },
@@ -225,12 +225,12 @@
       "description": "Fix X/Twitter and Bluesky embeds! Use multiple images, videos, polls, translations and more on Discord, Telegram and others",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 5360,
-      "forks": 249,
-      "issues": 73,
+      "stars": 5413,
+      "forks": 253,
+      "issues": 78,
       "contributors": 30,
       "gains": {
-        "daily": 165,
+        "daily": 182,
         "weekly": null,
         "monthly": null
       },
@@ -255,13 +255,13 @@
       "description": "",
       "lang": "Python",
       "topics": [],
-      "stars": 37345,
-      "forks": 5418,
+      "stars": 37447,
+      "forks": 5426,
       "issues": 222,
       "contributors": 12,
       "gains": {
-        "daily": 510,
-        "weekly": 1895,
+        "daily": 509,
+        "weekly": 2382,
         "monthly": null
       },
       "signal": null,
@@ -288,12 +288,12 @@
       "description": "\"CLI-Anything: Making ALL Software Agent-Native\" -- CLI-Hub: https://clianything.cc/",
       "lang": "Python",
       "topics": [],
-      "stars": 50324,
-      "forks": 4615,
-      "issues": 106,
+      "stars": 50441,
+      "forks": 4621,
+      "issues": 108,
       "contributors": 145,
       "gains": {
-        "daily": 415,
+        "daily": 413,
         "weekly": null,
         "monthly": null
       },
@@ -329,12 +329,12 @@
         "mobile",
         "security"
       ],
-      "stars": 14723,
-      "forks": 1392,
+      "stars": 14777,
+      "forks": 1394,
       "issues": 64,
       "contributors": 79,
       "gains": {
-        "daily": 275,
+        "daily": 272,
         "weekly": null,
         "monthly": null
       },
@@ -370,12 +370,12 @@
         "subagent-driven-development",
         "superpowers"
       ],
-      "stars": 291223,
-      "forks": 26052,
-      "issues": 401,
+      "stars": 291349,
+      "forks": 26070,
+      "issues": 403,
       "contributors": 44,
       "gains": {
-        "daily": 606,
+        "daily": 611,
         "weekly": null,
         "monthly": null
       },
@@ -425,12 +425,12 @@
         "strands-agents",
         "typescript"
       ],
-      "stars": 8245,
-      "forks": 1236,
-      "issues": 826,
+      "stars": 8352,
+      "forks": 1245,
+      "issues": 836,
       "contributors": 298,
       "gains": {
-        "daily": 463,
+        "daily": 455,
         "weekly": null,
         "monthly": null
       },
@@ -479,12 +479,12 @@
         "privacy",
         "windows-app"
       ],
-      "stars": 2859,
-      "forks": 171,
-      "issues": 41,
+      "stars": 2983,
+      "forks": 174,
+      "issues": 42,
       "contributors": 9,
       "gains": {
-        "daily": 151,
+        "daily": 122,
         "weekly": null,
         "monthly": null
       },
@@ -521,14 +521,14 @@
         "registry",
         "secrets"
       ],
-      "stars": 3151,
-      "forks": 262,
-      "issues": 84,
+      "stars": 3264,
+      "forks": 273,
+      "issues": 87,
       "contributors": 16,
       "gains": {
-        "daily": 470,
-        "weekly": 1067,
-        "monthly": 2356
+        "daily": 468,
+        "weekly": 1406,
+        "monthly": 2413
       },
       "signal": null,
       "summary": {
@@ -544,9 +544,7 @@
         "ai-ml",
         "dev-tools"
       ],
-      "form_tags": [
-        "cli"
-      ]
+      "form_tags": []
     },
     {
       "slug": "leejet/stable-diffusion.cpp",
@@ -574,12 +572,12 @@
         "z-image",
         "z-image-turbo"
       ],
-      "stars": 7238,
-      "forks": 811,
-      "issues": 270,
-      "contributors": 111,
+      "stars": 7311,
+      "forks": 816,
+      "issues": 268,
+      "contributors": 112,
       "gains": {
-        "daily": 69,
+        "daily": 36,
         "weekly": null,
         "monthly": null
       },
@@ -613,14 +611,14 @@
         "harness",
         "repository-level-context"
       ],
-      "stars": 40775,
-      "forks": 2929,
-      "issues": 216,
+      "stars": 41017,
+      "forks": 2945,
+      "issues": 217,
       "contributors": 192,
       "gains": {
         "daily": null,
-        "weekly": 9833,
-        "monthly": 19196
+        "weekly": 6920,
+        "monthly": 19583
       },
       "signal": null,
       "summary": {
@@ -647,13 +645,13 @@
       "description": "Claude Code is an agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster by executing routine tasks, explaining complex code, and handling git workflows - all through natural language commands.",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 147964,
-      "forks": 24390,
-      "issues": 12721,
+      "stars": 148007,
+      "forks": 24479,
+      "issues": 12839,
       "contributors": 58,
       "gains": {
         "daily": null,
-        "weekly": 2762,
+        "weekly": 2384,
         "monthly": null
       },
       "signal": null,
@@ -690,13 +688,13 @@
         "mcp",
         "productivity"
       ],
-      "stars": 266884,
-      "forks": 39877,
-      "issues": 230,
+      "stars": 267116,
+      "forks": 39911,
+      "issues": 232,
       "contributors": 382,
       "gains": {
         "daily": null,
-        "weekly": 6695,
+        "weekly": 6193,
         "monthly": null
       },
       "signal": null,
@@ -745,24 +743,24 @@
         "vector-search",
         "wiki"
       ],
-      "stars": 29708,
-      "forks": 3998,
-      "issues": 657,
+      "stars": 29851,
+      "forks": 4012,
+      "issues": 608,
       "contributors": 249,
       "gains": {
         "daily": null,
-        "weekly": 4522,
-        "monthly": 9078
+        "weekly": 3749,
+        "monthly": 9356
       },
       "signal": null,
       "summary": {
-        "goal": "WeKnora is an open-source, LLM-powered knowledge framework from Tencent for enterprise document understanding, semantic retrieval, and reasoning. It combines RAG-based Q&A, a multi-step reasoning agent, and an auto-generated wiki that all operate on the same knowledge bases.",
-        "usage": "Deployment requires Docker, Docker Compose, and Git. The documented steps are `git clone https://github.com/Tencent/WeKnora.git`, `cd WeKnora`, `cp .env.example .env`, then `docker compose pull` followed by `docker compose up -d`, after which the Web UI is available at http://localhost.",
-        "pros": "The README states that LLMs, vector databases, and storage backends are all swappable, with 27 built-in model vendors, and supports local or private-cloud deployment to keep data in-house. Multi-workspace RBAC and Langfuse tracing for agent steps are also documented.",
-        "cons": "For production, the README recommends deploying WeKnora on an internal/private network rather than exposing it directly to the public internet, with firewall rules and regular updates, which suggests the default configuration alone may not be sufficiently hardened for public-facing use.",
-        "fit": "Based on the documented facts, WeKnora appears suited to teams needing a self-hosted, MIT-licensed system for enterprise document Q&A and knowledge organization, with configurable models and storage backends."
+        "goal": "WeKnora is an open-source, LLM-powered knowledge framework from Tencent for enterprise document understanding, semantic retrieval and reasoning, combining RAG Q&A, a multi-step agent, and an automatic wiki over shared knowledge bases.",
+        "usage": "Deploy with Docker and Docker Compose: clone the repo, copy `.env.example` to `.env`, then run `docker compose pull` and `docker compose up -d`, and open http://localhost. A `weknora` CLI (e.g. `weknora kb list`, `weknora chat \"...\"`) and Kubernetes/Helm or a Lite single-binary mode are also documented.",
+        "pros": "It supports 27 built-in LLM vendors, multiple vector databases and storage backends, 10+ document formats, many data-source and IM integrations, and features like workspace RBAC, scoped API keys, and Langfuse tracing.",
+        "cons": "The README's security notice recommends deploying on an internal/private network with firewall controls rather than exposing it publicly, and warns that a plain `docker compose up -d` may leave the UI version out of sync with cached images during upgrades.",
+        "fit": "It appears best suited for teams needing a self-hostable or private-cloud knowledge/Q&A platform with document parsing and agent tooling, though the desktop app has no published installer yet and must be built from source."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -786,13 +784,13 @@
         "cursor",
         "skills"
       ],
-      "stars": 98891,
-      "forks": 10388,
-      "issues": 116,
+      "stars": 98948,
+      "forks": 10387,
+      "issues": 120,
       "contributors": 83,
       "gains": {
         "daily": null,
-        "weekly": 3867,
+        "weekly": 3345,
         "monthly": null
       },
       "signal": null,
@@ -819,13 +817,13 @@
       "description": "Open source repository of plugins primarily intended for knowledge workers to use in Claude Cowork",
       "lang": "Python",
       "topics": [],
-      "stars": 25557,
-      "forks": 3025,
-      "issues": 98,
+      "stars": 25576,
+      "forks": 3027,
+      "issues": 105,
       "contributors": 32,
       "gains": {
         "daily": null,
-        "weekly": 1358,
+        "weekly": 1118,
         "monthly": null
       },
       "signal": null,
@@ -839,7 +837,8 @@
       "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
-        "ai-ml"
+        "ai-ml",
+        "productivity"
       ],
       "form_tags": [
         "plugin-skill"
@@ -870,24 +869,24 @@
         "worktrees",
         "yc-backed"
       ],
-      "stars": 77520,
-      "forks": 5079,
-      "issues": 6767,
-      "contributors": 388,
+      "stars": 77788,
+      "forks": 5093,
+      "issues": 6795,
+      "contributors": 389,
       "gains": {
         "daily": null,
-        "weekly": 6435,
+        "weekly": 6547,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "Orca is a desktop application described as \"The AI Orchestrator for 100x builders,\" letting developers run multiple CLI coding agents such as Claude Code, Codex, OpenCode, or Pi side by side, each in its own git worktree, tracked from one interface. The README states it works with any CLI agent that runs in a terminal, and lists macOS, Windows, and Linux as supported platforms.",
-        "usage": "Orca can be downloaded from https://onorca.dev/download, installed via Homebrew with `brew install --cask stablyai/orca/orca` on macOS, or via the AUR with `yay -S stably-orca-bin` on Arch Linux. A headless Linux server can run it with `orca serve`, and a separate Orca CLI supports scripted workflows such as `orca worktree create`.",
-        "pros": "Documented capabilities include fanning one prompt across multiple agents in parallel git worktrees for comparison, native GitHub and Linear browsing so users can open worktrees from tasks without switching context, SSH-based remote worktrees with auto-reconnect and port forwarding, and a mobile companion app (iOS App Store, TestFlight, Android APK 0.0.50) for monitoring and steering agents remotely.",
-        "cons": "The README notes that because updates ship daily, its feature list \"is perpetually behind,\" and points to the GitHub releases changelog as the more current feature reference — suggesting the README text itself may not always reflect the latest capabilities.",
-        "fit": "Based on the described features, Orca appears suited to developers and teams coordinating multiple AI coding CLI agents across parallel git worktrees, particularly those already using GitHub, Linear, or SSH-based remote development workflows on desktop platforms."
+        "goal": "Orca is presented as an AI orchestrator for developers, letting them run coding agents such as Codex, Claude Code, OpenCode, or Pi side-by-side, each in its own git worktree, tracked from a single interface.",
+        "usage": "The desktop app can be downloaded from https://onorca.dev/download or installed via package managers, e.g. `brew install --cask stablyai/orca/orca` on macOS or `yay -S stably-orca-bin` on Arch Linux. It supports macOS, Windows, and Linux, can run headless via `orca serve` on a Linux server, and a mobile companion app (Android APK 0.0.50) pairs with the desktop host.",
+        "pros": "Documented capabilities include fanning one prompt across five agents in parallel worktrees, running agents remotely over SSH with auto-reconnect, and compatibility with any CLI-based coding agent that runs in a terminal.",
+        "cons": "Because Orca orchestrates external CLI agents rather than bundling them, using it presumably requires the relevant agent CLIs, such as Claude Code or Codex, to already be installed and configured separately.",
+        "fit": "Based on this feature set, Orca appears best suited to developers who want to coordinate and compare multiple AI coding agents across parallel or remote worktrees, rather than users seeking a single-agent coding assistant."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -913,13 +912,13 @@
         "local-first",
         "long-term-memory"
       ],
-      "stars": 4865,
-      "forks": 575,
-      "issues": 453,
+      "stars": 4902,
+      "forks": 582,
+      "issues": 458,
       "contributors": 44,
       "gains": {
         "daily": null,
-        "weekly": 1877,
+        "weekly": 1608,
         "monthly": null
       },
       "signal": null,
@@ -952,13 +951,13 @@
         "claude",
         "claude-code"
       ],
-      "stars": 31728,
-      "forks": 3602,
+      "stars": 31749,
+      "forks": 3608,
       "issues": 284,
       "contributors": 134,
       "gains": {
         "daily": null,
-        "weekly": 613,
+        "weekly": 965,
         "monthly": null
       },
       "signal": null,
@@ -985,13 +984,13 @@
       "description": "Run frontier MoE models on hardware you already own — pure C, zero deps, experts streamed from disk. Tiny engine, immense model. 🐦",
       "lang": "C",
       "topics": [],
-      "stars": 37540,
-      "forks": 4065,
+      "stars": 37590,
+      "forks": 4072,
       "issues": 90,
       "contributors": 193,
       "gains": {
         "daily": null,
-        "weekly": 2739,
+        "weekly": 2055,
         "monthly": null
       },
       "signal": null,
@@ -1002,7 +1001,7 @@
         "cons": "The README states there is no SLA on inference speed, since insufficient fast memory reduces throughput. Some models require substantial disk space, with the documented GLM-5.2 container at about 372 GB. Optional performance features such as O_DIRECT reads are described as drive-dependent, and some models lack speculative decoding support.",
         "fit": "Based on the documented hardware tables, Colibri appears best suited to individuals or researchers who already own commodity CPUs, limited RAM, and consumer storage, rather than production deployments needing guaranteed latency. It seems positioned as an open research platform for those willing to experiment with configuration and measure results themselves."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml"
@@ -1023,13 +1022,13 @@
         "quic",
         "rust"
       ],
-      "stars": 12579,
+      "stars": 12584,
       "forks": 1148,
       "issues": 369,
       "contributors": 152,
       "gains": {
         "daily": null,
-        "weekly": 707,
+        "weekly": 741,
         "monthly": null
       },
       "signal": null,
@@ -1066,13 +1065,13 @@
         "spec-driven-development",
         "specification"
       ],
-      "stars": 70229,
-      "forks": 4803,
-      "issues": 222,
+      "stars": 70278,
+      "forks": 4807,
+      "issues": 225,
       "contributors": 120,
       "gains": {
         "daily": null,
-        "weekly": 1538,
+        "weekly": 1415,
         "monthly": null
       },
       "signal": null,
@@ -1100,13 +1099,13 @@
       "description": "Solution for long term memory for agent coding CLIs and to facilitate handoff between different agent vendors",
       "lang": "Rust",
       "topics": [],
-      "stars": 8345,
-      "forks": 565,
-      "issues": 18,
+      "stars": 8372,
+      "forks": 566,
+      "issues": 21,
       "contributors": 110,
       "gains": {
         "daily": null,
-        "weekly": 1208,
+        "weekly": 1243,
         "monthly": null
       },
       "signal": null,
@@ -1142,13 +1141,13 @@
         "python",
         "tensor"
       ],
-      "stars": 103262,
-      "forks": 30249,
-      "issues": 17595,
-      "contributors": 7060,
+      "stars": 103282,
+      "forks": 30349,
+      "issues": 17593,
+      "contributors": 7061,
       "gains": {
         "daily": null,
-        "weekly": 196,
+        "weekly": 228,
         "monthly": null
       },
       "signal": null,
@@ -1175,13 +1174,13 @@
       "description": "Autonomous coding agent as an SDK, IDE extension, or CLI assistant.",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 69246,
-      "forks": 7512,
+      "stars": 69273,
+      "forks": 7514,
       "issues": 1444,
       "contributors": 328,
       "gains": {
         "daily": null,
-        "weekly": 1177,
+        "weekly": 855,
         "monthly": null
       },
       "signal": null,
@@ -1230,13 +1229,13 @@
         "vision",
         "webui"
       ],
-      "stars": 44894,
-      "forks": 9199,
-      "issues": 802,
+      "stars": 44926,
+      "forks": 9203,
+      "issues": 791,
       "contributors": 415,
       "gains": {
         "daily": null,
-        "weekly": 949,
+        "weekly": 743,
         "monthly": null
       },
       "signal": null,
@@ -1282,13 +1281,13 @@
         "troubleshooting",
         "xdp"
       ],
-      "stars": 25536,
-      "forks": 4104,
-      "issues": 1099,
+      "stars": 25547,
+      "forks": 4105,
+      "issues": 1097,
       "contributors": 1432,
       "gains": {
         "daily": null,
-        "weekly": 447,
+        "weekly": 362,
         "monthly": null
       },
       "signal": null,
@@ -1326,14 +1325,14 @@
         "webgl",
         "worldview"
       ],
-      "stars": 42464,
-      "forks": 8636,
-      "issues": 196,
-      "contributors": 26,
+      "stars": 42667,
+      "forks": 8670,
+      "issues": 187,
+      "contributors": 30,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 41118
+        "monthly": 41715
       },
       "signal": null,
       "summary": {
@@ -1357,14 +1356,14 @@
       "description": "A coding-agent skill for multi-phase security audits with independently verified, machine-readable findings",
       "lang": "JavaScript",
       "topics": [],
-      "stars": 21310,
-      "forks": 1226,
+      "stars": 21420,
+      "forks": 1235,
       "issues": 48,
       "contributors": 4,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 17893
+        "monthly": 18441
       },
       "signal": null,
       "summary": {
@@ -1412,14 +1411,14 @@
         "system-design",
         "text-to-diagram"
       ],
-      "stars": 71221,
-      "forks": 4786,
-      "issues": 161,
+      "stars": 71381,
+      "forks": 4804,
+      "issues": 163,
       "contributors": 34,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 55857
+        "monthly": 56351
       },
       "signal": null,
       "summary": {
@@ -1445,14 +1444,14 @@
       "description": "Open Multi-Agent Interactive Classroom — Get an immersive, multi-agent learning experience in just one click",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 38941,
-      "forks": 6074,
-      "issues": 172,
+      "stars": 38980,
+      "forks": 6077,
+      "issues": 174,
       "contributors": 106,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 18072
+        "monthly": 18202
       },
       "signal": null,
       "summary": {
@@ -1466,7 +1465,8 @@
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
-        "web-app"
+        "web-app",
+        "productivity"
       ],
       "form_tags": [
         "agent"
@@ -1499,14 +1499,14 @@
         "voicestudio",
         "workflow"
       ],
-      "stars": 35247,
-      "forks": 4149,
-      "issues": 16,
+      "stars": 35326,
+      "forks": 4160,
+      "issues": 18,
       "contributors": 79,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 23623
+        "monthly": 23857
       },
       "signal": null,
       "summary": {
@@ -1539,14 +1539,14 @@
         "developer-tools",
         "productivity"
       ],
-      "stars": 50987,
-      "forks": 2942,
+      "stars": 51057,
+      "forks": 2943,
       "issues": 71,
       "contributors": 50,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 27477
+        "monthly": 27473
       },
       "signal": null,
       "summary": {
@@ -1572,18 +1572,24 @@
       "description": "Cursor plugin specification and official plugins",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 8573,
-      "forks": 807,
+      "stars": 8592,
+      "forks": 808,
       "issues": 146,
       "contributors": 17,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 3900
+        "monthly": 3861
       },
       "signal": null,
-      "summary": null,
-      "summary_status": "held",
+      "summary": {
+        "goal": "The cursor/plugins repository is an official collection of Cursor plugins for developer tools, frameworks, and SaaS products (lines 1-3). It functions as a marketplace repo, with each plugin living in its own directory containing a `.cursor-plugin/plugin.json` manifest.",
+        "usage": "The repo follows a fixed layout: a root `.cursor-plugin/marketplace.json` lists all plugins, while each plugin directory has its own `.cursor-plugin/plugin.json` manifest plus optional `skills/`, `rules/`, `mcp.json`, README, CHANGELOG, and LICENSE files (lines 96-114). The README does not show explicit install or run commands, so how a plugin is activated within Cursor does not appear to be documented at this level.",
+        "pros": "The marketplace bundles dozens of plugins spanning categories like Developer Tools, Productivity, and Integrations, including Gmail, Google Drive/Docs/Sheets/Slides, GitHub, Salesforce, Playwright, HubSpot, and financial services like Coinbase and Robinhood (lines 9-93).",
+        "cons": "The README documents only the marketplace/plugin directory structure (lines 96-114), without root-level install or activation commands, so the exact steps to enable a given plugin within Cursor do not appear to be fully specified at this level.",
+        "fit": "This repository appears to fit users of the Cursor editor/agent who want to extend it with pre-built integrations for SaaS tools and developer workflows (lines 1-3, 94); it is a plugin marketplace rather than a standalone application, and plugins are authored either by Cursor or by named contributors per their `plugin.json`."
+      },
+      "summary_status": "verified",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -1599,14 +1605,14 @@
       "description": "Open source inference engine for the hardware you already own. Profiles your machine, recommends the best open models for it, and tunes them for your exact hardware. Works on Apple Silicon, NVIDIA, AMD, or nothing but a CPU.",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 5029,
-      "forks": 376,
+      "stars": 5054,
+      "forks": 375,
       "issues": 20,
       "contributors": 9,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 3430
+        "monthly": 3518
       },
       "signal": null,
       "summary": {
@@ -1630,14 +1636,14 @@
       "description": "",
       "lang": "Swift",
       "topics": [],
-      "stars": 14352,
-      "forks": 1691,
-      "issues": 30,
+      "stars": 14362,
+      "forks": 1695,
+      "issues": 29,
       "contributors": 42,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 6370
+        "monthly": 6390
       },
       "signal": null,
       "summary": {
@@ -1647,7 +1653,7 @@
         "cons": "Host setup requires running `csrutil enable --without debug` and `csrutil allow-research-guests enable` in macOS Recovery, and allowing the VM binary through AMFI needs root access; a nested macOS VM also cannot run the guest, suggesting nontrivial security-related host configuration is a prerequisite for use.",
         "fit": "Given the stated requirements of an Apple Silicon Mac, macOS 15 or newer, Xcode, and IPSW files, this tool appears best suited to developers or researchers experimenting with virtualized iOS environments rather than general end users; VMs created with older schema versions must be recreated for 2.x, suggesting limited backward compatibility."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "systems"
@@ -1669,14 +1675,14 @@
         "golang",
         "guidelines"
       ],
-      "stars": 3700,
-      "forks": 122,
+      "stars": 3713,
+      "forks": 121,
       "issues": 11,
       "contributors": 9,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 2850
+        "monthly": 2858
       },
       "signal": null,
       "summary": {
@@ -1709,14 +1715,14 @@
         "cursor",
         "skills"
       ],
-      "stars": 6768,
+      "stars": 6781,
       "forks": 549,
       "issues": 29,
       "contributors": 16,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 1759
+        "monthly": 1821
       },
       "signal": null,
       "summary": {
@@ -1744,14 +1750,14 @@
       "description": "TimesFM (Time Series Foundation Model) is a pretrained time-series foundation model developed by Google Research for time-series forecasting.",
       "lang": "Python",
       "topics": [],
-      "stars": 33648,
+      "stars": 33667,
       "forks": 3248,
       "issues": 261,
       "contributors": 30,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 5563
+        "monthly": 5545
       },
       "signal": null,
       "summary": {
@@ -1788,14 +1794,14 @@
         "seo-tools",
         "site-audit"
       ],
-      "stars": 20919,
-      "forks": 2679,
-      "issues": 195,
+      "stars": 20972,
+      "forks": 2687,
+      "issues": 196,
       "contributors": 19,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 7313
+        "monthly": 7668
       },
       "signal": null,
       "summary": {
@@ -1824,14 +1830,14 @@
         "artificial-intelligence",
         "large-language-model"
       ],
-      "stars": 62483,
-      "forks": 8126,
+      "stars": 62519,
+      "forks": 8130,
       "issues": 57,
       "contributors": 21,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 7561
+        "monthly": 7689
       },
       "signal": null,
       "summary": {
@@ -1846,9 +1852,7 @@
       "field_tags": [
         "ai-ml"
       ],
-      "form_tags": [
-        "cli"
-      ]
+      "form_tags": []
     },
     {
       "slug": "Tencent/BrowserSkill",
@@ -1860,14 +1864,14 @@
         "browser-use",
         "dsh-plugin"
       ],
-      "stars": 7119,
-      "forks": 512,
-      "issues": 60,
+      "stars": 7168,
+      "forks": 516,
+      "issues": 62,
       "contributors": 26,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 5647
+        "monthly": 5854
       },
       "signal": null,
       "summary": {
@@ -1915,14 +1919,14 @@
         "whatsapp",
         "whatsapp-api"
       ],
-      "stars": 3711,
-      "forks": 926,
-      "issues": 125,
-      "contributors": 102,
+      "stars": 3737,
+      "forks": 932,
+      "issues": 124,
+      "contributors": 104,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 3113
+        "monthly": 3225
       },
       "signal": null,
       "summary": {
@@ -1949,14 +1953,14 @@
       "description": "Beautiful, Modern & Opinionated Linux",
       "lang": "Shell",
       "topics": [],
-      "stars": 43022,
-      "forks": 4991,
-      "issues": 4505,
-      "contributors": 530,
+      "stars": 43069,
+      "forks": 4999,
+      "issues": 4520,
+      "contributors": 531,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 14577
+        "monthly": 13665
       },
       "signal": null,
       "summary": {
@@ -1997,14 +2001,14 @@
         "scientific-computing",
         "scientific-visualization"
       ],
-      "stars": 46532,
-      "forks": 4205,
+      "stars": 46606,
+      "forks": 4207,
       "issues": 16,
       "contributors": 59,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 12304
+        "monthly": 12450
       },
       "signal": null,
       "summary": {
