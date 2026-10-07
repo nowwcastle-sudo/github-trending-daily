@@ -1,54 +1,54 @@
 {
   "morluto/rea": {
     "content": {
-      "goal": "REA (Reverse Engineer Anything) is a Model Context Protocol (MCP) server and CLI that connects coding agents to tools for reverse-engineering native binaries, JavaScript/Electron apps, .NET assemblies, and websites.",
-      "usage": "Run `npx rea-agents setup` to register REA with a supported agent and install matching workflow instructions; analysis then runs locally. For a quick terminal-only result on an extracted app, run `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json`, which needs no MCP setup, Hopper, or Ghidra.",
-      "pros": "Static JavaScript/Electron analysis requires only the Node/npm runtime, and all analysis runs locally rather than uploading the app to a hosted service. Returned results include inline Evidence plus stated limitations and unknowns.",
-      "cons": "Deep native binary analysis depends on a separately licensed and installed engine — Hopper, Ghidra, or IDA Pro — none of which REA downloads or bundles; Hopper's demo mode carries vendor-defined limits. Native Windows support (via Ghidra) is still described as experimental.",
-      "fit": "REA documents support for agents including Claude Code, Claude Desktop, Codex, Cursor, Gemini CLI, Windsurf, Devin, OpenCode, Antigravity, GitHub Copilot CLI, Command Code, and VS Code, suggesting it suits teams already working with agentic coding tools. Given the external-engine prerequisites for deep native analysis, it may fit developers comfortable with some local tool configuration better than those wanting a fully turnkey setup."
+      "goal": "REA (\"Reverse Engineer Anything\") is an MCP server and CLI that connects an AI agent to tools for inspecting native binaries, JavaScript/Electron apps, .NET assemblies, and websites, so the agent can explain how a feature works and help recreate it.",
+      "usage": "Install and register REA with a supported agent via `npx rea-agents setup`, then restart the agent and describe the app or feature to investigate; a terminal-only first analysis can be run with `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json`.",
+      "pros": "Analysis runs locally without uploading the app to a hosted service, results include evidence and stated limitations, and it integrates with multiple agents (Claude Code, Cursor, Codex, etc.) plus optional engines like Hopper or Ghidra.",
+      "cons": "Deep native binary analysis requires separately licensed or self-supplied software (Hopper, Ghidra, or IDA Pro), and some workflows (e.g., JavaScript source recovery, Windows native capture) have platform-specific prerequisites or remain unsupported on certain hosts.",
+      "fit": "It appears suited for agent-assisted reverse engineering and feature reconstruction on macOS and Linux, with some Windows support described as experimental; teams needing full native binary decompilation should expect to provide Hopper, Ghidra, or IDA Pro themselves."
     },
     "summaries": {
       "en": {
-        "goal": "REA (Reverse Engineer Anything) is a Model Context Protocol (MCP) server and CLI that connects coding agents to tools for reverse-engineering native binaries, JavaScript/Electron apps, .NET assemblies, and websites.",
-        "usage": "Run `npx rea-agents setup` to register REA with a supported agent and install matching workflow instructions; analysis then runs locally. For a quick terminal-only result on an extracted app, run `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json`, which needs no MCP setup, Hopper, or Ghidra.",
-        "pros": "Static JavaScript/Electron analysis requires only the Node/npm runtime, and all analysis runs locally rather than uploading the app to a hosted service. Returned results include inline Evidence plus stated limitations and unknowns.",
-        "cons": "Deep native binary analysis depends on a separately licensed and installed engine — Hopper, Ghidra, or IDA Pro — none of which REA downloads or bundles; Hopper's demo mode carries vendor-defined limits. Native Windows support (via Ghidra) is still described as experimental.",
-        "fit": "REA documents support for agents including Claude Code, Claude Desktop, Codex, Cursor, Gemini CLI, Windsurf, Devin, OpenCode, Antigravity, GitHub Copilot CLI, Command Code, and VS Code, suggesting it suits teams already working with agentic coding tools. Given the external-engine prerequisites for deep native analysis, it may fit developers comfortable with some local tool configuration better than those wanting a fully turnkey setup."
+        "goal": "REA (\"Reverse Engineer Anything\") is an MCP server and CLI that connects an AI agent to tools for inspecting native binaries, JavaScript/Electron apps, .NET assemblies, and websites, so the agent can explain how a feature works and help recreate it.",
+        "usage": "Install and register REA with a supported agent via `npx rea-agents setup`, then restart the agent and describe the app or feature to investigate; a terminal-only first analysis can be run with `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json`.",
+        "pros": "Analysis runs locally without uploading the app to a hosted service, results include evidence and stated limitations, and it integrates with multiple agents (Claude Code, Cursor, Codex, etc.) plus optional engines like Hopper or Ghidra.",
+        "cons": "Deep native binary analysis requires separately licensed or self-supplied software (Hopper, Ghidra, or IDA Pro), and some workflows (e.g., JavaScript source recovery, Windows native capture) have platform-specific prerequisites or remain unsupported on certain hosts.",
+        "fit": "It appears suited for agent-assisted reverse engineering and feature reconstruction on macOS and Linux, with some Windows support described as experimental; teams needing full native binary decompilation should expect to provide Hopper, Ghidra, or IDA Pro themselves."
       },
       "ko": {
-        "goal": "REA(Reverse Engineer Anything)는 네이티브 바이너리, JavaScript/Electron 앱, .NET 어셈블리, 웹사이트를 리버스 엔지니어링하기 위한 도구에 코딩 에이전트를 연결하는 Model Context Protocol(MCP) 서버 및 CLI입니다.",
-        "usage": "`npx rea-agents setup`을 실행하면 지원되는 에이전트에 REA를 등록하고 워크플로 지침을 설치하며, 이후 분석은 로컬에서 실행됩니다. 추출된 앱에 대해 터미널에서 빠르게 결과를 얻으려면 `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json`을 실행하면 MCP 설정, Hopper, Ghidra가 필요하지 않습니다.",
-        "pros": "정적 JavaScript/Electron 분석은 Node/npm 런타임만 필요하며, 모든 분석은 로컬에서 실행되고 앱을 호스팅된 서비스에 업로드하지 않습니다. 반환되는 결과에는 인라인 Evidence와 함께 명시된 한계 및 미해결 사항이 포함됩니다.",
-        "cons": "심층 네이티브 바이너리 분석은 별도로 라이선스를 받아 설치해야 하는 엔진인 Hopper, Ghidra, 또는 IDA Pro에 의존하며, REA는 이들을 다운로드하거나 포함하지 않습니다. Hopper의 데모 모드에는 공급업체가 정한 제한이 있습니다. Ghidra를 통한 네이티브 Windows 지원은 아직 실험적인 것으로 설명됩니다.",
-        "fit": "README는 Claude Code, Claude Desktop, Codex, Cursor, Gemini CLI, Windsurf, Devin, OpenCode, Antigravity, GitHub Copilot CLI, Command Code, VS Code 등의 에이전트 지원을 명시하고 있어, 이미 에이전트 기반 코딩 도구를 사용하는 팀에 적합할 것으로 보입니다. 심층 네이티브 분석을 위한 외부 엔진 전제 조건을 고려하면, 완전한 턴키 설정을 원하는 사용자보다는 로컬 도구 구성에 익숙한 개발자에게 더 적합할 수 있습니다."
+        "goal": "REA(\"Reverse Engineer Anything\")는 AI 에이전트를 네이티브 바이너리, JavaScript/Electron 앱, .NET 어셈블리, 웹사이트를 조사하는 도구에 연결하는 MCP 서버 및 CLI로, 에이전트가 기능의 동작 방식을 설명하고 재현을 돕도록 지원합니다.",
+        "usage": "`npx rea-agents setup`으로 REA를 설치하고 지원되는 에이전트에 등록한 뒤 에이전트를 재시작하여 조사할 앱이나 기능을 설명하면 되며, 터미널에서만 첫 분석을 수행하려면 `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json`을 사용할 수 있습니다.",
+        "pros": "분석이 로컬에서 실행되어 앱을 호스팅 서비스에 업로드하지 않으며, 결과에는 증거와 명시된 한계가 포함되고, Claude Code, Cursor, Codex 등 여러 에이전트와 Hopper·Ghidra 같은 선택적 엔진과 통합됩니다.",
+        "cons": "심층 네이티브 바이너리 분석에는 별도로 라이선스를 받거나 직접 제공해야 하는 소프트웨어(Hopper, Ghidra, IDA Pro)가 필요하며, 일부 워크플로(예: JavaScript 소스 복구, Windows 네이티브 캡처)는 플랫폼별 전제 조건이 있거나 특정 호스트에서는 아직 지원되지 않는 것으로 보입니다.",
+        "fit": "macOS와 Linux에서 에이전트 지원 리버스 엔지니어링 및 기능 재구성에 적합한 것으로 보이며, 일부 Windows 지원은 실험적인 것으로 설명됩니다. 완전한 네이티브 바이너리 디컴파일이 필요한 팀은 Hopper, Ghidra, IDA Pro를 직접 준비해야 할 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "REA(Reverse Engineer Anything)是一个 Model Context Protocol(MCP)服务器和 CLI,将编码代理连接到用于逆向工程原生二进制文件、JavaScript/Electron 应用、.NET 程序集和网站的工具。",
-        "usage": "运行 `npx rea-agents setup` 可将 REA 注册到受支持的代理并安装匹配的工作流说明,此后分析将在本地运行。若要对已提取的应用快速获得终端结果,可运行 `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json`,此命令无需 MCP 配置、Hopper 或 Ghidra。",
-        "pros": "静态 JavaScript/Electron 分析仅需要 Node/npm 运行时,且所有分析都在本地运行,不会将应用上传到托管服务。返回的结果包含内联 Evidence 以及说明的局限性和未知项。",
-        "cons": "深度原生二进制分析依赖于需要单独获得许可并安装的引擎——Hopper、Ghidra 或 IDA Pro,REA 并不下载或内置这些引擎;Hopper 的演示模式也存在供应商设定的限制。通过 Ghidra 实现的原生 Windows 支持仍被描述为实验性。",
-        "fit": "README 列出了对 Claude Code、Claude Desktop、Codex、Cursor、Gemini CLI、Windsurf、Devin、OpenCode、Antigravity、GitHub Copilot CLI、Command Code 和 VS Code 等代理的支持,这表明它可能适合已经使用代理化编码工具的团队。考虑到深度原生分析所需的外部引擎前提条件,它或许更适合愿意进行一定本地工具配置的开发者,而非追求完全开箱即用的用户。"
+        "goal": "REA(\"Reverse Engineer Anything\")是一个 MCP 服务器和 CLI，将 AI 代理连接到用于检查原生二进制文件、JavaScript/Electron 应用、.NET 程序集和网站的工具，使代理能够解释功能的工作原理并协助重建该功能。",
+        "usage": "通过 `npx rea-agents setup` 安装并在受支持的代理中注册 REA，然后重启代理并描述要调查的应用或功能；也可仅在终端中运行首次分析，命令为 `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json`。",
+        "pros": "分析在本地运行，不会将应用上传到托管服务，结果包含证据和所说明的局限性，并支持与 Claude Code、Cursor、Codex 等多种代理集成，以及 Hopper、Ghidra 等可选引擎。",
+        "cons": "深度原生二进制分析需要单独授权或自行提供的软件（Hopper、Ghidra 或 IDA Pro），而部分工作流（例如 JavaScript 源代码恢复、Windows 原生捕获）似乎存在特定平台的前提条件，或在某些主机上尚不受支持。",
+        "fit": "该工具似乎适用于 macOS 和 Linux 上的代理辅助逆向工程与功能重建，部分 Windows 支持被描述为实验性；需要完整原生二进制反编译的团队可能需要自行准备 Hopper、Ghidra 或 IDA Pro。"
       },
       "es": {
-        "goal": "REA (Reverse Engineer Anything) es un servidor MCP (Model Context Protocol) y una CLI que conecta agentes de codificación con herramientas para la ingeniería inversa de binarios nativos, aplicaciones JavaScript/Electron, ensamblados .NET y sitios web.",
-        "usage": "Ejecute `npx rea-agents setup` para registrar REA con un agente compatible e instalar las instrucciones de flujo de trabajo correspondientes; el análisis se ejecuta localmente después. Para obtener un resultado rápido desde la terminal en una app extraída, ejecute `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json`, que no requiere configuración MCP, Hopper ni Ghidra.",
-        "pros": "El análisis estático de JavaScript/Electron solo requiere el entorno Node/npm, y todo el análisis se ejecuta localmente sin subir la aplicación a un servicio alojado. Los resultados devueltos incluyen Evidence en línea junto con limitaciones e incógnitas declaradas.",
-        "cons": "El análisis profundo de binarios nativos depende de un motor con licencia e instalación por separado —Hopper, Ghidra o IDA Pro— que REA no descarga ni incluye; el modo demo de Hopper también tiene límites definidos por el proveedor. El soporte nativo de Windows (a través de Ghidra) todavía se describe como experimental.",
-        "fit": "El README documenta compatibilidad con agentes como Claude Code, Claude Desktop, Codex, Cursor, Gemini CLI, Windsurf, Devin, OpenCode, Antigravity, GitHub Copilot CLI, Command Code y VS Code, lo que sugiere que se ajusta a equipos que ya trabajan con herramientas de codificación agéntica. Dados los requisitos de motores externos para el análisis nativo profundo, podría adaptarse mejor a desarrolladores cómodos con cierta configuración local de herramientas que a quienes buscan una instalación totalmente lista para usar."
+        "goal": "REA (\"Reverse Engineer Anything\") es un servidor MCP y una CLI que conecta a un agente de IA con herramientas para inspeccionar binarios nativos, aplicaciones JavaScript/Electron, ensamblados .NET y sitios web, de modo que el agente pueda explicar cómo funciona una característica y ayudar a recrearla.",
+        "usage": "Instale y registre REA con un agente compatible mediante `npx rea-agents setup`, luego reinicie el agente y describa la aplicación o característica a investigar; también puede ejecutar un primer análisis solo desde la terminal con `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json`.",
+        "pros": "El análisis se ejecuta localmente sin subir la aplicación a un servicio alojado, los resultados incluyen evidencia y limitaciones declaradas, y se integra con varios agentes (Claude Code, Cursor, Codex, etc.) además de motores opcionales como Hopper o Ghidra.",
+        "cons": "El análisis profundo de binarios nativos requiere software con licencia aparte o suministrado por el usuario (Hopper, Ghidra o IDA Pro), y algunos flujos de trabajo (por ejemplo, recuperación de fuentes JavaScript, captura nativa en Windows) parecen tener requisitos específicos de plataforma o permanecer sin soporte en ciertos entornos.",
+        "fit": "Parece adecuado para ingeniería inversa asistida por agentes y reconstrucción de características en macOS y Linux, con cierto soporte de Windows descrito como experimental; los equipos que necesiten descompilación completa de binarios nativos probablemente deban proporcionar Hopper, Ghidra o IDA Pro por su cuenta."
       },
       "ja": {
-        "goal": "REA(Reverse Engineer Anything)は、ネイティブバイナリ、JavaScript/Electronアプリ、.NETアセンブリ、ウェブサイトのリバースエンジニアリング用ツールにコーディングエージェントを接続するModel Context Protocol(MCP)サーバーおよびCLIです。",
-        "usage": "`npx rea-agents setup` を実行すると、サポートされているエージェントにREAが登録され、対応するワークフロー手順がインストールされます。その後の分析はローカルで実行されます。抽出済みアプリに対してターミナルから素早く結果を得るには `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json` を実行します。これにはMCP設定、Hopper、Ghidraは不要です。",
-        "pros": "静的なJavaScript/Electron分析にはNode/npmランタイムのみが必要で、すべての分析はローカルで実行され、アプリをホスト型サービスにアップロードすることはありません。返される結果にはインラインのEvidenceと、明示された制約や未解決事項が含まれます。",
-        "cons": "深いネイティブバイナリ分析は、別途ライセンス取得とインストールが必要なエンジン(Hopper、Ghidra、IDA Pro)に依存しており、REAはこれらをダウンロードしたり同梱したりしません。Hopperのデモモードにもベンダーが定めた制限があります。Ghidraによるネイティブ Windows サポートは、依然として実験的なものとして説明されています。",
-        "fit": "READMEは Claude Code、Claude Desktop、Codex、Cursor、Gemini CLI、Windsurf、Devin、OpenCode、Antigravity、GitHub Copilot CLI、Command Code、VS Code といったエージェントのサポートを記載しており、すでにエージェント型コーディングツールを利用しているチームに適している可能性があります。深いネイティブ分析に必要な外部エンジンの前提条件を考えると、完全にすぐ使える構成を求める利用者よりも、ある程度ローカルツールの設定に慣れた開発者に向いているかもしれません。"
+        "goal": "REA（\"Reverse Engineer Anything\"）は、AIエージェントをネイティブバイナリ、JavaScript/Electronアプリ、.NETアセンブリ、ウェブサイトを検査するツールに接続するMCPサーバーおよびCLIであり、エージェントが機能の動作を説明し再現を支援できるようにします。",
+        "usage": "`npx rea-agents setup` を実行してREAをインストールし、対応エージェントに登録した後、エージェントを再起動して調査したいアプリや機能を説明してください。ターミナルのみでの初回分析には `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json` を使用できます。",
+        "pros": "分析はローカルで実行され、アプリをホスト型サービスにアップロードすることはなく、結果には証拠と明示された制約が含まれ、Claude Code、Cursor、Codexなど複数のエージェントやHopper、Ghidraなどの任意のエンジンと統合できます。",
+        "cons": "ネイティブバイナリの深い解析には、別途ライセンスが必要、または利用者自身が用意するソフトウェア（Hopper、Ghidra、IDA Pro）が必要であり、一部のワークフロー（例：JavaScriptソース復元、Windowsネイティブキャプチャ）には特定プラットフォームの前提条件があるか、一部ホストでは未対応のままである可能性があります。",
+        "fit": "macOSおよびLinux上でのエージェント支援によるリバースエンジニアリングと機能再構築に適していると見られ、Windowsの一部サポートは実験的と説明されています。完全なネイティブバイナリの逆コンパイルが必要なチームは、Hopper、Ghidra、IDA Proを自前で用意する必要があると考えられます。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 5,
-          "end_line": 7,
+          "end_line": 9,
           "section_heading": "REA: Reverse Engineer Anything"
         },
         {
@@ -65,7 +65,7 @@
         },
         {
           "start_line": 90,
-          "end_line": 97,
+          "end_line": 92,
           "section_heading": "First result from the terminal"
         }
       ],
@@ -76,9 +76,9 @@
           "section_heading": "One MCP for reverse engineering across binaries, applications, and runtime behavior."
         },
         {
-          "start_line": 54,
-          "end_line": 54,
-          "section_heading": "One MCP for reverse engineering across binaries, applications, and runtime behavior."
+          "start_line": 84,
+          "end_line": 84,
+          "section_heading": "With an agent (recommended)"
         },
         {
           "start_line": 351,
@@ -93,21 +93,26 @@
           "section_heading": "Requirements"
         },
         {
-          "start_line": 763,
-          "end_line": 764,
-          "section_heading": "FAQ"
+          "start_line": 289,
+          "end_line": 292,
+          "section_heading": "CLI or agent?"
+        },
+        {
+          "start_line": 452,
+          "end_line": 454,
+          "section_heading": "Current status"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 421,
+          "end_line": 423,
+          "section_heading": "Current status"
         },
         {
           "start_line": 170,
           "end_line": 170,
           "section_heading": "Requirements"
-        }
-      ],
-      "fit": [
-        {
-          "start_line": 84,
-          "end_line": 84,
-          "section_heading": "With an agent (recommended)"
         },
         {
           "start_line": 164,
@@ -136,55 +141,49 @@
         "value": "REA",
         "fields": [
           "goal",
-          "usage",
-          "cons",
-          "fit"
+          "usage"
         ]
       },
       {
         "kind": "product",
         "value": "Hopper",
         "fields": [
-          "usage",
-          "cons"
+          "pros",
+          "cons",
+          "fit"
         ]
       },
       {
         "kind": "product",
         "value": "Ghidra",
         "fields": [
-          "usage",
-          "cons"
+          "pros",
+          "cons",
+          "fit"
         ]
       },
       {
         "kind": "product",
         "value": "IDA Pro",
         "fields": [
-          "cons"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "MCP",
-        "fields": [
-          "goal",
-          "usage"
+          "cons",
+          "fit"
         ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "morluto/rea",
       "path": "README.md",
-      "blob_sha": "31e0e43b3d57186d6ecd1fe0d929d47027a99a77",
-      "content_sha256": "dce80cdb727d0767c4db0347ce172c8cc62482feb411ed99d52848c81486ca1e",
+      "blob_sha": "233209af1d0cab03d95365fcd3e823ad690ed84b",
+      "content_sha256": "af91f4f8030f7dcd98071c872c065c1ae919fb8aced462cc77b6a0c6c51085de",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.287",
+      "cli_version": "2.1.292",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -386,47 +385,47 @@
   },
   "boykopovar/AnyPS5": {
     "content": {
-      "goal": "AnyPS5 is a tool for automatically porting executables to Linux and Windows. It includes a relinker that converts executables to the target system's native format, plus implementations of system PRX libraries for dynamic linking, without emulation or a separate runtime process.",
-      "usage": "Usage instructions are documented in docs/user/USAGE.md, with build instructions in docs/dev/BUILD.md. Keyboard and mouse controls can be configured via an anyps5-input.ini file, and SDL-mapped game controllers, including analog sticks and triggers, are supported.",
-      "pros": "Dreaming Sarah, a 2D platformer, is reported to run at a stable 60 fps on a GTX 1050 Ti / i5-7500 3.4GHz setup. The shader recompiler successfully produces SPIR-V output, which can be validated via SPIRV-Tools when built with the ANYPS5_ENABLE_SPIRV_TOOLS flag.",
-      "cons": "Unsupported or unexpected states throw a std::runtime_error, print the error to stderr, and terminate the process, which suggests limited graceful error recovery. System library coverage is also tracked only as a percentage of functions known to the project so far rather than the full PS5 API, implying compatibility work appears to still be ongoing.",
-      "fit": "The project targets interoperability, research, preservation, and compatibility purposes, stating it does not include or require copyrighted software, firmware, cryptographic keys, or proprietary libraries. It is distributed under the GNU General Public License version 2 only, so users must ensure any binaries used comply with applicable laws and licenses."
+      "goal": "AnyPS5 is a tool that automatically ports executables to Linux and Windows. It includes a relinker that converts executables to the target system's native format and PRX library reimplementations for dynamic linking, operating without emulation or a separate runtime process.",
+      "usage": "Usage and build instructions are documented separately (USAGE.md, BUILD.md). Input mapping supports SDL-compatible game controllers, including analog sticks and triggers, and keyboard/mouse controls can be configured via an anyps5-input.ini file.",
+      "pros": "The shader recompiler produces SPIR-V output that is validated through Spirv-Tools when built with the ANYPS5_ENABLE_SPIRV_TOOLS option. The README reports one tested game, Dreaming Sarah, running at a stable 60 fps on a GTX 1050 Ti / i5-7500 setup.",
+      "cons": "Status badges track library and shader function coverage against functions declared so far rather than the full PS5 system API, suggesting compatibility may still be limited for untested titles. Unsupported or unexpected states throw std::runtime_error and terminate the process rather than degrading gracefully.",
+      "fit": "The project states it is intended for interoperability, research, preservation, and compatibility purposes, and does not include or require copyrighted firmware, keys, or proprietary libraries, implying users must supply and manage their own compliant binaries. It is licensed under GNU General Public License version 2."
     },
     "summaries": {
       "en": {
-        "goal": "AnyPS5 is a tool for automatically porting executables to Linux and Windows. It includes a relinker that converts executables to the target system's native format, plus implementations of system PRX libraries for dynamic linking, without emulation or a separate runtime process.",
-        "usage": "Usage instructions are documented in docs/user/USAGE.md, with build instructions in docs/dev/BUILD.md. Keyboard and mouse controls can be configured via an anyps5-input.ini file, and SDL-mapped game controllers, including analog sticks and triggers, are supported.",
-        "pros": "Dreaming Sarah, a 2D platformer, is reported to run at a stable 60 fps on a GTX 1050 Ti / i5-7500 3.4GHz setup. The shader recompiler successfully produces SPIR-V output, which can be validated via SPIRV-Tools when built with the ANYPS5_ENABLE_SPIRV_TOOLS flag.",
-        "cons": "Unsupported or unexpected states throw a std::runtime_error, print the error to stderr, and terminate the process, which suggests limited graceful error recovery. System library coverage is also tracked only as a percentage of functions known to the project so far rather than the full PS5 API, implying compatibility work appears to still be ongoing.",
-        "fit": "The project targets interoperability, research, preservation, and compatibility purposes, stating it does not include or require copyrighted software, firmware, cryptographic keys, or proprietary libraries. It is distributed under the GNU General Public License version 2 only, so users must ensure any binaries used comply with applicable laws and licenses."
+        "goal": "AnyPS5 is a tool that automatically ports executables to Linux and Windows. It includes a relinker that converts executables to the target system's native format and PRX library reimplementations for dynamic linking, operating without emulation or a separate runtime process.",
+        "usage": "Usage and build instructions are documented separately (USAGE.md, BUILD.md). Input mapping supports SDL-compatible game controllers, including analog sticks and triggers, and keyboard/mouse controls can be configured via an anyps5-input.ini file.",
+        "pros": "The shader recompiler produces SPIR-V output that is validated through Spirv-Tools when built with the ANYPS5_ENABLE_SPIRV_TOOLS option. The README reports one tested game, Dreaming Sarah, running at a stable 60 fps on a GTX 1050 Ti / i5-7500 setup.",
+        "cons": "Status badges track library and shader function coverage against functions declared so far rather than the full PS5 system API, suggesting compatibility may still be limited for untested titles. Unsupported or unexpected states throw std::runtime_error and terminate the process rather than degrading gracefully.",
+        "fit": "The project states it is intended for interoperability, research, preservation, and compatibility purposes, and does not include or require copyrighted firmware, keys, or proprietary libraries, implying users must supply and manage their own compliant binaries. It is licensed under GNU General Public License version 2."
       },
       "ko": {
-        "goal": "AnyPS5는 실행 파일을 Linux와 Windows로 자동 포팅하는 도구입니다. 실행 파일을 대상 시스템의 네이티브 형식으로 변환하는 relinker와, 동적 링킹을 위한 시스템 PRX 라이브러리 구현을 포함하며, 에뮬레이션이나 별도의 런타임 프로세스 없이 동작합니다.",
-        "usage": "사용 방법은 docs/user/USAGE.md에, 빌드 방법은 docs/dev/BUILD.md에 문서화되어 있습니다. 키보드와 마우스 제어는 anyps5-input.ini 파일로 설정할 수 있으며, 아날로그 스틱과 트리거를 포함한 SDL 매핑 게임 컨트롤러도 지원됩니다.",
-        "pros": "2D 플랫포머인 Dreaming Sarah은 GTX 1050 Ti / i5-7500 3.4GHz 환경에서 안정적인 60 fps로 구동된다고 보고되었습니다. 셰이더 재컴파일러는 SPIR-V 출력을 성공적으로 생성하며, ANYPS5_ENABLE_SPIRV_TOOLS 플래그로 빌드하면 SPIRV-Tools를 통해 검증할 수 있습니다.",
-        "cons": "지원되지 않거나 예상치 못한 상태는 std::runtime_error를 발생시켜 stderr에 오류를 출력하고 프로세스를 종료하는데, 이는 오류 복구가 제한적일 수 있음을 시사합니다. 또한 시스템 라이브러리 커버리지는 전체 PS5 API가 아니라 현재까지 알려진 함수의 비율로만 추적되어, 호환성 작업이 아직 진행 중인 것으로 보입니다.",
-        "fit": "이 프로젝트는 상호운용성, 연구, 보존, 호환성 목적을 대상으로 하며, 저작권이 있는 소프트웨어나 펌웨어, 암호화 키, 독점 라이브러리를 포함하거나 요구하지 않는다고 명시합니다. GNU General Public License version 2 단독 라이선스로 배포되므로, 사용자는 사용하는 바이너리가 관련 법률과 라이선스 조건을 준수하는지 확인해야 합니다."
+        "goal": "AnyPS5는 실행 파일을 Linux와 Windows로 자동으로 포팅하는 도구입니다. 실행 파일을 대상 시스템의 네이티브 형식으로 변환하는 relinker와 동적 링킹을 위한 PRX 라이브러리 재구현을 포함하며, 에뮬레이션이나 별도의 런타임 프로세스 없이 동작합니다.",
+        "usage": "사용법과 빌드 지침은 별도 문서(USAGE.md, BUILD.md)에 정리되어 있습니다. 입력 매핑은 아날로그 스틱과 트리거를 포함한 SDL 호환 게임 컨트롤러를 지원하며, 키보드와 마우스 조작은 anyps5-input.ini 파일로 설정할 수 있습니다.",
+        "pros": "셰이더 재컴파일러는 ANYPS5_ENABLE_SPIRV_TOOLS 옵션으로 빌드할 경우 Spirv-Tools를 통해 검증된 SPIR-V를 출력합니다. README에는 테스트된 게임 중 하나인 Dreaming Sarah가 GTX 1050 Ti / i5-7500 환경에서 안정적으로 60 fps로 동작한다고 기재되어 있습니다.",
+        "cons": "상태 배지는 전체 PS5 시스템 API가 아니라 지금까지 선언된 함수를 기준으로 라이브러리와 셰이더 커버리지를 추적하므로, 테스트되지 않은 타이틀에서는 호환성이 제한적일 수 있는 것으로 보입니다. 지원되지 않거나 예상치 못한 상태는 std::runtime_error를 발생시키고 프로세스를 종료하며, 점진적으로 저하되는 방식은 아닙니다.",
+        "fit": "이 프로젝트는 상호운용성, 연구, 보존, 호환성 목적을 위한 것이며 저작권이 있는 펌웨어, 키, 독점 라이브러리를 포함하거나 요구하지 않는다고 명시되어 있어, 사용자가 자신의 합법적인 바이너리를 직접 준비해야 함을 시사합니다. GNU General Public License version 2 하에 라이선스가 부여됩니다."
       },
       "zh-CN": {
-        "goal": "AnyPS5 是一个用于将可执行文件自动移植到 Linux 和 Windows 的工具。它包含一个将可执行文件转换为目标系统原生格式的 relinker,以及用于动态链接的系统 PRX 库实现,整个过程不依赖模拟或单独的运行时进程。",
-        "usage": "使用说明记录在 docs/user/USAGE.md 中,构建说明记录在 docs/dev/BUILD.md 中。键盘和鼠标操作可以通过 anyps5-input.ini 文件配置,同时支持包含摇杆和扳机的 SDL 映射游戏控制器。",
-        "pros": "据报告,2D 平台游戏 Dreaming Sarah 在 GTX 1050 Ti / i5-7500 3.4GHz 配置下能稳定运行在 60 fps。着色器重编译器可成功生成 SPIR-V 输出,在使用 ANYPS5_ENABLE_SPIRV_TOOLS 标志构建时可通过 SPIRV-Tools 验证。",
-        "cons": "不受支持或意外的状态会抛出 std::runtime_error,将错误信息打印到 stderr 后终止进程,这似乎意味着容错恢复能力有限。此外,系统库覆盖率仅按项目目前已知函数的百分比统计,而非完整的 PS5 API,表明兼容性工作可能仍在持续推进中。",
-        "fit": "该项目面向互操作性、研究、保存和兼容性用途,并声明不包含也不要求任何受版权保护的软件、固件、加密密钥或专有库。项目仅基于 GNU General Public License version 2 分发,因此用户需确保所使用的二进制文件符合相关法律和许可条款。"
+        "goal": "AnyPS5 是一款将可执行文件自动移植到 Linux 和 Windows 的工具。它包含一个将可执行文件转换为目标系统原生格式的 relinker,以及用于动态链接的 PRX 库重新实现,运行时不依赖模拟或独立的运行时进程。",
+        "usage": "使用说明和构建步骤记录在单独的文档中(USAGE.md、BUILD.md)。输入映射支持包括摇杆和扳机的 SDL 兼容游戏控制器,键盘和鼠标操作可通过 anyps5-input.ini 文件进行配置。",
+        "pros": "着色器重新编译器在使用 ANYPS5_ENABLE_SPIRV_TOOLS 选项构建时,会生成经 Spirv-Tools 验证的 SPIR-V 输出。README 中记录了一款已测试游戏 Dreaming Sarah,在 GTX 1050 Ti / i5-7500 配置下以稳定的 60 fps 运行。",
+        "cons": "状态徽章追踪的是迄今为止已声明函数的库和着色器覆盖率,而非完整的 PS5 系统 API,这表明未经测试的游戏兼容性可能仍然有限。不受支持或意外的状态会抛出 std::runtime_error 并终止进程,而不是以降级方式处理。",
+        "fit": "该项目声明其用途为互操作性、研究、保存和兼容性,不包含或要求受版权保护的固件、密钥或专有库,这意味着用户需要自行准备合规的二进制文件。该项目依据 GNU General Public License version 2 授权。"
       },
       "es": {
-        "goal": "AnyPS5 es una herramienta para portar automáticamente ejecutables a Linux y Windows. Incluye un relinker que convierte los ejecutables al formato nativo del sistema de destino, junto con implementaciones de bibliotecas PRX del sistema para enlace dinámico, sin emulación ni un proceso de tiempo de ejecución separado.",
-        "usage": "Las instrucciones de uso están documentadas en docs/user/USAGE.md, y las de compilación en docs/dev/BUILD.md. Los controles de teclado y ratón se pueden configurar mediante un archivo anyps5-input.ini, y los mandos mapeados con SDL, incluidos joysticks analógicos y gatillos, son compatibles.",
-        "pros": "Se informa que Dreaming Sarah, una plataforma 2D, funciona de forma estable a 60 fps en una configuración GTX 1050 Ti / i5-7500 3.4GHz. El recompilador de shaders genera correctamente salida SPIR-V, que puede validarse mediante SPIRV-Tools al compilar con el indicador ANYPS5_ENABLE_SPIRV_TOOLS.",
-        "cons": "Los estados no admitidos o inesperados lanzan un std::runtime_error, imprimen el error en stderr y terminan el proceso, lo que sugiere una recuperación de errores limitada. Además, la cobertura de bibliotecas del sistema se mide solo como porcentaje de funciones conocidas hasta ahora, no de la API completa de PS5, lo que indica que la compatibilidad parece seguir en desarrollo.",
-        "fit": "El proyecto está orientado a fines de interoperabilidad, investigación, preservación y compatibilidad, y declara que no incluye ni requiere software protegido por derechos de autor, firmware, claves criptográficas ni bibliotecas propietarias. Se distribuye únicamente bajo la GNU General Public License version 2, por lo que los usuarios deben asegurarse de que los binarios utilizados cumplan con las leyes y licencias aplicables."
+        "goal": "AnyPS5 es una herramienta que porta automáticamente ejecutables a Linux y Windows. Incluye un relinker que convierte los ejecutables al formato nativo del sistema de destino y reimplementaciones de bibliotecas PRX para enlace dinámico, sin emulación ni un proceso de tiempo de ejecución separado.",
+        "usage": "Las instrucciones de uso y compilación están documentadas por separado (USAGE.md, BUILD.md). El mapeo de entrada admite mandos compatibles con SDL, incluidos joysticks analógicos y gatillos, y los controles de teclado y ratón pueden configurarse mediante un archivo anyps5-input.ini.",
+        "pros": "El recompilador de shaders produce salida SPIR-V que se valida mediante Spirv-Tools cuando se compila con la opción ANYPS5_ENABLE_SPIRV_TOOLS. El README reporta que un juego probado, Dreaming Sarah, funciona de forma estable a 60 fps en una configuración GTX 1050 Ti / i5-7500.",
+        "cons": "Las insignias de estado rastrean la cobertura de bibliotecas y shaders según las funciones declaradas hasta ahora, no según la API completa del sistema PS5, lo que sugiere que la compatibilidad podría seguir siendo limitada para títulos no probados. Los estados no admitidos o inesperados generan std::runtime_error y terminan el proceso en lugar de degradarse de forma controlada.",
+        "fit": "El proyecto declara que está destinado a interoperabilidad, investigación, preservación y compatibilidad, y que no incluye ni requiere firmware, claves o bibliotecas propietarias protegidas por derechos de autor, lo que implica que los usuarios deben aportar sus propios binarios conformes. Está licenciado bajo GNU General Public License version 2."
       },
       "ja": {
-        "goal": "AnyPS5は、実行ファイルをLinuxおよびWindowsへ自動的に移植するためのツールです。実行ファイルを対象システムのネイティブ形式に変換するrelinkerと、動的リンク用のシステムPRXライブラリの実装を含み、エミュレーションや別個のランタイムプロセスを使用しません。",
-        "usage": "使用方法はdocs/user/USAGE.mdに、ビルド方法はdocs/dev/BUILD.mdに記載されています。キーボードとマウスの操作はanyps5-input.iniファイルで設定でき、アナログスティックやトリガーを含むSDLマッピングのゲームコントローラーも対応しています。",
-        "pros": "2Dプラットフォーマーの Dreaming Sarah は、GTX 1050 Ti / i5-7500 3.4GHz環境で安定した60 fpsで動作すると報告されています。シェーダー再コンパイラはSPIR-V出力を正常に生成し、ANYPS5_ENABLE_SPIRV_TOOLSフラグでビルドするとSPIRV-Toolsによる検証が可能です。",
-        "cons": "サポートされていない、または予期しない状態はstd::runtime_errorを発生させ、エラーをstderrに出力してプロセスを終了するため、エラー回復の仕組みは限定的である可能性があります。さらに、システムライブラリのカバー率はPS5の全APIではなく、プロジェクトが現時点で把握している関数の割合として追跡されているため、互換性対応はまだ進行中とみられます。",
-        "fit": "本プロジェクトは相互運用性、研究、保存、互換性を目的としており、著作権で保護されたソフトウェアやファームウェア、暗号鍵、独自ライブラリを含まず、またそれらを要求しないと明記されています。GNU General Public License version 2のみの下で配布されているため、利用者は使用するバイナリが関連法規およびライセンス条件に準拠していることを自ら確認する必要があります。"
+        "goal": "AnyPS5は、実行ファイルをLinuxおよびWindowsへ自動的に移植するツールです。実行ファイルを対象システムのネイティブ形式に変換するrelinkerと、動的リンク用のPRXライブラリ再実装を含み、エミュレーションや別個のランタイムプロセスを必要としません。",
+        "usage": "使用方法とビルド手順は別のドキュメント(USAGE.md、BUILD.md)にまとめられています。入力マッピングはアナログスティックやトリガーを含むSDL対応コントローラーをサポートし、キーボードとマウスの操作はanyps5-input.iniファイルで設定できます。",
+        "pros": "シェーダー再コンパイラは、ANYPS5_ENABLE_SPIRV_TOOLSオプションでビルドした場合、Spirv-Toolsで検証されたSPIR-V出力を生成します。READMEには、テスト済みゲームの一つであるDreaming SarahがGTX 1050 Ti / i5-7500環境で安定して60 fpsで動作すると記載されています。",
+        "cons": "ステータスバッジは、PS5の全システムAPIではなく、これまでに宣言された関数を基準にライブラリとシェーダーのカバレッジを追跡しているため、未検証のタイトルでは互換性がまだ限られている可能性があることを示唆しています。サポートされていない、または予期しない状態はstd::runtime_errorを発生させてプロセスを終了し、段階的に低下する動作ではありません。",
+        "fit": "このプロジェクトは相互運用性、研究、保存、互換性を目的としており、著作権で保護されたファームウェア、鍵、独自ライブラリを含んだり要求したりしないと述べられているため、ユーザー自身が適法なバイナリを用意する必要があることを示しています。GNU General Public License version 2のもとでライセンスされています。"
       }
     },
     "evidence": {
@@ -463,13 +462,13 @@
       ],
       "cons": [
         {
-          "start_line": 21,
-          "end_line": 21,
+          "start_line": 15,
+          "end_line": 15,
           "section_heading": "Status"
         },
         {
-          "start_line": 15,
-          "end_line": 16,
+          "start_line": 21,
+          "end_line": 21,
           "section_heading": "Status"
         }
       ],
@@ -509,20 +508,28 @@
         "fields": [
           "pros"
         ]
+      },
+      {
+        "kind": "command",
+        "value": "anyps5-input.ini",
+        "fields": [
+          "usage"
+        ]
       }
     ],
     "inference_fields": [
-      "cons"
+      "cons",
+      "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "boykopovar/anyps5",
       "path": "README.md",
-      "blob_sha": "a06939e2b1e26abf1df8f6f5357cdafbd60e4555",
-      "content_sha256": "3122b9523b1efe16fd66f9dfad96461b7c900ffbd93273f1b806e991134f4309",
+      "blob_sha": "5e57cb94ff24c133317861bad76ac6b8dd83a55b",
+      "content_sha256": "a7ca56383ddba00b4717a996ae27ff2230508be2f4d889afca6c70eef005e617",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.287",
+      "cli_version": "2.1.292",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -2152,98 +2159,113 @@
   },
   "DuarteSantos8/openGym": {
     "content": {
-      "goal": "openGym is a self-hosted gym and body-weight tracker intended to run entirely under the user's control, syncing data across devices while keeping storage in a folder the user owns (lines 5-8, 41-44).",
-      "usage": "Setup follows `git clone https://github.com/DuarteSantos8/openGym`, then `docker compose up -d` inside the project folder; the app becomes reachable at http://localhost:8080, and the first launch downloads about 140 MB of exercise media once.",
-      "pros": "Documented capabilities include passkey sign-in with cross-device sync, a library of 1,324 searchable exercises, import support for FitNotes, Strong, Hevy and Apple Health data, and distribution under the AGPL v3.0 open-source license.",
-      "cons": "The exercise images and animations are explicitly stated as not covered by the AGPL license, with ownership disputed between Gym visual and ExerciseDB; reusing that media is described as requiring separate clearance from the rights holder.",
-      "fit": "Given its Docker-based self-hosting approach and stated absence from the Play Store, openGym appears best suited to users comfortable managing their own server rather than those seeking app-store-only installs, since iPhone users are told Apple does not allow installs outside the App Store."
+      "goal": "openGym is described as a self-hosted gym and body-weight tracker that runs via Docker, letting users plan weekly routines, run guided workouts, and log sets and body weight behind their own passkey login, with data kept in a local folder rather than a vendor's server.",
+      "usage": "The README documents starting the project with `git clone https://github.com/DuarteSantos8/openGym`, then copying `.env.example` to `.env` and running `docker compose up -d`; the app is then reachable at http://localhost:8080, where a profile can be created.",
+      "pros": "Documented features include a library of 1,324 exercises with animated demos, offline support with cross-device sync, CSV/API imports from FitNotes, Strong, Hevy and Apple Health, full JSON export, and 18 supported languages.",
+      "cons": "Reaching the app from a phone with passkeys requires HTTPS on a real domain, which the README says needs a two-line `.env` change plus a reverse-proxy setup (Cloudflare Tunnel, Caddy, Traefik, or nginx); exercise images also have disputed third-party ownership and aren't covered by the project's license.",
+      "fit": "This appears suited to individuals who want a privacy-focused, self-hosted alternative to commercial workout-tracking apps and are comfortable running Docker and, for mobile passkey use, configuring a domain with HTTPS; it is licensed under AGPL v3.0, requiring any modified network-service deployment to share its source."
     },
     "summaries": {
       "en": {
-        "goal": "openGym is a self-hosted gym and body-weight tracker intended to run entirely under the user's control, syncing data across devices while keeping storage in a folder the user owns (lines 5-8, 41-44).",
-        "usage": "Setup follows `git clone https://github.com/DuarteSantos8/openGym`, then `docker compose up -d` inside the project folder; the app becomes reachable at http://localhost:8080, and the first launch downloads about 140 MB of exercise media once.",
-        "pros": "Documented capabilities include passkey sign-in with cross-device sync, a library of 1,324 searchable exercises, import support for FitNotes, Strong, Hevy and Apple Health data, and distribution under the AGPL v3.0 open-source license.",
-        "cons": "The exercise images and animations are explicitly stated as not covered by the AGPL license, with ownership disputed between Gym visual and ExerciseDB; reusing that media is described as requiring separate clearance from the rights holder.",
-        "fit": "Given its Docker-based self-hosting approach and stated absence from the Play Store, openGym appears best suited to users comfortable managing their own server rather than those seeking app-store-only installs, since iPhone users are told Apple does not allow installs outside the App Store."
+        "goal": "openGym is described as a self-hosted gym and body-weight tracker that runs via Docker, letting users plan weekly routines, run guided workouts, and log sets and body weight behind their own passkey login, with data kept in a local folder rather than a vendor's server.",
+        "usage": "The README documents starting the project with `git clone https://github.com/DuarteSantos8/openGym`, then copying `.env.example` to `.env` and running `docker compose up -d`; the app is then reachable at http://localhost:8080, where a profile can be created.",
+        "pros": "Documented features include a library of 1,324 exercises with animated demos, offline support with cross-device sync, CSV/API imports from FitNotes, Strong, Hevy and Apple Health, full JSON export, and 18 supported languages.",
+        "cons": "Reaching the app from a phone with passkeys requires HTTPS on a real domain, which the README says needs a two-line `.env` change plus a reverse-proxy setup (Cloudflare Tunnel, Caddy, Traefik, or nginx); exercise images also have disputed third-party ownership and aren't covered by the project's license.",
+        "fit": "This appears suited to individuals who want a privacy-focused, self-hosted alternative to commercial workout-tracking apps and are comfortable running Docker and, for mobile passkey use, configuring a domain with HTTPS; it is licensed under AGPL v3.0, requiring any modified network-service deployment to share its source."
       },
       "ko": {
-        "goal": "openGym은 사용자가 직접 운영하는 서버에서 작동하는 자체 호스팅 헬스/체중 트래커로, 기기 간 동기화를 지원하면서 데이터를 사용자 소유 폴더에 보관하도록 설계되었습니다 (5-8행, 41-44행).",
-        "usage": "설치는 `git clone https://github.com/DuarteSantos8/openGym` 후 프로젝트 폴더에서 `docker compose up -d`를 실행하면 되며, http://localhost:8080 에서 접속할 수 있고 첫 실행 시 약 140 MB의 운동 미디어가 한 번 다운로드됩니다.",
-        "pros": "문서에 따르면 패스키 로그인과 기기 간 동기화, 1,324개의 검색 가능한 운동 라이브러리, FitNotes·Strong·Hevy·Apple Health 데이터 가져오기 기능, 그리고 AGPL v3.0 오픈소스 라이선스 하에 배포된다는 점이 특징입니다.",
-        "cons": "운동 이미지와 애니메이션은 AGPL 라이선스 대상이 아니며 소유권이 Gym visual과 ExerciseDB 사이에서 분쟁 중이라고 명시되어 있어, 해당 미디어를 재사용하려면 권리자의 별도 승인이 필요하다고 설명되어 있습니다.",
-        "fit": "Docker 기반 자체 호스팅 방식과 Play 스토어에 등록되지 않았다는 점을 고려하면, 앱스토어 설치만을 원하는 사용자보다는 직접 서버를 운영할 수 있는 사용자에게 더 적합해 보이며, iPhone 사용자는 Apple이 앱스토어 외 설치를 허용하지 않는다는 안내를 받습니다."
+        "goal": "README에 따르면 openGym은 Docker로 실행되는 자가 호스팅형 체육관 및 체중 기록 앱으로, 사용자가 주간 루틴을 계획하고 가이드 운동을 진행하며 세트와 체중을 자신의 패스키 로그인 뒤에서 기록할 수 있다고 설명되어 있으며, 데이터는 외부 서버가 아닌 로컬 폴더에 저장됩니다.",
+        "usage": "README는 `git clone https://github.com/DuarteSantos8/openGym` 로 시작한 뒤 `.env.example`을 `.env`로 복사하고 `docker compose up -d`를 실행하는 과정을 안내하며, 이후 http://localhost:8080 에서 프로필을 생성해 접속할 수 있다고 설명합니다.",
+        "pros": "문서화된 기능으로는 애니메이션 시연이 포함된 1,324개 운동 라이브러리, 오프라인 지원과 기기 간 동기화, FitNotes·Strong·Hevy·Apple Health로부터의 가져오기, 전체 JSON 내보내기, 18개 언어 지원이 언급되어 있습니다.",
+        "cons": "패스키로 휴대폰에서 접속하려면 실제 도메인에 HTTPS가 필요하다고 README에 명시되어 있으며, 이를 위해 `.env` 설정 변경과 Cloudflare Tunnel·Caddy·Traefik·nginx 같은 리버스 프록시 구성이 요구된다고 설명됩니다. 또한 운동 이미지의 저작권은 분쟁 중이며 프로젝트 라이선스가 이를 포함하지 않는다고 적혀 있습니다.",
+        "fit": "이는 상업용 운동 추적 앱 대신 개인정보를 중시하는 자가 호스팅 대안을 원하고 Docker 운용 및 모바일 패스키 사용을 위한 도메인·HTTPS 설정에 익숙한 사용자에게 적합해 보이며, AGPL v3.0 라이선스로 배포되어 수정된 버전을 네트워크 서비스로 운영할 경우 소스 공개가 요구됩니다."
       },
       "zh-CN": {
-        "goal": "openGym 是一款自托管的健身与体重追踪应用,旨在完全由用户自行运行,在设备间同步数据的同时将数据保存在用户自己控制的文件夹中(第5-8行、41-44行)。",
-        "usage": "安装步骤为先执行 `git clone https://github.com/DuarteSantos8/openGym`,再在项目目录中运行 `docker compose up -d`,随后可通过 http://localhost:8080 访问,首次启动会一次性下载约 140 MB 的训练媒体文件。",
-        "pros": "文档说明的特点包括:支持跨设备同步的通行密钥登录、包含 1,324 个可搜索动作的训练库、支持从 FitNotes、Strong、Hevy 和 Apple Health 导入数据,并以 AGPL v3.0 开源许可证发布。",
-        "cons": "文档明确指出训练动作的图片与动画并不受 AGPL 许可证覆盖,其所有权在 Gym visual 与 ExerciseDB 之间存在争议,若要重新使用该媒体内容需另行获得权利方许可。",
-        "fit": "考虑到其基于 Docker 的自托管方式以及未上架 Play 商店这一事实,openGym 似乎更适合愿意自行管理服务器的用户,而非只想通过应用商店安装的用户,因为 iPhone 用户被告知 Apple 不允许在 App Store 之外安装应用。"
+        "goal": "根据README描述,openGym 是一个通过 Docker 运行的自托管健身与体重记录工具,用户可以规划每周训练计划、进行引导式训练并在自己的 passkey 登录后记录每组训练和体重,数据保存在本地文件夹而非第三方服务器。",
+        "usage": "README 中记录的使用方式是先执行 `git clone https://github.com/DuarteSantos8/openGym`,将 `.env.example` 复制为 `.env` 后运行 `docker compose up -d`,随后可在 http://localhost:8080 创建个人资料并开始使用。",
+        "pros": "文档提到的功能包括包含动画演示的 1,324 个动作库、离线支持与跨设备同步、可从 FitNotes、Strong、Hevy 和 Apple Health 导入数据、完整的 JSON 导出,以及支持 18 种语言。",
+        "cons": "README 说明如果要在手机上通过 passkey 访问,需要为真实域名配置 HTTPS,这需要修改 `.env` 中的两行配置并搭建 Cloudflare Tunnel、Caddy、Traefik 或 nginx 等反向代理;此外,动作图片的第三方版权存在争议,且不受项目许可证覆盖。",
+        "fit": "该项目似乎适合希望使用注重隐私的自托管方案替代商业健身追踪应用、并熟悉 Docker 操作及为移动端 passkey 配置域名与 HTTPS 的用户;项目采用 AGPL v3.0 许可证,若以修改版本提供网络服务则需公开其源代码。"
       },
       "es": {
-        "goal": "openGym es un rastreador de gimnasio y peso corporal autoalojado, pensado para ejecutarse bajo el control del usuario, sincronizando datos entre dispositivos mientras los mantiene en una carpeta propia (líneas 5-8, 41-44).",
-        "usage": "La instalación consiste en ejecutar `git clone https://github.com/DuarteSantos8/openGym` y luego `docker compose up -d` dentro de la carpeta del proyecto; la aplicación queda disponible en http://localhost:8080, y el primer inicio descarga una sola vez unos 140 MB de contenido multimedia de ejercicios.",
-        "pros": "Entre las características documentadas se incluyen el inicio de sesión con passkeys sincronizado entre dispositivos, una biblioteca de 1,324 ejercicios buscables, importación de datos desde FitNotes, Strong, Hevy y Apple Health, y su distribución bajo la licencia de código abierto AGPL v3.0.",
-        "cons": "El documento indica explícitamente que las imágenes y animaciones de los ejercicios no están cubiertas por la licencia AGPL, con una propiedad disputada entre Gym visual y ExerciseDB, por lo que reutilizar ese contenido requeriría autorización separada del titular de los derechos.",
-        "fit": "Dado su enfoque de autoalojamiento basado en Docker y su ausencia declarada en Play Store, openGym parece más adecuado para usuarios dispuestos a administrar su propio servidor que para quienes buscan instalaciones exclusivas desde una tienda de aplicaciones, ya que a los usuarios de iPhone se les indica que Apple no permite instalaciones fuera de la App Store."
+        "goal": "Según el README, openGym es un rastreador de gimnasio y peso corporal autoalojado que se ejecuta con Docker, permitiendo planificar rutinas semanales, realizar entrenamientos guiados y registrar series y peso corporal tras un inicio de sesión con passkey propio, manteniendo los datos en una carpeta local en lugar de un servidor externo.",
+        "usage": "El README documenta el uso con `git clone https://github.com/DuarteSantos8/openGym`, copiando `.env.example` a `.env` y ejecutando `docker compose up -d`; luego la aplicación queda disponible en http://localhost:8080, donde se puede crear un perfil.",
+        "pros": "Entre las funciones documentadas se incluyen una biblioteca de 1,324 ejercicios con demostraciones animadas, soporte sin conexión con sincronización entre dispositivos, importación desde FitNotes, Strong, Hevy y Apple Health, exportación completa en JSON, y 18 idiomas disponibles.",
+        "cons": "El README indica que acceder desde el teléfono con passkeys requiere HTTPS en un dominio real, lo que implica un cambio de dos líneas en `.env` y configurar un proxy inverso (Cloudflare Tunnel, Caddy, Traefik o nginx); además, la propiedad de las imágenes de los ejercicios está en disputa y no está cubierta por la licencia del proyecto.",
+        "fit": "Parece adecuado para quienes buscan una alternativa autoalojada y centrada en la privacidad frente a apps comerciales de seguimiento de entrenamiento, y que se sientan cómodos usando Docker y, para passkeys móviles, configurando un dominio con HTTPS; se distribuye bajo licencia AGPL v3.0, que exige compartir el código si se ejecuta una versión modificada como servicio de red."
       },
       "ja": {
-        "goal": "openGymは、ユーザー自身が管理するサーバー上で動作することを想定したセルフホスト型のジム・体重トラッカーであり、デバイス間で同期しながらデータを自分のフォルダに保持する(5-8行目、41-44行目)。",
-        "usage": "セットアップは `git clone https://github.com/DuarteSantos8/openGym` を実行し、続いてプロジェクトフォルダ内で `docker compose up -d` を実行するだけで、http://localhost:8080 でアクセスできるようになり、初回起動時に約140 MBのエクササイズメディアが一度だけダウンロードされる。",
-        "pros": "文書によれば、デバイス間で同期するパスキーログイン、検索可能な1,324種類のエクササイズライブラリ、FitNotes・Strong・Hevy・Apple Healthからのデータ取り込み、AGPL v3.0オープンソースライセンスでの配布などが特徴とされている。",
-        "cons": "エクササイズの画像やアニメーションはAGPLライセンスの対象外であると明記されており、所有権はGym visualとExerciseDBの間で争いがあるとされ、そのメディアを再利用するには権利者から別途許可を得る必要があると説明されている。",
-        "fit": "Dockerベースのセルフホスト方式を採用し、Playストアには掲載されていないとされる点を踏まえると、openGymはアプリストアのみでの導入を望む利用者よりも、自分でサーバーを管理できる利用者に向いていると考えられ、iPhone利用者はApp Store以外からのインストールをAppleが許可していないと案内されている。"
+        "goal": "README によると、openGym は Docker で動作する自己ホスト型のジム・体重トラッカーで、週間ルーティンの計画、ガイド付きトレーニングの実施、独自の passkey ログインの下でのセットと体重の記録ができ、データは外部サーバーではなくローカルフォルダに保持されると説明されています。",
+        "usage": "README では `git clone https://github.com/DuarteSantos8/openGym` を実行し、`.env.example` を `.env` にコピーした後 `docker compose up -d` を実行する手順が示されており、その後 http://localhost:8080 でプロフィールを作成して利用できるとされています。",
+        "pros": "文書化された機能には、アニメーションデモ付きの 1,324 種のエクササイズライブラリ、オフライン対応とデバイス間同期、FitNotes・Strong・Hevy・Apple Health からのインポート、完全な JSON エクスポート、18 言語への対応が挙げられています。",
+        "cons": "README には、携帯電話から passkey でアクセスするには実在するドメインでの HTTPS が必要で、そのために `.env` の2行の変更と Cloudflare Tunnel・Caddy・Traefik・nginx などのリバースプロキシ設定が求められると記載されています。また、エクササイズ画像の第三者所有権には争いがあり、プロジェクトのライセンス対象外とされています。",
+        "fit": "商用のワークアウト追跡アプリに代わるプライバシー重視の自己ホスト型手段を求め、Docker の運用やモバイルでの passkey 利用に向けたドメインと HTTPS 設定に慣れたユーザーに向いていると考えられ、AGPL v3.0 ライセンスのもとで配布されており、改変版をネットワークサービスとして提供する場合はそのソースコードの公開が求められます。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 5,
-          "end_line": 8,
+          "end_line": 9,
+          "section_heading": ""
+        },
+        {
+          "start_line": 46,
+          "end_line": 47,
+          "section_heading": "Why openGym"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 125,
+          "end_line": 134,
+          "section_heading": "Quick start"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 56,
+          "end_line": 57,
+          "section_heading": "Features"
+        },
+        {
+          "start_line": 100,
+          "end_line": 105,
+          "section_heading": "Features"
+        },
+        {
+          "start_line": 108,
+          "end_line": 109,
+          "section_heading": "Features"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 136,
+          "end_line": 139,
+          "section_heading": "Quick start"
+        },
+        {
+          "start_line": 338,
+          "end_line": 345,
+          "section_heading": "License"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 18,
+          "end_line": 18,
           "section_heading": ""
         },
         {
           "start_line": 41,
           "end_line": 44,
           "section_heading": "Why openGym"
-        }
-      ],
-      "usage": [
-        {
-          "start_line": 117,
-          "end_line": 128,
-          "section_heading": "Quick start"
-        }
-      ],
-      "pros": [
-        {
-          "start_line": 93,
-          "end_line": 99,
-          "section_heading": "Features"
         },
         {
-          "start_line": 56,
-          "end_line": 57,
-          "section_heading": "Features"
-        }
-      ],
-      "cons": [
-        {
-          "start_line": 330,
-          "end_line": 338,
+          "start_line": 333,
+          "end_line": 335,
           "section_heading": "License"
-        }
-      ],
-      "fit": [
-        {
-          "start_line": 180,
-          "end_line": 182,
-          "section_heading": "Phone app"
-        },
-        {
-          "start_line": 41,
-          "end_line": 44,
-          "section_heading": "Why openGym"
         }
       ]
     },
@@ -2263,13 +2285,6 @@
         ]
       },
       {
-        "kind": "url",
-        "value": "http://localhost:8080",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
         "kind": "number",
         "value": "1,324",
         "fields": [
@@ -2277,25 +2292,10 @@
         ]
       },
       {
-        "kind": "number",
-        "value": "140 MB",
+        "kind": "url",
+        "value": "http://localhost:8080",
         "fields": [
           "usage"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": "AGPL v3.0",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Docker",
-        "fields": [
-          "usage",
-          "fit"
         ]
       },
       {
@@ -2303,7 +2303,22 @@
         "value": "openGym",
         "fields": [
           "goal",
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Docker",
+        "fields": [
+          "goal",
           "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "AGPL v3.0",
+        "fields": [
           "fit"
         ]
       }
@@ -2315,11 +2330,11 @@
       "kind": "readme",
       "slug": "duartesantos8/opengym",
       "path": "README.md",
-      "blob_sha": "78a76ca15ee49c86ca314f69e00e01f541219831",
-      "content_sha256": "f3d7e8f714e962f94f49ac084611ecf54177cdc51019ee46e4c03a61305775ec",
+      "blob_sha": "ce3394baf6dfd2dd16849ba87d6466f63ef82753",
+      "content_sha256": "0bb8e0314d52b0b85b1cecc4686aa4fad003468db45a5269152686ff82d69f46",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.287",
+      "cli_version": "2.1.292",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -2330,88 +2345,93 @@
   },
   "mvschwarz/openrig": {
     "content": {
-      "goal": "OpenRig is open-source software for building and running a network of AI coding agents. It wraps model harnesses such as Claude Code and Codex into a managed \"rig,\" letting users define agent teams declaratively in YAML and boot them with a single command.",
-      "usage": "Install OpenRig with one command, `curl -fsSL https://raw.githubusercontent.com/mvschwarz/openrig/v0.6.6/scripts/install.sh | sh`, or step by step via `npm install -g @openrig/cli` followed by `rig setup`. It requires Node.js 22 or 24 and tmux, and runs on macOS or Linux.",
-      "pros": "OpenRig lets Claude Code and Codex operate within the same team, ships prebuilt teams (`starter`, `workshop`, `factory`) sized for different workloads, and provides a CLI, TUI, and MCP server built on tmux, so every agent session remains inspectable and attachable.",
-      "cons": "Launching a rig writes provider hooks and workspace trust settings to the user's machine, and the README advises backing up relevant files beforehand; it also notes that settings recovery is not a complete preservation or rollback guarantee, suggesting some configuration changes may not be fully reversible.",
-      "fit": "OpenRig is self-hosted, running on the user's own infrastructure with macOS or Linux and, for service-backed rigs, Docker, while model usage costs from the chosen providers apply separately; this points to a fit for users wanting persistent, self-managed coordination of multiple coding agents rather than a single disposable session."
+      "goal": "OpenRig is open-source software for defining and running a team of AI coding agents (Claude Code and Codex) as a managed system, coordinated via a YAML-defined 'rig' rather than loose terminal sessions.",
+      "usage": "Install via `curl -fsSL https://raw.githubusercontent.com/mvschwarz/openrig/v0.6.6/scripts/install.sh | sh` or `npm install -g @openrig/cli`, then run `rig setup`. A prebuilt team can be launched with `rig up starter --cwd .` from a target repository.",
+      "pros": "It supports mixing Claude Code and Codex agents in one team, offers prebuilt teams (starter, workshop, factory) of varying size, and provides a TUI for viewing rig topology, seats, and agent state.",
+      "cons": "Setup requires tmux and Node.js 22 or 24 on macOS or Linux; native Windows is unsupported and WSL2 is not officially tested, which may limit use on other platforms.",
+      "fit": "It appears best suited for developers wanting to self-host and operate multi-agent coding workflows across their own infrastructure, though model usage costs from the chosen providers still apply."
     },
     "summaries": {
       "en": {
-        "goal": "OpenRig is open-source software for building and running a network of AI coding agents. It wraps model harnesses such as Claude Code and Codex into a managed \"rig,\" letting users define agent teams declaratively in YAML and boot them with a single command.",
-        "usage": "Install OpenRig with one command, `curl -fsSL https://raw.githubusercontent.com/mvschwarz/openrig/v0.6.6/scripts/install.sh | sh`, or step by step via `npm install -g @openrig/cli` followed by `rig setup`. It requires Node.js 22 or 24 and tmux, and runs on macOS or Linux.",
-        "pros": "OpenRig lets Claude Code and Codex operate within the same team, ships prebuilt teams (`starter`, `workshop`, `factory`) sized for different workloads, and provides a CLI, TUI, and MCP server built on tmux, so every agent session remains inspectable and attachable.",
-        "cons": "Launching a rig writes provider hooks and workspace trust settings to the user's machine, and the README advises backing up relevant files beforehand; it also notes that settings recovery is not a complete preservation or rollback guarantee, suggesting some configuration changes may not be fully reversible.",
-        "fit": "OpenRig is self-hosted, running on the user's own infrastructure with macOS or Linux and, for service-backed rigs, Docker, while model usage costs from the chosen providers apply separately; this points to a fit for users wanting persistent, self-managed coordination of multiple coding agents rather than a single disposable session."
+        "goal": "OpenRig is open-source software for defining and running a team of AI coding agents (Claude Code and Codex) as a managed system, coordinated via a YAML-defined 'rig' rather than loose terminal sessions.",
+        "usage": "Install via `curl -fsSL https://raw.githubusercontent.com/mvschwarz/openrig/v0.6.6/scripts/install.sh | sh` or `npm install -g @openrig/cli`, then run `rig setup`. A prebuilt team can be launched with `rig up starter --cwd .` from a target repository.",
+        "pros": "It supports mixing Claude Code and Codex agents in one team, offers prebuilt teams (starter, workshop, factory) of varying size, and provides a TUI for viewing rig topology, seats, and agent state.",
+        "cons": "Setup requires tmux and Node.js 22 or 24 on macOS or Linux; native Windows is unsupported and WSL2 is not officially tested, which may limit use on other platforms.",
+        "fit": "It appears best suited for developers wanting to self-host and operate multi-agent coding workflows across their own infrastructure, though model usage costs from the chosen providers still apply."
       },
       "ko": {
-        "goal": "OpenRig는 AI 코딩 에이전트 네트워크를 구축하고 운영하기 위한 오픈소스 소프트웨어입니다. Claude Code와 Codex 같은 모델 하네스를 하나의 관리형 \"리그(rig)\"로 감싸며, 사용자는 YAML로 에이전트 팀을 선언적으로 정의하고 단일 명령으로 부팅할 수 있습니다.",
-        "usage": "OpenRig는 한 줄 명령 `curl -fsSL https://raw.githubusercontent.com/mvschwarz/openrig/v0.6.6/scripts/install.sh | sh` 로 설치하거나, `npm install -g @openrig/cli` 후 `rig setup`을 실행하는 단계별 방식으로 설치할 수 있습니다. Node.js 22 또는 24와 tmux가 필요하며 macOS 또는 Linux에서 동작합니다.",
-        "pros": "OpenRig는 Claude Code와 Codex를 같은 팀 안에서 함께 사용할 수 있게 하며, 작업 규모에 맞춘 사전 구성 팀(`starter`, `workshop`, `factory`)을 제공합니다. tmux 기반의 CLI, TUI, MCP 서버를 통해 모든 에이전트 세션을 직접 확인하고 연결할 수 있습니다.",
-        "cons": "리그를 실행하면 공급자 훅과 워크스페이스 신뢰 설정이 사용자 기기에 기록되며, README는 사전에 관련 파일을 백업하라고 권장합니다. 또한 설정 복구가 완전한 보존이나 롤백을 보장하지 않는다고 명시되어 있어, 일부 구성 변경은 완전히 되돌릴 수 없을 가능성이 있습니다.",
-        "fit": "OpenRig는 자체 인프라에서 실행하는 셀프 호스팅 방식으로, macOS 또는 Linux가 필요하며 서비스 기반 리그에는 Docker가 필요합니다. 선택한 공급자의 모델 사용 비용은 별도로 발생합니다. 이는 단일 세션이 아니라 여러 코딩 에이전트를 지속적으로 자체 관리하며 조율하려는 사용자에게 적합할 수 있음을 시사합니다."
+        "goal": "OpenRig는 Claude Code와 Codex 같은 AI 코딩 에이전트 팀을 YAML로 정의된 'rig'를 통해 관리형 시스템으로 구성하고 실행하기 위한 오픈소스 소프트웨어입니다.",
+        "usage": "`curl -fsSL https://raw.githubusercontent.com/mvschwarz/openrig/v0.6.6/scripts/install.sh | sh` 또는 `npm install -g @openrig/cli`로 설치한 뒤 `rig setup`을 실행합니다. 대상 저장소에서 `rig up starter --cwd .` 명령으로 사전 구성된 팀을 시작할 수 있습니다.",
+        "pros": "Claude Code와 Codex 에이전트를 하나의 팀에서 함께 사용할 수 있고, starter·workshop·factory 등 규모별 사전 구성 팀을 제공하며, rig의 토폴로지와 좌석(seat), 에이전트 상태를 볼 수 있는 TUI를 제공합니다.",
+        "cons": "설치에는 macOS 또는 Linux 환경에서 tmux와 Node.js 22 또는 24가 필요하며, 네이티브 Windows는 지원되지 않고 WSL2도 공식적으로 테스트되지 않아 다른 플랫폼에서의 사용이 제한될 수 있습니다.",
+        "fit": "자체 인프라에서 멀티 에이전트 코딩 워크플로를 직접 운영하려는 개발자에게 적합해 보이며, 선택한 제공자의 모델 사용 비용은 별도로 발생합니다."
       },
       "zh-CN": {
-        "goal": "OpenRig 是用于构建和运行 AI 编码代理网络的开源软件。它将 Claude Code、Codex 等模型 harness 封装成一个受管理的 \"rig\",用户可以用 YAML 声明式地定义代理团队,并通过单条命令启动。",
-        "usage": "可以使用一条命令安装 OpenRig：`curl -fsSL https://raw.githubusercontent.com/mvschwarz/openrig/v0.6.6/scripts/install.sh | sh`,也可以分步执行 `npm install -g @openrig/cli` 后运行 `rig setup`。安装需要 Node.js 22 或 24 以及 tmux,并在 macOS 或 Linux 上运行。",
-        "pros": "OpenRig 允许 Claude Code 和 Codex 在同一个团队中协作,提供针对不同规模工作预先配置的团队（`starter`、`workshop`、`factory`),并通过基于 tmux 的 CLI、TUI 和 MCP 服务器,使每个代理会话都可被检查和接入。",
-        "cons": "启动 rig 会在用户机器上写入提供者钩子和工作区信任设置,README 建议事先备份相关文件。文档还指出设置恢复并非完全的保存或回滚保证,这意味着某些配置更改可能无法完全还原。",
-        "fit": "OpenRig 采用自托管方式,运行在用户自己的基础设施上,需要 macOS 或 Linux,服务支持型 rig 还需要 Docker;所选提供商的模型使用费用需另行承担。这表明它可能更适合希望持续、自主管理多个编码代理协作的用户,而非只运行单次会话的用户。"
+        "goal": "OpenRig 是一款开源软件,用于通过 YAML 定义的“rig”来定义并运行由 Claude Code 和 Codex 等 AI 编程代理组成的团队,而非零散的终端会话。",
+        "usage": "可通过 `curl -fsSL https://raw.githubusercontent.com/mvschwarz/openrig/v0.6.6/scripts/install.sh | sh` 或 `npm install -g @openrig/cli` 安装,然后运行 `rig setup`。在目标仓库中可用 `rig up starter --cwd .` 启动预置团队。",
+        "pros": "它支持在同一团队中混用 Claude Code 和 Codex 代理,提供 starter、workshop、factory 等不同规模的预置团队,并提供可查看 rig 拓扑、座位及代理状态的 TUI 界面。",
+        "cons": "安装需要在 macOS 或 Linux 上配备 tmux 及 Node.js 22 或 24;官方不支持原生 Windows,WSL2 也未经正式测试,这可能限制其在其他平台上的使用。",
+        "fit": "该项目似乎更适合希望在自有基础设施上自行托管和运行多代理编程工作流的开发者,不过所选服务提供商的模型使用费用仍需自行承担。"
       },
       "es": {
-        "goal": "OpenRig es software de código abierto para crear y ejecutar una red de agentes de codificación con IA. Envuelve harnesses de modelos como Claude Code y Codex en un \"rig\" gestionado, y permite definir equipos de agentes de forma declarativa en YAML e iniciarlos con un solo comando.",
-        "usage": "OpenRig se instala con un solo comando, `curl -fsSL https://raw.githubusercontent.com/mvschwarz/openrig/v0.6.6/scripts/install.sh | sh`, o paso a paso con `npm install -g @openrig/cli` seguido de `rig setup`. Requiere Node.js 22 o 24 y tmux, y funciona en macOS o Linux.",
-        "pros": "OpenRig permite que Claude Code y Codex trabajen dentro del mismo equipo, ofrece equipos preconfigurados (`starter`, `workshop`, `factory`) según la escala del trabajo, y proporciona una CLI, una TUI y un servidor MCP basados en tmux, de modo que cada sesión de agente sigue siendo inspeccionable y accesible.",
-        "cons": "Al lanzar un rig se escriben hooks de proveedor y configuraciones de confianza del espacio de trabajo en la máquina del usuario, y el README recomienda respaldar los archivos relevantes de antemano. También indica que la recuperación de la configuración no garantiza una preservación o reversión completa, lo que sugiere que algunos cambios podrían no ser totalmente reversibles.",
-        "fit": "OpenRig es autoalojado y se ejecuta en la infraestructura propia del usuario, requiriendo macOS o Linux y, para rigs respaldados por servicios, Docker; los costos de uso del modelo del proveedor elegido se aplican por separado. Esto sugiere que es adecuado para quienes buscan coordinar de forma persistente y autogestionada varios agentes de codificación, en lugar de una sesión única y desechable."
+        "goal": "OpenRig es software de código abierto para definir y ejecutar un equipo de agentes de codificación con IA (Claude Code y Codex) como un sistema gestionado mediante un 'rig' definido en YAML, en lugar de sesiones de terminal sueltas.",
+        "usage": "Se instala con `curl -fsSL https://raw.githubusercontent.com/mvschwarz/openrig/v0.6.6/scripts/install.sh | sh` o `npm install -g @openrig/cli`, y luego se ejecuta `rig setup`. Un equipo preconfigurado puede iniciarse con `rig up starter --cwd .` desde el repositorio objetivo.",
+        "pros": "Permite combinar agentes Claude Code y Codex en un mismo equipo, ofrece equipos preconfigurados (starter, workshop, factory) de distintos tamaños, y proporciona una TUI para ver la topología del rig, los puestos (seats) y el estado de los agentes.",
+        "cons": "La configuración requiere tmux y Node.js 22 o 24 en macOS o Linux; Windows nativo no está soportado y WSL2 no está probado oficialmente, lo que podría limitar su uso en otras plataformas.",
+        "fit": "Parece más adecuado para desarrolladores que desean autoalojar y operar flujos de trabajo de codificación multiagente en su propia infraestructura, aunque los costos de uso de modelos de los proveedores elegidos siguen aplicando por separado."
       },
       "ja": {
-        "goal": "OpenRigは、AIコーディングエージェントのネットワークを構築・運用するためのオープンソースソフトウェアです。Claude CodeやCodexといったモデルのharnessを管理された「rig」としてまとめ、YAMLでエージェントチームを宣言的に定義し、単一のコマンドで起動できます。",
-        "usage": "OpenRigは `curl -fsSL https://raw.githubusercontent.com/mvschwarz/openrig/v0.6.6/scripts/install.sh | sh` という1つのコマンドでインストールできるほか、`npm install -g @openrig/cli` を実行してから `rig setup` を行う段階的な方法もあります。Node.js 22または24とtmuxが必要で、macOSまたはLinuxで動作します。",
-        "pros": "OpenRigはClaude CodeとCodexを同じチーム内で併用でき、作業規模に応じた構成済みチーム(`starter`、`workshop`、`factory`)を備えています。tmuxベースのCLI、TUI、MCPサーバーにより、各エージェントのセッションを検査・接続できます。",
-        "cons": "rigを起動すると、プロバイダーのフックとワークスペースの信頼設定がユーザーのマシンに書き込まれるため、READMEは事前に関連ファイルをバックアップするよう勧めています。また、設定の復旧は完全な保存やロールバックを保証するものではないとも記されており、一部の設定変更は完全に元に戻せない可能性があることを示唆しています。",
-        "fit": "OpenRigはセルフホスト型で、ユーザー自身のインフラ上でmacOSまたはLinuxを使って動作し、サービス連携型のrigにはDockerも必要です。選択したプロバイダーのモデル利用コストは別途発生します。これは、単発のセッションではなく、複数のコーディングエージェントを継続的かつ自律的に調整したいユーザーに適している可能性を示唆しています。"
+        "goal": "OpenRigは、YAMLで定義された「rig」を通じてClaude CodeやCodexなどのAIコーディングエージェントのチームを、散在するターミナルセッションではなく管理されたシステムとして定義・実行するためのオープンソースソフトウェアです。",
+        "usage": "`curl -fsSL https://raw.githubusercontent.com/mvschwarz/openrig/v0.6.6/scripts/install.sh | sh` または `npm install -g @openrig/cli` でインストールし、`rig setup` を実行します。対象リポジトリでは `rig up starter --cwd .` によって事前構築済みのチームを起動できます。",
+        "pros": "Claude CodeとCodexのエージェントを同一チーム内で併用でき、starter・workshop・factoryといった規模の異なる事前構築チームを提供し、rigのトポロジーやシート、エージェントの状態を確認できるTUIを備えています。",
+        "cons": "セットアップにはmacOSまたはLinux上でtmuxとNode.js 22または24が必要であり、ネイティブWindowsは未対応、WSL2も公式にテストされていないため、他のプラットフォームでの利用は制限される可能性があります。",
+        "fit": "自前のインフラ上でマルチエージェントのコーディングワークフローをセルフホストして運用したい開発者に適していると考えられますが、選択したプロバイダーのモデル利用コストは別途発生します。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 5,
-          "end_line": 5,
+          "end_line": 9,
           "section_heading": "OpenRig"
         },
         {
-          "start_line": 7,
-          "end_line": 7,
-          "section_heading": "OpenRig"
+          "start_line": 254,
+          "end_line": 254,
+          "section_heading": "What It Does"
         }
       ],
       "usage": [
         {
-          "start_line": 21,
-          "end_line": 29,
+          "start_line": 25,
+          "end_line": 30,
           "section_heading": "Install and first run"
         },
         {
           "start_line": 36,
           "end_line": 39,
           "section_heading": "Install and first run"
+        },
+        {
+          "start_line": 117,
+          "end_line": 122,
+          "section_heading": "Open the welcome screen"
         }
       ],
       "pros": [
         {
-          "start_line": 65,
-          "end_line": 70,
-          "section_heading": "Install and first run"
-        },
-        {
-          "start_line": 220,
-          "end_line": 232,
+          "start_line": 256,
+          "end_line": 264,
           "section_heading": "What It Does"
         },
         {
-          "start_line": 257,
+          "start_line": 268,
           "end_line": 274,
+          "section_heading": "Teams"
+        },
+        {
+          "start_line": 291,
+          "end_line": 293,
           "section_heading": "How It Works"
         }
       ],
@@ -2422,25 +2442,32 @@
           "section_heading": "Install and first run"
         },
         {
-          "start_line": 212,
-          "end_line": 214,
-          "section_heading": "What OpenRig changes on your machine"
+          "start_line": 419,
+          "end_line": 424,
+          "section_heading": "Requirements"
         }
       ],
       "fit": [
         {
-          "start_line": 383,
-          "end_line": 393,
-          "section_heading": "Requirements"
+          "start_line": 444,
+          "end_line": 446,
+          "section_heading": "Comparison with Claude Managed Agents"
         },
         {
-          "start_line": 411,
-          "end_line": 411,
-          "section_heading": "Comparison with Claude Managed Agents"
+          "start_line": 347,
+          "end_line": 347,
+          "section_heading": "Agent-Managed Software"
         }
       ]
     },
     "invariants": [
+      {
+        "kind": "command",
+        "value": "curl -fsSL https://raw.githubusercontent.com/mvschwarz/openrig/v0.6.6/scripts/install.sh | sh",
+        "fields": [
+          "usage"
+        ]
+      },
       {
         "kind": "command",
         "value": "npm install -g @openrig/cli",
@@ -2450,14 +2477,7 @@
       },
       {
         "kind": "command",
-        "value": "rig setup",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "curl -fsSL https://raw.githubusercontent.com/mvschwarz/openrig/v0.6.6/scripts/install.sh | sh",
+        "value": "rig up starter --cwd .",
         "fields": [
           "usage"
         ]
@@ -2470,10 +2490,10 @@
         ]
       },
       {
-        "kind": "version",
-        "value": "Node.js 22",
+        "kind": "number",
+        "value": "22",
         "fields": [
-          "usage"
+          "cons"
         ]
       },
       {
@@ -2481,9 +2501,7 @@
         "value": "OpenRig",
         "fields": [
           "goal",
-          "usage",
-          "pros",
-          "fit"
+          "usage"
         ]
       },
       {
@@ -2511,11 +2529,11 @@
       "kind": "readme",
       "slug": "mvschwarz/openrig",
       "path": "README.md",
-      "blob_sha": "f3b24d878ac760dd77161468fe1db77058f75c96",
-      "content_sha256": "48397e171e970194f70450609696fe4f5ff621ca2b40105601cff12e60027a25",
+      "blob_sha": "07d0e3d0839e5b01951a116968f250e30049519f",
+      "content_sha256": "dbe0a7ece069271c49469f37258ee7a2172295666953f2d94d18313f6eb86419",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.287",
+      "cli_version": "2.1.292",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -3970,47 +3988,47 @@
   },
   "bilawalsidhu/gods-eye-view": {
     "content": {
-      "goal": "God's Eye View is a browser-based 3D globe application that aggregates public, largely live data sources — aircraft, ships, satellites, earthquakes, traffic, and public cameras — and adds voice control through a realtime AI agent.",
-      "usage": "Install via Pinokio, or run locally with Node.js 24.x (24.14.0 or later) or 26.x: `git clone https://github.com/bilawalsidhu/gods-eye-view.git`, then `npm ci` and `npm run dev`, opening `http://localhost:4173`. No API keys are required to start; optional keys (Cesium ion, Google Maps, OpenAI) can be added in-app for extra capabilities.",
-      "pros": "It runs without requiring an account or API keys, 17 of 19 documented data layers work keylessly, the source code is inspectable and released under the MIT License, and it supports voice-driven navigation and analyst-style queries over live layers.",
-      "cons": "Traffic is simulated along real roads from aggregate data rather than reflecting live vehicle positions, and CCTV camera poses are described as coarse estimates. The README also states the project is an evolving client, not a hardened production service, and notes that older Pinokio releases had an installation issue since addressed in version 8.2.",
-      "fit": "Based on the described feature set and documentation, this project appears best suited to developers, hobbyists, and learners exploring geospatial/OSINT-style visualization, since the README explicitly cautions against relying on it for navigation, emergency response, or other safety-critical decisions."
+      "goal": "God's Eye View is a browser-based 3D globe application that visualizes public real-time data sources including live aircraft, ships, satellites, earthquakes, traffic, and public cameras, with voice control through an AI agent.",
+      "usage": "It can be installed via Pinokio (one-click) or run locally by cloning the repository and running `git clone https://github.com/bilawalsidhu/gods-eye-view.git`, `cd gods-eye-view`, `npm ci`, `npm run doctor`, and `npm run dev`, then opening `http://localhost:4173` in a browser.",
+      "pros": "Many features work without any API keys — the README states 17 of 20 data layers have a keyless path, and private-key-dependent APIs are brokered server-side so keys like OpenAI's never reach the browser. It is released under the MIT License.",
+      "cons": "Running the terminal path requires Node.js 24.x (24.14.0 or later) or 26.x, and the setup doctor warns that Node 25 is end-of-life, so an unsupported Node version may cause setup issues. Some capabilities, such as photorealistic 3D or voice, need provider keys like Cesium ion or OpenAI, which are subject to provider quotas and metered billing.",
+      "fit": "The README positions this as an evolving open-source client for exploration and learning, described as 'a fast, hackable foundation, not a hardened production service,' and it explicitly cautions against using it for flight/maritime navigation, emergency response, or other safety-critical decisions. This suggests it may be best suited to hobbyist, educational, or prototyping use rather than operational deployments."
     },
     "summaries": {
       "en": {
-        "goal": "God's Eye View is a browser-based 3D globe application that aggregates public, largely live data sources — aircraft, ships, satellites, earthquakes, traffic, and public cameras — and adds voice control through a realtime AI agent.",
-        "usage": "Install via Pinokio, or run locally with Node.js 24.x (24.14.0 or later) or 26.x: `git clone https://github.com/bilawalsidhu/gods-eye-view.git`, then `npm ci` and `npm run dev`, opening `http://localhost:4173`. No API keys are required to start; optional keys (Cesium ion, Google Maps, OpenAI) can be added in-app for extra capabilities.",
-        "pros": "It runs without requiring an account or API keys, 17 of 19 documented data layers work keylessly, the source code is inspectable and released under the MIT License, and it supports voice-driven navigation and analyst-style queries over live layers.",
-        "cons": "Traffic is simulated along real roads from aggregate data rather than reflecting live vehicle positions, and CCTV camera poses are described as coarse estimates. The README also states the project is an evolving client, not a hardened production service, and notes that older Pinokio releases had an installation issue since addressed in version 8.2.",
-        "fit": "Based on the described feature set and documentation, this project appears best suited to developers, hobbyists, and learners exploring geospatial/OSINT-style visualization, since the README explicitly cautions against relying on it for navigation, emergency response, or other safety-critical decisions."
+        "goal": "God's Eye View is a browser-based 3D globe application that visualizes public real-time data sources including live aircraft, ships, satellites, earthquakes, traffic, and public cameras, with voice control through an AI agent.",
+        "usage": "It can be installed via Pinokio (one-click) or run locally by cloning the repository and running `git clone https://github.com/bilawalsidhu/gods-eye-view.git`, `cd gods-eye-view`, `npm ci`, `npm run doctor`, and `npm run dev`, then opening `http://localhost:4173` in a browser.",
+        "pros": "Many features work without any API keys — the README states 17 of 20 data layers have a keyless path, and private-key-dependent APIs are brokered server-side so keys like OpenAI's never reach the browser. It is released under the MIT License.",
+        "cons": "Running the terminal path requires Node.js 24.x (24.14.0 or later) or 26.x, and the setup doctor warns that Node 25 is end-of-life, so an unsupported Node version may cause setup issues. Some capabilities, such as photorealistic 3D or voice, need provider keys like Cesium ion or OpenAI, which are subject to provider quotas and metered billing.",
+        "fit": "The README positions this as an evolving open-source client for exploration and learning, described as 'a fast, hackable foundation, not a hardened production service,' and it explicitly cautions against using it for flight/maritime navigation, emergency response, or other safety-critical decisions. This suggests it may be best suited to hobbyist, educational, or prototyping use rather than operational deployments."
       },
       "ko": {
-        "goal": "God's Eye View는 항공기, 선박, 위성, 지진, 교통, 공공 카메라 등 공개된(대부분 실시간) 데이터를 하나의 3D 지구본 위에 결합한 브라우저 기반 애플리케이션으로, 실시간 AI 에이전트를 통한 음성 제어 기능도 제공한다.",
-        "usage": "Pinokio로 설치하거나, Node.js 24.x(24.14.0 이상) 또는 26.x 환경에서 직접 실행할 수 있다: `git clone https://github.com/bilawalsidhu/gods-eye-view.git` 실행 후 `npm ci`, `npm run dev`를 차례로 실행하고 `http://localhost:4173`을 연다. 시작에는 API 키가 필요 없으며, Cesium ion·Google Maps·OpenAI 등 선택적 키는 앱 내에서 추가하면 추가 기능이 열린다.",
-        "pros": "계정이나 API 키 없이 바로 실행할 수 있고, 문서화된 19개 레이어 중 17개가 키 없이 동작하며, 소스 코드는 공개되어 MIT 라이선스로 열람·수정이 가능하고, 음성으로 탐색하거나 실시간 레이어에 분석형 질의를 할 수 있다.",
-        "cons": "교통 레이어는 실제 차량의 실시간 위치가 아니라 집계된 위치 데이터를 바탕으로 실제 도로를 따라 시뮬레이션된 것이며, CCTV 카메라의 자세(pose)는 대략적인 추정값으로 설명되어 있다. 또한 README는 이 프로젝트가 아직 발전 중인 클라이언트이며 견고한 프로덕션 서비스가 아니라고 명시하고, 이전 Pinokio 버전에는 설치 문제가 있었으나 8.2 버전에서 해결되었다고 밝힌다.",
-        "fit": "문서화된 기능과 설명을 토대로 볼 때, 이 프로젝트는 지리공간·OSINT 스타일 시각화를 탐구하려는 개발자, 취미 사용자, 학습자에게 적합해 보이며, README는 내비게이션, 응급 대응, 기타 안전이 중요한 의사결정에 사용하지 말라고 명확히 경고하고 있다."
+        "goal": "God's Eye View는 브라우저에서 실행되는 3D 지구본 애플리케이션으로, 실시간 항공기, 선박, 위성, 지진, 교통, 공공 카메라 등 공개 데이터를 시각화하며 AI 에이전트를 통한 음성 제어를 제공합니다.",
+        "usage": "Pinokio를 통한 원클릭 설치 또는 터미널에서 `git clone https://github.com/bilawalsidhu/gods-eye-view.git`, `cd gods-eye-view`, `npm ci`, `npm run doctor`, `npm run dev`를 실행한 뒤 `http://localhost:4173`을 열어 사용할 수 있습니다.",
+        "pros": "README에 따르면 20개 레이어 중 17개가 API 키 없이 작동하며, 개인 키가 필요한 API는 서버 측에서 처리되어 OpenAI 등의 키가 브라우저에 노출되지 않습니다. MIT License로 배포됩니다.",
+        "cons": "터미널 설치 경로는 Node.js 24.x (24.14.0 or later) or 26.x가 필요하며, 설정 점검 도구가 Node 25는 수명 종료라고 경고하므로 지원되지 않는 Node 버전에서는 설정에 문제가 생길 수 있습니다. 또한 사실적 3D나 음성 기능 등 일부 기능은 Cesium ion, OpenAI 같은 제공업체 키가 필요하며 요금제와 할당량이 적용될 수 있습니다.",
+        "fit": "README는 이 프로젝트를 '빠르고 다루기 쉬운 기반이지만 안정화된 프로덕션 서비스는 아닌' 탐구 및 학습용 오픈소스 클라이언트로 설명하며, 항공·해상 내비게이션이나 응급 대응 같은 안전이 중요한 용도로는 사용하지 말라고 명시합니다. 따라서 이 도구는 운영 환경보다는 취미, 학습, 프로토타이핑 용도에 더 적합할 것으로 조심스럽게 보입니다."
       },
       "zh-CN": {
-        "goal": "God's Eye View 是一个基于浏览器的三维地球可视化应用,汇集了飞机、船只、卫星、地震、交通和公共摄像头等公开的(大多为实时)数据源,并通过实时 AI 代理提供语音控制功能。",
-        "usage": "可以通过 Pinokio 安装,也可以在 Node.js 24.x(24.14.0 或更高版本)或 26.x 环境下本地运行:执行 `git clone https://github.com/bilawalsidhu/gods-eye-view.git`,随后依次运行 `npm ci` 和 `npm run dev`,并打开 `http://localhost:4173`。启动无需任何 API 密钥;可在应用内添加 Cesium ion、Google Maps、OpenAI 等可选密钥以解锁更多功能。",
-        "pros": "无需账户或 API 密钥即可运行,文档列出的 19 个数据图层中有 17 个无需密钥即可使用,源代码公开可查并以 MIT 许可证发布,还支持语音导航以及针对实时图层的分析式查询。",
-        "cons": "交通图层是基于汇总位置数据沿真实道路进行的模拟,并非实时车辆位置的真实反映,CCTV 摄像头的姿态被说明为粗略估计值。README 还说明该项目是一个仍在演进中的客户端,并非经过强化的生产级服务,并提到旧版 Pinokio 曾存在安装问题,该问题已在 8.2 版本中修复。",
-        "fit": "根据所描述的功能集和文档内容,该项目看起来更适合希望探索地理空间/OSINT 风格可视化的开发者、爱好者和学习者,因为 README 明确提醒不应将其用于导航、应急响应或其他安全关键型决策。"
+        "goal": "God's Eye View 是一个在浏览器中运行的3D地球应用,用于可视化公开的实时数据,包括飞机、船舶、卫星、地震、交通和公共摄像头,并通过AI代理提供语音控制。",
+        "usage": "可以通过 Pinokio 一键安装,或在终端中运行 `git clone https://github.com/bilawalsidhu/gods-eye-view.git`、`cd gods-eye-view`、`npm ci`、`npm run doctor`、`npm run dev`,然后打开 `http://localhost:4173` 使用。",
+        "pros": "据README所述,20个图层中有17个无需任何API密钥即可使用,涉及私钥的API(如OpenAI)均通过服务器端代理处理,密钥不会暴露给浏览器。项目以 MIT License 发布。",
+        "cons": "终端安装路径需要 Node.js 24.x (24.14.0 or later) or 26.x,安装检查工具会提示 Node 25 已停止维护,因此使用不受支持的Node版本可能导致安装出现问题。此外,部分功能(如真实感3D渲染或语音功能)需要 Cesium ion、OpenAI 等服务商密钥,可能受配额和计费限制。",
+        "fit": "README将该项目定位为'快速、易于修改的基础,而非经过强化的生产级服务'的探索与学习型开源客户端,并明确提示不应将其用于航空或海事导航、应急响应等安全关键场景。因此该工具似乎更适合业余爱好、学习或原型开发,而非正式运营环境。"
       },
       "es": {
-        "goal": "God's Eye View es una aplicación de visualización de un globo 3D en el navegador que reúne fuentes de datos públicas, en su mayoría en vivo, como aviones, barcos, satélites, terremotos, tráfico y cámaras públicas, e incorpora control por voz mediante un agente de IA en tiempo real.",
-        "usage": "Se instala mediante Pinokio o se ejecuta localmente con Node.js 24.x (24.14.0 o posterior) o 26.x: `git clone https://github.com/bilawalsidhu/gods-eye-view.git`, luego `npm ci` y `npm run dev`, abriendo `http://localhost:4173`. No se requieren claves de API para empezar; claves opcionales (Cesium ion, Google Maps, OpenAI) pueden añadirse dentro de la app para desbloquear funciones adicionales.",
-        "pros": "Funciona sin necesidad de cuenta ni claves de API, 17 de las 19 capas de datos documentadas operan sin clave, el código fuente es inspeccionable y se publica bajo la licencia MIT, y permite navegación por voz y consultas de tipo analista sobre las capas en vivo.",
-        "cons": "La capa de tráfico es simulada sobre carreteras reales a partir de datos de ubicación agregados, en lugar de reflejar posiciones de vehículos en vivo, y las posiciones de las cámaras CCTV se describen como estimaciones aproximadas. El README también indica que el proyecto es un cliente en evolución, no un servicio de producción robusto, y señala que versiones anteriores de Pinokio tuvieron un problema de instalación ya corregido en la versión 8.2.",
-        "fit": "A partir del conjunto de funciones descrito y la documentación, este proyecto parece más adecuado para desarrolladores, aficionados y personas que exploran visualizaciones de estilo geoespacial/OSINT, ya que el README advierte explícitamente contra su uso para navegación, respuesta a emergencias u otras decisiones críticas para la seguridad."
+        "goal": "God's Eye View es una aplicación de globo 3D que se ejecuta en el navegador y visualiza datos públicos en tiempo real, incluyendo aviones, barcos, satélites, terremotos, tráfico y cámaras públicas, con control por voz mediante un agente de IA.",
+        "usage": "Puede instalarse con un clic mediante Pinokio, o ejecutarse localmente clonando el repositorio y ejecutando `git clone https://github.com/bilawalsidhu/gods-eye-view.git`, `cd gods-eye-view`, `npm ci`, `npm run doctor` y `npm run dev`, abriendo luego `http://localhost:4173` en el navegador.",
+        "pros": "Según el README, 17 de las 20 capas de datos funcionan sin ninguna clave de API, y las API que dependen de claves privadas (como OpenAI) se gestionan del lado del servidor, de modo que las claves nunca llegan al navegador. Se distribuye bajo la MIT License.",
+        "cons": "La vía de terminal requiere Node.js 24.x (24.14.0 or later) o 26.x, y la herramienta de verificación advierte que Node 25 ha llegado al fin de su vida útil, por lo que una versión de Node no compatible podría causar problemas de configuración. Además, algunas funciones, como el 3D fotorrealista o la voz, requieren claves de proveedores como Cesium ion u OpenAI, sujetas a cuotas y facturación medida.",
+        "fit": "El README describe el proyecto como un cliente de código abierto en evolución para exploración y aprendizaje, 'una base rápida y manipulable, no un servicio de producción endurecido', e incluye una advertencia explícita contra su uso en navegación aérea o marítima, respuesta de emergencia u otras decisiones críticas para la seguridad. Esto sugiere, con cautela, que resulta más adecuado para uso recreativo, educativo o de prototipado que para despliegues operativos."
       },
       "ja": {
-        "goal": "God's Eye View は、航空機、船舶、衛星、地震、交通、公開カメラなど、公開された(多くはライブの)データソースをブラウザ上の3D地球儀に統合し、リアルタイムAIエージェントによる音声操作も備えたアプリケーションである。",
-        "usage": "Pinokio経由でインストールするか、Node.js 24.x(24.14.0以降)または26.x環境でローカル実行できる: `git clone https://github.com/bilawalsidhu/gods-eye-view.git` を実行後、`npm ci`、`npm run dev` を順に実行し、`http://localhost:4173` を開く。開始にAPIキーは不要で、Cesium ion・Google Maps・OpenAIなどのオプションキーをアプリ内で追加すると追加機能が有効になる。",
-        "pros": "アカウントやAPIキーなしで動作し、文書化された19のデータレイヤーのうち17はキーなしで利用可能で、ソースコードは公開されMITライセンスで検査・改変できる。さらに音声によるナビゲーションや、ライブレイヤーに対するアナリスト的な問い合わせにも対応する。",
-        "cons": "交通レイヤーは集計された位置データに基づき実際の道路上でシミュレートされたものであり、ライブの車両位置を反映したものではない。CCTVカメラの姿勢も粗い推定値と記載されている。またREADMEは、本プロジェクトが発展途上のクライアントであり、堅牢な本番サービスではないと明記し、旧バージョンのPinokioにはインストール上の問題があったが、バージョン8.2で対応済みであるとも述べている。",
-        "fit": "記載された機能と文書内容から判断すると、本プロジェクトは地理空間/OSINT的な可視化を探求する開発者、愛好者、学習者に適していると考えられる。README はナビゲーション、緊急対応、その他の安全性が重要な意思決定にこれを利用しないよう明確に注意している。"
+        "goal": "God's Eye Viewはブラウザ上で動作する3Dグローブアプリケーションで、ライブの航空機、船舶、衛星、地震、交通、公共カメラなどの公開データを可視化し、AIエージェントによる音声操作も提供します。",
+        "usage": "Pinokioによるワンクリックインストール、またはターミナルで `git clone https://github.com/bilawalsidhu/gods-eye-view.git`、`cd gods-eye-view`、`npm ci`、`npm run doctor`、`npm run dev` を実行し、`http://localhost:4173` を開いて利用できます。",
+        "pros": "READMEによれば、20のデータレイヤーのうち17はAPIキー不要で利用でき、OpenAIなど秘密鍵を使うAPIはサーバー側で処理されるためブラウザにキーが渡りません。MIT Licenseで公開されています。",
+        "cons": "ターミナル経由のセットアップには Node.js 24.x (24.14.0 or later) または 26.x が必要で、セットアップ診断ツールはNode 25がサポート終了であると警告するため、未対応のNodeバージョンではセットアップに問題が生じる可能性があります。また、フォトリアリスティックな3Dや音声機能など一部の機能は Cesium ion や OpenAI などのプロバイダーキーを必要とし、クォータや課金が適用される場合があります。",
+        "fit": "READMEはこのプロジェクトを「高速で手を加えやすい基盤であり、本番運用に耐える堅牢なサービスではない」探索・学習用オープンソースクライアントと位置づけ、航空・海上航行や緊急対応などの安全に関わる用途には使用しないよう明記しています。そのため、本格的な運用環境よりも趣味や学習、プロトタイピング用途に向いていると慎重に推測されます。"
       }
     },
     "evidence": {
@@ -4019,58 +4037,68 @@
           "start_line": 7,
           "end_line": 9,
           "section_heading": "A spy-satellite simulator in your browser — then you realize the sources are public and the data is real."
+        },
+        {
+          "start_line": 43,
+          "end_line": 45,
+          "section_heading": "🌍 Why This Exists"
         }
       ],
       "usage": [
         {
-          "start_line": 122,
-          "end_line": 133,
+          "start_line": 108,
+          "end_line": 110,
+          "section_heading": "Path 1 — One click, no terminal"
+        },
+        {
+          "start_line": 125,
+          "end_line": 131,
           "section_heading": "Path 2 — Terminal / coding agent"
         },
         {
-          "start_line": 92,
-          "end_line": 100,
-          "section_heading": "⚡ Quick Start"
+          "start_line": 133,
+          "end_line": 134,
+          "section_heading": "Path 2 — Terminal / coding agent"
         }
       ],
       "pros": [
-        {
-          "start_line": 92,
-          "end_line": 95,
-          "section_heading": "⚡ Quick Start"
-        },
         {
           "start_line": 286,
           "end_line": 286,
           "section_heading": "🛰️ What's on the Globe"
         },
         {
-          "start_line": 534,
-          "end_line": 534,
+          "start_line": 246,
+          "end_line": 246,
+          "section_heading": "🎙️ Talk to It"
+        },
+        {
+          "start_line": 546,
+          "end_line": 546,
           "section_heading": "📋 Responsible & Open"
         }
       ],
       "cons": [
         {
-          "start_line": 49,
-          "end_line": 51,
-          "section_heading": "🌍 Why This Exists"
+          "start_line": 122,
+          "end_line": 123,
+          "section_heading": "Path 2 — Terminal / coding agent"
         },
         {
-          "start_line": 534,
-          "end_line": 534,
-          "section_heading": "📋 Responsible & Open"
-        },
-        {
-          "start_line": 108,
-          "end_line": 118,
-          "section_heading": "Path 1 — One click, no terminal"
+          "start_line": 97,
+          "end_line": 100,
+          "section_heading": "⚡ Quick Start"
         }
       ],
       "fit": [
         {
-          "start_line": 540,
-          "end_line": 545,
+          "start_line": 546,
+          "end_line": 546,
+          "section_heading": "📋 Responsible & Open"
+        },
+        {
+          "start_line": 552,
+          "end_line": 557,
           "section_heading": "📋 Responsible & Open"
         }
       ]
@@ -4086,6 +4114,13 @@
       {
         "kind": "command",
         "value": "npm ci",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "npm run doctor",
         "fields": [
           "usage"
         ]
@@ -4108,11 +4143,33 @@
         "kind": "version",
         "value": "Node.js 24.x (24.14.0 or later) or 26.x",
         "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Pinokio",
+        "fields": [
           "usage"
         ]
       },
       {
-        "kind": "version",
+        "kind": "product",
+        "value": "Cesium ion",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "OpenAI",
+        "fields": [
+          "pros",
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
         "value": "MIT License",
         "fields": [
           "pros"
@@ -4124,20 +4181,232 @@
         "fields": [
           "goal"
         ]
+      }
+    ],
+    "inference_fields": [
+      "cons",
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "bilawalsidhu/gods-eye-view",
+      "path": "README.md",
+      "blob_sha": "1c2f375b5cea0aa8fb2020878da9db8d7d92ed25",
+      "content_sha256": "db0ec2358b91621d864adf59ca992b88da7eab2a875e1e055c695f09132beaf6",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.292",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "affaan-m/ECC": {
+    "content": {
+      "goal": "ECC (affaan-m/ECC) is an MIT-licensed open-source agent harness system that adds a coordinated engineering workflow (plan, test, implement, review, verify, remember, improve) to coding agents. It works best with Claude Code, has a supported Codex sync path, and offers capability-limited adapters for Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, Qwen, and other harnesses.",
+      "usage": "The recommended install is the guided universal setup: `npx ecc-universal@2.2.3 setup`, which installs the `ecc@ecc` Claude Code plugin. Claude Code's native commands (`/plugin marketplace add` and `/plugin install ecc@ecc`) are an alternative, equivalent path. Installing requires Node.js 18+, and Claude plugin setup additionally requires Git and Claude Code 2.1 or newer.",
+      "pros": "ECC bundles 68 agents, 293 skills, and 94 legacy command shims, plus hooks, rules, memory, continuous learning, and AgentShield security scanning for tasks like planning, review, build repair, and security analysis. A single guided installer manages setup, updates, scope changes, and uninstall across multiple harnesses (Claude Code, Codex, Kimi Code).",
+      "cons": "The README explicitly warns against stacking install methods (e.g., plugin plus a full manual install) since this can duplicate skills, commands, or hooks. Feature parity across non-Claude harnesses is not guaranteed; the README directs readers to a platform support matrix before assuming equivalent capabilities on Cursor, OpenCode, or other adapters.",
+      "fit": "ECC fits teams and individuals using Claude Code as a primary coding agent who want a structured, repeatable engineering workflow layered on top of it. It may be less suited for users needing full feature parity on secondary harnesses like GitHub Copilot, which the README states lacks hooks, runtime agents, or native skill discovery support."
+    },
+    "summaries": {
+      "en": {
+        "goal": "ECC (affaan-m/ECC) is an MIT-licensed open-source agent harness system that adds a coordinated engineering workflow (plan, test, implement, review, verify, remember, improve) to coding agents. It works best with Claude Code, has a supported Codex sync path, and offers capability-limited adapters for Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, Qwen, and other harnesses.",
+        "usage": "The recommended install is the guided universal setup: `npx ecc-universal@2.2.3 setup`, which installs the `ecc@ecc` Claude Code plugin. Claude Code's native commands (`/plugin marketplace add` and `/plugin install ecc@ecc`) are an alternative, equivalent path. Installing requires Node.js 18+, and Claude plugin setup additionally requires Git and Claude Code 2.1 or newer.",
+        "pros": "ECC bundles 68 agents, 293 skills, and 94 legacy command shims, plus hooks, rules, memory, continuous learning, and AgentShield security scanning for tasks like planning, review, build repair, and security analysis. A single guided installer manages setup, updates, scope changes, and uninstall across multiple harnesses (Claude Code, Codex, Kimi Code).",
+        "cons": "The README explicitly warns against stacking install methods (e.g., plugin plus a full manual install) since this can duplicate skills, commands, or hooks. Feature parity across non-Claude harnesses is not guaranteed; the README directs readers to a platform support matrix before assuming equivalent capabilities on Cursor, OpenCode, or other adapters.",
+        "fit": "ECC fits teams and individuals using Claude Code as a primary coding agent who want a structured, repeatable engineering workflow layered on top of it. It may be less suited for users needing full feature parity on secondary harnesses like GitHub Copilot, which the README states lacks hooks, runtime agents, or native skill discovery support."
       },
+      "ko": {
+        "goal": "ECC(affaan-m/ECC)는 MIT 라이선스 오픈소스 에이전트 하니스 시스템으로, 코딩 에이전트에 계획-테스트-구현-리뷰-검증-기억-개선의 조율된 엔지니어링 워크플로우를 추가합니다. Claude Code에서 가장 잘 작동하며, Codex 동기화 경로를 지원하고, Cursor, OpenCode, Gemini, Zed, GitHub Copilot 등을 위한 기능이 제한된 어댑터를 제공합니다.",
+        "usage": "권장 설치 방법은 가이드형 범용 설정으로, `npx ecc-universal@2.2.3 setup` 명령을 실행하면 `ecc@ecc` Claude Code 플러그인이 설치됩니다. Claude Code의 네이티브 명령(`/plugin marketplace add`, `/plugin install ecc@ecc`)도 동등한 대안 경로입니다. 설치에는 Node.js 18 이상이 필요하며, Claude 플러그인 설정에는 Git과 Claude Code 2.1 이상이 추가로 필요합니다.",
+        "pros": "ECC는 68개의 에이전트, 293개의 스킬, 94개의 레거시 명령 셈을 포함하며, 훅, 규칙, 메모리, 지속 학습, AgentShield 보안 스캐닝 기능도 함께 제공해 계획, 리뷰, 빌드 복구, 보안 분석 등의 작업을 지원합니다. 하나의 가이드형 설치 도구로 여러 하니스(Claude Code, Codex, Kimi Code)에서 설정, 업데이트, 범위 변경, 제거까지 관리할 수 있습니다.",
+        "cons": "README는 플러그인 설치와 전체 수동 설치를 동시에 쌓는 것을 명확히 경고하는데, 이는 스킬, 명령, 훅이 중복될 수 있기 때문입니다. Claude 외 하니스 간의 기능 동등성은 보장되지 않으며, README는 Cursor나 OpenCode 등 어댑터에서 동일한 기능을 기대하기 전에 플랫폼 지원 매트릭스를 확인하라고 안내합니다.",
+        "fit": "ECC는 Claude Code를 주요 코딩 에이전트로 사용하며 구조화되고 반복 가능한 엔지니어링 워크플로우를 추가하려는 팀이나 개인에게 적합합니다. README에 따르면 GitHub Copilot과 같은 보조 하니스에서는 훅, 런타임 에이전트, 네이티브 스킬 탐색 기능이 지원되지 않아 완전한 기능 동등성이 필요한 사용자에게는 덜 적합할 수 있습니다."
+      },
+      "zh-CN": {
+        "goal": "ECC(affaan-m/ECC)是一个采用 MIT 许可证的开源代理工具系统,为编码代理引入了协调一致的工程工作流程(规划、测试、实现、审查、验证、记忆、改进)。它与 Claude Code 配合效果最佳,支持 Codex 同步路径,并为 Cursor、OpenCode、Gemini、Zed、GitHub Copilot 等提供功能受限的适配器。",
+        "usage": "推荐的安装方式是引导式通用安装:运行 `npx ecc-universal@2.2.3 setup`,该命令会安装 `ecc@ecc` Claude Code 插件。Claude Code 的原生命令(`/plugin marketplace add` 和 `/plugin install ecc@ecc`)是等效的替代路径。安装需要 Node.js 18 及以上版本,而 Claude 插件设置还需要 Git 以及 Claude Code 2.1 或更高版本。",
+        "pros": "ECC 捆绑了 68 个代理、293 项技能以及 94 个旧版命令垫片,并附带钩子、规则、记忆、持续学习以及 AgentShield 安全扫描功能,可用于规划、审查、构建修复和安全分析等任务。一个引导式安装程序即可管理多个工具(Claude Code、Codex、Kimi Code)的设置、更新、范围变更和卸载。",
+        "cons": "README 明确警告不要叠加安装方式(例如插件安装加上完整手动安装),因为这可能导致技能、命令或钩子重复。README 中未保证非 Claude 工具之间的功能对等性,建议读者在假设 Cursor、OpenCode 等适配器具备同等能力之前先查看平台支持矩阵。",
+        "fit": "ECC 适合将 Claude Code 作为主要编码代理、希望在其基础上叠加结构化、可重复工程工作流程的团队和个人。根据 README,GitHub Copilot 等辅助工具缺乏钩子、运行时代理或原生技能发现支持,因此对于需要完整功能对等性的用户来说可能不太适合。"
+      },
+      "es": {
+        "goal": "ECC (affaan-m/ECC) es un sistema de arnés de agentes de código abierto con licencia MIT que añade un flujo de trabajo de ingeniería coordinado (planificar, probar, implementar, revisar, verificar, recordar, mejorar) a los agentes de codificación. Funciona mejor con Claude Code, cuenta con una ruta de sincronización compatible con Codex, y ofrece adaptadores con capacidades limitadas para Cursor, OpenCode, Gemini, Zed, GitHub Copilot y otros entornos.",
+        "usage": "La instalación recomendada es la configuración guiada universal: ejecutar `npx ecc-universal@2.2.3 setup`, que instala el complemento `ecc@ecc` para Claude Code. Los comandos nativos de Claude Code (`/plugin marketplace add` e `/plugin install ecc@ecc`) son una ruta alternativa equivalente. La instalación requiere Node.js 18 o superior, y la configuración del complemento de Claude requiere además Git y Claude Code 2.1 o más reciente.",
+        "pros": "ECC incluye 68 agentes, 293 habilidades y 94 shims de comandos heredados, además de hooks, reglas, memoria, aprendizaje continuo y escaneo de seguridad AgentShield para tareas como planificación, revisión, reparación de builds y análisis de seguridad. Un único instalador guiado gestiona la configuración, actualizaciones, cambios de alcance y desinstalación en múltiples entornos (Claude Code, Codex, Kimi Code).",
+        "cons": "El README advierte explícitamente contra combinar métodos de instalación (por ejemplo, el complemento junto con una instalación manual completa), ya que esto puede duplicar habilidades, comandos o hooks. La paridad de funciones entre entornos distintos de Claude no está garantizada; el README remite a una matriz de soporte de plataformas antes de asumir capacidades equivalentes en Cursor, OpenCode u otros adaptadores.",
+        "fit": "ECC es adecuado para equipos e individuos que usan Claude Code como agente de codificación principal y desean añadir un flujo de trabajo de ingeniería estructurado y repetible. Puede ser menos adecuado para usuarios que necesiten paridad completa de funciones en entornos secundarios como GitHub Copilot, que según el README carece de soporte para hooks, agentes en tiempo de ejecución o descubrimiento nativo de habilidades."
+      },
+      "ja": {
+        "goal": "ECC(affaan-m/ECC)はMITライセンスのオープンソースエージェントハーネスシステムで、コーディングエージェントに計画・テスト・実装・レビュー・検証・記憶・改善という連携したエンジニアリングワークフローを追加します。Claude Codeで最も効果的に動作し、Codex同期パスをサポートし、Cursor、OpenCode、Gemini、Zed、GitHub Copilotなど向けに機能を限定したアダプターを提供します。",
+        "usage": "推奨されるインストール方法はガイド付きの汎用セットアップで、`npx ecc-universal@2.2.3 setup` を実行すると `ecc@ecc` Claude Codeプラグインがインストールされます。Claude Codeのネイティブコマンド(`/plugin marketplace add` と `/plugin install ecc@ecc`)も同等の代替パスです。インストールにはNode.js 18以上が必要で、ClaudeプラグインのセットアップにはさらにGitとClaude Code 2.1以上が必要です。",
+        "pros": "ECCには68のエージェント、293のスキル、94のレガシーコマンドシムが含まれており、さらにフック、ルール、メモリ、継続学習、AgentShieldセキュリティスキャンも備えているため、計画立案、レビュー、ビルド修復、セキュリティ分析などの作業に対応できます。1つのガイド付きインストーラーで、複数のハーネス(Claude Code、Codex、Kimi Code)にわたるセットアップ、更新、スコープ変更、アンインストールを管理できます。",
+        "cons": "READMEは、プラグインインストールと完全な手動インストールを重ねるなど、インストール方法を併用しないよう明確に警告しています。これはスキル、コマンド、フックが重複する可能性があるためです。Claude以外のハーネス間での機能の同等性は保証されておらず、READMEはCursorやOpenCodeなどのアダプターで同等の機能を期待する前に、プラットフォームサポートマトリックスを確認するよう案内しています。",
+        "fit": "ECCは、Claude Codeを主要なコーディングエージェントとして使用し、その上に構造化された再現可能なエンジニアリングワークフローを追加したいチームや個人に適しています。READMEによれば、GitHub Copilotなどの補助的なハーネスではフック、ランタイムエージェント、ネイティブスキル検出のサポートが欠けているため、完全な機能の同等性を必要とするユーザーには適さない場合があります。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 128,
+          "end_line": 142,
+          "section_heading": "ECC"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 162,
+          "end_line": 167,
+          "section_heading": "Install ECC"
+        },
+        {
+          "start_line": 173,
+          "end_line": 175,
+          "section_heading": "Recommended: universal guided setup"
+        },
+        {
+          "start_line": 287,
+          "end_line": 290,
+          "section_heading": "Claude Code details"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 142,
+          "end_line": 151,
+          "section_heading": "ECC"
+        },
+        {
+          "start_line": 221,
+          "end_line": 221,
+          "section_heading": "Windows first-time walkthrough"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 265,
+          "end_line": 277,
+          "section_heading": "Pick one path only (per harness)"
+        },
+        {
+          "start_line": 140,
+          "end_line": 140,
+          "section_heading": "ECC"
+        },
+        {
+          "start_line": 1289,
+          "end_line": 1294,
+          "section_heading": "Platform Support"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 140,
+          "end_line": 140,
+          "section_heading": "ECC"
+        },
+        {
+          "start_line": 1693,
+          "end_line": 1693,
+          "section_heading": "Limitations"
+        },
+        {
+          "start_line": 1689,
+          "end_line": 1689,
+          "section_heading": "Feature coverage"
+        }
+      ]
+    },
+    "invariants": [
       {
         "kind": "product",
-        "value": "Pinokio",
+        "value": "ECC",
         "fields": [
+          "goal",
           "usage",
-          "cons"
+          "pros",
+          "fit"
         ]
       },
       {
         "kind": "product",
-        "value": "Cesium ion",
+        "value": "affaan-m/ECC",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "ecc@ecc",
         "fields": [
           "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "ecc-universal",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "2.2.3",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "Node.js 18",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "Claude Code 2.1",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "npx ecc-universal@2.2.3 setup",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/plugin install ecc@ecc",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "68 agents",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "293 skills",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "94 legacy command shims",
+        "fields": [
+          "pros"
         ]
       }
     ],
@@ -4146,13 +4415,13 @@
     ],
     "source": {
       "kind": "readme",
-      "slug": "bilawalsidhu/gods-eye-view",
+      "slug": "affaan-m/ecc",
       "path": "README.md",
-      "blob_sha": "724ea18cb6d66e58fea88c7c315330fb8d572dc5",
-      "content_sha256": "7ff778000b2b7cac0849f4d6db21992f1a34fe1c743a263489c2449839d99c81",
+      "blob_sha": "95673de4bb5a8471507fc2c396243cd20395ee58",
+      "content_sha256": "d21d9a528ba5bf054ff4bd76940608da7ad1c53f6da167c19677af50364e4b5c",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.287",
+      "cli_version": "2.1.292",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -4363,117 +4632,112 @@
   },
   "paperclipai/paperclip": {
     "content": {
-      "goal": "Paperclip is open-source orchestration software — a Node.js server with a React UI — for managing teams of AI agents that run business work. It lets teams assign goals, bring their own agents, and track tasks, costs, and permissions from a single dashboard.",
-      "usage": "Paperclip is self-hosted and open source, requiring no Paperclip account. It can be installed and run with `npx paperclipai@latest onboard --yes` (Node.js 24.11 or newer), or by cloning the repository and running `pnpm install` followed by `pnpm dev`, which starts the UI and API at http://localhost:3100 with an automatically created embedded PostgreSQL database.",
-      "pros": "Documented capabilities include atomic task checkout that prevents duplicate work, budget and cost tracking with threshold alerts and automatic pauses, and support for multiple agent adapters such as Claude Code, Codex, Cursor, Gemini CLI, and OpenClaw.",
-      "cons": "Building the native Paperclip Runner from source — enabled by default for self-hosted setups — requires installing a Rust toolchain, or alternatively setting the PAPERCLIP_RUNNER_BINARY variable to a compatible prebuilt runner, adding an extra setup step beyond Node.js and pnpm.",
-      "fit": "Paperclip is suited to teams coordinating many different agents toward shared goals, especially when they want to monitor costs and audit autonomous, long-running work; it is documented as not being an agent-building framework or prompt manager, but a system for managing the organization agents operate within."
+      "goal": "Paperclip is an open-source Node.js server and React UI that orchestrates teams of AI agents (e.g., OpenClaw, Claude Code, Codex, Cursor, Gemini CLI) to run business-style workflows. It lets users assign goals, track work and costs, and manage agent permissions and history from one dashboard.",
+      "usage": "Install with `npx paperclipai@latest onboard --yes` (requires Node.js 24.11+), or clone the repository and run `pnpm install` and `pnpm dev`, which starts the UI and API at http://localhost:3100 with an embedded PostgreSQL database created automatically.",
+      "pros": "Documented features include company/agent/project budgets with threshold alerts, configurable approval and governance stages, atomic task checkout to prevent duplicate agent runs, and support for multiple organizations within one deployment.",
+      "cons": "Source-based setup requires Node.js 24.11+ and pnpm 9.15+, and building the native Paperclip Runner needs a Rust toolchain unless a prebuilt binary is supplied via PAPERCLIP_RUNNER_BINARY; usage telemetry is also enabled by default, though it can be disabled.",
+      "fit": "The README positions Paperclip for teams coordinating multiple AI agents toward shared goals with budget and governance needs, rather than as an agent-building framework, chatbot, workflow builder, or prompt manager."
     },
     "summaries": {
       "en": {
-        "goal": "Paperclip is open-source orchestration software — a Node.js server with a React UI — for managing teams of AI agents that run business work. It lets teams assign goals, bring their own agents, and track tasks, costs, and permissions from a single dashboard.",
-        "usage": "Paperclip is self-hosted and open source, requiring no Paperclip account. It can be installed and run with `npx paperclipai@latest onboard --yes` (Node.js 24.11 or newer), or by cloning the repository and running `pnpm install` followed by `pnpm dev`, which starts the UI and API at http://localhost:3100 with an automatically created embedded PostgreSQL database.",
-        "pros": "Documented capabilities include atomic task checkout that prevents duplicate work, budget and cost tracking with threshold alerts and automatic pauses, and support for multiple agent adapters such as Claude Code, Codex, Cursor, Gemini CLI, and OpenClaw.",
-        "cons": "Building the native Paperclip Runner from source — enabled by default for self-hosted setups — requires installing a Rust toolchain, or alternatively setting the PAPERCLIP_RUNNER_BINARY variable to a compatible prebuilt runner, adding an extra setup step beyond Node.js and pnpm.",
-        "fit": "Paperclip is suited to teams coordinating many different agents toward shared goals, especially when they want to monitor costs and audit autonomous, long-running work; it is documented as not being an agent-building framework or prompt manager, but a system for managing the organization agents operate within."
+        "goal": "Paperclip is an open-source Node.js server and React UI that orchestrates teams of AI agents (e.g., OpenClaw, Claude Code, Codex, Cursor, Gemini CLI) to run business-style workflows. It lets users assign goals, track work and costs, and manage agent permissions and history from one dashboard.",
+        "usage": "Install with `npx paperclipai@latest onboard --yes` (requires Node.js 24.11+), or clone the repository and run `pnpm install` and `pnpm dev`, which starts the UI and API at http://localhost:3100 with an embedded PostgreSQL database created automatically.",
+        "pros": "Documented features include company/agent/project budgets with threshold alerts, configurable approval and governance stages, atomic task checkout to prevent duplicate agent runs, and support for multiple organizations within one deployment.",
+        "cons": "Source-based setup requires Node.js 24.11+ and pnpm 9.15+, and building the native Paperclip Runner needs a Rust toolchain unless a prebuilt binary is supplied via PAPERCLIP_RUNNER_BINARY; usage telemetry is also enabled by default, though it can be disabled.",
+        "fit": "The README positions Paperclip for teams coordinating multiple AI agents toward shared goals with budget and governance needs, rather than as an agent-building framework, chatbot, workflow builder, or prompt manager."
       },
       "ko": {
-        "goal": "Paperclip은 비즈니스 업무를 수행하는 AI 에이전트 팀을 관리하기 위한 오픈소스 오케스트레이션 소프트웨어로, Node.js 서버와 React UI로 구성됩니다. 목표를 할당하고 자체 에이전트를 투입하며, 하나의 대시보드에서 작업, 비용, 권한을 추적할 수 있습니다.",
-        "usage": "Paperclip은 셀프 호스팅 방식의 오픈소스로 별도 계정이 필요하지 않습니다. `npx paperclipai@latest onboard --yes` 명령으로 설치·실행할 수 있으며(Node.js 24.11 이상 필요), 또는 저장소를 클론한 뒤 `pnpm install`과 `pnpm dev`를 실행하면 http://localhost:3100 에서 UI와 API가 시작되고 내장 PostgreSQL 데이터베이스가 자동으로 생성됩니다.",
-        "pros": "문서에 따르면 중복 작업을 막는 원자적 작업 체크아웃, 임계값 알림과 자동 일시정지를 포함한 예산·비용 추적, 그리고 Claude Code, Codex, Cursor, Gemini CLI, OpenClaw 등 다양한 에이전트 어댑터 지원이 제공됩니다.",
-        "cons": "셀프 호스팅 환경에서 기본으로 활성화되는 네이티브 Paperclip Runner를 소스에서 빌드하려면 Rust 툴체인을 설치해야 하며, 대안으로 환경 변수 PAPERCLIP_RUNNER_BINARY에 호환되는 사전 빌드 러너 경로를 지정할 수도 있지만, 이는 Node.js와 pnpm 외에 추가로 필요한 설정 단계입니다.",
-        "fit": "Paperclip은 여러 다른 에이전트를 공통 목표로 조율하면서 비용을 모니터링하고 자율적이고 장기 실행되는 작업을 감독하려는 팀에 적합한 것으로 문서화되어 있으며, 에이전트를 만드는 프레임워크나 프롬프트 매니저가 아니라 에이전트들이 일하는 조직을 관리하는 시스템으로 소개됩니다."
+        "goal": "Paperclip는 OpenClaw, Claude Code, Codex, Cursor, Gemini CLI 같은 AI 에이전트 팀을 조율하여 업무형 워크플로를 실행하는 오픈소스 Node.js 서버와 React UI로, 목표를 할당하고 작업과 비용을 추적하며 하나의 대시보드에서 에이전트 권한과 기록을 관리할 수 있게 합니다.",
+        "usage": "`npx paperclipai@latest onboard --yes` 명령으로 설치하거나(Node.js 24.11+ 필요), 저장소를 클론한 뒤 `pnpm install`과 `pnpm dev`를 실행하면 http://localhost:3100 에서 UI와 API가 시작되며 내장 PostgreSQL 데이터베이스가 자동으로 생성됩니다.",
+        "pros": "문서화된 기능으로는 임계값 알림이 있는 회사/에이전트/프로젝트별 예산, 설정 가능한 승인 및 거버넌스 단계, 중복 실행을 막는 원자적 작업 체크아웃, 단일 배포에서 여러 조직을 지원하는 기능이 포함됩니다.",
+        "cons": "소스 설치에는 Node.js 24.11+와 pnpm 9.15+가 필요하며, PAPERCLIP_RUNNER_BINARY로 사전 빌드된 바이너리를 지정하지 않는 한 네이티브 Paperclip Runner를 빌드하려면 Rust 툴체인이 필요합니다. 또한 사용 텔레메트리는 기본적으로 활성화되어 있지만 비활성화할 수 있습니다.",
+        "fit": "README는 Paperclip을 여러 AI 에이전트를 공동 목표로 조율하며 예산과 거버넌스가 필요한 팀을 위한 것으로 설명하며, 에이전트 구축 프레임워크, 챗봇, 워크플로 빌더, 또는 프롬프트 관리자는 아니라고 명시합니다."
       },
       "zh-CN": {
-        "goal": "Paperclip 是一款开源编排软件——由 Node.js 服务器和 React 界面组成——用于管理执行业务工作的 AI 代理团队。它支持分配目标、接入自有代理，并在同一个仪表盘中跟踪任务、成本和权限。",
-        "usage": "Paperclip 是自托管的开源项目，无需 Paperclip 账号。可以通过 `npx paperclipai@latest onboard --yes` 命令安装并运行（需要 Node.js 24.11 或更高版本），或者克隆仓库后依次运行 `pnpm install` 和 `pnpm dev`，该命令会在 http://localhost:3100 启动界面和 API，并自动创建内嵌的 PostgreSQL 数据库。",
-        "pros": "文档记载的功能包括防止重复认领任务的原子任务签出、带阈值提醒和自动暂停的预算与成本跟踪，以及对 Claude Code、Codex、Cursor、Gemini CLI 和 OpenClaw 等多种代理适配器的支持。",
-        "cons": "在自托管环境中默认启用的原生 Paperclip Runner 若需从源码构建，则要求安装 Rust 工具链，或者改为通过环境变量 PAPERCLIP_RUNNER_BINARY 指定一个兼容的预编译运行器路径，这是在 Node.js 和 pnpm 之外的额外配置步骤。",
-        "fit": "文档显示 Paperclip 适合需要协调多个不同代理共同实现目标、并希望在自主、长时间运行的工作中监控成本的团队；文档同时说明它并非代理构建框架或提示词管理器，而是用于管理代理所在组织的系统。"
+        "goal": "Paperclip 是一个开源的 Node.js 服务器和 React 界面,用于协调多个 AI 代理(如 OpenClaw、Claude Code、Codex、Cursor、Gemini CLI)组成的团队来执行类似企业的工作流,用户可以分配目标、跟踪工作与成本,并在一个仪表盘中管理代理的权限与历史记录。",
+        "usage": "可以通过 `npx paperclipai@latest onboard --yes` 安装(需要 Node.js 24.11+),或者克隆仓库后运行 `pnpm install` 和 `pnpm dev`,该命令会在 http://localhost:3100 启动界面和 API,并自动创建内嵌的 PostgreSQL 数据库。",
+        "pros": "文档中列出的功能包括按公司、代理和项目设置带阈值提醒的预算、可配置的审批与治理环节、防止重复执行的原子任务签出机制,以及在单个部署中支持多个组织。",
+        "cons": "从源码安装需要 Node.js 24.11+ 和 pnpm 9.15+,除非通过 PAPERCLIP_RUNNER_BINARY 提供预编译的二进制文件,否则构建原生 Paperclip Runner 还需要 Rust 工具链;此外,使用数据遥测默认处于启用状态,不过可以关闭。",
+        "fit": "README 将 Paperclip 定位为适合需要在共同目标下协调多个 AI 代理、并有预算与治理需求的团队使用,而不是一个代理构建框架、聊天机器人、工作流构建工具或提示词管理器。"
       },
       "es": {
-        "goal": "Paperclip es un software de orquestación de código abierto —un servidor Node.js con una interfaz React— para gestionar equipos de agentes de IA que realizan trabajo empresarial. Permite asignar objetivos, incorporar agentes propios y seguir tareas, costos y permisos desde un único panel.",
-        "usage": "Paperclip es autohospedado y de código abierto, sin necesidad de una cuenta de Paperclip. Puede instalarse y ejecutarse con `npx paperclipai@latest onboard --yes` (requiere Node.js 24.11 o posterior), o clonando el repositorio y ejecutando `pnpm install` seguido de `pnpm dev`, que inicia la interfaz y la API en http://localhost:3100 con una base de datos PostgreSQL integrada creada automáticamente.",
-        "pros": "Las capacidades documentadas incluyen el checkout atómico de tareas que evita trabajo duplicado, seguimiento de presupuesto y costos con alertas de umbral y pausas automáticas, y soporte para múltiples adaptadores de agentes como Claude Code, Codex, Cursor, Gemini CLI y OpenClaw.",
-        "cons": "Compilar el Paperclip Runner nativo desde el código fuente —habilitado por defecto en instalaciones autohospedadas— requiere instalar una toolchain de Rust, o bien indicar la ruta de un runner precompilado compatible mediante la variable de entorno PAPERCLIP_RUNNER_BINARY, lo que supone un paso de configuración adicional más allá de Node.js y pnpm.",
-        "fit": "Paperclip está documentado como adecuado para equipos que coordinan muchos agentes distintos hacia objetivos comunes y desean monitorear costos durante trabajo autónomo y de larga duración; también se indica que no es un framework para construir agentes ni un gestor de prompts, sino un sistema para administrar la organización en la que operan los agentes."
+        "goal": "Paperclip es un servidor Node.js de código abierto con una interfaz React que orquesta equipos de agentes de IA (como OpenClaw, Claude Code, Codex, Cursor, Gemini CLI) para ejecutar flujos de trabajo de tipo empresarial, permitiendo asignar objetivos, seguir el trabajo y los costos, y gestionar permisos e historial de los agentes desde un panel único.",
+        "usage": "Se instala con `npx paperclipai@latest onboard --yes` (requiere Node.js 24.11+), o clonando el repositorio y ejecutando `pnpm install` y `pnpm dev`, que inicia la interfaz y la API en http://localhost:3100 con una base de datos PostgreSQL embebida creada automáticamente.",
+        "pros": "Las funciones documentadas incluyen presupuestos por empresa, agente y proyecto con alertas de umbral, etapas de aprobación y gobernanza configurables, verificación atómica de tareas para evitar ejecuciones duplicadas, y soporte para múltiples organizaciones en un mismo despliegue.",
+        "cons": "La instalación desde el código fuente requiere Node.js 24.11+ y pnpm 9.15+, y compilar el Paperclip Runner nativo necesita un toolchain de Rust salvo que se proporcione un binario precompilado mediante PAPERCLIP_RUNNER_BINARY; además, la telemetría de uso está habilitada por defecto, aunque puede desactivarse.",
+        "fit": "El README posiciona a Paperclip para equipos que coordinan varios agentes de IA hacia objetivos compartidos con necesidades de presupuesto y gobernanza, en lugar de ser un framework para construir agentes, un chatbot, un creador de flujos de trabajo o un gestor de prompts."
       },
       "ja": {
-        "goal": "Paperclipは、ビジネス業務を遂行するAIエージェントのチームを管理するためのオープンソースのオーケストレーションソフトウェアであり、Node.jsサーバーとReact製UIで構成されています。目標の割り当て、自前のエージェントの導入、タスク・コスト・権限の一元的な追跡が可能です。",
-        "usage": "Paperclipはセルフホスト型のオープンソースで、Paperclipアカウントは不要です。`npx paperclipai@latest onboard --yes` コマンドでインストール・実行できます（Node.js 24.11以降が必要）。あるいはリポジトリをクローンし `pnpm install` の後に `pnpm dev` を実行すると、http://localhost:3100 でUIとAPIが起動し、内蔵のPostgreSQLデータベースが自動的に作成されます。",
-        "pros": "文書によると、重複作業を防ぐアトミックなタスクチェックアウト、しきい値アラートと自動一時停止を備えた予算・コスト追跡、そしてClaude Code、Codex、Cursor、Gemini CLI、OpenClawなど複数のエージェントアダプターへの対応が挙げられています。",
-        "cons": "セルフホスト環境で既定で有効になるネイティブのPaperclip Runnerをソースからビルドするには、Rustツールチェーンのインストールが必要であり、代わりに環境変数PAPERCLIP_RUNNER_BINARYで互換性のある事前ビルド済みランナーのパスを指定する方法もありますが、いずれもNode.jsとpnpmに加えた追加の設定手順となります。",
-        "fit": "文書では、Paperclipは多数の異なるエージェントを共通の目標に向けて連携させ、自律的で長時間実行される作業のコストを監視したいチームに適しているとされており、同時にエージェント構築フレームワークやプロンプトマネージャーではなく、エージェントが働く組織を管理するシステムであると説明されています。"
+        "goal": "Paperclipは、OpenClaw、Claude Code、Codex、Cursor、Gemini CLIなど複数のAIエージェントのチームを統括し、業務的なワークフローを実行するオープンソースのNode.jsサーバーとReact UIで、目標の割り当て、作業とコストの追跡、1つのダッシュボードからのエージェントの権限と履歴の管理ができます。",
+        "usage": "`npx paperclipai@latest onboard --yes` でインストールできます(Node.js 24.11+が必要)。あるいはリポジトリをクローンして `pnpm install` と `pnpm dev` を実行すると、http://localhost:3100 でUIとAPIが起動し、内蔵のPostgreSQLデータベースが自動的に作成されます。",
+        "pros": "文書化されている機能には、しきい値アラート付きの会社・エージェント・プロジェクト単位の予算管理、設定可能な承認およびガバナンス段階、重複実行を防ぐアトミックなタスクチェックアウト、1つのデプロイ内で複数組織をサポートする機能が含まれます。",
+        "cons": "ソースからのセットアップにはNode.js 24.11+とpnpm 9.15+が必要で、PAPERCLIP_RUNNER_BINARYでビルド済みバイナリを指定しない限り、ネイティブのPaperclip Runnerのビルドにはrustツールチェーンも必要です。また、使用状況のテレメトリはデフォルトで有効になっていますが、無効化することもできます。",
+        "fit": "READMEはPaperclipを、共通の目標に向けて複数のAIエージェントを調整し、予算とガバナンスを必要とするチーム向けと位置づけており、エージェント構築フレームワークやチャットボット、ワークフロービルダー、プロンプトマネージャーではないとしています。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 35,
-          "end_line": 35,
-          "section_heading": "Paperclip is the app people use to manage AI agents for work."
-        },
-        {
-          "start_line": 39,
-          "end_line": 39,
+          "start_line": 37,
+          "end_line": 45,
           "section_heading": "Paperclip is the app people use to manage AI agents for work."
         }
       ],
       "usage": [
         {
-          "start_line": 344,
-          "end_line": 344,
-          "section_heading": "Quickstart"
-        },
-        {
-          "start_line": 352,
-          "end_line": 355,
+          "start_line": 356,
+          "end_line": 364,
           "section_heading": "Or install it yourself"
         },
         {
-          "start_line": 409,
-          "end_line": 416,
+          "start_line": 413,
+          "end_line": 420,
           "section_heading": "Or install it yourself"
         }
       ],
       "pros": [
         {
-          "start_line": 56,
-          "end_line": 68,
-          "section_heading": "Paperclip is the app people use to manage AI agents for work."
-        },
-        {
-          "start_line": 130,
-          "end_line": 131,
+          "start_line": 134,
+          "end_line": 139,
           "section_heading": "Features"
         },
         {
-          "start_line": 209,
-          "end_line": 209,
+          "start_line": 148,
+          "end_line": 149,
+          "section_heading": "Features"
+        },
+        {
+          "start_line": 213,
+          "end_line": 213,
           "section_heading": "Why Paperclip is special"
         }
       ],
       "cons": [
         {
-          "start_line": 423,
-          "end_line": 423,
+          "start_line": 356,
+          "end_line": 356,
           "section_heading": "Or install it yourself"
+        },
+        {
+          "start_line": 427,
+          "end_line": 427,
+          "section_heading": "Or install it yourself"
+        },
+        {
+          "start_line": 554,
+          "end_line": 561,
+          "section_heading": "Telemetry"
         }
       ],
       "fit": [
         {
-          "start_line": 82,
-          "end_line": 88,
+          "start_line": 84,
+          "end_line": 92,
           "section_heading": "Paperclip is right for you if"
         },
         {
-          "start_line": 334,
-          "end_line": 334,
-          "section_heading": "What Paperclip is not"
-        },
-        {
-          "start_line": 336,
-          "end_line": 336,
+          "start_line": 338,
+          "end_line": 340,
           "section_heading": "What Paperclip is not"
         }
       ]
@@ -4501,17 +4765,18 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "PAPERCLIP_RUNNER_BINARY",
+        "kind": "version",
+        "value": "Node.js 24.11+",
         "fields": [
+          "usage",
           "cons"
         ]
       },
       {
         "kind": "version",
-        "value": "Node.js 24.11",
+        "value": "pnpm 9.15+",
         "fields": [
-          "usage"
+          "cons"
         ]
       },
       {
@@ -4533,44 +4798,23 @@
       },
       {
         "kind": "product",
+        "value": "OpenClaw",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
         "value": "Claude Code",
         "fields": [
-          "pros"
+          "goal"
         ]
       },
       {
         "kind": "product",
         "value": "Codex",
         "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Cursor",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Gemini CLI",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "OpenClaw",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "PostgreSQL",
-        "fields": [
-          "usage"
+          "goal"
         ]
       }
     ],
@@ -4579,11 +4823,11 @@
       "kind": "readme",
       "slug": "paperclipai/paperclip",
       "path": "README.md",
-      "blob_sha": "a0db4476643841ad08bbf61aea1e2d41eaed44f1",
-      "content_sha256": "44e38b460033d3b1b6d5f75e8e63cdf936fda42dbe9db7a33c077bf06b22c79a",
+      "blob_sha": "e433acfdc1b337326497d58c2a31a917009eda29",
+      "content_sha256": "9896a929b8c598a3049af9d6f31ca11bdc301c2cbb5625f39fa51257c8906fe2",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.287",
+      "cli_version": "2.1.292",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -5889,6 +6133,849 @@
       "translation_applicable": false
     }
   },
+  "DietrichGebert/ponytail": {
+    "content": {
+      "goal": "Ponytail is a prompt/skill that instructs AI coding agents to behave like a terse senior developer, replacing verbose generated code with minimal, reused solutions. It is loaded into agents through a single prompt file rather than a standalone application.",
+      "usage": "In Claude Code it is installed with `/plugin marketplace add DietrichGebert/ponytail` followed by `/plugin install ponytail@ponytail`; Codex uses separate `codex plugin` commands. Once active, intensity is controlled with `/ponytail [lite | full | ultra | off]`, and additional commands `/ponytail-review`, `/ponytail-audit`, `/ponytail-debt`, `/ponytail-gain`, and `/ponytail-help` are available.",
+      "pros": "A documented benchmark on a FastAPI + React repo reports -54% lines of code, -22% tokens, -20% cost, and -27% time versus a no-skill baseline using Haiku 4.5, while holding a 100% safety score. The documentation states validation, error handling, security, and accessibility are not removed to achieve this reduction.",
+      "cons": "The command set (review, audit, debt, gain, help) requires a skill-capable host such as Claude Code or Codex; instruction-only adapters like Cursor's rule file, Windsurf, Cline, Copilot, Kiro, or Antigravity load only the always-on ruleset without these commands. The benchmark figures likely reflect a small sample (n=4) on one repository with one model, so broader applicability is not fully established.",
+      "fit": "This appears best suited for teams already using AI coding agents who want to curb over-engineered output, and it is described as complementary to the separate 'caveman' prompt, which reduces agent prose rather than code."
+    },
+    "summaries": {
+      "en": {
+        "goal": "Ponytail is a prompt/skill that instructs AI coding agents to behave like a terse senior developer, replacing verbose generated code with minimal, reused solutions. It is loaded into agents through a single prompt file rather than a standalone application.",
+        "usage": "In Claude Code it is installed with `/plugin marketplace add DietrichGebert/ponytail` followed by `/plugin install ponytail@ponytail`; Codex uses separate `codex plugin` commands. Once active, intensity is controlled with `/ponytail [lite | full | ultra | off]`, and additional commands `/ponytail-review`, `/ponytail-audit`, `/ponytail-debt`, `/ponytail-gain`, and `/ponytail-help` are available.",
+        "pros": "A documented benchmark on a FastAPI + React repo reports -54% lines of code, -22% tokens, -20% cost, and -27% time versus a no-skill baseline using Haiku 4.5, while holding a 100% safety score. The documentation states validation, error handling, security, and accessibility are not removed to achieve this reduction.",
+        "cons": "The command set (review, audit, debt, gain, help) requires a skill-capable host such as Claude Code or Codex; instruction-only adapters like Cursor's rule file, Windsurf, Cline, Copilot, Kiro, or Antigravity load only the always-on ruleset without these commands. The benchmark figures likely reflect a small sample (n=4) on one repository with one model, so broader applicability is not fully established.",
+        "fit": "This appears best suited for teams already using AI coding agents who want to curb over-engineered output, and it is described as complementary to the separate 'caveman' prompt, which reduces agent prose rather than code."
+      },
+      "ko": {
+        "goal": "Ponytail는 AI 코딩 에이전트가 장황한 코드를 생성하는 대신 간결하고 재사용 가능한 해결책을 내놓도록 유도하는 프롬프트/스킬입니다. 별도 애플리케이션이 아니라 단일 프롬프트 파일 형태로 에이전트에 로드됩니다.",
+        "usage": "Claude Code에서는 `/plugin marketplace add DietrichGebert/ponytail` 실행 후 `/plugin install ponytail@ponytail`로 설치하며, Codex는 별도의 `codex plugin` 명령을 사용합니다. 활성화 후에는 `/ponytail [lite | full | ultra | off]`로 강도를 조절하고, `/ponytail-review`, `/ponytail-audit`, `/ponytail-debt`, `/ponytail-gain`, `/ponytail-help` 명령을 사용할 수 있습니다.",
+        "pros": "FastAPI + React 저장소를 대상으로 한 벤치마크에서는 Haiku 4.5 기준 베이스라인 대비 코드 줄 수 -54%, 토큰 -22%, 비용 -20%, 시간 -27% 감소를 기록했으며 안전성 점수는 100%로 유지되었다고 문서에 나와 있습니다. 이 과정에서 유효성 검사, 오류 처리, 보안, 접근성은 제거되지 않는다고 설명합니다.",
+        "cons": "review, audit, debt, gain, help 등의 명령은 Claude Code나 Codex 같은 스킬 지원 호스트가 필요하며, Cursor 규칙 파일, Windsurf, Cline, Copilot, Kiro, Antigravity 같은 지시문 전용 어댑터는 이러한 명령 없이 상시 규칙만 적용합니다. 벤치마크 수치는 하나의 저장소와 하나의 모델로 소규모 샘플(n=4)에서 나온 것으로 보이므로, 더 넓은 범위에서의 적용 가능성은 아직 충분히 입증되지 않은 것으로 보입니다.",
+        "fit": "이미 AI 코딩 에이전트를 사용하면서 과도한 설계를 줄이고 싶은 팀에 적합해 보이며, 에이전트의 코드가 아니라 설명 텍스트를 줄여주는 별도의 'caveman' 프롬프트와 상호 보완적인 것으로 설명됩니다."
+      },
+      "zh-CN": {
+        "goal": "Ponytail 是一个提示/技能,引导 AI 编程代理表现得像一位话少的资深开发者,用最少、可复用的方案取代冗长的生成代码。它以单一提示文件的形式加载到代理中,而非独立应用程序。",
+        "usage": "在 Claude Code 中,先执行 `/plugin marketplace add DietrichGebert/ponytail`,再执行 `/plugin install ponytail@ponytail` 完成安装;Codex 则使用单独的 `codex plugin` 命令。激活后可用 `/ponytail [lite | full | ultra | off]` 调整强度,还提供 `/ponytail-review`、`/ponytail-audit`、`/ponytail-debt`、`/ponytail-gain`、`/ponytail-help` 等命令。",
+        "pros": "文档中记录的一项基于 FastAPI + React 仓库的基准测试显示,在使用 Haiku 4.5 的情况下,相较于无技能基线,代码行数减少 -54%,token 减少 -22%,成本降低 -20%,耗时减少 -27%,同时安全评分保持 100%。文档说明这一精简并未移除验证、错误处理、安全性或可访问性相关代码。",
+        "cons": "review、audit、debt、gain、help 等命令需要支持技能的宿主环境,例如 Claude Code 或 Codex;而 Cursor 规则文件、Windsurf、Cline、Copilot、Kiro、Antigravity 等仅支持指令的适配器只会加载常驻规则集,不包含这些命令。基准数据似乎来自单一仓库、单一模型下的小样本(n=4),因此其更广泛的适用性尚未得到充分验证。",
+        "fit": "该项目似乎更适合已经在使用 AI 编程代理、希望减少过度设计输出的团队,文档说明它与另一个精简代理表述(而非代码)的 'caveman' 提示互补。"
+      },
+      "es": {
+        "goal": "Ponytail es un prompt/skill que hace que los agentes de codificación de IA se comporten como un desarrollador senior de pocas palabras, sustituyendo código generado extenso por soluciones mínimas y reutilizadas. Se carga en los agentes como un único archivo de prompt, no como una aplicación independiente.",
+        "usage": "En Claude Code se instala con `/plugin marketplace add DietrichGebert/ponytail` seguido de `/plugin install ponytail@ponytail`; Codex usa comandos `codex plugin` separados. Una vez activo, la intensidad se controla con `/ponytail [lite | full | ultra | off]`, y están disponibles los comandos `/ponytail-review`, `/ponytail-audit`, `/ponytail-debt`, `/ponytail-gain` y `/ponytail-help`.",
+        "pros": "Un benchmark documentado sobre un repositorio FastAPI + React reporta -54% de líneas de código, -22% de tokens, -20% de costo y -27% de tiempo frente a una línea base sin el skill usando Haiku 4.5, manteniendo una puntuación de seguridad del 100%. La documentación indica que la validación, el manejo de errores, la seguridad y la accesibilidad no se eliminan para lograr esta reducción.",
+        "cons": "El conjunto de comandos (review, audit, debt, gain, help) requiere un host compatible con skills, como Claude Code o Codex; adaptadores solo de instrucciones como el archivo de reglas de Cursor, Windsurf, Cline, Copilot, Kiro o Antigravity cargan únicamente el conjunto de reglas permanente sin estos comandos. Las cifras del benchmark probablemente provienen de una muestra pequeña (n=4) en un solo repositorio con un solo modelo, por lo que su aplicabilidad más amplia no está plenamente establecida.",
+        "fit": "Parece más adecuado para equipos que ya usan agentes de codificación de IA y quieren reducir el sobre-diseño en el código generado, y se describe como complementario al prompt separado 'caveman', que reduce la prosa del agente en lugar del código."
+      },
+      "ja": {
+        "goal": "Ponytailは、AIコーディングエージェントが冗長なコードを生成する代わりに、寡黙なシニア開発者のように最小限で再利用可能な解決策を選ぶように導くプロンプト/スキルです。独立したアプリケーションではなく、単一のプロンプトファイルとしてエージェントに読み込まれます。",
+        "usage": "Claude Codeでは `/plugin marketplace add DietrichGebert/ponytail` を実行後、`/plugin install ponytail@ponytail` でインストールします。Codexでは別途 `codex plugin` コマンドを使用します。有効化後は `/ponytail [lite | full | ultra | off]` で強度を切り替え、`/ponytail-review`、`/ponytail-audit`、`/ponytail-debt`、`/ponytail-gain`、`/ponytail-help` のコマンドが利用できます。",
+        "pros": "文書によれば、FastAPI + Reactリポジトリでのベンチマークでは、Haiku 4.5使用時にスキルなしのベースラインと比較してコード行数-54%、トークン-22%、コスト-20%、時間-27%の削減を達成し、安全性スコアは100%を維持したとされています。この削減において検証、エラー処理、セキュリティ、アクセシビリティは取り除かれていないと説明されています。",
+        "cons": "review、audit、debt、gain、helpといったコマンド群はClaude CodeやCodexのようなスキル対応ホストを必要とし、Cursorのルールファイル、Windsurf、Cline、Copilot、Kiro、Antigravityなどの指示のみのアダプターでは、これらのコマンドを含まない常時適用ルールセットのみが読み込まれます。ベンチマークの数値は単一リポジトリ・単一モデルによる小規模サンプル(n=4)に基づくとみられるため、より広い適用可能性は十分に確立されていないと考えられます。",
+        "fit": "すでにAIコーディングエージェントを利用し、過剰設計を抑えたいチームに適していると見られ、コードではなくエージェントの文章量を減らす別のプロンプト『caveman』と補完的な関係にあると説明されています。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 58,
+          "end_line": 61,
+          "section_heading": "Already built with Ponytail"
+        },
+        {
+          "start_line": 64,
+          "end_line": 64,
+          "section_heading": "The prompt"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 68,
+          "end_line": 75,
+          "section_heading": "Install"
+        },
+        {
+          "start_line": 127,
+          "end_line": 134,
+          "section_heading": "Commands"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 146,
+          "end_line": 148,
+          "section_heading": "Numbers"
+        },
+        {
+          "start_line": 123,
+          "end_line": 123,
+          "section_heading": "How it works"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 136,
+          "end_line": 136,
+          "section_heading": "Commands"
+        },
+        {
+          "start_line": 140,
+          "end_line": 152,
+          "section_heading": "Numbers"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 171,
+          "end_line": 172,
+          "section_heading": "FAQ"
+        },
+        {
+          "start_line": 60,
+          "end_line": 60,
+          "section_heading": "Already built with Ponytail"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "/plugin marketplace add DietrichGebert/ponytail",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/plugin install ponytail@ponytail",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/ponytail-review",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/ponytail-audit",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/ponytail-debt",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/ponytail-gain",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/ponytail-help",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "Haiku 4.5",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "-54%",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "-22%",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "-20%",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "-27%",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "100%",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Claude Code",
+        "fields": [
+          "usage",
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Codex",
+        "fields": [
+          "usage",
+          "cons"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "cons",
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "dietrichgebert/ponytail",
+      "path": "README.md",
+      "blob_sha": "b451b0d0e5bde893731071f31e096277416f7cd2",
+      "content_sha256": "91003183a7242883345aa6f8fbd7bc5f130b23c5b5ead1906ca2ac3f5aa61553",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.292",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "JustVugg/colibri": {
+    "content": {
+      "goal": "colibri is a C-based inference engine for running very large open mixture-of-experts (MoE) language models on commodity hardware. It keeps the frequently-used dense part of a model in RAM and streams the remaining \"expert\" weights from disk as needed, so no GPU is required. Thirteen model engines are supported, including GLM-5.2 (744B parameters).",
+      "usage": "Setup uses a one-step script: on Windows run START-HERE.bat; on Linux/macOS clone the repository (git clone https://github.com/JustVugg/colibri) and run ./start-here.sh. This detects hardware, recommends a model, builds the engine, downloads the model, and opens a local dashboard. Chat can also be started directly with ./coli chat. The example session shown uses release v2.0.0.",
+      "pros": "No GPU is required since every engine runs on the CPU; GPU backends (Vulkan, CUDA, Metal) are optional accelerators. Interrupted model downloads resume automatically. The server exposes OpenAI- and Anthropic-compatible APIs, letting existing client tools and SDKs connect without modification.",
+      "cons": "Minimum stated requirements are 8 GB RAM and 22 GB free disk space, and the largest supported models need far more of both (e.g., 429 GB disk for GLM-5.2); on modest hardware, speed can be very slow, with GLM-5.2 measured at only 0.05-0.1 tokens/s cold on a 25 GB laptop. The README also states the maintainers have not yet measured a discrete GPU themselves.",
+      "fit": "This project appears best suited to users who own hardware with limited RAM/GPU resources but adequate disk space and want to experiment with running very large open-weight MoE models locally, rather than those needing consistently fast, latency-sensitive production inference."
+    },
+    "summaries": {
+      "en": {
+        "goal": "colibri is a C-based inference engine for running very large open mixture-of-experts (MoE) language models on commodity hardware. It keeps the frequently-used dense part of a model in RAM and streams the remaining \"expert\" weights from disk as needed, so no GPU is required. Thirteen model engines are supported, including GLM-5.2 (744B parameters).",
+        "usage": "Setup uses a one-step script: on Windows run START-HERE.bat; on Linux/macOS clone the repository (git clone https://github.com/JustVugg/colibri) and run ./start-here.sh. This detects hardware, recommends a model, builds the engine, downloads the model, and opens a local dashboard. Chat can also be started directly with ./coli chat. The example session shown uses release v2.0.0.",
+        "pros": "No GPU is required since every engine runs on the CPU; GPU backends (Vulkan, CUDA, Metal) are optional accelerators. Interrupted model downloads resume automatically. The server exposes OpenAI- and Anthropic-compatible APIs, letting existing client tools and SDKs connect without modification.",
+        "cons": "Minimum stated requirements are 8 GB RAM and 22 GB free disk space, and the largest supported models need far more of both (e.g., 429 GB disk for GLM-5.2); on modest hardware, speed can be very slow, with GLM-5.2 measured at only 0.05-0.1 tokens/s cold on a 25 GB laptop. The README also states the maintainers have not yet measured a discrete GPU themselves.",
+        "fit": "This project appears best suited to users who own hardware with limited RAM/GPU resources but adequate disk space and want to experiment with running very large open-weight MoE models locally, rather than those needing consistently fast, latency-sensitive production inference."
+      },
+      "ko": {
+        "goal": "colibri는 매우 큰 오픈소스 혼합전문가(MoE) 언어 모델을 일반 하드웨어에서 실행하기 위한 C 기반 추론 엔진입니다. 모델에서 자주 쓰이는 밀집(dense) 부분은 RAM에 유지하고, 나머지 \"전문가(expert)\" 가중치는 필요할 때 디스크에서 스트리밍하므로 GPU가 필요하지 않습니다. GLM-5.2(744B 파라미터)를 포함해 13개의 모델 엔진을 지원합니다.",
+        "usage": "설정은 원스텝 스크립트로 진행됩니다. Windows에서는 START-HERE.bat을 실행하고, Linux/macOS에서는 저장소를 클론(git clone https://github.com/JustVugg/colibri)한 뒤 ./start-here.sh를 실행합니다. 이 과정에서 하드웨어를 감지하고 모델을 추천하며, 엔진을 빌드하고 모델을 다운로드한 뒤 로컬 대시보드를 엽니다. ./coli chat 명령으로 바로 채팅을 시작할 수도 있습니다. 예시 세션은 v2.0.0 릴리스를 사용합니다.",
+        "pros": "모든 엔진이 CPU에서 동작하므로 GPU가 필수가 아니며, Vulkan·CUDA·Metal 같은 GPU 백엔드는 선택적 가속 수단입니다. 다운로드가 중단되어도 자동으로 이어받기가 가능합니다. 서버는 OpenAI 및 Anthropic 호환 API를 제공해 기존 클라이언트 도구와 SDK를 수정 없이 연결할 수 있습니다.",
+        "cons": "명시된 최소 요구 사항은 RAM 8GB와 여유 디스크 22GB이며, 가장 큰 모델은 이보다 훨씬 더 많은 자원을 필요로 합니다(예: GLM-5.2는 디스크 429GB). 사양이 낮은 환경에서는 속도가 매우 느릴 수 있는데, GLM-5.2는 25GB 노트북에서 콜드 상태로 초당 0.05-0.1 토큰만 측정되었습니다. README는 또한 유지관리자가 아직 디스크리트 GPU에서 직접 성능을 측정하지 못했다고 밝히고 있습니다.",
+        "fit": "이 프로젝트는 RAM이나 GPU 자원이 제한적이지만 디스크 공간은 충분한 사용자가 매우 큰 오픈 가중치 MoE 모델을 로컬에서 실험해보려는 경우에 적합한 것으로 보이며, 지속적으로 빠르고 지연에 민감한 프로덕션 추론이 필요한 경우에는 적합하지 않을 수 있습니다."
+      },
+      "zh-CN": {
+        "goal": "colibri 是一个基于 C 语言的推理引擎,用于在普通硬件上运行非常大的开源混合专家(MoE)语言模型。它将模型中常用的密集部分保留在内存中,并按需从磁盘流式读取其余的“专家”权重,因此不需要 GPU。该项目支持包括 GLM-5.2(744B 参数)在内的十三个模型引擎。",
+        "usage": "设置通过一步式脚本完成:在 Windows 上运行 START-HERE.bat;在 Linux/macOS 上克隆仓库(git clone https://github.com/JustVugg/colibri)后运行 ./start-here.sh。该脚本会检测硬件、推荐模型、构建引擎、下载模型并打开本地仪表盘。也可以直接使用 ./coli chat 启动聊天。示例会话使用的是 v2.0.0 版本。",
+        "pros": "由于每个引擎都可在 CPU 上运行,因此不强制需要 GPU;Vulkan、CUDA、Metal 等 GPU 后端只是可选的加速方式。模型下载中断后可以自动续传。服务器提供兼容 OpenAI 和 Anthropic 的 API,使现有客户端工具和 SDK 无需修改即可连接。",
+        "cons": "文档中说明的最低要求为 8 GB 内存和 22 GB 可用磁盘空间,而最大的支持模型需要远超这一数值的资源(例如 GLM-5.2 需要 429 GB 磁盘空间)。在配置较低的硬件上速度可能非常慢,GLM-5.2 在 25 GB 内存的笔记本上冷启动时仅测得每秒 0.05-0.1 个 token。README 还提到维护者自己尚未在独立显卡上进行过性能测试。",
+        "fit": "该项目看起来更适合那些内存或 GPU 资源有限,但磁盘空间充足、希望在本地尝试运行超大开源权重 MoE 模型的用户,而不太适合需要持续高速、对延迟敏感的生产环境推理场景。"
+      },
+      "es": {
+        "goal": "colibri es un motor de inferencia escrito en C para ejecutar modelos de lenguaje de mezcla de expertos (MoE) muy grandes y de código abierto en hardware convencional. Mantiene en RAM la parte densa del modelo que se usa con frecuencia y transmite el resto de los pesos \"expertos\" desde el disco según se necesiten, por lo que no requiere GPU. Admite trece motores de modelos, incluido GLM-5.2 (744B parámetros).",
+        "usage": "La instalación se realiza mediante un script de un solo paso: en Windows se ejecuta START-HERE.bat; en Linux/macOS se clona el repositorio (git clone https://github.com/JustVugg/colibri) y se ejecuta ./start-here.sh. Esto detecta el hardware, recomienda un modelo, compila el motor, descarga el modelo y abre un panel local. El chat también puede iniciarse directamente con ./coli chat. La sesión de ejemplo muestra la versión v2.0.0.",
+        "pros": "No se requiere GPU, ya que todos los motores funcionan en la CPU; los backends de GPU (Vulkan, CUDA, Metal) son aceleradores opcionales. Las descargas interrumpidas se reanudan automáticamente. El servidor expone APIs compatibles con OpenAI y Anthropic, lo que permite conectar herramientas y SDKs existentes sin modificaciones.",
+        "cons": "Los requisitos mínimos indicados son 8 GB de RAM y 22 GB de espacio libre en disco, y los modelos más grandes admitidos necesitan muchos más recursos de ambos tipos (por ejemplo, GLM-5.2 requiere 429 GB de disco); en hardware modesto, la velocidad puede ser muy baja, con GLM-5.2 midiendo solo 0.05-0.1 tokens/s en frío en un portátil de 25 GB. El README también indica que los mantenedores aún no han medido ellos mismos el rendimiento en una GPU discreta.",
+        "fit": "Este proyecto parece adecuado para usuarios con hardware de RAM o GPU limitada pero con suficiente espacio en disco, que deseen experimentar ejecutando localmente modelos MoE de pesos abiertos muy grandes, más que para quienes necesitan inferencia de producción consistentemente rápida y sensible a la latencia."
+      },
+      "ja": {
+        "goal": "colibriは、非常に大規模なオープンな混合エキスパート(MoE)言語モデルを一般的なハードウェアで実行するためのC言語ベースの推論エンジンです。モデルの中で頻繁に使われる密な部分はRAMに保持し、残りの「エキスパート」重みは必要に応じてディスクからストリーミングするため、GPUは不要です。GLM-5.2(744Bパラメータ)を含む13個のモデルエンジンに対応しています。",
+        "usage": "セットアップはワンステップのスクリプトで行います。Windowsでは START-HERE.bat を実行し、Linux/macOSではリポジトリをクローン(git clone https://github.com/JustVugg/colibri)した後に ./start-here.sh を実行します。これによりハードウェアを検出し、モデルを推奨し、エンジンをビルドし、モデルをダウンロードしてローカルのダッシュボードを開きます。./coli chat コマンドで直接チャットを開始することもできます。サンプルのセッションでは v2.0.0 リリースが使用されています。",
+        "pros": "すべてのエンジンがCPUで動作するためGPUは必須ではなく、Vulkan・CUDA・Metalといったバックエンドはあくまで任意のアクセラレータです。ダウンロードが中断された場合も自動的に再開されます。サーバーはOpenAIおよびAnthropic互換のAPIを提供するため、既存のクライアントツールやSDKを改変せずに接続できます。",
+        "cons": "README記載の最低要件はRAM 8GBと空きディスク22GBですが、対応する最大級のモデルはそれよりはるかに多くのリソースを必要とします(例:GLM-5.2はディスク429GB)。性能の低いハードウェアでは速度が非常に遅くなることがあり、GLM-5.2は25GBのノートPCでコールド状態のとき毎秒0.05〜0.1トークンしか測定されていません。README には、メンテナー自身はまだディスクリートGPUでの性能測定を行っていないとも記載されています。",
+        "fit": "このプロジェクトは、RAMやGPUリソースが限られているものの十分なディスク容量を持ち、非常に大規模なオープンウェイトのMoEモデルをローカルで試したいユーザーに向いていると考えられ、一貫して高速で低遅延が求められる本番運用の推論用途にはあまり適さない可能性があります。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 16,
+          "end_line": 20,
+          "section_heading": ""
+        },
+        {
+          "start_line": 22,
+          "end_line": 28,
+          "section_heading": ""
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 41,
+          "end_line": 61,
+          "section_heading": "Get started in one step"
+        },
+        {
+          "start_line": 94,
+          "end_line": 100,
+          "section_heading": "Get started in one step"
+        },
+        {
+          "start_line": 31,
+          "end_line": 36,
+          "section_heading": ""
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 260,
+          "end_line": 262,
+          "section_heading": "No GPU needed"
+        },
+        {
+          "start_line": 89,
+          "end_line": 90,
+          "section_heading": "Get started in one step"
+        },
+        {
+          "start_line": 445,
+          "end_line": 460,
+          "section_heading": "Use it from other apps"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 43,
+          "end_line": 45,
+          "section_heading": "Get started in one step"
+        },
+        {
+          "start_line": 212,
+          "end_line": 212,
+          "section_heading": "Which model for my machine"
+        },
+        {
+          "start_line": 306,
+          "end_line": 307,
+          "section_heading": "Vulkan: any GPU"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 170,
+          "end_line": 176,
+          "section_heading": "What colibri is, and why"
+        },
+        {
+          "start_line": 43,
+          "end_line": 45,
+          "section_heading": "Get started in one step"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "./coli chat",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "./start-here.sh",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "START-HERE.bat",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "git clone https://github.com/JustVugg/colibri",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "v2.0.0",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "744B",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "22 GB",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "8 GB",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "429 GB",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://github.com/JustVugg/colibri",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "colibri",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "GLM-5.2",
+        "fields": [
+          "goal",
+          "cons"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "justvugg/colibri",
+      "path": "README.md",
+      "blob_sha": "fb60c0cff529a5d55490968fe52f2992bbdc82e0",
+      "content_sha256": "66c74005bd185b089950179ba860623e69a6b692dc2bdcdbd9c9f1093dc07d91",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.292",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "tashfeenahmed/freellmapi": {
+    "content": {
+      "goal": "FreeLLMAPI aggregates free tiers from 34 LLM providers into one OpenAI-compatible `/v1` API, combining about 7.4 billion tokens per month across 474 model families and 635 free endpoints, plus custom OpenAI-compatible chat, embedding, image, and audio endpoints.",
+      "usage": "Quick start: `curl -fsSL https://freellmapi.co/install.sh | bash` (requires Docker) sets up `~/freellmapi`. Open http://localhost:3001, add provider keys, and point an OpenAI SDK at the unified key via `base_url=\"http://localhost:3001/v1\"`. Coding agents can self-configure with `npx freellmapi setup-claude --url http://localhost:3001 --api-key <unified-key>`. Runs on any system with Node 20+.",
+      "pros": "Provider keys are AES-256-GCM encrypted; smart routing retries the next model on 429/5xx errors and tracks per-key limits under free-tier caps. The catalog self-updates from a signed feed, and the dashboard supports Anthropic's Messages API, an MCP server, and 60 languages.",
+      "cons": "Free installs follow a monthly catalog snapshot rather than the live feed, so new models arrive about 30 days late (currently roughly 303 models behind). The README's Limitations section also notes no frontier models, variable latency, and no SLA, with capability dipping as providers' daily caps are hit until the UTC midnight reset.",
+      "fit": "Given the documented trade-offs and the disclaimer that this is for personal experimentation rather than production, FreeLLMAPI seems suited to individual prototyping with coding agents, not to teams requiring guaranteed production-grade reliability."
+    },
+    "summaries": {
+      "en": {
+        "goal": "FreeLLMAPI aggregates free tiers from 34 LLM providers into one OpenAI-compatible `/v1` API, combining about 7.4 billion tokens per month across 474 model families and 635 free endpoints, plus custom OpenAI-compatible chat, embedding, image, and audio endpoints.",
+        "usage": "Quick start: `curl -fsSL https://freellmapi.co/install.sh | bash` (requires Docker) sets up `~/freellmapi`. Open http://localhost:3001, add provider keys, and point an OpenAI SDK at the unified key via `base_url=\"http://localhost:3001/v1\"`. Coding agents can self-configure with `npx freellmapi setup-claude --url http://localhost:3001 --api-key <unified-key>`. Runs on any system with Node 20+.",
+        "pros": "Provider keys are AES-256-GCM encrypted; smart routing retries the next model on 429/5xx errors and tracks per-key limits under free-tier caps. The catalog self-updates from a signed feed, and the dashboard supports Anthropic's Messages API, an MCP server, and 60 languages.",
+        "cons": "Free installs follow a monthly catalog snapshot rather than the live feed, so new models arrive about 30 days late (currently roughly 303 models behind). The README's Limitations section also notes no frontier models, variable latency, and no SLA, with capability dipping as providers' daily caps are hit until the UTC midnight reset.",
+        "fit": "Given the documented trade-offs and the disclaimer that this is for personal experimentation rather than production, FreeLLMAPI seems suited to individual prototyping with coding agents, not to teams requiring guaranteed production-grade reliability."
+      },
+      "ko": {
+        "goal": "FreeLLMAPI는 34개 LLM 제공업체의 무료 티어를 하나의 OpenAI 호환 `/v1` API로 통합하며, 474개 모델 패밀리와 635개 무료 엔드포인트에 걸쳐 월 약 7.4 billion tokens per month를 제공하고, 사용자 지정 OpenAI 호환 채팅·임베딩·이미지·오디오 엔드포인트도 지원합니다.",
+        "usage": "빠른 시작은 `curl -fsSL https://freellmapi.co/install.sh | bash` (Docker 필요)로 `~/freellmapi`를 설정합니다. http://localhost:3001 을 열어 제공업체 키를 추가한 뒤, 통합 키로 `base_url=\"http://localhost:3001/v1\"`을 설정해 OpenAI SDK를 연결할 수 있습니다. 코딩 에이전트는 `npx freellmapi setup-claude --url http://localhost:3001 --api-key <unified-key>` 명령으로 자동 구성됩니다. Node 20+ 환경 어디서나 실행됩니다.",
+        "pros": "제공업체 키는 AES-256-GCM으로 암호화되며, 스마트 라우팅이 429/5xx 오류 시 다음 모델로 재시도하고 키별 사용량을 추적해 무료 한도를 넘지 않도록 합니다. 카탈로그는 서명된 피드에서 자동 업데이트되며, 대시보드는 Anthropic Messages API, MCP 서버, 60개 언어를 지원합니다.",
+        "cons": "무료 설치본은 실시간 피드가 아닌 월간 스냅샷을 따르므로 새 모델이 약 30 days 늦게 반영되며(현재 약 303개 모델 지연 상태로 보임), README의 Limitations 섹션은 최상위 모델 부재, 가변 지연 시간, SLA 부재를 명시하고 있고 제공업체의 일일 한도 도달 시 성능이 저하되다가 UTC 자정에 초기화된다고 설명합니다.",
+        "fit": "문서화된 트레이드오프와 '프로덕션이 아닌 개인 실험용'이라는 명시적 고지를 고려하면, FreeLLMAPI는 프로덕션급 안정성이 필요한 팀보다는 코딩 에이전트를 활용한 개인 프로토타이핑에 적합해 보입니다."
+      },
+      "zh-CN": {
+        "goal": "FreeLLMAPI 将 34 个 LLM 提供商的免费额度聚合到一个与 OpenAI 兼容的 `/v1` API 中,汇总了 474 个模型系列和 635 个免费端点,每月约提供 7.4 billion tokens per month,并支持自定义 OpenAI 兼容的聊天、嵌入、图像和音频端点。",
+        "usage": "快速开始:运行 `curl -fsSL https://freellmapi.co/install.sh | bash`(需要 Docker)以设置 `~/freellmapi`。打开 http://localhost:3001 添加提供商密钥,然后使用统一密钥通过 `base_url=\"http://localhost:3001/v1\"` 接入任何 OpenAI SDK。编码代理可用 `npx freellmapi setup-claude --url http://localhost:3001 --api-key <unified-key>` 自动配置。可在任何支持 Node 20+ 的系统上运行。",
+        "pros": "提供商密钥采用 AES-256-GCM 加密;智能路由在遇到 429/5xx 错误时自动重试下一个模型,并按密钥追踪用量以保持在免费额度之内。目录会从签名源自动更新,仪表盘支持 Anthropic Messages API、MCP 服务器以及 60 种语言。",
+        "cons": "免费安装版遵循月度快照而非实时源,因此新模型大约延迟 30 days 才会出现(目前似乎落后约 303 个模型)。README 的 Limitations 部分还指出没有前沿模型、延迟不稳定且没有 SLA,当提供商达到每日上限时能力会下降,直到 UTC 午夜重置。",
+        "fit": "根据文档中说明的权衡取舍以及明确声明的“用于个人实验而非生产环境”,FreeLLMAPI 似乎更适合使用编码代理进行个人原型开发,而非需要生产级可靠性保证的团队。"
+      },
+      "es": {
+        "goal": "FreeLLMAPI agrega los niveles gratuitos de 34 proveedores de LLM en una única API compatible con OpenAI (`/v1`), combinando aproximadamente 7.4 billion tokens per month en 474 model families y 635 endpoints gratuitos, además de endpoints personalizados compatibles con OpenAI para chat, embeddings, imágenes y audio.",
+        "usage": "Inicio rápido: `curl -fsSL https://freellmapi.co/install.sh | bash` (requiere Docker) configura `~/freellmapi`. Abra http://localhost:3001, agregue las claves de los proveedores y conecte cualquier SDK de OpenAI usando la clave unificada con `base_url=\"http://localhost:3001/v1\"`. Los agentes de codificación pueden autoconfigurarse con `npx freellmapi setup-claude --url http://localhost:3001 --api-key <unified-key>`. Funciona en cualquier sistema con Node 20+.",
+        "pros": "Las claves de los proveedores se cifran con AES-256-GCM; el enrutamiento inteligente reintenta con el siguiente modelo ante errores 429/5xx y rastrea el uso por clave para mantenerse dentro de los límites gratuitos. El catálogo se actualiza automáticamente desde un feed firmado, y el panel admite la API Messages de Anthropic, un servidor MCP y 60 idiomas.",
+        "cons": "Las instalaciones gratuitas siguen una instantánea mensual en lugar del feed en vivo, por lo que los modelos nuevos llegan unos 30 days más tarde (actualmente con un retraso de aproximadamente 303 modelos). La sección Limitations del README también señala la ausencia de modelos de frontera, latencia variable y falta de SLA, con una caída de capacidad cuando los proveedores alcanzan sus límites diarios, hasta el reinicio a medianoche UTC.",
+        "fit": "Dadas las contrapartidas documentadas y la aclaración explícita de que es para experimentación personal y no para producción, FreeLLMAPI parece orientado a la creación de prototipos individuales con agentes de codificación, más que a equipos que necesiten fiabilidad de nivel productivo garantizada."
+      },
+      "ja": {
+        "goal": "FreeLLMAPIは34のLLMプロバイダーの無料枠を1つのOpenAI互換`/v1` APIに集約し、474のモデルファミリーと635の無料エンドポイントにわたって月間約7.4 billion tokens per monthを提供するほか、カスタムのOpenAI互換チャット・埋め込み・画像・音声エンドポイントにも対応します。",
+        "usage": "クイックスタートでは `curl -fsSL https://freellmapi.co/install.sh | bash`(Dockerが必要)を実行して `~/freellmapi` を設定します。http://localhost:3001 を開いてプロバイダーのキーを追加し、統合キーで `base_url=\"http://localhost:3001/v1\"` を指定して任意のOpenAI SDKを接続できます。コーディングエージェントは `npx freellmapi setup-claude --url http://localhost:3001 --api-key <unified-key>` で自動設定できます。Node 20+が動く環境であればどこでも実行できます。",
+        "pros": "プロバイダーのキーはAES-256-GCMで暗号化され、スマートルーティングは429/5xxエラー時に次のモデルへ再試行し、キーごとの使用量を追跡して無料枠の上限内に収めます。カタログは署名付きフィードから自動更新され、ダッシュボードはAnthropicのMessages API、MCPサーバー、60言語に対応しています。",
+        "cons": "無料版はライブフィードではなく月次スナップショットに従うため、新モデルの反映が約30 days遅れます(現時点でおよそ303モデル分遅れているとされています)。READMEのLimitationsセクションでは、最先端モデルが含まれないこと、レイテンシが一定しないこと、SLAがないことも述べられており、プロバイダーの日次上限に達すると性能が低下し、UTC深夜にリセットされるとされています。",
+        "fit": "文書化されたトレードオフと「本番用ではなく個人の実験・学習用」という明記された免責事項を踏まえると、FreeLLMAPIは本番レベルの信頼性を必要とするチームよりも、コーディングエージェントを使った個人のプロトタイピングに適していると考えられます。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 5,
+          "end_line": 7,
+          "section_heading": "FreeLLMAPI"
+        },
+        {
+          "start_line": 62,
+          "end_line": 62,
+          "section_heading": "Why this exists"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 164,
+          "end_line": 174,
+          "section_heading": "Quick start"
+        },
+        {
+          "start_line": 267,
+          "end_line": 280,
+          "section_heading": "Using the API"
+        },
+        {
+          "start_line": 126,
+          "end_line": 130,
+          "section_heading": "Compatible CLIs & coding agents"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 150,
+          "end_line": 158,
+          "section_heading": "Features"
+        },
+        {
+          "start_line": 156,
+          "end_line": 156,
+          "section_heading": "Features"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 243,
+          "end_line": 246,
+          "section_heading": "Premium (live catalog)"
+        },
+        {
+          "start_line": 329,
+          "end_line": 331,
+          "section_heading": "Limitations"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 480,
+          "end_line": 482,
+          "section_heading": "Disclaimer"
+        },
+        {
+          "start_line": 203,
+          "end_line": 203,
+          "section_heading": "Works with OpenAI-compatible clients"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "curl -fsSL https://freellmapi.co/install.sh | bash",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "npx freellmapi setup-claude --url http://localhost:3001 --api-key <unified-key>",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "Node 20+",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "7.4 billion tokens per month",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "474 model families",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "635",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "34",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "30 days",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://freellmapi.co/install.sh",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "http://localhost:3001",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "FreeLLMAPI",
+        "fields": [
+          "goal",
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "OpenAI",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "cons",
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "tashfeenahmed/freellmapi",
+      "path": "README.md",
+      "blob_sha": "29f04145965d84ff70552839575bba373f99ef2c",
+      "content_sha256": "c4880d1677ef5828539e3a654295673c7614c7fe9c5afa11b0807e03ce1f7917",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.292",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "tt-a1i/archify": {
+    "content": {
+      "goal": "Archify is an open-source tool (MIT license, current stable version 3.0.1) that turns a description, idea, or existing repository into an interactive, standalone HTML diagram. It works as a skill for AI coding agents including Claude Code, Codex CLI, Cursor, and OpenCode, and supports architecture, workflow, sequence, data flow, and lifecycle diagram types.",
+      "usage": "Install with `npx skills add tt-a1i/archify -g`, then send the agent a description such as: \"Use Archify to diagram a web request: Browser calls the API, the API checks Redis, and a cache miss queries PostgreSQL and fills the cache.\" No repository is required to start, though an agent can also read an existing repository for a source-backed diagram.",
+      "pros": "The generated output is a single self-contained HTML file that opens in a browser and can be shared without Archify installed to view it. The README also describes a validation pipeline (typed JSON IR plus schema and layout checks) intended to keep generated diagrams reproducible.",
+      "cons": "Per the README, automatic Mermaid parsing, general-purpose auto-layout, hosted sharing, and WYSIWYG editing are explicitly listed as outside the current scope, so this may be a limitation for users who need those specific capabilities.",
+      "fit": "Archify seems best suited to developers already working inside agent-based CLIs or editors (Claude Code, Codex CLI, Cursor, OpenCode) who want diagrams produced through conversation rather than a standalone drawing editor; some installation paths, such as Claude.ai, depend on Node.js access being available in that sandbox."
+    },
+    "summaries": {
+      "en": {
+        "goal": "Archify is an open-source tool (MIT license, current stable version 3.0.1) that turns a description, idea, or existing repository into an interactive, standalone HTML diagram. It works as a skill for AI coding agents including Claude Code, Codex CLI, Cursor, and OpenCode, and supports architecture, workflow, sequence, data flow, and lifecycle diagram types.",
+        "usage": "Install with `npx skills add tt-a1i/archify -g`, then send the agent a description such as: \"Use Archify to diagram a web request: Browser calls the API, the API checks Redis, and a cache miss queries PostgreSQL and fills the cache.\" No repository is required to start, though an agent can also read an existing repository for a source-backed diagram.",
+        "pros": "The generated output is a single self-contained HTML file that opens in a browser and can be shared without Archify installed to view it. The README also describes a validation pipeline (typed JSON IR plus schema and layout checks) intended to keep generated diagrams reproducible.",
+        "cons": "Per the README, automatic Mermaid parsing, general-purpose auto-layout, hosted sharing, and WYSIWYG editing are explicitly listed as outside the current scope, so this may be a limitation for users who need those specific capabilities.",
+        "fit": "Archify seems best suited to developers already working inside agent-based CLIs or editors (Claude Code, Codex CLI, Cursor, OpenCode) who want diagrams produced through conversation rather than a standalone drawing editor; some installation paths, such as Claude.ai, depend on Node.js access being available in that sandbox."
+      },
+      "ko": {
+        "goal": "Archify는 오픈소스 도구(MIT 라이선스, 현재 안정 버전 3.0.1)로, 설명이나 아이디어, 또는 기존 저장소를 인터랙티브한 단일 HTML 다이어그램으로 변환합니다. Claude Code, Codex CLI, Cursor, OpenCode 등 AI 코딩 에이전트를 위한 스킬로 동작하며 아키텍처, 워크플로우, 시퀀스, 데이터 흐름, 라이프사이클 다이어그램 유형을 지원합니다.",
+        "usage": "`npx skills add tt-a1i/archify -g` 명령으로 설치한 뒤, 에이전트에게 \"Use Archify to diagram a web request: Browser calls the API, the API checks Redis, and a cache miss queries PostgreSQL and fills the cache.\"와 같은 설명을 보내면 됩니다. 저장소 없이도 시작할 수 있지만, 에이전트가 기존 저장소를 읽어 소스 기반 다이어그램을 만들 수도 있습니다.",
+        "pros": "생성된 결과물은 하나의 독립된 HTML 파일이므로 브라우저에서 바로 열리고, Archify를 설치하지 않은 사람에게도 보기용으로 공유할 수 있습니다. README는 또한 생성된 다이어그램의 재현성을 유지하기 위한 검증 파이프라인(타입이 지정된 JSON IR과 스키마·레이아웃 검사)을 설명합니다.",
+        "cons": "README에 따르면 자동 Mermaid 파싱, 범용 자동 레이아웃, 호스팅 공유, WYSIWYG 편집은 현재 범위에서 명시적으로 제외되어 있어, 이러한 기능이 필요한 사용자에게는 제한점이 될 수 있습니다.",
+        "fit": "Archify는 이미 에이전트 기반 CLI나 편집기(Claude Code, Codex CLI, Cursor, OpenCode)를 사용하며 독립형 드로잉 에디터보다 대화를 통해 다이어그램을 생성하고자 하는 개발자에게 적합해 보입니다. 다만 Claude.ai와 같은 일부 설치 경로는 해당 샌드박스에서 Node.js 접근이 가능해야 한다는 조건이 있습니다."
+      },
+      "zh-CN": {
+        "goal": "Archify 是一个开源工具(MIT 许可证,当前稳定版本 3.0.1),可将一段描述、一个想法或现有仓库转换为可交互的独立 HTML 图表。它作为 Claude Code、Codex CLI、Cursor 和 OpenCode 等 AI 编码代理的技能运行,支持架构图、工作流、序列图、数据流和生命周期等图表类型。",
+        "usage": "使用 `npx skills add tt-a1i/archify -g` 安装,然后向代理发送类似这样的描述:\"Use Archify to diagram a web request: Browser calls the API, the API checks Redis, and a cache miss queries PostgreSQL and fills the cache.\" 无需仓库即可开始,也可以让代理读取现有仓库以生成有源码依据的图表。",
+        "pros": "生成的结果是一个独立的单一 HTML 文件,可直接在浏览器中打开,并可分享给未安装 Archify 的人查看。README 还描述了一套校验流程(类型化 JSON IR 以及模式和布局检查),旨在保持生成图表的可复现性。",
+        "cons": "根据 README,自动 Mermaid 解析、通用自动布局、托管分享和 WYSIWYG 编辑被明确列为当前范围之外的功能,这对需要这些具体能力的用户而言可能是一个限制。",
+        "fit": "Archify 似乎更适合已经在使用基于代理的 CLI 或编辑器(Claude Code、Codex CLI、Cursor、OpenCode)、希望通过对话方式而非独立绘图编辑器生成图表的开发者;部分安装方式(如 Claude.ai)则依赖该沙盒环境中可用的 Node.js 访问权限。"
+      },
+      "es": {
+        "goal": "Archify es una herramienta de código abierto (licencia MIT, versión estable actual 3.0.1) que convierte una descripción, idea o repositorio existente en un diagrama HTML interactivo e independiente. Funciona como una skill para agentes de codificación con IA, incluidos Claude Code, Codex CLI, Cursor y OpenCode, y admite tipos de diagrama de arquitectura, flujo de trabajo, secuencia, flujo de datos y ciclo de vida.",
+        "usage": "Se instala con `npx skills add tt-a1i/archify -g`, y luego se envía al agente una descripción como: \"Use Archify to diagram a web request: Browser calls the API, the API checks Redis, and a cache miss queries PostgreSQL and fills the cache.\" No se requiere un repositorio para empezar, aunque el agente también puede leer uno existente para generar un diagrama respaldado por el código fuente.",
+        "pros": "El resultado generado es un único archivo HTML autocontenido que se abre en el navegador y puede compartirse para su visualización sin tener Archify instalado. El README también describe un proceso de validación (IR JSON tipado junto con comprobaciones de esquema y diseño) pensado para mantener la reproducibilidad de los diagramas generados.",
+        "cons": "Según el README, el análisis automático de Mermaid, el diseño automático de propósito general, el uso compartido alojado y la edición WYSIWYG quedan explícitamente fuera del alcance actual, lo que podría ser una limitación para quienes necesiten esas capacidades específicas.",
+        "fit": "Archify parece más adecuado para desarrolladores que ya trabajan con CLIs o editores basados en agentes (Claude Code, Codex CLI, Cursor, OpenCode) y prefieren generar diagramas mediante conversación en lugar de un editor de dibujo independiente; algunas vías de instalación, como Claude.ai, dependen de que el acceso a Node.js esté disponible en ese sandbox."
+      },
+      "ja": {
+        "goal": "Archify はオープンソースのツール(MIT ライセンス、現在の安定版は 3.0.1)で、説明やアイデア、または既存のリポジトリをインタラクティブな単一の HTML 図に変換します。Claude Code、Codex CLI、Cursor、OpenCode などの AI コーディングエージェント向けのスキルとして動作し、アーキテクチャ、ワークフロー、シーケンス、データフロー、ライフサイクルといった図のタイプをサポートします。",
+        "usage": "`npx skills add tt-a1i/archify -g` でインストールし、その後エージェントに次のような説明を送ります:\"Use Archify to diagram a web request: Browser calls the API, the API checks Redis, and a cache miss queries PostgreSQL and fills the cache.\" リポジトリがなくても始められますが、エージェントに既存のリポジトリを読ませてソースに基づいた図を作成することもできます。",
+        "pros": "生成される結果は単一の自己完結型 HTML ファイルで、ブラウザで開くことができ、Archify をインストールしていない相手にも閲覧用として共有できます。README では、生成された図の再現性を保つための検証プロセス(型付き JSON IR とスキーマ・レイアウトのチェック)についても説明されています。",
+        "cons": "README によると、自動的な Mermaid 解析、汎用の自動レイアウト、ホスティングによる共有、WYSIWYG 編集は現時点のスコープ外として明記されており、これらの機能を必要とするユーザーにとっては制約になる可能性があります。",
+        "fit": "Archify は、すでにエージェントベースの CLI やエディタ(Claude Code、Codex CLI、Cursor、OpenCode)を使っていて、単独の描画エディタではなく対話を通じて図を生成したい開発者に向いていると考えられます。Claude.ai のような一部のインストール方法は、そのサンドボックス内で Node.js へのアクセスが利用可能であることに依存します。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 7,
+          "end_line": 7,
+          "section_heading": ""
+        },
+        {
+          "start_line": 11,
+          "end_line": 11,
+          "section_heading": ""
+        },
+        {
+          "start_line": 58,
+          "end_line": 58,
+          "section_heading": "Install, then describe your idea"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 60,
+          "end_line": 62,
+          "section_heading": "Install, then describe your idea"
+        },
+        {
+          "start_line": 66,
+          "end_line": 69,
+          "section_heading": "Install, then describe your idea"
+        },
+        {
+          "start_line": 73,
+          "end_line": 73,
+          "section_heading": "Install, then describe your idea"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 138,
+          "end_line": 138,
+          "section_heading": "Download it. Open it. Explore it."
+        },
+        {
+          "start_line": 300,
+          "end_line": 301,
+          "section_heading": "Why Archify"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 396,
+          "end_line": 396,
+          "section_heading": "Reference and scope"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 381,
+          "end_line": 384,
+          "section_heading": "Installation options"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "npx skills add tt-a1i/archify -g",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "3.0.1",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Archify",
+        "fields": [
+          "goal",
+          "usage",
+          "pros",
+          "fit"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "cons",
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "tt-a1i/archify",
+      "path": "README.md",
+      "blob_sha": "9ca18de26a8b885bb7ee0681b244e0906db6a2b1",
+      "content_sha256": "75d005e2e343c2ddb6f912b8e291355b397df43c20008ee345662ea5a39f145d",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.292",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
   "anthropics/knowledge-work-plugins": {
     "content": {
       "goal": "Knowledge Work Plugins packages skills, connectors, slash commands, and sub-agents into 11 role-specific plugins (e.g., sales, finance, legal, data) that aim to turn Claude into a specialist for a given job function, built for Claude Cowork and also compatible with Claude Code.",
@@ -6051,6 +7138,383 @@
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.263",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "max-sixty/worktrunk": {
+    "content": {
+      "goal": "Worktrunk is a CLI tool for git worktree management, designed to support running multiple AI coding agents (such as Claude Code and Codex) in parallel, each given its own working directory via git worktrees.",
+      "usage": "Install with `brew install worktrunk && wt config shell install` (Homebrew) or `cargo install worktrunk && wt config shell install` (Cargo); shell integration lets Worktrunk commands change your shell's directory. A new worktree and branch can then be created with `wt switch --create feature-auth`.",
+      "pros": "It collapses multi-step plain-git sequences, like `git worktree add -b feat ../repo.feat && cd ../repo.feat`, into single commands such as `wt switch feat`, and adds extras like hooks, LLM-generated commit messages, an interactive picker, and shared copy-on-write build caches across worktrees.",
+      "cons": "Shell integration appears to be a prerequisite for directory-changing commands to work correctly, and on Windows the tool installs under the alternate name `git-wt` to avoid clashing with Windows Terminal's own `wt` alias.",
+      "fit": "This tool seems best suited to developers running several AI agents or parallel feature branches at once who want simplified worktree creation, listing, and merging; full documentation is hosted at https://worktrunk.dev."
+    },
+    "summaries": {
+      "en": {
+        "goal": "Worktrunk is a CLI tool for git worktree management, designed to support running multiple AI coding agents (such as Claude Code and Codex) in parallel, each given its own working directory via git worktrees.",
+        "usage": "Install with `brew install worktrunk && wt config shell install` (Homebrew) or `cargo install worktrunk && wt config shell install` (Cargo); shell integration lets Worktrunk commands change your shell's directory. A new worktree and branch can then be created with `wt switch --create feature-auth`.",
+        "pros": "It collapses multi-step plain-git sequences, like `git worktree add -b feat ../repo.feat && cd ../repo.feat`, into single commands such as `wt switch feat`, and adds extras like hooks, LLM-generated commit messages, an interactive picker, and shared copy-on-write build caches across worktrees.",
+        "cons": "Shell integration appears to be a prerequisite for directory-changing commands to work correctly, and on Windows the tool installs under the alternate name `git-wt` to avoid clashing with Windows Terminal's own `wt` alias.",
+        "fit": "This tool seems best suited to developers running several AI agents or parallel feature branches at once who want simplified worktree creation, listing, and merging; full documentation is hosted at https://worktrunk.dev."
+      },
+      "ko": {
+        "goal": "Worktrunk은 git worktree 관리를 위한 CLI 도구로, Claude Code나 Codex 같은 여러 AI 코딩 에이전트를 병렬로 실행할 때 각 에이전트에 별도의 작업 디렉터리를 제공하도록 설계되었습니다.",
+        "usage": "Homebrew로는 `brew install worktrunk && wt config shell install`, Cargo로는 `cargo install worktrunk && wt config shell install` 명령으로 설치합니다. 셸 통합을 설정하면 Worktrunk 명령이 셸의 디렉터리를 변경할 수 있습니다. 이후 `wt switch --create feature-auth` 명령으로 새 worktree와 브랜치를 생성할 수 있습니다.",
+        "pros": "`git worktree add -b feat ../repo.feat && cd ../repo.feat`처럼 여러 단계가 필요한 기존 git 명령을 `wt switch feat`와 같은 단일 명령으로 줄여주며, 훅(hook), LLM 기반 커밋 메시지 생성, 대화형 선택기, worktree 간 공유되는 copy-on-write 빌드 캐시 같은 부가 기능도 제공합니다.",
+        "cons": "디렉터리 이동 명령이 올바르게 동작하려면 셸 통합이 전제 조건인 것으로 보이며, Windows에서는 Windows Terminal의 기본 `wt` 별칭과 충돌을 피하기 위해 `git-wt`라는 대체 이름으로 설치됩니다.",
+        "fit": "여러 AI 에이전트나 병렬 기능 브랜치를 동시에 운용하며 worktree 생성·목록 확인·병합을 단순화하고 싶은 개발자에게 적합해 보이며, 전체 문서는 https://worktrunk.dev 에 있습니다."
+      },
+      "zh-CN": {
+        "goal": "Worktrunk 是一个用于 git worktree 管理的命令行工具,旨在支持并行运行多个 AI 编程代理(例如 Claude Code 和 Codex),为每个代理分配独立的工作目录。",
+        "usage": "可通过 Homebrew 执行 `brew install worktrunk && wt config shell install`,或通过 Cargo 执行 `cargo install worktrunk && wt config shell install` 进行安装;启用 shell 集成后,Worktrunk 命令才能切换 shell 所在目录。随后可用 `wt switch --create feature-auth` 创建新的 worktree 和分支。",
+        "pros": "它将原本需要多步完成的 git 操作(例如 `git worktree add -b feat ../repo.feat && cd ../repo.feat`)简化为单条命令,如 `wt switch feat`,同时提供钩子(hooks)、LLM 生成提交信息、交互式选择器以及跨 worktree 共享的 copy-on-write 构建缓存等附加功能。",
+        "cons": "目录切换类命令似乎需要先完成 shell 集成才能正常工作,而在 Windows 上该工具以 `git-wt` 这一替代名称安装,以避免与 Windows Terminal 自带的 `wt` 别名冲突。",
+        "fit": "该工具似乎更适合需要同时运行多个 AI 代理或并行功能分支、并希望简化 worktree 创建、列出与合并流程的开发者;完整文档位于 https://worktrunk.dev。"
+      },
+      "es": {
+        "goal": "Worktrunk es una herramienta CLI para la gestión de worktrees de git, diseñada para dar soporte a la ejecución en paralelo de varios agentes de codificación con IA (como Claude Code y Codex), otorgando a cada uno su propio directorio de trabajo.",
+        "usage": "Se instala con `brew install worktrunk && wt config shell install` (Homebrew) o con `cargo install worktrunk && wt config shell install` (Cargo); la integración con la shell permite que los comandos de Worktrunk cambien el directorio de la shell. Después se puede crear un nuevo worktree y rama con `wt switch --create feature-auth`.",
+        "pros": "Reduce secuencias de git tradicionales de varios pasos, como `git worktree add -b feat ../repo.feat && cd ../repo.feat`, a un solo comando como `wt switch feat`, y añade funciones como hooks, mensajes de commit generados por LLM, un selector interactivo y cachés de compilación copy-on-write compartidas entre worktrees.",
+        "cons": "La integración con la shell parece ser un requisito previo para que los comandos que cambian de directorio funcionen correctamente, y en Windows la herramienta se instala bajo el nombre alternativo `git-wt` para evitar el conflicto con el alias `wt` propio de Windows Terminal.",
+        "fit": "Esta herramienta parece ser más adecuada para quienes ejecutan varios agentes de IA o ramas de funciones en paralelo y buscan simplificar la creación, listado y fusión de worktrees; la documentación completa está en https://worktrunk.dev."
+      },
+      "ja": {
+        "goal": "Worktrunkはgit worktree管理用のCLIツールであり、Claude CodeやCodexのような複数のAIコーディングエージェントを並行して実行し、それぞれに独立した作業ディレクトリを与えることを目的として設計されています。",
+        "usage": "Homebrewでは `brew install worktrunk && wt config shell install`、Cargoでは `cargo install worktrunk && wt config shell install` でインストールします。シェル統合を設定すると、Worktrunkのコマンドがシェルのディレクトリを変更できるようになります。その後、`wt switch --create feature-auth` で新しいworktreeとブランチを作成できます。",
+        "pros": "`git worktree add -b feat ../repo.feat && cd ../repo.feat` のような複数手順の通常のgit操作を `wt switch feat` のような単一コマンドに短縮し、フック、LLMによるコミットメッセージ生成、インタラクティブなピッカー、worktree間で共有されるcopy-on-writeビルドキャッシュなどの機能も備えています。",
+        "cons": "ディレクトリを変更するコマンドが正しく動作するにはシェル統合が前提条件であるようで、Windowsでは標準のWindows Terminalの `wt` エイリアスとの競合を避けるため、ツールは `git-wt` という別名でインストールされます。",
+        "fit": "複数のAIエージェントや並行する機能ブランチを同時に扱い、worktreeの作成・一覧表示・マージを簡素化したい開発者に適していると考えられ、完全なドキュメントは https://worktrunk.dev にあります。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 18,
+          "end_line": 20,
+          "section_heading": ""
+        },
+        {
+          "start_line": 32,
+          "end_line": 35,
+          "section_heading": "Context: git worktrees"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 110,
+          "end_line": 114,
+          "section_heading": "Install"
+        },
+        {
+          "start_line": 118,
+          "end_line": 122,
+          "section_heading": "Install"
+        },
+        {
+          "start_line": 158,
+          "end_line": 161,
+          "section_heading": "Quick start"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 37,
+          "end_line": 39,
+          "section_heading": "Context: git worktrees"
+        },
+        {
+          "start_line": 59,
+          "end_line": 83,
+          "section_heading": "Worktrunk makes git worktrees as easy as branches"
+        },
+        {
+          "start_line": 89,
+          "end_line": 97,
+          "section_heading": "Worktrunk makes git worktrees as easy as branches"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 116,
+          "end_line": 116,
+          "section_heading": "Install"
+        },
+        {
+          "start_line": 124,
+          "end_line": 131,
+          "section_heading": "Install"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 32,
+          "end_line": 35,
+          "section_heading": "Context: git worktrees"
+        },
+        {
+          "start_line": 100,
+          "end_line": 102,
+          "section_heading": "Worktrunk makes git worktrees as easy as branches"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "brew install worktrunk && wt config shell install",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "cargo install worktrunk && wt config shell install",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "wt switch --create feature-auth",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://worktrunk.dev",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Worktrunk",
+        "fields": [
+          "goal",
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "git worktree",
+        "fields": [
+          "goal",
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Claude Code",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Codex",
+        "fields": [
+          "goal"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "cons",
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "max-sixty/worktrunk",
+      "path": "README.md",
+      "blob_sha": "3c149ace2aa595167d2d9180c6fad4491aa34672",
+      "content_sha256": "54fbcb1004d61b5c297f3ce00bed85536aaa677ad43102e1f9374496bbce7e4a",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.292",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "NationalSecurityAgency/ghidra": {
+    "content": {
+      "goal": "Ghidra is a software reverse engineering (SRE) framework created and maintained by the NSA Research Directorate. It provides full-featured software analysis tools for analyzing compiled code on Windows, macOS, and Linux, including disassembly, assembly, decompilation, graphing, and scripting across many processor instruction sets and executable formats.",
+      "usage": "Users can install a pre-built release by installing JDK 25 64-bit, downloading a release zip, and running `./ghidraRun` (or `ghidraRun.bat` on Windows). To build from source instead, clone the repository with `git clone https://github.com/NationalSecurityAgency/ghidra.git` and run `gradle buildGhidra` after installing JDK 25 and Gradle 9.1.0+.",
+      "pros": "Ghidra can run in both user-interactive and automated modes, and supports custom extensions and scripts written in Java or Python, including PyGhidra integration. It also supports development via Eclipse with a GhidraDev plugin or Visual Studio Code for building custom scripts and extensions.",
+      "cons": "The README warns that known security vulnerabilities exist within certain versions of Ghidra, directing users to review published security advisories before use. Building from source also requires several prerequisite tools (JDK 25, Gradle, Python3, and platform-specific compilers like MSVC on Windows), adding setup overhead compared to using a pre-built release.",
+      "fit": "Ghidra is intended for software reverse engineering analysts working on complex analysis efforts, including those examining malicious code and identifying vulnerabilities in networks and systems, as part of NSA's cybersecurity mission."
+    },
+    "summaries": {
+      "en": {
+        "goal": "Ghidra is a software reverse engineering (SRE) framework created and maintained by the NSA Research Directorate. It provides full-featured software analysis tools for analyzing compiled code on Windows, macOS, and Linux, including disassembly, assembly, decompilation, graphing, and scripting across many processor instruction sets and executable formats.",
+        "usage": "Users can install a pre-built release by installing JDK 25 64-bit, downloading a release zip, and running `./ghidraRun` (or `ghidraRun.bat` on Windows). To build from source instead, clone the repository with `git clone https://github.com/NationalSecurityAgency/ghidra.git` and run `gradle buildGhidra` after installing JDK 25 and Gradle 9.1.0+.",
+        "pros": "Ghidra can run in both user-interactive and automated modes, and supports custom extensions and scripts written in Java or Python, including PyGhidra integration. It also supports development via Eclipse with a GhidraDev plugin or Visual Studio Code for building custom scripts and extensions.",
+        "cons": "The README warns that known security vulnerabilities exist within certain versions of Ghidra, directing users to review published security advisories before use. Building from source also requires several prerequisite tools (JDK 25, Gradle, Python3, and platform-specific compilers like MSVC on Windows), adding setup overhead compared to using a pre-built release.",
+        "fit": "Ghidra is intended for software reverse engineering analysts working on complex analysis efforts, including those examining malicious code and identifying vulnerabilities in networks and systems, as part of NSA's cybersecurity mission."
+      },
+      "ko": {
+        "goal": "Ghidra는 미국 국가안보국(NSA) 연구국이 개발하고 유지하는 소프트웨어 역공학(SRE) 프레임워크입니다. Windows, macOS, Linux에서 컴파일된 코드를 분석할 수 있는 다양한 고급 분석 도구를 제공하며, 디스어셈블리, 어셈블리, 디컴파일, 그래핑, 스크립팅 등 다양한 프로세서 명령어 집합과 실행 파일 형식을 지원합니다.",
+        "usage": "사전 빌드된 릴리스를 설치하려면 JDK 25 64비트를 설치하고 릴리스 zip 파일을 다운로드한 후 `./ghidraRun`(Windows에서는 `ghidraRun.bat`)을 실행합니다. 소스에서 빌드하려면 `git clone https://github.com/NationalSecurityAgency/ghidra.git`으로 저장소를 복제하고, JDK 25와 Gradle 9.1.0+를 설치한 뒤 `gradle buildGhidra`를 실행합니다.",
+        "pros": "Ghidra는 사용자 대화형 모드와 자동화 모드를 모두 지원하며, Java 또는 Python으로 작성된 사용자 확장 기능 및 스크립트(PyGhidra 통합 포함)를 지원합니다. 또한 Eclipse의 GhidraDev 플러그인이나 Visual Studio Code를 통한 개발도 지원합니다.",
+        "cons": "README에는 특정 버전의 Ghidra에 알려진 보안 취약점이 존재한다는 경고가 포함되어 있으며, 사용 전 공개된 보안 권고문을 검토하도록 안내합니다. 또한 소스에서 빌드할 경우 JDK 25, Gradle, Python3, Windows의 경우 MSVC와 같은 플랫폼별 컴파일러 등 여러 사전 요구 도구가 필요하여 사전 빌드된 릴리스를 사용하는 것보다 설정 부담이 더 큽니다.",
+        "fit": "Ghidra는 NSA의 사이버보안 임무의 일환으로, 악성 코드를 분석하고 네트워크 및 시스템의 취약점을 파악하는 작업을 포함한 복잡한 분석 작업을 수행하는 SRE 분석가를 대상으로 합니다."
+      },
+      "zh-CN": {
+        "goal": "Ghidra 是由美国国家安全局（NSA）研究局创建并维护的软件逆向工程（SRE）框架。它提供全功能的软件分析工具，用于分析 Windows、macOS 和 Linux 上编译的代码，支持反汇编、汇编、反编译、图形化和脚本功能，并兼容多种处理器指令集和可执行文件格式。",
+        "usage": "要安装预构建版本，用户需安装 JDK 25 64位，下载发布版 zip 文件，然后运行 `./ghidraRun`（Windows 上为 `ghidraRun.bat`）。若要从源码构建，可使用 `git clone https://github.com/NationalSecurityAgency/ghidra.git` 克隆仓库，安装 JDK 25 和 Gradle 9.1.0+ 后运行 `gradle buildGhidra`。",
+        "pros": "Ghidra 既可在用户交互模式下运行，也可在自动化模式下运行，并支持使用 Java 或 Python 编写自定义扩展和脚本，包括 PyGhidra 集成。它还支持通过 Eclipse 的 GhidraDev 插件或 Visual Studio Code 进行开发。",
+        "cons": "README 警告某些版本的 Ghidra 存在已知安全漏洞，建议用户在使用前查阅已发布的安全公告。此外，从源码构建还需要安装多项前置工具，例如 JDK 25、Gradle、Python3，以及在 Windows 上需要的 MSVC 等平台特定编译器，这比使用预构建版本带来更多配置工作。",
+        "fit": "Ghidra 面向从事复杂分析工作的软件逆向工程分析人员，包括分析恶意代码以及识别网络和系统中的漏洞，这是 NSA 网络安全使命的一部分。"
+      },
+      "es": {
+        "goal": "Ghidra es un marco de ingeniería inversa de software (SRE) creado y mantenido por la Dirección de Investigación de la NSA. Ofrece herramientas de análisis de software completas para analizar código compilado en Windows, macOS y Linux, incluyendo desensamblado, ensamblado, descompilación, graficado y scripting, admitiendo numerosos conjuntos de instrucciones de procesador y formatos ejecutables.",
+        "usage": "Para instalar una versión precompilada, se debe instalar JDK 25 de 64 bits, descargar el archivo zip de la versión y ejecutar `./ghidraRun` (o `ghidraRun.bat` en Windows). Para compilar desde el código fuente, se puede clonar el repositorio con `git clone https://github.com/NationalSecurityAgency/ghidra.git`, instalar JDK 25 y Gradle 9.1.0+, y luego ejecutar `gradle buildGhidra`.",
+        "pros": "Ghidra puede ejecutarse tanto en modo interactivo para el usuario como en modo automatizado, y admite extensiones y scripts personalizados escritos en Java o Python, incluida la integración con PyGhidra. También admite el desarrollo mediante el complemento GhidraDev para Eclipse o Visual Studio Code.",
+        "cons": "El README advierte que existen vulnerabilidades de seguridad conocidas en ciertas versiones de Ghidra, y recomienda revisar los avisos de seguridad publicados antes de su uso. Además, compilar desde el código fuente requiere varias herramientas previas, como JDK 25, Gradle, Python3 y compiladores específicos de la plataforma como MSVC en Windows, lo que añade complejidad de configuración frente a usar una versión precompilada.",
+        "fit": "Ghidra está destinado a analistas de ingeniería inversa de software que trabajan en esfuerzos de análisis complejos, incluidos quienes examinan código malicioso e identifican vulnerabilidades en redes y sistemas, como parte de la misión de ciberseguridad de la NSA."
+      },
+      "ja": {
+        "goal": "Ghidraは、NSA研究局によって作成・保守されているソフトウェアリバースエンジニアリング（SRE）フレームワークです。Windows、macOS、Linux上でコンパイルされたコードを解析するための高機能な分析ツール群を提供し、逆アセンブル、アセンブル、逆コンパイル、グラフ表示、スクリプティングなど、多数のプロセッサ命令セットと実行形式に対応しています。",
+        "usage": "プリビルド版をインストールするには、JDK 25（64bit）をインストールし、リリースのzipファイルをダウンロードして`./ghidraRun`（Windowsでは`ghidraRun.bat`）を実行します。ソースからビルドする場合は`git clone https://github.com/NationalSecurityAgency/ghidra.git`でリポジトリを取得し、JDK 25とGradle 9.1.0+をインストールした上で`gradle buildGhidra`を実行します。",
+        "pros": "Ghidraはユーザー対話モードと自動化モードの両方で動作し、JavaまたはPythonで記述したカスタム拡張機能やスクリプト（PyGhidra統合を含む）をサポートします。また、EclipseのGhidraDevプラグインやVisual Studio Codeを使った開発にも対応しています。",
+        "cons": "READMEには、特定バージョンのGhidraに既知のセキュリティ脆弱性が存在することが警告されており、使用前に公開されているセキュリティ勧告を確認するよう案内されています。また、ソースからビルドする場合はJDK 25、Gradle、Python3、Windowsの場合はMSVCなどのプラットフォーム固有コンパイラといった複数の前提ツールが必要で、プリビルド版を使う場合より設定の手間が増えます。",
+        "fit": "Ghidraは、悪意のあるコードの解析やネットワーク・システムの脆弱性特定を含む複雑な分析作業に取り組むソフトウェアリバースエンジニアリング分析者を対象としており、NSAのサイバーセキュリティ任務の一環として位置づけられています。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 3,
+          "end_line": 11,
+          "section_heading": "Ghidra Software Reverse Engineering Framework"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 28,
+          "end_line": 38,
+          "section_heading": "Install"
+        },
+        {
+          "start_line": 60,
+          "end_line": 81,
+          "section_heading": "Download and extract the source:"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 9,
+          "end_line": 11,
+          "section_heading": "Ghidra Software Reverse Engineering Framework"
+        },
+        {
+          "start_line": 90,
+          "end_line": 96,
+          "section_heading": "User Scripts and Extensions"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 24,
+          "end_line": 26,
+          "section_heading": "Security Warning"
+        },
+        {
+          "start_line": 49,
+          "end_line": 58,
+          "section_heading": "Install build tools:"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 13,
+          "end_line": 17,
+          "section_heading": "Ghidra Software Reverse Engineering Framework"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "product",
+        "value": "Ghidra",
+        "fields": [
+          "goal",
+          "usage",
+          "pros",
+          "cons",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "PyGhidra",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "GhidraDev",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "JDK 25",
+        "fields": [
+          "usage",
+          "cons"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "Gradle 9.1.0+",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "./ghidraRun",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "git clone https://github.com/NationalSecurityAgency/ghidra.git",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "gradle buildGhidra",
+        "fields": [
+          "usage"
+        ]
+      }
+    ],
+    "inference_fields": [],
+    "source": {
+      "kind": "readme",
+      "slug": "nationalsecurityagency/ghidra",
+      "path": "README.md",
+      "blob_sha": "9a44f4d8e5b380a147ff03d19dd90dc6ae4ea793",
+      "content_sha256": "bc211b0cd68a0a586a07b1cccea28aec99c8aa695d888405fd7ffa4533807a35",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.292",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
