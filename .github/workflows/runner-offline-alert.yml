@@ -1,0 +1,56 @@
+name: Alert on an offline enrichment runner
+
+# The queue guard cancels a refresh whose enrichment job no runner picked up by its deadline, and
+# the only trace is a cancelled run (five in a row on 2026-10-06/07 while the host was powered off).
+# This workflow turns that into one open issue, which GitHub mails to the repository owner, and
+# closes the issue again when a refresh gets through. It never touches the refresh itself.
+
+on:
+  workflow_run:
+    workflows: ["Trending refresh (every 6 hours)"]
+    types: [completed]
+
+permissions: {}
+
+concurrency:
+  group: runner-offline-alert
+  cancel-in-progress: false
+
+jobs:
+  alert:
+    if: ${{ github.event.workflow_run.event == 'schedule' || github.event.workflow_run.event == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      issues: write
+    steps:
+      - name: Open or close the runner-offline issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          ENRICH_JOB_NAME: Generate source-bound summaries
+          ISSUE_TITLE: Self-hosted enrichment runner is offline
+        run: |
+          set -euo pipefail
+          enrich=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/jobs?per_page=100" \
+            | jq -c --arg name "$ENRICH_JOB_NAME" '[.jobs[] | select(.name == $name)] | first // empty')
+          [ -n "$enrich" ] || { echo "::error::job \"${ENRICH_JOB_NAME}\" is absent from run ${RUN_ID}"; exit 1; }
+          runner_name=$(printf '%s' "$enrich" | jq -r '.runner_name // ""')
+          started_steps=$(printf '%s' "$enrich" | jq '[.steps[]? | select(.status != "queued" and .status != "pending")] | length')
+          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"${ISSUE_TITLE}\" in:title" --json number,title \
+            --jq "[.[] | select(.title == \"${ISSUE_TITLE}\")] | first | .number // empty")
+          if [ "$RUN_CONCLUSION" = "cancelled" ] && [ -z "$runner_name" ] && [ "$started_steps" -eq 0 ]; then
+            body="Run ${RUN_URL} was cancelled because no runner picked up \`${ENRICH_JOB_NAME}\` before its deadline. Check that the host is powered on and the runner service is running."
+            if [ -n "$issue" ]; then
+              gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" --body "$body"
+            else
+              gh issue create --repo "$GITHUB_REPOSITORY" --title "$ISSUE_TITLE" --body "$body"
+            fi
+          elif [ "$RUN_CONCLUSION" = "success" ] && [ -n "$issue" ]; then
+            gh issue close "$issue" --repo "$GITHUB_REPOSITORY" --comment "Run ${RUN_URL} published, so the runner is back."
+          else
+            echo "::notice::run ${RUN_ID} (${RUN_CONCLUSION}) needs no change to the runner-offline issue"
+          fi
