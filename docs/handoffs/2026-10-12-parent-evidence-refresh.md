@@ -1,6 +1,6 @@
 # Trending refresh: parent-evidence size repair
 
-Last updated: 2026-10-12 10:08 UTC / 19:08 KST.
+Last updated: 2026-10-12 10:29 UTC / 19:29 KST.
 
 ## Goal and ownership
 
@@ -121,11 +121,26 @@ The reference commit must exist in the checkout. Keep command exit codes; do not
 - At 10:07 UTC, the live manifest still had snapshot `20261007203441-a8b11f19ca8d09c5`, source `4103863ec92e68ef0593142ff115ef4838e426d7`, version 1 and 22 files. The source advanced through Star ticks; a new full-refresh snapshot has not been published.
 - A scoped desktop task creation returned an internal tool error. No admitted task turn or local inspection was verified; no successful PC repair is claimed. The code diagnosis and tests above ran in the assistant cloud. No new credentials, runner registration, installation or security changes were performed.
 
+- [PR #94](https://github.com/nowwcastle-sudo/github-trending-daily/pull/94), exact head `25b98d2f6500886f2a4b33667fa2639eaf67602f`, passed [Tests 38234671336](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38234671336) and [CodeQL 38234671163](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38234671163). Both language analyzers and the aggregate CodeQL check succeeded. It was merged with an expected-head guard at 10:14:13 UTC as `991cc62f6b7e0d194fc36665fc6f664911f99bcf`.
+- At 10:15 UTC, one fresh normal [full refresh 38235202153](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38235202153) was dispatched on that exact main after checking for active duplicates. The existing signed-in cloud GitHub UI was used, bootstrap input stayed blank, and the earlier expired job was not rerun. At that checkpoint prepare was in progress and documentation writes to main were deferred to protect the active run. The terminal outcome is recorded below.
+
+## Confirmed fresh-run provider blocker
+
+- Fresh run `38235202153` passed prepare, and the existing runner immediately started enrichment at 10:21:14 UTC. Generation failed at 10:22:13 UTC at the unchanged 25/38 held gate; publication/deployment/probe were skipped.
+- The diagnostic fix worked in production: artifact `11740960692` was uploaded, ZIP SHA-256 `d8bea12ebcc70a391fada318beaee4d0f937f57aff425319ad8659d87e2ff0af`. Downloaded bytes matched the digest. The JSON is 11,664 bytes, version 2; its SHA-256 is `a92dffb288c68415738cd6f7ea98b074c9e88bbcd6e704155bf684bc0b6f1011`. The three direct rate-limited repositories were `morluto/rea`, `storytold/artcraft`, and `cathrynlavery/diagram-design`; the other 22 cite a causal held request rather than an independent quality failure.
+- All 25 holds have reason `budget_exhausted`: the first 3 contain `CLAUDE_RATE_LIMITED`, and the remaining 22 contain `BUDGET_EXHAUSTED` with an explicit causal repository. No quality defect is reported. Runtime is Claude CLI OAuth/firstParty 2.1.292, model claude-sonnet-5. Recorded aggregate usage is 9 attempts, 6 retries and 0 input/output tokens; these fields are execution receipts, not a billing statement.
+- The runtime classifies 429/rate-limit responses as `CLAUDE_RATE_LIMITED`. The bounded artifact does not reveal whether the constraint is transient throttling, a session limit or a weekly allowance, and contains no reset time. This is now the active blocker. Do not present a provider-limit guess as a confirmed account state.
+- The run reached terminal `completed/failure` at 10:22:24 UTC. Its [diagnostic download](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38235202153/artifacts/11740960692) expires on 2026-10-13 at about 10:22 UTC; the bounded facts and digest above remain in this durable handoff.
+- A read-only attempt to open Claude Settings > Usage in the existing assistant-cloud browser redirected to reauthentication. No login, payment, usage setting or credential action was taken. Limit type and reset time remain unverified.
+- At 10:28 UTC / 19:28 KST, the user was asked to provide the displayed Claude limit message and reset time. That answer is pending. No additional full refresh was dispatched after run 38235202153.
+- The final supported desktop-task recheck returned zero direct child tasks (no continuation cursor). The uncertain empty thread still had no parent, admitted turn or messages. No new task was created, no instructions were sent to that unidentified thread, and no desktop inspection is claimed.
+- Do not repeatedly dispatch full refreshes against that unchanged constraint. Read the relevant existing account's usage/availability state through an authorized route, then wait for its confirmed reset or request any additional approval required. No extra paid usage, account change, model substitution, security change or quota increase has been performed.
+
 ## Next steps and completion boundary
 
-1. Publish/review the diagnostic-only patch, confirm exact-head CI, and apply through the approved PR workflow. Do not weaken the 50% publication gate or raise paid budgets.
-2. With the existing runner available, start one fresh normal full refresh after checking for an active duplicate. Do not rerun an old enrichment job after its frozen deadline.
-3. Read the bounded diagnostic if enrichment is held again. Resolve its actual cause within the approved scope; new authentication, payment/quota or security changes require separate approval.
+1. Establish Claude provider availability or the existing account's reset time. The user can check **Claude Settings > Usage** in the account used by the existing runner and provide the limit kind and reset time; a screenshot should omit unrelated account details. The fresh-run rate-limit blocker is confirmed, but its reset timing is not. Do not weaken the 50% publication gate or raise paid budgets.
+2. When availability is restored, check for a duplicate and run one fresh normal full refresh. Never rerun an expired frozen enrichment job.
+3. Resolve any subsequent failure from its real bounded diagnostic within scope; new authentication, payment/quota or security changes require separate approval.
 4. Verify a **new** snapshot, immutable DB pointer, published source SHA and successful production probe before reporting operational recovery.
 5. Continue updating this existing handoff without racing any active full refresh. The separate forced Node test-runner reporting observation remains open and does not invalidate the successful exact-head CI results already recorded.
 
