@@ -634,9 +634,99 @@ test("frozen pipeline fails closed when more than half of the active repositorie
       seen.set(slug, count);
       return { structuredOutput: count === 1 ? generic : summaryPatch(generic, { es: ["cons"] }), usage: { inputTokens: 1, outputTokens: 1 } };
     },
-  }), /held ratio/i);
+  }), error => {
+    assert.match(error.message, /held ratio/i);
+    assert.equal(error.summaryFailureDiagnostic.version, 2);
+    assert.equal(error.summaryFailureDiagnostic.held.length, 44);
+    assert.equal(new Set(error.summaryFailureDiagnostic.held.map(entry => entry.slug)).size, 44);
+    assert.ok(error.summaryFailureDiagnostic.held.every(entry => entry.defect_codes.includes("GENERIC_OR_PLACEHOLDER")));
+    return true;
+  });
   assert.equal(await exists(join(args.outputRoot, "data", "repo-summaries.json")), false);
   assert.equal(await exists(args.enrichmentIndexOut), false);
+});
+
+test("held-majority rate limit retains bounded causes without publishing or leaking provider output", async t => {
+  const fixture = await frozenPipelineFixture(t);
+  await writeFile(join(fixture.sourceRoot, "data", "repo-summaries.json"), "{}\n");
+  const args = await pipelineArguments(fixture, "rate-limited-candidate");
+  await mkdir(join(args.outputRoot, "translations"));
+  await writeFile(join(args.outputRoot, "translations", "keep.txt"), "prior candidate bytes");
+  await assert.rejects(runFrozenSummaryBundlePipeline({
+    ...args,
+    environment: {},
+    preflight: async () => oauthRuntime,
+    executeClaude: async () => {
+      throw Object.assign(new Error("PRIVATE_PROVIDER_OUTPUT"), {
+        failureCode: "CLAUDE_RATE_LIMITED", stdout: "PRIVATE_STDOUT", stderr: "PRIVATE_STDERR",
+      });
+    },
+  }), error => {
+    assert.match(error.message, /held ratio exceeds 50% \(44\/44\)/);
+    const diagnostic = error.summaryFailureDiagnostic;
+    assert.equal(diagnostic.version, 2);
+    assert.equal(diagnostic.held.length, 44);
+    assert.ok(diagnostic.held.every(entry => entry.reason === "budget_exhausted"));
+    assert.ok(diagnostic.held.some(entry => entry.diagnostic.failure_code === "CLAUDE_RATE_LIMITED"));
+    assert.ok(diagnostic.held.some(entry => entry.diagnostic.failure_code === "BUDGET_EXHAUSTED"));
+    assert.doesNotMatch(JSON.stringify(diagnostic), /PRIVATE_|stdout|stderr/);
+    return true;
+  });
+  assert.equal(await readFile(join(args.outputRoot, "translations", "keep.txt"), "utf8"), "prior candidate bytes");
+  assert.equal(await exists(join(args.outputRoot, "data", "repo-summaries.json")), false);
+  assert.equal(await exists(args.enrichmentIndexOut), false);
+});
+
+test("summary bundle CLI preserves the 50% gate and writes classification-majority diagnostics", async t => {
+  for (const heldCount of [22, 23]) {
+    const unavailable = Array.from({ length: heldCount }, (_, i) => `owner/repo-${String(i).padStart(2, "0")}`);
+    const fixture = await frozenPipelineFixture(t, { unavailable });
+    const args = await pipelineArguments(fixture, `cli-held-${heldCount}`);
+    const diagnosticPath = join(fixture.root, "failure-diagnostics.json");
+    const environment = {
+      ...process.env,
+      TYPESAFE_API_KEY: "",
+      PYTHON: await resolveVerifiedPythonExecutable(),
+      ENRICHMENT_DEADLINE_EPOCH_MS: `${Date.now() + 1_000_000}`,
+      ENRICHMENT_BUDGET_MODE: "normal",
+      INPUT_SOURCE_SHA: fixture.facts.inputSourceSha,
+      HYDRATION_SOURCE_SHA: fixture.facts.hydrationSourceSha,
+      FROZEN_SOURCE_SET_SHA256: fixture.facts.sourceSetSha256,
+      FROZEN_RUN_CONTEXT_SHA256: fixture.facts.runContextSha256,
+      PRODUCTION_MANIFEST_STATUS: fixture.facts.productionManifestStatus,
+      PRODUCTION_MANIFEST_SHA256: fixture.facts.productionManifestSha256,
+      VERIFIED_RECOVERY_VERSION: "1",
+      VERIFIED_BOOTSTRAP_SOURCE_SHA: fixture.facts.hydrationSourceSha,
+      MANUAL_BOOTSTRAP_SOURCE_SHA: "",
+    };
+    const invocation = execFile(process.execPath, [
+      fileURLToPath(new URL("../scripts/generate-summary-bundles.mjs", import.meta.url)),
+      "--facts", args.factsPath, "--events", args.eventsPath,
+      "--enrichment-index-out", args.enrichmentIndexOut,
+      "--source-root", args.sourceRoot, "--output-root", args.outputRoot,
+      "--prior-heads", args.priorHeadsPath, "--parent-evidence", args.parentEvidencePath,
+      "--parent-database", args.parentDatabasePath,
+      "--failure-diagnostics-out", diagnosticPath, "--prepared-codex", fixture.preparedPath,
+    ], { cwd: fixture.root, env: environment });
+    if (heldCount === 22) {
+      await invocation;
+      const index = JSON.parse(await readFile(args.enrichmentIndexOut, "utf8"));
+      assert.equal(index.heldRatio, 0.5);
+    } else {
+      await assert.rejects(invocation, error => {
+        assert.equal(error.code, 1);
+        assert.match(error.stderr, /held ratio exceeds 50% \(23\/44\)/);
+        return true;
+      });
+      const diagnostic = JSON.parse(await readFile(diagnosticPath, "utf8"));
+      assert.deepEqual(diagnostic, {
+        version: 2,
+        held: unavailable.map(slug => ({ slug, reason: "request_failed", defect_codes: [], diagnostic: null })),
+      });
+      assert.equal(await exists(args.enrichmentIndexOut), false);
+      assert.equal(await exists(join(args.outputRoot, "data", "repo-summaries.json")), false);
+    }
+  }
 });
 
 test("summary bundle CLI accepts the optional prepared Codex file", async t => {
