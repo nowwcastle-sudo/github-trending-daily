@@ -25,6 +25,7 @@ try:
         _file_sha256,
         _legacy_logical_rows,
         _parse_parent_evidence_envelope,
+        _require_parent_evidence,
         held_summary_digests,
         validate_schema,
         verify_core_snapshot,
@@ -40,6 +41,7 @@ except ModuleNotFoundError as error:
         _file_sha256,
         _legacy_logical_rows,
         _parse_parent_evidence_envelope,
+        _require_parent_evidence,
         held_summary_digests,
         validate_schema,
         verify_core_snapshot,
@@ -652,9 +654,20 @@ def export_parent_inputs(
         snapshot_id = None
         parent_database_sha256 = None
         snapshot_seq = None
+    # v1 repeated every historical row key/hash and exceeded the 64 MiB JSON
+    # bound. The table digest already binds that exact ordered row evidence.
+    # Keep full rows in the immutable DB capture for candidate preservation;
+    # only the transport receipt is bounded by the number of tables.
+    receipt = evidence if captured is None else {
+        **evidence,
+        "tables": {
+            table: {"count": measured["count"], "logical_rows_sha256": measured["logical_rows_sha256"]}
+            for table, measured in evidence["tables"].items()
+        },
+    }
     _write_json_atomic(parent_evidence_output, {
-        "version": 1,
-        "parent_database": evidence,
+        "version": 2,
+        "parent_database": receipt,
         "production_source_sha": production_source_sha,
         "historical_heads": historical_heads,
         "legacy_baseline_receipt": legacy_baseline_receipt,
@@ -685,8 +698,7 @@ def verify_parent_inputs(
     captured = _capture_parent_database(parent)
     if captured is not None:
         _raw, actual, actual_historical, heads = captured
-        if declared_parent != actual:
-            raise ValueError("parent database evidence mismatch")
+        _require_parent_evidence(actual, declared_parent)
         if declared_historical != actual_historical:
             raise ValueError("parent historical evidence mismatch")
         expected_prior = {

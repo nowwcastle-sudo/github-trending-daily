@@ -2654,10 +2654,23 @@ class RepositoryObservationTests(unittest.TestCase):
             "legacy_baseline_receipt": receipt,
         }), encoding="utf-8")
         refresh_candidate = root / "cli-refresh-candidate.sqlite"
+        parent_readme_state = (root / "cli-readme-state.json").read_bytes()
         with mock.patch("sys.stdout"):
             self.assertEqual(ledger.main(arguments(files["evidence"], refresh_candidate, first_candidate)), 0)
         with closing(sqlite3.connect(refresh_candidate)) as connection:
             self.assertEqual(connection.execute("SELECT COUNT(*) FROM snapshot_runs").fetchone(), (2,))
+        # The same recorder CLI must consume new bounded v2 receipts without
+        # changing the resulting database or losing any historical parent row.
+        compact = json.loads(files["evidence"].read_text(encoding="utf-8"))
+        compact["version"] = 2
+        for table in compact["parent_database"]["tables"].values():
+            table.pop("rows")
+        files["evidence"].write_text(json.dumps(compact), encoding="utf-8")
+        compact_candidate = root / "cli-refresh-compact-candidate.sqlite"
+        (root / "cli-readme-state.json").write_bytes(parent_readme_state)
+        with mock.patch("sys.stdout"):
+            self.assertEqual(ledger.main(arguments(files["evidence"], compact_candidate, first_candidate)), 0)
+        self.assertEqual(compact_candidate.read_bytes(), refresh_candidate.read_bytes())
         stale_heads = json.loads(files["evidence"].read_text(encoding="utf-8"))
         stale_heads["historical_heads"]["heads_sha256"] = "0" * 64
         stale_path = root / "cli-evidence-stale-heads.json"

@@ -185,7 +185,7 @@ class RepositoryArtifactDerivationTests(unittest.TestCase):
         )
         self.assertEqual(result, {"parent_snapshot_id": None, "head_count": 0})
         self.assertEqual(json.loads(evidence_path.read_text(encoding="utf-8")), {
-            "version": 1,
+            "version": 2,
             "parent_database": {"missing": True},
             "production_source_sha": "a" * 40,
             "historical_heads": {"scope": "all_historical", "head_count": 0, "heads_sha256": digest({})},

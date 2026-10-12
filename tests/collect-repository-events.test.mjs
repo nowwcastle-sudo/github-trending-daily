@@ -248,6 +248,10 @@ test("event CLI consumes exact temp facts, prior heads, and the persisted facts 
     writeFile(parentEvidencePath, `${JSON.stringify(parentEvidence(prior))}\n`),
   ]);
   assert.equal(verifyFrozenParentInputs({ parentDatabasePath, parentEvidencePath, priorHeadsPath }), true);
+  // New exports use compact v2 receipts; the verifier acknowledgment and the
+  // prior-heads envelope retain their independent v1 contracts.
+  await writeFile(parentEvidencePath, `${JSON.stringify({ ...parentEvidence(prior), version: 2 })}\n`);
+  assert.equal(verifyFrozenParentInputs({ parentDatabasePath, parentEvidencePath, priorHeadsPath }), true);
 
   let verifierCalls = 0;
   let eventFetches = 0;
@@ -375,6 +379,14 @@ test("all-historical prior heads distinguish stayed, reentered, and never-observ
   assert.deepEqual(validatePriorHeadsPayload(facts, receipt, { parentEvidence: parentEvidence(receipt) }), {
     "owner/repo": { branch: "main", headSha: "a".repeat(40) },
   });
+  assert.deepEqual(validatePriorHeadsPayload(facts, receipt, {
+    parentEvidence: { ...parentEvidence(receipt), version: 2 },
+  }), { "owner/repo": { branch: "main", headSha: "a".repeat(40) } });
+  for (const version of [0, 3, "2", true]) {
+    assert.throws(() => validatePriorHeadsPayload(facts, receipt, {
+      parentEvidence: { ...parentEvidence(receipt), version },
+    }), /parent evidence/i);
+  }
   assert.throws(() => validatePriorHeadsPayload(facts, { ...receipt, scope: "parent_snapshot" }, { parentEvidence: parentEvidence(receipt) }), /prior head/i);
   assert.throws(() => validatePriorHeadsPayload(facts, { ...receipt, headsSha256: "f".repeat(64) }, { parentEvidence: parentEvidence(receipt) }), /prior head/i);
   assert.throws(() => validatePriorHeadsPayload(facts, { ...receipt, headCount: 1 }, { parentEvidence: parentEvidence(receipt) }), /prior head/i);
