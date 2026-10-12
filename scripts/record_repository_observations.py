@@ -1002,7 +1002,8 @@ def _require_parent_evidence(actual: dict[str, Any], expected: dict[str, Any]) -
 def _parse_parent_evidence_envelope(value: Any) -> tuple[dict[str, Any] | None, dict[str, Any], dict[str, Any], str]:
     """Separate the reviewed parent identity from the legacy cutover receipt."""
     required = {"version", "parent_database", "production_source_sha", "historical_heads", "legacy_baseline_receipt"}
-    if not isinstance(value, dict) or set(value) != required or value["version"] != 1:
+    if (not isinstance(value, dict) or set(value) != required
+            or type(value["version"]) is not int or value["version"] not in (1, 2)):
         raise ValueError("parent evidence envelope fields are not the exact allowlist")
     parent = value["parent_database"]
     if parent == {"missing": True}:
@@ -1019,10 +1020,14 @@ def _parse_parent_evidence_envelope(value: Any) -> tuple[dict[str, Any] | None, 
             raise ValueError("parent database table evidence fields are not the exact allowlist")
         for table in _NATURAL_KEYS:
             evidence = tables[table]
-            if not isinstance(evidence, dict) or set(evidence) != {"count", "logical_rows_sha256", "rows"} or not isinstance(evidence["rows"], list):
+            keys = {"count", "logical_rows_sha256", "rows"} if value["version"] == 1 else {"count", "logical_rows_sha256"}
+            if not isinstance(evidence, dict) or set(evidence) != keys:
                 raise ValueError(f"parent database table evidence is invalid: {table}")
-            if any(not isinstance(row, dict) or set(row) != {"key", "row_sha256"} for row in evidence["rows"]):
-                raise ValueError(f"parent database row evidence is invalid: {table}")
+            if value["version"] == 1:
+                if not isinstance(evidence["rows"], list) or any(
+                    not isinstance(row, dict) or set(row) != {"key", "row_sha256"} for row in evidence["rows"]
+                ):
+                    raise ValueError(f"parent database row evidence is invalid: {table}")
         parent_evidence = parent
     historical_heads = value["historical_heads"]
     if (not isinstance(historical_heads, dict)

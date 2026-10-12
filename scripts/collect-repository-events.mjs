@@ -576,7 +576,7 @@ export function validatePriorHeadsPayload(facts, payload, { parentEvidence, pare
     throw new Error("Prior head payload receipt is invalid");
   }
   if (!parentEvidence || !exactKeys(parentEvidence, ["version", "parent_database", "production_source_sha", "historical_heads", "legacy_baseline_receipt"])
-      || parentEvidence.version !== 1 || !parentEvidence.legacy_baseline_receipt
+      || ![1, 2].includes(parentEvidence.version) || !parentEvidence.legacy_baseline_receipt
       || Array.isArray(parentEvidence.legacy_baseline_receipt) || typeof parentEvidence.legacy_baseline_receipt !== "object"
       || parentEvidence.production_source_sha !== facts.hydrationSourceSha) {
     throw new Error("Prior head parent evidence is invalid");
@@ -806,8 +806,8 @@ export function verifyFrozenParentInputs({
     cwd: path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."),
     encoding: "utf8",
     windowsHide: true,
-    // The immutable SQLite parent evidence is ~36 MB in production; keep a bounded
-    // five-minute ceiling for the Windows self-hosted runner's verification pass.
+    // Remeasure the complete immutable SQLite parent even with a compact v2
+    // receipt; keep a bounded five-minute ceiling for the self-hosted runner.
     timeout: 300_000,
     maxBuffer: 64 * 1024,
   });
