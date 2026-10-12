@@ -1,6 +1,6 @@
 # Trending refresh: parent-evidence size repair
 
-Last updated: 2026-10-12 07:36 UTC / 16:36 KST.
+Last updated: 2026-10-12 07:39 UTC / 16:39 KST.
 
 ## Goal and ownership
 
@@ -61,7 +61,9 @@ Consumer inventory was checked with a repository-wide parent-evidence search. Th
 - Parent code review found no blocking regression in the three implementation changes; it is not a substitute for the execution evidence above. A changed-file known credential-pattern scan passed for all 8 patch files.
 - Production-dependency audit (`npm audit --omit=dev --audit-level=high`) returned 0 vulnerabilities.
 - Publication approval: the first commit request was blocked at 07:11 UTC pending explicit approval. The owner subsequently authorized a new branch, draft PR and CI. The identical rejected call was retried once and succeeded at 07:36 UTC, creating code commit `56cb6427edf0b45f4fce081fe0512b8b529b71c1`. Main remained `b037cd44103556ad45bd72ca7eca3a3daf8a1775`, with zero open PRs at the pre-publication recheck.
-- Publishing the final handoff on repair branch `fix/compact-parent-evidence-20261012`; draft PR and exact-head CI are pending at this checkpoint. Main merge, auto-merge, workflow dispatch and production deployment remain outside this approval.
+- Published [draft PR #93](https://github.com/nowwcastle-sudo/github-trending-daily/pull/93) on branch `fix/compact-parent-evidence-20261012`, covering exactly these 8 files. Remote file bytes were re-fetched and matched the tested checkout.
+- CI for code/handoff head `a5a916883a85c5090b7b2884f0b2ad2a2faec32e`: [Tests 38218789524](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38218789524) and [CodeQL 38218789898](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38218789898) both completed successfully, including Python and JavaScript/TypeScript CodeQL jobs. Verified at 07:39 UTC.
+- This subsequent documentation-only update records those finished results; its own exact-head CI is verified separately in the [live PR checks](https://github.com/nowwcastle-sudo/github-trending-daily/pull/93/checks), avoiding a self-referential commit-hash claim. Main merge, auto-merge, workflow dispatch and production deployment remain outside this approval.
 
 ### Existing test-runner observation
 
@@ -93,8 +95,8 @@ The reference commit must exist in the checkout. Keep command exit codes; do not
 
 ## Next steps and completion boundary
 
-1. Finish aggregate tests, isolated Firestore tests, diff/secret review and code review. Update this same handoff with measured results.
-2. Publish these approved 8 files on the repair branch, create a draft PR, and verify CI for its exact head SHA. Record the PR link and completed checks here. Do not merge automatically.
+1. Implementation, isolated verification, review, draft PR and first exact-head CI are complete within the scope above.
+2. Confirm the documentation-only follow-on head also has successful PR checks. Leave the PR in draft until the owner decides to proceed. Do not merge automatically.
 3. After the owner authorizes merge/production activation, apply through the existing controlled full-refresh workflow. A full refresh uses the existing self-hosted enrichment runner and provider credentials; those were not accessed or changed here.
 4. Verify that prepare passes and a **new** snapshot reaches successful publication, deployment and production probe. Only then report production recovery. Other latent failures after the previously blocked stage remain untested until that controlled run.
 
