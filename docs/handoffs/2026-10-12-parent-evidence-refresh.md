@@ -1,12 +1,12 @@
 # Trending refresh: parent-evidence size repair
 
-Last updated: 2026-10-12 07:39 UTC / 16:39 KST.
+Last updated: 2026-10-12 10:08 UTC / 19:08 KST.
 
 ## Goal and ownership
 
 - Restore the failing parent-evidence preparation path without dropping historical data, weakening verification, raising paid quotas, or changing production directly.
 - The owner assigned Trending error/bug repair to 고슬 on 2026-10-12. The earlier DESKTOP assignment is superseded for this Trending task only. Other projects remain outside this task.
-- Work is in an isolated assistant-cloud checkout. No user computer, self-hosted runner, credentials, security settings, production database, or deployed Pages artifact was changed.
+- Repair work is in an isolated assistant-cloud checkout. User-computer access and credential/security changes were not used. On 2026-10-12 08:42 UTC, the owner subsequently authorized operational application through the existing full-refresh pipeline, including its existing enrichment runner, publication, deployment and verification. See the operational record below for actual outcomes.
 - GitHub open-PR search returned zero at 2026-10-12 06:56 UTC and again at 07:10 UTC. Main was still at the source baseline on the second check. The visible branch list had no new competing repair branch. No existing repair handoff document was found in the current tracked tree. This does not claim visibility into unpushed work on other computers.
 - Source baseline: `b037cd44103556ad45bd72ca7eca3a3daf8a1775` (`main`). README and the current release-semantics specification were read before changes. The latter concerns an older feature rollout; its data-preservation and separate-release requirements remain relevant, not its unrelated feature acceptance checklist.
 
@@ -63,7 +63,7 @@ Consumer inventory was checked with a repository-wide parent-evidence search. Th
 - Publication approval: the first commit request was blocked at 07:11 UTC pending explicit approval. The owner subsequently authorized a new branch, draft PR and CI. The identical rejected call was retried once and succeeded at 07:36 UTC, creating code commit `56cb6427edf0b45f4fce081fe0512b8b529b71c1`. Main remained `b037cd44103556ad45bd72ca7eca3a3daf8a1775`, with zero open PRs at the pre-publication recheck.
 - Published [draft PR #93](https://github.com/nowwcastle-sudo/github-trending-daily/pull/93) on branch `fix/compact-parent-evidence-20261012`, covering exactly these 8 files. Remote file bytes were re-fetched and matched the tested checkout.
 - CI for code/handoff head `a5a916883a85c5090b7b2884f0b2ad2a2faec32e`: [Tests 38218789524](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38218789524) and [CodeQL 38218789898](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38218789898) both completed successfully, including Python and JavaScript/TypeScript CodeQL jobs. Verified at 07:39 UTC.
-- This subsequent documentation-only update records those finished results; its own exact-head CI is verified separately in the [live PR checks](https://github.com/nowwcastle-sudo/github-trending-daily/pull/93/checks), avoiding a self-referential commit-hash claim. Main merge, auto-merge, workflow dispatch and production deployment remain outside this approval.
+- This subsequent documentation-only update records those finished results; its own exact-head CI is verified separately in the [live PR checks](https://github.com/nowwcastle-sudo/github-trending-daily/pull/93/checks), avoiding a self-referential commit-hash claim. At that checkpoint, main merge, auto-merge, workflow dispatch and production deployment were outside the then-current approval. The subsequent operational approval is recorded below.
 
 ### Existing test-runner observation
 
@@ -93,11 +93,40 @@ npm test
 
 The reference commit must exist in the checkout. Keep command exit codes; do not pipe test execution into a command that hides its failure.
 
+## Operational application record
+
+- At 08:42 UTC / 17:42 KST, the owner approved Trending operational application following the explicit proposal to merge PR #93 and verify a full refresh and deployment. No new authentication, paid-quota increase or security change was requested or performed.
+- Final PR head `5e816d070853b73949528d90a556aba20ddf6a08` passed [Tests 38219045393](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38219045393) (851 Node passed, 13 conditionally skipped; 175 Python passed) and [CodeQL 38219045401](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38219045401).
+- Immediately before application, PR head/checks/mergeability and active workflow runs were rechecked. No competing full refresh was active. Automatic Star ticks commit `ca0b33214ac781fbae2615342d3e0bcf2704a6fe` was preserved.
+- PR #93 was marked ready and merged with an exact-head guard at 08:44:35 UTC, producing main merge commit `5081c730675b425b78138c7f80c10662c5a53901`. Its post-merge [Tests 38225444829](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38225444829) and [CodeQL 38225444848](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38225444848) also succeeded.
+- The pre-refresh production manifest was valid version 1, source `ca0b33214ac781fbae2615342d3e0bcf2704a6fe`, snapshot `20261007203441-a8b11f19ca8d09c5`. Merge/CI alone did not update the snapshot.
+- The existing signed-in assistant-cloud GitHub browser session submitted the normal `daily-refresh.yml` workflow once on main with the optional bootstrap field blank. [Full refresh 38226333908](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38226333908) started at 08:53 UTC with exact head `5081c730675b425b78138c7f80c10662c5a53901`; prepare was in progress at this checkpoint. No new login or credentials were used.
+- At 08:56 UTC, the production workflow passed the previously failing `Freeze one run context and parent evidence` step, including export and verification. Fact collection was then in progress. This confirms the size-failure repair in the real workflow, while downstream completion remains pending.
+- Prepare completed successfully at 08:58:30 UTC with frozen candidate snapshot `20261012085311-0117c92a67a05555`, 38 repositories and complete event collection. Its verifier receipt was `{"verified":true,"version":1}`; that version is the acknowledgment contract, not the v2 evidence envelope.
+- At 09:04 UTC, [registered-runner settings](https://github.com/nowwcastle-sudo/github-trending-daily/settings/actions/runners) showed `nasca-gh-trending-claude` **Offline**. The enrichment job `114736497214` remained queued with runner ID 0 and no started steps. This is a separate infrastructure blocker exposed after the fixed prepare stage. No user-host access or runner configuration changes were attempted. The existing queue guard will wait until the frozen enrichment deadline (approximately 10:08 UTC) before its normal cancellation behavior.
+- The prior successful [enrichment job 112770100990](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/37613956447/job/112770100990) identifies the runner host in its setup header. That host matches the disconnected registered environment; this was established from repository/Actions reads, without accessing the host.
+- Restoring the existing runner service requires an available host and explicit user-host access approval if performed by the assistant. No fresh credentials, runner registration or security changes are authorized by the production-application request.
+- Documentation was held off main while the refresh was active to avoid invalidating its exact-main publication guard. The subsequent failed run and diagnostic repair are recorded below.
+
+## Subsequent enrichment failure and bounded-diagnostic repair
+
+- The owner connected the identified desktop and explicitly asked to continue at 09:58 UTC / 18:58 KST. The existing runner had already resumed at 09:50:10 UTC. No assistant service restart was needed to make the job start.
+- [Enrichment job 114736497214](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38226333908/job/114736497214) failed at 09:51:03 UTC with `Summary bundle held ratio exceeds 50% (25/38)`. Publication, deployment and production probe were skipped. The queue guard finished successfully after it saw the runner acquire the job.
+- The existing failure-artifact upload found no diagnostic file. Code inspection shows that the held-majority gate threw a plain `Error`, discarding already-bounded per-repository reasons before the CLI's diagnostic writer. This is a separate, reproducible observability bug. The gate correctly stopped publication; it must not be relaxed to force recovery.
+- The original frozen input ZIP was downloaded via the GitHub connector and verified against artifact digest `eee42944ce1e53460867d5c08f2dab9dfb5de8303dadd85a383f494259a5f521`. All 38 fact classifications were verified. Offline summary-reuse planning found 13 retained and 25 pending repositories. These facts narrow the failure but do **not** establish why the 25 generation requests were held.
+- The diagnostic-only follow-on starts from main `4103863ec92e68ef0593142ff115ef4838e426d7`, preserving the intervening automatic Star ticks update. It changes `scripts/generate-summary-bundles.mjs`, `tests/summary-bundle-pipeline.test.mjs`, and this same handoff. At the existing greater-than-50% failure gate, it attaches the existing version-2 held-diagnostic envelope to the error so the CLI can save it. It includes classification holds as well as request holds. Thresholds, provider budgets, retries, output contracts and candidate installation order are unchanged. No raw provider stdout/stderr is included.
+- Three regression checks were red on the unmodified source. The fixed summary suite passed **76/76**. Checks cover quality-failure reasons, rate-limit/remaining-request causes without raw-output leakage, candidate preservation, exactly 22/44 held being allowed, 23/44 being rejected, and the actual CLI producing the diagnostic file on that rejection.
+- Complete non-forced Node suite: **866 total, 853 passed, 13 skipped, 0 failed**, exit 0. Full Python suite: **175 passed**, exit 0. JavaScript syntax and `git diff --check` passed. Parent independent diff review found no blocking regression; it does not replace the test evidence.
+- An isolated test against the real frozen input, with mocked rate-limit responses and **zero provider calls**, reproduced the same 25/38 gate and preserved all 25 bounded reasons without writing a candidate index. This is a diagnostic-path simulation, not evidence that the real provider failure was a rate limit.
+- At 10:07 UTC, the live manifest still had snapshot `20261007203441-a8b11f19ca8d09c5`, source `4103863ec92e68ef0593142ff115ef4838e426d7`, version 1 and 22 files. The source advanced through Star ticks; a new full-refresh snapshot has not been published.
+- A scoped desktop task creation returned an internal tool error. No admitted task turn or local inspection was verified; no successful PC repair is claimed. The code diagnosis and tests above ran in the assistant cloud. No new credentials, runner registration, installation or security changes were performed.
+
 ## Next steps and completion boundary
 
-1. Implementation, isolated verification, review, draft PR and first exact-head CI are complete within the scope above.
-2. Confirm the documentation-only follow-on head also has successful PR checks. Leave the PR in draft until the owner decides to proceed. Do not merge automatically.
-3. After the owner authorizes merge/production activation, apply through the existing controlled full-refresh workflow. A full refresh uses the existing self-hosted enrichment runner and provider credentials; those were not accessed or changed here.
-4. Verify that prepare passes and a **new** snapshot reaches successful publication, deployment and production probe. Only then report production recovery. Other latent failures after the previously blocked stage remain untested until that controlled run.
+1. Publish/review the diagnostic-only patch, confirm exact-head CI, and apply through the approved PR workflow. Do not weaken the 50% publication gate or raise paid budgets.
+2. With the existing runner available, start one fresh normal full refresh after checking for an active duplicate. Do not rerun an old enrichment job after its frozen deadline.
+3. Read the bounded diagnostic if enrichment is held again. Resolve its actual cause within the approved scope; new authentication, payment/quota or security changes require separate approval.
+4. Verify a **new** snapshot, immutable DB pointer, published source SHA and successful production probe before reporting operational recovery.
+5. Continue updating this existing handoff without racing any active full refresh. The separate forced Node test-runner reporting observation remains open and does not invalidate the successful exact-head CI results already recorded.
 
-Do not call the production system fixed on the basis of unit tests, a draft PR, Star ticks, or this isolated DB verification. No workflow dispatch, main update, auto-merge or deployment is authorized by this handoff itself.
+The parent-evidence size failure is repaired and verified in the real prepare stage. End-to-end operational recovery remains incomplete because enrichment failed later. This document records approval and evidence; it does not independently authorize new authentication, access expansion, payments or security changes.

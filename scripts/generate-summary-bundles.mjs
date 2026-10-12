@@ -1472,7 +1472,16 @@ export async function runFrozenSummaryBundlePipeline({
     }
   }
   if (heldBySlug.size * 2 > items.length) {
-    throw new Error(`Summary bundle held ratio exceeds 50% (${heldBySlug.size}/${items.length})`);
+    const error = new Error(`Summary bundle held ratio exceeds 50% (${heldBySlug.size}/${items.length})`);
+    // Fail closed before installing any candidate, but preserve the bounded causes
+    // for the CLI's existing failure-artifact path instead of discarding them here.
+    error.summaryFailureDiagnostic = {
+      version: 2,
+      held: [...heldBySlug.values()].map(({ slug, reason, defect_codes, diagnostic }) => ({
+        slug, reason, defect_codes, diagnostic,
+      })),
+    };
+    throw error;
   }
   if (items.length > 0 && retained.size === 0) throw new Error("Summary bundle candidate has no verified or retained repository");
   const cache = {};
