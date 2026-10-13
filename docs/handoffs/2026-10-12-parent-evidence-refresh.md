@@ -1,6 +1,6 @@
 # Trending refresh: parent-evidence size repair
 
-Last updated: 2026-10-12 10:29 UTC / 19:29 KST.
+Last updated: 2026-10-13 10:42 UTC / 19:42 KST.
 
 ## Goal and ownership
 
@@ -145,3 +145,40 @@ The reference commit must exist in the checkout. Keep command exit codes; do not
 5. Continue updating this existing handoff without racing any active full refresh. The separate forced Node test-runner reporting observation remains open and does not invalidate the successful exact-head CI results already recorded.
 
 The parent-evidence size failure is repaired and verified in the real prepare stage. End-to-end operational recovery remains incomplete because enrichment failed later. This document records approval and evidence; it does not independently authorize new authentication, access expansion, payments or security changes.
+
+## Desktop continuation and current provider blocker — 2026-10-13
+
+The owner connected the desktop and approved PC reads and continuation of the existing Trending operation. Local PowerShell commands, repository access and the existing GitHub CLI connection worked. No runner restart was necessary: the existing Windows runner `nasca-gh-trending-claude` was online and idle, and its listener recorded `Listening for Jobs` at 10:10:37 UTC / 19:10:37 KST.
+
+At the first live recheck, queued and in-progress workflow counts were both zero. The latest full refresh was still [38323723198](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38323723198), cancelled at 01:00:49 UTC. Its enrichment job had no acquired runner or steps; the queue guard cancelled it at its own deadline. That cancellation is a runner-acquisition outcome, not evidence of a Claude limit in that particular run.
+
+The current provider constraint was checked independently using the existing runner user's configured OAuth token, the repository's bounded CLI runtime and the unchanged `claude-sonnet-5` model. OAuth preflight passed at 10:23:33 UTC with CLI 2.1.292, `authMethod=oauth_token`, `apiProvider=firstParty`. One brief structured availability request, without tools or session persistence, failed at 10:23:37 UTC with `CLAUDE_RATE_LIMITED`. It was not retried. No fresh authentication, token issuance, paid-quota increase, account/model change or security change was performed.
+
+### Automatic full refresh and original diagnostic
+
+While the PC investigation was running, GitHub started [full refresh 38383420844](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38383420844) at 10:26:57 UTC / 19:26:57 KST, head `cdd7ae8e573462f9280dbd5cdcfce27f04d189dc`. Its event was `schedule`, attempt 1; actor and triggering actor were `nowwcastle-sudo`. This desktop continuation did not dispatch that run or rerun an expired job. No duplicate manual refresh was submitted.
+
+- [Prepare job 115249201450](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38383420844/job/115249201450) passed, including the pre-refresh tests and parent-evidence verification, and completed at 10:32:03 UTC.
+- [Enrichment job 115251159354](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38383420844/job/115251159354) was actually acquired by `nasca-gh-trending-claude` at 10:32:06 UTC. The queue guard observed execution and completed successfully at 10:32:10 UTC. PC connectivity and runner acquisition were therefore verified in a real refresh, separately from provider availability.
+- Enrichment failed at 10:33:18 UTC with `Summary bundle held ratio exceeds 50% (29/38)`. Publication, candidate deployment, production probe and recovery were skipped. The full run reached `completed/failure` at 10:33:20 UTC / 19:33:20 KST. The watch command's exit 1 agreed with the final API status.
+- The original [failure artifact 11804787957](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38383420844/artifacts/11804787957) was downloaded and inspected. Its ZIP metadata records digest `sha256:134790c35e79cd63b09df61dda6f5b36635c123db0feb8eb686db1198231c2a9` and expiry 2026-10-14 10:33:10 UTC. The extracted bounded JSON is 13,758 bytes, version 2, SHA-256 `668a0519f5679bc3bb545e4a96b1f1a5e6a4e9e55c92e8dff826997120a62ca5`. The ZIP digest and JSON hash identify different byte streams.
+- All 29 held entries have reason `budget_exhausted`. The direct `CLAUDE_RATE_LIMITED` entries are `morluto/rea`, `bilawalsidhu/gods-eye-view`, and `storytold/artcraft`. The remaining 26 entries carry `BUDGET_EXHAUSTED` with `storytold/artcraft` as their causal request. Reported quality-defect count is zero; the failure is not evidence of 29 independent summary-quality defects.
+- Runtime is Claude CLI OAuth/firstParty 2.1.292, model `claude-sonnet-5`. The shared aggregate execution receipt reports 9 attempts, 6 retries, 0 input tokens and 0 output tokens. It is repeated in per-repository diagnostics and must not be summed across those entries or treated as a billing statement.
+
+The bounded artifact establishes the current rate-limit failure in actual enrichment, in addition to the earlier minimal availability check. It does not identify transient throttling versus a session/weekly allowance, and it has no reset timestamp. Do not claim that a particular allowance or reset time was verified.
+
+### Separate publication, deployment and public readback
+
+The unchanged published snapshot remained `20261007203441-a8b11f19ca8d09c5`, with `statsDate=2026-10-08` and `generatedAt=2026-10-07T20:34:41.377Z`.
+
+After the failed full refresh, the already-created [Star ticks run 38383769171](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38383769171) completed successfully. It published generated child [672a696f8bd08db67ee0b0e2e7a1d3e32966c9e5](https://github.com/nowwcastle-sudo/github-trending-daily/commit/672a696f8bd08db67ee0b0e2e7a1d3e32966c9e5) at 10:34:07 UTC, parent `cdd7ae8e573462f9280dbd5cdcfce27f04d189dc`. GitHub Pages deployment `7036161925` reached `success` at 10:34:35 UTC; [job 115251657405](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38383769171/job/115251657405) passed the commit, deploy and deployed-probe steps.
+
+At 10:35:13 UTC, actual HTTPS reads of the public `deployment-manifest.json` and `data/latest.json` both returned 200. The manifest had version 1 and source `672a696f8bd08db67ee0b0e2e7a1d3e32966c9e5`; its snapshot matched the still-October-8 dataset. An independent `probe-production.mjs` run against that exact public source and snapshot passed with exit 0 and 22 files, manifest SHA-256 `2f031c51e4e5049a6ea7b7cf6d0ac1e414c7d757ca866203794ae80c92da8c6b`.
+
+The independent probe used the already-installed bundled Node 24.21.0 and fetched the exact public commit object into the isolated verification clone. Two attempts with the system Node 24.20.0 had ended in the local undici `Parser.finish` assertion `assert(!this.paused)` and are not counted as passes. No Node installation or global configuration change was made. Successful star-tick publication and Pages integrity do not establish successful full-refresh recovery.
+
+### Remaining action
+
+The smallest unresolved action is to establish the existing runner account's Claude reset time or restored availability, then check for duplicates and submit one fresh normal full refresh with the bootstrap input blank. Do not repeatedly dispatch against the unchanged rate-limit failure, rerun an expired frozen job, weaken the held-majority publication guard, or increase paid quotas to force a result. A new snapshot/date, generated child commit, Pages deployment success and exact-source public probe are still required before claiming operational recovery.
+
+The reset time was not available from the diagnostic. The desktop's CUA initialization failed with a missing Windows platform-directory error, and the existing BrowserSkill daemon could not detach from this host's Job Object. These UI-tool limitations did not prevent PC commands or runner operation; they prevented reading the Usage screen in this continuation. No browser login, new credential, installation or security workaround was attempted. No WF/LF source or another session's checkout was modified.
