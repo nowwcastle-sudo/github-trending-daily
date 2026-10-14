@@ -2059,6 +2059,212 @@
       "translation_applicable": false
     }
   },
+  "boykopovar/AnyPS5": {
+    "content": {
+      "goal": "AnyPS5 is a tool for automatically porting executables to Linux and Windows. It works through a relinker that converts executables into the target system's native format, combined with custom implementations of system PRX libraries for dynamic linking, without emulation or a separate runtime process.",
+      "usage": "The project offers a web converter at https://boykopovar.github.io/AnyPS5/, where files stay on the user's device, alongside documented build instructions for building from source. Controller input uses SDL mapping, and keyboard/mouse controls can be configured via an anyps5-input.ini file.",
+      "pros": "Because porting avoids emulation and a separate runtime process, it may offer better performance than emulator-based approaches, though no benchmarks are documented. The shader recompiler produces SPIR-V output, which can be validated via Spirv-Tools when built with ANYPS5_ENABLE_SPIRV_TOOLS, and SDL-mapped game controllers, including analog sticks and triggers, are supported.",
+      "cons": "Unsupported or unexpected states strictly throw std::runtime_error, printing the error to stderr and terminating the process, which suggests an early-stage project where some scenarios may not yet be handled gracefully. Per-game compatibility is tracked individually on a community-maintained blocker map, implying that support varies by title and may be incomplete for many games.",
+      "fit": "The project states it is intended for interoperability, research, preservation, and compatibility purposes, and does not include or require copyrighted software, firmware, keys, or proprietary libraries, leaving responsibility for lawful binary use with the user. It is licensed under GNU General Public License version 2 only, a consideration for any downstream use or redistribution."
+    },
+    "summaries": {
+      "en": {
+        "goal": "AnyPS5 is a tool for automatically porting executables to Linux and Windows. It works through a relinker that converts executables into the target system's native format, combined with custom implementations of system PRX libraries for dynamic linking, without emulation or a separate runtime process.",
+        "usage": "The project offers a web converter at https://boykopovar.github.io/AnyPS5/, where files stay on the user's device, alongside documented build instructions for building from source. Controller input uses SDL mapping, and keyboard/mouse controls can be configured via an anyps5-input.ini file.",
+        "pros": "Because porting avoids emulation and a separate runtime process, it may offer better performance than emulator-based approaches, though no benchmarks are documented. The shader recompiler produces SPIR-V output, which can be validated via Spirv-Tools when built with ANYPS5_ENABLE_SPIRV_TOOLS, and SDL-mapped game controllers, including analog sticks and triggers, are supported.",
+        "cons": "Unsupported or unexpected states strictly throw std::runtime_error, printing the error to stderr and terminating the process, which suggests an early-stage project where some scenarios may not yet be handled gracefully. Per-game compatibility is tracked individually on a community-maintained blocker map, implying that support varies by title and may be incomplete for many games.",
+        "fit": "The project states it is intended for interoperability, research, preservation, and compatibility purposes, and does not include or require copyrighted software, firmware, keys, or proprietary libraries, leaving responsibility for lawful binary use with the user. It is licensed under GNU General Public License version 2 only, a consideration for any downstream use or redistribution."
+      },
+      "ko": {
+        "goal": "AnyPS5는 실행 파일을 Linux 및 Windows용으로 자동 포팅하는 도구입니다. 실행 파일을 대상 시스템의 네이티브 형식으로 변환하는 relinker와 동적 링킹을 위한 시스템 PRX 라이브러리 구현을 결합하여, 에뮬레이션이나 별도의 런타임 프로세스 없이 동작합니다.",
+        "usage": "웹 변환기는 https://boykopovar.github.io/AnyPS5/ 에서 제공되며 파일이 사용자 기기에 남는다고 설명되어 있고, 소스에서 빌드하기 위한 빌드 안내도 문서화되어 있습니다. 컨트롤러 입력은 SDL 매핑을 사용하며, 키보드와 마우스 조작은 anyps5-input.ini 파일로 설정할 수 있습니다.",
+        "pros": "에뮬레이션과 별도 런타임 프로세스를 사용하지 않기 때문에 에뮬레이터 기반 방식보다 성능이 더 나을 수 있지만, 이에 대한 벤치마크는 문서화되어 있지 않습니다. 셰이더 재컴파일러는 SPIR-V를 생성하며 ANYPS5_ENABLE_SPIRV_TOOLS로 빌드하면 Spirv-Tools를 통해 검증할 수 있고, 아날로그 스틱과 트리거를 포함한 SDL 매핑 게임 컨트롤러도 지원됩니다.",
+        "cons": "지원되지 않거나 예상치 못한 상태는 std::runtime_error를 발생시켜 오류를 stderr에 출력하고 프로세스를 종료하는데, 이는 일부 상황이 아직 우아하게 처리되지 않을 수 있는 초기 단계 프로젝트임을 시사합니다. 게임별 호환성은 커뮤니티가 관리하는 blocker map에서 개별적으로 추적되어, 지원 수준이 타이틀마다 다르고 많은 게임에서 아직 불완전할 수 있음을 암시합니다.",
+        "fit": "이 프로젝트는 상호운용성, 연구, 보존, 호환성 목적을 위한 것이며 저작권이 있는 소프트웨어, 펌웨어, 키 또는 독점 라이브러리를 포함하거나 요구하지 않는다고 명시하여, 바이너리의 합법적 사용에 대한 책임을 사용자에게 둡니다. GNU General Public License version 2로만 라이선스되어 있어 추가 사용이나 재배포 시 고려해야 합니다."
+      },
+      "zh-CN": {
+        "goal": "AnyPS5 是一个用于将可执行文件自动移植到 Linux 和 Windows 的工具。它通过 relinker 将可执行文件转换为目标系统的原生格式,并结合用于动态链接的系统 PRX 库实现,整个过程不依赖模拟器或单独的运行时进程。",
+        "usage": "网页转换器位于 https://boykopovar.github.io/AnyPS5/,文件据称会保留在用户设备本地,此外还提供了从源代码构建的说明文档。控制器输入使用 SDL 映射,键盘和鼠标操作可以通过 anyps5-input.ini 文件进行配置。",
+        "pros": "由于移植过程不使用模拟,也没有单独的运行时进程,其性能可能优于基于模拟器的方案,但并未提供相关基准测试数据。着色器重编译器可以生成 SPIR-V,在使用 ANYPS5_ENABLE_SPIRV_TOOLS 构建时可通过 Spirv-Tools 验证,同时支持带有摇杆和扳机的 SDL 映射游戏控制器。",
+        "cons": "不受支持或意外的状态会直接抛出 std::runtime_error,将错误输出到 stderr 并终止进程,这表明该项目可能仍处于早期阶段,部分情况尚未得到妥善处理。各游戏的兼容性在社区维护的 blocker map 上单独跟踪,这意味着不同游戏的支持程度存在差异,许多游戏的支持可能仍不完整。",
+        "fit": "该项目声明其用途是互操作性、研究、保存与兼容性,不包含也不要求任何受版权保护的软件、固件、密钥或专有库,使用者需自行确保所用二进制文件的合法性。项目仅以 GNU General Public License version 2 授权,这一点在后续使用或再分发时需要加以考虑。"
+      },
+      "es": {
+        "goal": "AnyPS5 es una herramienta para portar ejecutables automáticamente a Linux y Windows. Funciona mediante un relinker que convierte los ejecutables al formato nativo del sistema de destino, junto con implementaciones propias de bibliotecas PRX del sistema para enlace dinámico, sin emulación ni un proceso de ejecución separado.",
+        "usage": "El convertidor web está disponible en https://boykopovar.github.io/AnyPS5/, donde se indica que los archivos permanecen en el dispositivo del usuario, además de instrucciones documentadas para compilar desde el código fuente. La entrada de mandos usa el mapeo de SDL, y los controles de teclado y mouse pueden configurarse mediante un archivo anyps5-input.ini.",
+        "pros": "Al evitar la emulación y un proceso de ejecución separado, podría ofrecer mejor rendimiento que los enfoques basados en emuladores, aunque no se documentan pruebas de referencia al respecto. El recompilador de shaders genera SPIR-V, que puede validarse mediante Spirv-Tools al compilar con ANYPS5_ENABLE_SPIRV_TOOLS, y además se admiten mandos de juego mapeados con SDL, incluyendo joysticks analógicos y gatillos.",
+        "cons": "Los estados no soportados o inesperados lanzan estrictamente std::runtime_error, imprimen el error en stderr y terminan el proceso, lo que sugiere que el proyecto podría estar en una etapa temprana donde algunos casos aún no se manejan con elegancia. La compatibilidad por juego se rastrea individualmente en un mapa de bloqueos mantenido por la comunidad, lo que implica que el soporte varía según el título y podría ser incompleto en muchos juegos.",
+        "fit": "El proyecto declara que está destinado a fines de interoperabilidad, investigación, preservación y compatibilidad, y no incluye ni requiere software, firmware, claves o bibliotecas propietarias con derechos de autor, dejando en manos del usuario la responsabilidad del uso legal de los binarios. Está licenciado únicamente bajo la GNU General Public License version 2, algo a considerar para cualquier uso o redistribución posterior."
+      },
+      "ja": {
+        "goal": "AnyPS5は、実行ファイルをLinuxおよびWindows向けに自動的にポーティングするツールです。実行ファイルを対象システムのネイティブ形式に変換するrelinkerと、動的リンク用のシステムPRXライブラリの独自実装を組み合わせ、エミュレーションや別個のランタイムプロセスを使わずに動作します。",
+        "usage": "Webコンバーターは https://boykopovar.github.io/AnyPS5/ で提供されており、ファイルはユーザーのデバイス上に残るとされています。また、ソースからビルドするための手順も文書化されています。コントローラー入力はSDLマッピングを使用し、キーボードとマウスの操作はanyps5-input.iniファイルで設定できます。",
+        "pros": "エミュレーションや別個のランタイムプロセスを使わないため、エミュレーターベースの方式より性能が良くなる可能性がありますが、ベンチマークは文書化されていません。シェーダーリコンパイラはSPIR-Vを生成し、ANYPS5_ENABLE_SPIRV_TOOLSでビルドするとSpirv-Toolsで検証できます。また、アナログスティックやトリガーを含むSDLマッピング対応のゲームコントローラーもサポートされています。",
+        "cons": "サポートされない、または予期しない状態では必ずstd::runtime_errorが発生し、エラーがstderrに出力されてプロセスが終了します。これは、一部のケースがまだ適切に処理されていない初期段階のプロジェクトであることを示唆しています。ゲームごとの互換性は、コミュニティが管理するblocker map上で個別に追跡されており、タイトルによって対応状況が異なり、多くのゲームでまだ不完全である可能性があることを示しています。",
+        "fit": "本プロジェクトは相互運用性、研究、保存、互換性を目的としており、著作権で保護されたソフトウェア、ファームウェア、鍵、独自ライブラリを含まず、また必要としないとされ、バイナリの合法的な使用に関する責任はユーザーに委ねられています。GNU General Public License version 2のみでライセンスされており、今後の利用や再配布の際に考慮すべき点です。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 3,
+          "end_line": 3,
+          "section_heading": "About"
+        },
+        {
+          "start_line": 9,
+          "end_line": 9,
+          "section_heading": "About"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 5,
+          "end_line": 5,
+          "section_heading": "About"
+        },
+        {
+          "start_line": 11,
+          "end_line": 11,
+          "section_heading": "About"
+        },
+        {
+          "start_line": 33,
+          "end_line": 33,
+          "section_heading": "Input mapping"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 9,
+          "end_line": 9,
+          "section_heading": "About"
+        },
+        {
+          "start_line": 25,
+          "end_line": 25,
+          "section_heading": "Status"
+        },
+        {
+          "start_line": 33,
+          "end_line": 33,
+          "section_heading": "Input mapping"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 23,
+          "end_line": 23,
+          "section_heading": "Status"
+        },
+        {
+          "start_line": 29,
+          "end_line": 29,
+          "section_heading": "Compatibility"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 37,
+          "end_line": 37,
+          "section_heading": "Disclaimer"
+        },
+        {
+          "start_line": 41,
+          "end_line": 41,
+          "section_heading": "License"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "product",
+        "value": "AnyPS5",
+        "fields": [
+          "goal",
+          "usage",
+          "pros"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://boykopovar.github.io/AnyPS5/",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "GNU General Public License version 2",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "anyps5-input.ini",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "ANYPS5_ENABLE_SPIRV_TOOLS",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "std::runtime_error",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "SPIR-V",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Spirv-Tools",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "SDL",
+        "fields": [
+          "usage",
+          "pros"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "pros",
+      "cons"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "boykopovar/anyps5",
+      "path": "README.md",
+      "blob_sha": "c63b83abe6709542896b81f44975d43da40f2ca2",
+      "content_sha256": "378689ee00e8f9cdc37105c4eaad190311adab79099b193a83bead44627b316b",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.292",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
   "mattpocock/skills": {
     "content": {
       "goal": "This repository provides a collection of agent skills for software engineering tasks, created by the author to address common failure modes with coding agents like Claude Code and Codex, with the stated aim of supporting structured engineering work rather than unstructured 'vibe coding.'",
