@@ -1,6 +1,6 @@
 # Trending refresh: parent-evidence size repair
 
-Last updated: 2026-10-13 10:42 UTC / 19:42 KST.
+Last updated: 2026-10-14. Operational times below are UTC unless explicitly marked KST.
 
 ## Goal and ownership
 
@@ -182,3 +182,41 @@ The independent probe used the already-installed bundled Node 24.21.0 and fetche
 The smallest unresolved action is to establish the existing runner account's Claude reset time or restored availability, then check for duplicates and submit one fresh normal full refresh with the bootstrap input blank. Do not repeatedly dispatch against the unchanged rate-limit failure, rerun an expired frozen job, weaken the held-majority publication guard, or increase paid quotas to force a result. A new snapshot/date, generated child commit, Pages deployment success and exact-source public probe are still required before claiming operational recovery.
 
 The reset time was not available from the diagnostic. The desktop's CUA initialization failed with a missing Windows platform-directory error, and the existing BrowserSkill daemon could not detach from this host's Job Object. These UI-tool limitations did not prevent PC commands or runner operation; they prevented reading the Usage screen in this continuation. No browser login, new credential, installation or security workaround was attempted. No WF/LF source or another session's checkout was modified.
+
+## Verified full-refresh recovery — 2026-10-14
+
+The owner reconnected the same desktop and authorized continuing the existing Trending operation at 20:00 KST. The existing runner was online and idle; no runner restart was needed. Before any restart, the original diagnostics from the two latest failed scheduled runs were downloaded and checked:
+
+- [38536329663](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38536329663), [artifact 11880960819](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38536329663/artifacts/11880960819): v2, 13,322 JSON bytes, SHA-256 `86bfe12362d83cc449706b6e720ca04784a143c523a62509db86107631cdc263`.
+- [38489117127](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38489117127), [artifact 11860558984](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38489117127/artifacts/11860558984): v2, 13,447 JSON bytes, SHA-256 `164384e1fc30d5227bd0ccd949958b1ff44dc10f59008630164a0ab816abf7d3`.
+- Both had held 28/37: direct `CLAUDE_RATE_LIMITED` for `morluto/rea`, `bilawalsidhu/gods-eye-view`, `debpalash/VoiceStudio`, followed by 25 `BUDGET_EXHAUSTED` entries. Each shared execution receipt recorded 9 attempts, 6 retries and zero input/output tokens, with zero quality defects. The runtime was unchanged OAuth/firstParty, CLI 2.1.292, `claude-sonnet-5`. These records do not establish an account balance, a particular allowance type or a reset time.
+
+At 11:05:45 UTC / 20:05:45 KST, one brief structured request using the existing runner OAuth, the same repository runtime and `claude-sonnet-5` returned `{"status":"ok"}`, exit 0. Recorded usage was 7279 input and 52 output tokens. This actual response, rather than elapsed time or a recalled reset schedule, established availability for a fresh normal attempt. It was not a guarantee about the whole batch or a billing statement.
+
+Immediate duplicate checks at 11:07:12 UTC returned queued 0 and in_progress 0. One normal `daily-refresh.yml` dispatch was then submitted on main, with the optional bootstrap field omitted. [Run 38554338345](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38554338345), exact original head `7ea81d2cd70f70aaf28396bc5270396b69d633eb`, started at 11:07:14 UTC / 20:07:14 KST and completed successfully at 11:33:28 UTC / 20:33:28 KST. No duplicate was dispatched.
+
+| Stage | Evidence | Terminal result |
+| --- | --- | --- |
+| Prepare and frozen-input verification | [job 115819628414](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38554338345/job/115819628414) | success, 11:13:09 UTC |
+| Source-bound summaries | [job 115821905124](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38554338345/job/115821905124) | success, 11:30:45 UTC; acquired by the existing Windows runner |
+| Validate and publish candidate | [job 115828772020](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38554338345/job/115828772020) | success, 11:32:37 UTC |
+| Deploy candidate Pages artifact | [job 115829517585](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38554338345/job/115829517585) | success, 11:32:54 UTC |
+| Probe production candidate | [job 115829626284](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38554338345/job/115829626284) | success, 11:33:27 UTC |
+
+The queue guard also succeeded after acquisition; recovery was conditionally skipped because the production probe succeeded. The watch command's exit 0 agreed with the final API status.
+
+The generated publication is [813c35cb3b3bf401f1fedc1c7b793728ad3eba4c](https://github.com/nowwcastle-sudo/github-trending-daily/commit/813c35cb3b3bf401f1fedc1c7b793728ad3eba4c), committed at 11:32:14 UTC, with the exact original head as its parent. The new snapshot is `20261014110720-080daee75ec84614`, `statsDate=2026-10-14`, `generatedAt=2026-10-14T11:07:20.321Z`, containing 40 repositories. The immutable observation-DB pointer carries that same snapshot, byte size 85,155,840 and SHA-256 `edc0d7c1f4b29fc150ca518da75ca5021cab848c48dd6fe0d570c414885b7233`, asset `repository-observations-20261014110720-080daee75ec84614.sqlite` under release `observation-db-2026-10`.
+
+Pages deployment `7064144550` recorded `success` at 11:32:55 UTC. Its API sha is the workflow's original head; the published artifact identifies the generated child above. At 11:35:01 UTC, independent HTTPS reads of the public manifest and latest data both returned 200 and matched the new snapshot/date. By that read, the ordinary star-tick descendant [a75beca6b0cca6dd6b5b3d6014129ae19456ece5](https://github.com/nowwcastle-sudo/github-trending-daily/commit/a75beca6b0cca6dd6b5b3d6014129ae19456ece5) was the public source. Its ancestry from the generated refresh commit was checked. The independent public `probe-production.mjs` passed with exit 0 and 22 files using the already-installed Node 24.21.0, manifest SHA-256 `f609b4de553714782a8a85dbfabe288992ffe450cf298f4882e4008a14084e44`.
+
+### Remaining per-repository holds
+
+The successful [enrichment artifact 11890473410](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38554338345/artifacts/11890473410) records repositories 40, pending 32, held 3. The unchanged admission policy allowed publication with these three explicit holds; no quality threshold was lowered. [Bounded held artifact 11890163470](https://github.com/nowwcastle-sudo/github-trending-daily/actions/runs/38554338345/artifacts/11890163470), JSON SHA-256 `f22c69f022038fce2be275a98b4af9023225a81a9607abb85c99dd2af5bbc22e`, records:
+
+- `rust-lang/rust`: `quality_defects`, `GENERIC_OR_PLACEHOLDER`, `QUALITY_VALIDATION_FAILED`.
+- `boykopovar/AnyPS5`: the same quality defect and failure code.
+- `TencentCloud/Octop`: `request_failed`, without a further failure code in the bounded diagnostic. Its underlying cause is not established by that receipt.
+
+The successful batch's shared usage receipt records 32 logical calls, 43 attempts, 11 retries, 1,618,565 input and 305,606 output tokens. These are runtime counts, not proof of charges or remaining allowance. Per-repository holds remain visible under the existing contract; this recovery does not claim that all 40 summaries were admitted.
+
+This single authorized full refresh, publication, deployment and public readback are verified. Future scheduled reliability and the three held summaries are separate follow-up scope. No product code, workflow, quality gate, paid budget, model, authentication or security setting was changed. WF/LF and other sessions were not modified.
