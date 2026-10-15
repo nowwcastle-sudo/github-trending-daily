@@ -1162,123 +1162,105 @@
   },
   "ifixai-ai/iFixAi": {
     "content": {
-      "goal": "iFixAi is an open-source auditing tool for AI agents that aims to go beyond token-efficiency and latency evaluations to check whether an agent is meeting business KPIs and respecting organizational structure, producing a result in under 120 seconds via a CLI, plugin, or skill.",
-      "usage": "Install with `pip install \"ifixai[<provider>]\"`, run `ifixai setup` for a wizard-guided configuration, then `ifixai run` to execute inspections. In Claude Code or Codex it can also be installed as a plugin via `/plugin marketplace add ifixai-ai/iFixAi` and `/plugin install ifixai@ifixai-community`.",
-      "pros": "The engine is free and open under Apache 2.0, offers three run modes (guided wizard, explicit flags, plugin/skill), bundles 60 inspections, and can score an agent's governance in under 120 seconds.",
-      "cons": "Running the two-judge 'Full mode' ensemble requires a hand-built fixture file, and a full-suite run with the recommended Sonnet judge setup costs roughly $12–18, so cost and setup effort scale with how much of the 60-inspection suite is run.",
-      "fit": "Based on its CLI and native plugin support for Claude Code, Codex, Cursor, VS Code, and other agent tools, it appears best suited for teams already building or testing AI agents who want an independent grading layer, such as within CI pipelines."
+      "goal": "iFixAi is described as an independent auditing tool for AI agents, built to assess whether an agent follows business KPIs and organizational policies rather than only technical metrics like latency or prompt-injection resistance. The README positions it as complementary to existing eval, red-teaming, and observability tools, suggesting it fills a gap those tools do not cover.",
+      "usage": "Install with `pip install \"ifixai[openai]\"`, then run `ifixai setup` to configure provider and suite, followed by `ifixai run`, which writes JSON and Markdown reports to ./ifixai-results/. Python 3.10+ is required. iFixAi can also run as a Claude Code or Codex plugin, or as a scaffolded skill command in other agents.",
+      "pros": "The core engine, including 60 inspections, is free and open under the Apache 2.0 license. A default run covers 10 essential inspections across five scoring pillars and can finish in under two minutes, giving a quick first grade without requiring the full 60-test suite.",
+      "cons": "Obtaining a 'citable' grade appears to require two separate API keys from different providers, since the agent's own vendor is excluded from judging it; a self-judged run without a second key is flagged as a smoke test rather than a citable result, which may add setup overhead.",
+      "fit": "iFixAi seems best suited to teams wanting a business-policy-oriented audit layered on top of existing technical evals, tested against a real deployed agent endpoint or a bare model API. Teams needing deeper coverage may consider iFixAi Pro, a paid service described as offering up to 400 inspections."
     },
     "summaries": {
       "en": {
-        "goal": "iFixAi is an open-source auditing tool for AI agents that aims to go beyond token-efficiency and latency evaluations to check whether an agent is meeting business KPIs and respecting organizational structure, producing a result in under 120 seconds via a CLI, plugin, or skill.",
-        "usage": "Install with `pip install \"ifixai[<provider>]\"`, run `ifixai setup` for a wizard-guided configuration, then `ifixai run` to execute inspections. In Claude Code or Codex it can also be installed as a plugin via `/plugin marketplace add ifixai-ai/iFixAi` and `/plugin install ifixai@ifixai-community`.",
-        "pros": "The engine is free and open under Apache 2.0, offers three run modes (guided wizard, explicit flags, plugin/skill), bundles 60 inspections, and can score an agent's governance in under 120 seconds.",
-        "cons": "Running the two-judge 'Full mode' ensemble requires a hand-built fixture file, and a full-suite run with the recommended Sonnet judge setup costs roughly $12–18, so cost and setup effort scale with how much of the 60-inspection suite is run.",
-        "fit": "Based on its CLI and native plugin support for Claude Code, Codex, Cursor, VS Code, and other agent tools, it appears best suited for teams already building or testing AI agents who want an independent grading layer, such as within CI pipelines."
+        "goal": "iFixAi is described as an independent auditing tool for AI agents, built to assess whether an agent follows business KPIs and organizational policies rather than only technical metrics like latency or prompt-injection resistance. The README positions it as complementary to existing eval, red-teaming, and observability tools, suggesting it fills a gap those tools do not cover.",
+        "usage": "Install with `pip install \"ifixai[openai]\"`, then run `ifixai setup` to configure provider and suite, followed by `ifixai run`, which writes JSON and Markdown reports to ./ifixai-results/. Python 3.10+ is required. iFixAi can also run as a Claude Code or Codex plugin, or as a scaffolded skill command in other agents.",
+        "pros": "The core engine, including 60 inspections, is free and open under the Apache 2.0 license. A default run covers 10 essential inspections across five scoring pillars and can finish in under two minutes, giving a quick first grade without requiring the full 60-test suite.",
+        "cons": "Obtaining a 'citable' grade appears to require two separate API keys from different providers, since the agent's own vendor is excluded from judging it; a self-judged run without a second key is flagged as a smoke test rather than a citable result, which may add setup overhead.",
+        "fit": "iFixAi seems best suited to teams wanting a business-policy-oriented audit layered on top of existing technical evals, tested against a real deployed agent endpoint or a bare model API. Teams needing deeper coverage may consider iFixAi Pro, a paid service described as offering up to 400 inspections."
       },
       "ko": {
-        "goal": "iFixAi는 오픈소스 AI 에이전트 감사 도구로, 토큰 효율성이나 지연 시간 같은 기술적 평가를 넘어 에이전트가 비즈니스 KPI와 조직 구조에 맞게 작동하는지를 120초 이내에 CLI, 플러그인, 또는 스킬 방식으로 확인하는 것을 목표로 합니다.",
-        "usage": "`pip install \"ifixai[<provider>]\"`로 설치한 뒤 `ifixai setup`으로 마법사 설정을 진행하고 `ifixai run`으로 검사를 실행합니다. Claude Code나 Codex에서는 `/plugin marketplace add ifixai-ai/iFixAi`와 `/plugin install ifixai@ifixai-community` 명령으로 플러그인을 설치할 수도 있습니다.",
-        "pros": "엔진은 Apache 2.0 라이선스로 무료 공개되며, 마법사·명시적 플래그·플러그인/스킬의 세 가지 실행 방식과 60개의 검사를 제공하고, 120초 이내에 에이전트의 거버넌스를 점수화할 수 있습니다.",
-        "cons": "두 명의 심사자를 사용하는 'Full mode' 조합을 실행하려면 직접 작성한 fixture 파일이 필요하며, 권장되는 Sonnet 심사자 설정으로 전체 스위트를 실행하면 약 12~18달러의 비용이 들어, 실행하는 검사 범위에 따라 비용과 준비 작업이 늘어납니다.",
-        "fit": "Claude Code, Codex, Cursor, VS Code 등 다양한 에이전트 도구에 대한 CLI 및 네이티브 플러그인 지원을 볼 때, 이미 AI 에이전트를 구축하거나 테스트하는 팀이 CI 파이프라인 등에서 독립적인 평가 계층을 원할 때 적합할 것으로 보입니다."
+        "goal": "iFixAi는 AI 에이전트가 기술적 지표(지연 시간, 프롬프트 인젝션 저항성 등)뿐만 아니라 비즈니스 KPI와 조직 정책을 따르는지 평가하는 독립적인 감사 도구로 소개됩니다. README는 이를 기존 평가, 레드팀, 관찰 가능성 도구를 보완하는 것으로 설명하며, 이들이 다루지 못하는 공백을 메우는 것으로 보입니다.",
+        "usage": "`pip install \"ifixai[openai]\"`로 설치한 뒤 `ifixai setup`으로 공급자와 스위트를 구성하고, `ifixai run`을 실행하면 ./ifixai-results/에 JSON과 Markdown 보고서가 생성됩니다. Python 3.10+ 이상이 필요합니다. iFixAi는 Claude Code나 Codex 플러그인, 또는 다른 에이전트의 스킬 명령으로도 실행할 수 있습니다.",
+        "pros": "60개의 검사를 포함한 핵심 엔진은 Apache 2.0 라이선스 하에 무료로 공개되어 있습니다. 기본 실행은 5개 채점 축에 걸쳐 10개의 필수 검사를 다루며 2분 이내에 완료될 수 있어, 전체 60개 테스트 스위트 없이도 빠른 첫 평가를 제공합니다.",
+        "cons": "'인용 가능한' 등급을 받으려면 서로 다른 공급업체의 API 키 두 개가 필요한 것으로 보이는데, 에이전트 자체의 공급업체는 채점에서 제외되기 때문입니다. 두 번째 키 없이 자체 채점으로 실행하면 인용 가능한 결과가 아니라 스모크 테스트로 표시되어, 설정 부담이 늘어날 수 있습니다.",
+        "fit": "iFixAi는 기존 기술적 평가 위에 비즈니스 정책 중심의 감사를 더하고자 하는 팀, 그리고 실제 배포된 에이전트 엔드포인트나 단순 모델 API를 테스트하려는 팀에 적합해 보입니다. 더 깊은 범위가 필요한 팀은 최대 400개 검사를 제공한다고 설명된 유료 서비스 iFixAi Pro를 고려할 수 있습니다."
       },
       "zh-CN": {
-        "goal": "iFixAi 是一款开源的 AI 代理审计工具,目标是超越令牌效率和延迟等技术性评测,在 120 秒内通过 CLI、插件或 Skill 方式检查代理是否符合业务 KPI 和组织结构的要求。",
-        "usage": "先用 `pip install \"ifixai[<provider>]\"` 安装,再运行 `ifixai setup` 完成向导式配置,然后执行 `ifixai run` 运行检测;在 Claude Code 或 Codex 中,也可以通过 `/plugin marketplace add ifixai-ai/iFixAi` 和 `/plugin install ifixai@ifixai-community` 安装插件。",
-        "pros": "该引擎在 Apache 2.0 许可下免费开放,提供向导、显式参数和插件/Skill 三种运行方式,内置 60 项检测,并能在 120 秒内对代理的治理情况进行打分。",
-        "cons": "运行双评审官的 'Full mode' 组合需要手工编写 fixture 文件,按推荐的 Sonnet 评审设置运行完整测试套件大约需要 12-18 美元,因此成本和准备工作会随运行的检测范围增加而上升。",
-        "fit": "从其对 Claude Code、Codex、Cursor、VS Code 等多种代理工具的 CLI 和原生插件支持来看,该工具似乎更适合已经在构建或测试 AI 代理、并希望在 CI 流程等场景中获得独立评分层的团队。"
+        "goal": "iFixAi 被描述为一款针对 AI 代理的独立审计工具,用于评估代理是否遵循业务 KPI 和组织政策,而不仅仅是延迟或提示注入抵抗等技术指标。README 将其定位为现有评估、红队测试和可观测性工具的补充,似乎填补了这些工具未覆盖的空白。",
+        "usage": "先执行 `pip install \"ifixai[openai]\"` 安装,然后运行 `ifixai setup` 配置提供商和测试套件,再运行 `ifixai run`,报告会以 JSON 和 Markdown 形式写入 ./ifixai-results/。需要 Python 3.10+。iFixAi 也可以作为 Claude Code 或 Codex 插件运行,或在其他代理中以技能命令形式使用。",
+        "pros": "核心引擎(包含 60 项检查)在 Apache 2.0 许可下免费开放。默认运行覆盖五个评分维度中的 10 项基础检查,可在两分钟内完成,无需运行全部 60 项测试即可获得初步评分。",
+        "cons": "获得'可引用'评分似乎需要来自不同供应商的两个独立 API 密钥,因为代理自身的供应商被排除在评审之外;若没有第二个密钥而以自评方式运行,则会被标记为冒烟测试而非可引用结果,这可能增加配置成本。",
+        "fit": "iFixAi 似乎更适合那些希望在现有技术评估基础上叠加业务政策审计的团队,可针对真实部署的代理端点或纯模型 API 进行测试。需要更深覆盖范围的团队可以考虑付费服务 iFixAi Pro,据称可提供多达 400 项检查。"
       },
       "es": {
-        "goal": "iFixAi es una herramienta de auditoría de agentes de IA de código abierto cuyo objetivo es ir más allá de las evaluaciones técnicas de eficiencia de tokens y latencia, comprobando en menos de 120 segundos, mediante CLI, plugin o skill, si un agente cumple con los KPI de negocio y la estructura organizativa.",
-        "usage": "Se instala con `pip install \"ifixai[<provider>]\"`, luego se ejecuta `ifixai setup` para una configuración guiada y `ifixai run` para lanzar las inspecciones; en Claude Code o Codex también puede instalarse como plugin con `/plugin marketplace add ifixai-ai/iFixAi` y `/plugin install ifixai@ifixai-community`.",
-        "pros": "El motor es gratuito y abierto bajo licencia Apache 2.0, ofrece tres formas de ejecución (asistente guiado, flags explícitos y plugin/skill), incluye 60 inspecciones y puede puntuar la gobernanza de un agente en menos de 120 segundos.",
-        "cons": "Ejecutar el conjunto 'Full mode' con dos jueces requiere un fixture creado manualmente, y una ejecución completa con la configuración recomendada de juez Sonnet cuesta aproximadamente entre 12 y 18 dólares, por lo que el coste y el esfuerzo de preparación aumentan según el alcance de las 60 inspecciones que se ejecuten.",
-        "fit": "A juzgar por su soporte de CLI y plugins nativos para Claude Code, Codex, Cursor, VS Code y otras herramientas de agentes, parece más adecuado para equipos que ya construyen o prueban agentes de IA y buscan una capa de evaluación independiente, por ejemplo dentro de pipelines de CI."
+        "goal": "iFixAi se describe como una herramienta de auditoría independiente para agentes de IA, diseñada para evaluar si un agente cumple los KPI de negocio y las políticas organizativas, más allá de métricas técnicas como la latencia o la resistencia a inyección de prompts. El README la presenta como complemento de las herramientas existentes de evaluación, red-teaming y observabilidad, lo que sugiere que cubre un vacío que estas no abordan.",
+        "usage": "Instálala con `pip install \"ifixai[openai]\"`, luego ejecuta `ifixai setup` para configurar el proveedor y el conjunto de pruebas, y después `ifixai run`, que genera informes JSON y Markdown en ./ifixai-results/. Se requiere Python 3.10+. iFixAi también puede ejecutarse como plugin de Claude Code o Codex, o como comando de habilidad en otros agentes.",
+        "pros": "El motor principal, con 60 inspecciones, es gratuito y abierto bajo licencia Apache 2.0. Una ejecución por defecto cubre 10 inspecciones esenciales en cinco pilares de puntuación y puede completarse en menos de dos minutos, ofreciendo una calificación inicial rápida sin necesidad del conjunto completo de 60 pruebas.",
+        "cons": "Obtener una calificación 'citable' parece requerir dos claves API separadas de proveedores distintos, ya que el proveedor del propio agente queda excluido como juez; una ejecución autoevaluada sin una segunda clave se marca como prueba de humo en lugar de resultado citable, lo que puede añadir carga de configuración.",
+        "fit": "iFixAi parece más adecuado para equipos que desean una auditoría orientada a políticas de negocio sobre sus evaluaciones técnicas existentes, probada contra un endpoint de agente real desplegado o una API de modelo simple. Los equipos que necesiten mayor cobertura podrían considerar iFixAi Pro, un servicio de pago descrito con hasta 400 inspecciones."
       },
       "ja": {
-        "goal": "iFixAiはオープンソースのAIエージェント監査ツールで、トークン効率やレイテンシーといった技術的評価にとどまらず、エージェントがビジネスKPIや組織構造に沿って動作しているかをCLI、プラグイン、またはスキルを通じて120秒以内に確認することを目的としています。",
-        "usage": "`pip install \"ifixai[<provider>]\"` でインストールし、`ifixai setup` でウィザード形式の設定を行い、`ifixai run` で検査を実行します。Claude CodeやCodexでは `/plugin marketplace add ifixai-ai/iFixAi` と `/plugin install ifixai@ifixai-community` でプラグインとしてインストールすることもできます。",
-        "pros": "このエンジンはApache 2.0ライセンスの下で無料かつオープンに提供され、ウィザード・明示的フラグ・プラグイン/スキルという3つの実行方法と60件の検査を備え、120秒以内にエージェントのガバナンスを採点できます。",
-        "cons": "2人の判定者を使う「Full mode」のアンサンブルを実行するには手作業で作成したfixtureファイルが必要であり、推奨のSonnet判定者構成でフルスイートを実行すると約12〜18ドルかかるため、実行する検査範囲に応じてコストと準備の手間が増えます。",
-        "fit": "Claude Code、Codex、Cursor、VS Codeなど複数のエージェントツールへのCLIおよびネイティブプラグイン対応から見て、すでにAIエージェントを構築・テストしており、CIパイプラインなどで独立した評価レイヤーを求めるチームに適していると考えられます。"
+        "goal": "iFixAiは、レイテンシやプロンプトインジェクション耐性といった技術指標だけでなく、AIエージェントがビジネスKPIや組織の方針に従っているかを評価する、独立した監査ツールとして説明されています。READMEでは既存の評価・レッドチーム・可観測性ツールを補完する位置づけとされており、それらが扱っていない領域を補っているようです。",
+        "usage": "`pip install \"ifixai[openai]\"` でインストールし、`ifixai setup` でプロバイダとスイートを設定した後、`ifixai run` を実行すると、JSONとMarkdownのレポートが ./ifixai-results/ に出力されます。Python 3.10以上が必要です。iFixAiはClaude CodeやCodexのプラグイン、または他のエージェント向けのスキルコマンドとしても実行できます。",
+        "pros": "60項目の検査を含むコアエンジンはApache 2.0ライセンスのもと無料で公開されています。デフォルト実行では5つの評価軸にわたる10の基本検査がカバーされ、2分以内で完了するため、60項目すべてを実行せずに最初の評価を素早く得られます。",
+        "cons": "'引用可能'な評価を得るには、異なるプロバイダの2つのAPIキーが必要なようで、エージェント自身のプロバイダは判定から除外されます。2つ目のキーがなく自己評価で実行した場合、引用可能な結果ではなくスモークテストとして扱われ、設定の手間が増える可能性があります。",
+        "fit": "iFixAiは、既存の技術的評価に加えてビジネスポリシー志向の監査を重ねたいチームや、実際にデプロイされたエージェントのエンドポイントや単純なモデルAPIに対してテストしたいチームに適しているようです。より広い範囲の検査が必要なチームは、最大400項目の検査を提供するとされる有料サービスのiFixAi Proを検討できます。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 60,
-          "end_line": 66,
+          "start_line": 61,
+          "end_line": 67,
           "section_heading": "What it is"
         }
       ],
       "usage": [
         {
-          "start_line": 90,
-          "end_line": 94,
+          "start_line": 93,
+          "end_line": 97,
           "section_heading": "Guided wizard (recommended)"
         },
         {
-          "start_line": 111,
-          "end_line": 116,
-          "section_heading": "Plugin (Claude Code and Codex)"
+          "start_line": 53,
+          "end_line": 53,
+          "section_heading": ""
         }
       ],
       "pros": [
         {
-          "start_line": 64,
-          "end_line": 64,
-          "section_heading": "What it is"
+          "start_line": 55,
+          "end_line": 55,
+          "section_heading": ""
         },
         {
-          "start_line": 358,
-          "end_line": 359,
-          "section_heading": "What you get back"
-        },
-        {
-          "start_line": 372,
-          "end_line": 373,
-          "section_heading": "iFixAi Pro"
+          "start_line": 229,
+          "end_line": 231,
+          "section_heading": "What a default run covers"
         }
       ],
       "cons": [
         {
-          "start_line": 210,
-          "end_line": 214,
-          "section_heading": "Recommended judge setups"
-        },
-        {
-          "start_line": 216,
-          "end_line": 219,
-          "section_heading": "Recommended judge setups"
+          "start_line": 179,
+          "end_line": 190,
+          "section_heading": "Explicit flags"
         }
       ],
       "fit": [
         {
-          "start_line": 82,
-          "end_line": 82,
-          "section_heading": "Three ways to run"
+          "start_line": 293,
+          "end_line": 304,
+          "section_heading": "Test your own agent"
         },
         {
-          "start_line": 104,
-          "end_line": 109,
-          "section_heading": "Plugin (Claude Code and Codex)"
+          "start_line": 373,
+          "end_line": 379,
+          "section_heading": "iFixAi Pro"
         }
       ]
     },
     "invariants": [
       {
-        "kind": "product",
-        "value": "iFixAi",
-        "fields": [
-          "goal",
-          "usage"
-        ]
-      },
-      {
         "kind": "command",
-        "value": "pip install \"ifixai[<provider>]\"",
+        "value": "pip install \"ifixai[openai]\"",
         "fields": [
           "usage"
         ]
@@ -1298,32 +1280,10 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "/plugin marketplace add ifixai-ai/iFixAi",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "/plugin install ifixai@ifixai-community",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
         "kind": "version",
-        "value": "Apache 2.0",
+        "value": "Python 3.10+",
         "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "120 seconds",
-        "fields": [
-          "goal",
-          "pros"
+          "usage"
         ]
       },
       {
@@ -1334,22 +1294,33 @@
         ]
       },
       {
-        "kind": "number",
-        "value": "$12–18",
+        "kind": "product",
+        "value": "iFixAi",
         "fields": [
-          "cons"
+          "goal",
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "iFixAi Pro",
+        "fields": [
+          "fit"
         ]
       }
     ],
     "inference_fields": [
+      "goal",
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "ifixai-ai/ifixai",
       "path": "README.md",
-      "blob_sha": "e4dae2482c3cc1b71424582475327ca0a171ad0a",
-      "content_sha256": "59ded29b1a304c373253b315f0ffa0698e0f20e5a43256a76621ad7c41bc6563",
+      "blob_sha": "702e34aa5be1ab7862ea05743dbfdda49e212c78",
+      "content_sha256": "c0942a6bb6645b124c500542cd0a0b00c371085e31be80234ee8a13dbf3446c1",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.292",
@@ -2061,47 +2032,47 @@
   },
   "boykopovar/AnyPS5": {
     "content": {
-      "goal": "AnyPS5 is a tool for automatically porting executables to Linux and Windows. It works through a relinker that converts executables into the target system's native format, combined with custom implementations of system PRX libraries for dynamic linking, without emulation or a separate runtime process.",
-      "usage": "The project offers a web converter at https://boykopovar.github.io/AnyPS5/, where files stay on the user's device, alongside documented build instructions for building from source. Controller input uses SDL mapping, and keyboard/mouse controls can be configured via an anyps5-input.ini file.",
-      "pros": "Because porting avoids emulation and a separate runtime process, it may offer better performance than emulator-based approaches, though no benchmarks are documented. The shader recompiler produces SPIR-V output, which can be validated via Spirv-Tools when built with ANYPS5_ENABLE_SPIRV_TOOLS, and SDL-mapped game controllers, including analog sticks and triggers, are supported.",
-      "cons": "Unsupported or unexpected states strictly throw std::runtime_error, printing the error to stderr and terminating the process, which suggests an early-stage project where some scenarios may not yet be handled gracefully. Per-game compatibility is tracked individually on a community-maintained blocker map, implying that support varies by title and may be incomplete for many games.",
-      "fit": "The project states it is intended for interoperability, research, preservation, and compatibility purposes, and does not include or require copyrighted software, firmware, keys, or proprietary libraries, leaving responsibility for lawful binary use with the user. It is licensed under GNU General Public License version 2 only, a consideration for any downstream use or redistribution."
+      "goal": "AnyPS5 automatically ports executables to run natively on Linux and Windows, using a relinker that converts binaries to the target system's native format plus reimplemented system PRX libraries, without emulation or a separate runtime process. Status and Compatibility sections suggest the primary target is PS5 executables, though this is not stated outright.",
+      "usage": "Try it via the web converter at https://boykopovar.github.io/AnyPS5/, which keeps files on your device, or follow the linked Usage and Build docs. Configure keyboard and mouse controls with an anyps5-input.ini file; SDL-mapped game controllers, including analog sticks and triggers, are supported directly.",
+      "pros": "No emulation or separate runtime process is used, implying a lighter execution path. SDL-mapped controllers with analog sticks and triggers are supported, and the shader recompiler produces SPIR-V validated via Spirv-Tools when built with ANYPS5_ENABLE_SPIRV_TOOLS.",
+      "cons": "Unsupported or unexpected states throw std::runtime_error, print to stderr, and terminate the process, so failures halt execution rather than degrade gracefully. Reported system-library coverage percentages reflect only functions declared so far, not full PS5 system coverage.",
+      "fit": "The project is intended for interoperability, research, preservation, and compatibility, and states it does not include or require copyrighted software, firmware, keys, or proprietary libraries. It is licensed under GNU General Public License version 2 only, which may limit redistribution."
     },
     "summaries": {
       "en": {
-        "goal": "AnyPS5 is a tool for automatically porting executables to Linux and Windows. It works through a relinker that converts executables into the target system's native format, combined with custom implementations of system PRX libraries for dynamic linking, without emulation or a separate runtime process.",
-        "usage": "The project offers a web converter at https://boykopovar.github.io/AnyPS5/, where files stay on the user's device, alongside documented build instructions for building from source. Controller input uses SDL mapping, and keyboard/mouse controls can be configured via an anyps5-input.ini file.",
-        "pros": "Because porting avoids emulation and a separate runtime process, it may offer better performance than emulator-based approaches, though no benchmarks are documented. The shader recompiler produces SPIR-V output, which can be validated via Spirv-Tools when built with ANYPS5_ENABLE_SPIRV_TOOLS, and SDL-mapped game controllers, including analog sticks and triggers, are supported.",
-        "cons": "Unsupported or unexpected states strictly throw std::runtime_error, printing the error to stderr and terminating the process, which suggests an early-stage project where some scenarios may not yet be handled gracefully. Per-game compatibility is tracked individually on a community-maintained blocker map, implying that support varies by title and may be incomplete for many games.",
-        "fit": "The project states it is intended for interoperability, research, preservation, and compatibility purposes, and does not include or require copyrighted software, firmware, keys, or proprietary libraries, leaving responsibility for lawful binary use with the user. It is licensed under GNU General Public License version 2 only, a consideration for any downstream use or redistribution."
+        "goal": "AnyPS5 automatically ports executables to run natively on Linux and Windows, using a relinker that converts binaries to the target system's native format plus reimplemented system PRX libraries, without emulation or a separate runtime process. Status and Compatibility sections suggest the primary target is PS5 executables, though this is not stated outright.",
+        "usage": "Try it via the web converter at https://boykopovar.github.io/AnyPS5/, which keeps files on your device, or follow the linked Usage and Build docs. Configure keyboard and mouse controls with an anyps5-input.ini file; SDL-mapped game controllers, including analog sticks and triggers, are supported directly.",
+        "pros": "No emulation or separate runtime process is used, implying a lighter execution path. SDL-mapped controllers with analog sticks and triggers are supported, and the shader recompiler produces SPIR-V validated via Spirv-Tools when built with ANYPS5_ENABLE_SPIRV_TOOLS.",
+        "cons": "Unsupported or unexpected states throw std::runtime_error, print to stderr, and terminate the process, so failures halt execution rather than degrade gracefully. Reported system-library coverage percentages reflect only functions declared so far, not full PS5 system coverage.",
+        "fit": "The project is intended for interoperability, research, preservation, and compatibility, and states it does not include or require copyrighted software, firmware, keys, or proprietary libraries. It is licensed under GNU General Public License version 2 only, which may limit redistribution."
       },
       "ko": {
-        "goal": "AnyPS5는 실행 파일을 Linux 및 Windows용으로 자동 포팅하는 도구입니다. 실행 파일을 대상 시스템의 네이티브 형식으로 변환하는 relinker와 동적 링킹을 위한 시스템 PRX 라이브러리 구현을 결합하여, 에뮬레이션이나 별도의 런타임 프로세스 없이 동작합니다.",
-        "usage": "웹 변환기는 https://boykopovar.github.io/AnyPS5/ 에서 제공되며 파일이 사용자 기기에 남는다고 설명되어 있고, 소스에서 빌드하기 위한 빌드 안내도 문서화되어 있습니다. 컨트롤러 입력은 SDL 매핑을 사용하며, 키보드와 마우스 조작은 anyps5-input.ini 파일로 설정할 수 있습니다.",
-        "pros": "에뮬레이션과 별도 런타임 프로세스를 사용하지 않기 때문에 에뮬레이터 기반 방식보다 성능이 더 나을 수 있지만, 이에 대한 벤치마크는 문서화되어 있지 않습니다. 셰이더 재컴파일러는 SPIR-V를 생성하며 ANYPS5_ENABLE_SPIRV_TOOLS로 빌드하면 Spirv-Tools를 통해 검증할 수 있고, 아날로그 스틱과 트리거를 포함한 SDL 매핑 게임 컨트롤러도 지원됩니다.",
-        "cons": "지원되지 않거나 예상치 못한 상태는 std::runtime_error를 발생시켜 오류를 stderr에 출력하고 프로세스를 종료하는데, 이는 일부 상황이 아직 우아하게 처리되지 않을 수 있는 초기 단계 프로젝트임을 시사합니다. 게임별 호환성은 커뮤니티가 관리하는 blocker map에서 개별적으로 추적되어, 지원 수준이 타이틀마다 다르고 많은 게임에서 아직 불완전할 수 있음을 암시합니다.",
-        "fit": "이 프로젝트는 상호운용성, 연구, 보존, 호환성 목적을 위한 것이며 저작권이 있는 소프트웨어, 펌웨어, 키 또는 독점 라이브러리를 포함하거나 요구하지 않는다고 명시하여, 바이너리의 합법적 사용에 대한 책임을 사용자에게 둡니다. GNU General Public License version 2로만 라이선스되어 있어 추가 사용이나 재배포 시 고려해야 합니다."
+        "goal": "AnyPS5는 실행 파일을 Linux와 Windows에서 네이티브로 실행할 수 있도록 자동으로 포팅하는 도구로, 바이너리를 대상 시스템의 네이티브 형식으로 변환하는 relinker와 재구현된 시스템 PRX 라이브러리를 사용하며, 에뮬레이션이나 별도의 런타임 프로세스 없이 동작합니다. Status 및 Compatibility 섹션을 보면 주요 대상이 PS5 실행 파일인 것으로 추정되지만, 이는 명확히 명시되어 있지는 않습니다.",
+        "usage": "웹 변환기(https://boykopovar.github.io/AnyPS5/)를 통해 파일을 기기에 둔 채로 사용해 볼 수 있으며, 연결된 Usage 및 Build 문서를 참고할 수 있습니다. anyps5-input.ini 파일로 키보드와 마우스 입력을 설정할 수 있고, 아날로그 스틱과 트리거를 포함한 SDL 매핑 게임 컨트롤러는 별도 설정 없이 지원됩니다.",
+        "pros": "에뮬레이션이나 별도의 런타임 프로세스를 사용하지 않아 더 가벼운 실행 경로를 암시합니다. 아날로그 스틱과 트리거를 포함한 SDL 매핑 컨트롤러를 지원하며, ANYPS5_ENABLE_SPIRV_TOOLS 옵션으로 빌드하면 셰이더 재컴파일러가 Spirv-Tools로 검증된 SPIR-V를 생성합니다.",
+        "cons": "지원되지 않거나 예기치 않은 상태에서는 std::runtime_error가 발생해 stderr에 출력되고 프로세스가 종료되므로, 오류 발생 시 우아하게 대응하지 않고 실행이 바로 멈춥니다. 보고된 시스템 라이브러리 커버리지 비율은 지금까지 프로젝트가 선언한 함수만을 반영하며, 전체 PS5 시스템 커버리지를 의미하지는 않습니다.",
+        "fit": "이 프로젝트는 상호운용성, 연구, 보존, 호환성 목적을 위한 것으로, 저작권이 있는 소프트웨어, 펌웨어, 암호화 키, 독점 라이브러리를 포함하거나 요구하지 않는다고 명시되어 있습니다. GNU General Public License version 2 단독 라이선스로 배포되어, 재배포 방식에 제약이 있을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "AnyPS5 是一个用于将可执行文件自动移植到 Linux 和 Windows 的工具。它通过 relinker 将可执行文件转换为目标系统的原生格式,并结合用于动态链接的系统 PRX 库实现,整个过程不依赖模拟器或单独的运行时进程。",
-        "usage": "网页转换器位于 https://boykopovar.github.io/AnyPS5/,文件据称会保留在用户设备本地,此外还提供了从源代码构建的说明文档。控制器输入使用 SDL 映射,键盘和鼠标操作可以通过 anyps5-input.ini 文件进行配置。",
-        "pros": "由于移植过程不使用模拟,也没有单独的运行时进程,其性能可能优于基于模拟器的方案,但并未提供相关基准测试数据。着色器重编译器可以生成 SPIR-V,在使用 ANYPS5_ENABLE_SPIRV_TOOLS 构建时可通过 Spirv-Tools 验证,同时支持带有摇杆和扳机的 SDL 映射游戏控制器。",
-        "cons": "不受支持或意外的状态会直接抛出 std::runtime_error,将错误输出到 stderr 并终止进程,这表明该项目可能仍处于早期阶段,部分情况尚未得到妥善处理。各游戏的兼容性在社区维护的 blocker map 上单独跟踪,这意味着不同游戏的支持程度存在差异,许多游戏的支持可能仍不完整。",
-        "fit": "该项目声明其用途是互操作性、研究、保存与兼容性,不包含也不要求任何受版权保护的软件、固件、密钥或专有库,使用者需自行确保所用二进制文件的合法性。项目仅以 GNU General Public License version 2 授权,这一点在后续使用或再分发时需要加以考虑。"
+        "goal": "AnyPS5 是一款自动将可执行文件移植到 Linux 和 Windows 上原生运行的工具，它使用将二进制文件转换为目标系统原生格式的 relinker，以及重新实现的系统 PRX 库，且不依赖模拟或独立的运行时进程。根据 Status 和 Compatibility 部分的内容推测，其主要目标可能是 PS5 可执行文件，但文档中并未明确说明这一点。",
+        "usage": "可以通过网页转换器（https://boykopovar.github.io/AnyPS5/）试用，文件会保留在本地设备上，也可以参考链接的 Usage 与 Build 文档。可通过 anyps5-input.ini 文件配置键盘和鼠标操作，支持带摇杆和扳机的 SDL 映射游戏控制器，无需额外配置。",
+        "pros": "不使用模拟或独立运行时进程，这意味着执行路径可能更轻量。项目支持带摇杆和扳机的 SDL 映射控制器，并且在使用 ANYPS5_ENABLE_SPIRV_TOOLS 构建时，着色器重新编译器能够生成经 Spirv-Tools 验证的 SPIR-V。",
+        "cons": "遇到不受支持或意外状态时会抛出 std::runtime_error，将信息输出到 stderr 并终止进程，因此出错时程序会直接停止而非平滑降级。所报告的系统库覆盖率百分比仅反映项目迄今已声明的函数，并不代表完整的 PS5 系统覆盖率。",
+        "fit": "该项目声明用于互操作性、研究、保存和兼容性目的，并明确表示不包含也不要求任何受版权保护的软件、固件、加密密钥或专有库。项目仅采用 GNU General Public License version 2 许可，这可能对再分发方式有所限制。"
       },
       "es": {
-        "goal": "AnyPS5 es una herramienta para portar ejecutables automáticamente a Linux y Windows. Funciona mediante un relinker que convierte los ejecutables al formato nativo del sistema de destino, junto con implementaciones propias de bibliotecas PRX del sistema para enlace dinámico, sin emulación ni un proceso de ejecución separado.",
-        "usage": "El convertidor web está disponible en https://boykopovar.github.io/AnyPS5/, donde se indica que los archivos permanecen en el dispositivo del usuario, además de instrucciones documentadas para compilar desde el código fuente. La entrada de mandos usa el mapeo de SDL, y los controles de teclado y mouse pueden configurarse mediante un archivo anyps5-input.ini.",
-        "pros": "Al evitar la emulación y un proceso de ejecución separado, podría ofrecer mejor rendimiento que los enfoques basados en emuladores, aunque no se documentan pruebas de referencia al respecto. El recompilador de shaders genera SPIR-V, que puede validarse mediante Spirv-Tools al compilar con ANYPS5_ENABLE_SPIRV_TOOLS, y además se admiten mandos de juego mapeados con SDL, incluyendo joysticks analógicos y gatillos.",
-        "cons": "Los estados no soportados o inesperados lanzan estrictamente std::runtime_error, imprimen el error en stderr y terminan el proceso, lo que sugiere que el proyecto podría estar en una etapa temprana donde algunos casos aún no se manejan con elegancia. La compatibilidad por juego se rastrea individualmente en un mapa de bloqueos mantenido por la comunidad, lo que implica que el soporte varía según el título y podría ser incompleto en muchos juegos.",
-        "fit": "El proyecto declara que está destinado a fines de interoperabilidad, investigación, preservación y compatibilidad, y no incluye ni requiere software, firmware, claves o bibliotecas propietarias con derechos de autor, dejando en manos del usuario la responsabilidad del uso legal de los binarios. Está licenciado únicamente bajo la GNU General Public License version 2, algo a considerar para cualquier uso o redistribución posterior."
+        "goal": "AnyPS5 es una herramienta que porta automáticamente ejecutables para que funcionen de forma nativa en Linux y Windows, usando un relinker que convierte los binarios al formato nativo del sistema objetivo y bibliotecas PRX del sistema reimplementadas, sin emulación ni un proceso de ejecución independiente. Las secciones Status y Compatibility sugieren que el objetivo principal son los ejecutables de PS5, aunque esto no se indica de forma explícita.",
+        "usage": "Se puede probar mediante el conversor web (https://boykopovar.github.io/AnyPS5/), que mantiene los archivos en el dispositivo del usuario, o siguiendo los documentos enlazados de Usage y Build. Los controles de teclado y mouse se configuran con un archivo anyps5-input.ini, y los mandos de juego mapeados con SDL, incluidos joysticks analógicos y gatillos, se admiten directamente.",
+        "pros": "No usa emulación ni un proceso de ejecución independiente, lo que sugiere una ruta de ejecución más ligera. Admite mandos mapeados con SDL con joysticks analógicos y gatillos, y el recompilador de shaders genera SPIR-V validado mediante Spirv-Tools al compilarse con ANYPS5_ENABLE_SPIRV_TOOLS.",
+        "cons": "Los estados no soportados o inesperados lanzan std::runtime_error, imprimen el mensaje en stderr y terminan el proceso, por lo que los fallos detienen la ejecución en lugar de degradarse con suavidad. Los porcentajes de cobertura de bibliotecas del sistema reportados solo reflejan las funciones declaradas hasta ahora, no la cobertura completa del sistema PS5.",
+        "fit": "El proyecto se describe como destinado a interoperabilidad, investigación, preservación y compatibilidad, y declara que no incluye ni requiere software, firmware, claves criptográficas o bibliotecas propietarias con derechos de autor. Se distribuye únicamente bajo la GNU General Public License version 2, lo que puede limitar su redistribución."
       },
       "ja": {
-        "goal": "AnyPS5は、実行ファイルをLinuxおよびWindows向けに自動的にポーティングするツールです。実行ファイルを対象システムのネイティブ形式に変換するrelinkerと、動的リンク用のシステムPRXライブラリの独自実装を組み合わせ、エミュレーションや別個のランタイムプロセスを使わずに動作します。",
-        "usage": "Webコンバーターは https://boykopovar.github.io/AnyPS5/ で提供されており、ファイルはユーザーのデバイス上に残るとされています。また、ソースからビルドするための手順も文書化されています。コントローラー入力はSDLマッピングを使用し、キーボードとマウスの操作はanyps5-input.iniファイルで設定できます。",
-        "pros": "エミュレーションや別個のランタイムプロセスを使わないため、エミュレーターベースの方式より性能が良くなる可能性がありますが、ベンチマークは文書化されていません。シェーダーリコンパイラはSPIR-Vを生成し、ANYPS5_ENABLE_SPIRV_TOOLSでビルドするとSpirv-Toolsで検証できます。また、アナログスティックやトリガーを含むSDLマッピング対応のゲームコントローラーもサポートされています。",
-        "cons": "サポートされない、または予期しない状態では必ずstd::runtime_errorが発生し、エラーがstderrに出力されてプロセスが終了します。これは、一部のケースがまだ適切に処理されていない初期段階のプロジェクトであることを示唆しています。ゲームごとの互換性は、コミュニティが管理するblocker map上で個別に追跡されており、タイトルによって対応状況が異なり、多くのゲームでまだ不完全である可能性があることを示しています。",
-        "fit": "本プロジェクトは相互運用性、研究、保存、互換性を目的としており、著作権で保護されたソフトウェア、ファームウェア、鍵、独自ライブラリを含まず、また必要としないとされ、バイナリの合法的な使用に関する責任はユーザーに委ねられています。GNU General Public License version 2のみでライセンスされており、今後の利用や再配布の際に考慮すべき点です。"
+        "goal": "AnyPS5は、実行ファイルをLinuxおよびWindows上でネイティブに動作するよう自動的に移植するツールで、バイナリを対象システムのネイティブ形式に変換するrelinkerと、再実装されたシステムPRXライブラリを使用し、エミュレーションや別のランタイムプロセスを必要としません。StatusおよびCompatibilityの記載から、主な対象はPS5の実行ファイルであると推測されますが、明示的には述べられていません。",
+        "usage": "ウェブコンバーター（https://boykopovar.github.io/AnyPS5/）を使えば、ファイルを端末に置いたまま試すことができ、リンクされたUsageやBuildの文書も参照できます。キーボードとマウスの操作はanyps5-input.iniファイルで設定でき、アナログスティックとトリガーを含むSDLマッピング対応のゲームコントローラーは追加設定なしで利用できます。",
+        "pros": "エミュレーションや別のランタイムプロセスを使わないため、より軽量な実行経路であることが示唆されます。アナログスティックとトリガーを含むSDLマッピングのコントローラーに対応しており、ANYPS5_ENABLE_SPIRV_TOOLSを有効にしてビルドすると、シェーダーリコンパイラがSpirv-Toolsで検証済みのSPIR-Vを生成します。",
+        "cons": "サポートされない状態や予期しない状態が発生するとstd::runtime_errorがスローされ、stderrに出力されてプロセスが終了するため、エラー発生時は緩やかに縮退せず実行がそのまま停止します。報告されているシステムライブラリのカバー率は、これまでに宣言された関数のみを反映しており、PS5システム全体のカバー率を示すものではありません。",
+        "fit": "このプロジェクトは相互運用性、研究、保存、互換性の目的を意図していると説明されており、著作権で保護されたソフトウェア、ファームウェア、暗号鍵、独自ライブラリを含んだり必要としたりしないと明記されています。GNU General Public License version 2のみでライセンスされており、再配布の方法に制約が生じる可能性があります。"
       }
     },
     "evidence": {
@@ -2115,6 +2086,11 @@
           "start_line": 9,
           "end_line": 9,
           "section_heading": "About"
+        },
+        {
+          "start_line": 21,
+          "end_line": 21,
+          "section_heading": "Status"
         }
       ],
       "usage": [
@@ -2141,14 +2117,14 @@
           "section_heading": "About"
         },
         {
-          "start_line": 25,
-          "end_line": 25,
-          "section_heading": "Status"
-        },
-        {
           "start_line": 33,
           "end_line": 33,
           "section_heading": "Input mapping"
+        },
+        {
+          "start_line": 25,
+          "end_line": 25,
+          "section_heading": "Status"
         }
       ],
       "cons": [
@@ -2158,9 +2134,9 @@
           "section_heading": "Status"
         },
         {
-          "start_line": 29,
-          "end_line": 29,
-          "section_heading": "Compatibility"
+          "start_line": 21,
+          "end_line": 21,
+          "section_heading": "Status"
         }
       ],
       "fit": [
@@ -2194,13 +2170,6 @@
         ]
       },
       {
-        "kind": "version",
-        "value": "GNU General Public License version 2",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
         "kind": "command",
         "value": "anyps5-input.ini",
         "fields": [
@@ -2215,38 +2184,25 @@
         ]
       },
       {
+        "kind": "version",
+        "value": "GNU General Public License version 2",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
         "kind": "command",
         "value": "std::runtime_error",
         "fields": [
           "cons"
         ]
-      },
-      {
-        "kind": "product",
-        "value": "SPIR-V",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Spirv-Tools",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "SDL",
-        "fields": [
-          "usage",
-          "pros"
-        ]
       }
     ],
     "inference_fields": [
+      "goal",
       "pros",
-      "cons"
+      "cons",
+      "fit"
     ],
     "source": {
       "kind": "readme",
@@ -5200,58 +5156,53 @@
   },
   "agent-substrate/substrate": {
     "content": {
-      "goal": "The README indicates Agent Substrate is a secure-by-default runtime intended to run millions of agent sandboxes on Kubernetes, suggesting it targets high-density, large-scale agent deployments using microVM and gVisor sandboxing.",
-      "usage": "Setup starts with hack/create-kind-cluster.sh to create a local kind cluster, then hack/install-ate-kind.sh --deploy-ate-system to install the ate control plane, PostgreSQL, and rustfs; actors are created via kubectl ate create actor and reached through a port-forwarded router.",
-      "pros": "The README states 10x higher density than standard container runtimes, sub-500ms resume operations, and over 500 suspend/resume activations per second, alongside framework-agnostic support for ADK, LangChain, Claude Code, and MCP.",
-      "cons": "Documentation notes the project is pre-1.0 without backward-compatibility guarantees, implying APIs and behavior could change significantly before a stable release; it also appears that the bundled credential provider defaults to a deny-all namespace policy until explicitly configured.",
-      "fit": "Based on its Kubernetes version support and stated positioning, Substrate seems best suited for teams already operating Kubernetes clusters who want an infrastructure layer for running agent workloads rather than an agent-building SDK."
+      "goal": "Agent Substrate is a secure-by-default agent execution runtime designed to run millions of agent sandboxes on Kubernetes, aiming for up to 10x higher density than standard container runtimes.",
+      "usage": "Quickstart involves running `hack/create-kind-cluster.sh` to create a local kind cluster, then `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'` to install the Agent Substrate system.",
+      "pros": "It targets sub-500ms resume operations at over 500 suspend/resume activations per second, is described as framework-agnostic (supporting ADK, LangChain, Claude Code, and MCP), and builds on Kubernetes Pods for infrastructure management.",
+      "cons": "The project is pre-1.0 with no backward-compatibility guarantees and APIs that may change significantly, and the bundled credential provider starts with an empty, default-deny namespace policy requiring manual configuration before actors can access secrets.",
+      "fit": "Agent Substrate appears best suited for teams already operating Kubernetes infrastructure who need to run many lightweight, stateful agent sandboxes with microVM or gVisor isolation; given its pre-1.0 status and the project being described as very young, it may not yet suit teams requiring API stability."
     },
     "summaries": {
       "en": {
-        "goal": "The README indicates Agent Substrate is a secure-by-default runtime intended to run millions of agent sandboxes on Kubernetes, suggesting it targets high-density, large-scale agent deployments using microVM and gVisor sandboxing.",
-        "usage": "Setup starts with hack/create-kind-cluster.sh to create a local kind cluster, then hack/install-ate-kind.sh --deploy-ate-system to install the ate control plane, PostgreSQL, and rustfs; actors are created via kubectl ate create actor and reached through a port-forwarded router.",
-        "pros": "The README states 10x higher density than standard container runtimes, sub-500ms resume operations, and over 500 suspend/resume activations per second, alongside framework-agnostic support for ADK, LangChain, Claude Code, and MCP.",
-        "cons": "Documentation notes the project is pre-1.0 without backward-compatibility guarantees, implying APIs and behavior could change significantly before a stable release; it also appears that the bundled credential provider defaults to a deny-all namespace policy until explicitly configured.",
-        "fit": "Based on its Kubernetes version support and stated positioning, Substrate seems best suited for teams already operating Kubernetes clusters who want an infrastructure layer for running agent workloads rather than an agent-building SDK."
+        "goal": "Agent Substrate is a secure-by-default agent execution runtime designed to run millions of agent sandboxes on Kubernetes, aiming for up to 10x higher density than standard container runtimes.",
+        "usage": "Quickstart involves running `hack/create-kind-cluster.sh` to create a local kind cluster, then `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'` to install the Agent Substrate system.",
+        "pros": "It targets sub-500ms resume operations at over 500 suspend/resume activations per second, is described as framework-agnostic (supporting ADK, LangChain, Claude Code, and MCP), and builds on Kubernetes Pods for infrastructure management.",
+        "cons": "The project is pre-1.0 with no backward-compatibility guarantees and APIs that may change significantly, and the bundled credential provider starts with an empty, default-deny namespace policy requiring manual configuration before actors can access secrets.",
+        "fit": "Agent Substrate appears best suited for teams already operating Kubernetes infrastructure who need to run many lightweight, stateful agent sandboxes with microVM or gVisor isolation; given its pre-1.0 status and the project being described as very young, it may not yet suit teams requiring API stability."
       },
       "ko": {
-        "goal": "README에 따르면 Agent Substrate는 Kubernetes에서 수백만 개의 에이전트 샌드박스를 실행하도록 설계된 보안 기본(secure-by-default) 런타임으로, microVM과 gVisor 샌드박스 기술을 활용해 고밀도 대규모 에이전트 배포를 목표로 하는 것으로 보입니다.",
-        "usage": "설치는 hack/create-kind-cluster.sh로 로컬 kind 클러스터를 생성한 뒤, hack/install-ate-kind.sh --deploy-ate-system 명령으로 ate 컨트롤 플레인, PostgreSQL, rustfs를 설치하고, kubectl ate create actor로 액터를 생성한 후 포트 포워딩된 라우터를 통해 접근합니다.",
-        "pros": "README는 표준 컨테이너 런타임 대비 10x 더 높은 밀도, 500ms 이하의 재개(resume) 작업, 초당 500회 이상의 suspend/resume 활성화를 명시하며, ADK, LangChain, Claude Code, MCP 등 다양한 프레임워크와 호환된다고 설명합니다.",
-        "cons": "프로젝트는 pre-1.0 단계로 하위 호환성을 보장하지 않는다고 문서화되어 있어 API와 동작이 크게 변경될 수 있음을 시사하며, 번들 제공되는 자격 증명 제공자는 기본적으로 모든 접근을 거부하는 네임스페이스 정책으로 시작되어 명시적 설정이 필요한 것으로 보입니다.",
-        "fit": "지원하는 Kubernetes 버전 범위와 서술된 위치를 바탕으로, Substrate는 에이전트를 구축하는 SDK가 아니라 이미 Kubernetes 클러스터를 운영 중인 팀이 에이전트 워크로드를 대규모로 실행하기 위한 인프라 계층으로 가장 적합해 보입니다."
+        "goal": "Agent Substrate는 Kubernetes에서 수백만 개의 에이전트 샌드박스를 실행하도록 설계된 보안 기본값 에이전트 실행 런타임이며, 표준 컨테이너 런타임보다 최대 10배 더 높은 밀도를 목표로 합니다.",
+        "usage": "빠른 시작은 로컬 kind 클러스터를 생성하는 `hack/create-kind-cluster.sh`를 실행한 뒤, `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'`로 Agent Substrate 시스템을 설치하는 과정으로 이루어집니다.",
+        "pros": "500ms 미만의 재개 작업을 초당 500회 이상의 서스펜드/리줌 활성화로 목표로 하며, ADK, LangChain, Claude Code, MCP 등 여러 프레임워크에 중립적이라 설명되고, Kubernetes Pod를 기반으로 인프라를 관리합니다.",
+        "cons": "이 프로젝트는 pre-1.0 단계로 하위 호환성을 보장하지 않으며 API가 크게 변경될 수 있고, 번들된 자격 증명 제공자는 기본적으로 빈 상태의 거부 우선 네임스페이스 정책으로 시작되어 액터가 시크릿에 접근하기 전에 수동 설정이 필요합니다.",
+        "fit": "Agent Substrate는 이미 Kubernetes 인프라를 운영하며 microVM이나 gVisor 격리를 통해 다수의 경량, 상태 유지 에이전트 샌드박스를 실행해야 하는 팀에 적합해 보이지만, pre-1.0 상태와 '매우 초기 단계'라는 설명을 고려하면 API 안정성이 필요한 팀에는 아직 적합하지 않을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "根据README所述,Agent Substrate是一个安全默认(secure-by-default)运行时,旨在Kubernetes上运行数百万个代理沙箱,利用microVM和gVisor沙箱技术,似乎面向高密度、大规模的代理部署场景。",
-        "usage": "安装流程是先运行hack/create-kind-cluster.sh创建本地kind集群,再执行hack/install-ate-kind.sh --deploy-ate-system安装ate控制平面、PostgreSQL和rustfs,然后通过kubectl ate create actor创建actor,并通过端口转发的路由器访问。",
-        "pros": "README指出相比标准容器运行时具有10倍更高的密度、低于500ms的恢复操作、以及每秒超过500次的suspend/resume激活,并支持ADK、LangChain、Claude Code和MCP等多种框架。",
-        "cons": "文档说明该项目目前处于pre-1.0阶段,不保证向后兼容,这意味着API和行为可能会发生重大变化;此外,内置的凭据提供程序默认采用拒绝所有的命名空间策略,似乎需要手动配置才能让actor读取Secrets。",
-        "fit": "根据其支持的Kubernetes版本范围及文档中的定位描述,Substrate似乎更适合已经运行Kubernetes集群、希望获得用于大规模运行代理工作负载的基础设施层的团队,而非用于构建代理的SDK。"
+        "goal": "Agent Substrate 是一个默认安全的代理执行运行时，旨在 Kubernetes 上运行数百万个代理沙箱，目标是实现比标准容器运行时最高 10 倍的密度。",
+        "usage": "快速开始需运行 `hack/create-kind-cluster.sh` 创建本地 kind 集群，然后运行 `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'` 安装 Agent Substrate 系统。",
+        "pros": "它的目标是在低于 500 毫秒的恢复操作下实现每秒超过 500 次挂起/恢复激活，并被描述为对框架中立（支持 ADK、LangChain、Claude Code 和 MCP），同时基于 Kubernetes Pod 管理基础设施。",
+        "cons": "该项目处于 pre-1.0 阶段，不保证向后兼容性，API 可能发生重大变化；捆绑的凭据提供者默认采用空的、默认拒绝的命名空间策略，需要手动配置后才能让 actor 访问密钥。",
+        "fit": "Agent Substrate 似乎更适合已经运行 Kubernetes 基础设施、需要通过 microVM 或 gVisor 隔离运行大量轻量级、有状态代理沙箱的团队；但鉴于其 pre-1.0 状态以及文档中提及的项目“非常年轻”，对需要 API 稳定性的团队可能尚不适用。"
       },
       "es": {
-        "goal": "Según el README, Agent Substrate es un runtime seguro por defecto diseñado para ejecutar millones de sandboxes de agentes en Kubernetes, utilizando tecnologías microVM y gVisor, y parece orientado a implementaciones de agentes de alta densidad y gran escala.",
-        "usage": "La configuración comienza con hack/create-kind-cluster.sh para crear un clúster kind local, seguido de hack/install-ate-kind.sh --deploy-ate-system para instalar el plano de control ate, PostgreSQL y rustfs; los actores se crean con kubectl ate create actor y se alcanzan mediante un router con port-forward.",
-        "pros": "El README indica una densidad 10 veces mayor que los runtimes de contenedores estándar, operaciones de reanudación por debajo de 500ms y más de 500 activaciones de suspend/resume por segundo, además de compatibilidad con ADK, LangChain, Claude Code y MCP.",
-        "cons": "La documentación señala que el proyecto está en fase pre-1.0 sin garantías de compatibilidad hacia atrás, lo que sugiere que las APIs y el comportamiento podrían cambiar significativamente; además, el proveedor de credenciales incluido parece iniciar con una política de espacio de nombres que deniega todo por defecto hasta configurarla explícitamente.",
-        "fit": "Dado el rango de versiones de Kubernetes admitidas y su posicionamiento descrito, Substrate parece más adecuado para equipos que ya operan clústeres de Kubernetes y buscan una capa de infraestructura para ejecutar cargas de trabajo de agentes a escala, en lugar de un SDK para construirlos."
+        "goal": "Agent Substrate es un runtime de ejecución de agentes seguro por defecto, diseñado para ejecutar millones de sandboxes de agentes en Kubernetes, con el objetivo de alcanzar hasta 10 veces más densidad que los runtimes de contenedores estándar.",
+        "usage": "El inicio rápido consiste en ejecutar `hack/create-kind-cluster.sh` para crear un clúster kind local, y luego `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'` para instalar el sistema Agent Substrate.",
+        "pros": "Apunta a operaciones de reanudación por debajo de 500ms con más de 500 activaciones de suspensión/reanudación por segundo, se describe como agnóstico a frameworks (compatible con ADK, LangChain, Claude Code y MCP), y se basa en Pods de Kubernetes para la gestión de infraestructura.",
+        "cons": "El proyecto está en etapa pre-1.0 sin garantías de compatibilidad hacia atrás y con APIs que pueden cambiar significativamente, y el proveedor de credenciales incluido inicia con una política de espacio de nombres vacía y de denegación por defecto, que requiere configuración manual antes de que los actores puedan acceder a secretos.",
+        "fit": "Agent Substrate parece adecuado para equipos que ya operan infraestructura Kubernetes y necesitan ejecutar muchos sandboxes de agentes ligeros y con estado mediante aislamiento microVM o gVisor; sin embargo, dado su estado pre-1.0 y que el proyecto se describe como muy joven, podría no ser adecuado aún para equipos que requieren estabilidad de API."
       },
       "ja": {
-        "goal": "READMEによると、Agent SubstrateはKubernetes上で数百万のエージェントサンドボックスを実行するために設計されたセキュア・バイ・デフォルトのランタイムであり、microVMやgVisorのサンドボックス技術を用いて高密度・大規模なエージェントデプロイを目指しているように見えます。",
-        "usage": "セットアップはまずhack/create-kind-cluster.shでローカルのkindクラスターを作成し、次にhack/install-ate-kind.sh --deploy-ate-systemでateコントロールプレーン、PostgreSQL、rustfsをインストールします。その後kubectl ate create actorでアクターを作成し、ポートフォワードしたルーター経由でアクセスします。",
-        "pros": "READMEでは、標準的なコンテナランタイムと比べて10倍の高密度、500ms未満のレジューム処理、1秒あたり500回を超えるsuspend/resumeの活性化が述べられており、ADK、LangChain、Claude Code、MCPなど複数のフレームワークに対応しているとされています。",
-        "cons": "ドキュメントによれば、本プロジェクトはpre-1.0段階であり後方互換性の保証がないため、APIや挙動が大きく変わる可能性があることが示唆されています。また、バンドルされた認証情報プロバイダーはデフォルトで全拒否のネームスペースポリシーから開始し、明示的な設定が必要なようです。",
-        "fit": "サポートされるKubernetesのバージョン範囲と記載されている位置付けから判断すると、SubstrateはエージェントのSDKではなく、すでにKubernetesクラスターを運用しているチームがエージェントワークロードを大規模に実行するためのインフラ層として適しているように思われます。"
+        "goal": "Agent Substrateは、Kubernetes上で数百万のエージェントサンドボックスを実行するために設計された、デフォルトでセキュアなエージェント実行ランタイムであり、標準的なコンテナランタイムに比べて最大10倍の密度を目指しています。",
+        "usage": "クイックスタートでは、`hack/create-kind-cluster.sh` を実行してローカルのkindクラスターを作成し、続いて `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'` でAgent Substrateシステムをインストールします。",
+        "pros": "500ms未満のレジューム操作を毎秒500回以上のサスペンド/レジューム起動で目指しており、ADK、LangChain、Claude Code、MCPなど複数のフレームワークに依存しないと説明され、Kubernetes Podを基盤にインフラを管理します。",
+        "cons": "本プロジェクトはpre-1.0段階であり後方互換性は保証されず、APIが大きく変更される可能性があり、同梱の認証情報プロバイダーは空のデフォルト拒否ネームスペースポリシーで開始するため、アクターがシークレットにアクセスする前に手動設定が必要です。",
+        "fit": "Agent Substrateは、すでにKubernetesインフラを運用し、microVMやgVisor分離による多数の軽量でステートフルなエージェントサンドボックスを必要とするチームに適していると考えられますが、pre-1.0の状態と「非常に若い」と説明されている点を踏まえると、API安定性を要するチームには現時点で適さない可能性があります。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 10,
-          "end_line": 10,
-          "section_heading": "Agent Substrate"
-        },
-        {
-          "start_line": 20,
+          "start_line": 18,
           "end_line": 20,
           "section_heading": "What is Agent Substrate?"
         }
@@ -5264,12 +5215,7 @@
         },
         {
           "start_line": 115,
-          "end_line": 119,
-          "section_heading": "Quickstart (Development)"
-        },
-        {
-          "start_line": 126,
-          "end_line": 129,
+          "end_line": 116,
           "section_heading": "Quickstart (Development)"
         }
       ],
@@ -5280,9 +5226,14 @@
           "section_heading": "What is Agent Substrate?"
         },
         {
-          "start_line": 57,
+          "start_line": 55,
           "end_line": 60,
           "section_heading": "Framework Agnostic & Compatibility"
+        },
+        {
+          "start_line": 26,
+          "end_line": 26,
+          "section_heading": "What is Agent Substrate?"
         }
       ],
       "cons": [
@@ -5299,33 +5250,18 @@
       ],
       "fit": [
         {
-          "start_line": 75,
-          "end_line": 75,
-          "section_heading": "Supported Kubernetes Releases"
+          "start_line": 20,
+          "end_line": 20,
+          "section_heading": "What is Agent Substrate?"
         },
         {
-          "start_line": 24,
-          "end_line": 24,
-          "section_heading": "What is Agent Substrate?"
+          "start_line": 97,
+          "end_line": 101,
+          "section_heading": "Developing"
         }
       ]
     },
     "invariants": [
-      {
-        "kind": "product",
-        "value": "Agent Substrate",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Kubernetes",
-        "fields": [
-          "goal",
-          "fit"
-        ]
-      },
       {
         "kind": "command",
         "value": "hack/create-kind-cluster.sh",
@@ -5335,14 +5271,7 @@
       },
       {
         "kind": "command",
-        "value": "hack/install-ate-kind.sh --deploy-ate-system",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "kubectl ate create actor",
+        "value": "hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'",
         "fields": [
           "usage"
         ]
@@ -5351,7 +5280,7 @@
         "kind": "number",
         "value": "10x",
         "fields": [
-          "pros"
+          "goal"
         ]
       },
       {
@@ -5363,23 +5292,38 @@
       },
       {
         "kind": "number",
-        "value": "500 suspend/resume activations per second",
+        "value": "500",
         "fields": [
           "pros"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "pre-1.0",
+        "fields": [
+          "cons",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Kubernetes",
+        "fields": [
+          "goal",
+          "pros",
+          "fit"
         ]
       }
     ],
     "inference_fields": [
-      "goal",
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "agent-substrate/substrate",
       "path": "README.md",
-      "blob_sha": "3f6d4b021b95b6e9537ec00607629d50529c9788",
-      "content_sha256": "6ee6feecebd162d53c1c8095f493448380ac2a3c4bf99c7a702c60eaa375bff0",
+      "blob_sha": "6432c37fb308480a18e36a6c971a860ee0220219",
+      "content_sha256": "294e36bc4825dbd98ba61335167692cf84be6698635f459af483f9ea22ec3f5c",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.292",
@@ -6524,103 +6468,98 @@
   },
   "cursor/plugins": {
     "content": {
-      "goal": "Cursor plugins is a repository of official Cursor plugins for developer tools, frameworks, and SaaS products. Each plugin lives in its own standalone directory containing a `.cursor-plugin/plugin.json` manifest.",
-      "usage": "The repository is a multi-plugin marketplace: a root `.cursor-plugin/marketplace.json` manifest lists all plugins, and each plugin directory separately contains its own `.cursor-plugin/plugin.json`, optional `skills/`, `rules/`, and `mcp.json` files, plus README.md, CHANGELOG.md, and LICENSE.",
-      "pros": "The listed plugins span many categories, including Developer Tools, Productivity, and Integrations, covering tools such as GitHub, Google Workspace apps, Salesforce, and Playwright, which suggests a broad range of ready-made third-party integrations is available.",
-      "cons": "At least one entry, Salesforce (Headless 360, Beta), is explicitly labeled Beta, which cautiously suggests that plugin maturity and stability may vary across the collection rather than being uniform.",
-      "fit": "Given its MIT license and documented manifest structure, this repository likely fits developers already using Cursor who want to add pre-built integrations, though it does not document a single install or run command for the whole set."
+      "goal": "This repository (cursor/plugins) is a marketplace of official Cursor plugins that extend Cursor with integrations for developer tools, frameworks, and SaaS products such as GitHub, Google Workspace, and Salesforce, each plugin living in its own directory with its own manifest.",
+      "usage": "Each plugin folder contains a .cursor-plugin/plugin.json manifest, and the root .cursor-plugin/marketplace.json file lists every plugin for the marketplace; the README does not document separate install or run commands beyond this manifest-based structure.",
+      "pros": "The catalog spans over 90 plugins across categories like Developer Tools, Productivity, and Integrations, covering tools such as GitHub, Gmail, Salesforce, and Playwright; the standalone per-plugin directory structure keeps each plugin's skills, rules, and MCP server definitions self-contained; the project is released under the MIT license.",
+      "cons": "Since each plugin is defined through Cursor-specific .cursor-plugin manifests, using any plugin appears to presuppose having Cursor installed as the host product, something the README does not explicitly restate beyond calling these 'Official Cursor plugins'.",
+      "fit": "This repository seems best suited for Cursor users seeking ready-made integrations with third-party SaaS and developer tools, rather than for users of other editors or standalone automation needs."
     },
     "summaries": {
       "en": {
-        "goal": "Cursor plugins is a repository of official Cursor plugins for developer tools, frameworks, and SaaS products. Each plugin lives in its own standalone directory containing a `.cursor-plugin/plugin.json` manifest.",
-        "usage": "The repository is a multi-plugin marketplace: a root `.cursor-plugin/marketplace.json` manifest lists all plugins, and each plugin directory separately contains its own `.cursor-plugin/plugin.json`, optional `skills/`, `rules/`, and `mcp.json` files, plus README.md, CHANGELOG.md, and LICENSE.",
-        "pros": "The listed plugins span many categories, including Developer Tools, Productivity, and Integrations, covering tools such as GitHub, Google Workspace apps, Salesforce, and Playwright, which suggests a broad range of ready-made third-party integrations is available.",
-        "cons": "At least one entry, Salesforce (Headless 360, Beta), is explicitly labeled Beta, which cautiously suggests that plugin maturity and stability may vary across the collection rather than being uniform.",
-        "fit": "Given its MIT license and documented manifest structure, this repository likely fits developers already using Cursor who want to add pre-built integrations, though it does not document a single install or run command for the whole set."
+        "goal": "This repository (cursor/plugins) is a marketplace of official Cursor plugins that extend Cursor with integrations for developer tools, frameworks, and SaaS products such as GitHub, Google Workspace, and Salesforce, each plugin living in its own directory with its own manifest.",
+        "usage": "Each plugin folder contains a .cursor-plugin/plugin.json manifest, and the root .cursor-plugin/marketplace.json file lists every plugin for the marketplace; the README does not document separate install or run commands beyond this manifest-based structure.",
+        "pros": "The catalog spans over 90 plugins across categories like Developer Tools, Productivity, and Integrations, covering tools such as GitHub, Gmail, Salesforce, and Playwright; the standalone per-plugin directory structure keeps each plugin's skills, rules, and MCP server definitions self-contained; the project is released under the MIT license.",
+        "cons": "Since each plugin is defined through Cursor-specific .cursor-plugin manifests, using any plugin appears to presuppose having Cursor installed as the host product, something the README does not explicitly restate beyond calling these 'Official Cursor plugins'.",
+        "fit": "This repository seems best suited for Cursor users seeking ready-made integrations with third-party SaaS and developer tools, rather than for users of other editors or standalone automation needs."
       },
       "ko": {
-        "goal": "Cursor plugins는 개발자 도구, 프레임워크, SaaS 제품을 위한 공식 Cursor 플러그인 모음 저장소입니다. 각 플러그인은 자체 `.cursor-plugin/plugin.json` 매니페스트를 포함하는 독립된 디렉터리로 구성됩니다.",
-        "usage": "이 저장소는 다중 플러그인 마켓플레이스 구조로, 루트의 `.cursor-plugin/marketplace.json` 매니페스트가 모든 플러그인을 나열하고, 각 플러그인 디렉터리는 자체 `.cursor-plugin/plugin.json`과 선택적인 `skills/`, `rules/`, `mcp.json` 파일, 그리고 README.md, CHANGELOG.md, LICENSE를 포함합니다.",
-        "pros": "나열된 플러그인은 Developer Tools, Productivity, Integrations 등 다양한 범주에 걸쳐 있으며 GitHub, Google 워크스페이스 앱, Salesforce, Playwright 같은 도구를 포함하고 있어, 다양한 서드파티 통합이 사전에 준비되어 있을 가능성이 있습니다.",
-        "cons": "적어도 한 항목인 Salesforce (Headless 360, Beta)가 명시적으로 Beta로 표시되어 있어, 컬렉션 전반의 플러그인 성숙도와 안정성이 균일하지 않을 수 있음을 조심스럽게 시사합니다.",
-        "fit": "MIT 라이선스와 문서화된 매니페스트 구조를 고려할 때, 이 저장소는 Cursor를 이미 사용 중이며 사전 제작된 통합을 추가하려는 개발자에게 적합할 가능성이 있지만, 전체 모음에 대한 단일 설치나 실행 명령은 문서화되어 있지 않습니다."
+        "goal": "이 저장소(cursor/plugins)는 Cursor를 위한 공식 플러그인 마켓플레이스로, GitHub, Google Workspace, Salesforce 등 다양한 개발자 도구, 프레임워크, SaaS 제품과의 통합을 제공하며 각 플러그인은 자체 매니페스트를 가진 독립된 디렉터리로 구성됩니다.",
+        "usage": "각 플러그인 폴더에는 .cursor-plugin/plugin.json 매니페스트가 있고, 루트의 .cursor-plugin/marketplace.json 파일이 모든 플러그인을 마켓플레이스 목록으로 나열합니다. README에는 이 매니페스트 기반 구조 외에 별도의 설치나 실행 명령은 문서화되어 있지 않습니다.",
+        "pros": "GitHub, Gmail, Salesforce, Playwright 등 Developer Tools, Productivity, Integrations 범주에 걸친 90개 이상의 플러그인 카탈로그를 제공하며, 플러그인별 독립 디렉터리 구조는 skills, rules, MCP 서버 정의를 자체적으로 포함하도록 유지하고, MIT 라이선스로 배포됩니다.",
+        "cons": "각 플러그인이 Cursor 전용 .cursor-plugin 매니페스트로 정의되어 있어, 플러그인을 사용하려면 호스트 제품인 Cursor가 설치되어 있어야 하는 것으로 보이며, README는 이를 '공식 Cursor 플러그인'이라고 부르는 것 외에 명시적으로 재언급하지는 않습니다.",
+        "fit": "이 저장소는 다른 에디터 사용자나 독립형 자동화가 필요한 경우보다는, 서드파티 SaaS 및 개발자 도구와의 즉시 사용 가능한 통합을 원하는 Cursor 사용자에게 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "Cursor plugins 是一个官方 Cursor 插件仓库,面向开发者工具、框架和 SaaS 产品。每个插件都位于独立目录中,并包含自己的 `.cursor-plugin/plugin.json` 清单文件。",
-        "usage": "该仓库是一个多插件市场结构:根目录的 `.cursor-plugin/marketplace.json` 清单列出所有插件,而每个插件目录都单独包含自己的 `.cursor-plugin/plugin.json`,以及可选的 `skills/`、`rules/`、`mcp.json` 文件,还有 README.md、CHANGELOG.md 和 LICENSE。",
-        "pros": "列出的插件涵盖多个类别,包括 Developer Tools、Productivity 和 Integrations,涉及 GitHub、Google 办公套件应用、Salesforce 和 Playwright 等工具,这表明可能提供了较为广泛的现成第三方集成。",
-        "cons": "至少有一个条目 Salesforce (Headless 360, Beta) 被明确标记为 Beta,这谨慎地表明整个集合中插件的成熟度和稳定性可能并不一致。",
-        "fit": "考虑到 MIT 许可证和文档化的清单结构,该仓库可能适合已经在使用 Cursor 并希望添加预制集成的开发者,不过文档中并未给出针对整个插件集合的单一安装或运行命令。"
+        "goal": "该仓库(cursor/plugins)是 Cursor 的官方插件市场,提供与 GitHub、Google Workspace、Salesforce 等众多开发者工具、框架和 SaaS 产品的集成,每个插件都位于拥有自己清单文件的独立目录中。",
+        "usage": "每个插件目录都包含一个 .cursor-plugin/plugin.json 清单文件,根目录下的 .cursor-plugin/marketplace.json 文件列出所有插件以供市场使用;README 中除了这种基于清单的结构外,没有记录其他单独的安装或运行命令。",
+        "pros": "该目录涵盖 Developer Tools、Productivity、Integrations 等类别下超过 90 个插件,包括 GitHub、Gmail、Salesforce、Playwright 等工具;每个插件独立的目录结构使其 skills、rules 和 MCP 服务器定义保持自成一体;项目以 MIT 许可证发布。",
+        "cons": "由于每个插件都通过 Cursor 专用的 .cursor-plugin 清单定义,使用任何插件似乎都需要预先安装作为宿主产品的 Cursor,而 README 除了称这些为“官方 Cursor 插件”之外并未明确重申这一点。",
+        "fit": "该仓库似乎更适合希望获得与第三方 SaaS 和开发者工具的现成集成的 Cursor 用户,而不太适合其他编辑器用户或独立自动化需求。"
       },
       "es": {
-        "goal": "Cursor plugins es un repositorio de plugins oficiales de Cursor para herramientas de desarrollo, frameworks y productos SaaS. Cada plugin reside en su propio directorio independiente con un manifiesto `.cursor-plugin/plugin.json`.",
-        "usage": "El repositorio es un mercado multi-plugin: un manifiesto raíz `.cursor-plugin/marketplace.json` enumera todos los plugins, mientras que cada directorio de plugin contiene por separado su propio `.cursor-plugin/plugin.json`, archivos opcionales `skills/`, `rules/` y `mcp.json`, además de README.md, CHANGELOG.md y LICENSE.",
-        "pros": "Los plugins listados abarcan varias categorías, incluyendo Developer Tools, Productivity e Integrations, cubriendo herramientas como GitHub, aplicaciones de Google Workspace, Salesforce y Playwright, lo que sugiere una amplia disponibilidad de integraciones de terceros ya preparadas.",
-        "cons": "Al menos una entrada, Salesforce (Headless 360, Beta), está explícitamente marcada como Beta, lo que sugiere con cautela que la madurez y estabilidad de los plugins puede variar dentro de la colección en lugar de ser uniforme.",
-        "fit": "Dada su licencia MIT y su estructura de manifiesto documentada, este repositorio probablemente resulte adecuado para desarrolladores que ya usan Cursor y desean añadir integraciones preconstruidas, aunque no documenta un único comando de instalación o ejecución para todo el conjunto."
+        "goal": "Este repositorio (cursor/plugins) es un mercado de complementos oficiales para Cursor que ofrece integraciones con numerosas herramientas de desarrollo, frameworks y productos SaaS como GitHub, Google Workspace y Salesforce, donde cada complemento reside en su propio directorio con su propio manifiesto.",
+        "usage": "Cada carpeta de complemento contiene un manifiesto .cursor-plugin/plugin.json, y el archivo raíz .cursor-plugin/marketplace.json enumera todos los complementos del mercado; el README no documenta comandos de instalación o ejecución separados más allá de esta estructura basada en manifiestos.",
+        "pros": "El catálogo abarca más de 90 complementos en categorías como Developer Tools, Productivity e Integrations, incluyendo herramientas como GitHub, Gmail, Salesforce y Playwright; la estructura de directorio independiente por complemento mantiene sus skills, rules y definiciones de servidor MCP autocontenidas; el proyecto se publica bajo licencia MIT.",
+        "cons": "Dado que cada complemento se define mediante manifiestos .cursor-plugin específicos de Cursor, usar cualquier complemento parece presuponer tener instalado Cursor como producto anfitrión, algo que el README no reitera explícitamente más allá de llamarlos 'complementos oficiales de Cursor'.",
+        "fit": "Este repositorio parece más adecuado para usuarios de Cursor que buscan integraciones listas para usar con herramientas SaaS y de desarrollo de terceros, más que para usuarios de otros editores o necesidades de automatización independiente."
       },
       "ja": {
-        "goal": "Cursor plugins は、開発者向けツール、フレームワーク、SaaS 製品向けの公式 Cursor プラグインをまとめたリポジトリです。各プラグインは独立したディレクトリに配置され、独自の `.cursor-plugin/plugin.json` マニフェストを持ちます。",
-        "usage": "このリポジトリはマルチプラグイン型のマーケットプレイス構造を取っており、ルートの `.cursor-plugin/marketplace.json` マニフェストがすべてのプラグインを列挙し、各プラグインディレクトリはそれぞれ独自の `.cursor-plugin/plugin.json`、任意の `skills/`、`rules/`、`mcp.json` ファイル、さらに README.md、CHANGELOG.md、LICENSE を含みます。",
-        "pros": "一覧にあるプラグインは Developer Tools、Productivity、Integrations など多くのカテゴリにまたがり、GitHub、Google Workspace 系アプリ、Salesforce、Playwright などのツールを含んでいるため、すぐに使えるサードパーティ統合が幅広く用意されている可能性があります。",
-        "cons": "少なくとも Salesforce (Headless 360, Beta) という項目は明示的に Beta と記載されており、このコレクション内のプラグインの成熟度や安定性が一様ではない可能性があることを慎重に示唆しています。",
-        "fit": "MIT ライセンスとドキュメント化されたマニフェスト構造を踏まえると、このリポジトリは Cursor をすでに利用しており既製の統合を追加したい開発者に適している可能性がありますが、全体をまとめてインストールまたは実行するための単一のコマンドは文書化されていません。"
+        "goal": "このリポジトリ(cursor/plugins)は、Cursor向けの公式プラグインマーケットプレイスであり、GitHub、Google Workspace、Salesforceなど多数の開発者ツール、フレームワーク、SaaS製品との統合を提供し、各プラグインは独自のマニフェストを持つ独立したディレクトリに配置されています。",
+        "usage": "各プラグインのディレクトリには.cursor-plugin/plugin.jsonマニフェストが含まれ、ルートの.cursor-plugin/marketplace.jsonファイルがマーケットプレイス向けに全プラグインを一覧化します。READMEには、このマニフェストベースの構造以外の個別のインストールや実行コマンドは記載されていません。",
+        "pros": "カタログにはDeveloper Tools、Productivity、Integrationsなどのカテゴリにわたり90以上のプラグインが含まれ、GitHub、Gmail、Salesforce、Playwrightなどのツールを網羅しています。プラグインごとの独立したディレクトリ構造により、skills、rules、MCPサーバー定義が自己完結的に保たれ、プロジェクトはMITライセンスで公開されています。",
+        "cons": "各プラグインはCursor専用の.cursor-pluginマニフェストで定義されているため、プラグインを使用するにはホスト製品であるCursorがインストールされていることが前提になると思われますが、READMEは「公式Cursorプラグイン」と呼ぶ以外にこの点を明示的には再確認していません。",
+        "fit": "このリポジトリは、他のエディタの利用者や独立したオートメーションを求めるユーザーよりも、サードパーティのSaaSや開発者ツールとの既製の統合を求めるCursorユーザーに適していると考えられます。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 1,
-          "end_line": 3,
+          "end_line": 4,
           "section_heading": "Cursor plugins"
+        },
+        {
+          "start_line": 9,
+          "end_line": 101,
+          "section_heading": "Plugins"
         }
       ],
       "usage": [
         {
-          "start_line": 105,
-          "end_line": 110,
-          "section_heading": "Repository structure"
-        },
-        {
-          "start_line": 111,
-          "end_line": 121,
+          "start_line": 104,
+          "end_line": 122,
           "section_heading": "Repository structure"
         }
       ],
       "pros": [
         {
           "start_line": 9,
-          "end_line": 25,
+          "end_line": 101,
           "section_heading": "Plugins"
         },
         {
-          "start_line": 26,
-          "end_line": 41,
-          "section_heading": "Plugins"
-        },
-        {
-          "start_line": 80,
-          "end_line": 100,
-          "section_heading": "Plugins"
+          "start_line": 124,
+          "end_line": 126,
+          "section_heading": "License"
         }
       ],
       "cons": [
         {
-          "start_line": 34,
-          "end_line": 34,
-          "section_heading": "Plugins"
+          "start_line": 1,
+          "end_line": 4,
+          "section_heading": "Cursor plugins"
         }
       ],
       "fit": [
         {
-          "start_line": 3,
-          "end_line": 3,
+          "start_line": 1,
+          "end_line": 4,
           "section_heading": "Cursor plugins"
         },
         {
-          "start_line": 123,
-          "end_line": 125,
-          "section_heading": "License"
+          "start_line": 9,
+          "end_line": 101,
+          "section_heading": "Plugins"
         }
       ]
     },
@@ -6631,41 +6570,12 @@
         "fields": [
           "goal",
           "usage",
+          "cons",
           "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "MIT",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Salesforce (Headless 360, Beta)",
-        "fields": [
-          "cons"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": ".cursor-plugin/marketplace.json",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": ".cursor-plugin/plugin.json",
-        "fields": [
-          "goal",
-          "usage"
         ]
       }
     ],
     "inference_fields": [
-      "pros",
       "cons",
       "fit"
     ],
@@ -6673,8 +6583,8 @@
       "kind": "readme",
       "slug": "cursor/plugins",
       "path": "README.md",
-      "blob_sha": "c04e06cb4db3f881e6157865a33fe436f23baeca",
-      "content_sha256": "ad85dfaed243bb94319283f88fceae0eaf431918132e87e45fe9f58a2d6035f6",
+      "blob_sha": "61eca8bafea41374c1c7a1c33e032e49690e0556",
+      "content_sha256": "eb6be2e7bccf8bd2cc7ee77c26993d879e256572f5ae4e3bc6a90bc2e7a5bcb5",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.292",
@@ -6688,84 +6598,94 @@
   },
   "rohitg00/ai-engineering-from-scratch": {
     "content": {
-      "goal": "ai-engineering-from-scratch is a free, MIT-licensed curriculum of 528 lessons across 20 phases teaching AI engineering fundamentals—model internals, retrieval pipelines, and agent runtimes—using Python, TypeScript, Rust, and Julia.",
-      "usage": "Lessons can be read on the website, studied via a coding-agent tutor installed with `npx skills add rohitg00/ai-engineering-from-scratch`, or run locally by cloning the repository and executing `python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route beginner`.",
-      "pros": "Each lesson pairs with hands-on code you implement yourself, and the repo ships three staged projects with local graders and reference solutions. The full curriculum is also compiled into a six-volume EPUB/PDF book series.",
-      "cons": "The AI-tutor workflow requires Node.js, `npx`, `python3`, and a supported coding-agent host with a writable skills scope installed beforehand; the README notes that real-host discovery, invocation, and uninstall evidence for that path \"remains pending until the preflight is available.\"",
-      "fit": "It suits learners who want a structured, code-first path from math foundations through LLMs and agent engineering to production infrastructure, with estimated study times ranging from roughly 60 to over 300 hours depending on starting background."
+      "goal": "The project is a free, MIT-licensed curriculum for implementing AI model internals, retrieval pipelines, and agent runtimes. It is organized into 542 lessons across 20 phases, with code in Python, TypeScript, Rust, and Julia.",
+      "usage": "Two main paths are documented: cloning the repository and running `git clone https://github.com/rohitg00/ai-engineering-from-scratch.git` followed by `python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route beginner`, or installing it as a coding-agent skill with `npx skills add rohitg00/ai-engineering-from-scratch` and invoking `start-learning` in the chosen host.",
+      "pros": "It is free and open source, and every lesson is documented to produce a reusable artifact (a prompt, skill, agent, or MCP server) rather than ending at a concept. The curriculum spans a broad range, from math foundations to production infrastructure and multi-agent systems.",
+      "cons": "The AI-tutor/skills workflow depends on having Node.js, npx, python3, and a compatible coding-agent host; the README notes that without these, real-host discovery, invocation, and uninstall evidence 'remains pending,' which suggests the skill-based path may be less reliable to verify outside a supported agent environment.",
+      "fit": "Given the prerequisite that users should already be able to write code and want to understand AI internals rather than just call APIs, this seems best suited to learners with some programming background. Estimated study time ranges from about 306 hours for complete beginners to roughly 60 hours for engineers focused only on agent engineering, implying it fits those able to commit significant time."
     },
     "summaries": {
       "en": {
-        "goal": "ai-engineering-from-scratch is a free, MIT-licensed curriculum of 528 lessons across 20 phases teaching AI engineering fundamentals—model internals, retrieval pipelines, and agent runtimes—using Python, TypeScript, Rust, and Julia.",
-        "usage": "Lessons can be read on the website, studied via a coding-agent tutor installed with `npx skills add rohitg00/ai-engineering-from-scratch`, or run locally by cloning the repository and executing `python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route beginner`.",
-        "pros": "Each lesson pairs with hands-on code you implement yourself, and the repo ships three staged projects with local graders and reference solutions. The full curriculum is also compiled into a six-volume EPUB/PDF book series.",
-        "cons": "The AI-tutor workflow requires Node.js, `npx`, `python3`, and a supported coding-agent host with a writable skills scope installed beforehand; the README notes that real-host discovery, invocation, and uninstall evidence for that path \"remains pending until the preflight is available.\"",
-        "fit": "It suits learners who want a structured, code-first path from math foundations through LLMs and agent engineering to production infrastructure, with estimated study times ranging from roughly 60 to over 300 hours depending on starting background."
+        "goal": "The project is a free, MIT-licensed curriculum for implementing AI model internals, retrieval pipelines, and agent runtimes. It is organized into 542 lessons across 20 phases, with code in Python, TypeScript, Rust, and Julia.",
+        "usage": "Two main paths are documented: cloning the repository and running `git clone https://github.com/rohitg00/ai-engineering-from-scratch.git` followed by `python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route beginner`, or installing it as a coding-agent skill with `npx skills add rohitg00/ai-engineering-from-scratch` and invoking `start-learning` in the chosen host.",
+        "pros": "It is free and open source, and every lesson is documented to produce a reusable artifact (a prompt, skill, agent, or MCP server) rather than ending at a concept. The curriculum spans a broad range, from math foundations to production infrastructure and multi-agent systems.",
+        "cons": "The AI-tutor/skills workflow depends on having Node.js, npx, python3, and a compatible coding-agent host; the README notes that without these, real-host discovery, invocation, and uninstall evidence 'remains pending,' which suggests the skill-based path may be less reliable to verify outside a supported agent environment.",
+        "fit": "Given the prerequisite that users should already be able to write code and want to understand AI internals rather than just call APIs, this seems best suited to learners with some programming background. Estimated study time ranges from about 306 hours for complete beginners to roughly 60 hours for engineers focused only on agent engineering, implying it fits those able to commit significant time."
       },
       "ko": {
-        "goal": "ai-engineering-from-scratch는 528개의 레슨과 20개의 단계로 구성된 무료 MIT 라이선스 커리큘럼으로, 모델 내부 구조, 검색 파이프라인, 에이전트 런타임을 Python, TypeScript, Rust, Julia로 다룹니다.",
-        "usage": "웹사이트에서 레슨을 읽거나, `npx skills add rohitg00/ai-engineering-from-scratch`로 코딩 에이전트 튜터를 설치하거나, 저장소를 클론한 뒤 `python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route beginner`를 실행해 로컬에서 학습할 수 있습니다.",
-        "pros": "각 레슨은 직접 작성하는 코드와 함께 제공되며, 로컬 채점기와 참조 구현이 있는 세 개의 단계별 프로젝트가 포함되어 있습니다. 전체 커리큘럼은 6권 분량의 EPUB/PDF 도서 시리즈로도 제공됩니다.",
-        "cons": "AI 튜터 워크플로는 사전에 Node.js, `npx`, `python3`, 쓰기 가능한 스킬 범위를 가진 지원 호스트가 설치되어 있어야 하며, README는 해당 경로의 실제 호스트 탐색·호출·제거 증거가 '프리플라이트가 제공될 때까지 보류 상태로 남아 있다'고 명시합니다.",
-        "fit": "수학 기초부터 LLM, 에이전트 엔지니어링, 프로덕션 인프라까지 체계적인 코드 중심 학습 경로를 원하는 학습자에게 적합하며, 시작 배경에 따라 대략 60시간에서 300시간 이상의 예상 학습 시간이 제시됩니다."
+        "goal": "이 프로젝트는 AI 모델 내부 구조, 검색 파이프라인, 에이전트 런타임을 직접 구현해보는 무료 MIT 라이선스 커리큘럼입니다. 20개 단계에 걸쳐 542개의 레슨으로 구성되어 있으며 Python, TypeScript, Rust, Julia 코드를 포함합니다.",
+        "usage": "문서에는 두 가지 주요 방법이 나와 있습니다. 저장소를 클론한 뒤 `git clone https://github.com/rohitg00/ai-engineering-from-scratch.git`와 `python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route beginner`를 실행하는 방법, 또는 `npx skills add rohitg00/ai-engineering-from-scratch`로 코딩 에이전트 스킬로 설치한 뒤 선택한 호스트에서 `start-learning`을 호출하는 방법입니다.",
+        "pros": "무료이며 오픈소스이고, 문서에 따르면 각 레슨이 프롬프트, 스킬, 에이전트, MCP 서버 같은 재사용 가능한 결과물을 만들어낸다고 설명되어 있어 단순 개념 학습에 그치지 않습니다. 수학 기초부터 프로덕션 인프라와 멀티에이전트 시스템까지 폭넓은 범위를 다룹니다.",
+        "cons": "AI 튜터/스킬 워크플로는 Node.js, npx, python3, 호환 가능한 코딩 에이전트 호스트가 필요합니다. README에 따르면 이러한 요소가 없을 경우 실제 호스트에서의 검색, 호출, 제거 증거가 '보류 상태로 남는다'고 명시되어 있어, 지원되는 에이전트 환경 밖에서는 스킬 기반 경로의 검증이 다소 불확실할 수 있어 보입니다.",
+        "fit": "이미 코드를 작성할 수 있고 단순히 API를 호출하는 것이 아니라 AI 내부 동작을 이해하고 싶은 사용자를 전제로 하므로, 어느 정도 프로그래밍 경험이 있는 학습자에게 적합한 것으로 보입니다. 예상 학습 시간은 완전 초보자의 경우 약 306시간, 에이전트 엔지니어링만 다루는 숙련 엔지니어의 경우 약 60시간으로, 상당한 시간을 투자할 수 있는 사람에게 맞을 것으로 추정됩니다."
       },
       "zh-CN": {
-        "goal": "ai-engineering-from-scratch 是一套免费、MIT 许可的课程,包含 528 节课程和 20 个阶段,使用 Python、TypeScript、Rust 和 Julia 讲解模型内部原理、检索管道和智能体运行时。",
-        "usage": "可以在网站上阅读课程,或通过 `npx skills add rohitg00/ai-engineering-from-scratch` 安装编码代理导师,或克隆仓库后运行 `python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route beginner` 在本地学习。",
-        "pros": "每节课都配有需要亲自编写的代码,并提供三个带本地评分器和参考实现的分阶段项目。整个课程内容还被编译为六卷 EPUB/PDF 系列图书。",
-        "cons": "AI 导师工作流需要预先安装 Node.js、`npx`、`python3` 以及具有可写技能作用域的受支持宿主;README 说明该路径的真实宿主发现、调用与卸载证据“在预检可用之前仍处于待定状态”。",
-        "fit": "适合希望从数学基础到大语言模型、智能体工程再到生产基础设施,获得结构化、以代码为中心学习路径的学习者,预计学习时间视起点不同大约在 60 小时到 300 多小时之间。"
+        "goal": "该项目是一套免费、采用 MIT 许可的课程,用于实现 AI 模型内部机制、检索管道和智能体运行时。课程分为 20 个阶段共 542 节课,代码涵盖 Python、TypeScript、Rust 和 Julia。",
+        "usage": "文档记录了两种主要方式:克隆仓库后依次运行 `git clone https://github.com/rohitg00/ai-engineering-from-scratch.git` 和 `python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route beginner`;或者通过 `npx skills add rohitg00/ai-engineering-from-scratch` 将其安装为编码代理技能,并在所选主机中调用 `start-learning`。",
+        "pros": "该项目免费且开源,文档说明每节课都会产出可复用的成果(提示词、技能、代理或 MCP 服务器),而不仅停留在概念层面。课程覆盖范围广,从数学基础一直延伸到生产环境基础设施与多智能体系统。",
+        "cons": "AI 导师/技能工作流依赖 Node.js、npx、python3 以及兼容的编码代理主机;README 指出,若缺少这些条件,真实主机上的发现、调用和卸载验证证据“仍处于待定状态”,这似乎意味着在不受支持的代理环境之外,基于技能的安装路径可能较难验证其可靠性。",
+        "fit": "由于前提是用户已具备编写代码的能力,并希望理解 AI 的内部原理而非仅调用 API,该课程似乎更适合有一定编程基础的学习者。预计学习时间从完全新手约 306 小时到仅关注智能体工程的资深工程师约 60 小时不等,这表明它更适合能够投入较多时间的学习者。"
       },
       "es": {
-        "goal": "ai-engineering-from-scratch es un currículo gratuito con licencia MIT de 528 lecciones en 20 fases que enseña los fundamentos de la ingeniería de IA—internals de modelos, pipelines de recuperación y runtimes de agentes—usando Python, TypeScript, Rust y Julia.",
-        "usage": "Las lecciones se pueden leer en el sitio web, instalar un tutor de agente de código con `npx skills add rohitg00/ai-engineering-from-scratch`, o ejecutarlas localmente clonando el repositorio y corriendo `python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route beginner`.",
-        "pros": "Cada lección se acompaña de código práctico que el usuario implementa, y el repositorio incluye tres proyectos por etapas con calificadores locales e implementaciones de referencia. El contenido también se compila en una serie de libros en seis volúmenes EPUB/PDF.",
-        "cons": "El flujo de tutor con IA requiere tener instalados previamente Node.js, `npx`, `python3` y un host compatible con un ámbito de skills escribible; el README indica que la evidencia de descubrimiento, invocación y desinstalación en un host real para esa ruta \"permanece pendiente hasta que el preflight esté disponible\".",
-        "fit": "Resulta adecuado para quienes buscan una ruta de aprendizaje estructurada y centrada en código, desde fundamentos matemáticos hasta LLMs, ingeniería de agentes e infraestructura de producción, con tiempos estimados que van de aproximadamente 60 a más de 300 horas según el punto de partida."
+        "goal": "El proyecto es un plan de estudios gratuito con licencia MIT para implementar los mecanismos internos de modelos de IA, pipelines de recuperación y entornos de ejecución de agentes. Está organizado en 542 lecciones repartidas en 20 fases, con código en Python, TypeScript, Rust y Julia.",
+        "usage": "Se documentan dos vías principales: clonar el repositorio y ejecutar `git clone https://github.com/rohitg00/ai-engineering-from-scratch.git` seguido de `python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route beginner`, o instalarlo como habilidad de agente de código con `npx skills add rohitg00/ai-engineering-from-scratch` e invocar `start-learning` en el host elegido.",
+        "pros": "Es gratuito y de código abierto, y según la documentación cada lección produce un artefacto reutilizable (un prompt, una skill, un agente o un servidor MCP) en lugar de quedarse solo en la teoría. El temario abarca un rango amplio, desde fundamentos matemáticos hasta infraestructura de producción y sistemas multiagente.",
+        "cons": "El flujo de tutor de IA/skills depende de tener Node.js, npx, python3 y un host de agente de código compatible; el README indica que, sin esto, la evidencia de descubrimiento, invocación y desinstalación en un host real 'queda pendiente', lo que sugiere que la vía basada en skills podría ser más difícil de verificar fuera de un entorno de agente compatible.",
+        "fit": "Dado que se presupone que el usuario ya sabe programar y busca entender el funcionamiento interno de la IA en lugar de solo llamar a APIs, parece más adecuado para quienes tienen cierta base de programación. El tiempo de estudio estimado va desde unas 306 horas para principiantes totales hasta unas 60 horas para ingenieros centrados solo en la ingeniería de agentes, lo que indica que conviene a quienes pueden dedicar un tiempo considerable."
       },
       "ja": {
-        "goal": "ai-engineering-from-scratch は528レッスン・20フェーズからなる無料のMITライセンスカリキュラムで、Python、TypeScript、Rust、Juliaを用いてモデル内部構造、検索パイプライン、エージェントランタイムを扱います。",
-        "usage": "レッスンはウェブサイトで読めるほか、`npx skills add rohitg00/ai-engineering-from-scratch` でコーディングエージェント向けチューターを導入するか、リポジトリをクローンして `python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route beginner` を実行しローカルで学習できます。",
-        "pros": "各レッスンには自分で書くコードが付属し、ローカル採点機能とリファレンス実装を備えた3つの段階的プロジェクトが用意されています。内容は6巻構成のEPUB/PDF書籍シリーズにもまとめられています。",
-        "cons": "AIチューターのワークフローには事前にNode.js、`npx`、`python3`、書き込み可能なスキルスコープを持つ対応ホストが必要で、READMEはそのパスの実ホストでの発見・呼び出し・アンインストールの証跡が「プリフライトが利用可能になるまで保留のまま」であると記載しています。",
-        "fit": "数学の基礎からLLM、エージェントエンジニアリング、本番インフラまで、構造化されたコード中心の学習経路を求める学習者に適しており、開始時点の背景によりおおよそ60時間から300時間以上の推定学習時間が示されています。"
+        "goal": "このプロジェクトは、AIモデルの内部構造、検索パイプライン、エージェントランタイムを実装するための無料・MITライセンスのカリキュラムです。20フェーズにわたる542レッスンで構成され、Python、TypeScript、Rust、Juliaのコードを含みます。",
+        "usage": "ドキュメントには2つの主な方法が記載されています。リポジトリをクローンして `git clone https://github.com/rohitg00/ai-engineering-from-scratch.git` と `python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route beginner` を実行する方法、または `npx skills add rohitg00/ai-engineering-from-scratch` でコーディングエージェントのスキルとしてインストールし、選択したホストで `start-learning` を呼び出す方法です。",
+        "pros": "無料かつオープンソースであり、ドキュメントによれば各レッスンは概念の学習だけで終わらず、プロンプト、スキル、エージェント、MCPサーバーといった再利用可能な成果物を生み出すとされています。数学の基礎から本番インフラやマルチエージェントシステムまで幅広い範囲をカバーしています。",
+        "cons": "AIチューター/スキルのワークフローは、Node.js、npx、python3、互換性のあるコーディングエージェントホストが必要です。README では、これらがない場合、実際のホストでの発見・呼び出し・アンインストールの検証は「保留のまま」になると記されており、対応エージェント環境の外ではスキルベースの導入方法の信頼性を確認しづらい可能性があることを示唆しているようです。",
+        "fit": "ユーザーが既にコードを書けること、そして単にAPIを呼ぶだけでなくAIの内部動作を理解したいという前提があるため、ある程度のプログラミング経験を持つ学習者に向いていると考えられます。想定学習時間は、完全な初心者で約306時間、エージェントエンジニアリングのみに焦点を当てた経験豊富なエンジニアで約60時間とされており、相応の時間を確保できる人に適していると推測されます。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 8,
-          "end_line": 14,
+          "end_line": 8,
           "section_heading": ""
         },
         {
-          "start_line": 357,
-          "end_line": 361,
-          "section_heading": "The shape of the curriculum"
+          "start_line": 12,
+          "end_line": 12,
+          "section_heading": ""
+        },
+        {
+          "start_line": 14,
+          "end_line": 14,
+          "section_heading": ""
         }
       ],
       "usage": [
         {
-          "start_line": 198,
+          "start_line": 197,
           "end_line": 199,
           "section_heading": "With an AI tutor"
         },
         {
-          "start_line": 274,
-          "end_line": 277,
+          "start_line": 201,
+          "end_line": 201,
+          "section_heading": "With an AI tutor"
+        },
+        {
+          "start_line": 275,
+          "end_line": 278,
           "section_heading": "Run local code"
         }
       ],
       "pros": [
         {
-          "start_line": 117,
-          "end_line": 117,
-          "section_heading": "Projects"
+          "start_line": 1218,
+          "end_line": 1218,
+          "section_heading": "The toolkit"
         },
         {
-          "start_line": 1131,
-          "end_line": 1131,
-          "section_heading": "Books and certifications"
+          "start_line": 1251,
+          "end_line": 1252,
+          "section_heading": "Every lesson ships something"
         }
       ],
       "cons": [
@@ -6782,12 +6702,12 @@
       ],
       "fit": [
         {
-          "start_line": 307,
-          "end_line": 309,
-          "section_heading": "Choose a learning path"
+          "start_line": 342,
+          "end_line": 343,
+          "section_heading": "Prerequisites"
         },
         {
-          "start_line": 345,
+          "start_line": 349,
           "end_line": 353,
           "section_heading": "Where to start"
         }
@@ -6795,17 +6715,10 @@
     },
     "invariants": [
       {
-        "kind": "number",
-        "value": "528",
+        "kind": "command",
+        "value": "git clone https://github.com/rohitg00/ai-engineering-from-scratch.git",
         "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "20",
-        "fields": [
-          "goal"
+          "usage"
         ]
       },
       {
@@ -6823,11 +6736,17 @@
         ]
       },
       {
-        "kind": "product",
-        "value": "ai-engineering-from-scratch",
+        "kind": "number",
+        "value": "542",
         "fields": [
-          "goal",
-          "usage"
+          "goal"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "20",
+        "fields": [
+          "goal"
         ]
       }
     ],
@@ -6839,8 +6758,8 @@
       "kind": "readme",
       "slug": "rohitg00/ai-engineering-from-scratch",
       "path": "README.md",
-      "blob_sha": "25b0f54b063ded426e34b556536668e9b6201d44",
-      "content_sha256": "4293e9838a5146e6e9cd6b3a986f19c7188a05c63c26c420ceba735c6ca02c68",
+      "blob_sha": "692fa612b4194487a99658d5d97481489ada2994",
+      "content_sha256": "63d031ab9a9fc1e3428b586e742e29829f661eb73054cf807b20f6ab6d6007b8",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.292",
@@ -7088,66 +7007,66 @@
   },
   "Gaurav-Gosain/tuios": {
     "content": {
-      "goal": "TUIOS is a terminal multiplexer and window manager built in Go, combining a vim-like modal interface with multiple terminal panes, workspaces, BSP tiling, and kitty graphics protocol support. A daemon keeps sessions alive, reaches sessions on other machines, and lets coding agents running in panes report their state and message each other.",
-      "usage": "Install via `brew install tuios` or `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest`. The `tuios` command then launches the application and attaches to a daemon-backed session that persists after the terminal window closes.",
-      "pros": "TUIOS is built on the Charm stack (Bubble Tea v2 and Lipgloss v2), providing event-driven rendering for near-zero idle CPU usage and flicker-free kitty image passthrough. It includes 9 independently switchable workspaces, a fuzzy-searchable command palette, and terminal panes that can be created, resized, and dragged.",
-      "cons": "Sixel graphics passthrough is documented as experimental, without pixel-level clipping yet, and the kitty text-sizing protocol (OSC 66) is likewise experimental, with known issues around scrollback and window repositioning, indicating some graphics capabilities are not yet fully stable.",
-      "fit": "TUIOS's emphasis on persistent daemon sessions, attaching to sessions on other machines, and built-in tracking of coding-agent state and inter-agent messaging suggests it may be best suited for developers running several terminal-based coding agents or remote sessions who want them coordinated within one terminal window manager."
+      "goal": "TUIOS (Terminal UI Operating System) is described as a modern terminal multiplexer and window manager built in Go, offering a vim-like modal interface, multiple terminal panes, workspaces, BSP tiling, and kitty graphics protocol support, with a daemon that keeps sessions alive and lets coding agents running in panes report their state and message each other.",
+      "usage": "The README documents installing it via `brew install tuios` or `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest`, then launching the terminal UI by running `tuios`.",
+      "pros": "It is built on the Charm stack (Bubble Tea v2, Lipgloss v2) and documented with event-driven rendering intended for near-zero idle CPU usage and flicker-free kitty image passthrough, along with BSP tiling and agent-state visibility across panes.",
+      "cons": "Building from source reportedly requires Go 1.26.6 or newer, and a true-color-capable terminal is stated as a requirement, with kitty graphics/sixel support only recommended rather than guaranteed; sixel passthrough is also marked experimental without pixel-level clipping yet.",
+      "fit": "Based on the description, tuios appears suited to terminal/CLI users wanting a tmux-like multiplexer combined with window-manager features and visibility into coding-agent activity, though actual fit likely depends on terminal capabilities and Go toolchain availability."
     },
     "summaries": {
       "en": {
-        "goal": "TUIOS is a terminal multiplexer and window manager built in Go, combining a vim-like modal interface with multiple terminal panes, workspaces, BSP tiling, and kitty graphics protocol support. A daemon keeps sessions alive, reaches sessions on other machines, and lets coding agents running in panes report their state and message each other.",
-        "usage": "Install via `brew install tuios` or `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest`. The `tuios` command then launches the application and attaches to a daemon-backed session that persists after the terminal window closes.",
-        "pros": "TUIOS is built on the Charm stack (Bubble Tea v2 and Lipgloss v2), providing event-driven rendering for near-zero idle CPU usage and flicker-free kitty image passthrough. It includes 9 independently switchable workspaces, a fuzzy-searchable command palette, and terminal panes that can be created, resized, and dragged.",
-        "cons": "Sixel graphics passthrough is documented as experimental, without pixel-level clipping yet, and the kitty text-sizing protocol (OSC 66) is likewise experimental, with known issues around scrollback and window repositioning, indicating some graphics capabilities are not yet fully stable.",
-        "fit": "TUIOS's emphasis on persistent daemon sessions, attaching to sessions on other machines, and built-in tracking of coding-agent state and inter-agent messaging suggests it may be best suited for developers running several terminal-based coding agents or remote sessions who want them coordinated within one terminal window manager."
+        "goal": "TUIOS (Terminal UI Operating System) is described as a modern terminal multiplexer and window manager built in Go, offering a vim-like modal interface, multiple terminal panes, workspaces, BSP tiling, and kitty graphics protocol support, with a daemon that keeps sessions alive and lets coding agents running in panes report their state and message each other.",
+        "usage": "The README documents installing it via `brew install tuios` or `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest`, then launching the terminal UI by running `tuios`.",
+        "pros": "It is built on the Charm stack (Bubble Tea v2, Lipgloss v2) and documented with event-driven rendering intended for near-zero idle CPU usage and flicker-free kitty image passthrough, along with BSP tiling and agent-state visibility across panes.",
+        "cons": "Building from source reportedly requires Go 1.26.6 or newer, and a true-color-capable terminal is stated as a requirement, with kitty graphics/sixel support only recommended rather than guaranteed; sixel passthrough is also marked experimental without pixel-level clipping yet.",
+        "fit": "Based on the description, tuios appears suited to terminal/CLI users wanting a tmux-like multiplexer combined with window-manager features and visibility into coding-agent activity, though actual fit likely depends on terminal capabilities and Go toolchain availability."
       },
       "ko": {
-        "goal": "TUIOS는 Go로 제작된 터미널 멀티플렉서 겸 창 관리자로, vim과 유사한 모달 인터페이스와 다중 터미널 패널, 작업공간, BSP 타일링, kitty 그래픽 프로토콜 지원을 결합합니다. 데몬이 세션을 유지하고 다른 머신의 세션에 접속하며, 패널에서 실행되는 코딩 에이전트들이 상태를 보고하고 서로 메시지를 주고받을 수 있게 합니다.",
-        "usage": "`brew install tuios` 또는 `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest` 명령으로 설치할 수 있습니다. 이후 `tuios` 명령을 실행하면 애플리케이션이 시작되며, 터미널 창을 닫아도 유지되는 데몬 기반 세션에 연결됩니다.",
-        "pros": "TUIOS는 Charm 스택(Bubble Tea v2, Lipgloss v2) 위에 구축되어, 유휴 시 CPU 사용량이 거의 0에 가까운 이벤트 기반 렌더링과 깜빡임 없는 kitty 이미지 패스스루를 제공합니다. 또한 9개의 독립적인 작업공간, 퍼지 검색이 가능한 커맨드 팔레트, 생성·크기 조정·드래그가 가능한 터미널 패널을 포함합니다.",
-        "cons": "Sixel 그래픽 패스스루는 아직 실험적이며 픽셀 단위 클리핑을 지원하지 않는다고 문서화되어 있고, kitty 텍스트 크기 조절 프로토콜(OSC 66) 역시 실험적 기능으로 스크롤백과 창 재배치 관련 알려진 문제가 있어, 일부 그래픽 기능이 아직 완전히 안정적이지 않음을 시사합니다.",
-        "fit": "데몬 기반의 지속 세션, 다른 머신 세션 접속, 코딩 에이전트 상태 추적 및 상호 메시징 기능에 중점을 둔 점을 볼 때, TUIOS는 여러 터미널 기반 코딩 에이전트나 원격 세션을 하나의 터미널 창 관리자 안에서 조율하고자 하는 개발자에게 적합할 수 있을 것으로 보입니다."
+        "goal": "TUIOS(Terminal UI Operating System)는 Go로 작성된 터미널 멀티플렉서 및 윈도우 매니저로 소개되며, vim 스타일의 모달 인터페이스, 다중 터미널 패널, 작업공간, BSP 타일링, kitty 그래픽 프로토콜 지원을 제공하고, 세션을 유지하며 패널 안의 코딩 에이전트가 상태를 보고하고 서로 메시지를 주고받을 수 있게 하는 데몬을 갖추고 있다고 문서화되어 있습니다.",
+        "usage": "README에는 `brew install tuios` 또는 `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest` 명령으로 설치한 뒤 `tuios` 명령으로 터미널 UI를 실행하는 방법이 설명되어 있습니다.",
+        "pros": "Charm 스택(Bubble Tea v2, Lipgloss v2) 위에 구축되었으며, 유휴 상태에서 CPU 사용량을 거의 0에 가깝게 유지하도록 설계된 이벤트 기반 렌더링과 깜빡임 없는 kitty 이미지 패스스루, 그리고 BSP 타일링과 패널 간 에이전트 상태 가시성 기능이 문서화되어 있습니다.",
+        "cons": "소스에서 빌드하려면 Go 1.26.6 이상이 필요하다고 명시되어 있으며, 트루컬러를 지원하는 터미널이 요구 사항으로 언급되고, kitty 그래픽/sixel 지원은 보장이 아닌 권장 사항으로만 표시되어 있습니다. 또한 sixel 패스스루는 아직 픽셀 단위 클리핑이 없는 실험적 기능으로 표시되어 있습니다.",
+        "fit": "설명에 따르면 tuios는 tmux와 유사한 멀티플렉서 기능과 윈도우 매니저 기능, 그리고 코딩 에이전트 활동에 대한 가시성을 함께 원하는 터미널/CLI 사용자에게 적합해 보이지만, 실제 적합성은 터미널 기능과 Go 툴체인 가용성에 따라 달라질 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "TUIOS 是一款用 Go 构建的终端多路复用器与窗口管理器,结合了类 vim 的模态界面、多个终端面板、工作区、BSP 平铺以及 kitty 图形协议支持。一个守护进程可保持会话存活、连接其他机器上的会话,并让面板中运行的编码代理报告自身状态并相互发送消息。",
-        "usage": "可以通过 `brew install tuios` 或 `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest` 进行安装。之后运行 `tuios` 命令即可启动应用程序,并连接到一个守护进程支持的会话,该会话在关闭终端窗口后仍会保留。",
-        "pros": "TUIOS 构建于 Charm 技术栈(Bubble Tea v2 与 Lipgloss v2)之上,提供事件驱动渲染,空闲时 CPU 占用接近于零,并支持无闪烁的 kitty 图像直通。它还包含 9 个独立工作区、可模糊搜索的命令面板,以及可创建、调整大小和拖动的终端面板。",
-        "cons": "文档说明 Sixel 图形直通功能仍处于实验阶段,尚不支持像素级裁剪;kitty 文本缩放协议(OSC 66)同样为实验性功能,在滚动回溯和窗口重新定位方面存在已知问题,这表明部分图形功能尚未完全稳定。",
-        "fit": "鉴于其侧重于持久化的守护进程会话、连接其他机器上的会话,以及对编码代理状态和相互消息传递的内置追踪,TUIOS 似乎更适合那些需要在单一终端窗口管理器中协调多个基于终端的编码代理或远程会话的开发者。"
+        "goal": "TUIOS(Terminal UI Operating System)被描述为一个用 Go 构建的现代终端多路复用器和窗口管理器,提供类似 vim 的模态界面、多个终端面板、工作区、BSP 平铺布局以及 kitty 图形协议支持,并配有一个守护进程来保持会话存活,并让面板中运行的编码代理报告其状态并相互发送消息。",
+        "usage": "README 中记录了通过 `brew install tuios` 或 `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest` 进行安装,然后运行 `tuios` 启动终端界面的方法。",
+        "pros": "它构建在 Charm 技术栈(Bubble Tea v2、Lipgloss v2)之上,文档中提到其事件驱动渲染旨在实现接近零的空闲 CPU 占用以及无闪烁的 kitty 图像透传,此外还有 BSP 平铺和跨面板的代理状态可见性等功能。",
+        "cons": "文档说明从源码构建据称需要 Go 1.26.6 或更高版本,且要求终端支持真彩色,而 kitty 图形/sixel 支持仅被列为推荐而非保证;sixel 透传功能也被标记为实验性,目前尚无像素级裁剪。",
+        "fit": "根据描述,tuios 似乎适合希望将类似 tmux 的多路复用功能与窗口管理功能相结合,并能查看编码代理活动的终端/CLI 用户,不过实际适用程度可能取决于终端能力和 Go 工具链的可用性。"
       },
       "es": {
-        "goal": "TUIOS es un multiplexor de terminal y gestor de ventanas construido en Go que combina una interfaz modal al estilo vim con múltiples paneles de terminal, espacios de trabajo, mosaico BSP y soporte del protocolo gráfico kitty. Un demonio mantiene las sesiones activas, permite acceder a sesiones en otras máquinas y deja que los agentes de codificación que corren en los paneles informen su estado y se envíen mensajes entre sí.",
-        "usage": "Se instala con `brew install tuios` o `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest`. Luego, el comando `tuios` lanza la aplicación y se conecta a una sesión respaldada por un demonio que persiste aunque se cierre la ventana de terminal.",
-        "pros": "TUIOS está construido sobre la pila Charm (Bubble Tea v2 y Lipgloss v2), lo que ofrece renderizado dirigido por eventos con un uso de CPU casi nulo en reposo y un paso de imágenes kitty sin parpadeo. También incluye 9 espacios de trabajo independientes, una paleta de comandos con búsqueda difusa, y paneles de terminal que se pueden crear, redimensionar y arrastrar.",
-        "cons": "El paso de gráficos Sixel se describe como experimental y aún sin recorte a nivel de píxel, y el protocolo de tamaño de texto kitty (OSC 66) también es experimental, con problemas conocidos relacionados con el desplazamiento del historial y el reposicionamiento de ventanas, lo que indica que algunas capacidades gráficas todavía no son del todo estables.",
-        "fit": "Dado su énfasis en sesiones persistentes respaldadas por un demonio, la conexión a sesiones en otras máquinas y el seguimiento integrado del estado de agentes de codificación y su mensajería mutua, TUIOS parece adecuado sobre todo para desarrolladores que ejecutan varios agentes de codificación basados en terminal o sesiones remotas y desean coordinarlos dentro de un único gestor de ventanas de terminal."
+        "goal": "TUIOS (Terminal UI Operating System) se describe como un multiplexor de terminal y gestor de ventanas moderno construido en Go, que ofrece una interfaz modal al estilo vim, múltiples paneles de terminal, espacios de trabajo, mosaico BSP y soporte del protocolo gráfico kitty, junto con un daemon que mantiene las sesiones activas y permite que los agentes de codificación que corren en los paneles informen su estado y se envíen mensajes entre sí.",
+        "usage": "El README documenta la instalación mediante `brew install tuios` o `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest`, y luego el lanzamiento de la interfaz de terminal ejecutando `tuios`.",
+        "pros": "Está construido sobre la pila Charm (Bubble Tea v2, Lipgloss v2) y se documenta con un renderizado dirigido por eventos pensado para un uso de CPU casi nulo en reposo y un paso de imágenes kitty sin parpadeo, además de mosaico BSP y visibilidad del estado de los agentes entre paneles.",
+        "cons": "Compilar desde el código fuente supuestamente requiere Go 1.26.6 o una versión más reciente, y se indica como requisito un terminal con soporte de color verdadero, mientras que el soporte de gráficos kitty/sixel solo se recomienda, sin garantizarse; el paso de sixel también se marca como experimental y aún sin recorte a nivel de píxel.",
+        "fit": "Según la descripción, tuios parece adecuado para usuarios de terminal/CLI que buscan un multiplexor similar a tmux combinado con funciones de gestor de ventanas y visibilidad sobre la actividad de agentes de codificación, aunque la idoneidad real probablemente dependa de las capacidades del terminal y la disponibilidad de la cadena de herramientas de Go."
       },
       "ja": {
-        "goal": "TUIOSはGoで構築されたターミナルマルチプレクサ兼ウィンドウマネージャーで、vim風のモーダルインターフェース、複数のターミナルペイン、ワークスペース、BSPタイリング、kittyグラフィックプロトコル対応を組み合わせています。デーモンがセッションを維持し、他のマシン上のセッションにも到達でき、ペイン内で動くコーディングエージェントが状態を報告し合い、互いにメッセージを送り合えるようにします。",
-        "usage": "`brew install tuios` または `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest` でインストールできます。その後 `tuios` コマンドを実行するとアプリケーションが起動し、ターミナルウィンドウを閉じても存続するデーモン常駐セッションに接続されます。",
-        "pros": "TUIOSはCharmスタック(Bubble Tea v2とLipgloss v2)の上に構築されており、アイドル時のCPU使用率がほぼゼロのイベント駆動レンダリングと、ちらつきのないkitty画像パススルーを提供します。また9つの独立したワークスペース、あいまい検索可能なコマンドパレット、作成・サイズ変更・ドラッグが可能なターミナルペインを備えています。",
-        "cons": "Sixelグラフィックのパススルーは実験的機能であり、ピクセル単位のクリッピングはまだ未対応と記載されています。kittyテキストサイズ変更プロトコル(OSC 66)も同様に実験的で、スクロールバックやウィンドウ再配置に関する既知の問題があり、一部のグラフィック機能がまだ完全には安定していないことを示しています。",
-        "fit": "デーモンによる永続セッション、他のマシン上のセッションへの接続、コーディングエージェントの状態追跡と相互メッセージングを重視している点から、TUIOSは複数のターミナルベースのコーディングエージェントやリモートセッションを一つのターミナルウィンドウマネージャー内でまとめたい開発者に向いていると考えられます。"
+        "goal": "TUIOS(Terminal UI Operating System)は、Go で構築された現代的なターミナルマルチプレクサおよびウィンドウマネージャーとして説明されており、vim ライクなモーダルインターフェース、複数のターミナルペイン、ワークスペース、BSP タイリング、kitty グラフィックスプロトコル対応を提供し、セッションを維持し、ペイン内で動作するコーディングエージェントが状態を報告し合い、互いにメッセージを送り合えるデーモンを備えていると記載されています。",
+        "usage": "README には `brew install tuios` または `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest` でインストールし、`tuios` を実行してターミナル UI を起動する方法が記載されています。",
+        "pros": "Charm スタック(Bubble Tea v2、Lipgloss v2)上に構築されており、アイドル時のCPU使用率をほぼゼロに近づけることを意図したイベント駆動レンダリングや、ちらつきのない kitty 画像パススルー、BSP タイリング、ペイン間でのエージェント状態の可視性などが文書化されています。",
+        "cons": "ソースからのビルドには Go 1.26.6 以上が必要とされており、トゥルーカラー対応ターミナルが要件として挙げられている一方、kitty グラフィックス/sixel 対応は保証ではなく推奨にとどまるとされています。また sixel パススルーも実験的機能とされ、現時点ではピクセル単位のクリッピングはないとされています。",
+        "fit": "この説明からすると、tuios は tmux のようなマルチプレクサ機能とウィンドウマネージャー機能、さらにコーディングエージェントの活動の可視化を求めるターミナル/CLIユーザーに適していると考えられますが、実際の適合性はターミナルの機能や Go ツールチェーンの利用可否に依存すると思われます。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 8,
-          "end_line": 8,
+          "start_line": 19,
+          "end_line": 19,
           "section_heading": ""
         },
         {
-          "start_line": 19,
-          "end_line": 19,
+          "start_line": 21,
+          "end_line": 21,
           "section_heading": ""
         }
       ],
       "usage": [
         {
           "start_line": 68,
-          "end_line": 69,
+          "end_line": 68,
           "section_heading": "Package Managers"
         },
         {
@@ -7157,7 +7076,7 @@
         },
         {
           "start_line": 220,
-          "end_line": 227,
+          "end_line": 220,
           "section_heading": "Quick Start"
         }
       ],
@@ -7168,20 +7087,25 @@
           "section_heading": ""
         },
         {
-          "start_line": 121,
-          "end_line": 125,
-          "section_heading": "Core"
+          "start_line": 133,
+          "end_line": 133,
+          "section_heading": "Agents"
         }
       ],
       "cons": [
         {
-          "start_line": 172,
-          "end_line": 172,
-          "section_heading": "Graphics & Protocols"
+          "start_line": 106,
+          "end_line": 106,
+          "section_heading": "Other Methods"
         },
         {
-          "start_line": 178,
-          "end_line": 178,
+          "start_line": 114,
+          "end_line": 114,
+          "section_heading": "Other Methods"
+        },
+        {
+          "start_line": 172,
+          "end_line": 172,
           "section_heading": "Graphics & Protocols"
         }
       ],
@@ -7192,42 +7116,13 @@
           "section_heading": ""
         },
         {
-          "start_line": 133,
-          "end_line": 133,
-          "section_heading": "Agents"
-        },
-        {
-          "start_line": 146,
-          "end_line": 150,
-          "section_heading": "Machines"
+          "start_line": 114,
+          "end_line": 114,
+          "section_heading": "Other Methods"
         }
       ]
     },
     "invariants": [
-      {
-        "kind": "product",
-        "value": "TUIOS",
-        "fields": [
-          "goal",
-          "usage",
-          "pros",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Bubble Tea v2",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Lipgloss v2",
-        "fields": [
-          "pros"
-        ]
-      },
       {
         "kind": "command",
         "value": "brew install tuios",
@@ -7246,26 +7141,42 @@
         "kind": "command",
         "value": "tuios",
         "fields": [
-          "usage"
+          "usage",
+          "fit"
         ]
       },
       {
-        "kind": "number",
-        "value": "9",
+        "kind": "version",
+        "value": "Go 1.26.6",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Bubble Tea v2",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Lipgloss v2",
         "fields": [
           "pros"
         ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "gaurav-gosain/tuios",
       "path": "README.md",
-      "blob_sha": "22ecbc07a853183d098626d23dd09439c3499874",
-      "content_sha256": "1d07ff1c27f38077f309c0253dc03b34b23423d031721963a53e8a43b536334c",
+      "blob_sha": "7e100378dc46d420101f91af04bcd894f6462e3c",
+      "content_sha256": "f6ab68b45e36ec8811469e05e70a3cb7d7f8e204dd51c584c84e3f379140c4ab",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.292",
