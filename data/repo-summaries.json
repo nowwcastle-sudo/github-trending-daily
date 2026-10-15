@@ -1,77 +1,72 @@
 {
   "morluto/rea": {
     "content": {
-      "goal": "REA (\"Reverse Engineer Anything\") is presented as a single MCP connecting coding agents to tools for inspecting native binaries, JavaScript/Electron and .NET apps, and websites, letting a user see how an app feature works and rebuild it in their own project (lines 6-10, 61).",
-      "usage": "Run `npx rea-agents setup` to register REA's MCP server and workflow instructions with a supported agent, then restart it and ask it to investigate a target feature (lines 84-93). Keep installs current with `rea update` (lines 129-133). See https://rea.tools/ for setup guides (line 21).",
-      "pros": "Analysis runs locally and each result ships with supporting evidence and stated limitations (line 63). Many target types are listed—native binaries, Go/Rust binaries, .NET assemblies, Android APKs, firmware, and more (lines 169-193)—and the README reports 200,000 GitHub stars from a contributing community (lines 347-349).",
-      "cons": "On Linux, Ghidra, JADX, and firmware-tool launches plus static JavaScript/Electron analysis need a procps-compatible `ps` on REA's PATH for process-ownership checks (lines 71-74). Deep native-binary analysis also requires separately licensed tools such as IDA Pro, Hopper, or JEB, for which REA grants no license (lines 388-394).",
-      "fit": "With a Node.js 22.x (>=22.19)/24.x (>=24.11)/26+ and npm requirement (line 166), REA seems best suited to developers who already have Hopper, Ghidra, or IDA installed and want an agent-driven workflow for tracing app features into code, rather than a complete standalone reverse-engineering toolchain (lines 65-66)."
+      "goal": "REA ('Reverse Engineer Anything') is described as an MCP tool connecting agents to reverse-engineering capabilities for binaries, applications, and runtime behavior, letting a user investigate how a feature works down to the binary level, likely to help reproduce or understand it.",
+      "usage": "Setup is run via `npx rea-agents setup`, which registers REA's MCP server with a supported agent and installs matching workflow instructions; a terminal command example is `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json` for inspecting an extracted JavaScript/Electron app.",
+      "pros": "Analysis reportedly runs locally and results include evidence and stated limitations behind each conclusion; it covers many target types including native binaries, Go/Rust binaries, .NET assemblies, Android APKs, and websites, with static JavaScript analysis needing no native analysis engine.",
+      "cons": "On Linux, several analysis paths (Ghidra, JADX, firmware tools, static JavaScript/Electron analysis) require a procps-compatible `ps` on REA's PATH for process-ownership checks, which suggests additional environment setup may be needed on some Linux systems.",
+      "fit": "REA states it is intended for lawful research, education, interoperability, software preservation, and analysis of software one owns or is authorized to examine, implying it is likely best suited for authorized reverse-engineering and development workflows rather than unauthorized use of third-party software."
     },
     "summaries": {
       "en": {
-        "goal": "REA (\"Reverse Engineer Anything\") is presented as a single MCP connecting coding agents to tools for inspecting native binaries, JavaScript/Electron and .NET apps, and websites, letting a user see how an app feature works and rebuild it in their own project (lines 6-10, 61).",
-        "usage": "Run `npx rea-agents setup` to register REA's MCP server and workflow instructions with a supported agent, then restart it and ask it to investigate a target feature (lines 84-93). Keep installs current with `rea update` (lines 129-133). See https://rea.tools/ for setup guides (line 21).",
-        "pros": "Analysis runs locally and each result ships with supporting evidence and stated limitations (line 63). Many target types are listed—native binaries, Go/Rust binaries, .NET assemblies, Android APKs, firmware, and more (lines 169-193)—and the README reports 200,000 GitHub stars from a contributing community (lines 347-349).",
-        "cons": "On Linux, Ghidra, JADX, and firmware-tool launches plus static JavaScript/Electron analysis need a procps-compatible `ps` on REA's PATH for process-ownership checks (lines 71-74). Deep native-binary analysis also requires separately licensed tools such as IDA Pro, Hopper, or JEB, for which REA grants no license (lines 388-394).",
-        "fit": "With a Node.js 22.x (>=22.19)/24.x (>=24.11)/26+ and npm requirement (line 166), REA seems best suited to developers who already have Hopper, Ghidra, or IDA installed and want an agent-driven workflow for tracing app features into code, rather than a complete standalone reverse-engineering toolchain (lines 65-66)."
+        "goal": "REA ('Reverse Engineer Anything') is described as an MCP tool connecting agents to reverse-engineering capabilities for binaries, applications, and runtime behavior, letting a user investigate how a feature works down to the binary level, likely to help reproduce or understand it.",
+        "usage": "Setup is run via `npx rea-agents setup`, which registers REA's MCP server with a supported agent and installs matching workflow instructions; a terminal command example is `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json` for inspecting an extracted JavaScript/Electron app.",
+        "pros": "Analysis reportedly runs locally and results include evidence and stated limitations behind each conclusion; it covers many target types including native binaries, Go/Rust binaries, .NET assemblies, Android APKs, and websites, with static JavaScript analysis needing no native analysis engine.",
+        "cons": "On Linux, several analysis paths (Ghidra, JADX, firmware tools, static JavaScript/Electron analysis) require a procps-compatible `ps` on REA's PATH for process-ownership checks, which suggests additional environment setup may be needed on some Linux systems.",
+        "fit": "REA states it is intended for lawful research, education, interoperability, software preservation, and analysis of software one owns or is authorized to examine, implying it is likely best suited for authorized reverse-engineering and development workflows rather than unauthorized use of third-party software."
       },
       "ko": {
-        "goal": "REA(\"Reverse Engineer Anything\")는 코딩 에이전트와 네이티브 바이너리, JavaScript/Electron 및 .NET 애플리케이션, 웹사이트를 조사하는 도구를 연결하는 단일 MCP로 소개되며, 사용자가 앱 기능이 동작하는 방식을 확인하고 자신의 프로젝트에 재구현할 수 있도록 돕습니다.",
-        "usage": "`npx rea-agents setup` 명령으로 REA의 MCP 서버와 워크플로 지침을 지원되는 에이전트에 등록한 뒤 에이전트를 재시작하고 분석할 기능을 요청하면 됩니다. 설치를 최신 상태로 유지하려면 `rea update`를 실행합니다. 설정 안내는 https://rea.tools/ 에서 확인할 수 있습니다.",
-        "pros": "분석은 로컬에서 실행되며 각 결과에는 근거와 한계가 함께 제공된다고 문서화되어 있습니다. 네이티브 바이너리, Go/Rust 바이너리, .NET 어셈블리, Android APK, 펌웨어 등 다양한 대상 유형이 나열되어 있고, README에는 커뮤니티의 200,000 GitHub 스타가 기록되어 있습니다.",
-        "cons": "Linux에서는 Ghidra, JADX, 펌웨어 도구 실행과 정적 JavaScript/Electron 분석을 위해 REA의 PATH에 procps 호환 `ps`가 필요합니다. 또한 심층 네이티브 바이너리 분석에는 IDA Pro, Hopper, JEB 같은 별도 라이선스 도구가 필요하며 REA는 해당 라이선스를 제공하지 않습니다.",
-        "fit": "Node.js 22.x(>=22.19)/24.x(>=24.11)/26+ 및 npm이 필요하다는 점을 고려하면, REA는 이미 Hopper, Ghidra, IDA를 보유한 개발자가 에이전트 기반 워크플로로 앱 기능을 코드로 추적하려는 경우에 더 적합할 것으로 보이며, 처음부터 완전한 역공학 도구 체인을 원하는 사용자에게는 맞지 않을 수 있습니다."
+        "goal": "REA('Reverse Engineer Anything')는 바이너리, 애플리케이션, 런타임 동작에 대한 리버스 엔지니어링 기능을 에이전트와 연결하는 MCP 도구로 소개되며, 기능이 바이너리 수준에서 어떻게 동작하는지 조사하여 이를 이해하거나 재현하는 데 도움을 줄 수 있는 것으로 보입니다.",
+        "usage": "설정은 `npx rea-agents setup` 명령으로 실행되며, 지원되는 에이전트에 REA의 MCP 서버를 등록하고 관련 워크플로 지침을 설치합니다. 터미널 사용 예시로 `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json`가 추출된 JavaScript/Electron 앱 검사에 사용됩니다.",
+        "pros": "분석은 로컬에서 실행되는 것으로 설명되며 결과에는 각 결론에 대한 근거와 명시된 한계가 포함됩니다. 네이티브 바이너리, Go/Rust 바이너리, .NET 어셈블리, Android APK, 웹사이트 등 다양한 대상 유형을 지원하며, 정적 JavaScript 분석에는 네이티브 분석 엔진이 필요하지 않습니다.",
+        "cons": "Linux에서는 Ghidra, JADX, 펌웨어 도구, 정적 JavaScript/Electron 분석 등 여러 분석 경로가 프로세스 소유권 확인을 위해 REA의 PATH에 procps 호환 `ps`가 필요하므로, 일부 Linux 환경에서는 추가적인 환경 설정이 필요할 수 있는 것으로 보입니다.",
+        "fit": "REA는 합법적인 연구, 교육, 상호운용성, 소프트웨어 보존, 그리고 소유하거나 검토 권한이 있는 소프트웨어 분석을 목적으로 한다고 명시되어 있어, 승인되지 않은 제3자 소프트웨어 사용보다는 승인된 리버스 엔지니어링 및 개발 워크플로에 더 적합할 것으로 추정됩니다."
       },
       "zh-CN": {
-        "goal": "REA(“Reverse Engineer Anything”)被介绍为一个单一的 MCP,将编码代理与用于检查原生二进制文件、JavaScript/Electron 及 .NET 应用程序以及网站的工具连接起来,帮助用户了解某个应用功能的工作原理,并在自己的项目中重新实现它。",
-        "usage": "运行 `npx rea-agents setup` 可将 REA 的 MCP 服务器与工作流说明注册到受支持的代理,之后重启代理并让其调查目标功能。使用 `rea update` 可保持安装为最新版本。设置指南见 https://rea.tools/ 。",
-        "pros": "文档说明分析在本地运行,且每个结果都附带证据和已说明的局限性。README 列出了多种可分析目标,包括原生二进制文件、Go/Rust 二进制文件、.NET 程序集、Android APK、固件等,并提到该项目社区已获得 200,000 个 GitHub 星标。",
-        "cons": "在 Linux 上,启动 Ghidra、JADX、固件工具以及运行静态 JavaScript/Electron 分析都需要 REA 的 PATH 中存在兼容 procps 的 `ps` 命令。此外,深层原生二进制分析还依赖 IDA Pro、Hopper 或 JEB 等需单独授权的工具,REA 本身不提供这些许可。",
-        "fit": "鉴于其要求 Node.js 22.x(>=22.19)/24.x(>=24.11)/26+ 及 npm,REA 似乎更适合已经安装了 Hopper、Ghidra 或 IDA、希望通过代理驱动的工作流将应用功能追踪为代码的开发者,而未必适合需要一套完整从零开始的逆向工程工具链的用户。"
+        "goal": "REA('Reverse Engineer Anything')被描述为一个 MCP 工具,将代理连接到针对二进制文件、应用程序和运行时行为的逆向工程能力,使用户能够深入到二进制层面调查某个功能的工作原理,这可能有助于理解或复现该功能。",
+        "usage": "通过运行 `npx rea-agents setup` 完成设置,该命令会向受支持的代理注册 REA 的 MCP 服务器并安装匹配的工作流说明;终端使用示例为 `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json`,用于检查解压后的 JavaScript/Electron 应用。",
+        "pros": "文档表明分析在本地运行,结果中包含每个结论背后的证据和所述局限性;它覆盖多种分析目标,包括原生二进制文件、Go/Rust 二进制文件、.NET 程序集、Android APK 和网站,静态 JavaScript 分析无需原生分析引擎。",
+        "cons": "在 Linux 上,多个分析路径(Ghidra、JADX、固件工具、静态 JavaScript/Electron 分析)需要 REA 的 PATH 中存在兼容 procps 的 `ps` 以进行进程所有权检查,这表明某些 Linux 系统可能需要额外的环境配置。",
+        "fit": "README 指出 REA 旨在用于合法研究、教育、互操作性、软件保存以及对自己拥有或获得授权检查的软件进行分析,这暗示它可能更适用于获得授权的逆向工程与开发工作流,而非未经授权使用第三方软件。"
       },
       "es": {
-        "goal": "REA (\"Reverse Engineer Anything\") se presenta como un único MCP que conecta agentes de codificación con herramientas para inspeccionar binarios nativos, aplicaciones JavaScript/Electron y .NET, y sitios web, permitiendo entender cómo funciona una característica de una app y reconstruirla en el propio proyecto.",
-        "usage": "Se ejecuta `npx rea-agents setup` para registrar el servidor MCP de REA y las instrucciones de flujo de trabajo en un agente compatible; luego se reinicia el agente y se le pide investigar la función objetivo. Las instalaciones se mantienen al día con `rea update`. Las guías de configuración están en https://rea.tools/.",
-        "pros": "El análisis se ejecuta localmente y cada resultado incluye evidencia y limitaciones documentadas. Se listan muchos tipos de objetivos: binarios nativos, binarios Go/Rust, ensamblados .NET, APKs de Android, firmware y más, y el README menciona 200,000 estrellas de GitHub de una comunidad colaboradora.",
-        "cons": "En Linux, lanzar Ghidra, JADX, herramientas de firmware y ejecutar análisis estático de JavaScript/Electron requiere un `ps` compatible con procps en el PATH de REA. El análisis profundo de binarios nativos también depende de herramientas con licencia separada como IDA Pro, Hopper o JEB, para las que REA no otorga licencia.",
-        "fit": "Dado que requiere Node.js 22.x (>=22.19)/24.x (>=24.11)/26+ y npm, REA parece encajar mejor con desarrolladores que ya tienen Hopper, Ghidra o IDA instalados y buscan un flujo de trabajo guiado por agentes para convertir funciones de apps en código, más que para quienes necesitan una cadena de herramientas de ingeniería inversa completamente autónoma."
+        "goal": "REA ('Reverse Engineer Anything') se describe como una herramienta MCP que conecta agentes con capacidades de ingeniería inversa para binarios, aplicaciones y comportamiento en tiempo de ejecución, permitiendo investigar cómo funciona una característica a nivel binario, lo que probablemente ayude a entenderla o reproducirla.",
+        "usage": "La configuración se ejecuta con `npx rea-agents setup`, que registra el servidor MCP de REA con un agente compatible e instala las instrucciones de flujo de trabajo correspondientes; un ejemplo de uso en terminal es `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json` para inspeccionar una aplicación JavaScript/Electron extraída.",
+        "pros": "Se indica que el análisis se ejecuta localmente y que los resultados incluyen la evidencia y las limitaciones declaradas detrás de cada conclusión; cubre numerosos tipos de objetivos, incluidos binarios nativos, binarios Go/Rust, ensamblados .NET, APK de Android y sitios web, y el análisis estático de JavaScript no requiere un motor de análisis nativo.",
+        "cons": "En Linux, varias rutas de análisis (Ghidra, JADX, herramientas de firmware, análisis estático de JavaScript/Electron) requieren un `ps` compatible con procps en el PATH de REA para verificaciones de propiedad de procesos, lo que sugiere que algunos sistemas Linux podrían necesitar configuración adicional del entorno.",
+        "fit": "El documento indica que REA está pensado para investigación legal, educación, interoperabilidad, preservación de software y análisis de software que el usuario posee o está autorizado a examinar, lo que sugiere que probablemente se adapte mejor a flujos de ingeniería inversa y desarrollo autorizados que al uso no autorizado de software de terceros."
       },
       "ja": {
-        "goal": "REA(「Reverse Engineer Anything」)は、ネイティブバイナリ、JavaScript/Electron や .NET アプリケーション、Webサイトを調査するツールにコーディングエージェントを接続する単一の MCP として紹介されており、アプリの機能がどのように動作するかを理解し、自分のプロジェクトで再現できるようにするものです。",
-        "usage": "`npx rea-agents setup` を実行すると、REA の MCP サーバーとワークフロー指示が対応エージェントに登録されます。その後エージェントを再起動し、調査対象の機能を依頼します。インストールを最新に保つには `rea update` を使います。セットアップガイドは https://rea.tools/ にあります。",
-        "pros": "分析はローカルで実行され、各結果には証拠と明記された限界が含まれるとされています。ネイティブバイナリ、Go/Rust バイナリ、.NET アセンブリ、Android APK、ファームウェアなど多数の対象タイプが挙げられており、README ではコミュニティから 200,000 件の GitHub スターが寄せられていると記載されています。",
-        "cons": "Linux では、Ghidra、JADX、ファームウェアツールの起動や静的な JavaScript/Electron 分析を行うために、REA の PATH 上に procps 互換の `ps` が必要です。また、深いネイティブバイナリ分析には IDA Pro、Hopper、JEB など別途ライセンスが必要なツールが必要で、REA 自体はそのライセンスを提供しません。",
-        "fit": "Node.js 22.x(>=22.19)/24.x(>=24.11)/26+ と npm が必要とされていることから、REA は Hopper、Ghidra、IDA を既に導入している開発者が、エージェント主導のワークフローでアプリ機能をコードへ追跡する用途に適している可能性が高く、ゼロから完結した逆アセンブルツールチェーンを求めるユーザーには合わない場合があります。"
+        "goal": "REA(「Reverse Engineer Anything」)は、バイナリ、アプリケーション、ランタイム動作のリバースエンジニアリング機能をエージェントに接続するMCPツールとして説明されており、機能がバイナリレベルでどのように動作するかを調査できるため、理解や再現に役立つ可能性があります。",
+        "usage": "セットアップは `npx rea-agents setup` を実行して行い、対応エージェントにREAのMCPサーバーを登録し、対応するワークフロー手順をインストールします。ターミナルでの使用例として、展開済みのJavaScript/Electronアプリを検査する `npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json` が挙げられています。",
+        "pros": "分析はローカルで実行されるとされ、結果には各結論の根拠と明記された制約が含まれます。ネイティブバイナリ、Go/Rustバイナリ、.NETアセンブリ、Android APK、Webサイトなど多くの対象種別に対応し、静的JavaScript解析はネイティブ解析エンジンを必要としません。",
+        "cons": "Linuxでは、Ghidra、JADX、firmwareツール、静的JavaScript/Electron解析など複数の解析パスで、プロセス所有権チェックのためにREAのPATH上にprocps互換の `ps` が必要とされており、一部のLinux環境では追加の環境設定が必要になる可能性があることを示しています。",
+        "fit": "README では、REAは合法的な研究、教育、相互運用性、ソフトウェア保存、および自身が所有または調査を許可されたソフトウェアの分析を目的としていると述べられており、第三者ソフトウェアの無許可利用よりも、許可されたリバースエンジニアリングや開発ワークフローに適している可能性が示唆されます。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 6,
-          "end_line": 10,
+          "end_line": 9,
           "section_heading": "REA: Reverse Engineer Anything"
         },
         {
           "start_line": 61,
-          "end_line": 61,
+          "end_line": 63,
           "section_heading": "One MCP for reverse engineering across binaries, applications, and runtime behavior."
         }
       ],
       "usage": [
         {
-          "start_line": 21,
-          "end_line": 21,
-          "section_heading": "One MCP for reverse engineering across binaries, applications, and runtime behavior."
-        },
-        {
-          "start_line": 78,
-          "end_line": 93,
+          "start_line": 80,
+          "end_line": 82,
           "section_heading": "Set up your agent"
         },
         {
-          "start_line": 129,
-          "end_line": 133,
-          "section_heading": "Update REA"
+          "start_line": 106,
+          "end_line": 108,
+          "section_heading": "Use the terminal"
         }
       ],
       "pros": [
@@ -81,14 +76,14 @@
           "section_heading": "One MCP for reverse engineering across binaries, applications, and runtime behavior."
         },
         {
-          "start_line": 169,
-          "end_line": 193,
+          "start_line": 166,
+          "end_line": 166,
           "section_heading": "What you can analyze"
         },
         {
-          "start_line": 347,
-          "end_line": 349,
-          "section_heading": "Star history"
+          "start_line": 182,
+          "end_line": 182,
+          "section_heading": "What you can analyze"
         }
       ],
       "cons": [
@@ -98,21 +93,21 @@
           "section_heading": "Quick start"
         },
         {
-          "start_line": 388,
-          "end_line": 394,
-          "section_heading": "License"
+          "start_line": 65,
+          "end_line": 65,
+          "section_heading": "One MCP for reverse engineering across binaries, applications, and runtime behavior."
         }
       ],
       "fit": [
         {
-          "start_line": 65,
-          "end_line": 66,
-          "section_heading": "One MCP for reverse engineering across binaries, applications, and runtime behavior."
+          "start_line": 367,
+          "end_line": 369,
+          "section_heading": "Disclaimer"
         },
         {
-          "start_line": 166,
-          "end_line": 166,
-          "section_heading": "What you can analyze"
+          "start_line": 389,
+          "end_line": 395,
+          "section_heading": "License"
         }
       ]
     },
@@ -126,20 +121,9 @@
       },
       {
         "kind": "command",
-        "value": "rea update",
+        "value": "npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json",
         "fields": [
           "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "REA",
-        "fields": [
-          "goal",
-          "usage",
-          "pros",
-          "cons",
-          "fit"
         ]
       },
       {
@@ -148,31 +132,20 @@
         "fields": [
           "usage"
         ]
-      },
-      {
-        "kind": "url",
-        "value": "https://rea.tools/",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "200,000",
-        "fields": [
-          "pros"
-        ]
       }
     ],
     "inference_fields": [
+      "goal",
+      "usage",
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "morluto/rea",
       "path": "README.md",
-      "blob_sha": "2be1774fc0e7229028fcaa99d367cb3e26633e6f",
-      "content_sha256": "005e4c8acaa5a2a56f17bfac8f68b9fc9b3531bb370ed5f410154b65aa3ff124",
+      "blob_sha": "89a53ff75546ede74869ea85faee0b769cb48ea2",
+      "content_sha256": "6856a965e4b6cc3ca7b4211c7cfa63fc59e6aa638b30bdb38c46a5eb3e4cfdb2",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.292",
@@ -5156,66 +5129,66 @@
   },
   "agent-substrate/substrate": {
     "content": {
-      "goal": "Agent Substrate is a secure-by-default agent execution runtime designed to run millions of agent sandboxes on Kubernetes, aiming for up to 10x higher density than standard container runtimes.",
-      "usage": "Quickstart involves running `hack/create-kind-cluster.sh` to create a local kind cluster, then `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'` to install the Agent Substrate system.",
-      "pros": "It targets sub-500ms resume operations at over 500 suspend/resume activations per second, is described as framework-agnostic (supporting ADK, LangChain, Claude Code, and MCP), and builds on Kubernetes Pods for infrastructure management.",
-      "cons": "The project is pre-1.0 with no backward-compatibility guarantees and APIs that may change significantly, and the bundled credential provider starts with an empty, default-deny namespace policy requiring manual configuration before actors can access secrets.",
-      "fit": "Agent Substrate appears best suited for teams already operating Kubernetes infrastructure who need to run many lightweight, stateful agent sandboxes with microVM or gVisor isolation; given its pre-1.0 status and the project being described as very young, it may not yet suit teams requiring API stability."
+      "goal": "Agent Substrate is a secure-by-default runtime for running large numbers of agent sandboxes on Kubernetes, aiming for higher density than standard container runtimes and fast suspend/resume of agent-like workloads. It maps many 'actors' onto fewer ready 'workers' and manages their lifecycle and routing, likely suiting teams building agentic infrastructure rather than individual agent SDKs.",
+      "usage": "Development quickstart involves installing Go, kubectl, and docker, then running `hack/create-kind-cluster.sh` followed by `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'` to set up a local kind cluster with the ATE system, PostgreSQL, and rustfs; a GKE path and demo apps (e.g., Counter Demo) are also documented.",
+      "pros": "It supports multiple sandbox technologies (microVMs and gVisor) with consistent lifecycle operations, is framework-agnostic (ADK, LangChain, Claude Code, MCP), and builds on Kubernetes Pods/autoscaling for infrastructure management, which may ease integration into existing Kubernetes-based pipelines.",
+      "cons": "The project is explicitly pre-1.0 with no backward-compatibility guarantees, and APIs/behavior may change significantly; credential injection also requires manually granting namespace-read policy per atespace since the bundled provider defaults to deny-all.",
+      "fit": "It appears best suited for teams already operating Kubernetes who need to run many stateful, agent-like workloads at scale with suspend/resume and multiplexing, rather than for simple single-agent deployments or non-Kubernetes environments."
     },
     "summaries": {
       "en": {
-        "goal": "Agent Substrate is a secure-by-default agent execution runtime designed to run millions of agent sandboxes on Kubernetes, aiming for up to 10x higher density than standard container runtimes.",
-        "usage": "Quickstart involves running `hack/create-kind-cluster.sh` to create a local kind cluster, then `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'` to install the Agent Substrate system.",
-        "pros": "It targets sub-500ms resume operations at over 500 suspend/resume activations per second, is described as framework-agnostic (supporting ADK, LangChain, Claude Code, and MCP), and builds on Kubernetes Pods for infrastructure management.",
-        "cons": "The project is pre-1.0 with no backward-compatibility guarantees and APIs that may change significantly, and the bundled credential provider starts with an empty, default-deny namespace policy requiring manual configuration before actors can access secrets.",
-        "fit": "Agent Substrate appears best suited for teams already operating Kubernetes infrastructure who need to run many lightweight, stateful agent sandboxes with microVM or gVisor isolation; given its pre-1.0 status and the project being described as very young, it may not yet suit teams requiring API stability."
+        "goal": "Agent Substrate is a secure-by-default runtime for running large numbers of agent sandboxes on Kubernetes, aiming for higher density than standard container runtimes and fast suspend/resume of agent-like workloads. It maps many 'actors' onto fewer ready 'workers' and manages their lifecycle and routing, likely suiting teams building agentic infrastructure rather than individual agent SDKs.",
+        "usage": "Development quickstart involves installing Go, kubectl, and docker, then running `hack/create-kind-cluster.sh` followed by `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'` to set up a local kind cluster with the ATE system, PostgreSQL, and rustfs; a GKE path and demo apps (e.g., Counter Demo) are also documented.",
+        "pros": "It supports multiple sandbox technologies (microVMs and gVisor) with consistent lifecycle operations, is framework-agnostic (ADK, LangChain, Claude Code, MCP), and builds on Kubernetes Pods/autoscaling for infrastructure management, which may ease integration into existing Kubernetes-based pipelines.",
+        "cons": "The project is explicitly pre-1.0 with no backward-compatibility guarantees, and APIs/behavior may change significantly; credential injection also requires manually granting namespace-read policy per atespace since the bundled provider defaults to deny-all.",
+        "fit": "It appears best suited for teams already operating Kubernetes who need to run many stateful, agent-like workloads at scale with suspend/resume and multiplexing, rather than for simple single-agent deployments or non-Kubernetes environments."
       },
       "ko": {
-        "goal": "Agent Substrate는 Kubernetes에서 수백만 개의 에이전트 샌드박스를 실행하도록 설계된 보안 기본값 에이전트 실행 런타임이며, 표준 컨테이너 런타임보다 최대 10배 더 높은 밀도를 목표로 합니다.",
-        "usage": "빠른 시작은 로컬 kind 클러스터를 생성하는 `hack/create-kind-cluster.sh`를 실행한 뒤, `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'`로 Agent Substrate 시스템을 설치하는 과정으로 이루어집니다.",
-        "pros": "500ms 미만의 재개 작업을 초당 500회 이상의 서스펜드/리줌 활성화로 목표로 하며, ADK, LangChain, Claude Code, MCP 등 여러 프레임워크에 중립적이라 설명되고, Kubernetes Pod를 기반으로 인프라를 관리합니다.",
-        "cons": "이 프로젝트는 pre-1.0 단계로 하위 호환성을 보장하지 않으며 API가 크게 변경될 수 있고, 번들된 자격 증명 제공자는 기본적으로 빈 상태의 거부 우선 네임스페이스 정책으로 시작되어 액터가 시크릿에 접근하기 전에 수동 설정이 필요합니다.",
-        "fit": "Agent Substrate는 이미 Kubernetes 인프라를 운영하며 microVM이나 gVisor 격리를 통해 다수의 경량, 상태 유지 에이전트 샌드박스를 실행해야 하는 팀에 적합해 보이지만, pre-1.0 상태와 '매우 초기 단계'라는 설명을 고려하면 API 안정성이 필요한 팀에는 아직 적합하지 않을 수 있습니다."
+        "goal": "Agent Substrate는 Kubernetes에서 다수의 에이전트 샌드박스를 안전하게 기본으로 실행하기 위한 런타임으로, 표준 컨테이너 런타임보다 높은 밀도와 빠른 서스펜드/리줌을 목표로 합니다. 많은 '액터'를 적은 수의 준비된 '워커'에 매핑해 생명주기와 라우팅을 관리하며, 개별 에이전트 SDK보다는 에이전트 인프라를 구축하는 팀에 적합해 보입니다.",
+        "usage": "개발 퀵스타트는 Go, kubectl, docker 설치 후 `hack/create-kind-cluster.sh`를 실행하고, 이어서 `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'`로 로컬 kind 클러스터에 ATE 시스템, PostgreSQL, rustfs를 설치하는 과정을 포함합니다. GKE 경로와 Counter Demo 같은 데모 앱도 문서화되어 있습니다.",
+        "pros": "microVM과 gVisor 등 다양한 샌드박스 기술을 일관된 생명주기 작업으로 지원하며, ADK·LangChain·Claude Code·MCP 등 프레임워크에 중립적이고, Kubernetes Pod/오토스케일링 위에 구축되어 기존 Kubernetes 기반 파이프라인에 통합하기 쉬울 수 있습니다.",
+        "cons": "프로젝트는 명시적으로 pre-1.0 상태이며 하위 호환성을 보장하지 않아 API와 동작이 크게 바뀔 수 있습니다. 또한 번들된 자격 증명 제공자는 기본적으로 모두 거부하므로, 각 atespace에 네임스페이스 읽기 정책을 수동으로 부여해야 자격 증명 주입이 동작합니다.",
+        "fit": "이미 Kubernetes를 운영하면서 상태를 유지하는 다수의 에이전트형 워크로드를 서스펜드/리줌 및 멀티플렉싱으로 대규모 실행해야 하는 팀에 적합해 보이며, 단순한 단일 에이전트 배포나 비(非) Kubernetes 환경에는 맞지 않을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "Agent Substrate 是一个默认安全的代理执行运行时，旨在 Kubernetes 上运行数百万个代理沙箱，目标是实现比标准容器运行时最高 10 倍的密度。",
-        "usage": "快速开始需运行 `hack/create-kind-cluster.sh` 创建本地 kind 集群，然后运行 `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'` 安装 Agent Substrate 系统。",
-        "pros": "它的目标是在低于 500 毫秒的恢复操作下实现每秒超过 500 次挂起/恢复激活，并被描述为对框架中立（支持 ADK、LangChain、Claude Code 和 MCP），同时基于 Kubernetes Pod 管理基础设施。",
-        "cons": "该项目处于 pre-1.0 阶段，不保证向后兼容性，API 可能发生重大变化；捆绑的凭据提供者默认采用空的、默认拒绝的命名空间策略，需要手动配置后才能让 actor 访问密钥。",
-        "fit": "Agent Substrate 似乎更适合已经运行 Kubernetes 基础设施、需要通过 microVM 或 gVisor 隔离运行大量轻量级、有状态代理沙箱的团队；但鉴于其 pre-1.0 状态以及文档中提及的项目“非常年轻”，对需要 API 稳定性的团队可能尚不适用。"
+        "goal": "Agent Substrate 是一个在 Kubernetes 上运行大量代理沙箱的默认安全运行时,目标是比标准容器运行时实现更高密度,并对类代理工作负载实现快速的挂起/恢复。它将大量“actor”映射到较少的就绪“worker”上,管理它们的生命周期与路由,看起来更适合构建代理基础设施的团队,而非单个代理 SDK 的使用者。",
+        "usage": "开发快速入门需要先安装 Go、kubectl 和 docker,然后运行 `hack/create-kind-cluster.sh`,再执行 `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'` 以在本地 kind 集群中安装 ATE 系统、PostgreSQL 和 rustfs;文档中也提供了 GKE 路径以及 Counter Demo 等示例应用。",
+        "pros": "它支持 microVM 和 gVisor 等多种沙箱技术并提供一致的生命周期操作,对框架保持中立(兼容 ADK、LangChain、Claude Code、MCP),并构建在 Kubernetes Pod 与自动扩缩容之上,这可能有助于融入现有的 Kubernetes 基础设施管线。",
+        "cons": "该项目明确处于 pre-1.0 阶段,不保证向后兼容,API 和行为可能发生重大变化;此外,内置凭证提供者默认采用全部拒绝的命名空间策略,因此需要手动为每个 atespace 授予可读取的命名空间,凭证注入才能生效。",
+        "fit": "它似乎更适合已经运维 Kubernetes、需要以挂起/恢复和多路复用方式大规模运行众多有状态、类代理工作负载的团队,而不太适合简单的单代理部署或非 Kubernetes 环境。"
       },
       "es": {
-        "goal": "Agent Substrate es un runtime de ejecución de agentes seguro por defecto, diseñado para ejecutar millones de sandboxes de agentes en Kubernetes, con el objetivo de alcanzar hasta 10 veces más densidad que los runtimes de contenedores estándar.",
-        "usage": "El inicio rápido consiste en ejecutar `hack/create-kind-cluster.sh` para crear un clúster kind local, y luego `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'` para instalar el sistema Agent Substrate.",
-        "pros": "Apunta a operaciones de reanudación por debajo de 500ms con más de 500 activaciones de suspensión/reanudación por segundo, se describe como agnóstico a frameworks (compatible con ADK, LangChain, Claude Code y MCP), y se basa en Pods de Kubernetes para la gestión de infraestructura.",
-        "cons": "El proyecto está en etapa pre-1.0 sin garantías de compatibilidad hacia atrás y con APIs que pueden cambiar significativamente, y el proveedor de credenciales incluido inicia con una política de espacio de nombres vacía y de denegación por defecto, que requiere configuración manual antes de que los actores puedan acceder a secretos.",
-        "fit": "Agent Substrate parece adecuado para equipos que ya operan infraestructura Kubernetes y necesitan ejecutar muchos sandboxes de agentes ligeros y con estado mediante aislamiento microVM o gVisor; sin embargo, dado su estado pre-1.0 y que el proyecto se describe como muy joven, podría no ser adecuado aún para equipos que requieren estabilidad de API."
+        "goal": "Agent Substrate es un runtime seguro por defecto para ejecutar un gran número de sandboxes de agentes en Kubernetes, con el objetivo de lograr mayor densidad que los runtimes de contenedores estándar y una suspensión/reanudación rápida de cargas de trabajo tipo agente. Mapea muchos 'actores' sobre un número menor de 'workers' listos y gestiona su ciclo de vida y enrutamiento, por lo que parece pensado para equipos que construyen infraestructura de agentes, no para quienes buscan un SDK de agentes individual.",
+        "usage": "La guía de inicio rápido para desarrollo implica instalar Go, kubectl y docker, luego ejecutar `hack/create-kind-cluster.sh` y a continuación `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'` para instalar el sistema ATE, PostgreSQL y rustfs en un clúster kind local; también se documenta una ruta para GKE y aplicaciones de demostración como el Counter Demo.",
+        "pros": "Soporta múltiples tecnologías de sandbox (microVMs y gVisor) con operaciones de ciclo de vida consistentes, es agnóstico de framework (ADK, LangChain, Claude Code, MCP) y se construye sobre Pods y autoescalado de Kubernetes, lo que podría facilitar su integración en canalizaciones ya basadas en Kubernetes.",
+        "cons": "El proyecto está explícitamente en estado pre-1.0, sin garantías de compatibilidad retroactiva, por lo que las APIs y el comportamiento pueden cambiar de forma significativa; además, la inyección de credenciales requiere otorgar manualmente una política de lectura de namespaces por cada atespace, ya que el proveedor incluido parte de una denegación total por defecto.",
+        "fit": "Parece más adecuado para equipos que ya operan Kubernetes y necesitan ejecutar a gran escala numerosas cargas de trabajo con estado tipo agente, usando suspensión/reanudación y multiplexación, en lugar de implementaciones sencillas de un solo agente o entornos fuera de Kubernetes."
       },
       "ja": {
-        "goal": "Agent Substrateは、Kubernetes上で数百万のエージェントサンドボックスを実行するために設計された、デフォルトでセキュアなエージェント実行ランタイムであり、標準的なコンテナランタイムに比べて最大10倍の密度を目指しています。",
-        "usage": "クイックスタートでは、`hack/create-kind-cluster.sh` を実行してローカルのkindクラスターを作成し、続いて `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'` でAgent Substrateシステムをインストールします。",
-        "pros": "500ms未満のレジューム操作を毎秒500回以上のサスペンド/レジューム起動で目指しており、ADK、LangChain、Claude Code、MCPなど複数のフレームワークに依存しないと説明され、Kubernetes Podを基盤にインフラを管理します。",
-        "cons": "本プロジェクトはpre-1.0段階であり後方互換性は保証されず、APIが大きく変更される可能性があり、同梱の認証情報プロバイダーは空のデフォルト拒否ネームスペースポリシーで開始するため、アクターがシークレットにアクセスする前に手動設定が必要です。",
-        "fit": "Agent Substrateは、すでにKubernetesインフラを運用し、microVMやgVisor分離による多数の軽量でステートフルなエージェントサンドボックスを必要とするチームに適していると考えられますが、pre-1.0の状態と「非常に若い」と説明されている点を踏まえると、API安定性を要するチームには現時点で適さない可能性があります。"
+        "goal": "Agent Substrateは、Kubernetes上で大量のエージェントサンドボックスを安全に実行するためのデフォルトセキュアなランタイムであり、標準的なコンテナランタイムより高い密度と、エージェントのようなワークロードの高速なサスペンド/レジュームを目指しています。多数の『アクター』を少数の待機中『ワーカー』に割り当て、ライフサイクルとルーティングを管理するため、単体のエージェントSDKというよりエージェント基盤を構築するチーム向けと考えられます。",
+        "usage": "開発用クイックスタートでは、Go、kubectl、dockerをインストールした後、`hack/create-kind-cluster.sh` を実行し、続けて `hack/install-ate-kind.sh --deploy-ate-system --credential-provider='{\"name\":\"k8s.io\"}'` でローカルのkindクラスターにATEシステム、PostgreSQL、rustfsをインストールします。GKE向けの手順やCounter Demoなどのデモアプリも文書化されています。",
+        "pros": "microVMやgVisorなど複数のサンドボックス技術を一貫したライフサイクル操作でサポートし、ADK・LangChain・Claude Code・MCPなどフレームワークに依存せず、Kubernetes Podやオートスケーリングを基盤とするため、既存のKubernetesベースのパイプラインへの統合がしやすい可能性があります。",
+        "cons": "プロジェクトは明示的にpre-1.0であり後方互換性は保証されず、APIや挙動が大きく変わる可能性があります。また、バンドルされた資格情報プロバイダーはデフォルトで全拒否のポリシーを持つため、各atespaceに対して手動で名前空間の読み取りを許可しないと資格情報の注入が機能しません。",
+        "fit": "既にKubernetesを運用し、サスペンド/レジュームと多重化を用いて多数のステートフルなエージェント的ワークロードを大規模に実行する必要があるチームに最も適しており、単純な単一エージェントのデプロイや非Kubernetes環境には不向きと考えられます。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 18,
-          "end_line": 20,
+          "start_line": 20,
+          "end_line": 22,
+          "section_heading": "What is Agent Substrate?"
+        },
+        {
+          "start_line": 24,
+          "end_line": 24,
           "section_heading": "What is Agent Substrate?"
         }
       ],
       "usage": [
         {
-          "start_line": 112,
-          "end_line": 113,
-          "section_heading": "Quickstart (Development)"
-        },
-        {
-          "start_line": 115,
-          "end_line": 116,
+          "start_line": 107,
+          "end_line": 119,
           "section_heading": "Quickstart (Development)"
         }
       ],
@@ -5250,14 +5223,14 @@
       ],
       "fit": [
         {
-          "start_line": 20,
-          "end_line": 20,
+          "start_line": 22,
+          "end_line": 24,
           "section_heading": "What is Agent Substrate?"
         },
         {
-          "start_line": 97,
-          "end_line": 101,
-          "section_heading": "Developing"
+          "start_line": 26,
+          "end_line": 26,
+          "section_heading": "What is Agent Substrate?"
         }
       ]
     },
@@ -5277,32 +5250,10 @@
         ]
       },
       {
-        "kind": "number",
-        "value": "10x",
+        "kind": "product",
+        "value": "Agent Substrate",
         "fields": [
           "goal"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "500ms",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "500",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": "pre-1.0",
-        "fields": [
-          "cons",
-          "fit"
         ]
       },
       {
@@ -5313,17 +5264,34 @@
           "pros",
           "fit"
         ]
+      },
+      {
+        "kind": "product",
+        "value": "gVisor",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "PostgreSQL",
+        "fields": [
+          "usage"
+        ]
       }
     ],
     "inference_fields": [
+      "goal",
+      "pros",
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "agent-substrate/substrate",
       "path": "README.md",
-      "blob_sha": "6432c37fb308480a18e36a6c971a860ee0220219",
-      "content_sha256": "294e36bc4825dbd98ba61335167692cf84be6698635f459af483f9ea22ec3f5c",
+      "blob_sha": "41b9cf60bfc825d5fcf6106fdba2ab379f878162",
+      "content_sha256": "3d12d4848a33947d8b1077d0bd69521c06ceefe9a70e72ac25676a32308dc680",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.292",
@@ -5337,47 +5305,47 @@
   },
   "NVIDIA/OpenShell": {
     "content": {
-      "goal": "OpenShell is described as a runtime for operating fleets of autonomous AI agents safely and privately, letting agents read files, install packages, call APIs, and use credentials under policies that administrators declare and that OpenShell enforces.",
-      "usage": "Install OpenShell by running curl -LsSf https://raw.githubusercontent.com/NVIDIA/OpenShell/main/install.sh | sh, then create a sandbox with openshell sandbox create --name demo; the installer sets up the CLI and a local gateway.",
-      "pros": "Kernel-level enforcement isolates each agent's sandbox, restricting which files and system calls it can access and checking every network connection against policy before it leaves the sandbox; credentials are added directly to approved requests rather than exposed to agents, and formal verification flags risky policy changes for human review before approval.",
-      "cons": "Running OpenShell requires Linux, macOS on Apple Silicon, or Windows with WSL 2 (noted as experimental), plus Docker, Podman, or host virtualization, and the default sandbox image ships with no agent installed, so extra setup is likely needed before running a real agent; the README's framing of OpenShell 0.1.x as introducing a new stable release cadence suggests the project may still be relatively early in its versioning history.",
-      "fit": "This appears best suited to teams that need policy-controlled, auditable access for autonomous AI agents to files, APIs, and credentials; Kubernetes deployments additionally require a CNI that enforces NetworkPolicy."
+      "goal": "OpenShell is a runtime designed to let fleets of autonomous AI agents read files, install packages, call APIs, and use credentials under an administrator-declared policy, aiming to constrain agent access to data, secrets, and network resources rather than grant unrestricted access.",
+      "usage": "Setup starts with `curl -LsSf https://raw.githubusercontent.com/NVIDIA/OpenShell/main/install.sh | sh`, which installs the CLI and a local gateway; `openshell sandbox create --name demo` then creates a sandbox, though the default image ships with no agent installed.",
+      "pros": "Enforcement happens at the kernel level, confining file access and system calls per sandbox and routing every network connection through a policy check, while agents never see raw credentials since OpenShell injects them only for requests to approved endpoints. Policy changes also undergo formal verification before approval, flagging risky new access such as new hosts or API methods for human review.",
+      "cons": "Running OpenShell requires Linux, macOS on Apple Silicon, or Windows with WSL 2, which is explicitly marked experimental, plus Docker, Podman, or host virtualization, suggesting platform support may still be maturing on some systems.",
+      "fit": "Given the 0.1.x release is described as introducing a new stable release cadence alongside new isolation primitives and APIs, OpenShell appears best suited for teams just adopting policy-governed agent sandboxes rather than those needing a long-established, fully mature tool."
     },
     "summaries": {
       "en": {
-        "goal": "OpenShell is described as a runtime for operating fleets of autonomous AI agents safely and privately, letting agents read files, install packages, call APIs, and use credentials under policies that administrators declare and that OpenShell enforces.",
-        "usage": "Install OpenShell by running curl -LsSf https://raw.githubusercontent.com/NVIDIA/OpenShell/main/install.sh | sh, then create a sandbox with openshell sandbox create --name demo; the installer sets up the CLI and a local gateway.",
-        "pros": "Kernel-level enforcement isolates each agent's sandbox, restricting which files and system calls it can access and checking every network connection against policy before it leaves the sandbox; credentials are added directly to approved requests rather than exposed to agents, and formal verification flags risky policy changes for human review before approval.",
-        "cons": "Running OpenShell requires Linux, macOS on Apple Silicon, or Windows with WSL 2 (noted as experimental), plus Docker, Podman, or host virtualization, and the default sandbox image ships with no agent installed, so extra setup is likely needed before running a real agent; the README's framing of OpenShell 0.1.x as introducing a new stable release cadence suggests the project may still be relatively early in its versioning history.",
-        "fit": "This appears best suited to teams that need policy-controlled, auditable access for autonomous AI agents to files, APIs, and credentials; Kubernetes deployments additionally require a CNI that enforces NetworkPolicy."
+        "goal": "OpenShell is a runtime designed to let fleets of autonomous AI agents read files, install packages, call APIs, and use credentials under an administrator-declared policy, aiming to constrain agent access to data, secrets, and network resources rather than grant unrestricted access.",
+        "usage": "Setup starts with `curl -LsSf https://raw.githubusercontent.com/NVIDIA/OpenShell/main/install.sh | sh`, which installs the CLI and a local gateway; `openshell sandbox create --name demo` then creates a sandbox, though the default image ships with no agent installed.",
+        "pros": "Enforcement happens at the kernel level, confining file access and system calls per sandbox and routing every network connection through a policy check, while agents never see raw credentials since OpenShell injects them only for requests to approved endpoints. Policy changes also undergo formal verification before approval, flagging risky new access such as new hosts or API methods for human review.",
+        "cons": "Running OpenShell requires Linux, macOS on Apple Silicon, or Windows with WSL 2, which is explicitly marked experimental, plus Docker, Podman, or host virtualization, suggesting platform support may still be maturing on some systems.",
+        "fit": "Given the 0.1.x release is described as introducing a new stable release cadence alongside new isolation primitives and APIs, OpenShell appears best suited for teams just adopting policy-governed agent sandboxes rather than those needing a long-established, fully mature tool."
       },
       "ko": {
-        "goal": "OpenShell은 자율 AI 에이전트 집합을 안전하고 비공개로 운영하기 위한 런타임으로 설명되며, 에이전트가 파일을 읽고 패키지를 설치하고 API를 호출하고 자격 증명을 사용할 수 있게 하되, 관리자가 선언한 정책을 OpenShell이 강제합니다.",
-        "usage": "설치는 curl -LsSf https://raw.githubusercontent.com/NVIDIA/OpenShell/main/install.sh | sh 명령으로 하고, openshell sandbox create --name demo 명령으로 샌드박스를 생성합니다. 설정해야 할 처리로 설일리는 CLI와 로컬 게이트웨이를 설정합니다.",
-        "pros": "커널 수준 강제 적용은 각 에이전트를 격리된 샌드박스에서 실행하여 접근 가능한 파일과 시스템 호출을 제한하고, 샌드박스를 벗어나기 전에 모든 네트워크 연결을 정책에 따라 검사합니다. 자격 증명은 에이전트에 노출되지 않고 승인된 요청에만 추가되며, 정책 변경은 형식 검증을 거쳐 위험한 접근을 사람이 검토하도록 표시합니다.",
-        "cons": "OpenShell을 실행하려면 Linux, Apple Silicon 기반 macOS, 또는 (실험적이라고 명시된) WSL 2가 설치된 Windows와 함께 Docker, Podman, 또는 호스트 가상화가 필요합니다. 기본 샌드박스 이미지에는 에이전트가 설정되어 있지 않아 실제 에이전트를 실행하려는 추가 설정이 필요할 가능성이 있습니다. 또한 README가 OpenShell 0.1.x를 새로운 안정적 릴리스 주기의 시작으로 소개하는 점은 이 프로젝트가 아직 비교적 초기 버전 단계일 수 있음을 시사합니다.",
-        "fit": "이는 자율 AI 에이전트의 파일, API, 자격 증명 접근을 정책으로 통제하고 감사하려는 팀에 적합해 보입니다. 다만 Kubernetes에 배포하려면 NetworkPolicy를 적용하는 CNI가 추가로 필요합니다."
+        "goal": "OpenShell는 자율 AI 에이전트 플릿이 관리자가 선언한 정책에 따라 파일 읽기, 패키지 설치, API 호출, 자격 증명 사용을 할 수 있도록 하는 런타임으로, 무제한 접근을 허용하는 대신 데이터·비밀·네트워크에 대한 에이전트 접근을 제한하는 것을 목표로 합니다.",
+        "usage": "설치는 `curl -LsSf https://raw.githubusercontent.com/NVIDIA/OpenShell/main/install.sh | sh` 명령으로 CLI와 로컬 게이트웨이를 설치하는 것으로 시작하며, 이어서 `openshell sandbox create --name demo` 명령으로 샌드박스를 생성합니다. 기본 이미지에는 에이전트가 설치되어 있지 않습니다.",
+        "pros": "커널 수준에서 각 샌드박스의 파일 접근과 시스템 호출을 제한하고 모든 네트워크 연결이 정책 검사를 거치며, 에이전트는 원본 자격 증명을 직접 보지 못하고 승인된 엔드포인트로 가는 요청에만 자격 증명이 주입됩니다. 또한 정책 변경은 승인 전에 정형 검증을 거쳐 새 호스트 접근이나 새 API 호출 같은 위험 요소를 사람이 검토하도록 표시합니다.",
+        "cons": "Linux, Apple Silicon macOS, 또는 WSL 2(실험적 지원)를 사용하는 Windows와 Docker·Podman·가상화 중 하나가 필요하여, 일부 플랫폼에서는 지원이 아직 성숙하지 않을 수 있습니다.",
+        "fit": "0.1.x 버전이 새로운 안정 릴리스 주기와 격리 기법, API 확장을 도입했다고 설명되어 있어, 이미 성숙한 도구보다는 정책 기반 에이전트 샌드박스를 막 도입하려는 팀에 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "OpenShell 被描述为一个用于安全、私密地运行大规模自主 AI 代理的运行时,使代理能够读取文件、安装软件包、调用 API 并使用凭据,同时由管理员声明的策略来约束,并由 OpenShell 强制执行。",
-        "usage": "安装方式为运行 curl -LsSf https://raw.githubusercontent.com/NVIDIA/OpenShell/main/install.sh | sh,然后使用 openshell sandbox create --name demo 创建沙箱;安装程序会设置 CLI 和本地网关。",
-        "pros": "内核级强制执行将每个代理隔离在独立沙箱中,限制其可访问的文件和可调用的系统调用,并在网络连接离开沙箱前依据策略进行检查;凭据不会暴露给代理,而是由 OpenShell 直接添加到已批准的请求中,且策略变更需经过形式化验证以标记高风险访问供人工审查。",
-        "cons": "运行 OpenShell 需要 Linux、搭载 Apple Silicon 的 macOS,或带有 WSL 2(标注为实验性)的 Windows,并需配合 Docker、Podman 或主机虚拟化;默认沙箱镜像未预装任何代理,运行真实代理可能需要额外设置。此外,README 将 OpenShell 0.1.x 描述为引入新的稳定发行节奏,这暗示该项目在版本演进上可能仍处于相对早期阶段。",
-        "fit": "该项目似乎更适合需要对自主 AI 代理访问文件、API 和凭据进行可审计策略控制的团队;若部署在 Kubernetes 上,还需要 CNI 支持强制执行 NetworkPolicy。"
+        "goal": "OpenShell 是一个运行时,旨在让自治 AI 代理群组按照管理员声明的策略读取文件、安装软件包、调用 API 和使用凭据,从而限制代理对数据、密钥和网络的访问,而不是赋予其不受限制的访问权限。",
+        "usage": "安装从执行 `curl -LsSf https://raw.githubusercontent.com/NVIDIA/OpenShell/main/install.sh | sh` 开始,该命令会安装 CLI 和本地网关;随后使用 `openshell sandbox create --name demo` 创建沙箱。默认镜像不包含任何已安装的代理。",
+        "pros": "内核级机制限制每个沙箱可访问的文件和可执行的系统调用,并对每个网络连接进行策略检查,代理本身不会看到真实凭据,凭据仅在请求发往已批准的端点时才被注入。此外,策略变更在获批前会经过形式化验证,标记出诸如访问新主机或调用新 API 方法等风险访问,交由人工审核。",
+        "cons": "运行需要 Linux、Apple Silicon 版 macOS,或带 WSL 2(实验性支持)的 Windows,并需配合 Docker、Podman 或主机虚拟化,这表明在部分平台上的支持可能仍不够成熟。",
+        "fit": "文档将 0.1.x 描述为引入了新的稳定发布节奏、隔离机制和扩展 API,这似乎更适合刚开始采用基于策略的代理沙箱的团队,而非需要长期成熟工具的团队。"
       },
       "es": {
-        "goal": "OpenShell se describe como un entorno de ejecución para operar flotas de agentes de IA autónomos de forma segura y privada, permitiéndoles leer archivos, instalar paquetes, llamar a APIs y usar credenciales, bajo políticas que los administradores declaran y que OpenShell hace cumplir.",
-        "usage": "La instalación se realiza con curl -LsSf https://raw.githubusercontent.com/NVIDIA/OpenShell/main/install.sh | sh, y luego se crea un sandbox con openshell sandbox create --name demo; el instalador configura la CLI y una puerta de enlace local.",
-        "pros": "La aplicación a nivel de kernel aísla a cada agente en su propio sandbox, restringiendo los archivos y llamadas al sistema a los que puede acceder, y verifica cada conexión de red contra la política antes de que salga del sandbox; las credenciales no se exponen a los agentes, sino que OpenShell las añade directamente a las solicitudes aprobadas, y los cambios de política pasan por verificación formal para señalar accesos riesgosos a revisión humana.",
-        "cons": "Ejecutar OpenShell requiere Linux, macOS en Apple Silicon, o Windows con WSL 2 (señalado como experimental), además de Docker, Podman o virtualización del host; la imagen de sandbox predeterminada no incluye ningún agente instalado, por lo que probablemente se necesite configuración adicional para ejecutar un agente real. Además, que el README presente OpenShell 0.1.x como el inicio de una cadencia de lanzamientos estable sugiere que el proyecto podría estar todavía en una etapa relativamente temprana de versionado.",
-        "fit": "Parece adecuado para equipos que necesitan control de políticas auditable sobre el acceso de agentes de IA autónomos a archivos, APIs y credenciales; los despliegues en Kubernetes requieren además un CNI que aplique NetworkPolicy."
+        "goal": "OpenShell es un entorno de ejecución pensado para que flotas de agentes de IA autónomos lean archivos, instalen paquetes, llamen a APIs y usen credenciales según una política declarada por el administrador, con el objetivo de limitar el acceso de los agentes a datos, secretos y red en lugar de otorgar acceso sin restricciones.",
+        "usage": "La instalación comienza ejecutando `curl -LsSf https://raw.githubusercontent.com/NVIDIA/OpenShell/main/install.sh | sh`, que instala la CLI y un gateway local; luego `openshell sandbox create --name demo` crea un sandbox. La imagen de sandbox predeterminada no incluye ningún agente instalado.",
+        "pros": "La aplicación a nivel de kernel limita qué archivos y llamadas al sistema puede usar cada sandbox, y cada conexión de red pasa por una verificación de política; los agentes nunca ven las credenciales reales, que OpenShell solo inyecta en solicitudes dirigidas a endpoints aprobados. Además, los cambios de política pasan por verificación formal antes de aprobarse, señalando accesos riesgosos nuevos, como un host nuevo o un método de API nuevo, para revisión humana.",
+        "cons": "Ejecutarlo requiere Linux, macOS en Apple Silicon, o Windows con WSL 2 (marcado como experimental), junto con Docker, Podman o virtualización de host, lo que sugiere que el soporte en algunas plataformas aún podría estar madurando.",
+        "fit": "Dado que la versión 0.1.x se describe como la introducción de una nueva cadencia de lanzamientos estables junto con nuevas primitivas de aislamiento y APIs, OpenShell parece más adecuado para equipos que recién adoptan sandboxes de agentes gobernados por políticas que para quienes buscan una herramienta ya muy madura."
       },
       "ja": {
-        "goal": "OpenShellは、自律的なAIエージェント群を安全かつプライベートに運用するためのランタイムとして説明されており、エージェントがファイルを読み取り、パッケージをインストールし、APIを呼び出し、認証情報を使用できるようにしつつ、管理者が宣言したポリシーをOpenShellが強制します。",
-        "usage": "インストールは curl -LsSf https://raw.githubusercontent.com/NVIDIA/OpenShell/main/install.sh | sh を実行し、その後 openshell sandbox create --name demo でサンドボックスを作成します。インストーラーはCLIとローカルゲートウェイを設定します。",
-        "pros": "カーネルレベルの強制により各エージェントは独立したサンドボックスで実行され、アクセス可能なファイルやシステムコールが制限され、ネットワーク接続はサンドボックスを離れる前にポリシーに照らして検査されます。認証情報はエージェントに直接公開されず、承認済みのリクエストにのみOpenShellが追加し、ポリシー変更は形式検証を経てリスクのあるアクセスを人間によるレビューに回します。",
-        "cons": "OpenShellの実行には、Linux、Apple Silicon搭載のmacOS、またはWSL 2(実験的と記載)を備えたWindowsに加え、Docker、Podman、またはホスト仮想化が必要です。デフォルトのサンドボックスイメージにはエージェントがインストールされていないため、実際のエージェントを動かすには追加のセットアップが必要になる可能性があります。また、READMEがOpenShell 0.1.xを新しい安定版リリースサイクルの開始として紹介していることから、このプロジェクトはバージョン管理上まだ比較的初期の段階にある可能性がうかがえます。",
-        "fit": "自律AIエージェントによるファイル、API、認証情報へのアクセスを監査可能な形でポリシー管理したいチームに適していると考えられます。Kubernetesへのデプロイには、NetworkPolicyを強制するCNIが別途必要です。"
+        "goal": "OpenShellは、自律的なAIエージェント群が管理者が宣言したポリシーに従ってファイルの読み取り、パッケージのインストール、API呼び出し、資格情報の利用を行えるようにするランタイムで、無制限のアクセスを与える代わりにデータ・シークレット・ネットワークへのアクセスを制限することを目的としています。",
+        "usage": "導入は `curl -LsSf https://raw.githubusercontent.com/NVIDIA/OpenShell/main/install.sh | sh` を実行してCLIとローカルゲートウェイをインストールすることから始まり、続いて `openshell sandbox create --name demo` でサンドボックスを作成します。デフォルトのサンドボックスイメージにはエージェントがインストールされていません。",
+        "pros": "カーネルレベルの制御により各サンドボックスがアクセスできるファイルやシステムコールが制限され、すべてのネットワーク接続がポリシーチェックを通過します。エージェントは実際の資格情報を直接見ることはなく、承認済みのエンドポイント宛てのリクエストにのみ資格情報が付与されます。さらに、ポリシー変更は承認前に形式検証を受け、新しいホストへのアクセスや新しいAPIメソッドの呼び出しといったリスクのある変更は人間によるレビュー待ちとなります。",
+        "cons": "動作にはLinux、Apple Silicon搭載macOS、またはWSL 2(実験的サポート)を使用するWindowsに加え、Docker、Podman、またはホスト仮想化が必要であり、一部のプラットフォームではサポートがまだ成熟していない可能性があることを示しています。",
+        "fit": "0.1.x系では新しい安定リリースサイクルや分離プリミティブ、拡張APIが導入されたと説明されていることから、OpenShellは既に成熟したツールを求めるチームよりも、ポリシーに基づくエージェントサンドボックスを新たに導入しようとするチームに適していると考えられます。"
       }
     },
     "evidence": {
@@ -5400,7 +5368,7 @@
           "section_heading": "Quickstart"
         },
         {
-          "start_line": 39,
+          "start_line": 38,
           "end_line": 39,
           "section_heading": "Quickstart"
         }
@@ -5419,30 +5387,15 @@
       ],
       "cons": [
         {
-          "start_line": 16,
-          "end_line": 17,
-          "section_heading": ""
-        },
-        {
           "start_line": 32,
           "end_line": 32,
-          "section_heading": "Quickstart"
-        },
-        {
-          "start_line": 39,
-          "end_line": 39,
           "section_heading": "Quickstart"
         }
       ],
       "fit": [
         {
-          "start_line": 47,
-          "end_line": 47,
-          "section_heading": "Explore Further"
-        },
-        {
-          "start_line": 19,
-          "end_line": 19,
+          "start_line": 16,
+          "end_line": 17,
           "section_heading": ""
         }
       ]
@@ -5466,7 +5419,7 @@
         "kind": "version",
         "value": "0.1.x",
         "fields": [
-          "cons"
+          "fit"
         ]
       },
       {
@@ -5475,7 +5428,9 @@
         "fields": [
           "goal",
           "usage",
-          "cons"
+          "pros",
+          "cons",
+          "fit"
         ]
       }
     ],
@@ -5487,8 +5442,8 @@
       "kind": "readme",
       "slug": "nvidia/openshell",
       "path": "README.md",
-      "blob_sha": "43f887bb95b3b3a1846033d0d10ce89b839ea7d7",
-      "content_sha256": "dde6cc9289269624c10c49f040a9c4395d08f2f91299097747ea31ef21a06103",
+      "blob_sha": "e0aaa43641b41a8e7cd4a2f8ffcb345a356e754b",
+      "content_sha256": "b28bf8191159a5ceb4800f30f44ba5979e7900e87975f8fbcf81e10f40c88883",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.292",
@@ -6468,98 +6423,98 @@
   },
   "cursor/plugins": {
     "content": {
-      "goal": "This repository (cursor/plugins) is a marketplace of official Cursor plugins that extend Cursor with integrations for developer tools, frameworks, and SaaS products such as GitHub, Google Workspace, and Salesforce, each plugin living in its own directory with its own manifest.",
-      "usage": "Each plugin folder contains a .cursor-plugin/plugin.json manifest, and the root .cursor-plugin/marketplace.json file lists every plugin for the marketplace; the README does not document separate install or run commands beyond this manifest-based structure.",
-      "pros": "The catalog spans over 90 plugins across categories like Developer Tools, Productivity, and Integrations, covering tools such as GitHub, Gmail, Salesforce, and Playwright; the standalone per-plugin directory structure keeps each plugin's skills, rules, and MCP server definitions self-contained; the project is released under the MIT license.",
-      "cons": "Since each plugin is defined through Cursor-specific .cursor-plugin manifests, using any plugin appears to presuppose having Cursor installed as the host product, something the README does not explicitly restate beyond calling these 'Official Cursor plugins'.",
-      "fit": "This repository seems best suited for Cursor users seeking ready-made integrations with third-party SaaS and developer tools, rather than for users of other editors or standalone automation needs."
+      "goal": "cursor/plugins is a repository of official Cursor plugins for popular developer tools, frameworks, and SaaS products. Each plugin lives in its own directory with a `.cursor-plugin/plugin.json` manifest, covering categories such as Developer Tools, Productivity, and Integrations (e.g. Gmail, GitHub, Salesforce, QuickBooks Online).",
+      "usage": "The repository is structured as a multi-plugin marketplace: a root `.cursor-plugin/marketplace.json` lists all plugins, and each plugin directory contains its own `.cursor-plugin/plugin.json`, along with optional `skills/`, `rules/`, `mcp.json`, `README.md`, `CHANGELOG.md`, and `LICENSE`. No explicit install/run commands are documented in this README.",
+      "pros": "It aggregates a very large number of plugins (over 90 listed) spanning productivity, finance, CRM, communication, and developer-tool integrations, each with a short marketplace description and consistent manifest structure.",
+      "cons": "The README does not document installation steps, version requirements, or configuration details for individual plugins; some entries (e.g. Salesforce Headless 360) are explicitly marked Beta, suggesting varying maturity across plugins.",
+      "fit": "This suits teams or individuals using Cursor who want a centralized catalog of third-party and first-party integrations; it is likely less useful as a standalone tool outside the Cursor plugin ecosystem, though the README does not explicitly state platform dependency requirements."
     },
     "summaries": {
       "en": {
-        "goal": "This repository (cursor/plugins) is a marketplace of official Cursor plugins that extend Cursor with integrations for developer tools, frameworks, and SaaS products such as GitHub, Google Workspace, and Salesforce, each plugin living in its own directory with its own manifest.",
-        "usage": "Each plugin folder contains a .cursor-plugin/plugin.json manifest, and the root .cursor-plugin/marketplace.json file lists every plugin for the marketplace; the README does not document separate install or run commands beyond this manifest-based structure.",
-        "pros": "The catalog spans over 90 plugins across categories like Developer Tools, Productivity, and Integrations, covering tools such as GitHub, Gmail, Salesforce, and Playwright; the standalone per-plugin directory structure keeps each plugin's skills, rules, and MCP server definitions self-contained; the project is released under the MIT license.",
-        "cons": "Since each plugin is defined through Cursor-specific .cursor-plugin manifests, using any plugin appears to presuppose having Cursor installed as the host product, something the README does not explicitly restate beyond calling these 'Official Cursor plugins'.",
-        "fit": "This repository seems best suited for Cursor users seeking ready-made integrations with third-party SaaS and developer tools, rather than for users of other editors or standalone automation needs."
+        "goal": "cursor/plugins is a repository of official Cursor plugins for popular developer tools, frameworks, and SaaS products. Each plugin lives in its own directory with a `.cursor-plugin/plugin.json` manifest, covering categories such as Developer Tools, Productivity, and Integrations (e.g. Gmail, GitHub, Salesforce, QuickBooks Online).",
+        "usage": "The repository is structured as a multi-plugin marketplace: a root `.cursor-plugin/marketplace.json` lists all plugins, and each plugin directory contains its own `.cursor-plugin/plugin.json`, along with optional `skills/`, `rules/`, `mcp.json`, `README.md`, `CHANGELOG.md`, and `LICENSE`. No explicit install/run commands are documented in this README.",
+        "pros": "It aggregates a very large number of plugins (over 90 listed) spanning productivity, finance, CRM, communication, and developer-tool integrations, each with a short marketplace description and consistent manifest structure.",
+        "cons": "The README does not document installation steps, version requirements, or configuration details for individual plugins; some entries (e.g. Salesforce Headless 360) are explicitly marked Beta, suggesting varying maturity across plugins.",
+        "fit": "This suits teams or individuals using Cursor who want a centralized catalog of third-party and first-party integrations; it is likely less useful as a standalone tool outside the Cursor plugin ecosystem, though the README does not explicitly state platform dependency requirements."
       },
       "ko": {
-        "goal": "이 저장소(cursor/plugins)는 Cursor를 위한 공식 플러그인 마켓플레이스로, GitHub, Google Workspace, Salesforce 등 다양한 개발자 도구, 프레임워크, SaaS 제품과의 통합을 제공하며 각 플러그인은 자체 매니페스트를 가진 독립된 디렉터리로 구성됩니다.",
-        "usage": "각 플러그인 폴더에는 .cursor-plugin/plugin.json 매니페스트가 있고, 루트의 .cursor-plugin/marketplace.json 파일이 모든 플러그인을 마켓플레이스 목록으로 나열합니다. README에는 이 매니페스트 기반 구조 외에 별도의 설치나 실행 명령은 문서화되어 있지 않습니다.",
-        "pros": "GitHub, Gmail, Salesforce, Playwright 등 Developer Tools, Productivity, Integrations 범주에 걸친 90개 이상의 플러그인 카탈로그를 제공하며, 플러그인별 독립 디렉터리 구조는 skills, rules, MCP 서버 정의를 자체적으로 포함하도록 유지하고, MIT 라이선스로 배포됩니다.",
-        "cons": "각 플러그인이 Cursor 전용 .cursor-plugin 매니페스트로 정의되어 있어, 플러그인을 사용하려면 호스트 제품인 Cursor가 설치되어 있어야 하는 것으로 보이며, README는 이를 '공식 Cursor 플러그인'이라고 부르는 것 외에 명시적으로 재언급하지는 않습니다.",
-        "fit": "이 저장소는 다른 에디터 사용자나 독립형 자동화가 필요한 경우보다는, 서드파티 SaaS 및 개발자 도구와의 즉시 사용 가능한 통합을 원하는 Cursor 사용자에게 적합해 보입니다."
+        "goal": "cursor/plugins는 인기 있는 개발자 도구, 프레임워크, SaaS 제품을 위한 공식 Cursor 플러그인 모음 저장소입니다. 각 플러그인은 `.cursor-plugin/plugin.json` 매니페스트를 가진 독립 디렉터리로 구성되며, Developer Tools, Productivity, Integrations 등의 카테고리(Gmail, GitHub, Salesforce, QuickBooks Online 등)를 포함합니다.",
+        "usage": "저장소는 멀티 플러그인 마켓플레이스 구조로, 루트의 `.cursor-plugin/marketplace.json`이 전체 플러그인 목록을 담고, 각 플러그인 디렉터리는 자체 `.cursor-plugin/plugin.json`과 선택적으로 `skills/`, `rules/`, `mcp.json`, `README.md`, `CHANGELOG.md`, `LICENSE`를 포함합니다. 이 README에는 별도의 설치나 실행 명령이 명시되어 있지 않습니다.",
+        "pros": "생산성, 금융, CRM, 커뮤니케이션, 개발자 도구 통합 등 90개 이상의 플러그인을 목록화하고 있으며, 각 항목은 마켓플레이스용 짧은 설명과 일관된 매니페스트 구조를 갖추고 있습니다.",
+        "cons": "README에는 개별 플러그인의 설치 절차, 버전 요구사항, 구성 세부 정보가 문서화되어 있지 않으며, Salesforce Headless 360처럼 Beta로 명시된 항목도 있어 플러그인 간 성숙도가 다를 수 있음을 시사합니다.",
+        "fit": "Cursor를 사용하는 팀이나 개인이 서드파티 및 자체 통합을 한곳에서 찾아보려는 경우에 적합해 보이며, Cursor 플러그인 생태계 밖에서 독립적으로 활용하기에는 적합성이 낮을 수 있으나, README에 플랫폼 종속성에 대한 명시적 언급은 없습니다."
       },
       "zh-CN": {
-        "goal": "该仓库(cursor/plugins)是 Cursor 的官方插件市场,提供与 GitHub、Google Workspace、Salesforce 等众多开发者工具、框架和 SaaS 产品的集成,每个插件都位于拥有自己清单文件的独立目录中。",
-        "usage": "每个插件目录都包含一个 .cursor-plugin/plugin.json 清单文件,根目录下的 .cursor-plugin/marketplace.json 文件列出所有插件以供市场使用;README 中除了这种基于清单的结构外,没有记录其他单独的安装或运行命令。",
-        "pros": "该目录涵盖 Developer Tools、Productivity、Integrations 等类别下超过 90 个插件,包括 GitHub、Gmail、Salesforce、Playwright 等工具;每个插件独立的目录结构使其 skills、rules 和 MCP 服务器定义保持自成一体;项目以 MIT 许可证发布。",
-        "cons": "由于每个插件都通过 Cursor 专用的 .cursor-plugin 清单定义,使用任何插件似乎都需要预先安装作为宿主产品的 Cursor,而 README 除了称这些为“官方 Cursor 插件”之外并未明确重申这一点。",
-        "fit": "该仓库似乎更适合希望获得与第三方 SaaS 和开发者工具的现成集成的 Cursor 用户,而不太适合其他编辑器用户或独立自动化需求。"
+        "goal": "cursor/plugins 是一个为流行开发者工具、框架和 SaaS 产品提供官方 Cursor 插件的仓库。每个插件位于独立目录中,带有 `.cursor-plugin/plugin.json` 清单文件,涵盖 Developer Tools、Productivity、Integrations 等类别(例如 Gmail、GitHub、Salesforce、QuickBooks Online)。",
+        "usage": "该仓库采用多插件市场结构:根目录的 `.cursor-plugin/marketplace.json` 列出所有插件,每个插件目录包含自己的 `.cursor-plugin/plugin.json`,并可能包含 `skills/`、`rules/`、`mcp.json`、`README.md`、`CHANGELOG.md` 和 `LICENSE`。此 README 未记录具体的安装或运行命令。",
+        "pros": "该仓库汇集了超过 90 个插件,覆盖生产力、金融、CRM、通信和开发者工具集成等领域,每个条目都附有简短的市场描述和统一的清单结构。",
+        "cons": "README 未说明各插件的安装步骤、版本要求或配置细节;部分条目(如 Salesforce Headless 360)被明确标注为 Beta,这表明不同插件的成熟度可能存在差异。",
+        "fit": "这适合使用 Cursor 的团队或个人,希望集中查找第三方及官方集成;但在 Cursor 插件生态之外作为独立工具使用的适用性可能较低,不过 README 并未明确说明平台依赖要求。"
       },
       "es": {
-        "goal": "Este repositorio (cursor/plugins) es un mercado de complementos oficiales para Cursor que ofrece integraciones con numerosas herramientas de desarrollo, frameworks y productos SaaS como GitHub, Google Workspace y Salesforce, donde cada complemento reside en su propio directorio con su propio manifiesto.",
-        "usage": "Cada carpeta de complemento contiene un manifiesto .cursor-plugin/plugin.json, y el archivo raíz .cursor-plugin/marketplace.json enumera todos los complementos del mercado; el README no documenta comandos de instalación o ejecución separados más allá de esta estructura basada en manifiestos.",
-        "pros": "El catálogo abarca más de 90 complementos en categorías como Developer Tools, Productivity e Integrations, incluyendo herramientas como GitHub, Gmail, Salesforce y Playwright; la estructura de directorio independiente por complemento mantiene sus skills, rules y definiciones de servidor MCP autocontenidas; el proyecto se publica bajo licencia MIT.",
-        "cons": "Dado que cada complemento se define mediante manifiestos .cursor-plugin específicos de Cursor, usar cualquier complemento parece presuponer tener instalado Cursor como producto anfitrión, algo que el README no reitera explícitamente más allá de llamarlos 'complementos oficiales de Cursor'.",
-        "fit": "Este repositorio parece más adecuado para usuarios de Cursor que buscan integraciones listas para usar con herramientas SaaS y de desarrollo de terceros, más que para usuarios de otros editores o necesidades de automatización independiente."
+        "goal": "cursor/plugins es un repositorio de plugins oficiales de Cursor para herramientas de desarrollo, frameworks y productos SaaS populares. Cada plugin reside en su propio directorio con un manifiesto `.cursor-plugin/plugin.json`, abarcando categorías como Developer Tools, Productivity e Integrations (por ejemplo, Gmail, GitHub, Salesforce, QuickBooks Online).",
+        "usage": "El repositorio se organiza como un mercado multi-plugin: un `.cursor-plugin/marketplace.json` en la raíz enumera todos los plugins, y cada directorio de plugin contiene su propio `.cursor-plugin/plugin.json`, junto con posibles `skills/`, `rules/`, `mcp.json`, `README.md`, `CHANGELOG.md` y `LICENSE`. Este README no documenta comandos explícitos de instalación o ejecución.",
+        "pros": "Reúne una gran cantidad de plugins (más de 90 listados) que abarcan integraciones de productividad, finanzas, CRM, comunicación y herramientas de desarrollo, cada uno con una breve descripción de marketplace y una estructura de manifiesto coherente.",
+        "cons": "El README no documenta pasos de instalación, requisitos de versión ni detalles de configuración para los plugins individuales; algunas entradas (como Salesforce Headless 360) están marcadas explícitamente como Beta, lo que sugiere niveles de madurez variables entre plugins.",
+        "fit": "Esto resulta adecuado para equipos o personas que usan Cursor y desean un catálogo centralizado de integraciones propias y de terceros; probablemente sea menos útil como herramienta independiente fuera del ecosistema de plugins de Cursor, aunque el README no indica explícitamente requisitos de dependencia de plataforma."
       },
       "ja": {
-        "goal": "このリポジトリ(cursor/plugins)は、Cursor向けの公式プラグインマーケットプレイスであり、GitHub、Google Workspace、Salesforceなど多数の開発者ツール、フレームワーク、SaaS製品との統合を提供し、各プラグインは独自のマニフェストを持つ独立したディレクトリに配置されています。",
-        "usage": "各プラグインのディレクトリには.cursor-plugin/plugin.jsonマニフェストが含まれ、ルートの.cursor-plugin/marketplace.jsonファイルがマーケットプレイス向けに全プラグインを一覧化します。READMEには、このマニフェストベースの構造以外の個別のインストールや実行コマンドは記載されていません。",
-        "pros": "カタログにはDeveloper Tools、Productivity、Integrationsなどのカテゴリにわたり90以上のプラグインが含まれ、GitHub、Gmail、Salesforce、Playwrightなどのツールを網羅しています。プラグインごとの独立したディレクトリ構造により、skills、rules、MCPサーバー定義が自己完結的に保たれ、プロジェクトはMITライセンスで公開されています。",
-        "cons": "各プラグインはCursor専用の.cursor-pluginマニフェストで定義されているため、プラグインを使用するにはホスト製品であるCursorがインストールされていることが前提になると思われますが、READMEは「公式Cursorプラグイン」と呼ぶ以外にこの点を明示的には再確認していません。",
-        "fit": "このリポジトリは、他のエディタの利用者や独立したオートメーションを求めるユーザーよりも、サードパーティのSaaSや開発者ツールとの既製の統合を求めるCursorユーザーに適していると考えられます。"
+        "goal": "cursor/plugins は、人気の開発者向けツール、フレームワーク、SaaS製品向けの公式Cursorプラグインをまとめたリポジトリです。各プラグインは `.cursor-plugin/plugin.json` マニフェストを持つ独自のディレクトリに配置され、Developer Tools、Productivity、Integrations などのカテゴリ(Gmail、GitHub、Salesforce、QuickBooks Onlineなど)を含みます。",
+        "usage": "このリポジトリはマルチプラグイン型マーケットプレイス構造で、ルートの `.cursor-plugin/marketplace.json` が全プラグインを一覧化し、各プラグインディレクトリには独自の `.cursor-plugin/plugin.json` と、場合によって `skills/`、`rules/`、`mcp.json`、`README.md`、`CHANGELOG.md`、`LICENSE` が含まれます。このREADMEには明示的なインストールや実行コマンドは記載されていません。",
+        "pros": "生産性、金融、CRM、コミュニケーション、開発者向けツール統合など、90件を超えるプラグインを集約しており、各項目には短いマーケットプレイス向けの説明と一貫したマニフェスト構造が備わっています。",
+        "cons": "READMEには個々のプラグインのインストール手順、バージョン要件、設定の詳細が記載されておらず、一部の項目(Salesforce Headless 360など)は明示的にBetaと記されているため、プラグイン間で成熟度に差がある可能性が示唆されます。",
+        "fit": "Cursorを利用するチームや個人が、サードパーティおよび自社統合を一元的に探したい場合に適していると考えられますが、Cursorプラグインのエコシステム外では単独ツールとしての有用性は低い可能性があります。ただし、READMEにはプラットフォーム依存に関する明示的な記載はありません。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 1,
-          "end_line": 4,
+          "end_line": 3,
           "section_heading": "Cursor plugins"
         },
         {
           "start_line": 9,
-          "end_line": 101,
+          "end_line": 12,
           "section_heading": "Plugins"
         }
       ],
       "usage": [
         {
-          "start_line": 104,
-          "end_line": 122,
+          "start_line": 105,
+          "end_line": 123,
           "section_heading": "Repository structure"
         }
       ],
       "pros": [
         {
           "start_line": 9,
-          "end_line": 101,
+          "end_line": 102,
           "section_heading": "Plugins"
-        },
-        {
-          "start_line": 124,
-          "end_line": 126,
-          "section_heading": "License"
         }
       ],
       "cons": [
         {
-          "start_line": 1,
-          "end_line": 4,
-          "section_heading": "Cursor plugins"
+          "start_line": 34,
+          "end_line": 34,
+          "section_heading": "Plugins"
+        },
+        {
+          "start_line": 105,
+          "end_line": 123,
+          "section_heading": "Repository structure"
         }
       ],
       "fit": [
         {
           "start_line": 1,
-          "end_line": 4,
+          "end_line": 3,
           "section_heading": "Cursor plugins"
         },
         {
-          "start_line": 9,
-          "end_line": 101,
-          "section_heading": "Plugins"
+          "start_line": 107,
+          "end_line": 107,
+          "section_heading": "Repository structure"
         }
       ]
     },
@@ -6570,8 +6525,51 @@
         "fields": [
           "goal",
           "usage",
-          "cons",
           "fit"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": ".cursor-plugin/marketplace.json",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": ".cursor-plugin/plugin.json",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Gmail",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "GitHub",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Salesforce",
+        "fields": [
+          "goal",
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "QuickBooks Online",
+        "fields": [
+          "goal"
         ]
       }
     ],
@@ -6583,8 +6581,8 @@
       "kind": "readme",
       "slug": "cursor/plugins",
       "path": "README.md",
-      "blob_sha": "61eca8bafea41374c1c7a1c33e032e49690e0556",
-      "content_sha256": "eb6be2e7bccf8bd2cc7ee77c26993d879e256572f5ae4e3bc6a90bc2e7a5bcb5",
+      "blob_sha": "b42a644694c863f033354b8f85802269edfa6782",
+      "content_sha256": "0446e3e6c5c47ad38cd92c37e64c0335a5ea24c89152dcbba4c3ef2a4ef127f6",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.292",
@@ -7007,89 +7005,84 @@
   },
   "Gaurav-Gosain/tuios": {
     "content": {
-      "goal": "TUIOS (Terminal UI Operating System) is described as a modern terminal multiplexer and window manager built in Go, offering a vim-like modal interface, multiple terminal panes, workspaces, BSP tiling, and kitty graphics protocol support, with a daemon that keeps sessions alive and lets coding agents running in panes report their state and message each other.",
-      "usage": "The README documents installing it via `brew install tuios` or `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest`, then launching the terminal UI by running `tuios`.",
-      "pros": "It is built on the Charm stack (Bubble Tea v2, Lipgloss v2) and documented with event-driven rendering intended for near-zero idle CPU usage and flicker-free kitty image passthrough, along with BSP tiling and agent-state visibility across panes.",
-      "cons": "Building from source reportedly requires Go 1.26.6 or newer, and a true-color-capable terminal is stated as a requirement, with kitty graphics/sixel support only recommended rather than guaranteed; sixel passthrough is also marked experimental without pixel-level clipping yet.",
-      "fit": "Based on the description, tuios appears suited to terminal/CLI users wanting a tmux-like multiplexer combined with window-manager features and visibility into coding-agent activity, though actual fit likely depends on terminal capabilities and Go toolchain availability."
+      "goal": "TUIOS (Terminal UI Operating System) is a terminal multiplexer and window manager written in Go. It provides a vim-like modal interface with multiple terminal panes, workspaces, BSP tiling, kitty graphics protocol support, and a command palette, built on the Charm stack (Bubble Tea v2, Lipgloss v2). A background daemon keeps sessions alive and can reach sessions on other machines.",
+      "usage": "Install via Homebrew with `brew install tuios` (other documented options include a quick install script, `go install`, Docker, package managers for Arch/Nix, and prebuilt GitHub release binaries). After installing, run `tuios` to launch the application, which attaches to a daemon-backed session so it outlives the terminal window it started in.",
+      "pros": "Documented features include multiple resizable/draggable terminal panes, 9 independent workspaces, a fuzzy-searchable command palette, BSP/master-stack/scrolling tiling layouts, and event-driven rendering described as giving near-zero idle CPU usage. Daemon-based session persistence lets sessions survive restarts or reboots.",
+      "cons": "Building TUIOS from source reportedly requires Go 1.26.6 or newer, suggesting users without a recent Go toolchain may need to rely on prebuilt binaries or package managers instead. The README also recommends a terminal with true color and kitty graphics/sixel support, implying older or minimal terminals may not render all visual features correctly.",
+      "fit": "Given its described feature set, TUIOS appears aimed at terminal users wanting an integrated session/window manager with persistent, remotely reachable sessions, which may suit developers running long-lived terminal workflows or coding agents more than users needing a minimal, dependency-light terminal setup."
     },
     "summaries": {
       "en": {
-        "goal": "TUIOS (Terminal UI Operating System) is described as a modern terminal multiplexer and window manager built in Go, offering a vim-like modal interface, multiple terminal panes, workspaces, BSP tiling, and kitty graphics protocol support, with a daemon that keeps sessions alive and lets coding agents running in panes report their state and message each other.",
-        "usage": "The README documents installing it via `brew install tuios` or `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest`, then launching the terminal UI by running `tuios`.",
-        "pros": "It is built on the Charm stack (Bubble Tea v2, Lipgloss v2) and documented with event-driven rendering intended for near-zero idle CPU usage and flicker-free kitty image passthrough, along with BSP tiling and agent-state visibility across panes.",
-        "cons": "Building from source reportedly requires Go 1.26.6 or newer, and a true-color-capable terminal is stated as a requirement, with kitty graphics/sixel support only recommended rather than guaranteed; sixel passthrough is also marked experimental without pixel-level clipping yet.",
-        "fit": "Based on the description, tuios appears suited to terminal/CLI users wanting a tmux-like multiplexer combined with window-manager features and visibility into coding-agent activity, though actual fit likely depends on terminal capabilities and Go toolchain availability."
+        "goal": "TUIOS (Terminal UI Operating System) is a terminal multiplexer and window manager written in Go. It provides a vim-like modal interface with multiple terminal panes, workspaces, BSP tiling, kitty graphics protocol support, and a command palette, built on the Charm stack (Bubble Tea v2, Lipgloss v2). A background daemon keeps sessions alive and can reach sessions on other machines.",
+        "usage": "Install via Homebrew with `brew install tuios` (other documented options include a quick install script, `go install`, Docker, package managers for Arch/Nix, and prebuilt GitHub release binaries). After installing, run `tuios` to launch the application, which attaches to a daemon-backed session so it outlives the terminal window it started in.",
+        "pros": "Documented features include multiple resizable/draggable terminal panes, 9 independent workspaces, a fuzzy-searchable command palette, BSP/master-stack/scrolling tiling layouts, and event-driven rendering described as giving near-zero idle CPU usage. Daemon-based session persistence lets sessions survive restarts or reboots.",
+        "cons": "Building TUIOS from source reportedly requires Go 1.26.6 or newer, suggesting users without a recent Go toolchain may need to rely on prebuilt binaries or package managers instead. The README also recommends a terminal with true color and kitty graphics/sixel support, implying older or minimal terminals may not render all visual features correctly.",
+        "fit": "Given its described feature set, TUIOS appears aimed at terminal users wanting an integrated session/window manager with persistent, remotely reachable sessions, which may suit developers running long-lived terminal workflows or coding agents more than users needing a minimal, dependency-light terminal setup."
       },
       "ko": {
-        "goal": "TUIOS(Terminal UI Operating System)는 Go로 작성된 터미널 멀티플렉서 및 윈도우 매니저로 소개되며, vim 스타일의 모달 인터페이스, 다중 터미널 패널, 작업공간, BSP 타일링, kitty 그래픽 프로토콜 지원을 제공하고, 세션을 유지하며 패널 안의 코딩 에이전트가 상태를 보고하고 서로 메시지를 주고받을 수 있게 하는 데몬을 갖추고 있다고 문서화되어 있습니다.",
-        "usage": "README에는 `brew install tuios` 또는 `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest` 명령으로 설치한 뒤 `tuios` 명령으로 터미널 UI를 실행하는 방법이 설명되어 있습니다.",
-        "pros": "Charm 스택(Bubble Tea v2, Lipgloss v2) 위에 구축되었으며, 유휴 상태에서 CPU 사용량을 거의 0에 가깝게 유지하도록 설계된 이벤트 기반 렌더링과 깜빡임 없는 kitty 이미지 패스스루, 그리고 BSP 타일링과 패널 간 에이전트 상태 가시성 기능이 문서화되어 있습니다.",
-        "cons": "소스에서 빌드하려면 Go 1.26.6 이상이 필요하다고 명시되어 있으며, 트루컬러를 지원하는 터미널이 요구 사항으로 언급되고, kitty 그래픽/sixel 지원은 보장이 아닌 권장 사항으로만 표시되어 있습니다. 또한 sixel 패스스루는 아직 픽셀 단위 클리핑이 없는 실험적 기능으로 표시되어 있습니다.",
-        "fit": "설명에 따르면 tuios는 tmux와 유사한 멀티플렉서 기능과 윈도우 매니저 기능, 그리고 코딩 에이전트 활동에 대한 가시성을 함께 원하는 터미널/CLI 사용자에게 적합해 보이지만, 실제 적합성은 터미널 기능과 Go 툴체인 가용성에 따라 달라질 것으로 보입니다."
+        "goal": "TUIOS(Terminal UI Operating System)는 Go로 작성된 터미널 멀티플렉서 겸 창 관리자입니다. Charm 스택(Bubble Tea v2, Lipgloss v2) 위에 구축되었으며, vim 스타일의 모달 인터페이스와 다중 터미널 패널, 작업 공간, BSP 타일링, kitty 그래픽 프로토콜 지원, 명령 팔레트를 제공합니다. 백그라운드 데몬이 세션을 유지하고 다른 머신의 세션에도 접근할 수 있게 합니다.",
+        "usage": "`brew install tuios` 명령으로 Homebrew를 통해 설치할 수 있으며, 이 외에도 빠른 설치 스크립트, `go install`, Docker, Arch/Nix 패키지 매니저, GitHub 릴리스의 사전 빌드된 바이너리 등이 문서화되어 있습니다. 설치 후 `tuios` 명령을 실행하면 데몬 기반 세션에 연결되는 애플리케이션이 시작됩니다.",
+        "pros": "문서화된 기능으로는 크기 조절과 드래그가 가능한 다중 터미널 패널, 9개의 독립된 작업 공간, 퍼지 검색이 가능한 명령 팔레트, BSP/마스터-스택/스크롤링 타일링 레이아웃이 있으며, 이벤트 기반 렌더링으로 유휴 상태 CPU 사용량이 거의 0에 가깝다고 설명됩니다. 데몬 기반 세션 지속성 덕분에 재시작이나 재부팅 후에도 세션이 유지됩니다.",
+        "cons": "소스에서 빌드하려면 Go 1.26.6 이상이 필요하다고 명시되어 있어, 최신 Go 툴체인이 없는 사용자는 사전 빌드된 바이너리나 패키지 매니저에 의존해야 할 수 있습니다. 또한 README는 트루 컬러와 kitty 그래픽/sixel을 지원하는 터미널을 권장하므로, 오래되었거나 기능이 제한된 터미널에서는 일부 시각적 기능이 제대로 표시되지 않을 수 있습니다.",
+        "fit": "설명된 기능으로 볼 때 TUIOS는 지속적이고 원격으로 접근 가능한 세션을 갖춘 통합 창/세션 관리자를 원하는 터미널 사용자에게 적합해 보이며, 최소한의 의존성을 가진 가벼운 터미널 환경을 원하는 사용자보다는 장기 실행 워크플로나 코딩 에이전트를 운용하는 개발자에게 더 잘 맞을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "TUIOS(Terminal UI Operating System)被描述为一个用 Go 构建的现代终端多路复用器和窗口管理器,提供类似 vim 的模态界面、多个终端面板、工作区、BSP 平铺布局以及 kitty 图形协议支持,并配有一个守护进程来保持会话存活,并让面板中运行的编码代理报告其状态并相互发送消息。",
-        "usage": "README 中记录了通过 `brew install tuios` 或 `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest` 进行安装,然后运行 `tuios` 启动终端界面的方法。",
-        "pros": "它构建在 Charm 技术栈(Bubble Tea v2、Lipgloss v2)之上,文档中提到其事件驱动渲染旨在实现接近零的空闲 CPU 占用以及无闪烁的 kitty 图像透传,此外还有 BSP 平铺和跨面板的代理状态可见性等功能。",
-        "cons": "文档说明从源码构建据称需要 Go 1.26.6 或更高版本,且要求终端支持真彩色,而 kitty 图形/sixel 支持仅被列为推荐而非保证;sixel 透传功能也被标记为实验性,目前尚无像素级裁剪。",
-        "fit": "根据描述,tuios 似乎适合希望将类似 tmux 的多路复用功能与窗口管理功能相结合,并能查看编码代理活动的终端/CLI 用户,不过实际适用程度可能取决于终端能力和 Go 工具链的可用性。"
+        "goal": "TUIOS(Terminal UI Operating System)是一款用 Go 编写的终端复用器兼窗口管理器,基于 Charm 技术栈(Bubble Tea v2、Lipgloss v2)构建,提供类 vim 的模态界面,支持多个终端面板、工作区、BSP 平铺、kitty 图形协议以及命令面板。一个后台守护进程负责保持会话存活,并可访问其他机器上的会话。",
+        "usage": "可通过 Homebrew 使用 `brew install tuios` 安装,文档中还列出了快速安装脚本、`go install`、Docker、Arch/Nix 包管理器以及 GitHub 发布的预编译二进制文件等其他方式。安装后运行 `tuios` 即可启动应用程序,该程序会连接到一个由守护进程支撑的会话,使会话在启动它的终端窗口关闭后仍能继续存在。",
+        "pros": "文档中列出的功能包括可调整大小和拖动的多个终端面板、9 个独立工作区、支持模糊搜索的命令面板,以及 BSP、主栈式和滚动式平铺布局;其事件驱动渲染据称可实现空闲时接近零的 CPU 占用。基于守护进程的会话持久性使会话能在重启或重新开机后恢复。",
+        "cons": "文档表明从源码构建需要 Go 1.26.6 或更高版本,这意味着没有较新 Go 工具链的用户可能需要改用预编译二进制文件或包管理器。README 还建议使用支持真彩色及 kitty 图形/sixel 的终端,这暗示较旧或功能有限的终端可能无法正确呈现全部视觉特性。",
+        "fit": "根据所述功能,TUIOS 似乎更适合希望获得具备持久化、可远程访问会话的集成式窗口/会话管理器的终端用户,对于运行长期终端工作流或编码代理的开发者可能更为合适,而非追求依赖极简终端环境的用户。"
       },
       "es": {
-        "goal": "TUIOS (Terminal UI Operating System) se describe como un multiplexor de terminal y gestor de ventanas moderno construido en Go, que ofrece una interfaz modal al estilo vim, múltiples paneles de terminal, espacios de trabajo, mosaico BSP y soporte del protocolo gráfico kitty, junto con un daemon que mantiene las sesiones activas y permite que los agentes de codificación que corren en los paneles informen su estado y se envíen mensajes entre sí.",
-        "usage": "El README documenta la instalación mediante `brew install tuios` o `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest`, y luego el lanzamiento de la interfaz de terminal ejecutando `tuios`.",
-        "pros": "Está construido sobre la pila Charm (Bubble Tea v2, Lipgloss v2) y se documenta con un renderizado dirigido por eventos pensado para un uso de CPU casi nulo en reposo y un paso de imágenes kitty sin parpadeo, además de mosaico BSP y visibilidad del estado de los agentes entre paneles.",
-        "cons": "Compilar desde el código fuente supuestamente requiere Go 1.26.6 o una versión más reciente, y se indica como requisito un terminal con soporte de color verdadero, mientras que el soporte de gráficos kitty/sixel solo se recomienda, sin garantizarse; el paso de sixel también se marca como experimental y aún sin recorte a nivel de píxel.",
-        "fit": "Según la descripción, tuios parece adecuado para usuarios de terminal/CLI que buscan un multiplexor similar a tmux combinado con funciones de gestor de ventanas y visibilidad sobre la actividad de agentes de codificación, aunque la idoneidad real probablemente dependa de las capacidades del terminal y la disponibilidad de la cadena de herramientas de Go."
+        "goal": "TUIOS (Terminal UI Operating System) es un multiplexor de terminal y gestor de ventanas escrito en Go. Ofrece una interfaz modal al estilo vim con múltiples paneles de terminal, espacios de trabajo, mosaico BSP, soporte para el protocolo de gráficos kitty y una paleta de comandos, construido sobre la pila Charm (Bubble Tea v2, Lipgloss v2). Un daemon en segundo plano mantiene las sesiones activas y permite acceder a sesiones en otras máquinas.",
+        "usage": "Se puede instalar mediante Homebrew con `brew install tuios`; el README también documenta un script de instalación rápida, `go install`, Docker, gestores de paquetes para Arch/Nix y binarios precompilados en GitHub Releases. Tras la instalación, ejecutar `tuios` inicia la aplicación, que se conecta a una sesión respaldada por un daemon.",
+        "pros": "Entre las funciones documentadas se incluyen múltiples paneles de terminal redimensionables y arrastrables, 9 espacios de trabajo independientes, una paleta de comandos con búsqueda difusa, y diseños de mosaico BSP, master-stack y de desplazamiento. El renderizado basado en eventos se describe como generador de un uso de CPU casi nulo en reposo, y la persistencia de sesiones mediante el daemon permite que sobrevivan a reinicios.",
+        "cons": "Compilar TUIOS desde el código fuente requiere, según el README, Go 1.26.6 o posterior, lo que sugiere que los usuarios sin una cadena de herramientas Go reciente podrían necesitar depender de binarios precompilados o gestores de paquetes. El README también recomienda una terminal con soporte de color verdadero y gráficos kitty/sixel, lo que implica que terminales más antiguas o limitadas podrían no mostrar correctamente todas las funciones visuales.",
+        "fit": "Según las funciones descritas, TUIOS parece orientado a usuarios de terminal que buscan un gestor integrado de ventanas y sesiones con persistencia y acceso remoto, lo cual podría ajustarse mejor a desarrolladores con flujos de trabajo de larga duración o agentes de codificación que a quienes buscan una configuración de terminal mínima y con pocas dependencias."
       },
       "ja": {
-        "goal": "TUIOS(Terminal UI Operating System)は、Go で構築された現代的なターミナルマルチプレクサおよびウィンドウマネージャーとして説明されており、vim ライクなモーダルインターフェース、複数のターミナルペイン、ワークスペース、BSP タイリング、kitty グラフィックスプロトコル対応を提供し、セッションを維持し、ペイン内で動作するコーディングエージェントが状態を報告し合い、互いにメッセージを送り合えるデーモンを備えていると記載されています。",
-        "usage": "README には `brew install tuios` または `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest` でインストールし、`tuios` を実行してターミナル UI を起動する方法が記載されています。",
-        "pros": "Charm スタック(Bubble Tea v2、Lipgloss v2)上に構築されており、アイドル時のCPU使用率をほぼゼロに近づけることを意図したイベント駆動レンダリングや、ちらつきのない kitty 画像パススルー、BSP タイリング、ペイン間でのエージェント状態の可視性などが文書化されています。",
-        "cons": "ソースからのビルドには Go 1.26.6 以上が必要とされており、トゥルーカラー対応ターミナルが要件として挙げられている一方、kitty グラフィックス/sixel 対応は保証ではなく推奨にとどまるとされています。また sixel パススルーも実験的機能とされ、現時点ではピクセル単位のクリッピングはないとされています。",
-        "fit": "この説明からすると、tuios は tmux のようなマルチプレクサ機能とウィンドウマネージャー機能、さらにコーディングエージェントの活動の可視化を求めるターミナル/CLIユーザーに適していると考えられますが、実際の適合性はターミナルの機能や Go ツールチェーンの利用可否に依存すると思われます。"
+        "goal": "TUIOS(Terminal UI Operating System)は、Goで書かれたターミナルマルチプレクサ兼ウィンドウマネージャーです。Charmスタック(Bubble Tea v2、Lipgloss v2)上に構築されており、複数のターミナルペイン、ワークスペース、BSPタイリング、kittyグラフィックスプロトコル対応、コマンドパレットを備えたvim風のモーダルインターフェースを提供します。バックグラウンドのデーモンがセッションを維持し、他のマシン上のセッションにもアクセスできます。",
+        "usage": "Homebrewで `brew install tuios` を実行してインストールできるほか、README には簡易インストールスクリプト、`go install`、Docker、Arch/Nix向けパッケージマネージャー、GitHub Releasesのビルド済みバイナリなども記載されています。インストール後は `tuios` を実行するとアプリケーションが起動し、デーモンに裏付けられたセッションにアタッチされます。",
+        "pros": "文書化されている機能には、サイズ変更やドラッグが可能な複数のターミナルペイン、9つの独立したワークスペース、あいまい検索可能なコマンドパレット、BSP/マスタースタック/スクロール式のタイリングレイアウトが含まれます。イベント駆動型レンダリングによりアイドル時のCPU使用率がほぼゼロになると説明されており、デーモンによるセッション永続化により再起動後もセッションが維持されます。",
+        "cons": "ソースからのビルドにはGo 1.26.6以降が必要とされており、最新のGoツールチェーンを持たないユーザーはビルド済みバイナリやパッケージマネージャーに頼る必要がある可能性があります。また、README はトゥルーカラーおよびkittyグラフィックス/sixelに対応したターミナルを推奨しており、古いまたは機能が限られたターミナルでは一部の視覚的機能が正しく表示されない可能性が示唆されます。",
+        "fit": "記載されている機能から判断すると、TUIOSは永続的でリモートからアクセス可能なセッションを備えた統合型のウィンドウ・セッション管理を求めるターミナルユーザー向けと考えられ、長期間稼働するワークフローやコーディングエージェントを運用する開発者には適している一方、依存関係の少ない最小限のターミナル環境を求めるユーザーには必ずしも最適ではない可能性があります。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 19,
-          "end_line": 19,
-          "section_heading": ""
-        },
-        {
-          "start_line": 21,
           "end_line": 21,
           "section_heading": ""
         }
       ],
       "usage": [
         {
-          "start_line": 68,
-          "end_line": 68,
-          "section_heading": "Package Managers"
-        },
-        {
-          "start_line": 98,
-          "end_line": 98,
-          "section_heading": "Other Methods"
+          "start_line": 62,
+          "end_line": 69,
+          "section_heading": "Installation"
         },
         {
           "start_line": 220,
-          "end_line": 220,
+          "end_line": 223,
           "section_heading": "Quick Start"
         }
       ],
       "pros": [
         {
-          "start_line": 21,
-          "end_line": 21,
-          "section_heading": ""
+          "start_line": 121,
+          "end_line": 127,
+          "section_heading": "Core"
         },
         {
-          "start_line": 133,
-          "end_line": 133,
-          "section_heading": "Agents"
+          "start_line": 181,
+          "end_line": 183,
+          "section_heading": "Session Management"
+        },
+        {
+          "start_line": 298,
+          "end_line": 298,
+          "section_heading": "Performance"
         }
       ],
       "cons": [
@@ -7102,11 +7095,6 @@
           "start_line": 114,
           "end_line": 114,
           "section_heading": "Other Methods"
-        },
-        {
-          "start_line": 172,
-          "end_line": 172,
-          "section_heading": "Graphics & Protocols"
         }
       ],
       "fit": [
@@ -7116,13 +7104,23 @@
           "section_heading": ""
         },
         {
-          "start_line": 114,
+          "start_line": 106,
           "end_line": 114,
           "section_heading": "Other Methods"
         }
       ]
     },
     "invariants": [
+      {
+        "kind": "product",
+        "value": "TUIOS",
+        "fields": [
+          "goal",
+          "usage",
+          "cons",
+          "fit"
+        ]
+      },
       {
         "kind": "command",
         "value": "brew install tuios",
@@ -7132,17 +7130,9 @@
       },
       {
         "kind": "command",
-        "value": "go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
         "value": "tuios",
         "fields": [
-          "usage",
-          "fit"
+          "usage"
         ]
       },
       {
@@ -7150,20 +7140,6 @@
         "value": "Go 1.26.6",
         "fields": [
           "cons"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Bubble Tea v2",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Lipgloss v2",
-        "fields": [
-          "pros"
         ]
       }
     ],
@@ -7175,8 +7151,8 @@
       "kind": "readme",
       "slug": "gaurav-gosain/tuios",
       "path": "README.md",
-      "blob_sha": "7e100378dc46d420101f91af04bcd894f6462e3c",
-      "content_sha256": "f6ab68b45e36ec8811469e05e70a3cb7d7f8e204dd51c584c84e3f379140c4ab",
+      "blob_sha": "72ee225621aafa9673c7fab395f4735a75d29adc",
+      "content_sha256": "d33314c681d8697794bebbd27e6b6e3b84efb0f47e6f36e8d5b22fb56f687a05",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.292",
