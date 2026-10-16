@@ -671,47 +671,47 @@
   },
   "debpalash/VoiceStudio": {
     "content": {
-      "goal": "VoiceStudio is an open-source application for voice cloning, voice design, video dubbing, dictation, transcription, and audiobook creation, supporting 646 languages. The default engine is powered by k2-fsa/OmniVoice, with other engines selectable.",
-      "usage": "Install on macOS/Linux with `curl -fsSL https://voicestudio.sh/install | sh`, or on Windows via PowerShell. To run from source: `git clone https://github.com/debpalash/VoiceStudio.git`, then `bun install` and `bun run dev`. Releases are available at https://github.com/debpalash/VoiceStudio/releases/latest.",
-      "pros": "Local workflows run on the user's own hardware, with remote services optional and usage analytics requiring consent. The installer preserves existing settings, projects, and models. NVIDIA GPUs get CUDA acceleration and Apple Silicon gets Metal acceleration, with a CPU-only fallback for systems without a dedicated GPU.",
-      "cons": "Windows on ARM support is explicitly marked experimental with validation pending, and Intel Mac only provides the app UI, requiring a connection to a remote backend. The CPU-only setup also requires roughly 5 GB of free disk space for the PyTorch build.",
-      "fit": "VoiceStudio appears suited to users wanting local, hardware-based voice AI workflows, and it also offers a Local API and MCP integration for agent-based use. Licensing is split: the AGPL-3.0 license covers the application itself, while model weights, tokenizers, voices, and generated-output rights are governed separately, so commercial use of those assets likely needs separate verification."
+      "goal": "VoiceStudio is an open-source desktop application providing voice cloning, voice design, video dubbing, dictation, transcription, and audiobook creation, with support for 646 languages.",
+      "usage": "It is installed with the one-command script `curl -fsSL https://voicestudio.sh/install | sh` on macOS/Linux (or `irm https://voicestudio.sh/install | iex` on Windows), or downloaded from GitHub Releases; Electron is stated to be the only supported desktop app and web UI.",
+      "pros": "The project includes a local API and MCP support for agent integration, reusable recipes and watch folders for automation, and local processing with CUDA acceleration on NVIDIA GPUs or Metal (MPS) on Apple Silicon.",
+      "cons": "CPU-only machines are usable but slower and require roughly 5 GB of free disk space for the installed PyTorch build, and Windows on ARM support is explicitly labeled experimental with validation pending.",
+      "fit": "This appears best suited to users wanting local, optionally remote-connected voice and audio workflows, though the AGPL-3.0 application license is separate from model weight, tokenizer, and voice licensing, which may constrain commercial use."
     },
     "summaries": {
       "en": {
-        "goal": "VoiceStudio is an open-source application for voice cloning, voice design, video dubbing, dictation, transcription, and audiobook creation, supporting 646 languages. The default engine is powered by k2-fsa/OmniVoice, with other engines selectable.",
-        "usage": "Install on macOS/Linux with `curl -fsSL https://voicestudio.sh/install | sh`, or on Windows via PowerShell. To run from source: `git clone https://github.com/debpalash/VoiceStudio.git`, then `bun install` and `bun run dev`. Releases are available at https://github.com/debpalash/VoiceStudio/releases/latest.",
-        "pros": "Local workflows run on the user's own hardware, with remote services optional and usage analytics requiring consent. The installer preserves existing settings, projects, and models. NVIDIA GPUs get CUDA acceleration and Apple Silicon gets Metal acceleration, with a CPU-only fallback for systems without a dedicated GPU.",
-        "cons": "Windows on ARM support is explicitly marked experimental with validation pending, and Intel Mac only provides the app UI, requiring a connection to a remote backend. The CPU-only setup also requires roughly 5 GB of free disk space for the PyTorch build.",
-        "fit": "VoiceStudio appears suited to users wanting local, hardware-based voice AI workflows, and it also offers a Local API and MCP integration for agent-based use. Licensing is split: the AGPL-3.0 license covers the application itself, while model weights, tokenizers, voices, and generated-output rights are governed separately, so commercial use of those assets likely needs separate verification."
+        "goal": "VoiceStudio is an open-source desktop application providing voice cloning, voice design, video dubbing, dictation, transcription, and audiobook creation, with support for 646 languages.",
+        "usage": "It is installed with the one-command script `curl -fsSL https://voicestudio.sh/install | sh` on macOS/Linux (or `irm https://voicestudio.sh/install | iex` on Windows), or downloaded from GitHub Releases; Electron is stated to be the only supported desktop app and web UI.",
+        "pros": "The project includes a local API and MCP support for agent integration, reusable recipes and watch folders for automation, and local processing with CUDA acceleration on NVIDIA GPUs or Metal (MPS) on Apple Silicon.",
+        "cons": "CPU-only machines are usable but slower and require roughly 5 GB of free disk space for the installed PyTorch build, and Windows on ARM support is explicitly labeled experimental with validation pending.",
+        "fit": "This appears best suited to users wanting local, optionally remote-connected voice and audio workflows, though the AGPL-3.0 application license is separate from model weight, tokenizer, and voice licensing, which may constrain commercial use."
       },
       "ko": {
-        "goal": "VoiceStudio는 음성 복제, 음성 디자인, 비디오 더빙, 음성 입력, 전사, 오디오북 제작을 지원하는 오픈소스 애플리케이션이며 646개 언어를 지원합니다. 기본 엔진은 k2-fsa/OmniVoice 기반이며 다른 엔진으로 전환할 수 있습니다.",
-        "usage": "macOS/Linux에서는 `curl -fsSL https://voicestudio.sh/install | sh` 명령으로 설치하며, Windows에서는 PowerShell을 사용합니다. 소스에서 실행하려면 `git clone https://github.com/debpalash/VoiceStudio.git` 후 `bun install`, `bun run dev`를 실행합니다. 릴리스는 https://github.com/debpalash/VoiceStudio/releases/latest 에서 받을 수 있습니다.",
-        "pros": "로컬 워크플로우는 사용자의 하드웨어에서 실행되며 원격 서비스는 선택 사항이고 사용 분석에는 동의가 필요합니다. 설치 프로그램은 기존 설정, 프로젝트, 모델을 보존합니다. NVIDIA GPU는 CUDA 가속을, Apple Silicon은 Metal 가속을 지원하며 전용 GPU가 없는 경우 CPU 전용으로도 사용할 수 있습니다.",
-        "cons": "Windows on ARM 지원은 실험적이며 검증이 진행 중이라고 명시되어 있고, Intel Mac에서는 앱 UI만 제공되어 원격 백엔드 연결이 필요합니다. CPU 전용 설정에는 약 5GB의 여유 디스크 공간이 필요합니다.",
-        "fit": "로컬 하드웨어 기반 음성 AI 워크플로우를 원하는 사용자에게 적합해 보이며, 에이전트 사용을 위한 로컬 API와 MCP 통합도 제공합니다. 라이선스는 분리되어 있어 AGPL-3.0은 애플리케이션 자체에 적용되지만 모델 가중치, 토크나이저, 음성, 생성 결과물의 권리는 별도로 규정되어 있어 상업적 사용 시 별도 확인이 필요할 것으로 보입니다."
+        "goal": "VoiceStudio는 음성 클로닝, 음성 디자인, 비디오 더빙, 음성 받아쓰기, 전사, 오디오북 제작을 지원하는 오픈소스 데스크톱 애플리케이션으로, 646개 언어를 지원합니다.",
+        "usage": "macOS/Linux에서는 `curl -fsSL https://voicestudio.sh/install | sh` 명령으로, Windows에서는 `irm https://voicestudio.sh/install | iex` 명령으로 설치할 수 있으며, GitHub Releases에서 직접 다운로드할 수도 있습니다. Electron이 유일하게 지원되는 데스크톱 앱 및 웹 UI로 명시되어 있습니다.",
+        "pros": "에이전트 연동을 위한 로컬 API 및 MCP 지원, 자동화를 위한 재사용 가능한 레시피와 워치 폴더, 그리고 NVIDIA GPU의 CUDA 가속이나 Apple Silicon의 Metal(MPS) 가속을 활용한 로컬 처리를 제공합니다.",
+        "cons": "GPU가 없는 환경에서도 사용 가능하지만 속도가 느리며, 설치되는 PyTorch 빌드에는 약 5GB의 여유 디스크 공간이 필요합니다. 또한 Windows on ARM 지원은 실험적이며 검증이 완료되지 않은 상태로 명시되어 있습니다.",
+        "fit": "로컬 처리와 선택적 원격 연결을 원하는 음성/오디오 작업에 적합해 보이지만, AGPL-3.0 애플리케이션 라이선스와 모델 가중치·토크나이저·음성에 대한 라이선스는 별도로 적용되어 상업적 사용에 제약이 있을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "VoiceStudio 是一个开源应用,支持语音克隆、语音设计、视频配音、口述输入、转录和有声书制作,覆盖646种语言。默认引擎基于 k2-fsa/OmniVoice,也可选择其他引擎。",
-        "usage": "在 macOS/Linux 上可使用 `curl -fsSL https://voicestudio.sh/install | sh` 安装,Windows 上通过 PowerShell 安装。若从源码运行,执行 `git clone https://github.com/debpalash/VoiceStudio.git`,然后运行 `bun install` 和 `bun run dev`。发行版可在 https://github.com/debpalash/VoiceStudio/releases/latest 获取。",
-        "pros": "本地工作流在用户自己的硬件上运行,远程服务为可选项,使用分析需用户同意。安装程序会保留现有的设置、项目和模型。NVIDIA GPU 支持 CUDA 加速,Apple Silicon 支持 Metal 加速,没有独立显卡时也可仅用 CPU 运行。",
-        "cons": "文档中明确将 Windows on ARM 支持标记为实验性,验证尚未完成;Intel Mac 仅提供应用界面,需要连接远程后端。仅使用 CPU 的配置大约需要5GB 的空闲磁盘空间。",
-        "fit": "该项目似乎适合希望在本地硬件上运行语音 AI 工作流的用户,同时也提供本地 API 和 MCP 集成以支持代理使用。许可方式是分离的:AGPL-3.0 仅覆盖应用程序本身,模型权重、分词器、语音及生成内容的权利另行规定,因此商业使用可能需要单独核实这些权利。"
+        "goal": "VoiceStudio 是一个开源桌面应用程序,提供语音克隆、语音设计、视频配音、语音输入、转录和有声书制作功能,支持 646 种语言。",
+        "usage": "可在 macOS/Linux 上通过命令 `curl -fsSL https://voicestudio.sh/install | sh` 安装,在 Windows 上通过 `irm https://voicestudio.sh/install | iex` 安装,也可从 GitHub Releases 下载;文档说明 Electron 是目前唯一受支持的桌面应用和网页界面。",
+        "pros": "该项目提供用于代理集成的本地 API 和 MCP 支持、用于自动化的可复用方案和监视文件夹,并支持在 NVIDIA GPU 上使用 CUDA 加速或在 Apple Silicon 上使用 Metal(MPS)加速进行本地处理。",
+        "cons": "没有独立 GPU 的设备仍可使用,但速度较慢,安装的 PyTorch 构建需要约 5GB 的可用磁盘空间;此外,文档明确将 Windows on ARM 支持标记为实验性且验证尚未完成。",
+        "fit": "该项目似乎适合需要本地处理并可选连接远程服务的语音/音频工作流用户,但 AGPL-3.0 应用许可与模型权重、分词器及语音的许可是分开的,可能会限制商业使用。"
       },
       "es": {
-        "goal": "VoiceStudio es una aplicación de código abierto para clonación de voz, diseño de voz, doblaje de video, dictado, transcripción y creación de audiolibros, con soporte para 646 idiomas. El motor predeterminado está basado en k2-fsa/OmniVoice, y se pueden elegir otros motores.",
-        "usage": "En macOS/Linux se instala con `curl -fsSL https://voicestudio.sh/install | sh`, y en Windows mediante PowerShell. Para ejecutar desde el código fuente: `git clone https://github.com/debpalash/VoiceStudio.git`, luego `bun install` y `bun run dev`. Las versiones publicadas están en https://github.com/debpalash/VoiceStudio/releases/latest.",
-        "pros": "Los flujos de trabajo locales se ejecutan en el hardware del usuario, los servicios remotos son opcionales y el análisis de uso requiere consentimiento. El instalador conserva la configuración, los proyectos y los modelos existentes. Las GPU NVIDIA cuentan con aceleración CUDA y Apple Silicon con aceleración Metal, con un modo solo CPU disponible si no hay GPU dedicada.",
-        "cons": "El soporte para Windows on ARM se describe explícitamente como experimental, con validación pendiente, y en Intel Mac solo se ofrece la interfaz de la aplicación, requiriendo conexión a un backend remoto. La configuración solo con CPU necesita aproximadamente 5 GB de espacio libre en disco.",
-        "fit": "El proyecto parece adecuado para quienes buscan flujos de trabajo de IA de voz locales basados en hardware propio, y también ofrece una API local e integración MCP para uso con agentes. La licencia está dividida: AGPL-3.0 cubre solo la aplicación, mientras que los derechos de los pesos del modelo, tokenizadores, voces y salidas generadas se rigen por separado, por lo que el uso comercial probablemente requiera una verificación adicional de esos derechos."
+        "goal": "VoiceStudio es una aplicación de escritorio de código abierto para clonación de voz, diseño de voz, doblaje de video, dictado, transcripción y creación de audiolibros, con soporte para 646 idiomas.",
+        "usage": "Se instala con el comando `curl -fsSL https://voicestudio.sh/install | sh` en macOS/Linux, o con `irm https://voicestudio.sh/install | iex` en Windows, o descargándolo desde GitHub Releases; se indica que Electron es la única aplicación de escritorio y la única interfaz web admitidas.",
+        "pros": "El proyecto ofrece una API local y soporte MCP para integración con agentes, recetas reutilizables y carpetas vigiladas para automatización, además de procesamiento local con aceleración CUDA en GPU NVIDIA o Metal (MPS) en Apple Silicon.",
+        "cons": "Los equipos sin GPU dedicada siguen siendo utilizables pero más lentos, y requieren alrededor de 5 GB de espacio libre en disco para la compilación de PyTorch instalada; además, el soporte de Windows on ARM se describe explícitamente como experimental y pendiente de validación.",
+        "fit": "Parece adecuado para quienes buscan flujos de trabajo de voz/audio locales con conexión remota opcional, aunque la licencia AGPL-3.0 de la aplicación es independiente de la licencia de los pesos del modelo, tokenizadores y voces, lo que podría limitar el uso comercial."
       },
       "ja": {
-        "goal": "VoiceStudioは音声クローニング、音声デザイン、動画の吹き替え、ディクテーション、文字起こし、オーディオブック作成に対応したオープンソースアプリケーションで、646言語をサポートします。デフォルトエンジンはk2-fsa/OmniVoiceを基盤としており、他のエンジンも選択できます。",
-        "usage": "macOS/Linuxでは `curl -fsSL https://voicestudio.sh/install | sh` でインストールでき、WindowsではPowerShellを使用します。ソースから実行する場合は `git clone https://github.com/debpalash/VoiceStudio.git` の後に `bun install`、`bun run dev` を実行します。リリース版は https://github.com/debpalash/VoiceStudio/releases/latest から入手できます。",
-        "pros": "ローカルのワークフローはユーザー自身のハードウェア上で実行され、リモートサービスは任意であり、使用分析には同意が必要です。インストーラーは既存の設定、プロジェクト、モデルを保持します。NVIDIA GPUではCUDAアクセラレーション、Apple SiliconではMetalアクセラレーションが利用でき、専用GPUがない場合もCPUのみで動作可能です。",
-        "cons": "Windows on ARMのサポートは実験的と明記されており検証が保留中であること、またIntel MacではアプリUIのみが提供され、リモートバックエンドへの接続が必要です。CPUのみの構成にはおよそ5GBの空きディスク容量が必要です。",
-        "fit": "このプロジェクトは自身のハードウェア上でローカルに音声AIワークフローを実行したいユーザーに向いているように見え、エージェント利用向けのローカルAPIとMCP統合も提供しています。ライセンスは分離されており、AGPL-3.0はアプリケーション本体のみを対象とし、モデルの重み、トークナイザー、音声、生成出力に関する権利は別途定められているため、商業利用にはそれらの権利を別途確認する必要があるとみられます。"
+        "goal": "VoiceStudioは、音声クローニング、音声デザイン、動画の吹き替え、ディクテーション、文字起こし、オーディオブック作成を提供するオープンソースのデスクトップアプリケーションで、646言語をサポートしています。",
+        "usage": "macOS/Linuxでは `curl -fsSL https://voicestudio.sh/install | sh` コマンド、Windowsでは `irm https://voicestudio.sh/install | iex` コマンドでインストールでき、GitHub Releasesから直接ダウンロードすることも可能です。Electronが唯一サポートされるデスクトップアプリおよびWeb UIであると記載されています。",
+        "pros": "エージェント連携のためのローカルAPIとMCPサポート、自動化のための再利用可能なレシピとウォッチフォルダ、さらにNVIDIA GPUでのCUDAアクセラレーションやApple SiliconでのMetal(MPS)アクセラレーションによるローカル処理が提供されています。",
+        "cons": "専用GPUがない環境でも利用可能ですが速度は遅くなり、インストールされるPyTorchビルドには約5GBの空きディスク容量が必要です。また、Windows on ARMのサポートは実験的で検証待ちであると明記されています。",
+        "fit": "ローカル処理と任意のリモート接続を組み合わせた音声/オーディオワークフローに適していると考えられますが、AGPL-3.0のアプリケーションライセンスはモデルの重み・トークナイザー・音声のライセンスとは別であり、商用利用に制約がある可能性があります。"
       }
     },
     "evidence": {
@@ -720,73 +720,53 @@
           "start_line": 7,
           "end_line": 7,
           "section_heading": ""
-        },
-        {
-          "start_line": 33,
-          "end_line": 33,
-          "section_heading": "Your voice. Your workflow."
         }
       ],
       "usage": [
         {
-          "start_line": 63,
-          "end_line": 63,
+          "start_line": 60,
+          "end_line": 67,
           "section_heading": "One-command install (macOS / Linux)"
         },
         {
-          "start_line": 113,
-          "end_line": 117,
-          "section_heading": "Install with prompt"
-        },
-        {
-          "start_line": 82,
-          "end_line": 82,
-          "section_heading": "One-command install (macOS / Linux)"
-        }
-      ],
-      "pros": [
-        {
-          "start_line": 35,
-          "end_line": 35,
-          "section_heading": "Your voice. Your workflow."
-        },
-        {
-          "start_line": 79,
+          "start_line": 76,
           "end_line": 79,
           "section_heading": "One-command install (macOS / Linux)"
         },
         {
-          "start_line": 88,
+          "start_line": 128,
+          "end_line": 128,
+          "section_heading": "Install with prompt"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 29,
+          "end_line": 32,
+          "section_heading": "Your voice. Your workflow."
+        },
+        {
+          "start_line": 87,
           "end_line": 90,
           "section_heading": "One-command install (macOS / Linux)"
         }
       ],
       "cons": [
         {
-          "start_line": 90,
+          "start_line": 91,
           "end_line": 92,
           "section_heading": "One-command install (macOS / Linux)"
-        },
-        {
-          "start_line": 149,
-          "end_line": 150,
-          "section_heading": "License & responsible use"
         }
       ],
       "fit": [
         {
-          "start_line": 30,
-          "end_line": 30,
+          "start_line": 36,
+          "end_line": 36,
           "section_heading": "Your voice. Your workflow."
         },
         {
-          "start_line": 135,
-          "end_line": 135,
-          "section_heading": "Documentation"
-        },
-        {
-          "start_line": 149,
-          "end_line": 150,
+          "start_line": 151,
+          "end_line": 151,
           "section_heading": "License & responsible use"
         }
       ]
@@ -801,7 +781,7 @@
       },
       {
         "kind": "command",
-        "value": "git clone https://github.com/debpalash/VoiceStudio.git",
+        "value": "irm https://voicestudio.sh/install | iex",
         "fields": [
           "usage"
         ]
@@ -814,17 +794,37 @@
         ]
       },
       {
-        "kind": "product",
-        "value": "VoiceStudio",
+        "kind": "number",
+        "value": "5 GB",
         "fields": [
-          "goal",
-          "usage",
-          "fit"
+          "cons"
         ]
       },
       {
         "kind": "url",
-        "value": "https://github.com/debpalash/VoiceStudio/releases/latest",
+        "value": "https://voicestudio.sh",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "VoiceStudio",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "AGPL-3.0",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Electron",
         "fields": [
           "usage"
         ]
@@ -837,8 +837,8 @@
       "kind": "readme",
       "slug": "debpalash/voicestudio",
       "path": "README.md",
-      "blob_sha": "e7edb7c42592701b9aec4f350587fe81e352e7db",
-      "content_sha256": "8c73b36de0fd92e92452840e5bcb3441eb9c3de2ae17188a6e533edaaa403598",
+      "blob_sha": "a20a865c48cae37dbc5415cea4bff7ef5c8ee5e6",
+      "content_sha256": "6d6c95faa328bf72564b039a00dd603f591c3962d18e4f6611a48cb1c457562c",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.292",
@@ -1993,6 +1993,214 @@
       "path": "README.md",
       "blob_sha": "29c8154dc404364524399015b577f9da4aa5c103",
       "content_sha256": "2abd175233b4659ca76dc9902904fc61205e91abc2833d23a4380ac655018764",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.292",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "LibreSpark/LibreTV": {
+    "content": {
+      "goal": "LibreTV (official site: https://libretv.is-an.org/) is a free, self-hostable platform for aggregating and watching online video search results, built with Next.js 15 (App Router), TypeScript, and Tailwind CSS, using ArtPlayer and hls.js for playback with light/dark themes.",
+      "usage": "Deployment is Docker-based: set PASSWORD in a .env file, then run `docker compose pull && docker compose up -d` (or build from source with `docker compose up -d --build`). Manual setup instead runs `npm install`, `PASSWORD=your-password npm run build`, and `npm start`, which listens on port 8080.",
+      "pros": "Features include aggregated server-side search across multiple sources, merging of same-title results from different sources into one card, live/IPTV playback via M3U subscriptions with EPG support, local IndexedDB-based playback progress sync, and installable PWA support with dual themes.",
+      "cons": "Production deployments must be served over HTTPS (localhost excepted), since session cookies carry a Secure flag that browsers discard over plain HTTP, which can make a correct password appear to fail at login unless a reverse proxy or TLS is configured.",
+      "fit": "The project appears best suited to users comfortable self-hosting via Docker (images published on GHCR and Docker Hub for linux/amd64 and linux/arm64) who want a configurable aggregator with optional environment-variable settings, though this fit is inferred rather than explicitly stated."
+    },
+    "summaries": {
+      "en": {
+        "goal": "LibreTV (official site: https://libretv.is-an.org/) is a free, self-hostable platform for aggregating and watching online video search results, built with Next.js 15 (App Router), TypeScript, and Tailwind CSS, using ArtPlayer and hls.js for playback with light/dark themes.",
+        "usage": "Deployment is Docker-based: set PASSWORD in a .env file, then run `docker compose pull && docker compose up -d` (or build from source with `docker compose up -d --build`). Manual setup instead runs `npm install`, `PASSWORD=your-password npm run build`, and `npm start`, which listens on port 8080.",
+        "pros": "Features include aggregated server-side search across multiple sources, merging of same-title results from different sources into one card, live/IPTV playback via M3U subscriptions with EPG support, local IndexedDB-based playback progress sync, and installable PWA support with dual themes.",
+        "cons": "Production deployments must be served over HTTPS (localhost excepted), since session cookies carry a Secure flag that browsers discard over plain HTTP, which can make a correct password appear to fail at login unless a reverse proxy or TLS is configured.",
+        "fit": "The project appears best suited to users comfortable self-hosting via Docker (images published on GHCR and Docker Hub for linux/amd64 and linux/arm64) who want a configurable aggregator with optional environment-variable settings, though this fit is inferred rather than explicitly stated."
+      },
+      "ko": {
+        "goal": "LibreTV(공식 사이트: https://libretv.is-an.org/)는 Next.js 15(App Router), TypeScript, Tailwind CSS로 구축되고 ArtPlayer와 hls.js로 재생되는 무료 온라인 동영상 검색·재생 집계 플랫폼으로, 자체 호스팅이 가능하며 라이트/다크 테마를 지원합니다.",
+        "usage": "배포는 Docker 기반입니다. .env 파일에 PASSWORD를 설정한 뒤 `docker compose pull && docker compose up -d`를 실행하거나 소스에서 빌드하려면 `docker compose up -d --build`를 사용합니다. 수동 실행은 `npm install`, `PASSWORD=your-password npm run build`, `npm start` 순으로 진행하며 8080 포트에서 수신합니다.",
+        "pros": "다중 소스에 대한 서버 측 통합 검색, 동일 제목 결과를 하나의 카드로 병합하는 기능, M3U 구독과 EPG를 지원하는 라이브/IPTV 재생, 로컬 IndexedDB 기반 재생 진행률 동기화, 듀얼 테마의 설치형 PWA 지원 등이 포함됩니다.",
+        "cons": "프로덕션 배포는 반드시 HTTPS로 접근해야 합니다(localhost 제외). 세션 쿠키에 Secure 플래그가 붙어 있어 일반 HTTP에서는 브라우저가 쿠키를 저장하지 않으며, 리버스 프록시나 TLS 설정이 없으면 비밀번호가 맞아도 로그인이 실패하는 것처럼 보일 수 있습니다.",
+        "fit": "GHCR와 Docker Hub에 linux/amd64, linux/arm64용 이미지가 제공되는 Docker 기반 자체 호스팅에 익숙하고 환경 변수로 세부 설정을 조정하려는 사용자에게 적합해 보이지만, 이는 추정이며 README에 명시적으로 단정되어 있지는 않습니다."
+      },
+      "zh-CN": {
+        "goal": "LibreTV（官网：https://libretv.is-an.org/）是一个免费、可自行部署的在线视频聚合搜索与观看平台，基于 Next.js 15（App Router）、TypeScript 和 Tailwind CSS 构建，播放内核为 ArtPlayer 与 hls.js，支持亮暗双主题。",
+        "usage": "部署基于 Docker：在 .env 文件中设置 PASSWORD，然后运行 `docker compose pull && docker compose up -d`（源码构建则用 `docker compose up -d --build`）。手动运行则依次执行 `npm install`、`PASSWORD=your-password npm run build` 和 `npm start`，监听 8080 端口。",
+        "pros": "功能包括多采集站服务端并行聚合搜索、同名资源跨源合并为一张卡片、支持 M3U 订阅与 EPG 的直播/IPTV 播放、基于本机 IndexedDB 的播放进度同步，以及支持亮暗双主题的可安装 PWA。",
+        "cons": "生产环境部署必须通过 HTTPS 访问（localhost 除外），因为会话 cookie 带有 Secure 标记，浏览器在普通 HTTP 下会丢弃该 cookie；若未配置反向代理或 TLS，即使密码正确也可能表现为登录失败。",
+        "fit": "该项目似乎更适合熟悉通过 Docker 自行托管的用户（镜像发布在 GHCR 与 Docker Hub，支持 linux/amd64 与 linux/arm64），并希望通过环境变量进行配置，但这一适用性判断是推断而非文档中的明确结论。"
+      },
+      "es": {
+        "goal": "LibreTV (sitio oficial: https://libretv.is-an.org/) es una plataforma gratuita y autohospedable para agregar y ver búsquedas de video en línea, construida con Next.js 15 (App Router), TypeScript y Tailwind CSS, con reproducción mediante ArtPlayer y hls.js, y soporte de temas claro/oscuro.",
+        "usage": "El despliegue se basa en Docker: defina PASSWORD en un archivo .env y luego ejecute `docker compose pull && docker compose up -d` (o `docker compose up -d --build` para compilar desde el código fuente). La ejecución manual usa `npm install`, `PASSWORD=your-password npm run build` y `npm start`, que escucha en el puerto 8080.",
+        "pros": "Entre las funciones se incluyen búsqueda agregada en el servidor desde múltiples fuentes, fusión de resultados con el mismo título en una sola tarjeta, reproducción en vivo/IPTV mediante suscripciones M3U con soporte de EPG, sincronización del progreso de reproducción vía IndexedDB local, e instalación como PWA con temas claro/oscuro.",
+        "cons": "Los despliegues en producción deben servirse por HTTPS (excepto en localhost), ya que las cookies de sesión llevan la marca Secure y los navegadores la descartan sobre HTTP simple, lo que puede hacer que un inicio de sesión con contraseña correcta parezca fallar si no hay un proxy inverso o TLS configurado.",
+        "fit": "El proyecto parece orientado a usuarios cómodos con el autohospedaje mediante Docker (imágenes publicadas en GHCR y Docker Hub para linux/amd64 y linux/arm64) que deseen configurar el servicio mediante variables de entorno, aunque esta idoneidad es una inferencia y no una afirmación explícita del documento."
+      },
+      "ja": {
+        "goal": "LibreTV（公式サイト: https://libretv.is-an.org/）は、Next.js 15（App Router）、TypeScript、Tailwind CSS で構築され、ArtPlayer と hls.js で再生する、無料でセルフホスト可能なオンライン動画集約検索・視聴プラットフォームで、ライト/ダークの両テーマに対応しています。",
+        "usage": "デプロイは Docker ベースです。.env ファイルに PASSWORD を設定し、`docker compose pull && docker compose up -d` を実行します（ソースからビルドする場合は `docker compose up -d --build`）。手動実行では `npm install`、`PASSWORD=your-password npm run build`、`npm start` の順に実行し、8080 番ポートで待ち受けます。",
+        "pros": "主な機能として、複数の採集サイトに対するサーバー側の並列集約検索、同名作品を複数ソースから1枚のカードに統合する機能、M3U サブスクリプションと EPG に対応したライブ/IPTV 再生、ローカル IndexedDB による再生進捗の同期、ライト/ダーク両テーマ対応のインストール可能な PWA が挙げられます。",
+        "cons": "本番環境では（localhost を除き）HTTPS でのアクセスが必須です。セッションクッキーに Secure フラグが付与されているため、通常の HTTP ではブラウザがクッキーを破棄し、リバースプロキシや TLS を設定していないと、パスワードが正しくてもログインに失敗したように見える場合があります。",
+        "fit": "本プロジェクトは、Docker によるセルフホスティングに慣れたユーザー（イメージは GHCR と Docker Hub で linux/amd64 および linux/arm64 向けに公開）で、環境変数による設定調整を望む場合に適していると考えられますが、これは推測であり文書内で明示的に断定されているものではありません。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 1,
+          "end_line": 5,
+          "section_heading": "LibreTV"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 32,
+          "end_line": 41,
+          "section_heading": "Docker（推荐）"
+        },
+        {
+          "start_line": 80,
+          "end_line": 84,
+          "section_heading": "手动运行"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 18,
+          "end_line": 26,
+          "section_heading": "核心特性"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 69,
+          "end_line": 69,
+          "section_heading": "Docker Compose"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 71,
+          "end_line": 74,
+          "section_heading": "Docker Compose"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "docker compose pull && docker compose up -d",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "docker compose up -d --build",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "npm install",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "npm run build",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "npm start",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "15",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "8080",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://libretv.is-an.org/",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "LibreTV",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Next.js",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Docker",
+        "fields": [
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Tailwind CSS",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "ArtPlayer",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "hls.js",
+        "fields": [
+          "goal"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "librespark/libretv",
+      "path": "README.md",
+      "blob_sha": "99572f3cbe2569ef84a90789441fdd1a673a3d3b",
+      "content_sha256": "b4ac63c5f242e190093fc37a9899293f5b6c542053535ada2ce1fc8a36e00d6e",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.292",
