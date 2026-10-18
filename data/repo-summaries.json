@@ -151,47 +151,47 @@
   },
   "MadsLorentzen/ai-job-search": {
     "content": {
-      "goal": "An AI-powered job application framework built on Claude Code. After forking the repository and filling in a personal profile, Claude evaluates job postings for fit, tailors a CV and cover letter, and helps prepare for interviews.",
-      "usage": "Fork and clone with `gh repo fork MadsLorentzen/ai-job-search --clone`, then run `claude` and use `/setup` to build your profile, `/scrape` to search job portals, and `/apply` to run the full application pipeline on a selected posting.",
-      "pros": "The core workflow is language- and country-agnostic, and includes a PDF verification loop, ATS keyword-coverage checks on the compiled CV, and a drafter-reviewer agent separation intended to improve CV and cover letter quality.",
-      "cons": "Claude Code has no free tier, so a Pro/Max/Team subscription or pay-per-token API credits are required; the setup also needs Python 3.10+, Bun, and a LaTeX distribution capable of lualatex and xelatex.",
-      "fit": "This project appears best suited to people comfortable with command-line tools and LaTeX who want to automate their job search; the bundled job-portal skills target the Danish market, though the pattern seems designed to be adapted to other countries."
+      "goal": "AI Job Search is an AI-powered job application framework built on Claude Code. It turns Claude Code into a job application assistant that evaluates job postings, drafts tailored CVs and cover letters, and preps users for interviews, with a core workflow described as language- and country-agnostic.",
+      "usage": "Users fork and clone the repository with `gh repo fork MadsLorentzen/ai-job-search --clone`, install the job-portal CLI tools via `python3 tools/install_portal_clis.py`, then run `claude` and use the `/setup`, `/scrape`, and `/apply` commands inside Claude Code to build a profile, search job portals, and generate tailored application materials.",
+      "pros": "According to the documentation, the `/apply` workflow includes a PDF verification loop that compiles and visually inspects generated CVs and cover letters, an ATS check that verifies the PDF's extracted text layer, and a drafter-reviewer separation where a second agent critiques drafts before revision.",
+      "cons": "Claude Code has no free tier, so use requires a Claude Pro/Max/Team subscription or pay-per-token Anthropic API credits; the documentation also notes that forks of the repository are always public, which may affect how personal profile data is stored.",
+      "fit": "The core evaluation and application pipeline is described as language- and country-agnostic, but the shipped job-portal search skills target the Danish market, suggesting this may best fit users willing to adapt or add portal skills for other countries."
     },
     "summaries": {
       "en": {
-        "goal": "An AI-powered job application framework built on Claude Code. After forking the repository and filling in a personal profile, Claude evaluates job postings for fit, tailors a CV and cover letter, and helps prepare for interviews.",
-        "usage": "Fork and clone with `gh repo fork MadsLorentzen/ai-job-search --clone`, then run `claude` and use `/setup` to build your profile, `/scrape` to search job portals, and `/apply` to run the full application pipeline on a selected posting.",
-        "pros": "The core workflow is language- and country-agnostic, and includes a PDF verification loop, ATS keyword-coverage checks on the compiled CV, and a drafter-reviewer agent separation intended to improve CV and cover letter quality.",
-        "cons": "Claude Code has no free tier, so a Pro/Max/Team subscription or pay-per-token API credits are required; the setup also needs Python 3.10+, Bun, and a LaTeX distribution capable of lualatex and xelatex.",
-        "fit": "This project appears best suited to people comfortable with command-line tools and LaTeX who want to automate their job search; the bundled job-portal skills target the Danish market, though the pattern seems designed to be adapted to other countries."
+        "goal": "AI Job Search is an AI-powered job application framework built on Claude Code. It turns Claude Code into a job application assistant that evaluates job postings, drafts tailored CVs and cover letters, and preps users for interviews, with a core workflow described as language- and country-agnostic.",
+        "usage": "Users fork and clone the repository with `gh repo fork MadsLorentzen/ai-job-search --clone`, install the job-portal CLI tools via `python3 tools/install_portal_clis.py`, then run `claude` and use the `/setup`, `/scrape`, and `/apply` commands inside Claude Code to build a profile, search job portals, and generate tailored application materials.",
+        "pros": "According to the documentation, the `/apply` workflow includes a PDF verification loop that compiles and visually inspects generated CVs and cover letters, an ATS check that verifies the PDF's extracted text layer, and a drafter-reviewer separation where a second agent critiques drafts before revision.",
+        "cons": "Claude Code has no free tier, so use requires a Claude Pro/Max/Team subscription or pay-per-token Anthropic API credits; the documentation also notes that forks of the repository are always public, which may affect how personal profile data is stored.",
+        "fit": "The core evaluation and application pipeline is described as language- and country-agnostic, but the shipped job-portal search skills target the Danish market, suggesting this may best fit users willing to adapt or add portal skills for other countries."
       },
       "ko": {
-        "goal": "Claude Code를 기반으로 구축된 AI 기반 구직 지원 프레임워크로, 저장소를 포크한 뒤 프로필을 채우면 Claude가 채용 공고를 평가하고 CV와 자기소개서를 맞춤화하며 면접을 준비하도록 돕습니다.",
-        "usage": "`gh repo fork MadsLorentzen/ai-job-search --clone`로 저장소를 포크·클론한 뒤 `claude`를 실행하고, `/setup`으로 프로필을 구성하고 `/scrape`로 채용 공고를 검색하며 `/apply`로 선택한 공고에 전체 지원 워크플로를 실행합니다.",
-        "pros": "핵심 워크플로는 언어 및 국가에 구애받지 않으며, PDF 검증 루프, 컴파일된 CV에 대한 ATS 키워드 검사, 초안 작성자-검토자 에이전트 분리를 통해 CV와 자기소개서의 품질 향상을 목표로 합니다.",
-        "cons": "Claude Code는 무료 등급이 없어 Pro/Max/Team 구독이나 사용량 기반 API 크레딧이 필요하며, Python 3.10+, Bun, lualatex와 xelatex를 지원하는 LaTeX 배포판 설치도 요구됩니다.",
-        "fit": "명령줄 도구와 LaTeX에 익숙하고 구직 과정을 자동화하려는 사람에게 적합할 것으로 보이며, 기본 제공되는 채용 포털 스킬은 덴마크 시장을 대상으로 하지만 다른 국가에 맞게 조정하도록 설계된 것으로 보입니다."
+        "goal": "AI Job Search는 Claude Code를 기반으로 구축된 AI 기반 취업 지원 프레임워크입니다. 채용 공고를 평가하고, 맞춤형 CV와 커버레터를 작성하며, 면접을 준비하도록 돕는 핵심 워크플로우는 언어 및 국가에 구애받지 않도록 설계되었다고 설명되어 있습니다.",
+        "usage": "사용자는 `gh repo fork MadsLorentzen/ai-job-search --clone` 명령으로 저장소를 포크하고 클론한 뒤, `python3 tools/install_portal_clis.py`로 채용 포털 CLI 도구를 설치하고, `claude`를 실행한 후 Claude Code 안에서 `/setup`, `/scrape`, `/apply` 명령을 사용해 프로필을 만들고 채용 공고를 검색하며 맞춤 지원서를 생성합니다.",
+        "pros": "문서에 따르면 `/apply` 워크플로우에는 생성된 CV와 커버레터를 컴파일하고 시각적으로 검사하는 PDF 검증 루프, PDF 텍스트 레이어를 확인하는 ATS 검사, 그리고 초안 작성 후 별도 에이전트가 검토하는 드래프터-리뷰어 구조가 포함되어 있습니다.",
+        "cons": "Claude Code에는 무료 요금제가 없어 Pro/Max/Team 구독이나 토큰 단위로 과금되는 Anthropic API 크레딧이 필요하며, 이 저장소의 포크는 항상 공개로 생성된다는 점도 명시되어 있어 개인 프로필 데이터 저장 방식에 영향을 줄 수 있어 보입니다.",
+        "fit": "핵심 평가 및 지원 파이프라인은 언어 및 국가에 구애받지 않도록 설계되었다고 하지만, 기본 제공되는 채용 포털 검색 스킬은 덴마크 시장을 대상으로 하므로, 다른 국가 사용자는 포털 스킬을 직접 추가하거나 조정해야 더 적합할 수 있을 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "这是一个基于 Claude Code 构建的 AI 求职申请框架,fork 仓库并填写个人资料后,Claude 可评估职位匹配度、定制简历和求职信,并帮助准备面试。",
-        "usage": "使用 `gh repo fork MadsLorentzen/ai-job-search --clone` fork 并克隆仓库,运行 `claude` 后依次执行 `/setup` 配置资料、`/scrape` 搜索职位门户、`/apply` 对选定职位运行完整申请流程。",
-        "pros": "核心工作流与语言和国家无关,并包含 PDF 校验循环、对编译后简历的 ATS 关键词覆盖检查,以及起草者与审阅者代理分离机制,旨在提升简历和求职信质量。",
-        "cons": "Claude Code 没有免费层,需要 Pro/Max/Team 订阅或按量计费的 API 额度;此外还需安装 Python 3.10+、Bun,以及支持 lualatex 和 xelatex 的 LaTeX 发行版。",
-        "fit": "该项目似乎更适合熟悉命令行工具和 LaTeX、希望自动化求职流程的用户;内置的求职门户技能面向丹麦市场,但其模式看起来设计为可适配其他国家。"
+        "goal": "AI Job Search 是一个基于 Claude Code 构建的 AI 求职申请框架。其核心工作流程据称不限语言和国家，用于评估招聘信息、撰写定制化简历和求职信,并帮助用户准备面试。",
+        "usage": "用户可使用 `gh repo fork MadsLorentzen/ai-job-search --clone` 命令 fork 并克隆该仓库，通过 `python3 tools/install_portal_clis.py` 安装招聘门户 CLI 工具,然后运行 `claude`,并在 Claude Code 中使用 `/setup`、`/scrape` 和 `/apply` 命令建立档案、搜索职位并生成定制申请材料。",
+        "pros": "文档说明 `/apply` 工作流程包含一个 PDF 校验循环，会编译并目视检查生成的简历和求职信，还包含一个检查 PDF 文本层的 ATS 校验，以及起草者与审阅者分离的机制，由第二个代理在修订前对草稿进行评审。",
+        "cons": "Claude Code 没有免费套餐，因此使用该框架需要 Claude Pro/Max/Team 订阅，或按 token 计费的 Anthropic API 额度；文档还指出该仓库的 fork 始终是公开的，这似乎可能影响个人资料数据的存储方式。",
+        "fit": "核心评估与申请流程据称不限语言和国家，但随附的招聘门户搜索技能面向丹麦市场，这意味着其他国家的用户可能需要自行添加或调整门户技能才能更好地适用。"
       },
       "es": {
-        "goal": "Es un framework de solicitud de empleo impulsado por IA construido sobre Claude Code; al hacer fork del repositorio y completar un perfil personal, Claude evalúa las ofertas, adapta el CV y la carta de presentación, y ayuda a preparar entrevistas.",
-        "usage": "Haz fork y clona con `gh repo fork MadsLorentzen/ai-job-search --clone`, luego ejecuta `claude` y usa `/setup` para configurar tu perfil, `/scrape` para buscar ofertas en portales de empleo y `/apply` para ejecutar el flujo completo de solicitud sobre una oferta seleccionada.",
-        "pros": "El flujo principal es independiente del idioma y el país, e incluye un bucle de verificación de PDF, comprobaciones de cobertura de palabras clave ATS sobre el CV compilado, y una separación entre agente redactor y revisor pensada para mejorar la calidad del CV y la carta.",
-        "cons": "Claude Code no tiene nivel gratuito, por lo que se requiere una suscripción Pro/Max/Team o créditos de API de pago por token; además es necesario Python 3.10+, Bun y una distribución LaTeX compatible con lualatex y xelatex.",
-        "fit": "Parece más adecuado para personas cómodas con herramientas de línea de comandos y LaTeX que quieran automatizar su búsqueda de empleo; las habilidades de portales incluidas están orientadas al mercado danés, aunque el patrón parece diseñado para adaptarse a otros países."
+        "goal": "AI Job Search es un framework de búsqueda de empleo impulsado por IA, construido sobre Claude Code. Su flujo de trabajo principal, descrito como independiente del idioma y del país, evalúa ofertas de empleo, redacta CVs y cartas de presentación personalizadas, y prepara a los usuarios para entrevistas.",
+        "usage": "Los usuarios bifurcan y clonan el repositorio con `gh repo fork MadsLorentzen/ai-job-search --clone`, instalan las herramientas CLI de los portales de empleo mediante `python3 tools/install_portal_clis.py`, luego ejecutan `claude` y usan los comandos `/setup`, `/scrape` y `/apply` dentro de Claude Code para crear un perfil, buscar ofertas y generar materiales de solicitud personalizados.",
+        "pros": "Según la documentación, el flujo `/apply` incluye un bucle de verificación de PDF que compila e inspecciona visualmente el CV y la carta generados, una comprobación ATS que revisa la capa de texto del PDF, y una separación entre redactor y revisor en la que un segundo agente critica los borradores antes de revisarlos.",
+        "cons": "Claude Code no tiene nivel gratuito, por lo que su uso requiere una suscripción Pro/Max/Team o créditos de la API de Anthropic facturados por token; la documentación también señala que los forks de este repositorio son siempre públicos, lo que podría afectar cómo se almacenan los datos personales del perfil.",
+        "fit": "El flujo principal de evaluación y solicitud se describe como independiente del idioma y del país, pero las habilidades de búsqueda en portales incluidas están orientadas al mercado danés, por lo que podría encajar mejor en usuarios dispuestos a adaptar o añadir sus propias integraciones de portales."
       },
       "ja": {
-        "goal": "Claude Code 上に構築されたAI活用の求職応募フレームワークで、リポジトリをフォークしてプロフィールを入力すると、Claudeが求人を評価し、CVと志望動機書を調整し、面接準備を支援します。",
-        "usage": "`gh repo fork MadsLorentzen/ai-job-search --clone` でフォーク・クローンし、`claude` を実行後、`/setup` でプロフィールを構築し、`/scrape` で求人ポータルを検索し、`/apply` で選んだ求人に対して応募フロー全体を実行します。",
-        "pros": "コアワークフローは言語や国に依存せず、PDF検証ループ、コンパイル済みCVに対するATSキーワードカバレッジチェック、ドラフト作成エージェントとレビューエージェントの分離を備え、CVと志望動機書の品質向上を目指しています。",
-        "cons": "Claude Codeには無料プランがないため、Pro/Max/Teamのサブスクリプションまたはトークン課金のAPIクレジットが必要であり、さらにPython 3.10+、Bun、lualatexとxelatexに対応するLaTeXディストリビューションのインストールも必要です。",
-        "fit": "コマンドラインツールやLaTeXに慣れ、求職活動を自動化したい人に向いていると考えられ、同梱の求人ポータルスキルはデンマーク市場向けですが、他国向けに適応できるよう設計されているようです。"
+        "goal": "AI Job Searchは、Claude Codeを基盤に構築されたAI活用の求職支援フレームワークです。言語や国に依存しないとされる中核のワークフローが、求人情報の評価、履歴書とカバーレターのカスタマイズ作成、面接準備を支援します。",
+        "usage": "ユーザーは `gh repo fork MadsLorentzen/ai-job-search --clone` でリポジトリをフォーク・クローンし、`python3 tools/install_portal_clis.py` で求人ポータル用CLIツールをインストールした後、`claude` を実行し、Claude Code内で `/setup`、`/scrape`、`/apply` コマンドを使ってプロフィール作成、求人検索、応募資料の生成を行います。",
+        "pros": "文書によると、`/apply` ワークフローには生成した履歴書とカバーレターをコンパイルして目視確認するPDF検証ループ、PDFのテキストレイヤーを確認するATSチェック、そして別エージェントが草稿を批評してから修正するドラフター・レビュワー分離の仕組みが含まれています。",
+        "cons": "Claude Codeには無料プランがないため、Pro/Max/Teamのサブスクリプションか従量課金のAnthropic APIクレジットが必要とされています。また、このリポジトリのフォークは常に公開される旨が記載されており、個人プロフィールデータの保存方法に影響する可能性があるようです。",
+        "fit": "中核の評価・応募フローは言語や国に依存しないとされていますが、同梱の求人ポータル検索スキルはデンマーク市場向けであるため、他国のユーザーは自分でポータルスキルを追加・調整する必要があり、その点で適性が変わる可能性があると考えられます。"
       }
     },
     "evidence": {
@@ -200,31 +200,31 @@
           "start_line": 15,
           "end_line": 15,
           "section_heading": "AI Job Search"
+        },
+        {
+          "start_line": 40,
+          "end_line": 42,
+          "section_heading": "What this is"
         }
       ],
       "usage": [
         {
-          "start_line": 77,
-          "end_line": 79,
+          "start_line": 76,
+          "end_line": 78,
           "section_heading": "1. Fork and clone"
         },
         {
-          "start_line": 103,
-          "end_line": 106,
-          "section_heading": "3. Set up your profile"
+          "start_line": 92,
+          "end_line": 93,
+          "section_heading": "2. Install job search tools"
         },
         {
-          "start_line": 112,
-          "end_line": 121,
-          "section_heading": "4. Search for jobs"
+          "start_line": 102,
+          "end_line": 106,
+          "section_heading": "3. Set up your profile"
         }
       ],
       "pros": [
-        {
-          "start_line": 42,
-          "end_line": 42,
-          "section_heading": "What this is"
-        },
         {
           "start_line": 243,
           "end_line": 244,
@@ -243,9 +243,9 @@
           "section_heading": "Prerequisites"
         },
         {
-          "start_line": 65,
-          "end_line": 67,
-          "section_heading": "Prerequisites"
+          "start_line": 82,
+          "end_line": 84,
+          "section_heading": "1. Fork and clone"
         }
       ],
       "fit": [
@@ -255,24 +255,30 @@
           "section_heading": "What this is"
         },
         {
-          "start_line": 65,
-          "end_line": 68,
-          "section_heading": "Prerequisites"
+          "start_line": 305,
+          "end_line": 308,
+          "section_heading": "Job search tools"
         }
       ]
     },
     "invariants": [
       {
-        "kind": "product",
-        "value": "Claude Code",
+        "kind": "command",
+        "value": "gh repo fork MadsLorentzen/ai-job-search --clone",
         "fields": [
-          "goal",
-          "cons"
+          "usage"
         ]
       },
       {
         "kind": "command",
-        "value": "gh repo fork MadsLorentzen/ai-job-search --clone",
+        "value": "python3 tools/install_portal_clis.py",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "claude",
         "fields": [
           "usage"
         ]
@@ -295,29 +301,33 @@
         "kind": "command",
         "value": "/apply",
         "fields": [
-          "usage"
+          "usage",
+          "pros"
         ]
       },
       {
-        "kind": "version",
-        "value": "Python 3.10+",
+        "kind": "product",
+        "value": "Claude Code",
         "fields": [
+          "goal",
+          "usage",
           "cons"
         ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "madslorentzen/ai-job-search",
       "path": "README.md",
-      "blob_sha": "404649e5ba834f38393eb4696694599c7b885dd2",
-      "content_sha256": "4fa36bfea4c6274bb27c07db01ccd004f71ba7ded7bf9d4293f98f090db248a0",
+      "blob_sha": "c41999477105cbd924bef07412cb5eb0d6d62a9a",
+      "content_sha256": "07913dc10a82720c40df82f30c0f9d624b64e52d9062e014a1780db6a1b6191c",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.292",
+      "cli_version": "2.1.302",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -1731,47 +1741,47 @@
   },
   "debpalash/VoiceStudio": {
     "content": {
-      "goal": "VoiceStudio is an open-source application for voice cloning, voice design, video dubbing, dictation, transcription, and audiobook creation, supporting 646 languages, with a default engine powered by k2-fsa/OmniVoice.",
-      "usage": "Install on macOS/Linux with `curl -fsSL https://voicestudio.sh/install | sh`, or on Windows PowerShell with `irm https://voicestudio.sh/install | iex`. To run from source: `git clone https://github.com/debpalash/VoiceStudio.git`, then `bun install`, `bun run setup:api`, and `bun run dev`.",
-      "pros": "It bundles voice cloning, dubbing, and design workflows alongside a local API and MCP integration for agents, and runs locally on hardware with optional GPU acceleration via CUDA on NVIDIA or Metal on Apple Silicon.",
-      "cons": "Users without a dedicated GPU can still run it on CPU, but setup installs a CPU build of PyTorch requiring about 5 GB of free disk space, and Intel Mac users only get the app UI, needing a connection to a remote backend.",
-      "fit": "This suggests it suits users with local hardware such as Apple Silicon or an NVIDIA GPU who want self-hosted voice AI with optional agent/API integrations, though commercial use of model weights and voices appears to require separate permissions beyond the AGPL-3.0 application license."
+      "goal": "VoiceStudio is an open-source tool for voice cloning, voice design, video dubbing, dictation, transcription, and audiobook creation across 646 languages, using k2-fsa/OmniVoice as its default engine, with other engines selectable.",
+      "usage": "Install on macOS/Linux with `curl -fsSL https://voicestudio.sh/install | sh`, or on Windows via PowerShell. To run from source, clone with `git clone https://github.com/debpalash/VoiceStudio.git`, run `bun install`, prepare Python dependencies, then run `bun run dev`.",
+      "pros": "The app supports local-only workflows that avoid remote services, includes a local API and MCP integration for connecting agents, and offers hardware acceleration through CUDA on NVIDIA GPUs or Metal/MPS on Apple Silicon.",
+      "cons": "Building the current main branch requires Git, Node.js 22+, Bun, Rust/Cargo, and platform build tools, which likely raises setup effort for contributors compared to installing a packaged release.",
+      "fit": "Electron is documented as the only supported desktop app and web UI, since the Tauri shell was retired after version 0.5.3 under the AGPL-3.0 license, so this likely suits users willing to migrate away from older Tauri-based installs."
     },
     "summaries": {
       "en": {
-        "goal": "VoiceStudio is an open-source application for voice cloning, voice design, video dubbing, dictation, transcription, and audiobook creation, supporting 646 languages, with a default engine powered by k2-fsa/OmniVoice.",
-        "usage": "Install on macOS/Linux with `curl -fsSL https://voicestudio.sh/install | sh`, or on Windows PowerShell with `irm https://voicestudio.sh/install | iex`. To run from source: `git clone https://github.com/debpalash/VoiceStudio.git`, then `bun install`, `bun run setup:api`, and `bun run dev`.",
-        "pros": "It bundles voice cloning, dubbing, and design workflows alongside a local API and MCP integration for agents, and runs locally on hardware with optional GPU acceleration via CUDA on NVIDIA or Metal on Apple Silicon.",
-        "cons": "Users without a dedicated GPU can still run it on CPU, but setup installs a CPU build of PyTorch requiring about 5 GB of free disk space, and Intel Mac users only get the app UI, needing a connection to a remote backend.",
-        "fit": "This suggests it suits users with local hardware such as Apple Silicon or an NVIDIA GPU who want self-hosted voice AI with optional agent/API integrations, though commercial use of model weights and voices appears to require separate permissions beyond the AGPL-3.0 application license."
+        "goal": "VoiceStudio is an open-source tool for voice cloning, voice design, video dubbing, dictation, transcription, and audiobook creation across 646 languages, using k2-fsa/OmniVoice as its default engine, with other engines selectable.",
+        "usage": "Install on macOS/Linux with `curl -fsSL https://voicestudio.sh/install | sh`, or on Windows via PowerShell. To run from source, clone with `git clone https://github.com/debpalash/VoiceStudio.git`, run `bun install`, prepare Python dependencies, then run `bun run dev`.",
+        "pros": "The app supports local-only workflows that avoid remote services, includes a local API and MCP integration for connecting agents, and offers hardware acceleration through CUDA on NVIDIA GPUs or Metal/MPS on Apple Silicon.",
+        "cons": "Building the current main branch requires Git, Node.js 22+, Bun, Rust/Cargo, and platform build tools, which likely raises setup effort for contributors compared to installing a packaged release.",
+        "fit": "Electron is documented as the only supported desktop app and web UI, since the Tauri shell was retired after version 0.5.3 under the AGPL-3.0 license, so this likely suits users willing to migrate away from older Tauri-based installs."
       },
       "ko": {
-        "goal": "VoiceStudio는 음성 복제, 음성 디자인, 영상 더빙, 받아쓰기, 전사, 오디오북 제작을 지원하는 오픈소스 애플리케이션으로, 646개 언어를 지원하며 기본 엔진은 k2-fsa/OmniVoice가 구동합니다.",
-        "usage": "macOS/Linux에서는 `curl -fsSL https://voicestudio.sh/install | sh` 로 설치하고, Windows PowerShell에서는 `irm https://voicestudio.sh/install | iex` 를 실행합니다. 소스에서 직접 실행하려면 `git clone https://github.com/debpalash/VoiceStudio.git` 후 `bun install`, `bun run setup:api`, `bun run dev` 순서로 진행합니다.",
-        "pros": "음성 복제, 더빙, 디자인 워크플로를 하나로 묶고 에이전트를 위한 로컬 API와 MCP 연동을 제공하며, NVIDIA GPU의 CUDA나 Apple Silicon의 Metal을 통한 가속을 지원하며 로컬 하드웨어에서 실행됩니다.",
-        "cons": "전용 GPU가 없어도 CPU에서 실행할 수 있지만, 설치 과정에서 약 5GB의 여유 디스크 공간이 필요한 CPU용 PyTorch 빌드를 설치하며, Intel Mac에서는 앱 UI만 제공되어 원격 백엔드 연결이 필요합니다.",
-        "fit": "이는 Apple Silicon이나 NVIDIA GPU 같은 로컬 하드웨어를 보유하고 자체 호스팅 음성 AI와 에이전트/API 연동을 원하는 사용자에게 적합해 보이며, 모델 가중치와 음성의 상업적 사용은 AGPL-3.0 애플리케이션 라이선스와 별도의 허가가 필요할 수 있습니다."
+        "goal": "VoiceStudio는 646개 언어에서 음성 클로닝, 음성 디자인, 비디오 더빙, 받아쓰기, 전사, 오디오북 제작을 지원하는 오픈소스 도구이며, 기본 엔진으로 k2-fsa/OmniVoice를 사용하고 다른 엔진으로도 전환할 수 있습니다.",
+        "usage": "macOS/Linux에서는 `curl -fsSL https://voicestudio.sh/install | sh` 명령으로 설치하고, Windows에서는 PowerShell을 사용합니다. 소스에서 실행하려면 `git clone https://github.com/debpalash/VoiceStudio.git` 후 `bun install`을 실행하고 Python 의존성을 준비한 뒤 `bun run dev`를 실행합니다.",
+        "pros": "로컬 전용 워크플로우를 지원해 원격 서비스 없이도 사용할 수 있고, 에이전트 연결을 위한 로컬 API와 MCP 통합을 제공하며, NVIDIA GPU의 CUDA 또는 Apple Silicon의 Metal/MPS를 통한 하드웨어 가속을 지원합니다.",
+        "cons": "현재 main 브랜치를 빌드하려면 Git, Node.js 22+, Bun, Rust/Cargo 및 플랫폼별 빌드 도구가 필요해, 패키지된 릴리스를 설치하는 것보다 설정 부담이 더 클 수 있습니다.",
+        "fit": "문서에 따르면 Electron이 유일하게 지원되는 데스크톱 앱 및 웹 UI이며, Tauri 셸은 버전 0.5.3 이후 AGPL-3.0 라이선스 하에 더 이상 지원되지 않으므로, 기존 Tauri 기반 설치에서 마이그레이션할 의향이 있는 사용자에게 적합할 수 있습니다."
       },
       "zh-CN": {
-        "goal": "VoiceStudio 是一个开源应用,支持语音克隆、语音设计、视频配音、口述、转录和有声书制作,支持 646 种语言,默认引擎由 k2-fsa/OmniVoice 驱动。",
-        "usage": "在 macOS/Linux 上可通过 `curl -fsSL https://voicestudio.sh/install | sh` 安装,在 Windows PowerShell 中运行 `irm https://voicestudio.sh/install | iex`。若要从源码运行,可执行 `git clone https://github.com/debpalash/VoiceStudio.git`,然后依次运行 `bun install`、`bun run setup:api` 和 `bun run dev`。",
-        "pros": "它将语音克隆、配音和设计工作流整合在一起,并为代理提供本地 API 和 MCP 集成,同时支持在本地硬件上运行,可通过 NVIDIA GPU 的 CUDA 或 Apple Silicon 的 Metal 进行加速。",
-        "cons": "没有独立显卡的用户也可以在 CPU 上运行,但安装过程会安装 CPU 版 PyTorch,需要约 5GB 的可用磁盘空间,而 Intel Mac 用户只能使用应用界面,需要连接远程后端。",
-        "fit": "这似乎适合拥有 Apple Silicon 或 NVIDIA GPU 等本地硬件、希望自托管语音 AI 并结合代理/API 集成的用户,不过模型权重和语音的商业使用可能需要在 AGPL-3.0 应用许可之外获得单独授权。"
+        "goal": "VoiceStudio 是一个开源工具，支持跨 646 种语言的语音克隆、语音设计、视频配音、口述、转录和有声书制作，默认引擎为 k2-fsa/OmniVoice，也可切换为其他引擎。",
+        "usage": "在 macOS/Linux 上可使用 `curl -fsSL https://voicestudio.sh/install | sh` 安装，Windows 用户则通过 PowerShell 安装。若要从源码运行，可执行 `git clone https://github.com/debpalash/VoiceStudio.git`，然后运行 `bun install`，准备好 Python 依赖后再运行 `bun run dev`。",
+        "pros": "该应用支持无需远程服务的纯本地工作流，提供用于连接代理的本地 API 和 MCP 集成，并通过 NVIDIA GPU 的 CUDA 或 Apple Silicon 的 Metal/MPS 提供硬件加速。",
+        "cons": "构建当前 main 分支需要 Git、Node.js 22+、Bun、Rust/Cargo 以及平台构建工具，这可能比安装打包好的发行版带来更高的配置成本。",
+        "fit": "文档说明 Electron 是唯一受支持的桌面应用和网页界面，因为 Tauri 外壳在版本 0.5.3 之后已被弃用（应用基于 AGPL-3.0 许可），因此可能适合愿意从旧版 Tauri 安装迁移的用户。"
       },
       "es": {
-        "goal": "VoiceStudio es una aplicación de código abierto para clonación de voz, diseño de voz, doblaje de video, dictado, transcripción y creación de audiolibros, que admite 646 idiomas, con un motor predeterminado impulsado por k2-fsa/OmniVoice.",
-        "usage": "Se instala en macOS/Linux con `curl -fsSL https://voicestudio.sh/install | sh`, o en Windows PowerShell con `irm https://voicestudio.sh/install | iex`. Para ejecutarlo desde el código fuente: `git clone https://github.com/debpalash/VoiceStudio.git`, seguido de `bun install`, `bun run setup:api` y `bun run dev`.",
-        "pros": "Combina flujos de clonación de voz, doblaje y diseño con una API local e integración MCP para agentes, y se ejecuta en hardware local con aceleración opcional mediante CUDA en GPU NVIDIA o Metal en Apple Silicon.",
-        "cons": "Quienes no tienen GPU dedicada pueden usarlo en CPU, pero la instalación requiere una compilación de PyTorch para CPU que necesita unos 5 GB de espacio libre en disco, y en Mac Intel solo está disponible la interfaz de la app, que requiere conectarse a un backend remoto.",
-        "fit": "Esto sugiere que es adecuado para usuarios con hardware local como Apple Silicon o GPU NVIDIA que buscan IA de voz autoalojada con integraciones de agente/API, aunque el uso comercial de los pesos de modelo y las voces parece requerir permisos separados más allá de la licencia AGPL-3.0 de la aplicación."
+        "goal": "VoiceStudio es una herramienta de código abierto para clonación de voz, diseño de voz, doblaje de video, dictado, transcripción y creación de audiolibros en 646 idiomas, usando k2-fsa/OmniVoice como motor predeterminado, con otros motores seleccionables.",
+        "usage": "Instálalo en macOS/Linux con `curl -fsSL https://voicestudio.sh/install | sh`, o en Windows mediante PowerShell. Para ejecutarlo desde el código fuente, clona con `git clone https://github.com/debpalash/VoiceStudio.git`, ejecuta `bun install` y, tras preparar las dependencias de Python, `bun run dev`.",
+        "pros": "La aplicación admite flujos de trabajo totalmente locales sin servicios remotos, incluye una API local e integración MCP para agentes, y ofrece aceleración por hardware mediante CUDA en GPU NVIDIA o Metal/MPS en Apple Silicon.",
+        "cons": "Compilar la rama main actual requiere Git, Node.js 22+, Bun, Rust/Cargo y herramientas de compilación específicas de la plataforma, lo que probablemente implica más esfuerzo de configuración que instalar una versión empaquetada.",
+        "fit": "Según la documentación, Electron es la única aplicación de escritorio e interfaz web admitida, ya que el shell Tauri quedó retirado tras la versión 0.5.3 bajo la licencia AGPL-3.0, por lo que probablemente resulte adecuado para quienes estén dispuestos a migrar desde instalaciones basadas en Tauri."
       },
       "ja": {
-        "goal": "VoiceStudioは、音声クローニング、音声デザイン、動画ダビング、ディクテーション、文字起こし、オーディオブック作成に対応したオープンソースアプリケーションで、646言語をサポートし、デフォルトエンジンはk2-fsa/OmniVoiceによって動作します。",
-        "usage": "macOS/Linuxでは `curl -fsSL https://voicestudio.sh/install | sh` でインストールし、Windows PowerShellでは `irm https://voicestudio.sh/install | iex` を実行します。ソースから実行する場合は `git clone https://github.com/debpalash/VoiceStudio.git` の後、`bun install`、`bun run setup:api`、`bun run dev` の順に実行します。",
-        "pros": "音声クローニング、ダビング、デザインのワークフローをまとめ、エージェント向けのローカルAPIとMCP連携を提供し、NVIDIA GPUのCUDAやApple SiliconのMetalによるアクセラレーションを利用してローカルハードウェア上で動作します。",
-        "cons": "専用GPUがなくてもCPUで実行できますが、セットアップではCPU版PyTorchがインストールされ、約5GBの空きディスク容量が必要になり、Intel Macではアプリのユーザーインターフェースのみが提供され、リモートバックエンドへの接続が必要です。",
-        "fit": "これは、Apple SiliconやNVIDIA GPUなどのローカルハードウェアを持ち、セルフホスト型の音声AIとエージェント/API連携を求めるユーザーに適していると考えられますが、モデルの重みや音声の商用利用にはAGPL-3.0のアプリケーションライセンスとは別の許可が必要になる可能性があります。"
+        "goal": "VoiceStudioは、646言語に対応した音声クローニング、音声デザイン、動画の吹き替え、ディクテーション、文字起こし、オーディオブック作成を行うオープンソースツールで、デフォルトエンジンとしてk2-fsa/OmniVoiceを使用し、他のエンジンへの切り替えも可能です。",
+        "usage": "macOS/Linuxでは `curl -fsSL https://voicestudio.sh/install | sh` でインストールし、WindowsではPowerShellを使用します。ソースから実行する場合は `git clone https://github.com/debpalash/VoiceStudio.git` でクローンし、`bun install` を実行後、Python依存関係を準備してから `bun run dev` を実行します。",
+        "pros": "リモートサービスを使わないローカル専用ワークフローに対応し、エージェント連携用のローカルAPIとMCP統合を提供し、NVIDIA GPUのCUDAやApple SiliconのMetal/MPSによるハードウェアアクセラレーションに対応しています。",
+        "cons": "現在のmainブランチをビルドするにはGit、Node.js 22+、Bun、Rust/Cargo、プラットフォーム固有のビルドツールが必要で、パッケージ化されたリリースをインストールする場合に比べて設定の手間がおそらく大きくなります。",
+        "fit": "文書によれば、Electronがサポートされる唯一のデスクトップアプリおよびWeb UIであり、Tauriシェルはバージョン0.5.3以降で廃止されました（アプリ自体はAGPL-3.0ライセンス）。そのため、従来のTauriベースのインストールから移行する意思があるユーザーにおそらく適しています。"
       }
     },
     "evidence": {
@@ -1789,49 +1799,44 @@
       ],
       "usage": [
         {
-          "start_line": 64,
-          "end_line": 64,
+          "start_line": 60,
+          "end_line": 74,
           "section_heading": "One-command install (macOS / Linux)"
         },
         {
-          "start_line": 76,
-          "end_line": 76,
-          "section_heading": "One-command install (macOS / Linux)"
-        },
-        {
-          "start_line": 114,
-          "end_line": 118,
+          "start_line": 113,
+          "end_line": 119,
           "section_heading": "Install with prompt"
         }
       ],
       "pros": [
         {
           "start_line": 29,
-          "end_line": 31,
+          "end_line": 32,
           "section_heading": "Your voice. Your workflow."
         },
         {
-          "start_line": 89,
-          "end_line": 90,
+          "start_line": 87,
+          "end_line": 91,
           "section_heading": "One-command install (macOS / Linux)"
         }
       ],
       "cons": [
         {
-          "start_line": 91,
-          "end_line": 91,
-          "section_heading": "One-command install (macOS / Linux)"
-        },
-        {
-          "start_line": 93,
-          "end_line": 93,
+          "start_line": 76,
+          "end_line": 79,
           "section_heading": "One-command install (macOS / Linux)"
         }
       ],
       "fit": [
         {
-          "start_line": 149,
-          "end_line": 151,
+          "start_line": 128,
+          "end_line": 128,
+          "section_heading": "Install with prompt"
+        },
+        {
+          "start_line": 150,
+          "end_line": 152,
           "section_heading": "License & responsible use"
         }
       ]
@@ -1840,13 +1845,6 @@
       {
         "kind": "command",
         "value": "curl -fsSL https://voicestudio.sh/install | sh",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "irm https://voicestudio.sh/install | iex",
         "fields": [
           "usage"
         ]
@@ -1867,16 +1865,23 @@
       },
       {
         "kind": "command",
-        "value": "bun run setup:api",
+        "value": "bun run dev",
         "fields": [
           "usage"
         ]
       },
       {
-        "kind": "command",
-        "value": "bun run dev",
+        "kind": "version",
+        "value": "0.5.3",
         "fields": [
-          "usage"
+          "fit"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "Node.js 22+",
+        "fields": [
+          "cons"
         ]
       },
       {
@@ -1884,13 +1889,6 @@
         "value": "646",
         "fields": [
           "goal"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "5 GB",
-        "fields": [
-          "cons"
         ]
       },
       {
@@ -1917,9 +1915,16 @@
       },
       {
         "kind": "product",
-        "value": "k2-fsa/OmniVoice",
+        "value": "Electron",
         "fields": [
-          "goal"
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Tauri",
+        "fields": [
+          "fit"
         ]
       },
       {
@@ -1928,20 +1933,28 @@
         "fields": [
           "fit"
         ]
+      },
+      {
+        "kind": "product",
+        "value": "k2-fsa/OmniVoice",
+        "fields": [
+          "goal"
+        ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "debpalash/voicestudio",
       "path": "README.md",
-      "blob_sha": "c2ddaa1f08b2bea0e2a05655e96c218e91ac7506",
-      "content_sha256": "8d43452c68c0b33512159a178401120c6610884774d25af860eed6fa3b7fdfd4",
+      "blob_sha": "52869fe6735b9d0623c16c5c73febb4917972d23",
+      "content_sha256": "2019405cdf4fdabf41a15e0338b660698296ad7c05d9faeb3921bd4495ad39d2",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.292",
+      "cli_version": "2.1.302",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -2131,47 +2144,47 @@
   },
   "ruvnet/ruflo": {
     "content": {
-      "goal": "Ruflo is described as an agent meta-harness for Claude Code and Codex, adding specialized agents, swarm coordination, self-learning memory, and cross-machine agent federation on top of those tools.",
-      "usage": "Inside Claude Code 2.1.287 or later, run `/plugin marketplace add ruvnet/ruflo` followed by `/plugin install ruflo-core@ruflo`; for Codex or other MCP-enabled clients, run `npx ruflo@latest init wizard` from a project terminal to configure the MCP server.",
-      "pros": "The README lists over 100 specialized agents, swarm coordination topologies, vector-based persistent memory, and a console for tracking workflows, agents, and token cost alongside Claude Code.",
-      "cons": "Installed mods run with the user's own account permissions and are explicitly not sandboxed, so reviewing mod code before installing is advised; separately, the documented vector-memory benchmark shows speed gains only above a certain data-size threshold, with ties or losses at smaller scales.",
-      "fit": "Ruflo appears intended for teams already working within Claude Code or Codex who want added orchestration and memory, and the README distinguishes two install paths—a lighter plugin-only setup and a fuller CLI install—suggesting the right choice depends on how much of the toolchain is needed."
+      "goal": "Ruflo presents itself as an agent meta-harness for Claude Code and Codex, adding 100+ specialized agents, swarm coordination, self-learning memory, and federated agent communication across machines.",
+      "usage": "Install it as a Claude Code plugin by running `/plugin marketplace add ruvnet/ruflo` followed by `/plugin install ruflo-core@ruflo` (Claude Code 2.1.287 or later is required), or run `npx ruflo@latest init wizard` for the full CLI install with its own MCP server.",
+      "pros": "The documentation describes two install paths: a lightweight Claude Code plugin offering only slash commands, and a full CLI install that adds 98 agents, 60+ commands, and 30 skills along with an MCP server, hooks, and a daemon.",
+      "cons": "Mods are described as running with the installer's account permissions without sandboxing, making code review before installation a documented precaution. Vector memory (HNSW-indexed AgentDB) is reported to tie or lose to brute-force search at small dataset sizes, showing a measured speed advantage only above a stated crossover point.",
+      "fit": "Because it depends on Claude Code at version 2.1.287 or later, or another MCP-enabled client such as Codex, Ruflo likely suits developers already working with those specific tools who want added orchestration and memory features; it may be less relevant without one of those hosts."
     },
     "summaries": {
       "en": {
-        "goal": "Ruflo is described as an agent meta-harness for Claude Code and Codex, adding specialized agents, swarm coordination, self-learning memory, and cross-machine agent federation on top of those tools.",
-        "usage": "Inside Claude Code 2.1.287 or later, run `/plugin marketplace add ruvnet/ruflo` followed by `/plugin install ruflo-core@ruflo`; for Codex or other MCP-enabled clients, run `npx ruflo@latest init wizard` from a project terminal to configure the MCP server.",
-        "pros": "The README lists over 100 specialized agents, swarm coordination topologies, vector-based persistent memory, and a console for tracking workflows, agents, and token cost alongside Claude Code.",
-        "cons": "Installed mods run with the user's own account permissions and are explicitly not sandboxed, so reviewing mod code before installing is advised; separately, the documented vector-memory benchmark shows speed gains only above a certain data-size threshold, with ties or losses at smaller scales.",
-        "fit": "Ruflo appears intended for teams already working within Claude Code or Codex who want added orchestration and memory, and the README distinguishes two install paths—a lighter plugin-only setup and a fuller CLI install—suggesting the right choice depends on how much of the toolchain is needed."
+        "goal": "Ruflo presents itself as an agent meta-harness for Claude Code and Codex, adding 100+ specialized agents, swarm coordination, self-learning memory, and federated agent communication across machines.",
+        "usage": "Install it as a Claude Code plugin by running `/plugin marketplace add ruvnet/ruflo` followed by `/plugin install ruflo-core@ruflo` (Claude Code 2.1.287 or later is required), or run `npx ruflo@latest init wizard` for the full CLI install with its own MCP server.",
+        "pros": "The documentation describes two install paths: a lightweight Claude Code plugin offering only slash commands, and a full CLI install that adds 98 agents, 60+ commands, and 30 skills along with an MCP server, hooks, and a daemon.",
+        "cons": "Mods are described as running with the installer's account permissions without sandboxing, making code review before installation a documented precaution. Vector memory (HNSW-indexed AgentDB) is reported to tie or lose to brute-force search at small dataset sizes, showing a measured speed advantage only above a stated crossover point.",
+        "fit": "Because it depends on Claude Code at version 2.1.287 or later, or another MCP-enabled client such as Codex, Ruflo likely suits developers already working with those specific tools who want added orchestration and memory features; it may be less relevant without one of those hosts."
       },
       "ko": {
-        "goal": "Ruflo는 Claude Code와 Codex를 위한 에이전트 메타 하니스로 소개되며, 전문화된 에이전트, 스웜 조정, 자가 학습 메모리, 기기 간 에이전트 연합 기능을 추가합니다.",
-        "usage": "Claude Code 2.1.287 이상에서는 `/plugin marketplace add ruvnet/ruflo` 다음에 `/plugin install ruflo-core@ruflo`를 실행하고, Codex 등 MCP 지원 클라이언트에서는 프로젝트 터미널에서 `npx ruflo@latest init wizard`를 실행해 MCP 서버를 설정합니다.",
-        "pros": "README에는 100개 이상의 전문 에이전트, 스웜 조정 토폴로지, 벡터 기반 영속 메모리, Claude Code와 함께 워크플로·에이전트·토큰 비용을 추적하는 콘솔이 나열되어 있습니다.",
-        "cons": "설치된 모드는 사용자 계정 권한으로 실행되며 샌드박스화되어 있지 않다고 명시되어 있어 설치 전 코드 검토가 권장되며, 문서화된 벡터 메모리 벤치마크는 특정 데이터 규모 이상에서만 속도 이점을 보이고 소규모에서는 동점이거나 뒤처질 수 있는 것으로 보입니다.",
-        "fit": "Ruflo는 이미 Claude Code나 Codex를 사용하는 팀을 위한 것으로 보이며, README는 가벼운 플러그인 전용 설치와 더 완전한 CLI 설치라는 두 가지 경로를 구분하고 있어 필요한 범위에 따라 선택이 달라질 수 있습니다."
+        "goal": "Ruflo는 Claude Code와 Codex를 위한 에이전트 메타 하니스를 자처하며, 100개 이상의 전문 에이전트, 스웜 조정, 자가 학습 메모리, 여러 머신 간 연합 통신 기능을 추가한다고 설명합니다.",
+        "usage": "Claude Code 플러그인으로 설치하려면 `/plugin marketplace add ruvnet/ruflo` 다음 `/plugin install ruflo-core@ruflo`를 실행하며(Claude Code 2.1.287 이상 필요), 전체 CLI 설치와 자체 MCP 서버를 원하면 `npx ruflo@latest init wizard`를 실행합니다.",
+        "pros": "문서는 두 가지 설치 경로를 설명합니다: 슬래시 명령만 제공하는 경량 Claude Code 플러그인, 그리고 98개 에이전트, 60개 이상의 명령, 30개 스킬과 함께 MCP 서버, 훅, 데몬을 추가하는 전체 CLI 설치입니다.",
+        "cons": "mods는 설치자의 계정 권한으로 샌드박스 없이 실행된다고 설명되어 있어, 설치 전 코드 검토가 문서화된 주의사항입니다. 또한 HNSW 기반 AgentDB 벡터 메모리는 작은 데이터셋에서는 무차별 탐색과 동등하거나 느리며, 명시된 교차점 이상에서만 측정된 속도 우위를 보인다고 보고됩니다.",
+        "fit": "Claude Code 2.1.287 이상 또는 Codex와 같은 MCP 지원 클라이언트에 의존하므로, Ruflo는 이미 해당 도구를 사용하며 조정과 메모리 기능 확장을 원하는 개발자에게 적합할 가능성이 있으며, 그런 호스트가 없는 환경에서는 적합성이 낮을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "Ruflo 被介绍为面向 Claude Code 和 Codex 的代理元工具框架,在这两者之上增加专门代理、群组协同、自学习记忆以及跨机器的代理联邦功能。",
-        "usage": "在 Claude Code 2.1.287 或更高版本中,先运行 `/plugin marketplace add ruvnet/ruflo`,再运行 `/plugin install ruflo-core@ruflo`;若使用 Codex 或其他支持 MCP 的客户端,则在项目终端运行 `npx ruflo@latest init wizard` 来配置 MCP 服务器。",
-        "pros": "README 中列出了 100 多个专门代理、群组协同拓扑、基于向量的持久记忆,以及可与 Claude Code 一起追踪工作流、代理和令牌成本的控制台。",
-        "cons": "文档明确说明已安装的 mod 以用户账户权限运行且未沙箱化,因此建议安装前审查代码;另外,文档中的向量记忆基准测试显示,只有在数据规模超过某个临界点后才有明显加速,在较小规模下可能持平甚至更慢。",
-        "fit": "Ruflo 看起来更适合已经在使用 Claude Code 或 Codex、希望增加编排与记忆能力的团队,README 区分了两种安装路径——较轻量的仅插件安装和更完整的 CLI 安装——具体选择似乎取决于所需的功能范围。"
+        "goal": "Ruflo 将自己定位为面向 Claude Code 和 Codex 的智能体元框架（meta-harness），据文档描述增加了 100 多个专业智能体、群体协调、自学习记忆以及跨机器的联邦通信能力。",
+        "usage": "作为 Claude Code 插件安装时，先运行 `/plugin marketplace add ruvnet/ruflo`，再运行 `/plugin install ruflo-core@ruflo`（需要 Claude Code 2.1.287 或更高版本）；若需要完整 CLI 安装并自带 MCP 服务器，可运行 `npx ruflo@latest init wizard`。",
+        "pros": "文档描述了两种安装路径：仅提供斜杠命令的轻量级 Claude Code 插件，以及包含 98 个智能体、60 多个命令、30 个技能，并附带 MCP 服务器、钩子和守护进程的完整 CLI 安装。",
+        "cons": "文档说明 mods 以安装者的账户权限运行且未进行沙箱隔离，因此在安装前审查其代码是文档中提到的预防措施。另外，基于 HNSW 索引的 AgentDB 向量内存据报告在小数据集规模下与暴力搜索持平或更慢，只有超过文档所述的交叉点后才表现出测得的速度优势。",
+        "fit": "由于其依赖 Claude Code（需 2.1.287 或更高版本）或如 Codex 等支持 MCP 的客户端，Ruflo 可能更适合已经使用这些特定代理工具、并希望获得额外编排与记忆功能的开发者；若没有这些宿主环境，其适用性可能会降低。"
       },
       "es": {
-        "goal": "Ruflo se describe como un meta-harness de agentes para Claude Code y Codex, que añade agentes especializados, coordinación de enjambres, memoria autoaprendizaje y federación de agentes entre máquinas.",
-        "usage": "En Claude Code 2.1.287 o posterior, se ejecuta `/plugin marketplace add ruvnet/ruflo` seguido de `/plugin install ruflo-core@ruflo`; para Codex u otros clientes compatibles con MCP, se ejecuta `npx ruflo@latest init wizard` en la terminal del proyecto para configurar el servidor MCP.",
-        "pros": "El README enumera más de 100 agentes especializados, topologías de coordinación de enjambres, memoria persistente basada en vectores y una consola para seguir flujos de trabajo, agentes y costo de tokens junto a Claude Code.",
-        "cons": "Los mods instalados se ejecutan con los permisos de la cuenta del usuario y explícitamente no están aislados en sandbox, por lo que se recomienda revisar el código antes de instalarlos; además, el benchmark documentado de memoria vectorial muestra mejoras de velocidad solo por encima de cierto umbral de tamaño de datos, con empates o resultados peores en escalas pequeñas.",
-        "fit": "Ruflo parece orientado a equipos que ya trabajan con Claude Code o Codex y desean añadir orquestación y memoria; el README distingue dos rutas de instalación —una instalación ligera solo con plugins y otra completa por CLI— lo que sugiere que la elección depende del alcance necesario."
+        "goal": "Ruflo se presenta como un meta-harness de agentes para Claude Code y Codex, que según la documentación añade más de 100 agentes especializados, coordinación de enjambres, memoria de autoaprendizaje y comunicación federada entre máquinas.",
+        "usage": "Para instalarlo como plugin de Claude Code, ejecute `/plugin marketplace add ruvnet/ruflo` y luego `/plugin install ruflo-core@ruflo` (requiere Claude Code 2.1.287 o posterior), o ejecute `npx ruflo@latest init wizard` para la instalación completa por CLI con su propio servidor MCP.",
+        "pros": "La documentación describe dos rutas de instalación: un plugin ligero de Claude Code con solo comandos de barra, y una instalación completa por CLI que añade 98 agentes, más de 60 comandos y 30 habilidades junto con un servidor MCP, hooks y un daemon.",
+        "cons": "Se indica que los mods se ejecutan con los permisos de la cuenta del usuario sin aislamiento (sandboxing), por lo que revisar su código antes de instalarlos es una precaución documentada. Además, la memoria vectorial (AgentDB indexada con HNSW) reportadamente iguala o pierde frente a la búsqueda por fuerza bruta en conjuntos de datos pequeños, mostrando una ventaja de velocidad medida solo por encima de un punto de cruce indicado.",
+        "fit": "Debido a su dependencia de Claude Code (versión 2.1.287 o posterior) o de otro cliente compatible con MCP como Codex, Ruflo probablemente resulte adecuado para desarrolladores que ya trabajan con esas herramientas específicas y buscan funciones adicionales de orquestación y memoria; podría ser menos relevante sin alguno de esos entornos."
       },
       "ja": {
-        "goal": "Rufloは Claude Code と Codex 向けのエージェント・メタハーネスとして紹介されており、専門エージェント、スウォーム連携、自己学習メモリ、マシン間のエージェント連携機能を追加します。",
-        "usage": "Claude Code 2.1.287以降では `/plugin marketplace add ruvnet/ruflo` に続けて `/plugin install ruflo-core@ruflo` を実行し、Codexなど他のMCP対応クライアントではプロジェクトのターミナルで `npx ruflo@latest init wizard` を実行してMCPサーバーを設定します。",
-        "pros": "READMEには100以上の専門エージェント、スウォーム連携のトポロジー、ベクトルベースの永続メモリ、Claude Codeと並んでワークフロー・エージェント・トークンコストを追跡するコンソールが挙げられています。",
-        "cons": "インストールされたモッドはユーザーのアカウント権限で動作しサンドボックス化されていないと明記されており、インストール前にコードを確認することが推奨されています。また、文書化されたベクトルメモリのベンチマークでは、一定のデータ規模を超えた場合にのみ速度向上が見られ、小規模では同程度かそれ以下になる可能性があるようです。",
-        "fit": "Ruflo はすでに Claude Code や Codex を利用しているチームが、オーケストレーションやメモリ機能を追加したい場合に向いていると考えられ、READMEは軽量なプラグインのみの導入とより完全なCLI導入という2つの経路を区別しており、必要な範囲によって選択が変わるようです。"
+        "goal": "Rufloは、Claude CodeとCodex向けのエージェント・メタハーネスを自称し、文書によれば100以上の専門エージェント、スウォーム連携、自己学習メモリ、複数マシン間のフェデレーション通信を追加するとされています。",
+        "usage": "Claude Codeプラグインとしてインストールするには、`/plugin marketplace add ruvnet/ruflo` を実行した後に `/plugin install ruflo-core@ruflo` を実行します（Claude Code 2.1.287以降が必要）。完全なCLIインストールと専用MCPサーバーを使う場合は `npx ruflo@latest init wizard` を実行します。",
+        "pros": "文書では2つのインストール経路が説明されています。スラッシュコマンドのみを提供する軽量なClaude Codeプラグインと、98個のエージェント、60以上のコマンド、30個のスキルに加えてMCPサーバー、フック、デーモンを追加する完全なCLIインストールです。",
+        "cons": "modsはサンドボックス化されずインストーラーのアカウント権限で実行されると説明されており、インストール前にコードを確認することが文書上の注意事項とされています。また、HNSW索引付きのAgentDBベクトルメモリは、小規模なデータセットでは総当たり検索と同等か劣るとされ、文書で示された交差点を超えた場合にのみ速度向上が確認されています。",
+        "fit": "Claude Code（バージョン2.1.287以降）やCodexのようなMCP対応クライアントへの依存があるため、Rufloはすでにこれらの特定のエージェントツールを使用し、追加のオーケストレーションやメモリ機能を求める開発者に適している可能性がありますが、そうしたホスト環境がない場合は適合性が低くなる可能性があります。"
       }
     },
     "evidence": {
@@ -2182,67 +2195,62 @@
           "section_heading": ""
         },
         {
-          "start_line": 95,
-          "end_line": 95,
+          "start_line": 96,
+          "end_line": 98,
           "section_heading": "Ruflo"
         }
       ],
       "usage": [
         {
-          "start_line": 25,
-          "end_line": 34,
+          "start_line": 26,
+          "end_line": 26,
           "section_heading": "<img src=\"docs/assets/readme/icons/terminal.svg\" width=\"32\" height=\"32\" alt=\"\"> Get started with Ruflo"
         },
         {
-          "start_line": 38,
-          "end_line": 41,
+          "start_line": 29,
+          "end_line": 30,
+          "section_heading": "<img src=\"docs/assets/readme/icons/terminal.svg\" width=\"32\" height=\"32\" alt=\"\"> Get started with Ruflo"
+        },
+        {
+          "start_line": 42,
+          "end_line": 42,
           "section_heading": "<img src=\"docs/assets/readme/icons/terminal.svg\" width=\"32\" height=\"32\" alt=\"\"> Get started with Ruflo"
         }
       ],
       "pros": [
         {
-          "start_line": 95,
-          "end_line": 95,
-          "section_heading": "Ruflo"
-        },
-        {
-          "start_line": 127,
-          "end_line": 127,
-          "section_heading": "Ruflo"
-        },
-        {
-          "start_line": 322,
-          "end_line": 322,
-          "section_heading": "What You Get"
+          "start_line": 176,
+          "end_line": 184,
+          "section_heading": "Quick Start"
         }
       ],
       "cons": [
         {
-          "start_line": 36,
-          "end_line": 36,
+          "start_line": 37,
+          "end_line": 37,
           "section_heading": "<img src=\"docs/assets/readme/icons/terminal.svg\" width=\"32\" height=\"32\" alt=\"\"> Get started with Ruflo"
         },
         {
-          "start_line": 152,
-          "end_line": 152,
+          "start_line": 161,
+          "end_line": 161,
           "section_heading": "One task: create a mission with Claude"
         },
         {
-          "start_line": 326,
-          "end_line": 326,
+          "start_line": 335,
+          "end_line": 335,
           "section_heading": "What You Get"
         }
       ],
       "fit": [
         {
-          "start_line": 95,
-          "end_line": 95,
-          "section_heading": "Ruflo"
+          "start_line": 26,
+          "end_line": 26,
+          "section_heading": "<img src=\"docs/assets/readme/icons/terminal.svg\" width=\"32\" height=\"32\" alt=\"\"> Get started with Ruflo"
         },
         {
-          "start_line": 167,
-          "end_line": 175,
-          "section_heading": "Quick Start"
+          "start_line": 39,
+          "end_line": 39,
+          "section_heading": "<img src=\"docs/assets/readme/icons/terminal.svg\" width=\"32\" height=\"32\" alt=\"\"> Get started with Ruflo"
         }
       ]
     },
@@ -2272,7 +2280,38 @@
         "kind": "version",
         "value": "2.1.287",
         "fields": [
-          "usage"
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "98",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "60+",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "30",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Ruflo",
+        "fields": [
+          "goal",
+          "usage",
+          "fit"
         ]
       },
       {
@@ -2290,33 +2329,31 @@
         "value": "Codex",
         "fields": [
           "goal",
-          "usage",
           "fit"
         ]
       },
       {
         "kind": "product",
-        "value": "Ruflo",
+        "value": "MCP",
         "fields": [
-          "goal",
           "usage",
+          "pros",
           "fit"
         ]
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "ruvnet/ruflo",
       "path": "README.md",
-      "blob_sha": "784c30fbfa25f2da53c4b64550a3c795bef27835",
-      "content_sha256": "114e54cbe85cac51e0a7df96cb108cc859fba3520c5db87e3c8ffb6a5caa4e2d",
+      "blob_sha": "180cf8868e2d7a5a3981fc642c0f67b1cb79aa3a",
+      "content_sha256": "521ad5d81e6df64a30c9c6ac2d08377200e67b3b7c476796fa7e27be4a466331",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.292",
+      "cli_version": "2.1.302",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -2327,92 +2364,102 @@
   },
   "xerj-org/xerj": {
     "content": {
-      "goal": "XERJ is presented as a local AI search tool that automatically indexes any folder, intended so a coding agent retrieves exact code passages instead of reading files one by one, with reference coding described as its primary use case.",
-      "usage": "Installation uses `curl -fsSL https://xerj.org/get | sh`, the server is started with `xerj --insecure --data-dir ./data &`, and a folder is indexed with `xerj autoindex ~/my-project`.",
-      "pros": "The README states XERJ implements the Elasticsearch REST API as a single static binary with no JVM or other dependencies, reports a conformance suite passing 1366/1369 cases, and documents a measured 2.7x reduction in output tokens versus a grep-driven coding agent at the same solve rate.",
-      "cons": "The documented `--insecure` flag disables TLS and API-key authentication, so any caller reaching the port gets full read/delete access to every index; the README frames this as intended only for a single user on a dev machine, with a fresh node binding to 127.0.0.1 only.",
-      "fit": "The README indicates the token-saving benefit is gated by model memorization, helping most on private, internal, niche, or post-cutoff code, while being described as neutral to harmful on popular public libraries a model already knows."
+      "goal": "XERJ is a local AI search engine, built with Rust, that automatically indexes a folder so coding agents can retrieve exact code passages instead of reading entire files. Its documented primary use case is \"reference coding,\" where an agent indexes similar open-source repositories and reuses how they solved a problem.",
+      "usage": "Install with `curl -fsSL https://xerj.org/get | sh`, start a node with `xerj --insecure --data-dir ./data &`, then index a folder with `xerj autoindex ~/my-project`. The server exposes an Elasticsearch-compatible API on localhost:9200.",
+      "pros": "It ships as a single static binary with no JVM or extra dependencies, speaks the Elasticsearch REST API so existing clients work unchanged, and parses source code with tree-sitter for symbol-aware indexing. The documented internal benchmark against Elasticsearch 8.13.4 reports 55 wins, 26 ties, and 4 losses, plus 1366/1369 passing conformance tests.",
+      "cons": "The documented `--insecure` flag disables TLS and API-key authentication entirely, so it is described as suitable only for a single user on a dev machine, not shared or production hosts. The optional neural embedder is opt-in and requires downloading roughly 90 MB of model files before first use, and the benchmarks note four losses tied to read latency under concurrent write load.",
+      "fit": "Based on the documentation, it appears suited to individual developers or AI coding agents doing local, single-user indexing and retrieval during development, especially reference-coding workflows against private or niche code the model has not memorized. It seems less suited to multi-user or production deployments without enabling authentication."
     },
     "summaries": {
       "en": {
-        "goal": "XERJ is presented as a local AI search tool that automatically indexes any folder, intended so a coding agent retrieves exact code passages instead of reading files one by one, with reference coding described as its primary use case.",
-        "usage": "Installation uses `curl -fsSL https://xerj.org/get | sh`, the server is started with `xerj --insecure --data-dir ./data &`, and a folder is indexed with `xerj autoindex ~/my-project`.",
-        "pros": "The README states XERJ implements the Elasticsearch REST API as a single static binary with no JVM or other dependencies, reports a conformance suite passing 1366/1369 cases, and documents a measured 2.7x reduction in output tokens versus a grep-driven coding agent at the same solve rate.",
-        "cons": "The documented `--insecure` flag disables TLS and API-key authentication, so any caller reaching the port gets full read/delete access to every index; the README frames this as intended only for a single user on a dev machine, with a fresh node binding to 127.0.0.1 only.",
-        "fit": "The README indicates the token-saving benefit is gated by model memorization, helping most on private, internal, niche, or post-cutoff code, while being described as neutral to harmful on popular public libraries a model already knows."
+        "goal": "XERJ is a local AI search engine, built with Rust, that automatically indexes a folder so coding agents can retrieve exact code passages instead of reading entire files. Its documented primary use case is \"reference coding,\" where an agent indexes similar open-source repositories and reuses how they solved a problem.",
+        "usage": "Install with `curl -fsSL https://xerj.org/get | sh`, start a node with `xerj --insecure --data-dir ./data &`, then index a folder with `xerj autoindex ~/my-project`. The server exposes an Elasticsearch-compatible API on localhost:9200.",
+        "pros": "It ships as a single static binary with no JVM or extra dependencies, speaks the Elasticsearch REST API so existing clients work unchanged, and parses source code with tree-sitter for symbol-aware indexing. The documented internal benchmark against Elasticsearch 8.13.4 reports 55 wins, 26 ties, and 4 losses, plus 1366/1369 passing conformance tests.",
+        "cons": "The documented `--insecure` flag disables TLS and API-key authentication entirely, so it is described as suitable only for a single user on a dev machine, not shared or production hosts. The optional neural embedder is opt-in and requires downloading roughly 90 MB of model files before first use, and the benchmarks note four losses tied to read latency under concurrent write load.",
+        "fit": "Based on the documentation, it appears suited to individual developers or AI coding agents doing local, single-user indexing and retrieval during development, especially reference-coding workflows against private or niche code the model has not memorized. It seems less suited to multi-user or production deployments without enabling authentication."
       },
       "ko": {
-        "goal": "XERJ는 어떤 폴더든 자동으로 색인하는 로컬 AI 검색 도구로 소개되며, 코딩 에이전트가 파일을 하나씩 읽는 대신 정확한 코드 구절을 가져오도록 하는 것이 목적이고, 레퍼런스 코딩이 주요 사용 사례로 설명된다.",
-        "usage": "설치는 `curl -fsSL https://xerj.org/get | sh` 명령으로 진행되며, `xerj --insecure --data-dir ./data &`로 서버를 시작한 뒤 `xerj autoindex ~/my-project`로 폴더를 색인한다.",
-        "pros": "README에 따르면 XERJ는 JVM이나 별도 의존성 없이 단일 정적 바이너리로 Elasticsearch REST API를 구현하며, 1366/1369 사례를 통과하는 적합성 테스트 결과와 동일한 해결률에서 grep 기반 에이전트 대비 출력 토큰 2.7x 감소라는 측정치를 명시한다.",
-        "cons": "문서화된 `--insecure` 플래그는 TLS와 API 키 인증을 비활성화하여 해당 포트에 접근할 수 있는 모든 호출자가 모든 색인에 대한 읽기·삭제 권한을 갖게 되며, README는 이를 개발 머신의 단일 사용자용으로만 의도된 것으로 설명하고 새 노드는 기본적으로 127.0.0.1에만 바인딩된다.",
-        "fit": "README는 토큰 절감 효과가 모델의 기억 여부에 좌우된다고 명시하며, 비공개·내부·니치 또는 학습 데이터 이후의 코드에서 가장 유용하고, 모델이 이미 알고 있는 널리 알려진 공개 라이브러리에서는 중립적이거나 오히려 불리할 수 있다고 설명한다."
+        "goal": "XERJ는 Rust로 만들어진 로컬 AI 검색 엔진으로, 폴더를 자동으로 인덱싱하여 코딩 에이전트가 전체 파일을 읽지 않고 정확한 코드 구절을 가져올 수 있게 합니다. 문서화된 주요 사용 사례는 \"참조 코딩(reference coding)\"으로, 에이전트가 유사한 오픈소스 저장소를 인덱싱하고 그들이 문제를 해결한 방식을 재사용하는 것입니다.",
+        "usage": "`curl -fsSL https://xerj.org/get | sh`로 설치한 뒤 `xerj --insecure --data-dir ./data &`로 노드를 시작하고, `xerj autoindex ~/my-project`로 폴더를 인덱싱합니다. 서버는 localhost:9200에서 Elasticsearch 호환 API를 제공합니다.",
+        "pros": "단일 정적 바이너리로 JVM이나 별도 의존성이 필요 없으며, Elasticsearch REST API를 지원해 기존 클라이언트를 그대로 사용할 수 있습니다. tree-sitter로 소스 코드를 심볼 단위로 인덱싱하며, 문서에 따르면 Elasticsearch 8.13.4와의 내부 벤치마크에서 55승 26무 4패를 기록했고 1366/1369개의 적합성 테스트를 통과했습니다.",
+        "cons": "문서에 따르면 `--insecure` 플래그는 TLS와 API 키 인증을 완전히 비활성화하므로 공유 또는 프로덕션 호스트가 아닌 개발용 단일 사용자 환경에만 적합하다고 설명되어 있습니다. 선택적인 신경망 임베더는 opt-in 방식이며 처음 사용 전 약 90MB의 모델 파일을 다운로드해야 하고, 벤치마크에서는 동시 쓰기 부하 중 읽기 지연과 관련된 4건의 패배가 보고되었습니다.",
+        "fit": "문서 내용으로 볼 때, 개발 중 로컬·단일 사용자 인덱싱과 검색을 수행하는 개발자나 AI 코딩 에이전트, 특히 모델이 암기하지 않은 비공개 또는 특수한 코드에 대한 참조 코딩 작업에 적합해 보입니다. 인증을 활성화하지 않은 다중 사용자 또는 프로덕션 배포에는 덜 적합한 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "README将XERJ描述为一款可自动索引任意文件夹的本地AI搜索工具,目的是让编码代理检索到确切的代码片段,而不必逐个读取文件,并将引用式编码列为其主要用例。",
-        "usage": "安装通过命令`curl -fsSL https://xerj.org/get | sh`完成,随后以`xerj --insecure --data-dir ./data &`启动服务,再用`xerj autoindex ~/my-project`对文件夹进行索引。",
-        "pros": "README指出XERJ以单个静态二进制文件实现Elasticsearch REST API,无需JVM或其他依赖,其一致性测试套件通过了1366/1369个用例,并记录在相同解题率下相比基于grep的编码代理输出token减少2.7x的测量结果。",
-        "cons": "文档中的`--insecure`标志会关闭TLS和API密钥认证,使任何能访问该端口的调用者都获得对全部索引的读取和删除权限;README将此说明为仅适用于开发机器上的单一用户场景,且新节点默认仅绑定到127.0.0.1。",
-        "fit": "README指出token节省效果取决于模型是否已记住相关代码,在私有、内部、小众或训练数据截止之后的代码上收益最大,而对模型已熟知的流行公共库则被描述为中性甚至可能不利。"
+        "goal": "XERJ 是一个用 Rust 构建的本地 AI 搜索引擎，可自动为文件夹建立索引，使编码代理能够获取确切的代码片段，而不必逐个读取整个文件。文档中给出的主要用例是“参考式编码”（reference coding），即代理对相近的开源仓库建立索引，并复用其解决问题的方式。",
+        "usage": "使用 `curl -fsSL https://xerj.org/get | sh` 安装，然后运行 `xerj --insecure --data-dir ./data &` 启动节点，再用 `xerj autoindex ~/my-project` 对文件夹建立索引。服务器在 localhost:9200 上提供与 Elasticsearch 兼容的 API。",
+        "pros": "它是单一静态二进制文件，无需 JVM 或额外依赖；支持 Elasticsearch REST API，现有客户端可直接使用。源代码通过 tree-sitter 按符号索引；文档中记录的内部基准测试显示，与 Elasticsearch 8.13.4 相比取得 55 胜 26 平 4 负，并通过 1366/1369 项一致性测试。",
+        "cons": "文档说明 `--insecure` 标志会完全关闭 TLS 和 API 密钥认证，因此被描述为仅适用于开发机器上的单一用户，而非共享或生产主机。可选的神经嵌入器需要手动启用，且首次使用前需下载约 90MB 的模型文件；基准测试还记录了在并发写入负载下读取延迟相关的 4 次失利。",
+        "fit": "根据文档内容推断，该工具似乎更适合开发过程中进行本地、单用户索引与检索的开发者或 AI 编码代理，尤其是针对模型未记忆过的私有或小众代码进行参考式编码。对于未启用认证的多用户或生产部署，它看起来适配度较低。"
       },
       "es": {
-        "goal": "XERJ se presenta como una herramienta de búsqueda de IA local que indexa automáticamente cualquier carpeta, con el fin de que un agente de código recupere pasajes exactos en lugar de leer archivos uno por uno, y la codificación por referencia se describe como su caso de uso principal.",
-        "usage": "La instalación se realiza con el comando `curl -fsSL https://xerj.org/get | sh`, el servidor se inicia con `xerj --insecure --data-dir ./data &`, y una carpeta se indexa con `xerj autoindex ~/my-project`.",
-        "pros": "El README indica que XERJ implementa la API REST de Elasticsearch como un único binario estático sin JVM ni otras dependencias, reporta una suite de conformidad que pasa 1366/1369 casos, y documenta una reducción medida del 2.7x en tokens de salida frente a un agente de codificación basado en grep con la misma tasa de resolución.",
-        "cons": "El indicador documentado `--insecure` desactiva TLS y la autenticación por clave API, de modo que cualquier llamador que alcance el puerto obtiene acceso de lectura y borrado sobre todos los índices; el README lo describe como pensado solo para un único usuario en una máquina de desarrollo, donde un nodo nuevo se vincula únicamente a 127.0.0.1.",
-        "fit": "El README señala que el beneficio de ahorro de tokens depende de si el modelo ya memorizó el código, siendo más útil en código privado, interno, de nicho o posterior a la fecha de corte, mientras que se describe como neutral o incluso perjudicial en bibliotecas públicas populares que el modelo ya conoce."
+        "goal": "XERJ es un motor de búsqueda de IA local, construido en Rust, que indexa automáticamente una carpeta para que los agentes de codificación recuperen fragmentos de código exactos en lugar de leer archivos completos. Su caso de uso principal documentado es la \"codificación por referencia\", donde un agente indexa repositorios de código abierto similares y reutiliza cómo resolvieron un problema.",
+        "usage": "Se instala con `curl -fsSL https://xerj.org/get | sh`, se inicia un nodo con `xerj --insecure --data-dir ./data &` y luego se indexa una carpeta con `xerj autoindex ~/my-project`. El servidor expone una API compatible con Elasticsearch en localhost:9200.",
+        "pros": "Se distribuye como un único binario estático sin JVM ni dependencias, habla la API REST de Elasticsearch por lo que los clientes existentes funcionan sin cambios, y analiza el código fuente con tree-sitter para un indexado consciente de símbolos. Según el documento, un benchmark interno frente a Elasticsearch 8.13.4 arrojó 55 victorias, 26 empates y 4 derrotas, además de pasar 1366/1369 pruebas de conformidad.",
+        "cons": "Según el documento, la bandera `--insecure` desactiva por completo TLS y la autenticación por clave de API, por lo que se describe como apta solo para un único usuario en una máquina de desarrollo y no para hosts compartidos o de producción. El embebedor neuronal opcional requiere activación manual y descargar unos 90 MB de archivos de modelo antes del primer uso, y los benchmarks señalan cuatro derrotas relacionadas con la latencia de lectura bajo carga de escritura concurrente.",
+        "fit": "A partir de lo documentado, parece adecuado para desarrolladores o agentes de codificación con IA que realizan indexado y recuperación local de un solo usuario durante el desarrollo, especialmente para flujos de codificación por referencia sobre código privado o poco común que el modelo no ha memorizado. Parece menos adecuado para despliegues multiusuario o de producción sin habilitar la autenticación."
       },
       "ja": {
-        "goal": "XERJはあらゆるフォルダを自動的にインデックス化するローカルAI検索ツールとして紹介されており、コーディングエージェントがファイルを一つずつ読む代わりに正確なコード箇所を取得できるようにすることを目的としており、リファレンスコーディングが主な用途として説明されている。",
-        "usage": "インストールは`curl -fsSL https://xerj.org/get | sh`というコマンドで行い、`xerj --insecure --data-dir ./data &`でサーバーを起動した後、`xerj autoindex ~/my-project`でフォルダをインデックス化する。",
-        "pros": "READMEによれば、XERJはJVMや他の依存関係を持たない単一の静的バイナリとしてElasticsearch REST APIを実装しており、適合性テストスイートは1366/1369件に合格し、同じ解決率においてgrepベースのコーディングエージェントと比較して出力トークンが2.7x削減されたと測定結果が記載されている。",
-        "cons": "文書化されている`--insecure`フラグはTLSとAPIキー認証を無効化するため、そのポートに到達できる呼び出し元は全てのインデックスへの読み取り・削除権限を得ることになり、READMEはこれを開発マシン上の単一ユーザー向けを意図したものと説明しており、新しいノードは既定で127.0.0.1のみにバインドされる。",
-        "fit": "READMEは、トークン節約の効果がモデルの記憶の有無に依存すると述べており、プライベート、社内、ニッチ、または学習データのカットオフ後のコードで最も有効であるとしつつ、モデルが既に知っている一般的な公開ライブラリに対しては中立的、あるいは不利になる可能性があると説明している。"
+        "goal": "XERJ は Rust で構築されたローカル AI 検索エンジンで、フォルダを自動的にインデックス化し、コーディングエージェントがファイルを丸ごと読まずに正確なコード箇所を取得できるようにします。文書に記載された主な用途は「リファレンスコーディング」で、エージェントが類似のオープンソースリポジトリをインデックス化し、その解決方法を再利用します。",
+        "usage": "`curl -fsSL https://xerj.org/get | sh` でインストールし、`xerj --insecure --data-dir ./data &` でノードを起動した後、`xerj autoindex ~/my-project` でフォルダをインデックス化します。サーバーは localhost:9200 で Elasticsearch 互換 API を提供します。",
+        "pros": "JVM や追加の依存関係を必要としない単一の静的バイナリであり、Elasticsearch の REST API を話すため既存のクライアントがそのまま動作します。ソースコードは tree-sitter でシンボル単位に解析され、文書によれば Elasticsearch 8.13.4 との内部ベンチマークで 55 勝 26 分 4 敗、1366/1369 件の適合性テストに合格しています。",
+        "cons": "文書によれば、`--insecure` フラグは TLS と API キー認証を完全に無効化するため、共有ホストや本番環境ではなく開発マシン上の単一ユーザー向けとされています。オプションのニューラル埋め込みはオプトインで、初回使用前に約 90MB のモデルファイルのダウンロードが必要であり、ベンチマークでは同時書き込み負荷下での読み取りレイテンシに関連する 4 件の敗北が記録されています。",
+        "fit": "文書内容から推測すると、開発中にローカルかつ単一ユーザーでのインデックス化と検索を行う開発者や AI コーディングエージェント、特にモデルが記憶していない非公開や特殊なコードに対するリファレンスコーディングに適しているように見えます。認証を有効にしていない複数ユーザーや本番環境のデプロイには、あまり適していないようです。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 25,
-          "end_line": 29,
+          "start_line": 27,
+          "end_line": 31,
           "section_heading": "XERJ"
         }
       ],
       "usage": [
         {
-          "start_line": 46,
-          "end_line": 49,
+          "start_line": 48,
+          "end_line": 51,
           "section_heading": "XERJ"
         }
       ],
       "pros": [
         {
-          "start_line": 189,
-          "end_line": 191,
-          "section_heading": "Install by hand"
-        },
-        {
-          "start_line": 20,
-          "end_line": 20,
+          "start_line": 23,
+          "end_line": 23,
           "section_heading": "XERJ"
         },
         {
-          "start_line": 29,
-          "end_line": 30,
-          "section_heading": "XERJ"
+          "start_line": 386,
+          "end_line": 387,
+          "section_heading": "Elasticsearch compatibility"
+        },
+        {
+          "start_line": 401,
+          "end_line": 404,
+          "section_heading": "Benchmarks"
         }
       ],
       "cons": [
         {
-          "start_line": 57,
-          "end_line": 60,
+          "start_line": 59,
+          "end_line": 63,
           "section_heading": "XERJ"
+        },
+        {
+          "start_line": 25,
+          "end_line": 25,
+          "section_heading": "XERJ"
+        },
+        {
+          "start_line": 406,
+          "end_line": 407,
+          "section_heading": "Benchmarks"
         }
       ],
       "fit": [
         {
-          "start_line": 102,
-          "end_line": 104,
+          "start_line": 104,
+          "end_line": 106,
           "section_heading": "The measured reason: reference coding"
         }
       ]
@@ -2440,8 +2487,15 @@
         ]
       },
       {
-        "kind": "number",
-        "value": "2.7x",
+        "kind": "url",
+        "value": "https://xerj.org/get",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "Elasticsearch 8.13.4",
         "fields": [
           "pros"
         ]
@@ -2451,28 +2505,37 @@
         "value": "XERJ",
         "fields": [
           "goal",
-          "usage",
-          "pros"
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Rust",
+        "fields": [
+          "goal"
         ]
       },
       {
         "kind": "product",
         "value": "Elasticsearch",
         "fields": [
+          "usage",
           "pros"
         ]
       }
     ],
-    "inference_fields": [],
+    "inference_fields": [
+      "fit"
+    ],
     "source": {
       "kind": "readme",
       "slug": "xerj-org/xerj",
       "path": "README.md",
-      "blob_sha": "618231d31f82f1a61eabbdf2ba4dd9f0e4b90595",
-      "content_sha256": "3473929ab60668e7305a2edaeca3af68d636e3704f0243266b69622ccae48999",
+      "blob_sha": "1a9c6d696db943d5ccd97bd68c178bef9b016466",
+      "content_sha256": "7a5c3bce93c6454c753364ef7655529feac5e9efd29cd2746be66c75edf7193e",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.292",
+      "cli_version": "2.1.302",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -2483,100 +2546,100 @@
   },
   "morluto/rea": {
     "content": {
-      "goal": "REA (Reverse Engineer Anything), distributed as the `rea-agents` npm package, is an MCP server and CLI that connects AI agents to tools for inspecting native binaries, JavaScript/Electron apps, .NET assemblies, and websites, aiming to explain how an observed feature works down to the binary level.",
-      "usage": "After installing Node.js 22.x (>=22.19), 24.x (>=24.11), or 26+ plus npm, run `npx rea-agents setup`, choose agents such as Claude Code, Codex, Cursor, Gemini CLI, or Grok Build, review the proposed changes, and restart the agent afterward; the same analysis tools are also available directly from the terminal.",
-      "pros": "Analysis runs locally, and each result includes the supporting evidence and stated limitations behind it; REA covers a broad range of targets, including native binaries, Go and Rust binaries, WASM artifacts, EVM bytecode, SQLite databases, Android APKs, and websites; static JavaScript and .NET inspection work without any native analysis engine.",
-      "cons": "Native binary analysis requires an existing Hopper, Ghidra, or IDA installation, though setup can optionally install Hopper after approval; on Linux, several paths such as Ghidra, JADX, firmware tools, and static JavaScript/Electron analysis additionally require a procps-compatible `ps` on REA's PATH for process ownership checks, which may call for extra recovery steps on some systems.",
-      "fit": "REA appears suited to any agent or workflow that supports local MCP servers, including Claude Code, Codex, Cursor, Gemini CLI, and Grok Build, and is framed for lawful research, education, interoperability, software preservation, and analysis of software the user owns or is authorized to examine."
+      "goal": "REA (Reverse Engineer Anything) is an MCP server and CLI that lets a coding agent reverse engineer native binaries, JavaScript/Electron apps, .NET assemblies, websites, and other target types to explain how a feature works, down to the binary level, with supporting evidence.",
+      "usage": "Install and register with an agent via `npx rea-agents setup`, which adds REA's MCP server and workflow instructions for supported agents (Claude Code, Codex, Cursor, Gemini CLI, Grok Build). The CLI can also be used directly, e.g. `npm install --global rea-agents` followed by `rea --help`.",
+      "pros": "Analysis runs locally, and returned findings include evidence and stated limitations. REA covers many target types out of the box, including Go and Rust binaries, WASM, EVM bytecode, SQLite databases, and JavaScript/Electron apps, several without needing a separate native analysis engine.",
+      "cons": "Deep native-binary analysis depends on having an existing Hopper, Ghidra, or IDA installation (Hopper can optionally be installed by setup with approval); these appear to be separately licensed commercial tools that REA itself does not provide. Certain Linux workflows also require a procps-compatible `ps` on PATH.",
+      "fit": "Based on its stated purpose, REA appears suited to developers and researchers doing lawful reverse engineering, interoperability work, or software preservation on code they own or are authorized to examine, and requires Node.js 22.19+, 24.11+, or 26+ with npm."
     },
     "summaries": {
       "en": {
-        "goal": "REA (Reverse Engineer Anything), distributed as the `rea-agents` npm package, is an MCP server and CLI that connects AI agents to tools for inspecting native binaries, JavaScript/Electron apps, .NET assemblies, and websites, aiming to explain how an observed feature works down to the binary level.",
-        "usage": "After installing Node.js 22.x (>=22.19), 24.x (>=24.11), or 26+ plus npm, run `npx rea-agents setup`, choose agents such as Claude Code, Codex, Cursor, Gemini CLI, or Grok Build, review the proposed changes, and restart the agent afterward; the same analysis tools are also available directly from the terminal.",
-        "pros": "Analysis runs locally, and each result includes the supporting evidence and stated limitations behind it; REA covers a broad range of targets, including native binaries, Go and Rust binaries, WASM artifacts, EVM bytecode, SQLite databases, Android APKs, and websites; static JavaScript and .NET inspection work without any native analysis engine.",
-        "cons": "Native binary analysis requires an existing Hopper, Ghidra, or IDA installation, though setup can optionally install Hopper after approval; on Linux, several paths such as Ghidra, JADX, firmware tools, and static JavaScript/Electron analysis additionally require a procps-compatible `ps` on REA's PATH for process ownership checks, which may call for extra recovery steps on some systems.",
-        "fit": "REA appears suited to any agent or workflow that supports local MCP servers, including Claude Code, Codex, Cursor, Gemini CLI, and Grok Build, and is framed for lawful research, education, interoperability, software preservation, and analysis of software the user owns or is authorized to examine."
+        "goal": "REA (Reverse Engineer Anything) is an MCP server and CLI that lets a coding agent reverse engineer native binaries, JavaScript/Electron apps, .NET assemblies, websites, and other target types to explain how a feature works, down to the binary level, with supporting evidence.",
+        "usage": "Install and register with an agent via `npx rea-agents setup`, which adds REA's MCP server and workflow instructions for supported agents (Claude Code, Codex, Cursor, Gemini CLI, Grok Build). The CLI can also be used directly, e.g. `npm install --global rea-agents` followed by `rea --help`.",
+        "pros": "Analysis runs locally, and returned findings include evidence and stated limitations. REA covers many target types out of the box, including Go and Rust binaries, WASM, EVM bytecode, SQLite databases, and JavaScript/Electron apps, several without needing a separate native analysis engine.",
+        "cons": "Deep native-binary analysis depends on having an existing Hopper, Ghidra, or IDA installation (Hopper can optionally be installed by setup with approval); these appear to be separately licensed commercial tools that REA itself does not provide. Certain Linux workflows also require a procps-compatible `ps` on PATH.",
+        "fit": "Based on its stated purpose, REA appears suited to developers and researchers doing lawful reverse engineering, interoperability work, or software preservation on code they own or are authorized to examine, and requires Node.js 22.19+, 24.11+, or 26+ with npm."
       },
       "ko": {
-        "goal": "REA(Reverse Engineer Anything)는 `rea-agents` npm 패키지로 배포되는 MCP 서버 및 CLI로, AI 에이전트가 네이티브 바이너리, JavaScript/Electron 앱, .NET 어셈블리, 웹사이트를 분석할 수 있는 도구에 연결하도록 하며, 관찰된 기능이 바이너리 수준에서 어떻게 동작하는지 설명하는 것을 목표로 합니다.",
-        "usage": "Node.js 22.x (>=22.19), 24.x (>=24.11) 또는 26+와 npm을 설치한 후 `npx rea-agents setup`을 실행하고, Claude Code, Codex, Cursor, Gemini CLI, Grok Build 등의 에이전트를 선택하고, 제안된 변경 사항을 검토한 뒤 에이전트를 재시작합니다. 동일한 분석 도구는 터미널에서 직접 사용할 수도 있습니다.",
-        "pros": "분석은 로컬에서 실행되며, 각 결과에는 그 근거와 명시된 한계가 포함됩니다. REA는 네이티브 바이너리, Go 및 Rust 바이너리, WASM 아티팩트, EVM 바이트코드, SQLite 데이터베이스, Android APK, 웹사이트를 포함한 다양한 대상을 다룹니다. 정적 JavaScript 및 .NET 분석은 네이티브 분석 엔진 없이도 동작합니다.",
-        "cons": "네이티브 바이너리 분석에는 기존 Hopper, Ghidra 또는 IDA 설치가 필요하며, 설정 과정에서 승인 후 Hopper를 선택적으로 설치할 수는 있습니다. Linux에서는 Ghidra, JADX, 펌웨어 도구, 정적 JavaScript/Electron 분석 등 여러 경로가 프로세스 소유권 확인을 위해 REA의 PATH에 procps 호환 `ps`가 추가로 필요하며, 일부 환경에서는 추가적인 복구 절차가 필요할 수 있습니다.",
-        "fit": "REA는 로컬 MCP 서버를 지원하는 모든 에이전트나 워크플로(Claude Code, Codex, Cursor, Gemini CLI, Grok Build 포함)에 적합한 것으로 보이며, 합법적인 연구, 교육, 상호운용성, 소프트웨어 보존, 그리고 사용자가 소유하거나 사용 권한이 있는 소프트웨어 분석을 위한 용도로 소개됩니다."
+        "goal": "REA(Reverse Engineer Anything)는 네이티브 바이너리, JavaScript/Electron 앱, .NET 어셈블리, 웹사이트 등 다양한 대상을 분석해 기능이 어떻게 동작하는지 바이너리 수준까지 근거와 함께 설명할 수 있도록 코딩 에이전트에 연결되는 MCP 서버 및 CLI 도구입니다.",
+        "usage": "`npx rea-agents setup` 명령으로 설치 및 에이전트 등록을 진행하며, 이는 Claude Code, Codex, Cursor, Gemini CLI, Grok Build 등 지원되는 에이전트에 REA의 MCP 서버와 워크플로 지침을 추가합니다. `npm install --global rea-agents` 후 `rea --help`로 CLI를 직접 사용할 수도 있습니다.",
+        "pros": "분석은 로컬에서 실행되며 결과에는 근거와 한계가 함께 제시됩니다. Go/Rust 바이너리, WASM, EVM 바이트코드, SQLite 데이터베이스, JavaScript/Electron 앱 등 다양한 대상을 기본으로 지원하며, 일부는 별도의 네이티브 분석 엔진 없이도 동작합니다.",
+        "cons": "심층 네이티브 바이너리 분석에는 기존에 설치된 Hopper, Ghidra, 또는 IDA가 필요한 것으로 보이며(Hopper는 승인 시 설치 스크립트가 선택적으로 설치 가능), 이들은 REA가 직접 제공하지 않는 별도 라이선스의 상용 도구로 보입니다. 일부 Linux 워크플로에서는 PATH에 procps 호환 `ps`가 필요합니다.",
+        "fit": "문서화된 목적을 바탕으로 볼 때 REA는 자신이 소유하거나 분석 권한이 있는 소프트웨어에 대해 합법적인 리버스 엔지니어링, 상호운용성 작업, 소프트웨어 보존 작업을 하는 개발자 및 연구자에게 적합해 보이며, Node.js 22.19 이상, 24.11 이상, 또는 26 이상과 npm이 필요합니다."
       },
       "zh-CN": {
-        "goal": "REA(Reverse Engineer Anything)是一个以 `rea-agents` npm 包发行的 MCP 服务器和 CLI,它将 AI 代理连接到用于检查原生二进制文件、JavaScript/Electron 应用、.NET 程序集和网站的工具,目标是说明观察到的功能在二进制层面上的工作方式。",
-        "usage": "安装 Node.js 22.x (>=22.19)、24.x (>=24.11) 或 26+ 以及 npm 后,运行 `npx rea-agents setup`,选择 Claude Code、Codex、Cursor、Gemini CLI 或 Grok Build 等代理,审查提议的更改,然后重启代理;同样的分析工具也可以直接在终端中使用。",
-        "pros": "分析在本地运行,每个结果都附带支持性证据和说明的局限性;REA 覆盖广泛的分析目标,包括原生二进制文件、Go 和 Rust 二进制文件、WASM 工件、EVM 字节码、SQLite 数据库、Android APK 和网站;静态 JavaScript 和 .NET 检查无需任何原生分析引擎即可运行。",
-        "cons": "原生二进制分析需要已有的 Hopper、Ghidra 或 IDA 安装,不过设置过程可以在获得批准后选择安装 Hopper;在 Linux 上,Ghidra、JADX、固件工具以及静态 JavaScript/Electron 分析等多条路径还需要在 REA 的 PATH 中提供兼容 procps 的 `ps` 以进行进程所有权检查,部分系统上可能还需要额外的恢复步骤。",
-        "fit": "REA 看起来适用于任何支持本地 MCP 服务器的代理或工作流,包括 Claude Code、Codex、Cursor、Gemini CLI 和 Grok Build,并被定位用于合法的研究、教育、互操作性、软件保存,以及对用户拥有或获得授权检查的软件进行分析。"
+        "goal": "REA(Reverse Engineer Anything)是一个 MCP 服务器与命令行工具,可让编码代理对原生二进制文件、JavaScript/Electron 应用、.NET 程序集、网站等多种目标进行逆向分析,并附带证据解释某功能在二进制层面上的工作原理。",
+        "usage": "通过 `npx rea-agents setup` 安装并向代理注册,该命令会为受支持的代理(Claude Code、Codex、Cursor、Gemini CLI、Grok Build)添加 REA 的 MCP 服务器及工作流说明。也可直接使用命令行,例如先执行 `npm install --global rea-agents`,再执行 `rea --help`。",
+        "pros": "分析在本地运行,返回的结果包含证据和已说明的局限性。REA 原生支持多种目标类型,包括 Go 和 Rust 二进制文件、WASM、EVM 字节码、SQLite 数据库以及 JavaScript/Electron 应用,其中部分类型无需额外的原生分析引擎。",
+        "cons": "深度原生二进制分析似乎依赖于已安装的 Hopper、Ghidra 或 IDA(经批准后安装脚本可选择安装 Hopper);这些看起来是需要单独获取许可的商业工具,REA 本身并不提供。部分 Linux 工作流还需要 PATH 中存在兼容 procps 的 `ps`。",
+        "fit": "根据文档所述目的,REA 看起来适合对自己拥有或获得授权检查的软件进行合法逆向工程、互操作性研究或软件保存工作的开发者与研究人员,且需要 Node.js 22.19 及以上、24.11 及以上或 26 及以上版本,并配合 npm 使用。"
       },
       "es": {
-        "goal": "REA (Reverse Engineer Anything), distribuido como el paquete npm `rea-agents`, es un servidor MCP y una CLI que conecta a agentes de IA con herramientas para inspeccionar binarios nativos, aplicaciones JavaScript/Electron, ensamblados .NET y sitios web, con el objetivo de explicar cómo funciona una característica observada hasta el nivel binario.",
-        "usage": "Tras instalar Node.js 22.x (>=22.19), 24.x (>=24.11) o 26+ junto con npm, ejecuta `npx rea-agents setup`, elige agentes como Claude Code, Codex, Cursor, Gemini CLI o Grok Build, revisa los cambios propuestos y reinicia el agente; las mismas herramientas de análisis también están disponibles directamente desde la terminal.",
-        "pros": "El análisis se ejecuta localmente y cada resultado incluye la evidencia que lo respalda junto con sus limitaciones declaradas; REA abarca una amplia variedad de objetivos, incluyendo binarios nativos, binarios de Go y Rust, artefactos WASM, bytecode EVM, bases de datos SQLite, APKs de Android y sitios web; la inspección estática de JavaScript y .NET funciona sin ningún motor de análisis nativo.",
-        "cons": "El análisis de binarios nativos requiere una instalación existente de Hopper, Ghidra o IDA, aunque la configuración puede instalar Hopper opcionalmente tras su aprobación; en Linux, varias rutas como Ghidra, JADX, herramientas de firmware y el análisis estático de JavaScript/Electron requieren además un `ps` compatible con procps en el PATH de REA para las verificaciones de propiedad de procesos, lo que podría requerir pasos de recuperación adicionales en algunos sistemas.",
-        "fit": "REA parece adecuado para cualquier agente o flujo de trabajo que admita servidores MCP locales, incluyendo Claude Code, Codex, Cursor, Gemini CLI y Grok Build, y se presenta para la investigación legal, la educación, la interoperabilidad, la preservación de software y el análisis de software que el usuario posee o está autorizado a examinar."
+        "goal": "REA (Reverse Engineer Anything) es un servidor MCP y una herramienta CLI que permite a un agente de codificación realizar ingeniería inversa sobre binarios nativos, aplicaciones JavaScript/Electron, ensamblados .NET, sitios web y otros tipos de objetivos, explicando cómo funciona una característica hasta el nivel binario, con evidencia de respaldo.",
+        "usage": "La instalación y el registro con un agente se realizan con `npx rea-agents setup`, que añade el servidor MCP de REA y las instrucciones de flujo de trabajo para agentes compatibles (Claude Code, Codex, Cursor, Gemini CLI, Grok Build). El CLI también puede usarse directamente, por ejemplo con `npm install --global rea-agents` seguido de `rea --help`.",
+        "pros": "El análisis se ejecuta localmente y los resultados incluyen evidencia junto con sus limitaciones declaradas. REA cubre de forma nativa muchos tipos de objetivos, incluyendo binarios Go y Rust, WASM, bytecode EVM, bases de datos SQLite y aplicaciones JavaScript/Electron, varios de ellos sin necesitar un motor de análisis nativo separado.",
+        "cons": "El análisis profundo de binarios nativos parece depender de contar con una instalación existente de Hopper, Ghidra o IDA (Hopper puede instalarse opcionalmente mediante el programa de configuración con aprobación); estas parecen ser herramientas comerciales con licencia independiente que REA no proporciona. Ciertos flujos en Linux también requieren un `ps` compatible con procps en el PATH.",
+        "fit": "Según el propósito declarado, REA parece adecuado para desarrolladores e investigadores que realizan ingeniería inversa legal, trabajo de interoperabilidad o preservación de software sobre código que poseen o están autorizados a examinar, y requiere Node.js 22.19+, 24.11+ o 26+ junto con npm."
       },
       "ja": {
-        "goal": "REA(Reverse Engineer Anything)は `rea-agents` npm パッケージとして配布される MCP サーバーおよび CLI であり、AI エージェントをネイティブバイナリ、JavaScript/Electron アプリ、.NET アセンブリ、ウェブサイトを調査するツールに接続し、観察された機能がバイナリレベルでどのように動作するかを説明することを目的としています。",
-        "usage": "Node.js 22.x (>=22.19)、24.x (>=24.11)、または 26+ と npm をインストールした後、`npx rea-agents setup` を実行し、Claude Code、Codex、Cursor、Gemini CLI、Grok Build などのエージェントを選択し、提案された変更を確認してエージェントを再起動します。同じ分析ツールはターミナルから直接使用することもできます。",
-        "pros": "分析はローカルで実行され、各結果には裏付けとなる証拠と明記された制限が含まれます。REA はネイティブバイナリ、Go および Rust バイナリ、WASM アーティファクト、EVM バイトコード、SQLite データベース、Android APK、ウェブサイトなど幅広い対象を扱います。静的な JavaScript および .NET の検査は、ネイティブ解析エンジンなしで動作します。",
-        "cons": "ネイティブバイナリ解析には既存の Hopper、Ghidra、または IDA のインストールが必要ですが、セットアップでは承認を得た上で Hopper を任意にインストールできます。Linux では、Ghidra、JADX、ファームウェアツール、静的な JavaScript/Electron 解析などの複数の経路で、プロセス所有権の確認のために REA の PATH に procps 互換の `ps` がさらに必要となり、環境によっては追加の復旧手順が必要になる場合があります。",
-        "fit": "REA はローカル MCP サーバーをサポートする任意のエージェントやワークフロー(Claude Code、Codex、Cursor、Gemini CLI、Grok Build を含む)に適しているように見え、合法的な研究、教育、相互運用性、ソフトウェアの保存、そしてユーザーが所有または使用を許可されているソフトウェアの分析を目的として位置付けられています。"
+        "goal": "REA(Reverse Engineer Anything)は、ネイティブバイナリ、JavaScript/Electronアプリ、.NETアセンブリ、ウェブサイトなど多様な対象をリバースエンジニアリングし、機能がバイナリレベルでどのように動作するかを根拠とともに説明できるよう、コーディングエージェントに接続するMCPサーバー兼CLIツールです。",
+        "usage": "`npx rea-agents setup` によりインストールとエージェント登録を行い、対応エージェント(Claude Code、Codex、Cursor、Gemini CLI、Grok Build)にREAのMCPサーバーとワークフロー手順が追加されます。CLIを直接使うことも可能で、`npm install --global rea-agents` を実行後に `rea --help` で利用できます。",
+        "pros": "解析はローカルで実行され、返される結果には根拠と明示された限界が含まれます。REAはGo・Rustバイナリ、WASM、EVMバイトコード、SQLiteデータベース、JavaScript/Electronアプリなど多数の対象を標準で扱え、その一部は別途のネイティブ解析エンジンを必要としません。",
+        "cons": "ネイティブバイナリの深い解析には既存のHopper、Ghidra、またはIDAのインストールが必要と見られ(Hopperは承認があればセットアップ時に任意でインストール可能)、これらは別途ライセンスが必要な商用ツールであり、REA自体は提供していないようです。また一部のLinuxワークフローではPATH上にprocps互換の`ps`が必要です。",
+        "fit": "記載されている目的から判断すると、REAは自ら所有または検査を許可されたソフトウェアに対して合法的なリバースエンジニアリング、相互運用性作業、ソフトウェア保存を行う開発者や研究者に向いていると考えられ、Node.js 22.19以上、24.11以上、または26以上とnpmが必要です。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 6,
-          "end_line": 10,
+          "end_line": 8,
           "section_heading": "REA: Reverse Engineer Anything"
         },
         {
           "start_line": 61,
           "end_line": 63,
           "section_heading": "One MCP for reverse engineering across binaries, applications, and runtime behavior."
+        },
+        {
+          "start_line": 172,
+          "end_line": 173,
+          "section_heading": "What you can analyze"
         }
       ],
       "usage": [
         {
+          "start_line": 25,
+          "end_line": 25,
+          "section_heading": "One MCP for reverse engineering across binaries, applications, and runtime behavior."
+        },
+        {
           "start_line": 78,
-          "end_line": 91,
+          "end_line": 82,
           "section_heading": "Set up your agent"
         },
         {
-          "start_line": 106,
-          "end_line": 108,
+          "start_line": 116,
+          "end_line": 117,
           "section_heading": "Use the terminal"
-        },
-        {
-          "start_line": 166,
-          "end_line": 166,
-          "section_heading": "What you can analyze"
         }
       ],
       "pros": [
         {
           "start_line": 63,
-          "end_line": 63,
+          "end_line": 65,
           "section_heading": "One MCP for reverse engineering across binaries, applications, and runtime behavior."
         },
         {
-          "start_line": 164,
-          "end_line": 167,
-          "section_heading": "What you can analyze"
-        },
-        {
-          "start_line": 171,
-          "end_line": 180,
+          "start_line": 174,
+          "end_line": 182,
           "section_heading": "What you can analyze"
         }
       ],
       "cons": [
         {
           "start_line": 65,
-          "end_line": 65,
+          "end_line": 66,
           "section_heading": "One MCP for reverse engineering across binaries, applications, and runtime behavior."
         },
         {
@@ -2585,26 +2648,21 @@
           "section_heading": "Quick start"
         },
         {
-          "start_line": 267,
-          "end_line": 268,
-          "section_heading": "FAQ"
+          "start_line": 397,
+          "end_line": 403,
+          "section_heading": "License"
         }
       ],
       "fit": [
         {
-          "start_line": 88,
-          "end_line": 89,
-          "section_heading": "Set up your agent"
-        },
-        {
-          "start_line": 257,
-          "end_line": 259,
-          "section_heading": "FAQ"
-        },
-        {
-          "start_line": 367,
-          "end_line": 368,
+          "start_line": 375,
+          "end_line": 376,
           "section_heading": "Disclaimer"
+        },
+        {
+          "start_line": 174,
+          "end_line": 174,
+          "section_heading": "What you can analyze"
         }
       ]
     },
@@ -2617,8 +2675,15 @@
         ]
       },
       {
-        "kind": "version",
-        "value": "Node.js 22.x (>=22.19)",
+        "kind": "command",
+        "value": "npm install --global rea-agents",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "rea --help",
         "fields": [
           "usage"
         ]
@@ -2632,14 +2697,6 @@
           "pros",
           "cons",
           "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "rea-agents",
-        "fields": [
-          "goal",
-          "usage"
         ]
       },
       {
@@ -2664,42 +2721,23 @@
         ]
       },
       {
-        "kind": "product",
-        "value": "Claude Code",
+        "kind": "version",
+        "value": "22.19",
         "fields": [
-          "usage",
           "fit"
         ]
       },
       {
-        "kind": "product",
-        "value": "Codex",
+        "kind": "version",
+        "value": "24.11",
         "fields": [
-          "usage",
           "fit"
         ]
       },
       {
-        "kind": "product",
-        "value": "Cursor",
+        "kind": "version",
+        "value": "26",
         "fields": [
-          "usage",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Gemini CLI",
-        "fields": [
-          "usage",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Grok Build",
-        "fields": [
-          "usage",
           "fit"
         ]
       }
@@ -2712,11 +2750,11 @@
       "kind": "readme",
       "slug": "morluto/rea",
       "path": "README.md",
-      "blob_sha": "aac24a814247c25dac30745d56d09af94f835d35",
-      "content_sha256": "d138aa55fb20e2d7fa63a0e4f811b93a0c451db604c167e0b0c3a8e6fd9eea11",
+      "blob_sha": "31238bae529b49f6068361e6efa3c120bcc28d80",
+      "content_sha256": "75ca44765dfa3d5bce1dfba3c9ddad35fca29f8e8fbc8cae60b4d9078e43e211",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.292",
+      "cli_version": "2.1.302",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -4022,82 +4060,67 @@
   },
   "ranxianglei/billion-context": {
     "content": {
-      "goal": "billion-context is a context-compression plugin/proxy that sits between a coding agent and its model API (Anthropic or OpenAI), letting the model decide when and what to compress into layered summaries so long coding sessions can keep running instead of hitting the context-window limit.",
-      "usage": "Install it with `npm install -g billion-context --prefix=~/.local`, then run it either through a per-client launcher command (e.g. `bili <client>`), a native plugin install, or by prefixing the client's existing base URL with `http://localhost:8787/bili/` so the proxy can forward requests without editing any config file.",
-      "pros": "Compression is described as incremental, reversible, and prefix-cache friendly, with four injected tools (compress, decompress, search_context, acp_status) that let the model manage context itself, and the documentation cites a healthy prefix-cache hit rate of 95-97% with compression overhead kept at roughly 2% or less.",
-      "cons": "The project's own Status section labels it Early: protocol handling and compression are validated only against mock tests (500+ passing), with real-model integration testing listed as the next milestone, so production reliability may still need further confirmation; separately, remote access via `--host 0.0.0.0` has no authentication and is only advised on a trusted LAN or behind a firewall.",
-      "fit": "It is aimed at users running coding agents such as Claude Code, Codex, OpenCode, pi, and numerous other clients listed in a per-client support table, functioning as a proxy layer between an existing agent and its model API rather than as a standalone agent or a replacement for any specific client."
+      "goal": "billion-context is a context-compression plugin/proxy that sits between a coding agent (e.g. Claude Code, Codex, OpenCode, Gemini CLI) and its model API. It rewrites Anthropic/OpenAI-shaped streams using acp-kernel compression so a single coding session can consume far more tokens than a model's context window would normally allow, letting the model itself decide when and what to fold into summaries rather than relying on hard truncation.",
+      "usage": "Install with `npm install -g billion-context --prefix=~/.local`, which provides the `bili` command. Three usage modes are documented: a native plugin (`bili plugin install <client>`), a config-free launcher (`bili <client>`), or a universal URL-prefix mode where the client's base URL is prefixed with the proxy origin plus `/bili/`.",
+      "pros": "The README states the design is incremental, reversible, and prefix-cache friendly, decompressing ranges on demand while keeping the cache prefix intact. It documents support across many agents (pi, OpenCode, Claude Code, Codex, Gemini CLI, and others) and automatically injects four context-management tools (compress, decompress, search_context, acp_status) that the model calls as context grows.",
+      "cons": "The project's own Status section describes it as 'Early': protocol handling and compression are validated against mock tests (500+ passing), while real-model integration testing is listed as the next milestone, so rough edges are explicitly expected.",
+      "fit": "Given its broad per-client install paths and reliance on Node/npm, it fits teams running long, token-heavy agent sessions with one of the documented clients; since real-model integration testing is still pending, cautious evaluation before production use seems warranted."
     },
     "summaries": {
       "en": {
-        "goal": "billion-context is a context-compression plugin/proxy that sits between a coding agent and its model API (Anthropic or OpenAI), letting the model decide when and what to compress into layered summaries so long coding sessions can keep running instead of hitting the context-window limit.",
-        "usage": "Install it with `npm install -g billion-context --prefix=~/.local`, then run it either through a per-client launcher command (e.g. `bili <client>`), a native plugin install, or by prefixing the client's existing base URL with `http://localhost:8787/bili/` so the proxy can forward requests without editing any config file.",
-        "pros": "Compression is described as incremental, reversible, and prefix-cache friendly, with four injected tools (compress, decompress, search_context, acp_status) that let the model manage context itself, and the documentation cites a healthy prefix-cache hit rate of 95-97% with compression overhead kept at roughly 2% or less.",
-        "cons": "The project's own Status section labels it Early: protocol handling and compression are validated only against mock tests (500+ passing), with real-model integration testing listed as the next milestone, so production reliability may still need further confirmation; separately, remote access via `--host 0.0.0.0` has no authentication and is only advised on a trusted LAN or behind a firewall.",
-        "fit": "It is aimed at users running coding agents such as Claude Code, Codex, OpenCode, pi, and numerous other clients listed in a per-client support table, functioning as a proxy layer between an existing agent and its model API rather than as a standalone agent or a replacement for any specific client."
+        "goal": "billion-context is a context-compression plugin/proxy that sits between a coding agent (e.g. Claude Code, Codex, OpenCode, Gemini CLI) and its model API. It rewrites Anthropic/OpenAI-shaped streams using acp-kernel compression so a single coding session can consume far more tokens than a model's context window would normally allow, letting the model itself decide when and what to fold into summaries rather than relying on hard truncation.",
+        "usage": "Install with `npm install -g billion-context --prefix=~/.local`, which provides the `bili` command. Three usage modes are documented: a native plugin (`bili plugin install <client>`), a config-free launcher (`bili <client>`), or a universal URL-prefix mode where the client's base URL is prefixed with the proxy origin plus `/bili/`.",
+        "pros": "The README states the design is incremental, reversible, and prefix-cache friendly, decompressing ranges on demand while keeping the cache prefix intact. It documents support across many agents (pi, OpenCode, Claude Code, Codex, Gemini CLI, and others) and automatically injects four context-management tools (compress, decompress, search_context, acp_status) that the model calls as context grows.",
+        "cons": "The project's own Status section describes it as 'Early': protocol handling and compression are validated against mock tests (500+ passing), while real-model integration testing is listed as the next milestone, so rough edges are explicitly expected.",
+        "fit": "Given its broad per-client install paths and reliance on Node/npm, it fits teams running long, token-heavy agent sessions with one of the documented clients; since real-model integration testing is still pending, cautious evaluation before production use seems warranted."
       },
       "ko": {
-        "goal": "billion-context는 코딩 에이전트와 모델 API(Anthropic 또는 OpenAI) 사이에 위치하는 컨텍스트 압축 플러그인/프록시로, 모델이 언제 무엇을 압축할지 스스로 판단해 계층적 요약으로 변환함으로써 긴 코딩 세션이 컨텍스트 윈도우 한계에 부딪히지 않고 계속 이어지도록 합니다.",
-        "usage": "`npm install -g billion-context --prefix=~/.local` 명령으로 설치한 뒤, 클라이언트별 런처 명령(예: `bili <client>`), 네이티브 플러그인 설치, 또는 기존 클라이언트의 base URL 앞에 `http://localhost:8787/bili/`를 붙이는 방식 중 하나로 실행하면 설정 파일을 수정하지 않고도 프록시가 요청을 전달합니다.",
-        "pros": "압축은 점진적이고(incremental) 되돌릴 수 있으며(reversible) 프리픽스 캐시와 호환되는 방식으로 설계되었다고 설명되며, compress·decompress·search_context·acp_status 네 가지 도구가 삽입되어 모델이 직접 컨텍스트를 관리할 수 있고, 문서에는 95-97%의 건강한 프리픽스 캐시 적중률과 약 2% 이하의 압축 오버헤드가 언급되어 있습니다.",
-        "cons": "프로젝트의 Status 섹션은 스스로를 Early(초기 단계)로 표기하며, 프로토콜 처리와 압축 기능은 모의(mock) 테스트(500개 이상 통과)로만 검증되었고 실제 모델을 대상으로 한 통합 테스트는 다음 마일스톤으로 예정되어 있어, 운영 환경에서의 신뢰성은 추가 확인이 필요할 수 있습니다. 또한 `--host 0.0.0.0`을 통한 원격 접근에는 인증이 전혀 없어 신뢰된 LAN이나 방화벽 뒤에서만 사용하도록 권장됩니다.",
-        "fit": "Claude Code, Codex, OpenCode, pi 등 지원 클라이언트 표에 나열된 다양한 코딩 에이전트를 사용하는 사용자를 대상으로 하며, 독립적인 에이전트나 특정 클라이언트의 대체품이 아니라 기존 에이전트와 모델 API 사이의 프록시 계층 역할을 합니다."
+        "goal": "billion-context는 코딩 에이전트(예: Claude Code, Codex, OpenCode, Gemini CLI)와 모델 API 사이에 위치하는 컨텍스트 압축 플러그인/프록시입니다. acp-kernel 압축을 이용해 Anthropic/OpenAI 형식의 스트림을 재작성하여, 모델이 직접 언제 무엇을 요약으로 접을지 결정하게 함으로써 단일 세션에서 더 많은 토큰을 처리할 수 있게 합니다.",
+        "usage": "`npm install -g billion-context --prefix=~/.local` 명령으로 설치하면 `bili` 명령을 사용할 수 있습니다. 네이티브 플러그인(`bili plugin install <client>`), 설정 없이 바로 쓰는 런처(`bili <client>`), 또는 클라이언트의 base URL 앞에 프록시 origin과 `/bili/`를 붙이는 범용 URL 방식 중 하나를 선택해 사용합니다.",
+        "pros": "README는 압축 방식이 점진적이고 되돌릴 수 있으며 프리픽스 캐시와 호환된다고 설명합니다. pi, OpenCode, Claude Code, Codex, Gemini CLI 등 다양한 클라이언트를 지원하며, 컨텍스트가 커질 때 모델이 직접 호출하는 compress, decompress, search_context, acp_status 네 가지 도구를 자동으로 주입합니다.",
+        "cons": "프로젝트의 Status 섹션은 자체적으로 'Early(초기)' 단계라고 밝히며, 프로토콜 처리와 압축 기능은 목 테스트(500개 이상 통과)로 검증되었지만 실제 모델 통합 테스트는 다음 단계로 남아 있어 거친 부분이 있을 수 있다고 명시합니다.",
+        "fit": "클라이언트별 다양한 설치 경로와 Node/npm 의존성을 고려하면, 문서화된 클라이언트 중 하나로 긴 토큰 소모가 많은 에이전트 세션을 운영하는 팀에 적합해 보입니다. 다만 실제 모델 통합 테스트가 아직 진행 중이므로 프로덕션 적용 전 신중한 검토가 필요할 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "billion-context 是一个上下文压缩插件/代理,位于编码代理与模型 API(Anthropic 或 OpenAI)之间,由模型自行决定何时以及压缩哪些内容为分层摘要,从而让长时间的编码会话能够持续运行而不会触及上下文窗口限制。",
-        "usage": "先使用 `npm install -g billion-context --prefix=~/.local` 安装,然后通过针对特定客户端的启动命令(例如 `bili <client>`)、原生插件安装,或者在客户端现有的 base URL 前加上 `http://localhost:8787/bili/` 这三种方式之一运行,代理即可转发请求,且无需修改任何配置文件。",
-        "pros": "文档称压缩过程是增量式、可逆的,并且对前缀缓存友好,并内置了四个工具(compress、decompress、search_context、acp_status)供模型自行管理上下文,文档还提到健康状态下前缀缓存命中率可达 95%-97%,压缩本身带来的开销约为 2% 或更低。",
-        "cons": "项目自身的 Status 部分将其标记为 Early(早期阶段):协议处理与压缩功能目前仅通过模拟(mock)测试验证(超过 500 项测试通过),而针对真实模型的集成测试被列为下一个里程碑,这意味着生产环境下的可靠性可能仍需进一步确认;此外,通过 `--host 0.0.0.0` 开启的远程访问没有任何身份验证机制,文档建议仅在受信任的局域网或防火墙后使用。",
-        "fit": "该项目面向使用 Claude Code、Codex、OpenCode、pi 等多种编码代理的用户,这些客户端均列于一份逐客户端支持表中;它作为现有代理与模型 API 之间的代理层运行,而非独立代理或某个特定客户端的替代品。"
+        "goal": "billion-context 是一个上下文压缩插件/代理，位于编码代理(如 Claude Code、Codex、OpenCode、Gemini CLI)与其模型 API 之间。它通过 acp-kernel 压缩重写 Anthropic/OpenAI 格式的流，让模型自行决定何时、将什么内容折叠为摘要，而不是依赖硬性截断，从而使单次会话能够处理远超模型上下文窗口的 token 量。",
+        "usage": "使用 `npm install -g billion-context --prefix=~/.local` 安装后即可获得 `bili` 命令。文档中列出了三种使用方式：原生插件(`bili plugin install <client>`)、无需配置的启动器(`bili <client>`)，或在客户端 base URL 前加上代理源地址与 `/bili/` 前缀的通用方式。",
+        "pros": "README 指出其压缩方式是渐进式、可逆的，并且对前缀缓存友好，可按需解压某个范围同时保持缓存前缀不变。文档记录了对 pi、OpenCode、Claude Code、Codex、Gemini CLI 等多种客户端的支持，并会自动注入四个上下文管理工具(compress、decompress、search_context、acp_status)，由模型在上下文增长时自行调用。",
+        "cons": "项目自身的 Status 部分将其描述为“Early(早期)”阶段：协议处理与压缩功能目前仅通过 mock 测试(500 多项通过)验证，而真实模型集成测试被列为下一个里程碑，文档中明确说明可能存在不完善之处。",
+        "fit": "考虑到其针对不同客户端提供的多种安装路径以及对 Node/npm 的依赖，该项目似乎适合使用文档中列出的客户端、运行长时间高 token 消耗会话的团队；但由于真实模型集成测试尚未完成，在投入生产前似乎需要谨慎评估。"
       },
       "es": {
-        "goal": "billion-context es un complemento/proxy de compresión de contexto que se sitúa entre un agente de codificación y su API de modelo (Anthropic u OpenAI), dejando que el propio modelo decida cuándo y qué comprimir en resúmenes por capas para que las sesiones de codificación largas puedan continuar sin alcanzar el límite de la ventana de contexto.",
-        "usage": "Se instala con `npm install -g billion-context --prefix=~/.local`, y luego se ejecuta mediante un comando lanzador específico por cliente (por ejemplo, `bili <client>`), una instalación de complemento nativo, o anteponiendo `http://localhost:8787/bili/` a la base URL existente del cliente, de modo que el proxy reenvíe las solicitudes sin editar ningún archivo de configuración.",
-        "pros": "La compresión se describe como incremental, reversible y compatible con la caché de prefijo, con cuatro herramientas inyectadas (compress, decompress, search_context, acp_status) que permiten al modelo gestionar el contexto por sí mismo, y la documentación menciona una tasa de aciertos de caché de prefijo saludable del 95-97%, con una sobrecarga de compresión de alrededor del 2% o menos.",
-        "cons": "La propia sección de Estado del proyecto lo califica como Early (etapa temprana): el manejo de protocolos y la compresión solo se han validado con pruebas simuladas (más de 500 superadas), mientras que las pruebas de integración con modelos reales figuran como el siguiente hito, por lo que la fiabilidad en producción podría necesitar confirmación adicional; además, el acceso remoto mediante `--host 0.0.0.0` no tiene autenticación y solo se recomienda en una LAN de confianza o detrás de un firewall.",
-        "fit": "Está dirigido a usuarios que ejecutan agentes de codificación como Claude Code, Codex, OpenCode, pi y numerosos otros clientes listados en una tabla de compatibilidad por cliente, funcionando como una capa proxy entre un agente existente y su API de modelo, en lugar de ser un agente independiente o un sustituto de un cliente específico."
+        "goal": "billion-context es un plugin/proxy de compresión de contexto que se sitúa entre un agente de codificación (p. ej. Claude Code, Codex, OpenCode, Gemini CLI) y su API de modelo. Reescribe los streams con formato Anthropic/OpenAI usando la compresión de acp-kernel, dejando que el propio modelo decida cuándo y qué plegar en resúmenes en lugar de depender de un truncamiento rígido, lo que permite que una sola sesión consuma muchos más tokens de los que permitiría la ventana de contexto.",
+        "usage": "Se instala con `npm install -g billion-context --prefix=~/.local`, lo que proporciona el comando `bili`. El README documenta tres modos de uso: un plugin nativo (`bili plugin install <client>`), un lanzador sin configuración (`bili <client>`), o un modo universal que antepone el origen del proxy y `/bili/` a la URL base del cliente.",
+        "pros": "El README afirma que la compresión es incremental, reversible y compatible con el caché de prefijos, pudiendo descomprimir rangos a demanda sin romper el prefijo cacheado. También documenta soporte para numerosos clientes (pi, OpenCode, Claude Code, Codex, Gemini CLI, entre otros) y la inyección automática de cuatro herramientas de gestión de contexto (compress, decompress, search_context, acp_status) que el modelo invoca a medida que crece el contexto.",
+        "cons": "La propia sección Status del proyecto lo describe como 'Early' (temprano): el manejo del protocolo y la compresión están validados contra pruebas simuladas (más de 500 superadas), mientras que las pruebas de integración con modelos reales se señalan como el siguiente hito, por lo que el propio documento anticipa posibles imperfecciones.",
+        "fit": "Dadas sus múltiples vías de instalación por cliente y su dependencia de Node/npm, parece adecuado para equipos que ejecutan sesiones largas y con alto consumo de tokens en uno de los clientes documentados; como las pruebas de integración con modelos reales todavía están pendientes, conviene evaluarlo con cautela antes de usarlo en producción."
       },
       "ja": {
-        "goal": "billion-context は、コーディングエージェントとそのモデル API(Anthropic または OpenAI)の間に位置するコンテキスト圧縮プラグイン/プロキシであり、モデル自身がいつ何を圧縮して階層的な要約にするかを判断することで、長時間のコーディングセッションがコンテキストウィンドウの上限に達することなく継続できるようにします。",
-        "usage": "`npm install -g billion-context --prefix=~/.local` でインストールした後、クライアントごとのランチャーコマンド(例:`bili <client>`)、ネイティブプラグインのインストール、またはクライアントの既存のベース URL の前に `http://localhost:8787/bili/` を付加する方法のいずれかで実行すると、設定ファイルを編集せずにプロキシがリクエストを転送します。",
-        "pros": "圧縮は増分的で可逆的、かつプレフィックスキャッシュに配慮した方式であると説明されており、compress・decompress・search_context・acp_status という4つのツールが組み込まれてモデル自身がコンテキストを管理でき、ドキュメントでは健全な状態でのプレフィックスキャッシュヒット率が95〜97%、圧縮自体のオーバーヘッドは約2%以下と記載されています。",
-        "cons": "プロジェクト自身の Status セクションでは Early(初期段階)と明記されており、プロトコル処理と圧縮機能はモック(模擬)テスト(500件以上合格)でのみ検証済みで、実モデルを用いた統合テストは次のマイルストーンとされているため、本番環境での信頼性についてはさらなる確認が必要な可能性があります。また、`--host 0.0.0.0` によるリモートアクセスには認証機能が一切なく、信頼できる LAN 内またはファイアウォールの内側での利用のみが推奨されています。",
-        "fit": "Claude Code、Codex、OpenCode、pi など、クライアント別サポート表に列挙された多数のコーディングエージェントを利用するユーザーを対象としており、独立したエージェントや特定クライアントの代替ではなく、既存のエージェントとモデル API の間に入るプロキシ層として機能します。"
+        "goal": "billion-contextは、コーディングエージェント(Claude Code、Codex、OpenCode、Gemini CLIなど)とそのモデルAPIの間に位置するコンテキスト圧縮プラグイン/プロキシです。acp-kernel圧縮を用いてAnthropic/OpenAI形式のストリームを書き換え、固定的な切り捨てではなくモデル自身がいつ何を要約に折り込むかを判断できるようにすることで、単一セッションでモデルのコンテキストウィンドウを超える大量のトークンを扱えるようにします。",
+        "usage": "`npm install -g billion-context --prefix=~/.local` でインストールすると `bili` コマンドが使えるようになります。README にはネイティブプラグイン(`bili plugin install <client>`)、設定不要のランチャー(`bili <client>`)、クライアントのベースURLの先頭にプロキシのオリジンと `/bili/` を付加する汎用方式の3通りの利用方法が記載されています。",
+        "pros": "README によれば圧縮方式は段階的かつ可逆的で、プレフィックスキャッシュに配慮した設計になっており、範囲ごとにオンデマンドで解凍しつつキャッシュのプレフィックスを保持できるとされています。pi、OpenCode、Claude Code、Codex、Gemini CLI など多数のクライアントへの対応が記載されており、コンテキストが増えるとモデル自身が呼び出す compress、decompress、search_context、acp_status の4つのツールが自動的に注入されます。",
+        "cons": "プロジェクト自身の Status セクションでは「Early(初期段階)」と明記されており、プロトコル処理と圧縮機能はモック テスト(500件以上合格)で検証済みである一方、実モデルを用いた統合テストは次のマイルストーンとされているため、粗い部分が残っている可能性がドキュメント上でも示されています。",
+        "fit": "クライアントごとに多様なインストール手順が用意され、Node/npmへの依存がある点を踏まえると、文書化されたクライアントのいずれかで長時間・大量トークンのセッションを運用するチームに向いていると考えられます。ただし実モデルでの統合テストがまだ完了していないため、本番導入前には慎重な評価が望ましいと考えられます。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 5,
-          "end_line": 7,
-          "section_heading": "billion-context"
-        },
-        {
           "start_line": 67,
-          "end_line": 67,
-          "section_heading": "📄 Paper / Preprint"
-        },
-        {
-          "start_line": 71,
           "end_line": 71,
-          "section_heading": "Why"
+          "section_heading": "📄 Paper / Preprint"
         }
       ],
       "usage": [
         {
-          "start_line": 16,
-          "end_line": 16,
-          "section_heading": "billion-context"
+          "start_line": 140,
+          "end_line": 140,
+          "section_heading": "Install"
         },
         {
           "start_line": 158,
           "end_line": 163,
           "section_heading": "Quickstart"
-        },
-        {
-          "start_line": 284,
-          "end_line": 293,
-          "section_heading": "Option 3 — URL change (`/bili/` prefix)"
         }
       ],
       "pros": [
@@ -4110,29 +4133,19 @@
           "start_line": 95,
           "end_line": 100,
           "section_heading": "Context-management tools"
-        },
-        {
-          "start_line": 47,
-          "end_line": 47,
-          "section_heading": "billion-context"
         }
       ],
       "cons": [
         {
-          "start_line": 552,
-          "end_line": 552,
+          "start_line": 554,
+          "end_line": 554,
           "section_heading": "Status"
-        },
-        {
-          "start_line": 417,
-          "end_line": 417,
-          "section_heading": "Remote agents (`--host`)"
         }
       ],
       "fit": [
         {
           "start_line": 102,
-          "end_line": 108,
+          "end_line": 110,
           "section_heading": "Which do I need?"
         },
         {
@@ -4152,14 +4165,7 @@
       },
       {
         "kind": "command",
-        "value": "bili <client>",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "url",
-        "value": "http://localhost:8787/bili/",
+        "value": "bili",
         "fields": [
           "usage"
         ]
@@ -4173,46 +4179,25 @@
         ]
       },
       {
-        "kind": "product",
-        "value": "Claude Code",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Codex",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "OpenCode",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
         "kind": "number",
-        "value": "500+",
+        "value": "500",
         "fields": [
           "cons"
         ]
       }
     ],
     "inference_fields": [
-      "cons"
+      "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "ranxianglei/billion-context",
       "path": "README.md",
-      "blob_sha": "b19627e9c37982cd761ef573925ce1b8bf93dc34",
-      "content_sha256": "cc5abb5d1baa2c06bd7db656d489cf9cea41b444b28352aa0362d897a9f13345",
+      "blob_sha": "753bcf56a34f3609787a6c609ed850335a8ea5e8",
+      "content_sha256": "071781fef72368d249cfa1368abe07a081640d66297a2b7cfd4d67c964cf3ecc",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.292",
+      "cli_version": "2.1.302",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -6061,47 +6046,47 @@
   },
   "cursor/plugins": {
     "content": {
-      "goal": "This repository, cursor/plugins, hosts official Cursor plugins for developer tools, frameworks, and SaaS products. Each plugin is a standalone directory at the repository root with its own `.cursor-plugin/plugin.json` manifest, and the collection spans both first-party developer tooling (e.g., Advisor, Orchestrate, Thermos) and third-party service integrations (e.g., Gmail, GitHub, Salesforce).",
-      "usage": "Plugins are organized under a marketplace structure: the root `.cursor-plugin/marketplace.json` lists all plugins, while each plugin directory contains its own `.cursor-plugin/plugin.json` manifest plus optional `skills/`, `rules/`, `mcp.json`, README, CHANGELOG, and LICENSE files.",
-      "pros": "The repository bundles more than 90 integrations covering productivity (Gmail, Google Docs), CRM/finance (Salesforce, QuickBooks, Coinbase), and developer workflow tools (PR Review Canvas, Docs Canvas, Cursor SDK), all following one consistent manifest-based plugin structure.",
-      "cons": "Most third-party integrations live under a separate `third_party/` path rather than the repository root used by Cursor's own tools, which may suggest a difference in maintenance ownership between first-party and third-party plugins, though the README does not elaborate on any support distinctions.",
-      "fit": "This project likely suits teams and individual developers already using the Cursor editor who want to extend it with ready-made agent skills and SaaS integrations, rather than those seeking a standalone application outside the Cursor ecosystem; the repository is distributed under the MIT license."
+      "goal": "Cursor/plugins is a repository of official Cursor plugins for developer tools, frameworks, and SaaS products. Each plugin lives in its own directory with a `.cursor-plugin/plugin.json` manifest, covering areas like developer tooling, productivity, and third-party integrations such as GitHub, Gmail, and Salesforce.",
+      "usage": "The repo is organized as a multi-plugin marketplace. A root `.cursor-plugin/marketplace.json` lists every plugin, while each plugin folder has its own `plugin.json`, plus optional `skills/`, `rules/`, `mcp.json`, `README.md`, and `CHANGELOG.md` files.",
+      "pros": "The catalog spans many categories—Developer Tools, Productivity, and Integrations—including GitHub, Playwright, Salesforce, HubSpot, Google Workspace apps, and numerous finance and trading platforms, offering broad ready-made coverage for connecting Cursor agents to external services.",
+      "cons": "Several finance- and commerce-related plugins, such as Robinhood, Coinbase, eToro Trading, and Gopuff, appear to require signing in with one's own external account, which suggests that actions like trades or orders placed through them would affect the user's real account.",
+      "fit": "This repository seems best suited to developers already using Cursor who want to extend it with pre-built skills, rules, and MCP integrations for common SaaS platforms, rather than those seeking a standalone tool outside the Cursor ecosystem."
     },
     "summaries": {
       "en": {
-        "goal": "This repository, cursor/plugins, hosts official Cursor plugins for developer tools, frameworks, and SaaS products. Each plugin is a standalone directory at the repository root with its own `.cursor-plugin/plugin.json` manifest, and the collection spans both first-party developer tooling (e.g., Advisor, Orchestrate, Thermos) and third-party service integrations (e.g., Gmail, GitHub, Salesforce).",
-        "usage": "Plugins are organized under a marketplace structure: the root `.cursor-plugin/marketplace.json` lists all plugins, while each plugin directory contains its own `.cursor-plugin/plugin.json` manifest plus optional `skills/`, `rules/`, `mcp.json`, README, CHANGELOG, and LICENSE files.",
-        "pros": "The repository bundles more than 90 integrations covering productivity (Gmail, Google Docs), CRM/finance (Salesforce, QuickBooks, Coinbase), and developer workflow tools (PR Review Canvas, Docs Canvas, Cursor SDK), all following one consistent manifest-based plugin structure.",
-        "cons": "Most third-party integrations live under a separate `third_party/` path rather than the repository root used by Cursor's own tools, which may suggest a difference in maintenance ownership between first-party and third-party plugins, though the README does not elaborate on any support distinctions.",
-        "fit": "This project likely suits teams and individual developers already using the Cursor editor who want to extend it with ready-made agent skills and SaaS integrations, rather than those seeking a standalone application outside the Cursor ecosystem; the repository is distributed under the MIT license."
+        "goal": "Cursor/plugins is a repository of official Cursor plugins for developer tools, frameworks, and SaaS products. Each plugin lives in its own directory with a `.cursor-plugin/plugin.json` manifest, covering areas like developer tooling, productivity, and third-party integrations such as GitHub, Gmail, and Salesforce.",
+        "usage": "The repo is organized as a multi-plugin marketplace. A root `.cursor-plugin/marketplace.json` lists every plugin, while each plugin folder has its own `plugin.json`, plus optional `skills/`, `rules/`, `mcp.json`, `README.md`, and `CHANGELOG.md` files.",
+        "pros": "The catalog spans many categories—Developer Tools, Productivity, and Integrations—including GitHub, Playwright, Salesforce, HubSpot, Google Workspace apps, and numerous finance and trading platforms, offering broad ready-made coverage for connecting Cursor agents to external services.",
+        "cons": "Several finance- and commerce-related plugins, such as Robinhood, Coinbase, eToro Trading, and Gopuff, appear to require signing in with one's own external account, which suggests that actions like trades or orders placed through them would affect the user's real account.",
+        "fit": "This repository seems best suited to developers already using Cursor who want to extend it with pre-built skills, rules, and MCP integrations for common SaaS platforms, rather than those seeking a standalone tool outside the Cursor ecosystem."
       },
       "ko": {
-        "goal": "이 저장소(cursor/plugins)는 개발자 도구, 프레임워크, SaaS 제품을 위한 공식 Cursor 플러그인 모음을 제공합니다. 각 플러그인은 저장소 루트에 독립된 디렉터리로 존재하며 자체 `.cursor-plugin/plugin.json` 매니페스트를 가지고 있고, Advisor·Orchestrate·Thermos 같은 자체 개발자 도구와 Gmail·GitHub·Salesforce 같은 서드파티 서비스 연동을 모두 포함합니다.",
-        "usage": "플러그인은 마켓플레이스 구조로 구성되어 있습니다: 루트의 `.cursor-plugin/marketplace.json`이 모든 플러그인을 나열하고, 각 플러그인 디렉터리는 자체 `.cursor-plugin/plugin.json` 매니페스트와 선택적으로 `skills/`, `rules/`, `mcp.json`, README, CHANGELOG, LICENSE 파일을 포함합니다.",
-        "pros": "이 저장소는 생산성(Gmail, Google Docs), CRM/금융(Salesforce, QuickBooks, Coinbase), 개발 워크플로 도구(PR Review Canvas, Docs Canvas, Cursor SDK) 등 90개가 넘는 연동을 하나의 일관된 매니페스트 기반 플러그인 구조로 묶어 제공합니다.",
-        "cons": "대부분의 서드파티 연동은 Cursor 자체 도구가 위치한 저장소 루트가 아니라 별도의 `third_party/` 경로 아래에 있어, 퍼스트파티와 서드파티 플러그인 간 유지보수 주체가 다를 수 있음을 짐작할 수 있지만, README는 지원 차이에 대해 구체적으로 설명하지 않습니다.",
-        "fit": "이 프로젝트는 이미 Cursor 에디터를 사용 중이며 완성된 에이전트 스킬과 SaaS 연동으로 확장하려는 팀이나 개발자에게 적합할 가능성이 높고, Cursor 생태계 밖에서 독립 실행형 애플리케이션을 찾는 사용자에게는 적합하지 않을 수 있습니다. 이 저장소는 MIT 라이선스로 배포됩니다."
+        "goal": "Cursor/plugins는 Cursor용 공식 플러그인 모음 저장소로, 개발 도구, 프레임워크, SaaS 제품을 위한 플러그인을 제공합니다. 각 플러그인은 자체 `.cursor-plugin/plugin.json` 매니페스트를 가진 독립된 디렉터리로 구성되며, GitHub, Gmail, Salesforce 같은 개발 도구, 생산성, 서드파티 통합 영역을 다룹니다.",
+        "usage": "이 저장소는 멀티 플러그인 마켓플레이스 구조로 되어 있습니다. 루트의 `.cursor-plugin/marketplace.json`이 모든 플러그인을 나열하며, 각 플러그인 폴더는 자체 `plugin.json`과 선택적으로 `skills/`, `rules/`, `mcp.json`, `README.md`, `CHANGELOG.md` 파일을 포함합니다.",
+        "pros": "카탈로그는 Developer Tools, Productivity, Integrations 등 다양한 카테고리를 포괄하며, GitHub, Playwright, Salesforce, HubSpot, Google Workspace 앱, 여러 금융·거래 플랫폼까지 포함해 Cursor 에이전트를 외부 서비스에 연결할 수 있는 폭넓은 사전 구축된 범위를 제공합니다.",
+        "cons": "Robinhood, Coinbase, eToro Trading, Gopuff 같은 금융·커머스 관련 플러그인 일부는 사용자가 자신의 외부 계정으로 로그인해야 하는 것으로 보이며, 이는 해당 플러그인을 통해 이루어지는 거래나 주문이 실제 사용자 계정에 영향을 줄 수 있음을 암시합니다.",
+        "fit": "이 저장소는 이미 Cursor를 사용 중이며 일반적인 SaaS 플랫폼을 위한 사전 제작된 스킬, 규칙, MCP 통합으로 기능을 확장하려는 개발자에게 적합해 보이며, Cursor 생태계 밖에서 단독 도구를 찾는 사용자에게는 적합하지 않을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "该仓库(cursor/plugins)提供面向开发者工具、框架和 SaaS 产品的官方 Cursor 插件集合。每个插件都是仓库根目录下的独立目录,拥有各自的 `.cursor-plugin/plugin.json` 清单文件,既包含 Advisor、Orchestrate、Thermos 等自研开发者工具,也包含 Gmail、GitHub、Salesforce 等第三方服务集成。",
-        "usage": "插件按市场结构组织:根目录下的 `.cursor-plugin/marketplace.json` 列出所有插件,每个插件目录则包含自己的 `.cursor-plugin/plugin.json` 清单,以及可选的 `skills/`、`rules/`、`mcp.json`、README、CHANGELOG 和 LICENSE 文件。",
-        "pros": "该仓库汇集了超过 90 个集成,涵盖办公协作(Gmail、Google Docs)、CRM/财务(Salesforce、QuickBooks、Coinbase)以及开发工作流工具(PR Review Canvas、Docs Canvas、Cursor SDK),并统一采用基于清单文件的插件结构。",
-        "cons": "大多数第三方集成位于单独的 `third_party/` 路径下,而非 Cursor 自身工具所在的仓库根目录,这可能暗示自研插件与第三方插件在维护主体上存在差异,但 README 并未进一步说明两者在支持力度上的区别。",
-        "fit": "该项目可能更适合已经在使用 Cursor 编辑器、希望借助现成的智能体技能和 SaaS 集成进行扩展的团队与开发者,而不太适合在 Cursor 生态之外寻找独立应用的用户。该仓库以 MIT 许可证发布。"
+        "goal": "cursor/plugins 是一个官方 Cursor 插件仓库，为开发工具、框架和 SaaS 产品提供插件。每个插件都位于独立目录中，带有自己的 `.cursor-plugin/plugin.json` 清单文件，涵盖开发工具、生产力以及 GitHub、Gmail、Salesforce 等第三方集成领域。",
+        "usage": "该仓库采用多插件市场结构：根目录下的 `.cursor-plugin/marketplace.json` 列出所有插件，而每个插件文件夹都有自己的 `plugin.json`，并可选包含 `skills/`、`rules/`、`mcp.json`、`README.md` 和 `CHANGELOG.md` 文件。",
+        "pros": "该目录涵盖 Developer Tools、Productivity、Integrations 等多个类别，包括 GitHub、Playwright、Salesforce、HubSpot、Google Workspace 应用以及多个金融与交易平台，为将 Cursor 代理连接到外部服务提供了广泛的现成覆盖。",
+        "cons": "Robinhood、Coinbase、eToro Trading、Gopuff 等部分金融和电商相关插件似乎需要用户登录自己的外部账户，这意味着通过这些插件执行的交易或下单操作可能会影响用户的真实账户。",
+        "fit": "该仓库似乎最适合已经在使用 Cursor、希望通过预构建的技能、规则和 MCP 集成来扩展常见 SaaS 平台功能的开发者，而不太适合在 Cursor 生态系统之外寻找独立工具的用户。"
       },
       "es": {
-        "goal": "Este repositorio (cursor/plugins) reúne complementos oficiales de Cursor para herramientas de desarrollo, frameworks y productos SaaS. Cada complemento es un directorio independiente en la raíz del repositorio con su propio manifiesto `.cursor-plugin/plugin.json`, e incluye tanto herramientas propias (Advisor, Orchestrate, Thermos) como integraciones de terceros (Gmail, GitHub, Salesforce).",
-        "usage": "Los complementos se organizan en una estructura de mercado: el archivo raíz `.cursor-plugin/marketplace.json` enumera todos los complementos, mientras que cada directorio de complemento contiene su propio manifiesto `.cursor-plugin/plugin.json` junto con archivos opcionales `skills/`, `rules/`, `mcp.json`, README, CHANGELOG y LICENSE.",
-        "pros": "El repositorio reúne más de 90 integraciones que cubren productividad (Gmail, Google Docs), CRM/finanzas (Salesforce, QuickBooks, Coinbase) y herramientas de flujo de trabajo de desarrollo (PR Review Canvas, Docs Canvas, Cursor SDK), todas bajo una estructura de complemento consistente basada en manifiestos.",
-        "cons": "La mayoría de las integraciones de terceros se encuentran bajo una ruta separada `third_party/` en lugar de la raíz del repositorio donde residen las herramientas propias de Cursor, lo que podría sugerir una diferencia en la responsabilidad de mantenimiento, aunque el README no detalla diferencias de soporte entre ambos grupos.",
-        "fit": "Este proyecto probablemente resulte adecuado para equipos y desarrolladores que ya usan el editor Cursor y desean ampliarlo con habilidades de agente e integraciones SaaS listas para usar, más que para quienes buscan una aplicación independiente fuera del ecosistema Cursor. El repositorio se distribuye bajo la licencia MIT."
+        "goal": "cursor/plugins es un repositorio de plugins oficiales de Cursor para herramientas de desarrollo, frameworks y productos SaaS. Cada plugin se encuentra en su propio directorio con un manifiesto `.cursor-plugin/plugin.json`, cubriendo áreas como herramientas de desarrollo, productividad e integraciones de terceros como GitHub, Gmail y Salesforce.",
+        "usage": "El repositorio está organizado como un marketplace de múltiples plugins: un `.cursor-plugin/marketplace.json` raíz enumera todos los plugins, mientras que cada carpeta de plugin tiene su propio `plugin.json`, además de archivos opcionales `skills/`, `rules/`, `mcp.json`, `README.md` y `CHANGELOG.md`.",
+        "pros": "El catálogo abarca numerosas categorías —Developer Tools, Productivity e Integrations— incluyendo GitHub, Playwright, Salesforce, HubSpot, aplicaciones de Google Workspace y varias plataformas financieras y de trading, ofreciendo una amplia cobertura lista para conectar agentes de Cursor con servicios externos.",
+        "cons": "Varios plugins relacionados con finanzas y comercio, como Robinhood, Coinbase, eToro Trading y Gopuff, parecen requerir que el usuario inicie sesión con su propia cuenta externa, lo que sugiere que las operaciones o pedidos realizados a través de ellos afectarían a la cuenta real del usuario.",
+        "fit": "Este repositorio parece ser más adecuado para desarrolladores que ya usan Cursor y desean extenderlo con habilidades, reglas e integraciones MCP preconstruidas para plataformas SaaS comunes, en lugar de usuarios que buscan una herramienta independiente fuera del ecosistema de Cursor."
       },
       "ja": {
-        "goal": "このリポジトリ(cursor/plugins)は、開発者向けツール、フレームワーク、SaaS製品向けの公式Cursorプラグイン集です。各プラグインはリポジトリのルートにある独立したディレクトリで、それぞれ独自の `.cursor-plugin/plugin.json` マニフェストを持ち、Advisor・Orchestrate・Thermosなどの自社開発ツールと、Gmail・GitHub・Salesforceなどのサードパーティ連携の両方を含みます。",
-        "usage": "プラグインはマーケットプレイス構造で管理されており、ルートの `.cursor-plugin/marketplace.json` が全プラグインを列挙し、各プラグインディレクトリは独自の `.cursor-plugin/plugin.json` マニフェストに加え、任意で `skills/`、`rules/`、`mcp.json`、README、CHANGELOG、LICENSEファイルを含みます。",
-        "pros": "本リポジトリには、生産性向け(Gmail、Google Docs)、CRM/財務(Salesforce、QuickBooks、Coinbase)、開発ワークフロー(PR Review Canvas、Docs Canvas、Cursor SDK)など90件を超える連携が、統一されたマニフェストベースのプラグイン構造のもとでまとめられています。",
-        "cons": "ほとんどのサードパーティ連携は、Cursor自社ツールが置かれるリポジトリルートではなく、別の `third_party/` パス配下に置かれており、自社プラグインとサードパーティプラグインで保守体制が異なる可能性がうかがえますが、README ではサポート面の違いについて詳しく説明されていません。",
-        "fit": "本プロジェクトは、すでにCursorエディタを使用していて、既成のエージェントスキルやSaaS連携で拡張したいチームや開発者に適している可能性が高く、Cursorエコシステム外で単独動作するアプリケーションを求める利用者には適さない場合があります。本リポジトリはMITライセンスで公開されています。"
+        "goal": "cursor/plugins は、開発ツール、フレームワーク、SaaS プロダクト向けの公式 Cursor プラグインを提供するリポジトリです。各プラグインは独自の `.cursor-plugin/plugin.json` マニフェストを持つ独立したディレクトリとして配置され、GitHub、Gmail、Salesforce などの開発ツール、生産性、サードパーティ統合の分野をカバーします。",
+        "usage": "このリポジトリはマルチプラグイン型マーケットプレイスとして構成されています。ルートの `.cursor-plugin/marketplace.json` が全プラグインを一覧化し、各プラグインフォルダーには独自の `plugin.json` と、任意で `skills/`、`rules/`、`mcp.json`、`README.md`、`CHANGELOG.md` が含まれます。",
+        "pros": "カタログは Developer Tools、Productivity、Integrations など多岐にわたるカテゴリをカバーしており、GitHub、Playwright、Salesforce、HubSpot、Google Workspace アプリ、さらに多数の金融・トレーディングプラットフォームを含み、Cursor エージェントを外部サービスに接続するための広範な既成の選択肢を提供します。",
+        "cons": "Robinhood、Coinbase、eToro Trading、Gopuff など一部の金融・コマース関連プラグインは、ユーザー自身の外部アカウントでのログインが必要と見られ、これはこれらのプラグインを通じて行われる取引や注文がユーザーの実際のアカウントに影響する可能性を示唆しています。",
+        "fit": "このリポジトリは、既に Cursor を利用しており、一般的な SaaS プラットフォーム向けの既成のスキル、ルール、MCP 統合で機能を拡張したい開発者に最も適していると考えられ、Cursor エコシステム外で単独のツールを探している利用者にはあまり適さない可能性があります。"
       }
     },
     "evidence": {
@@ -6110,44 +6095,54 @@
           "start_line": 1,
           "end_line": 3,
           "section_heading": "Cursor plugins"
+        },
+        {
+          "start_line": 9,
+          "end_line": 9,
+          "section_heading": "Plugins"
         }
       ],
       "usage": [
         {
-          "start_line": 110,
-          "end_line": 128,
+          "start_line": 112,
+          "end_line": 130,
           "section_heading": "Repository structure"
         }
       ],
       "pros": [
         {
-          "start_line": 9,
-          "end_line": 25,
+          "start_line": 7,
+          "end_line": 9,
           "section_heading": "Plugins"
         },
         {
           "start_line": 26,
-          "end_line": 107,
+          "end_line": 109,
           "section_heading": "Plugins"
         }
       ],
       "cons": [
         {
-          "start_line": 26,
-          "end_line": 107,
+          "start_line": 92,
+          "end_line": 94,
+          "section_heading": "Plugins"
+        },
+        {
+          "start_line": 109,
+          "end_line": 109,
           "section_heading": "Plugins"
         }
       ],
       "fit": [
         {
-          "start_line": 9,
-          "end_line": 25,
-          "section_heading": "Plugins"
+          "start_line": 1,
+          "end_line": 3,
+          "section_heading": "Cursor plugins"
         },
         {
-          "start_line": 130,
-          "end_line": 132,
-          "section_heading": "License"
+          "start_line": 9,
+          "end_line": 24,
+          "section_heading": "Plugins"
         }
       ]
     },
@@ -6159,14 +6154,6 @@
           "goal",
           "usage",
           "pros",
-          "cons",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "MIT",
-        "fields": [
           "fit"
         ]
       }
@@ -6179,11 +6166,11 @@
       "kind": "readme",
       "slug": "cursor/plugins",
       "path": "README.md",
-      "blob_sha": "886849908ef8c6fb3f08dae1dc30ca69d37d11f7",
-      "content_sha256": "0417309c8305ff7956157985879cf54fd8e91fc7adf7f6f0428ceecad8fbf7f6",
+      "blob_sha": "7a286ba9d22be7e8f09e1ac65e0db338229ecef4",
+      "content_sha256": "e31c947c01637adea6ed58a031445b799995ea2cffdb84604c697b4ac809c68d",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.292",
+      "cli_version": "2.1.302",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -6367,47 +6354,47 @@
   },
   "longbridge/gpui-kit": {
     "content": {
-      "goal": "GPUI Kit is a Rust desktop application framework built on GPUI, combining a production-ready UI system with data, layout, and editing capabilities on a reusable foundation of behavior and state. It ships 75+ documented components, WebAssembly support, AccessKit accessibility, UI integration testing, and an optional JavaScript extension runtime.",
-      "usage": "Add it to a Rust project with `gpui-kit = \"0.7\"` in Cargo.toml, then call `gpui_kit::application()` and `gpui_kit::init(cx)` before opening a window. AI coding agent skills can be installed via `npx skills add longbridge/gpui-kit`, and the bundled `story` gallery can be run with `cargo run`.",
-      "pros": "The framework bundles over 75 components covering forms, navigation, data tables, virtual lists, a code editor, dock layout, and rich content rendering. It targets 120 FPS GPU-accelerated interfaces and has reportedly been used in production to build the Longbridge Pro desktop application since its inception.",
-      "cons": "JavaScript extension support requires adding the separate `gpui-shell` crate rather than being included by default, and it appears each scripting capability must be granted explicitly. The framework also pins a specific matching GPUI release, so its native feel depends on that upstream dependency.",
-      "fit": "Developers can choose between `gpui-component` for a complete styled UI, `gpui-base` for building a custom design system on unstyled behavior, or `gpui-shell` for applications that need JavaScript-extensible plugins after shipping. This layered structure suggests it suits Rust desktop apps wanting polished defaults or full control over presentation."
+      "goal": "GPUI Kit is a Rust desktop application framework built on GPUI, combining a production-ready UI system with data, layout, and editing capabilities. It ships 75+ documented components, WebAssembly support, AccessKit accessibility, UI integration testing, and an optional JavaScript extension runtime. Documentation is at https://gpui-kit.com.",
+      "usage": "Add gpui-kit = \"0.7\" to a Rust project's Cargo.toml dependencies to pull in GPUI plus the base and component layers. AI coding agent skills can be installed with npx skills add longbridge/gpui-kit, and a bundled gallery app can be run via cargo run.",
+      "pros": "The toolkit lists 75+ components covering forms, navigation, overlays, and editing, plus 120 FPS GPU-accelerated rendering, virtualized data tables and lists, a code editor with Tree-sitter and LSP support, serializable dock layouts, and native Markdown/HTML rendering with built-in charts.",
+      "cons": "By default, gpui-kit enables the gpui-component layer and bundled icon set, so applications that only need gpui-base's unstyled behavior must explicitly turn off default features to avoid pulling in the full styled UI system.",
+      "fit": "It appears suited to Rust developers building cross-platform (macOS, Windows, Linux) desktop applications who want a production-tested UI framework, as it reportedly powers the commercial Longbridge Pro application."
     },
     "summaries": {
       "en": {
-        "goal": "GPUI Kit is a Rust desktop application framework built on GPUI, combining a production-ready UI system with data, layout, and editing capabilities on a reusable foundation of behavior and state. It ships 75+ documented components, WebAssembly support, AccessKit accessibility, UI integration testing, and an optional JavaScript extension runtime.",
-        "usage": "Add it to a Rust project with `gpui-kit = \"0.7\"` in Cargo.toml, then call `gpui_kit::application()` and `gpui_kit::init(cx)` before opening a window. AI coding agent skills can be installed via `npx skills add longbridge/gpui-kit`, and the bundled `story` gallery can be run with `cargo run`.",
-        "pros": "The framework bundles over 75 components covering forms, navigation, data tables, virtual lists, a code editor, dock layout, and rich content rendering. It targets 120 FPS GPU-accelerated interfaces and has reportedly been used in production to build the Longbridge Pro desktop application since its inception.",
-        "cons": "JavaScript extension support requires adding the separate `gpui-shell` crate rather than being included by default, and it appears each scripting capability must be granted explicitly. The framework also pins a specific matching GPUI release, so its native feel depends on that upstream dependency.",
-        "fit": "Developers can choose between `gpui-component` for a complete styled UI, `gpui-base` for building a custom design system on unstyled behavior, or `gpui-shell` for applications that need JavaScript-extensible plugins after shipping. This layered structure suggests it suits Rust desktop apps wanting polished defaults or full control over presentation."
+        "goal": "GPUI Kit is a Rust desktop application framework built on GPUI, combining a production-ready UI system with data, layout, and editing capabilities. It ships 75+ documented components, WebAssembly support, AccessKit accessibility, UI integration testing, and an optional JavaScript extension runtime. Documentation is at https://gpui-kit.com.",
+        "usage": "Add gpui-kit = \"0.7\" to a Rust project's Cargo.toml dependencies to pull in GPUI plus the base and component layers. AI coding agent skills can be installed with npx skills add longbridge/gpui-kit, and a bundled gallery app can be run via cargo run.",
+        "pros": "The toolkit lists 75+ components covering forms, navigation, overlays, and editing, plus 120 FPS GPU-accelerated rendering, virtualized data tables and lists, a code editor with Tree-sitter and LSP support, serializable dock layouts, and native Markdown/HTML rendering with built-in charts.",
+        "cons": "By default, gpui-kit enables the gpui-component layer and bundled icon set, so applications that only need gpui-base's unstyled behavior must explicitly turn off default features to avoid pulling in the full styled UI system.",
+        "fit": "It appears suited to Rust developers building cross-platform (macOS, Windows, Linux) desktop applications who want a production-tested UI framework, as it reportedly powers the commercial Longbridge Pro application."
       },
       "ko": {
-        "goal": "GPUI Kit는 GPUI를 기반으로 구축된 Rust 데스크톱 애플리케이션 프레임워크로, 프로덕션 수준의 UI 시스템과 데이터, 레이아웃, 편집 기능을 재사용 가능한 동작·상태·인프라 기반 위에 결합합니다. 75개 이상의 문서화된 컴포넌트와 WebAssembly 지원, AccessKit 접근성, UI 통합 테스트, 선택적 JavaScript 확장 런타임을 제공합니다.",
-        "usage": "Cargo.toml에 `gpui-kit = \"0.7\"`을 추가한 뒤 `gpui_kit::application()`과 `gpui_kit::init(cx)`를 호출하고 창을 엽니다. AI 코딩 에이전트용 스킬은 `npx skills add longbridge/gpui-kit`으로 설치할 수 있고, 내장된 `story` 갤러리는 `cargo run`으로 실행할 수 있습니다.",
-        "pros": "이 프레임워크는 폼, 내비게이션, 데이터 테이블, 가상 리스트, 코드 에디터, 도크 레이아웃, 리치 콘텐츠 렌더링 등 75개 이상의 컴포넌트를 제공합니다. 120 FPS GPU 가속 인터페이스를 목표로 하며, 출시 초기부터 Longbridge Pro 데스크톱 애플리케이션 제작에 사용되어 온 것으로 보입니다.",
-        "cons": "JavaScript 확장 기능은 기본으로 포함되지 않고 별도의 `gpui-shell` 크레이트를 추가해야 하며, 각 스크립팅 기능은 명시적으로 부여되어야 하는 것으로 보입니다. 또한 프레임워크가 특정 GPUI 릴리스를 고정해서 사용하므로, 네이티브한 느낌은 해당 업스트림 의존성에 좌우될 수 있습니다.",
-        "fit": "개발자는 완전한 스타일 UI를 위한 `gpui-component`, 커스텀 디자인 시스템을 위한 `gpui-base`, 출시 후 JavaScript로 확장 가능한 플러그인을 위한 `gpui-shell` 중에서 선택할 수 있습니다. 이러한 계층 구조는 세련된 기본값을 원하거나 표현 방식을 완전히 제어하려는 Rust 데스크톱 앱에 적합할 수 있음을 시사합니다."
+        "goal": "GPUI Kit은 GPUI 위에 구축된 Rust 데스크톱 애플리케이션 프레임워크로, 프로덕션 수준의 UI 시스템과 데이터·레이아웃·편집 기능을 결합합니다. 75개 이상의 문서화된 컴포넌트, WebAssembly 지원, AccessKit 접근성, UI 통합 테스트, 선택적 JavaScript 확장 런타임을 제공합니다. 문서는 https://gpui-kit.com 에 있습니다.",
+        "usage": "Rust 프로젝트의 Cargo.toml에 gpui-kit = \"0.7\" 의존성을 추가하면 GPUI와 base/component 계층을 함께 가져옵니다. npx skills add longbridge/gpui-kit 명령으로 AI 코딩 에이전트용 스킬을 설치할 수 있고, cargo run으로 내장된 갤러리 앱을 실행할 수 있습니다.",
+        "pros": "폼, 내비게이션, 오버레이, 편집을 다루는 75개 이상의 컴포넌트와 함께 120FPS GPU 가속 렌더링, 가상화된 데이터 테이블/리스트, Tree-sitter와 LSP를 지원하는 코드 에디터, 직렬화 가능한 도크 레이아웃, 내장 차트가 포함된 네이티브 마크다운/HTML 렌더링을 제공합니다.",
+        "cons": "gpui-kit은 기본적으로 gpui-component 계층과 내장 아이콘 세트를 활성화하므로, gpui-base의 비스타일 동작만 필요한 애플리케이션은 전체 스타일 UI 시스템을 가져오지 않도록 기본 기능을 명시적으로 꺼야 합니다.",
+        "fit": "상업용 Longbridge Pro 애플리케이션을 구동한다고 알려져 있어, 검증된 프로덕션 기반 UI 프레임워크를 원하는 크로스플랫폼(macOS, Windows, Linux) Rust 데스크톱 개발자에게 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "GPUI Kit 是一个基于 GPUI 构建的 Rust 桌面应用框架,将生产级 UI 系统与数据、布局和编辑能力结合在可复用的行为、状态与基础设施之上。它提供 75 个以上的文档化组件、WebAssembly 支持、AccessKit 无障碍功能、UI 集成测试,以及可选的 JavaScript 扩展运行时。",
-        "usage": "在 Cargo.toml 中添加 `gpui-kit = \"0.7\"`,然后调用 `gpui_kit::application()` 和 `gpui_kit::init(cx)` 后再打开窗口。可以通过 `npx skills add longbridge/gpui-kit` 为 AI 编码代理安装相关技能,内置的 `story` 展示库可通过 `cargo run` 运行。",
-        "pros": "该框架捆绑了超过 75 个组件,涵盖表单、导航、数据表格、虚拟列表、代码编辑器、面板布局和富内容渲染。它以 120 FPS 的 GPU 加速界面为目标,据称从一开始就被用于生产环境构建 Longbridge Pro 桌面应用。",
-        "cons": "JavaScript 扩展支持需要额外添加 `gpui-shell` crate,并非默认包含,而且每项脚本能力似乎都需要显式授予。框架还固定了特定的匹配 GPUI 版本,因此其原生体验可能取决于该上游依赖。",
-        "fit": "开发者可以在用于完整样式 UI 的 `gpui-component`、用于构建自定义设计系统的 `gpui-base`,以及用于发布后支持 JavaScript 可扩展插件的 `gpui-shell` 之间进行选择。这种分层结构表明它可能适合希望获得精美默认效果或完全掌控呈现方式的 Rust 桌面应用。"
+        "goal": "GPUI Kit 是一个基于 GPUI 构建的 Rust 桌面应用框架,将生产级 UI 系统与数据、布局和编辑能力结合在一起。它提供 75 个以上有文档记录的组件、WebAssembly 支持、AccessKit 无障碍功能、UI 集成测试,以及可选的 JavaScript 扩展运行时。文档位于 https://gpui-kit.com。",
+        "usage": "在 Rust 项目的 Cargo.toml 中添加依赖 gpui-kit = \"0.7\",即可引入 GPUI 以及 base/component 层。可以通过 npx skills add longbridge/gpui-kit 为 AI 编码代理安装相关技能,并使用 cargo run 运行内置的展示应用。",
+        "pros": "该工具包列出了 75 个以上涵盖表单、导航、浮层和编辑的组件,还具备 120 FPS GPU 加速渲染、虚拟化数据表格与列表、带 Tree-sitter 和 LSP 支持的代码编辑器、可序列化的 Dock 布局,以及内置图表的原生 Markdown/HTML 渲染。",
+        "cons": "gpui-kit 默认启用 gpui-component 层和内置图标集,因此只需要 gpui-base 无样式行为的应用必须显式关闭默认特性,才能避免引入完整的样式化 UI 系统。",
+        "fit": "据称它从第一天起就在为商业应用 Longbridge Pro 提供支持,因此看起来适合希望使用经过生产验证的 UI 框架来构建跨平台(macOS、Windows、Linux)桌面应用的 Rust 开发者。"
       },
       "es": {
-        "goal": "GPUI Kit es un framework de aplicaciones de escritorio en Rust construido sobre GPUI, que combina un sistema de interfaz lista para producción con capacidades de datos, diseño y edición sobre una base reutilizable de comportamiento, estado e infraestructura. Incluye más de 75 componentes documentados, soporte para WebAssembly, accesibilidad AccessKit, pruebas de integración de UI y un entorno de extensiones JavaScript opcional.",
-        "usage": "Añade `gpui-kit = \"0.7\"` en el Cargo.toml de un proyecto Rust y llama a `gpui_kit::application()` y `gpui_kit::init(cx)` antes de abrir una ventana. Las habilidades para agentes de codificación con IA se instalan con `npx skills add longbridge/gpui-kit`, y la galería `story` incluida se ejecuta con `cargo run`.",
-        "pros": "El framework agrupa más de 75 componentes que cubren formularios, navegación, tablas de datos, listas virtuales, un editor de código, diseño de paneles acoplables y renderizado de contenido enriquecido. Apunta a interfaces aceleradas por GPU a 120 FPS y, según se indica, se ha usado en producción para construir la aplicación de escritorio Longbridge Pro desde sus inicios.",
-        "cons": "El soporte de extensiones JavaScript requiere añadir por separado el crate `gpui-shell` en lugar de venir incluido por defecto, y cada capacidad de scripting parece requerir una concesión explícita. El framework también fija una versión concreta de GPUI, por lo que su comportamiento nativo depende de esa dependencia upstream.",
-        "fit": "Los desarrolladores pueden elegir entre `gpui-component` para una UI completamente estilizada, `gpui-base` para construir un sistema de diseño propio, o `gpui-shell` para aplicaciones que necesiten complementos extensibles en JavaScript tras su lanzamiento. Esta estructura en capas sugiere que resulta adecuado para aplicaciones de escritorio en Rust que busquen opciones predeterminadas pulidas o control total sobre la presentación."
+        "goal": "GPUI Kit es un framework de aplicaciones de escritorio en Rust construido sobre GPUI, que combina un sistema de UI listo para producción con capacidades de datos, diseño y edición. Incluye más de 75 componentes documentados, soporte para WebAssembly, accesibilidad mediante AccessKit, pruebas de integración de UI y un runtime opcional de extensiones en JavaScript. La documentación está en https://gpui-kit.com.",
+        "usage": "Para usarlo, se añade la dependencia gpui-kit = \"0.7\" al Cargo.toml de un proyecto Rust, lo que incorpora GPUI junto con las capas base y component. Las habilidades para agentes de codificación con IA se instalan con npx skills add longbridge/gpui-kit, y la aplicación de galería incluida se ejecuta con cargo run.",
+        "pros": "El kit ofrece más de 75 componentes para formularios, navegación, superposiciones y edición, junto con renderizado acelerado por GPU a 120 FPS, tablas y listas de datos virtualizadas, un editor de código con soporte de Tree-sitter y LSP, diseños de dock serializables, y renderizado nativo de Markdown/HTML con gráficos integrados.",
+        "cons": "De forma predeterminada, gpui-kit activa la capa gpui-component y el conjunto de iconos incluido, por lo que las aplicaciones que solo necesitan el comportamiento sin estilos de gpui-base deben desactivar explícitamente las características predeterminadas para no incorporar todo el sistema de UI con estilo.",
+        "fit": "Según el repositorio, impulsa la aplicación comercial Longbridge Pro, por lo que parece adecuado para desarrolladores Rust que buscan construir aplicaciones de escritorio multiplataforma (macOS, Windows, Linux) con un framework de UI probado en producción."
       },
       "ja": {
-        "goal": "GPUI Kitは GPUI 上に構築された Rust デスクトップアプリケーションフレームワークで、再利用可能な動作・状態・インフラ基盤の上に、本番運用向けの UI システムとデータ・レイアウト・編集機能を組み合わせています。75 個以上のドキュメント化されたコンポーネント、WebAssembly サポート、AccessKit によるアクセシビリティ、UI 統合テスト、オプションの JavaScript 拡張ランタイムを備えています。",
-        "usage": "Cargo.toml に `gpui-kit = \"0.7\"` を追加し、`gpui_kit::application()` と `gpui_kit::init(cx)` を呼び出してからウィンドウを開きます。AI コーディングエージェント向けスキルは `npx skills add longbridge/gpui-kit` でインストールでき、同梱の `story` ギャラリーは `cargo run` で実行できます。",
-        "pros": "このフレームワークはフォーム、ナビゲーション、データテーブル、仮想リスト、コードエディタ、ドックレイアウト、リッチコンテンツ表示など 75 個以上のコンポーネントを備えています。120 FPS の GPU 加速インターフェースを目指しており、発表によれば初期段階から Longbridge Pro デスクトップアプリケーションの構築に使われてきたとされています。",
-        "cons": "JavaScript 拡張機能はデフォルトには含まれておらず、別途 `gpui-shell` クレートを追加する必要があるようで、各スクリプト機能は明示的に許可する必要があると見られます。また、フレームワークは特定の GPUI リリースに固定されているため、ネイティブな使用感はそのアップストリーム依存に左右される可能性があります。",
-        "fit": "開発者は、完全にスタイル化された UI 向けの `gpui-component`、独自のデザインシステムを構築するための `gpui-base`、公開後に JavaScript で拡張可能なプラグインを必要とするアプリケーション向けの `gpui-shell` の中から選べます。この階層構造は、洗練されたデフォルトを求める、または表現方法を完全に制御したい Rust デスクトップアプリに適している可能性があることを示しています。"
+        "goal": "GPUI Kitは、GPUI上に構築されたRust製デスクトップアプリケーションフレームワークで、本番運用向けのUIシステムとデータ・レイアウト・編集機能を組み合わせています。75以上のドキュメント化されたコンポーネント、WebAssemblyサポート、AccessKitによるアクセシビリティ、UI統合テスト、オプションのJavaScript拡張ランタイムを提供します。ドキュメントはhttps://gpui-kit.comにあります。",
+        "usage": "RustプロジェクトのCargo.tomlにgpui-kit = \"0.7\"という依存関係を追加すると、GPUIとbase/componentレイヤーが取り込まれます。npx skills add longbridge/gpui-kitコマンドでAIコーディングエージェント向けのスキルをインストールでき、cargo runで同梱のギャラリーアプリを実行できます。",
+        "pros": "このキットはフォーム、ナビゲーション、オーバーレイ、編集をカバーする75以上のコンポーネントに加え、120FPSのGPUアクセラレーション描画、仮想化されたデータテーブル/リスト、Tree-sitterとLSPに対応したコードエディタ、シリアライズ可能なドックレイアウト、組み込みチャート付きのネイティブMarkdown/HTMLレンダリングを備えています。",
+        "cons": "gpui-kitはデフォルトでgpui-componentレイヤーと内蔵アイコンセットを有効にするため、gpui-baseの非スタイル動作のみが必要なアプリケーションは、完全なスタイル付きUIシステムを取り込まないようにデフォルト機能を明示的に無効化する必要があります。",
+        "fit": "商用アプリケーションLongbridge Proを当初から支えているとされており、本番環境で実証されたUIフレームワークを使ってクロスプラットフォーム(macOS、Windows、Linux)のデスクトップアプリを構築したいRust開発者に適していると考えられます。"
       }
     },
     "evidence": {
@@ -6416,29 +6403,43 @@
           "start_line": 11,
           "end_line": 18,
           "section_heading": ""
+        },
+        {
+          "start_line": 20,
+          "end_line": 20,
+          "section_heading": ""
         }
       ],
       "usage": [
         {
-          "start_line": 120,
+          "start_line": 118,
           "end_line": 123,
           "section_heading": "Usage"
         },
         {
-          "start_line": 173,
-          "end_line": 182,
-          "section_heading": "Basic Example"
-        },
-        {
           "start_line": 200,
-          "end_line": 217,
+          "end_line": 202,
           "section_heading": "Skills for AI Coding Agents"
         }
       ],
       "pros": [
         {
           "start_line": 36,
-          "end_line": 50,
+          "end_line": 47,
+          "section_heading": "Features"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 125,
+          "end_line": 129,
+          "section_heading": "Usage"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 37,
+          "end_line": 37,
           "section_heading": "Features"
         },
         {
@@ -6446,36 +6447,12 @@
           "end_line": 112,
           "section_heading": "Showcase"
         }
-      ],
-      "cons": [
-        {
-          "start_line": 28,
-          "end_line": 30,
-          "section_heading": ""
-        },
-        {
-          "start_line": 141,
-          "end_line": 144,
-          "section_heading": "GPUI Fast"
-        }
-      ],
-      "fit": [
-        {
-          "start_line": 56,
-          "end_line": 65,
-          "section_heading": "Three layers. One ecosystem."
-        },
-        {
-          "start_line": 91,
-          "end_line": 95,
-          "section_heading": "Three layers. One ecosystem."
-        }
       ]
     },
     "invariants": [
       {
-        "kind": "version",
-        "value": "0.7",
+        "kind": "command",
+        "value": "npx skills add longbridge/gpui-kit",
         "fields": [
           "usage"
         ]
@@ -6488,10 +6465,17 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "npx skills add longbridge/gpui-kit",
+        "kind": "version",
+        "value": "0.7",
         "fields": [
           "usage"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://gpui-kit.com",
+        "fields": [
+          "goal"
         ]
       },
       {
@@ -6507,68 +6491,39 @@
         "fields": [
           "goal",
           "usage",
-          "cons",
-          "fit"
+          "cons"
         ]
       },
       {
         "kind": "product",
-        "value": "gpui-base",
+        "value": "gpui-kit",
         "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "gpui-component",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "gpui-shell",
-        "fields": [
-          "cons",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Longbridge Pro",
-        "fields": [
-          "pros"
+          "goal",
+          "usage",
+          "cons"
         ]
       },
       {
         "kind": "number",
-        "value": "75+",
+        "value": "75",
         "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "120",
-        "fields": [
+          "goal",
           "pros"
         ]
       }
     ],
     "inference_fields": [
-      "pros",
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "longbridge/gpui-kit",
       "path": "README.md",
-      "blob_sha": "671341fa3ecb20c642377a941991ec797b48d5a9",
-      "content_sha256": "f146da1d54fe943d95f9fa8351d00d20a9a8081dded1cfbc38d7220d2ce219cd",
+      "blob_sha": "3c7afba2e8be43733a2ab67b6e21dbf9622d858c",
+      "content_sha256": "5954b9e237e78df5384a7768f3b2c0921bc07ceab10bf4b4cb33767c8968ec06",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.292",
+      "cli_version": "2.1.302",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
