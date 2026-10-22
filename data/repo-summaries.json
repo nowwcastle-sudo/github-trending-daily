@@ -1769,6 +1769,194 @@
       "translation_applicable": false
     }
   },
+  "strelov1/freehire": {
+    "content": {
+      "goal": "freehire is an open-source (MIT) job listing aggregator that crawls postings directly from company career pages and ATS platforms like Workday, Greenhouse, and Lever, avoiding recruiter reposts. A 2026-10-20 snapshot reports 3,371,563 unique open postings from 320 sources, served at https://freehire.me.",
+      "usage": "The quick start runs the stack (API, web, Postgres, Meilisearch, Redis, S3) in Docker via `make up`; `curl localhost:8080/api/v1/jobs` then confirms job data is served. A public, keyless HTTP API is also documented for retrieving listings without credentials.",
+      "pros": "Postings from multiple boards are normalized into one schema and deduplicated, with faceted search across region, work mode, seniority, and skills. The project is MIT-licensed, self-hostable, and extends to a CV builder, application tracker, CLI, and an MCP server for Claude.",
+      "cons": "The full stack depends on several coordinated services — Postgres, Meilisearch, Redis, S3-compatible storage — suggesting self-hosting likely involves nontrivial setup. Changing a migration also does not auto re-apply to an existing Postgres volume, requiring `docker compose down -v && make up` or `make migrate`.",
+      "fit": "With its Go/PostgreSQL/Docker Compose stack, SvelteKit 2 frontend, and described CLI/MCP server for Claude, freehire appears best suited to developers or teams wanting to self-host or build on job-listing data, rather than non-technical users seeking only a hosted board."
+    },
+    "summaries": {
+      "en": {
+        "goal": "freehire is an open-source (MIT) job listing aggregator that crawls postings directly from company career pages and ATS platforms like Workday, Greenhouse, and Lever, avoiding recruiter reposts. A 2026-10-20 snapshot reports 3,371,563 unique open postings from 320 sources, served at https://freehire.me.",
+        "usage": "The quick start runs the stack (API, web, Postgres, Meilisearch, Redis, S3) in Docker via `make up`; `curl localhost:8080/api/v1/jobs` then confirms job data is served. A public, keyless HTTP API is also documented for retrieving listings without credentials.",
+        "pros": "Postings from multiple boards are normalized into one schema and deduplicated, with faceted search across region, work mode, seniority, and skills. The project is MIT-licensed, self-hostable, and extends to a CV builder, application tracker, CLI, and an MCP server for Claude.",
+        "cons": "The full stack depends on several coordinated services — Postgres, Meilisearch, Redis, S3-compatible storage — suggesting self-hosting likely involves nontrivial setup. Changing a migration also does not auto re-apply to an existing Postgres volume, requiring `docker compose down -v && make up` or `make migrate`.",
+        "fit": "With its Go/PostgreSQL/Docker Compose stack, SvelteKit 2 frontend, and described CLI/MCP server for Claude, freehire appears best suited to developers or teams wanting to self-host or build on job-listing data, rather than non-technical users seeking only a hosted board."
+      },
+      "ko": {
+        "goal": "freehire는 회사 채용 페이지와 Workday, Greenhouse, Lever 같은 ATS 플랫폼에서 직접 공고를 수집하는 오픈소스(MIT) 채용 공고 집계 서비스로, 중개업체 재게시를 피하는 것을 목표로 합니다. 2026-10-20 기준 스냅샷에 따르면 320개 소스에서 수집한 3,371,563개의 고유한 활성 공고가 https://freehire.me 에서 제공됩니다.",
+        "usage": "퀵 스타트는 Docker에서 `make up` 명령으로 전체 스택(API, 웹, Postgres, Meilisearch, Redis, S3)을 실행하며, 이후 `curl localhost:8080/api/v1/jobs` 로 작업 데이터가 제공되는지 확인합니다. 인증 없이 공고를 가져올 수 있는 공개 키 없는 HTTP API도 문서화되어 있습니다.",
+        "pros": "여러 게시판의 공고는 하나의 스키마로 정규화되고 중복이 제거되며, 지역·근무형태·경력·기술에 대한 패싯 검색을 지원합니다. 이 프로젝트는 MIT 라이선스로 자체 호스팅이 가능하며, 같은 저장소에서 CV 빌더, 지원 추적기, CLI, Claude용 MCP 서버로 확장됩니다.",
+        "cons": "전체 스택은 Postgres, Meilisearch, Redis, S3 호환 스토리지 등 여러 조정된 서비스에 의존하는 것으로 보이며, 이는 자체 호스팅이 상당한 설정 작업을 수반할 수 있음을 시사합니다. 또한 마이그레이션을 변경해도 기존 Postgres 볼륨에 자동으로 재적용되지 않아 `docker compose down -v && make up` 또는 `make migrate` 를 수동으로 실행해야 합니다.",
+        "fit": "Go/PostgreSQL/Docker Compose 스택과 SvelteKit 2 프런트엔드, 그리고 Claude용 CLI/MCP 서버를 갖춘 freehire는 호스팅된 채용 게시판만을 원하는 비기술 사용자보다는 데이터를 직접 호스팅하거나 그 위에 구축하려는 개발자나 팀에 더 적합해 보입니다."
+      },
+      "zh-CN": {
+        "goal": "freehire 是一个开源(MIT)的职位信息聚合服务,直接从公司招聘页面以及 Workday、Greenhouse、Lever 等 ATS 平台抓取职位,旨在避免招聘中介的转发信息。据 2026-10-20 的快照显示,来自 320 个来源的 3,371,563 条独立在招职位信息发布在 https://freehire.me 上。",
+        "usage": "快速开始方式是在 Docker 中通过 `make up` 运行完整技术栈(API、前端、Postgres、Meilisearch、Redis、S3),之后可用 `curl localhost:8080/api/v1/jobs` 确认职位数据已提供。文档还描述了一个无需密钥的公开 HTTP API,可在不提供凭据的情况下获取职位信息。",
+        "pros": "来自多个招聘板的职位被归一化为统一结构并去重,并支持按地区、工作方式、职级和技能进行分面搜索。该项目采用 MIT 许可、可自行部署,同一仓库还扩展出简历构建器、申请跟踪器、CLI 以及面向 Claude 的 MCP 服务器。",
+        "cons": "完整技术栈依赖多个需要协同运行的服务——Postgres、Meilisearch、Redis 以及兼容 S3 的存储——这似乎意味着自行部署可能涉及一定的配置工作量。另外,变更迁移文件并不会自动重新应用到已存在的 Postgres 数据卷,需要手动执行 `docker compose down -v && make up` 或 `make migrate`。",
+        "fit": "凭借 Go/PostgreSQL/Docker Compose 技术栈、SvelteKit 2 前端,以及为 Claude 提供的 CLI/MCP 服务器,freehire 看起来更适合希望自行部署或在职位数据之上进行二次开发的开发者或团队,而非只想使用托管招聘板的非技术用户。"
+      },
+      "es": {
+        "goal": "freehire es un agregador de ofertas de empleo de código abierto (MIT) que rastrea publicaciones directamente desde las páginas de carreras de las empresas y plataformas ATS como Workday, Greenhouse y Lever, con el objetivo de evitar reposteos de reclutadores. Según una instantánea del 2026-10-20, hay 3,371,563 publicaciones abiertas únicas provenientes de 320 fuentes, disponibles en https://freehire.me.",
+        "usage": "El inicio rápido documentado ejecuta toda la pila (API, frontend, Postgres, Meilisearch, Redis, S3) en Docker mediante `make up`; luego `curl localhost:8080/api/v1/jobs` confirma que los datos de empleo se están sirviendo. También se documenta una API HTTP pública sin clave para obtener listados sin credenciales.",
+        "pros": "Las publicaciones de varios tableros se normalizan en un único esquema y se deduplican, con búsqueda facetada por región, modalidad de trabajo, nivel de experiencia y habilidades. El proyecto tiene licencia MIT y es autohospedable, y el mismo repositorio se extiende con un generador de CV, un rastreador de solicitudes, una CLI y un servidor MCP para Claude.",
+        "cons": "La pila completa depende de varios servicios coordinados —Postgres, Meilisearch, Redis y almacenamiento compatible con S3—, lo que sugiere que el autohospedaje probablemente implique una configuración no trivial. Además, cambiar una migración no se reaplica automáticamente a un volumen de Postgres existente, por lo que hay que ejecutar manualmente `docker compose down -v && make up` o `make migrate`.",
+        "fit": "Con su pila Go/PostgreSQL/Docker Compose, frontend en SvelteKit 2 y el CLI/servidor MCP descritos para Claude, freehire parece más adecuado para desarrolladores o equipos que quieran autohospedar o construir sobre los datos de empleo, en lugar de usuarios no técnicos que solo buscan un tablero alojado."
+      },
+      "ja": {
+        "goal": "freehireはオープンソース(MITライセンス)の求人情報集約サービスで、企業の採用ページやWorkday、Greenhouse、Leverなどのatsプラットフォームから直接求人を収集し、転載や死リンクを避けることを目的としています。2026-10-20時点のスナップショットによると、320件のソースから収集された3,371,563件の重複のない公開中の求人が https://freehire.me で提供されています。",
+        "usage": "ドキュメント化されたクイックスタートでは、`make up` コマンドでDocker上にAPI・フロントエンド・Postgres・Meilisearch・Redis・S3を含む全スタックを起動し、その後 `curl localhost:8080/api/v1/jobs` で求人データが提供されていることを確認します。認証不要の公開HTTP APIも文書化されています。",
+        "pros": "複数の掲載元からの求人は単一のスキーマに正規化され重複が除去され、地域・勤務形態・経験レベル・スキルによるファセット検索に対応しています。本プロジェクトはMITライセンスでセルフホスト可能であり、同じリポジトリにはCVビルダー、応募トラッカー、CLI、Claude向けMCPサーバーも含まれています。",
+        "cons": "ドキュメント化されたスタックによれば、全体を動かすにはPostgres、Meilisearch、Redis、S3互換ストレージなど複数の連携サービスが必要であり、セルフホストには相応のセットアップ作業が伴う可能性があるとみられます。また、マイグレーションを変更しても既存のPostgresボリュームには自動的に再適用されず、`docker compose down -v && make up` または `make migrate` を手動で実行する必要があります。",
+        "fit": "Go/PostgreSQL/Docker Composeのスタック、SvelteKit 2のフロントエンド、Claude向けのCLI/MCPサーバーを備えたfreehireは、ホスティングされた求人board利用のみを望む非技術者よりも、自前でホストしたり求人データの上に構築したい開発者やチームに適しているとみられます。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 8,
+          "end_line": 14,
+          "section_heading": "freehire"
+        },
+        {
+          "start_line": 226,
+          "end_line": 230,
+          "section_heading": "Sources"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 102,
+          "end_line": 109,
+          "section_heading": "Quick start"
+        },
+        {
+          "start_line": 216,
+          "end_line": 219,
+          "section_heading": "API"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 45,
+          "end_line": 58,
+          "section_heading": "Why freehire?"
+        },
+        {
+          "start_line": 79,
+          "end_line": 82,
+          "section_heading": "Beyond the catalogue"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 88,
+          "end_line": 100,
+          "section_heading": "Stack"
+        },
+        {
+          "start_line": 111,
+          "end_line": 115,
+          "section_heading": "Quick start"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 88,
+          "end_line": 100,
+          "section_heading": "Stack"
+        },
+        {
+          "start_line": 81,
+          "end_line": 82,
+          "section_heading": "Beyond the catalogue"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "make up",
+        "fields": [
+          "usage",
+          "cons"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "curl localhost:8080/api/v1/jobs",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "docker compose down -v && make up",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "make migrate",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "3,371,563",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://freehire.me",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "SvelteKit 2",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "freehire",
+        "fields": [
+          "goal",
+          "fit"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "cons",
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "strelov1/freehire",
+      "path": "README.md",
+      "blob_sha": "53a528412ea116395ceb46736881f9c3d2d07182",
+      "content_sha256": "86626ee6774faf66bb17c8274af6bde4499c11e25f12127690bd2925b9c063a8",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.304",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
   "akitaonrails/ai-memory": {
     "content": {
       "goal": "ai-memory is described as long-term memory software for AI coding agents: a project's history, architecture notes, failed approaches, and open questions persist when a developer quits one agent (e.g., Claude Code) mid-task and resumes in another (e.g., OpenAI Codex) in the same directory.",
@@ -2161,47 +2349,47 @@
   },
   "morluto/rea": {
     "content": {
-      "goal": "REA (Reverse Engineer Anything) appears to be an MCP server that connects coding agents to tools for inspecting native binaries, JavaScript/Electron applications, .NET assemblies, and websites, with the stated aim of helping a user understand how an application feature works down to the binary level.",
-      "usage": "Installed via `npx rea-agents setup`, which registers REA with a supported agent (e.g., Claude Code, Codex, Cursor, Gemini CLI, Grok Build) and installs matching workflow instructions; the agent is restarted afterward. The same tools are also available from a terminal, and the CLI can be kept current with `rea update`.",
-      "pros": "The README states analysis runs locally and results include the evidence and limitations behind each conclusion. It documents support for a broad range of target types (native binaries, Go/Rust binaries, Android APKs, .NET assemblies, websites, and firmware, among others), each with built-in or caller-supplied tooling.",
-      "cons": "Deep native-binary analysis depends on a separately licensed Hopper, Ghidra, or IDA installation (Hopper can optionally be installed by setup with approval), and the project requires Node.js 22.x (>=22.19), 24.x (>=24.11), or 26+ plus npm; on Linux, several analysis features additionally need a procps-compatible `ps` on PATH.",
-      "fit": "Based on the documented use cases, REA seems best suited for lawful research, education, interoperability, and software preservation tasks on software the user owns or is authorized to examine, rather than for analyzing unauthorized software."
+      "goal": "REA (Reverse Engineer Anything) is an MCP (Model Context Protocol) server that connects coding agents and a terminal CLI to tools for inspecting native binaries, JavaScript/Electron apps, .NET assemblies, websites, and other software targets, returning findings together with supporting evidence.",
+      "usage": "Setup is run with `npx rea-agents setup` (Node.js and npm required), letting the user choose agents such as Claude Code, Codex, Cursor, or Gemini CLI before restarting the agent; the CLI also supports direct commands like `npx -y rea-agents@latest analyze-javascript-application <path> --json`, and an existing installation is refreshed with `rea update`.",
+      "pros": "Analysis runs locally and results include the evidence and limitations behind each conclusion. Many target types, such as Go binaries, .NET assemblies, and PyInstaller executables, are handled with built-in static inspection that needs no additional installation.",
+      "cons": "Several target types depend on caller-supplied third-party tools (e.g., pwntools, WABT, tshark, or adb) or an existing native-analysis engine such as Hopper, Ghidra, or IDA that must be separately licensed and installed, and on Linux a procps-compatible `ps` on PATH is additionally required for certain process-ownership checks.",
+      "fit": "Given the baseline requirement of Node.js 22.x (>=22.19), 24.x (>=24.11), or 26+ with npm, REA likely fits developers and researchers performing lawful reverse engineering, interoperability, or security analysis on software they own or are authorized to examine."
     },
     "summaries": {
       "en": {
-        "goal": "REA (Reverse Engineer Anything) appears to be an MCP server that connects coding agents to tools for inspecting native binaries, JavaScript/Electron applications, .NET assemblies, and websites, with the stated aim of helping a user understand how an application feature works down to the binary level.",
-        "usage": "Installed via `npx rea-agents setup`, which registers REA with a supported agent (e.g., Claude Code, Codex, Cursor, Gemini CLI, Grok Build) and installs matching workflow instructions; the agent is restarted afterward. The same tools are also available from a terminal, and the CLI can be kept current with `rea update`.",
-        "pros": "The README states analysis runs locally and results include the evidence and limitations behind each conclusion. It documents support for a broad range of target types (native binaries, Go/Rust binaries, Android APKs, .NET assemblies, websites, and firmware, among others), each with built-in or caller-supplied tooling.",
-        "cons": "Deep native-binary analysis depends on a separately licensed Hopper, Ghidra, or IDA installation (Hopper can optionally be installed by setup with approval), and the project requires Node.js 22.x (>=22.19), 24.x (>=24.11), or 26+ plus npm; on Linux, several analysis features additionally need a procps-compatible `ps` on PATH.",
-        "fit": "Based on the documented use cases, REA seems best suited for lawful research, education, interoperability, and software preservation tasks on software the user owns or is authorized to examine, rather than for analyzing unauthorized software."
+        "goal": "REA (Reverse Engineer Anything) is an MCP (Model Context Protocol) server that connects coding agents and a terminal CLI to tools for inspecting native binaries, JavaScript/Electron apps, .NET assemblies, websites, and other software targets, returning findings together with supporting evidence.",
+        "usage": "Setup is run with `npx rea-agents setup` (Node.js and npm required), letting the user choose agents such as Claude Code, Codex, Cursor, or Gemini CLI before restarting the agent; the CLI also supports direct commands like `npx -y rea-agents@latest analyze-javascript-application <path> --json`, and an existing installation is refreshed with `rea update`.",
+        "pros": "Analysis runs locally and results include the evidence and limitations behind each conclusion. Many target types, such as Go binaries, .NET assemblies, and PyInstaller executables, are handled with built-in static inspection that needs no additional installation.",
+        "cons": "Several target types depend on caller-supplied third-party tools (e.g., pwntools, WABT, tshark, or adb) or an existing native-analysis engine such as Hopper, Ghidra, or IDA that must be separately licensed and installed, and on Linux a procps-compatible `ps` on PATH is additionally required for certain process-ownership checks.",
+        "fit": "Given the baseline requirement of Node.js 22.x (>=22.19), 24.x (>=24.11), or 26+ with npm, REA likely fits developers and researchers performing lawful reverse engineering, interoperability, or security analysis on software they own or are authorized to examine."
       },
       "ko": {
-        "goal": "README에 따르면 REA(Reverse Engineer Anything)는 네이티브 바이너리, JavaScript/Electron 애플리케이션, .NET 어셈블리, 웹사이트를 검사하는 도구에 코딩 에이전트를 연결하는 MCP 서버로 보이며, 앱 기능이 바이너리 수준에서 어떻게 동작하는지 이해하도록 돕는 것을 목표로 한다고 설명합니다.",
-        "usage": "`npx rea-agents setup` 명령으로 설치하면 Claude Code, Codex, Cursor, Gemini CLI, Grok Build 등 지원 에이전트에 REA가 등록되고 워크플로 지침이 설치되며, 이후 에이전트를 재시작해야 합니다. 동일한 도구는 터미널에서도 사용할 수 있고, `rea update`로 CLI를 최신 상태로 유지할 수 있습니다.",
-        "pros": "문서에 따르면 분석은 로컬에서 실행되며 결과에는 각 결론을 뒷받침하는 근거와 한계가 포함됩니다. 또한 네이티브 바이너리, Go/Rust 바이너리, Android APK, .NET 어셈블리, 웹사이트, 펌웨어 등 다양한 대상 유형을 내장 또는 사용자 제공 도구로 지원한다고 기술되어 있습니다.",
-        "cons": "심층 네이티브 바이너리 분석은 별도로 라이선스를 받아야 하는 Hopper, Ghidra 또는 IDA 설치에 의존하며(Hopper는 승인 시 설치 과정에서 선택적으로 설치 가능), Node.js 22.x(>=22.19), 24.x(>=24.11) 또는 26+와 npm이 필요합니다. Linux에서는 일부 분석 기능에 procps 호환 `ps`가 PATH에 있어야 한다는 추가 요건도 있습니다.",
-        "fit": "문서화된 사용 사례를 보면 REA는 합법적인 연구, 교육, 상호운용성, 소프트웨어 보존, 그리고 사용자가 소유하거나 분석 권한이 있는 소프트웨어 분석에 적합해 보이며, 승인되지 않은 소프트웨어 분석을 위한 용도로는 제시되지 않습니다."
+        "goal": "REA(Reverse Engineer Anything)는 네이티브 바이너리, JavaScript/Electron 앱, .NET 어셈블리, 웹사이트 등 다양한 소프트웨어 대상을 분석하는 도구에 코딩 에이전트와 터미널 CLI를 연결하는 MCP(Model Context Protocol) 서버로, 분석 결과와 함께 근거 자료를 반환한다.",
+        "usage": "설정은 `npx rea-agents setup` 명령으로 실행하며(Node.js와 npm 필요), Claude Code, Codex, Cursor, Gemini CLI 등의 에이전트를 선택한 뒤 에이전트를 재시작한다. CLI에서는 `npx -y rea-agents@latest analyze-javascript-application <path> --json`와 같은 명령도 직접 사용할 수 있으며, 기존 설치는 `rea update`로 갱신한다.",
+        "pros": "분석은 로컬에서 실행되며 결과에는 각 결론을 뒷받침하는 근거와 한계가 포함된다. Go 바이너리, .NET 어셈블리, PyInstaller 실행 파일 등 여러 대상 유형은 추가 설치가 필요 없는 내장 정적 검사로 처리된다.",
+        "cons": "일부 대상 유형은 호출자가 직접 제공해야 하는 서드파티 도구(예: pwntools, WABT, tshark, adb)나 별도로 라이선스를 받아 설치해야 하는 Hopper, Ghidra, IDA 같은 기존 네이티브 분석 엔진에 의존하며, Linux에서는 일부 프로세스 소유권 검사를 위해 PATH에 procps 호환 `ps`가 추가로 필요하다.",
+        "fit": "Node.js 22.x (>=22.19), 24.x (>=24.11), 26+ 와 npm이라는 기본 요구 사항을 고려하면, REA는 자신이 소유하거나 분석 권한을 받은 소프트웨어에 대해 합법적인 리버스 엔지니어링, 상호운용성, 보안 분석을 수행하는 개발자와 연구자에게 적합할 가능성이 있다."
       },
       "zh-CN": {
-        "goal": "根据README,REA(Reverse Engineer Anything)似乎是一个MCP服务器,将编码代理连接到用于检查本机二进制文件、JavaScript/Electron应用程序、.NET程序集和网站的工具,目标是帮助用户理解应用功能在二进制层面的工作原理。",
-        "usage": "通过运行`npx rea-agents setup`进行安装,该命令会将REA注册到受支持的代理(如Claude Code、Codex、Cursor、Gemini CLI、Grok Build)并安装匹配的工作流说明,之后需要重启代理。相同的工具也可以在终端中使用,并可通过`rea update`保持CLI为最新版本。",
-        "pros": "文档说明分析在本地运行,结果包含支撑每个结论的证据和局限性说明。文档还列出了对多种目标类型的支持,包括本机二进制文件、Go/Rust二进制文件、Android APK、.NET程序集、网站和固件等,分别依赖内置或用户提供的工具。",
-        "cons": "深度本机二进制分析依赖需要单独获取许可的Hopper、Ghidra或IDA安装(经批准后,设置过程可以选择性安装Hopper),且项目要求Node.js 22.x(>=22.19)、24.x(>=24.11)或26+以及npm。在Linux上,部分分析功能还需要PATH中存在兼容procps的`ps`。",
-        "fit": "从文档记录的用例看,REA似乎更适合用于合法的研究、教育、互操作性、软件保存,以及对用户拥有或获得授权检查的软件进行分析,而不是面向未经授权软件的分析场景。"
+        "goal": "REA（Reverse Engineer Anything）是一个 MCP（Model Context Protocol）服务器，将编码代理和终端 CLI 连接到用于检查原生二进制文件、JavaScript/Electron 应用、.NET 程序集、网站等软件目标的工具，并返回带有支持证据的分析结果。",
+        "usage": "通过运行 `npx rea-agents setup` 完成设置（需要 Node.js 和 npm），可选择 Claude Code、Codex、Cursor、Gemini CLI 等代理，然后重启代理；CLI 还支持直接命令，例如 `npx -y rea-agents@latest analyze-javascript-application <path> --json`，现有安装可通过 `rea update` 刷新。",
+        "pros": "分析在本地运行，结果包含支撑每个结论的证据和局限性。许多目标类型（例如 Go 二进制文件、.NET 程序集和 PyInstaller 可执行文件）通过内置静态检查处理，无需额外安装。",
+        "cons": "部分目标类型依赖调用者自行提供的第三方工具（例如 pwntools、WABT、tshark 或 adb），或依赖需要单独授权和安装的现有原生分析引擎（如 Hopper、Ghidra 或 IDA）；在 Linux 上，某些进程归属检查还额外需要 PATH 中存在兼容 procps 的 `ps`。",
+        "fit": "考虑到 Node.js 22.x (>=22.19)、24.x (>=24.11) 或 26+ 以及 npm 的基本要求，REA 可能适合在自己拥有或获得授权检查的软件上进行合法逆向工程、互操作性或安全分析的开发者和研究人员。"
       },
       "es": {
-        "goal": "Según el README, REA (Reverse Engineer Anything) parece ser un servidor MCP que conecta agentes de codificación con herramientas para inspeccionar binarios nativos, aplicaciones JavaScript/Electron, ensamblados .NET y sitios web, con el objetivo declarado de ayudar a entender cómo funciona una función de una app a nivel binario.",
-        "usage": "Se instala ejecutando `npx rea-agents setup`, que registra REA en un agente compatible (como Claude Code, Codex, Cursor, Gemini CLI, Grok Build) e instala las instrucciones de flujo de trabajo correspondientes; después hay que reiniciar el agente. Las mismas herramientas también están disponibles desde la terminal, y la CLI puede mantenerse actualizada con `rea update`.",
-        "pros": "El documento indica que el análisis se ejecuta localmente y que los resultados incluyen la evidencia y las limitaciones detrás de cada conclusión. También describe compatibilidad con una amplia variedad de tipos de objetivos (binarios nativos, binarios Go/Rust, APK de Android, ensamblados .NET, sitios web y firmware, entre otros), cada uno con herramientas integradas o aportadas por el usuario.",
-        "cons": "El análisis profundo de binarios nativos depende de una instalación con licencia separada de Hopper, Ghidra o IDA (Hopper puede instalarse opcionalmente durante la configuración con aprobación), y el proyecto requiere Node.js 22.x (>=22.19), 24.x (>=24.11) o 26+ además de npm. En Linux, varias funciones de análisis además necesitan un `ps` compatible con procps en el PATH.",
-        "fit": "A partir de los casos de uso documentados, REA parece orientado a investigación lícita, educación, interoperabilidad, preservación de software y análisis de software que el usuario posee o está autorizado a examinar, en lugar de análisis de software no autorizado."
+        "goal": "REA (Reverse Engineer Anything) es un servidor MCP (Model Context Protocol) que conecta agentes de codificación y una CLI de terminal con herramientas para inspeccionar binarios nativos, aplicaciones JavaScript/Electron, ensamblados .NET, sitios web y otros objetivos de software, devolviendo hallazgos junto con la evidencia que los respalda.",
+        "usage": "La configuración se ejecuta con `npx rea-agents setup` (requiere Node.js y npm), permitiendo elegir agentes como Claude Code, Codex, Cursor o Gemini CLI antes de reiniciar el agente; la CLI también admite comandos directos como `npx -y rea-agents@latest analyze-javascript-application <path> --json`, y una instalación existente se actualiza con `rea update`.",
+        "pros": "El análisis se ejecuta localmente y los resultados incluyen la evidencia y las limitaciones detrás de cada conclusión. Muchos tipos de objetivo, como binarios de Go, ensamblados .NET y ejecutables de PyInstaller, se procesan con inspección estática integrada que no requiere instalación adicional.",
+        "cons": "Varios tipos de objetivo dependen de herramientas de terceros suministradas por el usuario (por ejemplo, pwntools, WABT, tshark o adb) o de un motor de análisis nativo existente como Hopper, Ghidra o IDA que debe licenciarse e instalarse por separado, y en Linux se requiere además un `ps` compatible con procps en el PATH para ciertas verificaciones de propiedad de procesos.",
+        "fit": "Dado el requisito básico de Node.js 22.x (>=22.19), 24.x (>=24.11) o 26+ con npm, REA probablemente se adapte a desarrolladores e investigadores que realizan ingeniería inversa, interoperabilidad o análisis de seguridad lícitos sobre software que poseen o están autorizados a examinar."
       },
       "ja": {
-        "goal": "READMEによると、REA(Reverse Engineer Anything)は、ネイティブバイナリ、JavaScript/Electronアプリケーション、.NETアセンブリ、Webサイトを検査するツールにコーディングエージェントを接続するMCPサーバーのようで、アプリの機能がバイナリレベルでどのように動作するかを理解する手助けを目的としていると説明されています。",
-        "usage": "`npx rea-agents setup`コマンドでインストールすると、Claude Code、Codex、Cursor、Gemini CLI、Grok Buildなどの対応エージェントにREAが登録され、対応するワークフロー手順がインストールされます。その後エージェントを再起動する必要があります。同じツールはターミナルからも利用でき、`rea update`でCLIを最新の状態に保てます。",
-        "pros": "ドキュメントでは、分析はローカルで実行され、結果には各結論を裏付ける証拠と限界が含まれると記載されています。また、ネイティブバイナリ、Go/Rustバイナリ、Android APK、.NETアセンブリ、Webサイト、ファームウェアなど多様な対象タイプへの対応が、内蔵ツールまたは利用者提供のツールとともに記載されています。",
-        "cons": "ネイティブバイナリの詳細分析には、別途ライセンスが必要なHopper、Ghidra、またはIDAのインストールが必要です(承認があればセットアップ時にHopperを任意でインストール可能)。また、Node.js 22.x(>=22.19)、24.x(>=24.11)、または26以上とnpmが必要です。Linuxでは一部の分析機能にprocps互換の`ps`がPATHに存在することも追加で求められます。",
-        "fit": "文書化された用途から判断すると、REAは合法的な研究、教育、相互運用性、ソフトウェアの保存、そしてユーザーが所有または調査権限を持つソフトウェアの分析に適していると考えられ、許可されていないソフトウェアの分析を目的としたものではないようです。"
+        "goal": "REA（Reverse Engineer Anything）は、コーディングエージェントとターミナル CLI を、ネイティブバイナリ、JavaScript/Electron アプリ、.NET アセンブリ、ウェブサイトなどのソフトウェア対象を調査するツール群に接続する MCP（Model Context Protocol）サーバーであり、根拠となる証拠とともに調査結果を返す。",
+        "usage": "セットアップは `npx rea-agents setup` を実行して行い（Node.js と npm が必要）、Claude Code、Codex、Cursor、Gemini CLI などのエージェントを選んでからエージェントを再起動する。CLI では `npx -y rea-agents@latest analyze-javascript-application <path> --json` のような直接コマンドも使用でき、既存のインストールは `rea update` で更新する。",
+        "pros": "解析はローカルで実行され、結果には各結論を支える証拠と限界が含まれる。Go バイナリ、.NET アセンブリ、PyInstaller 実行ファイルなど多くの対象は追加インストール不要の内蔵静的検査で処理される。",
+        "cons": "一部の対象は、利用者自身が用意する必要のあるサードパーティツール（pwntools、WABT、tshark、adb など）や、別途ライセンス取得とインストールが必要な既存のネイティブ解析エンジン（Hopper、Ghidra、IDA）に依存しており、Linux では一部のプロセス所有権チェックのために PATH 上に procps 互換の `ps` も追加で必要となる。",
+        "fit": "Node.js 22.x (>=22.19)、24.x (>=24.11)、または 26+ と npm という基本要件を踏まえると、REA は自分が所有する、あるいは調査を許可されたソフトウェアに対して合法的なリバースエンジニアリング、相互運用性、セキュリティ分析を行う開発者や研究者に適している可能性がある。"
       }
     },
     "evidence": {
@@ -2219,14 +2407,14 @@
       ],
       "usage": [
         {
-          "start_line": 25,
-          "end_line": 25,
-          "section_heading": "One MCP for reverse engineering across binaries, applications, and runtime behavior."
-        },
-        {
-          "start_line": 84,
+          "start_line": 78,
           "end_line": 91,
           "section_heading": "Set up your agent"
+        },
+        {
+          "start_line": 112,
+          "end_line": 114,
+          "section_heading": "Use the terminal"
         },
         {
           "start_line": 135,
@@ -2241,8 +2429,13 @@
           "section_heading": "One MCP for reverse engineering across binaries, applications, and runtime behavior."
         },
         {
-          "start_line": 183,
-          "end_line": 213,
+          "start_line": 188,
+          "end_line": 188,
+          "section_heading": "What you can analyze"
+        },
+        {
+          "start_line": 214,
+          "end_line": 214,
           "section_heading": "What you can analyze"
         }
       ],
@@ -2253,20 +2446,25 @@
           "section_heading": "One MCP for reverse engineering across binaries, applications, and runtime behavior."
         },
         {
+          "start_line": 71,
+          "end_line": 74,
+          "section_heading": "Quick start"
+        },
+        {
+          "start_line": 195,
+          "end_line": 195,
+          "section_heading": "What you can analyze"
+        }
+      ],
+      "fit": [
+        {
           "start_line": 180,
           "end_line": 180,
           "section_heading": "What you can analyze"
         },
         {
-          "start_line": 71,
-          "end_line": 74,
-          "section_heading": "Quick start"
-        }
-      ],
-      "fit": [
-        {
-          "start_line": 387,
-          "end_line": 388,
+          "start_line": 388,
+          "end_line": 389,
           "section_heading": "Disclaimer"
         }
       ]
@@ -2287,12 +2485,18 @@
         ]
       },
       {
+        "kind": "version",
+        "value": "Node.js 22.x (>=22.19)",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
         "kind": "product",
         "value": "REA",
         "fields": [
           "goal",
           "usage",
-          "pros",
           "fit"
         ]
       },
@@ -2302,25 +2506,17 @@
         "fields": [
           "usage"
         ]
-      },
-      {
-        "kind": "version",
-        "value": "22.19",
-        "fields": [
-          "cons"
-        ]
       }
     ],
     "inference_fields": [
-      "goal",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "morluto/rea",
       "path": "README.md",
-      "blob_sha": "b0d470e45ea2ab1cf309724c6b44512b76e79bd4",
-      "content_sha256": "840ed30f63738875ab8909840963e765fca6ea6e13f87fdc32c10c4bfc487cd2",
+      "blob_sha": "0a8cd499293e54421e8bd2615219aa73dda05432",
+      "content_sha256": "70a3291a9c8b4f6345c9f098f0e579e55ed432d3fee3c729aee33c5c34b8fc4d",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.304",
@@ -3864,85 +4060,80 @@
   },
   "cursor/plugins": {
     "content": {
-      "goal": "This repository (cursor/plugins) is a collection of official Cursor plugins for developer tools, frameworks, and SaaS products. Each plugin lives in its own directory with a .cursor-plugin/plugin.json manifest, covering categories like Developer Tools, Productivity, and Integrations.",
-      "usage": "Plugins are organized under a root .cursor-plugin/marketplace.json file that lists every plugin, while each plugin folder contains its own .cursor-plugin/plugin.json manifest plus optional skills/, rules/, mcp.json, README, and CHANGELOG files.",
-      "pros": "The repository documents well over a hundred plugins spanning categories such as Developer Tools (e.g., Thermos, Cursor SDK, Orchestrate) and Integrations covering SaaS tools like Gmail, Salesforce, GitHub, HubSpot, and Workday, suggesting broad coverage across common workplace and engineering tools.",
-      "cons": "Some third-party plugins require separate account setup: Tailscale integration needs enablement by a team admin on a company tailnet, and Gopuff requires signing in with an existing Gopuff account since orders are charged under that account. The README does not describe a plugin installation command.",
-      "fit": "This project suits teams or developers extending the Cursor platform with ready-made plugin manifests for SaaS and developer-tool integrations, rather than those seeking a standalone application; using the plugins presumably requires the Cursor agent environment itself."
+      "goal": "cursor/plugins is the official repository of Cursor plugins for popular developer tools, frameworks, and SaaS products. Each plugin lives in its own directory at the repository root (or under third_party/) with a .cursor-plugin/plugin.json manifest.",
+      "usage": "The repository is organized as a multi-plugin marketplace: a root .cursor-plugin/marketplace.json manifest lists all plugins, while each plugin folder has its own .cursor-plugin/plugin.json manifest plus skills/, rules/, and an mcp.json file. The README gives no explicit install command, so plugins appear to be loaded into Cursor through this marketplace manifest rather than a separate CLI step.",
+      "pros": "The marketplace spans well over 100 plugins across categories like Developer Tools, Productivity, and Integrations, covering tools such as GitHub, Google Workspace, Salesforce, Shopify, and QuickBooks Online. Plugins are authored by Cursor or named contributors, and the project is released under the MIT license.",
+      "cons": "Some entries are explicitly marked as not yet stable, such as Salesforce (Headless 360, Beta), and several third-party integrations require signing into the external service's own account; for example, the Gopuff plugin notes that orders placed through it are charged and delivered under the user's own Gopuff account.",
+      "fit": "This repository likely fits teams already using the Cursor editor/agent who want ready-made integrations for developer workflows (CI, code review, SDKs) or business tools (CRM, finance, scheduling), rather than developers seeking a standalone library independent of Cursor."
     },
     "summaries": {
       "en": {
-        "goal": "This repository (cursor/plugins) is a collection of official Cursor plugins for developer tools, frameworks, and SaaS products. Each plugin lives in its own directory with a .cursor-plugin/plugin.json manifest, covering categories like Developer Tools, Productivity, and Integrations.",
-        "usage": "Plugins are organized under a root .cursor-plugin/marketplace.json file that lists every plugin, while each plugin folder contains its own .cursor-plugin/plugin.json manifest plus optional skills/, rules/, mcp.json, README, and CHANGELOG files.",
-        "pros": "The repository documents well over a hundred plugins spanning categories such as Developer Tools (e.g., Thermos, Cursor SDK, Orchestrate) and Integrations covering SaaS tools like Gmail, Salesforce, GitHub, HubSpot, and Workday, suggesting broad coverage across common workplace and engineering tools.",
-        "cons": "Some third-party plugins require separate account setup: Tailscale integration needs enablement by a team admin on a company tailnet, and Gopuff requires signing in with an existing Gopuff account since orders are charged under that account. The README does not describe a plugin installation command.",
-        "fit": "This project suits teams or developers extending the Cursor platform with ready-made plugin manifests for SaaS and developer-tool integrations, rather than those seeking a standalone application; using the plugins presumably requires the Cursor agent environment itself."
+        "goal": "cursor/plugins is the official repository of Cursor plugins for popular developer tools, frameworks, and SaaS products. Each plugin lives in its own directory at the repository root (or under third_party/) with a .cursor-plugin/plugin.json manifest.",
+        "usage": "The repository is organized as a multi-plugin marketplace: a root .cursor-plugin/marketplace.json manifest lists all plugins, while each plugin folder has its own .cursor-plugin/plugin.json manifest plus skills/, rules/, and an mcp.json file. The README gives no explicit install command, so plugins appear to be loaded into Cursor through this marketplace manifest rather than a separate CLI step.",
+        "pros": "The marketplace spans well over 100 plugins across categories like Developer Tools, Productivity, and Integrations, covering tools such as GitHub, Google Workspace, Salesforce, Shopify, and QuickBooks Online. Plugins are authored by Cursor or named contributors, and the project is released under the MIT license.",
+        "cons": "Some entries are explicitly marked as not yet stable, such as Salesforce (Headless 360, Beta), and several third-party integrations require signing into the external service's own account; for example, the Gopuff plugin notes that orders placed through it are charged and delivered under the user's own Gopuff account.",
+        "fit": "This repository likely fits teams already using the Cursor editor/agent who want ready-made integrations for developer workflows (CI, code review, SDKs) or business tools (CRM, finance, scheduling), rather than developers seeking a standalone library independent of Cursor."
       },
       "ko": {
-        "goal": "이 저장소(cursor/plugins)는 개발자 도구, 프레임워크, SaaS 제품을 위한 공식 Cursor 플러그인 모음입니다. 각 플러그인은 .cursor-plugin/plugin.json 매니페스트를 가진 독립된 디렉터리로 구성되며, Developer Tools, Productivity, Integrations 등의 카테고리로 분류됩니다.",
-        "usage": "플러그인은 모든 플러그인을 나열하는 루트의 .cursor-plugin/marketplace.json 파일 아래에 정리되며, 각 플러그인 폴더는 자체 .cursor-plugin/plugin.json 매니페스트와 선택적으로 skills/, rules/, mcp.json, README, CHANGELOG 파일을 포함합니다.",
-        "pros": "문서에는 Thermos, Cursor SDK, Orchestrate 같은 Developer Tools 플러그인과 Gmail, Salesforce, GitHub, HubSpot, Workday 같은 다양한 SaaS 통합을 포함해 백 개가 넘는 플러그인이 나열되어 있어, 업무 및 개발 도구 전반에 걸쳐 폭넓게 지원될 것으로 보입니다.",
-        "cons": "일부 서드파티 플러그인은 별도의 계정 설정이 필요합니다. Tailscale 통합은 팀 관리자가 회사 테일넷에서 활성화해야 하고, Gopuff는 기존 Gopuff 계정으로 로그인해야 하며 해당 계정으로 주문이 청구됩니다. README에는 플러그인 설치 명령어가 별도로 설명되어 있지 않습니다.",
-        "fit": "이 프로젝트는 독립 실행형 애플리케이션을 찾는 사용자보다는 Cursor 플랫폼을 SaaS 및 개발자 도구 통합으로 확장하려는 팀이나 개발자에게 적합하며, 플러그인을 사용하려면 Cursor 에이전트 환경 자체가 필요할 것으로 보입니다."
+        "goal": "cursor/plugins는 인기 있는 개발자 도구, 프레임워크, SaaS 제품을 위한 Cursor의 공식 플러그인 저장소입니다. 각 플러그인은 저장소 루트(또는 third_party/ 하위)에 독립된 디렉터리로 존재하며 .cursor-plugin/plugin.json 매니페스트를 가집니다.",
+        "usage": "이 저장소는 다중 플러그인 마켓플레이스 형태로 구성되어 있습니다. 루트의 .cursor-plugin/marketplace.json이 모든 플러그인을 나열하고, 각 플러그인 폴더는 자체 .cursor-plugin/plugin.json 매니페스트와 skills/, rules/, mcp.json 파일을 가집니다. README에는 명시적인 설치 명령이 나와 있지 않아, 별도의 CLI 단계가 아니라 이 마켓플레이스 매니페스트를 통해 Cursor에 플러그인이 로드되는 것으로 보입니다.",
+        "pros": "마켓플레이스는 Developer Tools, Productivity, Integrations 등의 카테고리에 걸쳐 100개를 훌쩍 넘는 플러그인을 제공하며, GitHub, Google Workspace, Salesforce, Shopify, QuickBooks Online 같은 도구를 포함합니다. 플러그인은 Cursor 또는 명시된 기여자가 작성했으며, 프로젝트는 MIT 라이선스로 공개되어 있습니다.",
+        "cons": "Salesforce (Headless 360, Beta)처럼 아직 안정적이지 않다고 명시된 항목이 있으며, 일부 타사 통합은 해당 외부 서비스의 자체 계정 로그인이 필요합니다. 예를 들어 Gopuff 플러그인은 이를 통해 접수된 주문이 사용자 본인의 Gopuff 계정으로 결제·배송된다고 설명합니다.",
+        "fit": "이 저장소는 Cursor 에디터/에이전트를 이미 사용하면서 개발 워크플로(CI, 코드 리뷰, SDK)나 업무용 도구(CRM, 금융, 일정 관리)를 위한 즉시 사용 가능한 통합을 원하는 팀에 적합할 것으로 보이며, Cursor와 무관하게 독립적으로 쓸 수 있는 라이브러리를 찾는 개발자에게는 적합하지 않습니다."
       },
       "zh-CN": {
-        "goal": "该仓库(cursor/plugins)是面向开发者工具、框架和 SaaS 产品的官方 Cursor 插件集合。每个插件都是一个独立目录,拥有自己的 .cursor-plugin/plugin.json 清单文件,并分属 Developer Tools、Productivity、Integrations 等类别。",
-        "usage": "插件按根目录下列出所有插件的 .cursor-plugin/marketplace.json 文件组织,每个插件文件夹包含自己的 .cursor-plugin/plugin.json 清单,以及可选的 skills/、rules/、mcp.json、README 和 CHANGELOG 文件。",
-        "pros": "文档列出了上百个插件,涵盖 Thermos、Cursor SDK、Orchestrate 等 Developer Tools 插件,以及 Gmail、Salesforce、GitHub、HubSpot、Workday 等众多 SaaS 集成,表明其在办公和开发工具方面可能具有较广的覆盖面。",
-        "cons": "部分第三方插件需要单独的账户设置:Tailscale 集成需要团队管理员在公司 tailnet 上启用,Gopuff 则需要使用现有 Gopuff 账户登录,订单将记在该账户下。README 并未说明具体的插件安装命令。",
-        "fit": "该项目更适合希望用现成插件清单扩展 Cursor 平台、对接 SaaS 与开发者工具的团队或开发者,而非寻找独立应用的用户;使用这些插件可能仍需要 Cursor 代理环境本身。"
+        "goal": "cursor/plugins 是 Cursor 官方维护的插件仓库，面向主流开发者工具、框架和 SaaS 产品。每个插件都位于仓库根目录（或 third_party/ 下）的独立目录中，并带有 .cursor-plugin/plugin.json 清单文件。",
+        "usage": "该仓库采用多插件市场的组织方式：根目录下的 .cursor-plugin/marketplace.json 列出所有插件，而每个插件文件夹都有自己的 .cursor-plugin/plugin.json 清单，以及 skills/、rules/ 目录和 mcp.json 文件。README 中没有给出明确的安装命令，因此插件似乎是通过这个市场清单加载进 Cursor 的，而不是通过单独的命令行步骤。",
+        "pros": "该市场涵盖 Developer Tools、Productivity、Integrations 等多个类别，插件数量远超 100 个，涉及 GitHub、Google Workspace、Salesforce、Shopify、QuickBooks Online 等工具。插件由 Cursor 或指定贡献者编写，项目以 MIT 许可证发布。",
+        "cons": "部分条目被明确标注为尚不稳定，例如 Salesforce (Headless 360, Beta)；另外，一些第三方集成需要登录对应外部服务自己的账号，例如 Gopuff 插件说明通过它下的订单会以用户自己的 Gopuff 账号计费和配送。",
+        "fit": "该仓库大致适合已经在使用 Cursor 编辑器/代理、希望获得现成集成（开发流程如 CI、代码审查、SDK，或业务工具如 CRM、财务、日程安排）的团队，而不太适合寻找脱离 Cursor 独立使用的通用库的开发者。"
       },
       "es": {
-        "goal": "Este repositorio (cursor/plugins) es una colección oficial de plugins de Cursor para herramientas de desarrollo, frameworks y productos SaaS. Cada plugin es un directorio independiente con su propio manifiesto .cursor-plugin/plugin.json, agrupado en categorías como Developer Tools, Productivity e Integrations.",
-        "usage": "Los plugins se organizan bajo un archivo raíz .cursor-plugin/marketplace.json que los enumera todos, mientras que cada carpeta de plugin contiene su propio manifiesto .cursor-plugin/plugin.json, además de carpetas opcionales skills/, rules/, mcp.json, README y CHANGELOG.",
-        "pros": "El documento enumera más de cien plugins, incluyendo herramientas de desarrollo como Thermos, Cursor SDK y Orchestrate, y numerosas integraciones SaaS como Gmail, Salesforce, GitHub, HubSpot y Workday, lo que sugiere una cobertura amplia de herramientas de trabajo y desarrollo.",
-        "cons": "Algunos plugins de terceros requieren configuración de cuenta separada: la integración con Tailscale necesita ser habilitada por un administrador del equipo en el tailnet corporativo, y Gopuff exige iniciar sesión con una cuenta Gopuff existente, cargando los pedidos a esa cuenta. El README no describe un comando de instalación de plugins.",
-        "fit": "Este proyecto es adecuado para equipos o desarrolladores que buscan extender la plataforma Cursor con manifiestos de plugins listos para integraciones SaaS y de herramientas de desarrollo, más que para quienes buscan una aplicación independiente; usar los plugins probablemente requiere el propio entorno del agente Cursor."
+        "goal": "cursor/plugins es el repositorio oficial de plugins de Cursor para herramientas de desarrollo, frameworks y productos SaaS populares. Cada plugin tiene su propio directorio en la raíz del repositorio (o bajo third_party/) con un manifiesto .cursor-plugin/plugin.json.",
+        "usage": "El repositorio está organizado como un mercado multi-plugin: un manifiesto raíz .cursor-plugin/marketplace.json lista todos los plugins, mientras que cada carpeta de plugin tiene su propio manifiesto .cursor-plugin/plugin.json, además de skills/, rules/ y un archivo mcp.json. El README no incluye un comando de instalación explícito, así que los plugins parecen cargarse en Cursor a través de este manifiesto de mercado y no mediante un paso de CLI independiente.",
+        "pros": "El mercado abarca mucho más de 100 plugins en categorías como Developer Tools, Productivity e Integrations, incluyendo herramientas como GitHub, Google Workspace, Salesforce, Shopify y QuickBooks Online. Los plugins están escritos por Cursor o por colaboradores identificados, y el proyecto se publica bajo licencia MIT.",
+        "cons": "Algunas entradas están marcadas explícitamente como no estables, como Salesforce (Headless 360, Beta), y varias integraciones de terceros exigen iniciar sesión con la cuenta propia del servicio externo; por ejemplo, el plugin de Gopuff indica que los pedidos realizados a través de él se cobran y entregan bajo la cuenta Gopuff del propio usuario.",
+        "fit": "Este repositorio probablemente se ajusta a equipos que ya usan el editor/agente Cursor y quieren integraciones listas para flujos de desarrollo (CI, revisión de código, SDKs) o herramientas de negocio (CRM, finanzas, programación), más que a desarrolladores que buscan una biblioteca independiente fuera de Cursor."
       },
       "ja": {
-        "goal": "このリポジトリ(cursor/plugins)は、開発者向けツール、フレームワーク、SaaS製品向けの公式Cursorプラグイン集です。各プラグインは独自の .cursor-plugin/plugin.json マニフェストを持つ独立したディレクトリで、Developer Tools、Productivity、Integrations などのカテゴリに分類されています。",
-        "usage": "プラグインは、すべてのプラグインを列挙するルートの .cursor-plugin/marketplace.json ファイルの下に整理され、各プラグインフォルダは独自の .cursor-plugin/plugin.json マニフェストと、任意で skills/、rules/、mcp.json、README、CHANGELOG を含みます。",
-        "pros": "ドキュメントには、Thermos、Cursor SDK、Orchestrate などのDeveloper Toolsプラグインや、Gmail、Salesforce、GitHub、HubSpot、Workday など多数のSaaS連携を含む100を超えるプラグインが列挙されており、業務および開発ツール全般にわたり広い対応範囲を持つ可能性が示唆されます。",
-        "cons": "一部のサードパーティプラグインは個別のアカウント設定が必要です。Tailscale連携はチーム管理者が会社のtailnetで有効化する必要があり、Gopuffは既存のGopuffアカウントでのサインインが必要で、注文はそのアカウントに課金されます。READMEにはプラグインのインストールコマンドについての説明はありません。",
-        "fit": "このプロジェクトは、単体のアプリケーションを探す利用者よりも、CursorプラットフォームをSaaSや開発者ツールとの連携で拡張したいチームや開発者に適しており、プラグインの利用にはCursorエージェント環境自体が必要になると考えられます。"
+        "goal": "cursor/plugins は、人気の開発者向けツール、フレームワーク、SaaS 製品のための Cursor 公式プラグインを集めたリポジトリです。各プラグインはリポジトリのルート（または third_party/ 配下）に独立したディレクトリを持ち、.cursor-plugin/plugin.json マニフェストを含みます。",
+        "usage": "このリポジトリはマルチプラグインのマーケットプレイスとして構成されています。ルートの .cursor-plugin/marketplace.json がすべてのプラグインを一覧化し、各プラグインフォルダーには独自の .cursor-plugin/plugin.json マニフェストと skills/、rules/ ディレクトリ、mcp.json ファイルがあります。README には明確なインストールコマンドが記載されていないため、別途の CLI 手順ではなく、このマーケットプレイスのマニフェスト経由で Cursor にプラグインが読み込まれるものと見られます。",
+        "pros": "このマーケットプレイスは Developer Tools、Productivity、Integrations などのカテゴリーにわたり100を大幅に超えるプラグインを揃え、GitHub、Google Workspace、Salesforce、Shopify、QuickBooks Online といったツールを含みます。プラグインは Cursor または明記された貢献者によって作成されており、プロジェクトは MIT ライセンスで公開されています。",
+        "cons": "Salesforce (Headless 360, Beta) のように、まだ安定版でないと明記されている項目があり、一部のサードパーティ統合では外部サービス自身のアカウントへのサインインが必要です。例として Gopuff プラグインでは、それを通じて行われた注文はユーザー自身の Gopuff アカウントで課金・配送されると説明されています。",
+        "fit": "このリポジトリは、すでに Cursor エディタ／エージェントを使用しており、開発ワークフロー（CI、コードレビュー、SDK）や業務用ツール（CRM、財務、スケジューリング）向けの既製の統合を求めるチームに適している可能性が高く、Cursor から独立したスタンドアロンのライブラリを探す開発者には不向きと考えられます。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 1,
-          "end_line": 3,
+          "end_line": 4,
           "section_heading": "Cursor plugins"
         }
       ],
       "usage": [
         {
-          "start_line": 117,
-          "end_line": 133,
+          "start_line": 119,
+          "end_line": 137,
           "section_heading": "Repository structure"
         }
       ],
       "pros": [
         {
-          "start_line": 12,
-          "end_line": 12,
+          "start_line": 9,
+          "end_line": 25,
           "section_heading": "Plugins"
         },
         {
-          "start_line": 19,
-          "end_line": 21,
-          "section_heading": "Plugins"
-        },
-        {
-          "start_line": 26,
-          "end_line": 99,
-          "section_heading": "Plugins"
+          "start_line": 139,
+          "end_line": 141,
+          "section_heading": "License"
         }
       ],
       "cons": [
         {
-          "start_line": 105,
-          "end_line": 105,
+          "start_line": 35,
+          "end_line": 35,
           "section_heading": "Plugins"
         },
         {
@@ -3953,18 +4144,28 @@
       ],
       "fit": [
         {
-          "start_line": 3,
+          "start_line": 1,
           "end_line": 3,
           "section_heading": "Cursor plugins"
         },
         {
-          "start_line": 117,
-          "end_line": 117,
+          "start_line": 121,
+          "end_line": 121,
           "section_heading": "Repository structure"
         }
       ]
     },
     "invariants": [
+      {
+        "kind": "product",
+        "value": "Cursor",
+        "fields": [
+          "goal",
+          "usage",
+          "pros",
+          "fit"
+        ]
+      },
       {
         "kind": "command",
         "value": ".cursor-plugin/plugin.json",
@@ -3979,28 +4180,18 @@
         "fields": [
           "usage"
         ]
-      },
-      {
-        "kind": "product",
-        "value": "Cursor",
-        "fields": [
-          "goal",
-          "usage",
-          "pros",
-          "fit"
-        ]
       }
     ],
     "inference_fields": [
-      "pros",
+      "usage",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "cursor/plugins",
       "path": "README.md",
-      "blob_sha": "22823d7b992b33e2c408ff06771b8caa5d7df621",
-      "content_sha256": "7dbea076936e1d666b1a748eef836768447ff9e14d770eb694cfa98733840d19",
+      "blob_sha": "a057a0fc681a22e53b0feade7c94788079a6c797",
+      "content_sha256": "3cb6fec4f81927ac4613005bbf5359d1fddd87554826e53f433b86122fc8e73b",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.304",
@@ -4757,6 +4948,178 @@
       "path": "README.md",
       "blob_sha": "92c5c3e38139e1919b12a5e38ab1a6965fd4571d",
       "content_sha256": "e3b90c5b8cf4649665f59d40c8be725d34b51be4a9a244ee7cb1efca1cb257d5",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.304",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "hugohe3/ppt-master": {
+    "content": {
+      "goal": "PPT Master is an open-source (MIT licensed) tool that runs inside agent-capable AI assistants, such as Claude Code, to generate natively editable PowerPoint (.pptx) files from source documents like PDFs, DOCX files, web pages, or pasted text.",
+      "usage": "To set it up, install Python 3.10+, then run `git clone https://github.com/hugohe3/ppt-master.git` and `pip install -r requirements.txt` to install dependencies; afterward, open the project folder in an agent-capable AI tool and provide source documents or pasted text in the chat panel so the AI can generate the .pptx file.",
+      "pros": "It produces native PowerPoint objects—slide masters, data-backed charts and tables—rather than flat images or filled templates, keeps processing on the user's local machine, and avoids platform or model lock-in by working with multiple AI models such as Claude, GPT, Gemini, and Kimi.",
+      "cons": "Output quality depends heavily on which AI model drives the pipeline, and the documentation states a single pass should not be expected to produce a finished, perfect deck—manual polishing is expected afterward, cautiously implying that cheaper models require more manual follow-up work.",
+      "fit": "This suits users already comfortable working inside agent-capable AI tools like Claude Code or Kimi K3 who want deck output they can keep editing natively in PowerPoint rather than a flattened image, though the documentation notes a learning curve for those new to Python and AI agents."
+    },
+    "summaries": {
+      "en": {
+        "goal": "PPT Master is an open-source (MIT licensed) tool that runs inside agent-capable AI assistants, such as Claude Code, to generate natively editable PowerPoint (.pptx) files from source documents like PDFs, DOCX files, web pages, or pasted text.",
+        "usage": "To set it up, install Python 3.10+, then run `git clone https://github.com/hugohe3/ppt-master.git` and `pip install -r requirements.txt` to install dependencies; afterward, open the project folder in an agent-capable AI tool and provide source documents or pasted text in the chat panel so the AI can generate the .pptx file.",
+        "pros": "It produces native PowerPoint objects—slide masters, data-backed charts and tables—rather than flat images or filled templates, keeps processing on the user's local machine, and avoids platform or model lock-in by working with multiple AI models such as Claude, GPT, Gemini, and Kimi.",
+        "cons": "Output quality depends heavily on which AI model drives the pipeline, and the documentation states a single pass should not be expected to produce a finished, perfect deck—manual polishing is expected afterward, cautiously implying that cheaper models require more manual follow-up work.",
+        "fit": "This suits users already comfortable working inside agent-capable AI tools like Claude Code or Kimi K3 who want deck output they can keep editing natively in PowerPoint rather than a flattened image, though the documentation notes a learning curve for those new to Python and AI agents."
+      },
+      "ko": {
+        "goal": "PPT Master는 MIT 라이선스로 공개된 오픈소스 도구로, Claude Code와 같은 에이전트 지원 AI 도구 안에서 작동하며 PDF, DOCX, 웹페이지 또는 붙여넣은 텍스트 같은 원본 문서로부터 네이티브로 편집 가능한 PowerPoint(.pptx) 파일을 생성합니다.",
+        "usage": "설치하려면 먼저 Python 3.10+ 를 설치한 뒤 `git clone https://github.com/hugohe3/ppt-master.git` 명령으로 저장소를 내려받고, `pip install -r requirements.txt` 로 의존성을 설치합니다. 이후 에이전트 지원 AI 도구에서 프로젝트 폴더를 열고 채팅창에 원본 문서나 텍스트를 제공하면 AI가 .pptx 파일을 생성합니다.",
+        "pros": "슬라이드 마스터와 데이터 기반 차트·표 등 평면 이미지가 아닌 네이티브 PowerPoint 객체를 생성하며, 처리 과정이 사용자 컴퓨터에서 로컬로 이루어지고, Claude, GPT, Gemini, Kimi 등 여러 AI 모델과 함께 작동하므로 특정 플랫폼이나 모델에 종속되지 않습니다.",
+        "cons": "결과물의 품질은 파이프라인을 구동하는 AI 모델에 크게 좌우되며, 문서에 따르면 한 번의 실행으로 완성된 완벽한 덱을 기대해서는 안 되고 이후 수작업 다듬기가 필요하며, 저가형 모델을 사용할수록 수작업 분량이 늘어날 수 있음을 조심스럽게 시사합니다.",
+        "fit": "이미 Claude Code나 Kimi K3 같은 에이전트 지원 AI 도구 사용에 익숙하며, 이미지로 고정되지 않고 PowerPoint에서 계속 편집할 수 있는 결과물을 원하는 사용자에게 적합해 보이지만, 문서에는 Python과 AI 에이전트를 처음 접하는 사용자를 위한 학습 곡선이 있다고 명시되어 있습니다."
+      },
+      "zh-CN": {
+        "goal": "PPT Master 是一个采用 MIT 许可的开源工具，运行在 Claude Code 等具备代理能力的 AI 工具内部，可以从 PDF、DOCX、网页或粘贴的文本等源文档生成可原生编辑的 PowerPoint（.pptx）文件。",
+        "usage": "安装步骤为先安装 Python 3.10+，然后执行 `git clone https://github.com/hugohe3/ppt-master.git` 克隆仓库，再运行 `pip install -r requirements.txt` 安装依赖；之后在具备代理能力的 AI 工具中打开项目文件夹，在聊天窗口提供源文档或文本，AI 即可生成 .pptx 文件。",
+        "pros": "它生成的是幻灯片母版、数据驱动的图表和表格等原生 PowerPoint 对象，而非扁平图片，处理过程保留在本地机器上，并可与 Claude、GPT、Gemini、Kimi 等多种 AI 模型配合使用，避免被单一平台或模型锁定。",
+        "cons": "生成效果在很大程度上取决于驱动流程的 AI 模型，文档说明单次生成不应被期待为一份完美成品，之后仍需人工润色，并谨慎暗示使用较廉价模型时所需的人工修改工作量可能更大。",
+        "fit": "该工具较适合已经习惯在 Claude Code 或 Kimi K3 等具备代理能力的 AI 工具中工作、并希望获得可在 PowerPoint 中继续编辑而非扁平图片成果的用户，不过文档也提到对初次接触 Python 与 AI 代理的用户存在一定学习曲线。"
+      },
+      "es": {
+        "goal": "PPT Master es una herramienta de código abierto bajo licencia MIT que funciona dentro de herramientas de IA con capacidad de agente, como Claude Code, y genera archivos de PowerPoint (.pptx) nativamente editables a partir de documentos fuente como PDF, DOCX, páginas web o texto pegado.",
+        "usage": "Para configurarla, instale Python 3.10+, luego clone el repositorio con `git clone https://github.com/hugohe3/ppt-master.git` e instale las dependencias con `pip install -r requirements.txt`; después abra la carpeta del proyecto en una herramienta de IA con capacidad de agente y proporcione los documentos fuente o el texto en el panel de chat para que la IA genere el archivo .pptx.",
+        "pros": "Genera objetos nativos de PowerPoint —patrones de diapositivas, gráficos y tablas con datos reales— en lugar de imágenes planas, mantiene el procesamiento en la máquina local del usuario y evita la dependencia de una sola plataforma o modelo al funcionar con Claude, GPT, Gemini y Kimi.",
+        "cons": "La calidad del resultado depende en gran medida del modelo de IA que impulse el proceso, y la documentación indica que no debe esperarse una presentación terminada y perfecta en un solo intento, sino que requiere pulido manual posterior, sugiriendo con cautela que los modelos más económicos exigen más trabajo manual.",
+        "fit": "Resulta adecuado para usuarios ya familiarizados con herramientas de IA con capacidad de agente como Claude Code o Kimi K3 que buscan un resultado editable en PowerPoint en lugar de una imagen plana, aunque la documentación señala una curva de aprendizaje para quienes son nuevos en Python y agentes de IA."
+      },
+      "ja": {
+        "goal": "PPT Master は MIT ライセンスのオープンソースツールで、Claude Code のようなエージェント対応 AI ツール内で動作し、PDF や DOCX、ウェブページ、貼り付けたテキストなどの元資料からネイティブに編集可能な PowerPoint（.pptx）ファイルを生成します。",
+        "usage": "セットアップには、まず Python 3.10+ をインストールし、`git clone https://github.com/hugohe3/ppt-master.git` でリポジトリを取得した後、`pip install -r requirements.txt` で依存関係をインストールします。その後、エージェント対応 AI ツールでプロジェクトフォルダを開き、チャットパネルに元資料やテキストを渡すと、AI が .pptx ファイルを生成します。",
+        "pros": "スライドマスターやデータ連動のグラフ・表といったネイティブな PowerPoint オブジェクトを生成し、画像を貼り付けただけのものにはせず、処理はユーザーのローカルマシン内で完結し、Claude、GPT、Gemini、Kimi など複数の AI モデルに対応することで特定のプラットフォームやモデルへの依存を避けています。",
+        "cons": "生成結果の品質はパイプラインを駆動する AI モデルに大きく左右され、ドキュメントによれば一度の実行で完成された完璧なデッキは期待すべきではなく、その後の手作業での調整が必要であり、安価なモデルほど手作業の量が増える可能性があることを控えめに示唆しています。",
+        "fit": "Claude Code や Kimi K3 のようなエージェント対応 AI ツールの利用に既に慣れており、画像化されたものではなく PowerPoint 上で編集を続けられる成果物を求めるユーザーに向いていると考えられますが、ドキュメントには Python や AI エージェントに初めて触れるユーザー向けの学習曲線があるとも明記されています。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 1,
+          "end_line": 1,
+          "section_heading": "PPT Master — AI generates native PowerPoint from any document"
+        },
+        {
+          "start_line": 54,
+          "end_line": 54,
+          "section_heading": "❤️ Sponsors"
+        },
+        {
+          "start_line": 93,
+          "end_line": 93,
+          "section_heading": "Product Positioning"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 164,
+          "end_line": 166,
+          "section_heading": "1. Prerequisites"
+        },
+        {
+          "start_line": 228,
+          "end_line": 237,
+          "section_heading": "3. Set Up"
+        },
+        {
+          "start_line": 274,
+          "end_line": 280,
+          "section_heading": "4. Create"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 97,
+          "end_line": 101,
+          "section_heading": "Product Positioning"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 105,
+          "end_line": 109,
+          "section_heading": "Product Positioning"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 117,
+          "end_line": 117,
+          "section_heading": "Built by Hugo He"
+        },
+        {
+          "start_line": 204,
+          "end_line": 210,
+          "section_heading": "2. Pick an Agent"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "product",
+        "value": "PPT Master",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Kimi K3",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "3.10+",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "git clone https://github.com/hugohe3/ppt-master.git",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "pip install -r requirements.txt",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://github.com/hugohe3/ppt-master.git",
+        "fields": [
+          "usage"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "cons",
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "hugohe3/ppt-master",
+      "path": "README.md",
+      "blob_sha": "18c4d9720a59046f602e2a89db415e90f87e3cd0",
+      "content_sha256": "c98d33b920c6cd7d0c13eee7c94d9cd883458c605f48291cc2acfa54be975187",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.304",
