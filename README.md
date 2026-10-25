@@ -1,6 +1,6 @@
 # GITHUB INSIGHT
 
-[Open the dashboard](https://nowwcastle-sudo.github.io/github-trending-daily/) · [한국어](README.ko.md) · [English](README.en.md)
+[한국어](README.ko.md) · [Open the dashboard](https://nowwcastle-sudo.github.io/github-trending-daily/) · [English](README.en.md)
 
 A static dashboard for exploring GitHub Trending through README-based summaries, repository activity, and star history. Browsing needs no account. Optional Google sign-in synchronizes favorites.
 
@@ -27,7 +27,7 @@ Hover or focus a desktop card, or tap a mobile card, to open its summary. The he
 | `cons` | Limits, with inference qualified |
 | `fit` | Suitable users and use cases |
 
-**View README** displays the canonical source and only language variants that actually exist upstream. README path, default-branch head, blob SHA, and content SHA-256 bind the source. The project does not generate or store full README translations.
+**README variants from upstream only.** **View README** displays the canonical source and only language variants that actually exist upstream. README path, default-branch head, blob SHA, and content SHA-256 bind the source. The project does not generate or store full README translations.
 
 Summaries are AI-generated and automatically checked, not human-reviewed recommendations. Verify upstream instructions and security requirements before installing a featured project.
 
@@ -60,7 +60,7 @@ Published repositories are scheduled for observation at UTC minute 13 and 43 eac
 
 GH Archive / OSS Insight event-derived historical estimates were discontinued on 2026-09-02 after the upstream source disclosed severe degradation.
 
-Membership history distinguishes baseline presence, first appearance after baseline, and re-entry after absence. “New since your last visit” compares with this browser's previous visit and is separate from the shared membership signal.
+Membership history distinguishes baseline presence, first appearance after baseline, and re-entry after absence. The “new since your last visit” signal compares with this browser's previous visit and is separate from shared membership history.
 
 ## Navigation, favorites, and export
 
@@ -71,9 +71,9 @@ Membership history distinguishes baseline presence, first appearance after basel
 | History | Hidden-repository recovery and membership changes |
 | Export | Current-view CSV/JSON and shareable discovery URL |
 
-Desktop hover opens a passive sidebar; clicking or keyboard activation opens a focus-trapped panel. Mobile supports edge swipes. Light/dark themes, compact mode, reduced motion, and reduced transparency are supported.
+Desktop hover opens a passive sidebar; clicking or keyboard activation opens a focus-trapped panel. Mobile supports edge swipes. Light/dark themes, compact list mode, reduced motion, and reduced transparency are supported.
 
-Favorites work locally when signed out. **Not interested** hides a repository in this browser, supports undo/recovery, and does not remove its favorite. Up to 20 named filter presets are stored locally.
+Favorites work locally when signed out. **Not interested** hides a repository in this browser, supports undo/recovery, and does not remove its favorite. Up to 20 named, saved filter presets are stored locally.
 
 | Shortcut | Action |
 | --- | --- |
@@ -81,7 +81,7 @@ Favorites work locally when signed out. **Not interested** hides a repository in
 | `a`, `e`, `h`, `x` | Login, Explore, History, Export |
 | `Delete` | Hide the currently selected repository |
 
-The help dialog can disable single-letter shortcuts. Public discovery URLs omit private favorites and hidden lists. CSV/JSON exports contain the current view's public fields. CSV includes a UTF-8 BOM, quotes special characters, and prefixes formula-like values with an apostrophe.
+`?` opens a keyboard-shortcut dialog that can disable single-letter shortcuts. Public discovery URLs omit private favorites and hidden lists. CSV/JSON exports contain the current view's public fields. CSV includes a UTF-8 BOM, quotes special characters, and prefixes formula-like values with an apostrophe.
 
 Atom feeds cover [current repositories](https://nowwcastle-sudo.github.io/github-trending-daily/feed.xml) and [new/re-entered repositories](https://nowwcastle-sudo.github.io/github-trending-daily/changes.xml).
 
@@ -138,8 +138,14 @@ These screenshots illustrate the UI; they do not prove the current production sn
 
 <img src="docs/screenshots/mobile-sidebar-390.png" width="390" alt="Mobile sidebar example">
 
-## Issues and license
+## 🗺️ Planned features
+
+Open issues track proposals and known limitations. A listed request does not promise implementation.
+
+## 📝 Requesting a feature
 
 Use the [structured feature request](https://github.com/nowwcastle-sudo/github-trending-daily/issues/new/choose). Existing issues record known limitations; this README does not imply every open issue is resolved.
+
+## License
 
 Project code, workflows, and generated pages use the [MIT License](LICENSE). Upstream repositories and GitHub retain their respective rights.
