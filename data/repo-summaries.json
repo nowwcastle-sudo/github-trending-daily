@@ -405,47 +405,47 @@
   },
   "debpalash/VoiceStudio": {
     "content": {
-      "goal": "VoiceStudio is an open-source application for voice cloning, voice design, video dubbing, dictation, transcription, and audiobook creation, documented as supporting 646 languages, with a default engine powered by k2-fsa/OmniVoice.",
-      "usage": "Install the Electron desktop app with `curl -fsSL https://voicestudio.sh/install | sh` on macOS/Linux or `irm https://voicestudio.sh/install | iex` in PowerShell on Windows, then open the Voice cloning workspace, select or add a voice, enter text, and generate, installing the required model when prompted.",
-      "pros": "The README states that local workflows run on the user's own hardware with remote services optional, the app exposes a Local API and MCP for agent integrations, and the installer preserves existing settings, projects, and models during updates.",
-      "cons": "CPU-only setups are documented as fully usable but slower, requiring roughly 5 GB of free disk space for the CPU build of PyTorch, and Windows on ARM support is explicitly marked experimental with validation pending.",
-      "fit": "Hardware support varies by platform, with CUDA acceleration on NVIDIA GPUs, Metal acceleration on Apple Silicon, CPU-only operation where no dedicated GPU is present, and Intel Macs limited to the app UI connecting to a remote backend, suggesting the application may better fit users with dedicated GPU hardware or willingness to run a remote backend; the application is licensed AGPL-3.0, with model weights and voices covered separately."
+      "goal": "VoiceStudio is an open-source desktop application for voice cloning, voice design, video dubbing, dictation, transcription, and audiobook creation, supporting 646 languages, with a default engine (VoiceStudio) powered by k2-fsa/OmniVoice.",
+      "usage": "Install on macOS/Linux with `curl -fsSL https://voicestudio.sh/install | sh`, or on Windows PowerShell with `irm https://voicestudio.sh/install | iex`; VoiceStudio also exposes a Local API and MCP integration for agents, or can be run from source via bun install and bun run dev.",
+      "pros": "Workflows in VoiceStudio run locally on user hardware with GPU acceleration on NVIDIA (CUDA) and Apple Silicon (Metal); remote services are optional and usage analytics requires consent, with multiple selectable engines and broad language coverage.",
+      "cons": "Electron is now the only supported desktop app and web UI for VoiceStudio since version 0.5.3 was the final Tauri release, so existing Tauri users must migrate separately; Windows on ARM support is explicitly documented as experimental with validation pending.",
+      "fit": "VoiceStudio appears suited to users and developers wanting a local-first voice toolkit with scriptable installation and agent integrations; its AGPL-3.0 license covers the application itself, while model weights and voices carry separate conditions, so commercial users should likely review licensing details before deployment."
     },
     "summaries": {
       "en": {
-        "goal": "VoiceStudio is an open-source application for voice cloning, voice design, video dubbing, dictation, transcription, and audiobook creation, documented as supporting 646 languages, with a default engine powered by k2-fsa/OmniVoice.",
-        "usage": "Install the Electron desktop app with `curl -fsSL https://voicestudio.sh/install | sh` on macOS/Linux or `irm https://voicestudio.sh/install | iex` in PowerShell on Windows, then open the Voice cloning workspace, select or add a voice, enter text, and generate, installing the required model when prompted.",
-        "pros": "The README states that local workflows run on the user's own hardware with remote services optional, the app exposes a Local API and MCP for agent integrations, and the installer preserves existing settings, projects, and models during updates.",
-        "cons": "CPU-only setups are documented as fully usable but slower, requiring roughly 5 GB of free disk space for the CPU build of PyTorch, and Windows on ARM support is explicitly marked experimental with validation pending.",
-        "fit": "Hardware support varies by platform, with CUDA acceleration on NVIDIA GPUs, Metal acceleration on Apple Silicon, CPU-only operation where no dedicated GPU is present, and Intel Macs limited to the app UI connecting to a remote backend, suggesting the application may better fit users with dedicated GPU hardware or willingness to run a remote backend; the application is licensed AGPL-3.0, with model weights and voices covered separately."
+        "goal": "VoiceStudio is an open-source desktop application for voice cloning, voice design, video dubbing, dictation, transcription, and audiobook creation, supporting 646 languages, with a default engine (VoiceStudio) powered by k2-fsa/OmniVoice.",
+        "usage": "Install on macOS/Linux with `curl -fsSL https://voicestudio.sh/install | sh`, or on Windows PowerShell with `irm https://voicestudio.sh/install | iex`; VoiceStudio also exposes a Local API and MCP integration for agents, or can be run from source via bun install and bun run dev.",
+        "pros": "Workflows in VoiceStudio run locally on user hardware with GPU acceleration on NVIDIA (CUDA) and Apple Silicon (Metal); remote services are optional and usage analytics requires consent, with multiple selectable engines and broad language coverage.",
+        "cons": "Electron is now the only supported desktop app and web UI for VoiceStudio since version 0.5.3 was the final Tauri release, so existing Tauri users must migrate separately; Windows on ARM support is explicitly documented as experimental with validation pending.",
+        "fit": "VoiceStudio appears suited to users and developers wanting a local-first voice toolkit with scriptable installation and agent integrations; its AGPL-3.0 license covers the application itself, while model weights and voices carry separate conditions, so commercial users should likely review licensing details before deployment."
       },
       "ko": {
-        "goal": "VoiceStudio는 음성 클로닝, 음성 디자인, 영상 더빙, 받아쓰기, 전사, 오디오북 제작을 지원하는 오픈소스 애플리케이션으로, 문서에 따르면 646개 언어를 지원하며 기본 엔진은 k2-fsa/OmniVoice 기반입니다.",
-        "usage": "macOS/Linux에서는 `curl -fsSL https://voicestudio.sh/install | sh`, Windows PowerShell에서는 `irm https://voicestudio.sh/install | iex` 명령으로 Electron 데스크톱 앱을 설치한 뒤, Voice cloning 워크스페이스에서 음성을 선택하거나 추가하고 텍스트를 입력해 생성하며, 필요 시 모델 설치 안내를 따릅니다.",
-        "pros": "README에 따르면 로컬 워크플로는 사용자 하드웨어에서 실행되고 원격 서비스는 선택 사항이며, 로컬 API와 MCP를 통한 에이전트 연동을 제공하고, 설치 프로그램은 업데이트 시 기존 설정·프로젝트·모델을 보존한다고 설명합니다.",
-        "cons": "CPU 전용 환경에서는 사용 가능하지만 속도가 느리고 PyTorch CPU 빌드를 위해 약 5GB의 여유 디스크 공간이 필요하며, Windows on ARM 지원은 검증이 진행 중인 실험적 단계로 명시되어 있습니다.",
-        "fit": "하드웨어 지원은 플랫폼에 따라 다르며 NVIDIA GPU는 CUDA, Apple Silicon은 Metal 가속을 사용하고 전용 GPU가 없으면 CPU로만 동작하며 Intel Mac은 앱 UI만 제공되어 원격 백엔드 연결이 필요해, 전용 GPU 하드웨어가 있는 사용자에게 더 적합할 것으로 보이며 라이선스는 AGPL-3.0이고 모델 가중치와 음성은 별도로 다뤄집니다."
+        "goal": "VoiceStudio는 음성 복제, 음성 디자인, 영상 더빙, 받아쓰기, 음성 인식, 오디오북 제작을 지원하는 오픈소스 데스크톱 애플리케이션으로, 646개 언어를 지원하며 기본 엔진(VoiceStudio)은 k2-fsa/OmniVoice 기반입니다.",
+        "usage": "macOS/Linux에서는 `curl -fsSL https://voicestudio.sh/install | sh`, Windows PowerShell에서는 `irm https://voicestudio.sh/install | iex` 명령으로 설치할 수 있으며, VoiceStudio는 에이전트를 위한 로컬 API와 MCP 연동도 제공하고, bun install과 bun run dev로 소스에서 실행할 수도 있습니다.",
+        "pros": "VoiceStudio의 워크플로는 사용자 하드웨어에서 로컬로 실행되며 NVIDIA(CUDA)와 Apple Silicon(Metal)에서 GPU 가속을 지원하고, 원격 서비스는 선택 사항이며 사용 분석에는 동의가 필요하고, 여러 엔진과 폭넓은 언어를 선택할 수 있습니다.",
+        "cons": "버전 0.5.3이 마지막 Tauri 릴리스였기 때문에 현재 VoiceStudio의 유일한 데스크톱 앱 및 웹 UI는 Electron이며, 기존 Tauri 사용자는 별도로 마이그레이션해야 하고, Windows on ARM 지원은 실험적이며 검증이 진행 중이라고 명시되어 있습니다.",
+        "fit": "VoiceStudio는 스크립트 기반 설치와 에이전트 연동을 원하는, 로컬 우선 방식을 선호하는 사용자와 개발자에게 적합해 보입니다. AGPL-3.0 라이선스는 애플리케이션 자체에만 적용되고 모델 가중치와 음성에는 별도 조건이 있으므로, 상업적 이용자는 배포 전에 라이선스 세부 사항을 확인하는 것이 좋을 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "VoiceStudio 是一款开源应用,用于语音克隆、语音设计、视频配音、口述、转录和有声书制作,文档中说明支持 646 种语言,默认引擎由 k2-fsa/OmniVoice 驱动。",
-        "usage": "在 macOS/Linux 上运行 `curl -fsSL https://voicestudio.sh/install | sh`,在 Windows 的 PowerShell 中运行 `irm https://voicestudio.sh/install | iex` 安装 Electron 桌面应用,然后在 Voice cloning 工作区选择或添加语音、输入文本并生成,系统提示时安装所需模型。",
-        "pros": "据 README 说明,本地工作流在用户自有硬件上运行,远程服务为可选项;应用提供本地 API 和 MCP 以支持与代理集成;安装程序在更新时会保留现有设置、项目和模型。",
-        "cons": "纯 CPU 环境下应用可正常使用但速度较慢,需要约 5GB 可用磁盘空间用于 PyTorch 的 CPU 版本,且 Windows on ARM 支持被明确标注为实验性,验证尚未完成。",
-        "fit": "硬件支持因平台而异:NVIDIA GPU 可获得 CUDA 加速,Apple Silicon 可获得 Metal 加速,无独立 GPU 时仅能以 CPU 运行,Intel Mac 仅提供应用界面并需连接远程后端,这表明拥有独立 GPU 硬件的用户可能更适合使用;应用许可证为 AGPL-3.0,模型权重与语音另行说明。"
+        "goal": "VoiceStudio 是一款开源桌面应用,支持语音克隆、语音设计、视频配音、听写、转录和有声书制作,覆盖 646 种语言,默认引擎(VoiceStudio)基于 k2-fsa/OmniVoice。",
+        "usage": "在 macOS/Linux 上可使用 `curl -fsSL https://voicestudio.sh/install | sh` 安装,在 Windows PowerShell 上使用 `irm https://voicestudio.sh/install | iex`;VoiceStudio 还提供面向智能体的本地 API 和 MCP 集成,也可通过 bun install 和 bun run dev 从源码运行。",
+        "pros": "VoiceStudio 的工作流在用户本地硬件上运行,支持 NVIDIA(CUDA)和 Apple Silicon(Metal)的 GPU 加速,远程服务为可选项,使用分析需征得同意,并可在多种引擎和广泛语言之间选择。",
+        "cons": "由于 0.5.3 版本是最后一个 Tauri 版本,目前 VoiceStudio 唯一支持的桌面应用和网页界面是 Electron,现有 Tauri 用户需单独迁移;文档明确将 Windows on ARM 支持标注为实验性且验证尚未完成。",
+        "fit": "VoiceStudio 看起来适合希望采用本地优先方案、并需要脚本化安装与智能体集成的用户和开发者;其 AGPL-3.0 许可证仅覆盖应用本身,模型权重和声音另有单独条款,因此商业用户在部署前似乎有必要核实许可细节。"
       },
       "es": {
-        "goal": "VoiceStudio es una aplicación de código abierto para clonación de voz, diseño de voz, doblaje de video, dictado, transcripción y creación de audiolibros, documentada como compatible con 646 idiomas, con un motor predeterminado impulsado por k2-fsa/OmniVoice.",
-        "usage": "Instale la aplicación de escritorio Electron con `curl -fsSL https://voicestudio.sh/install | sh` en macOS/Linux o `irm https://voicestudio.sh/install | iex` en PowerShell de Windows, luego abra el espacio de trabajo Voice cloning, elija o añada una voz, escriba el texto y genere, instalando el modelo requerido cuando se le solicite.",
-        "pros": "Según el README, los flujos locales se ejecutan en el hardware propio del usuario con servicios remotos opcionales, la aplicación ofrece una API local y MCP para integraciones con agentes, y el instalador conserva la configuración, proyectos y modelos existentes.",
-        "cons": "Las configuraciones solo con CPU son utilizables pero más lentas, requieren unos 5 GB de espacio libre en disco para la compilación CPU de PyTorch, y el soporte de Windows en ARM se señala explícitamente como experimental, con validación pendiente.",
-        "fit": "El soporte de hardware varía según la plataforma, con aceleración CUDA en GPU NVIDIA, aceleración Metal en Apple Silicon, funcionamiento solo en CPU sin GPU dedicada, y Macs Intel limitados a la interfaz conectada a un backend remoto, lo que sugiere mayor adecuación para usuarios con GPU dedicada; la licencia es AGPL-3.0, con pesos de modelos y voces cubiertos por separado."
+        "goal": "VoiceStudio es una aplicación de escritorio de código abierto para clonación de voz, diseño de voz, doblaje de video, dictado, transcripción y creación de audiolibros, compatible con 646 idiomas, con un motor predeterminado (VoiceStudio) basado en k2-fsa/OmniVoice.",
+        "usage": "Se instala en macOS/Linux con `curl -fsSL https://voicestudio.sh/install | sh`, o en Windows PowerShell con `irm https://voicestudio.sh/install | iex`; VoiceStudio también ofrece una API local e integración MCP para agentes, o puede ejecutarse desde el código fuente con bun install y bun run dev.",
+        "pros": "Los flujos de trabajo de VoiceStudio se ejecutan localmente en el hardware del usuario con aceleración por GPU en NVIDIA (CUDA) y Apple Silicon (Metal); los servicios remotos son opcionales y el análisis de uso requiere consentimiento, con varios motores seleccionables y amplia cobertura de idiomas.",
+        "cons": "Electron es ahora la única aplicación de escritorio e interfaz web admitida para VoiceStudio, ya que la versión 0.5.3 fue el último lanzamiento de Tauri, por lo que los usuarios de Tauri deben migrar por separado; el soporte de Windows en ARM está documentado explícitamente como experimental y pendiente de validación.",
+        "fit": "VoiceStudio parece adecuado para usuarios y desarrolladores que buscan una herramienta de voz local con instalación mediante scripts e integraciones con agentes; su licencia AGPL-3.0 cubre la aplicación en sí, mientras que los pesos de modelo y las voces tienen condiciones separadas, por lo que los usuarios comerciales probablemente deban revisar los detalles de licencia antes de implementarla."
       },
       "ja": {
-        "goal": "VoiceStudioは、音声クローニング、音声デザイン、動画の吹き替え、ディクテーション、文字起こし、オーディオブック作成に対応するオープンソースアプリケーションで、ドキュメントによれば646言語をサポートし、既定のエンジンはk2-fsa/OmniVoiceを採用しています。",
-        "usage": "macOS/Linuxでは `curl -fsSL https://voicestudio.sh/install | sh`、WindowsのPowerShellでは `irm https://voicestudio.sh/install | iex` を実行してElectronデスクトップアプリをインストールし、Voice cloningワークスペースで音声を選択または追加してテキストを入力・生成します。必要なモデルは要求時にインストールします。",
-        "pros": "READMEによれば、ローカルワークフローはユーザー自身のハードウェア上で動作しリモートサービスは任意であり、エージェント連携向けにローカルAPIとMCPが提供され、インストーラーは更新時に既存の設定・プロジェクト・モデルを保持します。",
-        "cons": "CPUのみの環境でも利用可能ですが動作は遅くなり、PyTorchのCPUビルドにはおよそ5GBの空き容量が必要とされ、Windows on ARMのサポートは検証が未完了の実験的機能と明記されています。",
-        "fit": "ハードウェア対応はプラットフォームにより異なり、NVIDIA GPUではCUDA、Apple SiliconではMetalによる高速化が得られ、専用GPUがない場合はCPUのみで動作し、Intel MacはUIのみでリモートバックエンドへの接続が必要とされるため、専用GPUを持つ利用者に適している可能性があり、ライセンスはAGPL-3.0で、モデルの重みや音声は別途扱われます。"
+        "goal": "VoiceStudioは、音声クローニング、音声デザイン、動画の吹き替え、口述筆記、文字起こし、オーディオブック作成に対応するオープンソースのデスクトップアプリケーションで、646言語をサポートし、デフォルトエンジン(VoiceStudio)はk2-fsa/OmniVoiceを基盤としています。",
+        "usage": "macOS/Linuxでは `curl -fsSL https://voicestudio.sh/install | sh`、Windows PowerShellでは `irm https://voicestudio.sh/install | iex` でインストールでき、VoiceStudioはエージェント向けのローカルAPIとMCP連携も提供し、bun installとbun run devでソースから実行することもできます。",
+        "pros": "VoiceStudioのワークフローはユーザーのハードウェア上でローカルに実行され、NVIDIA(CUDA)とApple Silicon(Metal)でのGPUアクセラレーションに対応し、リモートサービスは任意で利用分析には同意が必要であり、複数のエンジンと幅広い言語から選択できます。",
+        "cons": "バージョン0.5.3が最後のTauriリリースであったため、現在VoiceStudioで唯一サポートされるデスクトップアプリおよびWeb UIはElectronであり、既存のTauriユーザーは別途移行する必要があり、Windows on ARM対応は実験的で検証待ちと明記されています。",
+        "fit": "VoiceStudioは、ローカル優先の音声ツールとスクリプトによるインストール、エージェント連携を求めるユーザーや開発者に適しているように見えます。AGPL-3.0ライセンスはアプリケーション自体のみを対象とし、モデルの重みや音声には別途条件があるため、商用利用者は導入前にライセンスの詳細を確認する必要があると思われます。"
       }
     },
     "evidence": {
@@ -463,7 +463,7 @@
       ],
       "usage": [
         {
-          "start_line": 64,
+          "start_line": 62,
           "end_line": 64,
           "section_heading": "One-command install (macOS / Linux)"
         },
@@ -473,54 +473,39 @@
           "section_heading": "One-command install (macOS / Linux)"
         },
         {
-          "start_line": 103,
-          "end_line": 103,
-          "section_heading": "One-command install (macOS / Linux)"
+          "start_line": 122,
+          "end_line": 127,
+          "section_heading": "Install with prompt"
         }
       ],
       "pros": [
-        {
-          "start_line": 31,
-          "end_line": 31,
-          "section_heading": "Your voice. Your workflow."
-        },
         {
           "start_line": 36,
           "end_line": 36,
           "section_heading": "Your voice. Your workflow."
         },
         {
-          "start_line": 88,
-          "end_line": 89,
+          "start_line": 97,
+          "end_line": 98,
           "section_heading": "One-command install (macOS / Linux)"
         }
       ],
       "cons": [
         {
-          "start_line": 99,
-          "end_line": 99,
-          "section_heading": "One-command install (macOS / Linux)"
+          "start_line": 137,
+          "end_line": 137,
+          "section_heading": "Install with prompt"
         },
         {
-          "start_line": 100,
-          "end_line": 100,
+          "start_line": 101,
+          "end_line": 101,
           "section_heading": "One-command install (macOS / Linux)"
         }
       ],
       "fit": [
         {
-          "start_line": 95,
-          "end_line": 101,
-          "section_heading": "One-command install (macOS / Linux)"
-        },
-        {
-          "start_line": 20,
-          "end_line": 20,
-          "section_heading": ""
-        },
-        {
-          "start_line": 175,
-          "end_line": 175,
+          "start_line": 176,
+          "end_line": 176,
           "section_heading": "License & responsible use"
         }
       ]
@@ -531,14 +516,10 @@
         "value": "VoiceStudio",
         "fields": [
           "goal",
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Electron",
-        "fields": [
-          "usage"
+          "usage",
+          "pros",
+          "cons",
+          "fit"
         ]
       },
       {
@@ -556,6 +537,20 @@
         ]
       },
       {
+        "kind": "url",
+        "value": "https://voicestudio.sh",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "0.5.3",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
         "kind": "number",
         "value": "646",
         "fields": [
@@ -563,7 +558,7 @@
         ]
       },
       {
-        "kind": "version",
+        "kind": "product",
         "value": "AGPL-3.0",
         "fields": [
           "fit"
@@ -577,8 +572,8 @@
       "kind": "readme",
       "slug": "debpalash/voicestudio",
       "path": "README.md",
-      "blob_sha": "985c8175f72b76fecd5386c1ba79eb45b53625d3",
-      "content_sha256": "99308c8691095d0a0d9bfcc58537faa23a3c72079e8c459d03e1b3d0234b2a4f",
+      "blob_sha": "9c74b41a78e06e2b39bfa6858138d4724d47b875",
+      "content_sha256": "7b9cdc463404aca8eafb6484f8289384a895f0ac38b77cdaaa24f524a6a4b459",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.310",
@@ -6160,47 +6155,47 @@
   },
   "thedotmack/claude-mem": {
     "content": {
-      "goal": "Claude-Mem is a persistent memory compression system built for Claude Code. It automatically captures tool usage observations, generates semantic summaries, and makes them available to future sessions so Claude can maintain continuity about a project across session restarts.",
-      "usage": "Install with `npx claude-mem install` (or inside Claude Code via `/plugin marketplace add thedotmack/claude-mem` and `/plugin install claude-mem`), then restart Claude Code; context from prior sessions then appears automatically in new sessions.",
-      "pros": "It offers persistent memory with progressive disclosure, a three-layer MCP search workflow (search, timeline, get_observations) the README states can save about 10x tokens versus fetching full details directly, and privacy controls through `<private>` tags to exclude sensitive content from storage.",
-      "cons": "The system requires Node.js 20.0.0 or higher plus Bun and uv runtimes (auto-installed if missing); the globally installed npm package (`npm install -g claude-mem`) provides only the SDK/library and does not register plugin hooks or set up the worker service, so the dedicated installer command is needed for full functionality.",
-      "fit": "Released under the Apache License 2.0, Claude-Mem appears intended to be embeddable in developer tools, local agents, MCP servers, enterprise systems, and production agent harnesses, though the actual integration effort for each environment is not detailed in the README."
+      "goal": "Claude-mem is a persistent memory compression system built for Claude Code (line 55) that captures tool-usage observations and generates semantic summaries so context survives across sessions (line 130).",
+      "usage": "Install it with `npx claude-mem install` (line 150), or from the Claude Code plugin marketplace via `/plugin marketplace add thedotmack/claude-mem` followed by `/plugin install claude-mem` (lines 197-199). After installing, restart Claude Code so context from previous sessions automatically appears in new ones (line 202).",
+      "pros": "The README lists features including persistent memory across sessions, progressive disclosure of layered memory retrieval, smart search via a three-step mem-search skill, and a web viewer for sessions and settings (lines 216-227); the project is released under the Apache License 2.0 (line 432).",
+      "cons": "It requires Node.js 20.0.0 or higher and a Claude Code build with plugin support, and automatically installs Bun and uv as additional runtime dependencies (lines 319-324), which suggests some environment setup may be needed beyond the npx command; the hosted memory observer also requires sign-in and reverts to the Anthropic plan after a 30-day trial unless subscribed (line 153).",
+      "fit": "Given its design around Claude Code lifecycle hooks and optional integrations for OpenCode, T3 Code, Antigravity CLI and other IDEs (lines 130, 157-214), it appears aimed at developers wanting continuous project context across coding sessions rather than one-off memory use."
     },
     "summaries": {
       "en": {
-        "goal": "Claude-Mem is a persistent memory compression system built for Claude Code. It automatically captures tool usage observations, generates semantic summaries, and makes them available to future sessions so Claude can maintain continuity about a project across session restarts.",
-        "usage": "Install with `npx claude-mem install` (or inside Claude Code via `/plugin marketplace add thedotmack/claude-mem` and `/plugin install claude-mem`), then restart Claude Code; context from prior sessions then appears automatically in new sessions.",
-        "pros": "It offers persistent memory with progressive disclosure, a three-layer MCP search workflow (search, timeline, get_observations) the README states can save about 10x tokens versus fetching full details directly, and privacy controls through `<private>` tags to exclude sensitive content from storage.",
-        "cons": "The system requires Node.js 20.0.0 or higher plus Bun and uv runtimes (auto-installed if missing); the globally installed npm package (`npm install -g claude-mem`) provides only the SDK/library and does not register plugin hooks or set up the worker service, so the dedicated installer command is needed for full functionality.",
-        "fit": "Released under the Apache License 2.0, Claude-Mem appears intended to be embeddable in developer tools, local agents, MCP servers, enterprise systems, and production agent harnesses, though the actual integration effort for each environment is not detailed in the README."
+        "goal": "Claude-mem is a persistent memory compression system built for Claude Code (line 55) that captures tool-usage observations and generates semantic summaries so context survives across sessions (line 130).",
+        "usage": "Install it with `npx claude-mem install` (line 150), or from the Claude Code plugin marketplace via `/plugin marketplace add thedotmack/claude-mem` followed by `/plugin install claude-mem` (lines 197-199). After installing, restart Claude Code so context from previous sessions automatically appears in new ones (line 202).",
+        "pros": "The README lists features including persistent memory across sessions, progressive disclosure of layered memory retrieval, smart search via a three-step mem-search skill, and a web viewer for sessions and settings (lines 216-227); the project is released under the Apache License 2.0 (line 432).",
+        "cons": "It requires Node.js 20.0.0 or higher and a Claude Code build with plugin support, and automatically installs Bun and uv as additional runtime dependencies (lines 319-324), which suggests some environment setup may be needed beyond the npx command; the hosted memory observer also requires sign-in and reverts to the Anthropic plan after a 30-day trial unless subscribed (line 153).",
+        "fit": "Given its design around Claude Code lifecycle hooks and optional integrations for OpenCode, T3 Code, Antigravity CLI and other IDEs (lines 130, 157-214), it appears aimed at developers wanting continuous project context across coding sessions rather than one-off memory use."
       },
       "ko": {
-        "goal": "Claude-Mem은 Claude Code를 위해 만들어진 영속적 메모리 압축 시스템입니다. 도구 사용 관찰 내용을 자동으로 캡처하고 의미론적 요약을 생성하여 이후 세션에서도 활용할 수 있게 함으로써, 세션이 종료되거나 재연결되어도 프로젝트에 대한 지식의 연속성을 유지합니다.",
-        "usage": "`npx claude-mem install` 명령으로 설치하거나, Claude Code 내부에서 `/plugin marketplace add thedotmack/claude-mem` 및 `/plugin install claude-mem`을 통해 플러그인으로 설치한 뒤 Claude Code를 재시작하면, 이전 세션의 맥락이 새 세션에 자동으로 나타납니다.",
-        "pros": "점진적 공개(progressive disclosure)를 지원하는 영속적 메모리, search·timeline·get_observations 세 단계로 구성된 MCP 검색 워크플로(README에 따르면 전체 세부정보를 바로 가져오는 것보다 약 10배의 토큰을 절약한다고 설명됨), 그리고 `<private>` 태그로 민감한 내용을 저장에서 제외할 수 있는 프라이버시 제어 기능을 제공합니다.",
-        "cons": "Node.js 20.0.0 이상과 Bun, uv 런타임(누락 시 자동 설치)이 필요하며, 전역 설치되는 npm 패키지(`npm install -g claude-mem`)는 SDK/라이브러리만 제공하고 플러그인 훅 등록이나 워커 서비스 설정은 하지 않으므로, 완전한 기능을 위해서는 전용 설치 명령이 필요합니다.",
-        "fit": "Apache License 2.0으로 배포되는 Claude-Mem은 개발자 도구, 로컬 에이전트, MCP 서버, 엔터프라이즈 시스템, 프로덕션 에이전트 하니스 등에 내장될 수 있도록 의도된 것으로 보이지만, 각 환경에서 실제로 필요한 통합 작업량은 README에 구체적으로 설명되어 있지 않습니다."
+        "goal": "Claude-mem은 Claude Code를 위해 구축된 영구 메모리 압축 시스템으로(55번째 줄), 도구 사용 관찰을 캡처하고 의미론적 요약을 생성하여 세션 간 컨텍스트가 유지되도록 합니다(130번째 줄).",
+        "usage": "`npx claude-mem install` 명령으로 설치하거나(150번째 줄), Claude Code 플러그인 마켓플레이스에서 `/plugin marketplace add thedotmack/claude-mem` 후 `/plugin install claude-mem`으로 설치할 수 있습니다(197-199번째 줄). 설치 후 Claude Code를 재시작하면 이전 세션의 컨텍스트가 새 세션에 자동으로 나타납니다(202번째 줄).",
+        "pros": "README에는 세션 간 영구 메모리, 계층적 메모리 검색을 위한 점진적 노출, 3단계 mem-search 스킬을 통한 스마트 검색, 세션과 설정을 위한 웹 뷰어 등의 기능이 나열되어 있습니다(216-227번째 줄). 이 프로젝트는 Apache License 2.0으로 배포됩니다(432번째 줄).",
+        "cons": "Node.js 20.0.0 이상과 플러그인 지원이 가능한 Claude Code 빌드가 필요하며, Bun과 uv가 추가 런타임 종속성으로 자동 설치됩니다(319-324번째 줄). 이는 npx 명령만으로 끝나지 않는 환경 설정이 필요할 수 있음을 시사합니다. 호스팅 메모리 관찰자 기능은 로그인이 필요하며 30일 무료 체험 후 구독하지 않으면 Anthropic 플랜으로 되돌아갑니다(153번째 줄).",
+        "fit": "Claude Code의 라이프사이클 훅을 중심으로 설계되었고 OpenCode, T3 Code, Antigravity CLI 등 다른 IDE에 대한 선택적 통합도 제공하는 점을 볼 때(130, 157-214번째 줄), 일회성 메모리 사용보다는 코딩 세션 전반에서 지속적인 프로젝트 컨텍스트를 원하는 개발자에게 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "Claude-Mem 是为 Claude Code 构建的持久化记忆压缩系统。它会自动捕获工具使用观察记录,生成语义摘要,并使其可供后续会话使用,从而让 Claude 在会话结束或重新连接后仍能保持对项目知识的连续性。",
-        "usage": "使用 `npx claude-mem install` 进行安装,或在 Claude Code 内通过 `/plugin marketplace add thedotmack/claude-mem` 和 `/plugin install claude-mem` 安装插件,随后重启 Claude Code;之前会话的上下文随即会自动出现在新会话中。",
-        "pros": "它提供支持渐进式信息披露的持久化记忆、由 search、timeline、get_observations 组成的三层 MCP 搜索工作流(README 说明该方式相比直接获取完整细节可节省约 10 倍的 token),以及通过 `<private>` 标签将敏感内容排除在存储之外的隐私控制功能。",
-        "cons": "该系统要求 Node.js 20.0.0 或更高版本,并依赖 Bun 和 uv 运行时(缺失时会自动安装);全局安装的 npm 包(`npm install -g claude-mem`)仅提供 SDK/库,并不会注册插件钩子或设置 worker 服务,因此要获得完整功能仍需使用专门的安装命令。",
-        "fit": "Claude-Mem 以 Apache License 2.0 发布,看起来旨在便于嵌入开发者工具、本地代理、MCP 服务器、企业系统以及生产级代理框架中,但 README 并未具体说明在每种环境中实际所需的集成工作量。"
+        "goal": "Claude-mem 是为 Claude Code 构建的持久记忆压缩系统(第55行),它捕获工具使用观察并生成语义摘要,使上下文能够在会话之间保留(第130行)。",
+        "usage": "可以使用 `npx claude-mem install` 命令安装(第150行),或通过 Claude Code 插件市场先执行 `/plugin marketplace add thedotmack/claude-mem` 再执行 `/plugin install claude-mem`(第197-199行)。安装后重启 Claude Code,之前会话的上下文会自动出现在新会话中(第202行)。",
+        "pros": "README 列出的功能包括跨会话的持久记忆、分层记忆检索的渐进式披露、通过三步 mem-search 技能实现的智能搜索,以及用于会话和设置的网页查看器(第216-227行)。该项目基于 Apache License 2.0 发布(第432行)。",
+        "cons": "它需要 Node.js 20.0.0 或更高版本,以及支持插件的 Claude Code 版本,并会自动安装 Bun 和 uv 作为额外的运行时依赖(第319-324行),这似乎意味着仅靠 npx 命令可能还需要额外的环境配置。托管记忆观察者功能还需要登录,30天免费试用结束后若未订阅会回退到 Anthropic 计划(第153行)。",
+        "fit": "鉴于其围绕 Claude Code 生命周期钩子设计,并为 OpenCode、T3 Code、Antigravity CLI 等其他 IDE 提供可选集成(第130、157-214行),该项目看起来更适合希望在编码会话中保持持续项目上下文的开发者,而非仅需一次性记忆的用户。"
       },
       "es": {
-        "goal": "Claude-Mem es un sistema de compresión de memoria persistente creado para Claude Code. Captura automáticamente observaciones del uso de herramientas, genera resúmenes semánticos y los pone a disposición de sesiones futuras, de modo que Claude mantenga continuidad de conocimiento sobre un proyecto incluso tras finalizar o reconectar sesiones.",
-        "usage": "Instálalo con `npx claude-mem install`, o dentro de Claude Code mediante `/plugin marketplace add thedotmack/claude-mem` y `/plugin install claude-mem`; después reinicia Claude Code y el contexto de sesiones anteriores aparecerá automáticamente en las nuevas.",
-        "pros": "Ofrece memoria persistente con divulgación progresiva, un flujo de búsqueda MCP de tres capas (search, timeline, get_observations) que, según el README, puede ahorrar alrededor de 10 veces más tokens que obtener los detalles completos directamente, y controles de privacidad mediante etiquetas `<private>` para excluir contenido sensible del almacenamiento.",
-        "cons": "El sistema requiere Node.js 20.0.0 o superior, además de los entornos de ejecución Bun y uv (que se instalan automáticamente si faltan); el paquete npm instalado globalmente (`npm install -g claude-mem`) solo proporciona el SDK/biblioteca y no registra los hooks del plugin ni configura el servicio worker, por lo que se necesita el comando de instalación dedicado para contar con la funcionalidad completa.",
-        "fit": "Publicado bajo la licencia Apache 2.0, Claude-Mem parece estar pensado para integrarse en herramientas de desarrollo, agentes locales, servidores MCP, sistemas empresariales y entornos de agentes en producción, aunque el README no detalla el esfuerzo de integración real necesario en cada entorno."
+        "goal": "Claude-mem es un sistema de compresión de memoria persistente construido para Claude Code (línea 55) que captura observaciones de uso de herramientas y genera resúmenes semánticos para que el contexto se mantenga entre sesiones (línea 130).",
+        "usage": "Se instala con el comando `npx claude-mem install` (línea 150), o desde el mercado de plugins de Claude Code ejecutando `/plugin marketplace add thedotmack/claude-mem` y luego `/plugin install claude-mem` (líneas 197-199). Tras reiniciar Claude Code, el contexto de sesiones previas aparece automáticamente en las nuevas sesiones (línea 202).",
+        "pros": "El README enumera funciones como memoria persistente entre sesiones, divulgación progresiva de memoria en capas, búsqueda inteligente mediante la habilidad mem-search de tres pasos, y un visor web para sesiones y ajustes (líneas 216-227). El proyecto se publica bajo la Licencia Apache 2.0 (línea 432).",
+        "cons": "Requiere Node.js 20.0.0 o superior y una versión de Claude Code con soporte de plugins, además instala automáticamente Bun y uv como dependencias de tiempo de ejecución adicionales (líneas 319-324), lo que sugiere que podría necesitarse configuración adicional del entorno más allá del comando npx. La función de observador de memoria alojado también requiere iniciar sesión y, tras una prueba gratuita de 30 días, vuelve al plan de Anthropic si no se suscribe (línea 153).",
+        "fit": "Dado que está diseñado en torno a los hooks de ciclo de vida de Claude Code y ofrece integraciones opcionales con otros IDE como OpenCode, T3 Code y Antigravity CLI (líneas 130, 157-214), parece orientado a desarrolladores que buscan contexto de proyecto continuo a lo largo de sesiones de codificación, más que un uso de memoria puntual."
       },
       "ja": {
-        "goal": "Claude-Mem は Claude Code 向けに構築された永続的メモリ圧縮システムです。ツール使用時の観察結果を自動的に記録し、セマンティックな要約を生成して将来のセッションで利用できるようにすることで、セッション終了や再接続後もプロジェクトに関する知識の継続性を保ちます。",
-        "usage": "`npx claude-mem install` でインストールするか、Claude Code 内で `/plugin marketplace add thedotmack/claude-mem` と `/plugin install claude-mem` を実行してプラグインとして導入し、Claude Code を再起動すると、以前のセッションのコンテキストが新しいセッションに自動的に表示されます。",
-        "pros": "段階的開示に対応した永続メモリ、search・timeline・get_observations の3層からなる MCP 検索ワークフロー(README によれば、詳細を直接取得する場合と比べて約10倍のトークンを節約できるとされています)、そして `<private>` タグによって機密内容を保存から除外できるプライバシー管理機能を備えています。",
-        "cons": "Node.js 20.0.0 以上に加えて Bun と uv ランタイム(未導入時は自動インストール)が必要です。グローバルにインストールする npm パッケージ(`npm install -g claude-mem`)は SDK/ライブラリのみを提供し、プラグインフックの登録やワーカーサービスの設定は行わないため、完全な機能を得るには専用のインストールコマンドが必要です。",
-        "fit": "Apache License 2.0 で公開されている Claude-Mem は、開発者向けツール、ローカルエージェント、MCPサーバー、エンタープライズシステム、本番運用のエージェントハーネスへの組み込みを意図しているように見えますが、各環境で実際に必要となる統合作業の詳細は README には記載されていません。"
+        "goal": "Claude-memはClaude Code向けに構築された永続メモリ圧縮システムで(55行目)、ツール使用の観察結果を取得し、セマンティックな要約を生成することでセッション間のコンテキストを維持します(130行目)。",
+        "usage": "`npx claude-mem install` コマンドでインストールできます(150行目)。または、Claude Codeのプラグインマーケットプレイスで `/plugin marketplace add thedotmack/claude-mem` の後に `/plugin install claude-mem` を実行することもできます(197-199行目)。インストール後にClaude Codeを再起動すると、以前のセッションのコンテキストが新しいセッションに自動的に表示されます(202行目)。",
+        "pros": "READMEには、セッション間の永続メモリ、階層化されたメモリ検索の段階的開示、3段階のmem-searchスキルによるスマート検索、セッションと設定用のWebビューアなどの機能が挙げられています(216-227行目)。本プロジェクトはApache License 2.0でライセンスされています(432行目)。",
+        "cons": "Node.js 20.0.0以上と、プラグインをサポートするClaude Codeのビルドが必要で、さらにBunとuvが追加のランタイム依存として自動インストールされます(319-324行目)。これはnpxコマンドだけでは完結しない環境設定が必要になる可能性を示唆しています。ホスト型メモリオブザーバー機能はサインインも必要で、30日間の無料トライアル終了後、サブスクリプションしない場合はAnthropicプランに戻ります(153行目)。",
+        "fit": "Claude Codeのライフサイクルフックを中心に設計されており、OpenCode、T3 Code、Antigravity CLIなど他のIDEへのオプション統合も提供していることから(130行目、157-214行目)、単発的なメモリ利用よりも、コーディングセッション全体で継続的なプロジェクトコンテキストを求める開発者に向いていると考えられます。"
       }
     },
     "evidence": {
@@ -6212,18 +6207,23 @@
         },
         {
           "start_line": 130,
-          "end_line": 131,
+          "end_line": 130,
           "section_heading": ""
         }
       ],
       "usage": [
         {
-          "start_line": 147,
+          "start_line": 149,
           "end_line": 151,
           "section_heading": "Quick Start"
         },
         {
-          "start_line": 194,
+          "start_line": 197,
+          "end_line": 200,
+          "section_heading": "Quick Start"
+        },
+        {
+          "start_line": 202,
           "end_line": 202,
           "section_heading": "Quick Start"
         }
@@ -6235,9 +6235,9 @@
           "section_heading": "🦞 OpenClaw Gateway"
         },
         {
-          "start_line": 282,
-          "end_line": 296,
-          "section_heading": "MCP Search Tools"
+          "start_line": 432,
+          "end_line": 432,
+          "section_heading": "License"
         }
       ],
       "cons": [
@@ -6247,38 +6247,30 @@
           "section_heading": "System Requirements"
         },
         {
-          "start_line": 204,
-          "end_line": 204,
+          "start_line": 153,
+          "end_line": 153,
           "section_heading": "Quick Start"
         }
       ],
       "fit": [
         {
-          "start_line": 432,
-          "end_line": 436,
-          "section_heading": "License"
+          "start_line": 130,
+          "end_line": 130,
+          "section_heading": ""
+        },
+        {
+          "start_line": 206,
+          "end_line": 214,
+          "section_heading": "🦞 OpenClaw Gateway"
+        },
+        {
+          "start_line": 319,
+          "end_line": 322,
+          "section_heading": "System Requirements"
         }
       ]
     },
     "invariants": [
-      {
-        "kind": "product",
-        "value": "Claude Code",
-        "fields": [
-          "goal",
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Claude-Mem",
-        "fields": [
-          "goal",
-          "usage",
-          "cons",
-          "fit"
-        ]
-      },
       {
         "kind": "command",
         "value": "npx claude-mem install",
@@ -6301,43 +6293,41 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "npm install -g claude-mem",
-        "fields": [
-          "cons"
-        ]
-      },
-      {
-        "kind": "version",
+        "kind": "number",
         "value": "20.0.0",
         "fields": [
           "cons"
         ]
       },
       {
-        "kind": "number",
-        "value": "10x",
+        "kind": "product",
+        "value": "claude-mem",
         "fields": [
-          "pros"
+          "goal",
+          "usage"
         ]
       },
       {
         "kind": "product",
-        "value": "Apache License 2.0",
+        "value": "Claude Code",
         "fields": [
+          "goal",
+          "usage",
+          "cons",
           "fit"
         ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "thedotmack/claude-mem",
       "path": "README.md",
-      "blob_sha": "4dabda8438d63b1c3a7e468fd283a691a0c90c46",
-      "content_sha256": "5461cd9526e70372cb1b152ae39f81b1f9709c8729d10af386fa0f38502a5b57",
+      "blob_sha": "bdff976f507c18a08cf769e57156fd8a77a59bf5",
+      "content_sha256": "dbc7af5c788ee70d33792b32dd3e4334a98bdb6888926f7a940f8aa6ccdc63c4",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.310",
