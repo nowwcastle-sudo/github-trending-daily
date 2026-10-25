@@ -58,7 +58,7 @@ Held repositories are reconsidered on later refreshes. Classification failure al
 | Solid history line | This site's recorded observations |
 | Dashed line with hollow markers | Approximate anchors back-calculated from Trending gains where observations are missing |
 
-Published repositories are scheduled for observation at UTC minute 13 and 43 each hour. Previously published repositories also enter an archive tier, observed at most once per UTC day within a 500-repository cap selected by seven-day gain. Runs can be delayed, skipped for rate-limit reserve, or blocked by another run. Two successful observations are enough for a first line; a fixed time until a full-day curve is not guaranteed.
+Published repositories are scheduled for observation at UTC minute 13 and 43 each hour. Previously published repositories also enter an archive tier, observed at most once per UTC day within a 500-repository cap selected by seven-day gain. Runs can be delayed, skipped for rate-limit reserve, or blocked by another run. Two successful observations no more than 36 hours apart can form a solid line; longer gaps stay disconnected. A fixed time until a full-day curve is not guaranteed.
 
 GH Archive / OSS Insight event-derived historical estimates were discontinued on 2026-09-02 after the upstream source disclosed severe degradation.
 
