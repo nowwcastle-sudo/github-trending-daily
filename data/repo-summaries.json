@@ -6405,47 +6405,47 @@
   },
   "thedotmack/claude-mem": {
     "content": {
-      "goal": "Claude-Mem is described as a persistent memory compression system built for Claude Code. It captures tool usage observations during sessions, generates semantic summaries, and makes them available to future sessions, with the documented aim of preserving project context across session restarts or reconnections.",
-      "usage": "Installation is done via `npx claude-mem install` (or IDE-specific variants such as `npx claude-mem install --ide opencode`), or through the Claude Code plugin marketplace with `/plugin marketplace add thedotmack/claude-mem` followed by `/plugin install claude-mem`. After installation, Claude Code (or the targeted IDE) must be restarted for context from previous sessions to appear automatically.",
-      "pros": "Documented features include persistent memory across sessions, progressive disclosure of layered memory with token-cost visibility, a smart search workflow (search, timeline, get_observations) described as yielding roughly 10x token savings, privacy controls via `<private>` tags, and automatic operation without manual intervention.",
-      "cons": "Full observer functionality requires signing in via an email magic link to provision a memory key, after which a 30-day free trial applies before a subscription is needed. Installing via `npm install -g claude-mem` instead provides only the SDK/library, without plugin hooks or the worker service.",
-      "fit": "Claude-Mem is documented to integrate with Claude Code, OpenCode (1.3.4 or later), T3 Code, Antigravity CLI, OMP, Pi, DeepSeek Harness, and OpenClaw gateways, which may suggest suitability for setups using multiple AI coding assistants. It requires Node.js 20.0.0 or higher and is licensed under Apache License 2.0."
+      "goal": "Claude-Mem (`claude-mem`) is a persistent memory compression system built for Claude Code. It captures tool-usage observations, generates semantic summaries, and surfaces them in later sessions so Claude maintains continuity about a project.",
+      "usage": "Install with `npx claude-mem install`, or with IDE-specific flags such as `--ide opencode`; inside Claude Code it can also be added via `/plugin marketplace add thedotmack/claude-mem` followed by `/plugin install claude-mem`. Node.js 20.0.0+ is required, and the host IDE must be restarted afterward.",
+      "pros": "Documented features include persistent memory across sessions, progressive disclosure with token-cost visibility, automatic operation, privacy controls via `<private>` tags, and citation of past observations. A three-layer workflow using 4 MCP tools (search, timeline, get_observations) is described as yielding roughly 10x token savings.",
+      "cons": "The separate `npm install -g claude-mem` package only installs the SDK/library without registering plugin hooks, so `npx claude-mem install` appears to be the documented path for full setup. The hosted observer's 30 Day Free Trial reverts to the user's own Anthropic plan afterward unless a subscription is started, which could affect ongoing costs.",
+      "fit": "Claude-Mem is aimed at Claude Code users, though the README also documents support for OpenCode, T3 Code, Antigravity CLI, OMP, Pi, DeepSeek Harness, and OpenClaw gateways, suggesting it may fit teams wanting persistent memory across several coding tools rather than one IDE alone. The current version is 15.1.0, released under the Apache License 2.0."
     },
     "summaries": {
       "en": {
-        "goal": "Claude-Mem is described as a persistent memory compression system built for Claude Code. It captures tool usage observations during sessions, generates semantic summaries, and makes them available to future sessions, with the documented aim of preserving project context across session restarts or reconnections.",
-        "usage": "Installation is done via `npx claude-mem install` (or IDE-specific variants such as `npx claude-mem install --ide opencode`), or through the Claude Code plugin marketplace with `/plugin marketplace add thedotmack/claude-mem` followed by `/plugin install claude-mem`. After installation, Claude Code (or the targeted IDE) must be restarted for context from previous sessions to appear automatically.",
-        "pros": "Documented features include persistent memory across sessions, progressive disclosure of layered memory with token-cost visibility, a smart search workflow (search, timeline, get_observations) described as yielding roughly 10x token savings, privacy controls via `<private>` tags, and automatic operation without manual intervention.",
-        "cons": "Full observer functionality requires signing in via an email magic link to provision a memory key, after which a 30-day free trial applies before a subscription is needed. Installing via `npm install -g claude-mem` instead provides only the SDK/library, without plugin hooks or the worker service.",
-        "fit": "Claude-Mem is documented to integrate with Claude Code, OpenCode (1.3.4 or later), T3 Code, Antigravity CLI, OMP, Pi, DeepSeek Harness, and OpenClaw gateways, which may suggest suitability for setups using multiple AI coding assistants. It requires Node.js 20.0.0 or higher and is licensed under Apache License 2.0."
+        "goal": "Claude-Mem (`claude-mem`) is a persistent memory compression system built for Claude Code. It captures tool-usage observations, generates semantic summaries, and surfaces them in later sessions so Claude maintains continuity about a project.",
+        "usage": "Install with `npx claude-mem install`, or with IDE-specific flags such as `--ide opencode`; inside Claude Code it can also be added via `/plugin marketplace add thedotmack/claude-mem` followed by `/plugin install claude-mem`. Node.js 20.0.0+ is required, and the host IDE must be restarted afterward.",
+        "pros": "Documented features include persistent memory across sessions, progressive disclosure with token-cost visibility, automatic operation, privacy controls via `<private>` tags, and citation of past observations. A three-layer workflow using 4 MCP tools (search, timeline, get_observations) is described as yielding roughly 10x token savings.",
+        "cons": "The separate `npm install -g claude-mem` package only installs the SDK/library without registering plugin hooks, so `npx claude-mem install` appears to be the documented path for full setup. The hosted observer's 30 Day Free Trial reverts to the user's own Anthropic plan afterward unless a subscription is started, which could affect ongoing costs.",
+        "fit": "Claude-Mem is aimed at Claude Code users, though the README also documents support for OpenCode, T3 Code, Antigravity CLI, OMP, Pi, DeepSeek Harness, and OpenClaw gateways, suggesting it may fit teams wanting persistent memory across several coding tools rather than one IDE alone. The current version is 15.1.0, released under the Apache License 2.0."
       },
       "ko": {
-        "goal": "Claude-Mem은 Claude Code를 위한 영속적 메모리 압축 시스템으로 소개되어 있습니다. 세션 중 도구 사용 관찰 내용을 캡처하고 의미론적 요약을 생성해 이후 세션에서 활용할 수 있게 하며, 세션 재시작이나 재연결 후에도 프로젝트 컨텍스트를 유지하는 것을 목표로 하는 것으로 보입니다.",
-        "usage": "설치는 `npx claude-mem install` (또는 `npx claude-mem install --ide opencode`와 같은 IDE별 변형) 명령으로 수행하거나, Claude Code 플러그인 마켓플레이스에서 `/plugin marketplace add thedotmack/claude-mem` 후 `/plugin install claude-mem`을 실행해 설치할 수 있습니다. 설치 후에는 이전 세션의 컨텍스트가 자동으로 표시되도록 Claude Code(또는 대상 IDE)를 재시작해야 합니다.",
-        "pros": "문서화된 기능으로는 세션 간 영속적 메모리, 토큰 비용을 보여주는 계층형 메모리의 점진적 공개, search·timeline·get_observations로 구성된 스마트 검색 워크플로(약 10배의 토큰 절감으로 설명됨), `<private>` 태그를 통한 개인정보 보호 제어, 수동 개입이 필요 없는 자동 동작 등이 있습니다.",
-        "cons": "전체 옵저버 기능을 사용하려면 이메일 매직 링크로 로그인해 메모리 키를 발급받아야 하며, 이후 30일 무료 체험이 적용되고 그 뒤에는 구독이 필요합니다. 반면 `npm install -g claude-mem`으로 설치하면 SDK/라이브러리만 제공되며 플러그인 훅이나 워커 서비스는 설정되지 않습니다.",
-        "fit": "Claude-Mem은 Claude Code, OpenCode(1.3.4 이상), T3 Code, Antigravity CLI, OMP, Pi, DeepSeek Harness, OpenClaw 게이트웨이와 연동되는 것으로 문서화되어 있어, 여러 AI 코딩 도우미를 함께 사용하는 환경에 적합할 수 있음을 시사합니다. Node.js 20.0.0 이상이 필요하며 Apache License 2.0으로 라이선스가 부여되어 있습니다."
+        "goal": "Claude-Mem(`claude-mem`)은 Claude Code를 위해 만들어진 영구 메모리 압축 시스템입니다. 도구 사용 관찰 내용을 캡처하고 의미적 요약을 생성하여 이후 세션에서 활용할 수 있게 함으로써 프로젝트에 대한 연속성을 유지합니다.",
+        "usage": "`npx claude-mem install` 명령으로 설치하며, `--ide opencode`와 같은 IDE별 플래그도 지원합니다. Claude Code 내부에서는 `/plugin marketplace add thedotmack/claude-mem` 후 `/plugin install claude-mem`으로도 설치할 수 있습니다. Node.js 20.0.0+가 필요하며 설치 후 해당 IDE를 재시작해야 합니다.",
+        "pros": "문서에 따르면 세션 간 영구 메모리, 토큰 비용을 보여주는 점진적 공개, 자동 동작, `<private>` 태그를 통한 개인정보 제어, 과거 관찰 인용 등의 기능이 있습니다. search, timeline, get_observations로 구성된 4 MCP tools의 3단계 워크플로는 약 10x token savings를 제공한다고 설명되어 있습니다.",
+        "cons": "별도의 `npm install -g claude-mem` 패키지는 SDK/라이브러리만 설치하고 플러그인 훅은 등록하지 않으므로, 전체 설정을 위해서는 `npx claude-mem install` 경로가 필요한 것으로 보입니다. 호스팅된 옵저버의 30 Day Free Trial이 끝나면 구독하지 않는 한 사용자의 Anthropic 요금제로 전환되어 이후 비용에 영향을 줄 수 있습니다.",
+        "fit": "Claude-Mem은 주로 Claude Code 사용자를 대상으로 하지만, README는 OpenCode, T3 Code, Antigravity CLI, OMP, Pi, DeepSeek Harness, OpenClaw 게이트웨이 지원도 설명하여 단일 IDE보다는 여러 코딩 도구에서 영구 메모리를 원하는 팀에 적합할 수 있음을 시사합니다. 현재 버전은 15.1.0이며 Apache License 2.0로 배포됩니다."
       },
       "zh-CN": {
-        "goal": "Claude-Mem 被描述为一个为 Claude Code 构建的持久化记忆压缩系统。它在会话期间捕获工具使用观察数据,生成语义摘要,并使其可供后续会话使用,其目标似乎是在会话重启或重新连接后仍保留项目上下文。",
-        "usage": "可通过 `npx claude-mem install`(或特定 IDE 变体,例如 `npx claude-mem install --ide opencode`)安装,也可以在 Claude Code 插件市场中执行 `/plugin marketplace add thedotmack/claude-mem` 后再运行 `/plugin install claude-mem` 完成安装。安装完成后需要重启 Claude Code(或对应 IDE),以便先前会话的上下文自动出现。",
-        "pros": "文档中列出的功能包括跨会话的持久化记忆、具有令牌成本可见性的分层记忆渐进式展示、由 search、timeline、get_observations 组成的智能搜索工作流(据称可节省约 10 倍的令牌用量)、通过 `<private>` 标签实现的隐私控制,以及无需人工干预的自动运行。",
-        "cons": "要使用完整的观察者功能,需要通过电子邮件魔术链接登录以获取内存密钥,随后可享有 30 天免费试用期,到期后需要订阅。相对而言,通过 `npm install -g claude-mem` 安装仅提供 SDK/库本身,不会注册插件钩子或设置 worker 服务。",
-        "fit": "文档说明 Claude-Mem 可与 Claude Code、OpenCode(1.3.4 或更高版本)、T3 Code、Antigravity CLI、OMP、Pi、DeepSeek Harness 以及 OpenClaw 网关集成,这可能意味着它适合同时使用多种 AI 编程助手的环境。它要求 Node.js 20.0.0 或更高版本,并采用 Apache License 2.0 许可。"
+        "goal": "Claude-Mem(`claude-mem`)是为 Claude Code 构建的持久记忆压缩系统。它捕获工具使用观察记录,生成语义摘要,并在后续会话中提供这些内容,以保持项目的连续性。",
+        "usage": "可通过 `npx claude-mem install` 安装,也可使用如 `--ide opencode` 的 IDE 专用参数。在 Claude Code 内部,也可依次运行 `/plugin marketplace add thedotmack/claude-mem` 和 `/plugin install claude-mem` 完成安装。需要 Node.js 20.0.0+,安装后需要重启对应的 IDE。",
+        "pros": "文档列出的功能包括跨会话的持久记忆、带有令牌成本可见性的渐进式信息披露、自动运行、通过 `<private>` 标签进行隐私控制,以及对历史观察记录的引用。由 search、timeline、get_observations 组成的 4 MCP tools 三层工作流程据称可带来约 10x token savings。",
+        "cons": "单独的 `npm install -g claude-mem` 包似乎只安装 SDK/库,不会注册插件钩子,因此完整安装看起来需要通过 `npx claude-mem install` 完成。托管观察器的 30 Day Free Trial 到期后,若未订阅将回退到用户自己的 Anthropic 套餐,这可能会影响后续使用成本。",
+        "fit": "Claude-Mem 主要面向 Claude Code 用户,但 README 也说明了对 OpenCode、T3 Code、Antigravity CLI、OMP、Pi、DeepSeek Harness 以及 OpenClaw 网关的支持,这表明它可能更适合希望在多种编码工具间共享持久记忆的团队,而非仅限单一 IDE。当前版本为 15.1.0,并以 Apache License 2.0 发布。"
       },
       "es": {
-        "goal": "Claude-Mem se describe como un sistema de compresión de memoria persistente creado para Claude Code. Captura observaciones de uso de herramientas durante las sesiones, genera resúmenes semánticos y los pone a disposición de sesiones futuras, con el objetivo documentado de preservar el contexto del proyecto tras reinicios o reconexiones de sesión.",
-        "usage": "La instalación se realiza mediante `npx claude-mem install` (o variantes específicas de IDE como `npx claude-mem install --ide opencode`), o a través del mercado de plugins de Claude Code con `/plugin marketplace add thedotmack/claude-mem` seguido de `/plugin install claude-mem`. Tras la instalación, es necesario reiniciar Claude Code (o el IDE de destino) para que el contexto de sesiones anteriores aparezca automáticamente.",
-        "pros": "Entre las funciones documentadas se incluyen memoria persistente entre sesiones, divulgación progresiva de memoria en capas con visibilidad del costo en tokens, un flujo de búsqueda inteligente (search, timeline, get_observations) descrito como un ahorro de aproximadamente 10 veces en tokens, controles de privacidad mediante etiquetas `<private>` y funcionamiento automático sin intervención manual.",
-        "cons": "La funcionalidad completa del observador requiere iniciar sesión mediante un enlace mágico por correo electrónico para aprovisionar una clave de memoria, tras lo cual se aplica una prueba gratuita de 30 días antes de necesitar una suscripción. En cambio, instalar con `npm install -g claude-mem` solo proporciona el SDK/biblioteca, sin registrar los hooks del plugin ni configurar el servicio worker.",
-        "fit": "Se documenta que Claude-Mem se integra con Claude Code, OpenCode (1.3.4 o posterior), T3 Code, Antigravity CLI, OMP, Pi, DeepSeek Harness y gateways de OpenClaw, lo que podría sugerir que es adecuado para entornos que usan múltiples asistentes de codificación con IA. Requiere Node.js 20.0.0 o superior y está licenciado bajo Apache License 2.0."
+        "goal": "Claude-Mem (`claude-mem`) es un sistema de compresión de memoria persistente creado para Claude Code. Captura observaciones del uso de herramientas, genera resúmenes semánticos y los pone a disposición en sesiones posteriores para mantener la continuidad de un proyecto.",
+        "usage": "Se instala con `npx claude-mem install`, o con indicadores específicos de IDE como `--ide opencode`; dentro de Claude Code también puede añadirse con `/plugin marketplace add thedotmack/claude-mem` seguido de `/plugin install claude-mem`. Requiere Node.js 20.0.0+ y reiniciar el IDE después de instalar.",
+        "pros": "Las funciones documentadas incluyen memoria persistente entre sesiones, divulgación progresiva con visibilidad del costo en tokens, operación automática, controles de privacidad mediante etiquetas `<private>` y citas de observaciones anteriores. Un flujo de trabajo de tres capas con 4 MCP tools (search, timeline, get_observations) ofrece, según se describe, un ahorro cercano a 10x token savings.",
+        "cons": "El paquete separado `npm install -g claude-mem` solo instala el SDK/librería y no registra los hooks del plugin, por lo que la ruta `npx claude-mem install` parece ser necesaria para una configuración completa. La prueba gratuita de 30 Day Free Trial del observador alojado vuelve al plan propio de Anthropic del usuario si no se suscribe, lo que podría afectar el costo posterior.",
+        "fit": "Claude-Mem está orientado a usuarios de Claude Code, aunque el README también documenta soporte para OpenCode, T3 Code, Antigravity CLI, OMP, Pi, DeepSeek Harness y gateways de OpenClaw, lo que sugiere que podría adecuarse a equipos que buscan memoria persistente en varias herramientas en lugar de un solo IDE. La versión actual es 15.1.0 y se distribuye bajo la Apache License 2.0."
       },
       "ja": {
-        "goal": "Claude-Memは、Claude Code向けに構築された永続的メモリ圧縮システムとして説明されています。セッション中にツール使用の観察結果をキャプチャし、セマンティックな要約を生成して将来のセッションで利用できるようにし、セッションの再起動や再接続後もプロジェクトのコンテキストを保持することを目指していると記載されています。",
-        "usage": "インストールは `npx claude-mem install`(または `npx claude-mem install --ide opencode` のようなIDE固有のバリアント)で行うか、Claude Codeのプラグインマーケットプレイスで `/plugin marketplace add thedotmack/claude-mem` を実行後、`/plugin install claude-mem` を実行して行います。インストール後は、以前のセッションのコンテキストが自動的に表示されるよう、Claude Code(または対象のIDE)を再起動する必要があります。",
-        "pros": "文書化されている機能には、セッション間の永続的メモリ、トークンコストの可視性を備えた階層型メモリの段階的開示、search・timeline・get_observationsによるスマート検索ワークフロー(約10倍のトークン節約と説明)、`<private>` タグによるプライバシー制御、手動操作を必要としない自動動作などがあります。",
-        "cons": "完全なオブザーバー機能を利用するには、メールのマジックリンクでサインインしてメモリキーを発行する必要があり、その後30日間の無料トライアルが適用され、終了後はサブスクリプションが必要になります。一方、`npm install -g claude-mem` でインストールした場合はSDK/ライブラリのみが提供され、プラグインフックやワーカーサービスは設定されません。",
-        "fit": "Claude-Memは、Claude Code、OpenCode(1.3.4以降)、T3 Code、Antigravity CLI、OMP、Pi、DeepSeek Harness、OpenClawゲートウェイと連携すると文書化されており、複数のAIコーディング支援ツールを併用する環境に適している可能性が示唆されます。Node.js 20.0.0以上が必要で、Apache License 2.0の下でライセンスされています。"
+        "goal": "Claude-Mem(`claude-mem`)は、Claude Code向けに構築された永続メモリ圧縮システムです。ツール使用時の観察結果を取得し、意味的な要約を生成して後続のセッションで利用できるようにすることで、プロジェクトの継続性を保ちます。",
+        "usage": "`npx claude-mem install` でインストールでき、`--ide opencode` のようなIDE固有のフラグも利用できます。Claude Code内では `/plugin marketplace add thedotmack/claude-mem` の後に `/plugin install claude-mem` を実行してインストールすることもできます。Node.js 20.0.0+ が必要で、インストール後は対象のIDEを再起動する必要があります。",
+        "pros": "ドキュメントに記載されている機能には、セッション間の永続メモリ、トークンコストの可視化を伴う段階的情報開示、自動動作、`<private>` タグによるプライバシー制御、過去の観察結果の引用などがあります。search、timeline、get_observationsの4 MCP toolsによる3層ワークフローは、約10x token savingsをもたらすとされています。",
+        "cons": "別パッケージの `npm install -g claude-mem` はSDK/ライブラリのみをインストールし、プラグインフックは登録しないため、完全な設定には `npx claude-mem install` の手順が必要と見られます。ホスト型オブザーバーの30 Day Free Trialが終了すると、サブスクリプションを開始しない限りユーザー自身のAnthropicプランにフォールバックし、以降の利用コストに影響する可能性があります。",
+        "fit": "Claude-Memは主にClaude Codeユーザーを対象としていますが、READMEはOpenCode、T3 Code、Antigravity CLI、OMP、Pi、DeepSeek Harness、OpenClawゲートウェイへの対応も記載しており、単一のIDEに限らず複数のコーディングツール間で永続メモリを求めるチームに適している可能性があります。現在のバージョンは15.1.0で、Apache License 2.0の下で公開されています。"
       }
     },
     "evidence": {
@@ -6456,15 +6456,15 @@
           "section_heading": ""
         },
         {
-          "start_line": 130,
+          "start_line": 129,
           "end_line": 131,
           "section_heading": ""
         }
       ],
       "usage": [
         {
-          "start_line": 139,
-          "end_line": 141,
+          "start_line": 149,
+          "end_line": 151,
           "section_heading": "Quick Start"
         },
         {
@@ -6473,9 +6473,9 @@
           "section_heading": "Quick Start"
         },
         {
-          "start_line": 202,
-          "end_line": 202,
-          "section_heading": "Quick Start"
+          "start_line": 319,
+          "end_line": 322,
+          "section_heading": "System Requirements"
         }
       ],
       "pros": [
@@ -6485,37 +6485,37 @@
           "section_heading": "🦞 OpenClaw Gateway"
         },
         {
-          "start_line": 295,
-          "end_line": 295,
+          "start_line": 282,
+          "end_line": 296,
           "section_heading": "MCP Search Tools"
         }
       ],
       "cons": [
         {
-          "start_line": 153,
-          "end_line": 155,
+          "start_line": 204,
+          "end_line": 204,
           "section_heading": "Quick Start"
         },
         {
-          "start_line": 204,
-          "end_line": 204,
+          "start_line": 152,
+          "end_line": 155,
           "section_heading": "Quick Start"
         }
       ],
       "fit": [
         {
-          "start_line": 163,
-          "end_line": 189,
+          "start_line": 61,
+          "end_line": 66,
+          "section_heading": ""
+        },
+        {
+          "start_line": 157,
+          "end_line": 214,
           "section_heading": "Quick Start"
         },
         {
-          "start_line": 319,
-          "end_line": 325,
-          "section_heading": "System Requirements"
-        },
-        {
-          "start_line": 432,
-          "end_line": 432,
+          "start_line": 430,
+          "end_line": 436,
           "section_heading": "License"
         }
       ]
@@ -6525,24 +6525,43 @@
         "kind": "command",
         "value": "npx claude-mem install",
         "fields": [
+          "usage",
+          "cons"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/plugin install claude-mem",
+        "fields": [
           "usage"
         ]
       },
       {
+        "kind": "version",
+        "value": "15.1.0",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
         "kind": "number",
-        "value": "10x",
+        "value": "4 MCP tools",
         "fields": [
           "pros"
         ]
       },
       {
-        "kind": "product",
-        "value": "Claude-Mem",
+        "kind": "number",
+        "value": "10x token savings",
         "fields": [
-          "goal",
-          "usage",
-          "cons",
-          "fit"
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "30 Day Free Trial",
+        "fields": [
+          "cons"
         ]
       },
       {
@@ -6553,18 +6572,28 @@
           "usage",
           "fit"
         ]
+      },
+      {
+        "kind": "product",
+        "value": "claude-mem",
+        "fields": [
+          "goal",
+          "usage",
+          "cons",
+          "fit"
+        ]
       }
     ],
     "inference_fields": [
-      "goal",
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "thedotmack/claude-mem",
       "path": "README.md",
-      "blob_sha": "28c7752b6d9fcd5d18b0b733568b9db4de541512",
-      "content_sha256": "35221b34ed94cb8f2eaedb74621db11d88b0762e022d55d595e6a37b79f821eb",
+      "blob_sha": "4ab81c729230805aa55c1848a06f1dfe7c8091d5",
+      "content_sha256": "2bc1692cb7b4a56540e03ddd735397336a1c28b32d44b8a0b964480182517cf4",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.310",
