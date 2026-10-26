@@ -405,47 +405,47 @@
   },
   "debpalash/VoiceStudio": {
     "content": {
-      "goal": "VoiceStudio is an open-source desktop application for voice cloning, voice design, video dubbing, dictation, transcription, and audiobook creation, supporting 646 languages, with a default engine (VoiceStudio) powered by k2-fsa/OmniVoice.",
-      "usage": "Install on macOS/Linux with `curl -fsSL https://voicestudio.sh/install | sh`, or on Windows PowerShell with `irm https://voicestudio.sh/install | iex`; VoiceStudio also exposes a Local API and MCP integration for agents, or can be run from source via bun install and bun run dev.",
-      "pros": "Workflows in VoiceStudio run locally on user hardware with GPU acceleration on NVIDIA (CUDA) and Apple Silicon (Metal); remote services are optional and usage analytics requires consent, with multiple selectable engines and broad language coverage.",
-      "cons": "Electron is now the only supported desktop app and web UI for VoiceStudio since version 0.5.3 was the final Tauri release, so existing Tauri users must migrate separately; Windows on ARM support is explicitly documented as experimental with validation pending.",
-      "fit": "VoiceStudio appears suited to users and developers wanting a local-first voice toolkit with scriptable installation and agent integrations; its AGPL-3.0 license covers the application itself, while model weights and voices carry separate conditions, so commercial users should likely review licensing details before deployment."
+      "goal": "VoiceStudio is an open-source application offering voice cloning, voice design, video dubbing, dictation, transcription, and audiobook creation across 646 languages, with a default engine called VoiceStudio powered by k2-fsa/OmniVoice.",
+      "usage": "Install on macOS or Linux with `curl -fsSL https://voicestudio.sh/install | sh`, or on Windows PowerShell with `irm https://voicestudio.sh/install | iex`; Electron is documented as the only supported desktop app and web UI, following the retirement of the Tauri shell after version 0.5.3.",
+      "pros": "Local workflows run on the user's own hardware, remote services are optional, usage analytics requires consent, and the installer is documented to preserve existing settings, projects, and models when updating.",
+      "cons": "Building the app from the main branch requires Git, Node.js 22+, Bun, and Rust/Cargo plus platform build tools, while release downloads need curl and a SHA-256 verification tool, making setup prerequisites vary by install method.",
+      "fit": "Users with an NVIDIA GPU, Apple Silicon, or a CPU-only machine with roughly 5 GB free disk space appear best supported, whereas Windows on ARM is explicitly marked experimental and Intel Mac apparently requires connecting to a remote backend rather than running the app natively."
     },
     "summaries": {
       "en": {
-        "goal": "VoiceStudio is an open-source desktop application for voice cloning, voice design, video dubbing, dictation, transcription, and audiobook creation, supporting 646 languages, with a default engine (VoiceStudio) powered by k2-fsa/OmniVoice.",
-        "usage": "Install on macOS/Linux with `curl -fsSL https://voicestudio.sh/install | sh`, or on Windows PowerShell with `irm https://voicestudio.sh/install | iex`; VoiceStudio also exposes a Local API and MCP integration for agents, or can be run from source via bun install and bun run dev.",
-        "pros": "Workflows in VoiceStudio run locally on user hardware with GPU acceleration on NVIDIA (CUDA) and Apple Silicon (Metal); remote services are optional and usage analytics requires consent, with multiple selectable engines and broad language coverage.",
-        "cons": "Electron is now the only supported desktop app and web UI for VoiceStudio since version 0.5.3 was the final Tauri release, so existing Tauri users must migrate separately; Windows on ARM support is explicitly documented as experimental with validation pending.",
-        "fit": "VoiceStudio appears suited to users and developers wanting a local-first voice toolkit with scriptable installation and agent integrations; its AGPL-3.0 license covers the application itself, while model weights and voices carry separate conditions, so commercial users should likely review licensing details before deployment."
+        "goal": "VoiceStudio is an open-source application offering voice cloning, voice design, video dubbing, dictation, transcription, and audiobook creation across 646 languages, with a default engine called VoiceStudio powered by k2-fsa/OmniVoice.",
+        "usage": "Install on macOS or Linux with `curl -fsSL https://voicestudio.sh/install | sh`, or on Windows PowerShell with `irm https://voicestudio.sh/install | iex`; Electron is documented as the only supported desktop app and web UI, following the retirement of the Tauri shell after version 0.5.3.",
+        "pros": "Local workflows run on the user's own hardware, remote services are optional, usage analytics requires consent, and the installer is documented to preserve existing settings, projects, and models when updating.",
+        "cons": "Building the app from the main branch requires Git, Node.js 22+, Bun, and Rust/Cargo plus platform build tools, while release downloads need curl and a SHA-256 verification tool, making setup prerequisites vary by install method.",
+        "fit": "Users with an NVIDIA GPU, Apple Silicon, or a CPU-only machine with roughly 5 GB free disk space appear best supported, whereas Windows on ARM is explicitly marked experimental and Intel Mac apparently requires connecting to a remote backend rather than running the app natively."
       },
       "ko": {
-        "goal": "VoiceStudio는 음성 복제, 음성 디자인, 영상 더빙, 받아쓰기, 음성 인식, 오디오북 제작을 지원하는 오픈소스 데스크톱 애플리케이션으로, 646개 언어를 지원하며 기본 엔진(VoiceStudio)은 k2-fsa/OmniVoice 기반입니다.",
-        "usage": "macOS/Linux에서는 `curl -fsSL https://voicestudio.sh/install | sh`, Windows PowerShell에서는 `irm https://voicestudio.sh/install | iex` 명령으로 설치할 수 있으며, VoiceStudio는 에이전트를 위한 로컬 API와 MCP 연동도 제공하고, bun install과 bun run dev로 소스에서 실행할 수도 있습니다.",
-        "pros": "VoiceStudio의 워크플로는 사용자 하드웨어에서 로컬로 실행되며 NVIDIA(CUDA)와 Apple Silicon(Metal)에서 GPU 가속을 지원하고, 원격 서비스는 선택 사항이며 사용 분석에는 동의가 필요하고, 여러 엔진과 폭넓은 언어를 선택할 수 있습니다.",
-        "cons": "버전 0.5.3이 마지막 Tauri 릴리스였기 때문에 현재 VoiceStudio의 유일한 데스크톱 앱 및 웹 UI는 Electron이며, 기존 Tauri 사용자는 별도로 마이그레이션해야 하고, Windows on ARM 지원은 실험적이며 검증이 진행 중이라고 명시되어 있습니다.",
-        "fit": "VoiceStudio는 스크립트 기반 설치와 에이전트 연동을 원하는, 로컬 우선 방식을 선호하는 사용자와 개발자에게 적합해 보입니다. AGPL-3.0 라이선스는 애플리케이션 자체에만 적용되고 모델 가중치와 음성에는 별도 조건이 있으므로, 상업적 이용자는 배포 전에 라이선스 세부 사항을 확인하는 것이 좋을 것으로 보입니다."
+        "goal": "VoiceStudio는 646개 언어에 걸쳐 음성 복제, 음성 디자인, 비디오 더빙, 음성 입력(딕테이션), 음성 인식, 오디오북 제작 기능을 제공하는 오픈소스 애플리케이션으로, 기본 엔진인 VoiceStudio는 k2-fsa/OmniVoice 기반으로 동작합니다.",
+        "usage": "macOS/Linux에서는 `curl -fsSL https://voicestudio.sh/install | sh` 명령으로, Windows PowerShell에서는 `irm https://voicestudio.sh/install | iex` 명령으로 설치할 수 있으며, 문서에 따르면 Electron이 유일하게 지원되는 데스크톱 앱 및 웹 UI이고 버전 0.5.3 이후 Tauri 셸은 폐지되었습니다.",
+        "pros": "로컬 워크플로는 사용자 자신의 하드웨어에서 실행되고, 원격 서비스는 선택 사항이며 사용 분석에는 동의가 필요하며, 설치 프로그램은 업데이트 시 기존 설정, 프로젝트, 모델을 보존한다고 문서화되어 있습니다.",
+        "cons": "메인 브랜치에서 빌드하려면 Git, Node.js 22+, Bun, Rust/Cargo 및 플랫폼별 빌드 도구가 필요하고, 릴리스 다운로드에는 curl과 SHA-256 검증 도구가 필요하여 설치 방법에 따라 준비해야 할 전제 조건이 달라집니다.",
+        "fit": "NVIDIA GPU, Apple Silicon, 또는 약 5GB의 여유 디스크 공간이 있는 CPU 전용 기기를 사용하는 사용자에게 가장 적합해 보이며, 반면 Windows on ARM은 명시적으로 실험적이라고 표시되어 있고 Intel Mac은 네이티브 실행 대신 원격 백엔드에 연결해야 하는 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "VoiceStudio 是一款开源桌面应用,支持语音克隆、语音设计、视频配音、听写、转录和有声书制作,覆盖 646 种语言,默认引擎(VoiceStudio)基于 k2-fsa/OmniVoice。",
-        "usage": "在 macOS/Linux 上可使用 `curl -fsSL https://voicestudio.sh/install | sh` 安装,在 Windows PowerShell 上使用 `irm https://voicestudio.sh/install | iex`;VoiceStudio 还提供面向智能体的本地 API 和 MCP 集成,也可通过 bun install 和 bun run dev 从源码运行。",
-        "pros": "VoiceStudio 的工作流在用户本地硬件上运行,支持 NVIDIA(CUDA)和 Apple Silicon(Metal)的 GPU 加速,远程服务为可选项,使用分析需征得同意,并可在多种引擎和广泛语言之间选择。",
-        "cons": "由于 0.5.3 版本是最后一个 Tauri 版本,目前 VoiceStudio 唯一支持的桌面应用和网页界面是 Electron,现有 Tauri 用户需单独迁移;文档明确将 Windows on ARM 支持标注为实验性且验证尚未完成。",
-        "fit": "VoiceStudio 看起来适合希望采用本地优先方案、并需要脚本化安装与智能体集成的用户和开发者;其 AGPL-3.0 许可证仅覆盖应用本身,模型权重和声音另有单独条款,因此商业用户在部署前似乎有必要核实许可细节。"
+        "goal": "VoiceStudio 是一款开源应用程序,提供跨 646 种语言的声音克隆、声音设计、视频配音、口述录入、转录和有声书制作功能,默认引擎 VoiceStudio 由 k2-fsa/OmniVoice 驱动。",
+        "usage": "在 macOS/Linux 上可通过 `curl -fsSL https://voicestudio.sh/install | sh` 安装,在 Windows PowerShell 上可通过 `irm https://voicestudio.sh/install | iex` 安装;文档说明 Electron 是唯一受支持的桌面应用和网页界面,版本 0.5.3 之后 Tauri 外壳已被弃用。",
+        "pros": "本地工作流在用户自己的硬件上运行,远程服务为可选项,使用分析需要用户同意,安装程序据文档说明会在更新时保留现有设置、项目和模型。",
+        "cons": "从主分支构建需要 Git、Node.js 22+、Bun、Rust/Cargo 以及平台构建工具,而发布版下载则需要 curl 和 SHA-256 校验工具,因此安装前提条件会因安装方式而不同。",
+        "fit": "拥有 NVIDIA GPU、Apple Silicon 或仅配备约 5GB 空闲磁盘空间的纯 CPU 设备的用户似乎最适用,而 Windows on ARM 被明确标注为实验性支持,Intel Mac 用户似乎需要连接远程后端而非本地运行。"
       },
       "es": {
-        "goal": "VoiceStudio es una aplicación de escritorio de código abierto para clonación de voz, diseño de voz, doblaje de video, dictado, transcripción y creación de audiolibros, compatible con 646 idiomas, con un motor predeterminado (VoiceStudio) basado en k2-fsa/OmniVoice.",
-        "usage": "Se instala en macOS/Linux con `curl -fsSL https://voicestudio.sh/install | sh`, o en Windows PowerShell con `irm https://voicestudio.sh/install | iex`; VoiceStudio también ofrece una API local e integración MCP para agentes, o puede ejecutarse desde el código fuente con bun install y bun run dev.",
-        "pros": "Los flujos de trabajo de VoiceStudio se ejecutan localmente en el hardware del usuario con aceleración por GPU en NVIDIA (CUDA) y Apple Silicon (Metal); los servicios remotos son opcionales y el análisis de uso requiere consentimiento, con varios motores seleccionables y amplia cobertura de idiomas.",
-        "cons": "Electron es ahora la única aplicación de escritorio e interfaz web admitida para VoiceStudio, ya que la versión 0.5.3 fue el último lanzamiento de Tauri, por lo que los usuarios de Tauri deben migrar por separado; el soporte de Windows en ARM está documentado explícitamente como experimental y pendiente de validación.",
-        "fit": "VoiceStudio parece adecuado para usuarios y desarrolladores que buscan una herramienta de voz local con instalación mediante scripts e integraciones con agentes; su licencia AGPL-3.0 cubre la aplicación en sí, mientras que los pesos de modelo y las voces tienen condiciones separadas, por lo que los usuarios comerciales probablemente deban revisar los detalles de licencia antes de implementarla."
+        "goal": "VoiceStudio es una aplicación de código abierto que ofrece clonación de voz, diseño de voz, doblaje de video, dictado, transcripción y creación de audiolibros en 646 idiomas, con un motor predeterminado llamado VoiceStudio impulsado por k2-fsa/OmniVoice.",
+        "usage": "Se instala en macOS/Linux con `curl -fsSL https://voicestudio.sh/install | sh`, o en Windows PowerShell con `irm https://voicestudio.sh/install | iex`; la documentación indica que Electron es la única app de escritorio y UI web admitida, tras la retirada del shell de Tauri después de la versión 0.5.3.",
+        "pros": "Los flujos de trabajo locales se ejecutan en el propio hardware del usuario, los servicios remotos son opcionales, el análisis de uso requiere consentimiento, y el instalador está documentado para preservar la configuración, los proyectos y los modelos existentes al actualizar.",
+        "cons": "Compilar desde la rama main requiere Git, Node.js 22+, Bun y Rust/Cargo además de herramientas de compilación específicas de la plataforma, mientras que las descargas de lanzamiento necesitan curl y una herramienta de verificación SHA-256, por lo que los requisitos previos varían según el método de instalación.",
+        "fit": "Los usuarios con GPU NVIDIA, Apple Silicon o un equipo solo con CPU y unos 5 GB de espacio libre en disco parecen estar mejor cubiertos, mientras que Windows on ARM se indica explícitamente como experimental y los Mac Intel aparentemente requieren conectarse a un backend remoto en lugar de ejecutarse de forma nativa."
       },
       "ja": {
-        "goal": "VoiceStudioは、音声クローニング、音声デザイン、動画の吹き替え、口述筆記、文字起こし、オーディオブック作成に対応するオープンソースのデスクトップアプリケーションで、646言語をサポートし、デフォルトエンジン(VoiceStudio)はk2-fsa/OmniVoiceを基盤としています。",
-        "usage": "macOS/Linuxでは `curl -fsSL https://voicestudio.sh/install | sh`、Windows PowerShellでは `irm https://voicestudio.sh/install | iex` でインストールでき、VoiceStudioはエージェント向けのローカルAPIとMCP連携も提供し、bun installとbun run devでソースから実行することもできます。",
-        "pros": "VoiceStudioのワークフローはユーザーのハードウェア上でローカルに実行され、NVIDIA(CUDA)とApple Silicon(Metal)でのGPUアクセラレーションに対応し、リモートサービスは任意で利用分析には同意が必要であり、複数のエンジンと幅広い言語から選択できます。",
-        "cons": "バージョン0.5.3が最後のTauriリリースであったため、現在VoiceStudioで唯一サポートされるデスクトップアプリおよびWeb UIはElectronであり、既存のTauriユーザーは別途移行する必要があり、Windows on ARM対応は実験的で検証待ちと明記されています。",
-        "fit": "VoiceStudioは、ローカル優先の音声ツールとスクリプトによるインストール、エージェント連携を求めるユーザーや開発者に適しているように見えます。AGPL-3.0ライセンスはアプリケーション自体のみを対象とし、モデルの重みや音声には別途条件があるため、商用利用者は導入前にライセンスの詳細を確認する必要があると思われます。"
+        "goal": "VoiceStudioは、646言語にわたる音声クローン、音声デザイン、動画の吹き替え、ディクテーション、文字起こし、オーディオブック作成を提供するオープンソースのアプリケーションで、デフォルトエンジンのVoiceStudioはk2-fsa/OmniVoiceを基盤としています。",
+        "usage": "macOS/Linuxでは `curl -fsSL https://voicestudio.sh/install | sh`、Windows PowerShellでは `irm https://voicestudio.sh/install | iex` でインストールでき、文書によるとElectronが唯一サポートされるデスクトップアプリ兼ウェブUIであり、バージョン0.5.3を最後にTauriシェルは廃止されています。",
+        "pros": "ローカルのワークフローはユーザー自身のハードウェア上で実行され、リモートサービスは任意であり、利用状況分析には同意が必要で、インストーラーは更新時に既存の設定・プロジェクト・モデルを保持すると文書化されています。",
+        "cons": "mainブランチからのビルドにはGit、Node.js 22+、Bun、Rust/Cargoおよびプラットフォーム固有のビルドツールが必要であり、リリース版のダウンロードにはcurlとSHA-256検証ツールが必要なため、インストール方法によって前提条件が異なります。",
+        "fit": "NVIDIA GPU、Apple Silicon、または約5GBの空きディスク容量を持つCPU専用マシンを使うユーザーに最も適していると見られますが、Windows on ARMは明示的に実験的と記載されており、Intel Macはネイティブ実行ではなくリモートバックエンドへの接続が必要なようです。"
       }
     },
     "evidence": {
@@ -463,18 +463,18 @@
       ],
       "usage": [
         {
-          "start_line": 62,
-          "end_line": 64,
+          "start_line": 64,
+          "end_line": 68,
           "section_heading": "One-command install (macOS / Linux)"
         },
         {
-          "start_line": 76,
-          "end_line": 76,
+          "start_line": 80,
+          "end_line": 80,
           "section_heading": "One-command install (macOS / Linux)"
         },
         {
-          "start_line": 122,
-          "end_line": 127,
+          "start_line": 142,
+          "end_line": 142,
           "section_heading": "Install with prompt"
         }
       ],
@@ -485,43 +485,27 @@
           "section_heading": "Your voice. Your workflow."
         },
         {
-          "start_line": 97,
-          "end_line": 98,
+          "start_line": 92,
+          "end_line": 93,
           "section_heading": "One-command install (macOS / Linux)"
         }
       ],
       "cons": [
         {
-          "start_line": 137,
-          "end_line": 137,
-          "section_heading": "Install with prompt"
-        },
-        {
-          "start_line": 101,
-          "end_line": 101,
+          "start_line": 89,
+          "end_line": 91,
           "section_heading": "One-command install (macOS / Linux)"
         }
       ],
       "fit": [
         {
-          "start_line": 176,
-          "end_line": 176,
-          "section_heading": "License & responsible use"
+          "start_line": 99,
+          "end_line": 107,
+          "section_heading": "One-command install (macOS / Linux)"
         }
       ]
     },
     "invariants": [
-      {
-        "kind": "product",
-        "value": "VoiceStudio",
-        "fields": [
-          "goal",
-          "usage",
-          "pros",
-          "cons",
-          "fit"
-        ]
-      },
       {
         "kind": "command",
         "value": "curl -fsSL https://voicestudio.sh/install | sh",
@@ -537,15 +521,15 @@
         ]
       },
       {
-        "kind": "url",
-        "value": "https://voicestudio.sh",
+        "kind": "version",
+        "value": "0.5.3",
         "fields": [
           "usage"
         ]
       },
       {
         "kind": "version",
-        "value": "0.5.3",
+        "value": "Node.js 22+",
         "fields": [
           "cons"
         ]
@@ -558,10 +542,32 @@
         ]
       },
       {
-        "kind": "product",
-        "value": "AGPL-3.0",
+        "kind": "url",
+        "value": "https://voicestudio.sh",
         "fields": [
-          "fit"
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "VoiceStudio",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "OmniVoice",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Electron",
+        "fields": [
+          "usage"
         ]
       }
     ],
@@ -572,8 +578,8 @@
       "kind": "readme",
       "slug": "debpalash/voicestudio",
       "path": "README.md",
-      "blob_sha": "9c74b41a78e06e2b39bfa6858138d4724d47b875",
-      "content_sha256": "7b9cdc463404aca8eafb6484f8289384a895f0ac38b77cdaaa24f524a6a4b459",
+      "blob_sha": "850acecc50d3e6efe78e2ad896afe270b06f1bd9",
+      "content_sha256": "7d60e691bbdc2a0dff5cb6fb61c45293603a0a068826dbba80a0b0721d72c0e3",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.310",
@@ -1402,51 +1408,56 @@
   },
   "JetBrains/thinkrail": {
     "content": {
-      "goal": "ThinkRail is an agentic IDE built by JetBrains around the `pi` coding agent, combining isolated git-worktree workspaces, living `SPEC.md` specs, and reusable Agent Skills to give the agent durable project knowledge.",
-      "usage": "Install the desktop app or the `thinkrail` CLI; the documented command is `curl -fsSL https://raw.githubusercontent.com/JetBrains/thinkrail/main/install.sh | bash`, then run `thinkrail ~/code/my-repo` to open a git repository as a project. The CLI requires `git` on PATH and a signed-in model provider such as JetBrains AI.",
-      "pros": "Isolated git-worktree workspaces let agents work in parallel without touching the main checkout, and finished workspaces settle onto a per-project shelf automatically. Usage analytics are tied to a random installation ID and documented to exclude prompts, code, files, credentials, or account identity. The project is licensed under Apache License 2.0.",
-      "cons": "The native desktop build for macOS is limited to Apple Silicon, with no Intel build offered; Linux desktop and CLI artifacts are distributed unsigned. Local development additionally pins specific toolchain versions, Bun 1.4.4 and Node.js 22.19 or newer, which existing environments may need to match.",
-      "fit": "The documented setup suggests ThinkRail fits developers already using `git` and willing to authenticate a model provider such as JetBrains AI, since the CLI depends on both; it does not appear to bundle its own accounts or models."
+      "goal": "ThinkRail is a JetBrains incubator project described as an agentic IDE built around the `pi` coding agent (https://www.npmjs.com/package/@earendil-works/pi-coding-agent), adding isolated workspaces, living specs, and reusable skills, with full extension support planned for the future.",
+      "usage": "ThinkRail ships as a desktop installer or a self-contained `thinkrail` CLI. The CLI can be installed by running `curl -fsSL https://raw.githubusercontent.com/JetBrains/thinkrail/main/install.sh | bash`, then launched with `thinkrail ~/code/my-repo` to open a git repository as a project; `git` on PATH and a model provider such as JetBrains AI are required.",
+      "pros": "Each workspace is an isolated `git worktree`, letting multiple agents work in parallel without touching the user's checkout; the workbench adds editor tabs, terminals, and a live git diff view; it supports multiple concurrent `pi` chat sessions per workspace, `SPEC.md`-based living specs, MCP server connections, and reuse of Agent Skills.",
+      "cons": "Linux desktop builds require glibc 2.38 or newer along with GTK 3, WebKitGTK 4.1, Ayatana AppIndicator 3, and librsvg 2 (for example via `sudo apt install libgtk-3-0 libwebkit2gtk-4.1-0 libayatana-appindicator3-1 librsvg2-2`); there is no macOS Intel desktop build, and the macOS CLI is signed but not yet notarized.",
+      "fit": "Based on the described feature set, ThinkRail appears best suited to developers already using `pi`-based or compatible AI coding agents who want an IDE-integrated workflow with their own provider credentials, since ThinkRail has no accounts of its own."
     },
     "summaries": {
       "en": {
-        "goal": "ThinkRail is an agentic IDE built by JetBrains around the `pi` coding agent, combining isolated git-worktree workspaces, living `SPEC.md` specs, and reusable Agent Skills to give the agent durable project knowledge.",
-        "usage": "Install the desktop app or the `thinkrail` CLI; the documented command is `curl -fsSL https://raw.githubusercontent.com/JetBrains/thinkrail/main/install.sh | bash`, then run `thinkrail ~/code/my-repo` to open a git repository as a project. The CLI requires `git` on PATH and a signed-in model provider such as JetBrains AI.",
-        "pros": "Isolated git-worktree workspaces let agents work in parallel without touching the main checkout, and finished workspaces settle onto a per-project shelf automatically. Usage analytics are tied to a random installation ID and documented to exclude prompts, code, files, credentials, or account identity. The project is licensed under Apache License 2.0.",
-        "cons": "The native desktop build for macOS is limited to Apple Silicon, with no Intel build offered; Linux desktop and CLI artifacts are distributed unsigned. Local development additionally pins specific toolchain versions, Bun 1.4.4 and Node.js 22.19 or newer, which existing environments may need to match.",
-        "fit": "The documented setup suggests ThinkRail fits developers already using `git` and willing to authenticate a model provider such as JetBrains AI, since the CLI depends on both; it does not appear to bundle its own accounts or models."
+        "goal": "ThinkRail is a JetBrains incubator project described as an agentic IDE built around the `pi` coding agent (https://www.npmjs.com/package/@earendil-works/pi-coding-agent), adding isolated workspaces, living specs, and reusable skills, with full extension support planned for the future.",
+        "usage": "ThinkRail ships as a desktop installer or a self-contained `thinkrail` CLI. The CLI can be installed by running `curl -fsSL https://raw.githubusercontent.com/JetBrains/thinkrail/main/install.sh | bash`, then launched with `thinkrail ~/code/my-repo` to open a git repository as a project; `git` on PATH and a model provider such as JetBrains AI are required.",
+        "pros": "Each workspace is an isolated `git worktree`, letting multiple agents work in parallel without touching the user's checkout; the workbench adds editor tabs, terminals, and a live git diff view; it supports multiple concurrent `pi` chat sessions per workspace, `SPEC.md`-based living specs, MCP server connections, and reuse of Agent Skills.",
+        "cons": "Linux desktop builds require glibc 2.38 or newer along with GTK 3, WebKitGTK 4.1, Ayatana AppIndicator 3, and librsvg 2 (for example via `sudo apt install libgtk-3-0 libwebkit2gtk-4.1-0 libayatana-appindicator3-1 librsvg2-2`); there is no macOS Intel desktop build, and the macOS CLI is signed but not yet notarized.",
+        "fit": "Based on the described feature set, ThinkRail appears best suited to developers already using `pi`-based or compatible AI coding agents who want an IDE-integrated workflow with their own provider credentials, since ThinkRail has no accounts of its own."
       },
       "ko": {
-        "goal": "ThinkRail은 JetBrains가 `pi` 코딩 에이전트를 중심으로 만든 에이전틱 IDE로, 격리된 git-worktree 작업공간, 살아있는 `SPEC.md` 스펙, 재사용 가능한 Agent Skills을 결합해 에이전트에게 지속적인 프로젝트 지식을 제공합니다.",
-        "usage": "데스크톱 앱이나 `thinkrail` CLI를 설치할 수 있으며, 문서화된 명령은 `curl -fsSL https://raw.githubusercontent.com/JetBrains/thinkrail/main/install.sh | bash`이고, 이후 `thinkrail ~/code/my-repo`를 실행해 git 저장소를 프로젝트로 엽니다. CLI는 PATH에 `git`이 있어야 하고 JetBrains AI와 같은 모델 제공자에 로그인해야 합니다.",
-        "pros": "격리된 git-worktree 작업공간을 통해 에이전트가 메인 체크아웃을 건드리지 않고 병렬로 작업할 수 있고, 완료된 작업공간은 프로젝트별 셸프에 자동으로 정리됩니다. 사용 분석은 무작위 설치 ID에 연결되며 프롬프트, 코드, 파일, 자격 증명, 계정 식별 정보를 포함하지 않는다고 문서화되어 있습니다. 이 프로젝트는 Apache License 2.0으로 라이선스됩니다.",
-        "cons": "macOS용 네이티브 데스크톱 빌드는 Apple Silicon에만 제공되며 Intel 빌드는 없습니다. Linux 데스크톱과 CLI 아티팩트는 서명되지 않은 상태로 배포됩니다. 로컬 개발에는 Bun 1.4.4와 Node.js 22.19 이상이라는 특정 툴체인 버전이 필요하므로 기존 환경이 이를 맞춰야 할 수 있습니다.",
-        "fit": "문서화된 설정으로 볼 때 ThinkRail은 이미 `git`을 사용하고 JetBrains AI 같은 모델 제공자에 인증할 의향이 있는 개발자에게 적합해 보이며, CLI가 두 가지 모두에 의존하기 때문입니다. 자체 계정이나 모델을 내장하지는 않는 것으로 보입니다."
+        "goal": "ThinkRail은 JetBrains의 인큐베이터 프로젝트로 소개되는 에이전틱 IDE로, `pi` 코딩 에이전트(https://www.npmjs.com/package/@earendil-works/pi-coding-agent)를 중심으로 구축되었으며, 격리된 워크스페이스, 살아있는 스펙(living specs), 재사용 가능한 스킬을 추가하고, 향후 확장 기능 지원을 계획하고 있습니다.",
+        "usage": "ThinkRail은 데스크톱 설치 프로그램 또는 독립 실행형 `thinkrail` CLI로 제공됩니다. CLI는 `curl -fsSL https://raw.githubusercontent.com/JetBrains/thinkrail/main/install.sh | bash` 명령으로 설치할 수 있으며, 이후 `thinkrail ~/code/my-repo` 명령으로 git 저장소를 프로젝트로 열어 실행합니다. PATH에 `git`이 있어야 하고 JetBrains AI 등 모델 제공자 연결이 필요합니다.",
+        "pros": "각 워크스페이스는 격리된 `git worktree`로 만들어져 여러 에이전트가 사용자의 체크아웃을 건드리지 않고 병렬로 작업할 수 있습니다. 워크벤치는 에디터 탭, 터미널, 실시간 git diff 보기를 제공하며, 워크스페이스당 여러 개의 동시 `pi` 채팅 세션, `SPEC.md` 기반 살아있는 스펙, MCP 서버 연결, Agent Skills 재사용을 지원합니다.",
+        "cons": "Linux 데스크톱 빌드는 glibc 2.38 이상과 GTK 3, WebKitGTK 4.1, Ayatana AppIndicator 3, librsvg 2가 필요하며(예: `sudo apt install libgtk-3-0 libwebkit2gtk-4.1-0 libayatana-appindicator3-1 librsvg2-2`), macOS Intel용 데스크톱 빌드는 제공되지 않고, macOS CLI는 서명되었지만 아직 노터라이즈되지 않았습니다.",
+        "fit": "설명된 기능 구성을 볼 때, ThinkRail은 자체 계정이 없고 JetBrains AI 또는 사용자 자신의 제공자 자격 증명을 사용하는 구조이므로, 이미 `pi` 기반 또는 호환되는 AI 코딩 에이전트를 사용하며 IDE에 통합된 워크플로를 원하는 개발자에게 적합할 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "ThinkRail 是 JetBrains 围绕 `pi` 编码代理构建的智能体 IDE,结合隔离的 git-worktree 工作区、持续更新的 `SPEC.md` 规格文件,以及可复用的 Agent Skills,为代理提供持久的项目知识。",
-        "usage": "可以安装桌面应用或 `thinkrail` CLI;文档中的命令为 `curl -fsSL https://raw.githubusercontent.com/JetBrains/thinkrail/main/install.sh | bash`,随后运行 `thinkrail ~/code/my-repo` 将某个 git 仓库作为项目打开。CLI 需要 PATH 中有 `git`,并需要登录如 JetBrains AI 之类的模型提供方。",
-        "pros": "隔离的 git-worktree 工作区让代理可以并行工作而不影响主工作目录,完成的工作区会自动归入按项目划分的搁置区。使用分析与随机安装 ID 绑定,文档说明其不包含提示词、代码、文件、凭据或账户身份信息。该项目基于 Apache License 2.0 授权。",
-        "cons": "macOS 原生桌面版仅支持 Apple Silicon,没有提供 Intel 版本。Linux 桌面和 CLI 构件均以未签名方式发布。本地开发还固定了具体的工具链版本,即 Bun 1.4.4 和 Node.js 22.19 或更高版本,现有环境可能需要与之匹配。",
-        "fit": "根据文档中的安装要求,ThinkRail 似乎更适合已经使用 `git` 并愿意登录如 JetBrains AI 之类模型提供方的开发者,因为 CLI 依赖这两者。它看起来并不自带账户或模型。"
+        "goal": "ThinkRail 是 JetBrains 的孵化器项目,被描述为一个围绕 `pi` 编码代理(https://www.npmjs.com/package/@earendil-works/pi-coding-agent)构建的智能体 IDE,增加了隔离工作区、动态规范(living specs)和可复用技能,并计划未来提供完整的扩展支持。",
+        "usage": "ThinkRail 提供桌面安装程序或独立的 `thinkrail` CLI 两种形式。可通过 `curl -fsSL https://raw.githubusercontent.com/JetBrains/thinkrail/main/install.sh | bash` 命令安装 CLI,然后使用 `thinkrail ~/code/my-repo` 命令打开一个 git 仓库作为项目运行;需要 PATH 中有 `git`,并连接如 JetBrains AI 之类的模型提供方。",
+        "pros": "每个工作区是一个隔离的 `git worktree`,使多个代理可以并行工作而不影响用户自己的检出目录;工作台提供编辑器标签、终端和实时 git 差异视图;每个工作区支持多个并发的 `pi` 聊天会话,以及基于 `SPEC.md` 的动态规范、MCP 服务器连接和 Agent Skills 复用。",
+        "cons": "Linux 桌面版需要 glibc 2.38 及以上版本,并配合 GTK 3、WebKitGTK 4.1、Ayatana AppIndicator 3 和 librsvg 2(例如运行 `sudo apt install libgtk-3-0 libwebkit2gtk-4.1-0 libayatana-appindicator3-1 librsvg2-2`);目前没有 macOS Intel 桌面版本,且 macOS CLI 已签名但尚未经过 notarization。",
+        "fit": "从所描述的功能来看,ThinkRail 似乎更适合已经在使用 `pi` 或兼容 AI 编码代理、并希望获得集成于 IDE 中的工作流程的开发者,因为 ThinkRail 本身没有账户体系,而是依赖 JetBrains AI 或用户自带的提供方凭证。"
       },
       "es": {
-        "goal": "ThinkRail es un IDE agéntico creado por JetBrains alrededor del agente de codificación `pi`, que combina espacios de trabajo aislados mediante git-worktree, especificaciones vivas en `SPEC.md` y Agent Skills reutilizables para dar al agente conocimiento duradero del proyecto.",
-        "usage": "Se puede instalar la app de escritorio o la CLI `thinkrail`; el comando documentado es `curl -fsSL https://raw.githubusercontent.com/JetBrains/thinkrail/main/install.sh | bash`, y luego se ejecuta `thinkrail ~/code/my-repo` para abrir un repositorio git como proyecto. La CLI requiere `git` en el PATH y una sesión iniciada con un proveedor de modelos como JetBrains AI.",
-        "pros": "Los espacios de trabajo aislados por git-worktree permiten que los agentes trabajen en paralelo sin tocar el checkout principal, y los espacios terminados se archivan automáticamente en un estante por proyecto. La analítica de uso está vinculada a un ID de instalación aleatorio y, según la documentación, no incluye prompts, código, archivos, credenciales ni identidad de cuenta. El proyecto está licenciado bajo Apache License 2.0.",
-        "cons": "La build nativa de escritorio para macOS solo admite Apple Silicon, sin build para Intel. Los artefactos de escritorio y CLI de Linux se distribuyen sin firmar. El desarrollo local además fija versiones concretas de herramientas, Bun 1.4.4 y Node.js 22.19 o superior, que los entornos existentes podrían necesitar igualar.",
-        "fit": "La configuración documentada sugiere que ThinkRail se ajusta a desarrolladores que ya usan `git` y están dispuestos a autenticarse con un proveedor de modelos como JetBrains AI, ya que la CLI depende de ambos. No parece incluir cuentas o modelos propios."
+        "goal": "ThinkRail es un proyecto incubadora de JetBrains descrito como un IDE agentivo construido alrededor del agente de codificación `pi` (https://www.npmjs.com/package/@earendil-works/pi-coding-agent), que añade espacios de trabajo aislados, especificaciones vivas (living specs) y habilidades reutilizables, con soporte completo de extensiones planeado para el futuro.",
+        "usage": "ThinkRail se distribuye como un instalador de escritorio o como la CLI independiente `thinkrail`. La CLI puede instalarse con el comando `curl -fsSL https://raw.githubusercontent.com/JetBrains/thinkrail/main/install.sh | bash`, y luego se ejecuta con `thinkrail ~/code/my-repo` para abrir un repositorio git como proyecto; se requiere `git` en el PATH y un proveedor de modelo, como JetBrains AI.",
+        "pros": "Cada espacio de trabajo es un `git worktree` aislado, lo que permite que varios agentes trabajen en paralelo sin tocar el checkout del usuario; el workbench añade pestañas de editor, terminales y una vista de diferencias git en vivo; admite varias sesiones de chat `pi` simultáneas por espacio de trabajo, especificaciones vivas basadas en `SPEC.md`, conexiones a servidores MCP y reutilización de Agent Skills.",
+        "cons": "Las compilaciones de escritorio para Linux requieren glibc 2.38 o superior junto con GTK 3, WebKitGTK 4.1, Ayatana AppIndicator 3 y librsvg 2 (por ejemplo, mediante `sudo apt install libgtk-3-0 libwebkit2gtk-4.1-0 libayatana-appindicator3-1 librsvg2-2`); no existe compilación de escritorio para macOS Intel, y la CLI de macOS está firmada pero aún no notarizada.",
+        "fit": "A partir de las funciones descritas, ThinkRail parece ser más adecuado para desarrolladores que ya usan agentes de codificación IA basados en `pi` o compatibles y que desean un flujo de trabajo integrado en el IDE con sus propias credenciales de proveedor, ya que ThinkRail no tiene cuentas propias."
       },
       "ja": {
-        "goal": "ThinkRailはJetBrainsが`pi`コーディングエージェントを中心に構築したエージェント型IDEで、分離されたgit-worktreeワークスペース、常に更新される`SPEC.md`仕様、再利用可能なAgent Skillsを組み合わせ、エージェントに持続的なプロジェクト知識を与える。",
-        "usage": "デスクトップアプリまたは`thinkrail` CLIをインストールでき、文書化されたコマンドは`curl -fsSL https://raw.githubusercontent.com/JetBrains/thinkrail/main/install.sh | bash`で、その後`thinkrail ~/code/my-repo`を実行してgitリポジトリをプロジェクトとして開く。CLIにはPATH上の`git`と、JetBrains AIなどのモデルプロバイダへのサインインが必要。",
-        "pros": "分離されたgit-worktreeワークスペースにより、エージェントはメインのチェックアウトに触れずに並行作業でき、完了したワークスペースはプロジェクトごとの保管棚に自動的に収まる。使用状況分析はランダムなインストールIDに紐づけられ、プロンプト、コード、ファイル、資格情報、アカウント識別情報は含まれないと文書化されている。プロジェクトはApache License 2.0の下でライセンスされている。",
-        "cons": "macOS向けネイティブデスクトップビルドはApple Siliconのみ対応し、Intel向けビルドは提供されない。Linuxのデスクトップおよびcliアーティファクトは未署名で配布される。ローカル開発にはBun 1.4.4とNode.js 22.19以上という特定のツールチェーンバージョンが固定されており、既存の環境はこれに合わせる必要が生じうる。",
-        "fit": "文書化されたセットアップから判断すると、ThinkRailはすでに`git`を使用し、JetBrains AIのようなモデルプロバイダで認証する意思のある開発者に適していると考えられる。CLIがその両方に依存するためである。独自のアカウントやモデルは内蔵していないようだ。"
+        "goal": "ThinkRailはJetBrainsのインキュベータープロジェクトとして紹介されているエージェント型IDEで、`pi`コーディングエージェント(https://www.npmjs.com/package/@earendil-works/pi-coding-agent)を中心に構築されており、分離されたワークスペース、living specs(生きた仕様書)、再利用可能なスキルを追加し、将来的な拡張機能の完全サポートを計画しています。",
+        "usage": "ThinkRailはデスクトップインストーラー、または自己完結型の`thinkrail` CLIの2形態で提供されます。CLIは`curl -fsSL https://raw.githubusercontent.com/JetBrains/thinkrail/main/install.sh | bash`コマンドでインストールでき、その後`thinkrail ~/code/my-repo`コマンドでgitリポジトリをプロジェクトとして開いて実行します。PATHに`git`が必要で、JetBrains AIなどのモデルプロバイダーとの接続が必要です。",
+        "pros": "各ワークスペースは分離された`git worktree`として作成され、複数のエージェントがユーザーのチェックアウトに影響を与えずに並行作業できます。ワークベンチにはエディタタブ、ターミナル、リアルタイムのgit差分表示が含まれ、ワークスペースごとに複数の`pi`チャットセッションを同時に実行でき、`SPEC.md`ベースのliving specs、MCPサーバー接続、Agent Skillsの再利用もサポートします。",
+        "cons": "Linuxデスクトップビルドにはglibc 2.38以上に加え、GTK 3、WebKitGTK 4.1、Ayatana AppIndicator 3、librsvg 2が必要です(例:`sudo apt install libgtk-3-0 libwebkit2gtk-4.1-0 libayatana-appindicator3-1 librsvg2-2`を実行)。macOS Intel向けデスクトップビルドは存在せず、macOS CLIは署名されていますが、まだノータライズされていません。",
+        "fit": "記載されている機能から判断すると、ThinkRailは独自のアカウントを持たず、JetBrains AIまたは利用者自身のプロバイダー資格情報を使う構成であるため、既に`pi`ベースまたは互換のAIコーディングエージェントを使用し、IDEに統合されたワークフローを求める開発者に適していると考えられます。"
       }
     },
     "evidence": {
       "goal": [
+        {
+          "start_line": 1,
+          "end_line": 1,
+          "section_heading": "ThinkRail"
+        },
         {
           "start_line": 6,
           "end_line": 12,
@@ -1455,54 +1466,64 @@
       ],
       "usage": [
         {
-          "start_line": 108,
-          "end_line": 122,
+          "start_line": 89,
+          "end_line": 99,
+          "section_heading": "Desktop"
+        },
+        {
+          "start_line": 110,
+          "end_line": 116,
           "section_heading": "Command line"
         },
         {
           "start_line": 124,
-          "end_line": 125,
+          "end_line": 131,
           "section_heading": "Command line"
         }
       ],
       "pros": [
         {
-          "start_line": 27,
-          "end_line": 31,
+          "start_line": 33,
+          "end_line": 42,
           "section_heading": "What you get"
         },
         {
-          "start_line": 180,
-          "end_line": 183,
-          "section_heading": "Analytics & privacy"
+          "start_line": 47,
+          "end_line": 53,
+          "section_heading": "What you get"
         },
         {
-          "start_line": 237,
-          "end_line": 237,
-          "section_heading": "License"
+          "start_line": 61,
+          "end_line": 65,
+          "section_heading": "What you get"
         }
       ],
       "cons": [
         {
-          "start_line": 169,
-          "end_line": 169,
+          "start_line": 94,
+          "end_line": 99,
+          "section_heading": "Desktop"
+        },
+        {
+          "start_line": 175,
+          "end_line": 175,
           "section_heading": "Platform notes"
         },
         {
-          "start_line": 171,
-          "end_line": 176,
+          "start_line": 180,
+          "end_line": 180,
           "section_heading": "Platform notes"
-        },
-        {
-          "start_line": 210,
-          "end_line": 210,
-          "section_heading": "Developing ThinkRail"
         }
       ],
       "fit": [
         {
-          "start_line": 124,
-          "end_line": 125,
+          "start_line": 66,
+          "end_line": 69,
+          "section_heading": "What you get"
+        },
+        {
+          "start_line": 130,
+          "end_line": 131,
           "section_heading": "Command line"
         }
       ]
@@ -1523,6 +1544,27 @@
         ]
       },
       {
+        "kind": "command",
+        "value": "sudo apt install libgtk-3-0 libwebkit2gtk-4.1-0 libayatana-appindicator3-1 librsvg2-2",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "2.38",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://www.npmjs.com/package/@earendil-works/pi-coding-agent",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
         "kind": "product",
         "value": "ThinkRail",
         "fields": [
@@ -1536,35 +1578,28 @@
         "value": "pi",
         "fields": [
           "goal",
-          "cons"
+          "pros",
+          "cons",
+          "fit"
         ]
       },
       {
         "kind": "product",
         "value": "JetBrains AI",
         "fields": [
-          "usage",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Apache License 2.0",
-        "fields": [
-          "pros"
+          "usage"
         ]
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "jetbrains/thinkrail",
       "path": "README.md",
-      "blob_sha": "4752670fc227d3227e3922f14b976991f5209cb3",
-      "content_sha256": "cad7018e8ded3672e9b181c85f51b0574d5df942ae7f8515f29705d59723ed7b",
+      "blob_sha": "3333f8273d8e5d563e214c8bf2955a7807970b25",
+      "content_sha256": "fd24ca126030d40545da0beadc26fa00d673070cc131fabaf3a15863ab549777",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.310",
@@ -6712,47 +6747,47 @@
   },
   "Gaurav-Gosain/tuios": {
     "content": {
-      "goal": "TUIOS is a terminal multiplexer and window manager built in Go, offering a vim-like modal interface with multiple terminal panes, workspaces, BSP tiling, kitty graphics protocol support, and a daemon that keeps sessions alive while letting coding agents report their state.",
-      "usage": "Install it with `brew install tuios` or `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest`, then run `tuios` to launch a daemon-backed session.",
-      "pros": "Built on the Charm stack (Bubble Tea v2, Lipgloss v2), it uses event-driven rendering described as giving near-zero idle CPU usage, along with flicker-free kitty graphics passthrough.",
-      "cons": "Building from source requires Go 1.26.8 or newer, and some graphics features, such as sixel passthrough and the kitty text sizing protocol, are explicitly marked experimental with documented limitations.",
-      "fit": "Based on its true-color and kitty/sixel graphics recommendations, TUIOS seems best suited to terminal users on capable emulators like Ghostty, Kitty, or WezTerm who want tiling window management combined with coding-agent session tracking."
+      "goal": "TUIOS is a terminal multiplexer and window manager built with Go, providing a vim-like modal interface with multiple terminal panes, workspaces, BSP tiling, kitty graphics protocol support, and a command palette inside an existing terminal, with a daemon that keeps sessions alive and lets coding agents in panes report their state.",
+      "usage": "Install with `brew install tuios` (Homebrew on macOS/Linux) or other documented methods, then run `tuios` to launch the application, which attaches to a daemon-backed session so work persists after the terminal window closes.",
+      "pros": "Built on the Charm stack (Bubble Tea v2, Lipgloss v2), it features event-driven rendering intended for near-zero idle CPU usage, flicker-free kitty image passthrough, and comprehensive keyboard/mouse interaction.",
+      "cons": "Building from source requires Go 1.26.8 or newer, and documentation describes sixel graphics passthrough as experimental, without pixel-level clipping yet, suggesting some graphics features may still have rough edges.",
+      "fit": "This appears suited to developers who work in the terminal with multiple panes and coding agents, since the tool tracks and reports agent state across panes, though it may be less relevant for users who don't run agent-driven workflows."
     },
     "summaries": {
       "en": {
-        "goal": "TUIOS is a terminal multiplexer and window manager built in Go, offering a vim-like modal interface with multiple terminal panes, workspaces, BSP tiling, kitty graphics protocol support, and a daemon that keeps sessions alive while letting coding agents report their state.",
-        "usage": "Install it with `brew install tuios` or `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest`, then run `tuios` to launch a daemon-backed session.",
-        "pros": "Built on the Charm stack (Bubble Tea v2, Lipgloss v2), it uses event-driven rendering described as giving near-zero idle CPU usage, along with flicker-free kitty graphics passthrough.",
-        "cons": "Building from source requires Go 1.26.8 or newer, and some graphics features, such as sixel passthrough and the kitty text sizing protocol, are explicitly marked experimental with documented limitations.",
-        "fit": "Based on its true-color and kitty/sixel graphics recommendations, TUIOS seems best suited to terminal users on capable emulators like Ghostty, Kitty, or WezTerm who want tiling window management combined with coding-agent session tracking."
+        "goal": "TUIOS is a terminal multiplexer and window manager built with Go, providing a vim-like modal interface with multiple terminal panes, workspaces, BSP tiling, kitty graphics protocol support, and a command palette inside an existing terminal, with a daemon that keeps sessions alive and lets coding agents in panes report their state.",
+        "usage": "Install with `brew install tuios` (Homebrew on macOS/Linux) or other documented methods, then run `tuios` to launch the application, which attaches to a daemon-backed session so work persists after the terminal window closes.",
+        "pros": "Built on the Charm stack (Bubble Tea v2, Lipgloss v2), it features event-driven rendering intended for near-zero idle CPU usage, flicker-free kitty image passthrough, and comprehensive keyboard/mouse interaction.",
+        "cons": "Building from source requires Go 1.26.8 or newer, and documentation describes sixel graphics passthrough as experimental, without pixel-level clipping yet, suggesting some graphics features may still have rough edges.",
+        "fit": "This appears suited to developers who work in the terminal with multiple panes and coding agents, since the tool tracks and reports agent state across panes, though it may be less relevant for users who don't run agent-driven workflows."
       },
       "ko": {
-        "goal": "TUIOS는 Go로 만들어진 터미널 멀티플렉서 겸 윈도우 매니저로, vim 스타일의 모달 인터페이스와 여러 터미널 패널, 워크스페이스, BSP 타일링, kitty 그래픽 프로토콜 지원을 제공하며, 세션을 유지하고 코딩 에이전트가 상태를 보고할 수 있게 하는 데몬을 포함합니다.",
-        "usage": "`brew install tuios` 또는 `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest` 명령으로 설치한 뒤 `tuios`를 실행하면 데몬 기반 세션이 시작됩니다.",
-        "pros": "Charm 스택(Bubble Tea v2, Lipgloss v2) 위에 구축되어, 이벤트 기반 렌더링으로 유휴 상태 CPU 사용량이 거의 0에 가깝다고 설명되며 깜빡임 없는 kitty 그래픽 패스스루도 제공됩니다.",
-        "cons": "소스에서 빌드하려면 Go 1.26.8 이상이 필요하며, sixel 패스스루와 kitty 텍스트 크기 조정 프로토콜 같은 일부 그래픽 기능은 실험적이라고 명시되어 있고 문서화된 한계가 있습니다.",
-        "fit": "트루컬러 및 kitty/sixel 그래픽 권장 사항에 근거할 때, TUIOS는 Ghostty, Kitty, WezTerm 같은 지원 터미널에서 타일링 창 관리와 코딩 에이전트 세션 추적을 함께 원하는 사용자에게 적합해 보입니다."
+        "goal": "TUIOS는 Go로 구축된 터미널 멀티플렉서 겸 윈도우 매니저로, 기존 터미널 안에서 여러 터미널 패인, 작업 공간, BSP 타일링, kitty 그래픽 프로토콜 지원, 커맨드 팔레트를 제공하는 vim 스타일 모달 인터페이스를 갖추고 있으며, 데몬이 세션을 유지하고 패인 안의 코딩 에이전트가 상태를 보고하도록 합니다.",
+        "usage": "`brew install tuios`(macOS/Linux용 Homebrew) 등 문서화된 방법으로 설치한 뒤 `tuios`를 실행하면 데몬 기반 세션에 연결되어, 터미널 창을 닫아도 작업이 유지됩니다.",
+        "pros": "Charm 스택(Bubble Tea v2, Lipgloss v2) 위에 구축되어 유휴 상태에서 CPU 사용량을 거의 0에 가깝게 만드는 이벤트 기반 렌더링, 깜빡임 없는 kitty 이미지 패스스루, 폭넓은 키보드/마우스 상호작용을 제공합니다.",
+        "cons": "소스에서 빌드하려면 Go 1.26.8 이상이 필요하며, 문서에는 sixel 그래픽 패스스루가 아직 실험적이고 픽셀 단위 클리핑을 지원하지 않는다고 적혀 있어, 일부 그래픽 기능은 아직 다듬어지지 않았을 수 있습니다.",
+        "fit": "패인 안의 코딩 에이전트 상태를 추적·보고하는 기능이 있으므로 여러 패인과 에이전트를 함께 다루는 터미널 사용자에게 적합해 보이지만, 에이전트 기반 워크플로를 쓰지 않는 사용자에게는 덜 유용할 수 있습니다."
       },
       "zh-CN": {
-        "goal": "TUIOS 是用 Go 构建的终端多路复用器和窗口管理器,提供类似 vim 的模态界面,支持多个终端面板、工作区、BSP 平铺、kitty 图形协议,并包含一个守护进程来保持会话存活并让编码代理报告其状态。",
-        "usage": "使用 `brew install tuios` 或 `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest` 安装,然后运行 `tuios` 启动一个由守护进程支持的会话。",
-        "pros": "该项目基于 Charm 技术栈(Bubble Tea v2、Lipgloss v2)构建,采用事件驱动渲染,据称在空闲时 CPU 占用接近于零,并提供无闪烁的 kitty 图形透传。",
-        "cons": "从源码构建需要 Go 1.26.8 或更高版本,而部分图形功能,例如 sixel 透传和 kitty 文本缩放协议,被明确标注为实验性且存在文档中说明的限制。",
-        "fit": "根据其对真彩色以及 kitty/sixel 图形的推荐要求推测,TUIOS 似乎更适合在 Ghostty、Kitty 或 WezTerm 等支持良好的终端上,希望同时获得平铺式窗口管理与编码代理会话跟踪的用户。"
+        "goal": "TUIOS 是一个基于 Go 构建的终端多路复用器和窗口管理器,在现有终端内提供类 vim 的模态界面,支持多个终端面板、工作区、BSP 平铺、kitty 图形协议以及命令面板,并由守护进程保持会话存活,让面板中的编码代理报告其状态。",
+        "usage": "可通过文档中列出的方式安装,例如 Homebrew(macOS/Linux)下的 `brew install tuios`,安装后运行 `tuios` 即可启动,它会连接到由守护进程支持的会话,因此关闭终端窗口后工作仍会保留。",
+        "pros": "该项目构建于 Charm 技术栈(Bubble Tea v2、Lipgloss v2)之上,具有旨在实现近乎零空闲 CPU 占用的事件驱动渲染、无闪烁的 kitty 图像透传,以及全面的键盘/鼠标交互。",
+        "cons": "从源代码构建需要 Go 1.26.8 或更高版本,文档说明 sixel 图形透传仍处于实验阶段,尚不支持像素级裁剪,这意味着部分图形功能可能仍不够完善。",
+        "fit": "由于该工具会追踪并报告面板中编码代理的状态,它似乎适合同时处理多个面板和代理的终端用户,但对不使用代理驱动工作流的用户可能用处有限。"
       },
       "es": {
-        "goal": "TUIOS es un multiplexor de terminal y gestor de ventanas construido en Go que ofrece una interfaz modal al estilo vim con múltiples paneles de terminal, espacios de trabajo, mosaico BSP, soporte para el protocolo de gráficos de kitty, y un daemon que mantiene las sesiones activas mientras permite que los agentes de código informen su estado.",
-        "usage": "Se instala con `brew install tuios` o `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest`, y luego se ejecuta `tuios` para iniciar una sesión respaldada por el daemon.",
-        "pros": "Construido sobre el stack de Charm (Bubble Tea v2, Lipgloss v2), usa renderizado basado en eventos que se describe como de uso de CPU casi nulo en reposo, además de un paso de gráficos kitty sin parpadeo.",
-        "cons": "Compilar desde el código fuente requiere Go 1.26.8 o posterior, y algunas funciones gráficas, como el paso de sixel y el protocolo de tamaño de texto de kitty, están marcadas explícitamente como experimentales con limitaciones documentadas.",
-        "fit": "A partir de sus recomendaciones de color verdadero y gráficos kitty/sixel, TUIOS parece adecuado para usuarios de terminal en emuladores compatibles como Ghostty, Kitty o WezTerm que buscan gestión de ventanas en mosaico junto con seguimiento de sesiones de agentes de código."
+        "goal": "TUIOS es un multiplexor de terminal y gestor de ventanas construido en Go que ofrece una interfaz modal al estilo vim con múltiples paneles de terminal, espacios de trabajo, mosaico BSP, soporte del protocolo de gráficos kitty y una paleta de comandos dentro de una terminal existente, con un daemon que mantiene las sesiones activas y permite que los agentes de codificación en los paneles informen su estado.",
+        "usage": "Se instala con métodos documentados como `brew install tuios` (Homebrew en macOS/Linux) y luego se ejecuta `tuios`, que se conecta a una sesión respaldada por un daemon, de modo que el trabajo persiste aunque se cierre la ventana de la terminal.",
+        "pros": "Construido sobre la pila Charm (Bubble Tea v2, Lipgloss v2), ofrece renderizado dirigido por eventos pensado para un uso de CPU casi nulo en reposo, transmisión de imágenes kitty sin parpadeo e interacción completa de teclado y ratón.",
+        "cons": "Compilar desde el código fuente requiere Go 1.26.8 o posterior, y la documentación describe el passthrough de gráficos sixel como experimental, sin recorte a nivel de píxel todavía, lo que sugiere que algunas funciones gráficas aún podrían tener aspectos sin pulir.",
+        "fit": "Parece adecuado para quienes trabajan en la terminal con múltiples paneles y agentes de codificación, ya que la herramienta rastrea e informa el estado de los agentes en los paneles, aunque podría ser menos relevante para quienes no usan flujos de trabajo basados en agentes."
       },
       "ja": {
-        "goal": "TUIOSはGoで構築されたターミナルマルチプレクサ兼ウィンドウマネージャーで、vim風のモーダルインターフェース、複数のターミナルペイン、ワークスペース、BSPタイリング、kittyグラフィックスプロトコル対応を提供し、セッションを維持しながらコーディングエージェントが状態を報告できるデーモンを備えています。",
-        "usage": "`brew install tuios` または `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest` でインストールし、`tuios` を実行するとデーモンに支えられたセッションが起動します。",
-        "pros": "Charmスタック(Bubble Tea v2、Lipgloss v2)上に構築され、イベント駆動レンダリングによりアイドル時のCPU使用率がほぼゼロになるとされ、ちらつきのないkittyグラフィックスパススルーも備えています。",
-        "cons": "ソースからビルドするにはGo 1.26.8以降が必要で、sixelパススルーやkittyテキストサイジングプロトコルなど一部のグラフィック機能は実験的と明記され、文書化された制限があります。",
-        "fit": "トゥルーカラーおよびkitty/sixelグラフィックスの推奨事項から判断すると、TUIOSはGhostty、Kitty、WezTermなど対応ターミナルを使い、タイリングウィンドウ管理とコーディングエージェントのセッション追跡を両立させたいユーザーに適していると考えられます。"
+        "goal": "TUIOSはGoで構築されたターミナルマルチプレクサ兼ウィンドウマネージャーで、既存のターミナル内で複数のターミナルペイン、ワークスペース、BSPタイリング、kittyグラフィックスプロトコル対応、コマンドパレットを備えたvim風のモーダルインターフェースを提供し、デーモンがセッションを維持し、ペイン内のコーディングエージェントが状態を報告できるようにします。",
+        "usage": "`brew install tuios`(macOS/Linux向けHomebrew)など文書化された方法でインストールし、`tuios`を実行すると、デーモンに支えられたセッションに接続されるため、ターミナルウィンドウを閉じても作業が維持されます。",
+        "pros": "Charmスタック(Bubble Tea v2、Lipgloss v2)上に構築されており、アイドル時のCPU使用率をほぼゼロに近づけることを目指したイベント駆動型レンダリング、ちらつきのないkitty画像パススルー、充実したキーボード/マウス操作を特徴とします。",
+        "cons": "ソースからビルドするにはGo 1.26.8以降が必要で、ドキュメントによるとsixelグラフィックスのパススルーはまだ実験的でピクセル単位のクリッピングに未対応とされており、一部のグラフィック機能はまだ完全ではない可能性があります。",
+        "fit": "ペイン内のコーディングエージェントの状態を追跡・報告する機能があるため、複数のペインやエージェントを扱うターミナル利用者に向いていると考えられますが、エージェント駆動のワークフローを使わない利用者にはあまり関係がないかもしれません。"
       }
     },
     "evidence": {
@@ -6765,18 +6800,13 @@
       ],
       "usage": [
         {
-          "start_line": 75,
-          "end_line": 75,
+          "start_line": 73,
+          "end_line": 76,
           "section_heading": "Package Managers"
         },
         {
-          "start_line": 105,
-          "end_line": 105,
-          "section_heading": "Other Methods"
-        },
-        {
-          "start_line": 265,
-          "end_line": 265,
+          "start_line": 264,
+          "end_line": 272,
           "section_heading": "Quick Start"
         }
       ],
@@ -6785,11 +6815,6 @@
           "start_line": 27,
           "end_line": 27,
           "section_heading": ""
-        },
-        {
-          "start_line": 343,
-          "end_line": 344,
-          "section_heading": "Performance"
         }
       ],
       "cons": [
@@ -6802,18 +6827,18 @@
           "start_line": 217,
           "end_line": 217,
           "section_heading": "Graphics & Protocols"
-        },
-        {
-          "start_line": 223,
-          "end_line": 223,
-          "section_heading": "Graphics & Protocols"
         }
       ],
       "fit": [
         {
-          "start_line": 146,
-          "end_line": 146,
-          "section_heading": "Shell Completions"
+          "start_line": 25,
+          "end_line": 25,
+          "section_heading": ""
+        },
+        {
+          "start_line": 178,
+          "end_line": 178,
+          "section_heading": "Agents"
         }
       ]
     },
@@ -6821,13 +6846,6 @@
       {
         "kind": "command",
         "value": "brew install tuios",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest",
         "fields": [
           "usage"
         ]
@@ -6848,11 +6866,10 @@
       },
       {
         "kind": "product",
-        "value": "TUIOS",
+        "value": "tuios",
         "fields": [
           "goal",
-          "usage",
-          "fit"
+          "usage"
         ]
       },
       {
@@ -6871,14 +6888,15 @@
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "gaurav-gosain/tuios",
       "path": "README.md",
-      "blob_sha": "58e886923eb8c9110b9b12f72b7c6f7a8c24231f",
-      "content_sha256": "d3ce8e02878b0dd96cadc8f228ab65f3befbec6dbddf3d24c532de0bea2b5158",
+      "blob_sha": "e300cd7d6956aa87de17341960cc8cd4cdc064fe",
+      "content_sha256": "4bd8f1dbc154cd2132f083bca59afc316f5299f2a96f89abd55fa8e58a5e0662",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.310",
