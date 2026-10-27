@@ -1,6 +1,6 @@
 {
-  "snapshotId": "20261027002242-a8d824b3b10de19b",
-  "generatedAt": "2026-10-27T00:22:42.877Z",
+  "snapshotId": "20261027085323-6f6fc240046bc321",
+  "generatedAt": "2026-10-27T08:53:23.340Z",
   "statsDate": "2026-10-27",
   "count": 40,
   "repos": [
@@ -10,9 +10,9 @@
       "description": "Anti-AI-slop design skill for Claude Code, Cursor, and Codex.",
       "lang": "CSS",
       "topics": [],
-      "stars": 36282,
-      "forks": 1894,
-      "issues": 62,
+      "stars": 37472,
+      "forks": 1953,
+      "issues": 64,
       "contributors": 5,
       "gains": {
         "daily": 2244,
@@ -50,9 +50,9 @@
         "multiagent",
         "trading"
       ],
-      "stars": 116077,
-      "forks": 22274,
-      "issues": 154,
+      "stars": 116740,
+      "forks": 22364,
+      "issues": 87,
       "contributors": 24,
       "gains": {
         "daily": 1395,
@@ -60,21 +60,14 @@
         "monthly": null
       },
       "signal": null,
-      "summary": {
-        "goal": "TradingAgents is a multi-agent, LLM-powered financial trading framework that simulates specialized roles (fundamentals, sentiment, news, and technical analysts; bullish/bearish researchers; a trader; and risk/portfolio managers) to collaboratively evaluate market conditions and produce trading decisions. The README states it is designed for research purposes and is not intended as financial, investment, or trading advice.",
-        "usage": "Install by cloning the repository (`git clone https://github.com/TauricResearch/TradingAgents.git`) with Python 3.11 or later, then run `pip install .`. Launch the interactive CLI with `tradingagents` or `python -m cli.main`, or use it as a Python package by importing `TradingAgentsGraph` from `tradingagents.graph.trading_graph` and calling its `.propagate()` method.",
-        "pros": "It supports many LLM providers (OpenAI, Google, Anthropic, xAI, DeepSeek, Qwen, GLM, MiniMax, OpenRouter, Ollama, Azure, and ChatGPT subscriptions), runs selected analysts in parallel before the research debate starts, and includes a `run_backtest` function plus opt-in checkpoint resume so interrupted runs continue from the last successful step.",
-        "cons": "Because outputs are LLM-driven, two runs on the same ticker and date can differ, which the README frames as expected rather than a defect; this suggests backtest results should not be treated as guaranteed or exactly reproducible figures.",
-        "fit": "This suggests the framework is best suited for research and experimentation with multi-agent trading analysis rather than for deployment as a strategy expected to deliver a fixed, replicable return."
-      },
-      "summary_status": "retained",
+      "summary": null,
+      "summary_status": "held",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml"
       ],
       "form_tags": [
         "agent",
-        "framework",
         "cli"
       ]
     },
@@ -98,8 +91,8 @@
         "vibe-coding",
         "vibecoding"
       ],
-      "stars": 2883,
-      "forks": 154,
+      "stars": 3352,
+      "forks": 179,
       "issues": 226,
       "contributors": 26,
       "gains": {
@@ -108,14 +101,8 @@
         "monthly": null
       },
       "signal": null,
-      "summary": {
-        "goal": "ThinkRail is a JetBrains incubator project presenting itself as an agentic IDE built around the `pi` coding agent. It tracks project knowledge through living `SPEC.md` specs and reportedly plans to add extension support so the agent can build its own tools (described as a future plan, not yet available).",
-        "usage": "ThinkRail installs as a desktop app or via a CLI. On macOS/Linux, run `curl -fsSL https://raw.githubusercontent.com/JetBrains/thinkrail/main/install.sh | bash`; on Windows the equivalent install.ps1 command works from cmd or PowerShell. Afterward, run `thinkrail`, optionally pointing it at a git repository to open as a project.",
-        "pros": "Documented capabilities include isolated workspaces created from `git worktree`s so agents can work in parallel without touching the main checkout, living specs the agent reads and maintains, and MCP server integration that asks for approval before calling servers not marked read-only.",
-        "cons": "Linux desktop builds require specific system libraries (glibc 2.38+, GTK 3, WebKitGTK 4.1, Ayatana AppIndicator 3, librsvg 2) on Ubuntu 24.04 or newer and remain unsigned; macOS CLI builds are signed but not yet notarized, which may affect installation on some systems.",
-        "fit": "Development requires Bun 1.4.4 and Node.js 22.19 or later, plus an authenticated `pi` provider, suggesting ThinkRail likely fits teams already comfortable with git worktrees and willing to adopt the `pi` agent ecosystem rather than serving as a standalone editor replacement."
-      },
-      "summary_status": "retained",
+      "summary": null,
+      "summary_status": "held",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -146,24 +133,18 @@
         "typescript",
         "windows"
       ],
-      "stars": 6451,
-      "forks": 788,
-      "issues": 2029,
-      "contributors": 166,
+      "stars": 6987,
+      "forks": 838,
+      "issues": 2064,
+      "contributors": 167,
       "gains": {
         "daily": 1296,
         "weekly": null,
         "monthly": null
       },
       "signal": null,
-      "summary": {
-        "goal": "Cindy is an open-source AI agent client that runs locally, combining multiple harnesses (currently Claude Code and Codex, with more planned) with various models and tools to complete real work in your projects and apps.",
-        "usage": "Clone the repository with `git clone https://github.com/makecindy/cindy.git`, then run `cd cindy`, `git lfs pull`, and `pnpm install` to set up the pnpm monorepo. Node.js 22.x, pnpm 10.x, and Git LFS are listed as prerequisites.",
-        "pros": "The client is free and its source is open under Apache-2.0. Users can authorize an existing Claude Code or Codex coding plan inside Cindy without a duplicate bill, connect their own API keys, or use local models. Extensibility includes shared memory, reusable skills, automation, MCP integration, and plugins.",
-        "cons": "pnpm version 11 is explicitly stated as not yet supported, requiring pnpm 10.x. Choosing 'Skip Sign-In' avoids a Cindy account but disables server-backed capabilities. The backend service itself lives in a separate repository and is not included in this monorepo.",
-        "fit": "Based on its monorepo structure (Electron desktop app, Expo/React Native mobile app, shared packages) and its integration with Claude Code/Codex plans, this client repo appears best suited for developers who already use those coding plans and want a local, extensible AI agent."
-      },
-      "summary_status": "retained",
+      "summary": null,
+      "summary_status": "held",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -191,9 +172,9 @@
         "mcp",
         "productivity"
       ],
-      "stars": 289832,
-      "forks": 42945,
-      "issues": 248,
+      "stars": 290185,
+      "forks": 43005,
+      "issues": 249,
       "contributors": 458,
       "gains": {
         "daily": 896,
@@ -226,8 +207,8 @@
       "description": "The design language that makes your AI harness better at design.",
       "lang": "Rust",
       "topics": [],
-      "stars": 89181,
-      "forks": 5310,
+      "stars": 89669,
+      "forks": 5328,
       "issues": 43,
       "contributors": 61,
       "gains": {
@@ -243,7 +224,7 @@
         "cons": "Live mode is documented as supported only for local checkouts through a development server or local static HTML; injecting it into a deployed production site, including over HTTPS, is explicitly not supported.",
         "fit": "The README lists support across many AI coding tools and environments, including Cursor, Claude Code, GitHub Copilot, Devin, Gemini CLI, Codex CLI, Grok Build, Hermes Agent, OpenCode, Pi, Kiro, Trae, Rovo Dev, Qoder, Mistral Vibe, Veto, and Google Antigravity, suggesting broad applicability for teams using varied agent harnesses."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -273,9 +254,9 @@
         "security-workflow",
         "supply-chain-security"
       ],
-      "stars": 22170,
-      "forks": 1936,
-      "issues": 175,
+      "stars": 22549,
+      "forks": 1960,
+      "issues": 180,
       "contributors": 104,
       "gains": {
         "daily": 214,
@@ -308,9 +289,9 @@
       "description": "A Tiny biped duck robot 🦆",
       "lang": "Rust",
       "topics": [],
-      "stars": 12403,
-      "forks": 1546,
-      "issues": 80,
+      "stars": 12616,
+      "forks": 1563,
+      "issues": 85,
       "contributors": 19,
       "gains": {
         "daily": 843,
@@ -351,9 +332,9 @@
         "solidjs",
         "typescript"
       ],
-      "stars": 1460,
-      "forks": 184,
-      "issues": 202,
+      "stars": 1759,
+      "forks": 206,
+      "issues": 212,
       "contributors": 36,
       "gains": {
         "daily": 176,
@@ -404,9 +385,9 @@
         "xiaohongshu",
         "youtube-transcript"
       ],
-      "stars": 103565,
-      "forks": 9187,
-      "issues": 253,
+      "stars": 104295,
+      "forks": 9245,
+      "issues": 256,
       "contributors": 38,
       "gains": {
         "daily": 746,
@@ -458,9 +439,9 @@
         "voicestudio",
         "workflow"
       ],
-      "stars": 89206,
-      "forks": 9843,
-      "issues": 129,
+      "stars": 90168,
+      "forks": 9940,
+      "issues": 72,
       "contributors": 118,
       "gains": {
         "daily": 2297,
@@ -475,7 +456,7 @@
         "cons": "The CPU-only fallback installs a smaller PyTorch build and reportedly needs about 5 GB of free disk space, implying setup time and storage are needed when no supported GPU is present. AMD GPU acceleration on Windows likewise requires an opt-in ROCm configuration rather than working by default.",
         "fit": "This project appears best suited to users wanting a local-first, AGPL-3.0-licensed voice toolkit via the Electron desktop app, since the earlier Tauri-based shell was retired at version 0.5.3. Intel Mac users may need to rely on a remote backend rather than fully local processing."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -502,8 +483,8 @@
         "social-media-scheduling-tool",
         "typescript"
       ],
-      "stars": 38442,
-      "forks": 7455,
+      "stars": 38760,
+      "forks": 7467,
       "issues": 222,
       "contributors": 75,
       "gains": {
@@ -544,8 +525,8 @@
         "pptx",
         "prototype"
       ],
-      "stars": 26734,
-      "forks": 2960,
+      "stars": 27463,
+      "forks": 2997,
       "issues": 6,
       "contributors": 2,
       "gains": {
@@ -577,8 +558,8 @@
       "description": "A single CLAUDE.md file to improve Claude Code behavior, derived from Andrej Karpathy's observations on LLM coding pitfalls.",
       "lang": null,
       "topics": [],
-      "stars": 224639,
-      "forks": 22472,
+      "stars": 225036,
+      "forks": 22498,
       "issues": 138,
       "contributors": 7,
       "gains": {
@@ -610,8 +591,8 @@
       "description": "A coding-agent skill for multi-phase security audits with independently verified, machine-readable findings",
       "lang": "JavaScript",
       "topics": [],
-      "stars": 48549,
-      "forks": 3026,
+      "stars": 49048,
+      "forks": 3063,
       "issues": 99,
       "contributors": 4,
       "gains": {
@@ -645,9 +626,9 @@
       "description": "Open source repository of plugins primarily intended for knowledge workers to use in Claude Cowork",
       "lang": "Python",
       "topics": [],
-      "stars": 33207,
-      "forks": 3659,
-      "issues": 144,
+      "stars": 33311,
+      "forks": 3664,
+      "issues": 148,
       "contributors": 32,
       "gains": {
         "daily": null,
@@ -699,9 +680,9 @@
         "swarm-intelligence",
         "typescript"
       ],
-      "stars": 79537,
-      "forks": 9340,
-      "issues": 987,
+      "stars": 79634,
+      "forks": 9350,
+      "issues": 983,
       "contributors": 82,
       "gains": {
         "daily": null,
@@ -735,9 +716,9 @@
       "description": "The open source coding agent.",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 221956,
-      "forks": 29688,
-      "issues": 3863,
+      "stars": 222128,
+      "forks": 29716,
+      "issues": 3825,
       "contributors": 1071,
       "gains": {
         "daily": null,
@@ -752,7 +733,7 @@
         "cons": "The desktop application is labeled BETA, which may indicate it is less mature than the CLI. Documentation also advises removing installations older than version 0.1.x before installing, suggesting that upgrading across major versions may not be fully automatic and could require manual cleanup.",
         "fit": "Likely suited to developers who want an AI coding assistant integrated into terminal workflows, with the option of a GUI desktop app, and who can benefit from switching between a full-access build agent and a restricted plan agent depending on the task."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -790,10 +771,10 @@
         "worktrees",
         "yc-backed"
       ],
-      "stars": 107059,
-      "forks": 6752,
-      "issues": 8092,
-      "contributors": 530,
+      "stars": 107436,
+      "forks": 6777,
+      "issues": 7997,
+      "contributors": 533,
       "gains": {
         "daily": null,
         "weekly": 9241,
@@ -846,9 +827,9 @@
         "skills",
         "tree-sitter"
       ],
-      "stars": 136136,
-      "forks": 12999,
-      "issues": 1631,
+      "stars": 136459,
+      "forks": 13019,
+      "issues": 1653,
       "contributors": 370,
       "gains": {
         "daily": null,
@@ -884,8 +865,8 @@
       "topics": [
         "skills"
       ],
-      "stars": 9832,
-      "forks": 635,
+      "stars": 9864,
+      "forks": 638,
       "issues": 36,
       "contributors": 8,
       "gains": {
@@ -919,9 +900,9 @@
       "description": "Solution for long term memory for agent coding CLIs and to facilitate handoff between different agent vendors",
       "lang": "Rust",
       "topics": [],
-      "stars": 13797,
-      "forks": 980,
-      "issues": 17,
+      "stars": 13896,
+      "forks": 989,
+      "issues": 12,
       "contributors": 175,
       "gains": {
         "daily": null,
@@ -975,8 +956,8 @@
         "pi-coding-agent",
         "subagents"
       ],
-      "stars": 41807,
-      "forks": 4434,
+      "stars": 41850,
+      "forks": 4435,
       "issues": 17,
       "contributors": 91,
       "gains": {
@@ -1027,9 +1008,9 @@
         "typescript",
         "video-editor"
       ],
-      "stars": 73059,
-      "forks": 6610,
-      "issues": 176,
+      "stars": 73434,
+      "forks": 6652,
+      "issues": 175,
       "contributors": 125,
       "gains": {
         "daily": null,
@@ -1067,9 +1048,9 @@
         "open-source",
         "seo"
       ],
-      "stars": 22138,
-      "forks": 3040,
-      "issues": 61,
+      "stars": 22393,
+      "forks": 3070,
+      "issues": 64,
       "contributors": 30,
       "gains": {
         "daily": null,
@@ -1109,9 +1090,9 @@
         "pytorch",
         "stable-diffusion"
       ],
-      "stars": 143276,
-      "forks": 16920,
-      "issues": 5360,
+      "stars": 143415,
+      "forks": 16943,
+      "issues": 5361,
       "contributors": 360,
       "gains": {
         "daily": null,
@@ -1142,10 +1123,10 @@
       "description": "",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 30503,
-      "forks": 8153,
-      "issues": 3594,
-      "contributors": 729,
+      "stars": 30605,
+      "forks": 8179,
+      "issues": 3614,
+      "contributors": 731,
       "gains": {
         "daily": null,
         "weekly": 1881,
@@ -1159,7 +1140,7 @@
         "cons": "The README states the project is very early, so bugs should be expected, and maintainers are mostly not accepting contributions yet, with only small fixes considered and larger features ruled out.",
         "fit": "Based on the described setup requirements, this tool is likely best suited for developers who already have one of the supported agent CLIs installed and authenticated, rather than those seeking a polished, contribution-friendly, or fully documented project at this stage."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -1198,8 +1179,8 @@
         "skills",
         "zed-extension"
       ],
-      "stars": 32431,
-      "forks": 2242,
+      "stars": 32480,
+      "forks": 2249,
       "issues": 355,
       "contributors": 112,
       "gains": {
@@ -1233,9 +1214,9 @@
       "description": "Cursor plugin specification and official plugins",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 14208,
-      "forks": 1426,
-      "issues": 459,
+      "stars": 14261,
+      "forks": 1432,
+      "issues": 475,
       "contributors": 30,
       "gains": {
         "daily": null,
@@ -1243,14 +1224,8 @@
         "monthly": 5517
       },
       "signal": null,
-      "summary": {
-        "goal": "This repository hosts official Cursor plugins for popular developer tools, frameworks, and SaaS products. Each plugin lives in its own standalone directory at the repository root, with its own .cursor-plugin/plugin.json manifest describing it.",
-        "usage": "The repository is organized as a multi-plugin marketplace. A root .cursor-plugin/marketplace.json file lists all available plugins, while each individual plugin directory contains its own .cursor-plugin/plugin.json manifest plus optional skills/, rules/, mcp.json, README.md, CHANGELOG.md, and LICENSE files.",
-        "pros": "The marketplace bundles well over a hundred plugins spanning categories such as Developer Tools, Productivity, and Integrations, covering tools like GitHub, Google Workspace apps, Salesforce, Slack-adjacent communication platforms, and various financial and CRM services.",
-        "cons": "The README documents the directory and manifest layout but does not spell out a single end-user install or activation command, so setup presumably relies on Cursor's own plugin-loading mechanism, which is not detailed in this file.",
-        "fit": "This repository appears best suited for developers or teams already using Cursor who want to extend it with ready-made third-party integrations, rather than as a general-purpose standalone tool."
-      },
-      "summary_status": "verified",
+      "summary": null,
+      "summary_status": "held",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -1270,9 +1245,9 @@
         "mcp",
         "skills"
       ],
-      "stars": 44745,
-      "forks": 4675,
-      "issues": 1222,
+      "stars": 44822,
+      "forks": 4678,
+      "issues": 1229,
       "contributors": 42,
       "gains": {
         "daily": null,
@@ -1291,7 +1266,8 @@
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
-        "dev-tools"
+        "dev-tools",
+        "learning"
       ],
       "form_tags": []
     },
@@ -1301,9 +1277,9 @@
       "description": "OpenShell is the safe, private runtime for autonomous AI agents.",
       "lang": "Rust",
       "topics": [],
-      "stars": 20085,
-      "forks": 1984,
-      "issues": 584,
+      "stars": 20168,
+      "forks": 1987,
+      "issues": 596,
       "contributors": 137,
       "gains": {
         "daily": null,
@@ -1318,7 +1294,7 @@
         "cons": "Supported platforms are Linux, macOS on Apple Silicon, or Windows with WSL 2, the last of which is explicitly marked experimental, and running a sandbox additionally requires Docker, Podman, or host virtualization.",
         "fit": "Given the stated platform list and virtualization requirement, OpenShell may suit teams or developers who need policy-governed, isolated sandboxes for multiple AI agents on supported operating systems rather than a dependency-free, universally portable setup."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -1345,9 +1321,9 @@
         "stp",
         "text-to-cad"
       ],
-      "stars": 23324,
-      "forks": 2262,
-      "issues": 42,
+      "stars": 23417,
+      "forks": 2271,
+      "issues": 43,
       "contributors": 29,
       "gains": {
         "daily": null,
@@ -1355,17 +1331,10 @@
         "monthly": 7011
       },
       "signal": null,
-      "summary": {
-        "goal": "text-to-cad is a plugin and skills library that gives coding agents local workflows for generating 3D CAD models as STEP, GLB, STL, or 3MF files, performing design-for-manufacturing checks, producing engineering drawings, and connecting to 3D printing, sheet metal, and CNC fabrication services (lines 25-28).",
-        "usage": "Users can ask their agent to install it by sending 'Install text-to-cad from https://github.com/earthtojake/text-to-cad' (line 41), or install manually; for Claude Code this means running `claude plugin marketplace add earthtojake/text-to-cad#latest` followed by `claude plugin install text-to-cad@earthtojake` (lines 77-78). The CAD runtime (cadgen) runs through uv, so uv must be installed first (line 51).",
-        "pros": "The plugin is supported across multiple agent apps, including Claude Code, Codex, Cursor, Gemini, and Grok (lines 30-32), and the skills library covers CAD, fabrication, robot description, simulation, and review workflows (lines 335-346). Telemetry, when enabled, is described as anonymized, and the tool is stated to work fully offline (lines 44-46, 307).",
-        "cons": "Running cadgen requires uv and depends on Python 3.11+ and Node.js 20+ (lines 18-19), which could add setup overhead compared to an agent-only installation. On Windows 11, Smart App Control by default blocks the OCP kernel's unsigned native module, causing cadgen commands to fail unless Smart App Control is disabled or the skills are run under WSL (lines 310-326).",
-        "fit": "This fits workflows where a coding agent needs local CAD generation, fabrication checks, or drawing output across supported agent platforms. It may be less suitable for agents without plugin support, where only the skills-only installation is available, or for Windows 11 users unable or unwilling to disable Smart App Control (lines 233-236, 310-326)."
-      },
-      "summary_status": "retained",
+      "summary": null,
+      "summary_status": "held",
       "tag_rule_version": 2,
       "field_tags": [
-        "ai-ml",
         "dev-tools"
       ],
       "form_tags": [
@@ -1400,10 +1369,10 @@
         "project-management",
         "workflow-automation"
       ],
-      "stars": 107667,
-      "forks": 17863,
+      "stars": 107794,
+      "forks": 17877,
       "issues": 6686,
-      "contributors": 238,
+      "contributors": 242,
       "gains": {
         "daily": null,
         "weekly": null,
@@ -1425,8 +1394,7 @@
         "productivity"
       ],
       "form_tags": [
-        "agent",
-        "framework"
+        "agent"
       ]
     },
     {
@@ -1456,10 +1424,10 @@
         "sqlite",
         "supermemory"
       ],
-      "stars": 103427,
-      "forks": 9128,
-      "issues": 110,
-      "contributors": 308,
+      "stars": 103534,
+      "forks": 9138,
+      "issues": 120,
+      "contributors": 309,
       "gains": {
         "daily": null,
         "weekly": null,
@@ -1473,7 +1441,7 @@
         "cons": "Signing in during install unlocks the claude-mem observer only for a 30-day free trial; afterward memory falls back to the user's own Anthropic plan unless they subscribe. Separately, installing via `npm install -g claude-mem` sets up only the SDK/library and does not register plugin hooks or the worker service, so the full setup must go through `npx claude-mem install`.",
         "fit": "It requires Node.js 20.0.0 or higher, a Claude Code version with plugin support, and the Bun and uv runtimes (auto-installed if missing). This suggests it fits users who want ongoing cross-session memory inside Claude Code or other supported IDEs, rather than a lightweight, dependency-free add-on."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -1493,9 +1461,9 @@
         "reverse-engineering",
         "software-analysis"
       ],
-      "stars": 94710,
-      "forks": 10639,
-      "issues": 2166,
+      "stars": 94845,
+      "forks": 10658,
+      "issues": 2168,
       "contributors": 472,
       "gains": {
         "daily": null,
@@ -1525,9 +1493,9 @@
       "description": "7.4 billion tokens per month. 34 free LLM providers. 635 free model endpoints. All behind one /v1 endpoint, plus any custom OpenAI-compatible endpoint. Smart routing, automatic failover, encrypted keys. Personal experimentation only.",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 42171,
-      "forks": 5690,
-      "issues": 55,
+      "stars": 42365,
+      "forks": 5723,
+      "issues": 59,
       "contributors": 109,
       "gains": {
         "daily": null,
@@ -1567,8 +1535,8 @@
         "prompt-engineering",
         "yagni"
       ],
-      "stars": 177126,
-      "forks": 9686,
+      "stars": 177533,
+      "forks": 9709,
       "issues": 141,
       "contributors": 130,
       "gains": {
@@ -1613,7 +1581,7 @@
         "retrieval-augmented-generation",
         "vector-database"
       ],
-      "stars": 39790,
+      "stars": 39825,
       "forks": 3432,
       "issues": 156,
       "contributors": 16,
@@ -1669,8 +1637,8 @@
         "tutorial",
         "typescript"
       ],
-      "stars": 74358,
-      "forks": 13035,
+      "stars": 74537,
+      "forks": 13060,
       "issues": 79,
       "contributors": 29,
       "gains": {
@@ -1720,24 +1688,18 @@
         "vectors",
         "websockets"
       ],
-      "stars": 114039,
-      "forks": 16310,
-      "issues": 1167,
-      "contributors": 2116,
+      "stars": 114090,
+      "forks": 16309,
+      "issues": 1175,
+      "contributors": 2117,
       "gains": {
         "daily": null,
         "weekly": null,
         "monthly": 3505
       },
       "signal": null,
-      "summary": {
-        "goal": "The README describes Supabase as \"the Postgres development platform,\" aiming to deliver Firebase-like features (hosted database, auth, APIs, functions, storage) using enterprise-grade open source tools, while stating it is not a 1-to-1 mapping of Firebase.",
-        "usage": "Per the README, Supabase can be used as a hosted platform by signing up at supabase.com/dashboard without installing anything, or alternatively self-hosted and run through local development guides linked from supabase.com/docs.",
-        "pros": "The README lists a hosted Postgres database, authentication/authorization, auto-generated REST, GraphQL, and realtime APIs, database and edge functions, file storage, an AI/vector embeddings toolkit, and a dashboard, built from established open source components such as Postgres, PostgREST, GoTrue, Realtime, and pg_graphql.",
-        "cons": "The README explicitly states Supabase is \"not a 1-to-1 mapping of Firebase,\" suggesting some Firebase-equivalent behaviors may differ; self-hosting and local development also appear to depend on separate linked guides rather than being detailed directly in the README.",
-        "fit": "Based on the client library table, Supabase may best suit teams working in JavaScript/TypeScript, Flutter, Swift, or Python, where official libraries exist; community libraries for languages like Go, Java, or Rust appear to cover only some feature clients."
-      },
-      "summary_status": "retained",
+      "summary": null,
+      "summary_status": "held",
       "tag_rule_version": 2,
       "field_tags": [
         "dev-tools",
