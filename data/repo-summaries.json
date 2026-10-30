@@ -1493,47 +1493,47 @@
   },
   "thedotmack/claude-mem": {
     "content": {
-      "goal": "Claude-Mem is a persistent memory compression system built for Claude Code. It automatically captures tool usage observations, generates semantic summaries, and makes them available to future sessions so Claude can maintain continuity of project knowledge after sessions end or reconnect.",
-      "usage": "Install with `npx claude-mem install`, which sets up hooks and a worker service, then prompts an optional sign-in that unlocks a 30 Day Free Trial of the hosted claude-mem observer (skippable via a --provider flag or in CI). It can also be added inside Claude Code via the plugin marketplace with `/plugin marketplace add thedotmack/claude-mem` followed by `/plugin install claude-mem`, then restarting Claude Code.",
-      "pros": "Documented features include persistent memory across sessions, progressive disclosure of context with token-cost visibility, a token-efficient 3-layer MCP search workflow (search, timeline, get_observations) described as giving roughly 10x token savings, privacy-control tags to exclude sensitive content, and automatic operation without manual intervention.",
-      "cons": "It requires Node.js 20.0.0 or higher plus Bun and uv runtimes (auto-installed if missing), and the README notes that a global `npm install -g claude-mem` only installs the SDK/library rather than registering plugin hooks or the worker service, so setup must go through `npx claude-mem install` or the plugin commands; the free trial also reverts to the user's Anthropic plan automatically if not subscribed.",
-      "fit": "It is built primarily for Claude Code but the README also documents install paths for OpenCode 1.3.4+, T3 Code, Antigravity CLI, OMP, Pi, DeepSeek Harness, and OpenClaw gateways, suggesting the tool is likely usable across several AI coding harnesses though with somewhat different setup steps per integration."
+      "goal": "Claude-Mem is a persistent memory compression system built for Claude Code that automatically captures tool-usage observations, generates semantic summaries, and makes them available to future sessions, letting Claude maintain continuity of project knowledge across sessions or reconnects.",
+      "usage": "Install with `npx claude-mem install`, or add an `--ide` flag for specific hosts (e.g. opencode, t3code). It can also be installed from the Claude Code plugin marketplace via `/plugin marketplace add thedotmack/claude-mem` and `/plugin install claude-mem`. After installation, signing in provisions a memory key and starts a 30-day free trial; `npm install -g claude-mem` installs only the SDK/library, not the plugin hooks.",
+      "pros": "The README lists persistent memory, progressive disclosure with token-cost visibility, a three-step smart-search skill, a local 'My Work' dashboard, an optional TeamBrain shared workspace, privacy controls via `<private>` tags, and automatic operation with citations. It is licensed under Apache License 2.0, which the maintainers say is meant to ease embedding in other developer tools and agent systems.",
+      "cons": "Claude-Mem requires Node.js 20.0.0 or higher, plus Bun and uv runtimes that are auto-installed if missing. Windows users may need to manually configure PATH and run `npx claude-mem doctor` if hooks are not detected. The hosted memory observer's free trial lasts 30 days and appears to fall back to the user's own Anthropic plan afterward unless a paid subscription is active.",
+      "fit": "Claude-Mem appears suited to users of Claude Code and compatible AI coding harnesses such as OpenCode 1.3.4+, T3 Code, Antigravity CLI, OMP, Pi, DeepSeek Harness, and OpenClaw gateways who want memory to persist across sessions, provided they can run a local worker service alongside required dependencies like SQLite 3."
     },
     "summaries": {
       "en": {
-        "goal": "Claude-Mem is a persistent memory compression system built for Claude Code. It automatically captures tool usage observations, generates semantic summaries, and makes them available to future sessions so Claude can maintain continuity of project knowledge after sessions end or reconnect.",
-        "usage": "Install with `npx claude-mem install`, which sets up hooks and a worker service, then prompts an optional sign-in that unlocks a 30 Day Free Trial of the hosted claude-mem observer (skippable via a --provider flag or in CI). It can also be added inside Claude Code via the plugin marketplace with `/plugin marketplace add thedotmack/claude-mem` followed by `/plugin install claude-mem`, then restarting Claude Code.",
-        "pros": "Documented features include persistent memory across sessions, progressive disclosure of context with token-cost visibility, a token-efficient 3-layer MCP search workflow (search, timeline, get_observations) described as giving roughly 10x token savings, privacy-control tags to exclude sensitive content, and automatic operation without manual intervention.",
-        "cons": "It requires Node.js 20.0.0 or higher plus Bun and uv runtimes (auto-installed if missing), and the README notes that a global `npm install -g claude-mem` only installs the SDK/library rather than registering plugin hooks or the worker service, so setup must go through `npx claude-mem install` or the plugin commands; the free trial also reverts to the user's Anthropic plan automatically if not subscribed.",
-        "fit": "It is built primarily for Claude Code but the README also documents install paths for OpenCode 1.3.4+, T3 Code, Antigravity CLI, OMP, Pi, DeepSeek Harness, and OpenClaw gateways, suggesting the tool is likely usable across several AI coding harnesses though with somewhat different setup steps per integration."
+        "goal": "Claude-Mem is a persistent memory compression system built for Claude Code that automatically captures tool-usage observations, generates semantic summaries, and makes them available to future sessions, letting Claude maintain continuity of project knowledge across sessions or reconnects.",
+        "usage": "Install with `npx claude-mem install`, or add an `--ide` flag for specific hosts (e.g. opencode, t3code). It can also be installed from the Claude Code plugin marketplace via `/plugin marketplace add thedotmack/claude-mem` and `/plugin install claude-mem`. After installation, signing in provisions a memory key and starts a 30-day free trial; `npm install -g claude-mem` installs only the SDK/library, not the plugin hooks.",
+        "pros": "The README lists persistent memory, progressive disclosure with token-cost visibility, a three-step smart-search skill, a local 'My Work' dashboard, an optional TeamBrain shared workspace, privacy controls via `<private>` tags, and automatic operation with citations. It is licensed under Apache License 2.0, which the maintainers say is meant to ease embedding in other developer tools and agent systems.",
+        "cons": "Claude-Mem requires Node.js 20.0.0 or higher, plus Bun and uv runtimes that are auto-installed if missing. Windows users may need to manually configure PATH and run `npx claude-mem doctor` if hooks are not detected. The hosted memory observer's free trial lasts 30 days and appears to fall back to the user's own Anthropic plan afterward unless a paid subscription is active.",
+        "fit": "Claude-Mem appears suited to users of Claude Code and compatible AI coding harnesses such as OpenCode 1.3.4+, T3 Code, Antigravity CLI, OMP, Pi, DeepSeek Harness, and OpenClaw gateways who want memory to persist across sessions, provided they can run a local worker service alongside required dependencies like SQLite 3."
       },
       "ko": {
-        "goal": "Claude-Mem은 Claude Code를 위해 만들어진 영구 메모리 압축 시스템입니다. 도구 사용 관찰 내용을 자동으로 캡처하고 의미 기반 요약을 생성하여 이후 세션에서도 활용할 수 있게 함으로써, 세션이 종료되거나 재연결된 후에도 프로젝트 지식의 연속성을 유지하도록 돕습니다.",
-        "usage": "`npx claude-mem install` 명령으로 설치하면 훅과 워커 서비스가 설정되고, 이후 선택적으로 로그인하면 호스팅되는 claude-mem 옵저버의 30일 무료 체험이 활성화됩니다(--provider 플래그나 CI 환경에서는 생략 가능). Claude Code 내부에서는 `/plugin marketplace add thedotmack/claude-mem` 후 `/plugin install claude-mem`으로도 설치할 수 있으며, 설치 후 Claude Code를 재시작해야 합니다.",
-        "pros": "문서에 따르면 세션 간 영구 메모리 유지, 토큰 비용을 보여주는 단계적 컨텍스트 공개, search·timeline·get_observations로 이어지는 3단계 MCP 검색 워크플로(약 10배 토큰 절감으로 설명됨), 민감한 내용을 제외하는 프라이버시 태그, 수동 개입이 필요 없는 자동 동작 등을 제공합니다.",
-        "cons": "Node.js 20.0.0 이상과 Bun, uv 런타임이 필요하며(없을 경우 자동 설치), README에는 전역 설치(`npm install -g claude-mem`)가 SDK/라이브러리만 설치하고 플러그인 훅이나 워커 서비스는 등록하지 않으므로 `npx claude-mem install`이나 플러그인 명령을 사용해야 한다고 명시되어 있습니다. 또한 무료 체험이 끝나면 구독하지 않을 경우 자동으로 사용자의 Anthropic 플랜으로 전환됩니다.",
-        "fit": "주로 Claude Code를 대상으로 하지만, README는 OpenCode 1.3.4 이상, T3 Code, Antigravity CLI, OMP, Pi, DeepSeek Harness, OpenClaw 게이트웨이용 설치 경로도 문서화하고 있어, 통합별로 설치 절차는 다소 다르더라도 여러 AI 코딩 하네스에서 사용할 수 있을 것으로 보입니다."
+        "goal": "Claude-Mem은 Claude Code를 위해 구축된 영속적 메모리 압축 시스템으로, 도구 사용 관찰을 자동으로 캡처하고 의미론적 요약을 생성하여 이후 세션에서 사용할 수 있게 함으로써 세션 종료나 재연결 후에도 프로젝트 지식의 연속성을 유지하도록 돕습니다.",
+        "usage": "`npx claude-mem install` 명령으로 설치하며, opencode·t3code 등 특정 호스트용 `--ide` 플래그도 사용할 수 있습니다. Claude Code 플러그인 마켓플레이스에서 `/plugin marketplace add thedotmack/claude-mem`과 `/plugin install claude-mem`으로도 설치할 수 있습니다. 설치 후 로그인하면 메모리 키가 발급되고 30일 무료 체험이 시작되며, `npm install -g claude-mem`은 플러그인 훅 없이 SDK/라이브러리만 설치합니다.",
+        "pros": "README에는 영속적 메모리, 토큰 비용을 보여주는 점진적 공개, 3단계 스마트 검색 스킬, 로컬 'My Work' 대시보드, 선택적 TeamBrain 공유 작업공간, `<private>` 태그를 통한 개인정보 보호, 인용 기능을 포함한 자동 작동 등이 나열되어 있습니다. Apache License 2.0으로 라이선스가 부여되어 있어, 제작자들은 이것이 다른 개발자 도구나 에이전트 시스템에 쉽게 내장되도록 돕는다고 설명합니다.",
+        "cons": "Claude-Mem은 Node.js 20.0.0 이상이 필요하며, 누락 시 자동 설치되는 Bun 및 uv 런타임도 필요합니다. Windows 사용자는 PATH를 수동으로 설정해야 할 수 있고, 후크가 감지되지 않으면 `npx claude-mem doctor`를 실행해야 할 수 있습니다. 호스팅된 메모리 옵저버의 무료 체험은 30일간 지속되며, 이후에는 유료 구독이 없는 한 사용자의 Anthropic 플랜으로 되돌아가는 것으로 보입니다.",
+        "fit": "Claude-Mem은 Claude Code 및 OpenCode 1.3.4 이상, T3 Code, Antigravity CLI, OMP, Pi, DeepSeek Harness, OpenClaw 게이트웨이 등 호환 AI 코딩 하네스 사용자에게 적합해 보이며, 세션 간 메모리 지속을 원하고 SQLite 3 같은 필수 종속성과 함께 로컬 워커 서비스를 실행할 수 있는 경우에 적합합니다."
       },
       "zh-CN": {
-        "goal": "Claude-Mem 是为 Claude Code 构建的持久记忆压缩系统。它会自动捕获工具使用观察记录,生成语义摘要,并使其可供后续会话使用,从而让 Claude 在会话结束或重新连接后仍能保持对项目知识的连续性。",
-        "usage": "使用 `npx claude-mem install` 进行安装,该命令会设置钩子和工作服务,随后会提示可选登录以解锁托管版 claude-mem 观察器的 30 天免费试用(可通过 --provider 参数或在 CI 环境中跳过)。也可以在 Claude Code 内通过插件市场安装:先执行 `/plugin marketplace add thedotmack/claude-mem`,再执行 `/plugin install claude-mem`,安装后需重启 Claude Code。",
-        "pros": "文档列出的功能包括跨会话的持久记忆、带有令牌成本可见性的渐进式信息披露、由 search、timeline、get_observations 组成的三层 MCP 搜索工作流(据称可节省约 10 倍令牌),可排除敏感内容的隐私控制标签,以及无需人工干预的自动运行。",
-        "cons": "该工具需要 Node.js 20.0.0 或更高版本,以及 Bun 和 uv 运行时(缺失时会自动安装);README 特别说明全局安装(`npm install -g claude-mem`)只会安装 SDK/库,不会注册插件钩子或工作服务,因此必须通过 `npx claude-mem install` 或插件命令完成设置。此外,免费试用结束后若未订阅,会自动回退到用户自己的 Anthropic 方案。",
-        "fit": "该工具主要面向 Claude Code,但 README 同时记录了适用于 OpenCode 1.3.4 及以上版本、T3 Code、Antigravity CLI、OMP、Pi、DeepSeek Harness 以及 OpenClaw 网关的安装路径,这似乎表明该工具可能适用于多种 AI 编程环境,尽管各集成的具体设置步骤略有不同。"
+        "goal": "Claude-Mem 是为 Claude Code 构建的持久记忆压缩系统，自动捕获工具使用观察记录，生成语义摘要，并将其提供给后续会话使用，从而帮助 Claude 在会话结束或重新连接后仍保持对项目知识的连续性。",
+        "usage": "可通过 `npx claude-mem install` 进行安装，也可使用针对特定主机的 `--ide` 参数（例如 opencode、t3code）。此外还可以在 Claude Code 插件市场中通过 `/plugin marketplace add thedotmack/claude-mem` 和 `/plugin install claude-mem` 安装。安装后登录会生成一个记忆密钥并开启 30 天免费试用；而 `npm install -g claude-mem` 仅安装 SDK/库，不包含插件钩子。",
+        "pros": "README 列出的特性包括持久记忆、带有令牌成本可见性的渐进式信息披露、三步式智能搜索技能、本地“My Work”仪表盘、可选的 TeamBrain 共享工作区、通过 `<private>` 标签实现的隐私控制，以及带引用功能的自动运行。该项目采用 Apache License 2.0 许可，作者表示这有助于将其嵌入其他开发者工具和代理系统。",
+        "cons": "Claude-Mem 需要 Node.js 20.0.0 或更高版本，还需要 Bun 和 uv 运行时（缺失时会自动安装）。Windows 用户可能需要手动配置 PATH，若钩子未被检测到，还可能需要运行 `npx claude-mem doctor`。托管记忆观察者的免费试用期为 30 天，此后似乎会回退到用户自己的 Anthropic 计划，除非用户订阅付费服务。",
+        "fit": "Claude-Mem 似乎适合使用 Claude Code 及兼容 AI 编码框架（如 OpenCode 1.3.4 及以上版本、T3 Code、Antigravity CLI、OMP、Pi、DeepSeek Harness 和 OpenClaw 网关）的用户，这些用户希望记忆能够跨会话持续存在，并且能够运行本地工作进程及 SQLite 3 等必要依赖。"
       },
       "es": {
-        "goal": "Claude-Mem es un sistema de compresión de memoria persistente creado para Claude Code. Captura automáticamente observaciones del uso de herramientas, genera resúmenes semánticos y los pone a disposición de sesiones futuras, para que Claude mantenga la continuidad del conocimiento del proyecto tras finalizar o reconectar una sesión.",
-        "usage": "Se instala con `npx claude-mem install`, que configura los hooks y un servicio worker, y luego ofrece un inicio de sesión opcional que desbloquea una prueba gratuita de 30 días del observador claude-mem alojado (se puede omitir con un indicador --provider o en entornos CI). También puede añadirse dentro de Claude Code mediante el mercado de plugins con `/plugin marketplace add thedotmack/claude-mem` y luego `/plugin install claude-mem`, reiniciando Claude Code después.",
-        "pros": "Las funciones documentadas incluyen memoria persistente entre sesiones, divulgación progresiva del contexto con visibilidad del costo en tokens, un flujo de búsqueda MCP de 3 capas eficiente en tokens (search, timeline, get_observations) descrito como un ahorro de aproximadamente 10 veces en tokens, etiquetas de control de privacidad para excluir contenido sensible, y funcionamiento automático sin intervención manual.",
-        "cons": "Requiere Node.js 20.0.0 o superior, además de los entornos Bun y uv (se instalan automáticamente si faltan); el README indica que una instalación global (`npm install -g claude-mem`) solo instala el SDK/biblioteca sin registrar los hooks del plugin ni el servicio worker, por lo que la configuración debe hacerse con `npx claude-mem install` o los comandos de plugin. Además, la prueba gratuita vuelve automáticamente al plan de Anthropic del usuario si no se suscribe.",
-        "fit": "Está pensado principalmente para Claude Code, pero el README también documenta rutas de instalación para OpenCode 1.3.4 o superior, T3 Code, Antigravity CLI, OMP, Pi, DeepSeek Harness y gateways de OpenClaw, lo que sugiere que probablemente pueda usarse en varios entornos de codificación con IA, aunque con pasos de configuración algo distintos según la integración."
+        "goal": "Claude-Mem es un sistema de compresión de memoria persistente creado para Claude Code que captura automáticamente observaciones de uso de herramientas, genera resúmenes semánticos y los pone a disposición de sesiones futuras, ayudando a Claude a mantener la continuidad del conocimiento del proyecto tras finalizar o reconectar sesiones.",
+        "usage": "Se instala con `npx claude-mem install`, o con la bandera `--ide` para hosts específicos (por ejemplo, opencode, t3code). También puede instalarse desde el mercado de plugins de Claude Code con `/plugin marketplace add thedotmack/claude-mem` y `/plugin install claude-mem`. Tras la instalación, iniciar sesión genera una clave de memoria y activa una prueba gratuita de 30 días; `npm install -g claude-mem` solo instala el SDK/biblioteca, sin los hooks del plugin.",
+        "pros": "El README enumera memoria persistente, divulgación progresiva con visibilidad del costo en tokens, una habilidad de búsqueda inteligente de tres pasos, un panel local 'My Work', un espacio de trabajo compartido opcional llamado TeamBrain, controles de privacidad mediante etiquetas `<private>`, y operación automática con citas. Está licenciado bajo Apache License 2.0, que según los mantenedores facilita su integración en otras herramientas de desarrollo y sistemas de agentes.",
+        "cons": "Claude-Mem requiere Node.js 20.0.0 o superior, además de los runtimes Bun y uv, que se instalan automáticamente si faltan. Los usuarios de Windows pueden necesitar configurar manualmente el PATH y ejecutar `npx claude-mem doctor` si los hooks no se detectan. La prueba gratuita del observador de memoria alojado dura 30 días, tras lo cual parece volver al plan propio de Anthropic del usuario a menos que exista una suscripción de pago.",
+        "fit": "Claude-Mem parece adecuado para usuarios de Claude Code y entornos de codificación con IA compatibles, como OpenCode 1.3.4 o posterior, T3 Code, Antigravity CLI, OMP, Pi, DeepSeek Harness y gateways de OpenClaw, que deseen memoria persistente entre sesiones y puedan ejecutar un servicio worker local junto con dependencias necesarias como SQLite 3."
       },
       "ja": {
-        "goal": "Claude-Memは、Claude Code向けに構築された永続的メモリ圧縮システムです。ツール使用時の観察結果を自動的に取得し、セマンティックな要約を生成して将来のセッションで利用できるようにすることで、セッション終了や再接続後もプロジェクト知識の継続性を保ちます。",
-        "usage": "`npx claude-mem install` でインストールすると、フックとワーカーサービスが設定され、その後オプションのサインインによりホスト型claude-memオブザーバーの30日間無料トライアルが有効になります(--providerフラグの指定やCI環境ではスキップ可能)。Claude Code内のプラグインマーケットプレイスからも、`/plugin marketplace add thedotmack/claude-mem` の後に `/plugin install claude-mem` を実行してインストールでき、その後Claude Codeを再起動します。",
-        "pros": "ドキュメントに記載されている機能には、セッション間での永続的メモリ、トークンコストを可視化した段階的な情報開示、search・timeline・get_observationsからなる3層のMCP検索ワークフロー(約10倍のトークン節約と説明されています)、機密情報を除外するプライバシー制御タグ、手動操作を必要としない自動動作が含まれます。",
-        "cons": "Node.js 20.0.0以上と、Bun・uvランタイム(不足時は自動インストール)が必要です。README には、グローバルインストール(`npm install -g claude-mem`)はSDK/ライブラリのみをインストールし、プラグインフックやワーカーサービスは登録しないため、セットアップには `npx claude-mem install` またはプラグインコマンドを使う必要があると記載されています。また、無料トライアル終了後に購読していない場合は自動的にユーザーのAnthropicプランに戻ります。",
-        "fit": "主にClaude Code向けですが、READMEはOpenCode 1.3.4以降、T3 Code、Antigravity CLI、OMP、Pi、DeepSeek Harness、OpenClawゲートウェイ向けのインストール手順も記載しており、統合ごとにセットアップ手順はやや異なるものの、複数のAIコーディング環境で利用できる可能性があることを示唆しています。"
+        "goal": "Claude-Memは、Claude Code向けに構築された永続的メモリ圧縮システムで、ツール使用時の観察結果を自動的に取得し、意味的な要約を生成して将来のセッションで利用できるようにすることで、セッション終了や再接続後もプロジェクトの知識の連続性を保つことを支援します。",
+        "usage": "`npx claude-mem install` でインストールでき、opencodeやt3codeなど特定のホスト向けには `--ide` フラグを使用できます。また、Claude Codeのプラグインマーケットプレイスから `/plugin marketplace add thedotmack/claude-mem` と `/plugin install claude-mem` でもインストールできます。インストール後にサインインするとメモリキーが発行され、30日間の無料トライアルが開始されます。`npm install -g claude-mem` はプラグインフックを含まないSDK/ライブラリのみをインストールします。",
+        "pros": "READMEには、永続的メモリ、トークンコストの可視化を伴う段階的開示、3段階のスマート検索スキル、ローカルの「My Work」ダッシュボード、任意のTeamBrain共有ワークスペース、`<private>` タグによるプライバシー制御、引用機能付きの自動動作などが挙げられています。Apache License 2.0のもとでライセンスされており、開発者は他の開発ツールやエージェントシステムへの組み込みを容易にする目的だと説明しています。",
+        "cons": "Claude-MemにはNode.js 20.0.0以上が必要で、不足時に自動インストールされるBunとuvランタイムも必要です。Windowsユーザーは手動でPATHを設定する必要がある場合があり、フックが検出されない場合は `npx claude-mem doctor` を実行する必要がある場合があります。ホスト型メモリオブザーバーの無料トライアルは30日間で、その後は有料サブスクリプションがない限りユーザー自身のAnthropicプランに戻るように見えます。",
+        "fit": "Claude-Memは、Claude CodeおよびOpenCode 1.3.4以降、T3 Code、Antigravity CLI、OMP、Pi、DeepSeek Harness、OpenClawゲートウェイなど互換性のあるAIコーディング環境を利用し、セッション間でメモリを持続させたいユーザーに適していると見られ、SQLite 3などの必要な依存関係とともにローカルワーカーサービスを実行できることが前提となります。"
       }
     },
     "evidence": {
@@ -1551,60 +1551,60 @@
       ],
       "usage": [
         {
-          "start_line": 150,
-          "end_line": 150,
+          "start_line": 139,
+          "end_line": 141,
           "section_heading": "Quick Start"
         },
         {
-          "start_line": 153,
-          "end_line": 155,
-          "section_heading": "Quick Start"
-        },
-        {
-          "start_line": 197,
+          "start_line": 196,
           "end_line": 200,
+          "section_heading": "Quick Start"
+        },
+        {
+          "start_line": 150,
+          "end_line": 155,
           "section_heading": "Quick Start"
         }
       ],
       "pros": [
         {
           "start_line": 216,
-          "end_line": 227,
+          "end_line": 228,
           "section_heading": "🦞 OpenClaw Gateway"
+        },
+        {
+          "start_line": 433,
+          "end_line": 437,
+          "section_heading": "License"
         }
       ],
       "cons": [
         {
-          "start_line": 319,
-          "end_line": 325,
+          "start_line": 322,
+          "end_line": 326,
           "section_heading": "System Requirements"
         },
         {
-          "start_line": 204,
-          "end_line": 204,
-          "section_heading": "Quick Start"
+          "start_line": 337,
+          "end_line": 339,
+          "section_heading": "Windows Setup Notes"
         },
         {
           "start_line": 153,
-          "end_line": 153,
+          "end_line": 155,
           "section_heading": "Quick Start"
         }
       ],
       "fit": [
         {
           "start_line": 157,
-          "end_line": 163,
+          "end_line": 211,
           "section_heading": "Quick Start"
         },
         {
-          "start_line": 165,
-          "end_line": 192,
-          "section_heading": "Quick Start"
-        },
-        {
-          "start_line": 206,
-          "end_line": 214,
-          "section_heading": "🦞 OpenClaw Gateway"
+          "start_line": 320,
+          "end_line": 326,
+          "section_heading": "System Requirements"
         }
       ]
     },
@@ -1613,20 +1613,12 @@
         "kind": "command",
         "value": "npx claude-mem install",
         "fields": [
-          "usage",
-          "cons"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "/plugin marketplace add thedotmack/claude-mem",
-        "fields": [
           "usage"
         ]
       },
       {
         "kind": "command",
-        "value": "/plugin install claude-mem",
+        "value": "npm install -g claude-mem",
         "fields": [
           "usage"
         ]
@@ -1636,13 +1628,6 @@
         "value": "20.0.0",
         "fields": [
           "cons"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "30",
-        "fields": [
-          "usage"
         ]
       },
       {
@@ -1656,23 +1641,33 @@
       },
       {
         "kind": "product",
-        "value": "claude-mem",
+        "value": "Claude-Mem",
         "fields": [
           "goal",
+          "usage",
+          "cons",
+          "fit"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "30",
+        "fields": [
           "usage",
           "cons"
         ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "thedotmack/claude-mem",
       "path": "README.md",
-      "blob_sha": "f69ba70c8f1f3f7528fa379ab09a2e47f5135f0b",
-      "content_sha256": "3d35d7fba41402a95b78e863ad21202aaf4416482b5abf1c6abc606a88de3d4f",
+      "blob_sha": "9a2cfbe945c6290edae9618548aca660e940e60f",
+      "content_sha256": "4df71dde5dd78bf7e5388e8d56f64d043bf17dd680df5af6fa98693d63b7fc05",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.310",
@@ -3938,98 +3933,128 @@
   },
   "heygen-com/hyperframes": {
     "content": {
-      "goal": "HyperFrames is an open-source (Apache 2.0) framework that turns HTML, CSS, media, and seekable animations into deterministic MP4 videos. It can be used locally via a CLI or driven by AI coding agents equipped with skills.",
-      "usage": "Scaffold and render a project with `npx hyperframes init my-video`, then `npx hyperframes render` to produce an MP4 (use `npx hyperframes preview` for live reload). For AI coding agents like Claude Code, install via `claude plugin marketplace add heygen-com/hyperframes` and `claude plugin install hyperframes@hyperframes`, or run `npx hyperframes skills update` for standalone skill setup.",
-      "pros": "It is HTML-native with no build step, integrates directly with coding agents, and produces deterministic output (same input yields the same frames), which fits CI and automated rendering pipelines. It is released under Apache 2.0 with no per-render fees.",
-      "cons": "Local rendering documents Node.js 22+ and FFmpeg as prerequisites. The README's comparison table also lists only local and AWS Lambda render paths for HyperFrames, next to Remotion's described 'mature cloud renderer,' which may suggest HyperFrames' distributed-rendering tooling is comparatively newer or less proven.",
-      "fit": "This project appears best suited to developers and teams pairing it with AI coding agents (Claude Code, Codex, Cursor, Gemini CLI) who want deterministic, CI-friendly HTML-to-video rendering, though as a newer alternative to Remotion it may particularly suit users comfortable with an evolving, agent-oriented toolchain."
+      "goal": "HyperFrames is an open-source framework (Apache 2.0) that turns HTML, CSS, media, and seekable animations into deterministic MP4 videos. It is designed to be used locally via a CLI, from AI coding agents through skills, or as the rendering core behind hosted authoring workflows.",
+      "usage": "Install with `npx hyperframes init my-video`, then `npx hyperframes preview` to preview in the browser with live reload and `npx hyperframes render` to render to MP4. For AI coding agents, running `npx hyperframes skills update` installs the core skill set. Requirements: Node.js 22+ and FFmpeg.",
+      "pros": "Compositions are plain HTML files with data attributes, requiring no React and no proprietary timeline format. The CLI is non-interactive by default, aiding agent use, and rendering is described as deterministic (same input, same frames, same output), suited for CI and regression tests. It also ships roughly 450 ready-made catalog blocks and supports multiple animation adapters (GSAP, CSS, Lottie, Three.js, Anime.js, WAAPI).",
+      "cons": "Developing from a full repository checkout requires Git LFS due to roughly 240 MB of test baseline .mp4 files, adding setup overhead; this can be skipped with `GIT_LFS_SKIP_SMUDGE=1` if only source files are needed. Rendering also depends on headless Chrome and FFmpeg being available in the environment.",
+      "fit": "It appears suited for teams or agents that prefer writing plain HTML/CSS over React-based tools like Remotion, and for automated or CI-driven video generation pipelines. It may be a less direct fit for teams already invested in a React-centric video workflow, since the documented authoring model centers on HTML rather than components."
     },
     "summaries": {
       "en": {
-        "goal": "HyperFrames is an open-source (Apache 2.0) framework that turns HTML, CSS, media, and seekable animations into deterministic MP4 videos. It can be used locally via a CLI or driven by AI coding agents equipped with skills.",
-        "usage": "Scaffold and render a project with `npx hyperframes init my-video`, then `npx hyperframes render` to produce an MP4 (use `npx hyperframes preview` for live reload). For AI coding agents like Claude Code, install via `claude plugin marketplace add heygen-com/hyperframes` and `claude plugin install hyperframes@hyperframes`, or run `npx hyperframes skills update` for standalone skill setup.",
-        "pros": "It is HTML-native with no build step, integrates directly with coding agents, and produces deterministic output (same input yields the same frames), which fits CI and automated rendering pipelines. It is released under Apache 2.0 with no per-render fees.",
-        "cons": "Local rendering documents Node.js 22+ and FFmpeg as prerequisites. The README's comparison table also lists only local and AWS Lambda render paths for HyperFrames, next to Remotion's described 'mature cloud renderer,' which may suggest HyperFrames' distributed-rendering tooling is comparatively newer or less proven.",
-        "fit": "This project appears best suited to developers and teams pairing it with AI coding agents (Claude Code, Codex, Cursor, Gemini CLI) who want deterministic, CI-friendly HTML-to-video rendering, though as a newer alternative to Remotion it may particularly suit users comfortable with an evolving, agent-oriented toolchain."
+        "goal": "HyperFrames is an open-source framework (Apache 2.0) that turns HTML, CSS, media, and seekable animations into deterministic MP4 videos. It is designed to be used locally via a CLI, from AI coding agents through skills, or as the rendering core behind hosted authoring workflows.",
+        "usage": "Install with `npx hyperframes init my-video`, then `npx hyperframes preview` to preview in the browser with live reload and `npx hyperframes render` to render to MP4. For AI coding agents, running `npx hyperframes skills update` installs the core skill set. Requirements: Node.js 22+ and FFmpeg.",
+        "pros": "Compositions are plain HTML files with data attributes, requiring no React and no proprietary timeline format. The CLI is non-interactive by default, aiding agent use, and rendering is described as deterministic (same input, same frames, same output), suited for CI and regression tests. It also ships roughly 450 ready-made catalog blocks and supports multiple animation adapters (GSAP, CSS, Lottie, Three.js, Anime.js, WAAPI).",
+        "cons": "Developing from a full repository checkout requires Git LFS due to roughly 240 MB of test baseline .mp4 files, adding setup overhead; this can be skipped with `GIT_LFS_SKIP_SMUDGE=1` if only source files are needed. Rendering also depends on headless Chrome and FFmpeg being available in the environment.",
+        "fit": "It appears suited for teams or agents that prefer writing plain HTML/CSS over React-based tools like Remotion, and for automated or CI-driven video generation pipelines. It may be a less direct fit for teams already invested in a React-centric video workflow, since the documented authoring model centers on HTML rather than components."
       },
       "ko": {
-        "goal": "HyperFrames는 HTML, CSS, 미디어, 시크 가능한 애니메이션을 결정론적 MP4 영상으로 변환하는 오픈소스(Apache 2.0) 프레임워크입니다. CLI로 로컬에서 사용하거나, 스킬을 갖춘 AI 코딩 에이전트를 통해 구동할 수 있습니다.",
-        "usage": "`npx hyperframes init my-video`로 프로젝트를 생성한 뒤 `npx hyperframes render`로 MP4를 렌더링합니다(실시간 미리보기는 `npx hyperframes preview`). Claude Code 같은 AI 코딩 에이전트의 경우 `claude plugin marketplace add heygen-com/hyperframes`와 `claude plugin install hyperframes@hyperframes`로 설치하거나, 독립형 스킬 설정에는 `npx hyperframes skills update`를 실행합니다.",
-        "pros": "빌드 단계 없이 HTML 네이티브 방식으로 동작하고 코딩 에이전트와 직접 연동되며, 동일한 입력이 동일한 프레임을 산출하는 결정론적 출력을 제공해 CI 및 자동화 렌더링 파이프라인에 적합합니다. 렌더링별 비용 없이 Apache 2.0 라이선스로 배포됩니다.",
-        "cons": "로컬 렌더링에는 Node.js 22+ 및 FFmpeg가 전제 조건으로 문서화되어 있습니다. README의 비교표는 HyperFrames의 분산 렌더링 경로로 로컬 및 AWS Lambda만 나열하는 반면 Remotion은 '성숙한 클라우드 렌더러'로 설명되어 있어, HyperFrames의 분산 렌더링 도구가 상대적으로 더 새롭거나 아직 덜 검증되었을 가능성을 시사합니다.",
-        "fit": "이 프로젝트는 Claude Code, Codex, Cursor, Gemini CLI 같은 AI 코딩 에이전트와 함께 결정론적이고 CI 친화적인 HTML-투-비디오 렌더링을 원하는 개발자/팀에 적합해 보이며, Remotion에 비해 상대적으로 새로운 대안이므로 점진적으로 발전하는 에이전트 지향 도구체인에 익숙한 사용자에게 특히 맞을 수 있습니다."
+        "goal": "HyperFrames는 HTML, CSS, 미디어, 탐색 가능한 애니메이션을 결정론적 MP4 비디오로 변환하는 오픈소스(Apache 2.0) 프레임워크입니다. CLI를 통한 로컬 사용, 스킬을 통한 AI 코딩 에이전트 사용, 또는 호스팅된 제작 워크플로우의 렌더링 코어로 사용되도록 설계되었습니다.",
+        "usage": "`npx hyperframes init my-video`로 설치한 뒤 `npx hyperframes preview`로 브라우저에서 실시간 미리보기를 하고 `npx hyperframes render`로 MP4를 렌더링합니다. AI 코딩 에이전트를 사용한다면 `npx hyperframes skills update`로 핵심 스킬 세트를 설치합니다. 요구 사항: Node.js 22 이상과 FFmpeg입니다.",
+        "pros": "구성이 데이터 속성을 가진 순수 HTML 파일이라 React나 독자적인 타임라인 형식이 필요 없습니다. CLI는 기본적으로 비대화형이라 에이전트 사용에 유리하며, 렌더링은 동일 입력에 동일 프레임과 결과를 내는 결정론적 방식으로 CI 및 회귀 테스트에 적합하다고 설명됩니다. 또한 약 450개의 카탈로그 블록과 GSAP, CSS, Lottie, Three.js, Anime.js, WAAPI 등 여러 애니메이션 어댑터를 지원합니다.",
+        "cons": "전체 저장소를 체크아웃해 개발하려면 약 240MB의 테스트 기준 .mp4 파일 때문에 Git LFS가 필요해 설정 부담이 늘어날 수 있습니다. 소스 파일만 필요하다면 `GIT_LFS_SKIP_SMUDGE=1`로 이를 건너뛸 수 있습니다. 또한 렌더링은 환경에 헤드리스 Chrome과 FFmpeg가 있어야 작동합니다.",
+        "fit": "React 기반 도구(Remotion 등)보다 순수 HTML/CSS 작성을 선호하는 팀이나 에이전트, 또는 자동화·CI 기반 비디오 생성 파이프라인에 적합해 보입니다. 이미 React 중심 비디오 워크플로우에 투자한 팀에는 문서상 저작 모델이 컴포넌트가 아닌 HTML 중심이라 상대적으로 덜 맞을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "HyperFrames 是一个开源(Apache 2.0)框架,可将 HTML、CSS、媒体和可寻址动画转换为确定性的 MP4 视频。可通过 CLI 在本地使用,也可由配备技能的 AI 编码代理驱动。",
-        "usage": "使用 `npx hyperframes init my-video` 搭建项目,再运行 `npx hyperframes render` 生成 MP4(`npx hyperframes preview` 可实时预览)。对于 Claude Code 等 AI 编码代理,可通过 `claude plugin marketplace add heygen-com/hyperframes` 和 `claude plugin install hyperframes@hyperframes` 安装,或运行 `npx hyperframes skills update` 进行独立技能安装。",
-        "pros": "它采用原生 HTML、无需构建步骤,可直接与编码代理集成,并产生确定性输出(相同输入得到相同帧),适合 CI 与自动化渲染流水线。项目以 Apache 2.0 许可发布,不收取按次渲染费用。",
-        "cons": "文档说明本地渲染需要 Node.js 22+ 和 FFmpeg 作为前提条件。README 的对比表中,HyperFrames 的分布式渲染路径仅列出本地和 AWS Lambda,而 Remotion 被描述为拥有'成熟的云渲染器',这可能暗示 HyperFrames 的分布式渲染工具相对更新、验证程度可能较低。",
-        "fit": "该项目似乎更适合与 Claude Code、Codex、Cursor、Gemini CLI 等 AI 编码代理搭配使用、需要确定性且适合 CI 的 HTML 转视频渲染的开发者或团队;由于相较 Remotion 是较新的替代方案,可能尤其适合愿意接受不断演进的、以代理为导向的工具链的用户。"
+        "goal": "HyperFrames 是一个开源框架（Apache 2.0 许可），可将 HTML、CSS、媒体以及可寻址动画转换为确定性的 MP4 视频。它旨在通过 CLI 本地使用、借助技能供 AI 编码代理使用，或作为托管创作工作流背后的渲染核心使用。",
+        "usage": "使用 `npx hyperframes init my-video` 安装，然后用 `npx hyperframes preview` 在浏览器中实时预览，使用 `npx hyperframes render` 渲染为 MP4。对于 AI 编码代理，运行 `npx hyperframes skills update` 可安装核心技能集。要求：Node.js 22 及以上版本和 FFmpeg。",
+        "pros": "组合内容是带有数据属性的纯 HTML 文件，无需 React，也没有专有的时间轴格式。CLI 默认以非交互方式运行，便于代理使用，文档中说明渲染是确定性的（相同输入产生相同帧和相同输出），适合 CI 和回归测试。它还附带约 450 个现成的目录区块，并支持多种动画适配器（GSAP、CSS、Lottie、Three.js、Anime.js、WAAPI）。",
+        "cons": "从完整仓库检出进行开发需要 Git LFS，因为测试基线 .mp4 文件约占 240MB，这会增加设置负担；如果只需要源文件，可用 `GIT_LFS_SKIP_SMUDGE=1` 跳过。渲染还依赖环境中可用的无头 Chrome 和 FFmpeg。",
+        "fit": "它似乎适合偏好编写纯 HTML/CSS 而非 React 工具（如 Remotion）的团队或代理，也适合自动化或 CI 驱动的视频生成流水线。对于已经投入 React 中心视频工作流的团队，由于文档说明的创作模型以 HTML 为中心而非组件，可能相对不那么契合。"
       },
       "es": {
-        "goal": "HyperFrames es un framework de código abierto (Apache 2.0) que convierte HTML, CSS, medios y animaciones navegables en videos MP4 deterministas. Puede usarse localmente mediante una CLI o ser impulsado por agentes de codificación de IA equipados con skills.",
-        "usage": "Cree y renderice un proyecto con `npx hyperframes init my-video`, luego `npx hyperframes render` para generar un MP4 (use `npx hyperframes preview` para recarga en vivo). Para agentes de IA como Claude Code, instale con `claude plugin marketplace add heygen-com/hyperframes` y `claude plugin install hyperframes@hyperframes`, o ejecute `npx hyperframes skills update` para una instalación de skills independiente.",
-        "pros": "Es nativo de HTML sin paso de compilación, se integra directamente con agentes de codificación y produce salida determinista (la misma entrada genera los mismos fotogramas), lo que favorece pipelines de CI y renderizado automatizado. Se distribuye bajo licencia Apache 2.0 sin tarifas por renderizado.",
-        "cons": "El renderizado local documenta Node.js 22+ y FFmpeg como requisitos previos. La tabla comparativa del README también lista solo rutas de renderizado local y AWS Lambda para HyperFrames, frente al 'renderizador en la nube maduro' descrito para Remotion, lo que podría sugerir que las herramientas de renderizado distribuido de HyperFrames son relativamente más nuevas o menos probadas.",
-        "fit": "Este proyecto parece adecuado para desarrolladores y equipos que lo combinan con agentes de codificación de IA (Claude Code, Codex, Cursor, Gemini CLI) y buscan un renderizado de HTML a video determinista y compatible con CI, aunque, al ser una alternativa más reciente frente a Remotion, podría convenir especialmente a usuarios cómodos con un conjunto de herramientas en evolución orientado a agentes."
+        "goal": "HyperFrames es un framework de código abierto (Apache 2.0) que convierte HTML, CSS, medios y animaciones navegables en videos MP4 deterministas. Está diseñado para usarse localmente mediante CLI, desde agentes de codificación con IA a través de skills, o como núcleo de renderizado detrás de flujos de autoría alojados.",
+        "usage": "Instálalo con `npx hyperframes init my-video`, luego usa `npx hyperframes preview` para previsualizar en el navegador con recarga en vivo y `npx hyperframes render` para generar el MP4. Para agentes de codificación con IA, ejecutar `npx hyperframes skills update` instala el conjunto principal de skills. Requisitos: Node.js 22 o superior y FFmpeg.",
+        "pros": "Las composiciones son archivos HTML simples con atributos de datos, sin requerir React ni un formato de línea de tiempo propietario. El CLI es no interactivo por defecto, lo que favorece su uso por agentes, y el renderizado se describe como determinista (misma entrada, mismos fotogramas, mismo resultado), adecuado para CI y pruebas de regresión. También incluye alrededor de 450 bloques listos en el catálogo y admite varios adaptadores de animación (GSAP, CSS, Lottie, Three.js, Anime.js, WAAPI).",
+        "cons": "Desarrollar desde un checkout completo del repositorio requiere Git LFS debido a unos 240 MB de archivos .mp4 de referencia para pruebas, lo que añade complejidad de configuración; esto puede evitarse con `GIT_LFS_SKIP_SMUDGE=1` si solo se necesitan los archivos fuente. El renderizado también depende de que Chrome headless y FFmpeg estén disponibles en el entorno.",
+        "fit": "Parece adecuado para equipos o agentes que prefieren escribir HTML/CSS plano frente a herramientas basadas en React como Remotion, y para pipelines de generación de video automatizados o impulsados por CI. Podría ajustarse menos a equipos ya invertidos en un flujo de video centrado en React, ya que el modelo de autoría documentado se centra en HTML en lugar de componentes."
       },
       "ja": {
-        "goal": "HyperFrames は、HTML、CSS、メディア、シーク可能なアニメーションを決定論的な MP4 動画に変換するオープンソース(Apache 2.0)のフレームワークです。CLI でローカルに使用するほか、スキルを備えた AI コーディングエージェントから操作することもできます。",
-        "usage": "`npx hyperframes init my-video` でプロジェクトを作成し、`npx hyperframes render` で MP4 を生成します(`npx hyperframes preview` でライブリロード付きプレビューが可能)。Claude Code などの AI コーディングエージェント向けには `claude plugin marketplace add heygen-com/hyperframes` と `claude plugin install hyperframes@hyperframes` でインストールするか、スタンドアロンのスキル設定には `npx hyperframes skills update` を実行します。",
-        "pros": "ビルドステップ不要の HTML ネイティブ方式で、コーディングエージェントと直接連携し、同じ入力から同じフレームが得られる決定論的な出力を生成するため、CI や自動レンダリングパイプラインに適しています。Apache 2.0 ライセンスで配布され、レンダリングごとの課金はありません。",
-        "cons": "ローカルでのレンダリングには Node.js 22+ と FFmpeg が前提条件として明記されています。README の比較表では、HyperFrames の分散レンダリング経路としてローカルと AWS Lambda のみが挙げられており、Remotion の『成熟したクラウドレンダラー』という説明と対比すると、HyperFrames の分散レンダリングツールは比較的新しく、実績がまだ限定的である可能性が示唆されます。",
-        "fit": "このプロジェクトは、Claude Code、Codex、Cursor、Gemini CLI などの AI コーディングエージェントと組み合わせて、決定論的で CI に適した HTML から動画への変換を求める開発者やチームに向いていると考えられますが、Remotion と比べて新しい選択肢であるため、進化し続けるエージェント指向のツールチェーンに慣れているユーザーに特に適するかもしれません。"
+        "goal": "HyperFramesは、HTML、CSS、メディア、シーク可能なアニメーションを決定論的なMP4動画に変換するオープンソース（Apache 2.0）フレームワークです。CLIによるローカル利用、スキルを介したAIコーディングエージェントでの利用、またはホスト型オーサリングワークフローの背後にあるレンダリングコアとしての利用を想定しています。",
+        "usage": "`npx hyperframes init my-video` でインストールし、`npx hyperframes preview` でブラウザ上でライブリロード付きプレビュー、`npx hyperframes render` でMP4にレンダリングします。AIコーディングエージェントを使う場合は `npx hyperframes skills update` を実行するとコアスキルセットがインストールされます。要件はNode.js 22以上とFFmpegです。",
+        "pros": "コンポジションはデータ属性を持つ単純なHTMLファイルであり、Reactや独自のタイムライン形式を必要としません。CLIはデフォルトで非対話型のためエージェント利用に適しており、レンダリングは同じ入力から同じフレーム・同じ出力が得られる決定論的なものと説明されており、CIや回帰テストに向いています。約450個の既製カタログブロックを備え、GSAP、CSS、Lottie、Three.js、Anime.js、WAAPIなど複数のアニメーションアダプターもサポートします。",
+        "cons": "リポジトリ全体をチェックアウトして開発する場合、約240MBのテスト基準用.mp4ファイルのためGit LFSが必要となり、セットアップの手間が増えます。ソースファイルのみが必要な場合は `GIT_LFS_SKIP_SMUDGE=1` でこれを省略できます。また、レンダリングにはheadless ChromeとFFmpegが環境内で利用可能であることが前提となります。",
+        "fit": "RemotionのようなReactベースのツールよりも素のHTML/CSSを書くことを好むチームやエージェント、また自動化・CI主導の動画生成パイプラインに適していると考えられます。すでにReact中心の動画ワークフローに投資しているチームには、文書化されたオーサリングモデルがコンポーネントではなくHTML中心であるため、やや適合度が低い可能性があります。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 33,
-          "end_line": 33,
+          "start_line": 40,
+          "end_line": 40,
           "section_heading": ""
+        },
+        {
+          "start_line": 358,
+          "end_line": 360,
+          "section_heading": "License"
         }
       ],
       "usage": [
         {
-          "start_line": 44,
-          "end_line": 46,
-          "section_heading": "With an AI coding agent"
+          "start_line": 127,
+          "end_line": 132,
+          "section_heading": "Manually with the CLI"
         },
         {
-          "start_line": 120,
-          "end_line": 125,
+          "start_line": 134,
+          "end_line": 134,
           "section_heading": "Manually with the CLI"
+        },
+        {
+          "start_line": 42,
+          "end_line": 42,
+          "section_heading": ""
         }
       ],
       "pros": [
         {
-          "start_line": 270,
-          "end_line": 275,
+          "start_line": 277,
+          "end_line": 279,
+          "section_heading": "Why HyperFrames?"
+        },
+        {
+          "start_line": 112,
+          "end_line": 112,
+          "section_heading": "Core set"
+        },
+        {
+          "start_line": 281,
+          "end_line": 281,
           "section_heading": "Why HyperFrames?"
         }
       ],
       "cons": [
         {
-          "start_line": 127,
-          "end_line": 127,
-          "section_heading": "Manually with the CLI"
+          "start_line": 336,
+          "end_line": 336,
+          "section_heading": "Development Note"
         },
         {
-          "start_line": 287,
-          "end_line": 287,
-          "section_heading": "HyperFrames vs Remotion"
+          "start_line": 354,
+          "end_line": 356,
+          "section_heading": "Development Note"
+        },
+        {
+          "start_line": 246,
+          "end_line": 246,
+          "section_heading": "How It Works"
         }
       ],
       "fit": [
         {
-          "start_line": 73,
-          "end_line": 73,
-          "section_heading": "With an AI coding agent"
+          "start_line": 286,
+          "end_line": 286,
+          "section_heading": "HyperFrames vs Remotion"
         },
         {
-          "start_line": 243,
-          "end_line": 243,
-          "section_heading": "HyperFrames Stack"
+          "start_line": 290,
+          "end_line": 290,
+          "section_heading": "HyperFrames vs Remotion"
+        },
+        {
+          "start_line": 279,
+          "end_line": 279,
+          "section_heading": "Why HyperFrames?"
         }
       ]
     },
@@ -4043,21 +4068,14 @@
       },
       {
         "kind": "command",
+        "value": "npx hyperframes preview",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
         "value": "npx hyperframes render",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "claude plugin marketplace add heygen-com/hyperframes",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "claude plugin install hyperframes@hyperframes",
         "fields": [
           "usage"
         ]
@@ -4073,6 +4091,20 @@
         "kind": "version",
         "value": "Node.js 22+",
         "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "450",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "240 MB",
+        "fields": [
           "cons"
         ]
       },
@@ -4081,15 +4113,13 @@
         "value": "HyperFrames",
         "fields": [
           "goal",
-          "usage",
-          "cons"
+          "usage"
         ]
       },
       {
         "kind": "product",
         "value": "Remotion",
         "fields": [
-          "cons",
           "fit"
         ]
       },
@@ -4097,11 +4127,20 @@
         "kind": "product",
         "value": "FFmpeg",
         "fields": [
+          "usage",
           "cons"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "Apache 2.0",
+        "fields": [
+          "goal"
         ]
       }
     ],
     "inference_fields": [
+      "pros",
       "cons",
       "fit"
     ],
@@ -4109,8 +4148,8 @@
       "kind": "readme",
       "slug": "heygen-com/hyperframes",
       "path": "README.md",
-      "blob_sha": "ffe9f4c2c439c263ae3f3040fc22480fdd877c15",
-      "content_sha256": "e1959c0b7ff33f4802a347034324f3eca729b1cd896a1b45fde3be4168cbeb70",
+      "blob_sha": "e76e22f63cd7b6f5ffce43d522781bbf30efdf6c",
+      "content_sha256": "6669544f1f193657f6d085e002814bf3834e879b1deb5f909b86b8c5f978e0f9",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.310",
@@ -4124,47 +4163,47 @@
   },
   "earthtojake/text-to-cad": {
     "content": {
-      "goal": "The text-to-cad plugin provides agent-based local workflows for generating 3D models as STEP, GLB, STL, or 3MF files, performing design-for-manufacturing checks, generating engineering drawings, and connecting to 3D printing, sheet metal, and CNC fabrication services. It is documented as supported by agents using plugins or the skills framework, including Claude Code, Codex, Cursor, Gemini, and Grok.",
-      "usage": "Installation can be requested by sending an agent the message 'Install text-to-cad from https://github.com/earthtojake/text-to-cad', or performed manually; for Claude Code this means running `claude plugin marketplace add earthtojake/text-to-cad#latest` followed by `claude plugin install text-to-cad@earthtojake`. The runtime requires Python 3.11+, with launch commands using uv-managed Python 3.13, and models are built by running a Python script such as `python model.py`.",
-      "pros": "The engine keeps each model's work in memory, so an edit only rebuilds what changed, and a CAD viewer follows every rebuild in the agent app or a browser. The project also documents a broad set of skills covering CAD, DXF, URDF, SRDF, SDF, engineering drawings, DFM/DfAM checks, and G-code slicing.",
-      "cons": "On Windows 11, Smart App Control—enabled by default on fresh installs—blocks the unsigned native OCP module used by the CAD kernel, causing cadgen commands to fail with an ImportError; there is no per-app exception, so this reportedly requires disabling Smart App Control (which then needs a Windows reinstall to re-enable) or running the skills under WSL.",
-      "fit": "This appears best suited to users of agents that already support plugins or the skills framework (Claude Code, Codex, Cursor, Gemini, Grok) who need local, script-based CAD generation and fabrication-service integration. Agents without plugin support can apparently still use core workflows via the separate Skills CLI, though with reduced viewer integration."
+      "goal": "text-to-cad is a plugin/skill library that gives coding agents local workflows to generate 3D CAD models as STEP, GLB, STL, or 3MF files, run design-for-manufacturing checks, produce engineering drawings, and connect to 3D printing, sheet metal, and CNC fabrication services.",
+      "usage": "Users can ask their agent to install it with the message \"Install text-to-cad from https://github.com/earthtojake/text-to-cad\", or install manually; for Claude Code this means running \"claude plugin marketplace add earthtojake/text-to-cad#latest\" then \"claude plugin install text-to-cad@earthtojake\". The tool runs through uv (checked via \"uv --version\"), and generated models are built by running \"python model.py\".",
+      "pros": "It works across multiple agent apps and frameworks, including Claude Code, Codex, Cursor, Gemini, and Grok, via plugins or the skills.sh framework. Its engine keeps each model's work in memory, so an edit only rebuilds what changed, which can speed up iterative design work.",
+      "cons": "On Windows 11 with Smart App Control enabled (the default on a fresh install), the underlying OCP native module is unsigned, so cadgen commands and \"import build123d\" fail with a DLL load error unless Smart App Control is disabled or the skills are run under WSL. Separately, usage stats and crash reports are sent by default unless telemetry is turned off.",
+      "fit": "It appears best suited for users already working inside agent apps that support plugins or the skills.sh framework, and requires Python 3.11+ at runtime, with install/launch commands relying on uv-managed Python 3.13."
     },
     "summaries": {
       "en": {
-        "goal": "The text-to-cad plugin provides agent-based local workflows for generating 3D models as STEP, GLB, STL, or 3MF files, performing design-for-manufacturing checks, generating engineering drawings, and connecting to 3D printing, sheet metal, and CNC fabrication services. It is documented as supported by agents using plugins or the skills framework, including Claude Code, Codex, Cursor, Gemini, and Grok.",
-        "usage": "Installation can be requested by sending an agent the message 'Install text-to-cad from https://github.com/earthtojake/text-to-cad', or performed manually; for Claude Code this means running `claude plugin marketplace add earthtojake/text-to-cad#latest` followed by `claude plugin install text-to-cad@earthtojake`. The runtime requires Python 3.11+, with launch commands using uv-managed Python 3.13, and models are built by running a Python script such as `python model.py`.",
-        "pros": "The engine keeps each model's work in memory, so an edit only rebuilds what changed, and a CAD viewer follows every rebuild in the agent app or a browser. The project also documents a broad set of skills covering CAD, DXF, URDF, SRDF, SDF, engineering drawings, DFM/DfAM checks, and G-code slicing.",
-        "cons": "On Windows 11, Smart App Control—enabled by default on fresh installs—blocks the unsigned native OCP module used by the CAD kernel, causing cadgen commands to fail with an ImportError; there is no per-app exception, so this reportedly requires disabling Smart App Control (which then needs a Windows reinstall to re-enable) or running the skills under WSL.",
-        "fit": "This appears best suited to users of agents that already support plugins or the skills framework (Claude Code, Codex, Cursor, Gemini, Grok) who need local, script-based CAD generation and fabrication-service integration. Agents without plugin support can apparently still use core workflows via the separate Skills CLI, though with reduced viewer integration."
+        "goal": "text-to-cad is a plugin/skill library that gives coding agents local workflows to generate 3D CAD models as STEP, GLB, STL, or 3MF files, run design-for-manufacturing checks, produce engineering drawings, and connect to 3D printing, sheet metal, and CNC fabrication services.",
+        "usage": "Users can ask their agent to install it with the message \"Install text-to-cad from https://github.com/earthtojake/text-to-cad\", or install manually; for Claude Code this means running \"claude plugin marketplace add earthtojake/text-to-cad#latest\" then \"claude plugin install text-to-cad@earthtojake\". The tool runs through uv (checked via \"uv --version\"), and generated models are built by running \"python model.py\".",
+        "pros": "It works across multiple agent apps and frameworks, including Claude Code, Codex, Cursor, Gemini, and Grok, via plugins or the skills.sh framework. Its engine keeps each model's work in memory, so an edit only rebuilds what changed, which can speed up iterative design work.",
+        "cons": "On Windows 11 with Smart App Control enabled (the default on a fresh install), the underlying OCP native module is unsigned, so cadgen commands and \"import build123d\" fail with a DLL load error unless Smart App Control is disabled or the skills are run under WSL. Separately, usage stats and crash reports are sent by default unless telemetry is turned off.",
+        "fit": "It appears best suited for users already working inside agent apps that support plugins or the skills.sh framework, and requires Python 3.11+ at runtime, with install/launch commands relying on uv-managed Python 3.13."
       },
       "ko": {
-        "goal": "text-to-cad 플러그인은 에이전트가 로컬에서 작동하는 워크플로우를 통해 STEP, GLB, STL, 3MF 형식의 3D 모델을 생성하고, 제조 적합성(DFM) 검사를 수행하며, 엔지니어링 도면을 작성하고, 3D 프린팅·판금·CNC 가공 서비스와 연결할 수 있도록 지원합니다. 플러그인 또는 skills 프레임워크를 지원하는 에이전트(Claude Code, Codex, Cursor, Gemini, Grok)에서 사용할 수 있다고 문서화되어 있습니다.",
-        "usage": "에이전트에게 'Install text-to-cad from https://github.com/earthtojake/text-to-cad' 메시지를 보내 설치를 요청할 수 있으며, 수동 설치도 가능합니다. Claude Code의 경우 `claude plugin marketplace add earthtojake/text-to-cad#latest` 명령 이후 `claude plugin install text-to-cad@earthtojake` 명령을 실행합니다. 런타임은 Python 3.11+ 를 요구하며, 실행 명령은 uv로 관리되는 Python 3.13을 사용하고, 모델은 `python model.py`와 같은 스크립트 실행으로 빌드됩니다.",
-        "pros": "엔진이 각 모델의 작업을 메모리에 유지하므로 수정 시 변경된 부분만 다시 빌드되며, CAD 뷰어는 에이전트 앱이나 브라우저에서 매 리빌드를 따라갑니다. 또한 CAD, DXF, URDF, SRDF, SDF, 엔지니어링 도면, DFM/DfAM 검사, G-code 슬라이싱 등 다양한 skill이 문서화되어 있습니다.",
-        "cons": "Windows 11에서는 새로 설치 시 기본으로 켜져 있는 Smart App Control이 CAD 커널이 사용하는 서명되지 않은 OCP 네이티브 모듈을 차단하여 cadgen 명령이 ImportError로 실패할 수 있습니다. 앱별 예외가 없어 Smart App Control을 끄거나(다시 켜려면 Windows 재설치가 필요한 것으로 보임) WSL에서 skill을 실행해야 하는 것으로 보입니다.",
-        "fit": "플러그인 또는 skills 프레임워크를 이미 지원하는 에이전트(Claude Code, Codex, Cursor, Gemini, Grok) 사용자가 로컬 스크립트 기반 CAD 생성과 제조 서비스 연동을 필요로 할 때 적합해 보입니다. 플러그인을 지원하지 않는 에이전트도 별도의 Skills CLI를 통해 핵심 워크플로우를 사용할 수 있는 것으로 보이나, 뷰어 통합은 제한적일 수 있습니다."
+        "goal": "text-to-cad는 코딩 에이전트에게 STEP, GLB, STL, 3MF 형식의 3D CAD 모델을 생성하고, 제조 적합성(DFM) 검사를 수행하며, 엔지니어링 도면을 만들고, 3D 프린팅·금속판·CNC 가공 서비스에 연결하는 로컬 워크플로를 제공하는 플러그인/스킬 라이브러리입니다.",
+        "usage": "사용자는 에이전트에게 \"Install text-to-cad from https://github.com/earthtojake/text-to-cad\" 메시지를 보내 설치를 요청할 수 있으며, 수동 설치도 가능합니다. Claude Code의 경우 \"claude plugin marketplace add earthtojake/text-to-cad#latest\" 실행 후 \"claude plugin install text-to-cad@earthtojake\"를 실행합니다. 이 도구는 uv를 통해 동작하며(\"uv --version\"으로 확인), 생성된 모델은 \"python model.py\"를 실행하여 빌드됩니다.",
+        "pros": "Claude Code, Codex, Cursor, Gemini, Grok 등 플러그인 또는 skills.sh 프레임워크를 지원하는 여러 에이전트 앱에서 동작합니다. 엔진이 각 모델의 작업 상태를 메모리에 유지하므로 수정 시 변경된 부분만 다시 빌드되어 반복 작업 속도에 도움이 될 수 있습니다.",
+        "cons": "Windows 11에서 Smart App Control이 활성화된 경우(새 설치 시 기본값), 기반이 되는 OCP 네이티브 모듈이 서명되지 않아 cadgen 명령과 \"import build123d\"가 DLL 로드 오류로 실패합니다. 이를 피하려면 Smart App Control을 끄거나 WSL에서 스킬을 실행해야 합니다. 또한 텔레메트리를 끄지 않으면 기본적으로 사용 통계와 충돌 보고서가 전송됩니다.",
+        "fit": "플러그인이나 skills.sh 프레임워크를 지원하는 에이전트 앱을 이미 사용 중인 사용자에게 적합해 보이며, 런타임에는 Python 3.11 이상이 필요하고 설치/실행 명령은 uv로 관리되는 Python 3.13에 의존합니다."
       },
       "zh-CN": {
-        "goal": "text-to-cad 插件为代理（agent）提供本地工作流,用于生成 STEP、GLB、STL 或 3MF 格式的三维模型,执行可制造性(DFM)检查,生成工程图,并连接到 3D 打印、钣金和 CNC 加工服务。文档说明它受支持插件或 skills 框架的代理支持,包括 Claude Code、Codex、Cursor、Gemini 和 Grok。",
-        "usage": "可以向代理发送消息'Install text-to-cad from https://github.com/earthtojake/text-to-cad'来请求安装,也可以手动安装。以 Claude Code 为例,需先运行 `claude plugin marketplace add earthtojake/text-to-cad#latest`,再运行 `claude plugin install text-to-cad@earthtojake`。运行环境要求 Python 3.11+,启动命令使用 uv 管理的 Python 3.13,模型通过运行脚本(如 `python model.py`)构建。",
-        "pros": "引擎会将每个模型的工作保存在内存中,因此一次编辑只会重新构建发生变化的部分,CAD 查看器会在代理应用或浏览器中跟随每次重建。文档还列出了涵盖 CAD、DXF、URDF、SRDF、SDF、工程图、DFM/DfAM 检查和 G-code 切片等多种 skill。",
-        "cons": "在 Windows 11 上,全新安装默认开启的 Smart App Control 会阻止 CAD 内核所依赖的未签名 OCP 原生模块,导致 cadgen 命令出现 ImportError 失败。由于没有按应用的例外设置,文档表明需要关闭 Smart App Control(关闭后似乎只能通过重新安装 Windows 才能重新开启)或在 WSL 下运行相关 skill。",
-        "fit": "该项目似乎更适合已经支持插件或 skills 框架的代理(如 Claude Code、Codex、Cursor、Gemini、Grok)用户,用于本地、基于脚本的 CAD 生成以及制造服务对接。不支持插件的代理据文档说明仍可通过单独的 Skills CLI 使用核心工作流,但查看器集成可能有限。"
+        "goal": "text-to-cad 是一个插件/技能库，为编码代理提供本地工作流，用于生成 STEP、GLB、STL 或 3MF 格式的 3D CAD 模型，执行可制造性设计（DFM）检查，生成工程图，并连接 3D 打印、金属板材和 CNC 加工服务。",
+        "usage": "用户可以让其代理发送消息 \"Install text-to-cad from https://github.com/earthtojake/text-to-cad\" 来安装，也可以手动安装；对 Claude Code 而言，需先运行 \"claude plugin marketplace add earthtojake/text-to-cad#latest\"，再运行 \"claude plugin install text-to-cad@earthtojake\"。该工具通过 uv 运行（可用 \"uv --version\" 检查），生成的模型通过运行 \"python model.py\" 来构建。",
+        "pros": "它支持多种代理应用和框架，包括 Claude Code、Codex、Cursor、Gemini 和 Grok，通过插件或 skills.sh 框架实现。其引擎将每个模型的工作内容保存在内存中，因此编辑后只会重建发生变化的部分，这有助于加快迭代式设计工作。",
+        "cons": "在启用了 Smart App Control 的 Windows 11 上（全新安装时的默认设置），底层的 OCP 原生模块未签名，导致 cadgen 命令以及 \"import build123d\" 因 DLL 加载错误而失败，除非关闭 Smart App Control 或在 WSL 下运行相关技能。另外，除非关闭遥测功能，否则默认会发送使用统计数据和崩溃报告。",
+        "fit": "它似乎更适合已经在使用支持插件或 skills.sh 框架的代理应用的用户，运行时需要 Python 3.11 及以上版本，安装与启动命令依赖由 uv 管理的 Python 3.13。"
       },
       "es": {
-        "goal": "El plugin text-to-cad ofrece flujos de trabajo locales para que un agente genere modelos 3D en formato STEP, GLB, STL o 3MF, realice comprobaciones de diseño para fabricación (DFM), genere planos de ingeniería y se conecte con servicios de impresión 3D, chapa metálica y mecanizado CNC. Según la documentación, es compatible con agentes que soportan plugins o el framework skills, incluyendo Claude Code, Codex, Cursor, Gemini y Grok.",
-        "usage": "La instalación puede solicitarse enviando al agente el mensaje 'Install text-to-cad from https://github.com/earthtojake/text-to-cad', o realizarse manualmente; en Claude Code esto implica ejecutar `claude plugin marketplace add earthtojake/text-to-cad#latest` seguido de `claude plugin install text-to-cad@earthtojake`. El runtime requiere Python 3.11+, y los comandos de lanzamiento usan Python 3.13 gestionado por uv; los modelos se construyen ejecutando un script, por ejemplo `python model.py`.",
-        "pros": "El motor mantiene el trabajo de cada modelo en memoria, de modo que una edición solo reconstruye lo que cambió, y el visor CAD sigue cada reconstrucción en la app del agente o en el navegador. El proyecto también documenta un amplio conjunto de skills que cubren CAD, DXF, URDF, SRDF, SDF, planos de ingeniería, comprobaciones DFM/DfAM y segmentación G-code.",
-        "cons": "En Windows 11, Smart App Control —activado por defecto en instalaciones nuevas— bloquea el módulo nativo OCP sin firmar que usa el núcleo CAD, provocando que los comandos de cadgen fallen con un ImportError. Al no existir una excepción por aplicación, la documentación indica que sería necesario desactivar Smart App Control (lo que aparentemente solo puede revertirse reinstalando Windows) o ejecutar los skills bajo WSL.",
-        "fit": "Este proyecto parece más adecuado para usuarios de agentes que ya soportan plugins o el framework skills (Claude Code, Codex, Cursor, Gemini, Grok) que necesiten generación de CAD local basada en scripts e integración con servicios de fabricación. Los agentes sin soporte de plugins aparentemente pueden seguir usando los flujos de trabajo principales mediante el Skills CLI independiente, aunque con una integración de visor posiblemente más limitada."
+        "goal": "text-to-cad es una biblioteca de plugins/habilidades que ofrece a los agentes de codificación flujos de trabajo locales para generar modelos CAD 3D en formatos STEP, GLB, STL o 3MF, realizar comprobaciones de diseño para fabricación (DFM), producir planos de ingeniería y conectarse a servicios de impresión 3D, chapa metálica y mecanizado CNC.",
+        "usage": "Los usuarios pueden pedirle a su agente que lo instale enviando el mensaje \"Install text-to-cad from https://github.com/earthtojake/text-to-cad\", o instalarlo manualmente; en Claude Code esto implica ejecutar \"claude plugin marketplace add earthtojake/text-to-cad#latest\" y luego \"claude plugin install text-to-cad@earthtojake\". La herramienta se ejecuta a través de uv (verificable con \"uv --version\"), y los modelos generados se construyen ejecutando \"python model.py\".",
+        "pros": "Funciona en varias aplicaciones y marcos de agentes, incluyendo Claude Code, Codex, Cursor, Gemini y Grok, mediante plugins o el marco skills.sh. Su motor mantiene el trabajo de cada modelo en memoria, de modo que una edición solo reconstruye lo que cambió, lo que puede acelerar el trabajo de diseño iterativo.",
+        "cons": "En Windows 11 con Smart App Control activado (el valor predeterminado en una instalación nueva), el módulo nativo subyacente OCP no está firmado, por lo que los comandos de cadgen e \"import build123d\" fallan con un error de carga de DLL, a menos que se desactive Smart App Control o se ejecuten las habilidades bajo WSL. Además, por defecto se envían estadísticas de uso e informes de fallos salvo que se desactive la telemetría.",
+        "fit": "Parece más adecuado para usuarios que ya trabajan dentro de aplicaciones de agentes que admiten plugins o el marco skills.sh, y requiere Python 3.11 o superior en tiempo de ejecución, con comandos de instalación y lanzamiento que dependen de Python 3.13 gestionado por uv."
       },
       "ja": {
-        "goal": "text-to-cad プラグインは、エージェントがローカルで STEP、GLB、STL、3MF 形式の3Dモデルを生成し、製造性(DFM)チェックを行い、エンジニアリング図面を作成し、3Dプリント・板金・CNC加工サービスと連携できるワークフローを提供します。ドキュメントによると、プラグインまたは skills フレームワークをサポートするエージェント(Claude Code、Codex、Cursor、Gemini、Grok)で利用できるとされています。",
-        "usage": "エージェントに 'Install text-to-cad from https://github.com/earthtojake/text-to-cad' というメッセージを送ることでインストールを依頼できるほか、手動でのインストールも可能です。Claude Code の場合、`claude plugin marketplace add earthtojake/text-to-cad#latest` を実行した後に `claude plugin install text-to-cad@earthtojake` を実行します。ランタイムは Python 3.11 以上を要求し、起動コマンドは uv が管理する Python 3.13 を使用し、モデルは `python model.py` のようなスクリプト実行によってビルドされます。",
-        "pros": "エンジンは各モデルの作業をメモリ上に保持するため、編集時には変更された部分のみが再ビルドされ、CADビューアはエージェントアプリやブラウザ上で毎回の再ビルドに追従します。また、CAD、DXF、URDF、SRDF、SDF、エンジニアリング図面、DFM/DfAMチェック、G-codeスライシングなど多様な skill がドキュメントに記載されています。",
-        "cons": "Windows 11 では、新規インストール時にデフォルトで有効になっている Smart App Control が、CADカーネルが使用する署名なしのネイティブモジュール OCP をブロックし、cadgen コマンドが ImportError で失敗する可能性があります。アプリ単位の例外は用意されていないため、ドキュメントによれば Smart App Control を無効化する(再度有効化するには Windows の再インストールが必要になるとされる)か、WSL 上で skill を実行する必要があるようです。",
-        "fit": "この構成は、すでにプラグインまたは skills フレームワークをサポートするエージェント(Claude Code、Codex、Cursor、Gemini、Grok)を使っており、ローカルでのスクリプトベースのCAD生成や製造サービス連携を必要とするユーザーに向いていると考えられます。プラグイン非対応のエージェントでも、独立した Skills CLI を通じて主要なワークフローを利用できるとされていますが、ビューア連携は限定的である可能性があります。"
+        "goal": "text-to-cadは、コーディングエージェントにSTEP、GLB、STL、3MF形式の3D CADモデルを生成し、製造性設計（DFM）チェックを行い、エンジニアリング図面を作成し、3Dプリント・板金・CNC加工サービスに接続するローカルワークフローを提供するプラグイン/スキルライブラリです。",
+        "usage": "ユーザーはエージェントに「Install text-to-cad from https://github.com/earthtojake/text-to-cad\"」というメッセージを送ってインストールを依頼できます。手動インストールも可能で、Claude Codeの場合は「claude plugin marketplace add earthtojake/text-to-cad#latest」を実行した後、「claude plugin install text-to-cad@earthtojake」を実行します。このツールはuvを通じて動作し（「uv --version」で確認）、生成されたモデルは「python model.py」の実行によってビルドされます。",
+        "pros": "Claude Code、Codex、Cursor、Gemini、Grokなど、プラグインまたはskills.shフレームワークに対応した複数のエージェントアプリで動作します。エンジンが各モデルの作業内容をメモリ上に保持するため、編集時には変更された部分のみが再構築され、反復的な設計作業の効率化につながる可能性があります。",
+        "cons": "Windows 11でSmart App Controlが有効な場合（新規インストール時の既定設定）、基盤となるOCPネイティブモジュールが未署名であるため、cadgenコマンドや「import build123d」がDLL読み込みエラーで失敗します。これを避けるにはSmart App Controlを無効化するか、WSL上でスキルを実行する必要があります。また、テレメトリを無効にしない限り、既定で使用統計やクラッシュレポートが送信されます。",
+        "fit": "プラグインまたはskills.shフレームワークに対応したエージェントアプリを既に利用しているユーザーに向いていると考えられ、実行時にはPython 3.11以上が必要で、インストール・起動コマンドはuvで管理されたPython 3.13に依存します。"
       }
     },
     "evidence": {
@@ -4173,16 +4212,11 @@
           "start_line": 23,
           "end_line": 26,
           "section_heading": "text-to-cad"
-        },
-        {
-          "start_line": 28,
-          "end_line": 30,
-          "section_heading": "text-to-cad"
         }
       ],
       "usage": [
         {
-          "start_line": 49,
+          "start_line": 46,
           "end_line": 50,
           "section_heading": "Ask your agent (recommended)"
         },
@@ -4192,28 +4226,33 @@
           "section_heading": "Claude Code"
         },
         {
-          "start_line": 34,
-          "end_line": 38,
-          "section_heading": "How it works"
+          "start_line": 61,
+          "end_line": 63,
+          "section_heading": "Ask your agent (recommended)"
         }
       ],
       "pros": [
         {
-          "start_line": 37,
-          "end_line": 40,
-          "section_heading": "How it works"
+          "start_line": 28,
+          "end_line": 30,
+          "section_heading": "text-to-cad"
         },
         {
-          "start_line": 351,
-          "end_line": 362,
-          "section_heading": "🧰 Skills"
+          "start_line": 37,
+          "end_line": 38,
+          "section_heading": "How it works"
         }
       ],
       "cons": [
         {
           "start_line": 326,
-          "end_line": 342,
+          "end_line": 335,
           "section_heading": "Windows 11: Smart App Control"
+        },
+        {
+          "start_line": 52,
+          "end_line": 54,
+          "section_heading": "Ask your agent (recommended)"
         }
       ],
       "fit": [
@@ -4223,16 +4262,16 @@
           "section_heading": "text-to-cad"
         },
         {
-          "start_line": 243,
-          "end_line": 246,
-          "section_heading": "Other Agents"
+          "start_line": 57,
+          "end_line": 57,
+          "section_heading": "Ask your agent (recommended)"
         }
       ]
     },
     "invariants": [
       {
         "kind": "command",
-        "value": "claude plugin marketplace add earthtojake/text-to-cad#latest",
+        "value": "Install text-to-cad from https://github.com/earthtojake/text-to-cad",
         "fields": [
           "usage"
         ]
@@ -4252,8 +4291,8 @@
         ]
       },
       {
-        "kind": "version",
-        "value": "3.11+",
+        "kind": "command",
+        "value": "uv --version",
         "fields": [
           "usage"
         ]
@@ -4262,7 +4301,7 @@
         "kind": "version",
         "value": "3.13",
         "fields": [
-          "usage"
+          "fit"
         ]
       },
       {
@@ -4274,51 +4313,16 @@
       },
       {
         "kind": "product",
-        "value": "text-to-cad",
+        "value": "cadgen",
         "fields": [
-          "goal",
-          "usage"
+          "cons"
         ]
       },
       {
         "kind": "product",
-        "value": "Claude Code",
+        "value": "build123d",
         "fields": [
-          "goal",
-          "usage",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Codex",
-        "fields": [
-          "goal",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Cursor",
-        "fields": [
-          "goal",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Gemini",
-        "fields": [
-          "goal",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Grok",
-        "fields": [
-          "goal",
-          "fit"
+          "cons"
         ]
       },
       {
@@ -4330,15 +4334,14 @@
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "earthtojake/text-to-cad",
       "path": "README.md",
-      "blob_sha": "e59b9567d7dd41b2cd1bf0384476eefdc45d107a",
-      "content_sha256": "26180c1f854c7423101e48d1d2a882bf0318e31fc6dfe04e662b982e1c779ea5",
+      "blob_sha": "ab9d605e7c2964ef501dbf32d006773e49bdc150",
+      "content_sha256": "4287043900efb5a89bcb47509a7941c56e5ec1fe2aa356a78f342a86f3367ec0",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.310",
@@ -5612,74 +5615,229 @@
       "translation_applicable": false
     }
   },
-  "affaan-m/ECC": {
+  "flutter/flutter": {
     "content": {
-      "goal": "ECC (affaan-m/ECC) is an open-source, MIT-licensed agent harness system that gives coding agents a structured engineering workflow: plan, test, implement, review, verify, remember, improve, instead of rebuilding that process in every prompt.",
-      "usage": "The recommended install runs `npx ecc-universal@2.2.3 setup` for guided Claude Code plugin setup; Claude Code's native commands `/plugin marketplace add https://github.com/affaan-m/ECC` and `/plugin install ecc@ecc` are a documented alternative path.",
-      "pros": "The package bundles 71 specialized agents, 311 reusable skills, and 97 legacy command shims, plus hooks, rules, memory, continuous learning, and AgentShield security scanning for agent configurations.",
-      "cons": "Setup documents concrete prerequisites: the universal package needs Node.js 18 or newer, and the Claude plugin path additionally requires Git and Claude Code 2.1 or newer on PATH; some optional features, such as a macOS GAN shell path incompatible with the system Bash 3.2 and certain Windows-native memory-vault writes, are noted as having open defects.",
-      "fit": "The README states ECC works best with Claude Code today, with native plugin paths for Codex and Qoder; other harnesses such as Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, and Qwen only get capability-limited adapters, so it may be worth checking the support-status matrix before assuming full feature parity."
+      "goal": "Flutter is Google's open-source SDK for building beautiful, fast user interfaces for mobile, web, and desktop platforms from a single codebase.",
+      "usage": "Developers follow the official guide at https://docs.flutter.dev/get-started to install Flutter, then run `flutter upgrade` to update an existing installation to a newer version.",
+      "pros": "The README highlights a layered architecture giving control over screen rendering, a full widget catalog (Cupertino and Material) for iOS and other platforms, hardware-accelerated graphics via Skia and Impeller, and stateful hot reload for near-instant code changes without losing app state.",
+      "cons": "When installed from GitHub rather than a prepackaged archive, the Flutter tool downloads the Dart SDK from Google servers on first run and again during upgrades, which requires network access and acceptance of the Google Terms of Service (https://policies.google.com/terms).",
+      "fit": "Based on the documented platform support, Flutter appears intended for teams targeting iOS, Android, web, Windows, macOS, or Linux from one codebase, though suitability for a specific project likely depends on factors not covered in the README."
     },
     "summaries": {
       "en": {
-        "goal": "ECC (affaan-m/ECC) is an open-source, MIT-licensed agent harness system that gives coding agents a structured engineering workflow: plan, test, implement, review, verify, remember, improve, instead of rebuilding that process in every prompt.",
-        "usage": "The recommended install runs `npx ecc-universal@2.2.3 setup` for guided Claude Code plugin setup; Claude Code's native commands `/plugin marketplace add https://github.com/affaan-m/ECC` and `/plugin install ecc@ecc` are a documented alternative path.",
-        "pros": "The package bundles 71 specialized agents, 311 reusable skills, and 97 legacy command shims, plus hooks, rules, memory, continuous learning, and AgentShield security scanning for agent configurations.",
-        "cons": "Setup documents concrete prerequisites: the universal package needs Node.js 18 or newer, and the Claude plugin path additionally requires Git and Claude Code 2.1 or newer on PATH; some optional features, such as a macOS GAN shell path incompatible with the system Bash 3.2 and certain Windows-native memory-vault writes, are noted as having open defects.",
-        "fit": "The README states ECC works best with Claude Code today, with native plugin paths for Codex and Qoder; other harnesses such as Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, and Qwen only get capability-limited adapters, so it may be worth checking the support-status matrix before assuming full feature parity."
+        "goal": "Flutter is Google's open-source SDK for building beautiful, fast user interfaces for mobile, web, and desktop platforms from a single codebase.",
+        "usage": "Developers follow the official guide at https://docs.flutter.dev/get-started to install Flutter, then run `flutter upgrade` to update an existing installation to a newer version.",
+        "pros": "The README highlights a layered architecture giving control over screen rendering, a full widget catalog (Cupertino and Material) for iOS and other platforms, hardware-accelerated graphics via Skia and Impeller, and stateful hot reload for near-instant code changes without losing app state.",
+        "cons": "When installed from GitHub rather than a prepackaged archive, the Flutter tool downloads the Dart SDK from Google servers on first run and again during upgrades, which requires network access and acceptance of the Google Terms of Service (https://policies.google.com/terms).",
+        "fit": "Based on the documented platform support, Flutter appears intended for teams targeting iOS, Android, web, Windows, macOS, or Linux from one codebase, though suitability for a specific project likely depends on factors not covered in the README."
       },
       "ko": {
-        "goal": "ECC(affaan-m/ECC)는 MIT 라이선스의 오픈소스 에이전트 하니스 시스템으로, 코딩 에이전트에 계획(plan) → 테스트(test) → 구현(implement) → 리뷰(review) → 검증(verify) → 기억(remember) → 개선(improve)으로 이어지는 구조화된 엔지니어링 워크플로우를 제공합니다.",
-        "usage": "권장 설치 방법은 `npx ecc-universal@2.2.3 setup`을 실행해 Claude Code 플러그인을 안내에 따라 설정하는 것이며, Claude Code의 네이티브 명령인 `/plugin marketplace add https://github.com/affaan-m/ECC`와 `/plugin install ecc@ecc`도 공식적으로 문서화된 대안 경로입니다.",
-        "pros": "이 패키지는 71개의 전문 에이전트, 311개의 재사용 가능한 스킬, 97개의 레거시 명령 셔임(shim)과 함께 훅, 규칙, 메모리, 지속 학습 기능, 그리고 에이전트 구성을 점검하는 AgentShield 보안 스캐닝을 포함합니다.",
-        "cons": "문서는 구체적인 전제 조건을 명시합니다: 범용 패키지에는 Node.js 18 이상이 필요하고, Claude 플러그인 경로에는 PATH에 Git과 Claude Code 2.1 이상이 필요합니다. 또한 macOS의 GAN 셸 경로나 Windows 네이티브에서의 메모리 볼트 기록 등 일부 선택적 기능에는 알려진 결함이 있다고 기술되어 있습니다.",
-        "fit": "README는 ECC가 현재 Claude Code와 가장 잘 작동하며 Codex와 Qoder에는 네이티브 플러그인 경로가 있다고 밝히고 있습니다. Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity, Qwen 등의 다른 하니스는 기능이 제한된 어댑터만 제공되므로, 완전한 기능 동등성을 기대하기 전에 지원 상태 표를 확인하는 것이 좋을 것으로 보입니다."
+        "goal": "Flutter는 모바일, 웹, 데스크톱용 아름답고 빠른 사용자 인터페이스를 단일 코드베이스로 만들 수 있는 Google의 오픈소스 SDK입니다.",
+        "usage": "개발자는 https://docs.flutter.dev/get-started 의 공식 가이드를 통해 Flutter를 설치하고, 기존 설치는 `flutter upgrade` 명령으로 업데이트합니다.",
+        "pros": "README에 따르면 화면 렌더링을 세밀하게 제어할 수 있는 계층형 아키텍처, iOS 및 기타 플랫폼용 위젯 카탈로그(Cupertino 및 Material), Skia와 Impeller를 통한 하드웨어 가속 그래픽, 앱 상태를 잃지 않고 즉시 코드 변경을 반영하는 stateful hot reload가 특징으로 소개됩니다.",
+        "cons": "미리 패키징된 아카이브가 아닌 GitHub에서 설치할 경우, Flutter 도구는 최초 실행 시와 업그레이드 시마다 Google 서버에서 Dart SDK를 다운로드하므로 네트워크 접속과 Google 서비스 약관(https://policies.google.com/terms) 동의가 필요합니다.",
+        "fit": "문서화된 플랫폼 지원 범위를 보면 Flutter는 단일 코드베이스로 iOS, Android, 웹, Windows, macOS, Linux를 대상으로 하는 팀에 적합해 보이지만, 특정 프로젝트에 대한 적합성은 README에 명시되지 않은 요소에 따라 달라질 수 있습니다."
       },
       "zh-CN": {
-        "goal": "ECC(affaan-m/ECC)是一个基于 MIT 许可的开源智能体(agent)框架系统,为编码智能体提供结构化的工程工作流:规划(plan)、测试(test)、实现(implement)、审查(review)、验证(verify)、记忆(remember)、改进(improve)。",
-        "usage": "推荐的安装方式是运行 `npx ecc-universal@2.2.3 setup` 来引导完成 Claude Code 插件的设置;Claude Code 的原生命令 `/plugin marketplace add https://github.com/affaan-m/ECC` 和 `/plugin install ecc@ecc` 是文档中记录的另一条路径。",
-        "pros": "该软件包包含 71 个专用智能体、311 个可复用技能、97 个旧版命令兼容壳(shim),以及钩子(hooks)、规则(rules)、记忆(memory)、持续学习功能,还有用于审计智能体配置的 AgentShield 安全扫描。",
-        "cons": "文档列出了具体的前提条件:通用包需要 Node.js 18 或更高版本,Claude 插件安装路径还需要 Git 以及 PATH 中可用的 Claude Code 2.1 或更高版本。文档还提到部分可选功能存在已知缺陷,例如 macOS 上的 GAN shell 路径与系统自带的 Bash 3.2 不兼容,以及 Windows 原生环境下的记忆库写入问题。",
-        "fit": "README 说明 ECC 目前与 Claude Code 配合最佳,并为 Codex 和 Qoder 提供了原生插件路径;而 Cursor、OpenCode、Gemini、Zed、GitHub Copilot、Antigravity、Qwen 等其他工具目前只能获得功能受限的适配器,因此在假设功能对等之前,可能有必要先查看支持状态矩阵。"
+        "goal": "Flutter 是 Google 推出的开源 SDK,用于通过单一代码库为移动端、网页和桌面平台构建美观、快速的用户界面。",
+        "usage": "开发者可通过官方指南 https://docs.flutter.dev/get-started 安装 Flutter,并使用 `flutter upgrade` 命令更新已有安装。",
+        "pros": "根据 README 介绍,Flutter 具有可控制屏幕渲染的分层架构、面向 iOS 及其他平台的完整组件库(Cupertino 和 Material)、借助 Skia 和 Impeller 实现的硬件加速图形,以及可在不丢失应用状态的情况下即时生效代码改动的 stateful hot reload 功能。",
+        "cons": "若从 GitHub 安装而非使用预打包的归档文件,Flutter 工具会在首次运行以及每次升级时从 Google 服务器下载 Dart SDK,因此需要网络连接并同意 Google 服务条款(https://policies.google.com/terms)。",
+        "fit": "根据文档中列出的平台支持范围,Flutter 似乎适合希望以单一代码库面向 iOS、Android、网页、Windows、macOS 或 Linux 的团队,但具体项目的适用性可能还取决于 README 未涉及的其他因素。"
       },
       "es": {
-        "goal": "ECC (affaan-m/ECC) es un sistema de arnés (harness) para agentes, de código abierto bajo licencia MIT, que ofrece a los agentes de codificación un flujo de trabajo de ingeniería estructurado: planificar (plan), probar (test), implementar (implement), revisar (review), verificar (verify), recordar (remember) y mejorar (improve).",
-        "usage": "La instalación recomendada consiste en ejecutar `npx ecc-universal@2.2.3 setup` para una configuración guiada del plugin de Claude Code; los comandos nativos de Claude Code `/plugin marketplace add https://github.com/affaan-m/ECC` y `/plugin install ecc@ecc` constituyen una ruta alternativa documentada.",
-        "pros": "El paquete incluye 71 agentes especializados, 311 habilidades (skills) reutilizables y 97 comandos heredados de compatibilidad, además de hooks, reglas, memoria, aprendizaje continuo y el escaneo de seguridad AgentShield para auditar la configuración de los agentes.",
-        "cons": "La documentación indica requisitos previos concretos: el paquete universal necesita Node.js 18 o superior, y la ruta del plugin de Claude requiere además Git y Claude Code 2.1 o superior en el PATH. También se señalan defectos abiertos en algunas funciones opcionales, como la ruta de shell GAN en macOS, incompatible con el Bash 3.2 del sistema, y ciertas escrituras nativas de memoria en Windows.",
-        "fit": "Según el README, ECC funciona mejor hoy con Claude Code, con rutas de plugin nativas para Codex y Qoder; otros entornos como Cursor, OpenCode, Gemini, Zed, GitHub Copilot, Antigravity y Qwen solo cuentan con adaptadores de capacidad limitada, por lo que probablemente convenga revisar la matriz de estado de soporte antes de asumir paridad total de funciones."
+        "goal": "Flutter es el SDK de código abierto de Google para crear interfaces de usuario bonitas y rápidas para móviles, web y escritorio a partir de una única base de código.",
+        "usage": "Los desarrolladores instalan Flutter siguiendo la guía oficial en https://docs.flutter.dev/get-started, y actualizan una instalación existente con el comando `flutter upgrade`.",
+        "pros": "Según el README, Flutter destaca por una arquitectura en capas que permite controlar la representación en pantalla, un catálogo completo de widgets (Cupertino y Material) para iOS y otras plataformas, gráficos acelerados por hardware mediante Skia e Impeller, y la función de hot reload con estado que aplica cambios de código al instante sin perder el estado de la app.",
+        "cons": "Si se instala desde GitHub en lugar de un archivo empaquetado previamente, la herramienta Flutter descarga el SDK de Dart desde servidores de Google al ejecutarse por primera vez y también durante las actualizaciones, lo que requiere acceso a internet y la aceptación de los Términos de Servicio de Google (https://policies.google.com/terms).",
+        "fit": "A partir de la compatibilidad de plataformas documentada, Flutter parece orientado a equipos que buscan desarrollar para iOS, Android, web, Windows, macOS o Linux desde una sola base de código, aunque su idoneidad para un proyecto concreto probablemente dependa de factores no detallados en el README."
       },
       "ja": {
-        "goal": "ECC(affaan-m/ECC)はMITライセンスのオープンソースのエージェントハーネス(agent harness)システムで、コーディングエージェントに計画(plan)→テスト(test)→実装(implement)→レビュー(review)→検証(verify)→記憶(remember)→改善(improve)という構造化されたエンジニアリングワークフローを提供します。",
-        "usage": "推奨されるインストール方法は `npx ecc-universal@2.2.3 setup` を実行してClaude Codeプラグインをガイド付きで設定することです。Claude Codeのネイティブコマンドである `/plugin marketplace add https://github.com/affaan-m/ECC` と `/plugin install ecc@ecc` も文書化された代替手順として利用できます。",
-        "pros": "このパッケージには71種類の専門エージェント、311種類の再利用可能なスキル、97種類のレガシーコマンドシムが含まれ、さらにフック、ルール、メモリ、継続的学習機能、そしてエージェント設定を監査するAgentShieldセキュリティスキャンも含まれています。",
-        "cons": "ドキュメントには具体的な前提条件が記載されています:ユニバーサルパッケージにはNode.js 18以上が必要で、Claudeプラグイン経路にはさらにGitとPATH上のClaude Code 2.1以上が必要です。また、macOSのGANシェル経路がシステムのBash 3.2と互換性がない点や、Windowsネイティブ環境でのメモリボルト書き込みに関する既知の不具合など、一部のオプション機能に未解決の欠陥があることも記されています。",
-        "fit": "READMEによれば、ECCは現在Claude Codeで最もよく機能し、CodexとQoderにはネイティブなプラグイン経路があります。一方でCursor、OpenCode、Gemini、Zed、GitHub Copilot、Antigravity、Qwenなど他のハーネスには機能が限定されたアダプターしか提供されていないため、完全な機能的同等性を前提とする前にサポート状況表を確認した方が良いと考えられます。"
+        "goal": "Flutterは、単一のコードベースからモバイル、Web、デスクトップ向けに美しく高速なユーザーインターフェースを構築できる、GoogleのオープンソースSDKです。",
+        "usage": "開発者は公式ガイド https://docs.flutter.dev/get-started に従ってFlutterをインストールし、既存のインストールは `flutter upgrade` コマンドで更新します。",
+        "pros": "READMEによると、Flutterは画面描画を細かく制御できるレイヤードアーキテクチャ、iOSや他プラットフォーム向けの豊富なウィジェットカタログ(CupertinoおよびMaterial)、SkiaとImpellerによるハードウェアアクセラレーションされたグラフィックス、アプリの状態を保持したままコード変更を即時反映するstateful hot reloadを特徴としています。",
+        "cons": "事前パッケージ化されたアーカイブではなくGitHubからインストールした場合、Flutterツールは初回実行時およびアップグレード時にGoogleサーバーからDart SDKをダウンロードするため、ネットワーク接続とGoogle利用規約(https://policies.google.com/terms)への同意が必要です。",
+        "fit": "文書化されたプラットフォーム対応状況から見ると、FlutterはiOS、Android、Web、Windows、macOS、Linuxを単一のコードベースで対象とするチームに向いていると考えられますが、個々のプロジェクトへの適合性はREADMEに記載されていない要因にも左右される可能性があります。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 18,
+          "end_line": 21,
+          "section_heading": ""
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 25,
+          "end_line": 25,
+          "section_heading": "Documentation"
+        },
+        {
+          "start_line": 44,
+          "end_line": 45,
+          "section_heading": "Terms of service"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 58,
+          "end_line": 63,
+          "section_heading": "Beautiful user experiences"
+        },
+        {
+          "start_line": 69,
+          "end_line": 72,
+          "section_heading": "Fast results"
+        },
+        {
+          "start_line": 83,
+          "end_line": 84,
+          "section_heading": "Productive development"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 37,
+          "end_line": 39,
+          "section_heading": "Terms of service"
+        },
+        {
+          "start_line": 41,
+          "end_line": 45,
+          "section_heading": "Terms of service"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 49,
+          "end_line": 52,
+          "section_heading": "About Flutter"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "product",
+        "value": "Flutter",
+        "fields": [
+          "goal",
+          "usage",
+          "cons",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Dart",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://docs.flutter.dev/get-started",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://policies.google.com/terms",
+        "fields": [
+          "cons"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "flutter/flutter",
+      "path": "README.md",
+      "blob_sha": "b9e6bc763380cabef9330c92478816ff79dbcae7",
+      "content_sha256": "4bc9b330ef1c690f06adb0f90c25018c980977ad47d25d88efca11f45e91930a",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.310",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "affaan-m/ECC": {
+    "content": {
+      "goal": "ECC is an MIT-licensed agent harness system that adds a plan, test, implement, review, verify, and remember workflow to coding agents. The README states it currently works best with Claude Code, while also offering native plugin support for Codex and Qoder.",
+      "usage": "Install the Claude Code plugin by running `npx ecc-universal@2.2.3 setup`, which requires Node.js 18 or newer, Git, and Claude Code 2.1 or newer available on PATH; the command installs the `ecc@ecc` plugin.",
+      "pros": "ECC bundles 71 specialized agents, 314 reusable skills, and 98 legacy command shims, together with hooks, rules, memory, continuous learning, and AgentShield security scanning for agent configurations.",
+      "cons": "Feature support is not uniform across harnesses: the README documents open defects, including a Windows-native continuous-learning observer/memory-vault issue and a macOS-only GAN shell script score-parsing defect tied to the system's older Bash version, so some capabilities depend on platform and harness.",
+      "fit": "Based on the platform support table, ECC appears best suited to teams already standardized on Claude Code who want a structured review-and-verification workflow; support for Codex, Qoder, Cursor, OpenCode, Gemini, Zed, Copilot, and others ranges from native to experimental, so feature parity may vary by harness."
+    },
+    "summaries": {
+      "en": {
+        "goal": "ECC is an MIT-licensed agent harness system that adds a plan, test, implement, review, verify, and remember workflow to coding agents. The README states it currently works best with Claude Code, while also offering native plugin support for Codex and Qoder.",
+        "usage": "Install the Claude Code plugin by running `npx ecc-universal@2.2.3 setup`, which requires Node.js 18 or newer, Git, and Claude Code 2.1 or newer available on PATH; the command installs the `ecc@ecc` plugin.",
+        "pros": "ECC bundles 71 specialized agents, 314 reusable skills, and 98 legacy command shims, together with hooks, rules, memory, continuous learning, and AgentShield security scanning for agent configurations.",
+        "cons": "Feature support is not uniform across harnesses: the README documents open defects, including a Windows-native continuous-learning observer/memory-vault issue and a macOS-only GAN shell script score-parsing defect tied to the system's older Bash version, so some capabilities depend on platform and harness.",
+        "fit": "Based on the platform support table, ECC appears best suited to teams already standardized on Claude Code who want a structured review-and-verification workflow; support for Codex, Qoder, Cursor, OpenCode, Gemini, Zed, Copilot, and others ranges from native to experimental, so feature parity may vary by harness."
+      },
+      "ko": {
+        "goal": "ECC는 MIT 라이선스 기반의 에이전트 하니스 시스템으로, 코딩 에이전트에 계획-테스트-구현-리뷰-검증-기억 워크플로우를 추가합니다. 문서에 따르면 현재 Claude Code와 가장 잘 작동하며, Codex와 Qoder용 네이티브 플러그인도 지원합니다.",
+        "usage": "`npx ecc-universal@2.2.3 setup` 명령을 실행하면 Claude Code 플러그인을 설치할 수 있으며, 이를 위해 Node.js 18 이상, Git, 그리고 PATH에 등록된 Claude Code 2.1 이상이 필요합니다. 이 명령은 `ecc@ecc` 플러그인을 설치합니다.",
+        "pros": "ECC에는 71개의 전문 에이전트, 314개의 재사용 가능한 스킬, 98개의 레거시 명령 셈이 포함되며, 훅, 규칙, 메모리, 지속 학습, AgentShield 보안 스캐닝 기능도 함께 제공됩니다.",
+        "cons": "README는 모든 하니스에서 기능 지원이 동일하지 않다고 설명하며, Windows 네이티브 환경의 지속 학습 관찰자/메모리 볼트 관련 결함과 구형 Bash 버전과 관련된 macOS 전용 GAN 셸 스크립트의 점수 파싱 결함 등 알려진 이슈를 기록하고 있어, 일부 기능은 플랫폼과 하니스에 따라 달라질 수 있습니다.",
+        "fit": "플랫폼 지원 표를 보면 ECC는 이미 Claude Code를 표준으로 사용하며 구조화된 리뷰 및 검증 워크플로우를 원하는 팀에 가장 적합해 보입니다. Codex, Qoder, Cursor, OpenCode, Gemini, Zed, Copilot 등에 대한 지원은 네이티브부터 실험적 단계까지 다양하므로, 하니스에 따라 기능 수준이 달라질 수 있습니다."
+      },
+      "zh-CN": {
+        "goal": "ECC 是一个 MIT 许可的智能体操作系统,为编码智能体添加计划-测试-实现-审查-验证-记忆的工作流程。文档说明它目前与 Claude Code 配合效果最佳,同时也为 Codex 和 Qoder 提供原生插件支持。",
+        "usage": "运行 `npx ecc-universal@2.2.3 setup` 即可安装 Claude Code 插件,该命令需要 Node.js 18 及以上版本、Git,以及已加入 PATH 的 Claude Code 2.1 及以上版本;该命令会安装 `ecc@ecc` 插件。",
+        "pros": "ECC 捆绑了 71 个专业智能体、314 个可复用技能和 98 个遗留命令垫片,并附带钩子、规则、记忆、持续学习以及 AgentShield 安全扫描功能。",
+        "cons": "README 说明各宿主环境的功能支持并不统一:文档记录了已知缺陷,例如 Windows 原生环境下持续学习观察者/记忆库存在的问题,以及因 macOS 系统自带旧版 Bash 导致的 GAN shell 脚本评分解析缺陷,因此部分功能会因平台和宿主而异。",
+        "fit": "根据平台支持表,ECC 似乎最适合已经以 Claude Code 为标准、希望获得结构化审查与验证工作流程的团队;其对 Codex、Qoder、Cursor、OpenCode、Gemini、Zed、Copilot 等的支持程度从原生到实验性不等,因此不同宿主之间的功能对等程度可能有所差异。"
+      },
+      "es": {
+        "goal": "ECC es un sistema operativo de agentes con licencia MIT que añade a los agentes de codificación un flujo de planificar, probar, implementar, revisar, verificar y recordar. Según la documentación, actualmente funciona mejor con Claude Code, y también ofrece soporte nativo de plugin para Codex y Qoder.",
+        "usage": "Instale el plugin de Claude Code ejecutando `npx ecc-universal@2.2.3 setup`, que requiere Node.js 18 o superior, Git y Claude Code 2.1 o superior disponible en el PATH; el comando instala el plugin `ecc@ecc`.",
+        "pros": "ECC incluye 71 agentes especializados, 314 habilidades reutilizables y 98 shims de comandos heredados, junto con hooks, reglas, memoria, aprendizaje continuo y escaneo de seguridad AgentShield.",
+        "cons": "El soporte de funciones no es uniforme entre entornos: el README documenta defectos abiertos, como un problema del observador de aprendizaje continuo/bóveda de memoria específico de Windows nativo y un defecto de análisis de puntuación en el script de shell GAN exclusivo de macOS, vinculado a su versión antigua de Bash, por lo que algunas capacidades dependen de la plataforma y el entorno.",
+        "fit": "Según la tabla de soporte de plataformas, ECC parece más adecuado para equipos que ya usan Claude Code como estándar y buscan un flujo de revisión y verificación estructurado; el soporte para Codex, Qoder, Cursor, OpenCode, Gemini, Zed, Copilot y otros va de nativo a experimental, por lo que la paridad de funciones puede variar según el entorno."
+      },
+      "ja": {
+        "goal": "ECCはMITライセンスのエージェントハーネスシステムで、コーディングエージェントに計画→テスト→実装→レビュー→検証→記憶というワークフローを追加します。ドキュメントによれば現時点ではClaude Codeで最もよく機能し、CodexとQoder向けのネイティブプラグインもサポートしています。",
+        "usage": "`npx ecc-universal@2.2.3 setup` を実行するとClaude Codeプラグインをインストールできます。これにはNode.js 18以降、Git、およびPATH上にClaude Code 2.1以降が必要で、このコマンドは `ecc@ecc` プラグインをインストールします。",
+        "pros": "ECCには71種類の専門エージェント、314種類の再利用可能なスキル、98種類のレガシーコマンドシムが含まれ、フック、ルール、メモリ、継続学習、AgentShieldセキュリティスキャン機能も備えています。",
+        "cons": "READMEによれば機能サポートはハーネスごとに一様ではなく、Windowsネイティブ環境における継続学習オブザーバー/メモリボルトの既知の不具合や、古いバージョンのBashに関連するmacOS専用GANシェルスクリプトのスコア解析の不具合など、未解決の問題が記録されており、一部の機能はプラットフォームやハーネスに依存する可能性があります。",
+        "fit": "プラットフォームサポート表によれば、ECCはすでにClaude Codeを標準としており、構造化されたレビューと検証のワークフローを求めるチームに最も適していると考えられます。Codex、Qoder、Cursor、OpenCode、Gemini、Zed、Copilotなどへのサポートはネイティブから実験的なものまで幅があるため、ハーネスによって機能の対応度が異なる場合があります。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 130,
-          "end_line": 138,
+          "end_line": 132,
           "section_heading": "ECC"
         },
         {
           "start_line": 142,
-          "end_line": 142,
+          "end_line": 144,
           "section_heading": "ECC"
         }
       ],
       "usage": [
         {
-          "start_line": 176,
-          "end_line": 176,
-          "section_heading": "Recommended: universal guided setup"
+          "start_line": 166,
+          "end_line": 169,
+          "section_heading": "Install ECC"
         },
         {
-          "start_line": 290,
-          "end_line": 292,
-          "section_heading": "Claude Code details"
+          "start_line": 175,
+          "end_line": 177,
+          "section_heading": "Recommended: universal guided setup"
         }
       ],
       "pros": [
@@ -5689,25 +5847,15 @@
           "section_heading": "ECC"
         },
         {
-          "start_line": 146,
+          "start_line": 148,
           "end_line": 153,
           "section_heading": "ECC"
         }
       ],
       "cons": [
         {
-          "start_line": 166,
-          "end_line": 169,
-          "section_heading": "Install ECC"
-        },
-        {
-          "start_line": 1317,
-          "end_line": 1317,
-          "section_heading": "Platform Support"
-        },
-        {
-          "start_line": 1319,
-          "end_line": 1319,
+          "start_line": 1316,
+          "end_line": 1323,
           "section_heading": "Platform Support"
         }
       ],
@@ -5718,13 +5866,8 @@
           "section_heading": "ECC"
         },
         {
-          "start_line": 1310,
-          "end_line": 1312,
-          "section_heading": "Platform Support"
-        },
-        {
-          "start_line": 1323,
-          "end_line": 1332,
+          "start_line": 1327,
+          "end_line": 1336,
           "section_heading": "Platform Support"
         }
       ]
@@ -5738,38 +5881,10 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "/plugin install ecc@ecc",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "/plugin marketplace add https://github.com/affaan-m/ECC",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
         "kind": "version",
         "value": "2.2.3",
         "fields": [
           "usage"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": "Node.js 18",
-        "fields": [
-          "cons"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": "Claude Code 2.1",
-        "fields": [
-          "cons"
         ]
       },
       {
@@ -5781,14 +5896,14 @@
       },
       {
         "kind": "number",
-        "value": "311",
+        "value": "314",
         "fields": [
           "pros"
         ]
       },
       {
         "kind": "number",
-        "value": "97",
+        "value": "98",
         "fields": [
           "pros"
         ]
@@ -5799,15 +5914,7 @@
         "fields": [
           "goal",
           "usage",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Claude Code",
-        "fields": [
-          "usage",
-          "cons",
+          "pros",
           "fit"
         ]
       },
@@ -5820,25 +5927,33 @@
       },
       {
         "kind": "product",
-        "value": "AgentShield",
+        "value": "Claude Code",
         "fields": [
-          "pros"
+          "goal",
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "ecc@ecc",
+        "fields": [
+          "usage"
         ]
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "affaan-m/ecc",
       "path": "README.md",
-      "blob_sha": "6583ca8c1320e559aa5b2f86250f2f09c1d577e9",
-      "content_sha256": "891c1db3e717d893e625c9a87194a2dda07185911019a6e0e8b4c4bfd5d3b92c",
+      "blob_sha": "d8017086ca85d2e851ef2e0c88470b0b09dc3d4d",
+      "content_sha256": "bce393127a2e15211583d0f4998599b9771cc30b1189e7c42a26d86b86386d13",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.292",
+      "cli_version": "2.1.310",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
