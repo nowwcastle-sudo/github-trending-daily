@@ -1,47 +1,47 @@
 {
   "thedotmack/claude-mem": {
     "content": {
-      "goal": "Claude-Mem is a persistent memory compression system built for Claude Code. It automatically captures tool usage observations, generates semantic summaries, and makes them available to future sessions, aiming to preserve project context across sessions or reconnects.",
-      "usage": "Install with `npx claude-mem install` (version 15.9.0) and restart Claude Code; context from prior sessions then appears automatically. It also supports other IDEs such as OpenCode or T3 Code via `--ide` flags, and requires Node.js >=20.0.0. Further details are documented at https://docs.claude-mem.ai/.",
-      "pros": "The README lists persistent memory across sessions, progressive disclosure for layered memory retrieval, and a token-efficient 3-layer MCP search workflow using 4 MCP tools (search, timeline, get_observations), claiming roughly 10x token savings by filtering before fetching full details.",
-      "cons": "Installing directly with `npm install -g claude-mem` only provides the SDK/library and does not register plugin hooks or set up the worker service; the documented install path is instead `npx claude-mem install` or the `/plugin` commands.",
-      "fit": "Claude-Mem is released under Apache License 2.0, chosen so memory can be embedded in developer tools, local agents, MCP servers, and production agent harnesses, suggesting it may suit teams building or extending Claude Code based agent workflows, though this breadth of fit is not independently verified in the README."
+      "goal": "Claude-Mem is a persistent memory compression system for Claude Code (and other supported hosts) that automatically captures tool usage observations, generates semantic summaries, and makes them available in future sessions, preserving continuity of project knowledge even after sessions end or reconnect.",
+      "usage": "For Claude Code, install with `npx claude-mem install`; for other hosts (opencode, grok-bot, t3code, etc.) use `npx claude-mem install --ide <name>`. The installer sets up hooks and a local worker service, while `npm install -g claude-mem` only installs the SDK/library without plugin hooks, so a host restart is likely needed after installing.",
+      "pros": "Provides persistent memory across sessions, token-efficient progressive disclosure, smart search through the `search`, `timeline`, and `get_observations` MCP tools, privacy control via `<private>` tags, and automatic operation without manual intervention.",
+      "cons": "Requires Node.js 20.0.0 or higher plus Bun and uv runtimes (auto-installed if missing), and the hosted claude-mem observer offers only a 30-day free trial before automatically falling back to the user's own Anthropic plan unless they subscribe.",
+      "fit": "Appears suited to developers using Claude Code or supported harnesses (OpenCode, T3 Code, Antigravity CLI, Pi, DeepSeek Harness) who want project knowledge continuity across sessions; distributed under the Apache License 2.0."
     },
     "summaries": {
       "en": {
-        "goal": "Claude-Mem is a persistent memory compression system built for Claude Code. It automatically captures tool usage observations, generates semantic summaries, and makes them available to future sessions, aiming to preserve project context across sessions or reconnects.",
-        "usage": "Install with `npx claude-mem install` (version 15.9.0) and restart Claude Code; context from prior sessions then appears automatically. It also supports other IDEs such as OpenCode or T3 Code via `--ide` flags, and requires Node.js >=20.0.0. Further details are documented at https://docs.claude-mem.ai/.",
-        "pros": "The README lists persistent memory across sessions, progressive disclosure for layered memory retrieval, and a token-efficient 3-layer MCP search workflow using 4 MCP tools (search, timeline, get_observations), claiming roughly 10x token savings by filtering before fetching full details.",
-        "cons": "Installing directly with `npm install -g claude-mem` only provides the SDK/library and does not register plugin hooks or set up the worker service; the documented install path is instead `npx claude-mem install` or the `/plugin` commands.",
-        "fit": "Claude-Mem is released under Apache License 2.0, chosen so memory can be embedded in developer tools, local agents, MCP servers, and production agent harnesses, suggesting it may suit teams building or extending Claude Code based agent workflows, though this breadth of fit is not independently verified in the README."
+        "goal": "Claude-Mem is a persistent memory compression system for Claude Code (and other supported hosts) that automatically captures tool usage observations, generates semantic summaries, and makes them available in future sessions, preserving continuity of project knowledge even after sessions end or reconnect.",
+        "usage": "For Claude Code, install with `npx claude-mem install`; for other hosts (opencode, grok-bot, t3code, etc.) use `npx claude-mem install --ide <name>`. The installer sets up hooks and a local worker service, while `npm install -g claude-mem` only installs the SDK/library without plugin hooks, so a host restart is likely needed after installing.",
+        "pros": "Provides persistent memory across sessions, token-efficient progressive disclosure, smart search through the `search`, `timeline`, and `get_observations` MCP tools, privacy control via `<private>` tags, and automatic operation without manual intervention.",
+        "cons": "Requires Node.js 20.0.0 or higher plus Bun and uv runtimes (auto-installed if missing), and the hosted claude-mem observer offers only a 30-day free trial before automatically falling back to the user's own Anthropic plan unless they subscribe.",
+        "fit": "Appears suited to developers using Claude Code or supported harnesses (OpenCode, T3 Code, Antigravity CLI, Pi, DeepSeek Harness) who want project knowledge continuity across sessions; distributed under the Apache License 2.0."
       },
       "ko": {
-        "goal": "Claude-Mem은 Claude Code를 위해 구축된 영구 메모리 압축 시스템입니다. 도구 사용 관찰을 자동으로 캡처하고 의미론적 요약을 생성하여 이후 세션에서 사용할 수 있게 함으로써, 세션이 끝나거나 재연결되어도 프로젝트 컨텍스트를 유지하는 것을 목표로 합니다.",
-        "usage": "`npx claude-mem install` 명령으로 설치(버전 15.9.0)한 후 Claude Code를 재시작하면 이전 세션의 컨텍스트가 자동으로 나타납니다. Node.js >=20.0.0이 필요하며, OpenCode나 T3 Code 같은 다른 IDE는 `--ide` 플래그로 설치할 수 있습니다. 자세한 내용은 https://docs.claude-mem.ai/ 에서 확인할 수 있습니다.",
-        "pros": "README에는 세션 간 영구 메모리, 계층적 메모리 검색을 위한 점진적 공개(progressive disclosure), 그리고 4개의 MCP 도구(search, timeline, get_observations)를 사용하는 토큰 효율적인 3단계 검색 워크플로가 나열되어 있으며, 세부 정보를 가져오기 전에 필터링함으로써 약 10배의 토큰 절감을 주장합니다.",
-        "cons": "`npm install -g claude-mem`로 직접 설치하면 SDK/라이브러리만 제공되며 플러그인 훅을 등록하거나 워커 서비스를 설정하지 않습니다. 문서에 명시된 설치 경로는 `npx claude-mem install` 또는 `/plugin` 명령입니다.",
-        "fit": "Claude-Mem은 Apache License 2.0으로 배포되며, 개발자 도구, 로컬 에이전트, MCP 서버, 프로덕션 에이전트 하네스 등에 메모리를 쉽게 포함시킬 수 있도록 선택된 라이선스입니다. 이는 Claude Code 기반 에이전트 워크플로를 구축하거나 확장하는 팀에 적합할 수 있음을 암시하지만, README에서 이러한 적합성 범위가 독립적으로 검증되지는 않았습니다."
+        "goal": "Claude-Mem은 Claude Code(및 기타 지원 호스트)를 위한 영속적 메모리 압축 시스템으로, 도구 사용 관찰 내용을 자동으로 캡처하고 의미 기반 요약을 생성하여 이후 세션에서도 활용할 수 있게 합니다. 이를 통해 세션이 종료되거나 재연결되어도 프로젝트 지식의 연속성이 유지됩니다.",
+        "usage": "Claude Code용으로는 `npx claude-mem install` 명령으로 설치하며, 다른 호스트(opencode, grok-bot, t3code 등)는 `npx claude-mem install --ide <name>` 형태로 설치합니다. 설치 프로그램은 훅과 로컬 워커 서비스를 설정하며, `npm install -g claude-mem`은 플러그인 훅 없이 SDK/라이브러리만 설치하므로 설치 후 호스트를 재시작해야 할 것으로 보입니다.",
+        "pros": "세션 간 영속적 메모리, 토큰 효율적인 점진적 공개(progressive disclosure), `search`·`timeline`·`get_observations` MCP 도구를 통한 스마트 검색, `<private>` 태그를 활용한 프라이버시 제어, 수동 개입이 필요 없는 자동 동작을 제공합니다.",
+        "cons": "Node.js 20.0.0 이상과 Bun, uv 런타임(누락 시 자동 설치)이 필요하며, 호스팅형 claude-mem observer는 30일 무료 체험만 제공하고 구독하지 않으면 이후 자동으로 사용자의 Anthropic 플랜으로 전환됩니다.",
+        "fit": "Claude Code 또는 지원되는 하네스(OpenCode, T3 Code, Antigravity CLI, Pi, DeepSeek Harness)를 사용하며 세션 간 프로젝트 지식의 연속성을 원하는 개발자에게 적합할 것으로 보이며, Apache License 2.0으로 배포됩니다."
       },
       "zh-CN": {
-        "goal": "Claude-Mem 是为 Claude Code 构建的持久化记忆压缩系统,它会自动捕获工具使用观察记录,生成语义摘要,并提供给后续会话使用,旨在在会话结束或重新连接后仍能保留项目上下文。",
-        "usage": "使用 `npx claude-mem install` 命令安装(版本 15.9.0),安装后重启 Claude Code,之前会话的上下文即会自动出现。该工具需要 Node.js >=20.0.0,也支持通过 `--ide` 参数为 OpenCode、T3 Code 等其他 IDE 安装。更多细节见 https://docs.claude-mem.ai/ 。",
-        "pros": "README 中列出的特性包括跨会话的持久记忆、用于分层记忆检索的渐进式披露(progressive disclosure),以及使用 4 个 MCP 工具(search、timeline、get_observations)的高效三层搜索工作流,文档称在获取完整细节前先过滤可节省约 10 倍的 token。",
-        "cons": "直接使用 `npm install -g claude-mem` 安装只会提供 SDK/库本身,不会注册插件钩子或设置工作进程服务;文档说明的安装方式是 `npx claude-mem install` 或 `/plugin` 命令。",
-        "fit": "Claude-Mem 采用 Apache License 2.0 发布,选择该许可是为了便于将记忆功能嵌入开发者工具、本地代理、MCP 服务器以及生产级代理框架中。这暗示它可能适合正在构建或扩展基于 Claude Code 的代理工作流的团队,不过 README 并未独立验证这种适用范围的广度。"
+        "goal": "Claude-Mem 是面向 Claude Code(及其他受支持宿主)的持久化记忆压缩系统,能够自动捕获工具使用观察记录、生成语义摘要,并在后续会话中提供这些内容,从而在会话结束或重新连接后仍保持项目知识的连续性。",
+        "usage": "针对 Claude Code,可使用 `npx claude-mem install` 进行安装;针对其他宿主(如 opencode、grok-bot、t3code)则使用 `npx claude-mem install --ide <name>`。安装程序会设置钩子和本地 worker 服务,而 `npm install -g claude-mem` 仅安装 SDK/库而不包含插件钩子,因此安装后很可能需要重启宿主程序。",
+        "pros": "提供跨会话的持久记忆、令牌高效的渐进式信息展示(progressive disclosure)、通过 `search`、`timeline`、`get_observations` 等 MCP 工具实现的智能搜索、使用 `<private>` 标签进行隐私控制,以及无需人工干预的自动运行。",
+        "cons": "需要 Node.js 20.0.0 及以上版本,以及 Bun 和 uv 运行时(缺失时会自动安装);托管版 claude-mem observer 仅提供 30 天免费试用,试用结束后若不订阅将自动切换回用户自己的 Anthropic 套餐。",
+        "fit": "似乎适合使用 Claude Code 或受支持宿主(OpenCode、T3 Code、Antigravity CLI、Pi、DeepSeek Harness)并希望在多个会话间保持项目知识连续性的开发者,项目基于 Apache License 2.0 许可证发布。"
       },
       "es": {
-        "goal": "Claude-Mem es un sistema de compresión de memoria persistente creado para Claude Code. Captura automáticamente observaciones del uso de herramientas, genera resúmenes semánticos y los pone a disposición de sesiones futuras, con el objetivo de preservar el contexto del proyecto incluso tras finalizar o reconectar una sesión.",
-        "usage": "Se instala con el comando `npx claude-mem install` (versión 15.9.0) y luego se reinicia Claude Code, tras lo cual el contexto de sesiones anteriores aparece automáticamente. Requiere Node.js >=20.0.0, y también admite instalación para otros IDE como OpenCode o T3 Code mediante la bandera `--ide`. Más detalles en https://docs.claude-mem.ai/.",
-        "pros": "El README enumera memoria persistente entre sesiones, divulgación progresiva (progressive disclosure) para la recuperación de memoria por capas, y un flujo de búsqueda de 3 capas eficiente en tokens que usa 4 herramientas MCP (search, timeline, get_observations), con un ahorro de tokens de aproximadamente 10x al filtrar antes de obtener los detalles completos.",
-        "cons": "Instalar directamente con `npm install -g claude-mem` solo proporciona el SDK/biblioteca, sin registrar los hooks del plugin ni configurar el servicio worker; la vía de instalación documentada es `npx claude-mem install` o los comandos `/plugin`.",
-        "fit": "Claude-Mem se publica bajo la Apache License 2.0, elegida para que la memoria pueda incorporarse fácilmente en herramientas para desarrolladores, agentes locales, servidores MCP y entornos de agentes en producción. Esto sugiere que podría ser adecuado para equipos que construyen o amplían flujos de trabajo de agentes basados en Claude Code, aunque el README no verifica de forma independiente el alcance de esa idoneidad."
+        "goal": "Claude-Mem es un sistema de compresión de memoria persistente para Claude Code (y otros hosts compatibles) que captura automáticamente observaciones de uso de herramientas, genera resúmenes semánticos y los pone a disposición en sesiones futuras, manteniendo la continuidad del conocimiento del proyecto aunque las sesiones terminen o se reconecten.",
+        "usage": "Para Claude Code se instala con `npx claude-mem install`; para otros hosts (opencode, grok-bot, t3code, etc.) se usa `npx claude-mem install --ide <name>`. El instalador configura los hooks y un servicio worker local, mientras que `npm install -g claude-mem` solo instala el SDK/biblioteca sin los hooks del plugin, por lo que probablemente sea necesario reiniciar el host tras instalar.",
+        "pros": "Ofrece memoria persistente entre sesiones, divulgación progresiva eficiente en tokens, búsqueda inteligente mediante las herramientas MCP `search`, `timeline` y `get_observations`, control de privacidad con etiquetas `<private>`, y funcionamiento automático sin intervención manual.",
+        "cons": "Requiere Node.js 20.0.0 o superior, además de los runtimes Bun y uv (que se instalan automáticamente si faltan); el observer alojado de claude-mem solo ofrece una prueba gratuita de 30 días, tras la cual vuelve automáticamente al plan de Anthropic del usuario si no se suscribe.",
+        "fit": "Parece adecuado para desarrolladores que usan Claude Code u hosts compatibles (OpenCode, T3 Code, Antigravity CLI, Pi, DeepSeek Harness) que buscan continuidad del conocimiento del proyecto entre sesiones; se distribuye bajo la Apache License 2.0."
       },
       "ja": {
-        "goal": "Claude-Memは、Claude Code向けに構築された永続的メモリ圧縮システムです。ツール使用時の観測を自動的に取得し、意味的な要約を生成して将来のセッションで利用できるようにすることで、セッション終了や再接続後もプロジェクトのコンテキストを維持することを目的としています。",
-        "usage": "`npx claude-mem install` コマンド(バージョン15.9.0)でインストールし、その後Claude Codeを再起動すると、以前のセッションのコンテキストが自動的に表示されます。Node.js >=20.0.0が必要で、`--ide` フラグを使えばOpenCodeやT3Codeなど他のIDE向けにもインストールできます。詳細は https://docs.claude-mem.ai/ を参照してください。",
-        "pros": "READMEでは、セッション間での永続的メモリ、階層的なメモリ取得のための段階的開示(progressive disclosure)、そしてsearch・timeline・get_observationsという4つのMCPツールを用いたトークン効率の良い3段階検索ワークフローが挙げられており、詳細を取得する前に絞り込むことで約10倍のトークン節約になるとされています。",
-        "cons": "`npm install -g claude-mem` で直接インストールするとSDK/ライブラリのみが提供され、プラグインフックの登録やワーカーサービスの設定は行われません。文書化されたインストール方法は `npx claude-mem install` または `/plugin` コマンドです。",
-        "fit": "Claude-MemはApache License 2.0のもとで公開されており、これは開発者向けツール、ローカルエージェント、MCPサーバー、本番環境のエージェントハーネスにメモリ機能を組み込みやすくするために選ばれたライセンスです。このことから、Claude Codeベースのエージェントワークフローを構築・拡張するチームに適している可能性がありますが、README内でその適合範囲が独立に検証されているわけではありません。"
+        "goal": "Claude-Mem は Claude Code(および対応する他のホスト)向けの永続的メモリ圧縮システムで、ツール使用時の観察結果を自動的に取得し、セマンティックな要約を生成して将来のセッションで利用できるようにします。これにより、セッションが終了・再接続されてもプロジェクトに関する知識の継続性が保たれます。",
+        "usage": "Claude Code の場合は `npx claude-mem install` でインストールし、他のホスト(opencode、grok-bot、t3code など)の場合は `npx claude-mem install --ide <name>` を使用します。インストーラーはフックとローカルの worker サービスを設定しますが、`npm install -g claude-mem` はプラグインフックを含まない SDK/ライブラリのみをインストールするため、インストール後にホストの再起動が必要になると考えられます。",
+        "pros": "セッション間の永続的メモリ、トークン効率の良い段階的開示(progressive disclosure)、`search`・`timeline`・`get_observations` の MCP ツールによるスマート検索、`<private>` タグによるプライバシー制御、手動操作が不要な自動動作を提供します。",
+        "cons": "Node.js 20.0.0 以上、および Bun と uv ランタイム(未インストール時は自動インストール)が必要であり、ホスト型の claude-mem observer は 30 日間の無料トライアルのみを提供し、サブスクライブしない場合はトライアル終了後に自動的にユーザー自身の Anthropic プランへ戻ります。",
+        "fit": "Claude Code や対応ハーネス(OpenCode、T3 Code、Antigravity CLI、Pi、DeepSeek Harness)を使用し、セッション間でプロジェクト知識の継続性を求める開発者に適していると考えられ、Apache License 2.0 の下で配布されています。"
       }
     },
     "evidence": {
@@ -52,61 +52,51 @@
           "section_heading": ""
         },
         {
-          "start_line": 125,
+          "start_line": 126,
           "end_line": 127,
           "section_heading": ""
         }
       ],
       "usage": [
         {
-          "start_line": 145,
+          "start_line": 143,
           "end_line": 147,
           "section_heading": "Quick Start"
         },
         {
           "start_line": 198,
-          "end_line": 199,
+          "end_line": 200,
           "section_heading": "Quick Start"
-        },
-        {
-          "start_line": 318,
-          "end_line": 318,
-          "section_heading": "System Requirements"
         }
       ],
       "pros": [
         {
-          "start_line": 212,
+          "start_line": 214,
           "end_line": 224,
           "section_heading": "🦞 OpenClaw Gateway"
-        },
-        {
-          "start_line": 279,
-          "end_line": 285,
-          "section_heading": "MCP Search Tools"
-        },
-        {
-          "start_line": 292,
-          "end_line": 292,
-          "section_heading": "MCP Search Tools"
         }
       ],
       "cons": [
         {
-          "start_line": 200,
-          "end_line": 200,
+          "start_line": 318,
+          "end_line": 322,
+          "section_heading": "System Requirements"
+        },
+        {
+          "start_line": 149,
+          "end_line": 149,
           "section_heading": "Quick Start"
         }
       ],
       "fit": [
         {
-          "start_line": 429,
-          "end_line": 429,
-          "section_heading": "License"
+          "start_line": 316,
+          "end_line": 322,
+          "section_heading": "System Requirements"
         },
         {
-          "start_line": 431,
-          "end_line": 433,
+          "start_line": 430,
+          "end_line": 432,
           "section_heading": "License"
         }
       ]
@@ -116,13 +106,12 @@
         "kind": "command",
         "value": "npx claude-mem install",
         "fields": [
-          "usage",
-          "cons"
+          "usage"
         ]
       },
       {
-        "kind": "version",
-        "value": "15.9.0",
+        "kind": "command",
+        "value": "npm install -g claude-mem",
         "fields": [
           "usage"
         ]
@@ -131,14 +120,7 @@
         "kind": "version",
         "value": "20.0.0",
         "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "url",
-        "value": "https://docs.claude-mem.ai/",
-        "fields": [
-          "usage"
+          "cons"
         ]
       },
       {
@@ -149,24 +131,18 @@
           "usage",
           "fit"
         ]
-      },
-      {
-        "kind": "number",
-        "value": "4",
-        "fields": [
-          "pros"
-        ]
       }
     ],
     "inference_fields": [
+      "usage",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "thedotmack/claude-mem",
       "path": "README.md",
-      "blob_sha": "77bf508ecb41b0d09b445a60bf655ee8bac428b9",
-      "content_sha256": "85a206873ff03cab18d3f4006cde813b2b70e5cd50d6b61ec7c83df3aafc6abc",
+      "blob_sha": "afbb08bc0ddb44611167ce2f4f2e0f59ade6f083",
+      "content_sha256": "2abba90602d57a5f5fcbc4c6d50b42697ed9e7228a0889942c6a72e143dfba9c",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.310",
@@ -180,47 +156,47 @@
   },
   "vercel-labs/agent-desktop": {
     "content": {
-      "goal": "agent-desktop, a Vercel Labs project, is designed to give AI agents computer-use capability: it lets them see and operate desktop apps on macOS, Windows, and Linux by reading the OS accessibility tree and exposing it as JSON with refs for each actionable element, instead of relying on screenshots or pixel matching.",
-      "usage": "Install with `npm install -g agent-desktop`, then run `agent-desktop status` to check platform, permissions, and supported surfaces. A typical loop is `agent-desktop snapshot --app Finder -i` to get refs, then `agent-desktop click @s8f3k2p9:e8` to act on one, followed by another snapshot to verify the result.",
-      "pros": "agent-desktop documents 60 command names (56 operational), spanning observation, input, window, clipboard, and notification actions, and returns a structured JSON envelope for each one. It ships as both a CLI and a C library (`libagent_desktop_ffi`), and leaves the agent loop itself to the caller rather than embedding a model.",
-      "cons": "Platform requirements differ: macOS 13 or later needs an Accessibility permission grant, Windows 10 1809 or later needs no extra grant at the terminal's integrity level, and Ubuntu 24.04 or later needs `at-spi2-core` in a graphical session. This disparity suggests setup may require per-OS configuration before first use of agent-desktop.",
-      "fit": "Given its CLI/C-library design and accessibility-tree approach documented at https://agent-browser.dev/desktop, agent-desktop seems best suited to developers building AI agents that need verifiable, structured desktop automation across macOS, Windows, and Linux, rather than casual end users seeking a ready-made automation app."
+      "goal": "agent-desktop gives AI agents computer use on desktop apps by reading the OS accessibility tree on macOS, Windows, and Linux and returning JSON with a ref for every actionable element, rather than relying on screenshots or pixel matching.",
+      "usage": "Install with `npm install -g agent-desktop`, then run `agent-desktop status` to check platform and permissions. A documented quick-start flow runs `agent-desktop snapshot --app Finder -i` to list interactive refs, then `agent-desktop click @s8f3k2p9:e8` to act on one of them.",
+      "pros": "agent-desktop ships as both a CLI and a C library (`libagent_desktop_ffi`) for in-process use, exposes an MCP server (`agent-desktop mcp`) so every command becomes an MCP tool, and documents 60 command names spanning observation, input, window, clipboard, and session operations.",
+      "cons": "Snapshots, clipboard reads, screenshots, and debug artifacts can contain private desktop content, requiring care to keep them out of public logs or uploads. The project no longer maintains a Homebrew tap or Scoop bucket, and there is no official Scoop package yet.",
+      "fit": "agent-desktop seems best suited for agent harnesses that need direct, ref-based desktop control instead of vision-based automation, provided the host meets the documented platform requirements: macOS 13 or later, Windows 10 1809 or later (x64/ARM64), or Ubuntu 24.04 or later with X11 or Wayland."
     },
     "summaries": {
       "en": {
-        "goal": "agent-desktop, a Vercel Labs project, is designed to give AI agents computer-use capability: it lets them see and operate desktop apps on macOS, Windows, and Linux by reading the OS accessibility tree and exposing it as JSON with refs for each actionable element, instead of relying on screenshots or pixel matching.",
-        "usage": "Install with `npm install -g agent-desktop`, then run `agent-desktop status` to check platform, permissions, and supported surfaces. A typical loop is `agent-desktop snapshot --app Finder -i` to get refs, then `agent-desktop click @s8f3k2p9:e8` to act on one, followed by another snapshot to verify the result.",
-        "pros": "agent-desktop documents 60 command names (56 operational), spanning observation, input, window, clipboard, and notification actions, and returns a structured JSON envelope for each one. It ships as both a CLI and a C library (`libagent_desktop_ffi`), and leaves the agent loop itself to the caller rather than embedding a model.",
-        "cons": "Platform requirements differ: macOS 13 or later needs an Accessibility permission grant, Windows 10 1809 or later needs no extra grant at the terminal's integrity level, and Ubuntu 24.04 or later needs `at-spi2-core` in a graphical session. This disparity suggests setup may require per-OS configuration before first use of agent-desktop.",
-        "fit": "Given its CLI/C-library design and accessibility-tree approach documented at https://agent-browser.dev/desktop, agent-desktop seems best suited to developers building AI agents that need verifiable, structured desktop automation across macOS, Windows, and Linux, rather than casual end users seeking a ready-made automation app."
+        "goal": "agent-desktop gives AI agents computer use on desktop apps by reading the OS accessibility tree on macOS, Windows, and Linux and returning JSON with a ref for every actionable element, rather than relying on screenshots or pixel matching.",
+        "usage": "Install with `npm install -g agent-desktop`, then run `agent-desktop status` to check platform and permissions. A documented quick-start flow runs `agent-desktop snapshot --app Finder -i` to list interactive refs, then `agent-desktop click @s8f3k2p9:e8` to act on one of them.",
+        "pros": "agent-desktop ships as both a CLI and a C library (`libagent_desktop_ffi`) for in-process use, exposes an MCP server (`agent-desktop mcp`) so every command becomes an MCP tool, and documents 60 command names spanning observation, input, window, clipboard, and session operations.",
+        "cons": "Snapshots, clipboard reads, screenshots, and debug artifacts can contain private desktop content, requiring care to keep them out of public logs or uploads. The project no longer maintains a Homebrew tap or Scoop bucket, and there is no official Scoop package yet.",
+        "fit": "agent-desktop seems best suited for agent harnesses that need direct, ref-based desktop control instead of vision-based automation, provided the host meets the documented platform requirements: macOS 13 or later, Windows 10 1809 or later (x64/ARM64), or Ubuntu 24.04 or later with X11 or Wayland."
       },
       "ko": {
-        "goal": "agent-desktop는 Vercel Labs의 프로젝트로, AI 에이전트에게 컴퓨터 사용(computer use) 기능을 제공하는 것을 목표로 합니다. 스크린샷이나 픽셀 매칭 대신 OS의 접근성 트리(accessibility tree)를 읽어 JSON으로 반환하고, 각 조작 가능한 요소에 ref를 부여함으로써 macOS, Windows, Linux 데스크톱 앱을 보고 조작할 수 있게 합니다.",
-        "usage": "`npm install -g agent-desktop` 명령으로 설치한 뒤, `agent-desktop status` 명령으로 플랫폼, 권한, 지원되는 화면을 확인합니다. 일반적인 흐름은 `agent-desktop snapshot --app Finder -i`로 ref를 얻고, `agent-desktop click @s8f3k2p9:e8`으로 해당 ref에 동작을 실행한 뒤, 다시 스냅샷을 찍어 결과를 확인하는 방식입니다.",
-        "pros": "agent-desktop은 관찰, 입력, 창 제어, 클립보드, 알림 동작을 포함해 60개의 명령 이름(그중 56개는 실제 동작 명령)을 문서화하고 있으며, 각 명령은 구조화된 JSON 응답(envelope)을 반환합니다. CLI와 C 라이브러리(`libagent_desktop_ffi`) 형태로 제공되며, 에이전트 루프 자체는 모델을 내장하지 않고 호출자에게 맡깁니다.",
-        "cons": "플랫폼별 요구 사항이 다릅니다: macOS 13 이상에서는 손쉬운 사용(Accessibility) 권한 승인이 필요하고, Windows 10 1809 이상에서는 터미널의 무결성 수준에서 추가 권한이 필요 없으며, Ubuntu 24.04 이상에서는 그래픽 세션에서 `at-spi2-core`가 필요합니다. 이러한 차이로 인해 agent-desktop을 처음 사용하기 전에 OS별 구성이 필요할 수 있어 보입니다.",
-        "fit": "https://agent-browser.dev/desktop 에 문서화된 CLI/C 라이브러리 구조와 접근성 트리 기반 접근 방식을 고려하면, agent-desktop은 일반 사용자를 위한 완성된 자동화 앱이라기보다는 macOS, Windows, Linux 전반에서 검증 가능하고 구조화된 데스크톱 자동화가 필요한 AI 에이전트 개발자에게 적합한 것으로 보입니다."
+        "goal": "agent-desktop는 macOS, Windows, Linux에서 OS 접근성 트리(accessibility tree)를 읽어 각 조작 가능한 요소에 대한 ref가 포함된 JSON을 반환함으로써, 스크린샷이나 픽셀 매칭 없이 AI 에이전트가 데스크톱 앱을 조작할 수 있게 해줍니다.",
+        "usage": "`npm install -g agent-desktop`로 설치한 뒤 `agent-desktop status`를 실행해 플랫폼과 권한을 확인합니다. 문서화된 빠른 시작 흐름은 `agent-desktop snapshot --app Finder -i`로 조작 가능한 ref 목록을 얻은 다음, `agent-desktop click @s8f3k2p9:e8`로 그 중 하나를 실행하는 것입니다.",
+        "pros": "agent-desktop는 CLI와 C 라이브러리(`libagent_desktop_ffi`)로 제공되어 프로세스 내에서 직접 호출할 수 있고, MCP 서버(`agent-desktop mcp`)를 통해 모든 명령을 MCP 도구로 노출하며, 관찰·입력·창·클립보드·세션 작업을 포괄하는 60개의 명령 이름을 문서화하고 있습니다.",
+        "cons": "스냅샷, 클립보드 읽기, 스크린샷, 디버그 아티팩트에는 비공개 데스크톱 내용이 포함될 수 있어 공개 로그나 업로드에 노출되지 않도록 주의가 필요합니다. 또한 이 프로젝트는 Homebrew tap이나 Scoop bucket을 더 이상 유지하지 않으며, 공식 Scoop 패키지도 아직 없습니다.",
+        "fit": "agent-desktop는 비전 기반 자동화 대신 ref 기반의 직접적인 데스크톱 제어가 필요한 에이전트 하네스에 적합해 보이며, 다만 호스트가 macOS 13 이상, Windows 10 1809 이상(x64/ARM64), 또는 X11이나 Wayland를 사용하는 Ubuntu 24.04 이상이라는 문서화된 플랫폼 요건을 충족해야 합니다."
       },
       "zh-CN": {
-        "goal": "agent-desktop 是 Vercel Labs 的一个项目,旨在为 AI 代理提供「computer use」(计算机操作)能力:它不依赖截图或像素匹配,而是通过读取操作系统的辅助功能树(accessibility tree)并以 JSON 形式返回,为每个可操作元素分配一个 ref,从而让代理能够在 macOS、Windows 和 Linux 上查看并操作桌面应用。",
-        "usage": "先运行 `npm install -g agent-desktop` 安装,再运行 `agent-desktop status` 检查平台、权限和支持的界面。典型流程是用 `agent-desktop snapshot --app Finder -i` 获取 ref,再用 `agent-desktop click @s8f3k2p9:e8` 对某个 ref 执行操作,然后再次截取快照以验证结果。",
-        "pros": "agent-desktop 文档记录了 60 个命令名称(其中 56 个为实际操作命令),涵盖观察、输入、窗口、剪贴板和通知等操作,每个命令都返回结构化的 JSON 响应。它同时以 CLI 和 C 库(`libagent_desktop_ffi`)形式提供,代理循环本身交由调用者实现,而不内置模型。",
-        "cons": "不同平台的要求并不一致:macOS 13 及以上版本需要授予辅助功能(Accessibility)权限,Windows 10 1809 及以上版本在终端完整性级别下无需额外授权,Ubuntu 24.04 及以上版本则需要在图形会话中安装 `at-spi2-core`。这种差异似乎意味着首次使用 agent-desktop 前可能需要针对各操作系统分别设置。",
-        "fit": "结合其在 https://agent-browser.dev/desktop 上记录的 CLI/C 库架构以及基于辅助功能树的方式来看,agent-desktop 似乎更适合需要在 macOS、Windows 和 Linux 上实现可验证、结构化桌面自动化的 AI 代理开发者,而非寻求现成自动化应用的普通用户。"
+        "goal": "agent-desktop 通过读取 macOS、Windows 和 Linux 上的操作系统无障碍树(accessibility tree),返回包含每个可操作元素 ref 的 JSON,使 AI 代理能够操作桌面应用,而不依赖截图或像素匹配。",
+        "usage": "先执行 `npm install -g agent-desktop` 进行安装,再运行 `agent-desktop status` 检查平台与权限。文档中的快速入门流程是先执行 `agent-desktop snapshot --app Finder -i` 列出可交互的 ref,再执行 `agent-desktop click @s8f3k2p9:e8` 对其中一个执行操作。",
+        "pros": "agent-desktop 同时提供 CLI 和 C 库(`libagent_desktop_ffi`)以便进程内调用,并通过 MCP 服务器(`agent-desktop mcp`)将每个命令暴露为 MCP 工具,文档记录了涵盖观察、输入、窗口、剪贴板和会话操作的 60 个命令名称。",
+        "cons": "快照、剪贴板读取、截图和调试产物可能包含私密的桌面内容,因此需要注意避免将其暴露在公共日志或上传内容中。该项目还说明已不再维护 Homebrew tap 或 Scoop bucket,且目前尚无官方 Scoop 包。",
+        "fit": "agent-desktop 看起来更适合需要基于 ref 直接控制桌面、而非依赖视觉自动化的代理框架,但前提是宿主系统满足文档列出的平台要求:macOS 13 或更高版本、Windows 10 1809 或更高版本(x64/ARM64),或使用 X11 或 Wayland 的 Ubuntu 24.04 或更高版本。"
       },
       "es": {
-        "goal": "agent-desktop es un proyecto de Vercel Labs cuyo objetivo es dar a los agentes de IA capacidad de \"computer use\": en lugar de depender de capturas de pantalla o coincidencia de píxeles, lee el árbol de accesibilidad del sistema operativo y lo devuelve como JSON, asignando una ref a cada elemento accionable, para ver y operar aplicaciones de escritorio en macOS, Windows y Linux.",
-        "usage": "Se instala con `npm install -g agent-desktop` y luego se ejecuta `agent-desktop status` para comprobar la plataforma, los permisos y las superficies admitidas. Un flujo típico es usar `agent-desktop snapshot --app Finder -i` para obtener refs, `agent-desktop click @s8f3k2p9:e8` para actuar sobre una de ellas, y volver a tomar una instantánea para verificar el resultado.",
-        "pros": "agent-desktop documenta 60 nombres de comandos (56 operativos), que cubren observación, entrada, ventanas, portapapeles y notificaciones, y cada uno devuelve una respuesta JSON estructurada. Se distribuye como CLI y como biblioteca C (`libagent_desktop_ffi`), y deja el bucle del agente en manos de quien lo invoca, sin modelo integrado.",
-        "cons": "Los requisitos varían según la plataforma: macOS 13 o posterior necesita conceder permiso de Accesibilidad, Windows 10 1809 o posterior no requiere permisos adicionales al nivel de integridad de la terminal, y Ubuntu 24.04 o posterior necesita `at-spi2-core` en una sesión gráfica. Esta disparidad sugiere que la configuración previa al primer uso de agent-desktop puede variar notablemente según el sistema operativo.",
-        "fit": "Dado su diseño de CLI/biblioteca C y su enfoque basado en el árbol de accesibilidad, documentado en https://agent-browser.dev/desktop, agent-desktop parece orientado a desarrolladores que construyen agentes de IA que necesitan automatización de escritorio verificable y estructurada en macOS, Windows y Linux, más que a usuarios finales que buscan una aplicación de automatización lista para usar."
+        "goal": "agent-desktop permite que los agentes de IA operen aplicaciones de escritorio leyendo el árbol de accesibilidad del sistema operativo en macOS, Windows y Linux, devolviendo JSON con una referencia (ref) para cada elemento accionable, en lugar de depender de capturas de pantalla o coincidencia de píxeles.",
+        "usage": "Instálalo con `npm install -g agent-desktop` y luego ejecuta `agent-desktop status` para comprobar la plataforma y los permisos. El flujo de inicio rápido documentado consiste en ejecutar `agent-desktop snapshot --app Finder -i` para listar referencias interactivas y luego `agent-desktop click @s8f3k2p9:e8` para actuar sobre una de ellas.",
+        "pros": "agent-desktop se distribuye como CLI y como biblioteca en C (`libagent_desktop_ffi`) para llamadas dentro del mismo proceso, expone un servidor MCP (`agent-desktop mcp`) que convierte cada comando en una herramienta MCP, y documenta 60 nombres de comandos que cubren observación, entrada, ventanas, portapapeles y sesiones.",
+        "cons": "Las instantáneas, lecturas del portapapeles, capturas de pantalla y artefactos de depuración pueden contener contenido privado del escritorio, por lo que conviene evitar exponerlos en registros públicos o cargas. Además, el proyecto ya no mantiene un tap de Homebrew ni un bucket de Scoop, y todavía no existe un paquete oficial de Scoop.",
+        "fit": "agent-desktop parece adecuado para marcos de agentes que necesitan control directo del escritorio basado en referencias en lugar de automatización por visión, siempre que el host cumpla los requisitos de plataforma documentados: macOS 13 o posterior, Windows 10 1809 o posterior (x64/ARM64), o Ubuntu 24.04 o posterior con X11 o Wayland."
       },
       "ja": {
-        "goal": "agent-desktopはVercel Labsによるプロジェクトで、スクリーンショットやピクセルマッチングに依存せず、OSのアクセシビリティツリーを読み取ってJSONとして返し、操作可能な各要素にrefを割り当てることで、AIエージェントにmacOS、Windows、LinuxのデスクトップアプリをComputer Use(見て操作する)能力を与えることを目指しています。",
-        "usage": "`npm install -g agent-desktop`でインストールし、`agent-desktop status`でプラットフォーム、権限、サポートされる画面を確認します。典型的な流れは、`agent-desktop snapshot --app Finder -i`でrefを取得し、`agent-desktop click @s8f3k2p9:e8`でそのrefに対して操作を行い、再度スナップショットを取って結果を検証するというものです。",
-        "pros": "agent-desktopは観察、入力、ウィンドウ、クリップボード、通知の操作を含む60個のコマンド名(うち56個が実際の操作コマンド)を文書化しており、各コマンドは構造化されたJSONレスポンスを返します。CLIとCライブラリ(`libagent_desktop_ffi`)の両方として提供され、エージェントのループ自体はモデルを内蔵せず呼び出し側に委ねられています。",
-        "cons": "プラットフォームごとに要件が異なります。macOS 13以降ではアクセシビリティ権限の許可が必要で、Windows 10 1809以降では端末の整合性レベルで追加の権限は不要、Ubuntu 24.04以降ではグラフィカルセッション内で`at-spi2-core`が必要です。このような違いから、agent-desktopを初めて使う前にOSごとの個別設定が必要になる可能性があるようです。",
-        "fit": "https://agent-browser.dev/desktop に記載されているCLI/Cライブラリ構成とアクセシビリティツリーに基づくアプローチを踏まえると、agent-desktopは、すぐに使える自動化アプリを探す一般ユーザー向けというより、macOS、Windows、Linux全体で検証可能かつ構造化されたデスクトップ自動化を必要とするAIエージェント開発者に適していると考えられます。"
+        "goal": "agent-desktop は、macOS、Windows、Linux 上の OS アクセシビリティツリーを読み取り、操作可能な各要素に ref を付与した JSON を返すことで、スクリーンショットやピクセルマッチングに依存せずに AI エージェントがデスクトップアプリを操作できるようにします。",
+        "usage": "`npm install -g agent-desktop` でインストールし、`agent-desktop status` でプラットフォームと権限を確認します。文書化されたクイックスタートでは `agent-desktop snapshot --app Finder -i` で操作可能な ref を一覧表示し、続けて `agent-desktop click @s8f3k2p9:e8` でそのうち一つを実行します。",
+        "pros": "agent-desktop は CLI と C ライブラリ(`libagent_desktop_ffi`)の両方として提供され、プロセス内呼び出しが可能です。さらに MCP サーバー(`agent-desktop mcp`)によりすべてのコマンドを MCP ツールとして公開し、観察・入力・ウィンドウ・クリップボード・セッション操作にわたる 60 個のコマンド名を文書化しています。",
+        "cons": "スナップショット、クリップボード読み取り、スクリーンショット、デバッグアーティファクトには非公開のデスクトップ内容が含まれる可能性があり、公開ログやアップロードに晒さないよう注意が必要です。また、本プロジェクトは Homebrew tap や Scoop bucket をもはや維持しておらず、公式の Scoop パッケージもまだありません。",
+        "fit": "agent-desktop は、ビジョンベースの自動化ではなく ref ベースで直接デスクトップを制御する必要があるエージェントハーネスに適していると考えられますが、ホストが macOS 13 以降、Windows 10 1809 以降(x64/ARM64)、または X11 や Wayland を使う Ubuntu 24.04 以降という文書化されたプラットフォーム要件を満たす必要があります。"
       }
     },
     "evidence": {
@@ -238,13 +214,13 @@
       ],
       "usage": [
         {
-          "start_line": 18,
-          "end_line": 22,
+          "start_line": 19,
+          "end_line": 21,
           "section_heading": "Install"
         },
         {
-          "start_line": 32,
-          "end_line": 35,
+          "start_line": 36,
+          "end_line": 38,
           "section_heading": "Quick start"
         }
       ],
@@ -255,38 +231,38 @@
           "section_heading": "agent-desktop"
         },
         {
-          "start_line": 37,
-          "end_line": 37,
-          "section_heading": "Quick start"
+          "start_line": 107,
+          "end_line": 107,
+          "section_heading": "MCP"
         },
         {
-          "start_line": 127,
-          "end_line": 129,
-          "section_heading": "C library"
+          "start_line": 117,
+          "end_line": 117,
+          "section_heading": "Commands"
         }
       ],
       "cons": [
         {
-          "start_line": 21,
-          "end_line": 25,
-          "section_heading": "Install"
+          "start_line": 14,
+          "end_line": 14,
+          "section_heading": "agent-desktop"
         },
         {
-          "start_line": 119,
-          "end_line": 123,
-          "section_heading": "Platform support"
+          "start_line": 28,
+          "end_line": 29,
+          "section_heading": "Install"
         }
       ],
       "fit": [
         {
-          "start_line": 3,
-          "end_line": 3,
-          "section_heading": "agent-desktop"
+          "start_line": 135,
+          "end_line": 137,
+          "section_heading": "Platform support"
         },
         {
-          "start_line": 117,
-          "end_line": 123,
-          "section_heading": "Platform support"
+          "start_line": 157,
+          "end_line": 157,
+          "section_heading": "Development"
         }
       ]
     },
@@ -320,24 +296,31 @@
         ]
       },
       {
+        "kind": "command",
+        "value": "agent-desktop mcp",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
         "kind": "version",
         "value": "macOS 13",
         "fields": [
-          "cons"
+          "fit"
         ]
       },
       {
         "kind": "version",
         "value": "Windows 10 1809",
         "fields": [
-          "cons"
+          "fit"
         ]
       },
       {
         "kind": "version",
         "value": "Ubuntu 24.04",
         "fields": [
-          "cons"
+          "fit"
         ]
       },
       {
@@ -348,48 +331,32 @@
         ]
       },
       {
-        "kind": "number",
-        "value": "56",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "url",
-        "value": "https://agent-browser.dev/desktop",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
         "kind": "product",
         "value": "agent-desktop",
         "fields": [
           "goal",
           "usage",
           "pros",
-          "cons",
           "fit"
         ]
       },
       {
         "kind": "product",
-        "value": "Vercel Labs",
+        "value": "libagent_desktop_ffi",
         "fields": [
-          "goal"
+          "pros"
         ]
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "vercel-labs/agent-desktop",
       "path": "README.md",
-      "blob_sha": "7bce943e5a68f43aa541f356f232b4ea1f17f113",
-      "content_sha256": "5d0c08fcb81b857d93f03aaed74e2530de8469caf290a35ac9bbe979b26806ce",
+      "blob_sha": "42ac024da8f804375e3dd0dbea488bd0fe1c2978",
+      "content_sha256": "d4881e3601bdfc25439ccf87f26b468237c530d539bee2f34417d305585f29f0",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.310",
@@ -1892,131 +1859,108 @@
   },
   "D4Vinci/Scrapling": {
     "content": {
-      "goal": "Scrapling is a Python web scraping framework that combines fast HTTP requests, stealth browsers, parsing, and concurrent crawling in one library (line 65). It scrapes static pages, renders JavaScript, interacts with websites, and builds crawlers with reusable sessions, proxy rotation, retries, and pause/resume support (line 67).",
-      "usage": "Install with `pip install scrapling` (Python 3.10 or higher required, lines 526-531). Browser-based fetchers need `pip install \"scrapling[fetchers]\"` plus `scrapling install` to download browsers (lines 539-545). It can be used from Python code, the terminal via `scrapling shell` (line 483), or an AI agent through its MCP server (line 69).",
-      "pros": "It offers a Scrapy-like spider API with concurrency control, proxy rotation, and pause/resume (lines 259-271); multiple fetcher types with session management (lines 273-283); CSS/XPath/text/regex parsing with similarity matching (lines 286-288); and an MCP server plus Agent Skill for AI agents (lines 290-293).",
-      "cons": "The base install only includes the parser engine; importing `scrapling.fetchers` or `scrapling.spiders` without installing `scrapling[fetchers]` and running `scrapling install` raises a `ModuleNotFoundError` (lines 534-545), adding a required setup step for browser-based features.",
-      "fit": "Given its Python packaging and MCP/Agent Skill integrations, Scrapling seems aimed at developers building Python-based scraping scripts, crawlers, or AI-agent-driven data-extraction workflows, with no documented support for non-Python environments."
+      "goal": "Scrapling is a Python web scraping framework that combines fast HTTP requests, stealth browsers, parsing, and concurrent crawling (spiders) in a single library. It can be used from Python code, the command line, or AI agents via its MCP server and Agent Skill, covering tasks from extracting a few fields to exporting whole sites as Markdown.",
+      "usage": "Install the base package with `pip install scrapling` (requires Python 3.10 or higher). Fetchers, browsers, and spiders need extra dependencies, installed via `pip install \"scrapling[fetchers]\"` followed by running `scrapling install` to download browser binaries. Basic scraping uses `Fetcher.get(url)` plus CSS/XPath selectors, while Spider classes support concurrent crawling with pause/resume and JSON/CSV/XML export.",
+      "pros": "Scrapling bundles a Scrapy-like Spider API with concurrent crawling, multi-session support, proxy rotation, AutoThrottle, and robots.txt compliance. It offers stealth browser fetching with Cloudflare Turnstile handling, an MCP server for AI agents, and RAG-ready Markdown conversion. Documented benchmarks show its parser handling 5000 nested elements in about 1.99 ms, faster than Parsel/Scrapy, Lxml, and BeautifulSoup variants.",
+      "cons": "The base `pip install scrapling` installs only the parser engine; importing `scrapling.fetchers` or `scrapling.spiders` without installing the fetchers extra and running `scrapling install` raises `ModuleNotFoundError`, so browser-based scraping requires an extra setup step and additional disk space for browser binaries.",
+      "fit": "Based on its disclaimer that the library is provided for educational and research purposes and requires compliance with data-scraping and privacy laws, Scrapling appears best suited for developers and researchers building scraping scripts, crawlers, or AI-agent data-extraction tools who are responsible for respecting target sites' terms of service and robots.txt rules."
     },
     "summaries": {
       "en": {
-        "goal": "Scrapling is a Python web scraping framework that combines fast HTTP requests, stealth browsers, parsing, and concurrent crawling in one library (line 65). It scrapes static pages, renders JavaScript, interacts with websites, and builds crawlers with reusable sessions, proxy rotation, retries, and pause/resume support (line 67).",
-        "usage": "Install with `pip install scrapling` (Python 3.10 or higher required, lines 526-531). Browser-based fetchers need `pip install \"scrapling[fetchers]\"` plus `scrapling install` to download browsers (lines 539-545). It can be used from Python code, the terminal via `scrapling shell` (line 483), or an AI agent through its MCP server (line 69).",
-        "pros": "It offers a Scrapy-like spider API with concurrency control, proxy rotation, and pause/resume (lines 259-271); multiple fetcher types with session management (lines 273-283); CSS/XPath/text/regex parsing with similarity matching (lines 286-288); and an MCP server plus Agent Skill for AI agents (lines 290-293).",
-        "cons": "The base install only includes the parser engine; importing `scrapling.fetchers` or `scrapling.spiders` without installing `scrapling[fetchers]` and running `scrapling install` raises a `ModuleNotFoundError` (lines 534-545), adding a required setup step for browser-based features.",
-        "fit": "Given its Python packaging and MCP/Agent Skill integrations, Scrapling seems aimed at developers building Python-based scraping scripts, crawlers, or AI-agent-driven data-extraction workflows, with no documented support for non-Python environments."
+        "goal": "Scrapling is a Python web scraping framework that combines fast HTTP requests, stealth browsers, parsing, and concurrent crawling (spiders) in a single library. It can be used from Python code, the command line, or AI agents via its MCP server and Agent Skill, covering tasks from extracting a few fields to exporting whole sites as Markdown.",
+        "usage": "Install the base package with `pip install scrapling` (requires Python 3.10 or higher). Fetchers, browsers, and spiders need extra dependencies, installed via `pip install \"scrapling[fetchers]\"` followed by running `scrapling install` to download browser binaries. Basic scraping uses `Fetcher.get(url)` plus CSS/XPath selectors, while Spider classes support concurrent crawling with pause/resume and JSON/CSV/XML export.",
+        "pros": "Scrapling bundles a Scrapy-like Spider API with concurrent crawling, multi-session support, proxy rotation, AutoThrottle, and robots.txt compliance. It offers stealth browser fetching with Cloudflare Turnstile handling, an MCP server for AI agents, and RAG-ready Markdown conversion. Documented benchmarks show its parser handling 5000 nested elements in about 1.99 ms, faster than Parsel/Scrapy, Lxml, and BeautifulSoup variants.",
+        "cons": "The base `pip install scrapling` installs only the parser engine; importing `scrapling.fetchers` or `scrapling.spiders` without installing the fetchers extra and running `scrapling install` raises `ModuleNotFoundError`, so browser-based scraping requires an extra setup step and additional disk space for browser binaries.",
+        "fit": "Based on its disclaimer that the library is provided for educational and research purposes and requires compliance with data-scraping and privacy laws, Scrapling appears best suited for developers and researchers building scraping scripts, crawlers, or AI-agent data-extraction tools who are responsible for respecting target sites' terms of service and robots.txt rules."
       },
       "ko": {
-        "goal": "Scrapling은 빠른 HTTP 요청, 스텔스 브라우저, 파싱, 동시 크롤링을 하나의 라이브러리로 결합한 Python 웹 스크래핑 프레임워크입니다(65번째 줄). 정적 페이지를 스크랩하고 JavaScript를 렌더링하며 웹사이트와 상호작용하고, 재사용 가능한 세션, 프록시 로테이션, 재시도, 일시정지/재개 기능으로 크롤러를 구축할 수 있습니다(67번째 줄).",
-        "usage": "`pip install scrapling` 명령으로 설치하며 Python 3.10 이상이 필요합니다(526-531번째 줄). 브라우저 기반 fetcher를 사용하려면 `pip install \"scrapling[fetchers]\"`를 설치하고 `scrapling install`을 실행해 브라우저를 내려받아야 합니다(539-545번째 줄). Python 코드, `scrapling shell` 명령을 통한 터미널(483번째 줄), 또는 MCP 서버를 통한 AI 에이전트(69번째 줄)에서 사용할 수 있습니다.",
-        "pros": "Scrapy와 유사한 spider API가 동시성 제어, 프록시 로테이션, 일시정지/재개 기능을 제공하며(259-271번째 줄), 세션 관리를 갖춘 다양한 fetcher 유형을 지원하고(273-283번째 줄), CSS/XPath/텍스트/정규식 파싱과 유사 요소 매칭 기능이 있으며(286-288번째 줄), AI 에이전트를 위한 MCP 서버와 Agent Skill도 제공합니다(290-293번째 줄).",
-        "cons": "기본 설치는 파서 엔진만 포함하므로, `scrapling[fetchers]`를 설치하고 `scrapling install`을 실행하지 않은 채 `scrapling.fetchers`나 `scrapling.spiders`를 임포트하면 `ModuleNotFoundError`가 발생합니다(534-545번째 줄). 브라우저 기능을 사용하려면 이 추가 설정 단계가 필요합니다.",
-        "fit": "Python 패키지 구조와 MCP/Agent Skill 통합을 고려하면, Scrapling은 Python 기반 스크래핑 스크립트, 크롤러, 또는 AI 에이전트 데이터 추출 워크플로를 구축하는 개발자에게 적합해 보이며, 비Python 환경에 대한 지원은 문서에 명시되어 있지 않습니다."
+        "goal": "Scrapling은 빠른 HTTP 요청, 스텔스 브라우저, 파싱, 동시 크롤링(스파이더) 기능을 하나의 라이브러리로 결합한 Python 웹 스크래핑 프레임워크입니다. Python 코드, 터미널, 또는 MCP 서버와 Agent Skill을 통한 AI 에이전트에서 사용할 수 있으며, 몇 개의 필드를 추출하는 작업부터 사이트 전체를 Markdown으로 수집하는 작업까지 다룹니다.",
+        "usage": "기본 패키지는 `pip install scrapling` 명령으로 설치하며 Python 3.10 이상이 필요합니다. 페처(fetcher), 브라우저, 스파이더 기능을 사용하려면 `pip install \"scrapling[fetchers]\"`로 추가 의존성을 설치한 뒤 `scrapling install` 명령을 실행해 브라우저 바이너리를 내려받아야 합니다. 기본 스크래핑은 `Fetcher.get(url)`과 CSS/XPath 선택자로 수행되며, Spider 클래스는 일시 중지/재개와 JSON/CSV/XML 내보내기를 지원하는 동시 크롤링을 제공합니다.",
+        "pros": "Scrapling은 동시 크롤링, 다중 세션 지원, 프록시 로테이션, AutoThrottle, robots.txt 준수 기능을 갖춘 Scrapy 스타일 Spider API를 제공합니다. Cloudflare Turnstile 처리가 가능한 스텔스 브라우저 페칭, AI 에이전트를 위한 MCP 서버, RAG에 적합한 Markdown 변환도 포함합니다. 문서화된 벤치마크에 따르면 파서가 5000개의 중첩 요소를 약 1.99ms에 처리하여 Parsel/Scrapy, Lxml, BeautifulSoup 계열보다 빠릅니다.",
+        "cons": "기본 `pip install scrapling` 설치는 파서 엔진만 포함하므로, fetchers 추가 패키지를 설치하고 `scrapling install`을 실행하지 않은 채 `scrapling.fetchers`나 `scrapling.spiders`를 임포트하면 `ModuleNotFoundError`가 발생합니다. 따라서 브라우저 기반 스크래핑을 사용하려면 추가 설치 단계와 브라우저 바이너리를 위한 디스크 공간이 필요합니다.",
+        "fit": "이 라이브러리가 교육 및 연구 목적으로 제공되며 데이터 스크래핑과 개인정보 관련 법규 준수를 요구한다는 고지 사항을 고려하면, Scrapling은 스크래핑 스크립트, 크롤러, 또는 AI 에이전트 기반 데이터 추출 도구를 만드는 개발자와 연구자에게 적합한 것으로 보이며, 대상 사이트의 이용약관과 robots.txt 규칙을 준수할 책임은 사용자에게 있는 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "Scrapling 是一个 Python 网页抓取框架,将快速 HTTP 请求、隐身浏览器、解析功能和并发爬取整合到一个库中(第65行)。它可以抓取静态页面、渲染 JavaScript、与网站交互,并通过可复用会话、代理轮换、自动重试和暂停/恢复功能构建爬虫(第67行)。",
-        "usage": "使用 `pip install scrapling` 安装,需要 Python 3.10 或更高版本(第526-531行)。要使用基于浏览器的 fetcher,需安装 `pip install \"scrapling[fetchers]\"` 并运行 `scrapling install` 下载浏览器(第539-545行)。可以从 Python 代码、通过 `scrapling shell` 命令的终端(第483行),或通过其 MCP 服务器供 AI 代理使用(第69行)。",
-        "pros": "该项目提供类似 Scrapy 的 spider API,支持并发控制、代理轮换和暂停/恢复(第259-271行);提供带会话管理的多种 fetcher 类型(第273-283行);支持 CSS/XPath/文本/正则解析以及相似元素匹配(第286-288行);并为 AI 代理提供 MCP 服务器和 Agent Skill(第290-293行)。",
-        "cons": "基础安装仅包含解析引擎;如果未安装 `scrapling[fetchers]` 并运行 `scrapling install`,直接导入 `scrapling.fetchers` 或 `scrapling.spiders` 会引发 `ModuleNotFoundError`(第534-545行),这意味着使用浏览器相关功能需要额外的安装步骤。",
-        "fit": "鉴于其 Python 打包方式以及 MCP/Agent Skill 集成,Scrapling 似乎适合构建 Python 抓取脚本、爬虫或 AI 代理数据提取工作流的开发者,文档中未提及对非 Python 环境的支持。"
+        "goal": "Scrapling 是一个 Python 网页抓取框架,将快速 HTTP 请求、隐身浏览器、解析以及并发爬取(spiders)整合到一个库中。它可以通过 Python 代码、终端,或借助其 MCP 服务器和 Agent Skill 供 AI 代理使用,涵盖从提取少量字段到将整个网站导出为 Markdown 的各类任务。",
+        "usage": "使用 `pip install scrapling` 安装基础包,需要 Python 3.10 或更高版本。若要使用 fetcher、浏览器或 spider 功能,需先通过 `pip install \"scrapling[fetchers]\"` 安装额外依赖,再运行 `scrapling install` 下载浏览器二进制文件。基础抓取使用 `Fetcher.get(url)` 配合 CSS/XPath 选择器,Spider 类则支持并发爬取,并提供暂停/恢复以及 JSON/CSV/XML 导出功能。",
+        "pros": "Scrapling 提供类似 Scrapy 的 Spider API,支持并发爬取、多会话管理、代理轮换、AutoThrottle 以及 robots.txt 遵从。它还提供可处理 Cloudflare Turnstile 的隐身浏览器抓取、面向 AI 代理的 MCP 服务器,以及适合 RAG 的 Markdown 转换。文档中的基准测试显示,其解析器处理 5000 个嵌套元素约需 1.99 毫秒,比 Parsel/Scrapy、Lxml 及多种 BeautifulSoup 组合更快。",
+        "cons": "基础的 `pip install scrapling` 安装仅包含解析引擎;若未安装 fetchers 附加组件并运行 `scrapling install`,直接导入 `scrapling.fetchers` 或 `scrapling.spiders` 会引发 `ModuleNotFoundError`。因此使用基于浏览器的抓取功能需要额外的安装步骤,并为浏览器二进制文件预留磁盘空间。",
+        "fit": "考虑到其声明该库仅用于教育和研究目的,并要求遵守数据抓取与隐私相关法律,Scrapling 看起来更适合开发者和研究人员用来构建抓取脚本、爬虫或基于 AI 代理的数据提取工具,而遵守目标网站服务条款与 robots.txt 规则的责任似乎由使用者自行承担。"
       },
       "es": {
-        "goal": "Scrapling es un framework de web scraping en Python que combina solicitudes HTTP rápidas, navegadores sigilosos (stealth), análisis (parsing) y rastreo concurrente en una sola biblioteca (línea 65). Permite extraer páginas estáticas, renderizar JavaScript, interactuar con sitios web y construir crawlers con sesiones reutilizables, rotación de proxies, reintentos automáticos y pausa/reanudación (línea 67).",
-        "usage": "Se instala con `pip install scrapling`, requiriendo Python 3.10 o superior (líneas 526-531). Para los fetchers basados en navegador es necesario instalar `pip install \"scrapling[fetchers]\"` y ejecutar `scrapling install` para descargar los navegadores (líneas 539-545). Puede usarse desde código Python, desde la terminal con `scrapling shell` (línea 483), o desde un agente de IA a través de su servidor MCP (línea 69).",
-        "pros": "Ofrece una API de spiders similar a Scrapy con control de concurrencia, rotación de proxies y pausa/reanudación (líneas 259-271); varios tipos de fetcher con gestión de sesiones (líneas 273-283); selección por CSS/XPath/texto/regex con coincidencia de elementos similares (líneas 286-288); y un servidor MCP junto con un Agent Skill para agentes de IA (líneas 290-293).",
-        "cons": "La instalación básica solo incluye el motor de análisis (parser); importar `scrapling.fetchers` o `scrapling.spiders` sin instalar `scrapling[fetchers]` y ejecutar `scrapling install` genera un `ModuleNotFoundError` (líneas 534-545), por lo que las funciones basadas en navegador requieren este paso adicional de configuración.",
-        "fit": "Dado su empaquetado en Python y sus integraciones MCP/Agent Skill, Scrapling parece orientado a desarrolladores que construyen scripts de scraping, crawlers o flujos de extracción de datos basados en agentes de IA en Python, sin soporte documentado para entornos fuera de Python."
+        "goal": "Scrapling es un framework de Python para web scraping que combina solicitudes HTTP rápidas, navegadores sigilosos (stealth), análisis (parsing) y rastreo concurrente (spiders) en una sola biblioteca. Puede usarse desde código Python, la terminal, o agentes de IA mediante su servidor MCP y Agent Skill, abarcando desde extraer unos pocos campos hasta exportar un sitio completo como Markdown.",
+        "usage": "El paquete base se instala con `pip install scrapling` y requiere Python 3.10 o superior. Para usar fetchers, navegadores o spiders se necesitan dependencias adicionales, instaladas con `pip install \"scrapling[fetchers]\"` y luego ejecutando `scrapling install` para descargar los binarios del navegador. El scraping básico usa `Fetcher.get(url)` junto con selectores CSS/XPath, mientras que las clases Spider admiten rastreo concurrente con pausa/reanudación y exportación a JSON/CSV/XML.",
+        "pros": "Scrapling ofrece una API de Spider similar a Scrapy con rastreo concurrente, soporte multisesión, rotación de proxies, AutoThrottle y cumplimiento de robots.txt. También incluye fetching con navegador sigiloso capaz de manejar Cloudflare Turnstile, un servidor MCP para agentes de IA, y conversión a Markdown apta para RAG. Las pruebas de rendimiento documentadas muestran que su parser procesa 5000 elementos anidados en aproximadamente 1.99 ms, más rápido que Parsel/Scrapy, Lxml y varias combinaciones de BeautifulSoup.",
+        "cons": "La instalación base con `pip install scrapling` solo incluye el motor de análisis; importar `scrapling.fetchers` o `scrapling.spiders` sin instalar el extra de fetchers ni ejecutar `scrapling install` genera un `ModuleNotFoundError`. Por lo tanto, el scraping basado en navegador requiere un paso de instalación adicional y espacio en disco para los binarios del navegador.",
+        "fit": "Dado que el aviso indica que la biblioteca se ofrece solo con fines educativos y de investigación, exigiendo el cumplimiento de las leyes de scraping de datos y privacidad, Scrapling parece orientado a desarrolladores e investigadores que construyen scripts de scraping, rastreadores o herramientas de extracción de datos basadas en agentes de IA, quienes aparentemente son responsables de respetar los términos de servicio y las reglas de robots.txt de los sitios objetivo."
       },
       "ja": {
-        "goal": "Scraplingは、高速なHTTPリクエスト、ステルスブラウザ、パース機能、並行クロールを1つのライブラリに統合したPython製のWebスクレイピングフレームワークです(65行目)。静的ページのスクレイピング、JavaScriptのレンダリング、サイトとのインタラクションを行い、再利用可能なセッション、プロキシローテーション、自動リトライ、一時停止/再開機能を備えたクローラーを構築できます(67行目)。",
-        "usage": "`pip install scrapling` でインストールし、Python 3.10以上が必要です(526-531行目)。ブラウザベースのfetcherを使うには `pip install \"scrapling[fetchers]\"` をインストールし、`scrapling install` を実行してブラウザをダウンロードする必要があります(539-545行目)。Pythonコード、`scrapling shell` コマンドによるターミナル(483行目)、またはMCPサーバー経由のAIエージェント(69行目)から利用できます。",
-        "pros": "Scrapyライクなspider APIが並行性制御、プロキシローテーション、一時停止/再開を提供し(259-271行目)、セッション管理を備えた複数のfetcherタイプをサポートし(273-283行目)、CSS/XPath/テキスト/正規表現によるパースと類似要素のマッチング機能があり(286-288行目)、AIエージェント向けのMCPサーバーとAgent Skillも提供します(290-293行目)。",
-        "cons": "基本インストールにはパーサーエンジンのみが含まれ、`scrapling[fetchers]` をインストールして `scrapling install` を実行しない状態で `scrapling.fetchers` や `scrapling.spiders` をインポートすると `ModuleNotFoundError` が発生します(534-545行目)。ブラウザ機能を使うにはこの追加設定手順が必要です。",
-        "fit": "Pythonパッケージ構成とMCP/Agent Skill統合を踏まえると、ScraplingはPythonベースのスクレイピングスクリプト、クローラー、またはAIエージェントによるデータ抽出ワークフローを構築する開発者に適していると考えられますが、Python以外の環境への対応はドキュメントに記載されていません。"
+        "goal": "Scraplingは、高速なHTTPリクエスト、ステルスブラウザ、パース処理、並行クロール(スパイダー)を1つのライブラリにまとめたPython製のWebスクレイピングフレームワークです。Pythonコード、ターミナル、またはMCPサーバーとAgent Skillを通じてAIエージェントから利用でき、数フィールドの抽出からサイト全体をMarkdownとして収集する作業までをカバーします。",
+        "usage": "基本パッケージは `pip install scrapling` でインストールでき、Python 3.10以上が必要です。fetcher、ブラウザ、spider機能を使うには、`pip install \"scrapling[fetchers]\"` で追加の依存関係をインストールし、続けて `scrapling install` を実行してブラウザバイナリをダウンロードする必要があります。基本的なスクレイピングは `Fetcher.get(url)` とCSS/XPathセレクタを使い、SpiderクラスはJSON/CSV/XMLエクスポートに対応した一時停止/再開付きの並行クロールをサポートします。",
+        "pros": "Scraplingは、並行クロール、マルチセッション対応、プロキシローテーション、AutoThrottle、robots.txt準拠を備えたScrapy風のSpider APIを提供します。Cloudflare Turnstileに対応したステルスブラウザフェッチ、AIエージェント向けMCPサーバー、RAGに適したMarkdown変換も含まれます。文書化されたベンチマークでは、パーサーが5000個のネストされた要素を約1.99msで処理し、Parsel/Scrapy、Lxml、各種BeautifulSoup構成より高速だとされています。",
+        "cons": "基本の `pip install scrapling` インストールにはパーサーエンジンのみが含まれ、fetchersエクストラをインストールして `scrapling install` を実行せずに `scrapling.fetchers` や `scrapling.spiders` をインポートすると `ModuleNotFoundError` が発生します。そのため、ブラウザベースのスクレイピングを使うには追加のインストール手順と、ブラウザバイナリ用のディスク容量が必要になります。",
+        "fit": "本ライブラリは教育および研究目的で提供され、データスクレイピングおよびプライバシーに関する法令への準拠が求められるという免責事項を踏まえると、Scraplingはスクレイピングスクリプト、クローラー、またはAIエージェントによるデータ抽出ツールを構築する開発者や研究者に向いていると考えられ、対象サイトの利用規約やrobots.txtルールを守る責任は利用者側にあるとみられます。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 65,
-          "end_line": 67,
+          "end_line": 69,
           "section_heading": ""
+        },
+        {
+          "start_line": 71,
+          "end_line": 76,
+          "section_heading": "What you can do with Scrapling"
         }
       ],
       "usage": [
         {
-          "start_line": 526,
-          "end_line": 531,
+          "start_line": 536,
+          "end_line": 542,
           "section_heading": "Installation"
         },
         {
-          "start_line": 539,
-          "end_line": 545,
+          "start_line": 549,
+          "end_line": 554,
           "section_heading": "Optional Dependencies"
-        },
-        {
-          "start_line": 483,
-          "end_line": 483,
-          "section_heading": "CLI & Interactive Shell"
         }
       ],
       "pros": [
         {
-          "start_line": 259,
-          "end_line": 271,
+          "start_line": 269,
+          "end_line": 280,
           "section_heading": "Spiders - A Full Crawling Framework"
         },
         {
-          "start_line": 273,
-          "end_line": 283,
-          "section_heading": "Advanced Websites Fetching with Session Support"
-        },
-        {
-          "start_line": 286,
-          "end_line": 293,
-          "section_heading": "Parsing and Data Extraction"
+          "start_line": 506,
+          "end_line": 521,
+          "section_heading": "Performance Benchmarks"
         }
       ],
       "cons": [
         {
-          "start_line": 534,
+          "start_line": 544,
           "end_line": 545,
           "section_heading": "Installation"
         }
       ],
       "fit": [
         {
-          "start_line": 65,
-          "end_line": 69,
-          "section_heading": ""
+          "start_line": 601,
+          "end_line": 604,
+          "section_heading": "Disclaimer"
         }
       ]
     },
     "invariants": [
       {
-        "kind": "product",
-        "value": "Scrapling",
-        "fields": [
-          "goal",
-          "usage",
-          "cons",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "MCP",
-        "fields": [
-          "usage",
-          "pros",
-          "fit"
-        ]
-      },
-      {
         "kind": "command",
         "value": "pip install scrapling",
         "fields": [
-          "usage"
+          "usage",
+          "cons"
         ]
       },
       {
@@ -2025,13 +1969,6 @@
         "fields": [
           "usage",
           "cons"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "scrapling shell",
-        "fields": [
-          "usage"
         ]
       },
       {
@@ -2047,6 +1984,17 @@
         "fields": [
           "usage"
         ]
+      },
+      {
+        "kind": "product",
+        "value": "Scrapling",
+        "fields": [
+          "goal",
+          "usage",
+          "pros",
+          "cons",
+          "fit"
+        ]
       }
     ],
     "inference_fields": [
@@ -2056,8 +2004,8 @@
       "kind": "readme",
       "slug": "d4vinci/scrapling",
       "path": "README.md",
-      "blob_sha": "26cc7aa2c13dfb31b77a1a650c7dc565bbcc4d21",
-      "content_sha256": "1b8a76e68b5960db15b6ca2ba1a6f2bb004aeb9c4bd3bb23b8e3738d2374f65c",
+      "blob_sha": "bf5a1eff0137552b0696859e17973e4bbf319406",
+      "content_sha256": "10c8b77189722e52a517f234a301e4964bb47992aaa907e3e20a917e951a3382",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.310",
@@ -4513,122 +4461,112 @@
   },
   "TauricResearch/TradingAgents": {
     "content": {
-      "goal": "TradingAgents is a multi-agent LLM-powered framework that simulates a trading firm's workflow, combining fundamentals, sentiment, news, and technical analysts with trader, risk management, and portfolio manager agents to produce trading decisions. It is documented as designed for research purposes.",
-      "usage": "Clone with `git clone https://github.com/TauricResearch/TradingAgents.git`, then `cd TradingAgents`. Requires Python 3.11 or later; install with `pip install .`. Launch the interactive CLI with `tradingagents`, or run `python -m cli.main` from source; API keys for the chosen LLM provider must be set as environment variables first.",
-      "pros": "Supports many LLM providers (OpenAI, Google, Anthropic, xAI, DeepSeek, Qwen, GLM, MiniMax, OpenRouter, Ollama, Azure, and ChatGPT subscription plans). Includes point-in-time data integrity for fundamentals, backtesting, portfolio-aware decisions, and a persistent memory log that carries forward past-decision outcomes between runs.",
-      "cons": "The README states LLM-driven output is non-deterministic: two runs on the same ticker and date can differ because of model sampling and because live news and social data change over time. The framework is explicitly described as not intended as financial, investment, or trading advice.",
-      "fit": "It appears best suited for researchers and developers studying multi-agent LLM analysis and backtesting workflows rather than for production trading strategies seeking a fixed, replicable return, since backtest results are not guaranteed to match any published figure."
+      "goal": "TradingAgents is a multi-agent LLM-driven financial trading framework in which specialized agents - fundamentals, sentiment, technical, and news analysts, bullish/bearish researchers, a trader, and a risk/portfolio management team - collaborate to produce trading decisions. The README states the framework is designed for research purposes and explicitly notes it is not intended as financial, investment, or trading advice.",
+      "usage": "To use it, clone the repository with `git clone https://github.com/TauricResearch/TradingAgents.git`, install with Python 3.11 or later, and run `pip install .`. The interactive CLI is launched with the `tradingagents` command; alternatively, the package can be used in Python by instantiating `TradingAgentsGraph` and calling its `.propagate()` method.",
+      "pros": "The framework is built on LangGraph and supports multiple LLM providers, including OpenAI, Google, Anthropic, xAI, and DeepSeek. It also offers point-in-time data integrity for backtesting and an opt-in checkpoint-resume feature, letting an interrupted run continue from its last completed step instead of restarting.",
+      "cons": "Because the framework is LLM-driven, the README notes that two runs on the same ticker and date can produce different outputs, due to non-deterministic language-model sampling and live, time-sensitive inputs such as news and social-media posts.",
+      "fit": "Based on the README's framing, the project appears best suited for researchers and developers exploring multi-agent trading analysis and backtesting workflows, rather than for obtaining a fixed, replicable trading strategy or real financial advice, since the README explicitly disclaims investment guidance."
     },
     "summaries": {
       "en": {
-        "goal": "TradingAgents is a multi-agent LLM-powered framework that simulates a trading firm's workflow, combining fundamentals, sentiment, news, and technical analysts with trader, risk management, and portfolio manager agents to produce trading decisions. It is documented as designed for research purposes.",
-        "usage": "Clone with `git clone https://github.com/TauricResearch/TradingAgents.git`, then `cd TradingAgents`. Requires Python 3.11 or later; install with `pip install .`. Launch the interactive CLI with `tradingagents`, or run `python -m cli.main` from source; API keys for the chosen LLM provider must be set as environment variables first.",
-        "pros": "Supports many LLM providers (OpenAI, Google, Anthropic, xAI, DeepSeek, Qwen, GLM, MiniMax, OpenRouter, Ollama, Azure, and ChatGPT subscription plans). Includes point-in-time data integrity for fundamentals, backtesting, portfolio-aware decisions, and a persistent memory log that carries forward past-decision outcomes between runs.",
-        "cons": "The README states LLM-driven output is non-deterministic: two runs on the same ticker and date can differ because of model sampling and because live news and social data change over time. The framework is explicitly described as not intended as financial, investment, or trading advice.",
-        "fit": "It appears best suited for researchers and developers studying multi-agent LLM analysis and backtesting workflows rather than for production trading strategies seeking a fixed, replicable return, since backtest results are not guaranteed to match any published figure."
+        "goal": "TradingAgents is a multi-agent LLM-driven financial trading framework in which specialized agents - fundamentals, sentiment, technical, and news analysts, bullish/bearish researchers, a trader, and a risk/portfolio management team - collaborate to produce trading decisions. The README states the framework is designed for research purposes and explicitly notes it is not intended as financial, investment, or trading advice.",
+        "usage": "To use it, clone the repository with `git clone https://github.com/TauricResearch/TradingAgents.git`, install with Python 3.11 or later, and run `pip install .`. The interactive CLI is launched with the `tradingagents` command; alternatively, the package can be used in Python by instantiating `TradingAgentsGraph` and calling its `.propagate()` method.",
+        "pros": "The framework is built on LangGraph and supports multiple LLM providers, including OpenAI, Google, Anthropic, xAI, and DeepSeek. It also offers point-in-time data integrity for backtesting and an opt-in checkpoint-resume feature, letting an interrupted run continue from its last completed step instead of restarting.",
+        "cons": "Because the framework is LLM-driven, the README notes that two runs on the same ticker and date can produce different outputs, due to non-deterministic language-model sampling and live, time-sensitive inputs such as news and social-media posts.",
+        "fit": "Based on the README's framing, the project appears best suited for researchers and developers exploring multi-agent trading analysis and backtesting workflows, rather than for obtaining a fixed, replicable trading strategy or real financial advice, since the README explicitly disclaims investment guidance."
       },
       "ko": {
-        "goal": "TradingAgents는 펀더멘털, 감성, 뉴스, 기술 분석가와 트레이더, 리스크 관리, 포트폴리오 매니저 에이전트를 결합하여 거래 결정을 내리는 멀티 에이전트 LLM 프레임워크입니다. README에 연구 목적으로 설계되었다고 명시되어 있습니다.",
-        "usage": "`git clone https://github.com/TauricResearch/TradingAgents.git` 후 `cd TradingAgents`로 이동합니다. Python 3.11 이상이 필요하며 `pip install .`로 설치합니다. `tradingagents` 명령으로 대화형 CLI를 실행하거나 소스에서 `python -m cli.main`을 실행할 수 있으며, 선택한 LLM 제공자의 API 키를 환경 변수로 먼저 설정해야 합니다.",
-        "pros": "OpenAI, Google, Anthropic, xAI, DeepSeek, Qwen, GLM, MiniMax, OpenRouter, Ollama, Azure, ChatGPT 구독 등 다양한 LLM 제공자를 지원합니다. 펀더멘털 데이터의 시점 정확성, 백테스팅, 포트폴리오 인식 결정, 실행 간 과거 결정 결과를 이어주는 지속적 메모리 로그를 포함합니다.",
-        "cons": "README는 LLM 기반 출력이 비결정적이라고 설명하며, 모델 샘플링과 실시간 뉴스·소셜 데이터 변화로 인해 동일한 티커·날짜에서도 실행마다 결과가 다를 수 있다고 명시합니다. 이 프레임워크는 금융, 투자, 거래 자문으로 의도되지 않았다고 명확히 밝히고 있습니다.",
-        "fit": "고정되고 재현 가능한 수익을 추구하는 실거래 전략보다는 멀티 에이전트 LLM 분석과 백테스팅 워크플로를 연구하는 개발자와 연구자에게 더 적합해 보이며, 백테스트 결과가 공개된 수치와 일치한다는 보장은 없습니다."
+        "goal": "TradingAgents는 펀더멘털·감성·기술·뉴스 분석가, 낙관/비관 리서처, 트레이더, 리스크/포트폴리오 관리팀 등 전문화된 에이전트들이 협력하여 거래 결정을 도출하는 멀티 에이전트 LLM 기반 금융 거래 프레임워크입니다. README에는 이 프레임워크가 연구 목적으로 설계되었으며 금융, 투자 또는 거래 자문을 의도한 것이 아니라고 명시되어 있습니다.",
+        "usage": "사용하려면 `git clone https://github.com/TauricResearch/TradingAgents.git`로 저장소를 클론한 뒤, Python 3.11 이상 환경에서 `pip install .`을 실행합니다. 대화형 CLI는 `tradingagents` 명령으로 실행할 수 있으며, Python에서는 `TradingAgentsGraph`를 생성하고 `.propagate()` 메서드를 호출하는 방식으로도 패키지를 사용할 수 있습니다.",
+        "pros": "이 프레임워크는 LangGraph를 기반으로 구축되었으며 OpenAI, Google, Anthropic, xAI, DeepSeek 등 다양한 LLM 제공자를 지원합니다. 또한 백테스트를 위한 시점 기준 데이터 무결성 기능과, 중단된 실행을 마지막 완료 단계부터 이어서 재개할 수 있는 선택적 체크포인트 재개 기능을 제공합니다.",
+        "cons": "이 프레임워크는 LLM 기반이기 때문에, README에 따르면 동일한 티커와 날짜로 두 번 실행해도 서로 다른 결과가 나올 수 있다고 명시되어 있습니다. 이는 언어 모델 샘플링의 비결정성과 뉴스·소셜 게시물 같은 실시간 데이터 때문입니다.",
+        "fit": "README의 서술을 바탕으로 볼 때, 이 프로젝트는 고정적이고 재현 가능한 거래 전략이나 실제 금융 자문을 얻기 위한 용도보다는 멀티 에이전트 거래 분석 및 백테스트 워크플로를 연구하는 연구자나 개발자에게 더 적합해 보입니다. README가 투자 자문이 아님을 명시적으로 밝히고 있기 때문입니다."
       },
       "zh-CN": {
-        "goal": "TradingAgents 是一个多智能体 LLM 框架，结合基本面、情绪、新闻和技术分析师以及交易员、风险管理和投资组合经理代理来生成交易决策。文档说明该框架是为研究目的而设计的。",
-        "usage": "使用 `git clone https://github.com/TauricResearch/TradingAgents.git` 克隆后进入 `cd TradingAgents`。需要 Python 3.11 或更高版本，使用 `pip install .` 安装。通过 `tradingagents` 命令启动交互式 CLI，或从源码运行 `python -m cli.main`；需先将所选 LLM 提供商的 API 密钥设置为环境变量。",
-        "pros": "支持多种 LLM 提供商（OpenAI、Google、Anthropic、xAI、DeepSeek、Qwen、GLM、MiniMax、OpenRouter、Ollama、Azure 以及 ChatGPT 订阅计划）。包含基本面数据的时点完整性、回测、感知投资组合的决策，以及在多次运行之间延续过往决策结果的持久化记忆日志。",
-        "cons": "README 说明 LLM 驱动的输出是非确定性的：由于模型采样以及实时新闻和社交数据随时间变化，同一股票代码和日期的两次运行结果可能不同。该框架明确声明并非旨在提供金融、投资或交易建议。",
-        "fit": "该框架似乎更适合研究人员和开发者用于研究多智能体 LLM 分析与回测工作流，而非追求固定、可复现回报的实盘交易策略，因为回测结果并不保证与任何已发布数据一致。"
+        "goal": "TradingAgents 是一个由多智能体 LLM 驱动的金融交易框架,其中基本面、情绪、技术和新闻分析师,多空研究员,交易员以及风险/投资组合管理团队等专门化代理协同工作以生成交易决策。README 指出该框架是为研究目的而设计的,并明确说明它并非金融、投资或交易建议。",
+        "usage": "使用方法是先用 `git clone https://github.com/TauricResearch/TradingAgents.git` 克隆仓库,然后在 Python 3.11 或更高版本环境下运行 `pip install .` 进行安装。可通过 `tradingagents` 命令启动交互式 CLI;也可以在 Python 中实例化 `TradingAgentsGraph` 并调用其 `.propagate()` 方法来使用该包。",
+        "pros": "该框架基于 LangGraph 构建,支持 OpenAI、Google、Anthropic、xAI、DeepSeek 等多个 LLM 提供方。它还为回测提供按时间点的数据完整性,并具有可选的检查点恢复功能,使中断的运行能从最后完成的步骤继续,而不必重新开始。",
+        "cons": "由于该框架由 LLM 驱动,README 指出,针对相同股票代码和日期的两次运行可能产生不同的结果,这是因为语言模型采样具有非确定性,并且新闻、社交媒体帖子等输入是实时且随时间变化的。",
+        "fit": "根据 README 的描述,该项目似乎更适合希望研究多智能体交易分析和回测流程的研究人员与开发者,而不太适合用来获取固定、可复现的交易策略或真实的金融建议,因为 README 明确声明其不构成投资指导。"
       },
       "es": {
-        "goal": "TradingAgents es un marco multiagente basado en LLM que combina analistas de fundamentos, sentimiento, noticias y técnicos con agentes de trader, gestión de riesgo y gestor de cartera para producir decisiones de trading. La documentación indica que está diseñado con fines de investigación.",
-        "usage": "Clone el repositorio con `git clone https://github.com/TauricResearch/TradingAgents.git` y luego `cd TradingAgents`. Requiere Python 3.11 o posterior; instale con `pip install .`. Inicie la CLI interactiva con `tradingagents`, o ejecute `python -m cli.main` desde el código fuente; antes debe configurar como variables de entorno la clave API del proveedor LLM elegido.",
-        "pros": "Admite numerosos proveedores de LLM (OpenAI, Google, Anthropic, xAI, DeepSeek, Qwen, GLM, MiniMax, OpenRouter, Ollama, Azure y planes de suscripción de ChatGPT). Incluye integridad temporal de datos fundamentales, backtesting, decisiones conscientes de la cartera y un registro de memoria persistente que traslada resultados de decisiones pasadas entre ejecuciones.",
-        "cons": "El README indica que la salida impulsada por LLM es no determinista: dos ejecuciones con el mismo ticker y fecha pueden diferir debido al muestreo del modelo y a que las noticias y datos sociales en vivo cambian con el tiempo. El marco se describe explícitamente como no destinado a asesoría financiera, de inversión o de trading.",
-        "fit": "Parece más adecuado para investigadores y desarrolladores que estudian flujos de análisis multiagente con LLM y backtesting, no para estrategias de trading en producción que busquen un retorno fijo y replicable, ya que los resultados de backtest no están garantizados para coincidir con ninguna cifra publicada."
+        "goal": "TradingAgents es un marco de trading financiero impulsado por múltiples agentes LLM, en el que agentes especializados —analistas fundamentales, de sentimiento, técnicos y de noticias, investigadores alcistas/bajistas, un trader y un equipo de gestión de riesgo/portafolio— colaboran para producir decisiones de trading. El README indica que el marco está diseñado con fines de investigación y aclara explícitamente que no pretende ser asesoramiento financiero, de inversión ni de trading.",
+        "usage": "Para usarlo, clone el repositorio con `git clone https://github.com/TauricResearch/TradingAgents.git`, instale con Python 3.11 o posterior y ejecute `pip install .`. La CLI interactiva se inicia con el comando `tradingagents`; alternativamente, el paquete puede usarse en Python instanciando `TradingAgentsGraph` y llamando a su método `.propagate()`.",
+        "pros": "El marco está construido sobre LangGraph y admite múltiples proveedores de LLM, entre ellos OpenAI, Google, Anthropic, xAI y DeepSeek. También ofrece integridad de datos por punto en el tiempo para backtesting y una función opcional de reanudación por puntos de control, que permite que una ejecución interrumpida continúe desde el último paso completado en lugar de reiniciarse.",
+        "cons": "Dado que el marco está impulsado por LLM, el README señala que dos ejecuciones con el mismo ticker y fecha pueden producir resultados distintos, debido al muestreo no determinista de los modelos de lenguaje y a fuentes de datos en vivo y sensibles al tiempo, como noticias y publicaciones en redes sociales.",
+        "fit": "Según la descripción del README, el proyecto parece más adecuado para investigadores y desarrolladores que exploran análisis de trading multiagente y flujos de backtesting, en lugar de para obtener una estrategia de trading fija y reproducible o asesoramiento financiero real, ya que el README descarta explícitamente ofrecer orientación de inversión."
       },
       "ja": {
-        "goal": "TradingAgentsは、ファンダメンタルズ、センチメント、ニュース、テクニカルの各アナリストと、トレーダー、リスク管理、ポートフォリオマネージャーの各エージェントを組み合わせて取引判断を行う、LLMを用いたマルチエージェントフレームワークです。READMEには研究目的で設計されていると記載されています。",
-        "usage": "`git clone https://github.com/TauricResearch/TradingAgents.git` でクローンし、`cd TradingAgents` で移動します。Python 3.11 以降が必要で、`pip install .` でインストールします。`tradingagents` コマンドで対話型 CLI を起動するか、ソースから `python -m cli.main` を実行できます。事前に選択した LLM プロバイダーの API キーを環境変数として設定する必要があります。",
-        "pros": "OpenAI、Google、Anthropic、xAI、DeepSeek、Qwen、GLM、MiniMax、OpenRouter、Ollama、Azure、ChatGPT サブスクリプションなど、多数の LLM プロバイダーに対応しています。ファンダメンタルズデータの時点整合性、バックテスト、ポートフォリオを考慮した意思決定、実行間で過去の判断結果を引き継ぐ永続的なメモリログを備えています。",
-        "cons": "READMEでは、LLM駆動の出力は非決定的であり、モデルのサンプリングやライブのニュース・ソーシャルデータが時間とともに変化するため、同じティッカーと日付でも実行ごとに結果が異なる場合があると説明されています。本フレームワークは金融、投資、取引の助言を意図したものではないと明記されています。",
-        "fit": "固定された再現可能なリターンを求める実運用の取引戦略よりも、マルチエージェントLLM分析やバックテストのワークフローを研究する研究者・開発者に適していると考えられ、バックテスト結果が公開された数値と一致する保証はありません。"
+        "goal": "TradingAgentsは、ファンダメンタルズ・センチメント・テクニカル・ニュースの各アナリスト、強気/弱気のリサーチャー、トレーダー、リスク/ポートフォリオ管理チームといった専門化されたエージェントが協調して取引判断を導き出す、マルチエージェントLLM駆動の金融取引フレームワークです。READMEには、本フレームワークが研究目的で設計されており、金融・投資・取引の助言を意図したものではないと明記されています。",
+        "usage": "利用するには、`git clone https://github.com/TauricResearch/TradingAgents.git` でリポジトリをクローンし、Python 3.11以降の環境で `pip install .` を実行してインストールします。対話型CLIは `tradingagents` コマンドで起動できます。あるいは、Python上で `TradingAgentsGraph` をインスタンス化し、その `.propagate()` メソッドを呼び出すことでパッケージを利用することもできます。",
+        "pros": "本フレームワークはLangGraph上に構築されており、OpenAI、Google、Anthropic、xAI、DeepSeekなど複数のLLMプロバイダーをサポートしています。また、バックテスト用のポイントインタイムなデータ整合性機能と、中断した実行を最後に完了したステップから再開できるオプトインのチェックポイント再開機能も提供しています。",
+        "cons": "本フレームワークはLLM駆動であるため、READMEによれば、同一のティッカーと日付で2回実行しても結果が異なる場合があるとされています。これは言語モデルのサンプリングが非決定的であることや、ニュースやソーシャルメディアの投稿といった時間とともに変化するライブデータに起因します。",
+        "fit": "READMEの記述からすると、本プロジェクトは固定的で再現可能な取引戦略や実際の金融助言を得るためのものではなく、マルチエージェントによる取引分析やバックテストのワークフローを研究する研究者・開発者に適していると考えられます。READMEが投資助言ではないことを明示的に述べているためです。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 30,
-          "end_line": 30,
-          "section_heading": "TradingAgents: Multi-Agents LLM Financial Trading Framework"
-        },
-        {
-          "start_line": 72,
-          "end_line": 72,
+          "start_line": 66,
+          "end_line": 68,
           "section_heading": "TradingAgents Framework"
         },
         {
-          "start_line": 78,
-          "end_line": 78,
+          "start_line": 74,
+          "end_line": 74,
           "section_heading": "TradingAgents Framework"
         }
       ],
       "usage": [
         {
-          "start_line": 120,
-          "end_line": 124,
+          "start_line": 116,
+          "end_line": 120,
           "section_heading": "Installation"
         },
         {
-          "start_line": 138,
-          "end_line": 141,
+          "start_line": 122,
+          "end_line": 122,
           "section_heading": "Installation"
         },
         {
-          "start_line": 205,
-          "end_line": 209,
+          "start_line": 201,
+          "end_line": 205,
           "section_heading": "CLI Usage"
         }
       ],
       "pros": [
         {
-          "start_line": 252,
-          "end_line": 252,
+          "start_line": 248,
+          "end_line": 248,
           "section_heading": "Implementation Details"
         },
         {
-          "start_line": 300,
-          "end_line": 302,
-          "section_heading": "Fundamentals as filed"
-        },
-        {
-          "start_line": 341,
-          "end_line": 341,
-          "section_heading": "Memory log"
+          "start_line": 343,
+          "end_line": 345,
+          "section_heading": "Checkpoint resume"
         }
       ],
       "cons": [
         {
-          "start_line": 78,
-          "end_line": 78,
+          "start_line": 74,
+          "end_line": 74,
           "section_heading": "TradingAgents Framework"
         },
         {
-          "start_line": 387,
-          "end_line": 389,
+          "start_line": 383,
+          "end_line": 385,
           "section_heading": "Reproducibility"
         }
       ],
       "fit": [
         {
-          "start_line": 405,
-          "end_line": 405,
-          "section_heading": "Reproducibility"
+          "start_line": 74,
+          "end_line": 74,
+          "section_heading": "TradingAgents Framework"
         },
         {
-          "start_line": 387,
-          "end_line": 387,
+          "start_line": 401,
+          "end_line": 401,
           "section_heading": "Reproducibility"
         }
       ]
@@ -4663,23 +4601,38 @@
         ]
       },
       {
+        "kind": "url",
+        "value": "https://github.com/TauricResearch/TradingAgents.git",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
         "kind": "product",
         "value": "TradingAgents",
         "fields": [
           "goal",
           "usage"
         ]
+      },
+      {
+        "kind": "product",
+        "value": "LangGraph",
+        "fields": [
+          "pros"
+        ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "tauricresearch/tradingagents",
       "path": "README.md",
-      "blob_sha": "a9ddf10db162f608af4d3387b8a7dd35bc4d1a13",
-      "content_sha256": "dbbaf3de3698f39664b2ea40d1e3b3dd92deaf8e1a4f3129d01bd6ff4211229f",
+      "blob_sha": "9567a73615a9f73825038055dc6bb5dc298f43f3",
+      "content_sha256": "cffed7f3d8189cc02a128eabf6fbf07b29d069e5817d8848dae03c16e39f802e",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.310",
@@ -5263,90 +5216,105 @@
   },
   "debpalash/VoiceStudio": {
     "content": {
-      "goal": "VoiceStudio is an AI voice studio application that runs locally on a user's device, covering voice cloning, voice design, video dubbing, dictation, transcription, and narration in 646 languages.",
-      "usage": "VoiceStudio can be installed via platform-specific methods (Homebrew, installers, Docker, APK) or a one-command script: `curl -fsSL https://voicestudio.sh/install | sh`. To run from source, clone the repository with `git clone https://github.com/debpalash/VoiceStudio.git` and run `bun run dev`, which installs JavaScript and Python dependencies before launching the Electron app.",
-      "pros": "It runs entirely on-device, works without a GPU (though slower on CPU), and supports many platforms including macOS, Windows, Linux, Docker, Android, and iOS. It is distributed under AGPL-3.0, so it is free to use, including commercially.",
-      "cons": "Documentation notes that performance depends heavily on hardware, with CPU-only runs explicitly described as slower, and some ports (Windows on ARM, Android, iOS) are marked experimental or preview rather than stable.",
-      "fit": "The project appears suited to users who want local, offline-capable voice cloning, dubbing, or narration without relying on a paid cloud service, though model and voice licensing varies per model and may need individual verification."
+      "goal": "VoiceStudio is an on-device AI voice studio for voice cloning, voice design, video dubbing, dictation, transcription, and narration in 646 languages, running on laptops, desktops, servers, phones, and tablets. It defaults to the OmniVoice engine but supports dozens of other engines via its Model Manager.",
+      "usage": "Install via platform methods such as `brew install --cask debpalash/tap/voicestudio` on macOS, the one-command installer `curl -fsSL https://voicestudio.sh/install | sh`, or from source with `git clone https://github.com/debpalash/VoiceStudio.git` followed by `bun run dev`. After installation, open Voice cloning, select or add a reference voice, type text, and generate; the app asks before downloading any model.",
+      "pros": "Runs locally across many device types without a paid cloud backend, offers a wide choice of voice engines through its Model Manager, and remains usable on CPU-only machines, albeit more slowly, when no GPU is available.",
+      "cons": "Model weights, voices, and generated output carry separate licenses shown per model in the Model Manager, and cloning a voice is only permitted with its owner's consent, adding a compliance step beyond the app's own AGPL-3.0 license. The Android and iOS apps are also marked 'Preview,' suggesting they may be less mature than desktop builds.",
+      "fit": "The project appears best suited to users who want offline/local voice generation and dubbing across desktop, mobile, or Docker environments rather than a cloud-hosted service, though mobile support being in preview may limit reliability for production mobile use."
     },
     "summaries": {
       "en": {
-        "goal": "VoiceStudio is an AI voice studio application that runs locally on a user's device, covering voice cloning, voice design, video dubbing, dictation, transcription, and narration in 646 languages.",
-        "usage": "VoiceStudio can be installed via platform-specific methods (Homebrew, installers, Docker, APK) or a one-command script: `curl -fsSL https://voicestudio.sh/install | sh`. To run from source, clone the repository with `git clone https://github.com/debpalash/VoiceStudio.git` and run `bun run dev`, which installs JavaScript and Python dependencies before launching the Electron app.",
-        "pros": "It runs entirely on-device, works without a GPU (though slower on CPU), and supports many platforms including macOS, Windows, Linux, Docker, Android, and iOS. It is distributed under AGPL-3.0, so it is free to use, including commercially.",
-        "cons": "Documentation notes that performance depends heavily on hardware, with CPU-only runs explicitly described as slower, and some ports (Windows on ARM, Android, iOS) are marked experimental or preview rather than stable.",
-        "fit": "The project appears suited to users who want local, offline-capable voice cloning, dubbing, or narration without relying on a paid cloud service, though model and voice licensing varies per model and may need individual verification."
+        "goal": "VoiceStudio is an on-device AI voice studio for voice cloning, voice design, video dubbing, dictation, transcription, and narration in 646 languages, running on laptops, desktops, servers, phones, and tablets. It defaults to the OmniVoice engine but supports dozens of other engines via its Model Manager.",
+        "usage": "Install via platform methods such as `brew install --cask debpalash/tap/voicestudio` on macOS, the one-command installer `curl -fsSL https://voicestudio.sh/install | sh`, or from source with `git clone https://github.com/debpalash/VoiceStudio.git` followed by `bun run dev`. After installation, open Voice cloning, select or add a reference voice, type text, and generate; the app asks before downloading any model.",
+        "pros": "Runs locally across many device types without a paid cloud backend, offers a wide choice of voice engines through its Model Manager, and remains usable on CPU-only machines, albeit more slowly, when no GPU is available.",
+        "cons": "Model weights, voices, and generated output carry separate licenses shown per model in the Model Manager, and cloning a voice is only permitted with its owner's consent, adding a compliance step beyond the app's own AGPL-3.0 license. The Android and iOS apps are also marked 'Preview,' suggesting they may be less mature than desktop builds.",
+        "fit": "The project appears best suited to users who want offline/local voice generation and dubbing across desktop, mobile, or Docker environments rather than a cloud-hosted service, though mobile support being in preview may limit reliability for production mobile use."
       },
       "ko": {
-        "goal": "VoiceStudio는 사용자의 기기에서 로컬로 실행되는 AI 음성 스튜디오로, 646개 언어로 음성 복제, 음성 디자인, 비디오 더빙, 받아쓰기, 전사, 내레이션 기능을 제공합니다.",
-        "usage": "VoiceStudio는 Homebrew, 설치 프로그램, Docker, APK 등 플랫폼별 방법이나 원커맨드 스크립트인 `curl -fsSL https://voicestudio.sh/install | sh`로 설치할 수 있습니다. 소스에서 실행하려면 `git clone https://github.com/debpalash/VoiceStudio.git`로 저장소를 클론한 뒤 `bun run dev`를 실행하면 JavaScript와 Python 의존성을 설치한 후 Electron 앱이 실행됩니다.",
-        "pros": "완전히 기기 내에서 실행되며 GPU 없이도 동작하고(CPU에서는 더 느림), macOS, Windows, Linux, Docker, Android, iOS 등 다양한 플랫폼을 지원합니다. AGPL-3.0 라이선스로 배포되어 상업적 사용을 포함해 무료로 사용할 수 있습니다.",
-        "cons": "문서에 따르면 성능은 하드웨어에 크게 의존하며 CPU 전용 실행은 명시적으로 더 느리다고 설명되어 있고, Windows ARM, Android, iOS 등 일부 포트는 안정 버전이 아니라 실험적(experimental) 또는 프리뷰(preview) 상태로 표시되어 있습니다.",
-        "fit": "이 프로젝트는 유료 클라우드 서비스에 의존하지 않고 로컬에서 오프라인으로 음성 복제, 더빙, 내레이션을 하고자 하는 사용자에게 적합해 보이지만, 모델과 음성의 라이선스는 모델마다 다르므로 개별적으로 확인이 필요할 것으로 보입니다."
+        "goal": "VoiceStudio는 온디바이스 AI 음성 스튜디오로, 음성 클로닝, 음성 디자인, 비디오 더빙, 받아쓰기, 음성 인식, 그리고 646개 언어로의 내레이션을 지원하며 노트북, 데스크톱, 서버, 폰, 태블릿에서 동작합니다. 기본 엔진은 OmniVoice이며 Model Manager를 통해 수십 가지 다른 엔진도 선택할 수 있습니다.",
+        "usage": "macOS에서는 `brew install --cask debpalash/tap/voicestudio`, 원커맨드 설치는 `curl -fsSL https://voicestudio.sh/install | sh`, 소스에서 실행할 때는 `git clone https://github.com/debpalash/VoiceStudio.git` 후 `bun run dev`를 사용합니다. 설치 후 Voice cloning을 열고 음성을 선택하거나 참조 녹음을 추가한 뒤 텍스트를 입력해 생성하면 되며, 앱은 모델을 다운로드하기 전에 확인을 요청합니다.",
+        "pros": "클라우드 유료 서비스 없이 다양한 기기 종류에서 로컬로 실행되며, Model Manager를 통해 다양한 음성 엔진을 선택할 수 있고, GPU가 없어도 CPU만으로 사용 가능합니다(속도는 느려짐).",
+        "cons": "모델 가중치, 음성, 생성된 결과물은 Model Manager에 모델별로 표시되는 별도의 라이선스를 가지며, 음성 클로닝은 소유자의 동의가 있어야만 허용되어 앱 자체의 AGPL-3.0 라이선스와는 별개의 준수 절차가 추가됩니다. 또한 Android와 iOS 앱은 'Preview'로 표시되어 있어, 데스크톱 빌드보다 완성도가 낮을 수 있음을 시사합니다.",
+        "fit": "클라우드 호스팅 서비스보다는 데스크톱, 모바일, 또는 Docker 환경에서 오프라인/로컬 음성 생성과 더빙을 원하는 사용자에게 적합해 보이지만, 모바일 지원이 Preview 단계인 점은 프로덕션 모바일 사용의 신뢰성을 제한할 수 있습니다."
       },
       "zh-CN": {
-        "goal": "VoiceStudio 是一款在用户本地设备上运行的 AI 语音工作室,支持以 646 种语言进行语音克隆、语音设计、视频配音、口述、转录和朗读。",
-        "usage": "VoiceStudio 可以通过 Homebrew、安装程序、Docker、APK 等特定平台方式安装,也可以使用一条命令脚本 `curl -fsSL https://voicestudio.sh/install | sh` 安装。若要从源码运行,先执行 `git clone https://github.com/debpalash/VoiceStudio.git` 克隆仓库,再运行 `bun run dev`,它会先安装 JavaScript 和 Python 依赖,然后启动 Electron 应用。",
-        "pros": "该应用完全在本地设备上运行,即使没有 GPU 也能工作(在 CPU 上会较慢),并支持 macOS、Windows、Linux、Docker、Android 和 iOS 等多种平台。它以 AGPL-3.0 许可证发布,因此可以免费使用,包括商业用途。",
-        "cons": "文档说明性能在很大程度上取决于硬件,纯 CPU 运行被明确描述为较慢,而 Windows ARM、Android 和 iOS 等部分平台版本被标记为实验性(experimental)或预览版(preview),而非稳定版本。",
-        "fit": "该项目似乎适合希望在本地、离线环境下进行语音克隆、配音或朗读,而不依赖付费云服务的用户,不过模型和语音的许可各不相同,可能需要逐一核实。"
+        "goal": "VoiceStudio 是一款本地运行的 AI 语音工作室,支持语音克隆、语音设计、视频配音、语音输入、转录以及 646 种语言的朗读,可在笔记本、台式机、服务器、手机和平板上运行。默认引擎为 OmniVoice,并可通过 Model Manager 选择数十种其他引擎。",
+        "usage": "在 macOS 上可使用 `brew install --cask debpalash/tap/voicestudio`,一键安装脚本为 `curl -fsSL https://voicestudio.sh/install | sh`,从源代码运行则使用 `git clone https://github.com/debpalash/VoiceStudio.git` 后执行 `bun run dev`。安装后打开 Voice cloning,选择或添加参考录音,输入文本即可生成;应用在下载任何模型前会先询问。",
+        "pros": "无需付费云服务即可在多种设备类型上本地运行,通过 Model Manager 可选择多种语音引擎,且在没有 GPU 的情况下仍可仅用 CPU 运行(速度会变慢)。",
+        "cons": "模型权重、语音和生成的输出都带有在 Model Manager 中按模型展示的独立许可,克隆语音仅在获得所有者同意的情况下才被允许,这在应用本身的 AGPL-3.0 许可之外增加了合规步骤。Android 和 iOS 应用也被标注为'Preview',这意味着它们可能不如桌面版本成熟。",
+        "fit": "该项目似乎更适合希望在桌面、移动或 Docker 环境中进行离线/本地语音生成与配音的用户,而非依赖云托管服务,但移动端仍处于预览阶段,可能限制其在生产环境移动使用中的可靠性。"
       },
       "es": {
-        "goal": "VoiceStudio es un estudio de voz con IA que se ejecuta localmente en el dispositivo del usuario, cubriendo clonación de voz, diseño de voz, doblaje de video, dictado, transcripción y narración en 646 idiomas.",
-        "usage": "VoiceStudio se puede instalar mediante métodos específicos de cada plataforma (Homebrew, instaladores, Docker, APK) o con un script de un solo comando: `curl -fsSL https://voicestudio.sh/install | sh`. Para ejecutarlo desde el código fuente, clone el repositorio con `git clone https://github.com/debpalash/VoiceStudio.git` y luego ejecute `bun run dev`, que instala las dependencias de JavaScript y Python antes de iniciar la aplicación Electron.",
-        "pros": "Funciona completamente en el dispositivo, no requiere GPU (aunque es más lento en CPU) y admite numerosas plataformas, incluidas macOS, Windows, Linux, Docker, Android e iOS. Se distribuye bajo la licencia AGPL-3.0, por lo que es gratuito, incluso para uso comercial.",
-        "cons": "La documentación indica que el rendimiento depende en gran medida del hardware, describiendo explícitamente las ejecuciones solo en CPU como más lentas, y algunas versiones (Windows en ARM, Android, iOS) están marcadas como experimentales o en vista previa en lugar de estables.",
-        "fit": "El proyecto parece adecuado para quienes desean clonación de voz, doblaje o narración local y sin conexión, sin depender de un servicio en la nube de pago, aunque las licencias de los modelos y voces varían y posiblemente deban verificarse individualmente."
+        "goal": "VoiceStudio es un estudio de voz con IA que funciona en el propio dispositivo, para clonación de voz, diseño de voz, doblaje de video, dictado, transcripción y narración en 646 idiomas, y se ejecuta en portátiles, equipos de escritorio, servidores, teléfonos y tabletas. Usa por defecto el motor OmniVoice y permite elegir docenas de otros motores mediante el Model Manager.",
+        "usage": "Se instala según la plataforma, por ejemplo con `brew install --cask debpalash/tap/voicestudio` en macOS, con el instalador de un solo comando `curl -fsSL https://voicestudio.sh/install | sh`, o desde el código fuente con `git clone https://github.com/debpalash/VoiceStudio.git` seguido de `bun run dev`. Tras instalarlo, se abre Voice cloning, se elige o añade una grabación de referencia, se escribe el texto y se genera; la app pregunta antes de descargar cualquier modelo.",
+        "pros": "Funciona de forma local en muchos tipos de dispositivo sin depender de un servicio en la nube de pago, ofrece una amplia variedad de motores de voz mediante el Model Manager, y sigue siendo utilizable solo con CPU cuando no hay GPU disponible, aunque de forma más lenta.",
+        "cons": "Los pesos del modelo, las voces y el resultado generado llevan licencias independientes que se muestran por modelo en el Model Manager, y clonar una voz solo está permitido con el consentimiento de su propietario, lo que añade un paso de cumplimiento adicional al margen de la licencia AGPL-3.0 de la propia app. Las apps de Android e iOS también están marcadas como 'Preview', lo que sugiere que podrían ser menos maduras que las versiones de escritorio.",
+        "fit": "El proyecto parece más adecuado para quienes buscan generación y doblaje de voz local o sin conexión en entornos de escritorio, móvil o Docker en lugar de un servicio alojado en la nube, aunque el estado 'preview' del soporte móvil podría limitar su fiabilidad para un uso móvil en producción."
       },
       "ja": {
-        "goal": "VoiceStudio はユーザーのデバイス上でローカルに動作する AI ボイススタジオで、646 の言語で音声クローニング、音声デザイン、動画ダビング、ディクテーション、転写、ナレーションをカバーします。",
-        "usage": "VoiceStudio は Homebrew、インストーラー、Docker、APK などプラットフォーム別の方法か、ワンコマンドスクリプト `curl -fsSL https://voicestudio.sh/install | sh` でインストールできます。ソースから実行する場合は `git clone https://github.com/debpalash/VoiceStudio.git` でリポジトリをクローンし、`bun run dev` を実行すると JavaScript と Python の依存関係をインストールしてから Electron アプリが起動します。",
-        "pros": "完全にデバイス上で動作し、GPU がなくても動作します(CPU では低速になります)。macOS、Windows、Linux、Docker、Android、iOS など多数のプラットフォームをサポートしています。AGPL-3.0 ライセンスで配布されているため、商用利用を含め無料で使用できます。",
-        "cons": "ドキュメントによると性能はハードウェアに大きく依存し、CPU のみでの実行は明示的に低速と説明されており、Windows on ARM、Android、iOS などの一部のポートは安定版ではなく実験的(experimental)またはプレビュー(preview)として示されています。",
-        "fit": "このプロジェクトは、有料のクラウドサービスに依存せずにローカルかつオフラインで音声クローニング、ダビング、ナレーションを行いたいユーザーに適していると見られますが、モデルや音声のライセンスはモデルごとに異なるため、個別に確認する必要があると思われます。"
+        "goal": "VoiceStudioはデバイス上で動作するAIボイススタジオで、646言語での音声クローニング、音声デザイン、動画の吹き替え、ディクテーション、文字起こし、ナレーションに対応し、ノートPC、デスクトップ、サーバー、スマートフォン、タブレットで動作します。デフォルトエンジンはOmniVoiceで、Model Managerから他の数十種類のエンジンも選択できます。",
+        "usage": "macOSでは `brew install --cask debpalash/tap/voicestudio`、ワンコマンドインストーラーは `curl -fsSL https://voicestudio.sh/install | sh`、ソースから実行する場合は `git clone https://github.com/debpalash/VoiceStudio.git` の後に `bun run dev` を使用します。インストール後はVoice cloningを開き、音声を選択または参照録音を追加してテキストを入力すると生成されます。アプリはモデルをダウンロードする前に確認を求めます。",
+        "pros": "有料クラウドサービスなしで多様なデバイス上でローカルに動作し、Model Managerを通じて多数の音声エンジンから選択でき、GPUがなくてもCPUのみで利用可能です(速度は遅くなります)。",
+        "cons": "モデルの重み、音声、生成された出力にはModel Manager上でモデルごとに表示される個別のライセンスがあり、音声のクローニングは所有者の同意がある場合のみ許可されるため、アプリ自体のAGPL-3.0ライセンスとは別のコンプライアンス手順が必要です。また、AndroidとiOSアプリは「Preview」と表示されており、デスクトップ版よりも成熟度が低い可能性を示唆しています。",
+        "fit": "このプロジェクトは、クラウドホスト型サービスよりもデスクトップ、モバイル、Docker環境でのオフライン/ローカルな音声生成や吹き替えを求めるユーザーに適していると考えられますが、モバイル対応がプレビュー段階であることは、本番環境でのモバイル利用における信頼性を制限する可能性があります。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 6,
-          "end_line": 8,
+          "start_line": 10,
+          "end_line": 12,
           "section_heading": ""
+        },
+        {
+          "start_line": 106,
+          "end_line": 106,
+          "section_heading": "What you can do"
         }
       ],
       "usage": [
         {
-          "start_line": 132,
-          "end_line": 133,
+          "start_line": 124,
+          "end_line": 126,
           "section_heading": "Platforms"
         },
         {
-          "start_line": 419,
-          "end_line": 421,
+          "start_line": 142,
+          "end_line": 142,
+          "section_heading": "Platforms"
+        },
+        {
+          "start_line": 429,
+          "end_line": 431,
           "section_heading": "Get started"
         }
       ],
       "pros": [
         {
-          "start_line": 396,
-          "end_line": 396,
+          "start_line": 12,
+          "end_line": 12,
+          "section_heading": ""
+        },
+        {
+          "start_line": 406,
+          "end_line": 406,
           "section_heading": "Platforms"
         },
         {
-          "start_line": 500,
-          "end_line": 500,
-          "section_heading": "License & responsible use"
+          "start_line": 468,
+          "end_line": 468,
+          "section_heading": "Sponsors"
         }
       ],
       "cons": [
         {
-          "start_line": 169,
-          "end_line": 169,
-          "section_heading": "Platforms"
+          "start_line": 510,
+          "end_line": 510,
+          "section_heading": "License & responsible use"
         },
         {
-          "start_line": 336,
-          "end_line": 336,
+          "start_line": 346,
+          "end_line": 346,
           "section_heading": "Platforms"
         },
         {
@@ -5357,29 +5325,26 @@
       ],
       "fit": [
         {
-          "start_line": 500,
-          "end_line": 500,
-          "section_heading": "License & responsible use"
+          "start_line": 346,
+          "end_line": 346,
+          "section_heading": "Platforms"
         },
         {
-          "start_line": 8,
-          "end_line": 8,
-          "section_heading": ""
+          "start_line": 396,
+          "end_line": 396,
+          "section_heading": "Platforms"
+        },
+        {
+          "start_line": 468,
+          "end_line": 468,
+          "section_heading": "Sponsors"
         }
       ]
     },
     "invariants": [
       {
-        "kind": "product",
-        "value": "VoiceStudio",
-        "fields": [
-          "goal",
-          "usage"
-        ]
-      },
-      {
         "kind": "command",
-        "value": "curl -fsSL https://voicestudio.sh/install | sh",
+        "value": "git clone https://github.com/debpalash/VoiceStudio.git",
         "fields": [
           "usage"
         ]
@@ -5393,7 +5358,14 @@
       },
       {
         "kind": "command",
-        "value": "git clone https://github.com/debpalash/VoiceStudio.git",
+        "value": "curl -fsSL https://voicestudio.sh/install | sh",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "brew install --cask debpalash/tap/voicestudio",
         "fields": [
           "usage"
         ]
@@ -5402,7 +5374,7 @@
         "kind": "version",
         "value": "AGPL-3.0",
         "fields": [
-          "pros"
+          "cons"
         ]
       },
       {
@@ -5411,17 +5383,33 @@
         "fields": [
           "goal"
         ]
+      },
+      {
+        "kind": "product",
+        "value": "VoiceStudio",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "OmniVoice",
+        "fields": [
+          "goal"
+        ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "debpalash/voicestudio",
       "path": "README.md",
-      "blob_sha": "2f289ffb8a7a0ca8f444b8d34076519606198500",
-      "content_sha256": "6ef51698bfe0ef77724e4abe3e1cb4b962ff34b03ffff9b2e8d0e9c2a4b9d41b",
+      "blob_sha": "9770dc72d74ae48b3335c37777d7b9a1925aa9ea",
+      "content_sha256": "c0d5cc7af63f32fb6c7d804f1d96b24f8eda07a15babfb452c65a0ee253eaf93",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.310",
@@ -5776,54 +5764,59 @@
   },
   "ranxianglei/billion-context": {
     "content": {
-      "goal": "billion-context is a context-compression proxy/plugin that sits between a coding agent and its model API, rewriting Anthropic and OpenAI streams via acp-kernel so that consumed conversation is folded into layered summaries, letting long coding sessions run across billions of tokens inside a single context window instead of hitting provider limits.",
-      "usage": "Install with `npm install -g billion-context --prefix=~/.local` for a user-level, sudo-free setup. Then either run the config-free launcher `bili <client>`, install a native plugin via `bili plugin install <client>`, or point a client's base URL at the proxy using the `/bili/` prefix; a health check is available at the local proxy endpoint.",
-      "pros": "Documentation reports roughly 5× fewer tokens consumed than running with full context, a healthy session sustaining a 95–97% prefix-cache hit rate with compression itself costing at most 2%, and an independent 1,500-item third-party benchmark ranking billion-context #1 on ContextBench against full-context and RAG baselines. It also supports many coding-agent clients, including Claude Code, Codex, and OpenCode.",
-      "cons": "The project's own status section describes it as early-stage: compression and protocol handling are validated against mock tests, while real-model integration testing is listed as the next milestone, so behavior in live production use may still change.",
-      "fit": "This tool appears best suited to developers running long-lived, multi-day coding-agent sessions across the many supported CLI clients listed in the README who want to reduce token costs and avoid context-window limits, rather than users seeking an already production-hardened, fully stable release."
+      "goal": "billion-context is a context-compression proxy plugin (npm package billion-context, CLI command bili) that sits between a coding agent and its model API, rewriting Anthropic/OpenAI streams via acp-kernel so long sessions can run across billions of tokens within a smaller context window.",
+      "usage": "Install with `npm install -g billion-context --prefix=~/.local`, then connect a client via a native plugin (`bili plugin install <client>`), a launcher (`bili <client>`), or by prefixing the client baseURL with the proxy's `/bili/` path; health can be checked with `curl -s http://localhost:8787/__bili/health`.",
+      "pros": "The README documents incremental, reversible, prefix-cache-friendly compression (vs. hard truncation), a model-driven compress/decompress/search_context/acp_status tool set, a web dashboard at http://localhost:8787 for session/config inspection, and a documented longitudinal study (4.5 months, 174,327 model calls, 18.76B tokens, zero window violations).",
+      "cons": "The project describes itself as 'Early' with protocol/compression validated only against mock tests (500+ passing) and real-model integration testing listed as the next milestone, so production reliability is not yet independently confirmed by the README. Remote (`--host 0.0.0.0`) and Docker deployments explicitly ship with no authentication, requiring a trusted network.",
+      "fit": "It appears suited for developers running long-lived coding-agent sessions (Claude Code, Codex, OpenCode, and other listed clients) who need to reduce token costs and avoid context-window limits, provided they accept the project's stated early-stage status and operate the proxy within a trusted network."
     },
     "summaries": {
       "en": {
-        "goal": "billion-context is a context-compression proxy/plugin that sits between a coding agent and its model API, rewriting Anthropic and OpenAI streams via acp-kernel so that consumed conversation is folded into layered summaries, letting long coding sessions run across billions of tokens inside a single context window instead of hitting provider limits.",
-        "usage": "Install with `npm install -g billion-context --prefix=~/.local` for a user-level, sudo-free setup. Then either run the config-free launcher `bili <client>`, install a native plugin via `bili plugin install <client>`, or point a client's base URL at the proxy using the `/bili/` prefix; a health check is available at the local proxy endpoint.",
-        "pros": "Documentation reports roughly 5× fewer tokens consumed than running with full context, a healthy session sustaining a 95–97% prefix-cache hit rate with compression itself costing at most 2%, and an independent 1,500-item third-party benchmark ranking billion-context #1 on ContextBench against full-context and RAG baselines. It also supports many coding-agent clients, including Claude Code, Codex, and OpenCode.",
-        "cons": "The project's own status section describes it as early-stage: compression and protocol handling are validated against mock tests, while real-model integration testing is listed as the next milestone, so behavior in live production use may still change.",
-        "fit": "This tool appears best suited to developers running long-lived, multi-day coding-agent sessions across the many supported CLI clients listed in the README who want to reduce token costs and avoid context-window limits, rather than users seeking an already production-hardened, fully stable release."
+        "goal": "billion-context is a context-compression proxy plugin (npm package billion-context, CLI command bili) that sits between a coding agent and its model API, rewriting Anthropic/OpenAI streams via acp-kernel so long sessions can run across billions of tokens within a smaller context window.",
+        "usage": "Install with `npm install -g billion-context --prefix=~/.local`, then connect a client via a native plugin (`bili plugin install <client>`), a launcher (`bili <client>`), or by prefixing the client baseURL with the proxy's `/bili/` path; health can be checked with `curl -s http://localhost:8787/__bili/health`.",
+        "pros": "The README documents incremental, reversible, prefix-cache-friendly compression (vs. hard truncation), a model-driven compress/decompress/search_context/acp_status tool set, a web dashboard at http://localhost:8787 for session/config inspection, and a documented longitudinal study (4.5 months, 174,327 model calls, 18.76B tokens, zero window violations).",
+        "cons": "The project describes itself as 'Early' with protocol/compression validated only against mock tests (500+ passing) and real-model integration testing listed as the next milestone, so production reliability is not yet independently confirmed by the README. Remote (`--host 0.0.0.0`) and Docker deployments explicitly ship with no authentication, requiring a trusted network.",
+        "fit": "It appears suited for developers running long-lived coding-agent sessions (Claude Code, Codex, OpenCode, and other listed clients) who need to reduce token costs and avoid context-window limits, provided they accept the project's stated early-stage status and operate the proxy within a trusted network."
       },
       "ko": {
-        "goal": "billion-context는 코딩 에이전트와 모델 API 사이에 위치하는 컨텍스트 압축 프록시/플러그인으로, acp-kernel을 통해 Anthropic 및 OpenAI 스트림을 재작성하여 소비된 대화를 계층화된 요약으로 압축합니다. 이를 통해 하나의 컨텍스트 윈도우 안에서 수십억 개의 토큰에 걸친 장시간 코딩 세션을 제공자 한도에 부딪히지 않고 실행할 수 있도록 합니다.",
-        "usage": "`npm install -g billion-context --prefix=~/.local` 명령으로 sudo 없이 사용자 수준 설치를 할 수 있습니다. 이후 설정 파일이 필요 없는 런처 `bili <client>`를 실행하거나, `bili plugin install <client>`로 네이티브 플러그인을 설치하거나, 클라이언트의 base URL 앞에 `/bili/` 접두사를 붙여 프록시를 가리킬 수 있으며, 로컬 프록시 엔드포인트에서 상태 확인(health check)도 가능합니다.",
-        "pros": "문서에 따르면 전체 컨텍스트 사용 대비 약 5× 적은 토큰을 사용하며, 정상적인 세션은 95–97%의 프리픽스 캐시 히트율을 유지하고 압축 자체의 비용은 최대 2%에 불과합니다. 또한 독립적인 1,500개 항목 벤치마크에서 billion-context가 ContextBench 기준 1위를 기록했다고 설명합니다. Claude Code, Codex, OpenCode 등 다양한 코딩 에이전트 클라이언트를 지원합니다.",
-        "cons": "프로젝트 자체의 상태 섹션에서는 이를 초기 단계(early-stage)로 설명하며, 압축 및 프로토콜 처리는 목(mock) 테스트로 검증되었고 실제 모델 통합 테스트는 다음 마일스톤으로 남아 있다고 밝히고 있어, 실제 프로덕션 환경에서의 동작은 앞으로 달라질 수 있는 것으로 보입니다.",
-        "fit": "README에 나열된 다수의 지원 CLI 클라이언트에서 장시간, 여러 날에 걸친 코딩 에이전트 세션을 실행하며 토큰 비용 절감과 컨텍스트 윈도우 한계 회피를 원하는 개발자에게 적합해 보이며, 이미 충분히 검증된 안정적인 프로덕션 릴리스를 찾는 사용자에게는 맞지 않을 수 있습니다."
+        "goal": "billion-context는 코딩 에이전트와 모델 API 사이에 위치하는 컨텍스트 압축 프록시 플러그인(npm 패키지명 billion-context, CLI 명령어 bili)으로, acp-kernel을 통해 Anthropic/OpenAI 스트림을 재작성하여 더 작은 컨텍스트 윈도우 안에서 수십억 토큰 규모의 장기 세션을 운용할 수 있도록 지원합니다.",
+        "usage": "`npm install -g billion-context --prefix=~/.local`로 설치한 뒤, 네이티브 플러그인(`bili plugin install <client>`), 런처(`bili <client>`), 또는 클라이언트 baseURL 앞에 프록시의 `/bili/` 경로를 붙이는 방식 중 하나로 연결합니다. `curl -s http://localhost:8787/__bili/health`로 상태를 확인할 수 있습니다.",
+        "pros": "README에는 강제 절단 방식이 아닌 점진적이고 되돌릴 수 있으며 prefix-cache에 친화적인 압축 방식, 모델이 직접 호출하는 compress/decompress/search_context/acp_status 도구 세트, http://localhost:8787 웹 대시보드를 통한 세션/설정 조회, 그리고 4.5개월·174,327회 모델 호출·180억 토큰 이상·윈도우 위반 0건이라는 종단 연구 결과가 문서화되어 있습니다.",
+        "cons": "프로젝트는 스스로 'Early(초기)' 단계라고 명시하며, 프로토콜 및 압축 처리는 모의 테스트(500개 이상 통과)로만 검증되었고 실제 모델 통합 테스트는 다음 과제로 남아 있어 README상 프로덕션 신뢰성이 아직 독립적으로 확인되지 않았습니다. 또한 원격 접속(`--host 0.0.0.0`)과 Docker 배포는 인증 기능이 전혀 없다고 명시되어 있어 신뢰된 네트워크 환경이 필수적입니다.",
+        "fit": "Claude Code, Codex, OpenCode 등 문서에 나열된 클라이언트로 장시간 코딩 에이전트 세션을 운용하면서 토큰 비용을 줄이고 컨텍스트 윈도우 한계를 피하고자 하는 개발자에게 적합해 보이며, 다만 프로젝트의 초기 단계 상태를 감수하고 신뢰된 네트워크 내에서 프록시를 운영해야 할 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "billion-context 是一个位于编码代理与其模型 API 之间的上下文压缩代理/插件，通过 acp-kernel 重写 Anthropic 和 OpenAI 的流式请求，将已消耗的对话折叠为分层摘要，从而使长时间编码会话能够在单个上下文窗口内处理数十亿个 token，而不会触及服务商的上下文限制。",
-        "usage": "使用 `npm install -g billion-context --prefix=~/.local` 进行用户级安装，无需 sudo。之后可以运行无需配置的启动器 `bili <client>`，通过 `bili plugin install <client>` 安装原生插件，或在客户端 base URL 前加上 `/bili/` 前缀指向代理；本地代理端点还提供健康检查接口。",
-        "pros": "文档称相比完整上下文使用减少约 5× 的 token 消耗，健康会话的前缀缓存命中率维持在 95–97%，压缩本身的开销最多为 2%。一项独立的 1,500 条目第三方基准测试称 billion-context 在 ContextBench 上排名第一，优于完整上下文和 RAG 方案。它还支持多种编码代理客户端，包括 Claude Code、Codex 和 OpenCode。",
-        "cons": "项目自身的状态说明将其描述为早期阶段：压缩与协议处理目前通过模拟（mock）测试验证，而真实模型集成测试被列为下一个里程碑，因此在实际生产环境中的行为可能仍会发生变化。",
-        "fit": "该工具似乎更适合那些需要在 README 中列出的众多受支持 CLI 客户端上运行长时间、跨多日编码代理会话，并希望降低 token 成本和避免上下文窗口限制的开发者，而不太适合寻求已经充分验证、稳定的生产级发布版本的用户。"
+        "goal": "billion-context 是一个上下文压缩代理插件(npm 包名 billion-context,CLI 命令 bili),位于编码代理与其模型 API 之间,通过 acp-kernel 重写 Anthropic/OpenAI 数据流,使长会话能够在较小的上下文窗口内处理数十亿规模的 token。",
+        "usage": "使用 `npm install -g billion-context --prefix=~/.local` 安装,随后通过原生插件(`bili plugin install <client>`)、启动器(`bili <client>`)或在客户端 baseURL 前加上代理的 `/bili/` 路径这三种方式之一接入;可用 `curl -s http://localhost:8787/__bili/health` 检查运行状态。",
+        "pros": "README 中说明其压缩方式是增量式、可逆且对 prefix-cache 友好(而非硬性截断),提供由模型自主调用的 compress/decompress/search_context/acp_status 工具集,附带位于 http://localhost:8787 的网页仪表盘用于查看会话与配置,并记录了一项历时 4.5 个月、174,327 次模型调用、累计 187.6 亿 token、零窗口违规的纵向研究结果。",
+        "cons": "项目自称处于'Early'(早期)阶段,README 指出协议与压缩逻辑目前仅通过 mock 测试验证(500 多项通过),真实模型集成测试被列为下一阶段目标,因此生产环境可靠性尚未在文档中得到独立确认。此外,远程部署(`--host 0.0.0.0`)和 Docker 部署均明确说明不含身份验证机制,因此需要在受信任的网络环境中运行。",
+        "fit": "该项目似乎适合需要长期运行编码代理会话(如 Claude Code、Codex、OpenCode 等文档列出的客户端)、希望降低 token 成本并避免上下文窗口限制的开发者,但使用前需接受项目所述的早期阶段状态,并在受信任的网络内部署代理。"
       },
       "es": {
-        "goal": "billion-context es un proxy/plugin de compresión de contexto que se sitúa entre un agente de codificación y su API de modelo, reescribiendo los flujos de Anthropic y OpenAI mediante acp-kernel para plegar la conversación consumida en resúmenes por capas, permitiendo sesiones de codificación largas que abarcan miles de millones de tokens dentro de una sola ventana de contexto sin chocar con los límites del proveedor.",
-        "usage": "Se instala con `npm install -g billion-context --prefix=~/.local` para una instalación a nivel de usuario sin sudo. Luego se puede ejecutar el lanzador sin configuración `bili <client>`, instalar un plugin nativo con `bili plugin install <client>`, o anteponer el prefijo `/bili/` a la base URL del cliente para apuntar al proxy; también hay un endpoint de verificación de estado en el proxy local.",
-        "pros": "La documentación informa aproximadamente 5× menos tokens consumidos frente al uso de contexto completo, una sesión saludable que mantiene una tasa de aciertos de caché de prefijo del 95–97% con un costo de compresión de como máximo 2%, y un benchmark independiente de terceros con 1.500 elementos que sitúa a billion-context en el puesto #1 en ContextBench frente a referencias de contexto completo y RAG. También admite muchos clientes de agentes de codificación, incluyendo Claude Code, Codex y OpenCode.",
-        "cons": "La propia sección de estado del proyecto lo describe como en etapa temprana: la compresión y el manejo de protocolo se validan contra pruebas simuladas (mock), mientras que las pruebas de integración con modelos reales se indican como el siguiente hito, por lo que el comportamiento en uso real de producción podría cambiar todavía.",
-        "fit": "Esta herramienta parece más adecuada para desarrolladores que ejecutan sesiones de agentes de codificación de larga duración, de varios días, en los numerosos clientes CLI compatibles listados en el README, y que buscan reducir costos de tokens y evitar los límites de ventana de contexto, más que para quienes buscan una versión de producción ya completamente estable y probada."
+        "goal": "billion-context es un plugin proxy de compresión de contexto (paquete npm billion-context, comando CLI bili) que se ubica entre un agente de codificación y su API de modelo, reescribiendo los flujos de Anthropic/OpenAI mediante acp-kernel para que sesiones largas puedan manejar miles de millones de tokens dentro de una ventana de contexto más pequeña.",
+        "usage": "Se instala con `npm install -g billion-context --prefix=~/.local`, y luego se conecta mediante un plugin nativo (`bili plugin install <client>`), un lanzador (`bili <client>`), o anteponiendo la ruta `/bili/` del proxy al baseURL del cliente; el estado puede verificarse con `curl -s http://localhost:8787/__bili/health`.",
+        "pros": "El README documenta una compresión incremental, reversible y compatible con prefix-cache (en lugar de truncamiento estricto), un conjunto de herramientas compress/decompress/search_context/acp_status invocadas por el propio modelo, un panel web en http://localhost:8787 para inspeccionar sesiones y configuración, y un estudio longitudinal documentado (4,5 meses, 174.327 llamadas al modelo, 18.760 millones de tokens acumulados, cero violaciones de ventana).",
+        "cons": "El proyecto se describe a sí mismo como 'Early' (en etapa inicial), con el manejo de protocolo y compresión validado solo mediante pruebas simuladas (más de 500 superadas), mientras que las pruebas de integración con modelos reales se mencionan como el próximo hito; por tanto, la fiabilidad en producción aún no está confirmada de forma independiente en el README. Además, los despliegues remotos (`--host 0.0.0.0`) y en Docker se describen explícitamente sin autenticación, por lo que requieren una red de confianza.",
+        "fit": "Parece adecuado para desarrolladores que ejecutan sesiones prolongadas de agentes de codificación (Claude Code, Codex, OpenCode y otros clientes listados) y necesitan reducir costos de tokens y evitar límites de ventana de contexto, siempre que acepten el estado de etapa inicial declarado por el proyecto y operen el proxy dentro de una red de confianza."
       },
       "ja": {
-        "goal": "billion-context は、コーディングエージェントとそのモデル API の間に位置するコンテキスト圧縮プロキシ/プラグインであり、acp-kernel を介して Anthropic および OpenAI のストリームを書き換え、消費された会話を階層化された要約に折り込みます。これにより、プロバイダーの制限に達することなく、単一のコンテキストウィンドウ内で数十億トークン規模の長時間コーディングセッションを実行できます。",
-        "usage": "`npm install -g billion-context --prefix=~/.local` によって sudo 不要のユーザーレベルインストールが行えます。その後、設定不要のランチャー `bili <client>` を実行するか、`bili plugin install <client>` でネイティブプラグインをインストールするか、クライアントの base URL の先頭に `/bili/` プレフィックスを付けてプロキシを指すことができ、ローカルプロキシのエンドポイントでヘルスチェックも可能です。",
-        "pros": "ドキュメントによれば、フルコンテキスト利用と比較して約 5× 少ないトークン消費量であり、健全なセッションでは 95–97% のプレフィックスキャッシュヒット率を維持し、圧縮自体のコストは最大 2% に留まるとされています。また、独立した第三者による 1,500 件のベンチマークでは billion-context が ContextBench において #1 と評価されたと報告されています。Claude Code、Codex、OpenCode など多くのコーディングエージェントクライアントに対応しています。",
-        "cons": "プロジェクト自身のステータス欄では早期段階（early-stage）と説明されており、圧縮とプロトコル処理はモックテストで検証されている一方、実モデルとの統合テストは次のマイルストーンとされているため、実運用環境での挙動は今後変わる可能性があります。",
-        "fit": "このツールは、README に記載されている多数の対応 CLI クライアント上で長時間・複数日にわたるコーディングエージェントのセッションを実行し、トークンコストの削減やコンテキストウィンドウの制限回避を望む開発者に適していると考えられ、すでに十分検証された安定した本番向けリリースを求める利用者には適さない可能性があります。"
+        "goal": "billion-contextは、コーディングエージェントとそのモデルAPIの間に配置されるコンテキスト圧縮プロキシプラグイン(npmパッケージ名billion-context、CLIコマンドbili)であり、acp-kernelを通じてAnthropic/OpenAIのストリームを書き換えることで、より小さなコンテキストウィンドウ内で数十億トークン規模の長時間セッションを実行できるようにします。",
+        "usage": "`npm install -g billion-context --prefix=~/.local` でインストールした後、ネイティブプラグイン(`bili plugin install <client>`)、ランチャー(`bili <client>`)、またはクライアントのbaseURLの先頭にプロキシの`/bili/`パスを付加する方法のいずれかで接続します。状態確認には `curl -s http://localhost:8787/__bili/health` が使えます。",
+        "pros": "README には、ハードな切り捨てではなく増分的・可逆的でprefix-cacheに配慮した圧縮方式、モデル自身が呼び出すcompress/decompress/search_context/acp_statusというツール群、http://localhost:8787 のWebダッシュボードによるセッション・設定の確認機能、さらに4.5か月間・174,327回のモデル呼び出し・累計187.6億トークン・ウィンドウ違反ゼロという縦断的研究結果が記載されています。",
+        "cons": "プロジェクト自身が「Early(初期段階)」と位置づけており、プロトコル処理と圧縮機能はモックテスト(500件以上通過)でのみ検証済みで、実モデルとの統合テストは次のマイルストーンとされているため、README上では本番環境での信頼性がまだ独立に確認されていません。また、リモート接続(`--host 0.0.0.0`)およびDockerデプロイには認証機能が一切ないことが明記されており、信頼されたネットワーク内での運用が前提となります。",
+        "fit": "Claude Code、Codex、OpenCodeなどREADMEに記載されたクライアントで長時間のコーディングエージェントセッションを運用し、トークンコストの削減とコンテキストウィンドウ制限の回避を必要とする開発者に適していると考えられますが、プロジェクトが明示する初期段階である点を踏まえ、信頼されたネットワーク内でプロキシを運用する必要があります。"
       }
     },
     "evidence": {
       "goal": [
         {
+          "start_line": 5,
+          "end_line": 5,
+          "section_heading": "billion-context"
+        },
+        {
           "start_line": 72,
-          "end_line": 73,
+          "end_line": 72,
           "section_heading": "📊 Independent Third-Party Benchmarks"
         },
         {
@@ -5834,55 +5827,70 @@
       ],
       "usage": [
         {
-          "start_line": 145,
-          "end_line": 147,
+          "start_line": 146,
+          "end_line": 146,
           "section_heading": "Install"
         },
         {
-          "start_line": 163,
+          "start_line": 167,
           "end_line": 172,
           "section_heading": "Quickstart"
         },
         {
-          "start_line": 293,
-          "end_line": 297,
+          "start_line": 312,
+          "end_line": 314,
           "section_heading": "Option 3 — URL change (`/bili/` prefix)"
         }
       ],
       "pros": [
         {
-          "start_line": 7,
-          "end_line": 7,
-          "section_heading": "billion-context"
+          "start_line": 78,
+          "end_line": 78,
+          "section_heading": "Why"
         },
         {
-          "start_line": 47,
-          "end_line": 47,
-          "section_heading": "billion-context"
+          "start_line": 100,
+          "end_line": 106,
+          "section_heading": "Context-management tools"
         },
         {
-          "start_line": 68,
-          "end_line": 68,
-          "section_heading": "📊 Independent Third-Party Benchmarks"
+          "start_line": 64,
+          "end_line": 64,
+          "section_heading": "📄 Paper / Preprint"
         }
       ],
       "cons": [
         {
-          "start_line": 712,
-          "end_line": 714,
+          "start_line": 716,
+          "end_line": 716,
           "section_heading": "Status"
+        },
+        {
+          "start_line": 473,
+          "end_line": 473,
+          "section_heading": "Running in Docker"
+        },
+        {
+          "start_line": 499,
+          "end_line": 499,
+          "section_heading": "Remote agents (`--host`)"
         }
       ],
       "fit": [
         {
-          "start_line": 107,
-          "end_line": 113,
-          "section_heading": "Which do I need?"
+          "start_line": 82,
+          "end_line": 84,
+          "section_heading": "How it works"
         },
         {
-          "start_line": 135,
-          "end_line": 135,
-          "section_heading": "Which do I need?"
+          "start_line": 716,
+          "end_line": 716,
+          "section_heading": "Status"
+        },
+        {
+          "start_line": 499,
+          "end_line": 499,
+          "section_heading": "Remote agents (`--host`)"
         }
       ]
     },
@@ -5896,9 +5904,24 @@
       },
       {
         "kind": "command",
-        "value": "bili <client>",
+        "value": "curl -s http://localhost:8787/__bili/health",
         "fields": [
           "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "bili plugin install <client>",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "http://localhost:8787",
+        "fields": [
+          "usage",
+          "pros"
         ]
       },
       {
@@ -5906,26 +5929,33 @@
         "value": "billion-context",
         "fields": [
           "goal",
-          "usage",
-          "pros"
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "acp-kernel",
+        "fields": [
+          "goal"
         ]
       },
       {
         "kind": "number",
-        "value": "5×",
+        "value": "174,327",
         "fields": [
           "pros"
         ]
       },
       {
         "kind": "number",
-        "value": "95–97%",
+        "value": "18.76B",
         "fields": [
           "pros"
         ]
       }
     ],
     "inference_fields": [
+      "goal",
       "cons",
       "fit"
     ],
@@ -5933,8 +5963,8 @@
       "kind": "readme",
       "slug": "ranxianglei/billion-context",
       "path": "README.md",
-      "blob_sha": "5eff566227da9877826de9dbe41f0b72537465b6",
-      "content_sha256": "c2374b185edc58bea7aec8e904edbae1bb2a30235bc9564c741716d7f662af86",
+      "blob_sha": "7063c258e5e949e4430d0c8d53b5c8f81d4d907f",
+      "content_sha256": "d93e7dff70978632ff880372cf0d126c35898c7058bdc41c0f82501553b957f5",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.310",
@@ -5948,66 +5978,66 @@
   },
   "tester-army/e2e": {
     "content": {
-      "goal": "e2e is an end-to-end testing framework for web and mobile apps (lines 13-15). Users describe a goal in natural language, an agent drives the app toward it, and the same test checks the result with locators and assertions.",
-      "usage": "Set up e2e by running `npx e2e init` (lines 38-40), which interactively asks for an engine (web or mobile) and a model provider, then writes a config file and an example test (lines 42-43). Core packages include the `e2e` SDK/runner/CLI and the `@e2e-dev/web` engine, which runs Chromium, Firefox, and WebKit through Playwright (lines 57-58).",
-      "pros": "In e2e, an agent step verified by a later assertion is recorded, so later runs replay it without further model calls until the app changes; tests without agent steps need no model at all (lines 31-34). e2e also ships integrations for hosted browsers and devices, including BrowserStack App Automate and TestMu AI, for its web and mobile engines (lines 70-73).",
-      "cons": "The e2e CLI sends anonymous usage data about commands, engines, and failure points by default; disabling this requires the `npx e2e telemetry disable` command or the `E2E_TELEMETRY_DISABLED=1` environment variable (lines 98-100), which appears to require an extra step for privacy-sensitive setups. The README also states e2e is in active development toward version 1.0, so APIs and config may still change between minor releases (lines 105-107).",
-      "fit": "Because e2e requires users to bring their own subscription, API key, or local model (lines 33-34), and ships packages for running agent steps through Claude Code or Codex (line 61) alongside CI reporting via `@e2e-dev/github` (line 74), e2e appears suited to teams already using AI coding agents who want agent-driven testing folded into existing web/mobile CI workflows; this intended fit is not stated explicitly."
+      "goal": "e2e (tester-army/e2e) is an end-to-end testing framework for web and mobile apps. Users describe a goal in natural language and an agent drives the app toward it, then the same test verifies the result with locators and assertions.",
+      "usage": "Setup starts with `npx e2e init`, which asks for an engine (web or mobile) and a model provider, then writes a config file and an example test. The examples/ directory includes finished sample projects for Vite, Next.js, Astro, Angular, Expo, SwiftUI, Jetpack Compose, Kotlin Multiplatform, Flutter, and .NET MAUI.",
+      "pros": "Agent steps covered by an assertion are recorded and replayed without further model calls until the app changes, and tests without agent steps need no model at all. Core and integration packages add browser/mobile engines and hosted device providers such as BrowserStack, TestMu AI, Kernel, Lightpanda, smol, Limrun, and Expo Simulators, plus a GitHub pull-request reporter.",
+      "cons": "The project is still in active development toward a 1.0 release, and its APIs and configuration can change between minor versions.",
+      "fit": "Based on the documented engine and device integrations, e2e appears suited to teams testing both web and mobile apps who want agent-driven test authoring alongside deterministic replay, though this specific fit is not explicitly stated in the README."
     },
     "summaries": {
       "en": {
-        "goal": "e2e is an end-to-end testing framework for web and mobile apps (lines 13-15). Users describe a goal in natural language, an agent drives the app toward it, and the same test checks the result with locators and assertions.",
-        "usage": "Set up e2e by running `npx e2e init` (lines 38-40), which interactively asks for an engine (web or mobile) and a model provider, then writes a config file and an example test (lines 42-43). Core packages include the `e2e` SDK/runner/CLI and the `@e2e-dev/web` engine, which runs Chromium, Firefox, and WebKit through Playwright (lines 57-58).",
-        "pros": "In e2e, an agent step verified by a later assertion is recorded, so later runs replay it without further model calls until the app changes; tests without agent steps need no model at all (lines 31-34). e2e also ships integrations for hosted browsers and devices, including BrowserStack App Automate and TestMu AI, for its web and mobile engines (lines 70-73).",
-        "cons": "The e2e CLI sends anonymous usage data about commands, engines, and failure points by default; disabling this requires the `npx e2e telemetry disable` command or the `E2E_TELEMETRY_DISABLED=1` environment variable (lines 98-100), which appears to require an extra step for privacy-sensitive setups. The README also states e2e is in active development toward version 1.0, so APIs and config may still change between minor releases (lines 105-107).",
-        "fit": "Because e2e requires users to bring their own subscription, API key, or local model (lines 33-34), and ships packages for running agent steps through Claude Code or Codex (line 61) alongside CI reporting via `@e2e-dev/github` (line 74), e2e appears suited to teams already using AI coding agents who want agent-driven testing folded into existing web/mobile CI workflows; this intended fit is not stated explicitly."
+        "goal": "e2e (tester-army/e2e) is an end-to-end testing framework for web and mobile apps. Users describe a goal in natural language and an agent drives the app toward it, then the same test verifies the result with locators and assertions.",
+        "usage": "Setup starts with `npx e2e init`, which asks for an engine (web or mobile) and a model provider, then writes a config file and an example test. The examples/ directory includes finished sample projects for Vite, Next.js, Astro, Angular, Expo, SwiftUI, Jetpack Compose, Kotlin Multiplatform, Flutter, and .NET MAUI.",
+        "pros": "Agent steps covered by an assertion are recorded and replayed without further model calls until the app changes, and tests without agent steps need no model at all. Core and integration packages add browser/mobile engines and hosted device providers such as BrowserStack, TestMu AI, Kernel, Lightpanda, smol, Limrun, and Expo Simulators, plus a GitHub pull-request reporter.",
+        "cons": "The project is still in active development toward a 1.0 release, and its APIs and configuration can change between minor versions.",
+        "fit": "Based on the documented engine and device integrations, e2e appears suited to teams testing both web and mobile apps who want agent-driven test authoring alongside deterministic replay, though this specific fit is not explicitly stated in the README."
       },
       "ko": {
-        "goal": "e2e는 웹 및 모바일 앱을 위한 엔드투엔드 테스트 프레임워크입니다. 사용자가 자연어로 목표를 설명하면 에이전트가 앱을 조작해 그 목표에 도달하고, 같은 테스트 안에서 로케이터와 어설션으로 결과를 확인합니다.",
-        "usage": "`npx e2e init` 명령으로 e2e를 설정하면, 엔진(웹 또는 모바일)과 모델 제공자를 대화형으로 선택한 뒤 설정 파일과 예제 테스트를 생성합니다. 핵심 패키지로는 `e2e` SDK/러너/CLI와, Playwright를 통해 Chromium, Firefox, WebKit을 실행하는 `@e2e-dev/web` 엔진이 있습니다.",
-        "pros": "e2e에서는 이후 어설션으로 검증된 에이전트 단계가 기록되어, 앱이 변경되기 전까지는 이후 실행에서 추가 모델 호출 없이 재생됩니다. 에이전트 단계가 없는 테스트는 모델이 전혀 필요하지 않습니다. 또한 e2e는 BrowserStack App Automate, TestMu AI 등 웹·모바일 엔진을 위한 호스팅 브라우저/디바이스 통합 패키지를 제공합니다.",
-        "cons": "e2e CLI는 기본적으로 실행된 명령, 엔진, 실패 지점 등에 대한 익명 사용 데이터를 전송하며, 이를 끄려면 `npx e2e telemetry disable` 명령이나 `E2E_TELEMETRY_DISABLED=1` 환경 변수를 사용해야 해, 개인정보에 민감한 환경에서는 별도의 설정 단계가 필요한 것으로 보입니다. 또한 README는 e2e가 1.0 버전을 향해 활발히 개발 중이라고 명시하여, 마이너 릴리스 사이에도 API와 설정이 바뀔 수 있습니다.",
-        "fit": "e2e는 사용자가 자체 구독, API 키, 또는 로컬 모델을 준비해야 하고, Claude Code나 Codex를 통한 에이전트 단계 실행 패키지와 `@e2e-dev/github`를 통한 CI 리포팅 패키지를 제공한다는 점에서, 이미 AI 코딩 에이전트를 사용 중이며 기존 웹·모바일 CI 워크플로에 에이전트 기반 테스트를 통합하려는 팀에 적합해 보이지만, 이는 명시적으로 언급된 내용은 아닙니다."
+        "goal": "e2e(tester-army/e2e)는 웹과 모바일 앱을 위한 엔드투엔드 테스트 프레임워크입니다. 자연어로 목표를 설명하면 에이전트가 앱을 조작하여 그 목표에 도달하고, 같은 테스트 안에서 로케이터와 어서션으로 결과를 확인합니다.",
+        "usage": "`npx e2e init` 명령으로 시작하며, 엔진(웹 또는 모바일)과 모델 제공자를 선택하면 설정 파일과 예제 테스트가 생성됩니다. examples/ 디렉터리에는 Vite, Next.js, Astro, Angular, Expo, SwiftUI, Jetpack Compose, Kotlin Multiplatform, Flutter, .NET MAUI용 완성된 예제 프로젝트가 포함되어 있습니다.",
+        "pros": "어서션으로 검증된 에이전트 단계는 기록되며, 앱이 변경되기 전까지는 모델 호출 없이 재생됩니다. 에이전트 단계가 없는 테스트는 모델이 전혀 필요하지 않습니다. 또한 BrowserStack, TestMu AI, Kernel, Lightpanda, smol, Limrun, Expo Simulators 같은 호스팅 디바이스 제공자와 GitHub 풀 리퀘스트 리포터 등 다양한 통합 패키지를 제공합니다.",
+        "cons": "e2e는 1.0 출시를 향해 아직 활발히 개발 중이며, 마이너 버전 사이에서도 API와 설정이 변경될 수 있습니다.",
+        "fit": "문서화된 엔진과 디바이스 통합을 볼 때, e2e는 웹과 모바일 앱을 모두 테스트하면서 에이전트 기반 테스트 작성과 결정적 재생을 함께 원하는 팀에 적합해 보이지만, README에 이러한 적합성이 명시적으로 서술되어 있지는 않습니다."
       },
       "zh-CN": {
-        "goal": "e2e 是一个面向 Web 和移动应用的端到端测试框架。用户用自然语言描述目标,代理会操作应用以达成该目标,并在同一个测试中用定位器和断言检查结果。",
-        "usage": "通过运行 `npx e2e init` 来设置 e2e,该命令会交互式询问引擎类型(Web 或移动)和模型提供方,然后生成配置文件和示例测试。核心包包括 `e2e` SDK/运行器/CLI,以及通过 Playwright 运行 Chromium、Firefox 和 WebKit 的 `@e2e-dev/web` 引擎。",
-        "pros": "在 e2e 中,被后续断言验证过的代理步骤会被记录下来,只要应用未发生变化,后续运行就可以在不再调用模型的情况下重放这些步骤;不含代理步骤的测试则完全不需要模型。e2e 还为其 Web 和移动引擎提供了托管浏览器/设备的集成包,例如 BrowserStack App Automate 和 TestMu AI。",
-        "cons": "e2e CLI 默认会发送关于所运行命令、引擎以及失败位置等匿名使用数据,如需关闭可使用 `npx e2e telemetry disable` 命令或 `E2E_TELEMETRY_DISABLED=1` 环境变量,这对于隐私敏感的部署场景来说似乎需要额外一步配置。README 还说明 e2e 正朝着 1.0 版本积极开发,因此在小版本之间 API 和配置仍可能发生变化。",
-        "fit": "由于 e2e 要求用户自带订阅、API 密钥或本地模型,并提供了通过 Claude Code 或 Codex 运行代理步骤的包,以及通过 `@e2e-dev/github` 进行 CI 报告的包,e2e 看起来更适合已经在使用 AI 编码代理、希望将代理驱动的测试整合进现有 Web/移动 CI 工作流的团队,不过这一适用定位并未在文档中明确说明。"
+        "goal": "e2e(tester-army/e2e)是一个面向网页和移动应用的端到端测试框架。用户用自然语言描述一个目标,由代理驱动应用达成该目标,再在同一测试中用定位器和断言验证结果。",
+        "usage": "使用从 `npx e2e init` 开始,该命令会询问引擎(网页或移动)和模型提供商,然后生成配置文件和示例测试。examples/ 目录中提供了 Vite、Next.js、Astro、Angular、Expo、SwiftUI、Jetpack Compose、Kotlin Multiplatform、Flutter 和 .NET MAUI 的完整示例项目。",
+        "pros": "被断言覆盖的代理步骤会被记录下来,在应用发生变化之前会以无需模型调用的方式重放;不含代理步骤的测试则完全不需要模型。核心与集成包还提供了 BrowserStack、TestMu AI、Kernel、Lightpanda、smol、Limrun、Expo Simulators 等托管设备提供商,以及一个 GitHub 拉取请求报告器。",
+        "cons": "该项目仍处于迈向 1.0 版本的积极开发阶段,其 API 和配置在次要版本之间仍可能发生变化。",
+        "fit": "根据文档中列出的引擎和设备集成来看,e2e 似乎更适合同时测试网页和移动应用、并希望兼顾代理驱动的测试编写与确定性重放的团队,不过 README 并未明确说明这一适用范围。"
       },
       "es": {
-        "goal": "e2e es un framework de pruebas end-to-end para aplicaciones web y móviles. El usuario describe un objetivo en lenguaje natural, un agente maneja la aplicación para alcanzarlo, y la misma prueba verifica el resultado con localizadores y aserciones.",
-        "usage": "e2e se configura ejecutando `npx e2e init`, que pregunta de forma interactiva por un motor (web o móvil) y un proveedor de modelo, y luego escribe un archivo de configuración y una prueba de ejemplo. Los paquetes principales incluyen el SDK/runner/CLI `e2e` y el motor `@e2e-dev/web`, que ejecuta Chromium, Firefox y WebKit mediante Playwright.",
-        "pros": "En e2e, un paso de agente verificado por una aserción posterior queda grabado, de modo que las ejecuciones siguientes lo reproducen sin llamadas adicionales al modelo mientras la aplicación no cambie; las pruebas sin pasos de agente no necesitan modelo alguno. e2e también ofrece paquetes de integración con navegadores y dispositivos alojados, como BrowserStack App Automate y TestMu AI, para sus motores web y móvil.",
-        "cons": "La CLI de e2e envía por defecto datos de uso anónimos sobre los comandos, motores y puntos de fallo ejecutados; desactivarlo requiere el comando `npx e2e telemetry disable` o la variable de entorno `E2E_TELEMETRY_DISABLED=1`, lo que parece implicar un paso adicional en configuraciones sensibles a la privacidad. El README también indica que e2e está en desarrollo activo hacia la versión 1.0, por lo que las APIs y la configuración aún pueden cambiar entre versiones menores.",
-        "fit": "Dado que e2e exige que el usuario aporte su propia suscripción, clave de API o modelo local, y que ofrece paquetes para ejecutar pasos de agente mediante Claude Code o Codex, junto con reportes de CI vía `@e2e-dev/github`, e2e parece orientado a equipos que ya usan agentes de codificación con IA y que buscan integrar pruebas impulsadas por agentes en flujos de CI web/móvil existentes, aunque este encaje no se afirma de forma explícita."
+        "goal": "e2e (tester-army/e2e) es un framework de pruebas end-to-end para aplicaciones web y móviles. El usuario describe un objetivo en lenguaje natural y un agente maneja la aplicación para alcanzarlo, y la misma prueba verifica el resultado con localizadores y aserciones.",
+        "usage": "La configuración comienza con `npx e2e init`, que pregunta por un motor (web o móvil) y un proveedor de modelo, y luego genera un archivo de configuración y una prueba de ejemplo. El directorio examples/ incluye proyectos completos para Vite, Next.js, Astro, Angular, Expo, SwiftUI, Jetpack Compose, Kotlin Multiplatform, Flutter y .NET MAUI.",
+        "pros": "Los pasos del agente cubiertos por una aserción se registran y se repiten sin más llamadas al modelo hasta que la aplicación cambia, y las pruebas sin pasos de agente no requieren ningún modelo. Los paquetes principales y de integración añaden proveedores de dispositivos alojados como BrowserStack, TestMu AI, Kernel, Lightpanda, smol, Limrun y Expo Simulators, además de un reportero para pull requests de GitHub.",
+        "cons": "El proyecto todavía está en desarrollo activo camino a la versión 1.0, y sus APIs y configuración pueden cambiar entre versiones menores.",
+        "fit": "A partir de las integraciones de motores y dispositivos documentadas, e2e parece adecuado para equipos que prueban tanto aplicaciones web como móviles y desean combinar la creación de pruebas guiada por agentes con una repetición determinista, aunque el README no indica explícitamente esta idoneidad."
       },
       "ja": {
-        "goal": "e2e はウェブおよびモバイルアプリ向けのエンドツーエンドテストフレームワークです。ユーザーが自然言語で目標を記述すると、エージェントがアプリを操作してその目標に到達し、同じテスト内でロケーターとアサーションを使って結果を確認します。",
-        "usage": "`npx e2e init` を実行することで e2e をセットアップでき、対話形式でエンジン(ウェブまたはモバイル)とモデルプロバイダーを選択した後、設定ファイルとサンプルテストが生成されます。主要パッケージには `e2e` の SDK/ランナー/CLI と、Playwright 経由で Chromium、Firefox、WebKit を実行する `@e2e-dev/web` エンジンが含まれます。",
-        "pros": "e2e では、後続のアサーションで検証されたエージェントのステップが記録され、アプリが変更されない限り、以降の実行では追加のモデル呼び出しなしに再生されます。エージェントのステップを含まないテストはモデルを一切必要としません。また e2e は、ウェブおよびモバイルエンジン向けに BrowserStack App Automate や TestMu AI といったホスト型ブラウザ/デバイスの統合パッケージも提供しています。",
-        "cons": "e2e の CLI はデフォルトで、実行されたコマンド、エンジン、失敗箇所などに関する匿名の使用データを送信します。これを無効にするには `npx e2e telemetry disable` コマンドか `E2E_TELEMETRY_DISABLED=1` 環境変数が必要で、プライバシーに敏感な環境では追加の設定ステップが必要になるようです。README には e2e がバージョン1.0に向けて活発に開発中であることも記載されており、マイナーリリース間でも API や設定が変わる可能性があります。",
-        "fit": "e2e はユーザー自身がサブスクリプション、API キー、またはローカルモデルを用意する必要があり、Claude Code や Codex を通じてエージェントのステップを実行するパッケージや、`@e2e-dev/github` による CI レポート機能も備えていることから、すでに AI コーディングエージェントを利用しており、既存のウェブ/モバイル CI ワークフローにエージェント駆動のテストを組み込みたいチームに適していると考えられますが、この適合性は明示的には述べられていません。"
+        "goal": "e2e(tester-army/e2e)は、ウェブおよびモバイルアプリ向けのエンドツーエンドテストフレームワークです。自然言語で目標を記述すると、エージェントがアプリを操作してその目標に到達し、同じテスト内でロケーターとアサーションを使って結果を確認します。",
+        "usage": "セットアップは `npx e2e init` から始まり、エンジン(ウェブまたはモバイル)とモデルプロバイダーを選択すると、設定ファイルとサンプルテストが生成されます。examples/ ディレクトリには、Vite、Next.js、Astro、Angular、Expo、SwiftUI、Jetpack Compose、Kotlin Multiplatform、Flutter、.NET MAUI 向けの完成したサンプルプロジェクトが用意されています。",
+        "pros": "アサーションで検証されたエージェントのステップは記録され、アプリが変更されるまではモデル呼び出しなしで再生されます。エージェントのステップを含まないテストはモデルを一切必要としません。さらに、コアおよび統合パッケージにより、BrowserStack、TestMu AI、Kernel、Lightpanda、smol、Limrun、Expo Simulators といったホスト型デバイスプロバイダーや、GitHub のプルリクエストレポーターが利用できます。",
+        "cons": "e2e は 1.0 リリースに向けて現在も活発に開発が進められており、マイナーバージョン間でも API や設定が変更される可能性があります。",
+        "fit": "文書化されているエンジンおよびデバイス統合から判断すると、e2e はウェブとモバイルの両方のアプリをテストし、エージェント主導のテスト作成と決定的な再生を両立させたいチームに適していると考えられますが、この適合性について README に明示的な記載はありません。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 13,
+          "start_line": 15,
           "end_line": 15,
           "section_heading": "e2e"
         }
       ],
       "usage": [
         {
-          "start_line": 38,
+          "start_line": 39,
           "end_line": 40,
           "section_heading": "Quick start"
         },
         {
           "start_line": 42,
-          "end_line": 44,
+          "end_line": 49,
           "section_heading": "Quick start"
         }
       ],
@@ -6018,36 +6048,26 @@
           "section_heading": "e2e"
         },
         {
-          "start_line": 70,
-          "end_line": 73,
-          "section_heading": "Integrations"
+          "start_line": 57,
+          "end_line": 74,
+          "section_heading": "Core"
         }
       ],
       "cons": [
         {
-          "start_line": 98,
-          "end_line": 100,
-          "section_heading": "Telemetry"
-        },
-        {
-          "start_line": 105,
-          "end_line": 107,
+          "start_line": 107,
+          "end_line": 109,
           "section_heading": "Status"
         }
       ],
       "fit": [
         {
-          "start_line": 33,
-          "end_line": 34,
-          "section_heading": "e2e"
-        },
-        {
-          "start_line": 61,
-          "end_line": 61,
+          "start_line": 58,
+          "end_line": 59,
           "section_heading": "Core"
         },
         {
-          "start_line": 74,
+          "start_line": 67,
           "end_line": 74,
           "section_heading": "Integrations"
         }
@@ -6062,15 +6082,8 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "npx e2e telemetry disable",
-        "fields": [
-          "cons"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "E2E_TELEMETRY_DISABLED=1",
+        "kind": "version",
+        "value": "1.0",
         "fields": [
           "cons"
         ]
@@ -6081,64 +6094,19 @@
         "fields": [
           "goal",
           "usage",
-          "pros",
-          "cons",
           "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Playwright",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Claude Code",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Codex",
-        "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "BrowserStack",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "TestMu AI",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "version",
-        "value": "1.0",
-        "fields": [
-          "cons"
         ]
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "tester-army/e2e",
       "path": "README.md",
-      "blob_sha": "7a73837a096647540481022ce1e9600381eb771b",
-      "content_sha256": "2dd18cc9a1513cb63cf2eaf0016fb79f0ddafbd2a289b1a41bf2b9daeea91792",
+      "blob_sha": "ce78db99845f27f1c957756c7d41867de316e09c",
+      "content_sha256": "54bdb98eddf1adb1370b914e5af9f3d6cffc7a28a25b9b396f22124955e904d4",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.310",
@@ -6908,53 +6876,58 @@
   },
   "michael-denyer/pstack-claude": {
     "content": {
-      "goal": "pstack-claude is a port of Lauren Tan's pstack, an opinionated Cursor skill stack, adapted for Claude Code, Codex, Pi, GitHub Copilot, Muse, MiniMax Code, and other agent harnesses. It centers on poteto-mode, which is told a task and routes it to the matching workflow to keep code concise, simple, and verified.",
-      "usage": "For Claude Code 2.1.292 or later, run `/plugin marketplace add michael-denyer/pstack-claude` then `/plugin install pstack@pstack-claude`; other harnesses use their own listed install commands. Afterwards, invoke a task like: \"Use poteto-mode to fix the search filter resetting when I change pages.\"",
-      "pros": "Unlike upstream's Claude Code install, which asks the agent to translate Cursor skill names at runtime, this port pre-translates them, which the README states saves tokens and avoids mapping errors; it also adds a SessionStart hook that automatically routes tasks to poteto-mode. The project states it runs with no server or telemetry, with scripts executing locally.",
-      "cons": "Claude Code leaves auto-update off for third-party marketplaces by default, so an installed pstack version stays pinned unless the user manually enables auto-update or updates by hand. The README also documents a version-specific issue on GitHub Copilot CLI 1.0.92 where certain cached sessions list no plugin skills.",
-      "fit": "This port appears best suited to users already working in one of the listed agent harnesses who want a structured, delegatable workflow for bugs, planning, or refactoring tasks. Its PR-related tooling likely requires the user to already have a working GitHub CLI login configured, since the README states those tools use that login."
+      "goal": "pstack is a Claude Code port of Lauren Tan's Cursor skill stack, adapted for Claude Code, Codex, Pi, GitHub Copilot, Muse, MiniMax Code, and other agent harnesses. It aims to route tasks automatically to a `poteto-mode` workflow that keeps generated code concise, simple, and verified.",
+      "usage": "In Claude Code 2.1.292 or later, run `/plugin marketplace add michael-denyer/pstack-claude` followed by `/plugin install pstack@pstack-claude`. Other harnesses (Codex, Pi, GitHub Copilot, Muse, MiniMax Code) use their own install commands. Once installed, invoke poteto-mode directly, for example: \"Use poteto-mode to fix the search filter resetting when I change pages.\"",
+      "pros": "The README states pstack has no server or telemetry component; scripts run locally and PR tools rely on the user's own GitHub CLI login, so data handling stays within the user's existing provider and tooling. A SessionStart hook can route tasks to poteto-mode automatically on supported harnesses, reducing manual invocation.",
+      "cons": "Claude Code leaves auto-update disabled for third-party marketplaces by default, so pstack stays pinned to the installed version unless a user enables auto-update or runs a manual update command. The GitHub Copilot build is documented as tested only on Copilot CLI 1.0.87 through 1.0.92, with a noted skill-listing issue on 1.0.92 under certain caching conditions.",
+      "fit": "This port appears intended for developers already using Claude Code, Codex, Pi, GitHub Copilot, Muse, MiniMax Code, or other harnesses that read skills from `~/.agents/skills/`. For concurrency bugs or invariants beyond test coverage, the README points to a separate `agent-formal-verify` plugin for deeper formal verification methods."
     },
     "summaries": {
       "en": {
-        "goal": "pstack-claude is a port of Lauren Tan's pstack, an opinionated Cursor skill stack, adapted for Claude Code, Codex, Pi, GitHub Copilot, Muse, MiniMax Code, and other agent harnesses. It centers on poteto-mode, which is told a task and routes it to the matching workflow to keep code concise, simple, and verified.",
-        "usage": "For Claude Code 2.1.292 or later, run `/plugin marketplace add michael-denyer/pstack-claude` then `/plugin install pstack@pstack-claude`; other harnesses use their own listed install commands. Afterwards, invoke a task like: \"Use poteto-mode to fix the search filter resetting when I change pages.\"",
-        "pros": "Unlike upstream's Claude Code install, which asks the agent to translate Cursor skill names at runtime, this port pre-translates them, which the README states saves tokens and avoids mapping errors; it also adds a SessionStart hook that automatically routes tasks to poteto-mode. The project states it runs with no server or telemetry, with scripts executing locally.",
-        "cons": "Claude Code leaves auto-update off for third-party marketplaces by default, so an installed pstack version stays pinned unless the user manually enables auto-update or updates by hand. The README also documents a version-specific issue on GitHub Copilot CLI 1.0.92 where certain cached sessions list no plugin skills.",
-        "fit": "This port appears best suited to users already working in one of the listed agent harnesses who want a structured, delegatable workflow for bugs, planning, or refactoring tasks. Its PR-related tooling likely requires the user to already have a working GitHub CLI login configured, since the README states those tools use that login."
+        "goal": "pstack is a Claude Code port of Lauren Tan's Cursor skill stack, adapted for Claude Code, Codex, Pi, GitHub Copilot, Muse, MiniMax Code, and other agent harnesses. It aims to route tasks automatically to a `poteto-mode` workflow that keeps generated code concise, simple, and verified.",
+        "usage": "In Claude Code 2.1.292 or later, run `/plugin marketplace add michael-denyer/pstack-claude` followed by `/plugin install pstack@pstack-claude`. Other harnesses (Codex, Pi, GitHub Copilot, Muse, MiniMax Code) use their own install commands. Once installed, invoke poteto-mode directly, for example: \"Use poteto-mode to fix the search filter resetting when I change pages.\"",
+        "pros": "The README states pstack has no server or telemetry component; scripts run locally and PR tools rely on the user's own GitHub CLI login, so data handling stays within the user's existing provider and tooling. A SessionStart hook can route tasks to poteto-mode automatically on supported harnesses, reducing manual invocation.",
+        "cons": "Claude Code leaves auto-update disabled for third-party marketplaces by default, so pstack stays pinned to the installed version unless a user enables auto-update or runs a manual update command. The GitHub Copilot build is documented as tested only on Copilot CLI 1.0.87 through 1.0.92, with a noted skill-listing issue on 1.0.92 under certain caching conditions.",
+        "fit": "This port appears intended for developers already using Claude Code, Codex, Pi, GitHub Copilot, Muse, MiniMax Code, or other harnesses that read skills from `~/.agents/skills/`. For concurrency bugs or invariants beyond test coverage, the README points to a separate `agent-formal-verify` plugin for deeper formal verification methods."
       },
       "ko": {
-        "goal": "pstack-claude는 Lauren Tan의 pstack(의견이 반영된 Cursor 스킬 스택)을 Claude Code, Codex, Pi, GitHub Copilot, Muse, MiniMax Code 및 기타 에이전트 하네스용으로 포팅한 프로젝트입니다. 핵심은 poteto-mode로, 작업 내용을 전달받으면 그에 맞는 워크플로를 호출하여 코드를 간결하고 단순하며 검증된 상태로 유지합니다.",
-        "usage": "Claude Code 2.1.292 이상에서는 `/plugin marketplace add michael-denyer/pstack-claude` 실행 후 `/plugin install pstack@pstack-claude`를 실행하면 설치됩니다. 다른 하네스는 각자의 설치 명령을 사용합니다. 설치 후에는 \"Use poteto-mode to fix the search filter resetting when I change pages.\"와 같이 작업을 지시해 호출합니다.",
-        "pros": "업스트림의 Claude Code 설치 방식은 에이전트가 런타임에 Cursor 스킬 이름을 변환하도록 요구하지만, 이 포트는 사전에 이름을 변환해두어 README에 따르면 토큰을 절약하고 매핑 오류를 줄입니다. 또한 작업을 poteto-mode로 자동 라우팅하는 SessionStart 훅을 추가했습니다. README는 이 프로젝트가 서버나 텔레메트리 없이 동작하며 스크립트는 로컬에서 실행된다고 설명합니다.",
-        "cons": "Claude Code는 서드파티 마켓플레이스에 대해 기본적으로 자동 업데이트를 꺼두므로, 사용자가 수동으로 자동 업데이트를 켜거나 직접 업데이트하지 않으면 설치된 pstack 버전이 그대로 고정됩니다. README는 또한 GitHub Copilot CLI 1.0.92에서 특정 캐시된 세션이 플러그인 스킬을 전혀 표시하지 않는 버전 특정 문제를 문서화하고 있습니다.",
-        "fit": "이 포트는 나열된 에이전트 하네스 중 하나를 이미 사용 중이며 버그 수정, 계획, 리팩토링 작업에 구조화되고 위임 가능한 워크플로를 원하는 사용자에게 적합해 보입니다. PR 관련 도구는 해당 로그인을 사용한다고 README에 명시되어 있으므로, 사용자가 이미 작동하는 GitHub CLI 로그인을 설정해 두어야 할 가능성이 높습니다."
+        "goal": "pstack는 Lauren Tan의 Cursor 스킬 스택을 Claude Code, Codex, Pi, GitHub Copilot, Muse, MiniMax Code 등 다양한 에이전트 하니스에 맞게 포팅한 것입니다. 작업을 자동으로 `poteto-mode` 워크플로로 라우팅하여 생성되는 코드를 간결하고 검증된 상태로 유지하는 것을 목표로 합니다.",
+        "usage": "Claude Code 2.1.292 이상에서 `/plugin marketplace add michael-denyer/pstack-claude`를 실행한 뒤 `/plugin install pstack@pstack-claude`를 실행하여 설치합니다. Codex, Pi, GitHub Copilot, Muse, MiniMax Code 등 다른 하니스는 각자의 설치 명령을 사용합니다. 설치 후에는 \"Use poteto-mode to fix the search filter resetting when I change pages.\"와 같이 poteto-mode를 직접 호출할 수 있습니다.",
+        "pros": "README에 따르면 pstack에는 별도의 서버나 텔레메트리가 없으며, 스크립트는 로컬에서 실행되고 PR 도구는 사용자 자신의 GitHub CLI 로그인을 사용합니다. 지원되는 하니스에서는 SessionStart 훅이 작업을 poteto-mode로 자동 라우팅해 수동 호출 부담을 줄여줍니다.",
+        "cons": "Claude Code는 서드파티 마켓플레이스에 대해 기본적으로 자동 업데이트를 비활성화해두므로, 사용자가 직접 활성화하거나 수동 업데이트 명령을 실행하지 않으면 설치 당시 버전에 고정됩니다. GitHub Copilot 빌드는 Copilot CLI 1.0.87부터 1.0.92까지만 테스트되었다고 문서화되어 있으며, 특정 캐싱 조건에서 1.0.92 버전에 스킬 목록 관련 알려진 문제가 있다고 명시되어 있습니다.",
+        "fit": "이 포트는 이미 Claude Code, Codex, Pi, GitHub Copilot, Muse, MiniMax Code 또는 `~/.agents/skills/`에서 스킬을 읽는 다른 하니스를 사용하는 개발자에게 적합해 보입니다. 동시성 버그나 테스트로 다루기 어려운 불변식의 경우, README는 더 깊은 정형 검증 방법을 위한 별도의 `agent-formal-verify` 플러그인을 안내합니다."
       },
       "zh-CN": {
-        "goal": "pstack-claude 是对 Lauren Tan 的 pstack(一套带明确主张的 Cursor 技能堆栈)的移植版本,适配 Claude Code、Codex、Pi、GitHub Copilot、Muse、MiniMax Code 以及其他代理运行环境。其核心是 poteto-mode,用户告知其任务目标后,它会调用匹配的工作流,以保持代码简洁、简单且经过验证。",
-        "usage": "在 Claude Code 2.1.292 或更高版本中,先运行 `/plugin marketplace add michael-denyer/pstack-claude`,再运行 `/plugin install pstack@pstack-claude` 即可安装;其他运行环境各自有对应的安装命令。安装完成后,可直接下达任务,例如:\"Use poteto-mode to fix the search filter resetting when I change pages.\"",
-        "pros": "上游的 Claude Code 安装方式要求代理在运行时转换 Cursor 技能名称,而本移植版本提前完成了转换,README 称这样可以节省 token 并避免映射出错;此外还新增了一个 SessionStart 钩子,会自动将任务路由到 poteto-mode。README 说明该项目没有服务器或遥测功能,脚本均在本地运行。",
-        "cons": "Claude Code 默认对第三方市场关闭自动更新,因此已安装的 pstack 版本会保持固定,除非用户手动开启自动更新或自行执行更新。README 还记录了一个与版本相关的问题:在 GitHub Copilot CLI 1.0.92 上,某些缓存的会话不会列出任何插件技能。",
-        "fit": "该移植版本看起来更适合已经在使用上述某一代理运行环境、且希望为修复缺陷、规划或重构任务获得结构化、可委派工作流的用户。由于 README 说明其 PR 相关工具会使用该登录信息,用户大概需要事先配置好可用的 GitHub CLI 登录。"
+        "goal": "pstack 是对 Lauren Tan 的 Cursor 技能栈的移植版本，适配 Claude Code、Codex、Pi、GitHub Copilot、Muse、MiniMax Code 等多种代理运行环境。其目标是将任务自动路由到 `poteto-mode` 工作流，以保持生成代码简洁、简单且经过验证。",
+        "usage": "在 Claude Code 2.1.292 或更高版本中，先运行 `/plugin marketplace add michael-denyer/pstack-claude`，再运行 `/plugin install pstack@pstack-claude` 完成安装。Codex、Pi、GitHub Copilot、Muse、MiniMax Code 等其他运行环境使用各自的安装命令。安装完成后可直接调用 poteto-mode，例如：\"Use poteto-mode to fix the search filter resetting when I change pages.\"。",
+        "pros": "根据 README，pstack 没有服务器或遥测组件，脚本在本地运行，PR 工具使用用户自己的 GitHub CLI 登录信息。在受支持的运行环境中，SessionStart 钩子可以自动将任务路由到 poteto-mode，减少手动调用的负担。",
+        "cons": "Claude Code 默认关闭第三方市场的自动更新，因此除非用户手动开启或执行更新命令，pstack 会固定在安装时的版本。文档中说明 GitHub Copilot 构建仅在 Copilot CLI 1.0.87 至 1.0.92 版本上测试过，并指出在某些缓存条件下 1.0.92 版本存在技能列表相关的已知问题。",
+        "fit": "这一移植版本看起来适合已经使用 Claude Code、Codex、Pi、GitHub Copilot、Muse、MiniMax Code，或从 `~/.agents/skills/` 读取技能的其他运行环境的开发者。对于并发缺陷或测试难以覆盖的不变式，README 指向一个独立的 `agent-formal-verify` 插件以提供更深入的形式化验证方法。"
       },
       "es": {
-        "goal": "pstack-claude es una adaptación de pstack, de Lauren Tan, una pila de habilidades de Cursor con criterios definidos, portada para Claude Code, Codex, Pi, GitHub Copilot, Muse, MiniMax Code y otros entornos de agentes. Su eje es poteto-mode, que recibe el objetivo de una tarea e invoca el flujo de trabajo correspondiente para mantener el código conciso, simple y verificado.",
-        "usage": "En Claude Code 2.1.292 o posterior, ejecute `/plugin marketplace add michael-denyer/pstack-claude` y luego `/plugin install pstack@pstack-claude`; otros entornos usan sus propios comandos de instalación. Después, se invoca indicando la tarea, por ejemplo: \"Use poteto-mode to fix the search filter resetting when I change pages.\"",
-        "pros": "A diferencia de la instalación original para Claude Code, que pide al agente traducir los nombres de habilidades de Cursor en tiempo de ejecución, este port los traduce de antemano, lo que según el README ahorra tokens y evita errores de mapeo; también añade un hook SessionStart que enruta automáticamente las tareas a poteto-mode. El README indica que el proyecto funciona sin servidor ni telemetría, con los scripts ejecutándose localmente.",
-        "cons": "Claude Code mantiene desactivada la actualización automática para mercados de terceros por defecto, de modo que la versión instalada de pstack queda fija salvo que el usuario la active manualmente o actualice a mano. El README también documenta un problema específico de versión en GitHub Copilot CLI 1.0.92, donde ciertas sesiones en caché no listan ninguna habilidad del plugin.",
-        "fit": "Este port parece más adecuado para quienes ya trabajan en alguno de los entornos de agentes mencionados y buscan un flujo estructurado y delegable para corregir errores, planificar o refactorizar. Sus herramientas relacionadas con PR probablemente requieren que el usuario ya tenga configurado un inicio de sesión funcional en GitHub CLI, ya que el README indica que esas herramientas usan dicha sesión."
+        "goal": "pstack es una adaptación del stack de habilidades de Cursor creado por Lauren Tan, portada para Claude Code, Codex, Pi, GitHub Copilot, Muse, MiniMax Code y otros entornos de agentes. Su objetivo es dirigir automáticamente las tareas al flujo de trabajo `poteto-mode` para mantener el código generado conciso, simple y verificado.",
+        "usage": "En Claude Code 2.1.292 o posterior, ejecute `/plugin marketplace add michael-denyer/pstack-claude` y luego `/plugin install pstack@pstack-claude`. Otros entornos como Codex, Pi, GitHub Copilot, Muse y MiniMax Code usan sus propios comandos de instalación. Una vez instalado, puede invocar poteto-mode directamente, por ejemplo: \"Use poteto-mode to fix the search filter resetting when I change pages.\".",
+        "pros": "Según el README, pstack no tiene servidor ni telemetría; los scripts se ejecutan localmente y las herramientas de PR usan el inicio de sesión propio del usuario en GitHub CLI. En los entornos compatibles, un hook de SessionStart puede enrutar tareas automáticamente a poteto-mode, reduciendo la necesidad de invocarlo manualmente.",
+        "cons": "Claude Code deja desactivada por defecto la actualización automática para mercados de terceros, por lo que pstack queda fijado a la versión instalada salvo que el usuario la active o ejecute una actualización manual. La compilación para GitHub Copilot está documentada como probada solo en Copilot CLI 1.0.87 a 1.0.92, con un problema conocido de listado de habilidades en la versión 1.0.92 bajo ciertas condiciones de caché.",
+        "fit": "Este port parece adecuado para quienes ya usan Claude Code, Codex, Pi, GitHub Copilot, Muse, MiniMax Code u otros entornos que leen habilidades desde `~/.agents/skills/`. Para errores de concurrencia o invariantes difíciles de cubrir con pruebas, el README remite a un plugin independiente, `agent-formal-verify`, con métodos de verificación formal más profundos."
       },
       "ja": {
-        "goal": "pstack-claude は、Lauren Tan による pstack(独自の方針を持つ Cursor スキルスタック)を Claude Code、Codex、Pi、GitHub Copilot、Muse、MiniMax Code などのエージェントハーネス向けに移植したものです。中心となるのは poteto-mode で、タスクの目的を伝えると対応するワークフローを呼び出し、コードを簡潔でシンプル、かつ検証済みの状態に保ちます。",
-        "usage": "Claude Code 2.1.292 以降では、`/plugin marketplace add michael-denyer/pstack-claude` を実行後、`/plugin install pstack@pstack-claude` を実行してインストールします。他のハーネスはそれぞれ独自のインストールコマンドを使用します。インストール後は、例えば \"Use poteto-mode to fix the search filter resetting when I change pages.\" のようにタスクを指示して呼び出します。",
-        "pros": "アップストリームの Claude Code インストール方式はエージェントに実行時に Cursor のスキル名を変換させますが、この移植版は事前に変換しておくため、README によればトークンを節約しマッピングの誤りを避けられるとされています。さらに、タスクを自動的に poteto-mode へルーティングする SessionStart フックも追加されています。README では、本プロジェクトにサーバーやテレメトリがなく、スクリプトはローカルで実行されると説明されています。",
-        "cons": "Claude Code はサードパーティのマーケットプレイスに対して自動更新を既定で無効にしているため、ユーザーが手動で自動更新を有効にするか、手作業で更新しない限り、インストールされた pstack のバージョンは固定されたままになります。README では、GitHub Copilot CLI 1.0.92 において、特定のキャッシュされたセッションでプラグインスキルが一覧表示されなくなるというバージョン固有の問題も記載されています。",
-        "fit": "この移植版は、挙げられたエージェントハーネスのいずれかを既に利用しており、バグ修正や計画、リファクタリングのために構造化され委任可能なワークフローを求めるユーザーに適していると考えられます。README には PR 関連ツールがそのログインを利用すると記載されているため、ユーザーは事前に動作する GitHub CLI ログインを設定しておく必要がある可能性があります。"
+        "goal": "pstack は Lauren Tan の Cursor スキルスタックを Claude Code、Codex、Pi、GitHub Copilot、Muse、MiniMax Code などのエージェントハーネス向けに移植したものです。タスクを自動的に `poteto-mode` ワークフローへ振り分け、生成されるコードを簡潔・単純・検証済みに保つことを目指しています。",
+        "usage": "Claude Code 2.1.292 以降では、`/plugin marketplace add michael-denyer/pstack-claude` を実行した後に `/plugin install pstack@pstack-claude` を実行してインストールします。Codex、Pi、GitHub Copilot、Muse、MiniMax Code などの他のハーネスはそれぞれ専用のインストールコマンドを使用します。インストール後は、「Use poteto-mode to fix the search filter resetting when I change pages.」のように poteto-mode を直接呼び出せます。",
+        "pros": "README によれば、pstack にはサーバーやテレメトリがなく、スクリプトはローカルで実行され、PR ツールはユーザー自身の GitHub CLI ログインを利用します。対応ハーネスでは SessionStart フックがタスクを poteto-mode へ自動的に振り分けるため、手動呼び出しの手間が減ります。",
+        "cons": "Claude Code はサードパーティ製マーケットプレイスの自動更新を既定で無効にしているため、ユーザーが手動で有効化するか更新コマンドを実行しない限り、pstack はインストール時のバージョンに固定されます。GitHub Copilot 向けビルドは Copilot CLI 1.0.87 から 1.0.92 まででテストされたと記載されており、特定のキャッシュ条件下では 1.0.92 でスキル一覧に関する既知の問題があるとされています。",
+        "fit": "この移植版は、すでに Claude Code、Codex、Pi、GitHub Copilot、Muse、MiniMax Code、または `~/.agents/skills/` からスキルを読み込む他のハーネスを利用している開発者に適していると考えられます。並行処理のバグやテストで到達しにくい不変条件については、README は別途 `agent-formal-verify` プラグインによるより深い形式検証手法を案内しています。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 6,
+          "end_line": 6,
+          "section_heading": "pstack"
+        },
+        {
+          "start_line": 8,
           "end_line": 8,
           "section_heading": "pstack"
         }
@@ -6966,20 +6939,20 @@
           "section_heading": "Install"
         },
         {
-          "start_line": 134,
-          "end_line": 136,
+          "start_line": 137,
+          "end_line": 137,
           "section_heading": "Getting started"
         }
       ],
       "pros": [
         {
-          "start_line": 14,
-          "end_line": 14,
-          "section_heading": "Built for Claude Code"
+          "start_line": 130,
+          "end_line": 130,
+          "section_heading": "Configure"
         },
         {
-          "start_line": 153,
-          "end_line": 153,
+          "start_line": 155,
+          "end_line": 156,
           "section_heading": "Data handling"
         }
       ],
@@ -6990,20 +6963,25 @@
           "section_heading": "Install"
         },
         {
-          "start_line": 70,
-          "end_line": 70,
+          "start_line": 72,
+          "end_line": 72,
           "section_heading": "Install"
         }
       ],
       "fit": [
         {
-          "start_line": 153,
-          "end_line": 153,
-          "section_heading": "Data handling"
+          "start_line": 6,
+          "end_line": 6,
+          "section_heading": "pstack"
         },
         {
-          "start_line": 110,
-          "end_line": 110,
+          "start_line": 10,
+          "end_line": 10,
+          "section_heading": "pstack"
+        },
+        {
+          "start_line": 112,
+          "end_line": 112,
           "section_heading": "Install"
         }
       ]
@@ -7031,12 +7009,16 @@
         ]
       },
       {
-        "kind": "product",
-        "value": "Claude Code",
+        "kind": "version",
+        "value": "1.0.87",
         "fields": [
-          "goal",
-          "usage",
-          "pros",
+          "cons"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "1.0.92",
+        "fields": [
           "cons"
         ]
       },
@@ -7046,7 +7028,72 @@
         "fields": [
           "goal",
           "usage",
+          "pros",
           "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Claude Code",
+        "fields": [
+          "goal",
+          "usage",
+          "cons",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Codex",
+        "fields": [
+          "goal",
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Pi",
+        "fields": [
+          "goal",
+          "usage",
+          "cons",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "GitHub Copilot",
+        "fields": [
+          "goal",
+          "usage",
+          "cons",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Muse",
+        "fields": [
+          "goal",
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "MiniMax Code",
+        "fields": [
+          "goal",
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "agent-formal-verify",
+        "fields": [
+          "fit"
         ]
       }
     ],
@@ -7057,8 +7104,8 @@
       "kind": "readme",
       "slug": "michael-denyer/pstack-claude",
       "path": "README.md",
-      "blob_sha": "ee3ca8eca28db924314e6b98241bdc28fad0da58",
-      "content_sha256": "358faeb3224bc7c8ebf507f65c08d889748dcb579c683c4f688b48211ddcfe9d",
+      "blob_sha": "4613862047f6236345206650a23e3dfaa018ce02",
+      "content_sha256": "938b1504542b414934eed2363b86ff2236c2276dbb53dad8a8112c0696b363d0",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.310",

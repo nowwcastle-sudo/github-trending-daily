@@ -1,6 +1,6 @@
 {
-  "snapshotId": "20261103205629-69979d8d5786f9c9",
-  "generatedAt": "2026-11-03T20:56:29.829Z",
+  "snapshotId": "20261104104715-e24e9757bab03b5f",
+  "generatedAt": "2026-11-04T10:47:15.246Z",
   "statsDate": "2026-11-04",
   "count": 39,
   "repos": [
@@ -31,22 +31,22 @@
         "sqlite",
         "supermemory"
       ],
-      "stars": 111742,
-      "forks": 9727,
-      "issues": 155,
-      "contributors": 333,
+      "stars": 112386,
+      "forks": 9770,
+      "issues": 133,
+      "contributors": 342,
       "gains": {
-        "daily": 1138,
-        "weekly": 7255,
-        "monthly": 15681
+        "daily": 1139,
+        "weekly": 7995,
+        "monthly": 16740
       },
       "signal": null,
       "summary": {
-        "goal": "Claude-Mem is a persistent memory compression system built for Claude Code. It automatically captures tool usage observations, generates semantic summaries, and makes them available to future sessions, aiming to preserve project context across sessions or reconnects.",
-        "usage": "Install with `npx claude-mem install` (version 15.9.0) and restart Claude Code; context from prior sessions then appears automatically. It also supports other IDEs such as OpenCode or T3 Code via `--ide` flags, and requires Node.js >=20.0.0. Further details are documented at https://docs.claude-mem.ai/.",
-        "pros": "The README lists persistent memory across sessions, progressive disclosure for layered memory retrieval, and a token-efficient 3-layer MCP search workflow using 4 MCP tools (search, timeline, get_observations), claiming roughly 10x token savings by filtering before fetching full details.",
-        "cons": "Installing directly with `npm install -g claude-mem` only provides the SDK/library and does not register plugin hooks or set up the worker service; the documented install path is instead `npx claude-mem install` or the `/plugin` commands.",
-        "fit": "Claude-Mem is released under Apache License 2.0, chosen so memory can be embedded in developer tools, local agents, MCP servers, and production agent harnesses, suggesting it may suit teams building or extending Claude Code based agent workflows, though this breadth of fit is not independently verified in the README."
+        "goal": "Claude-Mem is a persistent memory compression system for Claude Code (and other supported hosts) that automatically captures tool usage observations, generates semantic summaries, and makes them available in future sessions, preserving continuity of project knowledge even after sessions end or reconnect.",
+        "usage": "For Claude Code, install with `npx claude-mem install`; for other hosts (opencode, grok-bot, t3code, etc.) use `npx claude-mem install --ide <name>`. The installer sets up hooks and a local worker service, while `npm install -g claude-mem` only installs the SDK/library without plugin hooks, so a host restart is likely needed after installing.",
+        "pros": "Provides persistent memory across sessions, token-efficient progressive disclosure, smart search through the `search`, `timeline`, and `get_observations` MCP tools, privacy control via `<private>` tags, and automatic operation without manual intervention.",
+        "cons": "Requires Node.js 20.0.0 or higher plus Bun and uv runtimes (auto-installed if missing), and the hosted claude-mem observer offers only a 30-day free trial before automatically falling back to the user's own Anthropic plan unless they subscribe.",
+        "fit": "Appears suited to developers using Claude Code or supported harnesses (OpenCode, T3 Code, Antigravity CLI, Pi, DeepSeek Harness) who want project knowledge continuity across sessions; distributed under the Apache License 2.0."
       },
       "summary_status": "verified",
       "tag_rule_version": 2,
@@ -55,8 +55,7 @@
         "dev-tools"
       ],
       "form_tags": [
-        "plugin-skill",
-        "cli"
+        "plugin-skill"
       ]
     },
     {
@@ -78,27 +77,28 @@
         "mcp",
         "rust"
       ],
-      "stars": 12430,
-      "forks": 857,
-      "issues": 148,
+      "stars": 13894,
+      "forks": 949,
+      "issues": 154,
       "contributors": 9,
       "gains": {
-        "daily": 3792,
+        "daily": 3791,
         "weekly": null,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "agent-desktop, a Vercel Labs project, is designed to give AI agents computer-use capability: it lets them see and operate desktop apps on macOS, Windows, and Linux by reading the OS accessibility tree and exposing it as JSON with refs for each actionable element, instead of relying on screenshots or pixel matching.",
-        "usage": "Install with `npm install -g agent-desktop`, then run `agent-desktop status` to check platform, permissions, and supported surfaces. A typical loop is `agent-desktop snapshot --app Finder -i` to get refs, then `agent-desktop click @s8f3k2p9:e8` to act on one, followed by another snapshot to verify the result.",
-        "pros": "agent-desktop documents 60 command names (56 operational), spanning observation, input, window, clipboard, and notification actions, and returns a structured JSON envelope for each one. It ships as both a CLI and a C library (`libagent_desktop_ffi`), and leaves the agent loop itself to the caller rather than embedding a model.",
-        "cons": "Platform requirements differ: macOS 13 or later needs an Accessibility permission grant, Windows 10 1809 or later needs no extra grant at the terminal's integrity level, and Ubuntu 24.04 or later needs `at-spi2-core` in a graphical session. This disparity suggests setup may require per-OS configuration before first use of agent-desktop.",
-        "fit": "Given its CLI/C-library design and accessibility-tree approach documented at https://agent-browser.dev/desktop, agent-desktop seems best suited to developers building AI agents that need verifiable, structured desktop automation across macOS, Windows, and Linux, rather than casual end users seeking a ready-made automation app."
+        "goal": "agent-desktop gives AI agents computer use on desktop apps by reading the OS accessibility tree on macOS, Windows, and Linux and returning JSON with a ref for every actionable element, rather than relying on screenshots or pixel matching.",
+        "usage": "Install with `npm install -g agent-desktop`, then run `agent-desktop status` to check platform and permissions. A documented quick-start flow runs `agent-desktop snapshot --app Finder -i` to list interactive refs, then `agent-desktop click @s8f3k2p9:e8` to act on one of them.",
+        "pros": "agent-desktop ships as both a CLI and a C library (`libagent_desktop_ffi`) for in-process use, exposes an MCP server (`agent-desktop mcp`) so every command becomes an MCP tool, and documents 60 command names spanning observation, input, window, clipboard, and session operations.",
+        "cons": "Snapshots, clipboard reads, screenshots, and debug artifacts can contain private desktop content, requiring care to keep them out of public logs or uploads. The project no longer maintains a Homebrew tap or Scoop bucket, and there is no official Scoop package yet.",
+        "fit": "agent-desktop seems best suited for agent harnesses that need direct, ref-based desktop control instead of vision-based automation, provided the host meets the documented platform requirements: macOS 13 or later, Windows 10 1809 or later (x64/ARM64), or Ubuntu 24.04 or later with X11 or Wayland."
       },
       "summary_status": "verified",
       "tag_rule_version": 2,
       "field_tags": [
-        "ai-ml"
+        "ai-ml",
+        "dev-tools"
       ],
       "form_tags": [
         "cli"
@@ -117,13 +117,13 @@
         "git",
         "worktrees"
       ],
-      "stars": 10418,
-      "forks": 375,
-      "issues": 64,
+      "stars": 10750,
+      "forks": 395,
+      "issues": 72,
       "contributors": 83,
       "gains": {
-        "daily": 437,
-        "weekly": 406,
+        "daily": 438,
+        "weekly": 749,
         "monthly": null
       },
       "signal": null,
@@ -134,7 +134,7 @@
         "cons": "Shell integration must be installed separately (`wt config shell install`) for directory-changing commands to work, and on Windows the default `wt` command conflicts with Windows Terminal's alias, requiring installation as `git-wt` instead.",
         "fit": "Likely suited for developers or teams running several AI coding agents concurrently (the README cites 5-10+), each needing an isolated working directory; less relevant for users who only occasionally need a single worktree."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "dev-tools"
@@ -149,12 +149,12 @@
       "description": "A hierarchical inference engine for frontier MoE models: hot experts on the GPU (CUDA, Vulkan), warm ones in RAM, cold ones streamed from NVMe. Written in C, runs on the hardware you already own.",
       "lang": "C",
       "topics": [],
-      "stars": 47180,
-      "forks": 5457,
-      "issues": 169,
+      "stars": 47514,
+      "forks": 5486,
+      "issues": 170,
       "contributors": 221,
       "gains": {
-        "daily": 803,
+        "daily": 802,
         "weekly": null,
         "monthly": null
       },
@@ -166,7 +166,7 @@
         "cons": "A machine needs at least 8 GB of RAM and 22 GB of free disk space for the smallest model; larger models documented in the README require far more RAM and disk (up to roughly 1.56 TB for the largest), and cold-start CPU-only speeds on constrained hardware can be as low as 0.05-0.1 tokens per second.",
         "fit": "colibri appears suited to users who want to experiment with very large open MoE models on existing consumer or workstation hardware, particularly with fast NVMe storage, rather than teams needing guaranteed low-latency inference on resource-constrained machines."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -182,8 +182,8 @@
       "description": "Skills for Real Engineers. Straight from my .agents directory.",
       "lang": "Shell",
       "topics": [],
-      "stars": 311294,
-      "forks": 26166,
+      "stars": 312054,
+      "forks": 26216,
       "issues": 209,
       "contributors": 8,
       "gains": {
@@ -224,12 +224,12 @@
         "llm",
         "transformer"
       ],
-      "stars": 38697,
-      "forks": 4375,
-      "issues": 62,
+      "stars": 39128,
+      "forks": 4412,
+      "issues": 64,
       "contributors": 44,
       "gains": {
-        "daily": 699,
+        "daily": 701,
         "weekly": null,
         "monthly": null
       },
@@ -241,7 +241,7 @@
         "cons": "Processing a model requires real compute time (about 30-40 minutes on an RTX 3090 for a 4B model), and configuration files written for Heretic 1.x are documented as incompatible with Heretic 2.x, requiring migration.",
         "fit": "Heretic appears suited to hobbyists or researchers with capable local hardware (e.g., a gaming PC) who want to customize model behavior; the project is hosted at https://github.com/p-e-w/heretic under the AGPLv3 license, which may constrain commercial redistribution."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml"
@@ -256,12 +256,12 @@
       "description": "",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 3007,
-      "forks": 234,
+      "stars": 3125,
+      "forks": 246,
       "issues": 13,
       "contributors": 3,
       "gains": {
-        "daily": 94,
+        "daily": 91,
         "weekly": null,
         "monthly": null
       },
@@ -273,7 +273,7 @@
         "cons": "The bundled shunt plugin, which routes I/O-heavy agent work to cheaper AiKA worker models, is documented as Claude Code only for now, so Codex, Cursor, and pi users cannot use that delegation feature yet.",
         "fit": "This tooling appears best suited for teams already using Spotify Portal who want catalog search, service briefings, and Fleetshift shift management surfaced directly inside a coding-agent session, though the README does not specify minimum CLI or agent version requirements."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -302,12 +302,12 @@
         "sqs",
         "testcontainers"
       ],
-      "stars": 28624,
-      "forks": 3191,
-      "issues": 175,
-      "contributors": 376,
+      "stars": 29183,
+      "forks": 3242,
+      "issues": 170,
+      "contributors": 379,
       "gains": {
-        "daily": 679,
+        "daily": 482,
         "weekly": null,
         "monthly": null
       },
@@ -319,15 +319,13 @@
         "cons": "Services such as Lambda, RDS, Neptune, ElastiCache, MSK, ECS, EC2, EKS, OpenSearch, CodeBuild, and Managed Service for Apache Flink rely on real Docker-backed execution rather than in-process mocks, so running them requires Docker and, in some setups, access to the Docker socket.",
         "fit": "The documented focus is local development, testing, and CI pipelines needing AWS-shaped services without cloud costs or credentials. Since the README frames it as an emulator rather than a production cloud substitute, it likely is not intended for production workloads (cautious inference)."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "dev-tools",
         "devops"
       ],
-      "form_tags": [
-        "cli"
-      ]
+      "form_tags": []
     },
     {
       "slug": "Usagi-org/ai-goofish-monitor",
@@ -349,12 +347,12 @@
         "xianyu",
         "xianyu-bot"
       ],
-      "stars": 16317,
-      "forks": 2840,
-      "issues": 42,
+      "stars": 17025,
+      "forks": 2899,
+      "issues": 45,
       "contributors": 27,
       "gains": {
-        "daily": 204,
+        "daily": 228,
         "weekly": null,
         "monthly": null
       },
@@ -366,7 +364,7 @@
         "cons": "Setup requires minimum configuration of `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_MODEL_NAME`, so the monitoring and AI analysis features likely depend on having a valid AI API key configured.",
         "fit": "This appears suited for users wanting automated, AI-assisted monitoring of Xianyu listings with notification alerts, though it seems intended for personal/educational use given the documented legal-use caution."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "productivity"
@@ -390,10 +388,10 @@
         "speech-to-text",
         "voice-control"
       ],
-      "stars": 4477,
-      "forks": 254,
+      "stars": 4868,
+      "forks": 274,
       "issues": 126,
-      "contributors": 23,
+      "contributors": 24,
       "gains": {
         "daily": 410,
         "weekly": null,
@@ -407,7 +405,7 @@
         "cons": "The first run needs to download a speech model, which likely requires an internet connection at that point even though later use is offline; the size of the model or the download time is not specified. The project also does not accept pull requests, so contributions are limited to filing issues.",
         "fit": "Hex appears suited to users on Mac, Windows, or Linux seeking privacy-oriented dictation that avoids sending audio to external services after setup. An experimental Labs section suggests it may also fit users wanting newer, less stable features."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -442,9 +440,9 @@
         "webscraping",
         "xpath"
       ],
-      "stars": 94535,
-      "forks": 9912,
-      "issues": 6,
+      "stars": 95627,
+      "forks": 10021,
+      "issues": 10,
       "contributors": 42,
       "gains": {
         "daily": 1658,
@@ -453,11 +451,11 @@
       },
       "signal": null,
       "summary": {
-        "goal": "Scrapling is a Python web scraping framework that combines fast HTTP requests, stealth browsers, parsing, and concurrent crawling in one library (line 65). It scrapes static pages, renders JavaScript, interacts with websites, and builds crawlers with reusable sessions, proxy rotation, retries, and pause/resume support (line 67).",
-        "usage": "Install with `pip install scrapling` (Python 3.10 or higher required, lines 526-531). Browser-based fetchers need `pip install \"scrapling[fetchers]\"` plus `scrapling install` to download browsers (lines 539-545). It can be used from Python code, the terminal via `scrapling shell` (line 483), or an AI agent through its MCP server (line 69).",
-        "pros": "It offers a Scrapy-like spider API with concurrency control, proxy rotation, and pause/resume (lines 259-271); multiple fetcher types with session management (lines 273-283); CSS/XPath/text/regex parsing with similarity matching (lines 286-288); and an MCP server plus Agent Skill for AI agents (lines 290-293).",
-        "cons": "The base install only includes the parser engine; importing `scrapling.fetchers` or `scrapling.spiders` without installing `scrapling[fetchers]` and running `scrapling install` raises a `ModuleNotFoundError` (lines 534-545), adding a required setup step for browser-based features.",
-        "fit": "Given its Python packaging and MCP/Agent Skill integrations, Scrapling seems aimed at developers building Python-based scraping scripts, crawlers, or AI-agent-driven data-extraction workflows, with no documented support for non-Python environments."
+        "goal": "Scrapling is a Python web scraping framework that combines fast HTTP requests, stealth browsers, parsing, and concurrent crawling (spiders) in a single library. It can be used from Python code, the command line, or AI agents via its MCP server and Agent Skill, covering tasks from extracting a few fields to exporting whole sites as Markdown.",
+        "usage": "Install the base package with `pip install scrapling` (requires Python 3.10 or higher). Fetchers, browsers, and spiders need extra dependencies, installed via `pip install \"scrapling[fetchers]\"` followed by running `scrapling install` to download browser binaries. Basic scraping uses `Fetcher.get(url)` plus CSS/XPath selectors, while Spider classes support concurrent crawling with pause/resume and JSON/CSV/XML export.",
+        "pros": "Scrapling bundles a Scrapy-like Spider API with concurrent crawling, multi-session support, proxy rotation, AutoThrottle, and robots.txt compliance. It offers stealth browser fetching with Cloudflare Turnstile handling, an MCP server for AI agents, and RAG-ready Markdown conversion. Documented benchmarks show its parser handling 5000 nested elements in about 1.99 ms, faster than Parsel/Scrapy, Lxml, and BeautifulSoup variants.",
+        "cons": "The base `pip install scrapling` installs only the parser engine; importing `scrapling.fetchers` or `scrapling.spiders` without installing the fetchers extra and running `scrapling install` raises `ModuleNotFoundError`, so browser-based scraping requires an extra setup step and additional disk space for browser binaries.",
+        "fit": "Based on its disclaimer that the library is provided for educational and research purposes and requires compliance with data-scraping and privacy laws, Scrapling appears best suited for developers and researchers building scraping scripts, crawlers, or AI-agent data-extraction tools who are responsible for respecting target sites' terms of service and robots.txt rules."
       },
       "summary_status": "verified",
       "tag_rule_version": 2,
@@ -475,9 +473,9 @@
       "description": "Kronos: A Foundation Model for the Language of Financial Markets",
       "lang": "Python",
       "topics": [],
-      "stars": 46453,
-      "forks": 7654,
-      "issues": 295,
+      "stars": 46693,
+      "forks": 7683,
+      "issues": 297,
       "contributors": 19,
       "gains": {
         "daily": 503,
@@ -492,7 +490,7 @@
         "cons": "Kronos-small and Kronos-base have a documented max_context of 512, so longer input lookback windows are automatically truncated; the larger Kronos-large model (499.2M parameters) is not open-sourced, and the finetuning/backtesting example is explicitly described as simplified rather than production-ready.",
         "fit": "Based on the README's explicit disclaimer that the finetuning pipeline is a simplified demonstration lacking portfolio optimization and risk-factor neutralization, Kronos may be best suited for research and experimentation rather than direct production trading use."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml"
@@ -518,12 +516,12 @@
         "unity",
         "unreal-engine"
       ],
-      "stars": 34537,
-      "forks": 4584,
+      "stars": 35114,
+      "forks": 4641,
       "issues": 93,
       "contributors": 1,
       "gains": {
-        "daily": 1181,
+        "daily": 1182,
         "weekly": null,
         "monthly": null
       },
@@ -554,14 +552,14 @@
       "description": "Anti-AI-slop design skill for Claude Code, Cursor, and Codex.",
       "lang": "CSS",
       "topics": [],
-      "stars": 46852,
-      "forks": 2478,
-      "issues": 71,
+      "stars": 47393,
+      "forks": 2507,
+      "issues": 74,
       "contributors": 10,
       "gains": {
         "daily": null,
-        "weekly": 10517,
-        "monthly": 16306
+        "weekly": 8765,
+        "monthly": 17314
       },
       "signal": null,
       "summary": {
@@ -588,14 +586,14 @@
       "description": "",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 44091,
-      "forks": 9226,
-      "issues": 4676,
-      "contributors": 878,
+      "stars": 45313,
+      "forks": 9333,
+      "issues": 4834,
+      "contributors": 894,
       "gains": {
         "daily": null,
-        "weekly": 9770,
-        "monthly": 15731
+        "weekly": 12542,
+        "monthly": 18907
       },
       "signal": null,
       "summary": {
@@ -605,10 +603,11 @@
         "cons": "The README states the project is \"very very early\" and tells users to \"expect bugs,\" and that it is \"mostly not accepting contributions yet,\" with only small fixes considered.",
         "fit": "This appears best suited for developers who already have at least one supported agent provider installed and authenticated, since the README instructs installing and authenticating at least one provider before use; it may be less fitting for those wanting a stable, contribution-open project."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
+        "web-app",
         "dev-tools"
       ],
       "form_tags": [
@@ -630,13 +629,13 @@
         "subagent-driven-development",
         "superpowers"
       ],
-      "stars": 311803,
-      "forks": 27731,
-      "issues": 351,
+      "stars": 312107,
+      "forks": 27766,
+      "issues": 331,
       "contributors": 44,
       "gains": {
         "daily": null,
-        "weekly": 5956,
+        "weekly": 5994,
         "monthly": null
       },
       "signal": null,
@@ -656,7 +655,8 @@
       "form_tags": [
         "agent",
         "plugin-skill",
-        "framework"
+        "framework",
+        "cli"
       ]
     },
     {
@@ -671,14 +671,14 @@
         "design",
         "slop"
       ],
-      "stars": 101401,
-      "forks": 5986,
-      "issues": 67,
+      "stars": 101967,
+      "forks": 6009,
+      "issues": 74,
       "contributors": 62,
       "gains": {
         "daily": null,
-        "weekly": 11754,
-        "monthly": 26586
+        "weekly": 11405,
+        "monthly": 26980
       },
       "signal": null,
       "summary": {
@@ -688,7 +688,7 @@
         "cons": "Live mode's Apply feature may, in some cases, fall back to running the `codex` or `claude` CLI with approvals, permission checks, and sandboxing disabled, which could be a notable trade-off to weigh before using live mode in an unfamiliar repository.",
         "fit": "The project likely fits teams that already use one of the supported coding agents (Claude Code, Cursor, Codex CLI, and others) and want to refine existing interfaces or components, since the documentation suggests it works best on interfaces that already exist rather than building entirely new pages."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -696,8 +696,7 @@
         "dev-tools"
       ],
       "form_tags": [
-        "plugin-skill",
-        "cli"
+        "plugin-skill"
       ]
     },
     {
@@ -714,13 +713,13 @@
         "open-source",
         "seo"
       ],
-      "stars": 26277,
-      "forks": 3425,
-      "issues": 84,
+      "stars": 26478,
+      "forks": 3443,
+      "issues": 86,
       "contributors": 30,
       "gains": {
         "daily": null,
-        "weekly": 4091,
+        "weekly": 3751,
         "monthly": null
       },
       "signal": null,
@@ -763,13 +762,13 @@
         "vibe-coding",
         "vibecoding"
       ],
-      "stars": 7385,
-      "forks": 440,
-      "issues": 360,
+      "stars": 7530,
+      "forks": 455,
+      "issues": 368,
       "contributors": 33,
       "gains": {
         "daily": null,
-        "weekly": 4812,
+        "weekly": 3898,
         "monthly": null
       },
       "signal": null,
@@ -780,7 +779,7 @@
         "cons": "Running ThinkRail requires `git` on PATH and a configured model provider beforehand, and it relies on an external `pi` coding agent rather than a bundled self-contained one. Linux desktop builds are unsigned and need specific system libraries (glibc 2.38+, GTK 3, WebKitGTK 4.1, Ayatana AppIndicator 3, librsvg 2) typically only present on Ubuntu 24.04 or newer; the macOS CLI is signed but not yet notarized.",
         "fit": "Based on its described workflow, ThinkRail appears suited to developers wanting agent-assisted coding tightly integrated with git branching, pull requests, and persistent project specs, rather than a lightweight single-session chat tool. Teams using GitHub PR workflows may value the built-in PR/CI integration, though this is inferred from the described features rather than stated explicitly."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -799,13 +798,13 @@
       "topics": [
         "agent-skills"
       ],
-      "stars": 187068,
-      "forks": 22080,
-      "issues": 1467,
+      "stars": 187252,
+      "forks": 22093,
+      "issues": 1477,
       "contributors": 17,
       "gains": {
         "daily": null,
-        "weekly": 2828,
+        "weekly": 2969,
         "monthly": null
       },
       "signal": null,
@@ -831,13 +830,13 @@
       "description": "A collection of agent skills that help you build great interfaces.",
       "lang": "Markdown",
       "topics": [],
-      "stars": 10588,
-      "forks": 407,
+      "stars": 10705,
+      "forks": 410,
       "issues": 11,
       "contributors": 2,
       "gains": {
         "daily": null,
-        "weekly": 1707,
+        "weekly": 1761,
         "monthly": null
       },
       "signal": null,
@@ -865,13 +864,13 @@
       "description": "A single CLAUDE.md file to improve Claude Code behavior, derived from Andrej Karpathy's observations on LLM coding pitfalls.",
       "lang": null,
       "topics": [],
-      "stars": 229028,
-      "forks": 22829,
+      "stars": 229280,
+      "forks": 22843,
       "issues": 137,
       "contributors": 7,
       "gains": {
         "daily": null,
-        "weekly": 4397,
+        "weekly": 3921,
         "monthly": null
       },
       "signal": null,
@@ -898,13 +897,13 @@
       "description": "👻 Ghostty is a fast, feature-rich, and cross-platform terminal emulator that uses platform-native UI and GPU acceleration.",
       "lang": "Zig",
       "topics": [],
-      "stars": 63421,
-      "forks": 3810,
+      "stars": 63494,
+      "forks": 3816,
       "issues": 258,
       "contributors": 693,
       "gains": {
         "daily": null,
-        "weekly": 687,
+        "weekly": 771,
         "monthly": null
       },
       "signal": null,
@@ -915,7 +914,7 @@
         "cons": "The Ghostty-only Terminal Control Sequences roadmap item is explicitly marked unfinished (\"We haven't done any of this yet\"), so some planned extensibility is not yet available. Additionally, the libghostty-vt library, while usable, has not been assigned a version number and its API signatures are still described as in flux.",
         "fit": "Based on the described feature set, Ghostty appears best suited to users on macOS or Linux wanting a fast, native terminal with rich windowing, and to developers wanting to embed terminal functionality via libghostty/libghostty-vt in C or Zig projects; it may be less suited for workflows depending on terminal-specific control sequences unique to Ghostty, since none currently exist."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "unclassified"
@@ -928,14 +927,14 @@
       "description": "A coding-agent skill for multi-phase security audits with independently verified, machine-readable findings",
       "lang": "JavaScript",
       "topics": [],
-      "stars": 58105,
-      "forks": 3784,
+      "stars": 58506,
+      "forks": 3808,
       "issues": 112,
       "contributors": 4,
       "gains": {
         "daily": null,
-        "weekly": 9155,
-        "monthly": 33474
+        "weekly": 8598,
+        "monthly": 34248
       },
       "signal": null,
       "summary": {
@@ -968,13 +967,13 @@
         "wayland",
         "wayland-compositor"
       ],
-      "stars": 40214,
-      "forks": 2164,
+      "stars": 40265,
+      "forks": 2166,
       "issues": 192,
       "contributors": 781,
       "gains": {
         "daily": null,
-        "weekly": 662,
+        "weekly": 1232,
         "monthly": null
       },
       "signal": null,
@@ -998,30 +997,31 @@
         "multiagent",
         "trading"
       ],
-      "stars": 120293,
-      "forks": 22998,
+      "stars": 120515,
+      "forks": 23035,
       "issues": 118,
       "contributors": 24,
       "gains": {
         "daily": null,
-        "weekly": 4603,
+        "weekly": 3336,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "TradingAgents is a multi-agent LLM-powered framework that simulates a trading firm's workflow, combining fundamentals, sentiment, news, and technical analysts with trader, risk management, and portfolio manager agents to produce trading decisions. It is documented as designed for research purposes.",
-        "usage": "Clone with `git clone https://github.com/TauricResearch/TradingAgents.git`, then `cd TradingAgents`. Requires Python 3.11 or later; install with `pip install .`. Launch the interactive CLI with `tradingagents`, or run `python -m cli.main` from source; API keys for the chosen LLM provider must be set as environment variables first.",
-        "pros": "Supports many LLM providers (OpenAI, Google, Anthropic, xAI, DeepSeek, Qwen, GLM, MiniMax, OpenRouter, Ollama, Azure, and ChatGPT subscription plans). Includes point-in-time data integrity for fundamentals, backtesting, portfolio-aware decisions, and a persistent memory log that carries forward past-decision outcomes between runs.",
-        "cons": "The README states LLM-driven output is non-deterministic: two runs on the same ticker and date can differ because of model sampling and because live news and social data change over time. The framework is explicitly described as not intended as financial, investment, or trading advice.",
-        "fit": "It appears best suited for researchers and developers studying multi-agent LLM analysis and backtesting workflows rather than for production trading strategies seeking a fixed, replicable return, since backtest results are not guaranteed to match any published figure."
+        "goal": "TradingAgents is a multi-agent LLM-driven financial trading framework in which specialized agents - fundamentals, sentiment, technical, and news analysts, bullish/bearish researchers, a trader, and a risk/portfolio management team - collaborate to produce trading decisions. The README states the framework is designed for research purposes and explicitly notes it is not intended as financial, investment, or trading advice.",
+        "usage": "To use it, clone the repository with `git clone https://github.com/TauricResearch/TradingAgents.git`, install with Python 3.11 or later, and run `pip install .`. The interactive CLI is launched with the `tradingagents` command; alternatively, the package can be used in Python by instantiating `TradingAgentsGraph` and calling its `.propagate()` method.",
+        "pros": "The framework is built on LangGraph and supports multiple LLM providers, including OpenAI, Google, Anthropic, xAI, and DeepSeek. It also offers point-in-time data integrity for backtesting and an opt-in checkpoint-resume feature, letting an interrupted run continue from its last completed step instead of restarting.",
+        "cons": "Because the framework is LLM-driven, the README notes that two runs on the same ticker and date can produce different outputs, due to non-deterministic language-model sampling and live, time-sensitive inputs such as news and social-media posts.",
+        "fit": "Based on the README's framing, the project appears best suited for researchers and developers exploring multi-agent trading analysis and backtesting workflows, rather than for obtaining a fixed, replicable trading strategy or real financial advice, since the README explicitly disclaims investment guidance."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml"
       ],
       "form_tags": [
         "agent",
+        "framework",
         "cli"
       ]
     },
@@ -1040,13 +1040,13 @@
         "mcp",
         "productivity"
       ],
-      "stars": 296465,
-      "forks": 43831,
-      "issues": 217,
+      "stars": 296819,
+      "forks": 43886,
+      "issues": 228,
       "contributors": 479,
       "gains": {
         "daily": null,
-        "weekly": 6201,
+        "weekly": 6053,
         "monthly": null
       },
       "signal": null,
@@ -1096,14 +1096,14 @@
         "touhou",
         "typescript"
       ],
-      "stars": 426635,
-      "forks": 106208,
-      "issues": 1704,
-      "contributors": 357,
+      "stars": 428904,
+      "forks": 106684,
+      "issues": 1728,
+      "contributors": 360,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 422104
+        "monthly": 426427
       },
       "signal": null,
       "summary": {
@@ -1113,7 +1113,7 @@
         "cons": "On Linux, running Ghidra, JADX, firmware-tool launches, and static JavaScript/Electron analysis requires a procps-compatible `ps` on REA's PATH for process-ownership checks, which may call for extra setup on some systems. Deep native analysis also depends on separately licensed commercial tools (Hopper, Ghidra, IDA, or Kuna); REA does not provide or install those licenses.",
         "fit": "REA is positioned for lawful research, education, interoperability, software preservation, and analysis of software the user owns or is authorized to examine. It requires Node.js 22.x (>=22.23.4), 24.x (>=24.22.1), or 26.12.1+ with npm, so the runtime environment likely needs to meet these minimum versions."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -1149,14 +1149,14 @@
         "typescript",
         "video-editor"
       ],
-      "stars": 78283,
-      "forks": 7205,
-      "issues": 228,
+      "stars": 78622,
+      "forks": 7236,
+      "issues": 238,
       "contributors": 125,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 22290
+        "monthly": 22387
       },
       "signal": null,
       "summary": {
@@ -1166,7 +1166,7 @@
         "cons": "Running the project requires Node.js 22+ and FFmpeg as documented prerequisites. Full-repository development clones also use Git LFS for regression-test baseline files (about 240 MB), which cautiously suggests contributors may face extra setup steps and storage overhead beyond a typical lightweight clone.",
         "fit": "Skills are documented to work with Claude Code, Codex, Cursor, Gemini CLI, IBM Bob, and other skill-supporting coding agents, suggesting this likely fits developers already in agent-driven or CLI-based video workflows. The README frames HyperFrames as an HTML-first alternative to Remotion's React-based authoring model."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "dev-tools"
@@ -1201,22 +1201,22 @@
         "voicestudio",
         "workflow"
       ],
-      "stars": 99952,
-      "forks": 11071,
-      "issues": 132,
+      "stars": 100479,
+      "forks": 11128,
+      "issues": 135,
       "contributors": 139,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 47605
+        "monthly": 48168
       },
       "signal": null,
       "summary": {
-        "goal": "VoiceStudio is an AI voice studio application that runs locally on a user's device, covering voice cloning, voice design, video dubbing, dictation, transcription, and narration in 646 languages.",
-        "usage": "VoiceStudio can be installed via platform-specific methods (Homebrew, installers, Docker, APK) or a one-command script: `curl -fsSL https://voicestudio.sh/install | sh`. To run from source, clone the repository with `git clone https://github.com/debpalash/VoiceStudio.git` and run `bun run dev`, which installs JavaScript and Python dependencies before launching the Electron app.",
-        "pros": "It runs entirely on-device, works without a GPU (though slower on CPU), and supports many platforms including macOS, Windows, Linux, Docker, Android, and iOS. It is distributed under AGPL-3.0, so it is free to use, including commercially.",
-        "cons": "Documentation notes that performance depends heavily on hardware, with CPU-only runs explicitly described as slower, and some ports (Windows on ARM, Android, iOS) are marked experimental or preview rather than stable.",
-        "fit": "The project appears suited to users who want local, offline-capable voice cloning, dubbing, or narration without relying on a paid cloud service, though model and voice licensing varies per model and may need individual verification."
+        "goal": "VoiceStudio is an on-device AI voice studio for voice cloning, voice design, video dubbing, dictation, transcription, and narration in 646 languages, running on laptops, desktops, servers, phones, and tablets. It defaults to the OmniVoice engine but supports dozens of other engines via its Model Manager.",
+        "usage": "Install via platform methods such as `brew install --cask debpalash/tap/voicestudio` on macOS, the one-command installer `curl -fsSL https://voicestudio.sh/install | sh`, or from source with `git clone https://github.com/debpalash/VoiceStudio.git` followed by `bun run dev`. After installation, open Voice cloning, select or add a reference voice, type text, and generate; the app asks before downloading any model.",
+        "pros": "Runs locally across many device types without a paid cloud backend, offers a wide choice of voice engines through its Model Manager, and remains usable on CPU-only machines, albeit more slowly, when no GPU is available.",
+        "cons": "Model weights, voices, and generated output carry separate licenses shown per model in the Model Manager, and cloning a voice is only permitted with its owner's consent, adding a compliance step beyond the app's own AGPL-3.0 license. The Android and iOS apps are also marked 'Preview,' suggesting they may be less mature than desktop builds.",
+        "fit": "The project appears best suited to users who want offline/local voice generation and dubbing across desktop, mobile, or Docker environments rather than a cloud-hosted service, though mobile support being in preview may limit reliability for production mobile use."
       },
       "summary_status": "verified",
       "tag_rule_version": 2,
@@ -1232,14 +1232,14 @@
       "description": "Open source repository of plugins primarily intended for knowledge workers to use in Claude Cowork",
       "lang": "Python",
       "topics": [],
-      "stars": 34595,
-      "forks": 3827,
-      "issues": 162,
+      "stars": 34669,
+      "forks": 3830,
+      "issues": 158,
       "contributors": 32,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 8614
+        "monthly": 8685
       },
       "signal": null,
       "summary": {
@@ -1269,14 +1269,14 @@
         "reverse-engineering",
         "software-analysis"
       ],
-      "stars": 97513,
-      "forks": 11030,
-      "issues": 2165,
+      "stars": 97664,
+      "forks": 11046,
+      "issues": 2176,
       "contributors": 484,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 17043
+        "monthly": 17325
       },
       "signal": null,
       "summary": {
@@ -1303,22 +1303,22 @@
       "topics": [
         "dsh-plugin"
       ],
-      "stars": 3881,
-      "forks": 323,
-      "issues": 770,
-      "contributors": 124,
+      "stars": 3986,
+      "forks": 326,
+      "issues": 791,
+      "contributors": 128,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 3213
+        "monthly": 3363
       },
       "signal": null,
       "summary": {
-        "goal": "billion-context is a context-compression proxy/plugin that sits between a coding agent and its model API, rewriting Anthropic and OpenAI streams via acp-kernel so that consumed conversation is folded into layered summaries, letting long coding sessions run across billions of tokens inside a single context window instead of hitting provider limits.",
-        "usage": "Install with `npm install -g billion-context --prefix=~/.local` for a user-level, sudo-free setup. Then either run the config-free launcher `bili <client>`, install a native plugin via `bili plugin install <client>`, or point a client's base URL at the proxy using the `/bili/` prefix; a health check is available at the local proxy endpoint.",
-        "pros": "Documentation reports roughly 5× fewer tokens consumed than running with full context, a healthy session sustaining a 95–97% prefix-cache hit rate with compression itself costing at most 2%, and an independent 1,500-item third-party benchmark ranking billion-context #1 on ContextBench against full-context and RAG baselines. It also supports many coding-agent clients, including Claude Code, Codex, and OpenCode.",
-        "cons": "The project's own status section describes it as early-stage: compression and protocol handling are validated against mock tests, while real-model integration testing is listed as the next milestone, so behavior in live production use may still change.",
-        "fit": "This tool appears best suited to developers running long-lived, multi-day coding-agent sessions across the many supported CLI clients listed in the README who want to reduce token costs and avoid context-window limits, rather than users seeking an already production-hardened, fully stable release."
+        "goal": "billion-context is a context-compression proxy plugin (npm package billion-context, CLI command bili) that sits between a coding agent and its model API, rewriting Anthropic/OpenAI streams via acp-kernel so long sessions can run across billions of tokens within a smaller context window.",
+        "usage": "Install with `npm install -g billion-context --prefix=~/.local`, then connect a client via a native plugin (`bili plugin install <client>`), a launcher (`bili <client>`), or by prefixing the client baseURL with the proxy's `/bili/` path; health can be checked with `curl -s http://localhost:8787/__bili/health`.",
+        "pros": "The README documents incremental, reversible, prefix-cache-friendly compression (vs. hard truncation), a model-driven compress/decompress/search_context/acp_status tool set, a web dashboard at http://localhost:8787 for session/config inspection, and a documented longitudinal study (4.5 months, 174,327 model calls, 18.76B tokens, zero window violations).",
+        "cons": "The project describes itself as 'Early' with protocol/compression validated only against mock tests (500+ passing) and real-model integration testing listed as the next milestone, so production reliability is not yet independently confirmed by the README. Remote (`--host 0.0.0.0`) and Docker deployments explicitly ship with no authentication, requiring a trusted network.",
+        "fit": "It appears suited for developers running long-lived coding-agent sessions (Claude Code, Codex, OpenCode, and other listed clients) who need to reduce token costs and avoid context-window limits, provided they accept the project's stated early-stage status and operate the proxy within a trusted network."
       },
       "summary_status": "verified",
       "tag_rule_version": 2,
@@ -1345,22 +1345,22 @@
         "playwright",
         "web"
       ],
-      "stars": 12843,
-      "forks": 669,
-      "issues": 71,
-      "contributors": 72,
+      "stars": 13047,
+      "forks": 681,
+      "issues": 70,
+      "contributors": 73,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 11344
+        "monthly": 10768
       },
       "signal": null,
       "summary": {
-        "goal": "e2e is an end-to-end testing framework for web and mobile apps (lines 13-15). Users describe a goal in natural language, an agent drives the app toward it, and the same test checks the result with locators and assertions.",
-        "usage": "Set up e2e by running `npx e2e init` (lines 38-40), which interactively asks for an engine (web or mobile) and a model provider, then writes a config file and an example test (lines 42-43). Core packages include the `e2e` SDK/runner/CLI and the `@e2e-dev/web` engine, which runs Chromium, Firefox, and WebKit through Playwright (lines 57-58).",
-        "pros": "In e2e, an agent step verified by a later assertion is recorded, so later runs replay it without further model calls until the app changes; tests without agent steps need no model at all (lines 31-34). e2e also ships integrations for hosted browsers and devices, including BrowserStack App Automate and TestMu AI, for its web and mobile engines (lines 70-73).",
-        "cons": "The e2e CLI sends anonymous usage data about commands, engines, and failure points by default; disabling this requires the `npx e2e telemetry disable` command or the `E2E_TELEMETRY_DISABLED=1` environment variable (lines 98-100), which appears to require an extra step for privacy-sensitive setups. The README also states e2e is in active development toward version 1.0, so APIs and config may still change between minor releases (lines 105-107).",
-        "fit": "Because e2e requires users to bring their own subscription, API key, or local model (lines 33-34), and ships packages for running agent steps through Claude Code or Codex (line 61) alongside CI reporting via `@e2e-dev/github` (line 74), e2e appears suited to teams already using AI coding agents who want agent-driven testing folded into existing web/mobile CI workflows; this intended fit is not stated explicitly."
+        "goal": "e2e (tester-army/e2e) is an end-to-end testing framework for web and mobile apps. Users describe a goal in natural language and an agent drives the app toward it, then the same test verifies the result with locators and assertions.",
+        "usage": "Setup starts with `npx e2e init`, which asks for an engine (web or mobile) and a model provider, then writes a config file and an example test. The examples/ directory includes finished sample projects for Vite, Next.js, Astro, Angular, Expo, SwiftUI, Jetpack Compose, Kotlin Multiplatform, Flutter, and .NET MAUI.",
+        "pros": "Agent steps covered by an assertion are recorded and replayed without further model calls until the app changes, and tests without agent steps need no model at all. Core and integration packages add browser/mobile engines and hosted device providers such as BrowserStack, TestMu AI, Kernel, Lightpanda, smol, Limrun, and Expo Simulators, plus a GitHub pull-request reporter.",
+        "cons": "The project is still in active development toward a 1.0 release, and its APIs and configuration can change between minor versions.",
+        "fit": "Based on the documented engine and device integrations, e2e appears suited to teams testing both web and mobile apps who want agent-driven test authoring alongside deterministic replay, though this specific fit is not explicitly stated in the README."
       },
       "summary_status": "verified",
       "tag_rule_version": 2,
@@ -1391,14 +1391,14 @@
         "stp",
         "text-to-cad"
       ],
-      "stars": 25206,
-      "forks": 2396,
-      "issues": 42,
-      "contributors": 31,
+      "stars": 25321,
+      "forks": 2404,
+      "issues": 41,
+      "contributors": 32,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 8535
+        "monthly": 8708
       },
       "signal": null,
       "summary": {
@@ -1408,7 +1408,7 @@
         "cons": "By default the tool sends usage statistics and crash reports tagged with a random ID, though it states files, paths, and prompts are never included; disabling this likely requires an extra manual step per the privacy policy.",
         "fit": "text-to-cad appears best suited for teams already using an AI coding agent with plugin or skills support who want to generate and send physical-product models to manufacturing workflows directly from that agent, rather than for users seeking a standalone CAD GUI application."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml"
@@ -1445,14 +1445,14 @@
         "skills",
         "zed-extension"
       ],
-      "stars": 33366,
-      "forks": 2298,
+      "stars": 33422,
+      "forks": 2302,
       "issues": 354,
       "contributors": 111,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 8531
+        "monthly": 8397
       },
       "signal": null,
       "summary": {
@@ -1483,14 +1483,14 @@
         "mcp",
         "skills"
       ],
-      "stars": 45966,
-      "forks": 4783,
-      "issues": 1266,
+      "stars": 46047,
+      "forks": 4789,
+      "issues": 1265,
       "contributors": 42,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 8715
+        "monthly": 8845
       },
       "signal": null,
       "summary": {
@@ -1504,7 +1504,8 @@
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
-        "dev-tools"
+        "dev-tools",
+        "learning"
       ],
       "form_tags": []
     },
@@ -1514,14 +1515,14 @@
       "description": "7.4 billion tokens per month. 34 free LLM providers. 635 free model endpoints. All behind one /v1 endpoint, plus any custom OpenAI-compatible endpoint. Smart routing, automatic failover, encrypted keys. Personal experimentation only.",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 46984,
-      "forks": 6419,
-      "issues": 52,
+      "stars": 47292,
+      "forks": 6460,
+      "issues": 55,
       "contributors": 116,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 16329
+        "monthly": 16812
       },
       "signal": null,
       "summary": {
@@ -1531,7 +1532,7 @@
         "cons": "The README states free installs receive catalog updates only via a monthly snapshot (about 303 models behind the live feed), and explicitly frames the project as suited for personal experimentation rather than production use, citing no SLA and variable latency as stacked free tiers hit daily caps.",
         "fit": "Likely fits individual developers or hobbyists prototyping against free LLM tiers locally; the README's own disclaimer suggests it may not be appropriate for production workloads without substituting a paid API."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -1566,22 +1567,22 @@
         "opencode",
         "pstack"
       ],
-      "stars": 3881,
-      "forks": 352,
-      "issues": 8,
+      "stars": 3944,
+      "forks": 358,
+      "issues": 13,
       "contributors": 28,
       "gains": {
         "daily": null,
         "weekly": null,
-        "monthly": 3018
+        "monthly": 3026
       },
       "signal": null,
       "summary": {
-        "goal": "pstack-claude is a port of Lauren Tan's pstack, an opinionated Cursor skill stack, adapted for Claude Code, Codex, Pi, GitHub Copilot, Muse, MiniMax Code, and other agent harnesses. It centers on poteto-mode, which is told a task and routes it to the matching workflow to keep code concise, simple, and verified.",
-        "usage": "For Claude Code 2.1.292 or later, run `/plugin marketplace add michael-denyer/pstack-claude` then `/plugin install pstack@pstack-claude`; other harnesses use their own listed install commands. Afterwards, invoke a task like: \"Use poteto-mode to fix the search filter resetting when I change pages.\"",
-        "pros": "Unlike upstream's Claude Code install, which asks the agent to translate Cursor skill names at runtime, this port pre-translates them, which the README states saves tokens and avoids mapping errors; it also adds a SessionStart hook that automatically routes tasks to poteto-mode. The project states it runs with no server or telemetry, with scripts executing locally.",
-        "cons": "Claude Code leaves auto-update off for third-party marketplaces by default, so an installed pstack version stays pinned unless the user manually enables auto-update or updates by hand. The README also documents a version-specific issue on GitHub Copilot CLI 1.0.92 where certain cached sessions list no plugin skills.",
-        "fit": "This port appears best suited to users already working in one of the listed agent harnesses who want a structured, delegatable workflow for bugs, planning, or refactoring tasks. Its PR-related tooling likely requires the user to already have a working GitHub CLI login configured, since the README states those tools use that login."
+        "goal": "pstack is a Claude Code port of Lauren Tan's Cursor skill stack, adapted for Claude Code, Codex, Pi, GitHub Copilot, Muse, MiniMax Code, and other agent harnesses. It aims to route tasks automatically to a `poteto-mode` workflow that keeps generated code concise, simple, and verified.",
+        "usage": "In Claude Code 2.1.292 or later, run `/plugin marketplace add michael-denyer/pstack-claude` followed by `/plugin install pstack@pstack-claude`. Other harnesses (Codex, Pi, GitHub Copilot, Muse, MiniMax Code) use their own install commands. Once installed, invoke poteto-mode directly, for example: \"Use poteto-mode to fix the search filter resetting when I change pages.\"",
+        "pros": "The README states pstack has no server or telemetry component; scripts run locally and PR tools rely on the user's own GitHub CLI login, so data handling stays within the user's existing provider and tooling. A SessionStart hook can route tasks to poteto-mode automatically on supported harnesses, reducing manual invocation.",
+        "cons": "Claude Code leaves auto-update disabled for third-party marketplaces by default, so pstack stays pinned to the installed version unless a user enables auto-update or runs a manual update command. The GitHub Copilot build is documented as tested only on Copilot CLI 1.0.87 through 1.0.92, with a noted skill-listing issue on 1.0.92 under certain caching conditions.",
+        "fit": "This port appears intended for developers already using Claude Code, Codex, Pi, GitHub Copilot, Muse, MiniMax Code, or other harnesses that read skills from `~/.agents/skills/`. For concurrency bugs or invariants beyond test coverage, the README points to a separate `agent-formal-verify` plugin for deeper formal verification methods."
       },
       "summary_status": "verified",
       "tag_rule_version": 2,
