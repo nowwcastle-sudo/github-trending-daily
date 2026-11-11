@@ -59,6 +59,11 @@ export const REPOSITORY_EXCLUSIONS = Object.freeze({
     decidedOn: "2026-09-23",
     revisit: "when the releases listing is pruned below 20 pages or the release-inventory contract changes",
   }),
+  "boykopovar/anyps5": Object.freeze({
+    reason: "Repository pushed over 24,000 commits ahead of the recorded observation head (24,833 ahead at 2026-11-10T23:40Z), exceeding the collector's 80-page (8,000 commits) continuity scan contract and causing repeated 'Commit continuity gap' / 'Ambiguous commit continuity' failures in Collect complete repository events",
+    decidedOn: "2026-11-11",
+    revisit: "when commit churn stabilizes or the collector supports fast-forward ancestry resolution without linear pagination",
+  }),
 });
 
 export function repositoryExclusion(slug) {

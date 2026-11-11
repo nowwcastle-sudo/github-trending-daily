@@ -133,7 +133,8 @@ test("repository documentation is English-first with a complete Korean counterpa
   assert.match(readme, /README variants from upstream only/);
   assert.match(koreanReadme, /^# GITHUB INSIGHT\r?\n\r?\n\[English\]\(README\.md\)/);
   assert.match(koreanReadme, /상류 저장소 README 언어판만 표시/);
-  assert.match(koreanReadme, /최초 관측 후 최소 1일이면 히스토리 확인 가능/);
+  // Scheduled observations can be delayed or skipped, so elapsed time alone cannot promise coverage.
+  assert.match(koreanReadme, /하루치 곡선이 쌓이는 고정 시간을 보장하지 않습니다/);
   assert.match(compatibilityReadme, /canonical English documentation is now \[README\.md\]\(README\.md\)/);
   for (const [document, headings] of [
     [readme, ["## 🗺️ Planned features", "## 📝 Requesting a feature"]],
