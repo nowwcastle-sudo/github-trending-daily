@@ -61,7 +61,7 @@ async function artifactContractFromGit(sourceSha, snapshotId, gitRoot, deadline)
     const script = fileURLToPath(new URL("./derive_repository_artifacts.py", import.meta.url));
     try {
       execFileSync(process.env.PYTHON_BIN || "python", [script, "export-contract", "--database", database, "--snapshot-id", snapshotId, "--contract-out", contract], {
-        encoding: "utf8", maxBuffer: 1024 * 1024, timeout: Math.max(1, Math.min(30_000, Math.ceil(remaining))), stdio: ["ignore", "pipe", "pipe"],
+        encoding: "utf8", maxBuffer: 1024 * 1024, timeout: Math.max(1, Math.min(120_000, Math.ceil(remaining))), stdio: ["ignore", "pipe", "pipe"],
       });
     } catch {
       throw new Error("Git repository observation artifact contract is invalid");
