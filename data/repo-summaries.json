@@ -228,47 +228,47 @@
   },
   "GoogleChrome/modern-web-guidance-src": {
     "content": {
-      "goal": "Modern Web Guidance is a set of skills that embeds web platform expertise, best practices, and browser compatibility data directly into coding agents, steering them away from legacy JavaScript patterns toward native modern web platform solutions.",
-      "usage": "Install via `npx modern-web-guidance@latest install`, which runs an interactive setup wizard. The CLI also exposes `search`, `retrieve`, and `legacy-scan` subcommands to query guides or scan a codebase for legacy patterns without installing.",
-      "pros": "The project documents coverage of 250 modern web features and 203 real-world developer use cases spanning CSS, HTML, JavaScript, forms, security, performance, and accessibility. Guides are also described as token-efficient, since eval results are used to prune content that models already know.",
-      "cons": "By default, the tool collects anonymous usage telemetry (installation counts, retrieval IDs, search queries), which teams with strict data-handling policies may need to review or disable via the `DISABLE_TELEMETRY=1` environment variable before adoption.",
-      "fit": "This appears best suited for teams integrating AI coding agents (such as Claude Code, Codex, or Antigravity) into web development workflows, where guidance covering CSS, JavaScript, forms, security, and performance could help reduce legacy pattern usage, though the README does not state a recommended team size or project scale."
+      "goal": "Modern Web Guidance is a set of skills that embeds web platform expertise, best practices, and browser compatibility data into coding agents, steering them away from legacy JavaScript patterns toward native web platform solutions. It covers areas like CSS, HTML, JavaScript APIs, performance, accessibility, and security guidance for AI-assisted coding workflows.",
+      "usage": "Install interactively with `npx modern-web-guidance@latest install`, or try it without installing using `npx modern-web-guidance@latest search \"animate a dialog modal backdrop\"` to find guides, `retrieve <guide-id>` to fetch one, or `npx modern-web-guidance@latest legacy-scan .` to scan a codebase for legacy patterns. Alternative installers exist for Vercel Skills CLI, GitHub CLI, and specific coding-agent plugin systems.",
+      "pros": "The project documents coverage of 250 modern web features and 203 real-world developer use cases, is stewarded by the Chrome, Edge, Firefox, and MDN teams, and reports eval results showing meaningful uplift in coding-agent task pass rates when guidance is applied versus unguided runs. Guides are described as token-efficient, pruned via evals against what models already know.",
+      "cons": "By default, Google collects anonymous telemetry, including installation counts, calling agent name, guide retrieval IDs, and CLI search queries, though this can be disabled by setting the `DISABLE_TELEMETRY=1` environment variable. This suggests users should weigh the default telemetry collection against their privacy preferences before adoption.",
+      "fit": "Given its CLI commands and plugin installers for tools like Claude Code, Codex, and Antigravity, this project appears best suited for teams using AI coding agents that want curated, up-to-date web platform guidance injected into their context window, rather than for projects without agent-based workflows."
     },
     "summaries": {
       "en": {
-        "goal": "Modern Web Guidance is a set of skills that embeds web platform expertise, best practices, and browser compatibility data directly into coding agents, steering them away from legacy JavaScript patterns toward native modern web platform solutions.",
-        "usage": "Install via `npx modern-web-guidance@latest install`, which runs an interactive setup wizard. The CLI also exposes `search`, `retrieve`, and `legacy-scan` subcommands to query guides or scan a codebase for legacy patterns without installing.",
-        "pros": "The project documents coverage of 250 modern web features and 203 real-world developer use cases spanning CSS, HTML, JavaScript, forms, security, performance, and accessibility. Guides are also described as token-efficient, since eval results are used to prune content that models already know.",
-        "cons": "By default, the tool collects anonymous usage telemetry (installation counts, retrieval IDs, search queries), which teams with strict data-handling policies may need to review or disable via the `DISABLE_TELEMETRY=1` environment variable before adoption.",
-        "fit": "This appears best suited for teams integrating AI coding agents (such as Claude Code, Codex, or Antigravity) into web development workflows, where guidance covering CSS, JavaScript, forms, security, and performance could help reduce legacy pattern usage, though the README does not state a recommended team size or project scale."
+        "goal": "Modern Web Guidance is a set of skills that embeds web platform expertise, best practices, and browser compatibility data into coding agents, steering them away from legacy JavaScript patterns toward native web platform solutions. It covers areas like CSS, HTML, JavaScript APIs, performance, accessibility, and security guidance for AI-assisted coding workflows.",
+        "usage": "Install interactively with `npx modern-web-guidance@latest install`, or try it without installing using `npx modern-web-guidance@latest search \"animate a dialog modal backdrop\"` to find guides, `retrieve <guide-id>` to fetch one, or `npx modern-web-guidance@latest legacy-scan .` to scan a codebase for legacy patterns. Alternative installers exist for Vercel Skills CLI, GitHub CLI, and specific coding-agent plugin systems.",
+        "pros": "The project documents coverage of 250 modern web features and 203 real-world developer use cases, is stewarded by the Chrome, Edge, Firefox, and MDN teams, and reports eval results showing meaningful uplift in coding-agent task pass rates when guidance is applied versus unguided runs. Guides are described as token-efficient, pruned via evals against what models already know.",
+        "cons": "By default, Google collects anonymous telemetry, including installation counts, calling agent name, guide retrieval IDs, and CLI search queries, though this can be disabled by setting the `DISABLE_TELEMETRY=1` environment variable. This suggests users should weigh the default telemetry collection against their privacy preferences before adoption.",
+        "fit": "Given its CLI commands and plugin installers for tools like Claude Code, Codex, and Antigravity, this project appears best suited for teams using AI coding agents that want curated, up-to-date web platform guidance injected into their context window, rather than for projects without agent-based workflows."
       },
       "ko": {
-        "goal": "Modern Web Guidance는 코딩 에이전트에 웹 플랫폼 전문 지식, 모범 사례, 브라우저 호환성 데이터를 직접 내장하는 스킬 모음으로, 레거시 JavaScript 패턴에서 벗어나 네이티브 최신 웹 플랫폼 솔루션을 사용하도록 유도합니다.",
-        "usage": "`npx modern-web-guidance@latest install` 명령으로 대화형 설치 마법사를 실행합니다. CLI는 `search`, `retrieve`, `legacy-scan` 하위 명령도 제공하여 설치 없이 가이드를 조회하거나 코드베이스의 레거시 패턴을 스캔할 수 있습니다.",
-        "pros": "문서에 따르면 CSS, HTML, JavaScript, 폼, 보안, 성능, 접근성 등 250개의 최신 웹 기능과 203개의 실제 개발자 사용 사례를 다룹니다. 또한 가이드는 평가 결과를 통해 모델이 이미 알고 있는 내용을 정리함으로써 토큰 효율적으로 설계되었다고 설명합니다.",
-        "cons": "기본적으로 설치 횟수, 검색어, 가이드 조회 ID 등의 익명 사용 텔레메트리를 수집하므로, 데이터 정책이 엄격한 팀은 도입 전에 `DISABLE_TELEMETRY=1` 환경 변수로 비활성화할지 검토해야 할 수 있습니다.",
-        "fit": "Claude Code, Codex, Antigravity 등 AI 코딩 에이전트를 웹 개발 워크플로에 통합하는 팀에 적합해 보이며, CSS·JavaScript·폼·보안·성능 가이드가 레거시 패턴 사용을 줄이는 데 도움이 될 수 있지만, README에는 권장 팀 규모나 프로젝트 범위가 명시되어 있지 않습니다."
+        "goal": "Modern Web Guidance는 코딩 에이전트에 웹 플랫폼 전문 지식, 모범 사례, 브라우저 호환성 데이터를 내장시키는 스킬 모음입니다. 레거시 JavaScript 패턴에서 벗어나 네이티브 웹 플랫폼 솔루션을 사용하도록 유도하며, CSS, HTML, JavaScript API, 성능, 접근성, 보안 등의 영역을 다룹니다.",
+        "usage": "`npx modern-web-guidance@latest install` 명령으로 대화형 설치 마법사를 실행할 수 있으며, 설치 없이도 `npx modern-web-guidance@latest search \"animate a dialog modal backdrop\"`로 가이드를 검색하거나 `retrieve <guide-id>`로 가져오거나 `npx modern-web-guidance@latest legacy-scan .`로 코드베이스의 레거시 패턴을 스캔해 볼 수 있습니다. Vercel Skills CLI, GitHub CLI 등 다양한 코딩 에이전트용 대체 설치 방법도 제공됩니다.",
+        "pros": "문서에 따르면 250개의 모던 웹 기능과 203개의 실제 개발자 사용 사례를 다루며, Chrome, Edge, Firefox, MDN 팀이 함께 관리합니다. 평가 결과 대시보드에서는 가이드를 적용했을 때와 적용하지 않았을 때 코딩 에이전트의 작업 통과율에 의미 있는 향상(uplift)이 있었다고 보고합니다. 가이드는 모델이 이미 아는 내용을 평가를 통해 가지치기하여 토큰 효율적으로 설계되었다고 설명됩니다.",
+        "cons": "기본적으로 Google은 설치 횟수, 호출 에이전트 이름, 가이드 검색 ID, CLI 검색 질의 등 익명 사용 정보를 수집하며, 이는 `DISABLE_TELEMETRY=1` 환경 변수를 설정하여 끌 수 있습니다. 이는 도입 전에 기본 텔레메트리 수집과 개인정보 선호 사항을 저울질해 볼 필요가 있음을 시사합니다.",
+        "fit": "Claude Code, Codex, Antigravity 등 다양한 코딩 에이전트를 위한 CLI 명령과 플러그인 설치 방법을 제공한다는 점에서, 이 프로젝트는 컨텍스트 윈도우에 최신 웹 플랫폼 가이드를 주입하고자 하는 AI 코딩 에이전트 기반 팀에 적합해 보이며, 에이전트 기반 워크플로가 없는 프로젝트에는 적합성이 낮을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "Modern Web Guidance 是一组技能集,将网络平台专业知识、最佳实践和浏览器兼容性数据直接嵌入编码代理,引导其避开过时的 JavaScript 模式,转而采用原生的现代网络平台解决方案。",
-        "usage": "通过 `npx modern-web-guidance@latest install` 运行交互式安装向导进行安装。该 CLI 还提供 `search`、`retrieve` 和 `legacy-scan` 子命令,无需安装即可查询指南或扫描代码库中的过时模式。",
-        "pros": "文档显示该项目涵盖 250 个现代网络功能和 203 个真实开发者用例,涉及 CSS、HTML、JavaScript、表单、安全、性能和无障碍等领域。文档还指出,指南借助评估结果精简了模型已知的内容,从而实现 token 效率。",
-        "cons": "该工具默认会收集匿名使用遥测数据(如安装次数、检索 ID、搜索查询),对数据政策严格的团队而言,在采用前可能需要评估是否通过 `DISABLE_TELEMETRY=1` 环境变量将其关闭。",
-        "fit": "该项目似乎更适合将 AI 编码代理(如 Claude Code、Codex 或 Antigravity)集成到网络开发工作流中的团队,其涵盖 CSS、JavaScript、表单、安全和性能的指南可能有助于减少过时模式的使用,但 README 并未说明推荐的团队规模或项目范围。"
+        "goal": "Modern Web Guidance 是一套将 Web 平台专业知识、最佳实践和浏览器兼容性数据嵌入编码代理的技能集合。它引导编码代理远离旧版 JavaScript 模式,转向原生 Web 平台解决方案,涵盖 CSS、HTML、JavaScript API、性能、无障碍和安全等方面的指导。",
+        "usage": "可以通过 `npx modern-web-guidance@latest install` 运行交互式安装向导进行安装;无需安装也可尝试使用 `npx modern-web-guidance@latest search \"animate a dialog modal backdrop\"` 搜索指南、`retrieve <guide-id>` 获取指南,或 `npx modern-web-guidance@latest legacy-scan .` 扫描代码库中的旧版模式。此外还提供 Vercel Skills CLI、GitHub CLI 等多种针对不同编码代理的替代安装方式。",
+        "pros": "文档表明该项目覆盖 250 个现代 Web 功能和 203 个真实开发者使用场景,由 Chrome、Edge、Firefox 和 MDN 团队共同维护。评估结果仪表板显示,使用指南后编码代理的任务通过率相较未使用时有明显提升(uplift)。指南被描述为通过评估剔除模型已知内容,从而实现 token 高效。",
+        "cons": "默认情况下,Google 会收集匿名使用信息,包括安装次数、调用代理名称、指南检索 ID 和 CLI 搜索查询,用户可通过设置环境变量 `DISABLE_TELEMETRY=1` 关闭该功能。这提示用户在采用前需权衡默认的遥测数据收集与自身隐私偏好。",
+        "fit": "鉴于该项目为 Claude Code、Codex、Antigravity 等多种编码代理提供了命令行工具和插件安装方式,它看起来更适合希望将经过筛选的最新 Web 平台指导注入上下文窗口的 AI 编码代理团队,而对没有采用代理化工作流程的项目适配性可能较低。"
       },
       "es": {
-        "goal": "Modern Web Guidance es un conjunto de habilidades que incorpora experiencia en la plataforma web, buenas prácticas y datos de compatibilidad de navegadores directamente en agentes de codificación, orientándolos a alejarse de patrones JavaScript heredados hacia soluciones nativas de la plataforma web moderna.",
-        "usage": "Se instala con el comando `npx modern-web-guidance@latest install`, que ejecuta un asistente interactivo. La CLI también ofrece los subcomandos `search`, `retrieve` y `legacy-scan` para consultar guías o analizar un código en busca de patrones heredados sin necesidad de instalación.",
-        "pros": "Según la documentación, el proyecto cubre 250 funciones web modernas y 203 casos de uso reales de desarrolladores en áreas como CSS, HTML, JavaScript, formularios, seguridad, rendimiento y accesibilidad. Además, se describe que las guías son eficientes en tokens, ya que los resultados de las evaluaciones se usan para eliminar contenido que los modelos ya conocen.",
-        "cons": "De forma predeterminada, la herramienta recopila telemetría de uso anónima (instalaciones, IDs de recuperación, consultas de búsqueda), por lo que los equipos con políticas de datos estrictas podrían necesitar evaluar si desactivarla mediante la variable de entorno `DISABLE_TELEMETRY=1` antes de adoptarla.",
-        "fit": "Parece adecuado para equipos que integran agentes de codificación con IA (como Claude Code, Codex o Antigravity) en flujos de desarrollo web, donde las guías de CSS, JavaScript, formularios, seguridad y rendimiento podrían ayudar a reducir patrones heredados, aunque el README no especifica un tamaño de equipo o alcance de proyecto recomendado."
+        "goal": "Modern Web Guidance es un conjunto de skills que incorpora experiencia en la plataforma web, mejores prácticas y datos de compatibilidad de navegadores directamente en los agentes de codificación. Orienta a estos agentes a alejarse de patrones JavaScript heredados y adoptar soluciones nativas de la plataforma web, cubriendo áreas como CSS, HTML, APIs de JavaScript, rendimiento, accesibilidad y seguridad.",
+        "usage": "Se instala de forma interactiva con `npx modern-web-guidance@latest install`, o puede probarse sin instalar usando `npx modern-web-guidance@latest search \"animate a dialog modal backdrop\"` para buscar guías, `retrieve <guide-id>` para recuperarlas, o `npx modern-web-guidance@latest legacy-scan .` para escanear un código base en busca de patrones heredados. También existen métodos de instalación alternativos mediante Vercel Skills CLI, GitHub CLI y plugins para distintos agentes de codificación.",
+        "pros": "La documentación indica que el proyecto cubre 250 funciones modernas de la web y 203 casos de uso reales de desarrolladores, y está respaldado por los equipos de Chrome, Edge, Firefox y MDN. Un panel de resultados de evaluación reporta mejoras (uplift) significativas en las tasas de éxito de tareas de agentes de codificación al usar la guía frente a no usarla. Las guías se describen como eficientes en tokens, depuradas mediante evaluaciones de lo que los modelos ya conocen.",
+        "cons": "Por defecto, Google recopila información de uso anónima, incluyendo el número de instalaciones, el nombre del agente que realiza la llamada, los IDs de las guías recuperadas y las consultas de búsqueda de la CLI, aunque esto puede desactivarse configurando la variable de entorno `DISABLE_TELEMETRY=1`. Esto sugiere que conviene sopesar la recopilación de telemetría por defecto frente a las preferencias de privacidad antes de adoptarlo.",
+        "fit": "Dado que ofrece comandos de CLI e instaladores de plugins para agentes como Claude Code, Codex y Antigravity, este proyecto parece más adecuado para equipos que utilizan agentes de codificación con IA y desean inyectar orientación actualizada sobre la plataforma web en su ventana de contexto, resultando menos relevante para proyectos sin flujos de trabajo basados en agentes."
       },
       "ja": {
-        "goal": "Modern Web Guidance は、ウェブプラットフォームの専門知識、ベストプラクティス、ブラウザ互換性データをコーディングエージェントに直接組み込むスキル群であり、レガシーな JavaScript パターンから脱却し、ネイティブな最新ウェブプラットフォームのソリューションへ導くことを目的としています。",
-        "usage": "`npx modern-web-guidance@latest install` コマンドでインタラクティブなセットアップウィザードを実行してインストールします。CLI には `search`、`retrieve`、`legacy-scan` サブコマンドもあり、インストールせずにガイドを検索したり、コードベース内のレガシーパターンをスキャンしたりできます。",
-        "pros": "文書によれば、このプロジェクトは CSS、HTML、JavaScript、フォーム、セキュリティ、パフォーマンス、アクセシビリティにわたる250個の最新ウェブ機能と203個の実際の開発者ユースケースをカバーしています。さらに、評価結果を用いてモデルが既に知っている内容を削減することで、ガイドはトークン効率が高いと説明されています。",
-        "cons": "このツールはデフォルトで匿名の使用状況テレメトリ(インストール数、取得ID、検索クエリなど)を収集するため、データポリシーが厳格なチームは、導入前に `DISABLE_TELEMETRY=1` 環境変数で無効化すべきかどうかを検討する必要がある場合があります。",
-        "fit": "Claude Code、Codex、Antigravity などのAIコーディングエージェントをウェブ開発ワークフローに統合するチームに適していると考えられ、CSS・JavaScript・フォーム・セキュリティ・パフォーマンスに関するガイドがレガシーパターンの使用を減らす助けになる可能性がありますが、README には推奨チーム規模やプロジェクト規模は明記されていません。"
+        "goal": "Modern Web Guidanceは、Webプラットフォームの専門知識、ベストプラクティス、ブラウザ互換性データをコーディングエージェントに直接組み込むスキル群です。レガシーなJavaScriptパターンから脱却し、ネイティブなWebプラットフォームのソリューションを採用するようエージェントを導き、CSS、HTML、JavaScript API、パフォーマンス、アクセシビリティ、セキュリティなどの分野をカバーします。",
+        "usage": "`npx modern-web-guidance@latest install` でインタラクティブなインストールウィザードを実行できます。インストールせずに試す場合は `npx modern-web-guidance@latest search \"animate a dialog modal backdrop\"` でガイドを検索し、`retrieve <guide-id>` で取得し、`npx modern-web-guidance@latest legacy-scan .` でコードベース内のレガシーパターンをスキャンできます。Vercel Skills CLIやGitHub CLIなど、コーディングエージェントごとの代替インストール方法も用意されています。",
+        "pros": "ドキュメントによると、本プロジェクトは250のモダンなWeb機能と203の実際の開発者ユースケースをカバーしており、Chrome、Edge、Firefox、MDNの各チームによって運営されています。評価結果のダッシュボードでは、ガイダンスを適用した場合と適用しなかった場合でコーディングエージェントのタスク成功率に明確な向上(uplift)が報告されています。ガイドはモデルが既に知っている内容を評価によって削減することで、トークン効率的に設計されていると説明されています。",
+        "cons": "デフォルトでは、Googleはインストール回数、呼び出し元エージェント名、ガイド取得ID、CLI検索クエリなどの匿名使用情報を収集しますが、環境変数 `DISABLE_TELEMETRY=1` を設定することでこれを無効化できます。このことから、導入前にデフォルトのテレメトリ収集とプライバシーに関する希望を比較検討する必要があることが示唆されます。",
+        "fit": "Claude Code、Codex、Antigravityなど複数のコーディングエージェント向けにCLIコマンドやプラグインのインストール方法が提供されていることから、本プロジェクトはコンテキストウィンドウに最新のWebプラットフォームガイダンスを注入したいAIコーディングエージェント利用チームに適していると考えられ、エージェントベースのワークフローを持たないプロジェクトには適合性が低い可能性があります。"
       }
     },
     "evidence": {
@@ -277,12 +277,17 @@
           "start_line": 3,
           "end_line": 5,
           "section_heading": "<img src=\"./.github/img/modern-web-guidance.svg\" alt=\"Modern Web Guidance\" width=\"30\" height=\"30\"> Modern Web Guidance (Source)"
+        },
+        {
+          "start_line": 42,
+          "end_line": 45,
+          "section_heading": "<img src=\"https://github.com/GoogleChrome/modern-web-guidance/raw/main/.github/img/lightbulb.svg\" width=\"24\" height=\"24\" style=\"vertical-align: middle; margin-right: 4px;\"> Why?"
         }
       ],
       "usage": [
         {
           "start_line": 17,
-          "end_line": 21,
+          "end_line": 19,
           "section_heading": "<img src=\"https://github.com/GoogleChrome/modern-web-guidance/raw/main/.github/img/terminal.svg\" width=\"24\" height=\"24\" style=\"vertical-align: middle; margin-right: 4px;\"> Quickstart"
         },
         {
@@ -293,33 +298,38 @@
       ],
       "pros": [
         {
-          "start_line": 47,
-          "end_line": 51,
+          "start_line": 49,
+          "end_line": 49,
           "section_heading": "<img src=\"https://github.com/GoogleChrome/modern-web-guidance/raw/main/.github/img/package.svg\" width=\"24\" height=\"24\" style=\"vertical-align: middle; margin-right: 4px;\"> What's Included?"
         },
         {
-          "start_line": 88,
-          "end_line": 96,
+          "start_line": 90,
+          "end_line": 90,
           "section_heading": "The full list"
         },
         {
-          "start_line": 193,
-          "end_line": 195,
-          "section_heading": "JavaScript & APIs (74 features)"
+          "start_line": 598,
+          "end_line": 610,
+          "section_heading": "Recent eval results snapshot"
         }
       ],
       "cons": [
         {
-          "start_line": 610,
-          "end_line": 618,
+          "start_line": 624,
+          "end_line": 632,
           "section_heading": "<img src=\"https://github.com/GoogleChrome/modern-web-guidance/raw/main/.github/img/lock.svg\" width=\"24\" height=\"24\" style=\"vertical-align: middle; margin-right: 4px;\"> Telemetry & Privacy"
         }
       ],
       "fit": [
         {
           "start_line": 479,
-          "end_line": 523,
+          "end_line": 548,
           "section_heading": "<img src=\"https://github.com/GoogleChrome/modern-web-guidance/raw/main/.github/img/package.svg\" width=\"24\" height=\"24\" style=\"vertical-align: middle; margin-right: 4px;\"> Alternative Installation Methods"
+        },
+        {
+          "start_line": 613,
+          "end_line": 622,
+          "section_heading": "<img src=\"https://github.com/GoogleChrome/modern-web-guidance/raw/main/.github/img/boxes.svg\" width=\"24\" height=\"24\" style=\"vertical-align: middle; margin-right: 4px;\"> Available Skill Packs"
         }
       ]
     },
@@ -332,15 +342,36 @@
         ]
       },
       {
+        "kind": "command",
+        "value": "npx modern-web-guidance@latest search \"animate a dialog modal backdrop\"",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "npx modern-web-guidance@latest legacy-scan .",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "DISABLE_TELEMETRY=1",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
         "kind": "number",
-        "value": "250 modern web features",
+        "value": "250",
         "fields": [
           "pros"
         ]
       },
       {
         "kind": "number",
-        "value": "203 real-world developer use cases",
+        "value": "203",
         "fields": [
           "pros"
         ]
@@ -361,8 +392,8 @@
       "kind": "readme",
       "slug": "googlechrome/modern-web-guidance-src",
       "path": "README.md",
-      "blob_sha": "d130c0043c81edb4dc74c8bb279c625a591fc6ac",
-      "content_sha256": "e6fc039f1363ee602b84e60a315cb4854c026f7a03ed0409e5337bf87b1a5645",
+      "blob_sha": "0ccd772b5e62eea09b54b454f0bd75a33b511503",
+      "content_sha256": "df1c8aaf115aa82911befafcc71d5c97585618d25141ad3ad2aec69b8c77f68e",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.322",
@@ -2943,6 +2974,233 @@
       "path": "README.md",
       "blob_sha": "53f71fd42a568994479edfa5063c58ca0b5dad8d",
       "content_sha256": "a96587f37a6e624a56ceba9402892f072229b49f50dc6f56b1c128ce9a2126b2",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.322",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "google/elephant-goldfish-model": {
+    "content": {
+      "goal": "EGM (Elephant-Goldfish Model, https://egm.dev) is an open-source plugin for AI coding assistants. It develops software specifications with full project context (the 'Elephant' role), then has reviewers without that context (the 'Goldfish' role) examine drafts to surface unstated assumptions.",
+      "usage": "Installation commands vary by agent: for Claude Code, run `claude plugin marketplace add google/elephant-goldfish-model` then `claude plugin install egm@egm`. Skills are invoked with commands like `/egm-brainstorm`, `/egm-draft`, and `/egm-review`, or `/egm:egm-drift-report` to compare documents against source code.",
+      "pros": "Goldfish reviewers examine drafts and referenced material without the prior conversation, which the README states helps expose unstated assumptions and blind spots. A drift-report skill flags divergence between saved documents and current source code.",
+      "cons": "Goldfish reviews require a session able to create fresh subagents; otherwise EGM stops the review, and a review does not replace tests or human judgment. Command auto-completion also differs between agy CLI 1.4.10 and 1.4.8 (issues #220, #196), so keeping the `/egm:` prefix explicit may be safer across versions.",
+      "fit": "The built-in workflow targets software specifications; other document types need reviewers chosen via `/egm-review-loop`, and bootstrap/drift reporting apply to software codebases. Licensed under Apache 2.0, it is explicitly not an officially supported Google product, suggesting limited official support."
+    },
+    "summaries": {
+      "en": {
+        "goal": "EGM (Elephant-Goldfish Model, https://egm.dev) is an open-source plugin for AI coding assistants. It develops software specifications with full project context (the 'Elephant' role), then has reviewers without that context (the 'Goldfish' role) examine drafts to surface unstated assumptions.",
+        "usage": "Installation commands vary by agent: for Claude Code, run `claude plugin marketplace add google/elephant-goldfish-model` then `claude plugin install egm@egm`. Skills are invoked with commands like `/egm-brainstorm`, `/egm-draft`, and `/egm-review`, or `/egm:egm-drift-report` to compare documents against source code.",
+        "pros": "Goldfish reviewers examine drafts and referenced material without the prior conversation, which the README states helps expose unstated assumptions and blind spots. A drift-report skill flags divergence between saved documents and current source code.",
+        "cons": "Goldfish reviews require a session able to create fresh subagents; otherwise EGM stops the review, and a review does not replace tests or human judgment. Command auto-completion also differs between agy CLI 1.4.10 and 1.4.8 (issues #220, #196), so keeping the `/egm:` prefix explicit may be safer across versions.",
+        "fit": "The built-in workflow targets software specifications; other document types need reviewers chosen via `/egm-review-loop`, and bootstrap/drift reporting apply to software codebases. Licensed under Apache 2.0, it is explicitly not an officially supported Google product, suggesting limited official support."
+      },
+      "ko": {
+        "goal": "EGM(Elephant-Goldfish Model, https://egm.dev)은 AI 코딩 어시스턴트를 위한 오픈소스 플러그인으로 소개됩니다. 'Elephant' 역할은 전체 프로젝트 컨텍스트를 가지고 소프트웨어 명세서 초안을 작성하고, 'Goldfish' 역할은 이전 대화 맥락 없이 그 초안을 검토하여 암묵적인 가정을 드러내는 것을 목표로 합니다.",
+        "usage": "설치 명령은 에이전트마다 다릅니다. Claude Code의 경우 `claude plugin marketplace add google/elephant-goldfish-model`을 실행한 뒤 `claude plugin install egm@egm`을 실행합니다. 이후 `/egm-brainstorm`, `/egm-draft`, `/egm-review` 같은 명령으로 스킬을 호출하거나, `/egm:egm-drift-report`로 문서와 소스 코드를 비교할 수 있습니다.",
+        "pros": "Goldfish 리뷰어는 이전 대화 없이 초안과 참조 자료만 검토하는데, README는 이것이 암묵적 가정과 사각지대를 드러내는 데 도움이 된다고 설명합니다. 또한 drift-report 스킬은 저장된 문서와 현재 소스 코드 간의 차이를 표시합니다.",
+        "cons": "Goldfish 리뷰는 새로운 서브에이전트를 생성할 수 있는 세션이 필요하며, 그렇지 않으면 EGM이 리뷰를 중단하고, 리뷰는 테스트나 사람의 판단을 대체하지 않습니다. 또한 agy CLI 1.4.10과 1.4.8(이슈 #220, #196) 사이에 명령 자동완성 동작이 다르다고 명시되어 있어, `/egm:` 접두사를 명시적으로 유지하는 것이 버전 간 더 안전할 수 있습니다.",
+        "fit": "기본 제공되는 초안 작성·검토 워크플로는 소프트웨어 명세서를 대상으로 하며, 다른 문서 유형은 `/egm-review-loop`를 통해 리뷰어를 선택해야 하고, bootstrap과 drift-report 기능은 소프트웨어 코드베이스에 적용됩니다. Apache 2.0 라이선스로 제공되며 공식적으로 지원되는 Google 제품이 아니라고 명시되어 있어, 공식 지원 범위가 제한적일 수 있음을 시사합니다."
+      },
+      "zh-CN": {
+        "goal": "EGM(Elephant-Goldfish Model,https://egm.dev)被介绍为一款面向 AI 编程助手的开源插件。'Elephant' 角色在掌握完整项目上下文的情况下起草软件规格说明,'Goldfish' 角色则在不了解此前对话的情况下审查该草稿,以便暴露未言明的假设。",
+        "usage": "安装命令因所用代理而异:在 Claude Code 中,先运行 `claude plugin marketplace add google/elephant-goldfish-model`,再运行 `claude plugin install egm@egm`。之后可通过 `/egm-brainstorm`、`/egm-draft`、`/egm-review` 等命令调用相应技能,或使用 `/egm:egm-drift-report` 将文档与源代码进行比较。",
+        "pros": "Goldfish 审查者在不了解此前对话的情况下检查草稿及其引用材料,README 指出这有助于暴露未言明的假设和盲点。此外还包含 drift-report 技能,用于标记已保存文档与当前源代码之间的差异。",
+        "cons": "Goldfish 审查需要能够创建全新子代理的会话,否则 EGM 会停止审查,并且审查并不能替代测试或人工判断。README 还提到 agy CLI 1.4.10 与 1.4.8(问题 #220、#196)在命令自动补全行为上存在差异,因此跨版本显式保留 `/egm:` 前缀可能更为稳妥。",
+        "fit": "内置的起草与审查工作流面向软件规格说明;其他文档类型需要通过 `/egm-review-loop` 选择审查者,bootstrap 和 drift-report 功能则适用于软件代码库。该项目采用 Apache 2.0 许可证,并明确说明并非 Google 官方支持的产品,这可能意味着其官方支持渠道有限。"
+      },
+      "es": {
+        "goal": "EGM (Elephant-Goldfish Model, https://egm.dev) se presenta como un plugin de código abierto para asistentes de codificación con IA. El rol 'Elephant' redacta especificaciones de software con el contexto completo del proyecto, mientras que el rol 'Goldfish' revisa ese borrador sin conocer la conversación previa, con el fin de exponer suposiciones no declaradas.",
+        "usage": "Los comandos de instalación varían según el agente: en Claude Code se ejecuta `claude plugin marketplace add google/elephant-goldfish-model` y luego `claude plugin install egm@egm`. Las habilidades se invocan con comandos como `/egm-brainstorm`, `/egm-draft` y `/egm-review`, o `/egm:egm-drift-report` para comparar documentos con el código fuente.",
+        "pros": "Los revisores Goldfish examinan el borrador y el material referenciado sin la conversación previa, lo que según el README ayuda a exponer suposiciones no declaradas y puntos ciegos. También incluye una habilidad de drift-report que señala divergencias entre documentos guardados y el código fuente actual.",
+        "cons": "Las revisiones Goldfish requieren una sesión capaz de crear subagentes nuevos; si no, EGM detiene la revisión, y una revisión no sustituye a las pruebas ni al juicio humano. El README también indica que el comportamiento de autocompletado difiere entre agy CLI 1.4.10 y 1.4.8 (incidencias #220, #196), por lo que mantener explícito el prefijo `/egm:` podría ser más seguro entre versiones.",
+        "fit": "El flujo integrado de borrador y revisión está orientado a especificaciones de software; otros tipos de documentos requieren elegir revisores mediante `/egm-review-loop`, y las funciones de bootstrap y drift-report se aplican a bases de código de software. Se distribuye bajo licencia Apache 2.0 y se indica explícitamente que no es un producto oficialmente respaldado por Google, lo que podría sugerir un soporte oficial limitado."
+      },
+      "ja": {
+        "goal": "EGM(Elephant-Goldfish Model、https://egm.dev)は、AIコーディングアシスタント向けのオープンソースプラグインとして紹介されています。「Elephant」の役割はプロジェクトの文脈を踏まえてソフトウェア仕様書の草稿を作成し、「Goldfish」の役割は以前の会話を知らない状態でその草稿を検証することで、暗黙の前提を明らかにすることを目指します。",
+        "usage": "インストールコマンドは利用するエージェントによって異なります。Claude Code の場合は `claude plugin marketplace add google/elephant-goldfish-model` を実行した後、`claude plugin install egm@egm` を実行します。その後、`/egm-brainstorm`、`/egm-draft`、`/egm-review` などのコマンドでスキルを呼び出したり、`/egm:egm-drift-report` で文書とソースコードを比較したりできます。",
+        "pros": "Goldfish レビュアーは以前の会話を知らないまま草稿と参照資料を確認し、READMEによればこれは暗黙の前提や死角を明らかにするのに役立つとされています。さらに、保存済み文書と現在のソースコードの差異を示す drift-report スキルも含まれています。",
+        "cons": "Goldfish レビューには新しいサブエージェントを作成できるセッションが必要で、できない場合は EGM がレビューを停止し、レビューはテストや人間の判断を代替しません。また README では agy CLI 1.4.10 と 1.4.8(issue #220、#196)でコマンドの自動補完動作が異なると述べられており、バージョンをまたいでは `/egm:` プレフィックスを明示的に保つ方が安全な可能性があります。",
+        "fit": "組み込みの草稿・レビューのワークフローはソフトウェア仕様書を対象としており、他の文書タイプでは `/egm-review-loop` を使ってレビュアーを選ぶ必要があり、bootstrap と drift-report の機能はソフトウェアのコードベースに適用されます。Apache 2.0 ライセンスで提供され、Google の公式サポート製品ではないと明記されており、公式サポートの範囲が限られている可能性を示唆しています。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 16,
+          "end_line": 16,
+          "section_heading": ""
+        },
+        {
+          "start_line": 18,
+          "end_line": 18,
+          "section_heading": ""
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 43,
+          "end_line": 44,
+          "section_heading": "Claude Code"
+        },
+        {
+          "start_line": 85,
+          "end_line": 85,
+          "section_heading": "Try your first design"
+        },
+        {
+          "start_line": 101,
+          "end_line": 101,
+          "section_heading": "Try your first design"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 18,
+          "end_line": 18,
+          "section_heading": ""
+        },
+        {
+          "start_line": 74,
+          "end_line": 74,
+          "section_heading": "Try a 60-second review on existing code"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 121,
+          "end_line": 121,
+          "section_heading": "How it works"
+        },
+        {
+          "start_line": 80,
+          "end_line": 80,
+          "section_heading": "Try your first design"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 20,
+          "end_line": 20,
+          "section_heading": ""
+        },
+        {
+          "start_line": 157,
+          "end_line": 157,
+          "section_heading": "License"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "claude plugin marketplace add google/elephant-goldfish-model",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "claude plugin install egm@egm",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/egm-brainstorm",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/egm-draft",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/egm-review",
+        "fields": [
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/egm:egm-drift-report",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "1.4.10",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "1.4.8",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "220",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "196",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://egm.dev",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "google/elephant-goldfish-model",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Apache 2.0",
+        "fields": [
+          "fit"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "cons",
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "google/elephant-goldfish-model",
+      "path": "README.md",
+      "blob_sha": "d570bc7dee8f29e09f243e6a6245976bb803da15",
+      "content_sha256": "0fc6a29c3538c43e12193f77fc1f0b462de357a21ac7e2effd78fd2f65fa0d37",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.322",

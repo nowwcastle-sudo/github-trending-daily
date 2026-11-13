@@ -1,8 +1,8 @@
 {
-  "snapshotId": "20261113105120-e2de53efa2f8c5be",
-  "generatedAt": "2026-11-13T10:51:20.274Z",
-  "statsDate": "2026-11-13",
-  "count": 37,
+  "snapshotId": "20261113212356-319492ee41e6e2eb",
+  "generatedAt": "2026-11-13T21:23:56.702Z",
+  "statsDate": "2026-11-14",
+  "count": 38,
   "repos": [
     {
       "slug": "alibaba/open-code-review",
@@ -17,9 +17,9 @@
         "harness",
         "repository-level-context"
       ],
-      "stars": 50109,
-      "forks": 3720,
-      "issues": 334,
+      "stars": 50524,
+      "forks": 3749,
+      "issues": 339,
       "contributors": 219,
       "gains": {
         "daily": 206,
@@ -34,7 +34,7 @@
         "cons": "The tool requires Git 2.41 or later and, unless Delegation Mode is used, a separately configured and authenticated LLM provider before any review can run. The README also states that recall is deliberately lower than general-purpose agents, trading some missed issues for fewer false positives.",
         "fit": "Based on the documented features, it appears best suited to teams wanting automated, diff-aware code review integrated into CI/CD pipelines or coding-agent workflows, rather than as a replacement for broader general-purpose coding agents where higher recall matters more than precision."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -51,10 +51,10 @@
       "description": "Keep your coding agent up to date with the latest web best practices",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 4040,
-      "forks": 238,
+      "stars": 4688,
+      "forks": 263,
       "issues": 387,
-      "contributors": 71,
+      "contributors": 75,
       "gains": {
         "daily": 1875,
         "weekly": null,
@@ -62,13 +62,13 @@
       },
       "signal": null,
       "summary": {
-        "goal": "Modern Web Guidance is a set of skills that embeds web platform expertise, best practices, and browser compatibility data directly into coding agents, steering them away from legacy JavaScript patterns toward native modern web platform solutions.",
-        "usage": "Install via `npx modern-web-guidance@latest install`, which runs an interactive setup wizard. The CLI also exposes `search`, `retrieve`, and `legacy-scan` subcommands to query guides or scan a codebase for legacy patterns without installing.",
-        "pros": "The project documents coverage of 250 modern web features and 203 real-world developer use cases spanning CSS, HTML, JavaScript, forms, security, performance, and accessibility. Guides are also described as token-efficient, since eval results are used to prune content that models already know.",
-        "cons": "By default, the tool collects anonymous usage telemetry (installation counts, retrieval IDs, search queries), which teams with strict data-handling policies may need to review or disable via the `DISABLE_TELEMETRY=1` environment variable before adoption.",
-        "fit": "This appears best suited for teams integrating AI coding agents (such as Claude Code, Codex, or Antigravity) into web development workflows, where guidance covering CSS, JavaScript, forms, security, and performance could help reduce legacy pattern usage, though the README does not state a recommended team size or project scale."
+        "goal": "Modern Web Guidance is a set of skills that embeds web platform expertise, best practices, and browser compatibility data into coding agents, steering them away from legacy JavaScript patterns toward native web platform solutions. It covers areas like CSS, HTML, JavaScript APIs, performance, accessibility, and security guidance for AI-assisted coding workflows.",
+        "usage": "Install interactively with `npx modern-web-guidance@latest install`, or try it without installing using `npx modern-web-guidance@latest search \"animate a dialog modal backdrop\"` to find guides, `retrieve <guide-id>` to fetch one, or `npx modern-web-guidance@latest legacy-scan .` to scan a codebase for legacy patterns. Alternative installers exist for Vercel Skills CLI, GitHub CLI, and specific coding-agent plugin systems.",
+        "pros": "The project documents coverage of 250 modern web features and 203 real-world developer use cases, is stewarded by the Chrome, Edge, Firefox, and MDN teams, and reports eval results showing meaningful uplift in coding-agent task pass rates when guidance is applied versus unguided runs. Guides are described as token-efficient, pruned via evals against what models already know.",
+        "cons": "By default, Google collects anonymous telemetry, including installation counts, calling agent name, guide retrieval IDs, and CLI search queries, though this can be disabled by setting the `DISABLE_TELEMETRY=1` environment variable. This suggests users should weigh the default telemetry collection against their privacy preferences before adoption.",
+        "fit": "Given its CLI commands and plugin installers for tools like Claude Code, Codex, and Antigravity, this project appears best suited for teams using AI coding agents that want curated, up-to-date web platform guidance injected into their context window, rather than for projects without agent-based workflows."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -101,9 +101,9 @@
         "typescript",
         "vulnerability-scanning"
       ],
-      "stars": 12774,
-      "forks": 1001,
-      "issues": 156,
+      "stars": 13065,
+      "forks": 1021,
+      "issues": 163,
       "contributors": 90,
       "gains": {
         "daily": 754,
@@ -118,7 +118,7 @@
         "cons": "Running the CLI requires Node.js 22.13.0+ within the 22.x line, or Node.js 24.x or 26.x, plus Python 3.10+, with Python 3.10 additionally requiring the `tomli` package — suggesting setup that may not be trivial for every environment. The previously available local `serve` command and browser dashboard have also been removed.",
         "fit": "The project appears best suited for teams integrating security scanning into Codex sessions, CI pipelines via GitHub Actions, or TypeScript-based automation, since it offers SDK and Action integration alongside an optional Codex Security Cloud connection for reading existing findings."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "dev-tools",
@@ -143,10 +143,10 @@
         "quantitative-finance",
         "quantitative-trading"
       ],
-      "stars": 71192,
-      "forks": 57203,
-      "issues": 55,
-      "contributors": 140,
+      "stars": 71515,
+      "forks": 57268,
+      "issues": 54,
+      "contributors": 142,
       "gains": {
         "daily": 272,
         "weekly": 3569,
@@ -160,7 +160,7 @@
         "cons": "Out of the box it relies on free data sources (AkShare, Baostock, YFinance), which the documentation states are subject to upstream rate limits, interface changes, and network fluctuations, with stability not guaranteed; paid token-based sources are suggested for more demanding or long-running use.",
         "fit": "Released under the MIT License, the project appears best suited to individual investors or developers seeking automated, multi-market daily stock screening integrated with chat notification tools, though the README frames it as intended for learning and research rather than investment advice."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -176,10 +176,10 @@
       "description": "The personal finance app for everyone (by everyone)",
       "lang": "Ruby",
       "topics": [],
-      "stars": 14324,
-      "forks": 1078,
-      "issues": 915,
-      "contributors": 457,
+      "stars": 14658,
+      "forks": 1109,
+      "issues": 918,
+      "contributors": 459,
       "gains": {
         "daily": 944,
         "weekly": null,
@@ -217,9 +217,9 @@
         "plan-mode",
         "skills"
       ],
-      "stars": 10234,
-      "forks": 776,
-      "issues": 195,
+      "stars": 10395,
+      "forks": 782,
+      "issues": 205,
       "contributors": 190,
       "gains": {
         "daily": 100,
@@ -234,7 +234,7 @@
         "cons": "Each review surface checks GitHub for the latest release on load, which sends an ordinary network request with no opt-out setting currently available, and some network features (URL annotation, Ask AI, GitHub/GitLab review, sharing) do send content externally when used.",
         "fit": "It appears suited for individual or team developers who want an in-browser review and feedback loop across multiple AI coding agents, though teams needing collaborative sharing may need to rely on the separately hosted Workspaces product since open-source link sharing is moving toward deprecated status."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -262,9 +262,9 @@
         "webapp",
         "websocket"
       ],
-      "stars": 93604,
-      "forks": 8706,
-      "issues": 853,
+      "stars": 93805,
+      "forks": 8719,
+      "issues": 852,
       "contributors": 1160,
       "gains": {
         "daily": 61,
@@ -279,10 +279,9 @@
         "cons": "The README notes NFS file systems are not supported for the Docker volume, and FreeBSD/OpenBSD/NetBSD plus Replit/Heroku platforms are explicitly unsupported for non-Docker installs, which may limit deployment options in certain environments.",
         "fit": "Based on the documented requirements, this tool appears best suited for users with Docker or a compatible Linux/Windows/Node.js environment who need self-hosted uptime monitoring rather than a managed/SaaS solution."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
-        "web-app",
         "devops"
       ],
       "form_tags": []
@@ -293,10 +292,10 @@
       "description": "A hive mind communication platform",
       "lang": "Rust",
       "topics": [],
-      "stars": 37132,
-      "forks": 4930,
-      "issues": 3845,
-      "contributors": 134,
+      "stars": 37273,
+      "forks": 4940,
+      "issues": 3856,
+      "contributors": 135,
       "gains": {
         "daily": 95,
         "weekly": null,
@@ -310,16 +309,14 @@
         "cons": "The README lists several features, including web-of-trust reputation, push notifications, and 'culture features', as 'Strong opinions, pending code,' and explicitly warns against planning a compliance program around that column, indicating notable functionality is still unimplemented; the project also describes itself as 'not finished.'",
         "fit": "Based on its reliance on Docker, Postgres, Redis, and MinIO plus a Rust/Node toolchain, Buzz appears best suited to teams willing to self-host infrastructure for an integrated chat, git, and agent-workflow hub, rather than those seeking a zero-setup SaaS product."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
         "dev-tools",
         "productivity"
       ],
-      "form_tags": [
-        "ide"
-      ]
+      "form_tags": []
     },
     {
       "slug": "tradermonty/claude-trading-skills",
@@ -327,9 +324,9 @@
       "description": "Claude Code skills for equity investors and traders — market analysis, technical charting, economic calendars, screeners, and trading strategy development.",
       "lang": "Python",
       "topics": [],
-      "stars": 3839,
-      "forks": 842,
-      "issues": 74,
+      "stars": 4104,
+      "forks": 859,
+      "issues": 79,
       "contributors": 31,
       "gains": {
         "daily": 60,
@@ -344,7 +341,7 @@
         "cons": "Several core workflows, such as core-portfolio-weekly and swing-opportunity-daily, require paid integrations like FMP, FINVIZ Elite ($39.50/month or $299.50/year), or Alpaca, with manual CSV listed as a 'degraded' fallback. The README states this is not a signal service or a promise of profitability, so actual outcomes likely depend heavily on the user's own judgment and execution.",
         "fit": "Suited to investors seeking a structured decision process around long-term, ETF, and dividend holdings supplemented by occasional swing trades; it is not designed for fully automated trading, signal outsourcing, or short-term scalping."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -361,12 +358,12 @@
       "description": "like netcat, but over Tailscale's data plane, without Tailscale's control plane",
       "lang": "Go",
       "topics": [],
-      "stars": 9153,
-      "forks": 421,
-      "issues": 41,
+      "stars": 9396,
+      "forks": 429,
+      "issues": 42,
       "contributors": 357,
       "gains": {
-        "daily": 173,
+        "daily": 324,
         "weekly": null,
         "monthly": null
       },
@@ -378,7 +375,7 @@
         "cons": "The README states there are no API, CLI, or wire-format stability promises, and the public DERP relays carry no uptime or throughput guarantees, with access revocable at any time.",
         "fit": "It appears suited for ad hoc peer-to-peer connectivity, file transfer, SSH, or port forwarding between two machines without a full Tailscale deployment; an experimental browser-based WASM demo is also provided."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "security"
@@ -393,9 +390,9 @@
       "description": "Bring PS5 GTA6 to 120FPS with DLSS 5. An advanced Windows video player and capture enhancement tool featuring real-time preview for videos, images, and capture card sources. Combine AI-powered Super Resolution, DLSS5 image enhancement, and Frame Generation to deliver a next-generation visual experience.",
       "lang": "C++",
       "topics": [],
-      "stars": 1381,
-      "forks": 65,
-      "issues": 58,
+      "stars": 1579,
+      "forks": 71,
+      "issues": 60,
       "contributors": 8,
       "gains": {
         "daily": 245,
@@ -410,7 +407,7 @@
         "cons": "The README states Windows 11 x64 and DirectX 12 are required, with GPU and capture drivers installed separately. The Limitations section also indicates RTSS overlay compatibility was only verified locally with one specific driver/GPU combination, suggesting other overlay/hardware pairings, Xbox long-run stability, and some NR TDR/VRAM-growth reports remain unresolved or unverified.",
         "fit": "It appears suited for Windows 11 users with NVIDIA or AMD GPUs who want to enhance local video, capture-card input, or PS5/PC/Xbox streaming in real time, though some AMD NR/FG paths and cross-device streaming are described as experimental or only partially verified."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -433,12 +430,12 @@
         "mcp-server",
         "puppeteer"
       ],
-      "stars": 55196,
-      "forks": 4606,
-      "issues": 122,
-      "contributors": 166,
+      "stars": 55404,
+      "forks": 4602,
+      "issues": 116,
+      "contributors": 167,
       "gains": {
-        "daily": 60,
+        "daily": 145,
         "weekly": null,
         "monthly": null
       },
@@ -450,7 +447,7 @@
         "cons": "The README states only Google Chrome and Chrome for Testing are officially supported, so other Chromium-based browsers may behave unpredictably; usage statistics are also collected by default unless explicitly disabled.",
         "fit": "This tool appears suited for developers integrating browser debugging and automation into AI coding agents, and requires Node.js LTS, a current stable Chrome, and npm."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "dev-tools"
@@ -482,8 +479,8 @@
         "sherlock",
         "tools"
       ],
-      "stars": 110780,
-      "forks": 12830,
+      "stars": 111062,
+      "forks": 12854,
       "issues": 412,
       "contributors": 315,
       "gains": {
@@ -517,9 +514,9 @@
       "topics": [
         "agent-skills"
       ],
-      "stars": 193915,
-      "forks": 22810,
-      "issues": 1529,
+      "stars": 194106,
+      "forks": 22826,
+      "issues": 1527,
       "contributors": 17,
       "gains": {
         "daily": null,
@@ -561,10 +558,10 @@
         "self-hosted",
         "typescript"
       ],
-      "stars": 21949,
-      "forks": 3044,
-      "issues": 1032,
-      "contributors": 255,
+      "stars": 22138,
+      "forks": 3071,
+      "issues": 1039,
+      "contributors": 271,
       "gains": {
         "daily": null,
         "weekly": 9104,
@@ -578,7 +575,7 @@
         "cons": "Ubuntu support is still documented as beta, with Wayland-based host control disabled pending resolution of issue #345, suggesting Linux users may currently face more limited or unstable functionality than macOS/Windows users.",
         "fit": "This tool likely suits users who already hold Claude, Codex, or Grok CLI access and want a unified local-first chat interface for multiple agents, though building from source appears to require Node 24+ and pnpm, and full desktop capabilities seem most mature on macOS and Windows rather than Linux."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -595,9 +592,9 @@
       "description": "Browser automation CLI for AI agents",
       "lang": "Rust",
       "topics": [],
-      "stars": 50489,
-      "forks": 3512,
-      "issues": 573,
+      "stars": 50674,
+      "forks": 3523,
+      "issues": 570,
       "contributors": 121,
       "gains": {
         "daily": null,
@@ -623,14 +620,64 @@
       ]
     },
     {
+      "slug": "google/elephant-goldfish-model",
+      "name": "google / elephant-goldfish-model",
+      "description": "Open-source plugin for designing and reviewing software with agents",
+      "lang": "Python",
+      "topics": [
+        "agent-skills",
+        "ai-agents",
+        "antigravity",
+        "claude-code",
+        "claude-code-plugin",
+        "claude-skills",
+        "codex",
+        "codex-plugin",
+        "coding-agents",
+        "context-engineering",
+        "developer-tools",
+        "gemini",
+        "llm",
+        "multi-agent",
+        "prompt-engineering",
+        "spec-driven-development"
+      ],
+      "stars": 18567,
+      "forks": 1383,
+      "issues": 103,
+      "contributors": 36,
+      "gains": {
+        "daily": null,
+        "weekly": 5555,
+        "monthly": null
+      },
+      "signal": null,
+      "summary": {
+        "goal": "EGM (Elephant-Goldfish Model, https://egm.dev) is an open-source plugin for AI coding assistants. It develops software specifications with full project context (the 'Elephant' role), then has reviewers without that context (the 'Goldfish' role) examine drafts to surface unstated assumptions.",
+        "usage": "Installation commands vary by agent: for Claude Code, run `claude plugin marketplace add google/elephant-goldfish-model` then `claude plugin install egm@egm`. Skills are invoked with commands like `/egm-brainstorm`, `/egm-draft`, and `/egm-review`, or `/egm:egm-drift-report` to compare documents against source code.",
+        "pros": "Goldfish reviewers examine drafts and referenced material without the prior conversation, which the README states helps expose unstated assumptions and blind spots. A drift-report skill flags divergence between saved documents and current source code.",
+        "cons": "Goldfish reviews require a session able to create fresh subagents; otherwise EGM stops the review, and a review does not replace tests or human judgment. Command auto-completion also differs between agy CLI 1.4.10 and 1.4.8 (issues #220, #196), so keeping the `/egm:` prefix explicit may be safer across versions.",
+        "fit": "The built-in workflow targets software specifications; other document types need reviewers chosen via `/egm-review-loop`, and bootstrap/drift reporting apply to software codebases. Licensed under Apache 2.0, it is explicitly not an officially supported Google product, suggesting limited official support."
+      },
+      "summary_status": "verified",
+      "tag_rule_version": 2,
+      "field_tags": [
+        "ai-ml",
+        "dev-tools"
+      ],
+      "form_tags": [
+        "plugin-skill"
+      ]
+    },
+    {
       "slug": "NVIDIA/auto-ontology",
       "name": "NVIDIA / auto-ontology",
       "description": "Auto Ontology is a Python framework for building semantic, graph-based reasoning layers over data. It enables deterministic query generation, better context retrieval, and more explainable AI for LLM and agent workflows.",
       "lang": "Python",
       "topics": [],
-      "stars": 12405,
-      "forks": 1017,
-      "issues": 121,
+      "stars": 12523,
+      "forks": 1026,
+      "issues": 122,
       "contributors": 13,
       "gains": {
         "daily": null,
@@ -666,9 +713,9 @@
         "physics",
         "robotics"
       ],
-      "stars": 17814,
-      "forks": 2186,
-      "issues": 400,
+      "stars": 17860,
+      "forks": 2187,
+      "issues": 408,
       "contributors": 185,
       "gains": {
         "daily": null,
@@ -698,9 +745,9 @@
       "description": "Skills for Real Engineers. Straight from my .agents directory.",
       "lang": "Shell",
       "topics": [],
-      "stars": 323374,
-      "forks": 27138,
-      "issues": 241,
+      "stars": 323749,
+      "forks": 27168,
+      "issues": 245,
       "contributors": 9,
       "gains": {
         "daily": null,
@@ -739,9 +786,9 @@
         "cursor",
         "skills"
       ],
-      "stars": 116964,
-      "forks": 12224,
-      "issues": 139,
+      "stars": 117110,
+      "forks": 12245,
+      "issues": 140,
       "contributors": 97,
       "gains": {
         "daily": null,
@@ -773,8 +820,8 @@
       "description": "A coding-agent skill for multi-phase security audits with independently verified, machine-readable findings",
       "lang": "JavaScript",
       "topics": [],
-      "stars": 71487,
-      "forks": 4762,
+      "stars": 71835,
+      "forks": 4785,
       "issues": 126,
       "contributors": 4,
       "gains": {
@@ -813,10 +860,10 @@
         "text-editor",
         "zed"
       ],
-      "stars": 94896,
-      "forks": 11679,
+      "stars": 94950,
+      "forks": 11692,
       "issues": 3062,
-      "contributors": 2405,
+      "contributors": 2408,
       "gains": {
         "daily": null,
         "weekly": 2339,
@@ -830,7 +877,7 @@
         "cons": "A web version of Zed is not yet available and is only being tracked in a GitHub discussion. Contributors must also satisfy license compliance checks via cargo-about during CI, which could add extra steps when adding new dependencies.",
         "fit": "Zed appears best suited to developers seeking a native desktop code editor with multiplayer features on macOS, Linux, or Windows, and willing to work under its GPL-3.0-or-later/Apache-2.0 licensing; it may be less suitable for those needing browser-based access today."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "dev-tools"
@@ -845,8 +892,8 @@
       "description": "A collection of projects designed to help developers quickly get started with building deployable applications using the Claude API",
       "lang": "Python",
       "topics": [],
-      "stars": 20822,
-      "forks": 3492,
+      "stars": 20857,
+      "forks": 3491,
       "issues": 244,
       "contributors": 34,
       "gains": {
@@ -862,7 +909,7 @@
         "cons": "Because each quickstart maintains its own setup instructions, users likely need to consult individual READMEs separately rather than one unified guide, and prerequisites such as API keys or protocol-specific requirements (VNC/RFB for Computer Toolset, CDP for Browser Toolset) may vary per project.",
         "fit": "It is suited for developers who want hands-on reference implementations before building custom Claude-powered applications; it is released under the MIT License, so it can likely be reused and modified freely within the license terms."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -892,9 +939,9 @@
         "mcp",
         "rust"
       ],
-      "stars": 23005,
-      "forks": 1704,
-      "issues": 237,
+      "stars": 23246,
+      "forks": 1721,
+      "issues": 240,
       "contributors": 10,
       "gains": {
         "daily": null,
@@ -936,10 +983,10 @@
         "super-agent",
         "task-management"
       ],
-      "stars": 85237,
-      "forks": 16272,
-      "issues": 1336,
-      "contributors": 365,
+      "stars": 85362,
+      "forks": 16289,
+      "issues": 1346,
+      "contributors": 366,
       "gains": {
         "daily": null,
         "weekly": 1186,
@@ -953,7 +1000,7 @@
         "cons": "The recommended Docker Compose setup bundles several dependent services (PostgreSQL, Redis, RustFS storage, SearXNG search, and an agent gateway), so self-hosting does not appear to be a single lightweight container. The Vercel one-click deploy likewise requires a PostgreSQL database, S3-compatible storage, and several secrets configured before deployment.",
         "fit": "Given its emphasis on self-hosting, chat-platform integrations (Discord, Slack, Telegram, and others), and a marketplace model, LobeHub appears aimed at teams or organizations wanting to operate their own agent infrastructure rather than individuals seeking a minimal, no-setup chat tool."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -972,8 +1019,8 @@
       "description": "Anti-AI-slop design skill for Claude Code, Cursor, and Codex.",
       "lang": "CSS",
       "topics": [],
-      "stars": 54255,
-      "forks": 2893,
+      "stars": 54474,
+      "forks": 2908,
       "issues": 47,
       "contributors": 12,
       "gains": {
@@ -1027,9 +1074,9 @@
         "touhou",
         "typescript"
       ],
-      "stars": 456382,
-      "forks": 112061,
-      "issues": 1817,
+      "stars": 457440,
+      "forks": 112266,
+      "issues": 1841,
       "contributors": 384,
       "gains": {
         "daily": null,
@@ -1044,7 +1091,7 @@
         "cons": "Certain Linux features, including Ghidra, JADX, firmware tools, and static JavaScript/Electron analysis, require a procps-compatible `ps` on PATH for process-ownership checks, pointing to a platform-specific setup step. Deep native analysis also depends on separately licensed tools such as IDA Pro, Hopper, or JEB, which REA does not provide.",
         "fit": "Based on its stated lawful-use scope, REA appears aimed at research, education, interoperability, and analysis of software one owns or is authorized to examine, for users comfortable configuring Node.js-based CLI and MCP agent tooling rather than a packaged GUI application."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -1085,9 +1132,9 @@
         "sqlite",
         "supermemory"
       ],
-      "stars": 116694,
-      "forks": 10122,
-      "issues": 101,
+      "stars": 116816,
+      "forks": 10136,
+      "issues": 127,
       "contributors": 370,
       "gains": {
         "daily": null,
@@ -1102,15 +1149,14 @@
         "cons": "Using the hosted 'claude-mem observer' provider starts a 30 Day Free Trial that requires entering a payment method at checkout, and memory falls back to the user's own Anthropic plan once the trial ends unless they subscribe; separately, `npm install -g claude-mem` only installs the SDK/library without registering plugin hooks or the worker service.",
         "fit": "The README lists support for Claude Code, Codex, Cursor, OpenCode, and 11 more agents, while Copilot CLI, Goose, Roo Code, and Warp can only search existing memory since their sessions aren't recorded, which suggests overall fit depends on which specific agent integration is being used."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
         "dev-tools"
       ],
       "form_tags": [
-        "plugin-skill",
-        "library"
+        "plugin-skill"
       ]
     },
     {
@@ -1128,10 +1174,10 @@
         "code",
         "vibe-coding"
       ],
-      "stars": 58936,
-      "forks": 10739,
-      "issues": 4219,
-      "contributors": 1037,
+      "stars": 59486,
+      "forks": 10795,
+      "issues": 4168,
+      "contributors": 1038,
       "gains": {
         "daily": null,
         "weekly": null,
@@ -1145,7 +1191,7 @@
         "cons": "Using T3 Code requires at least one coding agent to already be installed and signed in separately (e.g. via claude auth login or codex login), so it does not function as a standalone agent on its own.",
         "fit": "Based on the README, T3 Code appears suited for developers who already use agents like Claude Code, Codex, or Cursor and want a unified, remote-capable interface across machines via local network, Tailscale, or T3 Connect."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -1167,9 +1213,9 @@
         "design",
         "slop"
       ],
-      "stars": 109253,
-      "forks": 6512,
-      "issues": 69,
+      "stars": 109530,
+      "forks": 6531,
+      "issues": 67,
       "contributors": 65,
       "gains": {
         "daily": null,
@@ -1218,10 +1264,10 @@
         "typescript",
         "video-editor"
       ],
-      "stars": 83649,
-      "forks": 7718,
-      "issues": 249,
-      "contributors": 139,
+      "stars": 83895,
+      "forks": 7749,
+      "issues": 253,
+      "contributors": 141,
       "gains": {
         "daily": null,
         "weekly": null,
@@ -1260,9 +1306,9 @@
         "multi-agent-systems",
         "rag"
       ],
-      "stars": 58804,
-      "forks": 7140,
-      "issues": 446,
+      "stars": 58924,
+      "forks": 7151,
+      "issues": 463,
       "contributors": 322,
       "gains": {
         "daily": null,
@@ -1281,8 +1327,7 @@
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
-        "productivity",
-        "learning"
+        "productivity"
       ],
       "form_tags": [
         "agent"
@@ -1302,9 +1347,9 @@
         "open-source",
         "seo"
       ],
-      "stars": 28853,
-      "forks": 3682,
-      "issues": 55,
+      "stars": 29024,
+      "forks": 3698,
+      "issues": 56,
       "contributors": 49,
       "gains": {
         "daily": null,
@@ -1319,7 +1364,7 @@
         "cons": "Without connecting Google API keys (via `/seo google setup`), Core Web Vitals are based on lab estimates rather than field data, and pages relying on scroll- or click-triggered content may produce noisier results.",
         "fit": "It appears suited for SEO agencies, in-house SEO teams, and freelance consultants wanting fast, repeatable audits, though it works alongside rather than replacing deep crawlers or backlink-database tools like Screaming Frog."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -1357,10 +1402,10 @@
         "voicestudio",
         "workflow"
       ],
-      "stars": 109537,
-      "forks": 12145,
-      "issues": 31,
-      "contributors": 164,
+      "stars": 109903,
+      "forks": 12182,
+      "issues": 18,
+      "contributors": 167,
       "gains": {
         "daily": null,
         "weekly": null,
@@ -1400,9 +1445,9 @@
         "ui-design",
         "web-design"
       ],
-      "stars": 114636,
-      "forks": 7706,
-      "issues": 6,
+      "stars": 114986,
+      "forks": 7711,
+      "issues": 8,
       "contributors": 27,
       "gains": {
         "daily": null,
@@ -1435,8 +1480,8 @@
       "description": "Open source repository of plugins primarily intended for knowledge workers to use in Claude Cowork",
       "lang": "Python",
       "topics": [],
-      "stars": 35615,
-      "forks": 3938,
+      "stars": 35657,
+      "forks": 3945,
       "issues": 170,
       "contributors": 32,
       "gains": {
@@ -1472,9 +1517,9 @@
         "mcp",
         "skills"
       ],
-      "stars": 47101,
-      "forks": 4888,
-      "issues": 1296,
+      "stars": 47178,
+      "forks": 4894,
+      "issues": 1292,
       "contributors": 47,
       "gains": {
         "daily": null,
@@ -1489,7 +1534,7 @@
         "cons": "The README cautions that Anthropic does not control or verify the MCP servers, files, or other software bundled inside plugins, so users should likely establish trust in a plugin before installing, updating, or using it.",
         "fit": "Given that third-party contributions now go through claude.ai/directory/manage rather than pull requests here, this repository appears best suited to developers studying or contributing to Anthropic's own plugins in `/plugins`, rather than for submitting new third-party plugins directly."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
