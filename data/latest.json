@@ -1,7 +1,7 @@
 {
-  "snapshotId": "20261122132202-ec04f86735f497dd",
-  "generatedAt": "2026-11-22T13:22:02.194Z",
-  "statsDate": "2026-11-22",
+  "snapshotId": "20261122210214-de147aa8fdaa2b82",
+  "generatedAt": "2026-11-22T21:02:14.211Z",
+  "statsDate": "2026-11-23",
   "count": 40,
   "repos": [
     {
@@ -27,8 +27,8 @@
         "security-tools",
         "web-security"
       ],
-      "stars": 16928,
-      "forks": 1911,
+      "stars": 17546,
+      "forks": 1954,
       "issues": 15,
       "contributors": 19,
       "gains": {
@@ -44,10 +44,9 @@
         "cons": "The documentation notes that Anthropic's runtime cyber safeguards can block vulnerability-exploitation or offensive-tooling requests by default, meaning even authorized, in-scope usage may trigger a refusal unless the user enrolls in Anthropic's Cyber Verification Program.",
         "fit": "Given its explicit scope limited to external attack surfaces and its stated exclusion of internal Active Directory attacks, C2 frameworks, and post-exploitation tooling, the bundle appears best suited to authorized bug-bounty hunters, web-app pentesters, and external red-teamers rather than internal red-team or post-compromise work."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
-        "ai-ml",
         "security"
       ],
       "form_tags": [
@@ -71,9 +70,9 @@
         "subagent-driven-development",
         "superpowers"
       ],
-      "stars": 323841,
-      "forks": 28735,
-      "issues": 361,
+      "stars": 324068,
+      "forks": 28755,
+      "issues": 363,
       "contributors": 44,
       "gains": {
         "daily": 785,
@@ -88,7 +87,7 @@
         "cons": "A harness-specific install step suggests users running agents in multiple tools must repeat setup separately for each; the Hermes Agent section also notes it lacks a post-compaction hook, so a very long first session could reportedly lose the startup bootstrap.",
         "fit": "This project seems best suited to users running coding agents such as Claude Code, Codex, Cursor, Gemini CLI, or similar supported harnesses who want an enforced, multi-stage development workflow rather than ad-hoc coding assistance."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -97,7 +96,8 @@
       "form_tags": [
         "agent",
         "plugin-skill",
-        "framework"
+        "framework",
+        "cli"
       ]
     },
     {
@@ -106,8 +106,8 @@
       "description": "\"CLI-Anything: Making ALL Software Agent-Native\" -- CLI-Hub: https://clianything.cc/",
       "lang": "Python",
       "topics": [],
-      "stars": 62443,
-      "forks": 5672,
+      "stars": 62692,
+      "forks": 5688,
       "issues": 285,
       "contributors": 144,
       "gains": {
@@ -123,7 +123,7 @@
         "cons": "The documented Limitations section states that CLI-Anything relies on frontier-class models (e.g., Claude Opus 4.6, GPT-5.4) for reliable generation, requires access to the target software's source code rather than compiled binaries, and often needs iterative `/refine` runs to reach production-quality coverage.",
         "fit": "Based on the documented scope, the project appears best suited for teams or developers who want to expose existing open-source or internal software to AI agents without building custom APIs, though actual results may depend on the capability of the underlying agent model and the availability of source code."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -143,9 +143,9 @@
         "artificial-intelligence",
         "large-language-model"
       ],
-      "stars": 68406,
-      "forks": 8948,
-      "issues": 62,
+      "stars": 68593,
+      "forks": 8972,
+      "issues": 61,
       "contributors": 33,
       "gains": {
         "daily": 473,
@@ -154,11 +154,11 @@
       },
       "signal": null,
       "summary": {
-        "goal": "MiniMind is an open-source project documenting the training of a very small (~64M parameter) decoder-only language model named MiniMind entirely from scratch, covering pretraining, SFT, LoRA, RLHF (DPO), RLAIF (PPO/GRPO/CISPO), tool use, and agentic RL. The README states the SFT stage can complete in about 2 hours on a single NVIDIA 3090 at roughly 3 RMB of GPU cost.",
-        "usage": "Setup starts with `git clone --depth 1 https://github.com/jingyaogong/minimind` followed by `pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple`. Inference can be run with `python eval_llm.py --load_from ./minimind-3`, and training stages are launched from the `trainer` directory with `python train_pretrain.py` and `python train_full_sft.py`.",
-        "pros": "All core training algorithms are implemented natively in PyTorch without relying on high-level third-party abstractions, while remaining compatible with transformers, trl, peft, and inference engines like llama.cpp, vllm, and ollama. It also supports multi-GPU DDP/DeepSpeed training, wandb/swanlab logging, and YaRN-based RoPE extrapolation for longer-context evaluation.",
-        "cons": "RLAIF training with the default reward-model approach requires manually downloading a separate InternLM2-1.8B reward model into a sibling directory, and the README notes that small, ~0.1B-parameter models can face reward-sparsity issues that stall reinforcement learning. The custom 6,400-token vocabulary also trades tokenizer encoding efficiency for a smaller embedding footprint.",
-        "fit": "The reference setup used a single RTX 3090 with 128GB RAM, suggesting the project targets individual developers with modest hardware rather than large clusters. Benchmark comparisons in the README show MiniMind scoring below larger small-model baselines like TinyLlama-1.1B, so it appears better suited to hands-on LLM-training education than to production-grade accuracy."
+        "goal": "MiniMind is an open-source project that trains a small language model (~64M parameters) completely from scratch, covering the full pipeline: pretraining (Pretrain), supervised fine-tuning (SFT), LoRA, DPO, RLAIF (PPO/GRPO/CISPO), Tool Use, and Agentic RL.",
+        "usage": "Clone the repository with `git clone --depth 1 https://github.com/jingyaogong/minimind`, install dependencies with `pip install -r requirements.txt`, download a released model, then run `python eval_llm.py --load_from ./minimind-3` for inference, or `python train_pretrain.py` followed by SFT scripts to train from scratch.",
+        "pros": "Pretraining, SFT, LoRA, DPO, and RLAIF algorithms are implemented natively in PyTorch without relying on high-level third-party library abstractions, while remaining compatible with transformers, llama.cpp, vllm, and ollama, and supporting multi-GPU/DeepSpeed training with wandb/SwanLab visualization.",
+        "cons": "Documented benchmark results show the released small-scale models perform weakly on English tasks, likely because the training data and tokenizer (a 6,400-token vocabulary) are optimized for compact size and Chinese text rather than broad multilingual coverage.",
+        "fit": "Given its emphasis on low-cost (~3 RMB) and ~2-hour training on a single consumer GPU, the project appears best suited to individual learners and researchers studying LLM internals, rather than teams seeking production-ready large models comparable to ChatGPT or Qwen."
       },
       "summary_status": "verified",
       "tag_rule_version": 2,
@@ -173,9 +173,9 @@
       "description": "Cursor plugin specification and official plugins",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 18280,
-      "forks": 1993,
-      "issues": 690,
+      "stars": 18402,
+      "forks": 2001,
+      "issues": 691,
       "contributors": 37,
       "gains": {
         "daily": 301,
@@ -190,7 +190,7 @@
         "cons": "Individual plugin entries carry their own operational limits; for instance, the QuickBooks plugin's payment-link sending is documented as limited to the US and Canada, which may constrain usefulness for teams operating in other regions, and similar region- or account-specific constraints likely apply to other third-party integrations without being summarized at the top level.",
         "fit": "This repository appears suited to teams and developers building or extending Cursor plugins who want a reference catalog of manifest and folder conventions, rather than users seeking a single standalone application or service."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -226,9 +226,9 @@
         "web-search",
         "webscraping"
       ],
-      "stars": 206615,
-      "forks": 10799,
-      "issues": 914,
+      "stars": 206915,
+      "forks": 10813,
+      "issues": 918,
       "contributors": 181,
       "gains": {
         "daily": 910,
@@ -243,7 +243,7 @@
         "cons": "Running Firecrawl Local requires installing Rust and a C compiler toolchain (e.g., Xcode command line tools or build-essential), an extra setup step compared to using the hosted Cloud service. The core server is also licensed under AGPL-3.0, a copyleft license that may impose obligations in some deployment scenarios, though SDKs are MIT licensed.",
         "fit": "This project appears suited for teams building AI agents that need web data, offering options from a single local binary to a fully self-hosted server with Docker Compose, Redis, PostgreSQL, and a browser service. Self-hosting likely requires more operational effort than using Firecrawl Cloud directly."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -275,9 +275,9 @@
         "udp-proxy-server",
         "web-server"
       ],
-      "stars": 32813,
-      "forks": 8379,
-      "issues": 492,
+      "stars": 32865,
+      "forks": 8381,
+      "issues": 493,
       "contributors": 145,
       "gains": {
         "daily": 168,
@@ -292,7 +292,7 @@
         "cons": "Building from source requires installing dependency libraries such as `libpcre3-dev` and `zlib1g-dev` beforehand (with additional libraries like `libssl-dev` needed for SSL support), which suggests the build process has prerequisites that must be satisfied before compilation succeeds. The README also notes that the Windows implementation is at the Proof-of-Concept stage and is intended only for development and testing, not production use.",
         "fit": "This project appears suited for users needing a web server, reverse proxy, load balancer, or API gateway on Linux, FreeBSD, or similar Unix-like systems, with precompiled packages simplifying deployment. Given the Proof-of-Concept status noted for Windows, it may be less suited for production Windows deployments."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "unclassified"
@@ -325,9 +325,9 @@
         "transformers",
         "yolo"
       ],
-      "stars": 12025,
+      "stars": 12072,
       "forks": 3656,
-      "issues": 1200,
+      "issues": 1206,
       "contributors": 945,
       "gains": {
         "daily": 155,
@@ -342,7 +342,7 @@
         "cons": "The README states that OpenVINO collects software performance and usage data by default (directly or via Google Analytics 4), so users must explicitly run `opt_in_out --opt_out` if they want to disable this telemetry.",
         "fit": "Given its documented device and framework support, OpenVINO appears best suited for teams deploying inference workloads across CPU, GPU, and NPU hardware for vision, speech, or generative AI tasks, though the README recommends checking system requirements and supported devices before setup."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -367,8 +367,8 @@
         "mermaid",
         "svg"
       ],
-      "stars": 70072,
-      "forks": 4698,
+      "stars": 70229,
+      "forks": 4713,
       "issues": 44,
       "contributors": 76,
       "gains": {
@@ -384,7 +384,7 @@
         "cons": "The README states that output quality depends on the model used and that the same prompt can produce a different layout between runs. The generated diagrams do not appear to be an editable source format, so changes likely can't be diffed as text in a pull request or dragged on a canvas the way Mermaid or draw.io files can.",
         "fit": "This tool appears best suited for diagrams meant to be published once, rather than documentation that changes every sprint inside Git, for which the README recommends Mermaid instead. It also seems to require a host environment that supports Agent Skills, such as Claude Code, Cursor, or Codex."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "web-app",
@@ -421,9 +421,9 @@
         "web-search",
         "youtube"
       ],
-      "stars": 72400,
-      "forks": 6406,
-      "issues": 16,
+      "stars": 72622,
+      "forks": 6419,
+      "issues": 21,
       "contributors": 182,
       "gains": {
         "daily": 673,
@@ -431,8 +431,14 @@
         "monthly": null
       },
       "signal": null,
-      "summary": null,
-      "summary_status": "held",
+      "summary": {
+        "goal": "last30days is an AI agent-led research tool that searches Reddit, X, YouTube, TikTok, Polymarket, GitHub, and other platforms in parallel, scoring results by real engagement (upvotes, likes, trading volume) rather than editorial curation, and synthesizes them into one brief.",
+        "usage": "On Claude Code, install with /plugin marketplace add mvanhorn/last30days-skill followed by /plugin install last30days. On Codex, Cursor, Copilot, Gemini CLI, and other hosts, use npx skills add mvanhorn/last30days-skill -g. After installing, run /last30days <topic> to generate a report.",
+        "pros": "Reddit, Hacker News, Polymarket, and GitHub work with zero configuration, and patent filings plus careers pages are included automatically for company topics. The project is MIT-licensed, runs locally by default with no tracking, and a first-run setup wizard can enable additional sources in about 30 seconds.",
+        "cons": "Many additional sources, including X, TikTok, Instagram, and YouTube comments, require API keys, browser sessions, or external CLIs such as ScrapeCreators or yt-dlp, so full source coverage depends on credentials and installed tools rather than being available out of the box. Running both the marketplace plugin and the npx skills install at once can create duplicate /last30days entries.",
+        "fit": "Likely suited for users who want current, community-sourced context on a person, company, product, or event, such as before meetings, sales calls, or trips, and who work within Claude Code, Codex, Cursor, Copilot, Gemini CLI, or other supported Agent Skills hosts."
+      },
+      "summary_status": "verified",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -449,9 +455,9 @@
       "description": "A library of Agent Skills designed to work with the Stitch MCP server. Each skill follows the Agent Skills open standard, for compatibility with coding agents such as Antigravity, Gemini CLI, Claude Code, Cursor.",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 11731,
-      "forks": 1464,
-      "issues": 27,
+      "stars": 11860,
+      "forks": 1472,
+      "issues": 28,
       "contributors": 19,
       "gains": {
         "daily": 516,
@@ -466,7 +472,7 @@
         "cons": "Skills require a separately configured Stitch MCP server with its own credentials and environment variables before they can run, and selectively installed skills may need manually resolved inter-dependencies.",
         "fit": "This appears best suited for teams already using Google Stitch alongside a supported coding agent; OpenCode users should note it needs manual skill and MCP setup rather than the marketplace flow used by Codex or Claude Code."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -505,10 +511,10 @@
         "pre-submission-checklist",
         "privacy-manifest"
       ],
-      "stars": 3717,
-      "forks": 224,
+      "stars": 3899,
+      "forks": 235,
       "issues": 27,
-      "contributors": 3,
+      "contributors": 4,
       "gains": {
         "daily": 617,
         "weekly": null,
@@ -522,7 +528,7 @@
         "cons": "One documented trade-off is that the rule data is time-sensitive: the guard reports a `Rule pack STALE.` state once its rules exceed 60 days old, requiring a `git pull` before rescanning. Also, a `CLEAR.` verdict is not an approval, since the automated scan cannot verify account- or listing-level details.",
         "fit": "Based on the described hook and installer options, this appears best suited for developers and teams already using AI coding assistants such as Claude Code who want an automated pre-submission guard, as well as non-developers willing to follow a manual checklist; it does not seem intended to replace manual review of account and store-listing readiness."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "dev-tools"
@@ -553,9 +559,9 @@
         "site-reliability-engineering",
         "slack"
       ],
-      "stars": 14205,
-      "forks": 1952,
-      "issues": 21,
+      "stars": 14353,
+      "forks": 1962,
+      "issues": 20,
       "contributors": 370,
       "gains": {
         "daily": 395,
@@ -570,7 +576,7 @@
         "cons": "The project carries a public-alpha status, so core workflows are described as usable but not yet fully stable, and APIs/integrations may still change. Self-hosted deployment also appears to require configuring your own LLM_PROVIDER and API key rather than a turnkey managed service.",
         "fit": "Given its self-hosted, bring-your-own-model design and CI/CD/incident-response focus, OpenSRE seems best suited to engineering teams already running CI pipelines and observability stacks who want an agent they control, rather than teams seeking a fully managed, zero-setup SaaS tool."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -607,9 +613,9 @@
         "wiki",
         "workspace"
       ],
-      "stars": 76568,
-      "forks": 5606,
-      "issues": 845,
+      "stars": 76755,
+      "forks": 5616,
+      "issues": 842,
       "contributors": 278,
       "gains": {
         "daily": 537,
@@ -624,7 +630,7 @@
         "cons": "The Enterprise Edition (EE), which would add advanced admin, audit, and SSO features, is stated as not yet published, so those capabilities are currently unavailable; contributors must also sign a Contributor License Agreement (CLA) before any pull request can be merged.",
         "fit": "This suggests AFFiNE fits individuals or teams wanting a self-hosted, privacy-oriented Notion/Miro alternative, though organizations needing enterprise SSO or advanced admin/audit tooling would need to wait, since EE is not yet released."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "web-app",
@@ -658,8 +664,8 @@
         "software",
         "streaming"
       ],
-      "stars": 14821,
-      "forks": 893,
+      "stars": 15040,
+      "forks": 902,
       "issues": 104,
       "contributors": 19,
       "gains": {
@@ -675,7 +681,7 @@
         "cons": "Qt 6.6+ drops support for CPUs lacking the AVX instruction set, and the plugin API for Feature Packs is not yet public while it is still being stabilized, which may limit extensibility and older-hardware compatibility.",
         "fit": "It fits users across Windows 10+, macOS 13.0+, Linux (glibc 2.35+), and Android 9.0+ who want one application covering many download protocols instead of several separate tools."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "productivity"
@@ -704,9 +710,9 @@
         "xiaohongshu",
         "youtube-shorts"
       ],
-      "stars": 13186,
-      "forks": 2099,
-      "issues": 28,
+      "stars": 13372,
+      "forks": 2116,
+      "issues": 30,
       "contributors": 6,
       "gains": {
         "daily": 640,
@@ -721,7 +727,7 @@
         "cons": "Intel-based Macs currently appear to lack a desktop installer and must rely on Docker or the CLI instead. First-time local Whisper transcription requires downloading roughly 220 MB, which the README notes can take about 15 minutes on a domestic (China) network. The documentation also states that YouTube requires full clips of at least 180 seconds.",
         "fit": "The project appears to be maintained by a single individual, with no instant customer support or one-on-one deployment service stated, suggesting it may suit solo creators, small automation workflows, or agent integrations more than teams needing guaranteed support."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -748,10 +754,10 @@
         "plan-mode",
         "skills"
       ],
-      "stars": 14294,
-      "forks": 1422,
-      "issues": 201,
-      "contributors": 214,
+      "stars": 14387,
+      "forks": 1428,
+      "issues": 205,
+      "contributors": 215,
       "gains": {
         "daily": null,
         "weekly": 3396,
@@ -765,7 +771,7 @@
         "cons": "In remote mode the local server listens on every network interface (0.0.0.0) without requiring login, so the documentation cautions that anyone able to reach the port could use it even through an SSH tunnel. Some integrations also appear to carry agent-specific prerequisites, such as Gemini CLI 0.36.0+.",
         "fit": "Because review state is tied to a local server and browser session, the tool appears best suited to individual developers already using one of the supported coding agents locally. A team-oriented sharing feature ('Workspaces') is still listed as waitlist-only, suggesting multi-user collaboration is not yet broadly available."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -780,9 +786,9 @@
       "description": "Keep your coding agent up to date with the latest web best practices",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 10065,
-      "forks": 801,
-      "issues": 385,
+      "stars": 10174,
+      "forks": 810,
+      "issues": 384,
       "contributors": 81,
       "gains": {
         "daily": null,
@@ -797,7 +803,7 @@
         "cons": "Telemetry collection appears enabled by default, sending anonymous usage data (installation counts, guide IDs, search queries) unless a user sets `DISABLE_TELEMETRY=1`; this may matter in privacy-sensitive setups. Separately, the README notes Claude Code plugin installs via the `claude-plugins-official` marketplace were stranded at v0.0.194, requiring a manual marketplace switch to receive updates.",
         "fit": "Based on the described integrations (Claude Code, Codex, Grok Build CLI, Antigravity, Copilot CLI, Kimi Code, Pi), the project seems aimed at developers using AI coding agents across multiple platforms who want guidance embedded in-agent rather than a standalone tool, though suitability likely depends on which agent CLI is already in use."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -821,10 +827,10 @@
         "harness",
         "repository-level-context"
       ],
-      "stars": 55271,
-      "forks": 4585,
+      "stars": 55370,
+      "forks": 4599,
       "issues": 344,
-      "contributors": 228,
+      "contributors": 229,
       "gains": {
         "daily": null,
         "weekly": 4032,
@@ -832,11 +838,11 @@
       },
       "signal": null,
       "summary": {
-        "goal": "Open Code Review (OCR) is an AI-powered code review CLI tool originating as Alibaba Group's internal review assistant. It reads Git diffs, sends changed files to a configurable LLM agent, and produces structured, line-level review comments; `ocr scan` extends this to full-file audits without diffs.",
-        "usage": "Install via `npx skills add alibaba/open-code-review` or `npm install -g @alibaba-group/open-code-review`. Configure a model provider with `ocr config provider` and `ocr config model`, then run `ocr review` for diff-based review or `ocr scan` to audit whole files or directories.",
-        "pros": "A benchmark spanning 50 repositories, 200 pull requests, and 10 languages (1,505 annotated issues) reports that, with the same underlying model, OCR achieves higher Precision and F1 than general-purpose agents like Claude Code, while using about 1/9 of the tokens and completing faster, attributed to combining deterministic file selection and rule matching with agent analysis.",
-        "cons": "The benchmark reports lower Recall than general-purpose agents, a trade-off described as deliberate but one that could mean some real defects go unreported in exchange for fewer false alarms. Native review also requires Git >= 2.41 and a configured LLM provider, unless delegation mode is used instead.",
-        "fit": "OCR seems suited to teams wanting precision-focused review with less noise, including those using Claude Code, Codex, Cursor, or Kimi Code as a host agent via delegation mode without a separate API key. It may suit less when maximizing recall matters more than minimizing false positives."
+        "goal": "alibaba/open-code-review (Open Code Review) is an AI-powered code review CLI tool originally built as Alibaba Group's internal assistant, now open-sourced. It reads Git diffs and sends changed files to a configurable LLM through an agent to produce structured, line-level review comments.",
+        "usage": "Install the agent skills with `npx skills add alibaba/open-code-review`, or install the CLI globally with `npm install -g @alibaba-group/open-code-review` (requires Git >= 2.41). Run `ocr review` to review Git diffs, or `ocr scan` to review whole files; native mode needs a configured OCR model provider, while delegation mode uses the host agent's own model.",
+        "pros": "According to the README's benchmark, cross-validated by 80+ senior engineers across 50 repositories, 200 pull requests, 10 languages, and 1,505 annotated ground-truth issues, Open Code Review reports higher Precision and F1 than Claude Code with the same model while using only about 1/9 of the tokens.",
+        "cons": "The same benchmark states Recall is lower than general-purpose agents, described as a deliberate trade-off favoring precision over noise; native review mode also requires configuring a separate OCR model provider beyond the base CLI installation.",
+        "fit": "Open Code Review may suit teams already using Git-based workflows and agents such as Claude Code, Codex, Cursor, or Kimi Code who want automated review comments; it likely presumes an existing Git repository and, for native mode, an LLM provider credential."
       },
       "summary_status": "verified",
       "tag_rule_version": 2,
@@ -864,8 +870,8 @@
         "mcp-server",
         "puppeteer"
       ],
-      "stars": 58766,
-      "forks": 4909,
+      "stars": 58823,
+      "forks": 4915,
       "issues": 138,
       "contributors": 175,
       "gains": {
@@ -896,10 +902,10 @@
       "description": "Claude Code skills for equity investors and traders — market analysis, technical charting, economic calendars, screeners, and trading strategy development.",
       "lang": "Python",
       "topics": [],
-      "stars": 7718,
-      "forks": 1486,
-      "issues": 72,
-      "contributors": 42,
+      "stars": 7767,
+      "forks": 1494,
+      "issues": 64,
+      "contributors": 43,
       "gains": {
         "daily": null,
         "weekly": 3113,
@@ -936,8 +942,8 @@
         "agentic-workflow",
         "ai-agents"
       ],
-      "stars": 21107,
-      "forks": 2152,
+      "stars": 21172,
+      "forks": 2156,
       "issues": 605,
       "contributors": 195,
       "gains": {
@@ -970,10 +976,10 @@
       "description": "An open source design system that's fully customizable and agent ready",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 32031,
-      "forks": 2512,
-      "issues": 910,
-      "contributors": 143,
+      "stars": 32169,
+      "forks": 2526,
+      "issues": 872,
+      "contributors": 144,
       "gains": {
         "daily": null,
         "weekly": 3967,
@@ -981,11 +987,11 @@
       },
       "signal": null,
       "summary": {
-        "goal": "Astryx is an open source design system built on React 19+ and StyleX, described as having grown inside Meta over eight years. It ships 150+ accessible components, theming, dark mode, ready-to-ship templates, and a CLI, and the README states it powers 13,000+ apps internally.",
-        "usage": "Install the core package, a theme, and StyleX with `npm install @astryxdesign/core @astryxdesign/theme-neutral @stylexjs/stylex` (plus `npm install -D @astryxdesign/cli`), then run `npx @astryxdesign/cli init` once to finish setup; this prints getting-started steps and saves a guide to AGENTS.md/CLAUDE.md.",
-        "pros": "Components are designed with open internals so building blocks can be composed or ejected via 'swizzle', styling can be overridden with className (Tailwind, CSS modules, or plain CSS) despite using StyleX internally, and themes are applied through CSS custom property overrides without forking component source.",
-        "cons": "React 19 or later is a required peer dependency, which may limit adoption for projects on older React versions. Additionally, some packages such as @astryxdesign/vega and @astryxdesign/charts are only published under the @canary dist-tag, suggesting they are not yet considered stable for production use.",
-        "fit": "Given its React/StyleX foundation and CLI-driven setup that generates AGENTS.md/CLAUDE.md guides, Astryx appears best suited to teams already using React 19+ who want a shared reference for both human developers and AI coding assistants, though this inference depends on project-specific tooling compatibility."
+        "goal": "Astryx is an open source design system built on React 19+ and StyleX, developed internally at Meta over eight years and reportedly powering 13,000+ apps. It provides 150+ accessible components, theming, dark mode, templates, and a CLI, aimed at both human developers and AI coding assistants building interfaces consistently.",
+        "usage": "Install with `npm install @astryxdesign/core @astryxdesign/theme-neutral @stylexjs/stylex` (adding `@astryxdesign/cli` as a dev dependency), then run `npx @astryxdesign/cli init` once to set up styles, a theme, and project guide files like AGENTS.md/CLAUDE.md.",
+        "pros": "Components can be composed or 'swizzled' to eject full source for deeper customization, and styling overrides work via plain `className` with Tailwind, CSS modules, or plain CSS, avoiding lock-in to StyleX despite it being used internally.",
+        "cons": "The project is explicitly labeled 'Currently in Beta,' which suggests the API and components may still change before a stable release. Related packages—@astryxdesign/lab, @astryxdesign/vega, and @astryxdesign/charts—are either unpublished or available only under the @canary npm tag, indicating no stable release yet for those.",
+        "fit": "Astryx requires React 19 or later as a peer dependency, so it likely fits best for projects already running a recent React version rather than legacy codebases; its design and CLI appear intended to be used identically by human developers and AI coding assistants."
       },
       "summary_status": "verified",
       "tag_rule_version": 2,
@@ -1003,8 +1009,8 @@
       "description": "Enable Hermès Watch Faces on any Apple Watch devices",
       "lang": "Objective-C",
       "topics": [],
-      "stars": 2378,
-      "forks": 199,
+      "stars": 2397,
+      "forks": 200,
       "issues": 84,
       "contributors": 13,
       "gains": {
@@ -1020,7 +1026,7 @@
         "cons": "The README states watchOS 26 is not supported, limiting compatibility to watchOS 27.0 through 27.3 beta 1; it also notes WatchBridge is an unsigned, community-maintained tool unaffiliated with Apple or this project, and that it supports only one paired Watch at a time.",
         "fit": "This seems intended for users with an Apple Watch on one of the specific supported watchOS versions who are willing to sideload unsigned software; the README explicitly states use is at the user's own risk."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "web-app",
@@ -1034,9 +1040,9 @@
       "description": "The personal finance app for everyone (by everyone)",
       "lang": "Ruby",
       "topics": [],
-      "stars": 17246,
-      "forks": 1506,
-      "issues": 1184,
+      "stars": 17316,
+      "forks": 1518,
+      "issues": 1150,
       "contributors": 483,
       "gains": {
         "daily": null,
@@ -1086,8 +1092,8 @@
         "workspace",
         "xlsx"
       ],
-      "stars": 31184,
-      "forks": 2838,
+      "stars": 31239,
+      "forks": 2842,
       "issues": 210,
       "contributors": 88,
       "gains": {
@@ -1140,8 +1146,8 @@
         "video-editing",
         "whisper"
       ],
-      "stars": 9501,
-      "forks": 849,
+      "stars": 9658,
+      "forks": 861,
       "issues": 45,
       "contributors": 12,
       "gains": {
@@ -1151,11 +1157,11 @@
       },
       "signal": null,
       "summary": {
-        "goal": "ffmpeg-skill is an Agent Skill that lets AI coding agents such as Claude Code, Cursor, Codex, or any MCP client edit video and audio footage using a local FFmpeg installation, operating fully offline with no cloud service or API keys required.",
-        "usage": "It is installed with `npx ffmpeg-skill setup` (or `npx ffmpeg-skill` to install for a single agent), which installs the skill files and checks for FFmpeg; `npx ffmpeg-skill doctor` can then be run afterward to confirm FFmpeg and Python are ready.",
-        "pros": "It exposes 42 typed command-line tools (cut, caption, loudness, export, etc.) backed by a machine-readable contract, so the agent calls structured flags instead of raw FFmpeg strings, and each operation is verified afterward by re-probing the written output file.",
-        "cons": "It requires `ffmpeg` and `python3` to already be present on the system PATH, and optional features such as speech-recognition-based captioning need a separate local speech engine that the user must install manually, which is not bundled with the package.",
-        "fit": "Given its distinction between 12 \"stable\" core tools and 30 \"beta\" tools whose arguments may still change, this project seems best suited to users comfortable pinning a specific release rather than tracking main, particularly within kajisho5's broader agent-based video-production ecosystem."
+        "goal": "ffmpeg-skill is an Agent Skill that gives coding agents such as Claude Code, Cursor, Codex, or any MCP client the ability to edit video footage using a local FFmpeg installation and then verify the output. It runs without cloud services or API keys, relying only on the Python standard library.",
+        "usage": "Install and configure it with `npx ffmpeg-skill setup`, which installs the skill for detected agents, installs FFmpeg if it is missing, and ends with a `doctor` check. Tools can also be run directly via `npx ffmpeg-skill` or invoked as MCP tools from an MCP client.",
+        "pros": "All processing happens locally, so footage is never uploaded. It follows a documented probe-edit-verify workflow across 42 tools, 12 of which are marked stable, and exposes a machine-readable contract so an agent can automatically discover each tool's capabilities and arguments.",
+        "cons": "Setup requires Node 16+ and Python 3.10+ to already be present, since the installer does not install either. Optional local transcription for captions needs a separately installed speech engine; without one, `--transcribe` refuses to run. The overall `ok` status from `doctor` can read false even when most individual tools remain usable, since any single missing FFmpeg capability is enough to trip it.",
+        "fit": "This appears suited to users who want an AI coding agent to perform local, verifiable video editing (cutting, captioning, exporting) without sending media to external services, particularly within the Claude Code / Cursor / Codex / MCP ecosystem the README describes."
       },
       "summary_status": "verified",
       "tag_rule_version": 2,
@@ -1164,7 +1170,8 @@
       ],
       "form_tags": [
         "mcp",
-        "plugin-skill"
+        "plugin-skill",
+        "cli"
       ]
     },
     {
@@ -1173,8 +1180,8 @@
       "description": "Anti-AI-slop design skill for Claude Code, Cursor, and Codex.",
       "lang": "CSS",
       "topics": [],
-      "stars": 59290,
-      "forks": 3244,
+      "stars": 59470,
+      "forks": 3255,
       "issues": 54,
       "contributors": 12,
       "gains": {
@@ -1207,9 +1214,9 @@
       "description": "A coding-agent skill for multi-phase security audits with independently verified, machine-readable findings",
       "lang": "JavaScript",
       "topics": [],
-      "stars": 76886,
-      "forks": 5190,
-      "issues": 142,
+      "stars": 77047,
+      "forks": 5194,
+      "issues": 143,
       "contributors": 4,
       "gains": {
         "daily": null,
@@ -1254,10 +1261,10 @@
         "self-hosted",
         "typescript"
       ],
-      "stars": 26688,
-      "forks": 3804,
-      "issues": 1268,
-      "contributors": 329,
+      "stars": 26811,
+      "forks": 3824,
+      "issues": 1264,
+      "contributors": 331,
       "gains": {
         "daily": null,
         "weekly": null,
@@ -1271,10 +1278,11 @@
         "cons": "The Windows installer is not yet code-signed, which triggers a SmartScreen 'unknown publisher' warning; Ubuntu support remains in beta with Wayland-based host control disabled pending issue #345; and in the CLI/server mode, API keys are stored as plaintext in config.json rather than encrypted.",
         "fit": "The project appears best suited to users who already hold Claude, Codex, or Grok CLI subscriptions and prefer a local, multi-agent chat interface over a cloud-hosted single-agent product, running on macOS, Windows, or Ubuntu 24.04 with Node 24+."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
+        "dev-tools",
         "productivity"
       ],
       "form_tags": [
@@ -1296,10 +1304,10 @@
         "code",
         "vibe-coding"
       ],
-      "stars": 70700,
-      "forks": 12010,
-      "issues": 3709,
-      "contributors": 1296,
+      "stars": 71404,
+      "forks": 12096,
+      "issues": 3769,
+      "contributors": 1301,
       "gains": {
         "daily": null,
         "weekly": null,
@@ -1331,8 +1339,8 @@
       "topics": [
         "agent-skills"
       ],
-      "stars": 198774,
-      "forks": 23271,
+      "stars": 198945,
+      "forks": 23285,
       "issues": 1568,
       "contributors": 17,
       "gains": {
@@ -1384,10 +1392,10 @@
         "sqlite",
         "supermemory"
       ],
-      "stars": 118952,
-      "forks": 10340,
-      "issues": 80,
-      "contributors": 395,
+      "stars": 119048,
+      "forks": 10348,
+      "issues": 74,
+      "contributors": 398,
       "gains": {
         "daily": null,
         "weekly": null,
@@ -1395,11 +1403,11 @@
       },
       "signal": null,
       "summary": {
-        "goal": "Claude-Mem aims to give coding agents persistent memory across sessions, feeding a compact index of prior observations into Claude Code, Codex, Cursor, OpenCode, and reportedly 11 additional agents, so new sessions don't start from zero.",
-        "usage": "Install with `npx claude-mem install`, which detects locally installed agents and guides provider selection; alternatively, inside Claude Code run `/plugin marketplace add thedotmack/claude-mem` followed by `/plugin install claude-mem`, then restart Claude Code to automatically load prior context.",
-        "pros": "Search uses a three-step MCP workflow (`search`, `timeline`, `get_observations`) documented at roughly 50-100 tokens per index result versus 500-1,000 tokens per full detail, though the README notes this ratio is not a measured end-to-end savings figure.",
-        "cons": "Running `npm install -g claude-mem` only installs the SDK/library and does not register plugin hooks or the worker service, so the documented `npx claude-mem install` command must be used instead; the README also indicates the hosted \"claude-mem observer\" provider requires a payment method after its 30-day free trial ends.",
-        "fit": "This appears best suited for users of the explicitly listed agents (Claude Code, Codex, Cursor, OpenCode, and 11 more); agents such as Copilot CLI, Goose, Roo Code, Warp, and Zed are documented as supporting memory search only, without session recording."
+        "goal": "Claude-Mem is a memory system for coding agents that keeps context across sessions by recording observations while the agent works (lines 55, 125-131).",
+        "usage": "Install with `npx claude-mem install`, which detects agents on the machine and sets up hooks; it can also be added inside Claude Code with `/plugin marketplace add thedotmack/claude-mem` and `/plugin install claude-mem` (lines 139-141, 151-157).",
+        "pros": "Documented benefits include resuming a session with a compact index of past observations, a token-efficient three-step search workflow, a My Work dashboard for live requests and a review queue, optional team-shared memory (TeamBrain), and excluding content wrapped in `<private>` tags from storage (lines 222-233).",
+        "cons": "Choosing the built-in claude-mem observer provider starts a 30 Day Free Trial on a checkout page that requires a payment method, and memory automatically falls back to the user's own Anthropic plan if the trial is not converted to a subscription (lines 143-146).",
+        "fit": "The README states Claude-Mem works with Claude Code, Codex, Cursor, OpenCode and 11 more agents, while Copilot CLI, Goose, Roo Code, Warp and Zed can only search existing memory since their sessions aren't recorded, suggesting the tool fits agents with full hook support best (lines 130, 143)."
       },
       "summary_status": "verified",
       "tag_rule_version": 2,
@@ -1408,7 +1416,8 @@
         "dev-tools"
       ],
       "form_tags": [
-        "plugin-skill"
+        "plugin-skill",
+        "library"
       ]
     },
     {
@@ -1417,9 +1426,9 @@
       "description": "Thirteen Claude skills that run an Instagram account: Reels off 26 scored hook formulas, a viral research skill, a caption linter, and a humanizer. Free, MIT.",
       "lang": "Python",
       "topics": [],
-      "stars": 8135,
-      "forks": 1495,
-      "issues": 67,
+      "stars": 8247,
+      "forks": 1513,
+      "issues": 70,
       "contributors": 1,
       "gains": {
         "daily": null,
@@ -1427,8 +1436,14 @@
         "monthly": 5612
       },
       "signal": null,
-      "summary": null,
-      "summary_status": "held",
+      "summary": {
+        "goal": "instagram-agent-skill provides thirteen Claude skills intended to support running an Instagram account, covering Reel scripting, caption writing, profile scoring, weekly planning, and a humanizer that strips slop vocabulary and invisible characters from drafts. The README states it is free, MIT-licensed, and requires no signup or API key.",
+        "usage": "Installation is done by pasting the repository URL https://github.com/Jakeschincariol/instagram-agent-skill into Claude, or by running git clone https://github.com/Jakeschincariol/instagram-agent-skill.git followed by copying the skills folders, or via /plugin install. Users are told to first fill in templates/voice.md, then invoke commands such as /ig-reel or local scripts like python3 hookscore.py hooks.txt.",
+        "pros": "The five Python tools (hookscore.py, beats.py, caption.py, humanize.py, detect.py, swipe.py) reportedly run locally with no dependencies or network calls. An approval gate means nothing is posted automatically, and the caption tool enforces Instagram's current five-hashtag cap effective 18 December 2025. The README also reports an AUC of 0.83 for flagging deliberately weak hooks.",
+        "cons": "The README states these skills do not post to Instagram directly; real publishing requires a Meta developer app, linked Page, long-lived token, and app review, which the skill cannot provide. It also discloses that the hook scorer's ability to pick winning hooks among good ones is weak, at AUC 0.56, close to a coin flip.",
+        "fit": "This appears suited to Instagram creators using Claude Code who want drafting, scoring, and planning assistance while retaining manual control over posting. Without Claude Code, the README notes the five Python tools are unavailable, so project-local or plugin installation seems best for full functionality."
+      },
+      "summary_status": "verified",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -1455,9 +1470,9 @@
         "multi-agent-systems",
         "rag"
       ],
-      "stars": 61497,
-      "forks": 7424,
-      "issues": 424,
+      "stars": 61580,
+      "forks": 7429,
+      "issues": 426,
       "contributors": 349,
       "gains": {
         "daily": null,
@@ -1472,7 +1487,7 @@
         "cons": "Full installation requires Python 3.11–3.14 and Node.js 20.9+ as stated prerequisites, so environments outside that range likely need adjustment before setup succeeds.",
         "fit": "Based on its CLI/SDK design for headless operation and NDJSON output described for agent-driven runs, DeepTutor appears best suited for users wanting a self-hosted, extensible tutoring platform that can also be automated or embedded by other agents, rather than a lightweight single-purpose chatbot."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -1495,9 +1510,9 @@
         "design",
         "slop"
       ],
-      "stars": 114779,
-      "forks": 6841,
-      "issues": 75,
+      "stars": 114961,
+      "forks": 6850,
+      "issues": 74,
       "contributors": 67,
       "gains": {
         "daily": null,
@@ -1512,7 +1527,7 @@
         "cons": "Live mode only edits a local checkout, and the README cautions against injecting it into a deployed site or weakening a production CSP to use it. It also notes that applying copy edits runs an optional package.json validation script with the user's own permissions, so reviewing that script before using live mode in an unfamiliar repo is advised.",
         "fit": "The README lists compatibility with many coding agents and tools, including Claude Code, Cursor, Codex CLI, GitHub Copilot, Devin, Replit Agent, Gemini CLI, Grok Build, OpenCode, Google Antigravity, Kiro, Trae, Rovo Dev, Qoder, Mistral Vibe, Pi, Hermes Agent, DeepSeek Harness, and Veto, with full docs at https://impeccable.style/docs. This breadth suggests Impeccable likely fits best into projects already using one of these supported agents rather than standalone or unsupported toolchains."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -1547,8 +1562,8 @@
         "sherlock",
         "tools"
       ],
-      "stars": 115697,
-      "forks": 13232,
+      "stars": 115823,
+      "forks": 13245,
       "issues": 421,
       "contributors": 315,
       "gains": {
@@ -1588,9 +1603,9 @@
         "open-source",
         "seo"
       ],
-      "stars": 31519,
-      "forks": 3887,
-      "issues": 65,
+      "stars": 31614,
+      "forks": 3898,
+      "issues": 67,
       "contributors": 53,
       "gains": {
         "daily": null,
@@ -1639,9 +1654,9 @@
         "typescript",
         "video-editor"
       ],
-      "stars": 88046,
-      "forks": 8194,
-      "issues": 305,
+      "stars": 88230,
+      "forks": 8214,
+      "issues": 302,
       "contributors": 154,
       "gains": {
         "daily": null,
@@ -1656,7 +1671,7 @@
         "cons": "Running the CLI requires the documented prerequisites of Node.js 22+ and FFmpeg. The Studio app's Pro tier costs $25 a month for extra models and 25,000 credits monthly, and the README notes that community-maintained skills are not maintained by the core project and should be reviewed before use, which suggests their quality or support level may be inconsistent.",
         "fit": "Based on the documented use cases, HyperFrames appears suited to developers and teams generating video programmatically through AI coding agents, CI pipelines, or automated content workflows, as well as non-technical users via the Studio app, though the README does not detail its fit for every production scenario."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -1673,9 +1688,9 @@
       "description": "Browser automation CLI for AI agents",
       "lang": "Rust",
       "topics": [],
-      "stars": 53324,
-      "forks": 3734,
-      "issues": 576,
+      "stars": 53395,
+      "forks": 3736,
+      "issues": 577,
       "contributors": 122,
       "gains": {
         "daily": null,

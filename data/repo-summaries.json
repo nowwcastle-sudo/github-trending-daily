@@ -587,47 +587,47 @@
   },
   "jingyaogong/minimind": {
     "content": {
-      "goal": "MiniMind is an open-source project documenting the training of a very small (~64M parameter) decoder-only language model named MiniMind entirely from scratch, covering pretraining, SFT, LoRA, RLHF (DPO), RLAIF (PPO/GRPO/CISPO), tool use, and agentic RL. The README states the SFT stage can complete in about 2 hours on a single NVIDIA 3090 at roughly 3 RMB of GPU cost.",
-      "usage": "Setup starts with `git clone --depth 1 https://github.com/jingyaogong/minimind` followed by `pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple`. Inference can be run with `python eval_llm.py --load_from ./minimind-3`, and training stages are launched from the `trainer` directory with `python train_pretrain.py` and `python train_full_sft.py`.",
-      "pros": "All core training algorithms are implemented natively in PyTorch without relying on high-level third-party abstractions, while remaining compatible with transformers, trl, peft, and inference engines like llama.cpp, vllm, and ollama. It also supports multi-GPU DDP/DeepSpeed training, wandb/swanlab logging, and YaRN-based RoPE extrapolation for longer-context evaluation.",
-      "cons": "RLAIF training with the default reward-model approach requires manually downloading a separate InternLM2-1.8B reward model into a sibling directory, and the README notes that small, ~0.1B-parameter models can face reward-sparsity issues that stall reinforcement learning. The custom 6,400-token vocabulary also trades tokenizer encoding efficiency for a smaller embedding footprint.",
-      "fit": "The reference setup used a single RTX 3090 with 128GB RAM, suggesting the project targets individual developers with modest hardware rather than large clusters. Benchmark comparisons in the README show MiniMind scoring below larger small-model baselines like TinyLlama-1.1B, so it appears better suited to hands-on LLM-training education than to production-grade accuracy."
+      "goal": "MiniMind is an open-source project that trains a small language model (~64M parameters) completely from scratch, covering the full pipeline: pretraining (Pretrain), supervised fine-tuning (SFT), LoRA, DPO, RLAIF (PPO/GRPO/CISPO), Tool Use, and Agentic RL.",
+      "usage": "Clone the repository with `git clone --depth 1 https://github.com/jingyaogong/minimind`, install dependencies with `pip install -r requirements.txt`, download a released model, then run `python eval_llm.py --load_from ./minimind-3` for inference, or `python train_pretrain.py` followed by SFT scripts to train from scratch.",
+      "pros": "Pretraining, SFT, LoRA, DPO, and RLAIF algorithms are implemented natively in PyTorch without relying on high-level third-party library abstractions, while remaining compatible with transformers, llama.cpp, vllm, and ollama, and supporting multi-GPU/DeepSpeed training with wandb/SwanLab visualization.",
+      "cons": "Documented benchmark results show the released small-scale models perform weakly on English tasks, likely because the training data and tokenizer (a 6,400-token vocabulary) are optimized for compact size and Chinese text rather than broad multilingual coverage.",
+      "fit": "Given its emphasis on low-cost (~3 RMB) and ~2-hour training on a single consumer GPU, the project appears best suited to individual learners and researchers studying LLM internals, rather than teams seeking production-ready large models comparable to ChatGPT or Qwen."
     },
     "summaries": {
       "en": {
-        "goal": "MiniMind is an open-source project documenting the training of a very small (~64M parameter) decoder-only language model named MiniMind entirely from scratch, covering pretraining, SFT, LoRA, RLHF (DPO), RLAIF (PPO/GRPO/CISPO), tool use, and agentic RL. The README states the SFT stage can complete in about 2 hours on a single NVIDIA 3090 at roughly 3 RMB of GPU cost.",
-        "usage": "Setup starts with `git clone --depth 1 https://github.com/jingyaogong/minimind` followed by `pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple`. Inference can be run with `python eval_llm.py --load_from ./minimind-3`, and training stages are launched from the `trainer` directory with `python train_pretrain.py` and `python train_full_sft.py`.",
-        "pros": "All core training algorithms are implemented natively in PyTorch without relying on high-level third-party abstractions, while remaining compatible with transformers, trl, peft, and inference engines like llama.cpp, vllm, and ollama. It also supports multi-GPU DDP/DeepSpeed training, wandb/swanlab logging, and YaRN-based RoPE extrapolation for longer-context evaluation.",
-        "cons": "RLAIF training with the default reward-model approach requires manually downloading a separate InternLM2-1.8B reward model into a sibling directory, and the README notes that small, ~0.1B-parameter models can face reward-sparsity issues that stall reinforcement learning. The custom 6,400-token vocabulary also trades tokenizer encoding efficiency for a smaller embedding footprint.",
-        "fit": "The reference setup used a single RTX 3090 with 128GB RAM, suggesting the project targets individual developers with modest hardware rather than large clusters. Benchmark comparisons in the README show MiniMind scoring below larger small-model baselines like TinyLlama-1.1B, so it appears better suited to hands-on LLM-training education than to production-grade accuracy."
+        "goal": "MiniMind is an open-source project that trains a small language model (~64M parameters) completely from scratch, covering the full pipeline: pretraining (Pretrain), supervised fine-tuning (SFT), LoRA, DPO, RLAIF (PPO/GRPO/CISPO), Tool Use, and Agentic RL.",
+        "usage": "Clone the repository with `git clone --depth 1 https://github.com/jingyaogong/minimind`, install dependencies with `pip install -r requirements.txt`, download a released model, then run `python eval_llm.py --load_from ./minimind-3` for inference, or `python train_pretrain.py` followed by SFT scripts to train from scratch.",
+        "pros": "Pretraining, SFT, LoRA, DPO, and RLAIF algorithms are implemented natively in PyTorch without relying on high-level third-party library abstractions, while remaining compatible with transformers, llama.cpp, vllm, and ollama, and supporting multi-GPU/DeepSpeed training with wandb/SwanLab visualization.",
+        "cons": "Documented benchmark results show the released small-scale models perform weakly on English tasks, likely because the training data and tokenizer (a 6,400-token vocabulary) are optimized for compact size and Chinese text rather than broad multilingual coverage.",
+        "fit": "Given its emphasis on low-cost (~3 RMB) and ~2-hour training on a single consumer GPU, the project appears best suited to individual learners and researchers studying LLM internals, rather than teams seeking production-ready large models comparable to ChatGPT or Qwen."
       },
       "ko": {
-        "goal": "MiniMind은 처음부터 완전히 학습시키는 약 6400만(64M) 매개변수 규모의 초소형 디코더 전용 언어모델 MiniMind를 다루는 오픈소스 프로젝트입니다. 프리트레인, SFT, LoRA, RLHF(DPO), RLAIF(PPO/GRPO/CISPO), 툴 사용, 에이전틱 RL까지 전체 학습 파이프라인을 포함하며, SFT 단계는 단일 NVIDIA 3090에서 약 2시간, 약 3위안의 비용으로 완료할 수 있다고 README는 설명합니다.",
-        "usage": "설치는 `git clone --depth 1 https://github.com/jingyaogong/minimind` 후 `pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple`로 시작합니다. 추론은 `python eval_llm.py --load_from ./minimind-3`로 실행할 수 있고, 학습은 `trainer` 디렉터리에서 `python train_pretrain.py`와 `python train_full_sft.py`로 각각 진행합니다.",
-        "pros": "모든 핵심 학습 알고리즘은 제3자 고수준 추상화 없이 PyTorch로 직접 구현되었으며, 동시에 transformers, trl, peft와 llama.cpp, vllm, ollama 같은 추론 엔진과도 호환됩니다. 다중 GPU DDP/DeepSpeed 학습, wandb/swanlab 로깅, YaRN 기반 RoPE 길이 확장 평가도 지원합니다.",
-        "cons": "기본 RLAIF 학습 방식은 InternLM2-1.8B 보상 모델을 별도로 내려받아 프로젝트와 같은 상위 디렉터리에 배치해야 하며, README는 약 0.1B 규모의 소형 모델에서 보상 희소성 문제로 강화학습이 정체될 수 있다고 언급합니다. 또한 6,400 토큰 규모의 커스텀 토크나이저는 임베딩 크기를 줄이는 대신 인코딩 효율을 희생합니다.",
-        "fit": "참고 환경이 단일 RTX 3090과 128GB RAM으로 구성된 점을 보면, 대규모 클러스터보다는 개인 개발자의 제한된 하드웨어를 겨냥한 것으로 보입니다. README의 벤치마크 비교에서 MiniMind는 TinyLlama-1.1B 같은 더 큰 소형 모델 기준선보다 낮은 점수를 보이므로, 실제 서비스 수준의 정확도보다는 LLM 학습을 직접 경험하며 배우는 용도에 더 적합해 보입니다."
+        "goal": "MiniMind은 사전학습(Pretrain), 지도 미세조정(SFT), LoRA, DPO, RLAIF(PPO/GRPO/CISPO), Tool Use, Agentic RL까지 전체 학습 파이프라인을 포함하여 약 64M 파라미터 규모의 소형 언어모델을 완전히 처음부터 학습하는 오픈소스 프로젝트입니다.",
+        "usage": "`git clone --depth 1 https://github.com/jingyaogong/minimind`로 저장소를 클론하고 `pip install -r requirements.txt`로 의존성을 설치한 뒤, 공개된 모델을 다운로드하여 `python eval_llm.py --load_from ./minimind-3`로 추론을 실행하거나, `python train_pretrain.py` 이후 SFT 스크립트를 실행해 처음부터 학습을 진행할 수 있습니다.",
+        "pros": "사전학습, SFT, LoRA, DPO, RLAIF 알고리즘이 외부 라이브러리의 고수준 추상화 없이 PyTorch로 직접 구현되어 있으며, 동시에 transformers, llama.cpp, vllm, ollama와 호환되고 wandb/SwanLab 시각화를 지원하는 다중 GPU/DeepSpeed 학습도 가능합니다.",
+        "cons": "문서화된 벤치마크 결과에 따르면 공개된 소형 모델들은 영어 과제에서 성능이 약한 것으로 나타나는데, 이는 학습 데이터와 토크나이저(어휘 크기 6,400)가 작은 모델 크기와 중국어 텍스트에 맞춰 최적화되어 있어 광범위한 다국어 지원과는 거리가 있기 때문으로 보입니다.",
+        "fit": "단일 소비자용 GPU에서 약 3위안, 약 2시간이라는 저비용 학습을 강조하는 점을 볼 때, 이 프로젝트는 ChatGPT나 Qwen과 같은 상용 대형 언어모델을 대체하려는 팀보다는 LLM 내부 구조를 학습하려는 개인 학습자와 연구자에게 더 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "MiniMind 是一个开源项目，记录了如何从零开始训练一个约 6400 万（64M）参数的超小型 Decoder-only 语言模型 MiniMind，涵盖预训练、SFT、LoRA、RLHF（DPO）、RLAIF（PPO/GRPO/CISPO）、工具调用与 Agentic RL 等完整训练流程。README 说明 SFT 阶段在单张 NVIDIA 3090 上约 2 小时、成本约 3 元即可完成。",
-        "usage": "安装从 `git clone --depth 1 https://github.com/jingyaogong/minimind` 开始，随后执行 `pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple`。推理可运行 `python eval_llm.py --load_from ./minimind-3`，训练则在 `trainer` 目录下分别执行 `python train_pretrain.py` 与 `python train_full_sft.py`。",
-        "pros": "所有核心训练算法均从 0 使用 PyTorch 原生实现，不依赖第三方高层封装，同时兼容 transformers、trl、peft 以及 llama.cpp、vllm、ollama 等推理引擎。项目还支持多卡 DDP/DeepSpeed 训练、wandb/swanlab 可视化记录，以及基于 YaRN 的 RoPE 长文本外推评测。",
-        "cons": "默认的 RLAIF 奖励方案需要手动下载 InternLM2-1.8B 奖励模型并放置在项目同级目录下；README 指出像 MiniMind 这种约 0.1B 参数规模的小模型在强化学习中容易遇到奖励稀疏问题，导致训练停滞。此外，6,400 词表大小的自定义 Tokenizer 以牺牲部分编解码效率为代价压缩了 embedding 占比。",
-        "fit": "参考配置使用单张 RTX 3090 搭配 128GB 内存，表明该项目更偏向面向拥有有限硬件资源的个人开发者，而非大规模集群场景。README 中的 benchmark 对比显示，MiniMind 的得分明显低于 TinyLlama-1.1B 等更大的小模型基线，因此它看起来更适合用于亲手实践与理解 LLM 训练流程，而非追求生产级准确度。"
+        "goal": "MiniMind 是一个完全从零开始训练约 64M 参数小型语言模型的开源项目，涵盖预训练（Pretrain）、监督微调（SFT）、LoRA、DPO、RLAIF（PPO/GRPO/CISPO）、Tool Use 与 Agentic RL 等完整训练流程。",
+        "usage": "使用 `git clone --depth 1 https://github.com/jingyaogong/minimind` 克隆仓库，执行 `pip install -r requirements.txt` 安装依赖，下载已发布的模型后运行 `python eval_llm.py --load_from ./minimind-3` 进行推理，或依次运行 `python train_pretrain.py` 与后续 SFT 脚本从零开始训练。",
+        "pros": "预训练、SFT、LoRA、DPO、RLAIF 等核心算法均以 PyTorch 原生实现，不依赖第三方库的高层封装，同时兼容 transformers、llama.cpp、vllm、ollama，并支持多卡/DeepSpeed 训练及 wandb/SwanLab 可视化。",
+        "cons": "文档中的客观评测显示，已发布的小规模模型在英文任务上表现较弱，这很可能与训练数据及分词器（词表仅 6,400）更偏向中文与紧凑体积、而非广泛多语言覆盖的设计取舍有关。",
+        "fit": "鉴于其强调在单张消费级 GPU 上以约 3 元人民币、约 2 小时即可完成训练，该项目更适合希望理解 LLM 内部机制的个人学习者与研究者，而非寻求可替代 ChatGPT 或 Qwen 等生产级大模型的团队。"
       },
       "es": {
-        "goal": "MiniMind es un proyecto de código abierto que documenta el entrenamiento desde cero de un modelo de lenguaje decoder-only muy pequeño (~64M de parámetros) llamado MiniMind, cubriendo preentrenamiento, SFT, LoRA, RLHF (DPO), RLAIF (PPO/GRPO/CISPO), uso de herramientas y RL agéntico. El README indica que la etapa de SFT puede completarse en aproximadamente 2 horas en una sola NVIDIA 3090, con un costo de unos 3 RMB.",
-        "usage": "La instalación comienza con `git clone --depth 1 https://github.com/jingyaogong/minimind`, seguido de `pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple`. La inferencia se ejecuta con `python eval_llm.py --load_from ./minimind-3`, y el entrenamiento se lanza desde el directorio `trainer` con `python train_pretrain.py` y `python train_full_sft.py`.",
-        "pros": "Todos los algoritmos de entrenamiento centrales están implementados de forma nativa en PyTorch sin depender de abstracciones de terceros, siendo compatible con transformers, trl, peft y motores de inferencia como llama.cpp, vllm y ollama. También admite entrenamiento multi-GPU con DDP/DeepSpeed, registro con wandb/swanlab, y extrapolación de contexto RoPE mediante YaRN.",
-        "cons": "El enfoque RLAIF por defecto requiere descargar manualmente el modelo de recompensa InternLM2-1.8B en un directorio hermano del proyecto, y el README señala que modelos tan pequeños (~0.1B parámetros) pueden sufrir escasez de recompensa que estanca el entrenamiento por refuerzo. Además, el tokenizador personalizado de 6.400 tokens sacrifica eficiencia de codificación a cambio de reducir el tamaño de los embeddings.",
-        "fit": "La configuración de referencia usa una sola RTX 3090 con 128GB de RAM, lo que sugiere que el proyecto está pensado para desarrolladores individuales con hardware modesto antes que para clústeres grandes. Las comparaciones de benchmark del README muestran a MiniMind por debajo de referencias como TinyLlama-1.1B, por lo que parece más adecuado para el aprendizaje práctico del entrenamiento de LLMs que para una precisión de nivel productivo."
+        "goal": "MiniMind es un proyecto de código abierto que entrena desde cero un modelo de lenguaje pequeño de aproximadamente 64M de parámetros, cubriendo todo el flujo de entrenamiento: preentrenamiento (Pretrain), ajuste fino supervisado (SFT), LoRA, DPO, RLAIF (PPO/GRPO/CISPO), Tool Use y Agentic RL.",
+        "usage": "Clone el repositorio con `git clone --depth 1 https://github.com/jingyaogong/minimind`, instale las dependencias con `pip install -r requirements.txt`, descargue un modelo publicado y ejecute `python eval_llm.py --load_from ./minimind-3` para inferencia, o `python train_pretrain.py` seguido de los scripts de SFT para entrenar desde cero.",
+        "pros": "Los algoritmos de preentrenamiento, SFT, LoRA, DPO y RLAIF están implementados de forma nativa en PyTorch sin depender de abstracciones de alto nivel de librerías externas, y son compatibles con transformers, llama.cpp, vllm y ollama, con soporte para entrenamiento multi-GPU/DeepSpeed y visualización mediante wandb/SwanLab.",
+        "cons": "Los resultados de benchmark documentados muestran que los modelos pequeños publicados rinden débilmente en tareas en inglés, probablemente porque los datos de entrenamiento y el tokenizador (vocabulario de 6.400 tokens) están optimizados para un tamaño compacto y texto en chino, no para una amplia cobertura multilingüe.",
+        "fit": "Dado su énfasis en un entrenamiento de bajo costo (~3 RMB) y ~2 horas en una sola GPU de consumo, el proyecto parece más adecuado para aprendices e investigadores individuales que estudian el funcionamiento interno de los LLM, más que para equipos que buscan modelos de producción comparables a ChatGPT o Qwen."
       },
       "ja": {
-        "goal": "MiniMind は、約6400万（64M）パラメータの超小型デコーダのみの言語モデル MiniMind をゼロから学習させる手順を公開するオープンソースプロジェクトで、事前学習、SFT、LoRA、RLHF（DPO）、RLAIF（PPO/GRPO/CISPO）、ツール利用、Agentic RL までの一連の学習パイプラインを含みます。README によれば、SFT段階は単一のNVIDIA 3090でおよそ2時間、コストは約3元で完了できるとされています。",
-        "usage": "セットアップはまず `git clone --depth 1 https://github.com/jingyaogong/minimind` を実行し、続けて `pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple` を行います。推論は `python eval_llm.py --load_from ./minimind-3` で実行でき、学習は `trainer` ディレクトリ内で `python train_pretrain.py` と `python train_full_sft.py` をそれぞれ実行します。",
-        "pros": "主要な学習アルゴリズムはすべてサードパーティの高レベル抽象化に依存せずPyTorchでネイティブに実装されており、同時に transformers、trl、peft や llama.cpp、vllm、ollama などの推論エンジンとの互換性も保っています。マルチGPUのDDP/DeepSpeed学習、wandb/swanlabによる可視化記録、YaRNによるRoPE長文コンテキスト拡張評価にも対応しています。",
-        "cons": "既定のRLAIF学習では、InternLM2-1.8Bリワードモデルを別途ダウンロードしプロジェクトの同階層ディレクトリに配置する必要があり、README では約0.1Bパラメータ規模の小型モデルで報酬が疎になり強化学習が停滞しうると述べられています。さらに、6,400語のカスタムトークナイザーは埋め込み層の規模縮小と引き換えに符号化効率を犠牲にしています。",
-        "fit": "参考環境は単一のRTX 3090と128GBのRAMで構成されており、大規模クラスタよりも限られたハードウェアを持つ個人開発者を想定していると考えられます。README内のベンチマーク比較では、MiniMindはTinyLlama-1.1Bなどより大きな小型モデルの基準を下回るスコアを示しているため、実運用レベルの精度よりもLLM学習プロセスを実際に体験しながら学ぶ用途に向いていると見られます。"
+        "goal": "MiniMindは、事前学習（Pretrain）、教師ありファインチューニング（SFT）、LoRA、DPO、RLAIF（PPO/GRPO/CISPO）、Tool Use、Agentic RLまでの一連の学習プロセスを含む、約64Mパラメータの小型言語モデルを完全にゼロから学習するオープンソースプロジェクトです。",
+        "usage": "`git clone --depth 1 https://github.com/jingyaogong/minimind` でリポジトリをクローンし、`pip install -r requirements.txt` で依存関係をインストールした後、公開モデルをダウンロードして `python eval_llm.py --load_from ./minimind-3` で推論を実行するか、`python train_pretrain.py` に続けてSFTスクリプトを実行してゼロから学習できます。",
+        "pros": "事前学習、SFT、LoRA、DPO、RLAIFなどの主要アルゴリズムはサードパーティライブラリの高レベル抽象に依存せずPyTorchでネイティブに実装されており、transformers、llama.cpp、vllm、ollamaとの互換性を保ちつつ、複数GPU/DeepSpeed学習とwandb/SwanLabによる可視化にも対応しています。",
+        "cons": "文書化されたベンチマーク結果によると、公開されている小規模モデルは英語タスクで性能が弱いことが示されており、これは学習データとトークナイザー（語彙サイズ6,400）が広範な多言語対応ではなく、コンパクトなサイズと中国語テキストを重視して設計されていることに起因する可能性があります。",
+        "fit": "単一のコンシューマー向けGPUで約3元、約2時間という低コストな学習を重視している点から、このプロジェクトはChatGPTやQwenのような実運用レベルの大規模モデルを求めるチームよりも、LLMの内部構造を学びたい個人学習者や研究者に適していると考えられます。"
       }
     },
     "evidence": {
@@ -636,27 +636,22 @@
           "start_line": 34,
           "end_line": 36,
           "section_heading": ""
-        },
-        {
-          "start_line": 42,
-          "end_line": 42,
-          "section_heading": ""
         }
       ],
       "usage": [
         {
-          "start_line": 229,
-          "end_line": 233,
+          "start_line": 262,
+          "end_line": 266,
           "section_heading": "第0步"
         },
         {
-          "start_line": 251,
-          "end_line": 253,
+          "start_line": 282,
+          "end_line": 287,
           "section_heading": "2' CLI 推理"
         },
         {
-          "start_line": 319,
-          "end_line": 330,
+          "start_line": 352,
+          "end_line": 356,
           "section_heading": "2.1 预训练（必须）"
         }
       ],
@@ -667,38 +662,33 @@
           "section_heading": ""
         },
         {
-          "start_line": 92,
-          "end_line": 94,
+          "start_line": 125,
+          "end_line": 126,
           "section_heading": "🎉 本项目包含以下内容"
         }
       ],
       "cons": [
         {
-          "start_line": 1010,
-          "end_line": 1021,
-          "section_heading": "7' 基于 AI 反馈的强化学习 (Reinforcement Learning from AI Feedback, RLAIF)"
-        },
-        {
-          "start_line": 1048,
-          "end_line": 1053,
-          "section_heading": "7' 基于 AI 反馈的强化学习 (Reinforcement Learning from AI Feedback, RLAIF)"
-        },
-        {
-          "start_line": 391,
-          "end_line": 392,
+          "start_line": 424,
+          "end_line": 424,
           "section_heading": "Ⅰ Tokenizer"
+        },
+        {
+          "start_line": 1624,
+          "end_line": 1624,
+          "section_heading": "Ⅴ 客观评测"
         }
       ],
       "fit": [
         {
-          "start_line": 217,
-          "end_line": 223,
-          "section_heading": "📌 快速开始"
+          "start_line": 42,
+          "end_line": 42,
+          "section_heading": ""
         },
         {
-          "start_line": 1593,
-          "end_line": 1602,
-          "section_heading": "Ⅴ 客观评测"
+          "start_line": 110,
+          "end_line": 112,
+          "section_heading": "📌 项目介绍"
         }
       ]
     },
@@ -712,7 +702,7 @@
       },
       {
         "kind": "command",
-        "value": "pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple",
+        "value": "pip install -r requirements.txt",
         "fields": [
           "usage"
         ]
@@ -732,13 +722,6 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "python train_full_sft.py",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
         "kind": "number",
         "value": "64M",
         "fields": [
@@ -746,10 +729,18 @@
         ]
       },
       {
-        "kind": "url",
-        "value": "https://github.com/jingyaogong/minimind",
+        "kind": "number",
+        "value": "3",
         "fields": [
-          "usage"
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "2",
+        "fields": [
+          "fit"
         ]
       },
       {
@@ -757,8 +748,7 @@
         "value": "MiniMind",
         "fields": [
           "goal",
-          "usage",
-          "fit"
+          "usage"
         ]
       },
       {
@@ -769,22 +759,23 @@
         ]
       },
       {
-        "kind": "product",
-        "value": "TinyLlama-1.1B",
+        "kind": "url",
+        "value": "https://github.com/jingyaogong/minimind",
         "fields": [
-          "fit"
+          "usage"
         ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "jingyaogong/minimind",
       "path": "README.md",
-      "blob_sha": "1b11a450c0e50ba81f7072103020c859cb90ac0e",
-      "content_sha256": "bb68777e391ec3ee0471a2df029df6ef634a84adf5e03a686aeb329b4ec9b4ba",
+      "blob_sha": "d75169c010f200c50707b0e99eb242a2d7d10bc3",
+      "content_sha256": "0d48330863abcb54acac734af34d76b14483c15d023aa49763f0e5f6fadcd0fc",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.322",
@@ -1664,6 +1655,230 @@
       "path": "README.md",
       "blob_sha": "0095129f4a907e05558f18276d8f11cd70076dba",
       "content_sha256": "a7ac4982ed92987862aa0547589deaff4245c1b7ba02825f102261c7cf1db1e3",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.322",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "mvanhorn/last30days-skill": {
+    "content": {
+      "goal": "last30days is an AI agent-led research tool that searches Reddit, X, YouTube, TikTok, Polymarket, GitHub, and other platforms in parallel, scoring results by real engagement (upvotes, likes, trading volume) rather than editorial curation, and synthesizes them into one brief.",
+      "usage": "On Claude Code, install with /plugin marketplace add mvanhorn/last30days-skill followed by /plugin install last30days. On Codex, Cursor, Copilot, Gemini CLI, and other hosts, use npx skills add mvanhorn/last30days-skill -g. After installing, run /last30days <topic> to generate a report.",
+      "pros": "Reddit, Hacker News, Polymarket, and GitHub work with zero configuration, and patent filings plus careers pages are included automatically for company topics. The project is MIT-licensed, runs locally by default with no tracking, and a first-run setup wizard can enable additional sources in about 30 seconds.",
+      "cons": "Many additional sources, including X, TikTok, Instagram, and YouTube comments, require API keys, browser sessions, or external CLIs such as ScrapeCreators or yt-dlp, so full source coverage depends on credentials and installed tools rather than being available out of the box. Running both the marketplace plugin and the npx skills install at once can create duplicate /last30days entries.",
+      "fit": "Likely suited for users who want current, community-sourced context on a person, company, product, or event, such as before meetings, sales calls, or trips, and who work within Claude Code, Codex, Cursor, Copilot, Gemini CLI, or other supported Agent Skills hosts."
+    },
+    "summaries": {
+      "en": {
+        "goal": "last30days is an AI agent-led research tool that searches Reddit, X, YouTube, TikTok, Polymarket, GitHub, and other platforms in parallel, scoring results by real engagement (upvotes, likes, trading volume) rather than editorial curation, and synthesizes them into one brief.",
+        "usage": "On Claude Code, install with /plugin marketplace add mvanhorn/last30days-skill followed by /plugin install last30days. On Codex, Cursor, Copilot, Gemini CLI, and other hosts, use npx skills add mvanhorn/last30days-skill -g. After installing, run /last30days <topic> to generate a report.",
+        "pros": "Reddit, Hacker News, Polymarket, and GitHub work with zero configuration, and patent filings plus careers pages are included automatically for company topics. The project is MIT-licensed, runs locally by default with no tracking, and a first-run setup wizard can enable additional sources in about 30 seconds.",
+        "cons": "Many additional sources, including X, TikTok, Instagram, and YouTube comments, require API keys, browser sessions, or external CLIs such as ScrapeCreators or yt-dlp, so full source coverage depends on credentials and installed tools rather than being available out of the box. Running both the marketplace plugin and the npx skills install at once can create duplicate /last30days entries.",
+        "fit": "Likely suited for users who want current, community-sourced context on a person, company, product, or event, such as before meetings, sales calls, or trips, and who work within Claude Code, Codex, Cursor, Copilot, Gemini CLI, or other supported Agent Skills hosts."
+      },
+      "ko": {
+        "goal": "last30days는 Reddit, X, YouTube, TikTok, Polymarket, GitHub 등 여러 소스를 병렬로 검색하고, 업보트나 좋아요 같은 실제 참여도로 점수를 매겨 AI 에이전트가 하나의 요약 브리핑으로 종합하는 연구 도구입니다. 편집자 큐레이션이 아닌 실제 사용자 참여를 기준으로 삼습니다.",
+        "usage": "Claude Code에서는 /plugin marketplace add mvanhorn/last30days-skill 명령 후 /plugin install last30days로 설치합니다. Codex, Cursor, Copilot, Gemini CLI 등 다른 호스트에서는 npx skills add mvanhorn/last30days-skill -g를 사용합니다. 설치 후 /last30days <주제> 명령으로 보고서를 생성합니다.",
+        "pros": "Reddit, Hacker News, Polymarket, GitHub는 별도 설정 없이 바로 작동하며, 기업 주제의 경우 특허 출원과 채용 페이지도 자동으로 포함됩니다. MIT 라이선스로 공개되어 있고 기본적으로 로컬에서 실행되며 추적 기능이 없고, 최초 실행 설정 마법사로 약 30초 안에 추가 소스를 활성화할 수 있습니다.",
+        "cons": "X, TikTok, Instagram, YouTube 댓글 등 다수의 추가 소스는 API 키, 브라우저 세션, 또는 ScrapeCreators나 yt-dlp 같은 외부 CLI 도구가 필요하므로, 전체 소스 범위는 자격 증명과 설치된 도구에 따라 달라집니다. 마켓플레이스 플러그인과 npx skills 설치를 동시에 사용하면 /last30days 항목이 중복될 수 있다는 점도 운영상 주의가 필요합니다.",
+        "fit": "회의나 영업 통화, 여행 전처럼 사람, 기업, 제품, 사건에 대한 최신 커뮤니티 기반 정보가 필요한 사용자에게 적합할 것으로 보이며, Claude Code, Codex, Cursor, Copilot, Gemini CLI 등 지원되는 Agent Skills 호스트 환경에서 사용할 수 있습니다."
+      },
+      "zh-CN": {
+        "goal": "last30days 是一个由 AI 代理驱动的研究工具,并行搜索 Reddit、X、YouTube、TikTok、Polymarket、GitHub 等多个平台,并根据点赞、投票等真实参与度而非编辑筛选来评分,最终合成为一份简报。",
+        "usage": "在 Claude Code 中,先运行 /plugin marketplace add mvanhorn/last30days-skill,再运行 /plugin install last30days 进行安装;在 Codex、Cursor、Copilot、Gemini CLI 等其他主机上,可使用 npx skills add mvanhorn/last30days-skill -g。安装后通过 /last30days <主题> 命令生成报告。",
+        "pros": "Reddit、Hacker News、Polymarket 和 GitHub 无需任何配置即可立即使用,针对公司主题还会自动包含专利申请和招聘页面信息。该项目采用 MIT 许可,默认在本地运行且不进行跟踪,首次运行的设置向导可在约 30 秒内启用更多数据源。",
+        "cons": "X、TikTok、Instagram 以及 YouTube 评论等多项附加数据源需要 API 密钥、浏览器会话,或 ScrapeCreators、yt-dlp 等外部 CLI 工具,因此完整的数据源覆盖取决于用户是否配置了相应凭据和工具,而非开箱即用。同时启用市场插件和 npx skills 安装方式可能导致 /last30days 出现重复条目。",
+        "fit": "可能适合需要在会议、销售电话或出行前获取关于某人、公司、产品或事件的最新社区信息的用户,可在 Claude Code、Codex、Cursor、Copilot、Gemini CLI 等受支持的 Agent Skills 主机上使用。"
+      },
+      "es": {
+        "goal": "last30days es una herramienta de investigación guiada por un agente de IA que busca en paralelo en Reddit, X, YouTube, TikTok, Polymarket, GitHub y otras plataformas, puntuando los resultados por participación real (votos, me gusta) en lugar de curación editorial, y los sintetiza en un único informe.",
+        "usage": "En Claude Code se instala con /plugin marketplace add mvanhorn/last30days-skill seguido de /plugin install last30days. En Codex, Cursor, Copilot, Gemini CLI y otros hosts se usa npx skills add mvanhorn/last30days-skill -g. Luego se ejecuta /last30days <tema> para generar un informe.",
+        "pros": "Reddit, Hacker News, Polymarket y GitHub funcionan sin configuración, y para temas de empresas también se incluyen automáticamente solicitudes de patentes y páginas de empleo. El proyecto tiene licencia MIT, se ejecuta localmente por defecto sin seguimiento, y un asistente de configuración inicial puede habilitar fuentes adicionales en unos 30 segundos.",
+        "cons": "Muchas fuentes adicionales, como X, TikTok, Instagram y los comentarios de YouTube, requieren claves de API, sesiones de navegador o herramientas CLI externas como ScrapeCreators o yt-dlp, por lo que la cobertura completa depende de las credenciales y herramientas instaladas, no está disponible de forma inmediata. Usar a la vez el plugin del marketplace y la instalación vía npx skills puede generar entradas duplicadas de /last30days.",
+        "fit": "Probablemente adecuado para quienes necesitan contexto reciente basado en la comunidad sobre una persona, empresa, producto o evento, por ejemplo antes de reuniones, llamadas de ventas o viajes, usando Claude Code, Codex, Cursor, Copilot, Gemini CLI u otros hosts compatibles de Agent Skills."
+      },
+      "ja": {
+        "goal": "last30days は、Reddit、X、YouTube、TikTok、Polymarket、GitHub などの複数プラットフォームを並行して検索し、編集者による選別ではなく実際の参加度(アップボートやいいね)でスコア付けして、1つのブリーフに統合する AI エージェント主導の調査ツールです。",
+        "usage": "Claude Code では /plugin marketplace add mvanhorn/last30days-skill の後に /plugin install last30days でインストールします。Codex、Cursor、Copilot、Gemini CLI などの他のホストでは npx skills add mvanhorn/last30days-skill -g を使用します。インストール後は /last30days <トピック> でレポートを生成します。",
+        "pros": "Reddit、Hacker News、Polymarket、GitHub は設定不要で即座に利用でき、企業トピックの場合は特許出願や採用ページも自動的に含まれます。MIT ライセンスで公開され、デフォルトでローカル実行かつ追跡なしで、初回実行時のセットアップウィザードにより約30秒で追加ソースを有効化できます。",
+        "cons": "X、TikTok、Instagram、YouTube コメントなど多くの追加ソースは API キー、ブラウザセッション、または ScrapeCreators や yt-dlp などの外部 CLI が必要なため、網羅範囲は認証情報とインストール済みツールに依存し、そのままでは利用できません。マーケットプレイスのプラグインと npx skills のインストールを同時に使うと /last30days の項目が重複する可能性があります。",
+        "fit": "会議、営業電話、旅行前などに、人物・企業・製品・出来事に関する最新のコミュニティベースの情報を必要とするユーザーに向いていると考えられ、Claude Code、Codex、Cursor、Copilot、Gemini CLI などの対応 Agent Skills ホストで利用できます。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 23,
+          "end_line": 23,
+          "section_heading": "/last30days"
+        },
+        {
+          "start_line": 45,
+          "end_line": 47,
+          "section_heading": "/last30days"
+        },
+        {
+          "start_line": 59,
+          "end_line": 61,
+          "section_heading": "Why this exists"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 27,
+          "end_line": 31,
+          "section_heading": "/last30days"
+        },
+        {
+          "start_line": 35,
+          "end_line": 36,
+          "section_heading": "/last30days"
+        },
+        {
+          "start_line": 54,
+          "end_line": 54,
+          "section_heading": "/last30days"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 41,
+          "end_line": 41,
+          "section_heading": "/last30days"
+        },
+        {
+          "start_line": 358,
+          "end_line": 358,
+          "section_heading": "Open source"
+        },
+        {
+          "start_line": 368,
+          "end_line": 368,
+          "section_heading": "Data handling"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 93,
+          "end_line": 96,
+          "section_heading": "Sources, scored by the people"
+        },
+        {
+          "start_line": 102,
+          "end_line": 102,
+          "section_heading": "Sources, scored by the people"
+        },
+        {
+          "start_line": 173,
+          "end_line": 173,
+          "section_heading": "Quick Try-Link"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 33,
+          "end_line": 33,
+          "section_heading": "/last30days"
+        },
+        {
+          "start_line": 108,
+          "end_line": 110,
+          "section_heading": "What people actually use it for"
+        },
+        {
+          "start_line": 61,
+          "end_line": 63,
+          "section_heading": "Why this exists"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "/plugin marketplace add mvanhorn/last30days-skill",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/plugin install last30days",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "npx skills add mvanhorn/last30days-skill -g",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/last30days",
+        "fields": [
+          "usage",
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "last30days",
+        "fields": [
+          "goal",
+          "usage",
+          "cons"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Claude Code",
+        "fields": [
+          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "GitHub",
+        "fields": [
+          "goal",
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Reddit",
+        "fields": [
+          "goal",
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Polymarket",
+        "fields": [
+          "goal",
+          "pros"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "mvanhorn/last30days-skill",
+      "path": "README.md",
+      "blob_sha": "6fcd597e58c5025abc86f49b12472bbbcaa0c38d",
+      "content_sha256": "3ebe686ad369cb74e894109b502af2c7e87580491849df18c1d1e9bfd379bdcc",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.322",
@@ -3231,47 +3446,47 @@
   },
   "alibaba/open-code-review": {
     "content": {
-      "goal": "Open Code Review (OCR) is an AI-powered code review CLI tool originating as Alibaba Group's internal review assistant. It reads Git diffs, sends changed files to a configurable LLM agent, and produces structured, line-level review comments; `ocr scan` extends this to full-file audits without diffs.",
-      "usage": "Install via `npx skills add alibaba/open-code-review` or `npm install -g @alibaba-group/open-code-review`. Configure a model provider with `ocr config provider` and `ocr config model`, then run `ocr review` for diff-based review or `ocr scan` to audit whole files or directories.",
-      "pros": "A benchmark spanning 50 repositories, 200 pull requests, and 10 languages (1,505 annotated issues) reports that, with the same underlying model, OCR achieves higher Precision and F1 than general-purpose agents like Claude Code, while using about 1/9 of the tokens and completing faster, attributed to combining deterministic file selection and rule matching with agent analysis.",
-      "cons": "The benchmark reports lower Recall than general-purpose agents, a trade-off described as deliberate but one that could mean some real defects go unreported in exchange for fewer false alarms. Native review also requires Git >= 2.41 and a configured LLM provider, unless delegation mode is used instead.",
-      "fit": "OCR seems suited to teams wanting precision-focused review with less noise, including those using Claude Code, Codex, Cursor, or Kimi Code as a host agent via delegation mode without a separate API key. It may suit less when maximizing recall matters more than minimizing false positives."
+      "goal": "alibaba/open-code-review (Open Code Review) is an AI-powered code review CLI tool originally built as Alibaba Group's internal assistant, now open-sourced. It reads Git diffs and sends changed files to a configurable LLM through an agent to produce structured, line-level review comments.",
+      "usage": "Install the agent skills with `npx skills add alibaba/open-code-review`, or install the CLI globally with `npm install -g @alibaba-group/open-code-review` (requires Git >= 2.41). Run `ocr review` to review Git diffs, or `ocr scan` to review whole files; native mode needs a configured OCR model provider, while delegation mode uses the host agent's own model.",
+      "pros": "According to the README's benchmark, cross-validated by 80+ senior engineers across 50 repositories, 200 pull requests, 10 languages, and 1,505 annotated ground-truth issues, Open Code Review reports higher Precision and F1 than Claude Code with the same model while using only about 1/9 of the tokens.",
+      "cons": "The same benchmark states Recall is lower than general-purpose agents, described as a deliberate trade-off favoring precision over noise; native review mode also requires configuring a separate OCR model provider beyond the base CLI installation.",
+      "fit": "Open Code Review may suit teams already using Git-based workflows and agents such as Claude Code, Codex, Cursor, or Kimi Code who want automated review comments; it likely presumes an existing Git repository and, for native mode, an LLM provider credential."
     },
     "summaries": {
       "en": {
-        "goal": "Open Code Review (OCR) is an AI-powered code review CLI tool originating as Alibaba Group's internal review assistant. It reads Git diffs, sends changed files to a configurable LLM agent, and produces structured, line-level review comments; `ocr scan` extends this to full-file audits without diffs.",
-        "usage": "Install via `npx skills add alibaba/open-code-review` or `npm install -g @alibaba-group/open-code-review`. Configure a model provider with `ocr config provider` and `ocr config model`, then run `ocr review` for diff-based review or `ocr scan` to audit whole files or directories.",
-        "pros": "A benchmark spanning 50 repositories, 200 pull requests, and 10 languages (1,505 annotated issues) reports that, with the same underlying model, OCR achieves higher Precision and F1 than general-purpose agents like Claude Code, while using about 1/9 of the tokens and completing faster, attributed to combining deterministic file selection and rule matching with agent analysis.",
-        "cons": "The benchmark reports lower Recall than general-purpose agents, a trade-off described as deliberate but one that could mean some real defects go unreported in exchange for fewer false alarms. Native review also requires Git >= 2.41 and a configured LLM provider, unless delegation mode is used instead.",
-        "fit": "OCR seems suited to teams wanting precision-focused review with less noise, including those using Claude Code, Codex, Cursor, or Kimi Code as a host agent via delegation mode without a separate API key. It may suit less when maximizing recall matters more than minimizing false positives."
+        "goal": "alibaba/open-code-review (Open Code Review) is an AI-powered code review CLI tool originally built as Alibaba Group's internal assistant, now open-sourced. It reads Git diffs and sends changed files to a configurable LLM through an agent to produce structured, line-level review comments.",
+        "usage": "Install the agent skills with `npx skills add alibaba/open-code-review`, or install the CLI globally with `npm install -g @alibaba-group/open-code-review` (requires Git >= 2.41). Run `ocr review` to review Git diffs, or `ocr scan` to review whole files; native mode needs a configured OCR model provider, while delegation mode uses the host agent's own model.",
+        "pros": "According to the README's benchmark, cross-validated by 80+ senior engineers across 50 repositories, 200 pull requests, 10 languages, and 1,505 annotated ground-truth issues, Open Code Review reports higher Precision and F1 than Claude Code with the same model while using only about 1/9 of the tokens.",
+        "cons": "The same benchmark states Recall is lower than general-purpose agents, described as a deliberate trade-off favoring precision over noise; native review mode also requires configuring a separate OCR model provider beyond the base CLI installation.",
+        "fit": "Open Code Review may suit teams already using Git-based workflows and agents such as Claude Code, Codex, Cursor, or Kimi Code who want automated review comments; it likely presumes an existing Git repository and, for native mode, an LLM provider credential."
       },
       "ko": {
-        "goal": "Open Code Review(OCR)는 Alibaba Group 내부 리뷰 어시스턴트에서 출발한 AI 기반 코드 리뷰 CLI 도구입니다. Git diff를 읽어 변경된 파일을 설정 가능한 LLM 에이전트로 전달하고, 구조화된 라인 단위 리뷰 코멘트를 생성합니다. `ocr scan`을 사용하면 diff 없이도 전체 파일을 감사할 수 있도록 범위를 확장합니다.",
-        "usage": "`npx skills add alibaba/open-code-review` 또는 `npm install -g @alibaba-group/open-code-review`로 설치할 수 있습니다. `ocr config provider`와 `ocr config model`로 모델 프로바이더를 설정한 뒤, diff 기반 리뷰는 `ocr review`를, 전체 파일이나 디렉터리 감사는 `ocr scan`을 실행합니다.",
-        "pros": "50개 저장소, 200개 Pull Request, 10개 프로그래밍 언어(1,505개의 주석 처리된 이슈)를 대상으로 한 벤치마크에 따르면, 동일한 모델을 사용할 때 OCR은 Claude Code와 같은 범용 에이전트보다 더 높은 Precision과 F1을 달성하면서도 토큰 사용량은 약 1/9 수준이고 완료 속도도 더 빠릅니다. 이는 결정적(deterministic) 파일 선택 및 규칙 매칭을 에이전트 분석과 결합한 결과로 설명됩니다.",
-        "cons": "같은 벤치마크에서는 범용 에이전트보다 Recall이 낮게 나타나는데, README는 이를 의도적인 트레이드오프라고 설명하지만 이는 거짓 경보를 줄이는 대신 일부 실제 결함이 보고되지 않을 수 있음을 뜻할 수 있습니다. 네이티브 리뷰 모드를 사용하려면 Git >= 2.41과 설정된 LLM 프로바이더가 필요하며, 그렇지 않으면 delegation 모드를 대신 사용해야 합니다.",
-        "fit": "OCR은 거짓 경보를 줄이고 정밀도를 중시하는 리뷰를 원하는 팀, 특히 별도의 API 키 없이 delegation 모드에서 Claude Code, Codex, Cursor, Kimi Code를 호스트 에이전트로 사용하는 환경에 적합해 보입니다. 다만 거짓 경보를 줄이는 것보다 Recall을 최대화하는 것이 더 중요한 경우에는 덜 적합할 수 있습니다."
+        "goal": "alibaba/open-code-review(Open Code Review)는 원래 알리바바 그룹 내부용 보조 도구로 개발되었다가 오픈소스로 공개된 AI 기반 코드 리뷰 CLI 도구입니다. Git diff를 읽어 변경된 파일을 에이전트를 통해 설정 가능한 LLM에 전달하여, 라인 단위의 구조화된 리뷰 코멘트를 생성합니다.",
+        "usage": "에이전트 스킬은 `npx skills add alibaba/open-code-review` 명령으로 설치하고, CLI는 `npm install -g @alibaba-group/open-code-review` 명령으로 전역 설치할 수 있습니다(Git >= 2.41 필요). `ocr review`로 Git diff를 리뷰하거나 `ocr scan`으로 전체 파일을 리뷰할 수 있으며, native 모드는 OCR 모델 제공자 설정이 필요하고 delegation 모드는 호스트 에이전트 자체의 모델을 사용합니다.",
+        "pros": "README의 벤치마크에 따르면, 80+ 명의 시니어 엔지니어가 50개 저장소, 200개 풀 리퀘스트, 10개 프로그래밍 언어, 1,505개의 주석된 정답 이슈를 교차 검증한 결과, Open Code Review는 동일한 모델을 사용할 때 Claude Code보다 더 높은 Precision과 F1을 기록하면서 토큰은 약 1/9만 소비한다고 보고합니다.",
+        "cons": "같은 벤치마크는 범용 에이전트보다 Recall이 낮다고 밝히며, 이는 잡음보다 정밀도를 우선시하는 의도적인 트레이드오프라고 설명합니다. 또한 native 리뷰 모드는 기본 CLI 설치 외에 별도의 OCR 모델 제공자 설정이 추가로 필요합니다.",
+        "fit": "Open Code Review는 Git 기반 워크플로우와 Claude Code, Codex, Cursor, Kimi Code 같은 에이전트를 이미 사용하는 팀에 적합할 수 있으며, 기존 Git 저장소와 native 모드의 경우 LLM 제공자 자격 증명이 전제되는 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "Open Code Review(OCR)是一款 AI 驱动的代码审查 CLI 工具,起源于 Alibaba Group 内部的审查助手。它读取 Git diff,将变更文件发送给可配置的 LLM 代理,并生成结构化的行级审查评论;`ocr scan` 则将其扩展为对整个文件进行审计,无需依赖 diff。",
-        "usage": "可通过 `npx skills add alibaba/open-code-review` 或 `npm install -g @alibaba-group/open-code-review` 安装。使用 `ocr config provider` 和 `ocr config model` 配置模型提供方,然后运行 `ocr review` 进行基于 diff 的审查,或运行 `ocr scan` 审计整个文件或目录。",
-        "pros": "一项涵盖 50 个仓库、200 个 Pull Request、10 种编程语言(1,505 个标注问题)的基准测试显示,在使用相同底层模型的情况下,OCR 相比 Claude Code 等通用代理取得了更高的 Precision 和 F1,同时令牌消耗约为其 1/9,完成速度也更快,这归因于将确定性的文件选择与规则匹配同代理分析相结合。",
-        "cons": "同一基准测试显示其 Recall 低于通用代理,README 将此描述为刻意的权衡,但这也可能意味着在减少误报的同时,部分真实缺陷未被报告。使用原生审查模式还需要 Git >= 2.41 以及已配置的 LLM 提供方,否则需改用委托(delegation)模式。",
-        "fit": "OCR 似乎适合希望获得注重精度、噪音更少的审查团队,包括在委托模式下使用 Claude Code、Codex、Cursor 或 Kimi Code 作为主机代理且无需单独 API 密钥的场景。如果最大化 Recall 比减少误报更重要,则可能不太适合。"
+        "goal": "alibaba/open-code-review(Open Code Review)最初是阿里巴巴集团内部的 AI 代码评审助手,现已开源,是一款 AI 驱动的代码评审 CLI 工具。它读取 Git diff,通过具备工具调用能力的 agent 将改动文件发送给可配置的 LLM,生成具有行级精度的结构化评审意见。",
+        "usage": "可通过 `npx skills add alibaba/open-code-review` 安装 agent 技能,或通过 `npm install -g @alibaba-group/open-code-review` 全局安装 CLI(需要 Git >= 2.41)。运行 `ocr review` 评审 Git diff,或运行 `ocr scan` 对整个文件进行评审;native 模式需要配置 OCR 的模型提供方,delegation 模式则使用宿主 agent 自身的模型。",
+        "pros": "根据 README 中的基准测试,由 80+ 名资深工程师在 50 个仓库、200 个 Pull Request、10 种编程语言、1,505 条标注的真实问题上交叉验证,Open Code Review 在使用相同模型的情况下,Precision 和 F1 均高于 Claude Code,且仅消耗约 1/9 的 token。",
+        "cons": "同一基准测试指出其 Recall 低于通用型 agent,README 将此描述为以精确率优先、减少噪音的有意取舍;此外,native 评审模式除安装基础 CLI 外,还需要额外配置独立的 OCR 模型提供方。",
+        "fit": "Open Code Review 可能适合已经采用 Git 工作流并使用 Claude Code、Codex、Cursor 或 Kimi Code 等 agent 的团队;其使用前提看起来包括已有 Git 仓库,native 模式下还需要相应的 LLM 提供方凭证。"
       },
       "es": {
-        "goal": "Open Code Review (OCR) es una herramienta CLI de revisión de código impulsada por IA, originada como el asistente interno de revisión de Alibaba Group. Lee diferencias de Git, envía los archivos modificados a un agente LLM configurable y genera comentarios de revisión estructurados a nivel de línea; `ocr scan` amplía esto a auditorías de archivos completos sin necesidad de diffs.",
-        "usage": "Se instala con `npx skills add alibaba/open-code-review` o `npm install -g @alibaba-group/open-code-review`. Configure un proveedor de modelo con `ocr config provider` y `ocr config model`, y luego ejecute `ocr review` para revisiones basadas en diffs o `ocr scan` para auditar archivos o directorios completos.",
-        "pros": "Un benchmark con 50 repositorios, 200 pull requests y 10 lenguajes de programación (1,505 incidencias anotadas) reporta que, usando el mismo modelo subyacente, OCR logra mayor Precision y F1 que agentes de propósito general como Claude Code, consumiendo alrededor de 1/9 de los tokens y completando las revisiones más rápido, atribuido a combinar selección de archivos determinista con análisis del agente.",
-        "cons": "El mismo benchmark reporta un Recall menor que el de agentes de propósito general, un compromiso descrito como deliberado, aunque podría implicar que algunos defectos reales no se reporten a cambio de menos falsas alarmas. El modo de revisión nativo también requiere Git >= 2.41 y un proveedor LLM configurado, salvo que se use el modo delegation.",
-        "fit": "OCR parece adecuado para equipos que buscan revisiones centradas en la precisión y con menos ruido, incluidos quienes usan Claude Code, Codex, Cursor o Kimi Code como agente anfitrión en modo delegation sin una clave API separada. Podría ser menos adecuado cuando maximizar el Recall importa más que reducir falsos positivos."
+        "goal": "alibaba/open-code-review (Open Code Review) es una herramienta CLI de revisión de código basada en IA, originada como asistente interno de Alibaba Group y ahora de código abierto. Lee los diffs de Git y envía los archivos modificados a un LLM configurable mediante un agente para generar comentarios de revisión estructurados con precisión a nivel de línea.",
+        "usage": "Instala las skills del agente con `npx skills add alibaba/open-code-review`, o instala la CLI globalmente con `npm install -g @alibaba-group/open-code-review` (requiere Git >= 2.41). Ejecuta `ocr review` para revisar diffs de Git u `ocr scan` para revisar archivos completos; el modo native requiere configurar un proveedor de modelo de OCR, mientras que el modo delegation usa el modelo propio del agente anfitrión.",
+        "pros": "Según el benchmark del README, validado de forma cruzada por más de 80 ingenieros senior sobre 50 repositorios, 200 pull requests, 10 lenguajes de programación y 1,505 problemas anotados como referencia, Open Code Review reporta mayor Precision y F1 que Claude Code con el mismo modelo, consumiendo solo alrededor de 1/9 de los tokens.",
+        "cons": "El mismo benchmark indica que el Recall es menor que el de agentes de propósito general, descrito como una compensación deliberada que prioriza la precisión sobre el ruido; además, el modo native de revisión requiere configurar por separado un proveedor de modelo de OCR además de instalar la CLI base.",
+        "fit": "Open Code Review podría ser adecuado para equipos que ya usan flujos de trabajo basados en Git y agentes como Claude Code, Codex, Cursor o Kimi Code; su uso parece presuponer un repositorio Git existente y, para el modo native, credenciales de un proveedor de LLM."
       },
       "ja": {
-        "goal": "Open Code Review(OCR)は、Alibaba Group 内部のレビューアシスタントを起源とする AI 駆動のコードレビュー CLI ツールです。Git diff を読み取り、変更されたファイルを設定可能な LLM エージェントに送信し、構造化された行単位のレビューコメントを生成します。`ocr scan` を使うと、diff がなくてもファイル全体の監査に範囲を拡張できます。",
-        "usage": "`npx skills add alibaba/open-code-review` または `npm install -g @alibaba-group/open-code-review` でインストールします。`ocr config provider` と `ocr config model` でモデルプロバイダーを設定した後、diff ベースのレビューには `ocr review` を、ファイルやディレクトリ全体の監査には `ocr scan` を実行します。",
-        "pros": "50 のリポジトリ、200 のプルリクエスト、10 のプログラミング言語(1,505 件の注釈付きissue)を対象としたベンチマークによると、同じ基盤モデルを使用した場合、OCR は Claude Code のような汎用エージェントよりも高い Precision と F1 を達成し、トークン消費量は約 1/9 で、完了も速いとされています。これは決定論的なファイル選択・ルールマッチングとエージェントによる分析を組み合わせた結果とされています。",
-        "cons": "同じベンチマークでは、汎用エージェントよりも Recall が低いと報告されており、README はこれを意図的なトレードオフと説明していますが、誤検知を減らす代わりに実際の欠陥の一部が報告されない可能性があることを意味するとも考えられます。ネイティブレビューモードには Git >= 2.41 と設定済みの LLM プロバイダーが必要で、それがない場合は delegation モードを使う必要があります。",
-        "fit": "OCR は、誤検知の少ない精度重視のレビューを求めるチーム、特に別途 API キーを用意せずに delegation モードで Claude Code、Codex、Cursor、Kimi Code をホストエージェントとして使う環境に適していると考えられます。誤検知の削減よりも Recall の最大化を重視する場合には、あまり適さない可能性があります。"
+        "goal": "alibaba/open-code-review(Open Code Review)はもともとAlibaba Group社内のAIコードレビューアシスタントとして開発され、現在はオープンソース化されたAI駆動のコードレビューCLIツールです。Git diffを読み取り、変更されたファイルをツール利用可能なエージェント経由で設定可能なLLMに送信し、行単位の精度を持つ構造化されたレビューコメントを生成します。",
+        "usage": "`npx skills add alibaba/open-code-review` でエージェントスキルをインストールするか、`npm install -g @alibaba-group/open-code-review` でCLIをグローバルインストールできます(Git >= 2.41が必要)。`ocr review` でGit diffをレビューし、`ocr scan` でファイル全体をレビューできます。nativeモードではOCRのモデルプロバイダーの設定が必要で、delegationモードではホストエージェント自身のモデルを使用します。",
+        "pros": "READMEのベンチマークによると、80名以上のシニアエンジニアが50のリポジトリ、200件のプルリクエスト、10のプログラミング言語、1,505件の注釈付き正解課題をクロス検証した結果、Open Code Reviewは同じモデルを使用した場合にClaude Codeよりも高いPrecisionとF1を記録しつつ、トークン消費量は約1/9にとどまると報告されています。",
+        "cons": "同じベンチマークでは、汎用エージェントに比べてRecallが低いことも示されており、これはノイズよりも精度を優先する意図的なトレードオフだと説明されています。また、nativeレビューモードでは基本のCLIインストールに加えて、別途OCRのモデルプロバイダーの設定が必要です。",
+        "fit": "Open Code Reviewは、Gitベースのワークフローや、Claude Code、Codex、Cursor、Kimi Codeなどのエージェントを既に利用しているチームに適している可能性があり、既存のGitリポジトリ、そしてnativeモードの場合はLLMプロバイダーの認証情報が前提となっているように見受けられます。"
       }
     },
     "evidence": {
@@ -3289,17 +3504,17 @@
       ],
       "usage": [
         {
-          "start_line": 119,
-          "end_line": 121,
+          "start_line": 109,
+          "end_line": 110,
+          "section_heading": "Prerequisites"
+        },
+        {
+          "start_line": 123,
+          "end_line": 123,
           "section_heading": "1. Install the Skills"
         },
         {
-          "start_line": 142,
-          "end_line": 144,
-          "section_heading": "Install"
-        },
-        {
-          "start_line": 159,
+          "start_line": 179,
           "end_line": 197,
           "section_heading": "Quick Start"
         }
@@ -3307,13 +3522,13 @@
       "pros": [
         {
           "start_line": 55,
-          "end_line": 57,
+          "end_line": 55,
           "section_heading": "Benchmark"
         },
         {
-          "start_line": 85,
-          "end_line": 94,
-          "section_heading": "Core Design: Deterministic Engineering × Agent Hybrid"
+          "start_line": 57,
+          "end_line": 57,
+          "section_heading": "Benchmark"
         }
       ],
       "cons": [
@@ -3323,31 +3538,26 @@
           "section_heading": "Benchmark"
         },
         {
-          "start_line": 107,
-          "end_line": 107,
-          "section_heading": "Prerequisites"
+          "start_line": 116,
+          "end_line": 116,
+          "section_heading": "Agent Skills"
         },
         {
-          "start_line": 113,
-          "end_line": 113,
-          "section_heading": "Agent Skills"
+          "start_line": 137,
+          "end_line": 137,
+          "section_heading": "2. Choose a Review Mode"
         }
       ],
       "fit": [
         {
-          "start_line": 29,
+          "start_line": 32,
           "end_line": 35,
           "section_heading": ""
         },
         {
-          "start_line": 113,
-          "end_line": 113,
+          "start_line": 116,
+          "end_line": 116,
           "section_heading": "Agent Skills"
-        },
-        {
-          "start_line": 134,
-          "end_line": 134,
-          "section_heading": "2. Choose a Review Mode"
         }
       ]
     },
@@ -3368,20 +3578,6 @@
       },
       {
         "kind": "command",
-        "value": "ocr config provider",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "ocr config model",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
         "value": "ocr review",
         "fields": [
           "usage"
@@ -3391,7 +3587,6 @@
         "kind": "command",
         "value": "ocr scan",
         "fields": [
-          "goal",
           "usage"
         ]
       },
@@ -3399,7 +3594,14 @@
         "kind": "version",
         "value": "Git >= 2.41",
         "fields": [
-          "cons"
+          "usage"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "80+",
+        "fields": [
+          "pros"
         ]
       },
       {
@@ -3439,9 +3641,10 @@
       },
       {
         "kind": "product",
-        "value": "Open Code Review",
+        "value": "alibaba/open-code-review",
         "fields": [
-          "goal"
+          "goal",
+          "usage"
         ]
       },
       {
@@ -3451,18 +3654,38 @@
           "pros",
           "fit"
         ]
+      },
+      {
+        "kind": "product",
+        "value": "Codex",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Cursor",
+        "fields": [
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Kimi Code",
+        "fields": [
+          "fit"
+        ]
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "alibaba/open-code-review",
       "path": "README.md",
-      "blob_sha": "8728015fc50b50da660a793da84694df9652aa80",
-      "content_sha256": "f4c673a573f1b84e089d7e5166dc2e17264179d6449735b01dad104dde00c775",
+      "blob_sha": "09245c00353c15e0d70d609636eaeef1c096a307",
+      "content_sha256": "33d8b481c433ffb0f29a103e30d36dc1535f6d0123d3ffa1e9b1567da512decb",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.322",
@@ -4032,70 +4255,75 @@
   },
   "meta/astryx": {
     "content": {
-      "goal": "Astryx is an open source design system built on React 19+ and StyleX, described as having grown inside Meta over eight years. It ships 150+ accessible components, theming, dark mode, ready-to-ship templates, and a CLI, and the README states it powers 13,000+ apps internally.",
-      "usage": "Install the core package, a theme, and StyleX with `npm install @astryxdesign/core @astryxdesign/theme-neutral @stylexjs/stylex` (plus `npm install -D @astryxdesign/cli`), then run `npx @astryxdesign/cli init` once to finish setup; this prints getting-started steps and saves a guide to AGENTS.md/CLAUDE.md.",
-      "pros": "Components are designed with open internals so building blocks can be composed or ejected via 'swizzle', styling can be overridden with className (Tailwind, CSS modules, or plain CSS) despite using StyleX internally, and themes are applied through CSS custom property overrides without forking component source.",
-      "cons": "React 19 or later is a required peer dependency, which may limit adoption for projects on older React versions. Additionally, some packages such as @astryxdesign/vega and @astryxdesign/charts are only published under the @canary dist-tag, suggesting they are not yet considered stable for production use.",
-      "fit": "Given its React/StyleX foundation and CLI-driven setup that generates AGENTS.md/CLAUDE.md guides, Astryx appears best suited to teams already using React 19+ who want a shared reference for both human developers and AI coding assistants, though this inference depends on project-specific tooling compatibility."
+      "goal": "Astryx is an open source design system built on React 19+ and StyleX, developed internally at Meta over eight years and reportedly powering 13,000+ apps. It provides 150+ accessible components, theming, dark mode, templates, and a CLI, aimed at both human developers and AI coding assistants building interfaces consistently.",
+      "usage": "Install with `npm install @astryxdesign/core @astryxdesign/theme-neutral @stylexjs/stylex` (adding `@astryxdesign/cli` as a dev dependency), then run `npx @astryxdesign/cli init` once to set up styles, a theme, and project guide files like AGENTS.md/CLAUDE.md.",
+      "pros": "Components can be composed or 'swizzled' to eject full source for deeper customization, and styling overrides work via plain `className` with Tailwind, CSS modules, or plain CSS, avoiding lock-in to StyleX despite it being used internally.",
+      "cons": "The project is explicitly labeled 'Currently in Beta,' which suggests the API and components may still change before a stable release. Related packages—@astryxdesign/lab, @astryxdesign/vega, and @astryxdesign/charts—are either unpublished or available only under the @canary npm tag, indicating no stable release yet for those.",
+      "fit": "Astryx requires React 19 or later as a peer dependency, so it likely fits best for projects already running a recent React version rather than legacy codebases; its design and CLI appear intended to be used identically by human developers and AI coding assistants."
     },
     "summaries": {
       "en": {
-        "goal": "Astryx is an open source design system built on React 19+ and StyleX, described as having grown inside Meta over eight years. It ships 150+ accessible components, theming, dark mode, ready-to-ship templates, and a CLI, and the README states it powers 13,000+ apps internally.",
-        "usage": "Install the core package, a theme, and StyleX with `npm install @astryxdesign/core @astryxdesign/theme-neutral @stylexjs/stylex` (plus `npm install -D @astryxdesign/cli`), then run `npx @astryxdesign/cli init` once to finish setup; this prints getting-started steps and saves a guide to AGENTS.md/CLAUDE.md.",
-        "pros": "Components are designed with open internals so building blocks can be composed or ejected via 'swizzle', styling can be overridden with className (Tailwind, CSS modules, or plain CSS) despite using StyleX internally, and themes are applied through CSS custom property overrides without forking component source.",
-        "cons": "React 19 or later is a required peer dependency, which may limit adoption for projects on older React versions. Additionally, some packages such as @astryxdesign/vega and @astryxdesign/charts are only published under the @canary dist-tag, suggesting they are not yet considered stable for production use.",
-        "fit": "Given its React/StyleX foundation and CLI-driven setup that generates AGENTS.md/CLAUDE.md guides, Astryx appears best suited to teams already using React 19+ who want a shared reference for both human developers and AI coding assistants, though this inference depends on project-specific tooling compatibility."
+        "goal": "Astryx is an open source design system built on React 19+ and StyleX, developed internally at Meta over eight years and reportedly powering 13,000+ apps. It provides 150+ accessible components, theming, dark mode, templates, and a CLI, aimed at both human developers and AI coding assistants building interfaces consistently.",
+        "usage": "Install with `npm install @astryxdesign/core @astryxdesign/theme-neutral @stylexjs/stylex` (adding `@astryxdesign/cli` as a dev dependency), then run `npx @astryxdesign/cli init` once to set up styles, a theme, and project guide files like AGENTS.md/CLAUDE.md.",
+        "pros": "Components can be composed or 'swizzled' to eject full source for deeper customization, and styling overrides work via plain `className` with Tailwind, CSS modules, or plain CSS, avoiding lock-in to StyleX despite it being used internally.",
+        "cons": "The project is explicitly labeled 'Currently in Beta,' which suggests the API and components may still change before a stable release. Related packages—@astryxdesign/lab, @astryxdesign/vega, and @astryxdesign/charts—are either unpublished or available only under the @canary npm tag, indicating no stable release yet for those.",
+        "fit": "Astryx requires React 19 or later as a peer dependency, so it likely fits best for projects already running a recent React version rather than legacy codebases; its design and CLI appear intended to be used identically by human developers and AI coding assistants."
       },
       "ko": {
-        "goal": "Astryx는 React 19+와 StyleX를 기반으로 구축된 오픈소스 디자인 시스템으로, README에 따르면 Meta 내부에서 8년에 걸쳐 성장했습니다. 150개 이상의 접근성 컴포넌트, 테마, 다크 모드, 즉시 사용 가능한 템플릿, CLI를 제공하며, 내부적으로 13,000개 이상의 앱에 사용된다고 설명되어 있습니다.",
-        "usage": "핵심 패키지, 테마, StyleX를 `npm install @astryxdesign/core @astryxdesign/theme-neutral @stylexjs/stylex` 명령으로 설치하고(추가로 `npm install -D @astryxdesign/cli`), 이후 `npx @astryxdesign/cli init`을 한 번 실행하여 설정을 마칩니다. 이 명령은 시작 단계를 출력하고 AGENTS.md/CLAUDE.md에 가이드를 저장합니다.",
-        "pros": "컴포넌트는 내부 구조가 개방적으로 설계되어 'swizzle'을 통해 구성 요소를 조합하거나 소스를 추출할 수 있고, 내부적으로 StyleX를 사용하더라도 className으로 Tailwind, CSS 모듈, 일반 CSS 등을 덮어쓸 수 있으며, 테마는 컴포넌트 소스를 포크하지 않고 CSS 커스텀 속성 재정의로 적용됩니다.",
-        "cons": "React 19 이상이 필수 피어 종속성이므로 이전 버전의 React를 사용하는 프로젝트는 도입이 제한될 수 있습니다. 또한 @astryxdesign/vega, @astryxdesign/charts 같은 일부 패키지는 @canary 디스트태그로만 배포되어 있어, 아직 프로덕션에 적합한 안정 버전으로 보기 어려울 수 있습니다.",
-        "fit": "React/StyleX 기반과 AGENTS.md/CLAUDE.md 가이드를 생성하는 CLI 설정 방식을 고려하면, Astryx는 이미 React 19+를 사용 중이며 사람과 AI 코딩 어시스턴트가 함께 참조할 수 있는 시스템을 원하는 팀에 적합해 보입니다. 다만 이는 프로젝트별 도구 호환성에 따라 달라질 수 있는 추정입니다."
+        "goal": "Astryx는 React 19+와 StyleX를 기반으로 구축된 오픈소스 디자인 시스템으로, Meta 내부에서 8년간 개발되었으며 13,000개 이상의 앱에서 사용되고 있다고 알려져 있습니다. 150개 이상의 접근성 컴포넌트, 테마, 다크 모드, 템플릿, CLI를 제공하며, 사람 개발자와 AI 코딩 어시스턴트가 함께 사용하는 것을 목표로 합니다.",
+        "usage": "`npm install @astryxdesign/core @astryxdesign/theme-neutral @stylexjs/stylex` 명령으로 설치하고(`@astryxdesign/cli`는 개발 의존성으로 추가), 이후 `npx @astryxdesign/cli init`을 한 번 실행해 스타일과 테마를 설정하고 AGENTS.md/CLAUDE.md 같은 프로젝트 가이드 파일을 생성합니다.",
+        "pros": "컴포넌트는 조합(compose)하거나 'swizzle'을 통해 전체 소스를 추출해 직접 소유할 수 있으며, 내부적으로 StyleX를 사용하지만 `className`을 통해 Tailwind, CSS 모듈, 일반 CSS로 스타일을 덮어쓸 수 있어 특정 스타일링 도구에 종속되지 않습니다.",
+        "cons": "이 프로젝트는 'Currently in Beta(현재 베타)'로 명시되어 있어, 안정 버전 출시 전까지 API와 컴포넌트가 변경될 수 있음을 시사합니다. 또한 @astryxdesign/lab, @astryxdesign/vega, @astryxdesign/charts 같은 관련 패키지는 npm에 공개되지 않았거나 @canary 태그로만 제공되어, 아직 안정 버전이 없는 것으로 보입니다.",
+        "fit": "Astryx는 피어 의존성으로 React 19 이상을 요구하므로, 최신 React 버전을 이미 사용 중인 프로젝트에 더 적합할 가능성이 있으며, 레거시 코드베이스에는 맞지 않을 수 있습니다. API와 CLI는 사람 개발자와 AI 코딩 어시스턴트가 동일한 방식으로 사용하도록 설계된 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "Astryx 是一个基于 React 19+ 和 StyleX 构建的开源设计系统，README 中提到它在 Meta 内部经过八年发展而成。它提供 150+ 个无障碍组件、主题、深色模式、可直接使用的模板以及 CLI 工具，据称在内部为 13,000+ 个应用提供支持。",
-        "usage": "使用 `npm install @astryxdesign/core @astryxdesign/theme-neutral @stylexjs/stylex` 安装核心包、主题和 StyleX（另需 `npm install -D @astryxdesign/cli`），然后运行一次 `npx @astryxdesign/cli init` 完成初始化；该命令会打印入门步骤并将指南保存到 AGENTS.md/CLAUDE.md。",
-        "pros": "组件采用开放式内部结构设计，可通过 'swizzle' 组合或导出完整源码；尽管内部使用 StyleX，仍可通过 className 用 Tailwind、CSS 模块或纯 CSS 覆盖样式；主题通过 CSS 自定义属性覆盖应用，无需 fork 组件源码。",
-        "cons": "React 19 及以上版本是必需的 peer 依赖，这可能限制仍使用较旧 React 版本的项目采用该系统。此外，@astryxdesign/vega 和 @astryxdesign/charts 等部分包仅以 @canary dist-tag 发布，这表明它们可能尚未达到适合生产环境的稳定版本。",
-        "fit": "考虑到其 React/StyleX 基础以及会生成 AGENTS.md/CLAUDE.md 指南的 CLI 初始化方式，Astryx 似乎更适合已经使用 React 19+ 且希望人类开发者与 AI 编码助手共享同一参考资料的团队，不过这一推断可能因项目具体工具链兼容性而有所不同。"
+        "goal": "Astryx 是一个基于 React 19+ 和 StyleX 构建的开源设计系统,据称已在 Meta 内部开发八年,并支撑了 13,000 多个应用。它提供 150 多个无障碍组件、主题系统、深色模式、模板和 CLI 工具,旨在供人类开发者和 AI 编码助手共同使用。",
+        "usage": "使用 `npm install @astryxdesign/core @astryxdesign/theme-neutral @stylexjs/stylex` 安装核心包与主题(`@astryxdesign/cli` 作为开发依赖),随后运行一次 `npx @astryxdesign/cli init` 以设置样式、主题,并生成 AGENTS.md/CLAUDE.md 等项目指南文件。",
+        "pros": "组件支持组合使用,也可通过 'swizzle' 将完整源码导出以便深度自定义;尽管内部使用 StyleX 编写样式,但可通过 `className` 用 Tailwind、CSS Modules 或纯 CSS 覆盖样式,不会被绑定到特定样式方案。",
+        "cons": "该项目明确标注为'目前处于 Beta 阶段',这表明在正式稳定版发布前,API 和组件可能仍会发生变化。此外,相关包 @astryxdesign/lab、@astryxdesign/vega 和 @astryxdesign/charts 尚未发布到 npm 或仅以 @canary 标签提供,看起来目前还没有稳定版本。",
+        "fit": "Astryx 要求 React 19 或更高版本作为同级依赖,因此它可能更适合已使用较新 React 版本的项目,而非旧版代码库。其 API 和 CLI 的设计似乎是为了让人类开发者和 AI 编码助手以相同方式使用。"
       },
       "es": {
-        "goal": "Astryx es un sistema de diseño de código abierto construido sobre React 19+ y StyleX que, según el README, se desarrolló dentro de Meta durante ocho años. Incluye más de 150 componentes accesibles, theming, modo oscuro, plantillas listas para usar y una CLI, y se describe como soporte interno para más de 13,000 aplicaciones.",
-        "usage": "Instala el paquete core, un theme y StyleX con `npm install @astryxdesign/core @astryxdesign/theme-neutral @stylexjs/stylex` (además de `npm install -D @astryxdesign/cli`), y luego ejecuta una vez `npx @astryxdesign/cli init` para finalizar la configuración; este comando imprime los pasos iniciales y guarda una guía en AGENTS.md/CLAUDE.md.",
-        "pros": "Los componentes están diseñados con internals abiertos, de modo que se pueden componer o extraer su código fuente mediante 'swizzle'; aunque internamente usa StyleX, los estilos pueden sobrescribirse con className usando Tailwind, módulos CSS o CSS plano; los themes se aplican mediante overrides de propiedades personalizadas CSS sin bifurcar el código fuente de los componentes.",
-        "cons": "React 19 o una versión posterior es una dependencia peer obligatoria, lo que podría limitar la adopción en proyectos con versiones anteriores de React. Además, algunos paquetes como @astryxdesign/vega y @astryxdesign/charts solo se publican bajo el dist-tag @canary, lo que sugiere que aún no se consideran estables para producción.",
-        "fit": "Dada su base en React/StyleX y la configuración mediante CLI que genera guías AGENTS.md/CLAUDE.md, Astryx parece más adecuado para equipos que ya usan React 19+ y desean una referencia compartida entre desarrolladores humanos y asistentes de IA, aunque esta es una inferencia que depende de la compatibilidad específica de cada proyecto."
+        "goal": "Astryx es un sistema de diseño de código abierto construido sobre React 19+ y StyleX, desarrollado internamente en Meta durante ocho años y que, según se indica, impulsa más de 13,000 aplicaciones. Ofrece más de 150 componentes accesibles, theming, modo oscuro, plantillas y una CLI, pensado para que tanto desarrolladores humanos como asistentes de IA lo usen por igual.",
+        "usage": "Se instala con `npm install @astryxdesign/core @astryxdesign/theme-neutral @stylexjs/stylex` (añadiendo `@astryxdesign/cli` como dependencia de desarrollo), y luego se ejecuta una vez `npx @astryxdesign/cli init` para configurar estilos, un tema y archivos guía del proyecto como AGENTS.md/CLAUDE.md.",
+        "pros": "Los componentes se pueden componer o 'swizzle-ar' para extraer el código fuente completo y personalizarlo a fondo, y los estilos pueden sobrescribirse mediante `className` usando Tailwind, CSS modules o CSS plano, evitando quedar atado a StyleX aunque se use internamente.",
+        "cons": "El proyecto está marcado explícitamente como 'Currently in Beta', lo que sugiere que la API y los componentes podrían seguir cambiando antes de una versión estable. Además, paquetes relacionados como @astryxdesign/lab, @astryxdesign/vega y @astryxdesign/charts no están publicados o solo están disponibles bajo la etiqueta @canary de npm, lo que indica que aún no hay una versión estable para ellos.",
+        "fit": "Astryx requiere React 19 o superior como dependencia de pares, por lo que probablemente se ajuste mejor a proyectos que ya usan una versión reciente de React en lugar de bases de código heredadas; su diseño y CLI parecen pensados para que desarrolladores humanos y asistentes de IA los usen de la misma manera."
       },
       "ja": {
-        "goal": "Astryxは React 19+ と StyleX を基盤に構築されたオープンソースのデザインシステムで、READMEによるとMeta内部で8年かけて開発されたとされています。150以上のアクセシブルなコンポーネント、テーマ機能、ダークモード、すぐに使えるテンプレート、CLIを提供し、社内で13,000以上のアプリを支えていると記載されています。",
-        "usage": "`npm install @astryxdesign/core @astryxdesign/theme-neutral @stylexjs/stylex` でコアパッケージ、テーマ、StyleXをインストールし（加えて `npm install -D @astryxdesign/cli`）、その後 `npx @astryxdesign/cli init` を一度実行してセットアップを完了します。このコマンドは開始手順を表示し、ガイドをAGENTS.md/CLAUDE.mdに保存します。",
-        "pros": "コンポーネントは内部構造が開放的に設計されており、'swizzle' によって構成要素を組み合わせたりソースコードを取り出したりできます。内部的にはStyleXを使用していますが、classNameを使ってTailwind、CSSモジュール、通常のCSSで上書きできます。テーマはコンポーネントのソースをフォークせずにCSSカスタムプロパティのオーバーライドで適用されます。",
-        "cons": "React 19以上が必須のピア依存関係であるため、古いバージョンのReactを使用しているプロジェクトでは導入が制限される可能性があります。また、@astryxdesign/vega や @astryxdesign/charts などの一部パッケージは @canary dist-tag でのみ公開されており、まだ本番環境向けの安定版とは言えない可能性があります。",
-        "fit": "React/StyleXを基盤とし、AGENTS.md/CLAUDE.mdガイドを生成するCLIセットアップ方式を踏まえると、AstryxはすでにReact 19+を採用しており、人間の開発者とAIコーディングアシスタントが共通の参照を持てるシステムを求めるチームに適していると考えられますが、これはプロジェクト固有のツール互換性に依存する推測です。"
+        "goal": "Astryxは、React 19+とStyleXを基盤に構築されたオープンソースのデザインシステムで、Meta社内で8年間開発され、13,000以上のアプリを支えているとされています。150以上のアクセシブルなコンポーネント、テーマ機能、ダークモード、テンプレート、CLIを提供し、人間の開発者とAIコーディングアシスタントの双方が同じ方法で利用できることを目指しています。",
+        "usage": "`npm install @astryxdesign/core @astryxdesign/theme-neutral @stylexjs/stylex` でインストールし(`@astryxdesign/cli` は開発用依存として追加)、その後一度だけ `npx @astryxdesign/cli init` を実行してスタイルやテーマを設定し、AGENTS.md/CLAUDE.md などのプロジェクトガイドファイルを生成します。",
+        "pros": "コンポーネントは組み合わせて使えるほか、'swizzle' によってソース全体を取り出し自分のプロジェクトで所有できます。内部的にはStyleXでスタイルを記述していますが、`className` 経由でTailwind、CSS Modules、通常のCSSで上書きできるため、特定のスタイリング手法に縛られません。",
+        "cons": "本プロジェクトは明示的に『Currently in Beta』とされており、安定版リリース前にAPIやコンポーネントが変更される可能性があることを示唆しています。また、@astryxdesign/lab、@astryxdesign/vega、@astryxdesign/charts といった関連パッケージは未公開、またはnpmの@canaryタグでのみ提供されており、まだ安定版が存在しないようです。",
+        "fit": "Astryxはピア依存としてReact 19以降を要求するため、既に新しいバージョンのReactを使用しているプロジェクトに適している可能性が高く、レガシーなコードベースには合わない場合があります。そのAPIとCLIは、人間の開発者とAIコーディングアシスタントが同じ方法で利用できるように設計されているように見えます。"
       }
     },
     "evidence": {
       "goal": [
         {
           "start_line": 7,
-          "end_line": 11,
+          "end_line": 9,
           "section_heading": "Astryx"
         },
         {
           "start_line": 27,
+          "end_line": 27,
+          "section_heading": "Overview"
+        },
+        {
+          "start_line": 29,
           "end_line": 29,
           "section_heading": "Overview"
         }
       ],
       "usage": [
         {
-          "start_line": 42,
-          "end_line": 47,
+          "start_line": 44,
+          "end_line": 56,
           "section_heading": "Getting Started"
         },
         {
-          "start_line": 58,
+          "start_line": 60,
           "end_line": 62,
           "section_heading": "Getting Started"
         }
@@ -4103,15 +4331,20 @@
       "pros": [
         {
           "start_line": 33,
+          "end_line": 34,
+          "section_heading": "Overview"
+        },
+        {
+          "start_line": 35,
           "end_line": 35,
           "section_heading": "Overview"
         }
       ],
       "cons": [
         {
-          "start_line": 40,
-          "end_line": 40,
-          "section_heading": "Getting Started"
+          "start_line": 11,
+          "end_line": 11,
+          "section_heading": "Astryx"
         },
         {
           "start_line": 93,
@@ -4121,14 +4354,14 @@
       ],
       "fit": [
         {
+          "start_line": 40,
+          "end_line": 40,
+          "section_heading": "Getting Started"
+        },
+        {
           "start_line": 36,
           "end_line": 36,
           "section_heading": "Overview"
-        },
-        {
-          "start_line": 101,
-          "end_line": 101,
-          "section_heading": "Principles"
         }
       ]
     },
@@ -4152,7 +4385,6 @@
         "value": "React 19",
         "fields": [
           "goal",
-          "cons",
           "fit"
         ]
       },
@@ -4182,9 +4414,11 @@
       },
       {
         "kind": "product",
-        "value": "@astryxdesign/core",
+        "value": "StyleX",
         "fields": [
-          "usage"
+          "goal",
+          "usage",
+          "pros"
         ]
       }
     ],
@@ -4196,8 +4430,8 @@
       "kind": "readme",
       "slug": "meta/astryx",
       "path": "README.md",
-      "blob_sha": "d30ee50759fdfb941a9f1a681f13b02910601bb5",
-      "content_sha256": "95f11eaf63efb1211425b66b23c7c54f35d04665d2b3eea111478fb5c6b84691",
+      "blob_sha": "fe27aafebbbea98a593d12332e7bc1a65f488f68",
+      "content_sha256": "f50f9f11b3ceab4e84d780aa3300eea4cae186407beaf4f407e32705509bf138",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.322",
@@ -4801,47 +5035,47 @@
   },
   "kajisho5/ffmpeg-skill": {
     "content": {
-      "goal": "ffmpeg-skill is an Agent Skill that lets AI coding agents such as Claude Code, Cursor, Codex, or any MCP client edit video and audio footage using a local FFmpeg installation, operating fully offline with no cloud service or API keys required.",
-      "usage": "It is installed with `npx ffmpeg-skill setup` (or `npx ffmpeg-skill` to install for a single agent), which installs the skill files and checks for FFmpeg; `npx ffmpeg-skill doctor` can then be run afterward to confirm FFmpeg and Python are ready.",
-      "pros": "It exposes 42 typed command-line tools (cut, caption, loudness, export, etc.) backed by a machine-readable contract, so the agent calls structured flags instead of raw FFmpeg strings, and each operation is verified afterward by re-probing the written output file.",
-      "cons": "It requires `ffmpeg` and `python3` to already be present on the system PATH, and optional features such as speech-recognition-based captioning need a separate local speech engine that the user must install manually, which is not bundled with the package.",
-      "fit": "Given its distinction between 12 \"stable\" core tools and 30 \"beta\" tools whose arguments may still change, this project seems best suited to users comfortable pinning a specific release rather than tracking main, particularly within kajisho5's broader agent-based video-production ecosystem."
+      "goal": "ffmpeg-skill is an Agent Skill that gives coding agents such as Claude Code, Cursor, Codex, or any MCP client the ability to edit video footage using a local FFmpeg installation and then verify the output. It runs without cloud services or API keys, relying only on the Python standard library.",
+      "usage": "Install and configure it with `npx ffmpeg-skill setup`, which installs the skill for detected agents, installs FFmpeg if it is missing, and ends with a `doctor` check. Tools can also be run directly via `npx ffmpeg-skill` or invoked as MCP tools from an MCP client.",
+      "pros": "All processing happens locally, so footage is never uploaded. It follows a documented probe-edit-verify workflow across 42 tools, 12 of which are marked stable, and exposes a machine-readable contract so an agent can automatically discover each tool's capabilities and arguments.",
+      "cons": "Setup requires Node 16+ and Python 3.10+ to already be present, since the installer does not install either. Optional local transcription for captions needs a separately installed speech engine; without one, `--transcribe` refuses to run. The overall `ok` status from `doctor` can read false even when most individual tools remain usable, since any single missing FFmpeg capability is enough to trip it.",
+      "fit": "This appears suited to users who want an AI coding agent to perform local, verifiable video editing (cutting, captioning, exporting) without sending media to external services, particularly within the Claude Code / Cursor / Codex / MCP ecosystem the README describes."
     },
     "summaries": {
       "en": {
-        "goal": "ffmpeg-skill is an Agent Skill that lets AI coding agents such as Claude Code, Cursor, Codex, or any MCP client edit video and audio footage using a local FFmpeg installation, operating fully offline with no cloud service or API keys required.",
-        "usage": "It is installed with `npx ffmpeg-skill setup` (or `npx ffmpeg-skill` to install for a single agent), which installs the skill files and checks for FFmpeg; `npx ffmpeg-skill doctor` can then be run afterward to confirm FFmpeg and Python are ready.",
-        "pros": "It exposes 42 typed command-line tools (cut, caption, loudness, export, etc.) backed by a machine-readable contract, so the agent calls structured flags instead of raw FFmpeg strings, and each operation is verified afterward by re-probing the written output file.",
-        "cons": "It requires `ffmpeg` and `python3` to already be present on the system PATH, and optional features such as speech-recognition-based captioning need a separate local speech engine that the user must install manually, which is not bundled with the package.",
-        "fit": "Given its distinction between 12 \"stable\" core tools and 30 \"beta\" tools whose arguments may still change, this project seems best suited to users comfortable pinning a specific release rather than tracking main, particularly within kajisho5's broader agent-based video-production ecosystem."
+        "goal": "ffmpeg-skill is an Agent Skill that gives coding agents such as Claude Code, Cursor, Codex, or any MCP client the ability to edit video footage using a local FFmpeg installation and then verify the output. It runs without cloud services or API keys, relying only on the Python standard library.",
+        "usage": "Install and configure it with `npx ffmpeg-skill setup`, which installs the skill for detected agents, installs FFmpeg if it is missing, and ends with a `doctor` check. Tools can also be run directly via `npx ffmpeg-skill` or invoked as MCP tools from an MCP client.",
+        "pros": "All processing happens locally, so footage is never uploaded. It follows a documented probe-edit-verify workflow across 42 tools, 12 of which are marked stable, and exposes a machine-readable contract so an agent can automatically discover each tool's capabilities and arguments.",
+        "cons": "Setup requires Node 16+ and Python 3.10+ to already be present, since the installer does not install either. Optional local transcription for captions needs a separately installed speech engine; without one, `--transcribe` refuses to run. The overall `ok` status from `doctor` can read false even when most individual tools remain usable, since any single missing FFmpeg capability is enough to trip it.",
+        "fit": "This appears suited to users who want an AI coding agent to perform local, verifiable video editing (cutting, captioning, exporting) without sending media to external services, particularly within the Claude Code / Cursor / Codex / MCP ecosystem the README describes."
       },
       "ko": {
-        "goal": "ffmpeg-skill은 Claude Code, Cursor, Codex 또는 모든 MCP 클라이언트와 같은 AI 코딩 에이전트가 로컬에 설치된 FFmpeg를 사용하여 영상과 오디오 소스를 편집할 수 있도록 지원하는 Agent Skill이며, 클라우드 서비스나 API 키 없이 완전히 오프라인으로 동작합니다.",
-        "usage": "`npx ffmpeg-skill setup` (또는 단일 에이전트에만 설치하려면 `npx ffmpeg-skill`)로 설치하면 스킬 파일이 설치되고 FFmpeg 존재 여부가 점검되며, 이후 `npx ffmpeg-skill doctor`를 실행해 FFmpeg와 Python이 제대로 준비되었는지 확인할 수 있습니다.",
-        "pros": "머신에서 읽을 수 있는 계약(contract)을 기반으로 하는 42개의 타입이 지정된 명령줄 도구(cut, caption, loudness, export 등)를 제공하므로, 에이전트는 원시 FFmpeg 문자열 대신 구조화된 플래그를 호출하며, 각 작업 후에는 작성된 출력 파일을 다시 probe하여 검증합니다.",
-        "cons": "시스템 PATH에 `ffmpeg`와 `python3`가 이미 설치되어 있어야 하며, 음성 인식 기반 자막과 같은 선택적 기능을 사용하려면 사용자가 별도의 로컬 음성 엔진을 직접 수동으로 설치해야 하고, 이는 패키지에 포함되어 있지 않습니다.",
-        "fit": "12개의 \"stable\" 핵심 도구와 인수가 아직 변경될 수 있는 30개의 \"beta\" 도구를 구분하고 있다는 점에서, 이 프로젝트는 main 브랜치를 추적하기보다 특정 릴리스를 고정해서 사용하는 데 익숙한 사용자, 특히 kajisho5의 더 넓은 에이전트 기반 영상 제작 생태계 안에서 사용하는 사용자에게 적합해 보입니다."
+        "goal": "ffmpeg-skill은 Claude Code, Cursor, Codex, MCP 클라이언트와 같은 코딩 에이전트에게 로컬 FFmpeg로 영상을 편집하고 결과를 검증할 수 있는 기능을 제공하는 Agent Skill입니다. 클라우드나 API 키 없이 Python 표준 라이브러리만으로 동작합니다.",
+        "usage": "`npx ffmpeg-skill setup` 명령으로 설치하면 감지된 에이전트에 스킬을 설치하고, FFmpeg가 없으면 설치하며 `doctor` 점검으로 마무리됩니다. 각 도구는 `npx ffmpeg-skill`로 직접 실행하거나 MCP 클라이언트를 통해 MCP 도구로도 호출할 수 있습니다.",
+        "pros": "모든 처리가 로컬에서 이루어져 영상이 외부로 업로드되지 않습니다. probe → edit → verify로 이어지는 문서화된 작업 흐름을 따르며, 42개 도구 중 12개는 stable로 표시되어 있고, 기계가 읽을 수 있는 contract를 제공해 에이전트가 도구의 기능과 인자를 자동으로 파악할 수 있습니다.",
+        "cons": "설치 스크립트는 Node 16+와 Python 3.10+가 이미 설치되어 있어야 하며, 둘 다 직접 설치해주지는 않습니다. 자막을 위한 선택적 로컬 음성 인식 기능은 사용자가 별도의 음성 엔진을 설치해야 하며, 설치되어 있지 않으면 `--transcribe`는 실행을 거부합니다. `doctor`의 전체 `ok` 상태는 FFmpeg 기능 하나라도 빠지면 false가 될 수 있어, 대부분의 도구가 실제로 사용 가능한 상태라도 그렇게 표시될 수 있는 것으로 보입니다.",
+        "fit": "클라우드로 미디어를 전송하지 않고 로컬에서 검증 가능한 영상 편집(컷, 자막, 내보내기 등)을 AI 코딩 에이전트가 수행하도록 하려는 사용자, 특히 README에서 설명하는 Claude Code / Cursor / Codex / MCP 생태계 안에서 작업하는 사용자에게 적합한 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "ffmpeg-skill 是一个 Agent Skill,使像 Claude Code、Cursor、Codex 或任何 MCP 客户端这样的 AI 编码代理能够使用本地安装的 FFmpeg 来编辑视频和音频素材,完全离线运行,无需云服务或 API 密钥。",
-        "usage": "通过 `npx ffmpeg-skill setup`(若只为单个代理安装,则使用 `npx ffmpeg-skill`)进行安装,该命令会安装技能文件并检查 FFmpeg 是否存在,之后可运行 `npx ffmpeg-skill doctor` 来确认 FFmpeg 和 Python 是否已就绪。",
-        "pros": "该项目基于可机器读取的 contract 提供了 42 个带类型参数的命令行工具(如 cut、caption、loudness、export 等),代理调用的是结构化的参数标志而非原始 FFmpeg 字符串,并且每次操作完成后都会重新 probe 写入的输出文件以进行验证。",
-        "cons": "系统 PATH 中必须已经存在 `ffmpeg` 和 `python3`,而像语音识别字幕这样的可选功能则需要用户手动另行安装本地语音引擎,该引擎并未随包提供。",
-        "fit": "由于项目将 12 个“stable”核心工具与 30 个参数仍可能变动的“beta”工具区分开来,该项目似乎更适合习惯于锁定特定发布版本而非追踪 main 分支的用户,尤其是在 kajisho5 更广泛的基于代理的视频制作生态系统中使用的用户。"
+        "goal": "ffmpeg-skill 是一个 Agent Skill，为 Claude Code、Cursor、Codex 等编码代理以及任何 MCP 客户端提供使用本地 FFmpeg 编辑视频并验证结果的能力。它不依赖云服务或 API 密钥，仅使用 Python 标准库运行。",
+        "usage": "通过 `npx ffmpeg-skill setup` 安装：该命令会为检测到的代理安装此技能，在缺少 FFmpeg 时自动安装，并以 `doctor` 检查结束。各工具也可以通过 `npx ffmpeg-skill` 直接调用，或由 MCP 客户端作为 MCP 工具调用。",
+        "pros": "所有处理均在本地完成，素材不会被上传。该项目遵循 probe → edit → verify 的既定工作流程，在 42 个工具中有 12 个被标记为 stable，并提供机器可读的 contract，使代理能够自动了解各工具的能力和参数。",
+        "cons": "安装脚本要求机器上已预先安装 Node 16+ 和 Python 3.10+，二者均不会由安装程序自动安装。用于字幕的可选本地语音转录功能需要用户自行安装语音引擎，未安装时 `--transcribe` 会拒绝执行。`doctor` 的总体 `ok` 状态在缺少任意一个 FFmpeg 功能时都可能变为 false，即便大多数工具实际仍可使用，这似乎是需要留意的一点。",
+        "fit": "该项目似乎适合希望让 AI 编码代理在本地执行可验证视频编辑任务（剪辑、字幕、导出等）而不将素材发送到外部服务的用户，尤其是在 README 所述的 Claude Code / Cursor / Codex / MCP 生态系统中使用的场景。"
       },
       "es": {
-        "goal": "ffmpeg-skill es un Agent Skill que permite que agentes de codificación con IA como Claude Code, Cursor, Codex o cualquier cliente MCP editen material de video y audio usando una instalación local de FFmpeg, funcionando totalmente sin conexión y sin necesidad de un servicio en la nube ni claves de API.",
-        "usage": "Se instala con `npx ffmpeg-skill setup` (o `npx ffmpeg-skill` para instalarlo solo para un agente), lo que instala los archivos del skill y comprueba si FFmpeg está presente; después se puede ejecutar `npx ffmpeg-skill doctor` para verificar que FFmpeg y Python estén listos.",
-        "pros": "Expone 42 herramientas de línea de comandos con argumentos tipados (cut, caption, loudness, export, etc.) respaldadas por un contrato legible por máquina, de modo que el agente invoca indicadores estructurados en lugar de cadenas FFmpeg sin procesar, y cada operación se verifica después volviendo a analizar (probe) el archivo de salida escrito.",
-        "cons": "Requiere que `ffmpeg` y `python3` ya estén presentes en el PATH del sistema, y funciones opcionales como el subtitulado por reconocimiento de voz necesitan que el usuario instale manualmente un motor de voz local, el cual no viene incluido en el paquete.",
-        "fit": "Dado que el proyecto distingue entre 12 herramientas \"stable\" principales y 30 herramientas \"beta\" cuyos argumentos aún pueden cambiar, parece más adecuado para usuarios acostumbrados a fijar una versión concreta en lugar de seguir la rama main, particularmente dentro del ecosistema más amplio de producción de video basado en agentes de kajisho5."
+        "goal": "ffmpeg-skill es un Agent Skill que permite a agentes de codificación como Claude Code, Cursor, Codex o cualquier cliente MCP editar vídeo usando FFmpeg local y luego verificar el resultado. Funciona sin servicios en la nube ni claves de API, usando solo la biblioteca estándar de Python.",
+        "usage": "Se instala con `npx ffmpeg-skill setup`, que instala el skill para los agentes detectados, instala FFmpeg si falta, y termina con una comprobación `doctor`. Las herramientas también pueden invocarse directamente con `npx ffmpeg-skill` o como herramientas MCP desde un cliente MCP.",
+        "pros": "Todo el procesamiento ocurre localmente, por lo que el material nunca se sube. Sigue un flujo de trabajo documentado (probe → edit → verify) entre 42 herramientas, de las cuales 12 están marcadas como stable, y expone un contrato legible por máquina para que el agente descubra automáticamente las capacidades y argumentos de cada herramienta.",
+        "cons": "La instalación requiere que Node 16+ y Python 3.10+ ya estén presentes, ya que el instalador no los instala por sí mismo. La transcripción local opcional para subtítulos necesita que el usuario instale por separado un motor de voz; sin uno, `--transcribe` se niega a ejecutarse. El estado general `ok` de `doctor` puede resultar false si falta una sola capacidad de FFmpeg, aunque la mayoría de las herramientas sigan siendo utilizables, lo que podría dar una lectura poco precisa del estado real.",
+        "fit": "Parece adecuado para quienes quieran que un agente de codificación realice edición de vídeo local y verificable (cortes, subtítulos, exportación) sin enviar el material a servicios externos, en particular dentro del ecosistema Claude Code / Cursor / Codex / MCP descrito en el README."
       },
       "ja": {
-        "goal": "ffmpeg-skill は、Claude Code、Cursor、Codex、あるいは任意の MCP クライアントのような AI コーディングエージェントが、ローカルにインストールされた FFmpeg を使って映像・音声素材を編集できるようにする Agent Skill であり、クラウドサービスや API キーを必要とせず完全にオフラインで動作します。",
-        "usage": "`npx ffmpeg-skill setup`(単一のエージェントのみにインストールする場合は `npx ffmpeg-skill`)でインストールすると、スキルファイルがインストールされ FFmpeg の有無が確認されます。その後 `npx ffmpeg-skill doctor` を実行することで、FFmpeg と Python が利用可能かどうかを確認できます。",
-        "pros": "マシン可読な contract に基づく 42 個の型付きコマンドラインツール(cut、caption、loudness、export など)を提供するため、エージェントは生の FFmpeg 文字列ではなく構造化されたフラグを呼び出し、各操作の後には書き出された出力ファイルを再度 probe して検証が行われます。",
-        "cons": "システムの PATH にあらかじめ `ffmpeg` と `python3` が存在している必要があり、音声認識によるキャプション付けのような任意機能を使うには、ユーザー自身が別途ローカルの音声エンジンを手動でインストールする必要があり、これはパッケージには同梱されていません。",
-        "fit": "12 個の「stable」なコア機能と、引数がまだ変更される可能性のある 30 個の「beta」機能を区別している点から、このプロジェクトは main ブランチを追い続けるよりも特定のリリースに固定して使うことに慣れたユーザー、特に kajisho5 のより広いエージェントベースの映像制作エコシステムの中で利用するユーザーに適していると考えられます。"
+        "goal": "ffmpeg-skill は、Claude Code、Cursor、Codex、あるいは任意の MCP クライアントのようなコーディングエージェントに、ローカルの FFmpeg を使って映像を編集し結果を検証する能力を与える Agent Skill です。クラウドや API キーを使わず、Python 標準ライブラリのみで動作します。",
+        "usage": "`npx ffmpeg-skill setup` でインストールすると、検出されたエージェント向けにスキルを導入し、FFmpeg が無ければインストールし、`doctor` チェックで終わります。各ツールは `npx ffmpeg-skill` で直接実行することも、MCP クライアント経由で MCP ツールとして呼び出すこともできます。",
+        "pros": "すべての処理がローカルで行われるため、素材が外部にアップロードされることはありません。probe → edit → verify という明文化されたワークフローに従い、42 個のツールのうち 12 個は stable と位置付けられており、機械可読な contract を公開しているため、エージェントは各ツールの機能や引数を自動的に把握できます。",
+        "cons": "インストーラーは Node 16+ と Python 3.10+ がすでに存在することを前提としており、どちらもインストーラー自身は導入しません。字幕用の任意のローカル音声認識機能を使うには、利用者が別途音声エンジンをインストールする必要があり、未導入の場合 `--transcribe` は実行を拒否します。`doctor` の全体的な `ok` 状態は、FFmpeg の機能が一つでも欠けていると false になり得るため、実際には大半のツールが使用可能であっても、そのように表示される可能性があるようです。",
+        "fit": "素材を外部サービスに送らずに、AI コーディングエージェントにローカルで検証可能な映像編集（カット、字幕、書き出しなど）を行わせたいユーザー、特に README が説明する Claude Code / Cursor / Codex / MCP のエコシステム内で使うユーザーに向いているように見えます。"
       }
     },
     "evidence": {
@@ -4853,7 +5087,7 @@
         },
         {
           "start_line": 80,
-          "end_line": 82,
+          "end_line": 80,
           "section_heading": "Review page"
         }
       ],
@@ -4864,54 +5098,57 @@
           "section_heading": "Quick start"
         },
         {
-          "start_line": 151,
-          "end_line": 152,
-          "section_heading": "Quick start"
+          "start_line": 49,
+          "end_line": 51,
+          "section_heading": ""
         }
       ],
       "pros": [
-        {
-          "start_line": 85,
-          "end_line": 86,
-          "section_heading": "Review page"
-        },
-        {
-          "start_line": 122,
-          "end_line": 125,
-          "section_heading": "Why"
-        }
-      ],
-      "cons": [
         {
           "start_line": 82,
           "end_line": 82,
           "section_heading": "Review page"
         },
         {
-          "start_line": 126,
-          "end_line": 126,
-          "section_heading": "Why"
+          "start_line": 238,
+          "end_line": 247,
+          "section_heading": "Design principles"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 136,
+          "end_line": 136,
+          "section_heading": "Quick start"
         },
         {
           "start_line": 158,
           "end_line": 158,
           "section_heading": "Quick start"
+        },
+        {
+          "start_line": 162,
+          "end_line": 162,
+          "section_heading": "Quick start"
         }
       ],
       "fit": [
         {
-          "start_line": 833,
-          "end_line": 835,
-          "section_heading": "Stability"
-        },
-        {
-          "start_line": 100,
-          "end_line": 109,
+          "start_line": 96,
+          "end_line": 100,
           "section_heading": "Standalone, and in an ecosystem"
         }
       ]
     },
     "invariants": [
+      {
+        "kind": "product",
+        "value": "ffmpeg-skill",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
       {
         "kind": "command",
         "value": "npx ffmpeg-skill setup",
@@ -4921,16 +5158,23 @@
       },
       {
         "kind": "command",
-        "value": "npx ffmpeg-skill doctor",
+        "value": "npx ffmpeg-skill",
         "fields": [
           "usage"
         ]
       },
       {
-        "kind": "command",
-        "value": "npx ffmpeg-skill",
+        "kind": "version",
+        "value": "Python 3.10+",
         "fields": [
-          "usage"
+          "cons"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "Node 16+",
+        "fields": [
+          "cons"
         ]
       },
       {
@@ -4944,44 +5188,20 @@
         "kind": "number",
         "value": "12",
         "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "ffmpeg-skill",
-        "fields": [
-          "goal",
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "FFmpeg",
-        "fields": [
-          "goal",
-          "usage",
-          "pros",
-          "cons"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "MCP",
-        "fields": [
-          "goal"
+          "pros"
         ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "kajisho5/ffmpeg-skill",
       "path": "README.md",
-      "blob_sha": "b7542168a0930ff6feed58cb951821a4069c17eb",
-      "content_sha256": "4fa91a25c1c68e0ac9a88e7cda24526811601d5ab632c278de4f6e6b4ef4242d",
+      "blob_sha": "a59102057e754edc3d395cf861a9aaef378711de",
+      "content_sha256": "642e3476dc748f4c0d10e66c115f3f1c8152f8179a9ac5f7a74ecacb3f0285ca",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.322",
@@ -6011,65 +6231,65 @@
   },
   "thedotmack/claude-mem": {
     "content": {
-      "goal": "Claude-Mem aims to give coding agents persistent memory across sessions, feeding a compact index of prior observations into Claude Code, Codex, Cursor, OpenCode, and reportedly 11 additional agents, so new sessions don't start from zero.",
-      "usage": "Install with `npx claude-mem install`, which detects locally installed agents and guides provider selection; alternatively, inside Claude Code run `/plugin marketplace add thedotmack/claude-mem` followed by `/plugin install claude-mem`, then restart Claude Code to automatically load prior context.",
-      "pros": "Search uses a three-step MCP workflow (`search`, `timeline`, `get_observations`) documented at roughly 50-100 tokens per index result versus 500-1,000 tokens per full detail, though the README notes this ratio is not a measured end-to-end savings figure.",
-      "cons": "Running `npm install -g claude-mem` only installs the SDK/library and does not register plugin hooks or the worker service, so the documented `npx claude-mem install` command must be used instead; the README also indicates the hosted \"claude-mem observer\" provider requires a payment method after its 30-day free trial ends.",
-      "fit": "This appears best suited for users of the explicitly listed agents (Claude Code, Codex, Cursor, OpenCode, and 11 more); agents such as Copilot CLI, Goose, Roo Code, Warp, and Zed are documented as supporting memory search only, without session recording."
+      "goal": "Claude-Mem is a memory system for coding agents that keeps context across sessions by recording observations while the agent works (lines 55, 125-131).",
+      "usage": "Install with `npx claude-mem install`, which detects agents on the machine and sets up hooks; it can also be added inside Claude Code with `/plugin marketplace add thedotmack/claude-mem` and `/plugin install claude-mem` (lines 139-141, 151-157).",
+      "pros": "Documented benefits include resuming a session with a compact index of past observations, a token-efficient three-step search workflow, a My Work dashboard for live requests and a review queue, optional team-shared memory (TeamBrain), and excluding content wrapped in `<private>` tags from storage (lines 222-233).",
+      "cons": "Choosing the built-in claude-mem observer provider starts a 30 Day Free Trial on a checkout page that requires a payment method, and memory automatically falls back to the user's own Anthropic plan if the trial is not converted to a subscription (lines 143-146).",
+      "fit": "The README states Claude-Mem works with Claude Code, Codex, Cursor, OpenCode and 11 more agents, while Copilot CLI, Goose, Roo Code, Warp and Zed can only search existing memory since their sessions aren't recorded, suggesting the tool fits agents with full hook support best (lines 130, 143)."
     },
     "summaries": {
       "en": {
-        "goal": "Claude-Mem aims to give coding agents persistent memory across sessions, feeding a compact index of prior observations into Claude Code, Codex, Cursor, OpenCode, and reportedly 11 additional agents, so new sessions don't start from zero.",
-        "usage": "Install with `npx claude-mem install`, which detects locally installed agents and guides provider selection; alternatively, inside Claude Code run `/plugin marketplace add thedotmack/claude-mem` followed by `/plugin install claude-mem`, then restart Claude Code to automatically load prior context.",
-        "pros": "Search uses a three-step MCP workflow (`search`, `timeline`, `get_observations`) documented at roughly 50-100 tokens per index result versus 500-1,000 tokens per full detail, though the README notes this ratio is not a measured end-to-end savings figure.",
-        "cons": "Running `npm install -g claude-mem` only installs the SDK/library and does not register plugin hooks or the worker service, so the documented `npx claude-mem install` command must be used instead; the README also indicates the hosted \"claude-mem observer\" provider requires a payment method after its 30-day free trial ends.",
-        "fit": "This appears best suited for users of the explicitly listed agents (Claude Code, Codex, Cursor, OpenCode, and 11 more); agents such as Copilot CLI, Goose, Roo Code, Warp, and Zed are documented as supporting memory search only, without session recording."
+        "goal": "Claude-Mem is a memory system for coding agents that keeps context across sessions by recording observations while the agent works (lines 55, 125-131).",
+        "usage": "Install with `npx claude-mem install`, which detects agents on the machine and sets up hooks; it can also be added inside Claude Code with `/plugin marketplace add thedotmack/claude-mem` and `/plugin install claude-mem` (lines 139-141, 151-157).",
+        "pros": "Documented benefits include resuming a session with a compact index of past observations, a token-efficient three-step search workflow, a My Work dashboard for live requests and a review queue, optional team-shared memory (TeamBrain), and excluding content wrapped in `<private>` tags from storage (lines 222-233).",
+        "cons": "Choosing the built-in claude-mem observer provider starts a 30 Day Free Trial on a checkout page that requires a payment method, and memory automatically falls back to the user's own Anthropic plan if the trial is not converted to a subscription (lines 143-146).",
+        "fit": "The README states Claude-Mem works with Claude Code, Codex, Cursor, OpenCode and 11 more agents, while Copilot CLI, Goose, Roo Code, Warp and Zed can only search existing memory since their sessions aren't recorded, suggesting the tool fits agents with full hook support best (lines 130, 143)."
       },
       "ko": {
-        "goal": "Claude-Mem은 코딩 에이전트가 세션 사이에 기억을 유지하도록 돕는 도구로, Claude Code, Codex, Cursor, OpenCode 및 추가로 11개 이상의 에이전트에 이전 관찰 내용을 압축된 색인 형태로 제공하여 새 세션이 처음부터 다시 시작하지 않도록 합니다.",
-        "usage": "`npx claude-mem install` 명령으로 설치하면 로컬에 설치된 에이전트를 감지하고 공급자를 선택하도록 안내합니다. 또는 Claude Code 내부에서 `/plugin marketplace add thedotmack/claude-mem` 실행 후 `/plugin install claude-mem`을 실행하고 Claude Code를 재시작하면 이전 컨텍스트가 자동으로 불러와집니다.",
-        "pros": "검색은 `search`, `timeline`, `get_observations` 세 단계로 구성된 MCP 워크플로를 사용하며, 색인 결과당 약 50-100 토큰, 전체 세부 정보당 약 500-1,000 토큰이 든다고 문서화되어 있습니다. 다만 README는 이 비율이 측정된 종단 간 절감치는 아니라고 명시합니다.",
-        "cons": "`npm install -g claude-mem`는 SDK/라이브러리만 설치하며 플러그인 훅이나 워커 서비스는 등록하지 않으므로, 문서화된 `npx claude-mem install` 명령을 사용해야 합니다. 또한 호스팅되는 \"claude-mem observer\" 공급자는 30일 무료 체험이 끝난 후 결제 수단이 필요하다고 안내되어 있습니다.",
-        "fit": "명시적으로 나열된 에이전트(Claude Code, Codex, Cursor, OpenCode 및 추가 11개 이상)를 사용하는 사용자에게 적합해 보입니다. 반면 Copilot CLI, Goose, Roo Code, Warp, Zed 등은 메모리 검색만 지원하고 세션 기록은 되지 않는다고 문서화되어 있습니다."
+        "goal": "Claude-Mem은 코딩 에이전트가 작업하는 동안 관찰 내용을 기록하여 세션 간에 컨텍스트가 유지되도록 하는 메모리 시스템입니다 (55번째 줄, 125-131번째 줄).",
+        "usage": "`npx claude-mem install`로 설치하면 기기에 있는 에이전트를 감지하고 후크를 설정하며, Claude Code 내부에서는 `/plugin marketplace add thedotmack/claude-mem`과 `/plugin install claude-mem`으로도 추가할 수 있습니다 (139-141번째 줄, 151-157번째 줄).",
+        "pros": "문서에 따르면 이전 관찰 내용을 요약한 인덱스로 세션을 재개하고, 토큰 효율적인 3단계 검색 워크플로우를 제공하며, 실시간 요청과 검토 대기열을 보여주는 My Work 대시보드, 선택적 팀 공유 메모리(TeamBrain), `<private>` 태그로 비밀 정보를 저장에서 제외하는 기능이 포함됩니다 (222-233번째 줄).",
+        "cons": "기본 제공되는 claude-mem observer 공급자를 선택하면 결제 수단을 요구하는 체크아웃 페이지에서 30 Day Free Trial이 시작되며, 체험판을 구독으로 전환하지 않으면 메모리는 자동으로 사용자의 Anthropic 플랜으로 되돌아갑니다 (143-146번째 줄).",
+        "fit": "README에는 Claude-Mem이 Claude Code, Codex, Cursor, OpenCode 등 11개 이상의 추가 에이전트와 함께 작동하며, Copilot CLI, Goose, Roo Code, Warp, Zed는 세션이 기록되지 않아 기존 메모리 검색만 가능하다고 명시되어 있어, 이 도구는 후크를 완전히 지원하는 에이전트에 가장 적합할 것으로 보입니다 (130번째 줄, 143번째 줄)."
       },
       "zh-CN": {
-        "goal": "Claude-Mem 旨在让编码代理在不同会话之间保留记忆,为 Claude Code、Codex、Cursor、OpenCode 以及另外 11 个代理提供经过压缩的历史观察索引,使新会话不必从零开始。",
-        "usage": "使用 `npx claude-mem install` 进行安装,它会检测本机已安装的代理并引导选择提供方;也可以在 Claude Code 内执行 `/plugin marketplace add thedotmack/claude-mem`,再执行 `/plugin install claude-mem`,然后重启 Claude Code 以自动加载先前的上下文。",
-        "pros": "搜索采用三步 MCP 工作流(`search`、`timeline`、`get_observations`),文档说明索引结果每条约 50-100 个 token,完整详情每条约 500-1,000 个 token;README 同时说明该比例并非经过实测的端到端节省数据。",
-        "cons": "执行 `npm install -g claude-mem` 只会安装 SDK/库本身,不会注册插件钩子或工作进程,因此必须改用文档中给出的 `npx claude-mem install` 命令;README 还提到托管的 \"claude-mem observer\" 提供方在 30 天免费试用结束后需要支付方式。",
-        "fit": "似乎更适合使用文档中明确列出的代理(Claude Code、Codex、Cursor、OpenCode 及另外 11 个)的用户;而 Copilot CLI、Goose、Roo Code、Warp、Zed 据文档说明仅支持记忆搜索,不记录会话内容。"
+        "goal": "Claude-Mem 是一个为编程智能体设计的记忆系统，通过在智能体工作时记录观察内容，让上下文在不同会话之间得以保留(第55行、第125-131行)。",
+        "usage": "使用 `npx claude-mem install` 进行安装，它会检测设备上的智能体并设置钩子；也可以在 Claude Code 内通过 `/plugin marketplace add thedotmack/claude-mem` 和 `/plugin install claude-mem` 添加该插件(第139-141行、第151-157行)。",
+        "pros": "文档说明的优点包括：以过往观察内容的紧凑索引恢复会话、提供省token的三步搜索流程、通过 My Work 仪表盘查看实时请求与审阅队列、可选的团队共享记忆(TeamBrain)，以及用 `<private>` 标签包裹的内容不会被存储(第222-233行)。",
+        "cons": "选择内置的 claude-mem observer 提供方会在需要支付方式的结账页面上启动 30 Day Free Trial，若未转为订阅，记忆功能会自动回退到用户自己的 Anthropic 计划(第143-146行)。",
+        "fit": "README 指出 Claude-Mem 可与 Claude Code、Codex、Cursor、OpenCode 以及另外 11 个智能体配合使用，而 Copilot CLI、Goose、Roo Code、Warp 和 Zed 的会话不会被记录，只能搜索已有记忆，这表明该工具更适合完全支持钩子的智能体(第130行、第143行)。"
       },
       "es": {
-        "goal": "Claude-Mem busca dar memoria persistente entre sesiones a agentes de codificación, aportando un índice compacto de observaciones previas a Claude Code, Codex, Cursor, OpenCode y otros 11 agentes más, para que las nuevas sesiones no empiecen desde cero.",
-        "usage": "Se instala con `npx claude-mem install`, que detecta los agentes locales y guía la elección de proveedor; alternativamente, dentro de Claude Code se ejecuta `/plugin marketplace add thedotmack/claude-mem` seguido de `/plugin install claude-mem`, y tras reiniciar Claude Code el contexto previo se carga automáticamente.",
-        "pros": "La búsqueda usa un flujo MCP de tres pasos (`search`, `timeline`, `get_observations`); el documento indica alrededor de 50-100 tokens por resultado de índice frente a 500-1.000 tokens por detalle completo, aunque aclara que esa proporción no es una medición de ahorro real de extremo a extremo.",
-        "cons": "Ejecutar `npm install -g claude-mem` solo instala el SDK/biblioteca sin registrar los hooks del plugin ni el servicio worker, por lo que debe usarse el comando documentado `npx claude-mem install`; además, el proveedor alojado \"claude-mem observer\" requiere un método de pago al terminar su prueba gratuita de 30 días.",
-        "fit": "Parece adecuado para quienes usan los agentes listados explícitamente (Claude Code, Codex, Cursor, OpenCode y otros 11); en cambio, Copilot CLI, Goose, Roo Code, Warp y Zed, según el documento, solo ofrecen búsqueda de memoria sin registrar sesiones."
+        "goal": "Claude-Mem es un sistema de memoria para agentes de codificación que mantiene el contexto entre sesiones registrando observaciones mientras el agente trabaja (líneas 55 y 125-131).",
+        "usage": "Se instala con `npx claude-mem install`, que detecta los agentes presentes en la máquina y configura los hooks; también puede añadirse dentro de Claude Code con `/plugin marketplace add thedotmack/claude-mem` y `/plugin install claude-mem` (líneas 139-141 y 151-157).",
+        "pros": "Entre los beneficios documentados están reanudar la sesión con un índice compacto de observaciones pasadas, un flujo de búsqueda en tres pasos eficiente en tokens, el panel My Work para solicitudes en vivo y una cola de revisión, memoria compartida opcional en equipo (TeamBrain), y la exclusión del almacenamiento de cualquier contenido envuelto en etiquetas `<private>` (líneas 222-233).",
+        "cons": "Elegir el proveedor integrado claude-mem observer inicia una 30 Day Free Trial en una página de pago que exige un método de pago, y si no se convierte en suscripción, la memoria vuelve automáticamente al plan de Anthropic del usuario (líneas 143-146).",
+        "fit": "El README indica que Claude-Mem funciona con Claude Code, Codex, Cursor, OpenCode y 11 agentes más, mientras que Copilot CLI, Goose, Roo Code, Warp y Zed solo pueden buscar en la memoria existente porque sus sesiones no se registran, lo que sugiere que la herramienta se ajusta mejor a agentes con soporte completo de hooks (líneas 130 y 143)."
       },
       "ja": {
-        "goal": "Claude-Memは、コーディングエージェントがセッション間で記憶を保持できるようにすることを目的としており、Claude Code、Codex、Cursor、OpenCode、および他11種類のエージェントに、過去の観察内容をまとめたコンパクトな索引を提供し、新しいセッションがゼロから始まらないようにします。",
-        "usage": "`npx claude-mem install` でインストールすると、ローカルのエージェントを検出しプロバイダー選択を案内します。または Claude Code 内で `/plugin marketplace add thedotmack/claude-mem` を実行後 `/plugin install claude-mem` を実行し、Claude Code を再起動すると以前のコンテキストが自動的に読み込まれます。",
-        "pros": "検索は `search`、`timeline`、`get_observations` の3段階からなるMCPワークフローを使用し、索引結果1件あたり約50〜100トークン、詳細1件あたり約500〜1,000トークンと文書化されています。ただしREADMEはこの比率が実測されたエンドツーエンドの節約値ではないと明記しています。",
-        "cons": "`npm install -g claude-mem` はSDK/ライブラリのみをインストールし、プラグインフックやワーカーサービスは登録されないため、文書化された `npx claude-mem install` コマンドを使用する必要があります。また、ホスト型の「claude-mem observer」プロバイダーは30日間の無料トライアル終了後に支払い方法が必要になると記載されています。",
-        "fit": "明示的にリストされたエージェント(Claude Code、Codex、Cursor、OpenCode、および他11種類)を使用するユーザーに適していると考えられます。一方、Copilot CLI、Goose、Roo Code、Warp、Zedはメモリ検索のみ対応し、セッションの記録は行われないと文書化されています。"
+        "goal": "Claude-Memは、コーディングエージェントが作業中に観察結果を記録することで、セッション間でコンテキストを保持するメモリシステムです(55行目、125〜131行目)。",
+        "usage": "`npx claude-mem install` でインストールすると、マシン上のエージェントを検出してフックを設定します。Claude Code内では `/plugin marketplace add thedotmack/claude-mem` と `/plugin install claude-mem` でも追加できます(139〜141行目、151〜157行目)。",
+        "pros": "文書によると、過去の観察内容のコンパクトなインデックスでセッションを再開できる点、トークン効率の良い3段階検索ワークフロー、ライブリクエストとレビューキューを表示するMy Workダッシュボード、オプションのチーム共有メモリ(TeamBrain)、`<private>`タグで囲んだ内容を保存しない機能などが利点として挙げられています(222〜233行目)。",
+        "cons": "組み込みのclaude-mem observerプロバイダーを選択すると、支払い方法を要求する決済ページで30 Day Free Trialが開始され、サブスクリプションに変更しない限りメモリは自動的に利用者自身のAnthropicプランに戻ります(143〜146行目)。",
+        "fit": "READMEによれば、Claude-MemはClaude Code、Codex、Cursor、OpenCodeなど11以上の追加エージェントで動作し、Copilot CLI、Goose、Roo Code、Warp、Zedはセッションが記録されないため既存メモリの検索のみ可能とされており、このツールはフックを完全にサポートするエージェントに最も適していると考えられます(130行目、143行目)。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 125,
-          "end_line": 130,
+          "start_line": 55,
+          "end_line": 55,
           "section_heading": ""
         },
         {
-          "start_line": 55,
-          "end_line": 55,
+          "start_line": 125,
+          "end_line": 131,
           "section_heading": ""
         }
       ],
       "usage": [
         {
-          "start_line": 140,
+          "start_line": 139,
           "end_line": 141,
           "section_heading": "Quick Start"
         },
@@ -6081,20 +6301,15 @@
       ],
       "pros": [
         {
-          "start_line": 303,
-          "end_line": 314,
-          "section_heading": "MCP Search Tools"
+          "start_line": 222,
+          "end_line": 233,
+          "section_heading": "What You Get"
         }
       ],
       "cons": [
         {
-          "start_line": 159,
-          "end_line": 161,
-          "section_heading": "Quick Start"
-        },
-        {
-          "start_line": 145,
-          "end_line": 145,
+          "start_line": 143,
+          "end_line": 146,
           "section_heading": "Quick Start"
         }
       ],
@@ -6105,9 +6320,9 @@
           "section_heading": ""
         },
         {
-          "start_line": 341,
-          "end_line": 341,
-          "section_heading": "System Requirements"
+          "start_line": 143,
+          "end_line": 143,
+          "section_heading": "Quick Start"
         }
       ]
     },
@@ -6116,8 +6331,7 @@
         "kind": "command",
         "value": "npx claude-mem install",
         "fields": [
-          "usage",
-          "cons"
+          "usage"
         ]
       },
       {
@@ -6135,40 +6349,251 @@
         ]
       },
       {
-        "kind": "command",
-        "value": "npm install -g claude-mem",
-        "fields": [
-          "cons"
-        ]
-      },
-      {
         "kind": "product",
         "value": "Claude-Mem",
         "fields": [
           "goal",
           "usage",
-          "cons"
+          "cons",
+          "fit"
         ]
       },
       {
-        "kind": "product",
-        "value": "Claude Code",
+        "kind": "number",
+        "value": "11",
         "fields": [
-          "goal",
-          "usage",
+          "fit"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "30",
+        "fields": [
+          "cons",
           "fit"
         ]
       }
     ],
     "inference_fields": [
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "thedotmack/claude-mem",
       "path": "README.md",
-      "blob_sha": "458657198278112b80e185714178378d0230b218",
-      "content_sha256": "024ba5c938ccb0d03bae3f68461bf0571dbf239623ed33239c62329833e8a9b6",
+      "blob_sha": "aa07c83f7e25dcd6a15bdcf360cb2bce09b1a6d3",
+      "content_sha256": "0974c7bbb8d170262fcd073fd30d18264eed50022f8ef6f10e04c340e7394f99",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.322",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
+  "Jakeschincariol/instagram-agent-skill": {
+    "content": {
+      "goal": "instagram-agent-skill provides thirteen Claude skills intended to support running an Instagram account, covering Reel scripting, caption writing, profile scoring, weekly planning, and a humanizer that strips slop vocabulary and invisible characters from drafts. The README states it is free, MIT-licensed, and requires no signup or API key.",
+      "usage": "Installation is done by pasting the repository URL https://github.com/Jakeschincariol/instagram-agent-skill into Claude, or by running git clone https://github.com/Jakeschincariol/instagram-agent-skill.git followed by copying the skills folders, or via /plugin install. Users are told to first fill in templates/voice.md, then invoke commands such as /ig-reel or local scripts like python3 hookscore.py hooks.txt.",
+      "pros": "The five Python tools (hookscore.py, beats.py, caption.py, humanize.py, detect.py, swipe.py) reportedly run locally with no dependencies or network calls. An approval gate means nothing is posted automatically, and the caption tool enforces Instagram's current five-hashtag cap effective 18 December 2025. The README also reports an AUC of 0.83 for flagging deliberately weak hooks.",
+      "cons": "The README states these skills do not post to Instagram directly; real publishing requires a Meta developer app, linked Page, long-lived token, and app review, which the skill cannot provide. It also discloses that the hook scorer's ability to pick winning hooks among good ones is weak, at AUC 0.56, close to a coin flip.",
+      "fit": "This appears suited to Instagram creators using Claude Code who want drafting, scoring, and planning assistance while retaining manual control over posting. Without Claude Code, the README notes the five Python tools are unavailable, so project-local or plugin installation seems best for full functionality."
+    },
+    "summaries": {
+      "en": {
+        "goal": "instagram-agent-skill provides thirteen Claude skills intended to support running an Instagram account, covering Reel scripting, caption writing, profile scoring, weekly planning, and a humanizer that strips slop vocabulary and invisible characters from drafts. The README states it is free, MIT-licensed, and requires no signup or API key.",
+        "usage": "Installation is done by pasting the repository URL https://github.com/Jakeschincariol/instagram-agent-skill into Claude, or by running git clone https://github.com/Jakeschincariol/instagram-agent-skill.git followed by copying the skills folders, or via /plugin install. Users are told to first fill in templates/voice.md, then invoke commands such as /ig-reel or local scripts like python3 hookscore.py hooks.txt.",
+        "pros": "The five Python tools (hookscore.py, beats.py, caption.py, humanize.py, detect.py, swipe.py) reportedly run locally with no dependencies or network calls. An approval gate means nothing is posted automatically, and the caption tool enforces Instagram's current five-hashtag cap effective 18 December 2025. The README also reports an AUC of 0.83 for flagging deliberately weak hooks.",
+        "cons": "The README states these skills do not post to Instagram directly; real publishing requires a Meta developer app, linked Page, long-lived token, and app review, which the skill cannot provide. It also discloses that the hook scorer's ability to pick winning hooks among good ones is weak, at AUC 0.56, close to a coin flip.",
+        "fit": "This appears suited to Instagram creators using Claude Code who want drafting, scoring, and planning assistance while retaining manual control over posting. Without Claude Code, the README notes the five Python tools are unavailable, so project-local or plugin installation seems best for full functionality."
+      },
+      "ko": {
+        "goal": "instagram-agent-skill는 Claude용 Instagram 계정 운영을 지원하기 위한 13개의 스킬을 제공합니다. Reel 대본 작성, 캡션 작성, 프로필 점수화, 주간 계획, 그리고 초안에서 상투적 표현과 보이지 않는 문자를 제거하는 humanizer가 포함됩니다. README에 따르면 무료이며 MIT 라이선스이고 가입이나 API 키가 필요하지 않다고 설명합니다.",
+        "usage": "설치는 https://github.com/Jakeschincariol/instagram-agent-skill 주소를 Claude에 붙여넣거나, git clone https://github.com/Jakeschincariol/instagram-agent-skill.git 명령 후 스킬 폴더를 복사하거나, /plugin install 명령으로 진행합니다. 먼저 templates/voice.md 파일을 채운 뒤 /ig-reel 같은 명령이나 python3 hookscore.py hooks.txt 같은 로컬 스크립트를 실행하도록 안내되어 있습니다.",
+        "pros": "다섯 개의 Python 도구(hookscore.py, beats.py, caption.py, humanize.py, detect.py, swipe.py)는 외부 의존성이나 네트워크 통신 없이 로컬에서 실행된다고 설명되어 있는 것으로 보입니다. 승인 절차가 있어 자동으로 게시되지 않으며, 캡션 도구는 2025년 12월 18일부터 적용된 5개 해시태그 제한을 반영합니다. README는 의도적으로 약하게 작성된 후크를 걸러내는 데 AUC 0.83을 보고합니다.",
+        "cons": "README에는 이 스킬들이 Instagram에 직접 게시하지 않는다고 명시되어 있으며, 실제 게시에는 Meta 개발자 앱, 연결된 Page, 장기 토큰, 앱 심사가 필요하다고 설명합니다. 또한 좋은 후크들 중에서 더 나은 것을 골라내는 능력은 약하며 AUC 0.56으로 동전 던지기에 가깝다고 공개하고 있습니다.",
+        "fit": "이는 Claude Code를 사용하며 게시는 직접 통제하고 초안 작성, 점수화, 계획 지원만 받으려는 Instagram 제작자에게 적합해 보입니다. Claude Code 없이 사용할 경우 다섯 개의 Python 도구는 사용할 수 없다고 README에 언급되어 있어, 전체 기능을 위해서는 프로젝트 로컬 또는 플러그인 설치가 더 나은 선택으로 보입니다."
+      },
+      "zh-CN": {
+        "goal": "instagram-agent-skill 提供了十三个 Claude 技能,用于辅助运营 Instagram 账号,包括 Reel 脚本撰写、文案撰写、主页评分、周计划安排,以及一个用于清除草稿中陈词滥调和不可见字符的 humanizer。README 说明该项目免费、采用 MIT 许可证,且不需要注册或 API 密钥。",
+        "usage": "安装方式是将 https://github.com/Jakeschincariol/instagram-agent-skill 粘贴到 Claude 中,或者执行 git clone https://github.com/Jakeschincariol/instagram-agent-skill.git 后复制技能文件夹,或通过 /plugin install 完成。说明中建议先填写 templates/voice.md,再使用 /ig-reel 等命令或 python3 hookscore.py hooks.txt 等本地脚本。",
+        "pros": "五个 Python 工具(hookscore.py、beats.py、caption.py、humanize.py、detect.py、swipe.py)据称在本地运行,不依赖外部库也不联网。发布前设有确认环节,不会自动发布;文案工具还遵循自 2025年12月18日起生效的五个话题标签上限。README 报告称在识别故意设计的弱 hook 时 AUC 达到 0.83。",
+        "cons": "README 明确说明这些技能不会直接发布到 Instagram;真正发布需要 Meta 开发者应用、关联的 Page、长期令牌以及应用审核,这是该技能无法提供的。文档还披露,该工具在优质 hook 之间挑选更优者的能力有限,AUC 仅为 0.56,接近随机猜测。",
+        "fit": "该项目似乎更适合在 Claude Code 中使用、希望获得草稿撰写、评分与计划协助,同时自行掌控发布环节的 Instagram 创作者。README 提到若不使用 Claude Code,五个 Python 工具将无法使用,因此若需完整功能,采用项目本地或插件方式安装可能更合适。"
+      },
+      "es": {
+        "goal": "instagram-agent-skill ofrece trece skills de Claude pensadas para ayudar a gestionar una cuenta de Instagram, cubriendo guiones de Reels, redacción de captions, puntuación de perfil, planificación semanal y un humanizer que elimina vocabulario trillado y caracteres invisibles de los borradores. El README indica que es gratuito, bajo licencia MIT, y no requiere registro ni clave de API.",
+        "usage": "La instalación se hace pegando la URL https://github.com/Jakeschincariol/instagram-agent-skill en Claude, o ejecutando git clone https://github.com/Jakeschincariol/instagram-agent-skill.git y copiando las carpetas de skills, o mediante /plugin install. Se indica primero completar templates/voice.md y luego usar comandos como /ig-reel o scripts locales como python3 hookscore.py hooks.txt.",
+        "pros": "Las cinco herramientas en Python (hookscore.py, beats.py, caption.py, humanize.py, detect.py, swipe.py) parecen ejecutarse de forma local, sin dependencias ni conexión de red. Hay una aprobación manual antes de publicar, y la herramienta de captions aplica el límite de cinco hashtags vigente desde el 18 de diciembre de 2025. El README reporta un AUC de 0.83 al detectar hooks deliberadamente débiles.",
+        "cons": "El README aclara que estas skills no publican directamente en Instagram; la publicación real requiere una app de desarrollador de Meta, una Page vinculada, un token de larga duración y revisión de la app, algo que la skill no puede proporcionar. También revela que la capacidad del clasificador de hooks para distinguir entre buenos hooks es débil, con un AUC de 0.56, cercano al azar.",
+        "fit": "Parece adecuado para creadores de Instagram que usan Claude Code y desean asistencia en redacción, puntuación y planificación, manteniendo el control manual sobre la publicación. El README señala que sin Claude Code las cinco herramientas en Python no están disponibles, por lo que una instalación local al proyecto o como plugin parece preferible para la funcionalidad completa."
+      },
+      "ja": {
+        "goal": "instagram-agent-skillは、Instagramアカウントの運用を支援するための13個のClaudeスキルを提供します。Reelの台本作成、キャプション作成、プロフィールの採点、週間計画、そして下書きから陳腐な表現や目に見えない文字を取り除くhumanizerが含まれます。READMEによれば無料でMITライセンスであり、登録やAPIキーは不要とされています。",
+        "usage": "インストールは、https://github.com/Jakeschincariol/instagram-agent-skill をClaudeに貼り付ける方法、またはgit clone https://github.com/Jakeschincariol/instagram-agent-skill.gitを実行してスキルフォルダをコピーする方法、あるいは/plugin installコマンドを使う方法があります。まずtemplates/voice.mdを記入し、その後/ig-reelなどのコマンドやpython3 hookscore.py hooks.txtのようなローカルスクリプトを使うよう案内されています。",
+        "pros": "5つのPythonツール(hookscore.py、beats.py、caption.py、humanize.py、detect.py、swipe.py)は、外部依存やネットワーク通信なしにローカルで動作するとされているようです。承認ステップがあるため自動的には投稿されず、キャプションツールは2025年12月18日から適用されているハッシュタグ5個までの上限に対応しています。READMEでは意図的に弱く作られたフックを検出する際のAUCが0.83と報告されています。",
+        "cons": "READMEでは、これらのスキルがInstagramに直接投稿することはないと明記されており、実際の投稿にはMeta開発者アプリ、連携したPage、長期トークン、アプリ審査が必要であり、これはスキル自体では提供できないとされています。また、良いフック同士を見分ける能力は弱く、AUCは0.56でコイン投げに近いと公開されています。",
+        "fit": "Claude Codeを使用し、投稿自体は手動で管理しつつ、下書き作成・採点・計画の支援を受けたいInstagram運用者に適していると考えられます。READMEには、Claude Codeを使わない場合5つのPythonツールは利用できないと記載されているため、全機能を使うにはプロジェクトローカルまたはプラグインでのインストールが望ましいようです。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 1,
+          "end_line": 4,
+          "section_heading": "The Instagram agent skill"
+        },
+        {
+          "start_line": 13,
+          "end_line": 16,
+          "section_heading": "The Instagram agent skill"
+        },
+        {
+          "start_line": 18,
+          "end_line": 18,
+          "section_heading": "The Instagram agent skill"
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 22,
+          "end_line": 28,
+          "section_heading": "Install"
+        },
+        {
+          "start_line": 32,
+          "end_line": 35,
+          "section_heading": "Install"
+        },
+        {
+          "start_line": 49,
+          "end_line": 51,
+          "section_heading": "Install"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 75,
+          "end_line": 76,
+          "section_heading": "The five tools that actually run"
+        },
+        {
+          "start_line": 150,
+          "end_line": 151,
+          "section_heading": "The caption"
+        },
+        {
+          "start_line": 237,
+          "end_line": 239,
+          "section_heading": "What I actually measured, which is the part worth reading"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 272,
+          "end_line": 274,
+          "section_heading": "The fine print, which is the honest part"
+        },
+        {
+          "start_line": 275,
+          "end_line": 277,
+          "section_heading": "The fine print, which is the honest part"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 44,
+          "end_line": 47,
+          "section_heading": "Install"
+        },
+        {
+          "start_line": 18,
+          "end_line": 18,
+          "section_heading": "The Instagram agent skill"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "git clone https://github.com/Jakeschincariol/instagram-agent-skill.git",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "/ig-reel",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "python3 hookscore.py hooks.txt",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "url",
+        "value": "https://github.com/Jakeschincariol/instagram-agent-skill",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "instagram-agent-skill",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "MIT",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "5",
+        "fields": [
+          "pros",
+          "cons"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "0.83",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "0.56",
+        "fields": [
+          "cons"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "pros",
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "jakeschincariol/instagram-agent-skill",
+      "path": "README.md",
+      "blob_sha": "26a4630274fb05cf5e0206d3fbc64bee655d4210",
+      "content_sha256": "c020dd05a442eca931524207942ddffe56f67ed47b67563967093337ce52cb8d",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.322",
