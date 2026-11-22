@@ -603,13 +603,28 @@ test("GitHub numeric repository release pagination remains complete and slug-bou
   });
   assert.equal(events.releases.length, 101);
 
+  // GitHub hides draft releases from non-pushers, so a page can be short (99 of 100) and still carry a numeric next Link.
+  const shortPage = await collectRepositoryEvents([repo], {
+    fetchImpl: async (url, options) => {
+      const value = new URL(url);
+      if (value.pathname.endsWith("/releases")) {
+        const page = Number(value.searchParams.get("page"));
+        return page === 1
+          ? response(200, pageOne.slice(0, 99), { link: `<${numericNext}>; rel="next"` })
+          : response(200, [release(101)]);
+      }
+      return successfulFetch()(url, options);
+    },
+  });
+  assert.equal(shortPage.releases.length, 100);
+
   await assert.rejects(collectRepositoryEvents([repo], {
     fetchImpl: async (url, options) => {
       const value = new URL(url);
       if (value.pathname.endsWith("/releases")) {
         const page = Number(value.searchParams.get("page"));
         return page === 1
-          ? response(200, pageOne.slice(1), { link: `<${numericNext}>; rel="next"` })
+          ? response(200, [], { link: `<${numericNext}>; rel="next"` })
           : response(200, []);
       }
       return successfulFetch()(url, options);

@@ -318,7 +318,7 @@ function releaseNext(link, slug, page, itemCount) {
   const numericRepository = /^\/repositories\/[1-9]\d{0,19}\/releases$/.test(value.pathname);
   if (!matches[0][1].startsWith("https://api.github.com/")
     || value.protocol !== "https:" || value.hostname !== "api.github.com" || value.host !== "api.github.com"
-    || value.pathname !== expected && !numericRepository || numericRepository && itemCount !== 100
+    || value.pathname !== expected && !numericRepository || numericRepository && itemCount < 1
     || value.port !== "" || value.hash
     || value.username || value.password
     || value.searchParams.getAll("per_page").join() !== "100" || value.searchParams.getAll("page").length !== 1
