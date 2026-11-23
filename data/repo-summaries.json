@@ -1,71 +1,71 @@
 {
   "elementalsouls/Claude-BugHunter": {
     "content": {
-      "goal": "Claude-BugHunter is a skill bundle for the Claude Code skills system that adds bug-hunting and external red-team capabilities, bundling 83 skills, 15 slash commands, and 681 disclosed-report patterns (433 individually cited) covering 24 core vulnerability classes.",
-      "usage": "Install as a Claude Code plugin with `/plugin marketplace add elementalsouls/Claude-BugHunter` followed by `/plugin install claude-bughunter@elementalsouls`, or clone the repository with `git clone https://github.com/elementalsouls/Claude-BugHunter.git` and run `bash scripts/install.sh` (macOS/Linux) or `pwsh ./scripts/install.ps1` (Windows) to copy skills into `~/.claude/`.",
-      "pros": "The bundle provides per-class web vulnerability detection patterns (XSS, SQLi, SSRF, IDOR, etc.), enterprise platform attack chains (M365/Entra, Okta, vCenter, SSL-VPN), and reporting/triage skills, and the same Agent Skills format also loads in OpenCode, Codex CLI, Hermes Agent, and Google AntiGravity.",
-      "cons": "The documentation notes that Anthropic's runtime cyber safeguards can block vulnerability-exploitation or offensive-tooling requests by default, meaning even authorized, in-scope usage may trigger a refusal unless the user enrolls in Anthropic's Cyber Verification Program.",
-      "fit": "Given its explicit scope limited to external attack surfaces and its stated exclusion of internal Active Directory attacks, C2 frameworks, and post-exploitation tooling, the bundle appears best suited to authorized bug-bounty hunters, web-app pentesters, and external red-teamers rather than internal red-team or post-compromise work."
+      "goal": "claude-bughunter is a skill bundle for Claude Code aimed at bug-bounty hunting and external red-team work, covering web application vulnerability detection, enterprise platform attack chains, and report triage/validation.",
+      "usage": "Install via the Claude Code plugin commands `/plugin marketplace add elementalsouls/Claude-BugHunter` and `/plugin install claude-bughunter@elementalsouls`, or clone the repository with `git clone https://github.com/elementalsouls/Claude-BugHunter.git` and run `bash scripts/install.sh` on macOS/Linux or `pwsh ./scripts/install.ps1` on Windows.",
+      "pros": "The bundle ships 83 skills and 15 slash commands drawing on 681 disclosed HackerOne report patterns (433 individually cited) across 24 vulnerability classes, plus enterprise identity/infrastructure attack matrices and Burp MCP integration.",
+      "cons": "By design the bundle explicitly excludes internal Active Directory attacks, C2 frameworks, post-exploitation/persistence techniques, and evasion tooling, so users needing those capabilities must look elsewhere; Anthropic's runtime safeguards can also block even authorized offensive-security work by default.",
+      "fit": "Given its stated focus on internet-facing external attack surfaces, the bundle appears best suited for bug bounty hunters and external red-team operators rather than teams needing internal network or AD-focused tooling."
     },
     "summaries": {
       "en": {
-        "goal": "Claude-BugHunter is a skill bundle for the Claude Code skills system that adds bug-hunting and external red-team capabilities, bundling 83 skills, 15 slash commands, and 681 disclosed-report patterns (433 individually cited) covering 24 core vulnerability classes.",
-        "usage": "Install as a Claude Code plugin with `/plugin marketplace add elementalsouls/Claude-BugHunter` followed by `/plugin install claude-bughunter@elementalsouls`, or clone the repository with `git clone https://github.com/elementalsouls/Claude-BugHunter.git` and run `bash scripts/install.sh` (macOS/Linux) or `pwsh ./scripts/install.ps1` (Windows) to copy skills into `~/.claude/`.",
-        "pros": "The bundle provides per-class web vulnerability detection patterns (XSS, SQLi, SSRF, IDOR, etc.), enterprise platform attack chains (M365/Entra, Okta, vCenter, SSL-VPN), and reporting/triage skills, and the same Agent Skills format also loads in OpenCode, Codex CLI, Hermes Agent, and Google AntiGravity.",
-        "cons": "The documentation notes that Anthropic's runtime cyber safeguards can block vulnerability-exploitation or offensive-tooling requests by default, meaning even authorized, in-scope usage may trigger a refusal unless the user enrolls in Anthropic's Cyber Verification Program.",
-        "fit": "Given its explicit scope limited to external attack surfaces and its stated exclusion of internal Active Directory attacks, C2 frameworks, and post-exploitation tooling, the bundle appears best suited to authorized bug-bounty hunters, web-app pentesters, and external red-teamers rather than internal red-team or post-compromise work."
+        "goal": "claude-bughunter is a skill bundle for Claude Code aimed at bug-bounty hunting and external red-team work, covering web application vulnerability detection, enterprise platform attack chains, and report triage/validation.",
+        "usage": "Install via the Claude Code plugin commands `/plugin marketplace add elementalsouls/Claude-BugHunter` and `/plugin install claude-bughunter@elementalsouls`, or clone the repository with `git clone https://github.com/elementalsouls/Claude-BugHunter.git` and run `bash scripts/install.sh` on macOS/Linux or `pwsh ./scripts/install.ps1` on Windows.",
+        "pros": "The bundle ships 83 skills and 15 slash commands drawing on 681 disclosed HackerOne report patterns (433 individually cited) across 24 vulnerability classes, plus enterprise identity/infrastructure attack matrices and Burp MCP integration.",
+        "cons": "By design the bundle explicitly excludes internal Active Directory attacks, C2 frameworks, post-exploitation/persistence techniques, and evasion tooling, so users needing those capabilities must look elsewhere; Anthropic's runtime safeguards can also block even authorized offensive-security work by default.",
+        "fit": "Given its stated focus on internet-facing external attack surfaces, the bundle appears best suited for bug bounty hunters and external red-team operators rather than teams needing internal network or AD-focused tooling."
       },
       "ko": {
-        "goal": "Claude-BugHunter는 Claude Code 스킬 시스템을 위한 스킬 번들로, 버그 바운티 및 외부 레드팀 작업을 지원하며 83개의 스킬, 15개의 슬래시 명령, 681개의 공개된 리포트 패턴(그중 433개는 개별적으로 인용됨)을 24개 핵심 취약점 분류에 걸쳐 제공합니다.",
-        "usage": "Claude Code 플러그인으로 설치하려면 `/plugin marketplace add elementalsouls/Claude-BugHunter` 명령 후 `/plugin install claude-bughunter@elementalsouls`를 실행하거나, `git clone https://github.com/elementalsouls/Claude-BugHunter.git`으로 저장소를 클론한 뒤 macOS/Linux에서는 `bash scripts/install.sh`, Windows에서는 `pwsh ./scripts/install.ps1`을 실행해 `~/.claude/`에 스킬을 복사합니다.",
-        "pros": "XSS, SQLi, SSRF, IDOR 등 웹 취약점 클래스별 탐지 패턴과 M365/Entra, Okta, vCenter, SSL-VPN 등 엔터프라이즈 플랫폼 공격 체인, 리포팅/트리아지 스킬을 함께 제공하며, 동일한 Agent Skills 형식이 OpenCode, Codex CLI, Hermes Agent, Google AntiGravity에서도 로드됩니다.",
-        "cons": "문서에 따르면 Anthropic의 실시간 사이버 안전장치가 기본적으로 취약점 익스플로잇이나 공격용 도구 개발 요청을 차단할 수 있어, 승인된 범위 내 작업이라도 Cyber Verification Program에 등록하지 않으면 거부당할 수 있다고 명시되어 있습니다.",
-        "fit": "외부 공격 표면으로 범위를 명시적으로 한정하고 내부 Active Directory 공격, C2 프레임워크, 침투 후 작업을 제외한다고 밝히고 있어, 이 번들은 내부 레드팀이나 침투 후 작업보다는 승인된 버그 바운티 헌터, 웹 애플리케이션 펜테스터, 외부 레드팀 작업에 더 적합해 보입니다."
+        "goal": "claude-bughunter는 Claude Code용 스킬 번들로, 버그 바운티 헌팅과 외부 레드팀 작업을 목표로 하며 웹 애플리케이션 취약점 탐지, 엔터프라이즈 플랫폼 공격 체인, 보고서 검증 기능을 포함합니다.",
+        "usage": "Claude Code 플러그인으로 설치하려면 `/plugin marketplace add elementalsouls/Claude-BugHunter`와 `/plugin install claude-bughunter@elementalsouls` 명령을 사용하거나, `git clone https://github.com/elementalsouls/Claude-BugHunter.git`로 저장소를 복제한 뒤 macOS/Linux에서는 `bash scripts/install.sh`, Windows에서는 `pwsh ./scripts/install.ps1`을 실행합니다.",
+        "pros": "이 번들은 83개의 스킬과 15개의 슬래시 명령을 제공하며, 681건의 공개된 HackerOne 보고서 패턴(그중 433건은 개별적으로 인용됨)을 24개 취약점 분류에 걸쳐 반영하고, 엔터프라이즈 아이덴티티/인프라 공격 매트릭스와 Burp MCP 통합도 포함합니다.",
+        "cons": "이 번들은 설계상 내부 Active Directory 공격, C2 프레임워크, 사후 침투/지속성 기법, 탐지 회피 도구를 명시적으로 제외하므로 해당 기능이 필요한 사용자는 다른 도구를 찾아야 하며, Anthropic의 실시간 안전장치가 기본적으로 승인된 공격적 보안 작업조차 차단할 수 있습니다.",
+        "fit": "문서에 명시된 대로 인터넷에 노출된 외부 공격 표면에 초점을 맞추고 있어, 내부 네트워크나 AD 중심 도구가 필요한 팀보다는 버그 바운티 헌터와 외부 레드팀 운영자에게 더 적합해 보입니다."
       },
       "zh-CN": {
-        "goal": "Claude-BugHunter 是面向 Claude Code 技能系统的技能包，用于漏洞赏金猎取和外部红队工作，包含 83 个技能、15 个斜杠命令，以及覆盖 24 个核心漏洞类别的 681 条已披露报告模式（其中 433 条单独引用）。",
-        "usage": "作为 Claude Code 插件安装时，先执行 `/plugin marketplace add elementalsouls/Claude-BugHunter`，再执行 `/plugin install claude-bughunter@elementalsouls`；也可以通过 `git clone https://github.com/elementalsouls/Claude-BugHunter.git` 克隆仓库，然后在 macOS/Linux 上运行 `bash scripts/install.sh`，在 Windows 上运行 `pwsh ./scripts/install.ps1`，将技能复制到 `~/.claude/`。",
-        "pros": "该技能包提供按类别划分的网页漏洞检测模式（XSS、SQLi、SSRF、IDOR 等）、企业平台攻击链（M365/Entra、Okta、vCenter、SSL-VPN）以及报告与分类技能，且相同的 Agent Skills 格式同样可在 OpenCode、Codex CLI、Hermes Agent 和 Google AntiGravity 中加载。",
-        "cons": "文档指出，Anthropic 的实时网络安全防护默认可能阻止涉及漏洞利用或攻击性工具开发的请求，因此即便是获得授权范围内的工作，若未注册 Cyber Verification Program，也可能被拒绝执行。",
-        "fit": "由于该技能包明确将范围限定在外部攻击面，并声明排除内部 Active Directory 攻击、C2 框架及后渗透工具，它似乎更适合获得授权的漏洞赏金猎人、网络应用渗透测试人员和外部红队工作，而非内部红队或后渗透场景。"
+        "goal": "claude-bughunter 是一个面向 Claude Code 的技能包,旨在支持漏洞赏金挖掘和外部红队工作,涵盖 Web 应用漏洞检测、企业平台攻击链以及报告分类验证功能。",
+        "usage": "可通过 Claude Code 插件命令 `/plugin marketplace add elementalsouls/Claude-BugHunter` 和 `/plugin install claude-bughunter@elementalsouls` 安装,或者克隆仓库 `git clone https://github.com/elementalsouls/Claude-BugHunter.git` 后在 macOS/Linux 上运行 `bash scripts/install.sh`,在 Windows 上运行 `pwsh ./scripts/install.ps1`。",
+        "pros": "该项目包含 83 个技能和 15 个斜杠命令,整合了 681 条已公开的 HackerOne 报告模式(其中 433 条有单独引用),覆盖 24 个核心漏洞类别,并提供企业身份/基础设施攻击矩阵以及 Burp MCP 集成。",
+        "cons": "该项目在设计上明确排除了内部 Active Directory 攻击、C2 框架、后渗透/持久化技术以及规避工具,因此需要这些能力的用户需另寻他法;此外,Anthropic 的实时安全防护默认情况下也可能阻止即使是经过授权的攻击性安全工作。",
+        "fit": "根据文档所述,该项目专注于面向互联网的外部攻击面,因此似乎更适合漏洞赏金猎人和外部红队操作人员,而非需要内部网络或 AD 相关工具的团队。"
       },
       "es": {
-        "goal": "Claude-BugHunter es un paquete de habilidades para el sistema de skills de Claude Code, orientado a la caza de errores y al trabajo de red-team externo, que incluye 83 skills, 15 comandos de barra y 681 patrones de reportes divulgados (433 citados individualmente) que cubren 24 clases principales de vulnerabilidades.",
-        "usage": "Para instalarlo como plugin de Claude Code, se ejecuta `/plugin marketplace add elementalsouls/Claude-BugHunter` seguido de `/plugin install claude-bughunter@elementalsouls`, o bien se clona el repositorio con `git clone https://github.com/elementalsouls/Claude-BugHunter.git` y se ejecuta `bash scripts/install.sh` en macOS/Linux o `pwsh ./scripts/install.ps1` en Windows para copiar las skills en `~/.claude/`.",
-        "pros": "El paquete ofrece patrones de detección por clase de vulnerabilidad web (XSS, SQLi, SSRF, IDOR, etc.), cadenas de ataque a plataformas empresariales (M365/Entra, Okta, vCenter, SSL-VPN) y skills de reporte/triage, y el mismo formato Agent Skills también se carga en OpenCode, Codex CLI, Hermes Agent y Google AntiGravity.",
-        "cons": "La documentación señala que las salvaguardas cibernéticas en tiempo real de Anthropic pueden bloquear por defecto solicitudes de explotación de vulnerabilidades o desarrollo de herramientas ofensivas, por lo que incluso un trabajo autorizado dentro del alcance podría recibir una negativa si no se inscribe en el Cyber Verification Program.",
-        "fit": "Dado que el alcance se limita explícitamente a la superficie de ataque externa y excluye ataques internos de Active Directory, frameworks C2 y herramientas post-explotación, el paquete parece más adecuado para cazadores de recompensas autorizados, pentesters de aplicaciones web y equipos de red-team externo, no para trabajo interno o post-compromiso."
+        "goal": "claude-bughunter es un paquete de habilidades para Claude Code orientado a la caza de errores y al trabajo de red team externo, que abarca la detección de vulnerabilidades en aplicaciones web, cadenas de ataque a plataformas empresariales y validación de informes.",
+        "usage": "Se instala mediante los comandos de plugin de Claude Code `/plugin marketplace add elementalsouls/Claude-BugHunter` y `/plugin install claude-bughunter@elementalsouls`, o clonando el repositorio con `git clone https://github.com/elementalsouls/Claude-BugHunter.git` y ejecutando `bash scripts/install.sh` en macOS/Linux o `pwsh ./scripts/install.ps1` en Windows.",
+        "pros": "El paquete incluye 83 habilidades y 15 comandos de barra, basados en 681 patrones de informes divulgados de HackerOne (433 citados individualmente) en 24 clases de vulnerabilidades, además de matrices de ataque a identidad/infraestructura empresarial e integración con Burp MCP.",
+        "cons": "El paquete excluye explícitamente, por diseño, los ataques internos a Active Directory, los frameworks C2, las técnicas de post-explotación/persistencia y las herramientas de evasión, por lo que quienes necesiten esas capacidades deberán buscar otra solución; además, las salvaguardas en tiempo real de Anthropic pueden bloquear por defecto incluso trabajo de seguridad ofensiva autorizado.",
+        "fit": "Dado su enfoque declarado en superficies de ataque externas expuestas a internet, el paquete parece resultar más adecuado para cazadores de bug bounty y operadores de red team externo que para equipos que necesiten herramientas centradas en redes internas o Active Directory."
       },
       "ja": {
-        "goal": "Claude-BugHunterはClaude Codeのスキルシステム向けのスキルバンドルで、バグハンティングおよび外部レッドチーム作業を支援し、83個のスキル、15個のスラッシュコマンド、24の主要な脆弱性クラスをカバーする681件の公開レポートパターン（うち433件は個別に引用）を含みます。",
-        "usage": "Claude Codeプラグインとしてインストールする場合は `/plugin marketplace add elementalsouls/Claude-BugHunter` を実行後 `/plugin install claude-bughunter@elementalsouls` を実行し、またはリポジトリを `git clone https://github.com/elementalsouls/Claude-BugHunter.git` でクローンしてから、macOS/Linuxでは `bash scripts/install.sh`、Windowsでは `pwsh ./scripts/install.ps1` を実行して `~/.claude/` にスキルをコピーします。",
-        "pros": "XSS、SQLi、SSRF、IDORなどクラス別のWeb脆弱性検出パターン、M365/Entra、Okta、vCenter、SSL-VPNなどのエンタープライズプラットフォーム攻撃チェーン、レポート・トリアージ用スキルを提供し、同じAgent Skills形式はOpenCode、Codex CLI、Hermes Agent、Google AntiGravityでも読み込めます。",
-        "cons": "ドキュメントによれば、Anthropicのリアルタイムサイバーセーフガードは脆弱性の悪用や攻撃用ツール開発に関する要求をデフォルトでブロックする場合があり、承認済みの範囲内の作業であってもCyber Verification Programに登録しない限り拒否される可能性があるとされています。",
-        "fit": "このバンドルは外部攻撃対象領域に範囲を明示的に限定し、内部Active Directory攻撃、C2フレームワーク、侵入後ツールを除外すると明記しているため、内部レッドチームや侵入後作業よりも、認可されたバグバウンティハンター、Webアプリケーションペンテスター、外部レッドチーム作業に適していると考えられます。"
+        "goal": "claude-bughunter は Claude Code 向けのスキルバンドルで、バグバウンティハンティングと外部レッドチーム業務を対象とし、Web アプリケーションの脆弱性検出、エンタープライズプラットフォームへの攻撃チェーン、レポートの検証機能を含みます。",
+        "usage": "Claude Code のプラグインコマンド `/plugin marketplace add elementalsouls/Claude-BugHunter` と `/plugin install claude-bughunter@elementalsouls` でインストールするか、`git clone https://github.com/elementalsouls/Claude-BugHunter.git` でクローンした後、macOS/Linux では `bash scripts/install.sh`、Windows では `pwsh ./scripts/install.ps1` を実行します。",
+        "pros": "83 個のスキルと 15 個のスラッシュコマンドを備え、681 件の公開済み HackerOne レポートパターン(うち 433 件は個別に引用)を 24 の脆弱性クラスにわたって反映しており、エンタープライズのアイデンティティ/インフラ攻撃マトリクスおよび Burp MCP 統合も含まれます。",
+        "cons": "このバンドルは設計上、内部 Active Directory 攻撃、C2 フレームワーク、侵害後の永続化技術、検知回避ツールを明示的に対象外としているため、これらの機能が必要なユーザーは別の手段を探す必要があり、さらに Anthropic のリアルタイム安全対策により、承認済みの攻撃的セキュリティ作業であってもデフォルトでブロックされる場合があります。",
+        "fit": "文書に記載された通り、インターネットに露出した外部攻撃対象領域に焦点を当てているため、内部ネットワークや AD 関連ツールを必要とするチームよりも、バグバウンティハンターや外部レッドチーム運用者に適していると考えられます。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 3,
+          "start_line": 5,
           "end_line": 5,
           "section_heading": "claude-bughunter"
         },
         {
-          "start_line": 29,
-          "end_line": 31,
+          "start_line": 32,
+          "end_line": 32,
           "section_heading": "What is this?"
         }
       ],
       "usage": [
         {
-          "start_line": 46,
-          "end_line": 51,
+          "start_line": 47,
+          "end_line": 52,
           "section_heading": "Quickstart"
         },
         {
-          "start_line": 59,
-          "end_line": 70,
+          "start_line": 60,
+          "end_line": 71,
           "section_heading": "Quickstart"
         }
       ],
@@ -76,33 +76,33 @@
           "section_heading": "claude-bughunter"
         },
         {
-          "start_line": 106,
-          "end_line": 110,
-          "section_heading": "Runs on multiple agent harnesses"
+          "start_line": 37,
+          "end_line": 39,
+          "section_heading": "What is this?"
         },
         {
-          "start_line": 182,
-          "end_line": 184,
-          "section_heading": "What's inside"
+          "start_line": 54,
+          "end_line": 54,
+          "section_heading": "Quickstart"
         }
       ],
       "cons": [
         {
-          "start_line": 210,
-          "end_line": 210,
+          "start_line": 164,
+          "end_line": 170,
+          "section_heading": "Out of scope (deliberate — not gaps, design decisions)"
+        },
+        {
+          "start_line": 211,
+          "end_line": 211,
           "section_heading": "Authorization"
         }
       ],
       "fit": [
         {
-          "start_line": 150,
-          "end_line": 172,
+          "start_line": 151,
+          "end_line": 162,
           "section_heading": "Scope — what this bundle is for, and what it isn't"
-        },
-        {
-          "start_line": 204,
-          "end_line": 204,
-          "section_heading": "Authorization"
         }
       ]
     },
@@ -146,42 +146,35 @@
         "kind": "number",
         "value": "83",
         "fields": [
-          "goal"
+          "pros"
         ]
       },
       {
         "kind": "number",
         "value": "15",
         "fields": [
-          "goal"
+          "pros"
         ]
       },
       {
         "kind": "number",
         "value": "681",
         "fields": [
-          "goal"
+          "pros"
         ]
       },
       {
         "kind": "number",
         "value": "433",
         "fields": [
-          "goal"
+          "pros"
         ]
       },
       {
         "kind": "number",
         "value": "24",
         "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "url",
-        "value": "https://github.com/elementalsouls/Claude-BugHunter.git",
-        "fields": [
-          "usage"
+          "pros"
         ]
       },
       {
@@ -193,27 +186,25 @@
         ]
       },
       {
-        "kind": "product",
-        "value": "Claude Code",
+        "kind": "url",
+        "value": "https://github.com/elementalsouls/Claude-BugHunter",
         "fields": [
-          "goal",
           "usage"
         ]
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "elementalsouls/claude-bughunter",
       "path": "README.md",
-      "blob_sha": "cd07caf4e92730b808891539a9397f1489f039d6",
-      "content_sha256": "eb93e41e3363714b0c53b1486d7fa64f6f3ac8f79f266f52d443ca0ecaf097f8",
+      "blob_sha": "865216f3a5e33fe9d56badde672c925f230ad593",
+      "content_sha256": "0a055c3e21bb53334c2e7c7e213680e9697249e36ce13f418af650990821e3eb",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.322",
+      "cli_version": "2.1.330",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -587,47 +578,47 @@
   },
   "jingyaogong/minimind": {
     "content": {
-      "goal": "MiniMind is an open-source project that trains a small language model (~64M parameters) completely from scratch, covering the full pipeline: pretraining (Pretrain), supervised fine-tuning (SFT), LoRA, DPO, RLAIF (PPO/GRPO/CISPO), Tool Use, and Agentic RL.",
-      "usage": "Clone the repository with `git clone --depth 1 https://github.com/jingyaogong/minimind`, install dependencies with `pip install -r requirements.txt`, download a released model, then run `python eval_llm.py --load_from ./minimind-3` for inference, or `python train_pretrain.py` followed by SFT scripts to train from scratch.",
-      "pros": "Pretraining, SFT, LoRA, DPO, and RLAIF algorithms are implemented natively in PyTorch without relying on high-level third-party library abstractions, while remaining compatible with transformers, llama.cpp, vllm, and ollama, and supporting multi-GPU/DeepSpeed training with wandb/SwanLab visualization.",
-      "cons": "Documented benchmark results show the released small-scale models perform weakly on English tasks, likely because the training data and tokenizer (a 6,400-token vocabulary) are optimized for compact size and Chinese text rather than broad multilingual coverage.",
-      "fit": "Given its emphasis on low-cost (~3 RMB) and ~2-hour training on a single consumer GPU, the project appears best suited to individual learners and researchers studying LLM internals, rather than teams seeking production-ready large models comparable to ChatGPT or Qwen."
+      "goal": "MiniMind's goal is to let individuals train a very small (~64M parameter) language model entirely from scratch, at an estimated cost of about 3 RMB and around 2 hours on a single NVIDIA 3090 GPU, covering pretraining, SFT, LoRA, RLHF/DPO, and RLAIF (PPO/GRPO/CISPO), Tool Use, and Agentic RL, implemented natively in PyTorch.",
+      "usage": "Clone the repository and install dependencies with `git clone --depth 1 https://github.com/jingyaogong/minimind` and `pip install -r requirements.txt`; run inference via `python eval_llm.py --load_from ./minimind-3`, and run training stages such as `cd trainer && python train_pretrain.py` or `python train_full_sft.py`.",
+      "pros": "Core training algorithms (pretraining, SFT, LoRA, DPO, distillation) are implemented natively in PyTorch without relying on high-level third-party wrappers, while the project documents compatibility with transformers, trl, peft, and inference engines like llama.cpp, vllm, and ollama, plus multi-GPU DDP/DeepSpeed training with wandb/SwanLab logging.",
+      "cons": "The README's own benchmark results show weak English-language performance because training data is weighted toward Chinese, and the custom tokenizer's vocabulary is limited to 6,400 tokens, notably smaller than tokenizers used by comparable open models.",
+      "fit": "This appears best suited to learners and researchers wanting a hands-on, reproducible path through full LLM training pipelines on a single consumer GPU, rather than to those seeking a production-ready model with strong multilingual or large-scale capability."
     },
     "summaries": {
       "en": {
-        "goal": "MiniMind is an open-source project that trains a small language model (~64M parameters) completely from scratch, covering the full pipeline: pretraining (Pretrain), supervised fine-tuning (SFT), LoRA, DPO, RLAIF (PPO/GRPO/CISPO), Tool Use, and Agentic RL.",
-        "usage": "Clone the repository with `git clone --depth 1 https://github.com/jingyaogong/minimind`, install dependencies with `pip install -r requirements.txt`, download a released model, then run `python eval_llm.py --load_from ./minimind-3` for inference, or `python train_pretrain.py` followed by SFT scripts to train from scratch.",
-        "pros": "Pretraining, SFT, LoRA, DPO, and RLAIF algorithms are implemented natively in PyTorch without relying on high-level third-party library abstractions, while remaining compatible with transformers, llama.cpp, vllm, and ollama, and supporting multi-GPU/DeepSpeed training with wandb/SwanLab visualization.",
-        "cons": "Documented benchmark results show the released small-scale models perform weakly on English tasks, likely because the training data and tokenizer (a 6,400-token vocabulary) are optimized for compact size and Chinese text rather than broad multilingual coverage.",
-        "fit": "Given its emphasis on low-cost (~3 RMB) and ~2-hour training on a single consumer GPU, the project appears best suited to individual learners and researchers studying LLM internals, rather than teams seeking production-ready large models comparable to ChatGPT or Qwen."
+        "goal": "MiniMind's goal is to let individuals train a very small (~64M parameter) language model entirely from scratch, at an estimated cost of about 3 RMB and around 2 hours on a single NVIDIA 3090 GPU, covering pretraining, SFT, LoRA, RLHF/DPO, and RLAIF (PPO/GRPO/CISPO), Tool Use, and Agentic RL, implemented natively in PyTorch.",
+        "usage": "Clone the repository and install dependencies with `git clone --depth 1 https://github.com/jingyaogong/minimind` and `pip install -r requirements.txt`; run inference via `python eval_llm.py --load_from ./minimind-3`, and run training stages such as `cd trainer && python train_pretrain.py` or `python train_full_sft.py`.",
+        "pros": "Core training algorithms (pretraining, SFT, LoRA, DPO, distillation) are implemented natively in PyTorch without relying on high-level third-party wrappers, while the project documents compatibility with transformers, trl, peft, and inference engines like llama.cpp, vllm, and ollama, plus multi-GPU DDP/DeepSpeed training with wandb/SwanLab logging.",
+        "cons": "The README's own benchmark results show weak English-language performance because training data is weighted toward Chinese, and the custom tokenizer's vocabulary is limited to 6,400 tokens, notably smaller than tokenizers used by comparable open models.",
+        "fit": "This appears best suited to learners and researchers wanting a hands-on, reproducible path through full LLM training pipelines on a single consumer GPU, rather than to those seeking a production-ready model with strong multilingual or large-scale capability."
       },
       "ko": {
-        "goal": "MiniMind은 사전학습(Pretrain), 지도 미세조정(SFT), LoRA, DPO, RLAIF(PPO/GRPO/CISPO), Tool Use, Agentic RL까지 전체 학습 파이프라인을 포함하여 약 64M 파라미터 규모의 소형 언어모델을 완전히 처음부터 학습하는 오픈소스 프로젝트입니다.",
-        "usage": "`git clone --depth 1 https://github.com/jingyaogong/minimind`로 저장소를 클론하고 `pip install -r requirements.txt`로 의존성을 설치한 뒤, 공개된 모델을 다운로드하여 `python eval_llm.py --load_from ./minimind-3`로 추론을 실행하거나, `python train_pretrain.py` 이후 SFT 스크립트를 실행해 처음부터 학습을 진행할 수 있습니다.",
-        "pros": "사전학습, SFT, LoRA, DPO, RLAIF 알고리즘이 외부 라이브러리의 고수준 추상화 없이 PyTorch로 직접 구현되어 있으며, 동시에 transformers, llama.cpp, vllm, ollama와 호환되고 wandb/SwanLab 시각화를 지원하는 다중 GPU/DeepSpeed 학습도 가능합니다.",
-        "cons": "문서화된 벤치마크 결과에 따르면 공개된 소형 모델들은 영어 과제에서 성능이 약한 것으로 나타나는데, 이는 학습 데이터와 토크나이저(어휘 크기 6,400)가 작은 모델 크기와 중국어 텍스트에 맞춰 최적화되어 있어 광범위한 다국어 지원과는 거리가 있기 때문으로 보입니다.",
-        "fit": "단일 소비자용 GPU에서 약 3위안, 약 2시간이라는 저비용 학습을 강조하는 점을 볼 때, 이 프로젝트는 ChatGPT나 Qwen과 같은 상용 대형 언어모델을 대체하려는 팀보다는 LLM 내부 구조를 학습하려는 개인 학습자와 연구자에게 더 적합해 보입니다."
+        "goal": "MiniMind의 목표는 개인이 처음부터(from scratch) 약 64M 파라미터 규모의 아주 작은 언어 모델을 학습할 수 있도록 하는 것으로, 단일 NVIDIA 3090 GPU에서 약 3위안의 비용과 약 2시간의 학습 시간으로 사전학습(pretraining), SFT, LoRA, RLHF/DPO, RLAIF(PPO/GRPO/CISPO), Tool Use, Agentic RL까지 전체 파이프라인을 다루며 PyTorch로 직접 구현되어 있습니다.",
+        "usage": "저장소를 클론하고 의존성을 설치하려면 `git clone --depth 1 https://github.com/jingyaogong/minimind`와 `pip install -r requirements.txt`를 실행하며, 추론은 `python eval_llm.py --load_from ./minimind-3`로, 학습 단계는 `cd trainer && python train_pretrain.py` 또는 `python train_full_sft.py`와 같은 명령으로 수행합니다.",
+        "pros": "사전학습, SFT, LoRA, DPO, 증류(distillation) 등 핵심 학습 알고리즘이 고수준의 서드파티 래퍼에 의존하지 않고 PyTorch로 직접 구현되어 있으며, transformers, trl, peft 및 llama.cpp, vllm, ollama 같은 추론 엔진과의 호환성, 그리고 wandb/SwanLab 로깅을 지원하는 다중 GPU DDP/DeepSpeed 학습이 문서화되어 있습니다.",
+        "cons": "README에 포함된 자체 벤치마크 결과에 따르면 학습 데이터가 중국어에 치중되어 있어 영어 성능이 상대적으로 약하며, 커스텀 토크나이저의 어휘 크기도 6,400 토큰으로 제한되어 있어 비교 가능한 다른 오픈 모델의 토크나이저보다 눈에 띄게 작습니다.",
+        "fit": "이 프로젝트는 단일 소비자용 GPU에서 LLM 학습 파이프라인 전체를 직접 다뤄보고자 하는 학습자와 연구자에게 적합해 보이며, 강력한 다국어 성능이나 대규모 역량을 갖춘 프로덕션 수준의 모델을 찾는 사용자에게는 적합하지 않을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "MiniMind 是一个完全从零开始训练约 64M 参数小型语言模型的开源项目，涵盖预训练（Pretrain）、监督微调（SFT）、LoRA、DPO、RLAIF（PPO/GRPO/CISPO）、Tool Use 与 Agentic RL 等完整训练流程。",
-        "usage": "使用 `git clone --depth 1 https://github.com/jingyaogong/minimind` 克隆仓库，执行 `pip install -r requirements.txt` 安装依赖，下载已发布的模型后运行 `python eval_llm.py --load_from ./minimind-3` 进行推理，或依次运行 `python train_pretrain.py` 与后续 SFT 脚本从零开始训练。",
-        "pros": "预训练、SFT、LoRA、DPO、RLAIF 等核心算法均以 PyTorch 原生实现，不依赖第三方库的高层封装，同时兼容 transformers、llama.cpp、vllm、ollama，并支持多卡/DeepSpeed 训练及 wandb/SwanLab 可视化。",
-        "cons": "文档中的客观评测显示，已发布的小规模模型在英文任务上表现较弱，这很可能与训练数据及分词器（词表仅 6,400）更偏向中文与紧凑体积、而非广泛多语言覆盖的设计取舍有关。",
-        "fit": "鉴于其强调在单张消费级 GPU 上以约 3 元人民币、约 2 小时即可完成训练，该项目更适合希望理解 LLM 内部机制的个人学习者与研究者，而非寻求可替代 ChatGPT 或 Qwen 等生产级大模型的团队。"
+        "goal": "MiniMind 的目标是让个人能够完全从零开始训练一个约 64M 参数的超小型语言模型，据称在单张 NVIDIA 3090 GPU 上成本约为 3 元、耗时约 2 小时，训练链路覆盖预训练（pretraining）、SFT、LoRA、RLHF/DPO 以及 RLAIF（PPO/GRPO/CISPO）、Tool Use 与 Agentic RL，所有核心代码均使用 PyTorch 原生实现。",
+        "usage": "克隆仓库并安装依赖可执行 `git clone --depth 1 https://github.com/jingyaogong/minimind` 与 `pip install -r requirements.txt`；推理可运行 `python eval_llm.py --load_from ./minimind-3`，训练各阶段可运行如 `cd trainer && python train_pretrain.py` 或 `python train_full_sft.py` 等脚本。",
+        "pros": "预训练、SFT、LoRA、DPO、知识蒸馏等核心训练算法均从零使用 PyTorch 原生实现，不依赖第三方高层封装；项目文档同时说明其兼容 transformers、trl、peft 以及 llama.cpp、vllm、ollama 等推理引擎，并支持基于 wandb/SwanLab 记录的多卡 DDP/DeepSpeed 训练。",
+        "cons": "README 自带的评测结果显示，由于训练数据偏向中文，模型在英文任务上的表现相对较弱；同时自定义分词器词表仅有 6,400，明显小于其他可比开源模型所使用的分词器词表规模。",
+        "fit": "该项目看起来更适合希望在单张消费级 GPU 上亲手走完完整 LLM 训练流程、用于学习与研究的用户，而不太适合需要强多语言能力或大规模生产级模型的场景。"
       },
       "es": {
-        "goal": "MiniMind es un proyecto de código abierto que entrena desde cero un modelo de lenguaje pequeño de aproximadamente 64M de parámetros, cubriendo todo el flujo de entrenamiento: preentrenamiento (Pretrain), ajuste fino supervisado (SFT), LoRA, DPO, RLAIF (PPO/GRPO/CISPO), Tool Use y Agentic RL.",
-        "usage": "Clone el repositorio con `git clone --depth 1 https://github.com/jingyaogong/minimind`, instale las dependencias con `pip install -r requirements.txt`, descargue un modelo publicado y ejecute `python eval_llm.py --load_from ./minimind-3` para inferencia, o `python train_pretrain.py` seguido de los scripts de SFT para entrenar desde cero.",
-        "pros": "Los algoritmos de preentrenamiento, SFT, LoRA, DPO y RLAIF están implementados de forma nativa en PyTorch sin depender de abstracciones de alto nivel de librerías externas, y son compatibles con transformers, llama.cpp, vllm y ollama, con soporte para entrenamiento multi-GPU/DeepSpeed y visualización mediante wandb/SwanLab.",
-        "cons": "Los resultados de benchmark documentados muestran que los modelos pequeños publicados rinden débilmente en tareas en inglés, probablemente porque los datos de entrenamiento y el tokenizador (vocabulario de 6.400 tokens) están optimizados para un tamaño compacto y texto en chino, no para una amplia cobertura multilingüe.",
-        "fit": "Dado su énfasis en un entrenamiento de bajo costo (~3 RMB) y ~2 horas en una sola GPU de consumo, el proyecto parece más adecuado para aprendices e investigadores individuales que estudian el funcionamiento interno de los LLM, más que para equipos que buscan modelos de producción comparables a ChatGPT o Qwen."
+        "goal": "El objetivo de MiniMind es permitir que cualquier persona entrene desde cero un modelo de lenguaje muy pequeño (~64M de parámetros), con un costo estimado de unos 3 RMB y alrededor de 2 horas en una sola GPU NVIDIA 3090, cubriendo el preentrenamiento, SFT, LoRA, RLHF/DPO y RLAIF (PPO/GRPO/CISPO), Tool Use y Agentic RL, todo implementado de forma nativa en PyTorch.",
+        "usage": "Clona el repositorio e instala las dependencias con `git clone --depth 1 https://github.com/jingyaogong/minimind` y `pip install -r requirements.txt`; ejecuta la inferencia con `python eval_llm.py --load_from ./minimind-3`, y las etapas de entrenamiento con comandos como `cd trainer && python train_pretrain.py` o `python train_full_sft.py`.",
+        "pros": "Los algoritmos de entrenamiento principales (preentrenamiento, SFT, LoRA, DPO, destilación) están implementados de forma nativa en PyTorch sin depender de envoltorios de terceros de alto nivel, y el proyecto documenta compatibilidad con transformers, trl, peft, además de motores de inferencia como llama.cpp, vllm y ollama, junto con entrenamiento multi-GPU mediante DDP/DeepSpeed y registro con wandb/SwanLab.",
+        "cons": "Los propios resultados de benchmark del README muestran un rendimiento en inglés relativamente débil porque los datos de entrenamiento están sesgados hacia el chino, y el vocabulario del tokenizador personalizado se limita a 6.400 tokens, notablemente más pequeño que los tokenizadores de otros modelos abiertos comparables.",
+        "fit": "Este proyecto parece más adecuado para quienes buscan aprender o investigar recorriendo de forma práctica y reproducible todo el flujo de entrenamiento de un LLM en una sola GPU de consumo, más que para quienes necesitan un modelo listo para producción con fuerte capacidad multilingüe o a gran escala."
       },
       "ja": {
-        "goal": "MiniMindは、事前学習（Pretrain）、教師ありファインチューニング（SFT）、LoRA、DPO、RLAIF（PPO/GRPO/CISPO）、Tool Use、Agentic RLまでの一連の学習プロセスを含む、約64Mパラメータの小型言語モデルを完全にゼロから学習するオープンソースプロジェクトです。",
-        "usage": "`git clone --depth 1 https://github.com/jingyaogong/minimind` でリポジトリをクローンし、`pip install -r requirements.txt` で依存関係をインストールした後、公開モデルをダウンロードして `python eval_llm.py --load_from ./minimind-3` で推論を実行するか、`python train_pretrain.py` に続けてSFTスクリプトを実行してゼロから学習できます。",
-        "pros": "事前学習、SFT、LoRA、DPO、RLAIFなどの主要アルゴリズムはサードパーティライブラリの高レベル抽象に依存せずPyTorchでネイティブに実装されており、transformers、llama.cpp、vllm、ollamaとの互換性を保ちつつ、複数GPU/DeepSpeed学習とwandb/SwanLabによる可視化にも対応しています。",
-        "cons": "文書化されたベンチマーク結果によると、公開されている小規模モデルは英語タスクで性能が弱いことが示されており、これは学習データとトークナイザー（語彙サイズ6,400）が広範な多言語対応ではなく、コンパクトなサイズと中国語テキストを重視して設計されていることに起因する可能性があります。",
-        "fit": "単一のコンシューマー向けGPUで約3元、約2時間という低コストな学習を重視している点から、このプロジェクトはChatGPTやQwenのような実運用レベルの大規模モデルを求めるチームよりも、LLMの内部構造を学びたい個人学習者や研究者に適していると考えられます。"
+        "goal": "MiniMind の目標は、単一の NVIDIA 3090 GPU 上で約 3 元・約 2 時間というコストで、約 64M パラメータのごく小さな言語モデルを完全にゼロから学習できるようにすることで、事前学習（pretraining）、SFT、LoRA、RLHF/DPO、RLAIF（PPO/GRPO/CISPO）、Tool Use、Agentic RL までの一連のパイプラインを PyTorch でネイティブに実装しています。",
+        "usage": "リポジトリのクローンと依存関係のインストールは `git clone --depth 1 https://github.com/jingyaogong/minimind` と `pip install -r requirements.txt` で行い、推論は `python eval_llm.py --load_from ./minimind-3`、学習の各段階は `cd trainer && python train_pretrain.py` や `python train_full_sft.py` のようなコマンドで実行します。",
+        "pros": "事前学習、SFT、LoRA、DPO、蒸留などの中核的な学習アルゴリズムは、高レベルなサードパーティのラッパーに依存せず PyTorch でネイティブに実装されており、transformers、trl、peft や llama.cpp、vllm、ollama といった推論エンジンとの互換性、さらに wandb/SwanLab によるログ記録を伴うマルチ GPU の DDP/DeepSpeed 学習がドキュメント化されています。",
+        "cons": "README 自身のベンチマーク結果によれば、学習データが中国語に偏っているため英語タスクでの性能は相対的に弱く、またカスタムトークナイザーの語彙サイズは 6,400 トークンに限られており、他の同等なオープンモデルで使われるトークナイザーに比べて明らかに小さくなっています。",
+        "fit": "このプロジェクトは、単一のコンシューマー向け GPU 上で LLM 学習パイプライン全体を実際に手を動かして学びたい学習者や研究者に適していると考えられ、強力な多言語性能や大規模な実運用向けモデルを求めるユーザーにはあまり適さない可能性があります。"
       }
     },
     "evidence": {
@@ -636,22 +627,27 @@
           "start_line": 34,
           "end_line": 36,
           "section_heading": ""
+        },
+        {
+          "start_line": 42,
+          "end_line": 42,
+          "section_heading": ""
         }
       ],
       "usage": [
         {
-          "start_line": 262,
-          "end_line": 266,
+          "start_line": 264,
+          "end_line": 265,
           "section_heading": "第0步"
         },
         {
-          "start_line": 282,
+          "start_line": 283,
           "end_line": 287,
           "section_heading": "2' CLI 推理"
         },
         {
           "start_line": 352,
-          "end_line": 356,
+          "end_line": 364,
           "section_heading": "2.1 预训练（必须）"
         }
       ],
@@ -662,15 +658,15 @@
           "section_heading": ""
         },
         {
-          "start_line": 125,
+          "start_line": 124,
           "end_line": 126,
           "section_heading": "🎉 本项目包含以下内容"
         }
       ],
       "cons": [
         {
-          "start_line": 424,
-          "end_line": 424,
+          "start_line": 419,
+          "end_line": 425,
           "section_heading": "Ⅰ Tokenizer"
         },
         {
@@ -681,14 +677,14 @@
       ],
       "fit": [
         {
-          "start_line": 42,
-          "end_line": 42,
-          "section_heading": ""
+          "start_line": 108,
+          "end_line": 113,
+          "section_heading": "📌 项目介绍"
         },
         {
-          "start_line": 110,
-          "end_line": 112,
-          "section_heading": "📌 项目介绍"
+          "start_line": 39,
+          "end_line": 40,
+          "section_heading": ""
         }
       ]
     },
@@ -716,7 +712,14 @@
       },
       {
         "kind": "command",
-        "value": "python train_pretrain.py",
+        "value": "cd trainer && python train_pretrain.py",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "python train_full_sft.py",
         "fields": [
           "usage"
         ]
@@ -732,15 +735,15 @@
         "kind": "number",
         "value": "3",
         "fields": [
-          "usage",
-          "fit"
+          "goal",
+          "usage"
         ]
       },
       {
         "kind": "number",
         "value": "2",
         "fields": [
-          "fit"
+          "goal"
         ]
       },
       {
@@ -755,6 +758,35 @@
         "kind": "product",
         "value": "PyTorch",
         "fields": [
+          "goal",
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "NVIDIA 3090",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "llama.cpp",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "vllm",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "ollama",
+        "fields": [
           "pros"
         ]
       },
@@ -767,18 +799,17 @@
       }
     ],
     "inference_fields": [
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "jingyaogong/minimind",
       "path": "README.md",
-      "blob_sha": "d75169c010f200c50707b0e99eb242a2d7d10bc3",
-      "content_sha256": "0d48330863abcb54acac734af34d76b14483c15d023aa49763f0e5f6fadcd0fc",
+      "blob_sha": "4855c40573426b85162b32f0652c427f8f237440",
+      "content_sha256": "a42c13b6798af5433d11c851a507f1de4ec49c86a3f465c3c5664ea3835a7e60",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.322",
+      "cli_version": "2.1.330",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -1475,60 +1506,65 @@
   },
   "cathrynlavery/diagram-design": {
     "content": {
-      "goal": "Diagram Design is an agent skill that generates diagrams as a single self-contained HTML file with inline SVG, matched to the user's brand colors and fonts. It covers 51 diagram types, each offered in three visual variants.",
-      "usage": "Install with `npx skills add cathrynlavery/diagram-design`, or in Claude Code with `/plugin marketplace add cathrynlavery/diagram-design` followed by `/plugin install diagram-design@diagram-design`. After installing, ask the connected agent for a diagram in plain language, e.g. \"make an architecture diagram of frontend, backend, and database.\"",
-      "pros": "Output is a single portable HTML+SVG file with no build step or external image dependency, covering 51 diagram types. An onboarding flow can pull color palette and fonts from a website to match a brand, and templates include accessible SVG markup (ARIA roles/labels). It can also import and redraw existing draw.io, Mermaid, Excalidraw, or PlantUML diagrams.",
-      "cons": "The README states that output quality depends on the model used and that the same prompt can produce a different layout between runs. The generated diagrams do not appear to be an editable source format, so changes likely can't be diffed as text in a pull request or dragged on a canvas the way Mermaid or draw.io files can.",
-      "fit": "This tool appears best suited for diagrams meant to be published once, rather than documentation that changes every sprint inside Git, for which the README recommends Mermaid instead. It also seems to require a host environment that supports Agent Skills, such as Claude Code, Cursor, or Codex."
+      "goal": "Diagram Design is an agent skill that generates diagrams as a single self-contained HTML file with inline SVG, matched to a user's brand. It covers 52 diagram types, each in three variants (minimal light, minimal dark, full-editorial), and can also redraw existing diagrams from draw.io, Mermaid, Excalidraw, or PlantUML sources.",
+      "usage": "Install with `npx skills add cathrynlavery/diagram-design`, or in Claude Code run `/plugin marketplace add cathrynlavery/diagram-design` followed by `/plugin install diagram-design@diagram-design`. After installation, users ask their agent in plain language (e.g., for an architecture diagram or sequence diagram), and the agent writes one `.html` file that opens by double-clicking.",
+      "pros": "Output is a single file with no build step, JavaScript, or external image dependency, and loads fonts from Google Fonts as its only network request (or none, with system fonts). It supports brand onboarding by extracting a site's palette and fonts, and works across many Agent Skills hosts, including Cursor, Claude Code, Codex, and GitHub Copilot.",
+      "cons": "Output quality depends on the model running it, and the same prompt can lay out a diagram differently between runs. The result is not an editable source format: there is no text to diff in a pull request and no canvas to drag shapes on. PNG export additionally requires a one-time setup step (`pip install playwright && playwright install chromium`).",
+      "fit": "The README positions it for diagrams meant to be published, such as blog posts or decks, rather than documentation that lives in Git and changes frequently, for which it states Mermaid remains the better fit."
     },
     "summaries": {
       "en": {
-        "goal": "Diagram Design is an agent skill that generates diagrams as a single self-contained HTML file with inline SVG, matched to the user's brand colors and fonts. It covers 51 diagram types, each offered in three visual variants.",
-        "usage": "Install with `npx skills add cathrynlavery/diagram-design`, or in Claude Code with `/plugin marketplace add cathrynlavery/diagram-design` followed by `/plugin install diagram-design@diagram-design`. After installing, ask the connected agent for a diagram in plain language, e.g. \"make an architecture diagram of frontend, backend, and database.\"",
-        "pros": "Output is a single portable HTML+SVG file with no build step or external image dependency, covering 51 diagram types. An onboarding flow can pull color palette and fonts from a website to match a brand, and templates include accessible SVG markup (ARIA roles/labels). It can also import and redraw existing draw.io, Mermaid, Excalidraw, or PlantUML diagrams.",
-        "cons": "The README states that output quality depends on the model used and that the same prompt can produce a different layout between runs. The generated diagrams do not appear to be an editable source format, so changes likely can't be diffed as text in a pull request or dragged on a canvas the way Mermaid or draw.io files can.",
-        "fit": "This tool appears best suited for diagrams meant to be published once, rather than documentation that changes every sprint inside Git, for which the README recommends Mermaid instead. It also seems to require a host environment that supports Agent Skills, such as Claude Code, Cursor, or Codex."
+        "goal": "Diagram Design is an agent skill that generates diagrams as a single self-contained HTML file with inline SVG, matched to a user's brand. It covers 52 diagram types, each in three variants (minimal light, minimal dark, full-editorial), and can also redraw existing diagrams from draw.io, Mermaid, Excalidraw, or PlantUML sources.",
+        "usage": "Install with `npx skills add cathrynlavery/diagram-design`, or in Claude Code run `/plugin marketplace add cathrynlavery/diagram-design` followed by `/plugin install diagram-design@diagram-design`. After installation, users ask their agent in plain language (e.g., for an architecture diagram or sequence diagram), and the agent writes one `.html` file that opens by double-clicking.",
+        "pros": "Output is a single file with no build step, JavaScript, or external image dependency, and loads fonts from Google Fonts as its only network request (or none, with system fonts). It supports brand onboarding by extracting a site's palette and fonts, and works across many Agent Skills hosts, including Cursor, Claude Code, Codex, and GitHub Copilot.",
+        "cons": "Output quality depends on the model running it, and the same prompt can lay out a diagram differently between runs. The result is not an editable source format: there is no text to diff in a pull request and no canvas to drag shapes on. PNG export additionally requires a one-time setup step (`pip install playwright && playwright install chromium`).",
+        "fit": "The README positions it for diagrams meant to be published, such as blog posts or decks, rather than documentation that lives in Git and changes frequently, for which it states Mermaid remains the better fit."
       },
       "ko": {
-        "goal": "Diagram Design는 다이어그램을 인라인 SVG가 포함된 하나의 독립형 HTML 파일로 생성하며, 사용자의 브랜드 색상과 글꼴에 맞출 수 있는 에이전트 스킬입니다. 각각 3가지 시각적 변형으로 제공되는 51가지 다이어그램 유형을 다룹니다.",
-        "usage": "`npx skills add cathrynlavery/diagram-design` 명령으로 설치하거나, Claude Code에서는 `/plugin marketplace add cathrynlavery/diagram-design`에 이어 `/plugin install diagram-design@diagram-design`을 실행합니다. 설치 후에는 연결된 에이전트에게 평범한 문장으로 다이어그램을 요청하면 됩니다. 예: \"프런트엔드, 백엔드, 데이터베이스를 보여주는 아키텍처 다이어그램을 만들어줘.\"",
-        "pros": "결과물은 빌드 과정이나 외부 이미지 의존성이 없는 단일 HTML+SVG 파일이며, 51가지 다이어그램 유형을 다룹니다. 온보딩 과정에서 웹사이트의 색상과 글꼴을 가져와 브랜드에 맞출 수 있고, 템플릿에는 ARIA 역할/레이블 같은 접근성 마크업이 포함되어 있습니다. 또한 기존 draw.io, Mermaid, Excalidraw, PlantUML 다이어그램을 가져와 다시 그릴 수 있습니다.",
-        "cons": "README에 따르면 출력 품질은 사용하는 모델에 따라 달라지고, 같은 프롬프트라도 실행마다 레이아웃이 다르게 나올 수 있다고 설명되어 있습니다. 생성된 다이어그램은 편집 가능한 소스 형식이 아닌 것으로 보이며, 그래서 Mermaid나 draw.io 파일처럼 풀 리퀘스트에서 텍스트 diff를 보거나 캔버스에서 직접 드래그하는 방식은 지원되지 않을 가능성이 있습니다.",
-        "fit": "이 도구는 Git 안에서 매 스프린트마다 바뀌는 문서보다는 한 번 게시할 목적의 다이어그램에 더 적합한 것으로 보이며, README는 그런 경우 대신 Mermaid를 권장합니다. 또한 Claude Code, Cursor, Codex처럼 Agent Skills를 지원하는 호스트 환경이 필요한 것으로 보입니다."
+        "goal": "Diagram Design는 다이어그램을 하나의 독립형 HTML 파일(인라인 SVG 포함)로 생성하며, 사용자 브랜드에 맞춰 디자인되는 에이전트 스킬입니다. 52가지 다이어그램 유형을 제공하며, 각 유형은 미니멀 라이트, 미니멀 다크, 풀 에디토리얼의 세 가지 변형으로 제공됩니다. 또한 draw.io, Mermaid, Excalidraw, PlantUML로 작성된 기존 다이어그램도 다시 그릴 수 있습니다.",
+        "usage": "`npx skills add cathrynlavery/diagram-design` 명령으로 설치하거나, Claude Code에서는 `/plugin marketplace add cathrynlavery/diagram-design` 실행 후 `/plugin install diagram-design@diagram-design`을 실행합니다. 설치 후에는 사용자가 자연어로 에이전트에게 요청하면(예: 아키텍처 다이어그램 요청), 에이전트가 더블클릭으로 열 수 있는 하나의 `.html` 파일을 작성합니다.",
+        "pros": "결과물은 빌드 과정, JavaScript, 외부 이미지 의존성이 없는 단일 파일이며, 기본적으로 Google Fonts를 불러오는 것이 유일한 네트워크 요청이고(시스템 폰트를 사용하면 네트워크 요청이 전혀 없음), 웹사이트의 팔레트와 폰트를 추출해 브랜드에 맞게 온보딩하는 기능도 있습니다. Cursor, Claude Code, Codex, GitHub Copilot 등 다양한 Agent Skills 호스트에서 동작합니다.",
+        "cons": "출력 품질은 실행에 사용하는 모델에 따라 달라지며, 동일한 프롬프트라도 실행마다 레이아웃이 다르게 나올 수 있습니다. 결과물은 편집 가능한 소스 형식이 아니어서, 풀 리퀘스트에서 비교할 텍스트도 없고 도형을 드래그할 캔버스도 없습니다. PNG로 내보내려면 `pip install playwright && playwright install chromium`과 같은 최초 설정 단계가 추가로 필요합니다.",
+        "fit": "README에 따르면 이 도구는 블로그 게시물이나 발표 자료처럼 게시할 목적의 다이어그램에 적합하며, Git에 저장되어 매 스프린트마다 바뀌는 문서용으로는 Mermaid가 더 나은 선택이라고 명시하고 있습니다."
       },
       "zh-CN": {
-        "goal": "Diagram Design 是一个代理技能(agent skill),可将图表生成为单个自包含的 HTML 文件(内嵌 SVG),并能匹配用户的品牌颜色与字体。它涵盖 51 种图表类型,每种提供三种视觉变体。",
-        "usage": "可通过 `npx skills add cathrynlavery/diagram-design` 安装,或在 Claude Code 中依次执行 `/plugin marketplace add cathrynlavery/diagram-design` 和 `/plugin install diagram-design@diagram-design`。安装后,用自然语言向关联的代理请求图表即可,例如:“帮我画一个包含前端、后端、数据库的架构图。”",
-        "pros": "输出为单个 HTML+SVG 文件,无需构建步骤或外部图片依赖,覆盖 51 种图表类型。引导流程可从网站提取配色和字体以匹配品牌,模板中还内置了 ARIA 角色/标签等无障碍标记。此外还能导入并重绘已有的 draw.io、Mermaid、Excalidraw 或 PlantUML 图表。",
-        "cons": "README 说明输出质量取决于所使用的模型,且相同提示在不同运行之间布局可能不同。生成的图表似乎不是可编辑的源格式,因此可能无法像 Mermaid 或 draw.io 文件那样在拉取请求中进行文本差异比较,也无法在画布上直接拖拽。",
-        "fit": "该工具似乎更适合用于只需发布一次的图表,而不是在 Git 中每个迭代都会变动的文档,README 对后一种情况建议改用 Mermaid。它似乎还需要一个支持 Agent Skills 的宿主环境,例如 Claude Code、Cursor 或 Codex。"
+        "goal": "Diagram Design 是一个代理技能(agent skill),可生成单个自包含的 HTML 文件(内嵌 SVG),并按用户品牌定制样式。它提供 52 种图表类型,每种类型均有极简浅色、极简深色和完整编辑风格三种变体,并能重绘来自 draw.io、Mermaid、Excalidraw 或 PlantUML 的现有图表。",
+        "usage": "可通过运行 `npx skills add cathrynlavery/diagram-design` 安装,或在 Claude Code 中依次运行 `/plugin marketplace add cathrynlavery/diagram-design` 和 `/plugin install diagram-design@diagram-design`。安装后,用户用自然语言向代理提出请求(例如请求一张架构图),代理会生成一个可双击打开的 `.html` 文件。",
+        "pros": "输出为单个文件,没有构建步骤、JavaScript 或外部图片依赖,默认情况下唯一的网络请求是加载 Google Fonts(若使用系统字体则完全没有网络请求)。它还支持从网站提取调色板与字体进行品牌适配,并可在 Cursor、Claude Code、Codex、GitHub Copilot 等多种 Agent Skills 主机上使用。",
+        "cons": "输出质量取决于运行它所用的模型,相同提示在不同次生成时布局也可能不同。生成结果不是可编辑的源文件格式:在拉取请求中没有可对比的文本,也没有可拖动形状的画布。若要导出 PNG,还需要额外的一次性设置步骤,如 `pip install playwright && playwright install chromium`。",
+        "fit": "据文档说明,该工具适合用于要发布的图表,例如博客文章或演示文稿,而对于存放在 Git 中且每个迭代都会变化的文档,文档中指出 Mermaid 仍是更合适的选择。"
       },
       "es": {
-        "goal": "Diagram Design es una habilidad de agente (agent skill) que genera diagramas como un único archivo HTML autocontenido con SVG incrustado, adaptado a los colores y fuentes de la marca del usuario. Cubre 51 tipos de diagramas, cada uno con tres variantes visuales.",
-        "usage": "Se instala con `npx skills add cathrynlavery/diagram-design`, o en Claude Code con `/plugin marketplace add cathrynlavery/diagram-design` seguido de `/plugin install diagram-design@diagram-design`. Tras la instalación, basta con pedirle al agente conectado un diagrama en lenguaje natural, por ejemplo: \"hazme un diagrama de arquitectura con frontend, backend y base de datos\".",
-        "pros": "El resultado es un único archivo HTML+SVG portátil, sin paso de compilación ni dependencias de imágenes externas, y cubre 51 tipos de diagramas. Un flujo de incorporación puede extraer la paleta de colores y las fuentes de un sitio web para ajustarse a la marca, y las plantillas incluyen marcado SVG accesible (roles y etiquetas ARIA). También puede importar y redibujar diagramas existentes de draw.io, Mermaid, Excalidraw o PlantUML.",
-        "cons": "Según el README, la calidad del resultado depende del modelo utilizado y el mismo prompt puede producir un diseño distinto entre ejecuciones. Los diagramas generados no parecen ser un formato de origen editable, por lo que probablemente no se puedan comparar como texto en un pull request ni arrastrar elementos en un lienzo, como sí ocurre con archivos de Mermaid o draw.io.",
-        "fit": "Esta herramienta parece más adecuada para diagramas destinados a publicarse una sola vez, en lugar de documentación que cambia en cada sprint dentro de Git, caso para el cual el README recomienda Mermaid. También parece requerir un entorno anfitrión compatible con Agent Skills, como Claude Code, Cursor o Codex."
+        "goal": "Diagram Design es una habilidad de agente (agent skill) que genera diagramas como un único archivo HTML autocontenido con SVG incluido, adaptado a la marca del usuario. Ofrece 52 tipos de diagramas, cada uno en tres variantes (minimalista claro, minimalista oscuro y editorial completo), y también puede redibujar diagramas existentes provenientes de draw.io, Mermaid, Excalidraw o PlantUML.",
+        "usage": "Se instala con `npx skills add cathrynlavery/diagram-design`, o en Claude Code ejecutando `/plugin marketplace add cathrynlavery/diagram-design` seguido de `/plugin install diagram-design@diagram-design`. Tras la instalación, el usuario pide al agente un diagrama en lenguaje natural (por ejemplo, un diagrama de arquitectura) y el agente escribe un único archivo `.html` que se abre con doble clic.",
+        "pros": "El resultado es un solo archivo sin paso de compilación, sin JavaScript ni dependencias de imágenes externas; por defecto, la única solicitud de red es la carga de Google Fonts (o ninguna, si se usan fuentes del sistema). También permite adaptar la marca extrayendo la paleta y las fuentes de un sitio web, y funciona en varios hosts de Agent Skills, como Cursor, Claude Code, Codex y GitHub Copilot.",
+        "cons": "La calidad del resultado depende del modelo que lo ejecute, y el mismo prompt puede producir una disposición distinta en cada ejecución. El resultado no es un formato de origen editable: no hay texto que comparar en un pull request ni un lienzo donde arrastrar formas. Exportar a PNG requiere además un paso de configuración inicial, como `pip install playwright && playwright install chromium`.",
+        "fit": "Según la documentación, la herramienta está pensada para diagramas que se van a publicar, como entradas de blog o presentaciones, mientras que para documentación que vive en Git y cambia en cada sprint, se indica que Mermaid sigue siendo la opción más adecuada."
       },
       "ja": {
-        "goal": "Diagram Design は、図をインライン SVG を含む単一の自己完結型 HTML ファイルとして生成し、ユーザーのブランドの色とフォントに合わせられるエージェントスキルです。それぞれ3種類の視覚バリエーションで提供される51種類の図タイプをカバーします。",
-        "usage": "`npx skills add cathrynlavery/diagram-design` でインストールするか、Claude Code では `/plugin marketplace add cathrynlavery/diagram-design` に続けて `/plugin install diagram-design@diagram-design` を実行します。インストール後は、連携したエージェントに自然な言葉で図を依頼するだけです。例:「フロントエンド、バックエンド、データベースを示すアーキテクチャ図を作って」。",
-        "pros": "出力はビルド工程や外部画像依存のない単一の HTML+SVG ファイルで、51種類の図タイプをカバーします。オンボーディングの流れでウェブサイトから配色やフォントを取得してブランドに合わせることができ、テンプレートには ARIA ロール/ラベルなどのアクセシブルなマークアップが含まれています。さらに既存の draw.io、Mermaid、Excalidraw、PlantUML の図を取り込んで再描画することもできます。",
-        "cons": "README には、出力品質は使用するモデルに依存し、同じプロンプトでも実行ごとにレイアウトが異なる場合があると記載されています。生成された図は編集可能なソース形式ではないように見え、そのため Mermaid や draw.io のファイルのようにプルリクエストでテキスト差分を見たり、キャンバス上で直接ドラッグしたりすることはおそらくできません。",
-        "fit": "このツールは、Git 内で毎スプリント変更されるドキュメントよりも、一度公開することを目的とした図に適しているように見え、README はそのような場合には代わりに Mermaid を推奨しています。また、Claude Code、Cursor、Codex のような Agent Skills に対応したホスト環境が必要であると考えられます。"
+        "goal": "Diagram Designは、SVGを埋め込んだ単一の自己完結型HTMLファイルとして、ユーザーのブランドに合わせた図を生成するエージェントスキルです。52種類の図タイプを備え、それぞれミニマルライト、ミニマルダーク、フルエディトリアルの3つのバリエーションがあり、draw.io、Mermaid、Excalidraw、PlantUML由来の既存図を再描画することもできます。",
+        "usage": "`npx skills add cathrynlavery/diagram-design` でインストールするか、Claude Codeでは `/plugin marketplace add cathrynlavery/diagram-design` を実行した後に `/plugin install diagram-design@diagram-design` を実行します。インストール後、ユーザーが自然言語でエージェントに依頼すると(例:アーキテクチャ図の依頼)、エージェントがダブルクリックで開ける1つの `.html` ファイルを作成します。",
+        "pros": "出力はビルド手順、JavaScript、外部画像依存のない単一ファイルで、既定では唯一のネットワークリクエストはGoogle Fontsの読み込みのみです(システムフォントを使えばネットワークリクエストは一切発生しません)。サイトからパレットとフォントを抽出してブランドに合わせるオンボーディング機能もあり、Cursor、Claude Code、Codex、GitHub Copilotなど多数のAgent Skillsホストで動作します。",
+        "cons": "出力の品質は実行に使うモデルに依存し、同じプロンプトでも実行のたびにレイアウトが変わることがあります。生成結果は編集可能なソース形式ではなく、プルリクエストで差分を取れるテキストも、図形をドラッグできるキャンバスもありません。PNGへのエクスポートには、`pip install playwright && playwright install chromium` のような初回セットアップ手順が別途必要です。",
+        "fit": "READMEによれば、このツールはブログ記事やスライドなど公開用の図に向いており、Gitで管理されスプリントごとに変化するドキュメントについては、Mermaidの方が適しているとされています。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 9,
+          "start_line": 10,
           "end_line": 10,
           "section_heading": ""
         },
         {
-          "start_line": 246,
-          "end_line": 248,
+          "start_line": 263,
+          "end_line": 263,
           "section_heading": "What it makes"
+        },
+        {
+          "start_line": 468,
+          "end_line": 470,
+          "section_heading": "Import from draw.io, Mermaid, Excalidraw, or PlantUML"
         }
       ],
       "usage": [
@@ -1550,43 +1586,38 @@
       ],
       "pros": [
         {
-          "start_line": 226,
-          "end_line": 230,
-          "section_heading": "How it compares"
+          "start_line": 263,
+          "end_line": 263,
+          "section_heading": "What it makes"
         },
         {
-          "start_line": 394,
-          "end_line": 396,
-          "section_heading": "Accessible by default"
-        },
-        {
-          "start_line": 450,
-          "end_line": 452,
-          "section_heading": "Import from draw.io, Mermaid, Excalidraw, or PlantUML"
-        }
-      ],
-      "cons": [
-        {
-          "start_line": 232,
-          "end_line": 232,
-          "section_heading": "How it compares"
-        }
-      ],
-      "fit": [
-        {
-          "start_line": 232,
-          "end_line": 232,
-          "section_heading": "How it compares"
-        },
-        {
-          "start_line": 737,
-          "end_line": 745,
-          "section_heading": "When *not* to use this skill"
+          "start_line": 418,
+          "end_line": 418,
+          "section_heading": "Offline fonts"
         },
         {
           "start_line": 51,
           "end_line": 51,
           "section_heading": "Install"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 247,
+          "end_line": 247,
+          "section_heading": "How it compares"
+        },
+        {
+          "start_line": 546,
+          "end_line": 547,
+          "section_heading": "Export to PNG / SVG"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 247,
+          "end_line": 247,
+          "section_heading": "How it compares"
         }
       ]
     },
@@ -1613,16 +1644,15 @@
         ]
       },
       {
-        "kind": "number",
-        "value": "51",
+        "kind": "command",
+        "value": "pip install playwright && playwright install chromium",
         "fields": [
-          "goal",
-          "pros"
+          "cons"
         ]
       },
       {
-        "kind": "product",
-        "value": "Diagram Design",
+        "kind": "number",
+        "value": "52",
         "fields": [
           "goal"
         ]
@@ -1631,8 +1661,7 @@
         "kind": "product",
         "value": "Mermaid",
         "fields": [
-          "pros",
-          "cons",
+          "goal",
           "fit"
         ]
       },
@@ -1641,23 +1670,20 @@
         "value": "Claude Code",
         "fields": [
           "usage",
-          "fit"
+          "pros"
         ]
       }
     ],
-    "inference_fields": [
-      "cons",
-      "fit"
-    ],
+    "inference_fields": [],
     "source": {
       "kind": "readme",
       "slug": "cathrynlavery/diagram-design",
       "path": "README.md",
-      "blob_sha": "0095129f4a907e05558f18276d8f11cd70076dba",
-      "content_sha256": "a7ac4982ed92987862aa0547589deaff4245c1b7ba02825f102261c7cf1db1e3",
+      "blob_sha": "8053dd152bfa075e9bd0e9866232609578c68d15",
+      "content_sha256": "615486bbb87b8befc3fedf5596981d465ac6039fdd63c5411231bdeb4ea2bb56",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.322",
+      "cli_version": "2.1.330",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -2598,117 +2624,114 @@
   },
   "XiaoYouChR/Ghost-Downloader-3": {
     "content": {
-      "goal": "Ghost Downloader (Ghost-Downloader-3) is a multi-protocol download manager supporting HTTP, Magnet/BT, FTP, M3U8, MPEG-DASH, eD2k, plus YouTube, Bilibili, GitHub, and HuggingFace downloads, running natively on Windows, macOS, Linux, and Android.",
-      "usage": "Users install the `ghd` command-line tool from Settings -> Command Line Tool inside the app, then run commands such as `ghd probe <url>` to preview a URL or `ghd add <url>...` to add and start download tasks.",
-      "pros": "The app uses smart chunking without file merging, real-browser TLS fingerprints to avoid anti-bot checks, a browser extension that sniffs downloadable media, and an aria2-compatible RPC API for third-party tool integration.",
-      "cons": "Qt 6.6+ drops support for CPUs lacking the AVX instruction set, and the plugin API for Feature Packs is not yet public while it is still being stabilized, which may limit extensibility and older-hardware compatibility.",
-      "fit": "It fits users across Windows 10+, macOS 13.0+, Linux (glibc 2.35+), and Android 9.0+ who want one application covering many download protocols instead of several separate tools."
+      "goal": "Ghost Downloader 3 is a download manager that handles multiple protocols, including HTTP, Magnet/BT, FTP, M3U8, MPEG-DASH, eD2k, YouTube, and Bilibili (with clip selection, quality options, and subtitles), as well as GitHub and HuggingFace downloads with mirror acceleration. It runs natively on Windows, macOS, Linux, and Android.",
+      "usage": "A command-line tool is installed from inside the app via Settings -> Command Line Tool. Example commands include `ghd probe <url>` to preview a URL without starting a download, and `ghd add <url>...` to add and start download tasks.",
+      "pros": "It consolidates many download protocols and sources into a single application, provides an `aria2`-compatible RPC API so third-party tools can control tasks, and pairs with a browser extension that lets detected downloads continue seamlessly in the desktop app.",
+      "cons": "Each platform carries a minimum version requirement: Windows `10+`, macOS `13.0+`, Linux `glibc 2.35+`, and Android `9.0+`. The README also notes that Qt `6.6+` no longer supports CPUs without the AVX instruction set, which could exclude some older systems from running the app.",
+      "fit": "The project is distributed under the `GPL v3.0` License, which suggests it is intended for users open to working within open-source licensing terms, though the README does not detail enterprise or commercial-use considerations."
     },
     "summaries": {
       "en": {
-        "goal": "Ghost Downloader (Ghost-Downloader-3) is a multi-protocol download manager supporting HTTP, Magnet/BT, FTP, M3U8, MPEG-DASH, eD2k, plus YouTube, Bilibili, GitHub, and HuggingFace downloads, running natively on Windows, macOS, Linux, and Android.",
-        "usage": "Users install the `ghd` command-line tool from Settings -> Command Line Tool inside the app, then run commands such as `ghd probe <url>` to preview a URL or `ghd add <url>...` to add and start download tasks.",
-        "pros": "The app uses smart chunking without file merging, real-browser TLS fingerprints to avoid anti-bot checks, a browser extension that sniffs downloadable media, and an aria2-compatible RPC API for third-party tool integration.",
-        "cons": "Qt 6.6+ drops support for CPUs lacking the AVX instruction set, and the plugin API for Feature Packs is not yet public while it is still being stabilized, which may limit extensibility and older-hardware compatibility.",
-        "fit": "It fits users across Windows 10+, macOS 13.0+, Linux (glibc 2.35+), and Android 9.0+ who want one application covering many download protocols instead of several separate tools."
+        "goal": "Ghost Downloader 3 is a download manager that handles multiple protocols, including HTTP, Magnet/BT, FTP, M3U8, MPEG-DASH, eD2k, YouTube, and Bilibili (with clip selection, quality options, and subtitles), as well as GitHub and HuggingFace downloads with mirror acceleration. It runs natively on Windows, macOS, Linux, and Android.",
+        "usage": "A command-line tool is installed from inside the app via Settings -> Command Line Tool. Example commands include `ghd probe <url>` to preview a URL without starting a download, and `ghd add <url>...` to add and start download tasks.",
+        "pros": "It consolidates many download protocols and sources into a single application, provides an `aria2`-compatible RPC API so third-party tools can control tasks, and pairs with a browser extension that lets detected downloads continue seamlessly in the desktop app.",
+        "cons": "Each platform carries a minimum version requirement: Windows `10+`, macOS `13.0+`, Linux `glibc 2.35+`, and Android `9.0+`. The README also notes that Qt `6.6+` no longer supports CPUs without the AVX instruction set, which could exclude some older systems from running the app.",
+        "fit": "The project is distributed under the `GPL v3.0` License, which suggests it is intended for users open to working within open-source licensing terms, though the README does not detail enterprise or commercial-use considerations."
       },
       "ko": {
-        "goal": "Ghost Downloader(Ghost-Downloader-3)는 HTTP, Magnet/BT, FTP, M3U8, MPEG-DASH, eD2k 프로토콜과 YouTube, Bilibili, GitHub, HuggingFace 다운로드를 지원하며 Windows, macOS, Linux, Android에서 네이티브로 동작하는 멀티 프로토콜 다운로드 관리자입니다.",
-        "usage": "앱 내 Settings -> Command Line Tool 메뉴에서 `ghd` 명령줄 도구를 설치한 뒤, `ghd probe <url>` 명령으로 URL을 미리 확인하거나 `ghd add <url>...` 명령으로 다운로드 작업을 추가하고 시작할 수 있습니다.",
-        "pros": "파일 병합 없이 스마트 청크 분할을 수행하고, 실제 브라우저 TLS 핑거프린트로 안티봇 검사를 회피하며, 다운로드 가능한 미디어를 감지하는 브라우저 확장 프로그램과 서드파티 도구 연동을 위한 aria2 호환 RPC API를 제공합니다.",
-        "cons": "Qt 6.6 이상에서는 AVX 명령어 집합이 없는 CPU를 더 이상 지원하지 않으며, Feature Packs용 플러그인 API는 아직 공개되지 않고 안정화 중이어서 확장성과 구형 하드웨어 호환성이 제한될 수 있는 것으로 보입니다.",
-        "fit": "Windows 10 이상, macOS 13.0 이상, glibc 2.35 이상의 Linux, Android 9.0 이상 환경에서 여러 다운로드 프로토콜을 하나의 앱으로 통합해 쓰려는 사용자에게 적합할 것으로 보입니다."
+        "goal": "Ghost Downloader 3는 HTTP, Magnet/BT, FTP, M3U8, MPEG-DASH, eD2k, YouTube, Bilibili(클립 선택, 화질 옵션, 자막 지원 포함) 등 다양한 프로토콜을 다루는 다운로드 관리자이며, 미러 가속 기능을 갖춘 GitHub 및 HuggingFace 다운로드도 지원합니다. Windows, macOS, Linux, Android에서 네이티브로 동작합니다.",
+        "usage": "앱 내 Settings -> Command Line Tool에서 명령줄 도구를 설치할 수 있습니다. 예시 명령어로는 URL을 다운로드 작업으로 추가하지 않고 미리 보는 `ghd probe <url>`과, 다운로드 작업을 추가하고 시작하는 `ghd add <url>...`가 있습니다.",
+        "pros": "여러 다운로드 프로토콜과 소스를 하나의 애플리케이션으로 통합하며, 타사 도구가 작업을 제어할 수 있도록 `aria2` 호환 RPC API를 제공하고, 브라우저 확장 프로그램과 연동되어 감지된 다운로드가 데스크톱 앱에서 매끄럽게 이어질 수 있습니다.",
+        "cons": "플랫폼마다 최소 버전 요구사항이 있습니다: Windows `10+`, macOS `13.0+`, Linux `glibc 2.35+`, Android `9.0+`. 또한 README에는 Qt `6.6+`가 AVX 명령어 집합이 없는 CPU를 더 이상 지원하지 않는다고 명시되어 있어, 일부 구형 시스템에서는 앱 실행이 제한될 수 있는 것으로 보입니다.",
+        "fit": "이 프로젝트는 `GPL v3.0` 라이선스로 배포되고 있어, 오픈소스 라이선스 조건을 받아들일 수 있는 사용자에게 적합할 것으로 추정되지만, README에는 기업용 또는 상업적 활용에 대한 구체적인 설명은 없는 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "Ghost Downloader(Ghost-Downloader-3)是一款多协议下载管理器,支持 HTTP、Magnet/BT、FTP、M3U8、MPEG-DASH、eD2k,以及 YouTube、Bilibili、GitHub 和 HuggingFace 下载,并在 Windows、macOS、Linux 和 Android 上原生运行。",
-        "usage": "用户可在应用内的 Settings -> Command Line Tool 中安装 `ghd` 命令行工具,然后运行 `ghd probe <url>` 预览链接,或运行 `ghd add <url>...` 添加并启动下载任务。",
-        "pros": "该应用采用无需合并文件的智能分块下载,使用真实浏览器 TLS 指纹以规避反爬检测,配备可嗅探页面媒体的浏览器扩展,并提供兼容 aria2 的 RPC API 供第三方工具集成。",
-        "cons": "Qt 6.6 及以上版本不再支持没有 AVX 指令集的 CPU,而 Feature Packs 的插件 API 尚未公开、仍在稳定过程中,这可能会限制其可扩展性以及对旧硬件的兼容性。",
-        "fit": "该项目似乎更适合在 Windows 10 及以上、macOS 13.0 及以上、glibc 2.35 及以上的 Linux,以及 Android 9.0 及以上系统上,希望用一个应用覆盖多种下载协议的用户。"
+        "goal": "Ghost Downloader 3 是一款下载管理器,支持 HTTP、Magnet/BT、FTP、M3U8、MPEG-DASH、eD2k、YouTube 和 Bilibili(可选片段、画质和字幕),还支持带镜像加速的 GitHub 和 HuggingFace 下载。该应用可在 Windows、macOS、Linux 和 Android 上原生运行。",
+        "usage": "可在应用内的 Settings -> Command Line Tool 中安装命令行工具。示例命令包括用于预览 URL 而不添加下载任务的 `ghd probe <url>`,以及用于添加并启动下载任务的 `ghd add <url>...`。",
+        "pros": "它将多种下载协议和来源整合到一个应用程序中,提供与 `aria2` 兼容的 RPC API 供第三方工具控制任务,并可与浏览器扩展配合,使检测到的下载能够无缝切换到桌面应用继续进行。",
+        "cons": "各平台均有最低版本要求:Windows `10+`、macOS `13.0+`、Linux `glibc 2.35+`、Android `9.0+`。README 还提到 Qt `6.6+` 不再支持缺少 AVX 指令集的 CPU,这似乎可能导致部分较旧的系统无法运行该应用。",
+        "fit": "该项目依据 `GPL v3.0` 许可证发布,这或许意味着它更适合能够接受开源许可条款的用户,不过 README 并未详细说明企业或商业使用方面的考量。"
       },
       "es": {
-        "goal": "Ghost Downloader (Ghost-Downloader-3) es un gestor de descargas multiprotocolo que admite HTTP, Magnet/BT, FTP, M3U8, MPEG-DASH, eD2k, además de descargas de YouTube, Bilibili, GitHub y HuggingFace, y funciona de forma nativa en Windows, macOS, Linux y Android.",
-        "usage": "Los usuarios instalan la herramienta de línea de comandos `ghd` desde Settings -> Command Line Tool dentro de la app, y luego ejecutan comandos como `ghd probe <url>` para previsualizar una URL o `ghd add <url>...` para agregar e iniciar tareas de descarga.",
-        "pros": "La aplicación usa fragmentación inteligente sin necesidad de fusionar archivos, huellas TLS de navegador real para evitar comprobaciones anti-bot, una extensión de navegador que detecta medios descargables, y una API RPC compatible con aria2 para integrarse con herramientas de terceros.",
-        "cons": "Qt 6.6+ ya no admite CPUs sin el conjunto de instrucciones AVX, y la API de plugins para Feature Packs aún no es pública y sigue estabilizándose, lo que podría limitar la extensibilidad y la compatibilidad con hardware más antiguo.",
-        "fit": "Parece adecuado para usuarios con Windows 10+, macOS 13.0+, Linux con glibc 2.35+ o Android 9.0+ que buscan una sola aplicación que cubra varios protocolos de descarga en lugar de varias herramientas separadas."
+        "goal": "Ghost Downloader 3 es un gestor de descargas que admite múltiples protocolos, incluyendo HTTP, Magnet/BT, FTP, M3U8, MPEG-DASH, eD2k, YouTube y Bilibili (con selección de clips, calidad y subtítulos), además de descargas de GitHub y HuggingFace con aceleración por espejos. Funciona de forma nativa en Windows, macOS, Linux y Android.",
+        "usage": "La herramienta de línea de comandos se instala desde Settings -> Command Line Tool dentro de la aplicación. Los comandos de ejemplo incluyen `ghd probe <url>` para previsualizar una URL sin iniciar una descarga, y `ghd add <url>...` para añadir e iniciar tareas de descarga.",
+        "pros": "Consolida numerosos protocolos y fuentes de descarga en una sola aplicación, ofrece una API RPC compatible con `aria2` para que herramientas de terceros controlen las tareas, y se integra con una extensión de navegador que permite que las descargas detectadas continúen sin interrupciones en la aplicación de escritorio.",
+        "cons": "Cada plataforma tiene un requisito de versión mínima: Windows `10+`, macOS `13.0+`, Linux `glibc 2.35+` y Android `9.0+`. El README también indica que Qt `6.6+` ya no admite CPUs sin el conjunto de instrucciones AVX, lo que podría excluir a algunos sistemas más antiguos de ejecutar la aplicación.",
+        "fit": "El proyecto se distribuye bajo la licencia `GPL v3.0`, lo que sugiere que podría ser adecuado para usuarios dispuestos a aceptar los términos de licencias de código abierto, aunque el README no detalla consideraciones para uso empresarial o comercial."
       },
       "ja": {
-        "goal": "Ghost Downloader(Ghost-Downloader-3)は、HTTP、Magnet/BT、FTP、M3U8、MPEG-DASH、eD2kに加え、YouTube、Bilibili、GitHub、HuggingFaceのダウンロードにも対応し、Windows、macOS、Linux、Androidでネイティブに動作するマルチプロトコル対応のダウンロードマネージャーです。",
-        "usage": "アプリ内のSettings -> Command Line Toolから`ghd`コマンドラインツールをインストールし、`ghd probe <url>`でURLをプレビューしたり、`ghd add <url>...`でダウンロードタスクを追加・開始したりできます。",
-        "pros": "ファイルを結合せずにスマートにチャンク分割する仕組み、アンチボット検査を回避する実ブラウザ風TLSフィンガープリント、ダウンロード可能なメディアを検出するブラウザ拡張機能、サードパーティツール連携用のaria2互換RPC APIを備えています。",
-        "cons": "Qt 6.6以降ではAVX命令セットを持たないCPUがサポートされなくなり、Feature Packs用のプラグインAPIはまだ公開されておらず安定化中であるため、拡張性や古いハードウェアとの互換性が制限される可能性があるとみられます。",
-        "fit": "Windows 10以降、macOS 13.0以降、glibc 2.35以降のLinux、Android 9.0以降の環境で、複数のダウンロードプロトコルを一つのアプリでまとめて使いたいユーザーに向いていると考えられます。"
+        "goal": "Ghost Downloader 3 は、HTTP、Magnet/BT、FTP、M3U8、MPEG-DASH、eD2k、YouTube、Bilibili(クリップ選択、画質オプション、字幕に対応)に加え、ミラーアクセラレーションを備えた GitHub および HuggingFace のダウンロードにも対応するダウンロードマネージャーです。Windows、macOS、Linux、Android でネイティブに動作します。",
+        "usage": "コマンドラインツールはアプリ内の Settings -> Command Line Tool からインストールできます。例として、ダウンロードタスクを追加せずに URL をプレビューする `ghd probe <url>` や、ダウンロードタスクを追加して開始する `ghd add <url>...` といったコマンドがあります。",
+        "pros": "多数のダウンロードプロトコルとソースを一つのアプリケーションに統合しており、サードパーティツールがタスクを制御できるよう `aria2` 互換の RPC API を提供し、ブラウザ拡張機能と連携することで検出したダウンロードをデスクトップアプリでシームレスに継続できます。",
+        "cons": "プラットフォームごとに最低バージョン要件があります: Windows `10+`、macOS `13.0+`、Linux `glibc 2.35+`、Android `9.0+`。README には Qt `6.6+` が AVX 命令セットを持たない CPU をサポートしなくなったとも記載されており、一部の古いシステムではアプリが実行できない可能性があるとみられます。",
+        "fit": "本プロジェクトは `GPL v3.0` ライセンスの下で配布されており、オープンソースのライセンス条件を受け入れられる利用者に向いていると考えられますが、README には企業利用や商用利用に関する詳細な記載はないようです。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 36,
-          "end_line": 37,
+          "start_line": 37,
+          "end_line": 41,
           "section_heading": "Features"
         },
         {
-          "start_line": 39,
-          "end_line": 39,
-          "section_heading": "Features"
-        },
-        {
-          "start_line": 45,
-          "end_line": 45,
+          "start_line": 48,
+          "end_line": 53,
           "section_heading": "About The Project"
         }
       ],
       "usage": [
         {
-          "start_line": 93,
-          "end_line": 93,
+          "start_line": 94,
+          "end_line": 94,
           "section_heading": "Command Line"
         },
         {
-          "start_line": 97,
-          "end_line": 98,
+          "start_line": 98,
+          "end_line": 99,
           "section_heading": "Command Line"
         }
       ],
       "pros": [
         {
-          "start_line": 36,
-          "end_line": 36,
-          "section_heading": "Features"
-        },
-        {
           "start_line": 38,
-          "end_line": 38,
+          "end_line": 39,
           "section_heading": "Features"
         },
         {
-          "start_line": 40,
-          "end_line": 40,
+          "start_line": 41,
+          "end_line": 41,
           "section_heading": "Features"
         }
       ],
       "cons": [
         {
-          "start_line": 54,
-          "end_line": 55,
+          "start_line": 48,
+          "end_line": 53,
           "section_heading": "About The Project"
         },
         {
-          "start_line": 118,
-          "end_line": 118,
-          "section_heading": "Roadmap"
+          "start_line": 55,
+          "end_line": 56,
+          "section_heading": "About The Project"
         }
       ],
       "fit": [
         {
-          "start_line": 47,
-          "end_line": 52,
-          "section_heading": "About The Project"
+          "start_line": 247,
+          "end_line": 247,
+          "section_heading": "License"
         }
       ]
     },
     "invariants": [
+      {
+        "kind": "product",
+        "value": "Ghost Downloader",
+        "fields": [
+          "goal"
+        ]
+      },
       {
         "kind": "command",
         "value": "ghd probe <url>",
@@ -2725,16 +2748,51 @@
       },
       {
         "kind": "product",
-        "value": "Ghost Downloader",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
         "value": "aria2",
         "fields": [
           "pros"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "10+",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "13.0+",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "glibc 2.35+",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "9.0+",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "6.6+",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
+        "kind": "version",
+        "value": "GPL v3.0",
+        "fields": [
+          "fit"
         ]
       }
     ],
@@ -2746,11 +2804,11 @@
       "kind": "readme",
       "slug": "xiaoyouchr/ghost-downloader-3",
       "path": "README.md",
-      "blob_sha": "ed41411ade84757e41ba1bb5ccf64d24af61d3b0",
-      "content_sha256": "df49f77de284363163d3d8505d3dcabb075cf0e5091273bb2b8a451a05a889ea",
+      "blob_sha": "392b405c0aa7e609ab4a7b3f16a228e3d7a66aab",
+      "content_sha256": "880732c18c0afb899402b06c379da5837c5b20a68cfae39ef9bee9d93718610f",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.322",
+      "cli_version": "2.1.330",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -2761,47 +2819,47 @@
   },
   "zhouxiaoka/autoclip": {
     "content": {
-      "goal": "AutoClip is an open-source (MIT-licensed) tool that generates short video clips, covers, and publishing text from a pasted video link, with editing and rendering performed locally on the user's computer. It appears to target platforms including Douyin, Xiaohongshu, TikTok, Reels, YouTube Shorts, Bilibili, and YouTube. The software itself is free; cloud model usage is billed separately by the chosen provider.",
-      "usage": "It is distributed as a desktop app (macOS Apple Silicon or Windows x64), via Docker (`git clone https://github.com/zhouxiaoka/autoclip.git` then `docker compose up -d --build`), or via CLI/MCP requiring Python 3.10+ and FFmpeg, where `autoclip --version` reports the installed version and a `produce` command runs the clip pipeline.",
-      "pros": "For each selected platform, it automatically generates up to 10 qualified clips based on scoring, each paired with a cover, title, description, tags, and a ZIP publishing package, while the core editing and rendering stay on the local machine rather than being uploaded.",
-      "cons": "Cloud-based analysis, transcription, or image generation require the user's own API credentials and incur usage-based fees; the documented timing/cost figures come from three different source clips rather than a controlled same-input comparison, so results may not generalize, and YouTube output reportedly requires full clips of at least 180 seconds.",
-      "fit": "It appears best suited to users wanting local video editing/rendering with optional cloud model integration: a desktop app for individual use, Docker for self-hosted web/Linux deployment, or CLI/MCP for batch processing or agent integration."
+      "goal": "AutoClip is an open-source tool that converts a single video link into finished output—video, cover image, and publishing caption—rendered locally on the user's computer. It supports Douyin, Xiaohongshu, TikTok, Reels, YouTube Shorts, Bilibili, and YouTube. The software is free; cloud models are billed by usage.",
+      "usage": "AutoClip can run as a desktop app (macOS Apple Silicon or Windows x64), via Docker Compose, or through a CLI/MCP interface requiring Python 3.10+ and FFmpeg. Deployment commands include `docker compose up -d --build` for the Docker/Web setup and `autoclip --version` to verify the CLI installation.",
+      "pros": "It auto-generates up to 10 qualified clips per platform, each paired with a cover image, title, description, hashtags, and a ZIP publishing kit, while matching aspect ratio and duration to the chosen platform. Editing and rendering stay on the local machine, and users can choose their own analysis model and subtitle source, including author subtitles, local Whisper/SenseVoice, or cloud transcription.",
+      "cons": "Desktop installers are not yet code-signed or notarized, so new releases may trigger Windows SmartScreen warnings or antivirus false positives, and there is currently no desktop installer for Intel Macs, which instead require Docker or CLI usage.",
+      "fit": "The tool appears best suited to individual creators or small teams producing short clips from interviews, podcasts, or talks on their own hardware or via self-hosted Docker/CLI/Agent integration. As a solo-maintained project without guaranteed response times, it may be less suited to users requiring dedicated support."
     },
     "summaries": {
       "en": {
-        "goal": "AutoClip is an open-source (MIT-licensed) tool that generates short video clips, covers, and publishing text from a pasted video link, with editing and rendering performed locally on the user's computer. It appears to target platforms including Douyin, Xiaohongshu, TikTok, Reels, YouTube Shorts, Bilibili, and YouTube. The software itself is free; cloud model usage is billed separately by the chosen provider.",
-        "usage": "It is distributed as a desktop app (macOS Apple Silicon or Windows x64), via Docker (`git clone https://github.com/zhouxiaoka/autoclip.git` then `docker compose up -d --build`), or via CLI/MCP requiring Python 3.10+ and FFmpeg, where `autoclip --version` reports the installed version and a `produce` command runs the clip pipeline.",
-        "pros": "For each selected platform, it automatically generates up to 10 qualified clips based on scoring, each paired with a cover, title, description, tags, and a ZIP publishing package, while the core editing and rendering stay on the local machine rather than being uploaded.",
-        "cons": "Cloud-based analysis, transcription, or image generation require the user's own API credentials and incur usage-based fees; the documented timing/cost figures come from three different source clips rather than a controlled same-input comparison, so results may not generalize, and YouTube output reportedly requires full clips of at least 180 seconds.",
-        "fit": "It appears best suited to users wanting local video editing/rendering with optional cloud model integration: a desktop app for individual use, Docker for self-hosted web/Linux deployment, or CLI/MCP for batch processing or agent integration."
+        "goal": "AutoClip is an open-source tool that converts a single video link into finished output—video, cover image, and publishing caption—rendered locally on the user's computer. It supports Douyin, Xiaohongshu, TikTok, Reels, YouTube Shorts, Bilibili, and YouTube. The software is free; cloud models are billed by usage.",
+        "usage": "AutoClip can run as a desktop app (macOS Apple Silicon or Windows x64), via Docker Compose, or through a CLI/MCP interface requiring Python 3.10+ and FFmpeg. Deployment commands include `docker compose up -d --build` for the Docker/Web setup and `autoclip --version` to verify the CLI installation.",
+        "pros": "It auto-generates up to 10 qualified clips per platform, each paired with a cover image, title, description, hashtags, and a ZIP publishing kit, while matching aspect ratio and duration to the chosen platform. Editing and rendering stay on the local machine, and users can choose their own analysis model and subtitle source, including author subtitles, local Whisper/SenseVoice, or cloud transcription.",
+        "cons": "Desktop installers are not yet code-signed or notarized, so new releases may trigger Windows SmartScreen warnings or antivirus false positives, and there is currently no desktop installer for Intel Macs, which instead require Docker or CLI usage.",
+        "fit": "The tool appears best suited to individual creators or small teams producing short clips from interviews, podcasts, or talks on their own hardware or via self-hosted Docker/CLI/Agent integration. As a solo-maintained project without guaranteed response times, it may be less suited to users requiring dedicated support."
       },
       "ko": {
-        "goal": "AutoClip은 영상 링크를 붙여넣으면 짧은 영상 클립, 커버 이미지, 게시용 문구를 생성하는 오픈소스(MIT 라이선스) 도구로, 편집과 렌더링은 사용자의 컴퓨터에서 로컬로 처리되는 것으로 보입니다. 지원 플랫폼으로는 Douyin, Xiaohongshu, TikTok, Reels, YouTube Shorts, Bilibili, YouTube 등이 언급되어 있습니다. 소프트웨어 자체는 무료이며, 클라우드 모델 사용량은 선택한 제공업체에 따라 별도로 과금됩니다.",
-        "usage": "macOS Apple Silicon 또는 Windows x64용 데스크톱 앱으로 배포되며, Docker를 통해서는 `git clone https://github.com/zhouxiaoka/autoclip.git` 후 `docker compose up -d --build` 명령으로 실행할 수 있습니다. CLI/MCP 방식은 Python 3.10+와 FFmpeg가 필요하며, `autoclip --version`으로 설치된 버전을 확인하고 `produce` 명령으로 클립 생성 파이프라인을 실행합니다.",
-        "pros": "선택한 각 플랫폼마다 점수 기반으로 최대 10개의 적합한 클립을 자동 생성하며, 각 클립에는 커버, 제목, 설명, 태그, ZIP 게시 패키지가 함께 제공됩니다. 핵심 편집과 렌더링은 로컬 컴퓨터에서 이루어져 업로드되지 않습니다.",
-        "cons": "클라우드 기반 분석, 전사(transcription), 이미지 생성을 사용하려면 사용자 본인의 API 자격 증명이 필요하며 사용량에 따라 비용이 발생합니다. 문서에 기재된 처리 시간/비용 수치는 동일 입력에 대한 통제된 비교가 아니라 서로 다른 세 개의 원본 클립에서 측정된 것이라 결과가 일반화되지 않을 수 있으며, YouTube 출력은 최소 180초 이상의 완전한 클립이 필요한 것으로 보입니다.",
-        "fit": "로컬에서 영상 편집/렌더링을 수행하면서 선택적으로 클라우드 모델을 함께 사용하려는 사용자에게 적합한 것으로 보이며, 개인 사용에는 데스크톱 앱, 자체 호스팅 웹 서비스/Linux 배포에는 Docker, 배치 처리나 에이전트 연동에는 CLI/MCP 방식이 쓰일 수 있습니다."
+        "goal": "AutoClip은 영상 링크 하나를 입력하면 영상, 커버 이미지, 게시용 문구를 자동으로 생성하는 오픈소스 도구이며, 편집과 렌더링은 로컬 컴퓨터에서 수행됩니다. 抖音(Douyin), 小红书(Xiaohongshu), TikTok, Reels, YouTube Shorts, B站(Bilibili), YouTube를 지원합니다. 소프트웨어 자체는 무료이며, 클라우드 모델은 사용량에 따라 과금됩니다.",
+        "usage": "AutoClip은 데스크톱 앱(macOS Apple Silicon 또는 Windows x64), Docker Compose, 또는 Python 3.10+ 및 FFmpeg가 필요한 CLI/MCP 방식으로 실행할 수 있습니다. 배포 명령어로는 Docker/Web 설정을 위한 `docker compose up -d --build`와 CLI 설치를 확인하는 `autoclip --version`이 있습니다.",
+        "pros": "플랫폼별로 화면 비율과 길이에 맞춰 최대 10개의 합격 클립을 자동 생성하며, 각 클립에는 커버 이미지, 제목, 설명, 해시태그와 ZIP 게시 패키지가 함께 제공됩니다. 편집과 렌더링은 로컬에서 이루어지며, 사용자가 분석 모델과 자막 소스(작성자 자막, 로컬 Whisper/SenseVoice, 또는 클라우드 전사)를 직접 선택할 수 있습니다.",
+        "cons": "데스크톱 설치 파일은 아직 코드 서명이나 공증을 받지 않아 Windows SmartScreen 경고나 백신 오탐이 발생할 수 있으며, 현재 Intel Mac용 데스크톱 설치 파일은 제공되지 않아 Docker나 CLI를 사용해야 합니다.",
+        "fit": "이 도구는 자신의 하드웨어나 자체 호스팅 Docker/CLI/Agent 연동을 통해 인터뷰, 팟캐스트, 강연 등에서 짧은 클립을 제작하는 개인 창작자나 소규모 팀에 적합해 보입니다. 개인이 유지보수하는 프로젝트로 응답 시간이 보장되지 않는 만큼, 전담 지원이 필요한 사용자에게는 덜 적합할 수 있습니다."
       },
       "zh-CN": {
-        "goal": "AutoClip 是一个开源（MIT 许可）工具，粘贴视频链接后即可生成短视频片段、封面和发布文案，剪辑与渲染似乎都在用户本机本地完成。文档中提到的适配平台包括抖音、小红书、TikTok、Reels、YouTube Shorts、B 站和 YouTube。软件本身免费，云端模型按所选服务商的用量计费。",
-        "usage": "该工具以桌面应用形式发行（支持 macOS Apple Silicon 或 Windows x64），也可通过 Docker 部署：执行 `git clone https://github.com/zhouxiaoka/autoclip.git` 后运行 `docker compose up -d --build`；CLI/MCP 方式需要 Python 3.10+ 与 FFmpeg，可用 `autoclip --version` 查看版本，并通过 `produce` 命令运行出片流程。",
-        "pros": "针对每个选定平台，会基于评分自动生成最多 10 条合格片段，每条都附带封面、标题、简介、话题标签以及可供发布的 ZIP 打包文件，而核心的剪辑与渲染保留在本地机器上，不会被上传。",
-        "cons": "使用云端分析、转写或 AI 生图功能需要用户自备 API 凭据，并按用量产生费用；文档中给出的处理时长与费用数据来自三条不同的原始素材，而非对同一输入的受控对比，因此结果可能并不具有普遍代表性，且据文档描述 YouTube 出片似乎要求完整片段至少 180 秒。",
-        "fit": "该工具似乎更适合希望在本地完成视频剪辑/渲染、同时可选接入云端模型的用户：个人使用可选桌面应用，自建 Web 服务或 Linux 部署可选 Docker，批量处理或与 Agent 集成则可选 CLI/MCP 方式。"
+        "goal": "AutoClip 是一款开源工具，只需提供一个视频链接即可自动生成视频、封面图和发布文案，剪辑与渲染均在本地电脑上完成。支持抖音、小红书、TikTok、Reels、YouTube Shorts、B站和YouTube。软件本身免费，云端模型按使用量计费。",
+        "usage": "AutoClip 可以作为桌面应用运行（macOS Apple Silicon 或 Windows x64），也可以通过 Docker Compose 或需要 Python 3.10+ 与 FFmpeg 的 CLI/MCP 方式运行。部署命令包括用于 Docker/Web 配置的 `docker compose up -d --build`，以及用于确认 CLI 安装的 `autoclip --version`。",
+        "pros": "它会按平台的画幅与时长要求，自动生成至多 10 条合格片段，每条都附带封面图、标题、简介、话题标签和 ZIP 发布包。剪辑与渲染保留在本地，用户可自行选择分析模型与字幕来源，包括作者字幕、本地 Whisper/SenseVoice 或云端转写。",
+        "cons": "桌面安装包目前尚未进行代码签名或公证，新版本可能触发 Windows SmartScreen 警告或杀毒软件误报；目前也没有针对 Intel Mac 的桌面安装包，需改用 Docker 或 CLI。",
+        "fit": "该工具似乎更适合在自己设备上或通过自建 Docker/CLI/Agent 集成，为访谈、播客或演讲制作短视频片段的个人创作者或小团队。由于是个人维护的项目且响应时间没有保证，对于需要专属支持的用户可能不太合适。"
       },
       "es": {
-        "goal": "AutoClip es una herramienta de código abierto (licencia MIT) que, a partir de un enlace de video pegado, genera clips cortos, portadas y textos de publicación, con la edición y el renderizado realizados aparentemente de forma local en el equipo del usuario. Los documentos mencionan compatibilidad con plataformas como Douyin, Xiaohongshu, TikTok, Reels, YouTube Shorts, Bilibili y YouTube. El software en sí es gratuito; el uso de modelos en la nube se factura por separado según el proveedor elegido.",
-        "usage": "Se distribuye como aplicación de escritorio (macOS Apple Silicon o Windows x64), mediante Docker (`git clone https://github.com/zhouxiaoka/autoclip.git` y luego `docker compose up -d --build`), o vía CLI/MCP, que requiere Python 3.10+ y FFmpeg; `autoclip --version` muestra la versión instalada y el comando `produce` ejecuta el flujo de generación de clips.",
-        "pros": "Para cada plataforma seleccionada, genera automáticamente hasta 10 clips calificados según una puntuación, cada uno con portada, título, descripción, etiquetas y un paquete ZIP de publicación, mientras que la edición y el renderizado principales permanecen en el equipo local sin subirse.",
-        "cons": "El análisis, la transcripción o la generación de imágenes en la nube requieren credenciales de API propias del usuario y generan costos según el uso; las cifras documentadas de tiempo y costo provienen de tres clips de origen distintos y no de una comparación controlada con la misma entrada, por lo que podrían no ser representativas en general, y la salida para YouTube requeriría, según lo documentado, clips completos de al menos 180 segundos.",
-        "fit": "Parece adecuado para quienes desean editar y renderizar video localmente con integración opcional de modelos en la nube: una aplicación de escritorio para uso individual, Docker para despliegues autoalojados en web/Linux, o CLI/MCP para procesamiento por lotes o integración con agentes."
+        "goal": "AutoClip es una herramienta de código abierto que convierte un único enlace de vídeo en un resultado terminado —vídeo, imagen de portada y texto de publicación— renderizado localmente en el equipo del usuario. Es compatible con Douyin, Xiaohongshu, TikTok, Reels, YouTube Shorts, Bilibili y YouTube. El software es gratuito; los modelos en la nube se facturan según el uso.",
+        "usage": "AutoClip puede ejecutarse como aplicación de escritorio (macOS Apple Silicon o Windows x64), mediante Docker Compose, o a través de una interfaz CLI/MCP que requiere Python 3.10+ y FFmpeg. Los comandos de despliegue incluyen `docker compose up -d --build` para la configuración de Docker/Web y `autoclip --version` para verificar la instalación de la CLI.",
+        "pros": "Genera automáticamente hasta 10 clips aptos por plataforma, cada uno con imagen de portada, título, descripción, etiquetas y un paquete de publicación en ZIP, ajustando la relación de aspecto y la duración a la plataforma elegida. La edición y el renderizado permanecen en el equipo local, y el usuario puede elegir su propio modelo de análisis y fuente de subtítulos, incluidos subtítulos de autor, Whisper/SenseVoice local o transcripción en la nube.",
+        "cons": "Los instaladores de escritorio aún no están firmados ni notarizados, por lo que las versiones nuevas pueden activar avisos de Windows SmartScreen o falsos positivos de antivirus, y actualmente no existe instalador de escritorio para Mac con Intel, que requieren en su lugar Docker o la CLI.",
+        "fit": "La herramienta parece más adecuada para creadores individuales o equipos pequeños que producen clips cortos a partir de entrevistas, pódcasts o charlas en su propio hardware o mediante integración autoalojada con Docker/CLI/Agent. Al ser un proyecto mantenido por una sola persona sin tiempos de respuesta garantizados, podría ser menos adecuado para usuarios que necesiten soporte dedicado."
       },
       "ja": {
-        "goal": "AutoClip はオープンソース（MIT ライセンス）のツールで、動画リンクを貼り付けると短尺クリップ、カバー画像、投稿用文章を生成するとされ、編集とレンダリングはユーザーのパソコン上でローカルに行われるようです。対応プラットフォームとして Douyin、Xiaohongshu、TikTok、Reels、YouTube Shorts、Bilibili、YouTube が挙げられています。ソフトウェア自体は無料で、クラウドモデルの利用料は選択したプロバイダーに応じて別途課金されます。",
-        "usage": "デスクトップアプリ（macOS Apple Silicon または Windows x64）として配布されるほか、Docker 経由では `git clone https://github.com/zhouxiaoka/autoclip.git` の後 `docker compose up -d --build` を実行します。CLI/MCP 方式には Python 3.10+ と FFmpeg が必要で、`autoclip --version` でインストール済みバージョンを確認し、`produce` コマンドでクリップ生成の処理を実行します。",
-        "pros": "選択した各プラットフォームごとに、スコアに基づいて最大10本の合格クリップが自動生成され、それぞれにカバー画像、タイトル、説明文、タグ、公開用 ZIP パッケージが付属します。中心となる編集・レンダリングはローカルマシン上に留まり、アップロードされません。",
-        "cons": "クラウドでの解析、転写、画像生成を利用するにはユーザー自身の API 認証情報が必要で、利用量に応じて費用が発生します。記載されている処理時間・費用の数値は同一入力での比較ではなく異なる3本の元素材から得られたものであるため、結果が一般化されない可能性があり、また YouTube への出力には180秒以上の完全なクリップが必要とされているようです。",
-        "fit": "ローカルで動画編集・レンダリングを行い、必要に応じてクラウドモデルと連携させたいユーザーに適していると考えられ、個人利用にはデスクトップアプリ、セルフホスト型 Web サービスや Linux での運用には Docker、バッチ処理やエージェント連携には CLI/MCP 方式が想定されます。"
+        "goal": "AutoClipは、1本の動画リンクから動画・カバー画像・投稿用キャプションを自動生成し、編集とレンダリングをユーザーのローカルPC上で行うオープンソースツールです。抖音(Douyin)、小红书(Xiaohongshu)、TikTok、Reels、YouTube Shorts、ビリビリ(Bilibili)、YouTubeに対応しています。ソフトウェア自体は無料で、クラウドモデルは使用量に応じて課金されます。",
+        "usage": "AutoClipはデスクトップアプリ（macOS Apple SiliconまたはWindows x64）、Docker Compose、またはPython 3.10+とFFmpegが必要なCLI/MCP方式で実行できます。デプロイ用コマンドには、Docker/Web構成向けの `docker compose up -d --build` と、CLIのインストールを確認する `autoclip --version` があります。",
+        "pros": "プラットフォームごとのアスペクト比と長さに合わせて、最大10本の合格済みクリップを自動生成し、それぞれにカバー画像、タイトル、説明、ハッシュタグ、ZIP形式の公開パッケージが付属します。編集とレンダリングはローカルで行われ、ユーザーは解析モデルと字幕ソース（著者字幕、ローカルのWhisper/SenseVoice、またはクラウド文字起こし）を自分で選択できます。",
+        "cons": "デスクトップ用インストーラーは現時点でコード署名や公証を受けておらず、新しいリリースはWindows SmartScreenの警告やウイルス対策ソフトの誤検知を引き起こす可能性があります。また、現在Intel Mac向けのデスクトップインストーラーは提供されておらず、代わりにDockerまたはCLIの使用が必要です。",
+        "fit": "このツールは、自分のハードウェア上、あるいは自己ホスト型のDocker/CLI/Agent連携を通じて、インタビューやポッドキャスト、講演などから短いクリップを制作する個人クリエイターや小規模チームに適していると考えられます。個人が保守しているプロジェクトであり応答時間の保証がないため、専任サポートを必要とするユーザーには不向きな場合があります。"
       }
     },
     "evidence": {
@@ -2814,7 +2872,7 @@
       ],
       "usage": [
         {
-          "start_line": 201,
+          "start_line": 203,
           "end_line": 207,
           "section_heading": "快速开始"
         },
@@ -2825,32 +2883,32 @@
         },
         {
           "start_line": 266,
-          "end_line": 276,
+          "end_line": 266,
           "section_heading": "桌面版"
         }
       ],
       "pros": [
         {
-          "start_line": 166,
+          "start_line": 168,
           "end_line": 168,
           "section_heading": "贴链接就出片"
         },
         {
-          "start_line": 174,
+          "start_line": 172,
+          "end_line": 172,
+          "section_heading": "成片自己会包装"
+        },
+        {
+          "start_line": 176,
           "end_line": 176,
           "section_heading": "还在你的电脑上"
         }
       ],
       "cons": [
         {
-          "start_line": 178,
-          "end_line": 195,
-          "section_heading": "真实素材的耗时与费用"
-        },
-        {
-          "start_line": 346,
-          "end_line": 346,
-          "section_heading": "常见问题"
+          "start_line": 216,
+          "end_line": 216,
+          "section_heading": "桌面版"
         }
       ],
       "fit": [
@@ -2858,27 +2916,35 @@
           "start_line": 203,
           "end_line": 207,
           "section_heading": "快速开始"
+        },
+        {
+          "start_line": 371,
+          "end_line": 371,
+          "section_heading": "参与贡献"
         }
       ]
     },
     "invariants": [
       {
-        "kind": "command",
-        "value": "docker compose up -d --build",
+        "kind": "product",
+        "value": "AutoClip",
         "fields": [
+          "goal",
           "usage"
         ]
       },
       {
-        "kind": "command",
-        "value": "git clone https://github.com/zhouxiaoka/autoclip.git",
+        "kind": "product",
+        "value": "Docker",
         "fields": [
-          "usage"
+          "usage",
+          "cons",
+          "fit"
         ]
       },
       {
-        "kind": "command",
-        "value": "autoclip --version",
+        "kind": "product",
+        "value": "FFmpeg",
         "fields": [
           "usage"
         ]
@@ -2891,47 +2957,37 @@
         ]
       },
       {
+        "kind": "command",
+        "value": "docker compose up -d --build",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "autoclip --version",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
         "kind": "number",
-        "value": "180",
-        "fields": [
-          "cons"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "AutoClip",
-        "fields": [
-          "goal",
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "FFmpeg",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Docker",
+        "value": "10",
         "fields": [
           "usage",
-          "fit"
+          "pros"
         ]
       }
     ],
     "inference_fields": [
-      "goal",
-      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "zhouxiaoka/autoclip",
       "path": "README.md",
-      "blob_sha": "e2a8467921dfe28710cef355b26e9325e1b22f3a",
-      "content_sha256": "d8c942e7c19ef826694ba9f0c131fcd6d5b5243f6a6a440cb991c7809d0abf70",
+      "blob_sha": "7f6333fa7b0fc637972f3ff556c6bc883e070e32",
+      "content_sha256": "bdca4092adb41c0037535dc8fe709caf746e69bf2f312c84bb41e44a7687ab71",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.330",
@@ -5751,63 +5807,58 @@
   },
   "pingdotgg/t3code": {
     "content": {
-      "goal": "T3 Code is described as an open-source control plane for coding agents, letting users run agents such as Claude Code, Codex, Cursor, OpenCode, and other ACP-compatible agents locally while controlling them from one interface across desktop, web, and phone.",
-      "usage": "Installation is available via a desktop app download, package managers (e.g. brew install --cask t3-code, winget install T3Tools.T3Code), or a command-line install script (curl -fsSL https://t3.codes/install.sh | sh), after which running t3 starts the server and opens the web app; npx t3@latest allows trying it without installing.",
-      "pros": "The README states T3 Code uses the user's existing agent subscriptions rather than reselling tokens, supports switching models mid-thread, provides synchronized desktop/web/phone clients from one server, integrates git worktrees with built-in diff review and PR creation, and is MIT licensed.",
-      "cons": "Using T3 Code requires at least one coding agent to already be installed and signed in separately (e.g. via claude auth login or codex login), so it does not function as a standalone agent on its own.",
-      "fit": "Based on the README, T3 Code appears suited for developers who already use agents like Claude Code, Codex, or Cursor and want a unified, remote-capable interface across machines via local network, Tailscale, or T3 Connect."
+      "goal": "T3 Code is an open-source MIT-licensed control plane for coding agents, running agents like Claude Code, Codex, Cursor, OpenCode, Grok Build, Antigravity, Kiro, Pi, Muse Code, fx, and ACP agents on the user's own machine via one interface, letting a thread be started on desktop and approved from a phone.",
+      "usage": "Install the desktop app from https://t3.codes/download or a package manager, or install the CLI with `curl -fsSL https://t3.codes/install.sh | sh` (PowerShell: `irm https://t3.codes/install.ps1 | iex`) and run `t3` to start the server and open the web app; `npx t3@latest` allows a one-time trial. It requires at least one agent already installed and signed in, e.g. via `claude auth login` or `codex login`.",
+      "pros": "It does not resell tokens, instead using the user's existing agent subscriptions; it unifies desktop, web, and phone clients around one server and the same threads; it includes built-in git support with per-thread worktrees and one-button commit, push, and pull-request actions; remote access is supported via local network, Tailscale, or T3 Connect.",
+      "cons": "Because it depends on externally installed and signed-in agents rather than bundling them, at least one separate agent (e.g. Claude Code or Codex CLI) must be set up and authenticated before T3 Code can be used, which is an added prerequisite step beyond installing T3 Code itself.",
+      "fit": "It appears suited for developers who already use one or more coding agents and want a single, performant interface to manage and switch between them across desktop, web, and mobile, including remote approval workflows; it may be less relevant for users without any coding agent already installed."
     },
     "summaries": {
       "en": {
-        "goal": "T3 Code is described as an open-source control plane for coding agents, letting users run agents such as Claude Code, Codex, Cursor, OpenCode, and other ACP-compatible agents locally while controlling them from one interface across desktop, web, and phone.",
-        "usage": "Installation is available via a desktop app download, package managers (e.g. brew install --cask t3-code, winget install T3Tools.T3Code), or a command-line install script (curl -fsSL https://t3.codes/install.sh | sh), after which running t3 starts the server and opens the web app; npx t3@latest allows trying it without installing.",
-        "pros": "The README states T3 Code uses the user's existing agent subscriptions rather than reselling tokens, supports switching models mid-thread, provides synchronized desktop/web/phone clients from one server, integrates git worktrees with built-in diff review and PR creation, and is MIT licensed.",
-        "cons": "Using T3 Code requires at least one coding agent to already be installed and signed in separately (e.g. via claude auth login or codex login), so it does not function as a standalone agent on its own.",
-        "fit": "Based on the README, T3 Code appears suited for developers who already use agents like Claude Code, Codex, or Cursor and want a unified, remote-capable interface across machines via local network, Tailscale, or T3 Connect."
+        "goal": "T3 Code is an open-source MIT-licensed control plane for coding agents, running agents like Claude Code, Codex, Cursor, OpenCode, Grok Build, Antigravity, Kiro, Pi, Muse Code, fx, and ACP agents on the user's own machine via one interface, letting a thread be started on desktop and approved from a phone.",
+        "usage": "Install the desktop app from https://t3.codes/download or a package manager, or install the CLI with `curl -fsSL https://t3.codes/install.sh | sh` (PowerShell: `irm https://t3.codes/install.ps1 | iex`) and run `t3` to start the server and open the web app; `npx t3@latest` allows a one-time trial. It requires at least one agent already installed and signed in, e.g. via `claude auth login` or `codex login`.",
+        "pros": "It does not resell tokens, instead using the user's existing agent subscriptions; it unifies desktop, web, and phone clients around one server and the same threads; it includes built-in git support with per-thread worktrees and one-button commit, push, and pull-request actions; remote access is supported via local network, Tailscale, or T3 Connect.",
+        "cons": "Because it depends on externally installed and signed-in agents rather than bundling them, at least one separate agent (e.g. Claude Code or Codex CLI) must be set up and authenticated before T3 Code can be used, which is an added prerequisite step beyond installing T3 Code itself.",
+        "fit": "It appears suited for developers who already use one or more coding agents and want a single, performant interface to manage and switch between them across desktop, web, and mobile, including remote approval workflows; it may be less relevant for users without any coding agent already installed."
       },
       "ko": {
-        "goal": "README에 따르면 T3 Code는 코딩 에이전트를 위한 오픈소스 컨트롤 플레인으로, Claude Code, Codex, Cursor, OpenCode 등 ACP 호환 에이전트를 로컬 머신에서 실행하면서 데스크톱, 웹, 모바일에서 하나의 인터페이스로 제어할 수 있게 한다고 설명합니다.",
-        "usage": "설치는 데스크톱 앱 다운로드, brew install --cask t3-code 또는 winget install T3Tools.T3Code 같은 패키지 매니저, 혹은 curl -fsSL https://t3.codes/install.sh | sh 명령으로 가능하며, 이후 t3 명령을 실행하면 서버가 시작되고 웹 앱이 열립니다. 설치 없이 사용해보려면 npx t3@latest를 실행할 수 있습니다.",
-        "pros": "README는 T3 Code가 토큰을 재판매하지 않고 사용자의 기존 구독을 그대로 활용하며, 스레드 중간에 모델을 전환할 수 있고, 하나의 서버로 데스크톱·웹·모바일 클라이언트가 동기화되며, git worktree와 diff 검토, PR 생성 기능이 내장되어 있고, MIT 라이선스로 공개되어 있다고 기술합니다.",
-        "cons": "T3 Code를 사용하려면 claude auth login이나 codex login처럼 최소 하나의 코딩 에이전트가 별도로 설치되고 로그인되어 있어야 하는 것으로 보이며, 따라서 이 도구 자체만으로는 독립적인 에이전트로 동작하지 않는 것으로 추정됩니다.",
-        "fit": "README 내용을 토대로 추정하면, T3 Code는 Claude Code, Codex, Cursor 등 이미 특정 에이전트를 사용 중이며 로컬 네트워크, Tailscale, 혹은 T3 Connect를 통해 여러 기기에서 원격으로 작업하고 싶은 개발자에게 적합해 보입니다."
+        "goal": "T3 Code는 Claude Code, Codex, Cursor, OpenCode, Grok Build, Antigravity, Kiro, Pi, Muse Code, fx 및 ACP 에이전트 등 코딩 에이전트를 사용자 자신의 기기에서 실행하며 하나의 인터페이스로 제어하는 오픈소스(MIT 라이선스) 컨트롤 플레인으로, 데스크톱에서 스레드를 시작하고 휴대폰에서 다음 단계를 승인할 수 있습니다.",
+        "usage": "데스크톱 앱은 https://t3.codes/download 또는 패키지 매니저로 설치할 수 있으며, CLI는 `curl -fsSL https://t3.codes/install.sh | sh` (PowerShell에서는 `irm https://t3.codes/install.ps1 | iex`)로 설치한 뒤 `t3` 명령으로 서버를 시작하고 웹 앱을 엽니다. `npx t3@latest`로 설치 없이 한 번 사용해 볼 수도 있습니다. 사용 전에 `claude auth login`이나 `codex login` 같은 방식으로 최소 하나의 에이전트가 설치되고 로그인되어 있어야 합니다.",
+        "pros": "토큰을 재판매하지 않고 사용자가 이미 보유한 에이전트 구독을 그대로 활용하며, 데스크톱·웹·폰 클라이언트가 하나의 서버와 동일한 스레드를 공유합니다. 또한 스레드별 워크트리와 버튼 하나로 커밋·푸시·풀 리퀘스트를 처리하는 git 통합 기능을 제공하며, 로컬 네트워크·Tailscale·T3 Connect를 통한 원격 접속을 지원합니다.",
+        "cons": "에이전트를 번들로 제공하지 않고 외부에 설치되고 로그인된 에이전트에 의존하는 구조이므로, T3 Code 설치 자체 외에도 Claude Code나 Codex CLI 같은 별도 에이전트를 미리 설치하고 인증해야 하는 추가 준비 단계가 필요합니다.",
+        "fit": "이미 하나 이상의 코딩 에이전트를 사용 중이며 데스크톱·웹·모바일에서 이를 전환하고 원격으로 승인하는 통합된 빠른 인터페이스를 원하는 개발자에게 적합해 보입니다. 반면 코딩 에이전트를 전혀 설치하지 않은 사용자에게는 적합성이 낮을 수 있습니다."
       },
       "zh-CN": {
-        "goal": "根据README所述,T3 Code是面向编码代理的开源控制平面,可在本机运行Claude Code、Codex、Cursor、OpenCode等兼容ACP的代理,并通过桌面端、网页端和手机端统一界面进行控制。",
-        "usage": "安装方式包括下载桌面应用,使用包管理器(例如 brew install --cask t3-code 或 winget install T3Tools.T3Code),或运行命令行安装脚本 curl -fsSL https://t3.codes/install.sh | sh,之后运行 t3 命令即可启动服务器并打开网页应用;若想免安装试用,可运行 npx t3@latest。",
-        "pros": "README指出,T3 Code不转售token,而是使用用户已有的订阅;支持在同一线程中切换模型;一个服务器即可让桌面、网页、手机客户端保持同步;内置git worktree,支持查看diff并一键提交、推送和创建pull request;并采用MIT许可证开源。",
-        "cons": "使用T3 Code似乎需要预先单独安装并登录至少一个编码代理(例如通过 claude auth login 或 codex login),因此该工具本身可能无法作为独立代理运行。",
-        "fit": "根据README内容推测,T3 Code较适合已经在使用Claude Code、Codex或Cursor等代理,并希望通过本地网络、Tailscale或T3 Connect在多台设备间进行远程操作的开发者。"
+        "goal": "T3 Code 是一个开源(MIT 许可)的编码代理控制平面,可在用户自己的机器上运行 Claude Code、Codex、Cursor、OpenCode、Grok Build、Antigravity、Kiro、Pi、Muse Code、fx 以及 ACP 代理等,并通过单一界面进行控制,可在桌面端发起对话线程,再从手机端批准下一步操作。",
+        "usage": "可从 https://t3.codes/download 或包管理器安装桌面应用,也可通过 `curl -fsSL https://t3.codes/install.sh | sh`(PowerShell 中为 `irm https://t3.codes/install.ps1 | iex`)安装命令行工具,并运行 `t3` 启动服务器并打开网页应用;使用 `npx t3@latest` 可免安装试用一次。使用前需要已安装并登录至少一个代理,例如通过 `claude auth login` 或 `codex login`。",
+        "pros": "它不转售 token,而是使用用户已有的代理订阅;桌面、网页和手机客户端共用同一服务器和相同的会话线程;内置 git 支持,每个线程可使用独立的 worktree,并可一键完成提交、推送和发起拉取请求;支持通过本地网络、Tailscale 或 T3 Connect 进行远程访问。",
+        "cons": "由于它依赖外部已安装并登录的代理而非自带代理,因此在使用 T3 Code 之前,必须先单独安装并验证至少一个代理(例如 Claude Code 或 Codex CLI),这是安装 T3 Code 本身之外的额外前置步骤。",
+        "fit": "该工具似乎适合已经在使用一个或多个编码代理、希望通过统一且高性能的界面在桌面、网页和移动端之间切换并进行远程审批的开发者;对于尚未安装任何编码代理的用户,其适用性可能较低。"
       },
       "es": {
-        "goal": "Según el README, T3 Code es un plano de control de código abierto para agentes de codificación que permite ejecutar agentes como Claude Code, Codex, Cursor, OpenCode y otros compatibles con ACP en la máquina local, controlándolos desde una sola interfaz en escritorio, web y móvil.",
-        "usage": "La instalación puede hacerse descargando la aplicación de escritorio, mediante gestores de paquetes como brew install --cask t3-code o winget install T3Tools.T3Code, o con el script curl -fsSL https://t3.codes/install.sh | sh; después, ejecutar t3 inicia el servidor y abre la app web. Para probarlo sin instalar, se puede ejecutar npx t3@latest.",
-        "pros": "El README indica que T3 Code no revende tokens sino que usa las suscripciones existentes del usuario, permite cambiar de modelo en medio de un hilo, sincroniza clientes de escritorio, web y móvil desde un solo servidor, integra git worktrees con revisión de diffs y creación de pull requests, y está licenciado bajo MIT.",
-        "cons": "Para usar T3 Code parece necesario tener instalado y conectado por separado al menos un agente de codificación (por ejemplo mediante claude auth login o codex login), por lo que la herramienta probablemente no funciona como un agente independiente por sí sola.",
-        "fit": "A partir del README, se puede inferir que T3 Code resulta adecuado para desarrolladores que ya usan agentes como Claude Code, Codex o Cursor y desean una interfaz unificada con acceso remoto entre dispositivos mediante red local, Tailscale o T3 Connect."
+        "goal": "T3 Code es un plano de control de código abierto (licencia MIT) para agentes de codificación, que ejecuta agentes como Claude Code, Codex, Cursor, OpenCode, Grok Build, Antigravity, Kiro, Pi, Muse Code, fx y agentes ACP en la propia máquina del usuario mediante una sola interfaz, permitiendo iniciar un hilo en el escritorio y aprobar el siguiente paso desde el teléfono.",
+        "usage": "La aplicación de escritorio puede instalarse desde https://t3.codes/download o mediante un gestor de paquetes, y la CLI se instala con `curl -fsSL https://t3.codes/install.sh | sh` (en PowerShell: `irm https://t3.codes/install.ps1 | iex`), ejecutando luego `t3` para iniciar el servidor y abrir la aplicación web; `npx t3@latest` permite probarlo una vez sin instalación. Antes de usarlo se necesita al menos un agente ya instalado e iniciado sesión, por ejemplo con `claude auth login` o `codex login`.",
+        "pros": "No revende tokens, sino que utiliza las suscripciones de agentes que el usuario ya posee; unifica los clientes de escritorio, web y teléfono en torno a un mismo servidor y los mismos hilos; incluye integración con git con worktrees por hilo y acciones de commit, push y pull request con un solo botón; además admite acceso remoto mediante red local, Tailscale o T3 Connect.",
+        "cons": "Al depender de agentes instalados e iniciados sesión externamente en lugar de incluirlos, es necesario configurar y autenticar al menos un agente aparte (por ejemplo Claude Code o Codex CLI) antes de poder usar T3 Code, lo que supone un paso previo adicional a la instalación del propio T3 Code.",
+        "fit": "Parece adecuado para desarrolladores que ya usan uno o más agentes de codificación y desean una interfaz unificada y de buen rendimiento para gestionar y cambiar entre ellos en escritorio, web y móvil, incluyendo flujos de aprobación remota; podría ser menos relevante para quienes no tienen ningún agente de codificación instalado."
       },
       "ja": {
-        "goal": "READMEによると、T3 Codeはコーディングエージェントのためのオープンソースのコントロールプレーンであり、Claude Code、Codex、Cursor、OpenCodeなどACP対応エージェントをローカルマシンで実行しつつ、デスクトップ、Web、モバイルの単一インターフェースから操作できるとされています。",
-        "usage": "インストールはデスクトップアプリのダウンロード、brew install --cask t3-codeやwinget install T3Tools.T3Codeなどのパッケージマネージャー、またはcurl -fsSL https://t3.codes/install.sh | shというコマンドラインスクリプトで行え、その後t3コマンドを実行するとサーバーが起動しWebアプリが開きます。インストールせずに試す場合はnpx t3@latestを実行できます。",
-        "pros": "READMEでは、T3 Codeはトークンを再販せずユーザー既存のサブスクリプションを利用すること、スレッドの途中でモデルを切り替えられること、1つのサーバーからデスクトップ・Web・モバイルクライアントが同期されること、git worktreeを組み込みdiffレビューやプルリクエスト作成ができること、MITライセンスで公開されていることが述べられています。",
-        "cons": "T3 Codeを利用するには、claude auth loginやcodex loginのように少なくとも1つのコーディングエージェントを別途インストールしログインしておく必要があるとみられ、そのためこのツール単体では独立したエージェントとして機能しない可能性があります。",
-        "fit": "READMEの記述から推測すると、T3 CodeはすでにClaude Code、Codex、Cursorなどのエージェントを使用しており、ローカルネットワーク、Tailscale、またはT3 Connectを介して複数のデバイス間でリモート操作を行いたい開発者に適していると考えられます。"
+        "goal": "T3 CodeはClaude Code、Codex、Cursor、OpenCode、Grok Build、Antigravity、Kiro、Pi、Muse Code、fx、およびACPエージェントなどのコーディングエージェントをユーザー自身のマシン上で実行し、単一のインターフェースで制御するオープンソース(MITライセンス)のコントロールプレーンで、デスクトップでスレッドを開始し、スマートフォンから次のステップを承認できます。",
+        "usage": "デスクトップアプリはhttps://t3.codes/downloadまたはパッケージマネージャからインストールでき、CLIは`curl -fsSL https://t3.codes/install.sh | sh`(PowerShellでは`irm https://t3.codes/install.ps1 | iex`)でインストールした後、`t3`コマンドでサーバーを起動しウェブアプリを開きます。`npx t3@latest`でインストールなしに一度試すこともできます。利用前には`claude auth login`や`codex login`などで、少なくとも1つのエージェントが既にインストールされログインされている必要があります。",
+        "pros": "トークンを再販せず、ユーザーが既に持っているエージェントのサブスクリプションをそのまま利用し、デスクトップ・ウェブ・スマートフォンのクライアントが同一サーバーと同一のスレッドを共有します。さらに、スレッドごとのworktreeとワンボタンでのコミット・プッシュ・プルリクエスト作成を含むgit統合機能を備え、ローカルネットワーク、Tailscale、T3 Connectによるリモートアクセスにも対応しています。",
+        "cons": "エージェントを同梱せず外部にインストール・ログイン済みのエージェントに依存する構造であるため、T3 Code自体のインストールに加えて、Claude CodeやCodex CLIなど少なくとも1つのエージェントを別途インストールし認証しておく必要があり、これが追加の準備手順となります。",
+        "fit": "既に1つ以上のコーディングエージェントを利用しており、デスクトップ・ウェブ・モバイルにまたがって切り替えやリモート承認を行える統一的で高性能なインターフェースを求める開発者に適していると考えられますが、コーディングエージェントを全くインストールしていないユーザーにはあまり適さない可能性があります。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 7,
+          "start_line": 9,
           "end_line": 9,
           "section_heading": ""
         },
         {
           "start_line": 26,
-          "end_line": 26,
-          "section_heading": ""
-        },
-        {
-          "start_line": 28,
           "end_line": 28,
           "section_heading": ""
         }
@@ -5815,24 +5866,24 @@
       "usage": [
         {
           "start_line": 44,
-          "end_line": 52,
+          "end_line": 44,
           "section_heading": "Desktop app"
         },
         {
           "start_line": 56,
-          "end_line": 60,
+          "end_line": 69,
           "section_heading": "Command line"
         },
         {
-          "start_line": 68,
-          "end_line": 68,
-          "section_heading": "Command line"
+          "start_line": 76,
+          "end_line": 76,
+          "section_heading": "Sign in to an agent"
         }
       ],
       "pros": [
         {
           "start_line": 32,
-          "end_line": 38,
+          "end_line": 37,
           "section_heading": "What you get"
         }
       ],
@@ -5845,28 +5896,21 @@
       ],
       "fit": [
         {
-          "start_line": 35,
-          "end_line": 35,
-          "section_heading": "What you get"
+          "start_line": 26,
+          "end_line": 28,
+          "section_heading": ""
         },
         {
-          "start_line": 72,
-          "end_line": 72,
-          "section_heading": "Phone"
+          "start_line": 32,
+          "end_line": 35,
+          "section_heading": "What you get"
         }
       ]
     },
     "invariants": [
       {
-        "kind": "command",
-        "value": "t3",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "npx t3@latest",
+        "kind": "url",
+        "value": "https://t3.codes/download",
         "fields": [
           "usage"
         ]
@@ -5880,14 +5924,21 @@
       },
       {
         "kind": "command",
-        "value": "brew install --cask t3-code",
+        "value": "irm https://t3.codes/install.ps1 | iex",
         "fields": [
           "usage"
         ]
       },
       {
         "kind": "command",
-        "value": "winget install T3Tools.T3Code",
+        "value": "npx t3@latest",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "t3",
         "fields": [
           "usage"
         ]
@@ -5896,19 +5947,12 @@
         "kind": "command",
         "value": "claude auth login",
         "fields": [
-          "cons"
+          "usage"
         ]
       },
       {
         "kind": "command",
         "value": "codex login",
-        "fields": [
-          "cons"
-        ]
-      },
-      {
-        "kind": "url",
-        "value": "https://t3.codes",
         "fields": [
           "usage"
         ]
@@ -5918,9 +5962,7 @@
         "value": "T3 Code",
         "fields": [
           "goal",
-          "pros",
-          "cons",
-          "fit"
+          "cons"
         ]
       },
       {
@@ -5928,7 +5970,7 @@
         "value": "Claude Code",
         "fields": [
           "goal",
-          "fit"
+          "cons"
         ]
       },
       {
@@ -5936,16 +5978,8 @@
         "value": "Codex",
         "fields": [
           "goal",
-          "cons",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Cursor",
-        "fields": [
-          "goal",
-          "fit"
+          "usage",
+          "cons"
         ]
       }
     ],
@@ -5957,11 +5991,11 @@
       "kind": "readme",
       "slug": "pingdotgg/t3code",
       "path": "README.md",
-      "blob_sha": "24dc0f8f7f6669ee439bc13f496e0451239f0e31",
-      "content_sha256": "279e043a640f0c2b064e5cb94adb29889851a9b8c91a73ef5b8fd234e498ac56",
+      "blob_sha": "2ff0418fcd2e00df7461476fad89b9a8fd7ee556",
+      "content_sha256": "78040cbb2128a40fa9b62bf3077fd422a49c79b9991fbdaa02f00383047e3942",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.322",
+      "cli_version": "2.1.330",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",
@@ -6158,47 +6192,47 @@
   },
   "thedotmack/claude-mem": {
     "content": {
-      "goal": "Claude-Mem is a memory system for coding agents that keeps context across sessions by recording observations while the agent works (lines 55, 125-131).",
-      "usage": "Install with `npx claude-mem install`, which detects agents on the machine and sets up hooks; it can also be added inside Claude Code with `/plugin marketplace add thedotmack/claude-mem` and `/plugin install claude-mem` (lines 139-141, 151-157).",
-      "pros": "Documented benefits include resuming a session with a compact index of past observations, a token-efficient three-step search workflow, a My Work dashboard for live requests and a review queue, optional team-shared memory (TeamBrain), and excluding content wrapped in `<private>` tags from storage (lines 222-233).",
-      "cons": "Choosing the built-in claude-mem observer provider starts a 30 Day Free Trial on a checkout page that requires a payment method, and memory automatically falls back to the user's own Anthropic plan if the trial is not converted to a subscription (lines 143-146).",
-      "fit": "The README states Claude-Mem works with Claude Code, Codex, Cursor, OpenCode and 11 more agents, while Copilot CLI, Goose, Roo Code, Warp and Zed can only search existing memory since their sessions aren't recorded, suggesting the tool fits agents with full hook support best (lines 130, 143)."
+      "goal": "Claude-Mem gives coding agents like Claude Code, Codex, Cursor, and OpenCode persistent memory across sessions. While the agent works, a second observer agent records tool activity, so the next session can start with a condensed index of prior context instead of from zero.",
+      "usage": "Install with `npx claude-mem install`, or inside Claude Code run `/plugin marketplace add thedotmack/claude-mem` followed by `/plugin install claude-mem`, then restart Claude Code; starting with the second session in a project, prior memory loads automatically.",
+      "pros": "Search uses a token-efficient three-step MCP workflow (search, timeline, get_observations), so agents fetch full observation details only for IDs they actually need. Content wrapped in `<private>` tags is never stored, and the project is released under the Apache License 2.0.",
+      "cons": "Copilot CLI, Goose, Roo Code, Warp, and Zed can only search existing memory since their sessions are not recorded, so coverage depends on which agent is used. Installing the npm package globally only sets up the SDK/library, not the plugin hooks, so the documented npx installer is likely still needed for a full setup.",
+      "fit": "Likely fits developers already using a supported coding agent who want continuity between sessions without manual note-taking. Memory is stored locally under `~/.claude-mem` by default, with cloud sync and team sharing offered as opt-in extensions."
     },
     "summaries": {
       "en": {
-        "goal": "Claude-Mem is a memory system for coding agents that keeps context across sessions by recording observations while the agent works (lines 55, 125-131).",
-        "usage": "Install with `npx claude-mem install`, which detects agents on the machine and sets up hooks; it can also be added inside Claude Code with `/plugin marketplace add thedotmack/claude-mem` and `/plugin install claude-mem` (lines 139-141, 151-157).",
-        "pros": "Documented benefits include resuming a session with a compact index of past observations, a token-efficient three-step search workflow, a My Work dashboard for live requests and a review queue, optional team-shared memory (TeamBrain), and excluding content wrapped in `<private>` tags from storage (lines 222-233).",
-        "cons": "Choosing the built-in claude-mem observer provider starts a 30 Day Free Trial on a checkout page that requires a payment method, and memory automatically falls back to the user's own Anthropic plan if the trial is not converted to a subscription (lines 143-146).",
-        "fit": "The README states Claude-Mem works with Claude Code, Codex, Cursor, OpenCode and 11 more agents, while Copilot CLI, Goose, Roo Code, Warp and Zed can only search existing memory since their sessions aren't recorded, suggesting the tool fits agents with full hook support best (lines 130, 143)."
+        "goal": "Claude-Mem gives coding agents like Claude Code, Codex, Cursor, and OpenCode persistent memory across sessions. While the agent works, a second observer agent records tool activity, so the next session can start with a condensed index of prior context instead of from zero.",
+        "usage": "Install with `npx claude-mem install`, or inside Claude Code run `/plugin marketplace add thedotmack/claude-mem` followed by `/plugin install claude-mem`, then restart Claude Code; starting with the second session in a project, prior memory loads automatically.",
+        "pros": "Search uses a token-efficient three-step MCP workflow (search, timeline, get_observations), so agents fetch full observation details only for IDs they actually need. Content wrapped in `<private>` tags is never stored, and the project is released under the Apache License 2.0.",
+        "cons": "Copilot CLI, Goose, Roo Code, Warp, and Zed can only search existing memory since their sessions are not recorded, so coverage depends on which agent is used. Installing the npm package globally only sets up the SDK/library, not the plugin hooks, so the documented npx installer is likely still needed for a full setup.",
+        "fit": "Likely fits developers already using a supported coding agent who want continuity between sessions without manual note-taking. Memory is stored locally under `~/.claude-mem` by default, with cloud sync and team sharing offered as opt-in extensions."
       },
       "ko": {
-        "goal": "Claude-Mem은 코딩 에이전트가 작업하는 동안 관찰 내용을 기록하여 세션 간에 컨텍스트가 유지되도록 하는 메모리 시스템입니다 (55번째 줄, 125-131번째 줄).",
-        "usage": "`npx claude-mem install`로 설치하면 기기에 있는 에이전트를 감지하고 후크를 설정하며, Claude Code 내부에서는 `/plugin marketplace add thedotmack/claude-mem`과 `/plugin install claude-mem`으로도 추가할 수 있습니다 (139-141번째 줄, 151-157번째 줄).",
-        "pros": "문서에 따르면 이전 관찰 내용을 요약한 인덱스로 세션을 재개하고, 토큰 효율적인 3단계 검색 워크플로우를 제공하며, 실시간 요청과 검토 대기열을 보여주는 My Work 대시보드, 선택적 팀 공유 메모리(TeamBrain), `<private>` 태그로 비밀 정보를 저장에서 제외하는 기능이 포함됩니다 (222-233번째 줄).",
-        "cons": "기본 제공되는 claude-mem observer 공급자를 선택하면 결제 수단을 요구하는 체크아웃 페이지에서 30 Day Free Trial이 시작되며, 체험판을 구독으로 전환하지 않으면 메모리는 자동으로 사용자의 Anthropic 플랜으로 되돌아갑니다 (143-146번째 줄).",
-        "fit": "README에는 Claude-Mem이 Claude Code, Codex, Cursor, OpenCode 등 11개 이상의 추가 에이전트와 함께 작동하며, Copilot CLI, Goose, Roo Code, Warp, Zed는 세션이 기록되지 않아 기존 메모리 검색만 가능하다고 명시되어 있어, 이 도구는 후크를 완전히 지원하는 에이전트에 가장 적합할 것으로 보입니다 (130번째 줄, 143번째 줄)."
+        "goal": "Claude-Mem은 Claude Code, Codex, Cursor, OpenCode 등 코딩 에이전트에게 세션 간 지속되는 메모리를 제공합니다. 작업 중 두 번째 관찰자(observer) 에이전트가 도구 활동을 기록해, 다음 세션은 처음부터 다시 시작하는 대신 이전 맥락을 압축한 인덱스로 시작할 수 있습니다.",
+        "usage": "`npx claude-mem install` 명령으로 설치하거나, Claude Code 내부에서 `/plugin marketplace add thedotmack/claude-mem`을 실행한 뒤 `/plugin install claude-mem`으로 설치할 수 있습니다. 이후 Claude Code를 재시작하면, 같은 프로젝트의 두 번째 세션부터 이전 메모리가 자동으로 불러와집니다.",
+        "pros": "검색은 search, timeline, get_observations 세 단계로 이루어진 토큰 효율적인 MCP 워크플로를 사용해, 에이전트가 필요한 ID의 전체 관찰 내용만 가져오도록 합니다. `<private>` 태그로 감싼 내용은 저장되지 않으며, 프로젝트는 Apache License 2.0으로 배포됩니다.",
+        "cons": "Copilot CLI, Goose, Roo Code, Warp, Zed는 세션이 기록되지 않아 기존 메모리 검색만 가능하므로, 지원 범위는 사용하는 에이전트에 따라 달라집니다. npm 패키지를 전역으로 설치하면 SDK/라이브러리만 설정되고 플러그인 훅은 설정되지 않으므로, 완전한 설치를 위해서는 문서화된 npx 설치 방식이 여전히 필요할 가능성이 있습니다.",
+        "fit": "이미 지원되는 코딩 에이전트를 사용하며 세션 간 수동 메모 없이 연속성을 원하는 개발자에게 적합할 것으로 보입니다. 메모리는 기본적으로 `~/.claude-mem`에 로컬로 저장되며, 클라우드 동기화와 팀 공유는 선택적 확장 기능으로 제공됩니다."
       },
       "zh-CN": {
-        "goal": "Claude-Mem 是一个为编程智能体设计的记忆系统，通过在智能体工作时记录观察内容，让上下文在不同会话之间得以保留(第55行、第125-131行)。",
-        "usage": "使用 `npx claude-mem install` 进行安装，它会检测设备上的智能体并设置钩子；也可以在 Claude Code 内通过 `/plugin marketplace add thedotmack/claude-mem` 和 `/plugin install claude-mem` 添加该插件(第139-141行、第151-157行)。",
-        "pros": "文档说明的优点包括：以过往观察内容的紧凑索引恢复会话、提供省token的三步搜索流程、通过 My Work 仪表盘查看实时请求与审阅队列、可选的团队共享记忆(TeamBrain)，以及用 `<private>` 标签包裹的内容不会被存储(第222-233行)。",
-        "cons": "选择内置的 claude-mem observer 提供方会在需要支付方式的结账页面上启动 30 Day Free Trial，若未转为订阅，记忆功能会自动回退到用户自己的 Anthropic 计划(第143-146行)。",
-        "fit": "README 指出 Claude-Mem 可与 Claude Code、Codex、Cursor、OpenCode 以及另外 11 个智能体配合使用，而 Copilot CLI、Goose、Roo Code、Warp 和 Zed 的会话不会被记录，只能搜索已有记忆，这表明该工具更适合完全支持钩子的智能体(第130行、第143行)。"
+        "goal": "Claude-Mem 为 Claude Code、Codex、Cursor、OpenCode 等编码代理提供跨会话的持久记忆。工作过程中,第二个“观察者”代理会记录工具活动,使下一个会话能够从上一次上下文的精简索引开始,而不是从零开始。",
+        "usage": "可以使用命令 `npx claude-mem install` 进行安装,也可以在 Claude Code 内先执行 `/plugin marketplace add thedotmack/claude-mem`,再执行 `/plugin install claude-mem` 完成安装。安装后重启 Claude Code,从同一项目的第二个会话起会自动加载此前的记忆。",
+        "pros": "搜索采用 search、timeline、get_observations 三步式的高效 MCP 工作流,使代理只针对需要的 ID 获取完整观察详情。用 `<private>` 标签包裹的内容不会被存储,且该项目以 Apache License 2.0 发布。",
+        "cons": "Copilot CLI、Goose、Roo Code、Warp 和 Zed 的会话不会被记录,只能搜索已有记忆,因此覆盖范围取决于所使用的代理。全局安装 npm 包只会设置 SDK/库部分,并不会设置插件钩子,因此完整安装很可能仍需要文档中说明的 npx 安装方式。",
+        "fit": "该工具可能适合已经在使用受支持编码代理、并希望在会话之间保持连续性而无需手动记录笔记的开发者。记忆默认以本地方式存储在 `~/.claude-mem` 中,云同步与团队共享作为可选的扩展功能提供。"
       },
       "es": {
-        "goal": "Claude-Mem es un sistema de memoria para agentes de codificación que mantiene el contexto entre sesiones registrando observaciones mientras el agente trabaja (líneas 55 y 125-131).",
-        "usage": "Se instala con `npx claude-mem install`, que detecta los agentes presentes en la máquina y configura los hooks; también puede añadirse dentro de Claude Code con `/plugin marketplace add thedotmack/claude-mem` y `/plugin install claude-mem` (líneas 139-141 y 151-157).",
-        "pros": "Entre los beneficios documentados están reanudar la sesión con un índice compacto de observaciones pasadas, un flujo de búsqueda en tres pasos eficiente en tokens, el panel My Work para solicitudes en vivo y una cola de revisión, memoria compartida opcional en equipo (TeamBrain), y la exclusión del almacenamiento de cualquier contenido envuelto en etiquetas `<private>` (líneas 222-233).",
-        "cons": "Elegir el proveedor integrado claude-mem observer inicia una 30 Day Free Trial en una página de pago que exige un método de pago, y si no se convierte en suscripción, la memoria vuelve automáticamente al plan de Anthropic del usuario (líneas 143-146).",
-        "fit": "El README indica que Claude-Mem funciona con Claude Code, Codex, Cursor, OpenCode y 11 agentes más, mientras que Copilot CLI, Goose, Roo Code, Warp y Zed solo pueden buscar en la memoria existente porque sus sesiones no se registran, lo que sugiere que la herramienta se ajusta mejor a agentes con soporte completo de hooks (líneas 130 y 143)."
+        "goal": "Claude-Mem proporciona memoria persistente entre sesiones a agentes de codificación como Claude Code, Codex, Cursor y OpenCode. Mientras el agente trabaja, un segundo agente observador registra la actividad de las herramientas, de modo que la siguiente sesión puede comenzar con un índice condensado del contexto anterior en lugar de partir de cero.",
+        "usage": "Se instala con el comando `npx claude-mem install`, o dentro de Claude Code ejecutando primero `/plugin marketplace add thedotmack/claude-mem` y luego `/plugin install claude-mem`. Tras reiniciar Claude Code, a partir de la segunda sesión en un proyecto la memoria anterior se carga automáticamente.",
+        "pros": "La búsqueda utiliza un flujo de trabajo MCP de tres pasos (search, timeline, get_observations) eficiente en tokens, de modo que el agente solo obtiene los detalles completos de los IDs que realmente necesita. El contenido envuelto en etiquetas `<private>` nunca se almacena, y el proyecto se publica bajo la Apache License 2.0.",
+        "cons": "Copilot CLI, Goose, Roo Code, Warp y Zed solo pueden buscar en la memoria existente porque sus sesiones no se registran, por lo que la cobertura depende del agente utilizado. Instalar el paquete npm de forma global solo configura el SDK/biblioteca, no los hooks del plugin, por lo que probablemente siga siendo necesario el instalador npx documentado para una configuración completa.",
+        "fit": "Parece adecuado para desarrolladores que ya usan un agente de codificación compatible y desean continuidad entre sesiones sin tomar notas manualmente. La memoria se guarda localmente por defecto en `~/.claude-mem`, y la sincronización en la nube y el uso compartido en equipo se ofrecen como extensiones opcionales."
       },
       "ja": {
-        "goal": "Claude-Memは、コーディングエージェントが作業中に観察結果を記録することで、セッション間でコンテキストを保持するメモリシステムです(55行目、125〜131行目)。",
-        "usage": "`npx claude-mem install` でインストールすると、マシン上のエージェントを検出してフックを設定します。Claude Code内では `/plugin marketplace add thedotmack/claude-mem` と `/plugin install claude-mem` でも追加できます(139〜141行目、151〜157行目)。",
-        "pros": "文書によると、過去の観察内容のコンパクトなインデックスでセッションを再開できる点、トークン効率の良い3段階検索ワークフロー、ライブリクエストとレビューキューを表示するMy Workダッシュボード、オプションのチーム共有メモリ(TeamBrain)、`<private>`タグで囲んだ内容を保存しない機能などが利点として挙げられています(222〜233行目)。",
-        "cons": "組み込みのclaude-mem observerプロバイダーを選択すると、支払い方法を要求する決済ページで30 Day Free Trialが開始され、サブスクリプションに変更しない限りメモリは自動的に利用者自身のAnthropicプランに戻ります(143〜146行目)。",
-        "fit": "READMEによれば、Claude-MemはClaude Code、Codex、Cursor、OpenCodeなど11以上の追加エージェントで動作し、Copilot CLI、Goose、Roo Code、Warp、Zedはセッションが記録されないため既存メモリの検索のみ可能とされており、このツールはフックを完全にサポートするエージェントに最も適していると考えられます(130行目、143行目)。"
+        "goal": "Claude-Memは、Claude Code、Codex、Cursor、OpenCodeなどのコーディングエージェントに、セッションをまたいだ永続的な記憶を提供します。エージェントが作業する間、第二の「観察者」エージェントがツールの活動を記録し、次のセッションではゼロから始める代わりに、以前の文脈を要約したインデックスから開始できます。",
+        "usage": "`npx claude-mem install` コマンドでインストールするか、Claude Code内で `/plugin marketplace add thedotmack/claude-mem` を実行した後 `/plugin install claude-mem` でインストールできます。Claude Codeを再起動すると、同じプロジェクトの2回目のセッション以降、以前の記憶が自動的に読み込まれます。",
+        "pros": "検索は search、timeline、get_observations の3段階からなるトークン効率の良いMCPワークフローを使用し、エージェントは必要なIDについてのみ完全な観察詳細を取得します。`<private>` タグで囲まれた内容は保存されず、本プロジェクトはApache License 2.0の下で公開されています。",
+        "cons": "Copilot CLI、Goose、Roo Code、Warp、Zedはセッションが記録されないため既存の記憶の検索のみ可能であり、対応範囲は使用するエージェントによって異なります。npmパッケージをグローバルにインストールした場合はSDK/ライブラリのみが設定され、プラグインフックは設定されないため、完全な導入にはドキュメントに記載されたnpxインストーラーが引き続き必要になる可能性があります。",
+        "fit": "既にサポートされているコーディングエージェントを使用しており、手動でメモを取らずにセッション間の継続性を求める開発者に適している可能性があります。記憶は既定で `~/.claude-mem` にローカル保存され、クラウド同期やチーム共有はオプションの拡張機能として提供されます。"
       }
     },
     "evidence": {
@@ -6209,38 +6243,41 @@
           "section_heading": ""
         },
         {
-          "start_line": 125,
+          "start_line": 126,
           "end_line": 131,
           "section_heading": ""
         }
       ],
       "usage": [
         {
-          "start_line": 139,
+          "start_line": 140,
           "end_line": 141,
           "section_heading": "Quick Start"
         },
         {
-          "start_line": 151,
-          "end_line": 157,
+          "start_line": 153,
+          "end_line": 159,
           "section_heading": "Quick Start"
         }
       ],
       "pros": [
         {
-          "start_line": 222,
-          "end_line": 233,
+          "start_line": 224,
+          "end_line": 225,
+          "section_heading": "What You Get"
+        },
+        {
+          "start_line": 305,
+          "end_line": 314,
+          "section_heading": "MCP Search Tools"
+        },
+        {
+          "start_line": 229,
+          "end_line": 229,
           "section_heading": "What You Get"
         }
       ],
       "cons": [
-        {
-          "start_line": 143,
-          "end_line": 146,
-          "section_heading": "Quick Start"
-        }
-      ],
-      "fit": [
         {
           "start_line": 130,
           "end_line": 130,
@@ -6250,6 +6287,28 @@
           "start_line": 143,
           "end_line": 143,
           "section_heading": "Quick Start"
+        },
+        {
+          "start_line": 161,
+          "end_line": 161,
+          "section_heading": "Quick Start"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 143,
+          "end_line": 143,
+          "section_heading": "Quick Start"
+        },
+        {
+          "start_line": 149,
+          "end_line": 149,
+          "section_heading": "Quick Start"
+        },
+        {
+          "start_line": 227,
+          "end_line": 227,
+          "section_heading": "What You Get"
         }
       ]
     },
@@ -6281,23 +6340,15 @@
         "fields": [
           "goal",
           "usage",
-          "cons",
           "fit"
         ]
       },
       {
-        "kind": "number",
-        "value": "11",
+        "kind": "product",
+        "value": "Claude Code",
         "fields": [
-          "fit"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "30",
-        "fields": [
-          "cons",
-          "fit"
+          "goal",
+          "usage"
         ]
       }
     ],
@@ -6309,11 +6360,11 @@
       "kind": "readme",
       "slug": "thedotmack/claude-mem",
       "path": "README.md",
-      "blob_sha": "aa07c83f7e25dcd6a15bdcf360cb2bce09b1a6d3",
-      "content_sha256": "0974c7bbb8d170262fcd073fd30d18264eed50022f8ef6f10e04c340e7394f99",
+      "blob_sha": "c5671ed0955b0d4a2944467c5a96f4e0e6e45914",
+      "content_sha256": "0abe06da050056c4c7bacb408aa7b58d7436cfbb22c3e77503914929fd992295",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
-      "cli_version": "2.1.322",
+      "cli_version": "2.1.330",
       "auth_method": "oauth_token",
       "api_provider": "firstParty",
       "model": "claude-sonnet-5",

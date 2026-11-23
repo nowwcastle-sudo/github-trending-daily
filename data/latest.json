@@ -1,6 +1,6 @@
 {
-  "snapshotId": "20261123013548-460e3995acba3d38",
-  "generatedAt": "2026-11-23T01:35:48.805Z",
+  "snapshotId": "20261123122005-adae3c6a85420c12",
+  "generatedAt": "2026-11-23T12:20:05.464Z",
   "statsDate": "2026-11-23",
   "count": 40,
   "repos": [
@@ -27,27 +27,26 @@
         "security-tools",
         "web-security"
       ],
-      "stars": 17881,
-      "forks": 1975,
-      "issues": 17,
+      "stars": 18848,
+      "forks": 2047,
+      "issues": 13,
       "contributors": 19,
       "gains": {
-        "daily": 1716,
+        "daily": 2037,
         "weekly": null,
         "monthly": 11667
       },
       "signal": null,
       "summary": {
-        "goal": "Claude-BugHunter is a skill bundle for the Claude Code skills system that adds bug-hunting and external red-team capabilities, bundling 83 skills, 15 slash commands, and 681 disclosed-report patterns (433 individually cited) covering 24 core vulnerability classes.",
-        "usage": "Install as a Claude Code plugin with `/plugin marketplace add elementalsouls/Claude-BugHunter` followed by `/plugin install claude-bughunter@elementalsouls`, or clone the repository with `git clone https://github.com/elementalsouls/Claude-BugHunter.git` and run `bash scripts/install.sh` (macOS/Linux) or `pwsh ./scripts/install.ps1` (Windows) to copy skills into `~/.claude/`.",
-        "pros": "The bundle provides per-class web vulnerability detection patterns (XSS, SQLi, SSRF, IDOR, etc.), enterprise platform attack chains (M365/Entra, Okta, vCenter, SSL-VPN), and reporting/triage skills, and the same Agent Skills format also loads in OpenCode, Codex CLI, Hermes Agent, and Google AntiGravity.",
-        "cons": "The documentation notes that Anthropic's runtime cyber safeguards can block vulnerability-exploitation or offensive-tooling requests by default, meaning even authorized, in-scope usage may trigger a refusal unless the user enrolls in Anthropic's Cyber Verification Program.",
-        "fit": "Given its explicit scope limited to external attack surfaces and its stated exclusion of internal Active Directory attacks, C2 frameworks, and post-exploitation tooling, the bundle appears best suited to authorized bug-bounty hunters, web-app pentesters, and external red-teamers rather than internal red-team or post-compromise work."
+        "goal": "claude-bughunter is a skill bundle for Claude Code aimed at bug-bounty hunting and external red-team work, covering web application vulnerability detection, enterprise platform attack chains, and report triage/validation.",
+        "usage": "Install via the Claude Code plugin commands `/plugin marketplace add elementalsouls/Claude-BugHunter` and `/plugin install claude-bughunter@elementalsouls`, or clone the repository with `git clone https://github.com/elementalsouls/Claude-BugHunter.git` and run `bash scripts/install.sh` on macOS/Linux or `pwsh ./scripts/install.ps1` on Windows.",
+        "pros": "The bundle ships 83 skills and 15 slash commands drawing on 681 disclosed HackerOne report patterns (433 individually cited) across 24 vulnerability classes, plus enterprise identity/infrastructure attack matrices and Burp MCP integration.",
+        "cons": "By design the bundle explicitly excludes internal Active Directory attacks, C2 frameworks, post-exploitation/persistence techniques, and evasion tooling, so users needing those capabilities must look elsewhere; Anthropic's runtime safeguards can also block even authorized offensive-security work by default.",
+        "fit": "Given its stated focus on internet-facing external attack surfaces, the bundle appears best suited for bug bounty hunters and external red-team operators rather than teams needing internal network or AD-focused tooling."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 2,
       "field_tags": [
-        "ai-ml",
         "security"
       ],
       "form_tags": [
@@ -71,12 +70,12 @@
         "subagent-driven-development",
         "superpowers"
       ],
-      "stars": 324186,
-      "forks": 28758,
-      "issues": 363,
+      "stars": 324608,
+      "forks": 28801,
+      "issues": 364,
       "contributors": 44,
       "gains": {
-        "daily": 788,
+        "daily": 838,
         "weekly": null,
         "monthly": null
       },
@@ -97,7 +96,8 @@
       "form_tags": [
         "agent",
         "plugin-skill",
-        "framework"
+        "framework",
+        "cli"
       ]
     },
     {
@@ -106,12 +106,12 @@
       "description": "\"CLI-Anything: Making ALL Software Agent-Native\" -- CLI-Hub: https://clianything.cc/",
       "lang": "Python",
       "topics": [],
-      "stars": 62801,
-      "forks": 5701,
+      "stars": 63199,
+      "forks": 5740,
       "issues": 286,
       "contributors": 144,
       "gains": {
-        "daily": 699,
+        "daily": 783,
         "weekly": null,
         "monthly": null
       },
@@ -143,24 +143,24 @@
         "artificial-intelligence",
         "large-language-model"
       ],
-      "stars": 68689,
-      "forks": 8979,
+      "stars": 69205,
+      "forks": 9037,
       "issues": 61,
       "contributors": 33,
       "gains": {
-        "daily": 473,
+        "daily": 828,
         "weekly": null,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "MiniMind is an open-source project that trains a small language model (~64M parameters) completely from scratch, covering the full pipeline: pretraining (Pretrain), supervised fine-tuning (SFT), LoRA, DPO, RLAIF (PPO/GRPO/CISPO), Tool Use, and Agentic RL.",
-        "usage": "Clone the repository with `git clone --depth 1 https://github.com/jingyaogong/minimind`, install dependencies with `pip install -r requirements.txt`, download a released model, then run `python eval_llm.py --load_from ./minimind-3` for inference, or `python train_pretrain.py` followed by SFT scripts to train from scratch.",
-        "pros": "Pretraining, SFT, LoRA, DPO, and RLAIF algorithms are implemented natively in PyTorch without relying on high-level third-party library abstractions, while remaining compatible with transformers, llama.cpp, vllm, and ollama, and supporting multi-GPU/DeepSpeed training with wandb/SwanLab visualization.",
-        "cons": "Documented benchmark results show the released small-scale models perform weakly on English tasks, likely because the training data and tokenizer (a 6,400-token vocabulary) are optimized for compact size and Chinese text rather than broad multilingual coverage.",
-        "fit": "Given its emphasis on low-cost (~3 RMB) and ~2-hour training on a single consumer GPU, the project appears best suited to individual learners and researchers studying LLM internals, rather than teams seeking production-ready large models comparable to ChatGPT or Qwen."
+        "goal": "MiniMind's goal is to let individuals train a very small (~64M parameter) language model entirely from scratch, at an estimated cost of about 3 RMB and around 2 hours on a single NVIDIA 3090 GPU, covering pretraining, SFT, LoRA, RLHF/DPO, and RLAIF (PPO/GRPO/CISPO), Tool Use, and Agentic RL, implemented natively in PyTorch.",
+        "usage": "Clone the repository and install dependencies with `git clone --depth 1 https://github.com/jingyaogong/minimind` and `pip install -r requirements.txt`; run inference via `python eval_llm.py --load_from ./minimind-3`, and run training stages such as `cd trainer && python train_pretrain.py` or `python train_full_sft.py`.",
+        "pros": "Core training algorithms (pretraining, SFT, LoRA, DPO, distillation) are implemented natively in PyTorch without relying on high-level third-party wrappers, while the project documents compatibility with transformers, trl, peft, and inference engines like llama.cpp, vllm, and ollama, plus multi-GPU DDP/DeepSpeed training with wandb/SwanLab logging.",
+        "cons": "The README's own benchmark results show weak English-language performance because training data is weighted toward Chinese, and the custom tokenizer's vocabulary is limited to 6,400 tokens, notably smaller than tokenizers used by comparable open models.",
+        "fit": "This appears best suited to learners and researchers wanting a hands-on, reproducible path through full LLM training pipelines on a single consumer GPU, rather than to those seeking a production-ready model with strong multilingual or large-scale capability."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml"
@@ -173,12 +173,12 @@
       "description": "Cursor plugin specification and official plugins",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 18464,
-      "forks": 2010,
-      "issues": 693,
+      "stars": 18659,
+      "forks": 2027,
+      "issues": 694,
       "contributors": 37,
       "gains": {
-        "daily": 294,
+        "daily": 395,
         "weekly": null,
         "monthly": null
       },
@@ -226,12 +226,12 @@
         "web-search",
         "webscraping"
       ],
-      "stars": 207064,
-      "forks": 10817,
-      "issues": 920,
+      "stars": 207460,
+      "forks": 10843,
+      "issues": 924,
       "contributors": 181,
       "gains": {
-        "daily": 915,
+        "daily": 920,
         "weekly": null,
         "monthly": null
       },
@@ -275,12 +275,12 @@
         "udp-proxy-server",
         "web-server"
       ],
-      "stars": 32891,
-      "forks": 8382,
-      "issues": 493,
+      "stars": 32975,
+      "forks": 8393,
+      "issues": 495,
       "contributors": 145,
       "gains": {
-        "daily": 163,
+        "daily": 174,
         "weekly": null,
         "monthly": null
       },
@@ -325,12 +325,12 @@
         "transformers",
         "yolo"
       ],
-      "stars": 12094,
-      "forks": 3659,
-      "issues": 1210,
+      "stars": 12200,
+      "forks": 3671,
+      "issues": 1218,
       "contributors": 945,
       "gains": {
-        "daily": 158,
+        "daily": 183,
         "weekly": null,
         "monthly": null
       },
@@ -355,7 +355,7 @@
     {
       "slug": "cathrynlavery/diagram-design",
       "name": "cathrynlavery / diagram-design",
-      "description": "Editorial diagram design for Claude Code, Codex, GitHub Copilot, Cursor, Factory Droid, Qoder, and Pi. 45 diagram types. Self-contained HTML + SVG. No shadows. No Mermaid slop.",
+      "description": "Editorial diagram design for Claude Code, Codex, GitHub Copilot, Cursor, Factory Droid, Qoder, and Pi. 52 diagram types. Self-contained HTML + SVG. No shadows. No Mermaid slop.",
       "lang": "HTML",
       "topics": [
         "agent-skills",
@@ -367,24 +367,24 @@
         "mermaid",
         "svg"
       ],
-      "stars": 70318,
-      "forks": 4714,
-      "issues": 44,
-      "contributors": 76,
+      "stars": 70665,
+      "forks": 4739,
+      "issues": 40,
+      "contributors": 77,
       "gains": {
-        "daily": 518,
+        "daily": 624,
         "weekly": null,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "Diagram Design is an agent skill that generates diagrams as a single self-contained HTML file with inline SVG, matched to the user's brand colors and fonts. It covers 51 diagram types, each offered in three visual variants.",
-        "usage": "Install with `npx skills add cathrynlavery/diagram-design`, or in Claude Code with `/plugin marketplace add cathrynlavery/diagram-design` followed by `/plugin install diagram-design@diagram-design`. After installing, ask the connected agent for a diagram in plain language, e.g. \"make an architecture diagram of frontend, backend, and database.\"",
-        "pros": "Output is a single portable HTML+SVG file with no build step or external image dependency, covering 51 diagram types. An onboarding flow can pull color palette and fonts from a website to match a brand, and templates include accessible SVG markup (ARIA roles/labels). It can also import and redraw existing draw.io, Mermaid, Excalidraw, or PlantUML diagrams.",
-        "cons": "The README states that output quality depends on the model used and that the same prompt can produce a different layout between runs. The generated diagrams do not appear to be an editable source format, so changes likely can't be diffed as text in a pull request or dragged on a canvas the way Mermaid or draw.io files can.",
-        "fit": "This tool appears best suited for diagrams meant to be published once, rather than documentation that changes every sprint inside Git, for which the README recommends Mermaid instead. It also seems to require a host environment that supports Agent Skills, such as Claude Code, Cursor, or Codex."
+        "goal": "Diagram Design is an agent skill that generates diagrams as a single self-contained HTML file with inline SVG, matched to a user's brand. It covers 52 diagram types, each in three variants (minimal light, minimal dark, full-editorial), and can also redraw existing diagrams from draw.io, Mermaid, Excalidraw, or PlantUML sources.",
+        "usage": "Install with `npx skills add cathrynlavery/diagram-design`, or in Claude Code run `/plugin marketplace add cathrynlavery/diagram-design` followed by `/plugin install diagram-design@diagram-design`. After installation, users ask their agent in plain language (e.g., for an architecture diagram or sequence diagram), and the agent writes one `.html` file that opens by double-clicking.",
+        "pros": "Output is a single file with no build step, JavaScript, or external image dependency, and loads fonts from Google Fonts as its only network request (or none, with system fonts). It supports brand onboarding by extracting a site's palette and fonts, and works across many Agent Skills hosts, including Cursor, Claude Code, Codex, and GitHub Copilot.",
+        "cons": "Output quality depends on the model running it, and the same prompt can lay out a diagram differently between runs. The result is not an editable source format: there is no text to diff in a pull request and no canvas to drag shapes on. PNG export additionally requires a one-time setup step (`pip install playwright && playwright install chromium`).",
+        "fit": "The README positions it for diagrams meant to be published, such as blog posts or decks, rather than documentation that lives in Git and changes frequently, for which it states Mermaid remains the better fit."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 2,
       "field_tags": [
         "web-app",
@@ -421,12 +421,12 @@
         "twitter",
         "youtube"
       ],
-      "stars": 72742,
-      "forks": 6425,
-      "issues": 22,
+      "stars": 73119,
+      "forks": 6461,
+      "issues": 25,
       "contributors": 182,
       "gains": {
-        "daily": 668,
+        "daily": 790,
         "weekly": 4731,
         "monthly": null
       },
@@ -438,7 +438,7 @@
         "cons": "Several listed sources (X, TikTok, Xiaohongshu, Telegram, Trustpilot, Amazon) depend on opt-in credentials, installed CLIs, or browser sessions, so the set of sources actually searched likely varies by topic and configured keys. Claude Desktop installation also requires Python 3.12+ on the host.",
         "fit": "The project appears aimed at people who want a fast read on recent community activity before meetings, sales calls, or trips, and it is documented to install across Claude Code, Claude Desktop, claude.ai, Grok, Codex, Cursor, Copilot, Gemini CLI, and OpenClaw."
       },
-      "summary_status": "verified",
+      "summary_status": "retained",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -456,12 +456,12 @@
       "description": "A library of Agent Skills designed to work with the Stitch MCP server. Each skill follows the Agent Skills open standard, for compatibility with coding agents such as Antigravity, Gemini CLI, Claude Code, Cursor.",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 11936,
-      "forks": 1475,
-      "issues": 28,
+      "stars": 12108,
+      "forks": 1501,
+      "issues": 29,
       "contributors": 19,
       "gains": {
-        "daily": 494,
+        "daily": 425,
         "weekly": 2683,
         "monthly": 3189
       },
@@ -512,12 +512,12 @@
         "pre-submission-checklist",
         "privacy-manifest"
       ],
-      "stars": 4010,
-      "forks": 238,
-      "issues": 28,
+      "stars": 4480,
+      "forks": 286,
+      "issues": 30,
       "contributors": 4,
       "gains": {
-        "daily": 621,
+        "daily": 755,
         "weekly": null,
         "monthly": null
       },
@@ -560,12 +560,12 @@
         "site-reliability-engineering",
         "slack"
       ],
-      "stars": 14436,
-      "forks": 1965,
-      "issues": 21,
+      "stars": 14623,
+      "forks": 1981,
+      "issues": 22,
       "contributors": 370,
       "gains": {
-        "daily": 399,
+        "daily": 438,
         "weekly": null,
         "monthly": null
       },
@@ -614,12 +614,12 @@
         "wiki",
         "workspace"
       ],
-      "stars": 76844,
-      "forks": 5627,
-      "issues": 844,
-      "contributors": 278,
+      "stars": 77113,
+      "forks": 5649,
+      "issues": 738,
+      "contributors": 280,
       "gains": {
-        "daily": 542,
+        "daily": 593,
         "weekly": null,
         "monthly": null
       },
@@ -665,24 +665,24 @@
         "software",
         "streaming"
       ],
-      "stars": 15178,
-      "forks": 914,
-      "issues": 105,
+      "stars": 15880,
+      "forks": 955,
+      "issues": 107,
       "contributors": 19,
       "gains": {
-        "daily": 701,
+        "daily": 1078,
         "weekly": null,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "Ghost Downloader (Ghost-Downloader-3) is a multi-protocol download manager supporting HTTP, Magnet/BT, FTP, M3U8, MPEG-DASH, eD2k, plus YouTube, Bilibili, GitHub, and HuggingFace downloads, running natively on Windows, macOS, Linux, and Android.",
-        "usage": "Users install the `ghd` command-line tool from Settings -> Command Line Tool inside the app, then run commands such as `ghd probe <url>` to preview a URL or `ghd add <url>...` to add and start download tasks.",
-        "pros": "The app uses smart chunking without file merging, real-browser TLS fingerprints to avoid anti-bot checks, a browser extension that sniffs downloadable media, and an aria2-compatible RPC API for third-party tool integration.",
-        "cons": "Qt 6.6+ drops support for CPUs lacking the AVX instruction set, and the plugin API for Feature Packs is not yet public while it is still being stabilized, which may limit extensibility and older-hardware compatibility.",
-        "fit": "It fits users across Windows 10+, macOS 13.0+, Linux (glibc 2.35+), and Android 9.0+ who want one application covering many download protocols instead of several separate tools."
+        "goal": "Ghost Downloader 3 is a download manager that handles multiple protocols, including HTTP, Magnet/BT, FTP, M3U8, MPEG-DASH, eD2k, YouTube, and Bilibili (with clip selection, quality options, and subtitles), as well as GitHub and HuggingFace downloads with mirror acceleration. It runs natively on Windows, macOS, Linux, and Android.",
+        "usage": "A command-line tool is installed from inside the app via Settings -> Command Line Tool. Example commands include `ghd probe <url>` to preview a URL without starting a download, and `ghd add <url>...` to add and start download tasks.",
+        "pros": "It consolidates many download protocols and sources into a single application, provides an `aria2`-compatible RPC API so third-party tools can control tasks, and pairs with a browser extension that lets detected downloads continue seamlessly in the desktop app.",
+        "cons": "Each platform carries a minimum version requirement: Windows `10+`, macOS `13.0+`, Linux `glibc 2.35+`, and Android `9.0+`. The README also notes that Qt `6.6+` no longer supports CPUs without the AVX instruction set, which could exclude some older systems from running the app.",
+        "fit": "The project is distributed under the `GPL v3.0` License, which suggests it is intended for users open to working within open-source licensing terms, though the README does not detail enterprise or commercial-use considerations."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 2,
       "field_tags": [
         "productivity"
@@ -711,22 +711,22 @@
         "xiaohongshu",
         "youtube-shorts"
       ],
-      "stars": 13470,
-      "forks": 2128,
-      "issues": 29,
-      "contributors": 6,
+      "stars": 14072,
+      "forks": 2191,
+      "issues": 31,
+      "contributors": 9,
       "gains": {
-        "daily": 641,
+        "daily": 908,
         "weekly": null,
         "monthly": null
       },
       "signal": null,
       "summary": {
-        "goal": "AutoClip is an open-source (MIT-licensed) tool that generates short video clips, covers, and publishing text from a pasted video link, with editing and rendering performed locally on the user's computer. It appears to target platforms including Douyin, Xiaohongshu, TikTok, Reels, YouTube Shorts, Bilibili, and YouTube. The software itself is free; cloud model usage is billed separately by the chosen provider.",
-        "usage": "It is distributed as a desktop app (macOS Apple Silicon or Windows x64), via Docker (`git clone https://github.com/zhouxiaoka/autoclip.git` then `docker compose up -d --build`), or via CLI/MCP requiring Python 3.10+ and FFmpeg, where `autoclip --version` reports the installed version and a `produce` command runs the clip pipeline.",
-        "pros": "For each selected platform, it automatically generates up to 10 qualified clips based on scoring, each paired with a cover, title, description, tags, and a ZIP publishing package, while the core editing and rendering stay on the local machine rather than being uploaded.",
-        "cons": "Cloud-based analysis, transcription, or image generation require the user's own API credentials and incur usage-based fees; the documented timing/cost figures come from three different source clips rather than a controlled same-input comparison, so results may not generalize, and YouTube output reportedly requires full clips of at least 180 seconds.",
-        "fit": "It appears best suited to users wanting local video editing/rendering with optional cloud model integration: a desktop app for individual use, Docker for self-hosted web/Linux deployment, or CLI/MCP for batch processing or agent integration."
+        "goal": "AutoClip is an open-source tool that converts a single video link into finished output—video, cover image, and publishing caption—rendered locally on the user's computer. It supports Douyin, Xiaohongshu, TikTok, Reels, YouTube Shorts, Bilibili, and YouTube. The software is free; cloud models are billed by usage.",
+        "usage": "AutoClip can run as a desktop app (macOS Apple Silicon or Windows x64), via Docker Compose, or through a CLI/MCP interface requiring Python 3.10+ and FFmpeg. Deployment commands include `docker compose up -d --build` for the Docker/Web setup and `autoclip --version` to verify the CLI installation.",
+        "pros": "It auto-generates up to 10 qualified clips per platform, each paired with a cover image, title, description, hashtags, and a ZIP publishing kit, while matching aspect ratio and duration to the chosen platform. Editing and rendering stay on the local machine, and users can choose their own analysis model and subtitle source, including author subtitles, local Whisper/SenseVoice, or cloud transcription.",
+        "cons": "Desktop installers are not yet code-signed or notarized, so new releases may trigger Windows SmartScreen warnings or antivirus false positives, and there is currently no desktop installer for Intel Macs, which instead require Docker or CLI usage.",
+        "fit": "The tool appears best suited to individual creators or small teams producing short clips from interviews, podcasts, or talks on their own hardware or via self-hosted Docker/CLI/Agent integration. As a solo-maintained project without guaranteed response times, it may be less suited to users requiring dedicated support."
       },
       "summary_status": "verified",
       "tag_rule_version": 2,
@@ -755,9 +755,9 @@
         "plan-mode",
         "skills"
       ],
-      "stars": 14443,
-      "forks": 1431,
-      "issues": 206,
+      "stars": 14579,
+      "forks": 1437,
+      "issues": 215,
       "contributors": 216,
       "gains": {
         "daily": null,
@@ -787,9 +787,9 @@
       "description": "Keep your coding agent up to date with the latest web best practices",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 10220,
-      "forks": 810,
-      "issues": 384,
+      "stars": 10382,
+      "forks": 820,
+      "issues": 385,
       "contributors": 81,
       "gains": {
         "daily": null,
@@ -828,9 +828,9 @@
         "harness",
         "repository-level-context"
       ],
-      "stars": 55425,
-      "forks": 4604,
-      "issues": 345,
+      "stars": 55572,
+      "forks": 4615,
+      "issues": 349,
       "contributors": 229,
       "gains": {
         "daily": null,
@@ -871,9 +871,9 @@
         "mcp-server",
         "puppeteer"
       ],
-      "stars": 58848,
-      "forks": 4916,
-      "issues": 138,
+      "stars": 58949,
+      "forks": 4922,
+      "issues": 131,
       "contributors": 175,
       "gains": {
         "daily": null,
@@ -903,10 +903,10 @@
       "description": "Claude Code skills for equity investors and traders — market analysis, technical charting, economic calendars, screeners, and trading strategy development.",
       "lang": "Python",
       "topics": [],
-      "stars": 7796,
-      "forks": 1496,
-      "issues": 56,
-      "contributors": 44,
+      "stars": 7881,
+      "forks": 1509,
+      "issues": 51,
+      "contributors": 46,
       "gains": {
         "daily": null,
         "weekly": 2616,
@@ -943,9 +943,9 @@
         "agentic-workflow",
         "ai-agents"
       ],
-      "stars": 21201,
-      "forks": 2157,
-      "issues": 605,
+      "stars": 21301,
+      "forks": 2166,
+      "issues": 610,
       "contributors": 195,
       "gains": {
         "daily": null,
@@ -977,10 +977,10 @@
       "description": "An open source design system that's fully customizable and agent ready",
       "lang": "TypeScript",
       "topics": [],
-      "stars": 32246,
-      "forks": 2529,
-      "issues": 784,
-      "contributors": 144,
+      "stars": 32403,
+      "forks": 2545,
+      "issues": 786,
+      "contributors": 145,
       "gains": {
         "daily": null,
         "weekly": 3626,
@@ -1010,8 +1010,8 @@
       "description": "Enable Hermès Watch Faces on any Apple Watch devices",
       "lang": "Objective-C",
       "topics": [],
-      "stars": 2405,
-      "forks": 200,
+      "stars": 2423,
+      "forks": 201,
       "issues": 84,
       "contributors": 13,
       "gains": {
@@ -1041,9 +1041,9 @@
       "description": "The personal finance app for everyone (by everyone)",
       "lang": "Ruby",
       "topics": [],
-      "stars": 17345,
-      "forks": 1526,
-      "issues": 1135,
+      "stars": 17447,
+      "forks": 1537,
+      "issues": 1145,
       "contributors": 484,
       "gains": {
         "daily": null,
@@ -1093,10 +1093,10 @@
         "workspace",
         "xlsx"
       ],
-      "stars": 31274,
-      "forks": 2844,
-      "issues": 210,
-      "contributors": 88,
+      "stars": 31380,
+      "forks": 2849,
+      "issues": 209,
+      "contributors": 89,
       "gains": {
         "daily": null,
         "weekly": 6436,
@@ -1147,9 +1147,9 @@
         "video-editing",
         "whisper"
       ],
-      "stars": 9743,
-      "forks": 865,
-      "issues": 47,
+      "stars": 10013,
+      "forks": 879,
+      "issues": 49,
       "contributors": 12,
       "gains": {
         "daily": null,
@@ -1181,8 +1181,8 @@
       "description": "Anti-AI-slop design skill for Claude Code, Cursor, and Codex.",
       "lang": "CSS",
       "topics": [],
-      "stars": 59547,
-      "forks": 3258,
+      "stars": 59828,
+      "forks": 3271,
       "issues": 55,
       "contributors": 12,
       "gains": {
@@ -1215,8 +1215,8 @@
       "description": "A coding-agent skill for multi-phase security audits with independently verified, machine-readable findings",
       "lang": "JavaScript",
       "topics": [],
-      "stars": 77118,
-      "forks": 5198,
+      "stars": 77321,
+      "forks": 5207,
       "issues": 143,
       "contributors": 4,
       "gains": {
@@ -1262,9 +1262,9 @@
         "self-hosted",
         "typescript"
       ],
-      "stars": 26858,
-      "forks": 3833,
-      "issues": 1279,
+      "stars": 27045,
+      "forks": 3856,
+      "issues": 1328,
       "contributors": 331,
       "gains": {
         "daily": null,
@@ -1305,10 +1305,10 @@
         "code",
         "vibe-coding"
       ],
-      "stars": 71732,
-      "forks": 12129,
-      "issues": 3779,
-      "contributors": 1305,
+      "stars": 73576,
+      "forks": 12289,
+      "issues": 3729,
+      "contributors": 1314,
       "gains": {
         "daily": null,
         "weekly": null,
@@ -1316,13 +1316,13 @@
       },
       "signal": null,
       "summary": {
-        "goal": "T3 Code is described as an open-source control plane for coding agents, letting users run agents such as Claude Code, Codex, Cursor, OpenCode, and other ACP-compatible agents locally while controlling them from one interface across desktop, web, and phone.",
-        "usage": "Installation is available via a desktop app download, package managers (e.g. brew install --cask t3-code, winget install T3Tools.T3Code), or a command-line install script (curl -fsSL https://t3.codes/install.sh | sh), after which running t3 starts the server and opens the web app; npx t3@latest allows trying it without installing.",
-        "pros": "The README states T3 Code uses the user's existing agent subscriptions rather than reselling tokens, supports switching models mid-thread, provides synchronized desktop/web/phone clients from one server, integrates git worktrees with built-in diff review and PR creation, and is MIT licensed.",
-        "cons": "Using T3 Code requires at least one coding agent to already be installed and signed in separately (e.g. via claude auth login or codex login), so it does not function as a standalone agent on its own.",
-        "fit": "Based on the README, T3 Code appears suited for developers who already use agents like Claude Code, Codex, or Cursor and want a unified, remote-capable interface across machines via local network, Tailscale, or T3 Connect."
+        "goal": "T3 Code is an open-source MIT-licensed control plane for coding agents, running agents like Claude Code, Codex, Cursor, OpenCode, Grok Build, Antigravity, Kiro, Pi, Muse Code, fx, and ACP agents on the user's own machine via one interface, letting a thread be started on desktop and approved from a phone.",
+        "usage": "Install the desktop app from https://t3.codes/download or a package manager, or install the CLI with `curl -fsSL https://t3.codes/install.sh | sh` (PowerShell: `irm https://t3.codes/install.ps1 | iex`) and run `t3` to start the server and open the web app; `npx t3@latest` allows a one-time trial. It requires at least one agent already installed and signed in, e.g. via `claude auth login` or `codex login`.",
+        "pros": "It does not resell tokens, instead using the user's existing agent subscriptions; it unifies desktop, web, and phone clients around one server and the same threads; it includes built-in git support with per-thread worktrees and one-button commit, push, and pull-request actions; remote access is supported via local network, Tailscale, or T3 Connect.",
+        "cons": "Because it depends on externally installed and signed-in agents rather than bundling them, at least one separate agent (e.g. Claude Code or Codex CLI) must be set up and authenticated before T3 Code can be used, which is an added prerequisite step beyond installing T3 Code itself.",
+        "fit": "It appears suited for developers who already use one or more coding agents and want a single, performant interface to manage and switch between them across desktop, web, and mobile, including remote approval workflows; it may be less relevant for users without any coding agent already installed."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
@@ -1340,9 +1340,9 @@
       "topics": [
         "agent-skills"
       ],
-      "stars": 199024,
-      "forks": 23292,
-      "issues": 1569,
+      "stars": 199243,
+      "forks": 23322,
+      "issues": 1574,
       "contributors": 17,
       "gains": {
         "daily": null,
@@ -1393,9 +1393,9 @@
         "sqlite",
         "supermemory"
       ],
-      "stars": 119097,
-      "forks": 10350,
-      "issues": 79,
+      "stars": 119208,
+      "forks": 10357,
+      "issues": 91,
       "contributors": 398,
       "gains": {
         "daily": null,
@@ -1404,21 +1404,20 @@
       },
       "signal": null,
       "summary": {
-        "goal": "Claude-Mem is a memory system for coding agents that keeps context across sessions by recording observations while the agent works (lines 55, 125-131).",
-        "usage": "Install with `npx claude-mem install`, which detects agents on the machine and sets up hooks; it can also be added inside Claude Code with `/plugin marketplace add thedotmack/claude-mem` and `/plugin install claude-mem` (lines 139-141, 151-157).",
-        "pros": "Documented benefits include resuming a session with a compact index of past observations, a token-efficient three-step search workflow, a My Work dashboard for live requests and a review queue, optional team-shared memory (TeamBrain), and excluding content wrapped in `<private>` tags from storage (lines 222-233).",
-        "cons": "Choosing the built-in claude-mem observer provider starts a 30 Day Free Trial on a checkout page that requires a payment method, and memory automatically falls back to the user's own Anthropic plan if the trial is not converted to a subscription (lines 143-146).",
-        "fit": "The README states Claude-Mem works with Claude Code, Codex, Cursor, OpenCode and 11 more agents, while Copilot CLI, Goose, Roo Code, Warp and Zed can only search existing memory since their sessions aren't recorded, suggesting the tool fits agents with full hook support best (lines 130, 143)."
+        "goal": "Claude-Mem gives coding agents like Claude Code, Codex, Cursor, and OpenCode persistent memory across sessions. While the agent works, a second observer agent records tool activity, so the next session can start with a condensed index of prior context instead of from zero.",
+        "usage": "Install with `npx claude-mem install`, or inside Claude Code run `/plugin marketplace add thedotmack/claude-mem` followed by `/plugin install claude-mem`, then restart Claude Code; starting with the second session in a project, prior memory loads automatically.",
+        "pros": "Search uses a token-efficient three-step MCP workflow (search, timeline, get_observations), so agents fetch full observation details only for IDs they actually need. Content wrapped in `<private>` tags is never stored, and the project is released under the Apache License 2.0.",
+        "cons": "Copilot CLI, Goose, Roo Code, Warp, and Zed can only search existing memory since their sessions are not recorded, so coverage depends on which agent is used. Installing the npm package globally only sets up the SDK/library, not the plugin hooks, so the documented npx installer is likely still needed for a full setup.",
+        "fit": "Likely fits developers already using a supported coding agent who want continuity between sessions without manual note-taking. Memory is stored locally under `~/.claude-mem` by default, with cloud sync and team sharing offered as opt-in extensions."
       },
-      "summary_status": "retained",
+      "summary_status": "verified",
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
         "dev-tools"
       ],
       "form_tags": [
-        "plugin-skill",
-        "library"
+        "plugin-skill"
       ]
     },
     {
@@ -1427,9 +1426,9 @@
       "description": "Thirteen Claude skills that run an Instagram account: Reels off 26 scored hook formulas, a viral research skill, a caption linter, and a humanizer. Free, MIT.",
       "lang": "Python",
       "topics": [],
-      "stars": 8320,
-      "forks": 1521,
-      "issues": 72,
+      "stars": 8469,
+      "forks": 1534,
+      "issues": 73,
       "contributors": 1,
       "gains": {
         "daily": null,
@@ -1471,9 +1470,9 @@
         "multi-agent-systems",
         "rag"
       ],
-      "stars": 61619,
-      "forks": 7431,
-      "issues": 426,
+      "stars": 61798,
+      "forks": 7447,
+      "issues": 433,
       "contributors": 349,
       "gains": {
         "daily": null,
@@ -1492,8 +1491,7 @@
       "tag_rule_version": 2,
       "field_tags": [
         "ai-ml",
-        "productivity",
-        "learning"
+        "productivity"
       ],
       "form_tags": [
         "agent"
@@ -1511,8 +1509,8 @@
         "design",
         "slop"
       ],
-      "stars": 115038,
-      "forks": 6852,
+      "stars": 115325,
+      "forks": 6877,
       "issues": 70,
       "contributors": 67,
       "gains": {
@@ -1536,8 +1534,7 @@
         "dev-tools"
       ],
       "form_tags": [
-        "plugin-skill",
-        "cli"
+        "plugin-skill"
       ]
     },
     {
@@ -1563,8 +1560,8 @@
         "sherlock",
         "tools"
       ],
-      "stars": 115880,
-      "forks": 13249,
+      "stars": 116085,
+      "forks": 13269,
       "issues": 421,
       "contributors": 315,
       "gains": {
@@ -1604,8 +1601,8 @@
         "open-source",
         "seo"
       ],
-      "stars": 31658,
-      "forks": 3899,
+      "stars": 31775,
+      "forks": 3906,
       "issues": 68,
       "contributors": 53,
       "gains": {
@@ -1660,10 +1657,10 @@
         "video-editor",
         "video-generation"
       ],
-      "stars": 88297,
-      "forks": 8217,
-      "issues": 304,
-      "contributors": 154,
+      "stars": 88624,
+      "forks": 8256,
+      "issues": 308,
+      "contributors": 155,
       "gains": {
         "daily": null,
         "weekly": null,
@@ -1694,9 +1691,9 @@
       "description": "Browser automation CLI for AI agents",
       "lang": "Rust",
       "topics": [],
-      "stars": 53430,
-      "forks": 3739,
-      "issues": 579,
+      "stars": 53534,
+      "forks": 3748,
+      "issues": 580,
       "contributors": 122,
       "gains": {
         "daily": null,
