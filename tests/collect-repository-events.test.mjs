@@ -450,12 +450,18 @@ test("prior continuity rejects a parent database byte swap before event collecti
   }), /database|evidence|prior head/i);
 });
 
-test("page twenty without next completes, but a next link fails instead of truncating", async () => {
-  const pages = Array.from({ length: 20 }, (_, index) => [release(index + 1)]);
+test("a 35-page release listing (page 34 links next, page 35 ends) completes", async () => {
+  const pages = Array.from({ length: 35 }, (_, index) => [release(index + 1)]);
   const ok = await collectRepositoryEvents([repo], { fetchImpl: successfulFetch({ releasePages: pages }) });
-  assert.equal(ok.releases.length, 20);
+  assert.equal(ok.releases.length, 35);
+});
+
+test("page forty without next completes, but a next link fails instead of truncating", async () => {
+  const pages = Array.from({ length: 40 }, (_, index) => [release(index + 1)]);
+  const ok = await collectRepositoryEvents([repo], { fetchImpl: successfulFetch({ releasePages: pages }) });
+  assert.equal(ok.releases.length, 40);
   await assert.rejects(
-    collectRepositoryEvents([repo], { fetchImpl: successfulFetch({ releasePages: [...pages, [release(21)]] }) }),
+    collectRepositoryEvents([repo], { fetchImpl: successfulFetch({ releasePages: [...pages, [release(41)]] }) }),
     /release page cap/i,
   );
 });
