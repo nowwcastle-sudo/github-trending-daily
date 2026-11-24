@@ -11,7 +11,11 @@ export const MAX_FROZEN_FACTS_BYTES = 320 * 1024 * 1024;
 
 export const EVENT_LIMITS = Object.freeze({
   maxRepositories: 75,
-  maxReleasePages: 20,
+  // Raised 20 -> 40 on 2026-11-25: yetone/magpie lists 34 pages and stopped the
+  // 2026-11-24 full refresh. Partial inventories stay forbidden (the schema
+  // cannot mark them), so the cap still fails closed. The whole-run budget
+  // (maxLogicalRequests, eventWindowMs) is unchanged and still bounds requests.
+  maxReleasePages: 40,
   // 80 pages x 100 commits. A fast-forward beyond this window is a fail-closed
   // "Commit continuity gap" for the whole refresh; 20 pages blocked the
   // 2026-09-05 refresh when NousResearch/hermes-agent advanced 4,384 commits
