@@ -25,6 +25,8 @@
 
 ## 변경 이력과 다음 한 작업
 
+2026-11-26: Dot A 편지 t_05e8324c1b 지적을 코드로 확인했다. 예약 갱신 run 45722454250 은 attempt 2(실패 작업 재실행, 01:57Z)였고 prepare 출력(attempt 1, 23:34Z 기준 하드 마감 01:29Z)을 그대로 재사용해 게시 단계가 02:00Z 에 「refresh teardown cushion reached」로 멈췄다. enrich·publish 작업 첫 단계에 「재사용한 prepare 시계가 이미 끝났는지」 검사를 두어 마감−쿠션을 넘었으면 곧바로 「new full run required」로 중단한다. 기존 게시 단계의 쿠션 검사(안전 시간 제한)는 그대로다. 시험 `tests/stale-prepare-clock.test.mjs`(bash·pwsh 실행 시험). 이 수정은 다음 전체 실행(새 run)부터 적용되며 이미 끝난 run 은 바뀌지 않는다.
+
 2026-10-25: 러너 로그에서 자동 업데이트 성공과 listener 종료 코드 3을 확인했다. 기존 `run-sanitized.ps1`가 listener EXE를 직접 실행해 공식 `run.cmd`의 재시작 처리를 건너뛴다. 공식 진입점 재사용을 채택했다. 별도 재시작 루프는 중복이므로 기각했다. 다음 작업은 재현 테스트 후 공식 진입점 호출로 수정하는 것이다.
 
 2026-10-25 검증 마감: Node 867개 중 844 pass/23 skip/0 fail, Python 175 pass. 별도 Windows 회귀 1 pass. skip은 운영체제·Firestore 에뮬레이터 조건이며 전체 무생략 통과를 뜻하지 않는다. 로컬 Python은 3.14.8이고 CI는 3.13이다. 런타임 의존성 audit 0건. 전체 설치 audit의 개발 의존성 경고 31건은 이 변경에서 일괄 업그레이드하지 않았다. pstack 기본 Claude/Grok 모델은 도구가 거절했고 gpt-6-astra와 gpt-6.1-sol 독립 리뷰로 대체했다. 두 리뷰와 별도 보안 리뷰 모두 no findings. 테스트는 공식 launcher 호출·환경 정리·종료코드 전달을 증명하며 실제 자동 업데이트 자체를 재발시키지는 않았다. 다음 한 작업은 PR·CI 통과 후 전체 갱신 워크플로를 실행해 산출물과 운영 상태를 확인하는 것이다.
