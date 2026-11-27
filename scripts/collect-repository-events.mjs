@@ -199,7 +199,32 @@ export function createPersistentEventCollectionContext({ statePath, originEpochM
 }
 
 function retryableStatus(status) { return status === 429 || status >= 500; }
-function retryableError(error) { return error?.name === "AbortError" || error?.name === "TimeoutError"; }
+// Transient transport failures only. Every label below is a fixed constant:
+// upstream text is never copied into an error. Deterministic failures (a
+// redirect under `redirect: "error"`, TLS/certificate faults, unknown codes)
+// stay non-retryable and fail closed.
+const TRANSIENT_NETWORK_CODES = new Set([
+  "ECONNRESET", "ECONNABORTED", "ETIMEDOUT", "EPIPE", "EAI_AGAIN", "ENOTFOUND", "ENETUNREACH", "EHOSTUNREACH",
+  "UND_ERR_SOCKET", "UND_ERR_CONNECT_TIMEOUT", "UND_ERR_HEADERS_TIMEOUT", "UND_ERR_BODY_TIMEOUT",
+]);
+function networkErrorClass(error) {
+  if (error?.name === "AbortError" || error?.name === "TimeoutError") return { label: "timeout", retryable: true };
+  const code = error?.cause?.code ?? error?.code;
+  if (typeof code === "string" && TRANSIENT_NETWORK_CODES.has(code)) return { label: code, retryable: true };
+  return { label: error instanceof TypeError ? "network-unclassified" : "unclassified", retryable: false };
+}
+function retryableError(error) { return networkErrorClass(error).retryable; }
+// Public repository path only (slug is regex-validated); no query, branch, or header data.
+function requestTarget(url) {
+  try {
+    const parsed = new URL(url);
+    const [, repos, owner, repo] = parsed.pathname.split("/");
+    const page = parsed.searchParams.get("page");
+    return repos === "repos" && SLUG.test(`${owner}/${repo}`)
+      ? `/repos/${owner}/${repo}${page !== null && /^\d{1,4}$/.test(page) ? ` page=${page}` : ""}`
+      : "unknown";
+  } catch { return "unknown"; }
+}
 function retryDelay(_response, attempt, retryDelaysMs) {
   return retryDelaysMs[attempt];
 }
@@ -227,7 +252,9 @@ async function request(url, { fetchImpl, sleep, budget, operation, headers = {},
         signal: AbortSignal.timeout(EVENT_LIMITS.requestTimeoutMs),
       });
     } catch (error) {
-      if (!retryableError(error) || attempt === retryDelaysMs.length) throw eventError(`Event ${operation} request failed`);
+      if (!retryableError(error) || attempt === retryDelaysMs.length) {
+        throw eventError(`Event ${operation} request failed (target ${requestTarget(url)}, network ${networkErrorClass(error).label}, attempt ${attempt + 1} of ${retryDelaysMs.length + 1})`);
+      }
       const delay = retryDelaysMs[attempt];
       budget.admitSleep(delay);
       await sleep(delay);
