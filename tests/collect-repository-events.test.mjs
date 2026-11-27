@@ -748,6 +748,70 @@ test("truncated release JSON retries within the fixed attempt budget", async () 
   assert.equal(terminalAttempts, 5);
 });
 
+function networkFailure(code, secret = "NETWORK-SECRET-SENTINEL-DO-NOT-LOG") {
+  return Object.assign(new TypeError("fetch failed"), { cause: Object.assign(new Error(secret), { code }) });
+}
+
+test("a transient network reset on release revalidation retries inside the fixed attempt budget", async () => {
+  const base = successfulFetch();
+  const sleeps = [];
+  let revalidationAttempts = 0;
+  let inventoryCalls = 0;
+  const events = await collectRepositoryEvents([repo], {
+    fetchImpl: async (url, options) => {
+      if (new URL(url).pathname.endsWith("/releases")) {
+        inventoryCalls += 1;
+        if (inventoryCalls >= 2) {
+          revalidationAttempts += 1;
+          if (revalidationAttempts <= 2) throw networkFailure("ECONNRESET");
+        }
+      }
+      return base(url, options);
+    },
+    sleep: async milliseconds => { sleeps.push(milliseconds); },
+  });
+  assert.equal(events.releases.length, 2);
+  assert.equal(revalidationAttempts, 3);
+  assert.deepEqual(sleeps, [2000, 8000]);
+  assert.equal(events.budgetReceipt.httpAttempts - events.budgetReceipt.logicalRequests, 2);
+});
+
+test("a persistent network failure fails closed with target and class but no upstream text", async () => {
+  const sentinel = "NETWORK-SECRET-SENTINEL-DO-NOT-LOG";
+  let attempts = 0;
+  let caught;
+  try {
+    await collectRepositoryEvents([repo], {
+      fetchImpl: async (url, options) => {
+        if (new URL(url).pathname.endsWith("/releases")) { attempts += 1; throw networkFailure("ECONNRESET", sentinel); }
+        return successfulFetch()(url, options);
+      },
+      sleep: async () => {},
+    });
+  } catch (error) { caught = error; }
+  assert.equal(attempts, 5);
+  assert.match(caught.message, /^Event release inventory request failed \(target \/repos\/owner\/repo( page=1)?, network ECONNRESET, attempt 5 of 5\)$/);
+  assertContentFreeError(caught, sentinel);
+  assert.equal(caught.cause, undefined);
+});
+
+test("deterministic or unknown transport failures are not retried and are classified without upstream text", async () => {
+  for (const [failure, expected] of [
+    [Object.assign(new TypeError("fetch failed"), { cause: Object.assign(new Error("unexpected redirect"), { code: "ERR_REDIRECT" }) }), "network-unclassified"],
+    [new Error("plain"), "unclassified"],
+  ]) {
+    let attempts = 0;
+    await assert.rejects(collectRepositoryEvents([repo], {
+      fetchImpl: async (url, options) => {
+        if (new URL(url).pathname.endsWith("/releases")) { attempts += 1; throw failure; }
+        return successfulFetch()(url, options);
+      },
+      sleep: async () => { assert.fail("must not sleep"); },
+    }), new RegExp(`network ${expected}, attempt 1 of 5`));
+    assert.equal(attempts, 1);
+  }
+});
+
 test("release records normalize the DB identity and weak ETags require byte-equivalent revalidation", async () => {
   let calls = 0;
   const uppercase = { ...repo, slug: "Owner/Repo" };
