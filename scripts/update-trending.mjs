@@ -59,6 +59,11 @@ export const REPOSITORY_EXCLUSIONS = Object.freeze({
     decidedOn: "2026-09-23",
     revisit: "when the releases listing is pruned below 20 pages or the release-inventory contract changes",
   }),
+  "yetone/magpie": Object.freeze({
+    reason: "GitHub releases listing advertises 3,573 releases at per_page=100 (36 pages, roughly 100 new releases a day, newest v0.1.4946 at 2026-11-27T10:06Z) against the collector's 40-page release-inventory cap, so it reaches the cap in about four days; the page-by-page inventory and revalidation take minutes while a release lands every ~15 minutes, so the exact revalidation failed with \"Release revalidation changed\" (2026-11-26 12:24Z page 6, 2026-11-27 10:32Z page 30) and with \"Release page cap exceeded\" (2026-11-24); it stopped the 2026-11-24, 2026-11-26 and 2026-11-27 scheduled refreshes and a manual dispatch",
+    decidedOn: "2026-11-27",
+    revisit: "when the release-inventory contract becomes incremental (stop at the previously observed release id) or the releases listing stops growing past the page cap",
+  }),
   "boykopovar/anyps5": Object.freeze({
     reason: "Repository pushed over 24,000 commits ahead of the recorded observation head (24,833 ahead at 2026-11-10T23:40Z), exceeding the collector's 80-page (8,000 commits) continuity scan contract and causing repeated 'Commit continuity gap' / 'Ambiguous commit continuity' failures in Collect complete repository events",
     decidedOn: "2026-11-11",
