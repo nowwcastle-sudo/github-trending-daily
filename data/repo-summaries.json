@@ -5363,231 +5363,6 @@
       "translation_applicable": false
     }
   },
-  "kajisho5/ffmpeg-skill": {
-    "content": {
-      "goal": "ffmpeg-skill is an Agent Skill that gives coding agents such as Claude Code, Cursor and Codex (or any MCP client) a local FFmpeg-based video and audio editor. It teaches a probe → edit → check → verify workflow and ships 42 tools performing the actual FFmpeg/ffprobe operations, entirely offline with no API keys.",
-      "usage": "Install with `npx ffmpeg-skill setup` (or `npx ffmpeg-skill` for a single agent), which installs the skill, installs FFmpeg if missing, and finishes with `doctor`. Run `npx ffmpeg-skill doctor` afterward to confirm required FFmpeg components and `npx ffmpeg-skill contract --json` to inspect the tool contract.",
-      "pros": "The README describes 42 standalone Python tools (cut, join, silence removal, captions, color grading, loudness normalization, delivery checks, and more), each independently verifiable through probing and visual contact sheets. A machine-readable contract is generated directly from each tool's argparse parser, which the project states keeps CLI, documentation, and the MCP schema from drifting out of sync. Processing runs locally, so footage is not uploaded.",
-      "cons": "Using it requires `ffmpeg` and `python3` already available on PATH, and the plain Homebrew `ffmpeg` formula is documented as lacking filters such as subtitles and zscale, requiring `ffmpeg-full` instead. Optional speech-to-text captioning needs a separately installed engine (e.g., faster-whisper) that downloads a model on first run. Only 12 of the 42 tools carry a \"stable\" compatibility guarantee; the other 30 are documented as \"beta\" and may still change.",
-      "fit": "This appears suited to users running AI coding agents who want local, scriptable FFmpeg editing without cloud services or API keys. The README positions this repo as the execution \"hands\" within a wider kajisho5 video-production ecosystem, with separate repos handling editorial decisions or typed editing graphs."
-    },
-    "summaries": {
-      "en": {
-        "goal": "ffmpeg-skill is an Agent Skill that gives coding agents such as Claude Code, Cursor and Codex (or any MCP client) a local FFmpeg-based video and audio editor. It teaches a probe → edit → check → verify workflow and ships 42 tools performing the actual FFmpeg/ffprobe operations, entirely offline with no API keys.",
-        "usage": "Install with `npx ffmpeg-skill setup` (or `npx ffmpeg-skill` for a single agent), which installs the skill, installs FFmpeg if missing, and finishes with `doctor`. Run `npx ffmpeg-skill doctor` afterward to confirm required FFmpeg components and `npx ffmpeg-skill contract --json` to inspect the tool contract.",
-        "pros": "The README describes 42 standalone Python tools (cut, join, silence removal, captions, color grading, loudness normalization, delivery checks, and more), each independently verifiable through probing and visual contact sheets. A machine-readable contract is generated directly from each tool's argparse parser, which the project states keeps CLI, documentation, and the MCP schema from drifting out of sync. Processing runs locally, so footage is not uploaded.",
-        "cons": "Using it requires `ffmpeg` and `python3` already available on PATH, and the plain Homebrew `ffmpeg` formula is documented as lacking filters such as subtitles and zscale, requiring `ffmpeg-full` instead. Optional speech-to-text captioning needs a separately installed engine (e.g., faster-whisper) that downloads a model on first run. Only 12 of the 42 tools carry a \"stable\" compatibility guarantee; the other 30 are documented as \"beta\" and may still change.",
-        "fit": "This appears suited to users running AI coding agents who want local, scriptable FFmpeg editing without cloud services or API keys. The README positions this repo as the execution \"hands\" within a wider kajisho5 video-production ecosystem, with separate repos handling editorial decisions or typed editing graphs."
-      },
-      "ko": {
-        "goal": "ffmpeg-skill은 Claude Code, Cursor, Codex 등 코딩 에이전트나 임의의 MCP 클라이언트에게 로컬 FFmpeg 기반 비디오/오디오 편집기를 제공하는 Agent Skill입니다. probe → edit → check → verify 워크플로를 에이전트에게 가르치며, 실제 FFmpeg/ffprobe 작업을 수행하는 42개의 도구를 제공하고, API 키 없이 완전히 오프라인으로 동작합니다.",
-        "usage": "`npx ffmpeg-skill setup` 명령(또는 단일 에이전트만 설치할 때는 `npx ffmpeg-skill`)으로 설치하면 스킬 설치, 누락된 경우 FFmpeg 설치, 마지막으로 `doctor` 실행까지 한 번에 처리됩니다. 설치 후 `npx ffmpeg-skill doctor`로 필요한 FFmpeg 구성 요소를 확인하고, `npx ffmpeg-skill contract --json`으로 도구 계약(contract)을 확인할 수 있습니다.",
-        "pros": "README에는 컷, 조인, 무음 제거, 캡션, 컬러 그레이딩, 라우드니스 정규화, 배포 검사 등을 수행하는 42개의 독립형 Python 도구가 설명되어 있으며, 각 도구는 probe와 시각적 contact sheet를 통해 개별적으로 검증할 수 있습니다. 머신 판독 가능한 contract는 각 도구의 argparse 파서에서 직접 생성되며, 문서에 따르면 이를 통해 CLI, 문서, MCP 스키마가 서로 어긋나지 않도록 유지됩니다. 처리는 로컬에서 이루어지므로 영상이 업로드되지 않습니다.",
-        "cons": "사용하려면 `ffmpeg`와 `python3`가 이미 PATH에 설치되어 있어야 하며, 문서에 따르면 일반 Homebrew `ffmpeg` 포뮬러는 subtitles나 zscale 같은 필터가 빠져 있어 대신 `ffmpeg-full`이 필요합니다. 선택적인 음성 인식 기반 캡션 기능은 별도로 설치해야 하는 엔진(예: faster-whisper)이 필요하며, 이 엔진은 첫 실행 시 모델을 다운로드합니다. 42개 도구 중 12개만 \"안정(stable)\" 호환성 보장을 받고, 나머지 30개는 \"베타(beta)\"로 문서화되어 있어 향후 변경될 수 있습니다.",
-        "fit": "이 프로젝트는 클라우드 서비스나 API 키 없이 로컬에서 스크립트 가능한 FFmpeg 편집을 원하는 AI 코딩 에이전트 사용자에게 적합해 보입니다. README는 이 저장소를 더 넓은 kajisho5 비디오 제작 생태계 내에서 실행을 담당하는 '손' 역할로 위치시키며, 편집 결정이나 타입이 지정된 편집 그래프는 별도의 저장소가 담당합니다."
-      },
-      "zh-CN": {
-        "goal": "ffmpeg-skill 是一个 Agent Skill,为 Claude Code、Cursor、Codex 等编码代理或任意 MCP 客户端提供基于本地 FFmpeg 的视频/音频编辑器。它向代理传授 probe → edit → check → verify 的工作流程,并提供 42 个实际执行 FFmpeg/ffprobe 操作的工具,完全离线运行且无需 API 密钥。",
-        "usage": "使用 `npx ffmpeg-skill setup` 命令安装(若只需为单个代理安装,则使用 `npx ffmpeg-skill`),该命令会安装技能、在缺失时安装 FFmpeg,并最终运行 `doctor`。安装后可运行 `npx ffmpeg-skill doctor` 检查所需的 FFmpeg 组件,并运行 `npx ffmpeg-skill contract --json` 查看工具契约(contract)。",
-        "pros": "README 描述了 42 个独立的 Python 工具,涵盖剪切、拼接、静音删除、字幕、调色、音量归一化、交付检查等功能,每个工具都可以通过 probe 和可视化 contact sheet 单独验证。机器可读的契约直接从每个工具的 argparse 解析器生成,文档称这样可以使 CLI、文档和 MCP schema 保持同步,不会出现偏差。处理过程在本地完成,素材不会被上传。",
-        "cons": "使用该工具要求 `ffmpeg` 和 `python3` 已经在 PATH 中,而文档说明普通的 Homebrew `ffmpeg` 公式缺少 subtitles、zscale 等过滤器,需要改用 `ffmpeg-full`。可选的语音转录字幕功能需要单独安装的引擎(例如 faster-whisper),该引擎会在首次运行时下载模型。42 个工具中只有 12 个具有“稳定(stable)”兼容性保证,其余 30 个被文档标记为“测试版(beta)”,未来可能会发生变化。",
-        "fit": "该项目似乎适合那些希望在不使用云服务或 API 密钥的情况下,通过 AI 编码代理进行本地、可脚本化 FFmpeg 编辑的用户。README 将该仓库定位为更广泛的 kajisho5 视频制作生态系统中的执行“双手”,而剪辑决策或类型化编辑图则由其他独立仓库负责。"
-      },
-      "es": {
-        "goal": "ffmpeg-skill es un Agent Skill que proporciona a agentes de codificación como Claude Code, Cursor y Codex, o a cualquier cliente MCP, un editor de video/audio local basado en FFmpeg. Enseña al agente un flujo de trabajo probe → edit → check → verify y ofrece 42 herramientas que realizan las operaciones reales de FFmpeg/ffprobe, funcionando completamente sin conexión y sin claves de API.",
-        "usage": "Se instala con el comando `npx ffmpeg-skill setup` (o `npx ffmpeg-skill` para instalar solo para un agente), que instala la skill, instala FFmpeg si falta y finaliza ejecutando `doctor`. Después de instalar, ejecute `npx ffmpeg-skill doctor` para comprobar los componentes de FFmpeg necesarios y `npx ffmpeg-skill contract --json` para inspeccionar el contrato de herramientas.",
-        "pros": "El README describe 42 herramientas independientes en Python (cortar, unir, eliminar silencios, subtítulos, corrección de color, normalización de sonoridad, comprobaciones de entrega, entre otras), cada una verificable de forma independiente mediante probe y hojas de contacto visuales. El contrato legible por máquina se genera directamente desde el analizador argparse de cada herramienta, lo que según la documentación evita que la CLI, la documentación y el esquema MCP se desincronicen. El procesamiento se realiza localmente, por lo que el material no se sube a ningún servidor.",
-        "cons": "Para usarlo se requiere tener `ffmpeg` y `python3` ya disponibles en el PATH, y la documentación indica que la fórmula simple de Homebrew `ffmpeg` carece de filtros como subtitles y zscale, por lo que se necesita `ffmpeg-full`. La transcripción opcional de voz a subtítulos requiere un motor instalado por separado (por ejemplo, faster-whisper), que descarga un modelo en su primera ejecución. Solo 12 de las 42 herramientas cuentan con garantía de compatibilidad \"estable\"; las otras 30 se documentan como \"beta\" y aún pueden cambiar.",
-        "fit": "Este proyecto parece adecuado para usuarios de agentes de codificación con IA que desean edición local y programable con FFmpeg sin servicios en la nube ni claves de API. El README posiciona este repositorio como las \"manos\" de ejecución dentro de un ecosistema más amplio de producción de video de kajisho5, donde otros repositorios separados gestionan las decisiones editoriales o los grafos de edición tipados."
-      },
-      "ja": {
-        "goal": "ffmpeg-skillは、Claude Code、Cursor、Codexなどのコーディングエージェントや任意のMCPクライアントに、ローカルFFmpegベースの動画・音声エディタを提供するAgent Skillです。probe → edit → check → verifyというワークフローをエージェントに教え、実際のFFmpeg/ffprobe操作を行う42個のツールを提供し、APIキー不要で完全にオフラインで動作します。",
-        "usage": "`npx ffmpeg-skill setup`コマンド(単一のエージェントのみにインストールする場合は`npx ffmpeg-skill`)でインストールすると、スキルのインストール、不足している場合のFFmpegのインストール、最後に`doctor`の実行までが行われます。インストール後は`npx ffmpeg-skill doctor`で必要なFFmpegコンポーネントを確認し、`npx ffmpeg-skill contract --json`でツールのcontractを確認できます。",
-        "pros": "READMEには、カット、結合、無音削除、キャプション、カラーグレーディング、ラウドネス正規化、配信チェックなどを行う42個の独立したPythonツールが記載されており、それぞれprobeと視覚的なcontact sheetによって個別に検証できます。機械可読なcontractは各ツールのargparseパーサーから直接生成され、文書によればこれによりCLI、ドキュメント、MCPスキーマがずれないように保たれます。処理はローカルで行われるため、素材がアップロードされることはありません。",
-        "cons": "利用にはあらかじめ`ffmpeg`と`python3`がPATH上に用意されている必要があり、文書によれば通常のHomebrewの`ffmpeg`フォーミュラにはsubtitlesやzscaleなどのフィルターが欠けているため、代わりに`ffmpeg-full`が必要です。音声認識によるキャプション機能(オプション)には別途インストールするエンジン(例:faster-whisper)が必要で、初回実行時にモデルをダウンロードします。42個のツールのうち\"安定版(stable)\"の互換性保証があるのは12個のみで、残りの30個は\"ベータ版(beta)\"と文書化されており、今後変更される可能性があります。",
-        "fit": "このプロジェクトは、クラウドサービスやAPIキーを使わずにローカルでスクリプト可能なFFmpeg編集を望むAIコーディングエージェントの利用者に適しているように見えます。READMEはこのリポジトリを、より広いkajisho5の動画制作エコシステムにおける実行担当の\"手\"として位置づけており、編集方針の決定や型付き編集グラフの構築は別のリポジトリが担っています。"
-      }
-    },
-    "evidence": {
-      "goal": [
-        {
-          "start_line": 8,
-          "end_line": 10,
-          "section_heading": ""
-        },
-        {
-          "start_line": 81,
-          "end_line": 81,
-          "section_heading": "Review page"
-        },
-        {
-          "start_line": 121,
-          "end_line": 124,
-          "section_heading": "Why"
-        }
-      ],
-      "usage": [
-        {
-          "start_line": 137,
-          "end_line": 137,
-          "section_heading": "Quick start"
-        },
-        {
-          "start_line": 139,
-          "end_line": 141,
-          "section_heading": "Quick start"
-        },
-        {
-          "start_line": 808,
-          "end_line": 808,
-          "section_heading": "Install"
-        }
-      ],
-      "pros": [
-        {
-          "start_line": 81,
-          "end_line": 81,
-          "section_heading": "Review page"
-        },
-        {
-          "start_line": 123,
-          "end_line": 127,
-          "section_heading": "Why"
-        }
-      ],
-      "cons": [
-        {
-          "start_line": 83,
-          "end_line": 83,
-          "section_heading": "Review page"
-        },
-        {
-          "start_line": 604,
-          "end_line": 604,
-          "section_heading": "How well does HDR to SDR work, and what should I watch for?"
-        },
-        {
-          "start_line": 392,
-          "end_line": 392,
-          "section_heading": "Machine-readable contract"
-        }
-      ],
-      "fit": [
-        {
-          "start_line": 99,
-          "end_line": 101,
-          "section_heading": "Standalone, and in an ecosystem"
-        },
-        {
-          "start_line": 105,
-          "end_line": 108,
-          "section_heading": "Standalone, and in an ecosystem"
-        }
-      ]
-    },
-    "invariants": [
-      {
-        "kind": "command",
-        "value": "npx ffmpeg-skill setup",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "npx ffmpeg-skill",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "npx ffmpeg-skill doctor",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "command",
-        "value": "npx ffmpeg-skill contract --json",
-        "fields": [
-          "usage"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "42",
-        "fields": [
-          "goal",
-          "pros",
-          "cons"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "12",
-        "fields": [
-          "cons"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "ffmpeg-skill",
-        "fields": [
-          "goal",
-          "usage"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Claude Code",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Cursor",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Codex",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "MCP",
-        "fields": [
-          "goal",
-          "pros"
-        ]
-      }
-    ],
-    "inference_fields": [
-      "fit"
-    ],
-    "source": {
-      "kind": "readme",
-      "slug": "kajisho5/ffmpeg-skill",
-      "path": "README.md",
-      "blob_sha": "70a777887ac7a80641be55aab766c741a560dd76",
-      "content_sha256": "9ea6854d2482023c1b2a25795637c9022527f4ac8c15ff5fb9c6fefca443797f",
-      "provider": "claude-cli-oauth",
-      "interface": "claude-p",
-      "cli_version": "2.1.332",
-      "auth_method": "oauth_token",
-      "api_provider": "firstParty",
-      "model": "claude-sonnet-5",
-      "schema_version": 3,
-      "prompt_schema_version": 3,
-      "translation_applicable": false
-    }
-  },
   "Nutlope/hallmark": {
     "content": {
       "goal": "Hallmark is a design skill for Claude Code, Codex, Cursor and OpenCode, made by Together AI and documented at https://www.usehallmark.com. It aims to generate web pages that avoid common visual tells associated with AI-generated design, applying a baseline of checks before building a page.",
@@ -7048,65 +6823,60 @@
   },
   "Ebony-Vinyl/dsh-our-free-model": {
     "content": {
-      "goal": "dsh-our-free-model is a plugin for the DSH harness that provides access to a free model lane without requiring sign-in, account creation, or an API key. It is installed into DSH as a plugin and targets DSH kernel versions 0.1.5 through 0.1.7-rc.2.",
-      "usage": "The plugin is installed with the command `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` (or via a local path for non-npm installs). The repository also documents a separate standalone local service, started with `npm run start:standalone`, that runs independently of DSH and listens on its own port.",
-      "pros": "The README states the project has zero runtime dependencies, no build step, and an MIT license, and describes the free lane as requiring no account, key, or quota request. It also presents upstream sources (OpenCode's Zen gateway, Kilo AI's public gateway) as disclosed and directly connected rather than routed through third-party relays.",
-      "cons": "The README warns that a differently-packaged, unscoped `dsh-our-free-model` exists on npm that is not published by this repository and contains modified files, so installing the wrong package name may skip the project's signature verification and in-app upgrade path. The documented free-tier model also lacks a quota dashboard but is rate-limited per session, which the README says can lead to 429 responses under heavy use.",
-      "fit": "The project is scoped to the DSH plugin ecosystem and documents compatibility with DSH kernel versions 0.1.5 through 0.1.7-rc.2. It also offers a separate standalone local service that does not require installing DSH, though the README notes that standalone installation artifacts and releases have not yet been published."
+      "goal": "dsh-our-free-model is a plugin for the DSH (DeepSeek Harness) application that provides access to free-tier AI model lanes without requiring sign-in, an account, or an API key. It sources models from the OpenCode Zen gateway and the Kilo AI public gateway, refreshing its model list from upstream rather than storing a static snapshot.",
+      "usage": "Install via the command `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` for a web profile, then restart the app once. A separate standalone local service (in development) can be run from source with `npm run start:standalone`, listening on port 18900 by default.",
+      "pros": "The plugin requires no configuration, account, or key setup, and documents its upstream sources transparently. It also bundles an aggregator channel listing 77 third-party providers, an OpenAI-compatible local forwarding port, and token-saving features such as tool-output compression.",
+      "cons": "The README warns that an unscoped npm package of the same name is an unofficial third-party repackaging and should not be installed. The free lanes are also rate-limited per session, returning HTTP 429 once a quota is exhausted, and the Kilo free pool's provider states that prompts may be logged to improve its service.",
+      "fit": "The project is marked beta status with zero dependencies and no build step, which appears suited to users already running DSH who want free model access without billing. The standalone service variant is still under development, and running it from source requires Node ^22.19.0 or >=24.0.0."
     },
     "summaries": {
       "en": {
-        "goal": "dsh-our-free-model is a plugin for the DSH harness that provides access to a free model lane without requiring sign-in, account creation, or an API key. It is installed into DSH as a plugin and targets DSH kernel versions 0.1.5 through 0.1.7-rc.2.",
-        "usage": "The plugin is installed with the command `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` (or via a local path for non-npm installs). The repository also documents a separate standalone local service, started with `npm run start:standalone`, that runs independently of DSH and listens on its own port.",
-        "pros": "The README states the project has zero runtime dependencies, no build step, and an MIT license, and describes the free lane as requiring no account, key, or quota request. It also presents upstream sources (OpenCode's Zen gateway, Kilo AI's public gateway) as disclosed and directly connected rather than routed through third-party relays.",
-        "cons": "The README warns that a differently-packaged, unscoped `dsh-our-free-model` exists on npm that is not published by this repository and contains modified files, so installing the wrong package name may skip the project's signature verification and in-app upgrade path. The documented free-tier model also lacks a quota dashboard but is rate-limited per session, which the README says can lead to 429 responses under heavy use.",
-        "fit": "The project is scoped to the DSH plugin ecosystem and documents compatibility with DSH kernel versions 0.1.5 through 0.1.7-rc.2. It also offers a separate standalone local service that does not require installing DSH, though the README notes that standalone installation artifacts and releases have not yet been published."
+        "goal": "dsh-our-free-model is a plugin for the DSH (DeepSeek Harness) application that provides access to free-tier AI model lanes without requiring sign-in, an account, or an API key. It sources models from the OpenCode Zen gateway and the Kilo AI public gateway, refreshing its model list from upstream rather than storing a static snapshot.",
+        "usage": "Install via the command `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` for a web profile, then restart the app once. A separate standalone local service (in development) can be run from source with `npm run start:standalone`, listening on port 18900 by default.",
+        "pros": "The plugin requires no configuration, account, or key setup, and documents its upstream sources transparently. It also bundles an aggregator channel listing 77 third-party providers, an OpenAI-compatible local forwarding port, and token-saving features such as tool-output compression.",
+        "cons": "The README warns that an unscoped npm package of the same name is an unofficial third-party repackaging and should not be installed. The free lanes are also rate-limited per session, returning HTTP 429 once a quota is exhausted, and the Kilo free pool's provider states that prompts may be logged to improve its service.",
+        "fit": "The project is marked beta status with zero dependencies and no build step, which appears suited to users already running DSH who want free model access without billing. The standalone service variant is still under development, and running it from source requires Node ^22.19.0 or >=24.0.0."
       },
       "ko": {
-        "goal": "dsh-our-free-model은 DSH 하네스용 플러그인으로, 로그인·계정 생성·API Key 입력 없이 무료 모델 레인에 접근할 수 있게 해줍니다. DSH 플러그인으로 설치되며 DSH 커널 버전 0.1.5부터 0.1.7-rc.2까지를 대상으로 합니다.",
-        "usage": "플러그인은 `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` 명령으로 설치합니다(또는 npm을 사용하지 않는 로컬 경로 설치도 가능). 저장소는 DSH 설치 없이 독립적으로 동작하는 standalone 로컬 서비스도 문서화하고 있으며, `npm run start:standalone` 명령으로 시작하고 자체 포트에서 대기합니다.",
-        "pros": "README에 따르면 이 프로젝트는 런타임 의존성이 전혀 없고 빌드 단계가 없으며 MIT 라이선스를 사용하고, 무료 레인은 계정·Key·할당량 신청이 필요 없다고 설명합니다. 또한 업스트림 소스(OpenCode의 Zen 게이트웨이, Kilo AI의 퍼블릭 게이트웨이)가 제3자 중계를 거치지 않고 직접 연결된다고 공개하고 있습니다.",
-        "cons": "README는 이 저장소에서 배포하지 않은, scope가 없는 동일 이름의 `dsh-our-free-model` 패키지가 npm에 존재하며 파일이 변경되어 있다고 경고합니다. 잘못된 패키지명을 설치하면 프로젝트의 서명 검증과 인앱 업그레이드 경로를 거치지 못할 수 있습니다. 또한 문서화된 무료 등급 모델은 할당량 대시보드가 없는 대신 세션 단위로 속도가 제한되어, 과도하게 사용하면 429 응답이 발생할 수 있다고 적혀 있습니다.",
-        "fit": "이 프로젝트는 DSH 플러그인 생태계에 특화되어 있으며 DSH 커널 버전 0.1.5부터 0.1.7-rc.2까지와의 호환성을 문서화하고 있습니다. 또한 DSH 설치가 필요 없는 별도의 standalone 로컬 서비스도 제공하지만, README는 standalone 설치 산출물과 Release가 아직 공개되지 않았다고 밝히고 있습니다."
+        "goal": "dsh-our-free-model은 DSH(DeepSeek Harness) 애플리케이션용 플러그인으로, 로그인, 계정 생성, API 키 입력 없이 무료 모델 레인에 접근할 수 있게 해줍니다. 모델 목록은 OpenCode의 Zen 게이트웨이와 Kilo AI의 공개 게이트웨이에서 가져오며, 정적 스냅샷이 아니라 매번 상위 소스에서 새로 가져옵니다.",
+        "usage": "웹 프로필 환경에서는 `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` 명령으로 설치한 뒤 앱을 한 번 재시작합니다. 개발 중인 별도의 독립 로컬 서비스는 소스에서 `npm run start:standalone` 명령으로 실행할 수 있으며 기본적으로 18900번 포트에서 대기합니다.",
+        "pros": "별도의 설정, 계정, 키 발급 절차 없이 바로 사용할 수 있고, 상위 소스가 문서에 투명하게 공개되어 있습니다. 또한 77개 서드파티 제공자를 목록화한 애그리게이터 채널, OpenAI 호환 로컬 포워딩 포트, 도구 출력 압축 같은 토큰 절약 기능도 함께 제공됩니다.",
+        "cons": "README에는 동일한 이름의 스코프 없는 npm 패키지가 비공식 서드파티 재배포본이므로 설치하지 말라는 경고가 포함되어 있습니다. 또한 무료 레인은 세션 단위로 속도 제한이 걸려 할당량이 소진되면 HTTP 429가 반환되며, Kilo 무료 풀 제공자는 서비스 개선을 위해 프롬프트가 기록될 수 있다고 명시하고 있습니다.",
+        "fit": "이 프로젝트는 베타 상태로 표시되어 있고 의존성이 전혀 없으며 빌드 단계도 없어, 이미 DSH를 사용 중이면서 과금 없이 무료 모델에 접근하려는 사용자에게 적합한 것으로 보입니다. 독립 서비스 버전은 아직 개발 중이며, 소스에서 실행하려면 Node ^22.19.0 또는 >=24.0.0이 필요합니다."
       },
       "zh-CN": {
-        "goal": "dsh-our-free-model 是面向 DSH harness 的插件，使用户无需登录、注册账号或填写 API Key 即可访问免费模型车道。该插件以 DSH 插件形式安装，适配的 DSH 内核版本为 0.1.5 至 0.1.7-rc.2。",
-        "usage": "安装命令为 `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1`（也可通过本地路径进行非 npm 安装）。仓库还记录了一个独立的本地 standalone 服务，通过 `npm run start:standalone` 启动，无需安装 DSH 即可独立运行并监听自己的端口。",
-        "pros": "README 指出该项目零运行依赖、无构建步骤，并采用 MIT 许可证，免费车道无需账号、Key 或配额申请。文档还说明上游来源（OpenCode 的 Zen 网关、Kilo AI 的公共网关）均为直连、公开透明，不经过任何第三方中转。",
-        "cons": "README 警告说，npm 上存在一个未带 scope 的同名 `dsh-our-free-model` 包，并非本仓库发布，其文件已被改动；安装错误的包名可能导致无法获得本项目的签名校验与应用内升级能力。另外，文档中的免费模型没有配额面板，而是按会话限速，使用过于频繁时可能触发 429 响应。",
-        "fit": "该项目专用于 DSH 插件生态，并记录了与 DSH 内核版本 0.1.5 至 0.1.7-rc.2 的兼容性。它还提供一个无需安装 DSH 即可运行的独立 standalone 本地服务，不过 README 说明该 standalone 服务的安装制品与 Release 尚未发布。"
+        "goal": "dsh-our-free-model 是面向 DSH（DeepSeek Harness）应用的插件,无需登录、注册账号或填写 API Key 即可使用免费模型车道。模型清单取自 OpenCode 的 Zen 网关与 Kilo AI 的公共网关,并在每次刷新时重新从上游拉取,而非保存静态快照。",
+        "usage": "在 web profile 环境下,可通过命令 `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` 安装,安装完成后重启应用一次。仍在开发中的独立本地服务可从源码运行 `npm run start:standalone`,默认监听端口 18900。",
+        "pros": "该插件开箱即用,无需额外配置、账号或密钥申请,并在文档中公开说明了上游来源。它还提供聚合渠道(内置 77 家第三方提供商)、OpenAI 兼容的本地转发端口,以及工具输出压缩等省 Token 功能。",
+        "cons": "README 提醒 npm 上同名的裸名包并非本仓库发布,属于第三方打包,不应安装。免费车道按会话计速率限制,额度耗尽后会返回 HTTP 429;Kilo 免费池的提供方在其模型卡中声明 prompt 可能被记录用于改进服务。",
+        "fit": "该项目标注为 beta 状态,零依赖且无需构建步骤,看起来比较适合已经在使用 DSH、希望免费使用模型而不产生费用的用户。独立服务版本仍处于开发阶段,从源码运行需要 Node ^22.19.0 或 >=24.0.0。"
       },
       "es": {
-        "goal": "dsh-our-free-model es un plugin para el harness DSH que permite acceder a un carril de modelos gratuito sin necesidad de iniciar sesión, crear una cuenta ni introducir una API Key. Se instala como plugin de DSH y está dirigido a las versiones del kernel DSH 0.1.5 a 0.1.7-rc.2.",
-        "usage": "El plugin se instala con el comando `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` (o mediante una ruta local para instalaciones sin npm). El repositorio también documenta un servicio local standalone independiente, que se inicia con `npm run start:standalone`, y que funciona sin necesidad de DSH, escuchando en su propio puerto.",
-        "pros": "Según el README, el proyecto no tiene dependencias en tiempo de ejecución, no requiere paso de compilación y usa licencia MIT, y el carril gratuito no necesita cuenta, Key ni solicitud de cuota. También se indica que las fuentes upstream (la puerta de enlace Zen de OpenCode, la puerta de enlace pública de Kilo AI) están conectadas directamente y de forma transparente, sin pasar por terceros intermediarios.",
-        "cons": "El README advierte que existe en npm un paquete homónimo sin scope `dsh-our-free-model` que no es publicado por este repositorio y cuyos archivos han sido modificados; instalar el nombre de paquete equivocado puede impedir obtener la verificación de firma y la ruta de actualización interna del proyecto. Además, el modelo del nivel gratuito documentado no cuenta con panel de cuota, sino limitación por sesión, lo que según el README puede generar respuestas 429 con un uso intenso.",
-        "fit": "El proyecto está orientado al ecosistema de plugins de DSH y documenta compatibilidad con las versiones del kernel DSH 0.1.5 a 0.1.7-rc.2. También ofrece un servicio local standalone independiente que no requiere instalar DSH, aunque el README señala que los artefactos de instalación y las Releases del standalone aún no se han publicado."
+        "goal": "dsh-our-free-model es un plugin para la aplicación DSH (DeepSeek Harness) que permite acceder a carriles de modelos gratuitos sin necesidad de iniciar sesión, crear una cuenta ni introducir una clave de API. Obtiene su lista de modelos desde la pasarela Zen de OpenCode y la pasarela pública de Kilo AI, actualizándola desde el origen en cada refresco en lugar de guardar una instantánea estática.",
+        "usage": "En un perfil web se instala con el comando `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1`, reiniciando la aplicación una vez tras la instalación. Un servicio local independiente, aún en desarrollo, puede ejecutarse desde el código fuente con `npm run start:standalone`, que escucha por defecto en el puerto 18900.",
+        "pros": "El plugin funciona sin configuración, cuentas ni claves, y documenta de forma transparente sus fuentes upstream. Incluye además un canal agregador con 77 proveedores externos registrados, un puerto de reenvío local compatible con OpenAI y funciones de ahorro de tokens como la compresión de salidas de herramientas.",
+        "cons": "El README advierte que el paquete npm sin ámbito (scope) con el mismo nombre no es una publicación oficial del repositorio y no debería instalarse. Los carriles gratuitos aplican límites de velocidad por sesión, devolviendo HTTP 429 al agotar la cuota, y el proveedor del pool gratuito de Kilo declara que los prompts pueden registrarse para mejorar su servicio.",
+        "fit": "El proyecto se marca como en estado beta, sin dependencias y sin paso de compilación, por lo que parece adecuado para quienes ya usan DSH y buscan acceso gratuito a modelos sin facturación. La variante de servicio independiente todavía está en desarrollo, y ejecutarla desde el código fuente requiere Node ^22.19.0 o >=24.0.0."
       },
       "ja": {
-        "goal": "dsh-our-free-model は DSH ハーネス向けのプラグインで、ログインやアカウント作成、API Key の入力なしに無料モデルレーンへアクセスできるようにします。DSH プラグインとしてインストールされ、対応する DSH カーネルバージョンは 0.1.5 から 0.1.7-rc.2 です。",
-        "usage": "プラグインは `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` コマンドでインストールします（npm を使わないローカルパスからのインストールも可能です）。リポジトリには DSH を必要としない独立したスタンドアロンのローカルサービスも記載されており、`npm run start:standalone` コマンドで起動し、独自のポートで待ち受けます。",
-        "pros": "README によると、このプロジェクトはランタイム依存がゼロで、ビルド手順もなく、MIT ライセンスで提供されており、無料レーンにはアカウント・Key・クォータ申請が不要と説明されています。また、アップストリームの提供元（OpenCode の Zen ゲートウェイ、Kilo AI のパブリックゲートウェイ）は、サードパーティの中継を経由せず直接接続されていると開示されています。",
-        "cons": "README は、本リポジトリが公開していない scope なしの同名パッケージ `dsh-our-free-model` が npm 上に存在し、ファイルが改変されていると警告しています。誤ったパッケージ名をインストールすると、本プロジェクトの署名検証とアプリ内アップグレード経路を利用できない可能性があります。また、記載されている無料ティアのモデルにはクォータダッシュボードがなく、セッション単位でレート制限されるため、使用が集中すると 429 応答が発生する可能性があるとされています。",
-        "fit": "本プロジェクトは DSH プラグインエコシステムに特化しており、DSH カーネルバージョン 0.1.5 から 0.1.7-rc.2 との互換性が記載されています。また、DSH のインストールを必要としない独立したスタンドアロンのローカルサービスも提供されていますが、README によるとスタンドアロンのインストール成果物と Release はまだ公開されていません。"
+        "goal": "dsh-our-free-model は DSH(DeepSeek Harness)アプリケーション向けのプラグインで、ログインやアカウント作成、API キーの入力なしに無料モデルレーンを利用できるようにします。モデル一覧は OpenCode の Zen ゲートウェイと Kilo AI のパブリックゲートウェイから取得され、静的なスナップショットではなく更新のたびに上流から再取得されます。",
+        "usage": "web プロファイル環境では `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` コマンドでインストールし、インストール後に一度アプリを再起動します。開発中の独立したローカルサービスはソースから `npm run start:standalone` で起動でき、デフォルトでポート 18900 で待機します。",
+        "pros": "設定やアカウント、キーの発行を必要とせずそのまま使用でき、上流の出典もドキュメントで透明に説明されています。さらに 77 社のサードパーティプロバイダーを登録したアグリゲーターチャネル、OpenAI 互換のローカル転送ポート、ツール出力圧縮などのトークン節約機能も備えています。",
+        "cons": "README には、同名の scope なし npm パッケージは本リポジトリが発行したものではなく第三者による再パッケージであり、インストールしないよう警告が記載されています。また無料レーンはセッション単位でレート制限がかかり、クォータを消費すると HTTP 429 が返されます。Kilo の無料プールの提供元はモデルカードにおいて、プロンプトがサービス改善のために記録される場合があると明記しています。",
+        "fit": "本プロジェクトはベータ状態と表示され、依存関係ゼロ・ビルド不要であることから、既に DSH を利用しており課金なしでモデルにアクセスしたいユーザーに適していると考えられます。独立サービス版はまだ開発中であり、ソースから実行するには Node ^22.19.0 または >=24.0.0 が必要です。"
       }
     },
     "evidence": {
       "goal": [
         {
-          "start_line": 4,
-          "end_line": 4,
-          "section_heading": "dsh-our-free-model"
-        },
-        {
           "start_line": 23,
-          "end_line": 26,
+          "end_line": 31,
           "section_heading": "dsh-our-free-model"
         },
         {
-          "start_line": 11,
-          "end_line": 11,
-          "section_heading": "dsh-our-free-model"
+          "start_line": 52,
+          "end_line": 53,
+          "section_heading": "亮点"
         }
       ],
       "usage": [
@@ -7117,49 +6887,54 @@
         },
         {
           "start_line": 106,
-          "end_line": 107,
+          "end_line": 109,
           "section_heading": "独立本地服务（开发中）"
         }
       ],
       "pros": [
         {
-          "start_line": 8,
-          "end_line": 10,
-          "section_heading": "dsh-our-free-model"
+          "start_line": 51,
+          "end_line": 54,
+          "section_heading": "亮点"
         },
         {
-          "start_line": 51,
-          "end_line": 52,
+          "start_line": 65,
+          "end_line": 65,
           "section_heading": "亮点"
         }
       ],
       "cons": [
         {
           "start_line": 121,
-          "end_line": 129,
+          "end_line": 126,
           "section_heading": "安装"
         },
         {
-          "start_line": 622,
-          "end_line": 622,
+          "start_line": 629,
+          "end_line": 629,
           "section_heading": "已知边界"
+        },
+        {
+          "start_line": 747,
+          "end_line": 747,
+          "section_heading": "上游是哪些源"
         }
       ],
       "fit": [
         {
-          "start_line": 11,
-          "end_line": 11,
-          "section_heading": "dsh-our-free-model"
-        },
-        {
           "start_line": 100,
-          "end_line": 103,
+          "end_line": 104,
           "section_heading": "独立本地服务（开发中）"
         },
         {
-          "start_line": 117,
-          "end_line": 117,
-          "section_heading": "独立本地服务（开发中）"
+          "start_line": 690,
+          "end_line": 690,
+          "section_heading": "开发"
+        },
+        {
+          "start_line": 11,
+          "end_line": 12,
+          "section_heading": "dsh-our-free-model"
         }
       ]
     },
@@ -7186,12 +6961,32 @@
         ]
       },
       {
+        "kind": "number",
+        "value": "77",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "18900",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "429",
+        "fields": [
+          "cons"
+        ]
+      },
+      {
         "kind": "product",
         "value": "dsh-our-free-model",
         "fields": [
           "goal",
-          "usage",
-          "cons"
+          "usage"
         ]
       },
       {
@@ -7200,20 +6995,33 @@
         "fields": [
           "goal",
           "usage",
-          "cons",
           "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "OpenCode",
+        "fields": [
+          "goal"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "Kilo AI",
+        "fields": [
+          "goal"
         ]
       }
     ],
     "inference_fields": [
-      "cons"
+      "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "ebony-vinyl/dsh-our-free-model",
       "path": "README.md",
-      "blob_sha": "51d86ec52a85df52b0f91f1f82206f8e43f88b30",
-      "content_sha256": "28764dc878053cfd79509ddb0046c4b3e98ce99af2094420d61244dd89231953",
+      "blob_sha": "50ee2b632b444cca979a7f1ae6facedc450c0cb2",
+      "content_sha256": "88e750664a68719246788776218e2ce3ff3d2e86d0767b3ed30766a030bda93a",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.332",
