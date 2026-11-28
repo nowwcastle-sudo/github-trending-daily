@@ -1682,47 +1682,47 @@
   },
   "mvanhorn/last30days-skill": {
     "content": {
-      "goal": "last30days is a Claude Code skill (and a package usable on other Agent Skills hosts) that runs an AI-agent-led search across platforms such as Reddit, X, YouTube, TikTok, Polymarket, and GitHub, scoring results by upvotes, likes, and real-money signals rather than editorial curation, then synthesizing them into a single research brief.",
-      "usage": "Install in Claude Code with `/plugin marketplace add mvanhorn/last30days-skill` followed by `/plugin install last30days`, or on other supported hosts (Codex, Cursor, Copilot, Gemini CLI, and 50+ others) with `npx skills add mvanhorn/last30days-skill -g`. Reddit, Hacker News, Polymarket, and GitHub work with zero configuration; running it once triggers a setup wizard that can unlock sources like X, YouTube, and TikTok.",
-      "pros": "The skill searches many platforms in parallel and ranks findings by real engagement — upvotes, likes, view counts, and market odds backed by real money — rather than SEO or editorial placement, aiming to surface what communities are actually discussing within a recent 30-day window.",
-      "cons": "Several sources beyond the zero-config set (Reddit, Hacker News, Polymarket, GitHub) require API keys, browser authentication, or explicit opt-in flags, so full source coverage depends on added credentials and setup. Claude Desktop installs also keep a credential store separate from the Code skill, so keys must be re-entered there, and Windows support for the Claude Desktop extension is currently deferred.",
-      "fit": "Given its design around bringing your own API keys and browser sessions to bridge otherwise separate platforms, the tool seems best suited for users who want consolidated, engagement-ranked research across many Agent-Skills-compatible hosts rather than a single dedicated search interface."
+      "goal": "last30days is an AI agent skill/search tool that queries sources such as Reddit, X/Twitter, YouTube, TikTok, Polymarket, Hacker News, GitHub, arXiv, and Techmeme in parallel, scoring results by real engagement (upvotes, likes, betting volume) rather than editorial ranking, then synthesizing findings into a single brief.",
+      "usage": "Install in Claude Code with `/plugin marketplace add mvanhorn/last30days-skill` and `/plugin install last30days`, or for other hosts run `npx skills add mvanhorn/last30days-skill -g`. After install, running `/last30days <topic>` triggers a first-run setup wizard that reportedly unlocks additional sources like X, YouTube, and TikTok within about 30 seconds.",
+      "pros": "Reddit, Hacker News, Polymarket, and GitHub appear to work immediately without any API key, and the tool can also read company patent filings and careers pages at no cost. It supports structured JSON output, local SQLite storage for trend monitoring, and an optional macOS Keychain integration for credentials.",
+      "cons": "Many sources (X/Twitter, YouTube, TikTok, Instagram, LinkedIn) require bringing your own API keys, browser sessions, or paid credits (e.g., ScrapeCreators API, Bright Data), so full coverage depends on external account setup rather than being free out of the box.",
+      "fit": "This tool seems suited for users who want a cross-platform, engagement-ranked research brief (e.g., before meetings, product research, or trend discovery) rather than a traditional editorial search engine, and it appears to assume familiarity with CLI/plugin installation workflows."
     },
     "summaries": {
       "en": {
-        "goal": "last30days is a Claude Code skill (and a package usable on other Agent Skills hosts) that runs an AI-agent-led search across platforms such as Reddit, X, YouTube, TikTok, Polymarket, and GitHub, scoring results by upvotes, likes, and real-money signals rather than editorial curation, then synthesizing them into a single research brief.",
-        "usage": "Install in Claude Code with `/plugin marketplace add mvanhorn/last30days-skill` followed by `/plugin install last30days`, or on other supported hosts (Codex, Cursor, Copilot, Gemini CLI, and 50+ others) with `npx skills add mvanhorn/last30days-skill -g`. Reddit, Hacker News, Polymarket, and GitHub work with zero configuration; running it once triggers a setup wizard that can unlock sources like X, YouTube, and TikTok.",
-        "pros": "The skill searches many platforms in parallel and ranks findings by real engagement — upvotes, likes, view counts, and market odds backed by real money — rather than SEO or editorial placement, aiming to surface what communities are actually discussing within a recent 30-day window.",
-        "cons": "Several sources beyond the zero-config set (Reddit, Hacker News, Polymarket, GitHub) require API keys, browser authentication, or explicit opt-in flags, so full source coverage depends on added credentials and setup. Claude Desktop installs also keep a credential store separate from the Code skill, so keys must be re-entered there, and Windows support for the Claude Desktop extension is currently deferred.",
-        "fit": "Given its design around bringing your own API keys and browser sessions to bridge otherwise separate platforms, the tool seems best suited for users who want consolidated, engagement-ranked research across many Agent-Skills-compatible hosts rather than a single dedicated search interface."
+        "goal": "last30days is an AI agent skill/search tool that queries sources such as Reddit, X/Twitter, YouTube, TikTok, Polymarket, Hacker News, GitHub, arXiv, and Techmeme in parallel, scoring results by real engagement (upvotes, likes, betting volume) rather than editorial ranking, then synthesizing findings into a single brief.",
+        "usage": "Install in Claude Code with `/plugin marketplace add mvanhorn/last30days-skill` and `/plugin install last30days`, or for other hosts run `npx skills add mvanhorn/last30days-skill -g`. After install, running `/last30days <topic>` triggers a first-run setup wizard that reportedly unlocks additional sources like X, YouTube, and TikTok within about 30 seconds.",
+        "pros": "Reddit, Hacker News, Polymarket, and GitHub appear to work immediately without any API key, and the tool can also read company patent filings and careers pages at no cost. It supports structured JSON output, local SQLite storage for trend monitoring, and an optional macOS Keychain integration for credentials.",
+        "cons": "Many sources (X/Twitter, YouTube, TikTok, Instagram, LinkedIn) require bringing your own API keys, browser sessions, or paid credits (e.g., ScrapeCreators API, Bright Data), so full coverage depends on external account setup rather than being free out of the box.",
+        "fit": "This tool seems suited for users who want a cross-platform, engagement-ranked research brief (e.g., before meetings, product research, or trend discovery) rather than a traditional editorial search engine, and it appears to assume familiarity with CLI/plugin installation workflows."
       },
       "ko": {
-        "goal": "last30days는 Claude Code용 스킬(및 다른 Agent Skills 호스트에서도 사용 가능한 패키지)로서, Reddit, X, YouTube, TikTok, Polymarket, GitHub 등 여러 플랫폼을 AI 에이전트가 주도하여 검색하고, 편집자가 아닌 업보트, 좋아요, 실제 자금 신호로 결과를 평가한 뒤 하나의 연구 브리핑으로 종합합니다.",
-        "usage": "Claude Code에서는 `/plugin marketplace add mvanhorn/last30days-skill` 다음에 `/plugin install last30days`를 실행하여 설치하며, Codex, Cursor, Copilot, Gemini CLI 등 50개 이상의 다른 지원 호스트에서는 `npx skills add mvanhorn/last30days-skill -g`로 설치합니다. Reddit, Hacker News, Polymarket, GitHub은 별도 설정 없이 작동하며, 한 번 실행하면 설정 마법사가 실행되어 X, YouTube, TikTok 같은 추가 소스를 활성화할 수 있습니다.",
-        "pros": "이 스킬은 여러 플랫폼을 동시에 검색하고, SEO나 편집 배치가 아니라 업보트, 좋아요, 조회수, 실제 자금이 뒷받침된 시장 확률 같은 실제 참여도로 결과를 순위화하여, 최근 30일 동안 커뮤니티가 실제로 논의하는 내용을 드러내는 것을 목표로 합니다.",
-        "cons": "Reddit, Hacker News, Polymarket, GitHub로 구성된 기본 무설정 소스 외의 여러 소스는 API 키, 브라우저 인증 또는 명시적인 옵트인 플래그가 필요하므로, 전체 소스 커버리지는 추가 자격 증명과 설정에 좌우됩니다. 또한 Claude Desktop 설치는 Code 스킬과 별도의 자격 증명 저장소를 유지하므로 키를 다시 입력해야 하며, Claude Desktop 확장 프로그램의 Windows 지원은 현재 보류된 상태입니다.",
-        "fit": "다른 플랫폼들을 연결하기 위해 사용자가 직접 API 키와 브라우저 세션을 가져오는 방식으로 설계되어 있어, 단일 전용 검색 인터페이스보다는 여러 Agent Skills 호환 호스트에서 참여도 기반으로 통합된 연구를 원하는 사용자에게 적합해 보입니다."
+        "goal": "last30days는 Reddit, X/Twitter, YouTube, TikTok, Polymarket, Hacker News, GitHub, arXiv, Techmeme 등의 소스를 병렬로 검색하는 AI 에이전트 기반 검색 스킬로, 편집자 순위가 아니라 실제 참여도(업보트, 좋아요, 베팅 금액)로 결과를 점수화한 뒤 하나의 요약 보고서로 종합하는 것을 목표로 합니다.",
+        "usage": "Claude Code에서는 `/plugin marketplace add mvanhorn/last30days-skill`와 `/plugin install last30days`로 설치하며, 다른 호스트에서는 `npx skills add mvanhorn/last30days-skill -g`를 사용합니다. 설치 후 `/last30days <topic>`을 실행하면 최초 실행 시 설정 마법사가 나타나며, 설문에 닸기렲 약 30초 안에 X, YouTube, TikTok 등 추가 소스도 사용할 수 있는 상태가 될 가능성이 있습니다.",
+        "pros": "Reddit, Hacker News, Polymarket, GitHub은 API 키 없이 바로 작동하는 것으로 보이며, 회사의 특허 출원과 채용 공고 페이지도 무료로 읽을 수 있습니다. 구조화된 JSON 출력, 추세 모니터링을 위한 로컬 SQLite 저장, macOS Keychain을 통한 자격 증명 관리 옵션도 제공됩니다.",
+        "cons": "X/Twitter, YouTube, TikTok, Instagram, LinkedIn 등 다수의 소스는 사용자가 직접 API 키, 브라우저 세션, 또는 유료 크레딧(예: ScrapeCreators API, Bright Data)을 준비해야 하므로, 완전한 기능을 쓰려면 기본 설치만으로는 부족하고 외부 계정 설정에 의존하게 됩니다.",
+        "fit": "회의 준비, 제품 조사, 트렌드 발견처럼 여러 플랫폼의 참여도 기반 조사 보고서를 원하는 사용자에게 적합해 보이며, 전통적인 편집자 중심 검색 엔진보다는 CLI/플러그인 설치 방식에 익숙한 사용자를 전제로 하는 것으로 보입니다."
       },
       "zh-CN": {
-        "goal": "last30days 是一个用于 Claude Code 的技能（也可作为可在其他 Agent Skills 主机中使用的包），由 AI 代理主导，在 Reddit、X、YouTube、TikTok、Polymarket、GitHub 等多个平台上进行搜索，依据点赞数、点赞和真实资金信号而非编辑筛选对结果评分，再将其综合成一份研究简报。",
-        "usage": "在 Claude Code 中,先执行 `/plugin marketplace add mvanhorn/last30days-skill`,再执行 `/plugin install last30days` 即可安装;在 Codex、Cursor、Copilot、Gemini CLI 等 50 多个其他受支持主机中,可使用 `npx skills add mvanhorn/last30days-skill -g` 安装。Reddit、Hacker News、Polymarket 和 GitHub 无需配置即可工作,首次运行会触发设置向导,可解锁 X、YouTube、TikTok 等更多来源。",
-        "pros": "该技能并行搜索多个平台,并依据真实参与度——点赞数、喜欢数、观看次数以及由真实资金支持的市场赔率——而非 SEO 或编辑排版对结果排序,旨在呈现社区在最近 30 天内实际讨论的内容。",
-        "cons": "除 Reddit、Hacker News、Polymarket、GitHub 这类无需配置的来源外,其他多个来源需要 API 密钥、浏览器认证或明确的选择启用标志,因此完整的来源覆盖取决于额外凭据与配置。此外,Claude Desktop 的安装与 Code 技能保持各自独立的凭据存储,意味着密钥需要在其中重新输入,而 Claude Desktop 扩展目前的 Windows 支持仍被推迟。",
-        "fit": "由于该工具的设计思路是让用户自带 API 密钥和浏览器会话来打通本来互不相通的平台,它似乎更适合希望在多个兼容 Agent Skills 的主机上获得按参与度排序的整合研究的用户,而非寻求单一专用搜索界面的用户。"
+        "goal": "last30days 是一款基于 AI 代理的搜索技能,可并行查询 Reddit、X/Twitter、YouTube、TikTok、Polymarket、Hacker News、GitHub、arXiv 和 Techmeme 等来源,依据真实互动数据(点赞、投票、下注金额)而非编辑排名对结果打分,再综合成一份简报。",
+        "usage": "在 Claude Code 中可通过 `/plugin marketplace add mvanhorn/last30days-skill` 和 `/plugin install last30days` 安装;其他宿主环境可运行 `npx skills add mvanhorn/last30days-skill -g`。安装后运行 `/last30days <topic>` 会触发首次运行的设置向导,文档表明大约 30 秒内可解锁 X、YouTube、TikTok 等更多来源,但实际耗时可能因环境而异。",
+        "pros": "Reddit、Hacker News、Polymarket 和 GitHub 看起来无需任何 API 密钥即可直接使用,还能免费读取公司专利申请和招聘页面。该工具还支持结构化 JSON 输出、用于趋势监测的本地 SQLite 存储,以及可选的 macOS 钥匙串凭据管理。",
+        "cons": "许多来源(如 X/Twitter、YouTube、TikTok、Instagram、LinkedIn)需要用户自行提供 API 密钥、浏览器会话或付费额度(例如 ScrapeCreators API、Bright Data),因此要获得完整覆盖范围,仅靠默认安装并不够,还依赖外部账号配置。",
+        "fit": "该工具似乎更适合希望获得跨平台、按互动度排序的调研简报的用户(例如会议前准备、产品调研或趋势发现),而非传统的编辑式搜索引擎,且似乎假定用户熟悉命令行/插件安装流程。"
       },
       "es": {
-        "goal": "last30days es una skill para Claude Code (y un paquete utilizable en otros hosts de Agent Skills) que ejecuta una búsqueda dirigida por un agente de IA en plataformas como Reddit, X, YouTube, TikTok, Polymarket y GitHub, puntuando los resultados por votos positivos, likes y señales de dinero real en lugar de curaduría editorial, y sintetizándolos en un único informe de investigación.",
-        "usage": "Se instala en Claude Code con `/plugin marketplace add mvanhorn/last30days-skill` seguido de `/plugin install last30days`, o en otros hosts compatibles (Codex, Cursor, Copilot, Gemini CLI y más de 50 otros) con `npx skills add mvanhorn/last30days-skill -g`. Reddit, Hacker News, Polymarket y GitHub funcionan sin configuración; ejecutarlo una vez activa un asistente de configuración que puede desbloquear fuentes adicionales como X, YouTube y TikTok.",
-        "pros": "La skill busca en muchas plataformas en paralelo y clasifica los hallazgos según el compromiso real -votos, likes, vistas y probabilidades de mercado respaldadas por dinero- en lugar de SEO o posicionamiento editorial, con el objetivo de mostrar lo que las comunidades discuten realmente en una ventana reciente de 30 días.",
-        "cons": "Varias fuentes más allá del conjunto sin configuración (Reddit, Hacker News, Polymarket, GitHub) requieren claves de API, autenticación de navegador o activación explícita, por lo que la cobertura completa de fuentes depende de credenciales y configuración adicionales. Las instalaciones de Claude Desktop también mantienen un almacén de credenciales separado del de la skill de Code, por lo que las claves deben reintroducirse ahí, y el soporte de Windows para la extensión de Claude Desktop está actualmente aplazado.",
-        "fit": "Dado su diseño en torno a aportar tus propias claves de API y sesiones de navegador para conectar plataformas por lo demás separadas, la herramienta parece adecuada sobre todo para usuarios que buscan una investigación consolidada y clasificada por compromiso en muchos hosts compatibles con Agent Skills, más que una interfaz de búsqueda dedicada única."
+        "goal": "last30days es una herramienta de búsqueda basada en un agente de IA que consulta en paralelo fuentes como Reddit, X/Twitter, YouTube, TikTok, Polymarket, Hacker News, GitHub, arXiv y Techmeme, puntuando los resultados por interacción real (votos, me gusta, volumen de apuestas) en lugar de un ranking editorial, para luego sintetizarlos en un único informe.",
+        "usage": "En Claude Code se instala con `/plugin marketplace add mvanhorn/last30days-skill` y `/plugin install last30days`; en otros entornos se puede ejecutar `npx skills add mvanhorn/last30days-skill -g`. Tras la instalación, ejecutar `/last30days <topic>` activa un asistente de configuración inicial que, según el README, podría desbloquear fuentes adicionales como X, YouTube y TikTok en unos 30 segundos.",
+        "pros": "Reddit, Hacker News, Polymarket y GitHub parecen funcionar de inmediato sin ninguna clave de API, y la herramienta también puede leer solicitudes de patentes y páginas de empleo de empresas de forma gratuita. Ofrece salida JSON estructurada, almacenamiento local en SQLite para el seguimiento de tendencias y una integración opcional con el llavero de macOS para credenciales.",
+        "cons": "Muchas fuentes (X/Twitter, YouTube, TikTok, Instagram, LinkedIn) requieren que el usuario aporte sus propias claves de API, sesiones de navegador o créditos de pago (por ejemplo, ScrapeCreators API, Bright Data), por lo que la cobertura completa depende de una configuración de cuentas externas y no viene lista de fábrica.",
+        "fit": "Esta herramienta parece pensada para quienes buscan un informe de investigación clasificado por interacción real entre varias plataformas (por ejemplo, antes de reuniones, para investigación de producto o detección de tendencias), más que un motor de búsqueda editorial tradicional, y parece asumir cierta familiaridad con flujos de instalación por CLI o plugins."
       },
       "ja": {
-        "goal": "last30days は Claude Code 用スキル（他の Agent Skills ホストでも利用可能なパッケージ）であり、Reddit、X、YouTube、TikTok、Polymarket、GitHub などの複数プラットフォームを AI エージェント主導で検索し、編集者ではなくアップボート、いいね、実際の資金による信号で結果を評価した上で、一つの調査ブリーフにまとめます。",
-        "usage": "Claude Code では `/plugin marketplace add mvanhorn/last30days-skill` の後に `/plugin install last30days` を実行してインストールし、Codex、Cursor、Copilot、Gemini CLI など50以上の他の対応ホストでは `npx skills add mvanhorn/last30days-skill -g` を使います。Reddit、Hacker News、Polymarket、GitHub は設定不要で動作し、一度実行するとセットアップウィザードが起動して X、YouTube、TikTok などの追加ソースを有効化できます。",
-        "pros": "このスキルは複数プラットフォームを並行して検索し、SEO や編集的な配置ではなく、アップボート、いいね、視聴数、実際の資金に裏付けられた市場予想といった実際のエンゲージメントで結果を順位付けし、直近30日間にコミュニティが実際に話題にしている内容を示すことを目指しています。",
-        "cons": "設定不要のソース(Reddit、Hacker News、Polymarket、GitHub)以外の多くのソースは API キー、ブラウザ認証、または明示的なオプトインフラグを必要とするため、ソースの完全な網羅には追加の認証情報と設定が必要です。また、Claude Desktop のインストールは Code スキルとは別の認証情報ストアを保持するため、そこでキーを再入力する必要があり、Claude Desktop 拡張機能の Windows サポートは現在見送られています。",
-        "fit": "本来つながっていない複数のプラットフォームを橋渡しするために、利用者自身の API キーとブラウザセッションを持ち込む設計であることから、単一の専用検索インターフェースよりも、多くの Agent Skills 対応ホスト上でエンゲージメントに基づく統合的な調査を求める利用者に適していると考えられます。"
+        "goal": "last30daysは、Reddit、X/Twitter、YouTube、TikTok、Polymarket、Hacker News、GitHub、arXiv、Techmemeなどのソースを並行して検索するAIエージェント型の検索スキルであり、編集者によるランキングではなく実際のエンゲージメント(upvote、いいね、賭け金額)でスコアリングし、結果を一つのブリーフにまとめることを目的としています。",
+        "usage": "Claude Codeでは `/plugin marketplace add mvanhorn/last30days-skill` と `/plugin install last30days` でインストールでき、他のホストでは `npx skills add mvanhorn/last30days-skill -g` を実行します。インストール後に `/last30days <topic>` を実行すると初回セットアップウィザードが起動し、記述上は約30秒でX、YouTube、TikTokなどの追加ソースが有効になる可能性があります。",
+        "pros": "Reddit、Hacker News、Polymarket、GitHubはAPIキーなしで即座に使えるようで、企業の特許出願や採用ページも無料で読み取れます。構造化されたJSON出力、トレンド監視用のローカルSQLiteストレージ、認証情報管理用のmacOSキーチェーン連携(任意)にも対応しています。",
+        "cons": "X/Twitter、YouTube、TikTok、Instagram、LinkedInなど多くのソースは、利用者自身がAPIキー、ブラウザセッション、または有料クレジット(例:ScrapeCreators API、Bright Data)を用意する必要があり、完全な機能を得るには標準インストールだけでは不十分で、外部アカウントの設定に依存するようです。",
+        "fit": "このツールは、会議前の準備、製品調査、トレンド発見など、複数プラットフォームにわたるエンゲージメント重視の調査ブリーフを求める利用者に向いていると考えられ、従来の編集型検索エンジンというよりは、CLIやプラグインのインストール手順に慣れていることを前提としているようです。"
       }
     },
     "evidence": {
@@ -1733,20 +1733,25 @@
           "section_heading": "/last30days"
         },
         {
-          "start_line": 41,
-          "end_line": 41,
-          "section_heading": "/last30days"
-        },
-        {
           "start_line": 45,
           "end_line": 45,
           "section_heading": "/last30days"
+        },
+        {
+          "start_line": 69,
+          "end_line": 81,
+          "section_heading": "Sources, scored by the people"
         }
       ],
       "usage": [
         {
           "start_line": 27,
-          "end_line": 37,
+          "end_line": 31,
+          "section_heading": "/last30days"
+        },
+        {
+          "start_line": 35,
+          "end_line": 36,
           "section_heading": "/last30days"
         },
         {
@@ -1757,38 +1762,43 @@
       ],
       "pros": [
         {
-          "start_line": 45,
-          "end_line": 45,
-          "section_heading": "/last30days"
+          "start_line": 71,
+          "end_line": 80,
+          "section_heading": "Sources, scored by the people"
         },
         {
-          "start_line": 104,
-          "end_line": 106,
-          "section_heading": "Sources, scored by the people"
+          "start_line": 280,
+          "end_line": 280,
+          "section_heading": "Manual (developer)"
+        },
+        {
+          "start_line": 327,
+          "end_line": 332,
+          "section_heading": "Configuration"
         }
       ],
       "cons": [
         {
-          "start_line": 102,
-          "end_line": 102,
-          "section_heading": "Sources, scored by the people"
+          "start_line": 290,
+          "end_line": 293,
+          "section_heading": "Bring your own keys"
         },
         {
-          "start_line": 253,
-          "end_line": 255,
-          "section_heading": "Claude Desktop"
+          "start_line": 297,
+          "end_line": 298,
+          "section_heading": "Bring your own keys"
         }
       ],
       "fit": [
         {
-          "start_line": 33,
-          "end_line": 33,
+          "start_line": 57,
+          "end_line": 63,
           "section_heading": "/last30days"
         },
         {
-          "start_line": 282,
-          "end_line": 283,
-          "section_heading": "Bring your own keys"
+          "start_line": 110,
+          "end_line": 116,
+          "section_heading": "What people actually use it for"
         }
       ]
     },
@@ -1823,30 +1833,27 @@
         ]
       },
       {
-        "kind": "product",
-        "value": "Claude Code",
+        "kind": "number",
+        "value": "30",
         "fields": [
           "goal",
-          "usage"
-        ]
-      },
-      {
-        "kind": "number",
-        "value": "50+",
-        "fields": [
           "usage"
         ]
       }
     ],
     "inference_fields": [
+      "goal",
+      "usage",
+      "pros",
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "mvanhorn/last30days-skill",
       "path": "README.md",
-      "blob_sha": "aa8f48f89de2787778df09ac48b792f1dd4e169d",
-      "content_sha256": "f6aadfe52c28a161953b1f6567b62181ec4cf057ca101126db1c40c30140f06c",
+      "blob_sha": "5eb0da9b1e8c6c39c753f4d2cfa0c73eaeee511d",
+      "content_sha256": "b05f5dacefb55ba243acaa386566acf953e3fb7f9329168781f890a58eb8f20e",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.332",
@@ -5363,6 +5370,194 @@
       "translation_applicable": false
     }
   },
+  "kajisho5/ffmpeg-skill": {
+    "content": {
+      "goal": "ffmpeg-skill gives a coding agent (Claude Code, Cursor, Codex, or any MCP client) a local video editor built on FFmpeg, letting it probe, edit, and verify footage without cloud services or API keys.",
+      "usage": "Install with `npx ffmpeg-skill` (or `npx ffmpeg-skill setup`, which also installs FFmpeg and runs `npx ffmpeg-skill doctor`); the agent then calls 41 Python tools such as probe.py, cut.py, fit.py, and export.py directly or through an MCP server.",
+      "pros": "It ships 41 tools (12 marked stable) covering analysis, editing, audio, picture, delivery, and orchestration, needs only ffmpeg and python3 on PATH, requires no cloud account or API key, and documents a machine-readable contract plus doctor capability checks so missing FFmpeg filters are caught before a job runs.",
+      "cons": "GPU-accelerated encoding appears limited to Apple VideoToolbox on Apple Silicon, 29 of the 41 tools are marked beta rather than stable, and operations like cropping or subject framing seem to rely on the calling agent's own visual judgment rather than automatic face or object tracking.",
+      "fit": "This tool seems best suited to workflows already running an AI coding agent on a local machine with FFmpeg installed, particularly where local-only, no-upload video processing is wanted; it may be less suited where GPU encoding beyond Apple Silicon or fully automated subject tracking is required."
+    },
+    "summaries": {
+      "en": {
+        "goal": "ffmpeg-skill gives a coding agent (Claude Code, Cursor, Codex, or any MCP client) a local video editor built on FFmpeg, letting it probe, edit, and verify footage without cloud services or API keys.",
+        "usage": "Install with `npx ffmpeg-skill` (or `npx ffmpeg-skill setup`, which also installs FFmpeg and runs `npx ffmpeg-skill doctor`); the agent then calls 41 Python tools such as probe.py, cut.py, fit.py, and export.py directly or through an MCP server.",
+        "pros": "It ships 41 tools (12 marked stable) covering analysis, editing, audio, picture, delivery, and orchestration, needs only ffmpeg and python3 on PATH, requires no cloud account or API key, and documents a machine-readable contract plus doctor capability checks so missing FFmpeg filters are caught before a job runs.",
+        "cons": "GPU-accelerated encoding appears limited to Apple VideoToolbox on Apple Silicon, 29 of the 41 tools are marked beta rather than stable, and operations like cropping or subject framing seem to rely on the calling agent's own visual judgment rather than automatic face or object tracking.",
+        "fit": "This tool seems best suited to workflows already running an AI coding agent on a local machine with FFmpeg installed, particularly where local-only, no-upload video processing is wanted; it may be less suited where GPU encoding beyond Apple Silicon or fully automated subject tracking is required."
+      },
+      "ko": {
+        "goal": "ffmpeg-skill은 Claude Code, Cursor, Codex 또는 모든 MCP 클라이언트와 같은 코딩 에이전트에게 FFmpeg 기반의 로컬 비디오 편집기 기능을 제공하여, 클라우드 서비스나 API 키 없이 영상을 probe, 편집, 검증할 수 있게 합니다.",
+        "usage": "`npx ffmpeg-skill` 명령으로 설치하거나(`npx ffmpeg-skill setup`을 사용하면 FFmpeg 설치와 `npx ffmpeg-skill doctor` 실행까지 함께 수행됨), 이후 에이전트는 probe.py, cut.py, fit.py, export.py 등 41개의 Python 도구를 직접 호출하거나 MCP 서버를 통해 사용합니다.",
+        "pros": "41개의 도구(12개는 stable로 표시)가 분석, 편집, 오디오, 영상, 배포, 오케스트레이션을 다루며, PATH에 ffmpeg와 python3만 있으면 동작하고, 클라우드 계정이나 API 키가 필요 없으며, 기계가 읽을 수 있는 contract와 doctor 기능 점검을 문서화하여 작업 실행 전에 누락된 FFmpeg 필터를 미리 확인할 수 있습니다.",
+        "cons": "GPU 가속 인코딩은 Apple Silicon의 Apple VideoToolbox에 한정되어 있는 것으로 보이며, 41개 도구 중 29개는 stable이 아닌 beta로 표시되어 있고, 크롭이나 피사체 프레이밍 같은 작업은 자동 얼굴·객체 추적이 아니라 호출하는 에이전트 자신의 시각적 판단에 의존하는 것으로 보입니다.",
+        "fit": "이 도구는 이미 로컬 머신에서 FFmpeg를 설치한 AI 코딩 에이전트 워크플로우를 운영 중이며, 특히 로컬 전용, 업로드 없는 영상 처리를 원하는 경우에 적합해 보입니다. Apple Silicon을 넘어서는 GPU 인코딩이나 완전 자동화된 피사체 추적이 필요한 경우에는 적합성이 떨어질 수 있습니다."
+      },
+      "zh-CN": {
+        "goal": "ffmpeg-skill 为 Claude Code、Cursor、Codex 或任何 MCP 客户端等编码代理提供基于 FFmpeg 的本地视频编辑能力,使其无需云服务或 API 密钥即可对素材进行 probe、编辑和验证。",
+        "usage": "可通过 `npx ffmpeg-skill` 安装(或使用 `npx ffmpeg-skill setup`,它还会安装 FFmpeg 并运行 `npx ffmpeg-skill doctor`);之后代理可直接调用 probe.py、cut.py、fit.py、export.py 等 41 个 Python 工具,或通过 MCP 服务器访问它们。",
+        "pros": "它提供 41 个工具(其中 12 个标记为 stable),涵盖分析、编辑、音频、画面、交付和编排,仅需 PATH 中存在 ffmpeg 和 python3 即可运行,不需要云账户或 API 密钥,并提供机器可读的 contract 以及 doctor 能力检测,从而在任务运行前发现缺失的 FFmpeg 滤镜。",
+        "cons": "GPU 加速编码看起来仅限于 Apple Silicon 上的 Apple VideoToolbox,41 个工具中有 29 个标记为 beta 而非 stable,而裁剪或主体取景等操作似乎依赖调用代理自身的视觉判断,而非自动人脸或物体追踪。",
+        "fit": "该工具似乎最适合已经在本地机器上运行并安装了 FFmpeg 的 AI 编码代理工作流,尤其是需要纯本地、无需上传的视频处理场景;若需要超出 Apple Silicon 的 GPU 编码或完全自动化的主体追踪,则可能不太适合。"
+      },
+      "es": {
+        "goal": "ffmpeg-skill ofrece a un agente de codificación (Claude Code, Cursor, Codex o cualquier cliente MCP) un editor de video local basado en FFmpeg, permitiéndole analizar (probe), editar y verificar material sin servicios en la nube ni claves de API.",
+        "usage": "Se instala con `npx ffmpeg-skill` (o `npx ffmpeg-skill setup`, que además instala FFmpeg y ejecuta `npx ffmpeg-skill doctor`); después el agente invoca 41 herramientas en Python como probe.py, cut.py, fit.py y export.py directamente o a través de un servidor MCP.",
+        "pros": "Incluye 41 herramientas (12 marcadas como stable) que cubren análisis, edición, audio, imagen, entrega y orquestación, solo necesita ffmpeg y python3 en el PATH, no requiere cuenta en la nube ni clave de API, y documenta un contrato legible por máquina junto con comprobaciones de doctor que detectan filtros de FFmpeg faltantes antes de ejecutar una tarea.",
+        "cons": "La codificación acelerada por GPU parece limitarse a Apple VideoToolbox en Apple Silicon, 29 de las 41 herramientas están marcadas como beta en lugar de stable, y operaciones como el recorte o el encuadre del sujeto parecen depender del propio juicio visual del agente que las invoca, en lugar de un seguimiento automático de rostros u objetos.",
+        "fit": "Esta herramienta parece más adecuada para flujos de trabajo que ya ejecutan un agente de codificación con IA en una máquina local con FFmpeg instalado, especialmente cuando se busca un procesamiento de video totalmente local y sin carga a servidores externos; podría ser menos adecuada cuando se requiere codificación por GPU más allá de Apple Silicon o seguimiento de sujeto totalmente automatizado."
+      },
+      "ja": {
+        "goal": "ffmpeg-skillは、Claude Code、Cursor、Codex、あるいは任意のMCPクライアントといったコーディングエージェントに、FFmpegを基盤とするローカルの動画編集機能を提供し、クラウドサービスやAPIキーを使わずに映像のprobe、編集、検証を行えるようにします。",
+        "usage": "`npx ffmpeg-skill`でインストールします(`npx ffmpeg-skill setup`を使うとFFmpegのインストールと`npx ffmpeg-skill doctor`の実行も合わせて行われます)。その後エージェントはprobe.py、cut.py、fit.py、export.pyなど41個のPythonツールを直接、またはMCPサーバー経由で呼び出します。",
+        "pros": "41個のツール(うち12個はstableと表示)が分析、編集、音声、画面、配信、オーケストレーションをカバーし、PATH上にffmpegとpython3があれば動作し、クラウドアカウントやAPIキーを必要とせず、機械可読なcontractとdoctorによる機能チェックが文書化されており、ジョブ実行前に不足しているFFmpegフィルタを検知できます。",
+        "cons": "GPUアクセラレーションによるエンコードはApple SiliconのApple VideoToolboxに限られているように見え、41個のツールのうち29個はstableではなくbetaと表示されており、クロップや被写体フレーミングといった操作は自動的な顔・物体トラッキングではなく、呼び出すエージェント自身の視覚的判断に依存しているようです。",
+        "fit": "このツールは、FFmpegがインストールされたローカルマシン上でAIコーディングエージェントを既に運用しているワークフロー、特にローカルのみでアップロードを伴わない動画処理を望む場合に最も適していると思われます。Apple Siliconを超えるGPUエンコードや完全自動化された被写体トラッキングが必要な場合には、適性が低い可能性があります。"
+      }
+    },
+    "evidence": {
+      "goal": [
+        {
+          "start_line": 8,
+          "end_line": 11,
+          "section_heading": ""
+        }
+      ],
+      "usage": [
+        {
+          "start_line": 53,
+          "end_line": 55,
+          "section_heading": ""
+        },
+        {
+          "start_line": 138,
+          "end_line": 144,
+          "section_heading": "Quick start"
+        }
+      ],
+      "pros": [
+        {
+          "start_line": 84,
+          "end_line": 84,
+          "section_heading": "Review page"
+        },
+        {
+          "start_line": 128,
+          "end_line": 130,
+          "section_heading": "Why"
+        }
+      ],
+      "cons": [
+        {
+          "start_line": 394,
+          "end_line": 394,
+          "section_heading": "Machine-readable contract"
+        },
+        {
+          "start_line": 636,
+          "end_line": 636,
+          "section_heading": "Does it encode on the GPU?"
+        }
+      ],
+      "fit": [
+        {
+          "start_line": 86,
+          "end_line": 86,
+          "section_heading": "Review page"
+        },
+        {
+          "start_line": 623,
+          "end_line": 632,
+          "section_heading": "Does it auto-track faces or subjects for reframing?"
+        }
+      ]
+    },
+    "invariants": [
+      {
+        "kind": "command",
+        "value": "npx ffmpeg-skill",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "npx ffmpeg-skill setup",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "command",
+        "value": "npx ffmpeg-skill doctor",
+        "fields": [
+          "usage"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "41",
+        "fields": [
+          "usage",
+          "pros",
+          "cons"
+        ]
+      },
+      {
+        "kind": "number",
+        "value": "12",
+        "fields": [
+          "pros"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "ffmpeg-skill",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "FFmpeg",
+        "fields": [
+          "goal",
+          "usage",
+          "pros",
+          "fit"
+        ]
+      },
+      {
+        "kind": "product",
+        "value": "MCP",
+        "fields": [
+          "goal",
+          "usage"
+        ]
+      }
+    ],
+    "inference_fields": [
+      "cons",
+      "fit"
+    ],
+    "source": {
+      "kind": "readme",
+      "slug": "kajisho5/ffmpeg-skill",
+      "path": "README.md",
+      "blob_sha": "d5c65dae8d5dae749f151b4bf26527b11f0da822",
+      "content_sha256": "005e7a79b1134ae34519107597bb4663f997ba7c0ee72b28f99fc5ec9a95d3fc",
+      "provider": "claude-cli-oauth",
+      "interface": "claude-p",
+      "cli_version": "2.1.332",
+      "auth_method": "oauth_token",
+      "api_provider": "firstParty",
+      "model": "claude-sonnet-5",
+      "schema_version": 3,
+      "prompt_schema_version": 3,
+      "translation_applicable": false
+    }
+  },
   "Nutlope/hallmark": {
     "content": {
       "goal": "Hallmark is a design skill for Claude Code, Codex, Cursor and OpenCode, made by Together AI and documented at https://www.usehallmark.com. It aims to generate web pages that avoid common visual tells associated with AI-generated design, applying a baseline of checks before building a page.",
@@ -6823,47 +7018,47 @@
   },
   "Ebony-Vinyl/dsh-our-free-model": {
     "content": {
-      "goal": "dsh-our-free-model is a plugin for the DSH (DeepSeek Harness) application that provides access to free-tier AI model lanes without requiring sign-in, an account, or an API key. It sources models from the OpenCode Zen gateway and the Kilo AI public gateway, refreshing its model list from upstream rather than storing a static snapshot.",
-      "usage": "Install via the command `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` for a web profile, then restart the app once. A separate standalone local service (in development) can be run from source with `npm run start:standalone`, listening on port 18900 by default.",
-      "pros": "The plugin requires no configuration, account, or key setup, and documents its upstream sources transparently. It also bundles an aggregator channel listing 77 third-party providers, an OpenAI-compatible local forwarding port, and token-saving features such as tool-output compression.",
-      "cons": "The README warns that an unscoped npm package of the same name is an unofficial third-party repackaging and should not be installed. The free lanes are also rate-limited per session, returning HTTP 429 once a quota is exhausted, and the Kilo free pool's provider states that prompts may be logged to improve its service.",
-      "fit": "The project is marked beta status with zero dependencies and no build step, which appears suited to users already running DSH who want free model access without billing. The standalone service variant is still under development, and running it from source requires Node ^22.19.0 or >=24.0.0."
+      "goal": "dsh-our-free-model is a DSH plugin that lets users access a free AI model lane without signing in, creating an account, or entering an API key. It also exposes an OpenAI-compatible local forwarding port and determines model availability based on the user's own machine's network egress.",
+      "usage": "Install via command line with `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1`, then restart the application once; the model then appears in the input box's model selector. A separate standalone local service, still in development, can instead be started from source with `npm run start:standalone`, listening by default on port 18900.",
+      "pros": "According to the README, it requires no account, API key, or quota request; the model list is refreshed from upstream each time rather than from static snapshots; the selector only shows models the gateway actually routes. It also includes in-app upgrade with hot-reload, a local usage dashboard, tool-output compression to save tokens, and the ability to chain models into fallback or round-robin routes.",
+      "cons": "The free lane enforces session-based rate limits tied to upstream quotas; the README states that a real 429 response opens a retry window (default 6 hours) during which the plugin locally rejects new requests for that lane rather than retrying against upstream.",
+      "fit": "This project is distributed as a plugin for the DSH host application, compatible with kernel versions 0.1.5 through 0.1.7-rc.2. A separate standalone local service that does not require DSH is still in development, and according to the README its installable release artifacts had not yet been published."
     },
     "summaries": {
       "en": {
-        "goal": "dsh-our-free-model is a plugin for the DSH (DeepSeek Harness) application that provides access to free-tier AI model lanes without requiring sign-in, an account, or an API key. It sources models from the OpenCode Zen gateway and the Kilo AI public gateway, refreshing its model list from upstream rather than storing a static snapshot.",
-        "usage": "Install via the command `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` for a web profile, then restart the app once. A separate standalone local service (in development) can be run from source with `npm run start:standalone`, listening on port 18900 by default.",
-        "pros": "The plugin requires no configuration, account, or key setup, and documents its upstream sources transparently. It also bundles an aggregator channel listing 77 third-party providers, an OpenAI-compatible local forwarding port, and token-saving features such as tool-output compression.",
-        "cons": "The README warns that an unscoped npm package of the same name is an unofficial third-party repackaging and should not be installed. The free lanes are also rate-limited per session, returning HTTP 429 once a quota is exhausted, and the Kilo free pool's provider states that prompts may be logged to improve its service.",
-        "fit": "The project is marked beta status with zero dependencies and no build step, which appears suited to users already running DSH who want free model access without billing. The standalone service variant is still under development, and running it from source requires Node ^22.19.0 or >=24.0.0."
+        "goal": "dsh-our-free-model is a DSH plugin that lets users access a free AI model lane without signing in, creating an account, or entering an API key. It also exposes an OpenAI-compatible local forwarding port and determines model availability based on the user's own machine's network egress.",
+        "usage": "Install via command line with `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1`, then restart the application once; the model then appears in the input box's model selector. A separate standalone local service, still in development, can instead be started from source with `npm run start:standalone`, listening by default on port 18900.",
+        "pros": "According to the README, it requires no account, API key, or quota request; the model list is refreshed from upstream each time rather than from static snapshots; the selector only shows models the gateway actually routes. It also includes in-app upgrade with hot-reload, a local usage dashboard, tool-output compression to save tokens, and the ability to chain models into fallback or round-robin routes.",
+        "cons": "The free lane enforces session-based rate limits tied to upstream quotas; the README states that a real 429 response opens a retry window (default 6 hours) during which the plugin locally rejects new requests for that lane rather than retrying against upstream.",
+        "fit": "This project is distributed as a plugin for the DSH host application, compatible with kernel versions 0.1.5 through 0.1.7-rc.2. A separate standalone local service that does not require DSH is still in development, and according to the README its installable release artifacts had not yet been published."
       },
       "ko": {
-        "goal": "dsh-our-free-model은 DSH(DeepSeek Harness) 애플리케이션용 플러그인으로, 로그인, 계정 생성, API 키 입력 없이 무료 모델 레인에 접근할 수 있게 해줍니다. 모델 목록은 OpenCode의 Zen 게이트웨이와 Kilo AI의 공개 게이트웨이에서 가져오며, 정적 스냅샷이 아니라 매번 상위 소스에서 새로 가져옵니다.",
-        "usage": "웹 프로필 환경에서는 `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` 명령으로 설치한 뒤 앱을 한 번 재시작합니다. 개발 중인 별도의 독립 로컬 서비스는 소스에서 `npm run start:standalone` 명령으로 실행할 수 있으며 기본적으로 18900번 포트에서 대기합니다.",
-        "pros": "별도의 설정, 계정, 키 발급 절차 없이 바로 사용할 수 있고, 상위 소스가 문서에 투명하게 공개되어 있습니다. 또한 77개 서드파티 제공자를 목록화한 애그리게이터 채널, OpenAI 호환 로컬 포워딩 포트, 도구 출력 압축 같은 토큰 절약 기능도 함께 제공됩니다.",
-        "cons": "README에는 동일한 이름의 스코프 없는 npm 패키지가 비공식 서드파티 재배포본이므로 설치하지 말라는 경고가 포함되어 있습니다. 또한 무료 레인은 세션 단위로 속도 제한이 걸려 할당량이 소진되면 HTTP 429가 반환되며, Kilo 무료 풀 제공자는 서비스 개선을 위해 프롬프트가 기록될 수 있다고 명시하고 있습니다.",
-        "fit": "이 프로젝트는 베타 상태로 표시되어 있고 의존성이 전혀 없으며 빌드 단계도 없어, 이미 DSH를 사용 중이면서 과금 없이 무료 모델에 접근하려는 사용자에게 적합한 것으로 보입니다. 독립 서비스 버전은 아직 개발 중이며, 소스에서 실행하려면 Node ^22.19.0 또는 >=24.0.0이 필요합니다."
+        "goal": "dsh-our-free-model은 로그인, 계정 생성, API 키 입력 없이 무료 AI 모델 레인에 접속할 수 있게 해주는 DSH 플러그인입니다. 또한 OpenAI 호환 로컬 포워딩 포트를 제공하며, 사용자 자신의 기기의 네트워크 출구를 기준으로 모델 가용성을 판단합니다.",
+        "usage": "`dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` 명령으로 설치한 뒤 앱을 한 번 재시작하면 입력창의 모델 선택기에 모델이 나타납니다. 아직 개발 중인 독립 로컬 서비스는 소스에서 `npm run start:standalone`으로 실행할 수 있으며 기본적으로 포트 18900에서 수신합니다.",
+        "pros": "README에 따르면 계정, API 키, 할당량 신청이 필요 없고, 모델 목록은 정적 스냅샷이 아니라 매번 업스트림에서 새로 가져오며, 선택기는 게이트웨이가 실제로 라우팅하는 모델만 표시합니다. 또한 앱 내 업그레이드와 핫 리로드, 로컬 사용량 대시보드, 토큰 절약을 위한 도구 출력 압축, 모델을 fallback/round-robin 체인으로 묶는 기능도 포함합니다.",
+        "cons": "무료 레인은 업스트림 할당량에 따라 세션 단위로 속도 제한이 걸리며, README에 따르면 실제 429 응답을 받으면 재시도 창(기본 6시간)이 열려 그 동안 플러그인이 해당 레인의 신규 요청을 로컬에서 거부하고 업스트림에 재시도하지 않습니다.",
+        "fit": "이 프로젝트는 DSH 호스트 애플리케이션용 플러그인으로 배포되며, 커널 버전 0.1.5~0.1.7-rc.2와 호환됩니다. DSH 없이 동작하는 별도의 독립 로컬 서비스는 아직 개발 중이며, README에 따르면 설치 가능한 릴리스 산출물은 아직 공개되지 않았습니다."
       },
       "zh-CN": {
-        "goal": "dsh-our-free-model 是面向 DSH（DeepSeek Harness）应用的插件,无需登录、注册账号或填写 API Key 即可使用免费模型车道。模型清单取自 OpenCode 的 Zen 网关与 Kilo AI 的公共网关,并在每次刷新时重新从上游拉取,而非保存静态快照。",
-        "usage": "在 web profile 环境下,可通过命令 `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` 安装,安装完成后重启应用一次。仍在开发中的独立本地服务可从源码运行 `npm run start:standalone`,默认监听端口 18900。",
-        "pros": "该插件开箱即用,无需额外配置、账号或密钥申请,并在文档中公开说明了上游来源。它还提供聚合渠道(内置 77 家第三方提供商)、OpenAI 兼容的本地转发端口,以及工具输出压缩等省 Token 功能。",
-        "cons": "README 提醒 npm 上同名的裸名包并非本仓库发布,属于第三方打包,不应安装。免费车道按会话计速率限制,额度耗尽后会返回 HTTP 429;Kilo 免费池的提供方在其模型卡中声明 prompt 可能被记录用于改进服务。",
-        "fit": "该项目标注为 beta 状态,零依赖且无需构建步骤,看起来比较适合已经在使用 DSH、希望免费使用模型而不产生费用的用户。独立服务版本仍处于开发阶段,从源码运行需要 Node ^22.19.0 或 >=24.0.0。"
+        "goal": "dsh-our-free-model 是一个 DSH 插件，使用户无需登录、创建账号或填写 API Key 即可使用免费模型车道，并提供一个 OpenAI 兼容的本地转发端口；模型可用性根据用户自己机器的网络出口判定。",
+        "usage": "通过命令 `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` 安装后重启应用一次，模型即出现在输入框的模型选择器中。仍在开发中的独立本地服务可从源码运行 `npm run start:standalone`，默认监听端口 18900。",
+        "pros": "据 README 所述，该插件开箱即用，无需账号、Key 或配额申请；模型清单每次都从上游重新拉取而非使用静态快照；选择器只广播网关实际可路由的模型。此外还包含应用内升级与热重载、本机用量看板、用于节省 Token 的工具输出压缩，以及把模型串成 fallback/round-robin 降级链的路由功能。",
+        "cons": "免费车道按上游配额对每个会话计量速率，README 说明一旦触发真实的 429 响应就会开启重试窗口（默认 6 小时），期间插件会在本地直接拒绝该车道的新请求，不再向上游重试。",
+        "fit": "该项目以 DSH 宿主应用的插件形式分发，兼容内核版本 0.1.5 至 0.1.7-rc.2。一个不依赖 DSH 的独立本地服务仍在开发中，README 指出其可安装的发布产物尚未发布。"
       },
       "es": {
-        "goal": "dsh-our-free-model es un plugin para la aplicación DSH (DeepSeek Harness) que permite acceder a carriles de modelos gratuitos sin necesidad de iniciar sesión, crear una cuenta ni introducir una clave de API. Obtiene su lista de modelos desde la pasarela Zen de OpenCode y la pasarela pública de Kilo AI, actualizándola desde el origen en cada refresco en lugar de guardar una instantánea estática.",
-        "usage": "En un perfil web se instala con el comando `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1`, reiniciando la aplicación una vez tras la instalación. Un servicio local independiente, aún en desarrollo, puede ejecutarse desde el código fuente con `npm run start:standalone`, que escucha por defecto en el puerto 18900.",
-        "pros": "El plugin funciona sin configuración, cuentas ni claves, y documenta de forma transparente sus fuentes upstream. Incluye además un canal agregador con 77 proveedores externos registrados, un puerto de reenvío local compatible con OpenAI y funciones de ahorro de tokens como la compresión de salidas de herramientas.",
-        "cons": "El README advierte que el paquete npm sin ámbito (scope) con el mismo nombre no es una publicación oficial del repositorio y no debería instalarse. Los carriles gratuitos aplican límites de velocidad por sesión, devolviendo HTTP 429 al agotar la cuota, y el proveedor del pool gratuito de Kilo declara que los prompts pueden registrarse para mejorar su servicio.",
-        "fit": "El proyecto se marca como en estado beta, sin dependencias y sin paso de compilación, por lo que parece adecuado para quienes ya usan DSH y buscan acceso gratuito a modelos sin facturación. La variante de servicio independiente todavía está en desarrollo, y ejecutarla desde el código fuente requiere Node ^22.19.0 o >=24.0.0."
+        "goal": "dsh-our-free-model es un plugin para DSH que permite usar un carril de modelos de IA gratuito sin iniciar sesión, crear una cuenta ni introducir una clave de API. También expone un puerto de reenvío local compatible con OpenAI y determina la disponibilidad de los modelos según la salida de red de la propia máquina del usuario.",
+        "usage": "Se instala con el comando `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` y, tras reiniciar la aplicación una vez, el modelo aparece en el selector del cuadro de entrada. También existe un servicio local independiente, aún en desarrollo, que puede ejecutarse desde el código fuente con `npm run start:standalone`, escuchando por defecto en el puerto 18900.",
+        "pros": "Según el README, no requiere cuenta, clave de API ni solicitud de cuota; la lista de modelos se vuelve a obtener del proveedor cada vez en lugar de usar instantáneas estáticas; el selector solo muestra modelos que la puerta de enlace realmente enruta. Incluye además actualización y recarga en caliente dentro de la app, un panel de uso local, compresión de salidas de herramientas para ahorrar tokens, y la posibilidad de encadenar modelos en rutas de reserva (fallback) o round-robin.",
+        "cons": "El carril gratuito aplica límites de velocidad por sesión según la cuota del proveedor; el README indica que al recibir una respuesta real 429 se abre una ventana de reintento (6 horas por defecto) durante la cual el plugin rechaza localmente nuevas solicitudes para ese carril en lugar de reintentarlas contra el proveedor.",
+        "fit": "Este proyecto se distribuye como un plugin para la aplicación anfitriona DSH, compatible con versiones de núcleo 0.1.5 a 0.1.7-rc.2. Un servicio local independiente que no requiere DSH sigue en desarrollo y, según el README, sus artefactos de publicación instalables aún no se habían publicado."
       },
       "ja": {
-        "goal": "dsh-our-free-model は DSH(DeepSeek Harness)アプリケーション向けのプラグインで、ログインやアカウント作成、API キーの入力なしに無料モデルレーンを利用できるようにします。モデル一覧は OpenCode の Zen ゲートウェイと Kilo AI のパブリックゲートウェイから取得され、静的なスナップショットではなく更新のたびに上流から再取得されます。",
-        "usage": "web プロファイル環境では `dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` コマンドでインストールし、インストール後に一度アプリを再起動します。開発中の独立したローカルサービスはソースから `npm run start:standalone` で起動でき、デフォルトでポート 18900 で待機します。",
-        "pros": "設定やアカウント、キーの発行を必要とせずそのまま使用でき、上流の出典もドキュメントで透明に説明されています。さらに 77 社のサードパーティプロバイダーを登録したアグリゲーターチャネル、OpenAI 互換のローカル転送ポート、ツール出力圧縮などのトークン節約機能も備えています。",
-        "cons": "README には、同名の scope なし npm パッケージは本リポジトリが発行したものではなく第三者による再パッケージであり、インストールしないよう警告が記載されています。また無料レーンはセッション単位でレート制限がかかり、クォータを消費すると HTTP 429 が返されます。Kilo の無料プールの提供元はモデルカードにおいて、プロンプトがサービス改善のために記録される場合があると明記しています。",
-        "fit": "本プロジェクトはベータ状態と表示され、依存関係ゼロ・ビルド不要であることから、既に DSH を利用しており課金なしでモデルにアクセスしたいユーザーに適していると考えられます。独立サービス版はまだ開発中であり、ソースから実行するには Node ^22.19.0 または >=24.0.0 が必要です。"
+        "goal": "dsh-our-free-model は、ログインやアカウント作成、APIキーの入力なしに無料モデルレーンを利用できるようにする DSH プラグインです。OpenAI 互換のローカル転送ポートも提供し、モデルの利用可否はユーザー自身のマシンのネットワーク出口に基づいて判定されます。",
+        "usage": "`dsh plugin --profile web add @ebony-vinyl/dsh-our-free-model@2.9.1` コマンドでインストールし、アプリを一度再起動すると入力欄のモデル選択メニューにモデルが表示されます。開発中のスタンドアロンのローカルサービスは、ソースから `npm run start:standalone` で起動でき、デフォルトではポート 18900 で待ち受けます。",
+        "pros": "README によれば、アカウント、APIキー、クォータ申請は不要で、モデル一覧は静的スナップショットではなく毎回アップストリームから再取得されます。選択メニューにはゲートウェイが実際にルーティングするモデルのみが表示され、アプリ内アップグレードとホットリロード、ローカル使用状況ダッシュボード、トークン節約のためのツール出力圧縮、モデルをフォールバック/ラウンドロビンのルートに連結する機能も備えています。",
+        "cons": "無料レーンはアップストリームのクォータに基づいてセッション単位でレート制限がかかり、README によると実際に 429 応答を受けると再試行ウィンドウ（デフォルト6時間）が開き、その間プラグインはそのレーンへの新規リクエストをローカルで拒否し、アップストリームへの再試行は行いません。",
+        "fit": "本プロジェクトは DSH ホストアプリケーション向けのプラグインとして配布され、カーネルバージョン 0.1.5 から 0.1.7-rc.2 に対応します。DSH を使わないスタンドアロンのローカルサービスは依然開発中で、README によればインストール可能なリリース物はまだ公開されていません。"
       }
     },
     "evidence": {
@@ -6872,23 +7067,23 @@
           "start_line": 23,
           "end_line": 31,
           "section_heading": "dsh-our-free-model"
-        },
-        {
-          "start_line": 52,
-          "end_line": 53,
-          "section_heading": "亮点"
         }
       ],
       "usage": [
         {
-          "start_line": 132,
-          "end_line": 132,
+          "start_line": 131,
+          "end_line": 133,
           "section_heading": "安装"
         },
         {
-          "start_line": 106,
-          "end_line": 109,
+          "start_line": 105,
+          "end_line": 107,
           "section_heading": "独立本地服务（开发中）"
+        },
+        {
+          "start_line": 152,
+          "end_line": 152,
+          "section_heading": "安装"
         }
       ],
       "pros": [
@@ -6898,42 +7093,37 @@
           "section_heading": "亮点"
         },
         {
-          "start_line": 65,
-          "end_line": 65,
+          "start_line": 56,
+          "end_line": 57,
+          "section_heading": "亮点"
+        },
+        {
+          "start_line": 66,
+          "end_line": 67,
           "section_heading": "亮点"
         }
       ],
       "cons": [
         {
-          "start_line": 121,
-          "end_line": 126,
-          "section_heading": "安装"
-        },
-        {
           "start_line": 629,
           "end_line": 629,
           "section_heading": "已知边界"
-        },
-        {
-          "start_line": 747,
-          "end_line": 747,
-          "section_heading": "上游是哪些源"
         }
       ],
       "fit": [
         {
           "start_line": 100,
-          "end_line": 104,
+          "end_line": 103,
           "section_heading": "独立本地服务（开发中）"
         },
         {
-          "start_line": 690,
-          "end_line": 690,
-          "section_heading": "开发"
+          "start_line": 117,
+          "end_line": 117,
+          "section_heading": "独立本地服务（开发中）"
         },
         {
           "start_line": 11,
-          "end_line": 12,
+          "end_line": 11,
           "section_heading": "dsh-our-free-model"
         }
       ]
@@ -6962,13 +7152,6 @@
       },
       {
         "kind": "number",
-        "value": "77",
-        "fields": [
-          "pros"
-        ]
-      },
-      {
-        "kind": "number",
         "value": "18900",
         "fields": [
           "usage"
@@ -6988,40 +7171,19 @@
           "goal",
           "usage"
         ]
-      },
-      {
-        "kind": "product",
-        "value": "DSH",
-        "fields": [
-          "goal",
-          "usage",
-          "fit"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "OpenCode",
-        "fields": [
-          "goal"
-        ]
-      },
-      {
-        "kind": "product",
-        "value": "Kilo AI",
-        "fields": [
-          "goal"
-        ]
       }
     ],
     "inference_fields": [
+      "pros",
+      "cons",
       "fit"
     ],
     "source": {
       "kind": "readme",
       "slug": "ebony-vinyl/dsh-our-free-model",
       "path": "README.md",
-      "blob_sha": "50ee2b632b444cca979a7f1ae6facedc450c0cb2",
-      "content_sha256": "88e750664a68719246788776218e2ce3ff3d2e86d0767b3ed30766a030bda93a",
+      "blob_sha": "3738ac769bfa9f1b31407f4f5dbb2a68d70d9aef",
+      "content_sha256": "8fec4085073f0d54229232db81a5ee968b67887a3a35c1120cbe82ebc2496356",
       "provider": "claude-cli-oauth",
       "interface": "claude-p",
       "cli_version": "2.1.332",
